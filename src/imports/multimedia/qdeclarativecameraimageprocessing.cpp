@@ -343,14 +343,14 @@ void QDeclarativeCameraImageProcessing::setColorFilter(ColorFilter filter)
 }
 
 /*!
-    \qmlsignal QtMultimedia::Camera::whiteBalanceModeChanged(Camera::WhiteBalanceMode)
+    \qmlsignal QtMultimedia::Camera::whiteBalanceModeChanged()
     This signal is emitted when the \c whiteBalanceMode property is changed.
 
     The corresponding handler is \c onWhiteBalanceModeChanged.
 */
 
 /*!
-    \qmlsignal QtMultimedia::Camera::manualWhiteBalanceChanged(qreal)
+    \qmlsignal QtMultimedia::Camera::manualWhiteBalanceChanged()
     This signal is emitted when the \c manualWhiteBalance property is changed.
 
     The corresponding handler is \c onManualWhiteBalanceChanged.

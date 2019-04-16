@@ -393,7 +393,7 @@ void QDeclarativeRadio::scanUp()
     \qmlmethod QtMultimedia::Radio::searchAllStations(enumeration searchMode)
 
     Start searching the complete frequency range for the current band, and save all the
-    radio stations found. The search mode can be either of the values described in the
+    radio stations found. The \a searchMode can be either of the values described in the
     table below.
 
     \table

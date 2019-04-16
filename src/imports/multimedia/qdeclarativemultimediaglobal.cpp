@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
 \qmltype QtMultimedia
 \inqmlmodule QtMultimedia
 \ingroup multimedia_qml
-\since QtMultimedia 5.4
+\since 5.4
 \brief Provides a global object with useful functions from Qt Multimedia.
 
 The \c QtMultimedia object is a global object with utility functions and properties.

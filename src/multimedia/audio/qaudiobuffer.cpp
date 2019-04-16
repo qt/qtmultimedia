@@ -573,35 +573,30 @@ void *QAudioBuffer::data()
 
 /*!
     \typedef QAudioBuffer::S8U
-    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for an unsigned stereo 8 bit sample.  Each
     channel is an \e {unsigned char}.
 */
 /*!
     \typedef QAudioBuffer::S8S
-    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for a signed stereo 8 bit sample.  Each
     channel is a \e {signed char}.
 */
 /*!
     \typedef QAudioBuffer::S16U
-    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for an unsigned stereo 16 bit sample.  Each
     channel is an \e {unsigned short}.
 */
 /*!
     \typedef QAudioBuffer::S16S
-    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for a signed stereo 16 bit sample.  Each
     channel is a \e {signed short}.
 */
 /*!
     \typedef QAudioBuffer::S32F
-    \relates QAudioBuffer::StereoFrame
 
     This is a predefined specialization for an 32 bit float sample.  Each
     channel is a \e float.

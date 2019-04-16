@@ -519,7 +519,7 @@ void QDeclarativeSoundInstance::handleStateChanged()
 /*!
     \qmlsignal QtAudioEngine::SoundInstance::stateChanged(state)
 
-    This signal is emitted when \l state is changed
+    This signal is emitted when \a state is changed.
 
     The corresponding handler is \c onStateChanged.
 */
@@ -527,7 +527,7 @@ void QDeclarativeSoundInstance::handleStateChanged()
 /*!
     \qmlsignal QtAudioEngine::SoundInstance::positionChanged()
 
-    This signal is emitted when \l position is changed
+    This signal is emitted when \l position is changed.
 
     The corresponding handler is \c onPositionChanged.
 */
@@ -535,7 +535,7 @@ void QDeclarativeSoundInstance::handleStateChanged()
 /*!
     \qmlsignal QtAudioEngine::SoundInstance::directionChanged()
 
-    This signal is emitted when \l direction is changed
+    This signal is emitted when \l direction is changed.
 
     The corresponding handler is \c onDirectionChanged.
 */
@@ -543,7 +543,7 @@ void QDeclarativeSoundInstance::handleStateChanged()
 /*!
     \qmlsignal QtAudioEngine::SoundInstance::velocityChanged()
 
-    This signal is emitted when \l velocity is changed
+    This signal is emitted when \l velocity is changed.
 
     The corresponding handler is \c onVelocityChanged.
 */
@@ -551,7 +551,7 @@ void QDeclarativeSoundInstance::handleStateChanged()
 /*!
     \qmlsignal QtAudioEngine::SoundInstance::gainChanged()
 
-    This signal is emitted when \l gain is changed
+    This signal is emitted when \l gain is changed.
 
     The corresponding handler is \c onGainChanged.
 */
@@ -559,7 +559,7 @@ void QDeclarativeSoundInstance::handleStateChanged()
 /*!
     \qmlsignal QtAudioEngine::SoundInstance::pitchChanged()
 
-    This signal is emitted when \l pitch is changed
+    This signal is emitted when \l pitch is changed.
 
     The corresponding handler is \c onPitchChanged.
 */
@@ -567,7 +567,7 @@ void QDeclarativeSoundInstance::handleStateChanged()
 /*!
     \qmlsignal QtAudioEngine::SoundInstance::soundChanged()
 
-    This signal is emitted when \l sound is changed
+    This signal is emitted when \l sound is changed.
 
     The corresponding handler is \c onSoundChanged.
 */

@@ -511,7 +511,7 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
     By default \c autoOrientation is disabled.
 
     \sa orientation
-    \since QtMultimedia 5.2
+    \since 5.2
 */
 bool QDeclarativeVideoOutput::autoOrientation() const
 {
@@ -880,7 +880,7 @@ void QDeclarativeVideoOutput::_q_invalidateSceneGraph()
 
 /*!
     \qmlproperty enumeration QtMultimedia::VideoOutput::flushMode
-    \since QtMultimedia 5.13
+    \since 5.13
 
     Set this property to define what \c VideoOutput should show
     when playback is finished or stopped.

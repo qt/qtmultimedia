@@ -50,16 +50,14 @@ which moves across the \l{VideoOutput} item.
 
 \section1 Application Structure
 
-The \l{multimedia/video/qmlvideo/qml/qmlvideo/main.qml} file creates a UI which includes
-the following items:
+The \c main.qml file creates a UI which includes the following items:
 
 \list
-    \li Two \l{multimedia/video/qmlvideo/qml/qmlvideo/Button.qml}{Button} instances, each
-       of which displays a filename, and can be used to launch a
-       \l{multimedia/video/qmlvideo/qml/qmlvideo/FileBrowser.qml}{FileBrowser}
-    \li An exit \l{multimedia/video/qmlvideo/qml/qmlvideo/Button.qml}{Button}
-    \li A \l{multimedia/video/qmlvideo/qml/qmlvideo/SceneSelectionPanel.qml}{SceneSelectionPanel},
-       which is a flickable list displaying the available scenes
+    \li Two \c Button instances, each of which displays a filename, and can be
+        used to launch a \c FileBrowser.
+    \li An exit \c Button.
+    \li A \c SceneSelectionPanel, which is a flickable list displaying the
+        available scenes.
     \li At the lower left, an item which displays the QML repainting rate - the
        upper number is the instantaneous frame rate and the lower number is the
        average over the past second.
@@ -69,17 +67,15 @@ the following items:
 
 Each scene in the flickable list is implemented in its own QML file - for
 example the video-basic scene (which just displays a static \l{VideoOutput}
-in the center of the screen) is implemented in the
-\l{multimedia/video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic.qml} file.  As you
-can see from the code, this makes use of a type of inheritance: a
-\l{multimedia/video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic} item ...
+in the center of the screen) is implemented in the \c VideoBasic.qml file.  As
+you can see from the code, this makes use of a type of inheritance; a
+\c VideoBasic item ...
 
 \quotefromfile multimedia/video/qmlvideo/qml/qmlvideo/VideoBasic.qml
 \skipto import
 \printuntil /^\}/
 
-... is-a
-\l{multimedia/video/qmlvideo/qml/qmlvideo/SceneBasic.qml}{SceneBasic} ...
+... is of type \c SceneBasic ...
 
 \quotefromfile multimedia/video/qmlvideo/qml/qmlvideo/SceneBasic.qml
 \skipto import
@@ -91,8 +87,7 @@ can see from the code, this makes use of a type of inheritance: a
 \skipto }
 \printuntil /^\}/
 
-... which is-a
-\l{multimedia/video/qmlvideo/qml/qmlvideo/Scene.qml}{Scene}:
+... which itself is a \c Scene:
 
 \quotefromfile multimedia/video/qmlvideo/qml/qmlvideo/Scene.qml
 \skipto import
@@ -104,33 +99,28 @@ can see from the code, this makes use of a type of inheritance: a
 \skipto Button
 \printuntil /^\}/
 
-\l{multimedia/video/qmlvideo/qml/qmlvideo/SceneBasic.qml}{SceneBasic} describes the
-structure and behaviour of the scene, but is agnostic of the type of content
-which will be displayed - this is abstracted by
-\l{multimedia/video/qmlvideo/qml/qmlvideo/Content.qml}{Content}.
+\c SceneBasic describes the structure and behavior of the scene, but is
+agnostic of the type of content which will be displayed - this is abstracted
+by \c Content.
 
 This pattern allows us to define a particular use case (in this case, simply
 display a static piece of content), and then instantiate that use case for
-both video content
-(\l{multimedia/video/qmlvideo/qml/qmlvideo/VideoBasic.qml}{VideoBasic}) and camera content
-(\l{multimedia/video/qmlvideo/qml/qmlvideo/CameraBasic.qml}{CameraBasic}).  This approach
-is used to implement many of the other scenes - for example, "repeatedly slide
-the content from left to right and back again" is implemented by
-\l{multimedia/video/qmlvideo/qml/qmlvideo/SceneMove.qml}{SceneMove}, on which
-\l{multimedia/video/qmlvideo/qml/qmlvideo/VideoMove.qml}{VideoMove} and
-\l{multimedia/video/qmlvideo/qml/qmlvideo/CameraMove.qml}{CameraMove} are based.
+both video content (\c {VideoBasic}) and camera content \c ({CameraBasic}).
+This approach is used to implement many of the other scenes - for example,
+\e {"repeatedly slide the content from left to right and back again"} is
+implemented by \c SceneMove, on which \c VideoMove and \c CameraMove are based.
 
 Depending on the value of the contentType property in the top-level scene
-instance, the embedded
-\l{multimedia/video/qmlvideo/qml/qmlvideo/Content.qml}{Content} item creates either a
-\l{MediaPlayer} or a \l{Camera} item.
+instance, the embedded \c Content item creates either a
+\l[QML]{MediaPlayer} or a \l[QML]{Camera} item.
 
 \section1 Calculating and Displaying QML Painting Rate
 
 \input multimedia/doc/src/examples/video-qml-paint-rate.qdocinc
 
 All that remains is to connect the afterRendering() signal of the QQuickView
-object to a JavaScript function, which will eventually call frequencyItem.notify():
+object to a JavaScript function, which will eventually call
+\c frequencyItem.notify():
 
 \quotefromfile multimedia/video/qmlvideo/main.cpp
 \skipto QGuiApplication

@@ -181,13 +181,13 @@ QVariantList QDeclarativeCameraFlash::supportedModes() const
 }
 
 /*!
-    \qmlsignal QtMultimedia::CameraFlash::flashModeChanged(int)
+    \qmlsignal QtMultimedia::CameraFlash::flashModeChanged()
     This signal is emitted when the \c flashMode property is changed.
     The corresponding handler is \c onFlashModeChanged.
 */
 
 /*!
-    \qmlsignal QtMultimedia::CameraFlash::flashReady(bool)
+    \qmlsignal QtMultimedia::CameraFlash::flashReady()
     This signal is emitted when QCameraExposure indicates that
     the flash is ready to use.
     The corresponding handler is \c onFlashReadyChanged.

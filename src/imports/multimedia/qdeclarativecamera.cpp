@@ -251,7 +251,7 @@ void QDeclarativeCamera::componentComplete()
     preserved when changing the camera device.
 
     \sa displayName, position
-    \since QtMultimedia 5.4
+    \since 5.4
 */
 
 QString QDeclarativeCamera::deviceId() const
@@ -292,7 +292,7 @@ void QDeclarativeCamera::setDeviceId(const QString &name)
     preserved when changing the camera device.
 
     \sa deviceId
-    \since QtMultimedia 5.4
+    \since 5.4
 */
 
 QDeclarativeCamera::Position QDeclarativeCamera::position() const
@@ -329,7 +329,7 @@ void QDeclarativeCamera::setPosition(Position position)
 
     \readonly
     \sa deviceId
-    \since QtMultimedia 5.4
+    \since 5.4
 */
 
 QString QDeclarativeCamera::displayName() const
@@ -353,7 +353,7 @@ QString QDeclarativeCamera::displayName() const
 
     \readonly
     \sa VideoOutput::orientation
-    \since QtMultimedia 5.4
+    \since 5.4
 */
 
 int QDeclarativeCamera::orientation() const
@@ -967,7 +967,7 @@ QDeclarativeCameraViewfinder *QDeclarativeCamera::viewfinder()
 }
 
 /*!
-    \qmlmethod list<size> QtMultimedia::Camera::supportedViewfinderResolutions(real minimumFrameRate = undefined, real maximumFrameRate = undefined)
+    \qmlmethod list<size> QtMultimedia::Camera::supportedViewfinderResolutions(real minimumFrameRate, real maximumFrameRate)
 
     Returns a list of supported viewfinder resolutions.
 
@@ -1003,7 +1003,7 @@ QJSValue QDeclarativeCamera::supportedViewfinderResolutions(qreal minimumFrameRa
 }
 
 /*!
-    \qmlmethod list<object> QtMultimedia::Camera::supportedViewfinderFrameRateRanges(size resolution = undefined)
+    \qmlmethod list<object> QtMultimedia::Camera::supportedViewfinderFrameRateRanges(size resolution)
 
     Returns a list of supported viewfinder frame rate ranges.
 
