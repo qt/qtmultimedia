@@ -486,7 +486,7 @@ bool QDeclarativePlaylist::insertItems(int index, const QList<QUrl> &sources)
 
     Moves the item at index position \a from to index position \a to.
 
-    Returns true if the item is moved successfully.
+    Returns \c true if the item is moved successfully.
 
     \since 5.7
 */
@@ -498,9 +498,9 @@ bool QDeclarativePlaylist::moveItem(int from, int to)
 /*!
     \qmlmethod bool QtMultimedia::Playlist::removeItem(index)
 
-    Removed the item at the given \a index from the playlist.
+    Removes the item at the given \a index from the playlist.
 
-    Returns true if the \a source is removed successfully.
+    Returns \c true if the item is removed successfully.
 */
 bool QDeclarativePlaylist::removeItem(int index)
 {
@@ -512,7 +512,7 @@ bool QDeclarativePlaylist::removeItem(int index)
 
     Removes items in the playlist from \a start to \a end inclusive.
 
-    Returns true if the items are removed successfully.
+    Returns \c true if the items are removed successfully.
 
     \since 5.7
 */
@@ -526,7 +526,7 @@ bool QDeclarativePlaylist::removeItems(int start, int end)
 
     Removes all the items from the playlist.
 
-    Returns true if the operation is successful.
+    Returns \c true if the operation is successful.
 */
 bool QDeclarativePlaylist::clear()
 {

@@ -39,11 +39,28 @@ The QML types for \l{Qt Multimedia} support the basic use cases such as:
  \li and access camera settings.
 \endlist
 
-The QML types can be imported into your application using the following import
-statement in your .qml file:
-\code
-import QtMultimedia 5.8
-\endcode
+\section1 QML Types
 
-\section1 QML types
+Qt Multimedia QML types can be imported into your application using the
+following import statement in your .qml file:
+
+\qml \QtMinorVersion
+import QtMultimedia 5.\1
+\endqml
+
+\generatelist qmltypesbymodule QtMultimedia
+
+\section2 Qt Audio Engine
+
+\l {QtAudioEngine}{Qt Audio Engine} provides types for 3D positional audio
+playback and content management. These types can be imported into your
+application using the following import statement in your .qml file:
+
+\qml \QtMinorVersion
+import QtAudioEngine 1.\1
+\endqml
+
+\generatelist qmltypesbymodule QtAudioEngine
+
+\noautolist
 */

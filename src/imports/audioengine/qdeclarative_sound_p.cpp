@@ -61,7 +61,8 @@ QDeclarativeSoundCone::QDeclarativeSoundCone(QObject *parent)
     \qmlproperty real Sound::cone.innerAngle
 
     This property holds the innerAngle for Sound definition.
-    The range is [0, 360] degree. There is no directional attenuation within innerAngle.
+    The range is [0, 360] degree. There is no directional attenuation
+    within innerAngle.
 */
 qreal QDeclarativeSoundCone::innerAngle() const
 {
@@ -88,8 +89,8 @@ void QDeclarativeSoundCone::setInnerAngle(qreal innerAngle)
     \qmlproperty real Sound::cone.outerAngle
 
     This property holds the outerAngle for Sound definition.
-    The range is [0, 360] degree. All audio output from this sound will be attenuated by \l outerGain
-    outside outerAngle.
+    The range is [0, 360] degree. All audio output from this sound will be
+    attenuated by \l {cone.outerGain}{outerGain} outside outerAngle.
 */
 qreal QDeclarativeSoundCone::outerAngle() const
 {
@@ -117,7 +118,7 @@ void QDeclarativeSoundCone::setOuterAngle(qreal outerAngle)
 
     This property holds attenuation value for directional attenuation of this sound.
     The range is [0, 1]. All audio output from this sound will be attenuated by outerGain
-    outside \l outerAngle.
+    outside \l {cone.outerAngle}{outerAngle}.
 */
 qreal QDeclarativeSoundCone::outerGain() const
 {
