@@ -126,7 +126,7 @@ void QAndroidMetaDataReaderControl::onUpdateMetaData()
     if (m_mediaContent.isNull())
         return;
 
-    const QUrl &url = m_mediaContent.canonicalUrl();
+    const QUrl &url = m_mediaContent.request().url();
     QtConcurrent::run(&extractMetadata, this, url);
 }
 
@@ -134,7 +134,7 @@ void QAndroidMetaDataReaderControl::updateData(const QVariantMap &metadata, cons
 {
     const QMutexLocker l(&m_mtx);
 
-    if (m_mediaContent.canonicalUrl() != url)
+    if (m_mediaContent.request().url() != url)
         return;
 
     const bool oldAvailable = m_available;

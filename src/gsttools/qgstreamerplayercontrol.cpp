@@ -377,14 +377,10 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     m_currentResource = content;
     m_stream = stream;
 
-    QNetworkRequest request;
+    QNetworkRequest request = content.request();
 
-    if (m_stream) {
+    if (m_stream)
         userStreamValid = stream->isOpen() && m_stream->isReadable();
-        request = content.canonicalRequest();
-    } else if (!content.isNull()) {
-        request = content.canonicalRequest();
-    }
 
 #if !QT_CONFIG(gstreamer_app)
     m_session->loadFromUri(request);

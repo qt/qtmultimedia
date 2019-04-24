@@ -232,7 +232,7 @@ void QDeclarativePlaylist::setPlaybackMode(PlaybackMode mode)
  */
 QUrl QDeclarativePlaylist::currentItemSource() const
 {
-    return m_playlist->currentMedia().canonicalUrl();
+    return m_playlist->currentMedia().request().url();
 }
 
 /*!
@@ -316,7 +316,7 @@ QString QDeclarativePlaylist::errorString() const
 */
 QUrl QDeclarativePlaylist::itemSource(int index)
 {
-    return m_playlist->media(index).canonicalUrl();
+    return m_playlist->media(index).request().url();
 }
 
 /*!
@@ -548,7 +548,7 @@ QVariant QDeclarativePlaylist::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    return m_playlist->media(index.row()).canonicalUrl();
+    return m_playlist->media(index.row()).request().url();
 }
 
 QHash<int, QByteArray> QDeclarativePlaylist::roleNames() const

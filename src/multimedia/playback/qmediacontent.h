@@ -72,10 +72,11 @@ public:
     bool operator!=(const QMediaContent &other) const;
 
     bool isNull() const;
+    QNetworkRequest request() const;
 
-    QUrl canonicalUrl() const;
-    QNetworkRequest canonicalRequest() const;
 #if QT_DEPRECATED_SINCE(6, 0)
+    QT_DEPRECATED_X("Use QMediaContent::request().url()") QUrl canonicalUrl() const;
+    QT_DEPRECATED_X("Use QMediaContent::request()") QNetworkRequest canonicalRequest() const;
     QT_DEPRECATED QMediaResource canonicalResource() const;
     QT_DEPRECATED QMediaResourceList resources() const;
 #endif

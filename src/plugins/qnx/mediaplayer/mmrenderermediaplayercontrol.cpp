@@ -230,7 +230,7 @@ void MmRendererMediaPlayerControl::attach()
         }
     }
 
-    const QByteArray resourcePath = resourcePathForUrl(m_media.canonicalUrl());
+    const QByteArray resourcePath = resourcePathForUrl(m_media.request().url());
     if (resourcePath.isEmpty()) {
         detach();
         return;

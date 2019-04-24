@@ -759,7 +759,7 @@ void QWinRTMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *s
     }
     emit mediaChanged(media);
 
-    QString urlString = media.canonicalUrl().toString();
+    QString urlString = media.request().url().toString();
     if (!d->stream) {
         // If we can read the file via Qt, use the byte stream approach
         const auto resources = media.resources();

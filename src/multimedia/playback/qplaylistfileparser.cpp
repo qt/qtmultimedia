@@ -504,7 +504,7 @@ void QPlaylistFileParser::start(const QMediaContent &media, QIODevice *stream, c
     if (stream)
         start(stream, mimeType);
     else
-        start(media.canonicalRequest(), mimeType);
+        start(media.request(), mimeType);
 }
 
 void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)

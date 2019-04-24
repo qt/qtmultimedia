@@ -298,7 +298,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
     if (m_graph)
         releaseGraph();
 
-    m_url = media.canonicalUrl();
+    m_url = media.request().url();
     m_stream = stream;
     m_error = QMediaPlayer::NoError;
     m_errorString = QString();

@@ -491,7 +491,7 @@ const QIODevice *AVFMediaPlayerSession::mediaStream() const
 void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *stream)
 {
 #ifdef QT_DEBUG_AVF
-    qDebug() << Q_FUNC_INFO << content.canonicalUrl();
+    qDebug() << Q_FUNC_INFO << content.request().url();
 #endif
 
     [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) unloadMedia];
@@ -508,7 +508,7 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
     const QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatus;
     const QMediaPlayer::State oldState = m_state;
 
-    if (content.isNull() || content.canonicalUrl().isEmpty()) {
+    if (content.isNull() || content.request().url().isEmpty()) {
         m_mediaStatus = QMediaPlayer::NoMedia;
         if (m_mediaStatus != oldMediaStatus)
             Q_EMIT mediaStatusChanged(m_mediaStatus);
@@ -526,7 +526,7 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
 
     //Load AVURLAsset
     //initialize asset using content's URL
-    NSString *urlString = [NSString stringWithUTF8String:content.canonicalUrl().toEncoded().constData()];
+    NSString *urlString = [NSString stringWithUTF8String:content.request().url().toEncoded().constData()];
     NSURL *url = [NSURL URLWithString:urlString];
     [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) setURL:url];
 
