@@ -1,4 +1,6 @@
 darwin {
+    PRODUCT_NAME = $$TARGET
+    macx-xcode: PRODUCT_NAME = $${LITERAL_DOLLAR}{PRODUCT_NAME}
     INFOPLIST = \
        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
        "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" \
@@ -17,9 +19,9 @@ darwin {
         "    <key>CFBundleIdentifier</key>" \
         "    <string>com.digia.$${LITERAL_DOLLAR}{PRODUCT_NAME:rfc1034identifier}</string>" \
         "    <key>CFBundleDisplayName</key>" \
-        "    <string>$${LITERAL_DOLLAR}{PRODUCT_NAME}</string>" \
+        "    <string>$$PRODUCT_NAME</string>" \
         "    <key>CFBundleName</key>" \
-        "    <string>$${LITERAL_DOLLAR}{PRODUCT_NAME}</string>" \
+        "    <string>$$PRODUCT_NAME</string>" \
         "    <key>CFBundleShortVersionString</key>" \
         "    <string>1.0</string>" \
         "    <key>CFBundleVersion</key>" \
