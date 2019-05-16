@@ -55,7 +55,8 @@
                 { "type": "pkgConfig",
                   "args": "gstreamer-1.0 gstreamer-base-1.0 gstreamer-audio-1.0 gstreamer-video-1.0 gstreamer-pbutils-1.0" },
                 { "libs": "-lgstreamer-1.0 -lgstbase-1.0 -lgstaudio-1.0 -lgstvideo-1.0 -lgstpbutils-1.0 -lglib-2.0 -lgobject-2.0",
-                  "condition": "config.win32 || config.macos" }
+                  "condition": "config.win32 || config.macos" },
+                { "libs": "", "condition": "config.android && input.gstreamer != ''" }
             ]
         },
         "gstreamer_app_0_10": {
@@ -74,7 +75,8 @@
             "use": "gstreamer_1_0",
             "sources": [
                 { "type": "pkgConfig", "args": "gstreamer-app-1.0" },
-                { "libs": "-lgstapp-1.0", "condition": "config.win32 || config.macos" }
+                { "libs": "-lgstapp-1.0", "condition": "config.win32 || config.macos" },
+                { "libs": "", "condition": "config.android && input.gstreamer != ''" }
             ]
         },
         "gstreamer_photography_0_10": {
