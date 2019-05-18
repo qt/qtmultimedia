@@ -832,10 +832,17 @@ AndroidCameraPrivate::~AndroidCameraPrivate()
 {
 }
 
+static qint32 s_activeCameras = 0;
+
 bool AndroidCameraPrivate::init(int cameraId)
 {
     m_cameraId = cameraId;
     QJNIEnvironmentPrivate env;
+
+    const bool opened = s_activeCameras & (1 << cameraId);
+    if (opened)
+        return false;
+
     m_camera = QJNIObjectPrivate::callStaticObjectMethod("android/hardware/Camera",
                                                          "open",
                                                          "(I)Landroid/hardware/Camera;",
@@ -854,6 +861,7 @@ bool AndroidCameraPrivate::init(int cameraId)
     QJNIObjectPrivate params = m_camera.callObjectMethod("getParameters",
                                                          "()Landroid/hardware/Camera$Parameters;");
     m_parameters = QJNIObjectPrivate(params);
+    s_activeCameras |= 1 << cameraId;
 
     return true;
 }
@@ -864,8 +872,10 @@ void AndroidCameraPrivate::release()
     m_parametersMutex.lock();
     m_parameters = QJNIObjectPrivate();
     m_parametersMutex.unlock();
-    if (m_camera.isValid())
+    if (m_camera.isValid()) {
         m_camera.callMethod<void>("release");
+        s_activeCameras &= ~(1 << m_cameraId);
+    }
 }
 
 bool AndroidCameraPrivate::lock()

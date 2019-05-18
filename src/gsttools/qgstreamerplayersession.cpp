@@ -1899,7 +1899,7 @@ void QGstreamerPlayerSession::endOfMediaReset()
         m_renderer->stopRenderer();
 
     flushVideoProbes();
-    gst_element_set_state(m_pipeline, GST_STATE_NULL);
+    gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
 
     QMediaPlayer::State oldState = m_state;
     m_pendingState = m_state = QMediaPlayer::StoppedState;

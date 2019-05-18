@@ -376,11 +376,15 @@ void QGraphicsVideoItem::paint(
         if (widget)
             connect(widget, SIGNAL(destroyed()), d->surface, SLOT(viewportDestroyed()));
 
-        d->surface->setGLContext(const_cast<QGLContext *>(QGLContext::currentContext()));
-        if (d->surface->supportedShaderTypes() & QPainterVideoSurface::GlslShader) {
-            d->surface->setShaderType(QPainterVideoSurface::GlslShader);
-        } else {
-            d->surface->setShaderType(QPainterVideoSurface::FragmentProgramShader);
+        if (painter->paintEngine()->type() == QPaintEngine::OpenGL
+            || painter->paintEngine()->type() == QPaintEngine::OpenGL2)
+        {
+            d->surface->setGLContext(const_cast<QGLContext *>(QGLContext::currentContext()));
+            if (d->surface->supportedShaderTypes() & QPainterVideoSurface::GlslShader) {
+                d->surface->setShaderType(QPainterVideoSurface::GlslShader);
+            } else {
+                d->surface->setShaderType(QPainterVideoSurface::FragmentProgramShader);
+            }
         }
 #endif
         if (d->rendererControl && d->rendererControl->surface() != d->surface)
