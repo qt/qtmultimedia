@@ -63,7 +63,6 @@
 #include <qvideorenderercontrol.h>
 
 //#define DEBUG_PLAYBIN
-//#define DEBUG_VO_BIN_DUMP
 
 QT_BEGIN_NAMESPACE
 
@@ -659,12 +658,6 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
     if (!m_playbin)
         return;
 
-#ifdef DEBUG_VO_BIN_DUMP
-    gst_debug_bin_to_dot_file_with_ts(GST_BIN(m_playbin),
-                                  GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL /* GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES*/),
-                                  "playbin_set");
-#endif
-
     GstElement *videoSink = 0;
     if (m_renderer && m_renderer->isReady())
         videoSink = m_renderer->videoSink();
@@ -925,11 +918,6 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
 
     gst_object_unref(GST_OBJECT(srcPad));
 
-#ifdef DEBUG_VO_BIN_DUMP
-    gst_debug_bin_to_dot_file_with_ts(GST_BIN(m_playbin),
-                                  GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL /* | GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES */),
-                                  "playbin_finish");
-#endif
 }
 
 #if !GST_CHECK_VERSION(1,0,0)
@@ -992,6 +980,9 @@ bool QGstreamerPlayerSession::isSeekable() const
 
 bool QGstreamerPlayerSession::play()
 {
+    static bool dumpDot = qEnvironmentVariableIsSet("GST_DEBUG_DUMP_DOT_DIR");
+    if (dumpDot)
+        gst_debug_bin_to_dot_file_with_ts(GST_BIN(m_pipeline), GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL), "session.play");
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
 #endif
