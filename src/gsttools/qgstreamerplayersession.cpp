@@ -407,7 +407,7 @@ bool QGstreamerPlayerSession::setPipeline(GstElement *pipeline)
     m_pipeline = pipeline;
     gst_object_unref(GST_OBJECT(m_bus));
     m_bus = bus;
-    delete m_busHelper;
+    m_busHelper->deleteLater();
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
     m_busHelper->installMessageFilter(this);
 
