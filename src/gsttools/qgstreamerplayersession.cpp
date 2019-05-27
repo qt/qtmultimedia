@@ -61,6 +61,7 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
 #include <qvideorenderercontrol.h>
+#include <QUrlQuery>
 
 //#define DEBUG_PLAYBIN
 
@@ -1658,6 +1659,14 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
         self->m_sourceType = UDPSrc;
         //The udpsrc is always a live source.
         self->m_isLiveSource = true;
+
+        QUrlQuery query(self->m_request.url());
+        const QString var = QLatin1String("udpsrc.caps");
+        if (query.hasQueryItem(var)) {
+            GstCaps *caps = gst_caps_from_string(query.queryItemValue(var).toLatin1().constData());
+            g_object_set(G_OBJECT(source), "caps", caps, NULL);
+            gst_caps_unref(caps);
+        }
     } else if (qstrcmp(G_OBJECT_CLASS_NAME(G_OBJECT_GET_CLASS(source)), "GstSoupHTTPSrc") == 0) {
         //souphttpsrc timeout unit = second
         g_object_set(G_OBJECT(source), "timeout", guint(timeout), NULL);
