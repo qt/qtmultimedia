@@ -295,9 +295,12 @@ void QSample::loadIfNecessary()
     }
 }
 
-// Called in both threads
+// Called in application thread
 bool QSampleCache::notifyUnreferencedSample(QSample* sample)
 {
+    if (m_loadingThread.isRunning())
+        m_loadingThread.wait();
+
     QMutexLocker locker(&m_mutex);
     if (m_capacity > 0)
         return false;
@@ -306,16 +309,17 @@ bool QSampleCache::notifyUnreferencedSample(QSample* sample)
     return true;
 }
 
-// Called in application threadd
+// Called in application thread
 void QSample::release()
 {
     QMutexLocker locker(&m_mutex);
 #ifdef QT_SAMPLECACHE_DEBUG
     qDebug() << "Sample:: release" << this << QThread::currentThread() << m_ref;
 #endif
-    m_ref--;
-    if (m_ref == 0)
+    if (--m_ref == 0) {
+        locker.unlock();
         m_parent->notifyUnreferencedSample(this);
+    }
 }
 
 // Called in dtor and when stream is loaded
