@@ -408,8 +408,6 @@ void DirectShowPlayerService::doSetUrlSource(QMutexLocker *locker)
             m_pendingTasks |= SetRate;
 
         m_source = source;
-    } else if (!m_url.isEmpty()) {
-        m_pendingTasks |= SetUrlSource;
     } else {
         m_graphStatus = InvalidMedia;
 
@@ -531,9 +529,16 @@ void DirectShowPlayerService::doRender(QMutexLocker *locker)
                     } else {
                         locker->unlock();
                         HRESULT hr = graph->RenderEx(pin, /*AM_RENDEREX_RENDERTOEXISTINGRENDERERS*/ 1, 0);
-                        // Do not return an error if no video output is set yet.
-                        if (SUCCEEDED(hr) || !(m_executedTasks & SetVideoOutput)) {
+                        if (SUCCEEDED(hr)) {
                             rendered = true;
+                            m_error = QMediaPlayer::NoError;
+                        } else if (!(m_executedTasks & SetVideoOutput)) {
+                            // Do not return an error if no video output is set yet.
+                            rendered = true;
+                            // Remember the error in this case.
+                            // Handle it when playing is requested and no video output has been provided.
+                            m_error = QMediaPlayer::ResourceError;
+                            m_errorString = QString("%1: %2").arg(__FUNCTION__).arg(qt_error_string(hr));
                         } else if (renderHr == S_OK || renderHr == VFW_E_NO_DECOMPRESSOR){
                             renderHr = hr;
                         }
@@ -914,6 +919,16 @@ void DirectShowPlayerService::play()
 
 void DirectShowPlayerService::doPlay(QMutexLocker *locker)
 {
+    // Invalidate if there is an error while loading.
+    if (m_error != QMediaPlayer::NoError) {
+        m_graphStatus = InvalidMedia;
+        if (!m_errorString.isEmpty())
+            qWarning("%s", qPrintable(m_errorString));
+        m_errorString = QString();
+        QCoreApplication::postEvent(this, new QEvent(QEvent::Type(Error)));
+        return;
+    }
+
     if (IMediaControl *control = com_cast<IMediaControl>(m_graph, IID_IMediaControl)) {
         locker->unlock();
         HRESULT hr = control->Run();
@@ -1615,7 +1630,7 @@ void DirectShowPlayerService::updateStatus()
         m_playerControl->updateStatus(QMediaPlayer::LoadingMedia);
         break;
     case Loaded:
-        if ((m_pendingTasks | m_executingTask | m_executedTasks) & (Play | Pause)) {
+        if ((m_executingTask | m_executedTasks) & (Play | Pause)) {
             if (m_buffering)
                 m_playerControl->updateStatus(QMediaPlayer::BufferingMedia);
             else
