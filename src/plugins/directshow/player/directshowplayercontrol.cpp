@@ -219,6 +219,9 @@ const QIODevice *DirectShowPlayerControl::mediaStream() const
 
 void DirectShowPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
 {
+    if (m_media == media)
+        return;
+
     m_pendingPosition = -1;
     m_emitPosition = -1;
 
