@@ -138,7 +138,7 @@ void QDeclarativeCamera::_q_availabilityChanged(QMultimedia::AvailabilityStatus 
     \header \li Property \li Description
     \row \li \l {CameraCapture} {imageCapture}
          \li Methods and properties for capturing still images.
-    \row \li \l {CameraRecorder} {videoRecording}
+    \row \li \l {CameraRecorder} {videoRecorder}
          \li Methods and properties for capturing movies.
     \row \li \l {CameraExposure} {exposure}
          \li Methods and properties for adjusting exposure (aperture, shutter speed etc).
