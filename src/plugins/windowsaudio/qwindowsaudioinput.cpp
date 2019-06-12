@@ -52,6 +52,7 @@
 #include "qwindowsaudioinput.h"
 
 #include <QtCore/QDataStream>
+#include <QtCore/qtimer.h>
 
 QT_BEGIN_NAMESPACE
 

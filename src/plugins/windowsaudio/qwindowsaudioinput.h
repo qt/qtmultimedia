@@ -55,7 +55,7 @@
 
 #include <QtCore/qfile.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qtimer.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qdatetime.h>
@@ -120,9 +120,9 @@ private:
     QByteArray m_device;
     int bytesAvailable;
     int intervalTime;
-    QTime timeStamp;
+    QElapsedTimer timeStamp;
     qint64 elapsedTimeOffset;
-    QTime timeStampOpened;
+    QElapsedTimer timeStampOpened;
     qint64 totalTimeValue;
     bool pullMode;
     bool resuming;
