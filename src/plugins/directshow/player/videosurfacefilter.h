@@ -62,7 +62,7 @@ class VideoSurfaceFilter : public QObject
     Q_OBJECT
     COM_REF_MIXIN
 public:
-    VideoSurfaceFilter(QAbstractVideoSurface *surface, DirectShowEventLoop *loop, QObject *parent = 0);
+    VideoSurfaceFilter(QAbstractVideoSurface *surface, DirectShowEventLoop *loop, QObject *parent = nullptr);
     ~VideoSurfaceFilter();
 
     STDMETHODIMP QueryInterface(REFIID riid, void **ppv) override;

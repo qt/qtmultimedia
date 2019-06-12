@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
 class DirectShowEvrVideoWindowControl : public EvrVideoWindowControl
 {
 public:
-    DirectShowEvrVideoWindowControl(QObject *parent = 0);
+    DirectShowEvrVideoWindowControl(QObject *parent = nullptr);
     ~DirectShowEvrVideoWindowControl();
 
     IBaseFilter *filter();

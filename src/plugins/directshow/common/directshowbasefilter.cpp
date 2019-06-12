@@ -53,7 +53,7 @@ DirectShowBaseFilter::~DirectShowBaseFilter()
 {
     if (m_clock) {
         m_clock->Release();
-        m_clock = NULL;
+        m_clock = nullptr;
     }
 }
 
@@ -202,7 +202,7 @@ HRESULT DirectShowBaseFilter::FindPin(LPCWSTR Id, IPin **ppPin)
         }
     }
 
-    *ppPin = 0;
+    *ppPin = nullptr;
     return VFW_E_NOT_FOUND;
 }
 
@@ -212,7 +212,7 @@ HRESULT DirectShowBaseFilter::JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pNam
 
     m_filterName = QString::fromWCharArray(pName);
     m_graph = pGraph;
-    m_sink = NULL;
+    m_sink = nullptr;
 
     if (m_graph) {
         if (SUCCEEDED(m_graph->QueryInterface(IID_PPV_ARGS(&m_sink))))

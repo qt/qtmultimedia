@@ -190,21 +190,21 @@ HRESULT DirectShowIOReader::WaitForNext(
             m_readyHead = request->next;
 
             if (!m_readyHead)
-                m_readyTail = 0;
+                m_readyTail = nullptr;
 
             delete request;
 
             return hr;
         }
         if (m_flushing) {
-            *ppSample = 0;
+            *ppSample = nullptr;
             *pdwUser = 0;
 
             return VFW_E_WRONG_STATE;
         }
     } while (m_wait.wait(&m_mutex, dwTimeout));
 
-    *ppSample = 0;
+    *ppSample = nullptr;
     *pdwUser = 0;
 
     return VFW_E_TIMEOUT;
@@ -359,10 +359,10 @@ void DirectShowIOReader::readyRead()
 
             m_pendingHead = m_pendingHead->next;
 
-            m_readyTail->next = 0;
+            m_readyTail->next = nullptr;
 
             if (!m_pendingHead)
-                m_pendingTail = 0;
+                m_pendingTail = nullptr;
 
             if (!m_readyHead)
                 m_readyHead = m_readyTail;
@@ -449,10 +449,10 @@ void DirectShowIOReader::flushRequests()
 
         m_pendingHead = m_pendingHead->next;
 
-        m_readyTail->next = 0;
+        m_readyTail->next = nullptr;
 
         if (!m_pendingHead)
-            m_pendingTail = 0;
+            m_pendingTail = nullptr;
 
         if (!m_readyHead)
             m_readyHead = m_readyTail;

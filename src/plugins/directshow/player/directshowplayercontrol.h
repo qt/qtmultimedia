@@ -55,7 +55,7 @@ class DirectShowPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
 public:
-    DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent = 0);
+    DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent = nullptr);
     ~DirectShowPlayerControl() override;
 
     QMediaPlayer::State state() const override;

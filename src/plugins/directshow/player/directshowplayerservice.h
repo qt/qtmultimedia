@@ -78,7 +78,7 @@ public:
         VideoStream = 0x02
     };
 
-    DirectShowPlayerService(QObject *parent = 0);
+    DirectShowPlayerService(QObject *parent = nullptr);
     ~DirectShowPlayerService() override;
 
     QMediaControl *requestControl(const char *name) override;

@@ -64,7 +64,7 @@ uchar *DirectShowVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine
         if (bytesPerLine)
             *bytesPerLine = m_bytesPerLine;
 
-        BYTE *bytes = 0;
+        BYTE *bytes = nullptr;
 
         if (m_sample->GetPointer(&bytes) == S_OK) {
             m_mapMode = mode;
@@ -72,7 +72,7 @@ uchar *DirectShowVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine
             return reinterpret_cast<uchar *>(bytes);
         }
     }
-    return 0;
+    return nullptr;
 }
 
 void DirectShowVideoBuffer::unmap()

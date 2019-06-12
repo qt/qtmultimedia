@@ -224,8 +224,8 @@ VideoSurfaceFilter::VideoSurfaceFilter(QAbstractVideoSurface *surface, DirectSho
     , m_loop(loop)
     , m_surface(surface)
     , m_renderMutex(QMutex::Recursive)
-    , m_renderEvent(CreateEvent(NULL, FALSE, FALSE, NULL))
-    , m_flushEvent(CreateEvent(NULL, TRUE, FALSE, NULL))
+    , m_renderEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr))
+    , m_flushEvent(CreateEvent(nullptr, TRUE, FALSE, nullptr))
 {
     supportedFormatsChanged();
     connect(surface, &QAbstractVideoSurface::supportedFormatsChanged,
@@ -606,7 +606,7 @@ void VideoSurfaceFilter::clearPendingSample()
     if (m_pendingSample) {
         qCDebug(qLcRenderFilter, "clearPendingSample");
         m_pendingSample->Release();
-        m_pendingSample = NULL;
+        m_pendingSample = nullptr;
     }
 }
 

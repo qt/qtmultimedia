@@ -84,7 +84,7 @@ class DSCameraSession : public QObject
 {
     Q_OBJECT
 public:
-    DSCameraSession(QObject *parent = 0);
+    DSCameraSession(QObject *parent = nullptr);
     ~DSCameraSession() override;
 
     QCamera::Status status() const { return m_status; }

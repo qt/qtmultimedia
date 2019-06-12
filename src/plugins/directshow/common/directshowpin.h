@@ -56,7 +56,7 @@ public:
     virtual ~DirectShowPin();
 
     QString name() const { return m_name; }
-    bool isConnected() const { return m_peerPin != NULL; }
+    bool isConnected() const { return m_peerPin != nullptr; }
 
     virtual bool isMediaTypeSupported(const AM_MEDIA_TYPE *type) = 0;
     virtual QList<DirectShowMediaType> supportedMediaTypes();

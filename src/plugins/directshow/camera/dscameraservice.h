@@ -64,7 +64,7 @@ class DSCameraService : public QMediaService
     Q_OBJECT
 
 public:
-    DSCameraService(QObject *parent = 0);
+    DSCameraService(QObject *parent = nullptr);
     ~DSCameraService() override;
 
     QMediaControl* requestControl(const char *name) override;

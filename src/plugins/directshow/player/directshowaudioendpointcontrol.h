@@ -52,7 +52,7 @@ class DirectShowAudioEndpointControl : public QAudioOutputSelectorControl
 {
     Q_OBJECT
 public:
-    DirectShowAudioEndpointControl(DirectShowPlayerService *service, QObject *parent = 0);
+    DirectShowAudioEndpointControl(DirectShowPlayerService *service, QObject *parent = nullptr);
     ~DirectShowAudioEndpointControl() override;
 
     QList<QString> availableOutputs() const override;

@@ -83,9 +83,9 @@ DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
         FALSE,             // bTemporalCompression
         1,                 // lSampleSize
         GUID_NULL,         // formattype
-        0,                 // pUnk
+        nullptr,           // pUnk
         0,                 // cbFormat
-        0,                 // pbFormat
+        nullptr,           // pbFormat
     };
 
     for (const auto &directshowSubtype : directshow_subtypes) {
@@ -143,7 +143,7 @@ HRESULT DirectShowIOSource::QueryInterface(REFIID riid, void **ppvObject)
         m_queriedForAsyncReader = true;
         *ppvObject = static_cast<IAsyncReader *>(m_reader);
     } else {
-        *ppvObject = 0;
+        *ppvObject = nullptr;
 
         return E_NOINTERFACE;
     }
@@ -372,7 +372,7 @@ HRESULT DirectShowIOSource::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
         pReceivePin->Disconnect();
         if (m_allocator) {
             m_allocator->Release();
-            m_allocator = 0;
+            m_allocator = nullptr;
         }
         if (!m_queriedForAsyncReader)
             hr = VFW_E_NO_TRANSPORT;

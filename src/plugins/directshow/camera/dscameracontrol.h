@@ -52,7 +52,7 @@ class DSCameraControl : public QCameraControl
 {
     Q_OBJECT
 public:
-    DSCameraControl(QObject *parent = 0);
+    DSCameraControl(QObject *parent = nullptr);
     ~DSCameraControl() override;
 
     QCamera::State state() const override { return m_state; }

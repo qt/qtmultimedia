@@ -66,8 +66,8 @@ public:
 
 DirectShowEventLoop::DirectShowEventLoop(QObject *parent)
     : QObject(parent)
-    , m_eventHandle(::CreateEvent(0, 0, 0, 0))
-    , m_waitHandle(::CreateEvent(0, 0, 0, 0))
+    , m_eventHandle(::CreateEvent(nullptr, 0, 0, nullptr))
+    , m_waitHandle(::CreateEvent(nullptr, 0, 0, nullptr))
 {
 }
 
@@ -138,7 +138,7 @@ void DirectShowEventLoop::processEvents()
         m_postsHead = m_postsHead->next;
 
         if (!m_postsHead)
-            m_postsTail = 0;
+            m_postsTail = nullptr;
 
         locker.unlock();
         QCoreApplication::sendEvent(post->receiver, post->event);
