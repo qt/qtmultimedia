@@ -200,13 +200,13 @@ DirectShowPlayerService::~DirectShowPlayerService()
 
 QMediaControl *DirectShowPlayerService::requestControl(const char *name)
 {
-    if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
+    if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
         return m_playerControl;
-    } else if (qstrcmp(name, QAudioOutputSelectorControl_iid) == 0) {
+    if (qstrcmp(name, QAudioOutputSelectorControl_iid) == 0)
         return m_audioEndpointControl;
-    } else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
+    if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
         return m_metaDataControl;
-    } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
+    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!m_videoRendererControl && !m_videoWindowControl) {
             m_videoRendererControl = new DirectShowVideoRendererControl(m_loop);
 
@@ -215,7 +215,9 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
 
             return m_videoRendererControl;
         }
-    } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
+        return nullptr;
+    }
+    if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
         if (!m_videoRendererControl && !m_videoWindowControl) {
             IBaseFilter *filter{};
 
@@ -239,13 +241,16 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
 
             return m_videoWindowControl;
         }
-    } else if (qstrcmp(name, QMediaAudioProbeControl_iid) == 0) {
+        return nullptr;
+    }
+    if (qstrcmp(name, QMediaAudioProbeControl_iid) == 0) {
         if (!m_audioProbeControl)
             m_audioProbeControl = new DirectShowAudioProbeControl();
         m_audioProbeControl->ref();
         updateAudioProbe();
         return m_audioProbeControl;
-    } else if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0) {
+    }
+    if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0) {
         if (!m_videoProbeControl)
             m_videoProbeControl = new DirectShowVideoProbeControl();
         m_videoProbeControl->ref();

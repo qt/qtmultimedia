@@ -82,7 +82,8 @@ public:
             AddRef();
             *ppvObject = static_cast<IUnknown *>(this);
             return S_OK;
-        } else if (riid == IID_ISampleGrabberCB /*__uuidof(ISampleGrabberCB)*/ ) {
+        }
+        if (riid == IID_ISampleGrabberCB /*__uuidof(ISampleGrabberCB)*/ ) {
             AddRef();
             *ppvObject = static_cast<ISampleGrabberCB *>(this);
             return S_OK;

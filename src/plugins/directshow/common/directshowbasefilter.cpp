@@ -75,9 +75,8 @@ HRESULT DirectShowBaseFilter::NotifyEvent(long eventCode, LONG_PTR eventParam1, 
             eventParam2 = (LONG_PTR)(IBaseFilter*)this;
 
         return sink->Notify(eventCode, eventParam1, eventParam2);
-    } else {
-        return E_NOTIMPL;
     }
+    return E_NOTIMPL;
 }
 
 HRESULT DirectShowBaseFilter::Run(REFERENCE_TIME tStart)

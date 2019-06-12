@@ -784,13 +784,9 @@ bool DSCameraSession::createFilterGraph()
                                                     reinterpret_cast<void**>(&m_sourceFilter));
                         pPropBag->Release();
                         pMoniker->Release();
-                        if (SUCCEEDED(hr)) {
+                        if (SUCCEEDED(hr))
                             break; // done, stop looping through
-                        }
-                        else
-                        {
-                            qWarning() << "Object bind failed";
-                        }
+                        qWarning("Object bind failed");
                     }
                 }
             }
