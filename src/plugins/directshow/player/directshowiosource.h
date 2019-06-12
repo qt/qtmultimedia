@@ -119,19 +119,19 @@ public:
     HRESULT STDMETHODCALLTYPE QueryDirection(PIN_DIRECTION *pPinDir) override;
 
 private:
-    volatile LONG m_ref;
-    FILTER_STATE m_state;
-    DirectShowIOReader *m_reader;
+    volatile LONG m_ref = 1;
+    FILTER_STATE m_state = State_Stopped;
+    DirectShowIOReader *m_reader = nullptr;
     DirectShowEventLoop *m_loop;
-    IFilterGraph *m_graph;
-    IReferenceClock *m_clock;
-    IMemAllocator *m_allocator;
-    IPin *m_peerPin;
+    IFilterGraph *m_graph = nullptr;
+    IReferenceClock *m_clock = nullptr;
+    IMemAllocator *m_allocator = nullptr;
+    IPin *m_peerPin = nullptr;
     DirectShowMediaType m_connectionMediaType;
     QList<DirectShowMediaType> m_supportedMediaTypes;
     QString m_filterName;
-    const QString m_pinId;
-    bool m_queriedForAsyncReader;
+    const QString m_pinId = QLatin1String("Data");
+    bool m_queriedForAsyncReader = false;
     QMutex m_mutex;
 };
 

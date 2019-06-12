@@ -55,7 +55,7 @@ public:
     IBaseFilter *filter();
 
 private:
-    IBaseFilter *m_evrFilter;
+    IBaseFilter *m_evrFilter = nullptr;
 };
 
 QT_END_NAMESPACE

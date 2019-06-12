@@ -79,12 +79,12 @@ public:
 
 protected:
     QMutex m_mutex;
-    FILTER_STATE m_state;
-    IFilterGraph *m_graph;
-    IReferenceClock *m_clock;
-    IMediaEventSink *m_sink;
+    FILTER_STATE m_state = State_Stopped;
+    IFilterGraph *m_graph = nullptr;
+    IReferenceClock *m_clock = nullptr;
+    IMediaEventSink *m_sink = nullptr;
     QString m_filterName;
-    REFERENCE_TIME m_startTime;
+    REFERENCE_TIME m_startTime = 0;
 
 private:
     Q_DISABLE_COPY(DirectShowBaseFilter)

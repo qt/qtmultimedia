@@ -52,7 +52,6 @@ DirectShowPin::DirectShowPin(DirectShowBaseFilter *filter, const QString &name, 
     , m_filter(filter)
     , m_name(name)
     , m_direction(direction)
-    , m_peerPin(NULL)
 {
 }
 
@@ -380,8 +379,6 @@ HRESULT DirectShowPin::setActive(bool active)
 
 DirectShowOutputPin::DirectShowOutputPin(DirectShowBaseFilter *filter, const QString &name)
     : DirectShowPin(filter, name, PINDIR_OUTPUT)
-    , m_allocator(NULL)
-    , m_inputPin(NULL)
 {
 
 }
@@ -485,9 +482,6 @@ HRESULT DirectShowOutputPin::EndOfStream()
 
 DirectShowInputPin::DirectShowInputPin(DirectShowBaseFilter *filter, const QString &name)
     : DirectShowPin(filter, name, PINDIR_INPUT)
-    , m_allocator(NULL)
-    , m_flushing(false)
-    , m_inErrorState(false)
 {
     ZeroMemory(&m_sampleProperties, sizeof(m_sampleProperties));
 }

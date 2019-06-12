@@ -68,8 +68,8 @@ private:
     void updateEndpoints();
 
     DirectShowPlayerService *m_service;
-    IBindCtx *m_bindContext;
-    ICreateDevEnum *m_deviceEnumerator;
+    IBindCtx *m_bindContext = nullptr;
+    ICreateDevEnum *m_deviceEnumerator = nullptr;
 
     QMap<QString, IMoniker *> m_devices;
     QString m_defaultEndpoint;

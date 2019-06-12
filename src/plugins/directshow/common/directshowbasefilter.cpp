@@ -45,10 +45,6 @@ QT_BEGIN_NAMESPACE
 
 DirectShowBaseFilter::DirectShowBaseFilter()
     : m_mutex(QMutex::Recursive)
-    , m_state(State_Stopped)
-    , m_graph(NULL)
-    , m_clock(NULL)
-    , m_sink(NULL)
 {
 
 }

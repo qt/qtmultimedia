@@ -50,19 +50,6 @@
 DirectShowPlayerControl::DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent)
     : QMediaPlayerControl(parent)
     , m_service(service)
-    , m_audio(0)
-    , m_updateProperties(0)
-    , m_state(QMediaPlayer::StoppedState)
-    , m_status(QMediaPlayer::NoMedia)
-    , m_error(QMediaPlayer::NoError)
-    , m_streamTypes(0)
-    , m_volume(100)
-    , m_muted(false)
-    , m_emitPosition(-1)
-    , m_pendingPosition(-1)
-    , m_duration(0)
-    , m_playbackRate(0)
-    , m_seekable(false)
 {
 }
 

@@ -58,23 +58,6 @@ QT_BEGIN_NAMESPACE
 
 DSCameraSession::DSCameraSession(QObject *parent)
     : QObject(parent)
-    , m_graphBuilder(nullptr)
-    , m_filterGraph(nullptr)
-    , m_sourceDeviceName(QLatin1String("default"))
-    , m_sourceFilter(nullptr)
-    , m_needsHorizontalMirroring(false)
-    , m_previewSampleGrabber(nullptr)
-    , m_nullRendererFilter(nullptr)
-    , m_previewStarted(false)
-    , m_surface(nullptr)
-    , m_previewPixelFormat(QVideoFrame::Format_Invalid)
-    , m_stride(-1)
-    , m_readyForCapture(false)
-    , m_imageIdCounter(0)
-    , m_currentImageId(-1)
-    , m_captureDestinations(QCameraImageCapture::CaptureToFile)
-    , m_videoProbeControl(nullptr)
-    , m_status(QCamera::UnloadedStatus)
 {
     connect(this, SIGNAL(statusChanged(QCamera::Status)),
             this, SLOT(updateReadyForCapture()));

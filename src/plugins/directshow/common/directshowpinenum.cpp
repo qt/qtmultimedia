@@ -44,7 +44,6 @@ QT_BEGIN_NAMESPACE
 
 DirectShowPinEnum::DirectShowPinEnum(DirectShowBaseFilter *filter)
     : m_filter(filter)
-    , m_index(0)
 {
     m_filter->AddRef();
     const QList<DirectShowPin *> pinList = filter->pins();
@@ -55,9 +54,7 @@ DirectShowPinEnum::DirectShowPinEnum(DirectShowBaseFilter *filter)
 }
 
 DirectShowPinEnum::DirectShowPinEnum(const QList<IPin *> &pins)
-    : m_filter(NULL)
-    , m_pins(pins)
-    , m_index(0)
+    : m_pins(pins)
 {
     for (IPin *pin : qAsConst(m_pins))
         pin->AddRef();

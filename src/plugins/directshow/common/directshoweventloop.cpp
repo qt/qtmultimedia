@@ -51,7 +51,6 @@ public:
     DirectShowPostedEvent(QObject *receiver, QEvent *event)
         : receiver(receiver)
         , event(event)
-        , next(0)
     {
     }
 
@@ -62,13 +61,11 @@ public:
 
     QObject *receiver;
     QEvent *event;
-    DirectShowPostedEvent *next;
+    DirectShowPostedEvent *next = nullptr;
 };
 
 DirectShowEventLoop::DirectShowEventLoop(QObject *parent)
     : QObject(parent)
-    , m_postsHead(0)
-    , m_postsTail(0)
     , m_eventHandle(::CreateEvent(0, 0, 0, 0))
     , m_waitHandle(::CreateEvent(0, 0, 0, 0))
 {

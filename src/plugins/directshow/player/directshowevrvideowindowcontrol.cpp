@@ -43,7 +43,6 @@
 
 DirectShowEvrVideoWindowControl::DirectShowEvrVideoWindowControl(QObject *parent)
     : EvrVideoWindowControl(parent)
-    , m_evrFilter(NULL)
 {
 }
 

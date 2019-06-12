@@ -445,7 +445,6 @@ static QVariant convertValue(const PROPVARIANT& var)
 
 DirectShowMetaDataControl::DirectShowMetaDataControl(QObject *parent)
     : QMetaDataReaderControl(parent)
-    , m_available(false)
 {
 }
 

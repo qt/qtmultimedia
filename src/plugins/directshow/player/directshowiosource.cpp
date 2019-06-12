@@ -66,16 +66,7 @@ static const GUID directshow_subtypes[] =
 };
 
 DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
-    : m_ref(1)
-    , m_state(State_Stopped)
-    , m_reader(0)
-    , m_loop(loop)
-    , m_graph(0)
-    , m_clock(0)
-    , m_allocator(0)
-    , m_peerPin(0)
-    , m_pinId(QLatin1String("Data"))
-    , m_queriedForAsyncReader(false)
+    : m_loop(loop)
 {
     // This filter has only one possible output type, that is, a stream of data
     // with no particular subtype. The graph builder will try every demux/decode filters

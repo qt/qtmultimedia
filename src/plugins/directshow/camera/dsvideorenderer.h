@@ -59,7 +59,7 @@ public:
     void setSession(DSCameraSession* session);
 
 private:
-    QAbstractVideoSurface* m_surface;
+    QAbstractVideoSurface* m_surface = nullptr;
     DSCameraSession* m_session;
 };
 

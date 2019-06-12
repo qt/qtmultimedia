@@ -76,7 +76,7 @@ private:
     };
 
     QVariantMap m_metadata;
-    bool m_available;
+    bool m_available = false;
 };
 
 QT_END_NAMESPACE

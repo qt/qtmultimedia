@@ -116,9 +116,6 @@ private:
 
 DirectShowSampleGrabber::DirectShowSampleGrabber(QObject *p)
     : QObject(p)
-    , m_sampleGrabber(nullptr)
-    , m_sampleGabberCb(nullptr)
-    , m_callbackType(CallbackMethod::BufferCB)
 {
     // Create sample grabber filter
     HRESULT hr = CoCreateInstance(cLSID_SampleGrabber, NULL, CLSCTX_INPROC, iID_ISampleGrabber, reinterpret_cast<void **>(&m_sampleGrabber));

@@ -47,8 +47,6 @@ QT_BEGIN_NAMESPACE
 
 DSCameraControl::DSCameraControl(QObject *parent)
     : QCameraControl(parent)
-    , m_state(QCamera::UnloadedState)
-    , m_captureMode(QCamera::CaptureStillImage)
 {
     m_session = qobject_cast<DSCameraSession*>(parent);
     connect(m_session, &DSCameraSession::statusChanged, this,

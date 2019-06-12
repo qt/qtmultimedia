@@ -51,11 +51,6 @@
 DirectShowVideoRendererControl::DirectShowVideoRendererControl(DirectShowEventLoop *loop, QObject *parent)
     : QVideoRendererControl(parent)
     , m_loop(loop)
-    , m_surface(0)
-    , m_filter(0)
-#if QT_CONFIG(evr)
-    , m_evrPresenter(0)
-#endif
 {
 }
 

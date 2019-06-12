@@ -69,8 +69,8 @@ public:
 
 private:
     DSCameraSession *m_session;
-    QCamera::State m_state;
-    QCamera::CaptureModes m_captureMode;
+    QCamera::State m_state = QCamera::UnloadedState;
+    QCamera::CaptureModes m_captureMode = QCamera::CaptureStillImage;
 };
 
 QT_END_NAMESPACE

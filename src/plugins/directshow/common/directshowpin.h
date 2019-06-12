@@ -102,7 +102,7 @@ protected:
     QString m_name;
     PIN_DIRECTION m_direction;
 
-    IPin *m_peerPin;
+    IPin *m_peerPin = nullptr;
     DirectShowMediaType m_mediaType;
 
 private:
@@ -128,8 +128,8 @@ public:
 protected:
     DirectShowOutputPin(DirectShowBaseFilter *filter, const QString &name);
 
-    IMemAllocator *m_allocator;
-    IMemInputPin *m_inputPin;
+    IMemAllocator *m_allocator = nullptr;
+    IMemInputPin *m_inputPin = nullptr;
 
 private:
     Q_DISABLE_COPY(DirectShowOutputPin)
@@ -166,9 +166,9 @@ public:
 protected:
     DirectShowInputPin(DirectShowBaseFilter *filter, const QString &name);
 
-    IMemAllocator *m_allocator;
-    bool m_flushing;
-    bool m_inErrorState;
+    IMemAllocator *m_allocator = nullptr;
+    bool m_flushing = false;
+    bool m_inErrorState = false;
     AM_SAMPLE2_PROPERTIES m_sampleProperties;
 
 private:

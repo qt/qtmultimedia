@@ -130,28 +130,28 @@ private:
     QMutex m_mutex;
 
     DirectShowEventLoop *m_loop;
-    VideoSurfaceInputPin *m_pin;
+    VideoSurfaceInputPin *m_pin = nullptr;
 
     QWaitCondition m_waitSurface;
     QAbstractVideoSurface *m_surface;
     QVideoSurfaceFormat m_surfaceFormat;
-    int m_bytesPerLine;
-    bool m_surfaceStarted;
+    int m_bytesPerLine = 0;
+    bool m_surfaceStarted = false;
 
     QList<GUID> m_supportedTypes;
     QReadWriteLock m_typesLock;
 
     QMutex m_renderMutex;
-    bool m_running;
-    IMediaSample *m_pendingSample;
-    REFERENCE_TIME m_pendingSampleEndTime;
+    bool m_running = false;
+    IMediaSample *m_pendingSample = nullptr;
+    REFERENCE_TIME m_pendingSampleEndTime = 0;
     HANDLE m_renderEvent;
     HANDLE m_flushEvent;
-    DWORD_PTR m_adviseCookie;
+    DWORD_PTR m_adviseCookie = 0;
 
-    bool m_EOS;
-    bool m_EOSDelivered;
-    UINT m_EOSTimer;
+    bool m_EOS = false;
+    bool m_EOSDelivered = false;
+    UINT m_EOSTimer = 0;
 
     friend class VideoSurfaceInputPin;
 };
