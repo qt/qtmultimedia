@@ -284,7 +284,7 @@ void DSCameraSession::setImageProcessingParameter(
             ImageProcessingParameterInfo>::iterator sourceValueInfo =
             m_imageProcessingParametersInfos.find(resultingParameter);
 
-    if (sourceValueInfo == m_imageProcessingParametersInfos.constEnd())
+    if (sourceValueInfo == m_imageProcessingParametersInfos.end())
         return;
 
     LONG sourceValue = 0;
