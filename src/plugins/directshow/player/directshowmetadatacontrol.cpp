@@ -225,7 +225,7 @@ namespace
     };
 }
 
-typedef QList<QWMMetaDataKey> QWMMetaDataKeys;
+using QWMMetaDataKeys = QList<QWMMetaDataKey>;
 Q_GLOBAL_STATIC(QWMMetaDataKeys, metadataKeys)
 
 static const QWMMetaDataKeys *qt_wmMetaDataKeys()

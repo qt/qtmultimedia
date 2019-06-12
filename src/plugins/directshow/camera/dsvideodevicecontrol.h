@@ -48,7 +48,7 @@ class DSCameraSession;
 
 //QTM_USE_NAMESPACE
 
-typedef QPair<QByteArray, QString> DSVideoDeviceInfo;
+using DSVideoDeviceInfo = QPair<QByteArray, QString>;
 
 class DSVideoDeviceControl : public QVideoDeviceSelectorControl
 {
