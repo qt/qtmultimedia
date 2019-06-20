@@ -1,0 +1,64 @@
+Qt 5.13 introduces many new features and improvements as well as bugfixes
+over the 5.12.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.13 series is binary compatible with the 5.12.x series.
+Applications compiled for 5.12 will continue to run with 5.13.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                            Qt 5.13.0 Changes                             *
+****************************************************************************
+
+- [QTBUG-63596] Added support for selecting the output device used by QSoundEffect.
+- [QTBUG-28850] QMediaResource class is now deprecated.
+- [QTBUG-37301] Added flushMode property to QML VideoOutput element to define
+  what should be shown when flush is requested.
+- Fixed QCameraInfo::defaultCamera() to return first non-empty name.
+- Introduced QVideoFrame::buffer() to get access to the video buffer.
+
+****************************************************************************
+*                        Platform Specific Changes                         *
+****************************************************************************
+
+ - Android:
+   * [QTBUG-73119] Implemented audio roles.
+   * [QTBUG-69968] Changed video frame format from BGR32 to ABGR32.
+   * [QTBUG-74073] Introduced HTTP headers to MediaPlayer.
+   * [QTBUG-73583] Fixed a crash when the audio output is unable to get the min buffer size.
+
+ - Windows:
+   * [QTBUG-32783] Removed -mediaplayer-backend config param which allowed
+     to build wmf together with DirectShow.
+   * [QTBUG-71610] The surface is now stopped when EndOfStream is received.
+   * [QTBUG-66526] Moved parsing of metadata to worker thread.
+   * [QTBUG-56400] Added QT_MULTIMEDIA_PREFERRED_PLUGINS to
+     specify preferred plugins if multiple backends are available.
+   * DircetShow or WMF can now be disabled by -no-directshow or -no-wmf
+     within configuring.
+   * [QTBUG-71819] Fixed video and audio probes in media player.
+   * [QTBUG-74180] Fixed to avoid setting camera zoom to 1x on restart when it is not requested.
+   * [QTBUG-75024] Fixed to avoid setting volume to 100% on restart when it is not requested.
+   * [QTBUG-65574] Fixed bug in EVR to prevent repainting with black
+     when the surface is not active.
+   * Now position of QMediaPlayer should be reset on pause after EOS.
+
+ - GStreamer:
+   * [QTBUG-65402] Added fix to avoid appending a second extension to the file name,
+     if it already contains one.
+   * [QTBUG-72125] Add support for ksvideosrc and avfvideosrc within camerabin.
+   * Enabled gstreamer support by default for Windows and macOS.
+   * Added support of video orientation metadata.
+   * Now GstBuffer could be retrieved from QGstVideoBuffer.
+
+ - PulseAudio:
+   * [QTBUG-71710] Introduced QT_PA_CHANNEL_MAP for QAudioOutput.
