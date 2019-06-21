@@ -52,7 +52,7 @@ namespace
     {
         { QVideoFrame::Format_ARGB32, MEDIASUBTYPE_ARGB32 },
         { QVideoFrame::Format_RGB32, MEDIASUBTYPE_RGB32 },
-        { QVideoFrame::Format_RGB24, MEDIASUBTYPE_RGB24 },
+        { QVideoFrame::Format_BGR24, MEDIASUBTYPE_RGB24 },
         { QVideoFrame::Format_RGB565, MEDIASUBTYPE_RGB565 },
         { QVideoFrame::Format_RGB555, MEDIASUBTYPE_RGB555 },
         { QVideoFrame::Format_AYUV444, MEDIASUBTYPE_AYUV },
