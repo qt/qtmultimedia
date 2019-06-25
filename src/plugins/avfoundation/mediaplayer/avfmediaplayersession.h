@@ -125,43 +125,6 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 private:
-    class ResourceHandler {
-    public:
-        ResourceHandler() : resource(nullptr) {}
-        ~ResourceHandler() { clear(); }
-        void setResourceFile(const QString &file) {
-            if (resource) {
-                if (resource->fileName() == file)
-                    return;
-                delete resource;
-                rawData.clear();
-            }
-            resource = new QResource(file);
-        }
-        bool isValid() const { return resource && resource->isValid() && resource->data() != nullptr; }
-        const uchar *data() {
-            if (!isValid())
-                return nullptr;
-            if (resource->isCompressed()) {
-                if (rawData.size() == 0)
-                    rawData = qUncompress(resource->data(), resource->size());
-                return (const uchar *)rawData.constData();
-            }
-            return resource->data();
-        }
-        qint64 size() {
-            if (data() == nullptr)
-                return 0;
-            return resource->isCompressed() ? rawData.size() : resource->size();
-        }
-        void clear() {
-            delete resource;
-            rawData.clear();
-        }
-        QResource *resource;
-        QByteArray rawData;
-    };
-
     void setAudioAvailable(bool available);
     void setVideoAvailable(bool available);
     void setSeekable(bool seekable);
@@ -173,7 +136,6 @@ private:
     QMediaPlayer::MediaStatus m_mediaStatus;
     QIODevice *m_mediaStream;
     QMediaContent m_resources;
-    ResourceHandler m_resourceHandler;
 
     bool m_muted;
     bool m_tryingAsync;
