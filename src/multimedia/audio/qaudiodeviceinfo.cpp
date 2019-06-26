@@ -445,7 +445,10 @@ QAudioDeviceInfo::QAudioDeviceInfo(const QString &realm, const QByteArray &handl
 }
 
 /*!
-    \internal
+    Returns the key that represents the audio plugin.
+
+    \since 5.14
+    \sa QAudioSystemPlugin
 */
 QString QAudioDeviceInfo::realm() const
 {
