@@ -143,7 +143,7 @@ private:
     QMap<QUrl, QSample*> m_samples;
     QSet<QSample*> m_staleSamples;
     QNetworkAccessManager *m_networkAccessManager;
-    mutable QMutex m_mutex;
+    mutable QRecursiveMutex m_mutex;
     qint64 m_capacity;
     qint64 m_usage;
     QThread m_loadingThread;

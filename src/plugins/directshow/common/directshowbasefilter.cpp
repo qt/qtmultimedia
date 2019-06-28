@@ -41,13 +41,12 @@
 
 #include "directshowpinenum.h"
 
+#include <mutex>
+
 QT_BEGIN_NAMESPACE
 
 DirectShowBaseFilter::DirectShowBaseFilter()
-    : m_mutex(QMutex::Recursive)
-{
-
-}
+    = default;
 
 DirectShowBaseFilter::~DirectShowBaseFilter()
 {
@@ -78,7 +77,7 @@ HRESULT DirectShowBaseFilter::NotifyEvent(long eventCode, LONG_PTR eventParam1, 
 HRESULT DirectShowBaseFilter::Run(REFERENCE_TIME tStart)
 {
     Q_UNUSED(tStart)
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     m_startTime = tStart;
 
@@ -95,7 +94,7 @@ HRESULT DirectShowBaseFilter::Run(REFERENCE_TIME tStart)
 
 HRESULT DirectShowBaseFilter::Pause()
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     if (m_state == State_Stopped) {
         const QList<DirectShowPin *> pinList = pins();
@@ -115,7 +114,7 @@ HRESULT DirectShowBaseFilter::Pause()
 
 HRESULT DirectShowBaseFilter::Stop()
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     HRESULT hr = S_OK;
 
@@ -142,7 +141,7 @@ HRESULT DirectShowBaseFilter::GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *p
     if (!pState) {
         return E_POINTER;
     } else {
-        QMutexLocker locker(&m_mutex);
+        const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
         *pState = m_state;
 
@@ -152,7 +151,7 @@ HRESULT DirectShowBaseFilter::GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *p
 
 HRESULT DirectShowBaseFilter::SetSyncSource(IReferenceClock *pClock)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     if (m_clock)
         m_clock->Release();
@@ -192,7 +191,7 @@ HRESULT DirectShowBaseFilter::FindPin(LPCWSTR Id, IPin **ppPin)
     if (!ppPin || !Id)
         return E_POINTER;
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
     const QList<DirectShowPin *> pinList = pins();
     for (DirectShowPin *pin : pinList) {
         if (pin->name() == QStringView(Id)) {
@@ -208,7 +207,7 @@ HRESULT DirectShowBaseFilter::FindPin(LPCWSTR Id, IPin **ppPin)
 
 HRESULT DirectShowBaseFilter::JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pName)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     m_filterName = QString::fromWCharArray(pName);
     m_graph = pGraph;

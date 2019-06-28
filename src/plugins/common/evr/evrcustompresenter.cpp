@@ -50,6 +50,9 @@
 #include <qcoreapplication.h>
 #include <qmath.h>
 #include <QtCore/qdebug.h>
+
+#include <mutex>
+
 #include <float.h>
 #include <evcode.h>
 
@@ -542,7 +545,6 @@ EVRCustomPresenter::EVRCustomPresenter(QAbstractVideoSurface *surface)
     , m_sampleFreeCB(this, &EVRCustomPresenter::onSampleFree)
     , m_refCount(1)
     , m_renderState(RenderShutdown)
-    , m_mutex(QMutex::Recursive)
     , m_scheduler(this)
     , m_tokenCounter(0)
     , m_sampleNotify(false)
@@ -658,7 +660,7 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     HRESULT hr = S_OK;
     DWORD objectCount = 0;
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     // Do not allow initializing when playing or paused.
     if (isActive())
@@ -738,7 +740,7 @@ HRESULT EVRCustomPresenter::ProcessMessage(MFVP_MESSAGE_TYPE message, ULONG_PTR 
 {
     HRESULT hr = S_OK;
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     hr = checkShutdown();
     if (FAILED(hr))
@@ -805,7 +807,7 @@ HRESULT EVRCustomPresenter::GetCurrentMediaType(IMFVideoMediaType **mediaType)
 
     *mediaType = NULL;
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     hr = checkShutdown();
     if (FAILED(hr))
@@ -819,7 +821,7 @@ HRESULT EVRCustomPresenter::GetCurrentMediaType(IMFVideoMediaType **mediaType)
 
 HRESULT EVRCustomPresenter::OnClockStart(MFTIME, LONGLONG clockStartOffset)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     // We cannot start after shutdown.
     HRESULT hr = checkShutdown();
@@ -854,7 +856,7 @@ HRESULT EVRCustomPresenter::OnClockStart(MFTIME, LONGLONG clockStartOffset)
 
 HRESULT EVRCustomPresenter::OnClockRestart(MFTIME)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     HRESULT hr = checkShutdown();
     if (FAILED(hr))
@@ -878,7 +880,7 @@ HRESULT EVRCustomPresenter::OnClockRestart(MFTIME)
 
 HRESULT EVRCustomPresenter::OnClockStop(MFTIME)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     HRESULT hr = checkShutdown();
     if (FAILED(hr))
@@ -898,7 +900,7 @@ HRESULT EVRCustomPresenter::OnClockStop(MFTIME)
 
 HRESULT EVRCustomPresenter::OnClockPause(MFTIME)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     // We cannot pause the clock after shutdown.
     HRESULT hr = checkShutdown();
@@ -915,7 +917,7 @@ HRESULT EVRCustomPresenter::OnClockSetRate(MFTIME, float rate)
     // The presenter reports its maximum rate through the IMFRateSupport interface.
     // Here, we assume that the EVR honors the maximum rate.
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     HRESULT hr = checkShutdown();
     if (FAILED(hr))
@@ -943,7 +945,7 @@ HRESULT EVRCustomPresenter::GetSlowestRate(MFRATE_DIRECTION, BOOL, float *rate)
     if (!rate)
         return E_POINTER;
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     HRESULT hr = checkShutdown();
 
@@ -960,7 +962,7 @@ HRESULT EVRCustomPresenter::GetFastestRate(MFRATE_DIRECTION direction, BOOL thin
     if (!rate)
         return E_POINTER;
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     float maxRate = 0.0f;
 
@@ -982,7 +984,7 @@ HRESULT EVRCustomPresenter::GetFastestRate(MFRATE_DIRECTION direction, BOOL thin
 
 HRESULT EVRCustomPresenter::IsRateSupported(BOOL thin, float rate, float *nearestSupportedRate)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     float maxRate = 0.0f;
     float nearestRate = rate;  // If we support rate, that is the nearest.
@@ -1016,7 +1018,7 @@ HRESULT EVRCustomPresenter::IsRateSupported(BOOL thin, float rate, float *neares
 
 void EVRCustomPresenter::supportedFormatsChanged()
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     m_canRenderToSurface = false;
     m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, false);

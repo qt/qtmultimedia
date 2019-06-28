@@ -78,7 +78,7 @@ public:
     STDMETHODIMP QueryVendorInfo(LPWSTR *pVendorInfo) override;
 
 protected:
-    QMutex m_mutex;
+    QRecursiveMutex m_mutex;
     FILTER_STATE m_state = State_Stopped;
     IFilterGraph *m_graph = nullptr;
     IReferenceClock *m_clock = nullptr;

@@ -47,6 +47,8 @@
 #include <QtCore/QDebug>
 //#define QT_SAMPLECACHE_DEBUG
 
+#include <mutex>
+
 QT_BEGIN_NAMESPACE
 
 
@@ -98,7 +100,6 @@ QT_BEGIN_NAMESPACE
 QSampleCache::QSampleCache(QObject *parent)
     : QObject(parent)
     , m_networkAccessManager(nullptr)
-    , m_mutex(QMutex::Recursive)
     , m_capacity(0)
     , m_usage(0)
     , m_loadingRefCount(0)
@@ -117,7 +118,7 @@ QNetworkAccessManager& QSampleCache::networkAccessManager()
 
 QSampleCache::~QSampleCache()
 {
-    QMutexLocker m(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     m_loadingThread.quit();
     m_loadingThread.wait();
@@ -157,7 +158,7 @@ bool QSampleCache::isLoading() const
 
 bool QSampleCache::isCached(const QUrl &url) const
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
     return m_samples.contains(url);
 }
 
@@ -174,7 +175,7 @@ QSample* QSampleCache::requestSample(const QUrl& url)
 #ifdef QT_SAMPLECACHE_DEBUG
     qDebug() << "QSampleCache: request sample [" << url << "]";
 #endif
-    QMutexLocker locker(&m_mutex);
+    std::unique_lock<QRecursiveMutex> locker(m_mutex);
     QMap<QUrl, QSample*>::iterator it = m_samples.find(url);
     QSample* sample;
     if (it == m_samples.end()) {
@@ -194,7 +195,7 @@ QSample* QSampleCache::requestSample(const QUrl& url)
 
 void QSampleCache::setCapacity(qint64 capacity)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
     if (m_capacity == capacity)
         return;
 #ifdef QT_SAMPLECACHE_DEBUG
@@ -227,7 +228,7 @@ void QSampleCache::unloadSample(QSample *sample)
 // Called in both threads
 void QSampleCache::refresh(qint64 usageChange)
 {
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
     m_usage += usageChange;
     if (m_capacity <= 0 || m_usage <= m_capacity)
         return;
@@ -265,7 +266,7 @@ void QSampleCache::refresh(qint64 usageChange)
 // Called in both threads
 void QSampleCache::removeUnreferencedSample(QSample *sample)
 {
-    QMutexLocker m(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
     m_staleSamples.remove(sample);
 }
 
@@ -301,7 +302,8 @@ bool QSampleCache::notifyUnreferencedSample(QSample* sample)
     if (m_loadingThread.isRunning())
         m_loadingThread.wait();
 
-    QMutexLocker locker(&m_mutex);
+    const std::lock_guard<QRecursiveMutex> locker(m_mutex);
+
     if (m_capacity > 0)
         return false;
     m_samples.remove(sample->m_url);

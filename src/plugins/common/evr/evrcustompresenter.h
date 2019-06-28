@@ -339,7 +339,7 @@ private:
     RenderState m_renderState;
     FrameStep m_frameStep;
 
-    QMutex m_mutex;
+    QRecursiveMutex m_mutex;
 
     // Samples and scheduling
     Scheduler m_scheduler; // Manages scheduling of samples.

@@ -96,7 +96,7 @@ public:
 protected:
     DirectShowPin(DirectShowBaseFilter *filter, const QString &name, PIN_DIRECTION direction);
 
-    QMutex m_mutex;
+    QRecursiveMutex m_mutex;
 
     DirectShowBaseFilter *m_filter;
     QString m_name;

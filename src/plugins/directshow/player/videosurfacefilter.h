@@ -141,7 +141,7 @@ private:
     QList<GUID> m_supportedTypes;
     QReadWriteLock m_typesLock;
 
-    QMutex m_renderMutex;
+    QRecursiveMutex m_renderMutex;
     bool m_running = false;
     IMediaSample *m_pendingSample = nullptr;
     REFERENCE_TIME m_pendingSampleEndTime = 0;
