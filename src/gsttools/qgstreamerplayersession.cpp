@@ -981,9 +981,11 @@ bool QGstreamerPlayerSession::isSeekable() const
 
 bool QGstreamerPlayerSession::play()
 {
+#if GST_CHECK_VERSION(1,0,0)
     static bool dumpDot = qEnvironmentVariableIsSet("GST_DEBUG_DUMP_DOT_DIR");
     if (dumpDot)
-        gst_debug_bin_to_dot_file_with_ts(GST_BIN(m_pipeline), GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL), "session.play");
+        gst_debug_bin_to_dot_file_with_ts(GST_BIN(m_pipeline), GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL), "gst.play");
+#endif
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
 #endif
