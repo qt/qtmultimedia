@@ -1307,9 +1307,7 @@ void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant
 
     gst_tag_setter_reset_tags(GST_TAG_SETTER(element));
 
-    QMapIterator<QByteArray, QVariant> it(data);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = data.cbegin(), end = data.cend(); it != end; ++it) {
         const QString tagName = QString::fromLatin1(it.key());
         const QVariant tagValue = it.value();
 
