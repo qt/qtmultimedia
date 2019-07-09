@@ -1137,8 +1137,8 @@ void DSCameraSession::updateSourceCapabilities()
                         long listSize = 0;
                         LONGLONG *frameRates = 0;
                         SIZE size = { resolution.width(), resolution.height() };
-                        if (SUCCEEDED(pVideoControl->GetFrameRateList(pPin, iIndex, size,
-                                                                      &listSize, &frameRates))) {
+                        hr = pVideoControl->GetFrameRateList(pPin, iIndex, size, &listSize, &frameRates);
+                        if (hr == S_OK && listSize > 0 && frameRates) {
                             for (long i = 0; i < listSize; ++i) {
                                 qreal fr = qreal(10000000) / frameRates[i];
                                 frameRateRanges.append(QCamera::FrameRateRange(fr, fr));
@@ -1147,6 +1147,8 @@ void DSCameraSession::updateSourceCapabilities()
                             // Make sure higher frame rates come first
                             std::sort(frameRateRanges.begin(), frameRateRanges.end(), qt_frameRateRangeGreaterThan);
                         }
+
+                        CoTaskMemFree(frameRates);
                         pPin->Release();
                     }
                 }
