@@ -16,6 +16,10 @@ mingw {
     DEFINES += NO_DSHOW_STRSAFE
 }
 
+mingw {
+    LIBS_PRIVATE += -lamstrmid
+}
+
 include(common/common.pri)
 include(player/player.pri)
 include(camera/camera.pri)
