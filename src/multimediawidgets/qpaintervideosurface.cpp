@@ -57,10 +57,6 @@
 #ifndef GL_RGB8
 #define GL_RGB8 0x8051
 #endif
-#endif
-
-#include <QtDebug>
-QT_BEGIN_NAMESPACE
 
 static void makeCurrent(QGLContext *context)
 {
@@ -70,6 +66,10 @@ static void makeCurrent(QGLContext *context)
     if (handle && QOpenGLContext::currentContext() != handle)
         handle->makeCurrent(handle->surface());
 }
+#endif
+
+#include <QtDebug>
+QT_BEGIN_NAMESPACE
 
 QVideoSurfacePainter::~QVideoSurfacePainter()
 {
