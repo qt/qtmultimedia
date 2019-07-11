@@ -542,19 +542,19 @@ void tst_QMediaPlaylist::loadM3uFile()
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 7);
 
-    QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
-    QCOMPARE(playlist.media(1).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(0).request().url(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(1).request().url(), QUrl(QLatin1String("http://test.host/path")));
     testFileName = QFINDTESTDATA("testdata/testfile");
-    QCOMPARE(playlist.media(2).canonicalUrl(),
+    QCOMPARE(playlist.media(2).request().url(),
              QUrl::fromLocalFile(testFileName));
     testFileName = QFINDTESTDATA("testdata");
-    QCOMPARE(playlist.media(3).canonicalUrl(),
+    QCOMPARE(playlist.media(3).request().url(),
              QUrl::fromLocalFile(testFileName + "/testdir/testfile"));
-    QCOMPARE(playlist.media(4).canonicalUrl(), QUrl(QLatin1String("file:///testdir/testfile")));
-    QCOMPARE(playlist.media(5).canonicalUrl(), QUrl(QLatin1String("file://path/name#suffix")));
+    QCOMPARE(playlist.media(4).request().url(), QUrl(QLatin1String("file:///testdir/testfile")));
+    QCOMPARE(playlist.media(5).request().url(), QUrl(QLatin1String("file://path/name#suffix")));
     //ensure #2 suffix is not stripped from path
     testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
-    QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
+    QCOMPARE(playlist.media(6).request().url(), QUrl::fromLocalFile(testFileName));
 
     // check ability to load from QNetworkRequest
     loadSpy.clear();
@@ -597,19 +597,19 @@ void tst_QMediaPlaylist::loadPLSFile()
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 7);
 
-    QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
-    QCOMPARE(playlist.media(1).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(0).request().url(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(1).request().url(), QUrl(QLatin1String("http://test.host/path")));
     testFileName = QFINDTESTDATA("testdata/testfile");
-    QCOMPARE(playlist.media(2).canonicalUrl(),
+    QCOMPARE(playlist.media(2).request().url(),
              QUrl::fromLocalFile(testFileName));
     testFileName = QFINDTESTDATA("testdata");
-    QCOMPARE(playlist.media(3).canonicalUrl(),
+    QCOMPARE(playlist.media(3).request().url(),
              QUrl::fromLocalFile(testFileName + "/testdir/testfile"));
-    QCOMPARE(playlist.media(4).canonicalUrl(), QUrl(QLatin1String("file:///testdir/testfile")));
-    QCOMPARE(playlist.media(5).canonicalUrl(), QUrl(QLatin1String("file://path/name#suffix")));
+    QCOMPARE(playlist.media(4).request().url(), QUrl(QLatin1String("file:///testdir/testfile")));
+    QCOMPARE(playlist.media(5).request().url(), QUrl(QLatin1String("file://path/name#suffix")));
     //ensure #2 suffix is not stripped from path
     testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
-    QCOMPARE(playlist.media(6).canonicalUrl(), QUrl::fromLocalFile(testFileName));
+    QCOMPARE(playlist.media(6).request().url(), QUrl::fromLocalFile(testFileName));
 
     // Try to load a totem-pl generated playlist
     // (Format doesn't respect the spec)
@@ -622,7 +622,7 @@ void tst_QMediaPlaylist::loadPLSFile()
     QVERIFY(loadFailedSpy.isEmpty());
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 1);
-    QCOMPARE(playlist.media(0).canonicalUrl(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(0).request().url(), QUrl(QLatin1String("http://test.host/path")));
 
 
     // check ability to load from QNetworkRequest

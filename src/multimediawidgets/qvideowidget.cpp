@@ -77,7 +77,7 @@ QVideoWidgetControlBackend::QVideoWidgetControlBackend(
     connect(control, SIGNAL(fullScreenChanged(bool)), widget, SLOT(_q_fullScreenChanged(bool)));
 
     QBoxLayout *layout = new QVBoxLayout;
-    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
     QWidget *videoWidget = control->videoWidget();

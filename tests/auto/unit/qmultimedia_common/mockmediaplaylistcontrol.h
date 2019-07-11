@@ -82,7 +82,8 @@ public:
         bool bMediaContentChanged = false;
         int i = 0;
         for (; i < playlistProvider()->mediaCount(); i++) {
-            if (playlistProvider()->media(i).canonicalUrl().toString() != newProvider->media(i).canonicalUrl().toString()) {
+            if (playlistProvider()->media(i).request().url().toString()
+                    != newProvider->media(i).request().url().toString()) {
                 bMediaContentChanged = true;
                 break;
             }

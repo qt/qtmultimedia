@@ -265,7 +265,7 @@ void MainWidget::createUi()
     QScopedPointer<QHBoxLayout> waveformLayout(new QHBoxLayout);
     waveformLayout->addWidget(m_progressBar);
     m_progressBar->setMinimumHeight(m_waveform->minimumHeight());
-    waveformLayout->setMargin(0);
+    waveformLayout->setContentsMargins(0, 0, 0, 0);
     m_waveform->setLayout(waveformLayout.data());
     waveformLayout.take();
     windowLayout->addWidget(m_waveform);

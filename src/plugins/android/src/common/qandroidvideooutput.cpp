@@ -110,7 +110,7 @@ public:
             m_image = m_output->m_fbo->toImage();
 
             if (numBytes)
-                *numBytes = m_image.byteCount();
+                *numBytes = static_cast<int>(m_image.sizeInBytes());
 
             if (bytesPerLine)
                 *bytesPerLine = m_image.bytesPerLine();

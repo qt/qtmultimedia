@@ -81,7 +81,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
             this, &VideoPlayer::setPosition);
 
     QBoxLayout *controlLayout = new QHBoxLayout;
-    controlLayout->setMargin(0);
+    controlLayout->setContentsMargins(0, 0, 0, 0);
     controlLayout->addWidget(openButton);
     controlLayout->addWidget(playButton);
     controlLayout->addWidget(positionSlider);

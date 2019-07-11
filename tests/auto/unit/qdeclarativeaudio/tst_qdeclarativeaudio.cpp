@@ -411,17 +411,17 @@ void tst_QDeclarativeAudio::source()
 
     audio.setSource(url1);
     QCOMPARE(audio.source(), url1);
-    QCOMPARE(provider.playerControl()->media().canonicalUrl(), url1);
+    QCOMPARE(provider.playerControl()->media().request().url(), url1);
     QCOMPARE(spy.count(), 1);
 
     audio.setSource(url2);
     QCOMPARE(audio.source(), url2);
-    QCOMPARE(provider.playerControl()->media().canonicalUrl(), url2);
+    QCOMPARE(provider.playerControl()->media().request().url(), url2);
     QCOMPARE(spy.count(), 2);
 
     audio.setSource(url3);
     QCOMPARE(audio.source(), url3);
-    QCOMPARE(provider.playerControl()->media().canonicalUrl(), url3);
+    QCOMPARE(provider.playerControl()->media().request().url(), url3);
     QCOMPARE(spy.count(), 3);
 }
 

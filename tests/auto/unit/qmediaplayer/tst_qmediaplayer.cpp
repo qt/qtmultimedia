@@ -1293,7 +1293,7 @@ void tst_QMediaPlayer::testQrc()
     }
 
     // Check the media actually passed to the backend
-    QCOMPARE(mockService->mockControl->media().canonicalUrl().scheme(), backendMediaContentScheme);
+    QCOMPARE(mockService->mockControl->media().request().url().scheme(), backendMediaContentScheme);
     QCOMPARE(bool(mockService->mockControl->mediaStream()), backendHasStream);
 }
 

@@ -762,17 +762,12 @@ void QWinRTMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *s
     QString urlString = media.request().url().toString();
     if (!d->stream) {
         // If we can read the file via Qt, use the byte stream approach
-        const auto resources = media.resources();
-        for (const QMediaResource &resource : resources) {
-            const QUrl url = resource.url();
-            if (url.isLocalFile()) {
-                urlString = url.toLocalFile();
-                QScopedPointer<QFile> file(new QFile(urlString));
-                if (file->open(QFile::ReadOnly)) {
-                    file->setProperty(QT_WINRT_MEDIAPLAYER_STREAM_ID, true);
-                    d->stream.reset(file.take());
-                    break;
-                }
+        if (media.request().url().isLocalFile()) {
+            urlString = media.request().url().toLocalFile();
+            QScopedPointer<QFile> file(new QFile(urlString));
+            if (file->open(QFile::ReadOnly)) {
+                file->setProperty(QT_WINRT_MEDIAPLAYER_STREAM_ID, true);
+                d->stream.reset(file.take());
             }
         }
     }

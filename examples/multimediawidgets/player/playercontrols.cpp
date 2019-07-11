@@ -100,7 +100,7 @@ PlayerControls::PlayerControls(QWidget *parent)
     connect(m_rateBox, QOverload<int>::of(&QComboBox::activated), this, &PlayerControls::updateRate);
 
     QBoxLayout *layout = new QHBoxLayout;
-    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(m_stopButton);
     layout->addWidget(m_previousButton);
     layout->addWidget(m_playButton);

@@ -158,7 +158,7 @@ Player::Player(QWidget *parent)
     displayLayout->addWidget(m_playlistView);
 
     QBoxLayout *controlLayout = new QHBoxLayout;
-    controlLayout->setMargin(0);
+    controlLayout->setContentsMargins(0, 0, 0, 0);
     controlLayout->addWidget(openButton);
     controlLayout->addStretch(1);
     controlLayout->addWidget(controls);

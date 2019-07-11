@@ -37,6 +37,7 @@ class tst_QMediaResource : public QObject
 {
     Q_OBJECT
 private slots:
+#if QT_DEPRECATED_SINCE(6, 0)
     void constructNull();
     void construct_data();
     void construct();
@@ -47,8 +48,15 @@ private slots:
 
     void constructorRequest();
     void copyConstructor();
+#else
+    void initTestCase()
+    {
+        QSKIP("Skipping this test, QMediaResource is deprecated.");
+    }
+#endif
 };
 
+#if QT_DEPRECATED_SINCE(6, 0)
 void tst_QMediaResource::constructNull()
 {
     QMediaResource resource;
@@ -681,6 +689,8 @@ void tst_QMediaResource::copyConstructor()
     QCOMPARE(copy1.request(), request1);
     QCOMPARE(original1 == copy1, true);
 }
+
+#endif // QT_DEPRECATED_SINCE(6, 0)
 
 QTEST_MAIN(tst_QMediaResource)
 
