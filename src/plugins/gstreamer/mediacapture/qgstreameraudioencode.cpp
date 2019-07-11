@@ -50,16 +50,6 @@ QGstreamerAudioEncode::QGstreamerAudioEncode(QObject *parent)
     :QAudioEncoderSettingsControl(parent)
     , m_codecs(QGstCodecsInfo::AudioEncoder)
 {
-    for (const QString& codecName : m_codecs.supportedCodecs()) {
-        GstElementFactory *factory = gst_element_factory_find(m_codecs.codecElement(codecName).constData());
-
-        if (factory) {
-            m_streamTypes.insert(codecName,
-                                 QGstreamerMediaContainerControl::supportedStreamTypes(factory, GST_PAD_SRC));
-
-            gst_object_unref(GST_OBJECT(factory));
-        }
-    }
 }
 
 QGstreamerAudioEncode::~QGstreamerAudioEncode()
@@ -247,5 +237,5 @@ GstElement *QGstreamerAudioEncode::createEncoder()
 
 QSet<QString> QGstreamerAudioEncode::supportedStreamTypes(const QString &codecName) const
 {
-    return m_streamTypes.value(codecName);
+    return m_codecs.supportedStreamTypes(codecName);
 }

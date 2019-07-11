@@ -49,15 +49,6 @@ QGstreamerVideoEncode::QGstreamerVideoEncode(QGstreamerCaptureSession *session)
     :QVideoEncoderSettingsControl(session), m_session(session)
     , m_codecs(QGstCodecsInfo::VideoEncoder)
 {
-    for (const QString& codecName : supportedVideoCodecs()) {
-        GstElementFactory *factory = gst_element_factory_find(m_codecs.codecElement(codecName).constData());
-        if (factory) {
-            m_streamTypes.insert(codecName,
-                                 QGstreamerMediaContainerControl::supportedStreamTypes(factory, GST_PAD_SRC));
-
-            gst_object_unref(GST_OBJECT(factory));
-        }
-    }
 }
 
 QGstreamerVideoEncode::~QGstreamerVideoEncode()
@@ -303,5 +294,5 @@ QPair<int,int> QGstreamerVideoEncode::rateAsRational() const
 
 QSet<QString> QGstreamerVideoEncode::supportedStreamTypes(const QString &codecName) const
 {
-    return m_streamTypes.value(codecName);
+    return m_codecs.supportedStreamTypes(codecName);
 }
