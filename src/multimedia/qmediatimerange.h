@@ -54,8 +54,12 @@ class Q_MULTIMEDIA_EXPORT QMediaTimeInterval
 public:
     QMediaTimeInterval();
     QMediaTimeInterval(qint64 start, qint64 end);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QMediaTimeInterval(const QMediaTimeInterval&);
     QMediaTimeInterval &operator=(const QMediaTimeInterval&) = default;
+    QMediaTimeInterval(QMediaTimeInterval &&) = default;
+    QMediaTimeInterval &operator=(QMediaTimeInterval &&) = default;
+#endif
 
     qint64 start() const;
     qint64 end() const;

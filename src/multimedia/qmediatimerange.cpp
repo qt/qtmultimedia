@@ -94,6 +94,7 @@ QMediaTimeInterval::QMediaTimeInterval(qint64 start, qint64 end)
 
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 /*!
     \fn QMediaTimeInterval::QMediaTimeInterval(const QMediaTimeInterval &other)
 
@@ -105,6 +106,7 @@ QMediaTimeInterval::QMediaTimeInterval(const QMediaTimeInterval &other)
 {
 
 }
+#endif
 
 /*!
     \fn QMediaTimeInterval::start() const
