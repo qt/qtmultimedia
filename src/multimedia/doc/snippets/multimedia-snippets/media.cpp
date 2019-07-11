@@ -223,10 +223,10 @@ void MediaExample::AudioRecorder()
     //! [Audio recorder]
 
     //! [Audio recorder inputs]
-    QStringList inputs = audioRecorder->audioInputs();
+    const QStringList inputs = audioRecorder->audioInputs();
     QString selectedInput = audioRecorder->defaultAudioInput();
 
-    foreach (QString input, inputs) {
+    for (const QString &input : inputs) {
         QString description = audioRecorder->audioInputDescription(input);
         // show descriptions to user and allow selection
         selectedInput = input;

@@ -243,10 +243,7 @@ void Waveform::audioPositionChanged(qint64 position)
 
 void Waveform::deletePixmaps()
 {
-    QPixmap *pixmap;
-    foreach (pixmap, m_pixmaps)
-        delete pixmap;
-    m_pixmaps.clear();
+    qDeleteAll(qExchange(m_pixmaps, {}));
 }
 
 void Waveform::createPixmaps(const QSize &widgetSize)

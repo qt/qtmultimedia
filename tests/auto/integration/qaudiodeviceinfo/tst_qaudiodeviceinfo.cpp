@@ -226,7 +226,8 @@ void tst_QAudioDeviceInfo::equalityOperator()
     QVERIFY(!(dev1 != dev2));
 
     // Make sure each available device is not equal to null
-    foreach (const QAudioDeviceInfo info, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)) {
+    const auto infos = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    for (const QAudioDeviceInfo info : infos) {
         QVERIFY(dev1 != info);
         QVERIFY(!(dev1 == info));
 

@@ -152,7 +152,7 @@ QMediaContent tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaC
 
     QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
 
-    foreach (QString s, mediaCandidates) {
+    for (const QString &s : mediaCandidates) {
         QFileInfo videoFile(s);
         if (!videoFile.exists())
             continue;

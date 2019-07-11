@@ -1029,7 +1029,7 @@ void EVRCustomPresenter::supportedFormatsChanged()
             m_canRenderToSurface = true;
         } else {
             formats = m_surface->supportedPixelFormats(QAbstractVideoBuffer::NoHandle);
-            Q_FOREACH (QVideoFrame::PixelFormat format, formats) {
+            for (QVideoFrame::PixelFormat format : qAsConst(formats)) {
                 if (SUCCEEDED(m_presentEngine->checkFormat(qt_evr_D3DFormatFromPixelFormat(format)))) {
                     m_canRenderToSurface = true;
                     break;
