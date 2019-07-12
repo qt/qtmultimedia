@@ -1005,6 +1005,18 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     It does not wait for the media to finish loading and does not check for errors. Listen for
     the mediaStatusChanged() and error() signals to be notified when the media is loaded and
     when an error occurs during loading.
+
+    Since Qt 5.12.2, the url scheme \c gst-pipeline provides custom pipelines
+    for the GStreamer backend.
+
+    \snippet multimedia-snippets/media.cpp Pipeline
+
+    If the pipeline contains a video sink element named \c qtvideosink,
+    current QVideoWidget can be used to render the video.
+
+    If the pipeline contains appsrc element, it will be used to push data from \a stream.
+
+    \snippet multimedia-snippets/media.cpp Pipeline appsrc
 */
 
 void QMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
