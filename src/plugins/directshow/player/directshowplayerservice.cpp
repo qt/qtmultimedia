@@ -209,8 +209,8 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
         if (!m_videoRendererControl && !m_videoWindowControl) {
             m_videoRendererControl = new DirectShowVideoRendererControl(m_loop);
 
-            connect(m_videoRendererControl, SIGNAL(filterChanged()),
-                    this, SLOT(videoOutputChanged()));
+            connect(m_videoRendererControl, &DirectShowVideoRendererControl::filterChanged,
+                    this, &DirectShowPlayerService::videoOutputChanged);
 
             return m_videoRendererControl;
         }

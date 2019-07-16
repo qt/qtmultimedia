@@ -76,8 +76,8 @@ DSCameraSession::DSCameraSession(QObject *parent)
     , m_videoProbeControl(nullptr)
     , m_status(QCamera::UnloadedStatus)
 {
-    connect(this, SIGNAL(statusChanged(QCamera::Status)),
-            this, SLOT(updateReadyForCapture()));
+    connect(this, &DSCameraSession::statusChanged,
+            this, &DSCameraSession::updateReadyForCapture);
 
     m_deviceLostEventTimer.setSingleShot(true);
     connect(&m_deviceLostEventTimer, &QTimer::timeout, [&]() {
