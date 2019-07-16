@@ -64,7 +64,7 @@ template <typename T> T *com_new(const IID &clsid)
     T *object = 0;
     return CoCreateInstance(
             clsid,
-            NULL,
+            nullptr,
             CLSCTX_INPROC_SERVER,
             IID_PPV_ARGS(&object)) == S_OK
         ? object
@@ -76,7 +76,7 @@ template <typename T> T *com_new(const IID &clsid, const IID &iid)
     T *object = 0;
     return CoCreateInstance(
             clsid,
-            NULL,
+            nullptr,
             CLSCTX_INPROC_SERVER,
             iid,
             reinterpret_cast<void **>(&object)) == S_OK

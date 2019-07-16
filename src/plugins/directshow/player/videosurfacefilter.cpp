@@ -222,16 +222,16 @@ HRESULT VideoSurfaceInputPin::Receive(IMediaSample *pMediaSample)
 VideoSurfaceFilter::VideoSurfaceFilter(QAbstractVideoSurface *surface, DirectShowEventLoop *loop, QObject *parent)
     : QObject(parent)
     , m_loop(loop)
-    , m_pin(NULL)
+    , m_pin(nullptr)
     , m_surface(surface)
     , m_bytesPerLine(0)
     , m_surfaceStarted(false)
     , m_renderMutex(QMutex::Recursive)
     , m_running(false)
-    , m_pendingSample(NULL)
+    , m_pendingSample(nullptr)
     , m_pendingSampleEndTime(0)
-    , m_renderEvent(CreateEvent(NULL, FALSE, FALSE, NULL))
-    , m_flushEvent(CreateEvent(NULL, TRUE, FALSE, NULL))
+    , m_renderEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr))
+    , m_flushEvent(CreateEvent(nullptr, TRUE, FALSE, nullptr))
     , m_adviseCookie(0)
     , m_EOS(false)
     , m_EOSDelivered(false)
@@ -615,7 +615,7 @@ void VideoSurfaceFilter::clearPendingSample()
     if (m_pendingSample) {
         qCDebug(qLcRenderFilter, "clearPendingSample");
         m_pendingSample->Release();
-        m_pendingSample = NULL;
+        m_pendingSample = nullptr;
     }
 }
 

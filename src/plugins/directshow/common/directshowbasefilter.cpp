@@ -46,9 +46,9 @@ QT_BEGIN_NAMESPACE
 DirectShowBaseFilter::DirectShowBaseFilter()
     : m_mutex(QMutex::Recursive)
     , m_state(State_Stopped)
-    , m_graph(NULL)
-    , m_clock(NULL)
-    , m_sink(NULL)
+    , m_graph(nullptr)
+    , m_clock(nullptr)
+    , m_sink(nullptr)
 {
 
 }
@@ -57,7 +57,7 @@ DirectShowBaseFilter::~DirectShowBaseFilter()
 {
     if (m_clock) {
         m_clock->Release();
-        m_clock = NULL;
+        m_clock = nullptr;
     }
 }
 
@@ -217,7 +217,7 @@ HRESULT DirectShowBaseFilter::JoinFilterGraph(IFilterGraph *pGraph, LPCWSTR pNam
 
     m_filterName = QString::fromWCharArray(pName);
     m_graph = pGraph;
-    m_sink = NULL;
+    m_sink = nullptr;
 
     if (m_graph) {
         if (SUCCEEDED(m_graph->QueryInterface(IID_PPV_ARGS(&m_sink))))

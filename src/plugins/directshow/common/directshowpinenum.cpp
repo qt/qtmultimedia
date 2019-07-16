@@ -55,7 +55,7 @@ DirectShowPinEnum::DirectShowPinEnum(DirectShowBaseFilter *filter)
 }
 
 DirectShowPinEnum::DirectShowPinEnum(const QList<IPin *> &pins)
-    : m_filter(NULL)
+    : m_filter(nullptr)
     , m_pins(pins)
     , m_index(0)
 {

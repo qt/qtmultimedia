@@ -80,7 +80,7 @@ static int g_refCount = 0;
 void addRefCount()
 {
     if (++g_refCount == 1)
-        CoInitialize(NULL);
+        CoInitialize(nullptr);
 }
 
 void releaseRefCount()

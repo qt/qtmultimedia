@@ -331,10 +331,10 @@ void DSCameraSession::setImageProcessingParameter(
         return;
     }
 
-    IAMVideoProcAmp *pVideoProcAmp = NULL;
+    IAMVideoProcAmp *pVideoProcAmp = nullptr;
     HRESULT hr = m_graphBuilder->FindInterface(
-                NULL,
-                NULL,
+                nullptr,
+                nullptr,
                 m_sourceFilter,
                 IID_IAMVideoProcAmp,
                 reinterpret_cast<void**>(&pVideoProcAmp)
@@ -702,12 +702,12 @@ bool DSCameraSession::createFilterGraph()
 
     QString errorString;
     HRESULT hr;
-    IMoniker* pMoniker = NULL;
-    ICreateDevEnum* pDevEnum = NULL;
-    IEnumMoniker* pEnum = NULL;
+    IMoniker* pMoniker = nullptr;
+    ICreateDevEnum* pDevEnum = nullptr;
+    IEnumMoniker* pEnum = nullptr;
 
     // Create the filter graph
-    hr = CoCreateInstance(CLSID_FilterGraph,NULL,CLSCTX_INPROC,
+    hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC,
                           IID_IGraphBuilder, reinterpret_cast<void**>(&m_filterGraph));
     if (FAILED(hr)) {
         errorString = tr("Failed to create filter graph");
@@ -715,7 +715,7 @@ bool DSCameraSession::createFilterGraph()
     }
 
     // Create the capture graph builder
-    hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC,
+    hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, nullptr, CLSCTX_INPROC,
                           IID_ICaptureGraphBuilder2,
                           reinterpret_cast<void**>(&m_graphBuilder));
     if (FAILED(hr)) {
@@ -731,7 +731,7 @@ bool DSCameraSession::createFilterGraph()
     }
 
     // Find the Capture device
-    hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
+    hr = CoCreateInstance(CLSID_SystemDeviceEnum, nullptr,
                           CLSCTX_INPROC_SERVER, IID_ICreateDevEnum,
                           reinterpret_cast<void**>(&pDevEnum));
     if (SUCCEEDED(hr)) {
@@ -743,10 +743,10 @@ bool DSCameraSession::createFilterGraph()
             IMalloc *mallocInterface = 0;
             CoGetMalloc(1, (LPMALLOC*)&mallocInterface);
             //go through and find all video capture devices
-            while (pEnum->Next(1, &pMoniker, NULL) == S_OK) {
+            while (pEnum->Next(1, &pMoniker, nullptr) == S_OK) {
 
                 BSTR strName = 0;
-                hr = pMoniker->GetDisplayName(NULL, NULL, &strName);
+                hr = pMoniker->GetDisplayName(nullptr, nullptr, &strName);
                 if (SUCCEEDED(hr)) {
                     QString output = QString::fromWCharArray(strName);
                     mallocInterface->Free(strName);
@@ -762,13 +762,13 @@ bool DSCameraSession::createFilterGraph()
                 pMoniker->Release();
             }
             mallocInterface->Release();
-            if (NULL == m_sourceFilter)
+            if (nullptr == m_sourceFilter)
             {
                 if (m_sourceDeviceName.contains(QLatin1String("default")))
                 {
                     pEnum->Reset();
                     // still have to loop to discard bind to storage failure case
-                    while (pEnum->Next(1, &pMoniker, NULL) == S_OK) {
+                    while (pEnum->Next(1, &pMoniker, nullptr) == S_OK) {
                         IPropertyBag *pPropBag = 0;
 
                         hr = pMoniker->BindToStorage(nullptr, nullptr, IID_IPropertyBag,
@@ -813,7 +813,7 @@ bool DSCameraSession::createFilterGraph()
 
     // Null renderer. Input connected to the sample grabber's output. Simply
     // discard the samples it receives.
-    hr = CoCreateInstance(cLSID_NullRenderer, NULL, CLSCTX_INPROC,
+    hr = CoCreateInstance(cLSID_NullRenderer, nullptr, CLSCTX_INPROC,
                           IID_IBaseFilter, (void**)&m_nullRendererFilter);
     if (FAILED(hr)) {
         errorString = tr("Failed to create null renderer");
@@ -931,10 +931,10 @@ void DSCameraSession::updateImageProcessingParametersInfos()
         return;
     }
 
-    IAMVideoProcAmp *pVideoProcAmp = NULL;
+    IAMVideoProcAmp *pVideoProcAmp = nullptr;
     const HRESULT hr = m_graphBuilder->FindInterface(
-                NULL,
-                NULL,
+                nullptr,
+                nullptr,
                 m_sourceFilter,
                 IID_IAMVideoProcAmp,
                 reinterpret_cast<void**>(&pVideoProcAmp)
@@ -1041,10 +1041,10 @@ void DSCameraSession::disconnectGraph()
 {
     // To avoid increasing the memory usage every time the graph is re-connected it's
     // important that all filters are released; also the ones added by the "Intelligent Connect".
-    IEnumFilters *enumFilters = NULL;
+    IEnumFilters *enumFilters = nullptr;
     if (SUCCEEDED(m_filterGraph->EnumFilters(&enumFilters)))  {
-        IBaseFilter *filter = NULL;
-        while (enumFilters->Next(1, &filter, NULL) == S_OK) {
+        IBaseFilter *filter = nullptr;
+        while (enumFilters->Next(1, &filter, nullptr) == S_OK) {
                 m_filterGraph->RemoveFilter(filter);
                 enumFilters->Reset();
                 filter->Release();
@@ -1061,8 +1061,8 @@ static bool qt_frameRateRangeGreaterThan(const QCamera::FrameRateRange &r1, cons
 void DSCameraSession::updateSourceCapabilities()
 {
     HRESULT hr;
-    AM_MEDIA_TYPE *pmt = NULL;
-    VIDEOINFOHEADER *pvi = NULL;
+    AM_MEDIA_TYPE *pmt = nullptr;
+    VIDEOINFOHEADER *pvi = nullptr;
     VIDEO_STREAM_CONFIG_CAPS scc;
     IAMStreamConfig* pConfig = 0;
 
