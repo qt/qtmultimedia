@@ -96,7 +96,7 @@ DirectShowIOReader::DirectShowIOReader(
 {
     moveToThread(device->thread());
 
-    connect(device, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    connect(device, &QIODevice::readyRead, this, &DirectShowIOReader::readyRead);
 }
 
 DirectShowIOReader::~DirectShowIOReader()

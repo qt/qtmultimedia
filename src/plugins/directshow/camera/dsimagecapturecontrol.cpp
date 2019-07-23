@@ -47,16 +47,16 @@ DSImageCaptureControl::DSImageCaptureControl(DSCameraSession *session)
     : QCameraImageCaptureControl(session)
     , m_session(session)
 {
-    connect(m_session, SIGNAL(imageExposed(int)),
-            this, SIGNAL(imageExposed(int)));
-    connect(m_session, SIGNAL(imageCaptured(int,QImage)),
-        this, SIGNAL(imageCaptured(int,QImage)));
-    connect(m_session, SIGNAL(imageSaved(int,QString)),
-            this, SIGNAL(imageSaved(int,QString)));
-    connect(m_session, SIGNAL(readyForCaptureChanged(bool)),
-            this, SIGNAL(readyForCaptureChanged(bool)));
-    connect(m_session, SIGNAL(captureError(int,int,QString)),
-            this, SIGNAL(error(int,int,QString)));
+    connect(m_session, &DSCameraSession::imageExposed,
+            this, &DSImageCaptureControl::imageExposed);
+    connect(m_session, &DSCameraSession::imageCaptured,
+            this, &DSImageCaptureControl::imageCaptured);
+    connect(m_session, &DSCameraSession::imageSaved,
+            this, &DSImageCaptureControl::imageSaved);
+    connect(m_session, &DSCameraSession::readyForCaptureChanged,
+            this, &DSImageCaptureControl::readyForCaptureChanged);
+    connect(m_session, &DSCameraSession::captureError,
+            this, &DSImageCaptureControl::error);
     connect(m_session, &DSCameraSession::imageAvailable,
             this, &DSImageCaptureControl::imageAvailable);
 }

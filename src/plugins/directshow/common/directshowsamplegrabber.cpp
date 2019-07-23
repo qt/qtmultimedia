@@ -75,7 +75,7 @@ public:
 
     STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject) override
     {
-        if (NULL == ppvObject)
+        if (nullptr == ppvObject)
             return E_POINTER;
 
         if (riid == IID_IUnknown /*__uuidof(IUnknown) */ ) {
@@ -120,7 +120,7 @@ DirectShowSampleGrabber::DirectShowSampleGrabber(QObject *p)
     , m_callbackType(CallbackMethod::BufferCB)
 {
     // Create sample grabber filter
-    HRESULT hr = CoCreateInstance(cLSID_SampleGrabber, NULL, CLSCTX_INPROC, iID_ISampleGrabber, reinterpret_cast<void **>(&m_sampleGrabber));
+    HRESULT hr = CoCreateInstance(cLSID_SampleGrabber, nullptr, CLSCTX_INPROC, iID_ISampleGrabber, reinterpret_cast<void **>(&m_sampleGrabber));
 
     if (FAILED(hr)) {
         qCWarning(qtDirectShowPlugin, "Failed to create sample grabber");

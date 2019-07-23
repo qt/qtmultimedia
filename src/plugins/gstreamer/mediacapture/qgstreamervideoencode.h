@@ -90,7 +90,6 @@ private:
 
     QVideoEncoderSettings m_videoSettings;
     QMap<QString, QMap<QString, QVariant> > m_options;
-    QMap<QString, QSet<QString> > m_streamTypes;
 };
 
 QT_END_NAMESPACE

@@ -54,6 +54,7 @@
 #include <private/qgsttools_global_p.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qstringlist.h>
+#include <QSet>
 
 #include <gst/gst.h>
 
@@ -76,6 +77,8 @@ public:
     QString codecDescription(const QString &codec) const;
     QByteArray codecElement(const QString &codec) const;
     QStringList codecOptions(const QString &codec) const;
+    QSet<QString> supportedStreamTypes(const QString &codec) const;
+    QStringList supportedCodecs(const QSet<QString> &types) const;
 
 private:
     void updateCodecs(ElementType elementType);
@@ -83,6 +86,7 @@ private:
 
     QStringList m_codecs;
     QMap<QString, CodecInfo> m_codecInfo;
+    QMap<QString, QSet<QString>> m_streamTypes;
 };
 
 Q_DECLARE_TYPEINFO(QGstCodecsInfo::CodecInfo, Q_MOVABLE_TYPE);
