@@ -164,7 +164,7 @@ QAudioBufferPrivate *QAudioBufferPrivate::clone()
     // We want to create a single bufferprivate with a
     // single qaab
     // This should only be called when the count is > 1
-    Q_ASSERT(mCount.load() > 1);
+    Q_ASSERT(mCount.loadRelaxed() > 1);
 
     if (mProvider) {
         QAbstractAudioBuffer *abuf = mProvider->clone();
@@ -458,7 +458,7 @@ void *QAudioBuffer::data()
     if (!isValid())
         return nullptr;
 
-    if (d->mCount.load() != 1) {
+    if (d->mCount.loadRelaxed() != 1) {
         // Can't share a writable buffer
         // so we need to detach
         QAudioBufferPrivate *newd = d->clone();
@@ -483,7 +483,7 @@ void *QAudioBuffer::data()
 
     if (memBuffer) {
         d->mProvider->release();
-        d->mCount.store(1);
+        d->mCount.storeRelaxed(1);
         d->mProvider = memBuffer;
 
         return memBuffer->writableData();

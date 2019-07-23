@@ -113,7 +113,8 @@ void tst_QCameraBackend::testDeviceDescription()
     if (deviceCount == 0)
         QVERIFY(QCamera::deviceDescription(QByteArray("random")).isNull());
     else {
-        foreach (const QByteArray &device, QCamera::availableDevices())
+        const auto devices = QCamera::availableDevices();
+        for (const QByteArray &device : devices)
             QVERIFY(QCamera::deviceDescription(device).length() > 0);
     }
 }
@@ -121,14 +122,14 @@ void tst_QCameraBackend::testDeviceDescription()
 void tst_QCameraBackend::testCameraInfo()
 {
     int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
-    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
     QCOMPARE(cameras.count(), deviceCount);
     if (cameras.isEmpty()) {
         QVERIFY(QCameraInfo::defaultCamera().isNull());
         QSKIP("Camera selection is not supported");
     }
 
-    foreach (const QCameraInfo &info, cameras) {
+    for (const QCameraInfo &info : cameras) {
         QVERIFY(!info.deviceName().isEmpty());
         QVERIFY(!info.description().isEmpty());
         QVERIFY(info.orientation() % 90 == 0);
@@ -624,9 +625,9 @@ void tst_QCameraBackend::testVideoRecording_data()
 {
     QTest::addColumn<QByteArray>("device");
 
-    QList<QByteArray> devices = QCamera::availableDevices();
+    const QList<QByteArray> devices = QCamera::availableDevices();
 
-    foreach (const QByteArray &device, devices) {
+    for (const QByteArray &device : devices) {
         QTest::newRow(QCamera::deviceDescription(device).toUtf8())
                 << device;
     }

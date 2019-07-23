@@ -53,6 +53,7 @@
 #include "qwindowsaudioutils.h"
 #include <QtEndian>
 #include <QtCore/QDataStream>
+#include <QtCore/qtimer.h>
 #include <private/qaudiohelpers_p.h>
 
 //#define DEBUG_AUDIO 1

@@ -78,10 +78,10 @@ Q_SIGNALS:
     void bufferAvailable(double time, const QByteArray &data);
 
 private:
-    IBaseFilter *m_filter;
-    ISampleGrabber *m_sampleGrabber;
-    SampleGrabberCallbackPrivate *m_sampleGabberCb;
-    CallbackMethod m_callbackType;
+    IBaseFilter *m_filter = nullptr;
+    ISampleGrabber *m_sampleGrabber = nullptr;
+    SampleGrabberCallbackPrivate *m_sampleGabberCb = nullptr;
+    CallbackMethod m_callbackType= CallbackMethod::BufferCB;
 };
 
 QT_END_NAMESPACE

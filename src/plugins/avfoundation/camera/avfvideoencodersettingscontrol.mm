@@ -76,7 +76,7 @@ static bool format_supports_framerate(AVCaptureDeviceFormat *format, qreal fps)
 
 static bool real_list_contains(const QList<qreal> &list, qreal value)
 {
-    Q_FOREACH (qreal r, list) {
+    for (qreal r : list) {
         if (qFuzzyCompare(r, value))
             return true;
     }

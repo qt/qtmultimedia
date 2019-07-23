@@ -53,35 +53,35 @@ QT_END_NAMESPACE
 
 template <typename T> T *com_cast(IUnknown *unknown, const IID &iid)
 {
-    T *iface = 0;
+    T *iface = nullptr;
     return unknown && unknown->QueryInterface(iid, reinterpret_cast<void **>(&iface)) == S_OK
         ? iface
-        : 0;
+        : nullptr;
 }
 
 template <typename T> T *com_new(const IID &clsid)
 {
-    T *object = 0;
+    T *object = nullptr;
     return CoCreateInstance(
             clsid,
-            NULL,
+            nullptr,
             CLSCTX_INPROC_SERVER,
             IID_PPV_ARGS(&object)) == S_OK
         ? object
-        : 0;
+        : nullptr;
 }
 
 template <typename T> T *com_new(const IID &clsid, const IID &iid)
 {
-    T *object = 0;
+    T *object = nullptr;
     return CoCreateInstance(
             clsid,
-            NULL,
+            nullptr,
             CLSCTX_INPROC_SERVER,
             iid,
             reinterpret_cast<void **>(&object)) == S_OK
         ? object
-        : 0;
+        : nullptr;
 }
 
 DEFINE_GUID(MEDIASUBTYPE_I420,

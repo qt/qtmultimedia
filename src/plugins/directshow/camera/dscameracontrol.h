@@ -52,7 +52,7 @@ class DSCameraControl : public QCameraControl
 {
     Q_OBJECT
 public:
-    DSCameraControl(QObject *parent = 0);
+    DSCameraControl(QObject *parent = nullptr);
     ~DSCameraControl() override;
 
     QCamera::State state() const override { return m_state; }
@@ -69,8 +69,8 @@ public:
 
 private:
     DSCameraSession *m_session;
-    QCamera::State m_state;
-    QCamera::CaptureModes m_captureMode;
+    QCamera::State m_state = QCamera::UnloadedState;
+    QCamera::CaptureModes m_captureMode = QCamera::CaptureStillImage;
 };
 
 QT_END_NAMESPACE

@@ -55,25 +55,23 @@ class DirectShowSampleRequest
 public:
     DirectShowSampleRequest(
             IMediaSample *sample, DWORD_PTR userData, LONGLONG position, LONG length, BYTE *buffer)
-        : next(0)
-        , sample(sample)
+        : sample(sample)
         , userData(userData)
         , position(position)
         , length(length)
         , buffer(buffer)
-        , result(S_FALSE)
     {
     }
 
     DirectShowSampleRequest *remove() { DirectShowSampleRequest *n = next; delete this; return n; }
 
-    DirectShowSampleRequest *next;
+    DirectShowSampleRequest *next = nullptr;
     IMediaSample *sample;
     DWORD_PTR userData;
     LONGLONG position;
     LONG length;
     BYTE *buffer;
-    HRESULT result;
+    HRESULT result = S_FALSE;
 };
 
 DirectShowIOReader::DirectShowIOReader(
@@ -81,18 +79,6 @@ DirectShowIOReader::DirectShowIOReader(
     : m_source(source)
     , m_device(device)
     , m_loop(loop)
-    , m_pendingHead(0)
-    , m_pendingTail(0)
-    , m_readyHead(0)
-    , m_readyTail(0)
-    , m_synchronousPosition(0)
-    , m_synchronousLength(0)
-    , m_synchronousBytesRead(0)
-    , m_synchronousBuffer(0)
-    , m_synchronousResult(S_OK)
-    , m_totalLength(0)
-    , m_availableLength(0)
-    , m_flushing(false)
 {
     moveToThread(device->thread());
 
@@ -204,21 +190,21 @@ HRESULT DirectShowIOReader::WaitForNext(
             m_readyHead = request->next;
 
             if (!m_readyHead)
-                m_readyTail = 0;
+                m_readyTail = nullptr;
 
             delete request;
 
             return hr;
         }
         if (m_flushing) {
-            *ppSample = 0;
+            *ppSample = nullptr;
             *pdwUser = 0;
 
             return VFW_E_WRONG_STATE;
         }
     } while (m_wait.wait(&m_mutex, dwTimeout));
 
-    *ppSample = 0;
+    *ppSample = nullptr;
     *pdwUser = 0;
 
     return VFW_E_TIMEOUT;
@@ -373,10 +359,10 @@ void DirectShowIOReader::readyRead()
 
             m_pendingHead = m_pendingHead->next;
 
-            m_readyTail->next = 0;
+            m_readyTail->next = nullptr;
 
             if (!m_pendingHead)
-                m_pendingTail = 0;
+                m_pendingTail = nullptr;
 
             if (!m_readyHead)
                 m_readyHead = m_readyTail;
@@ -463,10 +449,10 @@ void DirectShowIOReader::flushRequests()
 
         m_pendingHead = m_pendingHead->next;
 
-        m_readyTail->next = 0;
+        m_readyTail->next = nullptr;
 
         if (!m_pendingHead)
-            m_pendingTail = 0;
+            m_pendingTail = nullptr;
 
         if (!m_readyHead)
             m_readyHead = m_readyTail;

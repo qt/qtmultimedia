@@ -48,13 +48,13 @@ class DSCameraSession;
 
 //QTM_USE_NAMESPACE
 
-typedef QPair<QByteArray, QString> DSVideoDeviceInfo;
+using DSVideoDeviceInfo = QPair<QByteArray, QString>;
 
 class DSVideoDeviceControl : public QVideoDeviceSelectorControl
 {
     Q_OBJECT
 public:
-    DSVideoDeviceControl(QObject *parent = 0);
+    DSVideoDeviceControl(QObject *parent = nullptr);
 
     int deviceCount() const override;
     QString deviceName(int index) const override;

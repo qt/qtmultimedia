@@ -730,16 +730,14 @@ void tst_QPainterVideoSurface::shaderSupportedFormat_data()
     QTest::addColumn<bool>("supportedPixelFormat");
     QTest::addColumn<bool>("supportedFormat");
 
-    QList<QPair<QPainterVideoSurface::ShaderType, QByteArray> > types;
-
-
+    const QPair<QPainterVideoSurface::ShaderType, QByteArray> types[] = {
 #if !defined(QT_OPENGL_ES)
-    types << qMakePair(QPainterVideoSurface::FragmentProgramShader, QByteArray("ARBfp: "));
+        qMakePair(QPainterVideoSurface::FragmentProgramShader, QByteArray("ARBfp: ")),
 #endif
-    types << qMakePair(QPainterVideoSurface::GlslShader, QByteArray("GLSL: "));
+        qMakePair(QPainterVideoSurface::GlslShader, QByteArray("GLSL: ")),
+    };
 
-    QPair<QPainterVideoSurface::ShaderType, QByteArray> type;
-    foreach (type, types) {
+    for (const auto &type : types) {
         QTest::newRow((type.second + "rgb32 640x480").constData())
                 << type.first
                 << QAbstractVideoBuffer::NoHandle
@@ -952,14 +950,14 @@ void tst_QPainterVideoSurface::shaderPresent_data()
     QTest::addColumn<int>("bytesB");
     QTest::addColumn<int>("bytesPerLineB");
 
-    QList<QPair<QPainterVideoSurface::ShaderType, QByteArray> > types;
+    const QPair<QPainterVideoSurface::ShaderType, QByteArray> types[] = {
 #if !defined(QT_OPENGL_ES)
-    types << qMakePair(QPainterVideoSurface::FragmentProgramShader, QByteArray("ARBfp: "));
+        qMakePair(QPainterVideoSurface::FragmentProgramShader, QByteArray("ARBfp: ")),
 #endif
-    types << qMakePair(QPainterVideoSurface::GlslShader, QByteArray("GLSL: "));
+        qMakePair(QPainterVideoSurface::GlslShader, QByteArray("GLSL: ")),
+    };
 
-    QPair<QPainterVideoSurface::ShaderType, QByteArray> type;
-    foreach (type, types) {
+    for (const auto &type : types) {
         QTest::newRow((type.second + "rgb32 -> argb32").constData())
                 << type.first
                 << QVideoFrame::Format_RGB32

@@ -67,9 +67,9 @@ public:
 private:
     Q_DISABLE_COPY(DirectShowMediaTypeEnum)
 
-    DirectShowPin *m_pin;
+    DirectShowPin *m_pin = nullptr;
     QList<DirectShowMediaType> m_mediaTypes;
-    int m_index;
+    int m_index = 0;
 };
 
 QT_END_NAMESPACE

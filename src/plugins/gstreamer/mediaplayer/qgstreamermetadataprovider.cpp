@@ -167,9 +167,8 @@ void QGstreamerMetaDataProvider::updateTags()
     m_tags.clear();
     bool changed = false;
 
-    QMapIterator<QByteArray ,QVariant> i(m_session->tags());
-    while (i.hasNext()) {
-         i.next();
+    const auto tags = m_session->tags();
+    for (auto i = tags.cbegin(), end = tags.cend(); i != end; ++i) {
          //use gstreamer native keys for elements not in our key map
          QString key = qt_gstreamerMetaDataKeys()->value(i.key(), i.key());
          m_tags.insert(key, i.value());

@@ -264,7 +264,7 @@ void tst_QAudioOutput::initTestCase()
     QVERIFY(m_temporaryDir->isValid());
 
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
-    foreach (const QAudioFormat &format, testFormats) {
+    for (const QAudioFormat &format : qAsConst(testFormats)) {
         qint64 len = (format.sampleRate()*format.channelCount()*(format.sampleSize()/8)*2); // 2 seconds
         createSineWaveData(format, len);
         // Write generate sine wave data to file

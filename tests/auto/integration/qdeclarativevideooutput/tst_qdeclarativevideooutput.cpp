@@ -280,11 +280,11 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     QVERIFY(holder.videoSurface() != 0);
 
     // Now we could do things with the surface..
-    QList<QVideoFrame::PixelFormat> formats = holder.videoSurface()->supportedPixelFormats();
+    const QList<QVideoFrame::PixelFormat> formats = holder.videoSurface()->supportedPixelFormats();
     QVERIFY(formats.count() > 0);
 
     // See if we can start and stop each pixel format (..)
-    foreach (QVideoFrame::PixelFormat format, formats) {
+    for (QVideoFrame::PixelFormat format : formats) {
         QVideoSurfaceFormat surfaceFormat(QSize(200,100), format);
         QVERIFY(holder.videoSurface()->isFormatSupported(surfaceFormat)); // This does kind of depend on node factories
 

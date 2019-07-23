@@ -49,15 +49,6 @@
 Vmr9VideoWindowControl::Vmr9VideoWindowControl(QObject *parent)
     : QVideoWindowControl(parent)
     , m_filter(com_new<IBaseFilter>(CLSID_VideoMixingRenderer9))
-    , m_windowId(0)
-    , m_windowColor(RGB(0, 0, 0))
-    , m_dirtyValues(0)
-    , m_aspectRatioMode(Qt::KeepAspectRatio)
-    , m_brightness(0)
-    , m_contrast(0)
-    , m_hue(0)
-    , m_saturation(0)
-    , m_fullScreen(false)
 {
     if (IVMRFilterConfig9 *config = com_cast<IVMRFilterConfig9>(m_filter, IID_IVMRFilterConfig9)) {
         config->SetRenderingMode(VMR9Mode_Windowless);
@@ -113,7 +104,7 @@ void Vmr9VideoWindowControl::setDisplayRect(const QRect &rect)
         RECT sourceRect = { 0, 0, 0, 0 };
         RECT displayRect = { rect.left(), rect.top(), rect.right() + 1, rect.bottom() + 1 };
 
-        control->GetNativeVideoSize(&sourceRect.right, &sourceRect.bottom, 0, 0);
+        control->GetNativeVideoSize(&sourceRect.right, &sourceRect.bottom, nullptr, nullptr);
 
         if (m_aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
             QSize clippedSize = rect.size();
@@ -182,7 +173,7 @@ QSize Vmr9VideoWindowControl::nativeSize() const
         LONG width;
         LONG height;
 
-        if (control->GetNativeVideoSize(&width, &height, 0, 0) == S_OK)
+        if (control->GetNativeVideoSize(&width, &height, nullptr, nullptr) == S_OK)
             size = QSize(width, height);
         control->Release();
     }

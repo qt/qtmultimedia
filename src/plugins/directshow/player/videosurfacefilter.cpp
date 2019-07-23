@@ -222,20 +222,10 @@ HRESULT VideoSurfaceInputPin::Receive(IMediaSample *pMediaSample)
 VideoSurfaceFilter::VideoSurfaceFilter(QAbstractVideoSurface *surface, DirectShowEventLoop *loop, QObject *parent)
     : QObject(parent)
     , m_loop(loop)
-    , m_pin(NULL)
     , m_surface(surface)
-    , m_bytesPerLine(0)
-    , m_surfaceStarted(false)
     , m_renderMutex(QMutex::Recursive)
-    , m_running(false)
-    , m_pendingSample(NULL)
-    , m_pendingSampleEndTime(0)
-    , m_renderEvent(CreateEvent(NULL, FALSE, FALSE, NULL))
-    , m_flushEvent(CreateEvent(NULL, TRUE, FALSE, NULL))
-    , m_adviseCookie(0)
-    , m_EOS(false)
-    , m_EOSDelivered(false)
-    , m_EOSTimer(0)
+    , m_renderEvent(CreateEvent(nullptr, FALSE, FALSE, nullptr))
+    , m_flushEvent(CreateEvent(nullptr, TRUE, FALSE, nullptr))
 {
     supportedFormatsChanged();
     connect(surface, &QAbstractVideoSurface::supportedFormatsChanged,
@@ -616,7 +606,7 @@ void VideoSurfaceFilter::clearPendingSample()
     if (m_pendingSample) {
         qCDebug(qLcRenderFilter, "clearPendingSample");
         m_pendingSample->Release();
-        m_pendingSample = NULL;
+        m_pendingSample = nullptr;
     }
 }
 
@@ -713,11 +703,10 @@ bool VideoSurfaceFilter::startSurface()
         m_loop->postEvent(this, new QEvent(QEvent::Type(StartSurface)));
         m_waitSurface.wait(&m_mutex);
         return m_surfaceStarted;
-    } else {
-        m_surfaceStarted = m_surface->start(m_surfaceFormat);
-        qCDebug(qLcRenderFilter, "startSurface %s", m_surfaceStarted ? "succeeded" : "failed");
-        return m_surfaceStarted;
     }
+    m_surfaceStarted = m_surface->start(m_surfaceFormat);
+    qCDebug(qLcRenderFilter, "startSurface %s", m_surfaceStarted ? "succeeded" : "failed");
+    return m_surfaceStarted;
 }
 
 void VideoSurfaceFilter::stopSurface()
@@ -741,12 +730,11 @@ bool VideoSurfaceFilter::restartSurface()
         m_loop->postEvent(this, new QEvent(QEvent::Type(RestartSurface)));
         m_waitSurface.wait(&m_mutex);
         return m_surfaceStarted;
-    } else {
-        m_surface->stop();
-        m_surfaceStarted = m_surface->start(m_surfaceFormat);
-        qCDebug(qLcRenderFilter, "restartSurface %s", m_surfaceStarted ? "succeeded" : "failed");
-        return m_surfaceStarted;
     }
+    m_surface->stop();
+    m_surfaceStarted = m_surface->start(m_surfaceFormat);
+    qCDebug(qLcRenderFilter, "restartSurface %s", m_surfaceStarted ? "succeeded" : "failed");
+    return m_surfaceStarted;
 }
 
 void VideoSurfaceFilter::flushSurface()

@@ -573,7 +573,7 @@ STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount,
     if (!m_videoProbes.isEmpty()) {
         QVideoFrame frame = makeVideoFrame();
 
-        foreach (MFVideoProbeControl* probe, m_videoProbes)
+        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
             probe->bufferProbed(frame);
     }
     m_videoProbeMutex.unlock();

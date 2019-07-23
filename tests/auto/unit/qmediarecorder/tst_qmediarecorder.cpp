@@ -512,16 +512,16 @@ void tst_QMediaRecorder::testAudioSettings()
     QVERIFY(!settings.isNull());
 
     settings = QAudioEncoderSettings();
-    settings.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
-    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant(1));
+    settings.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption")), QVariant(1));
     QVariantMap options;
-    options.insert(QLatin1Literal("encoderOption"), QVariant(1));
+    options.insert(QLatin1String("encoderOption"), QVariant(1));
     QCOMPARE(settings.encodingOptions(), options);
-    options.insert(QLatin1Literal("encoderOption2"), QVariant(2));
-    options.remove(QLatin1Literal("encoderOption"));
+    options.insert(QLatin1String("encoderOption2"), QVariant(2));
+    options.remove(QLatin1String("encoderOption"));
     settings.setEncodingOptions(options);
-    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant());
-    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption2")), QVariant(2));
+    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption")), QVariant());
+    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption2")), QVariant(2));
     QVERIFY(!settings.isNull());
     QVERIFY(settings != QAudioEncoderSettings());
 
@@ -614,11 +614,11 @@ void tst_QMediaRecorder::testAudioSettings()
     QVERIFY(settings1 != settings2);
 
     settings1 = QAudioEncoderSettings();
-    settings1.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    settings1.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
     settings2 = QAudioEncoderSettings();
-    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    settings2.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
     QVERIFY(settings1 == settings2);
-    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(2));
+    settings2.setEncodingOption(QLatin1String("encoderOption"), QVariant(2));
     QVERIFY(settings1 != settings2);
 }
 
@@ -663,16 +663,16 @@ void tst_QMediaRecorder::testVideoSettings()
     QVERIFY(!settings.isNull());
 
     settings = QVideoEncoderSettings();
-    settings.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
-    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant(1));
+    settings.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
+    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption")), QVariant(1));
     QVariantMap options;
-    options.insert(QLatin1Literal("encoderOption"), QVariant(1));
+    options.insert(QLatin1String("encoderOption"), QVariant(1));
     QCOMPARE(settings.encodingOptions(), options);
-    options.insert(QLatin1Literal("encoderOption2"), QVariant(2));
-    options.remove(QLatin1Literal("encoderOption"));
+    options.insert(QLatin1String("encoderOption2"), QVariant(2));
+    options.remove(QLatin1String("encoderOption"));
     settings.setEncodingOptions(options);
-    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption")), QVariant());
-    QCOMPARE(settings.encodingOption(QLatin1Literal("encoderOption2")), QVariant(2));
+    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption")), QVariant());
+    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption2")), QVariant(2));
     QVERIFY(!settings.isNull());
     QVERIFY(settings != QVideoEncoderSettings());
 
@@ -766,11 +766,11 @@ void tst_QMediaRecorder::testVideoSettings()
     QVERIFY(settings1 != settings2);
 
     settings1 = QVideoEncoderSettings();
-    settings1.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    settings1.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
     settings2 = QVideoEncoderSettings();
-    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(1));
+    settings2.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
     QVERIFY(settings1 == settings2);
-    settings2.setEncodingOption(QLatin1Literal("encoderOption"), QVariant(2));
+    settings2.setEncodingOption(QLatin1String("encoderOption"), QVariant(2));
     QVERIFY(settings1 != settings2);
 }
 

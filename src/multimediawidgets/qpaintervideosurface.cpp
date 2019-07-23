@@ -57,6 +57,15 @@
 #ifndef GL_RGB8
 #define GL_RGB8 0x8051
 #endif
+
+static void makeCurrent(QGLContext *context)
+{
+    context->makeCurrent();
+
+    auto handle = context->contextHandle();
+    if (handle && QOpenGLContext::currentContext() != handle)
+        handle->makeCurrent(handle->surface());
+}
 #endif
 
 #include <QtDebug>
@@ -395,7 +404,7 @@ QAbstractVideoSurface::Error QVideoSurfaceGLPainter::setCurrentFrame(const QVide
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     } else if (m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
-        m_context->makeCurrent();
+        makeCurrent(m_context);
 
         for (int i = 0; i < m_textureCount; ++i) {
             glBindTexture(GL_TEXTURE_2D, m_textureIds[i]);
@@ -737,7 +746,7 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::start(const QVideoSurfac
 
     QAbstractVideoSurface::Error error = QAbstractVideoSurface::NoError;
 
-    m_context->makeCurrent();
+    makeCurrent(m_context);
 
     const char *program = 0;
 
@@ -862,7 +871,7 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::start(const QVideoSurfac
 void QVideoSurfaceArbFpPainter::stop()
 {
     if (m_context) {
-        m_context->makeCurrent();
+        makeCurrent(m_context);
 
         if (m_handleType != QAbstractVideoBuffer::GLTextureHandle)
             glDeleteTextures(m_textureCount, m_textureIds);
@@ -1115,7 +1124,7 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::start(const QVideoSurface
 
     QAbstractVideoSurface::Error error = QAbstractVideoSurface::NoError;
 
-    m_context->makeCurrent();
+    makeCurrent(m_context);
 
     const char *fragmentProgram = 0;
 
@@ -1222,7 +1231,7 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::start(const QVideoSurface
 void QVideoSurfaceGlslPainter::stop()
 {
     if (m_context) {
-        m_context->makeCurrent();
+        makeCurrent(m_context);
 
         if (m_handleType != QAbstractVideoBuffer::GLTextureHandle)
             glDeleteTextures(m_textureCount, m_textureIds);
@@ -1623,7 +1632,7 @@ void QPainterVideoSurface::setGLContext(QGLContext *context)
         //Set a dynamic property to access the OpenGL context
         this->setProperty("GLContext", QVariant::fromValue<QObject*>(m_glContext->contextHandle()));
 
-        m_glContext->makeCurrent();
+        makeCurrent(m_glContext);
 
         const QByteArray extensions(reinterpret_cast<const char *>(
                                         context->contextHandle()->functions()->glGetString(GL_EXTENSIONS)));
@@ -1734,13 +1743,13 @@ void QPainterVideoSurface::createPainter()
 #if !defined(QT_OPENGL_ES) && !defined(QT_OPENGL_DYNAMIC)
     case FragmentProgramShader:
         Q_ASSERT(m_glContext);
-        m_glContext->makeCurrent();
+        makeCurrent(m_glContext);
         m_painter = new QVideoSurfaceArbFpPainter(m_glContext);
         break;
 #endif // !QT_OPENGL_ES && !QT_OPENGL_DYNAMIC
     case GlslShader:
         Q_ASSERT(m_glContext);
-        m_glContext->makeCurrent();
+        makeCurrent(m_glContext);
         m_painter = new QVideoSurfaceGlslPainter(m_glContext);
         break;
     default:

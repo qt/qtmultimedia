@@ -48,8 +48,6 @@ DirectShowAudioEndpointControl::DirectShowAudioEndpointControl(
         DirectShowPlayerService *service, QObject *parent)
     : QAudioOutputSelectorControl(parent)
     , m_service(service)
-    , m_bindContext(0)
-    , m_deviceEnumerator(0)
 {
     if (CreateBindCtx(0, &m_bindContext) == S_OK) {
         m_deviceEnumerator = com_new<ICreateDevEnum>(CLSID_SystemDeviceEnum);
@@ -83,12 +81,12 @@ QString DirectShowAudioEndpointControl::outputDescription(const QString &name) c
     QString description;
 
     if (IMoniker *moniker = m_devices.value(name, 0)) {
-        IPropertyBag *propertyBag = 0;
+        IPropertyBag *propertyBag = nullptr;
         if (SUCCEEDED(moniker->BindToStorage(
-                0, 0, IID_IPropertyBag, reinterpret_cast<void **>(&propertyBag)))) {
+                nullptr, nullptr, IID_IPropertyBag, reinterpret_cast<void **>(&propertyBag)))) {
             VARIANT name;
             VariantInit(&name);
-            if (SUCCEEDED(propertyBag->Read(L"FriendlyName", &name, 0)))
+            if (SUCCEEDED(propertyBag->Read(L"FriendlyName", &name, nullptr)))
                 description = QString::fromWCharArray(name.bstrVal);
             VariantClear(&name);
             propertyBag->Release();
@@ -117,11 +115,11 @@ void DirectShowAudioEndpointControl::setActiveOutput(const QString &name)
         return;
 
     if (IMoniker *moniker = m_devices.value(name, 0)) {
-        IBaseFilter *filter = 0;
+        IBaseFilter *filter = nullptr;
 
         if (moniker->BindToObject(
                 m_bindContext,
-                0,
+                nullptr,
                 IID_IBaseFilter,
                 reinterpret_cast<void **>(&filter)) == S_OK) {
             m_service->setAudioOutput(filter);
@@ -133,15 +131,15 @@ void DirectShowAudioEndpointControl::setActiveOutput(const QString &name)
 
 void DirectShowAudioEndpointControl::updateEndpoints()
 {
-    IMalloc *oleMalloc = 0;
+    IMalloc *oleMalloc = nullptr;
     if (m_deviceEnumerator && CoGetMalloc(1, &oleMalloc) == S_OK) {
-        IEnumMoniker *monikers = 0;
+        IEnumMoniker *monikers = nullptr;
 
         if (m_deviceEnumerator->CreateClassEnumerator(
                 CLSID_AudioRendererCategory, &monikers, 0) == S_OK) {
-            for (IMoniker *moniker = 0; monikers->Next(1, &moniker, 0) == S_OK; moniker->Release()) {
-                OLECHAR *string = 0;
-                if (moniker->GetDisplayName(m_bindContext, 0, &string) == S_OK) {
+            for (IMoniker *moniker = nullptr; monikers->Next(1, &moniker, nullptr) == S_OK; moniker->Release()) {
+                OLECHAR *string = nullptr;
+                if (moniker->GetDisplayName(m_bindContext, nullptr, &string) == S_OK) {
                     QString deviceId = QString::fromWCharArray(string);
                     oleMalloc->Free(string);
 

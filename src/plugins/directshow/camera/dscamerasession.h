@@ -84,7 +84,7 @@ class DSCameraSession : public QObject
 {
     Q_OBJECT
 public:
-    DSCameraSession(QObject *parent = 0);
+    DSCameraSession(QObject *parent = nullptr);
     ~DSCameraSession() override;
 
     QCamera::Status status() const { return m_status; }
@@ -185,49 +185,48 @@ private:
     QMutex m_presentMutex;
     QMutex m_captureMutex;
 
-    // Capture Graph
-    ICaptureGraphBuilder2* m_graphBuilder;
-    IGraphBuilder* m_filterGraph;
+    ICaptureGraphBuilder2* m_graphBuilder = nullptr;
+    IGraphBuilder* m_filterGraph = nullptr;
 
     // Source (camera)
-    QString m_sourceDeviceName;
-    IBaseFilter* m_sourceFilter;
-    bool m_needsHorizontalMirroring;
+    QString m_sourceDeviceName = QLatin1String("default");
+    IBaseFilter* m_sourceFilter = nullptr;
+    bool m_needsHorizontalMirroring = false;
     QList<DirectShowMediaType> m_supportedFormats;
     QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
     DirectShowMediaType m_sourceFormat;
     QMap<QCameraImageProcessingControl::ProcessingParameter, ImageProcessingParameterInfo> m_imageProcessingParametersInfos;
 
     // Preview
-    DirectShowSampleGrabber *m_previewSampleGrabber;
-    IBaseFilter *m_nullRendererFilter;
+    DirectShowSampleGrabber *m_previewSampleGrabber = nullptr;
+    IBaseFilter *m_nullRendererFilter = nullptr;
     QVideoFrame m_currentFrame;
-    bool m_previewStarted;
-    QAbstractVideoSurface* m_surface;
+    bool m_previewStarted = false;
+    QAbstractVideoSurface* m_surface = nullptr;
     QVideoSurfaceFormat m_previewSurfaceFormat;
-    QVideoFrame::PixelFormat m_previewPixelFormat;
+    QVideoFrame::PixelFormat m_previewPixelFormat = QVideoFrame::Format_RGB32;
     QSize m_previewSize;
-    int m_stride;
+    int m_stride = -1;
     QCameraViewfinderSettings m_viewfinderSettings;
     QCameraViewfinderSettings m_actualViewfinderSettings;
 
     // Image capture
     QString m_imageCaptureFileName;
     QMediaStorageLocation m_fileNameGenerator;
-    bool m_readyForCapture;
-    int m_imageIdCounter;
-    int m_currentImageId;
+    bool m_readyForCapture = false;
+    int m_imageIdCounter = 0;
+    int m_currentImageId = -1;
     QVideoFrame m_capturedFrame;
-    QCameraImageCapture::CaptureDestinations m_captureDestinations;
+    QCameraImageCapture::CaptureDestinations m_captureDestinations = QCameraImageCapture::CaptureToFile;
 
     // Video probe
     QMutex m_probeMutex;
-    DirectShowVideoProbeControl *m_videoProbeControl;
+    DirectShowVideoProbeControl *m_videoProbeControl = nullptr;
 
     QImageEncoderSettings m_imageEncoderSettings;
 
     // Internal state
-    QCamera::Status m_status;
+    QCamera::Status m_status = QCamera::UnloadedStatus;
     QTimer m_deviceLostEventTimer;
 
     QMap<QCameraImageProcessingControl::ProcessingParameter, QVariant> m_pendingImageProcessingParametrs;

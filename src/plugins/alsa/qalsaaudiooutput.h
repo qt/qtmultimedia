@@ -58,7 +58,7 @@
 #include <QtCore/qtimer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qdatetime.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
 
 #include <QtMultimedia/qaudio.h>
@@ -132,8 +132,8 @@ private:
     QTimer* timer;
     QByteArray m_device;
     int bytesAvailable;
-    QTime timeStamp;
-    QTime clockStamp;
+    QElapsedTimer timeStamp;
+    QElapsedTimer clockStamp;
     qint64 elapsedTimeOffset;
     char* audioBuffer;
     snd_pcm_t* handle;

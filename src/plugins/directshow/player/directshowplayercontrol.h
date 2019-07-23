@@ -55,7 +55,7 @@ class DirectShowPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
 public:
-    DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent = 0);
+    DirectShowPlayerControl(DirectShowPlayerService *service, QObject *parent = nullptr);
     ~DirectShowPlayerControl() override;
 
     QMediaPlayer::State state() const override;
@@ -129,20 +129,20 @@ private:
     void setVolumeHelper(int volume);
 
     DirectShowPlayerService *m_service;
-    IBasicAudio *m_audio;
-    QIODevice *m_stream;
-    int m_updateProperties;
-    QMediaPlayer::State m_state;
-    QMediaPlayer::MediaStatus m_status;
-    QMediaPlayer::Error m_error;
-    int m_streamTypes;
-    int m_volume;
-    bool m_muted;
-    qint64 m_emitPosition;
-    qint64 m_pendingPosition;
-    qint64 m_duration;
-    qreal m_playbackRate;
-    bool m_seekable;
+    IBasicAudio *m_audio = nullptr;
+    QIODevice *m_stream = nullptr;
+    int m_updateProperties = 0;
+    QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
+    QMediaPlayer::MediaStatus m_status = QMediaPlayer::NoMedia;
+    QMediaPlayer::Error m_error = QMediaPlayer::NoError;
+    int m_streamTypes = 0;
+    int m_volume = 100;
+    bool m_muted = false;
+    qint64 m_emitPosition = -1;
+    qint64 m_pendingPosition = -1;
+    qint64 m_duration = 0;
+    qreal m_playbackRate = 0;
+    bool m_seekable = false;
     QMediaContent m_media;
     QString m_errorString;
 

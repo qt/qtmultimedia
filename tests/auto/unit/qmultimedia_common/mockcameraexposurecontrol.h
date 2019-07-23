@@ -51,13 +51,22 @@ public:
         m_shutterRanges << 0.001 << 0.01 << 0.1 << 1.0;
         m_exposureRanges << -2.0 << 2.0;
 
-        QList<QCameraExposure::ExposureMode> exposureModes;
-        exposureModes << QCameraExposure::ExposureAuto << QCameraExposure::ExposureManual << QCameraExposure::ExposureBacklight
-                      << QCameraExposure::ExposureNight << QCameraExposure::ExposureSpotlight << QCameraExposure::ExposureSports
-                      << QCameraExposure::ExposureSnow << QCameraExposure:: ExposureLargeAperture << QCameraExposure::ExposureSmallAperture
-                      << QCameraExposure::ExposurePortrait << QCameraExposure::ExposureModeVendor << QCameraExposure::ExposureBeach;
+        const QCameraExposure::ExposureMode exposureModes[] = {
+            QCameraExposure::ExposureAuto,
+            QCameraExposure::ExposureManual,
+            QCameraExposure::ExposureBacklight,
+            QCameraExposure::ExposureNight,
+            QCameraExposure::ExposureSpotlight,
+            QCameraExposure::ExposureSports,
+            QCameraExposure::ExposureSnow,
+            QCameraExposure:: ExposureLargeAperture,
+            QCameraExposure::ExposureSmallAperture,
+            QCameraExposure::ExposurePortrait,
+            QCameraExposure::ExposureModeVendor,
+            QCameraExposure::ExposureBeach,
+        };
 
-        foreach (QCameraExposure::ExposureMode mode, exposureModes)
+        for (QCameraExposure::ExposureMode mode : exposureModes)
             m_exposureModes << QVariant::fromValue<QCameraExposure::ExposureMode>(mode);
 
         m_meteringModes << QVariant::fromValue<QCameraExposure::MeteringMode>(QCameraExposure::MeteringMatrix)

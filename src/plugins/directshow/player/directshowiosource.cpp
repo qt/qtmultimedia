@@ -66,16 +66,7 @@ static const GUID directshow_subtypes[] =
 };
 
 DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
-    : m_ref(1)
-    , m_state(State_Stopped)
-    , m_reader(0)
-    , m_loop(loop)
-    , m_graph(0)
-    , m_clock(0)
-    , m_allocator(0)
-    , m_peerPin(0)
-    , m_pinId(QLatin1String("Data"))
-    , m_queriedForAsyncReader(false)
+    : m_loop(loop)
 {
     // This filter has only one possible output type, that is, a stream of data
     // with no particular subtype. The graph builder will try every demux/decode filters
@@ -92,9 +83,9 @@ DirectShowIOSource::DirectShowIOSource(DirectShowEventLoop *loop)
         FALSE,             // bTemporalCompression
         1,                 // lSampleSize
         GUID_NULL,         // formattype
-        0,                 // pUnk
+        nullptr,           // pUnk
         0,                 // cbFormat
-        0,                 // pbFormat
+        nullptr,           // pbFormat
     };
 
     for (const auto &directshowSubtype : directshow_subtypes) {
@@ -152,7 +143,7 @@ HRESULT DirectShowIOSource::QueryInterface(REFIID riid, void **ppvObject)
         m_queriedForAsyncReader = true;
         *ppvObject = static_cast<IAsyncReader *>(m_reader);
     } else {
-        *ppvObject = 0;
+        *ppvObject = nullptr;
 
         return E_NOINTERFACE;
     }
@@ -381,7 +372,7 @@ HRESULT DirectShowIOSource::Connect(IPin *pReceivePin, const AM_MEDIA_TYPE *pmt)
         pReceivePin->Disconnect();
         if (m_allocator) {
             m_allocator->Release();
-            m_allocator = 0;
+            m_allocator = nullptr;
         }
         if (!m_queriedForAsyncReader)
             hr = VFW_E_NO_TRANSPORT;

@@ -179,8 +179,8 @@ void overview_movie()
 void camera_listing()
 {
     //! [Camera listing]
-    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
-    foreach (const QCameraInfo &cameraInfo, cameras)
+    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    for (const QCameraInfo &cameraInfo : cameras)
         qDebug() << cameraInfo.deviceName();
     //! [Camera listing]
 }
@@ -188,8 +188,8 @@ void camera_listing()
 void camera_selection()
 {
     //! [Camera selection]
-    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
-    foreach (const QCameraInfo &cameraInfo, cameras) {
+    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    for (const QCameraInfo &cameraInfo : cameras) {
         if (cameraInfo.deviceName() == "mycamera")
             camera = new QCamera(cameraInfo);
     }
@@ -269,8 +269,8 @@ void camerafocus()
 
     //! [Camera focus zones]
     focus->setFocusPointMode(QCameraFocus::FocusPointAuto);
-    QList<QCameraFocusZone> zones = focus->focusZones();
-    foreach (QCameraFocusZone zone, zones) {
+    const QList<QCameraFocusZone> zones = focus->focusZones();
+    for (const QCameraFocusZone &zone : zones) {
         if (zone.status() == QCameraFocusZone::Focused) {
             // Draw a green box at zone.area()
         } else if (zone.status() == QCameraFocusZone::Selected) {

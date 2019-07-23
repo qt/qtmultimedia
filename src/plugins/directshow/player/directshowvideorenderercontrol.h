@@ -58,7 +58,7 @@ class DirectShowVideoRendererControl : public QVideoRendererControl
 {
     Q_OBJECT
 public:
-    DirectShowVideoRendererControl(DirectShowEventLoop *loop, QObject *parent = 0);
+    DirectShowVideoRendererControl(DirectShowEventLoop *loop, QObject *parent = nullptr);
     ~DirectShowVideoRendererControl() override;
 
     QAbstractVideoSurface *surface() const override;
@@ -71,10 +71,10 @@ Q_SIGNALS:
 
 private:
     DirectShowEventLoop *m_loop;
-    QAbstractVideoSurface *m_surface;
-    IBaseFilter *m_filter;
+    QAbstractVideoSurface *m_surface = nullptr;
+    IBaseFilter *m_filter = nullptr;
 #if QT_CONFIG(evr)
-    EVRCustomPresenter *m_evrPresenter;
+    EVRCustomPresenter *m_evrPresenter = nullptr;
 #endif
 };
 

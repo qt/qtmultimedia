@@ -72,7 +72,7 @@ void tst_QMediaPluginLoader::testInstance()
     if (keys.isEmpty()) // Test is invalidated, skip.
         QSKIP("No plug-ins available");
 
-    foreach (const QString &key, keys)
+    for (const QString &key : keys)
         QVERIFY(loader->instance(key) != 0);
 }
 
@@ -83,7 +83,7 @@ void tst_QMediaPluginLoader::testInstances()
     if (keys.isEmpty()) // Test is invalidated, skip.
         QSKIP("No plug-ins available");
 
-    foreach (const QString &key, keys)
+    for (const QString &key : keys)
         QVERIFY(loader->instances(key).size() > 0);
 }
 
