@@ -137,7 +137,7 @@ DirectShowPlayerService::DirectShowPlayerService(QObject *parent)
     , m_pendingTasks(0)
     , m_executingTask(0)
     , m_executedTasks(0)
-    , m_taskHandle(::CreateEvent(0, 0, 0, 0))
+    , m_taskHandle(::CreateEvent(nullptr, FALSE, FALSE, nullptr))
     , m_eventHandle(0)
     , m_graphStatus(NoMedia)
     , m_stream(0)
@@ -210,8 +210,8 @@ QMediaControl *DirectShowPlayerService::requestControl(const char *name)
         if (!m_videoRendererControl && !m_videoWindowControl) {
             m_videoRendererControl = new DirectShowVideoRendererControl(m_loop);
 
-            connect(m_videoRendererControl, SIGNAL(filterChanged()),
-                    this, SLOT(videoOutputChanged()));
+            connect(m_videoRendererControl, &DirectShowVideoRendererControl::filterChanged,
+                    this, &DirectShowPlayerService::videoOutputChanged);
 
             return m_videoRendererControl;
         }
@@ -299,6 +299,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
         releaseGraph();
 
     m_url = media.canonicalUrl();
+
     m_stream = stream;
     m_error = QMediaPlayer::NoError;
     m_errorString = QString();

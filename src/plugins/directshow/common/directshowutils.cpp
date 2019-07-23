@@ -117,7 +117,7 @@ bool DirectShowUtils::getPin(IBaseFilter *filter, PIN_DIRECTION pinDirection, IP
 
     enumPins->Reset();
     IPin *nextPin = nullptr;
-    while (enumPins->Next(1, &nextPin, NULL) == S_OK) {
+    while (enumPins->Next(1, &nextPin, nullptr) == S_OK) {
         const ScopedSafeRelease<IPin> releasePin { &nextPin };
         PIN_DIRECTION currentPinDir;
         *hrOut = nextPin->QueryDirection(&currentPinDir);
