@@ -43,7 +43,6 @@
 
 DirectShowEvrVideoWindowControl::DirectShowEvrVideoWindowControl(QObject *parent)
     : EvrVideoWindowControl(parent)
-    , m_evrFilter(NULL)
 {
 }
 
@@ -59,7 +58,7 @@ IBaseFilter *DirectShowEvrVideoWindowControl::filter()
         m_evrFilter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
         if (!setEvr(m_evrFilter)) {
             m_evrFilter->Release();
-            m_evrFilter = NULL;
+            m_evrFilter = nullptr;
         }
     }
 

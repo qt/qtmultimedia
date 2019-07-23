@@ -165,11 +165,13 @@ Q_SIGNALS:
     void isoSensitivityChanged(int);
     void exposureCompensationChanged(qreal);
 
+protected:
+    virtual ~QCameraExposure();
+
 private:
     friend class QCamera;
     friend class QCameraPrivate;
     explicit QCameraExposure(QCamera *parent = nullptr);
-    virtual ~QCameraExposure();
 
     Q_DISABLE_COPY(QCameraExposure)
     Q_DECLARE_PRIVATE(QCameraExposure)

@@ -52,7 +52,7 @@ class Vmr9VideoWindowControl : public QVideoWindowControl
 {
     Q_OBJECT
 public:
-    Vmr9VideoWindowControl(QObject *parent = 0);
+    Vmr9VideoWindowControl(QObject *parent = nullptr);
     ~Vmr9VideoWindowControl() override;
 
     IBaseFilter *filter() const { return m_filter; }
@@ -91,16 +91,16 @@ private:
             IVMRMixerControl9 *control, VMR9ProcAmpControlFlags property, int value) const;
 
     IBaseFilter *m_filter;
-    WId m_windowId;
-    COLORREF m_windowColor;
-    DWORD m_dirtyValues;
-    Qt::AspectRatioMode m_aspectRatioMode;
+    WId m_windowId = 0;
+    COLORREF m_windowColor = RGB(0, 0, 0);
+    DWORD m_dirtyValues = 0;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
     QRect m_displayRect;
-    int m_brightness;
-    int m_contrast;
-    int m_hue;
-    int m_saturation;
-    bool m_fullScreen;
+    int m_brightness = 0;
+    int m_contrast = 0;
+    int m_hue = 0;
+    int m_saturation = 0;
+    bool m_fullScreen = false;
 };
 
 QT_END_NAMESPACE

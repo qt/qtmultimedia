@@ -328,16 +328,12 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
             nearest.setByteOrder(order);
             for (QAudioFormat::SampleType sample : qAsConst(testSampleTypes)) {
                 nearest.setSampleType(sample);
-                QMapIterator<int, int> sz(testSampleSizes);
-                while (sz.hasNext()) {
-                    sz.next();
-                    nearest.setSampleSize(sz.value());
+                for (int sampleSize : qAsConst(testSampleSizes)) {
+                    nearest.setSampleSize(sampleSize);
                     for (int channel : qAsConst(testChannels)) {
                         nearest.setChannelCount(channel);
-                        QMapIterator<int, int> i(testSampleRates);
-                        while (i.hasNext()) {
-                            i.next();
-                            nearest.setSampleRate(i.value());
+                        for (int sampleRate : qAsConst(testSampleRates)) {
+                            nearest.setSampleRate(sampleRate);
                             if (isFormatSupported(nearest))
                                 return nearest;
                         }
@@ -449,7 +445,10 @@ QAudioDeviceInfo::QAudioDeviceInfo(const QString &realm, const QByteArray &handl
 }
 
 /*!
-    \internal
+    Returns the key that represents the audio plugin.
+
+    \since 5.14
+    \sa QAudioSystemPlugin
 */
 QString QAudioDeviceInfo::realm() const
 {

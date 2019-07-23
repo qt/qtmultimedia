@@ -204,9 +204,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
         }
 
         QMap<QString,QVariant> options = m_options.value(codec);
-        QMapIterator<QString,QVariant> it(options);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = options.cbegin(), end = options.cend(); it != end; ++it) {
             QString option = it.key();
             QVariant value = it.value();
 

@@ -45,7 +45,6 @@ QT_BEGIN_NAMESPACE
 
 DSVideoRendererControl::DSVideoRendererControl(DSCameraSession* session, QObject *parent)
     :QVideoRendererControl(parent),
-    m_surface(0),
     m_session(session)
 {
 }

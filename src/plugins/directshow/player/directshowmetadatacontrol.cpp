@@ -209,7 +209,7 @@ static QString nameForGUIDString(const QString &guid)
 }
 
 typedef HRESULT (WINAPI *q_SHCreateItemFromParsingName)(PCWSTR, IBindCtx *, const GUID&, void **);
-static q_SHCreateItemFromParsingName sHCreateItemFromParsingName = 0;
+static q_SHCreateItemFromParsingName sHCreateItemFromParsingName = nullptr;
 #endif
 
 #if QT_CONFIG(wmsdk)
@@ -225,7 +225,7 @@ namespace
     };
 }
 
-typedef QList<QWMMetaDataKey> QWMMetaDataKeys;
+using QWMMetaDataKeys = QList<QWMMetaDataKey>;
 Q_GLOBAL_STATIC(QWMMetaDataKeys, metadataKeys)
 
 static const QWMMetaDataKeys *qt_wmMetaDataKeys()
@@ -299,7 +299,7 @@ static QVariant getValue(IWMHeaderInfo *header, const wchar_t *key)
     WMT_ATTR_DATATYPE type = WMT_TYPE_DWORD;
     WORD size = 0;
 
-    if (header->GetAttributeByName(&streamNumber, key, &type, 0, &size) == S_OK) {
+    if (header->GetAttributeByName(&streamNumber, key, &type, nullptr, &size) == S_OK) {
         switch (type) {
         case WMT_TYPE_DWORD:
             if (size == sizeof(DWORD)) {
@@ -445,7 +445,6 @@ static QVariant convertValue(const PROPVARIANT& var)
 
 DirectShowMetaDataControl::DirectShowMetaDataControl(QObject *parent)
     : QMetaDataReaderControl(parent)
-    , m_available(false)
 {
 }
 
@@ -472,7 +471,7 @@ static QString convertBSTR(BSTR *string)
                                        ::SysStringLen(*string));
 
     ::SysFreeString(*string);
-    string = 0;
+    string = nullptr;
 
     return value;
 }
@@ -492,11 +491,11 @@ void DirectShowMetaDataControl::updateMetadata(const QString &fileSrc, QVariantM
     }
 
     if (!fileSrc.isEmpty() && sHCreateItemFromParsingName) {
-        IShellItem2* shellItem = 0;
+        IShellItem2* shellItem = nullptr;
         if (sHCreateItemFromParsingName(reinterpret_cast<const WCHAR*>(fileSrc.utf16()),
-                                        0, IID_PPV_ARGS(&shellItem)) == S_OK) {
+                                        nullptr, IID_PPV_ARGS(&shellItem)) == S_OK) {
 
-            IPropertyStore *pStore = 0;
+            IPropertyStore *pStore = nullptr;
             if (shellItem->GetPropertyStore(GPS_DEFAULT, IID_PPV_ARGS(&pStore)) == S_OK) {
                 DWORD cProps;
                 if (SUCCEEDED(pStore->GetCount(&cProps))) {
@@ -651,17 +650,17 @@ void DirectShowMetaDataControl::updateMetadata(IFilterGraph2 *graph, IBaseFilter
         return;
 #endif
     {
-        IAMMediaContent *content = 0;
+        IAMMediaContent *content = nullptr;
 
         if ((!graph || graph->QueryInterface(
                  IID_IAMMediaContent, reinterpret_cast<void **>(&content)) != S_OK)
                 && (!source || source->QueryInterface(
                         IID_IAMMediaContent, reinterpret_cast<void **>(&content)) != S_OK)) {
-            content = 0;
+            content = nullptr;
         }
 
         if (content) {
-            BSTR string = 0;
+            BSTR string = nullptr;
 
             if (content->get_AuthorName(&string) == S_OK)
                 metadata.insert(QMediaMetaData::Author, convertBSTR(&string));

@@ -50,7 +50,7 @@ class DSVideoRendererControl : public QVideoRendererControl
 {
     Q_OBJECT
 public:
-    DSVideoRendererControl(DSCameraSession* session, QObject *parent = 0);
+    DSVideoRendererControl(DSCameraSession* session, QObject *parent = nullptr);
     ~DSVideoRendererControl() override;
 
     QAbstractVideoSurface *surface() const override;
@@ -59,7 +59,7 @@ public:
     void setSession(DSCameraSession* session);
 
 private:
-    QAbstractVideoSurface* m_surface;
+    QAbstractVideoSurface* m_surface = nullptr;
     DSCameraSession* m_session;
 };
 

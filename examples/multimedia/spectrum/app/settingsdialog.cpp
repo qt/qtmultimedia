@@ -72,11 +72,10 @@ SettingsDialog::SettingsDialog(
 
     // Populate combo boxes
 
-    QAudioDeviceInfo device;
-    foreach (device, availableInputDevices)
+    for (const QAudioDeviceInfo &device : availableInputDevices)
         m_inputDeviceComboBox->addItem(device.deviceName(),
                                        QVariant::fromValue(device));
-    foreach (device, availableOutputDevices)
+    for (const QAudioDeviceInfo &device : availableOutputDevices)
         m_outputDeviceComboBox->addItem(device.deviceName(),
                                        QVariant::fromValue(device));
 

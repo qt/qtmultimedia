@@ -78,7 +78,7 @@ static int g_refCount = 0;
 void addRefCount()
 {
     if (++g_refCount == 1)
-        CoInitialize(NULL);
+        CoInitialize(nullptr);
 }
 
 void releaseRefCount()
@@ -99,7 +99,7 @@ QMediaService* DSServicePlugin::create(QString const& key)
         return new DirectShowPlayerService;
     }
 
-    return 0;
+    return nullptr;
 }
 
 void DSServicePlugin::release(QMediaService *service)

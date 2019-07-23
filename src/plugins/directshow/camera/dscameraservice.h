@@ -64,7 +64,7 @@ class DSCameraService : public QMediaService
     Q_OBJECT
 
 public:
-    DSCameraService(QObject *parent = 0);
+    DSCameraService(QObject *parent = nullptr);
     ~DSCameraService() override;
 
     QMediaControl* requestControl(const char *name) override;
@@ -74,14 +74,14 @@ private:
     DSCameraSession        *m_session;
     DSCameraControl        *m_control;
     DSVideoDeviceControl   *m_videoDevice;
-    QMediaControl          *m_videoRenderer;
+    QMediaControl          *m_videoRenderer = nullptr;
     DSImageCaptureControl  *m_imageCapture;
     DSCameraViewfinderSettingsControl *m_viewfinderSettings;
     DSCameraImageProcessingControl *m_imageProcessingControl;
     DirectShowCameraExposureControl *m_exposureControl;
     DirectShowCameraCaptureDestinationControl *m_captureDestinationControl;
     DirectShowCameraCaptureBufferFormatControl *m_captureBufferFormatControl;
-    DirectShowVideoProbeControl *m_videoProbeControl;
+    DirectShowVideoProbeControl *m_videoProbeControl = nullptr;
     DirectShowCameraZoomControl *m_zoomControl;
     DirectShowCameraImageEncoderControl *m_imageEncoderControl;
 };

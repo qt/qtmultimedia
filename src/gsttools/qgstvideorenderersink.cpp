@@ -686,7 +686,8 @@ void QGstVideoRendererSink::handleShowPrerollChange(GObject *o, GParamSpec *p, g
 
     if (!showPrerollFrame) {
         GstState state = GST_STATE_VOID_PENDING;
-        gst_element_get_state(GST_ELEMENT(sink), &state, NULL, GST_CLOCK_TIME_NONE);
+        GstClockTime timeout = 10000000; // 10 ms
+        gst_element_get_state(GST_ELEMENT(sink), &state, NULL, timeout);
         // show-preroll-frame being set to 'false' while in GST_STATE_PAUSED means
         // the QMediaPlayer was stopped from the paused state.
         // We need to flush the current frame.

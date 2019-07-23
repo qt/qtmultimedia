@@ -62,14 +62,12 @@ DSCameraService::DSCameraService(QObject *parent):
   , m_session(new DSCameraSession(this))
   , m_control(new DSCameraControl(m_session))
   , m_videoDevice(new DSVideoDeviceControl(m_session))
-  , m_videoRenderer(0)
   , m_imageCapture(new DSImageCaptureControl(m_session))
   , m_viewfinderSettings(new DSCameraViewfinderSettingsControl(m_session))
   , m_imageProcessingControl(new DSCameraImageProcessingControl(m_session))
   , m_exposureControl(new DirectShowCameraExposureControl(m_session))
   , m_captureDestinationControl(new DirectShowCameraCaptureDestinationControl(m_session))
   , m_captureBufferFormatControl(new DirectShowCameraCaptureBufferFormatControl)
-  , m_videoProbeControl(nullptr)
   , m_zoomControl(new DirectShowCameraZoomControl(m_session))
   , m_imageEncoderControl(new DirectShowCameraImageEncoderControl(m_session))
 {
@@ -140,14 +138,14 @@ QMediaControl* DSCameraService::requestControl(const char *name)
     if (qstrcmp(name, QImageEncoderControl_iid) == 0)
         return m_imageEncoderControl;
 
-    return 0;
+    return nullptr;
 }
 
 void DSCameraService::releaseControl(QMediaControl *control)
 {
     if (control == m_videoRenderer) {
         delete m_videoRenderer;
-        m_videoRenderer = 0;
+        m_videoRenderer = nullptr;
         return;
     }
 

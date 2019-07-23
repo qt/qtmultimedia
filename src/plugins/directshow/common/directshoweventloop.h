@@ -54,7 +54,7 @@ class DirectShowEventLoop : public QObject
 {
     Q_OBJECT
 public:
-    DirectShowEventLoop(QObject *parent = 0);
+    DirectShowEventLoop(QObject *parent = nullptr);
     ~DirectShowEventLoop() override;
 
     void wait(QMutex *mutex);
@@ -68,8 +68,8 @@ protected:
 private:
     void processEvents();
 
-    DirectShowPostedEvent *m_postsHead;
-    DirectShowPostedEvent *m_postsTail;
+    DirectShowPostedEvent *m_postsHead = nullptr;
+    DirectShowPostedEvent *m_postsTail = nullptr;
     HANDLE m_eventHandle;
     HANDLE m_waitHandle;
     QMutex m_mutex;

@@ -54,7 +54,7 @@
 #include "qwindowsaudioutils.h"
 
 #include <QtCore/qdebug.h>
-#include <QtCore/qtimer.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qdatetime.h>
@@ -118,9 +118,9 @@ private:
     void pauseAndSleep();
     QByteArray m_device;
     int bytesAvailable;
-    QTime timeStamp;
+    QElapsedTimer timeStamp;
     qint64 elapsedTimeOffset;
-    QTime timeStampOpened;
+    QElapsedTimer timeStampOpened;
     qint32 buffer_size;
     qint32 period_size;
     qint32 blocks_count;

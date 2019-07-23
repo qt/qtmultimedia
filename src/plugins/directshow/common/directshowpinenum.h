@@ -68,9 +68,9 @@ public:
 private:
     Q_DISABLE_COPY(DirectShowPinEnum)
 
-    DirectShowBaseFilter *m_filter;
+    DirectShowBaseFilter *m_filter = nullptr;
     QList<IPin *> m_pins;
-    int m_index;
+    int m_index = 0;
 };
 
 QT_END_NAMESPACE

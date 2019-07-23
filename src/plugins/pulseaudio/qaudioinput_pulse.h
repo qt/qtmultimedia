@@ -55,7 +55,7 @@
 #include <QtCore/qtimer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qdatetime.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
 
 #include "qaudio.h"
@@ -132,8 +132,8 @@ private:
     QTimer *m_timer;
     qint64 m_elapsedTimeOffset;
     pa_stream *m_stream;
-    QTime m_timeStamp;
-    QTime m_clockStamp;
+    QElapsedTimer m_timeStamp;
+    QElapsedTimer m_clockStamp;
     QByteArray m_streamName;
     QByteArray m_device;
     QByteArray m_tempBuffer;

@@ -570,14 +570,14 @@ bool Engine::selectFormat()
 
         sampleRatesList += m_audioOutputDevice.supportedSampleRates();
         sampleRatesList = sampleRatesList.toSet().toList(); // remove duplicates
-        qSort(sampleRatesList);
+        std::sort(sampleRatesList.begin(), sampleRatesList.end());
         ENGINE_DEBUG << "Engine::initialize frequenciesList" << sampleRatesList;
 
         QList<int> channelsList;
         channelsList += m_audioInputDevice.supportedChannelCounts();
         channelsList += m_audioOutputDevice.supportedChannelCounts();
         channelsList = channelsList.toSet().toList();
-        qSort(channelsList);
+        std::sort(channelsList.begin(), channelsList.end());
         ENGINE_DEBUG << "Engine::initialize channelsList" << channelsList;
 
         QAudioFormat format;
@@ -585,12 +585,11 @@ bool Engine::selectFormat()
         format.setCodec("audio/pcm");
         format.setSampleSize(16);
         format.setSampleType(QAudioFormat::SignedInt);
-        int sampleRate, channels;
-        foreach (sampleRate, sampleRatesList) {
+        for (int sampleRate : qAsConst(sampleRatesList)) {
             if (foundSupportedFormat)
                 break;
             format.setSampleRate(sampleRate);
-            foreach (channels, channelsList) {
+            for (int channels : qAsConst(channelsList)) {
                 format.setChannelCount(channels);
                 const bool inputSupport = m_generateTone ||
                                           m_audioInputDevice.isFormatSupported(format);
@@ -752,8 +751,7 @@ void Engine::createOutputDir()
     // Ensure output directory exists and is empty
     if (m_outputDir.exists()) {
         const QStringList files = m_outputDir.entryList(QDir::Files);
-        QString file;
-        foreach (file, files)
+        for (const QString &file : files)
             m_outputDir.remove(file);
     } else {
         QDir::current().mkdir("output");

@@ -942,7 +942,7 @@ QList<QSize> AndroidCameraPrivate::getSupportedPreviewSizes()
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
-        qSort(list.begin(), list.end(), qt_sizeLessThan);
+        std::sort(list.begin(), list.end(), qt_sizeLessThan);
     }
 
     return list;
@@ -1541,7 +1541,7 @@ QList<QSize> AndroidCameraPrivate::getSupportedPictureSizes()
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
-        qSort(list.begin(), list.end(), qt_sizeLessThan);
+        std::sort(list.begin(), list.end(), qt_sizeLessThan);
     }
 
     return list;

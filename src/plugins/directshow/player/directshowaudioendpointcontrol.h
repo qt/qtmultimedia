@@ -52,7 +52,7 @@ class DirectShowAudioEndpointControl : public QAudioOutputSelectorControl
 {
     Q_OBJECT
 public:
-    DirectShowAudioEndpointControl(DirectShowPlayerService *service, QObject *parent = 0);
+    DirectShowAudioEndpointControl(DirectShowPlayerService *service, QObject *parent = nullptr);
     ~DirectShowAudioEndpointControl() override;
 
     QList<QString> availableOutputs() const override;
@@ -68,8 +68,8 @@ private:
     void updateEndpoints();
 
     DirectShowPlayerService *m_service;
-    IBindCtx *m_bindContext;
-    ICreateDevEnum *m_deviceEnumerator;
+    IBindCtx *m_bindContext = nullptr;
+    ICreateDevEnum *m_deviceEnumerator = nullptr;
 
     QMap<QString, IMoniker *> m_devices;
     QString m_defaultEndpoint;

@@ -213,7 +213,8 @@ void AudioDeviceInfo()
     //! [Setting audio format]
 
     //! [Dumping audio formats]
-    foreach (const QAudioDeviceInfo &deviceInfo, QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
+    const auto deviceInfos = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    for (const QAudioDeviceInfo &deviceInfo : deviceInfos)
         qDebug() << "Device name: " << deviceInfo.deviceName();
     //! [Dumping audio formats]
 }

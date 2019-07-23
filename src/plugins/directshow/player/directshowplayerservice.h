@@ -78,7 +78,7 @@ public:
         VideoStream = 0x02
     };
 
-    DirectShowPlayerService(QObject *parent = 0);
+    DirectShowPlayerService(QObject *parent = nullptr);
     ~DirectShowPlayerService() override;
 
     QMediaControl *requestControl(const char *name) override;
@@ -193,44 +193,44 @@ private:
         InvalidMedia
     };
 
-    DirectShowPlayerControl *m_playerControl;
-    DirectShowMetaDataControl *m_metaDataControl;
-    DirectShowVideoRendererControl *m_videoRendererControl;
-    QVideoWindowControl *m_videoWindowControl;
-    DirectShowAudioEndpointControl *m_audioEndpointControl;
-    DirectShowAudioProbeControl *m_audioProbeControl;
-    DirectShowVideoProbeControl *m_videoProbeControl;
-    DirectShowSampleGrabber *m_audioSampleGrabber;
-    DirectShowSampleGrabber *m_videoSampleGrabber;
+    DirectShowPlayerControl *m_playerControl = nullptr;
+    DirectShowMetaDataControl *m_metaDataControl = nullptr;
+    DirectShowVideoRendererControl *m_videoRendererControl = nullptr;
+    QVideoWindowControl *m_videoWindowControl = nullptr;
+    DirectShowAudioEndpointControl *m_audioEndpointControl = nullptr;
+    DirectShowAudioProbeControl *m_audioProbeControl = nullptr;
+    DirectShowVideoProbeControl *m_videoProbeControl = nullptr;
+    DirectShowSampleGrabber *m_audioSampleGrabber = nullptr;
+    DirectShowSampleGrabber *m_videoSampleGrabber = nullptr;
 
-    QThread *m_taskThread;
+    QThread *m_taskThread = nullptr;
     DirectShowEventLoop *m_loop;
-    int m_pendingTasks;
-    int m_executingTask;
-    int m_executedTasks;
-    int m_streamTypes;
+    int m_pendingTasks = 0;
+    int m_executingTask = 0;
+    int m_executedTasks = 0;
+    int m_streamTypes = 0;
     HANDLE m_taskHandle;
-    HANDLE m_eventHandle;
-    GraphStatus m_graphStatus;
-    QMediaPlayer::Error m_error;
-    QIODevice *m_stream;
-    IFilterGraph2 *m_graph;
-    ICaptureGraphBuilder2 *m_graphBuilder;
-    IBaseFilter *m_source;
-    IBaseFilter *m_audioOutput;
-    IBaseFilter *m_videoOutput;
-    qreal m_rate;
-    qint64 m_position;
-    qint64 m_seekPosition;
-    qint64 m_duration;
+    HANDLE m_eventHandle = nullptr;
+    GraphStatus m_graphStatus = NoMedia;
+    QMediaPlayer::Error m_error = QMediaPlayer::NoError;
+    QIODevice *m_stream = nullptr;
+    IFilterGraph2 *m_graph = nullptr;
+    ICaptureGraphBuilder2 *m_graphBuilder = nullptr;
+    IBaseFilter *m_source = nullptr;
+    IBaseFilter *m_audioOutput = nullptr;
+    IBaseFilter *m_videoOutput = nullptr;
+    qreal m_rate = 1;
+    qint64 m_position = 0;
+    qint64 m_seekPosition = -1;
+    qint64 m_duration = 0;
     QMediaTimeRange m_playbackRange;
     QUrl m_url;
     QString m_errorString;
     QMutex m_mutex;
-    bool m_buffering;
-    bool m_seekable;
-    bool m_atEnd;
-    bool m_dontCacheNextSeekResult;
+    bool m_buffering = false;
+    bool m_seekable = false;
+    bool m_atEnd = false;
+    bool m_dontCacheNextSeekResult = false;
     QVariantMap m_metadata;
 
     friend class DirectShowPlayerServiceThread;

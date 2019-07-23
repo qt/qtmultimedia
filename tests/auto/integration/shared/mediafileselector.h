@@ -42,7 +42,7 @@ static QMediaContent selectMediaFile(const QStringList& mediaCandidates)
 
     QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
 
-    foreach (QString s, mediaCandidates) {
+    for (const QString &s : mediaCandidates) {
         QFileInfo mediaFile(s);
         if (!mediaFile.exists())
             continue;
