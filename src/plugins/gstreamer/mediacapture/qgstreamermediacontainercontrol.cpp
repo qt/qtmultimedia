@@ -47,47 +47,11 @@ QGstreamerMediaContainerControl::QGstreamerMediaContainerControl(QObject *parent
     :QMediaContainerControl(parent)
     , m_containers(QGstCodecsInfo::Muxer)
 {
-    QSet<QString> allTypes;
-
-    for (const QString& formatName : supportedContainers()) {
-        GstElementFactory *factory = gst_element_factory_find(m_containers.codecElement(formatName).constData());
-        if (factory) {
-            if (formatName == QByteArray("raw")) {
-                m_streamTypes.insert(formatName, allTypes);
-            } else {
-                QSet<QString> types = supportedStreamTypes(factory, GST_PAD_SINK);
-                m_streamTypes.insert(formatName, types);
-                allTypes.unite(types);
-            }
-
-            gst_object_unref(GST_OBJECT(factory));
-        }
-    }
 }
-
-QSet<QString> QGstreamerMediaContainerControl::supportedStreamTypes(GstElementFactory *factory, GstPadDirection direction)
-{
-    QSet<QString> types;
-    const GList *pads = gst_element_factory_get_static_pad_templates(factory);
-    for (const GList *pad = pads; pad; pad = g_list_next(pad)) {
-        GstStaticPadTemplate *templ = (GstStaticPadTemplate*)pad->data;
-        if (templ->direction == direction) {
-            GstCaps *caps = gst_static_caps_get(&templ->static_caps);
-            for (uint i=0; i<gst_caps_get_size(caps); i++) {
-                GstStructure *structure = gst_caps_get_structure(caps, i);
-                types.insert( QString::fromUtf8(gst_structure_get_name(structure)) );
-            }
-            gst_caps_unref(caps);
-        }
-    }
-
-    return types;
-}
-
 
 QSet<QString> QGstreamerMediaContainerControl::supportedStreamTypes(const QString &container) const
 {
-    return m_streamTypes.value(container);
+    return m_containers.supportedStreamTypes(container);
 }
 
 QString QGstreamerMediaContainerControl::containerExtension() const

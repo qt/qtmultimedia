@@ -644,7 +644,7 @@ void QCamera::setViewfinderSettings(const QCameraViewfinderSettings &settings)
     If \a settings is non null, the returned list is reduced to settings matching the given partial
     \a settings.
 
-    The camera must be loaded before calling this function, otherwise the returned list
+    The status of the camera must be LoadedStatus before calling this function, otherwise the returned list
     is empty.
 
     \sa setViewfinderSettings(), supportedViewfinderResolutions(), supportedViewfinderFrameRateRanges(),

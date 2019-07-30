@@ -86,8 +86,6 @@ private:
 
     QMap<QString, QMap<QString, QVariant> > m_options;
 
-    QMap<QString, QSet<QString> > m_streamTypes;
-
     QAudioEncoderSettings m_audioSettings;
 };
 

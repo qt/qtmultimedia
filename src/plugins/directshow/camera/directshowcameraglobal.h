@@ -65,7 +65,7 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 extern const CLSID CLSID_SampleGrabber;
 extern const CLSID CLSID_CaptureGraphBuilder2;
 
-#define SAFE_RELEASE(x) { if(x) x->Release(); x = NULL; }
+#define SAFE_RELEASE(x) { if (x) x->Release(); x = nullptr; }
 
 typedef struct IFileSinkFilter *LPFILESINKFILTER;
 typedef struct IAMCopyCaptureFileProgress *LPAMCOPYCAPTUREFILEPROGRESS;
