@@ -43,9 +43,36 @@
 
 #include <gst/pbutils/pbutils.h>
 
+static QSet<QString> streamTypes(GstElementFactory *factory, GstPadDirection direction)
+{
+    QSet<QString> types;
+    const GList *pads = gst_element_factory_get_static_pad_templates(factory);
+    for (const GList *pad = pads; pad; pad = g_list_next(pad)) {
+        GstStaticPadTemplate *templ = reinterpret_cast<GstStaticPadTemplate *>(pad->data);
+        if (templ->direction == direction) {
+            GstCaps *caps = gst_static_caps_get(&templ->static_caps);
+            for (uint i = 0; i < gst_caps_get_size(caps); ++i) {
+                GstStructure *structure = gst_caps_get_structure(caps, i);
+                types.insert(QString::fromUtf8(gst_structure_get_name(structure)));
+            }
+            gst_caps_unref(caps);
+        }
+    }
+
+    return types;
+}
+
 QGstCodecsInfo::QGstCodecsInfo(QGstCodecsInfo::ElementType elementType)
 {
     updateCodecs(elementType);
+    for (auto &codec : supportedCodecs()) {
+        GstElementFactory *factory = gst_element_factory_find(codecElement(codec).constData());
+        if (factory) {
+            GstPadDirection direction = elementType == Muxer ? GST_PAD_SINK : GST_PAD_SRC;
+            m_streamTypes.insert(codec, streamTypes(factory, direction));
+            gst_object_unref(GST_OBJECT(factory));
+        }
+    }
 }
 
 QStringList QGstCodecsInfo::supportedCodecs() const
@@ -244,4 +271,21 @@ GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
     result = g_list_sort(result, compare_plugin_func);
     return result;
 #endif
+}
+
+QSet<QString> QGstCodecsInfo::supportedStreamTypes(const QString &codec) const
+{
+    return m_streamTypes.value(codec);
+}
+
+QStringList QGstCodecsInfo::supportedCodecs(const QSet<QString> &types) const
+{
+    QStringList result;
+    for (auto &candidate : supportedCodecs()) {
+        auto candidateTypes = supportedStreamTypes(candidate);
+        if (candidateTypes.intersects(types))
+            result << candidate;
+    }
+
+    return result;
 }

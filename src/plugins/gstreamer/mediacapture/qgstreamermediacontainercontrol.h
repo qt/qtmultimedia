@@ -68,14 +68,11 @@ public:
 
     QSet<QString> supportedStreamTypes(const QString &container) const;
 
-    static QSet<QString> supportedStreamTypes(GstElementFactory *factory, GstPadDirection direction);
-
     QString containerExtension() const;
 
 private:
     QString m_format;
     QGstCodecsInfo m_containers;
-    QMap<QString, QSet<QString> > m_streamTypes;
 };
 
 QT_END_NAMESPACE

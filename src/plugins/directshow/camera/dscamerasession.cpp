@@ -59,8 +59,8 @@ QT_BEGIN_NAMESPACE
 DSCameraSession::DSCameraSession(QObject *parent)
     : QObject(parent)
 {
-    connect(this, SIGNAL(statusChanged(QCamera::Status)),
-            this, SLOT(updateReadyForCapture()));
+    connect(this, &DSCameraSession::statusChanged,
+            this, &DSCameraSession::updateReadyForCapture);
 
     m_deviceLostEventTimer.setSingleShot(true);
     connect(&m_deviceLostEventTimer, &QTimer::timeout, [&]() {
@@ -690,7 +690,7 @@ bool DSCameraSession::createFilterGraph()
     IEnumMoniker* pEnum = nullptr;
 
     // Create the filter graph
-    hr = CoCreateInstance(CLSID_FilterGraph,nullptr,CLSCTX_INPROC,
+    hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC,
                           IID_IGraphBuilder, reinterpret_cast<void**>(&m_filterGraph));
     if (FAILED(hr)) {
         errorString = tr("Failed to create filter graph");

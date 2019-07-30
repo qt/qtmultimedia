@@ -66,8 +66,8 @@ public:
 
 DirectShowEventLoop::DirectShowEventLoop(QObject *parent)
     : QObject(parent)
-    , m_eventHandle(::CreateEvent(nullptr, 0, 0, nullptr))
-    , m_waitHandle(::CreateEvent(nullptr, 0, 0, nullptr))
+    , m_eventHandle(::CreateEvent(nullptr, FALSE, FALSE, nullptr))
+    , m_waitHandle(::CreateEvent(nullptr, FALSE, FALSE, nullptr))
 {
 }
 
