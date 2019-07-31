@@ -47,6 +47,7 @@
 #include <functional>
 #include <algorithm>
 #include <limits>
+#include <tuple>
 
 QT_BEGIN_NAMESPACE
 
@@ -85,14 +86,18 @@ inline bool qt_area_sane(const QSize &size)
            && std::numeric_limits<int>::max() / size.width() >= size.height();
 }
 
-struct ResolutionPredicate : std::binary_function<AVCaptureDeviceFormat *, AVCaptureDeviceFormat *, bool>
+template <template <typename...> class Comp> // std::less or std::greater (or std::equal_to)
+struct ByResolution
 {
     bool operator() (AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2)const
     {
         Q_ASSERT(f1 && f2);
         const QSize r1(qt_device_format_resolution(f1));
         const QSize r2(qt_device_format_resolution(f2));
-        return r1.width() < r2.width() || (r2.width() == r1.width() && r1.height() < r2.height());
+        // use std::tuple for lexicograpical sorting:
+        const Comp<std::tuple<int, int>> op = {};
+        return op(std::make_tuple(r1.width(), r1.height()),
+                  std::make_tuple(r2.width(), r2.height()));
     }
 };
 
@@ -143,7 +148,7 @@ QVector<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captu
     if (!formats.size())
         return formats;
 
-    std::sort(formats.begin(), formats.end(), ResolutionPredicate());
+    std::sort(formats.begin(), formats.end(), ByResolution<std::less>());
 
     QSize size(qt_device_format_resolution(formats[0]));
     FourCharCode codec = CMVideoFormatDescriptionGetCodecType(formats[0].formatDescription);
@@ -309,7 +314,7 @@ AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevi
 
     QVector<AVCaptureDeviceFormat *>sorted(qt_unique_device_formats(captureDevice, filter));
     // Sort formats by their resolution in decreasing order:
-    std::sort(sorted.begin(), sorted.end(), std::not2(ResolutionPredicate()));
+    std::sort(sorted.begin(), sorted.end(), ByResolution<std::greater>());
     // We can use only formats with framerate ranges:
     sorted.erase(std::remove_if(sorted.begin(), sorted.end(), FormatHasNoFPSRange()), sorted.end());
 
