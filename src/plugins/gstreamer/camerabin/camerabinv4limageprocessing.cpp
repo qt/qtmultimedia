@@ -124,7 +124,8 @@ QVariant CameraBinV4LImageProcessing::parameter(
     QMap<ProcessingParameter, SourceParameterValueInfo>::const_iterator sourceValueInfo =
             m_parametersInfo.constFind(parameter);
     if (sourceValueInfo == m_parametersInfo.constEnd()) {
-        qWarning() << "Unable to get the parameter value: the parameter is not supported.";
+        if (!m_parametersInfo.empty())
+            qWarning() << "Unable to get the unsupported parameter:" << parameter;
         return QVariant();
     }
 
@@ -178,7 +179,8 @@ void CameraBinV4LImageProcessing::setParameter(
     QMap<ProcessingParameter, SourceParameterValueInfo>::const_iterator sourceValueInfo =
             m_parametersInfo.constFind(parameter);
     if (sourceValueInfo == m_parametersInfo.constEnd()) {
-        qWarning() << "Unable to set the parameter value: the parameter is not supported.";
+        if (!m_parametersInfo.empty())
+            qWarning() << "Unable to set the unsupported parameter:" << parameter;
         return;
     }
 
