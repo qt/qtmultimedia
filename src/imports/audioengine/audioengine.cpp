@@ -80,7 +80,9 @@ public:
         qmlRegisterType<QDeclarativeAudioEngine, 1>(uri, 1, 1, "AudioEngine");
         qmlRegisterType<QDeclarativeSound, 1>(uri, 1, 1, "Sound");
 
-        qmlRegisterModule(uri, 1, QT_VERSION_MINOR);
+        // The minor version used to be the current Qt 5 minor. For compatibility it is the last
+        // Qt 5 release.
+        qmlRegisterModule(uri, 1, 15);
     }
 };
 
