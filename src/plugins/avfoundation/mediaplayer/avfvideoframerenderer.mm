@@ -135,12 +135,14 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
         || (!QOpenGLContext::currentContext() && !m_glContext)) {
 
         //Create Hidden QWindow surface to create context in this thread
+        delete m_offscreenSurface;
         m_offscreenSurface = new QWindow();
         m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
         //Needs geometry to be a valid surface, but size is not important
         m_offscreenSurface->setGeometry(0, 0, 1, 1);
         m_offscreenSurface->create();
 
+        delete m_glContext;
         m_glContext = new QOpenGLContext();
         m_glContext->setFormat(m_offscreenSurface->requestedFormat());
 
