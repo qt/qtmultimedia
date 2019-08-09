@@ -53,6 +53,7 @@ QT_USE_NAMESPACE
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     An instance of AudioCategory can be accessed through \l {QtAudioEngine::AudioEngine::categories}
     {AudioEngine.categories} with its unique name and must be defined inside AudioEngine or be added

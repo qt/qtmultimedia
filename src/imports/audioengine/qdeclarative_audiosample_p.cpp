@@ -56,6 +56,7 @@ QT_USE_NAMESPACE
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     It can be accessed through QtAudioEngine::AudioEngine::samples with its unique
     name and must be defined inside AudioEngine or be added to it using

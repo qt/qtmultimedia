@@ -54,6 +54,7 @@ QT_USE_NAMESPACE
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     AudioListener will have only one global instance and you can either access it through the
     listener property of AudioEngine:

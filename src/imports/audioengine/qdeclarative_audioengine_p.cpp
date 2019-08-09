@@ -62,6 +62,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     \qml
     Rectangle {

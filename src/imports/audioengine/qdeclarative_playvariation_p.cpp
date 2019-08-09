@@ -59,6 +59,7 @@ QT_USE_NAMESPACE
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     PlayVariation must be defined inside a \l Sound or be added to it using
     \l{QtAudioEngine::Sound::addPlayVariation()}{Sound.addPlayVariation()}

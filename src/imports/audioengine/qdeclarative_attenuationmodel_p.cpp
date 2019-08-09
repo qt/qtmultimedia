@@ -84,6 +84,7 @@ void QDeclarativeAttenuationModel::setName(const QString& name)
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     AttenuationModelLinear must be defined inside \l AudioEngine or be added to it using
     \l{QtAudioEngine::AudioEngine::addAttenuationModel()}{AudioEngine.addAttenuationModel()}
@@ -213,6 +214,7 @@ qreal QDeclarativeAttenuationModelLinear::calculateGain(const QVector3D &listene
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     AttenuationModelInverse must be defined inside \l AudioEngine or be added to it using
     \l{QtAudioEngine::AudioEngine::addAttenuationModel()}{AudioEngine.addAttenuationModel()}

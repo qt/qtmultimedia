@@ -166,6 +166,7 @@ void QDeclarativeSoundCone::setEngine(QDeclarativeAudioEngine *engine)
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     Sound can be accessed through QtAudioEngine::AudioEngine::sounds with its unique name
     and must be defined inside AudioEngine or be added to it using

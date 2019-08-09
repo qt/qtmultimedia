@@ -57,6 +57,7 @@ QT_USE_NAMESPACE
     \ingroup multimedia_audioengine
     \inherits Item
     \preliminary
+    \deprecated
 
     There are two ways to create SoundInstance objects. You can obtain it by calling newInstance
     method of a \l Sound:
