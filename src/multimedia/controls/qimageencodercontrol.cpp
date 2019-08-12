@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QImageEncoderControl
+    \obsolete
 
     \inmodule QtMultimedia
 

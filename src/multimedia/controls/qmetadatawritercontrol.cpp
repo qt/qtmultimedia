@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMetaDataWriterControl
+    \obsolete
     \inmodule QtMultimedia
 
 

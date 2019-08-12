@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraFlashControl
+    \obsolete
 
     \brief The QCameraFlashControl class allows controlling a camera's flash.
 

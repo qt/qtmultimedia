@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaContainerControl
+    \obsolete
 
     \brief The QMediaContainerControl class provides access to the output container format of a QMediaService.
 

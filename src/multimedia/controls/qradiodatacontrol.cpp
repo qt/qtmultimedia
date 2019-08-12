@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QRadioDataControl
+    \obsolete
     \inmodule QtMultimedia
 
 

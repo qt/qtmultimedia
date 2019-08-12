@@ -44,6 +44,7 @@
 
 /*!
     \class QCameraFeedbackControl
+    \obsolete
 
     \brief The QCameraFeedbackControl class allows controlling feedback (sounds etc) during camera operation.
 
