@@ -159,6 +159,13 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
             qWarning("failed to create QOpenGLContext");
             return nullptr;
         }
+
+        // CARenderer must be re-created with different current context, so release it now.
+        // See lines below where m_videoLayerRenderer is constructed.
+        if (m_videoLayerRenderer) {
+            [m_videoLayerRenderer release];
+            m_videoLayerRenderer = nullptr;
+        }
     }
 
     //Need current context
