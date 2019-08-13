@@ -486,13 +486,35 @@ void QGstVideoRendererSink::base_init(gpointer g_class)
             GST_ELEMENT_CLASS(g_class), gst_static_pad_template_get(&sink_pad_template));
 }
 
+struct NullSurface : QAbstractVideoSurface
+{
+    NullSurface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
+
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
+    {
+        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB32;
+    }
+
+    bool present(const QVideoFrame &) override
+    {
+        return true;
+    }
+};
+
 void QGstVideoRendererSink::instance_init(GTypeInstance *instance, gpointer g_class)
 {
+    Q_UNUSED(g_class);
     VO_SINK(instance);
 
-    Q_UNUSED(g_class);
+    if (!current_surface) {
+        qWarning() << "Using qtvideosink element without video surface";
+        static NullSurface nullSurface;
+        current_surface = &nullSurface;
+    }
+
     sink->delegate = new QVideoSurfaceGstDelegate(current_surface);
     sink->delegate->moveToThread(current_surface->thread());
+    current_surface = nullptr;
 }
 
 void QGstVideoRendererSink::finalize(GObject *object)

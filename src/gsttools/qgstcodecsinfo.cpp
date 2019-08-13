@@ -263,7 +263,16 @@ GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
         break;
     }
 
-    return gst_element_factory_list_get_elements(gstElementType, GST_RANK_MARGINAL);
+    GList *list = gst_element_factory_list_get_elements(gstElementType, GST_RANK_MARGINAL);
+    if (elementType == AudioEncoder) {
+        // Manually add "audioconvert" to the list
+        // to allow linking with various containers.
+        auto factory = gst_element_factory_find("audioconvert");
+        if (factory)
+            list = g_list_prepend(list, factory);
+    }
+
+    return list;
 #else
     GList *result = gst_registry_feature_filter(gst_registry_get_default(),
                                                 element_filter,
