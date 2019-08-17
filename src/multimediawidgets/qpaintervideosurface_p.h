@@ -68,7 +68,7 @@ QT_USE_NAMESPACE
 
 QT_BEGIN_NAMESPACE
 
-class QVideoSurfacePainter
+class Q_AUTOTEST_EXPORT QVideoSurfacePainter
 {
 public:
     virtual ~QVideoSurfacePainter();

@@ -225,6 +225,10 @@ void QGstreamerPlayerControl::pause()
     qDebug() << Q_FUNC_INFO;
 #endif
     m_userRequestedState = QMediaPlayer::PausedState;
+    // If the playback has not been started yet but pause is requested.
+    // Seek to the beginning to show first frame.
+    if (m_pendingSeekPosition == -1 && m_session->position() == 0)
+        m_pendingSeekPosition = 0;
 
     playOrPause(QMediaPlayer::PausedState);
 }
@@ -354,7 +358,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
 
     m_currentState = QMediaPlayer::StoppedState;
     QMediaContent oldMedia = m_currentResource;
-    m_pendingSeekPosition = 0;
+    m_pendingSeekPosition = -1;
     m_session->showPrerollFrames(false); // do not show prerolled frames until pause() or play() explicitly called
     m_setMediaPending = false;
 
