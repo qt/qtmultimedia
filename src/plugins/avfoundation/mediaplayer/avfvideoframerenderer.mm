@@ -42,6 +42,8 @@
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtGui/QWindow>
+#include <QOpenGLShaderProgram>
+#include <QtPlatformHeaders/QCocoaNativeContext>
 
 #ifdef QT_DEBUG_AVF
 #include <QtCore/qdebug.h>
@@ -76,6 +78,12 @@ AVFVideoFrameRenderer::~AVFVideoFrameRenderer()
     delete m_fbo[1];
     delete m_offscreenSurface;
     delete m_glContext;
+
+    if (m_useCoreProfile) {
+        glDeleteVertexArrays(1, &m_quadVao);
+        glDeleteBuffers(2, m_quadVbos);
+        delete m_shader;
+    }
 }
 
 GLuint AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer)
@@ -166,16 +174,124 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
             [m_videoLayerRenderer release];
             m_videoLayerRenderer = nullptr;
         }
+
+        if (m_useCoreProfile) {
+            glDeleteVertexArrays(1, &m_quadVao);
+            glDeleteBuffers(2, m_quadVbos);
+            delete m_shader;
+            m_shader = nullptr;
+        }
     }
 
     //Need current context
     if (m_glContext)
         m_glContext->makeCurrent(m_offscreenSurface);
 
-    //Create the CARenderer if needed
+    if (!m_metalDevice)
+        m_metalDevice = MTLCreateSystemDefaultDevice();
+
+    if (@available(macOS 10.13, *)) {
+        m_useCoreProfile = m_metalDevice && (QOpenGLContext::currentContext()->format().profile() ==
+                                             QSurfaceFormat::CoreProfile);
+    } else {
+        m_useCoreProfile = false;
+    }
+
+    // Create the CARenderer if needed for no Core OpenGL
     if (!m_videoLayerRenderer) {
-        m_videoLayerRenderer = [CARenderer rendererWithCGLContext: CGLGetCurrentContext() options: nil];
-        [m_videoLayerRenderer retain];
+        if (!m_useCoreProfile) {
+            m_videoLayerRenderer = [CARenderer rendererWithCGLContext: CGLGetCurrentContext()
+                                                              options: nil];
+            [m_videoLayerRenderer retain];
+        } else if (@available(macOS 10.13, *)) {
+            // This is always true when m_useCoreProfile is true, but the compiler wants the check
+            // anyway
+            // Setup Core OpenGL shader, VAO, VBOs and metal renderer
+            m_shader = new QOpenGLShaderProgram();
+            m_shader->create();
+            if (!m_shader->addShaderFromSourceCode(QOpenGLShader::Vertex, R"(#version 150 core
+                                                   in vec2 qt_VertexPosition;
+                                                   in vec2 qt_VertexTexCoord;
+                                                   out vec2 qt_TexCoord;
+                                                   void main()
+                                                   {
+                                                       qt_TexCoord = qt_VertexTexCoord;
+                                                       gl_Position = vec4(qt_VertexPosition, 0.0f, 1.0f);
+                                                   })")) {
+                qCritical() << "Vertex shader compilation failed" << m_shader->log();
+            }
+            if (!m_shader->addShaderFromSourceCode(QOpenGLShader::Fragment, R"(#version 150 core
+                                                   in vec2 qt_TexCoord;
+                                                   out vec4 fragColor;
+                                                   uniform sampler2DRect videoFrame;
+                                                   void main(void)
+                                                   {
+                                                       ivec2 textureDim = textureSize(videoFrame);
+                                                       fragColor = texture(videoFrame, qt_TexCoord * textureDim);
+                                                   })")) {
+                qCritical() << "Fragment shader compilation failed" << m_shader->log();
+            }
+
+            // Setup quad where the video frame will be attached
+            GLfloat vertices[] = {
+                -1.0f, -1.0f,
+                 1.0f, -1.0f,
+                -1.0f,  1.0f,
+                 1.0f,  1.0f,
+            };
+
+            GLfloat uvs[] = {
+                 0.0f,  0.0f,
+                 1.0f,  0.0f,
+                 0.0f,  1.0f,
+                 1.0f,  1.0f,
+            };
+
+            glGenVertexArrays(1, &m_quadVao);
+            glBindVertexArray(m_quadVao);
+
+            // Create vertex buffer objects for vertices
+            glGenBuffers(2, m_quadVbos);
+
+            // Setup vertices
+            glBindBuffer(GL_ARRAY_BUFFER, m_quadVbos[0]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+            glEnableVertexAttribArray(0);
+
+            // Setup uvs
+            glBindBuffer(GL_ARRAY_BUFFER, m_quadVbos[1]);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(uvs), uvs, GL_STATIC_DRAW);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+            glEnableVertexAttribArray(1);
+
+            glBindVertexArray(0);
+
+            // Setup shared Metal/OpenGL pixel buffer and textures
+            m_NSGLContext = static_cast<QCocoaNativeContext*>((QOpenGLContext::currentContext()->nativeHandle().data()))->context();
+            m_CGLPixelFormat = m_NSGLContext.pixelFormat.CGLPixelFormatObj;
+
+            NSDictionary* cvBufferProperties = @{
+                static_cast<NSString*>(kCVPixelBufferOpenGLCompatibilityKey) : @YES,
+                static_cast<NSString*>(kCVPixelBufferMetalCompatibilityKey): @YES,
+            };
+
+            CVPixelBufferCreate(kCFAllocatorDefault, static_cast<size_t>(m_targetSize.width()),
+                                static_cast<size_t>(m_targetSize.height()), kCVPixelFormatType_32BGRA,
+                                static_cast<CFDictionaryRef>(cvBufferProperties), &m_CVPixelBuffer);
+
+            m_textureName = createGLTexture(reinterpret_cast<CGLContextObj>(m_NSGLContext.CGLContextObj),
+                                            m_CGLPixelFormat, m_CVGLTextureCache, m_CVPixelBuffer,
+                                            m_CVGLTexture);
+            m_metalTexture = createMetalTexture(m_metalDevice, m_CVMTLTextureCache, m_CVPixelBuffer,
+                                                MTLPixelFormatBGRA8Unorm,
+                                                static_cast<size_t>(m_targetSize.width()),
+                                                static_cast<size_t>(m_targetSize.height()),
+                                                m_CVMTLTexture);
+
+            m_videoLayerRenderer = [CARenderer rendererWithMTLTexture:m_metalTexture options:nil];
+            [m_videoLayerRenderer retain];
+        }
     }
 
     //Set/Change render source if needed
@@ -211,28 +327,101 @@ void AVFVideoFrameRenderer::renderLayerToFBO(AVPlayerLayer *layer, QOpenGLFrameb
 
     glViewport(0, 0, m_targetSize.width(), m_targetSize.height());
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
+    if (m_useCoreProfile) {
+        CGLLockContext(m_NSGLContext.CGLContextObj);
+        m_shader->bind();
+        glBindVertexArray(m_quadVao);
+    } else {
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
 
-    //Render to FBO with inverted Y
-    glOrtho(0.0, m_targetSize.width(), 0.0, m_targetSize.height(), 0.0, 1.0);
+        // Render to FBO with inverted Y
+        glOrtho(0.0, m_targetSize.width(), 0.0, m_targetSize.height(), 0.0, 1.0);
 
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+    }
 
-    [m_videoLayerRenderer beginFrameAtTime:CACurrentMediaTime() timeStamp:NULL];
+    [m_videoLayerRenderer beginFrameAtTime:CACurrentMediaTime() timeStamp:nullptr];
     [m_videoLayerRenderer addUpdateRect:layer.bounds];
     [m_videoLayerRenderer render];
     [m_videoLayerRenderer endFrame];
 
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
+    if (m_useCoreProfile) {
+        glActiveTexture(0);
+        glBindTexture(GL_TEXTURE_RECTANGLE, m_textureName);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+
+        glBindVertexArray(0);
+
+        m_shader->release();
+
+        CGLFlushDrawable(m_NSGLContext.CGLContextObj);
+        CGLUnlockContext(m_NSGLContext.CGLContextObj);
+    } else {
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+    }
 
     glFinish(); //Rendering needs to be done before passing texture to video frame
 
     fbo->release();
+}
+
+GLuint AVFVideoFrameRenderer::createGLTexture(CGLContextObj cglContextObj, CGLPixelFormatObj cglPixelFormtObj, CVOpenGLTextureCacheRef cvglTextureCache,
+                                            CVPixelBufferRef cvPixelBufferRef, CVOpenGLTextureRef cvOpenGLTextureRef)
+{
+    CVReturn cvret;
+    // Create an OpenGL CoreVideo texture cache from the pixel buffer.
+    cvret  = CVOpenGLTextureCacheCreate(
+                    kCFAllocatorDefault,
+                    nil,
+                    cglContextObj,
+                    cglPixelFormtObj,
+                    nil,
+                    &cvglTextureCache);
+
+    // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
+    cvret = CVOpenGLTextureCacheCreateTextureFromImage(
+                    kCFAllocatorDefault,
+                    cvglTextureCache,
+                    cvPixelBufferRef,
+                    nil,
+                    &cvOpenGLTextureRef);
+
+    // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
+    return CVOpenGLTextureGetName(cvOpenGLTextureRef);
+}
+
+id<MTLTexture> AVFVideoFrameRenderer::createMetalTexture(id<MTLDevice> mtlDevice, CVMetalTextureCacheRef cvMetalTextureCacheRef, CVPixelBufferRef cvPixelBufferRef,
+                                               MTLPixelFormat pixelFormat, size_t width, size_t height, CVMetalTextureRef cvMetalTextureRef)
+{
+    CVReturn cvret;
+    // Create a Metal Core Video texture cache from the pixel buffer.
+    cvret = CVMetalTextureCacheCreate(
+                    kCFAllocatorDefault,
+                    nil,
+                    mtlDevice,
+                    nil,
+                    &cvMetalTextureCacheRef);
+
+    // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
+    cvret = CVMetalTextureCacheCreateTextureFromImage(
+                    kCFAllocatorDefault,
+                    cvMetalTextureCacheRef,
+                    cvPixelBufferRef, nil,
+                    pixelFormat,
+                    width, height,
+                    0,
+                    &cvMetalTextureRef);
+
+    // Get a Metal texture using the CoreVideo Metal texture reference.
+    return CVMetalTextureGetTexture(cvMetalTextureRef);
 }
