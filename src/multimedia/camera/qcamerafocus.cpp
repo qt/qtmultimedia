@@ -325,8 +325,6 @@ class QCameraFocusPrivate : public QMediaObjectPrivate
 public:
     void initControls();
 
-    QCameraFocus *q_ptr;
-
     QCamera *camera;
 
     QCameraFocusControl *focusControl;
@@ -373,12 +371,11 @@ void QCameraFocusPrivate::initControls()
     Construct a QCameraFocus for \a camera.
 */
 
-QCameraFocus::QCameraFocus(QCamera *camera):
-    QObject(camera), d_ptr(new QCameraFocusPrivate)
+QCameraFocus::QCameraFocus(QCamera *camera)
+    : QObject(*new QCameraFocusPrivate, camera)
 {
     Q_D(QCameraFocus);
     d->camera = camera;
-    d->q_ptr = this;
     d->initControls();
 }
 
@@ -389,7 +386,6 @@ QCameraFocus::QCameraFocus(QCamera *camera):
 
 QCameraFocus::~QCameraFocus()
 {
-    delete d_ptr;
 }
 
 /*!

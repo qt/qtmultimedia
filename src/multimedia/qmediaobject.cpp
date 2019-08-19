@@ -113,7 +113,6 @@ void QMediaObjectPrivate::_q_availabilityChanged()
 
 QMediaObject::~QMediaObject()
 {
-    delete d_ptr;
 }
 
 /*!
@@ -230,14 +229,10 @@ void QMediaObject::unbind(QObject *object)
     constructor is protected.
 */
 
-QMediaObject::QMediaObject(QObject *parent, QMediaService *service):
-    QObject(parent),
-    d_ptr(new QMediaObjectPrivate)
-
+QMediaObject::QMediaObject(QObject *parent, QMediaService *service)
+    : QObject(*new QMediaObjectPrivate, parent)
 {
     Q_D(QMediaObject);
-
-    d->q_ptr = this;
 
     d->notifyTimer = new QTimer(this);
     d->notifyTimer->setInterval(1000);
@@ -252,13 +247,10 @@ QMediaObject::QMediaObject(QObject *parent, QMediaService *service):
     \internal
 */
 
-QMediaObject::QMediaObject(QMediaObjectPrivate &dd, QObject *parent,
-                                            QMediaService *service):
-    QObject(parent),
-    d_ptr(&dd)
+QMediaObject::QMediaObject(QMediaObjectPrivate &dd, QObject *parent, QMediaService *service)
+    : QObject(dd, parent)
 {
     Q_D(QMediaObject);
-    d->q_ptr = this;
 
     d->notifyTimer = new QTimer(this);
     d->notifyTimer->setInterval(1000);
