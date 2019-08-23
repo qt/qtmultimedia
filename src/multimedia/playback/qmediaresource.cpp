@@ -39,8 +39,6 @@
 
 #include "qmediaresource.h"
 
-#if QT_DEPRECATED_SINCE(6, 0)
-
 #include <QtCore/qsize.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qvariant.h>
@@ -420,5 +418,3 @@ void QMediaResource::setResolution(int width, int height)
         values.remove(Resolution);
 }
 QT_END_NAMESPACE
-
-#endif // #if QT_DEPRECATED_SINCE(6, 0)
