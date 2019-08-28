@@ -40,6 +40,7 @@
 /* Media related snippets */
 #include <QFile>
 #include <QTimer>
+#include <QBuffer>
 
 #include "qmediaplaylist.h"
 #include "qmediarecorder.h"
@@ -189,6 +190,36 @@ void MediaExample::MediaPlayer()
 
     player->play();
     //! [Movie playlist]
+
+    //! [Pipeline]
+    player = new QMediaPlayer;
+    player->setMedia(QUrl("gst-pipeline: videotestsrc ! autovideosink"));
+    player->play();
+    //! [Pipeline]
+
+    //! [Pipeline appsrc]
+    QImage img("images/qt-logo.png");
+    img = img.convertToFormat(QImage::Format_ARGB32);
+    QByteArray ba(reinterpret_cast<const char *>(img.bits()), img.sizeInBytes());
+    QBuffer buffer(&ba);
+    buffer.open(QIODevice::ReadOnly);
+    player = new QMediaPlayer;
+    player->setMedia(QUrl("gst-pipeline: appsrc blocksize=4294967295 ! \
+        video/x-raw,format=BGRx,framerate=30/1,width=200,height=147 ! \
+        coloreffects preset=heat ! videoconvert ! video/x-raw,format=I420 ! jpegenc ! rtpjpegpay ! \
+        udpsink host=127.0.0.1 port=5000"), &buffer);
+    player->play();
+
+    QMediaPlayer *receiver = new QMediaPlayer;
+    videoWidget = new QVideoWidget;
+    receiver->setVideoOutput(videoWidget);
+    receiver->setMedia(QUrl("gst-pipeline: udpsrc port=5000 ! \
+        application/x-rtp,encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! \
+        xvimagesink name=qtvideosink"));
+    receiver->play();
+    // Content will be shown in this widget.
+    videoWidget->show();
+    //! [Pipeline appsrc]
 }
 
 void MediaExample::MediaRecorder()
