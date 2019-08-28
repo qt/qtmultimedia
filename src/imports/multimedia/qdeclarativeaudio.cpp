@@ -1303,6 +1303,16 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
     This property holds the source URL of the media.
 
     Setting the \l source property clears the current \l playlist, if any.
+
+    Since Qt 5.12.2, the url scheme \c gst-pipeline provides custom pipelines
+    for the GStreamer backend.
+
+    If the pipeline contains a \c qtvideosink element,
+    the current VideoOutput will be used for rendering video.
+
+    \snippet multimedia-snippets/qtvideosink.qml complete
+
+    \sa QMediaPlayer::setMedia()
 */
 
 /*!
