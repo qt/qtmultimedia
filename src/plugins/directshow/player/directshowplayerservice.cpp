@@ -1457,6 +1457,9 @@ void DirectShowPlayerService::customEvent(QEvent *event)
         if (m_playerControl->mediaStatus() == QMediaPlayer::EndOfMedia)
             m_playerControl->updateStatus(QMediaPlayer::LoadedMedia);
         m_playerControl->updatePosition(m_position);
+        // Emits only when seek has been performed.
+        if (m_videoRendererControl)
+            emit m_videoRendererControl->positionChanged(m_position);
     } else {
         QMediaService::customEvent(event);
     }
