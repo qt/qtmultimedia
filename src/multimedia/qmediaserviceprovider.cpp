@@ -979,7 +979,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     Returns a set of features supported by a plug-in \a service.
 */
 
-#include "moc_qmediaserviceprovider_p.cpp"
-#include "moc_qmediaserviceproviderplugin.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediaserviceprovider_p.cpp"
+#include "moc_qmediaserviceproviderplugin.cpp"

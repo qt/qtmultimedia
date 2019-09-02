@@ -243,8 +243,6 @@ void QAudioRecorder::setAudioInput(const QString& name)
     Signal is emitted when the available audio inputs change.
 */
 
-
-
-#include "moc_qaudiorecorder.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qaudiorecorder.cpp"

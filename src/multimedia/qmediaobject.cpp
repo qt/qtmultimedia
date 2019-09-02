@@ -430,7 +430,6 @@ void QMediaObject::setupControls()
     Signal emitted when the availability of the service has changed to \a availability.
 */
 
-
-#include "moc_qmediaobject.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediaobject.cpp"

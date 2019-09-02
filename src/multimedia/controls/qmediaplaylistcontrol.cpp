@@ -201,6 +201,6 @@ QMediaPlaylistControl::~QMediaPlaylistControl()
   Signal emitted when current media changes to \a content.
 */
 
-#include "moc_qmediaplaylistcontrol_p.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediaplaylistcontrol_p.cpp"

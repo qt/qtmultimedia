@@ -613,6 +613,6 @@ void QCameraFocus::zoomTo(qreal optical, qreal digital)
   have been detected.
 */
 
+QT_END_NAMESPACE
 
 #include "moc_qcamerafocus.cpp"
-QT_END_NAMESPACE

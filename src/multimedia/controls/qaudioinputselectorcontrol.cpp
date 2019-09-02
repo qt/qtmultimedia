@@ -125,6 +125,6 @@ QAudioInputSelectorControl::~QAudioInputSelectorControl()
     Signals that list of available inputs has changed.
 */
 
-#include "moc_qaudioinputselectorcontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qaudioinputselectorcontrol.cpp"

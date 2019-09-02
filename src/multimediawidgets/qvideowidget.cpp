@@ -1023,7 +1023,7 @@ bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, long 
 }
 #endif
 
-#include "moc_qvideowidget.cpp"
-#include "moc_qvideowidget_p.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qvideowidget.cpp"
+#include "moc_qvideowidget_p.cpp"

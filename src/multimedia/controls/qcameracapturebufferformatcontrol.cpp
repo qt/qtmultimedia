@@ -107,6 +107,6 @@ QCameraCaptureBufferFormatControl::~QCameraCaptureBufferFormatControl()
     Signals the buffer image capture format changed to \a format.
 */
 
-#include "moc_qcameracapturebufferformatcontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qcameracapturebufferformatcontrol.cpp"

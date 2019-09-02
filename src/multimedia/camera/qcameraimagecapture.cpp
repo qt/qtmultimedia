@@ -643,7 +643,6 @@ void QCameraImageCapture::cancelCapture()
     Signal emitted when the frame with request \a id was saved to \a fileName.
 */
 
-
-#include "moc_qcameraimagecapture.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qcameraimagecapture.cpp"
