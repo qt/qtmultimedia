@@ -85,6 +85,7 @@ public:
 
 /*!
     \class QMediaServiceProviderHint
+    \obsolete
 
     \brief The QMediaServiceProviderHint class describes what is required of a QMediaService.
 
@@ -670,6 +671,7 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 
 /*!
     \class QMediaServiceProvider
+    \obsolete
     \ingroup multimedia
     \ingroup multimedia_control
     \ingroup multimedia_core
@@ -827,6 +829,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceProviderPlugin
+    \obsolete
     \inmodule QtMultimedia
     \brief The QMediaServiceProviderPlugin class interface provides an interface for QMediaService
     plug-ins.
@@ -854,6 +857,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceSupportedFormatsInterface
+    \obsolete
     \inmodule QtMultimedia
     \brief The QMediaServiceSupportedFormatsInterface class interface
     identifies if a media service plug-in supports a media format.
@@ -882,6 +886,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceSupportedDevicesInterface
+    \obsolete
     \inmodule QtMultimedia
     \brief The QMediaServiceSupportedDevicesInterface class interface
     identifies the devices supported by a media service plug-in.
@@ -909,6 +914,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceDefaultDeviceInterface
+    \obsolete
     \inmodule QtMultimedia
     \brief The QMediaServiceDefaultDeviceInterface class interface
     identifies the default device used by a media service plug-in.
@@ -932,6 +938,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceCameraInfoInterface
+    \obsolete
     \inmodule QtMultimedia
     \since 5.3
     \brief The QMediaServiceCameraInfoInterface class interface
@@ -961,6 +968,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 
 /*!
     \class QMediaServiceFeaturesInterface
+    \obsolete
     \inmodule QtMultimedia
     \brief The QMediaServiceFeaturesInterface class interface identifies
     features supported by a media service plug-in.
