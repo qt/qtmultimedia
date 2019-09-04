@@ -56,6 +56,7 @@
 #include <QtCore/qtimer.h>
 
 #include "qmediaobject.h"
+#include "private/qobject_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -68,12 +69,12 @@ class QMediaAvailabilityControl;
     friend class Class;
 
 
-class QMediaObjectPrivate
+class QMediaObjectPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QMediaObject)
 
 public:
-    QMediaObjectPrivate() : service(nullptr), metaDataControl(nullptr), availabilityControl(nullptr), notifyTimer(nullptr), q_ptr(nullptr) {}
+    QMediaObjectPrivate() : service(nullptr), metaDataControl(nullptr), availabilityControl(nullptr), notifyTimer(nullptr) {}
     virtual ~QMediaObjectPrivate() {}
 
     void _q_notify();
@@ -85,8 +86,6 @@ public:
 
     QTimer* notifyTimer;
     QSet<int> notifyProperties;
-
-    QMediaObject *q_ptr;
 };
 
 QT_END_NAMESPACE
