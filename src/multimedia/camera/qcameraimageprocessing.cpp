@@ -114,8 +114,6 @@ class QCameraImageProcessingPrivate : public QMediaObjectPrivate
 public:
     void initControls();
 
-    QCameraImageProcessing *q_ptr;
-
     QCamera *camera;
     QCameraImageProcessingControl *imageControl;
     bool available;
@@ -140,12 +138,11 @@ void QCameraImageProcessingPrivate::initControls()
     Construct a QCameraImageProcessing for \a camera.
 */
 
-QCameraImageProcessing::QCameraImageProcessing(QCamera *camera):
-    QObject(camera), d_ptr(new QCameraImageProcessingPrivate)
+QCameraImageProcessing::QCameraImageProcessing(QCamera *camera)
+    : QObject(*new QCameraImageProcessingPrivate, camera)
 {
     Q_D(QCameraImageProcessing);
     d->camera = camera;
-    d->q_ptr = this;
     d->initControls();
 }
 
@@ -156,7 +153,6 @@ QCameraImageProcessing::QCameraImageProcessing(QCamera *camera):
 
 QCameraImageProcessing::~QCameraImageProcessing()
 {
-    delete d_ptr;
 }
 
 

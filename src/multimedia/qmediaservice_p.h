@@ -51,18 +51,19 @@
 // We mean it.
 //
 
+#include "private/qobject_p.h"
+
 QT_BEGIN_NAMESPACE
 
 
 class QAudioDeviceControl;
 
-class QMediaServicePrivate
+class QMediaServicePrivate : public QObjectPrivate
 {
+    Q_DECLARE_PUBLIC(QMediaService)
 public:
-    QMediaServicePrivate(): q_ptr(0) {}
+    QMediaServicePrivate() {}
     virtual ~QMediaServicePrivate() {}
-
-    QMediaService *q_ptr;
 };
 
 QT_END_NAMESPACE
