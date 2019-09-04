@@ -16,7 +16,7 @@ src_plugins.subdir = plugins
 src_plugins.depends = multimedia
 
 
-qtHaveModule(quick):qtConfig(opengl) {
+qtHaveModule(quick) {
     src_qtmultimediaquicktools.subdir = qtmultimediaquicktools
     src_qtmultimediaquicktools.depends = multimedia
 

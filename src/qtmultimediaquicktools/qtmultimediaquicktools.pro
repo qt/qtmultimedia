@@ -16,20 +16,23 @@ PRIVATE_HEADERS += \
 
 HEADERS += \
     $$PRIVATE_HEADERS \
-    qdeclarativevideooutput_render_p.h \
-    qdeclarativevideooutput_window_p.h \
-    qsgvideonode_yuv_p.h \
-    qsgvideonode_rgb_p.h \
-    qsgvideonode_texture_p.h
+    qdeclarativevideooutput_window_p.h
 
 SOURCES += \
     qsgvideonode_p.cpp \
     qdeclarativevideooutput.cpp \
-    qdeclarativevideooutput_render.cpp \
-    qdeclarativevideooutput_window.cpp \
-    qsgvideonode_yuv.cpp \
-    qsgvideonode_rgb.cpp \
-    qsgvideonode_texture.cpp
+    qdeclarativevideooutput_window.cpp
+
+qtConfig(opengl) {
+    SOURCES += qdeclarativevideooutput_render.cpp \
+               qsgvideonode_rgb.cpp \
+               qsgvideonode_yuv.cpp \
+               qsgvideonode_texture.cpp
+    HEADERS += qdeclarativevideooutput_render_p.h \
+               qsgvideonode_rgb_p.h \
+               qsgvideonode_yuv_p.h \
+               qsgvideonode_texture_p.h
+}
 
 RESOURCES += \
     qtmultimediaquicktools.qrc
