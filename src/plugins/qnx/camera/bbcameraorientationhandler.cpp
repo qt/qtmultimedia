@@ -76,7 +76,11 @@ BbCameraOrientationHandler::~BbCameraOrientationHandler()
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
 }
 
-bool BbCameraOrientationHandler::nativeEventFilter(const QByteArray&, void *message, long*)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+bool BbCameraOrientationHandler::nativeEventFilter(const QByteArray&, void *message, qintptr *)
+#else
+bool BbCameraOrientationHandler::nativeEventFilter(const QByteArray&, void *message, long *)
+#endif
 {
     bps_event_t* const event = static_cast<bps_event_t*>(message);
     if (!event || bps_event_get_domain(event) != orientation_get_domain())

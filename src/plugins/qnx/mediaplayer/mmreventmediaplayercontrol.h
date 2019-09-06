@@ -58,9 +58,11 @@ public:
     void stopMonitoring() override;
     void resetMonitoring() override;
 
-    bool nativeEventFilter(const QByteArray &eventType,
-                           void *message,
-                           long *result) override;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
+#else
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
+#endif
 
 private Q_SLOTS:
     void readEvents();
