@@ -557,6 +557,7 @@ EVRCustomPresenter::EVRCustomPresenter(QAbstractVideoSurface *surface)
     , m_mediaType(0)
     , m_surface(0)
     , m_canRenderToSurface(false)
+    , m_positionOffset(0)
 {
     // Initial source rectangle = (0,0,1,1)
     m_sourceRect.top = 0;
@@ -1143,7 +1144,7 @@ HRESULT EVRCustomPresenter::flush()
         sample->Release();
     m_frameStep.samples.clear();
 
-    if (m_renderState == RenderStopped && m_surface->isActive()) {
+    if (m_renderState == RenderStopped && m_surface && m_surface->isActive()) {
         // Repaint with black.
         presentSample(NULL);
     }
@@ -1932,6 +1933,15 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
 
     QVideoFrame frame = m_presentEngine->makeVideoFrame(sample);
 
+    // Since start/end times are related to a position when the clock is started,
+    // to have times from the beginning, need to adjust it by adding seeked position.
+    if (m_positionOffset) {
+        if (frame.startTime())
+            frame.setStartTime(frame.startTime() + m_positionOffset);
+        if (frame.endTime())
+            frame.setEndTime(frame.endTime() + m_positionOffset);
+    }
+
     if (!m_surface->isActive() || m_surface->surfaceFormat() != m_presentEngine->videoSurfaceFormat()) {
         m_surface->stop();
         if (!m_surface->start(m_presentEngine->videoSurfaceFormat()))
@@ -1939,6 +1949,11 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
     }
 
     m_surface->present(frame);
+}
+
+void EVRCustomPresenter::positionChanged(qint64 position)
+{
+    m_positionOffset = position * 1000;
 }
 
 HRESULT setDesiredSampleTime(IMFSample *sample, const LONGLONG &sampleTime, const LONGLONG &duration)

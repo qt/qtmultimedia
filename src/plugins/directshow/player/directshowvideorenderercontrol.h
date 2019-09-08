@@ -68,6 +68,7 @@ public:
 
 Q_SIGNALS:
     void filterChanged();
+    void positionChanged(qint64 position);
 
 private:
     DirectShowEventLoop *m_loop;
