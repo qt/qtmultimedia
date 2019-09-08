@@ -101,6 +101,7 @@ void DirectShowVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
         if (!qgetenv("QT_DIRECTSHOW_NO_EVR").toInt()) {
             m_filter = com_new<IBaseFilter>(clsid_EnhancedVideoRenderer);
             m_evrPresenter = new EVRCustomPresenter(m_surface);
+            connect(this, &DirectShowVideoRendererControl::positionChanged, m_evrPresenter, &EVRCustomPresenter::positionChanged);
             if (!m_evrPresenter->isValid() || !qt_evr_setCustomPresenter(m_filter, m_evrPresenter)) {
                 m_filter->Release();
                 m_filter = 0;
