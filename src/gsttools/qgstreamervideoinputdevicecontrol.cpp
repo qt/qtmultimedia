@@ -45,13 +45,14 @@
 #include <private/qgstutils_p.h>
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(QObject *parent)
-    :QVideoDeviceSelectorControl(parent), m_factory(0), m_selectedDevice(0)
+    : QVideoDeviceSelectorControl(parent)
 {
 }
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(
         GstElementFactory *factory, QObject *parent)
-    : QVideoDeviceSelectorControl(parent), m_factory(factory), m_selectedDevice(0)
+    : QVideoDeviceSelectorControl(parent)
+    , m_factory(factory)
 {
     if (m_factory)
         gst_object_ref(GST_OBJECT(m_factory));

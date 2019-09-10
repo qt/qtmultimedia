@@ -95,10 +95,6 @@ protected:
 QGstreamerVideoWidgetControl::QGstreamerVideoWidgetControl(QObject *parent, const QByteArray &elementName)
     : QVideoWidgetControl(parent)
     , m_videoOverlay(this, !elementName.isEmpty() ? elementName : qgetenv("QT_GSTREAMER_WIDGET_VIDEOSINK"))
-    , m_widget(0)
-    , m_stopped(false)
-    , m_windowId(0)
-    , m_fullScreen(false)
 {
     connect(&m_videoOverlay, &QGstreamerVideoOverlay::activeChanged,
             this, &QGstreamerVideoWidgetControl::onOverlayActiveChanged);

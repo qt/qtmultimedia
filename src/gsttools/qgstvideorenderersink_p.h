@@ -88,7 +88,7 @@ public:
 private:
     QVideoSurfaceFormat m_format;
     GstVideoInfo m_videoInfo;
-    bool m_flushed;
+    bool m_flushed = true;
 };
 
 class QVideoSurfaceGstDelegate : public QObject
@@ -124,18 +124,18 @@ private:
     QMutex m_mutex;
     QWaitCondition m_setupCondition;
     QWaitCondition m_renderCondition;
-    GstFlowReturn m_renderReturn;
+    GstFlowReturn m_renderReturn = GST_FLOW_OK;
     QList<QGstVideoRenderer *> m_renderers;
-    QGstVideoRenderer *m_renderer;
-    QGstVideoRenderer *m_activeRenderer;
+    QGstVideoRenderer *m_renderer = nullptr;
+    QGstVideoRenderer *m_activeRenderer = nullptr;
 
-    GstCaps *m_surfaceCaps;
-    GstCaps *m_startCaps;
-    GstBuffer *m_renderBuffer;
+    GstCaps *m_surfaceCaps = nullptr;
+    GstCaps *m_startCaps = nullptr;
+    GstBuffer *m_renderBuffer = nullptr;
 
-    bool m_notified;
-    bool m_stop;
-    bool m_flush;
+    bool m_notified = false;
+    bool m_stop = false;
+    bool m_flush = false;
 };
 
 class Q_GSTTOOLS_EXPORT QGstVideoRendererSink
@@ -170,7 +170,7 @@ private:
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
 
 private:
-    QVideoSurfaceGstDelegate *delegate;
+    QVideoSurfaceGstDelegate *delegate = nullptr;
 };
 
 

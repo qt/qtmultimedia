@@ -71,17 +71,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent):
-     QMediaService(parent)
-     , m_audioProbeControl(0)
-     , m_videoProbeControl(0)
-     , m_videoOutput(0)
-     , m_videoRenderer(0)
-     , m_videoWindow(0)
-#if defined(HAVE_WIDGETS)
-     , m_videoWidget(0)
-#endif
-     , m_videoReferenceCount(0)
+QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent)
+    : QMediaService(parent)
 {
     m_session = new QGstreamerPlayerSession(this);
     m_control = new QGstreamerPlayerControl(m_session, this);

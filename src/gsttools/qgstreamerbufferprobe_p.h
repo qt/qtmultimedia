@@ -83,12 +83,12 @@ private:
 #if GST_CHECK_VERSION(1,0,0)
     static GstPadProbeReturn capsProbe(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
     static GstPadProbeReturn bufferProbe(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
-    int m_capsProbeId;
+    int m_capsProbeId = -1;
 #else
     static gboolean bufferProbe(GstElement *element, GstBuffer *buffer, gpointer user_data);
-    GstCaps *m_caps;
+    GstCaps *m_caps = nullptr;
 #endif
-    int m_bufferProbeId;
+    int m_bufferProbeId = -1;
     const Flags m_flags;
 };
 
