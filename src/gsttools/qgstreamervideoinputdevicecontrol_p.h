@@ -83,9 +83,9 @@ public Q_SLOTS:
     void setSelectedDevice(int index) override;
 
 private:
-    GstElementFactory *m_factory;
+    GstElementFactory *m_factory = nullptr;
 
-    int m_selectedDevice;
+    int m_selectedDevice = 0;
 };
 
 QT_END_NAMESPACE

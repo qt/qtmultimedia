@@ -212,32 +212,32 @@ private:
     bool setPipeline(GstElement *pipeline);
 
     QNetworkRequest m_request;
-    QMediaPlayer::State m_state;
-    QMediaPlayer::State m_pendingState;
-    QGstreamerBusHelper* m_busHelper;
-    GstElement *m_playbin = nullptr; // Can be null
-    GstElement *m_pipeline = nullptr; // Never null
+    QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
+    QMediaPlayer::State m_pendingState = QMediaPlayer::StoppedState;
+    QGstreamerBusHelper *m_busHelper = nullptr;
+    GstElement *m_playbin = nullptr;
+    GstElement *m_pipeline = nullptr;
 
-    GstElement* m_videoSink;
+    GstElement *m_videoSink = nullptr;
 
-    GstElement* m_videoOutputBin;
-    GstElement* m_videoIdentity;
+    GstElement *m_videoOutputBin = nullptr;
+    GstElement *m_videoIdentity = nullptr;
 #if !GST_CHECK_VERSION(1,0,0)
-    GstElement* m_colorSpace;
-    bool m_usingColorspaceElement;
+    GstElement *m_colorSpace = nullptr;
+    bool m_usingColorspaceElement = false;
 #endif
-    GstElement* m_pendingVideoSink;
-    GstElement* m_nullVideoSink;
+    GstElement *m_pendingVideoSink = nullptr;
+    GstElement *m_nullVideoSink = nullptr;
 
-    GstElement* m_audioSink;
-    GstElement* m_volumeElement;
+    GstElement *m_audioSink = nullptr;
+    GstElement *m_volumeElement = nullptr;
 
-    GstBus* m_bus;
-    QObject *m_videoOutput;
-    QGstreamerVideoRendererInterface *m_renderer;
+    GstBus *m_bus = nullptr;
+    QObject *m_videoOutput = nullptr;
+    QGstreamerVideoRendererInterface *m_renderer = nullptr;
 
 #if QT_CONFIG(gstreamer_app)
-    QGstAppSrc *m_appSrc;
+    QGstAppSrc *m_appSrc = nullptr;
 #endif
 
     QMap<QByteArray, QVariant> m_tags;
@@ -245,21 +245,21 @@ private:
     QList<QMediaStreamsControl::StreamType> m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> m_playbin2StreamOffset;
 
-    QGstreamerVideoProbeControl *m_videoProbe;
-    QGstreamerAudioProbeControl *m_audioProbe;
+    QGstreamerVideoProbeControl *m_videoProbe = nullptr;
+    QGstreamerAudioProbeControl *m_audioProbe = nullptr;
 
-    int m_volume;
-    qreal m_playbackRate;
-    bool m_muted;
-    bool m_audioAvailable;
-    bool m_videoAvailable;
-    bool m_seekable;
+    int m_volume = 100;
+    qreal m_playbackRate = 1.0;
+    bool m_muted = false;
+    bool m_audioAvailable = false;
+    bool m_videoAvailable = false;
+    bool m_seekable = false;
 
-    mutable qint64 m_lastPosition;
-    qint64 m_duration;
-    int m_durationQueries;
+    mutable qint64 m_lastPosition = 0;
+    qint64 m_duration = 0;
+    int m_durationQueries = 0;
 
-    bool m_displayPrerolledFrame;
+    bool m_displayPrerolledFrame = true;
 
     enum SourceType
     {
@@ -269,11 +269,11 @@ private:
         MMSSrc,
         RTSPSrc,
     };
-    SourceType m_sourceType;
-    bool m_everPlayed;
-    bool m_isLiveSource;
+    SourceType m_sourceType = UnknownSrc;
+    bool m_everPlayed = false;
+    bool m_isLiveSource = false;
 
-    gulong pad_probe_id;
+    gulong pad_probe_id = 0;
 };
 
 QT_END_NAMESPACE

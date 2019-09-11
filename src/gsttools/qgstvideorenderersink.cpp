@@ -78,8 +78,6 @@
 QT_BEGIN_NAMESPACE
 
 QGstDefaultVideoRenderer::QGstDefaultVideoRenderer()
-    : m_flushed(true)
-    , m_handleType(QAbstractVideoBuffer::NoHandle)
 {
 }
 
@@ -169,14 +167,6 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, rendererLoader,
 
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surface)
     : m_surface(surface)
-    , m_renderer(0)
-    , m_activeRenderer(0)
-    , m_surfaceCaps(0)
-    , m_startCaps(0)
-    , m_renderBuffer(0)
-    , m_notified(false)
-    , m_stop(false)
-    , m_flush(false)
 {
     const auto instances = rendererLoader()->instances(QGstVideoRendererPluginKey);
     for (QObject *instance : instances) {

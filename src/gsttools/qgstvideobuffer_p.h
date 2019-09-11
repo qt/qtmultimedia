@@ -95,10 +95,10 @@ private:
     GstVideoInfo m_videoInfo;
     GstVideoFrame m_frame;
 #else
-    int m_bytesPerLine;
+    int m_bytesPerLine = 0;
 #endif
-    GstBuffer *m_buffer;
-    MapMode m_mode;
+    GstBuffer *m_buffer = nullptr;
+    MapMode m_mode = NotMapped;
     QVariant m_handle;
 };
 

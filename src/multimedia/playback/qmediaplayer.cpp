@@ -1646,6 +1646,6 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
             QAbstractVideoSurface \l {setVideoOutput()}{output}.
 */
 
-#include "moc_qmediaplayer.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediaplayer.cpp"

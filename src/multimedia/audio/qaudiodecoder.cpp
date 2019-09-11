@@ -545,6 +545,6 @@ QAudioBuffer QAudioDecoder::read() const
     \brief whether there is a decoded audio buffer available
 */
 
-#include "moc_qaudiodecoder.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qaudiodecoder.cpp"

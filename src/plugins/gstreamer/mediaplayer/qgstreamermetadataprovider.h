@@ -63,7 +63,7 @@ private slots:
     void updateTags();
 
 private:
-    QGstreamerPlayerSession *m_session;
+    QGstreamerPlayerSession *m_session = nullptr;
     QVariantMap m_tags;
 };
 

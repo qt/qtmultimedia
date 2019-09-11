@@ -121,6 +121,6 @@ QMediaPlaylistSourceControl::~QMediaPlaylistSourceControl()
   Signal emitted when the playlist has changed to \a playlist.
 */
 
-#include "moc_qmediaplaylistsourcecontrol_p.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediaplaylistsourcecontrol_p.cpp"

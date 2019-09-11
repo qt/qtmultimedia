@@ -44,8 +44,6 @@
 
 QGstreamerVideoProbeControl::QGstreamerVideoProbeControl(QObject *parent)
     : QMediaVideoProbeControl(parent)
-    , m_flushing(false)
-    , m_frameProbed(false)
 {
 }
 

@@ -1105,6 +1105,6 @@ QStringList QMediaRecorder::availableMetaData() const
     Signal the changes of one meta-data element \a value with the given \a key.
 */
 
-#include "moc_qmediarecorder.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediarecorder.cpp"
