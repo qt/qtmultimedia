@@ -122,7 +122,6 @@ QCameraLocksControl::~QCameraLocksControl()
     Signals the lock \a type \a status was changed with the specified \a reason.
 */
 
-
+QT_END_NAMESPACE
 
 #include "moc_qcameralockscontrol.cpp"
-QT_END_NAMESPACE
