@@ -97,6 +97,6 @@ QCameraInfoControl::~QCameraInfoControl()
     in relation to the display in its natural orientation.
 */
 
-#include "moc_qcamerainfocontrol.cpp"
-
 QT_END_NAMESPACE
+
+#include "moc_qcamerainfocontrol.cpp"

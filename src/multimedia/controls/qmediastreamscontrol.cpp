@@ -155,6 +155,6 @@ QMediaStreamsControl::~QMediaStreamsControl()
     The signal is emitted when the active streams list is changed.
 */
 
-#include "moc_qmediastreamscontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediastreamscontrol.cpp"

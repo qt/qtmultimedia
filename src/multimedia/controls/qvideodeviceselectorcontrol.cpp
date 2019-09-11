@@ -137,6 +137,6 @@ QVideoDeviceSelectorControl::~QVideoDeviceSelectorControl()
     Signals that the selected video device \a name has changed.
 */
 
-#include "moc_qvideodeviceselectorcontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qvideodeviceselectorcontrol.cpp"

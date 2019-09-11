@@ -415,5 +415,6 @@ void QGraphicsVideoItem::timerEvent(QTimerEvent *event)
     QGraphicsObject::timerEvent(event);
 }
 
-#include "moc_qgraphicsvideoitem.cpp"
 QT_END_NAMESPACE
+
+#include "moc_qgraphicsvideoitem.cpp"

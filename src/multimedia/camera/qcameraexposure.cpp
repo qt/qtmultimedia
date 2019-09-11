@@ -702,5 +702,6 @@ void QCameraExposure::setAutoShutterSpeed()
     Signal emitted when the exposure compensation changes to \a value.
 */
 
-#include "moc_qcameraexposure.cpp"
 QT_END_NAMESPACE
+
+#include "moc_qcameraexposure.cpp"

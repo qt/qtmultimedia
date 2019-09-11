@@ -104,16 +104,16 @@ private:
 
     void sendEOS();
 
-    QIODevice *m_stream;
-    GstAppSrc *m_appSrc;
-    bool m_sequential;
-    GstAppStreamType m_streamType;
+    QIODevice *m_stream = nullptr;
+    GstAppSrc *m_appSrc = nullptr;
+    bool m_sequential = false;
+    GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     GstAppSrcCallbacks m_callbacks;
-    qint64 m_maxBytes;
-    unsigned int m_dataRequestSize;
-    bool m_dataRequested;
-    bool m_enoughData;
-    bool m_forceData;
+    qint64 m_maxBytes = 0;
+    unsigned int m_dataRequestSize = ~0;
+    bool m_dataRequested = false;
+    bool m_enoughData = false;
+    bool m_forceData = false;
 };
 
 QT_END_NAMESPACE

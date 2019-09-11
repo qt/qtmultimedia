@@ -473,6 +473,6 @@ QString QRadioData::errorString() const
     \value College
 */
 
-#include "moc_qradiodata.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qradiodata.cpp"
