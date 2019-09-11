@@ -95,6 +95,18 @@
                 { "libs": "-lgstphotography-1.0" }
             ]
         },
+        "gstreamer_imxcommon": {
+            "label": "GStreamer i.MX common",
+            "export": "gstreamer_imxcommon",
+            "test": {
+                "include": "gst/allocators/imx/phys_mem_meta.h"
+            },
+            "use": "gstreamer_1_0",
+            "sources": [
+                { "type": "pkgConfig",
+                  "args": "gstimxcommon" }
+            ]
+        },
         "libresourceqt5": {
             "label": "libresourceqt5",
             "test": "resourcepolicy",
@@ -227,6 +239,11 @@
         "gstreamer_photography": {
             "label": "GStreamer Photography",
             "condition": "(features.gstreamer_1_0 && libs.gstreamer_photography_1_0) || (features.gstreamer_0_10 && libs.gstreamer_photography_0_10)",
+            "output": [ "privateFeature" ]
+        },
+        "gstreamer_imxcommon": {
+            "label": "GStreamer i.MX common",
+            "condition": "(features.gstreamer_1_0 && libs.gstreamer_imxcommon)",
             "output": [ "privateFeature" ]
         },
         "gpu_vivante": {

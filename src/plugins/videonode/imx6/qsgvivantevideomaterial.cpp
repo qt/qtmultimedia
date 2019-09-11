@@ -49,6 +49,11 @@
 
 #include <unistd.h>
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#if QT_CONFIG(gstreamer_imxcommon)
+#include "private/qgstvideobuffer_p.h"
+#include <gst/allocators/imx/phys_mem_meta.h>
+#endif
 
 //#define QT_VIVANTE_VIDEO_DEBUG
 
@@ -224,7 +229,12 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
 #endif
 
                 GLuint physical = ~0U;
-
+#if QT_CONFIG(gstreamer_imxcommon)
+                auto buffer = reinterpret_cast<QGstVideoBuffer *>(vF.buffer());
+                GstImxPhysMemMeta *meta = GST_IMX_PHYS_MEM_META_GET(buffer->buffer());
+                if (meta && meta->phys_addr)
+                    physical = meta->phys_addr;
+#endif
                 glBindTexture(GL_TEXTURE_2D, tmpTexId);
                 glTexDirectVIVMap_LOCAL(GL_TEXTURE_2D,
                                         fullWidth, fullHeight,
