@@ -39,6 +39,8 @@
 #include "../shared/mediafileselector.h"
 //TESTED_COMPONENT=src/multimedia
 
+#include <QtMultimedia/private/qtmultimedia-config_p.h>
+
 QT_USE_NAMESPACE
 
 /*
@@ -1357,8 +1359,10 @@ void tst_QMediaPlayerBackend::surfaceTest_data()
     QTest::newRow("RGB formats")
             << formatsRGB;
 
+#if !QT_CONFIG(directshow)
     QTest::newRow("YVU formats")
             << formatsYUV;
+#endif
 
     QTest::newRow("RGB & YUV formats")
             << formatsRGB + formatsYUV;
