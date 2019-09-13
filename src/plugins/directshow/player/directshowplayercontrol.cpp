@@ -293,6 +293,9 @@ void DirectShowPlayerControl::emitPropertyChanges()
     int properties = m_updateProperties;
     m_updateProperties = 0;
 
+    if (properties & StatusProperty)
+        emit mediaStatusChanged(m_status);
+
     if ((properties & ErrorProperty) && m_error != QMediaPlayer::NoError)
         emit error(m_error, m_errorString);
 
@@ -312,9 +315,6 @@ void DirectShowPlayerControl::emitPropertyChanges()
 
     if (properties & SeekableProperty)
         emit seekableChanged(m_seekable);
-
-    if (properties & StatusProperty)
-        emit mediaStatusChanged(m_status);
 
     if (properties & StateProperty)
         emit stateChanged(m_state);
