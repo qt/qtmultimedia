@@ -454,6 +454,10 @@ void QGstreamerPlayerControl::updateSessionState(QMediaPlayer::State state)
 
 void QGstreamerPlayerControl::updateMediaStatus()
 {
+    //EndOfMedia status should be kept, until reset by pause, play or setMedia
+    if (m_mediaStatus == QMediaPlayer::EndOfMedia)
+        return;
+
     pushState();
     QMediaPlayer::MediaStatus oldStatus = m_mediaStatus;
 
@@ -480,10 +484,6 @@ void QGstreamerPlayerControl::updateMediaStatus()
 
     if (m_currentState == QMediaPlayer::PlayingState && !m_resources->isGranted())
         m_mediaStatus = QMediaPlayer::StalledMedia;
-
-    //EndOfMedia status should be kept, until reset by pause, play or setMedia
-    if (oldStatus == QMediaPlayer::EndOfMedia)
-        m_mediaStatus = QMediaPlayer::EndOfMedia;
 
     popAndNotifyState();
 }
