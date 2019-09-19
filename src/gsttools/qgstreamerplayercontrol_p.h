@@ -124,20 +124,20 @@ private:
     void pushState();
     void popAndNotifyState();
 
-    QGstreamerPlayerSession *m_session;
-    QMediaPlayer::State m_userRequestedState;
-    QMediaPlayer::State m_currentState;
-    QMediaPlayer::MediaStatus m_mediaStatus;
+    QGstreamerPlayerSession *m_session = nullptr;
+    QMediaPlayer::State m_userRequestedState = QMediaPlayer::StoppedState;
+    QMediaPlayer::State m_currentState = QMediaPlayer::StoppedState;
+    QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
     QStack<QMediaPlayer::State> m_stateStack;
     QStack<QMediaPlayer::MediaStatus> m_mediaStatusStack;
 
-    int m_bufferProgress;
-    qint64 m_pendingSeekPosition;
-    bool m_setMediaPending;
+    int m_bufferProgress = -1;
+    qint64 m_pendingSeekPosition = -1;
+    bool m_setMediaPending = false;
     QMediaContent m_currentResource;
-    QIODevice *m_stream;
+    QIODevice *m_stream = nullptr;
 
-    QMediaPlayerResourceSetInterface *m_resources;
+    QMediaPlayerResourceSetInterface *m_resources = nullptr;
 };
 
 QT_END_NAMESPACE

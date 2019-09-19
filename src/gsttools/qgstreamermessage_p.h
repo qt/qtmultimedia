@@ -64,7 +64,7 @@ class QString;
 class Q_GSTTOOLS_EXPORT QGstreamerMessage
 {
 public:
-    QGstreamerMessage();
+    QGstreamerMessage() = default;
     QGstreamerMessage(GstMessage* message);
     QGstreamerMessage(QGstreamerMessage const& m);
     ~QGstreamerMessage();
@@ -74,7 +74,7 @@ public:
     QGstreamerMessage& operator=(QGstreamerMessage const& rhs);
 
 private:
-    GstMessage* m_message;
+    GstMessage* m_message = nullptr;
 };
 
 QT_END_NAMESPACE

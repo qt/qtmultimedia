@@ -50,8 +50,6 @@
 # pragma Q_MOC_EXPAND_MACROS
 #endif
 
-#if QT_DEPRECATED_SINCE(5, 14)
-
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
@@ -254,5 +252,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // #if QT_DEPRECATED_SINCE(5, 14)
 #endif  // QMEDIASERVICEPROVIDERPLUGIN_H

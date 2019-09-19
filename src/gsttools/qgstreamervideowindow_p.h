@@ -116,10 +116,10 @@ signals:
 
 private:
     QGstreamerVideoOverlay m_videoOverlay;
-    WId m_windowId;
+    WId m_windowId = 0;
     QRect m_displayRect;
-    bool m_fullScreen;
-    mutable QColor m_colorKey;
+    bool m_fullScreen = false;
+    mutable QColor m_colorKey = QColor::Invalid;
 };
 
 QT_END_NAMESPACE

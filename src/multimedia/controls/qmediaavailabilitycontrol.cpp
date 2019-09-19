@@ -103,5 +103,6 @@ QMediaAvailabilityControl::~QMediaAvailabilityControl()
     Signal emitted when the current \a availability value changed.
 */
 
-#include "moc_qmediaavailabilitycontrol.cpp"
 QT_END_NAMESPACE
+
+#include "moc_qmediaavailabilitycontrol.cpp"

@@ -125,6 +125,6 @@ QAudioOutputSelectorControl::~QAudioOutputSelectorControl()
     Signals that list of available outputs has changed.
 */
 
-#include "moc_qaudiooutputselectorcontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qaudiooutputselectorcontrol.cpp"

@@ -309,4 +309,17 @@ bool DirectShowUtils::connectFilters(IGraphBuilder *graph,
     return false;
 }
 
+thread_local static int g_refCount = 0;
+void DirectShowUtils::CoInitializeIfNeeded()
+{
+    if (++g_refCount == 1)
+        ::CoInitialize(nullptr);
+}
+
+void DirectShowUtils::CoUninitializeIfNeeded()
+{
+    if (--g_refCount == 0)
+        ::CoUninitialize();
+}
+
 QT_END_NAMESPACE

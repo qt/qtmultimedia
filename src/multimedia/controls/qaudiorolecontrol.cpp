@@ -112,6 +112,6 @@ QAudioRoleControl::~QAudioRoleControl()
     Signal emitted when the audio \a role has changed.
  */
 
+QT_END_NAMESPACE
 
 #include "moc_qaudiorolecontrol.cpp"
-QT_END_NAMESPACE

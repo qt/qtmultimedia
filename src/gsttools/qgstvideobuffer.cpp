@@ -51,7 +51,6 @@ QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine)
     , m_bytesPerLine(bytesPerLine)
 #endif
     , m_buffer(buffer)
-    , m_mode(NotMapped)
 {
     gst_buffer_ref(m_buffer);
 }
@@ -70,7 +69,6 @@ QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine,
     , m_bytesPerLine(bytesPerLine)
 #endif
     , m_buffer(buffer)
-    , m_mode(NotMapped)
     , m_handle(handle)
 {
     gst_buffer_ref(m_buffer);

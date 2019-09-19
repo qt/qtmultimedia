@@ -199,5 +199,6 @@ QCameraControl::~QCameraControl()
   \value ViewfinderSettings Viewfinder settings are changed.
 */
 
-#include "moc_qcameracontrol.cpp"
 QT_END_NAMESPACE
+
+#include "moc_qcameracontrol.cpp"
