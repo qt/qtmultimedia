@@ -64,39 +64,27 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>();
     Q_ASSERT(m_resources);
 
-    connect(m_session, SIGNAL(positionChanged(qint64)),
-            this, SIGNAL(positionChanged(qint64)));
-    connect(m_session, SIGNAL(durationChanged(qint64)),
-            this, SIGNAL(durationChanged(qint64)));
-    connect(m_session, SIGNAL(mutedStateChanged(bool)),
-            this, SIGNAL(mutedChanged(bool)));
-    connect(m_session, SIGNAL(volumeChanged(int)),
-            this, SIGNAL(volumeChanged(int)));
-    connect(m_session, SIGNAL(stateChanged(QMediaPlayer::State)),
-            this, SLOT(updateSessionState(QMediaPlayer::State)));
-    connect(m_session,SIGNAL(bufferingProgressChanged(int)),
-            this, SLOT(setBufferProgress(int)));
-    connect(m_session, SIGNAL(playbackFinished()),
-            this, SLOT(processEOS()));
-    connect(m_session, SIGNAL(audioAvailableChanged(bool)),
-            this, SIGNAL(audioAvailableChanged(bool)));
-    connect(m_session, SIGNAL(videoAvailableChanged(bool)),
-            this, SIGNAL(videoAvailableChanged(bool)));
-    connect(m_session, SIGNAL(seekableChanged(bool)),
-            this, SIGNAL(seekableChanged(bool)));
-    connect(m_session, SIGNAL(error(int,QString)),
-            this, SIGNAL(error(int,QString)));
-    connect(m_session, SIGNAL(invalidMedia()),
-            this, SLOT(handleInvalidMedia()));
-    connect(m_session, SIGNAL(playbackRateChanged(qreal)),
-            this, SIGNAL(playbackRateChanged(qreal)));
+    connect(m_session, &QGstreamerPlayerSession::positionChanged, this, &QGstreamerPlayerControl::positionChanged);
+    connect(m_session, &QGstreamerPlayerSession::durationChanged, this, &QGstreamerPlayerControl::durationChanged);
+    connect(m_session, &QGstreamerPlayerSession::mutedStateChanged, this, &QGstreamerPlayerControl::mutedChanged);
+    connect(m_session, &QGstreamerPlayerSession::volumeChanged, this, &QGstreamerPlayerControl::volumeChanged);
+    connect(m_session, &QGstreamerPlayerSession::stateChanged, this, &QGstreamerPlayerControl::updateSessionState);
+    connect(m_session, &QGstreamerPlayerSession::bufferingProgressChanged, this, &QGstreamerPlayerControl::setBufferProgress);
+    connect(m_session, &QGstreamerPlayerSession::playbackFinished, this, &QGstreamerPlayerControl::processEOS);
+    connect(m_session, &QGstreamerPlayerSession::audioAvailableChanged, this, &QGstreamerPlayerControl::audioAvailableChanged);
+    connect(m_session, &QGstreamerPlayerSession::videoAvailableChanged, this, &QGstreamerPlayerControl::videoAvailableChanged);
+    connect(m_session, &QGstreamerPlayerSession::seekableChanged, this, &QGstreamerPlayerControl::seekableChanged);
+    connect(m_session, &QGstreamerPlayerSession::error, this, &QGstreamerPlayerControl::error);
+    connect(m_session, &QGstreamerPlayerSession::invalidMedia, this, &QGstreamerPlayerControl::handleInvalidMedia);
+    connect(m_session, &QGstreamerPlayerSession::playbackRateChanged, this, &QGstreamerPlayerControl::playbackRateChanged);
 
-    connect(m_resources, SIGNAL(resourcesGranted()), SLOT(handleResourcesGranted()));
+    connect(m_resources, &QMediaPlayerResourceSetInterface::resourcesGranted, this, &QGstreamerPlayerControl::handleResourcesGranted);
     //denied signal should be queued to have correct state update process,
     //since in playOrPause, when acquire is call on resource set, it may trigger a resourcesDenied signal immediately,
     //so handleResourcesDenied should be processed later, otherwise it will be overwritten by state update later in playOrPause.
-    connect(m_resources, SIGNAL(resourcesDenied()), this, SLOT(handleResourcesDenied()), Qt::QueuedConnection);
-    connect(m_resources, SIGNAL(resourcesLost()), SLOT(handleResourcesLost()));
+    connect(m_resources, &QMediaPlayerResourceSetInterface::resourcesDenied,
+            this, &QGstreamerPlayerControl::handleResourcesDenied, Qt::QueuedConnection);
+    connect(m_resources, &QMediaPlayerResourceSetInterface::resourcesLost, this, &QGstreamerPlayerControl::handleResourcesLost);
 }
 
 QGstreamerPlayerControl::~QGstreamerPlayerControl()
