@@ -131,6 +131,6 @@ QImageEncoderControl::~QImageEncoderControl()
     Sets the selected image encoder \a settings.
 */
 
-#include "moc_qimageencodercontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qimageencodercontrol.cpp"

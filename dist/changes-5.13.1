@@ -1,0 +1,46 @@
+Qt 5.13.1 is a bug-fix release. It maintains both forward and backward
+compatibility (source and binary) with Qt 5.13.0.
+
+For more details, refer to the online documentation included in this
+distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.13 series is binary compatible with the 5.12.x series.
+Applications compiled for 5.12 will continue to run with 5.13.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                            Qt 5.13.1 Changes                             *
+****************************************************************************
+
+- [QTBUG-76090] Fixed crash when an app is destroyed before QSample::load finishes.
+- [QTBUG-76205] Added fix to only update the VideoOutput's geometry when the surface is active.
+
+****************************************************************************
+*                        Platform Specific Changes                         *
+****************************************************************************
+
+ - DirectShow:
+   * [QTBUG-65574] Added error when attempting to play a video without a video output set.
+   * [QTBUG-65574] Added fix to prevent the same media content from being set twice.
+   * [QTBUG-65574] Returns QMediaPlayer::NoMedia if an empty url is provided.
+   * [QTBUG-75959] Mapped MEDIASUBTYPE_RGB24 to QVideoFrame::Format_BGR24.
+   * [QTBUG-70655] Fixed build issues with newer MinGW versions.
+   * Fixed memory leak introduced by using GetFrameRateList.
+
+ - AVFoundation:
+   * [QTBUG-75287] QMediaRecorder will now only send state changes when the state actually changes.
+
+ - GStreamer:
+   * [QTBUG-76236] Now busy cameras are also returned in availableCameras.
+   * Fixed a crash when the bus helper is destroyed but is still receiving events.
+   * GstUDPSrc caps can now be passed via the url's query item.
+   * Added implementation for fetching audio/video codecs by container and vice versa.

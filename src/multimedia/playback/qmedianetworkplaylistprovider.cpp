@@ -276,7 +276,6 @@ void QMediaNetworkPlaylistProvider::shuffle()
 
 }
 
-#include "moc_qmedianetworkplaylistprovider_p.cpp"
-
 QT_END_NAMESPACE
 
+#include "moc_qmedianetworkplaylistprovider_p.cpp"

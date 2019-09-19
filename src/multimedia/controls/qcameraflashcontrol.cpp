@@ -128,6 +128,6 @@ QCameraFlashControl::~QCameraFlashControl()
     Signal emitted when flash state changes to \a ready.
 */
 
-#include "moc_qcameraflashcontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qcameraflashcontrol.cpp"

@@ -189,6 +189,6 @@ QCameraImageCaptureControl::~QCameraImageCaptureControl()
 */
 
 
-#include "moc_qcameraimagecapturecontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qcameraimagecapturecontrol.cpp"

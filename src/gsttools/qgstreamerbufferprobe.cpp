@@ -43,13 +43,7 @@
 QT_BEGIN_NAMESPACE
 
 QGstreamerBufferProbe::QGstreamerBufferProbe(Flags flags)
-#if GST_CHECK_VERSION(1,0,0)
-    : m_capsProbeId(-1)
-#else
-    : m_caps(0)
-#endif
-    , m_bufferProbeId(-1)
-    , m_flags(flags)
+    : m_flags(flags)
 {
 }
 

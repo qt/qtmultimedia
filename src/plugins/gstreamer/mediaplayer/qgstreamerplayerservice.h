@@ -73,25 +73,25 @@ public:
     void releaseControl(QMediaControl *control) override;
 
 private:
-    QGstreamerPlayerControl *m_control;
-    QGstreamerPlayerSession *m_session;
-    QGstreamerMetaDataProvider *m_metaData;
-    QGstreamerStreamsControl *m_streamsControl;
-    QGStreamerAvailabilityControl *m_availabilityControl;
+    QGstreamerPlayerControl *m_control = nullptr;
+    QGstreamerPlayerSession *m_session = nullptr;
+    QGstreamerMetaDataProvider *m_metaData = nullptr;
+    QGstreamerStreamsControl *m_streamsControl = nullptr;
+    QGStreamerAvailabilityControl *m_availabilityControl = nullptr;
 
-    QGstreamerAudioProbeControl *m_audioProbeControl;
-    QGstreamerVideoProbeControl *m_videoProbeControl;
+    QGstreamerAudioProbeControl *m_audioProbeControl = nullptr;
+    QGstreamerVideoProbeControl *m_videoProbeControl = nullptr;
 
-    QMediaControl *m_videoOutput;
-    QMediaControl *m_videoRenderer;
-    QGstreamerVideoWindow *m_videoWindow;
+    QMediaControl *m_videoOutput = nullptr;
+    QMediaControl *m_videoRenderer = nullptr;
+    QGstreamerVideoWindow *m_videoWindow = nullptr;
 #if defined(HAVE_WIDGETS)
-    QGstreamerVideoWidgetControl *m_videoWidget;
+    QGstreamerVideoWidgetControl *m_videoWidget = nullptr;
 #endif
 
     void increaseVideoRef();
     void decreaseVideoRef();
-    int m_videoReferenceCount;
+    int m_videoReferenceCount = 0;
 };
 
 QT_END_NAMESPACE
