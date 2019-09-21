@@ -46,18 +46,7 @@
 
     \brief The QAudioProbe class allows you to monitor audio being played or recorded.
 
-    \code
-        QAudioRecorder *recorder = new QAudioRecorder();
-        QAudioProbe *probe = new QAudioProbe;
-
-        // ... configure the audio recorder (skipped)
-
-        connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
-
-        probe->setSource(recorder); // Returns true, hopefully.
-
-        recorder->record(); // Now we can do things like calculating levels or performing an FFT
-    \endcode
+    \snippet multimedia-snippets/qaudioprobe.cpp desc
 
     \sa QVideoProbe, QMediaPlayer, QCamera
 */
