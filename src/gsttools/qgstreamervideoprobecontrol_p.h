@@ -89,10 +89,10 @@ private:
 #if GST_CHECK_VERSION(1,0,0)
     GstVideoInfo m_videoInfo;
 #else
-    int m_bytesPerLine;
+    int m_bytesPerLine = 0;
 #endif
-    bool m_flushing;
-    bool m_frameProbed; // true if at least one frame was probed
+    bool m_flushing = false;
+    bool m_frameProbed = false; // true if at least one frame was probed
 };
 
 QT_END_NAMESPACE

@@ -303,6 +303,7 @@ void DirectShowPlayerService::load(const QMediaContent &media, QIODevice *stream
             0x36b73882, 0xc2c8, 0x11cf, {0x8b, 0x46, 0x00, 0x80, 0x5f, 0x6c, 0xef, 0x60} };
         m_graphStatus = Loading;
 
+        DirectShowUtils::CoInitializeIfNeeded();
         m_graph = com_new<IFilterGraph2>(CLSID_FilterGraph, iid_IFilterGraph2);
         m_graphBuilder = com_new<ICaptureGraphBuilder2>(CLSID_CaptureGraphBuilder2, IID_ICaptureGraphBuilder2);
 
@@ -640,6 +641,7 @@ void DirectShowPlayerService::releaseGraph()
         ::SetEvent(m_taskHandle);
 
         m_loop->wait(&m_mutex);
+        DirectShowUtils::CoUninitializeIfNeeded();
     }
 }
 
@@ -1436,6 +1438,9 @@ void DirectShowPlayerService::customEvent(QEvent *event)
         if (m_playerControl->mediaStatus() == QMediaPlayer::EndOfMedia)
             m_playerControl->updateStatus(QMediaPlayer::LoadedMedia);
         m_playerControl->updatePosition(m_position);
+        // Emits only when seek has been performed.
+        if (m_videoRendererControl)
+            emit m_videoRendererControl->positionChanged(m_position);
     } else {
         QMediaService::customEvent(event);
     }

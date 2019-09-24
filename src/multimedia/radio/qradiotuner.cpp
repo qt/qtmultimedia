@@ -654,6 +654,6 @@ QRadioData *QRadioTuner::radioData() const
   This signal is emitted when the state changes to \a state.
  */
 
-#include "moc_qradiotuner.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qradiotuner.cpp"

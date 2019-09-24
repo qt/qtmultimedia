@@ -62,7 +62,7 @@ public:
     void setActive(int streamNumber, bool state) override;
 
 private:
-    QGstreamerPlayerSession *m_session;
+    QGstreamerPlayerSession *m_session = nullptr;
 };
 
 QT_END_NAMESPACE

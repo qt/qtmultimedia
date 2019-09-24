@@ -261,6 +261,6 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
     or -1 if not available.
 */
 
-#include "moc_qaudiodecodercontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qaudiodecodercontrol.cpp"

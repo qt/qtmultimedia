@@ -130,6 +130,6 @@ QMediaControl::QMediaControl(QMediaControlPrivate &dd, QObject *parent)
     d_ptr->q_ptr = this;
 }
 
-#include "moc_qmediacontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmediacontrol.cpp"

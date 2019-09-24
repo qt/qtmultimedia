@@ -42,15 +42,7 @@
 #include "qgstappsrc_p.h"
 
 QGstAppSrc::QGstAppSrc(QObject *parent)
-    :QObject(parent)
-    ,m_stream(0)
-    ,m_appSrc(0)
-    ,m_sequential(false)
-    ,m_maxBytes(0)
-    ,m_dataRequestSize(~0)
-    ,m_dataRequested(false)
-    ,m_enoughData(false)
-    ,m_forceData(false)
+    : QObject(parent)
 {
     m_callbacks.need_data   = &QGstAppSrc::on_need_data;
     m_callbacks.enough_data = &QGstAppSrc::on_enough_data;
