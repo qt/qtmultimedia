@@ -57,7 +57,7 @@ private Q_SLOTS:
     void handleAvailabilityChanged();
 
 private:
-    QMediaPlayerResourceSetInterface *m_resources;
+    QMediaPlayerResourceSetInterface *m_resources = nullptr;
 };
 
 QT_END_NAMESPACE

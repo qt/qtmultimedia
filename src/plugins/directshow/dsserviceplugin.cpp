@@ -54,6 +54,7 @@
 #include "directshowplayerservice.h"
 
 #include <qmediaserviceproviderplugin.h>
+#include "directshowutils.h"
 
 extern const CLSID CLSID_VideoInputDeviceCategory;
 
@@ -74,28 +75,15 @@ extern const CLSID CLSID_VideoInputDeviceCategory;
 QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(qtDirectShowPlugin, "qt.multimedia.plugins.directshow")
 
-static int g_refCount = 0;
-void addRefCount()
-{
-    if (++g_refCount == 1)
-        CoInitialize(nullptr);
-}
-
-void releaseRefCount()
-{
-    if (--g_refCount == 0)
-        CoUninitialize();
-}
-
 QMediaService* DSServicePlugin::create(QString const& key)
 {
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA)) {
-        addRefCount();
+        DirectShowUtils::CoInitializeIfNeeded();
         return new DSCameraService;
     }
 
     if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER)) {
-        addRefCount();
+        DirectShowUtils::CoInitializeIfNeeded();
         return new DirectShowPlayerService;
     }
 
@@ -105,7 +93,7 @@ QMediaService* DSServicePlugin::create(QString const& key)
 void DSServicePlugin::release(QMediaService *service)
 {
     delete service;
-    releaseRefCount();
+    DirectShowUtils::CoUninitializeIfNeeded();
 }
 
 QMediaServiceProviderHint::Features DSServicePlugin::supportedFeatures(
@@ -119,9 +107,9 @@ QMediaServiceProviderHint::Features DSServicePlugin::supportedFeatures(
 QByteArray DSServicePlugin::defaultDevice(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
-        addRefCount();
+        DirectShowUtils::CoInitializeIfNeeded();
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
-        releaseRefCount();
+        DirectShowUtils::CoUninitializeIfNeeded();
         if (!devs.isEmpty())
             return devs.first().first;
     }
@@ -133,9 +121,9 @@ QList<QByteArray> DSServicePlugin::devices(const QByteArray &service) const
     QList<QByteArray> result;
 
     if (service == Q_MEDIASERVICE_CAMERA) {
-        addRefCount();
+        DirectShowUtils::CoInitializeIfNeeded();
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
-        releaseRefCount();
+        DirectShowUtils::CoUninitializeIfNeeded();
         for (const DSVideoDeviceInfo &info : devs)
             result.append(info.first);
     }
@@ -146,9 +134,9 @@ QList<QByteArray> DSServicePlugin::devices(const QByteArray &service) const
 QString DSServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
-        addRefCount();
+        DirectShowUtils::CoInitializeIfNeeded();
         const QList<DSVideoDeviceInfo> &devs = DSVideoDeviceControl::availableDevices();
-        releaseRefCount();
+        DirectShowUtils::CoUninitializeIfNeeded();
         for (const DSVideoDeviceInfo &info : devs) {
             if (info.first == device)
                 return info.second;

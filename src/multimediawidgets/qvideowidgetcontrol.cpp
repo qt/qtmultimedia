@@ -219,6 +219,6 @@ QVideoWidgetControl::~QVideoWidgetControl()
     Returns the QWidget.
 */
 
-#include "moc_qvideowidgetcontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qvideowidgetcontrol.cpp"

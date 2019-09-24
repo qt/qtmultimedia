@@ -65,10 +65,6 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, bufferPoolLoader,
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     QAbstractVideoSurface *surface)
     : m_surface(surface)
-    , m_pool(0)
-    , m_renderReturn(GST_FLOW_ERROR)
-    , m_bytesPerLine(0)
-    , m_startCanceled(false)
 {
     if (m_surface) {
         const auto instances = bufferPoolLoader()->instances(QGstBufferPoolPluginKey);

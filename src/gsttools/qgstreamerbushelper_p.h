@@ -96,7 +96,7 @@ signals:
     void message(QGstreamerMessage const& message);
 
 private:
-    QGstreamerBusHelperPrivate*   d;
+    QGstreamerBusHelperPrivate *d = nullptr;
 };
 
 QT_END_NAMESPACE

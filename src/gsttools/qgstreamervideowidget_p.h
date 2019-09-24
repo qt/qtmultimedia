@@ -117,10 +117,10 @@ private:
     bool processBusMessage(const QGstreamerMessage &message) override;
 
     QGstreamerVideoOverlay m_videoOverlay;
-    QGstreamerVideoWidget *m_widget;
-    bool m_stopped;
-    WId m_windowId;
-    bool m_fullScreen;
+    QGstreamerVideoWidget *m_widget = nullptr;
+    bool m_stopped = false;
+    WId m_windowId = 0;
+    bool m_fullScreen = false;
 };
 
 QT_END_NAMESPACE

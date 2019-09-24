@@ -80,6 +80,10 @@ bool connectFilters(IGraphBuilder *graph,
                     IBaseFilter *downstreamFilter,
                     bool autoConnect = false,
                     HRESULT *hrOut = nullptr);
+
+void CoInitializeIfNeeded();
+void CoUninitializeIfNeeded();
+
 }
 
 QT_END_NAMESPACE

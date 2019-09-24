@@ -119,7 +119,7 @@ private:
     QList<QVideoFrame::PixelFormat> m_supportedPixelFormats;
     //pixel formats of buffers pool native type
     QList<QVideoFrame::PixelFormat> m_supportedPoolPixelFormats;
-    QGstBufferPoolInterface *m_pool;
+    QGstBufferPoolInterface *m_pool = nullptr;
     QList<QGstBufferPoolInterface *> m_pools;
     QMutex m_poolMutex;
     QMutex m_mutex;
@@ -127,10 +127,10 @@ private:
     QWaitCondition m_renderCondition;
     QVideoSurfaceFormat m_format;
     QVideoFrame m_frame;
-    GstFlowReturn m_renderReturn;
-    int m_bytesPerLine;
-    bool m_started;
-    bool m_startCanceled;
+    GstFlowReturn m_renderReturn = GST_FLOW_ERROR;
+    int m_bytesPerLine = 0;
+    bool m_started = false;
+    bool m_startCanceled = false;
 };
 
 class QVideoSurfaceGstSink
@@ -172,11 +172,11 @@ private:
 #endif
 
 private:
-    QVideoSurfaceGstDelegate *delegate;
+    QVideoSurfaceGstDelegate *delegate = nullptr;
 
-    GstCaps *lastRequestedCaps;
-    GstCaps *lastBufferCaps;
-    QVideoSurfaceFormat *lastSurfaceFormat;
+    GstCaps *lastRequestedCaps = nullptr;
+    GstCaps *lastBufferCaps = nullptr;
+    QVideoSurfaceFormat *lastSurfaceFormat = nullptr;
 };
 
 class QVideoSurfaceGstSinkClass

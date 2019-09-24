@@ -143,6 +143,6 @@ QMetaDataReaderControl::~QMetaDataReaderControl()
     be true if the multimedia object has meta-data.
 */
 
-#include "moc_qmetadatareadercontrol.cpp"
 QT_END_NAMESPACE
 
+#include "moc_qmetadatareadercontrol.cpp"

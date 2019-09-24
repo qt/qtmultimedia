@@ -111,39 +111,7 @@ static GstStaticCaps static_RawCaps = GST_STATIC_CAPS(DEFAULT_RAW_CAPS);
 #endif
 
 QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
-    :QObject(parent),
-     m_state(QMediaPlayer::StoppedState),
-     m_pendingState(QMediaPlayer::StoppedState),
-     m_busHelper(0),
-     m_videoSink(0),
-#if !GST_CHECK_VERSION(1,0,0)
-     m_usingColorspaceElement(false),
-#endif
-     m_pendingVideoSink(0),
-     m_nullVideoSink(0),
-     m_audioSink(0),
-     m_volumeElement(0),
-     m_bus(0),
-     m_videoOutput(0),
-     m_renderer(0),
-#if QT_CONFIG(gstreamer_app)
-     m_appSrc(0),
-#endif
-     m_videoProbe(0),
-     m_audioProbe(0),
-     m_volume(100),
-     m_playbackRate(1.0),
-     m_muted(false),
-     m_audioAvailable(false),
-     m_videoAvailable(false),
-     m_seekable(false),
-     m_lastPosition(0),
-     m_duration(0),
-     m_durationQueries(0),
-     m_displayPrerolledFrame(true),
-     m_sourceType(UnknownSrc),
-     m_everPlayed(false),
-     m_isLiveSource(false)
+    : QObject(parent)
 {
     m_playbin = gst_element_factory_make(QT_GSTREAMER_PLAYBIN_ELEMENT_NAME, NULL);
     if (m_playbin) {

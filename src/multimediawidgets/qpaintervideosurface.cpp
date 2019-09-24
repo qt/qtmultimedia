@@ -1761,7 +1761,6 @@ void QPainterVideoSurface::createPainter()
 #endif
 }
 
-#include "moc_qpaintervideosurface_p.cpp"
 QT_END_NAMESPACE
 
-
+#include "moc_qpaintervideosurface_p.cpp"
