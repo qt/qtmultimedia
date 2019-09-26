@@ -258,6 +258,8 @@ bool QMediaContent::isNull() const
 }
 
 /*!
+    \since 5.14
+
     Returns a QNetworkRequest that represents the resource for this media content.
 */
 
