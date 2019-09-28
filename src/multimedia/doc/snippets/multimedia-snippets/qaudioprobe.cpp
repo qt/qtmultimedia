@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2019 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,91 +37,15 @@
 **
 ****************************************************************************/
 
-#include <qcameralockscontrol.h>
-#include  "qmediacontrol_p.h"
+//! [desc]
+QAudioRecorder *recorder = new QAudioRecorder();
+QAudioProbe *probe = new QAudioProbe;
 
-QT_BEGIN_NAMESPACE
+// ... configure the audio recorder (skipped)
 
-/*!
-    \class QCameraLocksControl
+connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)), this, SLOT(processBuffer(QAudioBuffer)));
 
+probe->setSource(recorder); // Returns true, hopefully.
 
-
-    \brief The QCameraLocksControl class is an abstract base class for
-    classes that control still cameras or video cameras.
-
-    \inmodule QtMultimedia
-
-
-    \ingroup multimedia_control
-
-    This service is provided by a QMediaService object via
-    QMediaService::control().  It is used by QCamera.
-
-    The interface name of QCameraLocksControl is \c org.qt-project.qt.cameralockscontrol/5.0 as
-    defined in QCameraLocksControl_iid.
-
-
-    \sa QMediaService::requestControl(), QCamera
-*/
-
-/*!
-    \macro QCameraLocksControl_iid
-
-    \c org.qt-project.qt.cameralockscontrol/5.0
-
-    Defines the interface name of the QCameraLocksControl class.
-
-    \relates QCameraLocksControl
-*/
-
-/*!
-    Constructs a camera locks control object with \a parent.
-*/
-
-QCameraLocksControl::QCameraLocksControl(QObject *parent):
-    QMediaControl(*new QMediaControlPrivate, parent)
-{
-}
-
-/*!
-    Destruct the camera locks control object.
-*/
-
-QCameraLocksControl::~QCameraLocksControl()
-{
-}
-
-/*!
-    \fn QCameraLocksControl::supportedLocks() const
-
-    Returns the lock types, the camera supports.
-*/
-
-/*!
-    \fn QCameraLocksControl::lockStatus(QCamera::LockType lock) const
-
-    Returns the camera \a lock status.
-*/
-
-/*!
-    \fn QCameraLocksControl::searchAndLock(QCamera::LockTypes locks)
-
-    Request camera \a locks.
-*/
-
-/*!
-    \fn QCameraLocksControl::unlock(QCamera::LockTypes locks)
-
-    Unlock camera \a locks.
-*/
-
-/*!
-    \fn QCameraLocksControl::lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason)
-
-    Signals the lock \a type \a status was changed with the specified \a reason.
-*/
-
-QT_END_NAMESPACE
-
-#include "moc_qcameralockscontrol.cpp"
+recorder->record(); // Now we can do things like calculating levels or performing an FFT
+//! [desc]
