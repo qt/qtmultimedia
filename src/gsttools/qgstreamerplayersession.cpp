@@ -1156,9 +1156,11 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
 
 #ifdef DEBUG_PLAYBIN
                     QStringList states;
-                    states << "GST_STATE_VOID_PENDING" <<  "GST_STATE_NULL" << "GST_STATE_READY" << "GST_STATE_PAUSED" << "GST_STATE_PLAYING";
+                    states << QStringLiteral("GST_STATE_VOID_PENDING") <<  QStringLiteral("GST_STATE_NULL")
+                           << QStringLiteral("GST_STATE_READY") << QStringLiteral("GST_STATE_PAUSED")
+                           << QStringLiteral("GST_STATE_PLAYING");
 
-                    qDebug() << QString("state changed: old: %1  new: %2  pending: %3") \
+                    qDebug() << QStringLiteral("state changed: old: %1  new: %2  pending: %3") \
                             .arg(states[oldState]) \
                             .arg(states[newState]) \
                             .arg(states[pending]);
