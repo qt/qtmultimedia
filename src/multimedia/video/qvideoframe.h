@@ -86,7 +86,6 @@ public:
         Format_AYUV444_Premultiplied,
         Format_YUV444,
         Format_YUV420P,
-        Format_YUV422P,
         Format_YV12,
         Format_UYVY,
         Format_YUYV,
@@ -103,6 +102,7 @@ public:
 
         Format_CameraRaw,
         Format_AdobeDng,
+        Format_YUV422P, // ### Qt 6: reorder
 
 #ifndef Q_QDOC
         NPixelFormats,

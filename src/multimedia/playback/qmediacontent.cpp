@@ -257,6 +257,12 @@ bool QMediaContent::isNull() const
     return d.constData() == nullptr;
 }
 
+/*!
+    \since 5.14
+
+    Returns a QNetworkRequest that represents the resource for this media content.
+*/
+
 QNetworkRequest QMediaContent::request() const
 {
     return (d && !d->requests.isEmpty()) ? d->requests.first() : QNetworkRequest();
