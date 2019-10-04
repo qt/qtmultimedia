@@ -74,7 +74,7 @@ class QAlsaAudioDeviceInfo : public QAbstractAudioDeviceInfo
 {
     Q_OBJECT
 public:
-    QAlsaAudioDeviceInfo(QByteArray dev,QAudio::Mode mode);
+    QAlsaAudioDeviceInfo(const QByteArray &dev,QAudio::Mode mode);
     ~QAlsaAudioDeviceInfo();
 
     bool testSettings(const QAudioFormat& format) const;

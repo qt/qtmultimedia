@@ -54,7 +54,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(QByteArray dev, QAudio::Mode mode)
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, QAudio::Mode mode)
 {
     handle = 0;
 
