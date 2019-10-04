@@ -163,7 +163,7 @@ public:
 
     virtual bool writeItem(const QMediaContent& item)
     {
-        *m_textStream << item.request().url().toString() << endl;
+        *m_textStream << item.request().url().toString() << Qt::endl;
         return true;
     }
 

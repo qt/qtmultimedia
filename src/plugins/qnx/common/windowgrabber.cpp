@@ -189,7 +189,11 @@ bool WindowGrabber::handleScreenEvent(screen_event_t screen_event)
     return false;
 }
 
-bool WindowGrabber::nativeEventFilter(const QByteArray &eventType, void *message, long*)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+bool WindowGrabber::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *)
+#else
+bool WindowGrabber::nativeEventFilter(const QByteArray &eventType, void *message, long *)
+#endif
 {
     if (eventType == "screen_event_t") {
         const screen_event_t event = static_cast<screen_event_t>(message);

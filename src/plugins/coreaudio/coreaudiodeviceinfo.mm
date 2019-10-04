@@ -189,7 +189,7 @@ QList<int> CoreAudioDeviceInfo::supportedSampleRates()
     //with available hardware
     sampleRates << 8000 << 11025 << 22050 << 44100 << 48000;
 #endif
-    return sampleRates.toList();
+    return sampleRates.values();
 }
 
 
