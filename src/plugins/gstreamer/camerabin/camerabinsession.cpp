@@ -732,7 +732,7 @@ static QList<QCameraViewfinderSettings> capsToViewfinderSettings(GstCaps *suppor
 
 QList<QCameraViewfinderSettings> CameraBinSession::supportedViewfinderSettings() const
 {
-    if (m_status == QCamera::LoadedStatus && m_supportedViewfinderSettings.isEmpty()) {
+    if (m_status >= QCamera::LoadedStatus && m_supportedViewfinderSettings.isEmpty()) {
         m_supportedViewfinderSettings =
             capsToViewfinderSettings(supportedCaps(QCamera::CaptureViewfinder));
     }

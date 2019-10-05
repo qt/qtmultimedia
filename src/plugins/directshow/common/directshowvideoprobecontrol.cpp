@@ -54,4 +54,16 @@ DirectShowVideoProbeControl::~DirectShowVideoProbeControl()
         qCWarning(qtDirectShowPlugin, "QVideoProbe control destroyed while it's still being referenced!!!");
 }
 
+void DirectShowVideoProbeControl::probeVideoFrame(const QVideoFrame &frame)
+{
+    emit videoFrameProbed(frame);
+    m_frameProbed = true;
+}
+
+void DirectShowVideoProbeControl::flushVideoFrame()
+{
+    if (m_frameProbed)
+        emit flush();
+}
+
 QT_END_NAMESPACE
