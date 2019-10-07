@@ -51,6 +51,7 @@ DirectShowPlayerControl::DirectShowPlayerControl(DirectShowPlayerService *servic
     : QMediaPlayerControl(parent)
     , m_service(service)
     , m_audio(0)
+    , m_stream(0)
     , m_updateProperties(0)
     , m_state(QMediaPlayer::StoppedState)
     , m_status(QMediaPlayer::NoMedia)
@@ -221,7 +222,7 @@ const QIODevice *DirectShowPlayerControl::mediaStream() const
 
 void DirectShowPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
 {
-    if (m_media == media)
+    if (m_media == media && m_stream == stream)
         return;
 
     m_pendingPosition = -1;
