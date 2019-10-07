@@ -1,7 +1,7 @@
 TARGET = qtaudio_alsa
 QT += multimedia-private
 
-LIBS += -lasound
+QMAKE_USE += alsa
 
 HEADERS += \
     qalsaplugin.h \
