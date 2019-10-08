@@ -722,7 +722,7 @@ void QWinRTMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *s
 {
     Q_D(QWinRTMediaPlayerControl);
 
-    if (d->media == media)
+    if (d->media == media && d->stream.data() == stream)
         return;
 
     d->media = media;
