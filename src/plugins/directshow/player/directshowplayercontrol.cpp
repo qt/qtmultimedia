@@ -89,9 +89,11 @@ void DirectShowPlayerControl::setPosition(qint64 position)
         emit mediaStatusChanged(m_status);
     }
 
-    if (m_state == QMediaPlayer::StoppedState && m_pendingPosition != position) {
-        m_pendingPosition = position;
-        emit positionChanged(m_pendingPosition);
+    if (m_state == QMediaPlayer::StoppedState) {
+        if (m_pendingPosition != position) {
+            m_pendingPosition = position;
+            emit positionChanged(m_pendingPosition);
+        }
         return;
     }
 
@@ -280,6 +282,9 @@ void DirectShowPlayerControl::emitPropertyChanges()
     int properties = m_updateProperties;
     m_updateProperties = 0;
 
+    if (properties & StatusProperty)
+        emit mediaStatusChanged(m_status);
+
     if ((properties & ErrorProperty) && m_error != QMediaPlayer::NoError)
         emit error(m_error, m_errorString);
 
@@ -299,9 +304,6 @@ void DirectShowPlayerControl::emitPropertyChanges()
 
     if (properties & SeekableProperty)
         emit seekableChanged(m_seekable);
-
-    if (properties & StatusProperty)
-        emit mediaStatusChanged(m_status);
 
     if (properties & StateProperty)
         emit stateChanged(m_state);

@@ -81,6 +81,15 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    enum { Type = 14 };
+    int type() const override
+    {
+        // Enable the use of qgraphicsitem_cast with this item.
+        return Type;
+    }
+#endif
+
 Q_SIGNALS:
     void nativeSizeChanged(const QSizeF &size);
 

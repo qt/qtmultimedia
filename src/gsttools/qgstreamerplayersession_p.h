@@ -210,6 +210,9 @@ private:
     void resumeVideoProbes();
     bool parsePipeline();
     bool setPipeline(GstElement *pipeline);
+    void resetElements();
+    void initPlaybin();
+    void setBus(GstBus *bus);
 
     QNetworkRequest m_request;
     QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
