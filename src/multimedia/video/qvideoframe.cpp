@@ -1048,7 +1048,6 @@ static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
     /* Format_ARGB8565_Premultiplied */ nullptr, // Not needed
     /* Format_BGRA32 */                 qt_convert_BGRA32_to_ARGB32,
     /* Format_BGRA32_Premultiplied */   qt_convert_BGRA32_to_ARGB32,
-    /* Format_ABGR32 */                 nullptr,
     /* Format_BGR32 */                  qt_convert_BGRA32_to_ARGB32,
     /* Format_BGR24 */                  qt_convert_BGR24_to_ARGB32,
     /* Format_BGR565 */                 qt_convert_BGR565_to_ARGB32,
@@ -1071,7 +1070,9 @@ static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
     /* Format_Y16 */                    nullptr,
     /* Format_Jpeg */                   nullptr, // Not needed
     /* Format_CameraRaw */              nullptr,
-    /* Format_AdobeDng */               nullptr
+    /* Format_AdobeDng */               nullptr,
+    /* Format_ABGR32 */                 nullptr, // ### Qt 6: reorder
+
 };
 
 static void qInitConvertFuncsAsm()
