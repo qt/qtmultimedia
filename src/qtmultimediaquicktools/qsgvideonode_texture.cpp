@@ -44,6 +44,7 @@
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtMultimedia/private/qmediaopenglhelper_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,7 +59,9 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelForma
         pixelFormats.append(QVideoFrame::Format_ARGB32);
         pixelFormats.append(QVideoFrame::Format_BGR32);
         pixelFormats.append(QVideoFrame::Format_BGRA32);
+#if !QT_CONFIG(gpu_vivante)
         pixelFormats.append(QVideoFrame::Format_ABGR32);
+#endif
     }
 
     return pixelFormats;
