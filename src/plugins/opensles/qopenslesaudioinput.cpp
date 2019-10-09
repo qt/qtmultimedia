@@ -117,6 +117,8 @@ QOpenSLESAudioInput::QOpenSLESAudioInput(const QByteArray &device)
         m_recorderPreset = SL_ANDROID_RECORDING_PRESET_CAMCORDER;
     else if (qstrcmp(device, QT_ANDROID_PRESET_VOICE_RECOGNITION) == 0)
         m_recorderPreset = SL_ANDROID_RECORDING_PRESET_VOICE_RECOGNITION;
+    else if (qstrcmp(device, QT_ANDROID_PRESET_VOICE_COMMUNICATION) == 0)
+        m_recorderPreset = SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION;
     else
         m_recorderPreset = SL_ANDROID_RECORDING_PRESET_GENERIC;
 #endif
