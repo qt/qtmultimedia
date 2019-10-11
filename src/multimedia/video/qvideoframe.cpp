@@ -39,7 +39,6 @@
 
 #include "qvideoframe.h"
 
-#include "qvideoframe_p.h"
 #include "qimagevideobuffer_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconversionhelper_p.h"
@@ -1112,11 +1111,12 @@ static void qInitConvertFuncsAsm()
 }
 
 /*!
-    \internal
+    Based on the pixel format converts current video frame to image.
+    \since 5.15
 */
-QImage qt_imageFromVideoFrame(const QVideoFrame &f)
+QImage QVideoFrame::image() const
 {
-    QVideoFrame &frame = const_cast<QVideoFrame&>(f);
+    QVideoFrame frame = *this;
     QImage result;
 
     if (!frame.isValid() || !frame.map(QAbstractVideoBuffer::ReadOnly))

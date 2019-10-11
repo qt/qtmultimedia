@@ -166,6 +166,8 @@ public:
     QVariant metaData(const QString &key) const;
     void setMetaData(const QString &key, const QVariant &value);
 
+    QImage image() const;
+
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);
 

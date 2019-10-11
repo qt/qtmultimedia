@@ -49,7 +49,6 @@
 #include <qcameraimagecapture.h>
 #include <qvideorenderercontrol.h>
 #include <private/qmediaserviceprovider_p.h>
-#include <private/qvideoframe_p.h>
 
 QT_USE_NAMESPACE
 
@@ -451,7 +450,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
 
     QVideoFrame frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-    QVERIFY(!qt_imageFromVideoFrame(frame).isNull());
+    QVERIFY(!frame.image().isNull());
 
     frame = QVideoFrame();
     capturedSignal.clear();
@@ -509,7 +508,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
         QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
 
         frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-        QVERIFY(!qt_imageFromVideoFrame(frame).isNull());
+        QVERIFY(!frame.image().isNull());
 
         QString fileName = savedSignal.first().last().toString();
         QVERIFY(QFileInfo(fileName).exists());

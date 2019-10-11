@@ -85,6 +85,9 @@ private slots:
     void isMapped();
     void isReadable();
     void isWritable();
+
+    void image_data();
+    void image();
 };
 
 Q_DECLARE_METATYPE(QImage::Format)
@@ -1126,6 +1129,172 @@ void tst_QVideoFrame::isWritable()
     QVERIFY(frame.isMapped());
     QVERIFY(frame.isWritable());
     frame.unmap();
+}
+
+void tst_QVideoFrame::image_data()
+{
+    QTest::addColumn<QSize>("size");
+    QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
+    QTest::addColumn<int>("bytes");
+    QTest::addColumn<int>("bytesPerLine");
+    QTest::addColumn<QImage::Format>("imageFormat");
+
+    QTest::newRow("64x64 ARGB32")
+            << QSize(64, 64)
+            << QVideoFrame::Format_ARGB32
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 ARGB32_Premultiplied")
+            << QSize(64, 64)
+            << QVideoFrame::Format_ARGB32_Premultiplied
+            << 16384
+            << 256
+            << QImage::Format_ARGB32_Premultiplied;
+
+    QTest::newRow("64x64 RGB32")
+            << QSize(64, 64)
+            << QVideoFrame::Format_RGB32
+            << 16384
+            << 256
+            << QImage::Format_RGB32;
+
+    QTest::newRow("64x64 RGB24")
+            << QSize(64, 64)
+            << QVideoFrame::Format_RGB24
+            << 16384
+            << 192
+            << QImage::Format_RGB888;
+
+    QTest::newRow("64x64 RGB565")
+            << QSize(64, 64)
+            << QVideoFrame::Format_RGB565
+            << 16384
+            << 128
+            << QImage::Format_RGB16;
+
+    QTest::newRow("64x64 RGB555")
+            << QSize(64, 64)
+            << QVideoFrame::Format_RGB555
+            << 16384
+            << 128
+            << QImage::Format_RGB555;
+
+    QTest::newRow("64x64 BGRA32")
+            << QSize(64, 64)
+            << QVideoFrame::Format_BGRA32
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 BGRA32_Premultiplied")
+            << QSize(64, 64)
+            << QVideoFrame::Format_BGRA32_Premultiplied
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 BGR32")
+            << QSize(64, 64)
+            << QVideoFrame::Format_BGR32
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 BGR24")
+            << QSize(64, 64)
+            << QVideoFrame::Format_BGR24
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 BGR565")
+            << QSize(64, 64)
+            << QVideoFrame::Format_BGR565
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 BGR555")
+            << QSize(64, 64)
+            << QVideoFrame::Format_BGR555
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 AYUV444")
+            << QSize(64, 64)
+            << QVideoFrame::Format_AYUV444
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 YUV444")
+            << QSize(64, 64)
+            << QVideoFrame::Format_YUV444
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 YUV420P")
+            << QSize(64, 64)
+            << QVideoFrame::Format_YUV420P
+            << 13288
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 YV12")
+            << QSize(64, 64)
+            << QVideoFrame::Format_YV12
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 UYVY")
+            << QSize(64, 64)
+            << QVideoFrame::Format_UYVY
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 YUYV")
+            << QSize(64, 64)
+            << QVideoFrame::Format_YUYV
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 NV12")
+            << QSize(64, 64)
+            << QVideoFrame::Format_NV12
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+
+    QTest::newRow("64x64 NV21")
+            << QSize(64, 64)
+            << QVideoFrame::Format_NV21
+            << 16384
+            << 256
+            << QImage::Format_ARGB32;
+}
+
+void tst_QVideoFrame::image()
+{
+    QFETCH(QSize, size);
+    QFETCH(QVideoFrame::PixelFormat, pixelFormat);
+    QFETCH(int, bytes);
+    QFETCH(int, bytesPerLine);
+    QFETCH(QImage::Format, imageFormat);
+
+    QVideoFrame frame(bytes, size, bytesPerLine, pixelFormat);
+    QImage img = frame.image();
+
+    QVERIFY(!img.isNull());
+    QCOMPARE(img.format(), imageFormat);
+    QCOMPARE(img.size(), size);
+    QCOMPARE(img.bytesPerLine(), bytesPerLine);
 }
 
 QTEST_MAIN(tst_QVideoFrame)
