@@ -44,7 +44,6 @@
 #include <QtMultimedia/qvideosurfaceformat.h>
 #include <QtMultimedia/qcameraimagecapture.h>
 #include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideoframe_p.h>
 
 #include "dscamerasession.h"
 #include "dsvideorenderer.h"
@@ -637,7 +636,7 @@ void DSCameraSession::presentFrame()
 
     if (m_capturedFrame.isValid()) {
 
-        captureImage = qt_imageFromVideoFrame(m_capturedFrame);
+        captureImage = m_capturedFrame.image();
 
         const bool needsVerticalMirroring = m_previewSurfaceFormat.scanLineDirection() != QVideoSurfaceFormat::TopToBottom;
         captureImage = captureImage.mirrored(m_needsHorizontalMirroring, needsVerticalMirroring); // also causes a deep copy of the data

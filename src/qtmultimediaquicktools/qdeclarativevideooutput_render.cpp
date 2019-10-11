@@ -46,7 +46,6 @@
 #include <QtCore/qloggingcategory.h>
 #include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>
-#include <private/qvideoframe_p.h>
 
 #include <QtGui/QOpenGLContext>
 #include <QtQuick/QQuickWindow>
@@ -372,7 +371,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
             || q->flushMode() == QDeclarativeVideoOutput::LastFrame) {
             m_frameOnFlush = m_surfaceFormat.handleType() == QAbstractVideoBuffer::NoHandle
                 ? m_frame
-                : qt_imageFromVideoFrame(m_frame);
+                : m_frame.image();
         }
 
         //don't keep the frame for more than really necessary

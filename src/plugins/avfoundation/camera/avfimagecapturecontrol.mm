@@ -48,7 +48,6 @@
 #include <QtCore/qbuffer.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QtGui/qimagereader.h>
-#include <private/qvideoframe_p.h>
 
 QT_USE_NAMESPACE
 
@@ -214,7 +213,7 @@ void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
     QTransform transform;
     transform.rotate(rotation);
 
-    Q_EMIT imageCaptured(request.captureId, qt_imageFromVideoFrame(frame).transformed(transform));
+    Q_EMIT imageCaptured(request.captureId, frame.image().transformed(transform));
 
     request.previewReady->release();
 }

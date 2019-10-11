@@ -53,7 +53,6 @@
 #include <qdebug.h>
 #include <qvideoframe.h>
 #include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideoframe_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -748,7 +747,7 @@ void QAndroidCameraSession::processPreviewImage(int id, const QVideoFrame &frame
         transform.scale(-1, 1);
     transform.rotate(rotation);
 
-    emit imageCaptured(id, qt_imageFromVideoFrame(frame).transformed(transform));
+    emit imageCaptured(id, frame.image().transformed(transform));
 }
 
 void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
