@@ -55,8 +55,11 @@ public:
 
     bool ref() { return m_ref.ref(); }
     bool deref() { return m_ref.deref(); }
+    void probeVideoFrame(const QVideoFrame &frame);
+    void flushVideoFrame();
 private:
     QAtomicInt m_ref;
+    bool m_frameProbed = false;
 };
 
 QT_END_NAMESPACE

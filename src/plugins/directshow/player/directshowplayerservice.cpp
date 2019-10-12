@@ -622,6 +622,9 @@ void DirectShowPlayerService::doFinalizeLoad(QMutexLocker *locker)
 
 void DirectShowPlayerService::releaseGraph()
 {
+    if (m_videoProbeControl)
+        m_videoProbeControl->flushVideoFrame();
+
     if (m_graph) {
         if (m_executingTask != 0) {
             // {8E1C39A1-DE53-11cf-AA63-0080C744528D}
@@ -999,6 +1002,8 @@ void DirectShowPlayerService::stop()
 
     if ((m_executingTask | m_executedTasks) & (Play | Pause | Seek)) {
         m_pendingTasks |= Stop;
+        if (m_videoProbeControl)
+            m_videoProbeControl->flushVideoFrame();
 
         ::SetEvent(m_taskHandle);
 
@@ -1431,6 +1436,8 @@ void DirectShowPlayerService::customEvent(QEvent *event)
             m_playerControl->updateState(QMediaPlayer::StoppedState);
             m_playerControl->updateStatus(QMediaPlayer::EndOfMedia);
             m_playerControl->updatePosition(m_position);
+            if (m_videoProbeControl)
+                m_videoProbeControl->flushVideoFrame();
         }
     } else if (event->type() == QEvent::Type(PositionChange)) {
         QMutexLocker locker(&m_mutex);
@@ -1539,7 +1546,7 @@ void DirectShowPlayerService::onVideoBufferAvailable(double time, const QByteArr
                       size,
                       format);
 
-    Q_EMIT m_videoProbeControl->videoFrameProbed(frame);
+    m_videoProbeControl->probeVideoFrame(frame);
 }
 
 QT_WARNING_POP

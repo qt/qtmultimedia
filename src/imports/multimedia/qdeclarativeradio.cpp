@@ -50,6 +50,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup multimedia_radio_qml
     \inherits Item
+    \deprecated
 
     \qml
     Rectangle {

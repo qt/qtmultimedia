@@ -69,7 +69,7 @@ include(video/video.pri)
 ANDROID_BUNDLED_JAR_DEPENDENCIES = \
     jar/QtMultimedia.jar:org.qtproject.qt5.android.multimedia.QtMultimediaUtils
 ANDROID_LIB_DEPENDENCIES = \
-    plugins/mediaservice/libqtmedia_android.so \
+    plugins/mediaservice/libplugins_mediaservice_qtmedia_android.so \
     lib/libQt5MultimediaQuick.so:Qt5Quick
 ANDROID_BUNDLED_FILES += \
     lib/libQt5MultimediaQuick.so

@@ -64,6 +64,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterRadioTunerMetaTypes)
 
 /*!
     \class QRadioTuner
+    \obsolete
     \brief The QRadioTuner class provides an interface to the systems analog radio device.
 
     \inmodule QtMultimedia
