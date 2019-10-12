@@ -163,8 +163,7 @@ void QDeclarativeVideoRendererBackend::scheduleDeleteFilterResources()
 void QDeclarativeVideoRendererBackend::releaseResources()
 {
     // Called on the gui thread when the window is closed or changed.
-    QMutexLocker lock(&m_frameMutex);
-    scheduleDeleteFilterResources();
+    invalidateSceneGraph();
 }
 
 void QDeclarativeVideoRendererBackend::invalidateSceneGraph()

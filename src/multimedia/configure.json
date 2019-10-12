@@ -106,6 +106,18 @@
                 { "type": "pkgConfig", "args": "gstreamer-gl-1.0" }
             ]
         },
+        "gstreamer_imxcommon": {
+            "label": "GStreamer i.MX common",
+            "export": "gstreamer_imxcommon",
+            "test": {
+                "include": "gst/allocators/imx/phys_mem_meta.h"
+            },
+            "use": "gstreamer_1_0",
+            "sources": [
+                { "type": "pkgConfig",
+                  "args": "gstimxcommon" }
+            ]
+        },
         "libresourceqt5": {
             "label": "libresourceqt5",
             "test": "resourcepolicy",
@@ -243,6 +255,11 @@
         "gstreamer_gl": {
             "label": "GStreamer OpenGL",
             "condition": "features.gstreamer_1_0 && libs.gstreamer_gl_1_0",
+            "output": [ "privateFeature" ]
+        },
+        "gstreamer_imxcommon": {
+            "label": "GStreamer i.MX common",
+            "condition": "(features.gstreamer_1_0 && libs.gstreamer_imxcommon)",
             "output": [ "privateFeature" ]
         },
         "gpu_vivante": {
