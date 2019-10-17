@@ -5,6 +5,7 @@ windows-7
 windows-7sp1
 windows-10 msvc-2015
 windows-10 msvc-2017
+windows-10 msvc-2019
 # Media player plugin not built at the moment on this platform
 opensuse-13.1 64bit
 
