@@ -1312,6 +1312,9 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
     for (uint i=0; i<gst_caps_get_size(caps); i++) {
         GstStructure *structure = gst_caps_get_structure(caps, i);
         gst_structure_set_name(structure, "video/x-raw");
+#if GST_CHECK_VERSION(1,2,0)
+        gst_caps_set_features(caps, i, NULL);
+#endif
         const GValue *oldRate = gst_structure_get_value(structure, "framerate");
         if (!oldRate)
             continue;
@@ -1424,6 +1427,9 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
     for (uint i=0; i<gst_caps_get_size(caps); i++) {
         GstStructure *structure = gst_caps_get_structure(caps, i);
         gst_structure_set_name(structure, "video/x-raw");
+#if GST_CHECK_VERSION(1,2,0)
+        gst_caps_set_features(caps, i, NULL);
+#endif
         const GValue *oldW = gst_structure_get_value(structure, "width");
         const GValue *oldH = gst_structure_get_value(structure, "height");
         if (!oldW || !oldH)

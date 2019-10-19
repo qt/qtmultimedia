@@ -1309,7 +1309,7 @@ void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant
 
     for (auto it = data.cbegin(), end = data.cend(); it != end; ++it) {
         const QString tagName = QString::fromLatin1(it.key());
-        const QVariant tagValue = it.value();
+        const QVariant &tagValue = it.value();
 
         switch (tagValue.type()) {
             case QVariant::String:
