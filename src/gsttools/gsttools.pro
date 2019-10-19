@@ -90,6 +90,15 @@ qtConfig(gstreamer_app) {
     SOURCES += qgstappsrc.cpp
 }
 
+android {
+    LIBS_PRIVATE += \
+        -L$$(GSTREAMER_ROOT_ANDROID)/armv7/lib \
+        -Wl,--whole-archive \
+        -lgstapp-1.0 -lgstreamer-1.0 -lgstaudio-1.0 -lgsttag-1.0 -lgstvideo-1.0 -lgstbase-1.0 -lgstpbutils-1.0 \
+        -lgobject-2.0 -lgmodule-2.0 -lglib-2.0 -lffi -lintl -liconv -lorc-0.4 \
+        -Wl,--no-whole-archive
+}
+
 HEADERS += $$PRIVATE_HEADERS
 
 load(qt_module)
