@@ -100,6 +100,7 @@ private slots:
     void saturationRendererControl();
 
     void paintRendererControl();
+    void paintSurface();
 
 private:
     void sizeHint_data();
@@ -1604,6 +1605,34 @@ void tst_QVideoWidget::paintRendererControl()
     QCOMPARE(surface->isActive(), true);
     QCOMPARE(surface->isReady(), false);
 
+    QTRY_COMPARE(surface->isReady(), true);
+    QCOMPARE(surface->isActive(), true);
+    QCOMPARE(surface->isReady(), true);
+}
+
+void tst_QVideoWidget::paintSurface()
+{
+    QtTestVideoWidget widget;
+    widget.resize(640,480);
+    widget.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&widget));
+
+    QVERIFY(widget.videoSurface());
+    auto surface = qobject_cast<QPainterVideoSurface *>(
+            widget.videoSurface());
+    QVERIFY(surface);
+
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+    QVERIFY(surface->start(format));
+    QCOMPARE(surface->isActive(), true);
+
+    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
+    frame.map(QAbstractVideoBuffer::WriteOnly);
+    memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
+    frame.unmap();
+
+    QVERIFY(surface->present(frame));
+    QCOMPARE(surface->isReady(), false);
     QTRY_COMPARE(surface->isReady(), true);
     QCOMPARE(surface->isActive(), true);
     QCOMPARE(surface->isReady(), true);

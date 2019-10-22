@@ -145,7 +145,8 @@ QRendererVideoWidgetBackend::QRendererVideoWidgetBackend(
     connect(m_surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
             this, SLOT(formatChanged(QVideoSurfaceFormat)));
 
-    m_rendererControl->setSurface(m_surface);
+    if (m_rendererControl)
+        m_rendererControl->setSurface(m_surface);
 }
 
 QRendererVideoWidgetBackend::~QRendererVideoWidgetBackend()
@@ -153,14 +154,21 @@ QRendererVideoWidgetBackend::~QRendererVideoWidgetBackend()
     delete m_surface;
 }
 
+QAbstractVideoSurface *QRendererVideoWidgetBackend::videoSurface() const
+{
+    return m_surface;
+}
+
 void QRendererVideoWidgetBackend::releaseControl()
 {
-    m_service->releaseControl(m_rendererControl);
+    if (m_service && m_rendererControl)
+        m_service->releaseControl(m_rendererControl);
 }
 
 void QRendererVideoWidgetBackend::clearSurface()
 {
-    m_rendererControl->setSurface(0);
+    if (m_rendererControl)
+        m_rendererControl->setSurface(0);
 }
 
 void QRendererVideoWidgetBackend::setBrightness(int brightness)
@@ -469,7 +477,7 @@ void QVideoWidgetPrivate::clearService()
 
             delete rendererBackend;
             rendererBackend = 0;
-        } else {
+        } else if (windowBackend) {
             windowBackend->releaseControl();
 
             delete windowBackend;
@@ -515,18 +523,15 @@ bool QVideoWidgetPrivate::createWindowBackend()
 
 bool QVideoWidgetPrivate::createRendererBackend()
 {
-    if (QMediaControl *control = service->requestControl(QVideoRendererControl_iid)) {
-        if (QVideoRendererControl *rendererControl = qobject_cast<QVideoRendererControl *>(control)) {
-            rendererBackend = new QRendererVideoWidgetBackend(service, rendererControl, q_func());
-            currentBackend = rendererBackend;
+    QMediaControl *control = service
+                           ? service->requestControl(QVideoRendererControl_iid)
+                           : nullptr;
+    rendererBackend = new QRendererVideoWidgetBackend(service,
+        qobject_cast<QVideoRendererControl *>(control), q_func());
+    currentBackend = rendererBackend;
+    setCurrentControl(rendererBackend);
 
-            setCurrentControl(rendererBackend);
-
-            return true;
-        }
-        service->releaseControl(control);
-    }
-    return false;
+    return !service || (service && control);
 }
 
 void QVideoWidgetPrivate::_q_serviceDestroyed()
@@ -693,6 +698,29 @@ bool QVideoWidget::setMediaObject(QMediaObject *object)
     }
 
     return true;
+}
+
+/*!
+    \since 5.15
+    \property QVideoWidget::videoSurface
+    \brief Returns the underlaying video surface that can render video frames
+    to the current widget.
+    This property is never \c nullptr.
+    Example of how to render video frames to QVideoWidget:
+    \snippet multimedia-snippets/video.cpp Widget Surface
+    \sa QMediaPlayer::setVideoOutput
+*/
+
+QAbstractVideoSurface *QVideoWidget::videoSurface() const
+{
+    auto d = const_cast<QVideoWidgetPrivate *>(d_func());
+
+    if (!d->rendererBackend) {
+        d->clearService();
+        d->createRendererBackend();
+    }
+
+    return d->rendererBackend->videoSurface();
 }
 
 /*!

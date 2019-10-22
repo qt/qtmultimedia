@@ -70,6 +70,7 @@ private slots:
     void boundingRect();
 
     void paint();
+    void paintSurface();
 };
 
 Q_DECLARE_METATYPE(const uchar *)
@@ -656,6 +657,48 @@ void tst_QGraphicsVideoItem::paint()
     QCOMPARE(surface->isReady(), true);
 }
 
+void tst_QGraphicsVideoItem::paintSurface()
+{
+    QtTestGraphicsVideoItem *item = new QtTestGraphicsVideoItem;
+    QVERIFY(item->videoSurface());
+
+    QGraphicsScene graphicsScene;
+    graphicsScene.addItem(item);
+    QGraphicsView graphicsView(&graphicsScene);
+    graphicsView.show();
+    QVERIFY(item->waitForPaint(1));
+
+    QPainterVideoSurface *surface = qobject_cast<QPainterVideoSurface *>(
+            item->videoSurface());
+    if (!surface)
+        QSKIP("QGraphicsVideoItem is not QPainterVideoSurface based");
+
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+
+    QVERIFY(surface->start(format));
+    QCOMPARE(surface->isActive(), true);
+    QCOMPARE(surface->isReady(), true);
+
+    QVERIFY(item->waitForPaint(1));
+
+    QCOMPARE(surface->isActive(), true);
+    QCOMPARE(surface->isReady(), true);
+
+    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
+
+    frame.map(QAbstractVideoBuffer::WriteOnly);
+    memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
+    frame.unmap();
+
+    QVERIFY(surface->present(frame));
+    QCOMPARE(surface->isActive(), true);
+    QCOMPARE(surface->isReady(), false);
+
+    QVERIFY(item->waitForPaint(1));
+
+    QCOMPARE(surface->isActive(), true);
+    QCOMPARE(surface->isReady(), true);
+}
 
 QTEST_MAIN(tst_QGraphicsVideoItem)
 

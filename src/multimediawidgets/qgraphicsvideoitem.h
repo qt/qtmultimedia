@@ -60,11 +60,13 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, pu
     Q_PROPERTY(QPointF offset READ offset WRITE setOffset)
     Q_PROPERTY(QSizeF size READ size WRITE setSize)
     Q_PROPERTY(QSizeF nativeSize READ nativeSize NOTIFY nativeSizeChanged)
+    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface)
 public:
     explicit QGraphicsVideoItem(QGraphicsItem *parent = nullptr);
     ~QGraphicsVideoItem();
 
     QMediaObject *mediaObject() const override;
+    QAbstractVideoSurface *videoSurface() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);

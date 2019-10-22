@@ -481,8 +481,7 @@ void tst_QPainterVideoSurface::present()
     QCOMPARE(surface.isActive(), true);
     QCOMPARE(surface.isReady(), false);
 
-    // Not ready.
-    QVERIFY(!surface.present(frameA));
+    QVERIFY(surface.present(frameA));
     QCOMPARE(frameSpy.count(), 1);
 
     surface.setReady(true);
@@ -1093,8 +1092,9 @@ void tst_QPainterVideoSurface::shaderPresent()
     QCOMPARE(surface.isActive(), true);
     QCOMPARE(surface.isReady(), false);
 
-    // Not ready.
-    QVERIFY(!surface.present(frameA));
+    // If present() fails for any other reason the surface should immediately enter the stopped state
+    // and an error() value will be set.
+    QVERIFY(surface.present(frameA));
     QCOMPARE(frameSpy.count(), 1);
 
     surface.setReady(true);

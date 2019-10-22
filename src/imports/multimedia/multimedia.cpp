@@ -60,6 +60,7 @@
 #include "qdeclarativecameraimageprocessing_p.h"
 #include "qdeclarativecameraviewfinder_p.h"
 #include "qdeclarativetorch_p.h"
+#include <QAbstractVideoSurface>
 
 QML_DECLARE_TYPE(QSoundEffect)
 
@@ -159,6 +160,10 @@ public:
 
         // 5.13 types
         qmlRegisterType<QDeclarativeVideoOutput, 13>(uri, 5, 13, "VideoOutput");
+
+        // 5.15 types
+        qmlRegisterType<QDeclarativeVideoOutput, 15>(uri, 5, 15, "VideoOutput");
+        qmlRegisterType<QAbstractVideoSurface>();
 
         // Auto-increment the import to stay in sync with ALL future QtQuick minor versions from 5.11 onward
         qmlRegisterModule(uri, 5, QT_VERSION_MINOR);
