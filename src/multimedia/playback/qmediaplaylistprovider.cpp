@@ -246,7 +246,7 @@ bool QMediaPlaylistProvider::removeMedia(int position)
   */
 bool QMediaPlaylistProvider::removeMedia(int start, int end)
 {
-    for (int pos=start; pos<=end; pos++) {
+    for (int pos=end; pos>=start; pos--) {
         if (!removeMedia(pos))
             return false;
     }
