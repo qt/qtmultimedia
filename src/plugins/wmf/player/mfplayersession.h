@@ -44,7 +44,6 @@
 #include <mfidl.h>
 
 #include "qmediaplayer.h"
-#include "qmediaresource.h"
 #include "qmediaservice.h"
 #include "qmediatimerange.h"
 

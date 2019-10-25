@@ -18,7 +18,6 @@ SUBDIRS += \
     qmediaplaylistnavigator \
     qmediapluginloader \
     qmediarecorder \
-    qmediaresource \
     qmediaservice \
     qmediaserviceprovider \
     qmediatimerange \

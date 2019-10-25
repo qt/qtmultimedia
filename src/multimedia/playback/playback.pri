@@ -3,8 +3,7 @@ INCLUDEPATH += playback
 PUBLIC_HEADERS += \
     playback/qmediacontent.h \
     playback/qmediaplayer.h \
-    playback/qmediaplaylist.h \
-    playback/qmediaresource.h
+    playback/qmediaplaylist.h
 
 PRIVATE_HEADERS += \
     playback/qmediaplaylist_p.h \
@@ -22,5 +21,4 @@ SOURCES += \
     playback/qmediaplaylistioplugin.cpp \
     playback/qmediaplaylistnavigator.cpp \
     playback/qmediaplaylistprovider.cpp \
-    playback/qmediaresource.cpp \
     playback/qplaylistfileparser.cpp

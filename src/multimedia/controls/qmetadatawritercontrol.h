@@ -43,8 +43,6 @@
 #include <QtMultimedia/qmediacontrol.h>
 #include <QtMultimedia/qmediaobject.h>
 
-#include <QtMultimedia/qmediaresource.h>
-
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
 

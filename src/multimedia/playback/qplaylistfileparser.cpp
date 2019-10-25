@@ -47,7 +47,6 @@
 #include "qmediaobject_p.h"
 #include "qmediametadata.h"
 #include "qmediacontent.h"
-#include "qmediaresource.h"
 
 QT_BEGIN_NAMESPACE
 

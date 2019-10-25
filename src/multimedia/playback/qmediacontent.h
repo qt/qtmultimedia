@@ -43,8 +43,7 @@
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
 
-#include <QtMultimedia/qmediaresource.h>
-
+#include <QNetworkRequest>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 QT_BEGIN_NAMESPACE
@@ -58,10 +57,6 @@ public:
     QMediaContent();
     QMediaContent(const QUrl &contentUrl);
     QMediaContent(const QNetworkRequest &contentRequest);
-#if QT_DEPRECATED_SINCE(6, 0)
-    QT_DEPRECATED QMediaContent(const QMediaResource &contentResource);
-    QT_DEPRECATED QMediaContent(const QMediaResourceList &resources);
-#endif
     QMediaContent(const QMediaContent &other);
     QMediaContent(QMediaPlaylist *playlist, const QUrl &contentUrl = QUrl(), bool takeOwnership = false);
     ~QMediaContent();
@@ -73,13 +68,6 @@ public:
 
     bool isNull() const;
     QNetworkRequest request() const;
-
-#if QT_DEPRECATED_SINCE(6, 0)
-    QT_DEPRECATED_X("Use QMediaContent::request().url()") QUrl canonicalUrl() const;
-    QT_DEPRECATED_X("Use QMediaContent::request()") QNetworkRequest canonicalRequest() const;
-    QT_DEPRECATED QMediaResource canonicalResource() const;
-    QT_DEPRECATED QMediaResourceList resources() const;
-#endif
 
     QMediaPlaylist *playlist() const;
 private:

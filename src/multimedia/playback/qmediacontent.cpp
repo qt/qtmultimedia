@@ -61,15 +61,6 @@ public:
         isPlaylistOwned(false)
     {}
 
-#if QT_DEPRECATED_SINCE(6, 0)
-    QMediaContentPrivate(const QMediaResourceList &r):
-        isPlaylistOwned(false)
-    {
-        for (auto &item : r)
-            requests << item.request();
-    }
-#endif
-
     QMediaContentPrivate(const QNetworkRequest &r):
         isPlaylistOwned(false)
     {
@@ -162,31 +153,6 @@ QMediaContent::QMediaContent(const QNetworkRequest &request):
     d->requests << request;
 }
 
-#if QT_DEPRECATED_SINCE(6, 0)
-/*!
-    \obsolete
-
-    Constructs a media content with \a resource providing a reference to the content.
-*/
-
-QMediaContent::QMediaContent(const QMediaResource &resource):
-    d(new QMediaContentPrivate)
-{
-    d->requests << resource.request();
-}
-
-/*!
-    \obsolete
-
-    Constructs a media content with \a resources providing a reference to the content.
-*/
-
-QMediaContent::QMediaContent(const QMediaResourceList &resources):
-    d(new QMediaContentPrivate(resources))
-{
-}
-#endif
-
 /*!
     Constructs a copy of the media content \a other.
 */
@@ -267,58 +233,6 @@ QNetworkRequest QMediaContent::request() const
 {
     return (d && !d->requests.isEmpty()) ? d->requests.first() : QNetworkRequest();
 }
-
-#if QT_DEPRECATED_SINCE(6, 0)
-/*!
-    \obsolete
-
-    Returns a QUrl that represents that canonical resource for this media content.
-*/
-
-QUrl QMediaContent::canonicalUrl() const
-{
-    return request().url();
-}
-
-/*!
-    \obsolete
-
-    Returns a QNetworkRequest that represents that canonical resource for this media content.
-*/
-
-QNetworkRequest QMediaContent::canonicalRequest() const
-{
-    return request();
-}
-
-/*!
-    \obsolete
-
-    Returns a QMediaResource that represents that canonical resource for this media content.
-*/
-
-QMediaResource QMediaContent::canonicalResource() const
-{
-    return (d && !d->requests.isEmpty()) ? d->requests.first() : QMediaResource();
-}
-
-/*!
-    \obsolete
-
-    Returns a list of alternative resources for this media content.  The first item in this list
-    is always the canonical resource.
-*/
-
-QMediaResourceList QMediaContent::resources() const
-{
-    QMediaResourceList list;
-    if (d) {
-        for (auto &item : d->requests)
-            list << item;
-    }
-    return list;
-}
-#endif // #if QT_DEPRECATED_SINCE(6, 0)
 
 /*!
     Returns a playlist for this media content or 0 if this QMediaContent is not a playlist.

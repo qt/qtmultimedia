@@ -43,16 +43,9 @@ private slots:
     void testNull();
     void testUrlCtor();
     void testRequestCtor();
-#if QT_DEPRECATED_SINCE(6, 0)
-    void testResourceCtor();
-    void testResourceListCtor();
-#endif
     void testCopy();
     void testAssignment();
     void testEquality();
-#if QT_DEPRECATED_SINCE(6, 0)
-    void testResources();
-#endif
     void testPlaylist();
 };
 
@@ -62,22 +55,12 @@ void tst_QMediaContent::testNull()
 
     QCOMPARE(media.isNull(), true);
     QCOMPARE(media.request().url(), QUrl());
-#if QT_DEPRECATED_SINCE(6, 0)
-    QCOMPARE(media.canonicalUrl(), QUrl());
-    QCOMPARE(media.canonicalResource(), QMediaResource());
-    QCOMPARE(media.resources(), QMediaResourceList());
-#endif
 }
 
 void tst_QMediaContent::testUrlCtor()
 {
     QMediaContent media(QUrl("http://example.com/movie.mov"));
     QCOMPARE(media.request().url(), QUrl("http://example.com/movie.mov"));
-
-#if QT_DEPRECATED_SINCE(6, 0)
-    QCOMPARE(media.canonicalUrl(), QUrl("http://example.com/movie.mov"));
-    QCOMPARE(media.canonicalResource().url(), QUrl("http://example.com/movie.mov"));
-#endif
 }
 
 void tst_QMediaContent::testRequestCtor()
@@ -88,34 +71,7 @@ void tst_QMediaContent::testRequestCtor()
     QMediaContent media(request);
     QCOMPARE(media.request().url(), QUrl("http://example.com/movie.mov"));
     QCOMPARE(media.request(), request);
-
-#if QT_DEPRECATED_SINCE(6, 0)
-    QCOMPARE(media.canonicalUrl(), QUrl("http://example.com/movie.mov"));
-    QCOMPARE(media.canonicalRequest(),request);
-    QCOMPARE(media.canonicalResource().request(), request);
-    QCOMPARE(media.canonicalResource().url(), QUrl("http://example.com/movie.mov"));
-#endif
 }
-
-#if QT_DEPRECATED_SINCE(6, 0)
-void tst_QMediaContent::testResourceCtor()
-{
-    QMediaContent media(QMediaResource(QUrl("http://example.com/movie.mov")));
-
-    QCOMPARE(media.canonicalResource(), QMediaResource(QUrl("http://example.com/movie.mov")));
-}
-
-void tst_QMediaContent::testResourceListCtor()
-{
-    QMediaResourceList  resourceList;
-    resourceList << QMediaResource(QUrl("http://example.com/movie.mov"));
-
-    QMediaContent media(resourceList);
-
-    QCOMPARE(media.canonicalUrl(), QUrl("http://example.com/movie.mov"));
-    QCOMPARE(media.canonicalResource().url(), QUrl("http://example.com/movie.mov"));
-}
-#endif
 
 void tst_QMediaContent::testCopy()
 {
@@ -162,22 +118,6 @@ void tst_QMediaContent::testEquality()
     QCOMPARE(media4 == media5, false);
     QCOMPARE(media4 != media5, true);
 }
-
-#if QT_DEPRECATED_SINCE(6, 0)
-void tst_QMediaContent::testResources()
-{
-    QMediaResourceList  resourceList;
-
-    resourceList << QMediaResource(QUrl("http://example.com/movie-main.mov"));
-    resourceList << QMediaResource(QUrl("http://example.com/movie-big.mov"));
-    QMediaContent    media(resourceList);
-
-    QMediaResourceList  res = media.resources();
-    QCOMPARE(res.size(), 2);
-    QCOMPARE(res[0], QMediaResource(QUrl("http://example.com/movie-main.mov")));
-    QCOMPARE(res[1], QMediaResource(QUrl("http://example.com/movie-big.mov")));
-}
-#endif
 
 void tst_QMediaContent::testPlaylist()
 {

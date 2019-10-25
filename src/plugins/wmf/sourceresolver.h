@@ -41,7 +41,7 @@
 #define SOURCERESOLVER_H
 
 #include "mfstream.h"
-#include "qmediaresource.h"
+#include <QUrl>
 
 class SourceResolver: public QObject, public IMFAsyncCallback
 {
