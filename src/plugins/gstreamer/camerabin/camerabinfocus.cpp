@@ -192,8 +192,6 @@ void CameraBinFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 
 bool CameraBinFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
 {
-    return mode == QCameraFocus::FocusPointAuto || mode == QCameraFocus::FocusPointCustom;
-
     switch (mode) {
     case QCameraFocus::FocusPointAuto:
     case QCameraFocus::FocusPointCustom:
