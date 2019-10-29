@@ -177,7 +177,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     QObject(parent),
     m_camera(0),
     m_metaData(0),
-    m_viewfinder(0),
     m_pendingState(ActiveState),
     m_componentComplete(false)
 {
@@ -190,6 +189,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_flash = new QDeclarativeCameraFlash(m_camera);
     m_focus = new QDeclarativeCameraFocus(m_camera);
     m_imageProcessing = new QDeclarativeCameraImageProcessing(m_camera);
+    m_viewfinder = new QDeclarativeCameraViewfinder(m_camera);
 
     connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
             this, SIGNAL(captureModeChanged()));
@@ -960,9 +960,6 @@ QDeclarativeMediaMetaData *QDeclarativeCamera::metaData()
 
 QDeclarativeCameraViewfinder *QDeclarativeCamera::viewfinder()
 {
-    if (!m_viewfinder)
-        m_viewfinder = new QDeclarativeCameraViewfinder(m_camera);
-
     return m_viewfinder;
 }
 

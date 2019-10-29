@@ -85,6 +85,14 @@ MODULE_WINRT_CAPABILITIES_DEVICE += \
     microphone \
     webcam
 
+qtConfig(gstreamer) {
+    ANDROID_LIB_DEPENDENCIES += \
+        plugins/mediaservice/libgstcamerabin.so \
+        plugins/mediaservice/libgstmediacapture.so \
+        plugins/mediaservice/libgstmediaplayer.so \
+        plugins/mediaservice/libgstaudiodecoder.so
+}
+
 win32: LIBS_PRIVATE += -luuid
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
