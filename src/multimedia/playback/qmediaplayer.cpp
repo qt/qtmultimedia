@@ -1184,7 +1184,7 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
 void QMediaPlayer::setVideoOutput(const QVector<QAbstractVideoSurface *> &surfaces)
 {
-    setVideoOutput(new QVideoSurfaces(surfaces, this));
+    setVideoOutput(!surfaces.empty() ? new QVideoSurfaces(surfaces, this) : nullptr);
 }
 
 /*! \reimp */

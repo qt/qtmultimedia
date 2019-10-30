@@ -40,7 +40,9 @@
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
 #include <private/qmediaserviceprovider_p.h>
+#include <private/qdeclarativevideooutput_p.h>
 #include <qmetadatareadercontrol.h>
+#include <QAbstractVideoSurface>
 
 #include <QtGui/qguiapplication.h>
 #include <QtQml/qqmlengine.h>
@@ -75,6 +77,7 @@ private slots:
     void loops();
     void audioRole();
     void customAudioRole();
+    void videoOutput();
 
 private:
     void enumerator(const QMetaObject *object, const char *name, QMetaEnum *result);
@@ -1199,6 +1202,52 @@ int tst_QDeclarativeAudio::keyToValue(const QMetaEnum &enumeration, const char *
     int result;
     keyToValue(enumeration, key, &result);
     return result;
+}
+
+struct Surface : QAbstractVideoSurface
+{
+    Surface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
+    {
+        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB32;
+    }
+
+    bool present(const QVideoFrame &) override { return true; }
+};
+
+void tst_QDeclarativeAudio::videoOutput()
+{
+    QtTestMediaPlayerControl playerControl;
+    QtTestMediaServiceProvider provider(&playerControl, 0);
+
+    QDeclarativeAudio audio;
+    QSignalSpy spy(&audio, &QDeclarativeAudio::videoOutputChanged);
+
+    audio.classBegin();
+    audio.componentComplete();
+
+    QVERIFY(audio.videoOutput().isNull());
+
+    QVariant surface;
+    surface.setValue(new Surface(this));
+    audio.setVideoOutput(surface);
+    QCOMPARE(audio.videoOutput(), surface);
+    QCOMPARE(spy.count(), 1);
+
+    QQmlEngine engine;
+    QJSValue jsArray = engine.newArray(5);
+    jsArray.setProperty(0, engine.newQObject(new Surface(this)));
+    jsArray.setProperty(1, engine.newQObject(new Surface(this)));
+    QDeclarativeVideoOutput output;
+    jsArray.setProperty(2, engine.newQObject(&output));
+    jsArray.setProperty(3, 123);
+    jsArray.setProperty(4, QLatin1String("ignore this"));
+
+    QVariant surfaces;
+    surfaces.setValue(jsArray);
+    audio.setVideoOutput(surfaces);
+    QCOMPARE(audio.videoOutput(), surfaces);
+    QCOMPARE(spy.count(), 2);
 }
 
 QTEST_MAIN(tst_QDeclarativeAudio)

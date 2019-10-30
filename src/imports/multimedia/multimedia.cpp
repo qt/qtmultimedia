@@ -162,6 +162,7 @@ public:
         qmlRegisterType<QDeclarativeVideoOutput, 13>(uri, 5, 13, "VideoOutput");
 
         // 5.15 types
+        qmlRegisterType<QDeclarativeAudio, 15>(uri, 5, 15, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput, 15>(uri, 5, 15, "VideoOutput");
         qmlRegisterType<QAbstractVideoSurface>();
 
