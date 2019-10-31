@@ -50,6 +50,8 @@
 
 #include "wavefilewriter.h"
 
+#include <limits.h>
+
 struct chunk
 {
     char        id[4];
