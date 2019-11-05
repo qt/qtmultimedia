@@ -43,7 +43,6 @@
 #include "avfcamerautility.h"
 
 #include <QtCore/qglobal.h>
-#include <QtCore/qatomic.h>
 
 #include <AVFoundation/AVFoundation.h>
 
@@ -52,17 +51,10 @@ QT_BEGIN_NAMESPACE
 class AVFMediaRecorderControlIOS;
 class AVFCameraService;
 
-typedef QAtomicInteger<qint64> AVFAtomicInt64;
-
 QT_END_NAMESPACE
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate,
                                                                AVCaptureAudioDataOutputSampleBufferDelegate>
-{
-@public
-    QT_PREPEND_NAMESPACE(AVFAtomicInt64) m_durationInMs;
-}
-
 - (id)initWithDelegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
@@ -76,6 +68,7 @@ QT_END_NAMESPACE
 - (void)stop;
 // This to be called from the recorder control's dtor:
 - (void)abort;
+- (qint64)durationInMs;
 
 @end
 
