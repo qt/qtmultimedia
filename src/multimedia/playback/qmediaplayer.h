@@ -131,6 +131,7 @@ public:
     void setVideoOutput(QVideoWidget *);
     void setVideoOutput(QGraphicsVideoItem *);
     void setVideoOutput(QAbstractVideoSurface *surface);
+    void setVideoOutput(const QVector<QAbstractVideoSurface *> &surfaces);
 
     QMediaContent media() const;
     const QIODevice *mediaStream() const;
