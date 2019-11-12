@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qmediaplayer.h"
+#include "qvideosurfaces_p.h"
 #include "qvideosurfaceoutput_p.h"
 
 #include "qmediaobject_p.h"
@@ -1166,6 +1167,24 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
         unbind(&d->surfaceOutput);
         d->videoOutput = nullptr;
     }
+}
+
+/*!
+    \since 5.15
+    Sets multiple video surfaces as the video output of a media player.
+    This allows the media player to render video frames on different surfaces.
+
+    All video surfaces must support at least one shared \c QVideoFrame::PixelFormat.
+
+    If a video output has already been set on the media player the new surfaces
+    will replace it.
+
+    \sa QAbstractVideoSurface::supportedPixelFormats
+*/
+
+void QMediaPlayer::setVideoOutput(const QVector<QAbstractVideoSurface *> &surfaces)
+{
+    setVideoOutput(new QVideoSurfaces(surfaces, this));
 }
 
 /*! \reimp */

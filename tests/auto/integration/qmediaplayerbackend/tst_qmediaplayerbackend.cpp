@@ -78,6 +78,7 @@ private slots:
     void playlistObject();
     void surfaceTest_data();
     void surfaceTest();
+    void multipleSurfaces();
     void metadata();
     void playerStateAtEOS();
 
@@ -1391,6 +1392,33 @@ void tst_QMediaPlayerBackend::surfaceTest()
     if (surface.error() == QAbstractVideoSurface::UnsupportedFormatError)
         QSKIP("None of the pixel formats is supported by the backend");
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
+}
+
+void tst_QMediaPlayerBackend::multipleSurfaces()
+{
+    if (localVideoFile.isNull())
+        QSKIP("No supported video file");
+
+    QList<QVideoFrame::PixelFormat> formats1;
+    formats1 << QVideoFrame::Format_RGB32
+             << QVideoFrame::Format_ARGB32;
+    QList<QVideoFrame::PixelFormat> formats2;
+    formats2 << QVideoFrame::Format_YUV420P
+             << QVideoFrame::Format_RGB32;
+
+    TestVideoSurface surface1(false);
+    surface1.setSupportedFormats(formats1);
+    TestVideoSurface surface2(false);
+    surface2.setSupportedFormats(formats2);
+
+    QMediaPlayer player;
+    player.setVideoOutput(QVector<QAbstractVideoSurface *>() << &surface1 << &surface2);
+    player.setMedia(localVideoFile);
+    player.play();
+    QTRY_VERIFY(player.position() >= 1000);
+    QVERIFY2(surface1.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface1.m_totalFrames)));
+    QVERIFY2(surface2.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface2.m_totalFrames)));
+    QCOMPARE(surface1.m_totalFrames, surface2.m_totalFrames);
 }
 
 void tst_QMediaPlayerBackend::metadata()

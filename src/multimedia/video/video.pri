@@ -15,7 +15,8 @@ PRIVATE_HEADERS += \
     video/qmemoryvideobuffer_p.h \
     video/qvideooutputorientationhandler_p.h \
     video/qvideosurfaceoutput_p.h \
-    video/qvideoframeconversionhelper_p.h
+    video/qvideoframeconversionhelper_p.h \
+    video/qvideosurfaces_p.h
 
 SOURCES += \
     video/qabstractvideobuffer.cpp \
@@ -28,7 +29,8 @@ SOURCES += \
     video/qvideosurfaceoutput.cpp \
     video/qvideoprobe.cpp \
     video/qabstractvideofilter.cpp \
-    video/qvideoframeconversionhelper.cpp
+    video/qvideoframeconversionhelper.cpp \
+    video/qvideosurfaces.cpp
 
 SSE2_SOURCES += video/qvideoframeconversionhelper_sse2.cpp
 SSSE3_SOURCES += video/qvideoframeconversionhelper_ssse3.cpp
