@@ -114,7 +114,8 @@ QList<QByteArray> QOpenSLESEngine::availableDevices(QAudio::Mode mode) const
 #ifdef ANDROID
         devices << QT_ANDROID_PRESET_MIC
                 << QT_ANDROID_PRESET_CAMCORDER
-                << QT_ANDROID_PRESET_VOICE_RECOGNITION;
+                << QT_ANDROID_PRESET_VOICE_RECOGNITION
+                << QT_ANDROID_PRESET_VOICE_COMMUNICATION;
 #else
         devices << "default";
 #endif

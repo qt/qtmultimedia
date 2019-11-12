@@ -144,7 +144,7 @@ QMediaRecorder::Status AVFMediaRecorderControlIOS::status() const
 
 qint64 AVFMediaRecorderControlIOS::duration() const
 {
-    return m_writer.data()->m_durationInMs.load();
+    return m_writer.data().durationInMs;
 }
 
 bool AVFMediaRecorderControlIOS::isMuted() const

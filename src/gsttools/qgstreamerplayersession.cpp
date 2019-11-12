@@ -265,8 +265,11 @@ void QGstreamerPlayerSession::resetElements()
     resetGstObject(m_nullVideoSink);
     resetGstObject(m_videoOutputBin);
 
+    m_audioSink = nullptr;
     m_volumeElement = nullptr;
     m_videoIdentity = nullptr;
+    m_pendingVideoSink = nullptr;
+    m_videoSink = nullptr;
 }
 
 GstElement *QGstreamerPlayerSession::playbin() const
