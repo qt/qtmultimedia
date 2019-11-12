@@ -57,7 +57,7 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 /*!
     \qmltype VideoOutput
-    \instantiates QDeclarativeVideoOutput
+    //! \instantiates QDeclarativeVideoOutput
     \brief Render video or camera viewfinder.
 
     \ingroup multimedia_qml

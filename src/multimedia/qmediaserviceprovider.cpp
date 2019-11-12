@@ -682,6 +682,7 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 */
 
 /*!
+    \internal
     \fn QMediaServiceProvider::requestService(const QByteArray &type, const QMediaServiceProviderHint &hint)
 
     Requests an instance of a \a type service which best matches the given \a
@@ -695,12 +696,14 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 */
 
 /*!
+    \internal
     \fn QMediaServiceProvider::releaseService(QMediaService *service)
 
     Releases a media \a service requested with requestService().
 */
 
 /*!
+    \internal
     \fn QMediaServiceProvider::supportedFeatures(const QMediaService *service) const
 
     Returns the features supported by a given \a service.
@@ -713,6 +716,7 @@ QMediaServiceProviderHint::Features QMediaServiceProvider::supportedFeatures(con
 }
 
 /*!
+    \internal
     Returns how confident a media service provider is that is can provide a \a
     serviceType service that is able to play media of a specific \a mimeType
     that is encoded using the listed \a codecs while adhering to constraints
@@ -732,6 +736,7 @@ QMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray 
 }
 
 /*!
+    \internal
     \fn QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceType, int flags) const
 
     Returns a list of MIME types supported by the service provider for the
@@ -749,6 +754,7 @@ QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceT
 }
 
 /*!
+  \internal
   \since 5.3
 
   Returns the default device for a \a service type.
@@ -760,6 +766,7 @@ QByteArray QMediaServiceProvider::defaultDevice(const QByteArray &serviceType) c
 }
 
 /*!
+  \internal
   Returns the list of devices related to \a service type.
 */
 QList<QByteArray> QMediaServiceProvider::devices(const QByteArray &service) const
@@ -769,6 +776,7 @@ QList<QByteArray> QMediaServiceProvider::devices(const QByteArray &service) cons
 }
 
 /*!
+    \internal
     Returns the description of \a device related to \a serviceType, suitable for use by
     an application for display.
 */
@@ -780,6 +788,7 @@ QString QMediaServiceProvider::deviceDescription(const QByteArray &serviceType, 
 }
 
 /*!
+    \internal
     \since 5.3
 
     Returns the physical position of a camera \a device on the system hardware.
@@ -791,6 +800,7 @@ QCamera::Position QMediaServiceProvider::cameraPosition(const QByteArray &device
 }
 
 /*!
+    \internal
     \since 5.3
 
     Returns the physical orientation of the camera \a device. The value is the angle by which the
@@ -818,6 +828,7 @@ void QMediaServiceProvider::setDefaultServiceProvider(QMediaServiceProvider *pro
 
 
 /*!
+    \internal
     Returns a default provider of media services.
 */
 QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
