@@ -139,4 +139,9 @@ bool qt_androidRequestPermission(const QString &key)
     return true;
 }
 
+bool qt_androidRequestRecordingPermission()
+{
+    return qt_androidRequestPermission(QLatin1String("android.permission.RECORD_AUDIO"));
+}
+
 QT_END_NAMESPACE

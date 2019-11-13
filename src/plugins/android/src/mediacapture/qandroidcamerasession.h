@@ -112,6 +112,7 @@ public:
         virtual void onFrameAvailable(const QVideoFrame &frame) = 0;
     };
     void setPreviewCallback(PreviewCallback *callback);
+    bool requestRecordingPermission();
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status status);
@@ -196,6 +197,7 @@ private:
     QSet<QAndroidMediaVideoProbeControl *> m_videoProbes;
     QMutex m_videoProbesMutex;
     PreviewCallback *m_previewCallback;
+    bool m_keepActive;
 };
 
 QT_END_NAMESPACE

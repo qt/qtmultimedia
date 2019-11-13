@@ -56,6 +56,7 @@ QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::Ima
 AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
 
 bool qt_androidRequestPermission(const QString &key);
+bool qt_androidRequestRecordingPermission();
 
 QT_END_NAMESPACE
 
