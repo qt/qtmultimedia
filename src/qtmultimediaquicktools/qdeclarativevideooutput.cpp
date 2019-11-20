@@ -57,7 +57,7 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 /*!
     \qmltype VideoOutput
-    \instantiates QDeclarativeVideoOutput
+    //! \instantiates QDeclarativeVideoOutput
     \brief Render video or camera viewfinder.
 
     \ingroup multimedia_qml
@@ -206,6 +206,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
             }
 
             m_sourceType = MediaObjectSource;
+#if QT_CONFIG(opengl)
         } else if (metaObject->indexOfProperty("videoSurface") != -1) {
             // Make sure our backend is a QDeclarativeVideoRendererBackend
             m_backend.reset();
@@ -219,6 +220,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
             m_source.data()->setProperty("videoSurface",
                                          QVariant::fromValue<QAbstractVideoSurface*>(surface));
             m_sourceType = VideoSurfaceSource;
+#endif
         } else {
             m_sourceType = NoSource;
         }
@@ -247,12 +249,13 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
             }
         }
     }
-
+#if QT_CONFIG(opengl)
     if (!backendAvailable) {
         m_backend.reset(new QDeclarativeVideoRendererBackend(this));
         if (m_backend->init(service))
             backendAvailable = true;
     }
+#endif
 
     // QDeclarativeVideoWindowBackend only works when there is a service with a QVideoWindowControl.
     // Without service, the QDeclarativeVideoRendererBackend should always work.

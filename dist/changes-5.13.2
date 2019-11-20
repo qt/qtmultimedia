@@ -1,0 +1,68 @@
+Qt 5.13.2 is a bug-fix release. It maintains both forward and backward
+source compatibility with Qt 5.13.0 through 5.13.1.
+In Qt 5.13.0, binary compatibility was broken due to the usage of the enum
+QVideoFrame::PixelFormat, the break has been reverted,
+thus introducing a binary compatibility break with earlier Qt 5.13.0 and 5.13.1.
+
+For more details, refer to the online documentation included in this
+distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.13 series is binary compatible with the 5.12.x series.
+Applications compiled for 5.12 will continue to run with 5.13.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                            Qt 5.13.2 Changes                             *
+****************************************************************************
+
+ - In Qt 5.13.0 binary compatibility was broken
+   for usage of the enum QVideoFrame::PixelFormat by introducing
+   QVideoFrame::Format_ABGR32.
+   To minimize the impact of this, the break has been reverted,
+   thus introducing a binary compatibility break with earlier Qt 5.13.x
+   versions, but restoring compatibility with all earlier versions of Qt 5.
+ - Fixed crash when VideoOutput.sourceRect is requested but playback is stopped.
+ - [QTBUG-51588] Fixed leaking of QVideoFilterRunnable when window is closed.
+ - [QTBUG-45064] Introduced QGraphicsVideoItem::type().
+ - Fixed camera.viewfinder to respect camera's media status
+   if the viewfinder is requested after the camera is loaded.
+
+****************************************************************************
+*                        Platform Specific Changes                         *
+****************************************************************************
+
+ - GStreamer:
+   * CameraBin plugin now fetches supported viewfinder settings at status
+     higher or equal to LoadedStatus if it has not been fetched.
+   * Fixed duplicated entries in supported Camera's resolution/framerate if the
+     underlying element uses caps' features.
+   * Introduced audio/x-raw codec in QAudioRecorder.
+   * [QTBUG-65399] Fixed media player to show pre-rolled frame on new media
+     (means to seek to the beginning) only when pause() is called.
+   * [QTBUG-76135] Show image processing warnings only when the camera is loaded.
+   * [QTBUG-78079] Fixed media player to recreate playbin features after custom pipeline.
+   * [QTBUG-73084] Fixed mapping of VPU texture using real physical address of data
+     which prevents leaks in the kernel for iMX boards.
+
+ - AVFoundation:
+   * [QTBUG-77270] Fixed black frames being shown if current OpenGL context has been changed.
+   * [QTBUG-49806] Fixed media player to send StalledMedia status when no enough data to play
+     and resume playback afterwards.
+
+ - DirectShow:
+   * [QTBUG-77829] Fixed crash when there is no surface on flush().
+   * [QTBUG-77849] Introduced startTime and endTime to QVideoFrame.
+   * [QTBUG-77163] Introduced support to use QMediaPlayer in secondary thread.
+   * [QTBUG-46368] Implemented QMediaVideoProbeControl->flush().
+   * [QTBUG-46368] Fixed media player to send media status before errors.
+   * [QTBUG-68778] Fixed media player to postpone seeking if the playback is stopped.
+   * Fixed crash when qrc media resource is set twice to media player.

@@ -47,6 +47,7 @@
 #include "avfmediacontainercontrol.h"
 
 #include <QtCore/qmetaobject.h>
+#include <QtCore/qatomic.h>
 
 QT_USE_NAMESPACE
 
@@ -79,6 +80,8 @@ enum WriterState
     WriterStateAborted
 };
 
+using AVFAtomicInt64 = QAtomicInteger<qint64>;
+
 } // unnamed namespace
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) (PrivateAPI)
@@ -93,32 +96,35 @@ enum WriterState
 @private
     AVFCameraService *m_service;
 
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_cameraWriterInput;
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureDeviceInput> m_audioInput;
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVCaptureAudioDataOutput> m_audioOutput;
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriterInput> m_audioWriterInput;
+    AVFScopedPointer<AVAssetWriterInput> m_cameraWriterInput;
+    AVFScopedPointer<AVCaptureDeviceInput> m_audioInput;
+    AVFScopedPointer<AVCaptureAudioDataOutput> m_audioOutput;
+    AVFScopedPointer<AVAssetWriterInput> m_audioWriterInput;
+
     AVCaptureDevice *m_audioCaptureDevice;
 
     // Queue to write sample buffers:
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_writerQueue;
+    AVFScopedPointer<dispatch_queue_t> m_writerQueue;
     // High priority serial queue for video output:
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_videoQueue;
+    AVFScopedPointer<dispatch_queue_t> m_videoQueue;
     // Serial queue for audio output:
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<dispatch_queue_t> m_audioQueue;
+    AVFScopedPointer<dispatch_queue_t> m_audioQueue;
 
-    QT_PREPEND_NAMESPACE(AVFScopedPointer)<AVAssetWriter> m_assetWriter;
+    AVFScopedPointer<AVAssetWriter> m_assetWriter;
 
-    QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *m_delegate;
+    AVFMediaRecorderControlIOS *m_delegate;
 
     bool m_setStartTime;
 
-    QT_PREPEND_NAMESPACE(QAtomicInt) m_state;
-@private
+    QAtomicInt m_state;
+
     CMTime m_startTime;
     CMTime m_lastTimeStamp;
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;
+
+    AVFAtomicInt64 m_durationInMs;
 }
 
 - (id)initWithDelegate:(AVFMediaRecorderControlIOS *)delegate
@@ -413,7 +419,7 @@ enum WriterState
 
 
     m_audioOutput.reset([[AVCaptureAudioDataOutput alloc] init]);
-    if (m_audioOutput && [captureSession canAddOutput:m_audioOutput]) {
+    if (m_audioOutput.data() && [captureSession canAddOutput:m_audioOutput]) {
         [captureSession addOutput:m_audioOutput];
     } else {
         qDebugCamera() << Q_FUNC_INFO << "failed to add audio output";
@@ -431,7 +437,7 @@ enum WriterState
 {
     Q_ASSERT(m_service && m_service->videoOutput()
              && m_service->videoOutput()->videoDataOutput());
-    Q_ASSERT(m_assetWriter);
+    Q_ASSERT(m_assetWriter.data());
 
     m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo
                                                           outputSettings:m_videoSettings
@@ -451,7 +457,7 @@ enum WriterState
 
     m_cameraWriterInput.data().expectsMediaDataInRealTime = YES;
 
-    if (m_audioOutput) {
+    if (m_audioOutput.data()) {
         CMFormatDescriptionRef sourceFormat = m_audioCaptureDevice ? m_audioCaptureDevice.activeFormat.formatDescription : 0;
         m_audioWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio
                                                              outputSettings:m_audioSettings
@@ -479,7 +485,7 @@ enum WriterState
 
     [m_service->videoOutput()->videoDataOutput() setSampleBufferDelegate:self queue:m_videoQueue];
 
-    if (m_audioOutput) {
+    if (m_audioOutput.data()) {
         Q_ASSERT(m_audioQueue);
         [m_audioOutput setSampleBufferDelegate:self queue:m_audioQueue];
     }
@@ -498,6 +504,11 @@ enum WriterState
         m_durationInMs.storeRelease(CMTimeGetSeconds(duration) * 1000);
         m_lastTimeStamp = newTimeStamp;
     }
+}
+
+- (qint64)durationInMs
+{
+    return m_durationInMs.loadAcquire();
 }
 
 @end

@@ -206,8 +206,10 @@ void QAndroidCaptureSession::start()
         delete m_mediaRecorder;
     }
 
-
-    if (!AndroidMediaRecorder::requestRecordingPermission()) {
+    const bool granted = m_cameraSession
+                       ? m_cameraSession->requestRecordingPermission()
+                       : qt_androidRequestRecordingPermission();
+    if (!granted) {
         setStatus(QMediaRecorder::UnavailableStatus);
         Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Permission denied."));
         return;

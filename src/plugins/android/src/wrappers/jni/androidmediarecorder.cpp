@@ -383,11 +383,6 @@ void AndroidMediaRecorder::setSurfaceHolder(AndroidSurfaceHolder *holder)
     }
 }
 
-bool AndroidMediaRecorder::requestRecordingPermission()
-{
-    return qt_androidRequestPermission(QLatin1String("android.permission.RECORD_AUDIO"));
-}
-
 bool AndroidMediaRecorder::initJNI(JNIEnv *env)
 {
     jclass clazz = QJNIEnvironmentPrivate::findClass(QtMediaRecorderListenerClassName,

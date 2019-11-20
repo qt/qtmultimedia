@@ -58,11 +58,6 @@ QT_BEGIN_NAMESPACE
 
 static const char QtCameraListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtCameraListener";
 
-static QString cameraPermissionKey()
-{
-    return QStringLiteral("android.permission.CAMERA");
-}
-
 typedef QHash<int, AndroidCamera *> CameraMap;
 Q_GLOBAL_STATIC(CameraMap, cameras)
 Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
@@ -324,6 +319,9 @@ AndroidCamera::~AndroidCamera()
 
 AndroidCamera *AndroidCamera::open(int cameraId)
 {
+    if (!qt_androidRequestCameraPermission())
+        return nullptr;
+
     AndroidCameraPrivate *d = new AndroidCameraPrivate();
     QThread *worker = new QThread;
     worker->start();
@@ -764,7 +762,7 @@ QJNIObjectPrivate AndroidCamera::getCameraObject()
 
 int AndroidCamera::getNumberOfCameras()
 {
-    if (!requestCameraPermission())
+    if (!qt_androidRequestCameraPermission())
         return 0;
 
     return QJNIObjectPrivate::callStaticMethod<jint>("android/hardware/Camera",
@@ -799,11 +797,6 @@ void AndroidCamera::getCameraInfo(int id, AndroidCameraInfo *info)
     default:
         break;
     }
-}
-
-bool AndroidCamera::requestCameraPermission()
-{
-    return qt_androidRequestPermission(cameraPermissionKey());
 }
 
 void AndroidCamera::startPreview()

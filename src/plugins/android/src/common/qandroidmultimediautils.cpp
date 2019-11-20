@@ -113,7 +113,7 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::Pix
     }
 }
 
-bool qt_androidRequestPermission(const QString &key)
+static bool androidRequestPermission(const QString &key)
 {
     using namespace QtAndroidPrivate;
 
@@ -137,6 +137,16 @@ bool qt_androidRequestPermission(const QString &key)
     }
 
     return true;
+}
+
+bool qt_androidRequestCameraPermission()
+{
+    return androidRequestPermission(QLatin1String("android.permission.CAMERA"));
+}
+
+bool qt_androidRequestRecordingPermission()
+{
+    return androidRequestPermission(QLatin1String("android.permission.RECORD_AUDIO"));
 }
 
 QT_END_NAMESPACE
