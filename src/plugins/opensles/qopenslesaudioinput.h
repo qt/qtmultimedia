@@ -50,6 +50,7 @@
 #define QT_ANDROID_PRESET_MIC "mic"
 #define QT_ANDROID_PRESET_CAMCORDER "camcorder"
 #define QT_ANDROID_PRESET_VOICE_RECOGNITION "voicerecognition"
+#define QT_ANDROID_PRESET_VOICE_COMMUNICATION "voicecommunication"
 
 #endif
 

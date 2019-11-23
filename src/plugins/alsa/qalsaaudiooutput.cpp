@@ -53,9 +53,11 @@
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include "qalsaaudiooutput.h"
 #include "qalsaaudiodeviceinfo.h"
+#include <QLoggingCategory>
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(lcAlsaOutput, "qt.multimedia.alsa.output")
 //#define DEBUG_AUDIO 1
 
 QAlsaAudioOutput::QAlsaAudioOutput(const QByteArray &device)
@@ -403,28 +405,22 @@ bool QAlsaAudioOutput::open()
             fatal = true;
             errMessage = QString::fromLatin1("QAudioOutput: buffer/period min and max: err = %1").arg(err);
         } else {
-            if (maxBufferTime < buffer_time || buffer_time < minBufferTime || maxPeriodTime < period_time || minPeriodTime > period_time) {
-#ifdef DEBUG_AUDIO
-                qDebug()<<"defaults out of range";
-                qDebug()<<"pmin="<<minPeriodTime<<", pmax="<<maxPeriodTime<<", bmin="<<minBufferTime<<", bmax="<<maxBufferTime;
-#endif
-                period_time = minPeriodTime;
-                if (period_time*4 <= maxBufferTime) {
-                    // Use 4 periods if possible
-                    buffer_time = period_time*4;
-                    chunks = 4;
-                } else if (period_time*2 <= maxBufferTime) {
-                    // Use 2 periods if possible
-                    buffer_time = period_time*2;
-                    chunks = 2;
+            static unsigned user_buffer_time = qEnvironmentVariableIntValue("QT_ALSA_OUTPUT_BUFFER_TIME");
+            static unsigned user_period_time = qEnvironmentVariableIntValue("QT_ALSA_OUTPUT_PERIOD_TIME");
+            const bool outOfRange = maxBufferTime < buffer_time || buffer_time < minBufferTime || maxPeriodTime < period_time || minPeriodTime > period_time;
+            if (outOfRange || user_period_time || user_buffer_time) {
+                period_time = user_period_time ? user_period_time : minPeriodTime;
+                if (!user_buffer_time) {
+                    chunks = maxBufferTime / period_time;
+                    buffer_time = period_time * chunks;
                 } else {
-                    qWarning()<<"QAudioOutput: alsa only supports single period!";
-                    fatal = true;
+                    buffer_time = user_buffer_time;
+                    chunks = buffer_time / period_time;
                 }
-#ifdef DEBUG_AUDIO
-                qDebug()<<"used: buffer_time="<<buffer_time<<", period_time="<<period_time;
-#endif
             }
+            qCDebug(lcAlsaOutput) << "buffer time: [" << minBufferTime << "-" << maxBufferTime << "] =" << buffer_time;
+            qCDebug(lcAlsaOutput) << "period time: [" << minPeriodTime << "-" << maxPeriodTime << "] =" << period_time;
+            qCDebug(lcAlsaOutput) << "chunks =" << chunks;
         }
     }
     if ( !fatal ) {

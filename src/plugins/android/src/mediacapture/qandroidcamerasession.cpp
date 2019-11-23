@@ -77,6 +77,7 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_captureCanceled(false)
     , m_currentImageCaptureId(-1)
     , m_previewCallback(0)
+    , m_keepActive(false)
 {
     m_mediaStorageLocation.addStorageLocation(
                 QMediaStorageLocation::Pictures,
@@ -182,7 +183,7 @@ bool QAndroidCameraSession::open()
     m_status = QCamera::LoadingStatus;
     emit statusChanged(m_status);
 
-    m_camera = AndroidCamera::requestCameraPermission() ? AndroidCamera::open(m_selectedCamera) : nullptr;
+    m_camera = AndroidCamera::open(m_selectedCamera);
 
     if (m_camera) {
         connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
@@ -912,7 +913,7 @@ void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state
 {
     switch (state) {
     case Qt::ApplicationInactive:
-        if (m_state != QCamera::UnloadedState) {
+        if (!m_keepActive && m_state != QCamera::UnloadedState) {
             m_savedState = m_state;
             close();
             m_state = QCamera::UnloadedState;
@@ -928,6 +929,14 @@ void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state
     default:
         break;
     }
+}
+
+bool QAndroidCameraSession::requestRecordingPermission()
+{
+    m_keepActive = true;
+    const bool result = qt_androidRequestRecordingPermission();
+    m_keepActive = false;
+    return result;
 }
 
 QT_END_NAMESPACE
