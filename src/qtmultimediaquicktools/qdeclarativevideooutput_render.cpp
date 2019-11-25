@@ -303,7 +303,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
                     if (!runnable)
                         continue;
 
-                    QVideoFilterRunnable::RunFlags flags = 0;
+                    QVideoFilterRunnable::RunFlags flags;
                     if (i == m_filters.count() - 1)
                         flags |= QVideoFilterRunnable::LastInChain;
 
@@ -362,7 +362,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
                                        qNormalizedOrientation(q->orientation()));
     if (m_frameChanged) {
-        QSGVideoNode::FrameFlags flags = 0;
+        QSGVideoNode::FrameFlags flags;
         if (isFrameModified)
             flags |= QSGVideoNode::FrameFiltered;
         videoNode->setCurrentFrame(m_frame, flags);

@@ -56,7 +56,7 @@ class QMediaServiceProviderHintPrivate : public QSharedData
 {
 public:
     QMediaServiceProviderHintPrivate(QMediaServiceProviderHint::Type type)
-        :type(type), cameraPosition(QCamera::UnspecifiedPosition), features(nullptr)
+        : type(type)
     {
     }
 
@@ -77,7 +77,7 @@ public:
 
     QMediaServiceProviderHint::Type type;
     QByteArray device;
-    QCamera::Position cameraPosition;
+    QCamera::Position cameraPosition = QCamera::UnspecifiedPosition;
     QString mimeType;
     QStringList codecs;
     QMediaServiceProviderHint::Features features;
@@ -712,7 +712,7 @@ QMediaServiceProviderHint::Features QMediaServiceProvider::supportedFeatures(con
 {
     Q_UNUSED(service);
 
-    return QMediaServiceProviderHint::Features(nullptr);
+    return {};
 }
 
 /*!

@@ -75,10 +75,10 @@ public:
 
     QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const
     {
+        QMediaServiceProviderHint::Features result;
         if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))
-            return QMediaServiceProviderHint::StreamPlayback;
-        else
-            return 0;
+            result |= QMediaServiceProviderHint::StreamPlayback;
+        return result;
     }
 };
 

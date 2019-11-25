@@ -556,7 +556,7 @@ static QMediaService *playerService(QMediaPlayer::Flags flags)
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
     if (flags) {
-        QMediaServiceProviderHint::Features features = 0;
+        QMediaServiceProviderHint::Features features;
         if (flags & QMediaPlayer::LowLatency)
             features |= QMediaServiceProviderHint::LowLatencyPlayback;
 
