@@ -123,7 +123,11 @@ void QnxAudioOutput::stop()
 void QnxAudioOutput::reset()
 {
     if (m_pcmHandle)
+#if SND_PCM_VERSION < SND_PROTOCOL_VERSION('P',3,0,2)
         snd_pcm_playback_drain(m_pcmHandle);
+#else
+        snd_pcm_channel_drain(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK);
+#endif
     stop();
 }
 
@@ -360,7 +364,11 @@ void QnxAudioOutput::close()
     destroyPcmNotifiers();
 
     if (m_pcmHandle) {
+#if SND_PCM_VERSION < SND_PROTOCOL_VERSION('P',3,0,2)
         snd_pcm_plugin_flush(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK);
+#else
+        snd_pcm_plugin_drop(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK);
+#endif
         snd_pcm_close(m_pcmHandle);
         m_pcmHandle = 0;
     }
