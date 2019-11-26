@@ -299,20 +299,21 @@ public:
 
     DWORD __stdcall GetLength()
     {
-        return DWORD(d->media.resources().length());
+        return 1;
     }
 
     HRESULT __stdcall GetURL(DWORD index, BSTR *url)
     {
-        const QString resourceUrl = d->media.resources().value(int(index)).url().toString();
+        Q_UNUSED(index);
+        const QString resourceUrl = d->media.request().url().toString();
         *url = SysAllocString((const OLECHAR *)resourceUrl.utf16());
         return S_OK;
     }
 
     HRESULT __stdcall GetType(DWORD index, BSTR *type)
     {
-        const QString resourceType = d->media.resources().value(int(index)).mimeType();
-        *type = SysAllocString((const OLECHAR *)resourceType.utf16());
+        Q_UNUSED(index);
+        *type = SysAllocString(L"");
         return S_OK;
     }
 
