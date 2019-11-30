@@ -222,40 +222,21 @@ class QVideoWidgetPrivate
 {
     Q_DECLARE_PUBLIC(QVideoWidget)
 public:
-    QVideoWidgetPrivate()
-        : q_ptr(0)
-        , mediaObject(0)
-        , service(0)
-        , widgetBackend(0)
-        , windowBackend(0)
-        , rendererBackend(0)
-        , currentControl(0)
-        , currentBackend(0)
-        , brightness(0)
-        , contrast(0)
-        , hue(0)
-        , saturation(0)
-        , aspectRatioMode(Qt::KeepAspectRatio)
-        , nonFullScreenFlags(0)
-        , wasFullScreen(false)
-    {
-    }
-
-    QVideoWidget *q_ptr;
+    QVideoWidget *q_ptr = nullptr;
     QPointer<QMediaObject> mediaObject;
-    QMediaService *service;
-    QVideoWidgetControlBackend *widgetBackend;
-    QWindowVideoWidgetBackend *windowBackend;
-    QRendererVideoWidgetBackend *rendererBackend;
-    QVideoWidgetControlInterface *currentControl;
-    QVideoWidgetBackend *currentBackend;
-    int brightness;
-    int contrast;
-    int hue;
-    int saturation;
-    Qt::AspectRatioMode aspectRatioMode;
+    QMediaService *service = nullptr;
+    QVideoWidgetControlBackend *widgetBackend = nullptr;
+    QWindowVideoWidgetBackend *windowBackend = nullptr;
+    QRendererVideoWidgetBackend *rendererBackend = nullptr;
+    QVideoWidgetControlInterface *currentControl = nullptr;
+    QVideoWidgetBackend *currentBackend = nullptr;
+    int brightness = 0;
+    int contrast = 0;
+    int hue = 0;
+    int saturation = 0;
+    Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     Qt::WindowFlags nonFullScreenFlags;
-    bool wasFullScreen;
+    bool wasFullScreen = false;
 
     bool createWidgetBackend();
     bool createWindowBackend();

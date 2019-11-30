@@ -611,7 +611,7 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     The \a parent is passed to QWidget.
 */
 QVideoWidget::QVideoWidget(QWidget *parent)
-    : QWidget(parent, 0)
+    : QWidget(parent, {})
     , d_ptr(new QVideoWidgetPrivate)
 {
     d_ptr->q_ptr = this;
@@ -621,7 +621,7 @@ QVideoWidget::QVideoWidget(QWidget *parent)
   \internal
 */
 QVideoWidget::QVideoWidget(QVideoWidgetPrivate &dd, QWidget *parent)
-    : QWidget(parent, 0)
+    : QWidget(parent, {})
     , d_ptr(&dd)
 {
     d_ptr->q_ptr = this;

@@ -569,15 +569,17 @@ bool Engine::selectFormat()
             sampleRatesList += m_audioInputDevice.supportedSampleRates();
 
         sampleRatesList += m_audioOutputDevice.supportedSampleRates();
-        sampleRatesList = QSet<int>(sampleRatesList.begin(), sampleRatesList.end()).values(); // remove duplicates
         std::sort(sampleRatesList.begin(), sampleRatesList.end());
+        const auto uniqueRatesEnd = std::unique(sampleRatesList.begin(), sampleRatesList.end());
+        sampleRatesList.erase(uniqueRatesEnd, sampleRatesList.end());
         ENGINE_DEBUG << "Engine::initialize frequenciesList" << sampleRatesList;
 
         QList<int> channelsList;
         channelsList += m_audioInputDevice.supportedChannelCounts();
         channelsList += m_audioOutputDevice.supportedChannelCounts();
-        channelsList = QSet<int>(channelsList.begin(), channelsList.end()).values();
         std::sort(channelsList.begin(), channelsList.end());
+        const auto uniqueChannelsEnd = std::unique(channelsList.begin(), channelsList.end());
+        channelsList.erase(uniqueChannelsEnd, channelsList.end());
         ENGINE_DEBUG << "Engine::initialize channelsList" << channelsList;
 
         QAudioFormat format;
