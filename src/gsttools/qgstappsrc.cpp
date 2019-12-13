@@ -69,7 +69,7 @@ bool QGstAppSrc::setup(GstElement* appsrc)
     gst_object_ref(G_OBJECT(m_appSrc));
     gst_app_src_set_callbacks(m_appSrc, (GstAppSrcCallbacks*)&m_callbacks, this, (GDestroyNotify)&QGstAppSrc::destroy_notify);
 
-    g_object_get(G_OBJECT(m_appSrc), "max-bytes", &m_maxBytes, NULL);
+    g_object_get(G_OBJECT(m_appSrc), "max-bytes", &m_maxBytes, nullptr);
 
     if (m_sequential)
         m_streamType = GST_APP_STREAM_TYPE_STREAM;

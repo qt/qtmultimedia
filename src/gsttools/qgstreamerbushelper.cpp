@@ -69,7 +69,7 @@ public:
             connect(m_intervalTimer, SIGNAL(timeout()), SLOT(interval()));
             m_intervalTimer->start();
         } else {
-            m_tag = gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, NULL);
+            m_tag = gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, nullptr);
         }
     }
 

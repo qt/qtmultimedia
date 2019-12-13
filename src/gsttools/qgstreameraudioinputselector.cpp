@@ -124,23 +124,23 @@ void QGstreamerAudioInputSelector::updateAlsaDevices()
     }
     n = hints;
 
-    while (*n != NULL) {
+    while (*n != nullptr) {
         char *name = snd_device_name_get_hint(*n, "NAME");
         char *descr = snd_device_name_get_hint(*n, "DESC");
         char *io = snd_device_name_get_hint(*n, "IOID");
 
-        if ((name != NULL) && (descr != NULL)) {
-            if ( io == NULL || qstrcmp(io,"Input") == 0 ) {
+        if ((name != nullptr) && (descr != nullptr)) {
+            if (io == nullptr || qstrcmp(io, "Input") == 0) {
                 m_names.append(QLatin1String("alsa:")+QString::fromUtf8(name));
                 m_descriptions.append(QString::fromUtf8(descr));
             }
         }
 
-        if (name != NULL)
+        if (name != nullptr)
             free(name);
-        if (descr != NULL)
+        if (descr != nullptr)
             free(descr);
-        if (io != NULL)
+        if (io != nullptr)
             free(io);
         n++;
     }

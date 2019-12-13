@@ -99,7 +99,7 @@ QStringList QGstCodecsInfo::codecOptions(const QString &codec) const
     if (elementName.isEmpty())
         return options;
 
-    GstElement *element = gst_element_factory_make(elementName, NULL);
+    GstElement *element = gst_element_factory_make(elementName, nullptr);
     if (element) {
         guint numProperties;
         GParamSpec **properties = g_object_class_list_properties(G_OBJECT_GET_CLASS(element),
@@ -174,7 +174,7 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
                         }
                     }
 
-                    GstCaps *newCaps = gst_caps_new_full(newStructure, NULL);
+                    GstCaps *newCaps = gst_caps_new_full(newStructure, nullptr);
 
                     gchar *capsString = gst_caps_to_string(newCaps);
                     QString codec = QLatin1String(capsString);
