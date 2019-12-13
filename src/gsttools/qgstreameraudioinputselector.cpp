@@ -136,12 +136,9 @@ void QGstreamerAudioInputSelector::updateAlsaDevices()
             }
         }
 
-        if (name != nullptr)
-            free(name);
-        if (descr != nullptr)
-            free(descr);
-        if (io != nullptr)
-            free(io);
+        free(name);
+        free(descr);
+        free(io);
         n++;
     }
     snd_device_name_free_hint(hints);
