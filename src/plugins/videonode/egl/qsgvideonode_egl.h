@@ -51,6 +51,9 @@
 #ifdef Bool
 #  undef Bool
 #endif
+#ifdef None
+#  undef None
+#endif
 
 QT_BEGIN_NAMESPACE
 
