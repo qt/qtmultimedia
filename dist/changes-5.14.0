@@ -1,0 +1,54 @@
+Qt 5.14 introduces many new features and improvements as well as bugfixes
+over the 5.13.x series. For more details, refer to the online documentation
+included in this distribution. The documentation is also available online:
+
+https://doc.qt.io/qt-5/index.html
+
+The Qt version 5.14 series is binary compatible with the 5.13.x series.
+Applications compiled for 5.13 will continue to run with 5.14.
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+https://bugreports.qt.io/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+****************************************************************************
+*                            Qt 5.14.0 Changes                             *
+****************************************************************************
+
+ - [QTBUG-73878] Removed the Mir client code as it is no longer used.
+ - Added QVideoFrame::Format_YUV422P.
+ - Deprecated canonicalUrl and canonicalRequest in QMediaContent.
+ - [QTBUG-74422] Moved dtors of QCameraExposure, QCameraFocus,
+   QCameraImageProcessing from private to protected.
+ - [QTBUG-75781] QAudioDeviceInfo::realm() is moved from private to public.
+ - [QTBUG-77630] QMediaServicePrivate is now inherited from QObjectPrivate.
+ - [QTBUG-75943] Qt Audio Engine QML types are now deprecated.
+   QMediaServiceProviderPlugin, QMediaServiceProviderHint, QMediaServiceProvider,
+   QMediaServiceProviderPlugin, QMediaServiceSupportedFormatsInterface,
+   QMediaServiceSupportedDevicesInterface,QMediaServiceDefaultDeviceInterface,
+   QMediaServiceCameraInfoInterface, QMediaServiceFeaturesInterface,
+   QRadioTuner, QRadioData
+   classes are now deprecated.
+
+****************************************************************************
+*                        Platform Specific Changes                         *
+****************************************************************************
+
+ - GStreamer:
+   * [QTBUG-65398] Stopping a camera will now be postponed until the pipeline is ready.
+   * [QTBUG-66162] Introduced support of OpenGL plugin.
+   * The media player will no longer send an EOS signal for sequential devices when read() returns 0.
+   * [QTBUG-78855] Fixed wrong texture format being used on iMX.
+   * [QTBUG-72125] Added GStreamer support for Android.
+
+ - AVFoundation:
+   * [QTBUG-67985] Fixed the front camera to use 270 instead of 90 orientation.
+
+ - Android:
+   * [QTBUG-70368] Added SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION support.
+   * [QTBUG-69333] Fixed crash when fetching video frame data from the GUI thread.
+   * [QTBUG-79909] Fixed crash when audio recording permission is asked on active camera.
