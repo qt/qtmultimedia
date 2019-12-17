@@ -170,8 +170,8 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surfac
 {
     const auto instances = rendererLoader()->instances(QGstVideoRendererPluginKey);
     for (QObject *instance : instances) {
-        QGstVideoRendererInterface* plugin = qobject_cast<QGstVideoRendererInterface*>(instance);
-        if (QGstVideoRenderer *renderer = plugin ? plugin->createRenderer() : 0)
+        auto plugin = qobject_cast<QGstVideoRendererInterface*>(instance);
+        if (QGstVideoRenderer *renderer = plugin ? plugin->createRenderer() : nullptr)
             m_renderers.append(renderer);
     }
 
@@ -304,7 +304,7 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 #if QT_CONFIG(gstreamer_gl)
 static GstGLContext *gstGLDisplayContext(QAbstractVideoSurface *surface)
 {
-    QOpenGLContext *glContext = qobject_cast<QOpenGLContext*>(surface->property("GLContext").value<QObject*>());
+    auto glContext = qobject_cast<QOpenGLContext*>(surface->property("GLContext").value<QObject*>());
     // Context is not ready yet.
     if (!glContext)
         return nullptr;

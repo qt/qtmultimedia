@@ -69,7 +69,7 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     if (m_surface) {
         const auto instances = bufferPoolLoader()->instances(QGstBufferPoolPluginKey);
         for (QObject *instance : instances) {
-            QGstBufferPoolInterface* plugin = qobject_cast<QGstBufferPoolInterface*>(instance);
+            auto plugin = qobject_cast<QGstBufferPoolInterface*>(instance);
 
             if (plugin) {
                 m_pools.append(plugin);

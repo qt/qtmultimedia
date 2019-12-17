@@ -666,9 +666,7 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
         }
     }
 
-    QGstreamerVideoRendererInterface* renderer = qobject_cast<QGstreamerVideoRendererInterface*>(videoOutput);
-
-    m_renderer = renderer;
+    m_renderer = qobject_cast<QGstreamerVideoRendererInterface*>(videoOutput);
     emit rendererChanged();
 
     // No sense to continue if custom pipeline requested.
