@@ -54,7 +54,7 @@
 
 #include <functional>
 #include <mfapi.h>
-#include <Mferror.h>
+#include <mferror.h>
 #include <mfidl.h>
 #include <wrl.h>
 #include <windows.devices.enumeration.h>

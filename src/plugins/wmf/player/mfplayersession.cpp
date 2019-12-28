@@ -56,7 +56,7 @@
 #include "mfplayersession.h"
 #include "mfplayerservice.h"
 #include "mfmetadatacontrol.h"
-#include <Mferror.h>
+#include <mferror.h>
 #include <nserror.h>
 #include "sourceresolver.h"
 #include "samplegrabber.h"

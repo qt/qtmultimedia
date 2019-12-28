@@ -40,7 +40,7 @@
 #include "mftvideo.h"
 #include "mfvideoprobecontrol.h"
 #include <private/qmemoryvideobuffer_p.h>
-#include <Mferror.h>
+#include <mferror.h>
 #include <strmif.h>
 #include <uuids.h>
 #include <InitGuid.h>
