@@ -3,6 +3,7 @@
     "depends": [
         "gui"
     ],
+    "condition": "module.gui",
     "testDir": "../../config.tests",
 
     "commandline": {
