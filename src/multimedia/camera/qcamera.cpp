@@ -838,6 +838,10 @@ void QCamera::start()
 /*!
     Stops the camera.
     The camera state is changed from QCamera::ActiveState to QCamera::LoadedState.
+
+    In this state, the camera still consumes power.
+
+    \sa unload(), QCamera::UnloadedState
 */
 void QCamera::stop()
 {
@@ -1078,23 +1082,22 @@ void QCamera::unlock()
 
 /*!
     \enum QCamera::State
-    \value UnloadedState
-           The initial camera state, with camera not loaded,
-           the camera capabilities except of supported capture modes
-           are unknown.
 
+    This enum holds the current state of the camera.
+
+    \value UnloadedState
+           The initial camera state, with camera not loaded.
+           The camera capabilities, except supported capture modes,
+           are unknown.
            While the supported settings are unknown in this state,
            it's allowed to set the camera capture settings like codec,
            resolution, or frame rate.
-
     \value LoadedState
            The camera is loaded and ready to be configured.
-
-           In the Idle state it's allowed to query camera capabilities,
+           In this state it's allowed to query camera capabilities,
            set capture resolution, codecs, etc.
-
            The viewfinder is not active in the loaded state.
-
+           The camera consumes power in the loaded state.
     \value ActiveState
            In the active state as soon as camera is started
            the viewfinder displays video frames and the

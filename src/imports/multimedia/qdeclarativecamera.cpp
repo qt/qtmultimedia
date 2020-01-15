@@ -489,34 +489,26 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
 /*!
     \qmlproperty enumeration QtMultimedia::Camera::cameraState
 
-    This property holds the camera object's current state, which can be one of the following:
+    This property holds the camera object's current state. The default camera
+    state is \c ActiveState.
 
-    \table
-    \header \li Value \li Description
-    \row \li UnloadedState
-         \li The initial camera state, with the camera not loaded.
-           The camera capabilities (with the exception of supported capture modes)
-           are unknown. This state saves the most power, but takes the longest
-           time to be ready for capture.
-
-           While the supported settings are unknown in this state,
-           you can still set the camera capture settings like codec,
-           resolution, or frame rate.
-
-    \row \li LoadedState
-         \li The camera is loaded and ready to be configured.
-
-           In the Idle state you can query camera capabilities,
-           set capture resolution, codecs, and so on.
-
-           The viewfinder is not active in the loaded state.
-
-    \row \li ActiveState
-          \li In the active state the viewfinder frames are available
-             and the camera is ready for capture.
-    \endtable
-
-    The default camera state is ActiveState.
+    \value  Camera.UnloadedState
+            The initial camera state, with the camera not loaded.
+            The camera capabilities (with the exception of supported capture modes)
+            are unknown. This state saves the most power, but takes the longest
+            time to be ready for capture.
+            While the supported settings are unknown in this state,
+            you can still set the camera capture settings like codec,
+            resolution, or frame rate.
+    \value  Camera.LoadedState
+            The camera is loaded and ready to be configured.
+            In this state you can query camera capabilities,
+            set capture resolution, codecs, and so on.
+            The viewfinder is not active in the loaded state.
+            The camera consumes power in this state.
+    \value  Camera.ActiveState
+            In the active state, the viewfinder frames are available
+            and the camera is ready for capture.
 */
 QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
 {
@@ -617,6 +609,8 @@ void QDeclarativeCamera::start()
 
     Stops the camera, but leaves the camera
     stack loaded.
+
+    In this state, the camera still consumes power.
 */
 void QDeclarativeCamera::stop()
 {
