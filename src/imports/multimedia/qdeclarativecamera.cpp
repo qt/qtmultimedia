@@ -272,24 +272,24 @@ void QDeclarativeCamera::setDeviceId(const QString &name)
 
     This property holds the physical position of the camera on the hardware system.
 
-    The position can be one of the following:
+    On a mobile device, this property can be used to easily choose between
+    front-facing and back-facing cameras. If this property is set to
+    \c Camera.UnspecifiedPosition, the system's default camera is used.
 
-    \list
-    \li \c Camera.UnspecifiedPosition - the camera position is unspecified or unknown.
-    \li \c Camera.BackFace - the camera is on the back face of the system hardware. For example on a
-        mobile device, it means it is on the opposite side to that of the screem.
-    \li \c Camera.FrontFace - the camera is on the front face of the system hardware. For example on
-        a mobile device, it means it is on the same side as that of the screen. Viewfinder frames of
-        front-facing cameras are mirrored horizontally, so the users can see themselves as looking
-        into a mirror. Captured images or videos are not mirrored.
-    \endlist
+    If possible, \l cameraState, \l captureMode, \l digitalZoom and other camera
+    parameters are preserved when changing the camera device.
 
-    On a mobile device it can be used to easily choose between front-facing and back-facing cameras.
-    If this property is set to \c Camera.UnspecifiedPosition, the system's default camera will be
-    used.
-
-    If possible, \l cameraState, \l captureMode, \l digitalZoom and other camera parameters are
-    preserved when changing the camera device.
+    \value  Camera.UnspecifiedPosition
+            The camera position is unspecified or unknown.
+    \value  Camera.BackFace
+            The camera is on the back face of the system hardware. For example,
+            on a mobile device, it is on side opposite from the screen.
+    \value  Camera.FrontFace
+            The camera is on the front face of the system hardware. For example,
+            on a mobile device, it means it is on the same side as the screen.
+            Viewfinder frames of front-facing cameras are mirrored horizontally,
+            so the users can see themselves as looking into a mirror. Captured
+            images or videos are not mirrored.
 
     \sa deviceId
     \since 5.4
@@ -432,21 +432,17 @@ QString QDeclarativeCamera::errorString() const
 
     This property holds the availability state of the camera.
 
-    The availability states can be one of the following:
-
-    \table
-    \header \li Value \li Description
-    \row \li Available
-        \li The camera is available to use
-    \row \li Busy
-        \li The camera is busy at the moment as it is being used by another process.
-    \row \li Unavailable
-        \li The camera is not available to use (there may be no camera
-           hardware)
-    \row \li ResourceMissing
-        \li The camera cannot be used because of missing resources.
-         It may be possible to try again at a later time.
-    \endtable
+    \value  Camera.Available
+            The camera is available for use.
+    \value  Camera.Busy
+            The camera is busy at the moment as it is being used by another
+            process.
+    \value  Camera.Unavailable
+            The camera is not available for use (there may be no camera
+            hardware).
+    \value  Camera.ResourceMissing
+            The camera cannot be used because of missing resources.
+            It may be possible to try again at a later time.
  */
 QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
 {
@@ -457,23 +453,15 @@ QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
 /*!
     \qmlproperty enumeration QtMultimedia::Camera::captureMode
 
-    This property holds the camera capture mode, which can be one of the
-    following:
+    This property holds the camera capture mode. The default capture mode is
+    \c CaptureStillImage.
 
-    \table
-    \header \li Value \li Description
-    \row \li CaptureViewfinder
-         \li Camera is only configured to display viewfinder.
-
-    \row \li CaptureStillImage
-         \li Prepares the Camera for capturing still images.
-
-    \row \li CaptureVideo
-         \li Prepares the Camera for capturing video.
-
-    \endtable
-
-    The default capture mode is \c CaptureStillImage.
+    \value  Camera.CaptureViewfinder
+            Camera is only configured to display viewfinder.
+    \value  Camera.CaptureStillImage
+            Prepares the Camera for capturing still images.
+    \value  Camera.CaptureVideo
+            Prepares the Camera for capturing video.
 */
 QDeclarativeCamera::CaptureMode QDeclarativeCamera::captureMode() const
 {
@@ -489,34 +477,26 @@ void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
 /*!
     \qmlproperty enumeration QtMultimedia::Camera::cameraState
 
-    This property holds the camera object's current state, which can be one of the following:
+    This property holds the camera object's current state. The default camera
+    state is \c ActiveState.
 
-    \table
-    \header \li Value \li Description
-    \row \li UnloadedState
-         \li The initial camera state, with the camera not loaded.
-           The camera capabilities (with the exception of supported capture modes)
-           are unknown. This state saves the most power, but takes the longest
-           time to be ready for capture.
-
-           While the supported settings are unknown in this state,
-           you can still set the camera capture settings like codec,
-           resolution, or frame rate.
-
-    \row \li LoadedState
-         \li The camera is loaded and ready to be configured.
-
-           In the Idle state you can query camera capabilities,
-           set capture resolution, codecs, and so on.
-
-           The viewfinder is not active in the loaded state.
-
-    \row \li ActiveState
-          \li In the active state the viewfinder frames are available
-             and the camera is ready for capture.
-    \endtable
-
-    The default camera state is ActiveState.
+    \value  Camera.UnloadedState
+            The initial camera state, with the camera not loaded.
+            The camera capabilities (with the exception of supported capture modes)
+            are unknown. This state saves the most power, but takes the longest
+            time to be ready for capture.
+            While the supported settings are unknown in this state,
+            you can still set the camera capture settings like codec,
+            resolution, or frame rate.
+    \value  Camera.LoadedState
+            The camera is loaded and ready to be configured.
+            In this state you can query camera capabilities,
+            set capture resolution, codecs, and so on.
+            The viewfinder is not active in the loaded state.
+            The camera consumes power in this state.
+    \value  Camera.ActiveState
+            In the active state, the viewfinder frames are available
+            and the camera is ready for capture.
 */
 QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
 {
@@ -526,54 +506,43 @@ QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
 /*!
     \qmlproperty enumeration QtMultimedia::Camera::cameraStatus
 
-    This property holds the camera object's current status, which can be one of the following:
+    This property holds the camera object's current status.
 
-    \table
-    \header \li Value \li Description
-    \row \li ActiveStatus
-         \li The camera has been started and can produce data,
-             viewfinder displays video frames.
-
-             Depending on backend, changing camera settings such as
-             capture mode, codecs, or resolution in ActiveState may lead
-             to changing the status to LoadedStatus and StartingStatus while
-             the settings are applied, and back to ActiveStatus when the camera is ready.
-
-    \row \li StartingStatus
-         \li The camera is starting as a result of state transition to Camera.ActiveState.
-             The camera service is not ready to capture yet.
-
-    \row \li StoppingStatus
-         \li The camera is stopping as a result of state transition from Camera.ActiveState
-             to Camera.LoadedState or Camera.UnloadedState.
-
-    \row \li StandbyStatus
-         \li The camera is in the power saving standby mode.
-             The camera may enter standby mode after some time of inactivity
-             in the Camera.LoadedState state.
-
-    \row \li LoadedStatus
-         \li The camera is loaded and ready to be configured.
-             This status indicates the camera device is opened and
-             it's possible to query for supported image and video capture settings
-             such as resolution, frame rate, and codecs.
-
-    \row \li LoadingStatus
-         \li The camera device loading as a result of state transition from
-             Camera.UnloadedState to Camera.LoadedState or Camera.ActiveState.
-
-    \row \li UnloadingStatus
-         \li The camera device is unloading as a result of state transition from
-             Camera.LoadedState or Camera.ActiveState to Camera.UnloadedState.
-
-    \row \li UnloadedStatus
-         \li The initial camera status, with camera not loaded.
-             The camera capabilities including supported capture settings may be unknown.
-
-    \row \li UnavailableStatus
-         \li The camera or camera backend is not available.
-
-    \endtable
+    \value  Camera.ActiveStatus
+            The camera has been started and can produce data,
+            viewfinder displays video frames.
+            Depending on backend, changing camera settings such as
+            capture mode, codecs, or resolution in \c {Camera.ActiveState} may
+            lead to changing the status to \c LoadedStatus and \c StartingStatus
+            while the settings are applied, and back to \c ActiveStatus when
+            the camera is ready.
+    \value  Camera.StartingStatus
+            The camera is transitioning to \c {Camera.ActiveState}. The camera
+            service is not ready to capture yet.
+    \value  Camera.StoppingStatus
+            The camera is transitioning from \c {Camera.ActiveState} to
+            \c {Camera.LoadedState} or \c {Camera.UnloadedState}.
+    \value  Camera.StandbyStatus
+            The camera is in the power saving standby mode.
+            The camera may enter standby mode after some time of inactivity
+            in the \c {Camera.LoadedState} state.
+    \value  Camera.LoadedStatus
+            The camera is loaded and ready to be configured.
+            This status indicates that the camera is opened and it's
+            possible to query for supported image and video capture
+            settings, such as resolution, frame rate, and codecs.
+    \value  Camera.LoadingStatus
+            The camera is transitioning from \c {Camera.UnloadedState} to
+            \c {Camera.LoadedState} or \c {Camera.ActiveState}.
+    \value  Camera.UnloadingStatus
+            The camera is transitioning from \c {Camera.LoadedState} or
+            \c {Camera.ActiveState} to \c {Camera.UnloadedState}.
+    \value  Camera.UnloadedStatus
+            The initial camera status, with camera not loaded.
+            The camera capabilities including supported capture
+            settings may be unknown.
+    \value  Camera.UnavailableStatus
+            The camera or camera backend is not available.
 */
 QDeclarativeCamera::Status QDeclarativeCamera::cameraStatus() const
 {
@@ -617,6 +586,8 @@ void QDeclarativeCamera::start()
 
     Stops the camera, but leaves the camera
     stack loaded.
+
+    In this state, the camera still consumes power.
 */
 void QDeclarativeCamera::stop()
 {
@@ -629,56 +600,29 @@ void QDeclarativeCamera::stop()
 
     This property holds the status of all the requested camera locks.
 
-    The status can be one of the following values:
-
-    \table
-    \header \li Value \li Description
-    \row \li Unlocked
-        \li The application is not interested in camera settings value.
-        The camera may keep this parameter without changes, which is common with camera focus,
-        or adjust exposure and white balance constantly to keep the viewfinder image nice.
-
-    \row \li Searching
-        \li The application has requested the camera focus, exposure, or white balance lock with
-        searchAndLock(). This state indicates the camera is focusing or calculating exposure and white balance.
-
-    \row \li Locked
-        \li The camera focus, exposure, or white balance is locked.
-        The camera is ready to capture, and the application may check the exposure parameters.
-
-        The locked state usually means the requested parameter stays the same,
-        except in cases where the parameter is requested to be updated constantly.
-        For example in continuous focusing mode, the focus is considered locked as long
-        as the object is in focus, even while the actual focusing distance may be constantly changing.
-    \endtable
+    \value  Camera.Unlocked
+            The application is not interested in camera settings value.
+            The camera may keep this parameter without changes, which is common
+            with camera focus, or adjust exposure and white balance constantly
+            to keep the viewfinder image nice.
+    \value  Camera.Searching
+            The application has requested the camera focus, exposure, or white
+            balance lock with searchAndLock(). This state indicates the camera
+            is focusing or calculating exposure and white balance.
+    \value  Camera.Locked
+            The camera focus, exposure, or white balance is locked.
+            The camera is ready to capture, and the application may check the
+            exposure parameters.
+            The locked state usually means the requested parameter stays the
+            same, except in cases where the parameter is requested to be updated
+            constantly. For example, in continuous focusing mode, the focus is
+            considered locked as long as the object is in focus, even while the
+            actual focusing distance may be constantly changing.
 */
 /*!
     \property QDeclarativeCamera::lockStatus
 
     This property holds the status of all the requested camera locks.
-
-    The status can be one of the following:
-
-    \table
-    \header \li Value \li Description
-    \row \li Unlocked
-        \li The application is not interested in camera settings value.
-        The camera may keep this parameter without changes, this is common with camera focus,
-        or adjust exposure and white balance constantly to keep the viewfinder image nice.
-
-    \row \li Searching
-        \li The application has requested the camera focus, exposure or white balance lock with
-        searchAndLock(). This state indicates the camera is focusing or calculating exposure and white balance.
-
-    \row \li Locked
-        \li The camera focus, exposure or white balance is locked.
-        The camera is ready to capture, and the application may check the exposure parameters.
-
-        The locked state usually means the requested parameter stays the same,
-        except in the cases when the parameter is requested to be updated constantly.
-        For example in continuous focusing mode, the focus is considered locked as long
-        and the object is in focus, even while the actual focusing distance may be constantly changing.
-    \endtable
 */
 QDeclarativeCamera::LockStatus QDeclarativeCamera::lockStatus() const
 {
@@ -797,24 +741,25 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 
     This property holds the last error code.
 
+    \value  Camera.NoError
+            No errors have occurred.
+    \value  Camera.CameraError
+            An error has occurred.
+    \value  Camera.InvalidRequestError
+            System resources do not support the requested functionality.
+    \value  Camera.ServiceMissingError
+            No camera service available.
+    \value  Camera.NotSupportedFeatureError
+            The feature is not supported.
+
     \sa error, errorString
 */
 
 /*!
     \qmlsignal QtMultimedia::Camera::error(errorCode, errorString)
 
-    This signal is emitted when an error occurs. The enumeration value
-    \a errorCode is one of the values defined below, and a descriptive string
-    value is available in \a errorString.
-
-    \table
-    \header \li Value \li Description
-    \row \li NoError \li No errors have occurred.
-    \row \li CameraError \li An error has occurred.
-    \row \li InvalidRequestError \li System resource doesn't support requested functionality.
-    \row \li ServiceMissingError \li No camera service available.
-    \row \li NotSupportedFeatureError \li The feature is not supported.
-    \endtable
+    This signal is emitted when an error specified by \a errorCode occurs.
+    A descriptive string value is available in \a errorString.
 
     The corresponding handler is \c onError.
 

@@ -166,7 +166,7 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     UnionJNIEnvToVoid uenv;
     uenv.venv = NULL;
 
-    if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_4) != JNI_OK)
+    if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
         return JNI_ERR;
 
     JNIEnv *jniEnv = uenv.nativeEnvironment;
@@ -180,5 +180,5 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     AndroidSurfaceTexture::initJNI(jniEnv);
 
-    return JNI_VERSION_1_4;
+    return JNI_VERSION_1_6;
 }

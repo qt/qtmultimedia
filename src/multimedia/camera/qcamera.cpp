@@ -838,6 +838,10 @@ void QCamera::start()
 /*!
     Stops the camera.
     The camera state is changed from QCamera::ActiveState to QCamera::LoadedState.
+
+    In this state, the camera still consumes power.
+
+    \sa unload(), QCamera::UnloadedState
 */
 void QCamera::stop()
 {
@@ -846,15 +850,17 @@ void QCamera::stop()
 }
 
 /*!
-    Open the camera device.
-    The camera state is changed to QCamera::LoadedStatus.
+    Opens the camera device.
+    The camera state is changed to QCamera::LoadedState.
 
-    It's not necessary to explcitly load the camera,
-    unless unless the application have to read the supported camera
-    settings and change the default depending on the camera capabilities.
+    It's not necessary to explicitly load the camera, unless the application
+    needs to read the supported camera settings and change the default values
+    according to the camera capabilities.
 
-    In all the other cases it's possible to start the camera directly
-    from unloaded state.
+    In all the other cases, it's possible to start the camera directly
+    from the unloaded state.
+
+    /sa QCamera::UnloadedState
 */
 void QCamera::load()
 {
@@ -863,8 +869,8 @@ void QCamera::load()
 }
 
 /*!
-    Close the camera device and deallocate the related resources.
-    The camera state is changed to QCamera::UnloadedStatus.
+    Closes the camera device and deallocates the related resources.
+    The camera state is changed to QCamera::UnloadedState.
 */
 void QCamera::unload()
 {
@@ -911,7 +917,7 @@ QCamera::Status QCamera::status() const
 
 
 /*!
-    Returns the lock types, camera supports.
+    Returns the lock types that the camera supports.
 */
 QCamera::LockTypes QCamera::supportedLocks() const
 {
@@ -1078,23 +1084,22 @@ void QCamera::unlock()
 
 /*!
     \enum QCamera::State
-    \value UnloadedState
-           The initial camera state, with camera not loaded,
-           the camera capabilities except of supported capture modes
-           are unknown.
 
+    This enum holds the current state of the camera.
+
+    \value UnloadedState
+           The initial camera state, with camera not loaded.
+           The camera capabilities, except supported capture modes,
+           are unknown.
            While the supported settings are unknown in this state,
            it's allowed to set the camera capture settings like codec,
            resolution, or frame rate.
-
     \value LoadedState
            The camera is loaded and ready to be configured.
-
-           In the Idle state it's allowed to query camera capabilities,
+           In this state it's allowed to query camera capabilities,
            set capture resolution, codecs, etc.
-
            The viewfinder is not active in the loaded state.
-
+           The camera consumes power in the loaded state.
     \value ActiveState
            In the active state as soon as camera is started
            the viewfinder displays video frames and the
@@ -1109,46 +1114,40 @@ void QCamera::unlock()
 
 /*!
     \enum QCamera::Status
+
+    This enum holds the current status of the camera.
+
     \value ActiveStatus
            The camera has been started and can produce data.
            The viewfinder displays video frames in active state.
-
            Depending on backend, changing some camera settings like
            capture mode, codecs or resolution in ActiveState may lead
            to changing the camera status to LoadedStatus and StartingStatus while
            the settings are applied and back to ActiveStatus when the camera is ready.
-
     \value StartingStatus
            The camera is starting in result of state transition to QCamera::ActiveState.
            The camera service is not ready to capture yet.
-
     \value StoppingStatus
            The camera is stopping in result of state transition from QCamera::ActiveState
            to QCamera::LoadedState or QCamera::UnloadedState.
-
     \value StandbyStatus
            The camera is in the power saving standby mode.
            The camera may come to the standby mode after some time of inactivity
            in the QCamera::LoadedState state.
-
     \value LoadedStatus
            The camera is loaded and ready to be configured.
            This status indicates the camera device is opened and
            it's possible to query for supported image and video capture settings,
            like resolution, framerate and codecs.
-
     \value LoadingStatus
            The camera device loading in result of state transition from
            QCamera::UnloadedState to QCamera::LoadedState or QCamera::ActiveState.
-
     \value UnloadingStatus
            The camera device is unloading in result of state transition from
            QCamera::LoadedState or QCamera::ActiveState to QCamera::UnloadedState.
-
     \value UnloadedStatus
            The initial camera status, with camera not loaded.
            The camera capabilities including supported capture settings may be unknown.
-
     \value UnavailableStatus
            The camera or camera backend is not available.
 */
@@ -1162,6 +1161,9 @@ void QCamera::unlock()
 
 /*!
     \enum QCamera::CaptureMode
+
+    This enum holds the capture mode of the camera.
+
     \value CaptureViewfinder Camera is only configured to display viewfinder.
     \value CaptureStillImage Camera is configured for still frames capture.
     \value CaptureVideo  Camera is configured for video capture.
@@ -1169,6 +1171,8 @@ void QCamera::unlock()
 
 /*!
     \enum QCamera::LockType
+
+    This enum holds the camera lock type.
 
     \value NoLock
     \value LockExposure
@@ -1210,27 +1214,31 @@ void QCamera::unlock()
 
 /*!
   \enum QCamera::LockStatus
+
+    This enum holds the overall status for all the requested camera locks.
+
     \value Unlocked
         The application is not interested in camera settings value.
         The camera may keep this parameter without changes, this is common with camera focus,
         or adjust exposure and white balance constantly to keep the viewfinder image nice.
-
     \value Searching
         The application has requested the camera focus, exposure or white balance lock with
-        QCamera::searchAndLock(). This state indicates the camera is focusing or calculating exposure and white balance.
-
+        QCamera::searchAndLock(). This state indicates the camera is focusing or
+        calculating exposure and white balance.
     \value Locked
         The camera focus, exposure or white balance is locked.
-        The camera is ready to capture, application may check the exposure parameters.
-
-        The locked state usually means the requested parameter stays the same,
-        except of the cases when the parameter is requested to be constantly updated.
-        For example in continuous focusing mode, the focus is considered locked as long
-        and the object is in focus, even while the actual focusing distance may be constantly changing.
+        The camera is ready to capture, application may check the exposure
+        stays the same, parameters. The \c Locked status usually means the
+        requested parameter except in the cases when the parameter is requested
+        to be constantly updated. For example, in continuous focusing mode,
+        the focus is considered locked as long as the object is in focus, even
+        while the actual focusing distance may be constantly changing.
 */
 
 /*!
     \enum QCamera::LockChangeReason
+
+    This enum holds the reason why the camera lock status changed.
 
     \value UserRequest
         The lock status changed in result of user request, usually to unlock camera settings.
@@ -1251,6 +1259,8 @@ void QCamera::unlock()
 
 /*!
     \enum QCamera::Error
+
+    This enum holds the last error code.
 
     \value  NoError      No errors have occurred.
     \value  CameraError  An error has occurred.
