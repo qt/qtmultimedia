@@ -131,6 +131,8 @@ public:
     QRendererVideoWidgetBackend(QMediaService *service, QVideoRendererControl *control, QWidget *widget);
     ~QRendererVideoWidgetBackend();
 
+    QAbstractVideoSurface *videoSurface() const;
+
     void releaseControl();
     void clearSurface();
 

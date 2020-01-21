@@ -138,6 +138,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
 {
     initResource();
     setFlag(ItemHasContents, true);
+    m_backend.reset(new QDeclarativeVideoRendererBackend(this));
 }
 
 QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
@@ -145,6 +146,22 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
     m_backend.reset();
     m_source.clear();
     _q_updateMediaObject();
+}
+
+/*!
+    \qmlproperty object QtMultimedia::VideoOutput::videoSurface
+    \since 5.15
+
+    This property holds the underlaying video surface that can be used
+    to render the video frames to this VideoOutput element.
+    It is similar to setting a QObject with \c videoSurface property as a source,
+    where this video surface will be set.
+    \sa setSource
+*/
+
+QAbstractVideoSurface *QDeclarativeVideoOutput::videoSurface() const
+{
+    return m_backend->videoSurface();
 }
 
 /*!
@@ -251,7 +268,8 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
     }
 #if QT_CONFIG(opengl)
     if (!backendAvailable) {
-        m_backend.reset(new QDeclarativeVideoRendererBackend(this));
+        if (!m_backend)
+            m_backend.reset(new QDeclarativeVideoRendererBackend(this));
         if (m_backend->init(service))
             backendAvailable = true;
     }
@@ -292,9 +310,6 @@ void QDeclarativeVideoOutput::_q_updateMediaObject()
 
     if (m_mediaObject.data() == mediaObject)
         return;
-
-    if (m_sourceType != VideoSurfaceSource)
-        m_backend.reset();
 
     m_mediaObject.clear();
     m_service.clear();

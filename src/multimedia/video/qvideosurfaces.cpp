@@ -45,6 +45,15 @@ QVideoSurfaces::QVideoSurfaces(const QVector<QAbstractVideoSurface *> &s, QObjec
     : QAbstractVideoSurface(parent)
     , m_surfaces(s)
 {
+    for (auto a : s) {
+        connect(a, &QAbstractVideoSurface::supportedFormatsChanged, this, [this, a] {
+            auto context = property("GLContext").value<QObject *>();
+            if (!context)
+                setProperty("GLContext", a->property("GLContext"));
+
+            emit supportedFormatsChanged();
+        });
+    }
 }
 
 QVideoSurfaces::~QVideoSurfaces()
@@ -71,13 +80,15 @@ bool QVideoSurfaces::start(const QVideoSurfaceFormat &format)
     for (auto &s : m_surfaces)
         result &= s->start(format);
 
-    return result;
+    return result && QAbstractVideoSurface::start(format);
 }
 
 void QVideoSurfaces::stop()
 {
     for (auto &s : m_surfaces)
         s->stop();
+
+    QAbstractVideoSurface::stop();
 }
 
 bool QVideoSurfaces::present(const QVideoFrame &frame)

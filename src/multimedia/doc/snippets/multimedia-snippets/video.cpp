@@ -117,6 +117,7 @@ public:
     void VideoWidget();
     void VideoWindowControl();
     void VideoWidgetControl();
+    void VideoSurface();
 
 private:
     // Common naming
@@ -161,6 +162,28 @@ void VideoExample::VideoWidget()
     //! [Setting surface in player]
     player->setVideoOutput(myVideoSurface);
     //! [Setting surface in player]
+}
+
+void VideoExample::VideoSurface()
+{
+    //! [Widget Surface]
+    QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
+    QVideoSurfaceFormat format(img.size(), QVideoFrame::Format_ARGB32);
+    videoWidget = new QVideoWidget;
+    videoWidget->videoSurface()->start(format);
+    videoWidget->videoSurface()->present(img);
+    videoWidget->show();
+    //! [Widget Surface]
+
+    //! [GraphicsVideoItem Surface]
+    QGraphicsVideoItem *item = new QGraphicsVideoItem;
+    graphicsView->scene()->addItem(item);
+    graphicsView->show();
+    QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
+    QVideoSurfaceFormat format(img.size(), QVideoFrame::Format_ARGB32);
+    item->videoSurface()->start(format);
+    item->videoSurface()->present(img);
+    //! [GraphicsVideoItem Surface]
 }
 
 void VideoExample::VideoWidgetControl()

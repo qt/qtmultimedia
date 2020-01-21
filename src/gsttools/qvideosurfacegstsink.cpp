@@ -69,7 +69,7 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(
     if (m_surface) {
         const auto instances = bufferPoolLoader()->instances(QGstBufferPoolPluginKey);
         for (QObject *instance : instances) {
-            QGstBufferPoolInterface* plugin = qobject_cast<QGstBufferPoolInterface*>(instance);
+            auto plugin = qobject_cast<QGstBufferPoolInterface*>(instance);
 
             if (plugin) {
                 m_pools.append(plugin);
@@ -356,10 +356,10 @@ GType QVideoSurfaceGstSink::get_type()
         {
             sizeof(QVideoSurfaceGstSinkClass),                    // class_size
             base_init,                                         // base_init
-            NULL,                                              // base_finalize
+            nullptr,                                           // base_finalize
             class_init,                                        // class_init
-            NULL,                                              // class_finalize
-            NULL,                                              // class_data
+            nullptr,                                           // class_finalize
+            nullptr,                                           // class_data
             sizeof(QVideoSurfaceGstSink),                         // instance_size
             0,                                                 // n_preallocs
             instance_init,                                     // instance_init
@@ -460,11 +460,11 @@ void QVideoSurfaceGstSink::handleShowPrerollChange(GObject *o, GParamSpec *p, gp
     QVideoSurfaceGstSink *sink = reinterpret_cast<QVideoSurfaceGstSink *>(d);
 
     gboolean showPrerollFrame = true; // "show-preroll-frame" property is true by default
-    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, NULL);
+    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, nullptr);
 
     if (!showPrerollFrame) {
         GstState state = GST_STATE_VOID_PENDING;
-        gst_element_get_state(GST_ELEMENT(sink), &state, NULL, GST_CLOCK_TIME_NONE);
+        gst_element_get_state(GST_ELEMENT(sink), &state, nullptr, GST_CLOCK_TIME_NONE);
         // show-preroll-frame being set to 'false' while in GST_STATE_PAUSED means
         // the QMediaPlayer was stopped from the paused state.
         // We need to flush the current frame.
@@ -478,7 +478,7 @@ GstStateChangeReturn QVideoSurfaceGstSink::change_state(GstElement *element, Gst
     QVideoSurfaceGstSink *sink = reinterpret_cast<QVideoSurfaceGstSink *>(element);
 
     gboolean showPrerollFrame = true; // "show-preroll-frame" property is true by default
-    g_object_get(G_OBJECT(element), "show-preroll-frame", &showPrerollFrame, NULL);
+    g_object_get(G_OBJECT(element), "show-preroll-frame", &showPrerollFrame, nullptr);
 
     // If show-preroll-frame is 'false' when transitioning from GST_STATE_PLAYING to
     // GST_STATE_PAUSED, it means the QMediaPlayer was stopped.
@@ -576,7 +576,7 @@ GstFlowReturn QVideoSurfaceGstSink::buffer_alloc(
     if (!buffer)
         return GST_FLOW_ERROR;
 
-    *buffer = NULL;
+    *buffer = nullptr;
 
     if (!sink->delegate->pool())
         return GST_FLOW_OK;
@@ -694,7 +694,7 @@ GstFlowReturn QVideoSurfaceGstSink::preroll(GstBaseSink *base, GstBuffer *buffer
 {
     VO_SINK(base);
     gboolean showPrerollFrame = true;
-    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, NULL);
+    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, nullptr);
 
     if (showPrerollFrame)
         return sink->delegate->render(buffer);

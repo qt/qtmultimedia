@@ -177,7 +177,11 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 #endif
 
     //Check for needed formats to render as OpenGL Texture
-    m_enableOpenGL = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+    auto handleGlEnabled = [this] {
+        m_enableOpenGL = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+    };
+    handleGlEnabled();
+    connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged, this, handleGlEnabled);
 
     //If we already have a layer, but changed surfaces start rendering again
     if (m_playerLayer && !m_displayLink->isActive()) {

@@ -32,6 +32,7 @@
 
 #include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlcomponent.h>
+#include <QQuickView>
 
 #include "private/qdeclarativevideooutput_p.h"
 
@@ -109,6 +110,7 @@ private slots:
     void flushMode();
     void orientation();
     void surfaceSource();
+    void paintSurface();
     void sourceRect();
 
     void contentRect();
@@ -347,6 +349,45 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
 
     delete videoOutput;
     delete videoOutput2;
+}
+
+static const uchar rgb32ImageData[] =
+{//  B     G     R     A
+    0x00, 0x01, 0x02, 0xff, 0x03, 0x04, 0x05, 0xff,
+    0x06, 0x07, 0x08, 0xff, 0x09, 0x0a, 0x0b, 0xff
+};
+
+void tst_QDeclarativeVideoOutput::paintSurface()
+{
+    QQuickView window;
+    window.setSource(QUrl("qrc:/main.qml"));
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    auto videoOutput = qobject_cast<QDeclarativeVideoOutput *>(window.rootObject());
+    QVERIFY(videoOutput);
+
+    auto surface = videoOutput->property("videoSurface").value<QAbstractVideoSurface *>();
+    QVERIFY(surface);
+    QVERIFY(!surface->isActive());
+    videoOutput->setSize(QSize(2, 2));
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+    QVERIFY(surface->isFormatSupported(format));
+    QVERIFY(surface->start(format));
+    QVERIFY(surface->isActive());
+
+    QImage img(rgb32ImageData, 2, 2, 8, QImage::Format_RGB32);
+    QVERIFY(surface->present(img));
+
+    if (QGuiApplication::platformName() == QLatin1String("offscreen")
+        || QGuiApplication::platformName() == QLatin1String("minimal"))
+        return;
+
+    QImage capture = window.grabWindow();
+    QCOMPARE(capture.pixelColor(0, 0), QColor(rgb32ImageData[2], rgb32ImageData[1], rgb32ImageData[0], rgb32ImageData[3]));
+    QCOMPARE(capture.pixelColor(1, 0), QColor(rgb32ImageData[6], rgb32ImageData[5], rgb32ImageData[4], rgb32ImageData[7]));
+    QCOMPARE(capture.pixelColor(0, 1), QColor(rgb32ImageData[10], rgb32ImageData[9], rgb32ImageData[8], rgb32ImageData[11]));
+    QCOMPARE(capture.pixelColor(1, 1), QColor(rgb32ImageData[14], rgb32ImageData[13], rgb32ImageData[12], rgb32ImageData[15]));
 }
 
 void tst_QDeclarativeVideoOutput::sourceRect()

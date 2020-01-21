@@ -1473,29 +1473,28 @@ void QPainterVideoSurface::stop()
 bool QPainterVideoSurface::present(const QVideoFrame &frame)
 {
     if (!m_ready) {
-        if (!isActive())
+        if (!isActive()) {
             setError(StoppedError);
+            return false;
+        }
     } else if (frame.isValid()
             && (frame.pixelFormat() != m_pixelFormat || frame.size() != m_frameSize)) {
         setError(IncorrectFormatError);
 
         stop();
+        return false;
     } else {
         QAbstractVideoSurface::Error error = m_painter->setCurrentFrame(frame);
-
         if (error != QAbstractVideoSurface::NoError) {
             setError(error);
-
             stop();
-        } else {
-            m_ready = false;
-
-            emit frameChanged();
-
-            return true;
+            return false;
         }
+
+        m_ready = false;
+        emit frameChanged();
     }
-    return false;
+    return true;
 }
 
 /*!

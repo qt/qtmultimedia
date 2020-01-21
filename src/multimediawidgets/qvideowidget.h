@@ -51,6 +51,7 @@ QT_BEGIN_NAMESPACE
 class QMediaObject;
 
 class QVideoWidgetPrivate;
+class QAbstractVideoSurface;
 class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaBindableInterface
 {
     Q_OBJECT
@@ -62,12 +63,14 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaBin
     Q_PROPERTY(int contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
     Q_PROPERTY(int hue READ hue WRITE setHue NOTIFY hueChanged)
     Q_PROPERTY(int saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
+    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface)
 
 public:
     explicit QVideoWidget(QWidget *parent = nullptr);
     ~QVideoWidget();
 
     QMediaObject *mediaObject() const override;
+    QAbstractVideoSurface *videoSurface() const;
 
 #ifdef Q_QDOC
     bool isFullScreen() const;

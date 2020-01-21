@@ -79,7 +79,7 @@ public:
 
     /*!
       Build an QAbstractVideoBuffer instance from GstBuffer.
-      Returns NULL if GstBuffer is not compatible with this buffer pool.
+      Returns nullptr if GstBuffer is not compatible with this buffer pool.
 
       This method is called from gstreamer video sink thread.
      */
@@ -105,7 +105,7 @@ public:
 
     /*!
       Build an QAbstractVideoBuffer instance from compatible GstBuffer.
-      Returns NULL if GstBuffer is not compatible with this buffer pool.
+      Returns nullptr if GstBuffer is not compatible with this buffer pool.
 
       This method is called from gstreamer video sink thread.
      */

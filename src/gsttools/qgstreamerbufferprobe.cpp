@@ -70,11 +70,11 @@ void QGstreamerBufferProbe::addProbeToPad(GstPad *pad, bool downstream)
                         : GST_PAD_PROBE_TYPE_EVENT_UPSTREAM,
                     capsProbe,
                     this,
-                    NULL);
+                    nullptr);
     }
     if (m_flags & ProbeBuffers) {
         m_bufferProbeId = gst_pad_add_probe(
-                    pad, GST_PAD_PROBE_TYPE_BUFFER, bufferProbe, this, NULL);
+                    pad, GST_PAD_PROBE_TYPE_BUFFER, bufferProbe, this, nullptr);
     }
 #else
     Q_UNUSED(downstream);

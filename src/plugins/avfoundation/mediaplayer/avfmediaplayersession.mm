@@ -825,8 +825,6 @@ void AVFMediaPlayerSession::processEOS()
 #endif
     Q_EMIT positionChanged(position());
     m_mediaStatus = QMediaPlayer::EndOfMedia;
-    Q_EMIT mediaStatusChanged(m_mediaStatus);
-
     m_state = QMediaPlayer::StoppedState;
 
     // At this point, frames should not be rendered anymore.
@@ -834,6 +832,7 @@ void AVFMediaPlayerSession::processEOS()
     if (m_videoOutput)
         m_videoOutput->setLayer(nullptr);
 
+    Q_EMIT mediaStatusChanged(m_mediaStatus);
     Q_EMIT stateChanged(m_state);
 }
 

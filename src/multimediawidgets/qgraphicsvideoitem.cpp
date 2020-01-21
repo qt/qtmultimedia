@@ -232,6 +232,22 @@ QMediaObject *QGraphicsVideoItem::mediaObject() const
 }
 
 /*!
+    \since 5.15
+    \property QGraphicsVideoItem::videoSurface
+    \brief Returns the underlying video surface that can render video frames
+    to the current item.
+    This property is never \c nullptr.
+    Example of how to render video frames to QGraphicsVideoItem:
+    \snippet multimedia-snippets/video.cpp GraphicsVideoItem Surface
+    \sa QMediaPlayer::setVideoOutput
+*/
+
+QAbstractVideoSurface *QGraphicsVideoItem::videoSurface() const
+{
+    return d_func()->surface;
+}
+
+/*!
   \internal
 */
 bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)

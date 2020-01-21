@@ -170,8 +170,8 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surfac
 {
     const auto instances = rendererLoader()->instances(QGstVideoRendererPluginKey);
     for (QObject *instance : instances) {
-        QGstVideoRendererInterface* plugin = qobject_cast<QGstVideoRendererInterface*>(instance);
-        if (QGstVideoRenderer *renderer = plugin ? plugin->createRenderer() : 0)
+        auto plugin = qobject_cast<QGstVideoRendererInterface*>(instance);
+        if (QGstVideoRenderer *renderer = plugin ? plugin->createRenderer() : nullptr)
             m_renderers.append(renderer);
     }
 
@@ -304,7 +304,7 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 #if QT_CONFIG(gstreamer_gl)
 static GstGLContext *gstGLDisplayContext(QAbstractVideoSurface *surface)
 {
-    QOpenGLContext *glContext = qobject_cast<QOpenGLContext*>(surface->property("GLContext").value<QObject*>());
+    auto glContext = qobject_cast<QOpenGLContext*>(surface->property("GLContext").value<QObject*>());
     // Context is not ready yet.
     if (!glContext)
         return nullptr;
@@ -360,7 +360,7 @@ static GstGLContext *gstGLDisplayContext(QAbstractVideoSurface *surface)
         qWarning() << "Could not create wrappped context for platform:" << glPlatform;
 
     GstGLContext *displayContext = nullptr;
-    GError *error = NULL;
+    GError *error = nullptr;
     gst_gl_display_create_context(display, appContext, &displayContext, &error);
     if (error) {
         qWarning() << "Could not create display context:" << error->message;
@@ -393,14 +393,14 @@ bool QVideoSurfaceGstDelegate::query(GstQuery *query)
         if (!m_gstGLDisplayContext)
             return false;
 
-        GstContext *context = NULL;
+        GstContext *context = nullptr;
         gst_query_parse_context(query, &context);
         context = context ? gst_context_copy(context) : gst_context_new(type, FALSE);
         GstStructure *structure = gst_context_writable_structure(context);
 #if GST_CHECK_VERSION(1,11,1)
-        gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, m_gstGLDisplayContext, NULL);
+        gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, m_gstGLDisplayContext, nullptr);
 #else
-        gst_structure_set(structure, "context", GST_GL_TYPE_CONTEXT, m_gstGLDisplayContext, NULL);
+        gst_structure_set(structure, "context", GST_GL_TYPE_CONTEXT, m_gstGLDisplayContext, nullptr);
 #endif
         gst_query_set_context(query, context);
         gst_context_unref(context);
@@ -583,10 +583,10 @@ GType QGstVideoRendererSink::get_type()
         {
             sizeof(QGstVideoRendererSinkClass),                    // class_size
             base_init,                                         // base_init
-            NULL,                                              // base_finalize
+            nullptr,                                           // base_finalize
             class_init,                                        // class_init
-            NULL,                                              // class_finalize
-            NULL,                                              // class_data
+            nullptr,                                           // class_finalize
+            nullptr,                                           // class_data
             sizeof(QGstVideoRendererSink),                         // instance_size
             0,                                                 // n_preallocs
             instance_init,                                     // instance_init
@@ -694,12 +694,12 @@ void QGstVideoRendererSink::handleShowPrerollChange(GObject *o, GParamSpec *p, g
     QGstVideoRendererSink *sink = reinterpret_cast<QGstVideoRendererSink *>(d);
 
     gboolean showPrerollFrame = true; // "show-preroll-frame" property is true by default
-    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, NULL);
+    g_object_get(G_OBJECT(sink), "show-preroll-frame", &showPrerollFrame, nullptr);
 
     if (!showPrerollFrame) {
         GstState state = GST_STATE_VOID_PENDING;
         GstClockTime timeout = 10000000; // 10 ms
-        gst_element_get_state(GST_ELEMENT(sink), &state, NULL, timeout);
+        gst_element_get_state(GST_ELEMENT(sink), &state, nullptr, timeout);
         // show-preroll-frame being set to 'false' while in GST_STATE_PAUSED means
         // the QMediaPlayer was stopped from the paused state.
         // We need to flush the current frame.
@@ -714,7 +714,7 @@ GstStateChangeReturn QGstVideoRendererSink::change_state(
     QGstVideoRendererSink *sink = reinterpret_cast<QGstVideoRendererSink *>(element);
 
     gboolean showPrerollFrame = true; // "show-preroll-frame" property is true by default
-    g_object_get(G_OBJECT(element), "show-preroll-frame", &showPrerollFrame, NULL);
+    g_object_get(G_OBJECT(element), "show-preroll-frame", &showPrerollFrame, nullptr);
 
     // If show-preroll-frame is 'false' when transitioning from GST_STATE_PLAYING to
     // GST_STATE_PAUSED, it means the QMediaPlayer was stopped.
