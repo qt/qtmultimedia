@@ -185,6 +185,7 @@ void AVFCameraViewfinderSettingsControl2::setViewfinderSettings(const QCameraVie
         return;
 
     m_settings = settings;
+    applySettings(m_settings);
 }
 
 QVideoFrame::PixelFormat AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
