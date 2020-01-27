@@ -138,7 +138,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
 {
     initResource();
     setFlag(ItemHasContents, true);
-    m_backend.reset(new QDeclarativeVideoRendererBackend(this));
+    createBackend(nullptr);
 }
 
 QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
@@ -161,7 +161,7 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
 
 QAbstractVideoSurface *QDeclarativeVideoOutput::videoSurface() const
 {
-    return m_backend->videoSurface();
+    return m_backend ? m_backend->videoSurface() : nullptr;
 }
 
 /*!
@@ -223,21 +223,10 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
             }
 
             m_sourceType = MediaObjectSource;
-#if QT_CONFIG(opengl)
         } else if (metaObject->indexOfProperty("videoSurface") != -1) {
-            // Make sure our backend is a QDeclarativeVideoRendererBackend
-            m_backend.reset();
-            createBackend(0);
-            Q_ASSERT(m_backend);
-#ifndef QT_NO_DYNAMIC_CAST
-            Q_ASSERT(dynamic_cast<QDeclarativeVideoRendererBackend *>(m_backend.data()));
-#endif
-            QAbstractVideoSurface * const surface = m_backend->videoSurface();
-            Q_ASSERT(surface);
             m_source.data()->setProperty("videoSurface",
-                                         QVariant::fromValue<QAbstractVideoSurface*>(surface));
+                QVariant::fromValue<QAbstractVideoSurface *>(videoSurface()));
             m_sourceType = VideoSurfaceSource;
-#endif
         } else {
             m_sourceType = NoSource;
         }
@@ -259,7 +248,8 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
     const auto instances = videoBackendFactoryLoader()->instances(QLatin1String("declarativevideobackend"));
     for (QObject *instance : instances) {
         if (QDeclarativeVideoBackendFactoryInterface *plugin = qobject_cast<QDeclarativeVideoBackendFactoryInterface*>(instance)) {
-            m_backend.reset(plugin->create(this));
+            if (!m_backend)
+                m_backend.reset(plugin->create(this));
             if (m_backend && m_backend->init(service)) {
                 backendAvailable = true;
                 break;
