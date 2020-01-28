@@ -497,7 +497,7 @@ void QGstreamerPlayerSession::setPlaybackRate(qreal rate)
             gst_element_seek(m_pipeline, rate, GST_FORMAT_TIME,
                              GstSeekFlags(GST_SEEK_FLAG_FLUSH),
                              GST_SEEK_TYPE_NONE,0,
-                             GST_SEEK_TYPE_NONE,0 );
+                             GST_SEEK_TYPE_END, 0);
         }
         emit playbackRateChanged(m_playbackRate);
     }

@@ -1561,7 +1561,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     This value is a multiplier applied to the media's standard play rate. By
     default this value is 1.0, indicating that the media is playing at the
     standard pace. Values higher than 1.0 will increase the rate of play.
-    Values less than zero can be set and indicate the media will rewind at the
+    Values less than zero can be set and indicate the media should rewind at the
     multiplier of the standard pace.
 
     Not all playback services support change of the playback rate. It is
