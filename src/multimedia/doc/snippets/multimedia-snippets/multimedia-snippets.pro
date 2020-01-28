@@ -22,4 +22,5 @@ SOURCES += \
 
 OTHER_FILES += \
     soundeffect.qml \
-    qtvideosink.qml
+    qtvideosink.qml \
+    multiple-videooutputs.qml

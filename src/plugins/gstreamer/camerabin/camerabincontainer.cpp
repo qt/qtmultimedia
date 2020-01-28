@@ -110,7 +110,7 @@ void CameraBinContainer::resetActualContainerFormat()
 
 GstEncodingContainerProfile *CameraBinContainer::createProfile()
 {
-    GstCaps *caps;
+    GstCaps *caps = nullptr;
 
     if (m_actualFormat.isEmpty()) {
         return 0;
@@ -121,6 +121,7 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
         //if format is not in the list of supported gstreamer mime types,
         //try to find the mime type with matching extension
         if (!supportedFormats.contains(format)) {
+            format.clear();
             QString extension = QGstUtils::fileExtensionForMimeType(m_actualFormat);
             for (const QString &formatCandidate : supportedFormats) {
                 if (QGstUtils::fileExtensionForMimeType(formatCandidate) == extension) {
@@ -129,6 +130,9 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
                 }
             }
         }
+
+        if (format.isEmpty())
+            return nullptr;
 
         caps = gst_caps_from_string(format.toLatin1());
     }

@@ -97,6 +97,7 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_PROPERTY(AudioRole audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged REVISION 1)
     Q_PROPERTY(QString customAudioRole READ customAudioRole WRITE setCustomAudioRole NOTIFY customAudioRoleChanged REVISION 3)
     Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged REVISION 2)
+    Q_PROPERTY(QVariant videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged REVISION 15)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
     Q_ENUMS(Loop)
@@ -163,6 +164,9 @@ public:
 
     QDeclarativeAudio(QObject *parent = 0);
     ~QDeclarativeAudio();
+
+    QVariant videoOutput() const;
+    void setVideoOutput(const QVariant &);
 
     bool hasAudio() const;
     bool hasVideo() const;
@@ -269,6 +273,7 @@ Q_SIGNALS:
 
     void mediaObjectChanged();
     Q_REVISION(2) void notifyIntervalChanged();
+    Q_REVISION(15) void videoOutputChanged();
 
 private Q_SLOTS:
     void _q_error(QMediaPlayer::Error);
@@ -305,6 +310,7 @@ private:
 
     QMediaPlayer *m_player;
     int m_notifyInterval;
+    QVariant m_videoOutput;
 
     friend class QDeclarativeMediaBaseAnimation;
 };

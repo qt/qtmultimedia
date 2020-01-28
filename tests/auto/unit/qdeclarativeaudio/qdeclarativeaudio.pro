@@ -1,7 +1,7 @@
 CONFIG += testcase
 TARGET = tst_qdeclarativeaudio
 
-QT += multimedia-private qml testlib
+QT += multimedia-private qml testlib qtmultimediaquicktools-private
 
 HEADERS += \
         ../../../../src/imports/multimedia/qdeclarativeaudio_p.h \

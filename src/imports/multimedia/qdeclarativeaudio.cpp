@@ -45,12 +45,14 @@
 
 #include <qmediaservice.h>
 #include <private/qmediaserviceprovider_p.h>
+#include <private/qdeclarativevideooutput_p.h>
 #include <qmetadatareadercontrol.h>
 #include <qmediaavailabilitycontrol.h>
 
 #include "qdeclarativeplaylist_p.h"
 #include "qdeclarativemediametadata_p.h"
 
+#include <QAbstractVideoSurface>
 #include <QTimerEvent>
 #include <QtQml/qqmlengine.h>
 
@@ -127,6 +129,63 @@ QDeclarativeAudio::~QDeclarativeAudio()
 {
     m_metaData.reset();
     delete m_player;
+}
+
+/*!
+    \since 5.15
+    \qmlproperty url QtMultimedia::MediaPlayer::videoOutput
+
+    This property holds the target video output.
+    Accepts one or an array of QAbstractVideoSurface or VideoOutput elements.
+
+    \snippet multimedia-snippets/multiple-videooutputs.qml complete
+
+    \sa QMediaPlayer::setVideoOutput()
+*/
+
+QVariant QDeclarativeAudio::videoOutput() const
+{
+    return m_videoOutput;
+}
+
+void QDeclarativeAudio::setVideoOutput(const QVariant &v)
+{
+    if (m_videoOutput == v)
+        return;
+
+    QAbstractVideoSurface *surface = nullptr;
+    auto vo = v.value<QDeclarativeVideoOutput *>();
+    if (vo)
+        surface = vo->videoSurface();
+    else
+        surface = v.value<QAbstractVideoSurface *>();
+
+    // If only one object has been passed.
+    if (surface) {
+        m_player->setVideoOutput(surface);
+    } else {
+        QVector<QAbstractVideoSurface *> surfaces;
+        // Check if it is an array.
+        auto arr = v.value<QJSValue>();
+        if (!arr.isNull()) {
+            const int len = arr.property("length").toInt();
+            for (int i = 0; i < len; ++i) {
+                auto &&v = arr.property(i);
+                if (v.isQObject()) {
+                    auto obj = v.toQObject();
+                    vo = qobject_cast<QDeclarativeVideoOutput *>(obj);
+                    surface = vo ? vo->videoSurface() : qobject_cast<QAbstractVideoSurface *>(obj);
+                    if (surface)
+                        surfaces.append(surface);
+                }
+            }
+        }
+
+        m_player->setVideoOutput(surfaces);
+    }
+
+    m_videoOutput = v;
+    emit videoOutputChanged();
 }
 
 /*!
