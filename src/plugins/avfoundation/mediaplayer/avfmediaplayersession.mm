@@ -686,7 +686,7 @@ void AVFMediaPlayerSession::setPosition(qint64 pos)
 
     CMTime newTime = [playerItem currentTime];
     newTime.value = (pos / 1000.0f) * newTime.timescale;
-    [playerItem seekToTime:newTime];
+    [playerItem seekToTime:newTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:nil];
 
     Q_EMIT positionChanged(pos);
 
