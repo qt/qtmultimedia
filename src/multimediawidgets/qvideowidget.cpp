@@ -228,7 +228,6 @@ void QRendererVideoWidgetBackend::hideEvent(QHideEvent *)
 {
 #if QT_CONFIG(opengl)
     m_updatePaintDevice = true;
-    m_surface->setGLContext(0);
 #endif
 }
 
@@ -265,7 +264,7 @@ void QRendererVideoWidgetBackend::paintEvent(QPaintEvent *event)
                 || painter.paintEngine()->type() == QPaintEngine::OpenGL2)) {
             m_updatePaintDevice = false;
 
-            m_surface->setGLContext(const_cast<QGLContext *>(QGLContext::currentContext()));
+            m_surface->updateGLContext();
             if (m_surface->supportedShaderTypes() & QPainterVideoSurface::GlslShader) {
                 m_surface->setShaderType(QPainterVideoSurface::GlslShader);
             } else {
