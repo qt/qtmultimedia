@@ -928,7 +928,8 @@ void AVFMediaPlayerSession::processBufferStateChange(int bufferStatus)
     } else if (status == QMediaPlayer::StalledMedia) {
         status = QMediaPlayer::BufferedMedia;
         // Resume playback.
-        [[static_cast<AVFMediaPlayerSessionObserver*>(m_observer) player] setRate:m_rate];
+        if (m_state == QMediaPlayer::PlayingState)
+            [[static_cast<AVFMediaPlayerSessionObserver*>(m_observer) player] setRate:m_rate];
     }
 
     if (m_mediaStatus != status)
