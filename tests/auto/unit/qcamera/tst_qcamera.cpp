@@ -2039,7 +2039,7 @@ void tst_QCamera::testErrorSignal()
 
     QCamera camera;
 
-    QSignalSpy spyError(&camera, SIGNAL(error(QCamera::Error)));
+    QSignalSpy spyError(&camera, SIGNAL(errorOccurred(QCamera::Error)));
 
     /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
     service.mockControl->setError(QCamera::CameraError,QString("Camera Error"));

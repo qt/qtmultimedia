@@ -332,7 +332,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void _q_updateState(QCamera::State);
-    void _q_error(QCamera::Error);
+    void _q_errorOccurred(QCamera::Error);
     void _q_availabilityChanged(QMultimedia::AvailabilityStatus);
 
 protected:

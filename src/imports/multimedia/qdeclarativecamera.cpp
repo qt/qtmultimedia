@@ -59,7 +59,7 @@
 
 QT_BEGIN_NAMESPACE
 
-void QDeclarativeCamera::_q_error(QCamera::Error errorCode)
+void QDeclarativeCamera::_q_errorOccurred(QCamera::Error errorCode)
 {
     emit error(Error(errorCode), errorString());
     emit errorChanged();
@@ -197,7 +197,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
             this, SIGNAL(lockStatusChanged()));
     connect(m_camera, &QCamera::stateChanged, this, &QDeclarativeCamera::_q_updateState);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
-    connect(m_camera, SIGNAL(error(QCamera::Error)), this, SLOT(_q_error(QCamera::Error)));
+    connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
     connect(m_camera, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
             this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
 
