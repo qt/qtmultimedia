@@ -308,7 +308,10 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void errorChanged();
+#if QT_DEPRECATED_SINCE(5,15)
     void error(QDeclarativeCamera::Error errorCode, const QString &errorString);
+#endif
+    Q_REVISION(15) void errorOccurred(QDeclarativeCamera::Error errorCode, const QString &errorString);
 
     Q_REVISION(1) void deviceIdChanged();
     Q_REVISION(1) void positionChanged();
