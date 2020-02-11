@@ -81,6 +81,7 @@ private slots:
     void multipleSurfaces();
     void metadata();
     void playerStateAtEOS();
+    void playFromBuffer();
 
 private:
     QMediaContent selectVideoFile(const QStringList& mediaCandidates);
@@ -1474,6 +1475,25 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
     QVERIFY(endOfMediaReceived);
+}
+
+void tst_QMediaPlayerBackend::playFromBuffer()
+{
+    if (localVideoFile.isNull())
+        QSKIP("No supported video file");
+
+    TestVideoSurface surface(false);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    QFile file(localVideoFile.request().url().toLocalFile());
+    if (!file.open(QIODevice::ReadOnly))
+        QSKIP("Could not open file");
+    player.setMedia(localVideoFile, &file);
+    player.play();
+    QTRY_VERIFY(player.position() >= 1000);
+    if (surface.error() == QAbstractVideoSurface::UnsupportedFormatError)
+        QSKIP("None of the pixel formats is supported by the backend");
+    QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
 }
 
 TestVideoSurface::TestVideoSurface(bool storeFrames):

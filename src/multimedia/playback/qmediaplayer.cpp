@@ -1005,8 +1005,9 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     Sets the current \a media source.
 
     If a \a stream is supplied; media data will be read from it instead of resolving the media
-    source. In this case the media source may still be used to resolve additional information
+    source. In this case the url should be provided to resolve additional information
     about the media such as mime type. The \a stream must be open and readable.
+    For macOS the \a stream should be also seekable.
 
     Setting the media to a null QMediaContent will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
