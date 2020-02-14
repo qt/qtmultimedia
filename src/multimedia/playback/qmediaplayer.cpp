@@ -732,6 +732,8 @@ void QMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
 }
 
 /*!
+    \obsolete
+
     Sets the network access points for remote media playback.
     \a configurations contains, in ascending preferential order, a list of
     configuration  that can be used for network access.
@@ -871,6 +873,8 @@ QString QMediaPlayer::errorString() const
 }
 
 /*!
+    \obsolete
+
     Returns the current network access point  in use.
     If a default contructed QNetworkConfiguration is returned
     this feature is not available or that none of the
@@ -1655,6 +1659,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 
 /*!
    \fn void QMediaPlayer::networkConfigurationChanged(const QNetworkConfiguration &configuration)
+   \obsolete
 
     Signal that the active in use network access point  has been changed to \a configuration and all subsequent network access will use this \a configuration.
 */
