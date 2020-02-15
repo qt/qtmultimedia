@@ -686,7 +686,7 @@ void AVFMediaPlayerSession::setPosition(qint64 pos)
 
     CMTime newTime = [playerItem currentTime];
     newTime.value = (pos / 1000.0f) * newTime.timescale;
-    [playerItem seekToTime:newTime];
+    [playerItem seekToTime:newTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:nil];
 
     Q_EMIT positionChanged(pos);
 
@@ -928,7 +928,8 @@ void AVFMediaPlayerSession::processBufferStateChange(int bufferStatus)
     } else if (status == QMediaPlayer::StalledMedia) {
         status = QMediaPlayer::BufferedMedia;
         // Resume playback.
-        [[static_cast<AVFMediaPlayerSessionObserver*>(m_observer) player] setRate:m_rate];
+        if (m_state == QMediaPlayer::PlayingState)
+            [[static_cast<AVFMediaPlayerSessionObserver*>(m_observer) player] setRate:m_rate];
     }
 
     if (m_mediaStatus != status)

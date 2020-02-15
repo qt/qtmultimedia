@@ -367,6 +367,13 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
             control->setMedia(media, file.data());
         } else {
 #if QT_CONFIG(temporaryfile)
+#if defined(Q_OS_ANDROID)
+            QString tempFileName = QDir::tempPath() + media.request().url().path();
+            QDir().mkpath(QFileInfo(tempFileName).path());
+            QTemporaryFile *tempFile = QTemporaryFile::createNativeFile(*file);
+            if (!tempFile->rename(tempFileName))
+                qWarning() << "Could not rename temporary file to:" << tempFileName;
+#else
             QTemporaryFile *tempFile = new QTemporaryFile;
 
             // Preserve original file extension, some backends might not load the file if it doesn't
@@ -385,7 +392,7 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
                 tempFile->write(buffer, len);
             }
             tempFile->close();
-
+#endif
             file.reset(tempFile);
             control->setMedia(QMediaContent(QUrl::fromLocalFile(file->fileName())), nullptr);
 #else
