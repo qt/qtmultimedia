@@ -875,9 +875,11 @@ void AVFMediaPlayerSession::processLoadStateChange(QMediaPlayer::State newState)
             // Get the native size of the video, and reset the bounds of the player layer
             AVPlayerLayer *playerLayer = [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) playerLayer];
             if (videoTrack && playerLayer) {
-                playerLayer.bounds = CGRectMake(0.0f, 0.0f,
-                                                videoTrack.naturalSize.width,
-                                                videoTrack.naturalSize.height);
+                if (!playerLayer.bounds.size.width || !playerLayer.bounds.size.height) {
+                    playerLayer.bounds = CGRectMake(0.0f, 0.0f,
+                                                    videoTrack.naturalSize.width,
+                                                    videoTrack.naturalSize.height);
+                }
 
                 if (m_videoOutput && newState != QMediaPlayer::StoppedState) {
                     m_videoOutput->setLayer(playerLayer);
