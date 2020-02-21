@@ -2,6 +2,10 @@ TEMPLATE = app
 TARGET = qmlvideo
 
 QT += quick multimedia
+android: qtHaveModule(androidextras) {
+    QT += androidextras
+    DEFINES += REQUEST_PERMISSIONS_ON_ANDROID
+}
 
 LOCAL_SOURCES = main.cpp
 LOCAL_HEADERS = trace.h

@@ -61,12 +61,33 @@
 #include "performancemonitordeclarative.h"
 #endif
 
+#ifdef REQUEST_PERMISSIONS_ON_ANDROID
+#include <QtAndroid>
+
+bool requestStoragePermission() {
+    using namespace QtAndroid;
+
+    QString permission = QStringLiteral("android.permission.WRITE_EXTERNAL_STORAGE");
+    const QHash<QString, PermissionResult> results = requestPermissionsSync(QStringList({permission}));
+    if (!results.contains(permission) || results[permission] == PermissionResult::Denied) {
+        qWarning() << "Couldn't get permission: " << permission;
+        return false;
+    }
+
+    return true;
+}
+#endif
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
 #ifdef PERFORMANCEMONITOR_SUPPORT
     PerformanceMonitor::qmlRegisterTypes();
+#endif
+#ifdef REQUEST_PERMISSIONS_ON_ANDROID
+    if (!requestStoragePermission())
+        return -1;
 #endif
 
     QUrl fileName;
