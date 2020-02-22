@@ -59,6 +59,7 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qtemporaryfile.h>
+#include <QDir>
 
 QT_BEGIN_NAMESPACE
 

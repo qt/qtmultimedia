@@ -239,7 +239,8 @@ QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format)
 
 AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice,
                                                      const QSize &request,
-                                                     FourCharCode filter)
+                                                     FourCharCode filter,
+                                                     bool stillImage)
 {
     Q_ASSERT(captureDevice);
     Q_ASSERT(!request.isNull() && request.isValid());
@@ -254,7 +255,7 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
         if (qt_device_format_resolution(format) == request)
             return format;
         // iOS only (still images).
-        if (qt_device_format_high_resolution(format) == request)
+        if (stillImage && qt_device_format_high_resolution(format) == request)
             return format;
     }
 
@@ -272,7 +273,7 @@ AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDev
         if (!res.isNull() && res.isValid() && qt_area_sane(res))
             pairs << FormatPair(res, format);
         const QSize highRes(qt_device_format_high_resolution(format));
-        if (!highRes.isNull() && highRes.isValid() && qt_area_sane(highRes))
+        if (stillImage && !highRes.isNull() && highRes.isValid() && qt_area_sane(highRes))
             pairs << FormatPair(highRes, format);
     }
 

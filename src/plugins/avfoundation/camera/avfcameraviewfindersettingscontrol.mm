@@ -185,7 +185,16 @@ void AVFCameraViewfinderSettingsControl2::setViewfinderSettings(const QCameraVie
         return;
 
     m_settings = settings;
+#if defined(Q_OS_IOS)
+    bool active = m_service->session()->state() == QCamera::ActiveState;
+    if (active)
+        [m_service->session()->captureSession() beginConfiguration];
     applySettings(m_settings);
+    if (active)
+        [m_service->session()->captureSession() commitConfiguration];
+#else
+    applySettings(m_settings);
+#endif
 }
 
 QVideoFrame::PixelFormat AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
@@ -264,7 +273,7 @@ AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(
         // Either the exact match (including high resolution for images on iOS)
         // or a format with a resolution close to the requested one.
         return qt_find_best_resolution_match(captureDevice, resolution,
-                                             m_service->session()->defaultCodec());
+                                             m_service->session()->defaultCodec(), false);
     }
 
     // No resolution requested, what about framerates?
