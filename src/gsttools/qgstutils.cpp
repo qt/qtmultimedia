@@ -866,7 +866,7 @@ QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFac
                             if (value) {
                                 gchar *str = gst_value_serialize(value);
                                 QString versions = QLatin1String(str);
-                                const QStringList elements = versions.split(QRegularExpression(QLatin1String("\\D+")), QString::SkipEmptyParts);
+                                const QStringList elements = versions.split(QRegularExpression(QLatin1String("\\D+")), Qt::SkipEmptyParts);
                                 for (const QString &e : elements)
                                     supportedMimeTypes.insert(nameLowcase + e);
                                 g_free(str);

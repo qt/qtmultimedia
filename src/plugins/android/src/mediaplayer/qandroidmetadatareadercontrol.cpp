@@ -176,12 +176,12 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
         if (!string.isNull()) {
             metadata.insert(isVideo ? QMediaMetaData::LeadPerformer
                                     : QMediaMetaData::ContributingArtist,
-                            string.split('/', QString::SkipEmptyParts));
+                            string.split('/', Qt::SkipEmptyParts));
         }
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Author);
         if (!string.isNull())
-            metadata.insert(QMediaMetaData::Author, string.split('/', QString::SkipEmptyParts));
+            metadata.insert(QMediaMetaData::Author, string.split('/', Qt::SkipEmptyParts));
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Bitrate);
         if (!string.isNull()) {
@@ -196,7 +196,7 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Composer);
         if (!string.isNull())
-            metadata.insert(QMediaMetaData::Composer, string.split('/', QString::SkipEmptyParts));
+            metadata.insert(QMediaMetaData::Composer, string.split('/', Qt::SkipEmptyParts));
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Date);
         if (!string.isNull())
@@ -231,7 +231,7 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Writer);
         if (!string.isNull())
-            metadata.insert(QMediaMetaData::Writer, string.split('/', QString::SkipEmptyParts));
+            metadata.insert(QMediaMetaData::Writer, string.split('/', Qt::SkipEmptyParts));
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Year);
         if (!string.isNull())
