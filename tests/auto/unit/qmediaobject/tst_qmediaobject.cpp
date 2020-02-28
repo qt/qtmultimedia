@@ -299,7 +299,7 @@ void tst_QMediaObject::notifySignals()
     QTRY_COMPARE(spy.count(), count);
 
     qint64 elapsed = timer.elapsed();
-    int expectedElapsed = count * interval * 1.5; // give it some margin of error
+    int expectedElapsed = count * interval * 3; // give it some margin of error
     QVERIFY2(elapsed < expectedElapsed, QString("elapsed: %1, expected: %2").arg(elapsed).arg(expectedElapsed).toLocal8Bit().constData());
 }
 
