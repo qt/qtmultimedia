@@ -156,7 +156,8 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
     to render the video frames to this VideoOutput element.
     It is similar to setting a QObject with \c videoSurface property as a source,
     where this video surface will be set.
-    \sa setSource
+
+    \sa source
 */
 
 QAbstractVideoSurface *QDeclarativeVideoOutput::videoSurface() const
