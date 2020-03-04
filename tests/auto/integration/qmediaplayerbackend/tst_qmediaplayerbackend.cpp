@@ -175,11 +175,7 @@ QMediaContent tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaC
 
 bool tst_QMediaPlayerBackend::isWavSupported()
 {
-#ifdef WAV_SUPPORT_NOT_FORCED
     return !localWavFile.isNull();
-#else
-    return true;
-#endif
 }
 
 void tst_QMediaPlayerBackend::initTestCase()
