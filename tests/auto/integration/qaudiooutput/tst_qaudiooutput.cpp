@@ -116,8 +116,6 @@ private:
 
     QScopedPointer<QByteArray> m_byteArray;
     QScopedPointer<QBuffer> m_buffer;
-
-    bool m_inCISystem;
 };
 
 QString tst_QAudioOutput::formatToFileName(const QAudioFormat &format)
@@ -190,9 +188,6 @@ void tst_QAudioOutput::generate_audiofile_testrows()
         QTest::newRow(QString("Audio File %1").arg(i).toLocal8Bit().constData())
                 << audioFiles.at(i) << testFormats.at(i);
 
-        // Only run first format in CI system to reduce test times
-        if (m_inCISystem)
-            break;
     }
 }
 
@@ -278,7 +273,6 @@ void tst_QAudioOutput::initTestCase()
         file->close();
         audioFiles.append(file);
     }
-    qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
 
 void tst_QAudioOutput::format()
@@ -549,10 +543,6 @@ void tst_QAudioOutput::pull()
 
 void tst_QAudioOutput::pullSuspendResume()
 {
-#ifdef Q_OS_LINUX
-    if (m_inCISystem)
-        QSKIP("QTBUG-26504 Fails 20% of time with pulseaudio backend");
-#endif
     QFETCH(FilePtr, audioFile);
     QFETCH(QAudioFormat, audioFormat);
     QAudioOutput audioOutput(audioFormat, this);
@@ -726,10 +716,6 @@ void tst_QAudioOutput::push()
 
 void tst_QAudioOutput::pushSuspendResume()
 {
-#ifdef Q_OS_LINUX
-    if (m_inCISystem)
-        QSKIP("QTBUG-26504 Fails 20% of time with pulseaudio backend");
-#endif
     QFETCH(FilePtr, audioFile);
     QFETCH(QAudioFormat, audioFormat);
 
