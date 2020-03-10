@@ -297,11 +297,9 @@ void AVFCameraRendererControl::setSurface(QAbstractVideoSurface *surface)
 {
     if (m_surface != surface) {
         m_surface = surface;
-#ifdef Q_OS_IOS
         m_supportsTextures = m_surface
-                ? m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGRA32)
+                ? !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()
                 : false;
-#endif
         Q_EMIT surfaceChanged(surface);
     }
 }

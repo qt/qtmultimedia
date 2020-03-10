@@ -56,6 +56,7 @@
 #include "qaudioprobe.h"
 #include "qaudiorecorder.h"
 #include "qvideoprobe.h"
+#include <QAbstractVideoSurface>
 
 class MediaExample : public QObject {
     Q_OBJECT
@@ -196,6 +197,36 @@ void MediaExample::MediaPlayer()
     player->setMedia(QUrl("gst-pipeline: videotestsrc ! autovideosink"));
     player->play();
     //! [Pipeline]
+
+    //! [Pipeline Surface]
+    class Surface : public QAbstractVideoSurface
+    {
+    public:
+        Surface(QObject *p) : QAbstractVideoSurface(p) { }
+        QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
+        {
+            // Make sure that the driver supports this pixel format.
+            return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_YUYV;
+        }
+
+        // Video frames are handled here.
+        bool present(const QVideoFrame &) override { return true; }
+    };
+
+    player = new QMediaPlayer;
+    player->setVideoOutput(new Surface(player));
+    player->setMedia(QUrl("gst-pipeline: videotestsrc ! qtvideosink"));
+    player->play();
+    //! [Pipeline Surface]
+
+    //! [Pipeline Widget]
+    player = new QMediaPlayer;
+    videoWidget = new QVideoWidget;
+    videoWidget->show();
+    player->setVideoOutput(videoWidget);
+    player->setMedia(QUrl("gst-pipeline: videotestsrc ! xvimagesink name=\"qtvideosink\""));
+    player->play();
+    //! [Pipeline Widget]
 
     //! [Pipeline appsrc]
     QImage img("images/qt-logo.png");
