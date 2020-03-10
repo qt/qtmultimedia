@@ -347,10 +347,12 @@ void CameraBinSession::setupCaptureResolution()
     // If capture resolution is specified, use it also for the viewfinder to avoid caps negotiation
     // to fail.
     if (m_usingWrapperCameraBinSrc) {
-        if (m_captureMode == QCamera::CaptureStillImage && !imageResolution.isEmpty())
-            viewfinderResolution = imageResolution;
-        else if (m_captureMode == QCamera::CaptureVideo && !videoResolution.isEmpty())
-            viewfinderResolution = videoResolution;
+        if (viewfinderResolution.isEmpty()) {
+            if (m_captureMode == QCamera::CaptureStillImage && !imageResolution.isEmpty())
+                viewfinderResolution = imageResolution;
+            else if (m_captureMode == QCamera::CaptureVideo && !videoResolution.isEmpty())
+                viewfinderResolution = videoResolution;
+        }
 
         // Make sure we don't use incompatible frame rate and pixel format with the new resolution
         if (viewfinderResolution != m_viewfinderSettings.resolution() &&
