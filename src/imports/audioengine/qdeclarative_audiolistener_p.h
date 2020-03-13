@@ -54,6 +54,8 @@
 #include <QtCore/QObject>
 #include <QtGui/qvector3d.h>
 
+Q_MOC_INCLUDE("qdeclarative_audioengine_p.h")
+
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeAudioEngine;

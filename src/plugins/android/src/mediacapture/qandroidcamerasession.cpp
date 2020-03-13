@@ -732,7 +732,7 @@ void QAndroidCameraSession::onLastPreviewFrameFetched(const QVideoFrame &frame)
     if (m_captureCanceled || !m_camera)
         return;
 
-    QtConcurrent::run(this, &QAndroidCameraSession::processPreviewImage,
+    QtConcurrent::run(&QAndroidCameraSession::processPreviewImage, this,
                       m_currentImageCaptureId,
                       frame,
                       m_camera->getRotation());
@@ -771,7 +771,7 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 {
     if (!m_captureCanceled) {
         // Loading and saving the captured image can be slow, do it in a separate thread
-        QtConcurrent::run(this, &QAndroidCameraSession::processCapturedImage,
+        QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
                           m_currentImageCaptureId,
                           data,
                           m_actualImageSettings.resolution(),

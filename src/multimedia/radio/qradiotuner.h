@@ -47,6 +47,8 @@
 
 #include <QtCore/qpair.h>
 
+Q_MOC_INCLUDE("QtMultimedia/qradiodata.h")
+
 QT_BEGIN_NAMESPACE
 
 class QRadioData;

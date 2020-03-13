@@ -200,7 +200,7 @@ void AVFImageCaptureControl::onNewViewfinderFrame(const QVideoFrame &frame)
     CaptureRequest request = m_captureRequests.dequeue();
     Q_EMIT imageExposed(request.captureId);
 
-    QtConcurrent::run(this, &AVFImageCaptureControl::makeCapturePreview,
+    QtConcurrent::run(&AVFImageCaptureControl::makeCapturePreview, this,
                       request,
                       frame,
                       0 /* rotation */);

@@ -1,5 +1,5 @@
 TARGET = qtaudio_opensles
-QT += multimedia-private core-private
+QT += opengl multimedia-private core-private
 
 LIBS += -lOpenSLES
 

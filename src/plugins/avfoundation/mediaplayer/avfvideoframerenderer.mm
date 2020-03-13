@@ -40,7 +40,7 @@
 #include "avfvideoframerenderer.h"
 
 #include <QtMultimedia/qabstractvideosurface.h>
-#include <QtGui/QOpenGLFramebufferObject>
+#include <QtOpenGL/QOpenGLFramebufferObject>
 #include <QtGui/QWindow>
 
 #ifdef QT_DEBUG_AVF

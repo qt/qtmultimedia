@@ -4,7 +4,7 @@ TARGET = qavfmediaplayer
 # Avoid clash with a variable named `slots' in a Quartz header
 CONFIG += no_keywords
 
-QT += multimedia-private network
+QT += opengl multimedia-private network
 
 LIBS += -framework CoreMedia -framework CoreVideo -framework QuartzCore
 

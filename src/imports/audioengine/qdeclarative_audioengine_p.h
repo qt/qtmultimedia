@@ -59,6 +59,8 @@
 #include <QTimer>
 #include "qaudioengine_p.h"
 
+Q_MOC_INCLUDE("qdeclarative_audiolistener_p.h")
+
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeSoundInstance;

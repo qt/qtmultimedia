@@ -40,8 +40,8 @@
 #include "avfvideoframerenderer_ios.h"
 
 #include <QtMultimedia/qabstractvideosurface.h>
-#include <QtGui/QOpenGLFramebufferObject>
-#include <QtGui/QOpenGLShaderProgram>
+#include <QtOpenGL/QOpenGLFramebufferObject>
+#include <QtOpenGL/QOpenGLShaderProgram>
 #include <QtGui/QOffscreenSurface>
 
 #ifdef QT_DEBUG_AVF

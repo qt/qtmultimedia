@@ -42,7 +42,7 @@
 #include <QtQuick/qsgmaterial.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
-#include <QtGui/QOpenGLShaderProgram>
+#include <QtOpenGL/QOpenGLShaderProgram>
 
 #ifndef GL_RED
 #define GL_RED 0x1903

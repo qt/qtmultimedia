@@ -1,6 +1,6 @@
 TARGET = QtMultimediaQuick
 
-QT = core quick multimedia-private
+QT = core opengl quick multimedia-private
 CONFIG += internal_module
 
 PRIVATE_HEADERS += \

@@ -1,6 +1,6 @@
 TARGET = qtmedia_android
 
-QT += multimedia-private core-private network
+QT += opengl multimedia-private core-private network
 
 HEADERS += \
     qandroidmediaserviceplugin.h

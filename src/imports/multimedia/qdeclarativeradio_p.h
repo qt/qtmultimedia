@@ -54,6 +54,8 @@
 #include <qradiotuner.h>
 #include <QtQml/qqml.h>
 
+Q_MOC_INCLUDE("qdeclarativeradiodata_p.h")
+
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeRadioData;

@@ -42,7 +42,7 @@
 #include <QtCore/qmutex.h>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
-#include <QtGui/QOpenGLShaderProgram>
+#include <QtOpenGL/QOpenGLShaderProgram>
 #include <QtMultimedia/private/qmediaopenglhelper_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 

@@ -641,7 +641,7 @@ void DSCameraSession::presentFrame()
         const bool needsVerticalMirroring = m_previewSurfaceFormat.scanLineDirection() != QVideoSurfaceFormat::TopToBottom;
         captureImage = captureImage.mirrored(m_needsHorizontalMirroring, needsVerticalMirroring); // also causes a deep copy of the data
 
-        QtConcurrent::run(this, &DSCameraSession::processCapturedImage,
+        QtConcurrent::run(&DSCameraSession::processCapturedImage, this,
                           m_currentImageId, m_captureDestinations, captureImage, m_imageCaptureFileName);
 
         m_imageCaptureFileName.clear();
