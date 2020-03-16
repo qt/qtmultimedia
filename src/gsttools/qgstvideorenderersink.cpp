@@ -141,6 +141,19 @@ bool QGstDefaultVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer
     if (!videoBuffer)
         videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo);
 
+    auto meta = gst_buffer_get_video_crop_meta (buffer);
+    if (meta) {
+        QRect vp(meta->x, meta->y, meta->width, meta->height);
+        if (m_format.viewport() != vp) {
+#ifdef DEBUG_VIDEO_SURFACE_SINK
+            qDebug() << Q_FUNC_INFO << " Update viewport on Metadata: [" << meta->height << "x" << meta->width << " | " << meta->x << "x" << meta->y << "]";
+#endif
+            //Update viewport if data is not the same
+            m_format.setViewport(vp);
+            surface->start(m_format);
+        }
+    }
+
     QVideoFrame frame(
                 videoBuffer,
                 m_format.frameSize(),
