@@ -67,7 +67,7 @@ public:
     QMediaPlayer::MediaStatus mediaStatus() const;
 
     QMediaContent media() const;
-    const QIODevice *mediaStream() const;
+    QIODevice *mediaStream() const;
     void setMedia(const QMediaContent &content, QIODevice *stream);
 
     qint64 position() const;
@@ -110,6 +110,9 @@ public Q_SLOTS:
 
     void processDurationChange(qint64 duration);
 
+    void streamReady();
+    void streamDestroyed();
+
 Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
@@ -128,6 +131,7 @@ private:
     void setAudioAvailable(bool available);
     void setVideoAvailable(bool available);
     void setSeekable(bool seekable);
+    void resetStream(QIODevice *stream = nullptr);
 
     AVFMediaPlayerService *m_service;
     AVFVideoOutput *m_videoOutput;

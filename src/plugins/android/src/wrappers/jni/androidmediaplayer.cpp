@@ -271,7 +271,7 @@ void AndroidMediaPlayer::setAudioRole(QAudio::Role role)
 
 void AndroidMediaPlayer::setCustomAudioRole(const QString &role)
 {
-    QStringList roles = role.split(",", QString::SkipEmptyParts);
+    QStringList roles = role.split(",", Qt::SkipEmptyParts);
 
     int type = 0; // CONTENT_TYPE_UNKNOWN
     int usage = 0; // USAGE_UNKNOWN

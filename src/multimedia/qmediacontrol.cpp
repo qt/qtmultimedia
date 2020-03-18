@@ -49,6 +49,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaControl
+    \obsolete
     \inmodule QtMultimedia
 
     \ingroup multimedia

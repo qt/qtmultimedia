@@ -46,8 +46,8 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QRadioTunerControl
+    \obsolete
     \inmodule QtMultimedia
-
 
     \ingroup multimedia_control
 

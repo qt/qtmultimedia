@@ -707,7 +707,7 @@ bool QAlsaAudioOutput::deviceReady()
 
         if(l > 0) {
             // Got some data to output
-            if(deviceState != QAudio::ActiveState)
+            if (deviceState != QAudio::ActiveState && deviceState != QAudio::IdleState)
                 return true;
             qint64 bytesWritten = write(audioBuffer,l);
             if (bytesWritten != l)

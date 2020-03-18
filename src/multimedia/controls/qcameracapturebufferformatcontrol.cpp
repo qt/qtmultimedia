@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraCaptureBufferFormatControl
+    \obsolete
 
     \brief The QCameraCaptureBufferFormatControl class provides a control for setting the capture buffer format.
 

@@ -40,6 +40,7 @@
 #include "avfvideowindowcontrol.h"
 
 #include <AVFoundation/AVFoundation.h>
+#import <QuartzCore/CATransaction.h>
 
 #if QT_HAS_INCLUDE(<AppKit/AppKit.h>)
 #include <AppKit/AppKit.h>
@@ -244,10 +245,10 @@ void AVFVideoWindowControl::updateAspectRatio()
 void AVFVideoWindowControl::updatePlayerLayerBounds()
 {
     if (m_playerLayer) {
-        CGRect newBounds = CGRectMake(0, 0,
-                                      m_displayRect.width(), m_displayRect.height());
-        m_playerLayer.bounds = newBounds;
-        m_playerLayer.position = CGPointMake(m_displayRect.x(), m_displayRect.y());
+        [CATransaction begin];
+        [CATransaction setDisableActions: YES]; // disable animation/flicks
+        m_playerLayer.frame = m_displayRect.toCGRect();
+        [CATransaction commit];
     }
 }
 

@@ -109,6 +109,7 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
     this->error = QCamera::Error(error);
     this->errorString = errorString;
 
+    emit q->errorOccurred(this->error);
     emit q->error(this->error);
 }
 
@@ -823,7 +824,7 @@ void QCamera::setCaptureMode(QCamera::CaptureModes mode)
     Starts the camera.
 
     State is changed to QCamera::ActiveState if camera is started
-    successfully, otherwise error() signal is emitted.
+    successfully, otherwise errorOccurred() signal is emitted.
 
     While the camera state is changed to QCamera::ActiveState,
     starting the camera service can be asynchronous with the actual
@@ -1271,6 +1272,14 @@ void QCamera::unlock()
 
 /*!
     \fn void QCamera::error(QCamera::Error value)
+    \obsolete
+
+    Use errorOccurred() instead.
+*/
+
+/*!
+    \fn void QCamera::errorOccurred(QCamera::Error value)
+    \since 5.15
 
     Signal emitted when error state changes to \a value.
 */

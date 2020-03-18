@@ -42,6 +42,11 @@ was introduced in Windows Vista as a replacement for DirectShow and other
 multimedia APIs. Consequently, WMF plugin in Qt is supported only for
 Windows Vista and later versions of the operating system.
 
+The environment variable \c QT_MULTIMEDIA_PREFERRED_PLUGINS can be used to
+control the priority of the plugins. For example, setting it to
+"windowsmediafoundation" or "directshow" will cause the corresponding plugin
+to be the preferred one.
+
 \section1 Limitations
 
 The WMF plugin in Qt does not currently provide a camera backend. Instead,

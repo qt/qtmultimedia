@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaVideoProbeControl
+    \obsolete
     \inmodule QtMultimedia
 
 

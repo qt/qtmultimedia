@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraZoomControl
+    \obsolete
 
 
     \brief The QCameraZoomControl class supplies control for

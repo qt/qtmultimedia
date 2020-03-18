@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraFocusControl
+    \obsolete
 
 
     \brief The QCameraFocusControl class supplies control for

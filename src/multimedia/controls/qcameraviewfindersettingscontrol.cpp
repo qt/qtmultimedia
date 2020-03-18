@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraViewfinderSettingsControl
+    \obsolete
     \inmodule QtMultimedia
 
 

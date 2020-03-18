@@ -59,11 +59,6 @@
 #include <qabstractvideosurface.h>
 #include <qvideoframe.h>
 
-QT_BEGIN_NAMESPACE
-
-class QGLContext;
-QT_END_NAMESPACE
-
 QT_USE_NAMESPACE
 
 QT_BEGIN_NAMESPACE
@@ -90,7 +85,7 @@ public:
     virtual void viewportDestroyed() {}
 };
 
-
+class QOpenGLContext;
 class Q_AUTOTEST_EXPORT QPainterVideoSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
@@ -126,8 +121,8 @@ public:
     void paint(QPainter *painter, const QRectF &target, const QRectF &source = QRectF(0, 0, 1, 1));
 
 #if QT_CONFIG(opengl)
-    const QGLContext *glContext() const;
-    void setGLContext(QGLContext *context);
+    const QOpenGLContext *glContext() const;
+    void updateGLContext();
 
     enum ShaderType
     {
@@ -155,7 +150,7 @@ private:
 
     QVideoSurfacePainter *m_painter;
 #if QT_CONFIG(opengl)
-    QGLContext *m_glContext;
+    QOpenGLContext *m_glContext;
     ShaderTypes m_shaderTypes;
     ShaderType m_shaderType;
 #endif

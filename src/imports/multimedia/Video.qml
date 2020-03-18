@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import QtMultimedia 5.11
+import QtMultimedia 5.13
 
 /*!
     \qmltype Video
@@ -123,6 +123,23 @@ Item {
         The default fill mode is preserveAspectFit.
     */
     property alias fillMode:            videoOut.fillMode
+
+    /*!
+        \qmlproperty enumeration Video::flushMode
+
+        Set this property to define what \c Video should show
+        when playback is finished or stopped.
+
+        \list
+        \li VideoOutput.EmptyFrame - clears video output.
+        \li VideoOutput.FirstFrame - shows the first valid frame.
+        \li VideoOutput.LastFrame - shows the last valid frame.
+        \endlist
+
+        The default flush mode is EmptyFrame.
+        \since 5.15
+    */
+    property alias flushMode:            videoOut.flushMode
 
     /*!
         \qmlproperty int Video::orientation

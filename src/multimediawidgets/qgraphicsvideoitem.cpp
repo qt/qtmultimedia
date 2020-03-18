@@ -49,7 +49,7 @@
 #include <QtCore/qpointer.h>
 
 #if QT_CONFIG(opengl)
-#include <QtOpenGL/qgl.h>
+#include <QOpenGLContext>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -395,7 +395,7 @@ void QGraphicsVideoItem::paint(
         if (painter->paintEngine()->type() == QPaintEngine::OpenGL
             || painter->paintEngine()->type() == QPaintEngine::OpenGL2)
         {
-            d->surface->setGLContext(const_cast<QGLContext *>(QGLContext::currentContext()));
+            d->surface->updateGLContext();
             if (d->surface->supportedShaderTypes() & QPainterVideoSurface::GlslShader) {
                 d->surface->setShaderType(QPainterVideoSurface::GlslShader);
             } else {

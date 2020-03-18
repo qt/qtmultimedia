@@ -161,7 +161,7 @@ QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format);
 QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format);
 QVector<AVFPSRange> qt_device_format_framerates(AVCaptureDeviceFormat *format);
 AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &res,
-                                                     FourCharCode preferredFormat);
+                                                     FourCharCode preferredFormat, bool stillImage = true);
 AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice,
                                                     FourCharCode preferredFormat,
                                                     Float64 fps);

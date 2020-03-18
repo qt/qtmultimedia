@@ -55,7 +55,7 @@
 #include <QVideoSurfaceFormat>
 
 #if !defined(QT_NO_OPENGL)
-# include <QGLWidget>
+# include <QOpenGLWidget>
 #endif
 
 VideoPlayer::VideoPlayer(QWidget *parent)
@@ -71,7 +71,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     QGraphicsView *graphicsView = new QGraphicsView(scene);
 
 #if !defined(QT_NO_OPENGL)
-    graphicsView->setViewport(new QGLWidget);
+    graphicsView->setViewport(new QOpenGLWidget);
 #endif
 
     scene->addItem(videoItem);

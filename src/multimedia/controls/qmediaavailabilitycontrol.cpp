@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaAvailabilityControl
+    \obsolete
 
     \brief The QMediaAvailabilityControl class supplies a control for reporting availability of a service.
 

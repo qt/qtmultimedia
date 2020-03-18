@@ -59,9 +59,10 @@
 
 QT_BEGIN_NAMESPACE
 
-void QDeclarativeCamera::_q_error(QCamera::Error errorCode)
+void QDeclarativeCamera::_q_errorOccurred(QCamera::Error errorCode)
 {
     emit error(Error(errorCode), errorString());
+    emit errorOccurred(Error(errorCode), errorString());
     emit errorChanged();
 }
 
@@ -197,7 +198,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
             this, SIGNAL(lockStatusChanged()));
     connect(m_camera, &QCamera::stateChanged, this, &QDeclarativeCamera::_q_updateState);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
-    connect(m_camera, SIGNAL(error(QCamera::Error)), this, SLOT(_q_error(QCamera::Error)));
+    connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
     connect(m_camera, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
             this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
 
@@ -420,7 +421,7 @@ QDeclarativeCamera::Error QDeclarativeCamera::errorCode() const
 
     This property holds the last error string, if any.
 
-    \sa error, errorCode
+    \sa errorOccurred, errorCode
 */
 QString QDeclarativeCamera::errorString() const
 {
@@ -752,11 +753,19 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
     \value  Camera.NotSupportedFeatureError
             The feature is not supported.
 
-    \sa error, errorString
+    \sa errorOccurred, errorString
 */
 
 /*!
     \qmlsignal QtMultimedia::Camera::error(errorCode, errorString)
+    \obsolete
+
+    Use errorOccurred() instead.
+*/
+
+/*!
+    \qmlsignal QtMultimedia::Camera::errorOccurred(errorCode, errorString)
+    \since 5.15
 
     This signal is emitted when an error specified by \a errorCode occurs.
     A descriptive string value is available in \a errorString.

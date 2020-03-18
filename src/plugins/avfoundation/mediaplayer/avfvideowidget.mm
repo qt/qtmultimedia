@@ -38,18 +38,20 @@
 ****************************************************************************/
 
 #include "avfvideowidget.h"
-#include <QtCore/QDebug>
 
-#include <AVFoundation/AVFoundation.h>
-#include <QtGui/QResizeEvent>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QPainter>
+#import <AVFoundation/AVFoundation.h>
+#import <QuartzCore/CATransaction.h>
 
 #if defined(Q_OS_MACOS)
 #import <AppKit/AppKit.h>
 #else
 #import <UIKit/UIKit.h>
 #endif
+
+#include <QtCore/QDebug>
+#include <QtGui/QResizeEvent>
+#include <QtGui/QPaintEvent>
+#include <QtGui/QPainter>
 
 QT_USE_NAMESPACE
 
@@ -178,5 +180,8 @@ void AVFVideoWidget::updateAspectRatio()
 
 void AVFVideoWidget::updatePlayerLayerBounds(const QSize &size)
 {
-    m_playerLayer.bounds = CGRectMake(0.0f, 0.0f, (float)size.width(), (float)size.height());
+    [CATransaction begin];
+    [CATransaction setDisableActions: YES]; // disable animation/flicks
+    m_playerLayer.bounds = QRect(QPoint(0, 0), size).toCGRect();
+    [CATransaction commit];
 }

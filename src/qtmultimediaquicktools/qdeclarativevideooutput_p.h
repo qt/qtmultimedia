@@ -81,7 +81,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
     Q_PROPERTY(QQmlListProperty<QAbstractVideoFilter> filters READ filters);
     Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged REVISION 13)
-    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface REVISION 15)
+    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface CONSTANT REVISION 15)
     Q_ENUMS(FlushMode)
     Q_ENUMS(FillMode)
 
