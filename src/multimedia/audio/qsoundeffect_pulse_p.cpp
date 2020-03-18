@@ -528,6 +528,21 @@ qreal QSoundEffectPrivate::volume() const
     return m_volume;
 }
 
+static void volume_stream_flush_callback(pa_stream *s, int success, void *userdata)
+{
+    Q_UNUSED(s);
+    QSoundEffectRef *ref = reinterpret_cast<QSoundEffectRef *>(userdata);
+    QSoundEffectPrivate *self = ref->soundEffect();
+    ref->release();
+    if (!self)
+        return;
+
+    if (!success)
+        qWarning("QSoundEffect(pulseaudio): failed to drain");
+
+    QMetaObject::invokeMethod(self, "prepare", Qt::QueuedConnection);
+}
+
 void QSoundEffectPrivate::setVolume(qreal volume)
 {
     QMutexLocker locker(&m_volumeLock);
@@ -537,6 +552,8 @@ void QSoundEffectPrivate::setVolume(qreal volume)
 
     m_volume = qBound(qreal(0), volume, qreal(1));
     locker.unlock();
+    if (!m_playing && m_pulseStream)
+        pa_stream_flush(m_pulseStream, volume_stream_flush_callback, m_ref->getRef());
     emit volumeChanged();
 }
 
