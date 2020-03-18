@@ -288,6 +288,9 @@ MFPlayerSession::MediaType MFPlayerSession::getStreamType(IMFStreamDescriptor *s
         }
     }
 
+    if (typeHandler)
+        typeHandler->Release();
+
     return Unknown;
 }
 

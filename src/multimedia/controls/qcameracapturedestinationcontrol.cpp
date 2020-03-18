@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraCaptureDestinationControl
+    \obsolete
 
     \brief The QCameraCaptureDestinationControl class provides a control for setting capture destination.
 

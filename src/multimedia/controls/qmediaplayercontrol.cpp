@@ -46,6 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaPlayerControl
+    \obsolete
     \inmodule QtMultimedia
 
 

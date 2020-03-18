@@ -408,7 +408,8 @@ bool AVFCameraSession::applyViewfinderSettings()
                 vfSettings.setResolution(imageResolution);
         }
 
-        return vfControl->applySettings(vfSettings);
+        vfControl->applySettings(vfSettings);
+        return !vfSettings.isNull();
     }
 
     return false;

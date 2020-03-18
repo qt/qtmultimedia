@@ -242,7 +242,10 @@ Q_SIGNALS:
     void lockStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason);
     void lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason);
 
+#if QT_DEPRECATED_SINCE(5,15)
     void error(QCamera::Error);
+#endif
+    void errorOccurred(QCamera::Error);
 
 private:
     Q_DISABLE_COPY(QCamera)

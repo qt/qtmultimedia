@@ -42,6 +42,7 @@
 
 /*!
     \class QMediaGaplessPlaybackControl
+    \obsolete
     \inmodule QtMultimedia
 
 

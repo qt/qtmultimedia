@@ -51,6 +51,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingControlMetaTypes)
 
 /*!
     \class QCameraImageProcessingControl
+    \obsolete
     \inmodule QtMultimedia
 
 

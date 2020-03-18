@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAudioEncoderSettingsControl
+    \obsolete
     \inmodule QtMultimedia
 
     \ingroup multimedia_control

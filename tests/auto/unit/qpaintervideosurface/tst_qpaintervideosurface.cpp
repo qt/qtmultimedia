@@ -35,9 +35,9 @@
 #include <qvideosurfaceformat.h>
 
 #if QT_CONFIG(opengl)
-#include <QtOpenGL/qgl.h>
-#include <QtOpenGL/qglframebufferobject.h>
-#include <QtGui/qopenglfunctions.h>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
+#include <QOpenGLWidget>
 #endif
 
 QT_USE_NAMESPACE
@@ -559,20 +559,19 @@ void tst_QPainterVideoSurface::presentOpaqueFrame()
 void tst_QPainterVideoSurface::shaderType()
 {
     QPainterVideoSurface surface;
-    QGLWidget widget;
-    if (!widget.context()
-        || !widget.context()->isValid()) {
-        QSKIP("Platform does not support GLContext");
-    }
-
+    QOpenGLWidget widget;
     widget.show();
+
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    widget.makeCurrent();
+
+    if (!widget.context() || !widget.context()->isValid())
+        QSKIP("Platform does not support OpenGLContext");
 
     QCOMPARE(surface.shaderType(), QPainterVideoSurface::NoShaders);
     QCOMPARE(surface.supportedShaderTypes(), QPainterVideoSurface::NoShaders);
 
-    surface.setGLContext(const_cast<QGLContext *>(widget.context()));
+    widget.makeCurrent();
+    surface.updateGLContext();
     QCOMPARE(surface.glContext(), widget.context());
 
     {
@@ -612,12 +611,14 @@ void tst_QPainterVideoSurface::shaderType()
     {
         QSignalSpy spy(&surface, SIGNAL(supportedFormatsChanged()));
 
-        surface.setGLContext(const_cast<QGLContext *>(widget.context()));
+        widget.makeCurrent();
+        surface.updateGLContext();
         QCOMPARE(surface.glContext(), widget.context());
         QCOMPARE(spy.count(), 0);
     }
 
-    surface.setGLContext(0);
+    widget.doneCurrent();
+    surface.updateGLContext();
     QCOMPARE(surface.shaderType(), QPainterVideoSurface::NoShaders);
     QCOMPARE(surface.supportedShaderTypes(), QPainterVideoSurface::NoShaders);
 
@@ -656,19 +657,18 @@ void tst_QPainterVideoSurface::shaderTypeStarted()
 {
     QFETCH(QPainterVideoSurface::ShaderType, shaderType);
 
-    QGLWidget widget;
-    if (!widget.context()
-        || !widget.context()->isValid()) {
-        QSKIP("Platform does not support GLContext");
-    }
-
+    QOpenGLWidget widget;
     widget.show();
+
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    widget.makeCurrent();
+
+    if (!widget.context() || !widget.context()->isValid())
+        QSKIP("Platform does not support OpenGLContext");
 
     QPainterVideoSurface surface;
 
-    surface.setGLContext(const_cast<QGLContext *>(widget.context()));
+    widget.makeCurrent();
+    surface.updateGLContext();
 
     if (!(surface.supportedShaderTypes() & shaderType))
         QSKIP("Shader type unsupported on this platform");
@@ -712,7 +712,8 @@ void tst_QPainterVideoSurface::shaderTypeStarted()
         QCOMPARE(surface.isActive(), true);
         QCOMPARE(spy.count(), 0);
 
-        surface.setGLContext(0);
+        widget.doneCurrent();
+        surface.updateGLContext();
         QCOMPARE(surface.shaderType(), QPainterVideoSurface::NoShaders);
         QCOMPARE(surface.isActive(), false);
         QCOMPARE(spy.count(), 1);
@@ -904,18 +905,17 @@ void tst_QPainterVideoSurface::shaderSupportedFormat()
     QFETCH(bool, supportedPixelFormat);
     QFETCH(bool, supportedFormat);
 
-    QGLWidget widget;
-    if (!widget.context()
-        || !widget.context()->isValid()) {
-        QSKIP("Platform does not support GLContext");
-    }
-
+    QOpenGLWidget widget;
     widget.show();
+
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    widget.makeCurrent();
+
+    if (!widget.context() || !widget.context()->isValid())
+        QSKIP("Platform does not support GLContext");
 
     QPainterVideoSurface surface;
-    surface.setGLContext(const_cast<QGLContext *>(widget.context()));
+    widget.makeCurrent();
+    surface.updateGLContext();
 
 
     if (!(surface.supportedShaderTypes() & shaderType))
@@ -1026,18 +1026,17 @@ void tst_QPainterVideoSurface::shaderPresent()
     QFETCH(int, bytesB);
     QFETCH(int, bytesPerLineB);
 
-    QGLWidget widget;
-    if (!widget.context()
-        || !widget.context()->isValid()) {
-        QSKIP("Platform does not support GLContext");
-    }
-
+    QOpenGLWidget widget;
     widget.show();
+
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    widget.makeCurrent();
+
+    if (!widget.context() || !widget.context()->isValid())
+        QSKIP("Platform does not support GLContext");
 
     QPainterVideoSurface surface;
-    surface.setGLContext(const_cast<QGLContext *>(widget.context()));
+    widget.makeCurrent();
+    surface.updateGLContext();
 
     if (!(surface.supportedShaderTypes() & shaderType))
         QSKIP("Shader type unsupported on this platform");
@@ -1163,18 +1162,17 @@ void tst_QPainterVideoSurface::shaderPresentOpaqueFrame()
 {
     QFETCH(QPainterVideoSurface::ShaderType, shaderType);
 
-    QGLWidget widget;
-    if (!widget.context()
-        || !widget.context()->isValid()) {
-        QSKIP("Platform does not support GLContext");
-    }
-
+    QOpenGLWidget widget;
     widget.show();
+
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    widget.makeCurrent();
+
+    if (!widget.context() || !widget.context()->isValid())
+        QSKIP("Platform does not support GLContext");
 
     QPainterVideoSurface surface;
-    surface.setGLContext(const_cast<QGLContext *>(widget.context()));
+    widget.makeCurrent();
+    surface.updateGLContext();
 
     if (!(surface.supportedShaderTypes() & shaderType))
         QSKIP("Shader type unsupported on this platform");
@@ -1217,18 +1215,17 @@ void tst_QPainterVideoSurface::shaderPresentGLFrame()
 {
     QFETCH(QPainterVideoSurface::ShaderType, shaderType);
 
-    QGLWidget widget;
-    if (!widget.context()
-        || !widget.context()->isValid()) {
-        QSKIP("Platform does not support GLContext");
-    }
-
+    QOpenGLWidget widget;
     widget.show();
+
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    widget.makeCurrent();
+
+    if (!widget.context() || !widget.context()->isValid())
+        QSKIP("Platform does not support GLContext");
 
     QPainterVideoSurface surface;
-    surface.setGLContext(const_cast<QGLContext *>(widget.context()));
+    widget.makeCurrent();
+    surface.updateGLContext();
 
     if (!(surface.supportedShaderTypes() & shaderType))
         QSKIP("Shader type unsupported on this platform");

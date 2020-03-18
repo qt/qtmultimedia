@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QCameraInfoControl
+    \obsolete
     \since 5.3
 
     \brief The QCameraInfoControl class provides a camera info media control.

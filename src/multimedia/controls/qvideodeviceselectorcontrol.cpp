@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QVideoDeviceSelectorControl
+    \obsolete
 
     \brief The QVideoDeviceSelectorControl class provides an video device selector media control.
     \inmodule QtMultimedia

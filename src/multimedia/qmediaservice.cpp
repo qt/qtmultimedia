@@ -49,6 +49,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaService
+    \obsolete
     \brief The QMediaService class provides a common base class for media
     service implementations.
     \ingroup multimedia

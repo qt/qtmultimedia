@@ -59,6 +59,7 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qtemporaryfile.h>
+#include <QDir>
 
 QT_BEGIN_NAMESPACE
 
@@ -367,6 +368,13 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
             control->setMedia(media, file.data());
         } else {
 #if QT_CONFIG(temporaryfile)
+#if defined(Q_OS_ANDROID)
+            QString tempFileName = QDir::tempPath() + media.request().url().path();
+            QDir().mkpath(QFileInfo(tempFileName).path());
+            QTemporaryFile *tempFile = QTemporaryFile::createNativeFile(*file);
+            if (!tempFile->rename(tempFileName))
+                qWarning() << "Could not rename temporary file to:" << tempFileName;
+#else
             QTemporaryFile *tempFile = new QTemporaryFile;
 
             // Preserve original file extension, some backends might not load the file if it doesn't
@@ -385,7 +393,7 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
                 tempFile->write(buffer, len);
             }
             tempFile->close();
-
+#endif
             file.reset(tempFile);
             control->setMedia(QMediaContent(QUrl::fromLocalFile(file->fileName())), nullptr);
 #else
@@ -724,6 +732,8 @@ void QMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
 }
 
 /*!
+    \obsolete
+
     Sets the network access points for remote media playback.
     \a configurations contains, in ascending preferential order, a list of
     configuration  that can be used for network access.
@@ -863,6 +873,8 @@ QString QMediaPlayer::errorString() const
 }
 
 /*!
+    \obsolete
+
     Returns the current network access point  in use.
     If a default contructed QNetworkConfiguration is returned
     this feature is not available or that none of the
@@ -998,8 +1010,9 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     Sets the current \a media source.
 
     If a \a stream is supplied; media data will be read from it instead of resolving the media
-    source. In this case the media source may still be used to resolve additional information
+    source. In this case the url should be provided to resolve additional information
     about the media such as mime type. The \a stream must be open and readable.
+    For macOS the \a stream should be also seekable.
 
     Setting the media to a null QMediaContent will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
@@ -1015,8 +1028,17 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
 
     \snippet multimedia-snippets/media.cpp Pipeline
 
-    If the pipeline contains a video sink element named \c qtvideosink,
-    current QVideoWidget can be used to render the video.
+    If QAbstractVideoSurface is used as the video output,
+    \c qtvideosink can be used as a video sink element directly in the pipeline.
+    After that the surface will receive the video frames in QAbstractVideoSurface::present().
+
+    \snippet multimedia-snippets/media.cpp Pipeline Surface
+
+    If QVideoWidget is used as the video output
+    and the pipeline contains a video sink element named \c qtvideosink,
+    current QVideoWidget will be used to render the video.
+
+    \snippet multimedia-snippets/media.cpp Pipeline Widget
 
     If the pipeline contains appsrc element, it will be used to push data from \a stream.
 
@@ -1561,7 +1583,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     This value is a multiplier applied to the media's standard play rate. By
     default this value is 1.0, indicating that the media is playing at the
     standard pace. Values higher than 1.0 will increase the rate of play.
-    Values less than zero can be set and indicate the media will rewind at the
+    Values less than zero can be set and indicate the media should rewind at the
     multiplier of the standard pace.
 
     Not all playback services support change of the playback rate. It is
@@ -1646,6 +1668,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 
 /*!
    \fn void QMediaPlayer::networkConfigurationChanged(const QNetworkConfiguration &configuration)
+   \obsolete
 
     Signal that the active in use network access point  has been changed to \a configuration and all subsequent network access will use this \a configuration.
 */

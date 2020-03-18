@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAudioOutputSelectorControl
+    \obsolete
 
     \brief The QAudioOutputSelectorControl class provides an audio output selector media control.
     \inmodule QtMultimedia

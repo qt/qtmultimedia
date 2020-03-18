@@ -43,7 +43,9 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaNetworkAccessControl
+    \obsolete
     \brief The QMediaNetworkAccessControl class allows the setting of the Network Access Point for media related activities.
+    \obsolete
     \inmodule QtMultimedia
 
 
@@ -92,6 +94,7 @@ QMediaNetworkAccessControl::~QMediaNetworkAccessControl()
 
 /*!
     \fn QMediaNetworkAccessControl::configurationChanged(const QNetworkConfiguration &configuration)
+
     This signal is emitted when the current active network configuration changes
     to \a configuration.
 */

@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QVideoWindowControl
+    \obsolete
 
     \inmodule QtMultimedia
 

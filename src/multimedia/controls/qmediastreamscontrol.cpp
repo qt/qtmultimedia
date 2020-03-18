@@ -52,6 +52,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaStreamControlMetaTypes)
 
 /*!
     \class QMediaStreamsControl
+    \obsolete
     \inmodule QtMultimedia
 
 

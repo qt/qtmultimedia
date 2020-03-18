@@ -44,6 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAudioRoleControl
+    \obsolete
     \inmodule QtMultimedia
     \ingroup multimedia_control
     \since 5.6

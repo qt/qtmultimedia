@@ -185,6 +185,16 @@ void AVFCameraViewfinderSettingsControl2::setViewfinderSettings(const QCameraVie
         return;
 
     m_settings = settings;
+#if defined(Q_OS_IOS)
+    bool active = m_service->session()->state() == QCamera::ActiveState;
+    if (active)
+        [m_service->session()->captureSession() beginConfiguration];
+    applySettings(m_settings);
+    if (active)
+        [m_service->session()->captureSession() commitConfiguration];
+#else
+    applySettings(m_settings);
+#endif
 }
 
 QVideoFrame::PixelFormat AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
@@ -263,7 +273,7 @@ AVCaptureDeviceFormat *AVFCameraViewfinderSettingsControl2::findBestFormatMatch(
         // Either the exact match (including high resolution for images on iOS)
         // or a format with a resolution close to the requested one.
         return qt_find_best_resolution_match(captureDevice, resolution,
-                                             m_service->session()->defaultCodec());
+                                             m_service->session()->defaultCodec(), false);
     }
 
     // No resolution requested, what about framerates?
@@ -331,7 +341,10 @@ bool AVFCameraViewfinderSettingsControl2::convertPixelFormatIfSupported(QVideoFr
 
     if (m_service->videoOutput()->surface()) {
         const QAbstractVideoSurface *surface = m_service->videoOutput()->surface();
-        if (!surface->supportedPixelFormats().contains(qtFormat))
+        QAbstractVideoBuffer::HandleType h = m_service->videoOutput()->supportsTextures()
+                                           ? QAbstractVideoBuffer::GLTextureHandle
+                                           : QAbstractVideoBuffer::NoHandle;
+        if (!surface->supportedPixelFormats(h).contains(qtFormat))
             return false;
     }
 
@@ -379,21 +392,19 @@ bool AVFCameraViewfinderSettingsControl2::applySettings(const QCameraViewfinderS
             // format, or if no surface is set, the preferred capture device format
 
             const QVector<QVideoFrame::PixelFormat> deviceFormats = viewfinderPixelFormats();
-            QVideoFrame::PixelFormat pickedFormat = deviceFormats.first();
-
             QAbstractVideoSurface *surface = m_service->videoOutput()->surface();
+            QVideoFrame::PixelFormat pickedFormat = deviceFormats.first();
             if (surface) {
-                if (m_service->videoOutput()->supportsTextures()) {
-                    pickedFormat = QVideoFrame::Format_ARGB32;
-                } else {
-                    QList<QVideoFrame::PixelFormat> surfaceFormats = surface->supportedPixelFormats();
-
-                    for (int i = 0; i < surfaceFormats.count(); ++i) {
-                        const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
-                        if (deviceFormats.contains(surfaceFormat)) {
-                            pickedFormat = surfaceFormat;
-                            break;
-                        }
+                pickedFormat = QVideoFrame::Format_Invalid;
+                QAbstractVideoBuffer::HandleType h = m_service->videoOutput()->supportsTextures()
+                                                   ? QAbstractVideoBuffer::GLTextureHandle
+                                                   : QAbstractVideoBuffer::NoHandle;
+                QList<QVideoFrame::PixelFormat> surfaceFormats = surface->supportedPixelFormats(h);
+                for (int i = 0; i < surfaceFormats.count(); ++i) {
+                    const QVideoFrame::PixelFormat surfaceFormat = surfaceFormats.at(i);
+                    if (deviceFormats.contains(surfaceFormat)) {
+                        pickedFormat = surfaceFormat;
+                        break;
                     }
                 }
             }
@@ -401,13 +412,15 @@ bool AVFCameraViewfinderSettingsControl2::applySettings(const QCameraViewfinderS
             CVPixelFormatFromQtFormat(pickedFormat, avfPixelFormat);
         }
 
-        if (avfPixelFormat != 0) {
-            NSMutableDictionary *videoSettings = [NSMutableDictionary dictionaryWithCapacity:1];
-            [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
-                                      forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+        NSMutableDictionary *videoSettings = [NSMutableDictionary dictionaryWithCapacity:1];
+        [videoSettings setObject:[NSNumber numberWithUnsignedInt:avfPixelFormat]
+                                  forKey:(id)kCVPixelBufferPixelFormatTypeKey];
 
-            videoOutput.videoSettings = videoSettings;
-        }
+        const AVFConfigurationLock lock(captureDevice);
+        if (!lock)
+            qWarning("Failed to set active format (lock failed)");
+
+        videoOutput.videoSettings = videoSettings;
     }
 
     qt_set_framerate_limits(captureDevice, videoConnection(), settings.minimumFrameRate(), settings.maximumFrameRate());
