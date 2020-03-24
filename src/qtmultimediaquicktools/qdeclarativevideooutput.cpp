@@ -828,12 +828,12 @@ void QDeclarativeVideoOutput::releaseResources()
         m_backend->releaseResources();
 }
 
-void QDeclarativeVideoOutput::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void QDeclarativeVideoOutput::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     Q_UNUSED(newGeometry);
     Q_UNUSED(oldGeometry);
 
-    QQuickItem::geometryChanged(newGeometry, oldGeometry);
+    QQuickItem::geometryChange(newGeometry, oldGeometry);
 
     // Explicitly listen to geometry changes here. This is needed since changing the position does
     // not trigger a call to updatePaintNode().

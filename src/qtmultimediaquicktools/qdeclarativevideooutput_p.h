@@ -156,7 +156,7 @@ Q_SIGNALS:
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
     void itemChange(ItemChange change, const ItemChangeData &changeData) override;
-    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
+    void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
     void releaseResources() override;
 
 private Q_SLOTS:
