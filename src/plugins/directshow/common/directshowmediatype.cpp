@@ -294,6 +294,7 @@ int DirectShowMediaType::bytesPerLine(const QVideoSurfaceFormat &format)
         return format.frameWidth() * 4;
     // 24 bpp packed formats.
     case QVideoFrame::Format_RGB24:
+    case QVideoFrame::Format_BGR24:
         return PAD_TO_DWORD(format.frameWidth() * 3);
     // 16 bpp packed formats.
     case QVideoFrame::Format_RGB565:
