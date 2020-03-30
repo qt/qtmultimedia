@@ -129,16 +129,16 @@ void AudioDecoder::error(QAudioDecoder::Error error)
     case QAudioDecoder::NoError:
         return;
     case QAudioDecoder::ResourceError:
-        m_cout << "Resource error" << endl;
+        m_cout << "Resource error\n";
         break;
     case QAudioDecoder::FormatError:
-        m_cout << "Format error" << endl;
+        m_cout << "Format error\n";
         break;
     case QAudioDecoder::AccessDeniedError:
-        m_cout << "Access denied error" << endl;
+        m_cout << "Access denied error\n";
         break;
     case QAudioDecoder::ServiceMissingError:
-        m_cout << "Service missing error" << endl;
+        m_cout << "Service missing error\n";
         break;
     }
 
@@ -149,10 +149,10 @@ void AudioDecoder::stateChanged(QAudioDecoder::State newState)
 {
     switch (newState) {
     case QAudioDecoder::DecodingState:
-        m_cout << "Decoding..." << endl;
+        m_cout << "Decoding...\n";
         break;
     case QAudioDecoder::StoppedState:
-        m_cout << "Decoding stopped" << endl;
+        m_cout << "Decoding stopped\n";
         break;
     }
 }
@@ -160,12 +160,12 @@ void AudioDecoder::stateChanged(QAudioDecoder::State newState)
 void AudioDecoder::finished()
 {
     if (!m_fileWriter.close())
-        m_cout << "Failed to finilize output file" << endl;
+        m_cout << "Failed to finilize output file\n";
 
-    m_cout << "Decoding finished" << endl;
+    m_cout << "Decoding finished\n";
 
     if (m_isPlayback) {
-        m_cout << "Starting playback" << endl;
+        m_cout << "Starting playback\n";
         m_soundEffect.setSource(QUrl::fromLocalFile(m_targetFilename));
         m_soundEffect.play();
     } else {
@@ -176,7 +176,7 @@ void AudioDecoder::finished()
 void AudioDecoder::playbackStatusChanged()
 {
     if (m_soundEffect.status() == QSoundEffect::Error) {
-        m_cout << "Playback error" << endl;
+        m_cout << "Playback error\n";
         emit done();
     }
 }
@@ -184,7 +184,7 @@ void AudioDecoder::playbackStatusChanged()
 void AudioDecoder::playingChanged()
 {
     if (!m_soundEffect.isPlaying()) {
-        m_cout << "Playback finished" << endl;
+        m_cout << "Playback finished\n";
         if (m_isDelete)
             QFile::remove(m_targetFilename);
         emit done();
@@ -200,7 +200,7 @@ void AudioDecoder::updateProgress()
         progress = position / (qreal)duration;
 
     if (progress > m_progress + 0.1) {
-        m_cout << "Decoding progress: " << (int)(progress * 100.0) << "%" << endl;
+        m_cout << "Decoding progress: " << (int)(progress * 100.0) << "%\n";
         m_progress = progress;
     }
 }

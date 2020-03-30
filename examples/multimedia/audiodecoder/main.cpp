@@ -63,10 +63,10 @@ int main(int argc, char *argv[])
 
     QTextStream cout(stdout, QIODevice::WriteOnly);
     if (app.arguments().size() < 2) {
-        cout << "Usage: audiodecoder [-p] [-pd] SOURCEFILE [TARGETFILE]" << endl;
-        cout << "Set -p option if you want to play output file." << endl;
-        cout << "Set -pd option if you want to play output file and delete it after successful playback." << endl;
-        cout << "Default TARGETFILE name is \"out.wav\" in the same directory as the source file." << endl;
+        cout << "Usage: audiodecoder [-p] [-pd] SOURCEFILE [TARGETFILE]\n";
+        cout << "Set -p option if you want to play output file.\n";
+        cout << "Set -pd option if you want to play output file and delete it after successful playback.\n";
+        cout << "Default TARGETFILE name is \"out.wav\" in the same directory as the source file.\n";
         return 0;
     }
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     int sourceFileIndex = (isPlayback || isDelete) ? 2 : 1;
     if (app.arguments().size() <= sourceFileIndex) {
-        cout << "Error: source filename is not specified." << endl;
+        cout << "Error: source filename is not specified.\n";
         return 0;
     }
     sourceFile.setFile(app.arguments().at(sourceFileIndex));
