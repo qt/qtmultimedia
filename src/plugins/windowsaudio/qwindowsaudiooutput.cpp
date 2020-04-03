@@ -630,7 +630,7 @@ qreal QWindowsAudioOutput::volume() const
 
 void QWindowsAudioOutput::reset()
 {
-    close();
+    stop();
 }
 
 OutputPrivate::OutputPrivate(QWindowsAudioOutput* audio)
