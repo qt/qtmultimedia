@@ -48,7 +48,6 @@
 #include <qmediaplaylist.h>
 #include <qmediaplaylistcontrol_p.h>
 #include <qmediaplaylistsourcecontrol_p.h>
-#include <qmedianetworkaccesscontrol.h>
 #include <qaudiorolecontrol.h>
 #include <qcustomaudiorolecontrol.h>
 
@@ -116,7 +115,6 @@ public:
         , audioRoleControl(nullptr)
         , customAudioRoleControl(nullptr)
         , playlist(nullptr)
-        , networkAccessControl(nullptr)
         , state(QMediaPlayer::StoppedState)
         , status(QMediaPlayer::UnknownMediaStatus)
         , error(QMediaPlayer::NoError)
@@ -133,7 +131,6 @@ public:
 
     QPointer<QObject> videoOutput;
     QMediaPlaylist *playlist;
-    QMediaNetworkAccessControl *networkAccessControl;
     QVideoSurfaceOutput surfaceOutput;
     QMediaContent qrcMedia;
     QScopedPointer<QFile> qrcFile;
@@ -599,7 +596,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
         d->error = ServiceMissingError;
     } else {
         d->control = qobject_cast<QMediaPlayerControl*>(d->service->requestControl(QMediaPlayerControl_iid));
-        d->networkAccessControl = qobject_cast<QMediaNetworkAccessControl*>(d->service->requestControl(QMediaNetworkAccessControl_iid));
         if (d->control != nullptr) {
             connect(d->control, SIGNAL(mediaChanged(QMediaContent)), SLOT(_q_handleMediaChanged(QMediaContent)));
             connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
@@ -642,10 +638,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
                             &QMediaPlayer::customAudioRoleChanged);
                 }
             }
-        }
-        if (d->networkAccessControl != nullptr) {
-            connect(d->networkAccessControl, &QMediaNetworkAccessControl::configurationChanged,
-                    this, &QMediaPlayer::networkConfigurationChanged);
         }
     }
 }
@@ -729,23 +721,6 @@ void QMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
 {
     QMediaContent m(playlist, QUrl(), false);
     setMedia(m);
-}
-
-/*!
-    \obsolete
-
-    Sets the network access points for remote media playback.
-    \a configurations contains, in ascending preferential order, a list of
-    configuration  that can be used for network access.
-
-    This will invalidate the choice of previous configurations.
-*/
-void QMediaPlayer::setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations)
-{
-    Q_D(QMediaPlayer);
-
-    if (d->networkAccessControl)
-        d->networkAccessControl->setConfigurations(configurations);
 }
 
 QMediaPlayer::State QMediaPlayer::state() const
@@ -870,24 +845,6 @@ QMediaPlayer::Error QMediaPlayer::error() const
 QString QMediaPlayer::errorString() const
 {
     return d_func()->errorString;
-}
-
-/*!
-    \obsolete
-
-    Returns the current network access point  in use.
-    If a default contructed QNetworkConfiguration is returned
-    this feature is not available or that none of the
-    current supplied configurations are in use.
-*/
-QNetworkConfiguration QMediaPlayer::currentNetworkConfiguration() const
-{
-    Q_D(const QMediaPlayer);
-
-    if (d->networkAccessControl)
-        return d_func()->networkAccessControl->currentConfiguration();
-
-    return QNetworkConfiguration();
 }
 
 //public Q_SLOTS:
@@ -1664,13 +1621,6 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     \fn void QMediaPlayer::bufferStatusChanged(int percentFilled)
 
     Signal the amount of the local buffer filled as a percentage by \a percentFilled.
-*/
-
-/*!
-   \fn void QMediaPlayer::networkConfigurationChanged(const QNetworkConfiguration &configuration)
-   \obsolete
-
-    Signal that the active in use network access point  has been changed to \a configuration and all subsequent network access will use this \a configuration.
 */
 
 /*!

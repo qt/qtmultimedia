@@ -22,7 +22,6 @@ PUBLIC_HEADERS += \
     controls/qimageencodercontrol.h \
     controls/qmediacontainercontrol.h \
     controls/qmediagaplessplaybackcontrol.h \
-    controls/qmedianetworkaccesscontrol.h \
     controls/qmediaplayercontrol.h \
     controls/qmediarecordercontrol.h \
     controls/qmediastreamscontrol.h \
@@ -61,7 +60,6 @@ SOURCES += \
     controls/qimageencodercontrol.cpp \
     controls/qmediacontainercontrol.cpp \
     controls/qmediagaplessplaybackcontrol.cpp \
-    controls/qmedianetworkaccesscontrol.cpp \
     controls/qmediaplayercontrol.cpp \
     controls/qmediaplaylistcontrol.cpp \
     controls/qmediaplaylistsourcecontrol.cpp \

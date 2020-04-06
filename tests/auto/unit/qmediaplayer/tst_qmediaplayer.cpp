@@ -32,8 +32,6 @@
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qbuffer.h>
-#include <QtNetwork/qnetworkconfiguration.h>
-#include <QtNetwork/qnetworkconfigmanager.h>
 
 #include <qabstractvideosurface.h>
 #include <qmediaplayer.h>
@@ -41,7 +39,6 @@
 #include <qmediaplaylist.h>
 #include <qmediaservice.h>
 #include <qmediastreamscontrol.h>
-#include <qmedianetworkaccesscontrol.h>
 #include <qvideorenderercontrol.h>
 
 #include "mockmediaserviceprovider.h"
@@ -118,9 +115,6 @@ private slots:
     void testMediaStatus_data();
     void testMediaStatus();
     void testPlaylist();
-#ifndef QT_NO_BEARERMANAGEMENT
-    void testNetworkAccess();
-#endif
     void testSetVideoOutput();
     void testSetVideoOutputNoService();
     void testSetVideoOutputNoControl();
@@ -1065,36 +1059,6 @@ void tst_QMediaPlayer::testDestructor()
 
     mockProvider->deleteServiceOnRelease = false;
 }
-
-#ifndef QT_NO_BEARERMANAGEMENT
-void tst_QMediaPlayer::testNetworkAccess()
-{
-    QNetworkConfigurationManager manager;
-    QList<QNetworkConfiguration> configs = manager.allConfigurations();
-
-    if (configs.count() >= 1) {
-        QSignalSpy spy(player, SIGNAL(networkConfigurationChanged(QNetworkConfiguration)));
-        int index = qFloor((configs.count())/2);
-        player->setNetworkConfigurations(configs);
-        mockService->selectCurrentConfiguration(configs.at(index));
-
-        QVERIFY(spy.count() == 1);
-        QList<QVariant> args = spy.takeFirst();
-        QNetworkConfiguration config = args.at(0).value<QNetworkConfiguration>();
-        QCOMPARE(config.identifier() , configs.at(index).identifier());
-        QCOMPARE(player->currentNetworkConfiguration().identifier() , config.identifier());
-    }
-
-    // invalidate current network configuration
-    QSignalSpy spy(player, SIGNAL(networkConfigurationChanged(QNetworkConfiguration)));
-    mockService->selectCurrentConfiguration(QNetworkConfiguration());
-    QVERIFY(spy.count() == 1);
-    QList<QVariant> args = spy.takeFirst();
-    QNetworkConfiguration config = args.at(0).value<QNetworkConfiguration>();
-    QVERIFY(config.isValid() == false);
-    QVERIFY(player->currentNetworkConfiguration().isValid() == false);
-}
-#endif
 
 void tst_QMediaPlayer::testSetVideoOutput()
 {

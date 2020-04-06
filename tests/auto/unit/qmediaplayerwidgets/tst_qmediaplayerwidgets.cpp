@@ -31,7 +31,6 @@
 #include <QtTest/QtTest>
 #include <QtCore/qdebug.h>
 #include <QtCore/qbuffer.h>
-#include <QtNetwork/qnetworkconfiguration.h>
 
 #include <qgraphicsvideoitem.h>
 #include <qabstractvideosurface.h>

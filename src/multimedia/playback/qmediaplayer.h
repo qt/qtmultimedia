@@ -46,8 +46,6 @@
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qaudio.h>
 
-#include <QtNetwork/qnetworkconfiguration.h>
-
 QT_BEGIN_NAMESPACE
 
 
@@ -158,11 +156,6 @@ public:
     Error error() const;
     QString errorString() const;
 
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_DEPRECATED
-    QT_DEPRECATED_VERSION_5_15 QNetworkConfiguration currentNetworkConfiguration() const;
-QT_WARNING_POP
-
     QMultimedia::AvailabilityStatus availability() const override;
 
     QAudio::Role audioRole() const;
@@ -185,15 +178,6 @@ public Q_SLOTS:
 
     void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
     void setPlaylist(QMediaPlaylist *playlist);
-
-#ifndef Q_MOC_RUN // moc fails to parse the expanded macro
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_DEPRECATED
-#endif
-    QT_DEPRECATED_VERSION_5_15 void setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations);
-#ifndef Q_MOC_RUN // moc fails to parse the expanded macro
-QT_WARNING_POP
-#endif
 
 Q_SIGNALS:
     void mediaChanged(const QMediaContent &media);
@@ -220,14 +204,6 @@ Q_SIGNALS:
 
     void error(QMediaPlayer::Error error);
 
-#ifndef Q_MOC_RUN // moc fails to parse the expanded macro
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_DEPRECATED
-#endif
-    QT_DEPRECATED_VERSION_5_15 void networkConfigurationChanged(const QNetworkConfiguration &configuration);
-#ifndef Q_MOC_RUN // moc fails to parse the expanded macro
-QT_WARNING_POP
-#endif
 public:
     bool bind(QObject *) override;
     void unbind(QObject *) override;
