@@ -40,6 +40,11 @@
 #include "directshowmediatype.h"
 #include "directshowglobal.h"
 
+#include <initguid.h>
+
+DEFINE_GUID(MEDIASUBTYPE_Y800, 0x30303859, 0x0000, 0x0010, 0x80, 0x00,
+    0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
 namespace
 {
     struct TypeLookup
@@ -66,7 +71,8 @@ namespace
         { QVideoFrame::Format_NV12, MEDIASUBTYPE_NV12 },
         { QVideoFrame::Format_YUV420P, MEDIASUBTYPE_IYUV },
         { QVideoFrame::Format_YUV420P, MEDIASUBTYPE_I420 },
-        { QVideoFrame::Format_Jpeg, MEDIASUBTYPE_MJPG }
+        { QVideoFrame::Format_Jpeg, MEDIASUBTYPE_MJPG },
+        { QVideoFrame::Format_Y8, MEDIASUBTYPE_Y800 },
     };
 }
 
