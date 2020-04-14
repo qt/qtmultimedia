@@ -1146,9 +1146,14 @@ void DSCameraSession::updateSourceCapabilities()
                     m_supportedViewfinderSettings.append(settings);
                     m_supportedFormats.append(DirectShowMediaType(*pmt));
                 }
-
-
+            } else {
+                OLECHAR *guidString = nullptr;
+                StringFromCLSID(pmt->subtype, &guidString);
+                if (guidString)
+                    qWarning() << "Unsupported media type:" << QString::fromWCharArray(guidString);
+                ::CoTaskMemFree(guidString);
             }
+
             DirectShowMediaType::deleteType(pmt);
         }
     }
