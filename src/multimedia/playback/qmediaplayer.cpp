@@ -133,7 +133,10 @@ public:
 
     QPointer<QObject> videoOutput;
     QMediaPlaylist *playlist;
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     QMediaNetworkAccessControl *networkAccessControl;
+QT_WARNING_POP
     QVideoSurfaceOutput surfaceOutput;
     QMediaContent qrcMedia;
     QScopedPointer<QFile> qrcFile;
@@ -599,7 +602,10 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
         d->error = ServiceMissingError;
     } else {
         d->control = qobject_cast<QMediaPlayerControl*>(d->service->requestControl(QMediaPlayerControl_iid));
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
         d->networkAccessControl = qobject_cast<QMediaNetworkAccessControl*>(d->service->requestControl(QMediaNetworkAccessControl_iid));
+QT_WARNING_POP
         if (d->control != nullptr) {
             connect(d->control, SIGNAL(mediaChanged(QMediaContent)), SLOT(_q_handleMediaChanged(QMediaContent)));
             connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
@@ -644,8 +650,11 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
             }
         }
         if (d->networkAccessControl != nullptr) {
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
             connect(d->networkAccessControl, &QMediaNetworkAccessControl::configurationChanged,
                     this, &QMediaPlayer::networkConfigurationChanged);
+QT_WARNING_POP
         }
     }
 }
