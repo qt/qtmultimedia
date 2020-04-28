@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "coreaudiosessionmanager.h"
-
 #import <AVFoundation/AVAudioSession.h>
 #import <Foundation/Foundation.h>
 
@@ -215,10 +214,6 @@ CoreAudioSessionManager::CoreAudioSessionManager() :
     QObject(0)
 {
     m_sessionObserver = [[CoreAudioSessionObserver alloc] initWithAudioSessionManager:this];
-    setActive(true);
-    // Set default category to Ambient (implies MixWithOthers). This makes sure audio stops playing
-    // if the screen is locked or if the Silent switch is toggled.
-    setCategory(CoreAudioSessionManager::Ambient, CoreAudioSessionManager::None);
 }
 
 CoreAudioSessionManager::~CoreAudioSessionManager()

@@ -483,6 +483,11 @@ CoreAudioInput::~CoreAudioInput()
 
 bool CoreAudioInput::open()
 {
+#if defined(Q_OS_IOS)
+    CoreAudioSessionManager::instance().setCategory(CoreAudioSessionManager::PlayAndRecord, CoreAudioSessionManager::MixWithOthers);
+    CoreAudioSessionManager::instance().setActive(true);
+#endif
+
     if (m_isOpen)
         return true;
 
