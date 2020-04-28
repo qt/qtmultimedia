@@ -549,6 +549,13 @@ OSStatus CoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFl
 
 bool CoreAudioOutput::open()
 {
+#if defined(Q_OS_IOS)
+    // Set default category to Ambient (implies MixWithOthers). This makes sure audio stops playing
+    // if the screen is locked or if the Silent switch is toggled.
+    CoreAudioSessionManager::instance().setCategory(CoreAudioSessionManager::Ambient, CoreAudioSessionManager::None);
+    CoreAudioSessionManager::instance().setActive(true);
+#endif
+
     if (m_errorCode != QAudio::NoError)
         return false;
 
