@@ -176,6 +176,9 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
         [m_playerLayer release];
         m_playerLayer = 0;
     }
+#if defined(Q_OS_IOS)
+    [[AVAudioSession sharedInstance] setActive:NO error:nil];
+#endif
 }
 
 - (void) prepareToPlayAsset:(AVURLAsset *)asset
@@ -288,7 +291,10 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
                           forKeyPath:AVF_CURRENT_ITEM_DURATION_KEY
                           options:0
                           context:AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext];
-
+#if defined(Q_OS_IOS)
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
+    [[AVAudioSession sharedInstance] setActive:YES error:nil];
+#endif
 }
 
 -(void) assetFailedToPrepareForPlayback:(NSError *)error
