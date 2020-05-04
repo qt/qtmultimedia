@@ -78,7 +78,7 @@ private:
     QVideoFrame::PixelFormat mFormat;
 
     QMap<const uchar*, GLuint> mBitsToTextureMap;
-    QVideoFrame mCurrentFrame, mNextFrame;
+    QVideoFrame mCurrentFrame;
     GLuint mCurrentTexture;
     bool mMappable;
     GLenum mMapError = GL_NO_ERROR;
