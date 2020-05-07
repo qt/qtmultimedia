@@ -132,9 +132,6 @@
      \li QMediaPlaylist
      \li List of media to be played.
     \row
-     \li QRadioTuner
-     \li Access radio device.
-    \row
      \li QAbstractVideoSurface
      \li Base class for video presentation.
     \endtable
