@@ -39,7 +39,7 @@
 
 #include "mfstream.h"
 #include "sourceresolver.h"
-#include <Mferror.h>
+#include <mferror.h>
 #include <nserror.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qdebug.h>

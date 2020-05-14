@@ -107,7 +107,7 @@ void QSGVivanteVideoMaterial::updateBlending() {
 void QSGVivanteVideoMaterial::setCurrentFrame(const QVideoFrame &frame, QSGVideoNode::FrameFlags flags)
 {
     QMutexLocker lock(&mFrameMutex);
-    mNextFrame = frame;
+    mCurrentFrame = frame;
     mMappable = mMapError == GL_NO_ERROR && !flags.testFlag(QSGVideoNode::FrameFiltered);
 
 #ifdef QT_VIVANTE_VIDEO_DEBUG
@@ -124,12 +124,8 @@ void QSGVivanteVideoMaterial::bind()
     }
 
     QMutexLocker lock(&mFrameMutex);
-    if (mNextFrame.isValid()) {
-        mCurrentFrame.unmap();
-
-        mCurrentFrame = mNextFrame;
-        mCurrentTexture = vivanteMapping(mNextFrame);
-    }
+    if (mCurrentFrame.isValid())
+        mCurrentTexture = vivanteMapping(mCurrentFrame);
     else
         glBindTexture(GL_TEXTURE_2D, mCurrentTexture);
 }

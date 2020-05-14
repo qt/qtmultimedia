@@ -331,7 +331,7 @@ bool QnxAudioInput::open()
 
     m_pcmNotifier = new QSocketNotifier(snd_pcm_file_descriptor(m_pcmHandle, SND_PCM_CHANNEL_CAPTURE),
                                         QSocketNotifier::Read, this);
-    connect(m_pcmNotifier, SIGNAL(activated(int)), SLOT(userFeed()));
+    connect(m_pcmNotifier, SIGNAL(activated(QSocketDescriptor)), SLOT(userFeed()));
 
     return true;
 }

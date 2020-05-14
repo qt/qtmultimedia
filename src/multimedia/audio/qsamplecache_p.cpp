@@ -397,7 +397,7 @@ void QSample::load()
     qDebug() << "QSample: load [" << m_url << "]";
 #endif
     m_stream = m_parent->networkAccessManager().get(QNetworkRequest(m_url));
-    connect(m_stream, SIGNAL(error(QNetworkReply::NetworkError)), SLOT(decoderError()));
+    connect(m_stream, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), SLOT(decoderError()));
     m_waveDecoder = new QWaveDecoder(m_stream);
     connect(m_waveDecoder, SIGNAL(formatKnown()), SLOT(decoderReady()));
     connect(m_waveDecoder, SIGNAL(parsingError()), SLOT(decoderError()));

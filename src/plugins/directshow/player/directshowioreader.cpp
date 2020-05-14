@@ -155,7 +155,7 @@ HRESULT DirectShowIOReader::Request(IMediaSample *pSample, DWORD_PTR dwUser)
         return VFW_E_SAMPLE_TIME_NOT_SET;
     }
     LONGLONG position = startTime / 10000000;
-    LONG length = (endTime - startTime) / 10000000;
+    LONG length = qMin<qint64>((endTime - startTime) / 10000000, m_availableLength);
 
     auto request = new DirectShowSampleRequest(pSample, dwUser, position, length, buffer);
 

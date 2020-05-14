@@ -56,7 +56,7 @@
 #include "mfplayersession.h"
 #include "mfplayerservice.h"
 #include "mfmetadatacontrol.h"
-#include <Mferror.h>
+#include <mferror.h>
 #include <nserror.h>
 #include "sourceresolver.h"
 #include "samplegrabber.h"
@@ -277,19 +277,19 @@ MFPlayerSession::MediaType MFPlayerSession::getStreamType(IMFStreamDescriptor *s
     if (!stream)
         return Unknown;
 
-    IMFMediaTypeHandler *typeHandler = NULL;
-    if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler))) {
+    struct SafeRelease {
+        IMFMediaTypeHandler *ptr = nullptr;
+        ~SafeRelease() { if (ptr) ptr->Release(); }
+    } typeHandler;
+    if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler.ptr))) {
         GUID guidMajorType;
-        if (SUCCEEDED(typeHandler->GetMajorType(&guidMajorType))) {
+        if (SUCCEEDED(typeHandler.ptr->GetMajorType(&guidMajorType))) {
             if (guidMajorType == MFMediaType_Audio)
                 return Audio;
             else if (guidMajorType == MFMediaType_Video)
                 return Video;
         }
     }
-
-    if (typeHandler)
-        typeHandler->Release();
 
     return Unknown;
 }

@@ -54,6 +54,7 @@ class AVFCameraControl;
 class AVFCameraService;
 class AVFCameraRendererControl;
 class AVFMediaVideoProbeControl;
+class AVFCameraWindowControl;
 
 struct AVFCameraInfo
 {
@@ -79,6 +80,7 @@ public:
     AVFCameraInfo activeCameraInfo() const { return m_activeCameraInfo; }
 
     void setVideoOutput(AVFCameraRendererControl *output);
+    void setCapturePreviewOutput(AVFCameraWindowControl *output);
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
 
@@ -122,6 +124,7 @@ private:
 
     AVFCameraService *m_service;
     AVFCameraRendererControl *m_videoOutput;
+    AVFCameraWindowControl *m_capturePreviewWindowOutput;
 
     QCamera::State m_state;
     bool m_active;
