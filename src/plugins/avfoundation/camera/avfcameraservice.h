@@ -70,6 +70,7 @@ class AVFMediaRecorderControlIOS;
 class AVFAudioEncoderSettingsControl;
 class AVFVideoEncoderSettingsControl;
 class AVFMediaContainerControl;
+class AVFCameraWindowControl;
 
 class AVFCameraService : public QMediaService
 {
@@ -120,6 +121,7 @@ private:
     AVFAudioEncoderSettingsControl *m_audioEncoderSettingsControl;
     AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
     AVFMediaContainerControl *m_mediaContainerControl;
+    AVFCameraWindowControl *m_captureWindowControl;
 };
 
 QT_END_NAMESPACE

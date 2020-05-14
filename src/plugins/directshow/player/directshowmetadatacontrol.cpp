@@ -64,7 +64,7 @@
 #endif
 
 #if QT_CONFIG(wshellitem)
-#include <ShlObj.h>
+#include <shlobj.h>
 #include <propkeydef.h>
 #include <private/qsystemlibrary_p.h>
 
