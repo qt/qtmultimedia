@@ -740,6 +740,8 @@ void QMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
     setMedia(m);
 }
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
 /*!
     \obsolete
 
@@ -756,6 +758,7 @@ void QMediaPlayer::setNetworkConfigurations(const QList<QNetworkConfiguration> &
     if (d->networkAccessControl)
         d->networkAccessControl->setConfigurations(configurations);
 }
+QT_WARNING_POP
 
 QMediaPlayer::State QMediaPlayer::state() const
 {
@@ -881,6 +884,8 @@ QString QMediaPlayer::errorString() const
     return d_func()->errorString;
 }
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
 /*!
     \obsolete
 
@@ -898,6 +903,8 @@ QNetworkConfiguration QMediaPlayer::currentNetworkConfiguration() const
 
     return QNetworkConfiguration();
 }
+QT_WARNING_POP
+
 
 //public Q_SLOTS:
 /*!
