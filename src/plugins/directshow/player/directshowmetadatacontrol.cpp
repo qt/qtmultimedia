@@ -323,7 +323,7 @@ static QVariant getValue(IWMHeaderInfo *header, const wchar_t *key)
                         &streamNumber,
                         key,
                         &type,
-                        reinterpret_cast<BYTE *>(const_cast<ushort *>(string.utf16())),
+                        reinterpret_cast<BYTE *>(string.data()),
                         &size) == S_OK) {
                     return string;
                 }
