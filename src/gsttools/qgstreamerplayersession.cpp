@@ -162,7 +162,15 @@ void QGstreamerPlayerSession::initPlaybin()
     }
 
 #if GST_CHECK_VERSION(1,0,0)
-    m_videoIdentity = gst_element_factory_make("identity", nullptr); // floating ref
+    static const auto convDesc = qEnvironmentVariable("QT_GSTREAMER_PLAYBIN_CONVERT");
+    GError *err = nullptr;
+    auto convPipeline = !convDesc.isEmpty() ? convDesc.toLatin1().constData() : "identity";
+    auto convElement = gst_parse_launch(convPipeline, &err);
+    if (err) {
+        qWarning() << "Error:" << convDesc << ":" << QLatin1String(err->message);
+        g_clear_error(&err);
+    }
+    m_videoIdentity = convElement;
 #else
     m_videoIdentity = GST_ELEMENT(g_object_new(gst_video_connector_get_type(), 0)); // floating ref
     g_signal_connect(G_OBJECT(m_videoIdentity), "connection-failed", G_CALLBACK(insertColorSpaceElement), (gpointer)this);
