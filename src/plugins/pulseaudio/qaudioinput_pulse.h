@@ -78,27 +78,27 @@ public:
 
     qint64 read(char *data, qint64 len);
 
-    void start(QIODevice *device);
-    QIODevice *start();
-    void stop();
-    void reset();
-    void suspend();
-    void resume();
-    int bytesReady() const;
-    int periodSize() const;
-    void setBufferSize(int value);
-    int bufferSize() const;
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
-    qint64 processedUSecs() const;
-    qint64 elapsedUSecs() const;
-    QAudio::Error error() const;
-    QAudio::State state() const;
-    void setFormat(const QAudioFormat &format);
-    QAudioFormat format() const;
+    void start(QIODevice *device) override;
+    QIODevice *start() override;
+    void stop() override;
+    void reset() override;
+    void suspend() override;
+    void resume() override;
+    int bytesReady() const override;
+    int periodSize() const override;
+    void setBufferSize(int value) override;
+    int bufferSize() const override;
+    void setNotifyInterval(int milliSeconds) override;
+    int notifyInterval() const override;
+    qint64 processedUSecs() const override;
+    qint64 elapsedUSecs() const override;
+    QAudio::Error error() const override;
+    QAudio::State state() const override;
+    void setFormat(const QAudioFormat &format) override;
+    QAudioFormat format() const override;
 
-    void setVolume(qreal volume);
-    qreal volume() const;
+    void setVolume(qreal volume) override;
+    qreal volume() const override;
 
     qint64 m_totalTimeValue;
     QIODevice *m_audioSource;
@@ -147,8 +147,8 @@ public:
     PulseInputPrivate(QPulseAudioInput *audio);
     ~PulseInputPrivate() {};
 
-    qint64 readData(char *data, qint64 len);
-    qint64 writeData(const char *data, qint64 len);
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
 
     void trigger();
 
