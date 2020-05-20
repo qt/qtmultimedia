@@ -58,11 +58,11 @@ public:
     QPulseAudioPlugin(QObject *parent = 0);
     ~QPulseAudioPlugin() {}
 
-    QByteArray defaultDevice(QAudio::Mode mode) const;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const;
-    QAbstractAudioInput *createInput(const QByteArray &device);
-    QAbstractAudioOutput *createOutput(const QByteArray &device);
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+    QByteArray defaultDevice(QAudio::Mode mode) const override;
+    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
+    QAbstractAudioInput *createInput(const QByteArray &device) override;
+    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
+    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
 
 private:
     QPulseAudioEngine *m_pulseEngine;

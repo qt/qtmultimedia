@@ -78,14 +78,14 @@ public:
         delete m_textStream;
     }
 
-    virtual bool atEnd() const
+    bool atEnd() const override
     {
         //we can't just use m_textStream->atEnd(),
         //for files with empty lines/comments at end
         return nextResource.isNull();
     }
 
-    virtual QMediaContent readItem()
+    QMediaContent readItem() override
     {
         QMediaContent item;
         if (!nextResource.isNull())
@@ -136,7 +136,7 @@ public:
         return item;
     }
 
-    virtual void close()
+    void close() override
     {
     }
 
@@ -161,13 +161,13 @@ public:
         delete m_textStream;
     }
 
-    virtual bool writeItem(const QMediaContent& item)
+    bool writeItem(const QMediaContent& item) override
     {
         *m_textStream << item.request().url().toString() << Qt::endl;
         return true;
     }
 
-    virtual void close()
+    void close() override
     {
     }
 
