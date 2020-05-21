@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 #include "qsgvideonode_rgb_p.h"
+#include "qsgvideotexture_p.h"
 #include <QtQuick/qsgtexturematerial.h>
 #include <QtQuick/qsgmaterial.h>
 #include <QtCore/qmutex.h>
@@ -128,6 +129,21 @@ protected:
     bool m_hasAlpha;
 };
 
+class QSGVideoMaterialRhiShader_RGB : public QSGMaterialRhiShader
+{
+public:
+    QSGVideoMaterialRhiShader_RGB()
+    {
+        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimediaquicktools/shaders_ng/rgba.vert.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders_ng/rgba.frag.qsb"));
+    }
+
+    bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
+                           QSGMaterial *oldMaterial) override;
+
+    void updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
+                            QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
+};
 
 class QSGVideoMaterial_RGB : public QSGMaterial
 {
@@ -139,6 +155,7 @@ public:
         m_width(1.0)
     {
         setFlag(Blending, false);
+        setFlag(SupportsRhiShader, true);
     }
 
     ~QSGVideoMaterial_RGB()
@@ -153,6 +170,9 @@ public:
     }
 
     QSGMaterialShader *createShader() const override {
+        if (flags().testFlag(RhiShaderWanted))
+            return new QSGVideoMaterialRhiShader_RGB;
+
         const bool hasAlpha = m_format.pixelFormat() == QVideoFrame::Format_ARGB32;
         return needsSwizzling() ? new QSGVideoMaterialShader_RGB_swizzle(hasAlpha)
                                 : new QSGVideoMaterialShader_RGB;
@@ -245,6 +265,7 @@ public:
     GLuint m_textureId;
     qreal m_opacity;
     GLfloat m_width;
+    QScopedPointer<QSGVideoTexture> m_texture;
 
 private:
     bool needsSwizzling() const {
@@ -253,6 +274,63 @@ private:
     }
 };
 
+bool QSGVideoMaterialRhiShader_RGB::updateUniformData(RenderState &state, QSGMaterial *newMaterial,
+                                                      QSGMaterial *oldMaterial)
+{
+    Q_UNUSED(newMaterial);
+    Q_UNUSED(oldMaterial);
+
+    bool changed = false;
+    QByteArray *buf = state.uniformData();
+
+    if (state.isMatrixDirty()) {
+        memcpy(buf->data(), state.combinedMatrix().constData(), 64);
+        changed = true;
+    }
+
+    if (state.isOpacityDirty()) {
+        const float opacity = state.opacity();
+        memcpy(buf->data() + 64, &opacity, 4);
+        changed = true;
+    }
+
+    return changed;
+}
+
+void QSGVideoMaterialRhiShader_RGB::updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
+                                                       QSGMaterial *newMaterial, QSGMaterial *oldMaterial)
+{
+    Q_UNUSED(oldMaterial);
+
+    if (binding < 1)
+        return;
+
+    auto m = static_cast<QSGVideoMaterial_RGB *>(newMaterial);
+    if (!m->m_texture)
+        m->m_texture.reset(new QSGVideoTexture);
+
+    m->m_frameMutex.lock();
+    auto frame = m->m_frame;
+    m->m_frameMutex.unlock();
+
+    if (frame.pixelFormat() == QVideoFrame::Format_RGB565) // Format_RGB565 requires GL_UNSIGNED_SHORT_5_6_5
+        frame = frame.image().convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+
+    auto format = QRhiTexture::RGBA8;
+    if (frame.pixelFormat() == QVideoFrame::Format_RGB32
+        || frame.pixelFormat() == QVideoFrame::Format_ARGB32)
+    {
+        format = QRhiTexture::BGRA8;
+    }
+
+    if (frame.isValid() && frame.map(QAbstractVideoBuffer::ReadOnly)) {
+        m->m_texture->setData(format, frame.size(), frame.bits(), frame.bytesPerLine() * frame.height());
+        frame.unmap();
+    }
+
+    m->m_texture->commitTextureOperations(state.rhi(), state.resourceUpdateBatch());
+    *texture = m->m_texture.data();
+}
 
 QSGVideoNode_RGB::QSGVideoNode_RGB(const QVideoSurfaceFormat &format) :
     m_format(format)

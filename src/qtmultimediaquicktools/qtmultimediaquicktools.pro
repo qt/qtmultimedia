@@ -1,12 +1,13 @@
 TARGET = QtMultimediaQuick
 
-QT = core opengl quick multimedia-private
+QT = core quick multimedia-private
 CONFIG += internal_module
 
 PRIVATE_HEADERS += \
     qdeclarativevideooutput_p.h \
     qdeclarativevideooutput_backend_p.h \
     qsgvideonode_p.h \
+    qsgvideotexture_p.h \
     qtmultimediaquickdefs_p.h
 
 HEADERS += \
@@ -15,6 +16,7 @@ HEADERS += \
 
 SOURCES += \
     qsgvideonode_p.cpp \
+    qsgvideotexture.cpp \
     qdeclarativevideooutput.cpp \
     qdeclarativevideooutput_window.cpp
 
