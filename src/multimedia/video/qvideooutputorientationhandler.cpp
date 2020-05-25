@@ -50,10 +50,6 @@ QVideoOutputOrientationHandler::QVideoOutputOrientationHandler(QObject *parent)
 {
     QScreen *screen = QGuiApplication::primaryScreen();
 
-    // we want to be informed about all orientation changes
-    screen->setOrientationUpdateMask(Qt::PortraitOrientation|Qt::LandscapeOrientation
-                                     |Qt::InvertedPortraitOrientation|Qt::InvertedLandscapeOrientation);
-
     connect(screen, SIGNAL(orientationChanged(Qt::ScreenOrientation)),
             this, SLOT(screenOrientationChanged(Qt::ScreenOrientation)));
 
