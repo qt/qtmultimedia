@@ -43,6 +43,7 @@
 #include "qgstreamermediacontainercontrol.h"
 #include <QtCore/QDebug>
 #include <QtGui/qdesktopservices.h>
+#include <QStandardPaths>
 
 QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
     :QMediaRecorderControl(session),
