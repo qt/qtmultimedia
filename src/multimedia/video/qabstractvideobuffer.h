@@ -60,6 +60,7 @@ public:
     {
         NoHandle,
         GLTextureHandle,
+        MTLTextureHandle,
         XvShmImageHandle,
         CoreImageHandle,
         QPixmapHandle,

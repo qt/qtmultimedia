@@ -58,41 +58,11 @@
 
 QT_USE_NAMESPACE
 
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-class TextureCacheVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    TextureCacheVideoBuffer(CVOGLTextureRef texture)
-        : QAbstractVideoBuffer(GLTextureHandle)
-        , m_texture(texture)
-    {}
-
-    virtual ~TextureCacheVideoBuffer()
-    {
-        // absolutely critical that we drop this
-        // reference of textures will stay in the cache
-        CFRelease(m_texture);
-    }
-
-    MapMode mapMode() const { return NotMapped; }
-    uchar *map(MapMode, int*, int*) { return nullptr; }
-    void unmap() {}
-
-    QVariant handle() const
-    {
-        GLuint texId = CVOGLTextureGetName(m_texture);
-        return QVariant::fromValue<unsigned int>(texId);
-    }
-
-private:
-    CVOGLTextureRef m_texture;
-};
-#else
 class TextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    TextureVideoBuffer(GLuint  tex)
-        : QAbstractVideoBuffer(GLTextureHandle)
+    TextureVideoBuffer(HandleType type, quint64 tex)
+        : QAbstractVideoBuffer(type)
         , m_texture(tex)
     {}
 
@@ -106,13 +76,12 @@ public:
 
     QVariant handle() const
     {
-        return QVariant::fromValue<unsigned int>(m_texture);
+        return QVariant::fromValue<unsigned long long>(m_texture);
     }
 
 private:
-    GLuint m_texture;
+    quint64 m_texture;
 };
-#endif
 
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
@@ -120,6 +89,7 @@ AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     , m_playerLayer(nullptr)
     , m_frameRenderer(nullptr)
     , m_enableOpenGL(false)
+    , m_enableMetal(false)
 
 {
     m_displayLink = new AVFDisplayLink(this);
@@ -176,12 +146,12 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
     }
 #endif
 
-    //Check for needed formats to render as OpenGL Texture
-    auto handleGlEnabled = [this] {
+    auto checkHandleType = [this] {
         m_enableOpenGL = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+        m_enableMetal = m_surface->supportedPixelFormats(QAbstractVideoBuffer::MTLTextureHandle).contains(QVideoFrame::Format_BGR32);
     };
-    handleGlEnabled();
-    connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged, this, handleGlEnabled);
+    checkHandleType();
+    connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged, this, checkHandleType);
 
     //If we already have a layer, but changed surfaces start rendering again
     if (m_playerLayer && !m_displayLink->isActive()) {
@@ -235,26 +205,43 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
         return;
     }
 
-    if (!playerLayer.readyForDisplay)
+    if (!playerLayer.readyForDisplay || !m_surface)
         return;
 
-    if (m_enableOpenGL) {
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-        CVOGLTextureRef tex = m_frameRenderer->renderLayerToTexture(playerLayer);
-
-        //Make sure we got a valid texture
-        if (tex == nullptr)
+    if (m_enableMetal) {
+        quint64 tex = m_frameRenderer->renderLayerToMTLTexture(playerLayer);
+        if (tex == 0)
             return;
 
-        QAbstractVideoBuffer *buffer = new TextureCacheVideoBuffer(tex);
+        auto buffer = new TextureVideoBuffer(QAbstractVideoBuffer::MTLTextureHandle, tex);
+        QVideoFrame frame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
+        if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
+            m_surface->stop();
+
+        if (!m_surface->isActive()) {
+            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::MTLTextureHandle);
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
+            format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
 #else
-        GLuint tex = m_frameRenderer->renderLayerToTexture(playerLayer);
+            format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+#endif
+            if (!m_surface->start(format))
+                qWarning("Failed to activate video surface");
+        }
+
+        if (m_surface->isActive())
+            m_surface->present(frame);
+
+        return;
+    }
+
+    if (m_enableOpenGL) {
+        quint64 tex = m_frameRenderer->renderLayerToTexture(playerLayer);
         //Make sure we got a valid texture
         if (tex == 0)
             return;
 
-        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(tex);
-#endif
+        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(QAbstractVideoBuffer::GLTextureHandle, tex);
         QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
 
         if (m_surface && frame.isValid()) {

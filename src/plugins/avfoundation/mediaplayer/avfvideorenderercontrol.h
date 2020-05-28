@@ -84,6 +84,7 @@ private:
     AVFDisplayLink *m_displayLink;
     QSize m_nativeSize;
     bool m_enableOpenGL;
+    bool m_enableMetal;
 };
 
 QT_END_NAMESPACE

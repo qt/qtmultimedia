@@ -72,6 +72,9 @@ AVFVideoFrameRenderer::~AVFVideoFrameRenderer()
     [m_videoOutput release]; // sending to nil is fine
     if (m_textureCache)
         CFRelease(m_textureCache);
+    if (m_metalTextureCache)
+        CFRelease(m_metalTextureCache);
+    [m_metalDevice release];
     delete m_offscreenSurface;
     delete m_glContext;
 }
@@ -86,16 +89,59 @@ void AVFVideoFrameRenderer::setPlayerLayer(AVPlayerLayer *layer)
     }
 }
 
-CVOGLTextureRef AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer)
+quint64 AVFVideoFrameRenderer::renderLayerToMTLTexture(AVPlayerLayer *layer)
+{
+    if (!m_metalDevice)
+        m_metalDevice = MTLCreateSystemDefaultDevice();
+
+    if (!m_metalTextureCache) {
+        CVReturn err = CVMetalTextureCacheCreate(kCFAllocatorDefault, nullptr,
+            m_metalDevice, nullptr, &m_metalTextureCache);
+        if (err) {
+            qWarning() << "Error at CVMetalTextureCacheCreate" << err;
+            return 0;
+        }
+    }
+
+    size_t width = 0, height = 0;
+    CVPixelBufferRef pixelBuffer = copyPixelBufferFromLayer(layer, width, height);
+
+    if (!pixelBuffer)
+        return 0;
+
+    CVMetalTextureCacheFlush(m_metalTextureCache, 0);
+
+    CVMetalTextureRef texture = nil;
+    CVReturn err = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault, m_metalTextureCache, pixelBuffer, NULL,
+                                                             MTLPixelFormatBGRA8Unorm_sRGB, width, height, 0, &texture);
+
+    if (!texture || err)
+        qWarning("CVMetalTextureCacheCreateTextureFromImage failed (error: %d)", err);
+
+    CVPixelBufferRelease(pixelBuffer);
+    quint64 tex = 0;
+    if (texture)  {
+        tex = quint64(CVMetalTextureGetTexture(texture));
+        CFRelease(texture);
+    }
+
+    return tex;
+}
+
+quint64 AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer)
 {
     initRenderer();
 
     // If the glContext isn't shared, it doesn't make sense to return a texture for us
     if (!m_isContextShared)
-        return nullptr;
+        return 0;
 
     size_t dummyWidth = 0, dummyHeight = 0;
-    return createCacheTextureFromLayer(layer, dummyWidth, dummyHeight);
+    auto texture = createCacheTextureFromLayer(layer, dummyWidth, dummyHeight);
+    auto tex = quint64(CVOGLTextureGetName(texture));
+    CFRelease(texture);
+
+    return tex;
 }
 
 static NSString* const AVF_PIXEL_FORMAT_KEY = (NSString*)kCVPixelBufferPixelFormatTypeKey;

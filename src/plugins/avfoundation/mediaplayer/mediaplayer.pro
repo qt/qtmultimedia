@@ -6,7 +6,7 @@ CONFIG += no_keywords
 
 QT += opengl multimedia-private network
 
-LIBS += -framework CoreMedia -framework CoreVideo -framework QuartzCore
+LIBS += -framework CoreMedia -framework CoreVideo -framework QuartzCore -framework Metal
 
 QMAKE_USE += avfoundation
 

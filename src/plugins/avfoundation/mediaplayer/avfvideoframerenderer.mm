@@ -72,13 +72,14 @@ AVFVideoFrameRenderer::~AVFVideoFrameRenderer()
 #endif
 
     [m_videoLayerRenderer release];
+    [m_metalDevice release];
     delete m_fbo[0];
     delete m_fbo[1];
     delete m_offscreenSurface;
     delete m_glContext;
 }
 
-GLuint AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer)
+quint64 AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer)
 {
     //Is layer valid
     if (!layer)
@@ -98,6 +99,44 @@ GLuint AVFVideoFrameRenderer::renderLayerToTexture(AVPlayerLayer *layer)
         m_glContext->doneCurrent();
 
     return fbo->texture();
+}
+
+quint64 AVFVideoFrameRenderer::renderLayerToMTLTexture(AVPlayerLayer *layer)
+{
+    m_targetSize = QSize(layer.bounds.size.width, layer.bounds.size.height);
+
+    if (!m_metalDevice)
+        m_metalDevice = MTLCreateSystemDefaultDevice();
+
+    if (!m_metalTexture) {
+        auto desc = [[MTLTextureDescriptor alloc] init];
+        desc.textureType = MTLTextureType2D;
+        desc.width = NSUInteger(m_targetSize.width());
+        desc.height = NSUInteger(m_targetSize.height());
+        desc.resourceOptions = MTLResourceStorageModePrivate;
+        desc.usage = MTLTextureUsageRenderTarget;
+        desc.pixelFormat = MTLPixelFormatRGBA8Unorm;
+
+        m_metalTexture = [m_metalDevice newTextureWithDescriptor: desc];
+        [desc release];
+    }
+
+    if (!m_videoLayerRenderer) {
+        m_videoLayerRenderer = [CARenderer rendererWithMTLTexture:m_metalTexture options:nil];
+        [m_videoLayerRenderer retain];
+    }
+
+    if (m_videoLayerRenderer.layer != layer) {
+        m_videoLayerRenderer.layer = layer;
+        m_videoLayerRenderer.bounds = layer.bounds;
+    }
+
+    [m_videoLayerRenderer beginFrameAtTime:CACurrentMediaTime() timeStamp:NULL];
+    [m_videoLayerRenderer addUpdateRect:layer.bounds];
+    [m_videoLayerRenderer render];
+    [m_videoLayerRenderer endFrame];
+
+    return quint64(m_metalTexture);
 }
 
 QImage AVFVideoFrameRenderer::renderLayerToImage(AVPlayerLayer *layer)
@@ -131,8 +170,7 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
         : nullptr;
 
     //Make sure we have an OpenGL context to make current
-    if ((shareContext && shareContext != QOpenGLContext::currentContext())
-        || (!QOpenGLContext::currentContext() && !m_glContext)) {
+    if (shareContext || (!QOpenGLContext::currentContext() && !m_glContext)) {
 
         //Create Hidden QWindow surface to create context in this thread
         delete m_offscreenSurface;

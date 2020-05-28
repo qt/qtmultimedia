@@ -45,6 +45,9 @@
 #include <QtGui/QOpenGLContext>
 #include <QtCore/QSize>
 
+#import "Metal/Metal.h"
+#import "MetalKit/MetalKit.h"
+
 @class AVPlayerLayer;
 @class AVPlayerItemVideoOutput;
 
@@ -92,7 +95,8 @@ public:
 
     void setPlayerLayer(AVPlayerLayer *layer);
 
-    CVOGLTextureRef renderLayerToTexture(AVPlayerLayer *layer);
+    quint64 renderLayerToTexture(AVPlayerLayer *layer);
+    quint64 renderLayerToMTLTexture(AVPlayerLayer *layer);
     QImage renderLayerToImage(AVPlayerLayer *layer);
 
 private:
@@ -106,6 +110,9 @@ private:
     CVOGLTextureCacheRef m_textureCache;
     AVPlayerItemVideoOutput* m_videoOutput;
     bool m_isContextShared;
+
+    id<MTLDevice> m_metalDevice = nil;
+    CVMetalTextureCacheRef m_metalTextureCache = nil;
 };
 
 QT_END_NAMESPACE

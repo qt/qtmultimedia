@@ -38,6 +38,7 @@
 ****************************************************************************/
 #include "qsgvideonode_texture_p.h"
 #include "qsgvideotexture_p.h"
+#include <private/qsgrhisupport_p.h>
 #include <QtQuick/qsgmaterial.h>
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
@@ -48,8 +49,9 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelForma
                                         QAbstractVideoBuffer::HandleType handleType) const
 {
     QList<QVideoFrame::PixelFormat> pixelFormats;
-
-    if (handleType == QAbstractVideoBuffer::GLTextureHandle) {
+    auto rhi = QSGRhiSupport::instance();
+    auto metalEnabled = rhi->isRhiEnabled() && rhi->rhiBackend() == QRhi::Metal && handleType == QAbstractVideoBuffer::MTLTextureHandle;
+    if (handleType == QAbstractVideoBuffer::GLTextureHandle || metalEnabled) {
         pixelFormats.append(QVideoFrame::Format_RGB565);
         pixelFormats.append(QVideoFrame::Format_RGB32);
         pixelFormats.append(QVideoFrame::Format_ARGB32);

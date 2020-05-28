@@ -68,7 +68,7 @@ public:
         return m_format.pixelFormat();
     }
     QAbstractVideoBuffer::HandleType handleType() const override {
-        return QAbstractVideoBuffer::GLTextureHandle;
+        return m_format.handleType();
     }
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) override;
 

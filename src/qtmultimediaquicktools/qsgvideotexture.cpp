@@ -166,9 +166,6 @@ void QSGVideoTexturePrivate::updateRhiTexture(QRhi *rhi, QRhiResourceUpdateBatch
         QRhiTextureUploadDescription desc({ entry });
         resourceUpdates->uploadTexture(m_texture.data(), desc);
     }
-    if (q->hasMipmaps())
-        resourceUpdates->generateMips(m_texture.data());
-
 }
 
 void QSGVideoTexture::commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
