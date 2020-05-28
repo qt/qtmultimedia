@@ -944,16 +944,17 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::paint(
             glActiveTexture(GL_TEXTURE0);
         }
 
-        glVertexPointer(2, GL_FLOAT, 0, v_array);
-        glTexCoordPointer(2, GL_FLOAT, 0, tx_array);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, v_array);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, tx_array);
 
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+
         glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
         painter->endNativePainting();
