@@ -51,7 +51,6 @@
 #include <qtcore/qthread.h>
 #include "guiddef.h"
 #include <qtcore/qdebug.h>
-#include <QtMultimedia/private/qmediaopenglhelper_p.h>
 
 //#define DEBUG_MEDIAFOUNDATION
 #define PAD_TO_DWORD(x)  (((x) + 3) & ~3)

@@ -44,7 +44,6 @@
 #include <qpainter.h>
 #include <qvariant.h>
 #include <qvideosurfaceformat.h>
-#include <private/qmediaopenglhelper_p.h>
 
 #if QT_CONFIG(opengl)
 #include <QOpenGLContext>
@@ -278,9 +277,8 @@ protected:
     void initYv12TextureInfo(const QSize &size);
 
     bool needsSwizzling(const QVideoSurfaceFormat &format) const {
-        return !QMediaOpenGLHelper::isANGLE()
-                && (format.pixelFormat() == QVideoFrame::Format_RGB32
-                    || format.pixelFormat() == QVideoFrame::Format_ARGB32);
+        return format.pixelFormat() == QVideoFrame::Format_RGB32
+               || format.pixelFormat() == QVideoFrame::Format_ARGB32;
     }
 
     QList<QVideoFrame::PixelFormat> m_imagePixelFormats;
