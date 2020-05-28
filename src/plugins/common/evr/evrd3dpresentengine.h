@@ -45,11 +45,6 @@
 
 #include <d3d9.h>
 
-#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_DYNAMIC)
-# include <EGL/egl.h>
-# define MAYBE_ANGLE
-#endif
-
 struct IDirect3D9Ex;
 struct IDirect3DDevice9Ex;
 struct IDirect3DDeviceManager9;
