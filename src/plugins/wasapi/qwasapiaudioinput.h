@@ -42,7 +42,7 @@
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QMutex>
-#include <QtCore/QTime>
+#include <QtCore/QElapsedTimer>
 #include <QtMultimedia/QAbstractAudioInput>
 #include <QtMultimedia/QAudio>
 
@@ -104,7 +104,7 @@ private:
     QAudio::Error m_currentError;
     QAudioFormat m_currentFormat;
     qint64 m_bytesProcessed;
-    QTime m_openTime;
+    QElapsedTimer m_openTime;
     int m_openTimeOffset;
     int m_interval;
     bool m_pullMode;

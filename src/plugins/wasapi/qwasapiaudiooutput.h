@@ -42,7 +42,6 @@
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QMutex>
-#include <QtCore/QTime>
 #include <QtCore/QElapsedTimer>
 #include <QtMultimedia/QAbstractAudioOutput>
 #include <QtMultimedia/QAudio>
