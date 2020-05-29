@@ -149,8 +149,8 @@ void QSGVideoTexturePrivate::updateRhiTexture(QRhi *rhi, QRhiResourceUpdateBatch
     if (needsRebuild) {
         m_texture->setPixelSize(m_size);
         bool created = m_nativeObject
-            ? m_texture->buildFrom({m_nativeObject, 0})
-            : m_texture->build();
+            ? m_texture->createFrom({m_nativeObject, 0})
+            : m_texture->create();
         if (!created) {
             qWarning("Failed to build texture (size %dx%d)",
                 m_size.width(), m_size.height());
