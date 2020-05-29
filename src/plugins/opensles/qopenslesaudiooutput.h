@@ -44,7 +44,7 @@
 #include <SLES/OpenSLES.h>
 #include <qbytearray.h>
 #include <qmap.h>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QIODevice>
 
 QT_BEGIN_NAMESPACE
@@ -126,7 +126,7 @@ private:
     bool m_startRequiresInit;
 
     qint32 m_streamType;
-    QTime m_clockStamp;
+    QElapsedTimer m_clockStamp;
     QAudioFormat m_format;
     QString m_category;
     static QMap<QString, qint32> m_categories;

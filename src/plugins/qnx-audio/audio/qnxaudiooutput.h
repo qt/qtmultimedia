@@ -42,7 +42,7 @@
 
 #include "qaudiosystem.h"
 
-#include <QTime>
+#include <QElapsedTimer>
 #include <QTimer>
 #include <QIODevice>
 #include <QSocketNotifier>
@@ -119,8 +119,8 @@ private:
 
     snd_pcm_t *m_pcmHandle;
     qint64 m_bytesWritten;
-    QTime m_startTimeStamp;
-    QTime m_intervalTimeStamp;
+    QElapsedTimer m_startTimeStamp;
+    QElapsedTimer m_intervalTimeStamp;
     qint64 m_intervalOffset;
 
 #if _NTO_VERSION >= 700

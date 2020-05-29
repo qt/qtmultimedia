@@ -41,7 +41,7 @@
 #define QOPENSLESAUDIOINPUT_H
 
 #include <qaudiosystem.h>
-#include <QTime>
+#include <QElapsedTimer>
 #include <SLES/OpenSLES.h>
 
 #ifdef ANDROID
@@ -118,7 +118,7 @@ private:
     QAudioFormat m_format;
     QAudio::Error m_errorState;
     QAudio::State m_deviceState;
-    QTime m_clockStamp;
+    QElapsedTimer m_clockStamp;
     qint64 m_lastNotifyTime;
     qreal m_volume;
     int m_bufferSize;

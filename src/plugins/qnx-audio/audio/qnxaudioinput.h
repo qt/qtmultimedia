@@ -44,7 +44,7 @@
 
 #include <QSocketNotifier>
 #include <QIODevice>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QTimer>
 
 #include <sys/asoundlib.h>
@@ -93,8 +93,8 @@ private:
     void setError(QAudio::Error error);
     void setState(QAudio::State state);
 
-    QTime m_timeStamp;
-    QTime m_clockStamp;
+    QElapsedTimer m_timeStamp;
+    QElapsedTimer m_clockStamp;
     QAudioFormat m_format;
 
     QIODevice *m_audioSource;
