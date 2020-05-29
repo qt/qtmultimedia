@@ -55,6 +55,7 @@
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QCommandLineOption>
 #include <QtCore/QDir>
+#include <QScreen>
 
 int main(int argc, char *argv[])
 {
@@ -79,7 +80,7 @@ int main(int argc, char *argv[])
         player.setUrl(url);
     }
 
-    const QRect availableGeometry = QApplication::desktop()->availableGeometry(&player);
+    const QSize availableGeometry = player.screen()->availableSize();
     player.resize(availableGeometry.width() / 6, availableGeometry.height() / 4);
     player.show();
 
