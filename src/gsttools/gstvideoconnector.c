@@ -116,13 +116,13 @@ gst_video_connector_class_init (GstVideoConnectorClass * klass)
     gst_video_connector_signals[SIGNAL_RESEND_NEW_SEGMENT] =
             g_signal_new ("resend-new-segment", G_TYPE_FROM_CLASS (klass),
                           G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
-                          G_STRUCT_OFFSET (GstVideoConnectorClass, resend_new_segment), nullptr, nullptr,
+                          G_STRUCT_OFFSET (GstVideoConnectorClass, resend_new_segment), NULL, NULL,
                           g_cclosure_marshal_VOID__BOOLEAN, G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
 
     gst_video_connector_signals[SIGNAL_CONNECTION_FAILED] =
             g_signal_new ("connection-failed", G_TYPE_FROM_CLASS (klass),
                           G_SIGNAL_RUN_LAST,
-                          0, nullptr, nullptr,
+                          0, NULL, NULL,
                           g_cclosure_marshal_VOID__VOID, G_TYPE_NONE, 0);
 }
 
@@ -159,7 +159,7 @@ gst_video_connector_init (GstVideoConnector *element,
     element->relinked = FALSE;
     element->failedSignalEmited = FALSE;
     gst_segment_init (&element->segment, GST_FORMAT_TIME);
-    element->latest_buffer = nullptr;
+    element->latest_buffer = NULL;
 }
 
 static void
@@ -167,9 +167,9 @@ gst_video_connector_reset (GstVideoConnector * element)
 {
     element->relinked = FALSE;
     element->failedSignalEmited = FALSE;
-    if (element->latest_buffer != nullptr) {
+    if (element->latest_buffer != NULL) {
         gst_buffer_unref (element->latest_buffer);
-        element->latest_buffer = nullptr;
+        element->latest_buffer = NULL;
     }
     gst_segment_init (&element->segment, GST_FORMAT_UNDEFINED);
 }
@@ -196,7 +196,7 @@ gst_video_connector_buffer_alloc (GstPad * pad, guint64 offset, guint size,
 
     if (!buf)
         return GST_FLOW_ERROR;
-    *buf = nullptr;
+    *buf = NULL;
 
     gboolean isFailed = FALSE;
     while (1) {
@@ -265,7 +265,7 @@ gst_video_connector_setcaps (GstPad  *pad, GstCaps *caps)
     /* forward-negotiate */
     gboolean res = gst_pad_set_caps(element->srcpad, caps);
 
-    gchar * debugmsg = nullptr;
+    gchar * debugmsg = NULL;
     GST_DEBUG_OBJECT(element, "gst_video_connector_setcaps %s %i", debugmsg = gst_caps_to_string(caps), res);
     if (debugmsg)
         g_free(debugmsg);
@@ -407,7 +407,7 @@ gst_video_connector_chain (GstPad * pad, GstBuffer * buf)
 
     if (element->latest_buffer) {
         gst_buffer_unref (element->latest_buffer);
-        element->latest_buffer = nullptr;
+        element->latest_buffer = NULL;
     }
 
     element->latest_buffer = gst_buffer_ref(buf);
