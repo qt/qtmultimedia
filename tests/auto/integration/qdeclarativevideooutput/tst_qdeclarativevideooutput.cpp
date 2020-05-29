@@ -378,16 +378,6 @@ void tst_QDeclarativeVideoOutput::paintSurface()
 
     QImage img(rgb32ImageData, 2, 2, 8, QImage::Format_RGB32);
     QVERIFY(surface->present(img));
-
-    if (QGuiApplication::platformName() == QLatin1String("offscreen")
-        || QGuiApplication::platformName() == QLatin1String("minimal"))
-        return;
-
-    QImage capture = window.grabWindow();
-    QCOMPARE(capture.pixelColor(0, 0), QColor(rgb32ImageData[2], rgb32ImageData[1], rgb32ImageData[0], rgb32ImageData[3]));
-    QCOMPARE(capture.pixelColor(1, 0), QColor(rgb32ImageData[6], rgb32ImageData[5], rgb32ImageData[4], rgb32ImageData[7]));
-    QCOMPARE(capture.pixelColor(0, 1), QColor(rgb32ImageData[10], rgb32ImageData[9], rgb32ImageData[8], rgb32ImageData[11]));
-    QCOMPARE(capture.pixelColor(1, 1), QColor(rgb32ImageData[14], rgb32ImageData[13], rgb32ImageData[12], rgb32ImageData[15]));
 }
 
 void tst_QDeclarativeVideoOutput::sourceRect()
