@@ -68,10 +68,6 @@ public slots:
     void cleanupTestCase();
 
 private slots:
-#if QT_DEPRECATED_SINCE(5, 3)
-    void testAvailableDevices();
-    void testDeviceDescription();
-#endif
     void testCameraInfo();
     void testCtorWithDevice();
     void testCtorWithCameraInfo();
@@ -101,27 +97,6 @@ void tst_QCameraBackend::initTestCase()
 void tst_QCameraBackend::cleanupTestCase()
 {
 }
-
-#if QT_DEPRECATED_SINCE(5, 3)
-void tst_QCameraBackend::testAvailableDevices()
-{
-    int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
-    QCOMPARE(QCamera::availableDevices().count(), deviceCount);
-}
-
-void tst_QCameraBackend::testDeviceDescription()
-{
-    int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
-
-    if (deviceCount == 0)
-        QVERIFY(QCamera::deviceDescription(QByteArray("random")).isNull());
-    else {
-        const auto devices = QCamera::availableDevices();
-        for (const QByteArray &device : devices)
-            QVERIFY(QCamera::deviceDescription(device).length() > 0);
-    }
-}
-#endif
 
 void tst_QCameraBackend::testCameraInfo()
 {

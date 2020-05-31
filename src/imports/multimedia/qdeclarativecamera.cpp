@@ -61,7 +61,6 @@ QT_BEGIN_NAMESPACE
 
 void QDeclarativeCamera::_q_errorOccurred(QCamera::Error errorCode)
 {
-    emit error(Error(errorCode), errorString());
     emit errorOccurred(Error(errorCode), errorString());
     emit errorChanged();
 }

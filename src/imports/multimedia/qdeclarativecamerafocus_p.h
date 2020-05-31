@@ -104,11 +104,6 @@ public:
     QPointF customFocusPoint() const;
     QAbstractListModel *focusZones() const;
 
-#if QT_DEPRECATED_SINCE(5, 10)
-    Q_INVOKABLE bool isFocusModeSupported(FocusMode mode) const;
-    Q_INVOKABLE bool isFocusPointModeSupported(FocusPointMode mode) const;
-#endif
-
 public Q_SLOTS:
     void setFocusMode(FocusMode);
     void setFocusPointMode(FocusPointMode mode);

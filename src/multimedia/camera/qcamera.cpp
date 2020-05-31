@@ -110,7 +110,6 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
     this->errorString = errorString;
 
     emit q->errorOccurred(this->error);
-    emit q->error(this->error);
 }
 
 void QCameraPrivate::setState(QCamera::State newState)
@@ -878,30 +877,6 @@ void QCamera::unload()
     Q_D(QCamera);
     d->setState(QCamera::UnloadedState);
 }
-
-#if QT_DEPRECATED_SINCE(5, 3)
-/*!
-    Returns a list of camera device's available from the default service provider.
-    \deprecated
-    \sa QCameraInfo::availableCameras()
-*/
-
-QList<QByteArray> QCamera::availableDevices()
-{
-    return QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA));
-}
-
-/*!
-    Returns the description of the \a device.
-    \deprecated
-    \sa QCameraInfo::availableCameras(), QCameraInfo::description()
-*/
-
-QString QCamera::deviceDescription(const QByteArray &device)
-{
-    return QMediaServiceProvider::defaultServiceProvider()->deviceDescription(QByteArray(Q_MEDIASERVICE_CAMERA), device);
-}
-#endif
 
 QCamera::State QCamera::state() const
 {
