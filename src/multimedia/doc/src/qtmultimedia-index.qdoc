@@ -28,12 +28,12 @@
 /*!
     \page qtmultimedia-index.html
     \title Qt Multimedia
-    \brief The Qt Multimedia module provides APIs for audio, video, radio, and
+    \brief The Qt Multimedia module provides APIs for audio, video and
     camera-related functionality.
 
     Qt Multimedia is an essential module that provides a rich set of QML types
     and C++ classes to handle multimedia content. It also provides necessary
-    APIs to access the camera and radio functionality. The included
+    APIs to access the camera functionality. The included
     \l{Qt Audio Engine QML Types}{Qt Audio Engine} provides types for
     3D positional audio playback and content management.
 
@@ -98,9 +98,6 @@
      \li Add media playback functionality to a scene. It is same as Audio type,
      but can be used for video playback with the VideoOutput type.
     \row
-     \li \l {QtMultimedia::Radio}{Radio}
-     \li Access radio functionality
-    \row
      \li \l {QtMultimedia::Video}{Video}
      \li Add Video playback functionality to a scene. It uses MediaPlayer and
      VideoOutput types to provide video playback functionality.
@@ -124,7 +121,7 @@
      \li Capture still images with a camera.
     \row
      \li QMediaRecorder
-     \li Record media content from a camera or radio tuner source.
+     \li Record media content from a camera source.
     \row
      \li QMediaPlayer
      \li Playback media from a source.
@@ -153,7 +150,6 @@
       \li \l{Audio Overview}
       \li \l{Video Overview}
       \li \l{Camera Overview}
-      \li \l{Radio Overview}
      \endlist
 
     \section2 Platform Notes

@@ -8,8 +8,6 @@ HEADERS += \
         qdeclarativeaudio_p.h \
         qdeclarativemediametadata_p.h \
         qdeclarativeplaylist_p.h \
-        qdeclarativeradio_p.h \
-        qdeclarativeradiodata_p.h \
         qdeclarativecamera_p.h \
         qdeclarativecameracapture_p.h \
         qdeclarativecamerarecorder_p.h \
@@ -26,8 +24,6 @@ SOURCES += \
         multimedia.cpp \
         qdeclarativeaudio.cpp \
         qdeclarativeplaylist.cpp \
-        qdeclarativeradio.cpp \
-        qdeclarativeradiodata.cpp \
         qdeclarativecamera.cpp \
         qdeclarativecameracapture.cpp \
         qdeclarativecamerarecorder.cpp \

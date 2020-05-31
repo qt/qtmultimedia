@@ -51,11 +51,6 @@ unix:!mac:!android {
 
     qtConfig(pulseaudio): SUBDIRS += pulseaudio
     qtConfig(alsa): SUBDIRS += alsa
-
-    # v4l is turned off because it is not supported in Qt 5
-    # qtConfig(linux_v4l) {
-    #     SUBDIRS += v4l
-    # }
 }
 
 darwin:!watchos {

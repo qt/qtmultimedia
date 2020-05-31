@@ -34,7 +34,7 @@
 The QML types for \l{Qt Multimedia} support the basic use cases such as:
 \list
  \li audio and video playback,
- \li access camera and radio functionality,
+ \li access camera functionality,
  \li record video,
  \li and access camera settings.
 \endlist

@@ -234,16 +234,6 @@ public:
 #define Q_MEDIASERVICE_CAMERA "org.qt-project.qt.camera"
 
 /*!
-    Service with support for radio tuning.
-    Required Controls: QRadioTunerControl
-    Recording Controls (Optional, used by QMediaRecorder):
-                        Required: QMediaRecorderControl
-                        Recommended: QAudioEncoderSettingsControl
-                        Optional: QMediaContainerControl
-*/
-#define Q_MEDIASERVICE_RADIO "org.qt-project.qt.radio"
-
-/*!
     Service with support for decoding audio.
     Required Controls: QAudioDecoderControl
     Optional: that streams control

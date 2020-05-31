@@ -27,8 +27,6 @@ PUBLIC_HEADERS += \
     controls/qmediastreamscontrol.h \
     controls/qmetadatareadercontrol.h \
     controls/qmetadatawritercontrol.h \
-    controls/qradiodatacontrol.h \
-    controls/qradiotunercontrol.h \
     controls/qvideodeviceselectorcontrol.h \
     controls/qvideoencodersettingscontrol.h \
     controls/qvideorenderercontrol.h \
@@ -67,8 +65,6 @@ SOURCES += \
     controls/qmediastreamscontrol.cpp \
     controls/qmetadatareadercontrol.cpp \
     controls/qmetadatawritercontrol.cpp \
-    controls/qradiodatacontrol.cpp \
-    controls/qradiotunercontrol.cpp \
     controls/qvideorenderercontrol.cpp \
     controls/qvideowindowcontrol.cpp \
     controls/qmediaaudioprobecontrol.cpp \

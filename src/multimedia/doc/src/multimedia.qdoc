@@ -28,12 +28,12 @@
 /*!
 \page multimediaoverview.html
 \title Multimedia
-\brief A set of APIs for working with audio, video, radio and camera devices.
+\brief A set of APIs for working with audio, video and camera devices.
 
 Multimedia support in Qt is provided by the \l{Qt Multimedia} module. The Qt
 Multimedia module provides a rich feature set that enables you to easily take
 advantage of a platform's multimedia capabilities such as media playback and
-the use of camera and radio devices.
+the use of camera devices.
 
 \section1 Features
 
@@ -44,7 +44,6 @@ Here are some examples of what can be done with Qt Multimedia APIs:
 \li Play low latency sound effects
 \li Play media files in playlists (such as compressed audio or video files)
 \li Record audio and compress it
-\li Tune and listen to radio stations
 \li Use a camera, including viewfinder, image capture, and movie recording
 \li Play 3D positional audio with \l{Qt Audio Engine QML Types}{Qt Audio Engine}
 \li Decode audio media files into memory for processing
@@ -61,7 +60,6 @@ available here:
 \li \l {Audio Overview}
 \li \l {Video Overview}
 \li \l {Camera Overview}
-\li \l {Radio Overview}
 \endlist
 
 \section1 Multimedia Recipes
@@ -118,11 +116,6 @@ For some quick recipes, look at the overviews above and consult this table:
         \li \l {QML Video Example}{qmlvideofx}
         \li \l {MediaPlayer}, \l VideoOutput
         \li QMediaPlayer, QAbstractVideoSurface, QVideoFrame
-    \row
-        \li Listening to the radio
-        \li \l {Declarative Radio Example}{declarative-radio}
-        \li \l Radio, \l RadioData
-        \li QRadioTuner, QRadioData
     \row
         \li Accessing camera viewfinder
         \li \l {Camera Example}{camera},

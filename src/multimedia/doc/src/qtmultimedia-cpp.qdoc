@@ -31,7 +31,7 @@
     \ingroup modules
     \qtvariable multimedia
 
-    \brief The \l {Qt Multimedia} module provides audio, video, radio and camera
+    \brief The \l {Qt Multimedia} module provides audio, video and camera
     functionality.
 
     To enable Qt Multimedia in a project, add this directive into the

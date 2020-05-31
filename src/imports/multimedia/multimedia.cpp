@@ -49,8 +49,6 @@
 #include "qdeclarativemultimediaglobal_p.h"
 #include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeaudio_p.h"
-#include "qdeclarativeradio_p.h"
-#include "qdeclarativeradiodata_p.h"
 #include "qdeclarativeplaylist_p.h"
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
@@ -88,8 +86,6 @@ public:
         qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "Audio");
         qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 5, 0, "VideoOutput");
-        qmlRegisterType<QDeclarativeRadio>(uri, 5, 0, "Radio");
-        qmlRegisterType<QDeclarativeRadioData>(uri, 5, 0, "RadioData");
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
         qmlRegisterType<QDeclarativeTorch>(uri, 5, 0, "Torch");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",

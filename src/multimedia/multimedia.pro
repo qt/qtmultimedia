@@ -61,7 +61,6 @@ include(audio/audio.pri)
 include(camera/camera.pri)
 include(controls/controls.pri)
 include(playback/playback.pri)
-include(radio/radio.pri)
 include(recording/recording.pri)
 include(video/video.pri)
 

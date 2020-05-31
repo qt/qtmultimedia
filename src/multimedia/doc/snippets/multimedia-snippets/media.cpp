@@ -47,8 +47,6 @@
 #include "qmediaservice.h"
 #include "qmediaplayercontrol.h"
 #include "qmediaplayer.h"
-#include "qradiotuner.h"
-#include "qradiodata.h"
 #include "qvideowidget.h"
 #include "qcameraimagecapture.h"
 #include "qcamera.h"
@@ -63,7 +61,6 @@ class MediaExample : public QObject {
 
     void MediaControl();
     void MediaPlayer();
-    void RadioTuna();
     void MediaRecorder();
     void AudioRecorder();
     void EncoderSettings();
@@ -84,8 +81,6 @@ private:
     QCameraViewfinder *viewfinder;
     QCameraImageCapture *imageCapture;
     QString fileName;
-    QRadioTuner *radio;
-    QRadioData *radioData;
     QAudioRecorder *audioRecorder;
     QAudioProbe *audioProbe;
     QVideoProbe *videoProbe;
@@ -93,8 +88,6 @@ private:
     QMediaContent image1;
     QMediaContent image2;
     QMediaContent image3;
-
-    static const int yourRadioStationFrequency = 11;
 };
 
 void MediaExample::MediaControl()
@@ -296,25 +289,6 @@ void MediaExample::AudioRecorder()
 
     audioRecorder->setAudioInput(selectedInput);
     //! [Audio recorder inputs]
-}
-
-void MediaExample::RadioTuna()
-{
-    //! [Radio tuner]
-    radio = new QRadioTuner;
-    connect(radio, SIGNAL(frequencyChanged(int)), this, SLOT(freqChanged(int)));
-    if (radio->isBandSupported(QRadioTuner::FM)) {
-        radio->setBand(QRadioTuner::FM);
-        radio->setFrequency(yourRadioStationFrequency);
-        radio->setVolume(100);
-        radio->start();
-    }
-    //! [Radio tuner]
-
-    //! [Radio data setup]
-    radio = new QRadioTuner;
-    radioData = radio->radioData();
-    //! [Radio data setup]
 }
 
 void MediaExample::AudioProbe()

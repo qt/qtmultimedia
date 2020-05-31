@@ -71,7 +71,7 @@ QT_BEGIN_NAMESPACE
 
     The QMediaRecorder class is a high level media recording class.  It's not
     intended to be used alone but for accessing the media recording functions
-    of other media objects, like QRadioTuner, or QCamera.
+    of other media objects, like QCamera.
 
     \snippet multimedia-snippets/media.cpp Media recorder
 
