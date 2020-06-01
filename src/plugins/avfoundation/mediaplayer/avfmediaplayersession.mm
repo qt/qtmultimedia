@@ -536,16 +536,16 @@ QIODevice *AVFMediaPlayerSession::mediaStream() const
     return m_mediaStream;
 }
 
-static void setURL(void *observer, const QString &url, const QString &mimeType = QString())
+static void setURL(void *observer, const QByteArray &url, const QString &mimeType = QString())
 {
-    NSString *urlString = [NSString stringWithUTF8String:url.toUtf8().constData()];
+    NSString *urlString = [NSString stringWithUTF8String:url.constData()];
     NSURL *nsurl = [NSURL URLWithString:urlString];
     [static_cast<AVFMediaPlayerSessionObserver*>(observer) setURL:nsurl mimeType:[NSString stringWithUTF8String:mimeType.toLatin1().constData()]];
 }
 
-static void setStreamURL(void *observer, const QString &url)
+static void setStreamURL(void *observer, const QByteArray &url)
 {
-    setURL(observer, QLatin1String("iodevice://") + url, QFileInfo(url).suffix());
+    setURL(observer, QByteArrayLiteral("iodevice://") + url, QFileInfo(url).suffix());
 }
 
 void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *stream)
@@ -588,11 +588,11 @@ void AVFMediaPlayerSession::setMedia(const QMediaContent &content, QIODevice *st
         // If there is a data, try to load it,
         // otherwise wait for readyRead.
         if (m_mediaStream->size())
-            setStreamURL(m_observer, m_resources.request().url().toString());
+            setStreamURL(m_observer, m_resources.request().url().toEncoded());
     } else {
         //Load AVURLAsset
         //initialize asset using content's URL
-        setURL(m_observer, m_resources.request().url().toString());
+        setURL(m_observer, m_resources.request().url().toEncoded());
     }
 
     m_state = QMediaPlayer::StoppedState;
@@ -1037,7 +1037,7 @@ void AVFMediaPlayerSession::processMediaLoadError()
 
 void AVFMediaPlayerSession::streamReady()
 {
-    setStreamURL(m_observer, m_resources.request().url().toString());
+    setStreamURL(m_observer, m_resources.request().url().toEncoded());
 }
 
 void AVFMediaPlayerSession::streamDestroyed()
