@@ -440,7 +440,7 @@ void QGstreamerPlayerControl::updateSessionState(QMediaPlayer::State state)
         m_pendingSeekPosition = -1;
 
         if (m_currentState == QMediaPlayer::PlayingState) {
-            if (m_mediaStatus == QMediaPlayer::BufferedMedia)
+            if (m_bufferProgress == -1 || m_bufferProgress == 100)
                 m_session->play();
         }
     }
