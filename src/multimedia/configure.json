@@ -123,16 +123,6 @@
                 { "libs": "-lmmrndclient -lstrm" }
             ]
         },
-        "openal": {
-            "label": "OpenAL",
-            "test": "openal",
-            "sources": [
-                { "type": "pkgConfig", "args": "openal" },
-                { "libs": "-lOpenAL32", "condition": "config.win32" },
-                { "libs": "-framework OpenAL", "condition": "config.darwin" },
-                { "libs": "-lopenal", "condition": "config.unix && !config.darwin" }
-            ]
-        },
         "pulseaudio": {
             "label": "PulseAudio >= 0.9.10",
             "test": "pulseaudio",
@@ -264,11 +254,6 @@
             "condition": "libs.mmrenderer",
             "output": [ "feature", "privateFeature" ]
         },
-        "openal": {
-            "label": "OpenAL",
-            "condition": "libs.openal",
-            "output": [ "feature", "privateFeature" ]
-        },
         "pulseaudio": {
             "label": "PulseAudio",
             "autoDetect": "config.unix",
@@ -303,7 +288,6 @@
                 "gstreamer_1_0",
                 "gstreamer_0_10",
                 "linux_v4l",
-                "openal",
                 "pulseaudio",
                 "resourcepolicy",
                 "mmrenderer",

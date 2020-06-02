@@ -19,5 +19,3 @@ qtHaveModule(quick) {
         video
 }
 
-qtConfig(openal): SUBDIRS += audioengine
-
