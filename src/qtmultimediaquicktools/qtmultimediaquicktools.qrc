@@ -1,37 +1,13 @@
 <RCC>
     <qresource prefix="/qtmultimediaquicktools">
-        <file>shaders/monoplanarvideo.vert</file>
-        <file>shaders/rgbvideo.frag</file>
-        <file>shaders/rgbvideo_swizzle.frag</file>
-        <file>shaders/rgbvideo_padded.vert</file>
-        <file>shaders/biplanaryuvvideo.frag</file>
-        <file>shaders/biplanaryuvvideo.vert</file>
-        <file>shaders/biplanaryuvvideo_swizzle.frag</file>
-        <file>shaders/triplanaryuvvideo.frag</file>
-        <file>shaders/triplanaryuvvideo.vert</file>
-        <file>shaders/uyvyvideo.frag</file>
-        <file>shaders/yuyvvideo.frag</file>
-
-        <file>shaders/monoplanarvideo_core.vert</file>
-        <file>shaders/rgbvideo_core.frag</file>
-        <file>shaders/rgbvideo_swizzle_core.frag</file>
-        <file>shaders/rgbvideo_padded_core.vert</file>
-        <file>shaders/biplanaryuvvideo_core.frag</file>
-        <file>shaders/biplanaryuvvideo_core.vert</file>
-        <file>shaders/biplanaryuvvideo_swizzle_core.frag</file>
-        <file>shaders/triplanaryuvvideo_core.frag</file>
-        <file>shaders/triplanaryuvvideo_core.vert</file>
-        <file>shaders/uyvyvideo_core.frag</file>
-        <file>shaders/yuyvvideo_core.frag</file>
-
-        <file>shaders_ng/rgba.vert.qsb</file>
-        <file>shaders_ng/rgba.frag.qsb</file>
-        <file>shaders_ng/bgra.frag.qsb</file>
-        <file>shaders_ng/yuv.vert.qsb</file>
-        <file>shaders_ng/yuv_yv.frag.qsb</file>
-        <file>shaders_ng/nv12.frag.qsb</file>
-        <file>shaders_ng/nv21.frag.qsb</file>
-        <file>shaders_ng/uyvy.frag.qsb</file>
-        <file>shaders_ng/yuyv.frag.qsb</file>
+        <file>shaders/rgba.vert.qsb</file>
+        <file>shaders/rgba.frag.qsb</file>
+        <file>shaders/bgra.frag.qsb</file>
+        <file>shaders/yuv.vert.qsb</file>
+        <file>shaders/yuv_yv.frag.qsb</file>
+        <file>shaders/nv12.frag.qsb</file>
+        <file>shaders/nv21.frag.qsb</file>
+        <file>shaders/uyvy.frag.qsb</file>
+        <file>shaders/yuyv.frag.qsb</file>
     </qresource>
 </RCC>
