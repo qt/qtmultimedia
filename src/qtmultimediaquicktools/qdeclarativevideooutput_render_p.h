@@ -83,7 +83,10 @@ public:
     QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) override;
     QAbstractVideoSurface *videoSurface() const override;
     QRectF adjustedViewport() const override;
+
+#if QT_CONFIG(opengl)
     QOpenGLContext *glContext() const;
+#endif
 
     friend class QSGVideoItemSurface;
     void present(const QVideoFrame &frame);
@@ -101,7 +104,11 @@ private:
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
     QVideoSurfaceFormat m_surfaceFormat;
-    QOpenGLContext *m_glContext;
+
+#if QT_CONFIG(opengl)
+    QOpenGLContext *m_glContext = nullptr;
+#endif
+
     QVideoFrame m_frame;
     QVideoFrame m_frameOnFlush;
     bool m_frameChanged;
@@ -131,10 +138,12 @@ public:
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;
     bool present(const QVideoFrame &frame) override;
-    void scheduleOpenGLContextUpdate();
 
+#if QT_CONFIG(opengl)
+    void scheduleOpenGLContextUpdate();
 private slots:
     void updateOpenGLContext();
+#endif
 
 private:
     QDeclarativeVideoRendererBackend *m_backend;

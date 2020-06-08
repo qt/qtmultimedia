@@ -47,7 +47,10 @@
 #include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>
 
+#if QT_CONFIG(opengl)
 #include <QtGui/QOpenGLContext>
+#endif
+
 #include <QtQuick/QQuickWindow>
 #include <QtCore/QRunnable>
 
@@ -60,7 +63,6 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
 
 QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeVideoOutput *parent)
     : QDeclarativeVideoBackend(parent),
-      m_glContext(0),
       m_frameChanged(false)
 {
     m_surface = new QSGVideoItemSurface(this);
@@ -277,6 +279,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
 
     QMutexLocker lock(&m_frameMutex);
 
+#if QT_CONFIG(opengl)
     if (!m_glContext) {
         m_glContext = QOpenGLContext::currentContext();
         m_surface->scheduleOpenGLContextUpdate();
@@ -288,6 +291,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
             obj->event(&ev);
         }
     }
+#endif
 
     bool isFrameModified = false;
     if (m_frameChanged) {
@@ -402,10 +406,12 @@ QRectF QDeclarativeVideoRendererBackend::adjustedViewport() const
     return viewport;
 }
 
+#if QT_CONFIG(opengl)
 QOpenGLContext *QDeclarativeVideoRendererBackend::glContext() const
 {
     return m_glContext;
 }
+#endif
 
 void QDeclarativeVideoRendererBackend::present(const QVideoFrame &frame)
 {
@@ -478,6 +484,7 @@ bool QSGVideoItemSurface::present(const QVideoFrame &frame)
     return true;
 }
 
+#if QT_CONFIG(opengl)
 void QSGVideoItemSurface::scheduleOpenGLContextUpdate()
 {
     //This method is called from render thread
@@ -489,5 +496,6 @@ void QSGVideoItemSurface::updateOpenGLContext()
     //Set a dynamic property to access the OpenGL context in Qt Quick render thread.
     this->setProperty("GLContext", QVariant::fromValue<QObject*>(m_backend->glContext()));
 }
+#endif
 
 QT_END_NAMESPACE

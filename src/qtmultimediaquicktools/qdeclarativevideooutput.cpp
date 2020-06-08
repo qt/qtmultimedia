@@ -257,14 +257,13 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
             }
         }
     }
-#if QT_CONFIG(opengl)
+
     if (!backendAvailable) {
         if (!m_backend)
             m_backend.reset(new QDeclarativeVideoRendererBackend(this));
         if (m_backend->init(service))
             backendAvailable = true;
     }
-#endif
 
     // QDeclarativeVideoWindowBackend only works when there is a service with a QVideoWindowControl.
     // Without service, the QDeclarativeVideoRendererBackend should always work.
