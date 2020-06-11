@@ -82,7 +82,7 @@ public:
     virtual void mapFrame(QSGVideoMaterial_YUV *) = 0;
 
 protected:
-    qreal m_planeWidth[3] = {0, 0, 0};
+    float m_planeWidth[3] = {0, 0, 0};
     QMatrix4x4 m_colorMatrix;
 };
 
@@ -240,9 +240,9 @@ bool QSGVideoMaterialRhiShader_YUV::updateUniformData(RenderState &state, QSGMat
     mapFrame(m);
     m->m_frameMutex.unlock();
 
-    if (m->m_planeWidth[0] != m_planeWidth[0]
-        || m->m_planeWidth[1] != m_planeWidth[1]
-        || m->m_planeWidth[2] != m_planeWidth[2])
+    if (!qFuzzyCompare(m->m_planeWidth[0], m_planeWidth[0])
+        || !qFuzzyCompare(m->m_planeWidth[1], m_planeWidth[1])
+        || !qFuzzyCompare(m->m_planeWidth[2], m_planeWidth[2]))
     {
         memcpy(buf->data() + 64 + 64 + 4, &m->m_planeWidth[0], 4);
         memcpy(buf->data() + 64 + 64 + 4 + 4, &m->m_planeWidth[1], 4);
@@ -304,10 +304,10 @@ void QSGVideoMaterialRhiShader_YUV_YV::mapFrame(QSGVideoMaterial_YUV *m)
     int fh = m->m_frame.height();
     int uvHeight = m->m_frame.pixelFormat() == QVideoFrame::Format_YUV422P ? fh : fh / 2;
 
-    m->m_planeWidth[0] = qreal(fw) / m->m_frame.bytesPerLine(y);
-    m->m_planeWidth[1] = m->m_planeWidth[2] = qreal(fw) / (2 * m->m_frame.bytesPerLine(u));
+    m->m_planeWidth[0] = float(fw) / m->m_frame.bytesPerLine(y);
+    m->m_planeWidth[1] = m->m_planeWidth[2] = float(fw) / (2 * m->m_frame.bytesPerLine(u));
 
-    m->m_textures[0]->setData(QRhiTexture::R8, m->m_frame.size(),
+    m->m_textures[0]->setData(QRhiTexture::R8, QSize(m->m_frame.bytesPerLine(y), fh),
         m->m_frame.bits(y), m->m_frame.bytesPerLine(y) * fh);
     m->m_textures[1]->setData(QRhiTexture::R8, QSize(m->m_frame.bytesPerLine(u), uvHeight),
         m->m_frame.bits(u), m->m_frame.bytesPerLine(u) * uvHeight);
