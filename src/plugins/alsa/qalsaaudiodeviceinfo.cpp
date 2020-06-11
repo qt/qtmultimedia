@@ -416,7 +416,7 @@ QString QAlsaAudioDeviceInfo::deviceFromCardName(const QString &card)
     int idx = 0;
     char *name;
 
-    QStringRef shortName = card.midRef(card.indexOf(QLatin1String("="), 0) + 1);
+    QStringView shortName = QStringView{card}.mid(card.indexOf(QLatin1String("="), 0) + 1);
 
     while (snd_card_get_name(idx, &name) == 0) {
         if (shortName.compare(QLatin1String(name)) == 0)

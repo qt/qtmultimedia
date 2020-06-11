@@ -247,7 +247,7 @@ QString AudioCaptureSession::generateFileName(const QDir &dir,
     int lastClip = 0;
     const auto list = dir.entryList(QStringList() << QString("clip_*.%1").arg(ext));
     for (const QString &fileName : list) {
-        int imgNumber = fileName.midRef(5, fileName.size()-6-ext.length()).toInt();
+        int imgNumber = QStringView{fileName}.mid(5, fileName.size()-6-ext.length()).toInt();
         lastClip = qMax(lastClip, imgNumber);
     }
 

@@ -141,7 +141,8 @@ public:
                     m_extraInfo.clear();
                     int artistStart = line.indexOf(QLatin1String(","), 8);
                     bool ok = false;
-                    int length = line.midRef(8, artistStart < 8 ? -1 : artistStart - 8).trimmed().toInt(&ok);
+                    QStringView lineView { line };
+                    int length = lineView.mid(8, artistStart < 8 ? -1 : artistStart - 8).trimmed().toInt(&ok);
                     if (ok && length > 0) {
                         //convert from second to milisecond
                         m_extraInfo[QMediaMetaData::Duration] = QVariant(length * 1000);
@@ -149,13 +150,13 @@ public:
                     if (artistStart > 0) {
                         int titleStart = getSplitIndex(line, artistStart);
                         if (titleStart > artistStart) {
-                            m_extraInfo[QMediaMetaData::Author] = line.midRef(artistStart + 1,
+                            m_extraInfo[QMediaMetaData::Author] = lineView.mid(artistStart + 1,
                                                              titleStart - artistStart - 1).trimmed().toString().
                                                              replace(QLatin1String("--"), QLatin1String("-"));
-                            m_extraInfo[QMediaMetaData::Title] = line.midRef(titleStart + 1).trimmed().toString().
+                            m_extraInfo[QMediaMetaData::Title] = lineView.mid(titleStart + 1).trimmed().toString().
                                                    replace(QLatin1String("--"), QLatin1String("-"));
                         } else {
-                            m_extraInfo[QMediaMetaData::Title] = line.midRef(artistStart + 1).trimmed().toString().
+                            m_extraInfo[QMediaMetaData::Title] = lineView.mid(artistStart + 1).trimmed().toString().
                                                    replace(QLatin1String("--"), QLatin1String("-"));
                         }
                     }
@@ -255,11 +256,11 @@ Version=2
         return true;
     }
 
-    QString getValue(const QString& line) {
+    QString getValue(QStringView line) {
         int start = line.indexOf('=');
         if (start < 0)
             return QString();
-        return line.midRef(start + 1).trimmed().toString();
+        return line.mid(start + 1).trimmed().toString();
     }
 };
 }

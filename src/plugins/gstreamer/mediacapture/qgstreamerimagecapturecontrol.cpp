@@ -82,7 +82,7 @@ int QGstreamerImageCaptureControl::capture(const QString &fileName)
         QDir outputDir = QDir::currentPath();
         const auto list = outputDir.entryList(QStringList() << "img_*.jpg");
         for (const QString &fileName : list) {
-            int imgNumber = fileName.midRef(4, fileName.size()-8).toInt();
+            int imgNumber = QStringView{fileName}.mid(4, fileName.size()-8).toInt();
             lastImage = qMax(lastImage, imgNumber);
         }
 

@@ -118,7 +118,7 @@ QString QMediaStorageLocation::generateFileName(const QString &prefix,
         // first run, find the maximum media number during the fist capture
         const auto list = dir.entryList(QStringList() << QString(QLatin1String("%1*.%2")).arg(prefix).arg(extension));
         for (const QString &fileName : list) {
-            const qint64 mediaIndex = fileName.midRef(prefix.length(), fileName.size() - prefix.length() - extension.length() - 1).toInt();
+            const qint64 mediaIndex = QStringView{fileName}.mid(prefix.length(), fileName.size() - prefix.length() - extension.length() - 1).toInt();
             lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
         }
     }
