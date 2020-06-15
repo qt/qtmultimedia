@@ -286,7 +286,7 @@ for all of these, so you shouldn't need to adjust them unless the user wants a s
 
 If you're taking a series of images (for example, to stitch them together for
 a panoramic image), you should lock the image processing settings so that all the
-images taken appear similar with \e {QCamera::lock(QCamera::LockWhiteBalance)}/
+images taken appear similar with \e {QCamera::searchAndLock(QCamera::LockWhiteBalance)}/
 
 \section3 Canceling Asynchronous Operations
 
