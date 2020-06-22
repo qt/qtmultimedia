@@ -83,11 +83,6 @@ qint64 QSGVideoTexture::comparisonKey() const
     return qint64(qintptr(this));
 }
 
-int QSGVideoTexture::textureId() const // legacy
-{
-    return 0;
-}
-
 QRhiTexture *QSGVideoTexture::rhiTexture() const
 {
     return d_func()->m_texture.data();
@@ -107,10 +102,6 @@ bool QSGVideoTexture::hasAlphaChannel() const
 bool QSGVideoTexture::hasMipmaps() const
 {
     return mipmapFiltering() != QSGTexture::None;
-}
-
-void QSGVideoTexture::bind()
-{
 }
 
 void QSGVideoTexture::setData(QRhiTexture::Format f, const QSize &s, const uchar *data, qsizetype bytes)

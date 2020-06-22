@@ -127,7 +127,7 @@ public:
         return needsSwizzling() ? &swizzleType : &normalType;
     }
 
-    QSGMaterialShader *createShader() const override {
+    QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         return needsSwizzling() ? new QSGVideoMaterialRhiShader_Texture_swizzle
                                 : new QSGVideoMaterialRhiShader_Texture;
     }

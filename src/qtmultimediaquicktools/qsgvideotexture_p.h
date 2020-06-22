@@ -67,12 +67,10 @@ public:
     ~QSGVideoTexture();
 
     qint64 comparisonKey() const override;
-    int textureId() const override;
     QRhiTexture *rhiTexture() const override;
     QSize textureSize() const override;
     bool hasAlphaChannel() const override;
     bool hasMipmaps() const override;
-    void bind() override;
     void commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates) override;
     void setData(QRhiTexture::Format f, const QSize &s, const uchar *data, qsizetype bytes);
     void setNativeObject(quint64 obj, const QSize &s);

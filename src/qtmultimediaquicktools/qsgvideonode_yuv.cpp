@@ -159,7 +159,7 @@ public:
         }
     }
 
-    QSGMaterialShader *createShader() const override {
+    QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         switch (m_format.pixelFormat()) {
         case QVideoFrame::Format_NV12:
             return new QSGVideoMaterialRhiShader_NV12;

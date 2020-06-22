@@ -98,7 +98,7 @@ public:
         return &normalType;
     }
 
-    QSGMaterialShader *createShader() const override {
+    QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         return new QSGVideoMaterialRhiShader_RGB;
     }
 

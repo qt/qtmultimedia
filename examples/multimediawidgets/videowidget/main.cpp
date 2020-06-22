@@ -51,7 +51,6 @@
 #include "videoplayer.h"
 
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QDesktopWidget>
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QCommandLineOption>
 #include <QtCore/QDir>
