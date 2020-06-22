@@ -47,22 +47,14 @@ class QSGVivanteVideoMaterialShader : public QSGMaterialShader
 public:
     QSGVivanteVideoMaterialShader();
 
-    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial);
-    virtual char const *const *attributeNames() const;
+    bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
+                           QSGMaterial *oldMaterial) override;
+    void updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
+                            QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
     void setUVScale(float uScale, float vScale);
 
-protected:
-    virtual const char *vertexShader() const;
-    virtual const char *fragmentShader() const;
-    virtual void initialize();
-
 private:
-    int mIdMatrix;
-    int mIdTexture;
-    int mIdOpacity;
-    int mIdUVScale;
-
     float mUScale;
     float mVScale;
     bool mNewUVScale;

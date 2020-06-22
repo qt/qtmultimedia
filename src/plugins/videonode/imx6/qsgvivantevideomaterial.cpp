@@ -43,6 +43,7 @@
 #include "qsgvivantevideomaterial.h"
 #include "qsgvivantevideomaterialshader.h"
 #include "qsgvivantevideonode.h"
+#include "private/qsgvideotexture_p.h"
 
 #include <QOpenGLContext>
 #include <QThread>
@@ -83,7 +84,7 @@ QSGMaterialType *QSGVivanteVideoMaterial::type() const {
     return &theType;
 }
 
-QSGMaterialShader *QSGVivanteVideoMaterial::createShader() const {
+QSGMaterialShader *QSGVivanteVideoMaterial::createShader(QSGRendererInterface::RenderMode) const {
     return mShader;
 }
 

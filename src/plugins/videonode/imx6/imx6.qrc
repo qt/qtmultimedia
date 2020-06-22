@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/imx6">
+        <file>shaders/rgba.vert.qsb</file>
+        <file>shaders/rgba.frag.qsb</file>
+    </qresource>
+</RCC>

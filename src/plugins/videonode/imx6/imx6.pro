@@ -19,6 +19,9 @@ SOURCES += \
 OTHER_FILES += \
     imx6.json
 
+RESOURCES += \
+    imx6.qrc
+
 PLUGIN_TYPE = video/videonode
 PLUGIN_EXTENDS = quick
 PLUGIN_CLASS_NAME = QSGVivanteVideoNodeFactory

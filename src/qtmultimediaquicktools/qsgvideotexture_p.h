@@ -54,11 +54,12 @@
 #include <QtQuick/QSGTexture>
 #include <QImage>
 #include <private/qrhi_p.h>
+#include <private/qtmultimediaquickdefs_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QSGVideoTexturePrivate;
-class QSGVideoTexture : public QSGTexture
+class Q_MULTIMEDIAQUICK_EXPORT QSGVideoTexture : public QSGTexture
 {
     Q_DECLARE_PRIVATE(QSGVideoTexture)
 public:

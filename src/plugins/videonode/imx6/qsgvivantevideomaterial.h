@@ -50,16 +50,16 @@
 #include <private/qsgvideonode_p.h>
 
 class QSGVivanteVideoMaterialShader;
-
+class QSGVideoTexture;
 class QSGVivanteVideoMaterial : public QSGMaterial
 {
 public:
     QSGVivanteVideoMaterial();
     ~QSGVivanteVideoMaterial();
 
-    virtual QSGMaterialType *type() const;
-    virtual QSGMaterialShader *createShader() const;
-    virtual int compare(const QSGMaterial *other) const;
+    QSGMaterialType *type() const override;
+    QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override;
+    int compare(const QSGMaterial *other) const override;
     void updateBlending();
     void setCurrentFrame(const QVideoFrame &frame, QSGVideoNode::FrameFlags flags);
 
@@ -81,6 +81,7 @@ private:
     QVideoFrame mCurrentFrame;
     GLuint mCurrentTexture;
     bool mMappable;
+    QScopedPointer<QSGVideoTexture> mTexture;
     GLenum mMapError = GL_NO_ERROR;
 
     QMutex mFrameMutex;
@@ -89,6 +90,7 @@ private:
     GLvoid *mTexDirectPlanes[3];
 
     QSGVivanteVideoMaterialShader *mShader;
+    friend class QSGVivanteVideoMaterialShader;
 };
 
 #endif // QSGVIDEOMATERIAL_VIVMAP_H
