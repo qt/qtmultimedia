@@ -26,10 +26,6 @@ qnx {
     SUBDIRS += qnx-audio
 }
 
-win32 {
-    qtConfig(wasapi): SUBDIRS += wasapi
-}
-
 win32:!winrt {
     SUBDIRS += audiocapture \
                windowsaudio

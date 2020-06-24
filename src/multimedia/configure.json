@@ -171,11 +171,6 @@
             "type": "compile",
             "test": "linux_v4l"
         },
-        "wasapi": {
-            "label": "Windows Audio Services",
-            "type": "compile",
-            "test": "wasapi"
-        },
         "wmsdk": {
             "label": "wmsdk.h",
             "type": "compile",
@@ -280,11 +275,6 @@
             "condition": "libs.pulseaudio",
             "output": [ "feature", "privateFeature" ]
         },
-        "wasapi": {
-            "label": "Windows Audio Services",
-            "condition": "config.win32 && tests.wasapi",
-            "output": [ "privateFeature" ]
-        },
         "wmsdk": {
             "label": "wmsdk.h",
             "condition": "config.win32 && tests.wmsdk",
@@ -318,7 +308,6 @@
                 "resourcepolicy",
                 "mmrenderer",
                 "avfoundation",
-                "wasapi",
                 "directshow",
                 "wmf"
             ]
