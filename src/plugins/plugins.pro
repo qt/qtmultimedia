@@ -26,18 +26,12 @@ qnx {
     SUBDIRS += qnx-audio
 }
 
-win32:!winrt {
+win32: {
     SUBDIRS += audiocapture \
                windowsaudio
 
     qtConfig(directshow): SUBDIRS += directshow
     qtConfig(wmf): SUBDIRS += wmf
-}
-
-
-winrt {
-    SUBDIRS += winrt \
-               audiocapture
 }
 
 qtConfig(gstreamer): SUBDIRS += gstreamer
