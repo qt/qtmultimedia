@@ -52,9 +52,9 @@
 //
 
 #include <private/qgsttools_global_p.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qset.h>
-#include <QtCore/qvector.h>
 #include <gst/gst.h>
 #include <gst/video/video.h>
 #include <qaudioformat.h>
@@ -111,7 +111,7 @@ namespace QGstUtils {
                                              const QStringList &codecs,
                                              const QSet<QString> &supportedMimeTypeSet);
 
-    Q_GSTTOOLS_EXPORT QVector<CameraInfo> enumerateCameras(GstElementFactory *factory = 0);
+    Q_GSTTOOLS_EXPORT QList<CameraInfo> enumerateCameras(GstElementFactory *factory = 0);
     Q_GSTTOOLS_EXPORT QList<QByteArray> cameraDevices(GstElementFactory * factory = 0);
     Q_GSTTOOLS_EXPORT QString cameraDescription(const QString &device, GstElementFactory * factory = 0);
     Q_GSTTOOLS_EXPORT QCamera::Position cameraPosition(const QString &device, GstElementFactory * factory = 0);

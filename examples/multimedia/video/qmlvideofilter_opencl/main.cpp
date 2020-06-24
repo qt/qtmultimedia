@@ -157,7 +157,7 @@ CLFilterRunnable::CLFilterRunnable(CLFilter *filter) :
         qWarning("No OpenCL platform found");
         return;
     }
-    QVector<cl_platform_id> platformIds;
+    QList<cl_platform_id> platformIds;
     platformIds.resize(n);
     if (clGetPlatformIDs(n, platformIds.data(), 0) != CL_SUCCESS) {
         qWarning("Failed to get platform IDs");

@@ -164,7 +164,7 @@ void QDeclarativeAudio::setVideoOutput(const QVariant &v)
     if (surface) {
         m_player->setVideoOutput(surface);
     } else {
-        QVector<QAbstractVideoSurface *> surfaces;
+        QList<QAbstractVideoSurface *> surfaces;
         // Check if it is an array.
         auto arr = v.value<QJSValue>();
         if (!arr.isNull()) {

@@ -66,7 +66,7 @@ public slots:
     void processFrame(QVideoFrame frame, int levels);
 
 signals:
-    void histogramReady(const QVector<qreal> &histogram);
+    void histogramReady(const QList<qreal> &histogram);
 };
 
 class HistogramWidget : public QWidget
@@ -81,18 +81,18 @@ public:
 public slots:
     void processFrame(const QVideoFrame &frame);
     void processBuffer(const QAudioBuffer &buffer);
-    void setHistogram(const QVector<qreal> &histogram);
+    void setHistogram(const QList<qreal> &histogram);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    QVector<qreal> m_histogram;
+    QList<qreal> m_histogram;
     int m_levels = 128;
     FrameProcessor m_processor;
     QThread m_processorThread;
     bool m_isBusy = false;
-    QVector<QAudioLevel *> m_audioLevels;
+    QList<QAudioLevel *> m_audioLevels;
 };
 
 #endif // HISTOGRAMWIDGET_H

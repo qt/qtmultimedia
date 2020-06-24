@@ -435,7 +435,7 @@ void Waveform::resetTiles(qint64 newStartPos)
 {
     WAVEFORM_DEBUG << "Waveform::resetTiles" << "newStartPos" << newStartPos;
 
-    QVector<Tile>::iterator i = m_tiles.begin();
+    QList<Tile>::iterator i = m_tiles.begin();
     for ( ; i != m_tiles.end(); ++i)
         i->painted = false;
 

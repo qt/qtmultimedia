@@ -1409,7 +1409,7 @@ void tst_QMediaPlayerBackend::multipleSurfaces()
     surface2.setSupportedFormats(formats2);
 
     QMediaPlayer player;
-    player.setVideoOutput(QVector<QAbstractVideoSurface *>() << &surface1 << &surface2);
+    player.setVideoOutput(QList<QAbstractVideoSurface *>() << &surface1 << &surface2);
     player.setMedia(localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);

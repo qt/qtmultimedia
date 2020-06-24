@@ -60,8 +60,8 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QDir>
+#include <QList>
 #include <QObject>
-#include <QVector>
 
 #ifdef DUMP_CAPTURED_AUDIO
 #define DUMP_DATA

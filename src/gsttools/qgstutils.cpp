@@ -553,13 +553,13 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
 
 namespace {
 
-typedef QHash<GstElementFactory *, QVector<QGstUtils::CameraInfo> > FactoryCameraInfoMap;
+typedef QHash<GstElementFactory *, QList<QGstUtils::CameraInfo>> FactoryCameraInfoMap;
 
 Q_GLOBAL_STATIC(FactoryCameraInfoMap, qt_camera_device_info);
 
 }
 
-QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *factory)
+QList<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *factory)
 {
     static QElapsedTimer camerasCacheAgeTimer;
     if (camerasCacheAgeTimer.isValid() && camerasCacheAgeTimer.elapsed() > 500) // ms
@@ -569,7 +569,7 @@ QVector<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *fa
     if (it != qt_camera_device_info()->constEnd())
         return *it;
 
-    QVector<CameraInfo> &devices = (*qt_camera_device_info())[factory];
+    QList<CameraInfo> &devices = (*qt_camera_device_info())[factory];
 
     if (factory) {
         bool hasVideoSource = false;

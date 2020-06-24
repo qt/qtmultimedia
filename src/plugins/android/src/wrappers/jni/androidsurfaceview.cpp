@@ -41,15 +41,15 @@
 
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/qcoreapplication.h>
-#include <QtCore/qvector.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qmutex.h>
 #include <QtGui/qwindow.h>
 
 QT_BEGIN_NAMESPACE
 
 static const char QtSurfaceHolderCallbackClassName[] = "org/qtproject/qt5/android/multimedia/QtSurfaceHolderCallback";
-typedef QVector<AndroidSurfaceHolder *> SurfaceHolders;
+typedef QList<AndroidSurfaceHolder *> SurfaceHolders;
 Q_GLOBAL_STATIC(SurfaceHolders, surfaceHolders)
 Q_GLOBAL_STATIC(QMutex, shLock)
 

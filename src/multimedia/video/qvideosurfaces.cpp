@@ -41,9 +41,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QVideoSurfaces::QVideoSurfaces(const QVector<QAbstractVideoSurface *> &s, QObject *parent)
-    : QAbstractVideoSurface(parent)
-    , m_surfaces(s)
+QVideoSurfaces::QVideoSurfaces(const QList<QAbstractVideoSurface *> &s, QObject *parent)
+    : QAbstractVideoSurface(parent), m_surfaces(s)
 {
     for (auto a : s) {
         connect(a, &QAbstractVideoSurface::supportedFormatsChanged, this, [this, a] {

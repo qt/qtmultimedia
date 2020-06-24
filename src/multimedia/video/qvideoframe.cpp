@@ -44,11 +44,10 @@
 #include "qvideoframeconversionhelper_p.h"
 
 #include <qimage.h>
+#include <qmutex.h>
 #include <qpair.h>
 #include <qsize.h>
 #include <qvariant.h>
-#include <qvector.h>
-#include <qmutex.h>
 
 #include <QDebug>
 

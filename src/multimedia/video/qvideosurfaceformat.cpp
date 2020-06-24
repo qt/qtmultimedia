@@ -40,10 +40,10 @@
 #include "qvideosurfaceformat.h"
 
 #include <qdebug.h>
+#include <qlist.h>
 #include <qmetatype.h>
 #include <qpair.h>
 #include <qvariant.h>
-#include <qvector.h>
 
 QT_BEGIN_NAMESPACE
 

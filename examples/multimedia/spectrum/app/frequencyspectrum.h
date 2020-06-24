@@ -51,7 +51,7 @@
 #ifndef FREQUENCYSPECTRUM_H
 #define FREQUENCYSPECTRUM_H
 
-#include <QtCore/QVector>
+#include <QtCore/QList>
 
 /**
  * Represents a frequency spectrum as a series of elements, each of which
@@ -87,8 +87,8 @@ public:
         bool clipped;
     };
 
-    typedef QVector<Element>::iterator iterator;
-    typedef QVector<Element>::const_iterator const_iterator;
+    typedef QList<Element>::iterator iterator;
+    typedef QList<Element>::const_iterator const_iterator;
 
     void reset();
 
@@ -101,8 +101,7 @@ public:
     const_iterator end() const;
 
 private:
-    QVector<Element> m_elements;
-
+    QList<Element> m_elements;
 };
 
 #endif // FREQUENCYSPECTRUM_H

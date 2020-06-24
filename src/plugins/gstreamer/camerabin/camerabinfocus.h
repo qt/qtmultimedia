@@ -46,8 +46,8 @@
 #include <private/qgstreamerbufferprobe_p.h>
 
 #include <qbasictimer.h>
+#include <qlist.h>
 #include <qmutex.h>
-#include <qvector.h>
 
 #include <gst/gst.h>
 #include <glib.h>
@@ -108,7 +108,7 @@ private Q_SLOTS:
 private:
     void resetFocusPoint();
     void updateRegionOfInterest(const QRectF &rectangle);
-    void updateRegionOfInterest(const QVector<QRect> &rectangles);
+    void updateRegionOfInterest(const QList<QRect> &rectangles);
 
 #if GST_CHECK_VERSION(1,0,0)
     bool probeBuffer(GstBuffer *buffer) override;
@@ -123,8 +123,8 @@ private:
     QPointF m_focusPoint;
     QRectF m_focusRect;
     QSize m_viewfinderResolution;
-    QVector<QRect> m_faces;
-    QVector<QRect> m_faceFocusRects;
+    QList<QRect> m_faces;
+    QList<QRect> m_faceFocusRects;
     QBasicTimer m_faceResetTimer;
     mutable QMutex m_mutex;
 };

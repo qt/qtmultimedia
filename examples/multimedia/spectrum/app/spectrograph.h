@@ -97,7 +97,7 @@ private:
         bool    clipped;
     };
 
-    QVector<Bar>        m_bars;
+    QList<Bar>          m_bars;
     int                 m_barSelected;
     int                 m_timerId;
     qreal               m_lowFreq;

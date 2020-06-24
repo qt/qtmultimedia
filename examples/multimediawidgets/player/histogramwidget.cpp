@@ -52,8 +52,8 @@
 #include <QPainter>
 #include <QHBoxLayout>
 
-template <class T>
-static QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels);
+template<class T>
+static QList<qreal> getBufferLevels(const T *buffer, int frames, int channels);
 
 class QAudioLevel : public QWidget
 {
@@ -102,7 +102,7 @@ HistogramWidget::HistogramWidget(QWidget *parent)
     : QWidget(parent)
 {
     m_processor.moveToThread(&m_processorThread);
-    qRegisterMetaType<QVector<qreal>>("QVector<qreal>");
+    qRegisterMetaType<QList<qreal>>("QList<qreal>");
     connect(&m_processor, &FrameProcessor::histogramReady, this, &HistogramWidget::setHistogram);
     m_processorThread.start(QThread::LowestPriority);
     setLayout(new QHBoxLayout);
@@ -163,9 +163,9 @@ qreal getPeakValue(const QAudioFormat& format)
 }
 
 // returns the audio level for each channel
-QVector<qreal> getBufferLevels(const QAudioBuffer& buffer)
+QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
 {
-    QVector<qreal> values;
+    QList<qreal> values;
 
     if (!buffer.isValid())
         return values;
@@ -216,10 +216,10 @@ QVector<qreal> getBufferLevels(const QAudioBuffer& buffer)
     return values;
 }
 
-template <class T>
-QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels)
+template<class T>
+QList<qreal> getBufferLevels(const T *buffer, int frames, int channels)
 {
-    QVector<qreal> max_values;
+    QList<qreal> max_values;
     max_values.fill(0, channels);
 
     for (int i = 0; i < frames; ++i) {
@@ -245,12 +245,12 @@ void HistogramWidget::processBuffer(const QAudioBuffer &buffer)
         }
     }
 
-    QVector<qreal> levels = getBufferLevels(buffer);
+    QList<qreal> levels = getBufferLevels(buffer);
     for (int i = 0; i < levels.count(); ++i)
         m_audioLevels.at(i)->setLevel(levels.at(i));
 }
 
-void HistogramWidget::setHistogram(const QVector<qreal> &histogram)
+void HistogramWidget::setHistogram(const QList<qreal> &histogram)
 {
     m_isBusy = false;
     m_histogram = histogram;
@@ -284,7 +284,7 @@ void HistogramWidget::paintEvent(QPaintEvent *event)
 
 void FrameProcessor::processFrame(QVideoFrame frame, int levels)
 {
-    QVector<qreal> histogram(levels);
+    QList<qreal> histogram(levels);
 
     do {
         if (!levels)

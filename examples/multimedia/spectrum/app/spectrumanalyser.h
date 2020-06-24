@@ -53,7 +53,7 @@
 
 #include <QByteArray>
 #include <QObject>
-#include <QVector>
+#include <QList>
 
 #ifdef DUMP_SPECTRUMANALYSER
 #include <QDir>
@@ -113,10 +113,10 @@ private:
 #else
     typedef FFTRealFixLenParam::DataType        DataType;
 #endif
-    QVector<DataType>                           m_window;
+    QList<DataType>                             m_window;
 
-    QVector<DataType>                           m_input;
-    QVector<DataType>                           m_output;
+    QList<DataType>                             m_input;
+    QList<DataType>                             m_output;
 
     FrequencySpectrum                           m_spectrum;
 

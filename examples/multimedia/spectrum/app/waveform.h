@@ -187,7 +187,7 @@ private:
     bool                    m_active;
 
     QSize                   m_pixmapSize;
-    QVector<QPixmap*>       m_pixmaps;
+    QList<QPixmap*>         m_pixmaps;
 
     struct Tile {
         // Pointer into parent m_pixmaps array
@@ -197,7 +197,7 @@ private:
         bool                painted;
     };
 
-    QVector<Tile>           m_tiles;
+    QList<Tile>             m_tiles;
 
     // Length of audio data in bytes depicted by each tile
     qint64                  m_tileLength;

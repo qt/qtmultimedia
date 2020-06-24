@@ -45,7 +45,7 @@
 QT_BEGIN_NAMESPACE
 
 static const char QtSurfaceTextureListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtSurfaceTextureListener";
-typedef QVector<jlong> SurfaceTextures;
+typedef QList<jlong> SurfaceTextures;
 Q_GLOBAL_STATIC(SurfaceTextures, g_surfaceTextures);
 Q_GLOBAL_STATIC(QMutex, g_textureMutex);
 

@@ -43,8 +43,8 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <qsize.h>
 #include <QDate>
+#include <QtCore/qlist.h>
 #include <QtConcurrent/qtconcurrentrun.h>
-#include <QtCore/qvector.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -71,7 +71,7 @@ static const char* qt_ID3GenreNames[] =
     "Euro-House", "Dance Hall"
 };
 
-typedef QVector<QAndroidMetaDataReaderControl *> AndroidMetaDataReaders;
+typedef QList<QAndroidMetaDataReaderControl *> AndroidMetaDataReaders;
 Q_GLOBAL_STATIC(AndroidMetaDataReaders, g_metaDataReaders)
 Q_GLOBAL_STATIC(QMutex, g_metaDataReadersMtx)
 

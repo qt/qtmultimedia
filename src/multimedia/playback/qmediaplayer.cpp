@@ -1161,7 +1161,7 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     \sa QAbstractVideoSurface::supportedPixelFormats
 */
 
-void QMediaPlayer::setVideoOutput(const QVector<QAbstractVideoSurface *> &surfaces)
+void QMediaPlayer::setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces)
 {
     setVideoOutput(!surfaces.empty() ? new QVideoSurfaces(surfaces, this) : nullptr);
 }

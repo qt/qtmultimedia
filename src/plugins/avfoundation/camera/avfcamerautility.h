@@ -41,10 +41,10 @@
 #define AVFCAMERAUTILITY_H
 
 #include <QtCore/qglobal.h>
-#include <QtCore/qvector.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qsize.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qpair.h>
+#include <QtCore/qsize.h>
 
 #include <AVFoundation/AVFoundation.h>
 
@@ -154,12 +154,12 @@ private:
 typedef QPair<qreal, qreal> AVFPSRange;
 AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
 
-QVector<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
-                                                          FourCharCode preferredFormat);
+QList<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
+                                                        FourCharCode preferredFormat);
 QSize qt_device_format_resolution(AVCaptureDeviceFormat *format);
 QSize qt_device_format_high_resolution(AVCaptureDeviceFormat *format);
 QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format);
-QVector<AVFPSRange> qt_device_format_framerates(AVCaptureDeviceFormat *format);
+QList<AVFPSRange> qt_device_format_framerates(AVCaptureDeviceFormat *format);
 AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice, const QSize &res,
                                                      FourCharCode preferredFormat, bool stillImage = true);
 AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevice,

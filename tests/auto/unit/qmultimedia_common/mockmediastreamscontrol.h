@@ -59,7 +59,7 @@ private:
         bool active;
     };
 
-    QVector<Stream> _streams;
+    QList<Stream> _streams;
 };
 
 #endif // MOCKMEDIASTREAMSCONTROL_H

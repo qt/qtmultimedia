@@ -52,14 +52,14 @@
 //
 
 #include <QAbstractVideoSurface>
-#include <QVector>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoSurfaces : public QAbstractVideoSurface
 {
 public:
-    QVideoSurfaces(const QVector<QAbstractVideoSurface *> &surfaces, QObject *parent = nullptr);
+    QVideoSurfaces(const QList<QAbstractVideoSurface *> &surfaces, QObject *parent = nullptr);
     ~QVideoSurfaces();
 
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType type) const override;
@@ -68,7 +68,7 @@ public:
     bool present(const QVideoFrame &frame) override;
 
 private:
-    QVector<QAbstractVideoSurface *> m_surfaces;
+    QList<QAbstractVideoSurface *> m_surfaces;
     Q_DISABLE_COPY(QVideoSurfaces)
 };
 

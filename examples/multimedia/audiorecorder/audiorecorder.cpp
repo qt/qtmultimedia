@@ -61,10 +61,10 @@
 #include <QStandardPaths>
 
 static qreal getPeakValue(const QAudioFormat &format);
-static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
+static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
-template <class T>
-static QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels);
+template<class T>
+static QList<qreal> getBufferLevels(const T *buffer, int frames, int channels);
 
 AudioRecorder::AudioRecorder()
     : ui(new Ui::AudioRecorder)
@@ -287,9 +287,9 @@ qreal getPeakValue(const QAudioFormat& format)
 }
 
 // returns the audio level for each channel
-QVector<qreal> getBufferLevels(const QAudioBuffer& buffer)
+QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
 {
-    QVector<qreal> values;
+    QList<qreal> values;
 
     if (!buffer.format().isValid() || buffer.format().byteOrder() != QAudioFormat::LittleEndian)
         return values;
@@ -337,10 +337,10 @@ QVector<qreal> getBufferLevels(const QAudioBuffer& buffer)
     return values;
 }
 
-template <class T>
-QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels)
+template<class T>
+QList<qreal> getBufferLevels(const T *buffer, int frames, int channels)
 {
-    QVector<qreal> max_values;
+    QList<qreal> max_values;
     max_values.fill(0, channels);
 
     for (int i = 0; i < frames; ++i) {
@@ -366,7 +366,7 @@ void AudioRecorder::processBuffer(const QAudioBuffer& buffer)
         }
     }
 
-    QVector<qreal> levels = getBufferLevels(buffer);
+    QList<qreal> levels = getBufferLevels(buffer);
     for (int i = 0; i < levels.count(); ++i)
         m_audioLevels.at(i)->setLevel(levels.at(i));
 }

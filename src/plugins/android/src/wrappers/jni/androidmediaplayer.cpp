@@ -43,11 +43,11 @@
 #include <QtCore/private/qjni_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
 #include "androidsurfacetexture.h"
-#include <QVector>
+#include <QList>
 #include <QReadWriteLock>
 
 static const char QtAndroidMediaPlayerClassName[] = "org/qtproject/qt5/android/multimedia/QtAndroidMediaPlayer";
-typedef QVector<AndroidMediaPlayer *> MediaPlayerList;
+typedef QList<AndroidMediaPlayer *> MediaPlayerList;
 Q_GLOBAL_STATIC(MediaPlayerList, mediaPlayers)
 Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 

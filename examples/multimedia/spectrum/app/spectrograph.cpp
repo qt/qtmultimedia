@@ -125,7 +125,7 @@ void Spectrograph::paintEvent(QPaintEvent *event)
     painter.drawLine(rect().bottomRight(), rect().bottomLeft());
     painter.drawLine(rect().bottomLeft(), rect().topLeft());
 
-    QVector<qreal> dashes;
+    QList<qreal> dashes;
     dashes << 2 << 2;
     gridPen.setDashPattern(dashes);
     painter.setPen(gridPen);

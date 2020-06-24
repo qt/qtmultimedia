@@ -382,7 +382,7 @@ void CameraBinFocus::resetFocusPoint()
     m_focusPoint = QPointF(0.5, 0.5);
     m_focusRect.moveCenter(m_focusPoint);
 
-    updateRegionOfInterest(QVector<QRect>());
+    updateRegionOfInterest(QList<QRect>());
 
     if (focusRect != m_focusRect) {
         emit customFocusPointChanged(m_focusPoint);
@@ -412,14 +412,14 @@ static void appendRegion(GValue *regions, int priority, const QRect &rectangle)
 
 void CameraBinFocus::updateRegionOfInterest(const QRectF &rectangle)
 {
-    updateRegionOfInterest(QVector<QRect>() << QRect(
+    updateRegionOfInterest(QList<QRect>() << QRect(
             rectangle.x() * m_viewfinderResolution.width(),
             rectangle.y() * m_viewfinderResolution.height(),
             rectangle.width() * m_viewfinderResolution.width(),
             rectangle.height() * m_viewfinderResolution.height()));
 }
 
-void CameraBinFocus::updateRegionOfInterest(const QVector<QRect> &rectangles)
+void CameraBinFocus::updateRegionOfInterest(const QList<QRect> &rectangles)
 {
     if (m_cameraStatus != QCamera::ActiveStatus)
         return;
@@ -473,7 +473,7 @@ void CameraBinFocus::_q_updateFaces()
         return;
     }
 
-    QVector<QRect> faces;
+    QList<QRect> faces;
 
     {
         QMutexLocker locker(&m_mutex);
@@ -507,7 +507,7 @@ void CameraBinFocus::timerEvent(QTimerEvent *event)
 
 bool CameraBinFocus::probeBuffer(GstBuffer *buffer)
 {
-    QVector<QRect> faces;
+    QList<QRect> faces;
 
 #if GST_CHECK_VERSION(1,1,3)
     gpointer state = NULL;
