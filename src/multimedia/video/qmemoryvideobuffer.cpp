@@ -101,7 +101,7 @@ uchar *QMemoryVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 {
     Q_D(QMemoryVideoBuffer);
 
-    if (d->mapMode == NotMapped && d->data.data() && mode != NotMapped) {
+    if (d->mapMode == NotMapped && d->data.size() && mode != NotMapped) {
         d->mapMode = mode;
 
         if (numBytes)

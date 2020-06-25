@@ -31,6 +31,7 @@
 #include <QtTest/QtTest>
 
 #include <qvideoframe.h>
+#include "private/qmemoryvideobuffer_p.h"
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
@@ -89,6 +90,8 @@ private slots:
 
     void image_data();
     void image();
+
+    void emptyData();
 };
 
 Q_DECLARE_METATYPE(QImage::Format)
@@ -1297,6 +1300,15 @@ void tst_QVideoFrame::image()
     QCOMPARE(img.format(), imageFormat);
     QCOMPARE(img.size(), size);
     QCOMPARE(img.bytesPerLine(), bytesPerLine);
+}
+
+void tst_QVideoFrame::emptyData()
+{
+    QByteArray data(nullptr, 0);
+    QVideoFrame f(new QMemoryVideoBuffer(data, 600),
+                  QSize(800, 600),
+                  QVideoFrame::Format_ARGB32);
+    QVERIFY(!f.map(QAbstractVideoBuffer::ReadOnly));
 }
 
 QTEST_MAIN(tst_QVideoFrame)
