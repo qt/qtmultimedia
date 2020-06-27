@@ -65,7 +65,7 @@ void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray 
     const int numSamples = buffer.size() / sampleBytes;
 
     Q_ASSERT(length % sampleBytes == 0);
-    Q_UNUSED(sampleBytes) // suppress warning in release builds
+    Q_UNUSED(sampleBytes); // suppress warning in release builds
 
     unsigned char *ptr = reinterpret_cast<unsigned char *>(buffer.data());
 

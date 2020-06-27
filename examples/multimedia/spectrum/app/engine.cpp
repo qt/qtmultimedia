@@ -675,8 +675,8 @@ void Engine::setPlayPosition(qint64 position, bool forceEmit)
 void Engine::calculateLevel(qint64 position, qint64 length)
 {
 #ifdef DISABLE_LEVEL
-    Q_UNUSED(position)
-    Q_UNUSED(length)
+    Q_UNUSED(position);
+    Q_UNUSED(length);
 #else
     Q_ASSERT(position + length <= m_bufferPosition + m_dataLength);
 
@@ -707,7 +707,7 @@ void Engine::calculateLevel(qint64 position, qint64 length)
 void Engine::calculateSpectrum(qint64 position)
 {
 #ifdef DISABLE_SPECTRUM
-    Q_UNUSED(position)
+    Q_UNUSED(position);
 #else
     Q_ASSERT(position + m_spectrumBufferLength <= m_bufferPosition + m_dataLength);
     Q_ASSERT(0 == m_spectrumBufferLength % 2); // constraint of FFT algorithm

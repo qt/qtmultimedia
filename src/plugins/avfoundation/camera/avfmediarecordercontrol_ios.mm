@@ -316,13 +316,13 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
 
 void AVFMediaRecorderControlIOS::setMuted(bool muted)
 {
-    Q_UNUSED(muted)
+    Q_UNUSED(muted);
     qDebugCamera() << Q_FUNC_INFO << "not implemented";
 }
 
 void AVFMediaRecorderControlIOS::setVolume(qreal volume)
 {
-    Q_UNUSED(volume)
+    Q_UNUSED(volume);
     qDebugCamera() << Q_FUNC_INFO << "not implemented";
 }
 

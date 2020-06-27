@@ -90,9 +90,9 @@ QWindowsAudioOutput::~QWindowsAudioOutput()
 void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
         DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 )
 {
-    Q_UNUSED(dwParam1)
-    Q_UNUSED(dwParam2)
-    Q_UNUSED(hWaveOut)
+    Q_UNUSED(dwParam1);
+    Q_UNUSED(dwParam2);
+    Q_UNUSED(hWaveOut);
 
     QWindowsAudioOutput* qAudio;
     qAudio = (QWindowsAudioOutput*)(dwInstance);
@@ -642,8 +642,8 @@ OutputPrivate::~OutputPrivate() {}
 
 qint64 OutputPrivate::readData( char* data, qint64 len)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(len)
+    Q_UNUSED(data);
+    Q_UNUSED(len);
 
     return 0;
 }

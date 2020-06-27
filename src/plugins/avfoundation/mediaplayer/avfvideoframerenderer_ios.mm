@@ -81,7 +81,7 @@ AVFVideoFrameRenderer::~AVFVideoFrameRenderer()
 
 void AVFVideoFrameRenderer::setPlayerLayer(AVPlayerLayer *layer)
 {
-    Q_UNUSED(layer)
+    Q_UNUSED(layer);
     if (m_videoOutput) {
         [m_videoOutput release];
         m_videoOutput = nullptr;

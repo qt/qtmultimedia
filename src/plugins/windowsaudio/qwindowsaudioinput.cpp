@@ -87,9 +87,9 @@ QWindowsAudioInput::~QWindowsAudioInput()
 void QT_WIN_CALLBACK QWindowsAudioInput::waveInProc( HWAVEIN hWaveIn, UINT uMsg,
         DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 )
 {
-    Q_UNUSED(dwParam1)
-    Q_UNUSED(dwParam2)
-    Q_UNUSED(hWaveIn)
+    Q_UNUSED(dwParam1);
+    Q_UNUSED(dwParam2);
+    Q_UNUSED(hWaveIn);
 
     QWindowsAudioInput* qAudio;
     qAudio = (QWindowsAudioInput*)(dwInstance);
@@ -715,8 +715,8 @@ qint64 InputPrivate::readData( char* data, qint64 len)
 
 qint64 InputPrivate::writeData(const char* data, qint64 len)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(len)
+    Q_UNUSED(data);
+    Q_UNUSED(len);
 
     emit readyRead();
     return 0;

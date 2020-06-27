@@ -375,7 +375,7 @@ void AVFCameraSession::processSessionStopped()
 
 void AVFCameraSession::onCaptureModeChanged(QCamera::CaptureModes mode)
 {
-    Q_UNUSED(mode)
+    Q_UNUSED(mode);
 
     const QCamera::State s = state();
     if (s == QCamera::LoadedState || s == QCamera::ActiveState) {

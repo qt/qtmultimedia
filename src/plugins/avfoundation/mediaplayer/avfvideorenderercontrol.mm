@@ -196,7 +196,7 @@ void AVFVideoRendererControl::setLayer(void *playerLayer)
 
 void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 {
-    Q_UNUSED(ts)
+    Q_UNUSED(ts);
 
     AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(m_playerLayer);
 

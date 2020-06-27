@@ -167,7 +167,7 @@ void MainWidget::errorMessage(const QString &heading, const QString &detail)
 void MainWidget::timerEvent(QTimerEvent *event)
 {
     Q_ASSERT(event->timerId() == m_infoMessageTimerId);
-    Q_UNUSED(event) // suppress warnings in release builds
+    Q_UNUSED(event); // suppress warnings in release builds
     killTimer(m_infoMessageTimerId);
     m_infoMessageTimerId = NullTimerId;
     m_infoMessage->setText("");
@@ -178,7 +178,7 @@ void MainWidget::audioPositionChanged(qint64 position)
 #ifndef DISABLE_WAVEFORM
     m_waveform->audioPositionChanged(position);
 #else
-    Q_UNUSED(position)
+    Q_UNUSED(position);
 #endif
 }
 

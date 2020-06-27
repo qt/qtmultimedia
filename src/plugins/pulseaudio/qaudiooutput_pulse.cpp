@@ -68,7 +68,7 @@ static void  outputStreamWriteCallback(pa_stream *stream, size_t length, void *u
 
 static void outputStreamStateCallback(pa_stream *stream, void *userdata)
 {
-    Q_UNUSED(userdata)
+    Q_UNUSED(userdata);
     pa_stream_state_t state = pa_stream_get_state(stream);
 #ifdef DEBUG_PULSE
     qDebug() << "Stream state: " << QPulseAudioInternal::stateToQString(state);
@@ -90,21 +90,21 @@ static void outputStreamStateCallback(pa_stream *stream, void *userdata)
 
 static void outputStreamUnderflowCallback(pa_stream *stream, void *userdata)
 {
-    Q_UNUSED(stream)
+    Q_UNUSED(stream);
     ((QPulseAudioOutput*)userdata)->streamUnderflowCallback();
 }
 
 static void outputStreamOverflowCallback(pa_stream *stream, void *userdata)
 {
-    Q_UNUSED(stream)
-    Q_UNUSED(userdata)
+    Q_UNUSED(stream);
+    Q_UNUSED(userdata);
     qWarning() << "Got a buffer overflow!";
 }
 
 static void outputStreamLatencyCallback(pa_stream *stream, void *userdata)
 {
-    Q_UNUSED(stream)
-    Q_UNUSED(userdata)
+    Q_UNUSED(stream);
+    Q_UNUSED(userdata);
 
 #ifdef DEBUG_PULSE
     const pa_timing_info *info = pa_stream_get_timing_info(stream);
@@ -675,8 +675,8 @@ PulseOutputPrivate::PulseOutputPrivate(QPulseAudioOutput *audio)
 
 qint64 PulseOutputPrivate::readData(char *data, qint64 len)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(len)
+    Q_UNUSED(data);
+    Q_UNUSED(len);
 
     return 0;
 }

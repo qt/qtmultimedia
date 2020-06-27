@@ -360,7 +360,7 @@ bool DirectShowPin::setMediaType(const AM_MEDIA_TYPE *type)
 
 HRESULT DirectShowPin::completeConnection(IPin *pin)
 {
-    Q_UNUSED(pin)
+    Q_UNUSED(pin);
     return S_OK;
 }
 
@@ -371,7 +371,7 @@ HRESULT DirectShowPin::connectionEnded()
 
 HRESULT DirectShowPin::setActive(bool active)
 {
-    Q_UNUSED(active)
+    Q_UNUSED(active);
     return S_OK;
 }
 
@@ -566,7 +566,7 @@ HRESULT DirectShowInputPin::GetAllocator(IMemAllocator **ppAllocator)
 
 HRESULT DirectShowInputPin::NotifyAllocator(IMemAllocator *pAllocator, BOOL bReadOnly)
 {
-    Q_UNUSED(bReadOnly)
+    Q_UNUSED(bReadOnly);
 
     if (!pAllocator)
         return E_POINTER;
@@ -584,7 +584,7 @@ HRESULT DirectShowInputPin::NotifyAllocator(IMemAllocator *pAllocator, BOOL bRea
 
 HRESULT DirectShowInputPin::GetAllocatorRequirements(ALLOCATOR_PROPERTIES *pProps)
 {
-    Q_UNUSED(pProps)
+    Q_UNUSED(pProps);
     return E_NOTIMPL;
 }
 

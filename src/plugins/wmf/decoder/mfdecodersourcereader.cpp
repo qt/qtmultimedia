@@ -44,7 +44,7 @@ MFDecoderSourceReader::MFDecoderSourceReader(QObject *parent)
     , m_sourceReader(0)
     , m_source(0)
 {
-    Q_UNUSED(parent)
+    Q_UNUSED(parent);
 }
 
 void MFDecoderSourceReader::shutdown()

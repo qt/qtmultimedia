@@ -783,8 +783,8 @@ AlsaOutputPrivate::~AlsaOutputPrivate() {}
 
 qint64 AlsaOutputPrivate::readData( char* data, qint64 len)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(len)
+    Q_UNUSED(data);
+    Q_UNUSED(len);
 
     return 0;
 }

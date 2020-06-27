@@ -392,7 +392,7 @@ void QWindowsAudioDeviceInfo::updateLists()
 
 QList<QByteArray> QWindowsAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 {
-    Q_UNUSED(mode)
+    Q_UNUSED(mode);
 
     QList<QByteArray> devices;
     //enumerate device fullnames through directshow api

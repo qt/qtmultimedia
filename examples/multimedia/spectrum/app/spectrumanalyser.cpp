@@ -201,7 +201,7 @@ void SpectrumAnalyser::setWindowFunction(WindowFunction type)
                               Qt::AutoConnection,
                               Q_ARG(WindowFunction, type));
     Q_ASSERT(b);
-    Q_UNUSED(b) // suppress warnings in release builds
+    Q_UNUSED(b); // suppress warnings in release builds
 }
 
 void SpectrumAnalyser::calculate(const QByteArray &buffer,
@@ -247,7 +247,7 @@ void SpectrumAnalyser::calculate(const QByteArray &buffer,
                                   Q_ARG(int, format.sampleRate()),
                                   Q_ARG(int, bytesPerSample));
         Q_ASSERT(b);
-        Q_UNUSED(b) // suppress warnings in release builds
+        Q_UNUSED(b); // suppress warnings in release builds
 
 #ifdef DUMP_SPECTRUMANALYSER
         m_textStream << "FrequencySpectrum " << m_count << "\n";

@@ -571,15 +571,15 @@ QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id
 
 void QAndroidCaptureSession::onError(int what, int extra)
 {
-    Q_UNUSED(what)
-    Q_UNUSED(extra)
+    Q_UNUSED(what);
+    Q_UNUSED(extra);
     stop(true);
     emit error(QMediaRecorder::ResourceError, QLatin1String("Unknown error."));
 }
 
 void QAndroidCaptureSession::onInfo(int what, int extra)
 {
-    Q_UNUSED(extra)
+    Q_UNUSED(extra);
     if (what == 800) {
         // MEDIA_RECORDER_INFO_MAX_DURATION_REACHED
         setState(QMediaRecorder::StoppedState);

@@ -135,7 +135,7 @@ QMediaControl* BbCameraService::requestControl(const char *name)
 
 void BbCameraService::releaseControl(QMediaControl *control)
 {
-    Q_UNUSED(control)
+    Q_UNUSED(control);
 
     // Implemented as a singleton, so we do nothing.
 }

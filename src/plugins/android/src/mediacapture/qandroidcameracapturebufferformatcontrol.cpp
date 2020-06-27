@@ -58,7 +58,7 @@ QVideoFrame::PixelFormat QAndroidCameraCaptureBufferFormatControl::bufferFormat(
 
 void QAndroidCameraCaptureBufferFormatControl::setBufferFormat(QVideoFrame::PixelFormat format)
 {
-    Q_UNUSED(format)
+    Q_UNUSED(format);
 }
 
 QT_END_NAMESPACE

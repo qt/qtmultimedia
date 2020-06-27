@@ -163,7 +163,7 @@ QT_BEGIN_NAMESPACE
 
 -(void)audioSessionMediaServicesWereReset:(NSNotification *)notification
 {
-    Q_UNUSED(notification)
+    Q_UNUSED(notification);
 #ifdef QT_DEBUG_COREAUDIO
     qDebug("audioSession Media Services were reset");
 #endif

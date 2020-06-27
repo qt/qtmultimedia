@@ -669,7 +669,7 @@ void QGstreamerCaptureSession::dumpGraph(const QString &fileName)
                               GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
                               fileName.toLatin1());
 #else
-    Q_UNUSED(fileName)
+    Q_UNUSED(fileName);
 #endif
 }
 

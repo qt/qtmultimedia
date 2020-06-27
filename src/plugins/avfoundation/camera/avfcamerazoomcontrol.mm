@@ -95,8 +95,8 @@ qreal AVFCameraZoomControl::currentDigitalZoom() const
 
 void AVFCameraZoomControl::zoomTo(qreal optical, qreal digital)
 {
-    Q_UNUSED(optical)
-    Q_UNUSED(digital)
+    Q_UNUSED(optical);
+    Q_UNUSED(digital);
 
     if (qFuzzyCompare(CGFloat(digital), m_requestedZoomFactor))
         return;

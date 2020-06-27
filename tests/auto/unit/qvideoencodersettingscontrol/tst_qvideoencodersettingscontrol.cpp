@@ -70,7 +70,7 @@ public:
 
     QString videoCodecDescription(const QString &codecName) const
     {
-        Q_UNUSED(codecName)
+        Q_UNUSED(codecName);
         return QString();
 
     }

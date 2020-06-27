@@ -89,7 +89,7 @@ QT_USE_NAMESPACE
 {
     Q_UNUSED(captureOutput);
     Q_UNUSED(fileURL);
-    Q_UNUSED(connections)
+    Q_UNUSED(connections);
 
     QMetaObject::invokeMethod(m_recorder, "handleRecordingStarted", Qt::QueuedConnection);
 }
@@ -101,7 +101,7 @@ QT_USE_NAMESPACE
 {
     Q_UNUSED(captureOutput);
     Q_UNUSED(fileURL);
-    Q_UNUSED(connections)
+    Q_UNUSED(connections);
 
     if (error) {
         QStringList messageParts;

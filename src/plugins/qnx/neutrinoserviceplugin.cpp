@@ -61,7 +61,7 @@ void NeutrinoServicePlugin::release(QMediaService *service)
 
 QMediaServiceProviderHint::Features NeutrinoServicePlugin::supportedFeatures(const QByteArray &service) const
 {
-    Q_UNUSED(service)
+    Q_UNUSED(service);
     return QMediaServiceProviderHint::Features();
 }
 

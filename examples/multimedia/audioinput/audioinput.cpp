@@ -122,8 +122,8 @@ void AudioInfo::stop()
 
 qint64 AudioInfo::readData(char *data, qint64 maxlen)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(maxlen)
+    Q_UNUSED(data);
+    Q_UNUSED(maxlen);
 
     return 0;
 }

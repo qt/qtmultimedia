@@ -68,7 +68,7 @@ QString CameraBinContainer::containerDescription(const QString &formatMimeType) 
 #if QT_CONFIG(gstreamer_encodingprofiles)
     return m_supportedContainers.codecDescription(formatMimeType);
 #else
-    Q_UNUSED(formatMimeType)
+    Q_UNUSED(formatMimeType);
     return QString();
 #endif
 }

@@ -180,7 +180,7 @@ HRESULT DirectShowIOSource::GetClassID(CLSID *pClassID)
 // IMediaFilter
 HRESULT DirectShowIOSource::Run(REFERENCE_TIME tStart)
 {
-    Q_UNUSED(tStart)
+    Q_UNUSED(tStart);
     QMutexLocker locker(&m_mutex);
 
     m_state = State_Running;

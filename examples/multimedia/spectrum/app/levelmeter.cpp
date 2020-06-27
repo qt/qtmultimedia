@@ -133,7 +133,7 @@ void LevelMeter::redrawTimerExpired()
 
 void LevelMeter::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event)
+    Q_UNUSED(event);
 
     QPainter painter(this);
     painter.fillRect(rect(), Qt::black);

@@ -104,14 +104,14 @@ void QAndroidMediaRecorderControl::setState(QMediaRecorder::State state)
 void QAndroidMediaRecorderControl::setMuted(bool muted)
 {
     // No API for this in Android
-    Q_UNUSED(muted)
+    Q_UNUSED(muted);
     qWarning("QMediaRecorder::setMuted() is not supported on Android.");
 }
 
 void QAndroidMediaRecorderControl::setVolume(qreal volume)
 {
     // No API for this in Android
-    Q_UNUSED(volume)
+    Q_UNUSED(volume);
     qWarning("QMediaRecorder::setVolume() is not supported on Android.");
 }
 

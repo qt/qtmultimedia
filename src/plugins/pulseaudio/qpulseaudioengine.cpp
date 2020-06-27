@@ -131,7 +131,7 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
 
 static void sourceInfoCallback(pa_context *context, const pa_source_info *info, int isLast, void *userdata)
 {
-    Q_UNUSED(context)
+    Q_UNUSED(context);
     QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine*>(userdata);
 
     if (isLast) {

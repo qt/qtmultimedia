@@ -104,7 +104,7 @@ qreal BbCameraZoomControl::currentDigitalZoom() const
 
 void BbCameraZoomControl::zoomTo(qreal optical, qreal digital)
 {
-    Q_UNUSED(optical)
+    Q_UNUSED(optical);
 
     if (m_session->status() != QCamera::ActiveStatus)
         return;

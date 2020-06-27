@@ -440,8 +440,8 @@ qint64 InputPrivate::readData(char *data, qint64 len)
 
 qint64 InputPrivate::writeData(const char *data, qint64 len)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(len)
+    Q_UNUSED(data);
+    Q_UNUSED(len);
     return 0;
 }
 

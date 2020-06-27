@@ -93,7 +93,7 @@ AVFVideoEncoderSettingsControl::AVFVideoEncoderSettingsControl(AVFCameraService 
 QList<QSize> AVFVideoEncoderSettingsControl::supportedResolutions(const QVideoEncoderSettings &settings,
                                                                   bool *continuous) const
 {
-    Q_UNUSED(settings)
+    Q_UNUSED(settings);
 
     if (continuous)
         *continuous = true;

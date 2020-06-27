@@ -86,7 +86,7 @@ void Spectrograph::setParams(int numBars, qreal lowFreq, qreal highFreq)
 void Spectrograph::timerEvent(QTimerEvent *event)
 {
     Q_ASSERT(event->timerId() == m_timerId);
-    Q_UNUSED(event) // suppress warnings in release builds
+    Q_UNUSED(event); // suppress warnings in release builds
     killTimer(m_timerId);
     m_timerId = NullTimerId;
     m_barSelected = NullIndex;
@@ -95,7 +95,7 @@ void Spectrograph::timerEvent(QTimerEvent *event)
 
 void Spectrograph::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event)
+    Q_UNUSED(event);
 
     QPainter painter(this);
     painter.fillRect(rect(), Qt::black);

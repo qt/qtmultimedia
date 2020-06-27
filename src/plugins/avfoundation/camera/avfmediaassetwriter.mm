@@ -349,7 +349,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         fromConnection:(AVCaptureConnection *)connection
 {
-    Q_UNUSED(connection)
+    Q_UNUSED(connection);
 
     if (m_state.loadAcquire() != WriterStateActive)
         return;

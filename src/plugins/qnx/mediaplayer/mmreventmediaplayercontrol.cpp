@@ -119,7 +119,7 @@ bool MmrEventMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, 
 bool MmrEventMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
 #endif
 {
-    Q_UNUSED(result)
+    Q_UNUSED(result);
     if (eventType == "screen_event_t") {
         screen_event_t event = static_cast<screen_event_t>(message);
         if (MmRendererVideoWindowControl *control = videoWindowControl())

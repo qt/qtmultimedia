@@ -72,7 +72,7 @@ public:
         , m_mode(NotMapped)
     {
 #ifndef Q_OS_IOS
-        Q_UNUSED(renderer)
+        Q_UNUSED(renderer);
 #endif // Q_OS_IOS
         CVPixelBufferRetain(m_buffer);
     }

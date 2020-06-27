@@ -488,10 +488,10 @@ void CoreAudioOutput::inputReady()
 
 OSStatus CoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
 {
-    Q_UNUSED(ioActionFlags)
-    Q_UNUSED(inTimeStamp)
-    Q_UNUSED(inBusNumber)
-    Q_UNUSED(inNumberFrames)
+    Q_UNUSED(ioActionFlags);
+    Q_UNUSED(inTimeStamp);
+    Q_UNUSED(inBusNumber);
+    Q_UNUSED(inNumberFrames);
 
     CoreAudioOutput* d = static_cast<CoreAudioOutput*>(inRefCon);
 

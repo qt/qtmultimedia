@@ -57,7 +57,7 @@ QVideoFrame::PixelFormat BbCameraCaptureBufferFormatControl::bufferFormat() cons
 
 void BbCameraCaptureBufferFormatControl::setBufferFormat(QVideoFrame::PixelFormat format)
 {
-    Q_UNUSED(format)
+    Q_UNUSED(format);
     // Do nothing, we support only Jpeg for now
 }
 

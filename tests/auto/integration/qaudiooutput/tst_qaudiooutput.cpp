@@ -140,7 +140,7 @@ void tst_QAudioOutput::createSineWaveData(const QAudioFormat &format, qint64 len
     const int sampleBytes = format.channelCount() * channelBytes;
 
     Q_ASSERT(length % sampleBytes == 0);
-    Q_UNUSED(sampleBytes) // suppress warning in release builds
+    Q_UNUSED(sampleBytes); // suppress warning in release builds
 
     m_byteArray.reset(new QByteArray(length, 0));
     unsigned char *ptr = reinterpret_cast<unsigned char *>(m_byteArray->data());

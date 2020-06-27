@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
 
 static QObject *multimedia_global_object(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
 {
-    Q_UNUSED(qmlEngine)
+    Q_UNUSED(qmlEngine);
     return new QDeclarativeMultimediaGlobal(jsEngine);
 }
 

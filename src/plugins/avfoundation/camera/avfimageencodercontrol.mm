@@ -76,7 +76,7 @@ QString AVFImageEncoderControl::imageCodecDescription(const QString &codecName) 
 QList<QSize> AVFImageEncoderControl::supportedResolutions(const QImageEncoderSettings &settings,
                                                           bool *continuous) const
 {
-    Q_UNUSED(settings)
+    Q_UNUSED(settings);
 
     QList<QSize> resolutions;
 

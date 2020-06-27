@@ -240,7 +240,7 @@ bool AVFCameraExposureControl::isParameterSupported(ExposureParameter parameter)
            || parameter == QCameraExposureControl::ExposureCompensation
            || parameter == QCameraExposureControl::ExposureMode;
 #else
-    Q_UNUSED(parameter)
+    Q_UNUSED(parameter);
     return false;
 #endif
 }
@@ -302,8 +302,8 @@ QVariantList AVFCameraExposureControl::supportedParameterRange(ExposureParameter
             parameterRange << QVariant::fromValue(QCameraExposure::ExposureAuto);
     }
 #else
-    Q_UNUSED(parameter)
-    Q_UNUSED(continuous)
+    Q_UNUSED(parameter);
+    Q_UNUSED(continuous);
 #endif
     return parameterRange;
 }
@@ -364,7 +364,7 @@ QVariant AVFCameraExposureControl::actualValue(ExposureParameter parameter) cons
         }
     }
 #else
-    Q_UNUSED(parameter)
+    Q_UNUSED(parameter);
 #endif
     return QVariant();
 }
@@ -425,7 +425,7 @@ bool AVFCameraExposureControl::setExposureMode(const QVariant &value)
 
     return true;
 #else
-    Q_UNUSED(value)
+    Q_UNUSED(value);
     return false;
 #endif
 }
@@ -466,7 +466,7 @@ bool AVFCameraExposureControl::setExposureCompensation(const QVariant &value)
 
     return true;
 #else
-    Q_UNUSED(value)
+    Q_UNUSED(value);
     return false;
 #endif
 }
@@ -513,7 +513,7 @@ bool AVFCameraExposureControl::setShutterSpeed(const QVariant &value)
 
     return true;
 #else
-    Q_UNUSED(value)
+    Q_UNUSED(value);
     return false;
 #endif
 }
@@ -557,7 +557,7 @@ bool AVFCameraExposureControl::setISO(const QVariant &value)
 
     return true;
 #else
-    Q_UNUSED(value)
+    Q_UNUSED(value);
     return false;
 #endif
 }

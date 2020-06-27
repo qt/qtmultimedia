@@ -91,7 +91,7 @@ QMediaControl *AudioCaptureService::requestControl(const char *name)
 
 void AudioCaptureService::releaseControl(QMediaControl *control)
 {
-    Q_UNUSED(control)
+    Q_UNUSED(control);
 }
 
 QT_END_NAMESPACE

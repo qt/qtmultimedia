@@ -76,7 +76,7 @@ HRESULT DirectShowBaseFilter::NotifyEvent(long eventCode, LONG_PTR eventParam1, 
 
 HRESULT DirectShowBaseFilter::Run(REFERENCE_TIME tStart)
 {
-    Q_UNUSED(tStart)
+    Q_UNUSED(tStart);
     const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     m_startTime = tStart;

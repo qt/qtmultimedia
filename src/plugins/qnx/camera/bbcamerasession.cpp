@@ -317,7 +317,7 @@ struct ImageCaptureData
 
 static void imageCaptureShutterCallback(camera_handle_t handle, void *context)
 {
-    Q_UNUSED(handle)
+    Q_UNUSED(handle);
 
     const ImageCaptureData *data = static_cast<ImageCaptureData*>(context);
 
@@ -328,7 +328,7 @@ static void imageCaptureShutterCallback(camera_handle_t handle, void *context)
 
 static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *buffer, void *context)
 {
-    Q_UNUSED(handle)
+    Q_UNUSED(handle);
 
     QScopedPointer<ImageCaptureData> data(static_cast<ImageCaptureData*>(context));
 
@@ -856,7 +856,7 @@ void BbCameraSession::closeCamera()
 
 static void viewFinderStatusCallback(camera_handle_t handle, camera_devstatus_t status, uint16_t value, void *context)
 {
-    Q_UNUSED(handle)
+    Q_UNUSED(handle);
 
     if (status == CAMERA_STATUS_FOCUS_CHANGE) {
         BbCameraSession *session = static_cast<BbCameraSession*>(context);
@@ -1019,8 +1019,8 @@ void BbCameraSession::applyConfiguration()
 
 static void videoRecordingStatusCallback(camera_handle_t handle, camera_devstatus_t status, uint16_t value, void *context)
 {
-    Q_UNUSED(handle)
-    Q_UNUSED(value)
+    Q_UNUSED(handle);
+    Q_UNUSED(value);
 
     if (status == CAMERA_STATUS_VIDEO_PAUSE) {
         BbCameraSession *session = static_cast<BbCameraSession*>(context);

@@ -72,7 +72,7 @@ QString CameraBinAudioEncoder::codecDescription(const QString &codecName) const
 #if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.codecDescription(codecName);
 #else
-    Q_UNUSED(codecName)
+    Q_UNUSED(codecName);
     return QString();
 #endif
 }

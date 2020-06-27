@@ -100,15 +100,15 @@ static void inputStreamStateCallback(pa_stream *stream, void *userdata)
 
 static void inputStreamUnderflowCallback(pa_stream *stream, void *userdata)
 {
-    Q_UNUSED(userdata)
-    Q_UNUSED(stream)
+    Q_UNUSED(userdata);
+    Q_UNUSED(stream);
     qWarning() << "Got a buffer underflow!";
 }
 
 static void inputStreamOverflowCallback(pa_stream *stream, void *userdata)
 {
-    Q_UNUSED(stream)
-    Q_UNUSED(userdata)
+    Q_UNUSED(stream);
+    Q_UNUSED(userdata);
     qWarning() << "Got a buffer overflow!";
 }
 
@@ -667,8 +667,8 @@ qint64 PulseInputPrivate::readData(char *data, qint64 len)
 
 qint64 PulseInputPrivate::writeData(const char *data, qint64 len)
 {
-    Q_UNUSED(data)
-    Q_UNUSED(len)
+    Q_UNUSED(data);
+    Q_UNUSED(len);
     return 0;
 }
 

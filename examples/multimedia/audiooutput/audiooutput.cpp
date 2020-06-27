@@ -83,7 +83,7 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int 
     qint64 length = (format.sampleRate() * format.channelCount() * (format.sampleSize() / 8))
                         * durationUs / 1000000;
     Q_ASSERT(length % sampleBytes == 0);
-    Q_UNUSED(sampleBytes) // suppress warning in release builds
+    Q_UNUSED(sampleBytes); // suppress warning in release builds
 
     m_buffer.resize(length);
     unsigned char *ptr = reinterpret_cast<unsigned char *>(m_buffer.data());
