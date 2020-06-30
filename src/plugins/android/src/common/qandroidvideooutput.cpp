@@ -349,14 +349,19 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
         return false;
 
+    QOpenGLContext *shareContext = !m_glContext && m_surface
+        ? qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>())
+        : nullptr;
+
     // Make sure we have an OpenGL context to make current.
-    if (!QOpenGLContext::currentContext() && !m_glContext) {
+    if (shareContext || (!QOpenGLContext::currentContext() && !m_glContext)) {
         // Create Hidden QWindow surface to create context in this thread.
         m_offscreenSurface = new QWindow();
         m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
         // Needs geometry to be a valid surface, but size is not important.
         m_offscreenSurface->setGeometry(0, 0, 1, 1);
         m_offscreenSurface->create();
+        m_offscreenSurface->moveToThread(m_surface->thread());
 
         // Create OpenGL context and set share context from surface.
         m_glContext = new QOpenGLContext();
@@ -365,7 +370,6 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
         auto surface = qobject_cast<QAbstractVideoSurface *>(m_surface->property("videoSurface").value<QObject *>());
         if (!surface)
             surface = m_surface;
-        auto shareContext = qobject_cast<QOpenGLContext *>(surface->property("GLContext").value<QObject *>());
         if (shareContext)
             m_glContext->setShareContext(shareContext);
 
