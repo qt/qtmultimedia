@@ -158,10 +158,12 @@ public:
     Error error() const;
     QString errorString() const;
 
+#ifndef QT_NO_BEARERMANAGEMENT
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
     QT_DEPRECATED_VERSION_5_15 QNetworkConfiguration currentNetworkConfiguration() const;
 QT_WARNING_POP
+#endif
 
     QMultimedia::AvailabilityStatus availability() const override;
 
@@ -186,6 +188,7 @@ public Q_SLOTS:
     void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
     void setPlaylist(QMediaPlaylist *playlist);
 
+#ifndef QT_NO_BEARERMANAGEMENT
 #ifndef Q_MOC_RUN // moc fails to parse the expanded macro
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
@@ -193,6 +196,7 @@ QT_WARNING_DISABLE_DEPRECATED
     QT_DEPRECATED_VERSION_5_15 void setNetworkConfigurations(const QList<QNetworkConfiguration> &configurations);
 #ifndef Q_MOC_RUN // moc fails to parse the expanded macro
 QT_WARNING_POP
+#endif
 #endif
 
 Q_SIGNALS:
@@ -220,6 +224,7 @@ Q_SIGNALS:
 
     void error(QMediaPlayer::Error error);
 
+#ifndef QT_NO_BEARERMANAGEMENT
 #ifndef Q_MOC_RUN // moc fails to parse the expanded macro
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
@@ -227,6 +232,7 @@ QT_WARNING_DISABLE_DEPRECATED
     QT_DEPRECATED_VERSION_5_15 void networkConfigurationChanged(const QNetworkConfiguration &configuration);
 #ifndef Q_MOC_RUN // moc fails to parse the expanded macro
 QT_WARNING_POP
+#endif
 #endif
 public:
     bool bind(QObject *) override;

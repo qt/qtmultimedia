@@ -50,6 +50,8 @@
 #include <QtCore/qlist.h>
 #include <QtNetwork/qnetworkconfiguration.h>
 
+#ifndef QT_NO_BEARERMANAGEMENT
+
 QT_BEGIN_NAMESPACE
 
 QT_WARNING_PUSH
@@ -81,5 +83,6 @@ QT_WARNING_POP
 
 QT_END_NAMESPACE
 
+#endif
 
 #endif

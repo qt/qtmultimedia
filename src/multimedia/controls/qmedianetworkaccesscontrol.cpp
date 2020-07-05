@@ -39,6 +39,8 @@
 
 #include "qmedianetworkaccesscontrol.h"
 
+#ifndef QT_NO_BEARERMANAGEMENT
+
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -100,5 +102,7 @@ QMediaNetworkAccessControl::~QMediaNetworkAccessControl()
 */
 
 QT_END_NAMESPACE
+
+#endif
 
 #include "moc_qmedianetworkaccesscontrol.cpp"

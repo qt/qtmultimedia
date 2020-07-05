@@ -116,7 +116,9 @@ public:
         , audioRoleControl(nullptr)
         , customAudioRoleControl(nullptr)
         , playlist(nullptr)
+#ifndef QT_NO_BEARERMANAGEMENT
         , networkAccessControl(nullptr)
+#endif
         , state(QMediaPlayer::StoppedState)
         , status(QMediaPlayer::UnknownMediaStatus)
         , error(QMediaPlayer::NoError)
@@ -133,10 +135,12 @@ public:
 
     QPointer<QObject> videoOutput;
     QMediaPlaylist *playlist;
+#ifndef QT_NO_BEARERMANAGEMENT
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
     QMediaNetworkAccessControl *networkAccessControl;
 QT_WARNING_POP
+#endif
     QVideoSurfaceOutput surfaceOutput;
     QMediaContent qrcMedia;
     QScopedPointer<QFile> qrcFile;
@@ -602,10 +606,12 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
         d->error = ServiceMissingError;
     } else {
         d->control = qobject_cast<QMediaPlayerControl*>(d->service->requestControl(QMediaPlayerControl_iid));
+#ifndef QT_NO_BEARERMANAGEMENT
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
         d->networkAccessControl = qobject_cast<QMediaNetworkAccessControl*>(d->service->requestControl(QMediaNetworkAccessControl_iid));
 QT_WARNING_POP
+#endif
         if (d->control != nullptr) {
             connect(d->control, SIGNAL(mediaChanged(QMediaContent)), SLOT(_q_handleMediaChanged(QMediaContent)));
             connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
@@ -649,6 +655,7 @@ QT_WARNING_POP
                 }
             }
         }
+#ifndef QT_NO_BEARERMANAGEMENT
         if (d->networkAccessControl != nullptr) {
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
@@ -656,6 +663,7 @@ QT_WARNING_DISABLE_DEPRECATED
                     this, &QMediaPlayer::networkConfigurationChanged);
 QT_WARNING_POP
         }
+#endif
     }
 }
 
@@ -740,6 +748,7 @@ void QMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
     setMedia(m);
 }
 
+#ifndef QT_NO_BEARERMANAGEMENT
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 /*!
@@ -759,6 +768,7 @@ void QMediaPlayer::setNetworkConfigurations(const QList<QNetworkConfiguration> &
         d->networkAccessControl->setConfigurations(configurations);
 }
 QT_WARNING_POP
+#endif
 
 QMediaPlayer::State QMediaPlayer::state() const
 {
@@ -884,6 +894,7 @@ QString QMediaPlayer::errorString() const
     return d_func()->errorString;
 }
 
+#ifndef QT_NO_BEARERMANAGEMENT
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 /*!
@@ -904,7 +915,7 @@ QNetworkConfiguration QMediaPlayer::currentNetworkConfiguration() const
     return QNetworkConfiguration();
 }
 QT_WARNING_POP
-
+#endif
 
 //public Q_SLOTS:
 /*!
