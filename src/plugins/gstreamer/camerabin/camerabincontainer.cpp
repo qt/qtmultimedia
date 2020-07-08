@@ -39,7 +39,6 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "camerabincontainer.h"
-#include <QtCore/qregexp.h>
 #include <private/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>
