@@ -319,7 +319,7 @@ int QDeclarativeSound::genVariationIndex(int oldVariationIndex)
         case QDeclarativeSound::Random: {
             if (oldVariationIndex < 0)
                 oldVariationIndex = 0;
-            return (oldVariationIndex + (QRandomGenerator::global()->bounded(m_playlist.count() + 1))) % m_playlist.count();
+            return (oldVariationIndex + (QRandomGenerator::global()->bounded(int(m_playlist.count() + 1)))) % m_playlist.count();
         }
         default:
             return (oldVariationIndex + 1) % m_playlist.count();
