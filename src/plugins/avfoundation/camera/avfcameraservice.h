@@ -71,6 +71,7 @@ class AVFAudioEncoderSettingsControl;
 class AVFVideoEncoderSettingsControl;
 class AVFMediaContainerControl;
 class AVFCameraWindowControl;
+class AVFCaptureDestinationControl;
 
 class AVFCameraService : public QMediaService
 {
@@ -100,6 +101,7 @@ public:
     AVFAudioEncoderSettingsControl *audioEncoderSettingsControl() const { return m_audioEncoderSettingsControl; }
     AVFVideoEncoderSettingsControl *videoEncoderSettingsControl() const {return m_videoEncoderSettingsControl; }
     AVFMediaContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
+    AVFCaptureDestinationControl *captureDestinationControl() const { return m_captureDestinationControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -122,6 +124,7 @@ private:
     AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
     AVFMediaContainerControl *m_mediaContainerControl;
     AVFCameraWindowControl *m_captureWindowControl;
+    AVFCaptureDestinationControl *m_captureDestinationControl;
 };
 
 QT_END_NAMESPACE

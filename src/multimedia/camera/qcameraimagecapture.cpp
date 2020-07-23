@@ -618,7 +618,8 @@ void QCameraImageCapture::cancelCapture()
 /*!
     \fn QCameraImageCapture::imageCaptured(int id, const QImage &preview);
 
-    Signal emitted when the frame with request \a id was captured, but not processed and saved yet.
+    Signal emitted when QAbstractVideoSurface is used as a viewfinder and
+    the frame with request \a id was captured, but not processed and saved yet.
     Frame \a preview can be displayed to user.
 */
 
@@ -634,13 +635,15 @@ void QCameraImageCapture::cancelCapture()
 /*!
     \fn QCameraImageCapture::imageAvailable(int id, const QVideoFrame &frame)
 
-    Signal emitted when the \a frame with request \a id is available.
+    Signal emitted when QCameraImageCapture::CaptureToBuffer is set and
+    the \a frame with request \a id is available.
 */
 
 /*!
     \fn QCameraImageCapture::imageSaved(int id, const QString &fileName)
 
-    Signal emitted when the frame with request \a id was saved to \a fileName.
+    Signal emitted when QCameraImageCapture::CaptureToFile is set and
+    the frame with request \a id was saved to \a fileName.
 */
 
 QT_END_NAMESPACE
