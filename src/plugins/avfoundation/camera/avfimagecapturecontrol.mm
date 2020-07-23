@@ -42,6 +42,8 @@
 #include "avfcameraservice.h"
 #include "avfcamerautility.h"
 #include "avfcameracontrol.h"
+#include "avfcapturedestinationcontrol.h"
+#include <private/qmemoryvideobuffer_p.h>
 
 #include <QtCore/qurl.h>
 #include <QtCore/qfile.h>
@@ -111,12 +113,16 @@ int AVFImageCaptureControl::capture(const QString &fileName)
         return m_lastCaptureId;
     }
 
-    QString actualFileName = m_storageLocation.generateFileName(fileName,
-                                                                QCamera::CaptureStillImage,
-                                                                QLatin1String("img_"),
-                                                                QLatin1String("jpg"));
+    auto destination = m_service->captureDestinationControl()->captureDestination();
+    QString actualFileName;
+    if (destination & QCameraImageCapture::CaptureToFile) {
+        actualFileName = m_storageLocation.generateFileName(fileName,
+                                                            QCamera::CaptureStillImage,
+                                                            QLatin1String("img_"),
+                                                            QLatin1String("jpg"));
 
-    qDebugCamera() << "Capture image to" << actualFileName;
+        qDebugCamera() << "Capture image to" << actualFileName;
+    }
 
     CaptureRequest request = { m_lastCaptureId, QSharedPointer<QSemaphore>::create()};
     m_requestsMutex.lock();
@@ -152,10 +158,23 @@ int AVFImageCaptureControl::capture(const QString &fileName)
         // so we cannot reliably check the camera's status. Instead, we wait
         // with a timeout and treat a failure to acquire a semaphore as an error.
         if (!m_service->videoOutput() || request.previewReady->tryAcquire(1, 1000)) {
-            qDebugCamera() << "Image capture completed:" << actualFileName;
+            qDebugCamera() << "Image capture completed";
 
             NSData *nsJpgData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
             QByteArray jpgData = QByteArray::fromRawData((const char *)[nsJpgData bytes], [nsJpgData length]);
+
+            if (destination & QCameraImageCapture::CaptureToBuffer) {
+                QBuffer data(&jpgData);
+                QImageReader reader(&data, "JPEG");
+                QSize size = reader.size();
+                QVideoFrame frame(new QMemoryVideoBuffer(QByteArray(jpgData.constData(), jpgData.size()), -1), size, QVideoFrame::Format_Jpeg);
+                QMetaObject::invokeMethod(this, "imageAvailable", Qt::QueuedConnection,
+                                          Q_ARG(int, request.captureId),
+                                          Q_ARG(QVideoFrame, frame));
+            }
+
+            if (!(destination & QCameraImageCapture::CaptureToFile))
+                return;
 
             QFile f(actualFileName);
             if (f.open(QFile::WriteOnly)) {
