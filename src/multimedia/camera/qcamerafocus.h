@@ -162,9 +162,6 @@ private:
 
     Q_DISABLE_COPY(QCameraFocus)
     Q_DECLARE_PRIVATE(QCameraFocus)
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QCameraFocusPrivate *d_ptr_deprecated;
-#endif
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraFocus::FocusModes)

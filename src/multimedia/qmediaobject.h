@@ -93,10 +93,6 @@ protected:
     void addPropertyWatch(QByteArray const &name);
     void removePropertyWatch(QByteArray const &name);
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QMediaObjectPrivate *d_ptr_deprecated;
-#endif
-
 private:
     void setupControls();
 

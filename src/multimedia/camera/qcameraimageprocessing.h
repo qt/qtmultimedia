@@ -126,9 +126,6 @@ private:
 
     Q_DISABLE_COPY(QCameraImageProcessing)
     Q_DECLARE_PRIVATE(QCameraImageProcessing)
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QCameraImageProcessingPrivate *d_ptr_deprecated;
-#endif
 };
 
 QT_END_NAMESPACE

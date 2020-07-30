@@ -1034,11 +1034,7 @@ void QVideoWidget::paintEvent(QPaintEvent *event)
 }
 
 #if defined(Q_OS_WIN)
-#  if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, qintptr *result)
-#  else
-bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, long *result)
-#  endif
 {
     Q_D(QVideoWidget);
     Q_UNUSED(eventType);

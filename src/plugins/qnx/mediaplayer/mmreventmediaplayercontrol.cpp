@@ -113,11 +113,7 @@ void MmrEventMediaPlayerControl::resetMonitoring()
     m_speed = 0;
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 bool MmrEventMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
-#else
-bool MmrEventMediaPlayerControl::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
-#endif
 {
     Q_UNUSED(result);
     if (eventType == "screen_event_t") {

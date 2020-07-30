@@ -94,20 +94,6 @@ QMediaTimeInterval::QMediaTimeInterval(qint64 start, qint64 end)
 
 }
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-/*!
-    \fn QMediaTimeInterval::QMediaTimeInterval(const QMediaTimeInterval &other)
-
-    Constructs an interval by taking a copy of \a other.
-*/
-QMediaTimeInterval::QMediaTimeInterval(const QMediaTimeInterval &other)
-    : s(other.s)
-    , e(other.e)
-{
-
-}
-#endif
-
 /*!
     \fn QMediaTimeInterval::start() const
 
