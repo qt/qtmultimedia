@@ -75,6 +75,7 @@ public:
         Format_ARGB8565_Premultiplied,
         Format_BGRA32,
         Format_BGRA32_Premultiplied,
+        Format_ABGR32,
         Format_BGR32,
         Format_BGR24,
         Format_BGR565,
@@ -85,6 +86,7 @@ public:
         Format_AYUV444_Premultiplied,
         Format_YUV444,
         Format_YUV420P,
+        Format_YUV422P,
         Format_YV12,
         Format_UYVY,
         Format_YUYV,
@@ -101,8 +103,6 @@ public:
 
         Format_CameraRaw,
         Format_AdobeDng,
-        Format_ABGR32, // ### Qt 6: reorder
-        Format_YUV422P,
 
 #ifndef Q_QDOC
         NPixelFormats,
