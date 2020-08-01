@@ -72,7 +72,7 @@ public:
     bool hasAlphaChannel() const override;
     bool hasMipmaps() const override;
     void commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates) override;
-    void setData(QRhiTexture::Format f, const QSize &s, const uchar *data, qsizetype bytes);
+    void setData(QRhiTexture::Format f, const QSize &s, const uchar *data, int bytes);
     void setNativeObject(quint64 obj, const QSize &s);
 
 protected:

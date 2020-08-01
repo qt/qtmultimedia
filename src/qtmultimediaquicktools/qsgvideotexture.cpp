@@ -53,8 +53,7 @@ private:
     QSGVideoTexture *q_ptr = nullptr;
     QRhiTexture::Format m_format;
     QSize m_size;
-    const uchar *m_data = nullptr;
-    qsizetype m_bytes = 0;
+    QByteArray m_data;
 
     QScopedPointer<QRhiTexture> m_texture;
     quint64 m_nativeObject = 0;
@@ -104,13 +103,12 @@ bool QSGVideoTexture::hasMipmaps() const
     return mipmapFiltering() != QSGTexture::None;
 }
 
-void QSGVideoTexture::setData(QRhiTexture::Format f, const QSize &s, const uchar *data, qsizetype bytes)
+void QSGVideoTexture::setData(QRhiTexture::Format f, const QSize &s, const uchar *data, int bytes)
 {
     Q_D(QSGVideoTexture);
     d->m_size = s;
     d->m_format = f;
-    d->m_data = data;
-    d->m_bytes = bytes;
+    d->m_data = {reinterpret_cast<const char *>(data), bytes};
 }
 
 void QSGVideoTexture::setNativeObject(quint64 obj, const QSize &s)
@@ -149,13 +147,14 @@ void QSGVideoTexturePrivate::updateRhiTexture(QRhi *rhi, QRhiResourceUpdateBatch
         }
     }
 
-    if (m_bytes) {
-        QRhiTextureSubresourceUploadDescription subresDesc(m_data, m_bytes);
+    if (!m_data.isEmpty()) {
+        QRhiTextureSubresourceUploadDescription subresDesc(m_data.constData(), m_data.size());
         subresDesc.setSourceSize(m_size);
         subresDesc.setDestinationTopLeft(QPoint(0, 0));
         QRhiTextureUploadEntry entry(0, 0, subresDesc);
         QRhiTextureUploadDescription desc({ entry });
         resourceUpdates->uploadTexture(m_texture.data(), desc);
+        m_data.clear();
     }
 }
 
