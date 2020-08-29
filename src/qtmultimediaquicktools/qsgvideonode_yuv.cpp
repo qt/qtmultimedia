@@ -52,6 +52,10 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_YUV::supportedPixelFormats(
         formats << QVideoFrame::Format_YUV420P << QVideoFrame::Format_YV12 << QVideoFrame::Format_YUV422P
                 << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21
                 << QVideoFrame::Format_UYVY << QVideoFrame::Format_YUYV;
+    } else if (handleType == QAbstractVideoBuffer::GLTextureHandle) {
+        formats << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21;
+    } else if (handleType == QAbstractVideoBuffer::MTLTextureHandle) {
+        formats << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21;
     }
 
     return formats;
@@ -311,7 +315,25 @@ void QSGVideoMaterialRhiShader_YUV_YV::mapFrame(QSGVideoMaterial_YUV *m)
 
 void QSGVideoMaterialRhiShader_NV12::mapFrame(QSGVideoMaterial_YUV *m)
 {
-    if (!m->m_frame.isValid() || !m->m_frame.map(QAbstractVideoBuffer::ReadOnly))
+    if (!m->m_frame.isValid())
+        return;
+
+    if (m->m_frame.handleType() == QAbstractVideoBuffer::GLTextureHandle || m->m_frame.handleType() == QAbstractVideoBuffer::MTLTextureHandle) {
+        m->m_planeWidth[0] = m->m_planeWidth[1] = 1;
+        auto textures = m->m_frame.handle().toList();
+        if (!textures.isEmpty()) {
+            auto w = m->m_frame.size().width();
+            auto h = m->m_frame.size().height();
+            m->m_textures[0]->setNativeObject(textures[0].toULongLong(), {w, h});
+            m->m_textures[1]->setNativeObject(textures[1].toULongLong(), {w / 2, h / 2});
+        } else {
+            qWarning() << "NV12/NV21 requires 2 textures";
+        }
+
+        return;
+    }
+
+    if (!m->m_frame.map(QAbstractVideoBuffer::ReadOnly))
         return;
 
     int y = 0;
