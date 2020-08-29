@@ -91,6 +91,7 @@ public:
         m_opacity(1.0)
     {
         setFlag(Blending, false);
+        m_texture.reset(new QSGVideoTexture);
     }
 
     QSGMaterialType *type() const override {
@@ -159,8 +160,6 @@ void QSGVideoMaterialRhiShader_RGB::updateSampledImage(RenderState &state, int b
         return;
 
     auto m = static_cast<QSGVideoMaterial_RGB *>(newMaterial);
-    if (!m->m_texture)
-        m->m_texture.reset(new QSGVideoTexture);
 
     m->m_frameMutex.lock();
     auto frame = m->m_frame;

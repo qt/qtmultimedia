@@ -116,6 +116,7 @@ public:
         m_opacity(1.0)
     {
         setFlag(Blending, false);
+        m_texture.reset(new QSGVideoTexture);
     }
 
     ~QSGVideoMaterial_Texture()
@@ -195,8 +196,6 @@ void QSGVideoMaterialRhiShader_Texture::updateSampledImage(RenderState &state, i
         return;
 
     auto m = static_cast<QSGVideoMaterial_Texture *>(newMaterial);
-    if (!m->m_texture)
-        m->m_texture.reset(new QSGVideoTexture);
 
     m->m_frameMutex.lock();
     auto size = m->m_frame.size();

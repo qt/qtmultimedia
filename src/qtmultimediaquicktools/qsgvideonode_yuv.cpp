@@ -231,11 +231,6 @@ bool QSGVideoMaterialRhiShader_YUV::updateUniformData(RenderState &state, QSGMat
         changed = true;
     }
 
-    if (!m->m_textures[0]) {
-        m->m_textures[0].reset(new QSGVideoTexture);
-        m->m_textures[1].reset(new QSGVideoTexture);
-    }
-
     m->m_frameMutex.lock();
     mapFrame(m);
     m->m_frameMutex.unlock();
@@ -294,9 +289,6 @@ void QSGVideoMaterialRhiShader_YUV_YV::mapFrame(QSGVideoMaterial_YUV *m)
     if (!m->m_frame.isValid() || !m->m_frame.map(QAbstractVideoBuffer::ReadOnly))
         return;
 
-    if (!m->m_textures[2])
-        m->m_textures[2].reset(new QSGVideoTexture);
-
     int y = 0;
     int u = m->m_frame.pixelFormat() == QVideoFrame::Format_YV12 ? 2 : 1;
     int v = m->m_frame.pixelFormat() == QVideoFrame::Format_YV12 ? 1 : 2;
@@ -341,6 +333,10 @@ QSGVideoMaterial_YUV::QSGVideoMaterial_YUV(const QVideoSurfaceFormat &format) :
     m_format(format),
     m_opacity(1.0)
 {
+    m_textures[0].reset(new QSGVideoTexture);
+    m_textures[1].reset(new QSGVideoTexture);
+    m_textures[2].reset(new QSGVideoTexture);
+
     switch (format.yCbCrColorSpace()) {
     case QVideoSurfaceFormat::YCbCr_JPEG:
         m_colorMatrix = QMatrix4x4(
