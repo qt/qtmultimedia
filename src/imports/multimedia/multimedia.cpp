@@ -151,8 +151,8 @@ public:
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 3>(uri, 5, 11, "CameraImageProcessing",
                                 tr("CameraImageProcessing is provided by Camera"));
 
-        qmlRegisterType<QDeclarativeMediaMetaData>();
-        qmlRegisterType<QAbstractVideoFilter>();
+        qmlRegisterAnonymousType<QDeclarativeMediaMetaData>(uri, 5);
+        qmlRegisterAnonymousType<QAbstractVideoFilter>(uri, 5);
 
         // 5.13 types
         qmlRegisterType<QDeclarativeVideoOutput, 13>(uri, 5, 13, "VideoOutput");
@@ -160,7 +160,7 @@ public:
         // 5.15 types
         qmlRegisterType<QDeclarativeAudio, 15>(uri, 5, 15, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput, 15>(uri, 5, 15, "VideoOutput");
-        qmlRegisterType<QAbstractVideoSurface>();
+        qmlRegisterAnonymousType<QAbstractVideoSurface>(uri, 5);
 
         // The minor version used to be the current Qt 5 minor. For compatibility it is the last
         // Qt 5 release.
