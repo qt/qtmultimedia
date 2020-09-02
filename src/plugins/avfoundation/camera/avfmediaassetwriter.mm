@@ -134,10 +134,10 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     if (self = [super init]) {
         m_delegate = delegate;
         m_setStartTime = true;
-        m_state.store(WriterStateIdle);
+        m_state.storeRelaxed(WriterStateIdle);
         m_startTime = kCMTimeInvalid;
         m_lastTimeStamp = kCMTimeInvalid;
-        m_durationInMs.store(0);
+        m_durationInMs.storeRelaxed(0);
         m_audioSettings = nil;
         m_videoSettings = nil;
     }
@@ -362,7 +362,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     CFRetain(sampleBuffer);
 
     if (captureOutput != m_audioOutput.data()) {
-        if (m_state.load() != WriterStateActive) {
+        if (m_state.loadRelaxed() != WriterStateActive) {
             CFRelease(sampleBuffer);
             return;
         }

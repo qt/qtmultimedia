@@ -244,7 +244,7 @@ CoreAudioOutput::CoreAudioOutput(const QByteArray &device)
 
     m_clockFrequency = CoreAudioUtils::frequency() / 1000;
     m_audioDeviceInfo = new CoreAudioDeviceInfo(device, QAudio::AudioOutput);
-    m_audioThreadState.store(Stopped);
+    m_audioThreadState.storeRelaxed(Stopped);
 
     m_intervalTimer = new QTimer(this);
     m_intervalTimer->setInterval(1000);
@@ -685,7 +685,7 @@ void CoreAudioOutput::close()
 void CoreAudioOutput::audioThreadStart()
 {
     startTimers();
-    m_audioThreadState.store(Running);
+    m_audioThreadState.storeRelaxed(Running);
     AudioOutputUnitStart(m_audioUnit);
 }
 
@@ -706,7 +706,7 @@ void CoreAudioOutput::audioThreadDrain()
 void CoreAudioOutput::audioDeviceStop()
 {
     AudioOutputUnitStop(m_audioUnit);
-    m_audioThreadState.store(Stopped);
+    m_audioThreadState.storeRelaxed(Stopped);
     m_threadFinished.wakeOne();
 }
 

@@ -908,7 +908,7 @@ void CoreAudioInput::deviceStoppped()
 void CoreAudioInput::audioThreadStart()
 {
     startTimers();
-    m_audioThreadState.store(Running);
+    m_audioThreadState.storeRelaxed(Running);
     AudioOutputUnitStart(m_audioUnit);
 }
 
@@ -922,7 +922,7 @@ void CoreAudioInput::audioThreadStop()
 void CoreAudioInput::audioDeviceStop()
 {
     AudioOutputUnitStop(m_audioUnit);
-    m_audioThreadState.store(Stopped);
+    m_audioThreadState.storeRelaxed(Stopped);
     m_threadFinished.wakeOne();
 }
 

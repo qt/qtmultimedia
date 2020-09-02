@@ -175,12 +175,12 @@ void CoreAudioRingBuffer::releaseWriteRegion(const CoreAudioRingBuffer::Region &
 
 int CoreAudioRingBuffer::used() const
 {
-    return m_bufferUsed.load();
+    return m_bufferUsed.loadRelaxed();
 }
 
 int CoreAudioRingBuffer::free() const
 {
-    return m_bufferSize - m_bufferUsed.load();
+    return m_bufferSize - m_bufferUsed.loadRelaxed();
 }
 
 int CoreAudioRingBuffer::size() const
@@ -192,7 +192,7 @@ void CoreAudioRingBuffer::reset()
 {
     m_readPos = 0;
     m_writePos = 0;
-    m_bufferUsed.store(0);
+    m_bufferUsed.storeRelaxed(0);
 }
 
 QT_END_NAMESPACE
