@@ -1327,6 +1327,7 @@ QList< QPair<int,int> > CameraBinSession::supportedFrameRates(const QSize &frame
         g_value_copy(oldRate, &rate);
         gst_structure_remove_all_fields(structure);
         gst_structure_set_value(structure, "framerate", &rate);
+        g_value_unset(&rate);
     }
 #if GST_CHECK_VERSION(1,0,0)
     caps = gst_caps_simplify(caps);
@@ -1448,6 +1449,8 @@ QList<QSize> CameraBinSession::supportedResolutions(QPair<int,int> rate,
         gst_structure_remove_all_fields(structure);
         gst_structure_set_value(structure, "width", &w);
         gst_structure_set_value(structure, "height", &h);
+        g_value_unset(&w);
+        g_value_unset(&h);
     }
 
 #if GST_CHECK_VERSION(1,0,0)
