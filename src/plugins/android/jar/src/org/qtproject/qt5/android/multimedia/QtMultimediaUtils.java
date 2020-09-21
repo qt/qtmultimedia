@@ -39,6 +39,7 @@
 
 package org.qtproject.qt5.android.multimedia;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.OrientationEventListener;
 import android.os.Environment;
@@ -69,6 +70,10 @@ public class QtMultimediaUtils
 
     static private Context m_context = null;
     static private OrientationListener m_orientationListener = null;
+
+    static public void setActivity(Activity qtMainActivity, Object qtActivityDelegate)
+    {
+    }
 
     static public void setContext(Context context)
     {
