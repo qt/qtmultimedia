@@ -64,7 +64,6 @@ class QString;
 class QUrl;
 class QByteArray;
 class QIODevice;
-class QStringList;
 
 class Q_MULTIMEDIA_EXPORT QMediaPlaylistReader
 {

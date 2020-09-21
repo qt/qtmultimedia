@@ -47,7 +47,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QStringList;
 class QAudioFormat;
 QT_END_NAMESPACE
 

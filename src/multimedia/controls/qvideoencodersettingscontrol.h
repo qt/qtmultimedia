@@ -49,7 +49,6 @@
 QT_BEGIN_NAMESPACE
 
 class QByteArray;
-class QStringList;
 QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE

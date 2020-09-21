@@ -47,7 +47,6 @@ QT_BEGIN_NAMESPACE
 
 // Class forward declaration required for QDoc bug
 class QString;
-class QStringList;
 
 class Q_MULTIMEDIA_EXPORT QCustomAudioRoleControl : public QMediaControl
 {
