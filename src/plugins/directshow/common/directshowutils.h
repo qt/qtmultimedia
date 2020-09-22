@@ -68,7 +68,7 @@ struct ScopedSafeRelease
     }
 };
 
-bool getPin(IBaseFilter *filter, PIN_DIRECTION pinDirection, IPin **pin, HRESULT *hrOut);
+bool getPin(IBaseFilter *filter, PIN_DIRECTION pinDirection, REFGUID category, IPin **pin, HRESULT *hrOut);
 bool isPinConnected(IPin *pin, HRESULT *hrOut = nullptr);
 bool hasPinDirection(IPin *pin, PIN_DIRECTION direction, HRESULT *hrOut = nullptr);
 bool matchPin(IPin *pin, PIN_DIRECTION pinDirection, BOOL shouldBeConnected, HRESULT *hrOut = nullptr);

@@ -93,6 +93,25 @@ bool DirectShowUtils::hasPinDirection(IPin *pin, PIN_DIRECTION direction, HRESUL
     return (pinDir == direction);
 }
 
+bool pinMatchesCategory(IPin* pPin, REFGUID category)
+{
+    bool found = false;
+    IKsPropertySet *pKs = nullptr;
+    DirectShowUtils::ScopedSafeRelease<IKsPropertySet> ks_property { &pKs };
+    HRESULT hr = pPin->QueryInterface(IID_PPV_ARGS(&pKs));
+
+    if (SUCCEEDED(hr)) {
+        GUID pin_category;
+        DWORD return_value;
+        hr = pKs->Get(AMPROPSETID_Pin, AMPROPERTY_PIN_CATEGORY, NULL, 0,
+                      &pin_category, sizeof(pin_category), &return_value);
+        if (SUCCEEDED(hr) && (return_value == sizeof(pin_category)))
+            found = (pin_category == category);
+    }
+
+    return found;
+}
+
 /**
  * @brief DirectShowUtils::getPin
  * @param filter
@@ -101,7 +120,7 @@ bool DirectShowUtils::hasPinDirection(IPin *pin, PIN_DIRECTION direction, HRESUL
  * @param hrOut
  * @return
  */
-bool DirectShowUtils::getPin(IBaseFilter *filter, PIN_DIRECTION pinDirection, IPin **pin, HRESULT *hrOut)
+bool DirectShowUtils::getPin(IBaseFilter *filter, PIN_DIRECTION pinDirection, REFGUID category, IPin **pin, HRESULT *hrOut)
 {
     IEnumPins *enumPins = nullptr;
     const ScopedSafeRelease<IEnumPins> releaseEnumPins { &enumPins };
@@ -122,9 +141,11 @@ bool DirectShowUtils::getPin(IBaseFilter *filter, PIN_DIRECTION pinDirection, IP
         PIN_DIRECTION currentPinDir;
         *hrOut = nextPin->QueryDirection(&currentPinDir);
         if (currentPinDir == pinDirection) {
-            *pin = nextPin;
-            (*pin)->AddRef();
-            return true;
+            if (category == GUID_NULL || pinMatchesCategory(nextPin, category)) {
+                *pin = nextPin;
+                (*pin)->AddRef();
+                return true;
+            }
         }
     }
 
