@@ -478,7 +478,7 @@ void QOpenSLESAudioInput::flushBuffers()
     qint64 delta = recorderPos * 1000 - devicePos;
 
     if (delta > 0) {
-        const int writeSize = std::min(m_buffers[m_currentBuffer].size(),
+        const int writeSize = qMin(m_buffers[m_currentBuffer].size(),
                                        m_format.bytesForDuration(delta));
         writeDataToDevice(m_buffers[m_currentBuffer].constData(), writeSize);
     }
