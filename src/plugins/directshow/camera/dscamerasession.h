@@ -231,6 +231,8 @@ private:
 
     QMap<QCameraImageProcessingControl::ProcessingParameter, QVariant> m_pendingImageProcessingParametrs;
 
+    IPin *m_outputPin = nullptr;
+
     friend class SampleGrabberCallbackPrivate;
 };
 
