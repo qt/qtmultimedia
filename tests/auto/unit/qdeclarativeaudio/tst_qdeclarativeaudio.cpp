@@ -1246,7 +1246,9 @@ void tst_QDeclarativeAudio::videoOutput()
     QVariant surfaces;
     surfaces.setValue(jsArray);
     audio.setVideoOutput(surfaces);
-    QCOMPARE(audio.videoOutput(), surfaces);
+
+    auto arr = audio.videoOutput().value<QJSValue>();
+    QVERIFY(arr.equals(jsArray));
     QCOMPARE(spy.count(), 2);
 }
 
