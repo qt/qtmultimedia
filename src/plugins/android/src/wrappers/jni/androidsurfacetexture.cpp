@@ -44,7 +44,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static const char QtSurfaceTextureListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtSurfaceTextureListener";
+static const char QtSurfaceTextureListenerClassName[] = "org/qtproject/qt/android/multimedia/QtSurfaceTextureListener";
 typedef QList<jlong> SurfaceTextures;
 Q_GLOBAL_STATIC(SurfaceTextures, g_surfaceTextures);
 Q_GLOBAL_STATIC(QMutex, g_textureMutex);
@@ -155,7 +155,7 @@ jobject AndroidSurfaceTexture::surface()
 jobject AndroidSurfaceTexture::surfaceHolder()
 {
     if (!m_surfaceHolder.isValid()) {
-        m_surfaceHolder = QJNIObjectPrivate("org/qtproject/qt5/android/multimedia/QtSurfaceTextureHolder",
+        m_surfaceHolder = QJNIObjectPrivate("org/qtproject/qt/android/multimedia/QtSurfaceTextureHolder",
                                             "(Landroid/view/Surface;)V",
                                             surface());
     }

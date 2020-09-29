@@ -56,7 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static const char QtCameraListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtCameraListener";
+static const char QtCameraListenerClassName[] = "org/qtproject/qt/android/multimedia/QtCameraListener";
 
 typedef QHash<int, AndroidCamera *> CameraMap;
 Q_GLOBAL_STATIC(CameraMap, cameras)

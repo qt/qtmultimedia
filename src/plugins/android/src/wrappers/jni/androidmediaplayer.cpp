@@ -46,7 +46,7 @@
 #include <QList>
 #include <QReadWriteLock>
 
-static const char QtAndroidMediaPlayerClassName[] = "org/qtproject/qt5/android/multimedia/QtAndroidMediaPlayer";
+static const char QtAndroidMediaPlayerClassName[] = "org/qtproject/qt/android/multimedia/QtAndroidMediaPlayer";
 typedef QList<AndroidMediaPlayer *> MediaPlayerList;
 Q_GLOBAL_STATIC(MediaPlayerList, mediaPlayers)
 Q_GLOBAL_STATIC(QReadWriteLock, rwLock)

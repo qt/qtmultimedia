@@ -3,7 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the (whatever) of the Qt Toolkit.
+** This file is part of the QtMultimedia of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,89 +37,31 @@
 **
 ****************************************************************************/
 
-package org.qtproject.qt5.android.multimedia;
+package org.qtproject.qt.android.multimedia;
 
-import android.view.SurfaceHolder;
-import android.view.Surface;
-import android.graphics.Rect;
-import android.graphics.Canvas;
+import android.media.MediaRecorder;
 
-public class QtSurfaceTextureHolder implements SurfaceHolder
+public class QtMediaRecorderListener implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
 {
-    private Surface surfaceTexture;
+    private long m_id = -1;
 
-    public QtSurfaceTextureHolder(Surface surface)
+    public QtMediaRecorderListener(long id)
     {
-        surfaceTexture = surface;
+        m_id = id;
     }
 
     @Override
-    public void addCallback(SurfaceHolder.Callback callback)
+    public void onError(MediaRecorder mr, int what, int extra)
     {
+        notifyError(m_id, what, extra);
     }
 
     @Override
-    public Surface getSurface()
+    public void onInfo(MediaRecorder mr, int what, int extra)
     {
-        return surfaceTexture;
+        notifyInfo(m_id, what, extra);
     }
 
-    @Override
-    public Rect getSurfaceFrame()
-    {
-        return new Rect();
-    }
-
-    @Override
-    public boolean isCreating()
-    {
-        return false;
-    }
-
-    @Override
-    public Canvas lockCanvas(Rect dirty)
-    {
-        return new Canvas();
-    }
-
-    @Override
-    public Canvas lockCanvas()
-    {
-        return new Canvas();
-    }
-
-    @Override
-    public void removeCallback(SurfaceHolder.Callback callback)
-    {
-    }
-
-    @Override
-    public void setFixedSize(int width, int height)
-    {
-    }
-
-    @Override
-    public void setFormat(int format)
-    {
-    }
-
-    @Override
-    public void setKeepScreenOn(boolean screenOn)
-    {
-    }
-
-    @Override
-    public void setSizeFromLayout()
-    {
-    }
-
-    @Override
-    public void setType(int type)
-    {
-    }
-
-    @Override
-    public void unlockCanvasAndPost(Canvas canvas)
-    {
-    }
+    private static native void notifyError(long id, int what, int extra);
+    private static native void notifyInfo(long id, int what, int extra);
 }

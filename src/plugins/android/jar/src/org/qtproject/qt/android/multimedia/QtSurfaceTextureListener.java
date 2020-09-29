@@ -37,31 +37,24 @@
 **
 ****************************************************************************/
 
-package org.qtproject.qt5.android.multimedia;
+package org.qtproject.qt.android.multimedia;
 
-import android.media.MediaRecorder;
+import android.graphics.SurfaceTexture;
 
-public class QtMediaRecorderListener implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener
+public class QtSurfaceTextureListener implements SurfaceTexture.OnFrameAvailableListener
 {
-    private long m_id = -1;
+    private final long m_id;
 
-    public QtMediaRecorderListener(long id)
+    public QtSurfaceTextureListener(long id)
     {
         m_id = id;
     }
 
     @Override
-    public void onError(MediaRecorder mr, int what, int extra)
+    public void onFrameAvailable(SurfaceTexture surfaceTexture)
     {
-        notifyError(m_id, what, extra);
+        notifyFrameAvailable(m_id);
     }
 
-    @Override
-    public void onInfo(MediaRecorder mr, int what, int extra)
-    {
-        notifyInfo(m_id, what, extra);
-    }
-
-    private static native void notifyError(long id, int what, int extra);
-    private static native void notifyInfo(long id, int what, int extra);
+    private static native void notifyFrameAvailable(long id);
 }

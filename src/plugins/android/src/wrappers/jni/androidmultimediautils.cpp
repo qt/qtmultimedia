@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 void AndroidMultimediaUtils::enableOrientationListener(bool enable)
 {
-    QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
+    QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
                                               "enableOrientationListener",
                                               "(Z)V",
                                               enable);
@@ -54,13 +54,13 @@ void AndroidMultimediaUtils::enableOrientationListener(bool enable)
 
 int AndroidMultimediaUtils::getDeviceOrientation()
 {
-    return QJNIObjectPrivate::callStaticMethod<jint>("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
+    return QJNIObjectPrivate::callStaticMethod<jint>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
                                                      "getDeviceOrientation");
 }
 
 QString AndroidMultimediaUtils::getDefaultMediaDirectory(MediaType type)
 {
-    QJNIObjectPrivate path = QJNIObjectPrivate::callStaticObjectMethod("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
+    QJNIObjectPrivate path = QJNIObjectPrivate::callStaticObjectMethod("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
                                                                        "getDefaultMediaDirectory",
                                                                        "(I)Ljava/lang/String;",
                                                                        jint(type));
@@ -69,7 +69,7 @@ QString AndroidMultimediaUtils::getDefaultMediaDirectory(MediaType type)
 
 void AndroidMultimediaUtils::registerMediaFile(const QString &file)
 {
-    QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt5/android/multimedia/QtMultimediaUtils",
+    QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
                                               "registerMediaFile",
                                               "(Ljava/lang/String;)V",
                                               QJNIObjectPrivate::fromString(file).object());

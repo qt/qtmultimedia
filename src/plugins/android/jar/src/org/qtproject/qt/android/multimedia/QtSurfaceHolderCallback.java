@@ -37,24 +37,37 @@
 **
 ****************************************************************************/
 
-package org.qtproject.qt5.android.multimedia;
+package org.qtproject.qt.android.multimedia;
 
-import android.graphics.SurfaceTexture;
+import android.view.SurfaceHolder;
 
-public class QtSurfaceTextureListener implements SurfaceTexture.OnFrameAvailableListener
+public class QtSurfaceHolderCallback implements SurfaceHolder.Callback
 {
-    private final long m_id;
+    private long m_id = -1;
 
-    public QtSurfaceTextureListener(long id)
+    public QtSurfaceHolderCallback(long id)
     {
         m_id = id;
     }
 
     @Override
-    public void onFrameAvailable(SurfaceTexture surfaceTexture)
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
     {
-        notifyFrameAvailable(m_id);
     }
 
-    private static native void notifyFrameAvailable(long id);
+    @Override
+    public void surfaceCreated(SurfaceHolder holder)
+    {
+        notifySurfaceCreated(m_id);
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder)
+    {
+        notifySurfaceDestroyed(m_id);
+    }
+
+
+    private static native void notifySurfaceCreated(long id);
+    private static native void notifySurfaceDestroyed(long id);
 }

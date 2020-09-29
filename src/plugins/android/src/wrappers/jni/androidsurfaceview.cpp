@@ -48,7 +48,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static const char QtSurfaceHolderCallbackClassName[] = "org/qtproject/qt5/android/multimedia/QtSurfaceHolderCallback";
+static const char QtSurfaceHolderCallbackClassName[] = "org/qtproject/qt/android/multimedia/QtSurfaceHolderCallback";
 typedef QList<AndroidSurfaceHolder *> SurfaceHolders;
 Q_GLOBAL_STATIC(SurfaceHolders, surfaceHolders)
 Q_GLOBAL_STATIC(QMutex, shLock)

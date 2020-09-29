@@ -123,7 +123,7 @@ AndroidCamcorderProfile::AndroidCamcorderProfile(const QJNIObjectPrivate &camcor
     m_camcorderProfile = camcorderProfile;
 }
 
-static const char QtMediaRecorderListenerClassName[] = "org/qtproject/qt5/android/multimedia/QtMediaRecorderListener";
+static const char QtMediaRecorderListenerClassName[] = "org/qtproject/qt/android/multimedia/QtMediaRecorderListener";
 typedef QMap<jlong, AndroidMediaRecorder*> MediaRecorderMap;
 Q_GLOBAL_STATIC(MediaRecorderMap, mediaRecorders)
 

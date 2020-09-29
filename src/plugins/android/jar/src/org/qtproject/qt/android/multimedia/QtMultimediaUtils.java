@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-package org.qtproject.qt5.android.multimedia;
+package org.qtproject.qt.android.multimedia;
 
 import android.app.Activity;
 import android.content.Context;
