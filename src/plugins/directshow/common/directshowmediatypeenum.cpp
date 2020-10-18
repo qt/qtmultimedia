@@ -42,7 +42,8 @@
 #include "directshowpin.h"
 
 DirectShowMediaTypeEnum::DirectShowMediaTypeEnum(DirectShowPin *pin)
-    : m_mediaTypes(pin->supportedMediaTypes())
+    : m_pin(pin)
+    , m_mediaTypes(pin->supportedMediaTypes())
 {
     m_pin->AddRef();
 }
