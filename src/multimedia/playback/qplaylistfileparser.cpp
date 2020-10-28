@@ -135,7 +135,7 @@ public:
      */
     bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root) override
     {
-        if (line[0] == '#' ) {
+        if (line[0] == u'#' ) {
             if (m_extendedFormat) {
                 if (line.startsWith(QLatin1String("#EXTINF:"))) {
                     m_extraInfo.clear();
@@ -179,11 +179,11 @@ public:
             startPos = 0;
         const QChar* buf = line.data();
         for (int i = startPos; i < line.length(); ++i) {
-            if (buf[i] == '-') {
+            if (buf[i] == u'-') {
                 if (i == line.length() - 1)
                     return i;
                 ++i;
-                if (buf[i] != '-')
+                if (buf[i] != u'-')
                     return i - 1;
             }
         }
@@ -257,7 +257,7 @@ Version=2
     }
 
     QString getValue(QStringView line) {
-        int start = line.indexOf('=');
+        int start = line.indexOf(u'=');
         if (start < 0)
             return QString();
         return line.mid(start + 1).trimmed().toString();

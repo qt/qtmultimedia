@@ -83,7 +83,7 @@ QAndroidMetaDataReaderControl::QAndroidMetaDataReaderControl(QObject *parent)
 
 QAndroidMetaDataReaderControl::~QAndroidMetaDataReaderControl()
 {
-    QMutexLocker l(g_metaDataReadersMtx);
+    QMutexLocker l(g_metaDataReadersMtx());
     const int idx = g_metaDataReaders->indexOf(this);
     if (idx != -1)
         g_metaDataReaders->remove(idx);
@@ -117,7 +117,7 @@ void QAndroidMetaDataReaderControl::onMediaChanged(const QMediaContent &media)
 void QAndroidMetaDataReaderControl::onUpdateMetaData()
 {
     {
-        const QMutexLocker l(g_metaDataReadersMtx);
+        const QMutexLocker l(g_metaDataReadersMtx());
         if (!g_metaDataReaders->contains(this))
             g_metaDataReaders->append(this);
     }
@@ -238,7 +238,7 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
             metadata.insert(QMediaMetaData::Year, string.toInt());
     }
 
-    const QMutexLocker lock(g_metaDataReadersMtx);
+    const QMutexLocker lock(g_metaDataReadersMtx());
     if (!g_metaDataReaders->contains(caller))
         return;
 

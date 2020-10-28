@@ -122,12 +122,12 @@ public:
     bool query(GstQuery *query);
 
 private slots:
-    bool handleEvent(QMutexLocker *locker);
+    bool handleEvent(QMutexLocker<QMutex> *locker);
     void updateSupportedFormats();
 
 private:
     void notify();
-    bool waitForAsyncEvent(QMutexLocker *locker, QWaitCondition *condition, unsigned long time);
+    bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
 
     QPointer<QAbstractVideoSurface> m_surface;
 

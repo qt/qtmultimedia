@@ -441,7 +441,7 @@ bool QVideoSurfaceGstDelegate::event(QEvent *event)
     }
 }
 
-bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker *locker)
+bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
 {
     if (m_flush) {
         m_flush = false;
@@ -525,7 +525,7 @@ void QVideoSurfaceGstDelegate::notify()
 }
 
 bool QVideoSurfaceGstDelegate::waitForAsyncEvent(
-        QMutexLocker *locker, QWaitCondition *condition, unsigned long time)
+        QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time)
 {
     if (QThread::currentThread() == thread()) {
         while (handleEvent(locker)) {}

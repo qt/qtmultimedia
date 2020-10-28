@@ -61,7 +61,7 @@ AndroidSurfaceHolder::AndroidSurfaceHolder(QJNIObjectPrivate object)
         return;
 
     {
-        QMutexLocker locker(shLock);
+        QMutexLocker locker(shLock());
         surfaceHolders->append(this);
     }
 
@@ -73,7 +73,7 @@ AndroidSurfaceHolder::AndroidSurfaceHolder(QJNIObjectPrivate object)
 
 AndroidSurfaceHolder::~AndroidSurfaceHolder()
 {
-    QMutexLocker locker(shLock);
+    QMutexLocker locker(shLock());
     const int i = surfaceHolders->indexOf(this);
     if (Q_UNLIKELY(i == -1))
         return;
@@ -88,13 +88,13 @@ jobject AndroidSurfaceHolder::surfaceHolder() const
 
 bool AndroidSurfaceHolder::isSurfaceCreated() const
 {
-    QMutexLocker locker(shLock);
+    QMutexLocker locker(shLock());
     return m_surfaceCreated;
 }
 
 void AndroidSurfaceHolder::handleSurfaceCreated(JNIEnv*, jobject, jlong id)
 {
-    QMutexLocker locker(shLock);
+    QMutexLocker locker(shLock());
     const int i = surfaceHolders->indexOf(reinterpret_cast<AndroidSurfaceHolder *>(id));
     if (Q_UNLIKELY(i == -1))
         return;
@@ -105,7 +105,7 @@ void AndroidSurfaceHolder::handleSurfaceCreated(JNIEnv*, jobject, jlong id)
 
 void AndroidSurfaceHolder::handleSurfaceDestroyed(JNIEnv*, jobject, jlong id)
 {
-    QMutexLocker locker(shLock);
+    QMutexLocker locker(shLock());
     const int i = surfaceHolders->indexOf(reinterpret_cast<AndroidSurfaceHolder *>(id));
     if (Q_UNLIKELY(i == -1))
         return;
@@ -154,7 +154,7 @@ AndroidSurfaceView::AndroidSurfaceView()
         connect(m_surfaceHolder, &AndroidSurfaceHolder::surfaceCreated,
                 this, &AndroidSurfaceView::surfaceCreated);
         { // Lock now to avoid a race with handleSurfaceCreated()
-            QMutexLocker locker(shLock);
+            QMutexLocker locker(shLock());
             m_window = QWindow::fromWinId(WId(m_surfaceView.object()));
 
             if (m_pendingVisible != -1)

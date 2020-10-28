@@ -52,7 +52,7 @@ Q_GLOBAL_STATIC(QMutex, g_textureMutex);
 // native method for QtSurfaceTexture.java
 static void notifyFrameAvailable(JNIEnv* , jobject, jlong id)
 {
-    const QMutexLocker lock(g_textureMutex);
+    const QMutexLocker lock(g_textureMutex());
     const int idx = g_surfaceTextures->indexOf(id);
     if (idx == -1)
         return;
@@ -84,7 +84,7 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(quint32 texName)
     if (!m_surfaceTexture.isValid())
         return;
 
-    const QMutexLocker lock(g_textureMutex);
+    const QMutexLocker lock(g_textureMutex());
     g_surfaceTextures->append(jlong(this));
     QJNIObjectPrivate listener(QtSurfaceTextureListenerClassName, "(J)V", jlong(this));
     setOnFrameAvailableListener(listener);
@@ -97,7 +97,7 @@ AndroidSurfaceTexture::~AndroidSurfaceTexture()
 
     if (m_surfaceTexture.isValid()) {
         release();
-        const QMutexLocker lock(g_textureMutex);
+        const QMutexLocker lock(g_textureMutex());
         const int idx = g_surfaceTextures->indexOf(jlong(this));
         if (idx != -1)
             g_surfaceTextures->remove(idx);

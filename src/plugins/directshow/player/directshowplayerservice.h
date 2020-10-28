@@ -123,24 +123,24 @@ private:
 
     void run();
 
-    void doSetUrlSource(QMutexLocker *locker);
-    void doSetStreamSource(QMutexLocker *locker);
-    void doRender(QMutexLocker *locker);
-    void doFinalizeLoad(QMutexLocker *locker);
-    void doSetRate(QMutexLocker *locker);
-    void doSeek(QMutexLocker *locker);
-    void doPlay(QMutexLocker *locker);
-    void doPause(QMutexLocker *locker);
-    void doStop(QMutexLocker *locker);
-    void doReleaseAudioOutput(QMutexLocker *locker);
-    void doReleaseVideoOutput(QMutexLocker *locker);
-    void doReleaseGraph(QMutexLocker *locker);
-    void doSetVideoProbe(QMutexLocker *locker);
-    void doSetAudioProbe(QMutexLocker *locker);
-    void doReleaseVideoProbe(QMutexLocker *locker);
-    void doReleaseAudioProbe(QMutexLocker *locker);
+    void doSetUrlSource(QMutexLocker<QMutex> *locker);
+    void doSetStreamSource(QMutexLocker<QMutex> *locker);
+    void doRender(QMutexLocker<QMutex> *locker);
+    void doFinalizeLoad(QMutexLocker<QMutex> *locker);
+    void doSetRate(QMutexLocker<QMutex> *locker);
+    void doSeek(QMutexLocker<QMutex> *locker);
+    void doPlay(QMutexLocker<QMutex> *locker);
+    void doPause(QMutexLocker<QMutex> *locker);
+    void doStop(QMutexLocker<QMutex> *locker);
+    void doReleaseAudioOutput(QMutexLocker<QMutex> *locker);
+    void doReleaseVideoOutput(QMutexLocker<QMutex> *locker);
+    void doReleaseGraph(QMutexLocker<QMutex> *locker);
+    void doSetVideoProbe(QMutexLocker<QMutex> *locker);
+    void doSetAudioProbe(QMutexLocker<QMutex> *locker);
+    void doReleaseVideoProbe(QMutexLocker<QMutex> *locker);
+    void doReleaseAudioProbe(QMutexLocker<QMutex> *locker);
 
-    void graphEvent(QMutexLocker *locker);
+    void graphEvent(QMutexLocker<QMutex> *locker);
 
     enum Task
     {

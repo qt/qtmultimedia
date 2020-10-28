@@ -101,11 +101,14 @@ void QMediaNetworkPlaylistProviderPrivate::_q_handleNewItem(const QVariant& cont
     Q_Q(QMediaNetworkPlaylistProvider);
 
     QUrl url;
-    if (content.type() == QVariant::Url) {
-        url = content.toUrl();
-    } else if (content.type() == QVariant::Map) {
-        url = content.toMap()[QLatin1String("url")].toUrl();
-    } else {
+    switch (content.metaType().id() ) {
+    case QMetaType::QUrl:
+         url = content.toUrl();
+        break;
+    case QMetaType::QVariantMap:
+        url = content.toMap().value(QLatin1String("url")).toUrl();
+        break;
+    default:
         return;
     }
 
