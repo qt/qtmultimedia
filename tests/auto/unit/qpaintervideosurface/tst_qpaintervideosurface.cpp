@@ -253,8 +253,8 @@ void tst_QPainterVideoSurface::supportedFormat_data()
             << QAbstractVideoBuffer::NoHandle
             << QVideoFrame::Format_Y8
             << QSize(640, 480)
-            << true
-            << true;
+            << false
+            << false;
     QTest::newRow("Texture: rgb32 640x480")
             << QAbstractVideoBuffer::GLTextureHandle
             << QVideoFrame::Format_RGB32
