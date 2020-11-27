@@ -964,8 +964,6 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format 
         return Format_RGB555;
     case QImage::Format_RGB888:
         return Format_RGB24;
-    case QImage::Format_Grayscale8:
-        return Format_Y8;
     default:
         return Format_Invalid;
     }
@@ -1019,13 +1017,12 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
     case Format_IMC2:
     case Format_IMC3:
     case Format_IMC4:
+    case Format_Y8:
     case Format_Y16:
     case Format_Jpeg:
     case Format_CameraRaw:
     case Format_AdobeDng:
         return QImage::Format_Invalid;
-    case Format_Y8:
-        return QImage::Format_Grayscale8;
     case Format_User:
     default:
         return QImage::Format_Invalid;

@@ -109,8 +109,7 @@ QVideoSurfaceGenericPainter::QVideoSurfaceGenericPainter()
         m_imagePixelFormats << QVideoFrame::Format_RGB24;
 
      m_imagePixelFormats << QVideoFrame::Format_ARGB32
-                         << QVideoFrame::Format_RGB565
-                         << QVideoFrame::Format_Y8;
+                         << QVideoFrame::Format_RGB565;
 }
 
 QList<QVideoFrame::PixelFormat> QVideoSurfaceGenericPainter::supportedPixelFormats(

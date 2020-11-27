@@ -978,7 +978,7 @@ void tst_QVideoFrame::formatConversion_data()
             << QImage::Format_Invalid
             << QVideoFrame::Format_IMC4;
     QTest::newRow("QVideoFrame::Format_Y8")
-            << QImage::Format_Grayscale8
+            << QImage::Format_Invalid
             << QVideoFrame::Format_Y8;
     QTest::newRow("QVideoFrame::Format_Y16")
             << QImage::Format_Invalid
