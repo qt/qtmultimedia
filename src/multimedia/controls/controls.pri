@@ -36,7 +36,6 @@ PUBLIC_HEADERS += \
 
 PRIVATE_HEADERS += \
     controls/qmediaplaylistcontrol_p.h \
-    controls/qmediaplaylistsourcecontrol_p.h
 
 SOURCES += \
     controls/qcameracapturebufferformatcontrol.cpp \
@@ -55,7 +54,6 @@ SOURCES += \
     controls/qmediacontainercontrol.cpp \
     controls/qmediaplayercontrol.cpp \
     controls/qmediaplaylistcontrol.cpp \
-    controls/qmediaplaylistsourcecontrol.cpp \
     controls/qmediarecordercontrol.cpp \
     controls/qmediastreamscontrol.cpp \
     controls/qmetadatareadercontrol.cpp \

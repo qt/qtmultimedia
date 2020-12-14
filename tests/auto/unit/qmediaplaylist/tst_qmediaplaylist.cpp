@@ -31,7 +31,6 @@
 #include "qmediaservice.h"
 #include "qmediaplaylist.h"
 #include <private/qmediaplaylistcontrol_p.h>
-#include <private/qmediaplaylistsourcecontrol_p.h>
 #include <private/qmediaplaylistnavigator_p.h>
 #include <private/qmediapluginloader_p.h>
 
@@ -91,7 +90,6 @@ private slots:
     void mediaPlayListProvider();
     // TC for Abstract control classes
     void mediaPlayListControl();
-    void mediaPlayListSourceControl();
 
 
 private:
@@ -1218,14 +1216,6 @@ void tst_QMediaPlaylist::mediaPlayListControl()
     // To check changes in abstract classe's pure virtual functions
     QObject parent;
     MockMediaPlaylistControl plylistctrl(false, &parent);
-}
-
-// MaemoAPI-1850:test QMediaPlayListSourceControl constructor
-void tst_QMediaPlaylist::mediaPlayListSourceControl()
-{
-    // To check changes in abstract classe's pure virtual functions
-    QObject parent;
-    MockPlaylistSourceControl plylistsrcctrl(&parent);
 }
 
 // MaemoAPI-1852:test constructor
