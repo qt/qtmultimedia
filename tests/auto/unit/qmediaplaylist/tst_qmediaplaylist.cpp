@@ -41,7 +41,6 @@
 
 #include "mockplaylistservice.h"
 #include "mockmediaplaylistcontrol.h"
-#include "mockmediaplaylistsourcecontrol.h"
 #include "mockreadonlyplaylistprovider.h"
 
 QT_USE_NAMESPACE

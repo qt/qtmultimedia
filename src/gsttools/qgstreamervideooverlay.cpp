@@ -42,11 +42,7 @@
 #include <QtGui/qguiapplication.h>
 #include "qgstutils_p.h"
 
-#if !GST_CHECK_VERSION(1,0,0)
-#include <gst/interfaces/xoverlay.h>
-#else
 #include <gst/video/videooverlay.h>
-#endif
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
@@ -453,17 +449,8 @@ void QGstreamerVideoOverlay::setWindowHandle(WId id)
 
 void QGstreamerVideoOverlay::setWindowHandle_helper(WId id)
 {
-#if GST_CHECK_VERSION(1,0,0)
     if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink)) {
         gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink), id);
-#else
-    if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink)) {
-# if GST_CHECK_VERSION(0,10,31)
-        gst_x_overlay_set_window_handle(GST_X_OVERLAY(m_videoSink), id);
-# else
-        gst_x_overlay_set_xwindow_id(GST_X_OVERLAY(m_videoSink), id);
-# endif
-#endif
 
         // Properties need to be reset when changing the winId.
         m_sinkProperties->reset();
@@ -475,14 +462,8 @@ void QGstreamerVideoOverlay::expose()
     if (!isActive())
         return;
 
-#if !GST_CHECK_VERSION(1,0,0)
-    if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink))
-        gst_x_overlay_expose(GST_X_OVERLAY(m_videoSink));
-#else
-    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink)) {
+    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink))
         gst_video_overlay_expose(GST_VIDEO_OVERLAY(m_videoSink));
-    }
-#endif
 }
 
 void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
@@ -499,31 +480,16 @@ void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
         h = rect.height();
     }
 
-#if GST_CHECK_VERSION(1,0,0)
     if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink))
         gst_video_overlay_set_render_rectangle(GST_VIDEO_OVERLAY(m_videoSink), x, y, w, h);
-#elif GST_CHECK_VERSION(0, 10, 29)
-    if (m_videoSink && GST_IS_X_OVERLAY(m_videoSink))
-        gst_x_overlay_set_render_rectangle(GST_X_OVERLAY(m_videoSink), x, y , w , h);
-#else
-    Q_UNUSED(x);
-    Q_UNUSED(y);
-    Q_UNUSED(w);
-    Q_UNUSED(h);
-#endif
 }
 
 bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
 
-#if !GST_CHECK_VERSION(1,0,0)
-    if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
-            gst_structure_has_name(gm->structure, "prepare-xwindow-id")) {
-#else
       if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
               gst_structure_has_name(gst_message_get_structure(gm), "prepare-window-handle")) {
-#endif
         setWindowHandle_helper(m_windowId);
         return true;
     }

@@ -119,15 +119,8 @@ QMultimedia::SupportEstimate QGstreamerCaptureServicePlugin::hasSupport(const QS
 
 static bool isEncoderOrMuxer(GstElementFactory *factory)
 {
-#if GST_CHECK_VERSION(0, 10, 31)
     return gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_MUXER)
                 || gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_ENCODER);
-#else
-    return (factory
-            && (qstrcmp(factory->details.klass, "Codec/Encoder/Audio") == 0
-               || qstrcmp(factory->details.klass, "Codec/Encoder/Video") == 0
-               || qstrcmp(factory->details.klass, "Codec/Muxer") == 0 ));
-#endif
 }
 
 void QGstreamerCaptureServicePlugin::updateSupportedMimeTypes() const

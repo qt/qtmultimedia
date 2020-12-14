@@ -63,19 +63,11 @@
 #include <qvideoframe.h>
 #include <QDebug>
 
-#if GST_CHECK_VERSION(1,0,0)
 # define QT_GSTREAMER_PLAYBIN_ELEMENT_NAME "playbin"
 # define QT_GSTREAMER_CAMERABIN_ELEMENT_NAME "camerabin"
 # define QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME "videoconvert"
 # define QT_GSTREAMER_RAW_AUDIO_MIME "audio/x-raw"
 # define QT_GSTREAMER_VIDEOOVERLAY_INTERFACE_NAME "GstVideoOverlay"
-#else
-# define QT_GSTREAMER_PLAYBIN_ELEMENT_NAME "playbin2"
-# define QT_GSTREAMER_CAMERABIN_ELEMENT_NAME "camerabin2"
-# define QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME "ffmpegcolorspace"
-# define QT_GSTREAMER_RAW_AUDIO_MIME "audio/x-raw-int"
-# define QT_GSTREAMER_VIDEOOVERLAY_INTERFACE_NAME "GstXOverlay"
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -100,11 +92,7 @@ namespace QGstUtils {
     Q_GSTTOOLS_EXPORT QSize capsResolution(const GstCaps *caps);
     Q_GSTTOOLS_EXPORT QSize capsCorrectedResolution(const GstCaps *caps);
     Q_GSTTOOLS_EXPORT QAudioFormat audioFormatForCaps(const GstCaps *caps);
-#if GST_CHECK_VERSION(1,0,0)
     Q_GSTTOOLS_EXPORT QAudioFormat audioFormatForSample(GstSample *sample);
-#else
-    Q_GSTTOOLS_EXPORT QAudioFormat audioFormatForBuffer(GstBuffer *buffer);
-#endif
     Q_GSTTOOLS_EXPORT GstCaps *capsForAudioFormat(const QAudioFormat &format);
     Q_GSTTOOLS_EXPORT void initializeGst();
     Q_GSTTOOLS_EXPORT QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
@@ -120,19 +108,11 @@ namespace QGstUtils {
 
     Q_GSTTOOLS_EXPORT QSet<QString> supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory));
 
-#if GST_CHECK_VERSION(1,0,0)
     Q_GSTTOOLS_EXPORT QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
     Q_GSTTOOLS_EXPORT QVideoSurfaceFormat formatForCaps(
             GstCaps *caps,
             GstVideoInfo *info = 0,
             QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle);
-#else
-    Q_GSTTOOLS_EXPORT QImage bufferToImage(GstBuffer *buffer);
-    Q_GSTTOOLS_EXPORT QVideoSurfaceFormat formatForCaps(
-            GstCaps *caps,
-            int *bytesPerLine = 0,
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle);
-#endif
 
     Q_GSTTOOLS_EXPORT GstCaps *capsForFormats(const QList<QVideoFrame::PixelFormat> &formats);
     void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
@@ -143,16 +123,14 @@ namespace QGstUtils {
     Q_GSTTOOLS_EXPORT GstCaps *videoFilterCaps();
 
     Q_GSTTOOLS_EXPORT QSize structureResolution(const GstStructure *s);
-    Q_GSTTOOLS_EXPORT QVideoFrame::PixelFormat structurePixelFormat(const GstStructure *s, int *bpp = 0);
+    Q_GSTTOOLS_EXPORT QVideoFrame::PixelFormat structurePixelFormat(const GstStructure *s);
     Q_GSTTOOLS_EXPORT QSize structurePixelAspectRatio(const GstStructure *s);
     Q_GSTTOOLS_EXPORT QPair<qreal, qreal> structureFrameRateRange(const GstStructure *s);
 
     Q_GSTTOOLS_EXPORT QString fileExtensionForMimeType(const QString &mimeType);
 
-#if GST_CHECK_VERSION(0,10,30)
     Q_GSTTOOLS_EXPORT QVariant fromGStreamerOrientation(const QVariant &value);
     Q_GSTTOOLS_EXPORT QVariant toGStreamerOrientation(const QVariant &value);
-#endif
 
     Q_GSTTOOLS_EXPORT bool useOpenGL();
 }

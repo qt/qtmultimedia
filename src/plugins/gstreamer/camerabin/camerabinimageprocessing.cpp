@@ -45,11 +45,7 @@
 #include "camerabinv4limageprocessing.h"
 #endif
 
-#if GST_CHECK_VERSION(1,0,0)
 # include <gst/video/colorbalance.h>
-#else
-# include <gst/interfaces/colorbalance.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -72,29 +68,17 @@ CameraBinImageProcessing::CameraBinImageProcessing(CameraBinSession *session)
         unlockWhiteBalance();
     }
 
-#if GST_CHECK_VERSION(1, 0, 0)
       m_filterMap.insert(QCameraImageProcessing::ColorFilterNone, GST_PHOTOGRAPHY_COLOR_TONE_MODE_NORMAL);
       if (m_session->photography()) {
           m_filterMap.insert(QCameraImageProcessing::ColorFilterSepia, GST_PHOTOGRAPHY_COLOR_TONE_MODE_SEPIA);
           m_filterMap.insert(QCameraImageProcessing::ColorFilterGrayscale, GST_PHOTOGRAPHY_COLOR_TONE_MODE_GRAYSCALE);
           m_filterMap.insert(QCameraImageProcessing::ColorFilterNegative, GST_PHOTOGRAPHY_COLOR_TONE_MODE_NEGATIVE);
           m_filterMap.insert(QCameraImageProcessing::ColorFilterSolarize, GST_PHOTOGRAPHY_COLOR_TONE_MODE_SOLARIZE);
-#if GST_CHECK_VERSION(1, 2, 0)
           m_filterMap.insert(QCameraImageProcessing::ColorFilterPosterize, GST_PHOTOGRAPHY_COLOR_TONE_MODE_POSTERIZE);
           m_filterMap.insert(QCameraImageProcessing::ColorFilterWhiteboard, GST_PHOTOGRAPHY_COLOR_TONE_MODE_WHITEBOARD);
           m_filterMap.insert(QCameraImageProcessing::ColorFilterBlackboard, GST_PHOTOGRAPHY_COLOR_TONE_MODE_BLACKBOARD);
           m_filterMap.insert(QCameraImageProcessing::ColorFilterAqua, GST_PHOTOGRAPHY_COLOR_TONE_MODE_AQUA);
-#endif
       }
-#else
-      m_filterMap.insert(QCameraImageProcessing::ColorFilterNone, GST_PHOTOGRAPHY_COLOUR_TONE_MODE_NORMAL);
-      if (m_session->photography()) {
-          m_filterMap.insert(QCameraImageProcessing::ColorFilterSepia, GST_PHOTOGRAPHY_COLOUR_TONE_MODE_SEPIA);
-          m_filterMap.insert(QCameraImageProcessing::ColorFilterGrayscale, GST_PHOTOGRAPHY_COLOUR_TONE_MODE_GRAYSCALE);
-          m_filterMap.insert(QCameraImageProcessing::ColorFilterNegative, GST_PHOTOGRAPHY_COLOUR_TONE_MODE_NEGATIVE);
-          m_filterMap.insert(QCameraImageProcessing::ColorFilterSolarize, GST_PHOTOGRAPHY_COLOUR_TONE_MODE_SOLARIZE);
-      }
-#endif
 #endif
 
 #if QT_CONFIG(linux_v4l)
@@ -185,11 +169,9 @@ bool CameraBinImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::White
 #if QT_CONFIG(gstreamer_photography)
     if (isWhiteBalanceModeSupported(mode)) {
         m_whiteBalanceMode = mode;
-#if GST_CHECK_VERSION(1, 2, 0)
         GstPhotographyWhiteBalanceMode currentMode;
         if (gst_photography_get_white_balance_mode(m_session->photography(), &currentMode)
                 && currentMode != GST_PHOTOGRAPHY_WB_MODE_MANUAL)
-#endif
         {
             unlockWhiteBalance();
             return true;
@@ -313,13 +295,8 @@ QVariant CameraBinImageProcessing::parameter(
     case QCameraImageProcessingControl::ColorFilter:
 #if QT_CONFIG(gstreamer_photography)
         if (GstPhotography *photography = m_session->photography()) {
-#if GST_CHECK_VERSION(1, 0, 0)
             GstPhotographyColorToneMode mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_NORMAL;
             gst_photography_get_color_tone_mode(photography, &mode);
-#else
-            GstColourToneMode mode = GST_PHOTOGRAPHY_COLOUR_TONE_MODE_NORMAL;
-            gst_photography_get_colour_tone_mode(photography, &mode);
-#endif
             return QVariant::fromValue(m_filterMap.key(mode, QCameraImageProcessing::ColorFilterNone));
         }
 #endif
@@ -400,15 +377,9 @@ void CameraBinImageProcessing::setParameter(QCameraImageProcessingControl::Proce
     case QCameraImageProcessingControl::ColorFilter:
 #if QT_CONFIG(gstreamer_photography)
         if (GstPhotography *photography = m_session->photography()) {
-#if GST_CHECK_VERSION(1, 0, 0)
             gst_photography_set_color_tone_mode(photography, m_filterMap.value(
                         value.value<QCameraImageProcessing::ColorFilter>(),
                         GST_PHOTOGRAPHY_COLOR_TONE_MODE_NORMAL));
-#else
-            gst_photography_set_colour_tone_mode(photography, m_filterMap.value(
-                        value.value<QCameraImageProcessing::ColorFilter>(),
-                        GST_PHOTOGRAPHY_COLOUR_TONE_MODE_NORMAL));
-#endif
         }
 #endif
         break;
@@ -422,11 +393,8 @@ void CameraBinImageProcessing::setParameter(QCameraImageProcessingControl::Proce
 #if QT_CONFIG(gstreamer_photography)
 void CameraBinImageProcessing::lockWhiteBalance()
 {
-#if GST_CHECK_VERSION(1, 2, 0)
-    if (GstPhotography *photography = m_session->photography()) {
+    if (GstPhotography *photography = m_session->photography())
         gst_photography_set_white_balance_mode(photography, GST_PHOTOGRAPHY_WB_MODE_MANUAL);
-    }
-#endif
 }
 
 void CameraBinImageProcessing::unlockWhiteBalance()

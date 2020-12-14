@@ -43,10 +43,6 @@
 
 #include <QDebug>
 
-#if !GST_CHECK_VERSION(1,0,0)
-typedef GstFlashMode GstPhotographyFlashMode;
-#endif
-
 QT_BEGIN_NAMESPACE
 
 CameraBinFlash::CameraBinFlash(CameraBinSession *session)

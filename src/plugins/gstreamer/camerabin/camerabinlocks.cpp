@@ -67,7 +67,6 @@ QCamera::LockTypes CameraBinLocks::supportedLocks() const
 {
     QCamera::LockTypes locks = QCamera::LockFocus;
 
-#if GST_CHECK_VERSION(1, 2, 0)
     if (GstPhotography *photography = m_session->photography()) {
         if (gst_photography_get_capabilities(photography) & GST_PHOTOGRAPHY_CAPS_WB_MODE)
             locks |= QCamera::LockWhiteBalance;
@@ -79,7 +78,6 @@ QCamera::LockTypes CameraBinLocks::supportedLocks() const
             }
         }
     }
-#endif
 
     return locks;
 }
@@ -89,7 +87,6 @@ QCamera::LockStatus CameraBinLocks::lockStatus(QCamera::LockType lock) const
     switch (lock) {
     case QCamera::LockFocus:
         return m_focus->focusStatus();
-#if GST_CHECK_VERSION(1, 2, 0)
     case QCamera::LockExposure:
         if (m_pendingLocks & QCamera::LockExposure)
             return QCamera::Searching;
@@ -98,7 +95,6 @@ QCamera::LockStatus CameraBinLocks::lockStatus(QCamera::LockType lock) const
         if (m_pendingLocks & QCamera::LockWhiteBalance)
             return QCamera::Searching;
         return isWhiteBalanceLocked() ? QCamera::Locked : QCamera::Unlocked;
-#endif
     default:
         return QCamera::Unlocked;
     }
@@ -112,7 +108,6 @@ void CameraBinLocks::searchAndLock(QCamera::LockTypes locks)
         m_pendingLocks |= QCamera::LockFocus;
         m_focus->_q_startFocusing();
     }
-#if GST_CHECK_VERSION(1, 2, 0)
     if (!m_pendingLocks)
         m_lockTimer.stop();
 
@@ -134,8 +129,6 @@ void CameraBinLocks::searchAndLock(QCamera::LockTypes locks)
             lockWhiteBalance(QCamera::UserRequest);
         }
     }
-#endif
-
 }
 
 void CameraBinLocks::unlock(QCamera::LockTypes locks)
@@ -145,7 +138,6 @@ void CameraBinLocks::unlock(QCamera::LockTypes locks)
     if (locks & QCamera::LockFocus)
         m_focus->_q_stopFocusing();
 
-#if GST_CHECK_VERSION(1, 2, 0)
     if (!m_pendingLocks)
         m_lockTimer.stop();
 
@@ -153,7 +145,6 @@ void CameraBinLocks::unlock(QCamera::LockTypes locks)
         unlockExposure(QCamera::Unlocked, QCamera::UserRequest);
     if (locks & QCamera::LockWhiteBalance)
         unlockWhiteBalance(QCamera::Unlocked, QCamera::UserRequest);
-#endif
 }
 
 void CameraBinLocks::updateFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason)
@@ -161,18 +152,14 @@ void CameraBinLocks::updateFocusStatus(QCamera::LockStatus status, QCamera::Lock
     if (status != QCamera::Searching)
         m_pendingLocks &= ~QCamera::LockFocus;
 
-#if GST_CHECK_VERSION(1, 2, 0)
     if (status == QCamera::Locked && !m_lockTimer.isActive()) {
         if (m_pendingLocks & QCamera::LockExposure)
             lockExposure(QCamera::LockAcquired);
         if (m_pendingLocks & QCamera::LockWhiteBalance)
             lockWhiteBalance(QCamera::LockAcquired);
     }
-#endif
     emit lockStatusChanged(QCamera::LockFocus, status, reason);
 }
-
-#if GST_CHECK_VERSION(1, 2, 0)
 
 void CameraBinLocks::timerEvent(QTimerEvent *event)
 {
@@ -253,7 +240,5 @@ void CameraBinLocks::unlockWhiteBalance(
     m_session->imageProcessingControl()->lockWhiteBalance();
     emit lockStatusChanged(QCamera::LockWhiteBalance, status, reason);
 }
-
-#endif
 
 QT_END_NAMESPACE

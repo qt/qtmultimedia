@@ -29,7 +29,9 @@ PRIVATE_HEADERS += \
     qgstreamervideooverlay_p.h \
     qgsttools_global_p.h \
     qgstreamerplayersession_p.h \
-    qgstreamerplayercontrol_p.h
+    qgstreamerplayercontrol_p.h \
+    qgstvideorendererplugin_p.h \
+    qgstvideorenderersink_p.h
 
 SOURCES += \
     qgstreamerbushelper.cpp \
@@ -47,7 +49,9 @@ SOURCES += \
     qgstreamervideowindow.cpp \
     qgstreamervideooverlay.cpp \
     qgstreamerplayersession.cpp \
-    qgstreamerplayercontrol.cpp
+    qgstreamerplayercontrol.cpp \
+    qgstvideorendererplugin.cpp \
+    qgstvideorenderersink.cpp
 
 qtHaveModule(widgets) {
     QT += multimediawidgets
@@ -57,26 +61,6 @@ qtHaveModule(widgets) {
 
     SOURCES += \
         qgstreamervideowidget.cpp
-}
-
-qtConfig(gstreamer_0_10) {
-    PRIVATE_HEADERS += \
-        qgstbufferpoolinterface_p.h \
-        qvideosurfacegstsink_p.h \
-        gstvideoconnector_p.h
-
-    SOURCES += \
-        qgstbufferpoolinterface.cpp \
-        qvideosurfacegstsink.cpp \
-        gstvideoconnector.c
-} else {
-    PRIVATE_HEADERS += \
-        qgstvideorendererplugin_p.h \
-        qgstvideorenderersink_p.h
-
-    SOURCES += \
-        qgstvideorendererplugin.cpp \
-        qgstvideorenderersink.cpp
 }
 
 qtConfig(gstreamer_gl): QMAKE_USE += gstreamer_gl

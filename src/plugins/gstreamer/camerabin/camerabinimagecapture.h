@@ -48,9 +48,7 @@
 
 #include <private/qgstreamerbufferprobe_p.h>
 
-#if GST_CHECK_VERSION(1,0,0)
 #include <gst/video/video.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -75,11 +73,7 @@ private slots:
     void updateState();
 
 private:
-#if GST_CHECK_VERSION(1,0,0)
     static GstPadProbeReturn encoderEventProbe(GstPad *, GstPadProbeInfo *info, gpointer user_data);
-#else
-    static gboolean encoderEventProbe(GstElement *, GstEvent *event, gpointer user_data);
-#endif
 
     class EncoderProbe : public QGstreamerBufferProbe
     {
@@ -109,11 +103,7 @@ private:
     CameraBinSession *m_session;
     GstElement *m_jpegEncoderElement;
     GstElement *m_metadataMuxerElement;
-#if GST_CHECK_VERSION(1,0,0)
     GstVideoInfo m_videoInfo;
-#else
-    int m_bytesPerLine;
-#endif
     int m_requestId;
     bool m_ready;
 };

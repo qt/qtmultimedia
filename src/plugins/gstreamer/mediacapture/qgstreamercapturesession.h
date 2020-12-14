@@ -228,9 +228,7 @@ private:
 
     GstElement *m_encodeBin;
 
-#if GST_CHECK_VERSION(1,0,0)
     GstVideoInfo m_previewInfo;
-#endif
 
 public:
     bool m_passImage;

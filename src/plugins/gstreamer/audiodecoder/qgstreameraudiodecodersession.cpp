@@ -451,7 +451,6 @@ QAudioBuffer QGstreamerAudioDecoderSession::read()
         const char* bufferData = 0;
         int bufferSize = 0;
 
-#if GST_CHECK_VERSION(1,0,0)
         GstSample *sample = gst_app_sink_pull_sample(m_appSink);
         GstBuffer *buffer = gst_sample_get_buffer(sample);
         GstMapInfo mapInfo;
@@ -459,12 +458,6 @@ QAudioBuffer QGstreamerAudioDecoderSession::read()
         bufferData = (const char*)mapInfo.data;
         bufferSize = mapInfo.size;
         QAudioFormat format = QGstUtils::audioFormatForSample(sample);
-#else
-        GstBuffer *buffer = gst_app_sink_pull_buffer(m_appSink);
-        bufferData = (const char*)buffer->data;
-        bufferSize = buffer->size;
-        QAudioFormat format = QGstUtils::audioFormatForBuffer(buffer);
-#endif
 
         if (format.isValid()) {
             // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
@@ -477,12 +470,8 @@ QAudioBuffer QGstreamerAudioDecoderSession::read()
                 emit positionChanged(m_position);
             }
         }
-#if GST_CHECK_VERSION(1,0,0)
         gst_buffer_unmap(buffer, &mapInfo);
         gst_sample_unref(sample);
-#else
-        gst_buffer_unref(buffer);
-#endif
     }
 
     return audioBuffer;
@@ -553,11 +542,7 @@ void QGstreamerAudioDecoderSession::addAppSink()
 
     GstAppSinkCallbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
-#if GST_CHECK_VERSION(1,0,0)
     callbacks.new_sample = &new_sample;
-#else
-    callbacks.new_buffer = &new_sample;
-#endif
     gst_app_sink_set_callbacks(m_appSink, &callbacks, this, NULL);
     gst_app_sink_set_max_buffers(m_appSink, MAX_BUFFERS_IN_QUEUE);
     gst_base_sink_set_sync(GST_BASE_SINK(m_appSink), FALSE);

@@ -72,19 +72,11 @@ void QGstreamerVideoProbeControl::stopFlushing()
 
 void QGstreamerVideoProbeControl::probeCaps(GstCaps *caps)
 {
-#if GST_CHECK_VERSION(1,0,0)
     GstVideoInfo videoInfo;
     QVideoSurfaceFormat format = QGstUtils::formatForCaps(caps, &videoInfo);
 
     QMutexLocker locker(&m_frameMutex);
     m_videoInfo = videoInfo;
-#else
-    int bytesPerLine = 0;
-    QVideoSurfaceFormat format = QGstUtils::formatForCaps(caps, &bytesPerLine);
-
-    QMutexLocker locker(&m_frameMutex);
-    m_bytesPerLine = bytesPerLine;
-#endif
     m_format = format;
 }
 
@@ -96,11 +88,7 @@ bool QGstreamerVideoProbeControl::probeBuffer(GstBuffer *buffer)
         return true;
 
     QVideoFrame frame(
-#if GST_CHECK_VERSION(1,0,0)
                 new QGstVideoBuffer(buffer, m_videoInfo),
-#else
-                new QGstVideoBuffer(buffer, m_bytesPerLine),
-#endif
                 m_format.frameSize(),
                 m_format.pixelFormat());
 

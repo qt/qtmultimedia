@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamervideorenderer_p.h"
-#include <private/qvideosurfacegstsink_p.h>
+#include <private/qgstvideorenderersink_p.h>
 #include <private/qgstutils_p.h>
 #include <qabstractvideosurface.h>
 #include <QtCore/qdebug.h>
@@ -78,7 +78,7 @@ void QGstreamerVideoRenderer::setVideoSink(GstElement *sink)
 GstElement *QGstreamerVideoRenderer::videoSink()
 {
     if (!m_videoSink && m_surface) {
-        auto sink = reinterpret_cast<GstElement *>(QVideoSurfaceGstSink::createSink(m_surface));
+        auto sink = reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(m_surface));
         resetSink(m_videoSink, sink);
     }
 

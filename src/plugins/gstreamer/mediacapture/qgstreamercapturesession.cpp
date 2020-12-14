@@ -358,11 +358,7 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
 
 void QGstreamerCaptureSession::probeCaps(GstCaps *caps)
 {
-#if GST_CHECK_VERSION(1,0,0)
     gst_video_info_from_caps(&m_previewInfo, caps);
-#else
-    Q_UNUSED(caps);
-#endif
 }
 
 bool QGstreamerCaptureSession::probeBuffer(GstBuffer *buffer)
@@ -378,11 +374,7 @@ bool QGstreamerCaptureSession::probeBuffer(GstBuffer *buffer)
 
     m_passImage = false;
 
-#if GST_CHECK_VERSION(1,0,0)
     QImage img = QGstUtils::bufferToImage(buffer, m_previewInfo);
-#else
-    QImage img = QGstUtils::bufferToImage(buffer);
-#endif
 
     if (img.isNull())
         return true;
@@ -415,15 +407,11 @@ static gboolean saveImageFilter(GstElement *element,
     if (!fileName.isEmpty()) {
         QFile f(fileName);
         if (f.open(QFile::WriteOnly)) {
-#if GST_CHECK_VERSION(1,0,0)
             GstMapInfo info;
             if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
                 f.write(reinterpret_cast<const char *>(info.data), info.size);
                 gst_buffer_unmap(buffer, &info);
             }
-#else
-            f.write(reinterpret_cast<const char *>(buffer->data), buffer->size);
-#endif
             f.close();
 
             static QMetaMethod savedSignal = QMetaMethod::fromSignal(&QGstreamerCaptureSession::imageSaved);

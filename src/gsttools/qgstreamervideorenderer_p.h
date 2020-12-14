@@ -52,8 +52,8 @@
 //
 
 #include <private/qgsttools_global_p.h>
+#include <private/qgstvideorenderersink_p.h>
 #include <qvideorenderercontrol.h>
-#include <private/qvideosurfacegstsink_p.h>
 #include <qabstractvideosurface.h>
 
 #include "qgstreamervideorendererinterface_p.h"

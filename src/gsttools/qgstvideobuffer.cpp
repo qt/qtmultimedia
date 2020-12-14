@@ -41,33 +41,19 @@
 
 QT_BEGIN_NAMESPACE
 
-#if GST_CHECK_VERSION(1,0,0)
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
     : QAbstractPlanarVideoBuffer(NoHandle)
     , m_videoInfo(info)
-#else
-QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine)
-    : QAbstractVideoBuffer(NoHandle)
-    , m_bytesPerLine(bytesPerLine)
-#endif
     , m_buffer(buffer)
 {
     gst_buffer_ref(m_buffer);
 }
 
-#if GST_CHECK_VERSION(1,0,0)
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
                 QGstVideoBuffer::HandleType handleType,
                 const QVariant &handle)
     : QAbstractPlanarVideoBuffer(handleType)
     , m_videoInfo(info)
-#else
-QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, int bytesPerLine,
-                QGstVideoBuffer::HandleType handleType,
-                const QVariant &handle)
-    : QAbstractVideoBuffer(handleType)
-    , m_bytesPerLine(bytesPerLine)
-#endif
     , m_buffer(buffer)
     , m_handle(handle)
 {
@@ -86,8 +72,6 @@ QAbstractVideoBuffer::MapMode QGstVideoBuffer::mapMode() const
 {
     return m_mode;
 }
-
-#if GST_CHECK_VERSION(1,0,0)
 
 int QGstVideoBuffer::map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
 {
@@ -123,36 +107,14 @@ int QGstVideoBuffer::map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar
     return 0;
 }
 
-#else
-
-uchar *QGstVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
-{
-    if (mode != NotMapped && m_mode == NotMapped) {
-        if (numBytes)
-            *numBytes = m_buffer->size;
-        if (bytesPerLine)
-            *bytesPerLine = m_bytesPerLine;
-
-        m_mode = mode;
-
-        return m_buffer->data;
-    } else {
-        return 0;
-    }
-}
-
-#endif
-
 void QGstVideoBuffer::unmap()
 {
-#if GST_CHECK_VERSION(1,0,0)
     if (m_mode != NotMapped) {
         if (m_videoInfo.finfo->n_planes == 0)
             gst_buffer_unmap(m_buffer, &m_frame.map[0]);
         else
             gst_video_frame_unmap(&m_frame);
     }
-#endif
     m_mode = NotMapped;
 }
 

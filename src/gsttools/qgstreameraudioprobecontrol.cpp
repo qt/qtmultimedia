@@ -65,7 +65,6 @@ bool QGstreamerAudioProbeControl::probeBuffer(GstBuffer *buffer)
             : -1;
 
     QByteArray data;
-#if GST_CHECK_VERSION(1,0,0)
     GstMapInfo info;
     if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
         data = QByteArray(reinterpret_cast<const char *>(info.data), info.size);
@@ -73,9 +72,6 @@ bool QGstreamerAudioProbeControl::probeBuffer(GstBuffer *buffer)
     } else {
         return true;
     }
-#else
-    data = QByteArray(reinterpret_cast<const char *>(buffer->data), buffer->size);
-#endif
 
     QMutexLocker locker(&m_bufferMutex);
     if (m_format.isValid()) {

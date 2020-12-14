@@ -83,9 +83,7 @@ static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
 
         // Music
         metadataKeys->insert(GST_TAG_ALBUM, QMediaMetaData::AlbumTitle);
-#if GST_CHECK_VERSION(0, 10, 25)
         metadataKeys->insert(GST_TAG_ALBUM_ARTIST, QMediaMetaData::AlbumArtist);
-#endif
         metadataKeys->insert(GST_TAG_ARTIST, QMediaMetaData::ContributingArtist);
         //metadataKeys->insert(0, QMediaMetaData::Conductor);
         //metadataKeys->insert(0, QMediaMetaData::Lyrics);
@@ -100,9 +98,7 @@ static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
         // Image/Video
         metadataKeys->insert("resolution", QMediaMetaData::Resolution);
         metadataKeys->insert("pixel-aspect-ratio", QMediaMetaData::PixelAspectRatio);
-#if GST_CHECK_VERSION(0,10,30)
         metadataKeys->insert(GST_TAG_IMAGE_ORIENTATION, QMediaMetaData::Orientation);
-#endif
 
         // Video
         //metadataKeys->insert(0, QMediaMetaData::VideoFrameRate);
@@ -149,10 +145,8 @@ bool QGstreamerMetaDataProvider::isWritable() const
 
 QVariant QGstreamerMetaDataProvider::metaData(const QString &key) const
 {
-#if GST_CHECK_VERSION(0,10,30)
     if (key == QMediaMetaData::Orientation)
         return QGstUtils::fromGStreamerOrientation(m_tags.value(key));
-#endif
     return m_tags.value(key);
 }
 

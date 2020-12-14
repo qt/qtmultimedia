@@ -43,10 +43,6 @@
 
 #include <QDebug>
 
-#if !GST_CHECK_VERSION(1,0,0)
-typedef GstSceneMode GstPhotographySceneMode;
-#endif
-
 QT_BEGIN_NAMESPACE
 
 CameraBinExposure::CameraBinExposure(CameraBinSession *session)
@@ -143,7 +139,6 @@ QVariant CameraBinExposure::actualValue(ExposureParameter parameter) const
             return QVariant::fromValue(QCameraExposure::ExposureManual);
         case GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE:
             return QVariant::fromValue(QCameraExposure::ExposureLandscape);
-#if GST_CHECK_VERSION(1, 2, 0)
         case GST_PHOTOGRAPHY_SCENE_MODE_SNOW:
             return QVariant::fromValue(QCameraExposure::ExposureSnow);
         case GST_PHOTOGRAPHY_SCENE_MODE_BEACH:
@@ -166,7 +161,6 @@ QVariant CameraBinExposure::actualValue(ExposureParameter parameter) const
             return QVariant::fromValue(QCameraExposure::ExposureCandlelight);
         case GST_PHOTOGRAPHY_SCENE_MODE_BARCODE:
             return QVariant::fromValue(QCameraExposure::ExposureBarcode);
-#endif
         //no direct mapping available so mapping to auto mode
         case GST_PHOTOGRAPHY_SCENE_MODE_CLOSEUP:
         case GST_PHOTOGRAPHY_SCENE_MODE_AUTO:
@@ -224,7 +218,6 @@ bool CameraBinExposure::setValue(ExposureParameter parameter, const QVariant& va
         case QCameraExposure::ExposureLandscape:
             sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE;
             break;
-#if GST_CHECK_VERSION(1, 2, 0)
         case QCameraExposure::ExposureSnow:
             sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SNOW;
             break;
@@ -258,7 +251,6 @@ bool CameraBinExposure::setValue(ExposureParameter parameter, const QVariant& va
         case QCameraExposure::ExposureBarcode:
             sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_BARCODE;
             break;
-#endif
         default:
             break;
         }

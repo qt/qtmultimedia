@@ -58,9 +58,7 @@ class CameraBinSession;
 
 class CameraBinFocus
     : public QCameraFocusControl
-#if GST_CHECK_VERSION(1,0,0)
     , QGstreamerBufferProbe
-#endif
 {
     Q_OBJECT
 
@@ -92,27 +90,19 @@ public Q_SLOTS:
 
     void setViewfinderResolution(const QSize &resolution);
 
-#if GST_CHECK_VERSION(1,0,0)
 protected:
     void timerEvent(QTimerEvent *event) override;
-#endif
 
 private Q_SLOTS:
     void _q_setFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
     void _q_handleCameraStatusChange(QCamera::Status status);
-
-#if GST_CHECK_VERSION(1,0,0)
     void _q_updateFaces();
-#endif
 
 private:
     void resetFocusPoint();
     void updateRegionOfInterest(const QRectF &rectangle);
     void updateRegionOfInterest(const QList<QRect> &rectangles);
-
-#if GST_CHECK_VERSION(1,0,0)
     bool probeBuffer(GstBuffer *buffer) override;
-#endif
 
     CameraBinSession *m_session;
     QCamera::Status m_cameraStatus;

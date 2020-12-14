@@ -79,11 +79,7 @@ public:
         delete m_intervalTimer;
 
         if (m_tag)
-#if GST_CHECK_VERSION(1, 6, 0)
             gst_bus_remove_watch(m_bus);
-#else
-            g_source_remove(m_tag);
-#endif
     }
 
     GstBus* bus() const { return m_bus; }
@@ -166,21 +162,13 @@ QGstreamerBusHelper::QGstreamerBusHelper(GstBus* bus, QObject* parent):
     QObject(parent)
 {
     d = new QGstreamerBusHelperPrivate(this, bus);
-#if GST_CHECK_VERSION(1,0,0)
     gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, d, 0);
-#else
-    gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, d);
-#endif
     gst_object_ref(GST_OBJECT(bus));
 }
 
 QGstreamerBusHelper::~QGstreamerBusHelper()
 {
-#if GST_CHECK_VERSION(1,0,0)
     gst_bus_set_sync_handler(d->bus(), 0, 0, 0);
-#else
-    gst_bus_set_sync_handler(d->bus(),0,0);
-#endif
     gst_object_unref(GST_OBJECT(d->bus()));
 }
 

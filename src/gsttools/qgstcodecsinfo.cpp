@@ -211,45 +211,8 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
     gst_plugin_feature_list_free(elements);
 }
 
-#if !GST_CHECK_VERSION(0, 10, 31)
-static gboolean element_filter(GstPluginFeature *feature, gpointer user_data)
-{
-    if (Q_UNLIKELY(!GST_IS_ELEMENT_FACTORY(feature)))
-        return FALSE;
-
-    const QGstCodecsInfo::ElementType type = *reinterpret_cast<QGstCodecsInfo::ElementType *>(user_data);
-
-    const gchar *klass = gst_element_factory_get_klass(GST_ELEMENT_FACTORY(feature));
-    if (type == QGstCodecsInfo::AudioEncoder && !(strstr(klass, "Encoder") && strstr(klass, "Audio")))
-        return FALSE;
-    if (type == QGstCodecsInfo::VideoEncoder && !(strstr(klass, "Encoder") && strstr(klass, "Video")))
-        return FALSE;
-    if (type == QGstCodecsInfo::Muxer && !strstr(klass, "Muxer"))
-        return FALSE;
-
-    guint rank = gst_plugin_feature_get_rank(feature);
-    if (rank < GST_RANK_MARGINAL)
-        return FALSE;
-
-    return TRUE;
-}
-
-static gint compare_plugin_func(const void *item1, const void *item2)
-{
-    GstPluginFeature *f1 = reinterpret_cast<GstPluginFeature *>(const_cast<void *>(item1));
-    GstPluginFeature *f2 = reinterpret_cast<GstPluginFeature *>(const_cast<void *>(item2));
-
-    gint diff = gst_plugin_feature_get_rank(f2) - gst_plugin_feature_get_rank(f1);
-    if (diff != 0)
-        return diff;
-
-    return strcmp(gst_plugin_feature_get_name(f1), gst_plugin_feature_get_name (f2));
-}
-#endif
-
 GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
 {
-#if GST_CHECK_VERSION(0,10,31)
     GstElementFactoryListType gstElementType = 0;
     switch (elementType) {
     case AudioEncoder:
@@ -273,13 +236,6 @@ GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
     }
 
     return list;
-#else
-    GList *result = gst_registry_feature_filter(gst_registry_get_default(),
-                                                element_filter,
-                                                FALSE, &elementType);
-    result = g_list_sort(result, compare_plugin_func);
-    return result;
-#endif
 }
 
 QSet<QString> QGstCodecsInfo::supportedStreamTypes(const QString &codec) const

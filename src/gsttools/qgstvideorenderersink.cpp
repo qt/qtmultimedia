@@ -68,7 +68,7 @@
 #if GST_GL_HAVE_PLATFORM_EGL
 #    include <gst/gl/egl/gstgldisplay_egl.h>
 #endif
-#if GST_CHECK_VERSION(1,11,1) && GST_GL_HAVE_WINDOW_WAYLAND
+#if GST_GL_HAVE_WINDOW_WAYLAND
 #    include <gst/gl/wayland/gstgldisplay_wayland.h>
 #endif
 #endif // #if QT_CONFIG(gstreamer_gl)
@@ -347,7 +347,6 @@ static GstGLContext *gstGLDisplayContext(QAbstractVideoSurface *surface)
     }
 #endif
 
-#if GST_CHECK_VERSION(1,11,1)
 #if GST_GL_HAVE_WINDOW_WAYLAND
     if (!display && platform.startsWith(QLatin1String("wayland"))) {
         const char *displayName = (platform == QLatin1String("wayland"))
@@ -356,7 +355,6 @@ static GstGLContext *gstGLDisplayContext(QAbstractVideoSurface *surface)
         display = (GstGLDisplay *)gst_gl_display_wayland_new_with_display(
             (struct wl_display *)pni->nativeResourceForIntegration(displayName));
     }
-#endif
 #endif
 
     if (!display) {
@@ -410,11 +408,7 @@ bool QVideoSurfaceGstDelegate::query(GstQuery *query)
         gst_query_parse_context(query, &context);
         context = context ? gst_context_copy(context) : gst_context_new(type, FALSE);
         GstStructure *structure = gst_context_writable_structure(context);
-#if GST_CHECK_VERSION(1,11,1)
         gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, m_gstGLDisplayContext, nullptr);
-#else
-        gst_structure_set(structure, "context", GST_GL_TYPE_CONTEXT, m_gstGLDisplayContext, nullptr);
-#endif
         gst_query_set_context(query, context);
         gst_context_unref(context);
 
