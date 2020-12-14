@@ -20,7 +20,6 @@ PUBLIC_HEADERS += \
     controls/qcameraviewfindersettingscontrol.h \
     controls/qimageencodercontrol.h \
     controls/qmediacontainercontrol.h \
-    controls/qmediagaplessplaybackcontrol.h \
     controls/qmediaplayercontrol.h \
     controls/qmediarecordercontrol.h \
     controls/qmediastreamscontrol.h \
@@ -54,7 +53,6 @@ SOURCES += \
     controls/qcameraviewfindersettingscontrol.cpp \
     controls/qimageencodercontrol.cpp \
     controls/qmediacontainercontrol.cpp \
-    controls/qmediagaplessplaybackcontrol.cpp \
     controls/qmediaplayercontrol.cpp \
     controls/qmediaplaylistcontrol.cpp \
     controls/qmediaplaylistsourcecontrol.cpp \
