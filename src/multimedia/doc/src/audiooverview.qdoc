@@ -72,9 +72,6 @@ SoundEffect have essentially the same API.
 You can adjust the number of \l {QSoundEffect::loopCount()}{loops} a sound effect is played, as well as
 the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
 
-For older, Qt 4.x based applications \l QSound is also available.  Applications
-are recommended to use QSoundEffect where possible.
-
 \section2 Monitoring Audio Data During Playback or Recording
 
 The \l QAudioProbe class allows you to monitor audio data being played or

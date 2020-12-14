@@ -8,7 +8,6 @@ SUBDIRS += \
     qmediaplayerbackend \
     qcamerabackend \
     qsoundeffect \
-    qsound
 
 qtHaveModule(quick) {
     SUBDIRS += \

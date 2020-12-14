@@ -10,7 +10,6 @@ PUBLIC_HEADERS += \
            audio/qaudiosystemplugin.h \
            audio/qaudiosystem.h  \
            audio/qsoundeffect.h \
-           audio/qsound.h \
            audio/qaudioprobe.h \
            audio/qaudiodecoder.h
 
@@ -34,7 +33,6 @@ SOURCES += \
            audio/qsoundeffect.cpp \
            audio/qwavedecoder_p.cpp \
            audio/qsamplecache_p.cpp \
-           audio/qsound.cpp \
            audio/qaudiobuffer.cpp \
            audio/qaudioprobe.cpp \
            audio/qaudiodecoder.cpp \
