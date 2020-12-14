@@ -8,7 +8,6 @@ MODULE_PLUGIN_TYPES = \
     video/gstvideorenderer \
     video/videonode \
     playlistformats \
-    resourcepolicy
 
 QMAKE_DOCS = $$PWD/doc/qtmultimedia.qdocconf
 
@@ -21,9 +20,6 @@ PRIVATE_HEADERS += \
     qmediapluginloader_p.h \
     qmediaservice_p.h \
     qmediaserviceprovider_p.h \
-    qmediaresourcepolicyplugin_p.h \
-    qmediaresourcepolicy_p.h \
-    qmediaresourceset_p.h \
     qmediastoragelocation_p.h \
     qmultimediautils_p.h
 
@@ -48,9 +44,6 @@ SOURCES += \
     qmediaservice.cpp \
     qmediaserviceprovider.cpp \
     qmediatimerange.cpp \
-    qmediaresourcepolicyplugin_p.cpp \
-    qmediaresourcepolicy_p.cpp \
-    qmediaresourceset_p.cpp \
     qmediastoragelocation.cpp \
     qmultimedia.cpp \
     qmultimediautils.cpp

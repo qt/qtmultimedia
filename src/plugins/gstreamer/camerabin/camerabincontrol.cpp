@@ -43,7 +43,6 @@
 #include "camerabinaudioencoder.h"
 #include "camerabinvideoencoder.h"
 #include "camerabinimageencoder.h"
-#include "camerabinresourcepolicy.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
@@ -70,14 +69,6 @@ CameraBinControl::CameraBinControl(CameraBinSession *session)
     connect(m_session, SIGNAL(error(int,QString)),
             SLOT(handleCameraError(int,QString)));
 
-    m_resourcePolicy = new CamerabinResourcePolicy(this);
-    connect(m_resourcePolicy, SIGNAL(resourcesGranted()),
-            SLOT(handleResourcesGranted()));
-    connect(m_resourcePolicy, SIGNAL(resourcesDenied()),
-            SLOT(handleResourcesLost()));
-    connect(m_resourcePolicy, SIGNAL(resourcesLost()),
-            SLOT(handleResourcesLost()));
-
     connect(m_session, SIGNAL(busyChanged(bool)),
             SLOT(handleBusyChanged(bool)));
 }
@@ -96,12 +87,6 @@ void CameraBinControl::setCaptureMode(QCamera::CaptureModes mode)
     if (m_session->captureMode() != mode) {
         m_session->setCaptureMode(mode);
 
-        if (m_state == QCamera::ActiveState) {
-            m_resourcePolicy->setResourceSet(
-                        captureMode() == QCamera::CaptureStillImage ?
-                            CamerabinResourcePolicy::ImageCaptureResources :
-                            CamerabinResourcePolicy::VideoCaptureResources);
-        }
         emit captureModeChanged(mode);
     }
 }
@@ -133,36 +118,17 @@ void CameraBinControl::setState(QCamera::State state)
             return;
         }
 
-        CamerabinResourcePolicy::ResourceSet resourceSet = CamerabinResourcePolicy::NoResources;
-        switch (state) {
-        case QCamera::UnloadedState:
-            resourceSet = CamerabinResourcePolicy::NoResources;
-            break;
-        case QCamera::LoadedState:
-            resourceSet = CamerabinResourcePolicy::LoadedResources;
-            break;
-        case QCamera::ActiveState:
-            resourceSet = captureMode() == QCamera::CaptureStillImage ?
-                            CamerabinResourcePolicy::ImageCaptureResources :
-                            CamerabinResourcePolicy::VideoCaptureResources;
-            break;
-        }
-
-        m_resourcePolicy->setResourceSet(resourceSet);
-
-        if (m_resourcePolicy->isResourcesGranted()) {
-            //postpone changing to Active if the session is nor ready yet
-            if (state == QCamera::ActiveState) {
-                if (m_session->isReady()) {
-                    m_session->setState(state);
-                } else {
-#ifdef CAMEABIN_DEBUG
-                    qDebug() << "Camera session is not ready yet, postpone activating";
-#endif
-                }
-            } else
+        //postpone changing to Active if the session is nor ready yet
+        if (state == QCamera::ActiveState) {
+            if (m_session->isReady()) {
                 m_session->setState(state);
-        }
+            } else {
+#ifdef CAMEABIN_DEBUG
+                qDebug() << "Camera session is not ready yet, postpone activating";
+#endif
+            }
+        } else
+            m_session->setState(state);
 
         emit stateChanged(m_state);
     }
@@ -193,50 +159,10 @@ void CameraBinControl::reloadLater()
     }
 }
 
-void CameraBinControl::handleResourcesLost()
-{
-#ifdef CAMEABIN_DEBUG
-    qDebug() << Q_FUNC_INFO << ENUM_NAME(QCamera, "State", m_state);
-#endif
-    m_session->setState(QCamera::UnloadedState);
-}
-
-void CameraBinControl::handleResourcesGranted()
-{
-#ifdef CAMEABIN_DEBUG
-    qDebug() << Q_FUNC_INFO << ENUM_NAME(QCamera, "State", m_state);
-#endif
-
-    //camera will be started soon by delayedReload()
-    if (m_reloadPending && m_state == QCamera::ActiveState)
-        return;
-
-    if (m_state == QCamera::ActiveState && m_session->isReady())
-        m_session->setState(QCamera::ActiveState);
-    else if (m_state == QCamera::LoadedState)
-        m_session->setState(QCamera::LoadedState);
-}
-
 void CameraBinControl::handleBusyChanged(bool busy)
 {
     if (!busy && m_session->status() == QCamera::ActiveStatus) {
         if (m_state != QCamera::ActiveState) {
-            //handle delayed stop()/unload() because of busy camera
-
-            CamerabinResourcePolicy::ResourceSet resourceSet = CamerabinResourcePolicy::NoResources;
-            switch (m_state) {
-            case QCamera::UnloadedState:
-                resourceSet = CamerabinResourcePolicy::NoResources;
-                break;
-            case QCamera::LoadedState:
-                resourceSet = CamerabinResourcePolicy::LoadedResources;
-                break;
-            default:
-                Q_ASSERT(false);
-                break;
-            }
-
-            m_resourcePolicy->setResourceSet(resourceSet);
             m_session->setState(m_state);
         } else if (m_reloadPending) {
             //handle delayed reload because of busy camera
@@ -259,11 +185,8 @@ void CameraBinControl::delayedReload()
 #endif
     if (m_reloadPending) {
         m_reloadPending = false;
-        if (m_state == QCamera::ActiveState &&
-            m_session->isReady() &&
-            m_resourcePolicy->isResourcesGranted()) {
+        if (m_state == QCamera::ActiveState && m_session->isReady())
                 m_session->setState(QCamera::ActiveState);
-        }
     }
 }
 

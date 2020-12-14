@@ -45,7 +45,6 @@
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>
 #include <qmediabindableinterface.h>
-#include <qmediaavailabilitycontrol.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -66,18 +65,6 @@ void QMediaObjectPrivate::_q_notify()
         p.notifySignal().invoke(
             q, QGenericArgument(p.metaType().name(), p.read(q).data()));
     }
-}
-
-void QMediaObjectPrivate::_q_availabilityChanged()
-{
-    Q_Q(QMediaObject);
-
-    // Really this should not always emit, but
-    // we can't really tell from here (isAvailable
-    // may not have changed, or the mediaobject's overridden
-    // availability() may not have changed).
-    q->availabilityChanged(q->availability());
-    q->availabilityChanged(q->isAvailable());
 }
 
 /*!
@@ -128,9 +115,6 @@ QMultimedia::AvailabilityStatus QMediaObject::availability() const
 {
     if (d_func()->service == nullptr)
         return QMultimedia::ServiceMissing;
-
-    if (d_func()->availabilityControl)
-        return d_func()->availabilityControl->availability();
 
     return QMultimedia::Available;
 }
@@ -400,27 +384,8 @@ void QMediaObject::setupControls()
                     SIGNAL(metaDataAvailableChanged(bool)),
                     SIGNAL(metaDataAvailableChanged(bool)));
         }
-
-        d->availabilityControl = d->service->requestControl<QMediaAvailabilityControl*>();
-        if (d->availabilityControl) {
-            connect(d->availabilityControl,
-                    SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
-                    SLOT(_q_availabilityChanged()));
-        }
     }
 }
-
-/*!
-    \fn QMediaObject::availabilityChanged(bool available)
-
-    Signal emitted when the availability state has changed to \a available.
-*/
-
-/*!
-    \fn QMediaObject::availabilityChanged(QMultimedia::AvailabilityStatus availability)
-
-    Signal emitted when the availability of the service has changed to \a availability.
-*/
 
 QT_END_NAMESPACE
 

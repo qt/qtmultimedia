@@ -155,7 +155,6 @@ void tst_QAudioRecorder::testAvailability()
 
 void tst_QAudioRecorder::testAvailableAudioInputChangedSignal()
 {
-    // The availabilityChangedSignal is implemented in QAudioRecorder. SO using it to test the signal.
     audiosource = new QAudioRecorder;
 
     /* Spy the signal availableInputsChanged and audioInputchanged */

@@ -83,9 +83,6 @@ Q_SIGNALS:
     void metaDataChanged();
     void metaDataChanged(const QString &key, const QVariant &value);
 
-    void availabilityChanged(bool available);
-    void availabilityChanged(QMultimedia::AvailabilityStatus availability);
-
 protected:
     QMediaObject(QObject *parent, QMediaService *service);
     QMediaObject(QMediaObjectPrivate &dd, QObject *parent, QMediaService *service);
@@ -98,7 +95,6 @@ private:
 
     Q_DECLARE_PRIVATE(QMediaObject)
     Q_PRIVATE_SLOT(d_func(), void _q_notify())
-    Q_PRIVATE_SLOT(d_func(), void _q_availabilityChanged())
 };
 
 

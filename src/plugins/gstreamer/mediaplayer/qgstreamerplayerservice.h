@@ -77,7 +77,6 @@ private:
     QGstreamerPlayerSession *m_session = nullptr;
     QGstreamerMetaDataProvider *m_metaData = nullptr;
     QGstreamerStreamsControl *m_streamsControl = nullptr;
-    QGStreamerAvailabilityControl *m_availabilityControl = nullptr;
 
     QGstreamerAudioProbeControl *m_audioProbeControl = nullptr;
     QGstreamerVideoProbeControl *m_videoProbeControl = nullptr;

@@ -47,8 +47,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class CamerabinResourcePolicy;
-
 class CameraBinControl : public QCameraControl
 {
     Q_OBJECT
@@ -71,17 +69,12 @@ public:
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
     bool viewfinderColorSpaceConversion() const;
 
-    CamerabinResourcePolicy *resourcePolicy() { return m_resourcePolicy; }
-
 public slots:
     void reloadLater();
     void setViewfinderColorSpaceConversion(bool enabled);
 
 private slots:
     void delayedReload();
-
-    void handleResourcesGranted();
-    void handleResourcesLost();
 
     void handleBusyChanged(bool);
     void handleCameraError(int error, const QString &errorString);
@@ -91,7 +84,6 @@ private:
 
     CameraBinSession *m_session;
     QCamera::State m_state;
-    CamerabinResourcePolicy *m_resourcePolicy;
 
     bool m_reloadPending;
 };

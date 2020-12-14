@@ -57,7 +57,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaPlayerResourceSetInterface;
 class QGstreamerPlayerSession;
 class Q_GSTTOOLS_EXPORT QGstreamerPlayerControl : public QMediaPlayerControl
 {
@@ -94,8 +93,6 @@ public:
     const QIODevice *mediaStream() const override;
     void setMedia(const QMediaContent&, QIODevice *) override;
 
-    QMediaPlayerResourceSetInterface* resources() const;
-
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 
@@ -113,10 +110,6 @@ private Q_SLOTS:
     void setBufferProgress(int progress);
 
     void handleInvalidMedia();
-
-    void handleResourcesGranted();
-    void handleResourcesLost();
-    void handleResourcesDenied();
 
 private:
     void playOrPause(QMediaPlayer::State state);
@@ -136,8 +129,6 @@ private:
     bool m_setMediaPending = false;
     QMediaContent m_currentResource;
     QIODevice *m_stream = nullptr;
-
-    QMediaPlayerResourceSetInterface *m_resources = nullptr;
 };
 
 QT_END_NAMESPACE

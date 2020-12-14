@@ -91,8 +91,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
-    Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
-
     Q_PROPERTY(qreal opticalZoom READ opticalZoom WRITE setOpticalZoom NOTIFY opticalZoomChanged)
     Q_PROPERTY(qreal maximumOpticalZoom READ maximumOpticalZoom NOTIFY maximumOpticalZoomChanged)
     Q_PROPERTY(qreal digitalZoom READ digitalZoom WRITE setDigitalZoom NOTIFY digitalZoomChanged)
@@ -328,12 +326,9 @@ Q_SIGNALS:
 
     void mediaObjectChanged();
 
-    void availabilityChanged(Availability availability);
-
 private Q_SLOTS:
     void _q_updateState(QCamera::State);
     void _q_errorOccurred(QCamera::Error);
-    void _q_availabilityChanged(QMultimedia::AvailabilityStatus);
 
 protected:
     void classBegin() override;

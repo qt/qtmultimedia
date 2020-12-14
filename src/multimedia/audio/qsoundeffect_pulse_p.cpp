@@ -56,8 +56,6 @@
 #include "qsoundeffect_pulse_p.h"
 
 #include <private/qaudiohelpers_p.h>
-#include <private/qmediaresourcepolicy_p.h>
-#include <private/qmediaresourceset_p.h>
 #include <QAudioDeviceInfo>
 #include <unistd.h>
 
@@ -352,28 +350,12 @@ QSoundEffectPrivate::QSoundEffectPrivate(QObject* parent):
     m_ref = new QSoundEffectRef(this);
     if (pulseDaemon()->context())
         pa_sample_spec_init(&m_pulseSpec);
-
-    m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>();
-    Q_ASSERT(m_resources);
-    m_resourcesAvailable = m_resources->isAvailable();
-    connect(m_resources, &QMediaPlayerResourceSetInterface::availabilityChanged,
-            this, &QSoundEffectPrivate::handleAvailabilityChanged);
 }
 
 QSoundEffectPrivate::QSoundEffectPrivate(const QAudioDeviceInfo &audioDevice, QObject *parent)
     : QSoundEffectPrivate(parent)
 {
     m_sinkName = audioDevice.deviceName();
-}
-
-void QSoundEffectPrivate::handleAvailabilityChanged(bool available)
-{
-    m_resourcesAvailable = available;
-#ifdef DEBUG_RESOURCE
-    qDebug() << Q_FUNC_INFO << "Resource availability changed " << m_resourcesAvailable;
-#endif
-    if (!m_resourcesAvailable)
-        stop();
 }
 
 void QSoundEffectPrivate::release()
@@ -422,8 +404,6 @@ void QSoundEffectPrivate::setCategory(const QString &category)
 
 QSoundEffectPrivate::~QSoundEffectPrivate()
 {
-    QMediaResourcePolicy::destroyResourceSet(m_resources);
-    m_resources = nullptr;
     m_ref->release();
 
     pulseDaemon()->deref();
@@ -627,9 +607,6 @@ void QSoundEffectPrivate::setLoopsRemaining(int loopsRemaining)
 
 void QSoundEffectPrivate::play()
 {
-    if (!m_resourcesAvailable)
-        return;
-
     playAvailable();
 }
 

@@ -7,9 +7,6 @@ qtHaveModule(widgets) {
 
 QMAKE_USE += gstreamer
 
-qtConfig(resourcepolicy): \
-    QMAKE_USE += libresourceqt5
-
 qtConfig(gstreamer_app): \
     QMAKE_USE += gstreamer_app
 

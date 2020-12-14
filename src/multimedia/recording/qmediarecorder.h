@@ -189,9 +189,6 @@ Q_SIGNALS:
     void metaDataChanged();
     void metaDataChanged(const QString &key, const QVariant &value);
 
-    void availabilityChanged(bool available);
-    void availabilityChanged(QMultimedia::AvailabilityStatus availability);
-
 protected:
     QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = nullptr);
     bool setMediaObject(QMediaObject *object) override;
@@ -207,7 +204,6 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateNotifyInterval(int))
     Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
-    Q_PRIVATE_SLOT(d_func(), void _q_availabilityChanged(QMultimedia::AvailabilityStatus))
 };
 
 QT_END_NAMESPACE

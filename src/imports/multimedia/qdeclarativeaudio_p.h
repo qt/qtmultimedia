@@ -68,7 +68,6 @@ class QMetaDataReaderControl;
 class QDeclarativePlaylist;
 class QDeclarativeMediaBaseAnimation;
 class QDeclarativeMediaMetaData;
-class QMediaAvailabilityControl;
 
 class QDeclarativeAudio : public QObject, public QQmlParserStatus
 {
@@ -93,7 +92,6 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
     Q_PROPERTY(QObject *mediaObject READ mediaObject NOTIFY mediaObjectChanged SCRIPTABLE false DESIGNABLE false)
-    Q_PROPERTY(Availability availability READ availability NOTIFY availabilityChanged)
     Q_PROPERTY(AudioRole audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged REVISION 1)
     Q_PROPERTY(QString customAudioRole READ customAudioRole WRITE setCustomAudioRole NOTIFY customAudioRoleChanged REVISION 3)
     Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged REVISION 2)
@@ -102,7 +100,6 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_ENUMS(Error)
     Q_ENUMS(Loop)
     Q_ENUMS(PlaybackState)
-    Q_ENUMS(Availability)
     Q_ENUMS(AudioRole)
     Q_INTERFACES(QQmlParserStatus)
 public:
@@ -143,9 +140,7 @@ public:
 
     enum Availability {
         Available = QMultimedia::Available,
-        Busy = QMultimedia::Busy,
-        Unavailable = QMultimedia::ServiceMissing,
-        ResourceMissing = QMultimedia::ResourceError
+        Unavailable = QMultimedia::ServiceMissing
     };
 
     enum AudioRole {
@@ -266,8 +261,6 @@ Q_SIGNALS:
     Q_REVISION(1) void audioRoleChanged();
     Q_REVISION(3) void customAudioRoleChanged();
 
-    void availabilityChanged(Availability availability);
-
     void errorChanged();
     void error(QDeclarativeAudio::Error error, const QString &errorString);
 
@@ -277,7 +270,6 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void _q_error(QMediaPlayer::Error);
-    void _q_availabilityChanged(QMultimedia::AvailabilityStatus);
     void _q_statusChanged();
     void _q_mediaChanged(const QMediaContent&);
 

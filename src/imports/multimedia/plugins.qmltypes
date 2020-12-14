@@ -552,10 +552,6 @@ Module {
         Signal { name: "audioRoleChanged"; revision: 1 }
         Signal { name: "customAudioRoleChanged"; revision: 3 }
         Signal {
-            name: "availabilityChanged"
-            Parameter { name: "availability"; type: "Availability" }
-        }
-        Signal {
             name: "error"
             Parameter { name: "error"; type: "QDeclarativeAudio::Error" }
             Parameter { name: "errorString"; type: "string" }
@@ -808,10 +804,6 @@ Module {
         Signal {
             name: "maximumDigitalZoomChanged"
             Parameter { type: "double" }
-        }
-        Signal {
-            name: "availabilityChanged"
-            Parameter { name: "availability"; type: "Availability" }
         }
         Method {
             name: "setCaptureMode"
@@ -1866,10 +1858,6 @@ Module {
             name: "antennaConnectedChanged"
             Parameter { name: "connectionStatus"; type: "bool" }
         }
-        Signal {
-            name: "availabilityChanged"
-            Parameter { name: "availability"; type: "Availability" }
-        }
         Signal { name: "errorChanged" }
         Signal {
             name: "error"
@@ -2016,10 +2004,6 @@ Module {
             name: "alternativeFrequenciesEnabledChanged"
             Parameter { name: "enabled"; type: "bool" }
         }
-        Signal {
-            name: "availabilityChanged"
-            Parameter { name: "availability"; type: "Availability" }
-        }
         Signal { name: "errorChanged" }
         Signal {
             name: "error"
@@ -2143,14 +2127,6 @@ Module {
             name: "metaDataChanged"
             Parameter { name: "key"; type: "string" }
             Parameter { name: "value"; type: "QVariant" }
-        }
-        Signal {
-            name: "availabilityChanged"
-            Parameter { name: "available"; type: "bool" }
-        }
-        Signal {
-            name: "availabilityChanged"
-            Parameter { name: "availability"; type: "QMultimedia::AvailabilityStatus" }
         }
     }
     Component { name: "QSGVideoItemSurface"; prototype: "QAbstractVideoSurface" }

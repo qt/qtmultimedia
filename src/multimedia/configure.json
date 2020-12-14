@@ -109,13 +109,6 @@
                 { "type": "pkgConfig", "args": "gstreamer-gl-1.0" }
             ]
         },
-        "libresourceqt5": {
-            "label": "libresourceqt5",
-            "test": "resourcepolicy",
-            "sources": [
-                { "type": "pkgConfig", "args": "libresourceqt5" }
-            ]
-        },
         "mmrenderer": {
             "label": "MMRenderer",
             "test": "mmrenderer",
@@ -238,11 +231,6 @@
             "condition": "features.gui && features.opengles2 && tests.gpu_vivante",
             "output": [ "privateFeature" ]
         },
-        "resourcepolicy": {
-            "label": "Resource Policy (libresourceqt5)",
-            "condition": "libs.libresourceqt5",
-            "output": [ "privateFeature" ]
-        },
         "linux_v4l": {
             "label": "Video for Linux",
             "condition": "config.unix && tests.linux_v4l",
@@ -289,7 +277,6 @@
                 "gstreamer_0_10",
                 "linux_v4l",
                 "pulseaudio",
-                "resourcepolicy",
                 "mmrenderer",
                 "avfoundation",
                 "directshow",

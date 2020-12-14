@@ -47,7 +47,6 @@
 
 #include "qgstreamerplayerservice.h"
 #include "qgstreamermetadataprovider.h"
-#include "qgstreameravailabilitycontrol.h"
 
 #if defined(HAVE_WIDGETS)
 #include <private/qgstreamervideowidget_p.h>
@@ -63,7 +62,6 @@
 
 #include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
-#include <private/qmediaresourceset_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -74,7 +72,6 @@ QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent)
     m_control = new QGstreamerPlayerControl(m_session, this);
     m_metaData = new QGstreamerMetaDataProvider(m_session, this);
     m_streamsControl = new QGstreamerStreamsControl(m_session,this);
-    m_availabilityControl = new QGStreamerAvailabilityControl(m_control->resources(), this);
     m_videoRenderer = new QGstreamerVideoRenderer(this);
     m_videoWindow = new QGstreamerVideoWindow(this);
    // If the GStreamer video sink is not available, don't provide the video window control since
@@ -111,9 +108,6 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
 
     if (qstrcmp(name,QMediaStreamsControl_iid) == 0)
         return m_streamsControl;
-
-    if (qstrcmp(name, QMediaAvailabilityControl_iid) == 0)
-        return m_availabilityControl;
 
     if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0) {
         if (!m_videoProbeControl) {
@@ -177,17 +171,11 @@ void QGstreamerPlayerService::releaseControl(QMediaControl *control)
 void QGstreamerPlayerService::increaseVideoRef()
 {
     m_videoReferenceCount++;
-    if (m_videoReferenceCount == 1) {
-        m_control->resources()->setVideoEnabled(true);
-    }
 }
 
 void QGstreamerPlayerService::decreaseVideoRef()
 {
     m_videoReferenceCount--;
-    if (m_videoReferenceCount == 0) {
-        m_control->resources()->setVideoEnabled(false);
-    }
 }
 
 QT_END_NAMESPACE

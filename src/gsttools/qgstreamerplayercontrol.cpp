@@ -41,8 +41,6 @@
 #include <private/qgstreamerplayersession_p.h>
 
 #include <private/qmediaplaylistnavigator_p.h>
-#include <private/qmediaresourcepolicy_p.h>
-#include <private/qmediaresourceset_p.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qsocketnotifier.h>
@@ -61,9 +59,6 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     : QMediaPlayerControl(parent)
     , m_session(session)
 {
-    m_resources = QMediaResourcePolicy::createResourceSet<QMediaPlayerResourceSetInterface>();
-    Q_ASSERT(m_resources);
-
     connect(m_session, &QGstreamerPlayerSession::positionChanged, this, &QGstreamerPlayerControl::positionChanged);
     connect(m_session, &QGstreamerPlayerSession::durationChanged, this, &QGstreamerPlayerControl::durationChanged);
     connect(m_session, &QGstreamerPlayerSession::mutedStateChanged, this, &QGstreamerPlayerControl::mutedChanged);
@@ -77,24 +72,10 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     connect(m_session, &QGstreamerPlayerSession::error, this, &QGstreamerPlayerControl::error);
     connect(m_session, &QGstreamerPlayerSession::invalidMedia, this, &QGstreamerPlayerControl::handleInvalidMedia);
     connect(m_session, &QGstreamerPlayerSession::playbackRateChanged, this, &QGstreamerPlayerControl::playbackRateChanged);
-
-    connect(m_resources, &QMediaPlayerResourceSetInterface::resourcesGranted, this, &QGstreamerPlayerControl::handleResourcesGranted);
-    //denied signal should be queued to have correct state update process,
-    //since in playOrPause, when acquire is call on resource set, it may trigger a resourcesDenied signal immediately,
-    //so handleResourcesDenied should be processed later, otherwise it will be overwritten by state update later in playOrPause.
-    connect(m_resources, &QMediaPlayerResourceSetInterface::resourcesDenied,
-            this, &QGstreamerPlayerControl::handleResourcesDenied, Qt::QueuedConnection);
-    connect(m_resources, &QMediaPlayerResourceSetInterface::resourcesLost, this, &QGstreamerPlayerControl::handleResourcesLost);
 }
 
 QGstreamerPlayerControl::~QGstreamerPlayerControl()
 {
-    QMediaResourcePolicy::destroyResourceSet(m_resources);
-}
-
-QMediaPlayerResourceSetInterface* QGstreamerPlayerControl::resources() const
-{
-    return m_resources;
 }
 
 qint64 QGstreamerPlayerControl::position() const
@@ -230,38 +211,33 @@ void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
         m_pendingSeekPosition = 0;
     }
 
-    if (!m_resources->isGranted())
-        m_resources->acquire();
-
-    if (m_resources->isGranted()) {
-        // show prerolled frame if switching from stopped state
-        if (m_pendingSeekPosition == -1) {
-            m_session->showPrerollFrames(true);
-        } else if (m_session->state() == QMediaPlayer::StoppedState) {
-            // Don't evaluate the next two conditions.
-        } else if (m_session->isSeekable()) {
-            m_session->pause();
-            m_session->showPrerollFrames(true);
-            m_session->seek(m_pendingSeekPosition);
-            m_pendingSeekPosition = -1;
-        } else {
-            m_pendingSeekPosition = -1;
-        }
-
-        bool ok = false;
-
-        //To prevent displaying the first video frame when playback is resumed
-        //the pipeline is paused instead of playing, seeked to requested position,
-        //and after seeking is finished (position updated) playback is restarted
-        //with show-preroll-frame enabled.
-        if (newState == QMediaPlayer::PlayingState && m_pendingSeekPosition == -1)
-            ok = m_session->play();
-        else
-            ok = m_session->pause();
-
-        if (!ok)
-            newState = QMediaPlayer::StoppedState;
+    // show prerolled frame if switching from stopped state
+    if (m_pendingSeekPosition == -1) {
+        m_session->showPrerollFrames(true);
+    } else if (m_session->state() == QMediaPlayer::StoppedState) {
+        // Don't evaluate the next two conditions.
+    } else if (m_session->isSeekable()) {
+        m_session->pause();
+        m_session->showPrerollFrames(true);
+        m_session->seek(m_pendingSeekPosition);
+        m_pendingSeekPosition = -1;
+    } else {
+        m_pendingSeekPosition = -1;
     }
+
+    bool ok = false;
+
+    //To prevent displaying the first video frame when playback is resumed
+    //the pipeline is paused instead of playing, seeked to requested position,
+    //and after seeking is finished (position updated) playback is restarted
+    //with show-preroll-frame enabled.
+    if (newState == QMediaPlayer::PlayingState && m_pendingSeekPosition == -1)
+        ok = m_session->play();
+    else
+        ok = m_session->pause();
+
+    if (!ok)
+        newState = QMediaPlayer::StoppedState;
 
     if (m_mediaStatus == QMediaPlayer::InvalidMedia)
         m_mediaStatus = QMediaPlayer::LoadingMedia;
@@ -297,7 +273,7 @@ void QGstreamerPlayerControl::stop()
         // needs to update media status directly.
         if (m_session->state() == QMediaPlayer::PausedState)
             updateMediaStatus();
-        else if (m_resources->isGranted())
+        else
             m_session->pause();
 
         if (m_mediaStatus != QMediaPlayer::EndOfMedia) {
@@ -343,13 +319,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     m_session->showPrerollFrames(false); // do not show prerolled frames until pause() or play() explicitly called
     m_setMediaPending = false;
 
-    if (!content.isNull() || stream) {
-        if (!m_resources->isGranted())
-            m_resources->acquire();
-    } else {
-        m_resources->release();
-    }
-
     m_session->stop();
 
     bool userStreamValid = false;
@@ -376,8 +345,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
         } else {
             m_mediaStatus = QMediaPlayer::InvalidMedia;
             emit error(QMediaPlayer::FormatError, tr("Attempting to play invalid user stream"));
-            if (m_currentState != QMediaPlayer::PlayingState)
-                m_resources->release();
             popAndNotifyState();
             return;
         }
@@ -401,9 +368,6 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
         emit mediaChanged(m_currentResource);
 
     emit positionChanged(position());
-
-    if (content.isNull() && !stream)
-        m_resources->release();
 
     popAndNotifyState();
 }
@@ -480,9 +444,6 @@ void QGstreamerPlayerControl::updateMediaStatus()
         break;
     }
 
-    if (m_currentState == QMediaPlayer::PlayingState && !m_resources->isGranted())
-        m_mediaStatus = QMediaPlayer::StalledMedia;
-
     popAndNotifyState();
 }
 
@@ -511,17 +472,15 @@ void QGstreamerPlayerControl::setBufferProgress(int progress)
 #endif
     m_bufferProgress = progress;
 
-    if (m_resources->isGranted()) {
-        if (m_currentState == QMediaPlayer::PlayingState &&
-                m_bufferProgress == 100 &&
-                m_session->state() != QMediaPlayer::PlayingState)
-            m_session->play();
+    if (m_currentState == QMediaPlayer::PlayingState &&
+            m_bufferProgress == 100 &&
+            m_session->state() != QMediaPlayer::PlayingState)
+        m_session->play();
 
-        if (!m_session->isLiveSource() && m_bufferProgress < 100 &&
-                (m_session->state() == QMediaPlayer::PlayingState ||
-                 m_session->pendingState() == QMediaPlayer::PlayingState))
-            m_session->pause();
-    }
+    if (!m_session->isLiveSource() && m_bufferProgress < 100 &&
+            (m_session->state() == QMediaPlayer::PlayingState ||
+             m_session->pendingState() == QMediaPlayer::PlayingState))
+        m_session->pause();
 
     updateMediaStatus();
 
@@ -534,49 +493,6 @@ void QGstreamerPlayerControl::handleInvalidMedia()
     m_mediaStatus = QMediaPlayer::InvalidMedia;
     m_currentState = QMediaPlayer::StoppedState;
     m_setMediaPending = true;
-    popAndNotifyState();
-}
-
-void QGstreamerPlayerControl::handleResourcesGranted()
-{
-    pushState();
-
-    //This may be triggered when there is an auto resume
-    //from resource-policy, we need to take action according to m_userRequestedState
-    //rather than m_currentState
-    m_currentState = m_userRequestedState;
-    if (m_currentState != QMediaPlayer::StoppedState)
-        playOrPause(m_currentState);
-    else
-        updateMediaStatus();
-
-    popAndNotifyState();
-}
-
-void QGstreamerPlayerControl::handleResourcesLost()
-{
-    //on resource lost the pipeline should be paused
-    //player status is changed to paused
-    pushState();
-    QMediaPlayer::State oldState = m_currentState;
-
-    m_session->pause();
-
-    if (oldState != QMediaPlayer::StoppedState )
-        m_currentState = QMediaPlayer::PausedState;
-
-    popAndNotifyState();
-}
-
-void QGstreamerPlayerControl::handleResourcesDenied()
-{
-    //on resource denied the pipeline should stay paused
-    //player status is changed to paused
-    pushState();
-
-    if (m_currentState != QMediaPlayer::StoppedState )
-        m_currentState = QMediaPlayer::PausedState;
-
     popAndNotifyState();
 }
 

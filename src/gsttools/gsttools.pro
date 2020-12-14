@@ -12,9 +12,6 @@ qtConfig(alsa): \
 
 QMAKE_USE += gstreamer
 
-qtConfig(resourcepolicy): \
-    QMAKE_USE += libresourceqt5
-
 PRIVATE_HEADERS += \
     qgstreamerbushelper_p.h \
     qgstreamermessage_p.h \

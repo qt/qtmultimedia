@@ -85,8 +85,6 @@ QDeclarativeCameraImageProcessing::QDeclarativeCameraImageProcessing(QCamera *ca
 {
     m_imageProcessing = camera->imageProcessing();
 
-    connect(camera, QOverload<bool>::of(&QCamera::availabilityChanged),
-            this, &QDeclarativeCameraImageProcessing::availableChanged);
     connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
         if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
             && status != QCamera::ActiveStatus) {

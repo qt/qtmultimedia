@@ -62,7 +62,6 @@ class QMediaContainerControl;
 class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QMetaDataWriterControl;
-class QMediaAvailabilityControl;
 class QTimer;
 
 class QMediaRecorderPrivate
@@ -83,7 +82,6 @@ public:
     QAudioEncoderSettingsControl *audioControl;
     QVideoEncoderSettingsControl *videoControl;
     QMetaDataWriterControl *metaDataControl;
-    QMediaAvailabilityControl *availabilityControl;
 
     bool settingsChanged;
 
@@ -101,7 +99,6 @@ public:
     void _q_notify();
     void _q_updateNotifyInterval(int ms);
     void _q_applySettings();
-    void _q_availabilityChanged(QMultimedia::AvailabilityStatus availability);
 
     QMediaRecorder *q_ptr;
 };

@@ -61,9 +61,6 @@
 #include <pulse/pulseaudio.h>
 #include "qsamplecache_p.h"
 
-#include <private/qmediaresourcepolicy_p.h>
-#include <private/qmediaresourceset_p.h>
-
 QT_BEGIN_NAMESPACE
 
 class QSoundEffectRef;
@@ -120,8 +117,6 @@ private Q_SLOTS:
     void streamReady();
     void emptyComplete(void *stream, bool reload);
 
-    void handleAvailabilityChanged(bool available);
-
 private:
     void playAvailable();
     void playSample();
@@ -175,12 +170,8 @@ private:
     int m_position = 0;
     QSoundEffectRef *m_ref = nullptr;
 
-    bool m_resourcesAvailable = false;
-
     // Protects volume while PuseAudio is accessing it
     mutable QMutex m_volumeLock;
-
-    QMediaPlayerResourceSetInterface *m_resources = nullptr;
 };
 
 QT_END_NAMESPACE

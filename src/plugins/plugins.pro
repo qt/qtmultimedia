@@ -48,7 +48,4 @@ darwin:!watchos {
     qtConfig(avfoundation): SUBDIRS += avfoundation
 }
 
-qtConfig(resourcepolicy) {
-    SUBDIRS += resourcepolicy
-}
 

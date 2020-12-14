@@ -70,11 +70,6 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
     emit cameraStateChanged(QDeclarativeCamera::State(state));
 }
 
-void QDeclarativeCamera::_q_availabilityChanged(QMultimedia::AvailabilityStatus availability)
-{
-    emit availabilityChanged(Availability(availability));
-}
-
 /*!
     \qmltype Camera
     \instantiates QDeclarativeCamera
@@ -198,8 +193,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     connect(m_camera, &QCamera::stateChanged, this, &QDeclarativeCamera::_q_updateState);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
-    connect(m_camera, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
-            this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
 
     connect(m_camera->focus(), &QCameraFocus::opticalZoomChanged,
             this, &QDeclarativeCamera::opticalZoomChanged);

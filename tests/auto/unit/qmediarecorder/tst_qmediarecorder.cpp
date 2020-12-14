@@ -1143,36 +1143,13 @@ void tst_QMediaRecorder::testAvailabilityStatus()
     }
     {
         MockMediaRecorderControl recorderControl(0);
-        MockMediaRecorderService service1(0, &recorderControl, 0);
+        MockMediaRecorderService service1(0, &recorderControl);
         service1.mockMetaDataControl->populateMetaData();
         MockMediaObject object1(0, &service1);
         QMediaRecorder recorder1(&object1);
 
         QCOMPARE(recorder1.availability(), QMultimedia::Available);
         QCOMPARE(recorder1.isAvailable(), true);
-    }
-    {
-        MockMediaRecorderControl recorderControl(0);
-        MockAvailabilityControl availability(QMultimedia::Available);
-        MockMediaRecorderService service1(0, &recorderControl, &availability);
-        service1.mockMetaDataControl->populateMetaData();
-        MockMediaObject object1(0, &service1);
-        QMediaRecorder recorder1(&object1);
-
-        QSignalSpy spy(&object1, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)));
-
-        QCOMPARE(recorder1.availability(), QMultimedia::Available);
-        QCOMPARE(recorder1.isAvailable(), true);
-
-        availability.setAvailability(QMultimedia::Busy);
-        QCOMPARE(recorder1.availability(), QMultimedia::Busy);
-        QCOMPARE(recorder1.isAvailable(), false);
-        QCOMPARE(spy.count(), 1);
-
-        availability.setAvailability(QMultimedia::Available);
-        QCOMPARE(recorder1.availability(), QMultimedia::Available);
-        QCOMPARE(recorder1.isAvailable(), true);
-        QCOMPARE(spy.count(), 2);
     }
 }
 

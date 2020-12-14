@@ -41,13 +41,11 @@
 #include "qdeclarativeaudio_p.h"
 
 #include <qmediaplayercontrol.h>
-#include <qmediaavailabilitycontrol.h>
 
 #include <qmediaservice.h>
 #include <private/qmediaserviceprovider_p.h>
 #include <private/qdeclarativevideooutput_p.h>
 #include <qmetadatareadercontrol.h>
-#include <qmediaavailabilitycontrol.h>
 
 #include "qdeclarativeplaylist_p.h"
 #include "qdeclarativemediametadata_p.h"
@@ -95,11 +93,6 @@ void QDeclarativeAudio::_q_error(QMediaPlayer::Error errorCode)
 
     emit error(Error(errorCode), m_errorString);
     emit errorChanged();
-}
-
-void QDeclarativeAudio::_q_availabilityChanged(QMultimedia::AvailabilityStatus)
-{
-    emit availabilityChanged(availability());
 }
 
 QDeclarativeAudio::QDeclarativeAudio(QObject *parent)
@@ -955,9 +948,6 @@ void QDeclarativeAudio::classBegin()
             this, SIGNAL(notifyIntervalChanged()));
 
     m_error = m_player->availability() == QMultimedia::ServiceMissing ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
-
-    connect(m_player, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
-                     this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
 
     m_metaData.reset(new QDeclarativeMediaMetaData(m_player));
 
