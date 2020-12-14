@@ -141,7 +141,7 @@ public:
                             QDeclarativePlaylistItem* item) {
         static_cast<QDeclarativePlaylist*>(list->object)->addItem(item->source());
     }
-    static int item_count(QQmlListProperty<QDeclarativePlaylistItem> *list) {
+    static qsizetype item_count(QQmlListProperty<QDeclarativePlaylistItem> *list) {
         return static_cast<QDeclarativePlaylist*>(list->object)->itemCount();
     }
     static void item_clear(QQmlListProperty<QDeclarativePlaylistItem> *list) {

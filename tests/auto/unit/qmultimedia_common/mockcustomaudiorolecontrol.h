@@ -38,7 +38,6 @@ class MockCustomAudioRoleControl : public QCustomAudioRoleControl
 public:
     MockCustomAudioRoleControl()
         : QCustomAudioRoleControl()
-        , m_customAudioRole(QAudio::UnknownRole)
     {
     }
 

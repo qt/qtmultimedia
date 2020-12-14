@@ -854,7 +854,7 @@ void QDeclarativeVideoOutput::geometryChange(const QRectF &newGeometry, const QR
 
 QQmlListProperty<QAbstractVideoFilter> QDeclarativeVideoOutput::filters()
 {
-    return QQmlListProperty<QAbstractVideoFilter>(this, 0, filter_append, filter_count, filter_at, filter_clear);
+    return QQmlListProperty<QAbstractVideoFilter>(this, nullptr, filter_append, filter_count, filter_at, filter_clear);
 }
 
 void QDeclarativeVideoOutput::filter_append(QQmlListProperty<QAbstractVideoFilter> *property, QAbstractVideoFilter *value)
@@ -865,13 +865,13 @@ void QDeclarativeVideoOutput::filter_append(QQmlListProperty<QAbstractVideoFilte
         self->m_backend->appendFilter(value);
 }
 
-int QDeclarativeVideoOutput::filter_count(QQmlListProperty<QAbstractVideoFilter> *property)
+qsizetype QDeclarativeVideoOutput::filter_count(QQmlListProperty<QAbstractVideoFilter> *property)
 {
     QDeclarativeVideoOutput *self = static_cast<QDeclarativeVideoOutput *>(property->object);
     return self->m_filters.count();
 }
 
-QAbstractVideoFilter *QDeclarativeVideoOutput::filter_at(QQmlListProperty<QAbstractVideoFilter> *property, int index)
+QAbstractVideoFilter *QDeclarativeVideoOutput::filter_at(QQmlListProperty<QAbstractVideoFilter> *property, qsizetype index)
 {
     QDeclarativeVideoOutput *self = static_cast<QDeclarativeVideoOutput *>(property->object);
     return self->m_filters.at(index);

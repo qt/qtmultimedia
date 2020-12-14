@@ -171,8 +171,8 @@ private:
     bool createBackend(QMediaService *service);
 
     static void filter_append(QQmlListProperty<QAbstractVideoFilter> *property, QAbstractVideoFilter *value);
-    static int filter_count(QQmlListProperty<QAbstractVideoFilter> *property);
-    static QAbstractVideoFilter *filter_at(QQmlListProperty<QAbstractVideoFilter> *property, int index);
+    static qsizetype filter_count(QQmlListProperty<QAbstractVideoFilter> *property);
+    static QAbstractVideoFilter *filter_at(QQmlListProperty<QAbstractVideoFilter> *property, qsizetype index);
     static void filter_clear(QQmlListProperty<QAbstractVideoFilter> *property);
 
     SourceType m_sourceType;
