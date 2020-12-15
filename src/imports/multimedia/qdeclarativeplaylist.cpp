@@ -182,7 +182,6 @@ QDeclarativePlaylist::QDeclarativePlaylist(QObject *parent)
     : QAbstractListModel(parent)
     , m_playlist(0)
     , m_error(QMediaPlaylist::NoError)
-    , m_readOnly(false)
 {
 }
 
@@ -261,18 +260,6 @@ void QDeclarativePlaylist::setCurrentIndex(int index)
 int QDeclarativePlaylist::itemCount() const
 {
     return m_playlist->mediaCount();
-}
-
-/*!
-    \qmlproperty bool QtMultimedia::Playlist::readOnly
-
-    This property indicates if the playlist can be modified.
- */
-bool QDeclarativePlaylist::readOnly() const
-{
-    // There's no signal to tell whether or not the read only state changed, so we consider it fixed
-    // after its initial retrieval in componentComplete().
-    return m_readOnly;
 }
 
 /*!
@@ -418,9 +405,9 @@ bool QDeclarativePlaylist::save(const QUrl &location, const QString &format)
 
     Returns true if the \a source is added successfully.
 */
-bool QDeclarativePlaylist::addItem(const QUrl &source)
+void QDeclarativePlaylist::addItem(const QUrl &source)
 {
-    return m_playlist->addMedia(QMediaContent(source));
+    m_playlist->addMedia(QMediaContent(source));
 }
 
 /*!
@@ -432,10 +419,10 @@ bool QDeclarativePlaylist::addItem(const QUrl &source)
 
     \since 5.7
 */
-bool QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
+void QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
 {
     if (sources.isEmpty())
-        return false;
+        return;
 
     QList<QMediaContent> contents;
     QList<QUrl>::const_iterator it = sources.constBegin();
@@ -443,7 +430,7 @@ bool QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
         contents.push_back(QMediaContent(*it));
         ++it;
     }
-    return m_playlist->addMedia(contents);
+    m_playlist->addMedia(contents);
 }
 
 /*!
@@ -528,9 +515,9 @@ bool QDeclarativePlaylist::removeItems(int start, int end)
 
     Returns \c true if the operation is successful.
 */
-bool QDeclarativePlaylist::clear()
+void QDeclarativePlaylist::clear()
 {
-    return m_playlist->clear();
+    m_playlist->clear();
 }
 
 int QDeclarativePlaylist::rowCount(const QModelIndex &parent) const
@@ -582,11 +569,6 @@ void QDeclarativePlaylist::classBegin()
             this, SIGNAL(loaded()));
     connect(m_playlist, SIGNAL(loadFailed()),
             this, SLOT(_q_loadFailed()));
-
-    if (m_playlist->isReadOnly()) {
-        m_readOnly = true;
-        emit readOnlyChanged();
-    }
 }
 
 void QDeclarativePlaylist::componentComplete()

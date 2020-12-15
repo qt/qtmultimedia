@@ -1,8 +1,6 @@
 CONFIG += testcase
 TARGET = tst_qmediaplaylist
 
-include (../qmultimedia_common/mockplaylist.pri)
-
 QT += multimedia-private testlib
 
 SOURCES += \

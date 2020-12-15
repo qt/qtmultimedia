@@ -792,6 +792,8 @@ void tst_QMediaPlayer::testPlaylist()
 
     // Test changing the playlist position, changes the current media, but not the playing state.
     playlist->setCurrentIndex(1);
+    QCOMPARE(playlist->currentIndex(), 1);
+    QCOMPARE(playlist->currentMedia(), content1);
     QCOMPARE(player->currentMedia(), content1);
     QCOMPARE(player->state(), QMediaPlayer::StoppedState);
     QCOMPARE(stateSpy.count(), 0);
@@ -827,6 +829,7 @@ void tst_QMediaPlayer::testPlaylist()
     QCOMPARE(mediaSpy.count(), 1);
 
     mockService->setState(QMediaPlayer::StoppedState, QMediaPlayer::EndOfMedia);
+    QCOMPARE(playlist->currentMedia(), content2);
     QCOMPARE(player->currentMedia(), content2);
     QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateSpy.count(), 4);

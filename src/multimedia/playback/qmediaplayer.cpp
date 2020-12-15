@@ -46,7 +46,6 @@
 #include <qmediaplayercontrol.h>
 #include <qmediaserviceprovider_p.h>
 #include <qmediaplaylist.h>
-#include <qmediaplaylistcontrol_p.h>
 #include <qaudiorolecontrol.h>
 #include <qcustomaudiorolecontrol.h>
 

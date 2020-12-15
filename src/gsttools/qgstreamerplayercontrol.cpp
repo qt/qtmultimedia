@@ -40,8 +40,6 @@
 #include <private/qgstreamerplayercontrol_p.h>
 #include <private/qgstreamerplayersession_p.h>
 
-#include <private/qmediaplaylistnavigator_p.h>
-
 #include <QtCore/qdir.h>
 #include <QtCore/qsocketnotifier.h>
 #include <QtCore/qurl.h>

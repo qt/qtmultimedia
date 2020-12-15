@@ -34,9 +34,6 @@ PUBLIC_HEADERS += \
     controls/qaudiorolecontrol.h \
     controls/qcustomaudiorolecontrol.h
 
-PRIVATE_HEADERS += \
-    controls/qmediaplaylistcontrol_p.h \
-
 SOURCES += \
     controls/qcameracapturebufferformatcontrol.cpp \
     controls/qcameracapturedestinationcontrol.cpp \
@@ -53,7 +50,6 @@ SOURCES += \
     controls/qimageencodercontrol.cpp \
     controls/qmediacontainercontrol.cpp \
     controls/qmediaplayercontrol.cpp \
-    controls/qmediaplaylistcontrol.cpp \
     controls/qmediarecordercontrol.cpp \
     controls/qmediastreamscontrol.cpp \
     controls/qmetadatareadercontrol.cpp \

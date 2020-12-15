@@ -202,7 +202,7 @@ public:
 /*!
     Service with support for media playback
     Required Controls: QMediaPlayerControl
-    Optional Controls: QMediaPlaylistControl, QAudioDeviceControl
+    Optional Controls: QAudioDeviceControl
     Video Output Controls (used by QWideoWidget and QGraphicsVideoItem):
                         Required: QVideoOutputControl
                         Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl

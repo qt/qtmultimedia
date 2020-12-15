@@ -7,8 +7,6 @@
 TEMPLATE = subdirs
 QT_FOR_CONFIG += multimedia-private
 
-SUBDIRS += m3u
-
 qtHaveModule(quick) {
    SUBDIRS += videonode
 }

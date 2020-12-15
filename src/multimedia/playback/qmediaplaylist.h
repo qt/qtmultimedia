@@ -50,9 +50,6 @@
 
 QT_BEGIN_NAMESPACE
 
-
-class QMediaPlaylistProvider;
-
 class QMediaPlaylistPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject, public QMediaBindableInterface
 {
@@ -64,7 +61,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject, public QMediaBindable
     Q_ENUMS(PlaybackMode Error)
 
 public:
-    enum PlaybackMode { CurrentItemOnce, CurrentItemInLoop, Sequential, Loop, Random };
+    enum PlaybackMode { CurrentItemOnce, CurrentItemInLoop, Sequential, Loop };
     enum Error { NoError, FormatError, FormatNotSupportedError, NetworkError, AccessDeniedError };
 
     explicit QMediaPlaylist(QObject *parent = nullptr);
@@ -85,23 +82,22 @@ public:
 
     int mediaCount() const;
     bool isEmpty() const;
-    bool isReadOnly() const;
 
-    bool addMedia(const QMediaContent &content);
-    bool addMedia(const QList<QMediaContent> &items);
+    void addMedia(const QMediaContent &content);
+    void addMedia(const QList<QMediaContent> &items);
     bool insertMedia(int index, const QMediaContent &content);
     bool insertMedia(int index, const QList<QMediaContent> &items);
     bool moveMedia(int from, int to);
     bool removeMedia(int pos);
     bool removeMedia(int start, int end);
-    bool clear();
+    void clear();
 
     void load(const QNetworkRequest &request, const char *format = nullptr);
     void load(const QUrl &location, const char *format = nullptr);
     void load(QIODevice *device, const char *format = nullptr);
 
-    bool save(const QUrl &location, const char *format = nullptr);
-    bool save(QIODevice * device, const char *format);
+    bool save(const QUrl &location, const char *format = nullptr) const;
+    bool save(QIODevice *device, const char *format) const;
 
     Error error() const;
     QString errorString() const;
@@ -134,7 +130,6 @@ protected:
 
 private:
     Q_DECLARE_PRIVATE(QMediaPlaylist)
-    Q_PRIVATE_SLOT(d_func(), void _q_loadFailed(QMediaPlaylist::Error, const QString &))
 };
 
 QT_END_NAMESPACE

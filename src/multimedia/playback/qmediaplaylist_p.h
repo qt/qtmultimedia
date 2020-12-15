@@ -52,11 +52,10 @@
 //
 
 #include "qmediaplaylist.h"
-#include "qmediaplaylistcontrol_p.h"
 #include "qmediaplayer.h"
 #include "qmediaplayercontrol.h"
-#include "qmedianetworkplaylistprovider_p.h"
 #include "qmediaobject_p.h"
+#include "qplaylistfileparser_p.h"
 
 #include <QtCore/qdebug.h>
 
@@ -68,26 +67,24 @@ QT_BEGIN_NAMESPACE
 
 
 class QMediaPlaylistControl;
-class QMediaPlaylistProvider;
-class QMediaPlaylistReader;
-class QMediaPlaylistWriter;
-class QMediaPlayerControl;
 
 class QMediaPlaylistPrivate
 {
     Q_DECLARE_PUBLIC(QMediaPlaylist)
 public:
     QMediaPlaylistPrivate()
-        :mediaObject(nullptr),
-        control(nullptr),
-        networkPlaylistControl(nullptr),
-        error(QMediaPlaylist::NoError)
+        : mediaObject(nullptr),
+          error(QMediaPlaylist::NoError)
     {
     }
 
-    virtual ~QMediaPlaylistPrivate() {}
+    virtual ~QMediaPlaylistPrivate()
+    {
+        if (parser)
+            delete parser;
+    }
 
-    void _q_loadFailed(QMediaPlaylist::Error error, const QString &errorString)
+    void loadFailed(QMediaPlaylist::Error error, const QString &errorString)
     {
         this->error = error;
         this->errorString = errorString;
@@ -95,77 +92,65 @@ public:
         emit q_ptr->loadFailed();
     }
 
+    void loadFinished()
+    {
+        q_ptr->addMedia(parser->playlist);
+
+        emit q_ptr->loaded();
+    }
+
     void _q_mediaObjectDeleted()
     {
         Q_Q(QMediaPlaylist);
         mediaObject = nullptr;
-        if (control != networkPlaylistControl)
-            control = nullptr;
         q->setMediaObject(nullptr);
     }
 
-    QMediaObject *mediaObject;
-
-    QMediaPlaylistControl *control;
-    QMediaPlaylistProvider *playlist() const { return control->playlistProvider(); }
-
-    QMediaPlaylistControl *networkPlaylistControl;
-
-    bool readItems(QMediaPlaylistReader *reader);
-    bool writeItems(QMediaPlaylistWriter *writer);
-
-    void syncControls(QMediaPlaylistControl *oldControl, QMediaPlaylistControl *newControl,
-                      int *removedStart, int *removedEnd,
-                      int *insertedStart, int *insertedEnd);
-
-    QMediaPlaylist::Error error;
-    QString errorString;
-
-    QMediaPlaylist *q_ptr;
-};
-
-
-class QMediaNetworkPlaylistControl : public QMediaPlaylistControl
-{
-    Q_OBJECT
-public:
-    QMediaNetworkPlaylistControl(QObject *parent)
-        :QMediaPlaylistControl(parent)
+    bool checkFormat(const char *format) const
     {
-        QMediaPlaylistProvider *playlist = new QMediaNetworkPlaylistProvider(this);
-        m_navigator = new QMediaPlaylistNavigator(playlist,this);
-        m_navigator->setPlaybackMode(QMediaPlaylist::Sequential);
+        QPlaylistFileParser::FileType type = format ? QPlaylistFileParser::UNKNOWN : QPlaylistFileParser::M3U8;
+        if (format == QLatin1String("m3u") || format == QLatin1String("text/uri-list") ||
+            format == QLatin1String("audio/x-mpegurl") || format == QLatin1String("audio/mpegurl"))
+            type = QPlaylistFileParser::M3U;
+        else if (format == QLatin1String("m3u8") || format == QLatin1String("application/x-mpegURL") ||
+                 format == QLatin1String("application/vnd.apple.mpegurl"))
+            type = QPlaylistFileParser::M3U8;
 
-        connect(m_navigator, SIGNAL(currentIndexChanged(int)), SIGNAL(currentIndexChanged(int)));
-        connect(m_navigator, SIGNAL(activated(QMediaContent)), SIGNAL(currentMediaChanged(QMediaContent)));
-        connect(m_navigator, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)), SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)));
-    }
-
-    ~QMediaNetworkPlaylistControl() {}
-
-    QMediaPlaylistProvider* playlistProvider() const override { return m_navigator->playlist(); }
-    bool setPlaylistProvider(QMediaPlaylistProvider *mediaPlaylist) override
-    {
-        m_navigator->setPlaylist(mediaPlaylist);
-        emit playlistProviderChanged();
+        if (type == QPlaylistFileParser::UNKNOWN || type == QPlaylistFileParser::PLS) {
+            error = QMediaPlaylist::FormatNotSupportedError;
+            errorString = QMediaPlaylist::tr("This file format is not supported.");
+            return false;
+        }
         return true;
     }
 
-    int currentIndex() const override { return m_navigator->currentIndex(); }
-    void setCurrentIndex(int position) override { m_navigator->jump(position); }
-    int nextIndex(int steps) const override { return m_navigator->nextIndex(steps); }
-    int previousIndex(int steps) const override { return m_navigator->previousIndex(steps); }
+    void ensureParser()
+    {
+        if (parser)
+            return;
 
-    void next() override { m_navigator->next(); }
-    void previous() override { m_navigator->previous(); }
+        parser = new QPlaylistFileParser(q_ptr);
+        QObject::connect(parser, &QPlaylistFileParser::finished, [this]() { loadFinished(); });
+        QObject::connect(parser, &QPlaylistFileParser::error,
+                [this](QMediaPlaylist::Error err, const QString& errorMsg) { loadFailed(err, errorMsg); });
+    }
 
-    QMediaPlaylist::PlaybackMode playbackMode() const override { return m_navigator->playbackMode(); }
-    void setPlaybackMode(QMediaPlaylist::PlaybackMode mode) override { m_navigator->setPlaybackMode(mode); }
+    int nextPosition(int steps) const;
+    int prevPosition(int steps) const;
 
-private:
-    QMediaPlaylistNavigator *m_navigator;
+    QMediaObject *mediaObject;
+
+    QList<QMediaContent> playlist;
+
+    int currentPos = -1;
+    QMediaPlaylist::PlaybackMode playbackMode = QMediaPlaylist::Sequential;
+
+    QPlaylistFileParser *parser = nullptr;
+    mutable QMediaPlaylist::Error error;
+    mutable QString errorString;
+
+    QMediaPlaylist *q_ptr;
 };
-
 
 QT_END_NAMESPACE
 

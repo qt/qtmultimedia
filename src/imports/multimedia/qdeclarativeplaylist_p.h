@@ -81,7 +81,6 @@ class QDeclarativePlaylist : public QAbstractListModel, public QQmlParserStatus
     Q_PROPERTY(QUrl currentItemSource READ currentItemSource NOTIFY currentItemSourceChanged)
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
     Q_PROPERTY(int itemCount READ itemCount NOTIFY itemCountChanged)
-    Q_PROPERTY(bool readOnly READ readOnly NOTIFY readOnlyChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QQmlListProperty<QDeclarativePlaylistItem> items READ items DESIGNABLE false)
@@ -97,7 +96,7 @@ public:
         CurrentItemInLoop = QMediaPlaylist::CurrentItemInLoop,
         Sequential = QMediaPlaylist::Sequential,
         Loop = QMediaPlaylist::Loop,
-        Random = QMediaPlaylist::Random
+//        Random = QMediaPlaylist::Random
     };
     enum Error
     {
@@ -121,7 +120,6 @@ public:
     int currentIndex() const;
     void setCurrentIndex(int currentIndex);
     int itemCount() const;
-    bool readOnly() const;
     Error error() const;
     QString errorString() const;
     QMediaPlaylist *mediaPlaylist() const { return m_playlist; }
@@ -157,21 +155,20 @@ public Q_SLOTS:
     void shuffle();
     void load(const QUrl &location, const QString &format = QString());
     bool save(const QUrl &location, const QString &format = QString());
-    bool addItem(const QUrl &source);
-    Q_REVISION(1) bool addItems(const QList<QUrl> &sources);
+    void addItem(const QUrl &source);
+    Q_REVISION(1) void addItems(const QList<QUrl> &sources);
     bool insertItem(int index, const QUrl &source);
     Q_REVISION(1) bool insertItems(int index, const QList<QUrl> &sources);
     Q_REVISION(1) bool moveItem(int from, int to);
     bool removeItem(int index);
     Q_REVISION(1) bool removeItems(int start, int end);
-    bool clear();
+    void clear();
 
 Q_SIGNALS:
     void playbackModeChanged();
     void currentItemSourceChanged();
     void currentIndexChanged();
     void itemCountChanged();
-    void readOnlyChanged();
     void errorChanged();
 
     void itemAboutToBeInserted(int start, int end);
@@ -198,7 +195,6 @@ private:
     QMediaPlaylist *m_playlist;
     QString m_errorString;
     QMediaPlaylist::Error m_error;
-    bool m_readOnly;
 };
 
 QT_END_NAMESPACE

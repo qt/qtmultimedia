@@ -60,7 +60,6 @@
 #include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamerplayercontrol_p.h>
 
-#include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
 
 QT_BEGIN_NAMESPACE

@@ -30,31 +30,11 @@
 #include <QDebug>
 #include "qmediaservice.h"
 #include "qmediaplaylist.h"
-#include <private/qmediaplaylistcontrol_p.h>
-#include <private/qmediaplaylistnavigator_p.h>
 #include <private/qmediapluginloader_p.h>
-
-#include "qm3uhandler.h"
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "mockplaylistservice.h"
-#include "mockmediaplaylistcontrol.h"
-#include "mockreadonlyplaylistprovider.h"
-
 QT_USE_NAMESPACE
-
-class MockPlaylistObject : public QMediaObject
-{
-    Q_OBJECT
-public:
-    MockPlaylistObject(QObject *parent = 0)
-        : QMediaObject(parent, mockService = new MockPlaylistService)
-    {
-    }
-
-    MockPlaylistService *mockService;
-};
 
 class tst_QMediaPlaylist : public QObject
 {
@@ -77,7 +57,6 @@ private slots:
     void playbackMode();
     void playbackMode_data();
     void shuffle();
-    void readOnlyPlaylist();
     void setMediaObject();
 
     void testCurrentIndexChanged_signal();
@@ -86,11 +65,6 @@ private slots:
     void testMediaChanged_signal();
     void testPlaybackModeChanged_signal();
     void testEnums();
-
-    void mediaPlayListProvider();
-    // TC for Abstract control classes
-    void mediaPlayListControl();
-
 
 private:
     QMediaContent content1;
@@ -125,7 +99,6 @@ void tst_QMediaPlaylist::construction()
 void tst_QMediaPlaylist::append()
 {
     QMediaPlaylist playlist;
-    QVERIFY(!playlist.isReadOnly());
 
     playlist.addMedia(content1);
     QCOMPARE(playlist.mediaCount(), 1);
@@ -175,7 +148,6 @@ void tst_QMediaPlaylist::append()
 void tst_QMediaPlaylist::insert()
 {
     QMediaPlaylist playlist;
-    QVERIFY(!playlist.isReadOnly());
 
     playlist.addMedia(content1);
     QCOMPARE(playlist.mediaCount(), 1);
@@ -468,6 +440,7 @@ void tst_QMediaPlaylist::saveAndLoad()
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
     QVERIFY(!playlist.errorString().isEmpty());
 
+
     res = playlist.save(QUrl::fromLocalFile(QLatin1String("tmp.unsupported_format")), "unsupported_format");
     QVERIFY(!res);
     QVERIFY(playlist.error() != QMediaPlaylist::NoError);
@@ -475,11 +448,13 @@ void tst_QMediaPlaylist::saveAndLoad()
 
     loadedSignal.clear();
     errorSignal.clear();
-    playlist.load(QUrl::fromLocalFile(QLatin1String("tmp.unsupported_format")), "unsupported_format");
+    QUrl testFileName = QUrl::fromLocalFile(QFINDTESTDATA("testdata") + "/testfile");
+    playlist.load(testFileName, "unsupported_format");
     QTRY_VERIFY(loadedSignal.isEmpty());
     QCOMPARE(errorSignal.size(), 1);
     QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
     QVERIFY(!playlist.errorString().isEmpty());
+    QVERIFY(playlist.mediaCount() == 3);
 
     res = playlist.save(&buffer, "m3u");
 
@@ -703,73 +678,6 @@ void tst_QMediaPlaylist::shuffle()
 
 }
 
-void tst_QMediaPlaylist::readOnlyPlaylist()
-{
-    MockPlaylistObject mediaObject;
-    mediaObject.mockService->mockControl->setReadOnly(true);
-
-    QMediaPlaylist playlist;
-    mediaObject.bind(&playlist);
-
-    QVERIFY(playlist.isReadOnly());
-    QVERIFY(!playlist.isEmpty());
-    QCOMPARE(playlist.mediaCount(), 3);
-
-    QCOMPARE(playlist.media(0), content1);
-    QCOMPARE(playlist.media(1), content2);
-    QCOMPARE(playlist.media(2), content3);
-    QCOMPARE(playlist.media(3), QMediaContent());
-
-    //it's a read only playlist, so all the modification should fail
-    QVERIFY(!playlist.addMedia(content1));
-    QCOMPARE(playlist.mediaCount(), 3);
-    QVERIFY(!playlist.addMedia(QList<QMediaContent>() << content1 << content2));
-    QCOMPARE(playlist.mediaCount(), 3);
-    QVERIFY(!playlist.insertMedia(1, content1));
-    QCOMPARE(playlist.mediaCount(), 3);
-    QVERIFY(!playlist.insertMedia(1, QList<QMediaContent>() << content1 << content2));
-    QCOMPARE(playlist.mediaCount(), 3);
-    QVERIFY(!playlist.removeMedia(1));
-    QCOMPARE(playlist.mediaCount(), 3);
-    QVERIFY(!playlist.removeMedia(0,2));
-    QCOMPARE(playlist.mediaCount(), 3);
-    QVERIFY(!playlist.clear());
-    QCOMPARE(playlist.mediaCount(), 3);
-
-    //but it is still allowed to append/insert an empty list
-    QVERIFY(playlist.addMedia(QList<QMediaContent>()));
-    QVERIFY(playlist.insertMedia(1, QList<QMediaContent>()));
-
-    playlist.shuffle();
-    //it's still the same
-    QCOMPARE(playlist.media(0), content1);
-    QCOMPARE(playlist.media(1), content2);
-    QCOMPARE(playlist.media(2), content3);
-    QCOMPARE(playlist.media(3), QMediaContent());
-
-
-    //load to read only playlist should fail,
-    //unless underlaying provider supports it
-    QBuffer buffer;
-    buffer.open(QBuffer::ReadWrite);
-    buffer.write(QByteArray("file:///1\nfile:///2"));
-    buffer.seek(0);
-
-    QSignalSpy errorSignal(&playlist, SIGNAL(loadFailed()));
-    playlist.load(&buffer, "m3u");
-    QCOMPARE(errorSignal.size(), 1);
-    QCOMPARE(playlist.error(), QMediaPlaylist::AccessDeniedError);
-    QVERIFY(!playlist.errorString().isEmpty());
-    QCOMPARE(playlist.mediaCount(), 3);
-
-    errorSignal.clear();
-    playlist.load(QUrl::fromLocalFile(QLatin1String("tmp.m3u")), "m3u");
-
-    QCOMPARE(errorSignal.size(), 1);
-    QCOMPARE(playlist.error(), QMediaPlaylist::AccessDeniedError);
-    QVERIFY(!playlist.errorString().isEmpty());
-    QCOMPARE(playlist.mediaCount(), 3);
-}
 
 void tst_QMediaPlaylist::setMediaObject()
 {
@@ -779,8 +687,6 @@ void tst_QMediaPlaylist::setMediaObject()
     QMediaContent content3(QUrl(QLatin1String("test://video/movie2.mp4")));
 
     {
-        MockPlaylistObject mediaObject;
-
         QMediaPlaylist playlist;
         QSignalSpy currentIndexSpy(&playlist, SIGNAL(currentIndexChanged(int)));
         QSignalSpy playbackModeSpy(&playlist, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)));
@@ -792,9 +698,6 @@ void tst_QMediaPlaylist::setMediaObject()
 
         QVERIFY(playlist.isEmpty());
 
-        mediaObject.bind(&playlist);
-
-        // Playlist is now using the service's control, nothing should have changed
         QVERIFY(playlist.isEmpty());
         QCOMPARE(playlist.currentIndex(), -1);
         QCOMPARE(playlist.playbackMode(), QMediaPlaylist::Sequential);
@@ -806,15 +709,14 @@ void tst_QMediaPlaylist::setMediaObject()
         QCOMPARE(mediaRemovedSpy.count(), 0);
         QCOMPARE(mediaChangedSpy.count(), 0);
 
-        // add items to service's playlist control
+        // add items to playlist
         playlist.addMedia(content0);
         playlist.addMedia(content1);
         playlist.setCurrentIndex(1);
-        playlist.setPlaybackMode(QMediaPlaylist::Random);
+        playlist.shuffle();
         QCOMPARE(playlist.mediaCount(), 2);
         QCOMPARE(playlist.currentIndex(), 1);
         QCOMPARE(playlist.currentMedia(), content1);
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::Random);
 
         currentIndexSpy.clear();
         playbackModeSpy.clear();
@@ -823,24 +725,8 @@ void tst_QMediaPlaylist::setMediaObject()
         mediaAboutToBeRemovedSpy.clear();
         mediaRemovedSpy.clear();
         mediaChangedSpy.clear();
-
-        // unbind the playlist, reverting back to the internal control.
-        // playlist content should't have changed.
-        mediaObject.unbind(&playlist);
-        QCOMPARE(playlist.mediaCount(), 2);
-        QCOMPARE(playlist.currentIndex(), 1);
-        QCOMPARE(playlist.currentMedia(), content1);
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::Random);
-        QCOMPARE(playbackModeSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeInsertedSpy.count(), 0);
-        QCOMPARE(mediaInsertedSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeRemovedSpy.count(), 0);
-        QCOMPARE(mediaRemovedSpy.count(), 0);
-        QCOMPARE(mediaChangedSpy.count(), 0);
     }
     {
-        MockPlaylistObject mediaObject;
-
         QMediaPlaylist playlist;
         QVERIFY(playlist.isEmpty());
         // Add items to playlist before binding to the service (internal control)
@@ -858,8 +744,6 @@ void tst_QMediaPlaylist::setMediaObject()
         QSignalSpy mediaRemovedSpy(&playlist, SIGNAL(mediaRemoved(int, int)));
         QSignalSpy mediaChangedSpy(&playlist, SIGNAL(mediaChanged(int, int)));
 
-        // Bind playlist, content should be unchanged
-        mediaObject.bind(&playlist);
         QCOMPARE(playlist.mediaCount(), 3);
         QCOMPARE(playlist.currentIndex(), 2);
         QCOMPARE(playlist.currentMedia(), content2);
@@ -875,7 +759,7 @@ void tst_QMediaPlaylist::setMediaObject()
         // Clear playlist content (service's playlist control)
         playlist.clear();
         playlist.setCurrentIndex(-1);
-        playlist.setPlaybackMode(QMediaPlaylist::Random);
+        playlist.shuffle();
 
         currentIndexSpy.clear();
         playbackModeSpy.clear();
@@ -884,168 +768,6 @@ void tst_QMediaPlaylist::setMediaObject()
         mediaAboutToBeRemovedSpy.clear();
         mediaRemovedSpy.clear();
         mediaChangedSpy.clear();
-
-        // unbind playlist from service, reverting back to the internal control.
-        // playlist should still be empty
-        mediaObject.unbind(&playlist);
-        QCOMPARE(playlist.mediaCount(), 0);
-        QCOMPARE(playlist.currentIndex(), -1);
-        QCOMPARE(playlist.currentMedia(), QMediaContent());
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::Random);
-        QCOMPARE(playbackModeSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeInsertedSpy.count(), 0);
-        QCOMPARE(mediaInsertedSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeRemovedSpy.count(), 0);
-        QCOMPARE(mediaRemovedSpy.count(), 0);
-        QCOMPARE(mediaChangedSpy.count(), 0);
-    }
-    {
-        MockPlaylistObject mediaObject;
-
-        QMediaPlaylist playlist;
-        QVERIFY(playlist.isEmpty());
-        // Add items to playlist before attaching to media player (internal control)
-        playlist.addMedia(content0);
-        playlist.addMedia(content1);
-        playlist.setCurrentIndex(-1);
-        playlist.setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
-
-        // Add items to service's playlist before binding
-        QMediaPlaylistProvider *pp = mediaObject.mockService->mockControl->playlistProvider();
-        pp->addMedia(content2);
-        pp->addMedia(content3);
-        mediaObject.mockService->mockControl->setCurrentIndex(1);
-        mediaObject.mockService->mockControl->setPlaybackMode(QMediaPlaylist::Random);
-
-        QSignalSpy currentIndexSpy(&playlist, SIGNAL(currentIndexChanged(int)));
-        QSignalSpy playbackModeSpy(&playlist, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)));
-        QSignalSpy mediaAboutToBeInsertedSpy(&playlist, SIGNAL(mediaAboutToBeInserted(int, int)));
-        QSignalSpy mediaInsertedSpy(&playlist, SIGNAL(mediaInserted(int, int)));
-        QSignalSpy mediaAboutToBeRemovedSpy(&playlist, SIGNAL(mediaAboutToBeRemoved(int, int)));
-        QSignalSpy mediaRemovedSpy(&playlist, SIGNAL(mediaRemoved(int, int)));
-        QSignalSpy mediaChangedSpy(&playlist, SIGNAL(mediaChanged(int, int)));
-
-        // Bind playlist, it should contain only what was explicitly added to the playlist.
-        // Anything that was present in the service's control should have been cleared
-        mediaObject.bind(&playlist);
-        QCOMPARE(playlist.mediaCount(), 2);
-        QCOMPARE(playlist.currentIndex(), -1);
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::CurrentItemOnce);
-        QCOMPARE(currentIndexSpy.count(), 0);
-        QCOMPARE(playbackModeSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeInsertedSpy.count(), 0);
-        QCOMPARE(mediaInsertedSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeRemovedSpy.count(), 0);
-        QCOMPARE(mediaRemovedSpy.count(), 0);
-        QCOMPARE(mediaChangedSpy.count(), 0);
-
-        // do some changes
-        playlist.removeMedia(0); // content0
-        playlist.addMedia(content3);
-        playlist.setCurrentIndex(0);
-
-        currentIndexSpy.clear();
-        playbackModeSpy.clear();
-        mediaAboutToBeInsertedSpy.clear();
-        mediaInsertedSpy.clear();
-        mediaAboutToBeRemovedSpy.clear();
-        mediaRemovedSpy.clear();
-        mediaChangedSpy.clear();
-
-        // unbind playlist from service
-        mediaObject.unbind(&playlist);
-        QCOMPARE(playlist.mediaCount(), 2);
-        QCOMPARE(playlist.currentIndex(), 0);
-        QCOMPARE(playlist.currentMedia(), content1);
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::CurrentItemOnce);
-        QCOMPARE(currentIndexSpy.count(), 0);
-        QCOMPARE(playbackModeSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeInsertedSpy.count(), 0);
-        QCOMPARE(mediaInsertedSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeRemovedSpy.count(), 0);
-        QCOMPARE(mediaRemovedSpy.count(), 0);
-        QCOMPARE(mediaChangedSpy.count(), 0);
-
-        // bind again, nothing should have changed
-        mediaObject.bind(&playlist);
-        QCOMPARE(playlist.mediaCount(), 2);
-        QCOMPARE(playlist.currentIndex(), 0);
-        QCOMPARE(playlist.currentMedia(), content1);
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::CurrentItemOnce);
-        QCOMPARE(currentIndexSpy.count(), 0);
-        QCOMPARE(playbackModeSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeInsertedSpy.count(), 0);
-        QCOMPARE(mediaInsertedSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeRemovedSpy.count(), 0);
-        QCOMPARE(mediaRemovedSpy.count(), 0);
-        QCOMPARE(mediaChangedSpy.count(), 0);
-    }
-    {
-        MockPlaylistObject mediaObject;
-        mediaObject.mockService->mockControl->setReadOnly(true);
-
-        QMediaPlaylist playlist;
-        QVERIFY(playlist.isEmpty());
-        // Add items to playlist before binding to the service internal control)
-        playlist.addMedia(content0);
-        playlist.addMedia(content1);
-        playlist.setCurrentIndex(-1);
-        playlist.setPlaybackMode(QMediaPlaylist::CurrentItemOnce);
-
-        QSignalSpy currentIndexSpy(&playlist, SIGNAL(currentIndexChanged(int)));
-        QSignalSpy playbackModeSpy(&playlist, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)));
-        QSignalSpy mediaAboutToBeInsertedSpy(&playlist, SIGNAL(mediaAboutToBeInserted(int, int)));
-        QSignalSpy mediaInsertedSpy(&playlist, SIGNAL(mediaInserted(int, int)));
-        QSignalSpy mediaAboutToBeRemovedSpy(&playlist, SIGNAL(mediaAboutToBeRemoved(int, int)));
-        QSignalSpy mediaRemovedSpy(&playlist, SIGNAL(mediaRemoved(int, int)));
-        QSignalSpy mediaChangedSpy(&playlist, SIGNAL(mediaChanged(int, int)));
-
-        // Bind playlist. Since the service's control is read-only, no synchronization
-        // should be done with the internal control. The mediaRemoved() and mediaInserted()
-        // should be emitted to notify about the change.
-        mediaObject.bind(&playlist);
-        QCOMPARE(playlist.mediaCount(), 3);
-        QCOMPARE(playlist.currentIndex(), -1);
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::CurrentItemOnce);
-        QCOMPARE(currentIndexSpy.count(), 0);
-        QCOMPARE(playbackModeSpy.count(), 0);
-
-        QCOMPARE(mediaAboutToBeRemovedSpy.count(), 1);
-        QCOMPARE(mediaAboutToBeRemovedSpy.last().at(0).toInt(), 0);
-        QCOMPARE(mediaAboutToBeRemovedSpy.last().at(1).toInt(), 1);
-        QCOMPARE(mediaRemovedSpy.count(), 1);
-        QCOMPARE(mediaRemovedSpy.last().at(0).toInt(), 0);
-        QCOMPARE(mediaRemovedSpy.last().at(1).toInt(), 1);
-
-        QCOMPARE(mediaAboutToBeInsertedSpy.count(), 1);
-        QCOMPARE(mediaAboutToBeInsertedSpy.last().at(0).toInt(), 0);
-        QCOMPARE(mediaAboutToBeInsertedSpy.last().at(1).toInt(), 2);
-        QCOMPARE(mediaInsertedSpy.count(), 1);
-        QCOMPARE(mediaInsertedSpy.last().at(0).toInt(), 0);
-        QCOMPARE(mediaInsertedSpy.last().at(1).toInt(), 2);
-
-        QCOMPARE(mediaChangedSpy.count(), 0);
-
-        currentIndexSpy.clear();
-        playbackModeSpy.clear();
-        mediaAboutToBeInsertedSpy.clear();
-        mediaInsertedSpy.clear();
-        mediaAboutToBeRemovedSpy.clear();
-        mediaRemovedSpy.clear();
-        mediaChangedSpy.clear();
-
-        // detach playlist from player
-        mediaObject.unbind(&playlist);
-        QCOMPARE(playlist.mediaCount(), 3);
-        QCOMPARE(playlist.currentIndex(), -1);
-        QCOMPARE(playlist.playbackMode(), QMediaPlaylist::CurrentItemOnce);
-        QCOMPARE(currentIndexSpy.count(), 0);
-        QCOMPARE(playbackModeSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeInsertedSpy.count(), 0);
-        QCOMPARE(mediaInsertedSpy.count(), 0);
-        QCOMPARE(mediaAboutToBeRemovedSpy.count(), 0);
-        QCOMPARE(mediaRemovedSpy.count(), 0);
-        QCOMPARE(mediaChangedSpy.count(), 0);
     }
 }
 
@@ -1108,6 +830,7 @@ void tst_QMediaPlaylist::testLoaded_signal()
     QVERIFY(spy.size()== 0);
 
     QBuffer buffer;
+    buffer.setData(QByteArray("foo.mp3"));
     buffer.open(QBuffer::ReadWrite);
 
     //load the playlist
@@ -1183,11 +906,6 @@ void tst_QMediaPlaylist::testPlaybackModeChanged_signal()
     playlist.setPlaybackMode(QMediaPlaylist::Loop);
     QVERIFY(playlist.playbackMode()== QMediaPlaylist::Loop);
     QVERIFY(spy.size() == 4);
-
-    // Set playback mode to the playlist
-    playlist.setPlaybackMode(QMediaPlaylist::Random);
-    QVERIFY(playlist.playbackMode()== QMediaPlaylist::Random);
-    QVERIFY(spy.size() == 5);
 }
 
 void tst_QMediaPlaylist::testEnums()
@@ -1208,22 +926,6 @@ void tst_QMediaPlaylist::testEnums()
 
     playlist.load(&buffer,"unsupported_format");
     QVERIFY(playlist.error() == QMediaPlaylist::FormatNotSupportedError);
-}
-
-// MaemoAPI-1849:test QMediaPlayListControl constructor
-void tst_QMediaPlaylist::mediaPlayListControl()
-{
-    // To check changes in abstract classe's pure virtual functions
-    QObject parent;
-    MockMediaPlaylistControl plylistctrl(false, &parent);
-}
-
-// MaemoAPI-1852:test constructor
-void tst_QMediaPlaylist::mediaPlayListProvider()
-{
-    // srcs of QMediaPlaylistProvider is incomplete
-    QObject parent;
-    MockReadOnlyPlaylistProvider provider(&parent);
 }
 
 QTEST_MAIN(tst_QMediaPlaylist)
