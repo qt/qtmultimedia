@@ -49,7 +49,7 @@
 //
 
 
-#include "qwindowsaudioinput.h"
+#include "qwindowsaudioinput_p.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/qtimer.h>
@@ -729,4 +729,4 @@ void InputPrivate::trigger()
 
 QT_END_NAMESPACE
 
-#include "moc_qwindowsaudioinput.cpp"
+#include "moc_qwindowsaudioinput_p.cpp"

@@ -53,8 +53,8 @@
 #include <QtCore/QDataStream>
 #include <QtCore/QIODevice>
 #include <mmsystem.h>
-#include "qwindowsaudiodeviceinfo.h"
-#include "qwindowsaudioutils.h"
+#include "qwindowsaudiodeviceinfo_p.h"
+#include "qwindowsaudioutils_p.h"
 
 #if defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
 struct IBaseFilter; // Needed for strmif.h from stock MinGW.

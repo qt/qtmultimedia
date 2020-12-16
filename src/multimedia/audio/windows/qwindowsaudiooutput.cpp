@@ -48,9 +48,9 @@
 // INTERNAL USE ONLY: Do NOT use for any other purpose.
 //
 
-#include "qwindowsaudiooutput.h"
-#include "qwindowsaudiodeviceinfo.h"
-#include "qwindowsaudioutils.h"
+#include "qwindowsaudiooutput_p.h"
+#include "qwindowsaudiodeviceinfo_p.h"
+#include "qwindowsaudioutils_p.h"
 #include <QtEndian>
 #include <QtCore/QDataStream>
 #include <QtCore/qtimer.h>
@@ -673,4 +673,4 @@ qint64 OutputPrivate::writeData(const char* data, qint64 len)
 
 QT_END_NAMESPACE
 
-#include "moc_qwindowsaudiooutput.cpp"
+#include "moc_qwindowsaudiooutput_p.cpp"

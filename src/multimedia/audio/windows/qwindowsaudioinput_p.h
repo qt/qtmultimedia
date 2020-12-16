@@ -51,7 +51,7 @@
 #ifndef QWINDOWSAUDIOINPUT_H
 #define QWINDOWSAUDIOINPUT_H
 
-#include "qwindowsaudioutils.h"
+#include "qwindowsaudioutils_p.h"
 
 #include <QtCore/qfile.h>
 #include <QtCore/qdebug.h>
@@ -63,7 +63,7 @@
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
-#include <QtMultimedia/qaudiosystem.h>
+#include <private/qaudiosystem_p.h>
 
 
 QT_BEGIN_NAMESPACE

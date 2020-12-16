@@ -37,73 +37,36 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-
-#ifndef QWINDOWSAUDIODEVICEINFO_H
-#define QWINDOWSAUDIODEVICEINFO_H
-
-#include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qdebug.h>
-
-#include <QtMultimedia/qaudiodeviceinfo.h>
-#include <QtMultimedia/qaudiosystem.h>
-
+#include "qwindowsaudiointerface_p.h"
+#include "qwindowsaudiodeviceinfo_p.h"
+#include "qwindowsaudioinput_p.h"
+#include "qwindowsaudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
 
-const unsigned int MAX_SAMPLE_RATES = 5;
-const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
-
-class QWindowsAudioDeviceInfo : public QAbstractAudioDeviceInfo
+QByteArray QWindowsAudioInterface::defaultDevice(QAudio::Mode mode) const
 {
-    Q_OBJECT
+    return QWindowsAudioDeviceInfo::defaultDevice(mode);
+}
 
-public:
-    QWindowsAudioDeviceInfo(QByteArray dev,QAudio::Mode mode);
-    ~QWindowsAudioDeviceInfo();
+QList<QByteArray> QWindowsAudioInterface::availableDevices(QAudio::Mode mode) const
+{
+    return QWindowsAudioDeviceInfo::availableDevices(mode);
+}
 
-    bool open();
-    void close();
+QAbstractAudioInput *QWindowsAudioInterface::createInput(const QByteArray &device)
+{
+    return new QWindowsAudioInput(device);
+}
 
-    bool testSettings(const QAudioFormat& format) const;
-    void updateLists();
-    QAudioFormat preferredFormat() const;
-    bool isFormatSupported(const QAudioFormat& format) const;
-    QString deviceName() const;
-    QStringList supportedCodecs();
-    QList<int> supportedSampleRates();
-    QList<int> supportedChannelCounts();
-    QList<int> supportedSampleSizes();
-    QList<QAudioFormat::Endian> supportedByteOrders();
-    QList<QAudioFormat::SampleType> supportedSampleTypes();
-    static QByteArray defaultDevice(QAudio::Mode mode);
-    static QList<QByteArray> availableDevices(QAudio::Mode);
+QAbstractAudioOutput *QWindowsAudioInterface::createOutput(const QByteArray &device)
+{
+    return new QWindowsAudioOutput(device);
+}
 
-private:
-    QAudio::Mode mode;
-    QString device;
-    quint32 devId;
-    QList<int> sampleRatez;
-    QList<int> channelz;
-    QList<int> sizez;
-    QList<QAudioFormat::SampleType> typez;
-};
-
-
+QAbstractAudioDeviceInfo *QWindowsAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+{
+    return new QWindowsAudioDeviceInfo(device, mode);
+}
 
 QT_END_NAMESPACE
-
-
-#endif // QWINDOWSAUDIODEVICEINFO_H

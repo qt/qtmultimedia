@@ -40,20 +40,24 @@
 #ifndef QWINDOWSAUDIOPLUGIN_H
 #define QWINDOWSAUDIOPLUGIN_H
 
-#include <QtMultimedia/qaudiosystemplugin.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsAudioPlugin : public QAudioSystemPlugin
+class QWindowsAudioInterface : public QAudioSystemInterface
 {
-    Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "windowsaudio.json")
-
 public:
-    QWindowsAudioPlugin(QObject *parent = 0);
-    ~QWindowsAudioPlugin() {}
-
     QByteArray defaultDevice(QAudio::Mode mode) const override;
     QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
     QAbstractAudioInput *createInput(const QByteArray &device) override;

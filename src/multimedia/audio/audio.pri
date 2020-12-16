@@ -46,9 +46,9 @@ qtConfig(pulseaudio) {
 
 #android:SUBDIRS += opensles
 #qnx:SUBDIRS += qnx-audio
-#win32:SUBDIRS += windowsaudio
 
-darwin:!watchos:SUBDIRS += include(coreaudio/coreaudio.pri)
+win32: include(windows/windows.pri)
+darwin:!watchos: include(coreaudio/coreaudio.pri)
 qtConfig(pulseaudio): include(pulseaudio/pulseaudio.pri)
 qtConfig(alsa): include(alsa/alsa.pri)
 

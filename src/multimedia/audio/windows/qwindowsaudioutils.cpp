@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qwindowsaudioutils.h"
+#include "qwindowsaudioutils_p.h"
 
 #ifndef SPEAKER_FRONT_LEFT
     #define SPEAKER_FRONT_LEFT            0x00000001

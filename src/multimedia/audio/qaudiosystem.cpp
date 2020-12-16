@@ -46,6 +46,8 @@
 #include <private/qalsainterface_p.h>
 #elif defined(Q_OS_DARWIN)
 #include <private/qcoreaudiointerface_p.h>
+#elif defined(Q_OS_WIN)
+#include <private/qwindowsaudiointerface_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -429,6 +431,8 @@ QAudioSystemInterface *QAudioSystemInterface::instance()
        system = new QAlsaInterface();
 #elif defined(Q_OS_DARWIN)
        system = new QCoreAudioInterface();
+#elif defined(Q_OS_WIN)
+       system = new QWindowsAudioInterface();
 #endif
     }
     return system;

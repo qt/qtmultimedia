@@ -51,7 +51,7 @@
 #ifndef QWINDOWSAUDIOOUTPUT_H
 #define QWINDOWSAUDIOOUTPUT_H
 
-#include "qwindowsaudioutils.h"
+#include "qwindowsaudioutils_p.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qelapsedtimer.h>
@@ -63,7 +63,7 @@
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
-#include <QtMultimedia/qaudiosystem.h>
+#include <private/qaudiosystem_p.h>
 
 // For compat with 4.6
 #if !defined(QT_WIN_CALLBACK)
