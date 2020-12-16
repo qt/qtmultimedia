@@ -39,7 +39,18 @@
 #ifndef IOSAUDIOOUTPUT_H
 #define IOSAUDIOOUTPUT_H
 
-#include <qaudiosystem.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <qaudiosystem_p.h>
 
 #if defined(Q_OS_OSX)
 # include <CoreAudio/CoreAudio.h>
@@ -53,18 +64,18 @@
 
 QT_BEGIN_NAMESPACE
 
-class CoreAudioOutputBuffer;
+class QCoreAudioOutputBuffer;
 class QTimer;
-class CoreAudioDeviceInfo;
+class QCoreAudioDeviceInfo;
 class CoreAudioRingBuffer;
 
-class CoreAudioOutputBuffer : public QObject
+class QCoreAudioOutputBuffer : public QObject
 {
     Q_OBJECT
 
 public:
-    CoreAudioOutputBuffer(int bufferSize, int maxPeriodSize, QAudioFormat const& audioFormat);
-    ~CoreAudioOutputBuffer();
+    QCoreAudioOutputBuffer(int bufferSize, int maxPeriodSize, QAudioFormat const& audioFormat);
+    ~QCoreAudioOutputBuffer();
 
     qint64 readFrames(char *data, qint64 maxFrames);
     qint64 writeBytes(const char *data, qint64 maxSize);
@@ -93,10 +104,10 @@ private:
     CoreAudioRingBuffer *m_buffer;
 };
 
-class CoreAudioOutputDevice : public QIODevice
+class QCoreAudioOutputDevice : public QIODevice
 {
 public:
-    CoreAudioOutputDevice(CoreAudioOutputBuffer *audioBuffer, QObject *parent);
+    QCoreAudioOutputDevice(QCoreAudioOutputBuffer *audioBuffer, QObject *parent);
 
     qint64 readData(char *data, qint64 len);
     qint64 writeData(const char *data, qint64 len);
@@ -104,17 +115,17 @@ public:
     bool isSequential() const { return true; }
 
 private:
-    CoreAudioOutputBuffer *m_audioBuffer;
+    QCoreAudioOutputBuffer *m_audioBuffer;
 };
 
 
-class CoreAudioOutput : public QAbstractAudioOutput
+class QCoreAudioOutput : public QAbstractAudioOutput
 {
     Q_OBJECT
 
 public:
-    CoreAudioOutput(const QByteArray &device);
-    ~CoreAudioOutput();
+    QCoreAudioOutput(const QByteArray &device);
+    ~QCoreAudioOutput();
 
     void start(QIODevice *device);
     QIODevice *start();
@@ -186,12 +197,12 @@ private:
     Float64 m_clockFrequency;
     UInt64 m_startTime;
     AudioStreamBasicDescription m_streamFormat;
-    CoreAudioOutputBuffer *m_audioBuffer;
+    QCoreAudioOutputBuffer *m_audioBuffer;
     QAtomicInt m_audioThreadState;
     QWaitCondition m_threadFinished;
     QMutex m_mutex;
     QTimer *m_intervalTimer;
-    CoreAudioDeviceInfo *m_audioDeviceInfo;
+    QCoreAudioDeviceInfo *m_audioDeviceInfo;
     qreal m_cachedVolume;
     qreal m_volume;
     bool m_pullMode;

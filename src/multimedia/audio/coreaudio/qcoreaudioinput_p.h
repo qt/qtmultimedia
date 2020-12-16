@@ -39,7 +39,18 @@
 #ifndef IOSAUDIOINPUT_H
 #define IOSAUDIOINPUT_H
 
-#include <qaudiosystem.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <qaudiosystem_p.h>
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
 #include <AudioToolbox/AudioToolbox.h>
@@ -52,18 +63,18 @@
 QT_BEGIN_NAMESPACE
 
 class CoreAudioRingBuffer;
-class CoreAudioPacketFeeder;
-class CoreAudioInputBuffer;
-class CoreAudioInputDevice;
+class QCoreAudioPacketFeeder;
+class QCoreAudioInputBuffer;
+class QCoreAudioInputDevice;
 
-class CoreAudioBufferList
+class QCoreAudioBufferList
 {
 public:
-    CoreAudioBufferList(AudioStreamBasicDescription const& streamFormat);
-    CoreAudioBufferList(AudioStreamBasicDescription const& streamFormat, char *buffer, int bufferSize);
-    CoreAudioBufferList(AudioStreamBasicDescription const& streamFormat, int framesToBuffer);
+    QCoreAudioBufferList(AudioStreamBasicDescription const& streamFormat);
+    QCoreAudioBufferList(AudioStreamBasicDescription const& streamFormat, char *buffer, int bufferSize);
+    QCoreAudioBufferList(AudioStreamBasicDescription const& streamFormat, int framesToBuffer);
 
-    ~CoreAudioBufferList();
+    ~QCoreAudioBufferList();
 
     AudioBufferList* audioBufferList() const { return m_bufferList; }
     char *data(int buffer = 0) const;
@@ -80,10 +91,10 @@ private:
     AudioBufferList *m_bufferList;
 };
 
-class CoreAudioPacketFeeder
+class QCoreAudioPacketFeeder
 {
 public:
-    CoreAudioPacketFeeder(CoreAudioBufferList *abl);
+    QCoreAudioPacketFeeder(QCoreAudioBufferList *abl);
 
     bool feed(AudioBufferList& dst, UInt32& packetCount);
     bool empty() const;
@@ -91,21 +102,21 @@ public:
 private:
     UInt32 m_totalPackets;
     UInt32 m_position;
-    CoreAudioBufferList *m_audioBufferList;
+    QCoreAudioBufferList *m_audioBufferList;
 };
 
-class CoreAudioInputBuffer : public QObject
+class QCoreAudioInputBuffer : public QObject
 {
     Q_OBJECT
 
 public:
-    CoreAudioInputBuffer(int bufferSize,
+    QCoreAudioInputBuffer(int bufferSize,
                         int maxPeriodSize,
                         AudioStreamBasicDescription const& inputFormat,
                         AudioStreamBasicDescription const& outputFormat,
                         QObject *parent);
 
-    ~CoreAudioInputBuffer();
+    ~QCoreAudioInputBuffer();
 
     qreal volume() const;
     void setVolume(qreal v);
@@ -141,7 +152,7 @@ private:
     QIODevice *m_device;
     QTimer *m_flushTimer;
     CoreAudioRingBuffer *m_buffer;
-    CoreAudioBufferList *m_inputBufferList;
+    QCoreAudioBufferList *m_inputBufferList;
     AudioConverterRef m_audioConverter;
     AudioStreamBasicDescription m_inputFormat;
     AudioStreamBasicDescription m_outputFormat;
@@ -158,12 +169,12 @@ private:
                                 void *inUserData);
 };
 
-class CoreAudioInputDevice : public QIODevice
+class QCoreAudioInputDevice : public QIODevice
 {
     Q_OBJECT
 
 public:
-    CoreAudioInputDevice(CoreAudioInputBuffer *audioBuffer, QObject *parent);
+    QCoreAudioInputDevice(QCoreAudioInputBuffer *audioBuffer, QObject *parent);
 
     qint64 readData(char *data, qint64 len);
     qint64 writeData(const char *data, qint64 len);
@@ -171,7 +182,7 @@ public:
     bool isSequential() const { return true; }
 
 private:
-    CoreAudioInputBuffer *m_audioBuffer;
+    QCoreAudioInputBuffer *m_audioBuffer;
 };
 
 class CoreAudioInput : public QAbstractAudioInput
@@ -250,7 +261,7 @@ private:
     UInt64 m_startTime;
     QAudio::Error m_errorCode;
     QAudio::State m_stateCode;
-    CoreAudioInputBuffer *m_audioBuffer;
+    QCoreAudioInputBuffer *m_audioBuffer;
     QMutex m_mutex;
     QWaitCondition m_threadFinished;
     QAtomicInt m_audioThreadState;

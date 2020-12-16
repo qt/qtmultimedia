@@ -69,7 +69,6 @@
 #include "avfmediarecordercontrol_ios.h"
 #endif
 
-#include <private/qmediaplaylistnavigator_p.h>
 #include <qmediaplaylist.h>
 
 QT_USE_NAMESPACE

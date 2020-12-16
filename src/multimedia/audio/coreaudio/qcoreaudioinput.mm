@@ -36,10 +36,10 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "coreaudioinput.h"
-#include "coreaudiosessionmanager.h"
-#include "coreaudiodeviceinfo.h"
-#include "coreaudioutils.h"
+#include "qcoreaudioinput_p.h"
+#include "qcoreaudiosessionmanager_p.h"
+#include "qcoreaudiodeviceinfo_p.h"
+#include "qcoreaudioutils_p.h"
 
 #if defined(Q_OS_OSX)
 # include <AudioUnit/AudioComponent.h>
@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
 
 static const int DEFAULT_BUFFER_SIZE = 4 * 1024;
 
-CoreAudioBufferList::CoreAudioBufferList(const AudioStreamBasicDescription &streamFormat)
+QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat)
     : m_owner(false)
     , m_streamDescription(streamFormat)
 {
@@ -77,7 +77,7 @@ CoreAudioBufferList::CoreAudioBufferList(const AudioStreamBasicDescription &stre
     }
 }
 
-CoreAudioBufferList::CoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, char *buffer, int bufferSize)
+QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, char *buffer, int bufferSize)
     : m_owner(false)
     , m_streamDescription(streamFormat)
     , m_bufferList(0)
@@ -92,7 +92,7 @@ CoreAudioBufferList::CoreAudioBufferList(const AudioStreamBasicDescription &stre
     m_bufferList->mBuffers[0].mData = buffer;
 }
 
-CoreAudioBufferList::CoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, int framesToBuffer)
+QCoreAudioBufferList::QCoreAudioBufferList(const AudioStreamBasicDescription &streamFormat, int framesToBuffer)
     : m_owner(true)
     , m_streamDescription(streamFormat)
     , m_bufferList(0)
@@ -112,7 +112,7 @@ CoreAudioBufferList::CoreAudioBufferList(const AudioStreamBasicDescription &stre
     }
 }
 
-CoreAudioBufferList::~CoreAudioBufferList()
+QCoreAudioBufferList::~QCoreAudioBufferList()
 {
     if (m_owner) {
         for (UInt32 i = 0; i < m_bufferList->mNumberBuffers; ++i)
@@ -122,32 +122,32 @@ CoreAudioBufferList::~CoreAudioBufferList()
     free(m_bufferList);
 }
 
-char *CoreAudioBufferList::data(int buffer) const
+char *QCoreAudioBufferList::data(int buffer) const
 {
     return static_cast<char*>(m_bufferList->mBuffers[buffer].mData);
 }
 
-qint64 CoreAudioBufferList::bufferSize(int buffer) const
+qint64 QCoreAudioBufferList::bufferSize(int buffer) const
 {
     return m_bufferList->mBuffers[buffer].mDataByteSize;
 }
 
-int CoreAudioBufferList::frameCount(int buffer) const
+int QCoreAudioBufferList::frameCount(int buffer) const
 {
     return m_bufferList->mBuffers[buffer].mDataByteSize / m_streamDescription.mBytesPerFrame;
 }
 
-int CoreAudioBufferList::packetCount(int buffer) const
+int QCoreAudioBufferList::packetCount(int buffer) const
 {
     return m_bufferList->mBuffers[buffer].mDataByteSize / m_streamDescription.mBytesPerPacket;
 }
 
-int CoreAudioBufferList::packetSize() const
+int QCoreAudioBufferList::packetSize() const
 {
     return m_streamDescription.mBytesPerPacket;
 }
 
-void CoreAudioBufferList::reset()
+void QCoreAudioBufferList::reset()
 {
     for (UInt32 i = 0; i < m_bufferList->mNumberBuffers; ++i) {
         m_bufferList->mBuffers[i].mDataByteSize = m_dataSize;
@@ -155,14 +155,14 @@ void CoreAudioBufferList::reset()
     }
 }
 
-CoreAudioPacketFeeder::CoreAudioPacketFeeder(CoreAudioBufferList *abl)
+QCoreAudioPacketFeeder::QCoreAudioPacketFeeder(QCoreAudioBufferList *abl)
     : m_audioBufferList(abl)
 {
     m_totalPackets = m_audioBufferList->packetCount();
     m_position = 0;
 }
 
-bool CoreAudioPacketFeeder::feed(AudioBufferList &dst, UInt32 &packetCount)
+bool QCoreAudioPacketFeeder::feed(AudioBufferList &dst, UInt32 &packetCount)
 {
     if (m_position == m_totalPackets) {
         dst.mBuffers[0].mDataByteSize = 0;
@@ -181,12 +181,12 @@ bool CoreAudioPacketFeeder::feed(AudioBufferList &dst, UInt32 &packetCount)
     return true;
 }
 
-bool CoreAudioPacketFeeder::empty() const
+bool QCoreAudioPacketFeeder::empty() const
 {
     return m_position == m_totalPackets;
 }
 
-CoreAudioInputBuffer::CoreAudioInputBuffer(int bufferSize, int maxPeriodSize, const AudioStreamBasicDescription &inputFormat, const AudioStreamBasicDescription &outputFormat, QObject *parent)
+QCoreAudioInputBuffer::QCoreAudioInputBuffer(int bufferSize, int maxPeriodSize, const AudioStreamBasicDescription &inputFormat, const AudioStreamBasicDescription &outputFormat, QObject *parent)
     : QObject(parent)
     , m_deviceError(false)
     , m_device(0)
@@ -200,7 +200,7 @@ CoreAudioInputBuffer::CoreAudioInputBuffer(int bufferSize, int maxPeriodSize, co
 
     m_buffer = new CoreAudioRingBuffer(bufferSize);
 
-    m_inputBufferList = new CoreAudioBufferList(m_inputFormat);
+    m_inputBufferList = new QCoreAudioBufferList(m_inputFormat);
 
     m_flushTimer = new QTimer(this);
     connect(m_flushTimer, SIGNAL(timeout()), SLOT(flushBuffer()));
@@ -215,22 +215,22 @@ CoreAudioInputBuffer::CoreAudioInputBuffer(int bufferSize, int maxPeriodSize, co
     m_qFormat = CoreAudioUtils::toQAudioFormat(inputFormat); // we adjust volume before conversion
 }
 
-CoreAudioInputBuffer::~CoreAudioInputBuffer()
+QCoreAudioInputBuffer::~QCoreAudioInputBuffer()
 {
     delete m_buffer;
 }
 
-qreal CoreAudioInputBuffer::volume() const
+qreal QCoreAudioInputBuffer::volume() const
 {
     return m_volume;
 }
 
-void CoreAudioInputBuffer::setVolume(qreal v)
+void QCoreAudioInputBuffer::setVolume(qreal v)
 {
     m_volume = v;
 }
 
-qint64 CoreAudioInputBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames)
+qint64 QCoreAudioInputBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames)
 {
     const bool  pullMode = m_device == 0;
 
@@ -255,7 +255,7 @@ qint64 CoreAudioInputBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnitRend
     }
 
     if (m_audioConverter != 0) {
-        CoreAudioPacketFeeder  feeder(m_inputBufferList);
+        QCoreAudioPacketFeeder  feeder(m_inputBufferList);
 
         int     copied = 0;
         const int available = m_buffer->free();
@@ -314,7 +314,7 @@ qint64 CoreAudioInputBuffer::renderFromDevice(AudioUnit audioUnit, AudioUnitRend
     return framesRendered;
 }
 
-qint64 CoreAudioInputBuffer::readBytes(char *data, qint64 len)
+qint64 QCoreAudioInputBuffer::readBytes(char *data, qint64 len)
 {
     bool    wecan = true;
     qint64  bytesCopied = 0;
@@ -336,13 +336,13 @@ qint64 CoreAudioInputBuffer::readBytes(char *data, qint64 len)
     return bytesCopied;
 }
 
-void CoreAudioInputBuffer::setFlushDevice(QIODevice *device)
+void QCoreAudioInputBuffer::setFlushDevice(QIODevice *device)
 {
     if (m_device != device)
         m_device = device;
 }
 
-void CoreAudioInputBuffer::startFlushTimer()
+void QCoreAudioInputBuffer::startFlushTimer()
 {
     if (m_device != 0) {
         // We use the period time for the timer, since that's
@@ -351,12 +351,12 @@ void CoreAudioInputBuffer::startFlushTimer()
     }
 }
 
-void CoreAudioInputBuffer::stopFlushTimer()
+void QCoreAudioInputBuffer::stopFlushTimer()
 {
     m_flushTimer->stop();
 }
 
-void CoreAudioInputBuffer::flush(bool all)
+void QCoreAudioInputBuffer::flush(bool all)
 {
     if (m_device == 0)
         return;
@@ -391,33 +391,33 @@ void CoreAudioInputBuffer::flush(bool all)
     }
 }
 
-void CoreAudioInputBuffer::reset()
+void QCoreAudioInputBuffer::reset()
 {
     m_buffer->reset();
     m_deviceError = false;
 }
 
-int CoreAudioInputBuffer::available() const
+int QCoreAudioInputBuffer::available() const
 {
     return m_buffer->free();
 }
 
-int CoreAudioInputBuffer::used() const
+int QCoreAudioInputBuffer::used() const
 {
     return m_buffer->used();
 }
 
-void CoreAudioInputBuffer::flushBuffer()
+void QCoreAudioInputBuffer::flushBuffer()
 {
     flush();
 }
 
-OSStatus CoreAudioInputBuffer::converterCallback(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData)
+OSStatus QCoreAudioInputBuffer::converterCallback(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription **outDataPacketDescription, void *inUserData)
 {
     Q_UNUSED(inAudioConverter);
     Q_UNUSED(outDataPacketDescription);
 
-    CoreAudioPacketFeeder* feeder = static_cast<CoreAudioPacketFeeder*>(inUserData);
+    QCoreAudioPacketFeeder* feeder = static_cast<QCoreAudioPacketFeeder*>(inUserData);
 
     if (!feeder->feed(*ioData, *ioNumberDataPackets))
         return as_empty;
@@ -425,7 +425,7 @@ OSStatus CoreAudioInputBuffer::converterCallback(AudioConverterRef inAudioConver
     return noErr;
 }
 
-CoreAudioInputDevice::CoreAudioInputDevice(CoreAudioInputBuffer *audioBuffer, QObject *parent)
+QCoreAudioInputDevice::QCoreAudioInputDevice(QCoreAudioInputBuffer *audioBuffer, QObject *parent)
     : QIODevice(parent)
     , m_audioBuffer(audioBuffer)
 {
@@ -433,12 +433,12 @@ CoreAudioInputDevice::CoreAudioInputDevice(CoreAudioInputBuffer *audioBuffer, QO
     connect(m_audioBuffer, SIGNAL(readyRead()), SIGNAL(readyRead()));
 }
 
-qint64 CoreAudioInputDevice::readData(char *data, qint64 len)
+qint64 QCoreAudioInputDevice::readData(char *data, qint64 len)
 {
     return m_audioBuffer->readBytes(data, len);
 }
 
-qint64 CoreAudioInputDevice::writeData(const char *data, qint64 len)
+qint64 QCoreAudioInputDevice::writeData(const char *data, qint64 len)
 {
     Q_UNUSED(data);
     Q_UNUSED(len);
@@ -467,7 +467,7 @@ CoreAudioInput::CoreAudioInput(const QByteArray &device)
     m_device = device;
 #endif
 
-    m_audioDeviceInfo = new CoreAudioDeviceInfo(device, QAudio::AudioInput);
+    m_audioDeviceInfo = new QCoreAudioDeviceInfo(device, QAudio::AudioInput);
 
     m_intervalTimer = new QTimer(this);
     m_intervalTimer->setInterval(1000);
@@ -656,14 +656,14 @@ bool CoreAudioInput::open()
     // Now allocate a few buffers to be safe.
     m_periodSizeBytes = m_internalBufferSize = numberOfFrames * m_streamFormat.mBytesPerFrame;
 
-    m_audioBuffer = new CoreAudioInputBuffer(m_internalBufferSize * 4,
+    m_audioBuffer = new QCoreAudioInputBuffer(m_internalBufferSize * 4,
                                         m_periodSizeBytes,
                                         m_deviceFormat,
                                         m_streamFormat,
                                         this);
 
     m_audioBuffer->setVolume(m_volume);
-    m_audioIO = new CoreAudioInputDevice(m_audioBuffer, this);
+    m_audioIO = new QCoreAudioInputDevice(m_audioBuffer, this);
 
     // Init
     if (AudioUnitInitialize(m_audioUnit) != noErr) {
@@ -1002,4 +1002,4 @@ OSStatus CoreAudioInput::inputCallback(void *inRefCon, AudioUnitRenderActionFlag
 
 QT_END_NAMESPACE
 
-#include "moc_coreaudioinput.cpp"
+#include "moc_qcoreaudioinput_p.cpp"

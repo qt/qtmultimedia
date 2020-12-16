@@ -44,6 +44,8 @@
 #include <private/qaudiointerface_pulse_p.h>
 #elif QT_CONFIG(alsa)
 #include <private/qalsainterface_p.h>
+#elif defined(Q_OS_DARWIN)
+#include <private/qcoreaudiointerface_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -424,7 +426,9 @@ QAudioSystemInterface *QAudioSystemInterface::instance()
 #if QT_CONFIG(pulseaudio)
        system = new QPulseAudioInterface();
 #elif QT_CONFIG(alsa)
-        system = new QAlsaInterface();
+       system = new QAlsaInterface();
+#elif defined(Q_OS_DARWIN)
+       system = new QCoreAudioInterface();
 #endif
     }
     return system;

@@ -3,7 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the plugins of the Qt Toolkit.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -36,58 +36,58 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef IOSAUDIODEVICEINFO_H
+#define IOSAUDIODEVICEINFO_H
 
-#ifndef IOSAUDIOUTILS_H
-#define IOSAUDIOUTILS_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <CoreAudio/CoreAudioTypes.h>
+#include <qaudiosystem_p.h>
 
-#include <QtMultimedia/QAudioFormat>
-#include <QtCore/qglobal.h>
+#if defined(Q_OS_OSX)
+# include <CoreAudio/CoreAudio.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
-class CoreAudioUtils
+class QCoreAudioDeviceInfo : public QAbstractAudioDeviceInfo
 {
+    Q_OBJECT
+
 public:
-    static quint64 currentTime();
-    static double frequency();
-    static QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
-    static AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
+    QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+    ~QCoreAudioDeviceInfo() {}
+
+    QAudioFormat preferredFormat() const;
+    bool isFormatSupported(const QAudioFormat &format) const;
+    QString deviceName() const;
+    QStringList supportedCodecs();
+    QList<int> supportedSampleRates();
+    QList<int> supportedChannelCounts();
+    QList<int> supportedSampleSizes();
+    QList<QAudioFormat::Endian> supportedByteOrders();
+    QList<QAudioFormat::SampleType> supportedSampleTypes();
+
+    static QByteArray defaultDevice(QAudio::Mode mode);
+    static QList<QByteArray> availableDevices(QAudio::Mode mode);
 
 private:
-    static void initialize();
-    static double sFrequency;
-    static bool sIsInitialized;
-};
+#if defined(Q_OS_OSX)
+    AudioDeviceID m_deviceId;
+#endif
 
-class CoreAudioRingBuffer
-{
-public:
-    typedef QPair<char*, int> Region;
-
-    CoreAudioRingBuffer(int bufferSize);
-    ~CoreAudioRingBuffer();
-
-    Region acquireReadRegion(int size);
-    void releaseReadRegion(Region const& region);
-    Region acquireWriteRegion(int size);
-    void releaseWriteRegion(Region const& region);
-
-    int used() const;
-    int free() const;
-    int size() const;
-
-    void reset();
-
-private:
-    int     m_bufferSize;
-    int     m_readPos;
-    int     m_writePos;
-    char*   m_buffer;
-    QAtomicInt  m_bufferUsed;
+    QString m_device;
+    QAudio::Mode m_mode;
 };
 
 QT_END_NAMESPACE
 
-#endif // IOSAUDIOUTILS_H
+#endif

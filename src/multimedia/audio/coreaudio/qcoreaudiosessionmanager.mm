@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "coreaudiosessionmanager.h"
+#include "qcoreaudiosessionmanager_p.h"
 #import <AVFoundation/AVAudioSession.h>
 #import <Foundation/Foundation.h>
 

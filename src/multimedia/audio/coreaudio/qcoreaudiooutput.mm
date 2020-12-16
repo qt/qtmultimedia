@@ -36,10 +36,10 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "coreaudiooutput.h"
-#include "coreaudiosessionmanager.h"
-#include "coreaudiodeviceinfo.h"
-#include "coreaudioutils.h"
+#include "qcoreaudiooutput_p.h"
+#include "qcoreaudiosessionmanager_p.h"
+#include "qcoreaudiodeviceinfo_p.h"
+#include "qcoreaudioutils_p.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/QTimer>
@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 
 static const int DEFAULT_BUFFER_SIZE = 8 * 1024;
 
-CoreAudioOutputBuffer::CoreAudioOutputBuffer(int bufferSize, int maxPeriodSize, const QAudioFormat &audioFormat)
+QCoreAudioOutputBuffer::QCoreAudioOutputBuffer(int bufferSize, int maxPeriodSize, const QAudioFormat &audioFormat)
     : m_deviceError(false)
     , m_maxPeriodSize(maxPeriodSize)
     , m_device(0)
@@ -72,12 +72,12 @@ CoreAudioOutputBuffer::CoreAudioOutputBuffer(int bufferSize, int maxPeriodSize, 
     connect(m_fillTimer, SIGNAL(timeout()), SLOT(fillBuffer()));
 }
 
-CoreAudioOutputBuffer::~CoreAudioOutputBuffer()
+QCoreAudioOutputBuffer::~QCoreAudioOutputBuffer()
 {
     delete m_buffer;
 }
 
-qint64 CoreAudioOutputBuffer::readFrames(char *data, qint64 maxFrames)
+qint64 QCoreAudioOutputBuffer::readFrames(char *data, qint64 maxFrames)
 {
     bool    wecan = true;
     qint64  framesRead = 0;
@@ -107,7 +107,7 @@ qint64 CoreAudioOutputBuffer::readFrames(char *data, qint64 maxFrames)
     return framesRead;
 }
 
-qint64 CoreAudioOutputBuffer::writeBytes(const char *data, qint64 maxSize)
+qint64 QCoreAudioOutputBuffer::writeBytes(const char *data, qint64 maxSize)
 {
     bool    wecan = true;
     qint64  bytesWritten = 0;
@@ -132,19 +132,19 @@ qint64 CoreAudioOutputBuffer::writeBytes(const char *data, qint64 maxSize)
     return bytesWritten;
 }
 
-int CoreAudioOutputBuffer::available() const
+int QCoreAudioOutputBuffer::available() const
 {
     return m_buffer->free();
 }
 
-void CoreAudioOutputBuffer::reset()
+void QCoreAudioOutputBuffer::reset()
 {
     m_buffer->reset();
     m_device = 0;
     m_deviceError = false;
 }
 
-void CoreAudioOutputBuffer::setPrefetchDevice(QIODevice *device)
+void QCoreAudioOutputBuffer::setPrefetchDevice(QIODevice *device)
 {
     if (m_device != device) {
         m_device = device;
@@ -153,18 +153,18 @@ void CoreAudioOutputBuffer::setPrefetchDevice(QIODevice *device)
     }
 }
 
-void CoreAudioOutputBuffer::startFillTimer()
+void QCoreAudioOutputBuffer::startFillTimer()
 {
     if (m_device != 0)
         m_fillTimer->start(m_buffer->size() / 2 / m_maxPeriodSize * m_periodTime);
 }
 
-void CoreAudioOutputBuffer::stopFillTimer()
+void QCoreAudioOutputBuffer::stopFillTimer()
 {
     m_fillTimer->stop();
 }
 
-void CoreAudioOutputBuffer::fillBuffer()
+void QCoreAudioOutputBuffer::fillBuffer()
 {
     const int free = m_buffer->free();
     const int writeSize = free - (free % m_maxPeriodSize);
@@ -199,14 +199,14 @@ void CoreAudioOutputBuffer::fillBuffer()
     }
 }
 
-CoreAudioOutputDevice::CoreAudioOutputDevice(CoreAudioOutputBuffer *audioBuffer, QObject *parent)
+QCoreAudioOutputDevice::QCoreAudioOutputDevice(QCoreAudioOutputBuffer *audioBuffer, QObject *parent)
     : QIODevice(parent)
     , m_audioBuffer(audioBuffer)
 {
     open(QIODevice::WriteOnly | QIODevice::Unbuffered);
 }
 
-qint64 CoreAudioOutputDevice::readData(char *data, qint64 len)
+qint64 QCoreAudioOutputDevice::readData(char *data, qint64 len)
 {
     Q_UNUSED(data);
     Q_UNUSED(len);
@@ -214,12 +214,12 @@ qint64 CoreAudioOutputDevice::readData(char *data, qint64 len)
     return 0;
 }
 
-qint64 CoreAudioOutputDevice::writeData(const char *data, qint64 len)
+qint64 QCoreAudioOutputDevice::writeData(const char *data, qint64 len)
 {
     return m_audioBuffer->writeBytes(data, len);
 }
 
-CoreAudioOutput::CoreAudioOutput(const QByteArray &device)
+QCoreAudioOutput::QCoreAudioOutput(const QByteArray &device)
     : m_isOpen(false)
     , m_internalBufferSize(DEFAULT_BUFFER_SIZE)
     , m_totalFrames(0)
@@ -243,7 +243,7 @@ CoreAudioOutput::CoreAudioOutput(const QByteArray &device)
 #endif
 
     m_clockFrequency = CoreAudioUtils::frequency() / 1000;
-    m_audioDeviceInfo = new CoreAudioDeviceInfo(device, QAudio::AudioOutput);
+    m_audioDeviceInfo = new QCoreAudioDeviceInfo(device, QAudio::AudioOutput);
     m_audioThreadState.storeRelaxed(Stopped);
 
     m_intervalTimer = new QTimer(this);
@@ -251,13 +251,13 @@ CoreAudioOutput::CoreAudioOutput(const QByteArray &device)
     connect(m_intervalTimer, SIGNAL(timeout()), this, SIGNAL(notify()));
 }
 
-CoreAudioOutput::~CoreAudioOutput()
+QCoreAudioOutput::~QCoreAudioOutput()
 {
     close();
     delete m_audioDeviceInfo;
 }
 
-void CoreAudioOutput::start(QIODevice *device)
+void QCoreAudioOutput::start(QIODevice *device)
 {
     QIODevice* op = device;
 
@@ -290,7 +290,7 @@ void CoreAudioOutput::start(QIODevice *device)
     emit stateChanged(m_stateCode);
 }
 
-QIODevice *CoreAudioOutput::start()
+QIODevice *QCoreAudioOutput::start()
 {
     if (!m_audioDeviceInfo->isFormatSupported(m_audioFormat) || !open()) {
         m_stateCode = QAudio::StoppedState;
@@ -315,7 +315,7 @@ QIODevice *CoreAudioOutput::start()
     return m_audioIO;
 }
 
-void CoreAudioOutput::stop()
+void QCoreAudioOutput::stop()
 {
     QMutexLocker lock(&m_mutex);
     if (m_stateCode != QAudio::StoppedState) {
@@ -327,7 +327,7 @@ void CoreAudioOutput::stop()
     }
 }
 
-void CoreAudioOutput::reset()
+void QCoreAudioOutput::reset()
 {
     QMutexLocker lock(&m_mutex);
     if (m_stateCode != QAudio::StoppedState) {
@@ -339,7 +339,7 @@ void CoreAudioOutput::reset()
     }
 }
 
-void CoreAudioOutput::suspend()
+void QCoreAudioOutput::suspend()
 {
     QMutexLocker lock(&m_mutex);
     if (m_stateCode == QAudio::ActiveState || m_stateCode == QAudio::IdleState) {
@@ -351,7 +351,7 @@ void CoreAudioOutput::suspend()
     }
 }
 
-void CoreAudioOutput::resume()
+void QCoreAudioOutput::resume()
 {
     QMutexLocker lock(&m_mutex);
     if (m_stateCode == QAudio::SuspendedState) {
@@ -363,28 +363,28 @@ void CoreAudioOutput::resume()
     }
 }
 
-int CoreAudioOutput::bytesFree() const
+int QCoreAudioOutput::bytesFree() const
 {
     return m_audioBuffer->available();
 }
 
-int CoreAudioOutput::periodSize() const
+int QCoreAudioOutput::periodSize() const
 {
     return m_periodSizeBytes;
 }
 
-void CoreAudioOutput::setBufferSize(int value)
+void QCoreAudioOutput::setBufferSize(int value)
 {
     if (m_stateCode == QAudio::StoppedState)
         m_internalBufferSize = value;
 }
 
-int CoreAudioOutput::bufferSize() const
+int QCoreAudioOutput::bufferSize() const
 {
     return m_internalBufferSize;
 }
 
-void CoreAudioOutput::setNotifyInterval(int milliSeconds)
+void QCoreAudioOutput::setNotifyInterval(int milliSeconds)
 {
     if (m_intervalTimer->interval() == milliSeconds)
         return;
@@ -395,17 +395,17 @@ void CoreAudioOutput::setNotifyInterval(int milliSeconds)
     m_intervalTimer->setInterval(milliSeconds);
 }
 
-int CoreAudioOutput::notifyInterval() const
+int QCoreAudioOutput::notifyInterval() const
 {
     return m_intervalTimer->interval();
 }
 
-qint64 CoreAudioOutput::processedUSecs() const
+qint64 QCoreAudioOutput::processedUSecs() const
 {
     return m_totalFrames * 1000000 / m_audioFormat.sampleRate();
 }
 
-qint64 CoreAudioOutput::elapsedUSecs() const
+qint64 QCoreAudioOutput::elapsedUSecs() const
 {
     if (m_stateCode == QAudio::StoppedState)
         return 0;
@@ -413,28 +413,28 @@ qint64 CoreAudioOutput::elapsedUSecs() const
     return (CoreAudioUtils::currentTime() - m_startTime) / (m_clockFrequency / 1000);
 }
 
-QAudio::Error CoreAudioOutput::error() const
+QAudio::Error QCoreAudioOutput::error() const
 {
     return m_errorCode;
 }
 
-QAudio::State CoreAudioOutput::state() const
+QAudio::State QCoreAudioOutput::state() const
 {
     return m_stateCode;
 }
 
-void CoreAudioOutput::setFormat(const QAudioFormat &format)
+void QCoreAudioOutput::setFormat(const QAudioFormat &format)
 {
     if (m_stateCode == QAudio::StoppedState)
         m_audioFormat = format;
 }
 
-QAudioFormat CoreAudioOutput::format() const
+QAudioFormat QCoreAudioOutput::format() const
 {
     return m_audioFormat;
 }
 
-void CoreAudioOutput::setVolume(qreal volume)
+void QCoreAudioOutput::setVolume(qreal volume)
 {
     m_cachedVolume = qBound(qreal(0.0), volume, qreal(1.0));
     if (!m_isOpen)
@@ -452,28 +452,28 @@ void CoreAudioOutput::setVolume(qreal volume)
 #endif
 }
 
-qreal CoreAudioOutput::volume() const
+qreal QCoreAudioOutput::volume() const
 {
     return m_cachedVolume;
 }
 
-void CoreAudioOutput::setCategory(const QString &category)
+void QCoreAudioOutput::setCategory(const QString &category)
 {
     Q_UNUSED(category);
 }
 
-QString CoreAudioOutput::category() const
+QString QCoreAudioOutput::category() const
 {
     return QString();
 }
 
-void CoreAudioOutput::deviceStopped()
+void QCoreAudioOutput::deviceStopped()
 {
     m_intervalTimer->stop();
     emit stateChanged(m_stateCode);
 }
 
-void CoreAudioOutput::inputReady()
+void QCoreAudioOutput::inputReady()
 {
     QMutexLocker lock(&m_mutex);
     if (m_stateCode == QAudio::IdleState) {
@@ -486,14 +486,14 @@ void CoreAudioOutput::inputReady()
     }
 }
 
-OSStatus CoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
+OSStatus QCoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
 {
     Q_UNUSED(ioActionFlags);
     Q_UNUSED(inTimeStamp);
     Q_UNUSED(inBusNumber);
     Q_UNUSED(inNumberFrames);
 
-    CoreAudioOutput* d = static_cast<CoreAudioOutput*>(inRefCon);
+    QCoreAudioOutput* d = static_cast<QCoreAudioOutput*>(inRefCon);
 
     const int threadState = d->m_audioThreadState.fetchAndAddAcquire(0);
     if (threadState == Stopped) {
@@ -547,7 +547,7 @@ OSStatus CoreAudioOutput::renderCallback(void *inRefCon, AudioUnitRenderActionFl
     return noErr;
 }
 
-bool CoreAudioOutput::open()
+bool QCoreAudioOutput::open()
 {
 #if defined(Q_OS_IOS)
     // Set default category to Ambient (implies MixWithOthers). This makes sure audio stops playing
@@ -653,10 +653,10 @@ bool CoreAudioOutput::open()
     else
         m_internalBufferSize -= m_internalBufferSize % m_streamFormat.mBytesPerFrame;
 
-    m_audioBuffer = new CoreAudioOutputBuffer(m_internalBufferSize, m_periodSizeBytes, m_audioFormat);
+    m_audioBuffer = new QCoreAudioOutputBuffer(m_internalBufferSize, m_periodSizeBytes, m_audioFormat);
     connect(m_audioBuffer, SIGNAL(readyRead()), SLOT(inputReady())); //Pull
 
-    m_audioIO = new CoreAudioOutputDevice(m_audioBuffer, this);
+    m_audioIO = new QCoreAudioOutputDevice(m_audioBuffer, this);
 
     //Init
     if (AudioUnitInitialize(m_audioUnit)) {
@@ -671,7 +671,7 @@ bool CoreAudioOutput::open()
     return true;
 }
 
-void CoreAudioOutput::close()
+void QCoreAudioOutput::close()
 {
     if (m_audioUnit != 0) {
         AudioOutputUnitStop(m_audioUnit);
@@ -682,35 +682,35 @@ void CoreAudioOutput::close()
     delete m_audioBuffer;
 }
 
-void CoreAudioOutput::audioThreadStart()
+void QCoreAudioOutput::audioThreadStart()
 {
     startTimers();
     m_audioThreadState.storeRelaxed(Running);
     AudioOutputUnitStart(m_audioUnit);
 }
 
-void CoreAudioOutput::audioThreadStop()
+void QCoreAudioOutput::audioThreadStop()
 {
     stopTimers();
     if (m_audioThreadState.testAndSetAcquire(Running, Stopped))
         m_threadFinished.wait(&m_mutex, 500);
 }
 
-void CoreAudioOutput::audioThreadDrain()
+void QCoreAudioOutput::audioThreadDrain()
 {
     stopTimers();
     if (m_audioThreadState.testAndSetAcquire(Running, Draining))
         m_threadFinished.wait(&m_mutex, 500);
 }
 
-void CoreAudioOutput::audioDeviceStop()
+void QCoreAudioOutput::audioDeviceStop()
 {
     AudioOutputUnitStop(m_audioUnit);
     m_audioThreadState.storeRelaxed(Stopped);
     m_threadFinished.wakeOne();
 }
 
-void CoreAudioOutput::audioDeviceIdle()
+void QCoreAudioOutput::audioDeviceIdle()
 {
     if (m_stateCode == QAudio::ActiveState) {
         QMutexLocker lock(&m_mutex);
@@ -722,7 +722,7 @@ void CoreAudioOutput::audioDeviceIdle()
     }
 }
 
-void CoreAudioOutput::audioDeviceError()
+void QCoreAudioOutput::audioDeviceError()
 {
     if (m_stateCode == QAudio::ActiveState) {
         QMutexLocker lock(&m_mutex);
@@ -734,14 +734,14 @@ void CoreAudioOutput::audioDeviceError()
     }
 }
 
-void CoreAudioOutput::startTimers()
+void QCoreAudioOutput::startTimers()
 {
     m_audioBuffer->startFillTimer();
     if (m_intervalTimer->interval() > 0)
         m_intervalTimer->start();
 }
 
-void CoreAudioOutput::stopTimers()
+void QCoreAudioOutput::stopTimers()
 {
     m_audioBuffer->stopFillTimer();
     m_intervalTimer->stop();
@@ -749,4 +749,4 @@ void CoreAudioOutput::stopTimers()
 
 QT_END_NAMESPACE
 
-#include "moc_coreaudiooutput.cpp"
+#include "moc_qcoreaudiooutput_p.cpp"

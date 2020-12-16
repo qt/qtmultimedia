@@ -36,47 +36,40 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "coreaudioplugin.h"
+#include "qcoreaudiointerface_p.h"
 
-#include "coreaudiodeviceinfo.h"
-#include "coreaudioinput.h"
-#include "coreaudiooutput.h"
+#include "qcoreaudiodeviceinfo_p.h"
+#include "qcoreaudioinput_p.h"
+#include "qcoreaudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
 
-CoreAudioPlugin::CoreAudioPlugin(QObject *parent)
-    : QAudioSystemPlugin(parent)
+QByteArray QCoreAudioInterface::defaultDevice(QAudio::Mode mode) const
 {
+    return QCoreAudioDeviceInfo::defaultDevice(mode);
 }
 
-QByteArray CoreAudioPlugin::defaultDevice(QAudio::Mode mode) const
+QList<QByteArray> QCoreAudioInterface::availableDevices(QAudio::Mode mode) const
 {
-    return CoreAudioDeviceInfo::defaultDevice(mode);
-}
-
-QList<QByteArray> CoreAudioPlugin::availableDevices(QAudio::Mode mode) const
-{
-    return CoreAudioDeviceInfo::availableDevices(mode);
+    return QCoreAudioDeviceInfo::availableDevices(mode);
 }
 
 
-QAbstractAudioInput *CoreAudioPlugin::createInput(const QByteArray &device)
+QAbstractAudioInput *QCoreAudioInterface::createInput(const QByteArray &device)
 {
     return new CoreAudioInput(device);
 }
 
 
-QAbstractAudioOutput *CoreAudioPlugin::createOutput(const QByteArray &device)
+QAbstractAudioOutput *QCoreAudioInterface::createOutput(const QByteArray &device)
 {
-    return new CoreAudioOutput(device);
+    return new QCoreAudioOutput(device);
 }
 
 
-QAbstractAudioDeviceInfo *CoreAudioPlugin::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+QAbstractAudioDeviceInfo *QCoreAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
 {
-    return new CoreAudioDeviceInfo(device, mode);
+    return new QCoreAudioDeviceInfo(device, mode);
 }
 
 QT_END_NAMESPACE
-
-#include "moc_coreaudioplugin.cpp"

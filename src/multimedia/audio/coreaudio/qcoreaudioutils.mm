@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "coreaudioutils.h"
+#include "qcoreaudioutils_p.h"
 #include <mach/mach_time.h>
 
 QT_BEGIN_NAMESPACE

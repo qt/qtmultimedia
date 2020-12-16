@@ -37,10 +37,10 @@
 **
 ****************************************************************************/
 
-#include "coreaudiodeviceinfo.h"
-#include "coreaudioutils.h"
+#include "qcoreaudiodeviceinfo_p.h"
+#include "qcoreaudioutils_p.h"
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-# include "coreaudiosessionmanager.h"
+# include "qcoreaudiosessionmanager_p.h"
 #endif
 
 #include <QtCore/QDataStream>
@@ -50,7 +50,7 @@
 
 QT_BEGIN_NAMESPACE
 
-CoreAudioDeviceInfo::CoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
     : m_mode(mode)
 {
 #if defined(Q_OS_OSX)
@@ -65,7 +65,7 @@ CoreAudioDeviceInfo::CoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode 
 }
 
 
-QAudioFormat CoreAudioDeviceInfo::preferredFormat() const
+QAudioFormat QCoreAudioDeviceInfo::preferredFormat() const
 {
     QAudioFormat format;
 
@@ -126,9 +126,9 @@ QAudioFormat CoreAudioDeviceInfo::preferredFormat() const
 }
 
 
-bool CoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
+bool QCoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
-    CoreAudioDeviceInfo *self = const_cast<CoreAudioDeviceInfo*>(this);
+    QCoreAudioDeviceInfo *self = const_cast<QCoreAudioDeviceInfo*>(this);
 
     //Sample rates are more of a suggestion with CoreAudio so as long as we get a
     //sane value then we can likely use it.
@@ -140,19 +140,19 @@ bool CoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 }
 
 
-QString CoreAudioDeviceInfo::deviceName() const
+QString QCoreAudioDeviceInfo::deviceName() const
 {
     return m_device;
 }
 
 
-QStringList CoreAudioDeviceInfo::supportedCodecs()
+QStringList QCoreAudioDeviceInfo::supportedCodecs()
 {
     return QStringList() << QString::fromLatin1("audio/pcm");
 }
 
 
-QList<int> CoreAudioDeviceInfo::supportedSampleRates()
+QList<int> QCoreAudioDeviceInfo::supportedSampleRates()
 {
     QSet<int> sampleRates;
 
@@ -189,7 +189,7 @@ QList<int> CoreAudioDeviceInfo::supportedSampleRates()
 }
 
 
-QList<int> CoreAudioDeviceInfo::supportedChannelCounts()
+QList<int> QCoreAudioDeviceInfo::supportedChannelCounts()
 {
     static QList<int> supportedChannels;
 
@@ -204,19 +204,19 @@ QList<int> CoreAudioDeviceInfo::supportedChannelCounts()
 }
 
 
-QList<int> CoreAudioDeviceInfo::supportedSampleSizes()
+QList<int> QCoreAudioDeviceInfo::supportedSampleSizes()
 {
     return QList<int>() << 8 << 16 << 24 << 32 << 64;
 }
 
 
-QList<QAudioFormat::Endian> CoreAudioDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QCoreAudioDeviceInfo::supportedByteOrders()
 {
     return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian << QAudioFormat::BigEndian;
 }
 
 
-QList<QAudioFormat::SampleType> CoreAudioDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QCoreAudioDeviceInfo::supportedSampleTypes()
 {
     return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }
@@ -276,7 +276,7 @@ static QByteArray get_device_info(AudioDeviceID audioDevice, QAudio::Mode mode)
 }
 #endif
 
-QByteArray CoreAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
+QByteArray QCoreAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
 {
 #if defined(Q_OS_OSX)
     AudioDeviceID audioDevice;
@@ -302,7 +302,7 @@ QByteArray CoreAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
 #endif
 }
 
-QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
+QList<QByteArray> QCoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 {
     QList<QByteArray> devices;
 #if defined(Q_OS_OSX)
@@ -343,4 +343,4 @@ QList<QByteArray> CoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 
 QT_END_NAMESPACE
 
-#include "moc_coreaudiodeviceinfo.cpp"
+#include "moc_qcoreaudiodeviceinfo_p.cpp"
