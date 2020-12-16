@@ -37,45 +37,67 @@
 **
 ****************************************************************************/
 
-
-#ifndef QAUDIOSYSTEMPLUGIN_H
-#define QAUDIOSYSTEMPLUGIN_H
-
-#include <QtCore/qstring.h>
-#include <QtCore/qplugin.h>
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmultimedia.h>
-
-#include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/qaudiodeviceinfo.h>
-#include <QtMultimedia/qaudiosystem.h>
+#include "qaudiodeviceinfo_pulse_p.h"
+#include "qaudioengine_pulse_p.h"
+#include "qpulsehelpers_p.h"
 
 QT_BEGIN_NAMESPACE
 
-struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
+QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+    : m_device(device)
+    , m_mode(mode)
 {
-    virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;
-    virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
-    virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
-    virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
-    virtual QByteArray defaultDevice(QAudio::Mode) const = 0;
-};
+}
 
-#define QAudioSystemFactoryInterface_iid \
-    "org.qt-project.qt.audiosystemfactory/5.0"
-Q_DECLARE_INTERFACE(QAudioSystemFactoryInterface, QAudioSystemFactoryInterface_iid)
-
-class Q_MULTIMEDIA_EXPORT QAudioSystemPlugin : public QObject, public QAudioSystemFactoryInterface
+bool QPulseAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
-    Q_OBJECT
-    Q_INTERFACES(QAudioSystemFactoryInterface)
+    pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(format);
+    if (!pa_sample_spec_valid(&spec))
+        return false;
 
-public:
-    explicit QAudioSystemPlugin(QObject *parent = nullptr);
-    ~QAudioSystemPlugin();
-};
+    return true;
+}
+
+QAudioFormat QPulseAudioDeviceInfo::preferredFormat() const
+{
+    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    QAudioFormat format = pulseEngine->m_preferredFormats.value(m_device);
+    return format;
+}
+
+QString QPulseAudioDeviceInfo::deviceName() const
+{
+    return m_device;
+}
+
+QStringList QPulseAudioDeviceInfo::supportedCodecs()
+{
+    return QStringList() << "audio/pcm";
+}
+
+QList<int> QPulseAudioDeviceInfo::supportedSampleRates()
+{
+    return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
+}
+
+QList<int> QPulseAudioDeviceInfo::supportedChannelCounts()
+{
+    return QList<int>() << 1 << 2 << 4 << 6 << 8;
+}
+
+QList<int> QPulseAudioDeviceInfo::supportedSampleSizes()
+{
+    return QList<int>() << 8 << 16 << 24 << 32;
+}
+
+QList<QAudioFormat::Endian> QPulseAudioDeviceInfo::supportedByteOrders()
+{
+    return QList<QAudioFormat::Endian>() << QAudioFormat::BigEndian << QAudioFormat::LittleEndian;
+}
+
+QList<QAudioFormat::SampleType> QPulseAudioDeviceInfo::supportedSampleTypes()
+{
+    return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
+}
 
 QT_END_NAMESPACE
-
-#endif // QAUDIOSYSTEMPLUGIN_H

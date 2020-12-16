@@ -142,7 +142,7 @@
     "features": {
         "alsa": {
             "label": "ALSA",
-            "condition": "config.unix && !config.qnx && libs.alsa",
+            "condition": "config.unix && !config.qnx && libs.alsa && !libs.pulseaudio",
             "output": [ "feature", "privateFeature" ]
         },
         "avfoundation": {

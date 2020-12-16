@@ -37,30 +37,36 @@
 **
 ****************************************************************************/
 
-#ifndef QALSAPLUGIN_H
-#define QALSAPLUGIN_H
-
-#include <QtMultimedia/qaudiosystemplugin.h>
+#include "qalsainterface_p.h"
+#include "qalsaaudiodeviceinfo_p.h"
+#include "qalsaaudioinput_p.h"
+#include "qalsaaudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAlsaPlugin : public QAudioSystemPlugin
+QByteArray QAlsaInterface::defaultDevice(QAudio::Mode mode) const
 {
-    Q_OBJECT
+    return QAlsaAudioDeviceInfo::defaultDevice(mode);
+}
 
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "alsa.json")
+QList<QByteArray> QAlsaInterface::availableDevices(QAudio::Mode mode) const
+{
+    return QAlsaAudioDeviceInfo::availableDevices(mode);
+}
 
-public:
-    QAlsaPlugin(QObject *parent = 0);
-    ~QAlsaPlugin() {}
+QAbstractAudioInput *QAlsaInterface::createInput(const QByteArray &device)
+{
+    return new QAlsaAudioInput(device);
+}
 
-    QByteArray defaultDevice(QAudio::Mode mode) const override;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
-    QAbstractAudioInput *createInput(const QByteArray &device) override;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
-};
+QAbstractAudioOutput *QAlsaInterface::createOutput(const QByteArray &device)
+{
+    return new QAlsaAudioOutput(device);
+}
+
+QAbstractAudioDeviceInfo *QAlsaInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+{
+    return new QAlsaAudioDeviceInfo(device, mode);
+}
 
 QT_END_NAMESPACE
-
-#endif // QALSAPLUGIN_H

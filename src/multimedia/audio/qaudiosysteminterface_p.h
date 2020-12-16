@@ -37,41 +37,45 @@
 **
 ****************************************************************************/
 
-#include "qalsaplugin.h"
-#include "qalsaaudiodeviceinfo.h"
-#include "qalsaaudioinput.h"
-#include "qalsaaudiooutput.h"
+
+#ifndef QAUDIOSYSTEMPLUGIN_H
+#define QAUDIOSYSTEMPLUGIN_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtCore/qstring.h>
+#include <QtCore/qplugin.h>
+
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qmultimedia.h>
+
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiosystem.h>
 
 QT_BEGIN_NAMESPACE
 
-QAlsaPlugin::QAlsaPlugin(QObject *parent)
-    : QAudioSystemPlugin(parent)
+struct QAudioSystemInterface
 {
-}
+    static QAudioSystemInterface *instance();
 
-QByteArray QAlsaPlugin::defaultDevice(QAudio::Mode mode) const
-{
-    return QAlsaAudioDeviceInfo::defaultDevice(mode);
-}
-
-QList<QByteArray> QAlsaPlugin::availableDevices(QAudio::Mode mode) const
-{
-    return QAlsaAudioDeviceInfo::availableDevices(mode);
-}
-
-QAbstractAudioInput *QAlsaPlugin::createInput(const QByteArray &device)
-{
-    return new QAlsaAudioInput(device);
-}
-
-QAbstractAudioOutput *QAlsaPlugin::createOutput(const QByteArray &device)
-{
-    return new QAlsaAudioOutput(device);
-}
-
-QAbstractAudioDeviceInfo *QAlsaPlugin::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-{
-    return new QAlsaAudioDeviceInfo(device, mode);
-}
+    virtual ~QAudioSystemInterface();
+    virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;
+    virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
+    virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
+    virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
+    virtual QByteArray defaultDevice(QAudio::Mode) const = 0;
+};
 
 QT_END_NAMESPACE
+
+#endif // QAUDIOSYSTEMPLUGIN_H

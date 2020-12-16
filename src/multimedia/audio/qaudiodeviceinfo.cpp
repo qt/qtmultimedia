@@ -61,30 +61,29 @@ public:
     {
     }
 
-    QAudioDeviceInfoPrivate(const QString &r, const QByteArray &h, QAudio::Mode m):
-        realm(r), handle(h), mode(m)
+    QAudioDeviceInfoPrivate(const QByteArray &h, QAudio::Mode m)
+        : handle(h), mode(m)
     {
         if (!handle.isEmpty())
-            info = QAudioDeviceFactory::audioDeviceInfo(realm, handle, mode);
+            info = QAudioDeviceFactory::audioDeviceInfo(handle, mode);
         else
             info = nullptr;
     }
 
     QAudioDeviceInfoPrivate(const QAudioDeviceInfoPrivate &other):
         QSharedData(other),
-        realm(other.realm), handle(other.handle), mode(other.mode)
+        handle(other.handle), mode(other.mode)
     {
-        info = QAudioDeviceFactory::audioDeviceInfo(realm, handle, mode);
+        info = QAudioDeviceFactory::audioDeviceInfo(handle, mode);
     }
 
     QAudioDeviceInfoPrivate& operator=(const QAudioDeviceInfoPrivate &other)
     {
         delete info;
 
-        realm = other.realm;
         handle = other.handle;
         mode = other.mode;
-        info = QAudioDeviceFactory::audioDeviceInfo(realm, handle, mode);
+        info = QAudioDeviceFactory::audioDeviceInfo(handle, mode);
         return *this;
     }
 
@@ -93,7 +92,6 @@ public:
         delete info;
     }
 
-    QString     realm;
     QByteArray  handle;
     QAudio::Mode mode;
     QAbstractAudioDeviceInfo*   info;
@@ -191,8 +189,7 @@ bool QAudioDeviceInfo::operator ==(const QAudioDeviceInfo &other) const
 {
     if (d == other.d)
         return true;
-    if (d->realm == other.d->realm
-            && d->mode == other.d->mode
+    if (d->mode == other.d->mode
             && d->handle == other.d->handle
             && deviceName() == other.deviceName())
         return true;
@@ -439,20 +436,9 @@ QList<QAudioDeviceInfo> QAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 /*!
     \internal
 */
-QAudioDeviceInfo::QAudioDeviceInfo(const QString &realm, const QByteArray &handle, QAudio::Mode mode):
-    d(new QAudioDeviceInfoPrivate(realm, handle, mode))
+QAudioDeviceInfo::QAudioDeviceInfo(const QByteArray &handle, QAudio::Mode mode):
+    d(new QAudioDeviceInfoPrivate(handle, mode))
 {
-}
-
-/*!
-    Returns the key that represents the audio plugin.
-
-    \since 5.14
-    \sa QAudioSystemPlugin
-*/
-QString QAudioDeviceInfo::realm() const
-{
-    return d->realm;
 }
 
 /*!

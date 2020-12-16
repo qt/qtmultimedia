@@ -37,14 +37,21 @@
 **
 ****************************************************************************/
 
+#include <private/qtmultimediaglobal_p.h>
+#include "qaudiosysteminterface_p.h"
 
-#include "qaudiosystemplugin.h"
+#if QT_CONFIG(pulseaudio)
+#include <private/qaudiointerface_pulse_p.h>
+#elif QT_CONFIG(alsa)
+#include <private/qalsainterface_p.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QAudioSystemPlugin
-    \brief The QAudioSystemPlugin class provides an abstract base for audio plugins.
+    \class QAudioSystemInterface
+    \internal
+    \brief The QAudioSystemInterface class provides an abstract base for audio plugins.
 
     \ingroup multimedia
     \ingroup multimedia_audio
@@ -80,50 +87,45 @@ QT_BEGIN_NAMESPACE
     QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).size() = 0 (dummy backend)
 */
 
-/*!
-    \fn QAudioSystemPlugin::QAudioSystemPlugin(QObject* parent)
+QAudioSystemInterface *QAudioSystemInterface::instance()
+{
+    static QAudioSystemInterface *system = nullptr;
+    if (!system) {
+#if QT_CONFIG(pulseaudio)
+       system = new QPulseAudioInterface();
+#elif QT_CONFIG(alsa)
+        system = new QAlsaInterface();
+#endif
+    }
+    return system;
+}
 
-    Constructs a new audio plugin with \a parent.
-    This is invoked automatically by the Q_PLUGIN_METADATA() macro.
-*/
+QAudioSystemInterface::~QAudioSystemInterface()
+{
 
-QAudioSystemPlugin::QAudioSystemPlugin(QObject* parent) :
-    QObject(parent)
-{}
-
-/*!
-    \fn QAudioSystemPlugin::~QAudioSystemPlugin()
-
-    Destroys the audio plugin.
-    You never have to call this explicitly. Qt destroys a plugin automatically when it is no longer used.
-*/
-
-QAudioSystemPlugin::~QAudioSystemPlugin()
-{}
+}
 
 /*!
-    \fn QList<QByteArray> QAudioSystemPlugin::availableDevices(QAudio::Mode mode) const
+    \fn QList<QByteArray> QAudioSystemInterface::availableDevices(QAudio::Mode mode) const
     Returns a list of available audio devices for \a mode
 */
 
 /*!
-    \fn QAbstractAudioInput* QAudioSystemPlugin::createInput(const QByteArray& device)
+    \fn QAbstractAudioInput* QAudioSystemInterface::createInput(const QByteArray& device)
     Returns a pointer to a QAbstractAudioInput created using \a device identifier
 */
 
 /*!
-    \fn QAbstractAudioOutput* QAudioSystemPlugin::createOutput(const QByteArray& device)
+    \fn QAbstractAudioOutput* QAudioSystemInterface::createOutput(const QByteArray& device)
     Returns a pointer to a QAbstractAudioOutput created using \a device identifier
 
 */
 
 /*!
-    \fn QAbstractAudioDeviceInfo* QAudioSystemPlugin::createDeviceInfo(const QByteArray& device, QAudio::Mode mode)
+    \fn QAbstractAudioDeviceInfo* QAudioSystemInterface::createDeviceInfo(const QByteArray& device, QAudio::Mode mode)
     Returns a pointer to a QAbstractAudioDeviceInfo created using \a device and \a mode
 
 */
 
 
 QT_END_NAMESPACE
-
-#include "moc_qaudiosystemplugin.cpp"

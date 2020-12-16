@@ -48,7 +48,7 @@
 // INTERNAL USE ONLY: Do NOT use for any other purpose.
 //
 
-#include "qalsaaudiodeviceinfo.h"
+#include "qalsaaudiodeviceinfo_p.h"
 
 #include <alsa/version.h>
 

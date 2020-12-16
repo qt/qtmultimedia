@@ -51,8 +51,8 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
-#include "qalsaaudiooutput.h"
-#include "qalsaaudiodeviceinfo.h"
+#include "qalsaaudiooutput_p.h"
+#include "qalsaaudiodeviceinfo_p.h"
 #include <QLoggingCategory>
 
 QT_BEGIN_NAMESPACE
@@ -810,4 +810,4 @@ qint64 AlsaOutputPrivate::writeData(const char* data, qint64 len)
 
 QT_END_NAMESPACE
 
-#include "moc_qalsaaudiooutput.cpp"
+#include "moc_qalsaaudiooutput_p.cpp"

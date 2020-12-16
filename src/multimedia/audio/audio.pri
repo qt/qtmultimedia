@@ -7,7 +7,6 @@ PUBLIC_HEADERS += \
            audio/qaudioinput.h \
            audio/qaudiooutput.h \
            audio/qaudiodeviceinfo.h \
-           audio/qaudiosystemplugin.h \
            audio/qaudiosystem.h  \
            audio/qsoundeffect.h \
            audio/qaudioprobe.h \
@@ -18,6 +17,7 @@ PRIVATE_HEADERS += \
            audio/qaudiodevicefactory_p.h \
            audio/qwavedecoder_p.h \
            audio/qsamplecache_p.h \
+           audio/qaudiosysteminterface_p.h \
            audio/qaudiohelpers_p.h \
 
 SOURCES += \
@@ -26,7 +26,7 @@ SOURCES += \
            audio/qaudiodeviceinfo.cpp \
            audio/qaudiooutput.cpp \
            audio/qaudioinput.cpp \
-           audio/qaudiosystemplugin.cpp \
+           audio/qaudiosysteminterface.cpp \
            audio/qaudiosystem.cpp \
            audio/qaudiodevicefactory.cpp \
            audio/qsoundeffect.cpp \
@@ -45,3 +45,12 @@ qtConfig(pulseaudio) {
     PRIVATE_HEADERS += audio/qsoundeffect_qaudio_p.h
     SOURCES += audio/qsoundeffect_qaudio_p.cpp
 }
+
+#android:SUBDIRS += opensles
+#qnx:SUBDIRS += qnx-audio
+#win32:SUBDIRS += windowsaudio
+#darwin:!watchos:SUBDIRS += coreaudio
+
+qtConfig(pulseaudio): include(pulseaudio/pulseaudio.pri)
+qtConfig(alsa): include(alsa/alsa.pri)
+

@@ -87,7 +87,6 @@ public:
     QList<int> supportedSampleSizes() const;
     QList<QAudioFormat::Endian> supportedByteOrders() const;
     QList<QAudioFormat::SampleType> supportedSampleTypes() const;
-    QString realm() const;
 
     static QAudioDeviceInfo defaultInputDevice();
     static QAudioDeviceInfo defaultOutputDevice();
@@ -95,7 +94,7 @@ public:
     static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode);
 
 private:
-    QAudioDeviceInfo(const QString &realm, const QByteArray &handle, QAudio::Mode mode);
+    QAudioDeviceInfo(const QByteArray &handle, QAudio::Mode mode);
     QByteArray handle() const;
     QAudio::Mode mode() const;
 

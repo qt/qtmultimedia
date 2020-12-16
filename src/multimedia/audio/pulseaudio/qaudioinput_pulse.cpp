@@ -42,10 +42,10 @@
 #include <QtCore/qmath.h>
 #include <private/qaudiohelpers_p.h>
 
-#include "qaudioinput_pulse.h"
-#include "qaudiodeviceinfo_pulse.h"
-#include "qpulseaudioengine.h"
-#include "qpulsehelpers.h"
+#include "qaudioinput_pulse_p.h"
+#include "qaudioengine_pulse_p.h"
+#include "qaudiodeviceinfo_pulse_p.h"
+#include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -679,4 +679,4 @@ void PulseInputPrivate::trigger()
 
 QT_END_NAMESPACE
 
-#include "moc_qaudioinput_pulse.cpp"
+#include "moc_qaudioinput_pulse_p.cpp"

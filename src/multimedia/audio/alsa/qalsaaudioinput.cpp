@@ -51,8 +51,8 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
-#include "qalsaaudioinput.h"
-#include "qalsaaudiodeviceinfo.h"
+#include "qalsaaudioinput_p.h"
+#include "qalsaaudiodeviceinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -869,4 +869,4 @@ void RingBuffer::write(char *data, int len)
 
 QT_END_NAMESPACE
 
-#include "moc_qalsaaudioinput.cpp"
+#include "moc_qalsaaudioinput_p.cpp"

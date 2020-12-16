@@ -37,67 +37,49 @@
 **
 ****************************************************************************/
 
-#include "qaudiodeviceinfo_pulse.h"
-#include "qpulseaudioengine.h"
-#include "qpulsehelpers.h"
+#include <qaudiodeviceinfo.h>
+
+#include "qaudiointerface_pulse_p.h"
+#include "qaudiodeviceinfo_pulse_p.h"
+#include "qaudiooutput_pulse_p.h"
+#include "qaudioinput_pulse_p.h"
+#include "qaudioengine_pulse_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-    : m_device(device)
-    , m_mode(mode)
+QPulseAudioInterface::QPulseAudioInterface()
+    : QAudioSystemInterface()
+    , m_pulseEngine(QPulseAudioEngine::instance())
 {
 }
 
-bool QPulseAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
+QByteArray QPulseAudioInterface::defaultDevice(QAudio::Mode mode) const
 {
-    pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(format);
-    if (!pa_sample_spec_valid(&spec))
-        return false;
-
-    return true;
+    return m_pulseEngine->defaultDevice(mode);
 }
 
-QAudioFormat QPulseAudioDeviceInfo::preferredFormat() const
+QList<QByteArray> QPulseAudioInterface::availableDevices(QAudio::Mode mode) const
 {
-    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
-    QAudioFormat format = pulseEngine->m_preferredFormats.value(m_device);
-    return format;
+    return m_pulseEngine->availableDevices(mode);
 }
 
-QString QPulseAudioDeviceInfo::deviceName() const
+QAbstractAudioInput *QPulseAudioInterface::createInput(const QByteArray &device)
 {
-    return m_device;
+    QPulseAudioInput *input = new QPulseAudioInput(device);
+    return input;
 }
 
-QStringList QPulseAudioDeviceInfo::supportedCodecs()
+QAbstractAudioOutput *QPulseAudioInterface::createOutput(const QByteArray &device)
 {
-    return QStringList() << "audio/pcm";
+
+    QPulseAudioOutput *output = new QPulseAudioOutput(device);
+    return output;
 }
 
-QList<int> QPulseAudioDeviceInfo::supportedSampleRates()
+QAbstractAudioDeviceInfo *QPulseAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
 {
-    return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
-}
-
-QList<int> QPulseAudioDeviceInfo::supportedChannelCounts()
-{
-    return QList<int>() << 1 << 2 << 4 << 6 << 8;
-}
-
-QList<int> QPulseAudioDeviceInfo::supportedSampleSizes()
-{
-    return QList<int>() << 8 << 16 << 24 << 32;
-}
-
-QList<QAudioFormat::Endian> QPulseAudioDeviceInfo::supportedByteOrders()
-{
-    return QList<QAudioFormat::Endian>() << QAudioFormat::BigEndian << QAudioFormat::LittleEndian;
-}
-
-QList<QAudioFormat::SampleType> QPulseAudioDeviceInfo::supportedSampleTypes()
-{
-    return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
+    QPulseAudioDeviceInfo *deviceInfo = new QPulseAudioDeviceInfo(device, mode);
+    return deviceInfo;
 }
 
 QT_END_NAMESPACE

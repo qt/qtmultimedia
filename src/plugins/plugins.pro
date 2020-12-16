@@ -12,7 +12,7 @@ qtHaveModule(quick) {
 }
 
 android {
-   SUBDIRS += android opensles
+   SUBDIRS += android
 }
 
 qnx {
@@ -20,13 +20,8 @@ qnx {
     SUBDIRS += audiocapture
 }
 
-qnx {
-    SUBDIRS += qnx-audio
-}
-
 win32: {
-    SUBDIRS += audiocapture \
-               windowsaudio
+    SUBDIRS += audiocapture
 
     qtConfig(directshow): SUBDIRS += directshow
     qtConfig(wmf): SUBDIRS += wmf
@@ -36,13 +31,10 @@ qtConfig(gstreamer): SUBDIRS += gstreamer
 
 unix:!mac:!android {
     !qtConfig(gstreamer): SUBDIRS += audiocapture
-
-    qtConfig(pulseaudio): SUBDIRS += pulseaudio
-    qtConfig(alsa): SUBDIRS += alsa
 }
 
 darwin:!watchos {
-    SUBDIRS += audiocapture coreaudio
+    SUBDIRS += audiocapture
     qtConfig(avfoundation): SUBDIRS += avfoundation
 }
 

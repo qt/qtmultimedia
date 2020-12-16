@@ -42,10 +42,10 @@
 #include <QtCore/qmath.h>
 #include <private/qaudiohelpers_p.h>
 
-#include "qaudiooutput_pulse.h"
-#include "qaudiodeviceinfo_pulse.h"
-#include "qpulseaudioengine.h"
-#include "qpulsehelpers.h"
+#include "qaudiooutput_pulse_p.h"
+#include "qaudiodeviceinfo_pulse_p.h"
+#include "qaudioengine_pulse_p.h"
+#include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -736,4 +736,4 @@ void QPulseAudioOutput::onPulseContextFailed()
 
 QT_END_NAMESPACE
 
-#include "moc_qaudiooutput_pulse.cpp"
+#include "moc_qaudiooutput_pulse_p.cpp"

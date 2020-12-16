@@ -37,49 +37,41 @@
 **
 ****************************************************************************/
 
-#include <qaudiodeviceinfo.h>
+#ifndef QPULSEAUDIOPLUGIN_H
+#define QPULSEAUDIOPLUGIN_H
 
-#include "qpulseaudioplugin.h"
-#include "qaudiodeviceinfo_pulse.h"
-#include "qaudiooutput_pulse.h"
-#include "qaudioinput_pulse.h"
-#include "qpulseaudioengine.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qaudiosysteminterface_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioPlugin::QPulseAudioPlugin(QObject *parent)
-    : QAudioSystemPlugin(parent)
-    , m_pulseEngine(QPulseAudioEngine::instance())
-{
-}
+class QPulseAudioEngine;
 
-QByteArray QPulseAudioPlugin::defaultDevice(QAudio::Mode mode) const
+class QPulseAudioInterface : public QAudioSystemInterface
 {
-    return m_pulseEngine->defaultDevice(mode);
-}
+public:
+    QPulseAudioInterface();
 
-QList<QByteArray> QPulseAudioPlugin::availableDevices(QAudio::Mode mode) const
-{
-    return m_pulseEngine->availableDevices(mode);
-}
+    QByteArray defaultDevice(QAudio::Mode mode) const override;
+    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
+    QAbstractAudioInput *createInput(const QByteArray &device) override;
+    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
+    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
 
-QAbstractAudioInput *QPulseAudioPlugin::createInput(const QByteArray &device)
-{
-    QPulseAudioInput *input = new QPulseAudioInput(device);
-    return input;
-}
-
-QAbstractAudioOutput *QPulseAudioPlugin::createOutput(const QByteArray &device)
-{
-
-    QPulseAudioOutput *output = new QPulseAudioOutput(device);
-    return output;
-}
-
-QAbstractAudioDeviceInfo *QPulseAudioPlugin::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-{
-    QPulseAudioDeviceInfo *deviceInfo = new QPulseAudioDeviceInfo(device, mode);
-    return deviceInfo;
-}
+private:
+    QPulseAudioEngine *m_pulseEngine;
+};
 
 QT_END_NAMESPACE
+
+#endif

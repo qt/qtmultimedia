@@ -54,9 +54,8 @@
 #include <QtCore/qmap.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qreadwritelock.h>
-#include <QtMultimedia/qaudiosystemplugin.h>
 #include <pulse/pulseaudio.h>
-#include "qpulsehelpers.h"
+#include "qpulsehelpers_p.h"
 #include <qaudioformat.h>
 
 QT_BEGIN_NAMESPACE

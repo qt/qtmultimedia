@@ -40,10 +40,10 @@
 #include <QtCore/qdebug.h>
 
 #include <qaudiodeviceinfo.h>
-#include "qpulseaudioengine.h"
-#include "qaudiodeviceinfo_pulse.h"
-#include "qaudiooutput_pulse.h"
-#include "qpulsehelpers.h"
+#include "qaudioengine_pulse_p.h"
+#include "qaudiodeviceinfo_pulse_p.h"
+#include "qaudiooutput_pulse_p.h"
+#include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 

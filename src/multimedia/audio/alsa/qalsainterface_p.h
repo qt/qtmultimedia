@@ -37,35 +37,23 @@
 **
 ****************************************************************************/
 
-#ifndef QPULSEAUDIOPLUGIN_H
-#define QPULSEAUDIOPLUGIN_H
+#ifndef QALSAPLUGIN_H
+#define QALSAPLUGIN_H
 
-#include <QtMultimedia/qaudiosystemplugin.h>
+#include <private/qaudiosysteminterface_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioEngine;
-
-class QPulseAudioPlugin : public QAudioSystemPlugin
+class QAlsaInterface : public QAudioSystemInterface
 {
-    Q_OBJECT
-
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "pulseaudio.json")
-
 public:
-    QPulseAudioPlugin(QObject *parent = 0);
-    ~QPulseAudioPlugin() {}
-
     QByteArray defaultDevice(QAudio::Mode mode) const override;
     QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
     QAbstractAudioInput *createInput(const QByteArray &device) override;
     QAbstractAudioOutput *createOutput(const QByteArray &device) override;
     QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
-
-private:
-    QPulseAudioEngine *m_pulseEngine;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QALSAPLUGIN_H

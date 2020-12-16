@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qpulsehelpers.h"
+#include "qpulsehelpers_p.h"
 
 QT_BEGIN_NAMESPACE
 
