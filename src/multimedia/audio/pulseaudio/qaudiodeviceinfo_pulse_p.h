@@ -57,7 +57,7 @@
 
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
-#include "qaudiosystem.h"
+#include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 

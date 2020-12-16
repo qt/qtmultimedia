@@ -64,7 +64,7 @@
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
-#include <QtMultimedia/qaudiosystem.h>
+#include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 

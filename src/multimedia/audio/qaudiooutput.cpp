@@ -40,7 +40,7 @@
 
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
-#include "qaudiosystem.h"
+#include "qaudiosystem_p.h"
 #include "qaudiooutput.h"
 
 #include "qaudiodevicefactory_p.h"

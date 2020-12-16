@@ -39,8 +39,7 @@
 
 #include <QtCore/qdebug.h>
 
-#include "qaudiosystem.h"
-#include "qaudiosysteminterface_p.h"
+#include "qaudiosystem_p.h"
 
 #include "qmediapluginloader_p.h"
 #include "qaudiodevicefactory_p.h"

@@ -7,7 +7,6 @@ PUBLIC_HEADERS += \
            audio/qaudioinput.h \
            audio/qaudiooutput.h \
            audio/qaudiodeviceinfo.h \
-           audio/qaudiosystem.h  \
            audio/qsoundeffect.h \
            audio/qaudioprobe.h \
            audio/qaudiodecoder.h
@@ -17,8 +16,8 @@ PRIVATE_HEADERS += \
            audio/qaudiodevicefactory_p.h \
            audio/qwavedecoder_p.h \
            audio/qsamplecache_p.h \
-           audio/qaudiosysteminterface_p.h \
            audio/qaudiohelpers_p.h \
+           audio/qaudiosystem_p.h  \
 
 SOURCES += \
            audio/qaudio.cpp \
@@ -26,7 +25,6 @@ SOURCES += \
            audio/qaudiodeviceinfo.cpp \
            audio/qaudiooutput.cpp \
            audio/qaudioinput.cpp \
-           audio/qaudiosysteminterface.cpp \
            audio/qaudiosystem.cpp \
            audio/qaudiodevicefactory.cpp \
            audio/qsoundeffect.cpp \

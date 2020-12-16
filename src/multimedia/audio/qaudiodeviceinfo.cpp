@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qaudiodevicefactory_p.h"
-#include "qaudiosystem.h"
+#include "qaudiosystem_p.h"
 #include "qaudiodeviceinfo.h"
 
 #include <QtCore/qmap.h>

@@ -40,6 +40,17 @@
 #ifndef QAUDIOSYSTEM_H
 #define QAUDIOSYSTEM_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
 
@@ -131,6 +142,18 @@ Q_SIGNALS:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
     void notify();
+};
+
+struct QAudioSystemInterface
+{
+    static QAudioSystemInterface *instance();
+
+    virtual ~QAudioSystemInterface();
+    virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;
+    virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
+    virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
+    virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
+    virtual QByteArray defaultDevice(QAudio::Mode) const = 0;
 };
 
 QT_END_NAMESPACE

@@ -60,7 +60,7 @@
 
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
-#include "qaudiosystem.h"
+#include <private/qaudiosystem_p.h>
 
 #include <pulse/pulseaudio.h>
 

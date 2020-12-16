@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qaudiosysteminterface_p.h>
+#include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 
