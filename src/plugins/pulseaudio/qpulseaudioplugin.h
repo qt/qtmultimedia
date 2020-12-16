@@ -41,18 +41,16 @@
 #define QPULSEAUDIOPLUGIN_H
 
 #include <QtMultimedia/qaudiosystemplugin.h>
-#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QPulseAudioEngine;
 
-class QPulseAudioPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
+class QPulseAudioPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
 
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "pulseaudio.json")
-    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     QPulseAudioPlugin(QObject *parent = 0);

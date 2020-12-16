@@ -40,15 +40,13 @@
 #define IOSAUDIOPLUGIN_H
 
 #include <QtMultimedia/qaudiosystemplugin.h>
-#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class CoreAudioPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
+class CoreAudioPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "coreaudio.json")
-    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     explicit CoreAudioPlugin(QObject *parent = 0);

@@ -19,7 +19,6 @@ PRIVATE_HEADERS += \
            audio/qwavedecoder_p.h \
            audio/qsamplecache_p.h \
            audio/qaudiohelpers_p.h \
-           audio/qaudiosystempluginext_p.h
 
 SOURCES += \
            audio/qaudio.cpp \

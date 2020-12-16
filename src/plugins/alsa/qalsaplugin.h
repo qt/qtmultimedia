@@ -41,16 +41,14 @@
 #define QALSAPLUGIN_H
 
 #include <QtMultimedia/qaudiosystemplugin.h>
-#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAlsaPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
+class QAlsaPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
 
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "alsa.json")
-    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     QAlsaPlugin(QObject *parent = 0);

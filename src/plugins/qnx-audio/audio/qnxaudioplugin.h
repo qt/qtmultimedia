@@ -41,15 +41,13 @@
 #define QNXAUDIOPLUGIN_H
 
 #include <QtMultimedia/qaudiosystemplugin.h>
-#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
+class QnxAudioPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "qnx_audio.json")
-    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     explicit QnxAudioPlugin(QObject *parent = 0);

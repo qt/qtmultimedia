@@ -59,7 +59,7 @@ struct Q_MULTIMEDIA_EXPORT QAudioSystemFactoryInterface
     virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
     virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
     virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
-    virtual ~QAudioSystemFactoryInterface();
+    virtual QByteArray defaultDevice(QAudio::Mode) const = 0;
 };
 
 #define QAudioSystemFactoryInterface_iid \
@@ -74,11 +74,6 @@ class Q_MULTIMEDIA_EXPORT QAudioSystemPlugin : public QObject, public QAudioSyst
 public:
     explicit QAudioSystemPlugin(QObject *parent = nullptr);
     ~QAudioSystemPlugin();
-
-    QList<QByteArray> availableDevices(QAudio::Mode) const override = 0;
-    QAbstractAudioInput* createInput(const QByteArray& device) override = 0;
-    QAbstractAudioOutput* createOutput(const QByteArray& device) override = 0;
-    QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) override = 0;
 };
 
 QT_END_NAMESPACE

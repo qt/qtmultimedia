@@ -41,16 +41,14 @@
 #define QWINDOWSAUDIOPLUGIN_H
 
 #include <QtMultimedia/qaudiosystemplugin.h>
-#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsAudioPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
+class QWindowsAudioPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
 
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "windowsaudio.json")
-    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     QWindowsAudioPlugin(QObject *parent = 0);

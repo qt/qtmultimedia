@@ -41,18 +41,16 @@
 #define QOPENSLESPLUGIN_H
 
 #include <QtMultimedia/qaudiosystemplugin.h>
-#include <QtMultimedia/private/qaudiosystempluginext_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QOpenSLESEngine;
 
-class QOpenSLESPlugin : public QAudioSystemPlugin, public QAudioSystemPluginExtension
+class QOpenSLESPlugin : public QAudioSystemPlugin
 {
     Q_OBJECT
 
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "opensles.json")
-    Q_INTERFACES(QAudioSystemPluginExtension)
 
 public:
     QOpenSLESPlugin(QObject *parent = 0);

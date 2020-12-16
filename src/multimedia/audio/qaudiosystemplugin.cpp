@@ -39,17 +39,8 @@
 
 
 #include "qaudiosystemplugin.h"
-#include "qaudiosystempluginext_p.h"
 
 QT_BEGIN_NAMESPACE
-
-QAudioSystemFactoryInterface::~QAudioSystemFactoryInterface()
-{
-}
-
-QAudioSystemPluginExtension::~QAudioSystemPluginExtension()
-{
-}
 
 /*!
     \class QAudioSystemPlugin
