@@ -37,18 +37,21 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOUTILS_H
-#define QNXAUDIOUTILS_H
+#ifndef QNXAUDIOPLUGIN_H
+#define QNXAUDIOPLUGIN_H
 
-#include "qaudiosystem.h"
-#include <sys/asoundlib.h>
+#include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace QnxAudioUtils
+class QnxAudioInterface : public QAudioSystemInterface
 {
-    snd_pcm_channel_params_t formatToChannelParams(const QAudioFormat &format, QAudio::Mode mode, int fragmentSize);
-}
+    QByteArray defaultDevice(QAudio::Mode mode) const override;
+    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
+    QAbstractAudioInput *createInput(const QByteArray &device) override;
+    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
+    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
+};
 
 QT_END_NAMESPACE
 

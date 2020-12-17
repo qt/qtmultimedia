@@ -37,27 +37,34 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOPLUGIN_H
-#define QNXAUDIOPLUGIN_H
+#ifndef QNXAUDIODEVICEINFO_H
+#define QNXAUDIODEVICEINFO_H
 
-#include <QtMultimedia/qaudiosystemplugin.h>
+#include "qaudiosystem_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioPlugin : public QAudioSystemPlugin
+class QnxAudioDeviceInfo : public QAbstractAudioDeviceInfo
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "qnx_audio.json")
 
 public:
-    explicit QnxAudioPlugin(QObject *parent = 0);
-    ~QnxAudioPlugin() {}
+    QnxAudioDeviceInfo(const QString &deviceName, QAudio::Mode mode);
+    ~QnxAudioDeviceInfo();
 
-    QByteArray defaultDevice(QAudio::Mode mode) const override;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
-    QAbstractAudioInput *createInput(const QByteArray &device) override;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
+    QAudioFormat preferredFormat() const override;
+    bool isFormatSupported(const QAudioFormat &format) const override;
+    QString deviceName() const override;
+    QStringList supportedCodecs() override;
+    QList<int> supportedSampleRates() override;
+    QList<int> supportedChannelCounts() override;
+    QList<int> supportedSampleSizes() override;
+    QList<QAudioFormat::Endian> supportedByteOrders() override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() override;
+
+private:
+    const QString m_name;
+    const QAudio::Mode m_mode;
 };
 
 QT_END_NAMESPACE

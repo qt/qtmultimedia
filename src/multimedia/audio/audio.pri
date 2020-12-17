@@ -44,11 +44,10 @@ qtConfig(pulseaudio) {
     SOURCES += audio/qsoundeffect_qaudio_p.cpp
 }
 
-#qnx:SUBDIRS += qnx-audio
-
 android: include(opensles/opensles.pri)
 win32: include(windows/windows.pri)
 darwin:!watchos: include(coreaudio/coreaudio.pri)
+qnx: include(qnx/qnx.pri)
 qtConfig(pulseaudio): include(pulseaudio/pulseaudio.pri)
 qtConfig(alsa): include(alsa/alsa.pri)
 

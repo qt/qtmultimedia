@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qnxaudioutils.h"
+#include "qnxaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
 

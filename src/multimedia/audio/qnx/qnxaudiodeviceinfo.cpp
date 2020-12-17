@@ -37,9 +37,9 @@
 **
 ****************************************************************************/
 
-#include "qnxaudiodeviceinfo.h"
+#include "qnxaudiodeviceinfo_p.h"
 
-#include "qnxaudioutils.h"
+#include "qnxaudioutils_p.h"
 
 #include <sys/asoundlib.h>
 

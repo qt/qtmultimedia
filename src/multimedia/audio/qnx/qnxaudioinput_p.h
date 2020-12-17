@@ -37,112 +37,100 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOOUTPUT_H
-#define QNXAUDIOOUTPUT_H
+#ifndef QNXAUDIOINPUT_H
+#define QNXAUDIOINPUT_H
 
-#include "qaudiosystem.h"
+#include "qaudiosystem_p.h"
 
+#include <QSocketNotifier>
+#include <QIODevice>
 #include <QElapsedTimer>
 #include <QTimer>
-#include <QIODevice>
-#include <QSocketNotifier>
 
 #include <sys/asoundlib.h>
-#include <sys/neutrino.h>
 
 QT_BEGIN_NAMESPACE
 
-class QnxPushIODevice;
-
-class QnxAudioOutput : public QAbstractAudioOutput
+class QnxAudioInput : public QAbstractAudioInput
 {
     Q_OBJECT
 
 public:
-    QnxAudioOutput();
-    ~QnxAudioOutput();
+    QnxAudioInput();
+    ~QnxAudioInput();
 
-    void start(QIODevice *source) override;
-    QIODevice *start() override;
+    void start(QIODevice*) override;
+    QIODevice* start() override;
     void stop() override;
     void reset() override;
     void suspend() override;
     void resume() override;
-    int bytesFree() const override;
+    int bytesReady() const override;
     int periodSize() const override;
-    void setBufferSize(int) override {}
-    int bufferSize() const override { return 0; }
-    void setNotifyInterval(int ms) override;
+    void setBufferSize(int ) override;
+    int bufferSize() const  override;
+    void setNotifyInterval(int ) override;
     int notifyInterval() const override;
     qint64 processedUSecs() const override;
     qint64 elapsedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format) override;
+    void setFormat(const QAudioFormat&) override;
     QAudioFormat format() const override;
-    void setVolume(qreal volume) override;
+    void setVolume(qreal) override;
     qreal volume() const override;
-    void setCategory(const QString &category) override;
-    QString category() const override;
 
 private slots:
-    void pullData();
+    void userFeed();
+    bool deviceReady();
 
 private:
+    friend class InputPrivate;
+
     bool open();
     void close();
+    qint64 read(char *data, qint64 len);
     void setError(QAudio::Error error);
     void setState(QAudio::State state);
 
-    void addPcmEventFilter();
-    void createPcmNotifiers();
-    void destroyPcmNotifiers();
-    void setTypeName(snd_pcm_channel_params_t *params);
-
-    void suspendInternal(QAudio::State suspendState);
-    void resumeInternal();
-
-    friend class QnxPushIODevice;
-    qint64 write(const char *data, qint64 len);
-
-    QIODevice *m_source;
-    bool m_pushSource;
-    QTimer m_timer;
-
-    int m_notifyInterval;
-    QAudio::Error m_error;
-    QAudio::State m_state;
+    QElapsedTimer m_timeStamp;
+    QElapsedTimer m_clockStamp;
     QAudioFormat m_format;
-    qreal m_volume;
-    QString m_category;
-    int m_periodSize;
 
+    QIODevice *m_audioSource;
     snd_pcm_t *m_pcmHandle;
-    qint64 m_bytesWritten;
-    QElapsedTimer m_startTimeStamp;
-    QElapsedTimer m_intervalTimeStamp;
-    qint64 m_intervalOffset;
-
-#if _NTO_VERSION >= 700
     QSocketNotifier *m_pcmNotifier;
 
-private slots:
-    void pcmNotifierActivated(int socket);
-#endif
+    QAudio::Error m_error;
+    QAudio::State m_state;
+
+    qint64 m_bytesRead;
+    qint64 m_elapsedTimeOffset;
+    qint64 m_totalTimeValue;
+
+    qreal m_volume;
+
+    int m_bytesAvailable;
+    int m_bufferSize;
+    int m_periodSize;
+    int m_intervalTime;
+
+    bool m_pullMode;
 };
 
-class QnxPushIODevice : public QIODevice
+class InputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    explicit QnxPushIODevice(QnxAudioOutput *output);
-    ~QnxPushIODevice();
+    InputPrivate(QnxAudioInput *audio);
 
-    qint64 readData(char *data, qint64 len);
-    qint64 writeData(const char *data, qint64 len);
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
+
+    void trigger();
 
 private:
-    QnxAudioOutput *m_output;
+    QnxAudioInput *m_audioDevice;
 };
 
 QT_END_NAMESPACE

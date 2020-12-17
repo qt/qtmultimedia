@@ -37,9 +37,9 @@
 **
 ****************************************************************************/
 
-#include "qnxaudioinput.h"
+#include "qnxaudioinput_p.h"
 
-#include "qnxaudioutils.h"
+#include "qnxaudioutils_p.h"
 
 #include <private/qaudiohelpers_p.h>
 

@@ -37,36 +37,50 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIODEVICEINFO_H
-#define QNXAUDIODEVICEINFO_H
+#include "qnxaudiointerface_p.h"
 
-#include "qaudiosystem.h"
+#include "qnxaudiodeviceinfo_p.h"
+#include "qnxaudioinput_p.h"
+#include "qnxaudiooutput_p.h"
+
+#include <sys/asoundlib.h>
+
+static const char *INPUT_ID = "QnxAudioInput";
+static const char *OUTPUT_ID = "QnxAudioOutput";
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioDeviceInfo : public QAbstractAudioDeviceInfo
+QByteArray QnxAudioInterface::defaultDevice(QAudio::Mode mode) const
 {
-    Q_OBJECT
+    return (mode == QAudio::AudioOutput) ? OUTPUT_ID : INPUT_ID;
+}
 
-public:
-    QnxAudioDeviceInfo(const QString &deviceName, QAudio::Mode mode);
-    ~QnxAudioDeviceInfo();
+QList<QByteArray> QnxAudioInterface::availableDevices(QAudio::Mode mode) const
+{
+    if (mode == QAudio::AudioOutput)
+        return QList<QByteArray>() << OUTPUT_ID;
+    else
+        return QList<QByteArray>() << INPUT_ID;
+}
 
-    QAudioFormat preferredFormat() const override;
-    bool isFormatSupported(const QAudioFormat &format) const override;
-    QString deviceName() const override;
-    QStringList supportedCodecs() override;
-    QList<int> supportedSampleRates() override;
-    QList<int> supportedChannelCounts() override;
-    QList<int> supportedSampleSizes() override;
-    QList<QAudioFormat::Endian> supportedByteOrders() override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() override;
+QAbstractAudioInput *QnxAudioInterface::createInput(const QByteArray &device)
+{
+    Q_ASSERT(device == INPUT_ID);
+    Q_UNUSED(device);
+    return new QnxAudioInput();
+}
 
-private:
-    const QString m_name;
-    const QAudio::Mode m_mode;
-};
+QAbstractAudioOutput *QnxAudioInterface::createOutput(const QByteArray &device)
+{
+    Q_ASSERT(device == OUTPUT_ID);
+    Q_UNUSED(device);
+    return new QnxAudioOutput();
+}
+
+QAbstractAudioDeviceInfo *QnxAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+{
+    Q_ASSERT(device == OUTPUT_ID || device == INPUT_ID);
+    return new QnxAudioDeviceInfo(device, mode);
+}
 
 QT_END_NAMESPACE
-
-#endif
