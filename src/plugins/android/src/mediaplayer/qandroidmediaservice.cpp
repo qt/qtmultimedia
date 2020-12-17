@@ -41,8 +41,6 @@
 
 #include "qandroidmediaplayercontrol.h"
 #include "qandroidmetadatareadercontrol.h"
-#include "qandroidaudiorolecontrol.h"
-#include "qandroidcustomaudiorolecontrol.h"
 #include "qandroidmediaplayervideorenderercontrol.h"
 
 QT_BEGIN_NAMESPACE
@@ -55,12 +53,6 @@ QAndroidMediaService::QAndroidMediaService(QObject *parent)
 {
     mMediaControl = new QAndroidMediaPlayerControl;
     mMetadataControl = new QAndroidMetaDataReaderControl;
-    mAudioRoleControl = new QAndroidAudioRoleControl;
-    mCustomAudioRoleControl = new QAndroidCustomAudioRoleControl;
-    connect(mAudioRoleControl, &QAndroidAudioRoleControl::audioRoleChanged,
-            mMediaControl, &QAndroidMediaPlayerControl::setAudioRole);
-    connect(mCustomAudioRoleControl, &QAndroidCustomAudioRoleControl::customAudioRoleChanged,
-            mMediaControl, &QAndroidMediaPlayerControl::setCustomAudioRole);
     connect(mMediaControl, SIGNAL(mediaChanged(QMediaContent)),
             mMetadataControl, SLOT(onMediaChanged(QMediaContent)));
     connect(mMediaControl, SIGNAL(metaDataUpdated()),
@@ -70,8 +62,6 @@ QAndroidMediaService::QAndroidMediaService(QObject *parent)
 QAndroidMediaService::~QAndroidMediaService()
 {
     delete mVideoRendererControl;
-    delete mCustomAudioRoleControl;
-    delete mAudioRoleControl;
     delete mMetadataControl;
     delete mMediaControl;
 }
@@ -83,12 +73,6 @@ QMediaControl *QAndroidMediaService::requestControl(const char *name)
 
     if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
         return mMetadataControl;
-
-    if (qstrcmp(name, QAudioRoleControl_iid) == 0)
-        return mAudioRoleControl;
-
-    if (qstrcmp(name, QCustomAudioRoleControl_iid) == 0)
-        return mCustomAudioRoleControl;
 
     if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!mVideoRendererControl) {

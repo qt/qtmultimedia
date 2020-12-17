@@ -93,7 +93,15 @@ public:
     virtual void pause() = 0;
     virtual void stop() = 0;
 
+    virtual void setAudioRole(QAudio::Role /*role*/) {}
+    virtual QList<QAudio::Role> supportedAudioRoles() const { return {}; }
+
+    virtual void setCustomAudioRole(const QString &/*role*/) {}
+    virtual QStringList supportedCustomAudioRoles() const { return {}; }
+
 Q_SIGNALS:
+    void audioRoleChanged(QAudio::Role role);
+    void customAudioRoleChanged(const QString &role);
     void mediaChanged(const QMediaContent& content);
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);

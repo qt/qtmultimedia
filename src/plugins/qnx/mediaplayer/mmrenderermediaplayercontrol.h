@@ -99,14 +99,18 @@ public:
     void pause() override;
     void stop() override;
 
+    void setAudioRole(QAudio::Role role) override;
+    QList<QAudio::Role> supportedAudioRoles() const override;
+
+    void setCustomAudioRole(const QString &role) override;
+    QStringList supportedCustomAudioRoles() const override;
+
     MmRendererPlayerVideoRendererControl *videoRendererControl() const;
     void setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl);
 
     MmRendererVideoWindowControl *videoWindowControl() const;
     void setVideoWindowControl(MmRendererVideoWindowControl *videoControl);
     void setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl);
-    void setAudioRoleControl(MmRendererAudioRoleControl *audioRoleControl);
-    void setCustomAudioRoleControl(MmRendererCustomAudioRoleControl *customAudioRoleControl);
 
 protected:
     virtual void startMonitoring() = 0;
@@ -164,8 +168,6 @@ private:
     QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
     QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
     QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-    QPointer<MmRendererAudioRoleControl> m_audioRoleControl;
-    QPointer<MmRendererCustomAudioRoleControl> m_customAudioRoleControl;
     MmRendererMetaData m_metaData;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;

@@ -31,8 +31,6 @@ PUBLIC_HEADERS += \
     controls/qvideowindowcontrol.h \
     controls/qmediaaudioprobecontrol.h \
     controls/qmediavideoprobecontrol.h \
-    controls/qaudiorolecontrol.h \
-    controls/qcustomaudiorolecontrol.h
 
 SOURCES += \
     controls/qcameracapturebufferformatcontrol.cpp \
@@ -63,6 +61,4 @@ SOURCES += \
     controls/qaudioencodersettingscontrol.cpp \
     controls/qaudioinputselectorcontrol.cpp \
     controls/qaudiooutputselectorcontrol.cpp \
-    controls/qvideodeviceselectorcontrol.cpp \
-    controls/qaudiorolecontrol.cpp \
-    controls/qcustomaudiorolecontrol.cpp
+    controls/qvideodeviceselectorcontrol.cpp

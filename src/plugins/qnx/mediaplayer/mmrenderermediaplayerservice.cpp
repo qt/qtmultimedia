@@ -38,8 +38,6 @@
 ****************************************************************************/
 #include "mmrenderermediaplayerservice.h"
 
-#include "mmrendereraudiorolecontrol.h"
-#include "mmrenderercustomaudiorolecontrol.h"
 #include "mmrenderermediaplayercontrol.h"
 #include "mmrenderermetadatareadercontrol.h"
 #include "mmrendererplayervideorenderercontrol.h"
@@ -68,8 +66,6 @@ MmRendererMediaPlayerService::~MmRendererMediaPlayerService()
     delete m_videoWindowControl;
     delete m_mediaPlayerControl;
     delete m_metaDataReaderControl;
-    delete m_audioRoleControl;
-    delete m_customAudioRoleControl;
 }
 
 QMediaControl *MmRendererMediaPlayerService::requestControl(const char *name)
@@ -86,18 +82,6 @@ QMediaControl *MmRendererMediaPlayerService::requestControl(const char *name)
             updateControls();
         }
         return m_metaDataReaderControl;
-    } else if (qstrcmp(name, QAudioRoleControl_iid) == 0) {
-        if (!m_audioRoleControl) {
-            m_audioRoleControl = new MmRendererAudioRoleControl();
-            updateControls();
-        }
-        return m_audioRoleControl;
-    } else if (qstrcmp(name, QCustomAudioRoleControl_iid) == 0) {
-        if (!m_customAudioRoleControl) {
-            m_customAudioRoleControl = new MmRendererCustomAudioRoleControl();
-            updateControls();
-        }
-        return m_customAudioRoleControl;
     } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!m_appHasDrmPermissionChecked) {
             m_appHasDrmPermission = checkForDrmPermission();
@@ -136,10 +120,6 @@ void MmRendererMediaPlayerService::releaseControl(QMediaControl *control)
         m_mediaPlayerControl = 0;
     if (control == m_metaDataReaderControl)
         m_metaDataReaderControl = 0;
-    if (control == m_audioRoleControl)
-        m_audioRoleControl = 0;
-    if (control == m_customAudioRoleControl)
-        m_customAudioRoleControl = 0;
     delete control;
 }
 
@@ -153,12 +133,6 @@ void MmRendererMediaPlayerService::updateControls()
 
     if (m_metaDataReaderControl && m_mediaPlayerControl)
         m_mediaPlayerControl->setMetaDataReaderControl(m_metaDataReaderControl);
-
-    if (m_audioRoleControl && m_mediaPlayerControl)
-        m_mediaPlayerControl->setAudioRoleControl(m_audioRoleControl);
-
-    if (m_customAudioRoleControl && m_mediaPlayerControl)
-        m_mediaPlayerControl->setCustomAudioRoleControl(m_customAudioRoleControl);
 }
 
 QT_END_NAMESPACE

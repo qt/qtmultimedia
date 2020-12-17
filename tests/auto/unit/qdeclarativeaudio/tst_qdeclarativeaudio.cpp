@@ -1031,7 +1031,7 @@ void tst_QDeclarativeAudio::audioRole()
     component.setData("import QtQuick 2.0 \n import QtMultimedia 5.6 \n Audio { }", QUrl());
 
     {
-        mockService.setHasAudioRole(false);
+        mockService.mockControl->hasAudioRole = false;
         QDeclarativeAudio *audio = static_cast<QDeclarativeAudio*>(component.create());
 
         QCOMPARE(audio->audioRole(), QDeclarativeAudio::UnknownRole);
@@ -1040,13 +1040,13 @@ void tst_QDeclarativeAudio::audioRole()
 
         QSignalSpy spy(audio, SIGNAL(audioRoleChanged()));
         audio->setAudioRole(QDeclarativeAudio::MusicRole);
-        QCOMPARE(audio->audioRole(), QDeclarativeAudio::UnknownRole);
-        QCOMPARE(spy.count(), 0);
+        QCOMPARE(audio->audioRole(), QDeclarativeAudio::MusicRole);
+        QCOMPARE(spy.count(), 1);
     }
 
     {
         mockService.reset();
-        mockService.setHasAudioRole(true);
+        mockService.mockControl->hasAudioRole = true;
         QDeclarativeAudio *audio = static_cast<QDeclarativeAudio*>(component.create());
         QSignalSpy spy(audio, SIGNAL(audioRoleChanged()));
 
@@ -1056,7 +1056,6 @@ void tst_QDeclarativeAudio::audioRole()
 
         audio->setAudioRole(QDeclarativeAudio::MusicRole);
         QCOMPARE(audio->audioRole(), QDeclarativeAudio::MusicRole);
-        QCOMPARE(mockService.mockAudioRoleControl->audioRole(), QAudio::MusicRole);
         QCOMPARE(spy.count(), 1);
     }
 }
@@ -1072,12 +1071,12 @@ void tst_QDeclarativeAudio::customAudioRole()
     component.setData("import QtQuick 2.0 \n import QtMultimedia 5.11 \n Audio { }", QUrl());
 
     {
-        mockService.setHasCustomAudioRole(false);
+        mockService.mockControl->hasCustomAudioRole = false;
         QObject *audio = component.create();
         QVERIFY(audio);
 
         QMetaEnum audioRoleEnum = enumerator(audio->metaObject(), "AudioRole");
-        int AudioRole_UnknownRoleValue = keyToValue(audioRoleEnum, "UnknownRole");
+        int AudioRole_CustomRoleValue = keyToValue(audioRoleEnum, "CustomRole");
         QVERIFY(!QTest::currentTestFailed());
 
         QVERIFY(audio->property("customAudioRole").toString().isEmpty());
@@ -1085,21 +1084,21 @@ void tst_QDeclarativeAudio::customAudioRole()
         QSignalSpy spyRole(audio, SIGNAL(audioRoleChanged()));
         QSignalSpy spyCustomRole(audio, SIGNAL(customAudioRoleChanged()));
         audio->setProperty("customAudioRole", QStringLiteral("customRole"));
-        QCOMPARE(audio->property("audioRole").toInt(), AudioRole_UnknownRoleValue);
-        QVERIFY(audio->property("customAudioRole").toString().isEmpty());
-        QCOMPARE(spyRole.count(), 0);
-        QCOMPARE(spyCustomRole.count(), 0);
+        QCOMPARE(audio->property("audioRole").toInt(), AudioRole_CustomRoleValue);
+        QCOMPARE(audio->property("customAudioRole").toString(), QStringLiteral("customRole"));
+        QCOMPARE(spyRole.count(), 1);
+        QCOMPARE(spyCustomRole.count(), 1);
     }
 
     {
         mockService.reset();
-        mockService.setHasAudioRole(false);
+        mockService.mockControl->hasAudioRole = false;
 
         QObject *audio = component.create();
         QVERIFY(audio);
 
         QMetaEnum audioRoleEnum = enumerator(audio->metaObject(), "AudioRole");
-        int AudioRole_UnknownRoleValue = keyToValue(audioRoleEnum, "UnknownRole");
+        int AudioRole_CustomRoleValue = keyToValue(audioRoleEnum, "CustomRole");
         QVERIFY(!QTest::currentTestFailed());
 
         QVERIFY(audio->property("customAudioRole").toString().isEmpty());
@@ -1107,10 +1106,10 @@ void tst_QDeclarativeAudio::customAudioRole()
         QSignalSpy spyRole(audio, SIGNAL(audioRoleChanged()));
         QSignalSpy spyCustomRole(audio, SIGNAL(customAudioRoleChanged()));
         audio->setProperty("customAudioRole", QStringLiteral("customRole"));
-        QCOMPARE(audio->property("audioRole").toInt(), AudioRole_UnknownRoleValue);
-        QVERIFY(audio->property("customAudioRole").toString().isEmpty());
-        QCOMPARE(spyRole.count(), 0);
-        QCOMPARE(spyCustomRole.count(), 0);
+        QCOMPARE(audio->property("audioRole").toInt(), AudioRole_CustomRoleValue);
+        QCOMPARE(audio->property("customAudioRole").toString(), QStringLiteral("customRole"));
+        QCOMPARE(spyRole.count(), 1);
+        QCOMPARE(spyCustomRole.count(), 1);
     }
 
     {
@@ -1135,8 +1134,6 @@ void tst_QDeclarativeAudio::customAudioRole()
         audio->setProperty("customAudioRole", customRole);
         QCOMPARE(audio->property("audioRole").toInt(), AudioRole_CustomRoleValue);
         QCOMPARE(audio->property("customAudioRole").toString(), customRole);
-        QCOMPARE(mockService.mockAudioRoleControl->audioRole(), QAudio::CustomRole);
-        QCOMPARE(mockService.mockCustomAudioRoleControl->customAudioRole(), customRole);
         QCOMPARE(spyRole.count(), 1);
         QCOMPARE(spyCustomRole.count(), 1);
 
@@ -1146,7 +1143,6 @@ void tst_QDeclarativeAudio::customAudioRole()
         QString customRole2(QStringLiteral("customRole2"));
         audio->setProperty("customAudioRole", customRole2);
         QCOMPARE(audio->property("customAudioRole").toString(), customRole2);
-        QCOMPARE(mockService.mockCustomAudioRoleControl->customAudioRole(), customRole2);
         QCOMPARE(spyRole.count(), 0);
         QCOMPARE(spyCustomRole.count(), 1);
 
@@ -1156,8 +1152,6 @@ void tst_QDeclarativeAudio::customAudioRole()
         audio->setProperty("audioRole", AudioRole_MusicRoleValue);
         QCOMPARE(audio->property("audioRole").toInt(), AudioRole_MusicRoleValue);
         QVERIFY(audio->property("customAudioRole").toString().isEmpty());
-        QCOMPARE(mockService.mockAudioRoleControl->audioRole(), QAudio::MusicRole);
-        QVERIFY(mockService.mockCustomAudioRoleControl->customAudioRole().isEmpty());
         QCOMPARE(spyRole.count(), 1);
         QCOMPARE(spyCustomRole.count(), 1);
 
@@ -1167,8 +1161,6 @@ void tst_QDeclarativeAudio::customAudioRole()
         audio->setProperty("audioRole", AudioRole_CustomRoleValue);
         QCOMPARE(audio->property("audioRole").toInt(), AudioRole_CustomRoleValue);
         QVERIFY(audio->property("customAudioRole").toString().isEmpty());
-        QCOMPARE(mockService.mockAudioRoleControl->audioRole(), QAudio::CustomRole);
-        QVERIFY(mockService.mockCustomAudioRoleControl->customAudioRole().isEmpty());
         QCOMPARE(spyRole.count(), 1);
         QCOMPARE(spyCustomRole.count(), 0);
     }

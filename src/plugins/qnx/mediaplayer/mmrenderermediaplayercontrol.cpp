@@ -216,11 +216,10 @@ void MmRendererMediaPlayerControl::attach()
         return;
     }
 
-    if (m_audioId != -1 && m_audioRoleControl) {
-        QAudio::Role audioRole = m_audioRoleControl->audioRole();
-        QString audioType = (audioRole == QAudio::CustomRole && m_customAudioRoleControl)
-                          ? m_customAudioRoleControl->customAudioRole()
-                          : qnxAudioType(audioRole);
+    if (m_audioId != -1) {
+        QString audioType = m_role == QAudio::CustomRole
+                          ? m_customRole
+                          : qnxAudioType(m_role);
         QByteArray latin1AudioType = audioType.toLatin1();
         if (!audioType.isEmpty() && latin1AudioType == audioType) {
             strm_dict_t *dict = strm_dict_new();
@@ -564,6 +563,28 @@ void MmRendererMediaPlayerControl::stop()
     stopInternal(StopMmRenderer);
 }
 
+void MmRendererMediaPlayerControl::setAudioRole(QAudio::Role role)
+{
+    m_role = role;
+    m_customRole.clear();
+}
+
+QList<QAudio::Role> MmRendererMediaPlayerControl::supportedAudioRoles() const
+{
+    return qnxSupportedAudioRoles();
+}
+
+void MmRendererMediaPlayerControl::setCustomAudioRole(const QString &role)
+{
+    m_role = QAudio::CustomRole;
+    m_customRole = role;
+}
+
+QStringList MmRendererMediaPlayerControl::supportedCustomAudioRoles() const
+{
+    return QStringList();
+}
+
 MmRendererPlayerVideoRendererControl *MmRendererMediaPlayerControl::videoRendererControl() const
 {
     return m_videoRendererControl;
@@ -582,16 +603,6 @@ void MmRendererMediaPlayerControl::setVideoWindowControl(MmRendererVideoWindowCo
 void MmRendererMediaPlayerControl::setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl)
 {
     m_metaDataReaderControl = metaDataReaderControl;
-}
-
-void MmRendererMediaPlayerControl::setAudioRoleControl(MmRendererAudioRoleControl *audioRoleControl)
-{
-    m_audioRoleControl = audioRoleControl;
-}
-
-void MmRendererMediaPlayerControl::setCustomAudioRoleControl(MmRendererCustomAudioRoleControl *customAudioRoleControl)
-{
-    m_customAudioRoleControl = customAudioRoleControl;
 }
 
 void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)

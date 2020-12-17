@@ -1,7 +1,6 @@
 INCLUDEPATH += $$PWD
 
 HEADERS += \
-    $$PWD/mmrendereraudiorolecontrol.h \
     $$PWD/mmrenderermediaplayercontrol.h \
     $$PWD/mmrenderermediaplayerservice.h \
     $$PWD/mmrenderermetadata.h \
@@ -10,10 +9,8 @@ HEADERS += \
     $$PWD/mmrendererutil.h \
     $$PWD/mmrenderervideowindowcontrol.h \
     $$PWD/mmreventmediaplayercontrol.h \
-    $$PWD/mmreventthread.h \
-    $$PWD/mmrenderercustomaudiorolecontrol.h
+    $$PWD/mmreventthread.h
 SOURCES += \
-    $$PWD/mmrendereraudiorolecontrol.cpp \
     $$PWD/mmrenderermediaplayercontrol.cpp \
     $$PWD/mmrenderermediaplayerservice.cpp \
     $$PWD/mmrenderermetadata.cpp \
@@ -22,7 +19,6 @@ SOURCES += \
     $$PWD/mmrendererutil.cpp \
     $$PWD/mmrenderervideowindowcontrol.cpp \
     $$PWD/mmreventmediaplayercontrol.cpp \
-    $$PWD/mmreventthread.cpp \
-    $$PWD/mmrenderercustomaudiorolecontrol.cpp
+    $$PWD/mmreventthread.cpp
 
 QMAKE_USE += mmrenderer

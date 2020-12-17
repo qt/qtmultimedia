@@ -98,6 +98,40 @@ public:
     void pause() { if (_isValid && !_media.isNull() && _state != QMediaPlayer::PausedState) emit stateChanged(_state = QMediaPlayer::PausedState); }
     void stop() { if (_state != QMediaPlayer::StoppedState) emit stateChanged(_state = QMediaPlayer::StoppedState); }
 
+    void setAudioRole(QAudio::Role role)
+    {
+        if (hasAudioRole && role != m_audioRole)
+            emit audioRoleChanged(m_audioRole = role);
+    }
+
+    QList<QAudio::Role> supportedAudioRoles() const
+    {
+        if (!hasAudioRole)
+            return {};
+        return QList<QAudio::Role>() << QAudio::MusicRole
+                                     << QAudio::AlarmRole
+                                     << QAudio::NotificationRole;
+    }
+
+    void setCustomAudioRole(const QString &role)
+    {
+        m_customAudioRole = role;
+        m_audioRole = QAudio::CustomRole;
+    }
+
+    QStringList supportedCustomAudioRoles() const
+    {
+        if (!hasCustomAudioRole)
+            return {};
+        return QStringList() << QStringLiteral("customRole")
+                             << QStringLiteral("customRole2");
+    }
+
+    bool hasAudioRole = true;
+    bool hasCustomAudioRole = true;
+    QAudio::Role m_audioRole = QAudio::UnknownRole;
+    QString m_customAudioRole;
+
     QMediaPlayer::State _state;
     QMediaPlayer::MediaStatus _mediaStatus;
     QMediaPlayer::Error _error;

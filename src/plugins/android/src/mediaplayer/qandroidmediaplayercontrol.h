@@ -73,6 +73,11 @@ public:
     const QIODevice *mediaStream() const override;
     void setMedia(const QMediaContent &mediaContent, QIODevice *stream) override;
 
+    void setAudioRole(QAudio::Role role) override;
+    QList<QAudio::Role> supportedAudioRoles() const override;
+    void setCustomAudioRole(const QString &role) override;
+    QStringList supportedCustomAudioRoles() const override;
+
     void setVideoOutput(QAndroidVideoOutput *videoOutput);
 
 Q_SIGNALS:
@@ -85,8 +90,6 @@ public Q_SLOTS:
     void stop() override;
     void setVolume(int volume) override;
     void setMuted(bool muted) override;
-    void setAudioRole(QAudio::Role role);
-    void setCustomAudioRole(const QString &role);
 
 private Q_SLOTS:
     void onVideoOutputReady(bool ready);

@@ -370,6 +370,44 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
 */
 
 /*!
+    \fn QAudio::Role QMediaPlayerControl::audioRole() const
+
+    Returns the audio role of the media played by the media service.
+*/
+
+/*!
+    \fn void QMediaPlayerControl::setAudioRole(QAudio::Role role)
+
+    Sets the audio \a role of the media played by the media service.
+*/
+
+/*!
+    \fn QList<QAudio::Role> QMediaPlayerControl::supportedAudioRoles() const
+
+    Returns a list of audio roles that the media service supports.
+*/
+
+/*!
+    \fn QAudio::Role QMediaPlayerControl::customAudioRole() const
+
+    Returns the audio role of the media played by the media service.
+*/
+
+/*!
+    \fn void QMediaPlayerControl::setCustomAudioRole(const QString &role)
+
+    Sets the audio \a role of the media played by the media service.
+*/
+
+/*!
+    \fn QStringList QMediaPlayerControl::supportedCustomAudioRoles() const
+
+    Returns a list of custom audio roles that the media service supports. An
+    empty list may indicate that the supported custom audio roles aren't known.
+    The list may not be complete.
+*/
+
+/*!
     \fn QMediaPlayerControl::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString provides a more detailed explanation.

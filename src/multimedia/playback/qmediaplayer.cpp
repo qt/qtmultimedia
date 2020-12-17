@@ -46,8 +46,6 @@
 #include <qmediaplayercontrol.h>
 #include <qmediaserviceprovider_p.h>
 #include <qmediaplaylist.h>
-#include <qaudiorolecontrol.h>
-#include <qcustomaudiorolecontrol.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -110,8 +108,6 @@ public:
     QMediaPlayerPrivate()
         : provider(nullptr)
         , control(nullptr)
-        , audioRoleControl(nullptr)
-        , customAudioRoleControl(nullptr)
         , playlist(nullptr)
         , state(QMediaPlayer::StoppedState)
         , status(QMediaPlayer::UnknownMediaStatus)
@@ -123,8 +119,6 @@ public:
 
     QMediaServiceProvider *provider;
     QMediaPlayerControl* control;
-    QAudioRoleControl *audioRoleControl;
-    QCustomAudioRoleControl *customAudioRoleControl;
     QString errorString;
 
     QPointer<QObject> videoOutput;
@@ -141,6 +135,9 @@ public:
     int ignoreNextStatusChange;
     int nestedPlaylists;
     bool hasStreamPlaybackFeature;
+
+    QAudio::Role audioRole = QAudio::UnknownRole;
+    QString customAudioRole;
 
     QMediaPlaylist *parentPlaylist(QMediaPlaylist *pls);
     bool isInChain(const QUrl &url);
@@ -621,21 +618,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
                 addPropertyWatch("bufferStatus");
 
             d->hasStreamPlaybackFeature = d->provider->supportedFeatures(d->service).testFlag(QMediaServiceProviderHint::StreamPlayback);
-
-            d->audioRoleControl = qobject_cast<QAudioRoleControl*>(d->service->requestControl(QAudioRoleControl_iid));
-            if (d->audioRoleControl) {
-                connect(d->audioRoleControl, &QAudioRoleControl::audioRoleChanged,
-                        this, &QMediaPlayer::audioRoleChanged);
-
-                d->customAudioRoleControl = qobject_cast<QCustomAudioRoleControl *>(
-                        d->service->requestControl(QCustomAudioRoleControl_iid));
-                if (d->customAudioRoleControl) {
-                    connect(d->customAudioRoleControl,
-                            &QCustomAudioRoleControl::customAudioRoleChanged,
-                            this,
-                            &QMediaPlayer::customAudioRoleChanged);
-                }
-            }
         }
     }
 }
@@ -657,10 +639,6 @@ QMediaPlayer::~QMediaPlayer()
     if (d->service) {
         if (d->control)
             d->service->releaseControl(d->control);
-        if (d->audioRoleControl)
-            d->service->releaseControl(d->audioRoleControl);
-        if (d->customAudioRoleControl)
-            d->service->releaseControl(d->customAudioRoleControl);
 
         d->provider->releaseService(d->service);
     }
@@ -1178,24 +1156,23 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
 QAudio::Role QMediaPlayer::audioRole() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->audioRoleControl != nullptr)
-        return d->audioRoleControl->audioRole();
-
-    return QAudio::UnknownRole;
+    return d->audioRole;
 }
 
 void QMediaPlayer::setAudioRole(QAudio::Role audioRole)
 {
     Q_D(QMediaPlayer);
+    if (d->audioRole == audioRole)
+        return;
 
-    if (d->audioRoleControl) {
-        if (d->customAudioRoleControl != nullptr && d->audioRoleControl->audioRole() != audioRole) {
-            d->customAudioRoleControl->setCustomAudioRole(QString());
-        }
-
-        d->audioRoleControl->setAudioRole(audioRole);
+    d->audioRole = audioRole;
+    d->control->setAudioRole(audioRole);
+    if (!d->customAudioRole.isEmpty()) {
+        d->customAudioRole.clear();
+        emit customAudioRoleChanged(QString());
     }
+    emit audioRoleChanged(audioRole);
+
 }
 
 /*!
@@ -1210,34 +1187,29 @@ QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
 {
     Q_D(const QMediaPlayer);
 
-    if (d->audioRoleControl)
-        return d->audioRoleControl->supportedAudioRoles();
-
-    return QList<QAudio::Role>();
+    return d->control->supportedAudioRoles();
 }
 
 QString QMediaPlayer::customAudioRole() const
 {
     Q_D(const QMediaPlayer);
 
-    if (audioRole() != QAudio::CustomRole)
-        return QString();
-
-    if (d->customAudioRoleControl != nullptr)
-        return d->customAudioRoleControl->customAudioRole();
-
-    return QString();
+    return d->customAudioRole;
 }
 
 void QMediaPlayer::setCustomAudioRole(const QString &audioRole)
 {
     Q_D(QMediaPlayer);
+    if (d->audioRole == QAudio::CustomRole && d->customAudioRole == audioRole)
+        return;
 
-    if (d->customAudioRoleControl) {
-        Q_ASSERT(d->audioRoleControl);
-        setAudioRole(QAudio::CustomRole);
-        d->customAudioRoleControl->setCustomAudioRole(audioRole);
+    d->customAudioRole = audioRole;
+    d->control->setCustomAudioRole(audioRole);
+    if (d->audioRole != QAudio::CustomRole) {
+        d->audioRole = QAudio::CustomRole;
+        emit audioRoleChanged(QAudio::CustomRole);
     }
+    emit customAudioRoleChanged(audioRole);
 }
 
 /*!
@@ -1251,11 +1223,7 @@ void QMediaPlayer::setCustomAudioRole(const QString &audioRole)
 QStringList QMediaPlayer::supportedCustomAudioRoles() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->customAudioRoleControl)
-        return d->customAudioRoleControl->supportedCustomAudioRoles();
-
-    return QStringList();
+    return d->control->supportedCustomAudioRoles();
 }
 
 // Enums

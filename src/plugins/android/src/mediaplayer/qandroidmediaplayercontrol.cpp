@@ -255,9 +255,47 @@ void QAndroidMediaPlayerControl::setAudioRole(QAudio::Role role)
     mMediaPlayer->setAudioRole(role);
 }
 
+QList<QAudio::Role> QAndroidMediaPlayerControl::supportedAudioRoles() const
+{
+    return QList<QAudio::Role>()
+        << QAudio::VoiceCommunicationRole
+        << QAudio::MusicRole
+        << QAudio::VideoRole
+        << QAudio::SonificationRole
+        << QAudio::AlarmRole
+        << QAudio::NotificationRole
+        << QAudio::RingtoneRole
+        << QAudio::AccessibilityRole
+        << QAudio::GameRole;
+}
+
 void QAndroidMediaPlayerControl::setCustomAudioRole(const QString &role)
 {
     mMediaPlayer->setCustomAudioRole(role);
+}
+
+QStringList QAndroidMediaPlayerControl::supportedCustomAudioRoles() const
+{
+    return QStringList()
+        << "CONTENT_TYPE_MOVIE"
+        << "CONTENT_TYPE_MUSIC"
+        << "CONTENT_TYPE_SONIFICATION"
+        << "CONTENT_TYPE_SPEECH"
+        << "USAGE_ALARM"
+        << "USAGE_ASSISTANCE_ACCESSIBILITY"
+        << "USAGE_ASSISTANCE_NAVIGATION_GUIDANCE"
+        << "USAGE_ASSISTANCE_SONIFICATION"
+        << "USAGE_ASSISTANT"
+        << "USAGE_GAME"
+        << "USAGE_MEDIA"
+        << "USAGE_NOTIFICATION"
+        << "USAGE_NOTIFICATION_COMMUNICATION_DELAYED"
+        << "USAGE_NOTIFICATION_COMMUNICATION_INSTANT"
+        << "USAGE_NOTIFICATION_COMMUNICATION_REQUEST"
+        << "USAGE_NOTIFICATION_EVENT"
+        << "USAGE_NOTIFICATION_RINGTONE"
+        << "USAGE_VOICE_COMMUNICATION"
+        << "USAGE_VOICE_COMMUNICATION_SIGNALLING";
 }
 
 int QAndroidMediaPlayerControl::bufferStatus() const

@@ -36,8 +36,6 @@
 #include "mockvideorenderercontrol.h"
 #include "mockvideoprobecontrol.h"
 #include "mockvideowindowcontrol.h"
-#include "mockaudiorolecontrol.h"
-#include "mockcustomaudiorolecontrol.h"
 
 class MockMediaPlayerService : public QMediaService
 {
@@ -47,23 +45,17 @@ public:
     MockMediaPlayerService():QMediaService(0)
     {
         mockControl = new MockMediaPlayerControl;
-        mockAudioRoleControl = new MockAudioRoleControl;
-        mockCustomAudioRoleControl = new MockCustomAudioRoleControl;
         mockStreamsControl = new MockStreamsControl;
         rendererControl = new MockVideoRendererControl;
         rendererRef = 0;
         mockVideoProbeControl = new MockVideoProbeControl;
         windowControl = new MockVideoWindowControl;
         windowRef = 0;
-        enableAudioRole = true;
-        enableCustomAudioRole = true;
     }
 
     ~MockMediaPlayerService()
     {
         delete mockControl;
-        delete mockAudioRoleControl;
-        delete mockCustomAudioRoleControl;
         delete mockStreamsControl;
         delete rendererControl;
         delete mockVideoProbeControl;
@@ -87,10 +79,6 @@ public:
                 windowRef += 1;
                 return windowControl;
             }
-        } else if (enableAudioRole && qstrcmp(iid, QAudioRoleControl_iid) == 0) {
-            return mockAudioRoleControl;
-        } else if (enableCustomAudioRole && qstrcmp(iid, QCustomAudioRoleControl_iid) == 0) {
-            return mockCustomAudioRoleControl;
         }
 
         return 0;
@@ -125,9 +113,6 @@ public:
     void setError(QMediaPlayer::Error error) { mockControl->_error = error; emit mockControl->error(mockControl->_error, mockControl->_errorString); }
     void setErrorString(QString errorString) { mockControl->_errorString = errorString; emit mockControl->error(mockControl->_error, mockControl->_errorString); }
 
-    void setHasAudioRole(bool enable) { enableAudioRole = enable; }
-    void setHasCustomAudioRole(bool enable) { enableCustomAudioRole = enable; }
-
     void reset()
     {
         mockControl->_state = QMediaPlayer::StoppedState;
@@ -145,24 +130,17 @@ public:
         mockControl->_stream = 0;
         mockControl->_isValid = false;
         mockControl->_errorString = QString();
-
-        enableAudioRole = true;
-        mockAudioRoleControl->m_audioRole = QAudio::UnknownRole;
-        enableCustomAudioRole = true;
-        mockCustomAudioRoleControl->m_customAudioRole.clear();
+        mockControl->hasAudioRole = true;
+        mockControl->hasCustomAudioRole = true;
     }
 
     MockMediaPlayerControl *mockControl;
-    MockAudioRoleControl *mockAudioRoleControl;
-    MockCustomAudioRoleControl *mockCustomAudioRoleControl;
     MockStreamsControl *mockStreamsControl;
     MockVideoRendererControl *rendererControl;
     MockVideoProbeControl *mockVideoProbeControl;
     MockVideoWindowControl *windowControl;
     int windowRef;
     int rendererRef;
-    bool enableAudioRole;
-    bool enableCustomAudioRole;
 };
 
 
