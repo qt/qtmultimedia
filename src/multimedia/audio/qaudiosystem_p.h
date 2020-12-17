@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
 
 class QIODevice;
 
-class Q_MULTIMEDIA_EXPORT QAbstractAudioDeviceInfo : public QObject
+class QAbstractAudioDeviceInfo : public QObject
 {
     Q_OBJECT
 
@@ -78,7 +78,7 @@ public:
     virtual QList<QAudioFormat::SampleType> supportedSampleTypes() = 0;
 };
 
-class Q_MULTIMEDIA_EXPORT QAbstractAudioOutput : public QObject
+class QAbstractAudioOutput : public QObject
 {
     Q_OBJECT
 
@@ -112,7 +112,7 @@ Q_SIGNALS:
     void notify();
 };
 
-class Q_MULTIMEDIA_EXPORT QAbstractAudioInput : public QObject
+class QAbstractAudioInput : public QObject
 {
     Q_OBJECT
 
