@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 static void serverInfoCallback(pa_context *context, const pa_server_info *info, void *userdata)
 {
     if (!info) {
-        qWarning() << QString("Failed to get server information: %s").arg(pa_strerror(pa_context_errno(context)));
+        qWarning() << QString::fromLatin1("Failed to get server information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
         return;
     }
 
@@ -94,7 +94,7 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
     QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine*>(userdata);
 
     if (isLast < 0) {
-        qWarning() << QString("Failed to get sink information: %s").arg(pa_strerror(pa_context_errno(context)));
+        qWarning() << QString::fromLatin1("Failed to get sink information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
         return;
     }
 
@@ -336,7 +336,8 @@ void QPulseAudioEngine::prepare()
 
             case PA_CONTEXT_FAILED:
             default:
-                qCritical() << QString("PulseAudioService: Connection failure: %1").arg(pa_strerror(pa_context_errno(m_context)));
+                qCritical() << QString::fromLatin1("PulseAudioService: Connection failure: %1")
+                                .arg(QString::fromUtf8(pa_strerror(pa_context_errno(m_context))));
                 keepGoing = false;
                 ok = false;
         }

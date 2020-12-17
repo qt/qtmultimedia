@@ -199,17 +199,17 @@ GstElement *QGstreamerVideoEncode::createEncoder()
             const QString &option = it.key();
             const QVariant &value = it.value();
 
-            switch (value.type()) {
-            case QVariant::Int:
+            switch (value.typeId()) {
+            case QMetaType::Int:
                 g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toInt(), NULL);
                 break;
-            case QVariant::Bool:
+            case QMetaType::Bool:
                 g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toBool(), NULL);
                 break;
-            case QVariant::Double:
+            case QMetaType::Double:
                 g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toDouble(), NULL);
                 break;
-            case QVariant::String:
+            case QMetaType::QString:
                 g_object_set(G_OBJECT(encoderElement), option.toLatin1(), value.toString().toUtf8().constData(), NULL);
                 break;
             default:

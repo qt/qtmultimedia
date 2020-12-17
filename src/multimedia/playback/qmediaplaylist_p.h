@@ -108,13 +108,16 @@ public:
 
     bool checkFormat(const char *format) const
     {
+        QLatin1String f(format);
         QPlaylistFileParser::FileType type = format ? QPlaylistFileParser::UNKNOWN : QPlaylistFileParser::M3U8;
-        if (format == QLatin1String("m3u") || format == QLatin1String("text/uri-list") ||
-            format == QLatin1String("audio/x-mpegurl") || format == QLatin1String("audio/mpegurl"))
-            type = QPlaylistFileParser::M3U;
-        else if (format == QLatin1String("m3u8") || format == QLatin1String("application/x-mpegURL") ||
-                 format == QLatin1String("application/vnd.apple.mpegurl"))
-            type = QPlaylistFileParser::M3U8;
+        if (format) {
+            if (f == QLatin1String("m3u") || f == QLatin1String("text/uri-list") ||
+                f == QLatin1String("audio/x-mpegurl") || f == QLatin1String("audio/mpegurl"))
+                type = QPlaylistFileParser::M3U;
+            else if (f == QLatin1String("m3u8") || f == QLatin1String("application/x-mpegURL") ||
+                     f == QLatin1String("application/vnd.apple.mpegurl"))
+                type = QPlaylistFileParser::M3U8;
+        }
 
         if (type == QPlaylistFileParser::UNKNOWN || type == QPlaylistFileParser::PLS) {
             error = QMediaPlaylist::FormatNotSupportedError;

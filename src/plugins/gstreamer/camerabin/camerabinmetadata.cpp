@@ -54,9 +54,9 @@ namespace {
     {
         QString qtName;
         const char *gstName;
-        QVariant::Type type;
+        QMetaType::Type type;
 
-        QGStreamerMetaDataKey(const QString &qtn, const char *gstn, QVariant::Type t)
+        QGStreamerMetaDataKey(const QString &qtn, const char *gstn, QMetaType::Type t)
             : qtName(qtn)
             , gstName(gstn)
             , type(t)
@@ -70,80 +70,80 @@ Q_GLOBAL_STATIC(QGStreamerMetaDataKeys, metadataKeys)
 static const QGStreamerMetaDataKeys *qt_gstreamerMetaDataKeys()
 {
     if (metadataKeys->isEmpty()) {
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Title, GST_TAG_TITLE, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::SubTitle, 0, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Author, 0, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Comment, GST_TAG_COMMENT, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Date, GST_TAG_DATE_TIME, QVariant::DateTime));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Description, GST_TAG_DESCRIPTION, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Category, 0, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Genre, GST_TAG_GENRE, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Year, 0, QVariant::Int));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::UserRating, , QVariant::Int));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Title, GST_TAG_TITLE, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::SubTitle, 0, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Author, 0, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Comment, GST_TAG_COMMENT, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Date, GST_TAG_DATE_TIME, QMetaType::QDateTime));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Description, GST_TAG_DESCRIPTION, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Category, 0, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Genre, GST_TAG_GENRE, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Year, 0, QMetaType::Int));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::UserRating, , QMetaType::Int));
 
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Language, GST_TAG_LANGUAGE_CODE, QVariant::String));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Language, GST_TAG_LANGUAGE_CODE, QMetaType::QString));
 
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Publisher, GST_TAG_ORGANIZATION, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Copyright, GST_TAG_COPYRIGHT, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ParentalRating, 0, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::RatingOrganisation, 0, QVariant::String));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Publisher, GST_TAG_ORGANIZATION, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Copyright, GST_TAG_COPYRIGHT, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ParentalRating, 0, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::RatingOrganisation, 0, QMetaType::QString));
 
         // Media
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Size, 0, QVariant::Int));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::MediaType, 0, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Duration, GST_TAG_DURATION, QVariant::Int));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Size, 0, QMetaType::Int));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::MediaType, 0, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Duration, GST_TAG_DURATION, QMetaType::Int));
 
         // Audio
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AudioBitRate, GST_TAG_BITRATE, QVariant::Int));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AudioCodec, GST_TAG_AUDIO_CODEC, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ChannelCount, 0, QVariant::Int));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::SampleRate, 0, QVariant::Int));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AudioBitRate, GST_TAG_BITRATE, QMetaType::Int));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AudioCodec, GST_TAG_AUDIO_CODEC, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ChannelCount, 0, QMetaType::Int));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::SampleRate, 0, QMetaType::Int));
 
         // Music
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AlbumTitle, GST_TAG_ALBUM, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AlbumArtist,  GST_TAG_ARTIST, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ContributingArtist, GST_TAG_PERFORMER, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Composer, GST_TAG_COMPOSER, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Conductor, 0, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Lyrics, 0, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Mood, 0, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::TrackNumber, GST_TAG_TRACK_NUMBER, QVariant::Int));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AlbumTitle, GST_TAG_ALBUM, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::AlbumArtist,  GST_TAG_ARTIST, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ContributingArtist, GST_TAG_PERFORMER, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Composer, GST_TAG_COMPOSER, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Conductor, 0, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Lyrics, 0, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Mood, 0, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::TrackNumber, GST_TAG_TRACK_NUMBER, QMetaType::Int));
 
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CoverArtUrlSmall, 0, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CoverArtUrlLarge, 0, QVariant::String));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CoverArtUrlSmall, 0, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CoverArtUrlLarge, 0, QMetaType::QString));
 
         // Image/Video
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Resolution, 0, QVariant::Size));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::PixelAspectRatio, 0, QVariant::Size));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Resolution, 0, QMetaType::QSize));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::PixelAspectRatio, 0, QMetaType::QSize));
 
         // Video
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::VideoFrameRate, 0, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::VideoBitRate, 0, QVariant::Double));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::VideoCodec, GST_TAG_VIDEO_CODEC, QVariant::String));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::VideoFrameRate, 0, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::VideoBitRate, 0, QMetaType::Double));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::VideoCodec, GST_TAG_VIDEO_CODEC, QMetaType::QString));
 
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::PosterUrl, 0, QVariant::String));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::PosterUrl, 0, QMetaType::QString));
 
         // Movie
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ChapterNumber, 0, QVariant::Int));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Director, 0, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::LeadPerformer, GST_TAG_PERFORMER, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Writer, 0, QVariant::String));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::ChapterNumber, 0, QMetaType::Int));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Director, 0, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::LeadPerformer, GST_TAG_PERFORMER, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Writer, 0, QMetaType::QString));
 
         // Photos
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CameraManufacturer, GST_TAG_DEVICE_MANUFACTURER, QVariant::String));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CameraModel, GST_TAG_DEVICE_MODEL, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Event, 0, QVariant::String));
-        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Subject, 0, QVariant::String));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CameraManufacturer, GST_TAG_DEVICE_MANUFACTURER, QMetaType::QString));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::CameraModel, GST_TAG_DEVICE_MODEL, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Event, 0, QMetaType::QString));
+        //metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Subject, 0, QMetaType::QString));
 
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Orientation, GST_TAG_IMAGE_ORIENTATION, QVariant::String));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::Orientation, GST_TAG_IMAGE_ORIENTATION, QMetaType::QString));
 
         // GPS
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSLatitude, GST_TAG_GEO_LOCATION_LATITUDE, QVariant::Double));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSLongitude, GST_TAG_GEO_LOCATION_LONGITUDE, QVariant::Double));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSAltitude, GST_TAG_GEO_LOCATION_ELEVATION, QVariant::Double));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSTrack, GST_TAG_GEO_LOCATION_MOVEMENT_DIRECTION, QVariant::Double));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSSpeed, GST_TAG_GEO_LOCATION_MOVEMENT_SPEED, QVariant::Double));
-        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSImgDirection, GST_TAG_GEO_LOCATION_CAPTURE_DIRECTION, QVariant::Double));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSLatitude, GST_TAG_GEO_LOCATION_LATITUDE, QMetaType::Double));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSLongitude, GST_TAG_GEO_LOCATION_LONGITUDE, QMetaType::Double));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSAltitude, GST_TAG_GEO_LOCATION_ELEVATION, QMetaType::Double));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSTrack, GST_TAG_GEO_LOCATION_MOVEMENT_DIRECTION, QMetaType::Double));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSSpeed, GST_TAG_GEO_LOCATION_MOVEMENT_SPEED, QMetaType::Double));
+        metadataKeys->append(QGStreamerMetaDataKey(QMediaMetaData::GPSImgDirection, GST_TAG_GEO_LOCATION_CAPTURE_DIRECTION, QMetaType::Double));
     }
 
     return metadataKeys;
@@ -189,7 +189,7 @@ void CameraBinMetaData::setMetaData(const QString &key, const QVariant &value)
             const char *name = metadataKey.gstName;
 
             if (correctedValue.isValid()) {
-                correctedValue.convert(metadataKey.type);
+                correctedValue.convert(QMetaType(metadataKey.type));
                 m_values.insert(QByteArray::fromRawData(name, qstrlen(name)), correctedValue);
             } else {
                 m_values.remove(QByteArray::fromRawData(name, qstrlen(name)));

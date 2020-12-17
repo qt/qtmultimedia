@@ -81,7 +81,7 @@ static void outputStreamStateCallback(pa_stream *stream, void *userdata)
 
         case PA_STREAM_FAILED:
         default:
-            qWarning() << QString("Stream error: %1").arg(pa_strerror(pa_context_errno(pa_stream_get_context(stream))));
+            qWarning() << QString::fromLatin1("Stream error: %1").arg(QString::fromUtf8(pa_strerror(pa_context_errno(pa_stream_get_context(stream)))));
             QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
             pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
             break;
@@ -347,7 +347,7 @@ bool QPulseAudioOutput::open()
     pa_stream_set_overflow_callback(m_stream, outputStreamOverflowCallback, this);
     pa_stream_set_latency_update_callback(m_stream, outputStreamLatencyCallback, this);
 
-    if (m_bufferSize <= 0 && m_category == LOW_LATENCY_CATEGORY_NAME) {
+    if (m_bufferSize <= 0 && m_category == QLatin1String(LOW_LATENCY_CATEGORY_NAME)) {
         m_bufferSize = bytesPerSecond * LowLatencyBufferSizeMs / qint64(1000);
     }
 
@@ -373,7 +373,7 @@ bool QPulseAudioOutput::open()
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
 
     const pa_buffer_attr *buffer = pa_stream_get_buffer_attr(m_stream);
-    m_periodTime = (m_category == LOW_LATENCY_CATEGORY_NAME) ? LowLatencyPeriodTimeMs : PeriodTimeMs;
+    m_periodTime = (m_category == QLatin1String(LOW_LATENCY_CATEGORY_NAME)) ? LowLatencyPeriodTimeMs : PeriodTimeMs;
     m_periodSize = pa_usec_to_bytes(m_periodTime*1000, &m_spec);
     m_bufferSize = buffer->tlength;
     m_maxBufferSize = buffer->maxlength;

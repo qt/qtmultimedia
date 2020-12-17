@@ -67,12 +67,12 @@ QAudioFormat QPulseAudioDeviceInfo::preferredFormat() const
 
 QString QPulseAudioDeviceInfo::deviceName() const
 {
-    return m_device;
+    return QString::fromUtf8(m_device);
 }
 
 QStringList QPulseAudioDeviceInfo::supportedCodecs()
 {
-    return QStringList() << "audio/pcm";
+    return QStringList() << QString::fromLatin1("audio/pcm");
 }
 
 QList<int> QPulseAudioDeviceInfo::supportedSampleRates()

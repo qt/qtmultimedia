@@ -951,30 +951,30 @@ void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant
         const QString tagName = QString::fromLatin1(it.key());
         const QVariant &tagValue = it.value();
 
-        switch (tagValue.type()) {
-            case QVariant::String:
+        switch (tagValue.typeId()) {
+            case QMetaType::QString:
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
                     GST_TAG_MERGE_REPLACE,
                     tagName.toUtf8().constData(),
                     tagValue.toString().toUtf8().constData(),
                     nullptr);
                 break;
-            case QVariant::Int:
-            case QVariant::LongLong:
+            case QMetaType::Int:
+            case QMetaType::LongLong:
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
                     GST_TAG_MERGE_REPLACE,
                     tagName.toUtf8().constData(),
                     tagValue.toInt(),
                     nullptr);
                 break;
-            case QVariant::Double:
+            case QMetaType::Double:
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
                     GST_TAG_MERGE_REPLACE,
                     tagName.toUtf8().constData(),
                     tagValue.toDouble(),
                     nullptr);
                 break;
-            case QVariant::DateTime: {
+            case QMetaType::QDateTime: {
                 QDateTime date = tagValue.toDateTime().toLocalTime();
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
                     GST_TAG_MERGE_REPLACE,
