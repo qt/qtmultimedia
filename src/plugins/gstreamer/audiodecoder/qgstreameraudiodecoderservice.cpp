@@ -42,15 +42,13 @@
 
 #include "qgstreameraudiodecoderservice.h"
 #include "qgstreameraudiodecodercontrol.h"
-#include "qgstreameraudiodecodersession.h"
 
 QT_BEGIN_NAMESPACE
 
 QGstreamerAudioDecoderService::QGstreamerAudioDecoderService(QObject *parent)
     : QMediaService(parent)
 {
-    m_session = new QGstreamerAudioDecoderSession(this);
-    m_control = new QGstreamerAudioDecoderControl(m_session, this);
+    m_control = new QGstreamerAudioDecoderControl(this);
 }
 
 QGstreamerAudioDecoderService::~QGstreamerAudioDecoderService()

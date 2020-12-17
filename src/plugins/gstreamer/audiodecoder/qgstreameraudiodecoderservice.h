@@ -47,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 class QGstreamerAudioDecoderControl;
-class QGstreamerAudioDecoderSession;
+class QGstreamerAudioDecoderControl;
 
 class QGstreamerAudioDecoderService : public QMediaService
 {
@@ -61,7 +61,6 @@ public:
 
 private:
     QGstreamerAudioDecoderControl *m_control;
-    QGstreamerAudioDecoderSession *m_session;
 };
 
 QT_END_NAMESPACE
