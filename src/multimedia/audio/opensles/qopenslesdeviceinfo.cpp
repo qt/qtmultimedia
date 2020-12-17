@@ -37,9 +37,9 @@
 **
 ****************************************************************************/
 
-#include "qopenslesdeviceinfo.h"
+#include "qopenslesdeviceinfo_p.h"
 
-#include "qopenslesengine.h"
+#include "qopenslesengine_p.h"
 
 QT_BEGIN_NAMESPACE
 

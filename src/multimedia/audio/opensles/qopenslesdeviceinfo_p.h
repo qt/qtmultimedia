@@ -37,45 +37,50 @@
 **
 ****************************************************************************/
 
-#include "qopenslesplugin.h"
+#ifndef QOPENSLESDEVICEINFO_H
+#define QOPENSLESDEVICEINFO_H
 
-#include "qopenslesengine.h"
-#include "qopenslesdeviceinfo.h"
-#include "qopenslesaudioinput.h"
-#include "qopenslesaudiooutput.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QOpenSLESPlugin::QOpenSLESPlugin(QObject *parent)
-    : QAudioSystemPlugin(parent)
-    , m_engine(QOpenSLESEngine::instance())
-{
-}
+class QOpenSLESEngine;
 
-QByteArray QOpenSLESPlugin::defaultDevice(QAudio::Mode mode) const
+class QOpenSLESDeviceInfo : public QAbstractAudioDeviceInfo
 {
-    return m_engine->defaultDevice(mode);
-}
+    Q_OBJECT
 
-QList<QByteArray> QOpenSLESPlugin::availableDevices(QAudio::Mode mode) const
-{
-    return m_engine->availableDevices(mode);
-}
+public:
+    QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+    ~QOpenSLESDeviceInfo() {}
 
-QAbstractAudioInput *QOpenSLESPlugin::createInput(const QByteArray &device)
-{
-    return new QOpenSLESAudioInput(device);
-}
+    QAudioFormat preferredFormat() const;
+    bool isFormatSupported(const QAudioFormat &format) const;
+    QString deviceName() const;
+    QStringList supportedCodecs();
+    QList<int> supportedSampleRates();
+    QList<int> supportedChannelCounts();
+    QList<int> supportedSampleSizes();
+    QList<QAudioFormat::Endian> supportedByteOrders();
+    QList<QAudioFormat::SampleType> supportedSampleTypes();
 
-QAbstractAudioOutput *QOpenSLESPlugin::createOutput(const QByteArray &device)
-{
-    return new QOpenSLESAudioOutput(device);
-}
-
-QAbstractAudioDeviceInfo *QOpenSLESPlugin::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-{
-    return new QOpenSLESDeviceInfo(device, mode);
-}
+private:
+    QOpenSLESEngine *m_engine;
+    QByteArray m_device;
+    QAudio::Mode m_mode;
+};
 
 QT_END_NAMESPACE
 
+#endif // QOPENSLESDEVICEINFO_H

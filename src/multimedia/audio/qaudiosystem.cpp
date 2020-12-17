@@ -48,6 +48,8 @@
 #include <private/qcoreaudiointerface_p.h>
 #elif defined(Q_OS_WIN)
 #include <private/qwindowsaudiointerface_p.h>
+#elif defined(Q_OS_ANDROID)
+#include <private/qopenslesinterface_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -433,6 +435,8 @@ QAudioSystemInterface *QAudioSystemInterface::instance()
        system = new QCoreAudioInterface();
 #elif defined(Q_OS_WIN)
        system = new QWindowsAudioInterface();
+#elif defined(Q_OS_ANDROID)
+       system = new QOpenSLESAudioInterface();
 #endif
     }
     return system;

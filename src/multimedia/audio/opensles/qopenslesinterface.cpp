@@ -37,35 +37,39 @@
 **
 ****************************************************************************/
 
-#ifndef QOPENSLESPLUGIN_H
-#define QOPENSLESPLUGIN_H
+#include "qopenslesinterface_p.h"
 
-#include <QtMultimedia/qaudiosystemplugin.h>
+#include "qopenslesengine_p.h"
+#include "qopenslesdeviceinfo_p.h"
+#include "qopenslesaudioinput_p.h"
+#include "qopenslesaudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QOpenSLESEngine;
-
-class QOpenSLESPlugin : public QAudioSystemPlugin
+QByteArray QOpenSLESInterface::defaultDevice(QAudio::Mode mode) const
 {
-    Q_OBJECT
+    return QOpenSLESEngine::instance()->defaultDevice(mode);
+}
 
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.audiosystemfactory/5.0" FILE "opensles.json")
+QList<QByteArray> QOpenSLESInterface::availableDevices(QAudio::Mode mode) const
+{
+    return QOpenSLESEngine::instance()->availableDevices(mode);
+}
 
-public:
-    QOpenSLESPlugin(QObject *parent = 0);
-    ~QOpenSLESPlugin() {}
+QAbstractAudioInput *QOpenSLESInterface::createInput(const QByteArray &device)
+{
+    return new QOpenSLESAudioInput(device);
+}
 
-    QByteArray defaultDevice(QAudio::Mode mode) const;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const;
-    QAbstractAudioInput *createInput(const QByteArray &device);
-    QAbstractAudioOutput *createOutput(const QByteArray &device);
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+QAbstractAudioOutput *QOpenSLESInterface::createOutput(const QByteArray &device)
+{
+    return new QOpenSLESAudioOutput(device);
+}
 
-private:
-    QOpenSLESEngine *m_engine;
-};
+QAbstractAudioDeviceInfo *QOpenSLESInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+{
+    return new QOpenSLESDeviceInfo(device, mode);
+}
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESPLUGIN_H

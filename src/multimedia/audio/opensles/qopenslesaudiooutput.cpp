@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qopenslesaudiooutput.h"
-#include "qopenslesengine.h"
+#include "qopenslesaudiooutput_p.h"
+#include "qopenslesengine_p.h"
 #include <QDebug>
 #include <qmath.h>
 

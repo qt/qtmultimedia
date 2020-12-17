@@ -37,9 +37,9 @@
 **
 ****************************************************************************/
 
-#include "qopenslesaudioinput.h"
+#include "qopenslesaudioinput_p.h"
 
-#include "qopenslesengine.h"
+#include "qopenslesengine_p.h"
 #include <qbuffer.h>
 #include <private/qaudiohelpers_p.h>
 #include <qdebug.h>

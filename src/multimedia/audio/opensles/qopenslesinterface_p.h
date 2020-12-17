@@ -37,39 +37,36 @@
 **
 ****************************************************************************/
 
-#ifndef QOPENSLESDEVICEINFO_H
-#define QOPENSLESDEVICEINFO_H
+#ifndef QOPENSLESPLUGIN_H
+#define QOPENSLESPLUGIN_H
 
-#include <qaudiosystem.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QOpenSLESEngine;
 
-class QOpenSLESDeviceInfo : public QAbstractAudioDeviceInfo
+class QOpenSLESInterface : public QAudioSystemInterface
 {
-    Q_OBJECT
-
 public:
-    QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode mode);
-    ~QOpenSLESDeviceInfo() {}
-
-    QAudioFormat preferredFormat() const;
-    bool isFormatSupported(const QAudioFormat &format) const;
-    QString deviceName() const;
-    QStringList supportedCodecs();
-    QList<int> supportedSampleRates();
-    QList<int> supportedChannelCounts();
-    QList<int> supportedSampleSizes();
-    QList<QAudioFormat::Endian> supportedByteOrders();
-    QList<QAudioFormat::SampleType> supportedSampleTypes();
-
-private:
-    QOpenSLESEngine *m_engine;
-    QByteArray m_device;
-    QAudio::Mode m_mode;
+    QByteArray defaultDevice(QAudio::Mode mode) const;
+    QList<QByteArray> availableDevices(QAudio::Mode mode) const;
+    QAbstractAudioInput *createInput(const QByteArray &device);
+    QAbstractAudioOutput *createOutput(const QByteArray &device);
+    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode);
 };
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESDEVICEINFO_H
+#endif // QOPENSLESPLUGIN_H
