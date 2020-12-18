@@ -37,85 +37,420 @@
 **
 ****************************************************************************/
 
-#include "audiocapturesession.h"
-#include "audiomediarecordercontrol.h"
-
 #include <QtCore/qdebug.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qdir.h>
+#include <qaudiodeviceinfo.h>
+
+#include "qmediarecorder.h"
+
+#include "audiomediarecordercontrol.h"
+#include "audiocaptureprobecontrol.h"
 
 QT_BEGIN_NAMESPACE
 
-AudioMediaRecorderControl::AudioMediaRecorderControl(QObject *parent)
+void FileProbeProxy::startProbes(const QAudioFormat &format)
+{
+    m_format = format;
+}
+
+void FileProbeProxy::stopProbes()
+{
+    m_format = QAudioFormat();
+}
+
+void FileProbeProxy::addProbe(AudioCaptureProbeControl *probe)
+{
+    QMutexLocker locker(&m_probeMutex);
+
+    if (m_probes.contains(probe))
+        return;
+
+    m_probes.append(probe);
+}
+
+void FileProbeProxy::removeProbe(AudioCaptureProbeControl *probe)
+{
+    QMutexLocker locker(&m_probeMutex);
+    m_probes.removeOne(probe);
+}
+
+qint64 FileProbeProxy::writeData(const char *data, qint64 len)
+{
+    if (m_format.isValid()) {
+        QMutexLocker locker(&m_probeMutex);
+
+        for (AudioCaptureProbeControl* probe : qAsConst(m_probes))
+            probe->bufferProbed(data, len, m_format);
+    }
+
+    return QFile::writeData(data, len);
+}
+
+AudioCaptureSession::AudioCaptureSession(QObject *parent)
     : QMediaRecorderControl(parent)
+    , m_state(QMediaRecorder::StoppedState)
+    , m_status(QMediaRecorder::UnloadedStatus)
+    , m_audioInput(0)
+    , m_deviceInfo(QAudioDeviceInfo::defaultInputDevice())
+    , m_wavFile(true)
+    , m_volume(1.0)
+    , m_muted(false)
 {
-    m_session = qobject_cast<AudioCaptureSession*>(parent);
-    connect(m_session, SIGNAL(positionChanged(qint64)),
-            this, SIGNAL(durationChanged(qint64)));
-    connect(m_session, SIGNAL(stateChanged(QMediaRecorder::State)),
-            this, SIGNAL(stateChanged(QMediaRecorder::State)));
-    connect(m_session, SIGNAL(statusChanged(QMediaRecorder::Status)),
-            this, SIGNAL(statusChanged(QMediaRecorder::Status)));
-    connect(m_session, SIGNAL(actualLocationChanged(QUrl)),
-            this, SIGNAL(actualLocationChanged(QUrl)));
-    connect(m_session, &AudioCaptureSession::volumeChanged,
-            this, &AudioMediaRecorderControl::volumeChanged);
-    connect(m_session, &AudioCaptureSession::mutedChanged,
-            this, &AudioMediaRecorderControl::mutedChanged);
-    connect(m_session, SIGNAL(error(int,QString)),
-            this, SIGNAL(error(int,QString)));
+    m_format = m_deviceInfo.preferredFormat();
 }
 
-AudioMediaRecorderControl::~AudioMediaRecorderControl()
+AudioCaptureSession::~AudioCaptureSession()
 {
+    setState(QMediaRecorder::StoppedState);
 }
 
-QUrl AudioMediaRecorderControl::outputLocation() const
+QAudioFormat AudioCaptureSession::format() const
 {
-    return m_session->outputLocation();
+    return m_format;
 }
 
-bool AudioMediaRecorderControl::setOutputLocation(const QUrl& sink)
+void AudioCaptureSession::setFormat(const QAudioFormat &format)
 {
-    return m_session->setOutputLocation(sink);
+    m_format = format;
 }
 
-QMediaRecorder::State AudioMediaRecorderControl::state() const
+void AudioCaptureSession::setContainerFormat(const QString &formatMimeType)
 {
-    return m_session->state();
+    m_wavFile = (formatMimeType.isEmpty()
+                 || QString::compare(formatMimeType, QLatin1String("audio/x-wav")) == 0);
 }
 
-QMediaRecorder::Status AudioMediaRecorderControl::status() const
+QString AudioCaptureSession::containerFormat() const
 {
-    return m_session->status();
+    if (m_wavFile)
+        return QStringLiteral("audio/x-wav");
+
+    return QStringLiteral("audio/x-raw");
 }
 
-qint64 AudioMediaRecorderControl::duration() const
+QUrl AudioCaptureSession::outputLocation() const
 {
-    return m_session->position();
+    return m_actualOutputLocation;
 }
 
-bool AudioMediaRecorderControl::isMuted() const
+bool AudioCaptureSession::setOutputLocation(const QUrl& location)
 {
-    return m_session->isMuted();
+    if (m_requestedOutputLocation == location)
+        return false;
+
+    m_actualOutputLocation = QUrl();
+    m_requestedOutputLocation = location;
+
+    if (m_requestedOutputLocation.isEmpty())
+        return true;
+
+    if (m_requestedOutputLocation.isValid() && (m_requestedOutputLocation.isLocalFile()
+                                       || m_requestedOutputLocation.isRelative())) {
+        emit actualLocationChanged(m_requestedOutputLocation);
+        return true;
+    }
+
+    m_requestedOutputLocation = QUrl();
+    return false;
 }
 
-qreal AudioMediaRecorderControl::volume() const
+qint64 AudioCaptureSession::duration() const
 {
-    return m_session->volume();
+    if (m_audioInput)
+        return m_audioInput->processedUSecs() / 1000;
+    return 0;
 }
 
-void AudioMediaRecorderControl::setState(QMediaRecorder::State state)
+void AudioCaptureSession::setState(QMediaRecorder::State state)
 {
-    m_session->setState(state);
+    if (m_state == state)
+        return;
+
+    m_state = state;
+    emit stateChanged(m_state);
+
+    switch (m_state) {
+    case QMediaRecorder::StoppedState:
+        stop();
+        break;
+    case QMediaRecorder::PausedState:
+        pause();
+        break;
+    case QMediaRecorder::RecordingState:
+        record();
+        break;
+    }
 }
 
-void AudioMediaRecorderControl::setMuted(bool muted)
+QMediaRecorder::State AudioCaptureSession::state() const
 {
-    m_session->setMuted(muted);
+    return m_state;
 }
 
-void AudioMediaRecorderControl::setVolume(qreal volume)
+void AudioCaptureSession::setStatus(QMediaRecorder::Status status)
 {
-    m_session->setVolume(volume);
+    if (m_status == status)
+        return;
+
+    m_status = status;
+    emit statusChanged(m_status);
+}
+
+QMediaRecorder::Status AudioCaptureSession::status() const
+{
+    return m_status;
+}
+
+QDir AudioCaptureSession::defaultDir() const
+{
+    QStringList dirCandidates;
+
+    dirCandidates << QDir::home().filePath("Documents");
+    dirCandidates << QDir::home().filePath("My Documents");
+    dirCandidates << QDir::homePath();
+    dirCandidates << QDir::currentPath();
+    dirCandidates << QDir::tempPath();
+
+    for (const QString &path : qAsConst(dirCandidates)) {
+        QDir dir(path);
+        if (dir.exists() && QFileInfo(path).isWritable())
+            return dir;
+    }
+
+    return QDir();
+}
+
+QString AudioCaptureSession::generateFileName(const QString &requestedName,
+                                              const QString &extension) const
+{
+    if (requestedName.isEmpty())
+        return generateFileName(defaultDir(), extension);
+
+    QString path = requestedName;
+
+    if (QFileInfo(path).isRelative())
+        path = defaultDir().absoluteFilePath(path);
+
+    if (QFileInfo(path).isDir())
+        return generateFileName(QDir(path), extension);
+
+    if (!path.endsWith(extension))
+        path.append(QString(".%1").arg(extension));
+
+    return path;
+}
+
+QString AudioCaptureSession::generateFileName(const QDir &dir,
+                                              const QString &ext) const
+{
+    int lastClip = 0;
+    const auto list = dir.entryList(QStringList() << QString("clip_*.%1").arg(ext));
+    for (const QString &fileName : list) {
+        int imgNumber = QStringView{fileName}.mid(5, fileName.size()-6-ext.length()).toInt();
+        lastClip = qMax(lastClip, imgNumber);
+    }
+
+    QString name = QString("clip_%1.%2").arg(lastClip+1,
+                                     4, //fieldWidth
+                                     10,
+                                     QLatin1Char('0')).arg(ext);
+
+    return dir.absoluteFilePath(name);
+}
+
+void AudioCaptureSession::record()
+{
+    if (m_status == QMediaRecorder::PausedStatus) {
+        m_audioInput->resume();
+    } else {
+        if (m_deviceInfo.isNull()) {
+            emit error(QMediaRecorder::ResourceError,
+                       QStringLiteral("No input device available."));
+            m_state = QMediaRecorder::StoppedState;
+            emit stateChanged(m_state);
+            setStatus(QMediaRecorder::UnavailableStatus);
+            return;
+        }
+
+        setStatus(QMediaRecorder::LoadingStatus);
+
+        m_format = m_deviceInfo.nearestFormat(m_format);
+        m_audioInput = new QAudioInput(m_deviceInfo, m_format);
+        connect(m_audioInput, SIGNAL(stateChanged(QAudio::State)),
+                this, SLOT(audioInputStateChanged(QAudio::State)));
+        connect(m_audioInput, SIGNAL(notify()),
+                this, SLOT(notify()));
+
+
+        QString filePath = generateFileName(
+                    m_requestedOutputLocation.isLocalFile() ? m_requestedOutputLocation.toLocalFile()
+                                                   : m_requestedOutputLocation.toString(),
+                    m_wavFile ? QLatin1String("wav")
+                              : QLatin1String("raw"));
+
+        m_actualOutputLocation = QUrl::fromLocalFile(filePath);
+        if (m_actualOutputLocation != m_requestedOutputLocation)
+            emit actualLocationChanged(m_actualOutputLocation);
+
+        file.setFileName(filePath);
+
+        setStatus(QMediaRecorder::LoadedStatus);
+        setStatus(QMediaRecorder::StartingStatus);
+
+        if (file.open(QIODevice::WriteOnly)) {
+            if (m_wavFile) {
+                memset(&header,0,sizeof(CombinedHeader));
+                memcpy(header.riff.descriptor.id,"RIFF",4);
+                header.riff.descriptor.size = 0xFFFFFFFF; // This should be updated on stop(), filesize-8
+                memcpy(header.riff.type,"WAVE",4);
+                memcpy(header.wave.descriptor.id,"fmt ",4);
+                header.wave.descriptor.size = 16;
+                header.wave.audioFormat = 1; // for PCM data
+                header.wave.numChannels = m_format.channelCount();
+                header.wave.sampleRate = m_format.sampleRate();
+                header.wave.byteRate = m_format.sampleRate()*m_format.channelCount()*m_format.sampleSize()/8;
+                header.wave.blockAlign = m_format.channelCount()*m_format.sampleSize()/8;
+                header.wave.bitsPerSample = m_format.sampleSize();
+                memcpy(header.data.descriptor.id,"data",4);
+                header.data.descriptor.size = 0xFFFFFFFF; // This should be updated on stop(),samples*channels*sampleSize/8
+                file.write((char*)&header,sizeof(CombinedHeader));
+            }
+
+            setVolumeHelper(m_muted ? 0 : m_volume);
+
+            file.startProbes(m_format);
+            m_audioInput->start(qobject_cast<QIODevice*>(&file));
+        } else {
+            delete m_audioInput;
+            m_audioInput = 0;
+            emit error(QMediaRecorder::ResourceError,
+                       QStringLiteral("Can't open output location"));
+            m_state = QMediaRecorder::StoppedState;
+            emit stateChanged(m_state);
+            setStatus(QMediaRecorder::UnloadedStatus);
+        }
+    }
+}
+
+void AudioCaptureSession::pause()
+{
+    m_audioInput->suspend();
+}
+
+void AudioCaptureSession::stop()
+{
+    if(m_audioInput) {
+        m_audioInput->stop();
+        file.stopProbes();
+        file.close();
+        if (m_wavFile) {
+            qint32 fileSize = file.size();
+            file.open(QIODevice::ReadWrite | QIODevice::Unbuffered);
+            file.read((char*)&header,sizeof(CombinedHeader));
+            header.riff.descriptor.size = fileSize - 8; // The RIFF chunk size is the file size minus
+                                                        // the first two RIFF fields (8 bytes)
+            header.data.descriptor.size = fileSize - 44; // dataSize = fileSize - headerSize (44 bytes)
+            file.seek(0);
+            file.write((char*)&header,sizeof(CombinedHeader));
+            file.close();
+        }
+        delete m_audioInput;
+        m_audioInput = 0;
+        setStatus(QMediaRecorder::UnloadedStatus);
+    }
+}
+
+void AudioCaptureSession::addProbe(AudioCaptureProbeControl *probe)
+{
+    file.addProbe(probe);
+}
+
+void AudioCaptureSession::removeProbe(AudioCaptureProbeControl *probe)
+{
+    file.removeProbe(probe);
+}
+
+void AudioCaptureSession::audioInputStateChanged(QAudio::State state)
+{
+    switch(state) {
+    case QAudio::ActiveState:
+        setStatus(QMediaRecorder::RecordingStatus);
+        break;
+    case QAudio::SuspendedState:
+        setStatus(QMediaRecorder::PausedStatus);
+        break;
+    case QAudio::StoppedState:
+        setStatus(QMediaRecorder::FinalizingStatus);
+        break;
+    default:
+        break;
+    }
+}
+
+void AudioCaptureSession::notify()
+{
+    emit durationChanged(duration());
+}
+
+void AudioCaptureSession::setCaptureDevice(const QString &deviceName)
+{
+    m_captureDevice = deviceName;
+
+    QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+    for (int i = 0; i < devices.size(); ++i) {
+        QAudioDeviceInfo info = devices.at(i);
+        if (m_captureDevice == info.deviceName()){
+            m_deviceInfo = info;
+            return;
+        }
+    }
+    m_deviceInfo = QAudioDeviceInfo::defaultInputDevice();
+}
+
+qreal AudioCaptureSession::volume() const
+{
+    return m_volume;
+}
+
+bool AudioCaptureSession::isMuted() const
+{
+    return m_muted;
+}
+
+void AudioCaptureSession::setVolume(qreal v)
+{
+    qreal boundedVolume = qBound(qreal(0), v, qreal(1));
+
+    if (m_volume == boundedVolume)
+        return;
+
+    m_volume = boundedVolume;
+
+    if (!m_muted)
+        setVolumeHelper(m_volume);
+
+    emit volumeChanged(m_volume);
+}
+
+void AudioCaptureSession::setMuted(bool muted)
+{
+    if (m_muted == muted)
+        return;
+
+    m_muted = muted;
+
+    setVolumeHelper(m_muted ? 0 : m_volume);
+
+    emit mutedChanged(m_muted);
+}
+
+void AudioCaptureSession::setVolumeHelper(qreal volume)
+{
+    if (!m_audioInput)
+        return;
+
+    m_audioInput->setVolume(volume);
 }
 
 QT_END_NAMESPACE

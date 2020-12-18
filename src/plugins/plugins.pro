@@ -28,13 +28,11 @@ win32: {
 
 qtConfig(gstreamer): SUBDIRS += gstreamer
 
-unix:!mac:!android {
-    !qtConfig(gstreamer): SUBDIRS += audiocapture
-}
+unix:!mac:!android:!qtConfig(gstreamer): SUBDIRS += audiocapture
 
 darwin:!watchos {
-    SUBDIRS += audiocapture
     qtConfig(avfoundation): SUBDIRS += avfoundation
+    SUBDIRS += audiocapture
 }
 
 

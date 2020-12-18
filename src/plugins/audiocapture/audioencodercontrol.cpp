@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "audioencodercontrol.h"
-#include "audiocapturesession.h"
+#include "audiomediarecordercontrol.h"
 
 #include <qaudioformat.h>
 

@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "audiocontainercontrol.h"
-#include "audiocapturesession.h"
+#include "audiomediarecordercontrol.h"
 
 QT_BEGIN_NAMESPACE
 

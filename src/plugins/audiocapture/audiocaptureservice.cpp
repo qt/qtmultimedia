@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "audiocaptureservice.h"
-#include "audiocapturesession.h"
 #include "audioinputselector.h"
 #include "audioencodercontrol.h"
 #include "audiocontainercontrol.h"
@@ -50,11 +49,10 @@ QT_BEGIN_NAMESPACE
 AudioCaptureService::AudioCaptureService(QObject *parent):
     QMediaService(parent)
 {
-    m_session = new AudioCaptureSession(this);
-    m_encoderControl  = new AudioEncoderControl(m_session);
-    m_containerControl = new AudioContainerControl(m_session);
-    m_mediaControl   = new AudioMediaRecorderControl(m_session);
-    m_inputSelector  = new AudioInputSelector(m_session);
+    m_mediaControl = new AudioCaptureSession(this);
+    m_encoderControl  = new AudioEncoderControl(m_mediaControl);
+    m_containerControl = new AudioContainerControl(m_mediaControl);
+    m_inputSelector  = new AudioInputSelector(m_mediaControl);
 }
 
 AudioCaptureService::~AudioCaptureService()
@@ -63,7 +61,6 @@ AudioCaptureService::~AudioCaptureService()
     delete m_containerControl;
     delete m_inputSelector;
     delete m_mediaControl;
-    delete m_session;
 }
 
 QMediaControl *AudioCaptureService::requestControl(const char *name)
@@ -82,7 +79,7 @@ QMediaControl *AudioCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
         AudioCaptureProbeControl *probe = new AudioCaptureProbeControl(this);
-        m_session->addProbe(probe);
+        m_mediaControl->addProbe(probe);
         return probe;
     }
 

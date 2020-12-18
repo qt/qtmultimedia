@@ -7,7 +7,6 @@ HEADERS += audioencodercontrol.h \
     audioinputselector.h \
     audiocaptureservice.h \
     audiocaptureserviceplugin.h \
-    audiocapturesession.h \
     audiocaptureprobecontrol.h
 
 SOURCES += audioencodercontrol.cpp \
@@ -16,7 +15,6 @@ SOURCES += audioencodercontrol.cpp \
     audioinputselector.cpp \
     audiocaptureservice.cpp \
     audiocaptureserviceplugin.cpp \
-    audiocapturesession.cpp \
     audiocaptureprobecontrol.cpp
 
 OTHER_FILES += \

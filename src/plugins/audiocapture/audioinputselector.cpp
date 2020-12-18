@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "audiocapturesession.h"
+#include "audiomediarecordercontrol.h"
 #include "audioinputselector.h"
 
 #include <qaudiodeviceinfo.h>

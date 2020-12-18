@@ -62,11 +62,10 @@ public:
     QMediaControl *requestControl(const char *interface);
     void releaseControl(QMediaControl *control);
 private:
-    AudioCaptureSession       *m_session;
     AudioEncoderControl       *m_encoderControl;
     AudioContainerControl     *m_containerControl;
     AudioInputSelector        *m_inputSelector;
-    AudioMediaRecorderControl *m_mediaControl;
+    AudioCaptureSession *m_mediaControl;
 };
 
 QT_END_NAMESPACE
