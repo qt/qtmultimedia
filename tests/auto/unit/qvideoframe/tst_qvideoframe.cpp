@@ -1226,7 +1226,6 @@ void tst_QVideoFrame::image_data()
             << 16384
             << 256
             << QImage::Format_ARGB32;
-#if !QT_CONFIG(directshow)
     QTest::newRow("64x64 AYUV444")
             << QSize(64, 64)
             << QVideoFrame::Format_AYUV444
@@ -1282,7 +1281,6 @@ void tst_QVideoFrame::image_data()
             << 16384
             << 256
             << QImage::Format_ARGB32;
-#endif
 }
 
 void tst_QVideoFrame::image()

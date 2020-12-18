@@ -10,7 +10,6 @@
         "options": {
             "alsa": "boolean",
             "evr": { "type": "boolean" },
-            "directshow": { "type": "boolean" },
             "wmf": { "type": "boolean" },
             "gstreamer": { "type": "optionalString", "values": [ "no", "yes" ] },
             "pulseaudio": "boolean"
@@ -30,13 +29,6 @@
             "test": "avfoundation",
             "sources": [
                 { "libs": "-framework AVFoundation -framework Foundation" }
-            ]
-        },
-        "directshow": {
-            "label": "DirectShow",
-            "test": "directshow",
-            "sources": [
-                { "libs": "-lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32" }
             ]
         },
         "gstreamer_1_0": {
@@ -131,11 +123,6 @@
             "label": "wmsdk.h",
             "type": "compile",
             "test": "wmsdk"
-        },
-        "wshellitem": {
-            "label": "WShellItem",
-            "type": "compile",
-            "test": "wshellitem"
         }
     },
 
@@ -149,11 +136,6 @@
             "label": "AVFoundation",
             "emitIf": "config.darwin",
             "condition": "libs.avfoundation",
-            "output": [ "feature", "privateFeature" ]
-        },
-        "directshow": {
-            "label": "DirectShow",
-            "condition": "config.win32 && libs.directshow",
             "output": [ "feature", "privateFeature" ]
         },
         "evr": {
@@ -219,11 +201,6 @@
             "condition": "config.win32 && tests.wmsdk",
             "output": [ "privateFeature" ]
         },
-        "wshellitem": {
-            "label": "WShellItem",
-            "condition": "config.win32 && features.directshow && tests.wshellitem",
-            "output": [ "feature", "privateFeature" ]
-        },
         "wmf": {
             "label": "Windows Media Foundation",
             "condition": "config.win32 && libs.wmf",
@@ -244,7 +221,6 @@
                 "pulseaudio",
                 "mmrenderer",
                 "avfoundation",
-                "directshow",
                 "wmf"
             ]
         }

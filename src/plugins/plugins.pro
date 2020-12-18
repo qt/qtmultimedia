@@ -23,7 +23,6 @@ qnx {
 win32: {
     SUBDIRS += audiocapture
 
-    qtConfig(directshow): SUBDIRS += directshow
     qtConfig(wmf): SUBDIRS += wmf
 }
 

@@ -797,10 +797,8 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     {
         QVideoFrame frame = surface->m_frameList.back();
-#if !QT_CONFIG(directshow)
         const qint64 elapsed = (frame.startTime() / 1000) - position; // frame.startTime() is microsecond, position is milliseconds.
         QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
-#endif
         QCOMPARE(frame.width(), 160);
         QCOMPARE(frame.height(), 120);
 
@@ -824,10 +822,8 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     {
         QVideoFrame frame = surface->m_frameList.back();
-#if !QT_CONFIG(directshow)
         const qint64 elapsed = (frame.startTime() / 1000) - position;
         QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
-#endif
         QCOMPARE(frame.width(), 160);
         QCOMPARE(frame.height(), 120);
 
@@ -1362,10 +1358,8 @@ void tst_QMediaPlayerBackend::surfaceTest_data()
     QTest::newRow("RGB formats")
             << formatsRGB;
 
-#if !QT_CONFIG(directshow)
     QTest::newRow("YVU formats")
             << formatsYUV;
-#endif
 
     QTest::newRow("RGB & YUV formats")
             << formatsRGB + formatsYUV;
