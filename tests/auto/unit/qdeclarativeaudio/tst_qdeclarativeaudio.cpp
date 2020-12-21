@@ -276,9 +276,7 @@ public:
         setDefaultServiceProvider(0);
     }
 
-    QMediaService *requestService(
-            const QByteArray &type,
-            const QMediaServiceProviderHint & = QMediaServiceProviderHint())
+    QMediaService *requestService(const QByteArray &type)
     {
         requestedService = type;
 

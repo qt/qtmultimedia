@@ -57,51 +57,6 @@ class QString;
 
 class QMediaService;
 
-class QMediaServiceProviderHintPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaServiceProviderHint
-{
-public:
-    enum Type { Null, ContentType, Device, SupportedFeatures };
-
-    enum Feature {
-        LowLatencyPlayback = 0x01,
-        RecordingSupport = 0x02,
-        StreamPlayback = 0x04,
-        VideoSurface = 0x08
-    };
-    Q_DECLARE_FLAGS(Features, Feature)
-
-    QMediaServiceProviderHint();
-    QMediaServiceProviderHint(const QString &mimeType, const QStringList& codecs);
-    QMediaServiceProviderHint(const QByteArray &device);
-    QMediaServiceProviderHint(Features features);
-    QMediaServiceProviderHint(const QMediaServiceProviderHint &other);
-    ~QMediaServiceProviderHint();
-
-    QMediaServiceProviderHint& operator=(const QMediaServiceProviderHint &other);
-
-    bool operator == (const QMediaServiceProviderHint &other) const;
-    bool operator != (const QMediaServiceProviderHint &other) const;
-
-    bool isNull() const;
-
-    Type type() const;
-
-    QString mimeType() const;
-    QStringList codecs() const;
-
-    QByteArray device() const;
-
-    Features features() const;
-
-    //to be extended, if necessary
-
-private:
-    QSharedDataPointer<QMediaServiceProviderHintPrivate> d;
-};
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(QMediaServiceProviderHint::Features)
-
 // Required for QDoc workaround
 class QString;
 
@@ -164,10 +119,19 @@ class QString;
 
 struct Q_MULTIMEDIA_EXPORT QMediaServiceFeaturesInterface
 {
+    enum Feature {
+        LowLatencyPlayback = 0x01,
+        RecordingSupport = 0x02,
+        StreamPlayback = 0x04,
+        VideoSurface = 0x08
+    };
+    Q_DECLARE_FLAGS(Features, Feature)
+
     virtual ~QMediaServiceFeaturesInterface() {}
-    virtual QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const = 0;
+    virtual QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const = 0;
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS(QMediaServiceFeaturesInterface::Features)
 
 #define QMediaServiceFeaturesInterface_iid \
     "org.qt-project.qt.mediaservicefeatures/5.0"

@@ -42,7 +42,7 @@ public:
     {
     }
 
-    QMediaService *requestService(const QByteArray &, const QMediaServiceProviderHint &)
+    QMediaService *requestService(const QByteArray &)
     {
         return service;
     }
@@ -55,12 +55,12 @@ public:
         }
     }
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *) const
+    QMediaServiceFeaturesInterface::Features supportedFeatures(const QMediaService *) const
     {
         return features;
     }
 
-    void setSupportedFeatures(QMediaServiceProviderHint::Features f)
+    void setSupportedFeatures(QMediaServiceFeaturesInterface::Features f)
     {
         features = f;
     }
@@ -91,7 +91,7 @@ public:
 
     QMediaService *service;
     bool deleteServiceOnRelease;
-    QMediaServiceProviderHint::Features features;
+    QMediaServiceFeaturesInterface::Features features;
 };
 
 #endif // MOCKMEDIASERVICEPROVIDER_H

@@ -73,11 +73,11 @@ public:
         return QStringList() << "video/mp4" << "video/quicktime";
     }
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const
+    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const
     {
-        QMediaServiceProviderHint::Features result;
+        QMediaServiceFeaturesInterface::Features result;
         if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))
-            result |= QMediaServiceProviderHint::StreamPlayback;
+            result |= QMediaServiceFeaturesInterface::StreamPlayback;
         return result;
     }
 };

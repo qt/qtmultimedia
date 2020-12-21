@@ -68,12 +68,12 @@ void AVFMediaPlayerServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-QMediaServiceProviderHint::Features AVFMediaPlayerServicePlugin::supportedFeatures(const QByteArray &service) const
+QMediaServiceFeaturesInterface::Features AVFMediaPlayerServicePlugin::supportedFeatures(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::VideoSurface;
+        return QMediaServiceFeaturesInterface::VideoSurface;
     else
-        return QMediaServiceProviderHint::Features();
+        return QMediaServiceFeaturesInterface::Features();
 }
 
 QMultimedia::SupportEstimate AVFMediaPlayerServicePlugin::hasSupport(const QString &mimeType, const QStringList &codecs) const

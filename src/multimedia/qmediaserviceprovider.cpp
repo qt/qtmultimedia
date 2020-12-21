@@ -53,227 +53,6 @@ QMediaServiceProviderFactoryInterface::~QMediaServiceProviderFactoryInterface()
 {
 }
 
-class QMediaServiceProviderHintPrivate : public QSharedData
-{
-public:
-    QMediaServiceProviderHintPrivate(QMediaServiceProviderHint::Type type)
-        : type(type)
-    {
-    }
-
-    QMediaServiceProviderHintPrivate(const QMediaServiceProviderHintPrivate &other)
-        :QSharedData(other),
-        type(other.type),
-        device(other.device),
-        mimeType(other.mimeType),
-        codecs(other.codecs),
-        features(other.features)
-    {
-    }
-
-    ~QMediaServiceProviderHintPrivate()
-    {
-    }
-
-    QMediaServiceProviderHint::Type type;
-    QByteArray device;
-    QString mimeType;
-    QStringList codecs;
-    QMediaServiceProviderHint::Features features;
-};
-
-/*!
-    \class QMediaServiceProviderHint
-    \obsolete
-
-    \brief The QMediaServiceProviderHint class describes what is required of a QMediaService.
-
-    \inmodule QtMultimedia
-
-    \ingroup multimedia
-    \ingroup multimedia_control
-    \ingroup multimedia_core
-
-    \internal
-
-    The QMediaServiceProvider class uses hints to select an appropriate media service.
-*/
-
-/*!
-    \enum QMediaServiceProviderHint::Feature
-
-    Enumerates features a media service may provide.
-
-    \value LowLatencyPlayback
-            The service is expected to play simple audio formats,
-            but playback should start without significant delay.
-            Such playback service can be used for beeps, ringtones, etc.
-
-    \value RecordingSupport
-            The service provides audio or video recording functions.
-
-    \value StreamPlayback
-            The service is capable of playing QIODevice based streams.
-
-    \value VideoSurface
-            The service is capable of renderering to a QAbstractVideoSurface
-            output.
-*/
-
-/*!
-    \enum QMediaServiceProviderHint::Type
-
-    Enumerates the possible types of media service provider hint.
-
-    \value Null               En empty hint, use the default service.
-    \value ContentType        Select media service most suitable for certain content type.
-    \value Device             Select media service which supports certain device.
-    \value SupportedFeatures  Select media service supporting the set of optional features.
-    \value CameraPosition     Select media service having a camera at a specified position.
-*/
-
-
-/*!
-    Constructs an empty media service provider hint.
-*/
-QMediaServiceProviderHint::QMediaServiceProviderHint()
-    :d(new QMediaServiceProviderHintPrivate(Null))
-{
-}
-
-/*!
-    Constructs a ContentType media service provider hint.
-
-    This type of hint describes a service that is able to play content of a specific MIME \a type
-    encoded with one or more of the listed \a codecs.
-*/
-QMediaServiceProviderHint::QMediaServiceProviderHint(const QString &type, const QStringList& codecs)
-    :d(new QMediaServiceProviderHintPrivate(ContentType))
-{
-    d->mimeType = type;
-    d->codecs = codecs;
-}
-
-/*!
-  Constructs a Device media service provider hint.
-
-  This type of hint describes a media service that utilizes a specific \a device.
-*/
-QMediaServiceProviderHint::QMediaServiceProviderHint(const QByteArray &device)
-    :d(new QMediaServiceProviderHintPrivate(Device))
-{
-    d->device = device;
-}
-
-/*!
-    Constructs a SupportedFeatures media service provider hint.
-
-    This type of hint describes a service which supports a specific set of \a features.
-*/
-QMediaServiceProviderHint::QMediaServiceProviderHint(QMediaServiceProviderHint::Features features)
-    :d(new QMediaServiceProviderHintPrivate(SupportedFeatures))
-{
-    d->features = features;
-}
-
-/*!
-    Constructs a copy of the media service provider hint \a other.
-*/
-QMediaServiceProviderHint::QMediaServiceProviderHint(const QMediaServiceProviderHint &other)
-    :d(other.d)
-{
-}
-
-/*!
-    Destroys a media service provider hint.
-*/
-QMediaServiceProviderHint::~QMediaServiceProviderHint()
-{
-}
-
-/*!
-    Assigns the value \a other to a media service provider hint.
-*/
-QMediaServiceProviderHint& QMediaServiceProviderHint::operator=(const QMediaServiceProviderHint &other)
-{
-    d = other.d;
-    return *this;
-}
-
-/*!
-    Identifies if \a other is of equal value to a media service provider hint.
-
-    Returns true if the hints are equal, and false if they are not.
-*/
-bool QMediaServiceProviderHint::operator == (const QMediaServiceProviderHint &other) const
-{
-    return (d == other.d) ||
-           (d->type == other.d->type &&
-            d->device == other.d->device &&
-            d->mimeType == other.d->mimeType &&
-            d->codecs == other.d->codecs &&
-            d->features == other.d->features);
-}
-
-/*!
-    Identifies if \a other is not of equal value to a media service provider hint.
-
-    Returns true if the hints are not equal, and false if they are.
-*/
-bool QMediaServiceProviderHint::operator != (const QMediaServiceProviderHint &other) const
-{
-    return !(*this == other);
-}
-
-/*!
-    Returns true if a media service provider is null.
-*/
-bool QMediaServiceProviderHint::isNull() const
-{
-    return d->type == Null;
-}
-
-/*!
-    Returns the type of a media service provider hint.
-*/
-QMediaServiceProviderHint::Type QMediaServiceProviderHint::type() const
-{
-    return d->type;
-}
-
-/*!
-    Returns the mime type of the media a service is expected to be able play.
-*/
-QString QMediaServiceProviderHint::mimeType() const
-{
-    return d->mimeType;
-}
-
-/*!
-    Returns a list of codes a media service is expected to be able to decode.
-*/
-QStringList QMediaServiceProviderHint::codecs() const
-{
-    return d->codecs;
-}
-
-/*!
-    Returns the name of a device a media service is expected to utilize.
-*/
-QByteArray QMediaServiceProviderHint::device() const
-{
-    return d->device;
-}
-
-/*!
-    Returns a set of features a media service is expected to provide.
-*/
-QMediaServiceProviderHint::Features QMediaServiceProviderHint::features() const
-{
-    return d->features;
-}
-
-
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, loader,
         (QMediaServiceProviderFactoryInterface_iid, QLatin1String("mediaservice"), Qt::CaseInsensitive))
 
@@ -290,90 +69,20 @@ class QPluginServiceProvider : public QMediaServiceProvider
     QMap<const QMediaService*, MediaServiceData> mediaServiceData;
 
 public:
-    QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint) override
+    QMediaService* requestService(const QByteArray &type) override
     {
         QString key(QLatin1String(type.constData()));
 
         QList<QMediaServiceProviderPlugin *>plugins;
         const auto instances = loader()->instances(key);
         for (QObject *obj : instances) {
-            QMediaServiceProviderPlugin *plugin =
-                qobject_cast<QMediaServiceProviderPlugin*>(obj);
+            QMediaServiceProviderPlugin *plugin = qobject_cast<QMediaServiceProviderPlugin*>(obj);
             if (plugin)
                 plugins << plugin;
         }
 
         if (!plugins.isEmpty()) {
-            QMediaServiceProviderPlugin *plugin = nullptr;
-
-            switch (hint.type()) {
-            case QMediaServiceProviderHint::Null:
-                plugin = plugins[0];
-                //special case for media player, if low latency was not asked,
-                //prefer services not offering it, since they are likely to support
-                //more formats
-                if (type == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER)) {
-                    for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
-                        QMediaServiceFeaturesInterface *iface =
-                                qobject_cast<QMediaServiceFeaturesInterface*>(currentPlugin);
-
-                        if (!iface || !(iface->supportedFeatures(type) &
-                                        QMediaServiceProviderHint::LowLatencyPlayback)) {
-                            plugin = currentPlugin;
-                            break;
-                        }
-
-                    }
-                }
-                break;
-            case QMediaServiceProviderHint::SupportedFeatures:
-                plugin = plugins[0];
-                for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
-                    QMediaServiceFeaturesInterface *iface =
-                            qobject_cast<QMediaServiceFeaturesInterface*>(currentPlugin);
-
-                    if (iface) {
-                        if ((iface->supportedFeatures(type) & hint.features()) == hint.features()) {
-                            plugin = currentPlugin;
-                            break;
-                        }
-                    }
-                }
-                break;
-            case QMediaServiceProviderHint::Device: {
-                    plugin = plugins[0];
-                    for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
-                        QMediaServiceSupportedDevicesInterface *iface =
-                                qobject_cast<QMediaServiceSupportedDevicesInterface*>(currentPlugin);
-
-                        if (iface && iface->devices(type).contains(hint.device())) {
-                            plugin = currentPlugin;
-                            break;
-                        }
-                    }
-                }
-                break;
-            case QMediaServiceProviderHint::ContentType: {
-                    QMultimedia::SupportEstimate estimate = QMultimedia::NotSupported;
-                    for (QMediaServiceProviderPlugin *currentPlugin : qAsConst(plugins)) {
-                        QMultimedia::SupportEstimate currentEstimate = QMultimedia::MaybeSupported;
-                        QMediaServiceSupportedFormatsInterface *iface =
-                                qobject_cast<QMediaServiceSupportedFormatsInterface*>(currentPlugin);
-
-                        if (iface)
-                            currentEstimate = iface->hasSupport(hint.mimeType(), hint.codecs());
-
-                        if (currentEstimate > estimate) {
-                            estimate = currentEstimate;
-                            plugin = currentPlugin;
-
-                            if (currentEstimate == QMultimedia::PreferredService)
-                                break;
-                        }
-                    }
-                }
-                break;
-            }
+            QMediaServiceProviderPlugin *plugin = plugins[0];
 
             if (plugin != nullptr) {
                 QMediaService *service = plugin->create(key);
@@ -402,7 +111,7 @@ public:
         }
     }
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *service) const override
+    QMediaServiceFeaturesInterface::Features supportedFeatures(const QMediaService *service) const override
     {
         if (service) {
             MediaServiceData d = mediaServiceData.value(service);
@@ -416,7 +125,7 @@ public:
             }
         }
 
-        return QMediaServiceProviderHint::Features();
+        return QMediaServiceFeaturesInterface::Features();
     }
 
     QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
@@ -442,17 +151,17 @@ public:
                         qobject_cast<QMediaServiceFeaturesInterface*>(obj);
 
                 if (iface) {
-                    QMediaServiceProviderHint::Features features = iface->supportedFeatures(serviceType);
+                    QMediaServiceFeaturesInterface::Features features = iface->supportedFeatures(serviceType);
 
                     //if low latency playback was asked, skip services known
                     //not to provide low latency playback
                     if ((flags & QMediaPlayer::LowLatency) &&
-                        !(features & QMediaServiceProviderHint::LowLatencyPlayback))
+                        !(features & QMediaServiceFeaturesInterface::LowLatencyPlayback))
                             continue;
 
                     //the same for QIODevice based streams support
                     if ((flags & QMediaPlayer::StreamPlayback) &&
-                        !(features & QMediaServiceProviderHint::StreamPlayback))
+                        !(features & QMediaServiceFeaturesInterface::StreamPlayback))
                             continue;
                 }
             }
@@ -490,22 +199,22 @@ public:
                         qobject_cast<QMediaServiceFeaturesInterface*>(obj);
 
                 if (iface) {
-                    QMediaServiceProviderHint::Features features = iface->supportedFeatures(serviceType);
+                    QMediaServiceFeaturesInterface::Features features = iface->supportedFeatures(serviceType);
 
                     // If low latency playback was asked for, skip MIME types from services known
                     // not to provide low latency playback
                     if ((flags & QMediaPlayer::LowLatency) &&
-                        !(features & QMediaServiceProviderHint::LowLatencyPlayback))
+                        !(features & QMediaServiceFeaturesInterface::LowLatencyPlayback))
                         continue;
 
                     //the same for QIODevice based streams support
                     if ((flags & QMediaPlayer::StreamPlayback) &&
-                        !(features & QMediaServiceProviderHint::StreamPlayback))
+                        !(features & QMediaServiceFeaturesInterface::StreamPlayback))
                             continue;
 
                     //the same for QAbstractVideoSurface support
                     if ((flags & QMediaPlayer::VideoSurface) &&
-                        !(features & QMediaServiceProviderHint::VideoSurface))
+                        !(features & QMediaServiceFeaturesInterface::VideoSurface))
                             continue;
                 }
             }
@@ -579,7 +288,7 @@ public:
 
     QCamera::Position cameraPosition(const QByteArray &device) const override
     {
-        QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA, QMediaServiceProviderHint());
+        QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA);
         auto *deviceControl = qobject_cast<QVideoDeviceSelectorControl *>(service->requestControl(QVideoDeviceSelectorControl_iid));
         auto pos = QCamera::UnspecifiedPosition;
         for (int i = 0; i < deviceControl->deviceCount(); i++) {
@@ -594,7 +303,7 @@ public:
 
     int cameraOrientation(const QByteArray &device) const override
     {
-        QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA, QMediaServiceProviderHint());
+        QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA);
         auto *deviceControl = qobject_cast<QVideoDeviceSelectorControl *>(service->requestControl(QVideoDeviceSelectorControl_iid));
         int orientation = 0;
         for (int i = 0; i < deviceControl->deviceCount(); i++) {
@@ -624,7 +333,7 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 
 /*!
     \internal
-    \fn QMediaServiceProvider::requestService(const QByteArray &type, const QMediaServiceProviderHint &hint)
+    \fn QMediaServiceProvider::requestService(const QByteArray &type)
 
     Requests an instance of a \a type service which best matches the given \a
     hint.
@@ -649,7 +358,7 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 
     Returns the features supported by a given \a service.
 */
-QMediaServiceProviderHint::Features QMediaServiceProvider::supportedFeatures(const QMediaService *service) const
+QMediaServiceFeaturesInterface::Features QMediaServiceProvider::supportedFeatures(const QMediaService *service) const
 {
     Q_UNUSED(service);
 

@@ -121,7 +121,6 @@ private slots:
     void testSetVideoOutputDestruction();
     void testPositionPropertyWatch();
     void debugEnums();
-    void testPlayerFlags();
     void testDestructor();
     void testSupportedMimeTypes();
     void testQrc_data();
@@ -994,54 +993,6 @@ void tst_QMediaPlayer::testPlaylist()
     delete playlist2;
 }
 
-void tst_QMediaPlayer::testPlayerFlags()
-{
-    MockMediaServiceProvider provider(0, true);
-    QMediaPlayer::Flag flags = QMediaPlayer::LowLatency;
-
-    QMediaServiceProviderHint::Feature feature;
-
-    if (flags & QMediaPlayer::LowLatency)
-    {
-        /* if the flag is low latency set the low latency play back for the service provider */
-        feature = QMediaServiceProviderHint::LowLatencyPlayback;
-        const QByteArray service(Q_MEDIASERVICE_MEDIAPLAYER);
-        const QMediaServiceProviderHint providerHint(feature);
-        /* request service for the service provider */
-        provider.requestService(service,providerHint);
-
-        /* Constructs a SupportedFeatures  media service provider hint. */
-        QMediaServiceProviderHint servicepro(feature);
-
-        /* compare the flag value */
-        QVERIFY(servicepro.features() == QMediaServiceProviderHint::LowLatencyPlayback);
-    }
-
-    /* The player is expected to play QIODevice based streams.
-        If passed to QMediaPlayer  constructor,
-        the service supporting streams playback will be chosen. */
-    flags = QMediaPlayer::StreamPlayback;
-    /* Construct a QMediaPlayer  that uses the playback service from provider,
-        parented to parent  and with flags.*/
-
-    if (flags & QMediaPlayer::StreamPlayback)
-    {
-        /* if the flag is stream play back set the stream play back for the service provider */
-        feature = QMediaServiceProviderHint::StreamPlayback;
-        const QByteArray service(Q_MEDIASERVICE_MEDIAPLAYER);
-        const QMediaServiceProviderHint providerHint(feature);
-
-        /* request service for the service provider */
-        provider.requestService(service,providerHint);
-
-        /* Constructs a SupportedFeatures media service provider hint. */
-        QMediaServiceProviderHint servicepro(feature);
-
-        /* compare the flag value */
-        QVERIFY(servicepro.features() == QMediaServiceProviderHint::StreamPlayback);
-    }
-}
-
 void tst_QMediaPlayer::testDestructor()
 {
     //don't use the same service as tst_QMediaPlayer::player
@@ -1231,7 +1182,7 @@ void tst_QMediaPlayer::testQrc()
     QFETCH(bool, backendHasStream);
 
     if (hasStreamFeature)
-        mockProvider->setSupportedFeatures(QMediaServiceProviderHint::StreamPlayback);
+        mockProvider->setSupportedFeatures(QMediaServiceFeaturesInterface::StreamPlayback);
 
     QMediaPlayer player;
 

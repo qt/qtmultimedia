@@ -55,7 +55,7 @@ public:
 
     QMediaService *create(const QString &key) override;
     void release(QMediaService *service) override;
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
+    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override;
 };
 
 QT_END_NAMESPACE

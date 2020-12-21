@@ -67,10 +67,10 @@ class Q_MULTIMEDIA_EXPORT QMediaServiceProvider : public QObject
     Q_OBJECT
 
 public:
-    virtual QMediaService* requestService(const QByteArray &type, const QMediaServiceProviderHint &hint = QMediaServiceProviderHint()) = 0;
+    virtual QMediaService* requestService(const QByteArray &type) = 0;
     virtual void releaseService(QMediaService *service) = 0;
 
-    virtual QMediaServiceProviderHint::Features supportedFeatures(const QMediaService *service) const;
+    virtual QMediaServiceFeaturesInterface::Features supportedFeatures(const QMediaService *service) const;
 
     virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
                                              const QString &mimeType,

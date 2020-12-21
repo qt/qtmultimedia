@@ -66,17 +66,17 @@ void QGstreamerPlayerServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-QMediaServiceProviderHint::Features QGstreamerPlayerServicePlugin::supportedFeatures(
+QMediaServiceFeaturesInterface::Features QGstreamerPlayerServicePlugin::supportedFeatures(
         const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
         return
 #if QT_CONFIG(gstreamer_app)
-                QMediaServiceProviderHint::StreamPlayback |
+                QMediaServiceFeaturesInterface::StreamPlayback |
 #endif
-                QMediaServiceProviderHint::VideoSurface;
+                QMediaServiceFeaturesInterface::VideoSurface;
     else
-        return QMediaServiceProviderHint::Features();
+        return QMediaServiceFeaturesInterface::Features();
 }
 
 QMultimedia::SupportEstimate QGstreamerPlayerServicePlugin::hasSupport(const QString &mimeType,

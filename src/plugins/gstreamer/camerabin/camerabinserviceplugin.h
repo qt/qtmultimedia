@@ -66,7 +66,7 @@ public:
     QMediaService* create(const QString &key) override;
     void release(QMediaService *service) override;
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const override;
+    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override;
 
     QByteArray defaultDevice(const QByteArray &service) const override;
     QList<QByteArray> devices(const QByteArray &service) const override;

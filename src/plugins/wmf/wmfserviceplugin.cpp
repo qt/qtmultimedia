@@ -91,13 +91,13 @@ void WMFServicePlugin::release(QMediaService *service)
     releaseRefCount();
 }
 
-QMediaServiceProviderHint::Features WMFServicePlugin::supportedFeatures(
+QMediaServiceFeaturesInterface::Features WMFServicePlugin::supportedFeatures(
         const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::StreamPlayback;
+        return QMediaServiceFeaturesInterface::StreamPlayback;
     else
-        return QMediaServiceProviderHint::Features();
+        return QMediaServiceFeaturesInterface::Features();
 }
 
 QByteArray WMFServicePlugin::defaultDevice(const QByteArray &) const

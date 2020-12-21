@@ -327,7 +327,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
     to that media.
 
     Qt resource files are never passed as is. If the service supports
-    QMediaServiceProviderHint::StreamPlayback, a \a stream is supplied, pointing to an opened
+    QMediaServiceFeaturesInterface::StreamPlayback, a \a stream is supplied, pointing to an opened
     QFile. Otherwise, the resource is copied into a temporary file and \a media contains the
     url to that file.
 */

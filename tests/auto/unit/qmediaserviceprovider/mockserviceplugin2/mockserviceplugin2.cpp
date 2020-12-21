@@ -72,11 +72,11 @@ public:
         return QStringList("audio/wav");
     }
 
-    QMediaServiceProviderHint::Features supportedFeatures(const QByteArray &service) const
+    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const
     {
-        QMediaServiceProviderHint::Features result;
+        QMediaServiceFeaturesInterface::Features result;
         if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))
-            result |= QMediaServiceProviderHint::LowLatencyPlayback;
+            result |= QMediaServiceFeaturesInterface::LowLatencyPlayback;
         return result;
     }
 };

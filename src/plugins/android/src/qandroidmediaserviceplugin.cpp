@@ -82,18 +82,18 @@ void QAndroidMediaServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-QMediaServiceProviderHint::Features QAndroidMediaServicePlugin::supportedFeatures(const QByteArray &service) const
+QMediaServiceFeaturesInterface::Features QAndroidMediaServicePlugin::supportedFeatures(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_MEDIAPLAYER)
-        return QMediaServiceProviderHint::VideoSurface;
+        return QMediaServiceFeaturesInterface::VideoSurface;
 
     if (service == Q_MEDIASERVICE_CAMERA)
-        return QMediaServiceProviderHint::VideoSurface | QMediaServiceProviderHint::RecordingSupport;
+        return QMediaServiceFeaturesInterface::VideoSurface | QMediaServiceFeaturesInterface::RecordingSupport;
 
     if (service == Q_MEDIASERVICE_AUDIOSOURCE)
-        return QMediaServiceProviderHint::RecordingSupport;
+        return QMediaServiceFeaturesInterface::RecordingSupport;
 
-    return QMediaServiceProviderHint::Features();
+    return QMediaServiceFeaturesInterface::Features();
 }
 
 QByteArray QAndroidMediaServicePlugin::defaultDevice(const QByteArray &service) const

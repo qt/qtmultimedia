@@ -552,24 +552,9 @@ void QMediaPlayerPrivate::_q_handlePlaylistLoadFailed()
         setMedia(QMediaContent(), nullptr);
 }
 
-static QMediaService *playerService(QMediaPlayer::Flags flags)
+static QMediaService *playerService()
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
-    if (flags) {
-        QMediaServiceProviderHint::Features features;
-        if (flags & QMediaPlayer::LowLatency)
-            features |= QMediaServiceProviderHint::LowLatencyPlayback;
-
-        if (flags & QMediaPlayer::StreamPlayback)
-            features |= QMediaServiceProviderHint::StreamPlayback;
-
-        if (flags & QMediaPlayer::VideoSurface)
-            features |= QMediaServiceProviderHint::VideoSurface;
-
-        return provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER,
-                                        QMediaServiceProviderHint(features));
-    }
-
     return provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER);
 }
 
@@ -582,9 +567,10 @@ static QMediaService *playerService(QMediaPlayer::Flags flags)
 QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
     QMediaObject(*new QMediaPlayerPrivate,
                  parent,
-                 playerService(flags))
+                 playerService())
 {
     Q_D(QMediaPlayer);
+    Q_UNUSED(flags);
 
     d->provider = QMediaServiceProvider::defaultServiceProvider();
     if (d->service == nullptr) {
@@ -617,7 +603,7 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
             if (d->status == StalledMedia || d->status == BufferingMedia)
                 addPropertyWatch("bufferStatus");
 
-            d->hasStreamPlaybackFeature = d->provider->supportedFeatures(d->service).testFlag(QMediaServiceProviderHint::StreamPlayback);
+            d->hasStreamPlaybackFeature = d->provider->supportedFeatures(d->service).testFlag(QMediaServiceFeaturesInterface::StreamPlayback);
         }
     }
 }
