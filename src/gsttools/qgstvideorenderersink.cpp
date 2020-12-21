@@ -45,7 +45,7 @@
 #include <QEvent>
 #include <QCoreApplication>
 
-#include <private/qmediapluginloader_p.h>
+#include <private/qfactoryloader_p.h>
 #include "qgstvideobuffer_p.h"
 
 #include "qgstvideorenderersink_p.h"
@@ -175,17 +175,18 @@ bool QGstDefaultVideoRenderer::proposeAllocation(GstQuery *)
     return true;
 }
 
-Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, rendererLoader,
+Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, rendererLoader,
         (QGstVideoRendererInterface_iid, QLatin1String("video/gstvideorenderer"), Qt::CaseInsensitive))
 
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surface)
     : m_surface(surface)
 {
-    const auto instances = rendererLoader()->instances(QGstVideoRendererPluginKey);
-    for (QObject *instance : instances) {
+    int i = 0;
+    while (QObject *instance = rendererLoader->instance(i)) {
         auto plugin = qobject_cast<QGstVideoRendererInterface*>(instance);
         if (QGstVideoRenderer *renderer = plugin ? plugin->createRenderer() : nullptr)
             m_renderers.append(renderer);
+        ++i;
     }
 
     m_renderers.append(new QGstDefaultVideoRenderer);

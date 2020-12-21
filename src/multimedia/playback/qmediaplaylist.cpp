@@ -49,7 +49,6 @@
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qcoreapplication.h>
 #include <QRandomGenerator>
-#include "qmediapluginloader_p.h"
 
 QT_BEGIN_NAMESPACE
 

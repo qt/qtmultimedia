@@ -44,7 +44,7 @@
 #include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaservice.h>
-#include <private/qmediapluginloader_p.h>
+#include <private/qfactoryloader_p.h>
 #include <QtCore/qloggingcategory.h>
 
 static void initResource() {
@@ -239,15 +239,15 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     emit sourceChanged();
 }
 
-Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoBackendFactoryLoader,
+Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, videoBackendFactoryLoader,
         (QDeclarativeVideoBackendFactoryInterface_iid, QLatin1String("video/declarativevideobackend"), Qt::CaseInsensitive))
 
 bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
 {
     bool backendAvailable = false;
 
-    const auto instances = videoBackendFactoryLoader()->instances(QLatin1String("declarativevideobackend"));
-    for (QObject *instance : instances) {
+    int i = 0;
+    while (const auto instance = videoBackendFactoryLoader()->instance(i)) {
         if (QDeclarativeVideoBackendFactoryInterface *plugin = qobject_cast<QDeclarativeVideoBackendFactoryInterface*>(instance)) {
             if (!m_backend)
                 m_backend.reset(plugin->create(this));

@@ -30,7 +30,6 @@
 #include <QDebug>
 #include "qmediaservice.h"
 #include "qmediaplaylist.h"
-#include <private/qmediapluginloader_p.h>
 
 //TESTED_COMPONENT=src/multimedia
 

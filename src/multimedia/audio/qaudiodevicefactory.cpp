@@ -41,7 +41,6 @@
 
 #include "qaudiosystem_p.h"
 
-#include "qmediapluginloader_p.h"
 #include "qaudiodevicefactory_p.h"
 
 QT_BEGIN_NAMESPACE

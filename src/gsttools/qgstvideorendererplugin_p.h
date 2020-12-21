@@ -63,8 +63,6 @@ QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
 
-const QLatin1String QGstVideoRendererPluginKey("gstvideorenderer");
-
 class Q_GSTTOOLS_EXPORT QGstVideoRenderer
 {
 public:

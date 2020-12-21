@@ -74,27 +74,19 @@ public:
         QString key(QLatin1String(type.constData()));
 
         QList<QMediaServiceProviderPlugin *>plugins;
-        const auto instances = loader()->instances(key);
-        for (QObject *obj : instances) {
-            QMediaServiceProviderPlugin *plugin = qobject_cast<QMediaServiceProviderPlugin*>(obj);
-            if (plugin)
-                plugins << plugin;
-        }
+        QObject *instance = loader()->instance(key);
+        QMediaServiceProviderPlugin *plugin = qobject_cast<QMediaServiceProviderPlugin*>(instance);
 
-        if (!plugins.isEmpty()) {
-            QMediaServiceProviderPlugin *plugin = plugins[0];
-
-            if (plugin != nullptr) {
-                QMediaService *service = plugin->create(key);
-                if (service != nullptr) {
-                    MediaServiceData d;
-                    d.type = type;
-                    d.plugin = plugin;
-                    mediaServiceData.insert(service, d);
-                }
-
-                return service;
+        if (plugin != nullptr) {
+            QMediaService *service = plugin->create(key);
+            if (service != nullptr) {
+                MediaServiceData d;
+                d.type = type;
+                d.plugin = plugin;
+                mediaServiceData.insert(service, d);
             }
+
+            return service;
         }
 
         qWarning() << "defaultServiceProvider::requestService(): no service found for -" << key;
@@ -133,148 +125,89 @@ public:
                                      const QStringList& codecs,
                                      int flags) const override
     {
-        const QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
+        QObject *instance = loader()->instance(QLatin1String(serviceType));
 
-        if (instances.isEmpty())
+        if (!instance)
             return QMultimedia::NotSupported;
 
-        bool allServicesProvideInterface = true;
-        QMultimedia::SupportEstimate supportEstimate = QMultimedia::NotSupported;
+        QMultimedia::SupportEstimate supportEstimate = QMultimedia::MaybeSupported;
+        QMediaServiceSupportedFormatsInterface *iface = qobject_cast<QMediaServiceSupportedFormatsInterface*>(instance);
+        if (iface)
+            supportEstimate = qMax(supportEstimate, iface->hasSupport(mimeType, codecs));
 
-        for (QObject *obj : instances) {
-            QMediaServiceSupportedFormatsInterface *iface =
-                    qobject_cast<QMediaServiceSupportedFormatsInterface*>(obj);
+        if (flags && supportEstimate == QMultimedia::ProbablySupported) {
+            QMediaServiceFeaturesInterface *iface = qobject_cast<QMediaServiceFeaturesInterface*>(instance);
 
+            if (iface) {
+                QMediaServiceFeaturesInterface::Features features = iface->supportedFeatures(serviceType);
 
-            if (flags) {
-                QMediaServiceFeaturesInterface *iface =
-                        qobject_cast<QMediaServiceFeaturesInterface*>(obj);
+                //if low latency playback was asked, skip services known
+                //not to provide low latency playback
+                if ((flags & QMediaPlayer::LowLatency) &&
+                    !(features & QMediaServiceFeaturesInterface::LowLatencyPlayback))
+                        supportEstimate = QMultimedia::MaybeSupported;
 
-                if (iface) {
-                    QMediaServiceFeaturesInterface::Features features = iface->supportedFeatures(serviceType);
-
-                    //if low latency playback was asked, skip services known
-                    //not to provide low latency playback
-                    if ((flags & QMediaPlayer::LowLatency) &&
-                        !(features & QMediaServiceFeaturesInterface::LowLatencyPlayback))
-                            continue;
-
-                    //the same for QIODevice based streams support
-                    if ((flags & QMediaPlayer::StreamPlayback) &&
-                        !(features & QMediaServiceFeaturesInterface::StreamPlayback))
-                            continue;
-                }
+                //the same for QIODevice based streams support
+                if ((flags & QMediaPlayer::StreamPlayback) &&
+                    !(features & QMediaServiceFeaturesInterface::StreamPlayback))
+                    supportEstimate = QMultimedia::MaybeSupported;
             }
-
-            if (iface)
-                supportEstimate = qMax(supportEstimate, iface->hasSupport(mimeType, codecs));
-            else
-                allServicesProvideInterface = false;
         }
-
-        //don't return PreferredService
-        supportEstimate = qMin(supportEstimate, QMultimedia::ProbablySupported);
-
-        //Return NotSupported only if no services are available of serviceType
-        //or all the services returned NotSupported, otherwise return at least MaybeSupported
-        if (!allServicesProvideInterface)
-            supportEstimate = qMax(QMultimedia::MaybeSupported, supportEstimate);
 
         return supportEstimate;
     }
 
     QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const override
     {
-        const QList<QObject*> instances = loader()->instances(QLatin1String(serviceType));
+        Q_UNUSED(flags);
+        QObject *instance = loader()->instance(QLatin1String(serviceType));
+        if (!instance)
+            return {};
 
-        QStringList supportedTypes;
+        QMediaServiceSupportedFormatsInterface *iface = qobject_cast<QMediaServiceSupportedFormatsInterface*>(instance);
 
-        for (QObject *obj : instances) {
-            QMediaServiceSupportedFormatsInterface *iface =
-                    qobject_cast<QMediaServiceSupportedFormatsInterface*>(obj);
+        if (iface)
+            return iface->supportedMimeTypes();
 
-
-            if (flags) {
-                QMediaServiceFeaturesInterface *iface =
-                        qobject_cast<QMediaServiceFeaturesInterface*>(obj);
-
-                if (iface) {
-                    QMediaServiceFeaturesInterface::Features features = iface->supportedFeatures(serviceType);
-
-                    // If low latency playback was asked for, skip MIME types from services known
-                    // not to provide low latency playback
-                    if ((flags & QMediaPlayer::LowLatency) &&
-                        !(features & QMediaServiceFeaturesInterface::LowLatencyPlayback))
-                        continue;
-
-                    //the same for QIODevice based streams support
-                    if ((flags & QMediaPlayer::StreamPlayback) &&
-                        !(features & QMediaServiceFeaturesInterface::StreamPlayback))
-                            continue;
-
-                    //the same for QAbstractVideoSurface support
-                    if ((flags & QMediaPlayer::VideoSurface) &&
-                        !(features & QMediaServiceFeaturesInterface::VideoSurface))
-                            continue;
-                }
-            }
-
-            if (iface) {
-                supportedTypes << iface->supportedMimeTypes();
-            }
-        }
-
-        // Multiple services may support the same MIME type
-        supportedTypes.removeDuplicates();
-
-        return supportedTypes;
+        return {};
     }
 
     QByteArray defaultDevice(const QByteArray &serviceType) const override
     {
-        const auto instances = loader()->instances(QLatin1String(serviceType));
-        for (QObject *obj : instances) {
-            const QMediaServiceSupportedDevicesInterface *iface =
-                    qobject_cast<QMediaServiceSupportedDevicesInterface *>(obj);
+        QObject *instance = loader()->instance(QLatin1String(serviceType));
+        if (!instance)
+            return QByteArray();
 
-            if (iface) {
-                QByteArray name = iface->defaultDevice(serviceType);
-                if (!name.isEmpty())
-                    return name;
-            }
-        }
+        const QMediaServiceSupportedDevicesInterface *iface = qobject_cast<QMediaServiceSupportedDevicesInterface *>(instance);
+        if (iface)
+            return iface->defaultDevice(serviceType);
 
         return QByteArray();
     }
 
     QList<QByteArray> devices(const QByteArray &serviceType) const override
     {
-        QList<QByteArray> res;
+        QObject *instance = loader()->instance(QLatin1String(serviceType));
+        if (!instance)
+            return {};
 
-        const auto instances = loader()->instances(QLatin1String(serviceType));
-        for (QObject *obj : instances) {
-            QMediaServiceSupportedDevicesInterface *iface =
-                    qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
+        QMediaServiceSupportedDevicesInterface *iface = qobject_cast<QMediaServiceSupportedDevicesInterface*>(instance);
+        if (iface)
+            return iface->devices(serviceType);
 
-            if (iface) {
-                res.append(iface->devices(serviceType));
-            }
-        }
-
-        return res;
+        return {};
     }
 
     QString deviceDescription(const QByteArray &serviceType, const QByteArray &device) override
     {
-        const auto instances = loader()->instances(QLatin1String(serviceType));
-        for (QObject *obj : instances) {
-            QMediaServiceSupportedDevicesInterface *iface =
-                    qobject_cast<QMediaServiceSupportedDevicesInterface*>(obj);
+        QObject *instance = loader()->instance(QLatin1String(serviceType));
+        if (!instance)
+            return {};
 
-            if (iface) {
-                if (iface->devices(serviceType).contains(device))
-                    return iface->deviceDescription(serviceType, device);
-            }
+        QMediaServiceSupportedDevicesInterface *iface = qobject_cast<QMediaServiceSupportedDevicesInterface*>(instance);
+        if (iface) {
+            if (iface->devices(serviceType).contains(device))
+                return iface->deviceDescription(serviceType, device);
         }
 
         return QString();

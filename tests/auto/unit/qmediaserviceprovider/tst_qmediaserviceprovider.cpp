@@ -34,7 +34,6 @@
 
 #include <private/qmediaserviceprovider_p.h>
 #include <qmediaserviceproviderplugin.h>
-#include <private/qmediapluginloader_p.h>
 #include <qmediaobject.h>
 #include <qmediaservice.h>
 #include <qmediaplayer.h>

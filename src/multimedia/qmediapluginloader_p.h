@@ -74,14 +74,13 @@ public:
 
     QStringList keys() const;
     QObject* instance(QString const &key);
-    QList<QObject*> instances(QString const &key);
 
 private:
     void loadMetadata();
 
     QByteArray  m_iid;
     QString     m_location;
-    QMap<QString, QList<QJsonObject> > m_metadata;
+    QMap<QString, int> m_map;
 
     QFactoryLoader *m_factoryLoader;
 };

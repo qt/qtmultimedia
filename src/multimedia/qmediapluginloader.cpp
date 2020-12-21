@@ -66,70 +66,19 @@ QMediaPluginLoader::~QMediaPluginLoader()
 
 QStringList QMediaPluginLoader::keys() const
 {
-    return m_metadata.keys();
+    return m_map.keys();
 }
 
-QObject* QMediaPluginLoader::instance(QString const &key)
+QObject *QMediaPluginLoader::instance(QString const &key)
 {
-    if (!m_metadata.contains(key))
+    if (!m_map.contains(key))
         return nullptr;
 
-    int idx = m_metadata.value(key).first().value(QStringLiteral("index")).toDouble();
+    int idx = m_map.value(key);
     if (idx < 0)
         return nullptr;
 
     return m_factoryLoader->instance(idx);
-}
-
-QList<QObject*> QMediaPluginLoader::instances(QString const &key)
-{
-    if (!m_metadata.contains(key))
-        return QList<QObject*>();
-
-    QList<QString> keys;
-    QList<QObject *> objects;
-    const auto list = m_metadata.value(key);
-    for (const QJsonObject &jsonobj : list) {
-        int idx = jsonobj.value(QStringLiteral("index")).toDouble();
-        if (idx < 0)
-            continue;
-
-        QObject *object = m_factoryLoader->instance(idx);
-        if (!objects.contains(object)) {
-            QJsonArray arr = jsonobj.value(QStringLiteral("Keys")).toArray();
-            keys.append(!arr.isEmpty() ? arr.at(0).toString() : QStringLiteral(""));
-            objects.append(object);
-        }
-    }
-
-    static const bool showDebug = qEnvironmentVariableIntValue("QT_DEBUG_PLUGINS");
-    static const QStringList preferredPlugins =
-        qEnvironmentVariable("QT_MULTIMEDIA_PREFERRED_PLUGINS").split(QLatin1Char(','), Qt::SkipEmptyParts);
-    for (int i = preferredPlugins.size() - 1; i >= 0; --i) {
-        auto name = preferredPlugins[i];
-        bool found = false;
-        for (int j = 0; j < keys.size(); ++j) {
-            if (!keys[j].startsWith(name))
-                continue;
-
-            auto obj = objects[j];
-            objects.removeAt(j);
-            objects.prepend(obj);
-            auto k = keys[j];
-            keys.removeAt(j);
-            keys.prepend(k);
-            found = true;
-            break;
-        }
-
-        if (showDebug && !found)
-            qWarning() << "QMediaPluginLoader: pattern" << name << "did not match any loaded plugin";
-    }
-
-    if (showDebug)
-        qDebug() << "QMediaPluginLoader: loaded plugins for key" << key << ":" << keys;
-
-    return objects;
 }
 
 void QMediaPluginLoader::loadMetadata()
@@ -143,7 +92,7 @@ void QMediaPluginLoader::loadMetadata()
             qDebug() << "QMediaPluginLoader: loading metadata for iid " << m_iid << " at location " << m_location;
 #endif
 
-    if (!m_metadata.isEmpty()) {
+    if (!m_map.isEmpty()) {
 #if !defined QT_NO_DEBUG
         if (showDebug)
             qDebug() << "QMediaPluginLoader: already loaded metadata, returning";
@@ -154,30 +103,24 @@ void QMediaPluginLoader::loadMetadata()
     QList<QJsonObject> meta = m_factoryLoader->metaData();
     for (int i = 0; i < meta.size(); i++) {
         QJsonObject jsonobj = meta.at(i).value(QStringLiteral("MetaData")).toObject();
-        jsonobj.insert(QStringLiteral("index"), i);
-#if !defined QT_NO_DEBUG
-        if (showDebug)
-            qDebug() << "QMediaPluginLoader: Inserted index " << i << " into metadata: " << jsonobj;
-#endif
-
         QJsonArray arr = jsonobj.value(QStringLiteral("Services")).toArray();
-        // Preserve compatibility with older plugins (made before 5.1) in which
-        // services were declared in the 'Keys' property
-        if (arr.isEmpty())
-            arr = jsonobj.value(QStringLiteral("Keys")).toArray();
 
         for (const QJsonValue &value : qAsConst(arr)) {
             QString key = value.toString();
 
-            if (!m_metadata.contains(key)) {
+            if (m_map.contains(key)) {
 #if !defined QT_NO_DEBUG
                 if (showDebug)
-                    qDebug() << "QMediaPluginLoader: Inserting new list for key: " << key;
+                    qDebug() << "QMediaPluginLoader: Two plugins provide service " << key;
 #endif
-                m_metadata.insert(key, QList<QJsonObject>());
+                continue;
             }
 
-            m_metadata[key].append(jsonobj);
+#if !defined QT_NO_DEBUG
+            if (showDebug)
+                qDebug() << "QMediaPluginLoader: Inserting new list for key: " << key;
+#endif
+            m_map.insert(key, i);
         }
     }
 }
