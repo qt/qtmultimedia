@@ -131,7 +131,6 @@ namespace QMediaMetaData {
     QString DateTimeOriginal;
     QString DateTimeDigitized;
     QString SubjectDistance;
-    QString MeteringMode;
     QString LightSource;
     QString Flash;
     QString FocalLength;
@@ -243,7 +242,6 @@ namespace QMediaMetaData {
     Q_DECLARE_METADATA(DateTimeOriginal);
     Q_DECLARE_METADATA(DateTimeDigitized);
     Q_DECLARE_METADATA(SubjectDistance);
-    Q_DECLARE_METADATA(MeteringMode);
     Q_DECLARE_METADATA(LightSource);
     Q_DECLARE_METADATA(Flash);
     Q_DECLARE_METADATA(FocalLength);

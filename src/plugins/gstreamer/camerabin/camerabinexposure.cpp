@@ -168,8 +168,6 @@ QVariant CameraBinExposure::actualValue(ExposureParameter parameter) const
             return QVariant::fromValue(QCameraExposure::ExposureAuto);
         }
     }
-    case QCameraExposureControl::MeteringMode:
-        return QCameraExposure::MeteringMatrix;
     default:
         return QVariant();
     }

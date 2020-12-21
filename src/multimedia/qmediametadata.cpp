@@ -133,7 +133,6 @@ Q_DEFINE_METADATA(ExposureBiasValue);
 Q_DEFINE_METADATA(DateTimeOriginal);
 Q_DEFINE_METADATA(DateTimeDigitized);
 Q_DEFINE_METADATA(SubjectDistance);
-Q_DEFINE_METADATA(MeteringMode);
 Q_DEFINE_METADATA(LightSource);
 Q_DEFINE_METADATA(Flash);
 Q_DEFINE_METADATA(FocalLength);
@@ -275,7 +274,6 @@ Q_DEFINE_METADATA(ThumbnailImage);
     \row \li DateTimeOriginal \li The date and time when the original image data was generated. \li QDateTime
     \row \li DateTimeDigitized \li The date and time when the image was stored as digital data.  \li QDateTime
     \row \li SubjectDistance \li The distance to the subject, given in meters. \li qreal
-    \row \li MeteringMode \li The metering mode.  \li QCameraExposure::MeteringMode
     \row \li LightSource
         \li The kind of light source. \li QString
     \row \li Flash

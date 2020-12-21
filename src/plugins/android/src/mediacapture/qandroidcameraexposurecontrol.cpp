@@ -79,12 +79,8 @@ bool QAndroidCameraExposureControl::isParameterSupported(ExposureParameter param
         return false;
     case QCameraExposureControl::TorchPower:
         return false;
-    case QCameraExposureControl::SpotMeteringPoint:
-        return false;
     case QCameraExposureControl::ExposureMode:
         return !m_supportedExposureModes.isEmpty();
-    case QCameraExposureControl::MeteringMode:
-        return false;
     default:
         return false;
     }

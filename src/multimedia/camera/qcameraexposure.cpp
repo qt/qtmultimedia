@@ -67,7 +67,6 @@ static void qRegisterCameraExposureMetaTypes()
 {
     qRegisterMetaType<QCameraExposure::ExposureMode>("QCameraExposure::ExposureMode");
     qRegisterMetaType<QCameraExposure::FlashModes>("QCameraExposure::FlashModes");
-    qRegisterMetaType<QCameraExposure::MeteringMode>("QCameraExposure::MeteringMode");
 }
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterCameraExposureMetaTypes)
@@ -307,72 +306,6 @@ qreal QCameraExposure::exposureCompensation() const
 void QCameraExposure::setExposureCompensation(qreal ev)
 {
     d_func()->setExposureParameter<qreal>(QCameraExposureControl::ExposureCompensation, ev);
-}
-
-/*!
-  \property QCameraExposure::meteringMode
-  \brief The metering mode being used.
-
-  \sa QCameraExposure::isMeteringModeSupported()
-*/
-
-QCameraExposure::MeteringMode QCameraExposure::meteringMode() const
-{
-    return d_func()->actualExposureParameter<QCameraExposure::MeteringMode>(QCameraExposureControl::MeteringMode, QCameraExposure::MeteringMatrix);
-}
-
-void QCameraExposure::setMeteringMode(QCameraExposure::MeteringMode mode)
-{
-    d_func()->setExposureParameter<QCameraExposure::MeteringMode>(QCameraExposureControl::MeteringMode, mode);
-}
-
-/*!
-  \fn QCameraExposure::spotMeteringPoint() const
-
-  When supported, the spot metering point is the (normalized) position of the point of the image
-  where exposure metering will be performed.  This is typically used to indicate an
-  "interesting" area of the image that should be exposed properly.
-
-  The coordinates are relative frame coordinates:
-  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center,
-  which is typically the default spot metering point.
-
-  The spot metering point is only used with spot metering mode.
-
-  \sa setSpotMeteringPoint()
-*/
-
-QPointF QCameraExposure::spotMeteringPoint() const
-{
-    return d_func()->exposureControl ? d_func()->exposureControl->actualValue(QCameraExposureControl::SpotMeteringPoint).toPointF() : QPointF();
-}
-
-/*!
-  \fn QCameraExposure::setSpotMeteringPoint(const QPointF &point)
-
-  Allows setting the spot metering point to \a point.
-
-  \sa spotMeteringPoint()
-*/
-
-void QCameraExposure::setSpotMeteringPoint(const QPointF &point)
-{
-    if (d_func()->exposureControl)
-        d_func()->exposureControl->setValue(QCameraExposureControl::SpotMeteringPoint, point);
-}
-
-
-/*!
-    Returns true if the metering \a mode is supported.
-*/
-bool QCameraExposure::isMeteringModeSupported(QCameraExposure::MeteringMode mode) const
-{
-    if (!d_func()->exposureControl)
-        return false;
-
-    bool continuous = false;
-    return d_func()->exposureControl->supportedParameterRange(QCameraExposureControl::MeteringMode, &continuous)
-            .contains(QVariant::fromValue<QCameraExposure::MeteringMode>(mode));
 }
 
 int QCameraExposure::isoSensitivity() const
@@ -649,14 +582,6 @@ void QCameraExposure::setAutoShutterSpeed()
     \value ExposureCandlelight   Candlelight mode. Since 5.5
     \value ExposureBarcode       Barcode mode. Since 5.5
     \value ExposureModeVendor    The base value for device specific exposure modes.
-*/
-
-/*!
-    \enum QCameraExposure::MeteringMode
-
-    \value MeteringMatrix        Matrix metering mode.
-    \value MeteringAverage       Center weighted average metering mode.
-    \value MeteringSpot          Spot metering mode.
 */
 
 /*!

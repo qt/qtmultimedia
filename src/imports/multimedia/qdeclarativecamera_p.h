@@ -115,7 +115,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
 
     Q_ENUMS(FlashMode)
     Q_ENUMS(ExposureMode)
-    Q_ENUMS(MeteringMode)
 
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
@@ -207,12 +206,6 @@ public:
         ExposureCandlelight = QCameraExposure::ExposureCandlelight,
         ExposureBarcode = QCameraExposure::ExposureBarcode,
         ExposureModeVendor = QCameraExposure::ExposureModeVendor
-    };
-
-    enum MeteringMode {
-        MeteringMatrix = QCameraExposure::MeteringMatrix,
-        MeteringAverage = QCameraExposure::MeteringAverage,
-        MeteringSpot = QCameraExposure::MeteringSpot
     };
 
     enum FocusMode {

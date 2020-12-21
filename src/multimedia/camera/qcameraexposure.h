@@ -59,11 +59,9 @@ class Q_MULTIMEDIA_EXPORT QCameraExposure : public QObject
     Q_PROPERTY(bool flashReady READ isFlashReady NOTIFY flashReady)
     Q_PROPERTY(QCameraExposure::FlashModes flashMode READ flashMode WRITE setFlashMode)
     Q_PROPERTY(QCameraExposure::ExposureMode exposureMode READ exposureMode WRITE setExposureMode)
-    Q_PROPERTY(QCameraExposure::MeteringMode meteringMode READ meteringMode WRITE setMeteringMode)
 
     Q_ENUMS(FlashMode)
     Q_ENUMS(ExposureMode)
-    Q_ENUMS(MeteringMode)
 public:
     enum FlashMode {
         FlashAuto = 0x1,
@@ -104,12 +102,6 @@ public:
         ExposureModeVendor = 1000
     };
 
-    enum MeteringMode {
-        MeteringMatrix = 1,
-        MeteringAverage = 2,
-        MeteringSpot = 3
-    };
-
     bool isAvailable() const;
 
     FlashModes flashMode() const;
@@ -120,12 +112,6 @@ public:
     bool isExposureModeSupported(ExposureMode mode) const;
 
     qreal exposureCompensation() const;
-
-    MeteringMode meteringMode() const;
-    bool isMeteringModeSupported(MeteringMode mode) const;
-
-    QPointF spotMeteringPoint() const;
-    void setSpotMeteringPoint(const QPointF &point);
 
     int isoSensitivity() const;
     qreal aperture() const;
@@ -142,7 +128,6 @@ public:
 public Q_SLOTS:
     void setFlashMode(FlashModes mode);
     void setExposureMode(ExposureMode mode);
-    void setMeteringMode(MeteringMode mode);
 
     void setExposureCompensation(qreal ev);
 
@@ -186,10 +171,8 @@ QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QCameraExposure::ExposureMode)
 Q_DECLARE_METATYPE(QCameraExposure::FlashModes)
-Q_DECLARE_METATYPE(QCameraExposure::MeteringMode)
 
 Q_MEDIA_ENUM_DEBUG(QCameraExposure, ExposureMode)
 Q_MEDIA_ENUM_DEBUG(QCameraExposure, FlashMode)
-Q_MEDIA_ENUM_DEBUG(QCameraExposure, MeteringMode)
 
 #endif // QCAMERAEXPOSURE_H

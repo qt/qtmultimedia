@@ -117,13 +117,8 @@ QCameraExposureControl::~QCameraExposureControl()
          This value is only used in the \l{QCameraExposure::FlashTorch}{torch flash mode}.
   \value FlashCompensation
          Flash compensation, specified as qreal EV value.
-  \value SpotMeteringPoint
-         The relative frame coordinate of the point to use for exposure metering
-         in spot metering mode, specified as a QPointF.
   \value ExposureMode
          Camera exposure mode.
-  \value MeteringMode
-         Camera metering mode.
   \value ExtendedExposureParameter
          The base value for platform specific extended parameters.
          For such parameters the sequential values starting from ExtendedExposureParameter should be used.

@@ -68,9 +68,7 @@ public:
         FlashPower,
         FlashCompensation,
         TorchPower,
-        SpotMeteringPoint,
         ExposureMode,
-        MeteringMode,
         ExtendedExposureParameter = 1000
     };
 

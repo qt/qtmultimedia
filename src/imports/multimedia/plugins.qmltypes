@@ -675,14 +675,6 @@ Module {
             }
         }
         Enum {
-            name: "MeteringMode"
-            values: {
-                "MeteringMatrix": 1,
-                "MeteringAverage": 2,
-                "MeteringSpot": 3
-            }
-        }
-        Enum {
             name: "FocusMode"
             values: {
                 "FocusManual": 1,
@@ -947,14 +939,6 @@ Module {
                 "ExposureModeVendor": 1000
             }
         }
-        Enum {
-            name: "MeteringMode"
-            values: {
-                "MeteringMatrix": 1,
-                "MeteringAverage": 2,
-                "MeteringSpot": 3
-            }
-        }
         Property { name: "exposureCompensation"; type: "double" }
         Property { name: "iso"; type: "int"; isReadonly: true }
         Property { name: "shutterSpeed"; type: "double"; isReadonly: true }
@@ -964,8 +948,6 @@ Module {
         Property { name: "manualIso"; type: "double" }
         Property { name: "exposureMode"; type: "ExposureMode" }
         Property { name: "supportedExposureModes"; revision: 1; type: "QVariantList"; isReadonly: true }
-        Property { name: "spotMeteringPoint"; type: "QPointF" }
-        Property { name: "meteringMode"; type: "MeteringMode" }
         Signal {
             name: "isoSensitivityChanged"
             Parameter { type: "int" }
@@ -997,14 +979,6 @@ Module {
         Signal {
             name: "exposureModeChanged"
             Parameter { type: "ExposureMode" }
-        }
-        Signal {
-            name: "meteringModeChanged"
-            Parameter { type: "MeteringMode" }
-        }
-        Signal {
-            name: "spotMeteringPointChanged"
-            Parameter { type: "QPointF" }
         }
         Method {
             name: "setExposureMode"
@@ -1532,7 +1506,6 @@ Module {
         Property { name: "dateTimeOriginal"; type: "QVariant" }
         Property { name: "dateTimeDigitized"; type: "QVariant" }
         Property { name: "subjectDistance"; type: "QVariant" }
-        Property { name: "meteringMode"; type: "QVariant" }
         Property { name: "lightSource"; type: "QVariant" }
         Property { name: "flash"; type: "QVariant" }
         Property { name: "focalLength"; type: "QVariant" }

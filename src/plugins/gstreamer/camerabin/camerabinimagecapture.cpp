@@ -134,7 +134,6 @@ GstPadProbeReturn CameraBinImageCapture::encoderEventProbe(
         tags[QMediaMetaData::WhiteBalance] = extendedTags.value("capturing-white-balance");
         tags[QMediaMetaData::Flash] = extendedTags.value("capturing-flash-fired");
         tags[QMediaMetaData::FocalLengthIn35mmFilm] = extendedTags.value("capturing-focal-length");
-        tags[QMediaMetaData::MeteringMode] = extendedTags.value("capturing-metering-mode");
         tags[QMediaMetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");
         tags[QMediaMetaData::FNumber] = extendedTags.value("capturing-focal-ratio");
         tags[QMediaMetaData::ExposureMode] = extendedTags.value("capturing-exposure-mode");

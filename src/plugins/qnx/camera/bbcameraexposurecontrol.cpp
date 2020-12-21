@@ -69,8 +69,6 @@ bool BbCameraExposureControl::isParameterSupported(ExposureParameter parameter) 
         return false;
     case QCameraExposureControl::TorchPower:
         return false;
-    case QCameraExposureControl::SpotMeteringPoint:
-        return false;
     case QCameraExposureControl::ExposureMode:
         return true;
     case QCameraExposureControl::MeteringMode:

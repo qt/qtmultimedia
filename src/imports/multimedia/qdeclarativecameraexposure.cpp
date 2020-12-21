@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
     \inqmlmodule QtMultimedia
 
     CameraExposure allows you to adjust exposure related settings
-    like aperture and shutter speed, metering and ISO speed.
+    like aperture and shutter speed and ISO speed.
 
     It should not be constructed separately, instead the
     \c exposure property of the a \l Camera should be used.
@@ -396,67 +396,6 @@ QVariantList QDeclarativeCameraExposure::supportedExposureModes() const
     }
 
     return supportedModes;
-}
-
-/*!
-    \property QDeclarativeCameraExposure::spotMeteringPoint
-
-    This property holds the relative frame coordinates of the point to use
-    for exposure metering. This point is only used in spot metering mode, and it
-    typically defaults to the center \c (0.5, 0.5).
- */
-/*!
-    \qmlproperty QPointF QtMultimedia::CameraExposure::spotMeteringPoint
-
-    The property holds the frame coordinates of the point to use for exposure metering.
-    This point is only used in spot metering mode, and it typically defaults
-    to the center \c (0.5, 0.5).
- */
-
-QPointF QDeclarativeCameraExposure::spotMeteringPoint() const
-{
-    return m_exposure->spotMeteringPoint();
-}
-
-void QDeclarativeCameraExposure::setSpotMeteringPoint(const QPointF &point)
-{
-    QPointF oldPoint(spotMeteringPoint());
-    m_exposure->setSpotMeteringPoint(point);
-
-    if (oldPoint != spotMeteringPoint())
-        emit spotMeteringPointChanged(spotMeteringPoint());
-}
-/*!
-    \property QDeclarativeCameraExposure::meteringMode
-
-    This property holds the camera metering mode (how exposure is balanced).
-    The mode can be one of the constants in \l QCameraExposure::MeteringMode.
-*/
-/*!
-    \qmlproperty enumeration QtMultimedia::CameraExposure::meteringMode
-
-    This property holds the camera metering mode (how exposure is balanced).
-
-    The mode can be one of the following:
-
-    \table
-    \header \li Value \li Description
-    \row \li Camera.MeteringMatrix       \li A matrix of sample points is used to measure exposure.
-    \row \li Camera.MeteringAverage      \li An average is used to measure exposure.
-    \row \li Camera.MeteringSpot         \li A specific location (\l spotMeteringPoint) is used to measure exposure.
-    \endtable
-*/
-QDeclarativeCameraExposure::MeteringMode QDeclarativeCameraExposure::meteringMode() const
-{
-    return QDeclarativeCameraExposure::MeteringMode(m_exposure->meteringMode());
-}
-
-void QDeclarativeCameraExposure::setMeteringMode(QDeclarativeCameraExposure::MeteringMode mode)
-{
-    QDeclarativeCameraExposure::MeteringMode oldMode = meteringMode();
-    m_exposure->setMeteringMode(QCameraExposure::MeteringMode(mode));
-    if (oldMode != meteringMode())
-        emit meteringModeChanged(meteringMode());
 }
 
 QT_END_NAMESPACE

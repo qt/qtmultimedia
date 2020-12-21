@@ -75,11 +75,7 @@ class QDeclarativeCameraExposure : public QObject
     Q_PROPERTY(ExposureMode exposureMode READ exposureMode WRITE setExposureMode NOTIFY exposureModeChanged)
     Q_PROPERTY(QVariantList supportedExposureModes READ supportedExposureModes NOTIFY supportedExposureModesChanged REVISION 1)
 
-    Q_PROPERTY(QPointF spotMeteringPoint READ spotMeteringPoint WRITE setSpotMeteringPoint NOTIFY spotMeteringPointChanged)
-    Q_PROPERTY(MeteringMode meteringMode READ meteringMode WRITE setMeteringMode NOTIFY meteringModeChanged)
-
     Q_ENUMS(ExposureMode)
-    Q_ENUMS(MeteringMode)
 public:
     enum ExposureMode {
         ExposureAuto = QCameraExposure::ExposureAuto,
@@ -106,12 +102,6 @@ public:
         ExposureModeVendor = QCameraExposure::ExposureModeVendor
     };
 
-    enum MeteringMode {
-        MeteringMatrix = QCameraExposure::MeteringMatrix,
-        MeteringAverage = QCameraExposure::MeteringAverage,
-        MeteringSpot = QCameraExposure::MeteringSpot
-    };
-
     ~QDeclarativeCameraExposure();
 
     ExposureMode exposureMode() const;
@@ -125,12 +115,6 @@ public:
     int manualIsoSensitivity() const;
     qreal manualShutterSpeed() const;
     qreal manualAperture() const;
-
-    QPointF spotMeteringPoint() const;
-    void setSpotMeteringPoint(const QPointF &point);
-
-    MeteringMode meteringMode() const;
-    void setMeteringMode(MeteringMode mode);
 
 public Q_SLOTS:
     void setExposureMode(ExposureMode);
@@ -156,9 +140,6 @@ Q_SIGNALS:
     void exposureCompensationChanged(qreal);
     void exposureModeChanged(ExposureMode);
     void supportedExposureModesChanged();
-
-    void meteringModeChanged(MeteringMode);
-    void spotMeteringPointChanged(QPointF);
 
 private:
     friend class QDeclarativeCamera;

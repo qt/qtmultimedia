@@ -122,7 +122,6 @@ class QDeclarativeMediaMetaData : public QObject
     Q_PROPERTY(QVariant dateTimeOriginal READ dateTimeOriginal WRITE setDateTimeOriginal NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant dateTimeDigitized READ dateTimeDigitized WRITE setDateTimeDigitized NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant subjectDistance READ subjectDistance WRITE setSubjectDistance NOTIFY metaDataChanged)
-    Q_PROPERTY(QVariant meteringMode READ meteringMode WRITE setMeteringMode NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant lightSource READ lightSource WRITE setLightSource NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant flash READ flash WRITE setFlash NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant focalLength READ focalLength WRITE setFocalLength NOTIFY metaDataChanged)
@@ -336,8 +335,6 @@ QT_WARNING_POP
         return m_mediaObject->metaData(QMediaMetaData::SubjectDistance); }
     void setSubjectDistance(const QVariant &distance) {
         setMetaData(QMediaMetaData::SubjectDistance, distance); }
-    QVariant meteringMode() const { return m_mediaObject->metaData(QMediaMetaData::MeteringMode); }
-    void setMeteringMode(const QVariant &mode) { setMetaData(QMediaMetaData::MeteringMode, mode); }
     QVariant lightSource() const { return m_mediaObject->metaData(QMediaMetaData::LightSource); }
     void setLightSource(const QVariant &source) {
         setMetaData(QMediaMetaData::LightSource, source); }

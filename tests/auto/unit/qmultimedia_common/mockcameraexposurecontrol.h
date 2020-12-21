@@ -40,11 +40,9 @@ public:
         m_aperture(2.8),
         m_shutterSpeed(0.01),
         m_isoSensitivity(100),
-        m_meteringMode(QCameraExposure::MeteringMatrix),
         m_exposureCompensation(0),
         m_exposureMode(QCameraExposure::ExposureAuto),
-        m_flashMode(QCameraExposure::FlashAuto),
-        m_spot(0.5, 0.5)
+        m_flashMode(QCameraExposure::FlashAuto)
     {
         m_isoRanges << 100 << 200 << 400 << 800;
         m_apertureRanges << 2.8 << 4.0 << 5.6 << 8.0 << 11.0 << 16.0;
@@ -68,9 +66,6 @@ public:
 
         for (QCameraExposure::ExposureMode mode : exposureModes)
             m_exposureModes << QVariant::fromValue<QCameraExposure::ExposureMode>(mode);
-
-        m_meteringModes << QVariant::fromValue<QCameraExposure::MeteringMode>(QCameraExposure::MeteringMatrix)
-                        << QVariant::fromValue<QCameraExposure::MeteringMode>(QCameraExposure::MeteringSpot);
     }
 
     ~MockCameraExposureControl() {}
@@ -79,12 +74,10 @@ public:
     {
         switch (parameter) {
         case QCameraExposureControl::ExposureMode:
-        case QCameraExposureControl::MeteringMode:
         case QCameraExposureControl::ExposureCompensation:
         case QCameraExposureControl::ISO:
         case QCameraExposureControl::Aperture:
         case QCameraExposureControl::ShutterSpeed:
-        case QCameraExposureControl::SpotMeteringPoint:
             return true;
         default:
             return false;
@@ -101,8 +94,6 @@ public:
         switch (param) {
         case QCameraExposureControl::ExposureMode:
             return QVariant::fromValue<QCameraExposure::ExposureMode>(m_exposureMode);
-        case QCameraExposureControl::MeteringMode:
-            return QVariant::fromValue<QCameraExposure::MeteringMode>(m_meteringMode);
         case QCameraExposureControl::ExposureCompensation:
             return QVariant(m_exposureCompensation);
         case QCameraExposureControl::ISO:
@@ -111,8 +102,6 @@ public:
             return QVariant(m_aperture);
         case QCameraExposureControl::ShutterSpeed:
             return QVariant(m_shutterSpeed);
-        case QCameraExposureControl::SpotMeteringPoint:
-            return QVariant(m_spot);
         default:
             return QVariant();
         }
@@ -137,8 +126,6 @@ public:
             return m_shutterRanges;
         case QCameraExposureControl::ExposureMode:
             return m_exposureModes;
-        case QCameraExposureControl::MeteringMode:
-            return m_meteringModes;
         default:
             break;
         }
@@ -163,15 +150,6 @@ public:
             QCameraExposure::ExposureMode mode = value.value<QCameraExposure::ExposureMode>();
             if (mode != m_exposureMode && m_exposureModes.contains(value)) {
                 m_exposureMode = mode;
-                emit actualValueChanged(param);
-            }
-        }
-            break;
-        case QCameraExposureControl::MeteringMode:
-        {
-            QCameraExposure::MeteringMode mode = value.value<QCameraExposure::MeteringMode>();
-            if (mode != m_meteringMode && m_meteringModes.contains(value)) {
-                m_meteringMode = mode;
                 emit actualValueChanged(param);
             }
         }
@@ -245,17 +223,6 @@ public:
         }
             break;
 
-        case QCameraExposureControl::SpotMeteringPoint:
-        {
-            static QRectF valid(0, 0, 1, 1);
-            if (valid.contains(value.toPointF())) {
-                m_spot = value.toPointF();
-                emit actualValueChanged(param);
-                return true;
-            }
-            return false;
-        }
-
         default:
             return false;
         }
@@ -267,12 +234,10 @@ private:
     qreal m_aperture;
     qreal m_shutterSpeed;
     int m_isoSensitivity;
-    QCameraExposure::MeteringMode m_meteringMode;
     qreal m_exposureCompensation;
     QCameraExposure::ExposureMode m_exposureMode;
     QCameraExposure::FlashModes m_flashMode;
-    QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes, m_meteringModes;
-    QPointF m_spot;
+    QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes;
 
     QMap<QCameraExposureControl::ExposureParameter, QVariant> m_requestedParameters;
 };
