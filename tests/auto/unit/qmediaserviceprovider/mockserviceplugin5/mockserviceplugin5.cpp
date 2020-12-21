@@ -31,12 +31,10 @@
 #include "../mockservice.h"
 
 class MockServicePlugin5 : public QMediaServiceProviderPlugin,
-                           public QMediaServiceSupportedDevicesInterface,
-                           public QMediaServiceDefaultDeviceInterface
+                           public QMediaServiceSupportedDevicesInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin5.json")
 public:
     QStringList keys() const

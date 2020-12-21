@@ -51,7 +51,6 @@ class QGstreamerCaptureServicePlugin
     : public QMediaServiceProviderPlugin
 #if defined(USE_GSTREAMER_CAMERA)
     , public QMediaServiceSupportedDevicesInterface
-    , public QMediaServiceDefaultDeviceInterface
     , public QMediaServiceFeaturesInterface
 #endif
     , public QMediaServiceSupportedFormatsInterface
@@ -59,7 +58,6 @@ class QGstreamerCaptureServicePlugin
     Q_OBJECT
 #if defined(USE_GSTREAMER_CAMERA)
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
 #endif
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)

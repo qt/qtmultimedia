@@ -48,12 +48,10 @@ QT_USE_NAMESPACE
 class WMFServicePlugin
     : public QMediaServiceProviderPlugin
     , public QMediaServiceSupportedDevicesInterface
-    , public QMediaServiceDefaultDeviceInterface
     , public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "wmf.json")
 

@@ -234,8 +234,8 @@ public:
     {
         const auto instances = loader()->instances(QLatin1String(serviceType));
         for (QObject *obj : instances) {
-            const QMediaServiceDefaultDeviceInterface *iface =
-                    qobject_cast<QMediaServiceDefaultDeviceInterface*>(obj);
+            const QMediaServiceSupportedDevicesInterface *iface =
+                    qobject_cast<QMediaServiceSupportedDevicesInterface *>(obj);
 
             if (iface) {
                 QByteArray name = iface->defaultDevice(serviceType);
@@ -243,12 +243,6 @@ public:
                     return name;
             }
         }
-
-        // if QMediaServiceDefaultDeviceInterface is not implemented, return the
-        // first available device.
-        QList<QByteArray> devs = devices(serviceType);
-        if (!devs.isEmpty())
-            return devs.first();
 
         return QByteArray();
     }
@@ -574,25 +568,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
 */
 
 /*!
-    \class QMediaServiceDefaultDeviceInterface
-    \obsolete
-    \inmodule QtMultimedia
-    \brief The QMediaServiceDefaultDeviceInterface class interface
-    identifies the default device used by a media service plug-in.
-
-    A QMediaServiceProviderPlugin may implement this interface.
-
-    \since 5.3
-*/
-
-/*!
-    \fn QMediaServiceDefaultDeviceInterface::~QMediaServiceDefaultDeviceInterface()
-
-    Destroys a media service default device interface.
-*/
-
-/*!
-    \fn QByteArray QMediaServiceDefaultDeviceInterface::defaultDevice(const QByteArray &service) const
+    \fn QByteArray QMediaServiceSupportedDevicesInterface::defaultDevice(const QByteArray &service) const
 
     Returns the default device for a \a service type.
 */

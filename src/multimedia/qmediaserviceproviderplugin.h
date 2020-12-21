@@ -93,26 +93,12 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedDevicesInterface
     virtual ~QMediaServiceSupportedDevicesInterface() {}
     virtual QList<QByteArray> devices(const QByteArray &service) const = 0;
     virtual QString deviceDescription(const QByteArray &service, const QByteArray &device) = 0;
+    virtual QByteArray defaultDevice(const QByteArray &service) const = 0;
 };
 
 #define QMediaServiceSupportedDevicesInterface_iid \
     "org.qt-project.qt.mediaservicesupporteddevices/5.0"
 Q_DECLARE_INTERFACE(QMediaServiceSupportedDevicesInterface, QMediaServiceSupportedDevicesInterface_iid)
-
-// This should be part of QMediaServiceSupportedDevicesInterface but it can't in order
-// to preserve binary compatibility with 5.2 and earlier.
-// The whole media service plugin API shouldn't even be public in the first place. It should
-// be made private in Qt 6.0 and QMediaServiceDefaultDeviceInterface should be merged with
-// QMediaServiceSupportedDevicesInterface
-struct Q_MULTIMEDIA_EXPORT QMediaServiceDefaultDeviceInterface
-{
-    virtual ~QMediaServiceDefaultDeviceInterface() {}
-    virtual QByteArray defaultDevice(const QByteArray &service) const = 0;
-};
-
-#define QMediaServiceDefaultDeviceInterface_iid \
-    "org.qt-project.qt.mediaservicedefaultdevice/5.3"
-Q_DECLARE_INTERFACE(QMediaServiceDefaultDeviceInterface, QMediaServiceDefaultDeviceInterface_iid)
 
 // Required for QDoc workaround
 class QString;
