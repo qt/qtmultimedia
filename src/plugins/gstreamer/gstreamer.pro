@@ -4,7 +4,7 @@ SUBDIRS += \
     audiodecoder \
     camerabin \
     mediaplayer \
-    mediacapture
+#    mediacapture
 
 OTHER_FILES += \
     gstreamer.json

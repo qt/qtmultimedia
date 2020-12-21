@@ -3,4 +3,4 @@
 add_subdirectory(audiodecoder)
 add_subdirectory(camerabin)
 add_subdirectory(mediaplayer)
-add_subdirectory(mediacapture)
+#add_subdirectory(mediacapture)
