@@ -66,8 +66,7 @@ public:
         ShutterSpeed,
         ExposureCompensation,
         TorchPower,
-        ExposureMode,
-        ExtendedExposureParameter = 1000
+        ExposureMode
     };
 
     virtual bool isParameterSupported(ExposureParameter parameter) const = 0;

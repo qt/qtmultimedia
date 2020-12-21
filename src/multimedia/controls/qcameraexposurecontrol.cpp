@@ -111,9 +111,6 @@ QCameraExposureControl::~QCameraExposureControl()
          This value is only used in the \l{QCameraExposure::FlashTorch}{torch flash mode}.
   \value ExposureMode
          Camera exposure mode.
-  \value ExtendedExposureParameter
-         The base value for platform specific extended parameters.
-         For such parameters the sequential values starting from ExtendedExposureParameter should be used.
 */
 
 /*!
