@@ -50,7 +50,6 @@
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
-#include <qcamerainfocontrol.h>
 #include <qcameraviewfindersettingscontrol.h>
 
 #include <QDebug>
@@ -185,7 +184,6 @@ void QCameraPrivate::initControls()
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
         locksControl = qobject_cast<QCameraLocksControl *>(service->requestControl(QCameraLocksControl_iid));
         deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
-        infoControl = qobject_cast<QCameraInfoControl*>(service->requestControl(QCameraInfoControl_iid));
         viewfinderSettingsControl2 = qobject_cast<QCameraViewfinderSettingsControl2*>(service->requestControl(QCameraViewfinderSettingsControl2_iid));
         if (!viewfinderSettingsControl2)
             viewfinderSettingsControl = qobject_cast<QCameraViewfinderSettingsControl*>(service->requestControl(QCameraViewfinderSettingsControl_iid));
@@ -209,7 +207,6 @@ void QCameraPrivate::initControls()
         control = nullptr;
         locksControl = nullptr;
         deviceControl = nullptr;
-        infoControl = nullptr;
         viewfinderSettingsControl = nullptr;
         viewfinderSettingsControl2 = nullptr;
 
@@ -231,8 +228,6 @@ void QCameraPrivate::clear()
             service->releaseControl(locksControl);
         if (deviceControl)
             service->releaseControl(deviceControl);
-        if (infoControl)
-            service->releaseControl(infoControl);
         if (viewfinderSettingsControl)
             service->releaseControl(viewfinderSettingsControl);
         if (viewfinderSettingsControl2)
@@ -247,7 +242,6 @@ void QCameraPrivate::clear()
     control = nullptr;
     locksControl = nullptr;
     deviceControl = nullptr;
-    infoControl = nullptr;
     viewfinderSettingsControl = nullptr;
     viewfinderSettingsControl2 = nullptr;
     service = nullptr;
@@ -341,8 +335,7 @@ QCamera::QCamera(QObject *parent):
 
 QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
     QMediaObject(*new QCameraPrivate, parent,
-                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA,
-                                                                                  QMediaServiceProviderHint(deviceName)))
+                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
 {
     Q_D(QCamera);
     d->init();
@@ -367,12 +360,9 @@ QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
                 d->service->releaseControl(d->control);
             if (d->deviceControl)
                 d->service->releaseControl(d->deviceControl);
-            if (d->infoControl)
-                d->service->releaseControl(d->infoControl);
         }
         d->control = nullptr;
         d->deviceControl = nullptr;
-        d->infoControl = nullptr;
         d->error = QCamera::ServiceMissingError;
         d->errorString = QCamera::tr("The camera service is missing");
     }
@@ -404,7 +394,7 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
 QCamera::QCamera(QCamera::Position position, QObject *parent)
     : QMediaObject(*new QCameraPrivate,
                    parent,
-                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA, QMediaServiceProviderHint(position)))
+                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
 {
     Q_D(QCamera);
     d->init();
@@ -412,9 +402,9 @@ QCamera::QCamera(QCamera::Position position, QObject *parent)
     if (d->service != nullptr && d->deviceControl) {
         bool selectDefault = true;
 
-        if (d->infoControl && position != UnspecifiedPosition) {
+        if (d->deviceControl && position != UnspecifiedPosition) {
             for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
-                if (d->infoControl->cameraPosition(d->deviceControl->deviceName(i)) == position) {
+                if (d->deviceControl->cameraPosition(i) == position) {
                     d->deviceControl->setSelectedDevice(i);
                     selectDefault = false;
                     break;

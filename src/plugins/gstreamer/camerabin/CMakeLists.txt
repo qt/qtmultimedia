@@ -16,7 +16,6 @@ qt_internal_add_plugin(CameraBinServicePlugin
         camerabinimagecapture.cpp camerabinimagecapture.h
         camerabinimageencoder.cpp camerabinimageencoder.h
         camerabinimageprocessing.cpp camerabinimageprocessing.h
-        camerabininfocontrol.cpp camerabininfocontrol.h
         camerabinmetadata.cpp camerabinmetadata.h
         camerabinrecorder.cpp camerabinrecorder.h
         camerabinservice.cpp camerabinservice.h

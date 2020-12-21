@@ -30,7 +30,6 @@ HEADERS += \
     avfcamerasession.h \
     avfstoragelocation.h \
     avfaudioinputselectorcontrol.h \
-    avfcamerainfocontrol.h \
     avfmediavideoprobecontrol.h \
     avfcamerarenderercontrol.h \
     avfcameradevicecontrol.h \
@@ -55,7 +54,6 @@ OBJECTIVE_SOURCES += \
     avfcamerasession.mm \
     avfstoragelocation.mm \
     avfaudioinputselectorcontrol.mm \
-    avfcamerainfocontrol.mm \
     avfmediavideoprobecontrol.mm \
     avfcameradevicecontrol.mm \
     avfcamerarenderercontrol.mm \

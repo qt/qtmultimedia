@@ -79,6 +79,16 @@ QString QGstreamerVideoInputDeviceControl::deviceDescription(int index) const
     return QGstUtils::enumerateCameras(m_factory).value(index).description;
 }
 
+QCamera::Position QGstreamerVideoInputDeviceControl::cameraPosition(int index) const
+{
+    return QGstUtils::enumerateCameras(m_factory).value(index).position;
+}
+
+int QGstreamerVideoInputDeviceControl::cameraOrientation(int index) const
+{
+    return QGstUtils::enumerateCameras(m_factory).value(index).orientation;
+}
+
 int QGstreamerVideoInputDeviceControl::defaultDevice() const
 {
     return 0;

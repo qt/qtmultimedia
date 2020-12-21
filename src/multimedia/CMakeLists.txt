@@ -40,7 +40,6 @@ qt_add_module(Multimedia
         controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h
         controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
         controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
-        controls/qcamerainfocontrol.cpp controls/qcamerainfocontrol.h
         controls/qcameralockscontrol.cpp controls/qcameralockscontrol.h
         controls/qcameraviewfindersettingscontrol.cpp controls/qcameraviewfindersettingscontrol.h
         controls/qcamerazoomcontrol.cpp controls/qcamerazoomcontrol.h

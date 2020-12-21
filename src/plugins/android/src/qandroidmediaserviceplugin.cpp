@@ -42,7 +42,6 @@
 #include "qandroidmediaservice.h"
 #include "qandroidcaptureservice.h"
 #include "qandroidaudioinputselectorcontrol.h"
-#include "qandroidcamerainfocontrol.h"
 #include "qandroidcamerasession.h"
 #include "androidmediaplayer.h"
 #include "androidsurfacetexture.h"
@@ -136,16 +135,6 @@ QString QAndroidMediaServicePlugin::deviceDescription(const QByteArray &service,
         return QAndroidAudioInputSelectorControl::availableDeviceDescription(device);
 
     return QString();
-}
-
-QCamera::Position QAndroidMediaServicePlugin::cameraPosition(const QByteArray &device) const
-{
-    return QAndroidCameraInfoControl::position(device);
-}
-
-int QAndroidMediaServicePlugin::cameraOrientation(const QByteArray &device) const
-{
-    return QAndroidCameraInfoControl::orientation(device);
 }
 
 QT_END_NAMESPACE

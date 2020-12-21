@@ -61,7 +61,6 @@ class QMediaServiceProvider;
 class QCameraControl;
 class QVideoDeviceSelectorControl;
 class QCameraLocksControl;
-class QCameraInfoControl;
 class QCameraViewfinderSettingsControl;
 class QCameraViewfinderSettingsControl2;
 
@@ -75,7 +74,6 @@ public:
         control(nullptr),
         deviceControl(nullptr),
         locksControl(nullptr),
-        infoControl(nullptr),
         viewfinderSettingsControl(nullptr),
         viewfinderSettingsControl2(nullptr),
         cameraExposure(nullptr),
@@ -103,7 +101,6 @@ public:
     QCameraControl *control;
     QVideoDeviceSelectorControl *deviceControl;
     QCameraLocksControl *locksControl;
-    QCameraInfoControl *infoControl;
     QCameraViewfinderSettingsControl *viewfinderSettingsControl;
     QCameraViewfinderSettingsControl2 *viewfinderSettingsControl2;
 

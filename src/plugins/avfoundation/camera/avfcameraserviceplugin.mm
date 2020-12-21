@@ -100,14 +100,4 @@ QString AVFServicePlugin::deviceDescription(const QByteArray &service, const QBy
     return QString();
 }
 
-QCamera::Position AVFServicePlugin::cameraPosition(const QByteArray &device) const
-{
-    return AVFCameraSession::cameraDeviceInfo(device).position;
-}
-
-int AVFServicePlugin::cameraOrientation(const QByteArray &device) const
-{
-    return AVFCameraSession::cameraDeviceInfo(device).orientation;
-}
-
 QT_END_NAMESPACE

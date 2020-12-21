@@ -76,6 +76,22 @@ QString QAndroidVideoDeviceSelectorControl::deviceDescription(int index) const
     return QAndroidCameraSession::availableCameras().at(index).description;
 }
 
+QCamera::Position QAndroidVideoDeviceSelectorControl::cameraPosition(int index) const
+{
+    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
+        return QCamera::UnspecifiedPosition;
+
+    return QAndroidCameraSession::availableCameras().at(index).position;
+}
+
+int QAndroidVideoDeviceSelectorControl::cameraOrientation(int index) const
+{
+    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
+        return QCamera::UnspecifiedPosition;
+
+    return QAndroidCameraSession::availableCameras().at(index).orientation;
+}
+
 int QAndroidVideoDeviceSelectorControl::defaultDevice() const
 {
     return 0;

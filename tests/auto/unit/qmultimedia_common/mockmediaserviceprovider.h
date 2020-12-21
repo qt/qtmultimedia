@@ -32,7 +32,6 @@
 #include "qmediaserviceprovider_p.h"
 #include "qmediaservice.h"
 #include "mockvideodeviceselectorcontrol.h"
-#include "mockcamerainfocontrol.h"
 
 // Simple provider that lets you set the service
 class MockMediaServiceProvider : public QMediaServiceProvider
@@ -88,16 +87,6 @@ public:
             return MockVideoDeviceSelectorControl::cameraDescription(device);
 
         return QString();
-    }
-
-    QCamera::Position cameraPosition(const QByteArray &device) const
-    {
-        return MockCameraInfoControl::position(device);
-    }
-
-    int cameraOrientation(const QByteArray &device) const
-    {
-        return MockCameraInfoControl::orientation(device);
     }
 
     QMediaService *service;

@@ -55,6 +55,9 @@ public:
     int deviceCount() const override;
     QString deviceName(int index) const override;
     QString deviceDescription(int index) const override;
+    QCamera::Position cameraPosition(int index) const;
+    int cameraOrientation(int index) const;
+
     int defaultDevice() const override;
     int selectedDevice() const override;
 

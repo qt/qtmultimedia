@@ -48,13 +48,11 @@ QT_BEGIN_NAMESPACE
 
 class AVFServicePlugin : public QMediaServiceProviderPlugin,
                          public QMediaServiceSupportedDevicesInterface,
-                         public QMediaServiceDefaultDeviceInterface,
-                         public QMediaServiceCameraInfoInterface
+                         public QMediaServiceDefaultDeviceInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
-    Q_INTERFACES(QMediaServiceCameraInfoInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "avfcamera.json")
 
 public:
@@ -66,9 +64,6 @@ public:
     QByteArray defaultDevice(const QByteArray &service) const override;
     QList<QByteArray> devices(const QByteArray &service) const override;
     QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
-
-    QCamera::Position cameraPosition(const QByteArray &device) const override;
-    int cameraOrientation(const QByteArray &device) const override;
 };
 
 QT_END_NAMESPACE

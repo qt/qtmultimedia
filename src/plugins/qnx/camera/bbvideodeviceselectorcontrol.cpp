@@ -79,6 +79,21 @@ QString BbVideoDeviceSelectorControl::deviceDescription(int index) const
     return m_descriptions.at(index);
 }
 
+QCamera::Position BbVideoDeviceSelectorControl::cameraPosition(int index) const
+{
+    if (deviceName(index) == QString::fromUtf8(BbCameraSession::cameraIdentifierFront()))
+        return QCamera::FrontFace;
+    else if (deviceName(index) == QString::fromUtf8(BbCameraSession::cameraIdentifierRear()))
+        return QCamera::BackFace;
+    else
+        return QCamera::UnspecifiedPosition;
+}
+
+int BbVideoDeviceSelectorControl::cameraOrientation(int index) const
+{
+    return 0;
+}
+
 int BbVideoDeviceSelectorControl::defaultDevice() const
 {
     return m_default;

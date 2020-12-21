@@ -10,7 +10,6 @@ HEADERS += \
     $$PWD/bbcamerafocuscontrol.h \
     $$PWD/bbcameraimagecapturecontrol.h \
     $$PWD/bbcameraimageprocessingcontrol.h \
-    $$PWD/bbcamerainfocontrol.h \
     $$PWD/bbcameralockscontrol.h \
     $$PWD/bbcameramediarecordercontrol.h \
     $$PWD/bbcameraorientationhandler.h \
@@ -34,7 +33,6 @@ SOURCES += \
     $$PWD/bbcamerafocuscontrol.cpp \
     $$PWD/bbcameraimagecapturecontrol.cpp \
     $$PWD/bbcameraimageprocessingcontrol.cpp \
-    $$PWD/bbcamerainfocontrol.cpp \
     $$PWD/bbcameralockscontrol.cpp \
     $$PWD/bbcameramediarecordercontrol.cpp \
     $$PWD/bbcameraorientationhandler.cpp \

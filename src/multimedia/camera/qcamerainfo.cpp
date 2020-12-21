@@ -43,7 +43,6 @@
 #include "qmediaserviceprovider_p.h"
 
 #include <qvideodeviceselectorcontrol.h>
-#include <qcamerainfocontrol.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -106,13 +105,8 @@ QCameraInfo::QCameraInfo(const QCamera &camera)
         const int selectedDevice = deviceControl->selectedDevice();
         d->deviceName = deviceControl->deviceName(selectedDevice);
         d->description = deviceControl->deviceDescription(selectedDevice);
-        d->isNull = false;
-    }
-
-    const QCameraInfoControl *infoControl = camera.d_func()->infoControl;
-    if (infoControl) {
-        d->position = infoControl->cameraPosition(d->deviceName);
-        d->orientation = infoControl->cameraOrientation(d->deviceName);
+        d->position = deviceControl->cameraPosition(selectedDevice);
+        d->orientation = deviceControl->cameraOrientation(selectedDevice);
         d->isNull = false;
     }
 }
@@ -128,6 +122,7 @@ QCameraInfo::QCameraInfo(const QByteArray &name)
     if (!name.isNull()) {
         QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
         const QByteArray service(Q_MEDIASERVICE_CAMERA);
+
         if (provider->devices(service).contains(name)) {
             d->deviceName = QString::fromLatin1(name);
             d->description = provider->deviceDescription(service, name);

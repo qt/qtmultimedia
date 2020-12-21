@@ -93,7 +93,6 @@ private:
     QGstreamerVideoWidgetControl *m_videoWidgetControl;
 #endif
     CameraBinImageCapture *m_imageCaptureControl;
-    QMediaControl *m_cameraInfoControl;
 
     CameraBinViewfinderSettings *m_viewfinderSettingsControl;
     CameraBinViewfinderSettings2 *m_viewfinderSettingsControl2;

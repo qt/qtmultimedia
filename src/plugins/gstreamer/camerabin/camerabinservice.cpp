@@ -47,7 +47,6 @@
 #include "camerabinimageencoder.h"
 #include "camerabincontrol.h"
 #include "camerabinmetadata.h"
-#include "camerabininfocontrol.h"
 
 #if QT_CONFIG(gstreamer_photography)
 #include "camerabinexposure.h"
@@ -82,7 +81,6 @@ QT_BEGIN_NAMESPACE
 
 CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *parent):
     QMediaService(parent),
-    m_cameraInfoControl(0),
     m_viewfinderSettingsControl(0),
     m_viewfinderSettingsControl2(0)
 {
@@ -238,12 +236,6 @@ QMediaControl *CameraBinService::requestControl(const char *name)
         if (!m_viewfinderSettingsControl2)
             m_viewfinderSettingsControl2 = new CameraBinViewfinderSettings2(m_captureSession);
         return m_viewfinderSettingsControl2;
-    }
-
-    if (qstrcmp(name, QCameraInfoControl_iid) == 0) {
-        if (!m_cameraInfoControl)
-            m_cameraInfoControl = new CameraBinInfoControl(m_captureSession->sourceFactory(), this);
-        return m_cameraInfoControl;
     }
 
     return 0;

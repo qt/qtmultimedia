@@ -49,7 +49,6 @@ QT_BEGIN_NAMESPACE
 class QCameraControl;
 class QMediaRecorderControl;
 class AVFCameraControl;
-class AVFCameraInfoControl;
 class AVFCameraMetaDataControl;
 class AVFVideoWindowControl;
 class AVFVideoWidgetControl;
@@ -106,7 +105,6 @@ public:
 private:
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
-    AVFCameraInfoControl *m_cameraInfoControl;
     AVFCameraDeviceControl *m_videoDeviceControl;
     AVFAudioInputSelectorControl *m_audioInputSelectorControl;
     AVFCameraRendererControl *m_videoOutput;

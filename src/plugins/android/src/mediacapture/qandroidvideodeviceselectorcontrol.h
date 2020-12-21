@@ -58,6 +58,8 @@ public:
 
     QString deviceName(int index) const;
     QString deviceDescription(int index) const;
+    QCamera::Position cameraPosition(int index) const;
+    int cameraOrientation(int index) const;
 
     int defaultDevice() const;
     int selectedDevice() const;

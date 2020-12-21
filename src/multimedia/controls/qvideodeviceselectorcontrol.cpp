@@ -103,6 +103,22 @@ QVideoDeviceSelectorControl::~QVideoDeviceSelectorControl()
 */
 
 /*!
+    \fn QVideoDeviceSelectorControl::cameraPosition(int index) const
+
+    Returns the physical position of the camera at \a index.
+*/
+
+/*!
+    \fn QVideoDeviceSelectorControl::cameraOrientation(const QString &deviceName) const
+
+    Returns the physical orientation of the sensor for the camera at \a index.
+
+    The value is the orientation angle (clockwise, in steps of 90 degrees) of the camera sensor
+    in relation to the display in its natural orientation.
+*/
+
+
+/*!
     \fn QVideoDeviceSelectorControl::defaultDevice() const
 
     Returns the index of the default video device.

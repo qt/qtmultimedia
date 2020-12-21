@@ -41,6 +41,7 @@
 #define QVIDEODEVICESELECTORCONTROL_H
 
 #include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,6 +59,9 @@ public:
 
     virtual QString deviceName(int index) const = 0;
     virtual QString deviceDescription(int index) const = 0;
+
+    virtual QCamera::Position cameraPosition(int index) const = 0;
+    virtual int cameraOrientation(int index) const = 0;
 
     virtual int defaultDevice() const = 0;
     virtual int selectedDevice() const = 0;

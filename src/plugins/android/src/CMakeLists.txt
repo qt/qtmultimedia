@@ -21,7 +21,6 @@ qt_internal_add_plugin(QAndroidMediaServicePlugin
         mediacapture/qandroidcamerafocuscontrol.cpp mediacapture/qandroidcamerafocuscontrol.h
         mediacapture/qandroidcameraimagecapturecontrol.cpp mediacapture/qandroidcameraimagecapturecontrol.h
         mediacapture/qandroidcameraimageprocessingcontrol.cpp mediacapture/qandroidcameraimageprocessingcontrol.h
-        mediacapture/qandroidcamerainfocontrol.cpp mediacapture/qandroidcamerainfocontrol.h
         mediacapture/qandroidcameralockscontrol.cpp mediacapture/qandroidcameralockscontrol.h
         mediacapture/qandroidcamerasession.cpp mediacapture/qandroidcamerasession.h
         mediacapture/qandroidcameravideorenderercontrol.cpp mediacapture/qandroidcameravideorenderercontrol.h

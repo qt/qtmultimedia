@@ -189,7 +189,6 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::Null);
         QVERIFY(hint.device().isEmpty());
-        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), 0);
@@ -201,18 +200,6 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::Device);
         QCOMPARE(hint.device(), deviceName);
-        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
-        QVERIFY(hint.mimeType().isEmpty());
-        QVERIFY(hint.codecs().isEmpty());
-        QCOMPARE(hint.features(), 0);
-    }
-
-    {
-        QMediaServiceProviderHint hint(QCamera::FrontFace);
-        QVERIFY(!hint.isNull());
-        QCOMPARE(hint.type(), QMediaServiceProviderHint::CameraPosition);
-        QVERIFY(hint.device().isEmpty());
-        QCOMPARE(hint.cameraPosition(), QCamera::FrontFace);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), 0);
@@ -223,7 +210,6 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::SupportedFeatures);
         QVERIFY(hint.device().isEmpty());
-        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), QMediaServiceProviderHint::LowLatencyPlayback);
@@ -234,7 +220,6 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::SupportedFeatures);
         QVERIFY(hint.device().isEmpty());
-        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QVERIFY(hint.mimeType().isEmpty());
         QVERIFY(hint.codecs().isEmpty());
         QCOMPARE(hint.features(), QMediaServiceProviderHint::RecordingSupport);
@@ -249,7 +234,6 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint.isNull());
         QCOMPARE(hint.type(), QMediaServiceProviderHint::ContentType);
         QVERIFY(hint.device().isEmpty());
-        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QCOMPARE(hint.mimeType(), mimeType);
         QCOMPARE(hint.codecs(), codecs);
 
@@ -258,7 +242,6 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint2.isNull());
         QCOMPARE(hint2.type(), QMediaServiceProviderHint::ContentType);
         QVERIFY(hint2.device().isEmpty());
-        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QCOMPARE(hint2.mimeType(), mimeType);
         QCOMPARE(hint2.codecs(), codecs);
 
@@ -268,7 +251,6 @@ void tst_QMediaServiceProvider::testProviderHints()
         QVERIFY(!hint3.isNull());
         QCOMPARE(hint3.type(), QMediaServiceProviderHint::ContentType);
         QVERIFY(hint3.device().isEmpty());
-        QCOMPARE(hint.cameraPosition(), QCamera::UnspecifiedPosition);
         QCOMPARE(hint3.mimeType(), mimeType);
         QCOMPARE(hint3.codecs(), codecs);
 

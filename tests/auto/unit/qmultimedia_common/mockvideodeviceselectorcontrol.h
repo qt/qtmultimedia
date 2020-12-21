@@ -47,6 +47,20 @@ public:
 
     QString deviceName(int index) const { return QString::fromLatin1(availableCameras().at(index)); }
     QString deviceDescription(int index) const { return cameraDescription(availableCameras().at(index)); }
+    QCamera::Position cameraPosition(int index) const
+    {
+        if (deviceName(index) == "backcamera")
+            return QCamera::BackFace;
+        else
+            return QCamera::UnspecifiedPosition;
+    }
+    int cameraOrientation(int index) const
+    {
+        if (deviceName(index) == "backcamera")
+            return 90;
+        else
+            return 0;
+    }
 
     int defaultDevice() const { return availableCameras().indexOf(defaultCamera()); }
     int selectedDevice() const { return m_selectedDevice; }

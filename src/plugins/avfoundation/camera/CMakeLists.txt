@@ -16,7 +16,6 @@ qt_internal_add_plugin(AVFServicePlugin
         avfcameraexposurecontrol.h avfcameraexposurecontrol.mm
         avfcameraflashcontrol.h avfcameraflashcontrol.mm
         avfcamerafocuscontrol.h avfcamerafocuscontrol.mm
-        avfcamerainfocontrol.h avfcamerainfocontrol.mm
         avfcamerametadatacontrol.h avfcamerametadatacontrol.mm
         avfcamerarenderercontrol.h avfcamerarenderercontrol.mm
         avfcameraservice.h avfcameraservice.mm

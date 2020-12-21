@@ -32,13 +32,11 @@
 
 class MockServicePlugin3 : public QMediaServiceProviderPlugin,
                            public QMediaServiceSupportedDevicesInterface,
-                           public QMediaServiceDefaultDeviceInterface,
-                           public QMediaServiceCameraInfoInterface
+                           public QMediaServiceDefaultDeviceInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
-    Q_INTERFACES(QMediaServiceCameraInfoInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin3.json")
 public:
     QStringList keys() const
@@ -91,22 +89,6 @@ public:
             return QString(device)+" description";
         else
             return QString();
-    }
-
-    QCamera::Position cameraPosition(const QByteArray &device) const
-    {
-        if (device == "frontcamera")
-            return QCamera::FrontFace;
-
-        return QCamera::UnspecifiedPosition;
-    }
-
-    int cameraOrientation(const QByteArray &device) const
-    {
-        if (device == "frontcamera")
-            return 270;
-
-        return 0;
     }
 };
 

@@ -128,16 +128,6 @@ QVariant CameraBinServicePlugin::deviceProperty(const QByteArray &service, const
     return QVariant();
 }
 
-QCamera::Position CameraBinServicePlugin::cameraPosition(const QByteArray &deviceName) const
-{
-    return QGstUtils::cameraPosition(deviceName, m_sourceFactory);
-}
-
-int CameraBinServicePlugin::cameraOrientation(const QByteArray &deviceName) const
-{
-    return QGstUtils::cameraOrientation(deviceName, m_sourceFactory);
-}
-
 GstElementFactory *CameraBinServicePlugin::sourceFactory() const
 {
     if (!m_sourceFactory) {

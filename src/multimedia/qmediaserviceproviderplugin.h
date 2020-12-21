@@ -61,7 +61,7 @@ class QMediaServiceProviderHintPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaServiceProviderHint
 {
 public:
-    enum Type { Null, ContentType, Device, SupportedFeatures, CameraPosition };
+    enum Type { Null, ContentType, Device, SupportedFeatures };
 
     enum Feature {
         LowLatencyPlayback = 0x01,
@@ -74,7 +74,6 @@ public:
     QMediaServiceProviderHint();
     QMediaServiceProviderHint(const QString &mimeType, const QStringList& codecs);
     QMediaServiceProviderHint(const QByteArray &device);
-    QMediaServiceProviderHint(QCamera::Position position);
     QMediaServiceProviderHint(Features features);
     QMediaServiceProviderHint(const QMediaServiceProviderHint &other);
     ~QMediaServiceProviderHint();
@@ -92,7 +91,6 @@ public:
     QStringList codecs() const;
 
     QByteArray device() const;
-    QCamera::Position cameraPosition() const;
 
     Features features() const;
 
@@ -160,17 +158,6 @@ struct Q_MULTIMEDIA_EXPORT QMediaServiceDefaultDeviceInterface
 #define QMediaServiceDefaultDeviceInterface_iid \
     "org.qt-project.qt.mediaservicedefaultdevice/5.3"
 Q_DECLARE_INTERFACE(QMediaServiceDefaultDeviceInterface, QMediaServiceDefaultDeviceInterface_iid)
-
-struct Q_MULTIMEDIA_EXPORT QMediaServiceCameraInfoInterface
-{
-    virtual ~QMediaServiceCameraInfoInterface() {}
-    virtual QCamera::Position cameraPosition(const QByteArray &device) const = 0;
-    virtual int cameraOrientation(const QByteArray &device) const = 0;
-};
-
-#define QMediaServiceCameraInfoInterface_iid \
-    "org.qt-project.qt.mediaservicecamerainfo/5.3"
-Q_DECLARE_INTERFACE(QMediaServiceCameraInfoInterface, QMediaServiceCameraInfoInterface_iid)
 
 // Required for QDoc workaround
 class QString;

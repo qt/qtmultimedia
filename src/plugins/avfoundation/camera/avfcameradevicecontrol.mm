@@ -80,6 +80,25 @@ QString AVFCameraDeviceControl::deviceDescription(int index) const
     return devices.at(index).description;
 }
 
+QCamera::Position AVFCameraDeviceControl::cameraPosition(int index) const
+{
+    const QList<AVFCameraInfo> &devices = AVFCameraSession::availableCameraDevices();
+    if (index < 0 || index >= devices.count())
+        return QCamera::UnspecifiedPosition;
+
+    return devices.at(index).position;
+}
+
+int AVFCameraDeviceControl::cameraOrientation(int index) const
+{
+    const QList<AVFCameraInfo> &devices = AVFCameraSession::availableCameraDevices();
+    if (index < 0 || index >= devices.count())
+        return 0;
+
+    return devices.at(index).orientation;
+}
+
+
 int AVFCameraDeviceControl::defaultDevice() const
 {
     return AVFCameraSession::defaultCameraIndex();

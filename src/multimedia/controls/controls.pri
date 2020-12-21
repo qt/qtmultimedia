@@ -9,7 +9,6 @@ PUBLIC_HEADERS += \
     controls/qcameracapturebufferformatcontrol.h \
     controls/qcameracapturedestinationcontrol.h \
     controls/qcameracontrol.h \
-    controls/qcamerainfocontrol.h \
     controls/qcameraexposurecontrol.h \
     controls/qcameraflashcontrol.h \
     controls/qcamerafocuscontrol.h \
@@ -36,7 +35,6 @@ SOURCES += \
     controls/qcameracapturebufferformatcontrol.cpp \
     controls/qcameracapturedestinationcontrol.cpp \
     controls/qcameracontrol.cpp \
-    controls/qcamerainfocontrol.cpp \
     controls/qcameraexposurecontrol.cpp \
     controls/qcameraflashcontrol.cpp \
     controls/qcamerafocuscontrol.cpp \

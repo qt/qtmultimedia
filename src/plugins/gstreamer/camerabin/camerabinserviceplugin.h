@@ -53,13 +53,11 @@ class CameraBinServicePlugin
     , public QMediaServiceSupportedDevicesInterface
     , public QMediaServiceDefaultDeviceInterface
     , public QMediaServiceFeaturesInterface
-    , public QMediaServiceCameraInfoInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_INTERFACES(QMediaServiceDefaultDeviceInterface)
     Q_INTERFACES(QMediaServiceFeaturesInterface)
-    Q_INTERFACES(QMediaServiceCameraInfoInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "camerabin.json")
 public:
     CameraBinServicePlugin();
@@ -74,9 +72,6 @@ public:
     QList<QByteArray> devices(const QByteArray &service) const override;
     QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
     QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
-
-    QCamera::Position cameraPosition(const QByteArray &device) const override;
-    int cameraOrientation(const QByteArray &device) const override;
 
 private:
     GstElementFactory *sourceFactory() const;

@@ -42,7 +42,6 @@
 
 #include "avfcameraservice.h"
 #include "avfcameracontrol.h"
-#include "avfcamerainfocontrol.h"
 #include "avfcamerasession.h"
 #include "avfcameradevicecontrol.h"
 #include "avfaudioinputselectorcontrol.h"
@@ -80,7 +79,6 @@ AVFCameraService::AVFCameraService(QObject *parent):
 {
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);
-    m_cameraInfoControl = new AVFCameraInfoControl(this);
     m_videoDeviceControl = new AVFCameraDeviceControl(this);
     m_audioInputSelectorControl = new AVFAudioInputSelectorControl(this);
 
@@ -161,9 +159,6 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
 {
     if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
-
-    if (qstrcmp(name, QCameraInfoControl_iid) == 0)
-        return m_cameraInfoControl;
 
     if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)
         return m_videoDeviceControl;
