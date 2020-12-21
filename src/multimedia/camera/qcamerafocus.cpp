@@ -45,7 +45,6 @@
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
 #include <qcamerazoomcontrol.h>
-#include <qmediarecordercontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
 
