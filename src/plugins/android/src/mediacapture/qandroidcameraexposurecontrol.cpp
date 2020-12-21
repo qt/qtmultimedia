@@ -73,10 +73,6 @@ bool QAndroidCameraExposureControl::isParameterSupported(ExposureParameter param
         return false;
     case QCameraExposureControl::ExposureCompensation:
         return !m_supportedExposureCompensations.isEmpty();
-    case QCameraExposureControl::FlashPower:
-        return false;
-    case QCameraExposureControl::FlashCompensation:
-        return false;
     case QCameraExposureControl::TorchPower:
         return false;
     case QCameraExposureControl::ExposureMode:

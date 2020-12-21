@@ -103,20 +103,12 @@ QCameraExposureControl::~QCameraExposureControl()
          Shutter speed in seconds, specified as qreal.
   \value ExposureCompensation
          Exposure compensation, specified as qreal EV value.
-  \value FlashPower
-         Manual flash power, specified as qreal value.
-         Accepted power range is [0..1.0],
-         with 0 value means no flash and 1.0 corresponds to full flash power.
-
-         This value is only used in the \l{QCameraExposure::FlashManual}{manual flash mode}.
   \value TorchPower
          Manual torch power, specified as qreal value.
          Accepted power range is [0..1.0],
          with 0 value means no light and 1.0 corresponds to full torch power.
 
          This value is only used in the \l{QCameraExposure::FlashTorch}{torch flash mode}.
-  \value FlashCompensation
-         Flash compensation, specified as qreal EV value.
   \value ExposureMode
          Camera exposure mode.
   \value ExtendedExposureParameter

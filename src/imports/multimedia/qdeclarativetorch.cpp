@@ -171,9 +171,8 @@ void QDeclarativeTorch::setPower(int power)
 /* Check for changes in flash power */
 void QDeclarativeTorch::parameterChanged(int parameter)
 {
-    if (parameter == QCameraExposureControl::FlashPower) {
+    if (parameter == QCameraExposureControl::TorchPower)
         emit powerChanged();
-    }
 }
 
 QT_END_NAMESPACE

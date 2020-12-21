@@ -65,8 +65,6 @@ public:
         Aperture,
         ShutterSpeed,
         ExposureCompensation,
-        FlashPower,
-        FlashCompensation,
         TorchPower,
         ExposureMode,
         ExtendedExposureParameter = 1000
