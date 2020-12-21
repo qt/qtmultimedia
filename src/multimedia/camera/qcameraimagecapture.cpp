@@ -39,7 +39,6 @@
 #include <qcameraimagecapture.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qmediaencodersettings.h>
-#include <qcameracapturedestinationcontrol.h>
 #include <qcameracapturebufferformatcontrol.h>
 
 #include <qimageencodercontrol.h>
@@ -101,7 +100,6 @@ public:
 
     QCameraImageCaptureControl *control;
     QImageEncoderControl *encoderControl;
-    QCameraCaptureDestinationControl *captureDestinationControl;
     QCameraCaptureBufferFormatControl *bufferFormatControl;
 
     QCameraImageCapture::Error error;
@@ -120,7 +118,6 @@ QCameraImageCapturePrivate::QCameraImageCapturePrivate():
      mediaObject(nullptr),
      control(nullptr),
      encoderControl(nullptr),
-     captureDestinationControl(nullptr),
      bufferFormatControl(nullptr),
      error(QCameraImageCapture::NoError)
 {
@@ -147,7 +144,6 @@ void QCameraImageCapturePrivate::_q_serviceDestroyed()
     mediaObject = nullptr;
     control = nullptr;
     encoderControl = nullptr;
-    captureDestinationControl = nullptr;
     bufferFormatControl = nullptr;
 }
 
@@ -214,11 +210,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
             disconnect(d->control, SIGNAL(error(int,int,QString)),
                        this, SLOT(_q_error(int,int,QString)));
 
-            if (d->captureDestinationControl) {
-                disconnect(d->captureDestinationControl, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)),
-                           this, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
-            }
-
             if (d->bufferFormatControl) {
                 disconnect(d->bufferFormatControl, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)),
                            this, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
@@ -228,8 +219,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
             service->releaseControl(d->control);
             if (d->encoderControl)
                 service->releaseControl(d->encoderControl);
-            if (d->captureDestinationControl)
-                service->releaseControl(d->captureDestinationControl);
             if (d->bufferFormatControl)
                 service->releaseControl(d->bufferFormatControl);
 
@@ -246,8 +235,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
 
             if (d->control) {
                 d->encoderControl = qobject_cast<QImageEncoderControl *>(service->requestControl(QImageEncoderControl_iid));
-                d->captureDestinationControl = qobject_cast<QCameraCaptureDestinationControl *>(
-                    service->requestControl(QCameraCaptureDestinationControl_iid));
                 d->bufferFormatControl = qobject_cast<QCameraCaptureBufferFormatControl *>(
                     service->requestControl(QCameraCaptureBufferFormatControl_iid));
 
@@ -266,11 +253,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
                 connect(d->control, SIGNAL(error(int,int,QString)),
                         this, SLOT(_q_error(int,int,QString)));
 
-                if (d->captureDestinationControl) {
-                    connect(d->captureDestinationControl, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)),
-                            this, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
-                }
-
                 if (d->bufferFormatControl) {
                     connect(d->bufferFormatControl, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)),
                             this, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
@@ -287,7 +269,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
     d->mediaObject = nullptr;
     d->control = nullptr;
     d->encoderControl = nullptr;
-    d->captureDestinationControl = nullptr;
     d->bufferFormatControl = nullptr;
 
     return false;
@@ -452,29 +433,13 @@ void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
 }
 
 /*!
-    Returns true if the image capture \a destination is supported; otherwise returns false.
-
-    \sa captureDestination(), setCaptureDestination()
-*/
-bool QCameraImageCapture::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
-{
-    if (d_func()->captureDestinationControl)
-        return d_func()->captureDestinationControl->isCaptureDestinationSupported(destination);
-    else
-        return destination == CaptureToFile;
-}
-
-/*!
     Returns the image capture destination being used.
 
     \sa isCaptureDestinationSupported(), setCaptureDestination()
 */
 QCameraImageCapture::CaptureDestinations QCameraImageCapture::captureDestination() const
 {
-    if (d_func()->captureDestinationControl)
-        return d_func()->captureDestinationControl->captureDestination();
-    else
-        return CaptureToFile;
+    return d_func()->control->captureDestination();
 }
 
 /*!
@@ -486,8 +451,12 @@ void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDest
 {
     Q_D(QCameraImageCapture);
 
-    if (d->captureDestinationControl)
-        d->captureDestinationControl->setCaptureDestination(destination);
+    auto old = d->control->captureDestination();
+    if (old == destination)
+        return;
+
+    d->control->setCaptureDestination(destination);
+    emit captureDestinationChanged(destination);
 }
 
 /*!

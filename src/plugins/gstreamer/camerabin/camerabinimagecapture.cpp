@@ -39,7 +39,6 @@
 
 #include "camerabinimagecapture.h"
 #include "camerabincontrol.h"
-#include "camerabincapturedestination.h"
 #include "camerabincapturebufferformat.h"
 #include "camerabinsession.h"
 #include <private/qgstvideobuffer_p.h>
@@ -100,6 +99,17 @@ int CameraBinImageCapture::capture(const QString &fileName)
 void CameraBinImageCapture::cancelCapture()
 {
 }
+
+QCameraImageCapture::CaptureDestinations CameraBinImageCapture::captureDestination() const
+{
+    return m_destination;
+}
+
+void CameraBinImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+{
+    m_destination = destination;
+}
+
 
 void CameraBinImageCapture::updateState()
 {
@@ -164,8 +174,7 @@ bool CameraBinImageCapture::EncoderProbe::probeBuffer(GstBuffer *buffer)
     qDebug() << "Uncompressed buffer probe";
 #endif
 
-    QCameraImageCapture::CaptureDestinations destination =
-            session->captureDestinationControl()->captureDestination();
+    QCameraImageCapture::CaptureDestinations destination = capture->m_destination;
     QVideoFrame::PixelFormat format = session->captureBufferFormatControl()->bufferFormat();
 
     if (destination & QCameraImageCapture::CaptureToBuffer) {
@@ -204,8 +213,7 @@ bool CameraBinImageCapture::MuxerProbe::probeBuffer(GstBuffer *buffer)
 {
     CameraBinSession * const session = capture->m_session;
 
-    QCameraImageCapture::CaptureDestinations destination =
-            session->captureDestinationControl()->captureDestination();
+    QCameraImageCapture::CaptureDestinations destination = capture->m_destination;
 
     if ((destination & QCameraImageCapture::CaptureToBuffer) &&
          session->captureBufferFormatControl()->bufferFormat() == QVideoFrame::Format_Jpeg) {
@@ -309,7 +317,7 @@ bool CameraBinImageCapture::processBusMessage(const QGstreamerMessage &message)
                 qDebug() << "Image saved" << fileName;
 #endif
 
-                if (m_session->captureDestinationControl()->captureDestination() & QCameraImageCapture::CaptureToFile) {
+                if (m_destination & QCameraImageCapture::CaptureToFile) {
                     emit imageSaved(m_requestId, QString::fromUtf8(fileName));
                 } else {
 #ifdef DEBUG_CAPTURE

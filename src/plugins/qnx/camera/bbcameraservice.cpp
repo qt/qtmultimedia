@@ -40,7 +40,6 @@
 
 #include "bbcameraaudioencodersettingscontrol.h"
 #include "bbcameracapturebufferformatcontrol.h"
-#include "bbcameracapturedestinationcontrol.h"
 #include "bbcameracontrol.h"
 #include "bbcameraexposurecontrol.h"
 #include "bbcameraflashcontrol.h"
@@ -67,7 +66,6 @@ BbCameraService::BbCameraService(QObject *parent)
     , m_cameraSession(new BbCameraSession(this))
     , m_cameraAudioEncoderSettingsControl(new BbCameraAudioEncoderSettingsControl(m_cameraSession, this))
     , m_cameraCaptureBufferFormatControl(new BbCameraCaptureBufferFormatControl(this))
-    , m_cameraCaptureDestinationControl(new BbCameraCaptureDestinationControl(m_cameraSession, this))
     , m_cameraControl(new BbCameraControl(m_cameraSession, this))
     , m_cameraExposureControl(new BbCameraExposureControl(m_cameraSession, this))
     , m_cameraFlashControl(new BbCameraFlashControl(m_cameraSession, this))
@@ -95,8 +93,6 @@ QMediaControl* BbCameraService::requestControl(const char *name)
         return m_cameraAudioEncoderSettingsControl;
     else if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
         return m_cameraCaptureBufferFormatControl;
-    else if (qstrcmp(name, QCameraCaptureDestinationControl_iid) == 0)
-        return m_cameraCaptureDestinationControl;
     else if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
     else if (qstrcmp(name, QCameraExposureControl_iid) == 0)

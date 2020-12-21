@@ -7,7 +7,6 @@
 qt_add_test(tst_qcamera
     SOURCES
         ../qmultimedia_common/mockcameracapturebuffercontrol.h
-        ../qmultimedia_common/mockcameracapturedestinationcontrol.h
         ../qmultimedia_common/mockcameracontrol.h
         ../qmultimedia_common/mockcameraexposurecontrol.h
         ../qmultimedia_common/mockcameraflashcontrol.h

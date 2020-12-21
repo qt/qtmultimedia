@@ -80,4 +80,14 @@ void BbCameraImageCaptureControl::cancelCapture()
     m_session->cancelCapture();
 }
 
+QCameraImageCapture::CaptureDestinations BbCameraImageCaptureControl::captureDestination() const
+{
+    return m_session->captureDestination();
+}
+
+void BbCameraImageCaptureControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+{
+    m_session->setCaptureDestination(destination);
+}
+
 QT_END_NAMESPACE

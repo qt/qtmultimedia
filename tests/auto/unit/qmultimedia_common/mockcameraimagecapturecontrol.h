@@ -76,6 +76,16 @@ public:
         m_captureCanceled = true;
     }
 
+    QCameraImageCapture::CaptureDestinations captureDestination() const
+    {
+        return m_destination;
+    }
+
+    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+    {
+        m_destination = destination;
+    }
+
 private Q_SLOTS:
     void captured()
     {
@@ -113,6 +123,7 @@ private:
     int m_captureRequest;
     bool m_ready;
     bool m_captureCanceled;
+    QCameraImageCapture::CaptureDestinations m_destination;
 };
 
 #endif // MOCKCAMERACAPTURECONTROL_H

@@ -14,7 +14,6 @@ qt_internal_add_plugin(QAndroidMediaServicePlugin
         mediacapture/qandroidaudioencodersettingscontrol.cpp mediacapture/qandroidaudioencodersettingscontrol.h
         mediacapture/qandroidaudioinputselectorcontrol.cpp mediacapture/qandroidaudioinputselectorcontrol.h
         mediacapture/qandroidcameracapturebufferformatcontrol.cpp mediacapture/qandroidcameracapturebufferformatcontrol.h
-        mediacapture/qandroidcameracapturedestinationcontrol.cpp mediacapture/qandroidcameracapturedestinationcontrol.h
         mediacapture/qandroidcameracontrol.cpp mediacapture/qandroidcameracontrol.h
         mediacapture/qandroidcameraexposurecontrol.cpp mediacapture/qandroidcameraexposurecontrol.h
         mediacapture/qandroidcameraflashcontrol.cpp mediacapture/qandroidcameraflashcontrol.h

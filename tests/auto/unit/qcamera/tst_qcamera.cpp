@@ -41,7 +41,6 @@
 #include <qimageencodercontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameracapturebufferformatcontrol.h>
-#include <qcameracapturedestinationcontrol.h>
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
@@ -370,11 +369,6 @@ void tst_QCamera::testSimpleCaptureDestination()
     QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
-    QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToFile));
-    QVERIFY(!imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer));
-    QVERIFY(!imageCapture.isCaptureDestinationSupported(
-                QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile));
-
     QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
     imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer);
     QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
@@ -398,11 +392,6 @@ void tst_QCamera::testCaptureDestination()
     QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
-    QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToFile));
-    QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer));
-    QVERIFY(!imageCapture.isCaptureDestinationSupported(
-                QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile));
-
     QSignalSpy destinationChangedSignal(&imageCapture, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
 
     QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
@@ -412,10 +401,9 @@ void tst_QCamera::testCaptureDestination()
     QCOMPARE(destinationChangedSignal.first().first().value<QCameraImageCapture::CaptureDestinations>(),
              QCameraImageCapture::CaptureToBuffer);
 
-    //not supported combination
     imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToBuffer);
-    QCOMPARE(destinationChangedSignal.size(), 1);
+    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
+    QCOMPARE(destinationChangedSignal.size(), 2);
 }
 
 void tst_QCamera::testCaptureFormat()

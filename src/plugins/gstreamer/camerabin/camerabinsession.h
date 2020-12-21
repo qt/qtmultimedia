@@ -127,7 +127,6 @@ public:
 
     CameraBinZoom *cameraZoomControl() const { return m_cameraZoomControl; }
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
-    CameraBinCaptureDestination *captureDestinationControl() const { return m_captureDestinationControl; }
     CameraBinCaptureBufferFormat *captureBufferFormatControl() const { return m_captureBufferFormatControl; }
 
     CameraBinRecorder *recorderControl() const { return m_recorderControl; }
@@ -246,7 +245,6 @@ private:
 #endif
     CameraBinZoom *m_cameraZoomControl;
     CameraBinImageProcessing *m_imageProcessingControl;
-    CameraBinCaptureDestination *m_captureDestinationControl;
     CameraBinCaptureBufferFormat *m_captureBufferFormatControl;
 
     QGstreamerBusHelper *m_busHelper;

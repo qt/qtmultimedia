@@ -113,7 +113,6 @@ public:
     QVideoFrame::PixelFormat bufferFormat() const;
     void setBufferFormat(const QVideoFrame::PixelFormat format);
 
-    bool isCaptureDestinationSupported(CaptureDestinations destination) const;
     CaptureDestinations captureDestination() const;
     void setCaptureDestination(CaptureDestinations destination);
 

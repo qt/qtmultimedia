@@ -56,7 +56,6 @@
 #include "qandroidcameraimageprocessingcontrol.h"
 #include "qandroidimageencodercontrol.h"
 #include "qandroidcameraimagecapturecontrol.h"
-#include "qandroidcameracapturedestinationcontrol.h"
 #include "qandroidcameracapturebufferformatcontrol.h"
 #include "qandroidaudioencodersettingscontrol.h"
 #include "qandroidvideoencodersettingscontrol.h"
@@ -85,7 +84,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(m_cameraSession);
         m_imageEncoderControl = new QAndroidImageEncoderControl(m_cameraSession);
         m_imageCaptureControl = new QAndroidCameraImageCaptureControl(m_cameraSession);
-        m_captureDestinationControl = new QAndroidCameraCaptureDestinationControl(m_cameraSession);
         m_captureBufferFormatControl = new QAndroidCameraCaptureBufferFormatControl;
         m_audioInputControl = 0;
     } else {
@@ -101,7 +99,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraImageProcessingControl = 0;
         m_imageEncoderControl = 0;
         m_imageCaptureControl = 0;
-        m_captureDestinationControl = 0;
         m_captureBufferFormatControl = 0;
         m_videoEncoderSettingsControl = 0;
     }
@@ -139,7 +136,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraImageProcessingControl;
     delete m_imageEncoderControl;
     delete m_imageCaptureControl;
-    delete m_captureDestinationControl;
     delete m_captureBufferFormatControl;
     delete m_cameraSession;
 }
@@ -193,9 +189,6 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
-
-    if (qstrcmp(name, QCameraCaptureDestinationControl_iid) == 0)
-        return m_captureDestinationControl;
 
     if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
         return m_captureBufferFormatControl;

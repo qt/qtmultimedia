@@ -42,7 +42,6 @@
 #include <qimageencodercontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameracapturebufferformatcontrol.h>
-#include <qcameracapturedestinationcontrol.h>
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
@@ -384,15 +383,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     camera.load();
 
-    if (!imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer))
-        QSKIP("Buffer capture not supported");
-
     QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-
-    QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToFile));
-    QVERIFY(imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer));
-    QVERIFY(imageCapture.isCaptureDestinationSupported(
-                QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile));
 
     QSignalSpy destinationChangedSignal(&imageCapture, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
 
@@ -466,28 +457,26 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     //Try to capture to both buffer and file
-    if (imageCapture.isCaptureDestinationSupported(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile)) {
-        imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
+    imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
 
-        int oldId = id;
-        id = imageCapture.capture();
-        QVERIFY(id != oldId);
-        QTRY_VERIFY(!savedSignal.isEmpty());
+    int oldId = id;
+    id = imageCapture.capture();
+    QVERIFY(id != oldId);
+    QTRY_VERIFY(!savedSignal.isEmpty());
 
-        QVERIFY(errorSignal.isEmpty());
-        QVERIFY(!capturedSignal.isEmpty());
-        QVERIFY(!imageAvailableSignal.isEmpty());
-        QVERIFY(!savedSignal.isEmpty());
+    QVERIFY(errorSignal.isEmpty());
+    QVERIFY(!capturedSignal.isEmpty());
+    QVERIFY(!imageAvailableSignal.isEmpty());
+    QVERIFY(!savedSignal.isEmpty());
 
-        QCOMPARE(capturedSignal.first().first().toInt(), id);
-        QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
+    QCOMPARE(capturedSignal.first().first().toInt(), id);
+    QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
 
-        frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-        QVERIFY(!frame.image().isNull());
+    frame = imageAvailableSignal.first().last().value<QVideoFrame>();
+    QVERIFY(!frame.image().isNull());
 
-        QString fileName = savedSignal.first().last().toString();
-        QVERIFY(QFileInfo(fileName).exists());
-    }
+    QString fileName = savedSignal.first().last().toString();
+    QVERIFY(QFileInfo(fileName).exists());
 }
 
 void tst_QCameraBackend::testCameraCaptureMetadata()

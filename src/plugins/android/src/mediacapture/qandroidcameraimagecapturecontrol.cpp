@@ -81,4 +81,14 @@ void QAndroidCameraImageCaptureControl::cancelCapture()
     m_session->cancelCapture();
 }
 
+QCameraImageCapture::CaptureDestinations QAndroidCameraImageCaptureControl::captureDestination() const
+{
+    return m_session->captureDestination();;
+}
+
+void QAndroidCameraImageCaptureControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+{
+    m_session->setCaptureDestination(destination);
+}
+
 QT_END_NAMESPACE

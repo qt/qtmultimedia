@@ -41,7 +41,6 @@
 #include <qimageencodercontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameracapturebufferformatcontrol.h>
-#include <qcameracapturedestinationcontrol.h>
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>

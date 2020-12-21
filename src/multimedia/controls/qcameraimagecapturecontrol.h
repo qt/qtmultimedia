@@ -68,6 +68,9 @@ public:
     virtual int capture(const QString &fileName) = 0;
     virtual void cancelCapture() = 0;
 
+    virtual QCameraImageCapture::CaptureDestinations captureDestination() const = 0;
+    virtual void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) = 0;
+
 Q_SIGNALS:
     void readyForCaptureChanged(bool ready);
 

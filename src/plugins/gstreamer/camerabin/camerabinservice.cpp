@@ -58,7 +58,6 @@
 #include "camerabinimagecapture.h"
 #include "camerabinimageprocessing.h"
 #include "camerabincapturebufferformat.h"
-#include "camerabincapturedestination.h"
 #include "camerabinviewfindersettings.h"
 #include "camerabinviewfindersettings2.h"
 #include "camerabinzoom.h"
@@ -219,9 +218,6 @@ QMediaControl *CameraBinService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
         return m_captureSession->imageProcessingControl();
-
-    if (qstrcmp(name, QCameraCaptureDestinationControl_iid) == 0)
-        return m_captureSession->captureDestinationControl();
 
     if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
         return m_captureSession->captureBufferFormatControl();

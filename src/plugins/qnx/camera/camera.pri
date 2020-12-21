@@ -3,7 +3,6 @@ INCLUDEPATH += $$PWD
 HEADERS += \
     $$PWD/bbcameraaudioencodersettingscontrol.h \
     $$PWD/bbcameracapturebufferformatcontrol.h \
-    $$PWD/bbcameracapturedestinationcontrol.h \
     $$PWD/bbcameracontrol.h \
     $$PWD/bbcameraexposurecontrol.h \
     $$PWD/bbcameraflashcontrol.h \
@@ -26,7 +25,6 @@ HEADERS += \
 SOURCES += \
     $$PWD/bbcameraaudioencodersettingscontrol.cpp \
     $$PWD/bbcameracapturebufferformatcontrol.cpp \
-    $$PWD/bbcameracapturedestinationcontrol.cpp \
     $$PWD/bbcameracontrol.cpp \
     $$PWD/bbcameraexposurecontrol.cpp \
     $$PWD/bbcameraflashcontrol.cpp \

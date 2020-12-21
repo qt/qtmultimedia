@@ -639,10 +639,7 @@ QCameraImageCapture::CaptureDestinations QAndroidCameraSession::captureDestinati
 
 void QAndroidCameraSession::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
 {
-    if (m_captureDestination != destination) {
-        m_captureDestination = destination;
-        emit captureDestinationChanged(m_captureDestination);
-    }
+    m_captureDestination = destination;
 }
 
 bool QAndroidCameraSession::isReadyForCapture() const

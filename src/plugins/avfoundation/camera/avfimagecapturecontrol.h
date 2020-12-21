@@ -72,6 +72,9 @@ public:
     int capture(const QString &fileName) override;
     void cancelCapture() override;
 
+    QCameraImageCapture::CaptureDestinations captureDestination() const override;
+    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
+
 private Q_SLOTS:
     void updateCaptureConnection();
     void updateReadyStatus();
@@ -91,6 +94,8 @@ private:
 
     QMutex m_requestsMutex;
     QQueue<CaptureRequest> m_captureRequests;
+
+    QCameraImageCapture::CaptureDestinations m_destination = QCameraImageCapture::CaptureToFile;
 };
 
 Q_DECLARE_TYPEINFO(AVFImageCaptureControl::CaptureRequest, Q_PRIMITIVE_TYPE);

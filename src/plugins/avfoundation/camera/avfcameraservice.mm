@@ -60,7 +60,6 @@
 #include "avfaudioencodersettingscontrol.h"
 #include "avfvideoencodersettingscontrol.h"
 #include "avfmediacontainercontrol.h"
-#include "avfcapturedestinationcontrol.h"
 #include "avfcamerawindowcontrol.h"
 
 #ifdef Q_OS_IOS
@@ -109,7 +108,6 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_audioEncoderSettingsControl = new AVFAudioEncoderSettingsControl(this);
     m_videoEncoderSettingsControl = new AVFVideoEncoderSettingsControl(this);
     m_mediaContainerControl = new AVFMediaContainerControl(this);
-    m_captureDestinationControl = new AVFCaptureDestinationControl;
 }
 
 AVFCameraService::~AVFCameraService()
@@ -150,7 +148,6 @@ AVFCameraService::~AVFCameraService()
     delete m_audioEncoderSettingsControl;
     delete m_videoEncoderSettingsControl;
     delete m_mediaContainerControl;
-    delete m_captureDestinationControl;
 
     delete m_session;
 }
@@ -214,9 +211,6 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraZoomControl_iid) == 0)
         return m_cameraZoomControl;
 #endif
-
-    if (qstrcmp(name, QCameraCaptureDestinationControl_iid) == 0)
-        return m_captureDestinationControl;
 
     if (!m_captureWindowControl) {
         if (qstrcmp(name, QVideoWindowControl_iid) == 0) {

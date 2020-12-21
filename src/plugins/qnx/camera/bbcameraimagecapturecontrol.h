@@ -59,6 +59,9 @@ public:
     int capture(const QString &fileName) override;
     void cancelCapture() override;
 
+    QCameraImageCapture::CaptureDestinations captureDestination() const override;
+    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
+
 private:
     BbCameraSession *m_session;
 };

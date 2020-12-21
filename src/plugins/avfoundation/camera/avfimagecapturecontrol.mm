@@ -42,7 +42,6 @@
 #include "avfcameraservice.h"
 #include "avfcamerautility.h"
 #include "avfcameracontrol.h"
-#include "avfcapturedestinationcontrol.h"
 #include <private/qmemoryvideobuffer_p.h>
 
 #include <QtCore/qurl.h>
@@ -113,7 +112,7 @@ int AVFImageCaptureControl::capture(const QString &fileName)
         return m_lastCaptureId;
     }
 
-    auto destination = m_service->captureDestinationControl()->captureDestination();
+    auto destination = m_service->imageCaptureControl()->captureDestination();
     QString actualFileName;
     if (destination & QCameraImageCapture::CaptureToFile) {
         actualFileName = m_storageLocation.generateFileName(fileName,
@@ -240,6 +239,19 @@ void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
 void AVFImageCaptureControl::cancelCapture()
 {
     //not supported
+}
+
+QCameraImageCapture::CaptureDestinations AVFImageCaptureControl::captureDestination() const
+{
+    return m_destination;
+}
+
+void AVFImageCaptureControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+{
+    if (m_destination != destination) {
+        m_destination = destination;
+        updateCaptureConnection();
+    }
 }
 
 void AVFImageCaptureControl::updateCaptureConnection()

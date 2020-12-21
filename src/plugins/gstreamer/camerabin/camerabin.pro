@@ -24,7 +24,6 @@ HEADERS += \
     $$PWD/camerabinimageprocessing.h \
     $$PWD/camerabinmetadata.h \
     $$PWD/camerabinvideoencoder.h \
-    $$PWD/camerabincapturedestination.h \
     $$PWD/camerabincapturebufferformat.h \
     $$PWD/camerabinviewfindersettings.h \
     $$PWD/camerabinviewfindersettings2.h \
@@ -43,7 +42,6 @@ SOURCES += \
     $$PWD/camerabinmetadata.cpp \
     $$PWD/camerabinrecorder.cpp \
     $$PWD/camerabinvideoencoder.cpp \
-    $$PWD/camerabincapturedestination.cpp \
     $$PWD/camerabinviewfindersettings.cpp \
     $$PWD/camerabinviewfindersettings2.cpp \
     $$PWD/camerabincapturebufferformat.cpp \    

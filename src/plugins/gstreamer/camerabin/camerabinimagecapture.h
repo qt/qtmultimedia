@@ -67,6 +67,9 @@ public:
     int capture(const QString &fileName) override;
     void cancelCapture() override;
 
+    QCameraImageCapture::CaptureDestinations captureDestination() const override;
+    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
+
     bool processBusMessage(const QGstreamerMessage &message) override;
 
 private slots:
@@ -106,6 +109,7 @@ private:
     GstVideoInfo m_videoInfo;
     int m_requestId;
     bool m_ready;
+    QCameraImageCapture::CaptureDestinations m_destination;
 };
 
 QT_END_NAMESPACE
