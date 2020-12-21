@@ -1,0 +1,31 @@
+# Generated from mockserviceplugin1.pro.
+
+#####################################################################
+## MockServicePlugin1 Plugin:
+#####################################################################
+
+qt_internal_add_plugin(MockServicePlugin1
+    OUTPUT_NAME mockserviceplugin1
+    TYPE mediaservice
+    OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../$${PLUGIN_TYPE}"
+    SOURCES
+        ../mockservice.h
+        mockserviceplugin1.cpp
+    PUBLIC_LIBRARIES
+        Qt::Core
+        Qt::Gui
+        Qt::MultimediaPrivate
+)
+
+#### Keys ignored in scope 1:.:.:mockserviceplugin1.pro:<TRUE>:
+# OTHER_FILES = "mockserviceplugin1.json"
+# target.path = "$$[QT_INSTALL_TESTS]/tst_qmediaserviceprovider/$${PLUGIN_TYPE}"
+
+## Scopes:
+#####################################################################
+
+#### Keys ignored in scope 3:.:.:mockserviceplugin1.pro:(CMAKE_BUILD_TYPE STREQUAL Debug):
+# DESTDIR = "../debug/$${PLUGIN_TYPE}"
+
+#### Keys ignored in scope 4:.:.:mockserviceplugin1.pro:else:
+# DESTDIR = "../release/$${PLUGIN_TYPE}"

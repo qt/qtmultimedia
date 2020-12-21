@@ -1,6 +1,7 @@
 CXX_MODULE = multimedia
 TARGET  = declarative_multimedia
 TARGETPATH = QtMultimedia
+QML_IMPORT_VERSION = 5.15
 
 QT += qml quick network multimedia-private qtmultimediaquicktools-private
 
