@@ -35,7 +35,6 @@ qt_add_module(Multimedia
         controls/qcameracapturebufferformatcontrol.cpp controls/qcameracapturebufferformatcontrol.h
         controls/qcameracontrol.cpp controls/qcameracontrol.h
         controls/qcameraexposurecontrol.cpp controls/qcameraexposurecontrol.h
-        controls/qcameraflashcontrol.cpp controls/qcameraflashcontrol.h
         controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h
         controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
         controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h

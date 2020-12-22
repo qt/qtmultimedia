@@ -42,7 +42,6 @@
 
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>
-#include <qcameraflashcontrol.h>
 
 #include <QtCore/QMetaObject>
 #include <QtCore/QDebug>
@@ -86,7 +85,6 @@ public:
 
     QCamera *camera;
     QCameraExposureControl *exposureControl;
-    QCameraFlashControl *flashControl;
 
     void _q_exposureParameterChanged(int parameter);
     void _q_exposureParameterRangeChanged(int parameter);
@@ -98,20 +96,16 @@ void QCameraExposurePrivate::initControls()
 
     QMediaService *service = camera->service();
     exposureControl = nullptr;
-    flashControl = nullptr;
     if (service) {
         exposureControl = qobject_cast<QCameraExposureControl *>(service->requestControl(QCameraExposureControl_iid));
-        flashControl = qobject_cast<QCameraFlashControl *>(service->requestControl(QCameraFlashControl_iid));
     }
     if (exposureControl) {
         q->connect(exposureControl, SIGNAL(actualValueChanged(int)),
                    q, SLOT(_q_exposureParameterChanged(int)));
         q->connect(exposureControl, SIGNAL(parameterRangeChanged(int)),
                    q, SLOT(_q_exposureParameterRangeChanged(int)));
+        q->connect(exposureControl, SIGNAL(flashReady(bool)), q, SIGNAL(flashReady(bool)));
     }
-
-    if (flashControl)
-        q->connect(flashControl, SIGNAL(flashReady(bool)), q, SIGNAL(flashReady(bool)));
 }
 
 template<typename T>
@@ -233,13 +227,13 @@ bool QCameraExposure::isAvailable() const
 
 QCameraExposure::FlashModes QCameraExposure::flashMode() const
 {
-    return d_func()->flashControl ? d_func()->flashControl->flashMode() : QCameraExposure::FlashOff;
+    return d_func()->exposureControl ? d_func()->exposureControl->flashMode() : QCameraExposure::FlashOff;
 }
 
 void QCameraExposure::setFlashMode(QCameraExposure::FlashModes mode)
 {
-    if (d_func()->flashControl)
-        d_func()->flashControl->setFlashMode(mode);
+    if (d_func()->exposureControl)
+        d_func()->exposureControl->setFlashMode(mode);
 }
 
 /*!
@@ -248,7 +242,7 @@ void QCameraExposure::setFlashMode(QCameraExposure::FlashModes mode)
 
 bool QCameraExposure::isFlashModeSupported(QCameraExposure::FlashModes mode) const
 {
-    return d_func()->flashControl ? d_func()->flashControl->isFlashModeSupported(mode) : false;
+    return d_func()->exposureControl ? d_func()->exposureControl->isFlashModeSupported(mode) : false;
 }
 
 /*!
@@ -257,7 +251,7 @@ bool QCameraExposure::isFlashModeSupported(QCameraExposure::FlashModes mode) con
 
 bool QCameraExposure::isFlashReady() const
 {
-    return d_func()->flashControl ? d_func()->flashControl->isFlashReady() : false;
+    return d_func()->exposureControl ? d_func()->exposureControl->isFlashReady() : false;
 }
 
 /*!

@@ -9,7 +9,6 @@ qt_add_test(tst_qcameraviewfinder
         ../qmultimedia_common/mockcameracapturebuffercontrol.h
         ../qmultimedia_common/mockcameracontrol.h
         ../qmultimedia_common/mockcameraexposurecontrol.h
-        ../qmultimedia_common/mockcameraflashcontrol.h
         ../qmultimedia_common/mockcamerafocuscontrol.h
         ../qmultimedia_common/mockcameraimagecapturecontrol.h
         ../qmultimedia_common/mockcameraimageprocessingcontrol.h

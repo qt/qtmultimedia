@@ -224,7 +224,7 @@ AVFCameraExposureControl::AVFCameraExposureControl(AVFCameraService *service)
     m_session = m_service->session();
     Q_ASSERT(m_session);
 
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(cameraStateChanged()));
+    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(cameraStateChanged(QCamera::State)));
 }
 
 bool AVFCameraExposureControl::isParameterSupported(ExposureParameter parameter) const
@@ -562,7 +562,7 @@ bool AVFCameraExposureControl::setISO(const QVariant &value)
 #endif
 }
 
-void AVFCameraExposureControl::cameraStateChanged()
+void AVFCameraExposureControl::cameraStateChanged(QCamera::State newState)
 {
 #ifdef Q_OS_IOS
     if (m_session->state() != QCamera::ActiveState)
@@ -654,6 +654,176 @@ void AVFCameraExposureControl::cameraStateChanged()
         Q_EMIT actualValueChanged(int(QCameraExposureControl::ExposureMode));
     }
 #endif
+
+    if (newState == QCamera::UnloadedState) {
+        m_supportedModes = QCameraExposure::FlashOff;
+        Q_EMIT flashReady(false);
+    } else if (newState == QCamera::ActiveState) {
+        m_supportedModes = QCameraExposure::FlashOff;
+        AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+        if (!captureDevice) {
+            qDebugCamera() << Q_FUNC_INFO << "no capture device in 'Active' state";
+            Q_EMIT flashReady(false);
+            return;
+        }
+
+        if (captureDevice.hasFlash) {
+            if ([captureDevice isFlashModeSupported:AVCaptureFlashModeOn])
+                m_supportedModes |= QCameraExposure::FlashOn;
+            if ([captureDevice isFlashModeSupported:AVCaptureFlashModeAuto])
+                m_supportedModes |= QCameraExposure::FlashAuto;
+        }
+
+        if (captureDevice.hasTorch && [captureDevice isTorchModeSupported:AVCaptureTorchModeOn])
+            m_supportedModes |= QCameraExposure::FlashVideoLight;
+
+        Q_EMIT flashReady(applyFlashSettings());
+    }
+}
+
+
+
+QCameraExposure::FlashModes AVFCameraExposureControl::flashMode() const
+{
+    return m_flashMode;
+}
+
+void AVFCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
+{
+    if (m_flashMode == mode)
+        return;
+
+    if (m_session->state() == QCamera::ActiveState && !isFlashModeSupported(mode)) {
+        qDebugCamera() << Q_FUNC_INFO << "unsupported mode" << mode;
+        return;
+    }
+
+    m_flashMode = mode;
+
+    if (m_session->state() != QCamera::ActiveState)
+        return;
+
+    applyFlashSettings();
+}
+
+bool AVFCameraExposureControl::isFlashModeSupported(QCameraExposure::FlashModes mode) const
+{
+    // From what QCameraExposure has, we can support only these:
+    //  FlashAuto = 0x1,
+    //  FlashOff = 0x2,
+    //  FlashOn = 0x4,
+    // AVCaptureDevice has these flash modes:
+    //  AVCaptureFlashModeAuto
+    //  AVCaptureFlashModeOff
+    //  AVCaptureFlashModeOn
+    // QCameraExposure also has:
+    //  FlashTorch = 0x20,       --> "Constant light source."
+    //  FlashVideoLight = 0x40.  --> "Constant light source."
+    // AVCaptureDevice:
+    //  AVCaptureTorchModeOff (no mapping)
+    //  AVCaptureTorchModeOn     --> FlashVideoLight
+    //  AVCaptureTorchModeAuto (no mapping)
+
+    return m_supportedModes & mode;
+}
+
+bool AVFCameraExposureControl::isFlashReady() const
+{
+    if (m_session->state() != QCamera::ActiveState)
+        return false;
+
+    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    if (!captureDevice)
+        return false;
+
+    if (!captureDevice.hasFlash && !captureDevice.hasTorch)
+        return false;
+
+    if (!isFlashModeSupported(m_flashMode))
+        return false;
+
+#ifdef Q_OS_IOS
+    // AVCaptureDevice's docs:
+    // "The flash may become unavailable if, for example,
+    //  the device overheats and needs to cool off."
+    if (m_flashMode != QCameraExposure::FlashVideoLight)
+        return [captureDevice isFlashAvailable];
+
+    return [captureDevice isTorchAvailable];
+#endif
+
+    return true;
+}
+
+bool AVFCameraExposureControl::applyFlashSettings()
+{
+    Q_ASSERT(m_session->requestedState() == QCamera::ActiveState);
+
+    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    if (!captureDevice) {
+        qDebugCamera() << Q_FUNC_INFO << "no capture device found";
+        return false;
+    }
+
+    if (!isFlashModeSupported(m_flashMode)) {
+        qDebugCamera() << Q_FUNC_INFO << "unsupported mode" << m_flashMode;
+        return false;
+    }
+
+    if (!captureDevice.hasFlash && !captureDevice.hasTorch) {
+        // FlashOff is the only mode we support.
+        // Return false - flash is not ready.
+        return false;
+    }
+
+    const AVFConfigurationLock lock(captureDevice);
+
+    if (m_flashMode != QCameraExposure::FlashVideoLight) {
+        if (captureDevice.torchMode != AVCaptureTorchModeOff) {
+#ifdef Q_OS_IOS
+            if (![captureDevice isTorchAvailable]) {
+                qDebugCamera() << Q_FUNC_INFO << "torch is not available at the moment";
+                return false;
+            }
+#endif
+            captureDevice.torchMode = AVCaptureTorchModeOff;
+        }
+#ifdef Q_OS_IOS
+        if (![captureDevice isFlashAvailable]) {
+            // We'd like to switch flash (into some mode), but it's not available:
+            qDebugCamera() << Q_FUNC_INFO << "flash is not available at the moment";
+            return false;
+        }
+#endif
+    } else {
+        if (captureDevice.flashMode != AVCaptureFlashModeOff) {
+#ifdef Q_OS_IOS
+            if (![captureDevice isFlashAvailable]) {
+                qDebugCamera() << Q_FUNC_INFO << "flash is not available at the moment";
+                return false;
+            }
+#endif
+            captureDevice.flashMode = AVCaptureFlashModeOff;
+        }
+
+#ifdef Q_OS_IOS
+        if (![captureDevice isTorchAvailable]) {
+            qDebugCamera() << Q_FUNC_INFO << "torch is not available at the moment";
+            return false;
+        }
+#endif
+    }
+
+    if (m_flashMode == QCameraExposure::FlashOff)
+        captureDevice.flashMode = AVCaptureFlashModeOff;
+    else if (m_flashMode == QCameraExposure::FlashOn)
+        captureDevice.flashMode = AVCaptureFlashModeOn;
+    else if (m_flashMode == QCameraExposure::FlashAuto)
+        captureDevice.flashMode = AVCaptureFlashModeAuto;
+    else if (m_flashMode == QCameraExposure::FlashVideoLight)
+        captureDevice.torchMode = AVCaptureTorchModeOn;
+
+    return true;
 }
 
 QT_END_NAMESPACE

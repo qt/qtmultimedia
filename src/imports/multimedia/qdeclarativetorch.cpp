@@ -73,7 +73,6 @@ QDeclarativeTorch::QDeclarativeTorch(QObject *parent)
     QMediaService *service = m_camera->service();
 
     m_exposure = service ? service->requestControl<QCameraExposureControl*>() : 0;
-    m_flash = service ? service->requestControl<QCameraFlashControl*>() : 0;
 
     if (m_exposure)
         connect(m_exposure, SIGNAL(actualValueChanged(int)), SLOT(parameterChanged(int)));
@@ -101,10 +100,10 @@ QDeclarativeTorch::~QDeclarativeTorch()
  */
 bool QDeclarativeTorch::enabled() const
 {
-    if (!m_flash)
+    if (!m_exposure)
         return false;
 
-    return m_flash->flashMode() & QCameraExposure::FlashTorch;
+    return m_exposure->flashMode() & QCameraExposure::FlashTorch;
 }
 
 
@@ -115,19 +114,19 @@ bool QDeclarativeTorch::enabled() const
 */
 void QDeclarativeTorch::setEnabled(bool on)
 {
-    if (!m_flash)
+    if (!m_exposure)
         return;
 
-    QCameraExposure::FlashModes mode = m_flash->flashMode();
+    QCameraExposure::FlashModes mode = m_exposure->flashMode();
 
     if (mode & QCameraExposure::FlashTorch) {
         if (!on) {
-            m_flash->setFlashMode(mode & ~QCameraExposure::FlashTorch);
+            m_exposure->setFlashMode(mode & ~QCameraExposure::FlashTorch);
             emit enabledChanged();
         }
     } else {
         if (on) {
-            m_flash->setFlashMode(mode | QCameraExposure::FlashTorch);
+            m_exposure->setFlashMode(mode | QCameraExposure::FlashTorch);
             emit enabledChanged();
         }
     }

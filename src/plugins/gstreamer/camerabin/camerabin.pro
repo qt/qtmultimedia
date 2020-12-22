@@ -50,12 +50,10 @@ qtConfig(gstreamer_photography) {
     HEADERS += \
         $$PWD/camerabinfocus.h \
         $$PWD/camerabinexposure.h \
-        $$PWD/camerabinflash.h \
         $$PWD/camerabinlocks.h
 
     SOURCES += \
         $$PWD/camerabinexposure.cpp \
-        $$PWD/camerabinflash.cpp \
         $$PWD/camerabinfocus.cpp \
         $$PWD/camerabinlocks.cpp
 

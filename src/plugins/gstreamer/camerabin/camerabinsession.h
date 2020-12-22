@@ -120,7 +120,6 @@ public:
 
 #if QT_CONFIG(gstreamer_photography)
     CameraBinExposure *cameraExposureControl();
-    CameraBinFlash *cameraFlashControl();
     CameraBinFocus *cameraFocusControl();
     CameraBinLocks *cameraLocksControl();
 #endif
@@ -239,7 +238,6 @@ private:
     CameraBinContainer *m_mediaContainerControl;
 #if QT_CONFIG(gstreamer_photography)
     CameraBinExposure *m_cameraExposureControl;
-    CameraBinFlash *m_cameraFlashControl;
     CameraBinFocus *m_cameraFocusControl;
     CameraBinLocks *m_cameraLocksControl;
 #endif

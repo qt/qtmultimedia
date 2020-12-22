@@ -65,6 +65,12 @@ public:
     QVariant actualValue(ExposureParameter parameter) const override;
     bool setValue(ExposureParameter parameter, const QVariant &value) override;
 
+    QCameraExposure::FlashModes flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashModes mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const override;
+
+    bool isFlashReady() const override;
+
 private:
     CameraBinSession *m_session;
     QHash<ExposureParameter, QVariant> m_requestedValues;

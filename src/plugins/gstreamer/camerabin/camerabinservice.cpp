@@ -50,7 +50,6 @@
 
 #if QT_CONFIG(gstreamer_photography)
 #include "camerabinexposure.h"
-#include "camerabinflash.h"
 #include "camerabinfocus.h"
 #include "camerabinlocks.h"
 #endif
@@ -202,9 +201,6 @@ QMediaControl *CameraBinService::requestControl(const char *name)
 #if QT_CONFIG(gstreamer_photography)
     if (qstrcmp(name, QCameraExposureControl_iid) == 0)
         return m_captureSession->cameraExposureControl();
-
-    if (qstrcmp(name, QCameraFlashControl_iid) == 0)
-        return m_captureSession->cameraFlashControl();
 
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return m_captureSession->cameraFocusControl();

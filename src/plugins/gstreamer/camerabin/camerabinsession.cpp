@@ -48,7 +48,6 @@
 
 #if QT_CONFIG(gstreamer_photography)
 #include "camerabinexposure.h"
-#include "camerabinflash.h"
 #include "camerabinfocus.h"
 #include "camerabinlocks.h"
 #endif
@@ -132,7 +131,6 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
      m_viewfinderInterface(0),
 #if QT_CONFIG(gstreamer_photography)
      m_cameraExposureControl(0),
-     m_cameraFlashControl(0),
      m_cameraFocusControl(0),
      m_cameraLocksControl(0),
 #endif
@@ -236,13 +234,6 @@ CameraBinExposure *CameraBinSession::cameraExposureControl()
     if (!m_cameraExposureControl && photography())
         m_cameraExposureControl = new CameraBinExposure(this);
     return m_cameraExposureControl;
-}
-
-CameraBinFlash *CameraBinSession::cameraFlashControl()
-{
-    if (!m_cameraFlashControl && photography())
-        m_cameraFlashControl = new CameraBinFlash(this);
-    return m_cameraFlashControl;
 }
 
 CameraBinFocus *CameraBinSession::cameraFocusControl()

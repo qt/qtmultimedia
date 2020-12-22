@@ -56,7 +56,6 @@
 #include <QtQml/qqml.h>
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>
-#include <qcameraflashcontrol.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -88,7 +87,6 @@ private slots:
 private:
     QCamera *m_camera;
     QCameraExposureControl *m_exposure;
-    QCameraFlashControl *m_flash;
 };
 
 QT_END_NAMESPACE

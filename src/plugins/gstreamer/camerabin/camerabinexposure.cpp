@@ -272,4 +272,51 @@ bool CameraBinExposure::setValue(ExposureParameter parameter, const QVariant& va
     return true;
 }
 
+QCameraExposure::FlashModes CameraBinExposure::flashMode() const
+{
+    GstPhotographyFlashMode flashMode;
+    gst_photography_get_flash_mode(m_session->photography(), &flashMode);
+
+    QCameraExposure::FlashModes modes;
+    switch (flashMode) {
+    case GST_PHOTOGRAPHY_FLASH_MODE_AUTO: modes |= QCameraExposure::FlashAuto; break;
+    case GST_PHOTOGRAPHY_FLASH_MODE_OFF: modes |= QCameraExposure::FlashOff; break;
+    case GST_PHOTOGRAPHY_FLASH_MODE_ON: modes |= QCameraExposure::FlashOn; break;
+    case GST_PHOTOGRAPHY_FLASH_MODE_FILL_IN: modes |= QCameraExposure::FlashFill; break;
+    case GST_PHOTOGRAPHY_FLASH_MODE_RED_EYE: modes |= QCameraExposure::FlashRedEyeReduction; break;
+    default:
+        modes |= QCameraExposure::FlashAuto;
+        break;
+    }
+    return modes;
+}
+
+void CameraBinExposure::setFlashMode(QCameraExposure::FlashModes mode)
+{
+    GstPhotographyFlashMode flashMode;
+    gst_photography_get_flash_mode(m_session->photography(), &flashMode);
+
+    if (mode.testFlag(QCameraExposure::FlashAuto)) flashMode = GST_PHOTOGRAPHY_FLASH_MODE_AUTO;
+    else if (mode.testFlag(QCameraExposure::FlashOff)) flashMode = GST_PHOTOGRAPHY_FLASH_MODE_OFF;
+    else if (mode.testFlag(QCameraExposure::FlashOn)) flashMode = GST_PHOTOGRAPHY_FLASH_MODE_ON;
+    else if (mode.testFlag(QCameraExposure::FlashFill)) flashMode = GST_PHOTOGRAPHY_FLASH_MODE_FILL_IN;
+    else if (mode.testFlag(QCameraExposure::FlashRedEyeReduction)) flashMode = GST_PHOTOGRAPHY_FLASH_MODE_RED_EYE;
+
+    gst_photography_set_flash_mode(m_session->photography(), flashMode);
+}
+
+bool CameraBinExposure::isFlashModeSupported(QCameraExposure::FlashModes mode) const
+{
+    return  mode == QCameraExposure::FlashOff ||
+            mode == QCameraExposure::FlashOn ||
+            mode == QCameraExposure::FlashAuto ||
+            mode == QCameraExposure::FlashRedEyeReduction ||
+            mode == QCameraExposure::FlashFill;
+}
+
+bool CameraBinExposure::isFlashReady() const
+{
+    return true;
+}
+
 QT_END_NAMESPACE

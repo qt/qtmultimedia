@@ -49,7 +49,6 @@
 #include "qandroidcameravideorenderercontrol.h"
 #include "qandroidcamerazoomcontrol.h"
 #include "qandroidcameraexposurecontrol.h"
-#include "qandroidcameraflashcontrol.h"
 #include "qandroidcamerafocuscontrol.h"
 #include "qandroidviewfindersettingscontrol.h"
 #include "qandroidcameralockscontrol.h"
@@ -77,7 +76,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_videoInputControl = new QAndroidVideoDeviceSelectorControl(m_cameraSession);
         m_cameraZoomControl = new QAndroidCameraZoomControl(m_cameraSession);
         m_cameraExposureControl = new QAndroidCameraExposureControl(m_cameraSession);
-        m_cameraFlashControl = new QAndroidCameraFlashControl(m_cameraSession);
         m_cameraFocusControl = new QAndroidCameraFocusControl(m_cameraSession);
         m_viewfinderSettingsControl2 = new QAndroidViewfinderSettingsControl2(m_cameraSession);
         m_cameraLocksControl = new QAndroidCameraLocksControl(m_cameraSession);
@@ -92,7 +90,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_videoInputControl = 0;
         m_cameraZoomControl = 0;
         m_cameraExposureControl = 0;
-        m_cameraFlashControl = 0;
         m_cameraFocusControl = 0;
         m_viewfinderSettingsControl2 = 0;
         m_cameraLocksControl = 0;
@@ -129,7 +126,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_videoRendererControl;
     delete m_cameraZoomControl;
     delete m_cameraExposureControl;
-    delete m_cameraFlashControl;
     delete m_cameraFocusControl;
     delete m_viewfinderSettingsControl2;
     delete m_cameraLocksControl;
@@ -168,9 +164,6 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraExposureControl_iid) == 0)
         return m_cameraExposureControl;
-
-    if (qstrcmp(name, QCameraFlashControl_iid) == 0)
-        return m_cameraFlashControl;
 
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return m_cameraFocusControl;

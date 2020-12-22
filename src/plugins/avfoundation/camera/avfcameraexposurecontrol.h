@@ -65,10 +65,17 @@ public:
     QVariant actualValue(ExposureParameter parameter) const override;
     bool setValue(ExposureParameter parameter, const QVariant &value) override;
 
+    QCameraExposure::FlashModes flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashModes mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const override;
+    bool isFlashReady() const override;
+
 private Q_SLOTS:
-    void cameraStateChanged();
+    void cameraStateChanged(QCamera::State newState);
 
 private:
+    bool applyFlashSettings();
+
     AVFCameraService *m_service;
     AVFCameraSession *m_session;
 
@@ -82,6 +89,11 @@ private:
     bool setExposureCompensation(const QVariant &value);
     bool setShutterSpeed(const QVariant &value);
     bool setISO(const QVariant &value);
+
+    // Set of bits:
+    QCameraExposure::FlashModes m_supportedModes = QCameraExposure::FlashOff;
+    // Only one bit set actually:
+    QCameraExposure::FlashModes m_flashMode = QCameraExposure::FlashOff;
 };
 
 QT_END_NAMESPACE

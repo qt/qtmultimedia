@@ -230,6 +230,32 @@ public:
         return true;
     }
 
+    QCameraExposure::FlashModes flashMode() const
+    {
+        return m_flashMode;
+    }
+
+    void setFlashMode(QCameraExposure::FlashModes mode)
+    {
+        if (isFlashModeSupported(mode)) {
+            m_flashMode = mode;
+        }
+        emit flashReady(true);
+    }
+    //Setting the values for Flash mode
+
+    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const
+    {
+        return (mode & (QCameraExposure::FlashAuto | QCameraExposure::FlashOff | QCameraExposure::FlashOn |
+                        QCameraExposure::FlashFill |QCameraExposure::FlashTorch |QCameraExposure::FlashSlowSyncFrontCurtain |
+                        QCameraExposure::FlashRedEyeReduction));
+    }
+
+    bool isFlashReady() const
+    {
+        return true;
+    }
+
 private:
     qreal m_aperture;
     qreal m_shutterSpeed;

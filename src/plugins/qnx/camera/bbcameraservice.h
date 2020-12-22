@@ -49,7 +49,6 @@ class BbCameraAudioEncoderSettingsControl;
 class BbCameraCaptureBufferFormatControl;
 class BbCameraControl;
 class BbCameraExposureControl;
-class BbCameraFlashControl;
 class BbCameraFocusControl;
 class BbCameraImageCaptureControl;
 class BbCameraImageProcessingControl;
@@ -81,7 +80,6 @@ private:
     BbCameraCaptureBufferFormatControl* m_cameraCaptureBufferFormatControl;
     BbCameraControl* m_cameraControl;
     BbCameraExposureControl* m_cameraExposureControl;
-    BbCameraFlashControl* m_cameraFlashControl;
     BbCameraFocusControl* m_cameraFocusControl;
     BbCameraImageCaptureControl* m_cameraImageCaptureControl;
     BbCameraImageProcessingControl* m_cameraImageProcessingControl;

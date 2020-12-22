@@ -48,7 +48,6 @@ qt_internal_add_plugin(CameraBinServicePlugin
 qt_internal_extend_target(CameraBinServicePlugin CONDITION QT_FEATURE_gstreamer_photography
     SOURCES
         camerabinexposure.cpp camerabinexposure.h
-        camerabinflash.cpp camerabinflash.h
         camerabinfocus.cpp camerabinfocus.h
         camerabinlocks.cpp camerabinlocks.h
     DEFINES

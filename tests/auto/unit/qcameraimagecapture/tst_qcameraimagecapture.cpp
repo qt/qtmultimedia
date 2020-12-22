@@ -42,7 +42,6 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include <qcameracontrol.h>
 #include <qcameralockscontrol.h>
 #include <qcameraexposurecontrol.h>
-#include <qcameraflashcontrol.h>
 #include <qcamerafocuscontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qimageencodercontrol.h>

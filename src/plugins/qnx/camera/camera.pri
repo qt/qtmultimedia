@@ -5,7 +5,6 @@ HEADERS += \
     $$PWD/bbcameracapturebufferformatcontrol.h \
     $$PWD/bbcameracontrol.h \
     $$PWD/bbcameraexposurecontrol.h \
-    $$PWD/bbcameraflashcontrol.h \
     $$PWD/bbcamerafocuscontrol.h \
     $$PWD/bbcameraimagecapturecontrol.h \
     $$PWD/bbcameraimageprocessingcontrol.h \
@@ -27,7 +26,6 @@ SOURCES += \
     $$PWD/bbcameracapturebufferformatcontrol.cpp \
     $$PWD/bbcameracontrol.cpp \
     $$PWD/bbcameraexposurecontrol.cpp \
-    $$PWD/bbcameraflashcontrol.cpp \
     $$PWD/bbcamerafocuscontrol.cpp \
     $$PWD/bbcameraimagecapturecontrol.cpp \
     $$PWD/bbcameraimageprocessingcontrol.cpp \
