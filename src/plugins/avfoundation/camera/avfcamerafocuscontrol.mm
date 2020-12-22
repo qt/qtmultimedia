@@ -299,7 +299,123 @@ void AVFCameraFocusControl::cameraStateChanged()
             [captureDevice setFocusMode:avMode];
         }
     }
+
+#ifdef Q_OS_IOS
+    const QCamera::State state = m_session->state();
+    if (state != QCamera::ActiveState) {
+        if (state == QCamera::UnloadedState && m_maxZoomFactor > 1.) {
+            m_maxZoomFactor = 1.;
+            Q_EMIT maximumDigitalZoomChanged(1.);
+        }
+        return;
+    }
+
+    if (!captureDevice || !captureDevice.activeFormat) {
+        qDebugCamera() << Q_FUNC_INFO << "camera state is active, but"
+                       << "video capture device and/or active format is nil";
+        return;
+    }
+
+    if (captureDevice.activeFormat.videoMaxZoomFactor > 1.) {
+        if (!qFuzzyCompare(m_maxZoomFactor, captureDevice.activeFormat.videoMaxZoomFactor)) {
+            m_maxZoomFactor = captureDevice.activeFormat.videoMaxZoomFactor;
+            Q_EMIT maximumDigitalZoomChanged(m_maxZoomFactor);
+        }
+    } else if (!qFuzzyCompare(m_maxZoomFactor, CGFloat(1.))) {
+        m_maxZoomFactor = 1.;
+
+        Q_EMIT maximumDigitalZoomChanged(1.);
+    }
+
+    zoomToRequestedDigital();
+#endif
 }
+
+qreal AVFCameraFocusControl::maximumOpticalZoom() const
+{
+    // Not supported.
+    return 1.;
+}
+
+qreal AVFCameraFocusControl::maximumDigitalZoom() const
+{
+    return m_maxZoomFactor;
+}
+
+qreal AVFCameraFocusControl::requestedOpticalZoom() const
+{
+    // Not supported.
+    return 1;
+}
+
+qreal AVFCameraFocusControl::requestedDigitalZoom() const
+{
+    return m_requestedZoomFactor;
+}
+
+qreal AVFCameraFocusControl::currentOpticalZoom() const
+{
+    // Not supported.
+    return 1.;
+}
+
+qreal AVFCameraFocusControl::currentDigitalZoom() const
+{
+    return m_zoomFactor;
+}
+
+void AVFCameraFocusControl::zoomTo(qreal optical, qreal digital)
+{
+    Q_UNUSED(optical);
+    Q_UNUSED(digital);
+
+#ifdef QOS_IOS
+    if (qFuzzyCompare(CGFloat(digital), m_requestedZoomFactor))
+        return;
+
+    m_requestedZoomFactor = digital;
+    Q_EMIT requestedDigitalZoomChanged(digital);
+
+    zoomToRequestedDigital();
+#endif
+}
+
+#ifdef QOS_IOS
+void AVFCameraFocusControl::zoomToRequestedDigital()
+{
+    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    if (!captureDevice || !captureDevice.activeFormat)
+        return;
+
+    if (qFuzzyCompare(captureDevice.activeFormat.videoMaxZoomFactor, CGFloat(1.)))
+        return;
+
+    const CGFloat clampedZoom = qBound(CGFloat(1.), m_requestedZoomFactor,
+                                       captureDevice.activeFormat.videoMaxZoomFactor);
+    const CGFloat deviceZoom = captureDevice.videoZoomFactor;
+    if (qFuzzyCompare(clampedZoom, deviceZoom)) {
+        // Nothing to set, but check if a signal must be emitted:
+        if (!qFuzzyCompare(m_zoomFactor, deviceZoom)) {
+            m_zoomFactor = deviceZoom;
+            Q_EMIT currentDigitalZoomChanged(deviceZoom);
+        }
+        return;
+    }
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        return;
+    }
+
+    captureDevice.videoZoomFactor = clampedZoom;
+
+    if (!qFuzzyCompare(clampedZoom, m_zoomFactor)) {
+        m_zoomFactor = clampedZoom;
+        Q_EMIT currentDigitalZoomChanged(clampedZoom);
+    }
+}
+#endif
 
 QT_END_NAMESPACE
 

@@ -57,7 +57,6 @@ class BbCameraMediaRecorderControl;
 class BbCameraSession;
 class BbCameraVideoEncoderSettingsControl;
 class BbCameraViewfinderSettingsControl;
-class BbCameraZoomControl;
 class BbImageEncoderControl;
 class BbVideoDeviceSelectorControl;
 class BbVideoRendererControl;
@@ -87,7 +86,6 @@ private:
     BbCameraMediaRecorderControl* m_cameraMediaRecorderControl;
     BbCameraVideoEncoderSettingsControl* m_cameraVideoEncoderSettingsControl;
     BbCameraViewfinderSettingsControl* m_cameraViewfinderSettingsControl;
-    BbCameraZoomControl* m_cameraZoomControl;
     BbImageEncoderControl* m_imageEncoderControl;
     BbVideoDeviceSelectorControl* m_videoDeviceSelectorControl;
     BbVideoRendererControl* m_videoRendererControl;

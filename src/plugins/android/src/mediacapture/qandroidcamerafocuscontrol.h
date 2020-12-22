@@ -62,6 +62,14 @@ public:
     void setCustomFocusPoint(const QPointF &point) override;
     QCameraFocusZoneList focusZones() const override;
 
+    qreal maximumOpticalZoom() const override;
+    qreal maximumDigitalZoom() const override;
+    qreal requestedOpticalZoom() const override;
+    qreal requestedDigitalZoom() const override;
+    qreal currentOpticalZoom() const override;
+    qreal currentDigitalZoom() const override;
+    void zoomTo(qreal optical, qreal digital) override;
+
 private Q_SLOTS:
     void onCameraOpened();
     void onViewportSizeChanged();
@@ -102,6 +110,11 @@ private:
     bool m_continuousVideoFocusSupported;
 
     QList<QCameraFocus::FocusPointMode> m_supportedFocusPointModes;
+
+    qreal m_maximumZoom;
+    QList<int> m_zoomRatios;
+    qreal m_requestedZoom;
+    qreal m_currentZoom;
 };
 
 QT_END_NAMESPACE

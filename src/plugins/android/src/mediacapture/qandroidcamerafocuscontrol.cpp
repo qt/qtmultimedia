@@ -42,6 +42,9 @@
 #include "qandroidcamerasession.h"
 #include "androidcamera.h"
 
+#include "qandroidmultimediautils.h"
+#include <qmath.h>
+
 QT_BEGIN_NAMESPACE
 
 static QRect adjustedArea(const QRectF &area)
@@ -225,6 +228,22 @@ void QAndroidCameraFocusControl::onCameraOpened()
     setFocusMode(m_focusMode);
     setCustomFocusPoint(m_customFocusPoint);
     setFocusPointMode(m_focusPointMode);
+
+    if (m_session->camera()->isZoomSupported()) {
+        m_zoomRatios = m_session->camera()->getZoomRatios();
+        qreal maxZoom = m_zoomRatios.last() / qreal(100);
+        if (m_maximumZoom != maxZoom) {
+            m_maximumZoom = maxZoom;
+            emit maximumDigitalZoomChanged(m_maximumZoom);
+        }
+        zoomTo(1, m_requestedZoom);
+    } else {
+        m_zoomRatios.clear();
+        if (!qFuzzyCompare(m_maximumZoom, qreal(1))) {
+            m_maximumZoom = 1.0;
+            emit maximumDigitalZoomChanged(m_maximumZoom);
+        }
+    }
 }
 
 void QAndroidCameraFocusControl::updateFocusZones(QCameraFocusZone::FocusZoneStatus status)
@@ -304,6 +323,61 @@ void QAndroidCameraFocusControl::onAutoFocusComplete(bool success)
 {
     if (success)
         updateFocusZones(QCameraFocusZone::Focused);
+}
+
+
+qreal QAndroidCameraFocusControl::maximumOpticalZoom() const
+{
+    // Optical zoom not supported
+    return 1.0;
+}
+
+qreal QAndroidCameraFocusControl::maximumDigitalZoom() const
+{
+    return m_maximumZoom;
+}
+
+qreal QAndroidCameraFocusControl::requestedOpticalZoom() const
+{
+    // Optical zoom not supported
+    return 1.0;
+}
+
+qreal QAndroidCameraFocusControl::requestedDigitalZoom() const
+{
+    return m_requestedZoom;
+}
+
+qreal QAndroidCameraFocusControl::currentOpticalZoom() const
+{
+    // Optical zoom not supported
+    return 1.0;
+}
+
+qreal QAndroidCameraFocusControl::currentDigitalZoom() const
+{
+    return m_currentZoom;
+}
+
+void QAndroidCameraFocusControl::zoomTo(qreal optical, qreal digital)
+{
+    Q_UNUSED(optical);
+
+    if (!qFuzzyCompare(m_requestedZoom, digital)) {
+        m_requestedZoom = digital;
+        emit requestedDigitalZoomChanged(m_requestedZoom);
+    }
+
+    if (m_session->camera()) {
+        digital = qBound(qreal(1), digital, m_maximumZoom);
+        int validZoomIndex = qt_findClosestValue(m_zoomRatios, qRound(digital * 100));
+        qreal newZoom = m_zoomRatios.at(validZoomIndex) / qreal(100);
+        if (!qFuzzyCompare(m_currentZoom, newZoom)) {
+            m_session->camera()->setZoom(validZoomIndex);
+            m_currentZoom = newZoom;
+            emit currentDigitalZoomChanged(m_currentZoom);
+        }
+    }
 }
 
 QT_END_NAMESPACE

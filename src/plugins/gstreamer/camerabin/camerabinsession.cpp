@@ -52,7 +52,6 @@
 #include "camerabinlocks.h"
 #endif
 
-#include "camerabinzoom.h"
 #include "camerabinimageprocessing.h"
 #include "camerabinviewfindersettings.h"
 
@@ -170,7 +169,6 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
     m_imageEncodeControl = new CameraBinImageEncoder(this);
     m_recorderControl = new CameraBinRecorder(this);
     m_mediaContainerControl = new CameraBinContainer(this);
-    m_cameraZoomControl = new CameraBinZoom(this);
     m_imageProcessingControl = new CameraBinImageProcessing(this);
     m_captureBufferFormatControl = new CameraBinCaptureBufferFormat(this);
 

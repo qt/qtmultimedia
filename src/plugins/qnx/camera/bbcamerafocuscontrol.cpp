@@ -51,6 +51,7 @@ BbCameraFocusControl::BbCameraFocusControl(BbCameraSession *session, QObject *pa
     , m_focusPointMode(QCameraFocus::FocusPointAuto)
     , m_customFocusPoint(QPointF(0, 0))
 {
+    connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(statusChanged(QCamera::Status)));
 }
 
 QCameraFocus::FocusModes BbCameraFocusControl::focusMode() const
@@ -324,6 +325,104 @@ bool BbCameraFocusControl::retrieveViewfinderSize(int *width, int *height)
     }
 
     return true;
+}
+
+
+qreal BbCameraFocusControl::maximumOpticalZoom() const
+{
+    //TODO: optical zoom support not available in BB10 API yet
+    return 1.0;
+}
+
+qreal BbCameraFocusControl::maximumDigitalZoom() const
+{
+    return m_maximumZoomFactor;
+}
+
+qreal BbCameraFocusControl::requestedOpticalZoom() const
+{
+    //TODO: optical zoom support not available in BB10 API yet
+    return 1.0;
+}
+
+qreal BbCameraFocusControl::requestedDigitalZoom() const
+{
+    return currentDigitalZoom();
+}
+
+qreal BbCameraFocusControl::currentOpticalZoom() const
+{
+    //TODO: optical zoom support not available in BB10 API yet
+    return 1.0;
+}
+
+qreal BbCameraFocusControl::currentDigitalZoom() const
+{
+    if (m_session->status() != QCamera::ActiveStatus)
+        return 1.0;
+
+    unsigned int zoomFactor = 0;
+    camera_error_t result = CAMERA_EOK;
+
+    if (m_session->captureMode() & QCamera::CaptureStillImage)
+        result = camera_get_photovf_property(m_session->handle(), CAMERA_IMGPROP_ZOOMFACTOR, &zoomFactor);
+    else if (m_session->captureMode() & QCamera::CaptureVideo)
+        result = camera_get_videovf_property(m_session->handle(), CAMERA_IMGPROP_ZOOMFACTOR, &zoomFactor);
+
+    if (result != CAMERA_EOK)
+        return 1.0;
+
+    return zoomFactor;
+}
+
+void BbCameraFocusControl::zoomTo(qreal optical, qreal digital)
+{
+    Q_UNUSED(optical);
+
+    if (m_session->status() != QCamera::ActiveStatus)
+        return;
+
+    const qreal actualZoom = qBound(m_minimumZoomFactor, digital, m_maximumZoomFactor);
+
+    const camera_error_t result = camera_set_zoom(m_session->handle(), actualZoom, false);
+
+    if (result != CAMERA_EOK) {
+        qWarning() << "Unable to change zoom factor:" << result;
+        return;
+    }
+
+    if (m_requestedZoomFactor != digital) {
+        m_requestedZoomFactor = digital;
+        emit requestedDigitalZoomChanged(m_requestedZoomFactor);
+    }
+
+    emit currentDigitalZoomChanged(actualZoom);
+}
+
+void BbCameraFocusControl::statusChanged(QCamera::Status status)
+{
+    if (status == QCamera::ActiveStatus) {
+        // retrieve information about zoom limits
+        unsigned int maximumZoomLimit = 0;
+        unsigned int minimumZoomLimit = 0;
+        bool smoothZoom = false;
+
+        const camera_error_t result = camera_get_zoom_limits(m_session->handle(), &maximumZoomLimit, &minimumZoomLimit, &smoothZoom);
+        if (result == CAMERA_EOK) {
+            const qreal oldMaximumZoomFactor = m_maximumZoomFactor;
+            m_maximumZoomFactor = maximumZoomLimit;
+
+            if (oldMaximumZoomFactor != m_maximumZoomFactor)
+                emit maximumDigitalZoomChanged(m_maximumZoomFactor);
+
+            m_minimumZoomFactor = minimumZoomLimit;
+            m_supportsSmoothZoom = smoothZoom;
+        } else {
+            m_maximumZoomFactor = 1.0;
+            m_minimumZoomFactor = 1.0;
+            m_supportsSmoothZoom = false;
+        }
+    }
 }
 
 QT_END_NAMESPACE

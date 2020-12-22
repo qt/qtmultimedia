@@ -62,7 +62,6 @@
 #include "avfcamerawindowcontrol.h"
 
 #ifdef Q_OS_IOS
-#include "avfcamerazoomcontrol.h"
 #include "avfmediarecordercontrol_ios.h"
 #endif
 
@@ -96,10 +95,6 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_cameraExposureControl = new AVFCameraExposureControl(this);
 #endif
 
-    m_cameraZoomControl = nullptr;
-#ifdef Q_OS_IOS
-    m_cameraZoomControl = new AVFCameraZoomControl(this);
-#endif
     m_viewfinderSettingsControl2 = new AVFCameraViewfinderSettingsControl2(this);
     m_viewfinderSettingsControl = new AVFCameraViewfinderSettingsControl(this);
     m_imageEncoderControl = new AVFImageEncoderControl(this);
@@ -136,9 +131,6 @@ AVFCameraService::~AVFCameraService()
     delete m_cameraControl;
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
-#ifdef Q_OS_IOS
-    delete m_cameraZoomControl;
-#endif
     delete m_viewfinderSettingsControl2;
     delete m_viewfinderSettingsControl;
     delete m_imageEncoderControl;
@@ -200,11 +192,6 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
         m_session->addProbe(videoProbe);
         return videoProbe;
     }
-
-#ifdef Q_OS_IOS
-    if (qstrcmp(name, QCameraZoomControl_iid) == 0)
-        return m_cameraZoomControl;
-#endif
 
     if (!m_captureWindowControl) {
         if (qstrcmp(name, QVideoWindowControl_iid) == 0) {

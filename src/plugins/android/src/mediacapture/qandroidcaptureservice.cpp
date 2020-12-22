@@ -47,7 +47,6 @@
 #include "qandroidaudioinputselectorcontrol.h"
 #include "qandroidcamerasession.h"
 #include "qandroidcameravideorenderercontrol.h"
-#include "qandroidcamerazoomcontrol.h"
 #include "qandroidcameraexposurecontrol.h"
 #include "qandroidcamerafocuscontrol.h"
 #include "qandroidviewfindersettingscontrol.h"
@@ -74,7 +73,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraSession = new QAndroidCameraSession;
         m_cameraControl = new QAndroidCameraControl(m_cameraSession);
         m_videoInputControl = new QAndroidVideoDeviceSelectorControl(m_cameraSession);
-        m_cameraZoomControl = new QAndroidCameraZoomControl(m_cameraSession);
         m_cameraExposureControl = new QAndroidCameraExposureControl(m_cameraSession);
         m_cameraFocusControl = new QAndroidCameraFocusControl(m_cameraSession);
         m_viewfinderSettingsControl2 = new QAndroidViewfinderSettingsControl2(m_cameraSession);
@@ -88,7 +86,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraSession = 0;
         m_cameraControl = 0;
         m_videoInputControl = 0;
-        m_cameraZoomControl = 0;
         m_cameraExposureControl = 0;
         m_cameraFocusControl = 0;
         m_viewfinderSettingsControl2 = 0;
@@ -124,7 +121,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_audioInputControl;
     delete m_videoInputControl;
     delete m_videoRendererControl;
-    delete m_cameraZoomControl;
     delete m_cameraExposureControl;
     delete m_cameraFocusControl;
     delete m_viewfinderSettingsControl2;
@@ -159,9 +155,6 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
     if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)
         return m_videoInputControl;
 
-    if (qstrcmp(name, QCameraZoomControl_iid) == 0)
-        return m_cameraZoomControl;
-
     if (qstrcmp(name, QCameraExposureControl_iid) == 0)
         return m_cameraExposureControl;
 
@@ -185,7 +178,6 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
         return m_captureBufferFormatControl;
-
     if (qstrcmp(name, QVideoRendererControl_iid) == 0
             && m_service == QLatin1String(Q_MEDIASERVICE_CAMERA)
             && !m_videoRendererControl) {

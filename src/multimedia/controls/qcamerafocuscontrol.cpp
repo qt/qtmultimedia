@@ -191,7 +191,99 @@ QCameraFocusControl::~QCameraFocusControl()
   \sa QCameraFocusControl::customFocusPoint(), QCameraFocusControl::setCustomFocusPoint()
 */
 
+/*!
+  \fn qreal QCameraFocusControl::maximumOpticalZoom() const
 
+  Returns the maximum optical zoom value, or 1.0 if optical zoom is not supported.
+*/
+
+
+/*!
+  \fn qreal QCameraFocusControl::maximumDigitalZoom() const
+
+  Returns the maximum digital zoom value, or 1.0 if digital zoom is not supported.
+*/
+
+
+/*!
+  \fn qreal QCameraFocusControl::requestedOpticalZoom() const
+
+  Return the requested optical zoom value.
+*/
+
+/*!
+  \fn qreal QCameraFocusControl::requestedDigitalZoom() const
+
+  Return the requested digital zoom value.
+*/
+
+/*!
+  \fn qreal QCameraFocusControl::currentOpticalZoom() const
+
+  Return the current optical zoom value.
+*/
+
+/*!
+  \fn qreal QCameraFocusControl::currentDigitalZoom() const
+
+  Return the current digital zoom value.
+*/
+
+/*!
+  \fn void QCameraFocusControl::zoomTo(qreal optical, qreal digital)
+
+  Sets \a optical and \a digital zoom values.
+
+  Zooming can be asynchronous with value changes reported with
+  currentDigitalZoomChanged() and currentOpticalZoomChanged() signals.
+
+  The backend should expect and correctly handle frequent zoomTo() calls
+  during zoom animations or slider movements.
+*/
+
+
+/*!
+    \fn void QCameraFocusControl::currentOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the current optical \a zoom value changed.
+*/
+
+/*!
+    \fn void QCameraFocusControl::currentDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the current digital \a zoom value changed.
+*/
+
+/*!
+    \fn void QCameraFocusControl::requestedOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the requested optical \a zoom value changed.
+*/
+
+/*!
+    \fn void QCameraFocusControl::requestedDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the requested digital \a zoom value changed.
+*/
+
+
+/*!
+    \fn void QCameraFocusControl::maximumOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported optical \a zoom value changed.
+
+    The maximum supported zoom value can depend on other camera settings,
+    like focusing mode.
+*/
+
+/*!
+    \fn void QCameraFocusControl::maximumDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported digital \a zoom value changed.
+
+    The maximum supported zoom value can depend on other camera settings,
+    like capture mode or resolution.
+*/
 
 QT_END_NAMESPACE
 

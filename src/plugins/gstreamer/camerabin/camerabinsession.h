@@ -124,7 +124,6 @@ public:
     CameraBinLocks *cameraLocksControl();
 #endif
 
-    CameraBinZoom *cameraZoomControl() const { return m_cameraZoomControl; }
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
     CameraBinCaptureBufferFormat *captureBufferFormatControl() const { return m_captureBufferFormatControl; }
 
@@ -241,7 +240,6 @@ private:
     CameraBinFocus *m_cameraFocusControl;
     CameraBinLocks *m_cameraLocksControl;
 #endif
-    CameraBinZoom *m_cameraZoomControl;
     CameraBinImageProcessing *m_imageProcessingControl;
     CameraBinCaptureBufferFormat *m_captureBufferFormatControl;
 

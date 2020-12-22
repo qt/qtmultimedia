@@ -59,7 +59,6 @@
 #include "camerabincapturebufferformat.h"
 #include "camerabinviewfindersettings.h"
 #include "camerabinviewfindersettings2.h"
-#include "camerabinzoom.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstutils_p.h>
 
@@ -208,9 +207,6 @@ QMediaControl *CameraBinService::requestControl(const char *name)
     if (qstrcmp(name, QCameraLocksControl_iid) == 0)
         return m_captureSession->cameraLocksControl();
 #endif
-
-    if (qstrcmp(name, QCameraZoomControl_iid) == 0)
-        return m_captureSession->cameraZoomControl();
 
     if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
         return m_captureSession->imageProcessingControl();

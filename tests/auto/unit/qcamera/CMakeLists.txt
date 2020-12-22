@@ -15,7 +15,6 @@ qt_add_test(tst_qcamera
         ../qmultimedia_common/mockcameralockscontrol.h
         ../qmultimedia_common/mockcameraservice.h
         ../qmultimedia_common/mockcameraviewfindersettingscontrol.h
-        ../qmultimedia_common/mockcamerazoomcontrol.h
         ../qmultimedia_common/mockimageencodercontrol.h
         ../qmultimedia_common/mockmediaobject.h
         ../qmultimedia_common/mockmediaservice.h

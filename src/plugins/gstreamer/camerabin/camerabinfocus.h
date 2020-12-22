@@ -78,6 +78,17 @@ public:
 
     QCameraFocusZoneList focusZones() const override;
 
+
+    qreal maximumOpticalZoom() const override;
+    qreal maximumDigitalZoom() const override;
+
+    qreal requestedOpticalZoom() const override;
+    qreal requestedDigitalZoom() const override;
+    qreal currentOpticalZoom() const override;
+    qreal currentDigitalZoom() const override;
+
+    void zoomTo(qreal optical, qreal digital) override;
+
     void handleFocusMessage(GstMessage*);
     QCamera::LockStatus focusStatus() const { return m_focusStatus; }
 
@@ -117,6 +128,13 @@ private:
     QList<QRect> m_faceFocusRects;
     QBasicTimer m_faceResetTimer;
     mutable QMutex m_mutex;
+
+    static void updateZoom(GObject *o, GParamSpec *p, gpointer d);
+    static void updateMaxZoom(GObject *o, GParamSpec *p, gpointer d);
+
+    qreal m_requestedOpticalZoom = 1.;
+    qreal m_requestedDigitalZoom = 1.;
+
 };
 
 QT_END_NAMESPACE

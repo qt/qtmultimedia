@@ -44,7 +44,6 @@
 #include <qcameracontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
-#include <qcamerazoomcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
 
@@ -59,24 +58,6 @@ static void qRegisterCameraFocusMetaTypes()
 }
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterCameraFocusMetaTypes)
-
-
-class QCameraFocusFakeZoomControl : public QCameraZoomControl
-{
-public:
-    QCameraFocusFakeZoomControl(QObject *parent) :
-        QCameraZoomControl(parent) {}
-
-    qreal maximumOpticalZoom() const override { return 1.0; }
-    qreal maximumDigitalZoom() const override { return 1.0; }
-
-    qreal requestedOpticalZoom() const override { return 1.0; }
-    qreal requestedDigitalZoom() const override { return 1.0; }
-    qreal currentOpticalZoom() const override { return 1.0; }
-    qreal currentDigitalZoom() const override { return 1.0; }
-
-    void zoomTo(qreal, qreal) override { qWarning("The camera doesn't support zooming."); }
-};
 
 class QCameraFocusFakeFocusControl : public QCameraFocusControl
 {
@@ -95,6 +76,16 @@ public:
     void setCustomFocusPoint(const QPointF &) override { qWarning("Focus points selection is not supported"); }
 
     QCameraFocusZoneList focusZones() const override { return QCameraFocusZoneList(); }
+
+    qreal maximumOpticalZoom() const override { return 1.0; }
+    qreal maximumDigitalZoom() const override { return 1.0; }
+
+    qreal requestedOpticalZoom() const override { return 1.0; }
+    qreal requestedDigitalZoom() const override { return 1.0; }
+    qreal currentOpticalZoom() const override { return 1.0; }
+    qreal currentDigitalZoom() const override { return 1.0; }
+
+    void zoomTo(qreal, qreal) override { qWarning("The camera doesn't support zooming."); }
 };
 
 
@@ -327,7 +318,6 @@ public:
     QCamera *camera;
 
     QCameraFocusControl *focusControl;
-    QCameraZoomControl *zoomControl;
     bool available;
 };
 
@@ -337,12 +327,10 @@ void QCameraFocusPrivate::initControls()
     Q_Q(QCameraFocus);
 
     focusControl = nullptr;
-    zoomControl = nullptr;
 
     QMediaService *service = camera->service();
     if (service) {
         focusControl = qobject_cast<QCameraFocusControl *>(service->requestControl(QCameraFocusControl_iid));
-        zoomControl = qobject_cast<QCameraZoomControl *>(service->requestControl(QCameraZoomControl_iid));
     }
 
     available = focusControl != nullptr;
@@ -350,18 +338,15 @@ void QCameraFocusPrivate::initControls()
     if (!focusControl)
         focusControl = new QCameraFocusFakeFocusControl(q);
 
-    if (!zoomControl)
-        zoomControl = new QCameraFocusFakeZoomControl(q);
-
     q->connect(focusControl, SIGNAL(focusZonesChanged()), q, SIGNAL(focusZonesChanged()));
 
-    q->connect(zoomControl, SIGNAL(currentOpticalZoomChanged(qreal)),
+    q->connect(focusControl, SIGNAL(currentOpticalZoomChanged(qreal)),
                q, SIGNAL(opticalZoomChanged(qreal)));
-    q->connect(zoomControl, SIGNAL(currentDigitalZoomChanged(qreal)),
+    q->connect(focusControl, SIGNAL(currentDigitalZoomChanged(qreal)),
                q, SIGNAL(digitalZoomChanged(qreal)));
-    q->connect(zoomControl, SIGNAL(maximumOpticalZoomChanged(qreal)),
+    q->connect(focusControl, SIGNAL(maximumOpticalZoomChanged(qreal)),
                q, SIGNAL(maximumOpticalZoomChanged(qreal)));
-    q->connect(zoomControl, SIGNAL(maximumDigitalZoomChanged(qreal)),
+    q->connect(focusControl, SIGNAL(maximumDigitalZoomChanged(qreal)),
                q, SIGNAL(maximumDigitalZoomChanged(qreal)));
 }
 
@@ -498,7 +483,7 @@ QCameraFocusZoneList QCameraFocus::focusZones() const
 
 qreal QCameraFocus::maximumOpticalZoom() const
 {
-    return d_func()->zoomControl->maximumOpticalZoom();
+    return d_func()->focusControl->maximumOpticalZoom();
 }
 
 /*!
@@ -509,7 +494,7 @@ qreal QCameraFocus::maximumOpticalZoom() const
 
 qreal QCameraFocus::maximumDigitalZoom() const
 {
-    return d_func()->zoomControl->maximumDigitalZoom();
+    return d_func()->focusControl->maximumDigitalZoom();
 }
 
 /*!
@@ -521,7 +506,7 @@ qreal QCameraFocus::maximumDigitalZoom() const
 
 qreal QCameraFocus::opticalZoom() const
 {
-    return d_func()->zoomControl->currentOpticalZoom();
+    return d_func()->focusControl->currentOpticalZoom();
 }
 
 /*!
@@ -532,7 +517,7 @@ qreal QCameraFocus::opticalZoom() const
 */
 qreal QCameraFocus::digitalZoom() const
 {
-    return d_func()->zoomControl->currentDigitalZoom();
+    return d_func()->focusControl->currentDigitalZoom();
 }
 
 
@@ -545,7 +530,7 @@ qreal QCameraFocus::digitalZoom() const
 */
 void QCameraFocus::zoomTo(qreal optical, qreal digital)
 {
-    d_func()->zoomControl->zoomTo(optical, digital);
+    d_func()->focusControl->zoomTo(optical, digital);
 }
 
 /*!

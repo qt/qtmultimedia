@@ -50,7 +50,6 @@
 #include "bbcamerasession.h"
 #include "bbcameravideoencodersettingscontrol.h"
 #include "bbcameraviewfindersettingscontrol.h"
-#include "bbcamerazoomcontrol.h"
 #include "bbimageencodercontrol.h"
 #include "bbvideodeviceselectorcontrol.h"
 #include "bbvideorenderercontrol.h"
@@ -74,7 +73,6 @@ BbCameraService::BbCameraService(QObject *parent)
     , m_cameraMediaRecorderControl(new BbCameraMediaRecorderControl(m_cameraSession, this))
     , m_cameraVideoEncoderSettingsControl(new BbCameraVideoEncoderSettingsControl(m_cameraSession, this))
     , m_cameraViewfinderSettingsControl(new BbCameraViewfinderSettingsControl(m_cameraSession, this))
-    , m_cameraZoomControl(new BbCameraZoomControl(m_cameraSession, this))
     , m_imageEncoderControl(new BbImageEncoderControl(m_cameraSession, this))
     , m_videoDeviceSelectorControl(new BbVideoDeviceSelectorControl(m_cameraSession, this))
     , m_videoRendererControl(new BbVideoRendererControl(m_cameraSession, this))
@@ -109,8 +107,6 @@ QMediaControl* BbCameraService::requestControl(const char *name)
         return m_cameraVideoEncoderSettingsControl;
     else if (qstrcmp(name, QCameraViewfinderSettingsControl_iid) == 0)
         return m_cameraViewfinderSettingsControl;
-    else if (qstrcmp(name, QCameraZoomControl_iid) == 0)
-        return m_cameraZoomControl;
     else if (qstrcmp(name, QImageEncoderControl_iid) == 0)
         return m_imageEncoderControl;
     else if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)

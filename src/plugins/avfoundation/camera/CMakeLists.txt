@@ -60,7 +60,6 @@ qt_internal_extend_target(AVFServicePlugin CONDITION MACOS
 
 qt_internal_extend_target(AVFServicePlugin CONDITION IOS
     SOURCES
-        avfcamerazoomcontrol.h avfcamerazoomcontrol.mm
         avfmediaassetwriter.h avfmediaassetwriter.mm
         avfmediarecordercontrol_ios.h avfmediarecordercontrol_ios.mm
     PUBLIC_LIBRARIES

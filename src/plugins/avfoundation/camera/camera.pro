@@ -74,11 +74,10 @@ OBJECTIVE_SOURCES += avfmediarecordercontrol.mm
 
 ios {
 
-HEADERS += avfcamerazoomcontrol.h \
+HEADERS += \
            avfmediaassetwriter.h \
            avfmediarecordercontrol_ios.h
-OBJECTIVE_SOURCES += avfcamerazoomcontrol.mm \
-                     avfmediaassetwriter.mm \
+OBJECTIVE_SOURCES += avfmediaassetwriter.mm \
                      avfmediarecordercontrol_ios.mm
 
 }

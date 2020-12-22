@@ -61,6 +61,17 @@ public:
     void setCustomFocusPoint(const QPointF &point) override;
     QCameraFocusZoneList focusZones() const override;
 
+    qreal maximumOpticalZoom() const override;
+    qreal maximumDigitalZoom() const override;
+    qreal requestedOpticalZoom() const override;
+    qreal requestedDigitalZoom() const override;
+    qreal currentOpticalZoom() const override;
+    qreal currentDigitalZoom() const override;
+    void zoomTo(qreal optical, qreal digital) override;
+
+private Q_SLOTS:
+    void statusChanged(QCamera::Status status);
+
 private:
     void updateCustomFocusRegion();
     bool retrieveViewfinderSize(int *width, int *height);
@@ -70,6 +81,11 @@ private:
     QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_customFocusPoint;
+
+    qreal m_minimumZoomFactor;
+    qreal m_maximumZoomFactor;
+    bool m_supportsSmoothZoom;
+    qreal m_requestedZoomFactor;
 };
 
 QT_END_NAMESPACE

@@ -45,6 +45,8 @@
 
 #include <qcamerafocuscontrol.h>
 
+#include <AVFoundation/AVFoundation.h>
+
 @class AVCaptureDevice;
 
 QT_BEGIN_NAMESPACE
@@ -70,17 +72,35 @@ public:
 
     QCameraFocusZoneList focusZones() const override;
 
+    qreal maximumOpticalZoom() const override;
+    qreal maximumDigitalZoom() const override;
+
+    qreal requestedOpticalZoom() const override;
+    qreal requestedDigitalZoom() const override;
+    qreal currentOpticalZoom() const override;
+    qreal currentDigitalZoom() const override;
+
+    void zoomTo(qreal optical, qreal digital) override;
+
 private Q_SLOTS:
     void cameraStateChanged();
 
 private:
+#ifdef QOS_IOS
+    void zoomToRequestedDigital();
+#endif
 
     AVFCameraSession *m_session;
     QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_customFocusPoint;
     QPointF m_actualFocusPoint;
+
+    CGFloat m_maxZoomFactor;
+    CGFloat m_zoomFactor;
+    CGFloat m_requestedZoomFactor;
 };
+
 
 QT_END_NAMESPACE
 
