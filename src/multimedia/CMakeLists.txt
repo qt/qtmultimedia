@@ -20,6 +20,7 @@ qt_add_module(Multimedia
         audio/qaudiosystem.cpp audio/qaudiosystem_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
+        audio/qsoundeffect_qaudio_p.cpp audio/qsoundeffect_qaudio_p.h
         audio/qwavedecoder_p.cpp audio/qwavedecoder_p.h
         camera/qcamera.cpp camera/qcamera.h camera/qcamera_p.h
         camera/qcameraexposure.cpp camera/qcameraexposure.h
@@ -178,23 +179,11 @@ qt_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         audio/pulseaudio/qaudiointerface_pulse.cpp audio/pulseaudio/qaudiointerface_pulse_p.h
         audio/pulseaudio/qaudiooutput_pulse.cpp audio/pulseaudio/qaudiooutput_pulse_p.h
         audio/pulseaudio/qpulsehelpers.cpp audio/pulseaudio/qpulsehelpers_p.h
-        audio/qsoundeffect_pulse_p.cpp audio/qsoundeffect_pulse_p.h # special case
     LIBRARIES
         pulseaudio
     PRIVATE_MODULE_INTERFACE
         pulseaudio
 )
-
-#### Keys ignored in scope 5:.:audio:audio/audio.pri:QT_FEATURE_pulseaudio:
-# PRIVATE_HEADERS = "audio/qsoundeffect_pulse_p.h"
-
-qt_extend_target(Multimedia CONDITION NOT QT_FEATURE_pulseaudio
-    SOURCES
-        audio/qsoundeffect_qaudio_p.cpp audio/qsoundeffect_qaudio_p.h # special case
-)
-
-#### Keys ignored in scope 6:.:audio:audio/audio.pri:else:
-# PRIVATE_HEADERS = "audio/qsoundeffect_qaudio_p.h"
 
 qt_extend_target(Multimedia CONDITION ANDROID
     SOURCES

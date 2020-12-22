@@ -39,12 +39,7 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qsoundeffect.h"
-
-#if QT_CONFIG(pulseaudio)
-#include "qsoundeffect_pulse_p.h"
-#else
 #include "qsoundeffect_qaudio_p.h"
-#endif
 
 QT_BEGIN_NAMESPACE
 

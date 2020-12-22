@@ -18,6 +18,7 @@ PRIVATE_HEADERS += \
            audio/qsamplecache_p.h \
            audio/qaudiohelpers_p.h \
            audio/qaudiosystem_p.h  \
+           audio/qsoundeffect_qaudio_p.h
 
 SOURCES += \
            audio/qaudio.cpp \
@@ -33,16 +34,8 @@ SOURCES += \
            audio/qaudiobuffer.cpp \
            audio/qaudioprobe.cpp \
            audio/qaudiodecoder.cpp \
-           audio/qaudiohelpers.cpp
-
-qtConfig(pulseaudio) {
-    QMAKE_USE_FOR_PRIVATE += pulseaudio
-    PRIVATE_HEADERS += audio/qsoundeffect_pulse_p.h
-    SOURCES += audio/qsoundeffect_pulse_p.cpp
-} else {
-    PRIVATE_HEADERS += audio/qsoundeffect_qaudio_p.h
-    SOURCES += audio/qsoundeffect_qaudio_p.cpp
-}
+           audio/qaudiohelpers.cpp \
+           audio/qsoundeffect_qaudio_p.cpp
 
 android: include(opensles/opensles.pri)
 win32: include(windows/windows.pri)
