@@ -34,7 +34,6 @@
 
 #include <qabstractvideosurface.h>
 #include <qcameracontrol.h>
-#include <qcameralockscontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
 #include <qcameraimagecapturecontrol.h>

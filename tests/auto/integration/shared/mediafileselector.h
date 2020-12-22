@@ -31,6 +31,9 @@
 
 #include <QMediaContent>
 #include <QMediaPlayer>
+#include <qsignalspy.h>
+#include <qfileinfo.h>
+#include <qtest.h>
 
 QT_BEGIN_NAMESPACE
 

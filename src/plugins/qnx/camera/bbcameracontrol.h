@@ -62,6 +62,33 @@ public:
 
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
+    enum LocksApplyMode
+    {
+        IndependentMode,
+        FocusExposureBoundMode,
+        AllBoundMode,
+        FocusOnlyMode
+    };
+
+    QCamera::LockTypes supportedLocks() const override;
+    QCamera::LockStatus lockStatus(QCamera::LockType lock) const override;
+    void searchAndLock(QCamera::LockTypes locks) override;
+    void unlock(QCamera::LockTypes locks) override;
+
+private Q_SLOTS:
+    void cameraOpened();
+    void focusStatusChanged(int value);
+
+private:
+    BbCameraSession *m_session;
+
+    LocksApplyMode m_locksApplyMode = IndependentMode;
+    QCamera::LockStatus m_focusLockStatus = QCamera::Unlocked;
+    QCamera::LockStatus m_exposureLockStatus = QCamera::Unlocked;
+    QCamera::LockStatus m_whiteBalanceLockStatus = QCamera::Unlocked;
+    QCamera::LockTypes m_currentLockTypes = QCamera::NoLock;
+    QCamera::LockTypes m_supportedLockTypes = QCamera::NoLock;
+
 private:
     BbCameraSession *m_session;
 };

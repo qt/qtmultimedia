@@ -43,10 +43,13 @@
 #include "camerabinaudioencoder.h"
 #include "camerabinvideoencoder.h"
 #include "camerabinimageencoder.h"
+#include "camerabinfocus.h"
+#include "camerabinimageprocessing.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qmetaobject.h>
+#include <QtCore/qcoreevent.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -57,7 +60,8 @@ CameraBinControl::CameraBinControl(CameraBinSession *session)
     :QCameraControl(session),
     m_session(session),
     m_state(QCamera::UnloadedState),
-    m_reloadPending(false)
+    m_reloadPending(false),
+    m_focus(m_session->cameraFocusControl())
 {
     connect(m_session, SIGNAL(statusChanged(QCamera::Status)),
             this, SIGNAL(statusChanged(QCamera::Status)));
@@ -71,6 +75,9 @@ CameraBinControl::CameraBinControl(CameraBinSession *session)
 
     connect(m_session, SIGNAL(busyChanged(bool)),
             SLOT(handleBusyChanged(bool)));
+
+    connect(m_focus, SIGNAL(_q_focusStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)),
+            this, SLOT(updateFocusStatus(QCamera::LockStatus,QCamera::LockChangeReason)));
 }
 
 CameraBinControl::~CameraBinControl()
@@ -227,6 +234,184 @@ void CameraBinControl::setViewfinderColorSpaceConversion(bool enabled)
         flags &= ~VIEWFINDER_COLORSPACE_CONVERSION;
 
     g_object_set(G_OBJECT(m_session->cameraBin()), "flags", flags, NULL);
+}
+
+QCamera::LockTypes CameraBinControl::supportedLocks() const
+{
+    QCamera::LockTypes locks = QCamera::LockFocus;
+
+    if (GstPhotography *photography = m_session->photography()) {
+        if (gst_photography_get_capabilities(photography) & GST_PHOTOGRAPHY_CAPS_WB_MODE)
+            locks |= QCamera::LockWhiteBalance;
+
+    if (GstElement *source = m_session->cameraSource()) {
+            if (g_object_class_find_property(
+                        G_OBJECT_GET_CLASS(source), "exposure-mode")) {
+                locks |= QCamera::LockExposure;
+            }
+        }
+    }
+
+    return locks;
+}
+
+QCamera::LockStatus CameraBinControl::lockStatus(QCamera::LockType lock) const
+{
+    switch (lock) {
+    case QCamera::LockFocus:
+        return m_focus->focusStatus();
+    case QCamera::LockExposure:
+        if (m_pendingLocks & QCamera::LockExposure)
+            return QCamera::Searching;
+        return isExposureLocked() ? QCamera::Locked : QCamera::Unlocked;
+    case QCamera::LockWhiteBalance:
+        if (m_pendingLocks & QCamera::LockWhiteBalance)
+            return QCamera::Searching;
+        return isWhiteBalanceLocked() ? QCamera::Locked : QCamera::Unlocked;
+    default:
+        return QCamera::Unlocked;
+    }
+}
+
+void CameraBinControl::searchAndLock(QCamera::LockTypes locks)
+{
+    m_pendingLocks &= ~locks;
+
+    if (locks & QCamera::LockFocus) {
+        m_pendingLocks |= QCamera::LockFocus;
+        m_focus->_q_startFocusing();
+    }
+    if (!m_pendingLocks)
+        m_lockTimer.stop();
+
+    if (locks & QCamera::LockExposure) {
+        if (isExposureLocked()) {
+            unlockExposure(QCamera::Searching, QCamera::UserRequest);
+            m_pendingLocks |= QCamera::LockExposure;
+            m_lockTimer.start(1000, this);
+        } else {
+            lockExposure(QCamera::UserRequest);
+        }
+    }
+    if (locks & QCamera::LockWhiteBalance) {
+        if (isWhiteBalanceLocked()) {
+            unlockWhiteBalance(QCamera::Searching, QCamera::UserRequest);
+            m_pendingLocks |= QCamera::LockWhiteBalance;
+            m_lockTimer.start(1000, this);
+        } else {
+            lockWhiteBalance(QCamera::UserRequest);
+        }
+    }
+}
+
+void CameraBinControl::unlock(QCamera::LockTypes locks)
+{
+    m_pendingLocks &= ~locks;
+
+    if (locks & QCamera::LockFocus)
+        m_focus->_q_stopFocusing();
+
+    if (!m_pendingLocks)
+        m_lockTimer.stop();
+
+    if (locks & QCamera::LockExposure)
+        unlockExposure(QCamera::Unlocked, QCamera::UserRequest);
+    if (locks & QCamera::LockWhiteBalance)
+        unlockWhiteBalance(QCamera::Unlocked, QCamera::UserRequest);
+}
+
+void CameraBinControl::updateFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason)
+{
+    if (status != QCamera::Searching)
+        m_pendingLocks &= ~QCamera::LockFocus;
+
+    if (status == QCamera::Locked && !m_lockTimer.isActive()) {
+        if (m_pendingLocks & QCamera::LockExposure)
+            lockExposure(QCamera::LockAcquired);
+        if (m_pendingLocks & QCamera::LockWhiteBalance)
+            lockWhiteBalance(QCamera::LockAcquired);
+    }
+    emit lockStatusChanged(QCamera::LockFocus, status, reason);
+}
+
+void CameraBinControl::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() != m_lockTimer.timerId())
+        return QCameraControl::timerEvent(event);
+
+    m_lockTimer.stop();
+
+    if (!(m_pendingLocks & QCamera::LockFocus)) {
+        if (m_pendingLocks & QCamera::LockExposure)
+            lockExposure(QCamera::LockAcquired);
+        if (m_pendingLocks & QCamera::LockWhiteBalance)
+            lockWhiteBalance(QCamera::LockAcquired);
+    }
+}
+
+bool CameraBinControl::isExposureLocked() const
+{
+    if (GstElement *source = m_session->cameraSource()) {
+        GstPhotographyExposureMode exposureMode = GST_PHOTOGRAPHY_EXPOSURE_MODE_AUTO;
+        g_object_get (G_OBJECT(source), "exposure-mode", &exposureMode, NULL);
+        return exposureMode == GST_PHOTOGRAPHY_EXPOSURE_MODE_MANUAL;
+    } else {
+        return false;
+    }
+}
+
+void CameraBinControl::lockExposure(QCamera::LockChangeReason reason)
+{
+    GstElement *source = m_session->cameraSource();
+    if (!source)
+        return;
+
+    m_pendingLocks &= ~QCamera::LockExposure;
+    g_object_set(
+                G_OBJECT(source),
+                "exposure-mode",
+                GST_PHOTOGRAPHY_EXPOSURE_MODE_MANUAL,
+                NULL);
+    emit lockStatusChanged(QCamera::LockExposure, QCamera::Locked, reason);
+}
+
+void CameraBinControl::unlockExposure(QCamera::LockStatus status, QCamera::LockChangeReason reason)
+{
+    GstElement *source = m_session->cameraSource();
+    if (!source)
+        return;
+
+    g_object_set(
+                G_OBJECT(source),
+                "exposure-mode",
+                GST_PHOTOGRAPHY_EXPOSURE_MODE_AUTO,
+                NULL);
+    emit lockStatusChanged(QCamera::LockExposure, status, reason);
+}
+
+bool CameraBinControl::isWhiteBalanceLocked() const
+{
+    if (GstPhotography *photography = m_session->photography()) {
+        GstPhotographyWhiteBalanceMode whiteBalanceMode;
+        return gst_photography_get_white_balance_mode(photography, &whiteBalanceMode)
+                && whiteBalanceMode == GST_PHOTOGRAPHY_WB_MODE_MANUAL;
+    } else {
+        return false;
+    }
+}
+
+void CameraBinControl::lockWhiteBalance(QCamera::LockChangeReason reason)
+{
+    m_pendingLocks &= ~QCamera::LockWhiteBalance;
+    m_session->imageProcessingControl()->lockWhiteBalance();
+    emit lockStatusChanged(QCamera::LockWhiteBalance, QCamera::Locked, reason);
+}
+
+void CameraBinControl::unlockWhiteBalance(
+        QCamera::LockStatus status, QCamera::LockChangeReason reason)
+{
+    m_session->imageProcessingControl()->lockWhiteBalance();
+    emit lockStatusChanged(QCamera::LockWhiteBalance, status, reason);
 }
 
 QT_END_NAMESPACE

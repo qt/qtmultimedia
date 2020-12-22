@@ -67,6 +67,13 @@ public:
 
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
+    QCamera::LockTypes supportedLocks() const override;
+
+    QCamera::LockStatus lockStatus(QCamera::LockType lock) const override;
+
+    void searchAndLock(QCamera::LockTypes locks) override;
+    void unlock(QCamera::LockTypes locks) override;
+
 private Q_SLOTS:
     void updateStatus();
 

@@ -48,12 +48,10 @@ qtConfig(gstreamer_photography) {
     HEADERS += \
         $$PWD/camerabinfocus.h \
         $$PWD/camerabinexposure.h \
-        $$PWD/camerabinlocks.h
 
     SOURCES += \
         $$PWD/camerabinexposure.cpp \
         $$PWD/camerabinfocus.cpp \
-        $$PWD/camerabinlocks.cpp
 
     QMAKE_USE += gstreamer_photography
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API

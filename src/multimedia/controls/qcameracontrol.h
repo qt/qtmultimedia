@@ -76,11 +76,19 @@ public:
 
     virtual bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const = 0;
 
+    virtual QCamera::LockTypes supportedLocks() const = 0;
+
+    virtual QCamera::LockStatus lockStatus(QCamera::LockType lock) const = 0;
+
+    virtual void searchAndLock(QCamera::LockTypes locks) = 0;
+    virtual void unlock(QCamera::LockTypes locks) = 0;
+
 Q_SIGNALS:
     void stateChanged(QCamera::State);
     void statusChanged(QCamera::Status);
     void error(int error, const QString &errorString);
     void captureModeChanged(QCamera::CaptureModes mode);
+    void lockStatusChanged(QCamera::LockType type, QCamera::LockStatus status, QCamera::LockChangeReason reason);
 
 protected:
     explicit QCameraControl(QObject *parent = nullptr);

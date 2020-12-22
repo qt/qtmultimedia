@@ -6,7 +6,6 @@ INCLUDEPATH += $$PWD \
 
 HEADERS *= \
     ../qmultimedia_common/mockcameraservice.h \
-    ../qmultimedia_common/mockcameralockscontrol.h \
     ../qmultimedia_common/mockcamerafocuscontrol.h \
     ../qmultimedia_common/mockcameraimageprocessingcontrol.h \
     ../qmultimedia_common/mockcameraimagecapturecontrol.h \

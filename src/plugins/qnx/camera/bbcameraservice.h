@@ -52,7 +52,6 @@ class BbCameraExposureControl;
 class BbCameraFocusControl;
 class BbCameraImageCaptureControl;
 class BbCameraImageProcessingControl;
-class BbCameraLocksControl;
 class BbCameraMediaRecorderControl;
 class BbCameraSession;
 class BbCameraVideoEncoderSettingsControl;
@@ -82,7 +81,6 @@ private:
     BbCameraFocusControl* m_cameraFocusControl;
     BbCameraImageCaptureControl* m_cameraImageCaptureControl;
     BbCameraImageProcessingControl* m_cameraImageProcessingControl;
-    BbCameraLocksControl* m_cameraLocksControl;
     BbCameraMediaRecorderControl* m_cameraMediaRecorderControl;
     BbCameraVideoEncoderSettingsControl* m_cameraVideoEncoderSettingsControl;
     BbCameraViewfinderSettingsControl* m_cameraViewfinderSettingsControl;

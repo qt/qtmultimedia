@@ -54,19 +54,42 @@ public:
     explicit QAndroidCameraControl(QAndroidCameraSession *session);
     virtual ~QAndroidCameraControl();
 
-    QCamera::State state() const;
-    void setState(QCamera::State state);
+    QCamera::State state() const override;
+    void setState(QCamera::State state) override;
 
-    QCamera::Status status() const;
+    QCamera::Status status() const override;
 
-    QCamera::CaptureModes captureMode() const;
-    void setCaptureMode(QCamera::CaptureModes mode);
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
+    QCamera::CaptureModes captureMode() const override;
+    void setCaptureMode(QCamera::CaptureModes mode) override;
+    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const;
+    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
+
+    QCamera::LockTypes supportedLocks() const override;
+    QCamera::LockStatus lockStatus(QCamera::LockType lock) const override;
+    void searchAndLock(QCamera::LockTypes locks) override;
+    void unlock(QCamera::LockTypes locks) override;
+
+private Q_SLOTS:
+    void onCameraOpened();
+    void onCameraAutoFocusComplete(bool success);
+    void onRecalculateTimeOut();
+    void onWhiteBalanceChanged();
 
 private:
+    void setFocusLockStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
+    void setWhiteBalanceLockStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
+    void setExposureLockStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
+
     QAndroidCameraSession *m_cameraSession;
+
+    QTimer *m_recalculateTimer;
+
+    QCamera::LockTypes m_supportedLocks;
+
+    QCamera::LockStatus m_focusLockStatus;
+    QCamera::LockStatus m_exposureLockStatus;
+    QCamera::LockStatus m_whiteBalanceLockStatus;
 };
 
 QT_END_NAMESPACE

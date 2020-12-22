@@ -30,7 +30,6 @@
 #define MOCKCAMERASERVICE_H
 
 #include "qmediaservice.h"
-#include "../qmultimedia_common/mockcameralockscontrol.h"
 #include "../qmultimedia_common/mockcamerafocuscontrol.h"
 #include "../qmultimedia_common/mockcameraimageprocessingcontrol.h"
 #include "../qmultimedia_common/mockcameraimagecapturecontrol.h"
@@ -79,7 +78,6 @@ public:
     MockCameraService(): QMediaService(0)
     {
         mockControl = new MockCameraControl(this);
-        mockLocksControl = new MockCameraLocksControl(this);
         mockExposureControl = new MockCameraExposureControl(this);
         mockFocusControl = new MockCameraFocusControl(this);
         mockCaptureControl = new MockCaptureControl(mockControl, this);
@@ -102,9 +100,6 @@ public:
     {
         if (qstrcmp(iid, QCameraControl_iid) == 0)
             return mockControl;
-
-        if (qstrcmp(iid, QCameraLocksControl_iid) == 0)
-            return mockLocksControl;
 
         if (qstrcmp(iid, QCameraExposureControl_iid) == 0)
             return mockExposureControl;
@@ -156,7 +151,6 @@ public:
     }
 
     MockCameraControl *mockControl;
-    MockCameraLocksControl *mockLocksControl;
     MockCaptureControl *mockCaptureControl;
     MockCaptureBufferFormatControl *mockCaptureBufferControl;
     MockCameraExposureControl *mockExposureControl;

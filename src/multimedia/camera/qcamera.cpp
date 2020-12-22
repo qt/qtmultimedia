@@ -43,7 +43,6 @@
 
 #include <qcamerainfo.h>
 #include <qcameracontrol.h>
-#include <qcameralockscontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
 #include <qcameraimageprocessingcontrol.h>
@@ -181,7 +180,6 @@ void QCameraPrivate::initControls()
 
     if (service) {
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
-        locksControl = qobject_cast<QCameraLocksControl *>(service->requestControl(QCameraLocksControl_iid));
         deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
         viewfinderSettingsControl2 = qobject_cast<QCameraViewfinderSettingsControl2*>(service->requestControl(QCameraViewfinderSettingsControl2_iid));
         if (!viewfinderSettingsControl2)
@@ -193,18 +191,13 @@ void QCameraPrivate::initControls()
             q->connect(control, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
                        q, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
             q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
-
-        }
-
-        if (locksControl) {
-            q->connect(locksControl, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)),
+            q->connect(control, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)),
                        q, SLOT(_q_updateLockStatus(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
         }
 
         error = QCamera::NoError;
     } else {
         control = nullptr;
-        locksControl = nullptr;
         deviceControl = nullptr;
         viewfinderSettingsControl = nullptr;
         viewfinderSettingsControl2 = nullptr;
@@ -223,8 +216,6 @@ void QCameraPrivate::clear()
     if (service) {
         if (control)
             service->releaseControl(control);
-        if (locksControl)
-            service->releaseControl(locksControl);
         if (deviceControl)
             service->releaseControl(deviceControl);
         if (viewfinderSettingsControl)
@@ -239,7 +230,6 @@ void QCameraPrivate::clear()
     cameraFocus = nullptr;
     imageProcessing = nullptr;
     control = nullptr;
-    locksControl = nullptr;
     deviceControl = nullptr;
     viewfinderSettingsControl = nullptr;
     viewfinderSettingsControl2 = nullptr;
@@ -888,8 +878,8 @@ QCamera::LockTypes QCamera::supportedLocks() const
 {
     Q_D(const QCamera);
 
-    return d->locksControl
-            ? d->locksControl->supportedLocks()
+    return d->control
+            ? d->control->supportedLocks()
             : QCamera::LockTypes();
 }
 
@@ -919,8 +909,8 @@ QCamera::LockStatus QCamera::lockStatus(QCamera::LockType lockType) const
     if (!(lockType & d->requestedLocks))
         return QCamera::Unlocked;
 
-    if (d->locksControl)
-        return d->locksControl->lockStatus(lockType);
+    if (d->control)
+        return d->control->lockStatus(lockType);
 
     return QCamera::Locked;
 }
@@ -957,10 +947,10 @@ void QCamera::searchAndLock(QCamera::LockTypes locks)
     QCamera::LockStatus oldStatus = d->lockStatus;
     d->supressLockChangedSignal = true;
 
-    if (d->locksControl) {
-        locks &= d->locksControl->supportedLocks();
+    if (d->control) {
+        locks &= d->control->supportedLocks();
         d->requestedLocks |= locks;
-        d->locksControl->searchAndLock(locks);
+        d->control->searchAndLock(locks);
     }
 
     d->supressLockChangedSignal = false;
@@ -989,9 +979,9 @@ void QCamera::unlock(QCamera::LockTypes locks)
 
     d->requestedLocks &= ~locks;
 
-    if (d->locksControl) {
-        locks &= d->locksControl->supportedLocks();
-        d->locksControl->unlock(locks);
+    if (d->control) {
+        locks &= d->control->supportedLocks();
+        d->control->unlock(locks);
     }
 
     d->supressLockChangedSignal = false;

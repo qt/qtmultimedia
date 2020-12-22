@@ -33,7 +33,6 @@
 
 #include <qabstractvideosurface.h>
 #include <qcameracontrol.h>
-#include <qcameralockscontrol.h>
 #include <qcameraexposurecontrol.h>
 #include <qcamerafocuscontrol.h>
 #include <qcameraimagecapturecontrol.h>
@@ -2106,7 +2105,7 @@ void tst_QCamera::testLockChangeReason()
     QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
 
     /* Set the lockChangeReason */
-    service.mockLocksControl->setLockChangeReason(QCamera::LockAcquired);
+    service.mockControl->setLockChangeReason(QCamera::LockAcquired);
 
     /* Verify if lockChangeReson is eqaul toQCamera::LockAcquired */
     QCOMPARE(lockStatusChangedSignalWithType.count(), 1);

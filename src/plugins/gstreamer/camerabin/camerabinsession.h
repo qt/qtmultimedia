@@ -121,7 +121,6 @@ public:
 #if QT_CONFIG(gstreamer_photography)
     CameraBinExposure *cameraExposureControl();
     CameraBinFocus *cameraFocusControl();
-    CameraBinLocks *cameraLocksControl();
 #endif
 
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
@@ -238,7 +237,6 @@ private:
 #if QT_CONFIG(gstreamer_photography)
     CameraBinExposure *m_cameraExposureControl;
     CameraBinFocus *m_cameraFocusControl;
-    CameraBinLocks *m_cameraLocksControl;
 #endif
     CameraBinImageProcessing *m_imageProcessingControl;
     CameraBinCaptureBufferFormat *m_captureBufferFormatControl;
