@@ -50,35 +50,10 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl : public QObject
-{
-    Q_OBJECT
-public:
-    enum ViewfinderParameter {
-        Resolution,
-        PixelAspectRatio,
-        MinimumFrameRate,
-        MaximumFrameRate,
-        PixelFormat,
-        UserParameter = 1000
-    };
-
-    virtual bool isViewfinderParameterSupported(ViewfinderParameter parameter) const = 0;
-    virtual QVariant viewfinderParameter(ViewfinderParameter parameter) const = 0;
-    virtual void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) = 0;
-
-protected:
-    explicit QCameraViewfinderSettingsControl(QObject *parent = nullptr);
-};
-
-#define QCameraViewfinderSettingsControl_iid "org.qt-project.qt.cameraviewfindersettingscontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderSettingsControl, QCameraViewfinderSettingsControl_iid)
-
-
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl2 : public QObject
+class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl : public QObject
 {
     Q_OBJECT
 public:
@@ -88,11 +63,11 @@ public:
     virtual void setViewfinderSettings(const QCameraViewfinderSettings &settings) = 0;
 
 protected:
-    explicit QCameraViewfinderSettingsControl2(QObject *parent = nullptr);
+    explicit QCameraViewfinderSettingsControl(QObject *parent = nullptr);
 };
 
-#define QCameraViewfinderSettingsControl2_iid "org.qt-project.qt.cameraviewfindersettingscontrol2/5.5"
-Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderSettingsControl2, QCameraViewfinderSettingsControl2_iid)
+#define QCameraViewfinderSettingsControl_iid "org.qt-project.qt.cameraviewfindersettingscontrol/6.0"
+Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderSettingsControl, QCameraViewfinderSettingsControl_iid)
 
 QT_END_NAMESPACE
 

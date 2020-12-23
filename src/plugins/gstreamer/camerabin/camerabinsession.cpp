@@ -52,7 +52,6 @@
 #endif
 
 #include "camerabinimageprocessing.h"
-#include "camerabinviewfindersettings.h"
 
 #include "camerabincapturebufferformat.h"
 #include <private/qgstreamerbushelper_p.h>

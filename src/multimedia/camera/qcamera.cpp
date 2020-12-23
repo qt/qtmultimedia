@@ -181,9 +181,7 @@ void QCameraPrivate::initControls()
     if (service) {
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
         deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
-        viewfinderSettingsControl2 = qobject_cast<QCameraViewfinderSettingsControl2*>(service->requestControl(QCameraViewfinderSettingsControl2_iid));
-        if (!viewfinderSettingsControl2)
-            viewfinderSettingsControl = qobject_cast<QCameraViewfinderSettingsControl*>(service->requestControl(QCameraViewfinderSettingsControl_iid));
+        viewfinderSettingsControl = qobject_cast<QCameraViewfinderSettingsControl*>(service->requestControl(QCameraViewfinderSettingsControl_iid));
 
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
@@ -200,7 +198,6 @@ void QCameraPrivate::initControls()
         control = nullptr;
         deviceControl = nullptr;
         viewfinderSettingsControl = nullptr;
-        viewfinderSettingsControl2 = nullptr;
 
         error = QCamera::ServiceMissingError;
         errorString = QCamera::tr("The camera service is missing");
@@ -220,8 +217,6 @@ void QCameraPrivate::clear()
             service->releaseControl(deviceControl);
         if (viewfinderSettingsControl)
             service->releaseControl(viewfinderSettingsControl);
-        if (viewfinderSettingsControl2)
-            service->releaseControl(viewfinderSettingsControl2);
 
         provider->releaseService(service);
     }
@@ -232,7 +227,6 @@ void QCameraPrivate::clear()
     control = nullptr;
     deviceControl = nullptr;
     viewfinderSettingsControl = nullptr;
-    viewfinderSettingsControl2 = nullptr;
     service = nullptr;
 }
 
@@ -545,27 +539,10 @@ QCameraViewfinderSettings QCamera::viewfinderSettings() const
 {
     Q_D(const QCamera);
 
-    if (d->viewfinderSettingsControl2)
-        return d->viewfinderSettingsControl2->viewfinderSettings();
+    if (d->viewfinderSettingsControl)
+        return d->viewfinderSettingsControl->viewfinderSettings();
 
-    QCameraViewfinderSettings settings;
-    if (d->viewfinderSettingsControl) {
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::Resolution))
-            settings.setResolution(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::Resolution).toSize());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MinimumFrameRate))
-            settings.setMinimumFrameRate(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::MinimumFrameRate).toReal());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MaximumFrameRate))
-            settings.setMaximumFrameRate(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::MaximumFrameRate).toReal());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelAspectRatio))
-            settings.setPixelAspectRatio(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::PixelAspectRatio).toSize());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelFormat))
-            settings.setPixelFormat(qvariant_cast<QVideoFrame::PixelFormat>(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::PixelFormat)));
-    }
-    return settings;
+    return QCameraViewfinderSettings();
 }
 
 /*!
@@ -590,28 +567,11 @@ void QCamera::setViewfinderSettings(const QCameraViewfinderSettings &settings)
 {
     Q_D(QCamera);
 
-    if (d->viewfinderSettingsControl || d->viewfinderSettingsControl2)
-        d->_q_preparePropertyChange(QCameraControl::ViewfinderSettings);
+    if (!d->viewfinderSettingsControl)
+        return;
 
-    if (d->viewfinderSettingsControl2) {
-        d->viewfinderSettingsControl2->setViewfinderSettings(settings);
-
-    } else if (d->viewfinderSettingsControl) {
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::Resolution))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::Resolution, settings.resolution());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MinimumFrameRate))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::MinimumFrameRate, settings.minimumFrameRate());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MaximumFrameRate))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::MaximumFrameRate, settings.maximumFrameRate());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelAspectRatio))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::PixelAspectRatio, settings.pixelAspectRatio());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelFormat))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::PixelFormat, settings.pixelFormat());
-    }
+    d->_q_preparePropertyChange(QCameraControl::ViewfinderSettings);
+    d->viewfinderSettingsControl->setViewfinderSettings(settings);
 }
 
 /*!
@@ -635,14 +595,14 @@ QList<QCameraViewfinderSettings> QCamera::supportedViewfinderSettings(const QCam
 {
     Q_D(const QCamera);
 
-    if (!d->viewfinderSettingsControl2)
+    if (!d->viewfinderSettingsControl)
         return QList<QCameraViewfinderSettings>();
 
     if (settings.isNull())
-        return d->viewfinderSettingsControl2->supportedViewfinderSettings();
+        return d->viewfinderSettingsControl->supportedViewfinderSettings();
 
     QList<QCameraViewfinderSettings> results;
-    const QList<QCameraViewfinderSettings> supported = d->viewfinderSettingsControl2->supportedViewfinderSettings();
+    const QList<QCameraViewfinderSettings> supported = d->viewfinderSettingsControl->supportedViewfinderSettings();
     for (const QCameraViewfinderSettings &s : supported) {
         if ((settings.resolution().isEmpty() || settings.resolution() == s.resolution())
                 && (qFuzzyIsNull(settings.minimumFrameRate()) || qFuzzyCompare((float)settings.minimumFrameRate(), (float)s.minimumFrameRate()))

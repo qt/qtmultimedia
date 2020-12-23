@@ -61,7 +61,7 @@ class QMediaServiceProvider;
 class QCameraControl;
 class QVideoDeviceSelectorControl;
 class QCameraViewfinderSettingsControl;
-class QCameraViewfinderSettingsControl2;
+class QCameraViewfinderSettingsControl;
 
 class QCameraPrivate : public QMediaObjectPrivate
 {
@@ -73,7 +73,6 @@ public:
         control(nullptr),
         deviceControl(nullptr),
         viewfinderSettingsControl(nullptr),
-        viewfinderSettingsControl2(nullptr),
         cameraExposure(nullptr),
         cameraFocus(nullptr),
         imageProcessing(nullptr),
@@ -99,7 +98,6 @@ public:
     QCameraControl *control;
     QVideoDeviceSelectorControl *deviceControl;
     QCameraViewfinderSettingsControl *viewfinderSettingsControl;
-    QCameraViewfinderSettingsControl2 *viewfinderSettingsControl2;
 
     QCameraExposure *cameraExposure;
     QCameraFocus *cameraFocus;

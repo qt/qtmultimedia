@@ -61,7 +61,6 @@ class CameraBinMetaData;
 class CameraBinImageCapture;
 class CameraBinMetaData;
 class CameraBinViewfinderSettings;
-class CameraBinViewfinderSettings2;
 
 class CameraBinService : public QMediaService
 {
@@ -95,7 +94,6 @@ private:
     CameraBinImageCapture *m_imageCaptureControl;
 
     CameraBinViewfinderSettings *m_viewfinderSettingsControl;
-    CameraBinViewfinderSettings2 *m_viewfinderSettingsControl2;
 };
 
 QT_END_NAMESPACE

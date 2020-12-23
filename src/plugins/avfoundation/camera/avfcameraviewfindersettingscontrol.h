@@ -58,14 +58,13 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 
-class AVFCameraViewfinderSettingsControl2 : public QCameraViewfinderSettingsControl2
+class AVFCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl
 {
     Q_OBJECT
 
     friend class AVFCameraSession;
-    friend class AVFCameraViewfinderSettingsControl;
 public:
-    AVFCameraViewfinderSettingsControl2(AVFCameraService *service);
+    AVFCameraViewfinderSettingsControl(AVFCameraService *service);
 
     QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
     QCameraViewfinderSettings viewfinderSettings() const override;
@@ -89,27 +88,6 @@ private:
 
     AVFCameraService *m_service;
     QCameraViewfinderSettings m_settings;
-};
-
-class AVFCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl
-{
-    Q_OBJECT
-public:
-    AVFCameraViewfinderSettingsControl(AVFCameraService *service);
-
-    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const override;
-    QVariant viewfinderParameter(ViewfinderParameter parameter) const override;
-    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) override;
-
-private:
-    void setResolution(const QVariant &resolution);
-    void setAspectRatio(const QVariant &aspectRatio);
-    void setFrameRate(const QVariant &fps, bool max);
-    void setPixelFormat(const QVariant &pf);
-    bool initSettingsControl() const;
-
-    AVFCameraService *m_service;
-    mutable QPointer<AVFCameraViewfinderSettingsControl2> m_settingsControl;
 };
 
 QT_END_NAMESPACE

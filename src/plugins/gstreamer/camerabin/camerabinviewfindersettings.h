@@ -1,6 +1,5 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Jolla Ltd.
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
@@ -54,9 +53,10 @@ public:
     CameraBinViewfinderSettings(CameraBinSession *session);
     ~CameraBinViewfinderSettings();
 
-    bool isViewfinderParameterSupported(ViewfinderParameter parameter) const override;
-    QVariant viewfinderParameter(ViewfinderParameter parameter) const override;
-    void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) override;
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
+
+    QCameraViewfinderSettings viewfinderSettings() const override;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings) override;
 
 private:
     CameraBinSession *m_session;
@@ -64,4 +64,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif
+#endif // CAMERABINVIEWFINDERSETTINGS_H

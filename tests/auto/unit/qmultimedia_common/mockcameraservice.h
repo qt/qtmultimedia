@@ -135,7 +135,7 @@ public:
             }
         }
 
-        if (qstrcmp(iid, QCameraViewfinderSettingsControl2_iid) == 0) {
+        if (qstrcmp(iid, QCameraViewfinderSettingsControl_iid) == 0) {
             return mockViewfinderSettingsControl;
         }
 

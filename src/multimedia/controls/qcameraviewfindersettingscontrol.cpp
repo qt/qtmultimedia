@@ -42,39 +42,34 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCameraViewfinderSettingsControl
-    \obsolete
+    \class QCameraviewfinderSettingsControl
     \inmodule QtMultimedia
-
-
     \ingroup multimedia_control
+    \since 5.5
 
+    \brief The QCameraviewfinderSettingsControl class provides access to the viewfinder settings
+    of a camera media service.
 
-    \brief The QCameraViewfinderSettingsControl class provides an abstract class
-    for controlling camera viewfinder parameters.
+    The functionality provided by this control is exposed to application code through the QCamera class.
 
-    The interface name of QCameraViewfinderSettingsControl is \c org.qt-project.qt.cameraviewfindersettingscontrol/5.0 as
+    The interface name of QCameraviewfinderSettingsControl is \c org.qt-project.qt.cameraviewfinderSettingsControl/6.0 as
     defined in QCameraViewfinderSettingsControl_iid.
 
-    \warning New backends should implement QCameraViewfinderSettingsControl2 instead.
-    Application developers should request this control only if QCameraViewfinderSettingsControl2
-    is not available.
-
-    \sa QMediaService::requestControl(), QCameraViewfinderSettingsControl2, QCamera
+    \sa QMediaService::requestControl(), QCameraViewfinderSettings, QCamera
 */
 
 /*!
     \macro QCameraViewfinderSettingsControl_iid
 
-    \c org.qt-project.qt.cameraviewfindersettingscontrol/5.0
+    \c org.qt-project.qt.cameraviewfinderSettingsControl/5.5
 
-    Defines the interface name of the QCameraViewfinderSettingsControl class.
+    Defines the interface name of the QCameraviewfinderSettingsControl class.
 
-    \relates QCameraViewfinderSettingsControl
+    \relates QCameraviewfinderSettingsControl
 */
 
 /*!
-    Constructs a camera viewfinder control object with \a parent.
+    Constructs a camera viewfinder settings control object with \a parent.
 */
 QCameraViewfinderSettingsControl::QCameraViewfinderSettingsControl(QObject *parent)
     : QObject(parent)
@@ -82,88 +77,7 @@ QCameraViewfinderSettingsControl::QCameraViewfinderSettingsControl(QObject *pare
 }
 
 /*!
-  \enum QCameraViewfinderSettingsControl::ViewfinderParameter
-  \value Resolution
-         Viewfinder resolution, QSize.
-  \value PixelAspectRatio
-         Pixel aspect ratio, QSize as in QVideoSurfaceFormat::pixelAspectRatio
-  \value MinimumFrameRate
-         Minimum viewfinder frame rate, qreal
-  \value MaximumFrameRate
-         Maximum viewfinder frame rate, qreal
-  \value PixelFormat
-         Viewfinder pixel format, QVideoFrame::PixelFormat
-  \value UserParameter
-         The base value for platform specific extended parameters.
-         For such parameters the sequential values starting from UserParameter should be used.
-*/
-
-/*!
-    \fn bool QCameraViewfinderSettingsControl::isViewfinderParameterSupported(ViewfinderParameter parameter) const
-
-    Returns true if configuration of viewfinder \a parameter is supported by camera backend.
-*/
-
-/*!
-    \fn QCameraViewfinderSettingsControl::viewfinderParameter(ViewfinderParameter parameter) const
-
-    Returns the value of viewfinder \a parameter.
-*/
-
-/*!
-    \fn QCameraViewfinderSettingsControl::setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value)
-
-    Set the prefferred \a value of viewfinder \a parameter.
-
-    Calling this while the camera is active may result in the camera being
-    stopped and reloaded. If video recording is in progress, this call may be ignored.
-
-    If an unsupported parameter is specified the camera may fail to load,
-    or the setting may be ignored.
-
-    Viewfinder parameters may also depend on other camera settings,
-    especially in video capture mode. If camera configuration conflicts
-    with viewfinder settings, the camara configuration is usually preferred.
-*/
-
-
-/*!
-    \class QCameraViewfinderSettingsControl2
-    \inmodule QtMultimedia
-    \ingroup multimedia_control
-    \since 5.5
-
-    \brief The QCameraViewfinderSettingsControl2 class provides access to the viewfinder settings
-    of a camera media service.
-
-    The functionality provided by this control is exposed to application code through the QCamera class.
-
-    The interface name of QCameraViewfinderSettingsControl2 is \c org.qt-project.qt.cameraviewfindersettingscontrol2/5.5 as
-    defined in QCameraViewfinderSettingsControl2_iid.
-
-    \sa QMediaService::requestControl(), QCameraViewfinderSettings, QCamera
-*/
-
-/*!
-    \macro QCameraViewfinderSettingsControl2_iid
-
-    \c org.qt-project.qt.cameraviewfindersettingscontrol2/5.5
-
-    Defines the interface name of the QCameraViewfinderSettingsControl2 class.
-
-    \relates QCameraViewfinderSettingsControl2
-*/
-
-/*!
-    Constructs a camera viewfinder settings control object with \a parent.
-*/
-QCameraViewfinderSettingsControl2::QCameraViewfinderSettingsControl2(QObject *parent)
-    : QObject(parent)
-{
-}
-
-/*!
-    \fn QCameraViewfinderSettingsControl2::supportedViewfinderSettings() const
+    \fn QCameraviewfinderSettingsControl::supportedViewfinderSettings() const
 
     Returns a list of supported camera viewfinder settings.
 
@@ -171,17 +85,17 @@ QCameraViewfinderSettingsControl2::QCameraViewfinderSettingsControl2(QObject *pa
 */
 
 /*!
-    \fn QCameraViewfinderSettingsControl2::viewfinderSettings() const
+    \fn QCameraviewfinderSettingsControl::viewfinderSettings() const
 
     Returns the viewfinder settings.
 
-    If undefined or unsupported values are passed to QCameraViewfinderSettingsControl2::setViewfinderSettings(),
+    If undefined or unsupported values are passed to QCameraviewfinderSettingsControl::setViewfinderSettings(),
     this function returns the actual settings used by the camera viewfinder. These may be available
     only once the camera is active.
 */
 
 /*!
-    \fn QCameraViewfinderSettingsControl2::setViewfinderSettings(const QCameraViewfinderSettings &settings)
+    \fn QCameraviewfinderSettingsControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
 
     Sets the camera viewfinder \a settings.
 */

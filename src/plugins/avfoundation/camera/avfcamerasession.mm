@@ -280,7 +280,7 @@ void AVFCameraSession::setCapturePreviewOutput(AVFCameraWindowControl *output)
     if (m_capturePreviewWindowOutput) {
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
         m_capturePreviewWindowOutput->setLayer(previewLayer);
-        if (AVFCameraViewfinderSettingsControl2 *vfControl = m_service->viewfinderSettingsControl2()) {
+        if (AVFCameraViewfinderSettingsControl *vfControl = m_service->viewfinderSettingsControl()) {
             m_capturePreviewWindowOutput->setNativeSize(vfControl->viewfinderSettings().resolution());
         }
     }
@@ -426,7 +426,7 @@ bool AVFCameraSession::applyImageEncoderSettings()
 
 bool AVFCameraSession::applyViewfinderSettings()
 {
-    if (AVFCameraViewfinderSettingsControl2 *vfControl = m_service->viewfinderSettingsControl2()) {
+    if (AVFCameraViewfinderSettingsControl *vfControl = m_service->viewfinderSettingsControl()) {
         QCamera::CaptureModes currentMode = m_service->cameraControl()->captureMode();
         QCameraViewfinderSettings vfSettings(vfControl->requestedSettings());
         // Viewfinder and image capture solutions must be the same, if an image capture

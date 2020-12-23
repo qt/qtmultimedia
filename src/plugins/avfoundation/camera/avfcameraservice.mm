@@ -95,7 +95,6 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_cameraExposureControl = new AVFCameraExposureControl(this);
 #endif
 
-    m_viewfinderSettingsControl2 = new AVFCameraViewfinderSettingsControl2(this);
     m_viewfinderSettingsControl = new AVFCameraViewfinderSettingsControl(this);
     m_imageEncoderControl = new AVFImageEncoderControl(this);
     m_audioEncoderSettingsControl = new AVFAudioEncoderSettingsControl(this);
@@ -131,7 +130,6 @@ AVFCameraService::~AVFCameraService()
     delete m_cameraControl;
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
-    delete m_viewfinderSettingsControl2;
     delete m_viewfinderSettingsControl;
     delete m_imageEncoderControl;
     delete m_audioEncoderSettingsControl;
@@ -167,9 +165,6 @@ QObject *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return m_cameraFocusControl;
-
-    if (qstrcmp(name, QCameraViewfinderSettingsControl2_iid) == 0)
-        return m_viewfinderSettingsControl2;
 
     if (qstrcmp(name, QCameraViewfinderSettingsControl_iid) == 0)
         return m_viewfinderSettingsControl;

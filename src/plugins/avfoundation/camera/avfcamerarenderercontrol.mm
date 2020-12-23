@@ -251,7 +251,7 @@ private:
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
     QVideoFrame::PixelFormat format =
-            AVFCameraViewfinderSettingsControl2::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
+            AVFCameraViewfinderSettingsControl::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
     if (format == QVideoFrame::Format_Invalid)
         return;
 

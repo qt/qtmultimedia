@@ -74,7 +74,7 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_videoInputControl = new QAndroidVideoDeviceSelectorControl(m_cameraSession);
         m_cameraExposureControl = new QAndroidCameraExposureControl(m_cameraSession);
         m_cameraFocusControl = new QAndroidCameraFocusControl(m_cameraSession);
-        m_viewfinderSettingsControl2 = new QAndroidViewfinderSettingsControl2(m_cameraSession);
+        m_viewfinderSettingsControl = new QAndroidViewfinderSettingsControl(m_cameraSession);
         m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(m_cameraSession);
         m_imageEncoderControl = new QAndroidImageEncoderControl(m_cameraSession);
         m_imageCaptureControl = new QAndroidCameraImageCaptureControl(m_cameraSession);
@@ -86,7 +86,7 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_videoInputControl = 0;
         m_cameraExposureControl = 0;
         m_cameraFocusControl = 0;
-        m_viewfinderSettingsControl2 = 0;
+        m_viewfinderSettingsControl = 0;
         m_cameraImageProcessingControl = 0;
         m_imageEncoderControl = 0;
         m_imageCaptureControl = 0;
@@ -120,7 +120,7 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_videoRendererControl;
     delete m_cameraExposureControl;
     delete m_cameraFocusControl;
-    delete m_viewfinderSettingsControl2;
+    delete m_viewfinderSettingsControl;
     delete m_cameraImageProcessingControl;
     delete m_imageEncoderControl;
     delete m_imageCaptureControl;
@@ -157,8 +157,8 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return m_cameraFocusControl;
 
-    if (qstrcmp(name, QCameraViewfinderSettingsControl2_iid) == 0)
-        return m_viewfinderSettingsControl2;
+    if (qstrcmp(name, QCameraViewfinderSettingsControl_iid) == 0)
+        return m_viewfinderSettingsControl;
 
     if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
         return m_cameraImageProcessingControl;

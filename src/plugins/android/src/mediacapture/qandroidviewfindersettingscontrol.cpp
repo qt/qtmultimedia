@@ -43,12 +43,12 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidViewfinderSettingsControl2::QAndroidViewfinderSettingsControl2(QAndroidCameraSession *session)
+QAndroidViewfinderSettingsControl::QAndroidViewfinderSettingsControl(QAndroidCameraSession *session)
     : m_cameraSession(session)
 {
 }
 
-QList<QCameraViewfinderSettings> QAndroidViewfinderSettingsControl2::supportedViewfinderSettings() const
+QList<QCameraViewfinderSettings> QAndroidViewfinderSettingsControl::supportedViewfinderSettings() const
 {
     QList<QCameraViewfinderSettings> viewfinderSettings;
 
@@ -74,12 +74,12 @@ QList<QCameraViewfinderSettings> QAndroidViewfinderSettingsControl2::supportedVi
     return viewfinderSettings;
 }
 
-QCameraViewfinderSettings QAndroidViewfinderSettingsControl2::viewfinderSettings() const
+QCameraViewfinderSettings QAndroidViewfinderSettingsControl::viewfinderSettings() const
 {
     return m_cameraSession->viewfinderSettings();
 }
 
-void QAndroidViewfinderSettingsControl2::setViewfinderSettings(const QCameraViewfinderSettings &settings)
+void QAndroidViewfinderSettingsControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
 {
     m_cameraSession->setViewfinderSettings(settings);
 }

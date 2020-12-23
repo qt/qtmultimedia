@@ -25,7 +25,6 @@ HEADERS += \
     $$PWD/camerabinvideoencoder.h \
     $$PWD/camerabincapturebufferformat.h \
     $$PWD/camerabinviewfindersettings.h \
-    $$PWD/camerabinviewfindersettings2.h \
 
 SOURCES += \
     $$PWD/camerabinserviceplugin.cpp \
@@ -41,8 +40,7 @@ SOURCES += \
     $$PWD/camerabinrecorder.cpp \
     $$PWD/camerabinvideoencoder.cpp \
     $$PWD/camerabinviewfindersettings.cpp \
-    $$PWD/camerabinviewfindersettings2.cpp \
-    $$PWD/camerabincapturebufferformat.cpp \    
+    $$PWD/camerabincapturebufferformat.cpp \
 
 qtConfig(gstreamer_photography) {
     HEADERS += \

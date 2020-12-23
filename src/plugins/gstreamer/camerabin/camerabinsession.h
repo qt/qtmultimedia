@@ -75,7 +75,6 @@ class CameraBinZoom;
 class CameraBinCaptureDestination;
 class CameraBinCaptureBufferFormat;
 class QGstreamerVideoRendererInterface;
-class CameraBinViewfinderSettings;
 
 class QGstreamerElementFactory
 {

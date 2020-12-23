@@ -31,12 +31,12 @@
 
 #include "qcameraviewfindersettingscontrol.h"
 
-class MockCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl2
+class MockCameraViewfinderSettingsControl : public QCameraViewfinderSettingsControl
 {
     Q_OBJECT
 public:
     MockCameraViewfinderSettingsControl(QObject *parent = 0):
-            QCameraViewfinderSettingsControl2(parent)
+            QCameraViewfinderSettingsControl(parent)
     {
         QCameraViewfinderSettings s;
         s.setResolution(640, 480);

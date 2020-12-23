@@ -52,11 +52,11 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 
-class QAndroidViewfinderSettingsControl2 : public QCameraViewfinderSettingsControl2
+class QAndroidViewfinderSettingsControl : public QCameraViewfinderSettingsControl
 {
     Q_OBJECT
 public:
-    explicit QAndroidViewfinderSettingsControl2(QAndroidCameraSession *session);
+    explicit QAndroidViewfinderSettingsControl(QAndroidCameraSession *session);
 
     QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
     QCameraViewfinderSettings viewfinderSettings() const override;
