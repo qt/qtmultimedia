@@ -67,14 +67,6 @@ class QVideoFramePrivate : public QSharedData
 {
 public:
     QVideoFramePrivate()
-        : startTime(-1)
-        , endTime(-1)
-        , mappedBytes(0)
-        , planeCount(0)
-        , pixelFormat(QVideoFrame::Format_Invalid)
-        , fieldType(QVideoFrame::ProgressiveFrame)
-        , buffer(nullptr)
-        , mappedCount(0)
     {
         memset(data, 0, sizeof(data));
         memset(bytesPerLine, 0, sizeof(bytesPerLine));
@@ -82,14 +74,7 @@ public:
 
     QVideoFramePrivate(const QSize &size, QVideoFrame::PixelFormat format)
         : size(size)
-        , startTime(-1)
-        , endTime(-1)
-        , mappedBytes(0)
-        , planeCount(0)
         , pixelFormat(format)
-        , fieldType(QVideoFrame::ProgressiveFrame)
-        , buffer(nullptr)
-        , mappedCount(0)
     {
         memset(data, 0, sizeof(data));
         memset(bytesPerLine, 0, sizeof(bytesPerLine));
@@ -102,16 +87,16 @@ public:
     }
 
     QSize size;
-    qint64 startTime;
-    qint64 endTime;
+    qint64 startTime = -1;
+    qint64 endTime = -1;
     uchar *data[4];
     int bytesPerLine[4];
-    int mappedBytes;
-    int planeCount;
-    QVideoFrame::PixelFormat pixelFormat;
-    QVideoFrame::FieldType fieldType;
-    QAbstractVideoBuffer *buffer;
-    int mappedCount;
+    int mappedBytes = 0;
+    int planeCount = 0;
+    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+    QVideoFrame::FieldType fieldType = QVideoFrame::ProgressiveFrame;
+    QAbstractVideoBuffer *buffer = nullptr;
+    int mappedCount = 0;
     QMutex mapMutex;
     QVariantMap metadata;
 

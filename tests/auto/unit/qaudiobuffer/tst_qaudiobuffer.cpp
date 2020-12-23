@@ -37,7 +37,7 @@ class tst_QAudioBuffer : public QObject
 
 public:
     tst_QAudioBuffer();
-    ~tst_QAudioBuffer();
+    ~tst_QAudioBuffer() override;
 
 private Q_SLOTS:
     void ctors();
@@ -83,9 +83,9 @@ void tst_QAudioBuffer::ctors()
 {
     // Null buffer
     QVERIFY(!mNull->isValid());
-    QVERIFY(mNull->constData() == 0);
-    QVERIFY(mNull->data() == 0);
-    QVERIFY(((const QAudioBuffer*)mNull)->data() == 0);
+    QVERIFY(mNull->constData() == nullptr);
+    QVERIFY(mNull->data() == nullptr);
+    QVERIFY(((const QAudioBuffer*)mNull)->data() == nullptr);
     QCOMPARE(mNull->duration(), 0LL);
     QCOMPARE(mNull->byteCount(), 0);
     QCOMPARE(mNull->sampleCount(), 0);
@@ -94,9 +94,9 @@ void tst_QAudioBuffer::ctors()
 
     // Empty buffer
     QVERIFY(mEmpty->isValid());
-    QVERIFY(mEmpty->constData() != 0);
-    QVERIFY(mEmpty->data() != 0);
-    QVERIFY(((const QAudioBuffer*)mEmpty)->data() != 0);
+    QVERIFY(mEmpty->constData() != nullptr);
+    QVERIFY(mEmpty->data() != nullptr);
+    QVERIFY(((const QAudioBuffer*)mEmpty)->data() != nullptr);
     QCOMPARE(mEmpty->sampleCount(), 1000);
     QCOMPARE(mEmpty->frameCount(), 500);
     QCOMPARE(mEmpty->duration(), 50000LL);
@@ -105,9 +105,9 @@ void tst_QAudioBuffer::ctors()
 
     // bytearray buffer
     QVERIFY(mFromArray->isValid());
-    QVERIFY(mFromArray->constData() != 0);
-    QVERIFY(mFromArray->data() != 0);
-    QVERIFY(((const QAudioBuffer*)mFromArray)->data() != 0);
+    QVERIFY(mFromArray->constData() != nullptr);
+    QVERIFY(mFromArray->data() != nullptr);
+    QVERIFY(((const QAudioBuffer*)mFromArray)->data() != nullptr);
     /// 4000 bytes at 10KHz, 2ch, 16bit = 40kBps -> 0.1s
     QCOMPARE(mFromArray->duration(), 100000LL);
     QCOMPARE(mFromArray->byteCount(), 4000);
@@ -119,9 +119,9 @@ void tst_QAudioBuffer::ctors()
     // Now some invalid buffers
     QAudioBuffer badFormat(1000, QAudioFormat());
     QVERIFY(!badFormat.isValid());
-    QVERIFY(badFormat.constData() == 0);
-    QVERIFY(badFormat.data() == 0);
-    QVERIFY(((const QAudioBuffer*)&badFormat)->data() == 0);
+    QVERIFY(badFormat.constData() == nullptr);
+    QVERIFY(badFormat.data() == nullptr);
+    QVERIFY(((const QAudioBuffer*)&badFormat)->data() == nullptr);
     QCOMPARE(badFormat.duration(), 0LL);
     QCOMPARE(badFormat.byteCount(), 0);
     QCOMPARE(badFormat.sampleCount(), 0);
@@ -130,9 +130,9 @@ void tst_QAudioBuffer::ctors()
 
     QAudioBuffer badArray(QByteArray(), mFormat);
     QVERIFY(!badArray.isValid());
-    QVERIFY(badArray.constData() == 0);
-    QVERIFY(badArray.data() == 0);
-    QVERIFY(((const QAudioBuffer*)&badArray)->data() == 0);
+    QVERIFY(badArray.constData() == nullptr);
+    QVERIFY(badArray.data() == nullptr);
+    QVERIFY(((const QAudioBuffer*)&badArray)->data() == nullptr);
     QCOMPARE(badArray.duration(), 0LL);
     QCOMPARE(badArray.byteCount(), 0);
     QCOMPARE(badArray.sampleCount(), 0);
@@ -141,9 +141,9 @@ void tst_QAudioBuffer::ctors()
 
     QAudioBuffer badBoth = QAudioBuffer(QByteArray(), QAudioFormat());
     QVERIFY(!badBoth.isValid());
-    QVERIFY(badBoth.constData() == 0);
-    QVERIFY(badBoth.data() == 0);
-    QVERIFY(((const QAudioBuffer*)&badBoth)->data() == 0);
+    QVERIFY(badBoth.constData() == nullptr);
+    QVERIFY(badBoth.data() == nullptr);
+    QVERIFY(((const QAudioBuffer*)&badBoth)->data() == nullptr);
     QCOMPARE(badBoth.duration(), 0LL);
     QCOMPARE(badBoth.byteCount(), 0);
     QCOMPARE(badBoth.sampleCount(), 0);
@@ -159,7 +159,7 @@ void tst_QAudioBuffer::assign()
 void tst_QAudioBuffer::constData() const
 {
     const void *data = mEmpty->constData();
-    QVERIFY(data != 0);
+    QVERIFY(data != nullptr);
 
     const unsigned int *idata = reinterpret_cast<const unsigned int*>(data);
     QCOMPARE(*idata, 0U);
@@ -171,7 +171,7 @@ void tst_QAudioBuffer::constData() const
 
     // The bytearray one should be 0x80
     data = mFromArray->constData();
-    QVERIFY(data != 0);
+    QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<const unsigned int *>(data);
     QEXPECT_FAIL("", "Unsigned 16bits are cleared to 0x8080 currently", Continue);
@@ -185,7 +185,7 @@ void tst_QAudioBuffer::constData() const
 void tst_QAudioBuffer::data_const() const
 {
     const void *data = ((const QAudioBuffer*)mEmpty)->data();
-    QVERIFY(data != 0);
+    QVERIFY(data != nullptr);
 
     const unsigned int *idata = reinterpret_cast<const unsigned int*>(data);
     QCOMPARE(*idata, 0U);
@@ -197,7 +197,7 @@ void tst_QAudioBuffer::data_const() const
 
     // The bytearray one should be 0x80
     data = ((const QAudioBuffer*)mFromArray)->data();
-    QVERIFY(data != 0);
+    QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<const unsigned int *>(data);
     QEXPECT_FAIL("", "Unsigned 16bits are cleared to 0x8080 currently", Continue);
@@ -211,7 +211,7 @@ void tst_QAudioBuffer::data_const() const
 void tst_QAudioBuffer::data()
 {
     void *data = mEmpty->data();
-    QVERIFY(data != 0);
+    QVERIFY(data != nullptr);
 
     unsigned int *idata = reinterpret_cast<unsigned int*>(data);
     QCOMPARE(*idata, 0U);
@@ -223,7 +223,7 @@ void tst_QAudioBuffer::data()
 
     // The bytearray one should be 0x80
     data = mFromArray->data();
-    QVERIFY(data != 0);
+    QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<unsigned int *>(data);
     QEXPECT_FAIL("", "Unsigned 16bits are cleared to 0x8080 currently", Continue);

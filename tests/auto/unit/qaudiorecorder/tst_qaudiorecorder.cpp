@@ -72,7 +72,7 @@ void tst_QAudioRecorder::init()
 {
     mockMediaRecorderService = new MockMediaRecorderService(this, new MockMediaRecorderControl(this));
     mockProvider = new MockMediaServiceProvider(mockMediaRecorderService);
-    audiosource = 0;
+    audiosource = nullptr;
 
     QMediaServiceProvider::setDefaultServiceProvider(mockProvider);
 }
@@ -82,14 +82,14 @@ void tst_QAudioRecorder::cleanup()
     delete mockMediaRecorderService;
     delete mockProvider;
     delete audiosource;
-    mockMediaRecorderService = 0;
-    mockProvider = 0;
-    audiosource = 0;
+    mockMediaRecorderService = nullptr;
+    mockProvider = nullptr;
+    audiosource = nullptr;
 }
 
 void tst_QAudioRecorder::testNullService()
 {
-    mockProvider->service = 0;
+    mockProvider->service = nullptr;
     QAudioRecorder source;
 
     QVERIFY(!source.isAvailable());

@@ -72,7 +72,7 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
 
     QSGGeometry *g = geometry();
 
-    if (g == 0)
+    if (g == nullptr)
         g = new QSGGeometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 4);
 
     QSGGeometry::TexturedPoint2D *v = g->vertexDataAsTexturedPoint2D();

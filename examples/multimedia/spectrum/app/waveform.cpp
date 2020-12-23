@@ -189,7 +189,7 @@ void Waveform::initialize(const QAudioFormat &format, qint64 audioBufferSize, qi
                    << "windowLength" << m_windowLength
                    << "nTiles" << nTiles;
 
-    m_pixmaps.fill(0, nTiles);
+    m_pixmaps.fill(nullptr, nTiles);
     m_tiles.resize(nTiles);
 
     createPixmaps(rect().size());

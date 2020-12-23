@@ -85,20 +85,17 @@ class QtTestMediaService : public QMediaService
 {
     Q_OBJECT
 public:
-    int refA;
-    int refB;
-    int refC;
+    int refA = 0;
+    int refB = 0;
+    int refC = 0;
     QtTestMediaControlA controlA;
     QtTestMediaControlB controlB;
     QtTestMediaControlC controlC;
 
-    //constructor
-    QtTestMediaService(): QMediaService(0), refA(0), refB(0), refC(0)
-    {
-    }
+    QtTestMediaService() : QMediaService(nullptr) {}
 
     //requestControl() pure virtual function of QMediaService class.
-    QMediaControl *requestControl(const char *name)
+    QMediaControl *requestControl(const char *name) override
     {
         if (strcmp(name, QtTestMediaControlA_iid) == 0) {
             refA += 1;
@@ -113,12 +110,12 @@ public:
 
             return &controlA;
         } else {
-            return 0;
+            return nullptr;
         }
     }
 
     //releaseControl() pure virtual function of QMediaService class.
-    void releaseControl(QMediaControl *control)
+    void releaseControl(QMediaControl *control) override
     {
         if (control == &controlA)
             refA -= 1;
@@ -231,7 +228,7 @@ void tst_QMediaService::tst_requestControlTemplate()
 
 void tst_QMediaService::control_iid()
 {
-    const char *nullString = 0;
+    const char *nullString = nullptr;
 
     // Default implementation.
     QCOMPARE(qmediacontrol_iid<QtTestMediaControlE *>(), nullString);

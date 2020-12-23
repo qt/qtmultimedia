@@ -61,7 +61,7 @@ public:
         mockMetaDataControl = new MockMetaDataWriterControl(parent); //Creating the object for MetaData
     }
 
-    QMediaControl* requestControl(const char *name)
+    QMediaControl* requestControl(const char *name) override
     {
         if (hasControls && qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
@@ -70,10 +70,10 @@ public:
         if (hasControls && qstrcmp(name, QMetaDataWriterControl_iid) == 0)
             return mockMetaDataControl;
 
-        return 0;
+        return nullptr;
     }
 
-    void releaseControl(QMediaControl*) {}
+    void releaseControl(QMediaControl*) override {}
     //Initialising the objects for the media
     QMediaControl *mockControl;
     QMediaContainerControl *mockContainerControl;
@@ -97,26 +97,26 @@ private slots:
 
     void testMediaObject() //Verifying the mediaobject api
     {
-        MockMediaRecorderControl recorderControl(0);
-        TestBindableService service(0, &recorderControl);
+        MockMediaRecorderControl recorderControl(nullptr);
+        TestBindableService service(nullptr, &recorderControl);
         service.mockMetaDataControl->populateMetaData();
-        MockMediaObject object(0, &service);
+        MockMediaObject object(nullptr, &service);
         QMediaRecorder recorder(&object);
         QMediaObject *obj = recorder.mediaObject();
-        QVERIFY(obj != NULL);
+        QVERIFY(obj != nullptr);
         QVERIFY(obj->isAvailable());
     }
 
     void testDestructor() //Invoking the destructor
     {
-        MockMediaRecorderControl recorderControl(0);
-        TestBindableService service(0, &recorderControl);
+        MockMediaRecorderControl recorderControl(nullptr);
+        TestBindableService service(nullptr, &recorderControl);
         service.mockMetaDataControl->populateMetaData();
-        MockMediaObject object(0, &service);
+        MockMediaObject object(nullptr, &service);
         QMediaRecorder *recorder = new QMediaRecorder(&object);
         QVERIFY(recorder->isAvailable());
         delete recorder;
-        recorder = NULL;
+        recorder = nullptr;
     }
 };
 

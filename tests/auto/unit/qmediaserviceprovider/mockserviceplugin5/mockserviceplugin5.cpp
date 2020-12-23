@@ -37,25 +37,25 @@ class MockServicePlugin5 : public QMediaServiceProviderPlugin,
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin5.json")
 public:
-    QStringList keys() const
+    [[nodiscard]] QStringList keys() const
     {
         return QStringList() << QLatin1String(Q_MEDIASERVICE_CAMERA);
     }
 
-    QMediaService* create(QString const& key)
+    QMediaService* create(QString const& key) override
     {
         if (keys().contains(key))
             return new MockMediaService("MockServicePlugin5");
         else
-            return 0;
+            return nullptr;
     }
 
-    void release(QMediaService *service)
+    void release(QMediaService *service) override
     {
         delete service;
     }
 
-    QByteArray defaultDevice(const QByteArray &service) const
+    [[nodiscard]] QByteArray defaultDevice(const QByteArray &service) const override
     {
         if (service == Q_MEDIASERVICE_CAMERA)
             return "backcamera";
@@ -63,7 +63,7 @@ public:
         return QByteArray();
     }
 
-    QList<QByteArray> devices(const QByteArray &service) const
+    [[nodiscard]] QList<QByteArray> devices(const QByteArray &service) const override
     {
         QList<QByteArray> res;
         if (service == Q_MEDIASERVICE_CAMERA)
@@ -72,7 +72,7 @@ public:
         return res;
     }
 
-    QString deviceDescription(const QByteArray &service, const QByteArray &device)
+    QString deviceDescription(const QByteArray &service, const QByteArray &device) override
     {
         if (devices(service).contains(device))
             return QString(device)+" description";

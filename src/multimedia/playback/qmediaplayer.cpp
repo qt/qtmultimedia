@@ -105,36 +105,24 @@ class QMediaPlayerPrivate : public QMediaObjectPrivate
     Q_DECLARE_NON_CONST_PUBLIC(QMediaPlayer)
 
 public:
-    QMediaPlayerPrivate()
-        : provider(nullptr)
-        , control(nullptr)
-        , playlist(nullptr)
-        , state(QMediaPlayer::StoppedState)
-        , status(QMediaPlayer::UnknownMediaStatus)
-        , error(QMediaPlayer::NoError)
-        , ignoreNextStatusChange(-1)
-        , nestedPlaylists(0)
-        , hasStreamPlaybackFeature(false)
-    {}
-
-    QMediaServiceProvider *provider;
-    QMediaPlayerControl* control;
+    QMediaServiceProvider *provider = nullptr;
+    QMediaPlayerControl* control = nullptr;
     QString errorString;
 
     QPointer<QObject> videoOutput;
-    QMediaPlaylist *playlist;
+    QMediaPlaylist *playlist = nullptr;
     QVideoSurfaceOutput surfaceOutput;
     QMediaContent qrcMedia;
     QScopedPointer<QFile> qrcFile;
 
     QMediaContent rootMedia;
     QMediaContent pendingPlaylist;
-    QMediaPlayer::State state;
-    QMediaPlayer::MediaStatus status;
-    QMediaPlayer::Error error;
-    int ignoreNextStatusChange;
-    int nestedPlaylists;
-    bool hasStreamPlaybackFeature;
+    QMediaPlayer::State state = QMediaPlayer::StoppedState;
+    QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
+    QMediaPlayer::Error error = QMediaPlayer::NoError;
+    int ignoreNextStatusChange = -1;
+    int nestedPlaylists = 0;
+    bool hasStreamPlaybackFeature = false;
 
     QAudio::Role audioRole = QAudio::UnknownRole;
     QString customAudioRole;

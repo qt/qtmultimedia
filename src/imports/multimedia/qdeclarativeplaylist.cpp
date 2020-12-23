@@ -180,7 +180,7 @@ void QDeclarativePlaylist::_q_loadFailed()
 
 QDeclarativePlaylist::QDeclarativePlaylist(QObject *parent)
     : QAbstractListModel(parent)
-    , m_playlist(0)
+    , m_playlist(nullptr)
     , m_error(QMediaPlaylist::NoError)
 {
 }

@@ -103,7 +103,7 @@ void QDeclarativeVideoWindowBackend::releaseControl()
         m_videoWindowControl->setWinId(0);
         if (m_service)
             m_service->releaseControl(m_videoWindowControl);
-        m_videoWindowControl = 0;
+        m_videoWindowControl = nullptr;
     }
 }
 
@@ -133,12 +133,12 @@ QSGNode *QDeclarativeVideoWindowBackend::updatePaintNode(QSGNode *oldNode,
     Q_UNUSED(oldNode);
     Q_UNUSED(data);
     m_videoWindowControl->repaint();
-    return 0;
+    return nullptr;
 }
 
 QAbstractVideoSurface *QDeclarativeVideoWindowBackend::videoSurface() const
 {
-    return 0;
+    return nullptr;
 }
 
 QRectF QDeclarativeVideoWindowBackend::adjustedViewport() const

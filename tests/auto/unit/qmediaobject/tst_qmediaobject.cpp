@@ -46,28 +46,26 @@ class QtTestMediaObjectService : public QMediaService
 {
     Q_OBJECT
 public:
-    QtTestMediaObjectService(QObject *parent = 0)
+    QtTestMediaObjectService(QObject *parent = nullptr)
         : QMediaService(parent)
-        , metaDataRef(0)
-        , hasMetaData(true)
     {
     }
 
-    QMediaControl *requestControl(const char *iid)
+    QMediaControl *requestControl(const char *iid) override
     {
         if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
             return &metaData;
         else
-            return 0;
+            return nullptr;
     }
 
-    void releaseControl(QMediaControl *)
+    void releaseControl(QMediaControl *) override
     {
     }
 
     MockMetaDataReaderControl metaData;
-    int metaDataRef;
-    bool hasMetaData;
+    int metaDataRef = 0;
+    bool hasMetaData = true;
 };
 
 QT_USE_NAMESPACE
@@ -104,21 +102,21 @@ class QtTestMediaObject : public QMediaObject
     Q_PROPERTY(int c READ c WRITE setC NOTIFY cChanged)
     Q_PROPERTY(int d READ d WRITE setD)
 public:
-    QtTestMediaObject(QMediaService *service = 0): QMediaObject(0, service), m_a(0), m_b(0), m_c(0), m_d(0) {}
+    QtTestMediaObject(QMediaService *service = nullptr): QMediaObject(nullptr, service) {}
 
     using QMediaObject::addPropertyWatch;
     using QMediaObject::removePropertyWatch;
 
-    int a() const { return m_a; }
+    [[nodiscard]] int a() const { return m_a; }
     void setA(int a) { m_a = a; }
 
-    int b() const { return m_b; }
+    [[nodiscard]] int b() const { return m_b; }
     void setB(int b) { m_b = b; }
 
-    int c() const { return m_c; }
+    [[nodiscard]] int c() const { return m_c; }
     void setC(int c) { m_c = c; }
 
-    int d() const { return m_d; }
+    [[nodiscard]] int d() const { return m_d; }
     void setD(int d) { m_d = d; }
 
 Q_SIGNALS:
@@ -127,10 +125,10 @@ Q_SIGNALS:
     void cChanged(int c);
 
 private:
-    int m_a;
-    int m_b;
-    int m_c;
-    int m_d;
+    int m_a = 0;
+    int m_b = 0;
+    int m_c = 0;
+    int m_d = 0;
 };
 
 void tst_QMediaObject::propertyWatch()
@@ -423,7 +421,7 @@ void tst_QMediaObject::metaData()
 void tst_QMediaObject::availability()
 {
     {
-        QtTestMediaObject nullObject(0);
+        QtTestMediaObject nullObject(nullptr);
         QCOMPARE(nullObject.isAvailable(), false);
         QCOMPARE(nullObject.availability(), QMultimedia::ServiceMissing);
     }
@@ -444,13 +442,13 @@ void tst_QMediaObject::availability()
 
      // Get service and Compare if it equal to the service passed as an argument in mediaObject1.
      QMediaService *service1 = mediaObject1.service();
-     QVERIFY(service1 != NULL);
+     QVERIFY(service1 != nullptr);
      QCOMPARE(service1,&service);
 
      // Create the mediaobject with empty service and verify that service() returns NULL.
      QtTestMediaObject mediaObject2;
      QMediaService *service2 = mediaObject2.service();
-     QVERIFY(service2 == NULL);
+     QVERIFY(service2 == nullptr);
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaObject)

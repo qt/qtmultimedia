@@ -96,34 +96,34 @@ void tst_QMediaPlayerWidgets::testSetVideoOutput()
     QVERIFY(widget.mediaObject() == &player);
 
     player.setVideoOutput(&item);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
     QVERIFY(item.mediaObject() == &player);
 
     player.setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(item.mediaObject() == 0);
+    QVERIFY(item.mediaObject() == nullptr);
 
     player.setVideoOutput(&widget);
     QVERIFY(widget.mediaObject() == &player);
 
     player.setVideoOutput(reinterpret_cast<QGraphicsVideoItem *>(0));
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 
     player.setVideoOutput(&surface);
     QVERIFY(mockService->rendererControl->surface() == &surface);
 
     player.setVideoOutput(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(mockService->rendererControl->surface() == 0);
+    QVERIFY(mockService->rendererControl->surface() == nullptr);
 
     player.setVideoOutput(&surface);
     QVERIFY(mockService->rendererControl->surface() == &surface);
 
     player.setVideoOutput(&widget);
-    QVERIFY(mockService->rendererControl->surface() == 0);
+    QVERIFY(mockService->rendererControl->surface() == nullptr);
     QVERIFY(widget.mediaObject() == &player);
 
     player.setVideoOutput(&surface);
     QVERIFY(mockService->rendererControl->surface() == &surface);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 }
 
 
@@ -133,14 +133,14 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    provider->service = 0;
+    provider->service = nullptr;
     QMediaPlayer player;
 
     player.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 
     player.setVideoOutput(&item);
-    QVERIFY(item.mediaObject() == 0);
+    QVERIFY(item.mediaObject() == nullptr);
 
     player.setVideoOutput(&surface);
     // Nothing we can verify here other than it doesn't assert.
@@ -161,13 +161,13 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoControl()
     QMediaPlayer player;
 
     player.setVideoOutput(&widget);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 
     player.setVideoOutput(&item);
-    QVERIFY(item.mediaObject() == 0);
+    QVERIFY(item.mediaObject() == nullptr);
 
     player.setVideoOutput(&surface);
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(service.rendererControl->surface() == nullptr);
 }
 
 QTEST_MAIN(tst_QMediaPlayerWidgets)

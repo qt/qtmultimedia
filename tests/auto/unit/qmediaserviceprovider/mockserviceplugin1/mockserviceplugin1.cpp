@@ -37,26 +37,26 @@ class MockServicePlugin1 : public QMediaServiceProviderPlugin,
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin1.json")
 public:
-    QStringList keys() const
+    [[nodiscard]] QStringList keys() const
     {
         return QStringList() <<
                 QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER);
     }
 
-    QMediaService* create(QString const& key)
+    QMediaService* create(QString const& key) override
     {
         if (keys().contains(key))
             return new MockMediaService("MockServicePlugin1");
         else
-            return 0;
+            return nullptr;
     }
 
-    void release(QMediaService *service)
+    void release(QMediaService *service) override
     {
         delete service;
     }
 
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    [[nodiscard]] QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const override
     {
         if (codecs.contains(QLatin1String("mpeg4")))
             return QMultimedia::NotSupported;
@@ -68,7 +68,7 @@ public:
         return QMultimedia::MaybeSupported;
     }
 
-    QStringList supportedMimeTypes() const
+    [[nodiscard]] QStringList supportedMimeTypes() const override
     {
         return QStringList("audio/ogg");
     }

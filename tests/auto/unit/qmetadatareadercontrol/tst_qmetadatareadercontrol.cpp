@@ -52,7 +52,7 @@ QTEST_MAIN(tst_QMetaDataReaderControl);
 void tst_QMetaDataReaderControl::metaDataReaderControlConstructor()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
+    QVERIFY(metaData !=nullptr);
     delete metaData;
 }
 
@@ -60,7 +60,7 @@ void tst_QMetaDataReaderControl::metaDataReaderControlConstructor()
 void tst_QMetaDataReaderControl::metaDataReaderControlAvailableMetaData()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
+    QVERIFY(metaData !=nullptr);
     metaData->availableMetaData() ;
     delete metaData;
 }
@@ -69,7 +69,7 @@ void tst_QMetaDataReaderControl::metaDataReaderControlAvailableMetaData()
 void tst_QMetaDataReaderControl::metaDataReaderControlIsMetaDataAvailable ()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
+    QVERIFY(metaData !=nullptr);
     metaData->availableMetaData();
     delete metaData;
 }
@@ -78,7 +78,7 @@ void tst_QMetaDataReaderControl::metaDataReaderControlIsMetaDataAvailable ()
 void tst_QMetaDataReaderControl::metaDataReaderControlMetaData ()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
+    QVERIFY(metaData !=nullptr);
     metaData->metaData(QMediaMetaData::Title);
     delete metaData;
 }
@@ -87,7 +87,7 @@ void tst_QMetaDataReaderControl::metaDataReaderControlMetaData ()
 void tst_QMetaDataReaderControl::metaDataReaderControlMetaDataAvailableChangedSignal ()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
+    QVERIFY(metaData !=nullptr);
     QSignalSpy spy(metaData,SIGNAL(metaDataAvailableChanged(bool)));
     metaData->setMetaDataAvailable(true);
     QVERIFY(spy.count() == 1);
@@ -98,7 +98,7 @@ void tst_QMetaDataReaderControl::metaDataReaderControlMetaDataAvailableChangedSi
 void tst_QMetaDataReaderControl::metaDataReaderControlMetaDataChangedSignal ()
 {
     MockMetaDataReaderControl *metaData = new MockMetaDataReaderControl();
-    QVERIFY(metaData !=NULL);
+    QVERIFY(metaData !=nullptr);
     QSignalSpy spy(metaData,SIGNAL(metaDataChanged()));
     metaData->metaDataChanged();
     QVERIFY(spy.count () == 1);

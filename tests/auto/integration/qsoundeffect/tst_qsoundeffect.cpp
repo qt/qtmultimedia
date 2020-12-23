@@ -39,7 +39,7 @@ class tst_QSoundEffect : public QObject
 {
     Q_OBJECT
 public:
-    tst_QSoundEffect(QObject* parent=0) : QObject(parent) {}
+    tst_QSoundEffect(QObject* parent=nullptr) : QObject(parent) {}
 
 public slots:
     void init();

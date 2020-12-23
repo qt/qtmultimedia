@@ -55,12 +55,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioDeviceInfoMetaTypes)
 class QAudioDeviceInfoPrivate : public QSharedData
 {
 public:
-    QAudioDeviceInfoPrivate()
-        : mode(QAudio::AudioOutput)
-        , info(nullptr)
-    {
-    }
-
+    QAudioDeviceInfoPrivate() = default;
     QAudioDeviceInfoPrivate(const QByteArray &h, QAudio::Mode m)
         : handle(h), mode(m)
     {
@@ -93,8 +88,8 @@ public:
     }
 
     QByteArray  handle;
-    QAudio::Mode mode;
-    QAbstractAudioDeviceInfo*   info;
+    QAudio::Mode mode = QAudio::AudioOutput;
+    QAbstractAudioDeviceInfo *info = nullptr;
 };
 
 

@@ -48,7 +48,7 @@ class tst_QVideoFrame : public QObject
     Q_OBJECT
 public:
     tst_QVideoFrame();
-    ~tst_QVideoFrame();
+    ~tst_QVideoFrame() override;
 
 public slots:
     void initTestCase();
@@ -105,23 +105,25 @@ public:
     explicit QtTestVideoBuffer(QAbstractVideoBuffer::HandleType type)
         : QAbstractVideoBuffer(type) {}
 
-    MapMode mapMode() const { return NotMapped; }
+    [[nodiscard]] MapMode mapMode() const override { return NotMapped; }
 
-    uchar *map(MapMode, int *, int *) { return 0; }
-    void unmap() {}
+    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    void unmap() override {}
 };
 
 class QtTestPlanarVideoBuffer : public QAbstractPlanarVideoBuffer
 {
 public:
     QtTestPlanarVideoBuffer()
-        : QAbstractPlanarVideoBuffer(NoHandle), m_planeCount(0), m_mapMode(NotMapped) {}
+        : QAbstractPlanarVideoBuffer(NoHandle)
+    {}
     explicit QtTestPlanarVideoBuffer(QAbstractVideoBuffer::HandleType type)
-        : QAbstractPlanarVideoBuffer(type), m_planeCount(0), m_mapMode(NotMapped) {}
+        : QAbstractPlanarVideoBuffer(type)
+    {}
 
-    MapMode mapMode() const { return m_mapMode; }
+    [[nodiscard]] MapMode mapMode() const override { return m_mapMode; }
 
-    int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) {
+    int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override {
         m_mapMode = mode;
         if (numBytes)
             *numBytes = m_numBytes;
@@ -131,13 +133,13 @@ public:
         }
         return m_planeCount;
     }
-    void unmap() { m_mapMode = NotMapped; }
+    void unmap() override { m_mapMode = NotMapped; }
 
     uchar *m_data[4];
     int m_bytesPerLine[4];
-    int m_planeCount;
+    int m_planeCount = 0;
     int m_numBytes;
-    MapMode m_mapMode;
+    MapMode m_mapMode = NotMapped;
 };
 
 tst_QVideoFrame::tst_QVideoFrame()
@@ -368,7 +370,7 @@ void tst_QVideoFrame::createNull()
 
     // Null buffer (shouldn't crash)
     {
-        QVideoFrame frame(0, QSize(1024,768), QVideoFrame::Format_ARGB32);
+        QVideoFrame frame(nullptr, QSize(1024,768), QVideoFrame::Format_ARGB32);
         QVERIFY(!frame.isValid());
         QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
         QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_ARGB32);

@@ -64,7 +64,7 @@ QSGVideoNode *QSGVideoNodeFactory_RGB::createNode(const QVideoSurfaceFormat &for
     if (supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
         return new QSGVideoNode_RGB(format);
 
-    return 0;
+    return nullptr;
 }
 
 class QSGVideoMaterialRhiShader_RGB : public QSGMaterialShader
@@ -94,12 +94,12 @@ public:
         m_texture.reset(new QSGVideoTexture);
     }
 
-    QSGMaterialType *type() const override {
+    [[nodiscard]] QSGMaterialType *type() const override {
         static QSGMaterialType normalType;
         return &normalType;
     }
 
-    QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
+    [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         return new QSGVideoMaterialRhiShader_RGB;
     }
 

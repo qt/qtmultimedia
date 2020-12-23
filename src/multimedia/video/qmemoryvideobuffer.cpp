@@ -47,14 +47,8 @@ QT_BEGIN_NAMESPACE
 class QMemoryVideoBufferPrivate : public QAbstractVideoBufferPrivate
 {
 public:
-    QMemoryVideoBufferPrivate()
-        : bytesPerLine(0)
-        , mapMode(QAbstractVideoBuffer::NotMapped)
-    {
-    }
-
-    int bytesPerLine;
-    QAbstractVideoBuffer::MapMode mapMode;
+    int bytesPerLine = 0;
+    QAbstractVideoBuffer::MapMode mapMode = QAbstractVideoBuffer::NotMapped;
     QByteArray data;
 };
 

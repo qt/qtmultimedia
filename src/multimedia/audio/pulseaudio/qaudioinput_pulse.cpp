@@ -127,7 +127,7 @@ static void inputStreamSuccessCallback(pa_stream *stream, int success, void *use
 
 QPulseAudioInput::QPulseAudioInput(const QByteArray &device)
     : m_totalTimeValue(0)
-    , m_audioSource(0)
+    , m_audioSource(nullptr)
     , m_errorState(QAudio::NoError)
     , m_deviceState(QAudio::StoppedState)
     , m_volume(qreal(1.0f))
@@ -138,7 +138,7 @@ QPulseAudioInput::QPulseAudioInput(const QByteArray &device)
     , m_periodSize(0)
     , m_intervalTime(1000)
     , m_periodTime(PeriodTimeMs)
-    , m_stream(0)
+    , m_stream(nullptr)
     , m_device(device)
 {
     m_timer = new QTimer(this);
@@ -199,7 +199,7 @@ void QPulseAudioInput::start(QIODevice *device)
 
     if (!m_pullMode && m_audioSource) {
         delete m_audioSource;
-        m_audioSource = 0;
+        m_audioSource = nullptr;
     }
 
     close();
@@ -220,7 +220,7 @@ QIODevice *QPulseAudioInput::start()
 
     if (!m_pullMode && m_audioSource) {
         delete m_audioSource;
-        m_audioSource = 0;
+        m_audioSource = nullptr;
     }
 
     close();
@@ -320,7 +320,7 @@ bool QPulseAudioInput::open()
     if (pa_stream_connect_record(m_stream, m_device.data(), &buffer_attr, (pa_stream_flags_t)flags) < 0) {
         qWarning() << "pa_stream_connect_record() failed!";
         pa_stream_unref(m_stream);
-        m_stream = 0;
+        m_stream = nullptr;
         pulseEngine->unlock();
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
@@ -363,14 +363,14 @@ void QPulseAudioInput::close()
     if (m_stream) {
         pulseEngine->lock();
 
-        pa_stream_set_state_callback(m_stream, 0, 0);
-        pa_stream_set_read_callback(m_stream, 0, 0);
-        pa_stream_set_underflow_callback(m_stream, 0, 0);
-        pa_stream_set_overflow_callback(m_stream, 0, 0);
+        pa_stream_set_state_callback(m_stream, nullptr, nullptr);
+        pa_stream_set_read_callback(m_stream, nullptr, nullptr);
+        pa_stream_set_underflow_callback(m_stream, nullptr, nullptr);
+        pa_stream_set_overflow_callback(m_stream, nullptr, nullptr);
 
         pa_stream_disconnect(m_stream);
         pa_stream_unref(m_stream);
-        m_stream = 0;
+        m_stream = nullptr;
 
         pulseEngine->unlock();
     }
@@ -379,7 +379,7 @@ void QPulseAudioInput::close()
 
     if (!m_pullMode && m_audioSource) {
         delete m_audioSource;
-        m_audioSource = 0;
+        m_audioSource = nullptr;
     }
     m_opened = false;
 }
@@ -517,7 +517,7 @@ void QPulseAudioInput::resume()
 
         pulseEngine->lock();
 
-        operation = pa_stream_cork(m_stream, 0, inputStreamSuccessCallback, 0);
+        operation = pa_stream_cork(m_stream, 0, inputStreamSuccessCallback, nullptr);
         pulseEngine->wait(operation);
         pa_operation_unref(operation);
 
@@ -589,7 +589,7 @@ void QPulseAudioInput::suspend()
 
         pulseEngine->lock();
 
-        operation = pa_stream_cork(m_stream, 1, inputStreamSuccessCallback, 0);
+        operation = pa_stream_cork(m_stream, 1, inputStreamSuccessCallback, nullptr);
         pulseEngine->wait(operation);
         pa_operation_unref(operation);
 
@@ -612,10 +612,10 @@ bool QPulseAudioInput::deviceReady()
 {
    if (m_pullMode) {
         // reads some audio data and writes it to QIODevice
-        read(0,0);
+        read(nullptr,0);
     } else {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
-        if (m_audioSource != 0) {
+        if (m_audioSource != nullptr) {
             PulseInputPrivate *a = qobject_cast<PulseInputPrivate*>(m_audioSource);
             a->trigger();
         }

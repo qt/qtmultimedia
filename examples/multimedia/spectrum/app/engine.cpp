@@ -82,18 +82,18 @@ Engine::Engine(QObject *parent)
     ,   m_mode(QAudio::AudioInput)
     ,   m_state(QAudio::StoppedState)
     ,   m_generateTone(false)
-    ,   m_file(0)
-    ,   m_analysisFile(0)
+    ,   m_file(nullptr)
+    ,   m_analysisFile(nullptr)
     ,   m_availableAudioInputDevices
             (QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
     ,   m_audioInputDevice(QAudioDeviceInfo::defaultInputDevice())
-    ,   m_audioInput(0)
-    ,   m_audioInputIODevice(0)
+    ,   m_audioInput(nullptr)
+    ,   m_audioInputIODevice(nullptr)
     ,   m_recordPosition(0)
     ,   m_availableAudioOutputDevices
             (QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
     ,   m_audioOutputDevice(QAudioDeviceInfo::defaultOutputDevice())
-    ,   m_audioOutput(0)
+    ,   m_audioOutput(nullptr)
     ,   m_playPosition(0)
     ,   m_bufferPosition(0)
     ,   m_bufferLength(0)
@@ -102,7 +102,6 @@ Engine::Engine(QObject *parent)
     ,   m_rmsLevel(0.0)
     ,   m_peakLevel(0.0)
     ,   m_spectrumBufferLength(0)
-    ,   m_spectrumAnalyser()
     ,   m_spectrumPosition(0)
     ,   m_count(0)
 {
@@ -451,11 +450,11 @@ void Engine::spectrumChanged(const FrequencySpectrum &spectrum)
 void Engine::resetAudioDevices()
 {
     delete m_audioInput;
-    m_audioInput = 0;
-    m_audioInputIODevice = 0;
+    m_audioInput = nullptr;
+    m_audioInputIODevice = nullptr;
     setRecordPosition(0);
     delete m_audioOutput;
-    m_audioOutput = 0;
+    m_audioOutput = nullptr;
     setPlayPosition(0);
     m_spectrumPosition = 0;
     setLevel(0.0, 0.0, 0);
@@ -469,9 +468,9 @@ void Engine::reset()
     setFormat(QAudioFormat());
     m_generateTone = false;
     delete m_file;
-    m_file = 0;
+    m_file = nullptr;
     delete m_analysisFile;
-    m_analysisFile = 0;
+    m_analysisFile = nullptr;
     m_buffer.clear();
     m_bufferPosition = 0;
     m_bufferLength = 0;
@@ -622,7 +621,7 @@ void Engine::stopRecording()
         QCoreApplication::instance()->processEvents();
         m_audioInput->disconnect();
     }
-    m_audioInputIODevice = 0;
+    m_audioInputIODevice = nullptr;
 
 #ifdef DUMP_AUDIO
     dumpData();

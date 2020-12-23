@@ -41,7 +41,7 @@ class tst_QAudioFormat : public QObject
     Q_OBJECT
 
 public:
-    tst_QAudioFormat(QObject* parent=0) : QObject(parent) {}
+    tst_QAudioFormat(QObject* parent=nullptr) : QObject(parent) {}
 
 private slots:
     void checkNull();

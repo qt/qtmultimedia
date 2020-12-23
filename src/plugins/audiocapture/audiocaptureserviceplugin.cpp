@@ -51,7 +51,7 @@ QMediaService* AudioCaptureServicePlugin::create(QString const& key)
     if (key == QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE))
         return new AudioCaptureService;
 
-    return 0;
+    return nullptr;
 }
 
 void AudioCaptureServicePlugin::release(QMediaService *service)

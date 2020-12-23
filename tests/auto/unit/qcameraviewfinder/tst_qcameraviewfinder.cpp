@@ -76,7 +76,7 @@ void tst_QCameraViewFinder::cleanupTestCase()
 void tst_QCameraViewFinder::testConstructor()
 {
     /* Verify whether the object is created or not */
-    QVERIFY(viewFinder != NULL);
+    QVERIFY(viewFinder != nullptr);
     QCOMPARE(viewFinder->isVisible(),false);
     QCOMPARE(viewFinder->isEnabled(),true);
     viewFinder->show();
@@ -84,7 +84,7 @@ void tst_QCameraViewFinder::testConstructor()
 
 void tst_QCameraViewFinder::testMediaObject()
 {
-    QVERIFY(viewFinder != NULL);
+    QVERIFY(viewFinder != nullptr);
     viewFinder->show();
     /* Sets the QVideoWidget  based camera viewfinder.*/
     camera->setViewfinder(viewFinder);

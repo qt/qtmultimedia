@@ -47,11 +47,11 @@ class SourceObject : public QObject
     Q_OBJECT
     Q_PROPERTY(QObject *mediaObject READ mediaObject CONSTANT)
 public:
-    explicit SourceObject(QMediaObject *mediaObject, QObject *parent = 0)
+    explicit SourceObject(QMediaObject *mediaObject, QObject *parent = nullptr)
         : QObject(parent), m_mediaObject(mediaObject)
     {}
 
-    QObject *mediaObject() const
+    [[nodiscard]] QObject *mediaObject() const
     { return m_mediaObject; }
 
 private:
@@ -61,60 +61,48 @@ private:
 class QtTestWindowControl : public QVideoWindowControl
 {
 public:
-    QtTestWindowControl()
-        : m_winId(0)
-        , m_repaintCount(0)
-        , m_brightness(0)
-        , m_contrast(0)
-        , m_hue(0)
-        , m_saturation(0)
-        , m_aspectRatioMode(Qt::KeepAspectRatio)
-        , m_fullScreen(0)
-    {
-    }
+    [[nodiscard]] WId winId() const override { return m_winId; }
+    void setWinId(WId id) override { m_winId = id; }
 
-    WId winId() const { return m_winId; }
-    void setWinId(WId id) { m_winId = id; }
+    [[nodiscard]] QRect displayRect() const override { return m_displayRect; }
+    void setDisplayRect(const QRect &rect) override { m_displayRect = rect; }
 
-    QRect displayRect() const { return m_displayRect; }
-    void setDisplayRect(const QRect &rect) { m_displayRect = rect; }
+    [[nodiscard]] bool isFullScreen() const override { return m_fullScreen; }
+    void setFullScreen(bool fullScreen) override { emit fullScreenChanged(m_fullScreen = fullScreen); }
 
-    bool isFullScreen() const { return m_fullScreen; }
-    void setFullScreen(bool fullScreen) { emit fullScreenChanged(m_fullScreen = fullScreen); }
-
-    int repaintCount() const { return m_repaintCount; }
+    [[nodiscard]] int repaintCount() const { return m_repaintCount; }
     void setRepaintCount(int count) { m_repaintCount = count; }
-    void repaint() { ++m_repaintCount; }
+    void repaint() override { ++m_repaintCount; }
 
-    QSize nativeSize() const { return m_nativeSize; }
+    [[nodiscard]] QSize nativeSize() const override { return m_nativeSize; }
     void setNativeSize(const QSize &size) { m_nativeSize = size; emit nativeSizeChanged(); }
 
-    Qt::AspectRatioMode aspectRatioMode() const { return m_aspectRatioMode; }
-    void setAspectRatioMode(Qt::AspectRatioMode mode) { m_aspectRatioMode = mode; }
+    [[nodiscard]] Qt::AspectRatioMode aspectRatioMode() const override { return m_aspectRatioMode; }
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override { m_aspectRatioMode = mode; }
 
-    int brightness() const { return m_brightness; }
-    void setBrightness(int brightness) { emit brightnessChanged(m_brightness = brightness); }
+    [[nodiscard]] int brightness() const override { return m_brightness; }
+    void setBrightness(int brightness) override { emit brightnessChanged(m_brightness = brightness); }
 
-    int contrast() const { return m_contrast; }
-    void setContrast(int contrast) { emit contrastChanged(m_contrast = contrast); }
+    [[nodiscard]] int contrast() const override { return m_contrast; }
+    void setContrast(int contrast) override { emit contrastChanged(m_contrast = contrast); }
 
-    int hue() const { return m_hue; }
-    void setHue(int hue) { emit hueChanged(m_hue = hue); }
+    [[nodiscard]] int hue() const override { return m_hue; }
+    void setHue(int hue) override { emit hueChanged(m_hue = hue); }
 
-    int saturation() const { return m_saturation; }
-    void setSaturation(int saturation) { emit saturationChanged(m_saturation = saturation); }
+    [[nodiscard]] int saturation() const override { return m_saturation; }
+    void setSaturation(int saturation) override { emit saturationChanged(m_saturation = saturation); }
 
 private:
-    WId m_winId;
-    int m_repaintCount;
-    int m_brightness;
-    int m_contrast;
-    int m_hue;
-    int m_saturation;
-    Qt::AspectRatioMode m_aspectRatioMode;
+    WId m_winId = 0;
+    int m_repaintCount = 0;
+    int m_brightness = 0;
+    int m_contrast = 0;
+    int m_hue = 0;
+    int m_saturation = 0;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
     QRect m_displayRect;
     QSize m_nativeSize;
-    bool m_fullScreen;
+    bool m_fullScreen = 0;
 };
 
 class QtTestVideoService : public QMediaService
@@ -122,18 +110,18 @@ class QtTestVideoService : public QMediaService
     Q_OBJECT
 public:
     QtTestVideoService(QtTestWindowControl *window)
-        : QMediaService(0)
+        : QMediaService(nullptr)
         , windowControl(window)
     {}
 
-    QMediaControl *requestControl(const char *name)
+    QMediaControl *requestControl(const char *name) override
     {
         if (qstrcmp(name, QVideoWindowControl_iid) == 0)
             return windowControl;
-        return 0;
+        return nullptr;
     }
 
-    void releaseControl(QMediaControl *control)
+    void releaseControl(QMediaControl *control) override
     {
         Q_ASSERT(control);
     }
@@ -146,7 +134,7 @@ class QtTestVideoObject : public QMediaObject
     Q_OBJECT
 public:
     explicit QtTestVideoObject(QtTestVideoService *service):
-        QMediaObject(0, service)
+        QMediaObject(nullptr, service)
     {
     }
 };
@@ -156,14 +144,14 @@ class tst_QDeclarativeVideoOutputWindow : public QObject
     Q_OBJECT
 public:
     tst_QDeclarativeVideoOutputWindow()
-        : QObject(0)
+        : QObject(nullptr)
         , m_service(new QtTestVideoService(&m_windowControl))
         , m_videoObject(m_service)
         , m_sourceObject(&m_videoObject)
     {
     }
 
-    ~tst_QDeclarativeVideoOutputWindow()
+    ~tst_QDeclarativeVideoOutputWindow() override
     {
     }
 
@@ -212,7 +200,7 @@ void tst_QDeclarativeVideoOutputWindow::cleanupTestCase()
     // Make sure that QDeclarativeVideoOutput doesn't segfault when it is being destroyed after
     // the service is already gone
     delete m_service;
-    m_service = 0;
+    m_service = nullptr;
     m_view.setSource(QUrl());
     m_rootItem.reset();
 }
@@ -261,7 +249,7 @@ void tst_QDeclarativeVideoOutputWindow::geometryChange()
 
 void tst_QDeclarativeVideoOutputWindow::resetCanvas()
 {
-    m_rootItem->setParentItem(0);
+    m_rootItem->setParentItem(nullptr);
     QCOMPARE((int)m_windowControl.winId(), 0);
 }
 

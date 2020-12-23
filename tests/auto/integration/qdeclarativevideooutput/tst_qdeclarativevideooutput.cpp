@@ -49,11 +49,11 @@ class SurfaceHolder : public QObject
 public:
     SurfaceHolder(QObject *parent)
         : QObject(parent)
-        , m_surface(0)
+        , m_surface(nullptr)
     {
     }
 
-    QAbstractVideoSurface *videoSurface() const
+    [[nodiscard]] QAbstractVideoSurface *videoSurface() const
     {
         return m_surface;
     }
@@ -95,7 +95,7 @@ class tst_QDeclarativeVideoOutput : public QObject
 public:
     tst_QDeclarativeVideoOutput();
 
-    ~tst_QDeclarativeVideoOutput()
+    ~tst_QDeclarativeVideoOutput() override
     {
         delete m_mappingOutput;
         delete m_mappingSurface;
@@ -128,9 +128,9 @@ private:
     QQmlEngine m_engine;
 
     // Variables used for the mapping test
-    QQmlComponent *m_mappingComponent;
-    QObject *m_mappingOutput;
-    SurfaceHolder *m_mappingSurface;
+    QQmlComponent *m_mappingComponent = nullptr;
+    QObject *m_mappingOutput = nullptr;
+    SurfaceHolder *m_mappingSurface = nullptr;
 
     void updateOutputGeometry(QObject *output);
 
@@ -146,7 +146,7 @@ void tst_QDeclarativeVideoOutput::initTestCase()
     m_mappingSurface = new SurfaceHolder(this);
 
     m_mappingOutput = m_mappingComponent->create();
-    QVERIFY(m_mappingOutput != 0);
+    QVERIFY(m_mappingOutput != nullptr);
 
     m_mappingOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(m_mappingSurface)));
 
@@ -158,9 +158,6 @@ Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FillMode)
 Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FlushMode)
 
 tst_QDeclarativeVideoOutput::tst_QDeclarativeVideoOutput()
-    : m_mappingComponent(0)
-    , m_mappingOutput(0)
-    , m_mappingSurface(0)
 {
     qRegisterMetaType<QDeclarativeVideoOutput::FillMode>();
 }
@@ -171,7 +168,7 @@ void tst_QDeclarativeVideoOutput::fillMode()
     component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
-    QVERIFY(videoOutput != 0);
+    QVERIFY(videoOutput != nullptr);
 
     QSignalSpy propSpy(videoOutput, SIGNAL(fillModeChanged(QDeclarativeVideoOutput::FillMode)));
 
@@ -200,7 +197,7 @@ void tst_QDeclarativeVideoOutput::flushMode()
     component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
-    QVERIFY(videoOutput != 0);
+    QVERIFY(videoOutput != nullptr);
 
     QSignalSpy propSpy(videoOutput, SIGNAL(flushModeChanged()));
 
@@ -218,7 +215,7 @@ void tst_QDeclarativeVideoOutput::orientation()
     component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
-    QVERIFY(videoOutput != 0);
+    QVERIFY(videoOutput != nullptr);
 
     QSignalSpy propSpy(videoOutput, SIGNAL(orientationChanged()));
 
@@ -271,15 +268,15 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
-    QVERIFY(videoOutput != 0);
+    QVERIFY(videoOutput != nullptr);
 
     SurfaceHolder holder(this);
 
-    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(0));
+    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(nullptr));
 
     videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
 
-    QVERIFY(holder.videoSurface() != 0);
+    QVERIFY(holder.videoSurface() != nullptr);
 
     // Now we could do things with the surface..
     const QList<QVideoFrame::PixelFormat> formats = holder.videoSurface()->supportedPixelFormats();
@@ -302,7 +299,7 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     delete videoOutput;
 
     // This should clear the surface
-    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(0));
+    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(nullptr));
 
     // Also, creating two sources, setting them in order, and destroying the first
     // should not zero holder.videoSurface()
@@ -329,8 +326,8 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     SurfaceHolder holder2(this);
     videoOutput2->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder2)));
 
-    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(0));
-    QVERIFY(holder2.videoSurface() != 0);
+    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(nullptr));
+    QVERIFY(holder2.videoSurface() != nullptr);
 
     // Finally a combination - set the same source to two things, then assign a new source
     // to the first output - should not reset the first source
@@ -338,11 +335,11 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder2)));
 
     // Both vo and vo2 were pointed to holder2 - setting vo2 should not clear holder2
-    QVERIFY(holder2.videoSurface() != 0);
-    QVERIFY(holder.videoSurface() == 0);
+    QVERIFY(holder2.videoSurface() != nullptr);
+    QVERIFY(holder.videoSurface() == nullptr);
     videoOutput2->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
-    QVERIFY(holder2.videoSurface() != 0);
-    QVERIFY(holder.videoSurface() != 0);
+    QVERIFY(holder2.videoSurface() != nullptr);
+    QVERIFY(holder.videoSurface() != nullptr);
 
     // They should also be independent
     QVERIFY(holder.videoSurface() != holder2.videoSurface());
@@ -386,7 +383,7 @@ void tst_QDeclarativeVideoOutput::sourceRect()
     component.loadUrl(QUrl("qrc:/main.qml"));
 
     QObject *videoOutput = component.create();
-    QVERIFY(videoOutput != 0);
+    QVERIFY(videoOutput != nullptr);
 
     SurfaceHolder holder(this);
 

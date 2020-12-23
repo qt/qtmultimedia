@@ -68,7 +68,7 @@ class tst_QAudioInput : public QObject
 {
     Q_OBJECT
 public:
-    tst_QAudioInput(QObject* parent=0) : QObject(parent) {}
+    tst_QAudioInput(QObject* parent=nullptr) : QObject(parent) {}
 
 private slots:
     void initTestCase();
@@ -104,7 +104,7 @@ private slots:
     void volume();
 
 private:
-    typedef QSharedPointer<QFile> FilePtr;
+    using FilePtr = QSharedPointer<QFile>;
 
     QString formatToFileName(const QAudioFormat &format);
 

@@ -88,26 +88,25 @@ class QtTestGLVideoBuffer : public QAbstractVideoBuffer
 public:
     QtTestGLVideoBuffer()
         : QAbstractVideoBuffer(GLTextureHandle)
-        , m_textureId(0)
     {
         QOpenGLContext::currentContext()->functions()->glGenTextures(1, &m_textureId);
     }
 
-    ~QtTestGLVideoBuffer()
+    ~QtTestGLVideoBuffer() override
     {
         QOpenGLContext::currentContext()->functions()->glDeleteTextures(1, &m_textureId);
     }
 
-    GLuint textureId() const { return m_textureId; }
+    [[nodiscard]] GLuint textureId() const { return m_textureId; }
 
-    QVariant handle() const { return m_textureId; }
+    [[nodiscard]] QVariant handle() const override { return m_textureId; }
 
-    uchar *map(MapMode, int *, int *) { return 0; }
-    void unmap() {}
-    MapMode mapMode() const { return NotMapped; }
+    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    void unmap() override {}
+    [[nodiscard]] MapMode mapMode() const override { return NotMapped; }
 
 private:
-    GLuint m_textureId;
+    GLuint m_textureId = 0;
 };
 
 #endif
@@ -119,9 +118,9 @@ public:
         : QAbstractVideoBuffer(UserHandle)
     {}
 
-    uchar *map(MapMode, int *, int *) { return 0; }
-    void unmap() {}
-    MapMode mapMode() const { return NotMapped; }
+    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    void unmap() override {}
+    [[nodiscard]] MapMode mapMode() const override { return NotMapped; }
 };
 
 void tst_QPainterVideoSurface::colors()

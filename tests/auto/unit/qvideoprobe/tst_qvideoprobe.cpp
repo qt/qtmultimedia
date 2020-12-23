@@ -72,7 +72,7 @@ void tst_QVideoProbe::init()
     mockMediaPlayerService = new MockMediaPlayerService();
     mockProvider = new MockMediaServiceProvider(mockMediaPlayerService);
     mockProvider->deleteServiceOnRelease = true;
-    player = 0;
+    player = nullptr;
 
     mockMediaRecorderControl = new MockMediaRecorderControl(this);
     mockMediaRecorderService = new MockMediaRecorderService(this, mockMediaRecorderControl);
@@ -86,20 +86,20 @@ void tst_QVideoProbe::cleanup()
 {
     delete player;
     delete mockProvider;
-    mockMediaPlayerService = 0;
-    mockProvider = 0;
-    player = 0;
+    mockMediaPlayerService = nullptr;
+    mockProvider = nullptr;
+    player = nullptr;
 
     delete mockMediaRecorderControl;
     delete mockProviderRecorder;
-    mockMediaRecorderControl = 0;
-    mockMediaRecorderService = 0;
-    mockProviderRecorder = 0;
+    mockMediaRecorderControl = nullptr;
+    mockMediaRecorderService = nullptr;
+    mockProviderRecorder = nullptr;
 }
 
 void tst_QVideoProbe::testNullService()
 {
-    mockProvider->service = 0;
+    mockProvider->service = nullptr;
     player = new QMediaPlayer;
 
     QVERIFY(!player->isAvailable());
@@ -110,7 +110,7 @@ void tst_QVideoProbe::testNullService()
     QVERIFY(!probe.setSource(player));
     QVERIFY(!probe.isActive());
     delete player;
-    player = 0;
+    player = nullptr;
     QVERIFY(!probe.isActive());
 }
 
@@ -123,7 +123,7 @@ void tst_QVideoProbe::testPlayer()
     QVERIFY(!probe.isActive());
     QVERIFY(probe.setSource(player));
     QVERIFY(probe.isActive());
-    probe.setSource((QMediaPlayer*)0);
+    probe.setSource((QMediaPlayer*)nullptr);
     QVERIFY(!probe.isActive());
 }
 
@@ -138,9 +138,9 @@ void tst_QVideoProbe::testPlayerDeleteRecorder()
     QVERIFY(probe.isActive());
 
     delete player;
-    player = 0;
+    player = nullptr;
     QVERIFY(!probe.isActive());
-    probe.setSource((QMediaPlayer*)0);
+    probe.setSource((QMediaPlayer*)nullptr);
     QVERIFY(!probe.isActive());
 }
 

@@ -62,7 +62,7 @@ class tst_QAudioOutput : public QObject
 {
     Q_OBJECT
 public:
-    tst_QAudioOutput(QObject* parent=0) : QObject(parent) {}
+    tst_QAudioOutput(QObject* parent=nullptr) : QObject(parent) {}
 
 private slots:
     void initTestCase();
@@ -102,7 +102,7 @@ private slots:
     void volume();
 
 private:
-    typedef QSharedPointer<QFile> FilePtr;
+    using FilePtr = QSharedPointer<QFile>;
 
     QString formatToFileName(const QAudioFormat &format);
     void createSineWaveData(const QAudioFormat &format, qint64 length, int sampleRate = 440);

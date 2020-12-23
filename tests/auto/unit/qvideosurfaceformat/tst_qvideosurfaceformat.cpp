@@ -43,7 +43,7 @@ class tst_QVideoSurfaceFormat : public QObject
     Q_OBJECT
 public:
     tst_QVideoSurfaceFormat();
-    ~tst_QVideoSurfaceFormat();
+    ~tst_QVideoSurfaceFormat() override;
 
 public slots:
     void initTestCase();

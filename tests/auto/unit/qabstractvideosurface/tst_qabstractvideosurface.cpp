@@ -38,7 +38,7 @@ class tst_QAbstractVideoSurface : public QObject
     Q_OBJECT
 public:
     tst_QAbstractVideoSurface();
-    ~tst_QAbstractVideoSurface();
+    ~tst_QAbstractVideoSurface() override;
 
 public slots:
     void initTestCase();
@@ -66,17 +66,17 @@ class QtTestVideoSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
 public:
-    explicit QtTestVideoSurface(QObject *parent = 0) : QAbstractVideoSurface(parent) {}
-    explicit QtTestVideoSurface(SupportedFormatMap formats, QObject *parent = 0)
+    explicit QtTestVideoSurface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) {}
+    explicit QtTestVideoSurface(SupportedFormatMap formats, QObject *parent = nullptr)
             : QAbstractVideoSurface(parent), supportedFormats(formats) {}
 
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const
+    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override
     {
         return supportedFormats.values(handleType);
     }
 
-    bool present(const QVideoFrame &) { return false; }
+    bool present(const QVideoFrame &) override { return false; }
 
     using QAbstractVideoSurface::setError;
 

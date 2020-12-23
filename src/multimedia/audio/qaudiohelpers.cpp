@@ -56,7 +56,7 @@ public:
         data[2] = (v & 0xFF0000) >> 16;
     }
     template<class T>
-    T multiply(qreal factor, T v = 0) const {
+    [[nodiscard]] T multiply(qreal factor, T v = 0) const {
         v |= data[0];
         v |= data[1] << 8;
         v |= data[2] << 16;
@@ -102,19 +102,19 @@ template<class T> void adjustSamples(qreal factor, const void *src, void *dst, i
 template<class T> struct signedVersion {};
 template<> struct signedVersion<quint8>
 {
-    typedef qint8 TS;
+    using TS = qint8;
     enum {offset = 0x80};
 };
 
 template<> struct signedVersion<quint16>
 {
-    typedef qint16 TS;
+    using TS = qint16;
     enum {offset = 0x8000};
 };
 
 template<> struct signedVersion<quint32>
 {
-    typedef qint32 TS;
+    using TS = qint32;
     enum {offset = 0x80000000};
 };
 

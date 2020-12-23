@@ -134,7 +134,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     m_geometryDirty(true),
     m_orientation(0),
     m_autoOrientation(false),
-    m_screenOrientationHandler(0)
+    m_screenOrientationHandler(nullptr)
 {
     initResource();
     setFlag(ItemHasContents, true);
@@ -186,8 +186,8 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
         return;
 
     if (m_source && m_sourceType == MediaObjectSource) {
-        disconnect(m_source.data(), 0, this, SLOT(_q_updateMediaObject()));
-        disconnect(m_source.data(), 0, this, SLOT(_q_updateCameraInfo()));
+        disconnect(m_source.data(), nullptr, this, SLOT(_q_updateMediaObject()));
+        disconnect(m_source.data(), nullptr, this, SLOT(_q_updateCameraInfo()));
     }
 
     if (m_backend)
@@ -206,7 +206,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
                 QMetaMethod method = mediaObjectProperty.notifySignal();
                 QMetaObject::connect(m_source.data(), method.methodIndex(),
                                      this, this->metaObject()->indexOfSlot("_q_updateMediaObject()"),
-                                     Qt::DirectConnection, 0);
+                                     Qt::DirectConnection, nullptr);
 
             }
 
@@ -218,7 +218,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
                     QMetaMethod method = deviceIdProperty.notifySignal();
                     QMetaObject::connect(m_source.data(), method.methodIndex(),
                                          this, this->metaObject()->indexOfSlot("_q_updateCameraInfo()"),
-                                         Qt::DirectConnection, 0);
+                                         Qt::DirectConnection, nullptr);
 
                 }
             }
@@ -291,7 +291,7 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
 
 void QDeclarativeVideoOutput::_q_updateMediaObject()
 {
-    QMediaObject *mediaObject = 0;
+    QMediaObject *mediaObject = nullptr;
 
     if (m_source)
         mediaObject = qobject_cast<QMediaObject*>(m_source.data()->property("mediaObject").value<QObject*>());
@@ -547,7 +547,7 @@ void QDeclarativeVideoOutput::setAutoOrientation(bool autoOrientation)
         disconnect(m_screenOrientationHandler, SIGNAL(orientationChanged(int)),
                    this, SLOT(_q_screenOrientationChanged(int)));
         m_screenOrientationHandler->deleteLater();
-        m_screenOrientationHandler = 0;
+        m_screenOrientationHandler = nullptr;
     }
 
     emit autoOrientationChanged();
@@ -809,7 +809,7 @@ QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintN
     _q_updateGeometry();
 
     if (!m_backend)
-        return 0;
+        return nullptr;
 
     return m_backend->updatePaintNode(oldNode, data);
 }

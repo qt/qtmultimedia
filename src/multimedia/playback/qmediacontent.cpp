@@ -57,22 +57,12 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaContentMetaTypes)
 class QMediaContentPrivate : public QSharedData
 {
 public:
-    QMediaContentPrivate():
-        isPlaylistOwned(false)
-    {}
+    QMediaContentPrivate() = default;
 
-    QMediaContentPrivate(const QNetworkRequest &r):
-        isPlaylistOwned(false)
+    QMediaContentPrivate(const QNetworkRequest &r)
     {
         requests << r;
     }
-
-    QMediaContentPrivate(const QMediaContentPrivate &other):
-        QSharedData(other),
-        requests(other.requests),
-        playlist(other.playlist),
-        isPlaylistOwned(false)
-    {}
 
     QMediaContentPrivate(QMediaPlaylist *pls, const QUrl &url, bool isOwn):
         playlist(pls),
@@ -94,7 +84,7 @@ public:
 
     QList<QNetworkRequest> requests;
     QPointer<QMediaPlaylist> playlist;
-    bool isPlaylistOwned;
+    bool isPlaylistOwned = false;
 private:
     QMediaContentPrivate& operator=(const QMediaContentPrivate &other);
 };
@@ -200,8 +190,8 @@ QMediaContent& QMediaContent::operator=(const QMediaContent &other)
 
 bool QMediaContent::operator==(const QMediaContent &other) const
 {
-    return (d.constData() == 0 && other.d.constData() == nullptr) ||
-            (d.constData() != 0 && other.d.constData() != nullptr &&
+    return (d.constData() == nullptr && other.d.constData() == nullptr) ||
+            (d.constData() != nullptr && other.d.constData() != nullptr &&
              *d.constData() == *other.d.constData());
 }
 

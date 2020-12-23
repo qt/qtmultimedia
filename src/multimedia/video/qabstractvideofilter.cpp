@@ -250,11 +250,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoFilterPrivate
 {
 public:
-    QAbstractVideoFilterPrivate() :
-        active(true)
-    { }
-
-    bool active;
+    bool active = true;
 };
 
 /*!

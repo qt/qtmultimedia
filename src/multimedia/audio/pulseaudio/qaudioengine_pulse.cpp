@@ -254,8 +254,8 @@ Q_GLOBAL_STATIC(QPulseAudioEngine, pulseEngine);
 
 QPulseAudioEngine::QPulseAudioEngine(QObject *parent)
     : QObject(parent)
-    , m_mainLoopApi(0)
-    , m_context(0)
+    , m_mainLoopApi(nullptr)
+    , m_context(nullptr)
     , m_prepared(false)
 {
     prepare();
@@ -273,7 +273,7 @@ void QPulseAudioEngine::prepare()
     bool ok = true;
 
     m_mainLoop = pa_threaded_mainloop_new();
-    if (m_mainLoop == 0) {
+    if (m_mainLoop == nullptr) {
         qWarning("PulseAudioService: unable to create pulseaudio mainloop");
         return;
     }
@@ -281,7 +281,7 @@ void QPulseAudioEngine::prepare()
     if (pa_threaded_mainloop_start(m_mainLoop) != 0) {
         qWarning("PulseAudioService: unable to start pulseaudio mainloop");
         pa_threaded_mainloop_free(m_mainLoop);
-        m_mainLoop = 0;
+        m_mainLoop = nullptr;
         return;
     }
 
@@ -291,24 +291,24 @@ void QPulseAudioEngine::prepare()
 
     m_context = pa_context_new(m_mainLoopApi, QString(QLatin1String("QtPulseAudio:%1")).arg(::getpid()).toLatin1().constData());
 
-    if (m_context == 0) {
+    if (m_context == nullptr) {
         qWarning("PulseAudioService: Unable to create new pulseaudio context");
         pa_threaded_mainloop_unlock(m_mainLoop);
         pa_threaded_mainloop_free(m_mainLoop);
-        m_mainLoop = 0;
+        m_mainLoop = nullptr;
         onContextFailed();
         return;
     }
 
     pa_context_set_state_callback(m_context, contextStateCallbackInit, this);
 
-    if (pa_context_connect(m_context, 0, (pa_context_flags_t)0, 0) < 0) {
+    if (pa_context_connect(m_context, nullptr, (pa_context_flags_t)0, nullptr) < 0) {
         qWarning("PulseAudioService: pa_context_connect() failed");
         pa_context_unref(m_context);
         pa_threaded_mainloop_unlock(m_mainLoop);
         pa_threaded_mainloop_free(m_mainLoop);
-        m_mainLoop = 0;
-        m_context = 0;
+        m_mainLoop = nullptr;
+        m_context = nullptr;
         return;
     }
 
@@ -354,14 +354,14 @@ void QPulseAudioEngine::prepare()
                                                 pa_subscription_mask_t(PA_SUBSCRIPTION_MASK_SINK |
                                                                        PA_SUBSCRIPTION_MASK_SOURCE |
                                                                        PA_SUBSCRIPTION_MASK_SERVER),
-                                                NULL, NULL);
+                                                nullptr, nullptr);
         if (op)
             pa_operation_unref(op);
         else
             qWarning("PulseAudioService: failed to subscribe to context notifications");
     } else {
         pa_context_unref(m_context);
-        m_context = 0;
+        m_context = nullptr;
     }
 
     unlock();
@@ -371,7 +371,7 @@ void QPulseAudioEngine::prepare()
         m_prepared = true;
     } else {
         pa_threaded_mainloop_free(m_mainLoop);
-        m_mainLoop = 0;
+        m_mainLoop = nullptr;
         onContextFailed();
     }
 }
@@ -384,13 +384,13 @@ void QPulseAudioEngine::release()
     if (m_context) {
         pa_context_disconnect(m_context);
         pa_context_unref(m_context);
-        m_context = 0;
+        m_context = nullptr;
     }
 
     if (m_mainLoop) {
         pa_threaded_mainloop_stop(m_mainLoop);
         pa_threaded_mainloop_free(m_mainLoop);
-        m_mainLoop = 0;
+        m_mainLoop = nullptr;
     }
 
     m_prepared = false;

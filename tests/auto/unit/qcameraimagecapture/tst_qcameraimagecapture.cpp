@@ -59,23 +59,23 @@ class NullService: public QMediaService
     Q_OBJECT
 
 public:
-    NullService(): QMediaService(0)
+    NullService(): QMediaService(nullptr)
     {
 
     }
 
-    ~NullService()
+    ~NullService() override
     {
 
     }
 
-    QMediaControl* requestControl(const char *iid)
+    QMediaControl* requestControl(const char *iid) override
     {
         Q_UNUSED(iid);
-        return 0;
+        return nullptr;
     }
 
-    void releaseControl(QMediaControl*) {}
+    void releaseControl(QMediaControl*) override {}
 
 };
 
@@ -128,7 +128,7 @@ void tst_QCameraImageCapture::init()
 void tst_QCameraImageCapture::cleanup()
 {
     delete mockcameraservice;
-    mockcameraservice = 0;
+    mockcameraservice = nullptr;
 }
 
 void tst_QCameraImageCapture::cleanupTestCase()
@@ -151,7 +151,7 @@ void tst_QCameraImageCapture::mediaObject()
     provider->service = &mymockcameraservice;
     QCamera camera;
     QCameraImageCapture imageCapture(&camera);
-    QVERIFY(imageCapture.mediaObject() == NULL);
+    QVERIFY(imageCapture.mediaObject() == nullptr);
 
     provider->service = mockcameraservice;
     QCamera camera1;
@@ -174,7 +174,7 @@ void tst_QCameraImageCapture::deleteMediaObject()
     delete provider->service;
 
     //capture should detach from camera
-    QVERIFY(capture->mediaObject() == 0);
+    QVERIFY(capture->mediaObject() == nullptr);
     QVERIFY(!capture->isAvailable());
 
     capture->capture();

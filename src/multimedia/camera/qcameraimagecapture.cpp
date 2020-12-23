@@ -94,15 +94,13 @@ class QCameraImageCapturePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraImageCapture)
 public:
-    QCameraImageCapturePrivate();
+    QMediaObject *mediaObject = nullptr;
 
-    QMediaObject *mediaObject;
+    QCameraImageCaptureControl *control = nullptr;
+    QImageEncoderControl *encoderControl = nullptr;
+    QCameraCaptureBufferFormatControl *bufferFormatControl = nullptr;
 
-    QCameraImageCaptureControl *control;
-    QImageEncoderControl *encoderControl;
-    QCameraCaptureBufferFormatControl *bufferFormatControl;
-
-    QCameraImageCapture::Error error;
+    QCameraImageCapture::Error error = QCameraImageCapture::NoError;
     QString errorString;
 
     void _q_error(int id, int error, const QString &errorString);
@@ -113,15 +111,6 @@ public:
 
     QCameraImageCapture *q_ptr;
 };
-
-QCameraImageCapturePrivate::QCameraImageCapturePrivate():
-     mediaObject(nullptr),
-     control(nullptr),
-     encoderControl(nullptr),
-     bufferFormatControl(nullptr),
-     error(QCameraImageCapture::NoError)
-{
-}
 
 void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &errorString)
 {

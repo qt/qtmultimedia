@@ -58,7 +58,7 @@
 //! [0]
 VideoWidget::VideoWidget(QWidget *parent)
     : QWidget(parent)
-    , surface(0)
+    , surface(nullptr)
 {
     setAutoFillBackground(false);
     setAttribute(Qt::WA_NoSystemBackground, true);

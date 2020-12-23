@@ -58,17 +58,10 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAbstractVideoSurfaceMetaTypes)
 
 class QAbstractVideoSurfacePrivate {
 public:
-    QAbstractVideoSurfacePrivate()
-        : error(QAbstractVideoSurface::NoError),
-          active(false)
-    {
-    }
-
-public:
     QVideoSurfaceFormat surfaceFormat;
-    QAbstractVideoSurface::Error error;
+    QAbstractVideoSurface::Error error = QAbstractVideoSurface::NoError;
     QSize nativeResolution;
-    bool active;
+    bool active = false;
 };
 
 /*!

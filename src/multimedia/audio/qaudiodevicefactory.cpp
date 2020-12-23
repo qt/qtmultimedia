@@ -48,10 +48,10 @@ QT_BEGIN_NAMESPACE
 class QNullDeviceInfo : public QAbstractAudioDeviceInfo
 {
 public:
-    QAudioFormat preferredFormat() const override { qWarning()<<"using null deviceinfo, none available"; return QAudioFormat(); }
-    bool isFormatSupported(const QAudioFormat& ) const override { return false; }
-    QAudioFormat nearestFormat(const QAudioFormat& ) const { return QAudioFormat(); }
-    QString deviceName() const override { return QString(); }
+    [[nodiscard]] QAudioFormat preferredFormat() const override { qWarning()<<"using null deviceinfo, none available"; return QAudioFormat(); }
+    [[nodiscard]] bool isFormatSupported(const QAudioFormat& ) const override { return false; }
+    [[nodiscard]] QAudioFormat nearestFormat(const QAudioFormat& ) const { return QAudioFormat(); }
+    [[nodiscard]] QString deviceName() const override { return QString(); }
     QStringList supportedCodecs() override { return QStringList(); }
     QList<int> supportedSampleRates() override  { return QList<int>(); }
     QList<int> supportedChannelCounts() override { return QList<int>(); }
@@ -69,20 +69,20 @@ public:
     void reset() override {}
     void suspend() override {}
     void resume() override {}
-    int bytesReady() const override { return 0; }
-    int periodSize() const override { return 0; }
+    [[nodiscard]] int bytesReady() const override { return 0; }
+    [[nodiscard]] int periodSize() const override { return 0; }
     void setBufferSize(int ) override {}
-    int bufferSize() const override  { return 0; }
+    [[nodiscard]] int bufferSize() const override  { return 0; }
     void setNotifyInterval(int ) override {}
-    int notifyInterval() const override { return 0; }
-    qint64 processedUSecs() const override { return 0; }
-    qint64 elapsedUSecs() const override { return 0; }
-    QAudio::Error error() const override { return QAudio::OpenError; }
-    QAudio::State state() const override { return QAudio::StoppedState; }
+    [[nodiscard]] int notifyInterval() const override { return 0; }
+    [[nodiscard]] qint64 processedUSecs() const override { return 0; }
+    [[nodiscard]] qint64 elapsedUSecs() const override { return 0; }
+    [[nodiscard]] QAudio::Error error() const override { return QAudio::OpenError; }
+    [[nodiscard]] QAudio::State state() const override { return QAudio::StoppedState; }
     void setFormat(const QAudioFormat&) override {}
-    QAudioFormat format() const override { return QAudioFormat(); }
+    [[nodiscard]] QAudioFormat format() const override { return QAudioFormat(); }
     void setVolume(qreal) override {}
-    qreal volume() const override {return 1.0f;}
+    [[nodiscard]] qreal volume() const override {return 1.0f;}
 };
 
 class QNullOutputDevice : public QAbstractAudioOutput
@@ -94,18 +94,18 @@ public:
     void reset() override {}
     void suspend() override {}
     void resume() override {}
-    int bytesFree() const override { return 0; }
-    int periodSize() const override { return 0; }
+    [[nodiscard]] int bytesFree() const override { return 0; }
+    [[nodiscard]] int periodSize() const override { return 0; }
     void setBufferSize(int ) override {}
-    int bufferSize() const override  { return 0; }
+    [[nodiscard]] int bufferSize() const override  { return 0; }
     void setNotifyInterval(int ) override {}
-    int notifyInterval() const override { return 0; }
-    qint64 processedUSecs() const override { return 0; }
-    qint64 elapsedUSecs() const override { return 0; }
-    QAudio::Error error() const override { return QAudio::OpenError; }
-    QAudio::State state() const override { return QAudio::StoppedState; }
+    [[nodiscard]] int notifyInterval() const override { return 0; }
+    [[nodiscard]] qint64 processedUSecs() const override { return 0; }
+    [[nodiscard]] qint64 elapsedUSecs() const override { return 0; }
+    [[nodiscard]] QAudio::Error error() const override { return QAudio::OpenError; }
+    [[nodiscard]] QAudio::State state() const override { return QAudio::StoppedState; }
     void setFormat(const QAudioFormat&) override {}
-    QAudioFormat format() const override { return QAudioFormat(); }
+    [[nodiscard]] QAudioFormat format() const override { return QAudioFormat(); }
 };
 
 QList<QAudioDeviceInfo> QAudioDeviceFactory::availableDevices(QAudio::Mode mode)

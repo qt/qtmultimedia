@@ -80,7 +80,7 @@ QSGVideoNode *QSGVideoNodeFactory_Texture::createNode(const QVideoSurfaceFormat 
     if (supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
         return new QSGVideoNode_Texture(format);
 
-    return 0;
+    return nullptr;
 }
 
 class QSGVideoMaterialRhiShader_Texture : public QSGMaterialShader
@@ -119,16 +119,16 @@ public:
         m_texture.reset(new QSGVideoTexture);
     }
 
-    ~QSGVideoMaterial_Texture()
+    ~QSGVideoMaterial_Texture() override
     {
     }
 
-    QSGMaterialType *type() const override {
+    [[nodiscard]] QSGMaterialType *type() const override {
         static QSGMaterialType normalType, swizzleType;
         return needsSwizzling() ? &swizzleType : &normalType;
     }
 
-    QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
+    [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         return needsSwizzling() ? new QSGVideoMaterialRhiShader_Texture_swizzle
                                 : new QSGVideoMaterialRhiShader_Texture;
     }
@@ -157,7 +157,7 @@ public:
     QScopedPointer<QSGVideoTexture> m_texture;
 
 private:
-    bool needsSwizzling() const {
+    [[nodiscard]] bool needsSwizzling() const {
         return m_format.pixelFormat() == QVideoFrame::Format_RGB32
                 || m_format.pixelFormat() == QVideoFrame::Format_ARGB32;
     }

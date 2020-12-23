@@ -43,7 +43,7 @@ class tst_QAbstractVideoBuffer : public QObject
     Q_OBJECT
 public:
     tst_QAbstractVideoBuffer();
-    ~tst_QAbstractVideoBuffer();
+    ~tst_QAbstractVideoBuffer() override;
 
 public slots:
     void initTestCase();
@@ -65,10 +65,10 @@ class QtTestVideoBuffer : public QAbstractVideoBuffer
 public:
     QtTestVideoBuffer(QAbstractVideoBuffer::HandleType type) : QAbstractVideoBuffer(type) {}
 
-    MapMode mapMode() const { return QAbstractVideoBuffer::ReadWrite; }
+    [[nodiscard]] MapMode mapMode() const override { return QAbstractVideoBuffer::ReadWrite; }
 
-    uchar *map(MapMode, int *, int *) { return 0; }
-    void unmap() {}
+    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    void unmap() override {}
 };
 
 tst_QAbstractVideoBuffer::tst_QAbstractVideoBuffer()

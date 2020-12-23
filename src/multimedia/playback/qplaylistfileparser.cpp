@@ -305,7 +305,7 @@ public:
         QIODevice *m_stream;
         QMediaContent m_media;
         QString m_mimeType;
-        bool isValid() const { return m_stream || !m_media.isNull(); }
+        [[nodiscard]] bool isValid() const { return m_stream || !m_media.isNull(); }
         void reset() { m_stream = nullptr; m_media = QMediaContent(); m_mimeType = QString(); }
     } m_pendingJob;
     int m_scanIndex;

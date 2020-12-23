@@ -45,13 +45,13 @@ QT_USE_NAMESPACE
 
 class MockMediaServiceProvider : public QMediaServiceProvider
 {
-    QMediaService* requestService(const QByteArray &type)
+    QMediaService* requestService(const QByteArray &type) override
     {
         Q_UNUSED(type);
-        return 0;
+        return nullptr;
     }
 
-    void releaseService(QMediaService *service)
+    void releaseService(QMediaService *service) override
     {
         Q_UNUSED(service);
     }
@@ -89,21 +89,21 @@ void tst_QMediaServiceProvider::initTestCase()
 void tst_QMediaServiceProvider::testDefaultProviderAvailable()
 {
     // Must always be a default provider available
-    QVERIFY(QMediaServiceProvider::defaultServiceProvider() != 0);
+    QVERIFY(QMediaServiceProvider::defaultServiceProvider() != nullptr);
 }
 
 void tst_QMediaServiceProvider::testObtainService()
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
-    if (provider == 0)
+    if (provider == nullptr)
         QSKIP("No default provider");
 
-    QMediaService *service = 0;
+    QMediaService *service = nullptr;
 
     // Player
     service = provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER);
-    QVERIFY(service != 0);
+    QVERIFY(service != nullptr);
     provider->releaseService(service);
 }
 
@@ -115,7 +115,7 @@ void tst_QMediaServiceProvider::testHasSupport()
 
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
-    if (provider == 0)
+    if (provider == nullptr)
         QSKIP("No default provider");
 
     QCOMPARE(provider->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER), "video/ogv", QStringList()),
@@ -159,13 +159,13 @@ void tst_QMediaServiceProvider::testHasSupport()
              QMultimedia::MaybeSupported);
 
     //ensure the correct media player plugin is chosen for mime type
-    QMediaPlayer simplePlayer(0, QMediaPlayer::LowLatency);
+    QMediaPlayer simplePlayer(nullptr, QMediaPlayer::LowLatency);
     QCOMPARE(simplePlayer.service()->objectName(), QLatin1String("MockServicePlugin2"));
 
     QMediaPlayer mediaPlayer;
     QVERIFY(mediaPlayer.service()->objectName() != QLatin1String("MockServicePlugin2"));
 
-    QMediaPlayer streamPlayer(0, QMediaPlayer::StreamPlayback);
+    QMediaPlayer streamPlayer(nullptr, QMediaPlayer::StreamPlayback);
     QCOMPARE(streamPlayer.service()->objectName(), QLatin1String("MockServicePlugin4"));
 }
 
@@ -173,7 +173,7 @@ void tst_QMediaServiceProvider::testSupportedMimeTypes()
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
-    if (provider == 0)
+    if (provider == nullptr)
         QSKIP("No default provider");
 
     QVERIFY(provider->supportedMimeTypes(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER)).contains("audio/ogg"));
@@ -184,7 +184,7 @@ void tst_QMediaServiceProvider::testDefaultDevice()
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
-    if (provider == 0)
+    if (provider == nullptr)
         QSKIP("No default provider");
 
     QCOMPARE(provider->defaultDevice(Q_MEDIASERVICE_AUDIOSOURCE), QByteArray("audiosource1"));
@@ -195,7 +195,7 @@ void tst_QMediaServiceProvider::testAvailableDevices()
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
-    if (provider == 0)
+    if (provider == nullptr)
         QSKIP("No default provider");
 
     QList<QByteArray> devices = provider->devices(Q_MEDIASERVICE_AUDIOSOURCE);
@@ -214,7 +214,7 @@ void tst_QMediaServiceProvider::testCameraInfo()
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
 
-    if (provider == 0)
+    if (provider == nullptr)
         QSKIP("No default provider");
 
     QCOMPARE(provider->cameraPosition("backcamera"), QCamera::BackFace);

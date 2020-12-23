@@ -64,10 +64,6 @@ class QCameraViewfinderPrivate : public QVideoWidgetPrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraViewfinder)
 public:
-    QCameraViewfinderPrivate():
-        QVideoWidgetPrivate()
-    {
-    }
 };
 
 /*!

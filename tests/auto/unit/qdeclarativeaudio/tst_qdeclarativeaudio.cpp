@@ -93,26 +93,15 @@ class QtTestMediaPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
 public:
-    QtTestMediaPlayerControl(QObject *parent = 0)
+    QtTestMediaPlayerControl(QObject *parent = nullptr)
         : QMediaPlayerControl(parent)
-        , m_state(QMediaPlayer::StoppedState)
-        , m_mediaStatus(QMediaPlayer::NoMedia)
-        , m_duration(0)
-        , m_position(0)
-        , m_playbackRate(1.0)
-        , m_volume(100)
-        , m_bufferStatus(0)
-        , m_muted(false)
-        , m_audioAvailable(false)
-        , m_videoAvailable(false)
-        , m_seekable(false)
     {
     }
 
-    QMediaPlayer::State state() const { return m_state; }
+    [[nodiscard]] QMediaPlayer::State state() const override { return m_state; }
     void updateState(QMediaPlayer::State state) { emit stateChanged(m_state = state); }
 
-    QMediaPlayer::MediaStatus mediaStatus() const { return m_mediaStatus; }
+    [[nodiscard]] QMediaPlayer::MediaStatus mediaStatus() const override { return m_mediaStatus; }
     void updateMediaStatus(QMediaPlayer::MediaStatus status) {
         emit mediaStatusChanged(m_mediaStatus = status); }
     void updateMediaStatus(QMediaPlayer::MediaStatus status, QMediaPlayer::State state)
@@ -124,39 +113,39 @@ public:
         emit stateChanged(m_state);
     }
 
-    qint64 duration() const { return m_duration; }
+    [[nodiscard]] qint64 duration() const override { return m_duration; }
     void setDuration(qint64 duration) { emit durationChanged(m_duration = duration); }
 
-    qint64 position() const { return m_position; }
-    void setPosition(qint64 position) { emit positionChanged(m_position = position); }
+    [[nodiscard]] qint64 position() const override { return m_position; }
+    void setPosition(qint64 position) override { emit positionChanged(m_position = position); }
 
-    int volume() const { return m_volume; }
-    void setVolume(int volume) { emit volumeChanged(m_volume = volume); }
+    [[nodiscard]] int volume() const override { return m_volume; }
+    void setVolume(int volume) override { emit volumeChanged(m_volume = volume); }
 
-    bool isMuted() const { return m_muted; }
-    void setMuted(bool muted) { emit mutedChanged(m_muted = muted); }
+    [[nodiscard]] bool isMuted() const override { return m_muted; }
+    void setMuted(bool muted) override { emit mutedChanged(m_muted = muted); }
 
-    int bufferStatus() const { return m_bufferStatus; }
+    [[nodiscard]] int bufferStatus() const override { return m_bufferStatus; }
     void setBufferStatus(int status) { emit bufferStatusChanged(m_bufferStatus = status); }
 
-    bool isAudioAvailable() const { return m_audioAvailable; }
+    [[nodiscard]] bool isAudioAvailable() const override { return m_audioAvailable; }
     void setAudioAvailable(bool available) {
         emit audioAvailableChanged(m_audioAvailable = available); }
-    bool isVideoAvailable() const { return m_videoAvailable; }
+    [[nodiscard]] bool isVideoAvailable() const override { return m_videoAvailable; }
     void setVideoAvailable(bool available) {
         emit videoAvailableChanged(m_videoAvailable = available); }
 
-    bool isSeekable() const { return m_seekable; }
+    [[nodiscard]] bool isSeekable() const override { return m_seekable; }
     void setSeekable(bool seekable) { emit seekableChanged(m_seekable = seekable); }
 
-    QMediaTimeRange availablePlaybackRanges() const { return QMediaTimeRange(); }
+    [[nodiscard]] QMediaTimeRange availablePlaybackRanges() const override { return QMediaTimeRange(); }
 
-    qreal playbackRate() const { return m_playbackRate; }
-    void setPlaybackRate(qreal rate) { emit playbackRateChanged(m_playbackRate = rate); }
+    [[nodiscard]] qreal playbackRate() const override { return m_playbackRate; }
+    void setPlaybackRate(qreal rate) override { emit playbackRateChanged(m_playbackRate = rate); }
 
-    QMediaContent media() const { return m_media; }
-    const QIODevice *mediaStream() const { return 0; }
-    void setMedia(const QMediaContent &media, QIODevice *)
+    [[nodiscard]] QMediaContent media() const override { return m_media; }
+    [[nodiscard]] const QIODevice *mediaStream() const override { return nullptr; }
+    void setMedia(const QMediaContent &media, QIODevice *) override
     {
         m_media = media;
 
@@ -168,31 +157,31 @@ public:
         emit mediaStatusChanged(m_mediaStatus);
     }
 
-    void play()
+    void play() override
     {
         m_state = QMediaPlayer::PlayingState;
         if (m_mediaStatus == QMediaPlayer::EndOfMedia)
             updateMediaStatus(QMediaPlayer::LoadedMedia);
         emit stateChanged(m_state);
     }
-    void pause() { emit stateChanged(m_state = QMediaPlayer::PausedState); }
-    void stop() { emit stateChanged(m_state = QMediaPlayer::StoppedState); }
+    void pause() override { emit stateChanged(m_state = QMediaPlayer::PausedState); }
+    void stop() override { emit stateChanged(m_state = QMediaPlayer::StoppedState); }
 
     void emitError(QMediaPlayer::Error err, const QString &errorString) {
         emit error(err, errorString); }
 
 private:
-    QMediaPlayer::State m_state;
-    QMediaPlayer::MediaStatus m_mediaStatus;
-    qint64 m_duration;
-    qint64 m_position;
-    qreal m_playbackRate;
-    int m_volume;
-    int m_bufferStatus;
-    bool m_muted;
-    bool m_audioAvailable;
-    bool m_videoAvailable;
-    bool m_seekable;
+    QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
+    QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
+    qint64 m_duration = 0;
+    qint64 m_position = 0;
+    qreal m_playbackRate = 1.0;
+    int m_volume = 100;
+    int m_bufferStatus = 0;
+    bool m_muted = false;
+    bool m_audioAvailable = false;
+    bool m_videoAvailable = false;
+    bool m_seekable = false;
     QMediaContent m_media;
 };
 
@@ -200,18 +189,18 @@ class QtTestMetaDataControl : public QMetaDataReaderControl
 {
     Q_OBJECT
 public:
-    QtTestMetaDataControl(QObject *parent = 0)
+    QtTestMetaDataControl(QObject *parent = nullptr)
         : QMetaDataReaderControl(parent)
     {
     }
 
-    bool isMetaDataAvailable() const { return true; }
+    [[nodiscard]] bool isMetaDataAvailable() const override { return true; }
 
-    QVariant metaData(const QString &key) const { return m_metaData.value(key); }
+    [[nodiscard]] QVariant metaData(const QString &key) const override { return m_metaData.value(key); }
     void setMetaData(const QString &key, const QVariant &value) {
         m_metaData.insert(key, value); emit metaDataChanged(); }
 
-    QStringList availableMetaData() const { return m_metaData.keys(); }
+    [[nodiscard]] QStringList availableMetaData() const override { return m_metaData.keys(); }
 
 private:
     QMap<QString, QVariant> m_metaData;
@@ -231,17 +220,17 @@ public:
     {
     }
 
-    QMediaControl *requestControl(const char *name)
+    QMediaControl *requestControl(const char *name) override
     {
         if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
             return playerControl;
         else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
             return metaDataControl;
         else
-            return 0;
+            return nullptr;
     }
 
-    void releaseControl(QMediaControl *) {}
+    void releaseControl(QMediaControl *) override {}
 
     QtTestMediaPlayerControl *playerControl;
     QtTestMetaDataControl *metaDataControl;
@@ -271,19 +260,19 @@ public:
         setDefaultServiceProvider(this);
     }
 
-    ~QtTestMediaServiceProvider()
+    ~QtTestMediaServiceProvider() override
     {
-        setDefaultServiceProvider(0);
+        setDefaultServiceProvider(nullptr);
     }
 
-    QMediaService *requestService(const QByteArray &type)
+    QMediaService *requestService(const QByteArray &type) override
     {
         requestedService = type;
 
         return service;
     }
 
-    void releaseService(QMediaService *) {}
+    void releaseService(QMediaService *) override {}
 
     inline QtTestMediaPlayerControl *playerControl() { return service->playerControl; }
     inline QtTestMetaDataControl *metaDataControl() { return service->metaDataControl; }
@@ -301,7 +290,7 @@ void tst_QDeclarativeAudio::initTestCase()
 void tst_QDeclarativeAudio::nullPlayerControl()
 {
     QtTestMetaDataControl metaDataControl;
-    QtTestMediaServiceProvider provider(0, &metaDataControl);
+    QtTestMediaServiceProvider provider(nullptr, &metaDataControl);
 
     QDeclarativeAudio audio;
     audio.classBegin();
@@ -344,7 +333,7 @@ void tst_QDeclarativeAudio::nullPlayerControl()
 void tst_QDeclarativeAudio::nullMetaDataControl()
 {
     QtTestMediaPlayerControl playerControl;
-    QtTestMediaServiceProvider provider(&playerControl, 0);
+    QtTestMediaServiceProvider provider(&playerControl, nullptr);
 
     QDeclarativeAudio audio;
     audio.classBegin();
@@ -355,7 +344,7 @@ void tst_QDeclarativeAudio::nullMetaDataControl()
 
 void tst_QDeclarativeAudio::nullService()
 {
-    QtTestMediaServiceProvider provider(0);
+    QtTestMediaServiceProvider provider(nullptr);
 
     QDeclarativeAudio audio;
     audio.classBegin();
@@ -1197,7 +1186,7 @@ int tst_QDeclarativeAudio::keyToValue(const QMetaEnum &enumeration, const char *
 struct Surface : QAbstractVideoSurface
 {
     Surface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
+    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
     {
         return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB32;
     }
@@ -1208,7 +1197,7 @@ struct Surface : QAbstractVideoSurface
 void tst_QDeclarativeAudio::videoOutput()
 {
     QtTestMediaPlayerControl playerControl;
-    QtTestMediaServiceProvider provider(&playerControl, 0);
+    QtTestMediaServiceProvider provider(&playerControl, nullptr);
 
     QDeclarativeAudio audio;
     QSignalSpy spy(&audio, &QDeclarativeAudio::videoOutputChanged);

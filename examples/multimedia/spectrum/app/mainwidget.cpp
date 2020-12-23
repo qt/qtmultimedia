@@ -93,9 +93,9 @@ MainWidget::MainWidget(QWidget *parent)
             this))
     ,   m_toneGeneratorDialog(new ToneGeneratorDialog(this))
     ,   m_modeMenu(new QMenu(this))
-    ,   m_loadFileAction(0)
-    ,   m_generateToneAction(0)
-    ,   m_recordAction(0)
+    ,   m_loadFileAction(nullptr)
+    ,   m_generateToneAction(nullptr)
+    ,   m_recordAction(nullptr)
 {
     m_spectrograph->setParams(SpectrumNumBands, SpectrumLowFreq, SpectrumHighFreq);
 

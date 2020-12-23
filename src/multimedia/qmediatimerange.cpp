@@ -194,9 +194,7 @@ bool operator!=(const QMediaTimeInterval &a, const QMediaTimeInterval &b)
 class QMediaTimeRangePrivate : public QSharedData
 {
 public:
-
-    QMediaTimeRangePrivate();
-    QMediaTimeRangePrivate(const QMediaTimeRangePrivate &other);
+    QMediaTimeRangePrivate() = default;
     QMediaTimeRangePrivate(const QMediaTimeInterval &interval);
 
     QList<QMediaTimeInterval> intervals;
@@ -205,21 +203,7 @@ public:
     void removeInterval(const QMediaTimeInterval &interval);
 };
 
-QMediaTimeRangePrivate::QMediaTimeRangePrivate()
-    : QSharedData()
-{
-
-}
-
-QMediaTimeRangePrivate::QMediaTimeRangePrivate(const QMediaTimeRangePrivate &other)
-    : QSharedData()
-    , intervals(other.intervals)
-{
-
-}
-
 QMediaTimeRangePrivate::QMediaTimeRangePrivate(const QMediaTimeInterval &interval)
-    : QSharedData()
 {
     if(interval.isNormal())
         intervals << interval;

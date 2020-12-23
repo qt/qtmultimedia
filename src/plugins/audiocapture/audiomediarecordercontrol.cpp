@@ -91,7 +91,7 @@ AudioCaptureSession::AudioCaptureSession(QObject *parent)
     : QMediaRecorderControl(parent)
     , m_state(QMediaRecorder::StoppedState)
     , m_status(QMediaRecorder::UnloadedStatus)
-    , m_audioInput(0)
+    , m_audioInput(nullptr)
     , m_deviceInfo(QAudioDeviceInfo::defaultInputDevice())
     , m_wavFile(true)
     , m_volume(1.0)
@@ -323,7 +323,7 @@ void AudioCaptureSession::record()
             m_audioInput->start(qobject_cast<QIODevice*>(&file));
         } else {
             delete m_audioInput;
-            m_audioInput = 0;
+            m_audioInput = nullptr;
             emit error(QMediaRecorder::ResourceError,
                        QStringLiteral("Can't open output location"));
             m_state = QMediaRecorder::StoppedState;
@@ -356,7 +356,7 @@ void AudioCaptureSession::stop()
             file.close();
         }
         delete m_audioInput;
-        m_audioInput = 0;
+        m_audioInput = nullptr;
         setStatus(QMediaRecorder::UnloadedStatus);
     }
 }

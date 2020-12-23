@@ -61,9 +61,7 @@ class QPluginServiceProvider : public QMediaServiceProvider
 {
     struct MediaServiceData {
         QByteArray type;
-        QMediaServiceProviderPlugin *plugin;
-
-        MediaServiceData() : plugin(nullptr) { }
+        QMediaServiceProviderPlugin *plugin = nullptr;
     };
 
     QMap<const QMediaService*, MediaServiceData> mediaServiceData;
@@ -120,7 +118,7 @@ public:
         return QMediaServiceFeaturesInterface::Features();
     }
 
-    QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
+    [[nodiscard]] QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
                                      const QString &mimeType,
                                      const QStringList& codecs,
                                      int flags) const override
@@ -157,7 +155,7 @@ public:
         return supportEstimate;
     }
 
-    QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const override
+    [[nodiscard]] QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const override
     {
         Q_UNUSED(flags);
         QObject *instance = loader()->instance(QLatin1String(serviceType));
@@ -172,7 +170,7 @@ public:
         return {};
     }
 
-    QByteArray defaultDevice(const QByteArray &serviceType) const override
+    [[nodiscard]] QByteArray defaultDevice(const QByteArray &serviceType) const override
     {
         QObject *instance = loader()->instance(QLatin1String(serviceType));
         if (!instance)
@@ -185,7 +183,7 @@ public:
         return QByteArray();
     }
 
-    QList<QByteArray> devices(const QByteArray &serviceType) const override
+    [[nodiscard]] QList<QByteArray> devices(const QByteArray &serviceType) const override
     {
         QObject *instance = loader()->instance(QLatin1String(serviceType));
         if (!instance)
@@ -213,7 +211,7 @@ public:
         return QString();
     }
 
-    QCamera::Position cameraPosition(const QByteArray &device) const override
+    [[nodiscard]] QCamera::Position cameraPosition(const QByteArray &device) const override
     {
         QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA);
         auto *deviceControl = qobject_cast<QVideoDeviceSelectorControl *>(service->requestControl(QVideoDeviceSelectorControl_iid));
@@ -228,7 +226,7 @@ public:
         return pos;
     }
 
-    int cameraOrientation(const QByteArray &device) const override
+    [[nodiscard]] int cameraOrientation(const QByteArray &device) const override
     {
         QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA);
         auto *deviceControl = qobject_cast<QVideoDeviceSelectorControl *>(service->requestControl(QVideoDeviceSelectorControl_iid));

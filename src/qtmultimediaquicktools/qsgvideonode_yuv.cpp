@@ -66,7 +66,7 @@ QSGVideoNode *QSGVideoNodeFactory_YUV::createNode(const QVideoSurfaceFormat &for
     if (supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
         return new QSGVideoNode_YUV(format);
 
-    return 0;
+    return nullptr;
 }
 
 class QSGVideoMaterialRhiShader_YUV : public QSGMaterialShader
@@ -146,7 +146,7 @@ class QSGVideoMaterial_YUV : public QSGMaterial
 public:
     QSGVideoMaterial_YUV(const QVideoSurfaceFormat &format);
 
-    QSGMaterialType *type() const override {
+    [[nodiscard]] QSGMaterialType *type() const override {
         static QSGMaterialType biPlanarType, biPlanarSwizzleType, triPlanarType, uyvyType, yuyvType;
 
         switch (m_format.pixelFormat()) {
@@ -163,7 +163,7 @@ public:
         }
     }
 
-    QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
+    [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         switch (m_format.pixelFormat()) {
         case QVideoFrame::Format_NV12:
             return new QSGVideoMaterialRhiShader_NV12;

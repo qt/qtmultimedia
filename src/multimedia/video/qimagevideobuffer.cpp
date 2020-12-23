@@ -55,12 +55,7 @@ QT_BEGIN_NAMESPACE
 class QImageVideoBufferPrivate : public QAbstractVideoBufferPrivate
 {
 public:
-    QImageVideoBufferPrivate()
-        : mapMode(QAbstractVideoBuffer::NotMapped)
-    {
-    }
-
-    QAbstractVideoBuffer::MapMode mapMode;
+    QAbstractVideoBuffer::MapMode mapMode = QAbstractVideoBuffer::NotMapped;
     QImage image;
 };
 

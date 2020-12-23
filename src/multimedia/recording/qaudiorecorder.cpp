@@ -83,7 +83,7 @@ public:
     {
     }
 
-    ~QAudioRecorderObject()
+    ~QAudioRecorderObject() override
     {
     }
 };
@@ -111,13 +111,8 @@ public:
         }
     }
 
-    QAudioRecorderPrivate():
-        QMediaRecorderPrivate(),
-        provider(nullptr),
-        audioInputSelector(nullptr) {}
-
-    QMediaServiceProvider *provider;
-    QAudioInputSelectorControl   *audioInputSelector;
+    QMediaServiceProvider *provider = nullptr;
+    QAudioInputSelectorControl   *audioInputSelector = nullptr;
 };
 
 

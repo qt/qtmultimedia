@@ -83,7 +83,7 @@ QMediaControl *AudioCaptureService::requestControl(const char *name)
         return probe;
     }
 
-    return 0;
+    return nullptr;
 }
 
 void AudioCaptureService::releaseControl(QMediaControl *control)

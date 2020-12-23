@@ -168,7 +168,7 @@ void QRendererVideoWidgetBackend::releaseControl()
 void QRendererVideoWidgetBackend::clearSurface()
 {
     if (m_rendererControl)
-        m_rendererControl->setSurface(0);
+        m_rendererControl->setSurface(nullptr);
 }
 
 void QRendererVideoWidgetBackend::setBrightness(int brightness)
@@ -461,7 +461,7 @@ void QVideoWidgetPrivate::clearService()
             QLayout *layout = q_func()->layout();
 
             for (QLayoutItem *item = layout->takeAt(0); item; item = layout->takeAt(0)) {
-                item->widget()->setParent(0);
+                item->widget()->setParent(nullptr);
                 delete item;
             }
             delete layout;
@@ -469,23 +469,23 @@ void QVideoWidgetPrivate::clearService()
             widgetBackend->releaseControl();
 
             delete widgetBackend;
-            widgetBackend = 0;
+            widgetBackend = nullptr;
         } else if (rendererBackend) {
             rendererBackend->clearSurface();
             rendererBackend->releaseControl();
 
             delete rendererBackend;
-            rendererBackend = 0;
+            rendererBackend = nullptr;
         } else if (windowBackend) {
             windowBackend->releaseControl();
 
             delete windowBackend;
-            windowBackend = 0;
+            windowBackend = nullptr;
         }
 
-        currentBackend = 0;
-        currentControl = 0;
-        service = 0;
+        currentBackend = nullptr;
+        currentControl = nullptr;
+        service = nullptr;
     }
 }
 
@@ -542,12 +542,12 @@ void QVideoWidgetPrivate::_q_serviceDestroyed()
     delete windowBackend;
     delete rendererBackend;
 
-    widgetBackend = 0;
-    windowBackend = 0;
-    rendererBackend = 0;
-    currentControl = 0;
-    currentBackend = 0;
-    service = 0;
+    widgetBackend = nullptr;
+    windowBackend = nullptr;
+    rendererBackend = nullptr;
+    currentControl = nullptr;
+    currentBackend = nullptr;
+    service = nullptr;
 }
 
 void QVideoWidgetPrivate::_q_brightnessChanged(int b)
@@ -683,15 +683,15 @@ bool QVideoWidget::setMediaObject(QMediaObject *object)
             if (isVisible())
                 d->rendererBackend->showEvent();
         } else {
-            d->service = 0;
-            d->mediaObject = 0;
+            d->service = nullptr;
+            d->mediaObject = nullptr;
 
             return false;
         }
 
         connect(d->service, SIGNAL(destroyed()), SLOT(_q_serviceDestroyed()));
     } else {
-        d->mediaObject = 0;
+        d->mediaObject = nullptr;
 
         return false;
     }
@@ -967,7 +967,7 @@ void QVideoWidget::showEvent(QShowEvent *event)
         d->windowBackend->releaseControl();
 
         delete d->windowBackend;
-        d->windowBackend = 0;
+        d->windowBackend = nullptr;
 
         d->createRendererBackend();
     }

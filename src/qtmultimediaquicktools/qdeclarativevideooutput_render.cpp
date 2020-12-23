@@ -149,7 +149,7 @@ void QDeclarativeVideoRendererBackend::scheduleDeleteFilterResources()
     for (int i = 0; i < m_filters.count(); ++i) {
         if (m_filters[i].runnable) {
             runnables.append(m_filters[i].runnable);
-            m_filters[i].runnable = 0;
+            m_filters[i].runnable = nullptr;
         }
     }
 
@@ -174,7 +174,7 @@ void QDeclarativeVideoRendererBackend::invalidateSceneGraph()
     for (int i = 0; i < m_filters.count(); ++i) {
         if (m_filters[i].runnable) {
             delete m_filters[i].runnable;
-            m_filters[i].runnable = 0;
+            m_filters[i].runnable = nullptr;
         }
     }
 }
@@ -202,10 +202,10 @@ void QDeclarativeVideoRendererBackend::releaseSource()
 void QDeclarativeVideoRendererBackend::releaseControl()
 {
     if (m_rendererControl) {
-        m_rendererControl->setSurface(0);
+        m_rendererControl->setSurface(nullptr);
         if (m_service)
             m_service->releaseControl(m_rendererControl);
-        m_rendererControl = 0;
+        m_rendererControl = nullptr;
     }
 }
 
@@ -324,13 +324,13 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
         if (videoNode && (videoNode->pixelFormat() != m_frame.pixelFormat() || videoNode->handleType() != m_frame.handleType())) {
             qCDebug(qLcVideo) << "updatePaintNode: deleting old video node because frame format changed";
             delete videoNode;
-            videoNode = 0;
+            videoNode = nullptr;
         }
 
         if (!m_frame.isValid()) {
             qCDebug(qLcVideo) << "updatePaintNode: no frames yet";
             m_frameChanged = false;
-            return 0;
+            return nullptr;
         }
 
         if (!videoNode) {
@@ -359,7 +359,7 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     if (!videoNode) {
         m_frameChanged = false;
         m_frame = QVideoFrame();
-        return 0;
+        return nullptr;
     }
 
     // Negative rotations need lots of %360

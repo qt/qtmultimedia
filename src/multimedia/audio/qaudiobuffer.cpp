@@ -134,21 +134,21 @@ public:
             mBuffer = nullptr;
     }
 
-    ~QMemoryAudioBufferProvider()
+    ~QMemoryAudioBufferProvider() override
     {
         if (mBuffer)
             free(mBuffer);
     }
 
     void release() override {delete this;}
-    QAudioFormat format() const override {return mFormat;}
-    qint64 startTime() const override {return mStartTime;}
-    int frameCount() const override {return mFrameCount;}
+    [[nodiscard]] QAudioFormat format() const override {return mFormat;}
+    [[nodiscard]] qint64 startTime() const override {return mStartTime;}
+    [[nodiscard]] int frameCount() const override {return mFrameCount;}
 
-    void *constData() const override {return mBuffer;}
+    [[nodiscard]] void *constData() const override {return mBuffer;}
 
     void *writableData() override {return mBuffer;}
-    QAbstractAudioBuffer *clone() const override
+    [[nodiscard]] QAbstractAudioBuffer *clone() const override
     {
         return new QMemoryAudioBufferProvider(mBuffer, mFrameCount, mFormat, mStartTime);
     }

@@ -52,30 +52,11 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterViewfinderSettingsMetaType)
 class QCameraViewfinderSettingsPrivate  : public QSharedData
 {
 public:
-    QCameraViewfinderSettingsPrivate() :
-        isNull(true),
-        minimumFrameRate(0.0),
-        maximumFrameRate(0.0),
-        pixelFormat(QVideoFrame::Format_Invalid)
-    {
-    }
-
-    QCameraViewfinderSettingsPrivate(const QCameraViewfinderSettingsPrivate &other):
-        QSharedData(other),
-        isNull(other.isNull),
-        resolution(other.resolution),
-        minimumFrameRate(other.minimumFrameRate),
-        maximumFrameRate(other.maximumFrameRate),
-        pixelFormat(other.pixelFormat),
-        pixelAspectRatio(other.pixelAspectRatio)
-    {
-    }
-
-    bool isNull;
+    bool isNull = true;
     QSize resolution;
-    qreal minimumFrameRate;
-    qreal maximumFrameRate;
-    QVideoFrame::PixelFormat pixelFormat;
+    qreal minimumFrameRate = 0.0;
+    qreal maximumFrameRate = 0.0;
+    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
     QSize pixelAspectRatio;
 
 private:

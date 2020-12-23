@@ -225,7 +225,7 @@ void tst_QCamera::testSimpleCameraExposure()
     provider->service = mockSimpleCameraService;
     QCamera camera;
     QCameraExposure *cameraExposure = camera.exposure();
-    QVERIFY(cameraExposure != 0);
+    QVERIFY(cameraExposure != nullptr);
 
     QVERIFY(!cameraExposure->isExposureModeSupported(QCameraExposure::ExposureAuto));
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureAuto);
@@ -270,7 +270,7 @@ void tst_QCamera::testSimpleCameraFocus()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
 
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::AutoFocus));
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::ContinuousFocus));
@@ -531,7 +531,7 @@ void tst_QCamera::testCameraExposure()
     QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure();
-    QVERIFY(cameraExposure != 0);
+    QVERIFY(cameraExposure != nullptr);
 
     QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureAuto));
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureAuto);
@@ -674,7 +674,7 @@ void tst_QCamera::testCameraFocus()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
 
     QVERIFY(cameraFocus->isFocusModeSupported(QCameraFocus::AutoFocus));
     QVERIFY(cameraFocus->isFocusModeSupported(QCameraFocus::ContinuousFocus));
@@ -1149,7 +1149,7 @@ void tst_QCamera::testSupportedViewfinderResolutions_data()
 {
     // see mockcameraviewfindersettingscontrol.h for expected values
 
-    typedef QList<QSize> SizeList;
+    using SizeList = QList<QSize>;
     ViewfinderSettingsBuilder builder;
 
     QTest::addColumn<QCameraViewfinderSettings>("settings");
@@ -1256,7 +1256,7 @@ void tst_QCamera::testSupportedViewfinderFrameRateRanges_data()
 {
     // see mockcameraviewfindersettingscontrol.h for expected values
 
-    typedef QList<QCamera::FrameRateRange> RangeList;
+    using RangeList = QList<QCamera::FrameRateRange>;
     ViewfinderSettingsBuilder builder;
 
     QTest::addColumn<QCameraViewfinderSettings>("settings");
@@ -1335,7 +1335,7 @@ void tst_QCamera::testSupportedViewfinderPixelFormats_data()
 {
     // see mockcameraviewfindersettingscontrol.h for expected values
 
-    typedef QList<QVideoFrame::PixelFormat> FormatList;
+    using FormatList = QList<QVideoFrame::PixelFormat>;
     ViewfinderSettingsBuilder builder;
 
     QTest::addColumn<QCameraViewfinderSettings>("settings");
@@ -1581,7 +1581,7 @@ void tst_QCamera::testSetVideoOutput()
     QCOMPARE(mockCameraService->rendererRef, 1);
 
     camera.setViewfinder(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(mockCameraService->rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
 
     //rendererControl is released
     QCOMPARE(mockCameraService->rendererRef, 0);
@@ -1591,7 +1591,7 @@ void tst_QCamera::testSetVideoOutput()
     QCOMPARE(mockCameraService->rendererRef, 1);
 
     camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(mockCameraService->rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
     //rendererControl is released
     QCOMPARE(mockCameraService->rendererRef, 0);
 
@@ -1605,7 +1605,7 @@ void tst_QCamera::testSetVideoOutputNoService()
 {
     MockVideoSurface surface;
 
-    provider->service = 0;
+    provider->service = nullptr;
     QCamera camera;
 
     camera.setViewfinder(&surface);
@@ -1623,7 +1623,7 @@ void tst_QCamera::testSetVideoOutputNoControl()
     QCamera camera;
 
     camera.setViewfinder(&surface);
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(service.rendererControl->surface() == nullptr);
 }
 
 void tst_QCamera::testSetVideoOutputDestruction()
@@ -1638,7 +1638,7 @@ void tst_QCamera::testSetVideoOutputDestruction()
         QVERIFY(service.rendererControl->surface() == &surface);
         QCOMPARE(service.rendererRef, 1);
     }
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(service.rendererControl->surface() == nullptr);
     QCOMPARE(service.rendererRef, 0);
 }
 
@@ -1667,7 +1667,7 @@ void tst_QCamera::testEnumDebug()
 void tst_QCamera::testCameraControl()
 {
     MockCameraControl *m_cameraControl=new MockCameraControl(this);
-    QVERIFY(m_cameraControl != NULL);
+    QVERIFY(m_cameraControl != nullptr);
 }
 
 void tst_QCamera::testConstructor()
@@ -1822,7 +1822,7 @@ void tst_QCamera::testQCameraIsAvailable()
 
 void tst_QCamera::testQCameraIsNotAvailable()
 {
-    provider->service = 0;
+    provider->service = nullptr;
     QCamera camera("random");
 
     QCOMPARE(camera.error(), QCamera::ServiceMissingError);
@@ -2279,7 +2279,7 @@ void tst_QCamera::testCameraFocusIsAvailable()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
     QVERIFY(cameraFocus->isAvailable());
 }
 
@@ -2290,7 +2290,7 @@ void tst_QCamera::testFocusModes()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::HyperfocalFocus));
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::MacroFocus));
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
@@ -2307,7 +2307,7 @@ void tst_QCamera::testOpticalAndDigitalZoomChanged()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
     QSignalSpy spy1(cameraFocus,SIGNAL(digitalZoomChanged(qreal)));
     QSignalSpy spy2(cameraFocus,SIGNAL(opticalZoomChanged(qreal)));
     QVERIFY(spy1.count() == 0);
@@ -2322,7 +2322,7 @@ void tst_QCamera::testMaxDigitalZoomChangedSignal()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
     QSignalSpy spy(cameraFocus,SIGNAL(maximumDigitalZoomChanged(qreal)));
     QVERIFY(spy.count() == 0);
     cameraFocus->zoomTo(5.0,6.0);
@@ -2334,7 +2334,7 @@ void tst_QCamera::testMaxOpticalZoomChangedSignal()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
     QSignalSpy spy(cameraFocus,SIGNAL(maximumOpticalZoomChanged(qreal)));
     QVERIFY(spy.count() == 0);
     cameraFocus->zoomTo(5.0,6.0);
@@ -2346,7 +2346,7 @@ void tst_QCamera::testfocusZonesChangedSignal()
     QCamera camera;
 
     QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != 0);
+    QVERIFY(cameraFocus != nullptr);
 
     QSignalSpy spy(cameraFocus,SIGNAL(focusZonesChanged()));
     cameraFocus->setCustomFocusPoint(QPointF(0.1, 0.1));
@@ -2365,7 +2365,7 @@ void tst_QCamera::testSignalApertureChanged()
     QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != 0);
+    QVERIFY(cameraExposure != nullptr);
 
     QSignalSpy spyApertureChanged(cameraExposure , SIGNAL(apertureChanged(qreal)));
     QSignalSpy spyApertureRangeChanged(cameraExposure , SIGNAL(apertureRangeChanged()));
@@ -2384,7 +2384,7 @@ void tst_QCamera::testSignalExposureCompensationChanged()
     QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != 0);
+    QVERIFY(cameraExposure != nullptr);
 
     QSignalSpy spyExposureCompensationChanged(cameraExposure , SIGNAL(exposureCompensationChanged(qreal)));
 
@@ -2412,7 +2412,7 @@ void tst_QCamera::testSignalIsoSensitivityChanged()
     QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != 0);
+    QVERIFY(cameraExposure != nullptr);
 
     QSignalSpy spyisoSensitivityChanged(cameraExposure , SIGNAL(isoSensitivityChanged(int)));
 
@@ -2428,7 +2428,7 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != 0);
+    QVERIFY(cameraExposure != nullptr);
 
     QSignalSpy spySignalShutterSpeedChanged(cameraExposure , SIGNAL(shutterSpeedChanged(qreal)));
     QSignalSpy spySignalShutterSpeedRangeChanged(cameraExposure , SIGNAL(shutterSpeedRangeChanged()));
@@ -2447,7 +2447,7 @@ void tst_QCamera::testSignalFlashReady()
     QCamera camera;
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != 0);
+    QVERIFY(cameraExposure != nullptr);
 
 
     QSignalSpy spyflashReady(cameraExposure,SIGNAL(flashReady(bool)));

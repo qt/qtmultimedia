@@ -39,25 +39,25 @@ class MockServicePlugin2 : public QMediaServiceProviderPlugin,
     Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin2.json")
 public:
-    QStringList keys() const
+    [[nodiscard]] QStringList keys() const
     {
         return QStringList() << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER);
     }
 
-    QMediaService* create(QString const& key)
+    QMediaService* create(QString const& key) override
     {
         if (keys().contains(key))
             return new MockMediaService("MockServicePlugin2");
         else
-            return 0;
+            return nullptr;
     }
 
-    void release(QMediaService *service)
+    void release(QMediaService *service) override
     {
         delete service;
     }
 
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    [[nodiscard]] QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const override
     {
         Q_UNUSED(codecs);
 
@@ -67,12 +67,12 @@ public:
         return QMultimedia::NotSupported;
     }
 
-    QStringList supportedMimeTypes() const
+    [[nodiscard]] QStringList supportedMimeTypes() const override
     {
         return QStringList("audio/wav");
     }
 
-    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const
+    [[nodiscard]] QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override
     {
         QMediaServiceFeaturesInterface::Features result;
         if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))

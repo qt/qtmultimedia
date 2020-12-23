@@ -48,8 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 QPulseAudioInterface::QPulseAudioInterface()
-    : QAudioSystemInterface()
-    , m_pulseEngine(QPulseAudioEngine::instance())
+    : m_pulseEngine(QPulseAudioEngine::instance())
 {
 }
 

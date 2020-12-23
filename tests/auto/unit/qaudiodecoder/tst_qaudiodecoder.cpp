@@ -258,7 +258,7 @@ void tst_QAudioDecoder::source()
     QAudioDecoder d;
 
     QVERIFY(d.sourceFilename().isEmpty());
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
 
     QFile f;
     d.setSourceDevice(&f);
@@ -267,19 +267,19 @@ void tst_QAudioDecoder::source()
 
     d.setSourceFilename("Foo");
     QVERIFY(d.sourceFilename() == QString("Foo"));
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
 
-    d.setSourceDevice(0);
+    d.setSourceDevice(nullptr);
     QVERIFY(d.sourceFilename().isEmpty());
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
 
     d.setSourceFilename("Foo");
     QVERIFY(d.sourceFilename() == QString("Foo"));
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
 
     d.setSourceFilename(QString());
     QVERIFY(d.sourceFilename() == QString());
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
 }
 
 void tst_QAudioDecoder::readAll()
@@ -344,9 +344,9 @@ void tst_QAudioDecoder::nullControl()
     QVERIFY(d.sourceFilename().isEmpty());
 
     QFile f;
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
     d.setSourceDevice(&f);
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
 
     QAudioFormat format;
     format.setChannelCount(2);
@@ -370,7 +370,7 @@ void tst_QAudioDecoder::nullControl()
 
 void tst_QAudioDecoder::nullService()
 {
-    mockProvider->service = 0;
+    mockProvider->service = nullptr;
     QAudioDecoder d;
 
     QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
@@ -385,9 +385,9 @@ void tst_QAudioDecoder::nullService()
     QVERIFY(d.sourceFilename().isEmpty());
 
     QFile f;
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
     d.setSourceDevice(&f);
-    QVERIFY(d.sourceDevice() == 0);
+    QVERIFY(d.sourceDevice() == nullptr);
 
     QAudioFormat format;
     format.setChannelCount(2);

@@ -79,14 +79,11 @@ QT_BEGIN_NAMESPACE
 class QCameraInfoPrivate
 {
 public:
-    QCameraInfoPrivate() : isNull(true), position(QCamera::UnspecifiedPosition), orientation(0)
-    { }
-
-    bool isNull;
+    bool isNull = true;
     QString deviceName;
     QString description;
-    QCamera::Position position;
-    int orientation;
+    QCamera::Position position = QCamera::UnspecifiedPosition;
+    int orientation = 0;
 };
 
 /*!

@@ -40,7 +40,7 @@ class tst_QAudioDeviceInfo : public QObject
 {
     Q_OBJECT
 public:
-    tst_QAudioDeviceInfo(QObject* parent=0) : QObject(parent) {}
+    tst_QAudioDeviceInfo(QObject* parent=nullptr) : QObject(parent) {}
 
 private slots:
     void initTestCase();

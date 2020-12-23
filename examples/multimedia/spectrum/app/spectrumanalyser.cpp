@@ -74,7 +74,7 @@ SpectrumAnalyserThread::SpectrumAnalyserThread(QObject *parent)
 {
 #ifdef SPECTRUM_ANALYSER_SEPARATE_THREAD
     // moveToThread() cannot be called on a QObject with a parent
-    setParent(0);
+    setParent(nullptr);
     moveToThread(m_thread);
     m_thread->start();
 #endif

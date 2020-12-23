@@ -35,17 +35,17 @@ class MyVideEncoderControl: public QVideoEncoderSettingsControl
     Q_OBJECT
 
 public:
-    MyVideEncoderControl(QObject *parent = 0 ):QVideoEncoderSettingsControl(parent)
+    MyVideEncoderControl(QObject *parent = nullptr ):QVideoEncoderSettingsControl(parent)
     {
 
     }
 
-    ~MyVideEncoderControl()
+    ~MyVideEncoderControl() override
     {
 
     }
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,bool *continuous = 0) const
+    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,bool *continuous = nullptr) const override
     {
         Q_UNUSED(settings);
         Q_UNUSED(continuous);
@@ -53,7 +53,7 @@ public:
         return (QList<QSize>());
     }
 
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const
+    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = nullptr) const override
     {
         Q_UNUSED(settings);
         Q_UNUSED(continuous);
@@ -62,25 +62,25 @@ public:
 
     }
 
-    QStringList supportedVideoCodecs() const
+    [[nodiscard]] QStringList supportedVideoCodecs() const override
     {
         return QStringList();
 
     }
 
-    QString videoCodecDescription(const QString &codecName) const
+    [[nodiscard]] QString videoCodecDescription(const QString &codecName) const override
     {
         Q_UNUSED(codecName);
         return QString();
 
     }
 
-    QVideoEncoderSettings videoSettings() const
+    [[nodiscard]] QVideoEncoderSettings videoSettings() const override
     {
         return QVideoEncoderSettings();
     }
 
-    void setVideoSettings(const QVideoEncoderSettings &settings)
+    void setVideoSettings(const QVideoEncoderSettings &settings) override
     {
         Q_UNUSED(settings);
     }

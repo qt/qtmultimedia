@@ -54,40 +54,14 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterEncoderSettingsMetaTypes)
 class QAudioEncoderSettingsPrivate  : public QSharedData
 {
 public:
-    QAudioEncoderSettingsPrivate() :
-        isNull(true),
-        encodingMode(QMultimedia::ConstantQualityEncoding),
-        bitrate(-1),
-        sampleRate(-1),
-        channels(-1),
-        quality(QMultimedia::NormalQuality)
-    {
-    }
-
-    QAudioEncoderSettingsPrivate(const QAudioEncoderSettingsPrivate &other):
-        QSharedData(other),
-        isNull(other.isNull),
-        encodingMode(other.encodingMode),
-        codec(other.codec),
-        bitrate(other.bitrate),
-        sampleRate(other.sampleRate),
-        channels(other.channels),
-        quality(other.quality),
-        encodingOptions(other.encodingOptions)
-    {
-    }
-
-    bool isNull;
-    QMultimedia::EncodingMode encodingMode;
+    bool isNull = true;
+    QMultimedia::EncodingMode encodingMode = QMultimedia::ConstantQualityEncoding;
     QString codec;
-    int bitrate;
-    int sampleRate;
-    int channels;
-    QMultimedia::EncodingQuality quality;
+    int bitrate = -1;
+    int sampleRate = -1;
+    int channels = -1;
+    QMultimedia::EncodingQuality quality = QMultimedia::NormalQuality;
     QVariantMap encodingOptions;
-
-private:
-    QAudioEncoderSettingsPrivate& operator=(const QAudioEncoderSettingsPrivate &other);
 };
 
 /*!
@@ -369,39 +343,14 @@ void QAudioEncoderSettings::setEncodingOptions(const QVariantMap &options)
 class QVideoEncoderSettingsPrivate  : public QSharedData
 {
 public:
-    QVideoEncoderSettingsPrivate() :
-        isNull(true),
-        encodingMode(QMultimedia::ConstantQualityEncoding),
-        bitrate(-1),
-        frameRate(0),
-        quality(QMultimedia::NormalQuality)
-    {
-    }
-
-    QVideoEncoderSettingsPrivate(const QVideoEncoderSettingsPrivate &other):
-        QSharedData(other),
-        isNull(other.isNull),
-        encodingMode(other.encodingMode),
-        codec(other.codec),
-        bitrate(other.bitrate),
-        resolution(other.resolution),
-        frameRate(other.frameRate),
-        quality(other.quality),
-        encodingOptions(other.encodingOptions)
-    {
-    }
-
-    bool isNull;
-    QMultimedia::EncodingMode encodingMode;
+    bool isNull = true;
+    QMultimedia::EncodingMode encodingMode = QMultimedia::ConstantQualityEncoding;
     QString codec;
-    int bitrate;
+    int bitrate = -1;
     QSize resolution;
-    qreal frameRate;
-    QMultimedia::EncodingQuality quality;
+    qreal frameRate = 0;
+    QMultimedia::EncodingQuality quality = QMultimedia::NormalQuality;
     QVariantMap encodingOptions;
-
-private:
-    QVideoEncoderSettingsPrivate& operator=(const QVideoEncoderSettingsPrivate &other);
 };
 
 /*!
@@ -702,30 +651,11 @@ void QVideoEncoderSettings::setEncodingOptions(const QVariantMap &options)
 class QImageEncoderSettingsPrivate  : public QSharedData
 {
 public:
-    QImageEncoderSettingsPrivate() :
-        isNull(true),
-        quality(QMultimedia::NormalQuality)
-    {
-    }
-
-    QImageEncoderSettingsPrivate(const QImageEncoderSettingsPrivate &other):
-        QSharedData(other),
-        isNull(other.isNull),
-        codec(other.codec),
-        resolution(other.resolution),
-        quality(other.quality),
-        encodingOptions(other.encodingOptions)
-    {
-    }
-
-    bool isNull;
+    bool isNull = true;
     QString codec;
     QSize resolution;
-    QMultimedia::EncodingQuality quality;
+    QMultimedia::EncodingQuality quality = QMultimedia::NormalQuality;
     QVariantMap encodingOptions;
-
-private:
-    QImageEncoderSettingsPrivate& operator=(const QImageEncoderSettingsPrivate &other);
 };
 
 /*!

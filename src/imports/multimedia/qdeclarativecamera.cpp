@@ -170,8 +170,8 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
  */
 QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     QObject(parent),
-    m_camera(0),
-    m_metaData(0),
+    m_camera(nullptr),
+    m_metaData(nullptr),
     m_pendingState(ActiveState),
     m_componentComplete(false)
 {

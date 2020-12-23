@@ -73,7 +73,7 @@ void tst_QMediaPluginLoader::testInstance()
         QSKIP("No plug-ins available");
 
     for (const QString &key : keys)
-        QVERIFY(loader->instance(key) != 0);
+        QVERIFY(loader->instance(key) != nullptr);
 }
 
 void tst_QMediaPluginLoader::testInstances()
@@ -96,7 +96,7 @@ void tst_QMediaPluginLoader::testInvalidKey()
     if (loader->keys().contains(key))
         QSKIP("a plug-in includes the invalid key");
 
-    QVERIFY(loader->instance(key) == 0);
+    QVERIFY(loader->instance(key) == nullptr);
 
     // Test looking up the key hasn't inserted it into the list. See QMap::operator[].
     QVERIFY(!loader->keys().contains(key));

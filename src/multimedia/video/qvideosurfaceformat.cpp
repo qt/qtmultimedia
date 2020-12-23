@@ -60,16 +60,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterVideoSurfaceFormatMetaTypes)
 class QVideoSurfaceFormatPrivate : public QSharedData
 {
 public:
-    QVideoSurfaceFormatPrivate()
-        : pixelFormat(QVideoFrame::Format_Invalid)
-        , handleType(QAbstractVideoBuffer::NoHandle)
-        , scanLineDirection(QVideoSurfaceFormat::TopToBottom)
-        , pixelAspectRatio(1, 1)
-        , ycbcrColorSpace(QVideoSurfaceFormat::YCbCr_Undefined)
-        , frameRate(0.0)
-        , mirrored(false)
-    {
-    }
+    QVideoSurfaceFormatPrivate() = default;
 
     QVideoSurfaceFormatPrivate(
             const QSize &size,
@@ -77,29 +68,9 @@ public:
             QAbstractVideoBuffer::HandleType type)
         : pixelFormat(format)
         , handleType(type)
-        , scanLineDirection(QVideoSurfaceFormat::TopToBottom)
         , frameSize(size)
         , pixelAspectRatio(1, 1)
-        , ycbcrColorSpace(QVideoSurfaceFormat::YCbCr_Undefined)
         , viewport(QPoint(0, 0), size)
-        , frameRate(0.0)
-        , mirrored(false)
-    {
-    }
-
-    QVideoSurfaceFormatPrivate(const QVideoSurfaceFormatPrivate &other)
-        : QSharedData(other)
-        , pixelFormat(other.pixelFormat)
-        , handleType(other.handleType)
-        , scanLineDirection(other.scanLineDirection)
-        , frameSize(other.frameSize)
-        , pixelAspectRatio(other.pixelAspectRatio)
-        , ycbcrColorSpace(other.ycbcrColorSpace)
-        , viewport(other.viewport)
-        , frameRate(other.frameRate)
-        , mirrored(other.mirrored)
-        , propertyNames(other.propertyNames)
-        , propertyValues(other.propertyValues)
     {
     }
 
@@ -132,15 +103,15 @@ public:
         return qAbs(r1 - r2) <= 0.00001 * qMin(qAbs(r1), qAbs(r2));
     }
 
-    QVideoFrame::PixelFormat pixelFormat;
-    QAbstractVideoBuffer::HandleType handleType;
-    QVideoSurfaceFormat::Direction scanLineDirection;
+    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+    QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle;
+    QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;
     QSize frameSize;
     QSize pixelAspectRatio;
-    QVideoSurfaceFormat::YCbCrColorSpace ycbcrColorSpace;
+    QVideoSurfaceFormat::YCbCrColorSpace ycbcrColorSpace = QVideoSurfaceFormat::YCbCr_Undefined;
     QRect viewport;
-    qreal frameRate;
-    bool mirrored;
+    qreal frameRate = 0.0;
+    bool mirrored = false;
     QList<QByteArray> propertyNames;
     QList<QVariant> propertyValues;
 };

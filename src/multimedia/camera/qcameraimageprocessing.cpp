@@ -100,9 +100,9 @@ public:
         QCameraImageProcessingControl(parent)
     {}
 
-    bool isParameterSupported(ProcessingParameter) const override { return false; }
-    bool isParameterValueSupported(ProcessingParameter, const QVariant &) const override { return false; }
-    QVariant parameter(ProcessingParameter) const override { return QVariant(); }
+    [[nodiscard]] bool isParameterSupported(ProcessingParameter) const override { return false; }
+    [[nodiscard]] bool isParameterValueSupported(ProcessingParameter, const QVariant &) const override { return false; }
+    [[nodiscard]] QVariant parameter(ProcessingParameter) const override { return QVariant(); }
     void setParameter(ProcessingParameter, const QVariant &) override {}
 };
 
@@ -121,7 +121,7 @@ public:
 
 void QCameraImageProcessingPrivate::initControls()
 {
-    imageControl = 0;
+    imageControl = nullptr;
 
     QMediaService *service = camera->service();
     if (service)

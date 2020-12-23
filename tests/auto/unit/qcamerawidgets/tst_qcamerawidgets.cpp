@@ -93,7 +93,7 @@ void tst_QCameraWidgets::init()
 void tst_QCameraWidgets::cleanup()
 {
     delete mockCameraService;
-    provider->service = 0;
+    provider->service = nullptr;
 }
 
 
@@ -225,34 +225,34 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QVERIFY(widget.mediaObject() == &camera);
 
     camera.setViewfinder(&item);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
     QVERIFY(item.mediaObject() == &camera);
 
     camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(item.mediaObject() == 0);
+    QVERIFY(item.mediaObject() == nullptr);
 
     camera.setViewfinder(&widget);
     QVERIFY(widget.mediaObject() == &camera);
 
     camera.setViewfinder(reinterpret_cast<QGraphicsVideoItem *>(0));
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 
     camera.setViewfinder(&surface);
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 
     camera.setViewfinder(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(mockCameraService->rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
 
     camera.setViewfinder(&surface);
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 
     camera.setViewfinder(&widget);
-    QVERIFY(mockCameraService->rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
     QVERIFY(widget.mediaObject() == &camera);
 
     camera.setViewfinder(&surface);
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 }
 
 
@@ -262,14 +262,14 @@ void tst_QCameraWidgets::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    provider->service = 0;
+    provider->service = nullptr;
     QCamera camera;
 
     camera.setViewfinder(&widget);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 
     camera.setViewfinder(&item);
-    QVERIFY(item.mediaObject() == 0);
+    QVERIFY(item.mediaObject() == nullptr);
 
     camera.setViewfinder(&surface);
     // Nothing we can verify here other than it doesn't assert.
@@ -287,13 +287,13 @@ void tst_QCameraWidgets::testSetVideoOutputNoControl()
     QCamera camera;
 
     camera.setViewfinder(&widget);
-    QVERIFY(widget.mediaObject() == 0);
+    QVERIFY(widget.mediaObject() == nullptr);
 
     camera.setViewfinder(&item);
-    QVERIFY(item.mediaObject() == 0);
+    QVERIFY(item.mediaObject() == nullptr);
 
     camera.setViewfinder(&surface);
-    QVERIFY(mockCameraService->rendererControl->surface() == 0);
+    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
 }
 
 QTEST_MAIN(tst_QCameraWidgets)

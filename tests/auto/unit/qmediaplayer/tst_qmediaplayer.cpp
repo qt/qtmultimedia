@@ -211,10 +211,10 @@ void tst_QMediaPlayer::testNullService_data()
 
 void tst_QMediaPlayer::testNullService()
 {
-    mockProvider->service = 0;
+    mockProvider->service = nullptr;
     QMediaPlayer player;
 
-    const QIODevice *nullDevice = 0;
+    const QIODevice *nullDevice = nullptr;
 
     QCOMPARE(player.media(), QMediaContent());
     QCOMPARE(player.mediaStream(), nullDevice);
@@ -960,7 +960,7 @@ void tst_QMediaPlayer::testPlaylist()
         QCOMPARE(player->currentMedia(), content1);
     } //playlist should be detached now
 
-    QVERIFY(player->playlist() == 0);
+    QVERIFY(player->playlist() == nullptr);
     QCOMPARE(player->currentMedia(), QMediaContent());
 
     // Test when the player service encounters an invalid media, the player moves onto
@@ -1009,7 +1009,7 @@ void tst_QMediaPlayer::testDestructor()
     delete victim;
 
     //service is released
-    QVERIFY(mockProvider->service == 0);
+    QVERIFY(mockProvider->service == nullptr);
 
     mockProvider->deleteServiceOnRelease = false;
 }
@@ -1028,7 +1028,7 @@ void tst_QMediaPlayer::testSetVideoOutput()
     QCOMPARE(mockService->rendererRef, 1);
 
     player->setVideoOutput(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(mockService->rendererControl->surface() == 0);
+    QVERIFY(mockService->rendererControl->surface() == nullptr);
 
     //rendererControl is released
     QCOMPARE(mockService->rendererRef, 0);
@@ -1038,7 +1038,7 @@ void tst_QMediaPlayer::testSetVideoOutput()
     QCOMPARE(mockService->rendererRef, 1);
 
     player->setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
-    QVERIFY(mockService->rendererControl->surface() == 0);
+    QVERIFY(mockService->rendererControl->surface() == nullptr);
     //rendererControl is released
     QCOMPARE(mockService->rendererRef, 0);
 
@@ -1052,7 +1052,7 @@ void tst_QMediaPlayer::testSetVideoOutputNoService()
 {
     MockVideoSurface surface;
 
-    MockMediaServiceProvider provider(0, true);
+    MockMediaServiceProvider provider(nullptr, true);
     QMediaServiceProvider::setDefaultServiceProvider(&provider);
     QMediaPlayer player;
 
@@ -1072,7 +1072,7 @@ void tst_QMediaPlayer::testSetVideoOutputNoControl()
     QMediaPlayer player;
 
     player.setVideoOutput(&surface);
-    QVERIFY(service.rendererControl->surface() == 0);
+    QVERIFY(service.rendererControl->surface() == nullptr);
 }
 
 void tst_QMediaPlayer::testSetVideoOutputDestruction()
@@ -1084,7 +1084,7 @@ void tst_QMediaPlayer::testSetVideoOutputDestruction()
         QVERIFY(mockService->rendererControl->surface() == &surface);
         QCOMPARE(mockService->rendererRef, 1);
     }
-    QVERIFY(mockService->rendererControl->surface() == 0);
+    QVERIFY(mockService->rendererControl->surface() == nullptr);
     QCOMPARE(mockService->rendererRef, 0);
 }
 

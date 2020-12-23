@@ -110,15 +110,15 @@ public:
     void setSupportedFormats(const QList<QVideoFrame::PixelFormat>& formats) { m_supported = formats; }
 
     //video surface
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const;
+    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override;
 
-    bool start(const QVideoSurfaceFormat &format);
-    void stop();
-    bool present(const QVideoFrame &frame);
+    bool start(const QVideoSurfaceFormat &format) override;
+    void stop() override;
+    bool present(const QVideoFrame &frame) override;
 
     QList<QVideoFrame> m_frameList;
-    int m_totalFrames; // used instead of the list when frames are not stored
+    int m_totalFrames = 0; // used instead of the list when frames are not stored
 
 private:
     bool m_storeFrames;
@@ -130,11 +130,9 @@ class ProbeDataHandler : public QObject
     Q_OBJECT
 
 public:
-    ProbeDataHandler() : isVideoFlushCalled(false) { }
-
     QList<QVideoFrame> m_frameList;
     QList<QAudioBuffer> m_bufferList;
-    bool isVideoFlushCalled;
+    bool isVideoFlushCalled = false;
 
 public slots:
     void processFrame(const QVideoFrame&);
@@ -601,7 +599,7 @@ private slots:
     {
         if (status == QMediaPlayer::EndOfMedia) {
             player-> deleteLater();
-            player = 0;
+            player = nullptr;
         }
     }
 
@@ -1486,9 +1484,8 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
 }
 
-TestVideoSurface::TestVideoSurface(bool storeFrames):
-    m_totalFrames(0),
-    m_storeFrames(storeFrames)
+TestVideoSurface::TestVideoSurface(bool storeFrames)
+    : m_storeFrames(storeFrames)
 {
     // set default formats
     m_supported << QVideoFrame::Format_RGB32

@@ -79,16 +79,11 @@ Q_DECLARE_METATYPE(Qt::AspectRatioMode)
 class QtTestRendererControl : public QVideoRendererControl
 {
 public:
-    QtTestRendererControl()
-        : m_surface(0)
-    {
-    }
-
-    QAbstractVideoSurface *surface() const { return m_surface; }
-    void setSurface(QAbstractVideoSurface *surface) { m_surface = surface; }
+    [[nodiscard]] QAbstractVideoSurface *surface() const override { return m_surface; }
+    void setSurface(QAbstractVideoSurface *surface) override { m_surface = surface; }
 
 private:
-    QAbstractVideoSurface *m_surface;
+    QAbstractVideoSurface *m_surface = nullptr;
 };
 
 class QtTestVideoService : public QMediaService
@@ -97,29 +92,29 @@ class QtTestVideoService : public QMediaService
 public:
     QtTestVideoService(
             QtTestRendererControl *renderer)
-        : QMediaService(0)
+        : QMediaService(nullptr)
         , rendererRef(0)
         , rendererControl(renderer)
     {
     }
 
-    ~QtTestVideoService()
+    ~QtTestVideoService() override
     {
         delete rendererControl;
     }
 
-    QMediaControl *requestControl(const char *name)
+    QMediaControl *requestControl(const char *name) override
     {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0 && rendererControl) {
             rendererRef += 1;
 
             return rendererControl;
         } else {
-            return 0;
+            return nullptr;
         }
     }
 
-    void releaseControl(QMediaControl *control)
+    void releaseControl(QMediaControl *control) override
     {
         Q_ASSERT(control);
 
@@ -127,7 +122,7 @@ public:
             rendererRef -= 1;
 
             if (rendererRef == 0)
-                rendererControl->setSurface(0);
+                rendererControl->setSurface(nullptr);
         }
     }
 
@@ -140,18 +135,18 @@ class QtTestVideoObject : public QMediaObject
     Q_OBJECT
 public:
     QtTestVideoObject(QtTestRendererControl *renderer)
-        : QMediaObject(0, new QtTestVideoService(renderer))
+        : QMediaObject(nullptr, new QtTestVideoService(renderer))
     {
         testService = qobject_cast<QtTestVideoService*>(service());
     }
 
     QtTestVideoObject(QtTestVideoService *service):
-        QMediaObject(0, service),
+        QMediaObject(nullptr, service),
         testService(service)
     {
     }
 
-    ~QtTestVideoObject()
+    ~QtTestVideoObject() override
     {
         delete testService;
     }
@@ -162,13 +157,12 @@ public:
 class QtTestGraphicsVideoItem : public QGraphicsVideoItem
 {
 public:
-    QtTestGraphicsVideoItem(QGraphicsItem *parent = 0)
+    QtTestGraphicsVideoItem(QGraphicsItem *parent = nullptr)
         : QGraphicsVideoItem(parent)
-        , m_paintCount(0)
     {
     }
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
     {
         ++m_paintCount;
 
@@ -186,13 +180,13 @@ public:
         return m_paintCount != paintCount;
     }
 
-    int paintCount() const
+    [[nodiscard]] int paintCount() const
     {
         return m_paintCount;
     }
 
 private:
-    int m_paintCount;
+    int m_paintCount = 0;
 };
 
 void tst_QGraphicsVideoItem::initTestCase()
@@ -202,14 +196,14 @@ void tst_QGraphicsVideoItem::initTestCase()
 
 void tst_QGraphicsVideoItem::nullObject()
 {
-    QGraphicsVideoItem item(0);
+    QGraphicsVideoItem item(nullptr);
 
     QVERIFY(item.boundingRect().isEmpty());
 }
 
 void tst_QGraphicsVideoItem::nullService()
 {
-    QtTestVideoService *service = 0;
+    QtTestVideoService *service = nullptr;
 
     QtTestVideoObject object(service);
 
@@ -229,7 +223,7 @@ void tst_QGraphicsVideoItem::nullService()
 
 void tst_QGraphicsVideoItem::noOutputs()
 {
-    QtTestRendererControl *control = 0;
+    QtTestRendererControl *control = nullptr;
     QtTestVideoObject object(control);
 
     QtTestGraphicsVideoItem *item = new QtTestGraphicsVideoItem;
@@ -256,7 +250,7 @@ void tst_QGraphicsVideoItem::serviceDestroyed()
     QCOMPARE(object.testService->rendererRef, 1);
 
     QtTestVideoService *service = object.testService;
-    object.testService = 0;
+    object.testService = nullptr;
 
     delete service;
 
@@ -274,7 +268,7 @@ void tst_QGraphicsVideoItem::mediaObjectDestroyed()
     QCOMPARE(object->testService->rendererRef, 1);
 
     delete object;
-    object = 0;
+    object = nullptr;
 
     QCOMPARE(item.mediaObject(), static_cast<QMediaObject *>(object));
     QVERIFY(item.boundingRect().isEmpty());
@@ -282,7 +276,7 @@ void tst_QGraphicsVideoItem::mediaObjectDestroyed()
 
 void tst_QGraphicsVideoItem::setMediaObject()
 {
-    QMediaObject *nullObject = 0;
+    QMediaObject *nullObject = nullptr;
     QtTestVideoObject object(new QtTestRendererControl);
 
     QGraphicsVideoItem item;
@@ -293,28 +287,28 @@ void tst_QGraphicsVideoItem::setMediaObject()
     object.bind(&item);
     QCOMPARE(item.mediaObject(), static_cast<QMediaObject *>(&object));
     QCOMPARE(object.testService->rendererRef, 1);
-    QVERIFY(object.testService->rendererControl->surface() == 0);
+    QVERIFY(object.testService->rendererControl->surface() == nullptr);
 
     {   // Surface setup is deferred until after the first paint.
         QImage image(320, 240, QImage::Format_RGB32);
         QPainter painter(&image);
 
-        item.paint(&painter, 0);
+        item.paint(&painter, nullptr);
     }
-    QVERIFY(object.testService->rendererControl->surface() != 0);
+    QVERIFY(object.testService->rendererControl->surface() != nullptr);
 
     object.unbind(&item);
     QCOMPARE(item.mediaObject(), nullObject);
 
     QCOMPARE(object.testService->rendererRef, 0);
-    QVERIFY(object.testService->rendererControl->surface() == 0);
+    QVERIFY(object.testService->rendererControl->surface() == nullptr);
 
     item.setVisible(false);
 
     object.bind(&item);
     QCOMPARE(item.mediaObject(), static_cast<QMediaObject *>(&object));
     QCOMPARE(object.testService->rendererRef, 1);
-    QVERIFY(object.testService->rendererControl->surface() != 0);
+    QVERIFY(object.testService->rendererControl->surface() != nullptr);
 }
 
 void tst_QGraphicsVideoItem::show()
@@ -325,14 +319,14 @@ void tst_QGraphicsVideoItem::show()
 
     // Graphics items are visible by default
     QCOMPARE(object.testService->rendererRef, 1);
-    QVERIFY(object.testService->rendererControl->surface() == 0);
+    QVERIFY(object.testService->rendererControl->surface() == nullptr);
 
     item->hide();
     QCOMPARE(object.testService->rendererRef, 1);
 
     item->show();
     QCOMPARE(object.testService->rendererRef, 1);
-    QVERIFY(object.testService->rendererControl->surface() == 0);
+    QVERIFY(object.testService->rendererControl->surface() == nullptr);
 
     QGraphicsScene graphicsScene;
     graphicsScene.addItem(item);
@@ -340,7 +334,7 @@ void tst_QGraphicsVideoItem::show()
     graphicsView.show();
 
     QVERIFY(item->paintCount() || item->waitForPaint(1));
-    QVERIFY(object.testService->rendererControl->surface() != 0);
+    QVERIFY(object.testService->rendererControl->surface() != nullptr);
 
     QVERIFY(item->boundingRect().isEmpty());
 
@@ -457,9 +451,9 @@ void tst_QGraphicsVideoItem::nativeSize()
         QImage image(320, 240, QImage::Format_RGB32);
         QPainter painter(&image);
 
-        item.paint(&painter, 0);
+        item.paint(&painter, nullptr);
     }
-    QVERIFY(object.testService->rendererControl->surface() != 0);
+    QVERIFY(object.testService->rendererControl->surface() != nullptr);
     QVERIFY(object.testService->rendererControl->surface()->start(format));
 
     QCoreApplication::processEvents();
@@ -598,9 +592,9 @@ void tst_QGraphicsVideoItem::boundingRect()
         QImage image(320, 240, QImage::Format_RGB32);
         QPainter painter(&image);
 
-        item.paint(&painter, 0);
+        item.paint(&painter, nullptr);
     }
-    QVERIFY(object.testService->rendererControl->surface() != 0);
+    QVERIFY(object.testService->rendererControl->surface() != nullptr);
     QVERIFY(object.testService->rendererControl->surface()->start(format));
 
     QCoreApplication::processEvents();

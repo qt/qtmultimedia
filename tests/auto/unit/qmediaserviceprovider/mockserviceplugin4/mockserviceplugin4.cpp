@@ -39,25 +39,25 @@ class MockServicePlugin4 : public QMediaServiceProviderPlugin,
     Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin4.json")
 public:
-    QStringList keys() const
+    [[nodiscard]] QStringList keys() const
     {
         return QStringList() << QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER);
     }
 
-    QMediaService* create(QString const& key)
+    QMediaService* create(QString const& key) override
     {
         if (keys().contains(key))
             return new MockMediaService("MockServicePlugin4");
         else
-            return 0;
+            return nullptr;
     }
 
-    void release(QMediaService *service)
+    void release(QMediaService *service) override
     {
         delete service;
     }
 
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const
+    [[nodiscard]] QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const override
     {
         if (codecs.contains(QLatin1String("jpeg2000")))
             return QMultimedia::NotSupported;
@@ -68,12 +68,12 @@ public:
         return QMultimedia::MaybeSupported;
     }
 
-    QStringList supportedMimeTypes() const
+    [[nodiscard]] QStringList supportedMimeTypes() const override
     {
         return QStringList() << "video/mp4" << "video/quicktime";
     }
 
-    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const
+    [[nodiscard]] QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override
     {
         QMediaServiceFeaturesInterface::Features result;
         if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))
