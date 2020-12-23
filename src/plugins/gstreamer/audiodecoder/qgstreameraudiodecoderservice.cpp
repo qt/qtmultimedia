@@ -55,7 +55,7 @@ QGstreamerAudioDecoderService::~QGstreamerAudioDecoderService()
 {
 }
 
-QMediaControl *QGstreamerAudioDecoderService::requestControl(const char *name)
+QObject *QGstreamerAudioDecoderService::requestControl(const char *name)
 {
     if (qstrcmp(name, QAudioDecoderControl_iid) == 0)
         return m_control;
@@ -63,7 +63,7 @@ QMediaControl *QGstreamerAudioDecoderService::requestControl(const char *name)
     return 0;
 }
 
-void QGstreamerAudioDecoderService::releaseControl(QMediaControl *control)
+void QGstreamerAudioDecoderService::releaseControl(QObject *control)
 {
     Q_UNUSED(control);
 }

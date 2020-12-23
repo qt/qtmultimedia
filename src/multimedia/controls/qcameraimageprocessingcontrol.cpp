@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include <qcameraimageprocessingcontrol.h>
-#include  "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -96,8 +95,8 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingControlMetaTypes)
     Constructs an image processing control object with \a parent.
 */
 
-QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent):
-    QMediaControl(*new QMediaControlPrivate, parent)
+QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
+    : QObject(parent)
 {
 }
 

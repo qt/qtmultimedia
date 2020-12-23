@@ -105,7 +105,7 @@ bool QDeclarativeVideoRendererBackend::init(QMediaService *service)
     if (!service)
         return true;
 
-    if (QMediaControl *control = service->requestControl(QVideoRendererControl_iid)) {
+    if (QObject *control = service->requestControl(QVideoRendererControl_iid)) {
         if ((m_rendererControl = qobject_cast<QVideoRendererControl *>(control))) {
             m_rendererControl->setSurface(m_surface);
             m_service = service;

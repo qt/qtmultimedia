@@ -39,8 +39,8 @@ public:
     { setObjectName(name); }
     ~MockMediaService() {}
 
-    QMediaControl* requestControl(const char *) {return 0;}
-    void releaseControl(QMediaControl *) {}
+    QObject *requestControl(const char *) {return 0;}
+    void releaseControl(QObject *) {}
 };
 
 #endif // MOCKSERVICE_H

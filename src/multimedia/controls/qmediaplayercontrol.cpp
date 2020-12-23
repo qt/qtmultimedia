@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qmediaplayercontrol.h"
-#include "qmediacontrol_p.h"
 #include "qmediaplayer.h"
 
 QT_BEGIN_NAMESPACE
@@ -93,8 +92,8 @@ QMediaPlayerControl::~QMediaPlayerControl()
 /*!
     Constructs a new media player control with the given \a parent.
 */
-QMediaPlayerControl::QMediaPlayerControl(QObject *parent):
-    QMediaControl(*new QMediaControlPrivate, parent)
+QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
+    : QObject(parent)
 {
 }
 

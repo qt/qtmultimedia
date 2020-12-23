@@ -67,8 +67,8 @@ public:
     MFPlayerService(QObject *parent = 0);
     ~MFPlayerService();
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QObject *requestControl(const char *name);
+    void releaseControl(QObject *control);
 
     MFAudioEndpointControl* audioEndpointControl() const;
     MFVideoRendererControl* videoRendererControl() const;

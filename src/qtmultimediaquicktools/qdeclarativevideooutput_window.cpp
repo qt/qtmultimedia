@@ -59,7 +59,7 @@ QDeclarativeVideoWindowBackend::~QDeclarativeVideoWindowBackend()
 
 bool QDeclarativeVideoWindowBackend::init(QMediaService *service)
 {
-    if (QMediaControl *control = service->requestControl(QVideoWindowControl_iid)) {
+    if (QObject *control = service->requestControl(QVideoWindowControl_iid)) {
         if ((m_videoWindowControl = qobject_cast<QVideoWindowControl *>(control))) {
             if (q->window())
                 m_videoWindowControl->setWinId(q->window()->winId());

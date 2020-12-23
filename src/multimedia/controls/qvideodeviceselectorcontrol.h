@@ -40,7 +40,7 @@
 #ifndef QVIDEODEVICESELECTORCONTROL_H
 #define QVIDEODEVICESELECTORCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QVideoDeviceSelectorControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QVideoDeviceSelectorControl : public QObject
 {
     Q_OBJECT
 

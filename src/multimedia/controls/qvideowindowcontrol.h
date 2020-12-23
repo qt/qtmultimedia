@@ -40,7 +40,7 @@
 #ifndef QVIDEOWINDOWCONTROL_H
 #define QVIDEOWINDOWCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qwindowdefs.h>
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QVideoWindowControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QVideoWindowControl : public QObject
 {
     Q_OBJECT
 

@@ -40,6 +40,7 @@
 #include "avfmediacontainercontrol.h"
 
 #include <AVFoundation/AVMediaFormat.h>
+#include <QtCore/qmap.h>
 
 QT_BEGIN_NAMESPACE
 

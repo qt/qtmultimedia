@@ -128,7 +128,7 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraSession;
 }
 
-QMediaControl *QAndroidCaptureService::requestControl(const char *name)
+QObject *QAndroidCaptureService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaRecorderControl_iid) == 0)
         return m_recorderControl;
@@ -190,7 +190,7 @@ QMediaControl *QAndroidCaptureService::requestControl(const char *name)
     return 0;
 }
 
-void QAndroidCaptureService::releaseControl(QMediaControl *control)
+void QAndroidCaptureService::releaseControl(QObject *control)
 {
     if (control) {
         if (control == m_videoRendererControl) {

@@ -62,7 +62,7 @@ public:
         delete windowControl;
     }
 
-    QMediaControl* requestControl(const char *iid)
+    QObject *requestControl(const char *iid)
     {
         if (qstrcmp(iid, QMediaPlayerControl_iid) == 0) {
             return mockControl;
@@ -84,7 +84,7 @@ public:
         return 0;
     }
 
-    void releaseControl(QMediaControl *control)
+    void releaseControl(QObject *control)
     {
         if (control == rendererControl)
             rendererRef -= 1;

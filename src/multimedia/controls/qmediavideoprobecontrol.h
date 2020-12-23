@@ -42,12 +42,12 @@
 #ifndef QMEDIAVIDEOPROBECONTROL_H
 #define QMEDIAVIDEOPROBECONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
-class Q_MULTIMEDIA_EXPORT QMediaVideoProbeControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QMediaVideoProbeControl : public QObject
 {
     Q_OBJECT
 public:

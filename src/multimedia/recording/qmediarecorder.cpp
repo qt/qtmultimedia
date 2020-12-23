@@ -328,7 +328,7 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
                 d->audioControl = qobject_cast<QAudioEncoderSettingsControl *>(service->requestControl(QAudioEncoderSettingsControl_iid));
                 d->videoControl = qobject_cast<QVideoEncoderSettingsControl *>(service->requestControl(QVideoEncoderSettingsControl_iid));
 
-                QMediaControl *control = service->requestControl(QMetaDataWriterControl_iid);
+                QObject *control = service->requestControl(QMetaDataWriterControl_iid);
                 if (control) {
                     d->metaDataControl = qobject_cast<QMetaDataWriterControl *>(control);
                     if (!d->metaDataControl) {

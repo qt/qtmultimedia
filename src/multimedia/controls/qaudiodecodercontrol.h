@@ -40,7 +40,7 @@
 #ifndef QAUDIODECODERCONTROL_H
 #define QAUDIODECODERCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qaudiodecoder.h>
 
 #include <QtCore/qpair.h>
@@ -50,7 +50,7 @@
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
-class Q_MULTIMEDIA_EXPORT QAudioDecoderControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QAudioDecoderControl : public QObject
 {
     Q_OBJECT
 

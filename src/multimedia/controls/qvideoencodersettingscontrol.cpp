@@ -83,7 +83,7 @@ QT_BEGIN_NAMESPACE
     Create a new video encoder settings control object with the given \a parent.
 */
 QVideoEncoderSettingsControl::QVideoEncoderSettingsControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

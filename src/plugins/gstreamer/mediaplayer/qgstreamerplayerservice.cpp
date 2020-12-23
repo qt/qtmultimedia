@@ -97,7 +97,7 @@ QGstreamerPlayerService::~QGstreamerPlayerService()
 {
 }
 
-QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
+QObject *QGstreamerPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name,QMediaPlayerControl_iid) == 0)
         return m_control;
@@ -147,7 +147,7 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
     return 0;
 }
 
-void QGstreamerPlayerService::releaseControl(QMediaControl *control)
+void QGstreamerPlayerService::releaseControl(QObject *control)
 {
     if (!control)
         return;

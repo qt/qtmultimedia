@@ -42,7 +42,7 @@
 #ifndef QCAMERAVIEWFINDERSETTINGSCONTROL_H
 #define QCAMERAVIEWFINDERSETTINGSCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl : public QObject
 {
     Q_OBJECT
 public:
@@ -80,7 +80,7 @@ Q_MEDIA_DECLARE_CONTROL(QCameraViewfinderSettingsControl, QCameraViewfinderSetti
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl2 : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl2 : public QObject
 {
     Q_OBJECT
 public:

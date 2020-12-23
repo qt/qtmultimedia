@@ -56,8 +56,8 @@ public:
     explicit MmRendererMediaPlayerService(QObject *parent = 0);
     ~MmRendererMediaPlayerService();
 
-    QMediaControl *requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QObject *requestControl(const char *name) override;
+    void releaseControl(QObject *control) override;
 
 private:
     void updateControls();

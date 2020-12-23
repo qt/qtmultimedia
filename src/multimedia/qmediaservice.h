@@ -44,10 +44,12 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qstringlist.h>
 
-#include <QtMultimedia/qmediacontrol.h>
-
 QT_BEGIN_NAMESPACE
 
+template <typename T> const char *qmediacontrol_iid() { return nullptr; }
+
+#define Q_MEDIA_DECLARE_CONTROL(Class, IId) \
+    template <> inline const char *qmediacontrol_iid<Class *>() { return IId; }
 
 class QMediaServicePrivate;
 class Q_MULTIMEDIA_EXPORT QMediaService : public QObject
@@ -57,10 +59,10 @@ class Q_MULTIMEDIA_EXPORT QMediaService : public QObject
 public:
     ~QMediaService();
 
-    virtual QMediaControl* requestControl(const char *name) = 0;
+    virtual QObject* requestControl(const char *name) = 0;
 
     template <typename T> inline T requestControl() {
-        if (QMediaControl *control = requestControl(qmediacontrol_iid<T>())) {
+        if (QObject *control = requestControl(qmediacontrol_iid<T>())) {
             if (T typedControl = qobject_cast<T>(control))
                 return typedControl;
             releaseControl(control);
@@ -68,7 +70,7 @@ public:
         return 0;
     }
 
-    virtual void releaseControl(QMediaControl *control) = 0;
+    virtual void releaseControl(QObject *control) = 0;
 
 protected:
     QMediaService(QObject* parent);

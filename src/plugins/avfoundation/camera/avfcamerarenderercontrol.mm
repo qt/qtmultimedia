@@ -43,6 +43,7 @@
 #include "avfcamerasession.h"
 #include "avfcameraservice.h"
 #include "avfcameradebug.h"
+#include "avfcameracontrol.h"
 
 #ifdef Q_OS_IOS
 #include <QtGui/qopengl.h>

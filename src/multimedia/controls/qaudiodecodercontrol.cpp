@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 
-#include "qmediacontrol_p.h"
 #include "qaudiodecodercontrol.h"
 
 QT_BEGIN_NAMESPACE
@@ -85,8 +84,8 @@ QAudioDecoderControl::~QAudioDecoderControl()
 /*!
     Constructs a new audio decoder control with the given \a parent.
 */
-QAudioDecoderControl::QAudioDecoderControl(QObject *parent):
-    QMediaControl(*new QMediaControlPrivate, parent)
+QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
+    : QObject(parent)
 {
 }
 

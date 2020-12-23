@@ -66,7 +66,7 @@ QAndroidMediaService::~QAndroidMediaService()
     delete mMediaControl;
 }
 
-QMediaControl *QAndroidMediaService::requestControl(const char *name)
+QObject *QAndroidMediaService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
         return mMediaControl;
@@ -84,7 +84,7 @@ QMediaControl *QAndroidMediaService::requestControl(const char *name)
     return 0;
 }
 
-void QAndroidMediaService::releaseControl(QMediaControl *control)
+void QAndroidMediaService::releaseControl(QObject *control)
 {
     if (control == mVideoRendererControl) {
         delete mVideoRendererControl;

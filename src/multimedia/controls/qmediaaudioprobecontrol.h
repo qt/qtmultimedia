@@ -40,12 +40,12 @@
 #ifndef QMEDIAAUDIOPROBECONTROL_H
 #define QMEDIAAUDIOPROBECONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAudioBuffer;
-class Q_MULTIMEDIA_EXPORT QMediaAudioProbeControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QMediaAudioProbeControl : public QObject
 {
     Q_OBJECT
 public:

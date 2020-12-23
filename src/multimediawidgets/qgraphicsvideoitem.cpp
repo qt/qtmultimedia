@@ -258,7 +258,7 @@ bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
         d->service = d->mediaObject->service();
 
         if (d->service) {
-            QMediaControl *control = d->service->requestControl(QVideoRendererControl_iid);
+            QObject *control = d->service->requestControl(QVideoRendererControl_iid);
             if (control) {
                 d->rendererControl = qobject_cast<QVideoRendererControl *>(control);
 

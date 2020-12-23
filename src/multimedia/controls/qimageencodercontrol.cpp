@@ -79,7 +79,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new image encoder control object with the given \a parent
 */
 QImageEncoderControl::QImageEncoderControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

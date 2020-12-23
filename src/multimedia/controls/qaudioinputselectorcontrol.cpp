@@ -73,7 +73,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new audio input selector control with the given \a parent.
 */
 QAudioInputSelectorControl::QAudioInputSelectorControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

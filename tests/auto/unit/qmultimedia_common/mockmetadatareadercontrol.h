@@ -30,6 +30,8 @@
 #define MOCKMETADATAREADERCONTROL_H
 
 #include "qmetadatareadercontrol.h"
+#include <qmap.h>
+#include <qvariant.h>
 
 class MockMetaDataReaderControl : public QMetaDataReaderControl
 {

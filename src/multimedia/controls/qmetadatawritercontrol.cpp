@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 
-#include "qmediacontrol_p.h"
 #include <qmetadatawritercontrol.h>
 
 QT_BEGIN_NAMESPACE
@@ -87,8 +86,8 @@ QT_BEGIN_NAMESPACE
     for service specific meta data providers so this constructor is protected.
 */
 
-QMetaDataWriterControl::QMetaDataWriterControl(QObject *parent):
-    QMediaControl(*new QMediaControlPrivate, parent)
+QMetaDataWriterControl::QMetaDataWriterControl(QObject *parent)
+    : QObject(parent)
 {
 }
 

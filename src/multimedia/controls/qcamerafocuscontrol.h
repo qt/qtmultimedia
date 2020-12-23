@@ -40,7 +40,7 @@
 #ifndef QCAMERAFOCUSCONTROL_H
 #define QCAMERAFOCUSCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaobject.h>
 
 #include <QtMultimedia/qcamerafocus.h>
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraFocusControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QCameraFocusControl : public QObject
 {
     Q_OBJECT
 

@@ -68,8 +68,8 @@ public:
     QGstreamerPlayerService(QObject *parent = 0);
     ~QGstreamerPlayerService();
 
-    QMediaControl *requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QObject *requestControl(const char *name) override;
+    void releaseControl(QObject *control) override;
 
 private:
     QGstreamerPlayerControl *m_control = nullptr;
@@ -80,8 +80,8 @@ private:
     QGstreamerAudioProbeControl *m_audioProbeControl = nullptr;
     QGstreamerVideoProbeControl *m_videoProbeControl = nullptr;
 
-    QMediaControl *m_videoOutput = nullptr;
-    QMediaControl *m_videoRenderer = nullptr;
+    QObject *m_videoOutput = nullptr;
+    QObject *m_videoRenderer = nullptr;
     QGstreamerVideoWindow *m_videoWindow = nullptr;
 #if defined(HAVE_WIDGETS)
     QGstreamerVideoWidgetControl *m_videoWidget = nullptr;

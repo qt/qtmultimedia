@@ -31,6 +31,7 @@
 
 #include <QObject>
 #include <QMap>
+#include <qvariant.h>
 
 #include "qmetadatawritercontrol.h"
 

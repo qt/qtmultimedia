@@ -41,6 +41,7 @@
 #define QGSTREAMERMETADATAPROVIDER_H
 
 #include <qmetadatareadercontrol.h>
+#include <qvariant.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -41,7 +41,7 @@
 #define QVIDEOWIDGETCONTROL_H
 
 #include <QtMultimediaWidgets/qvideowidget.h>
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 
 #include <QtWidgets/qwidget.h>
 
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 class QVideoWidgetControlPrivate;
 
-class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidgetControl : public QMediaControl
+class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidgetControl : public QObject
 {
     Q_OBJECT
 

@@ -41,6 +41,8 @@
 #define CAMERABINCAPTUREMETADATACONTROL_H
 
 #include <qmetadatawritercontrol.h>
+#include <qmap.h>
+#include <qvariant.h>
 
 QT_BEGIN_NAMESPACE
 

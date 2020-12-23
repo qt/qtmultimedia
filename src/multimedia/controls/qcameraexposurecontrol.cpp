@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include <qcameraexposurecontrol.h>
-#include  "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -79,8 +78,8 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a camera exposure control object with \a parent.
 */
-QCameraExposureControl::QCameraExposureControl(QObject *parent):
-    QMediaControl(*new QMediaControlPrivate, parent)
+QCameraExposureControl::QCameraExposureControl(QObject *parent)
+    : QObject(parent)
 {
 }
 

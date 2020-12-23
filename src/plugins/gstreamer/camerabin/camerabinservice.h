@@ -71,8 +71,8 @@ public:
     CameraBinService(GstElementFactory *sourceFactory, QObject *parent = 0);
     virtual ~CameraBinService();
 
-    QMediaControl *requestControl(const char *name) override;
-    void releaseControl(QMediaControl *) override;
+    QObject *requestControl(const char *name) override;
+    void releaseControl(QObject *) override;
 
     static bool isCameraBinAvailable();
 
@@ -85,9 +85,9 @@ private:
     QAudioInputSelectorControl *m_audioInputSelector;
     QVideoDeviceSelectorControl *m_videoInputDevice;
 
-    QMediaControl *m_videoOutput;
+    QObject *m_videoOutput;
 
-    QMediaControl *m_videoRenderer;
+    QObject *m_videoRenderer;
     QGstreamerVideoWindow *m_videoWindow;
 #if defined(HAVE_WIDGETS)
     QGstreamerVideoWidgetControl *m_videoWidgetControl;

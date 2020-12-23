@@ -43,7 +43,7 @@ class MockMediaRecorderService : public QMediaService
 {
     Q_OBJECT
 public:
-    MockMediaRecorderService(QObject *parent = 0, QMediaControl *control = 0):
+    MockMediaRecorderService(QObject *parent = 0, QObject *control = 0):
         QMediaService(parent),
         mockControl(control),
         hasControls(true)
@@ -56,7 +56,7 @@ public:
         mockAudioProbeControl = new MockAudioProbeControl(this);
     }
 
-    QMediaControl* requestControl(const char *name)
+    QObject *requestControl(const char *name)
     {
         if (hasControls && qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
             return mockAudioEncoderControl;
@@ -76,11 +76,11 @@ public:
         return 0;
     }
 
-    void releaseControl(QMediaControl*)
+    void releaseControl(QObject *)
     {
     }
 
-    QMediaControl   *mockControl;
+    QObject *mockControl;
     QAudioInputSelectorControl  *mockAudioInputSelector;
     QAudioEncoderSettingsControl    *mockAudioEncoderControl;
     QMediaContainerControl     *mockFormatControl;

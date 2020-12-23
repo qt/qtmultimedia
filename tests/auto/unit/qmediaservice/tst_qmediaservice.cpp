@@ -31,7 +31,7 @@
 #include <QtTest/QtTest>
 
 #include <qvideodeviceselectorcontrol.h>
-#include <qmediacontrol.h>
+#include <qmediaservice.h>
 #include <qmediaservice.h>
 
 #include <QtCore/qcoreapplication.h>
@@ -40,7 +40,7 @@ QT_BEGIN_NAMESPACE
 
 class QtTestMediaService;
 
-class QtTestMediaControlA : public QMediaControl
+class QtTestMediaControlA : public QObject
 {
     Q_OBJECT
 };
@@ -48,7 +48,7 @@ class QtTestMediaControlA : public QMediaControl
 #define QtTestMediaControlA_iid "com.nokia.QtTestMediaControlA"
 Q_MEDIA_DECLARE_CONTROL(QtTestMediaControlA, QtTestMediaControlA_iid)
 
-class QtTestMediaControlB : public QMediaControl
+class QtTestMediaControlB : public QObject
 {
     Q_OBJECT
 };
@@ -57,7 +57,7 @@ class QtTestMediaControlB : public QMediaControl
 Q_MEDIA_DECLARE_CONTROL(QtTestMediaControlB, QtTestMediaControlB_iid)
 
 
-class QtTestMediaControlC : public QMediaControl
+class QtTestMediaControlC : public QObject
 {
     Q_OBJECT
 };
@@ -65,7 +65,7 @@ class QtTestMediaControlC : public QMediaControl
 #define QtTestMediaControlC_iid "com.nokia.QtTestMediaControlC"
 Q_MEDIA_DECLARE_CONTROL(QtTestMediaControlC, QtTestMediaControlA_iid) // Yes A.
 
-class QtTestMediaControlD : public QMediaControl
+class QtTestMediaControlD : public QObject
 {
     Q_OBJECT
 };
@@ -75,7 +75,7 @@ Q_MEDIA_DECLARE_CONTROL(QtTestMediaControlD, QtTestMediaControlD_iid)
 
 //unimplemented service
 #define QtTestMediaControlE_iid "com.nokia.QtTestMediaControlF"
-class QtTestMediaControlE : public QMediaControl
+class QtTestMediaControlE : public QObject
 {
     Q_OBJECT
 };
@@ -95,7 +95,7 @@ public:
     QtTestMediaService() : QMediaService(nullptr) {}
 
     //requestControl() pure virtual function of QMediaService class.
-    QMediaControl *requestControl(const char *name) override
+    QObject *requestControl(const char *name) override
     {
         if (strcmp(name, QtTestMediaControlA_iid) == 0) {
             refA += 1;
@@ -116,7 +116,7 @@ public:
     }
 
     //releaseControl() pure virtual function of QMediaService class.
-    void releaseControl(QMediaControl *control) override
+    void releaseControl(QObject *control) override
     {
         if (control == &controlA)
             refA -= 1;
@@ -165,13 +165,13 @@ void tst_QMediaService::tst_releaseControl()
     QtTestMediaService service;
 
     //Get a pointer to the media control implementing interface and verify.
-    QMediaControl* controlA = service.requestControl(QtTestMediaControlA_iid);
+    QObject *controlA = service.requestControl(QtTestMediaControlA_iid);
     QCOMPARE(controlA, &service.controlA);
     service.releaseControl(controlA); //Controls must be returned to the service when no longer needed
     QVERIFY(service.refA == 0);
 
     //Get a pointer to the media control implementing interface and verify.
-    QMediaControl* controlB = service.requestControl(QtTestMediaControlB_iid);
+    QObject *controlB = service.requestControl(QtTestMediaControlB_iid);
     QCOMPARE(controlB, &service.controlB);
     service.releaseControl(controlB); //Controls must be returned to the service when no longer needed
     QVERIFY(service.refB == 0);
@@ -184,22 +184,22 @@ void tst_QMediaService::tst_requestControl()
     QtTestMediaService service;
 
     //Get a pointer to the media control implementing interface and verify.
-    QMediaControl* controlA = service.requestControl(QtTestMediaControlA_iid);
+    QObject *controlA = service.requestControl(QtTestMediaControlA_iid);
     QCOMPARE(controlA, &service.controlA);
     service.releaseControl(controlA); //Controls must be returned to the service when no longer needed
 
     //Get a pointer to the media control implementing interface and verify.
-    QMediaControl* controlB = service.requestControl(QtTestMediaControlB_iid);
+    QObject *controlB = service.requestControl(QtTestMediaControlB_iid);
     QCOMPARE(controlB, &service.controlB);
     service.releaseControl(controlB); //Controls must be returned to the service when no longer needed
 
     //If the service does not implement the control, a null pointer is returned instead.
-    QMediaControl* controlE = service.requestControl(QtTestMediaControlE_iid);
+    QObject *controlE = service.requestControl(QtTestMediaControlE_iid);
     QVERIFY(!controlE); //should return null pointer
     service.releaseControl(controlE); //Controls must be returned to the service when no longer needed
 
     //If the service is unavailable a null pointer is returned instead.
-    QMediaControl* control = service.requestControl("");
+    QObject *control = service.requestControl("");
     QVERIFY(!control); //should return null pointer
     service.releaseControl(control); //Controls must be returned to the service when no longer needed
 }

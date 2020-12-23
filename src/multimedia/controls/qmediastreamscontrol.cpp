@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qmediastreamscontrol.h"
-#include "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -84,7 +83,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaStreamControlMetaTypes)
     Constructs a new media streams control with the given \a parent.
 */
 QMediaStreamsControl::QMediaStreamsControl(QObject *parent)
-    :QMediaControl(*new QMediaControlPrivate, parent)
+    : QObject(parent)
 {
 }
 

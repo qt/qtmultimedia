@@ -49,8 +49,8 @@ public:
     MFAudioDecoderService(QObject *parent = 0);
     ~MFAudioDecoderService();
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QObject *requestControl(const char *name);
+    void releaseControl(QObject *control);
 };
 
 #endif//MFDECODERSERVICE_H

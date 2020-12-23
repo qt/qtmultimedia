@@ -35,8 +35,8 @@ class MockAudioInputSelector : public QAudioInputSelectorControl
 {
     Q_OBJECT
 public:
-    MockAudioInputSelector(QObject *parent):
-        QAudioInputSelectorControl(parent)
+    MockAudioInputSelector(QObject *parent)
+        : QAudioInputSelectorControl(parent)
     {
         m_names << "device1" << "device2" << "device3";
         m_descriptions << "dev1 comment" << "dev2 comment" << "dev3 comment";

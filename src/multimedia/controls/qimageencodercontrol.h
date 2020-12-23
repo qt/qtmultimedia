@@ -40,7 +40,7 @@
 #ifndef QIMAGEENCODERCONTROL_H
 #define QIMAGEENCODERCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qmediaencodersettings.h>
 
@@ -53,7 +53,7 @@ QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QImageEncoderControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QImageEncoderControl : public QObject
 {
     Q_OBJECT
 

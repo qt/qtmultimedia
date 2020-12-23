@@ -139,7 +139,7 @@ CameraBinService::~CameraBinService()
 {
 }
 
-QMediaControl *CameraBinService::requestControl(const char *name)
+QObject *CameraBinService::requestControl(const char *name)
 {
     if (!m_captureSession)
         return 0;
@@ -225,7 +225,7 @@ QMediaControl *CameraBinService::requestControl(const char *name)
     return 0;
 }
 
-void CameraBinService::releaseControl(QMediaControl *control)
+void CameraBinService::releaseControl(QObject *control)
 {
     if (control && control == m_videoOutput) {
         m_videoOutput = 0;

@@ -141,7 +141,7 @@ AVFCameraService::~AVFCameraService()
     delete m_session;
 }
 
-QMediaControl *AVFCameraService::requestControl(const char *name)
+QObject *AVFCameraService::requestControl(const char *name)
 {
     if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
@@ -214,7 +214,7 @@ QMediaControl *AVFCameraService::requestControl(const char *name)
     return nullptr;
 }
 
-void AVFCameraService::releaseControl(QMediaControl *control)
+void AVFCameraService::releaseControl(QObject *control)
 {
     AVFMediaVideoProbeControl *videoProbe = qobject_cast<AVFMediaVideoProbeControl *>(control);
     if (videoProbe) {

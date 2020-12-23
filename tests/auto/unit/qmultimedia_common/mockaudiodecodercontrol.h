@@ -29,7 +29,7 @@
 #ifndef MOCKAUDIODECODERCONTROL_H
 #define MOCKAUDIODECODERCONTROL_H
 
-#include "qmediacontrol.h"
+#include "qmediaservice.h"
 #include "qaudiodecodercontrol.h"
 
 #include <QtCore/qpair.h>

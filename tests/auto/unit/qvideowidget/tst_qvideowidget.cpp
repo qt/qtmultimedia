@@ -246,7 +246,7 @@ public:
         delete rendererControl;
     }
 
-    QMediaControl *requestControl(const char *name) override
+    QObject *requestControl(const char *name) override
     {
         if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
             if (windowControl) {
@@ -270,7 +270,7 @@ public:
         return nullptr;
     }
 
-    void releaseControl(QMediaControl *control) override
+    void releaseControl(QObject *control) override
     {
         Q_ASSERT(control);
 

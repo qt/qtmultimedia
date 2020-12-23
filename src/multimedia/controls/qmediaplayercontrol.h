@@ -40,7 +40,7 @@
 #ifndef QMEDIAPLAYERCONTROL_H
 #define QMEDIAPLAYERCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
 
@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
 class QMediaPlaylist;
 
-class Q_MULTIMEDIA_EXPORT QMediaPlayerControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QMediaPlayerControl : public QObject
 {
     Q_OBJECT
 

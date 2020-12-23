@@ -41,14 +41,14 @@
 #define QAUDIOOUTPUTSELECTORCONTROL_H
 
 #include <QtMultimedia/qaudio.h>
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
 
 
 // Class forward declaration required for QDoc bug
 class QString;
-class Q_MULTIMEDIA_EXPORT QAudioOutputSelectorControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QAudioOutputSelectorControl : public QObject
 {
     Q_OBJECT
 

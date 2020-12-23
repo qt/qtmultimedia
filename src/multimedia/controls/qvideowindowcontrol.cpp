@@ -81,7 +81,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new video window control with the given \a parent.
 */
 QVideoWindowControl::QVideoWindowControl(QObject *parent)
-    : QMediaControl(parent)
+    : QObject(parent)
 {
 }
 

@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include <qcameracontrol.h>
-#include  "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -80,8 +79,8 @@ QT_BEGIN_NAMESPACE
     Constructs a camera control object with \a parent.
 */
 
-QCameraControl::QCameraControl(QObject *parent):
-    QMediaControl(*new QMediaControlPrivate, parent)
+QCameraControl::QCameraControl(QObject *parent)
+    : QObject(parent)
 {
 }
 

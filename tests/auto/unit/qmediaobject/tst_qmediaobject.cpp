@@ -51,7 +51,7 @@ public:
     {
     }
 
-    QMediaControl *requestControl(const char *iid) override
+    QObject *requestControl(const char *iid) override
     {
         if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
             return &metaData;
@@ -59,7 +59,7 @@ public:
         return nullptr;
     }
 
-    void releaseControl(QMediaControl *) override
+    void releaseControl(QObject *) override
     {
     }
 

@@ -109,7 +109,7 @@ QMediaService::~QMediaService()
 }
 
 /*!
-    \fn QMediaControl* QMediaService::requestControl(const char *interface)
+    \fn QObject *QMediaService::requestControl(const char *interface)
 
     Returns a pointer to the media control implementing \a interface.
 
@@ -133,7 +133,7 @@ QMediaService::~QMediaService()
 */
 
 /*!
-    \fn void QMediaService::releaseControl(QMediaControl *control);
+    \fn void QMediaService::releaseControl(QObject *control);
 
     Releases a \a control back to the service.
 */

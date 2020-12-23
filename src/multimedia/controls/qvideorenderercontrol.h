@@ -40,12 +40,12 @@
 #ifndef QVIDEORENDERERCONTROL_H
 #define QVIDEORENDERERCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
-class Q_MULTIMEDIA_EXPORT QVideoRendererControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QVideoRendererControl : public QObject
 {
     Q_OBJECT
 

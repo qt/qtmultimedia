@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qvideowidgetcontrol.h"
-#include "private/qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -80,7 +79,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new video widget control with the given \a parent.
 */
 QVideoWidgetControl::QVideoWidgetControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

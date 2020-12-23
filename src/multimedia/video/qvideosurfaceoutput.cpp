@@ -85,7 +85,7 @@ bool QVideoSurfaceOutput::setMediaObject(QMediaObject *object)
 
     if (object) {
         if (QMediaService *service = object->service()) {
-            if (QMediaControl *control = service->requestControl(QVideoRendererControl_iid)) {
+            if (QObject *control = service->requestControl(QVideoRendererControl_iid)) {
                 if ((m_control = qobject_cast<QVideoRendererControl *>(control))) {
                     m_service = service;
                     m_object = object;

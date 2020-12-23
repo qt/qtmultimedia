@@ -57,8 +57,8 @@ public:
     explicit QAndroidMediaService(QObject *parent = 0);
     ~QAndroidMediaService() override;
 
-    QMediaControl* requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QObject *requestControl(const char *name) override;
+    void releaseControl(QObject *control) override;
 
 private:
     QAndroidMediaPlayerControl *mMediaControl;

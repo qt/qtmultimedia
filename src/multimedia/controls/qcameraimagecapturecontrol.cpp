@@ -75,7 +75,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new image capture control object with the given \a parent
 */
 QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

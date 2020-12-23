@@ -49,7 +49,7 @@ MFAudioDecoderService::~MFAudioDecoderService()
 {
 }
 
-QMediaControl* MFAudioDecoderService::requestControl(const char *name)
+QObject *MFAudioDecoderService::requestControl(const char *name)
 {
     if (qstrcmp(name, QAudioDecoderControl_iid) == 0) {
         return new MFAudioDecoderControl(this);
@@ -57,7 +57,7 @@ QMediaControl* MFAudioDecoderService::requestControl(const char *name)
     return 0;
 }
 
-void MFAudioDecoderService::releaseControl(QMediaControl *control)
+void MFAudioDecoderService::releaseControl(QObject *control)
 {
     if (control && control->inherits("MFAudioDecoderControl")) {
         delete control;

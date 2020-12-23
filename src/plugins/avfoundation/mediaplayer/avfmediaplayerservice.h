@@ -55,13 +55,13 @@ public:
     explicit AVFMediaPlayerService(QObject *parent = nullptr);
     ~AVFMediaPlayerService();
 
-    QMediaControl* requestControl(const char *name) override;
-    void releaseControl(QMediaControl *control) override;
+    QObject *requestControl(const char *name) override;
+    void releaseControl(QObject *control) override;
 
 private:
     AVFMediaPlayerSession *m_session;
     AVFMediaPlayerControl *m_control;
-    QMediaControl *m_videoOutput;
+    QObject *m_videoOutput;
     AVFMediaPlayerMetaDataControl *m_playerMetaDataControl;
 };
 

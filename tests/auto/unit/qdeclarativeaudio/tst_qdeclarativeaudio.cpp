@@ -220,7 +220,7 @@ public:
     {
     }
 
-    QMediaControl *requestControl(const char *name) override
+    QObject *requestControl(const char *name) override
     {
         if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
             return playerControl;
@@ -230,7 +230,7 @@ public:
         return nullptr;
     }
 
-    void releaseControl(QMediaControl *) override {}
+    void releaseControl(QObject *) override {}
 
     QtTestMediaPlayerControl *playerControl;
     QtTestMetaDataControl *metaDataControl;

@@ -40,7 +40,7 @@
 #ifndef QMETADATAWRITERCONTROL_H
 #define QMETADATAWRITERCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaobject.h>
 
 #include <QtMultimedia/qtmultimediaglobal.h>
@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QMetaDataWriterControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QMetaDataWriterControl : public QObject
 {
     Q_OBJECT
 public:

@@ -491,7 +491,7 @@ void QVideoWidgetPrivate::clearService()
 
 bool QVideoWidgetPrivate::createWidgetBackend()
 {
-    if (QMediaControl *control = service->requestControl(QVideoWidgetControl_iid)) {
+    if (QObject *control = service->requestControl(QVideoWidgetControl_iid)) {
         if (QVideoWidgetControl *widgetControl = qobject_cast<QVideoWidgetControl *>(control)) {
             widgetBackend = new QVideoWidgetControlBackend(service, widgetControl, q_func());
 
@@ -506,7 +506,7 @@ bool QVideoWidgetPrivate::createWidgetBackend()
 
 bool QVideoWidgetPrivate::createWindowBackend()
 {
-    if (QMediaControl *control = service->requestControl(QVideoWindowControl_iid)) {
+    if (QObject *control = service->requestControl(QVideoWindowControl_iid)) {
         if (QVideoWindowControl *windowControl = qobject_cast<QVideoWindowControl *>(control)) {
             windowBackend = new QWindowVideoWidgetBackend(service, windowControl, q_func());
             currentBackend = windowBackend;
@@ -522,7 +522,7 @@ bool QVideoWidgetPrivate::createWindowBackend()
 
 bool QVideoWidgetPrivate::createRendererBackend()
 {
-    QMediaControl *control = service
+    QObject *control = service
                            ? service->requestControl(QVideoRendererControl_iid)
                            : nullptr;
     rendererBackend = new QRendererVideoWidgetBackend(service,

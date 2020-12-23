@@ -46,7 +46,7 @@
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaservice.h>
 

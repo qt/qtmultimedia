@@ -76,7 +76,7 @@ MFPlayerService::~MFPlayerService()
     m_session->Release();
 }
 
-QMediaControl* MFPlayerService::requestControl(const char *name)
+QObject *MFPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         return m_player;
@@ -113,7 +113,7 @@ QMediaControl* MFPlayerService::requestControl(const char *name)
     return 0;
 }
 
-void MFPlayerService::releaseControl(QMediaControl *control)
+void MFPlayerService::releaseControl(QObject *control)
 {
     if (!control) {
         qWarning("QMediaService::releaseControl():"

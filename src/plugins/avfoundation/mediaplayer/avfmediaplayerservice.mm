@@ -74,7 +74,7 @@ AVFMediaPlayerService::~AVFMediaPlayerService()
     delete m_session;
 }
 
-QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
+QObject *AVFMediaPlayerService::requestControl(const char *name)
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO << name;
@@ -114,7 +114,7 @@ QMediaControl *AVFMediaPlayerService::requestControl(const char *name)
     return nullptr;
 }
 
-void AVFMediaPlayerService::releaseControl(QMediaControl *control)
+void AVFMediaPlayerService::releaseControl(QObject *control)
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO << control;

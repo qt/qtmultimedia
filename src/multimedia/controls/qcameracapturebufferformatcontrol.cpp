@@ -73,7 +73,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new image buffer capture format control object with the given \a parent
 */
 QCameraCaptureBufferFormatControl::QCameraCaptureBufferFormatControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

@@ -69,13 +69,13 @@ public:
 
     }
 
-    QMediaControl* requestControl(const char *iid) override
+    QObject *requestControl(const char *iid) override
     {
         Q_UNUSED(iid);
         return nullptr;
     }
 
-    void releaseControl(QMediaControl*) override {}
+    void releaseControl(QObject *) override {}
 
 };
 

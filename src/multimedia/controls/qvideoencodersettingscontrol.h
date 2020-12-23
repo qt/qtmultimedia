@@ -40,7 +40,7 @@
 #ifndef QVIDEOENCODERSETTINGSCONTROL_H
 #define QVIDEOENCODERSETTINGSCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediarecorder.h>
 
 #include <QtCore/qpair.h>
@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QVideoEncoderSettingsControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QVideoEncoderSettingsControl : public QObject
 {
     Q_OBJECT
 

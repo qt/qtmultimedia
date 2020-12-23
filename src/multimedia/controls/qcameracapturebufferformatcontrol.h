@@ -40,7 +40,7 @@
 #ifndef QCAMERACAPTUREBUFFERFORMATCONTROL_H
 #define QCAMERACAPTUREBUFFERFORMATCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qcameraimagecapture.h>
 
 QT_BEGIN_NAMESPACE
@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraCaptureBufferFormatControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QCameraCaptureBufferFormatControl : public QObject
 {
     Q_OBJECT
 public:

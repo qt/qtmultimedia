@@ -50,14 +50,14 @@ public:
         delete mockControl;
     }
 
-    QMediaControl* requestControl(const char *iid)
+    QObject *requestControl(const char *iid)
     {
         if (qstrcmp(iid, QAudioDecoderControl_iid) == 0)
             return mockControl;
         return 0;
     }
 
-    void releaseControl(QMediaControl *control)
+    void releaseControl(QObject *control)
     {
         Q_UNUSED(control);
     }

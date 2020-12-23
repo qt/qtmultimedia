@@ -68,7 +68,7 @@ MmRendererMediaPlayerService::~MmRendererMediaPlayerService()
     delete m_metaDataReaderControl;
 }
 
-QMediaControl *MmRendererMediaPlayerService::requestControl(const char *name)
+QObject *MmRendererMediaPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         if (!m_mediaPlayerControl) {
@@ -110,7 +110,7 @@ QMediaControl *MmRendererMediaPlayerService::requestControl(const char *name)
     return 0;
 }
 
-void MmRendererMediaPlayerService::releaseControl(QMediaControl *control)
+void MmRendererMediaPlayerService::releaseControl(QObject *control)
 {
     if (control == m_videoRendererControl)
         m_videoRendererControl = 0;

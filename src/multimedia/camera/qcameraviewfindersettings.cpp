@@ -58,9 +58,6 @@ public:
     qreal maximumFrameRate = 0.0;
     QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
     QSize pixelAspectRatio;
-
-private:
-    QCameraViewfinderSettingsPrivate& operator=(const QCameraViewfinderSettingsPrivate &other);
 };
 
 

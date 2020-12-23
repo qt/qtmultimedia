@@ -63,7 +63,7 @@ AudioCaptureService::~AudioCaptureService()
     delete m_mediaControl;
 }
 
-QMediaControl *AudioCaptureService::requestControl(const char *name)
+QObject *AudioCaptureService::requestControl(const char *name)
 {
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_mediaControl;
@@ -86,7 +86,7 @@ QMediaControl *AudioCaptureService::requestControl(const char *name)
     return nullptr;
 }
 
-void AudioCaptureService::releaseControl(QMediaControl *control)
+void AudioCaptureService::releaseControl(QObject *control)
 {
     Q_UNUSED(control);
 }

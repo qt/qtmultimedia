@@ -81,7 +81,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new media container control with the given \a parent.
 */
 QMediaContainerControl::QMediaContainerControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qmediavideoprobecontrol.h"
-#include "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -75,7 +74,7 @@ QT_BEGIN_NAMESPACE
   Create a new media video probe control object with the given \a parent.
 */
 QMediaVideoProbeControl::QMediaVideoProbeControl(QObject *parent)
-    : QMediaControl(*new QMediaControlPrivate, parent)
+    : QObject(parent)
 {
 }
 

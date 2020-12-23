@@ -76,8 +76,8 @@ public:
     AVFCameraService(QObject *parent = nullptr);
     ~AVFCameraService();
 
-    QMediaControl* requestControl(const char *name);
-    void releaseControl(QMediaControl *control);
+    QObject *requestControl(const char *name);
+    void releaseControl(QObject *control);
 
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *cameraControl() const { return m_cameraControl; }

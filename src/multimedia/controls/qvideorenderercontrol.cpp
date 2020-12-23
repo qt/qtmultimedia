@@ -39,8 +39,6 @@
 
 #include "qvideorenderercontrol.h"
 
-#include "qmediacontrol_p.h"
-
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -81,7 +79,7 @@ QT_BEGIN_NAMESPACE
     Constructs a new video renderer media end point with the given \a parent.
 */
 QVideoRendererControl::QVideoRendererControl(QObject *parent)
-    : QMediaControl(parent)
+    : QObject(parent)
 {
 }
 

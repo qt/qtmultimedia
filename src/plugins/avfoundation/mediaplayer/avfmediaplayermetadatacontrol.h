@@ -41,6 +41,7 @@
 #define AVFMEDIAPLAYERMETADATACONTROL_H
 
 #include <QtMultimedia/QMetaDataReaderControl>
+#include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 

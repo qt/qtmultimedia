@@ -81,7 +81,7 @@ QT_BEGIN_NAMESPACE
   Create a new audio encoder settings control object with the given \a parent.
 */
 QAudioEncoderSettingsControl::QAudioEncoderSettingsControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

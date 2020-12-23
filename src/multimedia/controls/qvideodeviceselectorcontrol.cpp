@@ -73,7 +73,7 @@ QT_BEGIN_NAMESPACE
     Constructs a video device selector control with the given \a parent.
 */
 QVideoDeviceSelectorControl::QVideoDeviceSelectorControl(QObject *parent)
-    :QMediaControl(parent)
+    :QObject(parent)
 {
 }
 

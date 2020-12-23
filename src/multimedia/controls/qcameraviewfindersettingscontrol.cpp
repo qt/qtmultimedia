@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qcameraviewfindersettingscontrol.h"
-#include "qmediacontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -78,7 +77,7 @@ QT_BEGIN_NAMESPACE
     Constructs a camera viewfinder control object with \a parent.
 */
 QCameraViewfinderSettingsControl::QCameraViewfinderSettingsControl(QObject *parent)
-    : QMediaControl(*new QMediaControlPrivate, parent)
+    : QObject(parent)
 {
 }
 
@@ -166,7 +165,7 @@ QCameraViewfinderSettingsControl::~QCameraViewfinderSettingsControl()
     Constructs a camera viewfinder settings control object with \a parent.
 */
 QCameraViewfinderSettingsControl2::QCameraViewfinderSettingsControl2(QObject *parent)
-    : QMediaControl(*new QMediaControlPrivate, parent)
+    : QObject(parent)
 {
 }
 

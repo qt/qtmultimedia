@@ -41,7 +41,7 @@
 #ifndef QMEDIASTREAMSCONTROL_H
 #define QMEDIASTREAMSCONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmultimedia.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QMediaStreamsControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QMediaStreamsControl : public QObject
 {
     Q_OBJECT
     Q_ENUMS(SteamType)

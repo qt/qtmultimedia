@@ -255,7 +255,7 @@ public:
     {
     }
 
-    QMediaControl *requestControl(const char *name)
+    QObject *requestControl(const char *name)
     {
         if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
             return playerControl;
@@ -267,7 +267,7 @@ public:
             return 0;
     }
 
-    void releaseControl(QMediaControl *) {}
+    void releaseControl(QObject *) {}
 
     QtTestMediaPlayerControl *playerControl;
     QtTestRendererControl *rendererControl;

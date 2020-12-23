@@ -40,7 +40,7 @@
 #ifndef QCAMERAEXPOSURECONTROL_H
 #define QCAMERAEXPOSURECONTROL_H
 
-#include <QtMultimedia/qmediacontrol.h>
+#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaobject.h>
 
 #include <QtMultimedia/qcameraexposure.h>
@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraExposureControl : public QMediaControl
+class Q_MULTIMEDIA_EXPORT QCameraExposureControl : public QObject
 {
     Q_OBJECT
     Q_ENUMS(ExposureParameter)

@@ -30,7 +30,7 @@
 
 #include <QtTest/QtTest>
 #include <qmediaobject.h>
-#include <qmediacontrol.h>
+#include <qmediaservice.h>
 #include <qmediaservice.h>
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
@@ -52,7 +52,7 @@ class TestBindableService : public QMediaService
 {
     Q_OBJECT
 public:
-    TestBindableService(QObject *parent, QMediaControl *control):
+    TestBindableService(QObject *parent, QObject *control):
         QMediaService(parent),
         mockControl(control),
         hasControls(true)
@@ -61,7 +61,7 @@ public:
         mockMetaDataControl = new MockMetaDataWriterControl(parent); //Creating the object for MetaData
     }
 
-    QMediaControl* requestControl(const char *name) override
+    QObject *requestControl(const char *name) override
     {
         if (hasControls && qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
@@ -73,9 +73,9 @@ public:
         return nullptr;
     }
 
-    void releaseControl(QMediaControl*) override {}
+    void releaseControl(QObject *) override {}
     //Initialising the objects for the media
-    QMediaControl *mockControl;
+    QObject *mockControl;
     QMediaContainerControl *mockContainerControl;
     MockMetaDataWriterControl *mockMetaDataControl;
     bool hasControls;

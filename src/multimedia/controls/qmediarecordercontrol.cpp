@@ -84,7 +84,7 @@ QT_BEGIN_NAMESPACE
 */
 
 QMediaRecorderControl::QMediaRecorderControl(QObject* parent)
-    : QMediaControl(parent)
+    : QObject(parent)
 {
 }
 

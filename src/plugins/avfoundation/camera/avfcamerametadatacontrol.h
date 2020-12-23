@@ -41,6 +41,7 @@
 #define AVFCAMERAMETADATACONTROL_H
 
 #include <qmetadatawritercontrol.h>
+#include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -42,7 +42,7 @@
 #define QANDROIDCAPTURESERVICE_H
 
 #include <qmediaservice.h>
-#include <qmediacontrol.h>
+#include <qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -72,8 +72,8 @@ public:
     explicit QAndroidCaptureService(const QString &service, QObject *parent = 0);
     virtual ~QAndroidCaptureService();
 
-    QMediaControl *requestControl(const char *name);
-    void releaseControl(QMediaControl *);
+    QObject *requestControl(const char *name);
+    void releaseControl(QObject *);
 
 private:
     QString m_service;
