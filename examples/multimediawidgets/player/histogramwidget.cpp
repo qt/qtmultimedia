@@ -191,14 +191,14 @@ QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
             values = getBufferLevels(buffer.constData<quint16>(), buffer.frameCount(), channelCount);
         if (buffer.format().sampleSize() == 8)
             values = getBufferLevels(buffer.constData<quint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] = qAbs(values.at(i) - peak_value / 2) / (peak_value / 2);
+        for (double &value : values)
+            value = qAbs(value - peak_value / 2) / (peak_value / 2);
         break;
     case QAudioFormat::Float:
         if (buffer.format().sampleSize() == 32) {
             values = getBufferLevels(buffer.constData<float>(), buffer.frameCount(), channelCount);
-            for (int i = 0; i < values.size(); ++i)
-                values[i] /= peak_value;
+            for (double &value : values)
+                value /= peak_value;
         }
         break;
     case QAudioFormat::SignedInt:
@@ -208,8 +208,8 @@ QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
             values = getBufferLevels(buffer.constData<qint16>(), buffer.frameCount(), channelCount);
         if (buffer.format().sampleSize() == 8)
             values = getBufferLevels(buffer.constData<qint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] /= peak_value;
+        for (double &value : values)
+            value /= peak_value;
         break;
     }
 
@@ -322,14 +322,14 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
 
         // find maximum value
         qreal maxValue = 0.0;
-        for (int i = 0; i < histogram.size(); i++) {
-            if (histogram[i] > maxValue)
-                maxValue = histogram[i];
+        for (double i : qAsConst(histogram)) {
+            if (i > maxValue)
+                maxValue = i;
         }
 
         if (maxValue > 0.0) {
-            for (int i = 0; i < histogram.size(); i++)
-                histogram[i] /= maxValue;
+            for (double &i : histogram)
+                i /= maxValue;
         }
 
         frame.unmap();

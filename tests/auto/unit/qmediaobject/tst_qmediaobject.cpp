@@ -55,8 +55,8 @@ public:
     {
         if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
             return &metaData;
-        else
-            return nullptr;
+
+        return nullptr;
     }
 
     void releaseControl(QMediaControl *) override

@@ -579,9 +579,9 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
                 && mode == QAbstractVideoBuffer::ReadOnly) {
             d->mappedCount++;
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     Q_ASSERT(d->data[0] == nullptr);
@@ -1259,12 +1259,13 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
                     .arg(s_minutes, 2, 10, QLatin1Char('0'))
                     .arg(s_seconds, 2, 10, QLatin1Char('0'))
                     .arg(s_millis, 2, 10, QLatin1Char('0'));
-        else
-            return QString::fromLatin1("@%1:%2.%3")
-                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
-                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
-                    .arg(s_millis, 2, 10, QLatin1Char('0'));
-    } else if (end == -1) {
+        return QString::fromLatin1("@%1:%2.%3")
+                .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                .arg(s_millis, 2, 10, QLatin1Char('0'));
+    }
+
+    if (end == -1) {
         // Similar to start-start, except it means keep displaying it?
         if (start > 0)
             return QString::fromLatin1("%1:%2:%3.%4 - forever")
@@ -1272,38 +1273,36 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
                     .arg(s_minutes, 2, 10, QLatin1Char('0'))
                     .arg(s_seconds, 2, 10, QLatin1Char('0'))
                     .arg(s_millis, 2, 10, QLatin1Char('0'));
-        else
-            return QString::fromLatin1("%1:%2.%3 - forever")
-                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
-                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
-                    .arg(s_millis, 2, 10, QLatin1Char('0'));
-    } else {
-        const int e_millis = end % 1000000;
-        end /= 1000000;
-        const int e_seconds = end % 60;
-        end /= 60;
-        const int e_minutes = end % 60;
-        end /= 60;
-
-        if (start > 0 || end > 0)
-            return QString::fromLatin1("%1:%2:%3.%4 - %5:%6:%7.%8")
-                    .arg(start, 1, 10, QLatin1Char('0'))
-                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
-                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
-                    .arg(s_millis, 2, 10, QLatin1Char('0'))
-                    .arg(end, 1, 10, QLatin1Char('0'))
-                    .arg(e_minutes, 2, 10, QLatin1Char('0'))
-                    .arg(e_seconds, 2, 10, QLatin1Char('0'))
-                    .arg(e_millis, 2, 10, QLatin1Char('0'));
-        else
-            return QString::fromLatin1("%1:%2.%3 - %4:%5.%6")
-                    .arg(s_minutes, 2, 10, QLatin1Char('0'))
-                    .arg(s_seconds, 2, 10, QLatin1Char('0'))
-                    .arg(s_millis, 2, 10, QLatin1Char('0'))
-                    .arg(e_minutes, 2, 10, QLatin1Char('0'))
-                    .arg(e_seconds, 2, 10, QLatin1Char('0'))
-                    .arg(e_millis, 2, 10, QLatin1Char('0'));
+        return QString::fromLatin1("%1:%2.%3 - forever")
+                .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                .arg(s_millis, 2, 10, QLatin1Char('0'));
     }
+
+    const int e_millis = end % 1000000;
+    end /= 1000000;
+    const int e_seconds = end % 60;
+    end /= 60;
+    const int e_minutes = end % 60;
+    end /= 60;
+
+    if (start > 0 || end > 0)
+        return QString::fromLatin1("%1:%2:%3.%4 - %5:%6:%7.%8")
+                .arg(start, 1, 10, QLatin1Char('0'))
+                .arg(s_minutes, 2, 10, QLatin1Char('0'))
+                .arg(s_seconds, 2, 10, QLatin1Char('0'))
+                .arg(s_millis, 2, 10, QLatin1Char('0'))
+                .arg(end, 1, 10, QLatin1Char('0'))
+                .arg(e_minutes, 2, 10, QLatin1Char('0'))
+                .arg(e_seconds, 2, 10, QLatin1Char('0'))
+                .arg(e_millis, 2, 10, QLatin1Char('0'));
+    return QString::fromLatin1("%1:%2.%3 - %4:%5.%6")
+            .arg(s_minutes, 2, 10, QLatin1Char('0'))
+            .arg(s_seconds, 2, 10, QLatin1Char('0'))
+            .arg(s_millis, 2, 10, QLatin1Char('0'))
+            .arg(e_minutes, 2, 10, QLatin1Char('0'))
+            .arg(e_seconds, 2, 10, QLatin1Char('0'))
+            .arg(e_millis, 2, 10, QLatin1Char('0'));
 }
 
 QDebug operator<<(QDebug dbg, const QVideoFrame& f)

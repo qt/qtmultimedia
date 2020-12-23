@@ -898,7 +898,6 @@ void QVideoWidget::setSaturation(int saturation)
         d->currentControl->setSaturation(boundedSaturation);
     else if (d->saturation != boundedSaturation)
         emit saturationChanged(d->saturation = boundedSaturation);
-
 }
 
 /*!
@@ -919,10 +918,8 @@ QSize QVideoWidget::sizeHint() const
 
     if (d->currentBackend)
         return d->currentBackend->sizeHint();
-    else
-        return QWidget::sizeHint();
 
-
+    return QWidget::sizeHint();
 }
 
 /*!
@@ -949,6 +946,7 @@ bool QVideoWidget::event(QEvent *event)
                 emit fullScreenChanged(d->wasFullScreen = false);
         }
     }
+
     return QWidget::event(event);
 }
 

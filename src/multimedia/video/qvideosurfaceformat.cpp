@@ -93,9 +93,9 @@ public:
                     return false;
             }
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     inline static bool frameRatesEqual(qreal r1, qreal r2)

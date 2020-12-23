@@ -258,10 +258,9 @@ void Waveform::createPixmaps(const QSize &widgetSize)
     Q_ASSERT(m_tiles.count() == m_pixmaps.count());
 
     // (Re)create pixmaps
-    for (int i=0; i<m_pixmaps.size(); ++i) {
-        delete m_pixmaps[i];
-        m_pixmaps[i] = 0;
-        m_pixmaps[i] = new QPixmap(m_pixmapSize);
+    for (auto & pixmap : m_pixmaps) {
+        delete pixmap;
+        pixmap = new QPixmap(m_pixmapSize);
     }
 
     // Update tile pixmap pointers, and mark for repainting

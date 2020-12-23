@@ -78,9 +78,10 @@ int QGstVideoBuffer::map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar
     const GstMapFlags flags = GstMapFlags(((mode & ReadOnly) ? GST_MAP_READ : 0)
                 | ((mode & WriteOnly) ? GST_MAP_WRITE : 0));
 
-    if (mode == NotMapped || m_mode != NotMapped) {
+    if (mode == NotMapped || m_mode != NotMapped)
         return 0;
-    } else if (m_videoInfo.finfo->n_planes == 0) {         // Encoded
+
+    if (m_videoInfo.finfo->n_planes == 0) {         // Encoded
         if (gst_buffer_map(m_buffer, &m_frame.map[0], flags)) {
             if (numBytes)
                 *numBytes = m_frame.map[0].size;

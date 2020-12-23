@@ -106,12 +106,11 @@ public:
     QMediaControl *requestControl(const char *name) override
     {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0 && rendererControl) {
-            rendererRef += 1;
-
+            ++rendererRef;
             return rendererControl;
-        } else {
-            return nullptr;
         }
+
+        return nullptr;
     }
 
     void releaseControl(QMediaControl *control) override
@@ -119,7 +118,7 @@ public:
         Q_ASSERT(control);
 
         if (control == rendererControl) {
-            rendererRef -= 1;
+            --rendererRef;
 
             if (rendererRef == 0)
                 rendererControl->setSurface(nullptr);

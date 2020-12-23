@@ -408,9 +408,9 @@ QAudioBuffer QAudioDecoder::read() const
 
     if (d->control) {
         return d->control->read();
-    } else {
-        return QAudioBuffer();
     }
+
+    return QAudioBuffer();
 }
 
 // Enums

@@ -90,19 +90,18 @@ protected:
             // Resolve it relative to root
             if (root.isLocalFile())
                 return QUrl::fromUserInput(line, root.adjusted(QUrl::RemoveFilename).toLocalFile(), QUrl::AssumeLocalFile);
-            else
-                return root.resolved(url);
-        } else if (url.scheme().length() == 1) {
+            return root.resolved(url);
+        }
+        if (url.scheme().length() == 1)
             // Assume it's a drive letter for a Windows path
             url = QUrl::fromLocalFile(line);
-        }
 
         return url;
     }
 
     void newItemFound(const QVariant& content) { Q_EMIT m_parent->newItem(content); }
 
-protected:
+
     QPlaylistFileParser *m_parent;
     bool m_aborted;
 };

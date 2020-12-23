@@ -268,10 +268,7 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
 */
 bool QCameraImageCapture::isAvailable() const
 {
-    if (d_func()->control != nullptr)
-        return true;
-    else
-        return false;
+    return d_func()->control != nullptr;
 }
 
 /*!
@@ -281,8 +278,7 @@ QMultimedia::AvailabilityStatus QCameraImageCapture::availability() const
 {
     if (d_func()->control != nullptr)
         return QMultimedia::Available;
-    else
-        return QMultimedia::ServiceMissing;
+    return QMultimedia::ServiceMissing;
 }
 
 /*!
@@ -393,8 +389,7 @@ QList<QVideoFrame::PixelFormat> QCameraImageCapture::supportedBufferFormats() co
 {
     if (d_func()->bufferFormatControl)
         return d_func()->bufferFormatControl->supportedBufferFormats();
-    else
-        return QList<QVideoFrame::PixelFormat>();
+    return QList<QVideoFrame::PixelFormat>();
 }
 
 /*!
@@ -406,8 +401,7 @@ QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
 {
     if (d_func()->bufferFormatControl)
         return d_func()->bufferFormatControl->bufferFormat();
-    else
-        return QVideoFrame::Format_Invalid;
+    return QVideoFrame::Format_Invalid;
 }
 
 /*!
@@ -460,8 +454,7 @@ bool QCameraImageCapture::isReadyForCapture() const
 {
     if (d_func()->control)
         return d_func()->control->isReadyForCapture();
-    else
-        return false;
+    return false;
 }
 
 /*!
@@ -498,14 +491,13 @@ int QCameraImageCapture::capture(const QString &file)
 
     d->unsetError();
 
-    if (d->control) {
+    if (d->control)
         return d->control->capture(file);
-    } else {
-        d->error = NotSupportedFeatureError;
-        d->errorString = tr("Device does not support images capture.");
 
-        emit error(-1, d->error, d->errorString);
-    }
+    d->error = NotSupportedFeatureError;
+    d->errorString = tr("Device does not support images capture.");
+
+    emit error(-1, d->error, d->errorString);
 
     return -1;
 }

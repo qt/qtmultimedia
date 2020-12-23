@@ -75,8 +75,8 @@ QMediaServiceFeaturesInterface::Features QGstreamerPlayerServicePlugin::supporte
                 QMediaServiceFeaturesInterface::StreamPlayback |
 #endif
                 QMediaServiceFeaturesInterface::VideoSurface;
-    else
-        return QMediaServiceFeaturesInterface::Features();
+
+    return QMediaServiceFeaturesInterface::Features();
 }
 
 QMultimedia::SupportEstimate QGstreamerPlayerServicePlugin::hasSupport(const QString &mimeType,

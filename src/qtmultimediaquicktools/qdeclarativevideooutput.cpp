@@ -684,8 +684,8 @@ QPointF QDeclarativeVideoOutput::mapPointToSource(const QPointF &point) const
 
     if (qIsDefaultAspect(m_orientation))
         return QPointF(norm.x() * m_nativeSize.width(), norm.y() * m_nativeSize.height());
-    else
-        return QPointF(norm.x() * m_nativeSize.height(), norm.y() * m_nativeSize.width());
+
+    return QPointF(norm.x() * m_nativeSize.height(), norm.y() * m_nativeSize.width());
 }
 
 /*!
@@ -783,8 +783,8 @@ QPointF QDeclarativeVideoOutput::mapPointToItem(const QPointF &point) const
     // m_nativeSize is transposed in some orientations
     if (qIsDefaultAspect(m_orientation))
         return mapNormalizedPointToItem(QPointF(point.x() / m_nativeSize.width(), point.y() / m_nativeSize.height()));
-    else
-        return mapNormalizedPointToItem(QPointF(point.x() / m_nativeSize.height(), point.y() / m_nativeSize.width()));
+
+    return mapNormalizedPointToItem(QPointF(point.x() / m_nativeSize.height(), point.y() / m_nativeSize.width()));
 }
 
 /*!

@@ -347,19 +347,19 @@ QList<QVideoFrame::PixelFormat> QVideoSurfaceGLPainter::supportedPixelFormats(
 
 bool QVideoSurfaceGLPainter::isFormatSupported(const QVideoSurfaceFormat &format) const
 {
-    if (format.frameSize().isEmpty()) {
+    if (format.frameSize().isEmpty())
         return false;
-    } else {
-        switch (format.handleType()) {
-        case QAbstractVideoBuffer::NoHandle:
-            return m_imagePixelFormats.contains(format.pixelFormat());
-        case QAbstractVideoBuffer::QPixmapHandle:
-        case QAbstractVideoBuffer::GLTextureHandle:
-            return m_glPixelFormats.contains(format.pixelFormat());
-        default:
-            ;
-        }
+
+    switch (format.handleType()) {
+    case QAbstractVideoBuffer::NoHandle:
+        return m_imagePixelFormats.contains(format.pixelFormat());
+    case QAbstractVideoBuffer::QPixmapHandle:
+    case QAbstractVideoBuffer::GLTextureHandle:
+        return m_glPixelFormats.contains(format.pixelFormat());
+    default:
+        ;
     }
+
     return false;
 }
 

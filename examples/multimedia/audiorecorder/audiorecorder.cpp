@@ -244,8 +244,8 @@ void AudioRecorder::displayErrorMessage()
 
 void AudioRecorder::clearAudioLevels()
 {
-    for (int i = 0; i < m_audioLevels.size(); ++i)
-        m_audioLevels.at(i)->setLevel(0);
+    for (auto m_audioLevel : qAsConst(m_audioLevels))
+        m_audioLevel->setLevel(0);
 }
 
 // This function returns the maximum possible sample value for a given audio format
@@ -312,14 +312,14 @@ QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
             values = getBufferLevels(buffer.constData<quint16>(), buffer.frameCount(), channelCount);
         if (buffer.format().sampleSize() == 8)
             values = getBufferLevels(buffer.constData<quint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] = qAbs(values.at(i) - peak_value / 2) / (peak_value / 2);
+        for (double &value : values)
+            value = qAbs(value - peak_value / 2) / (peak_value / 2);
         break;
     case QAudioFormat::Float:
         if (buffer.format().sampleSize() == 32) {
             values = getBufferLevels(buffer.constData<float>(), buffer.frameCount(), channelCount);
-            for (int i = 0; i < values.size(); ++i)
-                values[i] /= peak_value;
+            for (double &value : values)
+                value /= peak_value;
         }
         break;
     case QAudioFormat::SignedInt:
@@ -329,8 +329,8 @@ QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
             values = getBufferLevels(buffer.constData<qint16>(), buffer.frameCount(), channelCount);
         if (buffer.format().sampleSize() == 8)
             values = getBufferLevels(buffer.constData<qint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] /= peak_value;
+        for (double &value : values)
+            value /= peak_value;
         break;
     }
 

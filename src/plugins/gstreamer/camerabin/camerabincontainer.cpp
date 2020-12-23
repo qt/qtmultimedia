@@ -111,30 +111,29 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
 {
     GstCaps *caps = nullptr;
 
-    if (m_actualFormat.isEmpty()) {
+    if (m_actualFormat.isEmpty())
         return 0;
-    } else {
-        QString format = m_actualFormat;
-        const QStringList supportedFormats = m_supportedContainers.supportedCodecs();
 
-        //if format is not in the list of supported gstreamer mime types,
-        //try to find the mime type with matching extension
-        if (!supportedFormats.contains(format)) {
-            format.clear();
-            QString extension = QGstUtils::fileExtensionForMimeType(m_actualFormat);
-            for (const QString &formatCandidate : supportedFormats) {
-                if (QGstUtils::fileExtensionForMimeType(formatCandidate) == extension) {
-                    format = formatCandidate;
-                    break;
-                }
+    QString format = m_actualFormat;
+    const QStringList supportedFormats = m_supportedContainers.supportedCodecs();
+
+    //if format is not in the list of supported gstreamer mime types,
+    //try to find the mime type with matching extension
+    if (!supportedFormats.contains(format)) {
+        format.clear();
+        QString extension = QGstUtils::fileExtensionForMimeType(m_actualFormat);
+        for (const QString &formatCandidate : supportedFormats) {
+            if (QGstUtils::fileExtensionForMimeType(formatCandidate) == extension) {
+                format = formatCandidate;
+                break;
             }
         }
-
-        if (format.isEmpty())
-            return nullptr;
-
-        caps = gst_caps_from_string(format.toLatin1());
     }
+
+    if (format.isEmpty())
+        return nullptr;
+
+    caps = gst_caps_from_string(format.toLatin1());
 
     GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
                 "camerabin2_profile",

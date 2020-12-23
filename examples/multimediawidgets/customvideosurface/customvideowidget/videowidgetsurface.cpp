@@ -72,9 +72,9 @@ QList<QVideoFrame::PixelFormat> VideoWidgetSurface::supportedPixelFormats(
                 << QVideoFrame::Format_ARGB32_Premultiplied
                 << QVideoFrame::Format_RGB565
                 << QVideoFrame::Format_RGB555;
-    } else {
-        return QList<QVideoFrame::PixelFormat>();
     }
+
+    return QList<QVideoFrame::PixelFormat>();
 }
 //! [0]
 
@@ -107,9 +107,9 @@ bool VideoWidgetSurface::start(const QVideoSurfaceFormat &format)
         updateVideoRect();
 
         return true;
-    } else {
-        return false;
     }
+
+    return false;
 }
 //! [2]
 
@@ -134,13 +134,12 @@ bool VideoWidgetSurface::present(const QVideoFrame &frame)
         stop();
 
         return false;
-    } else {
-        currentFrame = frame;
-
-        widget->repaint(targetRect);
-
-        return true;
     }
+
+    currentFrame = frame;
+    widget->repaint(targetRect);
+
+    return true;
 }
 //! [4]
 

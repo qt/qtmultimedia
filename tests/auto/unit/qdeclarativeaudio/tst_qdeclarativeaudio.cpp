@@ -224,10 +224,10 @@ public:
     {
         if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
             return playerControl;
-        else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
+        if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
             return metaDataControl;
-        else
-            return nullptr;
+
+        return nullptr;
     }
 
     void releaseControl(QMediaControl *) override {}

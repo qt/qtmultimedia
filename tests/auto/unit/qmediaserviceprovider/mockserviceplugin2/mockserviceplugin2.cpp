@@ -48,8 +48,8 @@ public:
     {
         if (keys().contains(key))
             return new MockMediaService("MockServicePlugin2");
-        else
-            return nullptr;
+
+        return nullptr;
     }
 
     void release(QMediaService *service) override

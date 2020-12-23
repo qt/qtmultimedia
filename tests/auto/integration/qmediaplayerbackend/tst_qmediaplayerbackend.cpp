@@ -1500,9 +1500,9 @@ QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
 {
     if (handleType == QAbstractVideoBuffer::NoHandle) {
         return m_supported;
-    } else {
-        return QList<QVideoFrame::PixelFormat>();
     }
+
+    return QList<QVideoFrame::PixelFormat>();
 }
 
 bool TestVideoSurface::start(const QVideoSurfaceFormat &format)

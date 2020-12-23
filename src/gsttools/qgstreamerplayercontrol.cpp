@@ -101,10 +101,10 @@ QMediaPlayer::MediaStatus QGstreamerPlayerControl::mediaStatus() const
 
 int QGstreamerPlayerControl::bufferStatus() const
 {
-    if (m_bufferProgress == -1) {
+    if (m_bufferProgress == -1)
         return m_session->state() == QMediaPlayer::StoppedState ? 0 : 100;
-    } else
-        return m_bufferProgress;
+
+    return m_bufferProgress;
 }
 
 int QGstreamerPlayerControl::volume() const

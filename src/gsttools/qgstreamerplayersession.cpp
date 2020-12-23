@@ -1463,17 +1463,16 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
         for (const QByteArray &rawHeader : rawHeaderList) {
             if (rawHeader == userAgentString) // Filter User-Agent
                 continue;
-            else {
-                GValue headerValue;
 
-                memset(&headerValue, 0, sizeof(GValue));
-                g_value_init(&headerValue, G_TYPE_STRING);
+            GValue headerValue;
 
-                g_value_set_string(&headerValue,
-                                   self->m_request.rawHeader(rawHeader).constData());
+            memset(&headerValue, 0, sizeof(GValue));
+            g_value_init(&headerValue, G_TYPE_STRING);
 
-                gst_structure_set_value(extras, rawHeader.constData(), &headerValue);
-            }
+            g_value_set_string(&headerValue,
+                               self->m_request.rawHeader(rawHeader).constData());
+
+            gst_structure_set_value(extras, rawHeader.constData(), &headerValue);
         }
 
         if (gst_structure_n_fields(extras) > 0)

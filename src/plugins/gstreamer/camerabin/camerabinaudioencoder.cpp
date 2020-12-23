@@ -123,8 +123,8 @@ GstEncodingProfile *CameraBinAudioEncoder::createProfile()
 
     if (codec.isEmpty())
         return 0;
-    else
-        caps = gst_caps_from_string(codec.toLatin1());
+
+    caps = gst_caps_from_string(codec.toLatin1());
 
     GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
                 caps,

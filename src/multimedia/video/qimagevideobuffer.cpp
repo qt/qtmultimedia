@@ -90,9 +90,9 @@ uchar *QImageVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
             *bytesPerLine = d->image.bytesPerLine();
 
         return d->image.bits();
-    } else {
-        return nullptr;
     }
+
+    return nullptr;
 }
 
 void QImageVideoBuffer::unmap()

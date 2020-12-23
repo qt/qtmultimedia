@@ -107,9 +107,9 @@ QList<QVideoFrame::PixelFormat> VideoItem::supportedPixelFormats(
                 << QVideoFrame::Format_ARGB32_Premultiplied
                 << QVideoFrame::Format_RGB565
                 << QVideoFrame::Format_RGB555;
-    } else {
-        return QList<QVideoFrame::PixelFormat>();
     }
+
+    return QList<QVideoFrame::PixelFormat>();
 }
 
 bool VideoItem::start(const QVideoSurfaceFormat &format)
@@ -124,9 +124,9 @@ bool VideoItem::start(const QVideoSurfaceFormat &format)
         prepareGeometryChange();
 
         return true;
-    } else {
-        return false;
     }
+
+    return false;
 }
 
 void VideoItem::stop()
@@ -144,12 +144,12 @@ bool VideoItem::present(const QVideoFrame &frame)
             setError(StoppedError);
 
         return false;
-    } else {
-        currentFrame = frame;
-        framePainted = false;
-
-        update();
-
-        return true;
     }
+
+    currentFrame = frame;
+    framePainted = false;
+
+    update();
+
+    return true;
 }

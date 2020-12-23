@@ -285,9 +285,9 @@ bool QVideoSurfaceGstDelegate::proposeAllocation(GstQuery *query)
         locker.unlock();
 
         return pool->proposeAllocation(query);
-    } else {
-        return false;
     }
+
+    return false;
 }
 
 void QVideoSurfaceGstDelegate::flush()
@@ -431,9 +431,9 @@ bool QVideoSurfaceGstDelegate::event(QEvent *event)
             m_notified = false;
         }
         return true;
-    } else {
-        return QObject::event(event);
     }
+
+    return QObject::event(event);
 }
 
 bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
@@ -527,11 +527,11 @@ bool QVideoSurfaceGstDelegate::waitForAsyncEvent(
         m_notified = false;
 
         return true;
-    } else {
-        notify();
-
-        return condition->wait(&m_mutex, time);
     }
+
+    notify();
+
+    return condition->wait(&m_mutex, time);
 }
 
 void QVideoSurfaceGstDelegate::updateSupportedFormats()
@@ -554,8 +554,6 @@ void QVideoSurfaceGstDelegate::updateSupportedFormats()
             m_renderer = pool;
             m_surfaceCaps = caps;
             break;
-        } else {
-            gst_caps_unref(caps);
         }
     }
 }

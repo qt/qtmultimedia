@@ -99,19 +99,20 @@ public:
     {
         if (strcmp(name, QtTestMediaControlA_iid) == 0) {
             refA += 1;
-
             return &controlA;
-        } else if (strcmp(name, QtTestMediaControlB_iid) == 0) {
-            refB += 1;
-
-            return &controlB;
-        } else if (strcmp(name, QtTestMediaControlC_iid) == 0) {
-            refA += 1;
-
-            return &controlA;
-        } else {
-            return nullptr;
         }
+
+        if (strcmp(name, QtTestMediaControlB_iid) == 0) {
+            refB += 1;
+            return &controlB;
+        }
+
+        if (strcmp(name, QtTestMediaControlC_iid) == 0) {
+            refA += 1;
+            return &controlA;
+        }
+
+        return nullptr;
     }
 
     //releaseControl() pure virtual function of QMediaService class.

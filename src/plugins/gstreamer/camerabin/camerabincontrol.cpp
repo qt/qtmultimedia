@@ -355,9 +355,9 @@ bool CameraBinControl::isExposureLocked() const
         GstPhotographyExposureMode exposureMode = GST_PHOTOGRAPHY_EXPOSURE_MODE_AUTO;
         g_object_get (G_OBJECT(source), "exposure-mode", &exposureMode, NULL);
         return exposureMode == GST_PHOTOGRAPHY_EXPOSURE_MODE_MANUAL;
-    } else {
-        return false;
     }
+
+    return false;
 }
 
 void CameraBinControl::lockExposure(QCamera::LockChangeReason reason)
@@ -395,9 +395,9 @@ bool CameraBinControl::isWhiteBalanceLocked() const
         GstPhotographyWhiteBalanceMode whiteBalanceMode;
         return gst_photography_get_white_balance_mode(photography, &whiteBalanceMode)
                 && whiteBalanceMode == GST_PHOTOGRAPHY_WB_MODE_MANUAL;
-    } else {
-        return false;
     }
+
+    return false;
 }
 
 void CameraBinControl::lockWhiteBalance(QCamera::LockChangeReason reason)

@@ -238,13 +238,12 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
 */
 int QAbstractVideoBuffer::mapPlanes(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
 {
-    if (d_ptr) {
+    if (d_ptr)
         return d_ptr->map(mode, numBytes, bytesPerLine, data);
-    } else {
-        data[0] = map(mode, numBytes, bytesPerLine);
 
-        return data[0] ? 1 : 0;
-    }
+    data[0] = map(mode, numBytes, bytesPerLine);
+
+    return data[0] ? 1 : 0;
 }
 
 /*!
@@ -328,9 +327,9 @@ uchar *QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPe
         if (bytesPerLine)
             *bytesPerLine = strides[0];
         return data[0];
-    } else {
-        return nullptr;
     }
+
+    return nullptr;
 }
 
 /*!

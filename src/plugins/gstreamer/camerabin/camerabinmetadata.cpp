@@ -156,9 +156,10 @@ CameraBinMetaData::CameraBinMetaData(QObject *parent)
 
 QVariant CameraBinMetaData::metaData(const QString &key) const
 {
-    if (key == QMediaMetaData::Orientation) {
+    if (key == QMediaMetaData::Orientation)
         return QGstUtils::fromGStreamerOrientation(m_values.value(QByteArray(GST_TAG_IMAGE_ORIENTATION)));
-    } else if (key == QMediaMetaData::GPSSpeed) {
+
+    if (key == QMediaMetaData::GPSSpeed) {
         const double metersPerSec = m_values.value(QByteArray(GST_TAG_GEO_LOCATION_MOVEMENT_SPEED)).toDouble();
         return (metersPerSec * 3600) / 1000;
     }

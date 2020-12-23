@@ -207,7 +207,7 @@ void CameraBinV4LImageProcessing::setParameter(
             return;
         }
 
-        control.value = (m == QCameraImageProcessing::WhiteBalanceAuto) ? true : false;
+        control.value = (m == QCameraImageProcessing::WhiteBalanceAuto);
     }
         break;
 
@@ -248,7 +248,7 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
             return;
         }
 
-        static const struct SupportedParameterEntry {
+        constexpr struct SupportedParameterEntry {
             quint32 cid;
             QCameraImageProcessingControl::ProcessingParameter parameter;
         } supportedParametersEntries[] = {
@@ -260,13 +260,13 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
             { V4L2_CID_SHARPNESS, QCameraImageProcessingControl::SharpeningAdjustment }
         };
 
-        for (int i = 0; i < int(sizeof(supportedParametersEntries) / sizeof(SupportedParameterEntry)); ++i) {
+        for (auto supportedParametersEntrie : supportedParametersEntries) {
             struct v4l2_queryctrl queryControl;
             ::memset(&queryControl, 0, sizeof(queryControl));
-            queryControl.id = supportedParametersEntries[i].cid;
+            queryControl.id = supportedParametersEntrie.cid;
 
             if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) != 0) {
-                qWarning() << "Unable to query the parameter info:" << supportedParametersEntries[i].parameter
+                qWarning() << "Unable to query the parameter info:" << supportedParametersEntrie.parameter
                     << ":" << qt_error_string(errno);
                 continue;
             }
@@ -277,7 +277,7 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
             sourceValueInfo.maximumValue = queryControl.maximum;
             sourceValueInfo.minimumValue = queryControl.minimum;
 
-            m_parametersInfo.insert(supportedParametersEntries[i].parameter, sourceValueInfo);
+            m_parametersInfo.insert(supportedParametersEntrie.parameter, sourceValueInfo);
         }
 
         qt_safe_close(fd);
@@ -287,30 +287,30 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
 qreal CameraBinV4LImageProcessing::scaledImageProcessingParameterValue(
         qint32 sourceValue, const SourceParameterValueInfo &sourceValueInfo)
 {
-    if (sourceValue == sourceValueInfo.defaultValue) {
+    if (sourceValue == sourceValueInfo.defaultValue)
         return 0.0f;
-    } else if (sourceValue < sourceValueInfo.defaultValue) {
+
+    if (sourceValue < sourceValueInfo.defaultValue)
         return ((sourceValue - sourceValueInfo.minimumValue)
                 / qreal(sourceValueInfo.defaultValue - sourceValueInfo.minimumValue))
                 + (-1.0f);
-    } else {
-        return ((sourceValue - sourceValueInfo.defaultValue)
-                / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
-    }
+
+    return ((sourceValue - sourceValueInfo.defaultValue)
+            / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
 }
 
 qint32 CameraBinV4LImageProcessing::sourceImageProcessingParameterValue(
         qreal scaledValue, const SourceParameterValueInfo &valueRange)
 {
-    if (qFuzzyIsNull(scaledValue)) {
+    if (qFuzzyIsNull(scaledValue))
         return valueRange.defaultValue;
-    } else if (scaledValue < 0.0f) {
+
+    if (scaledValue < 0.0f)
         return ((scaledValue - (-1.0f)) * (valueRange.defaultValue - valueRange.minimumValue))
                 + valueRange.minimumValue;
-    } else {
-        return (scaledValue * (valueRange.maximumValue - valueRange.defaultValue))
-                + valueRange.defaultValue;
-    }
+
+    return (scaledValue * (valueRange.maximumValue - valueRange.defaultValue))
+            + valueRange.defaultValue;
 }
 
 QT_END_NAMESPACE

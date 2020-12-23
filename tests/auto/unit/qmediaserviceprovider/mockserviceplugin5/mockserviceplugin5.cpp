@@ -46,8 +46,8 @@ public:
     {
         if (keys().contains(key))
             return new MockMediaService("MockServicePlugin5");
-        else
-            return nullptr;
+
+        return nullptr;
     }
 
     void release(QMediaService *service) override
@@ -76,8 +76,8 @@ public:
     {
         if (devices(service).contains(device))
             return QString(device)+" description";
-        else
-            return QString();
+
+        return QString();
     }
 };
 

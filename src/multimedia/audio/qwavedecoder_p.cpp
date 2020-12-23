@@ -137,13 +137,10 @@ void QWaveDecoder::handleData()
                 || qstrncmp(riff.type, "WAVE", 4) != 0) {
             parsingFailed();
             return;
-        } else {
-            state = QWaveDecoder::WaitingForFormatState;
-            if (qstrncmp(riff.descriptor.id, "RIFX", 4) == 0)
-                bigEndian = true;
-            else
-                bigEndian = false;
         }
+
+        state = QWaveDecoder::WaitingForFormatState;
+        bigEndian = (qstrncmp(riff.descriptor.id, "RIFX", 4) == 0);
     }
 
     if (state == QWaveDecoder::WaitingForFormatState) {
@@ -173,8 +170,7 @@ void QWaveDecoder::handleData()
                 // but don't support them at the moment.
                 parsingFailed();
                 return;
-            } else {
-                format.setCodec(QLatin1String("audio/pcm"));
+            }                 format.setCodec(QLatin1String("audio/pcm"));
 
                 if (bigEndian) {
                     int bps = qFromBigEndian<quint16>(wave.bitsPerSample);
@@ -195,7 +191,6 @@ void QWaveDecoder::handleData()
                 }
 
                 state = QWaveDecoder::WaitingForDataState;
-            }
         }
     }
 

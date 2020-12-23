@@ -162,8 +162,7 @@ QStringList QAudioRecorder::audioInputs() const
     Q_D(const QAudioRecorder);
     if (d->audioInputSelector)
         return d->audioInputSelector->availableInputs();
-    else
-        return QStringList();
+    return QStringList();
 }
 
 /*!
@@ -176,8 +175,7 @@ QString QAudioRecorder::audioInputDescription(const QString& name) const
 
     if (d->audioInputSelector)
         return d->audioInputSelector->inputDescription(name);
-    else
-        return QString();
+    return QString();
 }
 
 /*!
@@ -190,8 +188,7 @@ QString QAudioRecorder::defaultAudioInput() const
 
     if (d->audioInputSelector)
         return d->audioInputSelector->defaultInput();
-    else
-        return QString();
+    return QString();
 }
 
 /*!
@@ -210,8 +207,7 @@ QString QAudioRecorder::audioInput() const
 
     if (d->audioInputSelector)
         return d->audioInputSelector->activeInput();
-    else
-        return QString();
+    return QString();
 }
 
 /*!
@@ -223,7 +219,7 @@ void QAudioRecorder::setAudioInput(const QString& name)
     Q_D(const QAudioRecorder);
 
     if (d->audioInputSelector)
-        return d->audioInputSelector->setActiveInput(name);
+        d->audioInputSelector->setActiveInput(name);
 }
 
 /*!

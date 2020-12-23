@@ -167,21 +167,21 @@ void AudioTest::deviceChanged(int idx)
     m_deviceInfo = deviceBox->itemData(idx).value<QAudioDeviceInfo>();
 
     sampleRateBox->clear();
-    QList<int> sampleRatez = m_deviceInfo.supportedSampleRates();
+    const QList<int> sampleRatez = m_deviceInfo.supportedSampleRates();
     for (int i = 0; i < sampleRatez.size(); ++i)
         sampleRateBox->addItem(QString("%1").arg(sampleRatez.at(i)));
     if (sampleRatez.size())
         m_settings.setSampleRate(sampleRatez.at(0));
 
     channelsBox->clear();
-    QList<int> chz = m_deviceInfo.supportedChannelCounts();
+    const QList<int> chz = m_deviceInfo.supportedChannelCounts();
     for (int i = 0; i < chz.size(); ++i)
         channelsBox->addItem(QString("%1").arg(chz.at(i)));
     if (chz.size())
         m_settings.setChannelCount(chz.at(0));
 
     codecsBox->clear();
-    QStringList codecs = m_deviceInfo.supportedCodecs();
+    const QStringList codecs = m_deviceInfo.supportedCodecs();
     for (int i = 0; i < codecs.size(); ++i)
         codecsBox->addItem(QString("%1").arg(codecs.at(i)));
     if (codecs.size())
@@ -190,22 +190,21 @@ void AudioTest::deviceChanged(int idx)
     codecsBox->addItem("audio/test");
 
     sampleSizesBox->clear();
-    QList<int> sampleSizez = m_deviceInfo.supportedSampleSizes();
+    const QList<int> sampleSizez = m_deviceInfo.supportedSampleSizes();
     for (int i = 0; i < sampleSizez.size(); ++i)
         sampleSizesBox->addItem(QString("%1").arg(sampleSizez.at(i)));
     if (sampleSizez.size())
         m_settings.setSampleSize(sampleSizez.at(0));
 
     sampleTypesBox->clear();
-    QList<QAudioFormat::SampleType> sampleTypez = m_deviceInfo.supportedSampleTypes();
-
+    const QList<QAudioFormat::SampleType> sampleTypez = m_deviceInfo.supportedSampleTypes();
     for (int i = 0; i < sampleTypez.size(); ++i)
         sampleTypesBox->addItem(toString(sampleTypez.at(i)));
     if (sampleTypez.size())
         m_settings.setSampleType(sampleTypez.at(0));
 
     endianBox->clear();
-    QList<QAudioFormat::Endian> endianz = m_deviceInfo.supportedByteOrders();
+    const QList<QAudioFormat::Endian> endianz = m_deviceInfo.supportedByteOrders();
     for (int i = 0; i < endianz.size(); ++i)
         endianBox->addItem(toString(endianz.at(i)));
     if (endianz.size())

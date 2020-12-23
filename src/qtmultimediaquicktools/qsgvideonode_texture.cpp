@@ -141,7 +141,7 @@ public:
     }
 
     void updateBlending() {
-        setFlag(Blending, qFuzzyCompare(m_opacity, float(1.0)) ? false : true);
+        setFlag(Blending, !qFuzzyCompare(m_opacity, float(1.0)));
     }
 
     void setVideoFrame(const QVideoFrame &frame) {

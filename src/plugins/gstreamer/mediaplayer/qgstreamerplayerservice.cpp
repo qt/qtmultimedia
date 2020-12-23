@@ -149,9 +149,10 @@ QMediaControl *QGstreamerPlayerService::requestControl(const char *name)
 
 void QGstreamerPlayerService::releaseControl(QMediaControl *control)
 {
-    if (!control) {
+    if (!control)
         return;
-    } else if (control == m_videoOutput) {
+
+    if (control == m_videoOutput) {
         m_videoOutput = 0;
         m_control->setVideoOutput(0);
         decreaseVideoRef();

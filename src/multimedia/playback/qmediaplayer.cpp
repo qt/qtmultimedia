@@ -178,17 +178,16 @@ void QMediaPlayerPrivate::_q_stateChanged(QMediaPlayer::State ps)
     // Backend switches into stopped state every time new media is about to be loaded.
     // If media player has a playlist loaded make sure player doesn' stop.
     if (playlist && playlist->currentIndex() != -1 && ps != state && ps == QMediaPlayer::StoppedState) {
-        if (control->mediaStatus() == QMediaPlayer::EndOfMedia ||
-                control->mediaStatus() == QMediaPlayer::InvalidMedia) {
+        if (control->mediaStatus() == QMediaPlayer::EndOfMedia || control->mediaStatus() == QMediaPlayer::InvalidMedia) {
             // if media player is not stopped, and
             // we have finished playback for the current media,
             // advance to the next item in the playlist
             Q_ASSERT(state != QMediaPlayer::StoppedState);
             playlist->next();
             return;
-        } else if (control->mediaStatus() == QMediaPlayer::LoadingMedia) {
-            return;
         }
+        if (control->mediaStatus() == QMediaPlayer::LoadingMedia)
+            return;
     }
 
     if (ps != state) {
@@ -283,9 +282,9 @@ void QMediaPlayerPrivate::_q_updateMedia(const QMediaContent &media)
             emit q->currentMediaChanged(media);
             _q_handlePlaylistLoaded();
             return;
-        } else if (playlist) {
-            playlist->next();
         }
+        if (playlist)
+            playlist->next();
         return;
     }
 
@@ -424,23 +423,21 @@ void QMediaPlayerPrivate::setPlaylistMedia()
                 playlist->next();
             }
             return;
-        } else {
-            // If we've just switched to a new playlist,
-            // then last emitted currentMediaChanged was a playlist.
-            // Make sure we emit currentMediaChanged if new playlist has
-            // the same media as the previous one:
-            // sample.m3u
-            //      test.wav     -- processed by backend
-            //      nested.m3u   -- processed by frontend
-            //          test.wav -- processed by backend,
-            //                      media is not changed,
-            //                      frontend needs to emit currentMediaChanged
-            bool isSameMedia = (q->currentMedia() == playlist->currentMedia());
-            setMedia(playlist->currentMedia(), nullptr);
-            if (isSameMedia) {
-                emit q->currentMediaChanged(q->currentMedia());
-            }
         }
+        // If we've just switched to a new playlist,
+        // then last emitted currentMediaChanged was a playlist.
+        // Make sure we emit currentMediaChanged if new playlist has
+        // the same media as the previous one:
+        // sample.m3u
+        //      test.wav     -- processed by backend
+        //      nested.m3u   -- processed by frontend
+        //          test.wav -- processed by backend,
+        //                      media is not changed,
+        //                      frontend needs to emit currentMediaChanged
+        bool isSameMedia = (q->currentMedia() == playlist->currentMedia());
+        setMedia(playlist->currentMedia(), nullptr);
+        if (isSameMedia)
+            emit q->currentMediaChanged(q->currentMedia());
     } else {
         setMedia(QMediaContent(), nullptr);
     }

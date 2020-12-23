@@ -55,7 +55,7 @@ struct ElementMap
 };
 
 // Ordered by descending priority
-static const ElementMap elementMap[] =
+static constexpr ElementMap elementMap[] =
 {
 #if QT_CONFIG(gstreamer_gl)
     { "xcb", "glimagesink" },
@@ -340,13 +340,13 @@ static GstElement *findBestVideoSink()
         return 0;
 
     // First, try some known video sinks, depending on the Qt platform plugin in use.
-    for (quint32 i = 0; i < (sizeof(elementMap) / sizeof(ElementMap)); ++i) {
+    for (auto i : elementMap) {
 #if QT_CONFIG(gstreamer_gl)
-        if (!QGstUtils::useOpenGL() && qstrcmp(elementMap[i].gstreamerElement, "glimagesink") == 0)
+        if (!QGstUtils::useOpenGL() && qstrcmp(i.gstreamerElement, "glimagesink") == 0)
             continue;
 #endif
-        if (platform == QLatin1String(elementMap[i].qtPlatform)
-                && (choice = gst_element_factory_make(elementMap[i].gstreamerElement, nullptr))) {
+        if (platform == QLatin1String(i.qtPlatform)
+                && (choice = gst_element_factory_make(i.gstreamerElement, nullptr))) {
 
             if (qt_gst_element_is_functioning(choice))
                 return choice;
