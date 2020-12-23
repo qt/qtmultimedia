@@ -93,14 +93,6 @@ QMetaDataReaderControl::QMetaDataReaderControl(QObject *parent)
 }
 
 /*!
-    Destroy the meta-data object.
-*/
-
-QMetaDataReaderControl::~QMetaDataReaderControl()
-{
-}
-
-/*!
     \fn bool QMetaDataReaderControl::isMetaDataAvailable() const
 
     Identifies if meta-data is available from a media service.

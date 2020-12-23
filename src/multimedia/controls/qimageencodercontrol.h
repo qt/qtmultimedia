@@ -58,8 +58,6 @@ class Q_MULTIMEDIA_EXPORT QImageEncoderControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QImageEncoderControl();
-
     virtual QStringList supportedImageCodecs() const = 0;
     virtual QString imageCodecDescription(const QString &codec) const = 0;
 

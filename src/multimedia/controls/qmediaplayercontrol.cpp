@@ -83,13 +83,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    Destroys a media player control.
-*/
-QMediaPlayerControl::~QMediaPlayerControl()
-{
-}
-
-/*!
     Constructs a new media player control with the given \a parent.
 */
 QMediaPlayerControl::QMediaPlayerControl(QObject *parent)

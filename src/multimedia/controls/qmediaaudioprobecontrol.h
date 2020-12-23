@@ -48,8 +48,6 @@ class QAudioBuffer;
 class Q_MULTIMEDIA_EXPORT QMediaAudioProbeControl : public QObject
 {
     Q_OBJECT
-public:
-    virtual ~QMediaAudioProbeControl();
 
 Q_SIGNALS:
     void audioBufferProbed(const QAudioBuffer &buffer);

@@ -63,8 +63,6 @@ public:
         UserParameter = 1000
     };
 
-    ~QCameraViewfinderSettingsControl();
-
     virtual bool isViewfinderParameterSupported(ViewfinderParameter parameter) const = 0;
     virtual QVariant viewfinderParameter(ViewfinderParameter parameter) const = 0;
     virtual void setViewfinderParameter(ViewfinderParameter parameter, const QVariant &value) = 0;
@@ -84,8 +82,6 @@ class Q_MULTIMEDIA_EXPORT QCameraViewfinderSettingsControl2 : public QObject
 {
     Q_OBJECT
 public:
-    virtual ~QCameraViewfinderSettingsControl2();
-
     virtual QList<QCameraViewfinderSettings> supportedViewfinderSettings() const = 0;
 
     virtual QCameraViewfinderSettings viewfinderSettings() const = 0;

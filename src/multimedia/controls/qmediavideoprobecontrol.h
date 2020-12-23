@@ -50,8 +50,6 @@ class QVideoFrame;
 class Q_MULTIMEDIA_EXPORT QMediaVideoProbeControl : public QObject
 {
     Q_OBJECT
-public:
-    virtual ~QMediaVideoProbeControl();
 
 Q_SIGNALS:
     void videoFrameProbed(const QVideoFrame &frame);

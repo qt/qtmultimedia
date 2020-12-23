@@ -75,13 +75,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    Destroys an audio decoder control.
-*/
-QAudioDecoderControl::~QAudioDecoderControl()
-{
-}
-
-/*!
     Constructs a new audio decoder control with the given \a parent.
 */
 QAudioDecoderControl::QAudioDecoderControl(QObject *parent)

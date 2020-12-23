@@ -50,8 +50,6 @@ class Q_MULTIMEDIA_EXPORT QVideoRendererControl : public QObject
     Q_OBJECT
 
 public:
-    ~QVideoRendererControl();
-
     virtual QAbstractVideoSurface *surface() const = 0;
     virtual void setSurface(QAbstractVideoSurface *surface) = 0;
 

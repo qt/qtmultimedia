@@ -82,13 +82,6 @@ QCameraViewfinderSettingsControl::QCameraViewfinderSettingsControl(QObject *pare
 }
 
 /*!
-    Destroys the camera viewfinder control object.
-*/
-QCameraViewfinderSettingsControl::~QCameraViewfinderSettingsControl()
-{
-}
-
-/*!
   \enum QCameraViewfinderSettingsControl::ViewfinderParameter
   \value Resolution
          Viewfinder resolution, QSize.
@@ -166,13 +159,6 @@ QCameraViewfinderSettingsControl::~QCameraViewfinderSettingsControl()
 */
 QCameraViewfinderSettingsControl2::QCameraViewfinderSettingsControl2(QObject *parent)
     : QObject(parent)
-{
-}
-
-/*!
-    Destroys the camera viewfinder settings control object.
-*/
-QCameraViewfinderSettingsControl2::~QCameraViewfinderSettingsControl2()
 {
 }
 

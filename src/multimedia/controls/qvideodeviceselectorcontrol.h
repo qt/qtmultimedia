@@ -53,8 +53,6 @@ class Q_MULTIMEDIA_EXPORT QVideoDeviceSelectorControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QVideoDeviceSelectorControl();
-
     virtual int deviceCount() const = 0;
 
     virtual QString deviceName(int index) const = 0;

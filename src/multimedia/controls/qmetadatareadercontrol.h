@@ -55,8 +55,6 @@ class Q_MULTIMEDIA_EXPORT QMetaDataReaderControl : public QObject
 {
     Q_OBJECT
 public:
-    ~QMetaDataReaderControl();
-
     virtual bool isMetaDataAvailable() const = 0;
 
     virtual QVariant metaData(const QString &key) const = 0;

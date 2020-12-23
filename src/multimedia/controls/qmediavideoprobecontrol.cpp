@@ -78,11 +78,6 @@ QMediaVideoProbeControl::QMediaVideoProbeControl(QObject *parent)
 {
 }
 
-/*! Destroys this video probe control */
-QMediaVideoProbeControl::~QMediaVideoProbeControl()
-{
-}
-
 /*!
     \fn QMediaVideoProbeControl::videoFrameProbed(const QVideoFrame &frame)
 

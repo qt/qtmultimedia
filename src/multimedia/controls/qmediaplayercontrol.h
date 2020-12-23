@@ -56,8 +56,6 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayerControl : public QObject
     Q_OBJECT
 
 public:
-    ~QMediaPlayerControl();
-
     virtual QMediaPlayer::State state() const = 0;
 
     virtual QMediaPlayer::MediaStatus mediaStatus() const = 0;

@@ -58,8 +58,6 @@ class Q_MULTIMEDIA_EXPORT QCameraExposureControl : public QObject
     Q_ENUMS(ExposureParameter)
 
 public:
-    ~QCameraExposureControl();
-
     enum ExposureParameter {
         ISO,
         Aperture,

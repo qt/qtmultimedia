@@ -85,14 +85,6 @@ QCameraControl::QCameraControl(QObject *parent)
 }
 
 /*!
-    Destruct the camera control object.
-*/
-
-QCameraControl::~QCameraControl()
-{
-}
-
-/*!
     \fn QCameraControl::state() const
 
     Returns the state of the camera service.

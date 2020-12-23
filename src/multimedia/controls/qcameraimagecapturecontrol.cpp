@@ -80,13 +80,6 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 }
 
 /*!
-    Destroys an image capture control.
-*/
-QCameraImageCaptureControl::~QCameraImageCaptureControl()
-{
-}
-
-/*!
     \fn QCameraImageCaptureControl::isReadyForCapture() const
 
     Identifies if a capture control is ready to perform a capture

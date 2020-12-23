@@ -84,13 +84,6 @@ QVideoRendererControl::QVideoRendererControl(QObject *parent)
 }
 
 /*!
-    Destroys a video renderer media end point.
-*/
-QVideoRendererControl::~QVideoRendererControl()
-{
-}
-
-/*!
     \fn QVideoRendererControl::surface() const
 
     Returns the surface a video producer renders to.

@@ -63,8 +63,6 @@ public:
         ViewfinderSettings = 5
     };
 
-    ~QCameraControl();
-
     virtual QCamera::State state() const = 0;
     virtual void setState(QCamera::State state) = 0;
 

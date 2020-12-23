@@ -81,15 +81,6 @@ QCameraFocusControl::QCameraFocusControl(QObject *parent)
 }
 
 /*!
-    Destruct the camera control object.
-*/
-
-QCameraFocusControl::~QCameraFocusControl()
-{
-}
-
-
-/*!
   \fn QCameraFocus::FocusModes QCameraFocusControl::focusMode() const
 
   Returns the focus mode being used.

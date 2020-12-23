@@ -55,8 +55,6 @@ class Q_MULTIMEDIA_EXPORT QVideoWindowControl : public QObject
     Q_OBJECT
 
 public:
-    ~QVideoWindowControl();
-
     virtual WId winId() const = 0;
     virtual void setWinId(WId id) = 0;
 

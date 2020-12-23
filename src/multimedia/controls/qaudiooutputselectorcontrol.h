@@ -53,8 +53,6 @@ class Q_MULTIMEDIA_EXPORT QAudioOutputSelectorControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QAudioOutputSelectorControl();
-
     virtual QList<QString> availableOutputs() const = 0;
     virtual QString outputDescription(const QString& name) const = 0;
     virtual QString defaultOutput() const = 0;

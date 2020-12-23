@@ -92,14 +92,6 @@ QMetaDataWriterControl::QMetaDataWriterControl(QObject *parent)
 }
 
 /*!
-    Destroy the meta-data writer control.
-*/
-
-QMetaDataWriterControl::~QMetaDataWriterControl()
-{
-}
-
-/*!
     \fn bool QMetaDataWriterControl::isMetaDataAvailable() const
 
     Identifies if meta-data is available from a media service.

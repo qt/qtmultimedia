@@ -78,13 +78,6 @@ QAudioInputSelectorControl::QAudioInputSelectorControl(QObject *parent)
 }
 
 /*!
-    Destroys an audio input selector control.
-*/
-QAudioInputSelectorControl::~QAudioInputSelectorControl()
-{
-}
-
-/*!
     \fn QList<QString> QAudioInputSelectorControl::availableInputs() const
 
     Returns a list of the names of the available audio inputs.

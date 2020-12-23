@@ -86,13 +86,6 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 }
 
 /*!
-    Destroys a video window control.
-*/
-QVideoWindowControl::~QVideoWindowControl()
-{
-}
-
-/*!
     \fn QVideoWindowControl::winId() const
 
     Returns the ID of the window a video overlay end point renders to.

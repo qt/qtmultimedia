@@ -89,14 +89,6 @@ QMediaRecorderControl::QMediaRecorderControl(QObject* parent)
 }
 
 /*!
-    Destroys a media recorder control.
-*/
-
-QMediaRecorderControl::~QMediaRecorderControl()
-{
-}
-
-/*!
     \fn QUrl QMediaRecorderControl::outputLocation() const
 
     Returns the current output location being used.

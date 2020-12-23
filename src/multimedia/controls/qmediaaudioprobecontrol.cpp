@@ -78,11 +78,6 @@ QMediaAudioProbeControl::QMediaAudioProbeControl(QObject *parent)
 {
 }
 
-/*! Destroys this audio probe control */
-QMediaAudioProbeControl::~QMediaAudioProbeControl()
-{
-}
-
 /*!
     \fn QMediaAudioProbeControl::audioBufferProbed(const QAudioBuffer &buffer)
 

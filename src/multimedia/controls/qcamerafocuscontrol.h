@@ -55,8 +55,6 @@ class Q_MULTIMEDIA_EXPORT QCameraFocusControl : public QObject
     Q_OBJECT
 
 public:
-    ~QCameraFocusControl();
-
     virtual QCameraFocus::FocusModes focusMode() const = 0;
     virtual void setFocusMode(QCameraFocus::FocusModes mode) = 0;
     virtual bool isFocusModeSupported(QCameraFocus::FocusModes mode) const = 0;

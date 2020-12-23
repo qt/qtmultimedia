@@ -88,13 +88,6 @@ QMediaStreamsControl::QMediaStreamsControl(QObject *parent)
 }
 
 /*!
-    Destroys a media streams control.
-*/
-QMediaStreamsControl::~QMediaStreamsControl()
-{
-}
-
-/*!
   \enum QMediaStreamsControl::StreamType
 
   Media stream type.

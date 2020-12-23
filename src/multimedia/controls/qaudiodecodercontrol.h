@@ -55,8 +55,6 @@ class Q_MULTIMEDIA_EXPORT QAudioDecoderControl : public QObject
     Q_OBJECT
 
 public:
-    ~QAudioDecoderControl();
-
     virtual QAudioDecoder::State state() const = 0;
 
     virtual QString sourceFilename() const = 0;

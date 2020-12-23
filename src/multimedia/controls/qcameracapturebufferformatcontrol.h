@@ -52,8 +52,6 @@ class Q_MULTIMEDIA_EXPORT QCameraCaptureBufferFormatControl : public QObject
 {
     Q_OBJECT
 public:
-    ~QCameraCaptureBufferFormatControl();
-
     virtual QList<QVideoFrame::PixelFormat> supportedBufferFormats() const = 0;
     virtual QVideoFrame::PixelFormat bufferFormat() const = 0;
     virtual void setBufferFormat(QVideoFrame::PixelFormat format) = 0;

@@ -58,8 +58,6 @@ class Q_MULTIMEDIA_EXPORT QMediaStreamsControl : public QObject
 public:
     enum StreamType { UnknownStream, VideoStream, AudioStream, SubPictureStream, DataStream };
 
-    virtual ~QMediaStreamsControl();
-
     virtual int streamCount() = 0;
     virtual StreamType streamType(int streamNumber) = 0;
 

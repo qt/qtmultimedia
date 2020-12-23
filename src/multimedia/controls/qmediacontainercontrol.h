@@ -53,8 +53,6 @@ class Q_MULTIMEDIA_EXPORT QMediaContainerControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QMediaContainerControl();
-
     virtual QStringList supportedContainers() const = 0;
     virtual QString containerFormat() const = 0;
     virtual void setContainerFormat(const QString &format) = 0;

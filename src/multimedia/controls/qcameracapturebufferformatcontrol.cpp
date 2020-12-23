@@ -78,13 +78,6 @@ QCameraCaptureBufferFormatControl::QCameraCaptureBufferFormatControl(QObject *pa
 }
 
 /*!
-    Destroys an image buffer capture format control.
-*/
-QCameraCaptureBufferFormatControl::~QCameraCaptureBufferFormatControl()
-{
-}
-
-/*!
     \fn QCameraCaptureBufferFormatControl::supportedBufferFormats() const
 
     Returns the list of the supported buffer capture formats.

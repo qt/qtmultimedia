@@ -58,8 +58,6 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorderControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QMediaRecorderControl();
-
     virtual QUrl outputLocation() const = 0;
     virtual bool setOutputLocation(const QUrl &location) = 0;
 

@@ -84,13 +84,6 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 }
 
 /*!
-    Destroys the camera exposure control object.
-*/
-QCameraExposureControl::~QCameraExposureControl()
-{
-}
-
-/*!
   \enum QCameraExposureControl::ExposureParameter
   \value ISO
          Camera ISO sensitivity, specified as integer value.

@@ -60,8 +60,6 @@ class Q_MULTIMEDIA_EXPORT QAudioEncoderSettingsControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QAudioEncoderSettingsControl();
-
     virtual QStringList supportedAudioCodecs() const = 0;
     virtual QString codecDescription(const QString &codecName) const = 0;
 

@@ -58,8 +58,6 @@ class Q_MULTIMEDIA_EXPORT QCameraImageCaptureControl : public QObject
     Q_OBJECT
 
 public:
-    ~QCameraImageCaptureControl();
-
     virtual bool isReadyForCapture() const = 0;
 
     virtual QCameraImageCapture::DriveMode driveMode() const = 0;

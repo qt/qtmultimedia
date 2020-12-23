@@ -86,14 +86,6 @@ QMediaContainerControl::QMediaContainerControl(QObject *parent)
 }
 
 /*!
-    Destroys a media container control.
-*/
-QMediaContainerControl::~QMediaContainerControl()
-{
-}
-
-
-/*!
     \fn QMediaContainerControl::supportedContainers() const
 
     Returns a list of MIME types of supported container formats.

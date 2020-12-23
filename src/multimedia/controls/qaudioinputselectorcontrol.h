@@ -53,8 +53,6 @@ class Q_MULTIMEDIA_EXPORT QAudioInputSelectorControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QAudioInputSelectorControl();
-
     virtual QList<QString> availableInputs() const = 0;
     virtual QString inputDescription(const QString& name) const = 0;
     virtual QString defaultInput() const = 0;

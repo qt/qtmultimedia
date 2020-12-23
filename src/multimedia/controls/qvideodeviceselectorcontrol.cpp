@@ -78,13 +78,6 @@ QVideoDeviceSelectorControl::QVideoDeviceSelectorControl(QObject *parent)
 }
 
 /*!
-    Destroys a video device selector control.
-*/
-QVideoDeviceSelectorControl::~QVideoDeviceSelectorControl()
-{
-}
-
-/*!
     \fn QVideoDeviceSelectorControl::deviceCount() const
 
     Returns the number of available video devices;

@@ -86,13 +86,6 @@ QAudioEncoderSettingsControl::QAudioEncoderSettingsControl(QObject *parent)
 }
 
 /*!
-  Destroys the audio encoder settings control.
-*/
-QAudioEncoderSettingsControl::~QAudioEncoderSettingsControl()
-{
-}
-
-/*!
   \fn QAudioEncoderSettingsControl::supportedAudioCodecs() const
 
   Returns the list of supported audio codec names.

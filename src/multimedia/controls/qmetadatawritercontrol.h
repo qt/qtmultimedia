@@ -55,8 +55,6 @@ class Q_MULTIMEDIA_EXPORT QMetaDataWriterControl : public QObject
 {
     Q_OBJECT
 public:
-    ~QMetaDataWriterControl();
-
     virtual bool isWritable() const = 0;
     virtual bool isMetaDataAvailable() const = 0;
 

@@ -57,8 +57,6 @@ class Q_MULTIMEDIA_EXPORT QCameraImageProcessingControl : public QObject
     Q_ENUMS(ProcessingParameter)
 
 public:
-    ~QCameraImageProcessingControl();
-
     enum ProcessingParameter {
         WhiteBalancePreset,
         ColorTemperature,

@@ -84,13 +84,6 @@ QImageEncoderControl::QImageEncoderControl(QObject *parent)
 }
 
 /*!
-    Destroys the image encoder control.
-*/
-QImageEncoderControl::~QImageEncoderControl()
-{
-}
-
-/*!
     \fn QImageEncoderControl::supportedResolutions(const QImageEncoderSettings &settings = QImageEncoderSettings(),
                                                    bool *continuous = 0) const
 

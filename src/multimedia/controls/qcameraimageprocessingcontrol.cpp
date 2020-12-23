@@ -101,14 +101,6 @@ QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
 }
 
 /*!
-    Destruct the image processing control object.
-*/
-
-QCameraImageProcessingControl::~QCameraImageProcessingControl()
-{
-}
-
-/*!
     \fn bool QCameraImageProcessingControl::isParameterSupported(ProcessingParameter parameter) const
 
     Returns true if the camera supports adjusting image processing \a parameter.

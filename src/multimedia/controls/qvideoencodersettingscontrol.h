@@ -61,8 +61,6 @@ class Q_MULTIMEDIA_EXPORT QVideoEncoderSettingsControl : public QObject
     Q_OBJECT
 
 public:
-    virtual ~QVideoEncoderSettingsControl();
-
     virtual QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,
                                               bool *continuous = nullptr) const = 0;
 

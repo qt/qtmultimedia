@@ -88,13 +88,6 @@ QVideoEncoderSettingsControl::QVideoEncoderSettingsControl(QObject *parent)
 }
 
 /*!
-    Destroys a video encoder settings control.
-*/
-QVideoEncoderSettingsControl::~QVideoEncoderSettingsControl()
-{
-}
-
-/*!
     \fn QVideoEncoderSettingsControl::supportedVideoCodecs() const
 
     Returns the list of supported video codecs.
