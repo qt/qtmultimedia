@@ -93,7 +93,7 @@ class QCameraImageCapturePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraImageCapture)
 public:
-    QMediaObject *mediaObject = nullptr;
+    QCamera *camera = nullptr;
 
     QCameraImageCaptureControl *control = nullptr;
     QImageEncoderControl *encoderControl = nullptr;
@@ -128,26 +128,58 @@ void QCameraImageCapturePrivate::_q_readyChanged(bool ready)
 
 void QCameraImageCapturePrivate::_q_serviceDestroyed()
 {
-    mediaObject = nullptr;
+    camera = nullptr;
     control = nullptr;
     encoderControl = nullptr;
 }
 
 /*!
-    Constructs a media recorder which records the media produced by \a mediaObject.
+    Constructs a media recorder which records the media produced by \a camera.
 
-    The \a parent is passed to QMediaObject.
+    The \a camera is also used as the parent of this object.
 */
 
-QCameraImageCapture::QCameraImageCapture(QMediaObject *mediaObject, QObject *parent):
-    QObject(parent), d_ptr(new QCameraImageCapturePrivate)
+QCameraImageCapture::QCameraImageCapture(QCamera *camera)
+    : QObject(camera), d_ptr(new QCameraImageCapturePrivate)
 {
+    Q_ASSERT(camera);
     Q_D(QCameraImageCapture);
 
     d->q_ptr = this;
+    d->camera = camera;
 
-    if (mediaObject)
-        mediaObject->bind(this);
+    QMediaService *service = camera->service();
+    if (service) {
+        d->control = qobject_cast<QCameraImageCaptureControl*>(service->requestControl(QCameraImageCaptureControl_iid));
+
+        if (d->control) {
+            d->encoderControl = qobject_cast<QImageEncoderControl *>(service->requestControl(QImageEncoderControl_iid));
+
+            connect(d->control, SIGNAL(imageExposed(int)),
+                    this, SIGNAL(imageExposed(int)));
+            connect(d->control, SIGNAL(imageCaptured(int,QImage)),
+                    this, SIGNAL(imageCaptured(int,QImage)));
+            connect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
+                    this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+            connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
+                    this, SIGNAL(imageAvailable(int,QVideoFrame)));
+            connect(d->control, SIGNAL(imageSaved(int,QString)),
+                    this, SIGNAL(imageSaved(int,QString)));
+            connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
+                    this, SLOT(_q_readyChanged(bool)));
+            connect(d->control, SIGNAL(error(int,int,QString)),
+                    this, SLOT(_q_error(int,int,QString)));
+
+            connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
+
+            return;
+        }
+    }
+
+    // without QCameraImageCaptureControl discard the camera
+    d->camera = nullptr;
+    d->control = nullptr;
+    d->encoderControl = nullptr;
 }
 
 /*!
@@ -156,93 +188,15 @@ QCameraImageCapture::QCameraImageCapture(QMediaObject *mediaObject, QObject *par
 
 QCameraImageCapture::~QCameraImageCapture()
 {
-    Q_D(QCameraImageCapture);
-
-    if (d->mediaObject)
-        d->mediaObject->unbind(this);
-
     delete d_ptr;
 }
 
 /*!
   \reimp
 */
-QMediaObject *QCameraImageCapture::mediaObject() const
+QCamera *QCameraImageCapture::camera() const
 {
-    return d_func()->mediaObject;
-}
-
-/*!
-  \reimp
-*/
-bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
-{
-    Q_D(QCameraImageCapture);
-
-    if (d->mediaObject) {
-        if (d->control) {
-            disconnect(d->control, SIGNAL(imageExposed(int)),
-                       this, SIGNAL(imageExposed(int)));
-            disconnect(d->control, SIGNAL(imageCaptured(int,QImage)),
-                       this, SIGNAL(imageCaptured(int,QImage)));
-            disconnect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
-                       this, SIGNAL(imageAvailable(int,QVideoFrame)));
-            disconnect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
-                       this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
-            disconnect(d->control, SIGNAL(imageSaved(int,QString)),
-                       this, SIGNAL(imageSaved(int,QString)));
-            disconnect(d->control, SIGNAL(readyForCaptureChanged(bool)),
-                       this, SLOT(_q_readyChanged(bool)));
-            disconnect(d->control, SIGNAL(error(int,int,QString)),
-                       this, SLOT(_q_error(int,int,QString)));
-
-            QMediaService *service = d->mediaObject->service();
-            service->releaseControl(d->control);
-            if (d->encoderControl)
-                service->releaseControl(d->encoderControl);
-
-            disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-        }
-    }
-
-    d->mediaObject = mediaObject;
-
-    if (d->mediaObject) {
-        QMediaService *service = mediaObject->service();
-        if (service) {
-            d->control = qobject_cast<QCameraImageCaptureControl*>(service->requestControl(QCameraImageCaptureControl_iid));
-
-            if (d->control) {
-                d->encoderControl = qobject_cast<QImageEncoderControl *>(service->requestControl(QImageEncoderControl_iid));
-
-                connect(d->control, SIGNAL(imageExposed(int)),
-                        this, SIGNAL(imageExposed(int)));
-                connect(d->control, SIGNAL(imageCaptured(int,QImage)),
-                        this, SIGNAL(imageCaptured(int,QImage)));
-                connect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
-                        this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
-                connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
-                        this, SIGNAL(imageAvailable(int,QVideoFrame)));
-                connect(d->control, SIGNAL(imageSaved(int,QString)),
-                        this, SIGNAL(imageSaved(int,QString)));
-                connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
-                        this, SLOT(_q_readyChanged(bool)));
-                connect(d->control, SIGNAL(error(int,int,QString)),
-                        this, SLOT(_q_error(int,int,QString)));
-
-                connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-                return true;
-            }
-        }
-    }
-
-    // without QCameraImageCaptureControl discard the media object
-    d->mediaObject = nullptr;
-    d->control = nullptr;
-    d->encoderControl = nullptr;
-
-    return false;
+    return d_func()->camera;
 }
 
 /*!
@@ -350,7 +304,7 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
     Q_D(QCameraImageCapture);
 
     if (d->encoderControl) {
-        QCamera *camera = qobject_cast<QCamera*>(d->mediaObject);
+        QCamera *camera = qobject_cast<QCamera*>(d->camera);
         if (camera && camera->captureMode() == QCamera::CaptureStillImage) {
             QMetaObject::invokeMethod(camera,
                                       "_q_preparePropertyChange",

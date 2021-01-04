@@ -151,12 +151,12 @@ void tst_QCameraImageCapture::mediaObject()
     provider->service = &mymockcameraservice;
     QCamera camera;
     QCameraImageCapture imageCapture(&camera);
-    QVERIFY(imageCapture.mediaObject() == nullptr);
+    QVERIFY(imageCapture.camera() == nullptr);
 
     provider->service = mockcameraservice;
     QCamera camera1;
     QCameraImageCapture imageCapture1(&camera1);
-    QMediaObject *medobj1 = imageCapture1.mediaObject();
+    QMediaObject *medobj1 = imageCapture1.camera();
     QCOMPARE(medobj1, &camera1);
 }
 
@@ -167,14 +167,14 @@ void tst_QCameraImageCapture::deleteMediaObject()
     QCamera *camera = new QCamera;
     QCameraImageCapture *capture = new QCameraImageCapture(camera);
 
-    QVERIFY(capture->mediaObject() == camera);
+    QVERIFY(capture->camera() == camera);
     QVERIFY(capture->isAvailable());
 
     delete camera;
     delete provider->service;
 
     //capture should detach from camera
-    QVERIFY(capture->mediaObject() == nullptr);
+    QVERIFY(capture->camera() == nullptr);
     QVERIFY(!capture->isAvailable());
 
     capture->capture();

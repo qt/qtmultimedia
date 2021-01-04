@@ -97,11 +97,11 @@ QT_BEGIN_NAMESPACE
 
 */
 
-QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera, QObject *parent) :
-    QObject(parent),
-    m_camera(camera)
+QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera)
+    : QObject(camera),
+      m_camera(camera)
 {
-    m_capture = new QCameraImageCapture(camera, this);
+    m_capture = new QCameraImageCapture(camera);
 
     connect(m_capture, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
     connect(m_capture, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));

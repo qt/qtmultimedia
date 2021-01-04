@@ -112,7 +112,7 @@ private slots:
 
 private:
     friend class QDeclarativeCamera;
-    QDeclarativeCameraCapture(QCamera *camera, QObject *parent = 0);
+    QDeclarativeCameraCapture(QCamera *camera);
 
     QCamera *m_camera;
     QCameraImageCapture *m_capture;

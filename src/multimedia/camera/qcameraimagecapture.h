@@ -55,12 +55,12 @@ QT_END_NAMESPACE
 QT_BEGIN_NAMESPACE
 
 class QImageEncoderSettings;
+class QCamera;
 
 class QCameraImageCapturePrivate;
-class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject, public QMediaBindableInterface
+class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
     Q_ENUMS(Error)
     Q_ENUMS(CaptureDestination)
     Q_PROPERTY(bool readyForCapture READ isReadyForCapture NOTIFY readyForCaptureChanged)
@@ -87,13 +87,13 @@ public:
     };
     Q_DECLARE_FLAGS(CaptureDestinations, CaptureDestination)
 
-    explicit QCameraImageCapture(QMediaObject *mediaObject, QObject *parent = nullptr);
+    explicit QCameraImageCapture(QCamera *camera);
     ~QCameraImageCapture();
 
     bool isAvailable() const;
     QMultimedia::AvailabilityStatus availability() const;
 
-    QMediaObject *mediaObject() const override;
+    QCamera *camera() const;
 
     Error error() const;
     QString errorString() const;
@@ -129,8 +129,6 @@ Q_SIGNALS:
     void imageSaved(int id, const QString &fileName);
 
 protected:
-    bool setMediaObject(QMediaObject *) override;
-
     QCameraImageCapturePrivate *d_ptr;
 private:
     Q_DISABLE_COPY(QCameraImageCapture)
