@@ -62,6 +62,7 @@ class QMediaContainerControl;
 class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QMetaDataWriterControl;
+class QAudioInputSelectorControl;
 class QTimer;
 
 class QMediaRecorderPrivate
@@ -69,26 +70,26 @@ class QMediaRecorderPrivate
     Q_DECLARE_NON_CONST_PUBLIC(QMediaRecorder)
 
 public:
-    QMediaRecorderPrivate();
-    virtual ~QMediaRecorderPrivate() {}
+    QMediaRecorderPrivate() = default;
 
     void applySettingsLater();
     void restartCamera();
 
-    QMediaObject *mediaObject;
+    QMediaObject *mediaObject = nullptr;
 
-    QMediaRecorderControl *control;
-    QMediaContainerControl *formatControl;
-    QAudioEncoderSettingsControl *audioControl;
-    QVideoEncoderSettingsControl *videoControl;
-    QMetaDataWriterControl *metaDataControl;
+    QMediaRecorderControl *control = nullptr;
+    QMediaContainerControl *formatControl = nullptr;
+    QAudioEncoderSettingsControl *audioControl = nullptr;
+    QVideoEncoderSettingsControl *videoControl = nullptr;
+    QMetaDataWriterControl *metaDataControl = nullptr;
+    QAudioInputSelectorControl *audioInputSelector = nullptr;
 
-    bool settingsChanged;
+    bool settingsChanged = false;
 
-    QTimer* notifyTimer;
+    QTimer* notifyTimer = nullptr;
 
-    QMediaRecorder::State state;
-    QMediaRecorder::Error error;
+    QMediaRecorder::State state = QMediaRecorder::StoppedState;
+    QMediaRecorder::Error error = QMediaRecorder::NoError;
     QString errorString;
     QUrl actualLocation;
 
@@ -100,7 +101,7 @@ public:
     void _q_updateNotifyInterval(int ms);
     void _q_applySettings();
 
-    QMediaRecorder *q_ptr;
+    QMediaRecorder *q_ptr = nullptr;
 };
 
 QT_END_NAMESPACE

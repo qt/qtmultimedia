@@ -60,23 +60,9 @@ class QAudioRecorderPrivate;
 class Q_MULTIMEDIA_EXPORT QAudioRecorder : public QMediaRecorder
 {
     Q_OBJECT
-    Q_PROPERTY(QString audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
 public:
     explicit QAudioRecorder(QObject *parent = nullptr);
     ~QAudioRecorder();
-
-    QStringList audioInputs() const;
-    QString defaultAudioInput() const;
-    QString audioInputDescription(const QString& name) const;
-
-    QString audioInput() const;
-
-public Q_SLOTS:
-    void setAudioInput(const QString& name);
-
-Q_SIGNALS:
-    void audioInputChanged(const QString& name);
-    void availableAudioInputsChanged();
 
 private:
     Q_DISABLE_COPY(QAudioRecorder)
