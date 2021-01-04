@@ -80,7 +80,8 @@ AudioRecorder::AudioRecorder()
     //audio devices
     ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
     for (auto &device: m_audioRecorder->audioInputs()) {
-        ui->audioDeviceBox->addItem(device, QVariant(device));
+        auto name = m_audioRecorder->audioInputDescription(device);
+        ui->audioDeviceBox->addItem(name, QVariant(device));
     }
 
     //audio codecs
