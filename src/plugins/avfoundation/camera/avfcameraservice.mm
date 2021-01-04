@@ -54,7 +54,6 @@
 #include "avfmediavideoprobecontrol.h"
 #include "avfcamerafocuscontrol.h"
 #include "avfcameraexposurecontrol.h"
-#include "avfcameraviewfindersettingscontrol.h"
 #include "avfimageencodercontrol.h"
 #include "avfaudioencodersettingscontrol.h"
 #include "avfvideoencodersettingscontrol.h"
@@ -95,7 +94,6 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_cameraExposureControl = new AVFCameraExposureControl(this);
 #endif
 
-    m_viewfinderSettingsControl = new AVFCameraViewfinderSettingsControl(this);
     m_imageEncoderControl = new AVFImageEncoderControl(this);
     m_audioEncoderSettingsControl = new AVFAudioEncoderSettingsControl(this);
     m_videoEncoderSettingsControl = new AVFVideoEncoderSettingsControl(this);
@@ -130,7 +128,6 @@ AVFCameraService::~AVFCameraService()
     delete m_cameraControl;
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
-    delete m_viewfinderSettingsControl;
     delete m_imageEncoderControl;
     delete m_audioEncoderSettingsControl;
     delete m_videoEncoderSettingsControl;
@@ -165,9 +162,6 @@ QObject *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraFocusControl_iid) == 0)
         return m_cameraFocusControl;
-
-    if (qstrcmp(name, QCameraViewfinderSettingsControl_iid) == 0)
-        return m_viewfinderSettingsControl;
 
     if (qstrcmp(name, QImageEncoderControl_iid) == 0)
         return m_imageEncoderControl;

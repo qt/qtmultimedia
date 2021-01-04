@@ -59,7 +59,6 @@ class AVFCameraDeviceControl;
 class AVFAudioInputSelectorControl;
 class AVFCameraFocusControl;
 class AVFCameraExposureControl;
-class AVFCameraViewfinderSettingsControl;
 class AVFImageEncoderControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
@@ -88,7 +87,6 @@ public:
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const {return m_cameraExposureControl; }
     AVFCameraRendererControl *videoOutput() const {return m_videoOutput; }
-    AVFCameraViewfinderSettingsControl *viewfinderSettingsControl() const {return m_viewfinderSettingsControl; }
     AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
     AVFAudioEncoderSettingsControl *audioEncoderSettingsControl() const { return m_audioEncoderSettingsControl; }
     AVFVideoEncoderSettingsControl *videoEncoderSettingsControl() const {return m_videoEncoderSettingsControl; }
@@ -105,7 +103,6 @@ private:
     AVFImageCaptureControl *m_imageCaptureControl;
     AVFCameraFocusControl *m_cameraFocusControl;
     AVFCameraExposureControl *m_cameraExposureControl;
-    AVFCameraViewfinderSettingsControl *m_viewfinderSettingsControl;
     AVFImageEncoderControl *m_imageEncoderControl;
     AVFAudioEncoderSettingsControl *m_audioEncoderSettingsControl;
     AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;

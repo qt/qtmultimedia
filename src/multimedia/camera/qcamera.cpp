@@ -48,7 +48,6 @@
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
-#include <qcameraviewfindersettingscontrol.h>
 
 #include <QDebug>
 
@@ -181,7 +180,6 @@ void QCameraPrivate::initControls()
     if (service) {
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
         deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
-        viewfinderSettingsControl = qobject_cast<QCameraViewfinderSettingsControl*>(service->requestControl(QCameraViewfinderSettingsControl_iid));
 
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
@@ -197,7 +195,6 @@ void QCameraPrivate::initControls()
     } else {
         control = nullptr;
         deviceControl = nullptr;
-        viewfinderSettingsControl = nullptr;
 
         error = QCamera::ServiceMissingError;
         errorString = QCamera::tr("The camera service is missing");
@@ -215,8 +212,6 @@ void QCameraPrivate::clear()
             service->releaseControl(control);
         if (deviceControl)
             service->releaseControl(deviceControl);
-        if (viewfinderSettingsControl)
-            service->releaseControl(viewfinderSettingsControl);
 
         provider->releaseService(service);
     }
@@ -226,7 +221,6 @@ void QCameraPrivate::clear()
     imageProcessing = nullptr;
     control = nullptr;
     deviceControl = nullptr;
-    viewfinderSettingsControl = nullptr;
     service = nullptr;
 }
 
@@ -539,8 +533,8 @@ QCameraViewfinderSettings QCamera::viewfinderSettings() const
 {
     Q_D(const QCamera);
 
-    if (d->viewfinderSettingsControl)
-        return d->viewfinderSettingsControl->viewfinderSettings();
+    if (d->control)
+        return d->control->viewfinderSettings();
 
     return QCameraViewfinderSettings();
 }
@@ -567,11 +561,11 @@ void QCamera::setViewfinderSettings(const QCameraViewfinderSettings &settings)
 {
     Q_D(QCamera);
 
-    if (!d->viewfinderSettingsControl)
+    if (!d->control)
         return;
 
     d->_q_preparePropertyChange(QCameraControl::ViewfinderSettings);
-    d->viewfinderSettingsControl->setViewfinderSettings(settings);
+    d->control->setViewfinderSettings(settings);
 }
 
 /*!
@@ -595,14 +589,14 @@ QList<QCameraViewfinderSettings> QCamera::supportedViewfinderSettings(const QCam
 {
     Q_D(const QCamera);
 
-    if (!d->viewfinderSettingsControl)
+    if (!d->control)
         return QList<QCameraViewfinderSettings>();
 
     if (settings.isNull())
-        return d->viewfinderSettingsControl->supportedViewfinderSettings();
+        return d->control->supportedViewfinderSettings();
 
     QList<QCameraViewfinderSettings> results;
-    const QList<QCameraViewfinderSettings> supported = d->viewfinderSettingsControl->supportedViewfinderSettings();
+    const QList<QCameraViewfinderSettings> supported = d->control->supportedViewfinderSettings();
     for (const QCameraViewfinderSettings &s : supported) {
         if ((settings.resolution().isEmpty() || settings.resolution() == s.resolution())
                 && (qFuzzyIsNull(settings.minimumFrameRate()) || qFuzzyCompare((float)settings.minimumFrameRate(), (float)s.minimumFrameRate()))

@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 
-#include "avfcameraviewfindersettingscontrol.h"
 #include "private/qabstractvideobuffer_p.h"
 #include "avfcamerarenderercontrol.h"
 #include "avfcamerasession.h"
@@ -251,7 +250,7 @@ private:
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
     QVideoFrame::PixelFormat format =
-            AVFCameraViewfinderSettingsControl::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
+            AVFCameraControl::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
     if (format == QVideoFrame::Format_Invalid)
         return;
 

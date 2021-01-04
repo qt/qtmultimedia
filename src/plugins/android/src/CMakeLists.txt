@@ -29,7 +29,6 @@ qt_internal_add_plugin(QAndroidMediaServicePlugin
         mediacapture/qandroidmediavideoprobecontrol.cpp mediacapture/qandroidmediavideoprobecontrol.h
         mediacapture/qandroidvideodeviceselectorcontrol.cpp mediacapture/qandroidvideodeviceselectorcontrol.h
         mediacapture/qandroidvideoencodersettingscontrol.cpp mediacapture/qandroidvideoencodersettingscontrol.h
-        mediacapture/qandroidviewfindersettingscontrol.cpp mediacapture/qandroidviewfindersettingscontrol.h
         mediaplayer/qandroidmediaplayercontrol.cpp mediaplayer/qandroidmediaplayercontrol.h
         mediaplayer/qandroidmediaplayervideorenderercontrol.cpp mediaplayer/qandroidmediaplayervideorenderercontrol.h
         mediaplayer/qandroidmediaservice.cpp mediaplayer/qandroidmediaservice.h

@@ -1042,7 +1042,7 @@ private:
 
 void tst_QCamera::testSupportedViewfinderSettings_data()
 {
-    // see mockcameraviewfindersettingscontrol.h for expected values
+    // see mockcameracontrol.h for expected values
 
     ViewfinderSettingsBuilder builder;
 
@@ -1140,14 +1140,14 @@ void tst_QCamera::testSupportedViewfinderSettings()
     QList<QCameraViewfinderSettings> actualSupportedSettings = QCamera().supportedViewfinderSettings(settings);
     QCOMPARE(actualSupportedSettings.size(), expectedSupportedSettings.size());
     for (int i = 0; i < expectedSupportedSettings.size(); ++i) {
-        QCameraViewfinderSettings expectedSettings = mockCameraService->mockViewfinderSettingsControl->supportedSettings.at(expectedSupportedSettings.at(i));
+        QCameraViewfinderSettings expectedSettings = mockCameraService->mockControl->supportedSettings.at(expectedSupportedSettings.at(i));
         QCOMPARE(actualSupportedSettings.at(i), expectedSettings);
     }
 }
 
 void tst_QCamera::testSupportedViewfinderResolutions_data()
 {
-    // see mockcameraviewfindersettingscontrol.h for expected values
+    // see mockcameracontrol.h for expected values
 
     using SizeList = QList<QSize>;
     ViewfinderSettingsBuilder builder;
@@ -1254,7 +1254,7 @@ void tst_QCamera::testSupportedViewfinderResolutions()
 
 void tst_QCamera::testSupportedViewfinderFrameRateRanges_data()
 {
-    // see mockcameraviewfindersettingscontrol.h for expected values
+    // see mockcameracontrol.h for expected values
 
     using RangeList = QList<QCamera::FrameRateRange>;
     ViewfinderSettingsBuilder builder;
@@ -1333,7 +1333,7 @@ void tst_QCamera::testSupportedViewfinderFrameRateRanges()
 
 void tst_QCamera::testSupportedViewfinderPixelFormats_data()
 {
-    // see mockcameraviewfindersettingscontrol.h for expected values
+    // see mockcameracontrol.h for expected values
 
     using FormatList = QList<QVideoFrame::PixelFormat>;
     ViewfinderSettingsBuilder builder;

@@ -221,6 +221,30 @@ QCameraControl::QCameraControl(QObject *parent)
     Signals the lock \a type \a status was changed with the specified \a reason.
 */
 
+/*!
+    \fn QCameraControl::supportedViewfinderSettings() const
+
+    Returns a list of supported camera viewfinder settings.
+
+    The list is ordered by preference; preferred settings come first.
+*/
+
+/*!
+    \fn QCameraControl::viewfinderSettings() const
+
+    Returns the viewfinder settings.
+
+    If undefined or unsupported values are passed to QCameraControl::setViewfinderSettings(),
+    this function returns the actual settings used by the camera viewfinder. These may be available
+    only once the camera is active.
+*/
+
+/*!
+    \fn QCameraControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
+
+    Sets the camera viewfinder \a settings.
+*/
+
 QT_END_NAMESPACE
 
 #include "moc_qcameracontrol.cpp"

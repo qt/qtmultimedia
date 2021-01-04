@@ -13,7 +13,6 @@ qt_add_test(tst_qcameraimagecapture
         ../qmultimedia_common/mockcameraimagecapturecontrol.h
         ../qmultimedia_common/mockcameraimageprocessingcontrol.h
         ../qmultimedia_common/mockcameraservice.h
-        ../qmultimedia_common/mockcameraviewfindersettingscontrol.h
         ../qmultimedia_common/mockimageencodercontrol.h
         ../qmultimedia_common/mockmediaobject.h
         ../qmultimedia_common/mockmediaservice.h

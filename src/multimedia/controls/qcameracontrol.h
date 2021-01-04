@@ -81,6 +81,11 @@ public:
     virtual void searchAndLock(QCamera::LockTypes locks) = 0;
     virtual void unlock(QCamera::LockTypes locks) = 0;
 
+    virtual QList<QCameraViewfinderSettings> supportedViewfinderSettings() const = 0;
+
+    virtual QCameraViewfinderSettings viewfinderSettings() const = 0;
+    virtual void setViewfinderSettings(const QCameraViewfinderSettings &settings) = 0;
+
 Q_SIGNALS:
     void stateChanged(QCamera::State);
     void statusChanged(QCamera::Status);

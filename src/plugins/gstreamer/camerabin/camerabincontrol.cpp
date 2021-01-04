@@ -414,4 +414,19 @@ void CameraBinControl::unlockWhiteBalance(
     emit lockStatusChanged(QCamera::LockWhiteBalance, status, reason);
 }
 
+QList<QCameraViewfinderSettings> CameraBinControl::supportedViewfinderSettings() const
+{
+    return m_session->supportedViewfinderSettings();
+}
+
+QCameraViewfinderSettings CameraBinControl::viewfinderSettings() const
+{
+    return m_session->viewfinderSettings();
+}
+
+void CameraBinControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
+{
+    m_session->setViewfinderSettings(settings);
+}
+
 QT_END_NAMESPACE

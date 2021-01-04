@@ -58,7 +58,6 @@
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;
-class QCameraViewfinderSettingsControl;
 
 class QDeclarativeCameraViewfinder : public QObject
 {

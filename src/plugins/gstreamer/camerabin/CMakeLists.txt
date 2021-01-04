@@ -22,8 +22,6 @@ qt_internal_add_plugin(CameraBinServicePlugin
         camerabinserviceplugin.cpp camerabinserviceplugin.h
         camerabinsession.cpp camerabinsession.h
         camerabinvideoencoder.cpp camerabinvideoencoder.h
-        camerabinviewfindersettings.cpp camerabinviewfindersettings.h
-        camerabinviewfindersettings2.cpp camerabinviewfindersettings2.h
         camerabinzoom.cpp camerabinzoom.h
     INCLUDE_DIRECTORIES
         ${CMAKE_CURRENT_SOURCE_DIR}

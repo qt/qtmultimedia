@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 
-#include "avfcameraviewfindersettingscontrol.h"
 #include "avfimageencodercontrol.h"
 #include "avfimagecapturecontrol.h"
 #include "avfcamerautility.h"

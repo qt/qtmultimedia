@@ -36,7 +36,6 @@ HEADERS += \
     avfcamerafocuscontrol.h \
     avfcameraexposurecontrol.h \
     avfcamerautility.h \
-    avfcameraviewfindersettingscontrol.h \
     avfimageencodercontrol.h \
     avfvideoencodersettingscontrol.h \
     avfmediacontainercontrol.h \
@@ -58,7 +57,6 @@ OBJECTIVE_SOURCES += \
     avfcamerafocuscontrol.mm \
     avfcameraexposurecontrol.mm \
     avfcamerautility.mm \
-    avfcameraviewfindersettingscontrol.mm \
     avfimageencodercontrol.mm \
     avfvideoencodersettingscontrol.mm \
     avfmediacontainercontrol.mm \

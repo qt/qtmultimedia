@@ -21,7 +21,6 @@ qt_internal_add_plugin(AVFServicePlugin
         avfcameraserviceplugin.h avfcameraserviceplugin.mm
         avfcamerasession.h avfcamerasession.mm
         avfcamerautility.h avfcamerautility.mm
-        avfcameraviewfindersettingscontrol.h avfcameraviewfindersettingscontrol.mm
         avfcamerawindowcontrol.h avfcamerawindowcontrol.mm
         avfcapturedestinationcontrol.h avfcapturedestinationcontrol.mm
         avfimagecapturecontrol.h avfimagecapturecontrol.mm

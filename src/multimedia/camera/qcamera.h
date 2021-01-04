@@ -46,9 +46,7 @@
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
 
-#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaobject.h>
-#include <QtMultimedia/qmediaservice.h>
 
 #include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcamerafocus.h>

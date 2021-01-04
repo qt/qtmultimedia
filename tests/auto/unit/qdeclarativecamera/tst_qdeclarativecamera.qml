@@ -141,7 +141,7 @@ TestCase {
     }
 
     function test_supportedViewfinderResolutions_data() {
-        // see mockcameraviewfindersettingscontrol.h for expected values
+        // see mockcameracontrol.h for expected values
 
         return [
             {
@@ -229,7 +229,7 @@ TestCase {
     }
 
     function test_supportedViewfinderFrameRateRanges_data() {
-        // see mockcameraviewfindersettingscontrol.h for expected values
+        // see mockcameracontrol.h for expected values
         return [
             {
                 tag: "all",

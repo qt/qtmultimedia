@@ -60,8 +60,6 @@ QT_BEGIN_NAMESPACE
 class QMediaServiceProvider;
 class QCameraControl;
 class QVideoDeviceSelectorControl;
-class QCameraViewfinderSettingsControl;
-class QCameraViewfinderSettingsControl;
 
 class QCameraPrivate : public QMediaObjectPrivate
 {
@@ -72,7 +70,6 @@ public:
         provider(nullptr),
         control(nullptr),
         deviceControl(nullptr),
-        viewfinderSettingsControl(nullptr),
         cameraExposure(nullptr),
         cameraFocus(nullptr),
         imageProcessing(nullptr),
@@ -97,7 +94,6 @@ public:
 
     QCameraControl *control;
     QVideoDeviceSelectorControl *deviceControl;
-    QCameraViewfinderSettingsControl *viewfinderSettingsControl;
 
     QCameraExposure *cameraExposure;
     QCameraFocus *cameraFocus;

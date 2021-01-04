@@ -45,7 +45,6 @@
 #include "avfcameradevicecontrol.h"
 #include "avfaudioinputselectorcontrol.h"
 #include "avfmediavideoprobecontrol.h"
-#include "avfcameraviewfindersettingscontrol.h"
 #include "avfimageencodercontrol.h"
 #include "avfcamerautility.h"
 #include "avfcamerawindowcontrol.h"
@@ -280,8 +279,8 @@ void AVFCameraSession::setCapturePreviewOutput(AVFCameraWindowControl *output)
     if (m_capturePreviewWindowOutput) {
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
         m_capturePreviewWindowOutput->setLayer(previewLayer);
-        if (AVFCameraViewfinderSettingsControl *vfControl = m_service->viewfinderSettingsControl()) {
-            m_capturePreviewWindowOutput->setNativeSize(vfControl->viewfinderSettings().resolution());
+        if (auto *camera = m_service->cameraControl()) {
+            m_capturePreviewWindowOutput->setNativeSize(camera->viewfinderSettings().resolution());
         }
     }
 }
@@ -426,9 +425,9 @@ bool AVFCameraSession::applyImageEncoderSettings()
 
 bool AVFCameraSession::applyViewfinderSettings()
 {
-    if (AVFCameraViewfinderSettingsControl *vfControl = m_service->viewfinderSettingsControl()) {
+    if (auto *camera = m_service->cameraControl()) {
         QCamera::CaptureModes currentMode = m_service->cameraControl()->captureMode();
-        QCameraViewfinderSettings vfSettings(vfControl->requestedSettings());
+        QCameraViewfinderSettings vfSettings(camera->requestedSettings());
         // Viewfinder and image capture solutions must be the same, if an image capture
         // resolution is set, it takes precedence over the viewfinder resolution.
         if (currentMode.testFlag(QCamera::CaptureStillImage)) {
@@ -437,10 +436,10 @@ bool AVFCameraSession::applyViewfinderSettings()
                 vfSettings.setResolution(imageResolution);
         }
 
-        vfControl->applySettings(vfSettings);
+        camera->applySettings(vfSettings);
 
         if (m_capturePreviewWindowOutput)
-            m_capturePreviewWindowOutput->setNativeSize(vfControl->viewfinderSettings().resolution());
+            m_capturePreviewWindowOutput->setNativeSize(camera->viewfinderSettings().resolution());
 
         return !vfSettings.isNull();
     }

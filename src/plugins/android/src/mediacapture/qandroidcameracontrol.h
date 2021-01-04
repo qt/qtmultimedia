@@ -70,6 +70,10 @@ public:
     void searchAndLock(QCamera::LockTypes locks) override;
     void unlock(QCamera::LockTypes locks) override;
 
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
+    QCameraViewfinderSettings viewfinderSettings() const override;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings) override;
+
 private Q_SLOTS:
     void onCameraOpened();
     void onCameraAutoFocusComplete(bool success);

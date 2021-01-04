@@ -48,6 +48,8 @@ QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
+@class AVCaptureDeviceFormat;
+@class AVCaptureConnection;
 
 class AVFCameraControl : public QCameraControl
 {
@@ -74,11 +76,34 @@ public:
     void searchAndLock(QCamera::LockTypes locks) override;
     void unlock(QCamera::LockTypes locks) override;
 
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override;
+    QCameraViewfinderSettings viewfinderSettings() const override;
+    void setViewfinderSettings(const QCameraViewfinderSettings &settings) override;
+
+    // "Converters":
+    static QVideoFrame::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);
+    static bool CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv);
+
+private:
+    void setResolution(const QSize &resolution);
+    void setFramerate(qreal minFPS, qreal maxFPS, bool useActive);
+    void setPixelFormat(QVideoFrame::PixelFormat newFormat);
+    AVCaptureDeviceFormat *findBestFormatMatch(const QCameraViewfinderSettings &settings) const;
+    QList<QVideoFrame::PixelFormat> viewfinderPixelFormats() const;
+    bool convertPixelFormatIfSupported(QVideoFrame::PixelFormat format, unsigned &avfFormat) const;
+    bool applySettings(const QCameraViewfinderSettings &settings);
+    QCameraViewfinderSettings requestedSettings() const;
+
+    AVCaptureConnection *videoConnection() const;
+
 private Q_SLOTS:
     void updateStatus();
 
 private:
+    friend class AVFCameraSession;
     AVFCameraSession *m_session;
+    AVFCameraService *m_service;
+    QCameraViewfinderSettings m_settings;
 
     QCamera::State m_state;
     QCamera::Status m_lastStatus;

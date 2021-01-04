@@ -40,7 +40,7 @@
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecameraviewfinder_p.h"
 
-#include <QtMultimedia/qcameraviewfindersettingscontrol.h>
+#include <QtMultimedia/qcameracontrol.h>
 
 
 QT_BEGIN_NAMESPACE
