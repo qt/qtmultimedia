@@ -54,16 +54,6 @@ static void qRegisterAbstractVideoBufferMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterAbstractVideoBufferMetaTypes)
 
-int QAbstractVideoBufferPrivate::map(
-            QAbstractVideoBuffer::MapMode mode,
-            int *numBytes,
-            int bytesPerLine[4],
-            uchar *data[4])
-{
-    data[0] = q_ptr->map(mode, numBytes, bytesPerLine);
-    return data[0] ? 1 : 0;
-}
-
 /*!
     \class QAbstractVideoBuffer
     \brief The QAbstractVideoBuffer class is an abstraction for video data.
@@ -127,8 +117,7 @@ int QAbstractVideoBufferPrivate::map(
     Constructs an abstract video buffer of the given \a type.
 */
 QAbstractVideoBuffer::QAbstractVideoBuffer(HandleType type)
-    : d_ptr(nullptr)
-    , m_type(type)
+    : m_type(type)
 {
 }
 
@@ -181,36 +170,8 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
     \sa map()
 */
 
-/*!
-    \fn QAbstractVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
+/*! \fn uchar *QAbstractVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 
-    Maps the contents of a video buffer to memory.
-
-    In some cases the video buffer might be stored in video memory or otherwise inaccessible
-    memory, so it is necessary to map the buffer before accessing the pixel data.  This may involve
-    copying the contents around, so avoid mapping and unmapping unless required.
-
-    The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the buffer.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
-    mapped memory will be populated with the content of the buffer when initially mapped.  If the map
-    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
-    mapped memory will be written back to the buffer when unmapped.
-
-    When access to the data is no longer needed be sure to call the unmap() function to release the
-    mapped memory and possibly update the buffer contents.
-
-    Returns a pointer to the mapped memory region, or a null pointer if the mapping failed.  The
-    size in bytes of the mapped memory region is returned in \a numBytes, and the line stride in \a
-    bytesPerLine.
-
-    \note Writing to memory that is mapped as read-only is undefined, and may result in changes
-    to shared data or crashes.
-
-    \sa unmap(), mapMode()
-*/
-
-
-/*!
     Independently maps the planes of a video buffer to memory.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
@@ -236,15 +197,6 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
 
     \since 5.4
 */
-int QAbstractVideoBuffer::mapPlanes(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
-{
-    if (d_ptr)
-        return d_ptr->map(mode, numBytes, bytesPerLine, data);
-
-    data[0] = map(mode, numBytes, bytesPerLine);
-
-    return data[0] ? 1 : 0;
-}
 
 /*!
     \fn QAbstractVideoBuffer::unmap()
@@ -267,69 +219,6 @@ int QAbstractVideoBuffer::mapPlanes(MapMode mode, int *numBytes, int bytesPerLin
 QVariant QAbstractVideoBuffer::handle() const
 {
     return QVariant();
-}
-
-
-int QAbstractPlanarVideoBufferPrivate::map(
-        QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
-{
-    return q_func()->map(mode, numBytes, bytesPerLine, data);
-}
-
-/*!
-    \class QAbstractPlanarVideoBuffer
-    \brief The QAbstractPlanarVideoBuffer class is an abstraction for planar video data.
-    \inmodule QtMultimedia
-    \ingroup QtMultimedia
-    \ingroup multimedia
-    \ingroup multimedia_video
-
-    QAbstractPlanarVideoBuffer extends QAbstractVideoBuffer to support mapping
-    non-continuous planar video data.  Implement this instead of QAbstractVideoBuffer when the
-    abstracted video data stores planes in separate buffers or includes padding between planes
-    which would interfere with calculating offsets from the bytes per line and frame height.
-
-    \sa QAbstractVideoBuffer::mapPlanes()
-    \since 5.4
-*/
-
-/*!
-    Constructs an abstract planar video buffer of the given \a type.
-*/
-QAbstractPlanarVideoBuffer::QAbstractPlanarVideoBuffer(HandleType type)
-    : QAbstractVideoBuffer(*new QAbstractPlanarVideoBufferPrivate, type)
-{
-}
-
-/*!
-    \internal
-*/
-QAbstractPlanarVideoBuffer::QAbstractPlanarVideoBuffer(
-        QAbstractPlanarVideoBufferPrivate &dd, HandleType type)
-    : QAbstractVideoBuffer(dd, type)
-{
-}
-/*!
-    Destroys an abstract planar video buffer.
-*/
-QAbstractPlanarVideoBuffer::~QAbstractPlanarVideoBuffer()
-{
-}
-
-/*!
-    \internal
-*/
-uchar *QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
-{
-    uchar *data[4];
-    int strides[4];
-    if (map(mode, numBytes, strides, data) > 0) {
-        if (bytesPerLine)
-            *bytesPerLine = strides[0];
-        return data[0];
-    }
-
-    return nullptr;
 }
 
 /*!

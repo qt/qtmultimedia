@@ -76,23 +76,21 @@ QAbstractVideoBuffer::MapMode QImageVideoBuffer::mapMode() const
     return d_func()->mapMode;
 }
 
-uchar *QImageVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
+QImageVideoBuffer::MapData QImageVideoBuffer::map(MapMode mode)
 {
     Q_D(QImageVideoBuffer);
 
+    MapData mapData;
     if (d->mapMode == NotMapped && d->image.bits() && mode != NotMapped) {
         d->mapMode = mode;
 
-        if (numBytes)
-            *numBytes = int(d->image.sizeInBytes());
-
-        if (bytesPerLine)
-            *bytesPerLine = d->image.bytesPerLine();
-
-        return d->image.bits();
+        mapData.nBytes = int(d->image.sizeInBytes());
+        mapData.nPlanes = 1;
+        mapData.bytesPerLine[0] = d->image.bytesPerLine();
+        mapData.data[0] = d->image.bits();
     }
 
-    return nullptr;
+    return mapData;
 }
 
 void QImageVideoBuffer::unmap()

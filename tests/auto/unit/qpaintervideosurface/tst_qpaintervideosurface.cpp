@@ -101,7 +101,7 @@ public:
 
     [[nodiscard]] QVariant handle() const override { return m_textureId; }
 
-    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    MapData map(MapMode) override { return {}; }
     void unmap() override {}
     [[nodiscard]] MapMode mapMode() const override { return NotMapped; }
 
@@ -118,7 +118,7 @@ public:
         : QAbstractVideoBuffer(UserHandle)
     {}
 
-    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    MapData map(MapMode) override { return {}; }
     void unmap() override {}
     [[nodiscard]] MapMode mapMode() const override { return NotMapped; }
 };

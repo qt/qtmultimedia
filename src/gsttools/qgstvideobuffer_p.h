@@ -60,7 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstVideoBuffer : public QAbstractPlanarVideoBuffer
+class Q_GSTTOOLS_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info);
@@ -72,7 +72,7 @@ public:
     GstBuffer *buffer() const { return m_buffer; }
     MapMode mapMode() const override;
 
-    int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override;
+    MapData map(MapMode mode) override;
     void unmap() override;
 
     QVariant handle() const override { return m_handle; }

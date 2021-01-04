@@ -103,33 +103,31 @@ public:
 
     virtual ~AndroidTextureVideoBuffer() {}
 
-    MapMode mapMode() const { return m_mapMode; }
+    MapMode mapMode() const override { return m_mapMode; }
 
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
+    MapData map(MapMode mode) override
     {
+        MapData mapData;
         if (m_mapMode == NotMapped && mode == ReadOnly && updateFrame()) {
             m_mapMode = mode;
             m_image = m_output->m_fbo->toImage();
 
-            if (numBytes)
-                *numBytes = static_cast<int>(m_image.sizeInBytes());
-
-            if (bytesPerLine)
-                *bytesPerLine = m_image.bytesPerLine();
-
-            return m_image.bits();
-        } else {
-            return 0;
+            mapData.nBytes = static_cast<int>(m_image.sizeInBytes());
+            mapData.nPlanes = 1;
+            mapData.bytesPerLine[0] = m_image.bytesPerLine();
+            mapData.data[0] = m_image.bits();
         }
+
+        return mapData;
     }
 
-    void unmap()
+    void unmap() override
     {
         m_image = QImage();
         m_mapMode = NotMapped;
     }
 
-    QVariant handle() const
+    QVariant handle() const override
     {
         AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
         if (!that->updateFrame())

@@ -96,42 +96,44 @@ private slots:
 
 Q_DECLARE_METATYPE(QImage::Format)
 
-class QtTestVideoBuffer : public QObject, public QAbstractVideoBuffer
+class QtTestDummyVideoBuffer : public QObject, public QAbstractVideoBuffer
 {
     Q_OBJECT
 public:
-    QtTestVideoBuffer()
+    QtTestDummyVideoBuffer()
         : QAbstractVideoBuffer(NoHandle) {}
-    explicit QtTestVideoBuffer(QAbstractVideoBuffer::HandleType type)
+    explicit QtTestDummyVideoBuffer(QAbstractVideoBuffer::HandleType type)
         : QAbstractVideoBuffer(type) {}
 
     [[nodiscard]] MapMode mapMode() const override { return NotMapped; }
 
-    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    MapData map(MapMode) override { return {}; }
     void unmap() override {}
 };
 
-class QtTestPlanarVideoBuffer : public QAbstractPlanarVideoBuffer
+class QtTestVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QtTestPlanarVideoBuffer()
-        : QAbstractPlanarVideoBuffer(NoHandle)
+    QtTestVideoBuffer()
+        : QAbstractVideoBuffer(NoHandle)
     {}
-    explicit QtTestPlanarVideoBuffer(QAbstractVideoBuffer::HandleType type)
-        : QAbstractPlanarVideoBuffer(type)
+    explicit QtTestVideoBuffer(QAbstractVideoBuffer::HandleType type)
+        : QAbstractVideoBuffer(type)
     {}
 
     [[nodiscard]] MapMode mapMode() const override { return m_mapMode; }
 
-    int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override {
+    MapData map(MapMode mode) override
+    {
         m_mapMode = mode;
-        if (numBytes)
-            *numBytes = m_numBytes;
+        MapData mapData;
+        mapData.nBytes = m_numBytes;
+        mapData.nPlanes = m_planeCount;
         for (int i = 0; i < m_planeCount; ++i) {
-            data[i] = m_data[i];
-            bytesPerLine[i] = m_bytesPerLine[i];
+            mapData.data[i] = m_data[i];
+            mapData.bytesPerLine[i] = m_bytesPerLine[i];
         }
-        return m_planeCount;
+        return mapData;
     }
     void unmap() override { m_mapMode = NotMapped; }
 
@@ -270,7 +272,7 @@ void tst_QVideoFrame::createFromBuffer()
     QFETCH(QSize, size);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
 
-    QVideoFrame frame(new QtTestVideoBuffer(handleType), size, pixelFormat);
+    QVideoFrame frame(new QtTestDummyVideoBuffer(handleType), size, pixelFormat);
 
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), handleType);
@@ -386,7 +388,7 @@ void tst_QVideoFrame::createNull()
 
 void tst_QVideoFrame::destructor()
 {
-    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer;
+    QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer;
 
     {
         QVideoFrame frame(buffer, QSize(4, 1), QVideoFrame::Format_ARGB32);
@@ -443,7 +445,7 @@ void tst_QVideoFrame::copy()
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
-    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer(handleType);
+    QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer(handleType);
 
     {
         QVideoFrame frame(buffer, size, pixelFormat);
@@ -532,7 +534,7 @@ void tst_QVideoFrame::assign()
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
-    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer(handleType);
+    QPointer<QtTestDummyVideoBuffer> buffer = new QtTestDummyVideoBuffer(handleType);
 
     QVideoFrame frame;
     {
@@ -734,7 +736,7 @@ void tst_QVideoFrame::mapPlanes_data()
 
     static uchar bufferData[1024];
 
-    QtTestPlanarVideoBuffer *planarBuffer = new QtTestPlanarVideoBuffer;
+    QtTestVideoBuffer *planarBuffer = new QtTestVideoBuffer;
     planarBuffer->m_data[0] = bufferData;
     planarBuffer->m_data[1] = bufferData + 512;
     planarBuffer->m_data[2] = bufferData + 765;

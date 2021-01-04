@@ -113,7 +113,7 @@ class TextureBuffer : public QAbstractVideoBuffer
 public:
     TextureBuffer(uint id) : QAbstractVideoBuffer(GLTextureHandle), m_id(id) { }
     MapMode mapMode() const { return NotMapped; }
-    uchar *map(MapMode, int *, int *) { return 0; }
+    virtual MapData map(MapMode mode) { return {}; }
     void unmap() { }
     QVariant handle() const { return QVariant::fromValue<uint>(m_id); }
 

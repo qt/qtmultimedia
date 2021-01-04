@@ -67,16 +67,12 @@ class QVideoFramePrivate : public QSharedData
 public:
     QVideoFramePrivate()
     {
-        memset(data, 0, sizeof(data));
-        memset(bytesPerLine, 0, sizeof(bytesPerLine));
     }
 
     QVideoFramePrivate(const QSize &size, QVideoFrame::PixelFormat format)
         : size(size)
         , pixelFormat(format)
     {
-        memset(data, 0, sizeof(data));
-        memset(bytesPerLine, 0, sizeof(bytesPerLine));
     }
 
     ~QVideoFramePrivate()
@@ -88,10 +84,7 @@ public:
     QSize size;
     qint64 startTime = -1;
     qint64 endTime = -1;
-    uchar *data[4];
-    int bytesPerLine[4];
-    int mappedBytes = 0;
-    int planeCount = 0;
+    QAbstractVideoBuffer::MapData mapData;
     QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
     QAbstractVideoBuffer *buffer = nullptr;
     int mappedCount = 0;
@@ -553,89 +546,90 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
         return false;
     }
 
-    Q_ASSERT(d->data[0] == nullptr);
-    Q_ASSERT(d->bytesPerLine[0] == 0);
-    Q_ASSERT(d->planeCount == 0);
-    Q_ASSERT(d->mappedBytes == 0);
+    Q_ASSERT(d->mapData.data[0] == nullptr);
+    Q_ASSERT(d->mapData.bytesPerLine[0] == 0);
+    Q_ASSERT(d->mapData.nPlanes == 0);
+    Q_ASSERT(d->mapData.nBytes == 0);
 
-    d->planeCount = d->buffer->mapPlanes(mode, &d->mappedBytes, d->bytesPerLine, d->data);
-    if (d->planeCount == 0)
+    d->mapData = d->buffer->map(mode);
+    if (d->mapData.nPlanes == 0)
         return false;
 
-    if (d->planeCount > 1) {
-        // If the plane count is derive the additional planes for planar formats.
-    } else switch (d->pixelFormat) {
-    case Format_Invalid:
-    case Format_ARGB32:
-    case Format_ARGB32_Premultiplied:
-    case Format_RGB32:
-    case Format_RGB24:
-    case Format_RGB565:
-    case Format_RGB555:
-    case Format_ARGB8565_Premultiplied:
-    case Format_BGRA32:
-    case Format_BGRA32_Premultiplied:
-    case Format_ABGR32:
-    case Format_BGR32:
-    case Format_BGR24:
-    case Format_BGR565:
-    case Format_BGR555:
-    case Format_BGRA5658_Premultiplied:
-    case Format_AYUV444:
-    case Format_AYUV444_Premultiplied:
-    case Format_YUV444:
-    case Format_UYVY:
-    case Format_YUYV:
-    case Format_Y8:
-    case Format_Y16:
-    case Format_Jpeg:
-    case Format_CameraRaw:
-    case Format_AdobeDng:
-    case Format_User:
-        // Single plane or opaque format.
-        break;
-    case Format_YUV420P:
-    case Format_YUV422P:
-    case Format_YV12: {
-        // The UV stride is usually half the Y stride and is 32-bit aligned.
-        // However it's not always the case, at least on Windows where the
-        // UV planes are sometimes not aligned.
-        // We calculate the stride using the UV byte count to always
-        // have a correct stride.
-        const int height = d->size.height();
-        const int yStride = d->bytesPerLine[0];
-        const int uvHeight = d->pixelFormat == Format_YUV422P ? height : height / 2;
-        const int uvStride = (d->mappedBytes - (yStride * height)) / uvHeight / 2;
+    if (d->mapData.nPlanes == 1) {
+        // If the plane count is 1 derive the additional planes for planar formats.
+        switch (d->pixelFormat) {
+        case Format_Invalid:
+        case Format_ARGB32:
+        case Format_ARGB32_Premultiplied:
+        case Format_RGB32:
+        case Format_RGB24:
+        case Format_RGB565:
+        case Format_RGB555:
+        case Format_ARGB8565_Premultiplied:
+        case Format_BGRA32:
+        case Format_BGRA32_Premultiplied:
+        case Format_ABGR32:
+        case Format_BGR32:
+        case Format_BGR24:
+        case Format_BGR565:
+        case Format_BGR555:
+        case Format_BGRA5658_Premultiplied:
+        case Format_AYUV444:
+        case Format_AYUV444_Premultiplied:
+        case Format_YUV444:
+        case Format_UYVY:
+        case Format_YUYV:
+        case Format_Y8:
+        case Format_Y16:
+        case Format_Jpeg:
+        case Format_CameraRaw:
+        case Format_AdobeDng:
+        case Format_User:
+            // Single plane or opaque format.
+            break;
+        case Format_YUV420P:
+        case Format_YUV422P:
+        case Format_YV12: {
+            // The UV stride is usually half the Y stride and is 32-bit aligned.
+            // However it's not always the case, at least on Windows where the
+            // UV planes are sometimes not aligned.
+            // We calculate the stride using the UV byte count to always
+            // have a correct stride.
+            const int height = d->size.height();
+            const int yStride = d->mapData.bytesPerLine[0];
+            const int uvHeight = d->pixelFormat == Format_YUV422P ? height : height / 2;
+            const int uvStride = (d->mapData.nBytes - (yStride * height)) / uvHeight / 2;
 
-        // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
-        d->planeCount = 3;
-        d->bytesPerLine[2] = d->bytesPerLine[1] = uvStride;
-        d->data[1] = d->data[0] + (yStride * height);
-        d->data[2] = d->data[1] + (uvStride * uvHeight);
-        break;
-    }
-    case Format_NV12:
-    case Format_NV21:
-    case Format_IMC2:
-    case Format_IMC4: {
-        // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
-        d->planeCount = 2;
-        d->bytesPerLine[1] = d->bytesPerLine[0];
-        d->data[1] = d->data[0] + (d->bytesPerLine[0] * d->size.height());
-        break;
-    }
-    case Format_IMC1:
-    case Format_IMC3: {
-        // Three planes, the second and third vertically and horizontally subsumpled,
-        // but with lines padded to the width of the first plane.
-        d->planeCount = 3;
-        d->bytesPerLine[2] = d->bytesPerLine[1] = d->bytesPerLine[0];
-        d->data[1] = d->data[0] + (d->bytesPerLine[0] * d->size.height());
-        d->data[2] = d->data[1] + (d->bytesPerLine[1] * d->size.height() / 2);
-        break;
-    }
-    default:
-        break;
+            // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
+            d->mapData.nPlanes = 3;
+            d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = uvStride;
+            d->mapData.data[1] = d->mapData.data[0] + (yStride * height);
+            d->mapData.data[2] = d->mapData.data[1] + (uvStride * uvHeight);
+            break;
+        }
+        case Format_NV12:
+        case Format_NV21:
+        case Format_IMC2:
+        case Format_IMC4: {
+            // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
+            d->mapData.nPlanes = 2;
+            d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
+            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * d->size.height());
+            break;
+        }
+        case Format_IMC1:
+        case Format_IMC3: {
+            // Three planes, the second and third vertically and horizontally subsumpled,
+            // but with lines padded to the width of the first plane.
+            d->mapData.nPlanes = 3;
+            d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
+            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * d->size.height());
+            d->mapData.data[2] = d->mapData.data[1] + (d->mapData.bytesPerLine[1] * d->size.height() / 2);
+            break;
+        }
+        default:
+            break;
+        }
     }
 
     d->mappedCount++;
@@ -667,11 +661,7 @@ void QVideoFrame::unmap()
     d->mappedCount--;
 
     if (d->mappedCount == 0) {
-        d->mappedBytes = 0;
-        d->planeCount = 0;
-        memset(d->bytesPerLine, 0, sizeof(d->bytesPerLine));
-        memset(d->data, 0, sizeof(d->data));
-
+        d->mapData = {};
         d->buffer->unmap();
     }
 }
@@ -688,7 +678,7 @@ void QVideoFrame::unmap()
 */
 int QVideoFrame::bytesPerLine() const
 {
-    return d->bytesPerLine[0];
+    return d->mapData.bytesPerLine[0];
 }
 
 /*!
@@ -702,7 +692,7 @@ int QVideoFrame::bytesPerLine() const
 
 int QVideoFrame::bytesPerLine(int plane) const
 {
-    return plane >= 0 && plane < d->planeCount ? d->bytesPerLine[plane] : 0;
+    return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.bytesPerLine[plane] : 0;
 }
 
 /*!
@@ -718,7 +708,7 @@ int QVideoFrame::bytesPerLine(int plane) const
 */
 uchar *QVideoFrame::bits()
 {
-    return d->data[0];
+    return d->mapData.data[0];
 }
 
 /*!
@@ -735,7 +725,7 @@ uchar *QVideoFrame::bits()
 */
 uchar *QVideoFrame::bits(int plane)
 {
-    return plane >= 0 && plane < d->planeCount ? d->data[plane] : nullptr;
+    return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.data[plane] : nullptr;
 }
 
 /*!
@@ -750,7 +740,7 @@ uchar *QVideoFrame::bits(int plane)
 */
 const uchar *QVideoFrame::bits() const
 {
-    return d->data[0];
+    return d->mapData.data[0];
 }
 
 /*!
@@ -766,7 +756,7 @@ const uchar *QVideoFrame::bits() const
 */
 const uchar *QVideoFrame::bits(int plane) const
 {
-    return plane >= 0 && plane < d->planeCount ?  d->data[plane] : nullptr;
+    return plane >= 0 && plane < d->mapData.nPlanes ?  d->mapData.data[plane] : nullptr;
 }
 
 /*!
@@ -778,7 +768,7 @@ const uchar *QVideoFrame::bits(int plane) const
 */
 int QVideoFrame::mappedBytes() const
 {
-    return d->mappedBytes;
+    return d->mapData.nBytes;
 }
 
 /*!
@@ -792,7 +782,7 @@ int QVideoFrame::mappedBytes() const
 
 int QVideoFrame::planeCount() const
 {
-    return d->planeCount;
+    return d->mapData.nPlanes;
 }
 
 /*!

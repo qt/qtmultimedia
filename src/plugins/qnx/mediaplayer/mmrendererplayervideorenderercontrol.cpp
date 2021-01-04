@@ -154,15 +154,8 @@ public:
     MapMode mapMode() const {
         return QAbstractVideoBuffer::ReadWrite;
     }
-    void unmap() {
-
-    }
-    uchar *map(MapMode mode, int * numBytes, int * bytesPerLine) {
-        Q_UNUSED(mode);
-        Q_UNUSED(numBytes);
-        Q_UNUSED(bytesPerLine);
-        return 0;
-    }
+    void unmap() {}
+    MapData map(MapMode mode) override { return {}; }
     QVariant handle() const {
         if (!m_handle) {
             const_cast<QnxTextureBuffer*>(this)->m_handle = m_windowGrabber->getNextTextureId();

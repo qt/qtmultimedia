@@ -55,16 +55,16 @@
 
 QT_USE_NAMESPACE
 
-class CVImageVideoBuffer : public QAbstractPlanarVideoBuffer
+class CVImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     CVImageVideoBuffer(CVImageBufferRef buffer, AVFCameraRendererControl *renderer)
 #ifndef Q_OS_IOS
-        : QAbstractPlanarVideoBuffer(NoHandle)
+        : QAbstractVideoBuffer(NoHandle)
 #else
-        : QAbstractPlanarVideoBuffer(renderer->supportsTextures()
-                                     && CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA
-                                     ? GLTextureHandle : NoHandle)
+        : QAbstractVideoBuffer(renderer->supportsTextures()
+                               && CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA
+                               ? GLTextureHandle : NoHandle)
         , m_texture(nullptr)
         , m_renderer(renderer)
 #endif
@@ -89,16 +89,19 @@ public:
 
     MapMode mapMode() const { return m_mode; }
 
-    int map(QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
+    MapData map(QAbstractVideoBuffer::MapMode mode)
     {
+        MapData mapData;
+
         // We only support RGBA or NV12 (or Apple's version of NV12),
         // they are either 0 planes or 2.
-        const size_t nPlanes = CVPixelBufferGetPlaneCount(m_buffer);
-        Q_ASSERT(nPlanes <= 2);
+        mapData.nPlanes = CVPixelBufferGetPlaneCount(m_buffer);
+        Q_ASSERT(mapData.nPlanes <= 2);
 
-        if (!nPlanes) {
-            data[0] = map(mode, numBytes, bytesPerLine);
-            return data[0] ? 1 : 0;
+        if (!mapData.nPlanes) {
+            mapData.data[0] = map(mode, &mapData.nBytes, &mapData.bytesPerLine[0]);
+            mapData.nPlanes = mapData.data[0] ? 1 : 0;
+            return mapData;
         }
 
         // For a bi-planar format we have to set the parameters correctly:
@@ -107,27 +110,22 @@ public:
                                                                ? kCVPixelBufferLock_ReadOnly
                                                                : 0);
 
-            if (numBytes)
-                *numBytes = CVPixelBufferGetDataSize(m_buffer);
+            mapData.nBytes = CVPixelBufferGetDataSize(m_buffer);
 
-            if (bytesPerLine) {
-                // At the moment we handle only bi-planar format.
-                bytesPerLine[0] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, 0);
-                bytesPerLine[1] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, 1);
-            }
+            // At the moment we handle only bi-planar format.
+            mapData.bytesPerLine[0] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, 0);
+            mapData.bytesPerLine[1] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, 1);
 
-            if (data) {
-                data[0] = static_cast<uchar*>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, 0));
-                data[1] = static_cast<uchar*>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, 1));
-            }
+            mapData.data[0] = static_cast<uchar*>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, 0));
+            mapData.data[1] = static_cast<uchar*>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, 1));
 
             m_mode = mode;
         }
 
-        return nPlanes;
+        return mapData;
     }
 
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
+    uchar *map(MapMode mode, qsizetype *numBytes, int *bytesPerLine)
     {
         if (mode != NotMapped && m_mode == NotMapped) {
             CVPixelBufferLockBaseAddress(m_buffer, mode == QAbstractVideoBuffer::ReadOnly

@@ -63,32 +63,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoBufferPrivate
 {
 public:
-    QAbstractVideoBufferPrivate()
-        : q_ptr(nullptr)
-    {}
-
-    virtual ~QAbstractVideoBufferPrivate()
-    {}
-
-    virtual int map(
-            QAbstractVideoBuffer::MapMode mode,
-            int *numBytes,
-            int bytesPerLine[4],
-            uchar *data[4]);
-
-    QAbstractVideoBuffer *q_ptr;
-};
-
-class QAbstractPlanarVideoBufferPrivate : QAbstractVideoBufferPrivate
-{
-public:
-    QAbstractPlanarVideoBufferPrivate()
-    {}
-
-    int map(QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override;
-
-private:
-    Q_DECLARE_PUBLIC(QAbstractPlanarVideoBuffer)
+    QAbstractVideoBuffer *q_ptr = nullptr;
 };
 
 QT_END_NAMESPACE

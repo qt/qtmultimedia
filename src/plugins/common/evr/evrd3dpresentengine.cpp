@@ -90,7 +90,7 @@ public:
     QVariant handle() const override;
 
     MapMode mapMode() const override { return m_mapMode; }
-    uchar *map(MapMode, int*, int*) override;
+    MapData map(MapMode mode) override;
     void unmap() override;
 
 private:
@@ -101,28 +101,27 @@ private:
     mutable unsigned int m_textureId = 0;
 };
 
-uchar *IMFSampleVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
+IMFSampleVideoBuffer::MapData IMFSampleVideoBuffer::map(MapMode mode)
 {
     if (!m_surface || m_mapMode != NotMapped)
-        return 0;
+        return {};
 
     D3DSURFACE_DESC desc;
     if (FAILED(m_surface->GetDesc(&desc)))
-        return 0;
+        return {};
 
     D3DLOCKED_RECT rect;
     if (FAILED(m_surface->LockRect(&rect, NULL, mode == ReadOnly ? D3DLOCK_READONLY : 0)))
-        return 0;
+        return {};
 
     m_mapMode = mode;
 
-    if (numBytes)
-        *numBytes = (int)(rect.Pitch * desc.Height);
-
-    if (bytesPerLine)
-        *bytesPerLine = (int)rect.Pitch;
-
-    return reinterpret_cast<uchar *>(rect.pBits);
+    MapData mapData;
+    mapData.nBytes = (int)(rect.Pitch * desc.Height);
+    mapData.nPlanes = 1;
+    mapData.bytesPerLine[0] = (int)rect.Pitch;
+    mapData.data[0] = reinterpret_cast<uchar *>(rect.pBits);
+    return mapData;
 }
 
 void IMFSampleVideoBuffer::unmap()

@@ -71,7 +71,7 @@ public:
     }
 
     MapMode mapMode() const { return NotMapped; }
-    uchar *map(MapMode, int*, int*) { return 0; }
+    MapData map(MapMode mode) override { return {}; }
     void unmap() {}
 
     QVariant handle() const

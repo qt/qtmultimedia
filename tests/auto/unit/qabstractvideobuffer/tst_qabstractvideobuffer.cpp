@@ -67,7 +67,7 @@ public:
 
     [[nodiscard]] MapMode mapMode() const override { return QAbstractVideoBuffer::ReadWrite; }
 
-    uchar *map(MapMode, int *, int *) override { return nullptr; }
+    MapData map(MapMode) override { return {}; }
     void unmap() override {}
 };
 

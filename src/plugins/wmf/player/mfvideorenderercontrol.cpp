@@ -74,29 +74,27 @@ namespace
             m_buffer->Release();
         }
 
-        uchar *map(MapMode mode, int *numBytes, int *bytesPerLine)
+        MapData map(MapMode mode) override
         {
+            MapData mapData;
             if (m_mapMode == NotMapped && mode != NotMapped) {
                 BYTE *bytes;
                 DWORD length;
                 HRESULT hr = m_buffer->Lock(&bytes, NULL, &length);
                 if (SUCCEEDED(hr)) {
-                    if (numBytes)
-                        *numBytes = int(length);
-
-                    if (bytesPerLine)
-                        *bytesPerLine = m_bytesPerLine;
-
+                    mapData.nBytes = qsizetype(length);
+                    mapData.nPlanes = 1;
+                    mapData.bytesPerLine[0] = m_bytesPerLine;
+                    mapData.data[0] = reinterpret_cast<uchar *>(bytes);
                     m_mapMode = mode;
-                    return reinterpret_cast<uchar *>(bytes);
                 } else {
                     qWarning("Faild to lock mf buffer!");
                 }
             }
-            return 0;
+            return mapData;
         }
 
-        void unmap()
+        void unmap() override
         {
             if (m_mapMode == NotMapped)
                 return;
@@ -104,7 +102,7 @@ namespace
             m_buffer->Unlock();
         }
 
-        MapMode mapMode() const
+        MapMode mapMode() const override
         {
             return m_mapMode;
         }

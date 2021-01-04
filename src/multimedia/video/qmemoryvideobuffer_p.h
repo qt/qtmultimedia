@@ -67,7 +67,7 @@ public:
 
     MapMode mapMode() const override;
 
-    uchar *map(MapMode mode, int *numBytes, int *bytesPerLine) override;
+    MapData map(MapMode mode) override;
     void unmap() override;
 };
 

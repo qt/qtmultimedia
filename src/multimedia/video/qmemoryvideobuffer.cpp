@@ -91,23 +91,21 @@ QAbstractVideoBuffer::MapMode QMemoryVideoBuffer::mapMode() const
 /*!
     \reimp
 */
-uchar *QMemoryVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
+QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(MapMode mode)
 {
     Q_D(QMemoryVideoBuffer);
 
+    MapData mapData;
     if (d->mapMode == NotMapped && d->data.size() && mode != NotMapped) {
         d->mapMode = mode;
 
-        if (numBytes)
-            *numBytes = d->data.size();
-
-        if (bytesPerLine)
-            *bytesPerLine = d->bytesPerLine;
-
-        return reinterpret_cast<uchar *>(d->data.data());
+        mapData.nBytes = d->data.size();
+        mapData.nPlanes = 1;
+        mapData.bytesPerLine[0] = d->bytesPerLine;
+        mapData.data[0] = reinterpret_cast<uchar *>(d->data.data());
     }
 
-    return nullptr;
+    return mapData;
 }
 
 /*!

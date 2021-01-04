@@ -42,7 +42,7 @@
 QT_BEGIN_NAMESPACE
 
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
-    : QAbstractPlanarVideoBuffer(NoHandle)
+    : QAbstractVideoBuffer(NoHandle)
     , m_videoInfo(info)
     , m_buffer(buffer)
 {
@@ -52,7 +52,7 @@ QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
                 QGstVideoBuffer::HandleType handleType,
                 const QVariant &handle)
-    : QAbstractPlanarVideoBuffer(handleType)
+    : QAbstractVideoBuffer(handleType)
     , m_videoInfo(info)
     , m_buffer(buffer)
     , m_handle(handle)
@@ -73,39 +73,36 @@ QAbstractVideoBuffer::MapMode QGstVideoBuffer::mapMode() const
     return m_mode;
 }
 
-int QGstVideoBuffer::map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
+QAbstractVideoBuffer::MapData QGstVideoBuffer::map(MapMode mode)
 {
     const GstMapFlags flags = GstMapFlags(((mode & ReadOnly) ? GST_MAP_READ : 0)
                 | ((mode & WriteOnly) ? GST_MAP_WRITE : 0));
 
+    MapData mapData;
     if (mode == NotMapped || m_mode != NotMapped)
-        return 0;
+        return mapData;
 
     if (m_videoInfo.finfo->n_planes == 0) {         // Encoded
         if (gst_buffer_map(m_buffer, &m_frame.map[0], flags)) {
-            if (numBytes)
-                *numBytes = m_frame.map[0].size;
-            bytesPerLine[0] = -1;
-            data[0] = static_cast<uchar *>(m_frame.map[0].data);
+            mapData.nBytes = m_frame.map[0].size;
+            mapData.nPlanes = 1;
+            mapData.bytesPerLine[0] = -1;
+            mapData.data[0] = static_cast<uchar *>(m_frame.map[0].data);
 
             m_mode = mode;
-
-            return 1;
         }
     } else if (gst_video_frame_map(&m_frame, &m_videoInfo, m_buffer, flags)) {
-        if (numBytes)
-            *numBytes = m_frame.info.size;
+        mapData.nBytes = m_frame.info.size;
+        mapData.nPlanes = m_frame.info.finfo->n_planes;
 
         for (guint i = 0; i < m_frame.info.finfo->n_planes; ++i) {
-            bytesPerLine[i] = m_frame.info.stride[i];
-            data[i] = static_cast<uchar *>(m_frame.data[i]);
+            mapData.bytesPerLine[i] = m_frame.info.stride[i];
+            mapData.data[i] = static_cast<uchar *>(m_frame.data[i]);
         }
 
         m_mode = mode;
-
-        return m_frame.info.finfo->n_planes;
     }
-    return 0;
+    return mapData;
 }
 
 void QGstVideoBuffer::unmap()
