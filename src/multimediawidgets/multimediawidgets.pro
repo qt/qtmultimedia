@@ -13,12 +13,10 @@ PRIVATE_HEADERS += \
 
 PUBLIC_HEADERS += \
     qtmultimediawidgetdefs.h \
-    qcameraviewfinder.h \
     qvideowidgetcontrol.h \
     qvideowidget.h
 
 SOURCES += \
-    qcameraviewfinder.cpp \
     qpaintervideosurface.cpp \
     qvideowidgetcontrol.cpp \
     qvideowidget.cpp

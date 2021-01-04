@@ -93,7 +93,7 @@
       <widget class="QWidget" name="viewfinderPage">
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">
-         <widget class="QCameraViewfinder" name="viewfinder" native="true"/>
+         <widget class="QVideoWidget" name="viewfinder" native="true"/>
         </item>
        </layout>
       </widget>
@@ -298,9 +298,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QCameraViewfinder</class>
+   <class>QVideoWidget</class>
    <extends>QWidget</extends>
-   <header>qcameraviewfinder.h</header>
+   <header>qvideowidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

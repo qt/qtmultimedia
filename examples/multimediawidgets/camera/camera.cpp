@@ -55,7 +55,7 @@
 
 #include <QMediaService>
 #include <QMediaRecorder>
-#include <QCameraViewfinder>
+#include <QVideoWidget>
 #include <QCameraInfo>
 #include <QMediaMetaData>
 

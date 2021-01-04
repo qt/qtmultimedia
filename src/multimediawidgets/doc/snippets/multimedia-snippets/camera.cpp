@@ -40,7 +40,7 @@
 // Camera snippets
 // Extracted from src/multimedia/doc/snippets/multimedia-snippets/camera.cpp
 #include "qcamera.h"
-#include "qcameraviewfinder.h"
+#include "qvideowidget.h"
 #include "qcameraimagecapture.h"
 
 /* Globals so that everything is consistent. */
@@ -53,7 +53,7 @@ void camera_blah()
     //! [Camera]
     camera = new QCamera;
 
-    viewfinder = new QCameraViewfinder();
+    viewfinder = new QVideoWidget();
     viewfinder->show();
 
     camera->setViewfinder(viewfinder);
