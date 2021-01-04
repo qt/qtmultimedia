@@ -73,8 +73,7 @@ class QMediaPlaylistPrivate
     Q_DECLARE_PUBLIC(QMediaPlaylist)
 public:
     QMediaPlaylistPrivate()
-        : mediaObject(nullptr),
-          error(QMediaPlaylist::NoError)
+        : error(QMediaPlaylist::NoError)
     {
     }
 
@@ -97,13 +96,6 @@ public:
         q_ptr->addMedia(parser->playlist);
 
         emit q_ptr->loaded();
-    }
-
-    void _q_mediaObjectDeleted()
-    {
-        Q_Q(QMediaPlaylist);
-        mediaObject = nullptr;
-        q->setMediaObject(nullptr);
     }
 
     bool checkFormat(const char *format) const
@@ -140,8 +132,6 @@ public:
 
     int nextPosition(int steps) const;
     int prevPosition(int steps) const;
-
-    QMediaObject *mediaObject;
 
     QList<QMediaContent> playlist;
 

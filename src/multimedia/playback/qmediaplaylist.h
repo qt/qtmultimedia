@@ -51,10 +51,9 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaPlaylistPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject, public QMediaBindableInterface
+class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
     Q_PROPERTY(QMediaPlaylist::PlaybackMode playbackMode READ playbackMode WRITE setPlaybackMode NOTIFY playbackModeChanged)
     Q_PROPERTY(QMediaContent currentMedia READ currentMedia NOTIFY currentMediaChanged)
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
@@ -66,8 +65,6 @@ public:
 
     explicit QMediaPlaylist(QObject *parent = nullptr);
     virtual ~QMediaPlaylist();
-
-    QMediaObject *mediaObject() const override;
 
     PlaybackMode playbackMode() const;
     void setPlaybackMode(PlaybackMode mode);
@@ -124,11 +121,8 @@ Q_SIGNALS:
     void loaded();
     void loadFailed();
 
-protected:
-    bool setMediaObject(QMediaObject *object) override;
-    QMediaPlaylistPrivate *d_ptr;
-
 private:
+    QMediaPlaylistPrivate *d_ptr;
     Q_DECLARE_PRIVATE(QMediaPlaylist)
 };
 

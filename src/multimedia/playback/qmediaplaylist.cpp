@@ -186,7 +186,6 @@ QMediaPlaylist::QMediaPlaylist(QObject *parent)
     Q_D(QMediaPlaylist);
 
     d->q_ptr = this;
-    setMediaObject(nullptr);
 }
 
 /*!
@@ -195,35 +194,7 @@ QMediaPlaylist::QMediaPlaylist(QObject *parent)
 
 QMediaPlaylist::~QMediaPlaylist()
 {
-    Q_D(QMediaPlaylist);
-
-    if (d->mediaObject)
-        d->mediaObject->unbind(this);
-
     delete d_ptr;
-}
-
-/*!
-  Returns the QMediaObject instance that this QMediaPlaylist is bound too,
-  or 0 otherwise.
-*/
-QMediaObject *QMediaPlaylist::mediaObject() const
-{
-    return d_func()->mediaObject;
-}
-
-/*!
-  \internal
-  If \a mediaObject is null or doesn't have an intrinsic playlist,
-  internal local memory playlist source will be created.
-*/
-bool QMediaPlaylist::setMediaObject(QMediaObject *mediaObject)
-{
-    Q_D(QMediaPlaylist);
-
-    d->mediaObject = mediaObject;
-
-    return true;
 }
 
 /*!
