@@ -55,14 +55,6 @@ class QVideoFramePrivate;
 class Q_MULTIMEDIA_EXPORT QVideoFrame
 {
 public:
-    enum FieldType
-    {
-        ProgressiveFrame,
-        TopField,
-        BottomField,
-        InterlacedFrame
-    };
-
     enum PixelFormat
     {
         Format_Invalid,
@@ -132,9 +124,6 @@ public:
     int width() const;
     int height() const;
 
-    FieldType fieldType() const;
-    void setFieldType(FieldType);
-
     bool isMapped() const;
     bool isReadable() const;
     bool isWritable() const;
@@ -177,14 +166,12 @@ private:
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrame&);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::FieldType);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::PixelFormat);
 #endif
 
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QVideoFrame)
-Q_DECLARE_METATYPE(QVideoFrame::FieldType)
 Q_DECLARE_METATYPE(QVideoFrame::PixelFormat)
 
 #endif

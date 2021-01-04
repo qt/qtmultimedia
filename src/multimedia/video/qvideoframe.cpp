@@ -56,7 +56,6 @@ QT_BEGIN_NAMESPACE
 static void qRegisterVideoFrameMetaTypes()
 {
     qRegisterMetaType<QVideoFrame>();
-    qRegisterMetaType<QVideoFrame::FieldType>();
     qRegisterMetaType<QVideoFrame::PixelFormat>();
 }
 
@@ -94,7 +93,6 @@ public:
     int mappedBytes = 0;
     int planeCount = 0;
     QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
-    QVideoFrame::FieldType fieldType = QVideoFrame::ProgressiveFrame;
     QAbstractVideoBuffer *buffer = nullptr;
     int mappedCount = 0;
     QMutex mapMutex;
@@ -280,17 +278,6 @@ private:
 */
 
 /*!
-    \enum QVideoFrame::FieldType
-
-    Specifies the field an interlaced video frame belongs to.
-
-    \value ProgressiveFrame The frame is not interlaced.
-    \value TopField The frame contains a top field.
-    \value BottomField The frame contains a bottom field.
-    \value InterlacedFrame The frame contains a merged top and bottom field.
-*/
-
-/*!
     Constructs a null video frame.
 */
 QVideoFrame::QVideoFrame()
@@ -451,24 +438,6 @@ int QVideoFrame::width() const
 int QVideoFrame::height() const
 {
     return d->size.height();
-}
-
-/*!
-    Returns the field an interlaced video frame belongs to.
-
-    If the video is not interlaced this will return WholeFrame.
-*/
-QVideoFrame::FieldType QVideoFrame::fieldType() const
-{
-    return d->fieldType;
-}
-
-/*!
-    Sets the \a field an interlaced video frame belongs to.
-*/
-void QVideoFrame::setFieldType(QVideoFrame::FieldType field)
-{
-    d->fieldType = field;
 }
 
 /*!
@@ -1217,22 +1186,6 @@ QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
 
         default:
             return dbg << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toLatin1().constData();
-    }
-}
-
-QDebug operator<<(QDebug dbg, QVideoFrame::FieldType f)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace();
-    switch (f) {
-        case QVideoFrame::TopField:
-            return dbg << "TopField";
-        case QVideoFrame::BottomField:
-            return dbg << "BottomField";
-        case QVideoFrame::InterlacedFrame:
-            return dbg << "InterlacedFrame";
-        default:
-            return dbg << "ProgressiveFrame";
     }
 }
 

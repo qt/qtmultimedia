@@ -201,7 +201,6 @@ void tst_QVideoFrame::create()
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
     QCOMPARE(frame.height(), size.height());
-    QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), qint64(-1));
 }
@@ -241,7 +240,6 @@ void tst_QVideoFrame::createInvalid()
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
     QCOMPARE(frame.height(), size.height());
-    QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), qint64(-1));
 }
@@ -280,7 +278,6 @@ void tst_QVideoFrame::createFromBuffer()
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
     QCOMPARE(frame.height(), size.height());
-    QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), qint64(-1));
 }
@@ -321,7 +318,6 @@ void tst_QVideoFrame::createFromImage()
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
     QCOMPARE(frame.height(), size.height());
-    QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), qint64(-1));
 }
@@ -338,7 +334,6 @@ void tst_QVideoFrame::createFromIncompatibleImage()
     QCOMPARE(frame.size(), QSize(64, 64));
     QCOMPARE(frame.width(), 64);
     QCOMPARE(frame.height(), 64);
-    QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), qint64(-1));
 }
@@ -355,7 +350,6 @@ void tst_QVideoFrame::createNull()
         QCOMPARE(frame.size(), QSize());
         QCOMPARE(frame.width(), -1);
         QCOMPARE(frame.height(), -1);
-        QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
         QCOMPARE(frame.startTime(), qint64(-1));
         QCOMPARE(frame.endTime(), qint64(-1));
         QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
@@ -377,7 +371,6 @@ void tst_QVideoFrame::createNull()
         QCOMPARE(frame.size(), QSize(1024, 768));
         QCOMPARE(frame.width(), 1024);
         QCOMPARE(frame.height(), 768);
-        QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
         QCOMPARE(frame.startTime(), qint64(-1));
         QCOMPARE(frame.endTime(), qint64(-1));
         QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
@@ -407,7 +400,6 @@ void tst_QVideoFrame::copy_data()
     QTest::addColumn<QAbstractVideoBuffer::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
-    QTest::addColumn<QVideoFrame::FieldType>("fieldType");
     QTest::addColumn<qint64>("startTime");
     QTest::addColumn<qint64>("endTime");
 
@@ -415,35 +407,30 @@ void tst_QVideoFrame::copy_data()
             << QAbstractVideoBuffer::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32
-            << QVideoFrame::TopField
             << qint64(63641740)
             << qint64(63641954);
     QTest::newRow("64x64 ARGB32")
             << QAbstractVideoBuffer::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32
-            << QVideoFrame::BottomField
             << qint64(63641740)
             << qint64(63641954);
     QTest::newRow("32x256 YUV420P")
             << QAbstractVideoBuffer::UserHandle
             << QSize(32, 256)
             << QVideoFrame::Format_YUV420P
-            << QVideoFrame::InterlacedFrame
             << qint64(12345)
             << qint64(12389);
     QTest::newRow("1052x756 ARGB32")
             << QAbstractVideoBuffer::NoHandle
             << QSize(1052, 756)
             << QVideoFrame::Format_ARGB32
-            << QVideoFrame::ProgressiveFrame
             << qint64(12345)
             << qint64(12389);
     QTest::newRow("32x256 YUV420P")
             << QAbstractVideoBuffer::UserHandle
             << QSize(32, 256)
             << QVideoFrame::Format_YUV420P
-            << QVideoFrame::InterlacedFrame
             << qint64(12345)
             << qint64(12389);
 }
@@ -453,7 +440,6 @@ void tst_QVideoFrame::copy()
     QFETCH(QAbstractVideoBuffer::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
-    QFETCH(QVideoFrame::FieldType, fieldType);
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
@@ -461,7 +447,6 @@ void tst_QVideoFrame::copy()
 
     {
         QVideoFrame frame(buffer, size, pixelFormat);
-        frame.setFieldType(QVideoFrame::FieldType(fieldType));
         frame.setStartTime(startTime);
         frame.setEndTime(endTime);
 
@@ -471,7 +456,6 @@ void tst_QVideoFrame::copy()
         QCOMPARE(frame.size(), size);
         QCOMPARE(frame.width(), size.width());
         QCOMPARE(frame.height(), size.height());
-        QCOMPARE(frame.fieldType(), fieldType);
         QCOMPARE(frame.startTime(), startTime);
         QCOMPARE(frame.endTime(), endTime);
 
@@ -486,7 +470,6 @@ void tst_QVideoFrame::copy()
             QCOMPARE(otherFrame.size(), size);
             QCOMPARE(otherFrame.width(), size.width());
             QCOMPARE(otherFrame.height(), size.height());
-            QCOMPARE(otherFrame.fieldType(), fieldType);
             QCOMPARE(otherFrame.startTime(), startTime);
             QCOMPARE(otherFrame.endTime(), endTime);
 
@@ -500,7 +483,6 @@ void tst_QVideoFrame::copy()
             QCOMPARE(otherFrame.size(), size);
             QCOMPARE(otherFrame.width(), size.width());
             QCOMPARE(otherFrame.height(), size.height());
-            QCOMPARE(otherFrame.fieldType(), fieldType);
             QCOMPARE(otherFrame.startTime(), startTime);
             QCOMPARE(otherFrame.endTime(), qint64(-1));
         }
@@ -513,7 +495,6 @@ void tst_QVideoFrame::copy()
         QCOMPARE(frame.size(), size);
         QCOMPARE(frame.width(), size.width());
         QCOMPARE(frame.height(), size.height());
-        QCOMPARE(frame.fieldType(), fieldType);
         QCOMPARE(frame.startTime(), startTime);
         QCOMPARE(frame.endTime(), qint64(-1));  // Explicitly shared.
     }
@@ -526,7 +507,6 @@ void tst_QVideoFrame::assign_data()
     QTest::addColumn<QAbstractVideoBuffer::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
-    QTest::addColumn<QVideoFrame::FieldType>("fieldType");
     QTest::addColumn<qint64>("startTime");
     QTest::addColumn<qint64>("endTime");
 
@@ -534,14 +514,12 @@ void tst_QVideoFrame::assign_data()
             << QAbstractVideoBuffer::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32
-            << QVideoFrame::TopField
             << qint64(63641740)
             << qint64(63641954);
     QTest::newRow("32x256 YUV420P")
             << QAbstractVideoBuffer::UserHandle
             << QSize(32, 256)
             << QVideoFrame::Format_YUV420P
-            << QVideoFrame::InterlacedFrame
             << qint64(12345)
             << qint64(12389);
 }
@@ -551,7 +529,6 @@ void tst_QVideoFrame::assign()
     QFETCH(QAbstractVideoBuffer::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
-    QFETCH(QVideoFrame::FieldType, fieldType);
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
@@ -560,7 +537,6 @@ void tst_QVideoFrame::assign()
     QVideoFrame frame;
     {
         QVideoFrame otherFrame(buffer, size, pixelFormat);
-        otherFrame.setFieldType(fieldType);
         otherFrame.setStartTime(startTime);
         otherFrame.setEndTime(endTime);
 
@@ -574,7 +550,6 @@ void tst_QVideoFrame::assign()
         QCOMPARE(otherFrame.size(), size);
         QCOMPARE(otherFrame.width(), size.width());
         QCOMPARE(otherFrame.height(), size.height());
-        QCOMPARE(otherFrame.fieldType(), fieldType);
         QCOMPARE(otherFrame.startTime(), startTime);
         QCOMPARE(otherFrame.endTime(), endTime);
 
@@ -588,7 +563,6 @@ void tst_QVideoFrame::assign()
         QCOMPARE(otherFrame.size(), size);
         QCOMPARE(otherFrame.width(), size.width());
         QCOMPARE(otherFrame.height(), size.height());
-        QCOMPARE(otherFrame.fieldType(), fieldType);
         QCOMPARE(otherFrame.startTime(), qint64(-1));
         QCOMPARE(otherFrame.endTime(), endTime);
     }
@@ -601,7 +575,6 @@ void tst_QVideoFrame::assign()
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
     QCOMPARE(frame.height(), size.height());
-    QCOMPARE(frame.fieldType(), fieldType);
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), endTime);
 
@@ -615,7 +588,6 @@ void tst_QVideoFrame::assign()
     QCOMPARE(frame.size(), QSize());
     QCOMPARE(frame.width(), -1);
     QCOMPARE(frame.height(), -1);
-    QCOMPARE(frame.fieldType(), QVideoFrame::ProgressiveFrame);
     QCOMPARE(frame.startTime(), qint64(-1));
     QCOMPARE(frame.endTime(), qint64(-1));
 }
