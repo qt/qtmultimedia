@@ -53,7 +53,6 @@
 
 #include "camerabinimageprocessing.h"
 
-#include "camerabincapturebufferformat.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamervideorendererinterface_p.h>
 #include <private/qgstutils_p.h>
@@ -167,7 +166,6 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
     m_recorderControl = new CameraBinRecorder(this);
     m_mediaContainerControl = new CameraBinContainer(this);
     m_imageProcessingControl = new CameraBinImageProcessing(this);
-    m_captureBufferFormatControl = new CameraBinCaptureBufferFormat(this);
 
     QByteArray envFlags = qgetenv("QT_GSTREAMER_CAMERABIN_FLAGS");
     if (!envFlags.isEmpty())

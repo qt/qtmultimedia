@@ -39,7 +39,6 @@
 #include <qcameraimagecapture.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qmediaencodersettings.h>
-#include <qcameracapturebufferformatcontrol.h>
 
 #include <qimageencodercontrol.h>
 #include "qmediaobject_p.h"
@@ -98,7 +97,6 @@ public:
 
     QCameraImageCaptureControl *control = nullptr;
     QImageEncoderControl *encoderControl = nullptr;
-    QCameraCaptureBufferFormatControl *bufferFormatControl = nullptr;
 
     QCameraImageCapture::Error error = QCameraImageCapture::NoError;
     QString errorString;
@@ -133,7 +131,6 @@ void QCameraImageCapturePrivate::_q_serviceDestroyed()
     mediaObject = nullptr;
     control = nullptr;
     encoderControl = nullptr;
-    bufferFormatControl = nullptr;
 }
 
 /*!
@@ -199,17 +196,10 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
             disconnect(d->control, SIGNAL(error(int,int,QString)),
                        this, SLOT(_q_error(int,int,QString)));
 
-            if (d->bufferFormatControl) {
-                disconnect(d->bufferFormatControl, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)),
-                           this, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
-            }
-
             QMediaService *service = d->mediaObject->service();
             service->releaseControl(d->control);
             if (d->encoderControl)
                 service->releaseControl(d->encoderControl);
-            if (d->bufferFormatControl)
-                service->releaseControl(d->bufferFormatControl);
 
             disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
         }
@@ -224,8 +214,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
 
             if (d->control) {
                 d->encoderControl = qobject_cast<QImageEncoderControl *>(service->requestControl(QImageEncoderControl_iid));
-                d->bufferFormatControl = qobject_cast<QCameraCaptureBufferFormatControl *>(
-                    service->requestControl(QCameraCaptureBufferFormatControl_iid));
 
                 connect(d->control, SIGNAL(imageExposed(int)),
                         this, SIGNAL(imageExposed(int)));
@@ -242,11 +230,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
                 connect(d->control, SIGNAL(error(int,int,QString)),
                         this, SLOT(_q_error(int,int,QString)));
 
-                if (d->bufferFormatControl) {
-                    connect(d->bufferFormatControl, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)),
-                            this, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
-                }
-
                 connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
 
                 return true;
@@ -258,7 +241,6 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
     d->mediaObject = nullptr;
     d->control = nullptr;
     d->encoderControl = nullptr;
-    d->bufferFormatControl = nullptr;
 
     return false;
 }
@@ -378,41 +360,6 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
 
         d->encoderControl->setImageSettings(settings);
     }
-}
-
-/*!
-    Returns the list of supported buffer image capture formats.
-
-    \sa bufferFormat(), setBufferFormat()
-*/
-QList<QVideoFrame::PixelFormat> QCameraImageCapture::supportedBufferFormats() const
-{
-    if (d_func()->bufferFormatControl)
-        return d_func()->bufferFormatControl->supportedBufferFormats();
-    return QList<QVideoFrame::PixelFormat>();
-}
-
-/*!
-    Returns the buffer image capture format being used.
-
-    \sa supportedBufferFormats(), setBufferFormat()
-*/
-QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
-{
-    if (d_func()->bufferFormatControl)
-        return d_func()->bufferFormatControl->bufferFormat();
-    return QVideoFrame::Format_Invalid;
-}
-
-/*!
-    Sets the buffer image capture \a format to be used.
-
-    \sa bufferFormat(), supportedBufferFormats(), captureDestination()
-*/
-void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
-{
-    if (d_func()->bufferFormatControl)
-        d_func()->bufferFormatControl->setBufferFormat(format);
 }
 
 /*!

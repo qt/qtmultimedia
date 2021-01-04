@@ -39,7 +39,6 @@
 #include <qcameraimagecapturecontrol.h>
 #include <qimageencodercontrol.h>
 #include <qcameraimageprocessingcontrol.h>
-#include <qcameracapturebufferformatcontrol.h>
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
@@ -420,37 +419,6 @@ void tst_QCameraBackend::testCaptureToBuffer()
     capturedSignal.clear();
     imageAvailableSignal.clear();
     savedSignal.clear();
-
-    if (imageCapture.supportedBufferFormats().contains(QVideoFrame::Format_UYVY)) {
-        imageCapture.setBufferFormat(QVideoFrame::Format_UYVY);
-        QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_UYVY);
-
-        id = imageCapture.capture();
-        QTRY_VERIFY(!imageAvailableSignal.isEmpty());
-
-        QVERIFY(errorSignal.isEmpty());
-        QVERIFY(!capturedSignal.isEmpty());
-        QVERIFY(!imageAvailableSignal.isEmpty());
-        QVERIFY(savedSignal.isEmpty());
-
-        QTest::qWait(2000);
-        QVERIFY(savedSignal.isEmpty());
-
-        frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-        QVERIFY(frame.isValid());
-
-        qDebug() << frame.pixelFormat();
-        QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_UYVY);
-        QVERIFY(!frame.size().isEmpty());
-        frame = QVideoFrame();
-
-        capturedSignal.clear();
-        imageAvailableSignal.clear();
-        savedSignal.clear();
-
-        imageCapture.setBufferFormat(QVideoFrame::Format_Jpeg);
-        QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_Jpeg);
-    }
 
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 

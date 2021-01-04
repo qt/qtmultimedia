@@ -39,7 +39,6 @@
 #include "bbcameraservice.h"
 
 #include "bbcameraaudioencodersettingscontrol.h"
-#include "bbcameracapturebufferformatcontrol.h"
 #include "bbcameracontrol.h"
 #include "bbcameraexposurecontrol.h"
 #include "bbcamerafocuscontrol.h"
@@ -62,7 +61,6 @@ BbCameraService::BbCameraService(QObject *parent)
     : QMediaService(parent)
     , m_cameraSession(new BbCameraSession(this))
     , m_cameraAudioEncoderSettingsControl(new BbCameraAudioEncoderSettingsControl(m_cameraSession, this))
-    , m_cameraCaptureBufferFormatControl(new BbCameraCaptureBufferFormatControl(this))
     , m_cameraControl(new BbCameraControl(m_cameraSession, this))
     , m_cameraExposureControl(new BbCameraExposureControl(m_cameraSession, this))
     , m_cameraFocusControl(new BbCameraFocusControl(m_cameraSession, this))
@@ -85,8 +83,6 @@ QMediaControl* BbCameraService::requestControl(const char *name)
 {
     if (qstrcmp(name, QAudioEncoderSettingsControl_iid) == 0)
         return m_cameraAudioEncoderSettingsControl;
-    else if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
-        return m_cameraCaptureBufferFormatControl;
     else if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
     else if (qstrcmp(name, QCameraExposureControl_iid) == 0)

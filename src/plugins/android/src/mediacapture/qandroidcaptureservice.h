@@ -58,7 +58,6 @@ class QAndroidCameraFocusControl;
 class QAndroidCameraImageProcessingControl;
 class QAndroidImageEncoderControl;
 class QAndroidCameraImageCaptureControl;
-class QAndroidCameraCaptureBufferFormatControl;
 class QAndroidAudioEncoderSettingsControl;
 class QAndroidVideoEncoderSettingsControl;
 class QAndroidMediaContainerControl;
@@ -89,7 +88,6 @@ private:
     QAndroidCameraImageProcessingControl *m_cameraImageProcessingControl;
     QAndroidImageEncoderControl *m_imageEncoderControl;
     QAndroidCameraImageCaptureControl *m_imageCaptureControl;
-    QAndroidCameraCaptureBufferFormatControl *m_captureBufferFormatControl;
     QAndroidAudioEncoderSettingsControl *m_audioEncoderSettingsControl;
     QAndroidVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
     QAndroidMediaContainerControl *m_mediaContainerControl;

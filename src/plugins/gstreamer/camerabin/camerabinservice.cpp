@@ -55,7 +55,6 @@
 
 #include "camerabinimagecapture.h"
 #include "camerabinimageprocessing.h"
-#include "camerabincapturebufferformat.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstutils_p.h>
 
@@ -203,10 +202,7 @@ QObject *CameraBinService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
         return m_captureSession->imageProcessingControl();
 
-    if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
-        return m_captureSession->captureBufferFormatControl();
-
-    return 0;
+    return nullptr;
 }
 
 void CameraBinService::releaseControl(QObject *control)

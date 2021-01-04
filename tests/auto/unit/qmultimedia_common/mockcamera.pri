@@ -10,7 +10,6 @@ HEADERS *= \
     ../qmultimedia_common/mockcameraimageprocessingcontrol.h \
     ../qmultimedia_common/mockcameraimagecapturecontrol.h \
     ../qmultimedia_common/mockcameraexposurecontrol.h \
-    ../qmultimedia_common/mockcameracapturebuffercontrol.h \
     ../qmultimedia_common/mockimageencodercontrol.h \
     ../qmultimedia_common/mockcameracontrol.h \
     ../qmultimedia_common/mockvideodeviceselectorcontrol.h

@@ -6,7 +6,6 @@ PUBLIC_HEADERS += \
     controls/qaudioencodersettingscontrol.h \
     controls/qaudioinputselectorcontrol.h \
     controls/qaudiooutputselectorcontrol.h \
-    controls/qcameracapturebufferformatcontrol.h \
     controls/qcameracontrol.h \
     controls/qcameraexposurecontrol.h \
     controls/qcamerafocuscontrol.h \
@@ -27,7 +26,6 @@ PUBLIC_HEADERS += \
     controls/qmediavideoprobecontrol.h \
 
 SOURCES += \
-    controls/qcameracapturebufferformatcontrol.cpp \
     controls/qcameracontrol.cpp \
     controls/qcameraexposurecontrol.cpp \
     controls/qcamerafocuscontrol.cpp \

@@ -39,7 +39,6 @@
 
 #include "camerabinimagecapture.h"
 #include "camerabincontrol.h"
-#include "camerabincapturebufferformat.h"
 #include "camerabinsession.h"
 #include <private/qgstvideobuffer_p.h>
 #include <private/qgstutils_p.h>
@@ -166,42 +165,13 @@ void CameraBinImageCapture::EncoderProbe::probeCaps(GstCaps *caps)
     capture->m_bufferFormat = QGstUtils::formatForCaps(caps, &capture->m_videoInfo);
 }
 
-bool CameraBinImageCapture::EncoderProbe::probeBuffer(GstBuffer *buffer)
+bool CameraBinImageCapture::EncoderProbe::probeBuffer(GstBuffer *)
 {
-    CameraBinSession * const session = capture->m_session;
-
 #ifdef DEBUG_CAPTURE
     qDebug() << "Uncompressed buffer probe";
 #endif
-
-    QCameraImageCapture::CaptureDestinations destination = capture->m_destination;
-    QVideoFrame::PixelFormat format = session->captureBufferFormatControl()->bufferFormat();
-
-    if (destination & QCameraImageCapture::CaptureToBuffer) {
-        if (format != QVideoFrame::Format_Jpeg) {
-#ifdef DEBUG_CAPTURE
-            qDebug() << "imageAvailable(uncompressed):" << format;
-#endif
-            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, capture->m_videoInfo);
-
-            QVideoFrame frame(
-                        videoBuffer,
-                        capture->m_bufferFormat.frameSize(),
-                        capture->m_bufferFormat.pixelFormat());
-
-            QMetaObject::invokeMethod(capture, "imageAvailable",
-                                      Qt::QueuedConnection,
-                                      Q_ARG(int, capture->m_requestId),
-                                      Q_ARG(QVideoFrame, frame));
-        }
-    }
-
-    //keep the buffer if capture to file or jpeg buffer capture was reuqsted
-    bool keepBuffer = (destination & QCameraImageCapture::CaptureToFile) ||
-            ((destination & QCameraImageCapture::CaptureToBuffer) &&
-              format == QVideoFrame::Format_Jpeg);
-
-    return keepBuffer;
+    // keep the buffer so we can capture to file or encode the image
+    return true;
 }
 
 void CameraBinImageCapture::MuxerProbe::probeCaps(GstCaps *caps)
@@ -211,13 +181,9 @@ void CameraBinImageCapture::MuxerProbe::probeCaps(GstCaps *caps)
 
 bool CameraBinImageCapture::MuxerProbe::probeBuffer(GstBuffer *buffer)
 {
-    CameraBinSession * const session = capture->m_session;
-
     QCameraImageCapture::CaptureDestinations destination = capture->m_destination;
 
-    if ((destination & QCameraImageCapture::CaptureToBuffer) &&
-         session->captureBufferFormatControl()->bufferFormat() == QVideoFrame::Format_Jpeg) {
-
+    if (destination & QCameraImageCapture::CaptureToBuffer) {
         QSize resolution = capture->m_jpegResolution;
         //if resolution is not presented in caps, try to find it from encoded jpeg data:
         GstMapInfo mapInfo;

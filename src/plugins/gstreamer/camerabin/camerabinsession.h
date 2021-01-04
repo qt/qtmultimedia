@@ -123,7 +123,6 @@ public:
 #endif
 
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
-    CameraBinCaptureBufferFormat *captureBufferFormatControl() const { return m_captureBufferFormatControl; }
 
     CameraBinRecorder *recorderControl() const { return m_recorderControl; }
     CameraBinContainer *mediaContainerControl() const { return m_mediaContainerControl; }
@@ -238,7 +237,6 @@ private:
     CameraBinFocus *m_cameraFocusControl;
 #endif
     CameraBinImageProcessing *m_imageProcessingControl;
-    CameraBinCaptureBufferFormat *m_captureBufferFormatControl;
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;

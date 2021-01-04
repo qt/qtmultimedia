@@ -109,10 +109,6 @@ public:
     QImageEncoderSettings encodingSettings() const;
     void setEncodingSettings(const QImageEncoderSettings& settings);
 
-    QList<QVideoFrame::PixelFormat> supportedBufferFormats() const;
-    QVideoFrame::PixelFormat bufferFormat() const;
-    void setBufferFormat(const QVideoFrame::PixelFormat format);
-
     CaptureDestinations captureDestination() const;
     void setCaptureDestination(CaptureDestinations destination);
 
@@ -124,7 +120,6 @@ Q_SIGNALS:
     void error(int id, QCameraImageCapture::Error error, const QString &errorString);
 
     void readyForCaptureChanged(bool ready);
-    void bufferFormatChanged(QVideoFrame::PixelFormat format);
     void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
 
     void imageExposed(int id);

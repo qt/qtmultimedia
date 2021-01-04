@@ -38,7 +38,6 @@
 #include <qcameraimagecapturecontrol.h>
 #include <qimageencodercontrol.h>
 #include <qcameraimageprocessingcontrol.h>
-#include <qcameracapturebufferformatcontrol.h>
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
@@ -72,7 +71,6 @@ private slots:
     void testSimpleCameraCapture();
     void testSimpleCameraLock();
     void testSimpleCaptureDestination();
-    void testSimpleCaptureFormat();
 
     void testCameraWhiteBalance();
     void testCameraExposure();
@@ -94,7 +92,6 @@ private slots:
     void testCameraLockCancel();
     void testCameraEncodingProperyChange();
     void testCaptureDestination();
-    void testCaptureFormat();
 
     void testConstructor();
     void testCaptureMode();
@@ -372,19 +369,6 @@ void tst_QCamera::testSimpleCaptureDestination()
     QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
 }
 
-void tst_QCamera::testSimpleCaptureFormat()
-{
-    provider->service = mockSimpleCameraService;
-    QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
-
-    QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_Invalid);
-    QVERIFY(imageCapture.supportedBufferFormats().isEmpty());
-
-    imageCapture.setBufferFormat(QVideoFrame::Format_AdobeDng);
-    QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_Invalid);
-}
-
 void tst_QCamera::testCaptureDestination()
 {
     QCamera camera;
@@ -403,30 +387,6 @@ void tst_QCamera::testCaptureDestination()
     QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
     QCOMPARE(destinationChangedSignal.size(), 2);
 }
-
-void tst_QCamera::testCaptureFormat()
-{
-    QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
-
-    QSignalSpy formatChangedSignal(&imageCapture, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
-
-    QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_Jpeg);
-    QCOMPARE(imageCapture.supportedBufferFormats().size(), 3);
-
-    imageCapture.setBufferFormat(QVideoFrame::Format_AdobeDng);
-    QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_AdobeDng);
-
-    QCOMPARE(formatChangedSignal.size(), 1);
-    QCOMPARE(formatChangedSignal.first().first().value<QVideoFrame::PixelFormat>(),
-             QVideoFrame::Format_AdobeDng);
-
-    imageCapture.setBufferFormat(QVideoFrame::Format_Y16);
-    QCOMPARE(imageCapture.bufferFormat(), QVideoFrame::Format_AdobeDng);
-
-    QCOMPARE(formatChangedSignal.size(), 1);
-}
-
 
 void tst_QCamera::testCameraCapture()
 {

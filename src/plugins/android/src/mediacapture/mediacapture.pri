@@ -9,7 +9,6 @@ SOURCES += \
     $$PWD/qandroidcameraimageprocessingcontrol.cpp \
     $$PWD/qandroidimageencodercontrol.cpp \
     $$PWD/qandroidcameraimagecapturecontrol.cpp \
-    $$PWD/qandroidcameracapturebufferformatcontrol.cpp \
     $$PWD/qandroidcamerafocuscontrol.cpp \
     $$PWD/qandroidcapturesession.cpp \
     $$PWD/qandroidmediarecordercontrol.cpp \
@@ -29,7 +28,6 @@ HEADERS += \
     $$PWD/qandroidcameraimageprocessingcontrol.h \
     $$PWD/qandroidimageencodercontrol.h \
     $$PWD/qandroidcameraimagecapturecontrol.h \
-    $$PWD/qandroidcameracapturebufferformatcontrol.h \
     $$PWD/qandroidcamerafocuscontrol.h \
     $$PWD/qandroidcapturesession.h \
     $$PWD/qandroidmediarecordercontrol.h \

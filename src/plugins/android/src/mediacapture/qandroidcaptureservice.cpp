@@ -52,7 +52,6 @@
 #include "qandroidcameraimageprocessingcontrol.h"
 #include "qandroidimageencodercontrol.h"
 #include "qandroidcameraimagecapturecontrol.h"
-#include "qandroidcameracapturebufferformatcontrol.h"
 #include "qandroidaudioencodersettingscontrol.h"
 #include "qandroidvideoencodersettingscontrol.h"
 #include "qandroidmediacontainercontrol.h"
@@ -76,7 +75,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(m_cameraSession);
         m_imageEncoderControl = new QAndroidImageEncoderControl(m_cameraSession);
         m_imageCaptureControl = new QAndroidCameraImageCaptureControl(m_cameraSession);
-        m_captureBufferFormatControl = new QAndroidCameraCaptureBufferFormatControl;
         m_audioInputControl = 0;
     } else {
         m_cameraSession = 0;
@@ -87,7 +85,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraImageProcessingControl = 0;
         m_imageEncoderControl = 0;
         m_imageCaptureControl = 0;
-        m_captureBufferFormatControl = 0;
         m_videoEncoderSettingsControl = 0;
     }
 
@@ -120,7 +117,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraImageProcessingControl;
     delete m_imageEncoderControl;
     delete m_imageCaptureControl;
-    delete m_captureBufferFormatControl;
     delete m_cameraSession;
 }
 
@@ -162,8 +158,6 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
 
-    if (qstrcmp(name, QCameraCaptureBufferFormatControl_iid) == 0)
-        return m_captureBufferFormatControl;
     if (qstrcmp(name, QVideoRendererControl_iid) == 0
             && m_service == QLatin1String(Q_MEDIASERVICE_CAMERA)
             && !m_videoRendererControl) {

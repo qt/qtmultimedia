@@ -33,7 +33,6 @@ qt_add_module(Multimedia
         controls/qaudioencodersettingscontrol.cpp controls/qaudioencodersettingscontrol.h
         controls/qaudioinputselectorcontrol.cpp controls/qaudioinputselectorcontrol.h
         controls/qaudiooutputselectorcontrol.cpp controls/qaudiooutputselectorcontrol.h
-        controls/qcameracapturebufferformatcontrol.cpp controls/qcameracapturebufferformatcontrol.h
         controls/qcameracontrol.cpp controls/qcameracontrol.h
         controls/qcameraexposurecontrol.cpp controls/qcameraexposurecontrol.h
         controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h

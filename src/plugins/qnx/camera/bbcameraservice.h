@@ -46,7 +46,6 @@
 QT_BEGIN_NAMESPACE
 
 class BbCameraAudioEncoderSettingsControl;
-class BbCameraCaptureBufferFormatControl;
 class BbCameraControl;
 class BbCameraExposureControl;
 class BbCameraFocusControl;
@@ -75,7 +74,6 @@ private:
     BbCameraSession* m_cameraSession;
 
     BbCameraAudioEncoderSettingsControl* m_cameraAudioEncoderSettingsControl;
-    BbCameraCaptureBufferFormatControl* m_cameraCaptureBufferFormatControl;
     BbCameraControl* m_cameraControl;
     BbCameraExposureControl* m_cameraExposureControl;
     BbCameraFocusControl* m_cameraFocusControl;

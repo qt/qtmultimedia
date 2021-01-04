@@ -8,7 +8,6 @@ qt_add_test(tst_qdeclarativemultimediaglobal
     GUI
     QMLTEST
     SOURCES
-        ../qmultimedia_common/mockcameracapturebuffercontrol.h
         ../qmultimedia_common/mockcameracontrol.h
         ../qmultimedia_common/mockcameraexposurecontrol.h
         ../qmultimedia_common/mockcamerafocuscontrol.h
