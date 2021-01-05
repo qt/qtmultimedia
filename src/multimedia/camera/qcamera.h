@@ -124,10 +124,7 @@ public:
     enum Error
     {
         NoError,
-        CameraError,
-        InvalidRequestError,
-        ServiceMissingError,
-        NotSupportedFeatureError
+        CameraError
     };
 
     enum LockStatus

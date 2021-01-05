@@ -122,8 +122,6 @@ void QGstreamerCameraControl::setState(QCamera::State state)
 #endif
         }
         break;
-    default:
-        emit error(QCamera::NotSupportedFeatureError, tr("State not supported."));
     }
 
     updateStatus();

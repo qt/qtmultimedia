@@ -107,9 +107,6 @@ public:
             case QCamera::ActiveState:
                 m_status = QCamera::ActiveStatus;
                 break;
-            default:
-                emit error(QCamera::NotSupportedFeatureError, "State not supported.");
-                return;
             }
 
             emit stateChanged(m_state);

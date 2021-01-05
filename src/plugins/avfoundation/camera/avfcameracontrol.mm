@@ -112,19 +112,13 @@ void AVFCameraControl::setCaptureMode(QCamera::CaptureModes mode)
     if (m_captureMode == mode)
         return;
 
-    if (!isCaptureModeSupported(mode)) {
-        Q_EMIT error(QCamera::NotSupportedFeatureError, tr("Requested capture mode is not supported"));
-        return;
-    }
-
     m_captureMode = mode;
     Q_EMIT captureModeChanged(mode);
 }
 
 bool AVFCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
 {
-    //all the capture modes are supported, including QCamera::CaptureStillImage | QCamera::CaptureVideo
-    return (mode & (QCamera::CaptureStillImage | QCamera::CaptureVideo)) == mode;
+    return true;
 }
 
 bool AVFCameraControl::canChangeProperty(QCameraControl::PropertyChangeType changeType, QCamera::Status status) const

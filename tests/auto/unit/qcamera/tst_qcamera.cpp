@@ -1783,7 +1783,7 @@ void tst_QCamera::testQCameraIsNotAvailable()
     provider->service = nullptr;
     QCamera camera("random");
 
-    QCOMPARE(camera.error(), QCamera::ServiceMissingError);
+    QCOMPARE(camera.error(), QCamera::CameraError);
     QVERIFY(!camera.isAvailable());
     QCOMPARE(camera.availability(), QMultimedia::ServiceMissing);
 }
@@ -1961,18 +1961,18 @@ void tst_QCamera::testErrorSignal()
     spyError.clear();
 
     /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
-    service.mockControl->setError(QCamera::InvalidRequestError,QString("InvalidRequestError Error"));
+    service.mockControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
     QVERIFY(spyError.count() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
-    QVERIFY(err == QCamera::InvalidRequestError);
+    QVERIFY(err == QCamera::CameraError);
 
     spyError.clear();
 
     /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
-    service.mockControl->setError(QCamera::NotSupportedFeatureError,QString("NotSupportedFeatureError Error"));
+    service.mockControl->setError(QCamera::CameraError,QString("NotSupportedFeatureError Error"));
     QVERIFY(spyError.count() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
-    QVERIFY(err == QCamera::NotSupportedFeatureError);
+    QVERIFY(err == QCamera::CameraError);
 
 }
 
@@ -1989,12 +1989,12 @@ void tst_QCamera::testError()
     QVERIFY(camera.error() == QCamera::CameraError);
 
     /* Set the QCameraControl error and verify if it is set correctly in QCamera */
-    service.mockControl->setError(QCamera::InvalidRequestError,QString("InvalidRequestError Error"));
-    QVERIFY(camera.error() == QCamera::InvalidRequestError);
+    service.mockControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
+    QVERIFY(camera.error() == QCamera::CameraError);
 
     /* Set the QCameraControl error and verify if it is set correctly in QCamera */
-    service.mockControl->setError(QCamera::NotSupportedFeatureError,QString("NotSupportedFeatureError Error"));
-    QVERIFY(camera.error() == QCamera::NotSupportedFeatureError);
+    service.mockControl->setError(QCamera::CameraError,QString("CameraError Error"));
+    QVERIFY(camera.error() == QCamera::CameraError);
 
 }
 
@@ -2011,12 +2011,12 @@ void tst_QCamera::testErrorString()
     QVERIFY(camera.errorString() == QString("Camera Error"));
 
     /* Set the QCameraControl error and verify if it is set correctly in QCamera */
-    service.mockControl->setError(QCamera::InvalidRequestError,QString("InvalidRequestError Error"));
+    service.mockControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
     QVERIFY(camera.errorString() == QString("InvalidRequestError Error"));
 
     /* Set the QCameraControl error and verify if it is set correctly in QCamera */
-    service.mockControl->setError(QCamera::NotSupportedFeatureError,QString("NotSupportedFeatureError Error"));
-    QVERIFY(camera.errorString() == QString("NotSupportedFeatureError Error"));
+    service.mockControl->setError(QCamera::CameraError,QString("CameraError Error"));
+    QVERIFY(camera.errorString() == QString("CameraError Error"));
 }
 
 /* Test case for verifying Status of QCamera. */

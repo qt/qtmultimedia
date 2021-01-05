@@ -123,8 +123,7 @@ void tst_QCameraBackend::testCtorWithDevice()
 
     //loading non existing camera should fail
     camera = new QCamera(QUuid::createUuid().toByteArray());
-    QCOMPARE(camera->error(), QCamera::ServiceMissingError);
-
+    QCOMPARE(camera->error(), QCamera::CameraError);
     delete camera;
 }
 
@@ -148,14 +147,14 @@ void tst_QCameraBackend::testCtorWithCameraInfo()
     {
         // loading an invalid CameraInfo should fail
         QCamera *camera = new QCamera(QCameraInfo());
-        QCOMPARE(camera->error(), QCamera::ServiceMissingError);
+        QCOMPARE(camera->error(), QCamera::CameraError);
         QVERIFY(QCameraInfo(*camera).isNull());
         delete camera;
     }
     {
         // loading non existing camera should fail
         QCamera camera(QCameraInfo(QUuid::createUuid().toByteArray()));
-        QCOMPARE(camera.error(), QCamera::ServiceMissingError);
+        QCOMPARE(camera.error(), QCamera::CameraError);
         QVERIFY(QCameraInfo(camera).isNull());
     }
 }

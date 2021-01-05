@@ -113,7 +113,7 @@ void QCameraPrivate::setState(QCamera::State newState)
     unsetError();
 
     if (!control) {
-        _q_error(QCamera::ServiceMissingError, QCamera::tr("The camera service is missing"));
+        _q_error(QCamera::CameraError, QCamera::tr("The camera service is missing"));
         return;
     }
 
@@ -196,7 +196,7 @@ void QCameraPrivate::initControls()
         control = nullptr;
         deviceControl = nullptr;
 
-        error = QCamera::ServiceMissingError;
+        error = QCamera::CameraError;
         errorString = QCamera::tr("The camera service is missing");
     }
 }
@@ -340,7 +340,7 @@ QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
         }
         d->control = nullptr;
         d->deviceControl = nullptr;
-        d->error = QCamera::ServiceMissingError;
+        d->error = QCamera::CameraError;
         d->errorString = QCamera::tr("The camera service is missing");
     }
 }
@@ -1139,9 +1139,6 @@ void QCamera::unlock()
 
     \value  NoError      No errors have occurred.
     \value  CameraError  An error has occurred.
-    \value  InvalidRequestError System resource doesn't support requested functionality.
-    \value  ServiceMissingError No camera service available.
-    \value  NotSupportedFeatureError The feature is not supported.
 */
 
 /*!

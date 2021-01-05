@@ -342,10 +342,7 @@ Module {
             name: "Error"
             values: {
                 "NoError": 0,
-                "CameraError": 1,
-                "InvalidRequestError": 2,
-                "ServiceMissingError": 3,
-                "NotSupportedFeatureError": 4
+                "CameraError": 1
             }
         }
         Enum {
@@ -626,10 +623,7 @@ Module {
             name: "Error"
             values: {
                 "NoError": 0,
-                "CameraError": 1,
-                "InvalidRequestError": 2,
-                "ServiceMissingError": 3,
-                "NotSupportedFeatureError": 4
+                "CameraError": 1
             }
         }
         Enum {

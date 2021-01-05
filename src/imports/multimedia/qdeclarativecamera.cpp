@@ -738,12 +738,6 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
             No errors have occurred.
     \value  Camera.CameraError
             An error has occurred.
-    \value  Camera.InvalidRequestError
-            System resources do not support the requested functionality.
-    \value  Camera.ServiceMissingError
-            No camera service available.
-    \value  Camera.NotSupportedFeatureError
-            The feature is not supported.
 
     \sa errorOccurred, errorString
 */

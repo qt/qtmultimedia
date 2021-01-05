@@ -164,10 +164,7 @@ public:
     enum Error
     {
         NoError = QCamera::NoError,
-        CameraError = QCamera::CameraError,
-        InvalidRequestError = QCamera::InvalidRequestError,
-        ServiceMissingError = QCamera::ServiceMissingError,
-        NotSupportedFeatureError = QCamera::NotSupportedFeatureError
+        CameraError = QCamera::CameraError
     };
 
     enum FlashMode {
