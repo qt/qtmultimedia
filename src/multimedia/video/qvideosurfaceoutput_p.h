@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qmediabindableinterface.h>
+#include <qmediasink.h>
 
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qpointer.h>
@@ -62,10 +62,10 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 class QVideoRendererControl;
 
-class QVideoSurfaceOutput : public QObject, public QMediaBindableInterface
+class QVideoSurfaceOutput : public QObject, public QMediaSink
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
+    Q_INTERFACES(QMediaSink)
 public:
     QVideoSurfaceOutput(QObject *parent = nullptr);
     ~QVideoSurfaceOutput();

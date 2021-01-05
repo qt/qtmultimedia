@@ -44,7 +44,7 @@
 
 #include <QtMultimedia/qmediacontent.h>
 #include <QtMultimedia/qmediaobject.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 

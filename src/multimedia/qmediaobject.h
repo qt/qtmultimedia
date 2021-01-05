@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QMediaService;
-class QMediaBindableInterface;
+class QMediaSink;
 
 class QMediaObjectPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaObject : public QObject

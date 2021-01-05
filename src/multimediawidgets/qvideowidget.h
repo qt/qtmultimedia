@@ -43,7 +43,7 @@
 #include <QtWidgets/qwidget.h>
 
 #include <QtMultimediaWidgets/qtmultimediawidgetdefs.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qmediasink.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -52,10 +52,10 @@ class QMediaObject;
 
 class QVideoWidgetPrivate;
 class QAbstractVideoSurface;
-class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaBindableInterface
+class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaSink
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
+    Q_INTERFACES(QMediaSink)
     Q_PROPERTY(QMediaObject* mediaObject READ mediaObject WRITE setMediaObject)
     Q_PROPERTY(bool fullScreen READ isFullScreen WRITE setFullScreen NOTIFY fullScreenChanged)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)

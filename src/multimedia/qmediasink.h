@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIABINDABLEINTERFACE_H
-#define QMEDIABINDABLEINTERFACE_H
+#ifndef QMEDIASINK_H
+#define QMEDIASINK_H
 
 #include <QtMultimedia/qmediaobject.h>
 
@@ -47,10 +47,10 @@ QT_BEGIN_NAMESPACE
 
 class QMediaObject;
 
-class Q_MULTIMEDIA_EXPORT QMediaBindableInterface
+class Q_MULTIMEDIA_EXPORT QMediaSink
 {
 public:
-    virtual ~QMediaBindableInterface();
+    virtual ~QMediaSink();
 
     virtual QMediaObject *mediaObject() const = 0;
 
@@ -59,11 +59,10 @@ protected:
     virtual bool setMediaObject(QMediaObject *object) = 0;
 };
 
-#define QMediaBindableInterface_iid \
-    "org.qt-project.qt.mediabindable/5.0"
-Q_DECLARE_INTERFACE(QMediaBindableInterface, QMediaBindableInterface_iid)
+#define QMediaSink_iid "org.qt-project.qt.mediasink/5.0"
+Q_DECLARE_INTERFACE(QMediaSink, QMediaSink_iid)
 
 QT_END_NAMESPACE
 
 
-#endif  // QMEDIABINDABLEINTERFACE_H
+#endif  // QMEDIASINK_H

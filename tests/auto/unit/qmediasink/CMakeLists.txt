@@ -1,10 +1,10 @@
-# Generated from qmediabindableinterface.pro.
+# Generated from qmediasink.pro.
 
 #####################################################################
-## tst_qmediabindableinterface Test:
+## tst_qmediasink Test:
 #####################################################################
 
-qt_add_test(tst_qmediabindableinterface
+qt_add_test(tst_qmediasink
     SOURCES
         ../qmultimedia_common/mockaudioencodercontrol.h
         ../qmultimedia_common/mockaudioinputselector.h
@@ -18,7 +18,7 @@ qt_add_test(tst_qmediabindableinterface
         ../qmultimedia_common/mockmetadatareadercontrol.h
         ../qmultimedia_common/mockmetadatawritercontrol.h
         ../qmultimedia_common/mockvideoencodercontrol.h
-        tst_qmediabindableinterface.cpp
+        tst_qmediasink.cpp
     INCLUDE_DIRECTORIES
         ../../../../src/multimedia
         ../../../src/multimedia

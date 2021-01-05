@@ -44,7 +44,7 @@
 
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>
-#include <qmediabindableinterface.h>
+#include <qmediasink.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -164,13 +164,13 @@ void QMediaObject::setNotifyInterval(int milliSeconds)
     that wrap this functionality, so this function rarely needs to be
     called directly.
 
-    The object passed must implement the QMediaBindableInterface interface.
+    The object passed must implement the QMediaSink interface.
 
-    \sa QMediaBindableInterface
+    \sa QMediaSink
 */
 bool QMediaObject::bind(QObject *object)
 {
-    QMediaBindableInterface *helper = qobject_cast<QMediaBindableInterface*>(object);
+    QMediaSink *helper = qobject_cast<QMediaSink*>(object);
     if (!helper)
         return false;
 
@@ -192,11 +192,11 @@ bool QMediaObject::bind(QObject *object)
     will be generated if the object was not previously bound to this
     object.
 
-    \sa QMediaBindableInterface
+    \sa QMediaSink
 */
 void QMediaObject::unbind(QObject *object)
 {
-    QMediaBindableInterface *helper = qobject_cast<QMediaBindableInterface*>(object);
+    QMediaSink *helper = qobject_cast<QMediaSink*>(object);
 
     if (helper && helper->mediaObject() == this)
         helper->setMediaObject(nullptr);

@@ -24,7 +24,7 @@ PRIVATE_HEADERS += \
 
 PUBLIC_HEADERS += \
     qtmultimediaglobal.h \
-    qmediabindableinterface.h \
+    qmediasink.h \
     qmediaenumdebug.h \
     qmediametadata.h \
     qmediaobject.h \
@@ -34,7 +34,7 @@ PUBLIC_HEADERS += \
     qmultimedia.h
 
 SOURCES += \
-    qmediabindableinterface.cpp \
+    qmediasink.cpp \
     qmediametadata.cpp \
     qmediaobject.cpp \
     qmediapluginloader.cpp \

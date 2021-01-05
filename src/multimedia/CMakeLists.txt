@@ -55,7 +55,7 @@ qt_add_module(Multimedia
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
-        qmediabindableinterface.cpp qmediabindableinterface.h
+        qmediasink.cpp qmediasink.h
         qmediaenumdebug.h
         qmediametadata.cpp qmediametadata.h
         qmediaobject.cpp qmediaobject.h qmediaobject_p.h

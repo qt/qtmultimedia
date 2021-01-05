@@ -1,10 +1,10 @@
 CONFIG += testcase
-TARGET = tst_qmediabindableinterface
+TARGET = tst_qmediasink
 
 QT += multimedia-private testlib
 
 SOURCES += \
-    tst_qmediabindableinterface.cpp
+    tst_qmediasink.cpp
 
 include (../qmultimedia_common/mock.pri)
 include (../qmultimedia_common/mockrecorder.pri)

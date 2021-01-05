@@ -81,7 +81,7 @@ public:
     bool hasControls;
 };
 
-class tst_QMediaBindableInterface:public QObject
+class tst_QMediaSink:public QObject
 {
     Q_OBJECT
 private slots:
@@ -120,5 +120,5 @@ private slots:
     }
 };
 
-QTEST_MAIN(tst_QMediaBindableInterface)
-#include "tst_qmediabindableinterface.moc"
+QTEST_MAIN(tst_QMediaSink)
+#include "tst_qmediasink.moc"

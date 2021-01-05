@@ -9,7 +9,7 @@ SUBDIRS += \
     qcamera \
     qcamerainfo \
     qcameraimagecapture \
-    qmediabindableinterface \
+    qmediasink \
     qmediacontainercontrol \
     qmediacontent \
     qmediaobject \

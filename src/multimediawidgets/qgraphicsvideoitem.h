@@ -43,7 +43,7 @@
 #include <QtWidgets/qgraphicsitem.h>
 
 #include <QtMultimediaWidgets/qvideowidget.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qmediasink.h>
 
 #if QT_CONFIG(graphicsview)
 
@@ -51,10 +51,10 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSurfaceFormat;
 class QGraphicsVideoItemPrivate;
-class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaBindableInterface
+class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaSink
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
+    Q_INTERFACES(QMediaSink)
     Q_PROPERTY(QMediaObject* mediaObject READ mediaObject WRITE setMediaObject)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
     Q_PROPERTY(QPointF offset READ offset WRITE setOffset)

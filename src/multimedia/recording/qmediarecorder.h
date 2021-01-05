@@ -43,7 +43,7 @@
 #include <QtMultimedia/qmultimedia.h>
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaencodersettings.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 #include <QtCore/qpair.h>
@@ -62,10 +62,10 @@ class QAudioEncoderSettings;
 class QVideoEncoderSettings;
 
 class QMediaRecorderPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaBindableInterface
+class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaSink
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
+    Q_INTERFACES(QMediaSink)
     Q_ENUMS(State)
     Q_ENUMS(Status)
     Q_ENUMS(Error)

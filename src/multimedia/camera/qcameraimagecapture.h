@@ -42,7 +42,7 @@
 
 #include <QtMultimedia/qmediaobject.h>
 #include <QtMultimedia/qmediaencodersettings.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qvideoframe.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>

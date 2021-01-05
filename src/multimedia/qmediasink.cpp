@@ -37,19 +37,19 @@
 **
 ****************************************************************************/
 
-#include <qmediabindableinterface.h>
+#include <qmediasink.h>
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QMediaBindableInterface
+    \class QMediaSink
     \inmodule QtMultimedia
 
     \ingroup multimedia
     \ingroup multimedia_core
 
 
-    \brief The QMediaBindableInterface class is the base class for objects extending media objects functionality.
+    \brief The QMediaSink class is the base class for objects extending media objects functionality.
 
     \sa
 */
@@ -58,19 +58,19 @@ QT_BEGIN_NAMESPACE
     Destroys a media helper object.
 */
 
-QMediaBindableInterface::~QMediaBindableInterface()
+QMediaSink::~QMediaSink()
 {
 }
 
 /*!
-    \fn QMediaBindableInterface::mediaObject() const;
+    \fn QMediaSink::mediaObject() const;
 
     Return the currently attached media object.
 */
 
 
 /*!
-    \fn QMediaBindableInterface::setMediaObject(QMediaObject *object);
+    \fn QMediaSink::setMediaObject(QMediaObject *object);
 
     Attaches to the media \a object.
     Returns true if attached successfully, otherwise returns false.
