@@ -59,11 +59,6 @@
 
 template<typename T, int N> static int lengthOf(const T (&)[N]) { return N; }
 
-#if QT_CONFIG(linux_v4l)
-#  include <private/qcore_unix_p.h>
-#  include <linux/videodev2.h>
-#endif
-
 #include "qgstreamervideoinputdevicecontrol_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -329,12 +324,92 @@ GstCaps *QGstUtils::capsForAudioFormat(const QAudioFormat &format)
     return 0;
 }
 
+static QSet<GstDevice *> m_videoSources;
+static QSet<GstDevice *> m_audioSources;
+static QSet<GstDevice *> m_audioSinks;
+
+static void addDevice(GstDevice *device)
+{
+    gchar *type = gst_device_get_device_class(device);
+//    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device);
+    gst_object_ref(device);
+    if (!strcmp(type, "Video/Source"))
+        m_videoSources.insert(device);
+    else if (!strcmp(type, "Audio/Source"))
+        m_audioSources.insert(device);
+    else if (!strcmp(type, "Audio/Sink"))
+        m_audioSinks.insert(device);
+    else
+        gst_object_unref(device);
+    g_free(type);
+}
+
+static void removeDevice(GstDevice *device)
+{
+//    qDebug() << "removing device:" << device << gst_device_get_display_name(device);
+    if (m_videoSources.remove(device) ||
+        m_audioSources.remove(device) ||
+        m_audioSinks.remove(device))
+        gst_object_unref(device);
+}
+
+static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer)
+{
+    GstDevice *device = nullptr;
+
+    switch (GST_MESSAGE_TYPE (message)) {
+    case GST_MESSAGE_DEVICE_ADDED:
+        gst_message_parse_device_added (message, &device);
+        addDevice(device);
+        break;
+    case GST_MESSAGE_DEVICE_REMOVED:
+        gst_message_parse_device_removed (message, &device);
+        removeDevice(device);
+        break;
+    default:
+        break;
+    }
+    if (device)
+        gst_object_unref (device);
+
+    return G_SOURCE_CONTINUE;
+}
+
+void setupDeviceMonitor()
+{
+    GstDeviceMonitor *monitor;
+    GstBus *bus;
+
+    monitor = gst_device_monitor_new();
+
+    bus = gst_device_monitor_get_bus(monitor);
+    gst_bus_add_watch(bus, deviceMonitor, NULL);
+    gst_object_unref(bus);
+
+    gst_device_monitor_add_filter (monitor, "Video/Source", NULL);
+    gst_device_monitor_add_filter (monitor, "Audio/Source", NULL);
+    gst_device_monitor_add_filter (monitor, "Audio/Sink", NULL);
+
+    auto devices = gst_device_monitor_get_devices(monitor);
+
+    while (devices) {
+        GstDevice *device = static_cast<GstDevice *>(devices->data);
+        addDevice(device);
+        gst_object_unref(device);
+        devices = g_list_delete_link(devices, devices);
+    }
+
+    gst_device_monitor_start(monitor);
+}
+
+
 void QGstUtils::initializeGst()
 {
     static bool initialized = false;
     if (!initialized) {
         initialized = true;
         gst_init(nullptr, nullptr);
+        setupDeviceMonitor();
     }
 }
 
@@ -415,210 +490,38 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
     return QMultimedia::MaybeSupported;
 }
 
-namespace {
-
-typedef QHash<GstElementFactory *, QList<QGstUtils::CameraInfo>> FactoryCameraInfoMap;
-
-Q_GLOBAL_STATIC(FactoryCameraInfoMap, qt_camera_device_info);
-
-}
-
-QList<QGstUtils::CameraInfo> QGstUtils::enumerateCameras(GstElementFactory *factory)
+QList<QGstUtils::CameraInfo> QGstUtils::enumerateCameras()
 {
-    static QElapsedTimer camerasCacheAgeTimer;
-    if (camerasCacheAgeTimer.isValid() && camerasCacheAgeTimer.elapsed() > 500) // ms
-        qt_camera_device_info()->clear();
+    initializeGst();
 
-    FactoryCameraInfoMap::const_iterator it = qt_camera_device_info()->constFind(factory);
-    if (it != qt_camera_device_info()->constEnd())
-        return *it;
+    QList<CameraInfo> devices;
 
-    QList<CameraInfo> &devices = (*qt_camera_device_info())[factory];
+    for (auto *d : qAsConst(m_videoSources)) {
+        auto *properties = gst_device_get_properties(d);
+        if (properties) {
+            CameraInfo info;
+            auto *desc = gst_device_get_display_name(d);
+            info.description = QString::fromUtf8(desc);
+            g_free(desc);
 
-    if (factory) {
-        bool hasVideoSource = false;
+            auto *name = gst_structure_get_string(properties, "device.path");
+            info.name = QString::fromUtf8(name);
+            info.driver = gst_structure_get_string(properties, "v4l2.device.driver");
+            info.orientation = 0;
+            info.position = QCamera::UnspecifiedPosition;
+            gst_structure_free(properties);
 
-        const GType type = gst_element_factory_get_element_type(factory);
-        GObjectClass * const objectClass = type
-                ? static_cast<GObjectClass *>(g_type_class_ref(type))
-                : 0;
-        if (objectClass) {
-            if (g_object_class_find_property(objectClass, "camera-device")) {
-                const CameraInfo primary = {
-                    QStringLiteral("primary"),
-                    QGstreamerVideoInputDeviceControl::primaryCamera(),
-                    0,
-                    QCamera::BackFace,
-                    QByteArray()
-                };
-                const CameraInfo secondary = {
-                    QStringLiteral("secondary"),
-                    QGstreamerVideoInputDeviceControl::secondaryCamera(),
-                    0,
-                    QCamera::FrontFace,
-                    QByteArray()
-                };
-
-                devices.append(primary);
-                devices.append(secondary);
-
-                GstElement *camera = g_object_class_find_property(objectClass, "sensor-mount-angle")
-                        ? gst_element_factory_create(factory, 0)
-                        : 0;
-                if (camera) {
-                    if (gst_element_set_state(camera, GST_STATE_READY) != GST_STATE_CHANGE_SUCCESS) {
-                        // no-op
-                    } else for (int i = 0; i < 2; ++i) {
-                        gint orientation = 0;
-                        g_object_set(G_OBJECT(camera), "camera-device", i, nullptr);
-                        g_object_get(G_OBJECT(camera), "sensor-mount-angle", &orientation, nullptr);
-
-                        devices[i].orientation = (720 - orientation) % 360;
-                    }
-                    gst_element_set_state(camera, GST_STATE_NULL);
-                    gst_object_unref(GST_OBJECT(camera));
-
-                }
-            } else if (g_object_class_find_property(objectClass, "video-source")) {
-                hasVideoSource = true;
-            }
-
-            g_type_class_unref(objectClass);
-        }
-
-        if (!devices.isEmpty() || !hasVideoSource) {
-            camerasCacheAgeTimer.restart();
-            return devices;
+            devices.append(info);
         }
     }
-
-#if QT_CONFIG(linux_v4l)
-    QDir devDir(QStringLiteral("/dev"));
-    devDir.setFilter(QDir::System);
-
-    const QFileInfoList entries = devDir.entryInfoList(QStringList()
-                << QStringLiteral("video*"));
-
-    for (const QFileInfo &entryInfo : entries) {
-        //qDebug() << "Try" << entryInfo.filePath();
-
-        int fd = qt_safe_open(entryInfo.filePath().toLatin1().constData(), O_RDWR );
-        if (fd == -1)
-            continue;
-
-        bool isCamera = false;
-
-        v4l2_input input;
-        memset(&input, 0, sizeof(input));
-        for (; ::ioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0; ++input.index) {
-            if (input.type == V4L2_INPUT_TYPE_CAMERA || input.type == 0) {
-                const int ret = ::ioctl(fd, VIDIOC_S_INPUT, &input.index);
-                isCamera = (ret == 0 || errno == ENOTTY || errno == EBUSY);
-                break;
-            }
-        }
-
-        if (isCamera) {
-            // find out its driver "name"
-            QByteArray driver;
-            QString name;
-            struct v4l2_capability vcap;
-            memset(&vcap, 0, sizeof(struct v4l2_capability));
-
-            if (ioctl(fd, VIDIOC_QUERYCAP, &vcap) != 0) {
-                name = entryInfo.fileName();
-            } else {
-                driver = QByteArray((const char*)vcap.driver);
-                name = QString::fromUtf8((const char*)vcap.card);
-                if (name.isEmpty())
-                    name = entryInfo.fileName();
-            }
-            //qDebug() << "found camera: " << name;
-
-
-            CameraInfo device = {
-                entryInfo.absoluteFilePath(),
-                name,
-                0,
-                QCamera::UnspecifiedPosition,
-                driver
-            };
-            devices.append(device);
-        }
-        qt_safe_close(fd);
-    }
-    camerasCacheAgeTimer.restart();
-#endif // linux_v4l
-
-#if defined(Q_OS_WIN) || defined(Q_OS_MACOS)
-    if (!devices.isEmpty())
-        return devices;
-
-#if defined(Q_OS_WIN)
-    const char *propName = "device-path";
-    auto deviceDesc = [](GValue *value) {
-        gchar *desc = g_value_dup_string(value);
-        const QString id = QLatin1String(desc);
-        g_free(desc);
-        return id;
-    };
-#elif defined(Q_OS_MACOS)
-    const char *propName = "device-index";
-    auto deviceDesc = [](GValue *value) {
-        return QString::number(g_value_get_int(value));
-    };
-#endif
-
-    QGstUtils::initializeGst();
-    GstDeviceMonitor *monitor = gst_device_monitor_new();
-    auto caps = gst_caps_new_empty_simple("video/x-raw");
-    gst_device_monitor_add_filter(monitor, "Video/Source", caps);
-    gst_caps_unref(caps);
-
-    GList *devs = gst_device_monitor_get_devices(monitor);
-    while (devs) {
-        GstDevice *dev = reinterpret_cast<GstDevice*>(devs->data);
-        GstElement *element = gst_device_create_element(dev, nullptr);
-        if (element) {
-            gchar *name = gst_device_get_display_name(dev);
-            const QString deviceName = QLatin1String(name);
-            g_free(name);
-            GParamSpec *prop = g_object_class_find_property(G_OBJECT_GET_CLASS(element), propName);
-            if (prop) {
-                GValue value = G_VALUE_INIT;
-                g_value_init(&value, prop->value_type);
-                g_object_get_property(G_OBJECT(element), prop->name, &value);
-                const QString deviceId = deviceDesc(&value);
-                g_value_unset(&value);
-
-                CameraInfo device = {
-                    deviceId,
-                    deviceName,
-                    0,
-                    QCamera::UnspecifiedPosition,
-                    QByteArray()
-                };
-
-                devices.append(device);
-            }
-
-            gst_object_unref(element);
-        }
-
-        gst_object_unref(dev);
-        devs = g_list_delete_link(devs, devs);
-    }
-    gst_object_unref(monitor);
-#endif // (defined(Q_OS_WIN) || defined(Q_OS_MACOS))
-
     return devices;
 }
 
-QList<QByteArray> QGstUtils::cameraDevices(GstElementFactory * factory)
+QList<QByteArray> QGstUtils::cameraDevices()
 {
     QList<QByteArray> devices;
 
-    const auto cameras = enumerateCameras(factory);
+    const auto cameras = enumerateCameras();
     devices.reserve(cameras.size());
     for (const CameraInfo &camera : cameras)
         devices.append(camera.name.toUtf8());
@@ -626,9 +529,9 @@ QList<QByteArray> QGstUtils::cameraDevices(GstElementFactory * factory)
     return devices;
 }
 
-QString QGstUtils::cameraDescription(const QString &device, GstElementFactory * factory)
+QString QGstUtils::cameraDescription(const QString &device)
 {
-    const auto cameras = enumerateCameras(factory);
+    const auto cameras = enumerateCameras();
     for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.description;
@@ -636,9 +539,9 @@ QString QGstUtils::cameraDescription(const QString &device, GstElementFactory * 
     return QString();
 }
 
-QCamera::Position QGstUtils::cameraPosition(const QString &device, GstElementFactory * factory)
+QCamera::Position QGstUtils::cameraPosition(const QString &device)
 {
-    const auto cameras = enumerateCameras(factory);
+    const auto cameras = enumerateCameras();
     for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.position;
@@ -646,9 +549,9 @@ QCamera::Position QGstUtils::cameraPosition(const QString &device, GstElementFac
     return QCamera::UnspecifiedPosition;
 }
 
-int QGstUtils::cameraOrientation(const QString &device, GstElementFactory * factory)
+int QGstUtils::cameraOrientation(const QString &device)
 {
-    const auto cameras = enumerateCameras(factory);
+    const auto cameras = enumerateCameras();
     for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.orientation;
@@ -656,9 +559,9 @@ int QGstUtils::cameraOrientation(const QString &device, GstElementFactory * fact
     return 0;
 }
 
-QByteArray QGstUtils::cameraDriver(const QString &device, GstElementFactory *factory)
+QByteArray QGstUtils::cameraDriver(const QString &device)
 {
-    const auto cameras = enumerateCameras(factory);
+    const auto cameras = enumerateCameras();
     for (const CameraInfo &camera : cameras) {
         if (camera.name == device)
             return camera.driver;

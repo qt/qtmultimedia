@@ -66,27 +66,27 @@ QGstreamerVideoInputDeviceControl::~QGstreamerVideoInputDeviceControl()
 
 int QGstreamerVideoInputDeviceControl::deviceCount() const
 {
-    return QGstUtils::enumerateCameras(m_factory).count();
+    return QGstUtils::enumerateCameras().count();
 }
 
 QString QGstreamerVideoInputDeviceControl::deviceName(int index) const
 {
-    return QGstUtils::enumerateCameras(m_factory).value(index).name;
+    return QGstUtils::enumerateCameras().value(index).name;
 }
 
 QString QGstreamerVideoInputDeviceControl::deviceDescription(int index) const
 {
-    return QGstUtils::enumerateCameras(m_factory).value(index).description;
+    return QGstUtils::enumerateCameras().value(index).description;
 }
 
 QCamera::Position QGstreamerVideoInputDeviceControl::cameraPosition(int index) const
 {
-    return QGstUtils::enumerateCameras(m_factory).value(index).position;
+    return QGstUtils::enumerateCameras().value(index).position;
 }
 
 int QGstreamerVideoInputDeviceControl::cameraOrientation(int index) const
 {
-    return QGstUtils::enumerateCameras(m_factory).value(index).orientation;
+    return QGstUtils::enumerateCameras().value(index).orientation;
 }
 
 int QGstreamerVideoInputDeviceControl::defaultDevice() const

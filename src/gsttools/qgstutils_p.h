@@ -99,12 +99,12 @@ namespace QGstUtils {
                                              const QStringList &codecs,
                                              const QSet<QString> &supportedMimeTypeSet);
 
-    Q_GSTTOOLS_EXPORT QList<CameraInfo> enumerateCameras(GstElementFactory *factory = 0);
-    Q_GSTTOOLS_EXPORT QList<QByteArray> cameraDevices(GstElementFactory * factory = 0);
-    Q_GSTTOOLS_EXPORT QString cameraDescription(const QString &device, GstElementFactory * factory = 0);
-    Q_GSTTOOLS_EXPORT QCamera::Position cameraPosition(const QString &device, GstElementFactory * factory = 0);
-    Q_GSTTOOLS_EXPORT int cameraOrientation(const QString &device, GstElementFactory * factory = 0);
-    Q_GSTTOOLS_EXPORT QByteArray cameraDriver(const QString &device, GstElementFactory * factory = 0);
+    Q_GSTTOOLS_EXPORT QList<CameraInfo> enumerateCameras();
+    Q_GSTTOOLS_EXPORT QList<QByteArray> cameraDevices();
+    Q_GSTTOOLS_EXPORT QString cameraDescription(const QString &device);
+    Q_GSTTOOLS_EXPORT QCamera::Position cameraPosition(const QString &device);
+    Q_GSTTOOLS_EXPORT int cameraOrientation(const QString &device);
+    Q_GSTTOOLS_EXPORT QByteArray cameraDriver(const QString &device);
 
     Q_GSTTOOLS_EXPORT QSet<QString> supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory));
 

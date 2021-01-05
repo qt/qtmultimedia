@@ -101,7 +101,7 @@ QMediaServiceFeaturesInterface::Features CameraBinServicePlugin::supportedFeatur
 QByteArray CameraBinServicePlugin::defaultDevice(const QByteArray &service) const
 {
     return service == Q_MEDIASERVICE_CAMERA
-            ? QGstUtils::enumerateCameras(sourceFactory()).value(0).name.toUtf8()
+            ? QGstUtils::enumerateCameras().value(0).name.toUtf8()
             : QByteArray();
 }
 
@@ -109,14 +109,14 @@ QList<QByteArray> CameraBinServicePlugin::devices(const QByteArray &service) con
 {
 
     return service == Q_MEDIASERVICE_CAMERA
-            ? QGstUtils::cameraDevices(m_sourceFactory)
+            ? QGstUtils::cameraDevices()
             : QList<QByteArray>();
 }
 
 QString CameraBinServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &deviceName)
 {
     return service == Q_MEDIASERVICE_CAMERA
-            ? QGstUtils::cameraDescription(deviceName, m_sourceFactory)
+            ? QGstUtils::cameraDescription(deviceName)
             : QString();
 }
 

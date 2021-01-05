@@ -482,7 +482,7 @@ GstElement *CameraBinSession::buildCameraSource()
                     for (const QByteArray &source : sources) {
                         QList<QByteArray> keyValue = source.split('=');
                         QByteArray name = keyValue.at(0);
-                        if (keyValue.count() > 1 && keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice, m_sourceFactory))
+                        if (keyValue.count() > 1 && keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice))
                             name = keyValue.at(1);
 
                         GError *error = NULL;
