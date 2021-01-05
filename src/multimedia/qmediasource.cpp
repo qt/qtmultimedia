@@ -120,13 +120,10 @@ QMultimedia::AvailabilityStatus QMediaSource::availability() const
 }
 
 /*!
+    \fn bool QMediaSource::isAvailable() const
+
     Returns true if the service is available for use.
 */
-
-bool QMediaSource::isAvailable() const
-{
-    return availability() == QMultimedia::Available;
-}
 
 /*!
     Returns the media service that provides the functionality of this multimedia object.

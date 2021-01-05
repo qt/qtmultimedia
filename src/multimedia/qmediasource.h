@@ -60,8 +60,11 @@ class Q_MULTIMEDIA_EXPORT QMediaSource : public QObject
 public:
     ~QMediaSource();
 
-    virtual bool isAvailable() const;
     virtual QMultimedia::AvailabilityStatus availability() const;
+    bool isAvailable() const
+    {
+        return availability() == QMultimedia::Available;
+    }
 
     virtual QMediaService* service() const;
 
