@@ -74,11 +74,9 @@ public Q_SLOTS:
 
 private:
     void update();
-    void updateAlsaDevices();
-    void updateOssDevices();
-    void updatePulseDevices();
 
-    QString     m_audioInput;
+    QString m_defaultInput;
+    QString m_audioInput;
     QList<QString> m_names;
     QList<QString> m_descriptions;
 };

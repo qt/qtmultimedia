@@ -106,6 +106,9 @@ namespace QGstUtils {
     Q_GSTTOOLS_EXPORT int cameraOrientation(const QString &device);
     Q_GSTTOOLS_EXPORT QByteArray cameraDriver(const QString &device);
 
+    Q_GSTTOOLS_EXPORT const QSet<GstDevice *> &audioSources();
+    Q_GSTTOOLS_EXPORT const QSet<GstDevice *> &audioSinks();
+
     Q_GSTTOOLS_EXPORT QSet<QString> supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory));
 
     Q_GSTTOOLS_EXPORT QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);

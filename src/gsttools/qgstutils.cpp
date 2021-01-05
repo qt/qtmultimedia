@@ -569,6 +569,17 @@ QByteArray QGstUtils::cameraDriver(const QString &device)
     return QByteArray();
 }
 
+
+const QSet<GstDevice *> &QGstUtils::audioSources()
+{
+    return m_audioSources;
+}
+
+const QSet<GstDevice *> &QGstUtils::audioSinks()
+{
+    return m_audioSinks;
+}
+
 QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory))
 {
     QSet<QString> supportedMimeTypes;

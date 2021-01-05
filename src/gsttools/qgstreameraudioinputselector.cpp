@@ -45,9 +45,7 @@
 
 #include <gst/gst.h>
 
-#if QT_CONFIG(alsa)
-#include <alsa/asoundlib.h>
-#endif
+#include "qgstutils_p.h"
 
 QGstreamerAudioInputSelector::QGstreamerAudioInputSelector(QObject *parent)
     :QAudioInputSelectorControl(parent)
@@ -79,10 +77,7 @@ QString QGstreamerAudioInputSelector::inputDescription(const QString& name) cons
 
 QString QGstreamerAudioInputSelector::defaultInput() const
 {
-    if (m_names.size() > 0)
-        return m_names.at(0);
-
-    return QString();
+    return m_defaultInput;
 }
 
 QString QGstreamerAudioInputSelector::activeInput() const
@@ -100,68 +95,32 @@ void QGstreamerAudioInputSelector::setActiveInput(const QString& name)
 
 void QGstreamerAudioInputSelector::update()
 {
+    QGstUtils::initializeGst();
+
     m_names.clear();
     m_descriptions.clear();
 
-    //use autoaudiosrc as the first default device
-    m_names.append(QLatin1String("default:"));
-    m_descriptions.append(tr("System default device"));
+    const auto sources = QGstUtils::audioSources();
+    for (auto *d : sources) {
+        auto *properties = gst_device_get_properties(d);
+        if (properties) {
+            auto *desc = gst_device_get_display_name(d);
+            QString description = QString::fromUtf8(desc);
+            g_free(desc);
+            if (description.contains(u"Monitor")) // ### is there a better way to skip those?
+                continue;
+            m_descriptions << description;
 
-    updatePulseDevices();
-    updateAlsaDevices();
-    updateOssDevices();
+            auto *name = gst_structure_get_string(properties, "sysfs.path");
+            m_names << QString::fromLatin1(name);
+            gboolean def;
+            if (gst_structure_get_boolean(properties, "is-default", &def) && def)
+                m_defaultInput = QString::fromLatin1(name);
+
+            gst_structure_free(properties);
+        }
+    }
+
     if (m_names.size() > 0)
         m_audioInput = m_names.at(0);
-}
-
-void QGstreamerAudioInputSelector::updateAlsaDevices()
-{
-#if QT_CONFIG(alsa)
-    void **hints, **n;
-    if (snd_device_name_hint(-1, "pcm", &hints) < 0) {
-        qWarning()<<"no alsa devices available";
-        return;
-    }
-    n = hints;
-
-    while (*n != nullptr) {
-        char *name = snd_device_name_get_hint(*n, "NAME");
-        char *descr = snd_device_name_get_hint(*n, "DESC");
-        char *io = snd_device_name_get_hint(*n, "IOID");
-
-        if ((name != nullptr) && (descr != nullptr)) {
-            if (io == nullptr || qstrcmp(io, "Input") == 0) {
-                m_names.append(QLatin1String("alsa:")+QString::fromUtf8(name));
-                m_descriptions.append(QString::fromUtf8(descr));
-            }
-        }
-
-        free(name);
-        free(descr);
-        free(io);
-        n++;
-    }
-    snd_device_name_free_hint(hints);
-#endif
-}
-
-void QGstreamerAudioInputSelector::updateOssDevices()
-{
-    QDir devDir(QStringLiteral("/dev"));
-    devDir.setFilter(QDir::System);
-    const QFileInfoList entries = devDir.entryInfoList(QStringList() << QLatin1String("dsp*"));
-    for (const QFileInfo& entryInfo : entries) {
-        m_names.append(QLatin1String("oss:")+entryInfo.filePath());
-        m_descriptions.append(QString::fromLatin1("OSS device %1").arg(entryInfo.fileName()));
-    }
-}
-
-void QGstreamerAudioInputSelector::updatePulseDevices()
-{
-    GstElementFactory *factory = gst_element_factory_find("pulsesrc");
-    if (factory) {
-        m_names.append(QLatin1String("pulseaudio:"));
-        m_descriptions.append(QLatin1String("PulseAudio device."));
-        gst_object_unref(GST_OBJECT(factory));
-    }
 }
