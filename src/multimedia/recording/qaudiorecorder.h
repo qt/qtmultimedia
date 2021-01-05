@@ -41,7 +41,7 @@
 #define QAUDIORECORDER_H
 
 #include <QtMultimedia/qmediarecorder.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaencodersettings.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 

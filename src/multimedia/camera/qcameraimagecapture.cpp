@@ -41,7 +41,7 @@
 #include <qmediaencodersettings.h>
 
 #include <qimageencodercontrol.h>
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>

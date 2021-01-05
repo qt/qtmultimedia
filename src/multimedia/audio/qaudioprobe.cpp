@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
 
 class QAudioProbePrivate {
 public:
-    QPointer<QMediaObject> source;
+    QPointer<QMediaSource> source;
     QPointer<QMediaAudioProbeControl> probee;
 };
 
@@ -107,7 +107,7 @@ QAudioProbe::~QAudioProbe()
     Passing in the same object will be ignored, but
     monitoring will continue.
  */
-bool QAudioProbe::setSource(QMediaObject *source)
+bool QAudioProbe::setSource(QMediaSource *source)
 {
     // Need to:
     // 1) disconnect from current source if necessary
@@ -153,7 +153,7 @@ bool QAudioProbe::setSource(QMediaObject *source)
 
     Returns true on success.
 
-    If there is no mediaObject associated with \a mediaRecorder, or if it is
+    If there is no mediaSource associated with \a mediaRecorder, or if it is
     zero, this probe will be deactivated and this function wil return true.
 
     If the media recorder instance does not support monitoring
@@ -165,7 +165,7 @@ bool QAudioProbe::setSource(QMediaObject *source)
  */
 bool QAudioProbe::setSource(QMediaRecorder *mediaRecorder)
 {
-    QMediaObject *source = mediaRecorder ? mediaRecorder->mediaObject() : nullptr;
+    QMediaSource *source = mediaRecorder ? mediaRecorder->mediaSource() : nullptr;
     bool result = setSource(source);
 
     if (!mediaRecorder)

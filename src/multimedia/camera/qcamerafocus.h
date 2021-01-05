@@ -47,7 +47,7 @@
 #include <QtCore/qrect.h>
 #include <QtCore/qshareddata.h>
 
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE

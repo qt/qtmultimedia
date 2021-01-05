@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qcameraimageprocessing.h"
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 
 #include <qcameracontrol.h>
 #include <qcameraexposurecontrol.h>
@@ -106,7 +106,7 @@ public:
 };
 
 
-class QCameraImageProcessingPrivate : public QMediaObjectPrivate
+class QCameraImageProcessingPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraImageProcessing)
 public:

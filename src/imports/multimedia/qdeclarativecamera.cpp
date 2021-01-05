@@ -147,7 +147,7 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
 
     Basic camera state management, error reporting, and simple zoom properties are
     available in the Camera itself.  For integration with C++ code, the
-    \l mediaObject property allows you to
+    \l mediaSource property allows you to
     access the standard Qt Multimedia camera controls.
 
     Many of the camera settings may take some time to apply, and might be limited
@@ -715,7 +715,7 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 }
 
 /*!
-    \qmlproperty variant QtMultimedia::Camera::mediaObject
+    \qmlproperty variant QtMultimedia::Camera::mediaSource
 
     This property holds the native media object for the camera.
 
@@ -723,7 +723,7 @@ void QDeclarativeCamera::setDigitalZoom(qreal value)
 
     \code
         QObject *qmlCamera; // The QML Camera object
-        QCamera *camera = qvariant_cast<QCamera *>(qmlCamera->property("mediaObject"));
+        QCamera *camera = qvariant_cast<QCamera *>(qmlCamera->property("mediaSource"));
     \endcode
 
     \note This property is not accessible from QML.

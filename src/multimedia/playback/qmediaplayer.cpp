@@ -41,7 +41,7 @@
 #include "qvideosurfaces_p.h"
 #include "qvideosurfaceoutput_p.h"
 
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaserviceprovider_p.h>
@@ -78,15 +78,15 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/media.cpp Movie playlist
 
-    Since QMediaPlayer is a QMediaObject, you can use several of the QMediaObject
+    Since QMediaPlayer is a QMediaSource, you can use several of the QMediaSource
     functions for things like:
 
     \list
-    \li Accessing the currently playing media's metadata (\l {QMediaObject::metaData()} and \l {QMediaMetaData}{predefined meta-data keys})
-    \li Checking to see if the media playback service is currently available (\l {QMediaObject::availability()})
+    \li Accessing the currently playing media's metadata (\l {QMediaSource::metaData()} and \l {QMediaMetaData}{predefined meta-data keys})
+    \li Checking to see if the media playback service is currently available (\l {QMediaSource::availability()})
     \endlist
 
-    \sa QMediaObject, QMediaService, QVideoWidget, QMediaPlaylist
+    \sa QMediaSource, QMediaService, QVideoWidget, QMediaPlaylist
 */
 
 static void qRegisterMediaPlayerMetaTypes()
@@ -100,7 +100,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlayerMetaTypes)
 
 #define MAX_NESTED_PLAYLISTS 16
 
-class QMediaPlayerPrivate : public QMediaObjectPrivate
+class QMediaPlayerPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QMediaPlayer)
 
@@ -548,7 +548,7 @@ static QMediaService *playerService()
 */
 
 QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
-    QMediaObject(*new QMediaPlayerPrivate,
+    QMediaSource(*new QMediaPlayerPrivate,
                  parent,
                  playerService())
 {
@@ -971,24 +971,6 @@ void QMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
 }
 
 /*!
-    \internal
-*/
-
-bool QMediaPlayer::bind(QObject *obj)
-{
-    return QMediaObject::bind(obj);
-}
-
-/*!
-    \internal
-*/
-
-void QMediaPlayer::unbind(QObject *obj)
-{
-    QMediaObject::unbind(obj);
-}
-
-/*!
     Returns the level of support a media player has for a \a mimeType and a set of \a codecs.
 
     The \a flags argument allows additional requirements such as performance indicators to be
@@ -1119,7 +1101,7 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
     if (!d->control)
         return QMultimedia::ServiceMissing;
 
-    return QMediaObject::availability();
+    return QMediaSource::availability();
 }
 
 QAudio::Role QMediaPlayer::audioRole() const
@@ -1400,7 +1382,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     The value is the current playback position, expressed in milliseconds since
     the beginning of the media. Periodically changes in the position will be
     indicated with the signal positionChanged(), the interval between updates
-    can be set with QMediaObject's method setNotifyInterval().
+    can be set with QMediaSource's method setNotifyInterval().
 */
 
 /*!

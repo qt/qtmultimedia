@@ -33,7 +33,7 @@
 
 #include "qvideowidget.h"
 
-#include "qmediaobject.h"
+#include "qmediasource.h"
 #include "qmediaservice.h"
 #include <private/qpaintervideosurface_p.h>
 #include "qvideowindowcontrol.h"
@@ -55,7 +55,7 @@ private slots:
     void noOutputs();
     void serviceDestroyed();
     void objectDestroyed();
-    void setMediaObject();
+    void setMediaSource();
 
     void showWindowControl();
     void fullScreenWindowControl();
@@ -291,7 +291,7 @@ public:
     QtTestRendererControl *rendererControl;
 };
 
-class QtTestVideoObject : public QMediaObject
+class QtTestVideoObject : public QMediaSource
 {
     Q_OBJECT
 public:
@@ -299,13 +299,13 @@ public:
             QtTestWindowControl *window,
             QtTestWidgetControl *widget,
             QtTestRendererControl *renderer):
-        QMediaObject(nullptr, new QtTestVideoService(window, widget, renderer))
+        QMediaSource(nullptr, new QtTestVideoService(window, widget, renderer))
     {
         testService = qobject_cast<QtTestVideoService*>(service());
     }
 
     QtTestVideoObject(QtTestVideoService *service):
-        QMediaObject(nullptr, service),
+        QMediaSource(nullptr, service),
         testService(service)
     {
     }
@@ -480,7 +480,7 @@ void tst_QVideoWidget::serviceDestroyed()
     delete object.testService;
     object.testService = nullptr;
 
-    QCOMPARE(widget.mediaObject(), static_cast<QMediaObject *>(&object));
+    QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(&object));
 
     QCOMPARE(widget.brightness(), 100);
     QCOMPARE(widget.contrast(), 100);
@@ -523,7 +523,7 @@ void tst_QVideoWidget::objectDestroyed()
     delete object;
     object = nullptr;
 
-    QCOMPARE(widget.mediaObject(), static_cast<QMediaObject *>(object));
+    QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(object));
 
     QCOMPARE(widget.brightness(), 100);
     QCOMPARE(widget.contrast(), 100);
@@ -536,9 +536,9 @@ void tst_QVideoWidget::objectDestroyed()
     delete service;
 }
 
-void tst_QVideoWidget::setMediaObject()
+void tst_QVideoWidget::setMediaSource()
 {
-    QMediaObject *nullObject = nullptr;
+    QMediaSource *nullObject = nullptr;
     QtTestVideoObject windowObject(new QtTestWindowControl, nullptr, nullptr);
     QtTestVideoObject widgetObject(nullptr, new QtTestWidgetControl, nullptr);
     QtTestVideoObject rendererObject(nullptr, nullptr, new QtTestRendererControl);
@@ -548,13 +548,13 @@ void tst_QVideoWidget::setMediaObject()
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
-    QCOMPARE(widget.mediaObject(), nullObject);
+    QCOMPARE(widget.mediaSource(), nullObject);
     QCOMPARE(windowObject.testService->windowRef, 0);
     QCOMPARE(widgetObject.testService->widgetRef, 0);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
 
     windowObject.bind(&widget);
-    QCOMPARE(widget.mediaObject(), static_cast<QMediaObject *>(&windowObject));
+    QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(&windowObject));
     QCOMPARE(windowObject.testService->windowRef, 1);
     QCOMPARE(widgetObject.testService->widgetRef, 0);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
@@ -562,7 +562,7 @@ void tst_QVideoWidget::setMediaObject()
 
 
     widgetObject.bind(&widget);
-    QCOMPARE(widget.mediaObject(), static_cast<QMediaObject *>(&widgetObject));
+    QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(&widgetObject));
     QCOMPARE(windowObject.testService->windowRef, 0);
     QCOMPARE(widgetObject.testService->widgetRef, 1);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
@@ -575,7 +575,7 @@ void tst_QVideoWidget::setMediaObject()
     QCOMPARE(rendererObject.testService->rendererRef, 0);
 
     rendererObject.bind(&widget);
-    QCOMPARE(widget.mediaObject(), static_cast<QMediaObject *>(&rendererObject));
+    QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(&rendererObject));
 
     QCOMPARE(windowObject.testService->windowRef, 0);
     QCOMPARE(widgetObject.testService->widgetRef, 0);
@@ -583,7 +583,7 @@ void tst_QVideoWidget::setMediaObject()
     QVERIFY(rendererObject.testService->rendererControl->surface() != nullptr);
 
     rendererObject.unbind(&widget);
-    QCOMPARE(widget.mediaObject(), nullObject);
+    QCOMPARE(widget.mediaSource(), nullObject);
 
     QCOMPARE(windowObject.testService->windowRef, 0);
     QCOMPARE(widgetObject.testService->widgetRef, 0);

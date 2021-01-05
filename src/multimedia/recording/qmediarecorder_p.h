@@ -52,7 +52,7 @@
 //
 
 #include "qmediarecorder.h"
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 #include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
@@ -75,7 +75,7 @@ public:
     void applySettingsLater();
     void restartCamera();
 
-    QMediaObject *mediaObject = nullptr;
+    QMediaSource *mediaSource = nullptr;
 
     QMediaRecorderControl *control = nullptr;
     QMediaContainerControl *formatControl = nullptr;

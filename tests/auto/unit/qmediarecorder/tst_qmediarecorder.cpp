@@ -31,7 +31,7 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
-#include <qmediaobject.h>
+#include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qmediaservice.h>
 #include <qmediarecordercontrol.h>
@@ -44,7 +44,7 @@
 #include <qaudioformat.h>
 
 #include "mockmediarecorderservice.h"
-#include "mockmediaobject.h"
+#include "mockmediasource.h"
 
 QT_USE_NAMESPACE
 
@@ -59,7 +59,7 @@ public slots:
 private slots:
     void testNullService();
     void testNullControls();
-    void testDeleteMediaObject();
+    void testDeleteMediaSource();
     void testError();
     void testSink();
     void testRecord();
@@ -91,7 +91,7 @@ private slots:
 
     void testAvailabilityStatus();
     void testIsAvailable();
-    void testMediaObject();
+    void testMediaSource();
     void testEnum();
 
     void testVideoSettingsQuality();
@@ -105,7 +105,7 @@ private slots:
 private:
     QAudioEncoderSettingsControl* encode;
     QAudioInputSelectorControl* audio;
-    MockMediaObject *object;
+    MockMediaSource *object;
     MockMediaRecorderService*service;
     MockMediaRecorderControl *mock;
     QMediaRecorder *capture;
@@ -119,7 +119,7 @@ void tst_QMediaRecorder::initTestCase()
 
     mock = new MockMediaRecorderControl(this);
     service = new MockMediaRecorderService(this, mock);
-    object = new MockMediaObject(this, service);
+    object = new MockMediaSource(this, service);
     capture = new QMediaRecorder(object);
 
     audio = qobject_cast<QAudioInputSelectorControl*>(service->requestControl(QAudioInputSelectorControl_iid));
@@ -139,7 +139,7 @@ void tst_QMediaRecorder::testNullService()
 {
     const QString id(QLatin1String("application/x-format"));
 
-    MockMediaObject object(nullptr, nullptr);
+    MockMediaSource object(nullptr, nullptr);
     QMediaRecorder recorder(&object);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
@@ -173,7 +173,7 @@ void tst_QMediaRecorder::testNullControls()
 
     MockMediaRecorderService service(nullptr, nullptr);
     service.hasControls = false;
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
     QMediaRecorder recorder(&object);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
@@ -233,21 +233,21 @@ void tst_QMediaRecorder::testNullControls()
     QCOMPARE(spy.count(), 0);
 }
 
-void tst_QMediaRecorder::testDeleteMediaObject()
+void tst_QMediaRecorder::testDeleteMediaSource()
 {
     MockMediaRecorderControl *mock = new MockMediaRecorderControl(this);
     MockMediaRecorderService *service = new MockMediaRecorderService(this, mock);
-    MockMediaObject *object = new MockMediaObject(this, service);
+    MockMediaSource *object = new MockMediaSource(this, service);
     QMediaRecorder *capture = new QMediaRecorder(object);
 
-    QVERIFY(capture->mediaObject() == object);
+    QVERIFY(capture->mediaSource() == object);
     QVERIFY(capture->isAvailable());
 
     delete object;
     delete service;
     delete mock;
 
-    QVERIFY(capture->mediaObject() == nullptr);
+    QVERIFY(capture->mediaSource() == nullptr);
     QVERIFY(!capture->isAvailable());
 
     delete capture;
@@ -778,7 +778,7 @@ void tst_QMediaRecorder::testSettingsApplied()
 {
     MockMediaRecorderControl recorderControl(nullptr);
     MockMediaRecorderService service(nullptr, &recorderControl);
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
 
     //if the media recorder is not configured after construction
     //the settings are applied in the next event loop
@@ -822,7 +822,7 @@ void tst_QMediaRecorder::nullMetaDataControl()
     MockMediaRecorderControl recorderControl(nullptr);
     MockMediaRecorderService service(nullptr, &recorderControl);
     service.hasControls = false;
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
 
     QMediaRecorder recorder(&object);
 
@@ -843,7 +843,7 @@ void tst_QMediaRecorder::isMetaDataAvailable()
     MockMediaRecorderControl recorderControl(nullptr);
     MockMediaRecorderService service(nullptr, &recorderControl);
     service.mockMetaDataControl->setMetaDataAvailable(false);
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
 
     QMediaRecorder recorder(&object);
     QCOMPARE(recorder.isMetaDataAvailable(), false);
@@ -868,7 +868,7 @@ void tst_QMediaRecorder::isWritable()
     MockMediaRecorderService service(nullptr, &recorderControl);
     service.mockMetaDataControl->setWritable(false);
 
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
 
     QMediaRecorder recorder(&object);
 
@@ -893,7 +893,7 @@ void tst_QMediaRecorder::metaDataChanged()
 {
     MockMediaRecorderControl recorderControl(nullptr);
     MockMediaRecorderService service(nullptr, &recorderControl);
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
 
     QMediaRecorder recorder(&object);
 
@@ -942,7 +942,7 @@ void tst_QMediaRecorder::metaData()
     MockMediaRecorderService service(nullptr, &recorderControl);
     service.mockMetaDataControl->populateMetaData();
 
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
 
     QMediaRecorder recorder(&object);
     QVERIFY(object.availableMetaData().isEmpty());
@@ -979,7 +979,7 @@ void tst_QMediaRecorder::setMetaData()
     MockMediaRecorderService service(nullptr, &recorderControl);
     service.mockMetaDataControl->populateMetaData();
 
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
 
     QMediaRecorder recorder(&object);
 
@@ -1127,7 +1127,7 @@ void tst_QMediaRecorder::testAvailabilityStatus()
 {
     {
         MockMediaRecorderService service(nullptr, nullptr);
-        MockMediaObject object(nullptr, &service);
+        MockMediaSource object(nullptr, &service);
         QMediaRecorder recorder(&object);
         QCOMPARE(recorder.availability(), QMultimedia::ServiceMissing);
         QCOMPARE(recorder.isAvailable(), false);
@@ -1136,7 +1136,7 @@ void tst_QMediaRecorder::testAvailabilityStatus()
         MockMediaRecorderControl recorderControl(nullptr);
         MockMediaRecorderService service1(nullptr, &recorderControl);
         service1.mockMetaDataControl->populateMetaData();
-        MockMediaObject object1(nullptr, &service1);
+        MockMediaSource object1(nullptr, &service1);
         QMediaRecorder recorder1(&object1);
         QCOMPARE(recorder1.availability(), QMultimedia::Available);
         QCOMPARE(recorder1.isAvailable(), true);
@@ -1145,7 +1145,7 @@ void tst_QMediaRecorder::testAvailabilityStatus()
         MockMediaRecorderControl recorderControl(nullptr);
         MockMediaRecorderService service1(nullptr, &recorderControl);
         service1.mockMetaDataControl->populateMetaData();
-        MockMediaObject object1(nullptr, &service1);
+        MockMediaSource object1(nullptr, &service1);
         QMediaRecorder recorder1(&object1);
 
         QCOMPARE(recorder1.availability(), QMultimedia::Available);
@@ -1157,30 +1157,30 @@ void tst_QMediaRecorder::testAvailabilityStatus()
 void tst_QMediaRecorder::testIsAvailable()
 {
     MockMediaRecorderService service(nullptr, nullptr);
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
     QMediaRecorder recorder(&object);
     QCOMPARE(recorder.isAvailable(), false);
 
     MockMediaRecorderControl recorderControl(nullptr);
     MockMediaRecorderService service1(nullptr, &recorderControl);
     service1.mockMetaDataControl->populateMetaData();
-    MockMediaObject object1(nullptr, &service1);
+    MockMediaSource object1(nullptr, &service1);
     QMediaRecorder recorder1(&object1);
     QCOMPARE(recorder1.isAvailable(), true);
 }
 
-/* mediaObject() API test. */
-void tst_QMediaRecorder::testMediaObject()
+/* mediaSource() API test. */
+void tst_QMediaRecorder::testMediaSource()
 {
     MockMediaRecorderService service(nullptr, nullptr);
     service.hasControls = false;
-    MockMediaObject object(nullptr, &service);
+    MockMediaSource object(nullptr, &service);
     QMediaRecorder recorder(&object);
 
-    QMediaObject *medobj = recorder.mediaObject();
+    QMediaSource *medobj = recorder.mediaSource();
     QVERIFY(medobj == nullptr);
 
-    QMediaObject *medobj1 = capture->mediaObject();
+    QMediaSource *medobj1 = capture->mediaSource();
     QVERIFY(medobj1 != nullptr);
 }
 

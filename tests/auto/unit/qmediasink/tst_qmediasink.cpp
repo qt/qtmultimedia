@@ -29,7 +29,7 @@
 //TESTED_COMPONENT=src/multimedia
 
 #include <QtTest/QtTest>
-#include <qmediaobject.h>
+#include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qmediaservice.h>
 #include <qmediarecordercontrol.h>
@@ -44,7 +44,7 @@
 #include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
 #include "mockmediarecordercontrol.h"
-#include "mockmediaobject.h"
+#include "mockmediasource.h"
 
 QT_USE_NAMESPACE
 
@@ -95,14 +95,14 @@ private slots:
 
     }
 
-    void testMediaObject() //Verifying the mediaobject api
+    void testMediaSource() //Verifying the mediasource api
     {
         MockMediaRecorderControl recorderControl(nullptr);
         TestBindableService service(nullptr, &recorderControl);
         service.mockMetaDataControl->populateMetaData();
-        MockMediaObject object(nullptr, &service);
+        MockMediaSource object(nullptr, &service);
         QMediaRecorder recorder(&object);
-        QMediaObject *obj = recorder.mediaObject();
+        QMediaSource *obj = recorder.mediaSource();
         QVERIFY(obj != nullptr);
         QVERIFY(obj->isAvailable());
     }
@@ -112,7 +112,7 @@ private slots:
         MockMediaRecorderControl recorderControl(nullptr);
         TestBindableService service(nullptr, &recorderControl);
         service.mockMetaDataControl->populateMetaData();
-        MockMediaObject object(nullptr, &service);
+        MockMediaSource object(nullptr, &service);
         QMediaRecorder *recorder = new QMediaRecorder(&object);
         QVERIFY(recorder->isAvailable());
         delete recorder;

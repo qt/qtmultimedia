@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTMEDIAOBJECT_H
-#define QABSTRACTMEDIAOBJECT_H
+#ifndef QABSTRACTMEDIASOURCE_H
+#define QABSTRACTMEDIASOURCE_H
 
 #include <QtCore/qobject.h>
 #include <QtCore/qstringlist.h>
@@ -52,13 +52,13 @@ QT_BEGIN_NAMESPACE
 class QMediaService;
 class QMediaSink;
 
-class QMediaObjectPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaObject : public QObject
+class QMediaSourcePrivate;
+class Q_MULTIMEDIA_EXPORT QMediaSource : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged)
 public:
-    ~QMediaObject();
+    ~QMediaSource();
 
     virtual bool isAvailable() const;
     virtual QMultimedia::AvailabilityStatus availability() const;
@@ -84,8 +84,8 @@ Q_SIGNALS:
     void metaDataChanged(const QString &key, const QVariant &value);
 
 protected:
-    QMediaObject(QObject *parent, QMediaService *service);
-    QMediaObject(QMediaObjectPrivate &dd, QObject *parent, QMediaService *service);
+    QMediaSource(QObject *parent, QMediaService *service);
+    QMediaSource(QMediaSourcePrivate &dd, QObject *parent, QMediaService *service);
 
     void addPropertyWatch(QByteArray const &name);
     void removePropertyWatch(QByteArray const &name);
@@ -93,7 +93,7 @@ protected:
 private:
     void setupControls();
 
-    Q_DECLARE_PRIVATE(QMediaObject)
+    Q_DECLARE_PRIVATE(QMediaSource)
     Q_PRIVATE_SLOT(d_func(), void _q_notify())
 };
 
@@ -101,4 +101,4 @@ private:
 QT_END_NAMESPACE
 
 
-#endif  // QABSTRACTMEDIAOBJECT_H
+#endif  // QABSTRACTMEDIASOURCE_H

@@ -1,16 +1,16 @@
-# Generated from qmediaobject.pro.
+# Generated from qmediasource.pro.
 
 #####################################################################
-## tst_qmediaobject Test:
+## tst_qmediasource Test:
 #####################################################################
 
-qt_add_test(tst_qmediaobject
+qt_add_test(tst_qmediasource
     SOURCES
         ../qmultimedia_common/mockaudioencodercontrol.h
         ../qmultimedia_common/mockaudioinputselector.h
         ../qmultimedia_common/mockaudioprobecontrol.h
         ../qmultimedia_common/mockmediacontainercontrol.h
-        ../qmultimedia_common/mockmediaobject.h
+        ../qmultimedia_common/mockmediasource.h
         ../qmultimedia_common/mockmediarecordercontrol.h
         ../qmultimedia_common/mockmediarecorderservice.h
         ../qmultimedia_common/mockmediaservice.h
@@ -18,7 +18,7 @@ qt_add_test(tst_qmediaobject
         ../qmultimedia_common/mockmetadatareadercontrol.h
         ../qmultimedia_common/mockmetadatawritercontrol.h
         ../qmultimedia_common/mockvideoencodercontrol.h
-        tst_qmediaobject.cpp
+        tst_qmediasource.cpp
     INCLUDE_DIRECTORIES
         ../../../../src/multimedia
         ../../../src/multimedia

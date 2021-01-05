@@ -9,7 +9,7 @@ qt_add_test(tst_qdeclarativeaudio
         ../../../../src/imports/multimedia/qdeclarativeaudio.cpp ../../../../src/imports/multimedia/qdeclarativeaudio_p.h
         ../../../../src/imports/multimedia/qdeclarativemediametadata_p.h
         ../../../../src/imports/multimedia/qdeclarativeplaylist.cpp ../../../../src/imports/multimedia/qdeclarativeplaylist_p.h
-        ../qmultimedia_common/mockmediaobject.h
+        ../qmultimedia_common/mockmediasource.h
         ../qmultimedia_common/mockmediaplayercontrol.h
         ../qmultimedia_common/mockmediaplayerservice.h
         ../qmultimedia_common/mockmediaservice.h

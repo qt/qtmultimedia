@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
     QMediaMetaData namespace.
 
     The functionality provided by this control is exposed to application
-    code by the meta-data members of QMediaObject, and so meta-data access
+    code by the meta-data members of QMediaSource, and so meta-data access
     is potentially available in any of the media object classes.  Any media
     service may implement QMetaDataReaderControl.
 
@@ -69,7 +69,7 @@ QT_BEGIN_NAMESPACE
     \c org.qt-project.qt.metadatareadercontrol/5.0 as defined in
     QMetaDataReaderControl_iid.
 
-    \sa QMediaService::requestControl(), QMediaObject
+    \sa QMediaService::requestControl(), QMediaSource
 */
 
 /*!

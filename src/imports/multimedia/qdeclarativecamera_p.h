@@ -96,7 +96,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(qreal digitalZoom READ digitalZoom WRITE setDigitalZoom NOTIFY digitalZoomChanged)
     Q_PROPERTY(qreal maximumDigitalZoom READ maximumDigitalZoom NOTIFY maximumDigitalZoomChanged)
 
-    Q_PROPERTY(QObject *mediaObject READ mediaObject NOTIFY mediaObjectChanged SCRIPTABLE false DESIGNABLE false)
+    Q_PROPERTY(QObject *mediaSource READ mediaSource NOTIFY mediaSourceChanged SCRIPTABLE false DESIGNABLE false)
     Q_PROPERTY(QDeclarativeCameraCapture* imageCapture READ imageCapture CONSTANT)
     Q_PROPERTY(QDeclarativeCameraRecorder* videoRecorder READ videoRecorder CONSTANT)
     Q_PROPERTY(QDeclarativeCameraExposure* exposure READ exposure CONSTANT)
@@ -240,7 +240,7 @@ public:
     QDeclarativeCamera(QObject *parent = 0);
     ~QDeclarativeCamera();
 
-    QObject *mediaObject() { return m_camera; }
+    QObject *mediaSource() { return m_camera; }
 
     QDeclarativeCameraCapture *imageCapture() { return m_imageCapture; }
     QDeclarativeCameraRecorder *videoRecorder() { return m_videoRecorder; }
@@ -317,7 +317,7 @@ Q_SIGNALS:
     void maximumOpticalZoomChanged(qreal);
     void maximumDigitalZoomChanged(qreal);
 
-    void mediaObjectChanged();
+    void mediaSourceChanged();
 
 private Q_SLOTS:
     void _q_updateState(QCamera::State);

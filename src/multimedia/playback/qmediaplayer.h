@@ -41,7 +41,7 @@
 #define QMEDIAPLAYER_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediacontent.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qaudio.h>
@@ -55,7 +55,7 @@ class QVideoWidget;
 class QGraphicsVideoItem;
 
 class QMediaPlayerPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaObject
+class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
 {
     Q_OBJECT
     Q_PROPERTY(QMediaContent media READ media WRITE setMedia NOTIFY mediaChanged)

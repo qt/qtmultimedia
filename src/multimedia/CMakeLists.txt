@@ -58,7 +58,7 @@ qt_add_module(Multimedia
         qmediasink.cpp qmediasink.h
         qmediaenumdebug.h
         qmediametadata.cpp qmediametadata.h
-        qmediaobject.cpp qmediaobject.h qmediaobject_p.h
+        qmediasource.cpp qmediasource.h qmediasource_p.h
         qmediapluginloader.cpp qmediapluginloader_p.h
         qmediaservice.cpp qmediaservice.h qmediaservice_p.h
         qmediaserviceprovider.cpp qmediaserviceprovider_p.h

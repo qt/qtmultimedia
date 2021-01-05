@@ -41,7 +41,7 @@
 #define QMEDIARECORDER_H
 
 #include <QtMultimedia/qmultimedia.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaencodersettings.h>
 #include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qmediaenumdebug.h>
@@ -107,10 +107,10 @@ public:
         OutOfSpaceError
     };
 
-    explicit QMediaRecorder(QMediaObject *mediaObject, QObject *parent = nullptr);
+    explicit QMediaRecorder(QMediaSource *mediaSource, QObject *parent = nullptr);
     ~QMediaRecorder();
 
-    QMediaObject *mediaObject() const override;
+    QMediaSource *mediaSource() const override;
 
     bool isAvailable() const;
     QMultimedia::AvailabilityStatus availability() const;
@@ -200,8 +200,8 @@ Q_SIGNALS:
     void metaDataChanged(const QString &key, const QVariant &value);
 
 protected:
-    QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent = nullptr);
-    bool setMediaObject(QMediaObject *object) override;
+    QMediaRecorder(QMediaRecorderPrivate &dd, QMediaSource *mediaSource, QObject *parent = nullptr);
+    bool setMediaSource(QMediaSource *object) override;
 
     QMediaRecorderPrivate *d_ptr;
 private:

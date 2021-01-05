@@ -36,7 +36,7 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qvideowindowcontrol.h>
 
@@ -45,17 +45,17 @@ Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FillMode)
 class SourceObject : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QObject *mediaObject READ mediaObject CONSTANT)
+    Q_PROPERTY(QObject *mediaSource READ mediaSource CONSTANT)
 public:
-    explicit SourceObject(QMediaObject *mediaObject, QObject *parent = nullptr)
-        : QObject(parent), m_mediaObject(mediaObject)
+    explicit SourceObject(QMediaSource *mediaSource, QObject *parent = nullptr)
+        : QObject(parent), m_mediaSource(mediaSource)
     {}
 
-    [[nodiscard]] QObject *mediaObject() const
-    { return m_mediaObject; }
+    [[nodiscard]] QObject *mediaSource() const
+    { return m_mediaSource; }
 
 private:
-    QMediaObject *m_mediaObject;
+    QMediaSource *m_mediaSource;
 };
 
 class QtTestWindowControl : public QVideoWindowControl
@@ -129,12 +129,12 @@ public:
     QtTestWindowControl *windowControl;
 };
 
-class QtTestVideoObject : public QMediaObject
+class QtTestVideoObject : public QMediaSource
 {
     Q_OBJECT
 public:
     explicit QtTestVideoObject(QtTestVideoService *service):
-        QMediaObject(nullptr, service)
+        QMediaSource(nullptr, service)
     {
     }
 };

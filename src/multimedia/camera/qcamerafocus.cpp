@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qcamerafocus.h"
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 
 #include <qcamera.h>
 #include <qcameracontrol.h>
@@ -288,7 +288,7 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
 */
 
 
-class QCameraFocusPrivate : public QMediaObjectPrivate
+class QCameraFocusPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraFocus)
 public:

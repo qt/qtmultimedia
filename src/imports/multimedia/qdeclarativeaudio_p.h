@@ -91,7 +91,7 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
-    Q_PROPERTY(QObject *mediaObject READ mediaObject NOTIFY mediaObjectChanged SCRIPTABLE false DESIGNABLE false)
+    Q_PROPERTY(QObject *mediaSource READ mediaSource NOTIFY mediaSourceChanged SCRIPTABLE false DESIGNABLE false)
     Q_PROPERTY(AudioRole audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged REVISION 1)
     Q_PROPERTY(QString customAudioRole READ customAudioRole WRITE setCustomAudioRole NOTIFY customAudioRoleChanged REVISION 3)
     Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged REVISION 2)
@@ -174,7 +174,7 @@ public:
     void classBegin() override;
     void componentComplete() override;
 
-    QObject *mediaObject() { return m_player; }
+    QObject *mediaSource() { return m_player; }
 
     Availability availability() const;
 
@@ -264,7 +264,7 @@ Q_SIGNALS:
     void errorChanged();
     void error(QDeclarativeAudio::Error error, const QString &errorString);
 
-    void mediaObjectChanged();
+    void mediaSourceChanged();
     Q_REVISION(2) void notifyIntervalChanged();
     Q_REVISION(15) void videoOutputChanged();
 

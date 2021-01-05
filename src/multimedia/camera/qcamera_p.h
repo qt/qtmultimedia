@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 #include "qvideosurfaceoutput_p.h"
 #include "qcamera.h"
 
@@ -61,12 +61,12 @@ class QMediaServiceProvider;
 class QCameraControl;
 class QVideoDeviceSelectorControl;
 
-class QCameraPrivate : public QMediaObjectPrivate
+class QCameraPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCamera)
 public:
     QCameraPrivate():
-        QMediaObjectPrivate(),
+        QMediaSourcePrivate(),
         provider(nullptr),
         control(nullptr),
         deviceControl(nullptr),

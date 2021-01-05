@@ -33,7 +33,7 @@
 #include <QtCore/qtimer.h>
 
 #include <QtMultimedia/qmediametadata.h>
-#include <qmediaobject.h>
+#include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>
 #include <qaudioinputselectorcontrol.h>
@@ -70,7 +70,7 @@ public:
 
 QT_USE_NAMESPACE
 
-class tst_QMediaObject : public QObject
+class tst_QMediaSource : public QObject
 {
     Q_OBJECT
 
@@ -94,7 +94,7 @@ private:
     void setupNotifyTests();
 };
 
-class QtTestMediaObject : public QMediaObject
+class QtTestMediaObject : public QMediaSource
 {
     Q_OBJECT
     Q_PROPERTY(int a READ a WRITE setA NOTIFY aChanged)
@@ -102,10 +102,10 @@ class QtTestMediaObject : public QMediaObject
     Q_PROPERTY(int c READ c WRITE setC NOTIFY cChanged)
     Q_PROPERTY(int d READ d WRITE setD)
 public:
-    QtTestMediaObject(QMediaService *service = nullptr): QMediaObject(nullptr, service) {}
+    QtTestMediaObject(QMediaService *service = nullptr): QMediaSource(nullptr, service) {}
 
-    using QMediaObject::addPropertyWatch;
-    using QMediaObject::removePropertyWatch;
+    using QMediaSource::addPropertyWatch;
+    using QMediaSource::removePropertyWatch;
 
     [[nodiscard]] int a() const { return m_a; }
     void setA(int a) { m_a = a; }
@@ -131,7 +131,7 @@ private:
     int m_d = 0;
 };
 
-void tst_QMediaObject::propertyWatch()
+void tst_QMediaSource::propertyWatch()
 {
     QtTestMediaObject object;
     object.setNotifyInterval(0);
@@ -251,7 +251,7 @@ void tst_QMediaObject::propertyWatch()
     QCOMPARE(cSpy.count(), cCount);
 }
 
-void tst_QMediaObject::setupNotifyTests()
+void tst_QMediaSource::setupNotifyTests()
 {
     QTest::addColumn<int>("interval");
     QTest::addColumn<int>("count");
@@ -270,12 +270,12 @@ void tst_QMediaObject::setupNotifyTests()
             << 5;
 }
 
-void tst_QMediaObject::notifySignals_data()
+void tst_QMediaSource::notifySignals_data()
 {
     setupNotifyTests();
 }
 
-void tst_QMediaObject::notifySignals()
+void tst_QMediaSource::notifySignals()
 {
     QFETCH(int, interval);
     QFETCH(int, count);
@@ -292,12 +292,12 @@ void tst_QMediaObject::notifySignals()
     QTRY_COMPARE(spy.count(), count);
 }
 
-void tst_QMediaObject::notifyInterval_data()
+void tst_QMediaSource::notifyInterval_data()
 {
     setupNotifyTests();
 }
 
-void tst_QMediaObject::notifyInterval()
+void tst_QMediaSource::notifyInterval()
 {
     QFETCH(int, interval);
 
@@ -314,7 +314,7 @@ void tst_QMediaObject::notifyInterval()
     QCOMPARE(spy.count(), 1);
 }
 
-void tst_QMediaObject::nullMetaDataControl()
+void tst_QMediaSource::nullMetaDataControl()
 {
     const QString titleKey(QLatin1String("Title"));
     const QString title(QLatin1String("Host of Seraphim"));
@@ -333,7 +333,7 @@ void tst_QMediaObject::nullMetaDataControl()
     QCOMPARE(spy.count(), 0);
 }
 
-void tst_QMediaObject::isMetaDataAvailable()
+void tst_QMediaSource::isMetaDataAvailable()
 {
     QtTestMediaObjectService service;
     service.metaData.setMetaDataAvailable(false);
@@ -355,7 +355,7 @@ void tst_QMediaObject::isMetaDataAvailable()
     QCOMPARE(spy.at(1).at(0).toBool(), false);
 }
 
-void tst_QMediaObject::metaDataChanged()
+void tst_QMediaSource::metaDataChanged()
 {
     QtTestMediaObjectService service;
     QtTestMediaObject object(&service);
@@ -380,7 +380,7 @@ void tst_QMediaObject::metaDataChanged()
     QCOMPARE(changedWithValueSpy.last()[1].value<QVariant>(), QVariant("Value"));
 }
 
-void tst_QMediaObject::metaData_data()
+void tst_QMediaSource::metaData_data()
 {
     QTest::addColumn<QString>("artist");
     QTest::addColumn<QString>("title");
@@ -392,7 +392,7 @@ void tst_QMediaObject::metaData_data()
             << QString::fromLatin1("Awesome");
 }
 
-void tst_QMediaObject::metaData()
+void tst_QMediaSource::metaData()
 {
     QFETCH(QString, artist);
     QFETCH(QString, title);
@@ -418,7 +418,7 @@ void tst_QMediaObject::metaData()
     QVERIFY(metaDataKeys.contains(QMediaMetaData::Genre));
 }
 
-void tst_QMediaObject::availability()
+void tst_QMediaSource::availability()
 {
     {
         QtTestMediaObject nullObject(nullptr);
@@ -434,7 +434,7 @@ void tst_QMediaObject::availability()
     }
 }
 
- void tst_QMediaObject::service()
+ void tst_QMediaSource::service()
  {
      // Create the mediaobject with service.
      QtTestMediaObjectService service;
@@ -451,5 +451,5 @@ void tst_QMediaObject::availability()
      QVERIFY(service2 == nullptr);
 }
 
-QTEST_GUILESS_MAIN(tst_QMediaObject)
-#include "tst_qmediaobject.moc"
+QTEST_GUILESS_MAIN(tst_QMediaSource)
+#include "tst_qmediasource.moc"

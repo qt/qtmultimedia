@@ -38,7 +38,7 @@
 #include "mockmediaserviceprovider.h"
 #include "mockmediarecorderservice.h"
 #include "mockmediaplayerservice.h"
-#include "mockmediaobject.h"
+#include "mockmediasource.h"
 
 QT_USE_NAMESPACE
 

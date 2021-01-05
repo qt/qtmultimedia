@@ -47,7 +47,7 @@
 #include <QtCore/qrect.h>
 
 #include <QtMultimedia/qmediaservice.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 

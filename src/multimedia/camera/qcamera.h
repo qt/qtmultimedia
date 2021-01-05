@@ -46,7 +46,7 @@
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
 
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 
 #include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcamerafocus.h>
@@ -64,7 +64,7 @@ class QGraphicsVideoItem;
 class QCameraInfo;
 
 class QCameraPrivate;
-class Q_MULTIMEDIA_EXPORT QCamera : public QMediaObject
+class Q_MULTIMEDIA_EXPORT QCamera : public QMediaSource
 {
     Q_OBJECT
     Q_PROPERTY(QCamera::State state READ state NOTIFY stateChanged)

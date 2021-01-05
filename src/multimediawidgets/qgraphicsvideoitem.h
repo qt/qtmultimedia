@@ -55,7 +55,7 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, pu
 {
     Q_OBJECT
     Q_INTERFACES(QMediaSink)
-    Q_PROPERTY(QMediaObject* mediaObject READ mediaObject WRITE setMediaObject)
+    Q_PROPERTY(QMediaSource* mediaSource READ mediaSource WRITE setMediaSource)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
     Q_PROPERTY(QPointF offset READ offset WRITE setOffset)
     Q_PROPERTY(QSizeF size READ size WRITE setSize)
@@ -65,7 +65,7 @@ public:
     explicit QGraphicsVideoItem(QGraphicsItem *parent = nullptr);
     ~QGraphicsVideoItem();
 
-    QMediaObject *mediaObject() const override;
+    QMediaSource *mediaSource() const override;
     QAbstractVideoSurface *videoSurface() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
@@ -97,7 +97,7 @@ protected:
     void timerEvent(QTimerEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
-    bool setMediaObject(QMediaObject *object) override;
+    bool setMediaSource(QMediaSource *object) override;
 
     QGraphicsVideoItemPrivate *d_ptr;
 

@@ -55,7 +55,7 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmetadatawritercontrol.h>
-#include "qmediaobject.h"
+#include "qmediasource.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -153,9 +153,9 @@ class QDeclarativeMediaMetaData : public QObject
     Q_PROPERTY(QVariant gpsAreaInformation READ gpsAreaInformation WRITE setGPSAreaInformation NOTIFY metaDataChanged)
 
 public:
-    QDeclarativeMediaMetaData(QMediaObject *player, QObject *parent = 0)
+    QDeclarativeMediaMetaData(QMediaSource *player, QObject *parent = 0)
         : QObject(parent)
-        , m_mediaObject(player)
+        , m_mediaSource(player)
         , m_writerControl(0)
         , m_requestedWriterControl(false)
     {
@@ -164,261 +164,261 @@ public:
     ~QDeclarativeMediaMetaData()
     {
         if (m_writerControl) {
-            if (QMediaService *service = m_mediaObject->service())
+            if (QMediaService *service = m_mediaSource->service())
                 service->releaseControl(m_writerControl);
         }
     }
 
-    QVariant title() const { return m_mediaObject->metaData(QMediaMetaData::Title); }
+    QVariant title() const { return m_mediaSource->metaData(QMediaMetaData::Title); }
     void setTitle(const QVariant &title) { setMetaData(QMediaMetaData::Title, title); }
-    QVariant subTitle() const { return m_mediaObject->metaData(QMediaMetaData::SubTitle); }
+    QVariant subTitle() const { return m_mediaSource->metaData(QMediaMetaData::SubTitle); }
     void setSubTitle(const QVariant &title) {
         setMetaData(QMediaMetaData::SubTitle, title); }
-    QVariant author() const { return m_mediaObject->metaData(QMediaMetaData::Author); }
+    QVariant author() const { return m_mediaSource->metaData(QMediaMetaData::Author); }
     void setAuthor(const QVariant &author) { setMetaData(QMediaMetaData::Author, author); }
-    QVariant comment() const { return m_mediaObject->metaData(QMediaMetaData::Comment); }
+    QVariant comment() const { return m_mediaSource->metaData(QMediaMetaData::Comment); }
     void setComment(const QVariant &comment) { setMetaData(QMediaMetaData::Comment, comment); }
-    QVariant description() const { return m_mediaObject->metaData(QMediaMetaData::Description); }
+    QVariant description() const { return m_mediaSource->metaData(QMediaMetaData::Description); }
     void setDescription(const QVariant &description) {
         setMetaData(QMediaMetaData::Description, description); }
-    QVariant category() const { return m_mediaObject->metaData(QMediaMetaData::Category); }
+    QVariant category() const { return m_mediaSource->metaData(QMediaMetaData::Category); }
     void setCategory(const QVariant &category) { setMetaData(QMediaMetaData::Category, category); }
-    QVariant genre() const { return m_mediaObject->metaData(QMediaMetaData::Genre); }
+    QVariant genre() const { return m_mediaSource->metaData(QMediaMetaData::Genre); }
     void setGenre(const QVariant &genre) { setMetaData(QMediaMetaData::Genre, genre); }
-    QVariant year() const { return m_mediaObject->metaData(QMediaMetaData::Year); }
+    QVariant year() const { return m_mediaSource->metaData(QMediaMetaData::Year); }
     void setYear(const QVariant &year) { setMetaData(QMediaMetaData::Year, year); }
-    QVariant date() const { return m_mediaObject->metaData(QMediaMetaData::Date); }
+    QVariant date() const { return m_mediaSource->metaData(QMediaMetaData::Date); }
     void setDate(const QVariant &date) { setMetaData(QMediaMetaData::Date, date); }
-    QVariant userRating() const { return m_mediaObject->metaData(QMediaMetaData::UserRating); }
+    QVariant userRating() const { return m_mediaSource->metaData(QMediaMetaData::UserRating); }
     void setUserRating(const QVariant &rating) { setMetaData(QMediaMetaData::UserRating, rating); }
-    QVariant keywords() const { return m_mediaObject->metaData(QMediaMetaData::Keywords); }
+    QVariant keywords() const { return m_mediaSource->metaData(QMediaMetaData::Keywords); }
     void setKeywords(const QVariant &keywords) { setMetaData(QMediaMetaData::Keywords, keywords); }
-    QVariant language() const { return m_mediaObject->metaData(QMediaMetaData::Language); }
+    QVariant language() const { return m_mediaSource->metaData(QMediaMetaData::Language); }
     void setLanguage(const QVariant &language) { setMetaData(QMediaMetaData::Language, language); }
-    QVariant publisher() const { return m_mediaObject->metaData(QMediaMetaData::Publisher); }
+    QVariant publisher() const { return m_mediaSource->metaData(QMediaMetaData::Publisher); }
     void setPublisher(const QVariant &publisher) {
         setMetaData(QMediaMetaData::Publisher, publisher); }
-    QVariant copyright() const { return m_mediaObject->metaData(QMediaMetaData::Copyright); }
+    QVariant copyright() const { return m_mediaSource->metaData(QMediaMetaData::Copyright); }
     void setCopyright(const QVariant &copyright) {
         setMetaData(QMediaMetaData::Copyright, copyright); }
-    QVariant parentalRating() const { return m_mediaObject->metaData(QMediaMetaData::ParentalRating); }
+    QVariant parentalRating() const { return m_mediaSource->metaData(QMediaMetaData::ParentalRating); }
     void setParentalRating(const QVariant &rating) {
         setMetaData(QMediaMetaData::ParentalRating, rating); }
     QVariant ratingOrganization() const {
-        return m_mediaObject->metaData(QMediaMetaData::RatingOrganization); }
+        return m_mediaSource->metaData(QMediaMetaData::RatingOrganization); }
     void setRatingOrganization(const QVariant &organization) {
         setMetaData(QMediaMetaData::RatingOrganization, organization); }
-    QVariant size() const { return m_mediaObject->metaData(QMediaMetaData::Size); }
+    QVariant size() const { return m_mediaSource->metaData(QMediaMetaData::Size); }
     void setSize(const QVariant &size) { setMetaData(QMediaMetaData::Size, size); }
-    QVariant mediaType() const { return m_mediaObject->metaData(QMediaMetaData::MediaType); }
+    QVariant mediaType() const { return m_mediaSource->metaData(QMediaMetaData::MediaType); }
     void setMediaType(const QVariant &type) { setMetaData(QMediaMetaData::MediaType, type); }
-    QVariant duration() const { return m_mediaObject->metaData(QMediaMetaData::Duration); }
+    QVariant duration() const { return m_mediaSource->metaData(QMediaMetaData::Duration); }
     void setDuration(const QVariant &duration) { setMetaData(QMediaMetaData::Duration, duration); }
-    QVariant audioBitRate() const { return m_mediaObject->metaData(QMediaMetaData::AudioBitRate); }
+    QVariant audioBitRate() const { return m_mediaSource->metaData(QMediaMetaData::AudioBitRate); }
     void setAudioBitRate(const QVariant &rate) { setMetaData(QMediaMetaData::AudioBitRate, rate); }
-    QVariant audioCodec() const { return m_mediaObject->metaData(QMediaMetaData::AudioCodec); }
+    QVariant audioCodec() const { return m_mediaSource->metaData(QMediaMetaData::AudioCodec); }
     void setAudioCodec(const QVariant &codec) { setMetaData(QMediaMetaData::AudioCodec, codec); }
-    QVariant averageLevel() const { return m_mediaObject->metaData(QMediaMetaData::AverageLevel); }
+    QVariant averageLevel() const { return m_mediaSource->metaData(QMediaMetaData::AverageLevel); }
     void setAverageLevel(const QVariant &level) {
         setMetaData(QMediaMetaData::AverageLevel, level); }
-    QVariant channelCount() const { return m_mediaObject->metaData(QMediaMetaData::ChannelCount); }
+    QVariant channelCount() const { return m_mediaSource->metaData(QMediaMetaData::ChannelCount); }
     void setChannelCount(const QVariant &count) {
         setMetaData(QMediaMetaData::ChannelCount, count); }
-    QVariant peakValue() const { return m_mediaObject->metaData(QMediaMetaData::PeakValue); }
+    QVariant peakValue() const { return m_mediaSource->metaData(QMediaMetaData::PeakValue); }
     void setPeakValue(const QVariant &value) { setMetaData(QMediaMetaData::PeakValue, value); }
-    QVariant sampleRate() const { return m_mediaObject->metaData(QMediaMetaData::SampleRate); }
+    QVariant sampleRate() const { return m_mediaSource->metaData(QMediaMetaData::SampleRate); }
     void setSampleRate(const QVariant &rate) { setMetaData(QMediaMetaData::SampleRate, rate); }
-    QVariant albumTitle() const { return m_mediaObject->metaData(QMediaMetaData::AlbumTitle); }
+    QVariant albumTitle() const { return m_mediaSource->metaData(QMediaMetaData::AlbumTitle); }
     void setAlbumTitle(const QVariant &title) { setMetaData(QMediaMetaData::AlbumTitle, title); }
-    QVariant albumArtist() const { return m_mediaObject->metaData(QMediaMetaData::AlbumArtist); }
+    QVariant albumArtist() const { return m_mediaSource->metaData(QMediaMetaData::AlbumArtist); }
     void setAlbumArtist(const QVariant &artist) {
         setMetaData(QMediaMetaData::AlbumArtist, artist); }
     QVariant contributingArtist() const {
-        return m_mediaObject->metaData(QMediaMetaData::ContributingArtist); }
+        return m_mediaSource->metaData(QMediaMetaData::ContributingArtist); }
     void setContributingArtist(const QVariant &artist) {
         setMetaData(QMediaMetaData::ContributingArtist, artist); }
-    QVariant composer() const { return m_mediaObject->metaData(QMediaMetaData::Composer); }
+    QVariant composer() const { return m_mediaSource->metaData(QMediaMetaData::Composer); }
     void setComposer(const QVariant &composer) { setMetaData(QMediaMetaData::Composer, composer); }
-    QVariant conductor() const { return m_mediaObject->metaData(QMediaMetaData::Conductor); }
+    QVariant conductor() const { return m_mediaSource->metaData(QMediaMetaData::Conductor); }
     void setConductor(const QVariant &conductor) {
         setMetaData(QMediaMetaData::Conductor, conductor); }
-    QVariant lyrics() const { return m_mediaObject->metaData(QMediaMetaData::Lyrics); }
+    QVariant lyrics() const { return m_mediaSource->metaData(QMediaMetaData::Lyrics); }
     void setLyrics(const QVariant &lyrics) { setMetaData(QMediaMetaData::Lyrics, lyrics); }
-    QVariant mood() const { return m_mediaObject->metaData(QMediaMetaData::Mood); }
+    QVariant mood() const { return m_mediaSource->metaData(QMediaMetaData::Mood); }
     void setMood(const QVariant &mood) { setMetaData(QMediaMetaData::Mood, mood); }
-    QVariant trackNumber() const { return m_mediaObject->metaData(QMediaMetaData::TrackNumber); }
+    QVariant trackNumber() const { return m_mediaSource->metaData(QMediaMetaData::TrackNumber); }
     void setTrackNumber(const QVariant &track) { setMetaData(QMediaMetaData::TrackNumber, track); }
-    QVariant trackCount() const { return m_mediaObject->metaData(QMediaMetaData::TrackCount); }
+    QVariant trackCount() const { return m_mediaSource->metaData(QMediaMetaData::TrackCount); }
     void setTrackCount(const QVariant &count) { setMetaData(QMediaMetaData::TrackCount, count); }
     QVariant coverArtUrlSmall() const {
-        return m_mediaObject->metaData(QMediaMetaData::CoverArtUrlSmall); }
+        return m_mediaSource->metaData(QMediaMetaData::CoverArtUrlSmall); }
     void setCoverArtUrlSmall(const QVariant &url) {
         setMetaData(QMediaMetaData::CoverArtUrlSmall, url); }
     QVariant coverArtUrlLarge() const {
-        return m_mediaObject->metaData(QMediaMetaData::CoverArtUrlLarge); }
+        return m_mediaSource->metaData(QMediaMetaData::CoverArtUrlLarge); }
     void setCoverArtUrlLarge(const QVariant &url) {
         setMetaData(QMediaMetaData::CoverArtUrlLarge, url); }
-    QVariant resolution() const { return m_mediaObject->metaData(QMediaMetaData::Resolution); }
+    QVariant resolution() const { return m_mediaSource->metaData(QMediaMetaData::Resolution); }
     void setResolution(const QVariant &resolution) {
         setMetaData(QMediaMetaData::Resolution, resolution); }
     QVariant pixelAspectRatio() const {
-        return m_mediaObject->metaData(QMediaMetaData::PixelAspectRatio); }
+        return m_mediaSource->metaData(QMediaMetaData::PixelAspectRatio); }
     void setPixelAspectRatio(const QVariant &ratio) {
         setMetaData(QMediaMetaData::PixelAspectRatio, ratio); }
-    QVariant videoFrameRate() const { return m_mediaObject->metaData(QMediaMetaData::VideoFrameRate); }
+    QVariant videoFrameRate() const { return m_mediaSource->metaData(QMediaMetaData::VideoFrameRate); }
     void setVideoFrameRate(const QVariant &rate) {
         setMetaData(QMediaMetaData::VideoFrameRate, rate); }
-    QVariant videoBitRate() const { return m_mediaObject->metaData(QMediaMetaData::VideoBitRate); }
+    QVariant videoBitRate() const { return m_mediaSource->metaData(QMediaMetaData::VideoBitRate); }
     void setVideoBitRate(const QVariant &rate) {
         setMetaData(QMediaMetaData::VideoBitRate, rate); }
-    QVariant videoCodec() const { return m_mediaObject->metaData(QMediaMetaData::VideoCodec); }
+    QVariant videoCodec() const { return m_mediaSource->metaData(QMediaMetaData::VideoCodec); }
     void setVideoCodec(const QVariant &codec) {
         setMetaData(QMediaMetaData::VideoCodec, codec); }
-    QVariant posterUrl() const { return m_mediaObject->metaData(QMediaMetaData::PosterUrl); }
+    QVariant posterUrl() const { return m_mediaSource->metaData(QMediaMetaData::PosterUrl); }
     void setPosterUrl(const QVariant &url) {
         setMetaData(QMediaMetaData::PosterUrl, url); }
-    QVariant chapterNumber() const { return m_mediaObject->metaData(QMediaMetaData::ChapterNumber); }
+    QVariant chapterNumber() const { return m_mediaSource->metaData(QMediaMetaData::ChapterNumber); }
     void setChapterNumber(const QVariant &chapter) {
         setMetaData(QMediaMetaData::ChapterNumber, chapter); }
-    QVariant director() const { return m_mediaObject->metaData(QMediaMetaData::Director); }
+    QVariant director() const { return m_mediaSource->metaData(QMediaMetaData::Director); }
     void setDirector(const QVariant &director) { setMetaData(QMediaMetaData::Director, director); }
-    QVariant leadPerformer() const { return m_mediaObject->metaData(QMediaMetaData::LeadPerformer); }
+    QVariant leadPerformer() const { return m_mediaSource->metaData(QMediaMetaData::LeadPerformer); }
     void setLeadPerformer(const QVariant &performer) {
         setMetaData(QMediaMetaData::LeadPerformer, performer); }
-    QVariant writer() const { return m_mediaObject->metaData(QMediaMetaData::Writer); }
+    QVariant writer() const { return m_mediaSource->metaData(QMediaMetaData::Writer); }
     void setWriter(const QVariant &writer) { setMetaData(QMediaMetaData::Writer, writer); }
 
     QVariant cameraManufacturer() const {
-        return m_mediaObject->metaData(QMediaMetaData::CameraManufacturer); }
+        return m_mediaSource->metaData(QMediaMetaData::CameraManufacturer); }
     void setCameraManufacturer(const QVariant &manufacturer) {
         setMetaData(QMediaMetaData::CameraManufacturer, manufacturer); }
-    QVariant cameraModel() const { return m_mediaObject->metaData(QMediaMetaData::CameraModel); }
+    QVariant cameraModel() const { return m_mediaSource->metaData(QMediaMetaData::CameraModel); }
     void setCameraModel(const QVariant &model) { setMetaData(QMediaMetaData::CameraModel, model); }
 
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_GCC("-Woverloaded-virtual")
 QT_WARNING_DISABLE_CLANG("-Woverloaded-virtual")
-    QVariant event() const { return m_mediaObject->metaData(QMediaMetaData::Event); }
+    QVariant event() const { return m_mediaSource->metaData(QMediaMetaData::Event); }
 QT_WARNING_POP
 
     void setEvent(const QVariant &event) { setMetaData(QMediaMetaData::Event, event); }
-    QVariant subject() const { return m_mediaObject->metaData(QMediaMetaData::Subject); }
+    QVariant subject() const { return m_mediaSource->metaData(QMediaMetaData::Subject); }
     void setSubject(const QVariant &subject) { setMetaData(QMediaMetaData::Subject, subject); }
-    QVariant orientation() const { return m_mediaObject->metaData(QMediaMetaData::Orientation); }
+    QVariant orientation() const { return m_mediaSource->metaData(QMediaMetaData::Orientation); }
     void setOrientation(const QVariant &orientation) {
         setMetaData(QMediaMetaData::Orientation, orientation); }
-    QVariant exposureTime() const { return m_mediaObject->metaData(QMediaMetaData::ExposureTime); }
+    QVariant exposureTime() const { return m_mediaSource->metaData(QMediaMetaData::ExposureTime); }
     void setExposureTime(const QVariant &time) { setMetaData(QMediaMetaData::ExposureTime, time); }
-    QVariant fNumber() const { return m_mediaObject->metaData(QMediaMetaData::FNumber); }
+    QVariant fNumber() const { return m_mediaSource->metaData(QMediaMetaData::FNumber); }
     void setFNumber(const QVariant &number) { setMetaData(QMediaMetaData::FNumber, number); }
     QVariant exposureProgram() const {
-        return m_mediaObject->metaData(QMediaMetaData::ExposureProgram); }
+        return m_mediaSource->metaData(QMediaMetaData::ExposureProgram); }
     void setExposureProgram(const QVariant &program) {
         setMetaData(QMediaMetaData::ExposureProgram, program); }
     QVariant isoSpeedRatings() const {
-        return m_mediaObject->metaData(QMediaMetaData::ISOSpeedRatings); }
+        return m_mediaSource->metaData(QMediaMetaData::ISOSpeedRatings); }
     void setISOSpeedRatings(const QVariant &ratings) {
         setMetaData(QMediaMetaData::ISOSpeedRatings, ratings); }
     QVariant exposureBiasValue() const {
-        return m_mediaObject->metaData(QMediaMetaData::ExposureBiasValue); }
+        return m_mediaSource->metaData(QMediaMetaData::ExposureBiasValue); }
     void setExposureBiasValue(const QVariant &bias) {
         setMetaData(QMediaMetaData::ExposureBiasValue, bias); }
     QVariant dateTimeOriginal() const {
-        return m_mediaObject->metaData(QMediaMetaData::DateTimeOriginal); }
+        return m_mediaSource->metaData(QMediaMetaData::DateTimeOriginal); }
     void setDateTimeOriginal(const QVariant &dateTime) {
         setMetaData(QMediaMetaData::DateTimeOriginal, dateTime); }
     QVariant dateTimeDigitized() const {
-        return m_mediaObject->metaData(QMediaMetaData::DateTimeDigitized); }
+        return m_mediaSource->metaData(QMediaMetaData::DateTimeDigitized); }
     void setDateTimeDigitized(const QVariant &dateTime) {
         setMetaData(QMediaMetaData::DateTimeDigitized, dateTime); }
     QVariant subjectDistance() const {
-        return m_mediaObject->metaData(QMediaMetaData::SubjectDistance); }
+        return m_mediaSource->metaData(QMediaMetaData::SubjectDistance); }
     void setSubjectDistance(const QVariant &distance) {
         setMetaData(QMediaMetaData::SubjectDistance, distance); }
-    QVariant lightSource() const { return m_mediaObject->metaData(QMediaMetaData::LightSource); }
+    QVariant lightSource() const { return m_mediaSource->metaData(QMediaMetaData::LightSource); }
     void setLightSource(const QVariant &source) {
         setMetaData(QMediaMetaData::LightSource, source); }
-    QVariant flash() const { return m_mediaObject->metaData(QMediaMetaData::Flash); }
+    QVariant flash() const { return m_mediaSource->metaData(QMediaMetaData::Flash); }
     void setFlash(const QVariant &flash) { setMetaData(QMediaMetaData::Flash, flash); }
-    QVariant focalLength() const { return m_mediaObject->metaData(QMediaMetaData::FocalLength); }
+    QVariant focalLength() const { return m_mediaSource->metaData(QMediaMetaData::FocalLength); }
     void setFocalLength(const QVariant &length) {
         setMetaData(QMediaMetaData::FocalLength, length); }
-    QVariant exposureMode() const { return m_mediaObject->metaData(QMediaMetaData::ExposureMode); }
+    QVariant exposureMode() const { return m_mediaSource->metaData(QMediaMetaData::ExposureMode); }
     void setExposureMode(const QVariant &mode) {
         setMetaData(QMediaMetaData::ExposureMode, mode); }
-    QVariant whiteBalance() const { return m_mediaObject->metaData(QMediaMetaData::WhiteBalance); }
+    QVariant whiteBalance() const { return m_mediaSource->metaData(QMediaMetaData::WhiteBalance); }
     void setWhiteBalance(const QVariant &balance) {
         setMetaData(QMediaMetaData::WhiteBalance, balance); }
     QVariant digitalZoomRatio() const {
-        return m_mediaObject->metaData(QMediaMetaData::DigitalZoomRatio); }
+        return m_mediaSource->metaData(QMediaMetaData::DigitalZoomRatio); }
     void setDigitalZoomRatio(const QVariant &ratio) {
         setMetaData(QMediaMetaData::DigitalZoomRatio, ratio); }
     QVariant focalLengthIn35mmFilm() const {
-        return m_mediaObject->metaData(QMediaMetaData::FocalLengthIn35mmFilm); }
+        return m_mediaSource->metaData(QMediaMetaData::FocalLengthIn35mmFilm); }
     void setFocalLengthIn35mmFilm(const QVariant &length) {
         setMetaData(QMediaMetaData::FocalLengthIn35mmFilm, length); }
     QVariant sceneCaptureType() const {
-        return m_mediaObject->metaData(QMediaMetaData::SceneCaptureType); }
+        return m_mediaSource->metaData(QMediaMetaData::SceneCaptureType); }
     void setSceneCaptureType(const QVariant &type) {
         setMetaData(QMediaMetaData::SceneCaptureType, type); }
-    QVariant gainControl() const { return m_mediaObject->metaData(QMediaMetaData::GainControl); }
+    QVariant gainControl() const { return m_mediaSource->metaData(QMediaMetaData::GainControl); }
     void setGainControl(const QVariant &gain) { setMetaData(QMediaMetaData::GainControl, gain); }
-    QVariant contrast() const { return m_mediaObject->metaData(QMediaMetaData::Contrast); }
+    QVariant contrast() const { return m_mediaSource->metaData(QMediaMetaData::Contrast); }
     void setContrast(const QVariant &contrast) { setMetaData(QMediaMetaData::Contrast, contrast); }
-    QVariant saturation() const { return m_mediaObject->metaData(QMediaMetaData::Saturation); }
+    QVariant saturation() const { return m_mediaSource->metaData(QMediaMetaData::Saturation); }
     void setSaturation(const QVariant &saturation) {
         setMetaData(QMediaMetaData::Saturation, saturation); }
-    QVariant sharpness() const { return m_mediaObject->metaData(QMediaMetaData::Sharpness); }
+    QVariant sharpness() const { return m_mediaSource->metaData(QMediaMetaData::Sharpness); }
     void setSharpness(const QVariant &sharpness) {
         setMetaData(QMediaMetaData::Sharpness, sharpness); }
     QVariant deviceSettingDescription() const {
-        return m_mediaObject->metaData(QMediaMetaData::DeviceSettingDescription); }
+        return m_mediaSource->metaData(QMediaMetaData::DeviceSettingDescription); }
     void setDeviceSettingDescription(const QVariant &description) {
         setMetaData(QMediaMetaData::DeviceSettingDescription, description); }
 
-    QVariant gpsLatitude() const { return m_mediaObject->metaData(QMediaMetaData::GPSLatitude); }
+    QVariant gpsLatitude() const { return m_mediaSource->metaData(QMediaMetaData::GPSLatitude); }
     void setGPSLatitude(const QVariant &latitude) {
         setMetaData(QMediaMetaData::GPSLatitude, latitude); }
-    QVariant gpsLongitude() const { return m_mediaObject->metaData(QMediaMetaData::GPSLongitude); }
+    QVariant gpsLongitude() const { return m_mediaSource->metaData(QMediaMetaData::GPSLongitude); }
     void setGPSLongitude(const QVariant &longitude) {
         setMetaData(QMediaMetaData::GPSLongitude, longitude); }
-    QVariant gpsAltitude() const { return m_mediaObject->metaData(QMediaMetaData::GPSAltitude); }
+    QVariant gpsAltitude() const { return m_mediaSource->metaData(QMediaMetaData::GPSAltitude); }
     void setGPSAltitude(const QVariant &altitude) {
         setMetaData(QMediaMetaData::GPSAltitude, altitude); }
-    QVariant gpsTimeStamp() const { return m_mediaObject->metaData(QMediaMetaData::GPSTimeStamp); }
+    QVariant gpsTimeStamp() const { return m_mediaSource->metaData(QMediaMetaData::GPSTimeStamp); }
     void setGPSTimeStamp(const QVariant &timestamp) {
         setMetaData(QMediaMetaData::GPSTimeStamp, timestamp); }
     QVariant gpsSatellites() const {
-        return m_mediaObject->metaData(QMediaMetaData::GPSSatellites); }
+        return m_mediaSource->metaData(QMediaMetaData::GPSSatellites); }
     void setGPSSatellites(const QVariant &satellites) {
         setMetaData(QMediaMetaData::GPSSatellites, satellites); }
-    QVariant gpsStatus() const { return m_mediaObject->metaData(QMediaMetaData::GPSStatus); }
+    QVariant gpsStatus() const { return m_mediaSource->metaData(QMediaMetaData::GPSStatus); }
     void setGPSStatus(const QVariant &status) { setMetaData(QMediaMetaData::GPSStatus, status); }
-    QVariant gpsDOP() const { return m_mediaObject->metaData(QMediaMetaData::GPSDOP); }
+    QVariant gpsDOP() const { return m_mediaSource->metaData(QMediaMetaData::GPSDOP); }
     void setGPSDOP(const QVariant &dop) { setMetaData(QMediaMetaData::GPSDOP, dop); }
-    QVariant gpsSpeed() const { return m_mediaObject->metaData(QMediaMetaData::GPSSpeed); }
+    QVariant gpsSpeed() const { return m_mediaSource->metaData(QMediaMetaData::GPSSpeed); }
     void setGPSSpeed(const QVariant &speed) { setMetaData(QMediaMetaData::GPSSpeed, speed); }
-    QVariant gpsTrack() const { return m_mediaObject->metaData(QMediaMetaData::GPSTrack); }
+    QVariant gpsTrack() const { return m_mediaSource->metaData(QMediaMetaData::GPSTrack); }
     void setGPSTrack(const QVariant &track) { setMetaData(QMediaMetaData::GPSTrack, track); }
-    QVariant gpsTrackRef() const { return m_mediaObject->metaData(QMediaMetaData::GPSTrackRef); }
+    QVariant gpsTrackRef() const { return m_mediaSource->metaData(QMediaMetaData::GPSTrackRef); }
     void setGPSTrackRef(const QVariant &ref) { setMetaData(QMediaMetaData::GPSTrackRef, ref); }
     QVariant gpsImgDirection() const {
-        return m_mediaObject->metaData(QMediaMetaData::GPSImgDirection); }
+        return m_mediaSource->metaData(QMediaMetaData::GPSImgDirection); }
     void setGPSImgDirection(const QVariant &direction) {
         setMetaData(QMediaMetaData::GPSImgDirection, direction); }
     QVariant gpsImgDirectionRef() const {
-        return m_mediaObject->metaData(QMediaMetaData::GPSImgDirectionRef); }
+        return m_mediaSource->metaData(QMediaMetaData::GPSImgDirectionRef); }
     void setGPSImgDirectionRef(const QVariant &ref) {
         setMetaData(QMediaMetaData::GPSImgDirectionRef, ref); }
-    QVariant gpsMapDatum() const { return m_mediaObject->metaData(QMediaMetaData::GPSMapDatum); }
+    QVariant gpsMapDatum() const { return m_mediaSource->metaData(QMediaMetaData::GPSMapDatum); }
     void setGPSMapDatum(const QVariant &datum) {
         setMetaData(QMediaMetaData::GPSMapDatum, datum); }
     QVariant gpsProcessingMethod() const {
-        return m_mediaObject->metaData(QMediaMetaData::GPSProcessingMethod); }
+        return m_mediaSource->metaData(QMediaMetaData::GPSProcessingMethod); }
     void setGPSProcessingMethod(const QVariant &method) {
         setMetaData(QMediaMetaData::GPSProcessingMethod, method); }
     QVariant gpsAreaInformation() const {
-        return m_mediaObject->metaData(QMediaMetaData::GPSAreaInformation); }
+        return m_mediaSource->metaData(QMediaMetaData::GPSAreaInformation); }
     void setGPSAreaInformation(const QVariant &information) {
         setMetaData(QMediaMetaData::GPSAreaInformation, information); }
 
@@ -430,14 +430,14 @@ private:
     {
         if (!m_requestedWriterControl) {
             m_requestedWriterControl = true;
-            if (QMediaService *service = m_mediaObject->service())
+            if (QMediaService *service = m_mediaSource->service())
                 m_writerControl = service->requestControl<QMetaDataWriterControl *>();
         }
         if (m_writerControl)
             m_writerControl->setMetaData(key, value);
     }
 
-    QMediaObject *m_mediaObject;
+    QMediaSource *m_mediaSource;
     QMetaDataWriterControl *m_writerControl;
     bool m_requestedWriterControl;
 };

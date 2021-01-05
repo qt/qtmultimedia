@@ -40,7 +40,7 @@
 #include "qvideowidget_p.h"
 #include "qpaintervideosurface_p.h"
 
-#include <qmediaobject.h>
+#include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qvideowindowcontrol.h>
 #include <qvideowidgetcontrol.h>
@@ -596,9 +596,9 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     \ingroup multimedia
     \inmodule QtMultimediaWidgets
 
-    Attaching a QVideoWidget to a QMediaObject allows it to display the
+    Attaching a QVideoWidget to a QMediaSource allows it to display the
     video or image output of that media object.  A QVideoWidget is attached
-    to media object by passing a pointer to the QMediaObject in its
+    to media object by passing a pointer to the QMediaSource in its
     constructor, and detached by destroying the QVideoWidget.
 
     \snippet multimedia-snippets/video.cpp Video widget
@@ -606,7 +606,7 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
-    \sa QMediaObject, QMediaPlayer, QGraphicsVideoItem
+    \sa QMediaSource, QMediaPlayer, QGraphicsVideoItem
 */
 
 /*!
@@ -646,31 +646,31 @@ QVideoWidget::~QVideoWidget()
 }
 
 /*!
-    \property QVideoWidget::mediaObject
+    \property QVideoWidget::mediaSource
     \brief the media object which provides the video displayed by a widget.
 */
 
-QMediaObject *QVideoWidget::mediaObject() const
+QMediaSource *QVideoWidget::mediaSource() const
 {
-    return d_func()->mediaObject;
+    return d_func()->mediaSource;
 }
 
 /*!
     \internal
 */
-bool QVideoWidget::setMediaObject(QMediaObject *object)
+bool QVideoWidget::setMediaSource(QMediaSource *object)
 {
     Q_D(QVideoWidget);
 
-    if (object == d->mediaObject)
+    if (object == d->mediaSource)
         return true;
 
     d->clearService();
 
-    d->mediaObject = object;
+    d->mediaSource = object;
 
-    if (d->mediaObject)
-        d->service = d->mediaObject->service();
+    if (d->mediaSource)
+        d->service = d->mediaSource->service();
 
     if (d->service) {
         if (d->createWidgetBackend()) {
@@ -684,14 +684,14 @@ bool QVideoWidget::setMediaObject(QMediaObject *object)
                 d->rendererBackend->showEvent();
         } else {
             d->service = nullptr;
-            d->mediaObject = nullptr;
+            d->mediaSource = nullptr;
 
             return false;
         }
 
         connect(d->service, SIGNAL(destroyed()), SLOT(_q_serviceDestroyed()));
     } else {
-        d->mediaObject = nullptr;
+        d->mediaSource = nullptr;
 
         return false;
     }

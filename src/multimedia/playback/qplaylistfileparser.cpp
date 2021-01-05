@@ -44,7 +44,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include "qmediaplayer.h"
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 #include "qmediametadata.h"
 #include "qmediacontent.h"
 

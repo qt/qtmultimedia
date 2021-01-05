@@ -40,7 +40,7 @@
 #ifndef QAUDIODECODER_H
 #define QAUDIODECODER_H
 
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 #include <QtMultimedia/qaudiobuffer.h>
@@ -48,7 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioDecoderPrivate;
-class Q_MULTIMEDIA_EXPORT QAudioDecoder : public QMediaObject
+class Q_MULTIMEDIA_EXPORT QAudioDecoder : public QMediaSource
 {
     Q_OBJECT
     Q_PROPERTY(QString sourceFilename READ sourceFilename WRITE setSourceFilename NOTIFY sourceChanged)

@@ -34,7 +34,7 @@
 
 #include <private/qmediaserviceprovider_p.h>
 #include <qmediaserviceproviderplugin.h>
-#include <qmediaobject.h>
+#include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qmediaplayer.h>
 #include <qaudiorecorder.h>

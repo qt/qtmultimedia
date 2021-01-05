@@ -40,7 +40,7 @@
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qdebug.h>
 
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 
 #include <qmediaservice.h>
 #include <qmetadatareadercontrol.h>
@@ -48,9 +48,9 @@
 
 QT_BEGIN_NAMESPACE
 
-void QMediaObjectPrivate::_q_notify()
+void QMediaSourcePrivate::_q_notify()
 {
-    Q_Q(QMediaObject);
+    Q_Q(QMediaSource);
 
     const QMetaObject* m = q->metaObject();
 
@@ -68,9 +68,9 @@ void QMediaObjectPrivate::_q_notify()
 }
 
 /*!
-    \class QMediaObject
+    \class QMediaSource
 
-    \brief The QMediaObject class provides a common base for multimedia objects.
+    \brief The QMediaSource class provides a common base for multimedia objects.
     \inmodule QtMultimedia
 
     \ingroup multimedia
@@ -81,7 +81,7 @@ void QMediaObjectPrivate::_q_notify()
     and meta-data functionality, as well as functionality to connect media objects
     with support classes like QMediaPlaylist.
 
-    The higher level QMediaObject derived classes provide the actual multimedia
+    The higher level QMediaSource derived classes provide the actual multimedia
     functionality, by internally using a QMediaService.  Each media object
     hosts a QMediaService and uses the QMediaControl interfaces implemented by the service to implement its
     API.  These controls can be accessed from the media object if necessary, but in general
@@ -98,7 +98,7 @@ void QMediaObjectPrivate::_q_notify()
     Destroys this media object.
 */
 
-QMediaObject::~QMediaObject()
+QMediaSource::~QMediaSource()
 {
 }
 
@@ -111,7 +111,7 @@ QMediaObject::~QMediaObject()
     audio playback during a phone call or similar).
 */
 
-QMultimedia::AvailabilityStatus QMediaObject::availability() const
+QMultimedia::AvailabilityStatus QMediaSource::availability() const
 {
     if (d_func()->service == nullptr)
         return QMultimedia::ServiceMissing;
@@ -123,7 +123,7 @@ QMultimedia::AvailabilityStatus QMediaObject::availability() const
     Returns true if the service is available for use.
 */
 
-bool QMediaObject::isAvailable() const
+bool QMediaSource::isAvailable() const
 {
     return availability() == QMultimedia::Available;
 }
@@ -132,19 +132,19 @@ bool QMediaObject::isAvailable() const
     Returns the media service that provides the functionality of this multimedia object.
 */
 
-QMediaService* QMediaObject::service() const
+QMediaService* QMediaSource::service() const
 {
     return d_func()->service;
 }
 
-int QMediaObject::notifyInterval() const
+int QMediaSource::notifyInterval() const
 {
     return d_func()->notifyTimer->interval();
 }
 
-void QMediaObject::setNotifyInterval(int milliSeconds)
+void QMediaSource::setNotifyInterval(int milliSeconds)
 {
-    Q_D(QMediaObject);
+    Q_D(QMediaSource);
 
     if (d->notifyTimer->interval() != milliSeconds) {
         d->notifyTimer->setInterval(milliSeconds);
@@ -154,13 +154,13 @@ void QMediaObject::setNotifyInterval(int milliSeconds)
 }
 
 /*!
-    Bind \a object to this QMediaObject instance.
+    Bind \a object to this QMediaSource instance.
 
     This method establishes a relationship between this media object and a
     helper object. The nature of the relationship depends on both parties. This
     methods returns true if the helper was successfully bound, false otherwise.
 
-    Most subclasses of QMediaObject provide more convenient functions
+    Most subclasses of QMediaSource provide more convenient functions
     that wrap this functionality, so this function rarely needs to be
     called directly.
 
@@ -168,13 +168,13 @@ void QMediaObject::setNotifyInterval(int milliSeconds)
 
     \sa QMediaSink
 */
-bool QMediaObject::bind(QObject *object)
+bool QMediaSource::bind(QObject *object)
 {
     QMediaSink *helper = qobject_cast<QMediaSink*>(object);
     if (!helper)
         return false;
 
-    QMediaObject *currentObject = helper->mediaObject();
+    QMediaSource *currentObject = helper->mediaSource();
 
     if (currentObject == this)
         return true;
@@ -182,11 +182,11 @@ bool QMediaObject::bind(QObject *object)
     if (currentObject)
         currentObject->unbind(object);
 
-    return helper->setMediaObject(this);
+    return helper->setMediaSource(this);
 }
 
 /*!
-    Detach \a object from the QMediaObject instance.
+    Detach \a object from the QMediaSource instance.
 
     Unbind the helper object from this media object.  A warning
     will be generated if the object was not previously bound to this
@@ -194,14 +194,14 @@ bool QMediaObject::bind(QObject *object)
 
     \sa QMediaSink
 */
-void QMediaObject::unbind(QObject *object)
+void QMediaSource::unbind(QObject *object)
 {
     QMediaSink *helper = qobject_cast<QMediaSink*>(object);
 
-    if (helper && helper->mediaObject() == this)
-        helper->setMediaObject(nullptr);
+    if (helper && helper->mediaSource() == this)
+        helper->setMediaSource(nullptr);
     else
-        qWarning() << "QMediaObject: Trying to unbind not connected helper object";
+        qWarning() << "QMediaSource: Trying to unbind not connected helper object";
 }
 
 /*!
@@ -213,10 +213,10 @@ void QMediaObject::unbind(QObject *object)
     constructor is protected.
 */
 
-QMediaObject::QMediaObject(QObject *parent, QMediaService *service)
-    : QObject(*new QMediaObjectPrivate, parent)
+QMediaSource::QMediaSource(QObject *parent, QMediaService *service)
+    : QObject(*new QMediaSourcePrivate, parent)
 {
-    Q_D(QMediaObject);
+    Q_D(QMediaSource);
 
     d->notifyTimer = new QTimer(this);
     d->notifyTimer->setInterval(1000);
@@ -231,10 +231,10 @@ QMediaObject::QMediaObject(QObject *parent, QMediaService *service)
     \internal
 */
 
-QMediaObject::QMediaObject(QMediaObjectPrivate &dd, QObject *parent, QMediaService *service)
+QMediaSource::QMediaSource(QMediaSourcePrivate &dd, QObject *parent, QMediaService *service)
     : QObject(dd, parent)
 {
-    Q_D(QMediaObject);
+    Q_D(QMediaSource);
 
     d->notifyTimer = new QTimer(this);
     d->notifyTimer->setInterval(1000);
@@ -252,9 +252,9 @@ QMediaObject::QMediaObject(QMediaObjectPrivate &dd, QObject *parent, QMediaServi
     \sa notifyInterval
 */
 
-void QMediaObject::addPropertyWatch(QByteArray const &name)
+void QMediaSource::addPropertyWatch(QByteArray const &name)
 {
-    Q_D(QMediaObject);
+    Q_D(QMediaSource);
 
     const QMetaObject* m = metaObject();
 
@@ -275,9 +275,9 @@ void QMediaObject::addPropertyWatch(QByteArray const &name)
     \sa notifyInterval
 */
 
-void QMediaObject::removePropertyWatch(QByteArray const &name)
+void QMediaSource::removePropertyWatch(QByteArray const &name)
 {
-    Q_D(QMediaObject);
+    Q_D(QMediaSource);
 
     int index = metaObject()->indexOfProperty(name.constData());
 
@@ -290,7 +290,7 @@ void QMediaObject::removePropertyWatch(QByteArray const &name)
 }
 
 /*!
-    \property QMediaObject::notifyInterval
+    \property QMediaSource::notifyInterval
 
     The interval at which notifiable properties will update.
 
@@ -300,7 +300,7 @@ void QMediaObject::removePropertyWatch(QByteArray const &name)
 */
 
 /*!
-    \fn void QMediaObject::notifyIntervalChanged(int milliseconds)
+    \fn void QMediaSource::notifyIntervalChanged(int milliseconds)
 
     Signal a change in the notify interval period to \a milliseconds.
 */
@@ -309,9 +309,9 @@ void QMediaObject::removePropertyWatch(QByteArray const &name)
     Returns true if there is meta-data associated with this media object, else false.
 */
 
-bool QMediaObject::isMetaDataAvailable() const
+bool QMediaSource::isMetaDataAvailable() const
 {
-    Q_D(const QMediaObject);
+    Q_D(const QMediaSource);
 
     return d->metaDataControl
             ? d->metaDataControl->isMetaDataAvailable()
@@ -319,7 +319,7 @@ bool QMediaObject::isMetaDataAvailable() const
 }
 
 /*!
-    \fn QMediaObject::metaDataAvailableChanged(bool available)
+    \fn QMediaSource::metaDataAvailableChanged(bool available)
 
     Signals that the \a available state of a media object's meta-data has changed.
 */
@@ -329,9 +329,9 @@ bool QMediaObject::isMetaDataAvailable() const
 
     See the list of predefined \l {QMediaMetaData}{meta-data keys}.
 */
-QVariant QMediaObject::metaData(const QString &key) const
+QVariant QMediaSource::metaData(const QString &key) const
 {
-    Q_D(const QMediaObject);
+    Q_D(const QMediaSource);
 
     return d->metaDataControl
             ? d->metaDataControl->metaData(key)
@@ -341,9 +341,9 @@ QVariant QMediaObject::metaData(const QString &key) const
 /*!
     Returns a list of keys there is meta-data available for.
 */
-QStringList QMediaObject::availableMetaData() const
+QStringList QMediaSource::availableMetaData() const
 {
-    Q_D(const QMediaObject);
+    Q_D(const QMediaSource);
 
     return d->metaDataControl
             ? d->metaDataControl->availableMetaData()
@@ -351,7 +351,7 @@ QStringList QMediaObject::availableMetaData() const
 }
 
 /*!
-    \fn QMediaObject::metaDataChanged()
+    \fn QMediaSource::metaDataChanged()
 
     Signals that this media object's meta-data has changed.
 
@@ -361,15 +361,15 @@ QStringList QMediaObject::availableMetaData() const
 */
 
 /*!
-    \fn QMediaObject::metaDataChanged(const QString &key, const QVariant &value)
+    \fn QMediaSource::metaDataChanged(const QString &key, const QVariant &value)
 
     Signal the changes of one meta-data element \a value with the given \a key.
 */
 
 
-void QMediaObject::setupControls()
+void QMediaSource::setupControls()
 {
-    Q_D(QMediaObject);
+    Q_D(QMediaSource);
 
     if (d->service != nullptr) {
         d->metaDataControl = qobject_cast<QMetaDataReaderControl*>(
@@ -389,4 +389,4 @@ void QMediaObject::setupControls()
 
 QT_END_NAMESPACE
 
-#include "moc_qmediaobject.cpp"
+#include "moc_qmediasource.cpp"

@@ -15,7 +15,7 @@ qt_add_test(tst_qdeclarativecamera
         ../qmultimedia_common/mockcameraimageprocessingcontrol.h
         ../qmultimedia_common/mockcameraservice.h
         ../qmultimedia_common/mockimageencodercontrol.h
-        ../qmultimedia_common/mockmediaobject.h
+        ../qmultimedia_common/mockmediasource.h
         ../qmultimedia_common/mockmediaservice.h
         ../qmultimedia_common/mockmediaserviceprovider.h
         ../qmultimedia_common/mockvideodeviceselectorcontrol.h

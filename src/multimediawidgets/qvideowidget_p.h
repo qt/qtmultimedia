@@ -225,7 +225,7 @@ class QVideoWidgetPrivate
     Q_DECLARE_PUBLIC(QVideoWidget)
 public:
     QVideoWidget *q_ptr = nullptr;
-    QPointer<QMediaObject> mediaObject;
+    QPointer<QMediaSource> mediaSource;
     QMediaService *service = nullptr;
     QVideoWidgetControlBackend *widgetBackend = nullptr;
     QWindowVideoWidgetBackend *windowBackend = nullptr;

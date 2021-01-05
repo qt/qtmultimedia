@@ -12,7 +12,7 @@ SUBDIRS += \
     qmediasink \
     qmediacontainercontrol \
     qmediacontent \
-    qmediaobject \
+    qmediasource \
     qmediaplayer \
     qmediaplaylist \
     qmediapluginloader \

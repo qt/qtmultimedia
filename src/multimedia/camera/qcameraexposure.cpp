@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qcameraexposure.h"
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>

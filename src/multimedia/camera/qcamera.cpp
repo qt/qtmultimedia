@@ -291,7 +291,7 @@ void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockSt
 */
 
 QCamera::QCamera(QObject *parent):
-    QMediaObject(*new QCameraPrivate,
+    QMediaSource(*new QCameraPrivate,
                  parent,
                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
 {
@@ -311,7 +311,7 @@ QCamera::QCamera(QObject *parent):
 */
 
 QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
-    QMediaObject(*new QCameraPrivate, parent,
+    QMediaSource(*new QCameraPrivate, parent,
                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
 {
     Q_D(QCamera);
@@ -369,7 +369,7 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
 */
 
 QCamera::QCamera(QCamera::Position position, QObject *parent)
-    : QMediaObject(*new QCameraPrivate,
+    : QMediaSource(*new QCameraPrivate,
                    parent,
                    QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
 {
@@ -419,7 +419,7 @@ QMultimedia::AvailabilityStatus QCamera::availability() const
     if (d->error != QCamera::NoError)
         return QMultimedia::ResourceError;
 
-    return QMediaObject::availability();
+    return QMediaSource::availability();
 }
 
 

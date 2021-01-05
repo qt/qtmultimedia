@@ -42,7 +42,7 @@
 #include "qdeclarativevideooutput_render_p.h"
 #include "qdeclarativevideooutput_window_p.h"
 #include <private/qvideooutputorientationhandler_p.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <private/qfactoryloader_p.h>
 #include <QtCore/qloggingcategory.h>
@@ -145,7 +145,7 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
 {
     m_backend.reset();
     m_source.clear();
-    _q_updateMediaObject();
+    _q_updateMediaSource();
 }
 
 /*!
@@ -171,8 +171,8 @@ QAbstractVideoSurface *QDeclarativeVideoOutput::videoSurface() const
     This property holds the source item providing the video frames like MediaPlayer or Camera.
 
     If you are extending your own C++ classes to interoperate with VideoOutput, you can
-    either provide a QObject based class with a \c mediaObject property that exposes a
-    QMediaObject derived class that has a QVideoRendererControl available, or you can
+    either provide a QObject based class with a \c mediaSource property that exposes a
+    QMediaSource derived class that has a QVideoRendererControl available, or you can
     provide a QObject based class with a writable \c videoSurface property that can
     accept a QAbstractVideoSurface based class and can follow the correct protocol to
     deliver QVideoFrames to it.
@@ -185,8 +185,8 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     if (source == m_source.data())
         return;
 
-    if (m_source && m_sourceType == MediaObjectSource) {
-        disconnect(m_source.data(), nullptr, this, SLOT(_q_updateMediaObject()));
+    if (m_source && m_sourceType == MediaSourceSource) {
+        disconnect(m_source.data(), nullptr, this, SLOT(_q_updateMediaSource()));
         disconnect(m_source.data(), nullptr, this, SLOT(_q_updateCameraInfo()));
     }
 
@@ -198,14 +198,14 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     if (m_source) {
         const QMetaObject *metaObject = m_source.data()->metaObject();
 
-        int mediaObjectPropertyIndex = metaObject->indexOfProperty("mediaObject");
-        if (mediaObjectPropertyIndex != -1) {
-            const QMetaProperty mediaObjectProperty = metaObject->property(mediaObjectPropertyIndex);
+        int mediaSourcePropertyIndex = metaObject->indexOfProperty("mediaSource");
+        if (mediaSourcePropertyIndex != -1) {
+            const QMetaProperty mediaSourceProperty = metaObject->property(mediaSourcePropertyIndex);
 
-            if (mediaObjectProperty.hasNotifySignal()) {
-                QMetaMethod method = mediaObjectProperty.notifySignal();
+            if (mediaSourceProperty.hasNotifySignal()) {
+                QMetaMethod method = mediaSourceProperty.notifySignal();
                 QMetaObject::connect(m_source.data(), method.methodIndex(),
-                                     this, this->metaObject()->indexOfSlot("_q_updateMediaObject()"),
+                                     this, this->metaObject()->indexOfSlot("_q_updateMediaSource()"),
                                      Qt::DirectConnection, nullptr);
 
             }
@@ -223,7 +223,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
                 }
             }
 
-            m_sourceType = MediaObjectSource;
+            m_sourceType = MediaSourceSource;
         } else if (metaObject->indexOfProperty("videoSurface") != -1) {
             m_source.data()->setProperty("videoSurface",
                 QVariant::fromValue<QAbstractVideoSurface *>(videoSurface()));
@@ -235,7 +235,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
         m_sourceType = NoSource;
     }
 
-    _q_updateMediaObject();
+    _q_updateMediaSource();
     emit sourceChanged();
 }
 
@@ -289,26 +289,26 @@ bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
     return backendAvailable;
 }
 
-void QDeclarativeVideoOutput::_q_updateMediaObject()
+void QDeclarativeVideoOutput::_q_updateMediaSource()
 {
-    QMediaObject *mediaObject = nullptr;
+    QMediaSource *mediaSource = nullptr;
 
     if (m_source)
-        mediaObject = qobject_cast<QMediaObject*>(m_source.data()->property("mediaObject").value<QObject*>());
+        mediaSource = qobject_cast<QMediaSource*>(m_source.data()->property("mediaSource").value<QObject*>());
 
-    qCDebug(qLcVideo) << "media object is" << mediaObject;
+    qCDebug(qLcVideo) << "media object is" << mediaSource;
 
-    if (m_mediaObject.data() == mediaObject)
+    if (m_mediaSource.data() == mediaSource)
         return;
 
-    m_mediaObject.clear();
+    m_mediaSource.clear();
     m_service.clear();
 
-    if (mediaObject) {
-        if (QMediaService *service = mediaObject->service()) {
+    if (mediaSource) {
+        if (QMediaService *service = mediaSource->service()) {
             if (createBackend(service)) {
                 m_service = service;
-                m_mediaObject = mediaObject;
+                m_mediaSource = mediaSource;
             }
         }
     }
@@ -318,8 +318,8 @@ void QDeclarativeVideoOutput::_q_updateMediaObject()
 
 void QDeclarativeVideoOutput::_q_updateCameraInfo()
 {
-    if (m_mediaObject) {
-        const QCamera *camera = qobject_cast<const QCamera *>(m_mediaObject);
+    if (m_mediaSource) {
+        const QCamera *camera = qobject_cast<const QCamera *>(m_mediaSource);
         if (camera) {
             QCameraInfo info(*camera);
 

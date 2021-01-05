@@ -61,14 +61,14 @@ QT_BEGIN_NAMESPACE
     QMediaMetaData namespace.
 
     The functionality provided by this control is exposed to application code
-    by the meta-data members of QMediaObject, and so meta-data access is
+    by the meta-data members of QMediaSource, and so meta-data access is
     potentially available in any of the media object classes.  Any media
     service may implement QMetaDataControl.
 
     The interface name of QMetaDataWriterControl is \c org.qt-project.qt.metadatawritercontrol/5.0 as
     defined in QMetaDataWriterControl_iid.
 
-    \sa QMediaService::requestControl(), QMediaObject
+    \sa QMediaService::requestControl(), QMediaSource
 */
 
 /*!

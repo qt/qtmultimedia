@@ -55,7 +55,7 @@
 #include <QtCore/qset.h>
 #include <QtCore/qtimer.h>
 
-#include "qmediaobject.h"
+#include "qmediasource.h"
 #include "private/qobject_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -68,13 +68,13 @@ class QMetaDataReaderControl;
     friend class Class;
 
 
-class QMediaObjectPrivate : public QObjectPrivate
+class QMediaSourcePrivate : public QObjectPrivate
 {
-    Q_DECLARE_PUBLIC(QMediaObject)
+    Q_DECLARE_PUBLIC(QMediaSource)
 
 public:
-    QMediaObjectPrivate() : service(nullptr), metaDataControl(nullptr), notifyTimer(nullptr) {}
-    virtual ~QMediaObjectPrivate() {}
+    QMediaSourcePrivate() : service(nullptr), metaDataControl(nullptr), notifyTimer(nullptr) {}
+    virtual ~QMediaSourcePrivate() {}
 
     void _q_notify();
 

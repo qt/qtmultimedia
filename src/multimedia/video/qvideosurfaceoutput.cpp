@@ -60,7 +60,7 @@ QVideoSurfaceOutput::~QVideoSurfaceOutput()
     }
 }
 
-QMediaObject *QVideoSurfaceOutput::mediaObject() const
+QMediaSource *QVideoSurfaceOutput::mediaSource() const
 {
     return m_object.data();
 }
@@ -73,7 +73,7 @@ void QVideoSurfaceOutput::setVideoSurface(QAbstractVideoSurface *surface)
         m_control.data()->setSurface(surface);
 }
 
-bool QVideoSurfaceOutput::setMediaObject(QMediaObject *object)
+bool QVideoSurfaceOutput::setMediaSource(QMediaSource *object)
 {
     if (m_control) {
         m_control.data()->setSurface(nullptr);

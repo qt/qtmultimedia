@@ -39,7 +39,7 @@
 
 #include "qaudiodecoder.h"
 
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include "qaudiodecodercontrol.h"
 #include <private/qmediaserviceprovider_p.h>
@@ -78,7 +78,7 @@ static void qRegisterAudioDecoderMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterAudioDecoderMetaTypes)
 
-class QAudioDecoderPrivate : public QMediaObjectPrivate
+class QAudioDecoderPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QAudioDecoder)
 
@@ -119,7 +119,7 @@ void QAudioDecoderPrivate::_q_error(int error, const QString &errorString)
     parented to \a parent.
 */
 QAudioDecoder::QAudioDecoder(QObject *parent)
-    : QMediaObject(*new QAudioDecoderPrivate,
+    : QMediaSource(*new QAudioDecoderPrivate,
                    parent,
                    QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_AUDIODECODER))
 {
@@ -330,7 +330,7 @@ void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
 
 bool QAudioDecoder::bind(QObject *obj)
 {
-    return QMediaObject::bind(obj);
+    return QMediaSource::bind(obj);
 }
 
 /*!
@@ -339,7 +339,7 @@ bool QAudioDecoder::bind(QObject *obj)
 
 void QAudioDecoder::unbind(QObject *obj)
 {
-    QMediaObject::unbind(obj);
+    QMediaSource::unbind(obj);
 }
 
 /*!

@@ -48,7 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 
-class QMediaObject;
+class QMediaSource;
 
 class QVideoWidgetPrivate;
 class QAbstractVideoSurface;
@@ -56,7 +56,7 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget, public QMediaSin
 {
     Q_OBJECT
     Q_INTERFACES(QMediaSink)
-    Q_PROPERTY(QMediaObject* mediaObject READ mediaObject WRITE setMediaObject)
+    Q_PROPERTY(QMediaSource* mediaSource READ mediaSource WRITE setMediaSource)
     Q_PROPERTY(bool fullScreen READ isFullScreen WRITE setFullScreen NOTIFY fullScreenChanged)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
     Q_PROPERTY(int brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
@@ -69,7 +69,7 @@ public:
     explicit QVideoWidget(QWidget *parent = nullptr);
     ~QVideoWidget();
 
-    QMediaObject *mediaObject() const override;
+    QMediaSource *mediaSource() const override;
     QAbstractVideoSurface *videoSurface() const;
 
 #ifdef Q_QDOC
@@ -111,7 +111,7 @@ protected:
     void moveEvent(QMoveEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
 
-    bool setMediaObject(QMediaObject *object) override;
+    bool setMediaSource(QMediaSource *object) override;
 
     QVideoWidget(QVideoWidgetPrivate &dd, QWidget *parent);
     QVideoWidgetPrivate *d_ptr;

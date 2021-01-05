@@ -40,7 +40,7 @@
 #include "qgraphicsvideoitem.h"
 #include "qpaintervideosurface_p.h"
 
-#include <qmediaobject.h>
+#include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
 #include <qvideosurfaceformat.h>
@@ -65,7 +65,7 @@ public:
     QGraphicsVideoItem *q_ptr = nullptr;
 
     QPainterVideoSurface *surface = nullptr;
-    QPointer<QMediaObject> mediaObject;
+    QPointer<QMediaSource> mediaSource;
     QMediaService *service = nullptr;
     QVideoRendererControl *rendererControl = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
@@ -162,22 +162,22 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
 /*!
     \class QGraphicsVideoItem
 
-    \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaObject.
+    \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaSource.
 
     \inmodule QtMultimediaWidgets
     \ingroup multimedia
 
-    Attaching a QGraphicsVideoItem to a QMediaObject allows it to display
+    Attaching a QGraphicsVideoItem to a QMediaSource allows it to display
     the video or image output of that media object.  A QGraphicsVideoItem
-    is attached to a media object by passing a pointer to the QMediaObject
-    to the setMediaObject() function.
+    is attached to a media object by passing a pointer to the QMediaSource
+    to the setMediaSource() function.
 
     \snippet multimedia-snippets/video.cpp Video graphics item
 
     \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
-    \sa QMediaObject, QMediaPlayer, QVideoWidget
+    \sa QMediaSource, QMediaPlayer, QVideoWidget
 */
 
 /*!
@@ -214,14 +214,14 @@ QGraphicsVideoItem::~QGraphicsVideoItem()
 }
 
 /*!
-    \property QGraphicsVideoItem::mediaObject
+    \property QGraphicsVideoItem::mediaSource
     \brief the media object which provides the video displayed by a graphics
     item.
 */
 
-QMediaObject *QGraphicsVideoItem::mediaObject() const
+QMediaSource *QGraphicsVideoItem::mediaSource() const
 {
-    return d_func()->mediaObject;
+    return d_func()->mediaSource;
 }
 
 /*!
@@ -243,19 +243,19 @@ QAbstractVideoSurface *QGraphicsVideoItem::videoSurface() const
 /*!
   \internal
 */
-bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
+bool QGraphicsVideoItem::setMediaSource(QMediaSource *object)
 {
     Q_D(QGraphicsVideoItem);
 
-    if (object == d->mediaObject)
+    if (object == d->mediaSource)
         return true;
 
     d->clearService();
 
-    d->mediaObject = object;
+    d->mediaSource = object;
 
-    if (d->mediaObject) {
-        d->service = d->mediaObject->service();
+    if (d->mediaSource) {
+        d->service = d->mediaSource->service();
 
         if (d->service) {
             QObject *control = d->service->requestControl(QVideoRendererControl_iid);
@@ -280,7 +280,7 @@ bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
         }
     }
 
-    d->mediaObject = nullptr;
+    d->mediaSource = nullptr;
     return false;
 }
 

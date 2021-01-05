@@ -36,7 +36,7 @@
 
 #include "mockmediaserviceprovider.h"
 #include "mockmediarecorderservice.h"
-#include "mockmediaobject.h"
+#include "mockmediasource.h"
 
 QT_USE_NAMESPACE
 
@@ -54,7 +54,7 @@ private slots:
     void testRecorder();
     void testRecorderDeleteRecorder();
     void testRecorderDeleteProbe();
-    void testMediaObject();
+    void testMediaSource();
 
 private:
     QAudioRecorder *recorder;
@@ -164,16 +164,16 @@ void tst_QAudioProbe::testRecorderDeleteProbe()
     QVERIFY(recorder->isAvailable());
 }
 
-void tst_QAudioProbe::testMediaObject()
+void tst_QAudioProbe::testMediaSource()
 {
-    QMediaObject *object = new MockMediaObject(nullptr, mockMediaRecorderService);
+    QMediaSource *object = new MockMediaSource(nullptr, mockMediaRecorderService);
     QVERIFY(object->isAvailable());
 
     QAudioProbe probe;
     QVERIFY(!probe.isActive());
     QVERIFY(probe.setSource(object));
     QVERIFY(probe.isActive());
-    probe.setSource((QMediaObject*)nullptr);
+    probe.setSource((QMediaSource*)nullptr);
     QVERIFY(!probe.isActive());
     delete object;
 }

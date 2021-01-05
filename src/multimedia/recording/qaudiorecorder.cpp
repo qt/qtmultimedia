@@ -39,7 +39,7 @@
 
 #include "qaudiorecorder.h"
 #include "qaudioinputselectorcontrol.h"
-#include "qmediaobject_p.h"
+#include "qmediasource_p.h"
 #include "qmediarecorder_p.h"
 #include <qmediaservice.h>
 #include <qmediaserviceprovider_p.h>
@@ -75,11 +75,11 @@ QT_BEGIN_NAMESPACE
     \sa QMediaRecorder, QAudioInputSelectorControl
 */
 
-class QAudioRecorderObject : public QMediaObject
+class QAudioRecorderObject : public QMediaSource
 {
 public:
     QAudioRecorderObject(QObject *parent, QMediaService *service)
-        : QMediaObject(parent, service)
+        : QMediaSource(parent, service)
     {
     }
 
@@ -98,7 +98,7 @@ public:
 
 /*!
     Constructs an audio recorder.
-    The \a parent is passed to QMediaObject.
+    The \a parent is passed to QMediaSource.
 */
 
 QAudioRecorder::QAudioRecorder(QObject *parent):
@@ -108,7 +108,7 @@ QAudioRecorder::QAudioRecorder(QObject *parent):
     d->provider = QMediaServiceProvider::defaultServiceProvider();
 
     QMediaService *service = d->provider->requestService(Q_MEDIASERVICE_AUDIOSOURCE);
-    setMediaObject(new QAudioRecorderObject(this, service));
+    setMediaSource(new QAudioRecorderObject(this, service));
 }
 
 /*!
@@ -118,8 +118,8 @@ QAudioRecorder::QAudioRecorder(QObject *parent):
 QAudioRecorder::~QAudioRecorder()
 {
     Q_D(QAudioRecorder);
-    QMediaService *service = d->mediaObject ? d->mediaObject->service() : nullptr;
-    setMediaObject(nullptr);
+    QMediaService *service = d->mediaSource ? d->mediaSource->service() : nullptr;
+    setMediaSource(nullptr);
 
     if (d->provider && service)
         d->provider->releaseService(service);

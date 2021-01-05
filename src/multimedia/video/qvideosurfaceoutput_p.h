@@ -70,18 +70,18 @@ public:
     QVideoSurfaceOutput(QObject *parent = nullptr);
     ~QVideoSurfaceOutput();
 
-    QMediaObject *mediaObject() const override;
+    QMediaSource *mediaSource() const override;
 
     void setVideoSurface(QAbstractVideoSurface *surface);
 
 protected:
-    bool setMediaObject(QMediaObject *object) override;
+    bool setMediaSource(QMediaSource *object) override;
 
 private:
     QPointer<QAbstractVideoSurface> m_surface;
     QPointer<QVideoRendererControl> m_control;
     QPointer<QMediaService> m_service;
-    QPointer<QMediaObject> m_object;
+    QPointer<QMediaSource> m_object;
 };
 
 QT_END_NAMESPACE

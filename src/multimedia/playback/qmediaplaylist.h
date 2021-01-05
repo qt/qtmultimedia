@@ -43,7 +43,7 @@
 #include <QtCore/qobject.h>
 
 #include <QtMultimedia/qmediacontent.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 

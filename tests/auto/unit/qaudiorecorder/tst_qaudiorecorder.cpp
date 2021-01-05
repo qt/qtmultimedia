@@ -37,7 +37,7 @@
 #include <qaudioinputselectorcontrol.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudioinput.h>
-#include <qmediaobject.h>
+#include <qmediasource.h>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -125,7 +125,7 @@ void tst_QAudioRecorder::testAudioSource()
 {
     audiosource = new QAudioRecorder;
 
-    QCOMPARE(audiosource->mediaObject()->service(),(QMediaService *) mockMediaRecorderService);
+    QCOMPARE(audiosource->mediaSource()->service(),(QMediaService *) mockMediaRecorderService);
 }
 
 void tst_QAudioRecorder::testDevices()

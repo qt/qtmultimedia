@@ -40,23 +40,23 @@
 #ifndef QMEDIASINK_H
 #define QMEDIASINK_H
 
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 
 QT_BEGIN_NAMESPACE
 
 
-class QMediaObject;
+class QMediaSource;
 
 class Q_MULTIMEDIA_EXPORT QMediaSink
 {
 public:
     virtual ~QMediaSink();
 
-    virtual QMediaObject *mediaObject() const = 0;
+    virtual QMediaSource *mediaSource() const = 0;
 
 protected:
-    friend class QMediaObject;
-    virtual bool setMediaObject(QMediaObject *object) = 0;
+    friend class QMediaSource;
+    virtual bool setMediaSource(QMediaSource *object) = 0;
 };
 
 #define QMediaSink_iid "org.qt-project.qt.mediasink/5.0"

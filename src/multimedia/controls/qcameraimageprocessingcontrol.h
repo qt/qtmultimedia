@@ -41,7 +41,7 @@
 #define QCAMERAIMAGEPROCESSINGCONTROL_H
 
 #include <QtMultimedia/qmediaservice.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 
 #include <QtMultimedia/qcamera.h>
 #include <QtMultimedia/qmediaenumdebug.h>

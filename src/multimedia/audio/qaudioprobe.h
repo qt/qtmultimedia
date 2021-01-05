@@ -45,7 +45,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaObject;
+class QMediaSource;
 class QMediaRecorder;
 
 class QAudioProbePrivate;
@@ -56,7 +56,7 @@ public:
     explicit QAudioProbe(QObject *parent = nullptr);
     ~QAudioProbe();
 
-    bool setSource(QMediaObject *source);
+    bool setSource(QMediaSource *source);
     bool setSource(QMediaRecorder *source);
 
     bool isActive() const;

@@ -41,7 +41,7 @@
 #define QMETADATAREADERCONTROL_H
 
 #include <QtMultimedia/qmediaservice.h>
-#include <QtMultimedia/qmediaobject.h>
+#include <QtMultimedia/qmediasource.h>
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>

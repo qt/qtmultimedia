@@ -65,7 +65,7 @@ Q_MOC_INCLUDE("QtMultimedia/qabstractvideosurface.h")
 
 QT_BEGIN_NAMESPACE
 
-class QMediaObject;
+class QMediaSource;
 class QMediaService;
 class QDeclarativeVideoBackend;
 class QVideoOutputOrientationHandler;
@@ -134,7 +134,7 @@ public:
 
     enum SourceType {
         NoSource,
-        MediaObjectSource,
+        MediaSourceSource,
         VideoSurfaceSource
     };
     SourceType sourceType() const;
@@ -160,7 +160,7 @@ protected:
     void releaseResources() override;
 
 private Q_SLOTS:
-    void _q_updateMediaObject();
+    void _q_updateMediaSource();
     void _q_updateCameraInfo();
     void _q_updateNativeSize();
     void _q_updateGeometry();
@@ -178,7 +178,7 @@ private:
     SourceType m_sourceType;
 
     QPointer<QObject> m_source;
-    QPointer<QMediaObject> m_mediaObject;
+    QPointer<QMediaSource> m_mediaSource;
     QPointer<QMediaService> m_service;
     QCameraInfo m_cameraInfo;
 

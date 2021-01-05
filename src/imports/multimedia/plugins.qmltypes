@@ -307,7 +307,7 @@ Module {
     }
     Component {
         name: "QCamera"
-        prototype: "QMediaObject"
+        prototype: "QMediaSource"
         Enum {
             name: "Status"
             values: {
@@ -538,7 +538,7 @@ Module {
             isReadonly: true
             isPointer: true
         }
-        Property { name: "mediaObject"; type: "QObject"; isReadonly: true; isPointer: true }
+        Property { name: "mediaSource"; type: "QObject"; isReadonly: true; isPointer: true }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
         Property { name: "audioRole"; revision: 1; type: "AudioRole" }
         Property { name: "customAudioRole"; revision: 3; type: "string" }
@@ -726,7 +726,7 @@ Module {
         Property { name: "maximumOpticalZoom"; type: "double"; isReadonly: true }
         Property { name: "digitalZoom"; type: "double" }
         Property { name: "maximumDigitalZoom"; type: "double"; isReadonly: true }
-        Property { name: "mediaObject"; type: "QObject"; isReadonly: true; isPointer: true }
+        Property { name: "mediaSource"; type: "QObject"; isReadonly: true; isPointer: true }
         Property {
             name: "imageCapture"
             type: "QDeclarativeCameraCapture"
@@ -1816,7 +1816,7 @@ Module {
         }
     }
     Component {
-        name: "QMediaObject"
+        name: "QMediaSource"
         prototype: "QObject"
         Property { name: "notifyInterval"; type: "int" }
         Signal {

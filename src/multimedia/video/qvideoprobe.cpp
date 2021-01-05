@@ -77,7 +77,7 @@ QT_BEGIN_NAMESPACE
 
 class QVideoProbePrivate {
 public:
-    QPointer<QMediaObject> source;
+    QPointer<QMediaSource> source;
     QPointer<QMediaVideoProbeControl> probee;
 };
 
@@ -123,7 +123,7 @@ QVideoProbe::~QVideoProbe()
     Passing in the same object will be ignored, but
     monitoring will continue.
  */
-bool QVideoProbe::setSource(QMediaObject *source)
+bool QVideoProbe::setSource(QMediaSource *source)
 {
     // Need to:
     // 1) disconnect from current source if necessary
@@ -167,7 +167,7 @@ bool QVideoProbe::setSource(QMediaObject *source)
 /*!
     Starts monitoring the given \a mediaRecorder.
 
-    If there is no mediaObject associated with \a mediaRecorder, or if it is
+    If there is no mediaSource associated with \a mediaRecorder, or if it is
     zero, this probe will be deactivated and this function wil return true.
 
     If the media recorder instance does not support monitoring
@@ -179,7 +179,7 @@ bool QVideoProbe::setSource(QMediaObject *source)
  */
 bool QVideoProbe::setSource(QMediaRecorder *mediaRecorder)
 {
-    QMediaObject *source = mediaRecorder ? mediaRecorder->mediaObject() : nullptr;
+    QMediaSource *source = mediaRecorder ? mediaRecorder->mediaSource() : nullptr;
     bool result = setSource(source);
 
     if (!mediaRecorder)

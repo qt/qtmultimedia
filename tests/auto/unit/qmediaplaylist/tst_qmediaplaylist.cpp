@@ -56,7 +56,7 @@ private slots:
     void playbackMode();
     void playbackMode_data();
     void shuffle();
-    void setMediaObject();
+    void setMediaSource();
 
     void testCurrentIndexChanged_signal();
     void testCurrentMediaChanged_signal();
@@ -678,7 +678,7 @@ void tst_QMediaPlaylist::shuffle()
 }
 
 
-void tst_QMediaPlaylist::setMediaObject()
+void tst_QMediaPlaylist::setMediaSource()
 {
     QMediaContent content0(QUrl(QLatin1String("test://audio/song1.mp3")));
     QMediaContent content1(QUrl(QLatin1String("test://audio/song2.mp3")));

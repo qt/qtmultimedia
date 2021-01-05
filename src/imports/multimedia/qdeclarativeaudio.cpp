@@ -954,7 +954,7 @@ void QDeclarativeAudio::classBegin()
     connect(m_player, SIGNAL(metaDataChanged()),
             m_metaData.data(), SIGNAL(metaDataChanged()));
 
-    emit mediaObjectChanged();
+    emit mediaSourceChanged();
 }
 
 void QDeclarativeAudio::componentComplete()
@@ -1058,7 +1058,7 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 */
 
 /*!
-    \qmlproperty variant QtMultimedia::Audio::mediaObject
+    \qmlproperty variant QtMultimedia::Audio::mediaSource
 
     This property holds the native media object.
 
@@ -1066,7 +1066,7 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 
     \code
         QObject *qmlAudio; // The QML Audio object
-        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlAudio->property("mediaObject"));
+        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlAudio->property("mediaSource"));
     \endcode
 
     \note This property is not accessible from QML.
@@ -1602,7 +1602,7 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 */
 
 /*!
-    \qmlproperty variant QtMultimedia::MediaPlayer::mediaObject
+    \qmlproperty variant QtMultimedia::MediaPlayer::mediaSource
 
     This property holds the native media object.
 
@@ -1610,7 +1610,7 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 
     \code
         QObject *qmlMediaPlayer; // The QML MediaPlayer object
-        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlMediaPlayer->property("mediaObject"));
+        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlMediaPlayer->property("mediaSource"));
     \endcode
 
     \note This property is not accessible from QML.

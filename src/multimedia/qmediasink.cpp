@@ -63,14 +63,14 @@ QMediaSink::~QMediaSink()
 }
 
 /*!
-    \fn QMediaSink::mediaObject() const;
+    \fn QMediaSink::mediaSource() const;
 
     Return the currently attached media object.
 */
 
 
 /*!
-    \fn QMediaSink::setMediaObject(QMediaObject *object);
+    \fn QMediaSink::setMediaSource(QMediaSource *object);
 
     Attaches to the media \a object.
     Returns true if attached successfully, otherwise returns false.

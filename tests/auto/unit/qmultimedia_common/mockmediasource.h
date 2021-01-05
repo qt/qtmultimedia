@@ -26,19 +26,19 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKMEDIAOBJECT_H
-#define MOCKMEDIAOBJECT_H
+#ifndef MOCKMEDIASOURCE_H
+#define MOCKMEDIASOURCE_H
 
-#include "qmediaobject.h"
+#include "qmediasource.h"
 
-class MockMediaObject : public QMediaObject
+class MockMediaSource : public QMediaSource
 {
     Q_OBJECT
 public:
-    MockMediaObject(QObject *parent, QMediaService *service):
-        QMediaObject(parent, service)
+    MockMediaSource(QObject *parent, QMediaService *service):
+        QMediaSource(parent, service)
     {
     }
 };
 
-#endif // MOCKMEDIAOBJECT_H
+#endif // MOCKMEDIASOURCE_H

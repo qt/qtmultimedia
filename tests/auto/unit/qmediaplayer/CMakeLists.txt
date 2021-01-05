@@ -6,7 +6,7 @@
 
 qt_add_test(tst_qmediaplayer
     SOURCES
-        ../qmultimedia_common/mockmediaobject.h
+        ../qmultimedia_common/mockmediasource.h
         ../qmultimedia_common/mockmediaplayercontrol.h
         ../qmultimedia_common/mockmediaplayerservice.h
         ../qmultimedia_common/mockmediaservice.h

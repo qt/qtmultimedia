@@ -58,9 +58,9 @@ QT_BEGIN_NAMESPACE
     \inmodule QtMultimedia
 
     Media services provide implementations of the functionality promised
-    by media objects, and allow multiple providers to implement a QMediaObject.
+    by media objects, and allow multiple providers to implement a QMediaSource.
 
-    To provide the functionality of a QMediaObject media services implement
+    To provide the functionality of a QMediaSource media services implement
     QMediaControl interfaces.  Services typically implement one core media
     control which provides the core feature of a media object, and some
     number of additional controls which provide either optional features of
@@ -79,7 +79,7 @@ QT_BEGIN_NAMESPACE
     implementing a QMediaService is outside of the scope of this documentation
     and support on the relevant mailing lists or IRC channels should be sought.
 
-    \sa QMediaObject, QMediaControl
+    \sa QMediaSource, QMediaControl
 */
 
 /*!
