@@ -119,10 +119,6 @@ Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
 
-public:
-    bool bind(QObject *) override;
-    void unbind(QObject *) override;
-
 private:
     Q_DISABLE_COPY(QAudioDecoder)
     Q_DECLARE_PRIVATE(QAudioDecoder)

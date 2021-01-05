@@ -204,10 +204,6 @@ Q_SIGNALS:
 
     void error(QMediaPlayer::Error error);
 
-public:
-    bool bind(QObject *) override;
-    void unbind(QObject *) override;
-
 private:
     Q_DISABLE_COPY(QMediaPlayer)
     Q_DECLARE_PRIVATE(QMediaPlayer)

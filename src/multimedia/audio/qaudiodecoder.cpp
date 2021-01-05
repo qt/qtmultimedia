@@ -325,24 +325,6 @@ void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
 }
 
 /*!
-    \internal
-*/
-
-bool QAudioDecoder::bind(QObject *obj)
-{
-    return QMediaSource::bind(obj);
-}
-
-/*!
-    \internal
-*/
-
-void QAudioDecoder::unbind(QObject *obj)
-{
-    QMediaSource::unbind(obj);
-}
-
-/*!
     Returns the level of support an audio decoder has for a \a mimeType and a set of \a codecs.
 */
 QMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
