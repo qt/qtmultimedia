@@ -37,48 +37,85 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERMESSAGE_P_H
-#define QGSTREAMERMESSAGE_P_H
+#ifndef QGSTAPPSRC_H
+#define QGSTAPPSRC_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <QMetaType>
+#include <private/qtmultimediaglobal_p.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qiodevice.h>
 
 #include <gst/gst.h>
+#include <gst/app/gstappsrc.h>
+
+#if GST_VERSION_MAJOR < 1
+#include <gst/app/gstappbuffer.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
-
-class Q_GSTTOOLS_EXPORT QGstreamerMessage
+class Q_MULTIMEDIA_EXPORT QGstAppSrc  : public QObject
 {
+    Q_OBJECT
 public:
-    QGstreamerMessage() = default;
-    QGstreamerMessage(GstMessage* message);
-    QGstreamerMessage(QGstreamerMessage const& m);
-    ~QGstreamerMessage();
+    QGstAppSrc(QObject *parent = 0);
+    ~QGstAppSrc();
 
-    GstMessage* rawMessage() const;
+    bool setup(GstElement *);
 
-    QGstreamerMessage& operator=(QGstreamerMessage const& rhs);
+    void setStream(QIODevice *);
+    QIODevice *stream() const;
 
+    GstAppSrc *element();
+
+    qint64 queueSize() const { return m_maxBytes; }
+
+    bool& enoughData() { return m_enoughData; }
+    bool& dataRequested() { return m_dataRequested; }
+    unsigned int& dataRequestSize() { return m_dataRequestSize; }
+
+    bool isStreamValid() const
+    {
+        return m_stream != 0 &&
+               m_stream->isOpen();
+    }
+
+private slots:
+    void pushDataToAppSrc();
+    bool doSeek(qint64);
+    void onDataReady();
+
+    void streamDestroyed();
 private:
-    GstMessage* m_message = nullptr;
+    static gboolean on_seek_data(GstAppSrc *element, guint64 arg0, gpointer userdata);
+    static void on_enough_data(GstAppSrc *element, gpointer userdata);
+    static void on_need_data(GstAppSrc *element, uint arg0, gpointer userdata);
+    static void destroy_notify(gpointer data);
+
+    void sendEOS();
+
+    QIODevice *m_stream = nullptr;
+    GstAppSrc *m_appSrc = nullptr;
+    bool m_sequential = false;
+    GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
+    GstAppSrcCallbacks m_callbacks;
+    qint64 m_maxBytes = 0;
+    unsigned int m_dataRequestSize = ~0;
+    bool m_dataRequested = false;
+    bool m_enoughData = false;
+    bool m_forceData = false;
 };
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QGstreamerMessage);
 
 #endif

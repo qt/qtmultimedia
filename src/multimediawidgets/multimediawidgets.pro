@@ -26,6 +26,7 @@ qtConfig(graphicsview) {
     PUBLIC_HEADERS += qgraphicsvideoitem.h
 }
 
+qtConfig(gstreamer):include(gstreamer/gstreamer.pri)
 
 HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
 

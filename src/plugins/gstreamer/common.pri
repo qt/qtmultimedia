@@ -1,4 +1,4 @@
-QT += core-private multimedia-private multimediagsttools-private network
+QT += core-private multimedia-private network
 
 qtHaveModule(widgets) {
     QT += widgets multimediawidgets-private

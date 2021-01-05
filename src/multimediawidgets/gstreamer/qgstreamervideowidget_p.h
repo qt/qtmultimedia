@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERAUDIOPROBECONTROL_H
-#define QGSTREAMERAUDIOPROBECONTROL_H
+#ifndef QGSTREAMERVIDEOWIDGET_H
+#define QGSTREAMERVIDEOWIDGET_H
 
 //
 //  W A R N I N G
@@ -51,40 +51,78 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <gst/gst.h>
-#include <qmediaaudioprobecontrol.h>
-#include <QtCore/qmutex.h>
-#include <qaudiobuffer.h>
-#include <qshareddata.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <qvideowidgetcontrol.h>
 
-#include <private/qgstreamerbufferprobe_p.h>
+#include <private/qgstreamervideorendererinterface_p.h>
+#include <private/qgstreamerbushelper_p.h>
+#include <private/qgstreamervideooverlay_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerAudioProbeControl
-    : public QMediaAudioProbeControl
-    , public QGstreamerBufferProbe
-    , public QSharedData
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoWidget;
+
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoWidgetControl
+        : public QVideoWidgetControl
+        , public QGstreamerVideoRendererInterface
+        , public QGstreamerSyncMessageFilter
+        , public QGstreamerBusMessageFilter
 {
     Q_OBJECT
+    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 public:
-    explicit QGstreamerAudioProbeControl(QObject *parent);
-    virtual ~QGstreamerAudioProbeControl();
+    explicit QGstreamerVideoWidgetControl(QObject *parent = 0, const QByteArray &elementName = QByteArray());
+    virtual ~QGstreamerVideoWidgetControl();
 
-protected:
-    void probeCaps(GstCaps *caps) override;
-    bool probeBuffer(GstBuffer *buffer) override;
+    GstElement *videoSink() override;
+    void setVideoSink(GstElement *) override;
 
-private slots:
-    void bufferProbed();
+    QWidget *videoWidget() override;
+
+    void stopRenderer() override;
+
+    Qt::AspectRatioMode aspectRatioMode() const override;
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
+
+    bool isFullScreen() const override;
+    void setFullScreen(bool fullScreen) override;
+
+    int brightness() const override;
+    void setBrightness(int brightness) override;
+
+    int contrast() const override;
+    void setContrast(int contrast) override;
+
+    int hue() const override;
+    void setHue(int hue) override;
+
+    int saturation() const override;
+    void setSaturation(int saturation) override;
+
+    bool eventFilter(QObject *object, QEvent *event) override;
+
+signals:
+    void sinkChanged();
+    void readyChanged(bool);
+
+private Q_SLOTS:
+    void onOverlayActiveChanged();
+    void onNativeVideoSizeChanged();
 
 private:
-    QAudioBuffer m_pendingBuffer;
-    QAudioFormat m_format;
-    QMutex m_bufferMutex;
+    void createVideoWidget();
+    void updateWidgetAttributes();
+
+    bool processSyncMessage(const QGstreamerMessage &message) override;
+    bool processBusMessage(const QGstreamerMessage &message) override;
+
+    QGstreamerVideoOverlay m_videoOverlay;
+    QGstreamerVideoWidget *m_widget = nullptr;
+    bool m_stopped = false;
+    WId m_windowId = 0;
+    bool m_fullScreen = false;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERAUDIOPROBECONTROL_H
+#endif // QGSTREAMERVIDEOWIDGET_H

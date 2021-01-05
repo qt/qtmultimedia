@@ -37,56 +37,23 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERBUFFERPROBE_H
-#define QGSTREAMERBUFFERPROBE_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qgsttools_global_p.h>
-#include <gst/gst.h>
-
-#include <QtCore/qglobal.h>
-
+#include "qgstvideorendererplugin_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerBufferProbe
+QGstVideoRendererPlugin::QGstVideoRendererPlugin(QObject *parent) :
+    QObject(parent)
 {
-public:
-    enum Flags
-    {
-        ProbeCaps       = 0x01,
-        ProbeBuffers    = 0x02,
-        ProbeAll    = ProbeCaps | ProbeBuffers
-    };
+}
 
-    explicit QGstreamerBufferProbe(Flags flags = ProbeAll);
-    virtual ~QGstreamerBufferProbe();
+QGstVideoRenderer::~QGstVideoRenderer() {}
 
-    void addProbeToPad(GstPad *pad, bool downstream = true);
-    void removeProbeFromPad(GstPad *pad);
+QGstVideoRendererInterface::~QGstVideoRendererInterface() {}
 
-protected:
-    virtual void probeCaps(GstCaps *caps);
-    virtual bool probeBuffer(GstBuffer *buffer);
-
-private:
-    static GstPadProbeReturn capsProbe(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
-    static GstPadProbeReturn bufferProbe(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
-    int m_capsProbeId = -1;
-    int m_bufferProbeId = -1;
-    const Flags m_flags;
-};
+QGstVideoRendererPlugin::~QGstVideoRendererPlugin() {}
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERAUDIOPROBECONTROL_H
+#include "moc_qgstvideorendererplugin_p.cpp"
+
+

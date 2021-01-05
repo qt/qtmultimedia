@@ -51,6 +51,8 @@ qtConfig(gstreamer_photography) {
     DEFINES += GST_USE_UNSTABLE_API #prevents warnings because of unstable photography API
 }
 
+qtConfig(gstreamer_gl): QMAKE_USE += gstreamer_gl
+
 qtConfig(linux_v4l) {
     HEADERS += \
         $$PWD/camerabinv4limageprocessing.h

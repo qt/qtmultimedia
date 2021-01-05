@@ -12,9 +12,5 @@ if(TARGET Qt::Widgets)
     add_subdirectory(multimediawidgets)
 endif()
 
-if(QT_FEATURE_gstreamer)
-    add_subdirectory(gsttools)
-endif()
-
 add_subdirectory(plugins)
 #special case end

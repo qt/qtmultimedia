@@ -74,6 +74,7 @@ MODULE_WINRT_CAPABILITIES_DEVICE += \
     webcam
 
 qtConfig(gstreamer) {
+    include(gstreamer/gstreamer.pri)
     ANDROID_LIB_DEPENDENCIES += \
         plugins/mediaservice/libgstcamerabin.so \
         plugins/mediaservice/libgstmediacapture.so \

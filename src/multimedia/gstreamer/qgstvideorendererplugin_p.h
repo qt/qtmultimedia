@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Jolla Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERBUSHELPER_P_H
-#define QGSTREAMERBUSHELPER_P_H
+#ifndef QGSTVIDEORENDERERPLUGIN_P_H
+#define QGSTVIDEORENDERERPLUGIN_P_H
 
 //
 //  W A R N I N G
@@ -51,52 +51,60 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <QObject>
-
-#include "qgstreamermessage_p.h"
+#include <private/qtmultimediaglobal_p.h>
+#include <qabstractvideobuffer.h>
+#include <qvideosurfaceformat.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qplugin.h>
 
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerSyncMessageFilter {
+class QAbstractVideoSurface;
+
+#ifndef Q_MULTIMEDIA_EXPORT
+#error XXX
+#endif
+
+class Q_MULTIMEDIA_EXPORT QGstVideoRenderer
+{
 public:
-    //returns true if message was processed and should be dropped, false otherwise
-    virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
+    virtual ~QGstVideoRenderer();
+
+    virtual GstCaps *getCaps(QAbstractVideoSurface *surface) = 0;
+    virtual bool start(QAbstractVideoSurface *surface, GstCaps *caps) = 0;
+    virtual void stop(QAbstractVideoSurface *surface) = 0;  // surface may be null if unexpectedly deleted.
+    virtual bool proposeAllocation(GstQuery *query) = 0;    // may be called from a thread.
+
+    virtual bool present(QAbstractVideoSurface *surface, GstBuffer *buffer) = 0;
+    virtual void flush(QAbstractVideoSurface *surface) = 0; // surface may be null if unexpectedly deleted.
 };
-#define QGstreamerSyncMessageFilter_iid "org.qt-project.qt.gstreamersyncmessagefilter/5.0"
-Q_DECLARE_INTERFACE(QGstreamerSyncMessageFilter, QGstreamerSyncMessageFilter_iid)
 
-
-class QGstreamerBusMessageFilter {
+/*
+    Abstract interface for video buffers allocation.
+*/
+class Q_MULTIMEDIA_EXPORT QGstVideoRendererInterface
+{
 public:
-    //returns true if message was processed and should be dropped, false otherwise
-    virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
+    virtual ~QGstVideoRendererInterface();
+
+    virtual QGstVideoRenderer *createRenderer() = 0;
 };
-#define QGstreamerBusMessageFilter_iid "org.qt-project.qt.gstreamerbusmessagefilter/5.0"
-Q_DECLARE_INTERFACE(QGstreamerBusMessageFilter, QGstreamerBusMessageFilter_iid)
 
+#define QGstVideoRendererInterface_iid "org.qt-project.qt.gstvideorenderer/5.4"
+Q_DECLARE_INTERFACE(QGstVideoRendererInterface, QGstVideoRendererInterface_iid)
 
-class QGstreamerBusHelperPrivate;
-
-class Q_GSTTOOLS_EXPORT QGstreamerBusHelper : public QObject
+class Q_MULTIMEDIA_EXPORT QGstVideoRendererPlugin : public QObject, public QGstVideoRendererInterface
 {
     Q_OBJECT
-    friend class QGstreamerBusHelperPrivate;
-
+    Q_INTERFACES(QGstVideoRendererInterface)
 public:
-    QGstreamerBusHelper(GstBus* bus, QObject* parent = 0);
-    ~QGstreamerBusHelper();
+    explicit QGstVideoRendererPlugin(QObject *parent = 0);
+    virtual ~QGstVideoRendererPlugin();
 
-    void installMessageFilter(QObject *filter);
-    void removeMessageFilter(QObject *filter);
+    QGstVideoRenderer *createRenderer() override = 0;
 
-signals:
-    void message(QGstreamerMessage const& message);
-
-private:
-    QGstreamerBusHelperPrivate *d = nullptr;
 };
 
 QT_END_NAMESPACE

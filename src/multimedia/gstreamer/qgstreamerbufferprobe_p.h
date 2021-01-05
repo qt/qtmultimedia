@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Jolla Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERAUDIOINPUTSELECTOR_H
-#define QGSTREAMERAUDIOINPUTSELECTOR_H
+#ifndef QGSTREAMERBUFFERPROBE_H
+#define QGSTREAMERBUFFERPROBE_H
 
 //
 //  W A R N I N G
@@ -51,36 +51,42 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <qaudioinputselectorcontrol.h>
-#include <QtCore/qstringlist.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <gst/gst.h>
+
+#include <QtCore/qglobal.h>
+
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerAudioInputSelector : public QAudioInputSelectorControl
+class Q_MULTIMEDIA_EXPORT QGstreamerBufferProbe
 {
-Q_OBJECT
 public:
-    QGstreamerAudioInputSelector(QObject *parent);
-    ~QGstreamerAudioInputSelector();
+    enum Flags
+    {
+        ProbeCaps       = 0x01,
+        ProbeBuffers    = 0x02,
+        ProbeAll    = ProbeCaps | ProbeBuffers
+    };
 
-    QList<QString> availableInputs() const override;
-    QString inputDescription(const QString &name) const override;
-    QString defaultInput() const override;
-    QString activeInput() const override;
+    explicit QGstreamerBufferProbe(Flags flags = ProbeAll);
+    virtual ~QGstreamerBufferProbe();
 
-public Q_SLOTS:
-    void setActiveInput(const QString &name) override;
+    void addProbeToPad(GstPad *pad, bool downstream = true);
+    void removeProbeFromPad(GstPad *pad);
+
+protected:
+    virtual void probeCaps(GstCaps *caps);
+    virtual bool probeBuffer(GstBuffer *buffer);
 
 private:
-    void update();
-
-    QString m_defaultInput;
-    QString m_audioInput;
-    QList<QString> m_names;
-    QList<QString> m_descriptions;
+    static GstPadProbeReturn capsProbe(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
+    static GstPadProbeReturn bufferProbe(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
+    int m_capsProbeId = -1;
+    int m_bufferProbeId = -1;
+    const Flags m_flags;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERAUDIOINPUTSELECTOR_H
+#endif // QGSTREAMERAUDIOPROBECONTROL_H

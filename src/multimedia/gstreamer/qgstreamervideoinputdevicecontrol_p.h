@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEOWIDGET_H
-#define QGSTREAMERVIDEOWIDGET_H
+#ifndef QGSTREAMERVIDEOINPUTDEVICECONTROL_H
+#define QGSTREAMERVIDEOINPUTDEVICECONTROL_H
 
 //
 //  W A R N I N G
@@ -51,78 +51,45 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <qvideowidgetcontrol.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <qvideodeviceselectorcontrol.h>
+#include <QtCore/qstringlist.h>
 
-#include "qgstreamervideorendererinterface_p.h"
-#include <private/qgstreamerbushelper_p.h>
-#include <private/qgstreamervideooverlay_p.h>
+#include <gst/gst.h>
+#include <qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerVideoWidget;
-
-class Q_GSTTOOLS_EXPORT QGstreamerVideoWidgetControl
-        : public QVideoWidgetControl
-        , public QGstreamerVideoRendererInterface
-        , public QGstreamerSyncMessageFilter
-        , public QGstreamerBusMessageFilter
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
 {
-    Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
+Q_OBJECT
 public:
-    explicit QGstreamerVideoWidgetControl(QObject *parent = 0, const QByteArray &elementName = QByteArray());
-    virtual ~QGstreamerVideoWidgetControl();
+    QGstreamerVideoInputDeviceControl(QObject *parent);
+    QGstreamerVideoInputDeviceControl(GstElementFactory *factory, QObject *parent);
+    ~QGstreamerVideoInputDeviceControl();
 
-    GstElement *videoSink() override;
-    void setVideoSink(GstElement *) override;
+    int deviceCount() const override;
 
-    QWidget *videoWidget() override;
+    QString deviceName(int index) const override;
+    QString deviceDescription(int index) const override;
+    QCamera::Position cameraPosition(int index) const override;
+    int cameraOrientation(int index) const override;
 
-    void stopRenderer() override;
+    int defaultDevice() const override;
+    int selectedDevice() const override;
 
-    Qt::AspectRatioMode aspectRatioMode() const override;
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
+    static QString primaryCamera() { return tr("Main camera"); }
+    static QString secondaryCamera() { return tr("Front camera"); }
 
-    bool isFullScreen() const override;
-    void setFullScreen(bool fullScreen) override;
-
-    int brightness() const override;
-    void setBrightness(int brightness) override;
-
-    int contrast() const override;
-    void setContrast(int contrast) override;
-
-    int hue() const override;
-    void setHue(int hue) override;
-
-    int saturation() const override;
-    void setSaturation(int saturation) override;
-
-    bool eventFilter(QObject *object, QEvent *event) override;
-
-signals:
-    void sinkChanged();
-    void readyChanged(bool);
-
-private Q_SLOTS:
-    void onOverlayActiveChanged();
-    void onNativeVideoSizeChanged();
+public Q_SLOTS:
+    void setSelectedDevice(int index) override;
 
 private:
-    void createVideoWidget();
-    void updateWidgetAttributes();
+    GstElementFactory *m_factory = nullptr;
 
-    bool processSyncMessage(const QGstreamerMessage &message) override;
-    bool processBusMessage(const QGstreamerMessage &message) override;
-
-    QGstreamerVideoOverlay m_videoOverlay;
-    QGstreamerVideoWidget *m_widget = nullptr;
-    bool m_stopped = false;
-    WId m_windowId = 0;
-    bool m_fullScreen = false;
+    int m_selectedDevice = 0;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERVIDEOWIDGET_H
+#endif // QGSTREAMERAUDIOINPUTDEVICECONTROL_H

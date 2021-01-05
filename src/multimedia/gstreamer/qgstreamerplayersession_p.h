@@ -82,7 +82,7 @@ typedef enum {
   GST_AUTOPLUG_SELECT_SKIP
 } GstAutoplugSelectResult;
 
-class Q_GSTTOOLS_EXPORT QGstreamerPlayerSession
+class Q_MULTIMEDIA_EXPORT QGstreamerPlayerSession
     : public QObject
     , public QGstreamerBusMessageFilter
 {

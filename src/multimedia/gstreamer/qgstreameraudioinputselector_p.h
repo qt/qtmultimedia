@@ -37,53 +37,50 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTVIDEOBUFFER_P_H
-#define QGSTVIDEOBUFFER_P_H
+#ifndef QGSTREAMERAUDIOINPUTSELECTOR_H
+#define QGSTREAMERAUDIOINPUTSELECTOR_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <qabstractvideobuffer.h>
-#include <QtCore/qvariant.h>
-
-#include <gst/gst.h>
-#include <gst/video/video.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <qaudioinputselectorcontrol.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
+class Q_MULTIMEDIA_EXPORT QGstreamerAudioInputSelector : public QAudioInputSelectorControl
 {
+Q_OBJECT
 public:
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info);
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
-                    HandleType handleType, const QVariant &handle);
+    QGstreamerAudioInputSelector(QObject *parent);
+    ~QGstreamerAudioInputSelector();
 
-    ~QGstVideoBuffer();
+    QList<QString> availableInputs() const override;
+    QString inputDescription(const QString &name) const override;
+    QString defaultInput() const override;
+    QString activeInput() const override;
 
-    GstBuffer *buffer() const { return m_buffer; }
-    MapMode mapMode() const override;
+public Q_SLOTS:
+    void setActiveInput(const QString &name) override;
 
-    MapData map(MapMode mode) override;
-    void unmap() override;
-
-    QVariant handle() const override { return m_handle; }
 private:
-    GstVideoInfo m_videoInfo;
-    GstVideoFrame m_frame;
-    GstBuffer *m_buffer = nullptr;
-    MapMode m_mode = NotMapped;
-    QVariant m_handle;
+    void update();
+
+    QString m_defaultInput;
+    QString m_audioInput;
+    QList<QString> m_names;
+    QList<QString> m_descriptions;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QGSTREAMERAUDIOINPUTSELECTOR_H

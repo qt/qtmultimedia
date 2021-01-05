@@ -18,7 +18,6 @@ qt_internal_add_plugin(QSGVivanteVideoNodeFactory
         Qt::MultimediaPrivate
         Qt::MultimediaQuickPrivate
         gstreamer
-        multimediagsttoolsPrivate
 )
 
 # Resources:

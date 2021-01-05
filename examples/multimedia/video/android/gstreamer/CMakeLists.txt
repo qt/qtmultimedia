@@ -42,6 +42,7 @@ target_link_libraries(gstreamer PUBLIC
     Qt::Gui
     Qt::Multimedia
     Qt::MultimediaWidgets
+    Qt::MultimediaWidgetsPrivate
     Qt::Quick
     avcodec
     avfilter
@@ -78,7 +79,6 @@ target_link_libraries(gstreamer PUBLIC
     gstwavparse
     gstx264
     mpg123
-    multimediagsttoolsPrivate
     ogg
     soup-2.4
     swresample

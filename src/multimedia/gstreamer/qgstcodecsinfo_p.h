@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEOWINDOW_H
-#define QGSTREAMERVIDEOWINDOW_H
+#ifndef QGSTCODECSINFO_H
+#define QGSTCODECSINFO_H
 
 //
 //  W A R N I N G
@@ -51,76 +51,45 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <qvideowindowcontrol.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qstringlist.h>
+#include <QSet>
 
-#include "qgstreamervideorendererinterface_p.h"
-#include <private/qgstreamerbushelper_p.h>
-#include <private/qgstreamervideooverlay_p.h>
-#include <QtGui/qcolor.h>
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
-class QAbstractVideoSurface;
 
-class Q_GSTTOOLS_EXPORT QGstreamerVideoWindow :
-        public QVideoWindowControl,
-        public QGstreamerVideoRendererInterface,
-        public QGstreamerSyncMessageFilter,
-        public QGstreamerBusMessageFilter
+class Q_MULTIMEDIA_EXPORT QGstCodecsInfo
 {
-    Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 public:
-    explicit QGstreamerVideoWindow(QObject *parent = 0, const QByteArray &elementName = QByteArray());
-    ~QGstreamerVideoWindow();
+    enum ElementType { AudioEncoder, VideoEncoder, Muxer };
 
-    WId winId() const override;
-    void setWinId(WId id) override;
+    struct CodecInfo {
+        QString description;
+        QByteArray elementName;
+        GstRank rank;
+    };
 
-    QRect displayRect() const override;
-    void setDisplayRect(const QRect &rect) override;
+    QGstCodecsInfo(ElementType elementType);
 
-    bool isFullScreen() const override;
-    void setFullScreen(bool fullScreen) override;
-
-    QSize nativeSize() const override;
-
-    Qt::AspectRatioMode aspectRatioMode() const override;
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
-
-    void repaint() override;
-
-    int brightness() const override;
-    void setBrightness(int brightness) override;
-
-    int contrast() const override;
-    void setContrast(int contrast) override;
-
-    int hue() const override;
-    void setHue(int hue) override;
-
-    int saturation() const override;
-    void setSaturation(int saturation) override;
-
-    QAbstractVideoSurface *surface() const;
-
-    GstElement *videoSink() override;
-
-    bool processSyncMessage(const QGstreamerMessage &message) override;
-    bool processBusMessage(const QGstreamerMessage &message) override;
-    bool isReady() const override { return m_windowId != 0; }
-
-signals:
-    void sinkChanged();
-    void readyChanged(bool);
+    QStringList supportedCodecs() const;
+    QString codecDescription(const QString &codec) const;
+    QByteArray codecElement(const QString &codec) const;
+    QStringList codecOptions(const QString &codec) const;
+    QSet<QString> supportedStreamTypes(const QString &codec) const;
+    QStringList supportedCodecs(const QSet<QString> &types) const;
 
 private:
-    QGstreamerVideoOverlay m_videoOverlay;
-    WId m_windowId = 0;
-    QRect m_displayRect;
-    bool m_fullScreen = false;
-    mutable QColor m_colorKey = QColor::Invalid;
+    void updateCodecs(ElementType elementType);
+    GList *elementFactories(ElementType elementType) const;
+
+    QStringList m_codecs;
+    QMap<QString, CodecInfo> m_codecInfo;
+    QMap<QString, QSet<QString>> m_streamTypes;
 };
+
+Q_DECLARE_TYPEINFO(QGstCodecsInfo::CodecInfo, Q_MOVABLE_TYPE);
 
 QT_END_NAMESPACE
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Jolla Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTVIDEORENDERERPLUGIN_P_H
-#define QGSTVIDEORENDERERPLUGIN_P_H
+#ifndef QGSTVIDEOBUFFER_P_H
+#define QGSTVIDEOBUFFER_P_H
 
 //
 //  W A R N I N G
@@ -51,56 +51,37 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
+#include <private/qtmultimediaglobal_p.h>
 #include <qabstractvideobuffer.h>
-#include <qvideosurfaceformat.h>
-#include <QtCore/qobject.h>
-#include <QtCore/qplugin.h>
+#include <QtCore/qvariant.h>
 
 #include <gst/gst.h>
+#include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAbstractVideoSurface;
-
-class Q_GSTTOOLS_EXPORT QGstVideoRenderer
+class Q_MULTIMEDIA_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    virtual ~QGstVideoRenderer() {}
+    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info);
+    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
+                    HandleType handleType, const QVariant &handle);
 
-    virtual GstCaps *getCaps(QAbstractVideoSurface *surface) = 0;
-    virtual bool start(QAbstractVideoSurface *surface, GstCaps *caps) = 0;
-    virtual void stop(QAbstractVideoSurface *surface) = 0;  // surface may be null if unexpectedly deleted.
-    virtual bool proposeAllocation(GstQuery *query) = 0;    // may be called from a thread.
+    ~QGstVideoBuffer();
 
-    virtual bool present(QAbstractVideoSurface *surface, GstBuffer *buffer) = 0;
-    virtual void flush(QAbstractVideoSurface *surface) = 0; // surface may be null if unexpectedly deleted.
-};
+    GstBuffer *buffer() const { return m_buffer; }
+    MapMode mapMode() const override;
 
-/*
-    Abstract interface for video buffers allocation.
-*/
-class Q_GSTTOOLS_EXPORT QGstVideoRendererInterface
-{
-public:
-    virtual ~QGstVideoRendererInterface() {}
+    MapData map(MapMode mode) override;
+    void unmap() override;
 
-    virtual QGstVideoRenderer *createRenderer() = 0;
-};
-
-#define QGstVideoRendererInterface_iid "org.qt-project.qt.gstvideorenderer/5.4"
-Q_DECLARE_INTERFACE(QGstVideoRendererInterface, QGstVideoRendererInterface_iid)
-
-class Q_GSTTOOLS_EXPORT QGstVideoRendererPlugin : public QObject, public QGstVideoRendererInterface
-{
-    Q_OBJECT
-    Q_INTERFACES(QGstVideoRendererInterface)
-public:
-    explicit QGstVideoRendererPlugin(QObject *parent = 0);
-    virtual ~QGstVideoRendererPlugin() {}
-
-    QGstVideoRenderer *createRenderer() override = 0;
-
+    QVariant handle() const override { return m_handle; }
+private:
+    GstVideoInfo m_videoInfo;
+    GstVideoFrame m_frame;
+    GstBuffer *m_buffer = nullptr;
+    MapMode m_mode = NotMapped;
+    QVariant m_handle;
 };
 
 QT_END_NAMESPACE

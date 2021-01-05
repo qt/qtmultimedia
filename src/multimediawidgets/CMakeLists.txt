@@ -38,6 +38,11 @@ qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_graphicsview
         qgraphicsvideoitem.cpp qgraphicsvideoitem.h # special case
 )
 
+qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_gstreamer
+    SOURCES
+        gstreamer/qgstreamervideowidget.cpp gstreamer/qgstreamervideowidget_p.h
+)
+
 #### Keys ignored in scope 3:.:.:multimediawidgets.pro:QT_FEATURE_graphicsview:
 # PUBLIC_HEADERS = "qgraphicsvideoitem.h"
 

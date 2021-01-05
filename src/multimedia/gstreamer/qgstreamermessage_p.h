@@ -37,58 +37,48 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEORENDERER_H
-#define QGSTREAMERVIDEORENDERER_H
+#ifndef QGSTREAMERMESSAGE_P_H
+#define QGSTREAMERMESSAGE_P_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <private/qgstvideorenderersink_p.h>
-#include <qvideorenderercontrol.h>
-#include <qabstractvideosurface.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <QMetaType>
 
-#include "qgstreamervideorendererinterface_p.h"
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
+// Required for QDoc workaround
+class QString;
+
+class Q_MULTIMEDIA_EXPORT QGstreamerMessage
 {
-    Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface)
 public:
-    QGstreamerVideoRenderer(QObject *parent = 0);
-    virtual ~QGstreamerVideoRenderer();
+    QGstreamerMessage() = default;
+    QGstreamerMessage(GstMessage* message);
+    QGstreamerMessage(QGstreamerMessage const& m);
+    ~QGstreamerMessage();
 
-    QAbstractVideoSurface *surface() const override;
-    void setSurface(QAbstractVideoSurface *surface) override;
+    GstMessage* rawMessage() const;
 
-    GstElement *videoSink() override;
-    void setVideoSink(GstElement *) override;
-
-    void stopRenderer() override;
-    bool isReady() const override { return m_surface != 0; }
-
-signals:
-    void sinkChanged();
-    void readyChanged(bool);
-
-private slots:
-    void handleFormatChange();
+    QGstreamerMessage& operator=(QGstreamerMessage const& rhs);
 
 private:
-    GstElement *m_videoSink = nullptr;
-    QPointer<QAbstractVideoSurface> m_surface;
+    GstMessage* m_message = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERVIDEORENDRER_H
+Q_DECLARE_METATYPE(QGstreamerMessage);
+
+#endif

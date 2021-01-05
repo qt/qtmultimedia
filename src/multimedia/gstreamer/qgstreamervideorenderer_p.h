@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEOPROBECONTROL_H
-#define QGSTREAMERVIDEOPROBECONTROL_H
+#ifndef QGSTREAMERVIDEORENDERER_H
+#define QGSTREAMERVIDEORENDERER_H
 
 //
 //  W A R N I N G
@@ -51,46 +51,44 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <gst/gst.h>
-#include <gst/video/video.h>
-#include <qmediavideoprobecontrol.h>
-#include <QtCore/qmutex.h>
-#include <qvideoframe.h>
-#include <qvideosurfaceformat.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <private/qgstvideorenderersink_p.h>
+#include <qvideorenderercontrol.h>
+#include <qabstractvideosurface.h>
 
-#include <private/qgstreamerbufferprobe_p.h>
+#include "qgstreamervideorendererinterface_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerVideoProbeControl
-    : public QMediaVideoProbeControl
-    , public QGstreamerBufferProbe
-    , public QSharedData
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
 {
     Q_OBJECT
+    Q_INTERFACES(QGstreamerVideoRendererInterface)
 public:
-    explicit QGstreamerVideoProbeControl(QObject *parent);
-    virtual ~QGstreamerVideoProbeControl();
+    QGstreamerVideoRenderer(QObject *parent = 0);
+    virtual ~QGstreamerVideoRenderer();
 
-    void probeCaps(GstCaps *caps) override;
-    bool probeBuffer(GstBuffer *buffer) override;
+    QAbstractVideoSurface *surface() const override;
+    void setSurface(QAbstractVideoSurface *surface) override;
 
-    void startFlushing();
-    void stopFlushing();
+    GstElement *videoSink() override;
+    void setVideoSink(GstElement *) override;
+
+    void stopRenderer() override;
+    bool isReady() const override { return m_surface != 0; }
+
+signals:
+    void sinkChanged();
+    void readyChanged(bool);
 
 private slots:
-    void frameProbed();
+    void handleFormatChange();
 
 private:
-    QVideoSurfaceFormat m_format;
-    QVideoFrame m_pendingFrame;
-    QMutex m_frameMutex;
-    GstVideoInfo m_videoInfo;
-    bool m_flushing = false;
-    bool m_frameProbed = false; // true if at least one frame was probed
+    GstElement *m_videoSink = nullptr;
+    QPointer<QAbstractVideoSurface> m_surface;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERVIDEOPROBECONTROL_H
+#endif // QGSTREAMERVIDEORENDRER_H

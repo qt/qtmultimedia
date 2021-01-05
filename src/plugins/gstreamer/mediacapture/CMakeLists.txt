@@ -28,7 +28,7 @@ qt_internal_add_plugin(QGstreamerCaptureServicePlugin
         Qt::MultimediaPrivate
         Qt::Network
         gstreamer
-        multimediagsttoolsPrivate
+        Qt::MultimediaPrivate
 )
 
 ## Scopes:

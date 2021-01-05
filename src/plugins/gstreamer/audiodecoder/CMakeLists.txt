@@ -20,7 +20,7 @@ qt_internal_add_plugin(QGstreamerAudioDecoderServicePlugin
         Qt::MultimediaPrivate
         Qt::Network
         gstreamer
-        multimediagsttoolsPrivate
+        Qt::MultimediaPrivate
 )
 
 #### Keys ignored in scope 1:.:.:audiodecoder.pro:<TRUE>:

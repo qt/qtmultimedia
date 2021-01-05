@@ -243,3 +243,62 @@ qt_extend_target(Multimedia CONDITION QT_FEATURE_alsa
 qt_add_docs(Multimedia
     doc/qtmultimedia.qdocconf
 )
+
+qt_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
+    SOURCES
+        gstreamer/qgstcodecsinfo.cpp qgstcodecsinfo_p.h
+        gstreamer/qgstreameraudioinputselector.cpp gstreamer/qgstreameraudioinputselector_p.h
+        gstreamer/qgstreameraudioprobecontrol.cpp gstreamer/qgstreameraudioprobecontrol_p.h
+        gstreamer/qgstreamerbufferprobe.cpp gstreamer/qgstreamerbufferprobe_p.h
+        gstreamer/qgstreamerbushelper.cpp gstreamer/qgstreamerbushelper_p.h
+        gstreamer/qgstreamermessage.cpp gstreamer/qgstreamermessage_p.h
+        gstreamer/qgstreamerplayercontrol.cpp gstreamer/qgstreamerplayercontrol_p.h
+        gstreamer/qgstreamerplayersession.cpp gstreamer/qgstreamerplayersession_p.h
+        gstreamer/qgstreamervideoinputdevicecontrol.cpp gstreamer/qgstreamervideoinputdevicecontrol_p.h
+        gstreamer/qgstreamervideooverlay.cpp gstreamer/qgstreamervideooverlay_p.h
+        gstreamer/qgstreamervideoprobecontrol.cpp gstreamer/qgstreamervideoprobecontrol_p.h
+        gstreamer/qgstreamervideorenderer.cpp gstreamer/qgstreamervideorenderer_p.h
+        gstreamer/qgstreamervideorendererinterface.cpp gstreamer/qgstreamervideorendererinterface_p.h
+        gstreamer/qgstreamervideowindow.cpp gstreamer/qgstreamervideowindow_p.h
+        gstreamer/qgstutils.cpp gstreamer/qgstutils_p.h
+        gstreamer/qgstvideobuffer.cpp gstreamer/qgstvideobuffer_p.h
+        gstreamer/qgstvideorendererplugin.cpp gstreamer/qgstvideorendererplugin_p.h
+        gstreamer/qgstvideorenderersink.cpp gstreamer/qgstvideorenderersink_p.h
+    DEFINES
+        GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
+    PUBLIC_LIBRARIES
+        gstreamer
+)
+
+qt_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer_gl
+    PUBLIC_LIBRARIES
+        gstreamer_gl
+)
+
+qt_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer_app
+    SOURCES
+        gstreamer/qgstappsrc.cpp gstreamer/qgstappsrc_p.h # special case
+    PUBLIC_LIBRARIES
+        gstreamer_app
+)
+
+qt_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND ANDROID
+    LIBRARIES
+        # Remove: L$ENV{GSTREAMER_ROOT_ANDROID}/armv7/lib
+        # Remove: Wl,--no-whole-archive
+        # Remove: Wl,--whole-archive
+        WrapIconv::WrapIconv
+        ffi
+        glib-2.0
+        gmodule-2.0
+        gobject-2.0
+        gstapp-1.0
+        gstaudio-1.0
+        gstbase-1.0
+        gstpbutils-1.0
+        gstreamer-1.0
+        gsttag-1.0
+        gstvideo-1.0
+        intl
+        orc-0.4
+)

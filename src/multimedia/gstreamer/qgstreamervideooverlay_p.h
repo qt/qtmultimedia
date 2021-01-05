@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTTOOLS_GLOBAL_H
-#define QGSTTOOLS_GLOBAL_H
+#ifndef QGSTREAMERVIDEOOVERLAY_P_H
+#define QGSTREAMERVIDEOOVERLAY_P_H
 
 //
 //  W A R N I N G
@@ -51,20 +51,77 @@
 // We mean it.
 //
 
-#include <QtCore/qglobal.h>
+#include <private/qgstreamerbushelper_p.h>
+#include <private/qgstreamerbufferprobe_p.h>
+#include <QtGui/qwindowdefs.h>
+#include <QtCore/qsize.h>
 
 QT_BEGIN_NAMESPACE
 
-#ifndef QT_STATIC
-# if defined(QT_BUILD_MULTIMEDIAGSTTOOLS_LIB)
-#  define Q_GSTTOOLS_EXPORT Q_DECL_EXPORT
-# else
-#  define Q_GSTTOOLS_EXPORT Q_DECL_IMPORT
-# endif
-#else
-# define Q_GSTTOOLS_EXPORT
-#endif
+class QGstreamerSinkProperties;
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
+        : public QObject
+        , public QGstreamerSyncMessageFilter
+        , public QGstreamerBusMessageFilter
+        , private QGstreamerBufferProbe
+{
+    Q_OBJECT
+    Q_INTERFACES(QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
+public:
+    explicit QGstreamerVideoOverlay(QObject *parent = 0, const QByteArray &elementName = QByteArray());
+    virtual ~QGstreamerVideoOverlay();
+
+    GstElement *videoSink() const;
+    void setVideoSink(GstElement *);
+    QSize nativeVideoSize() const;
+
+    void setWindowHandle(WId id);
+    void expose();
+    void setRenderRectangle(const QRect &rect);
+
+    bool isActive() const;
+
+    Qt::AspectRatioMode aspectRatioMode() const;
+    void setAspectRatioMode(Qt::AspectRatioMode mode);
+
+    int brightness() const;
+    void setBrightness(int brightness);
+
+    int contrast() const;
+    void setContrast(int contrast);
+
+    int hue() const;
+    void setHue(int hue);
+
+    int saturation() const;
+    void setSaturation(int saturation);
+
+    bool processSyncMessage(const QGstreamerMessage &message) override;
+    bool processBusMessage(const QGstreamerMessage &message) override;
+
+Q_SIGNALS:
+    void nativeVideoSizeChanged();
+    void activeChanged();
+    void brightnessChanged(int brightness);
+    void contrastChanged(int contrast);
+    void hueChanged(int hue);
+    void saturationChanged(int saturation);
+
+private:
+    void setWindowHandle_helper(WId id);
+    void updateIsActive();
+    void probeCaps(GstCaps *caps) override;
+    static void showPrerollFrameChanged(GObject *, GParamSpec *, QGstreamerVideoOverlay *);
+
+    GstElement *m_videoSink = nullptr;
+    QSize m_nativeVideoSize;
+    bool m_isActive = false;
+
+    QGstreamerSinkProperties *m_sinkProperties = nullptr;
+    WId m_windowId = 0;
+};
 
 QT_END_NAMESPACE
 
-#endif // QGSTTOOLS_GLOBAL_H
+#endif // QGSTREAMERVIDEOOVERLAY_P_H
+

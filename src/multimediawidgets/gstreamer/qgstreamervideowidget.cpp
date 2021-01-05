@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamervideowidget_p.h"
-#include "qgstutils_p.h"
+#include "private/qgstutils_p.h"
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qdebug.h>

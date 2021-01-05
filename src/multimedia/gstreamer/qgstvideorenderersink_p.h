@@ -151,7 +151,7 @@ private:
     bool m_flush = false;
 };
 
-class Q_GSTTOOLS_EXPORT QGstVideoRendererSink
+class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink
 {
 public:
     GstVideoSink parent;

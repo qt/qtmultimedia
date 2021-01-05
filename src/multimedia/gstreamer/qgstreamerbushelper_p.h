@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Jolla Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,15 +37,68 @@
 **
 ****************************************************************************/
 
-#include "qgstvideorendererplugin_p.h"
+#ifndef QGSTREAMERBUSHELPER_P_H
+#define QGSTREAMERBUSHELPER_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qtmultimediaglobal_p.h>
+#include <QObject>
+
+#include "qgstreamermessage_p.h"
+
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
-QGstVideoRendererPlugin::QGstVideoRendererPlugin(QObject *parent) :
-    QObject(parent)
+class QGstreamerSyncMessageFilter {
+public:
+    //returns true if message was processed and should be dropped, false otherwise
+    virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
+};
+#define QGstreamerSyncMessageFilter_iid "org.qt-project.qt.gstreamersyncmessagefilter/5.0"
+Q_DECLARE_INTERFACE(QGstreamerSyncMessageFilter, QGstreamerSyncMessageFilter_iid)
+
+
+class QGstreamerBusMessageFilter {
+public:
+    //returns true if message was processed and should be dropped, false otherwise
+    virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
+};
+#define QGstreamerBusMessageFilter_iid "org.qt-project.qt.gstreamerbusmessagefilter/5.0"
+Q_DECLARE_INTERFACE(QGstreamerBusMessageFilter, QGstreamerBusMessageFilter_iid)
+
+
+class QGstreamerBusHelperPrivate;
+
+class Q_MULTIMEDIA_EXPORT QGstreamerBusHelper : public QObject
 {
-}
+    Q_OBJECT
+    friend class QGstreamerBusHelperPrivate;
+
+public:
+    QGstreamerBusHelper(GstBus* bus, QObject* parent = 0);
+    ~QGstreamerBusHelper();
+
+    void installMessageFilter(QObject *filter);
+    void removeMessageFilter(QObject *filter);
+
+signals:
+    void message(QGstreamerMessage const& message);
+
+private:
+    QGstreamerBusHelperPrivate *d = nullptr;
+};
 
 QT_END_NAMESPACE
 
-#include "moc_qgstvideorendererplugin_p.cpp"
+#endif

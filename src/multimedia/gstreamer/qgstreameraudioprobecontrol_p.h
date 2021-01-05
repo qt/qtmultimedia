@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEOINPUTDEVICECONTROL_H
-#define QGSTREAMERVIDEOINPUTDEVICECONTROL_H
+#ifndef QGSTREAMERAUDIOPROBECONTROL_H
+#define QGSTREAMERAUDIOPROBECONTROL_H
 
 //
 //  W A R N I N G
@@ -51,45 +51,40 @@
 // We mean it.
 //
 
-#include <private/qgsttools_global_p.h>
-#include <qvideodeviceselectorcontrol.h>
-#include <QtCore/qstringlist.h>
-
+#include <private/qtmultimediaglobal_p.h>
 #include <gst/gst.h>
-#include <qcamera.h>
+#include <qmediaaudioprobecontrol.h>
+#include <QtCore/qmutex.h>
+#include <qaudiobuffer.h>
+#include <qshareddata.h>
+
+#include <private/qgstreamerbufferprobe_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_GSTTOOLS_EXPORT QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
+class Q_MULTIMEDIA_EXPORT QGstreamerAudioProbeControl
+    : public QMediaAudioProbeControl
+    , public QGstreamerBufferProbe
+    , public QSharedData
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    QGstreamerVideoInputDeviceControl(QObject *parent);
-    QGstreamerVideoInputDeviceControl(GstElementFactory *factory, QObject *parent);
-    ~QGstreamerVideoInputDeviceControl();
+    explicit QGstreamerAudioProbeControl(QObject *parent);
+    virtual ~QGstreamerAudioProbeControl();
 
-    int deviceCount() const override;
+protected:
+    void probeCaps(GstCaps *caps) override;
+    bool probeBuffer(GstBuffer *buffer) override;
 
-    QString deviceName(int index) const override;
-    QString deviceDescription(int index) const override;
-    QCamera::Position cameraPosition(int index) const override;
-    int cameraOrientation(int index) const override;
-
-    int defaultDevice() const override;
-    int selectedDevice() const override;
-
-    static QString primaryCamera() { return tr("Main camera"); }
-    static QString secondaryCamera() { return tr("Front camera"); }
-
-public Q_SLOTS:
-    void setSelectedDevice(int index) override;
+private slots:
+    void bufferProbed();
 
 private:
-    GstElementFactory *m_factory = nullptr;
-
-    int m_selectedDevice = 0;
+    QAudioBuffer m_pendingBuffer;
+    QAudioFormat m_format;
+    QMutex m_bufferMutex;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERAUDIOINPUTDEVICECONTROL_H
+#endif // QGSTREAMERAUDIOPROBECONTROL_H

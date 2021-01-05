@@ -6,9 +6,6 @@ include($$OUT_PWD/multimedia/qtmultimedia-config.pri)
 QT_FOR_CONFIG += multimedia-private
 
 # Everything else depends on multimedia
-src_qgsttools.subdir = gsttools
-src_qgsttools.depends = multimedia
-
 src_qtmmwidgets.subdir = multimediawidgets
 src_qtmmwidgets.depends = multimedia
 
@@ -37,16 +34,6 @@ qtHaveModule(widgets) {
 
     # If widgets is around, plugins depends on widgets too (imports does not)
     src_plugins.depends += src_qtmmwidgets
-
-    # same with qgsttools
-    src_qgsttools.depends += src_qtmmwidgets
-}
-
-qtConfig(gstreamer) {
-    SUBDIRS += src_qgsttools
-
-    # If gstreamer is present, then plugins should depend on it
-    src_plugins.depends += src_qgsttools
 }
 
 SUBDIRS += src_plugins

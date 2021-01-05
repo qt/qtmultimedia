@@ -1,4 +1,4 @@
-QT += quick multimedia multimediawidgets
+QT += quick multimedia multimediawidgets-private
 CONFIG += c++11
 
 SOURCES += main.cpp
@@ -13,7 +13,6 @@ isEmpty(GSTREAMER_ROOT_ANDROID): error("GSTREAMER_ROOT_ANDROID is empty")
 
 INCLUDEPATH += $(GSTREAMER_ROOT_ANDROID)/armv7/include/ $(GSTREAMER_ROOT_ANDROID)/armv7/include/gstreamer-1.0 $(GSTREAMER_ROOT_ANDROID)/armv7/include/glib-2.0 $(GSTREAMER_ROOT_ANDROID)/armv7/lib/glib-2.0/include
 
-QT+=multimediagsttools-private
 LIBS += -L$(GSTREAMER_ROOT_ANDROID)/armv7/lib/ -L$(GSTREAMER_ROOT_ANDROID)/armv7/lib/gstreamer-1.0  \
 -lgstcoreelements -lgstplayback -lgstvideotestsrc -lgstaudioconvert -lgstvideoconvert -lgstautodetect -lgsttypefindfunctions \
 #PLUGINS codecs

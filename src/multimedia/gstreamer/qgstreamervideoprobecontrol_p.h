@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERVIDEOOUTPUTCONTROL_H
-#define QGSTREAMERVIDEOOUTPUTCONTROL_H
+#ifndef QGSTREAMERVIDEOPROBECONTROL_H
+#define QGSTREAMERVIDEOPROBECONTROL_H
 
 //
 //  W A R N I N G
@@ -51,35 +51,46 @@
 // We mean it.
 //
 
+#include <private/qtmultimediaglobal_p.h>
 #include <gst/gst.h>
+#include <gst/video/video.h>
+#include <qmediavideoprobecontrol.h>
+#include <QtCore/qmutex.h>
+#include <qvideoframe.h>
+#include <qvideosurfaceformat.h>
 
-#include <QtCore/qobject.h>
+#include <private/qgstreamerbufferprobe_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoRendererInterface
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoProbeControl
+    : public QMediaVideoProbeControl
+    , public QGstreamerBufferProbe
+    , public QSharedData
 {
+    Q_OBJECT
 public:
-    virtual ~QGstreamerVideoRendererInterface();
-    virtual GstElement *videoSink() = 0;
-    virtual void setVideoSink(GstElement *) {};
+    explicit QGstreamerVideoProbeControl(QObject *parent);
+    virtual ~QGstreamerVideoProbeControl();
 
-    //stopRenderer() is called when the renderer element is stopped.
-    //it can be reimplemented when video renderer can't detect
-    //changes to NULL state but has to free video resources.
-    virtual void stopRenderer() {}
+    void probeCaps(GstCaps *caps) override;
+    bool probeBuffer(GstBuffer *buffer) override;
 
-    //the video output is configured, usually after the first paint event
-    //(winId is known,
-    virtual bool isReady() const { return true; }
+    void startFlushing();
+    void stopFlushing();
 
-    //signals:
-    //void sinkChanged();
-    //void readyChanged(bool);
+private slots:
+    void frameProbed();
+
+private:
+    QVideoSurfaceFormat m_format;
+    QVideoFrame m_pendingFrame;
+    QMutex m_frameMutex;
+    GstVideoInfo m_videoInfo;
+    bool m_flushing = false;
+    bool m_frameProbed = false; // true if at least one frame was probed
 };
 
-#define QGstreamerVideoRendererInterface_iid "org.qt-project.qt.gstreamervideorenderer/5.0"
-Q_DECLARE_INTERFACE(QGstreamerVideoRendererInterface, QGstreamerVideoRendererInterface_iid)
 QT_END_NAMESPACE
 
-#endif
+#endif // QGSTREAMERVIDEOPROBECONTROL_H
