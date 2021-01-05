@@ -66,12 +66,23 @@ public:
 
     bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
 
-    QCamera::LockTypes supportedLocks() const
+    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
+
+    QCamera::LockTypes supportedLocks() const override
     {
         return QCamera::NoLock;
     }
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
+    QCamera::LockStatus lockStatus(QCamera::LockType /*lock*/) const override { return QCamera::Unlocked; }
+
+    void searchAndLock(QCamera::LockTypes /*locks*/) override {}
+    void unlock(QCamera::LockTypes /*locks*/) override {}
+
+
+    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override { return {}; }
+
+    QCameraViewfinderSettings viewfinderSettings() const override { return {}; }
+    void setViewfinderSettings(const QCameraViewfinderSettings &/*settings*/) override {}
 
 public slots:
     void reloadLater();

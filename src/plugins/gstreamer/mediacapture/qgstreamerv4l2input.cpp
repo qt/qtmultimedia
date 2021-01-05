@@ -243,8 +243,8 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
                     break; //stepwise values are returned only for index 0
                 }
             }
-            allFrameRates.unite(frameRates.toSet());
-            m_ratesByResolution[s].unite(frameRates.toSet());
+            allFrameRates.unite(QSet<int>{frameRates.constBegin(), frameRates.constEnd()});
+            m_ratesByResolution[s].unite(QSet<int>{frameRates.constBegin(), frameRates.constEnd()});
         }
     }
 
@@ -256,7 +256,7 @@ void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)
 
     std::sort(m_frameRates.begin(), m_frameRates.end());
 
-    m_resolutions = allResolutions.toList();
+    m_resolutions = QList<QSize>{allResolutions.constBegin(), allResolutions.constEnd()};
     std::sort(m_resolutions.begin(), m_resolutions.end());
 
     //qDebug() << "frame rates:" << m_frameRates;

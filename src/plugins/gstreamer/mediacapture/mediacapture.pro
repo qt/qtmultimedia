@@ -29,7 +29,7 @@ SOURCES += $$PWD/qgstreamercaptureservice.cpp \
     $$PWD/qgstreamercaptureserviceplugin.cpp
 
 # Camera usage with gstreamer needs to have
-#CONFIG += use_gstreamer_camera
+CONFIG += use_gstreamer_camera
 
 use_gstreamer_camera:qtConfig(linux_v4l) {
     DEFINES += USE_GSTREAMER_CAMERA

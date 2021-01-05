@@ -144,7 +144,7 @@ QGstreamerCaptureService::~QGstreamerCaptureService()
 {
 }
 
-QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
+QObject *QGstreamerCaptureService::requestControl(const char *name)
 {
     if (!m_captureSession)
         return 0;
@@ -210,7 +210,7 @@ QMediaControl *QGstreamerCaptureService::requestControl(const char *name)
     return 0;
 }
 
-void QGstreamerCaptureService::releaseControl(QMediaControl *control)
+void QGstreamerCaptureService::releaseControl(QObject *control)
 {
     if (!control) {
         return;

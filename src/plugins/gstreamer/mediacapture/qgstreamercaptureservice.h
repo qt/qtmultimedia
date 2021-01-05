@@ -41,7 +41,6 @@
 #define QGSTREAMERCAPTURESERVICE_H
 
 #include <qmediaservice.h>
-#include <qmediacontrol.h>
 
 #include <gst/gst.h>
 
@@ -70,8 +69,8 @@ public:
     QGstreamerCaptureService(const QString &service, QObject *parent = 0);
     virtual ~QGstreamerCaptureService();
 
-    QMediaControl *requestControl(const char *name) override;
-    void releaseControl(QMediaControl *) override;
+    QObject *requestControl(const char *name) override;
+    void releaseControl(QObject *) override;
 
 private:
     void setAudioPreview(GstElement *);
@@ -86,7 +85,7 @@ private:
     QAudioInputSelectorControl *m_audioInputSelector;
     QVideoDeviceSelectorControl *m_videoInputDevice;
 
-    QMediaControl *m_videoOutput;
+    QObject *m_videoOutput;
 
     QGstreamerVideoRenderer *m_videoRenderer;
     QGstreamerVideoWindow *m_videoWindow;

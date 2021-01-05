@@ -41,6 +41,7 @@
 #define QGSTREAMERCAPTUREMETADATACONTROL_H
 
 #include <qmetadatawritercontrol.h>
+#include <qvariant.h>
 
 QT_BEGIN_NAMESPACE
 
