@@ -104,18 +104,19 @@ void QGstreamerAudioInputSelector::update()
     for (auto *d : sources) {
         auto *properties = gst_device_get_properties(d);
         if (properties) {
-            auto *desc = gst_device_get_display_name(d);
-            QString description = QString::fromUtf8(desc);
-            g_free(desc);
-            if (description.contains(u"Monitor")) // ### is there a better way to skip those?
-                continue;
-            m_descriptions << description;
+            auto *klass = gst_structure_get_string(properties, "device.class");
+            if (strcmp(klass, "monitor")) {
+                auto *desc = gst_device_get_display_name(d);
+                QString description = QString::fromUtf8(desc);
+                g_free(desc);
+                m_descriptions << description;
 
-            auto *name = gst_structure_get_string(properties, "sysfs.path");
-            m_names << QString::fromLatin1(name);
-            gboolean def;
-            if (gst_structure_get_boolean(properties, "is-default", &def) && def)
-                m_defaultInput = QString::fromLatin1(name);
+                auto *name = gst_structure_get_string(properties, "sysfs.path"); // ### Should this rather be "device.bus_path"?
+                m_names << QString::fromLatin1(name);
+                gboolean def;
+                if (gst_structure_get_boolean(properties, "is-default", &def) && def)
+                    m_defaultInput = QString::fromLatin1(name);
+            }
 
             gst_structure_free(properties);
         }

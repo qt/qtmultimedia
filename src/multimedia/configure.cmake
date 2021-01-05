@@ -97,7 +97,7 @@ qt_feature_definition("mmrenderer" "QT_NO_MMRENDERER" NEGATE VALUE "1")
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
     AUTODETECT UNIX
-    CONDITION libs.pulseaudio OR FIXME
+    CONDITION libs.pulseaudio AND NOT features.gstreamer
 )
 qt_feature_definition("pulseaudio" "QT_NO_PULSEAUDIO" NEGATE VALUE "1")
 qt_feature("wmsdk" PRIVATE

@@ -245,6 +245,11 @@ qt_add_docs(Multimedia
 
 qt_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     SOURCES
+        qaudiodeviceinfo_gstreamer.cpp qaudiodeviceinfo_gstreamer_p.h
+        qaudioengine_gstreamer.cpp qaudioengine_gstreamer_p.h
+        qaudioinput_gstreamer.cpp qaudioinput_gstreamer_p.h
+        qaudiointerface_gstreamer.cpp qaudiointerface_gstreamer_p.h
+        qaudiooutput_gstreamer.cpp qaudiooutput_gstreamer_p.h
         gstreamer/qgstcodecsinfo.cpp qgstcodecsinfo_p.h
         gstreamer/qgstreameraudioinputselector.cpp gstreamer/qgstreameraudioinputselector_p.h
         gstreamer/qgstreameraudioprobecontrol.cpp gstreamer/qgstreameraudioprobecontrol_p.h

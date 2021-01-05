@@ -40,6 +40,7 @@
 #include <QDebug>
 
 #include "qgstappsrc_p.h"
+#include "qgstutils_p.h"
 
 QGstAppSrc::QGstAppSrc(QObject *parent)
     : QObject(parent)
@@ -62,7 +63,7 @@ bool QGstAppSrc::setup(GstElement* appsrc)
         m_appSrc = 0;
     }
 
-    if (!appsrc || !m_stream)
+    if (!appsrc || (!m_stream && !m_buffer))
         return false;
 
     m_appSrc = GST_APP_SRC(appsrc);
@@ -77,6 +78,15 @@ bool QGstAppSrc::setup(GstElement* appsrc)
         m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     gst_app_src_set_stream_type(m_appSrc, m_streamType);
     gst_app_src_set_size(m_appSrc, (m_sequential) ? -1 : m_stream->size());
+    if (m_format.isValid()) {
+        GstCaps *caps = QGstUtils::capsForAudioFormat(m_format);
+        if (caps) {
+            g_object_set(m_appSrc, "caps",  caps, nullptr);
+            g_object_set(m_appSrc, "format", GST_FORMAT_TIME, nullptr);
+        } else {
+            qWarning() << "QGstAppSrc: Invalid caps";
+        }
+    }
 
     return true;
 }
@@ -137,8 +147,13 @@ void QGstAppSrc::streamDestroyed()
 
 void QGstAppSrc::pushDataToAppSrc()
 {
-    if (!isStreamValid() || !m_appSrc)
+    if ((!isStreamValid() && !m_buffer) || !m_appSrc)
         return;
+
+    if (m_stream->atEnd()) {
+        sendEOS();
+        return;
+    }
 
     if (m_dataRequested && !m_enoughData) {
         qint64 size;
@@ -147,35 +162,44 @@ void QGstAppSrc::pushDataToAppSrc()
         else
             size = qMin(m_stream->bytesAvailable(), (qint64)m_dataRequestSize);
 
-        if (size) {
-            GstBuffer* buffer = gst_buffer_new_and_alloc(size);
+        GstBuffer* buffer = gst_buffer_new_and_alloc(size);
 
-            GstMapInfo mapInfo;
-            gst_buffer_map(buffer, &mapInfo, GST_MAP_WRITE);
-            void* bufferData = mapInfo.data;
+        if (m_format.isValid()) {
+            uint nSamples = size/4;
 
-            buffer->offset = m_stream->pos();
-            qint64 bytesRead = m_stream->read((char*)bufferData, size);
-            buffer->offset_end =  buffer->offset + bytesRead - 1;
-
-            gst_buffer_unmap(buffer, &mapInfo);
-
-            if (bytesRead > 0) {
-                m_dataRequested = false;
-                m_enoughData = false;
-                GstFlowReturn ret = gst_app_src_push_buffer (GST_APP_SRC (element()), buffer);
-                if (ret == GST_FLOW_ERROR) {
-                    qWarning()<<"appsrc: push buffer error";
-                } else if (ret == GST_FLOW_FLUSHING) {
-                    qWarning()<<"appsrc: push buffer wrong state";
-                }
-            }
-        } else if (!m_sequential) {
-            sendEOS();
+            GST_BUFFER_TIMESTAMP(buffer) = gst_util_uint64_scale(streamedSamples, GST_SECOND, 48000);
+            GST_BUFFER_DURATION(buffer) = gst_util_uint64_scale(nSamples, GST_SECOND, 48000);
+            streamedSamples += nSamples;
         }
-    } else if (m_stream->atEnd() && !m_sequential) {
-        sendEOS();
+
+        GstMapInfo mapInfo;
+        gst_buffer_map(buffer, &mapInfo, GST_MAP_WRITE);
+        void* bufferData = mapInfo.data;
+
+        buffer->offset = m_stream->pos();
+        qint64 bytesRead;
+        if (m_buffer)
+            bytesRead = m_buffer->read((char*)bufferData, size);
+        else
+            bytesRead = m_stream->read((char*)bufferData, size);
+        buffer->offset_end =  buffer->offset + bytesRead - 1;
+
+        gst_buffer_unmap(buffer, &mapInfo);
+
+        if (bytesRead > 0) {
+            m_dataRequested = false;
+            m_enoughData = false;
+            GstFlowReturn ret = gst_app_src_push_buffer (GST_APP_SRC (element()), buffer);
+            if (ret == GST_FLOW_ERROR) {
+                qWarning()<<"appsrc: push buffer error";
+            } else if (ret == GST_FLOW_FLUSHING) {
+                qWarning()<<"appsrc: push buffer wrong state";
+            }
+        }
     }
+
+    if (m_stream->atEnd())
+        sendEOS();
 }
 
 bool QGstAppSrc::doSeek(qint64 value)
@@ -188,6 +212,9 @@ bool QGstAppSrc::doSeek(qint64 value)
 
 gboolean QGstAppSrc::on_seek_data(GstAppSrc *element, guint64 arg0, gpointer userdata)
 {
+    // we do get some spurious seeks to INT_MAX, ignore those
+    if (arg0 == std::numeric_limits<quint64>::max())
+        return true;
     Q_UNUSED(element);
     QGstAppSrc *self = reinterpret_cast<QGstAppSrc*>(userdata);
     if (self && self->isStreamValid()) {

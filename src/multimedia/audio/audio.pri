@@ -41,4 +41,5 @@ darwin:!watchos: include(coreaudio/coreaudio.pri)
 qnx: include(qnx/qnx.pri)
 qtConfig(pulseaudio): include(pulseaudio/pulseaudio.pri)
 qtConfig(alsa): include(alsa/alsa.pri)
+qtConfig(gstreamer): include(gstreamer/gstreamer.pri)
 

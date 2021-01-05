@@ -319,6 +319,7 @@ GstCaps *QGstUtils::capsForAudioFormat(const QAudioFormat &format)
                     "format"  , G_TYPE_STRING, gst_audio_format_to_string(qt_audioLookup[i].format),
                     "rate"    , G_TYPE_INT   , format.sampleRate(),
                     "channels", G_TYPE_INT   , format.channelCount(),
+                    "layout"  , G_TYPE_STRING, "interleaved",
                     nullptr);
     }
     return 0;
@@ -331,7 +332,7 @@ static QSet<GstDevice *> m_audioSinks;
 static void addDevice(GstDevice *device)
 {
     gchar *type = gst_device_get_device_class(device);
-//    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device);
+//    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device) << gst_structure_to_string(gst_device_get_properties(device));
     gst_object_ref(device);
     if (!strcmp(type, "Video/Source"))
         m_videoSources.insert(device);
@@ -359,11 +360,11 @@ static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer)
 
     switch (GST_MESSAGE_TYPE (message)) {
     case GST_MESSAGE_DEVICE_ADDED:
-        gst_message_parse_device_added (message, &device);
+        gst_message_parse_device_added(message, &device);
         addDevice(device);
         break;
     case GST_MESSAGE_DEVICE_REMOVED:
-        gst_message_parse_device_removed (message, &device);
+        gst_message_parse_device_removed(message, &device);
         removeDevice(device);
         break;
     default:
@@ -382,24 +383,24 @@ void setupDeviceMonitor()
 
     monitor = gst_device_monitor_new();
 
-    bus = gst_device_monitor_get_bus(monitor);
-    gst_bus_add_watch(bus, deviceMonitor, NULL);
-    gst_object_unref(bus);
-
     gst_device_monitor_add_filter (monitor, "Video/Source", NULL);
     gst_device_monitor_add_filter (monitor, "Audio/Source", NULL);
     gst_device_monitor_add_filter (monitor, "Audio/Sink", NULL);
 
-    auto devices = gst_device_monitor_get_devices(monitor);
-
-    while (devices) {
-        GstDevice *device = static_cast<GstDevice *>(devices->data);
-        addDevice(device);
-        gst_object_unref(device);
-        devices = g_list_delete_link(devices, devices);
-    }
+    bus = gst_device_monitor_get_bus(monitor);
+    gst_bus_add_watch(bus, deviceMonitor, NULL);
+    gst_object_unref(bus);
 
     gst_device_monitor_start(monitor);
+
+        auto devices = gst_device_monitor_get_devices(monitor);
+
+        while (devices) {
+            GstDevice *device = static_cast<GstDevice *>(devices->data);
+            addDevice(device);
+            gst_object_unref(device);
+            devices = g_list_delete_link(devices, devices);
+        }
 }
 
 

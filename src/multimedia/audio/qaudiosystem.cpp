@@ -40,7 +40,9 @@
 #include <private/qtmultimediaglobal_p.h>
 #include "qaudiosystem_p.h"
 
-#if QT_CONFIG(pulseaudio)
+#if QT_CONFIG(gstreamer)
+#include <private/qaudiointerface_gstreamer_p.h>
+#elif QT_CONFIG(pulseaudio)
 #include <private/qaudiointerface_pulse_p.h>
 #elif QT_CONFIG(alsa)
 #include <private/qalsainterface_p.h>
@@ -429,7 +431,9 @@ QAudioSystemInterface *QAudioSystemInterface::instance()
 {
     static QAudioSystemInterface *system = nullptr;
     if (!system) {
-#if QT_CONFIG(pulseaudio)
+#if QT_CONFIG(gstreamer)
+       system = new QGStreamerAudioInterface();
+#elif QT_CONFIG(pulseaudio)
        system = new QPulseAudioInterface();
 #elif QT_CONFIG(alsa)
        system = new QAlsaInterface();

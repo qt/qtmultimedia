@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTAPPSRC_H
-#define QGSTAPPSRC_H
+#ifndef QGSTREAMERAUDIODEVICEINFO_H
+#define QGSTREAMERAUDIODEVICEINFO_H
 
 //
 //  W A R N I N G
@@ -51,89 +51,42 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <qaudioformat.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qlist.h>
 
-#include <QtCore/qobject.h>
-#include <QtCore/qiodevice.h>
-#include <QtCore/private/qringbuffer_p.h>
+#include "qaudio.h"
+#include "qaudiodeviceinfo.h"
+#include <private/qaudiosystem_p.h>
 
 #include <gst/gst.h>
-#include <gst/app/gstappsrc.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QGstAppSrc  : public QObject
+class QGStreamerAudioDeviceInfo : public QAbstractAudioDeviceInfo
 {
     Q_OBJECT
+
 public:
-    QGstAppSrc(QObject *parent = 0);
-    ~QGstAppSrc();
+    QGStreamerAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+    ~QGStreamerAudioDeviceInfo();
 
-    bool setup(GstElement *);
+    QAudioFormat preferredFormat() const override;
+    bool isFormatSupported(const QAudioFormat &format) const override;
+    QString deviceName() const override;
+    QStringList supportedCodecs() override;
+    QList<int> supportedSampleRates() override;
+    QList<int> supportedChannelCounts() override;
+    QList<int> supportedSampleSizes() override;
+    QList<QAudioFormat::Endian> supportedByteOrders() override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() override;
 
-    void setStream(QIODevice *);
-    QIODevice *stream() const;
-
-    void setBuffer(QRingBuffer *buffer)
-    {
-        Q_ASSERT(!m_stream);
-        m_buffer = buffer;
-        m_sequential = true;
-    }
-    QRingBuffer *buffer() const
-    {
-        return m_buffer;
-    }
-
-    GstAppSrc *element();
-
-    qint64 queueSize() const { return m_maxBytes; }
-
-    bool isStreamValid() const
-    {
-        return m_stream != 0 && m_stream->isOpen();
-    }
-
-    void setAudioFormat(const QAudioFormat &f)
-    {
-        m_format = f;
-    }
-    QAudioFormat audioFormat() const
-    {
-        return m_format;
-    }
-
-private slots:
-    void pushDataToAppSrc();
-    bool doSeek(qint64);
-    void onDataReady();
-
-    void streamDestroyed();
-private:
-    static gboolean on_seek_data(GstAppSrc *element, guint64 arg0, gpointer userdata);
-    static void on_enough_data(GstAppSrc *element, gpointer userdata);
-    static void on_need_data(GstAppSrc *element, uint arg0, gpointer userdata);
-    static void destroy_notify(gpointer data);
-
-    void sendEOS();
-
-    QIODevice *m_stream = nullptr;
-    QRingBuffer *m_buffer = nullptr;
-    QAudioFormat m_format;
-
-    GstAppSrc *m_appSrc = nullptr;
-    bool m_sequential = false;
-    GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
-    GstAppSrcCallbacks m_callbacks;
-    qint64 m_maxBytes = 0;
-    unsigned int m_dataRequestSize = ~0;
-    bool m_dataRequested = false;
-    bool m_enoughData = false;
-    bool m_forceData = false;
-    int streamedSamples = 0;
+    QByteArray m_device;
+    QAudio::Mode m_mode;
+    GstDevice *gstDevice = nullptr;
 };
 
 QT_END_NAMESPACE
 
 #endif
+

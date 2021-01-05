@@ -193,7 +193,7 @@
         "pulseaudio": {
             "label": "PulseAudio",
             "autoDetect": "config.unix",
-            "condition": "libs.pulseaudio",
+            "condition": "libs.pulseaudio && !features.gstreamer",
             "output": [ "feature", "privateFeature" ]
         },
         "wmsdk": {
