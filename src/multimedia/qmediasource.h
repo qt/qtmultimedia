@@ -68,8 +68,8 @@ public:
     int notifyInterval() const;
     void setNotifyInterval(int milliSeconds);
 
-    bool bind(QObject *);
-    void unbind(QObject *);
+    bool bind(QMediaSink *);
+    void unbind(QMediaSink *);
 
     bool isMetaDataAvailable() const;
 

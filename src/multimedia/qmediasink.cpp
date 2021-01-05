@@ -63,20 +63,27 @@ QMediaSink::~QMediaSink()
 }
 
 /*!
-    \fn QMediaSink::mediaSource() const;
+    \fn QMediaSink::mediaSource() const
 
     Return the currently attached media object.
 */
 
 
 /*!
-    \fn QMediaSink::setMediaSource(QMediaSource *object);
+    \fn QMediaSink::setMediaSource(QMediaSource *object)
 
     Attaches to the media \a object.
     Returns true if attached successfully, otherwise returns false.
 */
 
+/*!
+  \fn QObject *QMediaSink::asObject()
 
+  returns this QMediaSink cast to a QObject
+
+  Reimplement this method to simply return the object that implements the QMediaSink interface.
+  This is required so Qt can operate with QObjects when connecting QMediaSource's to QMediaSink's.
+*/
 
 QT_END_NAMESPACE
 

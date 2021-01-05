@@ -1005,46 +1005,27 @@ QStringList QMediaPlayer::supportedMimeTypes(Flags flags)
 }
 
 /*!
-    \fn void QMediaPlayer::setVideoOutput(QVideoWidget* output)
-
-    Attach a QVideoWidget video \a output to the media player.
+    Attach a video \a output to the media player.
 
     If the media player has already video output attached,
     it will be replaced with a new one.
 */
-void QMediaPlayer::setVideoOutput(QVideoWidget *output)
+void QMediaPlayer::setVideoOutput(QMediaSink *output)
 {
     Q_D(QMediaPlayer);
 
     if (d->videoOutput)
-        unbind(d->videoOutput);
+        unbind(qobject_cast<QMediaSink *>(d->videoOutput));
 
-    // We don't know (in this library) that QVideoWidget inherits QObject
-    QObject *outputObject = reinterpret_cast<QObject*>(output);
+    if (!output) {
+        d->videoOutput = nullptr;
+        return;
+    }
 
-    d->videoOutput = outputObject && bind(outputObject) ? outputObject : nullptr;
-}
+    QObject *outputObject = output->asObject();
+    Q_ASSERT(outputObject);
 
-/*!
-    \fn void QMediaPlayer::setVideoOutput(QGraphicsVideoItem* output)
-
-    Attach a QGraphicsVideoItem video \a output to the media player.
-
-    If the media player has already video output attached,
-    it will be replaced with a new one.
-*/
-void QMediaPlayer::setVideoOutput(QGraphicsVideoItem *output)
-{
-    Q_D(QMediaPlayer);
-
-    if (d->videoOutput)
-        unbind(d->videoOutput);
-
-    // We don't know (in this library) that QGraphicsVideoItem (multiply) inherits QObject
-    // but QObject inheritance depends on QObject coming first, so try this out.
-    QObject *outputObject = reinterpret_cast<QObject*>(output);
-
-    d->videoOutput = outputObject && bind(outputObject) ? outputObject : nullptr;
+    d->videoOutput = bind(output) ? outputObject : nullptr;
 }
 
 /*!
@@ -1059,20 +1040,7 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
     Q_D(QMediaPlayer);
 
     d->surfaceOutput.setVideoSurface(surface);
-
-    if (d->videoOutput != &d->surfaceOutput) {
-        if (d->videoOutput)
-            unbind(d->videoOutput);
-
-        d->videoOutput = nullptr;
-
-        if (surface && bind(&d->surfaceOutput))
-            d->videoOutput =  &d->surfaceOutput;
-    }  else if (!surface) {
-        //unbind the surfaceOutput if null surface is set
-        unbind(&d->surfaceOutput);
-        d->videoOutput = nullptr;
-    }
+    setVideoOutput(surface ? &d->surfaceOutput : nullptr);
 }
 
 /*!

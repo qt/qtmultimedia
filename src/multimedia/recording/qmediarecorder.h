@@ -111,6 +111,7 @@ public:
     ~QMediaRecorder();
 
     QMediaSource *mediaSource() const override;
+    QObject *asObject() override { return this; }
 
     bool isAvailable() const;
     QMultimedia::AvailabilityStatus availability() const;

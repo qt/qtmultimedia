@@ -70,6 +70,7 @@ public:
     ~QVideoWidget();
 
     QMediaSource *mediaSource() const override;
+    QObject *asObject() override { return this; }
     QAbstractVideoSurface *videoSurface() const;
 
 #ifdef Q_QDOC

@@ -51,8 +51,6 @@ QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
 class QMediaPlaylist;
-class QVideoWidget;
-class QGraphicsVideoItem;
 
 class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
@@ -127,8 +125,7 @@ public:
                                                    Flags flags = Flags());
     static QStringList supportedMimeTypes(Flags flags = Flags());
 
-    void setVideoOutput(QVideoWidget *);
-    void setVideoOutput(QGraphicsVideoItem *);
+    void setVideoOutput(QMediaSink *);
     void setVideoOutput(QAbstractVideoSurface *surface);
     void setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces);
 

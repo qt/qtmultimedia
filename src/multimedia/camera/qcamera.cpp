@@ -448,12 +448,10 @@ QCameraImageProcessing *QCamera::imageProcessing() const
 }
 
 /*!
-    Sets the QVideoWidget based camera \a viewfinder.
+    Sets the QMediaSink based camera \a viewfinder.
     The previously set viewfinder is detached.
-
-    //! QVideoWidget is forward declared.
 */
-void QCamera::setViewfinder(QVideoWidget *viewfinder)
+void QCamera::setViewfinder(QMediaSink *viewfinder)
 {
     Q_D(QCamera);
     d->_q_preparePropertyChange(QCameraControl::Viewfinder);
@@ -461,31 +459,12 @@ void QCamera::setViewfinder(QVideoWidget *viewfinder)
     if (d->viewfinder)
         unbind(d->viewfinder);
 
-    // We don't know (in this library) that QVideoWidget inherits QObject
-    QObject *viewFinderObject = reinterpret_cast<QObject*>(viewfinder);
+    if (!viewfinder) {
+        d->viewfinder = nullptr;
+        return;
+    }
 
-    d->viewfinder = viewFinderObject && bind(viewFinderObject) ? viewFinderObject : nullptr;
-}
-
-/*!
-    Sets the QGraphicsVideoItem based camera \a viewfinder.
-    The previously set viewfinder is detached.
-
-    //! QGraphicsVideoItem is forward declared.
-*/
-void QCamera::setViewfinder(QGraphicsVideoItem *viewfinder)
-{
-    Q_D(QCamera);
-    d->_q_preparePropertyChange(QCameraControl::Viewfinder);
-
-    if (d->viewfinder)
-        unbind(d->viewfinder);
-
-    // We don't know (in this library) that QGraphicsVideoItem (multiply) inherits QObject
-    // but QObject inheritance depends on QObject coming first, so try this out.
-    QObject *viewFinderObject = reinterpret_cast<QObject*>(viewfinder);
-
-    d->viewfinder = viewFinderObject && bind(viewFinderObject) ? viewFinderObject : nullptr;
+    d->viewfinder = bind(viewfinder) ? viewfinder : nullptr;
 }
 
 /*!
@@ -500,20 +479,7 @@ void QCamera::setViewfinder(QAbstractVideoSurface *surface)
     Q_D(QCamera);
 
     d->surfaceViewfinder.setVideoSurface(surface);
-
-    if (d->viewfinder != &d->surfaceViewfinder) {
-        if (d->viewfinder)
-            unbind(d->viewfinder);
-
-        d->viewfinder = nullptr;
-
-        if (surface && bind(&d->surfaceViewfinder))
-            d->viewfinder = &d->surfaceViewfinder;
-    } else if (!surface) {
-        //unbind the surfaceViewfinder if null surface is set
-        unbind(&d->surfaceViewfinder);
-        d->viewfinder = nullptr;
-    }
+    setViewfinder(surface ? &d->surfaceViewfinder : nullptr);
 }
 
 /*!

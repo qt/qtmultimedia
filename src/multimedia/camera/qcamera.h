@@ -59,8 +59,6 @@ QT_BEGIN_NAMESPACE
 
 
 class QAbstractVideoSurface;
-class QVideoWidget;
-class QGraphicsVideoItem;
 class QCameraInfo;
 
 class QCameraPrivate;
@@ -181,8 +179,7 @@ public:
     QCameraFocus *focus() const;
     QCameraImageProcessing *imageProcessing() const;
 
-    void setViewfinder(QVideoWidget *viewfinder);
-    void setViewfinder(QGraphicsVideoItem *viewfinder);
+    void setViewfinder(QMediaSink *viewfinder);
     void setViewfinder(QAbstractVideoSurface *surface);
 
     QCameraViewfinderSettings viewfinderSettings() const;

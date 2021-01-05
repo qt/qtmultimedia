@@ -99,7 +99,7 @@ public:
     QCameraFocus *cameraFocus;
     QCameraImageProcessing *imageProcessing;
 
-    QObject *viewfinder;
+    QMediaSink *viewfinder;
     QObject *capture;
 
     QCamera::State state;

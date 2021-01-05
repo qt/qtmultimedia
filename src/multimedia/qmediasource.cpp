@@ -168,21 +168,20 @@ void QMediaSource::setNotifyInterval(int milliSeconds)
 
     \sa QMediaSink
 */
-bool QMediaSource::bind(QObject *object)
+bool QMediaSource::bind(QMediaSink *sink)
 {
-    QMediaSink *helper = qobject_cast<QMediaSink*>(object);
-    if (!helper)
+    if (!sink)
         return false;
 
-    QMediaSource *currentObject = helper->mediaSource();
+    QMediaSource *currentObject = sink->mediaSource();
 
     if (currentObject == this)
         return true;
 
     if (currentObject)
-        currentObject->unbind(object);
+        currentObject->unbind(sink);
 
-    return helper->setMediaSource(this);
+    return sink->setMediaSource(this);
 }
 
 /*!
@@ -194,12 +193,10 @@ bool QMediaSource::bind(QObject *object)
 
     \sa QMediaSink
 */
-void QMediaSource::unbind(QObject *object)
+void QMediaSource::unbind(QMediaSink *sink)
 {
-    QMediaSink *helper = qobject_cast<QMediaSink*>(object);
-
-    if (helper && helper->mediaSource() == this)
-        helper->setMediaSource(nullptr);
+    if (sink && sink->mediaSource() == this)
+        sink->setMediaSource(nullptr);
     else
         qWarning() << "QMediaSource: Trying to unbind not connected helper object";
 }

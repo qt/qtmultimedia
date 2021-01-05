@@ -66,6 +66,7 @@ public:
     ~QGraphicsVideoItem();
 
     QMediaSource *mediaSource() const override;
+    QObject *asObject() override { return this; }
     QAbstractVideoSurface *videoSurface() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;

@@ -71,6 +71,7 @@ public:
     ~QVideoSurfaceOutput();
 
     QMediaSource *mediaSource() const override;
+    QObject *asObject() override { return this; }
 
     void setVideoSurface(QAbstractVideoSurface *surface);
 

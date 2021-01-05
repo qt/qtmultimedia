@@ -53,6 +53,7 @@ public:
     virtual ~QMediaSink();
 
     virtual QMediaSource *mediaSource() const = 0;
+    virtual QObject *asObject() = 0;
 
 protected:
     friend class QMediaSource;
