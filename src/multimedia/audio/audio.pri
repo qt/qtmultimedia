@@ -18,7 +18,6 @@ PRIVATE_HEADERS += \
            audio/qsamplecache_p.h \
            audio/qaudiohelpers_p.h \
            audio/qaudiosystem_p.h  \
-           audio/qsoundeffect_qaudio_p.h
 
 SOURCES += \
            audio/qaudio.cpp \
@@ -34,8 +33,7 @@ SOURCES += \
            audio/qaudiobuffer.cpp \
            audio/qaudioprobe.cpp \
            audio/qaudiodecoder.cpp \
-           audio/qaudiohelpers.cpp \
-           audio/qsoundeffect_qaudio_p.cpp
+           audio/qaudiohelpers.cpp
 
 android: include(opensles/opensles.pri)
 win32: include(windows/windows.pri)

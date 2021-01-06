@@ -39,9 +39,222 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qsoundeffect.h"
-#include "qsoundeffect_qaudio_p.h"
+#include "qsamplecache_p.h"
+#include "qaudiodeviceinfo.h"
+#include "qaudiooutput.h"
 
 QT_BEGIN_NAMESPACE
+
+Q_GLOBAL_STATIC(QSampleCache, sampleCache)
+
+class QSoundEffectPrivate : public QIODevice
+{
+public:
+    QSoundEffectPrivate(QSoundEffect *q, const QAudioDeviceInfo &audioDevice = QAudioDeviceInfo());
+    ~QSoundEffectPrivate() {}
+
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
+
+    void setLoopsRemaining(int loopsRemaining);
+    void setStatus(QSoundEffect::Status status);
+    void setPlaying(bool playing);
+
+public Q_SLOTS:
+    void sampleReady();
+    void decoderError();
+    void stateChanged(QAudio::State);
+
+public:
+    QSoundEffect *q_ptr;
+    QUrl m_url;
+    int m_loopCount = 1;
+    int m_runningCount = 0;
+    bool m_playing = false;
+    QSoundEffect::Status  m_status = QSoundEffect::Null;
+    QAudioOutput *m_audioOutput = nullptr;
+    QSample *m_sample = nullptr;
+    bool m_muted = false;
+    qreal m_volume = 1.0;
+    bool m_sampleReady = false;
+    qint64 m_offset = 0;
+    QString m_category;
+    QAudioDeviceInfo m_audioDevice;
+};
+
+QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDeviceInfo &audioDevice)
+    : QIODevice(q)
+    , q_ptr(q)
+    , m_audioDevice(audioDevice)
+{
+    m_category = QLatin1String("game");
+    open(QIODevice::ReadOnly);
+}
+
+void QSoundEffectPrivate::sampleReady()
+{
+    if (m_status == QSoundEffect::Error)
+        return;
+
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << this << "sampleReady "<<m_playing;
+#endif
+    disconnect(m_sample, &QSample::error, this, &QSoundEffectPrivate::decoderError);
+    disconnect(m_sample, &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
+    if (!m_audioOutput) {
+        if (m_audioDevice.isNull())
+            m_audioOutput = new QAudioOutput(m_sample->format());
+        else
+            m_audioOutput = new QAudioOutput(m_audioDevice, m_sample->format());
+        connect(m_audioOutput, &QAudioOutput::stateChanged, this, &QSoundEffectPrivate::stateChanged);
+        if (!m_muted)
+            m_audioOutput->setVolume(m_volume);
+        else
+            m_audioOutput->setVolume(0);
+    }
+    m_sampleReady = true;
+    setStatus(QSoundEffect::Ready);
+
+    if (m_playing && m_audioOutput->state() == QAudio::StoppedState)
+        m_audioOutput->start(this);
+}
+
+void QSoundEffectPrivate::decoderError()
+{
+    qWarning("QSoundEffect(qaudio): Error decoding source %ls", qUtf16Printable(m_url.toString()));
+    disconnect(m_sample, &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
+    disconnect(m_sample, &QSample::error, this, &QSoundEffectPrivate::decoderError);
+    m_playing = false;
+    setStatus(QSoundEffect::Error);
+}
+
+void QSoundEffectPrivate::stateChanged(QAudio::State state)
+{
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << this << "stateChanged " << state;
+#endif
+    if ((state == QAudio::IdleState && m_runningCount == 0)
+         || (state == QAudio::StoppedState && m_audioOutput->error() != QAudio::NoError))
+        emit q_ptr->stop();
+}
+
+qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
+{
+    if ((m_runningCount > 0  || m_runningCount == QSoundEffect::Infinite) && m_playing) {
+
+        if (m_sample->state() != QSample::Ready)
+            return 0;
+
+        qint64 bytesWritten = 0;
+
+        const int   periodSize = m_audioOutput->periodSize();
+        const int   sampleSize = m_sample->data().size();
+        const char* sampleData = m_sample->data().constData();
+
+        // Some systems can have large buffers we only need a max of three
+        int    periodsFree = qMin(3, (int)(m_audioOutput->bytesFree()/periodSize));
+        int    dataOffset = 0;
+
+#ifdef QT_QAUDIO_DEBUG
+        qDebug() << "bytesFree=" << m_audioOutput->bytesFree() << ", can fit " << periodsFree << " periodSize() chunks";
+#endif
+
+        while ((periodsFree > 0) && (bytesWritten + periodSize
+                                     <= len)) {
+
+            if (sampleSize - m_offset >= periodSize) {
+                // We can fit a whole period of data
+                memcpy(data + dataOffset, sampleData + m_offset, periodSize);
+                m_offset += periodSize;
+                dataOffset += periodSize;
+                bytesWritten += periodSize;
+#ifdef QT_QAUDIO_DEBUG
+                qDebug() << "WHOLE PERIOD: bytesWritten=" << bytesWritten << ", offset=" << m_offset
+                         << ", filesize=" << sampleSize;
+#endif
+            } else {
+                // We are at end of sound, first write what is left of current sound
+                memcpy(data + dataOffset, sampleData + m_offset, sampleSize - m_offset);
+                bytesWritten += sampleSize - m_offset;
+                int wrapLen = periodSize - (sampleSize - m_offset);
+                if (wrapLen > sampleSize)
+                    wrapLen = sampleSize;
+#ifdef QT_QAUDIO_DEBUG
+                qDebug() << "END OF SOUND: bytesWritten=" << bytesWritten << ", offset=" << m_offset
+                         << ", part1=" << (sampleSize-m_offset);
+#endif
+                dataOffset += (sampleSize - m_offset);
+                m_offset = 0;
+
+                if (m_runningCount > 0 && m_runningCount != QSoundEffect::Infinite)
+                    setLoopsRemaining(m_runningCount-1);
+
+                if (m_runningCount > 0 || m_runningCount == QSoundEffect::Infinite) {
+                    // There are still more loops of this sound to play, append the start of sound to make up full period
+                    memcpy(data + dataOffset, sampleData + m_offset, wrapLen);
+                    m_offset += wrapLen;
+                    dataOffset += wrapLen;
+                    bytesWritten += wrapLen;
+#ifdef QT_QAUDIO_DEBUG
+                    qDebug() << "APPEND START FOR FULL PERIOD: bytesWritten=" << bytesWritten << ", offset=" << m_offset
+                             << ", part2=" << wrapLen;
+                    qDebug() << "part1 + part2 should be a period " << periodSize;
+#endif
+                }
+            }
+            if (m_runningCount == 0)
+                break;
+
+            periodsFree--;
+        }
+        return bytesWritten;
+    }
+
+    return 0;
+}
+
+qint64 QSoundEffectPrivate::writeData(const char *data, qint64 len)
+{
+    Q_UNUSED(data);
+    Q_UNUSED(len);
+    return 0;
+}
+
+void QSoundEffectPrivate::setLoopsRemaining(int loopsRemaining)
+{
+    if (m_runningCount == loopsRemaining)
+        return;
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << this << "setLoopsRemaining " << loopsRemaining;
+#endif
+    m_runningCount = loopsRemaining;
+    emit q_ptr->loopsRemainingChanged();
+}
+
+void QSoundEffectPrivate::setStatus(QSoundEffect::Status status)
+{
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << this << "setStatus" << status;
+#endif
+    if (m_status == status)
+        return;
+    bool oldLoaded = q_ptr->isLoaded();
+    m_status = status;
+    emit q_ptr->statusChanged();
+    if (oldLoaded != q_ptr->isLoaded())
+        emit q_ptr->loadedChanged();
+}
+
+void QSoundEffectPrivate::setPlaying(bool playing)
+{
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << this << "setPlaying(" << playing << ")";
+#endif
+    if (m_playing == playing)
+        return;
+    m_playing = playing;
+    emit q_ptr->playingChanged();
+}
 
 /*!
     \class QSoundEffect
@@ -106,24 +319,11 @@ QT_BEGIN_NAMESPACE
     sound effects.
 */
 
-static QSoundEffectPrivate *initPrivate(QSoundEffect *self, QSoundEffectPrivate *d)
-{
-    QObject::connect(d, &QSoundEffectPrivate::loopsRemainingChanged, self, &QSoundEffect::loopsRemainingChanged);
-    QObject::connect(d, &QSoundEffectPrivate::volumeChanged, self, &QSoundEffect::volumeChanged);
-    QObject::connect(d, &QSoundEffectPrivate::mutedChanged, self, &QSoundEffect::mutedChanged);
-    QObject::connect(d, &QSoundEffectPrivate::loadedChanged, self, &QSoundEffect::loadedChanged);
-    QObject::connect(d, &QSoundEffectPrivate::playingChanged, self, &QSoundEffect::playingChanged);
-    QObject::connect(d, &QSoundEffectPrivate::statusChanged, self, &QSoundEffect::statusChanged);
-    QObject::connect(d, &QSoundEffectPrivate::categoryChanged, self, &QSoundEffect::categoryChanged);
-
-    return d;
-}
 /*!
     Creates a QSoundEffect with the given \a parent.
 */
 QSoundEffect::QSoundEffect(QObject *parent)
-    : QObject(parent)
-    , d(initPrivate(this, new QSoundEffectPrivate(this)))
+    : QSoundEffect(QAudioDeviceInfo(), parent)
 {
 }
 
@@ -132,7 +332,7 @@ QSoundEffect::QSoundEffect(QObject *parent)
 */
 QSoundEffect::QSoundEffect(const QAudioDeviceInfo &audioDevice, QObject *parent)
     : QObject(parent)
-    , d(initPrivate(this, new QSoundEffectPrivate(audioDevice, this)))
+    , d(new QSoundEffectPrivate(this, audioDevice))
 {
 }
 
@@ -141,7 +341,13 @@ QSoundEffect::QSoundEffect(const QAudioDeviceInfo &audioDevice, QObject *parent)
  */
 QSoundEffect::~QSoundEffect()
 {
-    d->release();
+    stop();
+    if (d->m_audioOutput) {
+        d->m_audioOutput->stop();
+        d->m_audioOutput->deleteLater();
+        d->m_sample->release();
+    }
+    delete d;
 }
 
 /*!
@@ -151,7 +357,15 @@ QSoundEffect::~QSoundEffect()
 */
 QStringList QSoundEffect::supportedMimeTypes()
 {
-    return QSoundEffectPrivate::supportedMimeTypes();
+    // Only return supported mime types if we have a audio device available
+    const QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    if (devices.size() <= 0)
+        return QStringList();
+
+    return QStringList() << QLatin1String("audio/x-wav")
+                         << QLatin1String("audio/wav")
+                         << QLatin1String("audio/wave")
+                         << QLatin1String("audio/x-pn-wav");
 }
 
 /*!
@@ -173,16 +387,67 @@ QStringList QSoundEffect::supportedMimeTypes()
 /*! Returns the URL of the current source to play */
 QUrl QSoundEffect::source() const
 {
-    return d->source();
+    return d->m_url;
 }
 
 /*! Set the current URL to play to \a url. */
 void QSoundEffect::setSource(const QUrl &url)
 {
-    if (d->source() == url)
+    if (d->m_url == url)
         return;
 
-    d->setSource(url);
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << this << "setSource current=" << d->m_url << ", to=" << url;
+#endif
+    Q_ASSERT(d->m_url != url);
+
+    stop();
+
+    d->m_url = url;
+
+    d->m_sampleReady = false;
+
+    if (url.isEmpty()) {
+        d->setStatus(QSoundEffect::Null);
+        return;
+    }
+
+    if (!url.isValid()) {
+        d->setStatus(QSoundEffect::Error);
+        return;
+    }
+
+    if (d->m_sample) {
+        if (!d->m_sampleReady) {
+            QObject::disconnect(d->m_sample, &QSample::error, d, &QSoundEffectPrivate::decoderError);
+            QObject::disconnect(d->m_sample, &QSample::ready, d, &QSoundEffectPrivate::sampleReady);
+        }
+        d->m_sample->release();
+        d->m_sample = nullptr;
+    }
+
+    if (d->m_audioOutput) {
+        QObject::disconnect(d->m_audioOutput, &QAudioOutput::stateChanged, d, &QSoundEffectPrivate::stateChanged);
+        d->m_audioOutput->stop();
+        d->m_audioOutput->deleteLater();
+        d->m_audioOutput = nullptr;
+    }
+
+    d->setStatus(QSoundEffect::Loading);
+    d->m_sample = sampleCache()->requestSample(url);
+    QObject::connect(d->m_sample, &QSample::error, d, &QSoundEffectPrivate::decoderError);
+    QObject::connect(d->m_sample, &QSample::ready, d, &QSoundEffectPrivate::sampleReady);
+
+    switch (d->m_sample->state()) {
+    case QSample::Ready:
+        d->sampleReady();
+        break;
+    case QSample::Error:
+        d->decoderError();
+        break;
+    default:
+        break;
+    }
 
     emit sourceChanged();
 }
@@ -213,7 +478,7 @@ void QSoundEffect::setSource(const QUrl &url)
  */
 int QSoundEffect::loopCount() const
 {
-    return d->loopCount();
+    return d->m_loopCount;
 }
 
 /*!
@@ -240,10 +505,12 @@ void QSoundEffect::setLoopCount(int loopCount)
     }
     if (loopCount == 0)
         loopCount = 1;
-    if (d->loopCount() == loopCount)
+    if (d->m_loopCount == loopCount)
         return;
 
-    d->setLoopCount(loopCount);
+    d->m_loopCount = loopCount;
+    if (d->m_playing)
+        d->setLoopsRemaining(loopCount);
     emit loopCountChanged();
 }
 
@@ -261,7 +528,7 @@ void QSoundEffect::setLoopCount(int loopCount)
 */
 int QSoundEffect::loopsRemaining() const
 {
-    return d->loopsRemaining();
+    return d->m_runningCount;
 }
 
 
@@ -291,7 +558,10 @@ int QSoundEffect::loopsRemaining() const
  */
 qreal QSoundEffect::volume() const
 {
-    return d->volume();
+    if (d->m_audioOutput && !d->m_muted)
+        return d->m_audioOutput->volume();
+
+    return d->m_volume;
 }
 
 /*!
@@ -309,10 +579,15 @@ qreal QSoundEffect::volume() const
 void QSoundEffect::setVolume(qreal volume)
 {
     volume = qBound(qreal(0.0), volume, qreal(1.0));
-    if (qFuzzyCompare(d->volume(), volume))
+    if (d->m_volume == volume)
         return;
 
-    d->setVolume(volume);
+    d->m_volume = volume;
+
+    if (d->m_audioOutput && !d->m_muted)
+        d->m_audioOutput->setVolume(volume);
+
+    emit volumeChanged();
 }
 
 /*!
@@ -330,7 +605,7 @@ void QSoundEffect::setVolume(qreal volume)
 /*! Returns whether this sound effect is muted */
 bool QSoundEffect::isMuted() const
 {
-    return d->isMuted();
+    return d->m_muted;
 }
 
 /*!
@@ -342,10 +617,16 @@ bool QSoundEffect::isMuted() const
 */
 void QSoundEffect::setMuted(bool muted)
 {
-    if (d->isMuted() == muted)
+    if (d->m_muted == muted)
         return;
 
-    d->setMuted(muted);
+    if (muted && d->m_audioOutput)
+        d->m_audioOutput->setVolume(0);
+    else if (!muted && d->m_audioOutput && d->m_muted)
+        d->m_audioOutput->setVolume(d->m_volume);
+
+    d->m_muted = muted;
+    emit mutedChanged();
 }
 
 /*!
@@ -360,7 +641,7 @@ void QSoundEffect::setMuted(bool muted)
 */
 bool QSoundEffect::isLoaded() const
 {
-    return d->isLoaded();
+    return d->m_status == QSoundEffect::Ready;
 }
 
 /*!
@@ -381,7 +662,18 @@ bool QSoundEffect::isLoaded() const
 */
 void QSoundEffect::play()
 {
-    d->play();
+    d->m_offset = 0;
+    d->setLoopsRemaining(d->m_loopCount);
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << this << "play";
+#endif
+    if (d->m_status == QSoundEffect::Null || d->m_status == QSoundEffect::Error) {
+        d->setStatus(QSoundEffect::Null);
+        return;
+    }
+    d->setPlaying(true);
+    if (d->m_audioOutput && d->m_audioOutput->state() == QAudio::StoppedState && d->m_sampleReady)
+        d->m_audioOutput->start(d);
 }
 
 /*!
@@ -398,7 +690,7 @@ void QSoundEffect::play()
 /*! Returns true if the sound effect is currently playing, or false otherwise */
 bool QSoundEffect::isPlaying() const
 {
-    return d->isPlaying();
+    return d->m_playing;
 }
 
 /*!
@@ -438,7 +730,7 @@ bool QSoundEffect::isPlaying() const
  */
 QSoundEffect::Status QSoundEffect::status() const
 {
-    return d->status();
+    return d->m_status;
 }
 
 /*!
@@ -479,7 +771,7 @@ QSoundEffect::Status QSoundEffect::status() const
 */
 QString QSoundEffect::category() const
 {
-    return d->category();
+    return d->m_category;
 }
 
 /*!
@@ -500,7 +792,10 @@ QString QSoundEffect::category() const
  */
 void QSoundEffect::setCategory(const QString &category)
 {
-    d->setCategory(category);
+    if (d->m_category != category && !d->m_playing) {
+        d->m_category = category;
+        emit categoryChanged();
+    }
 }
 
 
@@ -518,7 +813,17 @@ void QSoundEffect::setCategory(const QString &category)
  */
 void QSoundEffect::stop()
 {
-    d->stop();
+    if (!d->m_playing)
+        return;
+#ifdef QT_QAUDIO_DEBUG
+    qDebug() << "stop()";
+#endif
+    d->m_offset = 0;
+
+    d->setPlaying(false);
+
+    if (d->m_audioOutput)
+        d->m_audioOutput->stop();
 }
 
 /* Signals */
@@ -638,7 +943,6 @@ void QSoundEffect::stop()
 
     The corresponding handler is \c onCategoryChanged.
 */
-
 
 QT_END_NAMESPACE
 

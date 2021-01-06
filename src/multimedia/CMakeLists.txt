@@ -20,7 +20,6 @@ qt_add_module(Multimedia
         audio/qaudiosystem.cpp audio/qaudiosystem_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
-        audio/qsoundeffect_qaudio_p.cpp audio/qsoundeffect_qaudio_p.h
         audio/qwavedecoder_p.cpp audio/qwavedecoder_p.h
         camera/qcamera.cpp camera/qcamera.h camera/qcamera_p.h
         camera/qcameraexposure.cpp camera/qcameraexposure.h
