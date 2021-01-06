@@ -118,12 +118,9 @@ QT_BEGIN_NAMESPACE
     The default audio output device is used with the output
     \a format parameters.
 */
-QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent):
-    QObject(parent)
+QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent)
+    : QAudioOutput({}, format, parent)
 {
-    d = QAudioDeviceFactory::createDefaultOutputDevice(format);
-    connect(d, SIGNAL(notify()), SIGNAL(notify()));
-    connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }
 
 /*!
@@ -134,7 +131,7 @@ QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent):
 QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QAudioDeviceFactory::createOutputDevice(audioDevice, format);
+    d = QAudioDeviceFactory::createOutputDevice(format, audioDevice);
     connect(d, SIGNAL(notify()), SIGNAL(notify()));
     connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }

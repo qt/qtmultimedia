@@ -117,12 +117,9 @@ QT_BEGIN_NAMESPACE
     \a format parameters.
 */
 
-QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent):
-    QObject(parent)
+QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent)
+    : QAudioInput({}, format, parent)
 {
-    d = QAudioDeviceFactory::createDefaultInputDevice(format);
-    connect(d, SIGNAL(notify()), SIGNAL(notify()));
-    connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }
 
 /*!
@@ -134,7 +131,7 @@ QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent):
 QAudioInput::QAudioInput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QAudioDeviceFactory::createInputDevice(audioDevice, format);
+    d = QAudioDeviceFactory::createInputDevice(format, audioDevice);
     connect(d, SIGNAL(notify()), SIGNAL(notify()));
     connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }

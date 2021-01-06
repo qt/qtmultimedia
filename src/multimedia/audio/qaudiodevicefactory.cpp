@@ -150,24 +150,15 @@ QAbstractAudioDeviceInfo* QAudioDeviceFactory::audioDeviceInfo(const QByteArray 
     return rc == nullptr ? new QNullDeviceInfo() : rc;
 }
 
-QAbstractAudioInput* QAudioDeviceFactory::createDefaultInputDevice(QAudioFormat const &format)
+QAbstractAudioInput* QAudioDeviceFactory::createInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
 {
-    return createInputDevice(defaultDevice(QAudio::AudioInput), format);
-}
-
-QAbstractAudioOutput* QAudioDeviceFactory::createDefaultOutputDevice(QAudioFormat const &format)
-{
-    return createOutputDevice(defaultDevice(QAudio::AudioOutput), format);
-}
-
-QAbstractAudioInput* QAudioDeviceFactory::createInputDevice(QAudioDeviceInfo const& deviceInfo, QAudioFormat const &format)
-{
-    if (deviceInfo.isNull())
-        return new QNullInputDevice();
+    QAudioDeviceInfo info = deviceInfo;
+    if (info.isNull())
+        info = defaultDevice(QAudio::AudioInput);
 
     auto *iface = QAudioSystemInterface::instance();
     if (iface) {
-        QAbstractAudioInput* p = iface->createInput(deviceInfo.handle());
+        QAbstractAudioInput* p = iface->createInput(info.handle());
         if (p) p->setFormat(format);
         return p;
     }
@@ -175,14 +166,15 @@ QAbstractAudioInput* QAudioDeviceFactory::createInputDevice(QAudioDeviceInfo con
     return new QNullInputDevice();
 }
 
-QAbstractAudioOutput* QAudioDeviceFactory::createOutputDevice(QAudioDeviceInfo const& deviceInfo, QAudioFormat const &format)
+QAbstractAudioOutput* QAudioDeviceFactory::createOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
 {
-    if (deviceInfo.isNull())
-        return new QNullOutputDevice();
+    QAudioDeviceInfo info = deviceInfo;
+    if (info.isNull())
+        info = defaultDevice(QAudio::AudioOutput);
 
     auto *iface = QAudioSystemInterface::instance();
     if (iface) {
-        QAbstractAudioOutput* p = iface->createOutput(deviceInfo.handle());
+        QAbstractAudioOutput* p = iface->createOutput(info.handle());
         if (p) p->setFormat(format);
         return p;
     }

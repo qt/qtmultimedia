@@ -75,11 +75,8 @@ public:
 
     static QAbstractAudioDeviceInfo* audioDeviceInfo(const QByteArray &handle, QAudio::Mode mode);
 
-    static QAbstractAudioInput* createDefaultInputDevice(QAudioFormat const &format);
-    static QAbstractAudioOutput* createDefaultOutputDevice(QAudioFormat const &format);
-
-    static QAbstractAudioInput* createInputDevice(QAudioDeviceInfo const &device, QAudioFormat const &format);
-    static QAbstractAudioOutput* createOutputDevice(QAudioDeviceInfo const &device, QAudioFormat const &format);
+    static QAbstractAudioInput* createInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &device = {});
+    static QAbstractAudioOutput* createOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &device = {});
 
     static QAbstractAudioInput* createNullInput();
     static QAbstractAudioOutput* createNullOutput();
