@@ -66,10 +66,10 @@ bool QGstAppSrc::setup(GstElement* appsrc)
         return false;
 
     m_appSrc = GST_APP_SRC(appsrc);
-    gst_object_ref(G_OBJECT(m_appSrc));
+    gst_object_ref(appsrc);
     gst_app_src_set_callbacks(m_appSrc, (GstAppSrcCallbacks*)&m_callbacks, this, (GDestroyNotify)&QGstAppSrc::destroy_notify);
 
-    g_object_get(G_OBJECT(m_appSrc), "max-bytes", &m_maxBytes, nullptr);
+    m_maxBytes = gst_app_src_get_max_bytes(m_appSrc);
 
     if (m_sequential)
         m_streamType = GST_APP_STREAM_TYPE_STREAM;
@@ -203,19 +203,19 @@ gboolean QGstAppSrc::on_seek_data(GstAppSrc *element, guint64 arg0, gpointer use
 void QGstAppSrc::on_enough_data(GstAppSrc *element, gpointer userdata)
 {
     Q_UNUSED(element);
-    QGstAppSrc *self = reinterpret_cast<QGstAppSrc*>(userdata);
+    QGstAppSrc *self = static_cast<QGstAppSrc*>(userdata);
     if (self)
-        self->enoughData() = true;
+        self->m_enoughData = true;
 }
 
 void QGstAppSrc::on_need_data(GstAppSrc *element, guint arg0, gpointer userdata)
 {
     Q_UNUSED(element);
-    QGstAppSrc *self = reinterpret_cast<QGstAppSrc*>(userdata);
+    QGstAppSrc *self = static_cast<QGstAppSrc*>(userdata);
     if (self) {
-        self->dataRequested() = true;
-        self->enoughData() = false;
-        self->dataRequestSize()= arg0;
+        self->m_dataRequested = true;
+        self->m_enoughData = false;
+        self->m_dataRequestSize = arg0;
         QMetaObject::invokeMethod(self, "pushDataToAppSrc", Qt::AutoConnection);
     }
 }

@@ -80,14 +80,9 @@ public:
 
     qint64 queueSize() const { return m_maxBytes; }
 
-    bool& enoughData() { return m_enoughData; }
-    bool& dataRequested() { return m_dataRequested; }
-    unsigned int& dataRequestSize() { return m_dataRequestSize; }
-
     bool isStreamValid() const
     {
-        return m_stream != 0 &&
-               m_stream->isOpen();
+        return m_stream != 0 && m_stream->isOpen();
     }
 
 private slots:
