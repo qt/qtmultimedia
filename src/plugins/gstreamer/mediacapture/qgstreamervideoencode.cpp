@@ -120,7 +120,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
     GstElement *srcCapsFilter = gst_element_factory_make("capsfilter", "capsfilter-video");
     gst_bin_add_many(encoderBin, sinkCapsFilter, srcCapsFilter, NULL);
 
-    GstElement *colorspace = gst_element_factory_make(QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME, NULL);
+    GstElement *colorspace = gst_element_factory_make("videoconvert", NULL);
     gst_bin_add(encoderBin, colorspace);
     gst_bin_add(encoderBin, encoderElement);
 

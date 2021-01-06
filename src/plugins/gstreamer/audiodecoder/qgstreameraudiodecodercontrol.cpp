@@ -91,7 +91,7 @@ QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QObject *parent)
      m_durationQueries(0)
 {
     // Create pipeline here
-    m_playbin = gst_element_factory_make(QT_GSTREAMER_PLAYBIN_ELEMENT_NAME, NULL);
+    m_playbin = gst_element_factory_make("playbin", NULL);
 
     if (m_playbin != 0) {
         // Sort out messages

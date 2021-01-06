@@ -147,7 +147,7 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
 {
     if (m_sourceFactory)
         gst_object_ref(GST_OBJECT(m_sourceFactory));
-    m_camerabin = gst_element_factory_make(QT_GSTREAMER_CAMERABIN_ELEMENT_NAME, "camerabin");
+    m_camerabin = gst_element_factory_make("camerabin", "camerabin");
 
     g_signal_connect(G_OBJECT(m_camerabin), "notify::idle", G_CALLBACK(updateBusyStatus), this);
     g_signal_connect(G_OBJECT(m_camerabin), "element-added",  G_CALLBACK(elementAdded), this);
@@ -412,7 +412,7 @@ void CameraBinSession::setAudioCaptureCaps()
     if (sampleRate <= 0 && channelCount <=0)
         return;
 
-    GstStructure *structure = gst_structure_new_empty(QT_GSTREAMER_RAW_AUDIO_MIME);
+    GstStructure *structure = gst_structure_new_empty("audio/x-raw");
     if (sampleRate > 0)
         gst_structure_set(structure, "rate", G_TYPE_INT, sampleRate, NULL);
     if (channelCount > 0)

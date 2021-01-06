@@ -176,7 +176,7 @@ GstElement *QGstreamerCaptureSession::buildEncodeBin()
 
     if (m_captureMode & Video) {
         GstElement *videoQueue = gst_element_factory_make("queue", "video-encode-queue");
-        GstElement *colorspace = gst_element_factory_make(QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME, "videoconvert-encoder");
+        GstElement *colorspace = gst_element_factory_make("videoconvert", "videoconvert-encoder");
         GstElement *videoscale = gst_element_factory_make("videoscale","videoscale-encoder");
         gst_bin_add_many(GST_BIN(encodeBin), videoQueue, colorspace, videoscale, NULL);
 
@@ -287,7 +287,7 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
 
     if (m_viewfinderInterface) {
         GstElement *bin = gst_bin_new("video-preview-bin");
-        GstElement *colorspace = gst_element_factory_make(QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME, "videoconvert-preview");
+        GstElement *colorspace = gst_element_factory_make("videoconvert", "videoconvert-preview");
         GstElement *capsFilter = gst_element_factory_make("capsfilter", "capsfilter-video-preview");
         GstElement *preview = m_viewfinderInterface->videoSink();
 
@@ -338,7 +338,7 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
         previewElement = gst_element_factory_make("fakesink", "video-preview");
 #else
         GstElement *bin = gst_bin_new("video-preview-bin");
-        GstElement *colorspace = gst_element_factory_make(QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME, "videoconvert-preview");
+        GstElement *colorspace = gst_element_factory_make("videoconvert", "videoconvert-preview");
         GstElement *preview = gst_element_factory_make("ximagesink", "video-preview");
         gst_bin_add_many(GST_BIN(bin), colorspace, preview,  NULL);
         gst_element_link(colorspace,preview);
@@ -429,7 +429,7 @@ GstElement *QGstreamerCaptureSession::buildImageCapture()
 {
     GstElement *bin = gst_bin_new("image-capture-bin");
     GstElement *queue = gst_element_factory_make("queue", "queue-image-capture");
-    GstElement *colorspace = gst_element_factory_make(QT_GSTREAMER_COLORCONVERSION_ELEMENT_NAME, "videoconvert-image-capture");
+    GstElement *colorspace = gst_element_factory_make("videoconvert", "videoconvert-image-capture");
     GstElement *encoder = gst_element_factory_make("jpegenc", "image-encoder");
     GstElement *sink = gst_element_factory_make("fakesink","sink-image-capture");
 

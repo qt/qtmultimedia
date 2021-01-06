@@ -98,7 +98,7 @@ QGstreamerPlayerSession::QGstreamerPlayerSession(QObject *parent)
 
 void QGstreamerPlayerSession::initPlaybin()
 {
-    m_playbin = gst_element_factory_make(QT_GSTREAMER_PLAYBIN_ELEMENT_NAME, nullptr);
+    m_playbin = gst_element_factory_make("playbin", nullptr);
     if (m_playbin) {
         //GST_PLAY_FLAG_NATIVE_VIDEO omits configuration of ffmpegcolorspace and videoscale,
         //since those elements are included in the video output bin when necessary.

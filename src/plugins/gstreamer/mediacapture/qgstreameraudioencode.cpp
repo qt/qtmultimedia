@@ -127,7 +127,7 @@ GstElement *QGstreamerAudioEncode::createEncoder()
 
     if (m_audioSettings.sampleRate() > 0 || m_audioSettings.channelCount() > 0) {
         GstCaps *caps = gst_caps_new_empty();
-        GstStructure *structure = qt_gst_structure_new_empty(QT_GSTREAMER_RAW_AUDIO_MIME);
+        GstStructure *structure = qt_gst_structure_new_empty("audio/x-raw");
 
         if (m_audioSettings.sampleRate() > 0)
             gst_structure_set(structure, "rate", G_TYPE_INT, m_audioSettings.sampleRate(), NULL );

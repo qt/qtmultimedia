@@ -362,7 +362,7 @@ static GstElement *findBestVideoSink()
     for (GList *item = list; item != nullptr; item = item->next) {
         GstElementFactory *f = GST_ELEMENT_FACTORY(item->data);
 
-        if (!gst_element_factory_has_interface(f, QT_GSTREAMER_VIDEOOVERLAY_INTERFACE_NAME))
+        if (!gst_element_factory_has_interface(f, "GstVideoOverlay"))
             continue;
 
         if (GstElement *el = gst_element_factory_create(f, nullptr)) {
