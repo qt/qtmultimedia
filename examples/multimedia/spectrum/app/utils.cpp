@@ -75,7 +75,7 @@ QString formatToString(const QAudioFormat &format)
     QString result;
 
     if (QAudioFormat() != format) {
-        if (format.codec() == "audio/pcm") {
+        if (format.codec() == "audio/x-raw") {
             Q_ASSERT(format.sampleType() == QAudioFormat::SignedInt);
 
             const QString formatEndian = (format.byteOrder() == QAudioFormat::LittleEndian)
@@ -123,7 +123,7 @@ QString formatToString(const QAudioFormat &format)
 
 bool isPCM(const QAudioFormat &format)
 {
-    return (format.codec() == "audio/pcm");
+    return (format.codec() == "audio/x-raw");
 }
 
 

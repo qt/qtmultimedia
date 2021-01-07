@@ -70,7 +70,7 @@ MFAudioDecoderControl::MFAudioDecoderControl(QObject *parent)
     connect(m_decoderSourceReader, SIGNAL(finished()), this, SLOT(handleSourceFinished()));
 
     QAudioFormat defaultFormat;
-    defaultFormat.setCodec("audio/pcm");
+    defaultFormat.setCodec("audio/x-raw");
     setAudioFormat(defaultFormat);
 }
 
@@ -416,7 +416,7 @@ void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
 {
     if (m_audioFormat == format || !m_resampler)
         return;
-    if (format.codec() != QLatin1String("audio/x-wav") && format.codec() != QLatin1String("audio/pcm")) {
+    if (format.codec() != QLatin1String("audio/x-wav") && format.codec() != QLatin1String("audio/x-raw")) {
         qWarning("MFAudioDecoderControl does not accept non-pcm audio format!");
         return;
     }

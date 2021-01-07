@@ -64,13 +64,13 @@ QAudioFormat QnxAudioDeviceInfo::preferredFormat() const
         format.setByteOrder(QAudioFormat::LittleEndian);
         format.setSampleType(QAudioFormat::SignedInt);
         format.setSampleSize(16);
-        format.setCodec(QLatin1String("audio/pcm"));
+        format.setCodec(QLatin1String("audio/x-raw"));
     } else {
         format.setSampleRate(8000);
         format.setChannelCount(1);
         format.setSampleType(QAudioFormat::UnSignedInt);
         format.setSampleSize(8);
-        format.setCodec(QLatin1String("audio/pcm"));
+        format.setCodec(QLatin1String("audio/x-raw"));
         if (!isFormatSupported(format)) {
             format.setChannelCount(2);
             format.setSampleSize(16);
@@ -82,7 +82,7 @@ QAudioFormat QnxAudioDeviceInfo::preferredFormat() const
 
 bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
-    if (!format.codec().startsWith(QLatin1String("audio/pcm")))
+    if (!format.codec().startsWith(QLatin1String("audio/x-raw")))
         return false;
 
     const int pcmMode = (m_mode == QAudio::AudioOutput) ? SND_PCM_OPEN_PLAYBACK : SND_PCM_OPEN_CAPTURE;
@@ -117,7 +117,7 @@ QString QnxAudioDeviceInfo::deviceName() const
 
 QStringList QnxAudioDeviceInfo::supportedCodecs()
 {
-    return QStringList() << QLatin1String("audio/pcm");
+    return QStringList() << QLatin1String("audio/x-raw");
 }
 
 QList<int> QnxAudioDeviceInfo::supportedSampleRates()

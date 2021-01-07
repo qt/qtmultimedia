@@ -64,7 +64,7 @@ bool QOpenSLESDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 QAudioFormat QOpenSLESDeviceInfo::preferredFormat() const
 {
     QAudioFormat format;
-    format.setCodec(QStringLiteral("audio/pcm"));
+    format.setCodec(QStringLiteral("audio/x-raw"));
     format.setSampleSize(16);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setSampleRate(QOpenSLESEngine::getOutputValue(QOpenSLESEngine::SampleRate, 48000));
@@ -79,7 +79,7 @@ QString QOpenSLESDeviceInfo::deviceName() const
 
 QStringList QOpenSLESDeviceInfo::supportedCodecs()
 {
-    return QStringList() << QStringLiteral("audio/pcm");
+    return QStringList() << QStringLiteral("audio/x-raw");
 }
 
 QList<int> QOpenSLESDeviceInfo::supportedSampleRates()

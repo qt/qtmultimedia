@@ -90,12 +90,12 @@ AudioEncoderControl::~AudioEncoderControl()
 
 QStringList AudioEncoderControl::supportedAudioCodecs() const
 {
-    return QStringList() << QStringLiteral("audio/pcm");
+    return QStringList() << QStringLiteral("audio/x-raw");
 }
 
 QString AudioEncoderControl::codecDescription(const QString &codecName) const
 {
-    if (QString::compare(codecName, QLatin1String("audio/pcm")) == 0)
+    if (QString::compare(codecName, QLatin1String("audio/x-raw")) == 0)
         return tr("Linear PCM audio data");
 
     return QString();
@@ -106,7 +106,7 @@ QList<int> AudioEncoderControl::supportedSampleRates(const QAudioEncoderSettings
     if (continuous)
         *continuous = false;
 
-    if (settings.codec().isEmpty() || settings.codec() == QLatin1String("audio/pcm"))
+    if (settings.codec().isEmpty() || settings.codec() == QLatin1String("audio/x-raw"))
         return m_sampleRates;
 
     return QList<int>();
@@ -122,7 +122,7 @@ void AudioEncoderControl::setAudioSettings(const QAudioEncoderSettings &settings
     QAudioFormat fmt = audioSettingsToAudioFormat(settings);
 
     if (settings.encodingMode() == QMultimedia::ConstantQualityEncoding) {
-        fmt.setCodec("audio/pcm");
+        fmt.setCodec("audio/x-raw");
         switch (settings.quality()) {
         case QMultimedia::VeryLowQuality:
             fmt.setSampleSize(8);

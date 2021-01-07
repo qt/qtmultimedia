@@ -256,7 +256,7 @@ qreal getPeakValue(const QAudioFormat& format)
     if (!format.isValid())
         return qreal(0);
 
-    if (format.codec() != "audio/pcm")
+    if (format.codec() != "audio/x-raw")
         return qreal(0);
 
     switch (format.sampleType()) {
@@ -295,7 +295,7 @@ QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
     if (!buffer.format().isValid() || buffer.format().byteOrder() != QAudioFormat::LittleEndian)
         return values;
 
-    if (buffer.format().codec() != "audio/pcm")
+    if (buffer.format().codec() != "audio/x-raw")
         return values;
 
     int channelCount = buffer.format().channelCount();

@@ -63,7 +63,7 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
     format.setChannelCount(2);
     format.setSampleSize(16);
     format.setSampleRate(48000);
-    format.setCodec("audio/pcm");
+    format.setCodec("audio/x-raw");
     format.setSampleType(QAudioFormat::SignedInt);
     m_decoder.setAudioFormat(format);
 

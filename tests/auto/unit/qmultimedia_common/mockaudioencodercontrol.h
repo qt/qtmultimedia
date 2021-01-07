@@ -38,9 +38,9 @@ public:
     MockAudioEncoderControl(QObject *parent):
         QAudioEncoderSettingsControl(parent)
     {
-        m_codecs << "audio/pcm" << "audio/mpeg";
+        m_codecs << "audio/x-raw" << "audio/mpeg";
         m_descriptions << "Pulse Code Modulation" << "mp3 format";
-        m_audioSettings.setCodec("audio/pcm");
+        m_audioSettings.setCodec("audio/x-raw");
         m_audioSettings.setBitRate(128*1024);
         m_audioSettings.setSampleRate(8000);
         m_freqs << 8000 << 11025 << 22050 << 44100;

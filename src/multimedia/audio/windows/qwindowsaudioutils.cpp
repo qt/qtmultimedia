@@ -82,7 +82,7 @@ bool qt_convertFormat(const QAudioFormat &format, WAVEFORMATEXTENSIBLE *wfx)
 {
     if (!wfx
             || !format.isValid()
-            || format.codec() != QStringLiteral("audio/pcm")
+            || format.codec() != QStringLiteral("audio/x-raw")
             || format.sampleRate() <= 0
             || format.channelCount() <= 0
             || format.sampleSize() <= 0

@@ -78,7 +78,7 @@ void AudioInputExample::setup()
     format.setSampleRate(8000);
     format.setChannelCount(1);
     format.setSampleSize(8);
-    format.setCodec("audio/pcm");
+    format.setCodec("audio/x-raw");
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::UnSignedInt);
 
@@ -157,7 +157,7 @@ void AudioOutputExample::setup()
     format.setSampleRate(8000);
     format.setChannelCount(1);
     format.setSampleSize(8);
-    format.setCodec("audio/pcm");
+    format.setCodec("audio/x-raw");
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::UnSignedInt);
 

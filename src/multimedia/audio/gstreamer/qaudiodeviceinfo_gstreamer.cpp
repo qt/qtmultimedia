@@ -96,7 +96,7 @@ QString QGStreamerAudioDeviceInfo::deviceName() const
 
 QStringList QGStreamerAudioDeviceInfo::supportedCodecs()
 {
-    return QStringList() << QString::fromLatin1("audio/pcm");
+    return QStringList() << QString::fromLatin1("audio/x-raw");
 }
 
 QList<int> QGStreamerAudioDeviceInfo::supportedSampleRates()

@@ -270,7 +270,7 @@ QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
             format.setSampleSize(qt_audioLookup[i].sampleSize);
             format.setSampleRate(info.rate);
             format.setChannelCount(info.channels);
-            format.setCodec(QStringLiteral("audio/pcm"));
+            format.setCodec(QStringLiteral("audio/x-raw"));
 
             return format;
         }

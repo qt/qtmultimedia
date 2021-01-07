@@ -156,14 +156,14 @@ QAudioFormat QWindowsAudioDeviceInfo::preferredFormat() const
         nearest.setByteOrder(QAudioFormat::LittleEndian);
         nearest.setSampleType(QAudioFormat::SignedInt);
         nearest.setSampleSize(16);
-        nearest.setCodec(QLatin1String("audio/pcm"));
+        nearest.setCodec(QLatin1String("audio/x-raw"));
     } else {
         nearest.setSampleRate(11025);
         nearest.setChannelCount(1);
         nearest.setByteOrder(QAudioFormat::LittleEndian);
         nearest.setSampleType(QAudioFormat::SignedInt);
         nearest.setSampleSize(8);
-        nearest.setCodec(QLatin1String("audio/pcm"));
+        nearest.setCodec(QLatin1String("audio/x-raw"));
     }
     return nearest;
 }
@@ -175,7 +175,7 @@ QString QWindowsAudioDeviceInfo::deviceName() const
 
 QStringList QWindowsAudioDeviceInfo::supportedCodecs()
 {
-    return QStringList() << QStringLiteral("audio/pcm");
+    return QStringList() << QStringLiteral("audio/x-raw");
 }
 
 QList<int> QWindowsAudioDeviceInfo::supportedSampleRates()
@@ -348,7 +348,7 @@ void QWindowsAudioDeviceInfo::updateLists()
         // WaveOut and WaveInt might actually support more formats, the only way to know is to try
         // opening the device with it.
         QAudioFormat testFormat;
-        testFormat.setCodec(QStringLiteral("audio/pcm"));
+        testFormat.setCodec(QStringLiteral("audio/x-raw"));
         testFormat.setByteOrder(QAudioFormat::LittleEndian);
         testFormat.setSampleType(QAudioFormat::SignedInt);
         testFormat.setChannelCount(channelz.first());

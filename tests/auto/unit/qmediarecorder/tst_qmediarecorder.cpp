@@ -398,7 +398,7 @@ void tst_QMediaRecorder::testAudioEncodeControl()
 {
     QStringList codecs = capture->supportedAudioCodecs();
     QVERIFY(codecs.count() == 2);
-    QVERIFY(capture->audioCodecDescription("audio/pcm") == "Pulse Code Modulation");
+    QVERIFY(capture->audioCodecDescription("audio/x-raw") == "Pulse Code Modulation");
     QList<int> rates;
     rates << 8000 << 11025 << 22050 << 44100;
     QCOMPARE(capture->supportedAudioSampleRates(), rates);
@@ -432,7 +432,7 @@ void tst_QMediaRecorder::testVideoEncodeControl()
 void tst_QMediaRecorder::testEncodingSettings()
 {
     QAudioEncoderSettings audioSettings = capture->audioSettings();
-    QCOMPARE(audioSettings.codec(), QString("audio/pcm"));
+    QCOMPARE(audioSettings.codec(), QString("audio/x-raw"));
     QCOMPARE(audioSettings.bitRate(), 128*1024);
     QCOMPARE(audioSettings.sampleRate(), 8000);
     QCOMPARE(audioSettings.quality(), QMultimedia::NormalQuality);
@@ -997,7 +997,7 @@ void tst_QMediaRecorder::testAudioSettingsCopyConstructor()
     /* setting the desired properties for the AudioEncoder */
     audiosettings.setBitRate(128*1000);
     audiosettings.setChannelCount(4);
-    audiosettings.setCodec("audio/pcm");
+    audiosettings.setCodec("audio/x-raw");
     audiosettings.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
     audiosettings.setQuality(QMultimedia::LowQuality);
     audiosettings.setSampleRate(44100);
@@ -1027,7 +1027,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorNotEqual()
     /* setting the desired properties to for the AudioEncoder */
     audiosettings1.setBitRate(128*1000);
     audiosettings1.setChannelCount(4);
-    audiosettings1.setCodec("audio/pcm");
+    audiosettings1.setCodec("audio/x-raw");
     audiosettings1.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
     audiosettings1.setQuality(QMultimedia::LowQuality);
     audiosettings1.setSampleRate(44100);
@@ -1035,7 +1035,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorNotEqual()
     /* setting the desired properties for the AudioEncoder */
     audiosettings2.setBitRate(128*1000);
     audiosettings2.setChannelCount(4);
-    audiosettings2.setCodec("audio/pcm");
+    audiosettings2.setCodec("audio/x-raw");
     audiosettings2.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
     audiosettings2.setQuality(QMultimedia::LowQuality);
     audiosettings2.setSampleRate(44100);
@@ -1063,7 +1063,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorEqual()
     /* setting the desired properties to for the AudioEncoder */
     audiosettings1.setBitRate(128*1000);
     audiosettings1.setChannelCount(4);
-    audiosettings1.setCodec("audio/pcm");
+    audiosettings1.setCodec("audio/x-raw");
     audiosettings1.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
     audiosettings1.setQuality(QMultimedia::LowQuality);
     audiosettings1.setSampleRate(44100);
@@ -1074,7 +1074,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorEqual()
     /* setting the desired properties for the AudioEncoder */
     audiosettings2.setBitRate(128*1000);
     audiosettings2.setChannelCount(4);
-    audiosettings2.setCodec("audio/pcm");
+    audiosettings2.setCodec("audio/x-raw");
     audiosettings2.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
     audiosettings2.setQuality(QMultimedia::LowQuality);
     audiosettings2.setSampleRate(44100);
@@ -1095,7 +1095,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorAssign()
     /* setting the desired properties for the AudioEncoder */
     audiosettings1.setBitRate(128*1000);
     audiosettings1.setChannelCount(4);
-    audiosettings1.setCodec("audio/pcm");
+    audiosettings1.setCodec("audio/x-raw");
     audiosettings1.setEncodingMode(QMultimedia::ConstantBitRateEncoding);
     audiosettings1.setQuality(QMultimedia::LowQuality);
     audiosettings1.setSampleRate(44100);

@@ -343,7 +343,7 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
 
     All platform and plugin implementations should provide support for:
 
-    "audio/pcm" - Linear PCM
+    "audio/x-raw" - Linear PCM
 
     For writing plugins to support additional codecs refer to:
 

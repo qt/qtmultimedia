@@ -99,7 +99,7 @@ bool WavHeader::read(QIODevice &device)
                     m_format.setByteOrder(QAudioFormat::BigEndian);
 
                 m_format.setChannelCount(qFromLittleEndian<quint16>(header.wave.numChannels));
-                m_format.setCodec("audio/pcm");
+                m_format.setCodec("audio/x-raw");
                 m_format.setSampleRate(qFromLittleEndian<quint32>(header.wave.sampleRate));
                 m_format.setSampleSize(qFromLittleEndian<quint16>(header.wave.bitsPerSample));
 

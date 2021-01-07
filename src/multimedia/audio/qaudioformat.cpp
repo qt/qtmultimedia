@@ -149,7 +149,7 @@ public:
     streams you wish to play or record.
 
     In the common case of interleaved linear PCM data, the codec will
-    be "audio/pcm", and the samples for all channels will be interleaved.
+    be "audio/x-raw", and the samples for all channels will be interleaved.
     One sample for each channel for the same instant in time is referred
     to as a frame in Qt Multimedia (and other places).
 */

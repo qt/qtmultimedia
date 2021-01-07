@@ -135,7 +135,7 @@ void tst_QAudioDeviceInfo::isFormatSupported()
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleSize(16);
-    format.setCodec("audio/pcm");
+    format.setCodec("audio/x-raw");
 
     // Should always be true for these format
     QVERIFY(device->isFormatSupported(format));
@@ -164,7 +164,7 @@ void tst_QAudioDeviceInfo::nearest()
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleSize(16);
-    format.setCodec("audio/pcm");
+    format.setCodec("audio/x-raw");
 
     QAudioFormat format2 = device->nearestFormat(format);
 

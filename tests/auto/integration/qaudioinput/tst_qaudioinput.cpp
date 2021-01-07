@@ -168,7 +168,7 @@ void tst_QAudioInput::initTestCase()
 
     QAudioFormat format;
 
-    format.setCodec("audio/pcm");
+    format.setCodec("audio/x-raw");
 
     if (audioDevice.isFormatSupported(audioDevice.preferredFormat()))
         testFormats.append(audioDevice.preferredFormat());

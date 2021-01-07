@@ -170,7 +170,7 @@ void QWaveDecoder::handleData()
                 // but don't support them at the moment.
                 parsingFailed();
                 return;
-            }                 format.setCodec(QLatin1String("audio/pcm"));
+            }                 format.setCodec(QLatin1String("audio/x-raw"));
 
                 if (bigEndian) {
                     int bps = qFromBigEndian<quint16>(wave.bitsPerSample);

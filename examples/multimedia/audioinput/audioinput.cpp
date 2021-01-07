@@ -276,7 +276,7 @@ void InputTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
     format.setSampleSize(16);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setCodec("audio/pcm");
+    format.setCodec("audio/x-raw");
 
     if (!deviceInfo.isFormatSupported(format)) {
         qWarning() << "Default format not supported - trying to use nearest";

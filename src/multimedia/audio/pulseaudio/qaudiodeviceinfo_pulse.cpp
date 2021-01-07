@@ -69,7 +69,7 @@ QString QPulseAudioDeviceInfo::deviceName() const
 
 QStringList QPulseAudioDeviceInfo::supportedCodecs()
 {
-    return QStringList() << QString::fromLatin1("audio/pcm");
+    return QStringList() << QString::fromLatin1("audio/x-raw");
 }
 
 QList<int> QPulseAudioDeviceInfo::supportedSampleRates()

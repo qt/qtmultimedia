@@ -117,7 +117,7 @@ QAudioFormat QCoreAudioDeviceInfo::preferredFormat() const
         format.setChannelCount(2);
         format.setSampleRate(44100);
     }
-    format.setCodec(QString::fromLatin1("audio/pcm"));
+    format.setCodec(QString::fromLatin1("audio/x-raw"));
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::SignedInt);
 #endif
@@ -133,7 +133,7 @@ bool QCoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     //Sample rates are more of a suggestion with CoreAudio so as long as we get a
     //sane value then we can likely use it.
     return format.isValid()
-            && format.codec() == QString::fromLatin1("audio/pcm")
+            && format.codec() == QString::fromLatin1("audio/x-raw")
             && format.sampleRate() > 0
             && self->supportedChannelCounts().contains(format.channelCount())
             && self->supportedSampleSizes().contains(format.sampleSize());
@@ -148,7 +148,7 @@ QString QCoreAudioDeviceInfo::deviceName() const
 
 QStringList QCoreAudioDeviceInfo::supportedCodecs()
 {
-    return QStringList() << QString::fromLatin1("audio/pcm");
+    return QStringList() << QString::fromLatin1("audio/x-raw");
 }
 
 

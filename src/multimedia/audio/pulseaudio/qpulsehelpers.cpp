@@ -132,7 +132,7 @@ QAudioFormat sampleSpecToAudioFormat(pa_sample_spec spec)
     QAudioFormat format;
     format.setSampleRate(spec.rate);
     format.setChannelCount(spec.channels);
-    format.setCodec(QString::fromLatin1("audio/pcm"));
+    format.setCodec(QString::fromLatin1("audio/x-raw"));
 
     switch (spec.format) {
         case PA_SAMPLE_U8:

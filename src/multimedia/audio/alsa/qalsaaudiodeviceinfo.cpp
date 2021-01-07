@@ -83,13 +83,13 @@ QAudioFormat QAlsaAudioDeviceInfo::preferredFormat() const
         nearest.setByteOrder(QAudioFormat::LittleEndian);
         nearest.setSampleType(QAudioFormat::SignedInt);
         nearest.setSampleSize(16);
-        nearest.setCodec(QLatin1String("audio/pcm"));
+        nearest.setCodec(QLatin1String("audio/x-raw"));
     } else {
         nearest.setSampleRate(8000);
         nearest.setChannelCount(1);
         nearest.setSampleType(QAudioFormat::UnSignedInt);
         nearest.setSampleSize(8);
-        nearest.setCodec(QLatin1String("audio/pcm"));
+        nearest.setCodec(QLatin1String("audio/x-raw"));
         if(!testSettings(nearest)) {
             nearest.setChannelCount(2);
             nearest.setSampleSize(16);
@@ -246,8 +246,8 @@ bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     if (pcmFormat != SND_PCM_FORMAT_UNKNOWN)
         err = snd_pcm_hw_params_set_format(pcmHandle, params, pcmFormat);
 
-    // For now, just accept only audio/pcm codec
-    if (!format.codec().startsWith(QLatin1String("audio/pcm")))
+    // For now, just accept only audio/x-raw codec
+    if (!format.codec().startsWith(QLatin1String("audio/x-raw")))
         err = -1;
 
     if (err >= 0 && format.channelCount() != -1) {
@@ -306,7 +306,7 @@ void QAlsaAudioDeviceInfo::updateLists()
     typez.append(QAudioFormat::SignedInt);
     typez.append(QAudioFormat::UnSignedInt);
     typez.append(QAudioFormat::Float);
-    codecz.append(QLatin1String("audio/pcm"));
+    codecz.append(QLatin1String("audio/x-raw"));
     close();
 }
 
