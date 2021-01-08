@@ -57,9 +57,7 @@
 #include <qmath.h>
 #include <qendian.h>
 
-Generator::Generator(const QAudioFormat &format
-    , qint64 durationUs
-    , int sampleRate)
+Generator::Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate)
 {
     if (format.isValid())
         generateData(format, durationUs, sampleRate);
@@ -268,19 +266,14 @@ void AudioTest::toggleMode()
             if (m_audioOutput->state() == QAudio::StoppedState)
                 return;
 
-            QByteArray buffer(32768, 0);
-            int chunks = m_audioOutput->bytesFree() / m_audioOutput->periodSize();
-            while (chunks) {
-               const qint64 len = m_generator->read(buffer.data(), m_audioOutput->periodSize());
-               if (len)
-                   io->write(buffer.data(), len);
-               if (len != m_audioOutput->periodSize())
-                   break;
-               --chunks;
-            }
+            int len = m_audioOutput->bytesFree();
+            QByteArray buffer(len, 0);
+            len = m_generator->read(buffer.data(), len);
+            if (len)
+               io->write(buffer.data(), len);
         });
 
-        m_pushTimer->start(20);
+        m_pushTimer->start(10);
     }
 
     m_pullMode = !m_pullMode;
@@ -290,7 +283,7 @@ void AudioTest::toggleSuspendResume()
 {
     if (m_audioOutput->state() == QAudio::SuspendedState || m_audioOutput->state() == QAudio::StoppedState) {
         m_audioOutput->resume();
-        m_suspendResumeButton->setText(tr("Suspend recording"));
+        m_suspendResumeButton->setText(tr("Suspend playback"));
     } else if (m_audioOutput->state() == QAudio::ActiveState) {
         m_audioOutput->suspend();
         m_suspendResumeButton->setText(tr("Resume playback"));
