@@ -55,6 +55,12 @@ public:
 
     qint64 readData(char *data, qint64 len) override;
     qint64 writeData(const char *data, qint64 len) override;
+    qint64 size() const override {
+        return m_loopCount == QSoundEffect::Infinite ? 0 : m_loopCount * m_sample->data().size();
+    }
+    bool isSequential() const override {
+        return m_loopCount == QSoundEffect::Infinite;
+    }
 
     void setLoopsRemaining(int loopsRemaining);
     void setStatus(QSoundEffect::Status status);
@@ -133,84 +139,37 @@ void QSoundEffectPrivate::stateChanged(QAudio::State state)
 #ifdef QT_QAUDIO_DEBUG
     qDebug() << this << "stateChanged " << state;
 #endif
-    if ((state == QAudio::IdleState && m_runningCount == 0)
-         || (state == QAudio::StoppedState && m_audioOutput->error() != QAudio::NoError))
+    if ((state == QAudio::IdleState && m_runningCount == 0) || state == QAudio::StoppedState)
         emit q_ptr->stop();
 }
 
 qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
 {
-    if ((m_runningCount > 0  || m_runningCount == QSoundEffect::Infinite) && m_playing) {
+    if (m_sample->state() != QSample::Ready)
+        return 0;
+    if (m_runningCount == 0 || !m_playing)
+        return 0;
 
-        if (m_sample->state() != QSample::Ready)
-            return 0;
+    qint64 bytesWritten = 0;
 
-        qint64 bytesWritten = 0;
+    const int   sampleSize = m_sample->data().size();
+    const char* sampleData = m_sample->data().constData();
 
-        const int   periodSize = m_audioOutput->periodSize();
-        const int   sampleSize = m_sample->data().size();
-        const char* sampleData = m_sample->data().constData();
-
-        // Some systems can have large buffers we only need a max of three
-        int    periodsFree = qMin(3, (int)(m_audioOutput->bytesFree()/periodSize));
-        int    dataOffset = 0;
-
-#ifdef QT_QAUDIO_DEBUG
-        qDebug() << "bytesFree=" << m_audioOutput->bytesFree() << ", can fit " << periodsFree << " periodSize() chunks";
-#endif
-
-        while ((periodsFree > 0) && (bytesWritten + periodSize
-                                     <= len)) {
-
-            if (sampleSize - m_offset >= periodSize) {
-                // We can fit a whole period of data
-                memcpy(data + dataOffset, sampleData + m_offset, periodSize);
-                m_offset += periodSize;
-                dataOffset += periodSize;
-                bytesWritten += periodSize;
-#ifdef QT_QAUDIO_DEBUG
-                qDebug() << "WHOLE PERIOD: bytesWritten=" << bytesWritten << ", offset=" << m_offset
-                         << ", filesize=" << sampleSize;
-#endif
-            } else {
-                // We are at end of sound, first write what is left of current sound
-                memcpy(data + dataOffset, sampleData + m_offset, sampleSize - m_offset);
-                bytesWritten += sampleSize - m_offset;
-                int wrapLen = periodSize - (sampleSize - m_offset);
-                if (wrapLen > sampleSize)
-                    wrapLen = sampleSize;
-#ifdef QT_QAUDIO_DEBUG
-                qDebug() << "END OF SOUND: bytesWritten=" << bytesWritten << ", offset=" << m_offset
-                         << ", part1=" << (sampleSize-m_offset);
-#endif
-                dataOffset += (sampleSize - m_offset);
-                m_offset = 0;
-
-                if (m_runningCount > 0 && m_runningCount != QSoundEffect::Infinite)
-                    setLoopsRemaining(m_runningCount-1);
-
-                if (m_runningCount > 0 || m_runningCount == QSoundEffect::Infinite) {
-                    // There are still more loops of this sound to play, append the start of sound to make up full period
-                    memcpy(data + dataOffset, sampleData + m_offset, wrapLen);
-                    m_offset += wrapLen;
-                    dataOffset += wrapLen;
-                    bytesWritten += wrapLen;
-#ifdef QT_QAUDIO_DEBUG
-                    qDebug() << "APPEND START FOR FULL PERIOD: bytesWritten=" << bytesWritten << ", offset=" << m_offset
-                             << ", part2=" << wrapLen;
-                    qDebug() << "part1 + part2 should be a period " << periodSize;
-#endif
-                }
-            }
-            if (m_runningCount == 0)
-                break;
-
-            periodsFree--;
+    while (len && m_runningCount) {
+        int toWrite = qMin(sampleSize - m_offset, len);
+        memcpy(data, sampleData + m_offset, toWrite);
+        bytesWritten += toWrite;
+        data += toWrite;
+        len -= toWrite;
+        m_offset += toWrite;
+        if (m_offset >= sampleSize) {
+            if (m_runningCount > 0 && m_runningCount != QSoundEffect::Infinite)
+                setLoopsRemaining(m_runningCount - 1);
+            m_offset = 0;
         }
-        return bytesWritten;
     }
 
-    return 0;
+    return bytesWritten;
 }
 
 qint64 QSoundEffectPrivate::writeData(const char *data, qint64 len)
