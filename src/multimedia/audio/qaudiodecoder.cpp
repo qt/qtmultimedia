@@ -64,8 +64,8 @@ QT_BEGIN_NAMESPACE
     The QAudioDecoder class is a high level class for decoding local
     audio media files.  It is similar to the QMediaPlayer class except
     that audio is provided back through this API rather than routed
-    directly to audio hardware, and playlists and network and streaming
-    based media is not supported.
+    directly to audio hardware. Network and streaming
+    based media are not supported.
 
     \sa QAudioBuffer
 */

@@ -45,7 +45,6 @@
 #include <qmediaservice.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaserviceprovider_p.h>
-#include <qmediaplaylist.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -73,10 +72,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/media.cpp Player
 
-    QVideoWidget can be used with QMediaPlayer for video rendering and QMediaPlaylist
-    for accessing playlist functionality.
-
-    \snippet multimedia-snippets/media.cpp Movie playlist
+    QVideoWidget can be used with QMediaPlayer for video rendering.
 
     Since QMediaPlayer is a QMediaSource, you can use several of the QMediaSource
     functions for things like:
@@ -86,7 +82,7 @@ QT_BEGIN_NAMESPACE
     \li Checking to see if the media playback service is currently available (\l {QMediaSource::availability()})
     \endlist
 
-    \sa QMediaSource, QMediaService, QVideoWidget, QMediaPlaylist
+    \sa QMediaSource, QMediaService, QVideoWidget
 */
 
 static void qRegisterMediaPlayerMetaTypes()
@@ -98,8 +94,6 @@ static void qRegisterMediaPlayerMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlayerMetaTypes)
 
-#define MAX_NESTED_PLAYLISTS 16
-
 class QMediaPlayerPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QMediaPlayer)
@@ -110,85 +104,30 @@ public:
     QString errorString;
 
     QPointer<QObject> videoOutput;
-    QMediaPlaylist *playlist = nullptr;
     QVideoSurfaceOutput surfaceOutput;
     QMediaContent qrcMedia;
     QScopedPointer<QFile> qrcFile;
-
     QMediaContent rootMedia;
-    QMediaContent pendingPlaylist;
+
     QMediaPlayer::State state = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
     QMediaPlayer::Error error = QMediaPlayer::NoError;
     int ignoreNextStatusChange = -1;
-    int nestedPlaylists = 0;
     bool hasStreamPlaybackFeature = false;
 
     QAudio::Role audioRole = QAudio::UnknownRole;
     QString customAudioRole;
 
-    QMediaPlaylist *parentPlaylist(QMediaPlaylist *pls);
-    bool isInChain(const QUrl &url);
-
     void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
-
-    void setPlaylist(QMediaPlaylist *playlist);
-    void setPlaylistMedia();
-    void loadPlaylist();
-    void disconnectPlaylist();
-    void connectPlaylist();
 
     void _q_stateChanged(QMediaPlayer::State state);
     void _q_mediaStatusChanged(QMediaPlayer::MediaStatus status);
     void _q_error(int error, const QString &errorString);
-    void _q_updateMedia(const QMediaContent&);
-    void _q_playlistDestroyed();
-    void _q_handleMediaChanged(const QMediaContent&);
-    void _q_handlePlaylistLoaded();
-    void _q_handlePlaylistLoadFailed();
 };
-
-QMediaPlaylist *QMediaPlayerPrivate::parentPlaylist(QMediaPlaylist *pls)
-{
-    // This function finds a parent playlist for an item in the active chain of playlists.
-    // Every item in the chain comes from currentMedia() of its parent.
-    // We don't need to travers the whole tree of playlists,
-    // but only the subtree of active ones.
-    for (QMediaPlaylist *current = rootMedia.playlist(); current && current != pls; current = current->currentMedia().playlist())
-        if (current->currentMedia().playlist() == pls)
-            return current;
-    return nullptr;
-}
-
-bool QMediaPlayerPrivate::isInChain(const QUrl &url)
-{
-    // Check whether a URL is already in the chain of playlists.
-    // Also see a comment in parentPlaylist().
-    for (QMediaPlaylist *current = rootMedia.playlist(); current && current != playlist; current = current->currentMedia().playlist())
-        if (current->currentMedia().request().url() == url) {
-            return true;
-        }
-    return false;
-}
 
 void QMediaPlayerPrivate::_q_stateChanged(QMediaPlayer::State ps)
 {
     Q_Q(QMediaPlayer);
-
-    // Backend switches into stopped state every time new media is about to be loaded.
-    // If media player has a playlist loaded make sure player doesn' stop.
-    if (playlist && playlist->currentIndex() != -1 && ps != state && ps == QMediaPlayer::StoppedState) {
-        if (control->mediaStatus() == QMediaPlayer::EndOfMedia || control->mediaStatus() == QMediaPlayer::InvalidMedia) {
-            // if media player is not stopped, and
-            // we have finished playback for the current media,
-            // advance to the next item in the playlist
-            Q_ASSERT(state != QMediaPlayer::StoppedState);
-            playlist->next();
-            return;
-        }
-        if (control->mediaStatus() == QMediaPlayer::LoadingMedia)
-            return;
-    }
 
     if (ps != state) {
         state = ps;
@@ -232,86 +171,9 @@ void QMediaPlayerPrivate::_q_error(int error, const QString &errorString)
 {
     Q_Q(QMediaPlayer);
 
-    if (error == int(QMediaPlayer::MediaIsPlaylist)) {
-        loadPlaylist();
-    } else {
-        this->error = QMediaPlayer::Error(error);
-        this->errorString = errorString;
-        emit q->error(this->error);
-
-        if (playlist)
-            playlist->next();
-    }
-}
-
-void QMediaPlayerPrivate::_q_updateMedia(const QMediaContent &media)
-{
-    Q_Q(QMediaPlayer);
-
-    if (!control)
-        return;
-
-    // check if the current playlist is a top-level playlist
-    Q_ASSERT(playlist);
-    if (media.isNull() && playlist != rootMedia.playlist()) {
-        // switch back to parent playlist
-        QMediaPlaylist *pls = parentPlaylist(playlist);
-        Q_ASSERT(pls);
-        disconnectPlaylist();
-        playlist = pls;
-        connectPlaylist();
-
-        Q_ASSERT(!pendingPlaylist.playlist());
-        nestedPlaylists--;
-        Q_ASSERT(nestedPlaylists >= 0);
-
-        playlist->next();
-        return;
-    }
-
-    if (media.playlist()) {
-        if (nestedPlaylists < MAX_NESTED_PLAYLISTS) {
-            nestedPlaylists++;
-            Q_ASSERT(!pendingPlaylist.playlist());
-
-            // disconnect current playlist
-            disconnectPlaylist();
-            // new playlist signals are connected
-            // in the call to setPlaylist() in _q_handlePlaylistLoaded()
-            playlist = media.playlist();
-            emit q->currentMediaChanged(media);
-            _q_handlePlaylistLoaded();
-            return;
-        }
-        if (playlist)
-            playlist->next();
-        return;
-    }
-
-    const QMediaPlayer::State currentState = state;
-
-    setMedia(media, nullptr);
-
-    if (!media.isNull()) {
-        switch (currentState) {
-        case QMediaPlayer::PlayingState:
-            control->play();
-            break;
-        case QMediaPlayer::PausedState:
-            control->pause();
-            break;
-        default:
-            break;
-        }
-    }
-
-    _q_stateChanged(control->state());
-}
-
-void QMediaPlayerPrivate::_q_playlistDestroyed()
-{
-    playlist = nullptr;
-    setMedia(QMediaContent(), nullptr);
+    this->error = QMediaPlayer::Error(error);
+    this->errorString = errorString;
+    emit q->error(this->error);
 }
 
 void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream)
@@ -387,154 +249,6 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
     qrcFile.swap(file); // Cleans up any previous file
 }
 
-void QMediaPlayerPrivate::_q_handleMediaChanged(const QMediaContent &media)
-{
-    Q_Q(QMediaPlayer);
-
-    emit q->currentMediaChanged(qrcMedia.isNull() ? media : qrcMedia);
-}
-
-void QMediaPlayerPrivate::setPlaylist(QMediaPlaylist *pls)
-{
-    disconnectPlaylist();
-    playlist = pls;
-
-    setPlaylistMedia();
-}
-
-void QMediaPlayerPrivate::setPlaylistMedia()
-{
-    // This function loads current playlist media into backend.
-    // If current media is a playlist, the function recursively
-    // loads media from the playlist.
-    // It also makes sure the correct playlist signals are connected.
-    Q_Q(QMediaPlayer);
-
-    if (playlist) {
-        connectPlaylist();
-        if (playlist->currentMedia().playlist()) {
-            if (nestedPlaylists < MAX_NESTED_PLAYLISTS) {
-                emit q->currentMediaChanged(playlist->currentMedia());
-                // rewind nested playlist to start
-                playlist->currentMedia().playlist()->setCurrentIndex(0);
-                nestedPlaylists++;
-                setPlaylist(playlist->currentMedia().playlist());
-            } else {
-                playlist->next();
-            }
-            return;
-        }
-        // If we've just switched to a new playlist,
-        // then last emitted currentMediaChanged was a playlist.
-        // Make sure we emit currentMediaChanged if new playlist has
-        // the same media as the previous one:
-        // sample.m3u
-        //      test.wav     -- processed by backend
-        //      nested.m3u   -- processed by frontend
-        //          test.wav -- processed by backend,
-        //                      media is not changed,
-        //                      frontend needs to emit currentMediaChanged
-        bool isSameMedia = (q->currentMedia() == playlist->currentMedia());
-        setMedia(playlist->currentMedia(), nullptr);
-        if (isSameMedia)
-            emit q->currentMediaChanged(q->currentMedia());
-    } else {
-        setMedia(QMediaContent(), nullptr);
-    }
-}
-
-void QMediaPlayerPrivate::loadPlaylist()
-{
-    Q_Q(QMediaPlayer);
-    Q_ASSERT(pendingPlaylist.isNull());
-
-    // Do not load a playlist if there are more than MAX_NESTED_PLAYLISTS in the chain already,
-    // or if the playlist URL is already in the chain, i.e. do not allow recursive playlists and loops.
-    if (nestedPlaylists < MAX_NESTED_PLAYLISTS
-        && !q->currentMedia().request().url().isEmpty()
-        && !isInChain(q->currentMedia().request().url()))
-    {
-        pendingPlaylist = QMediaContent(new QMediaPlaylist, q->currentMedia().request().url(), true);
-        QObject::connect(pendingPlaylist.playlist(), SIGNAL(loaded()), q, SLOT(_q_handlePlaylistLoaded()));
-        QObject::connect(pendingPlaylist.playlist(), SIGNAL(loadFailed()), q, SLOT(_q_handlePlaylistLoadFailed()));
-        pendingPlaylist.playlist()->load(pendingPlaylist.request());
-    } else if (playlist) {
-        playlist->next();
-    }
-}
-
-void QMediaPlayerPrivate::disconnectPlaylist()
-{
-    Q_Q(QMediaPlayer);
-    if (playlist) {
-        QObject::disconnect(playlist, SIGNAL(currentMediaChanged(QMediaContent)),
-                            q, SLOT(_q_updateMedia(QMediaContent)));
-        QObject::disconnect(playlist, SIGNAL(destroyed()), q, SLOT(_q_playlistDestroyed()));
-    }
-}
-
-void QMediaPlayerPrivate::connectPlaylist()
-{
-    Q_Q(QMediaPlayer);
-    if (playlist) {
-        QObject::connect(playlist, SIGNAL(currentMediaChanged(QMediaContent)),
-                         q, SLOT(_q_updateMedia(QMediaContent)));
-        QObject::connect(playlist, SIGNAL(destroyed()), q, SLOT(_q_playlistDestroyed()));
-    }
-}
-
-void QMediaPlayerPrivate::_q_handlePlaylistLoaded()
-{
-    Q_Q(QMediaPlayer);
-
-    if (pendingPlaylist.playlist()) {
-        Q_ASSERT(!q->currentMedia().playlist());
-        // if there is an active playlist
-        if (playlist) {
-            Q_ASSERT(playlist->currentIndex() >= 0);
-            disconnectPlaylist();
-            playlist->insertMedia(playlist->currentIndex() + 1, pendingPlaylist);
-            playlist->removeMedia(playlist->currentIndex());
-            nestedPlaylists++;
-        } else {
-            Q_ASSERT(!rootMedia.playlist());
-            rootMedia = pendingPlaylist;
-            emit q->mediaChanged(rootMedia);
-        }
-
-        playlist = pendingPlaylist.playlist();
-        emit q->currentMediaChanged(pendingPlaylist);
-    }
-    pendingPlaylist = QMediaContent();
-
-    playlist->next();
-    setPlaylistMedia();
-
-    switch (state) {
-    case QMediaPlayer::PausedState:
-        control->pause();
-        break;
-    case QMediaPlayer::PlayingState:
-        control->play();
-        break;
-    case QMediaPlayer::StoppedState:
-        break;
-    }
-}
-
-void QMediaPlayerPrivate::_q_handlePlaylistLoadFailed()
-{
-    pendingPlaylist = QMediaContent();
-
-    if (!control)
-        return;
-
-    if (playlist)
-        playlist->next();
-    else
-        setMedia(QMediaContent(), nullptr);
-}
-
 static QMediaService *playerService()
 {
     QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
@@ -600,7 +314,6 @@ QMediaPlayer::~QMediaPlayer()
 {
     Q_D(QMediaPlayer);
 
-    d->disconnectPlaylist();
     // Disconnect everything to prevent notifying
     // when a receiver is already destroyed.
     disconnect();
@@ -638,34 +351,6 @@ const QIODevice *QMediaPlayer::mediaStream() const
         return d->control->mediaStream();
 
     return nullptr;
-}
-
-QMediaPlaylist *QMediaPlayer::playlist() const
-{
-    Q_D(const QMediaPlayer);
-
-    return d->rootMedia.playlist();
-}
-
-QMediaContent QMediaPlayer::currentMedia() const
-{
-    Q_D(const QMediaPlayer);
-
-    // When playing a resource file, don't return the backend's current media, which
-    // can be a temporary file.
-    if (!d->qrcMedia.isNull())
-        return d->qrcMedia;
-
-    if (d->control)
-        return d->control->media();
-
-    return QMediaContent();
-}
-
-void QMediaPlayer::setPlaylist(QMediaPlaylist *playlist)
-{
-    QMediaContent m(playlist, QUrl(), false);
-    setMedia(m);
 }
 
 QMediaPlayer::State QMediaPlayer::state() const
@@ -808,22 +493,6 @@ void QMediaPlayer::play()
         return;
     }
 
-    //if playlist control is available, the service should advance itself
-    if (d->rootMedia.playlist() && !d->rootMedia.playlist()->isEmpty()) {
-        // switch to playing state
-        if (d->state != QMediaPlayer::PlayingState)
-            d->_q_stateChanged(QMediaPlayer::PlayingState);
-
-        if (d->rootMedia.playlist()->currentIndex() == -1) {
-            if (d->playlist != d->rootMedia.playlist())
-                d->setPlaylist(d->rootMedia.playlist());
-            Q_ASSERT(d->playlist == d->rootMedia.playlist());
-
-            emit currentMediaChanged(d->rootMedia);
-            d->playlist->setCurrentIndex(0);
-        }
-    }
-
     // Reset error conditions
     d->error = NoError;
     d->errorString = QString();
@@ -853,17 +522,6 @@ void QMediaPlayer::stop()
 
     if (d->control != nullptr)
         d->control->stop();
-
-    // If media player didn't stop in response to control.
-    // This happens if we have an active playlist and control
-    // media status is
-    // QMediaPlayer::LoadingMedia, QMediaPlayer::InvalidMedia, or QMediaPlayer::EndOfMedia
-    // see QMediaPlayerPrivate::_q_stateChanged()
-    if (d->playlist && d->state != QMediaPlayer::StoppedState) {
-        d->state = QMediaPlayer::StoppedState;
-        removePropertyWatch("position");
-        emit stateChanged(QMediaPlayer::StoppedState);
-    }
 }
 
 void QMediaPlayer::setPosition(qint64 position)
@@ -953,21 +611,12 @@ void QMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
     stop();
 
     QMediaContent oldMedia = d->rootMedia;
-    d->disconnectPlaylist();
-    d->playlist = nullptr;
     d->rootMedia = media;
-    d->nestedPlaylists = 0;
 
     if (oldMedia != media)
         emit mediaChanged(d->rootMedia);
 
-    if (media.playlist()) {
-        // reset playlist to the 1st item
-        media.playlist()->setCurrentIndex(0);
-        d->setPlaylist(media.playlist());
-    } else {
-        d->setMedia(media, stream);
-    }
+    d->setMedia(media, stream);
 }
 
 /*!
@@ -1190,7 +839,6 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     \value NetworkError A network error occurred.
     \value AccessDeniedError There are not the appropriate permissions to play a media resource.
     \value ServiceMissingError A valid playback service was not found, playback cannot proceed.
-    \omitvalue MediaIsPlaylist
 */
 
 // Signals
@@ -1290,36 +938,8 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     information relating to the current media source and to cease all I/O operations related
     to that media.
 
-    \sa QMediaContent, currentMedia()
-*/
-
-/*!
-    \property QMediaPlayer::currentMedia
-    \brief the current active media content being played by the player object.
-    This value could be different from QMediaPlayer::media property if a playlist is used.
-    In this case currentMedia indicates the current media content being processed
-    by the player, while QMediaPlayer::media property contains the original playlist.
-
-    \sa QMediaContent, media()
-*/
-
-/*!
-    \property QMediaPlayer::playlist
-    \brief the media playlist being used by the player object.
-
-    The player object will use the current playlist item for selection of the content to
-    be played.
-
-    By default this property is set to null.
-
-    If the media playlist is used as a source, QMediaPlayer::currentMedia is updated with
-    a current playlist item. The current source should be selected with
-    QMediaPlaylist::setCurrentIndex(int) instead of QMediaPlayer::setMedia(),
-    otherwise the current playlist will be discarded.
-
     \sa QMediaContent
 */
-
 
 /*!
     \property QMediaPlayer::mediaStatus

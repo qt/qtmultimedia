@@ -78,8 +78,7 @@ void QMediaSourcePrivate::_q_notify()
 
     It provides some basic functionality that is common to other high level classes
     like \l QMediaPlayer, \l QAudioDecoder and \l QCamera, including availability
-    and meta-data functionality, as well as functionality to connect media objects
-    with support classes like QMediaPlaylist.
+    and meta-data functionality.
 
     The higher level QMediaSource derived classes provide the actual multimedia
     functionality, by internally using a QMediaService.  Each media object

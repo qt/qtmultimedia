@@ -50,7 +50,6 @@ QT_BEGIN_NAMESPACE
 
 
 class QAbstractVideoSurface;
-class QMediaPlaylist;
 class QAudioDeviceInfo;
 
 class QMediaPlayerPrivate;
@@ -58,8 +57,6 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
 {
     Q_OBJECT
     Q_PROPERTY(QMediaContent media READ media WRITE setMedia NOTIFY mediaChanged)
-    Q_PROPERTY(QMediaContent currentMedia READ currentMedia NOTIFY currentMediaChanged)
-    Q_PROPERTY(QMediaPlaylist* playlist READ playlist WRITE setPlaylist)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
@@ -115,8 +112,7 @@ public:
         FormatError,
         NetworkError,
         AccessDeniedError,
-        ServiceMissingError,
-        MediaIsPlaylist
+        ServiceMissingError
     };
 
     explicit QMediaPlayer(QObject *parent = nullptr, Flags flags = Flags());
@@ -156,9 +152,6 @@ public:
 
     QMediaContent media() const;
     const QIODevice *mediaStream() const;
-    // ### remove playlist support, only support one url or iodevice as source
-    QMediaPlaylist *playlist() const;
-    QMediaContent currentMedia() const;
 
     State state() const;
     MediaStatus mediaStatus() const;
@@ -200,11 +193,9 @@ public Q_SLOTS:
     void setPlaybackRate(qreal rate);
 
     void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
-    void setPlaylist(QMediaPlaylist *playlist);
 
 Q_SIGNALS:
     void mediaChanged(const QMediaContent &media);
-    void currentMediaChanged(const QMediaContent &media);
 
     void stateChanged(QMediaPlayer::State newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
@@ -233,11 +224,6 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaPlayer::State))
     Q_PRIVATE_SLOT(d_func(), void _q_mediaStatusChanged(QMediaPlayer::MediaStatus))
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_updateMedia(const QMediaContent&))
-    Q_PRIVATE_SLOT(d_func(), void _q_playlistDestroyed())
-    Q_PRIVATE_SLOT(d_func(), void _q_handleMediaChanged(const QMediaContent&))
-    Q_PRIVATE_SLOT(d_func(), void _q_handlePlaylistLoaded())
-    Q_PRIVATE_SLOT(d_func(), void _q_handlePlaylistLoadFailed())
 };
 
 QT_END_NAMESPACE

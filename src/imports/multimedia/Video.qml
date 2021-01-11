@@ -357,21 +357,8 @@ Item {
         \qmlproperty url Video::source
 
         This property holds the source URL of the media.
-
-        Setting the \l source property clears the current \l playlist, if any.
     */
     property alias source:          player.source
-
-    /*!
-        \qmlproperty Playlist Video::playlist
-
-        This property holds the playlist used by the media player.
-
-        Setting the \l playlist property resets the \l source to an empty string.
-
-        \since 5.6
-    */
-    property alias playlist:        player.playlist
 
     /*!
         \qmlproperty enumeration Video::status

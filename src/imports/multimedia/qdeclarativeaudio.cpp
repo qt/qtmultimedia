@@ -47,7 +47,6 @@
 #include <private/qdeclarativevideooutput_p.h>
 #include <qmetadatareadercontrol.h>
 
-#include "qdeclarativeplaylist_p.h"
 #include "qdeclarativemediametadata_p.h"
 
 #include <QAbstractVideoSurface>
@@ -97,13 +96,11 @@ void QDeclarativeAudio::_q_error(QMediaPlayer::Error errorCode)
 
 QDeclarativeAudio::QDeclarativeAudio(QObject *parent)
     : QObject(parent)
-    , m_playlist(nullptr)
     , m_autoPlay(false)
     , m_autoLoad(true)
     , m_loaded(false)
     , m_muted(false)
     , m_complete(false)
-    , m_emitPlaylistChanged(false)
     , m_loopCount(1)
     , m_runningCount(0)
     , m_position(0)
@@ -353,45 +350,6 @@ QUrl QDeclarativeAudio::source() const
     return m_source;
 }
 
-QDeclarativePlaylist *QDeclarativeAudio::playlist() const
-{
-    return m_playlist;
-}
-
-void QDeclarativeAudio::setPlaylist(QDeclarativePlaylist *playlist)
-{
-    if (playlist == m_playlist && m_source.isEmpty())
-        return;
-
-    if (!m_source.isEmpty()) {
-        m_source.clear();
-        emit sourceChanged();
-    }
-
-    m_playlist = playlist;
-    m_content = m_playlist ?
-        QMediaContent(m_playlist->mediaPlaylist(), QUrl(), false) : QMediaContent();
-    m_loaded = false;
-    if (m_complete && (m_autoLoad || m_content.isNull() || m_autoPlay)) {
-        if (m_error != QMediaPlayer::ServiceMissingError && m_error != QMediaPlayer::NoError) {
-            m_error = QMediaPlayer::NoError;
-            m_errorString = QString();
-
-            emit errorChanged();
-        }
-
-        if (!playlist)
-            m_emitPlaylistChanged = true;
-        m_player->setMedia(m_content, nullptr);
-        m_loaded = true;
-    }
-    else
-        emit playlistChanged();
-
-    if (m_autoPlay)
-        m_player->play();
-}
-
 bool QDeclarativeAudio::autoPlay() const
 {
     return m_autoPlay;
@@ -409,13 +367,8 @@ void QDeclarativeAudio::setAutoPlay(bool autoplay)
 
 void QDeclarativeAudio::setSource(const QUrl &url)
 {
-    if (url == m_source && m_playlist == nullptr)
+    if (url == m_source)
         return;
-
-    if (m_playlist) {
-        m_playlist = nullptr;
-        emit playlistChanged();
-    }
 
     m_source = url;
     m_content = m_source.isEmpty() ? QMediaContent() : m_source;
@@ -673,18 +626,6 @@ void QDeclarativeAudio::seek(int position)
     \qmlproperty url QtMultimedia::Audio::source
 
     This property holds the source URL of the media.
-
-    Setting the \l source property clears the current \l playlist, if any.
-*/
-
-/*!
-    \qmlproperty Playlist QtMultimedia::Audio::playlist
-
-    This property holds the playlist used by the media player.
-
-    Setting the \l playlist property resets the \l source to an empty string.
-
-    \since 5.6
 */
 
 /*!
@@ -1031,12 +972,7 @@ void QDeclarativeAudio::_q_statusChanged()
 
 void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 {
-    if (!media.playlist() && !m_emitPlaylistChanged) {
-        emit sourceChanged();
-    } else {
-        m_emitPlaylistChanged = false;
-        emit playlistChanged();
-    }
+    emit sourceChanged();
 }
 
 /*!
@@ -1351,8 +1287,6 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
 
     This property holds the source URL of the media.
 
-    Setting the \l source property clears the current \l playlist, if any.
-
     Since Qt 5.12.2, the url scheme \c gst-pipeline provides custom pipelines
     for the GStreamer backend.
 
@@ -1362,16 +1296,6 @@ void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
     \snippet multimedia-snippets/qtvideosink.qml complete
 
     \sa QMediaPlayer::setMedia()
-*/
-
-/*!
-    \qmlproperty Playlist QtMultimedia::MediaPlayer::playlist
-
-    This property holds the playlist used by the media player.
-
-    Setting the \l playlist property resets the \l source to an empty string.
-
-    \since 5.6
 */
 
 /*!

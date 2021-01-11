@@ -71,10 +71,16 @@ Player::Player(QWidget *parent)
     qInfo() << "Supported audio roles:";
     for (QAudio::Role role : m_player->supportedAudioRoles())
         qInfo() << "    " << role;
-    // owned by PlaylistModel
-    m_playlist = new QMediaPlaylist();
-    m_player->setPlaylist(m_playlist);
 //! [create-objs]
+
+//! [2]
+    m_videoWidget = new VideoWidget(this);
+    m_videoWidget->resize(1280, 720);
+    m_player->setVideoOutput(m_videoWidget);
+
+    m_playlistModel = new PlaylistModel(this);
+    m_playlist = m_playlistModel->playlist();
+//! [2]
 
     connect(m_player, &QMediaPlayer::durationChanged, this, &Player::durationChanged);
     connect(m_player, &QMediaPlayer::positionChanged, this, &Player::positionChanged);
@@ -85,14 +91,6 @@ Player::Player(QWidget *parent)
     connect(m_player, &QMediaPlayer::videoAvailableChanged, this, &Player::videoAvailableChanged);
     connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &Player::displayErrorMessage);
     connect(m_player, &QMediaPlayer::stateChanged, this, &Player::stateChanged);
-
-//! [2]
-    m_videoWidget = new VideoWidget(this);
-    m_player->setVideoOutput(m_videoWidget);
-
-    m_playlistModel = new PlaylistModel(this);
-    m_playlistModel->setPlaylist(m_playlist);
-//! [2]
 
     m_playlistView = new QListView(this);
     m_playlistView->setModel(m_playlistModel);
@@ -283,10 +281,11 @@ void Player::previousClicked()
 {
     // Go to previous track if we are within the first 5 seconds of playback
     // Otherwise, seek to the beginning.
-    if (m_player->position() <= 5000)
+    if (m_player->position() <= 5000) {
         m_playlist->previous();
-    else
+    } else {
         m_player->setPosition(0);
+    }
 }
 
 void Player::jump(const QModelIndex &index)
@@ -301,6 +300,8 @@ void Player::playlistPositionChanged(int currentItem)
 {
     clearHistogram();
     m_playlistView->setCurrentIndex(m_playlistModel->index(currentItem, 0));
+    m_player->setMedia(m_playlist->currentMedia());
+    m_player->play();
 }
 
 void Player::seek(int seconds)
@@ -331,6 +332,7 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
         break;
     case QMediaPlayer::EndOfMedia:
         QApplication::alert(this);
+        m_playlist->next();
         break;
     case QMediaPlayer::InvalidMedia:
         displayErrorMessage();
