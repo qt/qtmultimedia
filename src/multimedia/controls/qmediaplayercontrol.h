@@ -80,9 +80,9 @@ public:
     virtual qreal playbackRate() const = 0;
     virtual void setPlaybackRate(qreal rate) = 0;
 
-    virtual QMediaContent media() const = 0;
+    virtual QUrl media() const = 0;
     virtual const QIODevice *mediaStream() const = 0;
-    virtual void setMedia(const QMediaContent &media, QIODevice *stream) = 0;
+    virtual void setMedia(const QUrl &media, QIODevice *stream) = 0;
 
     virtual void play() = 0;
     virtual void pause() = 0;
@@ -97,7 +97,7 @@ public:
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
     void customAudioRoleChanged(const QString &role);
-    void mediaChanged(const QMediaContent& content);
+    void mediaChanged(const QUrl& content);
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void stateChanged(QMediaPlayer::State newState);

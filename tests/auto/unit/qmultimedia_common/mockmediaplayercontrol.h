@@ -30,6 +30,7 @@
 #define MOCKMEDIAPLAYERCONTROL_H
 
 #include "qmediaplayercontrol.h"
+#include <qurl.h>
 
 class MockMediaPlayerControl : public QMediaPlayerControl
 {
@@ -81,12 +82,12 @@ public:
     qreal playbackRate() const { return _playbackRate; }
     void setPlaybackRate(qreal rate) { if (rate != _playbackRate) emit playbackRateChanged(_playbackRate = rate); }
 
-    QMediaContent media() const { return _media; }
-    void setMedia(const QMediaContent &content, QIODevice *stream)
+    QUrl media() const { return _media; }
+    void setMedia(const QUrl &content, QIODevice *stream)
     {
         _stream = stream;
         _media = content;
-        _mediaStatus = _media.isNull() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia;
+        _mediaStatus = _media.isEmpty() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia;
         if (_state != QMediaPlayer::StoppedState)
             emit stateChanged(_state = QMediaPlayer::StoppedState);
         emit mediaStatusChanged(_mediaStatus);
@@ -94,8 +95,8 @@ public:
     }
     QIODevice *mediaStream() const { return _stream; }
 
-    void play() { if (_isValid && !_media.isNull() && _state != QMediaPlayer::PlayingState) emit stateChanged(_state = QMediaPlayer::PlayingState); }
-    void pause() { if (_isValid && !_media.isNull() && _state != QMediaPlayer::PausedState) emit stateChanged(_state = QMediaPlayer::PausedState); }
+    void play() { if (_isValid && !_media.isEmpty() && _state != QMediaPlayer::PlayingState) emit stateChanged(_state = QMediaPlayer::PlayingState); }
+    void pause() { if (_isValid && !_media.isEmpty() && _state != QMediaPlayer::PausedState) emit stateChanged(_state = QMediaPlayer::PausedState); }
     void stop() { if (_state != QMediaPlayer::StoppedState) emit stateChanged(_state = QMediaPlayer::StoppedState); }
 
     void setAudioRole(QAudio::Role role)
@@ -145,7 +146,7 @@ public:
     bool _isSeekable;
     QPair<qint64, qint64> _seekRange;
     qreal _playbackRate;
-    QMediaContent _media;
+    QUrl _media;
     QIODevice *_stream;
     bool _isValid;
     QString _errorString;

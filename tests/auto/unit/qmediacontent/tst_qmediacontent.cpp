@@ -29,13 +29,13 @@
 #include <QtTest/QtTest>
 #include <QtNetwork/qnetworkrequest.h>
 
-#include <qmediacontent.h>
+#include <QUrl.h>
 #include <qmediaplaylist.h>
 
 //TESTED_COMPONENT=src/multimedia
 
 QT_USE_NAMESPACE
-class tst_QMediaContent : public QObject
+class tst_QUrl : public QObject
 {
     Q_OBJECT
 
@@ -49,43 +49,43 @@ private slots:
     void testPlaylist();
 };
 
-void tst_QMediaContent::testNull()
+void tst_QUrl::testNull()
 {
-    QMediaContent media;
+    QUrl media;
 
     QCOMPARE(media.isNull(), true);
     QCOMPARE(media.request().url(), QUrl());
 }
 
-void tst_QMediaContent::testUrlCtor()
+void tst_QUrl::testUrlCtor()
 {
-    QMediaContent media(QUrl("http://example.com/movie.mov"));
+    QUrl media(QUrl("http://example.com/movie.mov"));
     QCOMPARE(media.request().url(), QUrl("http://example.com/movie.mov"));
 }
 
-void tst_QMediaContent::testRequestCtor()
+void tst_QUrl::testRequestCtor()
 {
     QNetworkRequest request(QUrl("http://example.com/movie.mov"));
     request.setAttribute(QNetworkRequest::User, QVariant(1234));
 
-    QMediaContent media(request);
+    QUrl media(request);
     QCOMPARE(media.request().url(), QUrl("http://example.com/movie.mov"));
     QCOMPARE(media.request(), request);
 }
 
-void tst_QMediaContent::testCopy()
+void tst_QUrl::testCopy()
 {
-    QMediaContent media1(QUrl("http://example.com/movie.mov"));
-    QMediaContent media2(media1);
+    QUrl media1(QUrl("http://example.com/movie.mov"));
+    QUrl media2(media1);
 
     QVERIFY(media1 == media2);
 }
 
-void tst_QMediaContent::testAssignment()
+void tst_QUrl::testAssignment()
 {
-    QMediaContent media1(QUrl("http://example.com/movie.mov"));
-    QMediaContent media2;
-    QMediaContent media3;
+    QUrl media1(QUrl("http://example.com/movie.mov"));
+    QUrl media2;
+    QUrl media3;
 
     media2 = media1;
     QVERIFY(media2 == media1);
@@ -94,13 +94,13 @@ void tst_QMediaContent::testAssignment()
     QVERIFY(media2 == media3);
 }
 
-void tst_QMediaContent::testEquality()
+void tst_QUrl::testEquality()
 {
-    QMediaContent media1;
-    QMediaContent media2;
-    QMediaContent media3(QUrl("http://example.com/movie.mov"));
-    QMediaContent media4(QUrl("http://example.com/movie.mov"));
-    QMediaContent media5(QUrl("file:///some/where/over/the/rainbow.mp3"));
+    QUrl media1;
+    QUrl media2;
+    QUrl media3(QUrl("http://example.com/movie.mov"));
+    QUrl media4(QUrl("http://example.com/movie.mov"));
+    QUrl media5(QUrl("file:///some/where/over/the/rainbow.mp3"));
 
     // null == null
     QCOMPARE(media1 == media2, true);
@@ -119,42 +119,42 @@ void tst_QMediaContent::testEquality()
     QCOMPARE(media4 != media5, true);
 }
 
-void tst_QMediaContent::testPlaylist()
+void tst_QUrl::testPlaylist()
 {
-    QMediaContent media(QUrl("http://example.com/movie.mov"));
+    QUrl media(QUrl("http://example.com/movie.mov"));
     QVERIFY(media.request().url().isValid());
     QVERIFY(!media.playlist());
 
     {
         QPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
-        media = QMediaContent(playlist.data(), QUrl("http://example.com/sample.m3u"), true);
+        media = QUrl(playlist.data(), QUrl("http://example.com/sample.m3u"), true);
         QVERIFY(media.request().url().isValid());
         QCOMPARE(media.playlist(), playlist.data());
-        media = QMediaContent();
-        // Make sure playlist is destroyed by QMediaContent
+        media = QUrl();
+        // Make sure playlist is destroyed by QUrl
         QTRY_VERIFY(!playlist);
     }
 
     {
         QMediaPlaylist *playlist = new QMediaPlaylist;
-        media = QMediaContent(playlist, QUrl("http://example.com/sample.m3u"), true);
-        // Delete playlist outside QMediaContent
+        media = QUrl(playlist, QUrl("http://example.com/sample.m3u"), true);
+        // Delete playlist outside QUrl
         delete playlist;
         QVERIFY(!media.playlist());
-        media = QMediaContent();
+        media = QUrl();
     }
 
     {
         QPointer<QMediaPlaylist> playlist(new QMediaPlaylist);
-        media = QMediaContent(playlist.data(), QUrl(), false);
+        media = QUrl(playlist.data(), QUrl(), false);
         QVERIFY(!media.request().url().isValid());
         QCOMPARE(media.playlist(), playlist.data());
-        media = QMediaContent();
+        media = QUrl();
         QVERIFY(playlist);
         delete playlist.data();
     }
 }
 
-QTEST_MAIN(tst_QMediaContent)
+QTEST_MAIN(tst_QUrl)
 
-#include "tst_qmediacontent.moc"
+#include "tst_QUrl.moc"

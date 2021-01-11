@@ -69,9 +69,9 @@ public:
     QMediaTimeRange availablePlaybackRanges() const override;
     qreal playbackRate() const override;
     void setPlaybackRate(qreal rate) override;
-    QMediaContent media() const override;
+    QUrl media() const override;
     const QIODevice *mediaStream() const override;
-    void setMedia(const QMediaContent &mediaContent, QIODevice *stream) override;
+    void setMedia(const QUrl &mediaContent, QIODevice *stream) override;
 
     void setAudioRole(QAudio::Role role) override;
     QList<QAudio::Role> supportedAudioRoles() const override;
@@ -103,7 +103,7 @@ private:
     AndroidMediaPlayer *mMediaPlayer;
     QMediaPlayer::State mCurrentState;
     QMediaPlayer::MediaStatus mCurrentMediaStatus;
-    QMediaContent mMediaContent;
+    QUrl mMediaContent;
     QIODevice *mMediaStream;
     QAndroidVideoOutput *mVideoOutput;
     bool mSeekable;

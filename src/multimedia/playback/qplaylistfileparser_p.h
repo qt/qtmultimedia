@@ -58,7 +58,7 @@
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
-class QMediaContent;
+class QUrl;
 class QNetworkRequest;
 
 class QPlaylistFileParserPrivate;
@@ -78,12 +78,12 @@ public:
         PLS
     };
 
-    void start(const QMediaContent &media, QIODevice *stream = nullptr, const QString &mimeType = QString());
-    void start(const QNetworkRequest &request, const QString &mimeType = QString());
+    void start(const QUrl &media, QIODevice *stream = nullptr, const QString &mimeType = QString());
+    void start(const QUrl &request, const QString &mimeType = QString());
     void start(QIODevice *stream, const QString &mimeType = QString());
     void abort();
 
-    QList<QMediaContent> playlist;
+    QList<QUrl> playlist;
 
 Q_SIGNALS:
     void newItem(const QVariant& content);

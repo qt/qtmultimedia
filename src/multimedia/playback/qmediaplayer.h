@@ -42,7 +42,6 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediasource.h>
-#include <QtMultimedia/qmediacontent.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qaudio.h>
 
@@ -56,7 +55,7 @@ class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
 {
     Q_OBJECT
-    Q_PROPERTY(QMediaContent media READ media WRITE setMedia NOTIFY mediaChanged)
+    Q_PROPERTY(QUrl media READ media WRITE setMedia NOTIFY mediaChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
@@ -150,7 +149,7 @@ public:
     void setVideoOutput(QAbstractVideoSurface *surface);
     void setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces);
 
-    QMediaContent media() const;
+    QUrl media() const;
     const QIODevice *mediaStream() const;
 
     State state() const;
@@ -192,10 +191,10 @@ public Q_SLOTS:
 
     void setPlaybackRate(qreal rate);
 
-    void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
+    void setMedia(const QUrl &media, QIODevice *stream = nullptr);
 
 Q_SIGNALS:
-    void mediaChanged(const QMediaContent &media);
+    void mediaChanged(const QUrl &media);
 
     void stateChanged(QMediaPlayer::State newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);

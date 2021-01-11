@@ -50,7 +50,6 @@ qt_add_module(Multimedia
         controls/qvideoencodersettingscontrol.cpp controls/qvideoencodersettingscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
-        playback/qmediacontent.cpp playback/qmediacontent.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h

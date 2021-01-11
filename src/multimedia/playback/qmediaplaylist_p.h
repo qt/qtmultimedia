@@ -133,7 +133,7 @@ public:
     int nextPosition(int steps) const;
     int prevPosition(int steps) const;
 
-    QList<QMediaContent> playlist;
+    QList<QUrl> playlist;
 
     int currentPos = -1;
     QMediaPlaylist::PlaybackMode playbackMode = QMediaPlaylist::Sequential;

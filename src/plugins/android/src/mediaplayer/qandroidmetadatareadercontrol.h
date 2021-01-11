@@ -41,7 +41,7 @@
 #define QANDROIDMETADATAREADERCONTROL_H
 
 #include <QMetaDataReaderControl>
-#include <qmediacontent.h>
+#include <QUrl.h>
 #include <QMutex>
 
 QT_BEGIN_NAMESPACE
@@ -61,7 +61,7 @@ public:
     QStringList availableMetaData() const override;
 
 public Q_SLOTS:
-    void onMediaChanged(const QMediaContent &media);
+    void onMediaChanged(const QUrl &media);
     void onUpdateMetaData();
 
 private:
@@ -69,7 +69,7 @@ private:
     static void extractMetadata(QAndroidMetaDataReaderControl *caller, const QUrl &url);
 
     mutable QMutex m_mtx;
-    QMediaContent m_mediaContent;
+    QUrl m_mediaContent;
     bool m_available;
     QVariantMap m_metadata;
 };

@@ -91,9 +91,9 @@ public:
     qreal playbackRate() const override;
     void setPlaybackRate(qreal rate) override;
 
-    QMediaContent media() const override;
+    QUrl media() const override;
     const QIODevice *mediaStream() const override;
-    void setMedia(const QMediaContent &media, QIODevice *stream) override;
+    void setMedia(const QUrl &media, QIODevice *stream) override;
 
     void play() override;
     void pause() override;
@@ -158,7 +158,7 @@ private:
     enum StopCommand { StopMmRenderer, IgnoreMmRenderer };
     void stopInternal(StopCommand stopCommand);
 
-    QMediaContent m_media;
+    QUrl m_media;
     mmr_connection_t *m_connection;
     int m_audioId;
     QMediaPlayer::State m_state;

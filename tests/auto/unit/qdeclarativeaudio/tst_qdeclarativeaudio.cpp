@@ -143,13 +143,13 @@ public:
     [[nodiscard]] qreal playbackRate() const override { return m_playbackRate; }
     void setPlaybackRate(qreal rate) override { emit playbackRateChanged(m_playbackRate = rate); }
 
-    [[nodiscard]] QMediaContent media() const override { return m_media; }
+    [[nodiscard]] QUrl media() const override { return m_media; }
     [[nodiscard]] const QIODevice *mediaStream() const override { return nullptr; }
-    void setMedia(const QMediaContent &media, QIODevice *) override
+    void setMedia(const QUrl &media, QIODevice *) override
     {
         m_media = media;
 
-        m_mediaStatus = m_media.isNull()
+        m_mediaStatus = m_media.isEmpty()
                 ? QMediaPlayer::NoMedia
                 : QMediaPlayer::LoadingMedia;
 
@@ -182,7 +182,7 @@ private:
     bool m_audioAvailable = false;
     bool m_videoAvailable = false;
     bool m_seekable = false;
-    QMediaContent m_media;
+    QUrl m_media;
 };
 
 class QtTestMetaDataControl : public QMetaDataReaderControl
@@ -401,17 +401,17 @@ void tst_QDeclarativeAudio::source()
 
     audio.setSource(url1);
     QCOMPARE(audio.source(), url1);
-    QCOMPARE(provider.playerControl()->media().request().url(), url1);
+    QCOMPARE(provider.playerControl()->media(), url1);
     QCOMPARE(spy.count(), 1);
 
     audio.setSource(url2);
     QCOMPARE(audio.source(), url2);
-    QCOMPARE(provider.playerControl()->media().request().url(), url2);
+    QCOMPARE(provider.playerControl()->media(), url2);
     QCOMPARE(spy.count(), 2);
 
     audio.setSource(url3);
     QCOMPARE(audio.source(), url3);
-    QCOMPARE(provider.playerControl()->media().request().url(), url3);
+    QCOMPARE(provider.playerControl()->media(), url3);
     QCOMPARE(spy.count(), 3);
 }
 

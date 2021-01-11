@@ -40,7 +40,7 @@
 #ifndef MFPLAYERCONTROL_H
 #define MFPLAYERCONTROL_H
 
-#include "qmediacontent.h"
+#include "QUrl.h"
 #include "qmediaplayercontrol.h"
 
 #include <QtCore/qcoreevent.h>
@@ -83,9 +83,9 @@ public:
     qreal playbackRate() const;
     void setPlaybackRate(qreal rate);
 
-    QMediaContent media() const;
+    QUrl media() const;
     const QIODevice *mediaStream() const;
-    void setMedia(const QMediaContent &media, QIODevice *stream);
+    void setMedia(const QUrl &media, QIODevice *stream);
 
     void play();
     void pause();
@@ -115,7 +115,7 @@ private:
     bool     m_seekable;
 
     QIODevice *m_stream;
-    QMediaContent m_media;
+    QUrl m_media;
     MFPlayerSession *m_session;
 };
 

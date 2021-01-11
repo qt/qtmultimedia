@@ -1,6 +1,6 @@
 CONFIG += testcase
-TARGET = tst_qmediacontent
+TARGET = tst_QUrl
 
 QT += multimedia-private network testlib
 
-SOURCES += tst_qmediacontent.cpp
+SOURCES += tst_QUrl.cpp

@@ -54,6 +54,7 @@
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QDir>
+#include <QUrl>
 
 int main(int argc, char **argv)
 {

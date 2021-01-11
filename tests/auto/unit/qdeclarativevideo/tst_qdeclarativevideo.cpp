@@ -132,9 +132,9 @@ public:
     qreal playbackRate() const { return m_playbackRate; }
     void setPlaybackRate(qreal rate) { emit playbackRateChanged(m_playbackRate = rate); }
 
-    QMediaContent media() const { return m_media; }
+    QUrl media() const { return m_media; }
     const QIODevice *mediaStream() const { return 0; }
-    void setMedia(const QMediaContent &media, QIODevice *)
+    void setMedia(const QUrl &media, QIODevice *)
     {
         m_media = media;
 
@@ -165,7 +165,7 @@ private:
     bool m_audioAvailable;
     bool m_videoAvailable;
     bool m_seekable;
-    QMediaContent m_media;
+    QUrl m_media;
 };
 
 class QtTestRendererControl : public QVideoRendererControl

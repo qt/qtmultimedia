@@ -308,13 +308,13 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
+    \fn QMediaPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
 
     Sets the current \a media source.  If a \a stream is supplied; data will be read from that
     instead of attempting to resolve the media source.  The media source may still be used to
     supply media information such as mime type.
 
-    Setting the media to a null QMediaContent will cause the control to discard all
+    Setting the media to a null QUrl will cause the control to discard all
     information relating to the current media source and to cease all I/O operations related
     to that media.
 
@@ -325,7 +325,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::mediaChanged(const QMediaContent& content)
+    \fn QMediaPlayerControl::mediaChanged(const QUrl& content)
 
     Signals that the current media \a content has changed.
 */

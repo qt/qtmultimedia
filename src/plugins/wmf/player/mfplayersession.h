@@ -55,7 +55,7 @@
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 QT_BEGIN_NAMESPACE
-class QMediaContent;
+class QUrl;
 QT_END_NAMESPACE
 
 QT_USE_NAMESPACE
@@ -94,7 +94,7 @@ public:
         return E_NOTIMPL;
     }
 
-    void load(const QMediaContent &media, QIODevice *stream);
+    void load(const QUrl &media, QIODevice *stream);
     void stop(bool immediate = false);
     void start();
     void pause();

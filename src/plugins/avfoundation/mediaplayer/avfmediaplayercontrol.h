@@ -59,9 +59,9 @@ public:
     QMediaPlayer::State state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;
 
-    QMediaContent media() const override;
+    QUrl media() const override;
     const QIODevice *mediaStream() const override;
-    void setMedia(const QMediaContent &content, QIODevice *stream) override;
+    void setMedia(const QUrl &content, QIODevice *stream) override;
 
     qint64 position() const override;
     qint64 duration() const override;

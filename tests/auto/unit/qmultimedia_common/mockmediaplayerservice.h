@@ -101,7 +101,7 @@ public:
     }
     void setMediaStatus(QMediaPlayer::MediaStatus status) { emit mockControl->mediaStatusChanged(mockControl->_mediaStatus = status); }
     void setIsValid(bool isValid) { mockControl->_isValid = isValid; }
-    void setMedia(QMediaContent media) { mockControl->_media = media; }
+    void setMedia(QUrl media) { mockControl->_media = media; }
     void setDuration(qint64 duration) { mockControl->_duration = duration; }
     void setPosition(qint64 position) { mockControl->_position = position; }
     void setSeekable(bool seekable) { mockControl->_isSeekable = seekable; }
@@ -126,7 +126,7 @@ public:
         mockControl->_videoAvailable = false;
         mockControl->_isSeekable = false;
         mockControl->_playbackRate = 0.0;
-        mockControl->_media = QMediaContent();
+        mockControl->_media = QUrl();
         mockControl->_stream = 0;
         mockControl->_isValid = false;
         mockControl->_errorString = QString();

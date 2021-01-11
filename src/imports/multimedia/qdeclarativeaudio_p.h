@@ -264,7 +264,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void _q_error(QMediaPlayer::Error);
     void _q_statusChanged();
-    void _q_mediaChanged(const QMediaContent&);
+    void _q_mediaChanged(const QUrl&);
 
 private:
     Q_DISABLE_COPY(QDeclarativeAudio)
@@ -287,7 +287,6 @@ private:
     QMediaPlayer::Error m_error;
     QString m_errorString;
     QUrl m_source;
-    QMediaContent m_content;
 
     QScopedPointer<QDeclarativeMediaMetaData> m_metaData;
 

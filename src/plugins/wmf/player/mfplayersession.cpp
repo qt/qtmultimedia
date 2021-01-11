@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qmediacontent.h"
+#include "QUrl.h"
 #include "qmediaplayercontrol.h"
 
 #include <QtCore/qcoreapplication.h>
@@ -191,7 +191,7 @@ MFPlayerSession::~MFPlayerSession()
 }
 
 
-void MFPlayerSession::load(const QMediaContent &media, QIODevice *stream)
+void MFPlayerSession::load(const QUrl &media, QIODevice *stream)
 {
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "load";

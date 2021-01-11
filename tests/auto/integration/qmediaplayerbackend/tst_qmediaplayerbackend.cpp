@@ -82,15 +82,15 @@ private slots:
     void playFromBuffer();
 
 private:
-    QMediaContent selectVideoFile(const QStringList& mediaCandidates);
+    QUrl selectVideoFile(const QStringList& mediaCandidates);
     bool isWavSupported();
 
     //one second local wav file
-    QMediaContent localWavFile;
-    QMediaContent localWavFile2;
-    QMediaContent localVideoFile;
-    QMediaContent localCompressedSoundFile;
-    QMediaContent localFileWithMetadata;
+    QUrl localWavFile;
+    QUrl localWavFile2;
+    QUrl localVideoFile;
+    QUrl localCompressedSoundFile;
+    QUrl localFileWithMetadata;
 
     bool m_inCISystem;
 };
@@ -143,7 +143,7 @@ void tst_QMediaPlayerBackend::init()
 {
 }
 
-QMediaContent tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaCandidates)
+QUrl tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaCandidates)
 {
     // select supported video format
     QMediaPlayer player;
@@ -156,7 +156,7 @@ QMediaContent tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaC
         QFileInfo videoFile(s);
         if (!videoFile.exists())
             continue;
-        QMediaContent media = QMediaContent(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
+        QUrl media = QUrl(QUrl::fromLocalFile(videoFile.absoluteFilePath()));
         player.setMedia(media);
         player.pause();
 
@@ -170,12 +170,12 @@ QMediaContent tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaC
         errorSpy.clear();
     }
 
-    return QMediaContent();
+    return QUrl();
 }
 
 bool tst_QMediaPlayerBackend::isWavSupported()
 {
-    return !localWavFile.isNull();
+    return !localWavFile.isEmpty();
 }
 
 void tst_QMediaPlayerBackend::initTestCase()
@@ -184,7 +184,7 @@ void tst_QMediaPlayerBackend::initTestCase()
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
 
-    qRegisterMetaType<QMediaContent>();
+    qRegisterMetaType<QUrl>();
 
     localWavFile = MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA("testdata/test.wav"));
     localWavFile2 = MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA("testdata/_test.wav"));;
@@ -228,8 +228,8 @@ void tst_QMediaPlayerBackend::loadMedia()
 
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QMediaContent)));
-    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
+    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QUrl)));
+    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QUrl)));
 
     player.setMedia(localWavFile);
 
@@ -242,8 +242,8 @@ void tst_QMediaPlayerBackend::loadMedia()
     QCOMPARE(stateSpy.count(), 0);
     QVERIFY(statusSpy.count() > 0);
     QCOMPARE(mediaSpy.count(), 1);
-    QCOMPARE(mediaSpy.last()[0].value<QMediaContent>(), localWavFile);
-    QCOMPARE(currentMediaSpy.last()[0].value<QMediaContent>(), localWavFile);
+    QCOMPARE(mediaSpy.last()[0].value<QUrl>(), localWavFile);
+    QCOMPARE(currentMediaSpy.last()[0].value<QUrl>(), localWavFile);
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
@@ -261,8 +261,8 @@ void tst_QMediaPlayerBackend::unloadMedia()
 
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QMediaContent)));
-    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
+    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QUrl)));
+    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QUrl)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
     QSignalSpy durationSpy(&player, SIGNAL(positionChanged(qint64)));
 
@@ -285,13 +285,13 @@ void tst_QMediaPlayerBackend::unloadMedia()
     positionSpy.clear();
     durationSpy.clear();
 
-    player.setMedia(QMediaContent());
+    player.setMedia(QUrl());
 
     QVERIFY(player.position() <= 0);
     QVERIFY(player.duration() <= 0);
     QCOMPARE(player.state(), QMediaPlayer::StoppedState);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
-    QCOMPARE(player.media(), QMediaContent());
+    QCOMPARE(player.media(), QUrl());
 
     QVERIFY(!stateSpy.isEmpty());
     QVERIFY(!statusSpy.isEmpty());
@@ -458,7 +458,7 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     QTRY_VERIFY(player.position() > 100);
 
-    player.setMedia(QMediaContent());
+    player.setMedia(QUrl());
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
     QCOMPARE(statusSpy.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::NoMedia);
@@ -721,7 +721,7 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
     QTRY_COMPARE(player.volume(), volume);
     QCOMPARE(player.isMuted(), muted);
 
-    player.setMedia(QMediaContent());
+    player.setMedia(QUrl());
     QTRY_COMPARE(player.volume(), volume);
     QCOMPARE(player.isMuted(), muted);
 
@@ -759,7 +759,7 @@ void tst_QMediaPlayerBackend::initialVolume()
 
 void tst_QMediaPlayerBackend::seekPauseSeek()
 {
-    if (localVideoFile.isNull())
+    if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
     QMediaPlayer player;
@@ -833,7 +833,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
 void tst_QMediaPlayerBackend::seekInStoppedState()
 {
-    if (localVideoFile.isNull())
+    if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
     QMediaPlayer player;
@@ -957,7 +957,7 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
         QSKIP("QTBUG-26769 Fails with gstreamer backend on ubuntu 10.4, setPosition(0)");
 #endif
 
-    if (localCompressedSoundFile.isNull())
+    if (localCompressedSoundFile.isEmpty())
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
@@ -992,7 +992,7 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 
 void tst_QMediaPlayerBackend::probes()
 {
-    if (localVideoFile.isNull())
+    if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
     QMediaPlayer *player = new QMediaPlayer;
@@ -1059,7 +1059,7 @@ void tst_QMediaPlayerBackend::surfaceTest_data()
 void tst_QMediaPlayerBackend::surfaceTest()
 {
     // 25 fps video file
-    if (localVideoFile.isNull())
+    if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
     QFETCH(QList<QVideoFrame::PixelFormat>, formatsList);
@@ -1078,7 +1078,7 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
 void tst_QMediaPlayerBackend::multipleSurfaces()
 {
-    if (localVideoFile.isNull())
+    if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
     QList<QVideoFrame::PixelFormat> formats1;
@@ -1105,7 +1105,7 @@ void tst_QMediaPlayerBackend::multipleSurfaces()
 
 void tst_QMediaPlayerBackend::metadata()
 {
-    if (localFileWithMetadata.isNull())
+    if (localFileWithMetadata.isEmpty())
         QSKIP("No supported media file");
 
     QMediaPlayer player;
@@ -1127,7 +1127,7 @@ void tst_QMediaPlayerBackend::metadata()
     metadataAvailableSpy.clear();
     metadataChangedSpy.clear();
 
-    player.setMedia(QMediaContent());
+    player.setMedia(QUrl());
 
     QVERIFY(!player.isMetaDataAvailable());
     QCOMPARE(metadataAvailableSpy.count(), 1);
@@ -1160,13 +1160,13 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
 
 void tst_QMediaPlayerBackend::playFromBuffer()
 {
-    if (localVideoFile.isNull())
+    if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
     TestVideoSurface surface(false);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
-    QFile file(localVideoFile.request().url().toLocalFile());
+    QFile file(localVideoFile.toLocalFile());
     if (!file.open(QIODevice::ReadOnly))
         QSKIP("Could not open file");
     player.setMedia(localVideoFile, &file);

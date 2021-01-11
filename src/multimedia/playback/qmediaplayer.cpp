@@ -66,9 +66,9 @@ QT_BEGIN_NAMESPACE
 
     The QMediaPlayer class is a high level media playback class. It can be used
     to playback such content as songs, movies and internet radio. The content
-    to playback is specified as a QMediaContent object, which can be thought of as a
+    to playback is specified as a QUrl object, which can be thought of as a
     main or canonical URL with additional information attached. When provided
-    with a QMediaContent playback may be able to commence.
+    with a QUrl playback may be able to commence.
 
     \snippet multimedia-snippets/media.cpp Player
 
@@ -105,9 +105,9 @@ public:
 
     QPointer<QObject> videoOutput;
     QVideoSurfaceOutput surfaceOutput;
-    QMediaContent qrcMedia;
+    QUrl qrcMedia;
     QScopedPointer<QFile> qrcFile;
-    QMediaContent rootMedia;
+    QUrl rootMedia;
 
     QMediaPlayer::State state = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
@@ -118,7 +118,7 @@ public:
     QAudio::Role audioRole = QAudio::UnknownRole;
     QString customAudioRole;
 
-    void setMedia(const QMediaContent &media, QIODevice *stream = nullptr);
+    void setMedia(const QUrl &media, QIODevice *stream = nullptr);
 
     void _q_stateChanged(QMediaPlayer::State state);
     void _q_mediaStatusChanged(QMediaPlayer::MediaStatus status);
@@ -176,7 +176,7 @@ void QMediaPlayerPrivate::_q_error(int error, const QString &errorString)
     emit q->error(this->error);
 }
 
-void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream)
+void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 {
     Q_Q(QMediaPlayer);
 
@@ -188,10 +188,10 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
     // Backends can't play qrc files directly.
     // If the backend supports StreamPlayback, we pass a QFile for that resource.
     // If it doesn't, we copy the data to a temporary file and pass its path.
-    if (!media.isNull() && !stream && media.request().url().scheme() == QLatin1String("qrc")) {
+    if (!media.isEmpty() && !stream && media.scheme() == QLatin1String("qrc")) {
         qrcMedia = media;
 
-        file.reset(new QFile(QLatin1Char(':') + media.request().url().path()));
+        file.reset(new QFile(QLatin1Char(':') + media.path()));
         if (!file->open(QFile::ReadOnly)) {
             QMetaObject::invokeMethod(q, "_q_error", Qt::QueuedConnection,
                                       Q_ARG(int, QMediaPlayer::ResourceError),
@@ -203,7 +203,7 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
             // on the backend side since we can't load the new one and we want to be in the
             // InvalidMedia status.
             ignoreNextStatusChange = QMediaPlayer::NoMedia;
-            control->setMedia(QMediaContent(), nullptr);
+            control->setMedia(QUrl(), nullptr);
 
         } else if (hasStreamPlaybackFeature) {
             control->setMedia(media, file.data());
@@ -236,13 +236,13 @@ void QMediaPlayerPrivate::setMedia(const QMediaContent &media, QIODevice *stream
             tempFile->close();
 #endif
             file.reset(tempFile);
-            control->setMedia(QMediaContent(QUrl::fromLocalFile(file->fileName())), nullptr);
+            control->setMedia(QUrl(QUrl::fromLocalFile(file->fileName())), nullptr);
 #else
             qWarning("Qt was built with -no-feature-temporaryfile: playback from resource file is not supported!");
 #endif
         }
     } else {
-        qrcMedia = QMediaContent();
+        qrcMedia = QUrl();
         control->setMedia(media, stream);
     }
 
@@ -275,7 +275,7 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
     } else {
         d->control = qobject_cast<QMediaPlayerControl*>(d->service->requestControl(QMediaPlayerControl_iid));
         if (d->control != nullptr) {
-            connect(d->control, SIGNAL(mediaChanged(QMediaContent)), SLOT(_q_handleMediaChanged(QMediaContent)));
+            connect(d->control, SIGNAL(mediaChanged(QUrl)), SLOT(_q_handleMediaChanged(QUrl)));
             connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
             connect(d->control, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
                     SLOT(_q_mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -326,7 +326,7 @@ QMediaPlayer::~QMediaPlayer()
     }
 }
 
-QMediaContent QMediaPlayer::media() const
+QUrl QMediaPlayer::media() const
 {
     Q_D(const QMediaPlayer);
 
@@ -347,7 +347,7 @@ const QIODevice *QMediaPlayer::mediaStream() const
 
     // When playing a resource file, we might have passed a QFile to the backend. Hide it from
     // the user.
-    if (d->control && d->qrcMedia.isNull())
+    if (d->control && d->qrcMedia.isEmpty())
         return d->control->mediaStream();
 
     return nullptr;
@@ -574,7 +574,7 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     about the media such as mime type. The \a stream must be open and readable.
     For macOS the \a stream should be also seekable.
 
-    Setting the media to a null QMediaContent will cause the player to discard all
+    Setting the media to a null QUrl will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
     to that media.
 
@@ -605,12 +605,12 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     \snippet multimedia-snippets/media.cpp Pipeline appsrc
 */
 
-void QMediaPlayer::setMedia(const QMediaContent &media, QIODevice *stream)
+void QMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 {
     Q_D(QMediaPlayer);
     stop();
 
-    QMediaContent oldMedia = d->rootMedia;
+    QUrl oldMedia = d->rootMedia;
     d->rootMedia = media;
 
     if (oldMedia != media)
@@ -865,7 +865,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 */
 
 /*!
-    \fn void QMediaPlayer::mediaChanged(const QMediaContent &media);
+    \fn void QMediaPlayer::mediaChanged(const QUrl &media);
 
     Signals that the media source has been changed to \a media.
 
@@ -873,7 +873,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 */
 
 /*!
-    \fn void QMediaPlayer::currentMediaChanged(const QMediaContent &media);
+    \fn void QMediaPlayer::currentMediaChanged(const QUrl &media);
 
     Signals that the current playing content has been changed to \a media.
 
@@ -929,16 +929,16 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     \property QMediaPlayer::media
     \brief the active media source being used by the player object.
 
-    The player object will use the QMediaContent for selection of the content to
+    The player object will use the QUrl for selection of the content to
     be played.
 
-    By default this property has a null QMediaContent.
+    By default this property has a null QUrl.
 
-    Setting this property to a null QMediaContent will cause the player to discard all
+    Setting this property to a null QUrl will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
     to that media.
 
-    \sa QMediaContent
+    \sa QUrl
 */
 
 /*!
@@ -1013,7 +1013,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     \brief the audio availabilty status for the current media.
 
     As the life time of QMediaPlayer can be longer than the playback of one
-    QMediaContent, this property may change over time, the
+    QUrl, this property may change over time, the
     audioAvailableChanged signal can be used to monitor it's status.
 */
 
@@ -1023,10 +1023,10 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 
     If available, the QVideoWidget class can be used to view the video. As the
     life time of QMediaPlayer can be longer than the playback of one
-    QMediaContent, this property may change over time, the
+    QUrl, this property may change over time, the
     videoAvailableChanged signal can be used to monitor it's status.
 
-    \sa QVideoWidget, QMediaContent
+    \sa QVideoWidget, QUrl
 */
 
 /*!

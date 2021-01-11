@@ -381,7 +381,7 @@ void QAndroidMediaPlayerControl::setPlaybackRate(qreal rate)
     }
 }
 
-QMediaContent QAndroidMediaPlayerControl::media() const
+QUrl QAndroidMediaPlayerControl::media() const
 {
     return mMediaContent;
 }
@@ -391,7 +391,7 @@ const QIODevice *QAndroidMediaPlayerControl::mediaStream() const
     return mMediaStream;
 }
 
-void QAndroidMediaPlayerControl::setMedia(const QMediaContent &mediaContent,
+void QAndroidMediaPlayerControl::setMedia(const QUrl &mediaContent,
                                           QIODevice *stream)
 {
     StateChangeNotifier notifier(this);

@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qmediacontent.h"
+#include "QUrl.h"
 
 #include <QtCore/qdebug.h>
 

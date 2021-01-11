@@ -11,7 +11,6 @@ SUBDIRS += \
     qcameraimagecapture \
     qmediasink \
     qmediacontainercontrol \
-    qmediacontent \
     qmediasource \
     qmediaplayer \
     qmediaplaylist \

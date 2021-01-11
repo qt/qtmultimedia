@@ -453,7 +453,7 @@ void MmRendererMediaPlayerControl::setPlaybackRate(qreal rate)
     }
 }
 
-QMediaContent MmRendererMediaPlayerControl::media() const
+QUrl MmRendererMediaPlayerControl::media() const
 {
     return m_media;
 }
@@ -464,7 +464,7 @@ const QIODevice *MmRendererMediaPlayerControl::mediaStream() const
     return 0;
 }
 
-void MmRendererMediaPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
+void MmRendererMediaPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
 {
     Q_UNUSED(stream); // not supported
 

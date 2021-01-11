@@ -65,9 +65,9 @@ public:
         delete m_textStream;
     }
 
-    bool writeItem(const QMediaContent& item)
+    bool writeItem(const QUrl& item)
     {
-        *m_textStream << item.request().url().toString() << Qt::endl;
+        *m_textStream << item.toString() << Qt::endl;
         return true;
     }
 
@@ -152,7 +152,7 @@ int QMediaPlaylistPrivate::prevPosition(int steps) const
 
     QMediaPlayList currently supports M3U playlists (file extension .m3u and .m3u8).
 
-    \sa QMediaContent
+    \sa QUrl
 */
 
 
@@ -234,11 +234,11 @@ int QMediaPlaylist::currentIndex() const
   Returns the current media content.
 */
 
-QMediaContent QMediaPlaylist::currentMedia() const
+QUrl QMediaPlaylist::currentMedia() const
 {
     Q_D(const QMediaPlaylist);
     if (d->currentPos < 0 || d->currentPos >= d->playlist.size())
-        return QMediaContent();
+        return QUrl();
     return d_func()->playlist.at(d_func()->currentPos);
 }
 
@@ -293,11 +293,11 @@ bool QMediaPlaylist::isEmpty() const
   Returns the media content at \a index in the playlist.
 */
 
-QMediaContent QMediaPlaylist::media(int index) const
+QUrl QMediaPlaylist::media(int index) const
 {
     Q_D(const QMediaPlaylist);
     if (index < 0 || index >= d->playlist.size())
-        return QMediaContent();
+        return QUrl();
     return d->playlist.at(index);
 }
 
@@ -306,7 +306,7 @@ QMediaContent QMediaPlaylist::media(int index) const
 
   Returns true if the operation is successful, otherwise returns false.
   */
-void QMediaPlaylist::addMedia(const QMediaContent &content)
+void QMediaPlaylist::addMedia(const QUrl &content)
 {
     Q_D(QMediaPlaylist);
     int pos = d->playlist.size();
@@ -320,7 +320,7 @@ void QMediaPlaylist::addMedia(const QMediaContent &content)
 
   Returns true if the operation is successful, otherwise returns false.
   */
-void QMediaPlaylist::addMedia(const QList<QMediaContent> &items)
+void QMediaPlaylist::addMedia(const QList<QUrl> &items)
 {
     if (!items.size())
         return;
@@ -339,7 +339,7 @@ void QMediaPlaylist::addMedia(const QList<QMediaContent> &items)
   Returns true if the operation is successful, otherwise returns false.
 */
 
-bool QMediaPlaylist::insertMedia(int pos, const QMediaContent &content)
+bool QMediaPlaylist::insertMedia(int pos, const QUrl &content)
 {
     Q_D(QMediaPlaylist);
     pos = qBound(0, pos, d->playlist.size());
@@ -355,7 +355,7 @@ bool QMediaPlaylist::insertMedia(int pos, const QMediaContent &content)
   Returns true if the operation is successful, otherwise returns false.
 */
 
-bool QMediaPlaylist::insertMedia(int pos, const QList<QMediaContent> &items)
+bool QMediaPlaylist::insertMedia(int pos, const QList<QUrl> &items)
 {
     if (!items.size())
         return true;
@@ -435,26 +435,6 @@ void QMediaPlaylist::clear()
 }
 
 /*!
-  Load playlist using network \a request. If \a format is specified, it is used,
-  otherwise format is guessed from playlist name and data.
-
-  New items are appended to playlist.
-
-  QMediaPlaylist::loaded() signal is emitted if playlist was loaded successfully,
-  otherwise the playlist emits loadFailed().
-*/
-void QMediaPlaylist::load(const QNetworkRequest &request, const char *format)
-{
-    Q_D(QMediaPlaylist);
-
-    d->error = NoError;
-    d->errorString.clear();
-
-    d->ensureParser();
-    d->parser->start(request, QString::fromUtf8(format));
-}
-
-/*!
   Load playlist from \a location. If \a format is specified, it is used,
   otherwise format is guessed from location name and data.
 
@@ -466,7 +446,13 @@ void QMediaPlaylist::load(const QNetworkRequest &request, const char *format)
 
 void QMediaPlaylist::load(const QUrl &location, const char *format)
 {
-    load(QNetworkRequest(location), format);
+    Q_D(QMediaPlaylist);
+
+    d->error = NoError;
+    d->errorString.clear();
+
+    d->ensureParser();
+    d->parser->start(location, QString::fromUtf8(format));
 }
 
 /*!
@@ -559,10 +545,10 @@ QString QMediaPlaylist::errorString() const
 void QMediaPlaylist::shuffle()
 {
     Q_D(QMediaPlaylist);
-    QList<QMediaContent> playlist;
+    QList<QUrl> playlist;
 
     // keep the current item when shuffling
-    QMediaContent current;
+    QUrl current;
     if (d->currentPos != -1)
         current = d->playlist.takeAt(d->currentPos);
 
@@ -661,7 +647,7 @@ void QMediaPlaylist::setCurrentIndex(int playlistPosition)
 */
 
 /*!
-    \fn void QMediaPlaylist::currentMediaChanged(const QMediaContent &content)
+    \fn void QMediaPlaylist::currentMediaChanged(const QUrl &content)
 
     Signal emitted when current media changes to \a content.
 */

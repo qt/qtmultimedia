@@ -66,9 +66,9 @@ private slots:
     void testEnums();
 
 private:
-    QMediaContent content1;
-    QMediaContent content2;
-    QMediaContent content3;
+    QUrl content1;
+    QUrl content2;
+    QUrl content3;
 };
 
 void tst_QMediaPlaylist::init()
@@ -77,10 +77,10 @@ void tst_QMediaPlaylist::init()
 
 void tst_QMediaPlaylist::initTestCase()
 {
-    qRegisterMetaType<QMediaContent>();
-    content1 = QMediaContent(QUrl(QLatin1String("file:///1")));
-    content2 = QMediaContent(QUrl(QLatin1String("file:///2")));
-    content3 = QMediaContent(QUrl(QLatin1String("file:///3")));
+    qRegisterMetaType<QUrl>();
+    content1 = QUrl(QUrl(QLatin1String("file:///1")));
+    content2 = QUrl(QUrl(QLatin1String("file:///2")));
+    content3 = QUrl(QUrl(QLatin1String("file:///3")));
 
 }
 
@@ -120,9 +120,9 @@ void tst_QMediaPlaylist::append()
     aboutToBeInsertedSignalSpy.clear();
     insertedSignalSpy.clear();
 
-    QMediaContent content4(QUrl(QLatin1String("file:///4")));
-    QMediaContent content5(QUrl(QLatin1String("file:///5")));
-    playlist.addMedia(QList<QMediaContent>() << content3 << content4 << content5);
+    QUrl content4(QUrl(QLatin1String("file:///4")));
+    QUrl content5(QUrl(QLatin1String("file:///5")));
+    playlist.addMedia(QList<QUrl>() << content3 << content4 << content5);
     QCOMPARE(playlist.mediaCount(), 5);
     QCOMPARE(playlist.media(2), content3);
     QCOMPARE(playlist.media(3), content4);
@@ -139,7 +139,7 @@ void tst_QMediaPlaylist::append()
     aboutToBeInsertedSignalSpy.clear();
     insertedSignalSpy.clear();
 
-    playlist.addMedia(QList<QMediaContent>());
+    playlist.addMedia(QList<QUrl>());
     QCOMPARE(aboutToBeInsertedSignalSpy.count(), 0);
     QCOMPARE(insertedSignalSpy.count(), 0);
 }
@@ -176,9 +176,9 @@ void tst_QMediaPlaylist::insert()
     aboutToBeInsertedSignalSpy.clear();
     insertedSignalSpy.clear();
 
-    QMediaContent content4(QUrl(QLatin1String("file:///4")));
-    QMediaContent content5(QUrl(QLatin1String("file:///5")));
-    playlist.insertMedia(1, QList<QMediaContent>() << content4 << content5);
+    QUrl content4(QUrl(QLatin1String("file:///4")));
+    QUrl content5(QUrl(QLatin1String("file:///5")));
+    playlist.insertMedia(1, QList<QUrl>() << content4 << content5);
 
     QCOMPARE(playlist.media(0), content1);
     QCOMPARE(playlist.media(1), content4);
@@ -196,7 +196,7 @@ void tst_QMediaPlaylist::insert()
     aboutToBeInsertedSignalSpy.clear();
     insertedSignalSpy.clear();
 
-    playlist.insertMedia(1, QList<QMediaContent>());
+    playlist.insertMedia(1, QList<QUrl>());
     QCOMPARE(aboutToBeInsertedSignalSpy.count(), 0);
     QCOMPARE(insertedSignalSpy.count(), 0);
 
@@ -232,7 +232,7 @@ void tst_QMediaPlaylist::insert()
     aboutToBeInsertedSignalSpy.clear();
     insertedSignalSpy.clear();
 
-    playlist.insertMedia(-10, QList<QMediaContent>() << content4 << content5);
+    playlist.insertMedia(-10, QList<QUrl>() << content4 << content5);
     QCOMPARE(playlist.media(0), content4);
     QCOMPARE(playlist.media(1), content5);
     QCOMPARE(playlist.media(2), content2);
@@ -248,9 +248,9 @@ void tst_QMediaPlaylist::insert()
     aboutToBeInsertedSignalSpy.clear();
     insertedSignalSpy.clear();
 
-    QMediaContent content6(QUrl(QLatin1String("file:///6")));
-    QMediaContent content7(QUrl(QLatin1String("file:///7")));
-    playlist.insertMedia(10, QList<QMediaContent>() << content6 << content7);
+    QUrl content6(QUrl(QLatin1String("file:///6")));
+    QUrl content7(QUrl(QLatin1String("file:///7")));
+    playlist.insertMedia(10, QList<QUrl>() << content6 << content7);
     QCOMPARE(playlist.media(0), content4);
     QCOMPARE(playlist.media(1), content5);
     QCOMPARE(playlist.media(2), content2);
@@ -274,7 +274,7 @@ void tst_QMediaPlaylist::currentItem()
     playlist.addMedia(content2);
 
     QCOMPARE(playlist.currentIndex(), -1);
-    QCOMPARE(playlist.currentMedia(), QMediaContent());
+    QCOMPARE(playlist.currentMedia(), QUrl());
 
     QCOMPARE(playlist.nextIndex(), 0);
     QCOMPARE(playlist.nextIndex(2), 1);
@@ -302,7 +302,7 @@ void tst_QMediaPlaylist::currentItem()
     playlist.setCurrentIndex(2);
 
     QCOMPARE(playlist.currentIndex(), -1);
-    QCOMPARE(playlist.currentMedia(), QMediaContent());
+    QCOMPARE(playlist.currentMedia(), QUrl());
 }
 
 void tst_QMediaPlaylist::clear()
@@ -513,24 +513,24 @@ void tst_QMediaPlaylist::loadM3uFile()
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 7);
 
-    QCOMPARE(playlist.media(0).request().url(), QUrl(QLatin1String("http://test.host/path")));
-    QCOMPARE(playlist.media(1).request().url(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(0), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(1), QUrl(QLatin1String("http://test.host/path")));
     testFileName = QFINDTESTDATA("testdata/testfile");
-    QCOMPARE(playlist.media(2).request().url(),
+    QCOMPARE(playlist.media(2),
              QUrl::fromLocalFile(testFileName));
     testFileName = QFINDTESTDATA("testdata");
-    QCOMPARE(playlist.media(3).request().url(),
+    QCOMPARE(playlist.media(3),
              QUrl::fromLocalFile(testFileName + "/testdir/testfile"));
-    QCOMPARE(playlist.media(4).request().url(), QUrl(QLatin1String("file:///testdir/testfile")));
-    QCOMPARE(playlist.media(5).request().url(), QUrl(QLatin1String("file://path/name#suffix")));
+    QCOMPARE(playlist.media(4), QUrl(QLatin1String("file:///testdir/testfile")));
+    QCOMPARE(playlist.media(5), QUrl(QLatin1String("file://path/name#suffix")));
     //ensure #2 suffix is not stripped from path
     testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
-    QCOMPARE(playlist.media(6).request().url(), QUrl::fromLocalFile(testFileName));
+    QCOMPARE(playlist.media(6), QUrl::fromLocalFile(testFileName));
 
     // check ability to load from QNetworkRequest
     loadSpy.clear();
     loadFailedSpy.clear();
-    playlist.load(QNetworkRequest(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.m3u"))));
+    playlist.load(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.m3u")));
     QTRY_VERIFY(!loadSpy.isEmpty());
     QVERIFY(loadFailedSpy.isEmpty());
 }
@@ -568,19 +568,19 @@ void tst_QMediaPlaylist::loadPLSFile()
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 7);
 
-    QCOMPARE(playlist.media(0).request().url(), QUrl(QLatin1String("http://test.host/path")));
-    QCOMPARE(playlist.media(1).request().url(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(0), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(1), QUrl(QLatin1String("http://test.host/path")));
     testFileName = QFINDTESTDATA("testdata/testfile");
-    QCOMPARE(playlist.media(2).request().url(),
+    QCOMPARE(playlist.media(2),
              QUrl::fromLocalFile(testFileName));
     testFileName = QFINDTESTDATA("testdata");
-    QCOMPARE(playlist.media(3).request().url(),
+    QCOMPARE(playlist.media(3),
              QUrl::fromLocalFile(testFileName + "/testdir/testfile"));
-    QCOMPARE(playlist.media(4).request().url(), QUrl(QLatin1String("file:///testdir/testfile")));
-    QCOMPARE(playlist.media(5).request().url(), QUrl(QLatin1String("file://path/name#suffix")));
+    QCOMPARE(playlist.media(4), QUrl(QLatin1String("file:///testdir/testfile")));
+    QCOMPARE(playlist.media(5), QUrl(QLatin1String("file://path/name#suffix")));
     //ensure #2 suffix is not stripped from path
     testFileName = QFINDTESTDATA("testdata/testfile2#suffix");
-    QCOMPARE(playlist.media(6).request().url(), QUrl::fromLocalFile(testFileName));
+    QCOMPARE(playlist.media(6), QUrl::fromLocalFile(testFileName));
 
     // Try to load a totem-pl generated playlist
     // (Format doesn't respect the spec)
@@ -593,13 +593,13 @@ void tst_QMediaPlaylist::loadPLSFile()
     QVERIFY(loadFailedSpy.isEmpty());
     QCOMPARE(playlist.error(), QMediaPlaylist::NoError);
     QCOMPARE(playlist.mediaCount(), 1);
-    QCOMPARE(playlist.media(0).request().url(), QUrl(QLatin1String("http://test.host/path")));
+    QCOMPARE(playlist.media(0), QUrl(QLatin1String("http://test.host/path")));
 
 
     // check ability to load from QNetworkRequest
     loadSpy.clear();
     loadFailedSpy.clear();
-    playlist.load(QNetworkRequest(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.pls"))));
+    playlist.load(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.pls")));
     QTRY_VERIFY(!loadSpy.isEmpty());
     QVERIFY(loadFailedSpy.isEmpty());
 }
@@ -659,17 +659,17 @@ void tst_QMediaPlaylist::playbackMode()
 void tst_QMediaPlaylist::shuffle()
 {
     QMediaPlaylist playlist;
-    QList<QMediaContent> contentList;
+    QList<QUrl> contentList;
 
     for (int i=0; i<100; i++) {
-        QMediaContent content(QUrl::fromLocalFile(QString::number(i)));
+        QUrl content(QUrl::fromLocalFile(QString::number(i)));
         contentList.append(content);
         playlist.addMedia(content);
     }
 
     playlist.shuffle();
 
-    QList<QMediaContent> shuffledContentList;
+    QList<QUrl> shuffledContentList;
     for (int i=0; i<playlist.mediaCount(); i++)
         shuffledContentList.append(playlist.media(i));
 
@@ -680,10 +680,10 @@ void tst_QMediaPlaylist::shuffle()
 
 void tst_QMediaPlaylist::setMediaSource()
 {
-    QMediaContent content0(QUrl(QLatin1String("test://audio/song1.mp3")));
-    QMediaContent content1(QUrl(QLatin1String("test://audio/song2.mp3")));
-    QMediaContent content2(QUrl(QLatin1String("test://video/movie1.mp4")));
-    QMediaContent content3(QUrl(QLatin1String("test://video/movie2.mp4")));
+    QUrl content0(QUrl(QLatin1String("test://audio/song1.mp3")));
+    QUrl content1(QUrl(QLatin1String("test://audio/song2.mp3")));
+    QUrl content2(QUrl(QLatin1String("test://video/movie1.mp4")));
+    QUrl content3(QUrl(QLatin1String("test://video/movie2.mp4")));
 
     {
         QMediaPlaylist playlist;
@@ -799,10 +799,10 @@ void tst_QMediaPlaylist::testCurrentMediaChanged_signal()
     playlist.addMedia(content1); //set the media to playlist
     playlist.addMedia(content2); //set the media to playlist
 
-    QSignalSpy spy(&playlist, SIGNAL(currentMediaChanged(QMediaContent)));
+    QSignalSpy spy(&playlist, SIGNAL(currentMediaChanged(QUrl)));
     QVERIFY(spy.size()== 0);
     QCOMPARE(playlist.currentIndex(), -1);
-    QCOMPARE(playlist.currentMedia(), QMediaContent());
+    QCOMPARE(playlist.currentMedia(), QUrl());
 
     //set the current index for playlist.
     playlist.setCurrentIndex(0);
@@ -859,8 +859,8 @@ void tst_QMediaPlaylist::testMediaChanged_signal()
     spy.clear();
 
     //create media.
-    QMediaContent content4(QUrl(QLatin1String("file:///4")));
-    QMediaContent content5(QUrl(QLatin1String("file:///5")));
+    QUrl content4(QUrl(QLatin1String("file:///4")));
+    QUrl content5(QUrl(QLatin1String("file:///5")));
 
     //insert media to playlist
     playlist.insertMedia(1, content4);

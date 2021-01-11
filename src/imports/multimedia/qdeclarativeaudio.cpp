@@ -371,9 +371,8 @@ void QDeclarativeAudio::setSource(const QUrl &url)
         return;
 
     m_source = url;
-    m_content = m_source.isEmpty() ? QMediaContent() : m_source;
     m_loaded = false;
-    if (m_complete && (m_autoLoad || m_content.isNull() || m_autoPlay)) {
+    if (m_complete && (m_autoLoad || m_source.isEmpty() || m_autoPlay)) {
         if (m_error != QMediaPlayer::ServiceMissingError && m_error != QMediaPlayer::NoError) {
             m_error = QMediaPlayer::NoError;
             m_errorString = QString();
@@ -381,7 +380,7 @@ void QDeclarativeAudio::setSource(const QUrl &url)
             emit errorChanged();
         }
 
-        m_player->setMedia(m_content, nullptr);
+        m_player->setMedia(m_source, nullptr);
         m_loaded = true;
     }
     else
@@ -434,7 +433,7 @@ void QDeclarativeAudio::setPlaybackState(QMediaPlayer::State playbackState)
         switch (playbackState){
         case (QMediaPlayer::PlayingState):
             if (!m_loaded) {
-                m_player->setMedia(m_content, nullptr);
+                m_player->setMedia(m_source, nullptr);
                 m_player->setPosition(m_position);
                 m_loaded = true;
             }
@@ -443,7 +442,7 @@ void QDeclarativeAudio::setPlaybackState(QMediaPlayer::State playbackState)
 
         case (QMediaPlayer::PausedState):
             if (!m_loaded) {
-                m_player->setMedia(m_content, nullptr);
+                m_player->setMedia(m_source, nullptr);
                 m_player->setPosition(m_position);
                 m_loaded = true;
             }
@@ -859,8 +858,8 @@ void QDeclarativeAudio::classBegin()
             this, SLOT(_q_statusChanged()));
     connect(m_player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
             this, SLOT(_q_statusChanged()));
-    connect(m_player, SIGNAL(mediaChanged(const QMediaContent&)),
-            this, SLOT(_q_mediaChanged(const QMediaContent&)));
+    connect(m_player, SIGNAL(mediaChanged(const QUrl&)),
+            this, SLOT(_q_mediaChanged(const QUrl&)));
     connect(m_player, SIGNAL(durationChanged(qint64)),
             this, SIGNAL(durationChanged()));
     connect(m_player, SIGNAL(positionChanged(qint64)),
@@ -913,8 +912,8 @@ void QDeclarativeAudio::componentComplete()
     if (m_notifyInterval != m_player->notifyInterval())
         m_player->setNotifyInterval(m_notifyInterval);
 
-    if (!m_content.isNull() && (m_autoLoad || m_autoPlay)) {
-        m_player->setMedia(m_content, nullptr);
+    if (!m_source.isEmpty() && (m_autoLoad || m_autoPlay)) {
+        m_player->setMedia(m_source, nullptr);
         m_loaded = true;
         if (m_position > 0)
             m_player->setPosition(m_position);
@@ -923,7 +922,7 @@ void QDeclarativeAudio::componentComplete()
     m_complete = true;
 
     if (m_autoPlay) {
-        if (m_content.isNull()) {
+        if (m_source.isEmpty()) {
             m_player->stop();
         } else {
             m_player->play();
@@ -970,7 +969,7 @@ void QDeclarativeAudio::_q_statusChanged()
     }
 }
 
-void QDeclarativeAudio::_q_mediaChanged(const QMediaContent &media)
+void QDeclarativeAudio::_q_mediaChanged(const QUrl &media)
 {
     emit sourceChanged();
 }

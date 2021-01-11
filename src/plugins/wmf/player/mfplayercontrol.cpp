@@ -69,7 +69,7 @@ MFPlayerControl::~MFPlayerControl()
 {
 }
 
-void MFPlayerControl::setMedia(const QMediaContent &media, QIODevice *stream)
+void MFPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
 {
     if (m_state != QMediaPlayer::StoppedState) {
         changeState(QMediaPlayer::StoppedState);
@@ -298,7 +298,7 @@ void MFPlayerControl::setPlaybackRate(qreal rate)
     m_session->setPlaybackRate(rate);
 }
 
-QMediaContent MFPlayerControl::media() const
+QUrl MFPlayerControl::media() const
 {
     return m_media;
 }

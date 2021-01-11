@@ -89,9 +89,9 @@ public:
     qreal playbackRate() const override;
     void setPlaybackRate(qreal rate) override;
 
-    QMediaContent media() const override;
+    QUrl media() const override;
     const QIODevice *mediaStream() const override;
-    void setMedia(const QMediaContent&, QIODevice *) override;
+    void setMedia(const QUrl&, QIODevice *) override;
 
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
@@ -127,7 +127,7 @@ private:
     int m_bufferProgress = -1;
     qint64 m_pendingSeekPosition = -1;
     bool m_setMediaPending = false;
-    QMediaContent m_currentResource;
+    QUrl m_currentResource;
     QIODevice *m_stream = nullptr;
 };
 

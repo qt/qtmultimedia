@@ -139,7 +139,7 @@ void tst_QMediaPlayer::setupCommonTestData()
     QTest::addColumn<bool>("valid");
     QTest::addColumn<QMediaPlayer::State>("state");
     QTest::addColumn<QMediaPlayer::MediaStatus>("status");
-    QTest::addColumn<QMediaContent>("mediaContent");
+    QTest::addColumn<QUrl>("mediaContent");
     QTest::addColumn<qint64>("duration");
     QTest::addColumn<qint64>("position");
     QTest::addColumn<bool>("seekable");
@@ -152,25 +152,25 @@ void tst_QMediaPlayer::setupCommonTestData()
     QTest::addColumn<QString>("errorString");
 
     QTest::newRow("invalid") << false << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
-                                QMediaContent() << qint64(0) << qint64(0) << false << 0 << false << false << 0 <<
+                                QUrl() << qint64(0) << qint64(0) << false << 0 << false << false << 0 <<
                                 qreal(0) << QMediaPlayer::NoError << QString();
     QTest::newRow("valid+null") << true << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
-                                QMediaContent() << qint64(0) << qint64(0) << false << 0 << false << false << 50 <<
+                                QUrl() << qint64(0) << qint64(0) << false << 0 << false << false << 50 <<
                                 qreal(0) << QMediaPlayer::NoError << QString();
     QTest::newRow("valid+content+stopped") << true << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
-                                QMediaContent(QUrl("file:///some.mp3")) << qint64(0) << qint64(0) << false << 50 << false << false << 0 <<
+                                QUrl(QUrl("file:///some.mp3")) << qint64(0) << qint64(0) << false << 50 << false << false << 0 <<
                                 qreal(1) << QMediaPlayer::NoError << QString();
     QTest::newRow("valid+content+playing") << true << QMediaPlayer::PlayingState << QMediaPlayer::LoadedMedia <<
-                                QMediaContent(QUrl("file:///some.mp3")) << qint64(10000) << qint64(10) << true << 50 << true << false << 0 <<
+                                QUrl(QUrl("file:///some.mp3")) << qint64(10000) << qint64(10) << true << 50 << true << false << 0 <<
                                 qreal(1) << QMediaPlayer::NoError << QString();
     QTest::newRow("valid+content+paused") << true << QMediaPlayer::PausedState << QMediaPlayer::LoadedMedia <<
-                                QMediaContent(QUrl("file:///some.mp3")) << qint64(10000) << qint64(10) << true << 50 << true << false << 0 <<
+                                QUrl(QUrl("file:///some.mp3")) << qint64(10000) << qint64(10) << true << 50 << true << false << 0 <<
                                 qreal(1)  << QMediaPlayer::NoError << QString();
     QTest::newRow("valud+streaming") << true << QMediaPlayer::PlayingState << QMediaPlayer::LoadedMedia <<
-                                QMediaContent(QUrl("http://example.com/stream")) << qint64(10000) << qint64(10000) << false << 50 << false << true << 0 <<
+                                QUrl(QUrl("http://example.com/stream")) << qint64(10000) << qint64(10000) << false << 50 << false << true << 0 <<
                                 qreal(1)  << QMediaPlayer::NoError << QString();
     QTest::newRow("valid+error") << true << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
-                                QMediaContent(QUrl("http://example.com/stream")) << qint64(0) << qint64(0) << false << 50 << false << false << 0 <<
+                                QUrl(QUrl("http://example.com/stream")) << qint64(0) << qint64(0) << false << 50 << false << false << 0 <<
                                 qreal(0) << QMediaPlayer::ResourceError << QString("Resource unavailable");
 }
 
@@ -179,7 +179,7 @@ void tst_QMediaPlayer::initTestCase()
     qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
     qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
     qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
-    qRegisterMetaType<QMediaContent>("QMediaContent");
+    qRegisterMetaType<QUrl>("QUrl");
 }
 
 void tst_QMediaPlayer::cleanupTestCase()
@@ -214,7 +214,7 @@ void tst_QMediaPlayer::testNullService()
 
     const QIODevice *nullDevice = nullptr;
 
-    QCOMPARE(player.media(), QMediaContent());
+    QCOMPARE(player.media(), QUrl());
     QCOMPARE(player.mediaStream(), nullDevice);
     QCOMPARE(player.state(), QMediaPlayer::StoppedState);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::UnknownMediaStatus);
@@ -231,9 +231,9 @@ void tst_QMediaPlayer::testNullService()
     QCOMPARE(player.availability(), QMultimedia::ServiceMissing);
 
     {
-        QFETCH(QMediaContent, mediaContent);
+        QFETCH(QUrl, mediaContent);
 
-        QSignalSpy spy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
+        QSignalSpy spy(&player, SIGNAL(currentMediaChanged(QUrl)));
         QFile file;
 
         player.setMedia(mediaContent, &file);
@@ -311,7 +311,7 @@ void tst_QMediaPlayer::testMedia_data()
 
 void tst_QMediaPlayer::testMedia()
 {
-    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QUrl, mediaContent);
 
     mockService->setMedia(mediaContent);
     QCOMPARE(player->media(), mediaContent);
@@ -563,7 +563,7 @@ void tst_QMediaPlayer::testPlay_data()
 void tst_QMediaPlayer::testPlay()
 {
     QFETCH(bool, valid);
-    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QUrl, mediaContent);
     QFETCH(QMediaPlayer::State, state);
 
     mockService->setIsValid(valid);
@@ -576,7 +576,7 @@ void tst_QMediaPlayer::testPlay()
 
     player->play();
 
-    if (!valid || mediaContent.isNull())  {
+    if (!valid || mediaContent.isEmpty())  {
         QCOMPARE(player->state(), QMediaPlayer::StoppedState);
         QCOMPARE(spy.count(), 0);
     }
@@ -594,7 +594,7 @@ void tst_QMediaPlayer::testPause_data()
 void tst_QMediaPlayer::testPause()
 {
     QFETCH(bool, valid);
-    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QUrl, mediaContent);
     QFETCH(QMediaPlayer::State, state);
 
     mockService->setIsValid(valid);
@@ -607,7 +607,7 @@ void tst_QMediaPlayer::testPause()
 
     player->pause();
 
-    if (!valid || mediaContent.isNull()) {
+    if (!valid || mediaContent.isEmpty()) {
         QCOMPARE(player->state(), QMediaPlayer::StoppedState);
         QCOMPARE(spy.count(), 0);
     }
@@ -624,7 +624,7 @@ void tst_QMediaPlayer::testStop_data()
 
 void tst_QMediaPlayer::testStop()
 {
-    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QUrl, mediaContent);
     QFETCH(QMediaPlayer::State, state);
 
     mockService->setState(state);
@@ -636,7 +636,7 @@ void tst_QMediaPlayer::testStop()
 
     player->stop();
 
-    if (mediaContent.isNull() || state == QMediaPlayer::StoppedState) {
+    if (mediaContent.isEmpty() || state == QMediaPlayer::StoppedState) {
         QCOMPARE(player->state(), QMediaPlayer::StoppedState);
         QCOMPARE(spy.count(), 0);
     }
@@ -846,7 +846,7 @@ void tst_QMediaPlayer::testSupportedMimeTypes()
 
 void tst_QMediaPlayer::testQrc_data()
 {
-    QTest::addColumn<QMediaContent>("mediaContent");
+    QTest::addColumn<QUrl>("mediaContent");
     QTest::addColumn<QMediaPlayer::MediaStatus>("status");
     QTest::addColumn<QMediaPlayer::Error>("error");
     QTest::addColumn<int>("errorCount");
@@ -854,7 +854,7 @@ void tst_QMediaPlayer::testQrc_data()
     QTest::addColumn<QString>("backendMediaContentScheme");
     QTest::addColumn<bool>("backendHasStream");
 
-    QTest::newRow("invalid") << QMediaContent(QUrl(QLatin1String("qrc:/invalid.mp3")))
+    QTest::newRow("invalid") << QUrl(QUrl(QLatin1String("qrc:/invalid.mp3")))
                              << QMediaPlayer::InvalidMedia
                              << QMediaPlayer::ResourceError
                              << 1 // error count
@@ -862,7 +862,7 @@ void tst_QMediaPlayer::testQrc_data()
                              << QString() // backend should not have got any media (empty URL scheme)
                              << false; // backend should not have got any stream
 
-    QTest::newRow("valid+nostream") << QMediaContent(QUrl(QLatin1String("qrc:/testdata/nokia-tune.mp3")))
+    QTest::newRow("valid+nostream") << QUrl(QUrl(QLatin1String("qrc:/testdata/nokia-tune.mp3")))
                                     << QMediaPlayer::LoadingMedia
                                     << QMediaPlayer::NoError
                                     << 0 // error count
@@ -870,7 +870,7 @@ void tst_QMediaPlayer::testQrc_data()
                                     << QStringLiteral("file") // backend should have a got a temporary file
                                     << false; // backend should not have got any stream
 
-    QTest::newRow("valid+stream") << QMediaContent(QUrl(QLatin1String("qrc:/testdata/nokia-tune.mp3")))
+    QTest::newRow("valid+stream") << QUrl(QUrl(QLatin1String("qrc:/testdata/nokia-tune.mp3")))
                                   << QMediaPlayer::LoadingMedia
                                   << QMediaPlayer::NoError
                                   << 0 // error count
@@ -881,7 +881,7 @@ void tst_QMediaPlayer::testQrc_data()
 
 void tst_QMediaPlayer::testQrc()
 {
-    QFETCH(QMediaContent, mediaContent);
+    QFETCH(QUrl, mediaContent);
     QFETCH(QMediaPlayer::MediaStatus, status);
     QFETCH(QMediaPlayer::Error, error);
     QFETCH(int, errorCount);
@@ -896,7 +896,7 @@ void tst_QMediaPlayer::testQrc()
 
     mockService->setState(QMediaPlayer::PlayingState, QMediaPlayer::NoMedia);
 
-    QSignalSpy mediaSpy(&player, SIGNAL(currentMediaChanged(QMediaContent)));
+    QSignalSpy mediaSpy(&player, SIGNAL(currentMediaChanged(QUrl)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
     QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
 
@@ -908,7 +908,7 @@ void tst_QMediaPlayer::testQrc()
 
     QCOMPARE(player.media(), mediaContent);
     QCOMPARE(mediaSpy.count(), 1);
-    QCOMPARE(qvariant_cast<QMediaContent>(mediaSpy.last().value(0)), mediaContent);
+    QCOMPARE(qvariant_cast<QUrl>(mediaSpy.last().value(0)), mediaContent);
 
     QCOMPARE(player.error(), error);
     QCOMPARE(errorSpy.count(), errorCount);
@@ -918,7 +918,7 @@ void tst_QMediaPlayer::testQrc()
     }
 
     // Check the media actually passed to the backend
-    QCOMPARE(mockService->mockControl->media().request().url().scheme(), backendMediaContentScheme);
+    QCOMPARE(mockService->mockControl->media().scheme(), backendMediaContentScheme);
     QCOMPARE(bool(mockService->mockControl->mediaStream()), backendHasStream);
 }
 

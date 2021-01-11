@@ -231,7 +231,7 @@ void QDeclarativePlaylist::setPlaybackMode(PlaybackMode mode)
  */
 QUrl QDeclarativePlaylist::currentItemSource() const
 {
-    return m_playlist->currentMedia().request().url();
+    return m_playlist->currentMedia();
 }
 
 /*!
@@ -303,7 +303,7 @@ QString QDeclarativePlaylist::errorString() const
 */
 QUrl QDeclarativePlaylist::itemSource(int index)
 {
-    return m_playlist->media(index).request().url();
+    return m_playlist->media(index);
 }
 
 /*!
@@ -407,7 +407,7 @@ bool QDeclarativePlaylist::save(const QUrl &location, const QString &format)
 */
 void QDeclarativePlaylist::addItem(const QUrl &source)
 {
-    m_playlist->addMedia(QMediaContent(source));
+    m_playlist->addMedia(QUrl(source));
 }
 
 /*!
@@ -424,10 +424,10 @@ void QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
     if (sources.isEmpty())
         return;
 
-    QList<QMediaContent> contents;
+    QList<QUrl> contents;
     QList<QUrl>::const_iterator it = sources.constBegin();
     while (it != sources.constEnd()) {
-        contents.push_back(QMediaContent(*it));
+        contents.push_back(QUrl(*it));
         ++it;
     }
     m_playlist->addMedia(contents);
@@ -442,7 +442,7 @@ void QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
 */
 bool QDeclarativePlaylist::insertItem(int index, const QUrl &source)
 {
-    return m_playlist->insertMedia(index, QMediaContent(source));
+    return m_playlist->insertMedia(index, QUrl(source));
 }
 
 /*!
@@ -459,10 +459,10 @@ bool QDeclarativePlaylist::insertItems(int index, const QList<QUrl> &sources)
     if (sources.empty())
         return false;
 
-    QList<QMediaContent> contents;
+    QList<QUrl> contents;
     QList<QUrl>::const_iterator it = sources.constBegin();
     while (it != sources.constEnd()) {
-        contents.push_back(QMediaContent(*it));
+        contents.push_back(QUrl(*it));
         ++it;
     }
     return m_playlist->insertMedia(index, contents);
@@ -535,7 +535,7 @@ QVariant QDeclarativePlaylist::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    return m_playlist->media(index.row()).request().url();
+    return m_playlist->media(index.row());
 }
 
 QHash<int, QByteArray> QDeclarativePlaylist::roleNames() const
@@ -553,7 +553,7 @@ void QDeclarativePlaylist::classBegin()
             this, SIGNAL(currentIndexChanged()));
     connect(m_playlist, SIGNAL(playbackModeChanged(QMediaPlaylist::PlaybackMode)),
             this, SIGNAL(playbackModeChanged()));
-    connect(m_playlist, SIGNAL(currentMediaChanged(QMediaContent)),
+    connect(m_playlist, SIGNAL(currentMediaChanged(QUrl)),
             this, SIGNAL(currentItemSourceChanged()));
     connect(m_playlist, SIGNAL(mediaAboutToBeInserted(int,int)),
             this, SLOT(_q_mediaAboutToBeInserted(int,int)));

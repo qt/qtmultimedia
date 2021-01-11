@@ -107,7 +107,7 @@ QStringList QAndroidMetaDataReaderControl::availableMetaData() const
     return m_metadata.keys();
 }
 
-void QAndroidMetaDataReaderControl::onMediaChanged(const QMediaContent &media)
+void QAndroidMetaDataReaderControl::onMediaChanged(const QUrl &media)
 {
     const QMutexLocker l(&m_mtx);
     m_metadata.clear();

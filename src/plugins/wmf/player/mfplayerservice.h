@@ -48,7 +48,7 @@
 #include "qmediatimerange.h"
 
 QT_BEGIN_NAMESPACE
-class QMediaContent;
+class QUrl;
 QT_END_NAMESPACE
 
 QT_USE_NAMESPACE

@@ -46,7 +46,6 @@
 #include "qmediaplayer.h"
 #include "qmediasource_p.h"
 #include "qmediametadata.h"
-#include "qmediacontent.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -302,10 +301,10 @@ public:
     struct ParserJob
     {
         QIODevice *m_stream;
-        QMediaContent m_media;
+        QUrl m_media;
         QString m_mimeType;
-        [[nodiscard]] bool isValid() const { return m_stream || !m_media.isNull(); }
-        void reset() { m_stream = nullptr; m_media = QMediaContent(); m_mimeType = QString(); }
+        [[nodiscard]] bool isValid() const { return m_stream || !m_media.isEmpty(); }
+        void reset() { m_stream = nullptr; m_media = QUrl(); m_mimeType = QString(); }
     } m_pendingJob;
     int m_scanIndex;
     int m_lineIndex;
@@ -508,12 +507,12 @@ QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QStrin
 /*
  * Delegating
  */
-void QPlaylistFileParser::start(const QMediaContent &media, QIODevice *stream, const QString &mimeType)
+void QPlaylistFileParser::start(const QUrl &media, QIODevice *stream, const QString &mimeType)
 {
     if (stream)
         start(stream, mimeType);
     else
-        start(media.request(), mimeType);
+        start(media, mimeType);
 }
 
 void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
@@ -540,7 +539,7 @@ void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
     d->handleData();
 }
 
-void QPlaylistFileParser::start(const QNetworkRequest& request, const QString &mimeType)
+void QPlaylistFileParser::start(const QUrl& request, const QString &mimeType)
 {
     Q_D(QPlaylistFileParser);
     const QUrl &url = request.url();
@@ -559,7 +558,7 @@ void QPlaylistFileParser::start(const QNetworkRequest& request, const QString &m
     d->reset();
     d->m_root = url;
     d->m_mimeType = mimeType;
-    d->m_source.reset(d->m_mgr.get(request));
+    d->m_source.reset(d->m_mgr.get(QNetworkRequest(request)));
     d->m_stream = d->m_source.get();
     connect(d->m_source.data(), SIGNAL(readyRead()), this, SLOT(handleData()));
     connect(d->m_source.data(), SIGNAL(finished()), this, SLOT(handleData()));

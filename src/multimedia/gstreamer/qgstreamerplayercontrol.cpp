@@ -293,7 +293,7 @@ void QGstreamerPlayerControl::setMuted(bool muted)
     m_session->setMuted(muted);
 }
 
-QMediaContent QGstreamerPlayerControl::media() const
+QUrl QGstreamerPlayerControl::media() const
 {
     return m_currentResource;
 }
@@ -303,7 +303,7 @@ const QIODevice *QGstreamerPlayerControl::mediaStream() const
     return m_stream;
 }
 
-void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *stream)
+void QGstreamerPlayerControl::setMedia(const QUrl &content, QIODevice *stream)
 {
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
@@ -312,7 +312,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     pushState();
 
     m_currentState = QMediaPlayer::StoppedState;
-    QMediaContent oldMedia = m_currentResource;
+    QUrl oldMedia = m_currentResource;
     m_pendingSeekPosition = -1;
     m_session->showPrerollFrames(false); // do not show prerolled frames until pause() or play() explicitly called
     m_setMediaPending = false;
@@ -329,7 +329,7 @@ void QGstreamerPlayerControl::setMedia(const QMediaContent &content, QIODevice *
     m_currentResource = content;
     m_stream = stream;
 
-    QNetworkRequest request = content.request();
+    QNetworkRequest request(content);
 
     if (m_stream)
         userStreamValid = stream->isOpen() && m_stream->isReadable();
@@ -423,7 +423,7 @@ void QGstreamerPlayerControl::updateMediaStatus()
 
     switch (m_session->state()) {
     case QMediaPlayer::StoppedState:
-        if (m_currentResource.isNull())
+        if (m_currentResource.isEmpty())
             m_mediaStatus = QMediaPlayer::NoMedia;
         else if (oldStatus != QMediaPlayer::InvalidMedia)
             m_mediaStatus = QMediaPlayer::LoadingMedia;
