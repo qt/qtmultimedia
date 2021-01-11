@@ -48,6 +48,8 @@
 
 QT_BEGIN_NAMESPACE
 
+// ### API changes: Class should go away. Simply use a URL instead.
+
 class QMediaPlaylist;
 
 class QMediaContentPrivate;

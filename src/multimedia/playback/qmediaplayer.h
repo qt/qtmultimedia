@@ -51,6 +51,7 @@ QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
 class QMediaPlaylist;
+class QAudioDeviceInfo;
 
 class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
@@ -98,6 +99,7 @@ public:
         InvalidMedia
     };
 
+    // ### Go away
     enum Flag
     {
         LowLatency = 0x01,
@@ -120,17 +122,41 @@ public:
     explicit QMediaPlayer(QObject *parent = nullptr, Flags flags = Flags());
     ~QMediaPlayer();
 
+    // ### this needs a better solution
     static QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
                                             const QStringList& codecs = QStringList(),
                                                    Flags flags = Flags());
     static QStringList supportedMimeTypes(Flags flags = Flags());
 
+    // new API
+//    bool enableLowLatencyPlayback(bool tryEnable);
+//    bool isLowLatencyPlaybackEnabled() const;
+
+//    void setAudioOutput(const QAudioDeviceInfo &);
+//    QAudioDeviceInfo audioOutput() const;
+
+//    using ContentStream = QVariantHash;
+
+//    QList<ContentStream> audioStreams() const;
+//    QList<ContentStream> videoStreams() const;
+//    QList<ContentStream> subtitleStreams() const;
+
+//    int audioStream() const;
+//    int videoStream() const;
+//    int subtitleStream() const;
+
+//    void setAudioStream(int index) const;
+//    void setVideoStream(int index) const;
+//    void setSubtitleStream(int index) const;
+
+    // ### should be QVideoSink
     void setVideoOutput(QMediaSink *);
     void setVideoOutput(QAbstractVideoSurface *surface);
     void setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces);
 
     QMediaContent media() const;
     const QIODevice *mediaStream() const;
+    // ### remove playlist support, only support one url or iodevice as source
     QMediaPlaylist *playlist() const;
     QMediaContent currentMedia() const;
 

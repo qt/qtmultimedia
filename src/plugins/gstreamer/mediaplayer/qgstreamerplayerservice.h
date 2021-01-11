@@ -47,7 +47,6 @@
 
 QT_BEGIN_NAMESPACE
 class QMediaPlayerControl;
-class QMediaPlaylist;
 
 class QGstreamerMetaData;
 class QGstreamerPlayerControl;
