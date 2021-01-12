@@ -74,6 +74,7 @@ public:
     QAudioFormat preferredFormat() const override;
     bool isFormatSupported(const QAudioFormat &format) const override;
     QString deviceName() const override;
+    QString description() const override;
     QStringList supportedCodecs() override;
     QList<int> supportedSampleRates() override;
     QList<int> supportedChannelCounts() override;
@@ -82,6 +83,7 @@ public:
     QList<QAudioFormat::SampleType> supportedSampleTypes() override;
 
     QByteArray m_device;
+    QString m_description;
     QAudio::Mode m_mode;
     GstDevice *gstDevice = nullptr;
 };

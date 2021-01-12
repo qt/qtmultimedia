@@ -70,6 +70,7 @@ public:
     virtual QAudioFormat preferredFormat() const = 0;
     virtual bool isFormatSupported(const QAudioFormat &format) const = 0;
     virtual QString deviceName() const = 0;
+    virtual QString description() const = 0;
     virtual QStringList supportedCodecs() = 0;
     virtual QList<int> supportedSampleRates() = 0;
     virtual QList<int> supportedChannelCounts() = 0;

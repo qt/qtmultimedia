@@ -52,6 +52,7 @@ public:
     [[nodiscard]] bool isFormatSupported(const QAudioFormat& ) const override { return false; }
     [[nodiscard]] QAudioFormat nearestFormat(const QAudioFormat& ) const { return QAudioFormat(); }
     [[nodiscard]] QString deviceName() const override { return QString(); }
+    QString description() const override { return deviceName(); };
     QStringList supportedCodecs() override { return QStringList(); }
     QList<int> supportedSampleRates() override  { return QList<int>(); }
     QList<int> supportedChannelCounts() override { return QList<int>(); }

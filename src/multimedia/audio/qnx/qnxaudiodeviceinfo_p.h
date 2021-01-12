@@ -55,6 +55,7 @@ public:
     QAudioFormat preferredFormat() const override;
     bool isFormatSupported(const QAudioFormat &format) const override;
     QString deviceName() const override;
+    QString description() const override { return deviceName(); }
     QStringList supportedCodecs() override;
     QList<int> supportedSampleRates() override;
     QList<int> supportedChannelCounts() override;

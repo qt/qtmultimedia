@@ -57,6 +57,9 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(const QByteArray &device, Q
             if (device == name) {
                 gstDevice = d;
                 gst_object_ref(gstDevice);
+                auto *n = gst_device_get_display_name(gstDevice);
+                m_description = QString::fromUtf8(n);
+                g_free(n);
             }
         }
 
@@ -92,6 +95,11 @@ QString QGStreamerAudioDeviceInfo::deviceName() const
 {
     // ### no readable name available!
     return QString::fromUtf8(m_device);
+}
+
+QString QGStreamerAudioDeviceInfo::description() const
+{
+    return m_description;
 }
 
 QStringList QGStreamerAudioDeviceInfo::supportedCodecs()

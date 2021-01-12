@@ -209,7 +209,7 @@ bool QAudioDeviceInfo::isNull() const
 }
 
 /*!
-    Returns the human readable name of the audio device.
+    Returns an identifier for the audio device.
 
     Device names vary depending on the platform/audio plugin being used.
 
@@ -220,6 +220,16 @@ bool QAudioDeviceInfo::isNull() const
 QString QAudioDeviceInfo::deviceName() const
 {
     return isNull() ? QString() : d->info->deviceName();
+}
+
+/*!
+    Returns a human readable name of the audio device.
+
+    Use this string to present the device to the user.
+*/
+QString QAudioDeviceInfo::description() const
+{
+    return isNull() ? QString() : d->info->description();
 }
 
 /*!
