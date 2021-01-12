@@ -60,7 +60,7 @@
 
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
-    , mediaPlayer(nullptr, QMediaPlayer::VideoSurface)
+    , mediaPlayer(nullptr)
     , videoItem(nullptr)
     , playButton(nullptr)
     , positionSlider(nullptr)

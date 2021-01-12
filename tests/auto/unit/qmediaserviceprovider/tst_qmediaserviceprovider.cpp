@@ -142,30 +142,30 @@ void tst_QMediaServiceProvider::testHasSupport()
     QCOMPARE(QMediaPlayer::hasSupport("audio/wav"), QMultimedia::ProbablySupported);
 
     //test low latency flag support
-    QCOMPARE(QMediaPlayer::hasSupport("audio/wav", QStringList(), QMediaPlayer::LowLatency),
+    QCOMPARE(QMediaPlayer::hasSupport("audio/wav", QStringList()),
              QMultimedia::ProbablySupported);
     //plugin1 probably supports audio/ogg, it checked because it doesn't provide features iface
-    QCOMPARE(QMediaPlayer::hasSupport("audio/ogg", QStringList(), QMediaPlayer::LowLatency),
+    QCOMPARE(QMediaPlayer::hasSupport("audio/ogg", QStringList()),
              QMultimedia::ProbablySupported);
     //Plugin4 is not checked here, sine it's known not support low latency
-    QCOMPARE(QMediaPlayer::hasSupport("video/quicktime", QStringList(), QMediaPlayer::LowLatency),
+    QCOMPARE(QMediaPlayer::hasSupport("video/quicktime", QStringList()),
              QMultimedia::MaybeSupported);
 
     //test streaming flag support
-    QCOMPARE(QMediaPlayer::hasSupport("video/quicktime", QStringList(), QMediaPlayer::StreamPlayback),
+    QCOMPARE(QMediaPlayer::hasSupport("video/quicktime", QStringList()),
              QMultimedia::ProbablySupported);
     //Plugin2 is not checked here, sine it's known not support streaming
-    QCOMPARE(QMediaPlayer::hasSupport("audio/wav", QStringList(), QMediaPlayer::StreamPlayback),
+    QCOMPARE(QMediaPlayer::hasSupport("audio/wav", QStringList()),
              QMultimedia::MaybeSupported);
 
     //ensure the correct media player plugin is chosen for mime type
-    QMediaPlayer simplePlayer(nullptr, QMediaPlayer::LowLatency);
+    QMediaPlayer simplePlayer(nullptr);
     QCOMPARE(simplePlayer.service()->objectName(), QLatin1String("MockServicePlugin2"));
 
     QMediaPlayer mediaPlayer;
     QVERIFY(mediaPlayer.service()->objectName() != QLatin1String("MockServicePlugin2"));
 
-    QMediaPlayer streamPlayer(nullptr, QMediaPlayer::StreamPlayback);
+    QMediaPlayer streamPlayer(nullptr);
     QCOMPARE(streamPlayer.service()->objectName(), QLatin1String("MockServicePlugin4"));
 }
 

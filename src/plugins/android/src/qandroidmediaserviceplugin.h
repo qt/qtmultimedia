@@ -47,11 +47,9 @@ QT_BEGIN_NAMESPACE
 class QAndroidMediaServicePlugin
         : public QMediaServiceProviderPlugin
         , public QMediaServiceSupportedDevicesInterface
-        , public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0"
                       FILE "android_mediaservice.json")
 
@@ -61,8 +59,6 @@ public:
 
     QMediaService* create(QString const& key) override;
     void release(QMediaService *service) override;
-
-    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override;
 
     QByteArray defaultDevice(const QByteArray &service) const override;
     QList<QByteArray> devices(const QByteArray &service) const override;

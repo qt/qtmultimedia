@@ -93,6 +93,8 @@ public:
     const QIODevice *mediaStream() const override;
     void setMedia(const QUrl&, QIODevice *) override;
 
+    bool streamPlaybackSupported() const override { return true; }
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 

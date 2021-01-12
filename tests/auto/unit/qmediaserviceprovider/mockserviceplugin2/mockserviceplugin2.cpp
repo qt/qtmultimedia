@@ -31,12 +31,10 @@
 #include "../mockservice.h"
 
 class MockServicePlugin2 : public QMediaServiceProviderPlugin,
-                            public QMediaServiceSupportedFormatsInterface,
-                            public QMediaServiceFeaturesInterface
+                            public QMediaServiceSupportedFormatsInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mockserviceplugin2.json")
 public:
     [[nodiscard]] QStringList keys() const
@@ -70,14 +68,6 @@ public:
     [[nodiscard]] QStringList supportedMimeTypes() const override
     {
         return QStringList("audio/wav");
-    }
-
-    [[nodiscard]] QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override
-    {
-        QMediaServiceFeaturesInterface::Features result;
-        if (service == QByteArray(Q_MEDIASERVICE_MEDIAPLAYER))
-            result |= QMediaServiceFeaturesInterface::LowLatencyPlayback;
-        return result;
     }
 };
 

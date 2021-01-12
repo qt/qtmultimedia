@@ -59,10 +59,4 @@ void NeutrinoServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-QMediaServiceFeaturesInterface::Features NeutrinoServicePlugin::supportedFeatures(const QByteArray &service) const
-{
-    Q_UNUSED(service);
-    return QMediaServiceFeaturesInterface::Features();
-}
-
 QT_END_NAMESPACE

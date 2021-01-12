@@ -71,15 +71,6 @@ void QGstreamerCaptureServicePlugin::release(QMediaService *service)
 }
 
 #if defined(USE_GSTREAMER_CAMERA)
-QMediaServiceFeaturesInterface::Features QGstreamerCaptureServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QMediaServiceFeaturesInterface::VideoSurface;
-
-    return QMediaServiceFeaturesInterface::Features();
-}
-
 QByteArray QGstreamerCaptureServicePlugin::defaultDevice(const QByteArray &service) const
 {
     return service == Q_MEDIASERVICE_CAMERA

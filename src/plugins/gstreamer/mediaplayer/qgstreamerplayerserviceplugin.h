@@ -50,18 +50,14 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerPlayerServicePlugin
     : public QMediaServiceProviderPlugin
-    , public QMediaServiceFeaturesInterface
     , public QMediaServiceSupportedFormatsInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "mediaplayer.json")
 public:
     QMediaService* create(const QString &key) override;
     void release(QMediaService *service) override;
-
-    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override;
 
     QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList &codecs) const override;
     QStringList supportedMimeTypes() const override;

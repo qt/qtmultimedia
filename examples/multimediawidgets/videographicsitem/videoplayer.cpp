@@ -56,7 +56,7 @@
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
 {
-    m_mediaPlayer = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
+    m_mediaPlayer = new QMediaPlayer(this);
     const QSize screenGeometry = screen()->availableSize();
     m_videoItem = new QGraphicsVideoItem;
     m_videoItem->setSize(QSizeF(screenGeometry.width() / 3, screenGeometry.height() / 2));

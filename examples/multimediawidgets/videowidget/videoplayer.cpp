@@ -56,7 +56,7 @@
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
 {
-    m_mediaPlayer = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
+    m_mediaPlayer = new QMediaPlayer(this);
     QVideoWidget *videoWidget = new QVideoWidget;
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));

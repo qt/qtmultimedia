@@ -89,15 +89,6 @@ void CameraBinServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-QMediaServiceFeaturesInterface::Features CameraBinServicePlugin::supportedFeatures(
-        const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return QMediaServiceFeaturesInterface::VideoSurface;
-
-    return QMediaServiceFeaturesInterface::Features();
-}
-
 QByteArray CameraBinServicePlugin::defaultDevice(const QByteArray &service) const
 {
     return service == Q_MEDIASERVICE_CAMERA

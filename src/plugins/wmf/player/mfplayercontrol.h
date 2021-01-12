@@ -91,6 +91,9 @@ public:
     void pause();
     void stop();
 
+    bool streamPlaybackSupported() const { return true; }
+
+
 private Q_SLOTS:
     void handleStatusChanged();
     void handleVideoAvailable();

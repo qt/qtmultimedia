@@ -103,29 +103,6 @@ Q_DECLARE_INTERFACE(QMediaServiceSupportedDevicesInterface, QMediaServiceSupport
 // Required for QDoc workaround
 class QString;
 
-struct Q_MULTIMEDIA_EXPORT QMediaServiceFeaturesInterface
-{
-    enum Feature {
-        LowLatencyPlayback = 0x01,
-        RecordingSupport = 0x02,
-        StreamPlayback = 0x04,
-        VideoSurface = 0x08
-    };
-    Q_DECLARE_FLAGS(Features, Feature)
-
-    virtual ~QMediaServiceFeaturesInterface() {}
-    virtual QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const = 0;
-};
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(QMediaServiceFeaturesInterface::Features)
-
-#define QMediaServiceFeaturesInterface_iid \
-    "org.qt-project.qt.mediaservicefeatures/5.0"
-Q_DECLARE_INTERFACE(QMediaServiceFeaturesInterface, QMediaServiceFeaturesInterface_iid)
-
-// Required for QDoc workaround
-class QString;
-
 class Q_MULTIMEDIA_EXPORT QMediaServiceProviderPlugin : public QObject, public QMediaServiceProviderFactoryInterface
 {
     Q_OBJECT

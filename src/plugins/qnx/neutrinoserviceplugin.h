@@ -44,18 +44,15 @@
 QT_BEGIN_NAMESPACE
 
 class NeutrinoServicePlugin
-    : public QMediaServiceProviderPlugin,
-      public QMediaServiceFeaturesInterface
+    : public QMediaServiceProviderPlugin
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "neutrino_mediaservice.json")
 public:
     NeutrinoServicePlugin();
 
     QMediaService *create(const QString &key) override;
     void release(QMediaService *service) override;
-    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override;
 };
 
 QT_END_NAMESPACE

@@ -70,13 +70,10 @@ public:
     virtual QMediaService* requestService(const QByteArray &type) = 0;
     virtual void releaseService(QMediaService *service) = 0;
 
-    virtual QMediaServiceFeaturesInterface::Features supportedFeatures(const QMediaService *service) const;
-
     virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
                                              const QString &mimeType,
-                                             const QStringList& codecs,
-                                             int flags = 0) const;
-    virtual QStringList supportedMimeTypes(const QByteArray &serviceType, int flags = 0) const;
+                                             const QStringList& codecs) const;
+    virtual QStringList supportedMimeTypes(const QByteArray &serviceType) const;
 
     virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
     virtual QList<QByteArray> devices(const QByteArray &serviceType) const;

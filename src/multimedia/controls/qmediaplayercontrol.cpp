@@ -318,10 +318,12 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
     information relating to the current media source and to cease all I/O operations related
     to that media.
 
-    Qt resource files are never passed as is. If the service supports
-    QMediaServiceFeaturesInterface::StreamPlayback, a \a stream is supplied, pointing to an opened
+    Qt resource files are never passed as is. If the control supports
+    stream playback, a \a stream is supplied, pointing to an opened
     QFile. Otherwise, the resource is copied into a temporary file and \a media contains the
     url to that file.
+
+    \sa streamPlaybackSupported()
 */
 
 /*!

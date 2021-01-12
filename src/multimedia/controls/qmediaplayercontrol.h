@@ -94,6 +94,8 @@ public:
     virtual void setCustomAudioRole(const QString &/*role*/) {}
     virtual QStringList supportedCustomAudioRoles() const { return {}; }
 
+    virtual bool streamPlaybackSupported() const { return false; }
+
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
     void customAudioRoleChanged(const QString &role);

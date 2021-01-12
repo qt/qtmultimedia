@@ -969,7 +969,7 @@ void QDeclarativeAudio::_q_statusChanged()
     }
 }
 
-void QDeclarativeAudio::_q_mediaChanged(const QUrl &media)
+void QDeclarativeAudio::_q_mediaChanged(const QUrl &)
 {
     emit sourceChanged();
 }

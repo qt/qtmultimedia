@@ -49,11 +49,9 @@ QT_BEGIN_NAMESPACE
 class AVFMediaPlayerServicePlugin
     : public QMediaServiceProviderPlugin
     , public QMediaServiceSupportedFormatsInterface
-    , public QMediaServiceFeaturesInterface
 {
     Q_OBJECT
     Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
-    Q_INTERFACES(QMediaServiceFeaturesInterface)
     Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "avfmediaplayer.json")
 
 public:
@@ -62,7 +60,6 @@ public:
     QMediaService* create(QString const& key) override;
     void release(QMediaService *service) override;
 
-    QMediaServiceFeaturesInterface::Features supportedFeatures(const QByteArray &service) const override;
     QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const override;
     QStringList supportedMimeTypes() const override;
 

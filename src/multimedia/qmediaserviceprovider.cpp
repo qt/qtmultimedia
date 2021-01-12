@@ -101,27 +101,9 @@ public:
         }
     }
 
-    QMediaServiceFeaturesInterface::Features supportedFeatures(const QMediaService *service) const override
-    {
-        if (service) {
-            MediaServiceData d = mediaServiceData.value(service);
-
-            if (d.plugin) {
-                QMediaServiceFeaturesInterface *iface =
-                        qobject_cast<QMediaServiceFeaturesInterface*>(d.plugin);
-
-                if (iface)
-                    return iface->supportedFeatures(d.type);
-            }
-        }
-
-        return QMediaServiceFeaturesInterface::Features();
-    }
-
     [[nodiscard]] QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
                                      const QString &mimeType,
-                                     const QStringList& codecs,
-                                     int flags) const override
+                                     const QStringList& codecs) const override
     {
         QObject *instance = loader()->instance(QLatin1String(serviceType));
 
@@ -133,31 +115,11 @@ public:
         if (iface)
             supportEstimate = qMax(supportEstimate, iface->hasSupport(mimeType, codecs));
 
-        if (flags && supportEstimate == QMultimedia::ProbablySupported) {
-            QMediaServiceFeaturesInterface *iface = qobject_cast<QMediaServiceFeaturesInterface*>(instance);
-
-            if (iface) {
-                QMediaServiceFeaturesInterface::Features features = iface->supportedFeatures(serviceType);
-
-                //if low latency playback was asked, skip services known
-                //not to provide low latency playback
-                if ((flags & QMediaPlayer::LowLatency) &&
-                    !(features & QMediaServiceFeaturesInterface::LowLatencyPlayback))
-                        supportEstimate = QMultimedia::MaybeSupported;
-
-                //the same for QIODevice based streams support
-                if ((flags & QMediaPlayer::StreamPlayback) &&
-                    !(features & QMediaServiceFeaturesInterface::StreamPlayback))
-                    supportEstimate = QMultimedia::MaybeSupported;
-            }
-        }
-
         return supportEstimate;
     }
 
-    [[nodiscard]] QStringList supportedMimeTypes(const QByteArray &serviceType, int flags) const override
+    [[nodiscard]] QStringList supportedMimeTypes(const QByteArray &serviceType) const override
     {
-        Q_UNUSED(flags);
         QObject *instance = loader()->instance(QLatin1String(serviceType));
         if (!instance)
             return {};
@@ -279,19 +241,6 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 
 /*!
     \internal
-    \fn QMediaServiceProvider::supportedFeatures(const QMediaService *service) const
-
-    Returns the features supported by a given \a service.
-*/
-QMediaServiceFeaturesInterface::Features QMediaServiceProvider::supportedFeatures(const QMediaService *service) const
-{
-    Q_UNUSED(service);
-
-    return {};
-}
-
-/*!
-    \internal
     Returns how confident a media service provider is that is can provide a \a
     serviceType service that is able to play media of a specific \a mimeType
     that is encoded using the listed \a codecs while adhering to constraints
@@ -299,13 +248,11 @@ QMediaServiceFeaturesInterface::Features QMediaServiceProvider::supportedFeature
 */
 QMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray &serviceType,
                                                         const QString &mimeType,
-                                                        const QStringList& codecs,
-                                                        int flags) const
+                                                        const QStringList& codecs) const
 {
     Q_UNUSED(serviceType);
     Q_UNUSED(mimeType);
     Q_UNUSED(codecs);
-    Q_UNUSED(flags);
 
     return QMultimedia::MaybeSupported;
 }
@@ -320,10 +267,9 @@ QMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray 
     The resultant list is restricted to MIME types which can be supported given
     the constraints in \a flags.
 */
-QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceType, int flags) const
+QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceType) const
 {
     Q_UNUSED(serviceType);
-    Q_UNUSED(flags);
 
     return QStringList();
 }
@@ -421,8 +367,7 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     plug-ins.
 
     A media service provider plug-in may implement one or more of
-    QMediaServiceSupportedFormatsInterface,
-    QMediaServiceSupportedDevicesInterface, and QMediaServiceFeaturesInterface
+    QMediaServiceSupportedFormatsInterface and QMediaServiceSupportedDevicesInterface
     to identify the features it supports.
 */
 
@@ -502,27 +447,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     \fn QByteArray QMediaServiceSupportedDevicesInterface::defaultDevice(const QByteArray &service) const
 
     Returns the default device for a \a service type.
-*/
-
-/*!
-    \class QMediaServiceFeaturesInterface
-    \obsolete
-    \inmodule QtMultimedia
-    \brief The QMediaServiceFeaturesInterface class interface identifies
-    features supported by a media service plug-in.
-
-    A QMediaServiceProviderPlugin may implement this interface.
-*/
-
-/*!
-    \fn QMediaServiceFeaturesInterface::~QMediaServiceFeaturesInterface()
-
-    Destroys a media service features interface.
-*/
-/*!
-    \fn QMediaServiceFeaturesInterface::supportedFeatures(const QByteArray &service) const
-
-    Returns a set of features supported by a plug-in \a service.
 */
 
 QT_END_NAMESPACE

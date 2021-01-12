@@ -839,7 +839,7 @@ void tst_QMediaPlayer::debugEnums()
 
 void tst_QMediaPlayer::testSupportedMimeTypes()
 {
-    QStringList mimeList = QMediaPlayer::supportedMimeTypes(QMediaPlayer::LowLatency);
+    QStringList mimeList = QMediaPlayer::supportedMimeTypes();
 
     // This is empty on some platforms, and not on others, so can't test something here at the moment.
 }
@@ -850,7 +850,6 @@ void tst_QMediaPlayer::testQrc_data()
     QTest::addColumn<QMediaPlayer::MediaStatus>("status");
     QTest::addColumn<QMediaPlayer::Error>("error");
     QTest::addColumn<int>("errorCount");
-    QTest::addColumn<bool>("hasStreamFeature");
     QTest::addColumn<QString>("backendMediaContentScheme");
     QTest::addColumn<bool>("backendHasStream");
 
@@ -858,7 +857,6 @@ void tst_QMediaPlayer::testQrc_data()
                              << QMediaPlayer::InvalidMedia
                              << QMediaPlayer::ResourceError
                              << 1 // error count
-                             << false // No StreamPlayback support
                              << QString() // backend should not have got any media (empty URL scheme)
                              << false; // backend should not have got any stream
 
@@ -866,7 +864,6 @@ void tst_QMediaPlayer::testQrc_data()
                                     << QMediaPlayer::LoadingMedia
                                     << QMediaPlayer::NoError
                                     << 0 // error count
-                                    << false // No StreamPlayback support
                                     << QStringLiteral("file") // backend should have a got a temporary file
                                     << false; // backend should not have got any stream
 
@@ -874,7 +871,6 @@ void tst_QMediaPlayer::testQrc_data()
                                   << QMediaPlayer::LoadingMedia
                                   << QMediaPlayer::NoError
                                   << 0 // error count
-                                  << true // StreamPlayback support
                                   << QStringLiteral("qrc")
                                   << true; // backend should have got a stream (QFile opened from the resource)
 }
@@ -885,12 +881,8 @@ void tst_QMediaPlayer::testQrc()
     QFETCH(QMediaPlayer::MediaStatus, status);
     QFETCH(QMediaPlayer::Error, error);
     QFETCH(int, errorCount);
-    QFETCH(bool, hasStreamFeature);
     QFETCH(QString, backendMediaContentScheme);
     QFETCH(bool, backendHasStream);
-
-    if (hasStreamFeature)
-        mockProvider->setSupportedFeatures(QMediaServiceFeaturesInterface::StreamPlayback);
 
     QMediaPlayer player;
 

@@ -261,13 +261,12 @@ static QMediaService *playerService()
     parented to \a parent and with \a flags.
 */
 
-QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
+QMediaPlayer::QMediaPlayer(QObject *parent):
     QMediaSource(*new QMediaPlayerPrivate,
                  parent,
                  playerService())
 {
     Q_D(QMediaPlayer);
-    Q_UNUSED(flags);
 
     d->provider = QMediaServiceProvider::defaultServiceProvider();
     if (d->service == nullptr) {
@@ -300,7 +299,7 @@ QMediaPlayer::QMediaPlayer(QObject *parent, QMediaPlayer::Flags flags):
             if (d->status == StalledMedia || d->status == BufferingMedia)
                 addPropertyWatch("bufferStatus");
 
-            d->hasStreamPlaybackFeature = d->provider->supportedFeatures(d->service).testFlag(QMediaServiceFeaturesInterface::StreamPlayback);
+            d->hasStreamPlaybackFeature = d->control->streamPlaybackSupported();
         }
     }
 }
@@ -626,13 +625,11 @@ void QMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     specified.
 */
 QMultimedia::SupportEstimate QMediaPlayer::hasSupport(const QString &mimeType,
-                                               const QStringList& codecs,
-                                               Flags flags)
+                                               const QStringList& codecs)
 {
     return QMediaServiceProvider::defaultServiceProvider()->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER),
                                                                     mimeType,
-                                                                    codecs,
-                                                                    flags);
+                                                                    codecs);
 }
 
 /*!
@@ -647,10 +644,9 @@ QMultimedia::SupportEstimate QMediaPlayer::hasSupport(const QString &mimeType,
     cases this function will need to load all available media plugins and query them for their support, which
     may take some time.
 */
-QStringList QMediaPlayer::supportedMimeTypes(Flags flags)
+QStringList QMediaPlayer::supportedMimeTypes()
 {
-    return QMediaServiceProvider::defaultServiceProvider()->supportedMimeTypes(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER),
-                                                                               flags);
+    return QMediaServiceProvider::defaultServiceProvider()->supportedMimeTypes(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER));
 }
 
 /*!
@@ -1126,21 +1122,6 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     \fn void QMediaPlayer::bufferStatusChanged(int percentFilled)
 
     Signal the amount of the local buffer filled as a percentage by \a percentFilled.
-*/
-
-/*!
-    \enum QMediaPlayer::Flag
-
-    \value LowLatency       The player is expected to be used with simple audio formats,
-            but playback should start without significant delay.
-            Such playback service can be used for beeps, ringtones, etc.
-
-    \value StreamPlayback   The player is expected to play QIODevice based streams.
-            If passed to QMediaPlayer constructor, the service supporting
-            streams playback will be chosen.
-
-    \value VideoSurface     The player is expected to be able to render to a
-            QAbstractVideoSurface \l {setVideoOutput()}{output}.
 */
 
 QT_END_NAMESPACE

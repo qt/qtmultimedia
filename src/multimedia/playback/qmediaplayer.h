@@ -95,15 +95,6 @@ public:
         InvalidMedia
     };
 
-    // ### Go away
-    enum Flag
-    {
-        LowLatency = 0x01,
-        StreamPlayback = 0x02,
-        VideoSurface = 0x04
-    };
-    Q_DECLARE_FLAGS(Flags, Flag)
-
     enum Error
     {
         NoError,
@@ -114,14 +105,13 @@ public:
         ServiceMissingError
     };
 
-    explicit QMediaPlayer(QObject *parent = nullptr, Flags flags = Flags());
+    explicit QMediaPlayer(QObject *parent = nullptr);
     ~QMediaPlayer();
 
     // ### this needs a better solution
     static QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
-                                            const QStringList& codecs = QStringList(),
-                                                   Flags flags = Flags());
-    static QStringList supportedMimeTypes(Flags flags = Flags());
+                                            const QStringList& codecs = QStringList());
+    static QStringList supportedMimeTypes();
 
     // new API
 //    bool enableLowLatencyPlayback(bool tryEnable);
