@@ -37,6 +37,8 @@
 **
 ****************************************************************************/
 
+#include <qtmultimediaglobal_p.h>
+
 #include <QtCore/qdebug.h>
 #include <QtCore/qmap.h>
 
@@ -47,15 +49,58 @@
 #include "qmediaplayer.h"
 #include "qvideodeviceselectorcontrol.h"
 
+#if QT_CONFIG(gstreamer)
+#include <private/qgstreamerplayerserviceplugin_p.h>
+#include <private/qgstreamercaptureserviceplugin_p.h>
+#elif defined(Q_OS_WIN)
+#include <private/mfplayerservice_p.h>
+#elif defined(Q_OS_DARWIN)
+#include <private/avfcameraserviceplugin_p.h>
+#include <private/avfmediaplayerserviceplugin_p.h>
+#elif defined(Q_OS_ANDROID)
+#include <private/qandroidmediaserviceplugin_p.h>
+#elif defined(Q_OS_QNX)
+#include <private/neutrinoserviceplugin_p.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 QMediaServiceProviderFactoryInterface::~QMediaServiceProviderFactoryInterface()
 {
 }
 
-Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, loader,
-        (QMediaServiceProviderFactoryInterface_iid, QLatin1String("mediaservice"), Qt::CaseInsensitive))
+class Loader
+{
+#define GET_PLUGIN(Key, Class) \
+    if (key.toUtf8() == Key) { \
+        static QObject *instance = nullptr; \
+        if (!instance) \
+            instance = new Class; \
+        return instance; \
+    }
 
+public:
+    QObject *instance(const QString &key) {
+#if QT_CONFIG(gstreamer)
+        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, QGstreamerPlayerServicePlugin)
+        GET_PLUGIN(Q_MEDIASERVICE_CAMERA, QGstreamerCaptureServicePlugin)
+        GET_PLUGIN(Q_MEDIASERVICE_AUDIOSOURCE, QGstreamerCaptureServicePlugin)
+#elif defined(Q_OS_WIN)
+        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, MFPlayerService)
+#elif defined(Q_OS_DARWIN)
+        GET_PLUGIN(Q_MEDIASERVICE_CAMERA, AVFServicePlugin)
+        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, AVFMediaPlayerServicePlugin)
+#elif defined(Q_OS_ANDROID)
+        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, QAndroidMediaServicePlugin)
+        GET_PLUGIN(Q_MEDIASERVICE_CAMERA, QAndroidMediaServicePlugin)
+#elif defined(Q_OS_QNX)
+        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, NeutrinoServicePlugin)
+#endif
+        return nullptr;
+    }
+};
+
+Q_GLOBAL_STATIC(Loader, loader);
 
 class QPluginServiceProvider : public QMediaServiceProvider
 {

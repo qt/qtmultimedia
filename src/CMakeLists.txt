@@ -1,6 +1,9 @@
 # Generated from src.pro.
 
 add_subdirectory(multimedia)
+if(ANDROID)
+    add_subdirectory(android)
+endif()
 
 # special case begin
 if(TARGET Qt::Quick)

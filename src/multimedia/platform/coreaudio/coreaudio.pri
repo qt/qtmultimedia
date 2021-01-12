@@ -1,20 +1,20 @@
 HEADERS += \
-    platform/coreaudio/qcoreaudiodeviceinfo_p.h \
-    platform/coreaudio/qcoreaudioinput_p.h \
-    platform/coreaudio/qcoreaudiooutput_p.h \
-    platform/coreaudio/qcoreaudiointerface_p.h \
-    platform/coreaudio/qcoreaudioutils_p.h
+    $$PWD/qcoreaudiodeviceinfo_p.h \
+    $$PWD/qcoreaudioinput_p.h \
+    $$PWD/qcoreaudiooutput_p.h \
+    $$PWD/qcoreaudiointerface_p.h \
+    $$PWD/qcoreaudioutils_p.h
 
 SOURCES += \
-    platform/coreaudio/qcoreaudiodeviceinfo.mm \
-    platform/coreaudio/qcoreaudioinput.mm \
-    platform/coreaudio/qcoreaudiooutput.mm \
-    platform/coreaudio/qcoreaudiointerface.mm \
-    platform/coreaudio/qcoreaudioutils.mm
+    $$PWD/qcoreaudiodeviceinfo.mm \
+    $$PWD/qcoreaudioinput.mm \
+    $$PWD/qcoreaudiooutput.mm \
+    $$PWD/qcoreaudiointerface.mm \
+    $$PWD/qcoreaudioutils.mm
 
 ios|tvos {
-    HEADERS += platform/coreaudio/qcoreaudiosessionmanager_p.h
-    SOURCES += platform/coreaudio/qcoreaudiosessionmanager.mm
+    HEADERS += $$PWD/qcoreaudiosessionmanager_p.h
+    SOURCES += $$PWD/qcoreaudiosessionmanager.mm
     LIBS += -framework Foundation -framework AVFoundation
 } else {
     LIBS += \

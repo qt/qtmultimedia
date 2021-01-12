@@ -12,6 +12,7 @@ src_qtmmwidgets.depends = multimedia
 src_plugins.subdir = plugins
 src_plugins.depends = multimedia
 
+android:SUBDIRS += android
 
 qtHaveModule(quick) {
     src_qtmultimediaquicktools.subdir = qtmultimediaquicktools

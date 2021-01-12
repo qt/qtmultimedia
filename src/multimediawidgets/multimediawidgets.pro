@@ -7,11 +7,9 @@ qtHaveModule(opengl) {
     QT_PRIVATE += opengl
 }
 
-PRIVATE_HEADERS += \
+HEADERS += \
     qvideowidget_p.h \
     qpaintervideosurface_p.h \
-
-PUBLIC_HEADERS += \
     qtmultimediawidgetdefs.h \
     qvideowidgetcontrol.h \
     qvideowidget.h
@@ -22,14 +20,10 @@ SOURCES += \
     qvideowidget.cpp
 
 qtConfig(graphicsview) {
-    SOURCES        += qgraphicsvideoitem.cpp
-    PUBLIC_HEADERS += qgraphicsvideoitem.h
+    SOURCES += qgraphicsvideoitem.cpp
+    HEADERS += qgraphicsvideoitem.h
 }
 
-qtConfig(gstreamer):include(gstreamer/gstreamer.pri)
-
-HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
-
-msvc:lessThan(QMAKE_MSC_VER, 1900): QMAKE_CXXFLAGS += -Zm200
+include(platform/platform.pri)
 
 load(qt_module)

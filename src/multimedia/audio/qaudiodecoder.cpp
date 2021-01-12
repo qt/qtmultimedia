@@ -37,12 +37,20 @@
 **
 ****************************************************************************/
 
+#include "qtmultimediaglobal_p.h"
 #include "qaudiodecoder.h"
 
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include "qaudiodecodercontrol.h"
 #include <private/qmediaserviceprovider_p.h>
+
+#if QT_CONFIG(gstreamer)
+#include <private/qgstreameraudiodecodercontrol_p.h>
+#include <private/qgstutils_p.h>
+#elif defined(Q_OS_WIN)
+#include <private/mfaudiodecodercontrol_p.h>
+#endif
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -121,27 +129,28 @@ void QAudioDecoderPrivate::_q_error(int error, const QString &errorString)
 QAudioDecoder::QAudioDecoder(QObject *parent)
     : QMediaSource(*new QAudioDecoderPrivate,
                    parent,
-                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_AUDIODECODER))
+                   nullptr)
 {
     Q_D(QAudioDecoder);
 
-    d->provider = QMediaServiceProvider::defaultServiceProvider();
-    if (d->service) {
-        d->control = qobject_cast<QAudioDecoderControl*>(d->service->requestControl(QAudioDecoderControl_iid));
-        if (d->control != nullptr) {
-            connect(d->control, SIGNAL(stateChanged(QAudioDecoder::State)), SLOT(_q_stateChanged(QAudioDecoder::State)));
-            connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
+#if QT_CONFIG(gstreamer)
+    gst_init(nullptr, nullptr);
+    d->control = new QGstreamerAudioDecoderControl(this);
+#elif defined(Q_OS_WIN)
+    d->control = new MFAudioDecoderControl(this);
+#endif
+    if (d->control != nullptr) {
+        connect(d->control, SIGNAL(stateChanged(QAudioDecoder::State)), SLOT(_q_stateChanged(QAudioDecoder::State)));
+        connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
 
-            connect(d->control, SIGNAL(formatChanged(QAudioFormat)), SIGNAL(formatChanged(QAudioFormat)));
-            connect(d->control, SIGNAL(sourceChanged()), SIGNAL(sourceChanged()));
-            connect(d->control, SIGNAL(bufferReady()), this, SIGNAL(bufferReady()));
-            connect(d->control ,SIGNAL(bufferAvailableChanged(bool)), this, SIGNAL(bufferAvailableChanged(bool)));
-            connect(d->control ,SIGNAL(finished()), this, SIGNAL(finished()));
-            connect(d->control ,SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
-            connect(d->control ,SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
-        }
-    }
-    if (!d->control) {
+        connect(d->control, SIGNAL(formatChanged(QAudioFormat)), SIGNAL(formatChanged(QAudioFormat)));
+        connect(d->control, SIGNAL(sourceChanged()), SIGNAL(sourceChanged()));
+        connect(d->control, SIGNAL(bufferReady()), this, SIGNAL(bufferReady()));
+        connect(d->control ,SIGNAL(bufferAvailableChanged(bool)), this, SIGNAL(bufferAvailableChanged(bool)));
+        connect(d->control ,SIGNAL(finished()), this, SIGNAL(finished()));
+        connect(d->control ,SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
+        connect(d->control ,SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
+    } else {
        d->error = ServiceMissingError;
        d->errorString = tr("The QAudioDecoder object does not have a valid service");
     }
@@ -155,12 +164,8 @@ QAudioDecoder::~QAudioDecoder()
 {
     Q_D(QAudioDecoder);
 
-    if (d->service) {
-        if (d->control)
-            d->service->releaseControl(d->control);
-
-        d->provider->releaseService(d->service);
-    }
+    if (d->control)
+        delete d->control;
 }
 
 QAudioDecoder::State QAudioDecoder::state() const
@@ -330,9 +335,23 @@ void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
 QMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
                                                const QStringList& codecs)
 {
-    return QMediaServiceProvider::defaultServiceProvider()->hasSupport(QByteArray(Q_MEDIASERVICE_AUDIODECODER),
-                                                                    mimeType,
-                                                                    codecs);
+#if QT_CONFIG(gstreamer)
+    // ### this code should not be there
+    auto isDecoderOrDemuxer = [](GstElementFactory *factory) -> bool
+    {
+        return gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DEMUXER)
+                || gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DECODER
+                                                           | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
+    };
+    gst_init(nullptr, nullptr);
+    auto set = QGstUtils::supportedMimeTypes(isDecoderOrDemuxer);
+    return QGstUtils::hasSupport(mimeType, codecs, set);
+#elif defined(Q_OS_WIN)
+    return QMultimedia::MaybeSupported;
+#endif
+    Q_UNUSED(mimeType);
+    Q_UNUSED(codecs);
+    return QMultimedia::NotSupported;
 }
 
 /*!

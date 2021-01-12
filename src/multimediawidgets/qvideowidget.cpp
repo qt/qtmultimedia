@@ -37,6 +37,7 @@
 **
 ****************************************************************************/
 
+#include <private/qtmultimediaglobal_p.h>
 #include "qvideowidget_p.h"
 #include "qpaintervideosurface_p.h"
 
@@ -57,6 +58,11 @@
 #include <qwindow.h>
 #include <private/qhighdpiscaling_p.h>
 
+#if QT_CONFIG(gstreamer)
+#include <private/qgstreamervideowidget_p.h>
+#elif QT_CONFIG(avfoundation)
+#include <private/avfvideowidgetcontrol_p.h>
+#endif
 #ifdef Q_OS_WIN
 #include <QtCore/qt_windows.h>
 #endif
@@ -491,17 +497,24 @@ void QVideoWidgetPrivate::clearService()
 
 bool QVideoWidgetPrivate::createWidgetBackend()
 {
-    if (QObject *control = service->requestControl(QVideoWidgetControl_iid)) {
-        if (QVideoWidgetControl *widgetControl = qobject_cast<QVideoWidgetControl *>(control)) {
-            widgetBackend = new QVideoWidgetControlBackend(service, widgetControl, q_func());
+    QVideoWidgetControl *widgetControl = nullptr;
+#if QT_CONFIG(gstreamer)
+//    widgetControl = new QGstreamerVideoWidgetControl(q_ptr);
+    // If the GStreamer video sink is not available, don't provide the video widget control since
+    // it won't work anyway. QVideoWidget will fall back to QVideoRendererControl in that case.
+//    if (!widgetControl->videoSink()) {
+//        delete widgetControl;
+//        widgetControl = nullptr;
+//    }
+    // ### need to set the widget as the video output on the service currently
+#elif QT_CONFIG(avfoundation)
+//    widgetControl = new AVFVideoWidgetControl(q_ptr);
+    // #####m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
+#endif
+    if (widgetControl)
+        setCurrentControl(widgetBackend);
 
-            setCurrentControl(widgetBackend);
-
-            return true;
-        }
-        service->releaseControl(control);
-    }
-    return false;
+    return widgetControl != nullptr;
 }
 
 bool QVideoWidgetPrivate::createWindowBackend()

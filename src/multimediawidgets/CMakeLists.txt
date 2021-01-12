@@ -35,7 +35,7 @@ qt_extend_target(MultimediaWidgets CONDITION TARGET Qt::OpenGL
 
 qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_graphicsview
     SOURCES
-        qgraphicsvideoitem.cpp qgraphicsvideoitem.h # special case
+        qgraphicsvideoitem.cpp qgraphicsvideoitem.h
 )
 
 qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_gstreamer
@@ -43,10 +43,8 @@ qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_gstreamer
         gstreamer/qgstreamervideowidget.cpp gstreamer/qgstreamervideowidget_p.h
 )
 
-#### Keys ignored in scope 3:.:.:multimediawidgets.pro:QT_FEATURE_graphicsview:
-# PUBLIC_HEADERS = "qgraphicsvideoitem.h"
-
-qt_extend_target(MultimediaWidgets CONDITION MSVC AND (QMAKE_MSC_VER LESS 1900)
-    COMPILE_OPTIONS
-        -Zm200
+qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_avfoundation
+    SOURCES
+        platform/avfoundation/avfvideowidget.mm platform/avfoundation/avfvideowidget_p.h
+        platform/avfoundation/avfvideowidgetcontrol.mm platform/avfoundation/avfvideowidgetcontrol_p.h
 )

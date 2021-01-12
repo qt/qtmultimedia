@@ -1,13 +1,19 @@
 LIBS += -lasound
 
-HEADERS += platform/qnx/qnxaudiointerface_p.h \
-           platform/qnx/qnxaudiodeviceinfo_p.h \
-           platform/qnx/qnxaudioinput_p.h \
-           platform/qnx/qnxaudiooutput_p.h \
-           platform/qnx/qnxaudioutils_p.h
+HEADERS += $$PWD/qnxaudiointerface_p.h \
+           $$PWD/qnxaudiodeviceinfo_p.h \
+           $$PWD/qnxaudioinput_p.h \
+           $$PWD/qnxaudiooutput_p.h \
+           $$PWD/qnxaudioutils_p.h \
+           $$PWD/neutrinoserviceplugin_p.h
 
-SOURCES += platform/qnx/qnxaudiointerface.cpp \
-           platform/qnx/qnxaudiodeviceinfo.cpp \
-           platform/qnx/qnxaudioinput.cpp \
-           platform/qnx/qnxaudiooutput.cpp \
-           platform/qnx/qnxaudioutils.cpp
+SOURCES += $$PWD/qnxaudiointerface.cpp \
+           $$PWD/qnxaudiodeviceinfo.cpp \
+           $$PWD/qnxaudioinput.cpp \
+           $$PWD/qnxaudiooutput.cpp \
+           $$PWD/qnxaudioutils.cpp \
+           $$PWD/neutrinoserviceplugin.cpp
+
+include(common/common.pri)
+include(mediaplayer/mediaplayer.pri)
+include(camera/camera.pri)
