@@ -53,6 +53,7 @@ include(controls/controls.pri)
 include(playback/playback.pri)
 include(recording/recording.pri)
 include(video/video.pri)
+include(platform/platform.pri)
 
 ANDROID_BUNDLED_JAR_DEPENDENCIES = \
     jar/Qt$${QT_MAJOR_VERSION}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtMultimediaUtils
@@ -72,15 +73,6 @@ ANDROID_FEATURES += \
 MODULE_WINRT_CAPABILITIES_DEVICE += \
     microphone \
     webcam
-
-qtConfig(gstreamer) {
-    include(gstreamer/gstreamer.pri)
-    ANDROID_LIB_DEPENDENCIES += \
-        plugins/mediaservice/libgstcamerabin.so \
-        plugins/mediaservice/libgstmediacapture.so \
-        plugins/mediaservice/libgstmediaplayer.so \
-        plugins/mediaservice/libgstaudiodecoder.so
-}
 
 win32: LIBS_PRIVATE += -luuid
 
