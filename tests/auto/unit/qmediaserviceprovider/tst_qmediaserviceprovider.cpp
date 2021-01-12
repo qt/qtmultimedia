@@ -37,7 +37,7 @@
 #include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qmediaplayer.h>
-#include <qaudiorecorder.h>
+#include <qmediarecorder.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
 

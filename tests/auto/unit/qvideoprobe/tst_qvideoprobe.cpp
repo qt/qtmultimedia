@@ -30,7 +30,7 @@
 #include <QDebug>
 
 #include <qvideoprobe.h>
-#include <qaudiorecorder.h>
+#include <qmediarecorder.h>
 #include <qmediaplayer.h>
 
 //TESTED_COMPONENT=src/multimedia
@@ -162,7 +162,7 @@ void tst_QVideoProbe::testRecorder()
 {
     QMediaServiceProvider::setDefaultServiceProvider(mockProviderRecorder);
 
-    QAudioRecorder recorder;
+    QMediaRecorder recorder;
     QVERIFY(recorder.isAvailable());
 
     QVideoProbe probe;

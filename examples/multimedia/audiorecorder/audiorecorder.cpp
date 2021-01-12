@@ -54,7 +54,7 @@
 #include "ui_audiorecorder.h"
 
 #include <QAudioProbe>
-#include <QAudioRecorder>
+#include <QMediaRecorder>
 #include <QDir>
 #include <QFileDialog>
 #include <QMediaRecorder>
@@ -71,7 +71,7 @@ AudioRecorder::AudioRecorder()
 {
     ui->setupUi(this);
 
-    m_audioRecorder = new QAudioRecorder(this);
+    m_audioRecorder = new QMediaRecorder(QMediaRecorder::AudioOnly, this);
     m_probe = new QAudioProbe(this);
     connect(m_probe, &QAudioProbe::audioBufferProbed,
             this, &AudioRecorder::processBuffer);
@@ -120,10 +120,10 @@ AudioRecorder::AudioRecorder()
     ui->bitrateBox->addItem(QStringLiteral("96000"), QVariant(96000));
     ui->bitrateBox->addItem(QStringLiteral("128000"), QVariant(128000));
 
-    connect(m_audioRecorder, &QAudioRecorder::durationChanged, this, &AudioRecorder::updateProgress);
-    connect(m_audioRecorder, &QAudioRecorder::statusChanged, this, &AudioRecorder::updateStatus);
-    connect(m_audioRecorder, &QAudioRecorder::stateChanged, this, &AudioRecorder::onStateChanged);
-    connect(m_audioRecorder, QOverload<QMediaRecorder::Error>::of(&QAudioRecorder::error), this,
+    connect(m_audioRecorder, &QMediaRecorder::durationChanged, this, &AudioRecorder::updateProgress);
+    connect(m_audioRecorder, &QMediaRecorder::statusChanged, this, &AudioRecorder::updateStatus);
+    connect(m_audioRecorder, &QMediaRecorder::stateChanged, this, &AudioRecorder::onStateChanged);
+    connect(m_audioRecorder, QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error), this,
             &AudioRecorder::displayErrorMessage);
 }
 

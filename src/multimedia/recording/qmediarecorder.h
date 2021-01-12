@@ -107,6 +107,12 @@ public:
         OutOfSpaceError
     };
 
+    enum Mode {
+        AudioOnly,
+        AudioAndVideo
+    };
+
+    QMediaRecorder(Mode mode = AudioOnly, QObject *parent = nullptr);
     explicit QMediaRecorder(QMediaSource *mediaSource, QObject *parent = nullptr);
     ~QMediaRecorder();
 

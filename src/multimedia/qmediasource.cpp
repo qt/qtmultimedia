@@ -88,7 +88,7 @@ void QMediaSourcePrivate::_q_notify()
 
     Most media objects when constructed will request a new
     QMediaService instance, but some like
-    QMediaRecorder and QAudioRecorder will share a service with another object.
+    QMediaRecorder and QMediaRecorder will share a service with another object.
 
     \sa QMediaService, QMediaControl
 */

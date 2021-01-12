@@ -30,7 +30,7 @@
 #include <QDebug>
 
 #include <qaudioprobe.h>
-#include <qaudiorecorder.h>
+#include <qmediarecorder.h>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -57,7 +57,7 @@ private slots:
     void testMediaSource();
 
 private:
-    QAudioRecorder *recorder;
+    QMediaRecorder *recorder;
     MockMediaRecorderControl *mockMediaRecorderControl;
     MockMediaRecorderService  *mockMediaRecorderService;
     MockMediaServiceProvider *mockProvider;
@@ -88,7 +88,7 @@ void tst_QAudioProbe::cleanup()
 void tst_QAudioProbe::testNullService()
 {
     mockProvider->service = nullptr;
-    recorder = new QAudioRecorder;
+    recorder = new QMediaRecorder;
 
     QVERIFY(!recorder->isAvailable());
     QCOMPARE(recorder->availability(), QMultimedia::ServiceMissing);
@@ -106,7 +106,7 @@ void tst_QAudioProbe::testNullService()
 void tst_QAudioProbe::testNullControl()
 {
     mockMediaRecorderService->hasControls = false;
-    recorder = new QAudioRecorder;
+    recorder = new QMediaRecorder;
 
     QVERIFY(!recorder->isAvailable());
     QCOMPARE(recorder->availability(), QMultimedia::ServiceMissing);
@@ -122,7 +122,7 @@ void tst_QAudioProbe::testNullControl()
 
 void tst_QAudioProbe::testRecorder()
 {
-    recorder = new QAudioRecorder;
+    recorder = new QMediaRecorder;
     QVERIFY(recorder->isAvailable());
 
     QAudioProbe probe;
@@ -135,7 +135,7 @@ void tst_QAudioProbe::testRecorder()
 
 void tst_QAudioProbe::testRecorderDeleteRecorder()
 {
-    recorder = new QAudioRecorder;
+    recorder = new QMediaRecorder;
     QVERIFY(recorder->isAvailable());
 
     QAudioProbe probe;
@@ -152,7 +152,7 @@ void tst_QAudioProbe::testRecorderDeleteRecorder()
 
 void tst_QAudioProbe::testRecorderDeleteProbe()
 {
-    recorder = new QAudioRecorder;
+    recorder = new QMediaRecorder;
     QVERIFY(recorder->isAvailable());
 
     QAudioProbe *probe = new QAudioProbe;

@@ -31,7 +31,7 @@
 
 #include <qaudioformat.h>
 
-#include <qaudiorecorder.h>
+#include <qmediarecorder.h>
 #include <qaudioencodersettingscontrol.h>
 #include <qmediarecordercontrol.h>
 #include <qaudioinputselectorcontrol.h>
@@ -63,7 +63,7 @@ private slots:
     void testAvailableAudioInputChangedSignal();
 
 private:
-    QAudioRecorder *audiosource;
+    QMediaRecorder *audiosource;
     MockMediaRecorderService  *mockMediaRecorderService;
     MockMediaServiceProvider *mockProvider;
 };
@@ -90,7 +90,7 @@ void tst_QAudioRecorder::cleanup()
 void tst_QAudioRecorder::testNullService()
 {
     mockProvider->service = nullptr;
-    QAudioRecorder source;
+    QMediaRecorder source;
 
     QVERIFY(!source.isAvailable());
     QCOMPARE(source.availability(), QMultimedia::ServiceMissing);
@@ -104,7 +104,7 @@ void tst_QAudioRecorder::testNullService()
 void tst_QAudioRecorder::testNullControl()
 {
     mockMediaRecorderService->hasControls = false;
-    QAudioRecorder source;
+    QMediaRecorder source;
 
     QVERIFY(!source.isAvailable());
     QCOMPARE(source.availability(), QMultimedia::ServiceMissing);
@@ -123,14 +123,14 @@ void tst_QAudioRecorder::testNullControl()
 
 void tst_QAudioRecorder::testAudioSource()
 {
-    audiosource = new QAudioRecorder;
+    audiosource = new QMediaRecorder;
 
     QCOMPARE(audiosource->mediaSource()->service(),(QMediaService *) mockMediaRecorderService);
 }
 
 void tst_QAudioRecorder::testDevices()
 {
-    audiosource = new QAudioRecorder;
+    audiosource = new QMediaRecorder;
     QList<QString> devices = audiosource->audioInputs();
     QVERIFY(devices.size() > 0);
     QVERIFY(devices.at(0).compare("device1") == 0);
@@ -147,7 +147,7 @@ void tst_QAudioRecorder::testDevices()
 
 void tst_QAudioRecorder::testAvailability()
 {
-    QAudioRecorder source;
+    QMediaRecorder source;
 
     QVERIFY(source.isAvailable());
     QCOMPARE(source.availability(), QMultimedia::Available);
@@ -155,7 +155,7 @@ void tst_QAudioRecorder::testAvailability()
 
 void tst_QAudioRecorder::testAvailableAudioInputChangedSignal()
 {
-    audiosource = new QAudioRecorder;
+    audiosource = new QMediaRecorder;
 
     /* Spy the signal availableInputsChanged and audioInputchanged */
     QSignalSpy changed(mockMediaRecorderService->mockAudioInputSelector, SIGNAL(availableInputsChanged()));

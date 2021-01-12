@@ -173,6 +173,18 @@ void QMediaRecorderPrivate::restartCamera()
     }
 }
 
+class QAudioRecorderObject : public QMediaSource
+{
+public:
+    QAudioRecorderObject(QObject *parent, QMediaService *service)
+        : QMediaSource(parent, service)
+    {
+    }
+
+    ~QAudioRecorderObject() override
+    {
+    }
+};
 
 /*!
     Constructs a media recorder which records the media produced by \a mediaSource.
@@ -180,9 +192,21 @@ void QMediaRecorderPrivate::restartCamera()
     The \a parent is passed to QMediaSource.
 */
 
-QMediaRecorder::QMediaRecorder(QMediaSource *mediaSource, QObject *parent):
-    QObject(parent),
-    d_ptr(new QMediaRecorderPrivate)
+QMediaRecorder::QMediaRecorder(QMediaRecorder::Mode mode, QObject *parent)
+    : QObject(parent),
+      d_ptr(new QMediaRecorderPrivate)
+{
+    if (mode == AudioOnly) {
+        auto provider = QMediaServiceProvider::defaultServiceProvider();
+
+        QMediaService *service = provider->requestService(Q_MEDIASERVICE_AUDIOSOURCE);
+        setMediaSource(new QAudioRecorderObject(this, service));
+    }
+}
+
+QMediaRecorder::QMediaRecorder(QMediaSource *mediaSource, QObject *parent)
+    : QObject(parent),
+      d_ptr(new QMediaRecorderPrivate)
 {
     Q_D(QMediaRecorder);
     d->q_ptr = this;

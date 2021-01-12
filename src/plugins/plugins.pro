@@ -17,22 +17,16 @@ android {
 
 qnx {
     qtConfig(mmrenderer): SUBDIRS += qnx
-    SUBDIRS += audiocapture
 }
 
 win32: {
-    SUBDIRS += audiocapture
-
     qtConfig(wmf): SUBDIRS += wmf
 }
 
 qtConfig(gstreamer): SUBDIRS += gstreamer
 
-unix:!mac:!android:!qtConfig(gstreamer): SUBDIRS += audiocapture
-
 darwin:!watchos {
     qtConfig(avfoundation): SUBDIRS += avfoundation
-    SUBDIRS += audiocapture
 }
 
 
