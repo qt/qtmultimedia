@@ -60,7 +60,7 @@
 #include <QtCore/qdebug.h>
 
 #include <QtMultimedia/qaudio.h>
-#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <private/qaudiodeviceinfo_p.h>
 #include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -70,49 +70,43 @@ const unsigned int MAX_SAMPLE_RATES = 5;
 const unsigned int SAMPLE_RATES[] =
     { 8000, 11025, 22050, 44100, 48000 };
 
-class QAlsaAudioDeviceInfo : public QAbstractAudioDeviceInfo
+class QAlsaAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
-    Q_OBJECT
 public:
-    QAlsaAudioDeviceInfo(const QByteArray &dev,QAudio::Mode mode);
+    QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudio::Mode mode);
     ~QAlsaAudioDeviceInfo();
 
     bool testSettings(const QAudioFormat& format) const;
-    void updateLists();
+    void updateLists() const;
     QAudioFormat preferredFormat() const override;
     bool isFormatSupported(const QAudioFormat& format) const override;
-    QString deviceName() const override;
-    QString description() const override { return deviceName(); }
-    QStringList supportedCodecs() override;
-    QList<int> supportedSampleRates() override;
-    QList<int> supportedChannelCounts() override;
-    QList<int> supportedSampleSizes() override;
-    QList<QAudioFormat::Endian> supportedByteOrders() override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() override;
+    QString description() const override { return m_description; }
+    QStringList supportedCodecs() const override;
+    QList<int> supportedSampleRates() const override;
+    QList<int> supportedChannelCounts() const override;
+    QList<int> supportedSampleSizes() const override;
+    QList<QAudioFormat::Endian> supportedByteOrders() const override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
     static QByteArray defaultDevice(QAudio::Mode mode);
-    static QList<QByteArray> availableDevices(QAudio::Mode);
-    static QString deviceFromCardName(const QString &card);
 
 private:
-    bool open();
-    void close();
+    bool open() const;
+    void close() const;
 
     void checkSurround();
     bool surround40;
     bool surround51;
     bool surround71;
 
-    QString device;
-    QAudio::Mode mode;
+    QString m_description;
     QAudioFormat nearest;
-    QList<int> sampleRatez;
-    QList<int> channelz;
-    QList<int> sizez;
-    QList<QAudioFormat::Endian> byteOrderz;
-    QStringList codecz;
-    QList<QAudioFormat::SampleType> typez;
-    snd_pcm_t* handle;
-    snd_pcm_hw_params_t *params;
+    mutable QList<int> sampleRatez;
+    mutable QList<int> channelz;
+    mutable QList<int> sizez;
+    mutable QList<QAudioFormat::Endian> byteOrderz;
+    mutable QStringList codecz;
+    mutable QList<QAudioFormat::SampleType> typez;
+    mutable snd_pcm_t* handle;
 };
 
 QT_END_NAMESPACE

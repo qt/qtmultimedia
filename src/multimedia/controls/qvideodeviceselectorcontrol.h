@@ -45,6 +45,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QMediaPlatformDeviceManager;
 // Required for QDoc workaround
 class QString;
 
@@ -53,15 +54,15 @@ class Q_MULTIMEDIA_EXPORT QVideoDeviceSelectorControl : public QObject
     Q_OBJECT
 
 public:
-    virtual int deviceCount() const = 0;
+    virtual int deviceCount() const;
 
-    virtual QString deviceName(int index) const = 0;
-    virtual QString deviceDescription(int index) const = 0;
+    virtual QString deviceName(int index) const;
+    virtual QString deviceDescription(int index) const;
 
-    virtual QCamera::Position cameraPosition(int index) const = 0;
-    virtual int cameraOrientation(int index) const = 0;
+    virtual QCamera::Position cameraPosition(int index) const;
+    virtual int cameraOrientation(int index) const;
 
-    virtual int defaultDevice() const = 0;
+    virtual int defaultDevice() const;
     virtual int selectedDevice() const = 0;
 
 public Q_SLOTS:
@@ -74,6 +75,8 @@ Q_SIGNALS:
 
 protected:
     explicit QVideoDeviceSelectorControl(QObject *parent = nullptr);
+private:
+    QMediaPlatformDeviceManager *m_deviceManager = nullptr;
 };
 
 #define QVideoDeviceSelectorControl_iid "org.qt-project.qt.videodeviceselectorcontrol/5.0"

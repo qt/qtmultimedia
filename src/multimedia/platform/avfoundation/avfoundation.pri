@@ -16,3 +16,12 @@ QMAKE_USE += avfoundation
 
 include(mediaplayer/mediaplayer.pri)
 !tvos:include(camera/camera.pri)
+
+
+SOURCES += \
+    $$PWD/qdarwinintegration.cpp \
+    $$PWD/qdarwindevicemanager.mm
+
+HEADERS += \
+    $$PWD/qdarwinintegration_p.h \
+    $$PWD/qdarwindevicemanager_p.h

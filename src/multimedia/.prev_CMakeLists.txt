@@ -10,8 +10,7 @@ qt_internal_add_module(Multimedia
         audio/qaudio.cpp audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h audio/qaudiobuffer_p.h
         audio/qaudiodecoder.cpp audio/qaudiodecoder.h
-        audio/qaudiodevicefactory.cpp audio/qaudiodevicefactory_p.h
-        audio/qaudiodeviceinfo.cpp audio/qaudiodeviceinfo.h
+        audio/qaudiodeviceinfo.cpp audio/qaudiodeviceinfo.h audio/qaudiodeviceinfo_p.h
         audio/qaudioformat.cpp audio/qaudioformat.h
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
         audio/qaudioinput.cpp audio/qaudioinput.h
@@ -26,7 +25,7 @@ qt_internal_add_module(Multimedia
         camera/qcamerafocus.cpp camera/qcamerafocus.h
         camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
         camera/qcameraimageprocessing.cpp camera/qcameraimageprocessing.h
-        camera/qcamerainfo.cpp camera/qcamerainfo.h
+        camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h
         camera/qcameraviewfindersettings.cpp camera/qcameraviewfindersettings.h
         controls/qaudiodecodercontrol.cpp controls/qaudiodecodercontrol.h
         controls/qaudioencodersettingscontrol.cpp controls/qaudioencodersettingscontrol.h
@@ -50,9 +49,12 @@ qt_internal_add_module(Multimedia
         controls/qvideoencodersettingscontrol.cpp controls/qvideoencodersettingscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
+        platform/qmediaplatformdevicemanager.cpp platform/qmediaplatformdevicemanager_p.h
+        platform/qmediaplatformintegration.cpp platform/qmediaplatformintegration_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
+        qmediadevicemanager.cpp qmediadevicemanager.h
         qmediaenumdebug.h
         qmediametadata.cpp qmediametadata.h
         qmediapluginloader.cpp qmediapluginloader_p.h
@@ -144,7 +146,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
     SOURCES
         platform/wasapi/qwindowsaudiodeviceinfo.cpp platform/wasapi/qwindowsaudiodeviceinfo_p.h
         platform/wasapi/qwindowsaudioinput.cpp platform/wasapi/qwindowsaudioinput_p.h
-        platform/wasapi/qwindowsaudiointerface.cpp platform/wasapi/qwindowsaudiointerface_p.h
         platform/wasapi/qwindowsaudiooutput.cpp platform/wasapi/qwindowsaudiooutput_p.h
         platform/wasapi/qwindowsaudioutils.cpp platform/wasapi/qwindowsaudioutils_p.h
         platform/wmf/decoder/mfaudiodecodercontrol.cpp platform/wmf/decoder/mfaudiodecodercontrol_p.h
@@ -167,6 +168,8 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/wmf/player/mfvideoprobecontrol.cpp platform/wmf/player/mfvideoprobecontrol_p.h
         platform/wmf/player/mfvideorenderercontrol.cpp platform/wmf/player/mfvideorenderercontrol_p.h
         platform/wmf/player/samplegrabber.cpp platform/wmf/player/samplegrabber_p.h
+        platform/wmf/qwindowsdevicemanager.cpp platform/wmf/qwindowsdevicemanager_p.h
+        platform/wmf/qwindowsintegration.cpp platform/wmf/qwindowsintegration_p.h
         platform/wmf/sourceresolver.cpp platform/wmf/sourceresolver_p.h
         platform/wmf/wmfserviceplugin.cpp platform/wmf/wmfserviceplugin_p.h
     INCLUDE_DIRECTORIES
@@ -204,7 +207,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/audio/qaudiodeviceinfo_gstreamer.cpp platform/gstreamer/audio/qaudiodeviceinfo_gstreamer_p.h
         platform/gstreamer/audio/qaudioengine_gstreamer.cpp platform/gstreamer/audio/qaudioengine_gstreamer_p.h
         platform/gstreamer/audio/qaudioinput_gstreamer.cpp platform/gstreamer/audio/qaudioinput_gstreamer_p.h
-        platform/gstreamer/audio/qaudiointerface_gstreamer.cpp platform/gstreamer/audio/qaudiointerface_gstreamer_p.h
         platform/gstreamer/audio/qaudiooutput_gstreamer.cpp platform/gstreamer/audio/qaudiooutput_gstreamer_p.h
         platform/gstreamer/audio/qgstreameraudiodecodercontrol.cpp platform/gstreamer/audio/qgstreameraudiodecodercontrol_p.h
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
@@ -230,6 +232,8 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/mediaplayer/qgstreamerplayerservice.cpp platform/gstreamer/mediaplayer/qgstreamerplayerservice_p.h
         platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin.cpp platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
+        platform/gstreamer/qgstreamerplatformdevicemanager.cpp platform/gstreamer/qgstreamerplatformdevicemanager_p.h
+        platform/gstreamer/qgstreamerplatformintegration.cpp platform/gstreamer/qgstreamerplatformintegration_p.h
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
     INCLUDE_DIRECTORIES
@@ -332,9 +336,10 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         platform/pulseaudio/qaudiodeviceinfo_pulse.cpp platform/pulseaudio/qaudiodeviceinfo_pulse_p.h
         platform/pulseaudio/qaudioengine_pulse.cpp platform/pulseaudio/qaudioengine_pulse_p.h
         platform/pulseaudio/qaudioinput_pulse.cpp platform/pulseaudio/qaudioinput_pulse_p.h
-        platform/pulseaudio/qaudiointerface_pulse.cpp platform/pulseaudio/qaudiointerface_pulse_p.h
         platform/pulseaudio/qaudiooutput_pulse.cpp platform/pulseaudio/qaudiooutput_pulse_p.h
-        platform/pulseaudio/qpuls_p.helpers.cpp platform/pulseaudio/qpuls_p.helpers_p.h
+        platform/pulseaudio/qpulseaudiodevicemanager.cpp platform/pulseaudio/qpulseaudiodevicemanager_p.h
+        platform/pulseaudio/qpulseaudiointegration.cpp platform/pulseaudio/qpulseaudiointegration_p.h
+        platform/pulseaudio/qpulsehelpers.cpp platform/pulseaudio/qpulsehelpers_p.h
     LIBRARIES
         pulseaudio
 )
@@ -344,7 +349,8 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
         platform/alsa/qalsaaudiodeviceinfo.cpp platform/alsa/qalsaaudiodeviceinfo_p.h
         platform/alsa/qalsaaudioinput.cpp platform/alsa/qalsaaudioinput_p.h
         platform/alsa/qalsaaudiooutput.cpp platform/alsa/qalsaaudiooutput_p.h
-        platform/alsa/qalsainterface.cpp platform/alsa/qalsainterface_p.h
+        platform/alsa/qalsadevicemanager.cpp platform/alsa/qalsadevicemanager_p.h
+        platform/alsa/qalsaintegration.cpp platform/alsa/qalsaintegration_p.h
     LIBRARIES
         alsa
 )
@@ -387,7 +393,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/opensles/qopenslesaudiooutput.cpp platform/opensles/qopenslesaudiooutput_p.h
         platform/opensles/qopenslesdeviceinfo.cpp platform/opensles/qopenslesdeviceinfo_p.h
         platform/opensles/qopenslesengine.cpp platform/opensles/qopenslesengine_p.h
-        platform/opensles/qopenslesinterface.cpp platform/opensles/qopenslesinterface_p.h
     INCLUDE_DIRECTORIES
         platform/android/common
         platform/android/mediacapture
@@ -424,9 +429,10 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/avfoundation/mediaplayer/avfmediaplayersession.mm platform/avfoundation/mediaplayer/avfmediaplayersession_p.h
         platform/avfoundation/mediaplayer/avfvideooutput.mm platform/avfoundation/mediaplayer/avfvideooutput_p.h
         platform/avfoundation/mediaplayer/avfvideowindowcontrol.mm platform/avfoundation/mediaplayer/avfvideowindowcontrol_p.h
+        platform/avfoundation/qavfplatformdevicemanager.mm platform/avfoundation/qavfplatformdevicemanager_p.h
+        platform/avfoundation/qavfplatformintegration.cpp platform/avfoundation/qavfplatformintegration_p.h
         platform/coreaudio/qcoreaudiodeviceinfo.mm platform/coreaudio/qcoreaudiodeviceinfo_p.h
         platform/coreaudio/qcoreaudioinput.mm platform/coreaudio/qcoreaudioinput_p.h
-        platform/coreaudio/qcoreaudiointerface.mm platform/coreaudio/qcoreaudiointerface_p.h
         platform/coreaudio/qcoreaudiooutput.mm platform/coreaudio/qcoreaudiooutput_p.h
         platform/coreaudio/qcoreaudioutils.mm platform/coreaudio/qcoreaudioutils_p.h
     PUBLIC_LIBRARIES
@@ -550,7 +556,6 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/neutrinoserviceplugin.cpp platform/qnx/neutrinoserviceplugin_p.h
         platform/qnx/qnxaudiodeviceinfo.cpp platform/qnx/qnxaudiodeviceinfo_p.h
         platform/qnx/qnxaudioinput.cpp platform/qnx/qnxaudioinput_p.h
-        platform/qnx/qnxaudiointerface.cpp platform/qnx/qnxaudiointerface_p.h
         platform/qnx/qnxaudiooutput.cpp platform/qnx/qnxaudiooutput_p.h
         platform/qnx/qnxaudioutils.cpp platform/qnx/qnxaudioutils_p.h
     INCLUDE_DIRECTORIES

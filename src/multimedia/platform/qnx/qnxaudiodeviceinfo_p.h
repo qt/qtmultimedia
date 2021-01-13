@@ -52,10 +52,11 @@
 //
 
 #include "qaudiosystem_p.h"
+#include <private/qaudiodeviceinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioDeviceInfo : public QAbstractAudioDeviceInfo
+class QnxAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
     Q_OBJECT
 
@@ -67,16 +68,15 @@ public:
     bool isFormatSupported(const QAudioFormat &format) const override;
     QString deviceName() const override;
     QString description() const override { return deviceName(); }
-    QStringList supportedCodecs() override;
-    QList<int> supportedSampleRates() override;
-    QList<int> supportedChannelCounts() override;
-    QList<int> supportedSampleSizes() override;
-    QList<QAudioFormat::Endian> supportedByteOrders() override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() override;
+    QStringList supportedCodecs() const override;
+    QList<int> supportedSampleRates() const override;
+    QList<int> supportedChannelCounts() const override;
+    QList<int> supportedSampleSizes() const override;
+    QList<QAudioFormat::Endian> supportedByteOrders() const override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
 
 private:
     const QString m_name;
-    const QAudio::Mode m_mode;
 };
 
 QT_END_NAMESPACE

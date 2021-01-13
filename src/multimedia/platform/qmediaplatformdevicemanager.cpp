@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,50 +37,74 @@
 **
 ****************************************************************************/
 
-#include "qnxaudiointerface_p.h"
-
-#include "qnxaudiodeviceinfo_p.h"
-#include "qnxaudioinput_p.h"
-#include "qnxaudiooutput_p.h"
-
-#include <sys/asoundlib.h>
-
-static const char *INPUT_ID = "QnxAudioInput";
-static const char *OUTPUT_ID = "QnxAudioOutput";
+#include "qmediaplatformdevicemanager_p.h"
+#include "qaudiodeviceinfo.h"
+#include "qcamerainfo.h"
+#include "qaudiosystem_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QByteArray QnxAudioInterface::defaultDevice(QAudio::Mode mode) const
+QMediaPlatformDeviceManager::QMediaPlatformDeviceManager()
 {
-    return (mode == QAudio::AudioOutput) ? OUTPUT_ID : INPUT_ID;
 }
 
-QList<QByteArray> QnxAudioInterface::availableDevices(QAudio::Mode mode) const
+QMediaPlatformDeviceManager::~QMediaPlatformDeviceManager()
 {
-    if (mode == QAudio::AudioOutput)
-        return QList<QByteArray>() << OUTPUT_ID;
-    else
-        return QList<QByteArray>() << INPUT_ID;
 }
 
-QAbstractAudioInput *QnxAudioInterface::createInput(const QByteArray &device)
+QAudioDeviceInfo QMediaPlatformDeviceManager::audioInput(const QByteArray &id) const
 {
-    Q_ASSERT(device == INPUT_ID);
-    Q_UNUSED(device);
-    return new QnxAudioInput();
+    const auto inputs = audioInputs();
+    for (auto i : inputs) {
+        if (i.id() == id)
+            return i;
+    }
+    return {};
 }
 
-QAbstractAudioOutput *QnxAudioInterface::createOutput(const QByteArray &device)
+QAudioDeviceInfo QMediaPlatformDeviceManager::audioOutput(const QByteArray &id) const
 {
-    Q_ASSERT(device == OUTPUT_ID);
-    Q_UNUSED(device);
-    return new QnxAudioOutput();
+    const auto outputs = audioOutputs();
+    for (auto o : outputs) {
+        if (o.id() == id)
+            return o;
+    }
+    return {};
 }
 
-QAbstractAudioDeviceInfo *QnxAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+QCameraInfo QMediaPlatformDeviceManager::videoInput(const QByteArray &id) const
 {
-    Q_ASSERT(device == OUTPUT_ID || device == INPUT_ID);
-    return new QnxAudioDeviceInfo(device, mode);
+    const auto inputs = videoInputs();
+    for (auto i : inputs) {
+        if (i.id() == id)
+            return i;
+    }
+    return QCameraInfo();
 }
+
+QAbstractAudioInput* QMediaPlatformDeviceManager::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+{
+    QAudioDeviceInfo info = deviceInfo;
+    if (info.isNull())
+        info = audioInputs().value(0);
+
+    QAbstractAudioInput* p = createAudioInputDevice(info);
+    if (p)
+        p->setFormat(format);
+    return p;
+}
+
+QAbstractAudioOutput* QMediaPlatformDeviceManager::audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+{
+    QAudioDeviceInfo info = deviceInfo;
+    if (info.isNull())
+        info = audioOutputs().value(0);
+
+    QAbstractAudioOutput* p = createAudioOutputDevice(info);
+    if (p)
+        p->setFormat(format);
+    return p;
+}
+
 
 QT_END_NAMESPACE

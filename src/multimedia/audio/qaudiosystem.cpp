@@ -40,22 +40,6 @@
 #include <private/qtmultimediaglobal_p.h>
 #include "qaudiosystem_p.h"
 
-#if QT_CONFIG(gstreamer)
-#include <private/qaudiointerface_gstreamer_p.h>
-#elif QT_CONFIG(pulseaudio)
-#include <private/qaudiointerface_pulse_p.h>
-#elif QT_CONFIG(alsa)
-#include <private/qalsainterface_p.h>
-#elif defined(Q_OS_DARWIN)
-#include <private/qcoreaudiointerface_p.h>
-#elif defined(Q_OS_WIN)
-#include <private/qwindowsaudiointerface_p.h>
-#elif defined(Q_OS_ANDROID)
-#include <private/qopenslesinterface_p.h>
-#elif defined(Q_OS_QNX)
-#include <private/qnxaudiointerface_p.h>
-#endif
-
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -385,96 +369,6 @@ QT_BEGIN_NAMESPACE
     \fn QAbstractAudioInput::notify()
     This signal is emitted when x ms of audio data has been processed
     the interval set by setNotifyInterval(x).
-*/
-
-
-/*!
-    \class QAudioSystemInterface
-    \internal
-    \brief The QAudioSystemInterface class provides an abstract base for audio plugins.
-
-    \ingroup multimedia
-    \ingroup multimedia_audio
-    \inmodule QtMultimedia
-
-    Writing a audio plugin is achieved by subclassing this base class,
-    reimplementing the pure virtual functions availableDevices(),
-    createInput(), createOutput() and createDeviceInfo() then exporting
-    the class with the Q_PLUGIN_METADATA() macro.
-
-    The json file containing the meta data should contain a list of keys
-    matching the plugin. Add "default" to your list of keys available
-    to override the default audio device to be provided by your plugin.
-
-    \code
-    { "Keys": [ "default" ] }
-    \endcode
-
-    Unit tests are available to help in debugging new plugins.
-
-    \sa QAbstractAudioDeviceInfo, QAbstractAudioOutput, QAbstractAudioInput
-
-    Qt comes with plugins for Windows (WinMM and WASAPI), Linux (ALSA and PulseAudio), \macos / iOS
-    (CoreAudio), Android (OpenSL ES) and QNX.
-
-    If no audio plugins are available, a fallback dummy backend will be used.
-    This should print out warnings if this is the case when you try and use QAudioInput
-    or QAudioOutput. To fix this problem, make sure the dependencies for the Qt plugins are
-    installed on the system and reconfigure Qt (e.g. alsa-devel package on Linux), or create your
-    own plugin with a default key to always override the dummy fallback. The easiest way to
-    determine if you have only a dummy backend is to get a list of available audio devices.
-
-    QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).size() = 0 (dummy backend)
-*/
-
-QAudioSystemInterface *QAudioSystemInterface::instance()
-{
-    static QAudioSystemInterface *system = nullptr;
-    if (!system) {
-#if QT_CONFIG(gstreamer)
-       system = new QGStreamerAudioInterface();
-#elif QT_CONFIG(pulseaudio)
-       system = new QPulseAudioInterface();
-#elif QT_CONFIG(alsa)
-       system = new QAlsaInterface();
-#elif defined(Q_OS_DARWIN)
-       system = new QCoreAudioInterface();
-#elif defined(Q_OS_WIN)
-       system = new QWindowsAudioInterface();
-#elif defined(Q_OS_ANDROID)
-       system = new QOpenSLESAudioInterface();
-#elif defined(Q_OS_QNX)
-       system = new QnxAudioInterface();
-#endif
-    }
-    return system;
-}
-
-QAudioSystemInterface::~QAudioSystemInterface()
-{
-
-}
-
-/*!
-    \fn QList<QByteArray> QAudioSystemInterface::availableDevices(QAudio::Mode mode) const
-    Returns a list of available audio devices for \a mode
-*/
-
-/*!
-    \fn QAbstractAudioInput* QAudioSystemInterface::createInput(const QByteArray& device)
-    Returns a pointer to a QAbstractAudioInput created using \a device identifier
-*/
-
-/*!
-    \fn QAbstractAudioOutput* QAudioSystemInterface::createOutput(const QByteArray& device)
-    Returns a pointer to a QAbstractAudioOutput created using \a device identifier
-
-*/
-
-/*!
-    \fn QAbstractAudioDeviceInfo* QAudioSystemInterface::createDeviceInfo(const QByteArray& device, QAudio::Mode mode)
-    Returns a pointer to a QAbstractAudioDeviceInfo created using \a device and \a mode
-
 */
 
 QT_END_NAMESPACE

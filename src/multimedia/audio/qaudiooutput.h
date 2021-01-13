@@ -66,6 +66,8 @@ public:
     explicit QAudioOutput(const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
     ~QAudioOutput();
 
+    bool isNull() const { return !d; }
+
     QAudioFormat format() const;
 
     void start(QIODevice *device);

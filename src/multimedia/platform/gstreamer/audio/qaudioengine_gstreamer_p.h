@@ -71,9 +71,6 @@ public:
     QList<QByteArray> availableDevices(QAudio::Mode mode) const;
     QByteArray defaultDevice(QAudio::Mode mode) const;
 
-private:
-    void updateDevices();
-
 public:
     QList<QByteArray> m_sinks;
     QList<QByteArray> m_sources;

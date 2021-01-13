@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,34 +37,39 @@
 **
 ****************************************************************************/
 
-#ifndef QALSAPLUGIN_H
-#define QALSAPLUGIN_H
+#ifndef QPULSEAUDIOINTEGRATION_H
+#define QPULSEAUDIOINTEGRATION_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qaudiosystem_p.h>
+#include <private/qmediaplatformintegration_p.h>
+#include <private/qaudioengine_pulse_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAlsaInterface : public QAudioSystemInterface
+class QPulseAudioDeviceManager;
+
+class QPulseAudioIntegration : public QMediaPlatformIntegration
 {
 public:
-    QByteArray defaultDevice(QAudio::Mode mode) const override;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
-    QAbstractAudioInput *createInput(const QByteArray &device) override;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
+    QPulseAudioIntegration();
+    ~QPulseAudioIntegration();
+
+    QMediaPlatformDeviceManager *deviceManager() override;
+
+    QPulseAudioDeviceManager *m_manager = nullptr;
+    QPulseAudioEngine *pulseEngine = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#endif // QALSAPLUGIN_H
+#endif

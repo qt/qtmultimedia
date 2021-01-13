@@ -46,8 +46,8 @@
 QT_BEGIN_NAMESPACE
 
 QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QString &deviceName, QAudio::Mode mode)
-    : m_name(deviceName),
-      m_mode(mode)
+    : QAudioDeviceInfoPrivate(deviceName, mode),
+      m_name(deviceName)
 {
 }
 
@@ -58,7 +58,7 @@ QnxAudioDeviceInfo::~QnxAudioDeviceInfo()
 QAudioFormat QnxAudioDeviceInfo::preferredFormat() const
 {
     QAudioFormat format;
-    if (m_mode == QAudio::AudioOutput) {
+    if (mode == QAudio::AudioOutput) {
         format.setSampleRate(44100);
         format.setChannelCount(2);
         format.setByteOrder(QAudioFormat::LittleEndian);
@@ -85,7 +85,7 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     if (!format.codec().startsWith(QLatin1String("audio/x-raw")))
         return false;
 
-    const int pcmMode = (m_mode == QAudio::AudioOutput) ? SND_PCM_OPEN_PLAYBACK : SND_PCM_OPEN_CAPTURE;
+    const int pcmMode = (mode == QAudio::AudioOutput) ? SND_PCM_OPEN_PLAYBACK : SND_PCM_OPEN_CAPTURE;
     snd_pcm_t *handle;
 
     int card = 0;
@@ -95,7 +95,7 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 
     snd_pcm_channel_info_t info;
     memset (&info, 0, sizeof(info));
-    info.channel = (m_mode == QAudio::AudioOutput) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
+    info.channel = (mode == QAudio::AudioOutput) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
 
     if (snd_pcm_plugin_info(handle, &info) < 0) {
         qWarning("QAudioDeviceInfo: couldn't get channel info");
@@ -103,7 +103,7 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
         return false;
     }
 
-    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(format, m_mode, info.max_fragment_size);
+    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(format, mode, info.max_fragment_size);
     const int errorCode = snd_pcm_plugin_params(handle, &params);
     snd_pcm_close(handle);
 
@@ -115,32 +115,32 @@ QString QnxAudioDeviceInfo::deviceName() const
     return m_name;
 }
 
-QStringList QnxAudioDeviceInfo::supportedCodecs()
+QStringList QnxAudioDeviceInfo::supportedCodecs() const
 {
     return QStringList() << QLatin1String("audio/x-raw");
 }
 
-QList<int> QnxAudioDeviceInfo::supportedSampleRates()
+QList<int> QnxAudioDeviceInfo::supportedSampleRates() const
 {
     return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
 }
 
-QList<int> QnxAudioDeviceInfo::supportedChannelCounts()
+QList<int> QnxAudioDeviceInfo::supportedChannelCounts() const
 {
     return QList<int>() << 1 << 2;
 }
 
-QList<int> QnxAudioDeviceInfo::supportedSampleSizes()
+QList<int> QnxAudioDeviceInfo::supportedSampleSizes() const
 {
     return QList<int>() << 8 << 16 << 32;
 }
 
-QList<QAudioFormat::Endian> QnxAudioDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QnxAudioDeviceInfo::supportedByteOrders() const
 {
     return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian << QAudioFormat::BigEndian;
 }
 
-QList<QAudioFormat::SampleType> QnxAudioDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QnxAudioDeviceInfo::supportedSampleTypes() const
 {
     return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }

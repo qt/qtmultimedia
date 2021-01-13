@@ -41,31 +41,21 @@
 #include "qaudioengine_gstreamer_p.h"
 
 #include <private/qgstutils_p.h>
+#include <private/qmediaplatformintegration_p.h>
+#include <private/qgstreamerplatformdevicemanager_p.h>
 
 QT_BEGIN_NAMESPACE
 
 QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-    : m_device(device)
-    , m_mode(mode)
+    : QAudioDeviceInfoPrivate(device, mode)
 {
-    const auto devices = (mode == QAudio::AudioOutput) ? QGstUtils::audioSinks() : QGstUtils::audioSources();
-
-    for (auto *d : devices) {
-        auto *properties = gst_device_get_properties(d);
-        if (properties) {
-            auto *name = gst_structure_get_string(properties, "sysfs.path");
-            if (device == name) {
-                gstDevice = d;
-                gst_object_ref(gstDevice);
-                auto *n = gst_device_get_display_name(gstDevice);
-                m_description = QString::fromUtf8(n);
-                g_free(n);
-            }
-        }
-
-        gst_structure_free(properties);
-        if (gstDevice)
-            return;
+    auto *deviceManager = static_cast<QGstreamerPlatformDeviceManager *>(QMediaPlatformIntegration::instance()->deviceManager());
+    gstDevice = deviceManager->audioDevice(device, mode);
+    if (gstDevice) {
+        gst_object_ref(gstDevice);
+        auto *n = gst_device_get_display_name(gstDevice);
+        m_description = QString::fromUtf8(n);
+        g_free(n);
     }
 }
 
@@ -91,43 +81,37 @@ QAudioFormat QGStreamerAudioDeviceInfo::preferredFormat() const
     return format;
 }
 
-QString QGStreamerAudioDeviceInfo::deviceName() const
-{
-    // ### no readable name available!
-    return QString::fromUtf8(m_device);
-}
-
 QString QGStreamerAudioDeviceInfo::description() const
 {
     return m_description;
 }
 
-QStringList QGStreamerAudioDeviceInfo::supportedCodecs()
+QStringList QGStreamerAudioDeviceInfo::supportedCodecs() const
 {
     return QStringList() << QString::fromLatin1("audio/x-raw");
 }
 
-QList<int> QGStreamerAudioDeviceInfo::supportedSampleRates()
+QList<int> QGStreamerAudioDeviceInfo::supportedSampleRates() const
 {
     return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
 }
 
-QList<int> QGStreamerAudioDeviceInfo::supportedChannelCounts()
+QList<int> QGStreamerAudioDeviceInfo::supportedChannelCounts() const
 {
     return QList<int>() << 1 << 2 << 4 << 6 << 8;
 }
 
-QList<int> QGStreamerAudioDeviceInfo::supportedSampleSizes()
+QList<int> QGStreamerAudioDeviceInfo::supportedSampleSizes() const
 {
     return QList<int>() << 8 << 16 << 24 << 32;
 }
 
-QList<QAudioFormat::Endian> QGStreamerAudioDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QGStreamerAudioDeviceInfo::supportedByteOrders() const
 {
     return QList<QAudioFormat::Endian>() << QAudioFormat::BigEndian << QAudioFormat::LittleEndian;
 }
 
-QList<QAudioFormat::SampleType> QGStreamerAudioDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QGStreamerAudioDeviceInfo::supportedSampleTypes() const
 {
     return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }

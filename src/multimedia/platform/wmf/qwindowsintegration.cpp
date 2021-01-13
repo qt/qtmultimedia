@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,33 +37,25 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOPLUGIN_H
-#define QNXAUDIOPLUGIN_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qaudiosystem_p.h>
+#include "qwindowsintegration_p.h"
+#include "qwindowsdevicemanager_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioInterface : public QAudioSystemInterface
+QWindowsIntegration::QWindowsIntegration()
 {
-    QByteArray defaultDevice(QAudio::Mode mode) const override;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
-    QAbstractAudioInput *createInput(const QByteArray &device) override;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
-};
+}
+
+QWindowsIntegration::~QWindowsIntegration()
+{
+    delete m_manager;
+}
+
+QMediaPlatformDeviceManager *QWindowsIntegration::deviceManager()
+{
+    if (!m_manager)
+        m_manager = new QWindowsDeviceManager();
+    return m_manager;
+}
 
 QT_END_NAMESPACE
-
-#endif

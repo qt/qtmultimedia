@@ -55,14 +55,9 @@
 
 QT_BEGIN_NAMESPACE
 
-
-class QAudioDeviceFactory;
-
 class QAudioDeviceInfoPrivate;
 class Q_MULTIMEDIA_EXPORT QAudioDeviceInfo
 {
-    friend class QAudioDeviceFactory;
-
 public:
     QAudioDeviceInfo();
     QAudioDeviceInfo(const QAudioDeviceInfo& other);
@@ -75,8 +70,11 @@ public:
 
     bool isNull() const;
 
-    QString deviceName() const;
+    QByteArray id() const;
     QString description() const;
+
+    bool isDefault() const;
+    QAudio::Mode mode() const;
 
     bool isFormatSupported(const QAudioFormat &format) const;
     QAudioFormat preferredFormat() const;
@@ -89,15 +87,16 @@ public:
     QList<QAudioFormat::Endian> supportedByteOrders() const;
     QList<QAudioFormat::SampleType> supportedSampleTypes() const;
 
+    // ### remove those, -> DeviceManager
     static QAudioDeviceInfo defaultInputDevice();
     static QAudioDeviceInfo defaultOutputDevice();
 
     static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode);
 
+    QAudioDeviceInfo(QAudioDeviceInfoPrivate *p);
+
 private:
-    QAudioDeviceInfo(const QByteArray &handle, QAudio::Mode mode);
     QByteArray handle() const;
-    QAudio::Mode mode() const;
 
     QSharedDataPointer<QAudioDeviceInfoPrivate> d;
 };

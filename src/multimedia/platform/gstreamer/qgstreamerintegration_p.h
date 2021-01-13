@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,40 +36,38 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qcoreaudiointerface_p.h"
 
-#include "qcoreaudiodeviceinfo_p.h"
-#include "qcoreaudioinput_p.h"
-#include "qcoreaudiooutput_p.h"
+#ifndef QGSTREAMERINTEGRATION_H
+#define QGSTREAMERINTEGRATION_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qmediaplatformintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QByteArray QCoreAudioInterface::defaultDevice(QAudio::Mode mode) const
+class QGstreamerDeviceManager;
+
+class QGstreamerIntegration : public QMediaPlatformIntegration
 {
-    return QCoreAudioDeviceInfo::defaultDevice(mode);
-}
+public:
+    QGstreamerIntegration();
+    ~QGstreamerIntegration();
 
-QList<QByteArray> QCoreAudioInterface::availableDevices(QAudio::Mode mode) const
-{
-    return QCoreAudioDeviceInfo::availableDevices(mode);
-}
+    QMediaPlatformDeviceManager *deviceManager() override;
 
-
-QAbstractAudioInput *QCoreAudioInterface::createInput(const QByteArray &device)
-{
-    return new CoreAudioInput(device);
-}
-
-
-QAbstractAudioOutput *QCoreAudioInterface::createOutput(const QByteArray &device)
-{
-    return new QCoreAudioOutput(device);
-}
-
-
-QAbstractAudioDeviceInfo *QCoreAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-{
-    return new QCoreAudioDeviceInfo(device, mode);
-}
+    QGstreamerDeviceManager *m_manager = nullptr;
+};
 
 QT_END_NAMESPACE
+
+#endif

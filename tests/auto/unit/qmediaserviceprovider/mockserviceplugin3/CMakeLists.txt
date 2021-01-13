@@ -11,6 +11,8 @@ qt_internal_add_plugin(MockServicePlugin3
     SOURCES
         ../mockservice.h
         mockserviceplugin3.cpp
+    DEFINES
+        QT_DISABLE_DEPRECATED_BEFORE=0
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui

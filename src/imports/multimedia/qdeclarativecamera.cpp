@@ -249,12 +249,13 @@ void QDeclarativeCamera::componentComplete()
 
 QString QDeclarativeCamera::deviceId() const
 {
-    return m_currentCameraInfo.deviceName();
+    return QString::fromLatin1(m_currentCameraInfo.id());
 }
 
 void QDeclarativeCamera::setDeviceId(const QString &name)
 {
-    if (name == m_currentCameraInfo.deviceName())
+    auto id = name.toLatin1();
+    if (id == m_currentCameraInfo.id())
         return;
 
     setupDevice(name);
@@ -299,18 +300,18 @@ void QDeclarativeCamera::setPosition(Position position)
     if (pos == m_currentCameraInfo.position())
         return;
 
-    QString id;
+    QByteArray id;
 
     if (pos == QCamera::UnspecifiedPosition) {
-        id = QCameraInfo::defaultCamera().deviceName();
+        id = QCameraInfo::defaultCamera().id();
     } else {
         QList<QCameraInfo> cameras = QCameraInfo::availableCameras(pos);
         if (!cameras.isEmpty())
-            id = cameras.first().deviceName();
+            id = cameras.first().id();
     }
 
     if (!id.isEmpty())
-        setupDevice(id);
+        setupDevice(QString::fromLatin1(id));
 }
 
 /*!

@@ -50,34 +50,10 @@
 QGstreamerAudioInputSelector::QGstreamerAudioInputSelector(QObject *parent)
     :QAudioInputSelectorControl(parent)
 {
-    update();
 }
 
 QGstreamerAudioInputSelector::~QGstreamerAudioInputSelector()
 {
-}
-
-QList<QString> QGstreamerAudioInputSelector::availableInputs() const
-{
-    return m_names;
-}
-
-QString QGstreamerAudioInputSelector::inputDescription(const QString& name) const
-{
-    QString desc;
-
-    for (int i = 0; i < m_names.size(); i++) {
-        if (m_names.at(i).compare(name) == 0) {
-            desc = m_descriptions.at(i);
-            break;
-        }
-    }
-    return desc;
-}
-
-QString QGstreamerAudioInputSelector::defaultInput() const
-{
-    return m_defaultInput;
 }
 
 QString QGstreamerAudioInputSelector::activeInput() const
@@ -87,41 +63,8 @@ QString QGstreamerAudioInputSelector::activeInput() const
 
 void QGstreamerAudioInputSelector::setActiveInput(const QString& name)
 {
-    if (m_audioInput.compare(name) != 0) {
+    if (m_audioInput != name) {
         m_audioInput = name;
         emit activeInputChanged(name);
     }
-}
-
-void QGstreamerAudioInputSelector::update()
-{
-    QGstUtils::initializeGst();
-
-    m_names.clear();
-    m_descriptions.clear();
-
-    const auto sources = QGstUtils::audioSources();
-    for (auto *d : sources) {
-        auto *properties = gst_device_get_properties(d);
-        if (properties) {
-            auto *klass = gst_structure_get_string(properties, "device.class");
-            if (strcmp(klass, "monitor")) {
-                auto *desc = gst_device_get_display_name(d);
-                QString description = QString::fromUtf8(desc);
-                g_free(desc);
-                m_descriptions << description;
-
-                auto *name = gst_structure_get_string(properties, "sysfs.path"); // ### Should this rather be "device.bus_path"?
-                m_names << QString::fromLatin1(name);
-                gboolean def;
-                if (gst_structure_get_boolean(properties, "is-default", &def) && def)
-                    m_defaultInput = QString::fromLatin1(name);
-            }
-
-            gst_structure_free(properties);
-        }
-    }
-
-    if (m_names.size() > 0)
-        m_audioInput = m_names.at(0);
 }

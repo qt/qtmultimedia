@@ -38,6 +38,9 @@
 ****************************************************************************/
 
 #include "qaudioinputselectorcontrol.h"
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <private/qmediaplatformintegration_p.h>
+#include <qaudiodeviceinfo.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -75,6 +78,7 @@ QT_BEGIN_NAMESPACE
 QAudioInputSelectorControl::QAudioInputSelectorControl(QObject *parent)
     :QObject(parent)
 {
+    m_deviceManager = QMediaPlatformIntegration::instance()->deviceManager();
 }
 
 /*!
@@ -82,6 +86,14 @@ QAudioInputSelectorControl::QAudioInputSelectorControl(QObject *parent)
 
     Returns a list of the names of the available audio inputs.
 */
+QList<QString> QAudioInputSelectorControl::availableInputs() const
+{
+    const auto inputs = m_deviceManager->audioInputs();
+    QStringList list;
+    for (auto i : inputs)
+        list.append(QString::fromLatin1(i.id()));
+    return list;
+}
 
 /*!
     \fn QString QAudioInputSelectorControl::inputDescription(const QString& name) const
@@ -89,11 +101,26 @@ QAudioInputSelectorControl::QAudioInputSelectorControl(QObject *parent)
     Returns the description of the input \a name.
 */
 
+inline QString QAudioInputSelectorControl::inputDescription(const QString &name) const
+{
+    const auto inputs = m_deviceManager->audioInputs();
+    for (auto i : inputs) {
+        if (i.id() == name.toLatin1())
+            return i.description();
+    }
+    return QString();
+}
+
 /*!
     \fn QString QAudioInputSelectorControl::defaultInput() const
 
     Returns the name of the default audio input.
 */
+QString QAudioInputSelectorControl::defaultInput() const
+{
+    const auto inputs = m_deviceManager->audioInputs();
+    return QString::fromLatin1(inputs.value(0).id());
+}
 
 /*!
     \fn QString QAudioInputSelectorControl::activeInput() const

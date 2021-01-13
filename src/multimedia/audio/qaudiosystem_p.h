@@ -62,23 +62,6 @@ QT_BEGIN_NAMESPACE
 
 class QIODevice;
 
-class QAbstractAudioDeviceInfo : public QObject
-{
-    Q_OBJECT
-
-public:
-    virtual QAudioFormat preferredFormat() const = 0;
-    virtual bool isFormatSupported(const QAudioFormat &format) const = 0;
-    virtual QString deviceName() const = 0;
-    virtual QString description() const = 0;
-    virtual QStringList supportedCodecs() = 0;
-    virtual QList<int> supportedSampleRates() = 0;
-    virtual QList<int> supportedChannelCounts() = 0;
-    virtual QList<int> supportedSampleSizes() = 0;
-    virtual QList<QAudioFormat::Endian> supportedByteOrders() = 0;
-    virtual QList<QAudioFormat::SampleType> supportedSampleTypes() = 0;
-};
-
 class QAbstractAudioOutput : public QObject
 {
     Q_OBJECT
@@ -143,18 +126,6 @@ Q_SIGNALS:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
     void notify();
-};
-
-struct QAudioSystemInterface
-{
-    static QAudioSystemInterface *instance();
-
-    virtual ~QAudioSystemInterface();
-    virtual QList<QByteArray> availableDevices(QAudio::Mode) const = 0;
-    virtual QAbstractAudioInput* createInput(const QByteArray& device) = 0;
-    virtual QAbstractAudioOutput* createOutput(const QByteArray& device) = 0;
-    virtual QAbstractAudioDeviceInfo* createDeviceInfo(const QByteArray& device, QAudio::Mode mode) = 0;
-    virtual QByteArray defaultDevice(QAudio::Mode) const = 0;
 };
 
 QT_END_NAMESPACE

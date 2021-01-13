@@ -46,6 +46,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <private/qmediaplatformintegration_p.h>
+
 #include <private/qgstutils_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -55,38 +58,6 @@ Q_GLOBAL_STATIC(QGStreamerAudioEngine, gstreamerEngine);
 QGStreamerAudioEngine::QGStreamerAudioEngine(QObject *parent)
     : QObject(parent)
 {
-    updateDevices();
-}
-
-void QGStreamerAudioEngine::updateDevices()
-{
-    QGstUtils::initializeGst();
-
-    const auto sources = QGstUtils::audioSources();
-
-    auto deviceList = [](const auto &deviceSet) {
-        QList<QByteArray> devices;
-        for (auto *d : deviceSet) {
-            auto *properties = gst_device_get_properties(d);
-            if (properties) {
-                auto *klass = gst_structure_get_string(properties, "device.class");
-                if (strcmp(klass, "monitor")) {
-                    auto *name = gst_structure_get_string(properties, "sysfs.path");
-                    gboolean def;
-                    if (gst_structure_get_boolean(properties, "is-default", &def) && def)
-                        devices.prepend(name);
-                    else
-                        devices.append(name);
-                }
-
-                gst_structure_free(properties);
-            }
-        }
-        return devices;
-    };
-
-    m_sources = deviceList(QGstUtils::audioSources());
-    m_sinks = deviceList(QGstUtils::audioSinks());
 }
 
 QGStreamerAudioEngine *QGStreamerAudioEngine::instance()
@@ -96,13 +67,19 @@ QGStreamerAudioEngine *QGStreamerAudioEngine::instance()
 
 QList<QByteArray> QGStreamerAudioEngine::availableDevices(QAudio::Mode mode) const
 {
-    return (mode == QAudio::AudioOutput) ? m_sinks : m_sources;
+    auto *m = QMediaPlatformIntegration::instance()->deviceManager();
+    const auto devices = (mode == QAudio::AudioOutput) ? m->audioOutputs() : m->audioInputs();
+    QList<QByteArray> list;
+    for (auto d : devices)
+        list.append(d.id());
+    return list;
 }
 
 QByteArray QGStreamerAudioEngine::defaultDevice(QAudio::Mode mode) const
 {
-    const QList<QByteArray> &devices = availableDevices(mode);
-    return devices.size() ? devices.at(0) : QByteArray();
+    auto *m = QMediaPlatformIntegration::instance()->deviceManager();
+    const auto devices = (mode == QAudio::AudioOutput) ? m->audioOutputs() : m->audioInputs();
+    return devices.value(0).id();
 }
 
 QT_END_NAMESPACE

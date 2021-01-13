@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,53 +36,37 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QMEDIAPLATFORMINTEGRATION_H
+#define QMEDIAPLATFORMINTEGRATION_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#ifndef QAUDIODEVICEFACTORY_P_H
-#define QAUDIODEVICEFACTORY_P_H
-
-#include <QtCore/qbytearray.h>
-#include <QtCore/qlist.h>
-
-#include <qtmultimediaglobal.h>
-#include <qmultimedia.h>
-
-#include "qaudiodeviceinfo.h"
+#include <qtmultimediaglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
+class QMediaDeviceManager;
+class QMediaPlatformDeviceManager;
 
-class QAbstractAudioInput;
-class QAbstractAudioOutput;
-class QAbstractAudioDeviceInfo;
-
-class QAudioDeviceFactory
+class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
 {
 public:
-    static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode);
+    static QMediaPlatformIntegration *instance();
 
-    static QAudioDeviceInfo defaultDevice(QAudio::Mode mode);
-
-    static QAbstractAudioDeviceInfo* audioDeviceInfo(const QByteArray &handle, QAudio::Mode mode);
-
-    static QAbstractAudioInput* createInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &device = {});
-    static QAbstractAudioOutput* createOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &device = {});
-
-    static QAbstractAudioInput* createNullInput();
-    static QAbstractAudioOutput* createNullOutput();
+    virtual ~QMediaPlatformIntegration();
+    virtual QMediaPlatformDeviceManager *deviceManager() = 0;
 };
 
 QT_END_NAMESPACE
 
-#endif // QAUDIODEVICEFACTORY_P_H
 
+#endif // QMEDIAPLATFORMINTERFACE_H

@@ -129,12 +129,11 @@
     "features": {
         "alsa": {
             "label": "ALSA",
-            "condition": "config.unix && !config.qnx && libs.alsa && !libs.pulseaudio",
+            "condition": "config.unix && !config.qnx && libs.alsa && !features.gstreamer && !features.pulseaudio",
             "output": [ "feature", "privateFeature" ]
         },
         "avfoundation": {
             "label": "AVFoundation",
-            "emitIf": "config.darwin",
             "condition": "libs.avfoundation",
             "output": [ "feature", "privateFeature" ]
         },

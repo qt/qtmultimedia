@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,39 +37,46 @@
 **
 ****************************************************************************/
 
-#include "qopenslesinterface_p.h"
+#include "qpulseaudiodevicemanager_p.h"
+#include "qmediadevicemanager.h"
+#include "qcamerainfo_p.h"
 
-#include "qopenslesengine_p.h"
-#include "qopenslesdeviceinfo_p.h"
-#include "qopenslesaudioinput_p.h"
-#include "qopenslesaudiooutput_p.h"
+#include "private/qaudioinput_pulse_p.h"
+#include "private/qaudiooutput_pulse_p.h"
+#include "private/qaudiodeviceinfo_pulse_p.h"
+#include "private/qaudioengine_pulse_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QByteArray QOpenSLESInterface::defaultDevice(QAudio::Mode mode) const
+QPulseAudioDeviceManager::QPulseAudioDeviceManager(QPulseAudioEngine *engine)
+    : QMediaPlatformDeviceManager(),
+      pulseEngine(engine)
 {
-    return QOpenSLESEngine::instance()->defaultDevice(mode);
 }
 
-QList<QByteArray> QOpenSLESInterface::availableDevices(QAudio::Mode mode) const
+QList<QAudioDeviceInfo> QPulseAudioDeviceManager::audioInputs() const
 {
-    return QOpenSLESEngine::instance()->availableDevices(mode);
+    return pulseEngine->availableDevices(QAudio::AudioInput);
 }
 
-QAbstractAudioInput *QOpenSLESInterface::createInput(const QByteArray &device)
+QList<QAudioDeviceInfo> QPulseAudioDeviceManager::audioOutputs() const
 {
-    return new QOpenSLESAudioInput(device);
+    return pulseEngine->availableDevices(QAudio::AudioOutput);
 }
 
-QAbstractAudioOutput *QOpenSLESInterface::createOutput(const QByteArray &device)
+QList<QCameraInfo> QPulseAudioDeviceManager::videoInputs() const
 {
-    return new QOpenSLESAudioOutput(device);
+    return {};
 }
 
-QAbstractAudioDeviceInfo *QOpenSLESInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+QAbstractAudioInput *QPulseAudioDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QOpenSLESDeviceInfo(device, mode);
+    return new QPulseAudioInput(deviceInfo.id());
+}
+
+QAbstractAudioOutput *QPulseAudioDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+{
+    return new QPulseAudioOutput(deviceInfo.id());
 }
 
 QT_END_NAMESPACE
-

@@ -89,7 +89,7 @@ void tst_QCameraInfo::constructor()
         QCamera camera;
         QCameraInfo info(camera);
         QVERIFY(info.isNull());
-        QVERIFY(info.deviceName().isEmpty());
+        QVERIFY(info.id().isEmpty());
         QVERIFY(info.description().isEmpty());
         QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
         QCOMPARE(info.orientation(), 0);
@@ -103,7 +103,7 @@ void tst_QCameraInfo::constructor()
         QCamera camera;
         QCameraInfo info(camera);
         QVERIFY(!info.isNull());
-        QCOMPARE(info.deviceName(), QStringLiteral("othercamera"));
+        QCOMPARE(info.id(), QStringLiteral("othercamera"));
         QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
         QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
         QCOMPARE(info.orientation(), 0);
@@ -112,14 +112,14 @@ void tst_QCameraInfo::constructor()
     QCamera camera("backcamera");
     QCameraInfo info(camera);
     QVERIFY(!info.isNull());
-    QCOMPARE(info.deviceName(), QStringLiteral("backcamera"));
+    QCOMPARE(info.id(), QStringLiteral("backcamera"));
     QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
     QCOMPARE(info.position(), QCamera::BackFace);
     QCOMPARE(info.orientation(), 90);
 
     QCameraInfo info2(info);
     QVERIFY(!info2.isNull());
-    QCOMPARE(info2.deviceName(), QStringLiteral("backcamera"));
+    QCOMPARE(info2.id(), QStringLiteral("backcamera"));
     QCOMPARE(info2.description(), QStringLiteral("backcamera desc"));
     QCOMPARE(info2.position(), QCamera::BackFace);
     QCOMPARE(info2.orientation(), 90);
@@ -132,7 +132,7 @@ void tst_QCameraInfo::defaultCamera()
     QCameraInfo info = QCameraInfo::defaultCamera();
 
     QVERIFY(!info.isNull());
-    QCOMPARE(info.deviceName(), QStringLiteral("othercamera"));
+    QCOMPARE(info.id(), QStringLiteral("othercamera"));
     QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
     QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
     QCOMPARE(info.orientation(), 0);
@@ -150,14 +150,14 @@ void tst_QCameraInfo::availableCameras()
 
     QCameraInfo info = cameras.at(0);
     QVERIFY(!info.isNull());
-    QCOMPARE(info.deviceName(), QStringLiteral("backcamera"));
+    QCOMPARE(info.id(), QStringLiteral("backcamera"));
     QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
     QCOMPARE(info.position(), QCamera::BackFace);
     QCOMPARE(info.orientation(), 90);
 
     info = cameras.at(1);
     QVERIFY(!info.isNull());
-    QCOMPARE(info.deviceName(), QStringLiteral("othercamera"));
+    QCOMPARE(info.id(), QStringLiteral("othercamera"));
     QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
     QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
     QCOMPARE(info.orientation(), 0);
@@ -166,7 +166,7 @@ void tst_QCameraInfo::availableCameras()
     QCOMPARE(cameras.count(), 1);
     info = cameras.at(0);
     QVERIFY(!info.isNull());
-    QCOMPARE(info.deviceName(), QStringLiteral("backcamera"));
+    QCOMPARE(info.id(), QStringLiteral("backcamera"));
     QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
     QCOMPARE(info.position(), QCamera::BackFace);
     QCOMPARE(info.orientation(), 90);

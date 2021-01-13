@@ -40,6 +40,7 @@
 #include "qcoreaudiosessionmanager_p.h"
 #include "qcoreaudiodeviceinfo_p.h"
 #include "qcoreaudioutils_p.h"
+#include <private/qdarwindevicemanager_p.h>
 
 #include <QtCore/QDataStream>
 #include <QtCore/QTimer>
@@ -219,8 +220,9 @@ qint64 QCoreAudioOutputDevice::writeData(const char *data, qint64 len)
     return m_audioBuffer->writeBytes(data, len);
 }
 
-QCoreAudioOutput::QCoreAudioOutput(const QByteArray &device)
-    : m_isOpen(false)
+QCoreAudioOutput::QCoreAudioOutput(const QAudioDeviceInfo &device)
+    : m_audioDeviceInfo(device)
+    , m_isOpen(false)
     , m_internalBufferSize(DEFAULT_BUFFER_SIZE)
     , m_totalFrames(0)
     , m_audioIO(0)
@@ -233,17 +235,12 @@ QCoreAudioOutput::QCoreAudioOutput(const QByteArray &device)
     , m_errorCode(QAudio::NoError)
     , m_stateCode(QAudio::StoppedState)
 {
-#if defined(Q_OS_OSX)
-    quint32 deviceID;
-    QDataStream dataStream(device);
-    dataStream >> deviceID >> m_device;
-    m_audioDeviceId = AudioDeviceID(deviceID);
-#else //iOS
-    m_device = device;
+#if defined(Q_OS_MACOS)
+    m_audioDeviceId = QDarwinDeviceManager::handleToAudioDeviceID(device.id());
 #endif
+    m_device = device.id();
 
     m_clockFrequency = CoreAudioUtils::frequency() / 1000;
-    m_audioDeviceInfo = new QCoreAudioDeviceInfo(device, QAudio::AudioOutput);
     m_audioThreadState.storeRelaxed(Stopped);
 
     m_intervalTimer = new QTimer(this);
@@ -254,14 +251,13 @@ QCoreAudioOutput::QCoreAudioOutput(const QByteArray &device)
 QCoreAudioOutput::~QCoreAudioOutput()
 {
     close();
-    delete m_audioDeviceInfo;
 }
 
 void QCoreAudioOutput::start(QIODevice *device)
 {
     QIODevice* op = device;
 
-    if (!m_audioDeviceInfo->isFormatSupported(m_audioFormat) || !open()) {
+    if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
         m_stateCode = QAudio::StoppedState;
         m_errorCode = QAudio::OpenError;
         return;
@@ -292,7 +288,7 @@ void QCoreAudioOutput::start(QIODevice *device)
 
 QIODevice *QCoreAudioOutput::start()
 {
-    if (!m_audioDeviceInfo->isFormatSupported(m_audioFormat) || !open()) {
+    if (!m_audioDeviceInfo.isFormatSupported(m_audioFormat) || !open()) {
         m_stateCode = QAudio::StoppedState;
         m_errorCode = QAudio::OpenError;
         return m_audioIO;

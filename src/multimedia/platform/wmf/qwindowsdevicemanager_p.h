@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,36 +37,40 @@
 **
 ****************************************************************************/
 
-#include "qwindowsaudiointerface_p.h"
-#include "qwindowsaudiodeviceinfo_p.h"
-#include "qwindowsaudioinput_p.h"
-#include "qwindowsaudiooutput_p.h"
+#ifndef QWINDOWSDEVICEMANAGER_H
+#define QWINDOWSDEVICEMANAGER_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <qset.h>
+#include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-QByteArray QWindowsAudioInterface::defaultDevice(QAudio::Mode mode) const
-{
-    return QWindowsAudioDeviceInfo::defaultDevice(mode);
-}
+class QWindowsEngine;
 
-QList<QByteArray> QWindowsAudioInterface::availableDevices(QAudio::Mode mode) const
+class QWindowsDeviceManager : public QMediaPlatformDeviceManager
 {
-    return QWindowsAudioDeviceInfo::availableDevices(mode);
-}
+public:
+    QWindowsDeviceManager();
 
-QAbstractAudioInput *QWindowsAudioInterface::createInput(const QByteArray &device)
-{
-    return new QWindowsAudioInput(device);
-}
-
-QAbstractAudioOutput *QWindowsAudioInterface::createOutput(const QByteArray &device)
-{
-    return new QWindowsAudioOutput(device);
-}
-
-QAbstractAudioDeviceInfo *QWindowsAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-{
-    return new QWindowsAudioDeviceInfo(device, mode);
-}
+    QList<QAudioDeviceInfo> audioInputs() const override;
+    QList<QAudioDeviceInfo> audioOutputs() const override;
+    QList<QCameraInfo> videoInputs() const override;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
+};
 
 QT_END_NAMESPACE
+
+#endif

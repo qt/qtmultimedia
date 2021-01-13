@@ -312,20 +312,9 @@ bool QAlsaAudioInput::open()
     }
 
 
-    if (!QAlsaAudioDeviceInfo::availableDevices(QAudio::AudioInput).contains(m_device))
-        return false;
-
-    QString dev;
-#if SND_LIB_VERSION < 0x1000e  // 1.0.14
-    if (m_device != "default")
-        dev = QAlsaAudioDeviceInfo::deviceFromCardName(m_device);
-    else
-#endif
-        dev = m_device;
-
     // Step 1: try and open the device
     while((count < 5) && (err < 0)) {
-        err=snd_pcm_open(&handle,dev.toLocal8Bit().constData(),SND_PCM_STREAM_CAPTURE,0);
+        err = snd_pcm_open(&handle, m_device.constData(), SND_PCM_STREAM_CAPTURE,0);
         if(err < 0)
             count++;
     }

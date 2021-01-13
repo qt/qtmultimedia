@@ -45,6 +45,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QMediaPlatformDeviceManager;
 
 // Class forward declaration required for QDoc bug
 class QString;
@@ -53,9 +54,9 @@ class Q_MULTIMEDIA_EXPORT QAudioInputSelectorControl : public QObject
     Q_OBJECT
 
 public:
-    virtual QList<QString> availableInputs() const = 0;
-    virtual QString inputDescription(const QString& name) const = 0;
-    virtual QString defaultInput() const = 0;
+    virtual QList<QString> availableInputs() const;
+    virtual QString inputDescription(const QString& name) const;
+    virtual QString defaultInput() const;
     virtual QString activeInput() const = 0;
 
 public Q_SLOTS:
@@ -67,6 +68,7 @@ Q_SIGNALS:
 
 protected:
     explicit QAudioInputSelectorControl(QObject *parent = nullptr);
+    QMediaPlatformDeviceManager *m_deviceManager;
 };
 
 #define QAudioInputSelectorControl_iid "org.qt-project.qt.audioinputselectorcontrol/5.0"

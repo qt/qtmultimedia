@@ -57,34 +57,29 @@
 
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
-#include <private/qaudiosystem_p.h>
+#include <private/qaudiodeviceinfo_p.h>
 
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGStreamerAudioDeviceInfo : public QAbstractAudioDeviceInfo
+class QGStreamerAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
-    Q_OBJECT
-
 public:
     QGStreamerAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
     ~QGStreamerAudioDeviceInfo();
 
     QAudioFormat preferredFormat() const override;
     bool isFormatSupported(const QAudioFormat &format) const override;
-    QString deviceName() const override;
     QString description() const override;
-    QStringList supportedCodecs() override;
-    QList<int> supportedSampleRates() override;
-    QList<int> supportedChannelCounts() override;
-    QList<int> supportedSampleSizes() override;
-    QList<QAudioFormat::Endian> supportedByteOrders() override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() override;
+    QStringList supportedCodecs() const override;
+    QList<int> supportedSampleRates() const override;
+    QList<int> supportedChannelCounts() const override;
+    QList<int> supportedSampleSizes() const override;
+    QList<QAudioFormat::Endian> supportedByteOrders() const override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
 
-    QByteArray m_device;
     QString m_description;
-    QAudio::Mode m_mode;
     GstDevice *gstDevice = nullptr;
 };
 

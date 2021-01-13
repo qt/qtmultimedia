@@ -10,11 +10,11 @@ qt_add_test(tst_qmediarecorder
         ../qmultimedia_common/mockaudioinputselector.h
         ../qmultimedia_common/mockaudioprobecontrol.h
         ../qmultimedia_common/mockmediacontainercontrol.h
-        ../qmultimedia_common/mockmediasource.h
         ../qmultimedia_common/mockmediarecordercontrol.h
         ../qmultimedia_common/mockmediarecorderservice.h
         ../qmultimedia_common/mockmediaservice.h
         ../qmultimedia_common/mockmediaserviceprovider.h
+        ../qmultimedia_common/mockmediasource.h
         ../qmultimedia_common/mockmetadatareadercontrol.h
         ../qmultimedia_common/mockmetadatawritercontrol.h
         ../qmultimedia_common/mockvideoencodercontrol.h

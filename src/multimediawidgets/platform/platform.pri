@@ -1,2 +1,2 @@
 qtConfig(gstreamer):include(gstreamer/gstreamer.pri)
-qtConfig(avfoundation):include(avfoundation/avfoundation.pri)
+darwin:qtConfig(avfoundation):include(avfoundation/avfoundation.pri)

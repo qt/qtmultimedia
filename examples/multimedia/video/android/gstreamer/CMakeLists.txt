@@ -41,7 +41,6 @@ target_link_libraries(gstreamer PUBLIC
     Qt::Core
     Qt::Gui
     Qt::Multimedia
-    Qt::MultimediaWidgets
     Qt::MultimediaWidgetsPrivate
     Qt::Quick
     avcodec

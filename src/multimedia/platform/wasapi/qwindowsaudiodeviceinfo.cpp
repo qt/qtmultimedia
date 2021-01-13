@@ -56,79 +56,9 @@
 #include "qwindowsaudiodeviceinfo_p.h"
 #include "qwindowsaudioutils_p.h"
 
-#if defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
-struct IBaseFilter; // Needed for strmif.h from stock MinGW.
-struct _DDPIXELFORMAT;
-typedef struct _DDPIXELFORMAT* LPDDPIXELFORMAT;
-#endif
-
-#include <strmif.h>
-#if !defined(Q_CC_MINGW) || defined(__MINGW64_VERSION_MAJOR)
-#  include <uuids.h>
-#else
-
-extern GUID CLSID_AudioInputDeviceCategory;
-extern GUID CLSID_AudioRendererCategory;
-extern GUID IID_ICreateDevEnum;
-extern GUID CLSID_SystemDeviceEnum;
-
-#ifndef __ICreateDevEnum_INTERFACE_DEFINED__
-#define __ICreateDevEnum_INTERFACE_DEFINED__
-
-DECLARE_INTERFACE_(ICreateDevEnum, IUnknown)
-{
-    STDMETHOD(CreateClassEnumerator)(REFCLSID clsidDeviceClass,
-                                     IEnumMoniker **ppEnumMoniker,
-                                     DWORD dwFlags) PURE;
-};
-
-#endif //  __ICreateDevEnum_INTERFACE_DEFINED__
-
-#ifndef __IErrorLog_INTERFACE_DEFINED__
-#define __IErrorLog_INTERFACE_DEFINED__
-
-DECLARE_INTERFACE_(IErrorLog, IUnknown)
-{
-    STDMETHOD(AddError)(THIS_ LPCOLESTR, EXCEPINFO *) PURE;
-};
-
-#endif /* __IErrorLog_INTERFACE_DEFINED__ */
-
-#ifndef __IPropertyBag_INTERFACE_DEFINED__
-#define __IPropertyBag_INTERFACE_DEFINED__
-
-const GUID IID_IPropertyBag = {0x55272A00, 0x42CB, 0x11CE, {0x81, 0x35, 0x00, 0xAA, 0x00, 0x4B, 0xB8, 0x51}};
-
-DECLARE_INTERFACE_(IPropertyBag, IUnknown)
-{
-    STDMETHOD(Read)(THIS_ LPCOLESTR, VARIANT *, IErrorLog *) PURE;
-    STDMETHOD(Write)(THIS_ LPCOLESTR, VARIANT *) PURE;
-};
-
-#endif /* __IPropertyBag_INTERFACE_DEFINED__ */
-
-#endif // defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
-
-QT_BEGIN_NAMESPACE
-
-// For mingw toolchain mmsystem.h only defines half the defines, so add if needed.
-#ifndef WAVE_FORMAT_44M08
-#define WAVE_FORMAT_44M08 0x00000100
-#define WAVE_FORMAT_44S08 0x00000200
-#define WAVE_FORMAT_44M16 0x00000400
-#define WAVE_FORMAT_44S16 0x00000800
-#define WAVE_FORMAT_48M08 0x00001000
-#define WAVE_FORMAT_48S08 0x00002000
-#define WAVE_FORMAT_48M16 0x00004000
-#define WAVE_FORMAT_48S16 0x00008000
-#define WAVE_FORMAT_96M08 0x00010000
-#define WAVE_FORMAT_96S08 0x00020000
-#define WAVE_FORMAT_96M16 0x00040000
-#define WAVE_FORMAT_96S16 0x00080000
-#endif
-
 
 QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(dev, mode)
 {
     QDataStream ds(&dev, QIODevice::ReadOnly);
     ds >> devId >> device;
@@ -173,37 +103,33 @@ QString QWindowsAudioDeviceInfo::deviceName() const
     return device;
 }
 
-QStringList QWindowsAudioDeviceInfo::supportedCodecs()
+QStringList QWindowsAudioDeviceInfo::supportedCodecs() const
 {
     return QStringList() << QStringLiteral("audio/x-raw");
 }
 
-QList<int> QWindowsAudioDeviceInfo::supportedSampleRates()
+QList<int> QWindowsAudioDeviceInfo::supportedSampleRates() const
 {
-    updateLists();
     return sampleRatez;
 }
 
-QList<int> QWindowsAudioDeviceInfo::supportedChannelCounts()
+QList<int> QWindowsAudioDeviceInfo::supportedChannelCounts() const
 {
-    updateLists();
     return channelz;
 }
 
-QList<int> QWindowsAudioDeviceInfo::supportedSampleSizes()
+QList<int> QWindowsAudioDeviceInfo::supportedSampleSizes() const
 {
-    updateLists();
     return sizez;
 }
 
-QList<QAudioFormat::Endian> QWindowsAudioDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QWindowsAudioDeviceInfo::supportedByteOrders() const
 {
     return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian;
 }
 
-QList<QAudioFormat::SampleType> QWindowsAudioDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QWindowsAudioDeviceInfo::supportedSampleTypes() const
 {
-    updateLists();
     return typez;
 }
 

@@ -43,6 +43,9 @@
 #include <QtCore/QDebug>
 
 #include <private/qgstutils_p.h>
+#include <private/qgstreamerplatformdevicemanager_p.h>
+#include <private/qmediaplatformintegration_p.h>
+#include <qcamerainfo.h>
 
 QGstreamerVideoInputDeviceControl::QGstreamerVideoInputDeviceControl(QObject *parent)
     : QVideoDeviceSelectorControl(parent)
@@ -62,36 +65,6 @@ QGstreamerVideoInputDeviceControl::~QGstreamerVideoInputDeviceControl()
 {
     if (m_factory)
         gst_object_unref(GST_OBJECT(m_factory));
-}
-
-int QGstreamerVideoInputDeviceControl::deviceCount() const
-{
-    return QGstUtils::enumerateCameras().count();
-}
-
-QString QGstreamerVideoInputDeviceControl::deviceName(int index) const
-{
-    return QGstUtils::enumerateCameras().value(index).name;
-}
-
-QString QGstreamerVideoInputDeviceControl::deviceDescription(int index) const
-{
-    return QGstUtils::enumerateCameras().value(index).description;
-}
-
-QCamera::Position QGstreamerVideoInputDeviceControl::cameraPosition(int index) const
-{
-    return QGstUtils::enumerateCameras().value(index).position;
-}
-
-int QGstreamerVideoInputDeviceControl::cameraOrientation(int index) const
-{
-    return QGstUtils::enumerateCameras().value(index).orientation;
-}
-
-int QGstreamerVideoInputDeviceControl::defaultDevice() const
-{
-    return 0;
 }
 
 int QGstreamerVideoInputDeviceControl::selectedDevice() const

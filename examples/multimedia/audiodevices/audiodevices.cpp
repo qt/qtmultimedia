@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 #include "audiodevices.h"
+#include <qmediadevicemanager.h>
 
 // Utility functions for converting QAudioFormat fields into text
 
@@ -90,6 +91,8 @@ AudioDevicesBase::AudioDevicesBase(QWidget *parent)
     : QMainWindow(parent)
 {
     setupUi(this);
+    QMediaDeviceManager *m = QMediaDeviceManager::instance();
+    m->audioOutputs();
 }
 
 AudioDevicesBase::~AudioDevicesBase() {}

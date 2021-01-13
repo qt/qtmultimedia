@@ -37,9 +37,10 @@
 **
 ****************************************************************************/
 
-#include "qaudiodevicefactory_p.h"
 #include "qaudiosystem_p.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodeviceinfo_p.h"
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <private/qmediaplatformintegration_p.h>
 
 #include <QtCore/qmap.h>
 
@@ -52,46 +53,14 @@ static void qRegisterAudioDeviceInfoMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterAudioDeviceInfoMetaTypes)
 
-class QAudioDeviceInfoPrivate : public QSharedData
+QAudioDeviceInfoPrivate::QAudioDeviceInfoPrivate(const QByteArray &h, QAudio::Mode m)
+    : id(h), mode(m)
 {
-public:
-    QAudioDeviceInfoPrivate() = default;
-    QAudioDeviceInfoPrivate(const QByteArray &h, QAudio::Mode m)
-        : handle(h), mode(m)
-    {
-        if (!handle.isEmpty())
-            info = QAudioDeviceFactory::audioDeviceInfo(handle, mode);
-        else
-            info = nullptr;
-    }
+}
 
-    QAudioDeviceInfoPrivate(const QAudioDeviceInfoPrivate &other):
-        QSharedData(other),
-        handle(other.handle), mode(other.mode)
-    {
-        info = QAudioDeviceFactory::audioDeviceInfo(handle, mode);
-    }
-
-    QAudioDeviceInfoPrivate& operator=(const QAudioDeviceInfoPrivate &other)
-    {
-        delete info;
-
-        handle = other.handle;
-        mode = other.mode;
-        info = QAudioDeviceFactory::audioDeviceInfo(handle, mode);
-        return *this;
-    }
-
-    ~QAudioDeviceInfoPrivate()
-    {
-        delete info;
-    }
-
-    QByteArray  handle;
-    QAudio::Mode mode = QAudio::AudioOutput;
-    QAbstractAudioDeviceInfo *info = nullptr;
-};
-
+QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate()
+{
+}
 
 /*!
     \class QAudioDeviceInfo
@@ -148,7 +117,7 @@ public:
     Constructs an empty QAudioDeviceInfo object.
 */
 QAudioDeviceInfo::QAudioDeviceInfo():
-    d(new QAudioDeviceInfoPrivate)
+    d(nullptr)
 {
 }
 
@@ -184,9 +153,9 @@ bool QAudioDeviceInfo::operator ==(const QAudioDeviceInfo &other) const
 {
     if (d == other.d)
         return true;
-    if (d->mode == other.d->mode
-            && d->handle == other.d->handle
-            && deviceName() == other.deviceName())
+    if (!d || !other.d)
+        return false;
+    if (d->mode == other.d->mode && d->id == other.d->id)
         return true;
     return false;
 }
@@ -205,7 +174,7 @@ bool QAudioDeviceInfo::operator !=(const QAudioDeviceInfo &other) const
 */
 bool QAudioDeviceInfo::isNull() const
 {
-    return d->info == nullptr;
+    return d == nullptr;
 }
 
 /*!
@@ -217,9 +186,9 @@ bool QAudioDeviceInfo::isNull() const
 
     eg. default, Intel, U0x46d0x9a4
 */
-QString QAudioDeviceInfo::deviceName() const
+QByteArray QAudioDeviceInfo::id() const
 {
-    return isNull() ? QString() : d->info->deviceName();
+    return isNull() ? QByteArray() : d->id;
 }
 
 /*!
@@ -229,7 +198,15 @@ QString QAudioDeviceInfo::deviceName() const
 */
 QString QAudioDeviceInfo::description() const
 {
-    return isNull() ? QString() : d->info->description();
+    return isNull() ? QString() : d->description();
+}
+
+/*!
+    Returns true if this is the default audio device for it's mode.
+*/
+bool QAudioDeviceInfo::isDefault() const
+{
+    return d ? d->isDefault : false;
 }
 
 /*!
@@ -238,7 +215,7 @@ QString QAudioDeviceInfo::description() const
 */
 bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 {
-    return isNull() ? false : d->info->isFormatSupported(settings);
+    return isNull() ? false : d->isFormatSupported(settings);
 }
 
 /*!
@@ -256,7 +233,7 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 */
 QAudioFormat QAudioDeviceInfo::preferredFormat() const
 {
-    return isNull() ? QAudioFormat() : d->info->preferredFormat();
+    return isNull() ? QAudioFormat() : d->preferredFormat();
 }
 
 /*!
@@ -361,7 +338,7 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
 */
 QStringList QAudioDeviceInfo::supportedCodecs() const
 {
-    return isNull() ? QStringList() : d->info->supportedCodecs();
+    return isNull() ? QStringList() : d->supportedCodecs();
 }
 
 /*!
@@ -370,7 +347,7 @@ QStringList QAudioDeviceInfo::supportedCodecs() const
 */
 QList<int> QAudioDeviceInfo::supportedSampleRates() const
 {
-    return isNull() ? QList<int>() : d->info->supportedSampleRates();
+    return isNull() ? QList<int>() : d->supportedSampleRates();
 }
 
 /*!
@@ -381,7 +358,7 @@ QList<int> QAudioDeviceInfo::supportedSampleRates() const
 */
 QList<int> QAudioDeviceInfo::supportedChannelCounts() const
 {
-    return isNull() ? QList<int>() : d->info->supportedChannelCounts();
+    return isNull() ? QList<int>() : d->supportedChannelCounts();
 }
 
 /*!
@@ -392,7 +369,7 @@ QList<int> QAudioDeviceInfo::supportedChannelCounts() const
 */
 QList<int> QAudioDeviceInfo::supportedSampleSizes() const
 {
-    return isNull() ? QList<int>() : d->info->supportedSampleSizes();
+    return isNull() ? QList<int>() : d->supportedSampleSizes();
 }
 
 /*!
@@ -400,7 +377,7 @@ QList<int> QAudioDeviceInfo::supportedSampleSizes() const
 */
 QList<QAudioFormat::Endian> QAudioDeviceInfo::supportedByteOrders() const
 {
-    return isNull() ? QList<QAudioFormat::Endian>() : d->info->supportedByteOrders();
+    return isNull() ? QList<QAudioFormat::Endian>() : d->supportedByteOrders();
 }
 
 /*!
@@ -408,7 +385,7 @@ QList<QAudioFormat::Endian> QAudioDeviceInfo::supportedByteOrders() const
 */
 QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
 {
-    return isNull() ? QList<QAudioFormat::SampleType>() : d->info->supportedSampleTypes();
+    return isNull() ? QList<QAudioFormat::SampleType>() : d->supportedSampleTypes();
 }
 
 /*!
@@ -417,7 +394,7 @@ QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
 */
 QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
 {
-    return QAudioDeviceFactory::defaultDevice(QAudio::AudioInput);
+    return QMediaPlatformIntegration::instance()->deviceManager()->audioInputs().value(0);
 }
 
 /*!
@@ -426,7 +403,7 @@ QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
 */
 QAudioDeviceInfo QAudioDeviceInfo::defaultOutputDevice()
 {
-    return QAudioDeviceFactory::defaultDevice(QAudio::AudioOutput);
+    return QMediaPlatformIntegration::instance()->deviceManager()->audioOutputs().value(0);
 }
 
 /*!
@@ -434,24 +411,22 @@ QAudioDeviceInfo QAudioDeviceInfo::defaultOutputDevice()
 */
 QList<QAudioDeviceInfo> QAudioDeviceInfo::availableDevices(QAudio::Mode mode)
 {
-    return QAudioDeviceFactory::availableDevices(mode);
+    return mode == QAudio::AudioInput ?
+                QMediaPlatformIntegration::instance()->deviceManager()->audioInputs() :
+                QMediaPlatformIntegration::instance()->deviceManager()->audioOutputs();
 }
 
 
-/*!
-    \internal
-*/
-QAudioDeviceInfo::QAudioDeviceInfo(const QByteArray &handle, QAudio::Mode mode):
-    d(new QAudioDeviceInfoPrivate(handle, mode))
-{
-}
+QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfoPrivate *p)
+    : d(p)
+{}
 
 /*!
     \internal
 */
 QByteArray QAudioDeviceInfo::handle() const
 {
-    return d->handle;
+    return d->id;
 }
 
 
@@ -464,4 +439,3 @@ QAudio::Mode QAudioDeviceInfo::mode() const
 }
 
 QT_END_NAMESPACE
-

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,34 +36,27 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef IOSAUDIOPLUGIN_H
-#define IOSAUDIOPLUGIN_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qaudiosystem_p.h>
+#include "qdarwinintegration_p.h"
+#include "qdarwindevicemanager_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QCoreAudioInterface : public QAudioSystemInterface
+QDarwinIntegration::QDarwinIntegration()
 {
-public:
-    QByteArray defaultDevice(QAudio::Mode mode) const override;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
-    QAbstractAudioInput *createInput(const QByteArray &device) override;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
-};
+
+}
+
+QDarwinIntegration::~QDarwinIntegration()
+{
+    delete m_manager;
+}
+
+QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
+{
+    if (!m_manager)
+        m_manager = new QDarwinDeviceManager();
+    return m_manager;
+}
 
 QT_END_NAMESPACE
-
-#endif

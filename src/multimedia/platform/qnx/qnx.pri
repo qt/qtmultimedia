@@ -1,13 +1,13 @@
 LIBS += -lasound
 
-HEADERS += $$PWD/qnxaudiointerface_p.h \
+HEADERS += \
            $$PWD/qnxaudiodeviceinfo_p.h \
            $$PWD/qnxaudioinput_p.h \
            $$PWD/qnxaudiooutput_p.h \
            $$PWD/qnxaudioutils_p.h \
            $$PWD/neutrinoserviceplugin_p.h
 
-SOURCES += $$PWD/qnxaudiointerface.cpp \
+SOURCES += \
            $$PWD/qnxaudiodeviceinfo.cpp \
            $$PWD/qnxaudioinput.cpp \
            $$PWD/qnxaudiooutput.cpp \

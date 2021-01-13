@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,41 +37,26 @@
 **
 ****************************************************************************/
 
-#ifndef QPULSEAUDIOPLUGIN_H
-#define QPULSEAUDIOPLUGIN_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qaudiosystem_p.h>
+#include "qpulseaudiointegration_p.h"
+#include "qpulseaudiodevicemanager_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioEngine;
-
-class QPulseAudioInterface : public QAudioSystemInterface
+QPulseAudioIntegration::QPulseAudioIntegration()
 {
-public:
-    QPulseAudioInterface();
+    pulseEngine = new QPulseAudioEngine;
+}
 
-    QByteArray defaultDevice(QAudio::Mode mode) const override;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
-    QAbstractAudioInput *createInput(const QByteArray &device) override;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
+QPulseAudioIntegration::~QPulseAudioIntegration()
+{
+    delete m_manager;
+}
 
-private:
-    QPulseAudioEngine *m_pulseEngine;
-};
+QMediaPlatformDeviceManager *QPulseAudioIntegration::deviceManager()
+{
+    if (!m_manager)
+        m_manager = new QPulseAudioDeviceManager(pulseEngine);
+    return m_manager;
+}
 
 QT_END_NAMESPACE
-
-#endif

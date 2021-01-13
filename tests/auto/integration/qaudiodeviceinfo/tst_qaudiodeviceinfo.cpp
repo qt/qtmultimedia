@@ -58,7 +58,7 @@ private slots:
     void supportedChannelCounts();
     void supportedSampleRates();
     void assignOperator();
-    void deviceName();
+    void id();
     void defaultConstructor();
     void equalityOperator();
 
@@ -190,7 +190,7 @@ void tst_QAudioDeviceInfo::supportedSampleRates()
 void tst_QAudioDeviceInfo::assignOperator()
 {
     QAudioDeviceInfo dev;
-    QVERIFY(dev.deviceName().isNull());
+    QVERIFY(dev.id().isNull());
     QVERIFY(dev.isNull() == true);
 
     QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
@@ -198,14 +198,13 @@ void tst_QAudioDeviceInfo::assignOperator()
     QAudioDeviceInfo dev1(devices.at(0));
     dev = dev1;
     QVERIFY(dev.isNull() == false);
-    QVERIFY(dev.deviceName() == dev1.deviceName());
+    QVERIFY(dev.id() == dev1.id());
 }
 
-// Returns human readable name of audio device
-void tst_QAudioDeviceInfo::deviceName()
+void tst_QAudioDeviceInfo::id()
 {
-    QVERIFY(!device->deviceName().isNull());
-    QVERIFY(device->deviceName() == QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).at(0).deviceName());
+    QVERIFY(!device->id().isNull());
+    QVERIFY(device->id() == QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).at(0).id());
 }
 
 // QAudioDeviceInfo's defaultConstructor method
@@ -213,7 +212,7 @@ void tst_QAudioDeviceInfo::defaultConstructor()
 {
     QAudioDeviceInfo dev;
     QVERIFY(dev.isNull() == true);
-    QVERIFY(dev.deviceName().isNull());
+    QVERIFY(dev.id().isNull());
 }
 
 void tst_QAudioDeviceInfo::equalityOperator()

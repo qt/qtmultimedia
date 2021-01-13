@@ -1,7 +1,8 @@
 INCLUDEPATH += camera
 
 PRIVATE_HEADERS += \
-    camera/qcamera_p.h
+    camera/qcamera_p.h \
+    camera/qcamerainfo_p.h \
 
 PUBLIC_HEADERS += \
     camera/qcamera.h \

@@ -2,14 +2,12 @@ HEADERS += \
     $$PWD/qcoreaudiodeviceinfo_p.h \
     $$PWD/qcoreaudioinput_p.h \
     $$PWD/qcoreaudiooutput_p.h \
-    $$PWD/qcoreaudiointerface_p.h \
     $$PWD/qcoreaudioutils_p.h
 
 SOURCES += \
     $$PWD/qcoreaudiodeviceinfo.mm \
     $$PWD/qcoreaudioinput.mm \
     $$PWD/qcoreaudiooutput.mm \
-    $$PWD/qcoreaudiointerface.mm \
     $$PWD/qcoreaudioutils.mm
 
 ios|tvos {

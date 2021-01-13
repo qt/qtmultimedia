@@ -61,6 +61,7 @@
 #include <QtCore/QIODevice>
 #include <QtCore/QWaitCondition>
 #include <QtCore/QMutex>
+#include <private/qcoreaudiodeviceinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -124,7 +125,7 @@ class QCoreAudioOutput : public QAbstractAudioOutput
     Q_OBJECT
 
 public:
-    QCoreAudioOutput(const QByteArray &device);
+    QCoreAudioOutput(const QAudioDeviceInfo &device);
     ~QCoreAudioOutput();
 
     void start(QIODevice *device);
@@ -182,6 +183,7 @@ private:
     void startTimers();
     void stopTimers();
 
+    QAudioDeviceInfo m_audioDeviceInfo;
     QByteArray m_device;
 
     bool m_isOpen;
@@ -202,7 +204,6 @@ private:
     QWaitCondition m_threadFinished;
     QMutex m_mutex;
     QTimer *m_intervalTimer;
-    QCoreAudioDeviceInfo *m_audioDeviceInfo;
     qreal m_cachedVolume;
     qreal m_volume;
     bool m_pullMode;

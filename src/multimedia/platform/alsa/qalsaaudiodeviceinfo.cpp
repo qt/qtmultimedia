@@ -54,11 +54,12 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, QAudio::Mode mode)
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(dev, mode)
+    , m_description(description)
 {
     handle = 0;
 
-    device = QLatin1String(dev);
     this->mode = mode;
 
     checkSurround();
@@ -99,75 +100,55 @@ QAudioFormat QAlsaAudioDeviceInfo::preferredFormat() const
     return nearest;
 }
 
-QString QAlsaAudioDeviceInfo::deviceName() const
-{
-    return device;
-}
-
-QStringList QAlsaAudioDeviceInfo::supportedCodecs()
+QStringList QAlsaAudioDeviceInfo::supportedCodecs() const
 {
     updateLists();
     return codecz;
 }
 
-QList<int> QAlsaAudioDeviceInfo::supportedSampleRates()
+QList<int> QAlsaAudioDeviceInfo::supportedSampleRates() const
 {
     updateLists();
     return sampleRatez;
 }
 
-QList<int> QAlsaAudioDeviceInfo::supportedChannelCounts()
+QList<int> QAlsaAudioDeviceInfo::supportedChannelCounts() const
 {
     updateLists();
     return channelz;
 }
 
-QList<int> QAlsaAudioDeviceInfo::supportedSampleSizes()
+QList<int> QAlsaAudioDeviceInfo::supportedSampleSizes() const
 {
     updateLists();
     return sizez;
 }
 
-QList<QAudioFormat::Endian> QAlsaAudioDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QAlsaAudioDeviceInfo::supportedByteOrders() const
 {
     updateLists();
     return byteOrderz;
 }
 
-QList<QAudioFormat::SampleType> QAlsaAudioDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QAlsaAudioDeviceInfo::supportedSampleTypes() const
 {
     updateLists();
     return typez;
 }
 
-QByteArray QAlsaAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
+QByteArray QAlsaAudioDeviceInfo::defaultDevice(QAudio::Mode)
 {
-    const auto &devices = availableDevices(mode);
-    if (devices.size() == 0)
-        return QByteArray();
-
-    return devices.first();
+    return "default";
 }
 
-bool QAlsaAudioDeviceInfo::open()
+bool QAlsaAudioDeviceInfo::open() const
 {
     int err = 0;
-    QString dev;
-
-    if (!availableDevices(mode).contains(device.toLocal8Bit()))
-        return false;
-
-#if SND_LIB_VERSION < 0x1000e  // 1.0.14
-    if (device.compare(QLatin1String("default")) != 0)
-        dev = deviceFromCardName(device);
-    else
-#endif
-        dev = device;
 
     if(mode == QAudio::AudioOutput) {
-        err=snd_pcm_open( &handle,dev.toLocal8Bit().constData(),SND_PCM_STREAM_PLAYBACK,0);
+        err = snd_pcm_open(&handle, id.constData(), SND_PCM_STREAM_PLAYBACK,0);
     } else {
-        err=snd_pcm_open( &handle,dev.toLocal8Bit().constData(),SND_PCM_STREAM_CAPTURE,0);
+        err = snd_pcm_open(&handle, id.constData(), SND_PCM_STREAM_CAPTURE,0);
     }
     if(err < 0) {
         handle = 0;
@@ -176,7 +157,7 @@ bool QAlsaAudioDeviceInfo::open()
     return true;
 }
 
-void QAlsaAudioDeviceInfo::close()
+void QAlsaAudioDeviceInfo::close() const
 {
     if(handle)
         snd_pcm_close(handle);
@@ -190,19 +171,11 @@ bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     int err = -1;
     snd_pcm_t* pcmHandle;
     snd_pcm_hw_params_t *params;
-    QString dev;
-
-#if SND_LIB_VERSION < 0x1000e  // 1.0.14
-    if (device.compare(QLatin1String("default")) != 0)
-        dev = deviceFromCardName(device);
-    else
-#endif
-        dev = device;
 
     snd_pcm_stream_t stream = mode == QAudio::AudioOutput
                             ? SND_PCM_STREAM_PLAYBACK : SND_PCM_STREAM_CAPTURE;
 
-    if (snd_pcm_open(&pcmHandle, dev.toLocal8Bit().constData(), stream, 0) < 0)
+    if (snd_pcm_open(&pcmHandle, id.constData(), stream, 0) < 0)
         return false;
 
     snd_pcm_nonblock(pcmHandle, 0);
@@ -273,7 +246,7 @@ bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     return (err == 0);
 }
 
-void QAlsaAudioDeviceInfo::updateLists()
+void QAlsaAudioDeviceInfo::updateLists() const
 {
     // redo all lists based on current settings
     sampleRatez.clear();
@@ -308,67 +281,6 @@ void QAlsaAudioDeviceInfo::updateLists()
     typez.append(QAudioFormat::Float);
     codecz.append(QLatin1String("audio/x-raw"));
     close();
-}
-
-QList<QByteArray> QAlsaAudioDeviceInfo::availableDevices(QAudio::Mode mode)
-{
-    QList<QByteArray> devices;
-    bool hasDefault = false;
-
-#if SND_LIB_VERSION >= 0x1000e  // 1.0.14
-    QByteArray filter;
-
-    // Create a list of all current audio devices that support mode
-    void **hints, **n;
-    char *name, *descr, *io;
-
-    if(snd_device_name_hint(-1, "pcm", &hints) < 0) {
-        qWarning() << "no alsa devices available";
-        return devices;
-    }
-    n = hints;
-
-    if(mode == QAudio::AudioInput) {
-        filter = "Input";
-    } else {
-        filter = "Output";
-    }
-
-    while (*n != NULL) {
-        name = snd_device_name_get_hint(*n, "NAME");
-        if (name != 0 && qstrcmp(name, "null") != 0) {
-            descr = snd_device_name_get_hint(*n, "DESC");
-            io = snd_device_name_get_hint(*n, "IOID");
-
-            if ((descr != NULL) && ((io == NULL) || (io == filter))) {
-                devices.append(name);
-                if (strcmp(name, "default") == 0)
-                    hasDefault = true;
-            }
-
-            free(descr);
-            free(io);
-        }
-        free(name);
-        ++n;
-    }
-    snd_device_name_free_hint(hints);
-#else
-    int idx = 0;
-    char* name;
-
-    while(snd_card_get_name(idx,&name) == 0) {
-        devices.append(name);
-        if (strcmp(name, "default") == 0)
-            hasDefault = true;
-        idx++;
-    }
-#endif
-
-    if (!hasDefault && devices.size() > 0)
-        devices.prepend("default");
-
-    return devices;
 }
 
 void QAlsaAudioDeviceInfo::checkSurround()
@@ -409,22 +321,6 @@ void QAlsaAudioDeviceInfo::checkSurround()
         ++n;
     }
     snd_device_name_free_hint(hints);
-}
-
-QString QAlsaAudioDeviceInfo::deviceFromCardName(const QString &card)
-{
-    int idx = 0;
-    char *name;
-
-    QStringView shortName = QStringView{card}.mid(card.indexOf(QLatin1String("="), 0) + 1);
-
-    while (snd_card_get_name(idx, &name) == 0) {
-        if (shortName.compare(QLatin1String(name)) == 0)
-            break;
-        idx++;
-    }
-
-    return QString(QLatin1String("hw:%1,0")).arg(idx);
 }
 
 QT_END_NAMESPACE

@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qcamerainfo.h"
+#include "qcamerainfo_p.h"
 
 #include "qcamera_p.h"
 #include "qmediaserviceprovider_p.h"
@@ -76,16 +76,6 @@ QT_BEGIN_NAMESPACE
     \sa QCamera
 */
 
-class QCameraInfoPrivate
-{
-public:
-    bool isNull = true;
-    QString deviceName;
-    QString description;
-    QCamera::Position position = QCamera::UnspecifiedPosition;
-    int orientation = 0;
-};
-
 /*!
     Constructs a camera info object for \a camera.
 
@@ -100,7 +90,7 @@ QCameraInfo::QCameraInfo(const QCamera &camera)
     const QVideoDeviceSelectorControl *deviceControl = camera.d_func()->deviceControl;
     if (deviceControl && deviceControl->deviceCount() > 0) {
         const int selectedDevice = deviceControl->selectedDevice();
-        d->deviceName = deviceControl->deviceName(selectedDevice);
+        d->id = deviceControl->deviceName(selectedDevice).toLatin1();
         d->description = deviceControl->deviceDescription(selectedDevice);
         d->position = deviceControl->cameraPosition(selectedDevice);
         d->orientation = deviceControl->cameraOrientation(selectedDevice);
@@ -121,7 +111,7 @@ QCameraInfo::QCameraInfo(const QByteArray &name)
         const QByteArray service(Q_MEDIASERVICE_CAMERA);
 
         if (provider->devices(service).contains(name)) {
-            d->deviceName = QString::fromLatin1(name);
+            d->id = name;
             d->description = provider->deviceDescription(service, name);
             d->position = provider->cameraPosition(name);
             d->orientation = provider->cameraOrientation(name);
@@ -153,7 +143,7 @@ bool QCameraInfo::operator==(const QCameraInfo &other) const
     if (d == other.d)
         return true;
 
-    return (d->deviceName == other.d->deviceName
+    return (d->id == other.d->id
             && d->description == other.d->description
             && d->position == other.d->position
             && d->orientation == other.d->orientation);
@@ -168,13 +158,18 @@ bool QCameraInfo::isNull() const
 }
 
 /*!
-    Returns the device name of the camera
+    Returns the device id of the camera
 
     This is a unique ID to identify the camera and may not be human-readable.
 */
-QString QCameraInfo::deviceName() const
+QByteArray QCameraInfo::id() const
 {
-    return d->deviceName;
+    return d->id;
+}
+
+bool QCameraInfo::isDefault() const
+{
+    return d->isDefault;
 }
 
 /*!
@@ -249,6 +244,10 @@ QList<QCameraInfo> QCameraInfo::availableCameras(QCamera::Position position)
     return cameras;
 }
 
+QCameraInfo::QCameraInfo(QCameraInfoPrivate *p)
+    : d(p)
+{}
+
 /*!
     Sets the QCameraInfo object to be equal to \a other.
 */
@@ -267,8 +266,8 @@ QCameraInfo& QCameraInfo::operator=(const QCameraInfo& other)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug d, const QCameraInfo &camera)
 {
-    d.maybeSpace() << QStringLiteral("QCameraInfo(deviceName=%1, position=%2, orientation=%3)")
-                          .arg(camera.deviceName())
+    d.maybeSpace() << QStringLiteral("QCameraInfo(name=%1, position=%2, orientation=%3)")
+                          .arg(camera.description())
                           .arg(QString::fromLatin1(QCamera::staticMetaObject.enumerator(QCamera::staticMetaObject.indexOfEnumerator("Position"))
                                .valueToKey(camera.position())))
                           .arg(camera.orientation());

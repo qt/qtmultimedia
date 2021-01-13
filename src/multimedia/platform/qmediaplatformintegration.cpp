@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,34 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSAUDIOPLUGIN_H
-#define QWINDOWSAUDIOPLUGIN_H
+#include <qtmultimediaglobal_p.h>
+#include "qmediaplatformintegration_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qaudiosystem_p.h>
+#if QT_CONFIG(gstreamer)
+#include <private/qgstreamerintegration_p.h>
+using PlatformIntegration = QGstreamerIntegration;
+#elif QT_CONFIG(pulseaudio)
+#include <private/qpulseaudiointegration_p.h>
+using PlatformIntegration = QPulseAudioIntegration;
+#elif QT_CONFIG(alsa)
+#include <private/qalsaintegration_p.h>
+using PlatformIntegration = QAlsaIntegration;
+#elif QT_CONFIG(avfoundation)
+#include <private/qdarwinintegration_p.h>
+using PlatformIntegration = QDarwinIntegration;
+#elif defined(Q_OS_WIN)
+#include <private/qwindowsintegration_p.h>
+using PlatformIntegration = QWindowsIntegration;
+#endif
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsAudioInterface : public QAudioSystemInterface
+namespace {
+struct Holder {
+    ~Holder()
+    {
+        delete instance;
+        instance = nullptr;
+    }
+    QMediaPlatformIntegration *instance = nullptr;
+} holder;
+
+}
+
+QMediaPlatformIntegration *QMediaPlatformIntegration::instance()
 {
-public:
-    QByteArray defaultDevice(QAudio::Mode mode) const override;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const override;
-    QAbstractAudioInput *createInput(const QByteArray &device) override;
-    QAbstractAudioOutput *createOutput(const QByteArray &device) override;
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode) override;
-};
+    if (!holder.instance) {
+        holder.instance = new PlatformIntegration;
+    }
+    return holder.instance;
+}
+
+QMediaPlatformIntegration::~QMediaPlatformIntegration()
+{
+
+}
 
 QT_END_NAMESPACE
-
-#endif // QWINDOWSAUDIOPLUGIN_H

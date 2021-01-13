@@ -2,6 +2,14 @@ DEFINES += GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
 
 QMAKE_USE_PRIVATE += gstreamer gstreamer_app
 
+SOURCES += \
+    $$PWD/qgstreamerintegration.cpp \
+    $$PWD/qgstreamerdevicemanager.cpp \
+
+HEADERS += \
+    $$PWD/qgstreamerintegration_p.h \
+    $$PWD/qgstreamerdevicemanager_p.h \
+
 include(audio/audio.pri)
 include(common/common.pri)
 use_camerabin {

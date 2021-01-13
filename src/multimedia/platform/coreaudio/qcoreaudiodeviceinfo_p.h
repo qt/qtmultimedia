@@ -51,6 +51,7 @@
 //
 
 #include <qaudiosystem_p.h>
+#include <private/qaudiodeviceinfo_p.h>
 
 #if defined(Q_OS_OSX)
 # include <CoreAudio/CoreAudio.h>
@@ -58,35 +59,27 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCoreAudioDeviceInfo : public QAbstractAudioDeviceInfo
+class QCoreAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
-    Q_OBJECT
-
 public:
-    QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+    QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode);
     ~QCoreAudioDeviceInfo() {}
 
     QAudioFormat preferredFormat() const;
     bool isFormatSupported(const QAudioFormat &format) const;
-    QString deviceName() const;
-    QString description() const { return deviceName(); }
-    QStringList supportedCodecs();
-    QList<int> supportedSampleRates();
-    QList<int> supportedChannelCounts();
-    QList<int> supportedSampleSizes();
-    QList<QAudioFormat::Endian> supportedByteOrders();
-    QList<QAudioFormat::SampleType> supportedSampleTypes();
+    QString description() const;
+    QStringList supportedCodecs() const;
+    QList<int> supportedSampleRates() const;
+    QList<int> supportedChannelCounts() const;
+    QList<int> supportedSampleSizes() const;
+    QList<QAudioFormat::Endian> supportedByteOrders() const;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() const;
 
-    static QByteArray defaultDevice(QAudio::Mode mode);
-    static QList<QByteArray> availableDevices(QAudio::Mode mode);
-
+    AudioDeviceID deviceID() const { return m_deviceId; }
 private:
 #if defined(Q_OS_OSX)
     AudioDeviceID m_deviceId;
 #endif
-
-    QString m_device;
-    QAudio::Mode m_mode;
 };
 
 QT_END_NAMESPACE

@@ -73,10 +73,10 @@ SettingsDialog::SettingsDialog(
     // Populate combo boxes
 
     for (const QAudioDeviceInfo &device : availableInputDevices)
-        m_inputDeviceComboBox->addItem(device.deviceName(),
+        m_inputDeviceComboBox->addItem(device.description(),
                                        QVariant::fromValue(device));
     for (const QAudioDeviceInfo &device : availableOutputDevices)
-        m_outputDeviceComboBox->addItem(device.deviceName(),
+        m_outputDeviceComboBox->addItem(device.description(),
                                        QVariant::fromValue(device));
 
     m_windowFunctionComboBox->addItem(tr("None"), QVariant::fromValue(int(NoWindow)));

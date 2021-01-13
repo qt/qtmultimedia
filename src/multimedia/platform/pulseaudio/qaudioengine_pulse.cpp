@@ -84,6 +84,7 @@ static void serverInfoCallback(pa_context *context, const pa_server_info *info, 
     pulseEngine->m_serverLock.lockForWrite();
     pulseEngine->m_defaultSink = info->default_sink_name;
     pulseEngine->m_defaultSource = info->default_source_name;
+    // ### ensure the QAudioDeviceInfos are updated if default changes and emit changed signal in the device manager
     pulseEngine->m_serverLock.unlock();
 
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
@@ -126,7 +127,9 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
 
     QWriteLocker locker(&pulseEngine->m_sinkLock);
     pulseEngine->m_preferredFormats.insert(info->name, format);
-    pulseEngine->m_sinks.insert(info->index, info->name);
+    bool isDefault = pulseEngine->m_defaultSink == info->name;
+    QAudioDeviceInfo dinfo(new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioOutput));
+    pulseEngine->m_sinks.insert(info->index, dinfo);
 }
 
 static void sourceInfoCallback(pa_context *context, const pa_source_info *info, int isLast, void *userdata)
@@ -161,8 +164,12 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
     QAudioFormat format = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
 
     QWriteLocker locker(&pulseEngine->m_sourceLock);
-    pulseEngine->m_preferredFormats.insert(info->name, format);
-    pulseEngine->m_sources.insert(info->index, info->name);
+    // skip monitor channels
+    if (info->monitor_of_sink != PA_INVALID_INDEX)
+        return;
+    bool isDefault = pulseEngine->m_defaultSink == info->name;
+    QAudioDeviceInfo dinfo(new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioInput));
+    pulseEngine->m_sources.insert(info->index, dinfo);
 }
 
 static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32_t index, void* userdata)
@@ -208,13 +215,13 @@ static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32
         switch (facility) {
         case PA_SUBSCRIPTION_EVENT_SINK:
             pulseEngine->m_sinkLock.lockForWrite();
-            pulseEngine->m_preferredFormats.remove(pulseEngine->m_sinks.value(index));
+            pulseEngine->m_preferredFormats.remove(pulseEngine->m_sinks.value(index).id());
             pulseEngine->m_sinks.remove(index);
             pulseEngine->m_sinkLock.unlock();
             break;
         case PA_SUBSCRIPTION_EVENT_SOURCE:
             pulseEngine->m_sourceLock.lockForWrite();
-            pulseEngine->m_preferredFormats.remove(pulseEngine->m_sources.value(index));
+            pulseEngine->m_preferredFormats.remove(pulseEngine->m_sources.value(index).id());
             pulseEngine->m_sources.remove(index);
             pulseEngine->m_sourceLock.unlock();
             break;
@@ -449,9 +456,9 @@ QPulseAudioEngine *QPulseAudioEngine::instance()
     return pulseEngine();
 }
 
-QList<QByteArray> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
+QList<QAudioDeviceInfo> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
 {
-    QList<QByteArray> devices;
+    QList<QAudioDeviceInfo> devices;
     QByteArray defaultDevice;
 
     m_serverLock.lockForRead();
@@ -467,10 +474,6 @@ QList<QByteArray> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
     }
 
     m_serverLock.unlock();
-
-    // Swap the default device to index 0
-    devices.removeOne(defaultDevice);
-    devices.prepend(defaultDevice);
 
     return devices;
 }

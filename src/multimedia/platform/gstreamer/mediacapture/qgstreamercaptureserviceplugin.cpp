@@ -43,6 +43,9 @@
 #include <QtCore/QDebug>
 
 #include "qgstreamercaptureserviceplugin_p.h"
+#include "private/qmediaplatformintegration_p.h"
+#include "private/qmediaplatformdevicemanager_p.h"
+#include "qcamerainfo.h"
 
 //#define QT_SUPPORTEDMIMETYPES_DEBUG
 
@@ -73,19 +76,34 @@ void QGstreamerCaptureServicePlugin::release(QMediaService *service)
 #if defined(USE_GSTREAMER_CAMERA)
 QByteArray QGstreamerCaptureServicePlugin::defaultDevice(const QByteArray &service) const
 {
-    return service == Q_MEDIASERVICE_CAMERA
-            ? QGstUtils::enumerateCameras().value(0).name.toUtf8()
-            : QByteArray();
+    const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
+
+    if (service != Q_MEDIASERVICE_CAMERA || cameras.isEmpty())
+        return QByteArray();
+    return cameras.at(0).id();
 }
 
 QList<QByteArray> QGstreamerCaptureServicePlugin::devices(const QByteArray &service) const
 {
-    return service == Q_MEDIASERVICE_CAMERA ? QGstUtils::cameraDevices() : QList<QByteArray>();
+    QList<QByteArray> devices;
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
+        for (auto c : cameras)
+            devices.append(c.id());
+    }
+    return devices;
 }
 
 QString QGstreamerCaptureServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
-    return service == Q_MEDIASERVICE_CAMERA ? QGstUtils::cameraDescription(device) : QString();
+    if (service != Q_MEDIASERVICE_CAMERA)
+        return QString();
+
+    const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
+    for (auto c : cameras)
+        if (c.id() == device)
+            return c.description();
+    return QString();
 }
 
 QVariant QGstreamerCaptureServicePlugin::deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property)

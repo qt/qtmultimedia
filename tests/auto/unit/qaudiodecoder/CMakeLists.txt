@@ -8,9 +8,9 @@ qt_add_test(tst_qaudiodecoder
     SOURCES
         ../qmultimedia_common/mockaudiodecodercontrol.h
         ../qmultimedia_common/mockaudiodecoderservice.h
-        ../qmultimedia_common/mockmediasource.h
         ../qmultimedia_common/mockmediaservice.h
         ../qmultimedia_common/mockmediaserviceprovider.h
+        ../qmultimedia_common/mockmediasource.h
         tst_qaudiodecoder.cpp
     INCLUDE_DIRECTORIES
         ../../../../src/multimedia

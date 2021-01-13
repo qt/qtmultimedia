@@ -90,7 +90,7 @@ public:
             pa_threaded_mainloop_wait(m_mainLoop);
     }
 
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const;
+    QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode) const;
     QByteArray defaultDevice(QAudio::Mode mode) const;
 
 Q_SIGNALS:
@@ -105,8 +105,8 @@ private:
     void release();
 
 public:
-    QMap<int, QByteArray> m_sinks;
-    QMap<int, QByteArray> m_sources;
+    QMap<int, QAudioDeviceInfo> m_sinks;
+    QMap<int, QAudioDeviceInfo> m_sources;
     QMap<QByteArray, QAudioFormat> m_preferredFormats;
 
     QByteArray m_defaultSink;

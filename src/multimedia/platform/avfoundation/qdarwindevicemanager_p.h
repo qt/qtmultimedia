@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,36 +37,60 @@
 **
 ****************************************************************************/
 
-#ifndef QOPENSLESPLUGIN_H
-#define QOPENSLESPLUGIN_H
+#ifndef QDARWINDEVICEMANAGER_H
+#define QDARWINDEVICEMANAGER_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qaudiosystem_p.h>
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <qelapsedtimer.h>
 
 QT_BEGIN_NAMESPACE
 
-class QOpenSLESEngine;
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
 
-class QOpenSLESInterface : public QAudioSystemInterface
+class QCameraInfo;
+
+class QDarwinDeviceManager : public QMediaPlatformDeviceManager
 {
 public:
-    QByteArray defaultDevice(QAudio::Mode mode) const;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const;
-    QAbstractAudioInput *createInput(const QByteArray &device);
-    QAbstractAudioOutput *createOutput(const QByteArray &device);
-    QAbstractAudioDeviceInfo *createDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+    QDarwinDeviceManager();
+    ~QDarwinDeviceManager();
+
+    QList<QAudioDeviceInfo> audioInputs() const override;
+    QList<QAudioDeviceInfo> audioOutputs() const override;
+    QList<QCameraInfo> videoInputs() const override;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
+
+#ifdef Q_OS_MACOS
+    static quint32 handleToAudioDeviceID(const QByteArray &handle)
+    {
+        return handle.toUInt(nullptr, 16);
+    }
+    static QByteArray audioDeviceIDToHandle(quint32 id)
+    {
+        return QByteArray::number(id, 16);
+    }
+#endif
+
+    void updateCameraDevices() const;
+    void updateAudioDevices();
+
+private:
+    mutable QElapsedTimer deviceCheckTimer;
+    mutable QList<QCameraInfo> m_cameraDevices;
 };
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESPLUGIN_H
+#endif

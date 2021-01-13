@@ -352,7 +352,7 @@ QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
 */
 
 QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
-    : QCamera(cameraInfo.deviceName().toLatin1(), parent)
+    : QCamera(cameraInfo.id(), parent)
 {
 }
 

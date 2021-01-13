@@ -61,7 +61,9 @@ public:
 
     bool isNull() const;
 
-    QString deviceName() const;
+    QByteArray id() const;
+    bool isDefault() const;
+
     QString description() const;
     QCamera::Position position() const;
     int orientation() const;
@@ -69,8 +71,9 @@ public:
     static QCameraInfo defaultCamera();
     static QList<QCameraInfo> availableCameras(QCamera::Position position = QCamera::UnspecifiedPosition);
 
+    QCameraInfo(QCameraInfoPrivate *p);
 private:
-    QSharedPointer<QCameraInfoPrivate> d;
+    QExplicitlySharedDataPointer<QCameraInfoPrivate> d;
 };
 
 bool QCameraInfo::operator!=(const QCameraInfo &other) const { return !operator==(other); }

@@ -60,6 +60,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QGstreamerPlatformDeviceManager;
+
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoInputDeviceControl : public QVideoDeviceSelectorControl
 {
 Q_OBJECT
@@ -68,14 +70,6 @@ public:
     QGstreamerVideoInputDeviceControl(GstElementFactory *factory, QObject *parent);
     ~QGstreamerVideoInputDeviceControl();
 
-    int deviceCount() const override;
-
-    QString deviceName(int index) const override;
-    QString deviceDescription(int index) const override;
-    QCamera::Position cameraPosition(int index) const override;
-    int cameraOrientation(int index) const override;
-
-    int defaultDevice() const override;
     int selectedDevice() const override;
 
     static QString primaryCamera() { return tr("Main camera"); }

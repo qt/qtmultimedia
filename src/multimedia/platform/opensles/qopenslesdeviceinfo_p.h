@@ -52,12 +52,13 @@
 //
 
 #include <qaudiosystem_p.h>
+#include <private/qaudiodeviceinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QOpenSLESEngine;
 
-class QOpenSLESDeviceInfo : public QAbstractAudioDeviceInfo
+class QOpenSLESDeviceInfo : public QAudioDeviceInfoPrivate
 {
     Q_OBJECT
 
@@ -78,8 +79,6 @@ public:
 
 private:
     QOpenSLESEngine *m_engine;
-    QByteArray m_device;
-    QAudio::Mode m_mode;
 };
 
 QT_END_NAMESPACE

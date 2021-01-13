@@ -64,21 +64,13 @@ public:
     QGstreamerAudioInputSelector(QObject *parent);
     ~QGstreamerAudioInputSelector();
 
-    QList<QString> availableInputs() const override;
-    QString inputDescription(const QString &name) const override;
-    QString defaultInput() const override;
     QString activeInput() const override;
 
 public Q_SLOTS:
     void setActiveInput(const QString &name) override;
 
 private:
-    void update();
-
-    QString m_defaultInput;
     QString m_audioInput;
-    QList<QString> m_names;
-    QList<QString> m_descriptions;
 };
 
 QT_END_NAMESPACE

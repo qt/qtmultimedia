@@ -43,10 +43,11 @@
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-    : m_device(device)
-    , m_mode(mode)
+QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *description, bool isDef, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(device, mode),
+      m_description(QString::fromUtf8(description))
 {
+    isDefault = isDef;
 }
 
 bool QPulseAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
@@ -58,41 +59,41 @@ bool QPulseAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 QAudioFormat QPulseAudioDeviceInfo::preferredFormat() const
 {
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
-    QAudioFormat format = pulseEngine->m_preferredFormats.value(m_device);
+    QAudioFormat format = pulseEngine->m_preferredFormats.value(id);
     return format;
 }
 
-QString QPulseAudioDeviceInfo::deviceName() const
+QString QPulseAudioDeviceInfo::description() const
 {
-    return QString::fromUtf8(m_device);
+    return m_description;
 }
 
-QStringList QPulseAudioDeviceInfo::supportedCodecs()
+QStringList QPulseAudioDeviceInfo::supportedCodecs() const
 {
     return QStringList() << QString::fromLatin1("audio/x-raw");
 }
 
-QList<int> QPulseAudioDeviceInfo::supportedSampleRates()
+QList<int> QPulseAudioDeviceInfo::supportedSampleRates() const
 {
     return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
 }
 
-QList<int> QPulseAudioDeviceInfo::supportedChannelCounts()
+QList<int> QPulseAudioDeviceInfo::supportedChannelCounts() const
 {
     return QList<int>() << 1 << 2 << 4 << 6 << 8;
 }
 
-QList<int> QPulseAudioDeviceInfo::supportedSampleSizes()
+QList<int> QPulseAudioDeviceInfo::supportedSampleSizes() const
 {
     return QList<int>() << 8 << 16 << 24 << 32;
 }
 
-QList<QAudioFormat::Endian> QPulseAudioDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QPulseAudioDeviceInfo::supportedByteOrders() const
 {
     return QList<QAudioFormat::Endian>() << QAudioFormat::BigEndian << QAudioFormat::LittleEndian;
 }
 
-QList<QAudioFormat::SampleType> QPulseAudioDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QPulseAudioDeviceInfo::supportedSampleTypes() const
 {
     return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }

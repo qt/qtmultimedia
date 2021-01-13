@@ -93,13 +93,6 @@ namespace QGstUtils {
                                              const QStringList &codecs,
                                              const QSet<QString> &supportedMimeTypeSet);
 
-    Q_MULTIMEDIA_EXPORT QList<CameraInfo> enumerateCameras();
-    Q_MULTIMEDIA_EXPORT QList<QByteArray> cameraDevices();
-    Q_MULTIMEDIA_EXPORT QString cameraDescription(const QString &device);
-    Q_MULTIMEDIA_EXPORT QCamera::Position cameraPosition(const QString &device);
-    Q_MULTIMEDIA_EXPORT int cameraOrientation(const QString &device);
-    Q_MULTIMEDIA_EXPORT QByteArray cameraDriver(const QString &device);
-
     Q_MULTIMEDIA_EXPORT const QSet<GstDevice *> &audioSources();
     Q_MULTIMEDIA_EXPORT const QSet<GstDevice *> &audioSinks();
 

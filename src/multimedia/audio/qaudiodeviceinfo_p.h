@@ -37,48 +37,46 @@
 **
 ****************************************************************************/
 
-#include <qaudiodeviceinfo.h>
 
-#include "qaudiointerface_pulse_p.h"
-#include "qaudiodeviceinfo_pulse_p.h"
-#include "qaudiooutput_pulse_p.h"
-#include "qaudioinput_pulse_p.h"
-#include "qaudioengine_pulse_p.h"
+#ifndef QAUDIODEVICEINFO_P_H
+#define QAUDIODEVICEINFO_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtMultimedia/qaudiodeviceinfo.h>
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioInterface::QPulseAudioInterface()
-    : m_pulseEngine(QPulseAudioEngine::instance())
+class QAudioDeviceInfoPrivate : public QSharedData
 {
-}
+public:
+    QAudioDeviceInfoPrivate(const QByteArray &h, QAudio::Mode m);
+    virtual ~QAudioDeviceInfoPrivate();
 
-QByteArray QPulseAudioInterface::defaultDevice(QAudio::Mode mode) const
-{
-    return m_pulseEngine->defaultDevice(mode);
-}
+    virtual QAudioFormat preferredFormat() const = 0;
+    virtual bool isFormatSupported(const QAudioFormat &format) const = 0;
+    virtual QString description() const = 0;
+    virtual QStringList supportedCodecs() const = 0;
+    virtual QList<int> supportedSampleRates() const = 0;
+    virtual QList<int> supportedChannelCounts() const = 0;
+    virtual QList<int> supportedSampleSizes() const = 0;
+    virtual QList<QAudioFormat::Endian> supportedByteOrders() const = 0;
+    virtual QList<QAudioFormat::SampleType> supportedSampleTypes() const = 0;
 
-QList<QByteArray> QPulseAudioInterface::availableDevices(QAudio::Mode mode) const
-{
-    return m_pulseEngine->availableDevices(mode);
-}
-
-QAbstractAudioInput *QPulseAudioInterface::createInput(const QByteArray &device)
-{
-    QPulseAudioInput *input = new QPulseAudioInput(device);
-    return input;
-}
-
-QAbstractAudioOutput *QPulseAudioInterface::createOutput(const QByteArray &device)
-{
-
-    QPulseAudioOutput *output = new QPulseAudioOutput(device);
-    return output;
-}
-
-QAbstractAudioDeviceInfo *QPulseAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-{
-    QPulseAudioDeviceInfo *deviceInfo = new QPulseAudioDeviceInfo(device, mode);
-    return deviceInfo;
-}
+    QByteArray  id;
+    QAudio::Mode mode = QAudio::AudioOutput;
+    bool isDefault = false;
+};
 
 QT_END_NAMESPACE
+
+#endif // QAUDIODEVICEINFO_H

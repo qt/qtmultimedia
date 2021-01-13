@@ -91,24 +91,34 @@ void CameraBinServicePlugin::release(QMediaService *service)
 
 QByteArray CameraBinServicePlugin::defaultDevice(const QByteArray &service) const
 {
-    return service == Q_MEDIASERVICE_CAMERA
-            ? QGstUtils::enumerateCameras().value(0).name.toUtf8()
-            : QByteArray();
+    const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
+
+    if (service != Q_MEDIASERVICE_CAMERA || cameras.isEmpty())
+        return QByteArray();
+    return cameras.at(0).id();
 }
 
 QList<QByteArray> CameraBinServicePlugin::devices(const QByteArray &service) const
 {
-
-    return service == Q_MEDIASERVICE_CAMERA
-            ? QGstUtils::cameraDevices()
-            : QList<QByteArray>();
+    QList<QByteArray> devices;
+    if (service == Q_MEDIASERVICE_CAMERA) {
+        const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
+        for (auto c : cameras)
+            devices.append(c.id());
+    }
+    return devices;
 }
 
 QString CameraBinServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &deviceName)
 {
-    return service == Q_MEDIASERVICE_CAMERA
-            ? QGstUtils::cameraDescription(deviceName)
-            : QString();
+    if (service != Q_MEDIASERVICE_CAMERA)
+        return QString();
+
+    const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
+    for (auto c : cameras)
+        if (c.id() == device)
+            return c.description();
+    return QString();
 }
 
 QVariant CameraBinServicePlugin::deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property)

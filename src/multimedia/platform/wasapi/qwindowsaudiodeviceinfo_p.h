@@ -59,6 +59,7 @@
 
 #include <QtMultimedia/qaudiodeviceinfo.h>
 #include <private/qaudiosystem_p.h>
+#include <private/qaudiodeviceinfo_p.h>
 
 
 QT_BEGIN_NAMESPACE
@@ -66,12 +67,10 @@ QT_BEGIN_NAMESPACE
 const unsigned int MAX_SAMPLE_RATES = 5;
 const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
 
-class QWindowsAudioDeviceInfo : public QAbstractAudioDeviceInfo
+class QWindowsAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
-    Q_OBJECT
-
 public:
-    QWindowsAudioDeviceInfo(QByteArray dev,QAudio::Mode mode);
+    QWindowsAudioDeviceInfo(QByteArray dev, QAudio::Mode mode);
     ~QWindowsAudioDeviceInfo();
 
     bool open();
@@ -83,12 +82,12 @@ public:
     bool isFormatSupported(const QAudioFormat& format) const;
     QString deviceName() const;
     QString description() const { return deviceName(); }
-    QStringList supportedCodecs();
-    QList<int> supportedSampleRates();
-    QList<int> supportedChannelCounts();
-    QList<int> supportedSampleSizes();
-    QList<QAudioFormat::Endian> supportedByteOrders();
-    QList<QAudioFormat::SampleType> supportedSampleTypes();
+    QStringList supportedCodecs() const;
+    QList<int> supportedSampleRates() const;
+    QList<int> supportedChannelCounts() const;
+    QList<int> supportedSampleSizes() const;
+    QList<QAudioFormat::Endian> supportedByteOrders() const;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() const;
     static QByteArray defaultDevice(QAudio::Mode mode);
     static QList<QByteArray> availableDevices(QAudio::Mode);
 

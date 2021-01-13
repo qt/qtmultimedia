@@ -58,6 +58,8 @@
 #include <private/qgstutils_p.h>
 #include <qmediarecorder.h>
 #include <qvideosurfaceformat.h>
+#include <private/qmediaplatformintegration_p.h>
+#include <private/qgstreamerplatformdevicemanager_p.h>
 
 #if QT_CONFIG(gstreamer_photography)
 #include <gst/interfaces/photography.h>
@@ -482,7 +484,8 @@ GstElement *CameraBinSession::buildCameraSource()
                     for (const QByteArray &source : sources) {
                         QList<QByteArray> keyValue = source.split('=');
                         QByteArray name = keyValue.at(0);
-                        if (keyValue.count() > 1 && keyValue.at(0) == QGstUtils::cameraDriver(m_inputDevice))
+                        auto deviceManager = static_cast<QGstreamerPlatformDeviceManager *>(QMediaPlatformIntegration::instance()->deviceManager());
+                        if (keyValue.count() > 1 && keyValue.at(0) == deviceManager->cameraDriver(m_inputDevice))
                             name = keyValue.at(1);
 
                         GError *error = NULL;

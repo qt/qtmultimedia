@@ -105,7 +105,7 @@ void tst_QCameraBackend::testCameraInfo()
     }
 
     for (const QCameraInfo &info : cameras) {
-        QVERIFY(!info.deviceName().isEmpty());
+        QVERIFY(!info.id().isEmpty());
         QVERIFY(!info.description().isEmpty());
         QVERIFY(info.orientation() % 90 == 0);
     }
@@ -117,7 +117,7 @@ void tst_QCameraBackend::testCtorWithDevice()
     if (availableCameras.isEmpty())
         QSKIP("Camera selection not supported");
 
-    QCamera *camera = new QCamera(availableCameras.first().deviceName().toLatin1());
+    QCamera *camera = new QCamera(availableCameras.first().id());
     QCOMPARE(camera->error(), QCamera::NoError);
     delete camera;
 
@@ -545,7 +545,7 @@ void tst_QCameraBackend::testVideoRecording_data()
 
     for (const auto &device : devices) {
         QTest::newRow(device.description().toUtf8())
-                << device.deviceName().toLatin1();
+                << device.id();
     }
 
     if (devices.isEmpty())

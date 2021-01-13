@@ -51,6 +51,8 @@
 //
 
 #include <qaudiosystem_p.h>
+#include <private/qcoreaudiodeviceinfo_p.h>
+
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
 #include <AudioToolbox/AudioToolbox.h>
@@ -190,7 +192,7 @@ class CoreAudioInput : public QAbstractAudioInput
     Q_OBJECT
 
 public:
-    CoreAudioInput(const QByteArray &device);
+    CoreAudioInput(const QAudioDeviceInfo &device);
     ~CoreAudioInput();
 
     void start(QIODevice *device);
@@ -246,6 +248,7 @@ private:
                                     UInt32 inNumberFrames,
                                     AudioBufferList *ioData);
 
+    QAudioDeviceInfo m_audioDeviceInfo;
     QByteArray m_device;
     bool m_isOpen;
     int m_periodSizeBytes;
@@ -268,7 +271,6 @@ private:
     QTimer *m_intervalTimer;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;
-    QAbstractAudioDeviceInfo *m_audioDeviceInfo;
     qreal m_volume;
 };
 

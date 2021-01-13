@@ -39,6 +39,8 @@
 
 #include "qcoreaudiodeviceinfo_p.h"
 #include "qcoreaudioutils_p.h"
+#include <private/qcore_mac_p.h>
+
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 # include "qcoreaudiosessionmanager_p.h"
 #endif
@@ -50,18 +52,10 @@
 
 QT_BEGIN_NAMESPACE
 
-QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-    : m_mode(mode)
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(device, mode),
+      m_deviceId(id)
 {
-#if defined(Q_OS_OSX)
-    quint32 deviceID;
-
-    QDataStream dataStream(device);
-    dataStream >> deviceID >> m_device;
-    m_deviceId = AudioDeviceID(deviceID);
-#else //iOS
-    m_device = device;
-#endif
 }
 
 
@@ -71,7 +65,7 @@ QAudioFormat QCoreAudioDeviceInfo::preferredFormat() const
 
 #if defined(Q_OS_OSX)
     UInt32  propSize = 0;
-    AudioObjectPropertyScope audioDevicePropertyScope = m_mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
+    AudioObjectPropertyScope audioDevicePropertyScope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
     AudioObjectPropertyAddress audioDevicePropertyStreamsAddress = { kAudioDevicePropertyStreams,
                                                                      audioDevicePropertyScope,
                                                                      kAudioObjectPropertyElementMaster };
@@ -110,7 +104,7 @@ QAudioFormat QCoreAudioDeviceInfo::preferredFormat() const
     }
 #else //iOS
     format.setSampleSize(16);
-    if (m_mode == QAudio::AudioInput) {
+    if (mode == QAudio::AudioInput) {
         format.setChannelCount(1);
         format.setSampleRate(8000);
     } else {
@@ -140,25 +134,44 @@ bool QCoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 }
 
 
-QString QCoreAudioDeviceInfo::deviceName() const
+QString QCoreAudioDeviceInfo::description() const
 {
-    return m_device;
+#ifdef Q_OS_MACOS
+    CFStringRef name;
+    UInt32 size = sizeof(CFStringRef);
+    AudioObjectPropertyScope audioPropertyScope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
+
+    AudioObjectPropertyAddress audioDeviceNamePropertyAddress = { kAudioObjectPropertyName,
+                                                                  audioPropertyScope,
+                                                                  kAudioObjectPropertyElementMaster };
+
+    if (AudioObjectGetPropertyData(m_deviceId, &audioDeviceNamePropertyAddress, 0, NULL, &size, &name) != noErr) {
+        qWarning() << "QAudioDeviceInfo: Unable to find device description";
+        return QString();
+    }
+
+    QString s = QString::fromCFString(name);
+    CFRelease(name);
+    return s;
+#else
+    return QString::fromUtf8(m_device);
+#endif
 }
 
 
-QStringList QCoreAudioDeviceInfo::supportedCodecs()
+QStringList QCoreAudioDeviceInfo::supportedCodecs() const
 {
     return QStringList() << QString::fromLatin1("audio/x-raw");
 }
 
 
-QList<int> QCoreAudioDeviceInfo::supportedSampleRates()
+QList<int> QCoreAudioDeviceInfo::supportedSampleRates() const
 {
     QSet<int> sampleRates;
 
 #if defined(Q_OS_OSX)
     UInt32  propSize = 0;
-    AudioObjectPropertyScope scope = m_mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
+    AudioObjectPropertyScope scope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
     AudioObjectPropertyAddress availableNominalSampleRatesAddress = { kAudioDevicePropertyAvailableNominalSampleRates,
                                                                       scope,
                                                                       kAudioObjectPropertyElementMaster };
@@ -189,7 +202,7 @@ QList<int> QCoreAudioDeviceInfo::supportedSampleRates()
 }
 
 
-QList<int> QCoreAudioDeviceInfo::supportedChannelCounts()
+QList<int> QCoreAudioDeviceInfo::supportedChannelCounts() const
 {
     static QList<int> supportedChannels;
 
@@ -204,143 +217,20 @@ QList<int> QCoreAudioDeviceInfo::supportedChannelCounts()
 }
 
 
-QList<int> QCoreAudioDeviceInfo::supportedSampleSizes()
+QList<int> QCoreAudioDeviceInfo::supportedSampleSizes() const
 {
     return QList<int>() << 8 << 16 << 24 << 32 << 64;
 }
 
 
-QList<QAudioFormat::Endian> QCoreAudioDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QCoreAudioDeviceInfo::supportedByteOrders() const
 {
     return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian << QAudioFormat::BigEndian;
 }
 
-
-QList<QAudioFormat::SampleType> QCoreAudioDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QCoreAudioDeviceInfo::supportedSampleTypes() const
 {
     return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }
 
-#if defined(Q_OS_OSX)
-// XXX: remove at some future date
-static inline QString cfStringToQString(CFStringRef str)
-{
-    CFIndex length = CFStringGetLength(str);
-    const UniChar *chars = CFStringGetCharactersPtr(str);
-    if (chars)
-        return QString(reinterpret_cast<const QChar *>(chars), length);
-
-    UniChar buffer[length];
-    CFStringGetCharacters(str, CFRangeMake(0, length), buffer);
-    return QString(reinterpret_cast<const QChar *>(buffer), length);
-}
-
-static QByteArray get_device_info(AudioDeviceID audioDevice, QAudio::Mode mode)
-{
-    UInt32      size;
-    QByteArray  device;
-    QDataStream ds(&device, QIODevice::WriteOnly);
-    AudioStreamBasicDescription     sf;
-    CFStringRef name;
-    Boolean     isInput = mode == QAudio::AudioInput;
-    AudioObjectPropertyScope audioPropertyScope = isInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
-
-    // Id
-    ds << quint32(audioDevice);
-
-    // Mode //TODO: Why don't we use the Stream Format we ask for?
-    size = sizeof(AudioStreamBasicDescription);
-    AudioObjectPropertyAddress audioDeviceStreamFormatPropertyAddress = { kAudioDevicePropertyStreamFormat,
-                                                                    audioPropertyScope,
-                                                                    kAudioObjectPropertyElementMaster };
-
-    if (AudioObjectGetPropertyData(audioDevice, &audioDeviceStreamFormatPropertyAddress, 0, NULL, &size, &sf) != noErr) {
-        return QByteArray();
-    }
-
-    // Name
-    size = sizeof(CFStringRef);
-    AudioObjectPropertyAddress audioDeviceNamePropertyAddress = { kAudioObjectPropertyName,
-                                                                  audioPropertyScope,
-                                                                  kAudioObjectPropertyElementMaster };
-
-    if (AudioObjectGetPropertyData(audioDevice, &audioDeviceNamePropertyAddress, 0, NULL, &size, &name) != noErr) {
-        qWarning() << "QAudioDeviceInfo: Unable to find device name";
-        return QByteArray();
-    }
-    ds << cfStringToQString(name);
-
-    CFRelease(name);
-
-    return device;
-}
-#endif
-
-QByteArray QCoreAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
-{
-#if defined(Q_OS_OSX)
-    AudioDeviceID audioDevice;
-    UInt32 size = sizeof(audioDevice);
-    const AudioObjectPropertySelector selector = (mode == QAudio::AudioOutput) ? kAudioHardwarePropertyDefaultOutputDevice
-                                                                               : kAudioHardwarePropertyDefaultInputDevice;
-    AudioObjectPropertyAddress defaultDevicePropertyAddress = { selector,
-                                                                kAudioObjectPropertyScopeGlobal,
-                                                                kAudioObjectPropertyElementMaster };
-
-    if (AudioObjectGetPropertyData(kAudioObjectSystemObject,
-                                   &defaultDevicePropertyAddress,
-                                   0, NULL, &size, &audioDevice) != noErr) {
-        qWarning("QAudioDeviceInfo: Unable to find default %s device",  (mode == QAudio::AudioOutput) ? "output" : "input");
-        return QByteArray();
-    }
-
-    return get_device_info(audioDevice, mode);
-#else //iOS
-    const auto &devices = (mode == QAudio::AudioOutput) ? CoreAudioSessionManager::instance().outputDevices()
-                                                        : CoreAudioSessionManager::instance().inputDevices();
-    return !devices.isEmpty() ? devices.first() : QByteArray();
-#endif
-}
-
-QList<QByteArray> QCoreAudioDeviceInfo::availableDevices(QAudio::Mode mode)
-{
-    QList<QByteArray> devices;
-#if defined(Q_OS_OSX)
-    UInt32  propSize = 0;
-    AudioObjectPropertyAddress audioDevicesPropertyAddress = { kAudioHardwarePropertyDevices,
-                                                               kAudioObjectPropertyScopeGlobal,
-                                                               kAudioObjectPropertyElementMaster };
-
-    if (AudioObjectGetPropertyDataSize(kAudioObjectSystemObject,
-                                       &audioDevicesPropertyAddress,
-                                       0, NULL, &propSize) == noErr) {
-
-        const int dc = propSize / sizeof(AudioDeviceID);
-
-        if (dc > 0) {
-            AudioDeviceID*  audioDevices = new AudioDeviceID[dc];
-
-            if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &audioDevicesPropertyAddress, 0, NULL, &propSize, audioDevices) == noErr) {
-                for (int i = 0; i < dc; ++i) {
-                    const QByteArray &info = get_device_info(audioDevices[i], mode);
-                    if (!info.isNull())
-                        devices << info;
-                }
-            }
-
-            delete[] audioDevices;
-        }
-    }
-#else //iOS
-    if (mode == QAudio::AudioOutput)
-        return CoreAudioSessionManager::instance().outputDevices();
-    if (mode == QAudio::AudioInput)
-        return CoreAudioSessionManager::instance().inputDevices();
-#endif
-
-    return devices;
-}
-
 QT_END_NAMESPACE
-
-#include "moc_qcoreaudiodeviceinfo_p.cpp"

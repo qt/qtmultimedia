@@ -44,9 +44,8 @@
 QT_BEGIN_NAMESPACE
 
 QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-    : m_engine(QOpenSLESEngine::instance())
-    , m_device(device)
-    , m_mode(mode)
+    : QAudioDeviceInfoPrivate(device, mode),
+      m_engine(QOpenSLESEngine::instance())
 {
 }
 
@@ -68,13 +67,13 @@ QAudioFormat QOpenSLESDeviceInfo::preferredFormat() const
     format.setSampleSize(16);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setSampleRate(QOpenSLESEngine::getOutputValue(QOpenSLESEngine::SampleRate, 48000));
-    format.setChannelCount(m_mode == QAudio::AudioInput ? 1 : 2);
+    format.setChannelCount(mode == QAudio::AudioInput ? 1 : 2);
     return format;
 }
 
 QString QOpenSLESDeviceInfo::deviceName() const
 {
-    return m_device;
+    return id;
 }
 
 QStringList QOpenSLESDeviceInfo::supportedCodecs()
@@ -84,17 +83,17 @@ QStringList QOpenSLESDeviceInfo::supportedCodecs()
 
 QList<int> QOpenSLESDeviceInfo::supportedSampleRates()
 {
-    return m_engine->supportedSampleRates(m_mode);
+    return m_engine->supportedSampleRates(mode);
 }
 
 QList<int> QOpenSLESDeviceInfo::supportedChannelCounts()
 {
-    return m_engine->supportedChannelCounts(m_mode);
+    return m_engine->supportedChannelCounts(mode);
 }
 
 QList<int> QOpenSLESDeviceInfo::supportedSampleSizes()
 {
-    if (m_mode == QAudio::AudioInput)
+    if (mode == QAudio::AudioInput)
         return QList<int>() << 16;
     else
         return QList<int>() << 8 << 16;

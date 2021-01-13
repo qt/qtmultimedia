@@ -20,6 +20,7 @@ qt_add_module(MultimediaWidgets
         Qt::Multimedia
         Qt::Widgets
     PRIVATE_MODULE_INTERFACE
+        Qt::MultimediaPrivate
         Qt::WidgetsPrivate
 )
 
@@ -43,8 +44,15 @@ qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_gstreamer
         gstreamer/qgstreamervideowidget.cpp gstreamer/qgstreamervideowidget_p.h
 )
 
-qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_avfoundation
+qt_extend_target(MultimediaWidgets CONDITION APPLE AND QT_FEATURE_avfoundation
     SOURCES
         platform/avfoundation/avfvideowidget.mm platform/avfoundation/avfvideowidget_p.h
         platform/avfoundation/avfvideowidgetcontrol.mm platform/avfoundation/avfvideowidgetcontrol_p.h
+    PUBLIC_LIBRARIES
+        ${FWCoreFoundation}
+        ${FWCoreVideo}
+        ${FWFoundation}
+        ${FWMetal}
+        ${FWQuartzCore}
+        avfoundation
 )

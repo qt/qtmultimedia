@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,52 +37,50 @@
 **
 ****************************************************************************/
 
-#include <qaudiodeviceinfo.h>
+#ifndef QGSTREAMERDEVICEMANAGER_H
+#define QGSTREAMERDEVICEMANAGER_H
 
-#include "qaudiointerface_gstreamer_p.h"
-#include "qaudiodeviceinfo_gstreamer_p.h"
-#include "qaudiooutput_gstreamer_p.h"
-#include "qaudioinput_gstreamer_p.h"
-#include "qaudioengine_gstreamer_p.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include "private/qgstreameraudioinputselector_p.h"
-#include "private/qgstutils_p.h"
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <gst/gst.h>
+#include <qset.h>
+#include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerAudioInterface::QGStreamerAudioInterface()
-    : m_gstreamerEngine(QGStreamerAudioEngine::instance())
+class QGstreamerDeviceManager : public QMediaPlatformDeviceManager
 {
-    QGstUtils::initializeGst();
-}
+public:
+    QGstreamerDeviceManager();
 
-QByteArray QGStreamerAudioInterface::defaultDevice(QAudio::Mode mode) const
-{
-    return m_gstreamerEngine->defaultDevice(mode);
-}
+    QList<QAudioDeviceInfo> audioInputs() const override;
+    QList<QAudioDeviceInfo> audioOutputs() const override;
+    QList<QCameraInfo> videoInputs() const override;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
 
-QList<QByteArray> QGStreamerAudioInterface::availableDevices(QAudio::Mode mode) const
-{
-    return m_gstreamerEngine->availableDevices(mode);
-}
+    void addDevice(GstDevice *);
+    void removeDevice(GstDevice *);
 
-QAbstractAudioInput *QGStreamerAudioInterface::createInput(const QByteArray &device)
-{
-    QGStreamerAudioInput *input = new QGStreamerAudioInput(device);
-    return input;
-}
+    QByteArray cameraDriver(const QByteArray &cameraId) const;
+    GstDevice *audioDevice(const QByteArray &id, QAudio::Mode mode) const;
 
-QAbstractAudioOutput *QGStreamerAudioInterface::createOutput(const QByteArray &device)
-{
-
-    QGStreamerAudioOutput *output = new QGStreamerAudioOutput(device);
-    return output;
-}
-
-QAbstractAudioDeviceInfo *QGStreamerAudioInterface::createDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-{
-    QGStreamerAudioDeviceInfo *deviceInfo = new QGStreamerAudioDeviceInfo(device, mode);
-    return deviceInfo;
-}
+private:
+    QSet<GstDevice *> m_videoSources;
+    QSet<GstDevice *> m_audioSources;
+    QSet<GstDevice *> m_audioSinks;
+};
 
 QT_END_NAMESPACE
+
+#endif

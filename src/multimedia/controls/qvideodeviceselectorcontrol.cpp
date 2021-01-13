@@ -38,6 +38,9 @@
 ****************************************************************************/
 
 #include "qvideodeviceselectorcontrol.h"
+#include "private/qmediaplatformdevicemanager_p.h"
+#include "private/qmediaplatformintegration_p.h"
+#include "qcamerainfo.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -75,6 +78,7 @@ QT_BEGIN_NAMESPACE
 QVideoDeviceSelectorControl::QVideoDeviceSelectorControl(QObject *parent)
     :QObject(parent)
 {
+    m_deviceManager = QMediaPlatformIntegration::instance()->deviceManager();
 }
 
 /*!
@@ -82,26 +86,48 @@ QVideoDeviceSelectorControl::QVideoDeviceSelectorControl(QObject *parent)
 
     Returns the number of available video devices;
 */
+inline int QVideoDeviceSelectorControl::deviceCount() const
+{
+    return m_deviceManager->videoInputs().size();
+}
 
 /*!
     \fn QVideoDeviceSelectorControl::deviceName(int index) const
 
     Returns the name of the video device at \a index.
 */
+QString QVideoDeviceSelectorControl::deviceName(int index) const
+{
+    auto cameras = m_deviceManager->videoInputs();
+    return QString::fromLatin1(cameras.value(index).id());
+}
 
 /*!
+
     \fn QVideoDeviceSelectorControl::deviceDescription(int index) const
 
     Returns a description of the video device at \a index.
 */
+QString QVideoDeviceSelectorControl::deviceDescription(int index) const
+{
+    auto cameras = m_deviceManager->videoInputs();
+    return cameras.value(index).description();
+}
 
 /*!
+
     \fn QVideoDeviceSelectorControl::cameraPosition(int index) const
 
     Returns the physical position of the camera at \a index.
 */
+QCamera::Position QVideoDeviceSelectorControl::cameraPosition(int index) const
+{
+    auto cameras = m_deviceManager->videoInputs();
+    return cameras.value(index).position();
+}
 
 /*!
+
     \fn QVideoDeviceSelectorControl::cameraOrientation(const QString &deviceName) const
 
     Returns the physical orientation of the sensor for the camera at \a index.
@@ -109,13 +135,21 @@ QVideoDeviceSelectorControl::QVideoDeviceSelectorControl(QObject *parent)
     The value is the orientation angle (clockwise, in steps of 90 degrees) of the camera sensor
     in relation to the display in its natural orientation.
 */
-
+int QVideoDeviceSelectorControl::cameraOrientation(int index) const
+{
+    auto cameras = m_deviceManager->videoInputs();
+    return cameras.value(index).orientation();
+}
 
 /*!
     \fn QVideoDeviceSelectorControl::defaultDevice() const
 
     Returns the index of the default video device.
 */
+int QVideoDeviceSelectorControl::defaultDevice() const
+{
+    return 0;
+}
 
 /*!
     \fn QVideoDeviceSelectorControl::selectedDevice() const
