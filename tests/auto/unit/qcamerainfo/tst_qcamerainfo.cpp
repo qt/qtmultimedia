@@ -31,6 +31,7 @@
 
 #include <qcamera.h>
 #include <qcamerainfo.h>
+#include <qmediadevicemanager.h>
 
 #include "mockcameraservice.h"
 #include "mockmediaserviceprovider.h"
@@ -129,7 +130,7 @@ void tst_QCameraInfo::defaultCamera()
 {
     provider->service = mockCameraService;
 
-    QCameraInfo info = QCameraInfo::defaultCamera();
+    QCameraInfo info = QMediaDeviceManager::defaultVideoInput();
 
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("othercamera"));
@@ -145,7 +146,7 @@ void tst_QCameraInfo::availableCameras()
 {
     provider->service = mockCameraService;
 
-    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
     QCOMPARE(cameras.count(), 2);
 
     QCameraInfo info = cameras.at(0);
@@ -162,25 +163,25 @@ void tst_QCameraInfo::availableCameras()
     QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
     QCOMPARE(info.orientation(), 0);
 
-    cameras = QCameraInfo::availableCameras(QCamera::BackFace);
-    QCOMPARE(cameras.count(), 1);
-    info = cameras.at(0);
-    QVERIFY(!info.isNull());
-    QCOMPARE(info.id(), QStringLiteral("backcamera"));
-    QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
-    QCOMPARE(info.position(), QCamera::BackFace);
-    QCOMPARE(info.orientation(), 90);
+//    cameras = QMediaDeviceManager::videoInputs(QCamera::BackFace);
+//    QCOMPARE(cameras.count(), 1);
+//    info = cameras.at(0);
+//    QVERIFY(!info.isNull());
+//    QCOMPARE(info.id(), QStringLiteral("backcamera"));
+//    QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
+//    QCOMPARE(info.position(), QCamera::BackFace);
+//    QCOMPARE(info.orientation(), 90);
 
-    cameras = QCameraInfo::availableCameras(QCamera::FrontFace);
-    QCOMPARE(cameras.count(), 0);
+//    cameras = QMediaDeviceManager::videoInputs(QCamera::FrontFace);
+//    QCOMPARE(cameras.count(), 0);
 }
 
 void tst_QCameraInfo::equality_operators()
 {
     provider->service = mockCameraService;
 
-    QCameraInfo defaultCamera = QCameraInfo::defaultCamera();
-    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    QCameraInfo defaultCamera = QMediaDeviceManager::defaultVideoInput();
+    QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
 
     QVERIFY(defaultCamera == cameras.at(1));
     QVERIFY(defaultCamera != cameras.at(0));

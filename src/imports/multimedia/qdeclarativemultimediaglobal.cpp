@@ -41,6 +41,7 @@
 
 #include <qcamerainfo.h>
 #include <qjsengine.h>
+#include <qmediadevicemanager.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -171,12 +172,12 @@ QDeclarativeMultimediaGlobal::QDeclarativeMultimediaGlobal(QJSEngine *engine, QO
 
 QJSValue QDeclarativeMultimediaGlobal::defaultCamera() const
 {
-    return cameraInfoToJSValue(m_engine, QCameraInfo::defaultCamera());
+    return cameraInfoToJSValue(m_engine, QMediaDeviceManager::defaultVideoInput());
 }
 
 QJSValue QDeclarativeMultimediaGlobal::availableCameras() const
 {
-    QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
     QJSValue availableCameras = m_engine->newArray(cameras.count());
     for (int i = 0; i < cameras.count(); ++i)
         availableCameras.setProperty(i, cameraInfoToJSValue(m_engine, cameras.at(i)));

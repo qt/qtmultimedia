@@ -207,43 +207,6 @@ int QCameraInfo::orientation() const
     return d->orientation;
 }
 
-/*!
-    Returns the default camera on the system.
-
-    The returned object should be checked using isNull() before being used, in case there is no
-    default camera or no cameras at all.
-
-    \sa availableCameras()
-*/
-QCameraInfo QCameraInfo::defaultCamera()
-{
-    return QCameraInfo(QMediaServiceProvider::defaultServiceProvider()->defaultDevice(Q_MEDIASERVICE_CAMERA));
-}
-
-/*!
-    Returns a list of available cameras on the system which are located at \a position.
-
-    If \a position is not specified or if the value is QCamera::UnspecifiedPosition, a list of
-    all available cameras will be returned.
-*/
-QList<QCameraInfo> QCameraInfo::availableCameras(QCamera::Position position)
-{
-    QList<QCameraInfo> cameras;
-
-    const QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
-    const QByteArray service(Q_MEDIASERVICE_CAMERA);
-    const QList<QByteArray> devices = provider->devices(service);
-    for (int i = 0; i < devices.count(); ++i) {
-        const QByteArray &name = devices.at(i);
-        if (position == QCamera::UnspecifiedPosition
-                || position == provider->cameraPosition(name)) {
-            cameras.append(QCameraInfo(name));
-        }
-    }
-
-    return cameras;
-}
-
 QCameraInfo::QCameraInfo(QCameraInfoPrivate *p)
     : d(p)
 {}

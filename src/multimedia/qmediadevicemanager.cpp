@@ -109,6 +109,12 @@ QList<QAudioDeviceInfo> QMediaDeviceManager::audioOutputs()
     return priv.pmanager->audioOutputs();
 }
 
+/*!
+    Returns a list of available cameras on the system which are located at \a position.
+
+    If \a position is not specified or if the value is QCamera::UnspecifiedPosition, a list of
+    all available cameras will be returned.
+*/
 QList<QCameraInfo> QMediaDeviceManager::videoInputs()
 {
     return priv.pmanager->videoInputs();
@@ -132,6 +138,14 @@ QAudioDeviceInfo QMediaDeviceManager::defaultAudioOutput()
     return outputs.value(0);
 }
 
+/*!
+    Returns the default camera on the system.
+
+    The returned object should be checked using isNull() before being used, in case there is no
+    default camera or no cameras at all.
+
+    \sa availableCameras()
+*/
 QCameraInfo QMediaDeviceManager::defaultVideoInput()
 {
     const auto inputs = videoInputs();

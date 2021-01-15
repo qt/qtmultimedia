@@ -68,9 +68,6 @@ public:
     QCamera::Position position() const;
     int orientation() const;
 
-    static QCameraInfo defaultCamera();
-    static QList<QCameraInfo> availableCameras(QCamera::Position position = QCamera::UnspecifiedPosition);
-
     QCameraInfo(QCameraInfoPrivate *p);
 private:
     QExplicitlySharedDataPointer<QCameraInfoPrivate> d;

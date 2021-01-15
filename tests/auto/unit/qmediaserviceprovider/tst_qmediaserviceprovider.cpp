@@ -40,6 +40,7 @@
 #include <qmediarecorder.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
+#include <qmediadevicemanager.h>
 
 QT_USE_NAMESPACE
 
@@ -231,25 +232,25 @@ void tst_QMediaServiceProvider::testCameraInfo()
     }
 
     {
-        QCamera camera(QCameraInfo::defaultCamera());
+        QCamera camera(QMediaDeviceManager::defaultVideoInput());
         QVERIFY(camera.service());
         QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin3"));
     }
 
     {
-        QCamera camera(QCameraInfo::availableCameras().at(0));
+        QCamera camera(QMediaDeviceManager::videoInputs().at(0));
         QVERIFY(camera.service());
         QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin3"));
     }
 
     {
-        QCamera camera(QCameraInfo::availableCameras().at(1));
+        QCamera camera(QMediaDeviceManager::videoInputs().at(1));
         QVERIFY(camera.service());
         QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin5"));
     }
 
     {
-        QCamera camera(QCameraInfo::availableCameras().at(2));
+        QCamera camera(QMediaDeviceManager::videoInputs().at(2));
         QVERIFY(camera.service());
         QCOMPARE(camera.service()->objectName(), QLatin1String("MockServicePlugin5"));
     }

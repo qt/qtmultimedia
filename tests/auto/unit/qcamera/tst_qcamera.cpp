@@ -43,6 +43,7 @@
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
 #include <qvideorenderercontrol.h>
+#include <qmediadevicemanager.h>
 
 #include "mockcameraservice.h"
 
@@ -1658,15 +1659,15 @@ void tst_QCamera::testConstructor()
     }
 
     {
-        QCamera camera(QCameraInfo::defaultCamera());
+        QCamera camera(QMediaDeviceManager::defaultVideoInput());
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(mockCameraService->mockVideoDeviceSelectorControl->selectedDevice(), 1);
-        QCOMPARE(QCameraInfo(camera), QCameraInfo::defaultCamera());
+        QCOMPARE(QCameraInfo(camera), QMediaDeviceManager::defaultVideoInput());
     }
 
     {
-        QCameraInfo cameraInfo = QCameraInfo::availableCameras().at(0);
+        QCameraInfo cameraInfo = QMediaDeviceManager::videoInputs().at(0);
         QCamera camera(cameraInfo);
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);

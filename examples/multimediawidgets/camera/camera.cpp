@@ -63,6 +63,7 @@
 #include <QPalette>
 
 #include <QtWidgets>
+#include <QMediaDeviceManager>
 
 Q_DECLARE_METATYPE(QCameraInfo)
 
@@ -74,12 +75,12 @@ Camera::Camera() : ui(new Ui::Camera)
 
     QActionGroup *videoDevicesGroup = new QActionGroup(this);
     videoDevicesGroup->setExclusive(true);
-    const QList<QCameraInfo> availableCameras = QCameraInfo::availableCameras();
+    const QList<QCameraInfo> availableCameras = QMediaDeviceManager::videoInputs();
     for (const QCameraInfo &cameraInfo : availableCameras) {
         QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
         videoDeviceAction->setCheckable(true);
         videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
-        if (cameraInfo == QCameraInfo::defaultCamera())
+        if (cameraInfo == QMediaDeviceManager::defaultVideoInput())
             videoDeviceAction->setChecked(true);
 
         ui->menuDevices->addAction(videoDeviceAction);
@@ -88,7 +89,7 @@ Camera::Camera() : ui(new Ui::Camera)
     connect(videoDevicesGroup, &QActionGroup::triggered, this, &Camera::updateCameraDevice);
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
 
-    setCamera(QCameraInfo::defaultCamera());
+    setCamera(QMediaDeviceManager::defaultVideoInput());
 }
 
 void Camera::setCamera(const QCameraInfo &cameraInfo)

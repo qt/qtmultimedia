@@ -52,6 +52,7 @@
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
 #include <qvideodeviceselectorcontrol.h>
+#include <QMediaDeviceManager>
 #include <QtQml/qqmlinfo.h>
 
 #include <QtCore/QTimer>
@@ -175,7 +176,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_pendingState(ActiveState),
     m_componentComplete(false)
 {
-    m_currentCameraInfo = QCameraInfo::defaultCamera();
+    m_currentCameraInfo = QMediaDeviceManager::defaultVideoInput();
     m_camera = new QCamera(m_currentCameraInfo);
 
     m_imageCapture = new QDeclarativeCameraCapture(m_camera);
@@ -302,13 +303,17 @@ void QDeclarativeCamera::setPosition(Position position)
 
     QByteArray id;
 
-    if (pos == QCamera::UnspecifiedPosition) {
-        id = QCameraInfo::defaultCamera().id();
-    } else {
-        QList<QCameraInfo> cameras = QCameraInfo::availableCameras(pos);
-        if (!cameras.isEmpty())
-            id = cameras.first().id();
+    if (pos != QCamera::UnspecifiedPosition) {
+        const QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
+        for (auto c : cameras) {
+            if (c.position() == pos) {
+                id = c.id();
+                break;
+            }
+        }
     }
+    if (id.isEmpty())
+        id = QMediaDeviceManager::defaultVideoInput().id();
 
     if (!id.isEmpty())
         setupDevice(QString::fromLatin1(id));
