@@ -18,9 +18,6 @@ win32 {
     include(wasapi/wasapi.pri)
     include(wmf/wmf.pri)
 }
-darwin:!watchos {
-    include(coreaudio/coreaudio.pri)
-    include(avfoundation/avfoundation.pri)
-}
+darwin:!watchos:include(darwin/darwin.pri)
 qnx: include(qnx/qnx.pri)
 

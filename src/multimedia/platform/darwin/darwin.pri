@@ -14,6 +14,7 @@ ios:LIBS += -framework CoreGraphics \
 
 QMAKE_USE += avfoundation
 
+include(audio/audio.pri)
 include(mediaplayer/mediaplayer.pri)
 !tvos:include(camera/camera.pri)
 
