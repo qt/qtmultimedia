@@ -42,6 +42,7 @@
 #include "camerabinaudioencoder.h"
 #include "camerabinvideoencoder.h"
 #include "camerabincontainer.h"
+#include "qaudiodeviceinfo.h"
 #include <QtCore/QDebug>
 
 
@@ -201,6 +202,18 @@ void CameraBinRecorder::applySettings()
         }
     }
 #endif
+}
+
+QAudioDeviceInfo CameraBinRecorder::audioInput() const
+{
+######
+}
+
+bool CameraBinRecorder::setAudioInput(const QAudioDeviceInfo &info)
+{
+    // ### do proper error checking
+    m_session->setCaptureDevice(QString::fromLatin1(info.id()));
+    return true;
 }
 
 #if QT_CONFIG(gstreamer_encodingprofiles)

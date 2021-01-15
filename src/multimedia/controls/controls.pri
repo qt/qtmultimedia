@@ -4,7 +4,6 @@ INCLUDEPATH += controls
 PUBLIC_HEADERS += \
     controls/qaudiodecodercontrol.h \
     controls/qaudioencodersettingscontrol.h \
-    controls/qaudioinputselectorcontrol.h \
     controls/qaudiooutputselectorcontrol.h \
     controls/qcameracontrol.h \
     controls/qcameraexposurecontrol.h \
@@ -45,6 +44,5 @@ SOURCES += \
     controls/qaudiodecodercontrol.cpp \
     controls/qvideoencodersettingscontrol.cpp \
     controls/qaudioencodersettingscontrol.cpp \
-    controls/qaudioinputselectorcontrol.cpp \
     controls/qaudiooutputselectorcontrol.cpp \
     controls/qvideodeviceselectorcontrol.cpp

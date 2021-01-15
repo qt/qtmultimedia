@@ -83,6 +83,9 @@ public:
 
     void applySettings() override;
 
+    QAudioDeviceInfo audioInput() const override;
+    bool setAudioInput(const QAudioDeviceInfo &id) override;
+
 #if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingContainerProfile *videoProfile();
 #endif

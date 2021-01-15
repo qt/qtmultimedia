@@ -56,7 +56,6 @@
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
-class QAudioInputSelectorControl;
 class QVideoDeviceSelectorControl;
 
 class QGstreamerAudioProbeControl;
@@ -92,7 +91,6 @@ private:
 #endif
     QGstreamerCaptureMetaDataControl *m_metaDataControl;
 
-    QAudioInputSelectorControl *m_audioInputSelector;
     QVideoDeviceSelectorControl *m_videoInputDevice;
 
     QObject *m_videoOutput;

@@ -67,7 +67,6 @@ class AVFCameraRendererControl;
 class AVFImageCaptureControl;
 class AVFCameraSession;
 class AVFCameraDeviceControl;
-class AVFAudioInputSelectorControl;
 class AVFCameraFocusControl;
 class AVFCameraExposureControl;
 class AVFImageEncoderControl;
@@ -91,7 +90,6 @@ public:
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *cameraControl() const { return m_cameraControl; }
     AVFCameraDeviceControl *videoDeviceControl() const { return m_videoDeviceControl; }
-    AVFAudioInputSelectorControl *audioInputSelectorControl() const { return m_audioInputSelectorControl; }
     AVFCameraMetaDataControl *metaDataControl() const { return m_metaDataControl; }
     QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
@@ -107,7 +105,6 @@ private:
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     AVFCameraDeviceControl *m_videoDeviceControl;
-    AVFAudioInputSelectorControl *m_audioInputSelectorControl;
     AVFCameraRendererControl *m_videoOutput;
     AVFCameraMetaDataControl *m_metaDataControl;
     QMediaRecorderControl *m_recorderControl;

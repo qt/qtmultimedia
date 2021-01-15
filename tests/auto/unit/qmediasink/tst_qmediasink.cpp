@@ -35,7 +35,6 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qmetadatawritercontrol.h>
-#include <qaudioinputselectorcontrol.h>
 #include <qaudioencodersettingscontrol.h>
 #include <qmediacontainercontrol.h>
 #include <qvideoencodersettingscontrol.h>

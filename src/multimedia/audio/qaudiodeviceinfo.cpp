@@ -424,15 +424,6 @@ QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfoPrivate *p)
 /*!
     \internal
 */
-QByteArray QAudioDeviceInfo::handle() const
-{
-    return d->id;
-}
-
-
-/*!
-    \internal
-*/
 QAudio::Mode QAudioDeviceInfo::mode() const
 {
     return d->mode;

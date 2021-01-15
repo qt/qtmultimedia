@@ -72,17 +72,6 @@ public:
     QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
     QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
 
-#ifdef Q_OS_MACOS
-    static quint32 handleToAudioDeviceID(const QByteArray &handle)
-    {
-        return handle.toUInt(nullptr, 16);
-    }
-    static QByteArray audioDeviceIDToHandle(quint32 id)
-    {
-        return QByteArray::number(id, 16);
-    }
-#endif
-
     void updateCameraDevices() const;
     void updateAudioDevices();
 

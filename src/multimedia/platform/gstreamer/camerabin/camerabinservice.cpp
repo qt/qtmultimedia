@@ -58,8 +58,7 @@
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstutils_p.h>
 
-#include <private/qgstreameraudioinputselector_p.h>
-#include <private/qgstreamervideoinputdevicecontrol_p.h>
+    #include <private/qgstreamervideoinputdevicecontrol_p.h>
 
 #include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideorenderer_p.h>
@@ -75,7 +74,6 @@ CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *pa
     m_captureSession = 0;
     m_metaDataControl = 0;
 
-    m_audioInputSelector = 0;
     m_videoInputDevice = 0;
 
     m_videoOutput = 0;
@@ -102,12 +100,6 @@ CameraBinService::CameraBinService(GstElementFactory *sourceFactory, QObject *pa
         delete m_videoWindow;
         m_videoWindow = 0;
     }
-
-    m_audioInputSelector = new QGstreamerAudioInputSelector(this);
-    connect(m_audioInputSelector, SIGNAL(activeInputChanged(QString)), m_captureSession, SLOT(setCaptureDevice(QString)));
-
-    if (m_captureSession && m_audioInputSelector->availableInputs().size() > 0)
-        m_captureSession->setCaptureDevice(m_audioInputSelector->defaultInput());
 
     m_metaDataControl = new CameraBinMetaData(this);
     connect(m_metaDataControl, SIGNAL(metaDataChanged(QMap<QByteArray,QVariant>)),
@@ -138,9 +130,6 @@ QObject *CameraBinService::requestControl(const char *name)
 
     if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0)
         return m_captureSession->videoProbe();
-
-    if (qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
-        return m_audioInputSelector;
 
     if (qstrcmp(name,QVideoDeviceSelectorControl_iid) == 0)
         return m_videoInputDevice;

@@ -41,6 +41,7 @@
 #include "qcoreaudiodeviceinfo_p.h"
 #include "qcoreaudioutils_p.h"
 #include "private/qdarwindevicemanager_p.h"
+#include <qmediadevicemanager.h>
 
 #if defined(Q_OS_OSX)
 # include <AudioUnit/AudioComponent.h>
@@ -460,10 +461,15 @@ CoreAudioInput::CoreAudioInput(const QAudioDeviceInfo &device)
     , m_audioBuffer(0)
     , m_volume(1.0)
 {
-#if defined(Q_OS_OSX)
-    m_audioDeviceId = QDarwinDeviceManager::handleToAudioDeviceID(device.id());
+    QAudioDeviceInfo di = device;
+    if (di.isNull())
+        di = QMediaDeviceManager::instance()->defaultAudioInput();
+#if defined(Q_OS_MACOS)
+    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(di.handle());
+    Q_ASSERT(info);
+    m_audioDeviceId = info->deviceID();
 #endif
-    m_device = device.id();
+    m_device = di.id();
 
     m_intervalTimer = new QTimer(this);
     m_intervalTimer->setInterval(1000);

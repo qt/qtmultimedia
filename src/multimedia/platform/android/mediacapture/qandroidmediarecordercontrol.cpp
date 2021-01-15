@@ -40,6 +40,8 @@
 #include "qandroidmediarecordercontrol_p.h"
 
 #include "qandroidcapturesession_p.h"
+#include "qmediadevicemanager.h"
+#include "qaudiodeviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -114,5 +116,24 @@ void QAndroidMediaRecorderControl::setVolume(qreal volume)
     Q_UNUSED(volume);
     qWarning("QMediaRecorder::setVolume() is not supported on Android.");
 }
+
+QAudioDeviceInfo QAndroidMediaRecorderControl::audioInput() const
+{
+    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
+    const auto devices = manager->audioInputs();
+    QByteArray id = m_session->audioInput().toLatin1();
+
+    for (auto c : devices) {
+        if (c.id() == id)
+            return c;
+    }
+    return manager->defaultAudioInput();
+}
+
+bool QAndroidMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &info)
+{
+    m_session->setAudioInput(QString::fromLatin1(info.id()));
+}
+
 
 QT_END_NAMESPACE

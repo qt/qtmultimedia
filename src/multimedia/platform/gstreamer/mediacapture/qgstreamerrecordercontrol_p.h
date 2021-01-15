@@ -80,6 +80,9 @@ public:
 
     void applySettings() override;
 
+    QAudioDeviceInfo audioInput() const override;
+    bool setAudioInput(const QAudioDeviceInfo &id) override;
+
 public slots:
     void setState(QMediaRecorder::State state) override;
     void record();

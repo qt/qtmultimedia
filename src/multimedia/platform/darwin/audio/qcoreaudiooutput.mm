@@ -41,6 +41,7 @@
 #include "qcoreaudiodeviceinfo_p.h"
 #include "qcoreaudioutils_p.h"
 #include <private/qdarwindevicemanager_p.h>
+#include <qmediadevicemanager.h>
 
 #include <QtCore/QDataStream>
 #include <QtCore/QTimer>
@@ -235,10 +236,15 @@ QCoreAudioOutput::QCoreAudioOutput(const QAudioDeviceInfo &device)
     , m_errorCode(QAudio::NoError)
     , m_stateCode(QAudio::StoppedState)
 {
+    QAudioDeviceInfo di = device;
+    if (di.isNull())
+        di = QMediaDeviceManager::instance()->defaultAudioOutput();
 #if defined(Q_OS_MACOS)
-    m_audioDeviceId = QDarwinDeviceManager::handleToAudioDeviceID(device.id());
+    const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(di.handle());
+    Q_ASSERT(info);
+    m_audioDeviceId = info->deviceID();
 #endif
-    m_device = device.id();
+    m_device = di.id();
 
     m_clockFrequency = CoreAudioUtils::frequency() / 1000;
     m_audioThreadState.storeRelaxed(Stopped);

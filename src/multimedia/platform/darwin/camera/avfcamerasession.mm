@@ -43,7 +43,6 @@
 #include "avfcameracontrol_p.h"
 #include "avfcamerarenderercontrol_p.h"
 #include "avfcameradevicecontrol_p.h"
-#include "avfaudioinputselectorcontrol_p.h"
 #include "avfmediavideoprobecontrol_p.h"
 #include "avfimageencodercontrol_p.h"
 #include "avfcamerautility_p.h"

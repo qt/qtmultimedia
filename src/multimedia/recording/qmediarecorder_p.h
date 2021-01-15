@@ -62,7 +62,6 @@ class QMediaContainerControl;
 class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QMetaDataWriterControl;
-class QAudioInputSelectorControl;
 class QTimer;
 
 class QMediaRecorderPrivate
@@ -82,7 +81,6 @@ public:
     QAudioEncoderSettingsControl *audioControl = nullptr;
     QVideoEncoderSettingsControl *videoControl = nullptr;
     QMetaDataWriterControl *metaDataControl = nullptr;
-    QAudioInputSelectorControl *audioInputSelector = nullptr;
 
     bool settingsChanged = false;
 

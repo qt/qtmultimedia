@@ -95,9 +95,8 @@ public:
 
     QAudioDeviceInfo(QAudioDeviceInfoPrivate *p);
 
+    const QAudioDeviceInfoPrivate *handle() const { return d.get(); }
 private:
-    QByteArray handle() const;
-
     QSharedDataPointer<QAudioDeviceInfoPrivate> d;
 };
 

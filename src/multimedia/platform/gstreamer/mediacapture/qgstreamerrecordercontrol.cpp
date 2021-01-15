@@ -44,6 +44,7 @@
 #include <QtCore/QDebug>
 #include <QtGui/qdesktopservices.h>
 #include <QStandardPaths>
+#include "qaudiodeviceinfo.h"
 
 QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
     :QMediaRecorderControl(session),
@@ -306,6 +307,17 @@ void QGstreamerRecorderControl::applySettings()
             videoEncodeControl->setVideoSettings(videoSettings);
         }
     }
+}
+
+QAudioDeviceInfo QGstreamerRecorderControl::audioInput() const
+{
+    return m_session->audioCaptureDevice();
+}
+
+bool QGstreamerRecorderControl::setAudioInput(const QAudioDeviceInfo &info)
+{
+    m_session->setAudioCaptureDevice(info);
+    return true;
 }
 
 

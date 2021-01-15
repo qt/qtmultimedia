@@ -71,6 +71,9 @@ public:
 
     virtual void applySettings() = 0;
 
+    virtual QAudioDeviceInfo audioInput() const = 0;
+    virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
+
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
     void statusChanged(QMediaRecorder::Status status);

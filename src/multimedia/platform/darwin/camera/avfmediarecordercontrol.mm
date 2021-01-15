@@ -42,10 +42,11 @@
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
-#include "avfaudioinputselectorcontrol_p.h"
 #include "avfaudioencodersettingscontrol_p.h"
 #include "avfvideoencodersettingscontrol_p.h"
 #include "avfmediacontainercontrol_p.h"
+#include "qaudiodeviceinfo.h"
+#include "qmediadevicemanager.h"
 
 #include <QtCore/qurl.h>
 #include <QtCore/qfileinfo.h>
@@ -56,8 +57,6 @@ QT_USE_NAMESPACE
 
 @interface AVFMediaRecorderDelegate : NSObject <AVCaptureFileOutputRecordingDelegate>
 {
-@private
-    AVFMediaRecorderControl *m_recorder;
 }
 
 - (AVFMediaRecorderDelegate *) initWithRecorder:(AVFMediaRecorderControl*)recorder;
@@ -73,6 +72,10 @@ QT_USE_NAMESPACE
 @end
 
 @implementation AVFMediaRecorderDelegate
+{
+    @private
+        AVFMediaRecorderControl *m_recorder;
+}
 
 - (AVFMediaRecorderDelegate *) initWithRecorder:(AVFMediaRecorderControl*)recorder
 {
@@ -125,7 +128,6 @@ AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObj
    : QMediaRecorderControl(parent)
    , m_service(service)
    , m_cameraControl(service->cameraControl())
-   , m_audioInputControl(service->audioInputSelectorControl())
    , m_session(service->session())
    , m_connected(false)
    , m_state(QMediaRecorder::StoppedState)
@@ -139,6 +141,8 @@ AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObj
 {
     m_movieOutput = [[AVCaptureMovieFileOutput alloc] init];
     m_recorderDelagate = [[AVFMediaRecorderDelegate alloc] initWithRecorder:this];
+
+    m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 
     connect(m_cameraControl, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
     connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateStatus()));
@@ -258,6 +262,33 @@ void AVFMediaRecorderControl::unapplySettings()
 {
     m_service->audioEncoderSettingsControl()->unapplySettings();
     m_service->videoEncoderSettingsControl()->unapplySettings([m_movieOutput connectionWithMediaType:AVMediaTypeVideo]);
+}
+
+QAudioDeviceInfo AVFMediaRecorderControl::audioInput() const
+{
+    QByteArray id = [[m_audioCaptureDevice uniqueID] UTF8String];
+    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::instance()->audioInputs();
+    for (auto d : devices)
+        if (d.id() == id)
+            return d;
+    return QMediaDeviceManager::instance()->defaultAudioInput();
+}
+
+bool AVFMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &id)
+{
+    AVCaptureDevice *device = nullptr;
+
+    if (!id.isNull()) {
+        device = [AVCaptureDevice deviceWithUniqueID: [NSString stringWithUTF8String:id.id().constData()]];
+    } else {
+        device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
+    }
+
+    if (device) {
+        m_audioCaptureDevice = device;
+        return true;
+    }
+    return false;
 }
 
 void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
@@ -381,7 +412,7 @@ void AVFMediaRecorderControl::setupSessionForCapture()
 
         // Add audio input
         // Allow recording even if something wrong happens with the audio input initialization
-        AVCaptureDevice *audioDevice = m_audioInputControl->createCaptureDevice();
+        AVCaptureDevice *audioDevice = m_audioCaptureDevice;
         if (!audioDevice) {
             qWarning("No audio input device available");
         } else {

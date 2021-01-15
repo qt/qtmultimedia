@@ -47,7 +47,7 @@
 #include <qmetadatawritercontrol.h>
 #include <qaudioencodersettingscontrol.h>
 #include <qvideoencodersettingscontrol.h>
-#include <qaudioinputselectorcontrol.h>
+#include <qaudiodeviceinfo.h>
 #include <qmediacontainercontrol.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>
@@ -196,12 +196,19 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::Mode mode, QObject *parent)
     : QObject(parent),
       d_ptr(new QMediaRecorderPrivate)
 {
-    if (mode == AudioOnly) {
-        auto provider = QMediaServiceProvider::defaultServiceProvider();
+    Q_D(QMediaRecorder);
+    d->q_ptr = this;
 
-        QMediaService *service = provider->requestService(Q_MEDIASERVICE_AUDIOSOURCE);
-        setMediaSource(new QAudioRecorderObject(this, service));
-    }
+    d->notifyTimer = new QTimer(this);
+    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
+
+    auto provider = QMediaServiceProvider::defaultServiceProvider();
+    QMediaService *service = nullptr;
+    if (mode == AudioOnly)
+        service = provider->requestService(Q_MEDIASERVICE_AUDIOSOURCE);
+    if (!service)
+        service = provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER);
+    setMediaSource(new QAudioRecorderObject(this, service));
 }
 
 QMediaRecorder::QMediaRecorder(QMediaSource *mediaSource, QObject *parent)
@@ -313,8 +320,6 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
 
                 service->releaseControl(d->metaDataControl);
             }
-            if (d->audioInputSelector)
-                service->releaseControl(d->audioInputSelector);
         }
     }
 
@@ -323,7 +328,6 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
     d->audioControl = nullptr;
     d->videoControl = nullptr;
     d->metaDataControl = nullptr;
-    d->audioInputSelector = nullptr;
 
     d->mediaSource = object;
 
@@ -340,15 +344,6 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
                 d->formatControl = qobject_cast<QMediaContainerControl *>(service->requestControl(QMediaContainerControl_iid));
                 d->audioControl = qobject_cast<QAudioEncoderSettingsControl *>(service->requestControl(QAudioEncoderSettingsControl_iid));
                 d->videoControl = qobject_cast<QVideoEncoderSettingsControl *>(service->requestControl(QVideoEncoderSettingsControl_iid));
-                d->audioInputSelector = qobject_cast<QAudioInputSelectorControl*>(service->requestControl(QAudioInputSelectorControl_iid));
-
-                if (d->audioInputSelector) {
-                    connect(d->audioInputSelector, SIGNAL(activeInputChanged(QString)),
-                               SIGNAL(audioInputChanged(QString)));
-                    connect(d->audioInputSelector, SIGNAL(availableInputsChanged()),
-                               SIGNAL(availableAudioInputsChanged()));
-                }
-
 
                 QObject *control = service->requestControl(QMetaDataWriterControl_iid);
                 if (control) {
@@ -1082,50 +1077,6 @@ QStringList QMediaRecorder::availableMetaData() const
 */
 
 /*!
-    \fn QMediaRecorder::metaDataChanged(const QString &key, const QVariant &value)
-
-    Signal the changes of one meta-data element \a value with the given \a key.
-*/
-
-/*!
-    Returns a list of available audio inputs
-*/
-
-QStringList QMediaRecorder::audioInputs() const
-{
-    Q_D(const QMediaRecorder);
-    if (d->audioInputSelector)
-        return d->audioInputSelector->availableInputs();
-    return QStringList();
-}
-
-/*!
-    Returns the readable translated description of the audio input device with \a name.
-*/
-
-QString QMediaRecorder::audioInputDescription(const QString& name) const
-{
-    Q_D(const QMediaRecorder);
-
-    if (d->audioInputSelector)
-        return d->audioInputSelector->inputDescription(name);
-    return QString();
-}
-
-/*!
-    Returns the default audio input name.
-*/
-
-QString QMediaRecorder::defaultAudioInput() const
-{
-    Q_D(const QMediaRecorder);
-
-    if (d->audioInputSelector)
-        return d->audioInputSelector->defaultInput();
-    return QString();
-}
-
-/*!
     \property QMediaRecorder::audioInput
     \brief the active audio input name.
 
@@ -1135,37 +1086,32 @@ QString QMediaRecorder::defaultAudioInput() const
     Returns the active audio input name.
 */
 
-QString QMediaRecorder::audioInput() const
+QAudioDeviceInfo QMediaRecorder::audioInput() const
 {
     Q_D(const QMediaRecorder);
 
-    if (d->audioInputSelector)
-        return d->audioInputSelector->activeInput();
-    return QString();
+    return d->control->audioInput();
 }
 
 /*!
-    Set the active audio input to \a name.
+    Set the active audio input to \a device.
 */
 
-void QMediaRecorder::setAudioInput(const QString& name)
+bool QMediaRecorder::setAudioInput(const QAudioDeviceInfo &device)
 {
-    Q_D(const QMediaRecorder);
+    Q_D(QMediaRecorder);
 
-    if (d->audioInputSelector)
-        d->audioInputSelector->setActiveInput(name);
+    if (d->control && d->control->setAudioInput(device)) {
+        audioInputChanged();
+        return true;
+    }
+    return false;
 }
 
 /*!
     \fn QMediaRecorder::audioInputChanged(const QString& name)
 
     Signal emitted when active audio input changes to \a name.
-*/
-
-/*!
-    \fn QMediaRecorder::availableAudioInputsChanged()
-
-    Signal is emitted when the available audio inputs change.
 */
 
 QT_END_NAMESPACE

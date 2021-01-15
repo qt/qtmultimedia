@@ -74,13 +74,34 @@ AudioDeviceID defaultAudioDevice(QAudio::Mode mode)
     return audioDevice;
 }
 
+static QByteArray uniqueId(AudioDeviceID device, QAudio::Mode mode)
+{
+    CFStringRef name;
+    UInt32 size = sizeof(CFStringRef);
+
+    AudioObjectPropertyScope audioPropertyScope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
+
+    AudioObjectPropertyAddress audioDeviceNamePropertyAddress = { kAudioDevicePropertyDeviceUID,
+                                                                  audioPropertyScope,
+                                                                  kAudioObjectPropertyElementMaster };
+
+    if (AudioObjectGetPropertyData(device, &audioDeviceNamePropertyAddress, 0, NULL, &size, &name) != noErr) {
+        qWarning() << "QAudioDeviceInfo: Unable to get device UID";
+        return QByteArray();
+    }
+
+    QString s = QString::fromCFString(name);
+    CFRelease(name);
+    return s.toUtf8();
+}
+
 QList<QAudioDeviceInfo> availableAudioDevices(QAudio::Mode mode)
 {
 
     QList<QAudioDeviceInfo> devices;
 
     AudioDeviceID defaultDevice = defaultAudioDevice(mode);
-    devices << QAudioDeviceInfo(new QCoreAudioDeviceInfo(defaultDevice, QDarwinDeviceManager::audioDeviceIDToHandle(defaultDevice), mode));
+    devices << QAudioDeviceInfo(new QCoreAudioDeviceInfo(defaultDevice, uniqueId(defaultDevice, mode), mode));
 
     UInt32 propSize = 0;
     AudioObjectPropertyAddress audioDevicesPropertyAddress = { kAudioHardwarePropertyDevices,
@@ -108,7 +129,7 @@ QList<QAudioDeviceInfo> availableAudioDevices(QAudio::Mode mode)
                                                                                     kAudioObjectPropertyElementMaster };
 
                     if (AudioObjectGetPropertyData(audioDevices[i], &audioDeviceStreamFormatPropertyAddress, 0, NULL, &size, &sf) == noErr)
-                        devices << QAudioDeviceInfo(new QCoreAudioDeviceInfo(audioDevices[i], QDarwinDeviceManager::audioDeviceIDToHandle(audioDevices[i]), mode));
+                        devices << QAudioDeviceInfo(new QCoreAudioDeviceInfo(audioDevices[i], uniqueId(audioDevices[i], mode), mode));
                 }
             }
 

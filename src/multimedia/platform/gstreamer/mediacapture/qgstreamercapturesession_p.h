@@ -53,6 +53,7 @@
 
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
+#include <qaudiodeviceinfo.h>
 
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
@@ -126,9 +127,6 @@ public:
     QGstreamerRecorderControl *recorderControl() const { return m_recorderControl; }
     QGstreamerMediaContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
-    QGstreamerElementFactory *audioInput() const { return m_audioInputFactory; }
-    void setAudioInput(QGstreamerElementFactory *audioInput);
-
     QGstreamerElementFactory *audioPreview() const { return m_audioPreviewFactory; }
     void setAudioPreview(QGstreamerElementFactory *audioPreview);
 
@@ -153,6 +151,7 @@ public:
 
     void addProbe(QGstreamerAudioProbeControl* probe);
     void removeProbe(QGstreamerAudioProbeControl* probe);
+    QAudioDeviceInfo audioCaptureDevice() const { return m_audioDevice; }
 
 signals:
     void stateChanged(QGstreamerCaptureSession::State state);
@@ -168,7 +167,7 @@ signals:
 
 public slots:
     void setState(QGstreamerCaptureSession::State);
-    void setCaptureDevice(const QString &deviceName);
+    void setAudioCaptureDevice(const QAudioDeviceInfo &audioDevice);
 
     void dumpGraph(const QString &fileName);
 
@@ -195,8 +194,8 @@ private:
     void removeAudioBufferProbe();
     void addAudioBufferProbe();
 
+    QAudioDeviceInfo m_audioDevice;
     QUrl m_sink;
-    QString m_captureDevice;
     State m_state;
     State m_pendingState;
     bool m_waitingForEos;
@@ -206,7 +205,6 @@ private:
 
     QGstreamerAudioProbeControl *m_audioProbe;
 
-    QGstreamerElementFactory *m_audioInputFactory;
     QGstreamerElementFactory *m_audioPreviewFactory;
     QGstreamerVideoInput *m_videoInputFactory;
     QObject *m_viewfinder;

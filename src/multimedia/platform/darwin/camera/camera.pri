@@ -7,7 +7,6 @@ HEADERS += \
     $$PWD/avfcameraservice_p.h \
     $$PWD/avfcamerasession_p.h \
     $$PWD/avfstoragelocation_p.h \
-    $$PWD/avfaudioinputselectorcontrol_p.h \
     $$PWD/avfmediavideoprobecontrol_p.h \
     $$PWD/avfcamerarenderercontrol_p.h \
     $$PWD/avfcameradevicecontrol_p.h \
@@ -28,7 +27,6 @@ SOURCES += \
     $$PWD/avfcameraservice.mm \
     $$PWD/avfcamerasession.mm \
     $$PWD/avfstoragelocation.mm \
-    $$PWD/avfaudioinputselectorcontrol.mm \
     $$PWD/avfmediavideoprobecontrol.mm \
     $$PWD/avfcameradevicecontrol.mm \
     $$PWD/avfcamerarenderercontrol.mm \

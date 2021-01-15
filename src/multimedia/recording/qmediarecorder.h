@@ -60,6 +60,7 @@ QT_BEGIN_NAMESPACE
 class QMediaRecorderService;
 class QAudioEncoderSettings;
 class QVideoEncoderSettings;
+class QAudioDeviceInfo;
 
 class QMediaRecorderPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaSink
@@ -78,7 +79,7 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaSink
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool metaDataAvailable READ isMetaDataAvailable NOTIFY metaDataAvailableChanged)
     Q_PROPERTY(bool metaDataWritable READ isMetaDataWritable NOTIFY metaDataWritableChanged)
-    Q_PROPERTY(QString audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
+    Q_PROPERTY(QAudioDeviceInfo audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
 public:
 
     enum State
@@ -175,11 +176,7 @@ public:
     void setMetaData(const QString &key, const QVariant &value);
     QStringList availableMetaData() const;
 
-    QStringList audioInputs() const;
-    QString defaultAudioInput() const;
-    QString audioInputDescription(const QString& name) const;
-
-    QString audioInput() const;
+    QAudioDeviceInfo audioInput() const;
 
 public Q_SLOTS:
     void record();
@@ -187,7 +184,7 @@ public Q_SLOTS:
     void stop();
     void setMuted(bool muted);
     void setVolume(qreal volume);
-    void setAudioInput(const QString& name);
+    bool setAudioInput(const QAudioDeviceInfo &device);
 
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
@@ -196,8 +193,7 @@ Q_SIGNALS:
     void mutedChanged(bool muted);
     void volumeChanged(qreal volume);
     void actualLocationChanged(const QUrl &location);
-    void audioInputChanged(const QString& name);
-    void availableAudioInputsChanged();
+    void audioInputChanged();
 
     void error(QMediaRecorder::Error error);
 

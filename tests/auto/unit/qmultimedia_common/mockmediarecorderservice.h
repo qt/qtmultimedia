@@ -34,7 +34,6 @@
 #include "mockaudioencodercontrol.h"
 #include "mockmediarecordercontrol.h"
 #include "mockvideoencodercontrol.h"
-#include "mockaudioinputselector.h"
 #include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
 #include "mockaudioprobecontrol.h"
@@ -48,7 +47,6 @@ public:
         mockControl(control),
         hasControls(true)
     {
-        mockAudioInputSelector = new MockAudioInputSelector(this);
         mockAudioEncoderControl = new MockAudioEncoderControl(this);
         mockFormatControl = new MockMediaContainerControl(this);
         mockVideoEncoderControl = new MockVideoEncoderControl(this);
@@ -60,8 +58,6 @@ public:
     {
         if (hasControls && qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
             return mockAudioEncoderControl;
-        if (hasControls && qstrcmp(name,QAudioInputSelectorControl_iid) == 0)
-            return mockAudioInputSelector;
         if (hasControls && qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
         if (hasControls && qstrcmp(name,QMediaContainerControl_iid) == 0)
@@ -81,7 +77,6 @@ public:
     }
 
     QObject *mockControl;
-    QAudioInputSelectorControl  *mockAudioInputSelector;
     QAudioEncoderSettingsControl    *mockAudioEncoderControl;
     QMediaContainerControl     *mockFormatControl;
     QVideoEncoderSettingsControl    *mockVideoEncoderControl;

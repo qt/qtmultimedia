@@ -58,13 +58,15 @@
 #include "avfstoragelocation_p.h"
 #include "avfcamerautility_p.h"
 
-@class AVFMediaRecorderDelegate;
+Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaRecorderDelegate);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceInput);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureMovieFileOutput);
 
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraControl;
-class AVFAudioInputSelectorControl;
 class AVFCameraService;
 
 class AVFMediaRecorderControl : public QMediaRecorderControl
@@ -88,6 +90,9 @@ public:
     void applySettings() override;
     void unapplySettings();
 
+    QAudioDeviceInfo audioInput() const override;
+    bool setAudioInput(const QAudioDeviceInfo &id) override;
+
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) override;
     void setMuted(bool muted) override;
@@ -104,8 +109,8 @@ private Q_SLOTS:
 private:
     AVFCameraService *m_service;
     AVFCameraControl *m_cameraControl;
-    AVFAudioInputSelectorControl *m_audioInputControl;
     AVFCameraSession *m_session;
+    AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
     bool m_connected;
     QUrl m_outputLocation;

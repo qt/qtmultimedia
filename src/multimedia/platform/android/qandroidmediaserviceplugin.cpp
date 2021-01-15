@@ -41,7 +41,6 @@
 
 #include "qandroidmediaservice_p.h"
 #include "qandroidcaptureservice_p.h"
-#include "qandroidaudioinputselectorcontrol_p.h"
 #include "qandroidcamerasession_p.h"
 #include "androidmediaplayer_p.h"
 #include "androidsurfacetexture_p.h"
@@ -100,9 +99,6 @@ QList<QByteArray> QAndroidMediaServicePlugin::devices(const QByteArray &service)
         return devices;
     }
 
-    if (service == Q_MEDIASERVICE_AUDIOSOURCE)
-        return QAndroidAudioInputSelectorControl::availableDevices();
-
     return QList<QByteArray>();
 }
 
@@ -116,9 +112,6 @@ QString QAndroidMediaServicePlugin::deviceDescription(const QByteArray &service,
                 return info.description;
         }
     }
-
-    if (service == Q_MEDIASERVICE_AUDIOSOURCE)
-        return QAndroidAudioInputSelectorControl::availableDeviceDescription(device);
 
     return QString();
 }

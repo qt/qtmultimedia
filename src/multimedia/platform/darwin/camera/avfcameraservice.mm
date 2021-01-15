@@ -44,7 +44,6 @@
 #include "avfcameracontrol_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameradevicecontrol_p.h"
-#include "avfaudioinputselectorcontrol_p.h"
 #include "avfcamerametadatacontrol_p.h"
 #include "avfmediarecordercontrol_p.h"
 #include "avfimagecapturecontrol_p.h"
@@ -74,7 +73,6 @@ AVFCameraService::AVFCameraService(QObject *parent):
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);
     m_videoDeviceControl = new AVFCameraDeviceControl(this);
-    m_audioInputSelectorControl = new AVFAudioInputSelectorControl(this);
 
     m_metaDataControl = new AVFCameraMetaDataControl(this);
 #ifndef Q_OS_IOS
@@ -141,9 +139,6 @@ QObject *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)
         return m_videoDeviceControl;
-
-    if (qstrcmp(name, QAudioInputSelectorControl_iid) == 0)
-        return m_audioInputSelectorControl;
 
     //metadata support is not implemented yet
     //if (qstrcmp(name, QMetaDataWriterControl_iid) == 0)

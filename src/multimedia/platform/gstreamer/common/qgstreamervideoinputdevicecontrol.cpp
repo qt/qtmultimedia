@@ -43,7 +43,7 @@
 #include <QtCore/QDebug>
 
 #include <private/qgstutils_p.h>
-#include <private/qgstreamerplatformdevicemanager_p.h>
+#include <private/qgstreamerdevicemanager_p.h>
 #include <private/qmediaplatformintegration_p.h>
 #include <qcamerainfo.h>
 

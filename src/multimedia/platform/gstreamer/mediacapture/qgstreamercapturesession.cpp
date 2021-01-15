@@ -44,9 +44,11 @@
 #include "qgstreamervideoencode_p.h"
 #include "qgstreamerimageencode_p.h"
 #include <qmediarecorder.h>
+#include <qmediadevicemanager.h>
 #include <private/qgstreamervideorendererinterface_p.h>
 #include <private/qgstreameraudioprobecontrol_p.h>
 #include <private/qgstreamerbushelper_p.h>
+#include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstutils_p.h>
 
 #include <gst/gsttagsetter.h>
@@ -71,7 +73,6 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_pipelineMode(EmptyPipeline),
      m_captureMode(captureMode),
      m_audioProbe(0),
-     m_audioInputFactory(0),
      m_audioPreviewFactory(0),
      m_videoInputFactory(0),
      m_viewfinder(0),
@@ -205,33 +206,16 @@ GstElement *QGstreamerCaptureSession::buildEncodeBin()
 
 GstElement *QGstreamerCaptureSession::buildAudioSrc()
 {
-    GstElement *audioSrc = 0;
-    if (m_audioInputFactory)
-        audioSrc = m_audioInputFactory->buildElement();
-    else {
-        QString elementName = "alsasrc";
-        QString device;
+    QAudioDeviceInfo info = m_audioDevice;
+    auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
 
-        if (m_captureDevice.startsWith("alsa:")) {
-            device = m_captureDevice.mid(QString("alsa:").length());
-        } else if (m_captureDevice.startsWith("oss:")) {
-            elementName = "osssrc";
-            device = m_captureDevice.mid(QString("oss:").length());
-        } else if (m_captureDevice.startsWith("pulseaudio:")) {
-            elementName = "pulsesrc";
-        } else {
-            elementName = "autoaudiosrc";
-        }
+    GstElement *audioSrc = nullptr;
+    if (deviceInfo && deviceInfo->gstDevice)
+        audioSrc = gst_device_create_element(deviceInfo->gstDevice , nullptr);
 
-        audioSrc = gst_element_factory_make(elementName.toLatin1().constData(), "audio_src");
-        if (audioSrc && !device.isEmpty())
-            g_object_set(G_OBJECT(audioSrc), "device", device.toLocal8Bit().constData(), NULL);
-    }
-
-    if (!audioSrc) {
-        emit error(int(QMediaRecorder::ResourceError), tr("Could not create an audio source element"));
-        audioSrc = gst_element_factory_make("fakesrc", NULL);
-    }
+    if (!audioSrc)
+        // Invalid device, or default, use autoaudiosrc
+        audioSrc = gst_element_factory_make("autoaudiosrc", "audio_src");
 
     return audioSrc;
 }
@@ -677,11 +661,6 @@ bool QGstreamerCaptureSession::setOutputLocation(const QUrl& sink)
     return true;
 }
 
-void QGstreamerCaptureSession::setAudioInput(QGstreamerElementFactory *audioInput)
-{
-    m_audioInputFactory = audioInput;
-}
-
 void QGstreamerCaptureSession::setAudioPreview(QGstreamerElementFactory *audioPreview)
 {
     m_audioPreviewFactory = audioPreview;
@@ -827,9 +806,9 @@ qint64 QGstreamerCaptureSession::duration() const
         return 0;
 }
 
-void QGstreamerCaptureSession::setCaptureDevice(const QString &deviceName)
+void QGstreamerCaptureSession::setAudioCaptureDevice(const QAudioDeviceInfo &device)
 {
-    m_captureDevice = deviceName;
+    m_audioDevice = device;
 }
 
 void QGstreamerCaptureSession::setMetaData(const QMap<QByteArray, QVariant> &data)

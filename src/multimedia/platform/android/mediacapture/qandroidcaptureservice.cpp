@@ -44,7 +44,6 @@
 #include "qandroidcapturesession_p.h"
 #include "qandroidcameracontrol_p.h"
 #include "qandroidvideodeviceselectorcontrol_p.h"
-#include "qandroidaudioinputselectorcontrol_p.h"
 #include "qandroidcamerasession_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcameraexposurecontrol_p.h"
@@ -93,12 +92,8 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
     m_audioEncoderSettingsControl = new QAndroidAudioEncoderSettingsControl(m_captureSession);
     m_mediaContainerControl = new QAndroidMediaContainerControl(m_captureSession);
 
-    if (m_service == QLatin1String(Q_MEDIASERVICE_CAMERA)) {
+    if (m_service == QLatin1String(Q_MEDIASERVICE_CAMERA))
         m_videoEncoderSettingsControl = new QAndroidVideoEncoderSettingsControl(m_captureSession);
-    } else {
-        m_audioInputControl = new QAndroidAudioInputSelectorControl(m_captureSession);
-        m_captureSession->setAudioInput(m_audioInputControl->defaultInput());
-    }
 }
 
 QAndroidCaptureService::~QAndroidCaptureService()

@@ -72,6 +72,9 @@ public:
     qreal volume() const override;
     void applySettings() override;
 
+    QAudioDeviceInfo audioInput() const override;
+    bool setAudioInput(const QAudioDeviceInfo &id) override;
+
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) override;
     void setMuted(bool muted) override;

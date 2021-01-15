@@ -30,6 +30,7 @@
 #define MOCKRECORDERCONTROL_H
 
 #include <QUrl>
+#include <qaudiodeviceinfo.h>
 
 #include "qmediarecordercontrol.h"
 
@@ -89,6 +90,17 @@ public:
     {
         m_settingAppliedCount++;
     }
+
+    QAudioDeviceInfo audioInput() const
+    {
+        return m_audioInput;
+    }
+    bool setAudioInput(const QAudioDeviceInfo &id)
+    {
+        m_audioInput = id;
+        return true;
+    }
+
 
     using QMediaRecorderControl::error;
 
@@ -152,6 +164,7 @@ public slots:
     }
 
 public:
+    QAudioDeviceInfo m_audioInput;
     QUrl       m_sink;
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;

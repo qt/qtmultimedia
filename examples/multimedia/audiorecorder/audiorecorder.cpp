@@ -59,6 +59,8 @@
 #include <QFileDialog>
 #include <QMediaRecorder>
 #include <QStandardPaths>
+#include <qmediadevicemanager.h>
+#include <qaudiodeviceinfo.h>
 
 static qreal getPeakValue(const QAudioFormat &format);
 static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
@@ -77,11 +79,13 @@ AudioRecorder::AudioRecorder()
             this, &AudioRecorder::processBuffer);
     m_probe->setSource(m_audioRecorder);
 
+    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
+
     //audio devices
     ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto &device: m_audioRecorder->audioInputs()) {
-        auto name = m_audioRecorder->audioInputDescription(device);
-        ui->audioDeviceBox->addItem(name, QVariant(device));
+    for (auto device: manager->audioInputs()) {
+        auto name = device.description();
+        ui->audioDeviceBox->addItem(name, QVariant::fromValue(device));
     }
 
     //audio codecs
@@ -191,7 +195,7 @@ static QVariant boxValue(const QComboBox *box)
 void AudioRecorder::toggleRecord()
 {
     if (m_audioRecorder->state() == QMediaRecorder::StoppedState) {
-        m_audioRecorder->setAudioInput(boxValue(ui->audioDeviceBox).toString());
+        m_audioRecorder->setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDeviceInfo>());
 
         QAudioEncoderSettings settings;
         settings.setCodec(boxValue(ui->audioCodecBox).toString());
