@@ -267,11 +267,11 @@ void AVFMediaRecorderControl::unapplySettings()
 QAudioDeviceInfo AVFMediaRecorderControl::audioInput() const
 {
     QByteArray id = [[m_audioCaptureDevice uniqueID] UTF8String];
-    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::instance()->audioInputs();
+    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioInputs();
     for (auto d : devices)
         if (d.id() == id)
             return d;
-    return QMediaDeviceManager::instance()->defaultAudioInput();
+    return QMediaDeviceManager::defaultAudioInput();
 }
 
 bool AVFMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &id)

@@ -61,6 +61,7 @@
 #include <QSlider>
 #include <QWidget>
 #include <QScopedPointer>
+#include <QMediaDeviceManager>
 
 class AudioInfo : public QIODevice
 {
@@ -130,6 +131,7 @@ private:
     QComboBox *m_deviceBox = nullptr;
     QSlider *m_volumeSlider = nullptr;
 
+    QMediaDeviceManager *m_deviceManager = nullptr;
     QScopedPointer<AudioInfo> m_audioInfo;
     QScopedPointer<QAudioInput> m_audioInput;
     bool m_pullMode = true;

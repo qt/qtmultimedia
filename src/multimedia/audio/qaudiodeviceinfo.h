@@ -87,12 +87,6 @@ public:
     QList<QAudioFormat::Endian> supportedByteOrders() const;
     QList<QAudioFormat::SampleType> supportedSampleTypes() const;
 
-    // ### remove those, -> DeviceManager
-    static QAudioDeviceInfo defaultInputDevice();
-    static QAudioDeviceInfo defaultOutputDevice();
-
-    static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode);
-
     QAudioDeviceInfo(QAudioDeviceInfoPrivate *p);
 
     const QAudioDeviceInfoPrivate *handle() const { return d.get(); }

@@ -223,9 +223,10 @@ void RenderArea::setLevel(qreal value)
 
 
 InputTest::InputTest()
+    : m_deviceManager(QMediaDeviceManager::instance())
 {
     initializeWindow();
-    initializeAudio(QAudioDeviceInfo::defaultInputDevice());
+    initializeAudio(m_deviceManager->defaultAudioInput());
 }
 
 
@@ -238,9 +239,9 @@ void InputTest::initializeWindow()
     layout->addWidget(m_canvas);
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDeviceInfo &defaultDeviceInfo = QAudioDeviceInfo::defaultInputDevice();
+    const QAudioDeviceInfo &defaultDeviceInfo = m_deviceManager->defaultAudioInput();
     m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-    for (auto &deviceInfo: QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
+    for (auto &deviceInfo: m_deviceManager->audioInputs()) {
         if (deviceInfo != defaultDeviceInfo)
             m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     }

@@ -149,10 +149,11 @@ qint64 Generator::bytesAvailable() const
 }
 
 AudioTest::AudioTest()
-    : m_pushTimer(new QTimer(this))
+    : m_deviceManager(QMediaDeviceManager::instance()),
+      m_pushTimer(new QTimer(this))
 {
     initializeWindow();
-    initializeAudio(QAudioDeviceInfo::defaultOutputDevice());
+    initializeAudio(m_deviceManager->defaultAudioOutput());
 }
 
 AudioTest::~AudioTest()
@@ -166,9 +167,9 @@ void AudioTest::initializeWindow()
     QVBoxLayout *layout = new QVBoxLayout;
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDeviceInfo &defaultDeviceInfo = QAudioDeviceInfo::defaultOutputDevice();
+    const QAudioDeviceInfo &defaultDeviceInfo = m_deviceManager->defaultAudioOutput();
     m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-    for (auto &deviceInfo: QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)) {
+    for (auto &deviceInfo: m_deviceManager->audioOutputs()) {
         if (deviceInfo != defaultDeviceInfo)
             m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     }

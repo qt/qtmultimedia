@@ -62,6 +62,7 @@
 #include <QDir>
 #include <QList>
 #include <QObject>
+#include <QMediaDeviceManager>
 
 #ifdef DUMP_CAPTURED_AUDIO
 #define DUMP_DATA
@@ -277,6 +278,7 @@ private:
 private:
     QAudio::Mode        m_mode;
     QAudio::State       m_state;
+    QMediaDeviceManager *m_deviceManager;
 
     bool                m_generateTone;
     SweptTone           m_tone;

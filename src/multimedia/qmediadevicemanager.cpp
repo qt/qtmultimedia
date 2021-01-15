@@ -132,7 +132,7 @@ QAudioDeviceInfo QMediaDeviceManager::defaultAudioOutput()
     return outputs.value(0);
 }
 
-QCameraInfo QMediaDeviceManager::defaultVideInput()
+QCameraInfo QMediaDeviceManager::defaultVideoInput()
 {
     const auto inputs = videoInputs();
     for (auto info : inputs)

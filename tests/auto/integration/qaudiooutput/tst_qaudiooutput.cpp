@@ -38,6 +38,7 @@
 #include <qaudiodeviceinfo.h>
 #include <qaudioformat.h>
 #include <qaudio.h>
+#include <qmediadevicemanager.h>
 
 #include "wavheader.h"
 
@@ -196,13 +197,12 @@ void tst_QAudioOutput::initTestCase()
     qRegisterMetaType<QAudioFormat>();
 
     // Only perform tests if audio output device exists
-    const QList<QAudioDeviceInfo> devices =
-        QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
 
     if (devices.size() <= 0)
         QSKIP("No audio backend");
 
-    audioDevice = QAudioDeviceInfo::defaultOutputDevice();
+    audioDevice = QMediaDeviceManager::defaultAudioOutput();
 
 
     QAudioFormat format;

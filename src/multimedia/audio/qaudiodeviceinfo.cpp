@@ -388,35 +388,6 @@ QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
     return isNull() ? QList<QAudioFormat::SampleType>() : d->supportedSampleTypes();
 }
 
-/*!
-    Returns the information for the default input audio device.
-    All platform and audio plugin implementations provide a default audio device to use.
-*/
-QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
-{
-    return QMediaPlatformIntegration::instance()->deviceManager()->audioInputs().value(0);
-}
-
-/*!
-    Returns the information for the default output audio device.
-    All platform and audio plugin implementations provide a default audio device to use.
-*/
-QAudioDeviceInfo QAudioDeviceInfo::defaultOutputDevice()
-{
-    return QMediaPlatformIntegration::instance()->deviceManager()->audioOutputs().value(0);
-}
-
-/*!
-    Returns a list of audio devices that support \a mode.
-*/
-QList<QAudioDeviceInfo> QAudioDeviceInfo::availableDevices(QAudio::Mode mode)
-{
-    return mode == QAudio::AudioInput ?
-                QMediaPlatformIntegration::instance()->deviceManager()->audioInputs() :
-                QMediaPlatformIntegration::instance()->deviceManager()->audioOutputs();
-}
-
-
 QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfoPrivate *p)
     : d(p)
 {}

@@ -463,7 +463,7 @@ CoreAudioInput::CoreAudioInput(const QAudioDeviceInfo &device)
 {
     QAudioDeviceInfo di = device;
     if (di.isNull())
-        di = QMediaDeviceManager::instance()->defaultAudioInput();
+        di = QMediaDeviceManager::defaultAudioInput();
 #if defined(Q_OS_MACOS)
     const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(di.handle());
     Q_ASSERT(info);

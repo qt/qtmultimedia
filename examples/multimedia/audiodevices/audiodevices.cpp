@@ -152,7 +152,9 @@ void AudioTest::modeChanged(int idx)
     testResult->clear();
     deviceBox->clear();
     const QAudio::Mode mode = idx == 0 ? QAudio::AudioInput : QAudio::AudioOutput;
-    for (auto &deviceInfo: QAudioDeviceInfo::availableDevices(mode))
+    auto *deviceManager = QMediaDeviceManager::instance();
+    const auto devices = mode == QAudio::AudioInput ? deviceManager->audioInputs() : deviceManager->audioOutputs();
+    for (auto &deviceInfo: devices)
         deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
 
     deviceBox->setCurrentIndex(0);

@@ -42,6 +42,7 @@
 #include "qsamplecache_p.h"
 #include "qaudiodeviceinfo.h"
 #include "qaudiooutput.h"
+#include "qmediadevicemanager.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -317,8 +318,8 @@ QSoundEffect::~QSoundEffect()
 QStringList QSoundEffect::supportedMimeTypes()
 {
     // Only return supported mime types if we have a audio device available
-    const QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
-    if (devices.size() <= 0)
+    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
+    if (devices.isEmpty())
         return QStringList();
 
     return QStringList() << QLatin1String("audio/x-wav")

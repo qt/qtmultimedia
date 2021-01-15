@@ -61,9 +61,9 @@ public:
     static QList<QAudioDeviceInfo> audioOutputs();
     static QList<QCameraInfo> videoInputs();
 
-    QAudioDeviceInfo defaultAudioInput();
-    QAudioDeviceInfo defaultAudioOutput();
-    QCameraInfo defaultVideInput();
+    static QAudioDeviceInfo defaultAudioInput();
+    static QAudioDeviceInfo defaultAudioOutput();
+    static QCameraInfo defaultVideoInput();
 
 signals:
     void audioInputsChanged();
