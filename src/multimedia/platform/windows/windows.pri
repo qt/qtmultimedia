@@ -20,6 +20,7 @@ SOURCES += \
     $$PWD/qwindowsdevicemanager.cpp \
     $$PWD/qwindowsintegration.cpp
 
+include (audio/audio.pri)
 include (evr/evr.pri)
 include (player/player.pri)
 include (decoder/decoder.pri)

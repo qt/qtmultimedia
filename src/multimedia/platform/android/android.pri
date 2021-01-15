@@ -6,6 +6,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/qandroidmediaserviceplugin.cpp
 
+include(audio/audio.pri)
 include(wrappers/jni/jni.pri)
 include(common/common.pri)
 include(mediaplayer/mediaplayer.pri)
