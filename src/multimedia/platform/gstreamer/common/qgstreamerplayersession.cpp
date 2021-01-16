@@ -64,20 +64,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static bool usePlaybinVolume()
-{
-    static enum { Yes, No, Unknown } status = Unknown;
-    if (status == Unknown) {
-        QByteArray v = qgetenv("QT_GSTREAMER_USE_PLAYBIN_VOLUME");
-        bool value = !v.isEmpty() && v != "0" && v != "false";
-        if (value)
-            status = Yes;
-        else
-            status = No;
-    }
-    return status == Yes;
-}
-
 typedef enum {
     GST_PLAY_FLAG_VIDEO         = 0x00000001,
     GST_PLAY_FLAG_AUDIO         = 0x00000002,
@@ -112,24 +98,19 @@ void QGstreamerPlayerSession::initPlaybin()
         const QByteArray envAudioSink = qgetenv("QT_GSTREAMER_PLAYBIN_AUDIOSINK");
         GstElement *audioSink = gst_element_factory_make(envAudioSink.isEmpty() ? "autoaudiosink" : envAudioSink, "audiosink");
         if (audioSink) {
-            if (usePlaybinVolume()) {
+            m_volumeElement = gst_element_factory_make("volume", "volumeelement");
+            if (m_volumeElement) {
+                m_audioSink = gst_bin_new("audio-output-bin");
+
+                gst_bin_add_many(GST_BIN(m_audioSink), m_volumeElement, audioSink, nullptr);
+                gst_element_link(m_volumeElement, audioSink);
+
+                GstPad *pad = gst_element_get_static_pad(m_volumeElement, "sink");
+                gst_element_add_pad(GST_ELEMENT(m_audioSink), gst_ghost_pad_new("sink", pad));
+                gst_object_unref(GST_OBJECT(pad));
+            } else {
                 m_audioSink = audioSink;
                 m_volumeElement = m_playbin;
-            } else {
-                m_volumeElement = gst_element_factory_make("volume", "volumeelement");
-                if (m_volumeElement) {
-                    m_audioSink = gst_bin_new("audio-output-bin");
-
-                    gst_bin_add_many(GST_BIN(m_audioSink), m_volumeElement, audioSink, nullptr);
-                    gst_element_link(m_volumeElement, audioSink);
-
-                    GstPad *pad = gst_element_get_static_pad(m_volumeElement, "sink");
-                    gst_element_add_pad(GST_ELEMENT(m_audioSink), gst_ghost_pad_new("sink", pad));
-                    gst_object_unref(GST_OBJECT(pad));
-                } else {
-                    m_audioSink = audioSink;
-                    m_volumeElement = m_playbin;
-                }
             }
 
             g_object_set(G_OBJECT(m_playbin), "audio-sink", m_audioSink, nullptr);
@@ -185,13 +166,6 @@ void QGstreamerPlayerSession::initPlaybin()
 
         g_signal_connect(G_OBJECT(m_playbin), "notify::source", G_CALLBACK(playbinNotifySource), this);
         g_signal_connect(G_OBJECT(m_playbin), "element-added",  G_CALLBACK(handleElementAdded), this);
-
-        if (usePlaybinVolume()) {
-            updateVolume();
-            updateMuted();
-            g_signal_connect(G_OBJECT(m_playbin), "notify::volume", G_CALLBACK(handleVolumeChange), this);
-            g_signal_connect(G_OBJECT(m_playbin), "notify::mute", G_CALLBACK(handleMutedChange), this);
-        }
 
         g_signal_connect(G_OBJECT(m_playbin), "video-changed", G_CALLBACK(handleStreamsChange), this);
         g_signal_connect(G_OBJECT(m_playbin), "audio-changed", G_CALLBACK(handleStreamsChange), this);
@@ -1537,49 +1511,6 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
 bool QGstreamerPlayerSession::isLiveSource() const
 {
     return m_isLiveSource;
-}
-
-void QGstreamerPlayerSession::handleVolumeChange(GObject *o, GParamSpec *p, gpointer d)
-{
-    Q_UNUSED(o);
-    Q_UNUSED(p);
-    QGstreamerPlayerSession *session = reinterpret_cast<QGstreamerPlayerSession *>(d);
-    QMetaObject::invokeMethod(session, "updateVolume", Qt::QueuedConnection);
-}
-
-void QGstreamerPlayerSession::updateVolume()
-{
-    double volume = 1.0;
-    g_object_get(m_playbin, "volume", &volume, nullptr);
-
-    if (m_volume != int(volume*100 + 0.5)) {
-        m_volume = int(volume*100 + 0.5);
-#ifdef DEBUG_PLAYBIN
-        qDebug() << Q_FUNC_INFO << m_volume;
-#endif
-        emit volumeChanged(m_volume);
-    }
-}
-
-void QGstreamerPlayerSession::handleMutedChange(GObject *o, GParamSpec *p, gpointer d)
-{
-    Q_UNUSED(o);
-    Q_UNUSED(p);
-    QGstreamerPlayerSession *session = reinterpret_cast<QGstreamerPlayerSession *>(d);
-    QMetaObject::invokeMethod(session, "updateMuted", Qt::QueuedConnection);
-}
-
-void QGstreamerPlayerSession::updateMuted()
-{
-    gboolean muted = FALSE;
-    g_object_get(G_OBJECT(m_playbin), "mute", &muted, nullptr);
-    if (m_muted != muted) {
-        m_muted = muted;
-#ifdef DEBUG_PLAYBIN
-        qDebug() << Q_FUNC_INFO << m_muted;
-#endif
-        emit mutedStateChanged(muted);
-    }
 }
 
 GstAutoplugSelectResult QGstreamerPlayerSession::handleAutoplugSelect(GstBin *bin, GstPad *pad, GstCaps *caps, GstElementFactory *factory, QGstreamerPlayerSession *session)

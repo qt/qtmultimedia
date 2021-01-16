@@ -185,14 +185,10 @@ private slots:
     void finishVideoOutputChange();
     void updateVideoRenderer();
     void updateVideoResolutionTag();
-    void updateVolume();
-    void updateMuted();
     void updateDuration();
 
 private:
     static void playbinNotifySource(GObject *o, GParamSpec *p, gpointer d);
-    static void handleVolumeChange(GObject *o, GParamSpec *p, gpointer d);
-    static void handleMutedChange(GObject *o, GParamSpec *p, gpointer d);
     static void handleElementAdded(GstBin *bin, GstElement *element, QGstreamerPlayerSession *session);
     static void handleStreamsChange(GstBin *bin, gpointer user_data);
     static GstAutoplugSelectResult handleAutoplugSelect(GstBin *bin, GstPad *pad, GstCaps *caps, GstElementFactory *factory, QGstreamerPlayerSession *session);
