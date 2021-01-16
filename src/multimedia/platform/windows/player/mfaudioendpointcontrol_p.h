@@ -54,13 +54,13 @@
 #include <mfapi.h>
 #include <mfidl.h>
 
-#include "qaudiooutputselectorcontrol.h"
+#include "qmap.h"
 
 class MFPlayerService;
 
 QT_USE_NAMESPACE
 
-class MFAudioEndpointControl : public QAudioOutputSelectorControl
+class MFAudioEndpointControl
 {
     Q_OBJECT
 public:

@@ -43,8 +43,7 @@
 #include <mmdeviceapi.h>
 
 MFAudioEndpointControl::MFAudioEndpointControl(QObject *parent)
-    : QAudioOutputSelectorControl(parent)
-    , m_currentActivate(0)
+    : m_currentActivate(0)
 {
 }
 
