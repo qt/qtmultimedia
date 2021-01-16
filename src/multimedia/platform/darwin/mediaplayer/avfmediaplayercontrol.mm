@@ -161,6 +161,25 @@ void AVFMediaPlayerControl::setPlaybackRate(qreal rate)
     m_session->setPlaybackRate(rate);
 }
 
+bool AVFMediaPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
+{
+#ifdef Q_OS_IOS
+    Q_UNUSED(info);
+    return false;
+#else
+    return m_session->setAudioOutput(info);
+#endif
+}
+
+QAudioDeviceInfo AVFMediaPlayerControl::audioOutput() const
+{
+#ifdef Q_OS_IOS
+    return QAudioDeviceInfo();
+#else
+    return m_session->audioOutput();
+#endif
+}
+
 void AVFMediaPlayerControl::setPosition(qint64 pos)
 {
     m_session->setPosition(pos);

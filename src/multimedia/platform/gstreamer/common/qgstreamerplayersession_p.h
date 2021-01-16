@@ -146,6 +146,11 @@ public:
 
     void endOfMediaReset();
 
+    QAudioDeviceInfo audioOutputDevice() const { return m_audioDevice; }
+    void setAudioOutputDevice(const QAudioDeviceInfo &audioDevice);
+
+    void finishAudioOutputChange();
+
 public slots:
     void loadFromUri(const QNetworkRequest &url);
     void loadFromStream(const QNetworkRequest &url, QIODevice *stream);
@@ -195,8 +200,11 @@ private:
 
     void processInvalidMedia(QMediaPlayer::Error errorCode, const QString& errorString);
 
+    static GstPadProbeReturn change_audio_sink_cb(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
+
     void removeVideoBufferProbe();
     void addVideoBufferProbe();
+    void updateAudioSink();
     void removeAudioBufferProbe();
     void addAudioBufferProbe();
     void flushVideoProbes();
@@ -207,6 +215,7 @@ private:
     void initPlaybin();
     void setBus(GstBus *bus);
 
+    QAudioDeviceInfo m_audioDevice;
     QNetworkRequest m_request;
     QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
     QMediaPlayer::State m_pendingState = QMediaPlayer::StoppedState;
@@ -221,7 +230,9 @@ private:
     GstElement *m_pendingVideoSink = nullptr;
     GstElement *m_nullVideoSink = nullptr;
 
+    GstBin *m_audioBin = nullptr;
     GstElement *m_audioSink = nullptr;
+    GstElement *m_pendingAudioSink = nullptr;
     GstElement *m_volumeElement = nullptr;
 
     GstBus *m_bus = nullptr;

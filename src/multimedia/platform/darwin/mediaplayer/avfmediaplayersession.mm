@@ -709,6 +709,27 @@ qreal AVFMediaPlayerSession::playbackRate() const
     return m_rate;
 }
 
+#ifdef Q_OS_MACOS
+bool AVFMediaPlayerSession::setAudioOutput(const QAudioDeviceInfo &info)
+{
+    m_audioOutput = info;
+
+    AVPlayer *player = [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) player];
+    if (info.isNull()) {
+        player.audioOutputDeviceUniqueID = nil;
+    } else {
+        NSString *str = QString::fromUtf8(info.id()).toNSString();
+        player.audioOutputDeviceUniqueID = str;
+    }
+    return true;
+}
+
+QAudioDeviceInfo AVFMediaPlayerSession::audioOutput() const
+{
+    return m_audioOutput;
+}
+#endif
+
 void AVFMediaPlayerSession::setPlaybackRate(qreal rate)
 {
 #ifdef QT_DEBUG_AVF

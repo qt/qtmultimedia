@@ -117,8 +117,8 @@ public:
 //    bool enableLowLatencyPlayback(bool tryEnable);
 //    bool isLowLatencyPlaybackEnabled() const;
 
-//    void setAudioOutput(const QAudioDeviceInfo &);
-//    QAudioDeviceInfo audioOutput() const;
+    bool setAudioOutput(const QAudioDeviceInfo &device);
+    QAudioDeviceInfo audioOutput() const;
 
 //    using ContentStream = QVariantHash;
 

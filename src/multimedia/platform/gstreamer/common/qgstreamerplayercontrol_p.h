@@ -95,6 +95,9 @@ public:
 
     bool streamPlaybackSupported() const override { return true; }
 
+    bool setAudioOutput(const QAudioDeviceInfo &) override;
+    QAudioDeviceInfo audioOutput() const override;
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 

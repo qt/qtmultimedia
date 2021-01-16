@@ -64,6 +64,7 @@
 #include <QtCore/qwaitcondition.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
+#include <qaudiodeviceinfo.h>
 
 QT_BEGIN_NAMESPACE
 class QUrl;
@@ -72,7 +73,6 @@ QT_END_NAMESPACE
 QT_USE_NAMESPACE
 
 class SourceResolver;
-class MFAudioEndpointControl;
 class MFVideoRendererControl;
 class MFPlayerControl;
 class MFMetaDataControl;
@@ -130,6 +130,9 @@ public:
     void removeProbe(MFAudioProbeControl* probe);
     void addProbe(MFVideoProbeControl* probe);
     void removeProbe(MFVideoProbeControl* probe);
+
+    bool setAudioOutput(const QAudioDeviceInfo &device);
+    QAudioDeviceInfo audioOutput() const { return m_audioOutput; }
 
 Q_SIGNALS:
     void error(QMediaPlayer::Error error, QString errorString, bool isFatal);
@@ -223,6 +226,10 @@ private:
     bool m_canScrub;
     int m_volume;
     bool m_muted;
+
+    QAudioDeviceInfo m_audioOutput;
+    IMFActivate *m_currentAudioActivate = nullptr;
+
 
     void setVolumeInternal(int volume);
 

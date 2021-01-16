@@ -43,6 +43,7 @@
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
 
 #include <QtCore/qpair.h>
 
@@ -95,6 +96,9 @@ public:
     virtual QStringList supportedCustomAudioRoles() const { return {}; }
 
     virtual bool streamPlaybackSupported() const { return false; }
+
+    virtual bool setAudioOutput(const QAudioDeviceInfo &) { return false; }
+    virtual QAudioDeviceInfo audioOutput() const { return QAudioDeviceInfo(); }
 
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);

@@ -53,7 +53,7 @@
 #include <private/qgstreamerplayerserviceplugin_p.h>
 #include <private/qgstreamercaptureserviceplugin_p.h>
 #elif defined(Q_OS_WIN)
-#include <private/mfplayerservice_p.h>
+#include <private/wmfserviceplugin_p.h>
 #elif defined(Q_OS_DARWIN)
 #include <private/avfcameraserviceplugin_p.h>
 #include <private/avfmediaplayerserviceplugin_p.h>
@@ -86,7 +86,7 @@ public:
         GET_PLUGIN(Q_MEDIASERVICE_CAMERA, QGstreamerCaptureServicePlugin)
         GET_PLUGIN(Q_MEDIASERVICE_AUDIOSOURCE, QGstreamerCaptureServicePlugin)
 #elif defined(Q_OS_WIN)
-        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, MFPlayerService)
+        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, WMFServicePlugin)
 #elif defined(Q_OS_DARWIN)
         GET_PLUGIN(Q_MEDIASERVICE_CAMERA, AVFServicePlugin)
         GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, AVFMediaPlayerServicePlugin)

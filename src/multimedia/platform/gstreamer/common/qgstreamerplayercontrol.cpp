@@ -39,6 +39,7 @@
 
 #include <private/qgstreamerplayercontrol_p.h>
 #include <private/qgstreamerplayersession_p.h>
+#include <qaudiodeviceinfo.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qsocketnotifier.h>
@@ -368,6 +369,17 @@ void QGstreamerPlayerControl::setMedia(const QUrl &content, QIODevice *stream)
     emit positionChanged(position());
 
     popAndNotifyState();
+}
+
+bool QGstreamerPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
+{
+    m_session->setAudioOutputDevice(info);
+    return true;
+}
+
+QAudioDeviceInfo QGstreamerPlayerControl::audioOutput() const
+{
+    return m_session->audioOutputDevice();
 }
 
 void QGstreamerPlayerControl::setVideoOutput(QObject *output)

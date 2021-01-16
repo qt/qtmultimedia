@@ -65,7 +65,6 @@ QT_END_NAMESPACE
 QT_USE_NAMESPACE
 
 class MFEvrVideoWindowControl;
-class MFAudioEndpointControl;
 class MFVideoRendererControl;
 class MFPlayerControl;
 class MFMetaDataControl;
@@ -81,7 +80,6 @@ public:
     QObject *requestControl(const char *name);
     void releaseControl(QObject *control);
 
-    MFAudioEndpointControl* audioEndpointControl() const;
     MFVideoRendererControl* videoRendererControl() const;
     MFEvrVideoWindowControl* videoWindowControl() const;
     MFMetaDataControl* metaDataControl() const;
@@ -89,7 +87,6 @@ public:
 private:
     MFPlayerSession *m_session;
     MFVideoRendererControl *m_videoRendererControl;
-    MFAudioEndpointControl *m_audioEndpointControl;
     MFEvrVideoWindowControl *m_videoWindowControl;
     MFPlayerControl        *m_player;
     MFMetaDataControl      *m_metaDataControl;

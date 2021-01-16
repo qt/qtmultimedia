@@ -59,6 +59,7 @@
 #include <QtCore/qstandardpaths.h>
 #include <qvideorenderercontrol.h>
 #include <QUrlQuery>
+#include <private/qaudiodeviceinfo_gstreamer_p.h>
 
 //#define DEBUG_PLAYBIN
 
@@ -95,27 +96,20 @@ void QGstreamerPlayerSession::initPlaybin()
         }
         g_object_set(G_OBJECT(m_playbin), "flags", flags, nullptr);
 
-        const QByteArray envAudioSink = qgetenv("QT_GSTREAMER_PLAYBIN_AUDIOSINK");
-        GstElement *audioSink = gst_element_factory_make(envAudioSink.isEmpty() ? "autoaudiosink" : envAudioSink, "audiosink");
-        if (audioSink) {
-            m_volumeElement = gst_element_factory_make("volume", "volumeelement");
-            if (m_volumeElement) {
-                m_audioSink = gst_bin_new("audio-output-bin");
+        // setup audio output
+        m_volumeElement = gst_element_factory_make("volume", "volumeelement");
+        Q_ASSERT(m_volumeElement);
+        m_audioBin = GST_BIN(gst_bin_new("audio-output-bin"));
+        gst_bin_add(m_audioBin, m_volumeElement);
 
-                gst_bin_add_many(GST_BIN(m_audioSink), m_volumeElement, audioSink, nullptr);
-                gst_element_link(m_volumeElement, audioSink);
+        GstPad *pad = gst_element_get_static_pad(m_volumeElement, "sink");
+        gst_element_add_pad(GST_ELEMENT(m_audioBin), gst_ghost_pad_new("sink", pad));
+        gst_object_unref(GST_OBJECT(pad));
 
-                GstPad *pad = gst_element_get_static_pad(m_volumeElement, "sink");
-                gst_element_add_pad(GST_ELEMENT(m_audioSink), gst_ghost_pad_new("sink", pad));
-                gst_object_unref(GST_OBJECT(pad));
-            } else {
-                m_audioSink = audioSink;
-                m_volumeElement = m_playbin;
-            }
+        qDebug() << "setting up player audio-sink property";
+        g_object_set(G_OBJECT(m_playbin), "audio-sink", GST_ELEMENT(m_audioBin), nullptr);
 
-            g_object_set(G_OBJECT(m_playbin), "audio-sink", m_audioSink, nullptr);
-            addAudioBufferProbe();
-        }
+        updateAudioSink();
     }
 
     static const auto convDesc = qEnvironmentVariable("QT_GSTREAMER_PLAYBIN_CONVERT");
@@ -551,6 +545,7 @@ static GstPadProbeReturn block_pad_cb(GstPad *pad, GstPadProbeInfo *info, gpoint
     Q_UNUSED(pad);
     Q_UNUSED(info);
     Q_UNUSED(user_data);
+    qDebug() << "block_pad_cb" << pad;
     return GST_PAD_PROBE_OK;
 }
 
@@ -1642,6 +1637,16 @@ void QGstreamerPlayerSession::endOfMediaReset()
         emit stateChanged(m_state);
 }
 
+void QGstreamerPlayerSession::setAudioOutputDevice(const QAudioDeviceInfo &audioDevice)
+{
+    if (m_audioDevice == audioDevice)
+        return;
+
+    m_audioDevice = audioDevice;
+    if (m_audioSink)
+        updateAudioSink();
+}
+
 void QGstreamerPlayerSession::removeVideoBufferProbe()
 {
     if (!m_videoProbe)
@@ -1666,12 +1671,93 @@ void QGstreamerPlayerSession::addVideoBufferProbe()
     }
 }
 
+void QGstreamerPlayerSession::updateAudioSink()
+{
+    QAudioDeviceInfo info = m_audioDevice;
+    auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
+
+    GstElement *audioSink = nullptr;
+    if (deviceInfo && deviceInfo->gstDevice)
+        audioSink = gst_device_create_element(deviceInfo->gstDevice , "audiosink");
+
+    if (!audioSink)
+        audioSink = gst_element_factory_make("autoaudiosink", "audiosink");
+
+    m_pendingAudioSink = audioSink;
+    if (m_state == QMediaPlayer::StoppedState) {
+        finishAudioOutputChange();
+    } else {
+        GstPad *srcPad = gst_element_get_static_pad(m_volumeElement, "src");
+        gst_pad_add_probe(srcPad, (GstPadProbeType)(GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BLOCKING),
+                          change_audio_sink_cb, this, nullptr);
+        gst_object_unref(GST_OBJECT(srcPad));
+
+        // set the pipeline into paused state
+        if (m_state == QMediaPlayer::PlayingState)
+            gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
+        //Unpause the sink to avoid waiting until the buffer is processed
+        //while the sink is paused. The pad will be blocked as soon as the current
+        //buffer is processed.
+        gst_element_set_state(m_audioSink, GST_STATE_PLAYING);
+
+    }
+}
+
+GstPadProbeReturn QGstreamerPlayerSession::change_audio_sink_cb(GstPad *pad, GstPadProbeInfo *info, gpointer user_data)
+{
+    if (gst_pad_is_blocked(pad)) {
+        gst_pad_remove_probe(pad, GST_PAD_PROBE_INFO_ID(info));
+        QGstreamerPlayerSession *s = static_cast<QGstreamerPlayerSession *>(user_data);
+
+        s->finishAudioOutputChange();
+    }
+    return GST_PAD_PROBE_OK;
+}
+
+
+void QGstreamerPlayerSession::finishAudioOutputChange()
+{
+    auto *newAudioSink = m_pendingAudioSink;
+    if (!newAudioSink)
+        return;
+    if (!g_atomic_pointer_compare_and_exchange(&m_pendingAudioSink, newAudioSink, nullptr))
+        return;
+
+    if (newAudioSink != m_audioSink) {
+        if (m_audioSink) {
+            gst_element_set_state(m_audioSink, GST_STATE_NULL);
+            gst_bin_remove(m_audioBin, m_audioSink);
+        }
+        m_audioSink = newAudioSink;
+
+        gst_bin_add(m_audioBin, m_audioSink);
+        gst_element_sync_state_with_parent(m_audioSink);
+        gst_element_link(m_volumeElement, m_audioSink);
+
+        GstState state = GST_STATE_VOID_PENDING;
+
+        switch (m_pendingState) {
+        case QMediaPlayer::StoppedState:
+            state = GST_STATE_NULL;
+            break;
+        case QMediaPlayer::PausedState:
+            state = GST_STATE_PAUSED;
+            break;
+        case QMediaPlayer::PlayingState:
+            state = GST_STATE_PLAYING;
+            break;
+        }
+        if (m_state != QMediaPlayer::StoppedState)
+            gst_element_set_state (m_pipeline, state);
+    }
+}
+
 void QGstreamerPlayerSession::removeAudioBufferProbe()
 {
     if (!m_audioProbe)
         return;
 
-    GstPad *pad = gst_element_get_static_pad(m_audioSink, "sink");
+    GstPad *pad = gst_element_get_static_pad(GST_ELEMENT(m_volumeElement), "src");
     if (pad) {
         m_audioProbe->removeProbeFromPad(pad);
         gst_object_unref(GST_OBJECT(pad));
@@ -1683,7 +1769,7 @@ void QGstreamerPlayerSession::addAudioBufferProbe()
     if (!m_audioProbe)
         return;
 
-    GstPad *pad = gst_element_get_static_pad(m_audioSink, "sink");
+    GstPad *pad = gst_element_get_static_pad(GST_ELEMENT(m_volumeElement), "src");
     if (pad) {
         m_audioProbe->addProbeToPad(pad);
         gst_object_unref(GST_OBJECT(pad));

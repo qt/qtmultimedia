@@ -50,7 +50,6 @@
 #include "mfplayercontrol_p.h"
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
-#include "mfaudioendpointcontrol_p.h"
 
 #include "mfplayersession_p.h"
 #include "mfplayerservice_p.h"
@@ -61,6 +60,9 @@
 #include "samplegrabber_p.h"
 #include "mftvideo_p.h"
 #include <wmcodecdsp.h>
+
+#include <mmdeviceapi.h>
+#include <Functiondiscoverykeys_devpkey.h>
 
 //#define DEBUG_MEDIAFOUNDATION
 
@@ -186,6 +188,10 @@ void MFPlayerSession::removeProbe(MFVideoProbeControl* probe)
 
 MFPlayerSession::~MFPlayerSession()
 {
+    if (m_currentAudioActivate)
+        m_currentAudioActivate->Release();
+    m_currentAudioActivate = nullptr;
+
     m_audioSampleGrabber->Release();
 }
 
@@ -424,7 +430,9 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
 
     IMFActivate *activate = NULL;
     if (mediaType == Audio) {
-        activate = m_playerService->audioEndpointControl()->createActivate();
+        if (!m_currentAudioActivate)
+            setAudioOutput(QAudioDeviceInfo());
+        activate = m_currentAudioActivate;
     } else if (mediaType == Video) {
         if (m_playerService->videoRendererControl()) {
             activate = m_playerService->videoRendererControl()->createActivate();
@@ -1813,4 +1821,44 @@ void MFPlayerSession::clear()
         m_audioSampleGrabberNode->Release();
         m_audioSampleGrabberNode = NULL;
     }
+}
+
+bool MFPlayerSession::setAudioOutput(const QAudioDeviceInfo &device)
+{
+    // ### This doesn't yet update the output routing during playback
+    // ie. it currently only works before the first play().
+    if (m_audioOutput == device && m_currentAudioActivate)
+        return true;
+
+    IMFActivate *activate = NULL;
+    HRESULT hr = MFCreateAudioRendererActivate(&activate);
+    if (FAILED(hr)) {
+        qWarning() << "Failed to create audio renderer activate";
+        return false;
+    }
+
+    if (!device.id().isEmpty()) {
+        QString s = QString::fromUtf8(device.id());
+        hr = activate->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID, (LPCWSTR)s.utf16());
+    } else {
+        //This is the default one that has been inserted in updateEndpoints(),
+        //so give the activate a hint that we want to use the device for multimedia playback
+        //then the media foundation will choose an appropriate one.
+
+        //from MSDN:
+        //The ERole enumeration defines constants that indicate the role that the system has assigned to an audio endpoint device.
+        //eMultimedia: Music, movies, narration, and live music recording.
+        hr = activate->SetUINT32(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE, eMultimedia);
+    }
+
+    if (FAILED(hr)) {
+        qWarning() << "Failed to set attribute for audio device" << device.description();
+        return false;
+    }
+
+    if (m_currentAudioActivate)
+        m_currentAudioActivate->Release();
+    m_currentAudioActivate = activate;
+    m_audioOutput = device;
+    return true;
 }

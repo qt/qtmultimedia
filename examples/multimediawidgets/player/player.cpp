@@ -60,6 +60,8 @@
 #include <QVideoProbe>
 #include <QAudioProbe>
 #include <QMediaMetaData>
+#include <QMediaDeviceManager>
+#include <QAudioDeviceInfo>
 #include <QtWidgets>
 
 Player::Player(QWidget *parent)
@@ -151,6 +153,12 @@ Player::Player(QWidget *parent)
     m_colorButton->setEnabled(false);
     connect(m_colorButton, &QPushButton::clicked, this, &Player::showColorDialog);
 
+    m_audioOutput = new QComboBox(this);
+    m_audioOutput->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDeviceInfo()));
+    for (auto &deviceInfo: QMediaDeviceManager::audioOutputs())
+        m_audioOutput->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    connect(m_audioOutput, QOverload<int>::of(&QComboBox::activated), this, &Player::audioOutputChanged);
+
     QBoxLayout *displayLayout = new QHBoxLayout;
     displayLayout->addWidget(m_videoWidget, 2);
     displayLayout->addWidget(m_playlistView);
@@ -163,6 +171,7 @@ Player::Player(QWidget *parent)
     controlLayout->addStretch(1);
     controlLayout->addWidget(m_fullScreenButton);
     controlLayout->addWidget(m_colorButton);
+    controlLayout->addWidget(m_audioOutput);
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(displayLayout);
@@ -476,6 +485,12 @@ void Player::showColorDialog()
         connect(button, &QPushButton::clicked, m_colorDialog, &QDialog::close);
     }
     m_colorDialog->show();
+}
+
+void Player::audioOutputChanged(int index)
+{
+    auto device = m_audioOutput->itemData(index).value<QAudioDeviceInfo>();
+    m_player->setAudioOutput(device);
 }
 
 void Player::clearHistogram()

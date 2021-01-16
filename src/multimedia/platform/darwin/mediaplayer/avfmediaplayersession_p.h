@@ -97,6 +97,12 @@ public:
 
     qreal playbackRate() const;
 
+#ifdef Q_OS_MACOS
+    bool setAudioOutput(const QAudioDeviceInfo &);
+    QAudioDeviceInfo audioOutput() const;
+    QAudioDeviceInfo m_audioOutput;
+#endif
+
 public Q_SLOTS:
     void setPlaybackRate(qreal rate);
 

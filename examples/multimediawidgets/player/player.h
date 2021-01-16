@@ -61,6 +61,7 @@ class QLabel;
 class QMediaPlayer;
 class QModelIndex;
 class QPushButton;
+class QComboBox;
 class QSlider;
 class QStatusBar;
 class QVideoProbe;
@@ -108,6 +109,8 @@ private slots:
 
     void showColorDialog();
 
+    void audioOutputChanged(int);
+
 private:
     void clearHistogram();
     void setTrackInfo(const QString &info);
@@ -123,6 +126,7 @@ private:
     QLabel *m_labelDuration = nullptr;
     QPushButton *m_fullScreenButton = nullptr;
     QPushButton *m_colorButton = nullptr;
+    QComboBox *m_audioOutput = nullptr;
     QDialog *m_colorDialog = nullptr;
     QLabel *m_statusLabel = nullptr;
     QStatusBar *m_statusBar = nullptr;

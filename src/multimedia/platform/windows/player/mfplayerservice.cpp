@@ -44,7 +44,6 @@
 #include "mfplayercontrol_p.h"
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
-#include "mfaudioendpointcontrol_p.h"
 #include "mfaudioprobecontrol_p.h"
 #include "mfvideoprobecontrol_p.h"
 #include "mfplayerservice_p.h"
@@ -57,7 +56,6 @@ MFPlayerService::MFPlayerService(QObject *parent)
     , m_videoWindowControl(0)
     , m_videoRendererControl(0)
 {
-    m_audioEndpointControl = new MFAudioEndpointControl(this);
     m_session = new MFPlayerSession(this);
     m_player = new MFPlayerControl(m_session);
     m_metaDataControl = new MFMetaDataControl(this);
@@ -142,11 +140,6 @@ void MFPlayerService::releaseControl(QObject *control)
         delete videoProbe;
         return;
     }
-}
-
-MFAudioEndpointControl* MFPlayerService::audioEndpointControl() const
-{
-    return m_audioEndpointControl;
 }
 
 MFVideoRendererControl* MFPlayerService::videoRendererControl() const

@@ -104,6 +104,8 @@ public:
 
     bool streamPlaybackSupported() const { return true; }
 
+    bool setAudioOutput(const QAudioDeviceInfo &) override;
+    QAudioDeviceInfo audioOutput() const override;
 
 private Q_SLOTS:
     void handleStatusChanged();

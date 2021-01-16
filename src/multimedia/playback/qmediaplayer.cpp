@@ -650,6 +650,25 @@ QStringList QMediaPlayer::supportedMimeTypes()
 }
 
 /*!
+    Sets the audio output to \a device.
+
+    Setting a null QAudioDeviceInfo, sets the output to the system default.
+
+    Returns true if the output could be changed, false otherwise.
+ */
+bool QMediaPlayer::setAudioOutput(const QAudioDeviceInfo &device)
+{
+    Q_D(QMediaPlayer);
+    return d->control->setAudioOutput(device);
+}
+
+QAudioDeviceInfo QMediaPlayer::audioOutput() const
+{
+    Q_D(const QMediaPlayer);
+    return d->control->audioOutput();
+}
+
+/*!
     Attach a video \a output to the media player.
 
     If the media player has already video output attached,

@@ -130,6 +130,16 @@ void MFPlayerControl::stop()
     refreshState();
 }
 
+bool MFPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
+{
+    return m_session->setAudioOutput(info);
+}
+
+QAudioDeviceInfo MFPlayerControl::audioOutput() const
+{
+    return m_session->audioOutput();
+}
+
 void MFPlayerControl::changeState(QMediaPlayer::State state)
 {
     if (m_state == state)

@@ -91,6 +91,9 @@ public:
     qreal playbackRate() const override;
     void setPlaybackRate(qreal rate) override;
 
+    bool setAudioOutput(const QAudioDeviceInfo &) override;
+    QAudioDeviceInfo audioOutput() const override;
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 

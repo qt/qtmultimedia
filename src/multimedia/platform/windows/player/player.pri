@@ -8,7 +8,6 @@ HEADERS += \
     $$PWD/mfplayersession_p.h \
     $$PWD/mfplayercontrol_p.h \
     $$PWD/mfvideorenderercontrol_p.h \
-    $$PWD/mfaudioendpointcontrol_p.h \
     $$PWD/mfmetadatacontrol_p.h \
     $$PWD/mfaudioprobecontrol_p.h \
     $$PWD/mfvideoprobecontrol_p.h \
@@ -22,7 +21,6 @@ SOURCES += \
     $$PWD/mfplayersession.cpp \
     $$PWD/mfplayercontrol.cpp \
     $$PWD/mfvideorenderercontrol.cpp \
-    $$PWD/mfaudioendpointcontrol.cpp \
     $$PWD/mfmetadatacontrol.cpp \
     $$PWD/mfaudioprobecontrol.cpp \
     $$PWD/mfvideoprobecontrol.cpp \
