@@ -58,12 +58,12 @@ QT_BEGIN_NAMESPACE
 
 //#define DEBUG_AUDIO 1
 
-QWindowsAudioInput::QWindowsAudioInput(const QByteArray &device)
+QWindowsAudioInput::QWindowsAudioInput(int deviceId)
 {
     bytesAvailable = 0;
     buffer_size = 0;
     period_size = 0;
-    m_device = device;
+    m_deviceId = deviceId;
     totalTimeValue = 0;
     intervalTime = 1000;
     errorState = QAudio::NoError;
@@ -326,11 +326,7 @@ bool QWindowsAudioInput::open()
     timeStamp.restart();
     elapsedTimeOffset = 0;
 
-    QDataStream ds(&m_device, QIODevice::ReadOnly);
-    quint32 deviceId;
-    ds >> deviceId;
-
-    if (waveInOpen(&hWaveIn, UINT_PTR(deviceId), &wfx.Format,
+    if (waveInOpen(&hWaveIn, UINT_PTR(m_deviceId), &wfx.Format,
                 (DWORD_PTR)&waveInProc,
                 (DWORD_PTR) this,
                 CALLBACK_FUNCTION) != MMSYSERR_NOERROR) {

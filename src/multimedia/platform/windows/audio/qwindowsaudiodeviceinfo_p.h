@@ -70,7 +70,7 @@ const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
 class QWindowsAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
 public:
-    QWindowsAudioDeviceInfo(QByteArray dev, QAudio::Mode mode);
+    QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode);
     ~QWindowsAudioDeviceInfo();
 
     bool open();
@@ -80,20 +80,18 @@ public:
     void updateLists();
     QAudioFormat preferredFormat() const;
     bool isFormatSupported(const QAudioFormat& format) const;
-    QString deviceName() const;
-    QString description() const { return deviceName(); }
+    QString description() const { return m_description; }
     QStringList supportedCodecs() const;
     QList<int> supportedSampleRates() const;
     QList<int> supportedChannelCounts() const;
     QList<int> supportedSampleSizes() const;
     QList<QAudioFormat::Endian> supportedByteOrders() const;
     QList<QAudioFormat::SampleType> supportedSampleTypes() const;
-    static QByteArray defaultDevice(QAudio::Mode mode);
-    static QList<QByteArray> availableDevices(QAudio::Mode);
 
+    int waveId() const { return devId; }
 private:
     QAudio::Mode mode;
-    QString device;
+    QString m_description;
     quint32 devId;
     QList<int> sampleRatez;
     QList<int> channelz;

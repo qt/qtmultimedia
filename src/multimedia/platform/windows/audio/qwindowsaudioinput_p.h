@@ -82,7 +82,7 @@ class QWindowsAudioInput : public QAbstractAudioInput
 {
     Q_OBJECT
 public:
-    QWindowsAudioInput(const QByteArray &device);
+    QWindowsAudioInput(int deviceId);
     ~QWindowsAudioInput();
 
     qint64 read(char* data, qint64 len);
@@ -117,7 +117,7 @@ private:
     qint32 buffer_size;
     qint32 period_size;
     qint32 header;
-    QByteArray m_device;
+    int m_deviceId;
     int bytesAvailable;
     int intervalTime;
     QElapsedTimer timeStamp;

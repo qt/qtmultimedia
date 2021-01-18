@@ -80,7 +80,7 @@ class QWindowsAudioOutput : public QAbstractAudioOutput
 {
     Q_OBJECT
 public:
-    QWindowsAudioOutput(const QByteArray &device);
+    QWindowsAudioOutput(int deviceId);
     ~QWindowsAudioOutput();
 
     qint64 write( const char *data, qint64 len );
@@ -117,7 +117,7 @@ private slots:
 
 private:
     void pauseAndSleep();
-    QByteArray m_device;
+    int m_deviceId;
     int bytesAvailable;
     QElapsedTimer timeStamp;
     qint64 elapsedTimeOffset;

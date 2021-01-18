@@ -40,12 +40,14 @@
 #include "qwindowsdevicemanager_p.h"
 #include "qmediadevicemanager.h"
 #include "qcamerainfo_p.h"
+#include "qvarlengtharray.h"
 
 #include "private/qwindowsaudioinput_p.h"
 #include "private/qwindowsaudiooutput_p.h"
 #include "private/qwindowsaudiodeviceinfo_p.h"
 
 #include <mmsystem.h>
+#include <mmddk.h>
 #include "private/qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -96,13 +98,29 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
                         VariantClear(&var);
                         // Find the description
                         hr = pPropBag->Read(L"FriendlyName", &var, 0);
-                        if (SUCCEEDED(hr)) {
-                            QByteArray  device;
-                            QDataStream ds(&device, QIODevice::WriteOnly);
-                            ds << quint32(waveID) << QString::fromWCharArray(var.bstrVal);
-                            QAudioDeviceInfo info(new QWindowsAudioDeviceInfo(device, mode));
-                            devices.append(info);
-                        }
+                        if (!SUCCEEDED(hr))
+                            continue;
+                        QString description = QString::fromWCharArray(var.bstrVal);
+
+                        // Get the endpoint ID string for this waveOut device. This is required to be able to
+                        // identify the device use the WMF APIs
+                        size_t len = 0;
+                        MMRESULT mmr = waveOutMessage((HWAVEOUT)IntToPtr(waveID),
+                                                     DRV_QUERYFUNCTIONINSTANCEIDSIZE,
+                                                     (DWORD_PTR)&len, 0);
+                        if (mmr != MMSYSERR_NOERROR)
+                            continue;
+                        QVarLengthArray<WCHAR> id(len);
+                        mmr = waveOutMessage((HWAVEOUT)IntToPtr(waveID),
+                                             DRV_QUERYFUNCTIONINSTANCEID,
+                                             (DWORD_PTR)id.data(),
+                                             len);
+                        if (mmr != MMSYSERR_NOERROR)
+                            continue;
+                        QByteArray strId = QString::fromWCharArray(id.data()).toUtf8();
+
+                        QAudioDeviceInfo info(new QWindowsAudioDeviceInfo(strId, waveID, description, mode));
+                        devices.append(info);
                     }
                 }
 
@@ -136,12 +154,14 @@ QList<QCameraInfo> QWindowsDeviceManager::videoInputs() const
 
 QAbstractAudioInput *QWindowsDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QWindowsAudioInput(deviceInfo.id());
+    const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
+    return new QWindowsAudioInput(devInfo->waveId());
 }
 
 QAbstractAudioOutput *QWindowsDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QWindowsAudioOutput(deviceInfo.id());
+    const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
+    return new QWindowsAudioOutput(devInfo->waveId());
 }
 
 QT_END_NAMESPACE

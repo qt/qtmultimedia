@@ -57,13 +57,11 @@
 #include "qwindowsaudioutils_p.h"
 
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(dev, mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(dev, mode),
+      m_description(description),
+      devId(waveID)
 {
-    QDataStream ds(&dev, QIODevice::ReadOnly);
-    ds >> devId >> device;
-    this->mode = mode;
-
     updateLists();
 }
 
@@ -96,11 +94,6 @@ QAudioFormat QWindowsAudioDeviceInfo::preferredFormat() const
         nearest.setCodec(QLatin1String("audio/x-raw"));
     }
     return nearest;
-}
-
-QString QWindowsAudioDeviceInfo::deviceName() const
-{
-    return device;
 }
 
 QStringList QWindowsAudioDeviceInfo::supportedCodecs() const
@@ -315,81 +308,6 @@ void QWindowsAudioDeviceInfo::updateLists()
         }
         std::sort(sampleRatez.begin(), sampleRatez.end());
     }
-}
-
-QList<QByteArray> QWindowsAudioDeviceInfo::availableDevices(QAudio::Mode mode)
-{
-    Q_UNUSED(mode);
-
-    QList<QByteArray> devices;
-    //enumerate device fullnames through directshow api
-    auto hrCoInit = CoInitialize(nullptr);
-    ICreateDevEnum *pDevEnum = NULL;
-    IEnumMoniker *pEnum = NULL;
-    // Create the System device enumerator
-    HRESULT hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
-                 CLSCTX_INPROC_SERVER, IID_ICreateDevEnum,
-                 reinterpret_cast<void **>(&pDevEnum));
-
-    unsigned long iNumDevs = mode == QAudio::AudioOutput ? waveOutGetNumDevs() : waveInGetNumDevs();
-    if (SUCCEEDED(hr)) {
-        // Create the enumerator for the audio input/output category
-        if (pDevEnum->CreateClassEnumerator(
-             mode == QAudio::AudioOutput ? CLSID_AudioRendererCategory : CLSID_AudioInputDeviceCategory,
-             &pEnum, 0) == S_OK) {
-            pEnum->Reset();
-            // go through and find all audio devices
-            IMoniker *pMoniker = NULL;
-            while (pEnum->Next(1, &pMoniker, NULL) == S_OK) {
-                IPropertyBag *pPropBag;
-                hr = pMoniker->BindToStorage(0,0,IID_IPropertyBag,
-                     reinterpret_cast<void **>(&pPropBag));
-                if (FAILED(hr)) {
-                    pMoniker->Release();
-                    continue; // skip this one
-                }
-                // Find if it is a wave device
-                VARIANT var;
-                VariantInit(&var);
-                hr = pPropBag->Read(mode == QAudio::AudioOutput ? L"WaveOutID" : L"WaveInID", &var, 0);
-                if (SUCCEEDED(hr)) {
-                    LONG waveID = var.lVal;
-                    if (waveID >= 0 && waveID < LONG(iNumDevs)) {
-                        VariantClear(&var);
-                        // Find the description
-                        hr = pPropBag->Read(L"FriendlyName", &var, 0);
-                        if (SUCCEEDED(hr)) {
-                            QByteArray  device;
-                            QDataStream ds(&device, QIODevice::WriteOnly);
-                            ds << quint32(waveID) << QString::fromWCharArray(var.bstrVal);
-                            devices.append(device);
-                        }
-                    }
-                }
-
-                pPropBag->Release();
-                pMoniker->Release();
-            }
-            pEnum->Release();
-        }
-        pDevEnum->Release();
-    }
-    if (SUCCEEDED(hrCoInit))
-        CoUninitialize();
-
-    return devices;
-}
-
-QByteArray QWindowsAudioDeviceInfo::defaultDevice(QAudio::Mode mode)
-{
-    const QString &name = (mode == QAudio::AudioOutput) ? QStringLiteral("Default Output Device")
-                                                        : QStringLiteral("Default Input Device");
-    QByteArray defaultDevice;
-    QDataStream ds(&defaultDevice, QIODevice::WriteOnly);
-    ds << quint32(WAVE_MAPPER) // device ID for default device
-       << name;
-
-    return defaultDevice;
 }
 
 QT_END_NAMESPACE
