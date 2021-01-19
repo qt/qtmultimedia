@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QMEDIAPLATFORMINTEGRATION_H
-#define QMEDIAPLATFORMINTEGRATION_H
+#ifndef QMEDIAPLATFORMPLAYERINTERFACE_H
+#define QMEDIAPLATFORMPLAYERINTERFACE_H
 
 //
 //  W A R N I N G
@@ -54,21 +54,27 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDeviceManager;
-class QMediaPlatformDeviceManager;
-class QMediaPlatformCaptureInterface;
-class QMediaPlatformPlayerInterface;
+class QMediaPlayerControl;
+class QMediaDataReaderControl;
+class QMediaStreamsControl;
+class QMediaVideoProbeControl;
+class QMediaAudioProbeControl;
+class QVideoRendererControl;
+class QVideoWindowControl;
 
-class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
+class Q_MULTIMEDIA_EXPORT QMediaPlatformPlayerInterface
 {
 public:
-    static QMediaPlatformIntegration *instance();
+    virtual ~QMediaPlatformPlayerInterface();
 
-    virtual ~QMediaPlatformIntegration();
-    virtual QMediaPlatformDeviceManager *deviceManager() = 0;
+    virtual QMediaPlayerControl *player() = 0;
+    virtual QMediaDataReaderControl *dataReader() { return nullptr; }
+    virtual QMediaStreamsControl *streams() { return nullptr; }
+    virtual QMediaVideoProbeControl *videoProbe() { return nullptr; }
+    virtual QMediaAudioProbeControl *audioProbe() { return nullptr; }
 
-    virtual QMediaPlatformCaptureInterface *captureInterface() { return nullptr; }
-    virtual QMediaPlatformPlayerInterface *playerInterface() { return nullptr; }
+    virtual QVideoRendererControl *createVideoRenderer() = 0;
+    virtual QVideoWindowControl *createVideoWindow() { return nullptr; };
 };
 
 QT_END_NAMESPACE

@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QMEDIAPLATFORMINTEGRATION_H
-#define QMEDIAPLATFORMINTEGRATION_H
+#ifndef QMEDIAPLATFORMCAPTUREINTERFACE_H
+#define QMEDIAPLATFORMCAPTUREINTERFACE_H
 
 //
 //  W A R N I N G
@@ -54,21 +54,10 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDeviceManager;
-class QMediaPlatformDeviceManager;
-class QMediaPlatformCaptureInterface;
-class QMediaPlatformPlayerInterface;
-
-class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
+class Q_MULTIMEDIA_EXPORT QMediaPlatformCaptureInterface
 {
 public:
-    static QMediaPlatformIntegration *instance();
-
-    virtual ~QMediaPlatformIntegration();
-    virtual QMediaPlatformDeviceManager *deviceManager() = 0;
-
-    virtual QMediaPlatformCaptureInterface *captureInterface() { return nullptr; }
-    virtual QMediaPlatformPlayerInterface *playerInterface() { return nullptr; }
+    virtual ~QMediaPlatformCaptureInterface();
 };
 
 QT_END_NAMESPACE

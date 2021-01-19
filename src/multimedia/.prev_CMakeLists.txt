@@ -47,8 +47,10 @@ qt_internal_add_module(Multimedia
         controls/qvideoencodersettingscontrol.cpp controls/qvideoencodersettingscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
+        platform/qmediaplatformcaptureinterface.cpp platform/qmediaplatformcaptureinterface_p.h
         platform/qmediaplatformdevicemanager.cpp platform/qmediaplatformdevicemanager_p.h
         platform/qmediaplatformintegration.cpp platform/qmediaplatformintegration_p.h
+        platform/qmediaplatformplayerinterface.cpp platform/qmediaplatformplayerinterface_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
@@ -180,7 +182,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::Network
-        WMF::WMF
         d3d9
         dxva2
         evr
@@ -195,6 +196,7 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         user32
         winmm
         wmcodecdspuuid
+        wmf
     PRIVATE_MODULE_INTERFACE
         Qt::GuiPrivate
 )
@@ -337,7 +339,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         platform/pulseaudio/qpulseaudiointegration.cpp platform/pulseaudio/qpulseaudiointegration_p.h
         platform/pulseaudio/qpulsehelpers.cpp platform/pulseaudio/qpulsehelpers_p.h
     LIBRARIES
-        WrapPulseAudio::WrapPulseAudio
+        pulseaudio
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
@@ -348,7 +350,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
         platform/alsa/qalsadevicemanager.cpp platform/alsa/qalsadevicemanager_p.h
         platform/alsa/qalsaintegration.cpp platform/alsa/qalsaintegration_p.h
     LIBRARIES
-        ALSA::ALSA
+        alsa
 )
 
 qt_internal_extend_target(Multimedia CONDITION ANDROID
@@ -440,8 +442,8 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         ${FWMetal}
         ${FWQt::OpenGL}
         ${FWQuartzCore}
-        AVFoundation::AVFoundation
         Qt::Network
+        avfoundation
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
@@ -557,10 +559,10 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/common
         platform/qnx/mediaplayer
     PUBLIC_LIBRARIES
-        MMRenderer::MMRenderer
         asound
         audio_manager
         camapi
+        mmrenderer
 )
 qt_internal_add_docs(Multimedia
     doc/qtmultimedia.qdocconf

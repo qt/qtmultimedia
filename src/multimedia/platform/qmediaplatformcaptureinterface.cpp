@@ -36,42 +36,15 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QMEDIAPLATFORMINTEGRATION_H
-#define QMEDIAPLATFORMINTEGRATION_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
 
 #include <qtmultimediaglobal_p.h>
+#include "qmediaplatformcaptureinterface_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDeviceManager;
-class QMediaPlatformDeviceManager;
-class QMediaPlatformCaptureInterface;
-class QMediaPlatformPlayerInterface;
-
-class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
+QMediaPlatformCaptureInterface::~QMediaPlatformCaptureInterface()
 {
-public:
-    static QMediaPlatformIntegration *instance();
 
-    virtual ~QMediaPlatformIntegration();
-    virtual QMediaPlatformDeviceManager *deviceManager() = 0;
-
-    virtual QMediaPlatformCaptureInterface *captureInterface() { return nullptr; }
-    virtual QMediaPlatformPlayerInterface *playerInterface() { return nullptr; }
-};
+}
 
 QT_END_NAMESPACE
-
-
-#endif // QMEDIAPLATFORMINTERFACE_H

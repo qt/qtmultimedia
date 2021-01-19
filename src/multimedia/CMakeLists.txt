@@ -52,8 +52,10 @@ qt_internal_add_module(Multimedia
         controls/qvideoencodersettingscontrol.cpp controls/qvideoencodersettingscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
+        platform/qmediaplatformcaptureinterface.cpp platform/qmediaplatformcaptureinterface_p.h
         platform/qmediaplatformdevicemanager.cpp platform/qmediaplatformdevicemanager_p.h
         platform/qmediaplatformintegration.cpp platform/qmediaplatformintegration_p.h
+        platform/qmediaplatformplayerinterface.cpp platform/qmediaplatformplayerinterface_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
