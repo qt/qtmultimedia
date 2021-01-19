@@ -63,7 +63,6 @@ QT_BEGIN_NAMESPACE
 class QTimerEvent;
 class QMediaPlayerControl;
 class QMediaService;
-class QMediaServiceProvider;
 class QMetaDataReaderControl;
 class QDeclarativeMediaBaseAnimation;
 class QDeclarativeMediaMetaData;

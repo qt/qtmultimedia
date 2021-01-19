@@ -91,7 +91,6 @@ class QAudioDecoderPrivate : public QMediaSourcePrivate
     Q_DECLARE_NON_CONST_PUBLIC(QAudioDecoder)
 
 public:
-    QMediaServiceProvider *provider = nullptr;
     QAudioDecoderControl *control = nullptr;
     QAudioDecoder::State state = QAudioDecoder::StoppedState;
     QAudioDecoder::Error error = QAudioDecoder::NoError;
