@@ -17,7 +17,6 @@ SUBDIRS += \
     qmediapluginloader \
     qmediarecorder \
     qmediaservice \
-    qmediaserviceprovider \
     qmediatimerange \
     qmetadatareadercontrol \
     qmetadatawritercontrol \
