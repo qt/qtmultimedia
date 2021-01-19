@@ -50,7 +50,7 @@ class QCameraInfoPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraInfo
 {
 public:
-    explicit QCameraInfo(const QByteArray &name = QByteArray());
+    QCameraInfo();
     explicit QCameraInfo(const QCamera &camera);
     QCameraInfo(const QCameraInfo& other);
     ~QCameraInfo();

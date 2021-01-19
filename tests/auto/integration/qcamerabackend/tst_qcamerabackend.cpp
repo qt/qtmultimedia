@@ -97,7 +97,7 @@ void tst_QCameraBackend::cleanupTestCase()
 
 void tst_QCameraBackend::testCameraInfo()
 {
-    int deviceCount = QMediaServiceProvider::defaultServiceProvider()->devices(QByteArray(Q_MEDIASERVICE_CAMERA)).count();
+    int deviceCount = QMediaDeviceManager::videoInputs().count();
     const QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
     QCOMPARE(cameras.count(), deviceCount);
     if (cameras.isEmpty()) {
@@ -151,12 +151,6 @@ void tst_QCameraBackend::testCtorWithCameraInfo()
         QCOMPARE(camera->error(), QCamera::CameraError);
         QVERIFY(QCameraInfo(*camera).isNull());
         delete camera;
-    }
-    {
-        // loading non existing camera should fail
-        QCamera camera(QCameraInfo(QUuid::createUuid().toByteArray()));
-        QCOMPARE(camera.error(), QCamera::CameraError);
-        QVERIFY(QCameraInfo(camera).isNull());
     }
 }
 

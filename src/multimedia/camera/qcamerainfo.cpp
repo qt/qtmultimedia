@@ -76,6 +76,8 @@ QT_BEGIN_NAMESPACE
     \sa QCamera
 */
 
+QCameraInfo::QCameraInfo() = default;
+
 /*!
     Constructs a camera info object for \a camera.
 
@@ -95,28 +97,6 @@ QCameraInfo::QCameraInfo(const QCamera &camera)
         d->position = deviceControl->cameraPosition(selectedDevice);
         d->orientation = deviceControl->cameraOrientation(selectedDevice);
         d->isNull = false;
-    }
-}
-
-/*!
-    Constructs a camera info object from a camera device \a name.
-
-    If no such device exists, the QCameraInfo object will be invalid and isNull() will return true.
-*/
-QCameraInfo::QCameraInfo(const QByteArray &name)
-    : d(new QCameraInfoPrivate)
-{
-    if (!name.isNull()) {
-        QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
-        const QByteArray service(Q_MEDIASERVICE_CAMERA);
-
-        if (provider->devices(service).contains(name)) {
-            d->id = name;
-            d->description = provider->deviceDescription(service, name);
-            d->position = provider->cameraPosition(name);
-            d->orientation = provider->cameraOrientation(name);
-            d->isNull = false;
-        }
     }
 }
 
