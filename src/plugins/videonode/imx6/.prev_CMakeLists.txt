@@ -17,7 +17,7 @@ qt_internal_add_plugin(QSGVivanteVideoNodeFactory
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::MultimediaQuickPrivate
-        GStreamer::GStreamer # special case
+        gstreamer
 )
 
 # Resources:

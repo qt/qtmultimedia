@@ -4,6 +4,11 @@
 ## Multimedia Module:
 #####################################################################
 
+qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
+qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
+qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
+qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
+
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES video/gstvideorenderer video/videonode
     SOURCES
@@ -29,8 +34,6 @@ qt_internal_add_module(Multimedia
         camera/qcameraviewfindersettings.cpp camera/qcameraviewfindersettings.h
         controls/qaudiodecodercontrol.cpp controls/qaudiodecodercontrol.h
         controls/qaudioencodersettingscontrol.cpp controls/qaudioencodersettingscontrol.h
-        controls/qaudioinputselectorcontrol.cpp controls/qaudioinputselectorcontrol.h
-        controls/qaudiooutputselectorcontrol.cpp controls/qaudiooutputselectorcontrol.h
         controls/qcameracontrol.cpp controls/qcameracontrol.h
         controls/qcameraexposurecontrol.cpp controls/qcameraexposurecontrol.h
         controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h
@@ -83,7 +86,6 @@ qt_internal_add_module(Multimedia
         video/qvideosurfaceoutput.cpp video/qvideosurfaceoutput_p.h
         video/qvideosurfaces.cpp video/qvideosurfaces_p.h
     INCLUDE_DIRECTORIES
-        .
         audio
         camera
         controls
@@ -144,45 +146,44 @@ endif()
 
 qt_internal_extend_target(Multimedia CONDITION WIN32
     SOURCES
-        platform/wasapi/qwindowsaudiodeviceinfo.cpp platform/wasapi/qwindowsaudiodeviceinfo_p.h
-        platform/wasapi/qwindowsaudioinput.cpp platform/wasapi/qwindowsaudioinput_p.h
-        platform/wasapi/qwindowsaudiooutput.cpp platform/wasapi/qwindowsaudiooutput_p.h
-        platform/wasapi/qwindowsaudioutils.cpp platform/wasapi/qwindowsaudioutils_p.h
-        platform/wmf/decoder/mfaudiodecodercontrol.cpp platform/wmf/decoder/mfaudiodecodercontrol_p.h
-        platform/wmf/decoder/mfdecodersourcereader.cpp platform/wmf/decoder/mfdecodersourcereader_p.h
-        platform/wmf/evr/evrcustompresenter.cpp platform/wmf/evr/evrcustompresenter_p.h
-        platform/wmf/evr/evrd3dpresentengine.cpp platform/wmf/evr/evrd3dpresentengine_p.h
-        platform/wmf/evr/evrdefs.cpp platform/wmf/evr/evrdefs_p.h
-        platform/wmf/evr/evrhelpers.cpp platform/wmf/evr/evrhelpers_p.h
-        platform/wmf/evr/evrvideowindowcontrol.cpp platform/wmf/evr/evrvideowindowcontrol_p.h
-        platform/wmf/mfstream.cpp platform/wmf/mfstream_p.h
-        platform/wmf/player/mfactivate.cpp platform/wmf/player/mfactivate_p.h
-        platform/wmf/player/mfaudioendpointcontrol.cpp platform/wmf/player/mfaudioendpointcontrol_p.h
-        platform/wmf/player/mfaudioprobecontrol.cpp platform/wmf/player/mfaudioprobecontrol_p.h
-        platform/wmf/player/mfevrvideowindowcontrol.cpp platform/wmf/player/mfevrvideowindowcontrol_p.h
-        platform/wmf/player/mfmetadatacontrol.cpp platform/wmf/player/mfmetadatacontrol_p.h
-        platform/wmf/player/mfplayercontrol.cpp platform/wmf/player/mfplayercontrol_p.h
-        platform/wmf/player/mfplayerservice.cpp platform/wmf/player/mfplayerservice_p.h
-        platform/wmf/player/mfplayersession.cpp platform/wmf/player/mfplayersession_p.h
-        platform/wmf/player/mftvideo.cpp platform/wmf/player/mftvideo_p.h
-        platform/wmf/player/mfvideoprobecontrol.cpp platform/wmf/player/mfvideoprobecontrol_p.h
-        platform/wmf/player/mfvideorenderercontrol.cpp platform/wmf/player/mfvideorenderercontrol_p.h
-        platform/wmf/player/samplegrabber.cpp platform/wmf/player/samplegrabber_p.h
-        platform/wmf/qwindowsdevicemanager.cpp platform/wmf/qwindowsdevicemanager_p.h
-        platform/wmf/qwindowsintegration.cpp platform/wmf/qwindowsintegration_p.h
-        platform/wmf/sourceresolver.cpp platform/wmf/sourceresolver_p.h
-        platform/wmf/wmfserviceplugin.cpp platform/wmf/wmfserviceplugin_p.h
+        platform/windows/audio/qwindowsaudiodeviceinfo.cpp platform/windows/audio/qwindowsaudiodeviceinfo_p.h
+        platform/windows/audio/qwindowsaudioinput.cpp platform/windows/audio/qwindowsaudioinput_p.h
+        platform/windows/audio/qwindowsaudiooutput.cpp platform/windows/audio/qwindowsaudiooutput_p.h
+        platform/windows/audio/qwindowsaudioutils.cpp platform/windows/audio/qwindowsaudioutils_p.h
+        platform/windows/decoder/mfaudiodecodercontrol.cpp platform/windows/decoder/mfaudiodecodercontrol_p.h
+        platform/windows/decoder/mfdecodersourcereader.cpp platform/windows/decoder/mfdecodersourcereader_p.h
+        platform/windows/evr/evrcustompresenter.cpp platform/windows/evr/evrcustompresenter_p.h
+        platform/windows/evr/evrd3dpresentengine.cpp platform/windows/evr/evrd3dpresentengine_p.h
+        platform/windows/evr/evrdefs.cpp platform/windows/evr/evrdefs_p.h
+        platform/windows/evr/evrhelpers.cpp platform/windows/evr/evrhelpers_p.h
+        platform/windows/evr/evrvideowindowcontrol.cpp platform/windows/evr/evrvideowindowcontrol_p.h
+        platform/windows/mfstream.cpp platform/windows/mfstream_p.h
+        platform/windows/player/mfactivate.cpp platform/windows/player/mfactivate_p.h
+        platform/windows/player/mfaudioprobecontrol.cpp platform/windows/player/mfaudioprobecontrol_p.h
+        platform/windows/player/mfevrvideowindowcontrol.cpp platform/windows/player/mfevrvideowindowcontrol_p.h
+        platform/windows/player/mfmetadatacontrol.cpp platform/windows/player/mfmetadatacontrol_p.h
+        platform/windows/player/mfplayercontrol.cpp platform/windows/player/mfplayercontrol_p.h
+        platform/windows/player/mfplayerservice.cpp platform/windows/player/mfplayerservice_p.h
+        platform/windows/player/mfplayersession.cpp platform/windows/player/mfplayersession_p.h
+        platform/windows/player/mftvideo.cpp platform/windows/player/mftvideo_p.h
+        platform/windows/player/mfvideoprobecontrol.cpp platform/windows/player/mfvideoprobecontrol_p.h
+        platform/windows/player/mfvideorenderercontrol.cpp platform/windows/player/mfvideorenderercontrol_p.h
+        platform/windows/player/samplegrabber.cpp platform/windows/player/samplegrabber_p.h
+        platform/windows/qwindowsdevicemanager.cpp platform/windows/qwindowsdevicemanager_p.h
+        platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
+        platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h
+        platform/windows/wmfserviceplugin.cpp platform/windows/wmfserviceplugin_p.h
     INCLUDE_DIRECTORIES
-        .
-        platform/wmf/decoder
-        platform/wmf/evr
-        platform/wmf/player
+        platform/windows/decoder
+        platform/windows/evr
+        platform/windows/player
     LIBRARIES
         Qt::GuiPrivate
         uuid
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::Network
+        WMF::WMF
         d3d9
         dxva2
         evr
@@ -197,7 +198,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         user32
         winmm
         wmcodecdspuuid
-        wmf
     PRIVATE_MODULE_INTERFACE
         Qt::GuiPrivate
 )
@@ -211,7 +211,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/audio/qgstreameraudiodecodercontrol.cpp platform/gstreamer/audio/qgstreameraudiodecodercontrol_p.h
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
         platform/gstreamer/common/qgstcodecsinfo.cpp platform/gstreamer/common/qgstcodecsinfo_p.h
-        platform/gstreamer/common/qgstreameraudioinputselector.cpp platform/gstreamer/common/qgstreameraudioinputselector_p.h
         platform/gstreamer/common/qgstreameraudioprobecontrol.cpp platform/gstreamer/common/qgstreameraudioprobecontrol_p.h
         platform/gstreamer/common/qgstreamerbufferprobe.cpp platform/gstreamer/common/qgstreamerbufferprobe_p.h
         platform/gstreamer/common/qgstreamerbushelper.cpp platform/gstreamer/common/qgstreamerbushelper_p.h
@@ -232,15 +231,15 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/mediaplayer/qgstreamerplayerservice.cpp platform/gstreamer/mediaplayer/qgstreamerplayerservice_p.h
         platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin.cpp platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
-        platform/gstreamer/qgstreamerplatformdevicemanager.cpp platform/gstreamer/qgstreamerplatformdevicemanager_p.h
-        platform/gstreamer/qgstreamerplatformintegration.cpp platform/gstreamer/qgstreamerplatformintegration_p.h
+        platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
+        platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
     INCLUDE_DIRECTORIES
         platform/gstreamer/mediaplayer
     LIBRARIES
-        gstreamer
-        gstreamer_app
+        GStreamer::GStreamer # special case
+        GStreamer::App # special case
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_camerabin
@@ -268,12 +267,12 @@ qt_internal_extend_target(Multimedia CONDITION ((QT_FEATURE_gstreamer) AND (use_
     DEFINES
         GST_USE_UNSTABLE_API
     PUBLIC_LIBRARIES
-        gstreamer_photography
+        GStreamer::Photography # special case
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl AND use_camerabin
     PUBLIC_LIBRARIES
-        gstreamer_gl
+        GStreamer::Gl # special case
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_linux_v4l AND use_camerabin
@@ -307,7 +306,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATU
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl
     PUBLIC_LIBRARIES
-        gstreamer_gl
+        GStreamer::Gl # special case
 )
 
 qt_internal_extend_target(Multimedia CONDITION ANDROID AND QT_FEATURE_gstreamer
@@ -341,7 +340,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         platform/pulseaudio/qpulseaudiointegration.cpp platform/pulseaudio/qpulseaudiointegration_p.h
         platform/pulseaudio/qpulsehelpers.cpp platform/pulseaudio/qpulsehelpers_p.h
     LIBRARIES
-        pulseaudio
+        WrapPulseAudio::WrapPulseAudio
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
@@ -352,16 +351,19 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
         platform/alsa/qalsadevicemanager.cpp platform/alsa/qalsadevicemanager_p.h
         platform/alsa/qalsaintegration.cpp platform/alsa/qalsaintegration_p.h
     LIBRARIES
-        alsa
+        ALSA::ALSA
 )
 
 qt_internal_extend_target(Multimedia CONDITION ANDROID
     SOURCES
+        platform/android/audio/qopenslesaudioinput.cpp platform/android/audio/qopenslesaudioinput_p.h
+        platform/android/audio/qopenslesaudiooutput.cpp platform/android/audio/qopenslesaudiooutput_p.h
+        platform/android/audio/qopenslesdeviceinfo.cpp platform/android/audio/qopenslesdeviceinfo_p.h
+        platform/android/audio/qopenslesengine.cpp platform/android/audio/qopenslesengine_p.h
         platform/android/common/qandroidglobal_p.h
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
         platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
         platform/android/mediacapture/qandroidaudioencodersettingscontrol.cpp platform/android/mediacapture/qandroidaudioencodersettingscontrol_p.h
-        platform/android/mediacapture/qandroidaudioinputselectorcontrol.cpp platform/android/mediacapture/qandroidaudioinputselectorcontrol_p.h
         platform/android/mediacapture/qandroidcameracontrol.cpp platform/android/mediacapture/qandroidcameracontrol_p.h
         platform/android/mediacapture/qandroidcameraexposurecontrol.cpp platform/android/mediacapture/qandroidcameraexposurecontrol_p.h
         platform/android/mediacapture/qandroidcamerafocuscontrol.cpp platform/android/mediacapture/qandroidcamerafocuscontrol_p.h
@@ -389,10 +391,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/wrappers/jni/androidmultimediautils.cpp platform/android/wrappers/jni/androidmultimediautils_p.h
         platform/android/wrappers/jni/androidsurfacetexture.cpp platform/android/wrappers/jni/androidsurfacetexture_p.h
         platform/android/wrappers/jni/androidsurfaceview.cpp platform/android/wrappers/jni/androidsurfaceview_p.h
-        platform/opensles/qopenslesaudioinput.cpp platform/opensles/qopenslesaudioinput_p.h
-        platform/opensles/qopenslesaudiooutput.cpp platform/opensles/qopenslesaudiooutput_p.h
-        platform/opensles/qopenslesdeviceinfo.cpp platform/opensles/qopenslesdeviceinfo_p.h
-        platform/opensles/qopenslesengine.cpp platform/opensles/qopenslesengine_p.h
     INCLUDE_DIRECTORIES
         platform/android/common
         platform/android/mediacapture
@@ -408,7 +406,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
 )
-qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
 
 qt_internal_extend_target(Multimedia CONDITION WIN32 AND NOT TARGET Qt::OpenGL
     LIBRARIES
@@ -423,19 +420,19 @@ qt_internal_extend_target(Multimedia CONDITION TARGET Qt::Widgets AND WIN32
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
     SOURCES
-        platform/avfoundation/mediaplayer/avfmediaplayercontrol.mm platform/avfoundation/mediaplayer/avfmediaplayercontrol_p.h
-        platform/avfoundation/mediaplayer/avfmediaplayermetadatacontrol.mm platform/avfoundation/mediaplayer/avfmediaplayermetadatacontrol_p.h
-        platform/avfoundation/mediaplayer/avfmediaplayerservice.mm platform/avfoundation/mediaplayer/avfmediaplayerservice_p.h
-        platform/avfoundation/mediaplayer/avfmediaplayerserviceplugin.mm platform/avfoundation/mediaplayer/avfmediaplayerserviceplugin_p.h
-        platform/avfoundation/mediaplayer/avfmediaplayersession.mm platform/avfoundation/mediaplayer/avfmediaplayersession_p.h
-        platform/avfoundation/mediaplayer/avfvideooutput.mm platform/avfoundation/mediaplayer/avfvideooutput_p.h
-        platform/avfoundation/mediaplayer/avfvideowindowcontrol.mm platform/avfoundation/mediaplayer/avfvideowindowcontrol_p.h
-        platform/avfoundation/qavfplatformdevicemanager.mm platform/avfoundation/qavfplatformdevicemanager_p.h
-        platform/avfoundation/qavfplatformintegration.cpp platform/avfoundation/qavfplatformintegration_p.h
-        platform/coreaudio/qcoreaudiodeviceinfo.mm platform/coreaudio/qcoreaudiodeviceinfo_p.h
-        platform/coreaudio/qcoreaudioinput.mm platform/coreaudio/qcoreaudioinput_p.h
-        platform/coreaudio/qcoreaudiooutput.mm platform/coreaudio/qcoreaudiooutput_p.h
-        platform/coreaudio/qcoreaudioutils.mm platform/coreaudio/qcoreaudioutils_p.h
+        platform/darwin/audio/qcoreaudiodeviceinfo.mm platform/darwin/audio/qcoreaudiodeviceinfo_p.h
+        platform/darwin/audio/qcoreaudioinput.mm platform/darwin/audio/qcoreaudioinput_p.h
+        platform/darwin/audio/qcoreaudiooutput.mm platform/darwin/audio/qcoreaudiooutput_p.h
+        platform/darwin/audio/qcoreaudioutils.mm platform/darwin/audio/qcoreaudioutils_p.h
+        platform/darwin/mediaplayer/avfmediaplayercontrol.mm platform/darwin/mediaplayer/avfmediaplayercontrol_p.h
+        platform/darwin/mediaplayer/avfmediaplayermetadatacontrol.mm platform/darwin/mediaplayer/avfmediaplayermetadatacontrol_p.h
+        platform/darwin/mediaplayer/avfmediaplayerservice.mm platform/darwin/mediaplayer/avfmediaplayerservice_p.h
+        platform/darwin/mediaplayer/avfmediaplayerserviceplugin.mm platform/darwin/mediaplayer/avfmediaplayerserviceplugin_p.h
+        platform/darwin/mediaplayer/avfmediaplayersession.mm platform/darwin/mediaplayer/avfmediaplayersession_p.h
+        platform/darwin/mediaplayer/avfvideooutput.mm platform/darwin/mediaplayer/avfvideooutput_p.h
+        platform/darwin/mediaplayer/avfvideowindowcontrol.mm platform/darwin/mediaplayer/avfvideowindowcontrol_p.h
+        platform/darwin/qdarwindevicemanager.mm platform/darwin/qdarwindevicemanager_p.h
+        platform/darwin/qdarwinintegration.cpp platform/darwin/qdarwinintegration_p.h
     PUBLIC_LIBRARIES
         ${FWAudioToolbox}
         ${FWCoreAudio}
@@ -445,24 +442,9 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         ${FWFoundation}
         ${FWMetal}
         ${FWQuartzCore}
+        AVFoundation::AVFoundation
         Qt::Network
         Qt::OpenGL
-        avfoundation
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS AND (IOS OR TVOS)
-    SOURCES
-        platform/coreaudio/qcoreaudiosessionmanager.mm platform/coreaudio/qcoreaudiosessionmanager_p.h
-    PUBLIC_LIBRARIES
-        ${FWAVFoundation}
-        ${FWFoundation}
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT IOS AND NOT TVOS AND NOT WATCHOS
-    PUBLIC_LIBRARIES
-        ${FWAppKit}
-        ${FWApplicationServices}
-        ${FWAudioUnit}
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
@@ -479,51 +461,65 @@ qt_internal_extend_target(Multimedia CONDITION IOS AND NOT WATCHOS
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
     SOURCES
-        platform/avfoundation/camera/avfaudioencodersettingscontrol.mm platform/avfoundation/camera/avfaudioencodersettingscontrol_p.h
-        platform/avfoundation/camera/avfaudioinputselectorcontrol.mm platform/avfoundation/camera/avfaudioinputselectorcontrol_p.h
-        platform/avfoundation/camera/avfcameracontrol.mm platform/avfoundation/camera/avfcameracontrol_p.h
-        platform/avfoundation/camera/avfcameradebug_p.h
-        platform/avfoundation/camera/avfcameradevicecontrol.mm platform/avfoundation/camera/avfcameradevicecontrol_p.h
-        platform/avfoundation/camera/avfcameraexposurecontrol.mm platform/avfoundation/camera/avfcameraexposurecontrol_p.h
-        platform/avfoundation/camera/avfcamerafocuscontrol.mm platform/avfoundation/camera/avfcamerafocuscontrol_p.h
-        platform/avfoundation/camera/avfcamerametadatacontrol.mm platform/avfoundation/camera/avfcamerametadatacontrol_p.h
-        platform/avfoundation/camera/avfcamerarenderercontrol.mm platform/avfoundation/camera/avfcamerarenderercontrol_p.h
-        platform/avfoundation/camera/avfcameraservice.mm platform/avfoundation/camera/avfcameraservice_p.h
-        platform/avfoundation/camera/avfcameraserviceplugin.mm platform/avfoundation/camera/avfcameraserviceplugin_p.h
-        platform/avfoundation/camera/avfcamerasession.mm platform/avfoundation/camera/avfcamerasession_p.h
-        platform/avfoundation/camera/avfcamerautility.mm platform/avfoundation/camera/avfcamerautility_p.h
-        platform/avfoundation/camera/avfcamerawindowcontrol.mm platform/avfoundation/camera/avfcamerawindowcontrol_p.h
-        platform/avfoundation/camera/avfimagecapturecontrol.mm platform/avfoundation/camera/avfimagecapturecontrol_p.h
-        platform/avfoundation/camera/avfimageencodercontrol.mm platform/avfoundation/camera/avfimageencodercontrol_p.h
-        platform/avfoundation/camera/avfmediacontainercontrol.mm platform/avfoundation/camera/avfmediacontainercontrol_p.h
-        platform/avfoundation/camera/avfmediavideoprobecontrol.mm platform/avfoundation/camera/avfmediavideoprobecontrol_p.h
-        platform/avfoundation/camera/avfstoragelocation.mm platform/avfoundation/camera/avfstoragelocation_p.h
-        platform/avfoundation/camera/avfvideoencodersettingscontrol.mm platform/avfoundation/camera/avfvideoencodersettingscontrol_p.h
+        platform/darwin/camera/avfaudioencodersettingscontrol.mm platform/darwin/camera/avfaudioencodersettingscontrol_p.h
+        platform/darwin/camera/avfcameracontrol.mm platform/darwin/camera/avfcameracontrol_p.h
+        platform/darwin/camera/avfcameradebug_p.h
+        platform/darwin/camera/avfcameradevicecontrol.mm platform/darwin/camera/avfcameradevicecontrol_p.h
+        platform/darwin/camera/avfcameraexposurecontrol.mm platform/darwin/camera/avfcameraexposurecontrol_p.h
+        platform/darwin/camera/avfcamerafocuscontrol.mm platform/darwin/camera/avfcamerafocuscontrol_p.h
+        platform/darwin/camera/avfcamerametadatacontrol.mm platform/darwin/camera/avfcamerametadatacontrol_p.h
+        platform/darwin/camera/avfcamerarenderercontrol.mm platform/darwin/camera/avfcamerarenderercontrol_p.h
+        platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h
+        platform/darwin/camera/avfcameraserviceplugin.mm platform/darwin/camera/avfcameraserviceplugin_p.h
+        platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
+        platform/darwin/camera/avfcamerautility.mm platform/darwin/camera/avfcamerautility_p.h
+        platform/darwin/camera/avfcamerawindowcontrol.mm platform/darwin/camera/avfcamerawindowcontrol_p.h
+        platform/darwin/camera/avfimagecapturecontrol.mm platform/darwin/camera/avfimagecapturecontrol_p.h
+        platform/darwin/camera/avfimageencodercontrol.mm platform/darwin/camera/avfimageencodercontrol_p.h
+        platform/darwin/camera/avfmediacontainercontrol.mm platform/darwin/camera/avfmediacontainercontrol_p.h
+        platform/darwin/camera/avfmediavideoprobecontrol.mm platform/darwin/camera/avfmediavideoprobecontrol_p.h
+        platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
+        platform/darwin/camera/avfvideoencodersettingscontrol.mm platform/darwin/camera/avfvideoencodersettingscontrol_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT TVOS AND NOT WATCHOS
     SOURCES
-        platform/avfoundation/camera/avfmediarecordercontrol.mm platform/avfoundation/camera/avfmediarecordercontrol_p.h
+        platform/darwin/camera/avfmediarecordercontrol.mm platform/darwin/camera/avfmediarecordercontrol_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION IOS AND NOT TVOS AND NOT WATCHOS
     SOURCES
-        platform/avfoundation/camera/avfmediaassetwriter.mm platform/avfoundation/camera/avfmediaassetwriter_p.h
-        platform/avfoundation/camera/avfmediarecordercontrol_ios.mm platform/avfoundation/camera/avfmediarecordercontrol_ios_p.h
+        platform/darwin/camera/avfmediaassetwriter.mm platform/darwin/camera/avfmediaassetwriter_p.h
+        platform/darwin/camera/avfmediarecordercontrol_ios.mm platform/darwin/camera/avfmediarecordercontrol_ios_p.h
+)
+
+qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS AND (IOS OR TVOS)
+    SOURCES
+        platform/darwin/audio/qcoreaudiosessionmanager.mm platform/darwin/audio/qcoreaudiosessionmanager_p.h
+    PUBLIC_LIBRARIES
+        ${FWAVFoundation}
+        ${FWFoundation}
+)
+
+qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT IOS AND NOT TVOS AND NOT WATCHOS
+    PUBLIC_LIBRARIES
+        ${FWAppKit}
+        ${FWApplicationServices}
+        ${FWAudioUnit}
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND QT_FEATURE_opengl AND NOT WATCHOS AND (IOS OR TVOS)
     SOURCES
-        platform/avfoundation/mediaplayer/avfdisplaylink.mm platform/avfoundation/mediaplayer/avfdisplaylink_p.h
-        platform/avfoundation/mediaplayer/avfvideoframerenderer_ios.mm platform/avfoundation/mediaplayer/avfvideoframerenderer_ios_p.h
-        platform/avfoundation/mediaplayer/avfvideorenderercontrol.mm platform/avfoundation/mediaplayer/avfvideorenderercontrol_p.h
+        platform/darwin/mediaplayer/avfdisplaylink.mm platform/darwin/mediaplayer/avfdisplaylink_p.h
+        platform/darwin/mediaplayer/avfvideoframerenderer_ios.mm platform/darwin/mediaplayer/avfvideoframerenderer_ios_p.h
+        platform/darwin/mediaplayer/avfvideorenderercontrol.mm platform/darwin/mediaplayer/avfvideorenderercontrol_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND QT_FEATURE_opengl AND NOT IOS AND NOT TVOS AND NOT WATCHOS
     SOURCES
-        platform/avfoundation/mediaplayer/avfdisplaylink.mm platform/avfoundation/mediaplayer/avfdisplaylink_p.h
-        platform/avfoundation/mediaplayer/avfvideoframerenderer.mm platform/avfoundation/mediaplayer/avfvideoframerenderer_p.h
-        platform/avfoundation/mediaplayer/avfvideorenderercontrol.mm platform/avfoundation/mediaplayer/avfvideorenderercontrol_p.h
+        platform/darwin/mediaplayer/avfdisplaylink.mm platform/darwin/mediaplayer/avfdisplaylink_p.h
+        platform/darwin/mediaplayer/avfvideoframerenderer.mm platform/darwin/mediaplayer/avfvideoframerenderer_p.h
+        platform/darwin/mediaplayer/avfvideorenderercontrol.mm platform/darwin/mediaplayer/avfvideorenderercontrol_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION QNX
@@ -564,10 +560,10 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/common
         platform/qnx/mediaplayer
     PUBLIC_LIBRARIES
+        MMRenderer::MMRenderer
         asound
         audio_manager
         camapi
-        mmrenderer
 )
 qt_internal_add_docs(Multimedia
     doc/qtmultimedia.qdocconf

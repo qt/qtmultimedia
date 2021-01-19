@@ -11,8 +11,8 @@ project(QtMultimedia
 )
 
 # special case begin
-find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core Gui Network)
-# find_package(Qt6 ${PROJECT_VERSION} CONFIG OPTIONAL_COMPONENTS SET_ME_TO_SOMETHING_USEFUL)
+find_package(Qt6 ${PROJECT_VERSION} CONFIG REQUIRED COMPONENTS BuildInternals Core)
+find_package(Qt6 ${PROJECT_VERSION} QUIET CONFIG OPTIONAL_COMPONENTS Gui Network Widgets Quick Qml OpenGL OpenGLWidgets QuickTest)
 # special case end
 
 if(NOT TARGET Qt::Gui)

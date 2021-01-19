@@ -7,7 +7,6 @@
 qt_add_test(tst_qvideoprobe
     SOURCES
         ../qmultimedia_common/mockaudioencodercontrol.h
-        ../qmultimedia_common/mockaudioinputselector.h
         ../qmultimedia_common/mockaudioprobecontrol.h
         ../qmultimedia_common/mockmediacontainercontrol.h
         ../qmultimedia_common/mockmediaplayercontrol.h

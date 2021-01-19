@@ -6,6 +6,20 @@
 
 #### Libraries
 
+qt_find_package(ALSA PROVIDED_TARGETS ALSA::ALSA MODULE_NAME multimedia QMAKE_LIB alsa)
+qt_find_package(AVFoundation PROVIDED_TARGETS AVFoundation::AVFoundation MODULE_NAME multimedia QMAKE_LIB avfoundation)
+qt_find_package(GStreamer PROVIDED_TARGETS GStreamer::GStreamer MODULE_NAME multimedia QMAKE_LIB gstreamer_1_0)
+qt_find_package(GStreamer COMPONENTS App PROVIDED_TARGETS GStreamer::App MODULE_NAME multimedia QMAKE_LIB gstreamer_app_1_0)
+qt_add_qmake_lib_dependency(gstreamer_app_1_0 gstreamer_1_0)
+qt_find_package(GStreamer OPTIONAL_COMPONENTS Photography PROVIDED_TARGETS GStreamer::Photography MODULE_NAME multimedia QMAKE_LIB gstreamer_photography_1_0) # special case
+qt_add_qmake_lib_dependency(gstreamer_photography_1_0 gstreamer_1_0)
+qt_find_package(GStreamer OPTIONAL_COMPONENTS Gl PROVIDED_TARGETS GStreamer::Gl MODULE_NAME multimedia QMAKE_LIB gstreamer_gl_1_0) # special case
+qt_add_qmake_lib_dependency(gstreamer_gl_1_0 gstreamer_1_0)
+if((QNX) OR QT_FIND_ALL_PACKAGES_ALWAYS)
+    qt_find_package(MMRenderer PROVIDED_TARGETS MMRenderer::MMRenderer MODULE_NAME multimedia QMAKE_LIB mmrenderer)
+endif()
+qt_find_package(WrapPulseAudio PROVIDED_TARGETS WrapPulseAudio::WrapPulseAudio MODULE_NAME multimedia QMAKE_LIB pulseaudio)
+qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB wmf)
 
 
 #### Tests
@@ -41,13 +55,12 @@ qt_config_compile_test("wmsdk"
 
 qt_feature("alsa" PUBLIC PRIVATE
     LABEL "ALSA"
-    CONDITION UNIX AND NOT QNX AND libs.alsa AND NOT libs.pulseaudio OR FIXME
+    CONDITION UNIX AND NOT QNX AND ALSA_FOUND AND NOT QT_FEATURE_gstreamer AND NOT QT_FEATURE_pulseaudio
 )
 qt_feature_definition("alsa" "QT_NO_ALSA" NEGATE VALUE "1")
 qt_feature("avfoundation" PUBLIC PRIVATE
     LABEL "AVFoundation"
-    CONDITION libs.avfoundation OR FIXME
-    EMIT_IF APPLE
+    CONDITION AVFoundation_FOUND
 )
 qt_feature_definition("avfoundation" "QT_NO_AVFOUNDATION" NEGATE VALUE "1")
 qt_feature("evr" PUBLIC PRIVATE
@@ -57,7 +70,7 @@ qt_feature("evr" PUBLIC PRIVATE
 qt_feature_definition("evr" "QT_NO_EVR" NEGATE VALUE "1")
 qt_feature("gstreamer_1_0" PRIVATE
     LABEL "GStreamer 1.0"
-    CONDITION libs.gstreamer_1_0 OR FIXME
+    CONDITION GStreamer_FOUND
     ENABLE INPUT_gstreamer STREQUAL 'yes'
     DISABLE INPUT_gstreamer STREQUAL 'no'
 )
@@ -66,7 +79,7 @@ qt_feature("gstreamer" PRIVATE
 )
 qt_feature("gstreamer_app" PRIVATE
     LABEL "GStreamer App"
-    CONDITION ( QT_FEATURE_gstreamer_1_0 AND libs.gstreamer_app_1_0 ) OR FIXME
+    CONDITION ( QT_FEATURE_gstreamer_1_0 AND GStreamer_App_FOUND )
 )
 qt_feature("gstreamer_encodingprofiles" PRIVATE
     LABEL "GStreamer encoding-profile.h"
@@ -74,11 +87,11 @@ qt_feature("gstreamer_encodingprofiles" PRIVATE
 )
 qt_feature("gstreamer_photography" PRIVATE
     LABEL "GStreamer Photography"
-    CONDITION ( QT_FEATURE_gstreamer_1_0 AND libs.gstreamer_photography_1_0 ) OR FIXME
+    CONDITION ( QT_FEATURE_gstreamer_1_0 AND GStreamer_Photography_FOUND )
 )
 qt_feature("gstreamer_gl" PRIVATE
     LABEL "GStreamer OpenGL"
-    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND libs.gstreamer_gl_1_0 OR FIXME
+    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND
 )
 qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU"
@@ -90,14 +103,14 @@ qt_feature("linux_v4l" PRIVATE
 )
 qt_feature("mmrenderer" PUBLIC PRIVATE
     LABEL "MMRenderer"
-    CONDITION libs.mmrenderer OR FIXME
+    CONDITION MMRenderer_FOUND
     EMIT_IF QNX
 )
 qt_feature_definition("mmrenderer" "QT_NO_MMRENDERER" NEGATE VALUE "1")
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
     AUTODETECT UNIX
-    CONDITION libs.pulseaudio AND NOT features.gstreamer
+    CONDITION WrapPulseAudio_FOUND AND NOT QT_FEATURE_gstreamer
 )
 qt_feature_definition("pulseaudio" "QT_NO_PULSEAUDIO" NEGATE VALUE "1")
 qt_feature("wmsdk" PRIVATE
@@ -106,7 +119,7 @@ qt_feature("wmsdk" PRIVATE
 )
 qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
-    CONDITION WIN32 AND libs.wmf OR FIXME
+    CONDITION WIN32 AND WMF_FOUND
 )
 qt_configure_add_summary_section(NAME "Qt Multimedia")
 qt_configure_add_summary_entry(ARGS "alsa")

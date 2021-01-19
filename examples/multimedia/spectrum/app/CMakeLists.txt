@@ -74,7 +74,7 @@ qt6_add_resources(spectrum "spectrum"
         ${spectrum_resource_files}
 )
 
-if(MACOS AND NOT DEFINES___contains___DISABLE_FFT)
+if(MACOS AND BUILD_SHARED_LIBS) # special case
     target_link_libraries(spectrum PUBLIC
         fftreal # special case
         # Remove: F
@@ -82,7 +82,7 @@ if(MACOS AND NOT DEFINES___contains___DISABLE_FFT)
 endif()
 
 
-if(NOT DEFINES___contains___DISABLE_FFT AND NOT MACOS)
+if(BUILD_SHARED_LIBS AND NOT MACOS) # special case
     target_link_libraries(spectrum PUBLIC
         # Remove: L..
         fftreal

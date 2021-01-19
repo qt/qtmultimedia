@@ -6,7 +6,6 @@
 
 qt_add_module(MultimediaWidgets
     SOURCES
-        qcameraviewfinder.cpp qcameraviewfinder.h
         qpaintervideosurface.cpp qpaintervideosurface_p.h
         qtmultimediawidgetdefs.h
         qvideowidget.cpp qvideowidget.h qvideowidget_p.h
@@ -41,18 +40,18 @@ qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_graphicsview
 
 qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_gstreamer
     SOURCES
-        gstreamer/qgstreamervideowidget.cpp gstreamer/qgstreamervideowidget_p.h
+        platform/gstreamer/qgstreamervideowidget.cpp platform/gstreamer/qgstreamervideowidget_p.h
 )
 
-qt_extend_target(MultimediaWidgets CONDITION APPLE AND QT_FEATURE_avfoundation
+qt_extend_target(MultimediaWidgets CONDITION APPLE
     SOURCES
-        platform/avfoundation/avfvideowidget.mm platform/avfoundation/avfvideowidget_p.h
-        platform/avfoundation/avfvideowidgetcontrol.mm platform/avfoundation/avfvideowidgetcontrol_p.h
+        platform/darwin/avfvideowidget.mm platform/darwin/avfvideowidget_p.h
+        platform/darwin/avfvideowidgetcontrol.mm platform/darwin/avfvideowidgetcontrol_p.h
     PUBLIC_LIBRARIES
         ${FWCoreFoundation}
         ${FWCoreVideo}
         ${FWFoundation}
         ${FWMetal}
         ${FWQuartzCore}
-        avfoundation
+        AVFoundation::AVFoundation
 )
