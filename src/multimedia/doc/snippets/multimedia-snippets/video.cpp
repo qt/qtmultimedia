@@ -42,7 +42,6 @@
 #include "qmediaservice.h"
 #include "qmediaplayer.h"
 #include "qabstractvideosurface.h"
-#include "qvideowidgetcontrol.h"
 #include "qvideowindowcontrol.h"
 #include "qgraphicsvideoitem.h"
 #include "qmediaplaylist.h"
@@ -184,14 +183,6 @@ void VideoExample::VideoSurface()
     item->videoSurface()->start(format);
     item->videoSurface()->present(img);
     //! [GraphicsVideoItem Surface]
-}
-
-void VideoExample::VideoWidgetControl()
-{
-    //! [Video widget control]
-    QVideoWidgetControl *widgetControl = mediaService->requestControl<QVideoWidgetControl *>();
-    layout->addWidget(widgetControl->videoWidget());
-    //! [Video widget control]
 }
 
 void VideoExample::VideoWindowControl()

@@ -119,7 +119,7 @@ public:
     Optional Controls: QAudioDeviceControl
     Video Output Controls (used by QWideoWidget and QGraphicsVideoItem):
                         Required: QVideoOutputControl
-                        Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
+                        Optional: QVideoWindowControl, QVideoRendererControl
 */
 #define Q_MEDIASERVICE_MEDIAPLAYER "org.qt-project.qt.mediaplayer"
 
@@ -143,7 +143,7 @@ public:
                         Recommended: QAudioEncoderSettingsControl, QVideoEncoderSettingsControl, QMediaContainerControl
     Viewfinder Video Output Controls (used by QCameraViewfinder and QGraphicsVideoItem):
                         Required: QVideoOutputControl
-                        Optional: QVideoWindowControl, QVideoRendererControl, QVideoWidgetControl
+                        Optional: QVideoWindowControl, QVideoRendererControl
 */
 #define Q_MEDIASERVICE_CAMERA "org.qt-project.qt.camera"
 

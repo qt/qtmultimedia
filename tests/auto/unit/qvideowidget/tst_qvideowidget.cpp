@@ -37,7 +37,6 @@
 #include "qmediaservice.h"
 #include <private/qpaintervideosurface_p.h>
 #include "qvideowindowcontrol.h"
-#include "qvideowidgetcontrol.h"
 
 #include "qvideorenderercontrol.h"
 #include <qabstractvideosurface.h>
@@ -70,20 +69,6 @@ private slots:
     void hueWindowControl();
     void saturationWindowControl_data() { color_data(); }
     void saturationWindowControl();
-
-    void showWidgetControl();
-    void fullScreenWidgetControl();
-    void aspectRatioWidgetControl();
-    void sizeHintWidgetControl_data() { sizeHint_data(); }
-    void sizeHintWidgetControl();
-    void brightnessWidgetControl_data() { color_data(); }
-    void brightnessWidgetControl();
-    void contrastWidgetControl_data() { color_data(); }
-    void contrastWidgetControl();
-    void hueWidgetControl_data() { color_data(); }
-    void hueWidgetControl();
-    void saturationWidgetControl_data() { color_data(); }
-    void saturationWidgetControl();
 
     void showRendererControl();
     void fullScreenRendererControl();
@@ -168,49 +153,6 @@ private:
     bool m_fullScreen = 0;
 };
 
-class QtTestWidgetControl : public QVideoWidgetControl
-{
-public:
-    [[nodiscard]] bool isFullScreen() const override { return m_fullScreen; }
-    void setFullScreen(bool fullScreen) override { emit fullScreenChanged(m_fullScreen = fullScreen); }
-
-    [[nodiscard]] Qt::AspectRatioMode aspectRatioMode() const override { return m_aspectRatioMode; }
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override { m_aspectRatioMode = mode; }
-
-    [[nodiscard]] int brightness() const override { return m_brightness; }
-    void setBrightness(int brightness) override { emit brightnessChanged(m_brightness = brightness); }
-
-    [[nodiscard]] int contrast() const override { return m_contrast; }
-    void setContrast(int contrast) override { emit contrastChanged(m_contrast = contrast); }
-
-    [[nodiscard]] int hue() const override { return m_hue; }
-    void setHue(int hue) override { emit hueChanged(m_hue = hue); }
-
-    [[nodiscard]] int saturation() const override { return m_saturation; }
-    void setSaturation(int saturation) override { emit saturationChanged(m_saturation = saturation); }
-
-    void setSizeHint(const QSize &size) { m_widget.setSizeHint(size); }
-
-    QWidget *videoWidget() override { return &m_widget; }
-
-private:
-    class Widget : public QWidget
-    {
-    public:
-        [[nodiscard]] QSize sizeHint() const override { return m_sizeHint; }
-        void setSizeHint(const QSize &size) { m_sizeHint = size; updateGeometry(); }
-    private:
-        QSize m_sizeHint;
-    } m_widget;
-    int m_brightness = 1.0;
-    int m_contrast = 1.0;
-    int m_hue = 1.0;
-    int m_saturation = 1.0;
-    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
-    QSize m_sizeHint;
-    bool m_fullScreen = false;
-};
-
 class QtTestRendererControl : public QVideoRendererControl
 {
 public:
@@ -227,14 +169,12 @@ class QtTestVideoService : public QMediaService
 public:
     QtTestVideoService(
             QtTestWindowControl *window,
-            QtTestWidgetControl *widget,
             QtTestRendererControl *renderer)
         : QMediaService(nullptr)
         , windowRef(0)
         , widgetRef(0)
         , rendererRef(0)
         , windowControl(window)
-        , widgetControl(widget)
         , rendererControl(renderer)
     {
     }
@@ -242,7 +182,6 @@ public:
     ~QtTestVideoService() override
     {
         delete windowControl;
-        delete widgetControl;
         delete rendererControl;
     }
 
@@ -253,12 +192,6 @@ public:
                 windowRef += 1;
 
                 return windowControl;
-            }
-        } else if (qstrcmp(name, QVideoWidgetControl_iid) == 0) {
-            if (widgetControl) {
-                widgetRef += 1;
-
-                return widgetControl;
             }
         } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             if (rendererControl) {
@@ -276,8 +209,6 @@ public:
 
         if (control == windowControl)
             windowRef -= 1;
-        else if (control == widgetControl)
-            widgetRef -= 1;
         else if (control == rendererControl)
             rendererRef -= 1;
     }
@@ -287,7 +218,6 @@ public:
     int rendererRef;
 
     QtTestWindowControl *windowControl;
-    QtTestWidgetControl *widgetControl;
     QtTestRendererControl *rendererControl;
 };
 
@@ -297,9 +227,8 @@ class QtTestVideoObject : public QMediaSource
 public:
     QtTestVideoObject(
             QtTestWindowControl *window,
-            QtTestWidgetControl *widget,
             QtTestRendererControl *renderer):
-        QMediaSource(nullptr, new QtTestVideoService(window, widget, renderer))
+        QMediaSource(nullptr, new QtTestVideoService(window, renderer))
     {
         testService = qobject_cast<QtTestVideoService*>(service());
     }
@@ -435,7 +364,7 @@ void tst_QVideoWidget::nullService()
 
 void tst_QVideoWidget::noOutputs()
 {
-    QtTestVideoObject object(nullptr, nullptr, nullptr);
+    QtTestVideoObject object(nullptr, nullptr);
 
     QtTestVideoWidget widget;
     object.bind(&widget);
@@ -464,7 +393,7 @@ void tst_QVideoWidget::serviceDestroyed()
     QSKIP("QTBUG-26481 - Crashes on Mac");
 #endif
 
-    QtTestVideoObject object(new QtTestWindowControl, new QtTestWidgetControl, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
 
     QtTestVideoWidget widget;
     object.bind(&widget);
@@ -499,7 +428,6 @@ void tst_QVideoWidget::objectDestroyed()
 
     QtTestVideoObject *object = new QtTestVideoObject(
             new QtTestWindowControl,
-            new QtTestWidgetControl,
             nullptr);
 
     QtTestVideoWidget widget;
@@ -539,9 +467,8 @@ void tst_QVideoWidget::objectDestroyed()
 void tst_QVideoWidget::setMediaSource()
 {
     QMediaSource *nullObject = nullptr;
-    QtTestVideoObject windowObject(new QtTestWindowControl, nullptr, nullptr);
-    QtTestVideoObject widgetObject(nullptr, new QtTestWidgetControl, nullptr);
-    QtTestVideoObject rendererObject(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject windowObject(new QtTestWindowControl, nullptr);
+    QtTestVideoObject rendererObject(nullptr, new QtTestRendererControl);
 
     QtTestVideoWidget widget;
 
@@ -550,35 +477,27 @@ void tst_QVideoWidget::setMediaSource()
 
     QCOMPARE(widget.mediaSource(), nullObject);
     QCOMPARE(windowObject.testService->windowRef, 0);
-    QCOMPARE(widgetObject.testService->widgetRef, 0);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
 
     windowObject.bind(&widget);
     QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(&windowObject));
     QCOMPARE(windowObject.testService->windowRef, 1);
-    QCOMPARE(widgetObject.testService->widgetRef, 0);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
     QVERIFY(windowObject.testService->windowControl->winId() != 0);
 
 
-    widgetObject.bind(&widget);
-    QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(&widgetObject));
     QCOMPARE(windowObject.testService->windowRef, 0);
-    QCOMPARE(widgetObject.testService->widgetRef, 1);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
 
     QCoreApplication::processEvents(QEventLoop::AllEvents);
-    QCOMPARE(widgetObject.testService->widgetControl->videoWidget()->isVisible(), true);
 
     QCOMPARE(windowObject.testService->windowRef, 0);
-    QCOMPARE(widgetObject.testService->widgetRef, 1);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
 
     rendererObject.bind(&widget);
     QCOMPARE(widget.mediaSource(), static_cast<QMediaSource *>(&rendererObject));
 
     QCOMPARE(windowObject.testService->windowRef, 0);
-    QCOMPARE(widgetObject.testService->widgetRef, 0);
     QCOMPARE(rendererObject.testService->rendererRef, 1);
     QVERIFY(rendererObject.testService->rendererControl->surface() != nullptr);
 
@@ -586,13 +505,12 @@ void tst_QVideoWidget::setMediaSource()
     QCOMPARE(widget.mediaSource(), nullObject);
 
     QCOMPARE(windowObject.testService->windowRef, 0);
-    QCOMPARE(widgetObject.testService->widgetRef, 0);
     QCOMPARE(rendererObject.testService->rendererRef, 0);
 }
 
 void tst_QVideoWidget::showWindowControl()
 {
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     object.testService->windowControl->setNativeSize(QSize(240, 180));
 
     QtTestVideoWidget widget;
@@ -613,36 +531,13 @@ void tst_QVideoWidget::showWindowControl()
     widget.hide();
 }
 
-void tst_QVideoWidget::showWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-
-    widget.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(object.testService->widgetControl->videoWidget()->isVisible(), true);
-
-    widget.resize(640, 480);
-
-    widget.move(10, 10);
-
-    widget.hide();
-
-    QCOMPARE(object.testService->widgetControl->videoWidget()->isVisible(), false);
-}
-
 void tst_QVideoWidget::showRendererControl()
 {
 #ifdef Q_OS_MAC
     QSKIP("QTBUG-26481 - Crashes on Mac");
 #endif
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
     QtTestVideoWidget widget;
     object.bind(&widget);
 
@@ -660,7 +555,7 @@ void tst_QVideoWidget::showRendererControl()
 
 void tst_QVideoWidget::aspectRatioWindowControl()
 {
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     object.testService->windowControl->setAspectRatioMode(Qt::IgnoreAspectRatio);
 
     QtTestVideoWidget widget;
@@ -689,48 +584,13 @@ void tst_QVideoWidget::aspectRatioWindowControl()
     QCOMPARE(object.testService->windowControl->aspectRatioMode(), Qt::KeepAspectRatio);
 }
 
-void tst_QVideoWidget::aspectRatioWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    object.testService->widgetControl->setAspectRatioMode(Qt::IgnoreAspectRatio);
-
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-
-    // Test the aspect ratio defaults to keeping the aspect ratio.
-    QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
-
-    // Test the control has been informed of the aspect ratio change, post show.
-    widget.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
-    QCOMPARE(object.testService->widgetControl->aspectRatioMode(), Qt::KeepAspectRatio);
-
-    // Test an aspect ratio change is enforced immediately while visible.
-    widget.setAspectRatioMode(Qt::IgnoreAspectRatio);
-    QCOMPARE(widget.aspectRatioMode(), Qt::IgnoreAspectRatio);
-    QCOMPARE(object.testService->widgetControl->aspectRatioMode(), Qt::IgnoreAspectRatio);
-
-    // Test an aspect ratio set while not visible is respected.
-    widget.hide();
-    widget.setAspectRatioMode(Qt::KeepAspectRatio);
-    QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
-    widget.show();
-    QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
-    QCOMPARE(object.testService->widgetControl->aspectRatioMode(), Qt::KeepAspectRatio);
-}
-
 void tst_QVideoWidget::aspectRatioRendererControl()
 {
 #ifdef Q_OS_MAC
     QSKIP("QTBUG-26481 - Crashes on Mac");
 #endif
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
 
     QtTestVideoWidget widget;
     object.bind(&widget);
@@ -767,7 +627,7 @@ void tst_QVideoWidget::sizeHintWindowControl()
 {
     QFETCH(QSize, size);
 
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     QtTestVideoWidget widget;
     object.bind(&widget);
     widget.show();
@@ -776,26 +636,6 @@ void tst_QVideoWidget::sizeHintWindowControl()
     QVERIFY(widget.sizeHint().isEmpty());
 
     object.testService->windowControl->setNativeSize(size);
-    QCOMPARE(widget.sizeHint(), size);
-}
-
-void tst_QVideoWidget::sizeHintWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QFETCH(QSize, size);
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-    widget.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-
-    QVERIFY(widget.sizeHint().isEmpty());
-
-    object.testService->widgetControl->setSizeHint(size);
     QCOMPARE(widget.sizeHint(), size);
 }
 
@@ -841,7 +681,7 @@ void tst_QVideoWidget::sizeHintRendererControl()
     QFETCH(QSize, pixelAspectRatio);
     QFETCH(QSize, expectedSize);
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
     QtTestVideoWidget widget;
     object.bind(&widget);
 
@@ -860,7 +700,7 @@ void tst_QVideoWidget::sizeHintRendererControl()
 
 void tst_QVideoWidget::fullScreenWindowControl()
 {
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     QtTestVideoWidget widget;
     object.bind(&widget);
     widget.showNormal();
@@ -938,92 +778,6 @@ void tst_QVideoWidget::fullScreenWindowControl()
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 6);
 }
-
-void tst_QVideoWidget::fullScreenWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-    widget.showNormal();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-
-    Qt::WindowFlags windowFlags = widget.windowFlags();
-
-    QSignalSpy spy(&widget, SIGNAL(fullScreenChanged(bool)));
-
-    // Test showing full screen with setFullScreen(true).
-    widget.setFullScreen(true);
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), true);
-    QCOMPARE(widget.isFullScreen(), true);
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.value(0).value(0).toBool(), true);
-
-    // Test returning to normal with setFullScreen(false).
-    widget.setFullScreen(false);
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), false);
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 2);
-    QCOMPARE(spy.value(1).value(0).toBool(), false);
-    QCOMPARE(widget.windowFlags(), windowFlags);
-
-    // Test showing full screen with showFullScreen().
-    widget.showFullScreen();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), true);
-    QCOMPARE(widget.isFullScreen(), true);
-    QCOMPARE(spy.count(), 3);
-    QCOMPARE(spy.value(2).value(0).toBool(), true);
-
-    // Test returning to normal with showNormal().
-    widget.showNormal();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), false);
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 4);
-    QCOMPARE(spy.value(3).value(0).toBool(), false);
-    QCOMPARE(widget.windowFlags(), windowFlags);
-
-    // Test setFullScreen(false) and showNormal() do nothing when isFullScreen() == false.
-    widget.setFullScreen(false);
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), false);
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 4);
-    widget.showNormal();
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), false);
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 4);
-
-    // Test setFullScreen(true) and showFullScreen() do nothing when isFullScreen() == true.
-    widget.showFullScreen();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    widget.setFullScreen(true);
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), true);
-    QCOMPARE(widget.isFullScreen(), true);
-    QCOMPARE(spy.count(), 5);
-    widget.showFullScreen();
-    QCOMPARE(object.testService->widgetControl->isFullScreen(), true);
-    QCOMPARE(widget.isFullScreen(), true);
-    QCOMPARE(spy.count(), 5);
-
-    // Test if the window control exits full screen mode, the widget follows suit.
-    object.testService->widgetControl->setFullScreen(false);
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 6);
-    QCOMPARE(spy.value(5).value(0).toBool(), false);
-
-    // Test if the window control enters full screen mode, the widget does nothing.
-    object.testService->widgetControl->setFullScreen(false);
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 6);
-}
-
 
 void tst_QVideoWidget::fullScreenRendererControl()
 {
@@ -1031,7 +785,7 @@ void tst_QVideoWidget::fullScreenRendererControl()
     QSKIP("QTBUG-26481 - Crashes on Mac");
 #endif
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
     QtTestVideoWidget widget;
     object.bind(&widget);
     widget.showNormal();
@@ -1125,7 +879,7 @@ void tst_QVideoWidget::brightnessWindowControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     object.testService->windowControl->setBrightness(controlValue);
 
     QtTestVideoWidget widget;
@@ -1159,46 +913,6 @@ void tst_QVideoWidget::brightnessWindowControl()
     QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
 }
 
-void tst_QVideoWidget::brightnessWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QFETCH(int, controlValue);
-    QFETCH(int, value);
-    QFETCH(int, expectedValue);
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    object.testService->widgetControl->setBrightness(controlValue);
-
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-
-    QCOMPARE(widget.brightness(), 0);
-
-    widget.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-
-    QSignalSpy spy(&widget, SIGNAL(brightnessChanged(int)));
-
-    widget.setBrightness(value);
-    QCOMPARE(widget.brightness(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->brightness(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.value(0).value(0).toInt(), expectedValue);
-
-    widget.setBrightness(value);
-    QCOMPARE(widget.brightness(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->brightness(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-
-    object.testService->widgetControl->setBrightness(controlValue);
-    QCOMPARE(widget.brightness(), controlValue);
-    QCOMPARE(spy.count(), 2);
-    QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
-}
-
 void tst_QVideoWidget::brightnessRendererControl()
 {
 #ifdef Q_OS_MAC
@@ -1208,7 +922,7 @@ void tst_QVideoWidget::brightnessRendererControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
 
     QtTestVideoWidget widget;
     object.bind(&widget);
@@ -1233,7 +947,7 @@ void tst_QVideoWidget::contrastWindowControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     object.testService->windowControl->setContrast(controlValue);
 
     QtTestVideoWidget widget;
@@ -1259,46 +973,6 @@ void tst_QVideoWidget::contrastWindowControl()
     QCOMPARE(spy.count(), 1);
 
     object.testService->windowControl->setContrast(controlValue);
-    QCOMPARE(widget.contrast(), controlValue);
-    QCOMPARE(spy.count(), 2);
-    QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
-}
-
-void tst_QVideoWidget::contrastWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QFETCH(int, controlValue);
-    QFETCH(int, value);
-    QFETCH(int, expectedValue);
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    object.testService->widgetControl->setContrast(controlValue);
-
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-    QCOMPARE(widget.contrast(), 0);
-
-    widget.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.contrast(), 0);
-
-    QSignalSpy spy(&widget, SIGNAL(contrastChanged(int)));
-
-    widget.setContrast(value);
-    QCOMPARE(widget.contrast(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->contrast(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.value(0).value(0).toInt(), expectedValue);
-
-    widget.setContrast(value);
-    QCOMPARE(widget.contrast(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->contrast(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-
-    object.testService->widgetControl->setContrast(controlValue);
     QCOMPARE(widget.contrast(), controlValue);
     QCOMPARE(spy.count(), 2);
     QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
@@ -1313,7 +987,7 @@ void tst_QVideoWidget::contrastRendererControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
 
     QtTestVideoWidget widget;
     object.bind(&widget);
@@ -1338,7 +1012,7 @@ void tst_QVideoWidget::hueWindowControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     object.testService->windowControl->setHue(controlValue);
 
     QtTestVideoWidget widget;
@@ -1363,46 +1037,6 @@ void tst_QVideoWidget::hueWindowControl()
     QCOMPARE(spy.count(), 1);
 
     object.testService->windowControl->setHue(controlValue);
-    QCOMPARE(widget.hue(), controlValue);
-    QCOMPARE(spy.count(), 2);
-    QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
-}
-
-void tst_QVideoWidget::hueWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QFETCH(int, controlValue);
-    QFETCH(int, value);
-    QFETCH(int, expectedValue);
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    object.testService->widgetControl->setHue(controlValue);
-
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-    QCOMPARE(widget.hue(), 0);
-
-    widget.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.hue(), 0);
-
-    QSignalSpy spy(&widget, SIGNAL(hueChanged(int)));
-
-    widget.setHue(value);
-    QCOMPARE(widget.hue(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->hue(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.value(0).value(0).toInt(), expectedValue);
-
-    widget.setHue(value);
-    QCOMPARE(widget.hue(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->hue(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-
-    object.testService->widgetControl->setHue(controlValue);
     QCOMPARE(widget.hue(), controlValue);
     QCOMPARE(spy.count(), 2);
     QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
@@ -1417,7 +1051,7 @@ void tst_QVideoWidget::hueRendererControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
 
     QtTestVideoWidget widget;
     object.bind(&widget);
@@ -1442,7 +1076,7 @@ void tst_QVideoWidget::saturationWindowControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(new QtTestWindowControl, nullptr, nullptr);
+    QtTestVideoObject object(new QtTestWindowControl, nullptr);
     object.testService->windowControl->setSaturation(controlValue);
 
     QtTestVideoWidget widget;
@@ -1469,47 +1103,6 @@ void tst_QVideoWidget::saturationWindowControl()
     QCOMPARE(widget.saturation(), controlValue);
     QCOMPARE(spy.count(), 2);
     QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
-}
-
-void tst_QVideoWidget::saturationWidgetControl()
-{
-#ifdef Q_OS_MAC
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
-    QFETCH(int, controlValue);
-    QFETCH(int, value);
-    QFETCH(int, expectedValue);
-
-    QtTestVideoObject object(nullptr, new QtTestWidgetControl, nullptr);
-    object.testService->widgetControl->setSaturation(controlValue);
-
-    QtTestVideoWidget widget;
-    object.bind(&widget);
-
-    QCOMPARE(widget.saturation(), 0);
-    widget.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.saturation(), 0);
-
-    QSignalSpy spy(&widget, SIGNAL(saturationChanged(int)));
-
-    widget.setSaturation(value);
-    QCOMPARE(widget.saturation(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->saturation(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.value(0).value(0).toInt(), expectedValue);
-
-    widget.setSaturation(value);
-    QCOMPARE(widget.saturation(), expectedValue);
-    QCOMPARE(object.testService->widgetControl->saturation(), expectedValue);
-    QCOMPARE(spy.count(), 1);
-
-    object.testService->widgetControl->setSaturation(controlValue);
-    QCOMPARE(widget.saturation(), controlValue);
-    QCOMPARE(spy.count(), 2);
-    QCOMPARE(spy.value(1).value(0).toInt(), controlValue);
-
 }
 
 void tst_QVideoWidget::saturationRendererControl()
@@ -1521,7 +1114,7 @@ void tst_QVideoWidget::saturationRendererControl()
     QFETCH(int, value);
     QFETCH(int, expectedValue);
 
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
 
     QtTestVideoWidget widget;
     object.bind(&widget);
@@ -1547,7 +1140,7 @@ static const uchar rgb32ImageData[] =
 
 void tst_QVideoWidget::paintRendererControl()
 {
-    QtTestVideoObject object(nullptr, nullptr, new QtTestRendererControl);
+    QtTestVideoObject object(nullptr, new QtTestRendererControl);
 
     QtTestVideoWidget widget;
     object.bind(&widget);

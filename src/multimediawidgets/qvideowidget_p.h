@@ -96,31 +96,6 @@ public:
     virtual void paintEvent(QPaintEvent *event) = 0;
 };
 
-class QVideoWidgetControl;
-
-class QVideoWidgetControlBackend : public QObject, public QVideoWidgetControlInterface
-{
-    Q_OBJECT
-public:
-    QVideoWidgetControlBackend(QMediaService *service, QVideoWidgetControl *control, QWidget *widget);
-
-    void releaseControl();
-
-    void setBrightness(int brightness) override;
-    void setContrast(int contrast) override;
-    void setHue(int hue) override;
-    void setSaturation(int saturation) override;
-
-    void setFullScreen(bool fullScreen) override;
-
-    Qt::AspectRatioMode aspectRatioMode() const override;
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
-
-private:
-    QMediaService *m_service;
-    QVideoWidgetControl *m_widgetControl;
-};
-
 
 class QVideoRendererControl;
 
@@ -227,7 +202,6 @@ public:
     QVideoWidget *q_ptr = nullptr;
     QPointer<QMediaSource> mediaSource;
     QMediaService *service = nullptr;
-    QVideoWidgetControlBackend *widgetBackend = nullptr;
     QWindowVideoWidgetBackend *windowBackend = nullptr;
     QRendererVideoWidgetBackend *rendererBackend = nullptr;
     QVideoWidgetControlInterface *currentControl = nullptr;
@@ -240,7 +214,6 @@ public:
     Qt::WindowFlags nonFullScreenFlags;
     bool wasFullScreen = false;
 
-    bool createWidgetBackend();
     bool createWindowBackend();
     bool createRendererBackend();
 

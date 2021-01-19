@@ -10,19 +10,15 @@ HEADERS += \
     qvideowidget_p.h \
     qpaintervideosurface_p.h \
     qtmultimediawidgetdefs.h \
-    qvideowidgetcontrol.h \
     qvideowidget.h
 
 SOURCES += \
     qpaintervideosurface.cpp \
-    qvideowidgetcontrol.cpp \
     qvideowidget.cpp
 
 qtConfig(graphicsview) {
     SOURCES += qgraphicsvideoitem.cpp
     HEADERS += qgraphicsvideoitem.h
 }
-
-include(platform/platform.pri)
 
 load(qt_module)

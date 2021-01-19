@@ -44,7 +44,6 @@
 #include <qmediasource.h>
 #include <qmediaservice.h>
 #include <qvideowindowcontrol.h>
-#include <qvideowidgetcontrol.h>
 
 #include <qvideorenderercontrol.h>
 #include <qvideosurfaceformat.h>
@@ -58,11 +57,6 @@
 #include <qwindow.h>
 #include <private/qhighdpiscaling_p.h>
 
-#if QT_CONFIG(gstreamer)
-#include <private/qgstreamervideowidget_p.h>
-#elif QT_CONFIG(avfoundation)
-#include <private/avfvideowidgetcontrol_p.h>
-#endif
 #ifdef Q_OS_WIN
 #include <QtCore/qt_windows.h>
 #endif
@@ -70,69 +64,6 @@
 using namespace Qt;
 
 QT_BEGIN_NAMESPACE
-
-QVideoWidgetControlBackend::QVideoWidgetControlBackend(
-        QMediaService *service, QVideoWidgetControl *control, QWidget *widget)
-    : m_service(service)
-    , m_widgetControl(control)
-{
-    connect(control, SIGNAL(brightnessChanged(int)), widget, SLOT(_q_brightnessChanged(int)));
-    connect(control, SIGNAL(contrastChanged(int)), widget, SLOT(_q_contrastChanged(int)));
-    connect(control, SIGNAL(hueChanged(int)), widget, SLOT(_q_hueChanged(int)));
-    connect(control, SIGNAL(saturationChanged(int)), widget, SLOT(_q_saturationChanged(int)));
-    connect(control, SIGNAL(fullScreenChanged(bool)), widget, SLOT(_q_fullScreenChanged(bool)));
-
-    QBoxLayout *layout = new QVBoxLayout;
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-
-    QWidget *videoWidget = control->videoWidget();
-    videoWidget->setMouseTracking(widget->hasMouseTracking());
-    layout->addWidget(videoWidget);
-
-    widget->setLayout(layout);
-}
-
-void QVideoWidgetControlBackend::releaseControl()
-{
-    m_service->releaseControl(m_widgetControl);
-}
-
-void QVideoWidgetControlBackend::setBrightness(int brightness)
-{
-    m_widgetControl->setBrightness(brightness);
-}
-
-void QVideoWidgetControlBackend::setContrast(int contrast)
-{
-    m_widgetControl->setContrast(contrast);
-}
-
-void QVideoWidgetControlBackend::setHue(int hue)
-{
-    m_widgetControl->setHue(hue);
-}
-
-void QVideoWidgetControlBackend::setSaturation(int saturation)
-{
-    m_widgetControl->setSaturation(saturation);
-}
-
-void QVideoWidgetControlBackend::setFullScreen(bool fullScreen)
-{
-    m_widgetControl->setFullScreen(fullScreen);
-}
-
-
-Qt::AspectRatioMode QVideoWidgetControlBackend::aspectRatioMode() const
-{
-    return m_widgetControl->aspectRatioMode();
-}
-
-void QVideoWidgetControlBackend::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    m_widgetControl->setAspectRatioMode(mode);
-}
 
 QRendererVideoWidgetBackend::QRendererVideoWidgetBackend(
         QMediaService *service, QVideoRendererControl *control, QWidget *widget)
@@ -463,20 +394,7 @@ void QVideoWidgetPrivate::clearService()
     if (service) {
         QObject::disconnect(service, SIGNAL(destroyed()), q_func(), SLOT(_q_serviceDestroyed()));
 
-        if (widgetBackend) {
-            QLayout *layout = q_func()->layout();
-
-            for (QLayoutItem *item = layout->takeAt(0); item; item = layout->takeAt(0)) {
-                item->widget()->setParent(nullptr);
-                delete item;
-            }
-            delete layout;
-
-            widgetBackend->releaseControl();
-
-            delete widgetBackend;
-            widgetBackend = nullptr;
-        } else if (rendererBackend) {
+        if (rendererBackend) {
             rendererBackend->clearSurface();
             rendererBackend->releaseControl();
 
@@ -493,28 +411,6 @@ void QVideoWidgetPrivate::clearService()
         currentControl = nullptr;
         service = nullptr;
     }
-}
-
-bool QVideoWidgetPrivate::createWidgetBackend()
-{
-    QVideoWidgetControl *widgetControl = nullptr;
-#if QT_CONFIG(gstreamer)
-//    widgetControl = new QGstreamerVideoWidgetControl(q_ptr);
-    // If the GStreamer video sink is not available, don't provide the video widget control since
-    // it won't work anyway. QVideoWidget will fall back to QVideoRendererControl in that case.
-//    if (!widgetControl->videoSink()) {
-//        delete widgetControl;
-//        widgetControl = nullptr;
-//    }
-    // ### need to set the widget as the video output on the service currently
-#elif QT_CONFIG(avfoundation)
-//    widgetControl = new AVFVideoWidgetControl(q_ptr);
-    // #####m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
-#endif
-    if (widgetControl)
-        setCurrentControl(widgetBackend);
-
-    return widgetControl != nullptr;
 }
 
 bool QVideoWidgetPrivate::createWindowBackend()
@@ -548,14 +444,9 @@ bool QVideoWidgetPrivate::createRendererBackend()
 
 void QVideoWidgetPrivate::_q_serviceDestroyed()
 {
-    if (widgetBackend)
-        delete q_func()->layout();
-
-    delete widgetBackend;
     delete windowBackend;
     delete rendererBackend;
 
-    widgetBackend = nullptr;
     windowBackend = nullptr;
     rendererBackend = nullptr;
     currentControl = nullptr;
@@ -686,9 +577,7 @@ bool QVideoWidget::setMediaSource(QMediaSource *object)
         d->service = d->mediaSource->service();
 
     if (d->service) {
-        if (d->createWidgetBackend()) {
-            // Nothing to do here.
-        } else if ((!window() || !window()->testAttribute(Qt::WA_DontShowOnScreen))
+        if ((!window() || !window()->testAttribute(Qt::WA_DontShowOnScreen))
                 && d->createWindowBackend()) {
             if (isVisible())
                 d->windowBackend->showEvent();

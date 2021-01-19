@@ -9,7 +9,6 @@ qt_add_module(MultimediaWidgets
         qpaintervideosurface.cpp qpaintervideosurface_p.h
         qtmultimediawidgetdefs.h
         qvideowidget.cpp qvideowidget.h qvideowidget_p.h
-        qvideowidgetcontrol.cpp qvideowidgetcontrol.h
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::WidgetsPrivate
@@ -36,22 +35,4 @@ qt_extend_target(MultimediaWidgets CONDITION TARGET Qt::OpenGL
 qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_graphicsview
     SOURCES
         qgraphicsvideoitem.cpp qgraphicsvideoitem.h
-)
-
-qt_extend_target(MultimediaWidgets CONDITION QT_FEATURE_gstreamer
-    SOURCES
-        platform/gstreamer/qgstreamervideowidget.cpp platform/gstreamer/qgstreamervideowidget_p.h
-)
-
-qt_extend_target(MultimediaWidgets CONDITION APPLE
-    SOURCES
-        platform/darwin/avfvideowidget.mm platform/darwin/avfvideowidget_p.h
-        platform/darwin/avfvideowidgetcontrol.mm platform/darwin/avfvideowidgetcontrol_p.h
-    PUBLIC_LIBRARIES
-        ${FWCoreFoundation}
-        ${FWCoreVideo}
-        ${FWFoundation}
-        ${FWMetal}
-        ${FWQuartzCore}
-        AVFoundation::AVFoundation
 )
