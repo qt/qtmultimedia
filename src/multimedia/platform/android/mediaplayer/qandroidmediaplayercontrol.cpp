@@ -407,7 +407,7 @@ void QAndroidMediaPlayerControl::setMedia(const QUrl &mediaContent,
     if ((mState & (AndroidMediaPlayer::Idle | AndroidMediaPlayer::Uninitialized)) == 0)
         mMediaPlayer->release();
 
-    if (mediaContent.isNull()) {
+    if (mediaContent.isEmpty()) {
         setMediaStatus(QMediaPlayer::NoMedia);
     } else {
         if (mVideoOutput && !mVideoOutput->isReady()) {
@@ -422,7 +422,7 @@ void QAndroidMediaPlayerControl::setMedia(const QUrl &mediaContent,
 
         if ((mMediaPlayer->display() == 0) && mVideoOutput)
             mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
-        mMediaPlayer->setDataSource(mediaContent.request());
+        mMediaPlayer->setDataSource(QNetworkRequest(mediaContent));
         mMediaPlayer->prepareAsync();
     }
 
@@ -458,11 +458,11 @@ void QAndroidMediaPlayerControl::play()
     StateChangeNotifier notifier(this);
 
     // We need to prepare the mediaplayer again.
-    if ((mState & AndroidMediaPlayer::Stopped) && !mMediaContent.isNull()) {
+    if ((mState & AndroidMediaPlayer::Stopped) && !mMediaContent.isEmpty()) {
         setMedia(mMediaContent, mMediaStream);
     }
 
-    if (!mMediaContent.isNull())
+    if (!mMediaContent.isEmpty())
         setState(QMediaPlayer::PlayingState);
 
     if ((mState & (AndroidMediaPlayer::Prepared

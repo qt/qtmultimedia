@@ -51,32 +51,40 @@
 // We mean it.
 //
 
-#include <QMediaService>
+#include <private/qmediaplatformplayerinterface_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidMediaPlayerControl;
 class QAndroidMetaDataReaderControl;
-class QAndroidAudioRoleControl;
-class QAndroidCustomAudioRoleControl;
 class QAndroidMediaPlayerVideoRendererControl;
 
-class QAndroidMediaService : public QMediaService
+class QAndroidMediaService : public QMediaPlatformPlayerInterface
 {
     Q_OBJECT
 public:
-    explicit QAndroidMediaService(QObject *parent = 0);
+    explicit QAndroidMediaService();
     ~QAndroidMediaService() override;
 
     QObject *requestControl(const char *name) override;
     void releaseControl(QObject *control) override;
 
+    // QMediaPlatformPlayerInterface
+    QMediaPlayerControl *player() override;
+    QMetaDataReaderControl *dataReader() override;
+//    QMediaStreamsControl *streams() override;
+//    QMediaVideoProbeControl *videoProbe() override;
+//    void releaseVideoProbe(QMediaVideoProbeControl *) override;
+//    QMediaAudioProbeControl *audioProbe() override;
+//    void releaseAudioProbe(QMediaAudioProbeControl *) override;
+
+    QVideoRendererControl *createVideoRenderer() override;
+//    QVideoWindowControl *createVideoWindow() override;;
+
 private:
-    QAndroidMediaPlayerControl *mMediaControl;
-    QAndroidMetaDataReaderControl *mMetadataControl;
-    QAndroidAudioRoleControl *mAudioRoleControl;
-    QAndroidCustomAudioRoleControl *mCustomAudioRoleControl;
-    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl;
+    QAndroidMediaPlayerControl *mMediaControl = nullptr;
+    QAndroidMetaDataReaderControl *mMetadataControl = nullptr;
+    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
 };
 
 QT_END_NAMESPACE

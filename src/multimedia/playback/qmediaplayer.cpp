@@ -55,6 +55,7 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QDir>
+#include <QUrl>
 
 QT_BEGIN_NAMESPACE
 
@@ -211,7 +212,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         } else {
 #if QT_CONFIG(temporaryfile)
 #if defined(Q_OS_ANDROID)
-            QString tempFileName = QDir::tempPath() + media.request().url().path();
+            QString tempFileName = QDir::tempPath() + media.path();
             QDir().mkpath(QFileInfo(tempFileName).path());
             QTemporaryFile *tempFile = QTemporaryFile::createNativeFile(*file);
             if (!tempFile->rename(tempFileName))

@@ -55,6 +55,9 @@ using PlatformIntegration = QDarwinIntegration;
 #elif defined(Q_OS_WIN)
 #include <private/qwindowsintegration_p.h>
 using PlatformIntegration = QWindowsIntegration;
+#elif defined(Q_OS_ANDROID)
+#include <private/qandroidintegration_p.h>
+using PlatformIntegration = QAndroidIntegration;
 #endif
 
 QT_BEGIN_NAMESPACE

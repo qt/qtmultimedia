@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,42 +37,37 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASERVICEPLUGIN_H
-#define QANDROIDMEDIASERVICEPLUGIN_H
+#ifndef QANDROIDDEVICEMANAGER_H
+#define QANDROIDDEVICEMANAGER_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <QMediaServiceProviderPlugin>
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaServicePlugin
-        : public QMediaServiceProviderPlugin
-        , public QMediaServiceSupportedDevicesInterface
+class QAndroidDeviceManager : public QMediaPlatformDeviceManager
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
 public:
-    QAndroidMediaServicePlugin();
-    ~QAndroidMediaServicePlugin();
+    QAndroidDeviceManager();
 
-    QMediaService* create(QString const& key) override;
-    void release(QMediaService *service) override;
-
-    QByteArray defaultDevice(const QByteArray &service) const override;
-    QList<QByteArray> devices(const QByteArray &service) const override;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
+    QList<QAudioDeviceInfo> audioInputs() const override;
+    QList<QAudioDeviceInfo> audioOutputs() const override;
+    QList<QCameraInfo> videoInputs() const override;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMEDIASERVICEPLUGIN_H
+#endif

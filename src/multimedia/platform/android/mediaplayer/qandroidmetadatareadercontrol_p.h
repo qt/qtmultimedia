@@ -52,8 +52,9 @@
 //
 
 #include <QMetaDataReaderControl>
-#include <QUrl.h>
+#include <qurl.h>
 #include <QMutex>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 

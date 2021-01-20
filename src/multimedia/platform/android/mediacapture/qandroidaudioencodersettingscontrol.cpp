@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qandroidaudioencodersettingscontrol.h"
+#include "qandroidaudioencodersettingscontrol_p.h"
 
 #include "qandroidcapturesession_p.h"
 

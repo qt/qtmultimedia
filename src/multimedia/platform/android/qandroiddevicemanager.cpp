@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,42 +37,47 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASERVICEPLUGIN_H
-#define QANDROIDMEDIASERVICEPLUGIN_H
+#include "qandroiddevicemanager_p.h"
+#include "qmediadevicemanager.h"
+#include "qcamerainfo_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include "private/qopenslesaudioinput_p.h"
+#include "private/qopenslesaudiooutput_p.h"
+#include "private/qopenslesdeviceinfo_p.h"
+#include "private/qopenslesengine_p.h"
 
-#include <QMediaServiceProviderPlugin>
+#include "private/qandroidcamerasession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaServicePlugin
-        : public QMediaServiceProviderPlugin
-        , public QMediaServiceSupportedDevicesInterface
+QAndroidDeviceManager::QAndroidDeviceManager()
+    : QMediaPlatformDeviceManager()
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-public:
-    QAndroidMediaServicePlugin();
-    ~QAndroidMediaServicePlugin();
+}
 
-    QMediaService* create(QString const& key) override;
-    void release(QMediaService *service) override;
+QList<QAudioDeviceInfo> QAndroidDeviceManager::audioInputs() const
+{
+    return QOpenSLESEngine::availableDevices(QAudio::AudioInput);
+}
 
-    QByteArray defaultDevice(const QByteArray &service) const override;
-    QList<QByteArray> devices(const QByteArray &service) const override;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
-};
+QList<QAudioDeviceInfo> QAndroidDeviceManager::audioOutputs() const
+{
+    return QOpenSLESEngine::availableDevices(QAudio::AudioOutput);
+}
+
+QList<QCameraInfo> QAndroidDeviceManager::videoInputs() const
+{
+    return QAndroidCameraSession::availableCameras();
+}
+
+QAbstractAudioInput *QAndroidDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+{
+    return new QOpenSLESAudioInput(deviceInfo.id());
+}
+
+QAbstractAudioOutput *QAndroidDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+{
+    return new QOpenSLESAudioOutput(deviceInfo.id());
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDMEDIASERVICEPLUGIN_H

@@ -45,11 +45,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaService::QAndroidMediaService(QObject *parent)
-    : QMediaService(parent)
-    , mAudioRoleControl(nullptr)
-    , mCustomAudioRoleControl(nullptr)
-    , mVideoRendererControl(0)
+QAndroidMediaService::QAndroidMediaService()
 {
     mMediaControl = new QAndroidMediaPlayerControl;
     mMetadataControl = new QAndroidMetaDataReaderControl;
@@ -90,6 +86,25 @@ void QAndroidMediaService::releaseControl(QObject *control)
         delete mVideoRendererControl;
         mVideoRendererControl = 0;
     }
+}
+
+QMediaPlayerControl *QAndroidMediaService::player()
+{
+    return mMediaControl;
+}
+
+QMetaDataReaderControl *QAndroidMediaService::dataReader()
+{
+    return mMetadataControl;
+}
+
+QVideoRendererControl *QAndroidMediaService::createVideoRenderer()
+{
+    if (!mVideoRendererControl) {
+        mVideoRendererControl = new QAndroidMediaPlayerVideoRendererControl(mMediaControl);
+        return mVideoRendererControl;
+    }
+    return nullptr;
 }
 
 QT_END_NAMESPACE

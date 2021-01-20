@@ -54,10 +54,11 @@
 #include <qvideoframe.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
+#include <private/qcamerainfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
-Q_GLOBAL_STATIC(QList<AndroidCameraInfo>, g_availableCameras)
+Q_GLOBAL_STATIC(QList<QCameraInfo>, g_availableCameras)
 
 QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     : QObject(parent)
@@ -160,15 +161,15 @@ void QAndroidCameraSession::updateAvailableCameras()
 
     const int numCameras = AndroidCamera::getNumberOfCameras();
     for (int i = 0; i < numCameras; ++i) {
-        AndroidCameraInfo info;
-        AndroidCamera::getCameraInfo(i, &info);
+        QCameraInfoPrivate *info = new QCameraInfoPrivate;
+        AndroidCamera::getCameraInfo(i, info);
 
-        if (!info.name.isNull())
-            g_availableCameras->append(info);
+        if (!info->id.isEmpty())
+            g_availableCameras->append(QCameraInfo(info));
     }
 }
 
-const QList<AndroidCameraInfo> &QAndroidCameraSession::availableCameras()
+const QList<QCameraInfo> &QAndroidCameraSession::availableCameras()
 {
     if (g_availableCameras->isEmpty())
         updateAvailableCameras();
@@ -430,7 +431,7 @@ struct NullSurface : QAbstractVideoSurface
         return result;
     }
 
-    bool present(const QVideoFrame &)  { return false; }
+    bool present(const QVideoFrame &) override { return false; }
 };
 
 bool QAndroidCameraSession::startPreview()
@@ -729,7 +730,7 @@ void QAndroidCameraSession::onLastPreviewFrameFetched(const QVideoFrame &frame)
     if (m_captureCanceled || !m_camera)
         return;
 
-    QtConcurrent::run(&QAndroidCameraSession::processPreviewImage, this,
+    (void) QtConcurrent::run(&QAndroidCameraSession::processPreviewImage, this,
                       m_currentImageCaptureId,
                       frame,
                       m_camera->getRotation());
@@ -768,7 +769,7 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 {
     if (!m_captureCanceled) {
         // Loading and saving the captured image can be slow, do it in a separate thread
-        QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
+        (void) QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
                           m_currentImageCaptureId,
                           data,
                           m_actualImageSettings.resolution(),

@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qcamerafocuscontrol_p.h>
+#include <qcamerafocuscontrol.h>
 
 QT_BEGIN_NAMESPACE
 

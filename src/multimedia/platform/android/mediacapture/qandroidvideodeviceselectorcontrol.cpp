@@ -55,48 +55,6 @@ QAndroidVideoDeviceSelectorControl::~QAndroidVideoDeviceSelectorControl()
 {
 }
 
-int QAndroidVideoDeviceSelectorControl::deviceCount() const
-{
-    return QAndroidCameraSession::availableCameras().count();
-}
-
-QString QAndroidVideoDeviceSelectorControl::deviceName(int index) const
-{
-    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
-        return QString();
-
-    return QString::fromLatin1(QAndroidCameraSession::availableCameras().at(index).name);
-}
-
-QString QAndroidVideoDeviceSelectorControl::deviceDescription(int index) const
-{
-    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
-        return QString();
-
-    return QAndroidCameraSession::availableCameras().at(index).description;
-}
-
-QCamera::Position QAndroidVideoDeviceSelectorControl::cameraPosition(int index) const
-{
-    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
-        return QCamera::UnspecifiedPosition;
-
-    return QAndroidCameraSession::availableCameras().at(index).position;
-}
-
-int QAndroidVideoDeviceSelectorControl::cameraOrientation(int index) const
-{
-    if (index < 0 || index >= QAndroidCameraSession::availableCameras().count())
-        return QCamera::UnspecifiedPosition;
-
-    return QAndroidCameraSession::availableCameras().at(index).orientation;
-}
-
-int QAndroidVideoDeviceSelectorControl::defaultDevice() const
-{
-    return 0;
-}
-
 int QAndroidVideoDeviceSelectorControl::selectedDevice() const
 {
     return m_selectedDevice;

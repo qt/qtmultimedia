@@ -74,7 +74,6 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
         m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(m_cameraSession);
         m_imageEncoderControl = new QAndroidImageEncoderControl(m_cameraSession);
         m_imageCaptureControl = new QAndroidCameraImageCaptureControl(m_cameraSession);
-        m_audioInputControl = 0;
     } else {
         m_cameraSession = 0;
         m_cameraControl = 0;
@@ -104,7 +103,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_recorderControl;
     delete m_captureSession;
     delete m_cameraControl;
-    delete m_audioInputControl;
     delete m_videoInputControl;
     delete m_videoRendererControl;
     delete m_cameraExposureControl;
@@ -131,9 +129,6 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
-
-    if (qstrcmp(name, QAudioInputSelectorControl_iid) == 0)
-        return m_audioInputControl;
 
     if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)
         return m_videoInputControl;

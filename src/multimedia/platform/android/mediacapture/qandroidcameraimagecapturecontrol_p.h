@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qcameraimagecapturecontrol_p.h>
+#include <qcameraimagecapturecontrol.h>
 
 QT_BEGIN_NAMESPACE
 

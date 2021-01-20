@@ -54,6 +54,7 @@
 #include <qglobal.h>
 #include <QMediaPlayerControl>
 #include <qsize.h>
+#include <qurl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -93,6 +94,8 @@ public:
 
 Q_SIGNALS:
     void metaDataUpdated();
+    void audioRoleChanged(QAudio::Role role);
+    void customAudioRoleChanged(const QString &role);
 
 public Q_SLOTS:
     void setPosition(qint64 position) override;

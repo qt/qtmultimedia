@@ -42,7 +42,7 @@
 #include <QString>
 #include <QtCore/private/qjni_p.h>
 #include <QtCore/private/qjnihelpers_p.h>
-#include "androidsurfacetexture.h"
+#include "androidsurfacetexture_p.h"
 #include <QList>
 #include <QReadWriteLock>
 

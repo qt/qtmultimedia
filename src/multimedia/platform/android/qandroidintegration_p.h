@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,42 +37,40 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIASERVICEPLUGIN_H
-#define QANDROIDMEDIASERVICEPLUGIN_H
+#ifndef QANDROIDINTEGRATION_H
+#define QANDROIDINTEGRATION_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <QMediaServiceProviderPlugin>
+#include <private/qmediaplatformintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaServicePlugin
-        : public QMediaServiceProviderPlugin
-        , public QMediaServiceSupportedDevicesInterface
+class QAndroidDeviceManager;
+class QAndroidPlayerInterface;
+
+class QAndroidIntegration : public QMediaPlatformIntegration
 {
-    Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
 public:
-    QAndroidMediaServicePlugin();
-    ~QAndroidMediaServicePlugin();
+    QAndroidIntegration();
+    ~QAndroidIntegration();
 
-    QMediaService* create(QString const& key) override;
-    void release(QMediaService *service) override;
+    QMediaPlatformDeviceManager *deviceManager() override;
 
-    QByteArray defaultDevice(const QByteArray &service) const override;
-    QList<QByteArray> devices(const QByteArray &service) const override;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
+    QMediaPlatformPlayerInterface *createPlayerInterface() override;
+
+    QAndroidDeviceManager *m_manager = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMEDIASERVICEPLUGIN_H
+#endif

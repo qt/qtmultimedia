@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qaudioencodersettingscontrol_p.h>
+#include <qaudioencodersettingscontrol.h>
 
 QT_BEGIN_NAMESPACE
 

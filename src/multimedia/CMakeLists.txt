@@ -383,6 +383,8 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
         platform/android/mediaplayer/qandroidmediaservice.cpp platform/android/mediaplayer/qandroidmediaservice_p.h
         platform/android/mediaplayer/qandroidmetadatareadercontrol.cpp platform/android/mediaplayer/qandroidmetadatareadercontrol_p.h
+        platform/android/qandroiddevicemanager.cpp platform/android/qandroiddevicemanager_p.h
+        platform/android/qandroidintegration.cpp platform/android/qandroidintegration_p.h
         platform/android/qandroidmediaserviceplugin.cpp platform/android/qandroidmediaserviceplugin_p.h
         platform/android/wrappers/jni/androidcamera.cpp platform/android/wrappers/jni/androidcamera_p.h
         platform/android/wrappers/jni/androidmediametadataretriever.cpp platform/android/wrappers/jni/androidmediametadataretriever_p.h

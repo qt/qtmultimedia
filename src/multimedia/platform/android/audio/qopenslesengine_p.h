@@ -55,6 +55,7 @@
 #include <qaudio.h>
 #include <qlist.h>
 #include <qaudioformat.h>
+#include <qaudiodeviceinfo.h>
 #include <SLES/OpenSLES.h>
 
 QT_BEGIN_NAMESPACE
@@ -73,8 +74,7 @@ public:
 
     static SLDataFormat_PCM audioFormatToSLFormatPCM(const QAudioFormat &format);
 
-    QByteArray defaultDevice(QAudio::Mode mode) const;
-    QList<QByteArray> availableDevices(QAudio::Mode mode) const;
+    static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode);
     QList<int> supportedChannelCounts(QAudio::Mode mode) const;
     QList<int> supportedSampleRates(QAudio::Mode mode) const;
 

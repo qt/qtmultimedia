@@ -57,6 +57,7 @@
 #include <qsize.h>
 #include <qrect.h>
 #include <QtMultimedia/qcamera.h>
+#include <private/qcamerainfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -65,15 +66,6 @@ class QThread;
 class AndroidCameraPrivate;
 class AndroidSurfaceTexture;
 class AndroidSurfaceHolder;
-
-struct AndroidCameraInfo
-{
-    QByteArray name;
-    QString description;
-    QCamera::Position position;
-    int orientation;
-};
-Q_DECLARE_TYPEINFO(AndroidCameraInfo, Q_MOVABLE_TYPE);
 
 class AndroidCamera : public QObject
 {
@@ -211,7 +203,7 @@ public:
     QJNIObjectPrivate getCameraObject();
 
     static int getNumberOfCameras();
-    static void getCameraInfo(int id, AndroidCameraInfo *info);
+    static void getCameraInfo(int id, QCameraInfoPrivate *info);
     static bool requestCameraPermission();
 
     static bool initJNI(JNIEnv *env);

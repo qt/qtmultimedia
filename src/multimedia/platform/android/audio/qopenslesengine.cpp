@@ -40,6 +40,8 @@
 #include "qopenslesengine_p.h"
 
 #include "qopenslesaudioinput_p.h"
+#include "qopenslesdeviceinfo_p.h"
+
 #include <qdebug.h>
 
 #ifdef ANDROID
@@ -101,27 +103,19 @@ SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &f
 
 }
 
-QByteArray QOpenSLESEngine::defaultDevice(QAudio::Mode mode) const
+QList<QAudioDeviceInfo> QOpenSLESEngine::availableDevices(QAudio::Mode mode)
 {
-    const auto &devices = availableDevices(mode);
-    return !devices.isEmpty() ? devices.first() : QByteArray();
-}
-
-QList<QByteArray> QOpenSLESEngine::availableDevices(QAudio::Mode mode) const
-{
-    QList<QByteArray> devices;
-    if (mode == QAudio::AudioInput) {
+    QList<QAudioDeviceInfo> devices;
 #ifdef ANDROID
-        devices << QT_ANDROID_PRESET_MIC
-                << QT_ANDROID_PRESET_CAMCORDER
-                << QT_ANDROID_PRESET_VOICE_RECOGNITION
-                << QT_ANDROID_PRESET_VOICE_COMMUNICATION;
-#else
-        devices << "default";
-#endif
-    } else {
-        devices << "default";
+    if (mode == QAudio::AudioInput) {
+        devices << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_MIC, mode))
+                << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_CAMCORDER, mode))
+                << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_RECOGNITION, mode))
+                << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_COMMUNICATION, mode));
+        return devices;
     }
+#endif
+    devices << QAudioDeviceInfo(new QOpenSLESDeviceInfo("default", mode));
     return devices;
 }
 

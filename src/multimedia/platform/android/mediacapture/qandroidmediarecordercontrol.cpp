@@ -133,6 +133,7 @@ QAudioDeviceInfo QAndroidMediaRecorderControl::audioInput() const
 bool QAndroidMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &info)
 {
     m_session->setAudioInput(QString::fromLatin1(info.id()));
+    return true;
 }
 
 

@@ -52,7 +52,7 @@
 // We mean it.
 //
 
-#include <qcameracontrol_p.h>
+#include <qcameracontrol.h>
 
 QT_BEGIN_NAMESPACE
 

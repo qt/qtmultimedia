@@ -64,9 +64,6 @@ QAndroidMediaServicePlugin::~QAndroidMediaServicePlugin()
 
 QMediaService *QAndroidMediaServicePlugin::create(const QString &key)
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new QAndroidMediaService;
-
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA)
             || key == QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE)) {
         return new QAndroidCaptureService(key);
@@ -84,7 +81,7 @@ void QAndroidMediaServicePlugin::release(QMediaService *service)
 QByteArray QAndroidMediaServicePlugin::defaultDevice(const QByteArray &service) const
 {
     if (service == Q_MEDIASERVICE_CAMERA && !QAndroidCameraSession::availableCameras().isEmpty())
-        return QAndroidCameraSession::availableCameras().first().name;
+        return QAndroidCameraSession::availableCameras().first().id();
 
     return QByteArray();
 }
@@ -93,9 +90,9 @@ QList<QByteArray> QAndroidMediaServicePlugin::devices(const QByteArray &service)
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
         QList<QByteArray> devices;
-        const QList<AndroidCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
+        const QList<QCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
         for (int i = 0; i < cameras.count(); ++i)
-            devices.append(cameras.at(i).name);
+            devices.append(cameras.at(i).id());
         return devices;
     }
 
@@ -105,11 +102,11 @@ QList<QByteArray> QAndroidMediaServicePlugin::devices(const QByteArray &service)
 QString QAndroidMediaServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
 {
     if (service == Q_MEDIASERVICE_CAMERA) {
-        const QList<AndroidCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
+        const QList<QCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
         for (int i = 0; i < cameras.count(); ++i) {
-            const AndroidCameraInfo &info = cameras.at(i);
-            if (info.name == device)
-                return info.description;
+            const QCameraInfo &info = cameras.at(i);
+            if (info.id()== device)
+                return info.description();
         }
     }
 

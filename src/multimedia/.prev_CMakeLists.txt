@@ -170,7 +170,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/qwindowsdevicemanager.cpp platform/windows/qwindowsdevicemanager_p.h
         platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
         platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h
-        platform/windows/wmfserviceplugin.cpp platform/windows/wmfserviceplugin_p.h
     INCLUDE_DIRECTORIES
         .
         platform/windows/decoder
@@ -228,7 +227,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstvideorenderersink.cpp platform/gstreamer/common/qgstvideorenderersink_p.h
         platform/gstreamer/mediaplayer/qgstreamermetadataprovider.cpp platform/gstreamer/mediaplayer/qgstreamermetadataprovider_p.h
         platform/gstreamer/mediaplayer/qgstreamerplayerservice.cpp platform/gstreamer/mediaplayer/qgstreamerplayerservice_p.h
-        platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin.cpp platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
         platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
         platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
@@ -382,6 +380,8 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
         platform/android/mediaplayer/qandroidmediaservice.cpp platform/android/mediaplayer/qandroidmediaservice_p.h
         platform/android/mediaplayer/qandroidmetadatareadercontrol.cpp platform/android/mediaplayer/qandroidmetadatareadercontrol_p.h
+        platform/android/qandroiddevicemanager.cpp platform/android/qandroiddevicemanager_p.h
+        platform/android/qandroidintegration.cpp platform/android/qandroidintegration_p.h
         platform/android/qandroidmediaserviceplugin.cpp platform/android/qandroidmediaserviceplugin_p.h
         platform/android/wrappers/jni/androidcamera.cpp platform/android/wrappers/jni/androidcamera_p.h
         platform/android/wrappers/jni/androidmediametadataretriever.cpp platform/android/wrappers/jni/androidmediametadataretriever_p.h
@@ -426,7 +426,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/mediaplayer/avfmediaplayercontrol.mm platform/darwin/mediaplayer/avfmediaplayercontrol_p.h
         platform/darwin/mediaplayer/avfmediaplayermetadatacontrol.mm platform/darwin/mediaplayer/avfmediaplayermetadatacontrol_p.h
         platform/darwin/mediaplayer/avfmediaplayerservice.mm platform/darwin/mediaplayer/avfmediaplayerservice_p.h
-        platform/darwin/mediaplayer/avfmediaplayerserviceplugin.mm platform/darwin/mediaplayer/avfmediaplayerserviceplugin_p.h
         platform/darwin/mediaplayer/avfmediaplayersession.mm platform/darwin/mediaplayer/avfmediaplayersession_p.h
         platform/darwin/mediaplayer/avfvideooutput.mm platform/darwin/mediaplayer/avfvideooutput_p.h
         platform/darwin/mediaplayer/avfvideowindowcontrol.mm platform/darwin/mediaplayer/avfvideowindowcontrol_p.h

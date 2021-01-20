@@ -69,9 +69,9 @@ private Q_SLOTS:
     void configureFormat();
 
 private:
-    void onFrameAvailable(const QVideoFrame &frame);
+    void onFrameAvailable(const QVideoFrame &frame) override;
     void presentFrame();
-    bool event(QEvent *);
+    bool event(QEvent *) override;
 
     QAndroidCameraVideoRendererControl *m_control;
     AndroidSurfaceView *m_surfaceView;

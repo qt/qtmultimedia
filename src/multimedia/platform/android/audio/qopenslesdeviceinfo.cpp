@@ -76,22 +76,22 @@ QString QOpenSLESDeviceInfo::deviceName() const
     return id;
 }
 
-QStringList QOpenSLESDeviceInfo::supportedCodecs()
+QStringList QOpenSLESDeviceInfo::supportedCodecs() const
 {
     return QStringList() << QStringLiteral("audio/x-raw");
 }
 
-QList<int> QOpenSLESDeviceInfo::supportedSampleRates()
+QList<int> QOpenSLESDeviceInfo::supportedSampleRates() const
 {
     return m_engine->supportedSampleRates(mode);
 }
 
-QList<int> QOpenSLESDeviceInfo::supportedChannelCounts()
+QList<int> QOpenSLESDeviceInfo::supportedChannelCounts() const
 {
     return m_engine->supportedChannelCounts(mode);
 }
 
-QList<int> QOpenSLESDeviceInfo::supportedSampleSizes()
+QList<int> QOpenSLESDeviceInfo::supportedSampleSizes() const
 {
     if (mode == QAudio::AudioInput)
         return QList<int>() << 16;
@@ -99,12 +99,12 @@ QList<int> QOpenSLESDeviceInfo::supportedSampleSizes()
         return QList<int>() << 8 << 16;
 }
 
-QList<QAudioFormat::Endian> QOpenSLESDeviceInfo::supportedByteOrders()
+QList<QAudioFormat::Endian> QOpenSLESDeviceInfo::supportedByteOrders() const
 {
     return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian;
 }
 
-QList<QAudioFormat::SampleType> QOpenSLESDeviceInfo::supportedSampleTypes()
+QList<QAudioFormat::SampleType> QOpenSLESDeviceInfo::supportedSampleTypes() const
 {
     return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt;
 }
