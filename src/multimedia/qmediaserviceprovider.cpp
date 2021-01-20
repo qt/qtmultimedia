@@ -61,10 +61,6 @@
 
 QT_BEGIN_NAMESPACE
 
-QMediaServiceProviderFactoryInterface::~QMediaServiceProviderFactoryInterface()
-{
-}
-
 class Loader
 {
 #define GET_PLUGIN(Key, Class) \
@@ -134,108 +130,6 @@ public:
                 d.plugin->release(service);
         }
     }
-
-    [[nodiscard]] QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
-                                     const QString &mimeType,
-                                     const QStringList& codecs) const override
-    {
-        QObject *instance = loader()->instance(QLatin1String(serviceType));
-
-        if (!instance)
-            return QMultimedia::NotSupported;
-
-        QMultimedia::SupportEstimate supportEstimate = QMultimedia::MaybeSupported;
-        QMediaServiceSupportedFormatsInterface *iface = qobject_cast<QMediaServiceSupportedFormatsInterface*>(instance);
-        if (iface)
-            supportEstimate = qMax(supportEstimate, iface->hasSupport(mimeType, codecs));
-
-        return supportEstimate;
-    }
-
-    [[nodiscard]] QStringList supportedMimeTypes(const QByteArray &serviceType) const override
-    {
-        QObject *instance = loader()->instance(QLatin1String(serviceType));
-        if (!instance)
-            return {};
-
-        QMediaServiceSupportedFormatsInterface *iface = qobject_cast<QMediaServiceSupportedFormatsInterface*>(instance);
-
-        if (iface)
-            return iface->supportedMimeTypes();
-
-        return {};
-    }
-
-    [[nodiscard]] QByteArray defaultDevice(const QByteArray &serviceType) const override
-    {
-        QObject *instance = loader()->instance(QLatin1String(serviceType));
-        if (!instance)
-            return QByteArray();
-
-        const QMediaServiceSupportedDevicesInterface *iface = qobject_cast<QMediaServiceSupportedDevicesInterface *>(instance);
-        if (iface)
-            return iface->defaultDevice(serviceType);
-
-        return QByteArray();
-    }
-
-    [[nodiscard]] QList<QByteArray> devices(const QByteArray &serviceType) const override
-    {
-        QObject *instance = loader()->instance(QLatin1String(serviceType));
-        if (!instance)
-            return {};
-
-        QMediaServiceSupportedDevicesInterface *iface = qobject_cast<QMediaServiceSupportedDevicesInterface*>(instance);
-        if (iface)
-            return iface->devices(serviceType);
-
-        return {};
-    }
-
-    QString deviceDescription(const QByteArray &serviceType, const QByteArray &device) override
-    {
-        QObject *instance = loader()->instance(QLatin1String(serviceType));
-        if (!instance)
-            return {};
-
-        QMediaServiceSupportedDevicesInterface *iface = qobject_cast<QMediaServiceSupportedDevicesInterface*>(instance);
-        if (iface) {
-            if (iface->devices(serviceType).contains(device))
-                return iface->deviceDescription(serviceType, device);
-        }
-
-        return QString();
-    }
-
-    [[nodiscard]] QCamera::Position cameraPosition(const QByteArray &device) const override
-    {
-        QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA);
-        auto *deviceControl = qobject_cast<QVideoDeviceSelectorControl *>(service->requestControl(QVideoDeviceSelectorControl_iid));
-        auto pos = QCamera::UnspecifiedPosition;
-        for (int i = 0; i < deviceControl->deviceCount(); i++) {
-            if (deviceControl->deviceName(i) == QString::fromUtf8(device)) {
-                pos = deviceControl->cameraPosition(i);
-                break;
-            }
-        }
-        service->releaseControl(deviceControl);
-        return pos;
-    }
-
-    [[nodiscard]] int cameraOrientation(const QByteArray &device) const override
-    {
-        QMediaService *service = const_cast<QPluginServiceProvider *>(this)->requestService(Q_MEDIASERVICE_CAMERA);
-        auto *deviceControl = qobject_cast<QVideoDeviceSelectorControl *>(service->requestControl(QVideoDeviceSelectorControl_iid));
-        int orientation = 0;
-        for (int i = 0; i < deviceControl->deviceCount(); i++) {
-            if (deviceControl->deviceName(i) == QString::fromUtf8(device)) {
-                orientation = deviceControl->cameraOrientation(i);
-                break;
-            }
-        }
-        service->releaseControl(deviceControl);
-        return orientation;
-    }
 };
 
 Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
@@ -272,101 +166,6 @@ Q_GLOBAL_STATIC(QPluginServiceProvider, pluginProvider);
 
     Releases a media \a service requested with requestService().
 */
-
-/*!
-    \internal
-    Returns how confident a media service provider is that is can provide a \a
-    serviceType service that is able to play media of a specific \a mimeType
-    that is encoded using the listed \a codecs while adhering to constraints
-    identified in \a flags.
-*/
-QMultimedia::SupportEstimate QMediaServiceProvider::hasSupport(const QByteArray &serviceType,
-                                                        const QString &mimeType,
-                                                        const QStringList& codecs) const
-{
-    Q_UNUSED(serviceType);
-    Q_UNUSED(mimeType);
-    Q_UNUSED(codecs);
-
-    return QMultimedia::MaybeSupported;
-}
-
-/*!
-    \internal
-    \fn QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceType, int flags) const
-
-    Returns a list of MIME types supported by the service provider for the
-    specified \a serviceType.
-
-    The resultant list is restricted to MIME types which can be supported given
-    the constraints in \a flags.
-*/
-QStringList QMediaServiceProvider::supportedMimeTypes(const QByteArray &serviceType) const
-{
-    Q_UNUSED(serviceType);
-
-    return QStringList();
-}
-
-/*!
-  \internal
-  \since 5.3
-
-  Returns the default device for a \a service type.
-*/
-QByteArray QMediaServiceProvider::defaultDevice(const QByteArray &serviceType) const
-{
-    Q_UNUSED(serviceType);
-    return QByteArray();
-}
-
-/*!
-  \internal
-  Returns the list of devices related to \a service type.
-*/
-QList<QByteArray> QMediaServiceProvider::devices(const QByteArray &service) const
-{
-    Q_UNUSED(service);
-    return QList<QByteArray>();
-}
-
-/*!
-    \internal
-    Returns the description of \a device related to \a serviceType, suitable for use by
-    an application for display.
-*/
-QString QMediaServiceProvider::deviceDescription(const QByteArray &serviceType, const QByteArray &device)
-{
-    Q_UNUSED(serviceType);
-    Q_UNUSED(device);
-    return QString();
-}
-
-/*!
-    \internal
-    \since 5.3
-
-    Returns the physical position of a camera \a device on the system hardware.
-*/
-QCamera::Position QMediaServiceProvider::cameraPosition(const QByteArray &device) const
-{
-    Q_UNUSED(device);
-    return QCamera::UnspecifiedPosition;
-}
-
-/*!
-    \internal
-    \since 5.3
-
-    Returns the physical orientation of the camera \a device. The value is the angle by which the
-    camera image should be rotated anti-clockwise (in steps of 90 degrees) so it shows correctly on
-    the display in its natural orientation.
-*/
-int QMediaServiceProvider::cameraOrientation(const QByteArray &device) const
-{
-    Q_UNUSED(device);
-    return 0;
-}
 
 static QMediaServiceProvider *qt_defaultMediaServiceProvider = nullptr;
 
@@ -447,40 +246,6 @@ QMediaServiceProvider *QMediaServiceProvider::defaultServiceProvider()
     \fn QMediaServiceSupportedFormatsInterface::supportedMimeTypes() const
 
     Returns a list of MIME types supported by the media service plug-in.
-*/
-
-/*!
-    \class QMediaServiceSupportedDevicesInterface
-    \obsolete
-    \inmodule QtMultimedia
-    \brief The QMediaServiceSupportedDevicesInterface class interface
-    identifies the devices supported by a media service plug-in.
-
-    A QMediaServiceProviderPlugin may implement this interface.
-*/
-
-/*!
-    \fn QMediaServiceSupportedDevicesInterface::~QMediaServiceSupportedDevicesInterface()
-
-    Destroys a media service supported devices interface.
-*/
-
-/*!
-    \fn QList<QByteArray> QMediaServiceSupportedDevicesInterface::devices(const QByteArray &service) const
-
-    Returns a list of devices available for a \a service type.
-*/
-
-/*!
-    \fn QString QMediaServiceSupportedDevicesInterface::deviceDescription(const QByteArray &service, const QByteArray &device)
-
-    Returns the description of a \a device available for a \a service type.
-*/
-
-/*!
-    \fn QByteArray QMediaServiceSupportedDevicesInterface::defaultDevice(const QByteArray &service) const
-
-    Returns the default device for a \a service type.
 */
 
 QT_END_NAMESPACE

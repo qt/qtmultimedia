@@ -55,30 +55,6 @@ public:
         }
     }
 
-    QByteArray defaultDevice(const QByteArray &serviceType) const
-    {
-        if (serviceType == Q_MEDIASERVICE_CAMERA)
-            return MockVideoDeviceSelectorControl::defaultCamera();
-
-        return QByteArray();
-    }
-
-    QList<QByteArray> devices(const QByteArray &serviceType) const
-    {
-        if (serviceType == Q_MEDIASERVICE_CAMERA)
-            return MockVideoDeviceSelectorControl::availableCameras();
-
-        return QList<QByteArray>();
-    }
-
-    QString deviceDescription(const QByteArray &serviceType, const QByteArray &device)
-    {
-        if (serviceType == Q_MEDIASERVICE_CAMERA)
-            return MockVideoDeviceSelectorControl::cameraDescription(device);
-
-        return QString();
-    }
-
     QMediaService *service;
     bool deleteServiceOnRelease;
 };

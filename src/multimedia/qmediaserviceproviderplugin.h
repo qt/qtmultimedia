@@ -52,65 +52,12 @@
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
-
-class QMediaService;
-
-// Required for QDoc workaround
-class QString;
-
-struct Q_MULTIMEDIA_EXPORT QMediaServiceProviderFactoryInterface
-{
-    virtual QMediaService* create(QString const& key) = 0;
-    virtual void release(QMediaService *service) = 0;
-    virtual ~QMediaServiceProviderFactoryInterface();
-};
-
-#define QMediaServiceProviderFactoryInterface_iid \
-    "org.qt-project.qt.mediaserviceproviderfactory/5.0"
-Q_DECLARE_INTERFACE(QMediaServiceProviderFactoryInterface, QMediaServiceProviderFactoryInterface_iid)
-
-// Required for QDoc workaround
-class QString;
-
-struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedFormatsInterface
-{
-    virtual ~QMediaServiceSupportedFormatsInterface() {}
-    virtual QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs) const = 0;
-    virtual QStringList supportedMimeTypes() const = 0;
-};
-
-#define QMediaServiceSupportedFormatsInterface_iid \
-    "org.qt-project.qt.mediaservicesupportedformats/5.0"
-Q_DECLARE_INTERFACE(QMediaServiceSupportedFormatsInterface, QMediaServiceSupportedFormatsInterface_iid)
-
-// Required for QDoc workaround
-class QString;
-
-struct Q_MULTIMEDIA_EXPORT QMediaServiceSupportedDevicesInterface
-{
-    virtual ~QMediaServiceSupportedDevicesInterface() {}
-    virtual QList<QByteArray> devices(const QByteArray &service) const = 0;
-    virtual QString deviceDescription(const QByteArray &service, const QByteArray &device) = 0;
-    virtual QByteArray defaultDevice(const QByteArray &service) const = 0;
-};
-
-#define QMediaServiceSupportedDevicesInterface_iid \
-    "org.qt-project.qt.mediaservicesupporteddevices/5.0"
-Q_DECLARE_INTERFACE(QMediaServiceSupportedDevicesInterface, QMediaServiceSupportedDevicesInterface_iid)
-
-// Required for QDoc workaround
-class QString;
-
-class Q_MULTIMEDIA_EXPORT QMediaServiceProviderPlugin : public QObject, public QMediaServiceProviderFactoryInterface
+class Q_MULTIMEDIA_EXPORT QMediaServiceProviderPlugin : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceProviderFactoryInterface)
-
 public:
-    QMediaService* create(const QString& key) override = 0;
-    void release(QMediaService *service) override = 0;
+    virtual QMediaService* create(const QString& key) = 0;
+    virtual void release(QMediaService *service) = 0;
 };
 
 /*!
@@ -136,13 +83,6 @@ public:
                         Optional: QVideoWindowControl, QVideoRendererControl
 */
 #define Q_MEDIASERVICE_CAMERA "org.qt-project.qt.camera"
-
-/*!
-    Service with support for decoding audio.
-    Required Controls: QAudioDecoderControl
-    Optional: that streams control
-*/
-#define Q_MEDIASERVICE_AUDIODECODER "org.qt-project.qt.audiodecode"
 
 QT_END_NAMESPACE
 

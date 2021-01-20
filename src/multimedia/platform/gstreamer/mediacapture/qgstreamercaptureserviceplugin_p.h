@@ -60,34 +60,11 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerCaptureServicePlugin
     : public QMediaServiceProviderPlugin
-#if defined(USE_GSTREAMER_CAMERA)
-    , public QMediaServiceSupportedDevicesInterface
-#endif
-    , public QMediaServiceSupportedFormatsInterface
 {
     Q_OBJECT
-#if defined(USE_GSTREAMER_CAMERA)
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-#endif
-    Q_INTERFACES(QMediaServiceSupportedFormatsInterface)
 public:
     QMediaService* create(const QString &key) override;
     void release(QMediaService *service) override;
-
-#if defined(USE_GSTREAMER_CAMERA)
-    QByteArray defaultDevice(const QByteArray &service) const override;
-    QList<QByteArray> devices(const QByteArray &service) const override;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
-#endif
-
-    QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList &codecs) const override;
-    QStringList supportedMimeTypes() const override;
-
-private:
-    void updateSupportedMimeTypes() const;
-
-    mutable QSet<QString> m_supportedMimeTypeSet; //for fast access
 };
 
 QT_END_NAMESPACE

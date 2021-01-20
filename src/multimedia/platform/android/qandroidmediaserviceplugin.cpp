@@ -78,41 +78,6 @@ void QAndroidMediaServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-QByteArray QAndroidMediaServicePlugin::defaultDevice(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA && !QAndroidCameraSession::availableCameras().isEmpty())
-        return QAndroidCameraSession::availableCameras().first().id();
-
-    return QByteArray();
-}
-
-QList<QByteArray> QAndroidMediaServicePlugin::devices(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        QList<QByteArray> devices;
-        const QList<QCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
-        for (int i = 0; i < cameras.count(); ++i)
-            devices.append(cameras.at(i).id());
-        return devices;
-    }
-
-    return QList<QByteArray>();
-}
-
-QString QAndroidMediaServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        const QList<QCameraInfo> &cameras = QAndroidCameraSession::availableCameras();
-        for (int i = 0; i < cameras.count(); ++i) {
-            const QCameraInfo &info = cameras.at(i);
-            if (info.id()== device)
-                return info.description();
-        }
-    }
-
-    return QString();
-}
-
 QT_END_NAMESPACE
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)

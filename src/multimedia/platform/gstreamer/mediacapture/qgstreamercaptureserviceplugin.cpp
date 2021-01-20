@@ -73,49 +73,8 @@ void QGstreamerCaptureServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-#if defined(USE_GSTREAMER_CAMERA)
-QByteArray QGstreamerCaptureServicePlugin::defaultDevice(const QByteArray &service) const
-{
-    const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
-
-    if (service != Q_MEDIASERVICE_CAMERA || cameras.isEmpty())
-        return QByteArray();
-    return cameras.at(0).id();
-}
-
-QList<QByteArray> QGstreamerCaptureServicePlugin::devices(const QByteArray &service) const
-{
-    QList<QByteArray> devices;
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
-        for (auto c : cameras)
-            devices.append(c.id());
-    }
-    return devices;
-}
-
-QString QGstreamerCaptureServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    if (service != Q_MEDIASERVICE_CAMERA)
-        return QString();
-
-    const auto cameras = QMediaPlatformIntegration::instance()->deviceManager()->videoInputs();
-    for (auto c : cameras)
-        if (c.id() == device)
-            return c.description();
-    return QString();
-}
-
-QVariant QGstreamerCaptureServicePlugin::deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property)
-{
-    Q_UNUSED(service);
-    Q_UNUSED(device);
-    Q_UNUSED(property);
-    return QVariant();
-}
-
-#endif
-
+#if 0
+// #### Find a better way to enumerate supported formats
 QMultimedia::SupportEstimate QGstreamerCaptureServicePlugin::hasSupport(const QString &mimeType,
                                                                      const QStringList& codecs) const
 {
@@ -141,4 +100,4 @@ QStringList QGstreamerCaptureServicePlugin::supportedMimeTypes() const
 {
     return QStringList();
 }
-
+#endif

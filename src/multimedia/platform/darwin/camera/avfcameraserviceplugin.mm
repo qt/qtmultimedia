@@ -67,37 +67,4 @@ void AVFServicePlugin::release(QMediaService *service)
     delete service;
 }
 
-QByteArray AVFServicePlugin::defaultDevice(const QByteArray &service) const
-{
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        int i = AVFCameraSession::defaultCameraIndex();
-        if (i != -1)
-            return AVFCameraSession::availableCameraDevices().at(i).deviceId;
-    }
-
-    return QByteArray();
-}
-
-QList<QByteArray> AVFServicePlugin::devices(const QByteArray &service) const
-{
-    QList<QByteArray> devs;
-
-    if (service == Q_MEDIASERVICE_CAMERA) {
-        const QList<AVFCameraInfo> &cameras = AVFCameraSession::availableCameraDevices();
-        devs.reserve(cameras.size());
-        for (const AVFCameraInfo &info : cameras)
-            devs.append(info.deviceId);
-    }
-
-    return devs;
-}
-
-QString AVFServicePlugin::deviceDescription(const QByteArray &service, const QByteArray &device)
-{
-    if (service == Q_MEDIASERVICE_CAMERA)
-        return AVFCameraSession::cameraDeviceInfo(device).description;
-
-    return QString();
-}
-
 QT_END_NAMESPACE

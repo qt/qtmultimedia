@@ -70,18 +70,6 @@ public:
     virtual QMediaService* requestService(const QByteArray &type) = 0;
     virtual void releaseService(QMediaService *service) = 0;
 
-    virtual QMultimedia::SupportEstimate hasSupport(const QByteArray &serviceType,
-                                             const QString &mimeType,
-                                             const QStringList& codecs) const;
-    virtual QStringList supportedMimeTypes(const QByteArray &serviceType) const;
-
-    virtual QByteArray defaultDevice(const QByteArray &serviceType) const;
-    virtual QList<QByteArray> devices(const QByteArray &serviceType) const;
-    virtual QString deviceDescription(const QByteArray &serviceType, const QByteArray &device);
-
-    virtual QCamera::Position cameraPosition(const QByteArray &device) const;
-    virtual int cameraOrientation(const QByteArray &device) const;
-
     static QMediaServiceProvider* defaultServiceProvider();
     static void setDefaultServiceProvider(QMediaServiceProvider *provider);
 };

@@ -61,22 +61,14 @@ QT_BEGIN_NAMESPACE
 
 class CameraBinServicePlugin
     : public QMediaServiceProviderPlugin
-    , public QMediaServiceSupportedDevicesInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "camerabin.json")
 public:
     CameraBinServicePlugin();
     ~CameraBinServicePlugin();
 
     QMediaService* create(const QString &key) override;
     void release(QMediaService *service) override;
-
-    QByteArray defaultDevice(const QByteArray &service) const override;
-    QList<QByteArray> devices(const QByteArray &service) const override;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
-    QVariant deviceProperty(const QByteArray &service, const QByteArray &device, const QByteArray &property);
 
 private:
     GstElementFactory *sourceFactory() const;

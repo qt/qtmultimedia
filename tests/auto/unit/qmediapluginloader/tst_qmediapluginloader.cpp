@@ -55,7 +55,7 @@ private:
 
 void tst_QMediaPluginLoader::initTestCase()
 {
-    loader = new QMediaPluginLoader(QMediaServiceProviderFactoryInterface_iid,
+    loader = new QMediaPluginLoader("org.qt-project.qt.mediaservicesupporteddevices/5.0",
                                 QLatin1String("mediaservice"),
                                 Qt::CaseInsensitive);
 }

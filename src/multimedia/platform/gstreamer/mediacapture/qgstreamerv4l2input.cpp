@@ -48,8 +48,6 @@
 #include <algorithm>
 
 QT_BEGIN_NAMESPACE
-static inline uint qHash(const QSize& key) { return uint(key.width()*256+key.height()); }
-
 static bool operator<(const QSize &s1, const QSize s2)
 {
     return s1.width()*s1.height() < s2.width()*s2.height();

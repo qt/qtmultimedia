@@ -58,20 +58,13 @@
 QT_BEGIN_NAMESPACE
 
 class AVFServicePlugin : public QMediaServiceProviderPlugin,
-                         public QMediaServiceSupportedDevicesInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaServiceSupportedDevicesInterface)
-
 public:
     AVFServicePlugin();
 
     QMediaService* create(QString const &key) override;
     void release(QMediaService *service) override;
-
-    QByteArray defaultDevice(const QByteArray &service) const override;
-    QList<QByteArray> devices(const QByteArray &service) const override;
-    QString deviceDescription(const QByteArray &service, const QByteArray &device) override;
 };
 
 QT_END_NAMESPACE
