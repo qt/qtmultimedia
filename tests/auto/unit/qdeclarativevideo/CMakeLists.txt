@@ -10,8 +10,6 @@ qt_add_test(tst_qdeclarativevideo
         ../../../../src/imports/multimedia/qdeclarativemediametadata_p.h
         ../../../../src/imports/multimedia/qdeclarativevideo.cpp ../../../../src/imports/multimedia/qdeclarativevideo_p.h
         tst_qdeclarativevideo.cpp
-    DEFINES
-        QT_DISABLE_DEPRECATED_BEFORE=0
     INCLUDE_DIRECTORIES
         ../../../../src/imports/multimedia
     PUBLIC_LIBRARIES

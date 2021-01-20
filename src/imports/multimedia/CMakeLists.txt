@@ -24,8 +24,6 @@ qt_internal_add_qml_module(declarative_multimedia
         qdeclarativemultimediaglobal.cpp qdeclarativemultimediaglobal_p.h
         qdeclarativeplaylist.cpp qdeclarativeplaylist_p.h
         qdeclarativetorch.cpp qdeclarativetorch_p.h
-    DEFINES
-        QT_DISABLE_DEPRECATED_BEFORE=0
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui
