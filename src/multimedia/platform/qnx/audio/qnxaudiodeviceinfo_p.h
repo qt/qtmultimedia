@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
-#define MMRENDERERMEDIAPLAYERSERVICE_H
+
+#ifndef QNXAUDIODEVICEINFO_H
+#define QNXAUDIODEVICEINFO_H
 
 //
 //  W A R N I N G
@@ -50,48 +51,26 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformplayerinterface_p.h>
-#include <QtCore/qpointer.h>
+#include "qaudiosystem_p.h"
+#include <private/qaudiodeviceinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
-class MmRendererPlayerVideoRendererControl;
-class MmRendererVideoWindowControl;
-
-class MmRendererMediaPlayerService : public QMediaPlatformPlayerInterface
+class QnxAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
-    Q_OBJECT
 public:
-    explicit MmRendererMediaPlayerService(QObject *parent = 0);
-    ~MmRendererMediaPlayerService();
+    QnxAudioDeviceInfo(const QByteArray &deviceName, QAudio::Mode mode);
+    ~QnxAudioDeviceInfo();
 
-    QObject *requestControl(const char *name) override;
-    void releaseControl(QObject *control) override;
-
-    // QMediaPlatformPlayerInterface
-    QMediaPlayerControl *player() override;
-    QMetaDataReaderControl *dataReader() override;
-//    QMediaStreamsControl *streams() override;
-//    QMediaVideoProbeControl *videoProbe() override;
-//    void releaseVideoProbe(QMediaVideoProbeControl *) override;
-//    QMediaAudioProbeControl *audioProbe() override;
-//    void releaseAudioProbe(QMediaAudioProbeControl *) override;
-
-    QVideoRendererControl *createVideoRenderer() override;
-    QVideoWindowControl *createVideoWindow() override;;
-
-private:
-    void updateControls();
-
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
+    QAudioFormat preferredFormat() const override;
+    bool isFormatSupported(const QAudioFormat &format) const override;
+    QString description() const override { return QString::fromUtf8(id()); }
+    QStringList supportedCodecs() const override;
+    QList<int> supportedSampleRates() const override;
+    QList<int> supportedChannelCounts() const override;
+    QList<int> supportedSampleSizes() const override;
+    QList<QAudioFormat::Endian> supportedByteOrders() const override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
 };
 
 QT_END_NAMESPACE

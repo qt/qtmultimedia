@@ -48,9 +48,6 @@ NeutrinoServicePlugin::NeutrinoServicePlugin()
 
 QMediaService *NeutrinoServicePlugin::create(const QString &key)
 {
-    if (key == QLatin1String(Q_MEDIASERVICE_MEDIAPLAYER))
-        return new MmRendererMediaPlayerService();
-
     return 0;
 }
 

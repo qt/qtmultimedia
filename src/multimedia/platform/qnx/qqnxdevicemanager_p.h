@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,46 +37,35 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIODEVICEINFO_H
-#define QNXAUDIODEVICEINFO_H
+#ifndef QQNXDEVICEMANAGER_H
+#define QQNXDEVICEMANAGER_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include "qaudiosystem_p.h"
-#include <private/qaudiodeviceinfo_p.h>
+#include <private/qmediaplatformdevicemanager_p.h>
+#include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioDeviceInfo : public QAudioDeviceInfoPrivate
+class QQnxDeviceManager : public QMediaPlatformDeviceManager
 {
-    Q_OBJECT
-
 public:
-    QnxAudioDeviceInfo(const QString &deviceName, QAudio::Mode mode);
-    ~QnxAudioDeviceInfo();
+    QQnxDeviceManager();
 
-    QAudioFormat preferredFormat() const override;
-    bool isFormatSupported(const QAudioFormat &format) const override;
-    QString deviceName() const override;
-    QString description() const override { return deviceName(); }
-    QStringList supportedCodecs() const override;
-    QList<int> supportedSampleRates() const override;
-    QList<int> supportedChannelCounts() const override;
-    QList<int> supportedSampleSizes() const override;
-    QList<QAudioFormat::Endian> supportedByteOrders() const override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
-
-private:
-    const QString m_name;
+    QList<QAudioDeviceInfo> audioInputs() const override;
+    QList<QAudioDeviceInfo> audioOutputs() const override;
+    QList<QCameraInfo> videoInputs() const override;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
 };
 
 QT_END_NAMESPACE

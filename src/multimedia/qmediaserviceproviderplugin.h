@@ -114,16 +114,6 @@ public:
 };
 
 /*!
-    Service with support for media playback
-    Required Controls: QMediaPlayerControl
-    Optional Controls: QAudioDeviceControl
-    Video Output Controls (used by QWideoWidget and QGraphicsVideoItem):
-                        Required: QVideoOutputControl
-                        Optional: QVideoWindowControl, QVideoRendererControl
-*/
-#define Q_MEDIASERVICE_MEDIAPLAYER "org.qt-project.qt.mediaplayer"
-
-/*!
    Service with support for recording from audio sources
    Required Controls: QAudioDeviceControl
    Recording Controls (QMediaRecorder):

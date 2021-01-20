@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,64 +36,45 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
-#define MMRENDERERMEDIAPLAYERSERVICE_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include "qqnxdevicemanager_p.h"
+#include "qmediadevicemanager.h"
+#include "qcamerainfo_p.h"
 
-#include <private/qmediaplatformplayerinterface_p.h>
-#include <QtCore/qpointer.h>
+#include "private/qnxaudioinput_p.h"
+#include "private/qnxaudiooutput_p.h"
+#include "private/qnxaudiodeviceinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
-class MmRendererPlayerVideoRendererControl;
-class MmRendererVideoWindowControl;
-
-class MmRendererMediaPlayerService : public QMediaPlatformPlayerInterface
+QQnxDeviceManager::QQnxDeviceManager()
+    : QMediaPlatformDeviceManager()
 {
-    Q_OBJECT
-public:
-    explicit MmRendererMediaPlayerService(QObject *parent = 0);
-    ~MmRendererMediaPlayerService();
+}
 
-    QObject *requestControl(const char *name) override;
-    void releaseControl(QObject *control) override;
+QList<QAudioDeviceInfo> QQnxDeviceManager::audioInputs() const
+{
+    return { QAudioDeviceInfo(new QnxAudioDeviceInfo("default", QAudio::AudioInput)) };
+}
 
-    // QMediaPlatformPlayerInterface
-    QMediaPlayerControl *player() override;
-    QMetaDataReaderControl *dataReader() override;
-//    QMediaStreamsControl *streams() override;
-//    QMediaVideoProbeControl *videoProbe() override;
-//    void releaseVideoProbe(QMediaVideoProbeControl *) override;
-//    QMediaAudioProbeControl *audioProbe() override;
-//    void releaseAudioProbe(QMediaAudioProbeControl *) override;
+QList<QAudioDeviceInfo> QQnxDeviceManager::audioOutputs() const
+{
+    return { QAudioDeviceInfo(new QnxAudioDeviceInfo("default", QAudio::AudioOutput)) };
+}
 
-    QVideoRendererControl *createVideoRenderer() override;
-    QVideoWindowControl *createVideoWindow() override;;
+QList<QCameraInfo> QQnxDeviceManager::videoInputs() const
+{
+    return {};
+}
 
-private:
-    void updateControls();
+QAbstractAudioInput *QQnxDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+{
+    return new QnxAudioInput();
+}
 
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
-};
+QAbstractAudioOutput *QQnxDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+{
+    return new QNxAudioOutput();
+}
 
 QT_END_NAMESPACE
-
-#endif

@@ -525,6 +525,11 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND QT_FEATURE_opengl AND N
 
 qt_internal_extend_target(Multimedia CONDITION QNX
     SOURCES
+        platform/qnx/audio/neutrinoserviceplugin.cpp platform/qnx/audio/neutrinoserviceplugin_p.h
+        platform/qnx/audio/qnxaudiodeviceinfo.cpp platform/qnx/audio/qnxaudiodeviceinfo_p.h
+        platform/qnx/audio/qnxaudioinput.cpp platform/qnx/audio/qnxaudioinput_p.h
+        platform/qnx/audio/qnxaudiooutput.cpp platform/qnx/audio/qnxaudiooutput_p.h
+        platform/qnx/audio/qnxaudioutils.cpp platform/qnx/audio/qnxaudioutils_p.h
         platform/qnx/camera/bbcameraaudioencodersettingscontrol.cpp platform/qnx/camera/bbcameraaudioencodersettingscontrol_p.h
         platform/qnx/camera/bbcameracontrol.cpp platform/qnx/camera/bbcameracontrol_p.h
         platform/qnx/camera/bbcameraexposurecontrol.cpp platform/qnx/camera/bbcameraexposurecontrol_p.h
@@ -551,11 +556,8 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
         platform/qnx/mediaplayer/mmrevent_p.hread.cpp platform/qnx/mediaplayer/mmrevent_p.hread.h
         platform/qnx/mediaplayer/mmreventmediaplayercontrol.cpp platform/qnx/mediaplayer/mmreventmediaplayercontrol_p.h
-        platform/qnx/neutrinoserviceplugin.cpp platform/qnx/neutrinoserviceplugin_p.h
-        platform/qnx/qnxaudiodeviceinfo.cpp platform/qnx/qnxaudiodeviceinfo_p.h
-        platform/qnx/qnxaudioinput.cpp platform/qnx/qnxaudioinput_p.h
-        platform/qnx/qnxaudiooutput.cpp platform/qnx/qnxaudiooutput_p.h
-        platform/qnx/qnxaudioutils.cpp platform/qnx/qnxaudioutils_p.h
+        platform/qnx/qqnxdevicemanager.cpp platform/qnx/qqnxdevicemanager_p.h
+        platform/qnx/qqnxintegration.cpp platform/qnx/qqnxintegration_p.h
     INCLUDE_DIRECTORIES
         platform/qnx/camera
         platform/qnx/common

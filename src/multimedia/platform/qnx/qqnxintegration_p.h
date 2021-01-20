@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,62 +36,39 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERSERVICE_H
-#define MMRENDERERMEDIAPLAYERSERVICE_H
+
+#ifndef QQNXINTEGRATION_H
+#define QQNXINTEGRATION_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qmediaplatformplayerinterface_p.h>
-#include <QtCore/qpointer.h>
+#include <private/qmediaplatformintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
-class MmRendererPlayerVideoRendererControl;
-class MmRendererVideoWindowControl;
+class QQnxDeviceManager;
+class QQnxPlayerInterface;
 
-class MmRendererMediaPlayerService : public QMediaPlatformPlayerInterface
+class QQnxIntegration : public QMediaPlatformIntegration
 {
-    Q_OBJECT
 public:
-    explicit MmRendererMediaPlayerService(QObject *parent = 0);
-    ~MmRendererMediaPlayerService();
+    QQnxIntegration();
+    ~QQnxIntegration();
 
-    QObject *requestControl(const char *name) override;
-    void releaseControl(QObject *control) override;
+    QMediaPlatformDeviceManager *deviceManager() override;
 
-    // QMediaPlatformPlayerInterface
-    QMediaPlayerControl *player() override;
-    QMetaDataReaderControl *dataReader() override;
-//    QMediaStreamsControl *streams() override;
-//    QMediaVideoProbeControl *videoProbe() override;
-//    void releaseVideoProbe(QMediaVideoProbeControl *) override;
-//    QMediaAudioProbeControl *audioProbe() override;
-//    void releaseAudioProbe(QMediaAudioProbeControl *) override;
+    QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
-    QVideoRendererControl *createVideoRenderer() override;
-    QVideoWindowControl *createVideoWindow() override;;
-
-private:
-    void updateControls();
-
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
-
-    bool m_appHasDrmPermission : 1;
-    bool m_appHasDrmPermissionChecked : 1;
+    QQnxDeviceManager *m_manager = nullptr;
 };
 
 QT_END_NAMESPACE

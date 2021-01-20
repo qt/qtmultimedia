@@ -45,9 +45,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QString &deviceName, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(deviceName, mode),
-      m_name(deviceName)
+QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(deviceName, mode)
 {
 }
 
@@ -108,11 +107,6 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     snd_pcm_close(handle);
 
     return errorCode == 0;
-}
-
-QString QnxAudioDeviceInfo::deviceName() const
-{
-    return m_name;
 }
 
 QStringList QnxAudioDeviceInfo::supportedCodecs() const

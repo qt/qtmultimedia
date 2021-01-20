@@ -135,4 +135,24 @@ void MmRendererMediaPlayerService::updateControls()
         m_mediaPlayerControl->setMetaDataReaderControl(m_metaDataReaderControl);
 }
 
+QMediaPlayerControl *MmRendererMediaPlayerService::player()
+{
+    return m_mediaPlayerControl;
+}
+
+QMetaDataReaderControl *MmRendererMediaPlayerService::dataReader()
+{
+    return m_metaDataReaderControl;
+}
+
+QVideoRendererControl *MmRendererMediaPlayerService::createVideoRenderer()
+{
+    return m_videoRendererControl;
+}
+
+QVideoWindowControl *MmRendererMediaPlayerService::createVideoWindow()
+{
+    return m_videoWindowControl;
+}
+
 QT_END_NAMESPACE

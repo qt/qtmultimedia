@@ -207,7 +207,7 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::Mode mode, QObject *parent)
     if (mode == AudioOnly)
         service = provider->requestService(Q_MEDIASERVICE_AUDIOSOURCE);
     if (!service)
-        service = provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER);
+        service = provider->requestService(Q_MEDIASERVICE_CAMERA);
     setMediaSource(new QAudioRecorderObject(this, service));
 }
 

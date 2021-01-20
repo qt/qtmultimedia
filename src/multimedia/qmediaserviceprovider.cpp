@@ -84,8 +84,6 @@ public:
         GET_PLUGIN(Q_MEDIASERVICE_CAMERA, AVFServicePlugin)
 #elif defined(Q_OS_ANDROID)
         GET_PLUGIN(Q_MEDIASERVICE_CAMERA, QAndroidMediaServicePlugin)
-#elif defined(Q_OS_QNX)
-        GET_PLUGIN(Q_MEDIASERVICE_MEDIAPLAYER, NeutrinoServicePlugin)
 #endif
         return nullptr;
     }

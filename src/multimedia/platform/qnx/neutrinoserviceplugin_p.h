@@ -58,7 +58,6 @@ class NeutrinoServicePlugin
     : public QMediaServiceProviderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.mediaserviceproviderfactory/5.0" FILE "neutrino_mediaservice.json")
 public:
     NeutrinoServicePlugin();
 
