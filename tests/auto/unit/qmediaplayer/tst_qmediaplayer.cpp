@@ -120,7 +120,6 @@ private slots:
     void testSetVideoOutputDestruction();
     void debugEnums();
     void testDestructor();
-    void testSupportedMimeTypes();
     void testQrc_data();
     void testQrc();
     void testAudioRole();
@@ -835,13 +834,6 @@ void tst_QMediaPlayer::debugEnums()
     qDebug() << QMediaPlayer::NoMedia;
     QTest::ignoreMessage(QtDebugMsg, "QMediaPlayer::NetworkError");
     qDebug() << QMediaPlayer::NetworkError;
-}
-
-void tst_QMediaPlayer::testSupportedMimeTypes()
-{
-    QStringList mimeList = QMediaPlayer::supportedMimeTypes();
-
-    // This is empty on some platforms, and not on others, so can't test something here at the moment.
 }
 
 void tst_QMediaPlayer::testQrc_data()

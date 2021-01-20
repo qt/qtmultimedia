@@ -126,9 +126,6 @@ void VideoPlayer::openFile()
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Movie"));
-    const QStringList supportedMimeTypes = m_mediaPlayer->supportedMimeTypes();
-    if (!supportedMimeTypes.isEmpty())
-        fileDialog.setMimeTypeFilters(supportedMimeTypes);
     fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
     if (fileDialog.exec() == QDialog::Accepted)
         load(fileDialog.selectedUrls().constFirst());

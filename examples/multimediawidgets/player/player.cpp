@@ -222,11 +222,6 @@ void Player::open()
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Files"));
-    QStringList supportedMimeTypes = m_player->supportedMimeTypes();
-    if (!supportedMimeTypes.isEmpty()) {
-        supportedMimeTypes.append("audio/x-m3u"); // MP3 playlists
-        fileDialog.setMimeTypeFilters(supportedMimeTypes);
-    }
     fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
     if (fileDialog.exec() == QDialog::Accepted)
         addToPlaylist(fileDialog.selectedUrls());

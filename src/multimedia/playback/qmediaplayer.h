@@ -108,11 +108,6 @@ public:
     explicit QMediaPlayer(QObject *parent = nullptr);
     ~QMediaPlayer();
 
-    // ### this needs a better solution
-    static QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
-                                            const QStringList& codecs = QStringList());
-    static QStringList supportedMimeTypes();
-
     // new API
 //    bool enableLowLatencyPlayback(bool tryEnable);
 //    bool isLowLatencyPlaybackEnabled() const;

@@ -619,37 +619,6 @@ void QMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 }
 
 /*!
-    Returns the level of support a media player has for a \a mimeType and a set of \a codecs.
-
-    The \a flags argument allows additional requirements such as performance indicators to be
-    specified.
-*/
-QMultimedia::SupportEstimate QMediaPlayer::hasSupport(const QString &mimeType,
-                                               const QStringList& codecs)
-{
-    return QMediaServiceProvider::defaultServiceProvider()->hasSupport(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER),
-                                                                    mimeType,
-                                                                    codecs);
-}
-
-/*!
-    \deprecated
-    Returns a list of MIME types supported by the media player.
-
-    The \a flags argument causes the resultant list to be restricted to MIME types which can be supported
-    given additional requirements, such as performance indicators.
-
-    This function may not return useful results on some platforms, and support for a specific file of a
-    given mime type is not guaranteed even if the mime type is in general supported.  In addition, in some
-    cases this function will need to load all available media plugins and query them for their support, which
-    may take some time.
-*/
-QStringList QMediaPlayer::supportedMimeTypes()
-{
-    return QMediaServiceProvider::defaultServiceProvider()->supportedMimeTypes(QByteArray(Q_MEDIASERVICE_MEDIAPLAYER));
-}
-
-/*!
     Sets the audio output to \a device.
 
     Setting a null QAudioDeviceInfo, sets the output to the system default.
