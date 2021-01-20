@@ -39,6 +39,8 @@
 
 #include "qgstreamerintegration_p.h"
 #include "qgstreamerdevicemanager_p.h"
+#include "qgstreamerplayerservice_p.h"
+#include "private/qgstreamerplayerservice_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -57,6 +59,11 @@ QMediaPlatformDeviceManager *QGstreamerIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QGstreamerDeviceManager();
     return m_manager;
+}
+
+QMediaPlatformPlayerInterface *QGstreamerIntegration::createPlayerInterface()
+{
+    return new QGstreamerPlayerService();
 }
 
 QT_END_NAMESPACE

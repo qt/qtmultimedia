@@ -51,9 +51,7 @@
 
 QT_USE_NAMESPACE
 
-AVFMediaPlayerService::AVFMediaPlayerService(QObject *parent)
-    : QMediaService(parent)
-    , m_videoOutput(nullptr)
+AVFMediaPlayerService::AVFMediaPlayerService()
 {
     m_session = new AVFMediaPlayerSession(this);
     m_control = new AVFMediaPlayerControl(this);
@@ -120,3 +118,54 @@ void AVFMediaPlayerService::releaseControl(QObject *control)
         delete control;
     }
 }
+
+QMediaPlayerControl *AVFMediaPlayerService::player()
+{
+    return m_control;
+}
+
+QMetaDataReaderControl *AVFMediaPlayerService::dataReader()
+{
+    return m_playerMetaDataControl;
+}
+
+QVideoRendererControl *AVFMediaPlayerService::createVideoRenderer()
+{
+    if (m_videoOutput)
+        return nullptr;
+
+    auto *control = new AVFVideoRendererControl(this);
+    m_videoOutput = control;
+
+    m_session->setVideoOutput(control);
+    return control;
+}
+
+QVideoWindowControl *AVFMediaPlayerService::createVideoWindow()
+{
+    if (m_videoOutput)
+        return nullptr;
+
+    auto *control = new AVFVideoWindowControl(this);
+    m_videoOutput = control;
+
+    m_session->setVideoOutput(control);
+    return control;
+}
+
+#if 0
+void listSupportedMimeTypes()
+{
+    //Populate m_supportedMimeTypes with mimetypes AVAsset supports
+    NSArray *mimeTypes = [AVURLAsset audiovisualMIMETypes];
+    for (NSString *mimeType in mimeTypes)
+    {
+        m_supportedMimeTypes.append(QString::fromUtf8([mimeType UTF8String]));
+    }
+#ifdef QT_DEBUG_AVF
+    qDebug() << "AVFMediaPlayerServicePlugin::buildSupportedTypes";
+    qDebug() << "Supported Types: " << m_supportedMimeTypes;
+#endif
+
+}
+#endif

@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/QMediaService>
+#include <private/qmediaplatformplayerinterface_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -60,20 +60,33 @@ class AVFMediaPlayerControl;
 class AVFMediaPlayerMetaDataControl;
 class AVFVideoOutput;
 
-class AVFMediaPlayerService : public QMediaService
+class AVFMediaPlayerService : public QMediaPlatformPlayerInterface
 {
 public:
-    explicit AVFMediaPlayerService(QObject *parent = nullptr);
+    explicit AVFMediaPlayerService();
     ~AVFMediaPlayerService();
 
     QObject *requestControl(const char *name) override;
     void releaseControl(QObject *control) override;
 
+    // QMediaPlatformPlayerInterface
+    QMediaPlayerControl *player() override;
+    QMetaDataReaderControl *dataReader() override;
+//    QMediaStreamsControl *streams() override;
+//    QMediaVideoProbeControl *videoProbe() override;
+//    void releaseVideoProbe(QMediaVideoProbeControl *) override;
+//    QMediaAudioProbeControl *audioProbe() override;
+//    void releaseAudioProbe(QMediaAudioProbeControl *) override;
+
+    QVideoRendererControl *createVideoRenderer() override;
+    QVideoWindowControl *createVideoWindow() override;;
+
+
 private:
-    AVFMediaPlayerSession *m_session;
-    AVFMediaPlayerControl *m_control;
-    QObject *m_videoOutput;
-    AVFMediaPlayerMetaDataControl *m_playerMetaDataControl;
+    AVFMediaPlayerSession *m_session = nullptr;
+    AVFMediaPlayerControl *m_control = nullptr;
+    QObject *m_videoOutput = nullptr;
+    AVFMediaPlayerMetaDataControl *m_playerMetaDataControl = nullptr;
 };
 
 QT_END_NAMESPACE

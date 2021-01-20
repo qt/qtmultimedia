@@ -57,6 +57,7 @@
 #include "qmediaplayer.h"
 #include "qmediaservice.h"
 #include "qmediatimerange.h"
+#include <private/qmediaplatformplayerinterface_p.h>
 
 QT_BEGIN_NAMESPACE
 class QUrl;
@@ -70,26 +71,37 @@ class MFPlayerControl;
 class MFMetaDataControl;
 class MFPlayerSession;
 
-class MFPlayerService : public QMediaService
+class MFPlayerService : public QMediaPlatformPlayerInterface
 {
     Q_OBJECT
 public:
-    MFPlayerService(QObject *parent = 0);
+    MFPlayerService();
     ~MFPlayerService();
 
-    QObject *requestControl(const char *name);
-    void releaseControl(QObject *control);
+    QObject *requestControl(const char *name) override;
+    void releaseControl(QObject *control) override;
+
+    QMediaPlayerControl *player() override;
+    QMetaDataReaderControl *dataReader() override;
+    // ### QMediaStreamsControl *streams() override;
+    QMediaVideoProbeControl *videoProbe() override;
+    void releaseVideoProbe(QMediaVideoProbeControl *) override;
+    QMediaAudioProbeControl *audioProbe() override;
+    void releaseAudioProbe(QMediaAudioProbeControl *) override;
+
+    virtual QVideoRendererControl *createVideoRenderer() override;
+    virtual QVideoWindowControl *createVideoWindow() override;
 
     MFVideoRendererControl* videoRendererControl() const;
     MFEvrVideoWindowControl* videoWindowControl() const;
     MFMetaDataControl* metaDataControl() const;
 
 private:
-    MFPlayerSession *m_session;
-    MFVideoRendererControl *m_videoRendererControl;
-    MFEvrVideoWindowControl *m_videoWindowControl;
-    MFPlayerControl        *m_player;
-    MFMetaDataControl      *m_metaDataControl;
+    MFPlayerSession *m_session = nullptr;
+    MFVideoRendererControl *m_videoRendererControl = nullptr;
+    MFEvrVideoWindowControl *m_videoWindowControl = nullptr;
+    MFPlayerControl        *m_player = nullptr;
+    MFMetaDataControl      *m_metaDataControl = nullptr;
 };
 
 #endif

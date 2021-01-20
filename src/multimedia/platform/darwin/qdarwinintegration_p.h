@@ -65,6 +65,8 @@ public:
 
     QMediaPlatformDeviceManager *deviceManager() override;
 
+    QMediaPlatformPlayerInterface *createPlayerInterface() override;
+
     QDarwinDeviceManager *m_manager = nullptr;
 };
 

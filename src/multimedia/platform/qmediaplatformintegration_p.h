@@ -68,7 +68,7 @@ public:
     virtual QMediaPlatformDeviceManager *deviceManager() = 0;
 
     virtual QMediaPlatformCaptureInterface *captureInterface() { return nullptr; }
-    virtual QMediaPlatformPlayerInterface *playerInterface() { return nullptr; }
+    virtual QMediaPlatformPlayerInterface *createPlayerInterface() { return nullptr; }
 };
 
 QT_END_NAMESPACE

@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "QUrl.h"
+#include "qurl.h"
 
 #include <QtCore/qdebug.h>
 
@@ -50,11 +50,7 @@
 #include "mfplayersession_p.h"
 #include "mfmetadatacontrol_p.h"
 
-MFPlayerService::MFPlayerService(QObject *parent)
-    : QMediaService(parent)
-    , m_session(0)
-    , m_videoWindowControl(0)
-    , m_videoRendererControl(0)
+MFPlayerService::MFPlayerService()
 {
     m_session = new MFPlayerSession(this);
     m_player = new MFPlayerControl(m_session);
@@ -140,6 +136,61 @@ void MFPlayerService::releaseControl(QObject *control)
         delete videoProbe;
         return;
     }
+}
+
+QMediaPlayerControl *MFPlayerService::player()
+{
+    return m_player;
+}
+
+QMetaDataReaderControl *MFPlayerService::dataReader()
+{
+    return m_metaDataControl;
+}
+
+QMediaVideoProbeControl *MFPlayerService::videoProbe()
+{
+    if (m_session) {
+        MFVideoProbeControl *probe = new MFVideoProbeControl(this);
+        m_session->addProbe(probe);
+        return probe;
+    }
+    return 0;
+}
+
+void MFPlayerService::releaseVideoProbe(QMediaVideoProbeControl *probe)
+{
+    MFVideoProbeControl* videoProbe = qobject_cast<MFVideoProbeControl*>(probe);
+    if (m_session)
+        m_session->removeProbe(videoProbe);
+    delete videoProbe;
+}
+
+QMediaAudioProbeControl *MFPlayerService::audioProbe()
+{
+    if (m_session) {
+        MFAudioProbeControl *probe = new MFAudioProbeControl(this);
+        m_session->addProbe(probe);
+        return probe;
+    }
+}
+
+void MFPlayerService::releaseAudioProbe(QMediaAudioProbeControl *probe)
+{
+    MFAudioProbeControl* audioProbe = qobject_cast<MFAudioProbeControl*>(probe);
+    if (m_session)
+        m_session->removeProbe(audioProbe);
+    delete audioProbe;
+}
+
+QVideoRendererControl *MFPlayerService::createVideoRenderer()
+{
+    return m_videoRendererControl;
+}
+
+QVideoWindowControl *MFPlayerService::createVideoWindow()
+{
+    return m_videoWindowControl;
 }
 
 MFVideoRendererControl* MFPlayerService::videoRendererControl() const

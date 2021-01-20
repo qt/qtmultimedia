@@ -56,8 +56,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerPlayerService::QGstreamerPlayerService(QObject *parent)
-    : QMediaService(parent)
+QGstreamerPlayerService::QGstreamerPlayerService()
+    : QMediaPlatformPlayerInterface()
 {
     m_session = new QGstreamerPlayerSession(this);
     m_control = new QGstreamerPlayerControl(m_session, this);
@@ -84,9 +84,6 @@ QObject *QGstreamerPlayerService::requestControl(const char *name)
 
     if (qstrcmp(name,QMetaDataReaderControl_iid) == 0)
         return m_metaData;
-
-    if (qstrcmp(name,QMediaStreamsControl_iid) == 0)
-        return m_streamsControl;
 
     if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0) {
         if (!m_videoProbeControl) {
@@ -144,6 +141,86 @@ void QGstreamerPlayerService::releaseControl(QObject *control)
     }
 }
 
+QMediaPlayerControl *QGstreamerPlayerService::player()
+{
+    return m_control;
+}
+
+QMetaDataReaderControl *QGstreamerPlayerService::dataReader()
+{
+    return m_metaData;
+}
+
+QMediaStreamsControl *QGstreamerPlayerService::streams()
+{
+    return m_streamsControl;
+}
+
+QMediaVideoProbeControl *QGstreamerPlayerService::videoProbe()
+{
+    if (!m_videoProbeControl) {
+        increaseVideoRef();
+        m_videoProbeControl = new QGstreamerVideoProbeControl(this);
+        m_session->addProbe(m_videoProbeControl);
+    }
+    return m_videoProbeControl;
+}
+
+void QGstreamerPlayerService::releaseVideoProbe(QMediaVideoProbeControl *)
+{
+    Q_ASSERT(m_videoProbeControl);
+    if (!m_videoProbeControl->ref.deref()) {
+        m_session->removeProbe(m_videoProbeControl);
+        delete m_videoProbeControl;
+        m_videoProbeControl = nullptr;
+        decreaseVideoRef();
+    }
+}
+
+QMediaAudioProbeControl *QGstreamerPlayerService::audioProbe()
+{
+    if (!m_audioProbeControl) {
+        m_audioProbeControl = new QGstreamerAudioProbeControl(this);
+        m_session->addProbe(m_audioProbeControl);
+    }
+    m_audioProbeControl->ref.ref();
+    return m_audioProbeControl;
+}
+
+void QGstreamerPlayerService::releaseAudioProbe(QMediaAudioProbeControl *)
+{
+    Q_ASSERT(m_audioProbeControl);
+    if (!m_audioProbeControl->ref.deref()) {
+        m_session->removeProbe(m_audioProbeControl);
+        delete m_audioProbeControl;
+        m_audioProbeControl = nullptr;
+    }
+}
+
+QVideoRendererControl *QGstreamerPlayerService::createVideoRenderer()
+{
+    if (!m_videoOutput) {
+        m_videoOutput = m_videoRenderer;
+
+        increaseVideoRef();
+        m_control->setVideoOutput(m_videoOutput);
+        return m_videoRenderer;
+    }
+    return nullptr;
+}
+
+QVideoWindowControl *QGstreamerPlayerService::createVideoWindow()
+{
+    if (!m_videoOutput) {
+        m_videoOutput = m_videoWindow;
+
+        increaseVideoRef();
+        m_control->setVideoOutput(m_videoOutput);
+        return m_videoWindow;
+    }
+    return nullptr;
+}
+
 void QGstreamerPlayerService::increaseVideoRef()
 {
     m_videoReferenceCount++;
@@ -153,5 +230,33 @@ void QGstreamerPlayerService::decreaseVideoRef()
 {
     m_videoReferenceCount--;
 }
+
+#if 0
+// ### Re-add something similar to be able to check for support of certain file formats
+QMultimedia::SupportEstimate QGstreamerPlayerServicePlugin::hasSupport(const QString &mimeType,
+                                                                     const QStringList &codecs) const
+{
+    if (m_supportedMimeTypeSet.isEmpty())
+        updateSupportedMimeTypes();
+
+    return QGstUtils::hasSupport(mimeType, codecs, m_supportedMimeTypeSet);
+}
+
+static bool isDecoderOrDemuxer(GstElementFactory *factory)
+{
+    return gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DEMUXER)
+                || gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DECODER);
+}
+
+void QGstreamerPlayerServicePlugin::updateSupportedMimeTypes() const
+{
+     m_supportedMimeTypeSet = QGstUtils::supportedMimeTypes(isDecoderOrDemuxer);
+}
+
+QStringList QGstreamerPlayerServicePlugin::supportedMimeTypes() const
+{
+    return QStringList();
+}
+#endif
 
 QT_END_NAMESPACE

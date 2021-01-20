@@ -54,7 +54,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qiodevice.h>
 
-#include <qmediaservice.h>
+#include <private/qmediaplatformplayerinterface_p.h>
 
 QT_BEGIN_NAMESPACE
 class QMediaPlayerControl;
@@ -70,15 +70,28 @@ class QGStreamerAvailabilityControl;
 class QGstreamerAudioProbeControl;
 class QGstreamerVideoProbeControl;
 
-class QGstreamerPlayerService : public QMediaService
+class QGstreamerPlayerService : public QMediaPlatformPlayerInterface
 {
     Q_OBJECT
 public:
-    QGstreamerPlayerService(QObject *parent = 0);
+    QGstreamerPlayerService();
     ~QGstreamerPlayerService();
 
+    // ### QMediaService, go away
     QObject *requestControl(const char *name) override;
     void releaseControl(QObject *control) override;
+
+    // QMediaPlatformPlayerInterface
+    QMediaPlayerControl *player() override;
+    QMetaDataReaderControl *dataReader() override;
+    QMediaStreamsControl *streams() override;
+    QMediaVideoProbeControl *videoProbe() override;
+    void releaseVideoProbe(QMediaVideoProbeControl *) override;
+    QMediaAudioProbeControl *audioProbe() override;
+    void releaseAudioProbe(QMediaAudioProbeControl *) override;
+
+    QVideoRendererControl *createVideoRenderer() override;
+    QVideoWindowControl *createVideoWindow() override;;
 
 private:
     QGstreamerPlayerControl *m_control = nullptr;
@@ -90,7 +103,7 @@ private:
     QGstreamerVideoProbeControl *m_videoProbeControl = nullptr;
 
     QObject *m_videoOutput = nullptr;
-    QObject *m_videoRenderer = nullptr;
+    QVideoRendererControl *m_videoRenderer = nullptr;
     QGstreamerVideoWindow *m_videoWindow = nullptr;
 
     void increaseVideoRef();

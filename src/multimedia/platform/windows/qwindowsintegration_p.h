@@ -63,7 +63,12 @@ public:
     QWindowsIntegration();
     ~QWindowsIntegration();
 
+    void addRefCount();
+    void releaseRefCount();
+
     QMediaPlatformDeviceManager *deviceManager() override;
+
+    QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     QWindowsDeviceManager *m_manager = nullptr;
 };

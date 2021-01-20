@@ -51,27 +51,33 @@
 //
 
 #include <qtmultimediaglobal_p.h>
+#include <qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
 
 class QMediaPlayerControl;
-class QMediaDataReaderControl;
+class QMetaDataReaderControl;
 class QMediaStreamsControl;
 class QMediaVideoProbeControl;
 class QMediaAudioProbeControl;
 class QVideoRendererControl;
 class QVideoWindowControl;
 
-class Q_MULTIMEDIA_EXPORT QMediaPlatformPlayerInterface
+class Q_MULTIMEDIA_EXPORT QMediaPlatformPlayerInterface : public QMediaService // ### for now, get rid of me
 {
 public:
+    QMediaPlatformPlayerInterface();
     virtual ~QMediaPlatformPlayerInterface();
 
     virtual QMediaPlayerControl *player() = 0;
-    virtual QMediaDataReaderControl *dataReader() { return nullptr; }
+    virtual QMetaDataReaderControl *dataReader() { return nullptr; }
+
+    // ### nothing in the frontend uses the stream info currently. Needs implementation in QMediaPlayer
     virtual QMediaStreamsControl *streams() { return nullptr; }
     virtual QMediaVideoProbeControl *videoProbe() { return nullptr; }
+    virtual void releaseVideoProbe(QMediaVideoProbeControl *) {}
     virtual QMediaAudioProbeControl *audioProbe() { return nullptr; }
+    virtual void releaseAudioProbe(QMediaAudioProbeControl *) {}
 
     virtual QVideoRendererControl *createVideoRenderer() = 0;
     virtual QVideoWindowControl *createVideoWindow() { return nullptr; };

@@ -44,7 +44,8 @@
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include <qmediaplayercontrol.h>
-#include <qmediaserviceprovider_p.h>
+#include <private/qmediaplatformplayerinterface_p.h>
+#include <private/qmediaplatformintegration_p.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -99,7 +100,7 @@ class QMediaPlayerPrivate : public QMediaSourcePrivate
     Q_DECLARE_NON_CONST_PUBLIC(QMediaPlayer)
 
 public:
-    QMediaServiceProvider *provider = nullptr;
+    QMediaPlatformPlayerInterface *playerInterface = nullptr;
     QMediaPlayerControl* control = nullptr;
     QString errorString;
 
@@ -249,13 +250,6 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
     qrcFile.swap(file); // Cleans up any previous file
 }
 
-static QMediaService *playerService()
-{
-    QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
-    return provider->requestService(Q_MEDIASERVICE_MEDIAPLAYER);
-}
-
-
 /*!
     Construct a QMediaPlayer instance
     parented to \a parent and with \a flags.
@@ -264,44 +258,44 @@ static QMediaService *playerService()
 QMediaPlayer::QMediaPlayer(QObject *parent):
     QMediaSource(*new QMediaPlayerPrivate,
                  parent,
-                 playerService())
+                 QMediaPlatformIntegration::instance()->createPlayerInterface())
 {
     Q_D(QMediaPlayer);
 
-    d->provider = QMediaServiceProvider::defaultServiceProvider();
-    if (d->service == nullptr) {
-        d->error = ServiceMissingError;
-    } else {
-        d->control = qobject_cast<QMediaPlayerControl*>(d->service->requestControl(QMediaPlayerControl_iid));
-        if (d->control != nullptr) {
-            connect(d->control, SIGNAL(mediaChanged(QUrl)), SLOT(_q_handleMediaChanged(QUrl)));
-            connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
-            connect(d->control, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
-                    SLOT(_q_mediaStatusChanged(QMediaPlayer::MediaStatus)));
-            connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
-
-            connect(d->control, &QMediaPlayerControl::durationChanged, this, &QMediaPlayer::durationChanged);
-            connect(d->control, &QMediaPlayerControl::positionChanged, this, &QMediaPlayer::positionChanged);
-            connect(d->control, &QMediaPlayerControl::audioAvailableChanged, this, &QMediaPlayer::audioAvailableChanged);
-            connect(d->control, &QMediaPlayerControl::videoAvailableChanged, this, &QMediaPlayer::videoAvailableChanged);
-            connect(d->control, &QMediaPlayerControl::volumeChanged, this, &QMediaPlayer::volumeChanged);
-            connect(d->control, &QMediaPlayerControl::mutedChanged, this, &QMediaPlayer::mutedChanged);
-            connect(d->control, &QMediaPlayerControl::seekableChanged, this, &QMediaPlayer::seekableChanged);
-            connect(d->control, &QMediaPlayerControl::playbackRateChanged, this, &QMediaPlayer::playbackRateChanged);
-            connect(d->control, &QMediaPlayerControl::bufferStatusChanged, this, &QMediaPlayer::bufferStatusChanged);
-
-            d->state = d->control->state();
-            d->status = d->control->mediaStatus();
-
-            if (d->state == PlayingState)
-                addPropertyWatch("position");
-
-            if (d->status == StalledMedia || d->status == BufferingMedia)
-                addPropertyWatch("bufferStatus");
-
-            d->hasStreamPlaybackFeature = d->control->streamPlaybackSupported();
-        }
+    d->playerInterface = static_cast<QMediaPlatformPlayerInterface *>(service());
+    if (!d->playerInterface) {
+        qWarning() << "QPlatformMediaPlayerInterface not implemented!";
+        return;
     }
+
+    d->control = d->playerInterface->player();
+    Q_ASSERT(d->control);
+    connect(d->control, SIGNAL(mediaChanged(QUrl)), SLOT(_q_handleMediaChanged(QUrl)));
+    connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
+    connect(d->control, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
+            SLOT(_q_mediaStatusChanged(QMediaPlayer::MediaStatus)));
+    connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
+
+    connect(d->control, &QMediaPlayerControl::durationChanged, this, &QMediaPlayer::durationChanged);
+    connect(d->control, &QMediaPlayerControl::positionChanged, this, &QMediaPlayer::positionChanged);
+    connect(d->control, &QMediaPlayerControl::audioAvailableChanged, this, &QMediaPlayer::audioAvailableChanged);
+    connect(d->control, &QMediaPlayerControl::videoAvailableChanged, this, &QMediaPlayer::videoAvailableChanged);
+    connect(d->control, &QMediaPlayerControl::volumeChanged, this, &QMediaPlayer::volumeChanged);
+    connect(d->control, &QMediaPlayerControl::mutedChanged, this, &QMediaPlayer::mutedChanged);
+    connect(d->control, &QMediaPlayerControl::seekableChanged, this, &QMediaPlayer::seekableChanged);
+    connect(d->control, &QMediaPlayerControl::playbackRateChanged, this, &QMediaPlayer::playbackRateChanged);
+    connect(d->control, &QMediaPlayerControl::bufferStatusChanged, this, &QMediaPlayer::bufferStatusChanged);
+
+    d->state = d->control->state();
+    d->status = d->control->mediaStatus();
+
+    if (d->state == PlayingState)
+        addPropertyWatch("position");
+
+    if (d->status == StalledMedia || d->status == BufferingMedia)
+        addPropertyWatch("bufferStatus");
+
+    d->hasStreamPlaybackFeature = d->control->streamPlaybackSupported();
 }
 
 
@@ -317,12 +311,7 @@ QMediaPlayer::~QMediaPlayer()
     // when a receiver is already destroyed.
     disconnect();
 
-    if (d->service) {
-        if (d->control)
-            d->service->releaseControl(d->control);
-
-        d->provider->releaseService(d->service);
-    }
+    delete d->playerInterface;
 }
 
 QUrl QMediaPlayer::media() const

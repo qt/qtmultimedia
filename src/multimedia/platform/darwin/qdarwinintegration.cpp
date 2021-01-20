@@ -39,6 +39,7 @@
 
 #include "qdarwinintegration_p.h"
 #include "qdarwindevicemanager_p.h"
+#include <private/avfmediaplayerservice_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -57,6 +58,11 @@ QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QDarwinDeviceManager();
     return m_manager;
+}
+
+QMediaPlatformPlayerInterface *QDarwinIntegration::createPlayerInterface()
+{
+    return new AVFMediaPlayerService;
 }
 
 QT_END_NAMESPACE

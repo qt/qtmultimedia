@@ -174,7 +174,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/qwindowsdevicemanager.cpp platform/windows/qwindowsdevicemanager_p.h
         platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
         platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h
-        platform/windows/wmfserviceplugin.cpp platform/windows/wmfserviceplugin_p.h
     INCLUDE_DIRECTORIES
         platform/windows/decoder
         platform/windows/evr
@@ -231,7 +230,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstvideorenderersink.cpp platform/gstreamer/common/qgstvideorenderersink_p.h
         platform/gstreamer/mediaplayer/qgstreamermetadataprovider.cpp platform/gstreamer/mediaplayer/qgstreamermetadataprovider_p.h
         platform/gstreamer/mediaplayer/qgstreamerplayerservice.cpp platform/gstreamer/mediaplayer/qgstreamerplayerservice_p.h
-        platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin.cpp platform/gstreamer/mediaplayer/qgstreamerplayerserviceplugin_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
         platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
         platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
@@ -429,7 +427,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/mediaplayer/avfmediaplayercontrol.mm platform/darwin/mediaplayer/avfmediaplayercontrol_p.h
         platform/darwin/mediaplayer/avfmediaplayermetadatacontrol.mm platform/darwin/mediaplayer/avfmediaplayermetadatacontrol_p.h
         platform/darwin/mediaplayer/avfmediaplayerservice.mm platform/darwin/mediaplayer/avfmediaplayerservice_p.h
-        platform/darwin/mediaplayer/avfmediaplayerserviceplugin.mm platform/darwin/mediaplayer/avfmediaplayerserviceplugin_p.h
         platform/darwin/mediaplayer/avfmediaplayersession.mm platform/darwin/mediaplayer/avfmediaplayersession_p.h
         platform/darwin/mediaplayer/avfvideooutput.mm platform/darwin/mediaplayer/avfvideooutput_p.h
         platform/darwin/mediaplayer/avfvideowindowcontrol.mm platform/darwin/mediaplayer/avfvideowindowcontrol_p.h
