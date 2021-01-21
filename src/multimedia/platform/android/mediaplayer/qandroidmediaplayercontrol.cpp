@@ -426,9 +426,6 @@ void QAndroidMediaPlayerControl::setMedia(const QUrl &mediaContent,
         mMediaPlayer->prepareAsync();
     }
 
-    if (!mReloadingMedia)
-        Q_EMIT mediaChanged(mMediaContent);
-
     resetBufferingProgress();
 
     mReloadingMedia = false;

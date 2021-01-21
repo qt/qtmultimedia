@@ -83,7 +83,6 @@ void MFPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
     handleDurationUpdate(-1);
     handleSeekableUpdate(false);
     m_session->load(media, stream);
-    emit mediaChanged(m_media);
 }
 
 void MFPlayerControl::play()

@@ -363,9 +363,6 @@ void QGstreamerPlayerControl::setMedia(const QUrl &content, QIODevice *stream)
         setBufferProgress(0);
     }
 
-    if (m_currentResource != oldMedia)
-        emit mediaChanged(m_currentResource);
-
     emit positionChanged(position());
 
     popAndNotifyState();

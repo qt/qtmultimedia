@@ -103,7 +103,6 @@ public:
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
     void customAudioRoleChanged(const QString &role);
-    void mediaChanged(const QUrl& content);
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
     void stateChanged(QMediaPlayer::State newState);

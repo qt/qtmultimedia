@@ -91,7 +91,6 @@ public:
         if (_state != QMediaPlayer::StoppedState)
             emit stateChanged(_state = QMediaPlayer::StoppedState);
         emit mediaStatusChanged(_mediaStatus);
-        emit mediaChanged(_media = content);
     }
     QIODevice *mediaStream() const { return _stream; }
 

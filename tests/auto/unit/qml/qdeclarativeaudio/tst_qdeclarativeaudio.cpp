@@ -153,7 +153,6 @@ public:
                 ? QMediaPlayer::NoMedia
                 : QMediaPlayer::LoadingMedia;
 
-        emit mediaChanged(m_media);
         emit mediaStatusChanged(m_mediaStatus);
     }
 

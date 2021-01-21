@@ -271,7 +271,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
 
     d->control = d->playerInterface->player();
     Q_ASSERT(d->control);
-    connect(d->control, SIGNAL(mediaChanged(QUrl)), SLOT(_q_handleMediaChanged(QUrl)));
     connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
     connect(d->control, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
             SLOT(_q_mediaStatusChanged(QMediaPlayer::MediaStatus)));

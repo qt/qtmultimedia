@@ -472,7 +472,6 @@ void MmRendererMediaPlayerControl::setMedia(const QUrl &media, QIODevice *stream
     detach();
 
     m_media = media;
-    emit mediaChanged(m_media);
 
     // Slight hack: With MediaPlayer QtQuick elements that have autoPlay set to true, playback
     // would start before the QtQuick canvas is propagated to all elements, and therefore our
