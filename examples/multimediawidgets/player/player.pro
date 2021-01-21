@@ -2,7 +2,6 @@ TEMPLATE = app
 TARGET = player
 
 QT += network \
-      xml \
       multimedia \
       multimediawidgets \
       widgets

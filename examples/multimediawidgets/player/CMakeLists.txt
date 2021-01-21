@@ -18,7 +18,6 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimediawidgets/player")
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
 find_package(Qt6 COMPONENTS Network)
-find_package(Qt6 COMPONENTS Xml)
 find_package(Qt6 COMPONENTS Multimedia)
 find_package(Qt6 COMPONENTS MultimediaWidgets)
 find_package(Qt6 COMPONENTS Widgets)
@@ -42,7 +41,6 @@ target_link_libraries(player PUBLIC
     Qt::MultimediaWidgets
     Qt::Network
     Qt::Widgets
-    Qt::Xml
 )
 
 install(TARGETS player
