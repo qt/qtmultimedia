@@ -596,4 +596,21 @@ qint64 QGstreamerAudioDecoderControl::getPositionFromBuffer(GstBuffer* buffer)
     return position;
 }
 
+#if 0
+QMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
+                                               const QStringList& codecs)
+{
+    // ### this code should not be there
+    auto isDecoderOrDemuxer = [](GstElementFactory *factory) -> bool
+    {
+        return gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DEMUXER)
+                || gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DECODER
+                                                           | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
+    };
+    gst_init(nullptr, nullptr);
+    auto set = QGstUtils::supportedMimeTypes(isDecoderOrDemuxer);
+    return QGstUtils::hasSupport(mimeType, codecs, set);
+}
+#endif
+
 QT_END_NAMESPACE

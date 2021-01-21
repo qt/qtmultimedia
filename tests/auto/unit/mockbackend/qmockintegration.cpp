@@ -40,6 +40,7 @@
 #include "qmockintegration_p.h"
 #include "qmockdevicemanager_p.h"
 #include "mockmediaplayerservice.h"
+#include "mockaudiodecodercontrol.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -59,6 +60,15 @@ QMediaPlatformDeviceManager *QMockIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QMockDeviceManager();
     return m_manager;
+}
+
+QAudioDecoderControl *QMockIntegration::createAudioDecoder()
+{
+    if (m_flags & NoAudioDecoderInterface)
+        m_lastAudioDecoderControl = nullptr;
+    else
+        m_lastAudioDecoderControl = new MockAudioDecoderControl;
+    return m_lastAudioDecoderControl;
 }
 
 QMediaPlatformPlayerInterface *QMockIntegration::createPlayerInterface()

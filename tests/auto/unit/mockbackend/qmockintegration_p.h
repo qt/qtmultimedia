@@ -57,6 +57,7 @@ QT_BEGIN_NAMESPACE
 
 class QMockDeviceManager;
 class MockMediaPlayerService;
+class MockAudioDecoderControl;
 
 class QMockIntegration : public QMediaPlatformIntegration
 {
@@ -66,10 +67,12 @@ public:
 
     QMediaPlatformDeviceManager *deviceManager() override;
 
+    QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     enum Flag {
-        NoPlayerInterface = 1
+        NoPlayerInterface = 0x1,
+        NoAudioDecoderInterface = 0x2,
     };
     Q_DECLARE_FLAGS(Flags, Flag);
 
@@ -77,11 +80,13 @@ public:
     Flags flags() const { return m_flags; }
 
     MockMediaPlayerService *lastPlayerService() const { return m_lastPlayerService; }
+    MockAudioDecoderControl *lastAudioDecoder() const { return m_lastAudioDecoderControl; }
 
 private:
     Flags m_flags = {};
     QMockDeviceManager *m_manager = nullptr;
     MockMediaPlayerService *m_lastPlayerService = nullptr;
+    MockAudioDecoderControl *m_lastAudioDecoderControl = nullptr;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);

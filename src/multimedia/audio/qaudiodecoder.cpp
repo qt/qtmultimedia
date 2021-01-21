@@ -45,12 +45,7 @@
 #include "qaudiodecodercontrol.h"
 #include <private/qmediaserviceprovider_p.h>
 
-#if QT_CONFIG(gstreamer)
-#include <private/qgstreameraudiodecodercontrol_p.h>
-#include <private/qgstutils_p.h>
-#elif defined(Q_OS_WIN)
-#include <private/mfaudiodecodercontrol_p.h>
-#endif
+#include <private/qmediaplatformintegration_p.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -132,12 +127,7 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
 {
     Q_D(QAudioDecoder);
 
-#if QT_CONFIG(gstreamer)
-    gst_init(nullptr, nullptr);
-    d->control = new QGstreamerAudioDecoderControl(this);
-#elif defined(Q_OS_WIN)
-    d->control = new MFAudioDecoderControl(this);
-#endif
+    d->control = QMediaPlatformIntegration::instance()->createAudioDecoder();
     if (d->control != nullptr) {
         connect(d->control, SIGNAL(stateChanged(QAudioDecoder::State)), SLOT(_q_stateChanged(QAudioDecoder::State)));
         connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
@@ -326,31 +316,6 @@ void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
 
     if (d->control != nullptr)
         d_func()->control->setAudioFormat(format);
-}
-
-/*!
-    Returns the level of support an audio decoder has for a \a mimeType and a set of \a codecs.
-*/
-QMultimedia::SupportEstimate QAudioDecoder::hasSupport(const QString &mimeType,
-                                               const QStringList& codecs)
-{
-#if QT_CONFIG(gstreamer)
-    // ### this code should not be there
-    auto isDecoderOrDemuxer = [](GstElementFactory *factory) -> bool
-    {
-        return gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DEMUXER)
-                || gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DECODER
-                                                           | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
-    };
-    gst_init(nullptr, nullptr);
-    auto set = QGstUtils::supportedMimeTypes(isDecoderOrDemuxer);
-    return QGstUtils::hasSupport(mimeType, codecs, set);
-#elif defined(Q_OS_WIN)
-    return QMultimedia::MaybeSupported;
-#endif
-    Q_UNUSED(mimeType);
-    Q_UNUSED(codecs);
-    return QMultimedia::NotSupported;
 }
 
 /*!

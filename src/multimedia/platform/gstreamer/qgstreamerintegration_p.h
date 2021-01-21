@@ -66,6 +66,7 @@ public:
 
     QMediaPlatformDeviceManager *deviceManager() override;
 
+    QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformCaptureInterface *createCaptureInterface(CaptureMode mode) override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 

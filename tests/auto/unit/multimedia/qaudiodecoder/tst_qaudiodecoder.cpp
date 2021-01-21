@@ -32,7 +32,7 @@
 
 #include "qaudiodecoder.h"
 #include "mockaudiodecoderservice.h"
-#include "mockmediaserviceprovider.h"
+#include "qmockintegration_p.h"
 
 class tst_QAudioDecoder : public QObject
 {
@@ -50,11 +50,9 @@ private Q_SLOTS:
     void source();
     void readAll();
     void nullControl();
-    void nullService();
 
 private:
-    MockAudioDecoderService  *mockAudioDecoderService;
-    MockMediaServiceProvider *mockProvider;
+    QMockIntegration *mockIntegration;
 };
 
 tst_QAudioDecoder::tst_QAudioDecoder()
@@ -63,10 +61,7 @@ tst_QAudioDecoder::tst_QAudioDecoder()
 
 void tst_QAudioDecoder::init()
 {
-    mockAudioDecoderService = new MockAudioDecoderService(this);
-    mockProvider = new MockMediaServiceProvider(mockAudioDecoderService);
-
-    QMediaServiceProvider::setDefaultServiceProvider(mockProvider);
+    mockIntegration = new QMockIntegration;
 }
 
 void tst_QAudioDecoder::ctors()
@@ -329,54 +324,11 @@ void tst_QAudioDecoder::readAll()
 
 void tst_QAudioDecoder::nullControl()
 {
-    mockAudioDecoderService->setControlNull();
+    mockIntegration->setFlags(QMockIntegration::NoAudioDecoderInterface);
     QAudioDecoder d;
 
     QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
     QVERIFY(!d.errorString().isEmpty());
-
-    QVERIFY(d.hasSupport("MIME") == QMultimedia::MaybeSupported);
-
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
-
-    QVERIFY(d.sourceFilename().isEmpty());
-    d.setSourceFilename("test");
-    QVERIFY(d.sourceFilename().isEmpty());
-
-    QFile f;
-    QVERIFY(d.sourceDevice() == nullptr);
-    d.setSourceDevice(&f);
-    QVERIFY(d.sourceDevice() == nullptr);
-
-    QAudioFormat format;
-    format.setChannelCount(2);
-    QVERIFY(!d.audioFormat().isValid());
-    d.setAudioFormat(format);
-    QVERIFY(!d.audioFormat().isValid());
-
-    QVERIFY(!d.read().isValid());
-    QVERIFY(!d.bufferAvailable());
-
-    QVERIFY(d.position() == -1);
-    QVERIFY(d.duration() == -1);
-
-    d.start();
-    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
-    QVERIFY(!d.errorString().isEmpty());
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
-    d.stop();
-}
-
-
-void tst_QAudioDecoder::nullService()
-{
-    mockProvider->service = nullptr;
-    QAudioDecoder d;
-
-    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
-    QVERIFY(!d.errorString().isEmpty());
-
-    QVERIFY(d.hasSupport("MIME") == QMultimedia::MaybeSupported);
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
 

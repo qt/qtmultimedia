@@ -40,6 +40,7 @@
 #include "qwindowsintegration_p.h"
 #include "qwindowsdevicemanager_p.h"
 #include <private/mfplayerservice_p.h>
+#include <private/mfaudiodecodercontrol_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -70,6 +71,11 @@ QMediaPlatformDeviceManager *QWindowsIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QWindowsDeviceManager();
     return m_manager;
+}
+
+QAudioDecoderControl *QWindowsIntegration::createAudioDecoder()
+{
+    return new MFAudioDecoderControl;
 }
 
 QMediaPlatformPlayerInterface *QWindowsIntegration::createPlayerInterface()

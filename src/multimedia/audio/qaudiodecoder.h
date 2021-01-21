@@ -78,8 +78,6 @@ public:
     explicit QAudioDecoder(QObject *parent = nullptr);
     ~QAudioDecoder();
 
-    static QMultimedia::SupportEstimate hasSupport(const QString &mimeType, const QStringList& codecs = QStringList());
-
     State state() const;
 
     QString sourceFilename() const;

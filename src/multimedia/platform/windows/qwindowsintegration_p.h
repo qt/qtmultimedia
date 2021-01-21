@@ -68,6 +68,7 @@ public:
 
     QMediaPlatformDeviceManager *deviceManager() override;
 
+    QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     QWindowsDeviceManager *m_manager = nullptr;

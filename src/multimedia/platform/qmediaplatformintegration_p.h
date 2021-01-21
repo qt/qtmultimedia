@@ -58,6 +58,7 @@ class QMediaDeviceManager;
 class QMediaPlatformDeviceManager;
 class QMediaPlatformCaptureInterface;
 class QMediaPlatformPlayerInterface;
+class QAudioDecoderControl;
 
 class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
 {
@@ -75,6 +76,7 @@ public:
         AudioAndVideo
     };
 
+    virtual QAudioDecoderControl *createAudioDecoder() { return nullptr; }
     virtual QMediaPlatformCaptureInterface *createCaptureInterface(CaptureMode /*mode*/) { return nullptr; }
     virtual QMediaPlatformPlayerInterface *createPlayerInterface() { return nullptr; }
 };
