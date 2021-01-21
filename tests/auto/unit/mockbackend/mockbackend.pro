@@ -8,3 +8,5 @@ include(capture.pri)
 include(common.pri)
 include(player.pri)
 
+SOURCES += qmockdevicemanager.cpp qmockintegration.cpp
+HEADERS += qmockdevicemanager_p.h qmockintegration_p.h

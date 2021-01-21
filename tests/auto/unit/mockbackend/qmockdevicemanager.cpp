@@ -37,62 +37,46 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAPLATFORMDEVICEMANAGER_H
-#define QMEDIAPLATFORMDEVICEMANAGER_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qtmultimediaglobal_p.h>
+#include "qmockdevicemanager_p.h"
+#include "private/qcamerainfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDeviceManager;
-class QAudioDeviceInfo;
-class QCameraInfo;
-class QAbstractAudioInput;
-class QAbstractAudioOutput;
-class QAudioFormat;
-
-class QMediaPlatformDeviceManager
+QMockDeviceManager::QMockDeviceManager()
+    : QMediaPlatformDeviceManager()
 {
-public:
-    QMediaPlatformDeviceManager();
-    virtual ~QMediaPlatformDeviceManager();
+}
 
-    virtual QList<QAudioDeviceInfo> audioInputs() const = 0;
-    virtual QList<QAudioDeviceInfo> audioOutputs() const = 0;
-    virtual QList<QCameraInfo> videoInputs() const = 0;
-    virtual QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
-    virtual QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
+QMockDeviceManager::~QMockDeviceManager()
+{
+}
 
-    QAudioDeviceInfo audioInput(const QByteArray &id) const;
-    QAudioDeviceInfo audioOutput(const QByteArray &id) const;
-    QCameraInfo videoInput(const QByteArray &id) const;
+QList<QAudioDeviceInfo> QMockDeviceManager::audioInputs() const
+{
+    return m_inputDevices;
+}
 
-    QAbstractAudioInput *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
-    QAbstractAudioOutput *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+QList<QAudioDeviceInfo> QMockDeviceManager::audioOutputs() const
+{
+    return m_outputDevices;
+}
 
-    QMediaDeviceManager *deviceManager() const { return m_manager; }
-    void setDeviceManager(QMediaDeviceManager *m)
-    {
-        Q_ASSERT(!m_manager);
-        m_manager = m;
-    }
+QList<QCameraInfo> QMockDeviceManager::videoInputs() const
+{
+    return m_cameraDevices;
+}
 
-private:
-    QMediaDeviceManager *m_manager = nullptr;
-};
+QAbstractAudioInput *QMockDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &info)
+{
+    Q_UNUSED(info);
+    return nullptr;// ###
+}
+
+QAbstractAudioOutput *QMockDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &info)
+{
+    Q_UNUSED(info);
+    return nullptr; //###
+}
+
 
 QT_END_NAMESPACE
-
-
-#endif // QMEDIAPLATFORMDEVICEMANAGER_H

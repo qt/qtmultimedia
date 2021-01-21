@@ -29,7 +29,7 @@
 #ifndef MOCKPLAYERSERVICE_H
 #define MOCKPLAYERSERVICE_H
 
-#include "qmediaservice.h"
+#include "private/qmediaplatformplayerinterface_p.h"
 
 #include "mockmediaplayercontrol.h"
 #include "mockmediastreamscontrol.h"
@@ -37,12 +37,12 @@
 #include "mockvideoprobecontrol.h"
 #include "mockvideowindowcontrol.h"
 
-class MockMediaPlayerService : public QMediaService
+class MockMediaPlayerService : public QMediaPlatformPlayerInterface
 {
     Q_OBJECT
 
 public:
-    MockMediaPlayerService():QMediaService(0)
+    MockMediaPlayerService()
     {
         mockControl = new MockMediaPlayerControl;
         mockStreamsControl = new MockStreamsControl;
@@ -91,6 +91,18 @@ public:
         if (control == windowControl)
             windowRef -= 1;
     }
+
+    QMediaPlayerControl *player() { return mockControl; }
+    QMetaDataReaderControl *dataReader() { return nullptr; } // ###
+
+    QMediaStreamsControl *streams() { return nullptr; } // ###
+    QMediaVideoProbeControl *videoProbe() { return mockVideoProbeControl; }
+    void releaseVideoProbe(QMediaVideoProbeControl *) {}
+    QMediaAudioProbeControl *audioProbe() { return nullptr; } // ###
+    void releaseAudioProbe(QMediaAudioProbeControl *) {}
+
+    virtual QVideoRendererControl *createVideoRenderer() { return rendererControl; }
+    virtual QVideoWindowControl *createVideoWindow() { return windowControl; };
 
     void setState(QMediaPlayer::State state) { emit mockControl->stateChanged(mockControl->_state = state); }
     void setState(QMediaPlayer::State state, QMediaPlayer::MediaStatus status) {

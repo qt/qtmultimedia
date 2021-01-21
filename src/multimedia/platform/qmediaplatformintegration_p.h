@@ -50,7 +50,7 @@
 // We mean it.
 //
 
-#include <qtmultimediaglobal_p.h>
+#include <private/qtmultimediaglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
