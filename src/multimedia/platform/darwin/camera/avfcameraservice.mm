@@ -65,10 +65,9 @@
 
 QT_USE_NAMESPACE
 
-AVFCameraService::AVFCameraService(QObject *parent):
-    QMediaService(parent),
-    m_videoOutput(nullptr),
-    m_captureWindowControl(nullptr)
+AVFCameraService::AVFCameraService()
+    : m_videoOutput(nullptr),
+      m_captureWindowControl(nullptr)
 {
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);

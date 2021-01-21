@@ -68,7 +68,7 @@ QAudioDecoderControl *QGstreamerIntegration::createAudioDecoder()
     return new QGstreamerAudioDecoderControl(nullptr);
 }
 
-QMediaPlatformCaptureInterface *QGstreamerIntegration::createCaptureInterface(CaptureMode mode)
+QMediaPlatformCaptureInterface *QGstreamerIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
 {
     return new QGstreamerCaptureService(mode);
 }

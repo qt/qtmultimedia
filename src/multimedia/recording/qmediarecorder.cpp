@@ -43,7 +43,6 @@
 #include <qmediarecordercontrol.h>
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
-#include <qmediaserviceprovider_p.h>
 #include <qmetadatawritercontrol.h>
 #include <qaudioencodersettingscontrol.h>
 #include <qvideoencodersettingscontrol.h>
@@ -194,7 +193,7 @@ public:
     The \a parent is passed to QMediaSource.
 */
 
-QMediaRecorder::QMediaRecorder(QMediaRecorder::Mode mode, QObject *parent)
+QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent)
     : QObject(parent),
       d_ptr(new QMediaRecorderPrivate)
 {
@@ -204,7 +203,7 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::Mode mode, QObject *parent)
     d->notifyTimer = new QTimer(this);
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
-    QMediaService *service = QMediaPlatformIntegration::instance()->createCaptureInterface(mode == AudioOnly);
+    QMediaService *service = QMediaPlatformIntegration::instance()->createCaptureInterface(mode);
     setMediaSource(new QAudioRecorderObject(this, service));
 }
 

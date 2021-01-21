@@ -40,6 +40,7 @@
 #include "qdarwinintegration_p.h"
 #include "qdarwindevicemanager_p.h"
 #include <private/avfmediaplayerservice_p.h>
+#include <private/avfcameraservice_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,6 +59,11 @@ QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QDarwinDeviceManager();
     return m_manager;
+}
+
+QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMediaRecorder::CaptureMode)
+{
+    return new AVFCameraService;
 }
 
 QMediaPlatformPlayerInterface *QDarwinIntegration::createPlayerInterface()

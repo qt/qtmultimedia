@@ -37,10 +37,10 @@
 #include <qgraphicsvideoitem.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
-#include <qmediaserviceprovider.h>
 #include <qvideorenderercontrol.h>
 #include <qvideowindowcontrol.h>
 #include <qvideosurfaceformat.h>
+#include <qmockintegration_p.h>
 
 #include <QtWidgets/qapplication.h>
 #include <QtGui/qpainter.h>
@@ -63,6 +63,9 @@ private slots:
     void hasVideo();
     void fillMode();
     void geometry();
+
+private:
+    QMockIntegration *mockIntegration;
 };
 
 Q_DECLARE_METATYPE(QDeclarativeVideo::Error);
@@ -167,6 +170,7 @@ private:
     QUrl m_media;
 };
 
+# if 0
 class QtTestRendererControl : public QVideoRendererControl
 {
 public:
@@ -323,11 +327,12 @@ public:
     QtTestMediaService *service;
     QByteArray requestedService;
 };
-
+#endif
 
 void tst_QDeclarativeVideo::initTestCase()
 {
     qRegisterMetaType<QDeclarativeVideo::Error>();
+    mockIntegration = new QMockIntegration;
 }
 
 void tst_QDeclarativeVideo::nullPlayerControl()

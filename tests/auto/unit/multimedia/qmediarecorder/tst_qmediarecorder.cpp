@@ -117,7 +117,7 @@ void tst_QMediaRecorder::initTestCase()
     qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
 
     mockIntegration = new QMockIntegration;
-    object = new MockMediaSource(this, mockIntegration->createCaptureInterface(QMockIntegration::AudioAndVideo));
+    object = new MockMediaSource(this, mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo));
     capture = new QMediaRecorder(object);
     service = mockIntegration->lastCaptureService();
     mock = service->mockControl;
@@ -1110,7 +1110,7 @@ void tst_QMediaRecorder::testAvailabilityStatus()
         QCOMPARE(recorder.isAvailable(), false);
     }
     {
-        mockIntegration->createCaptureInterface(QMockIntegration::AudioAndVideo);
+        mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
         auto *service1 = mockIntegration->lastCaptureService();
         service1->mockMetaDataControl->populateMetaData();
         MockMediaSource object1(nullptr, service1);
@@ -1119,7 +1119,7 @@ void tst_QMediaRecorder::testAvailabilityStatus()
         QCOMPARE(recorder1.isAvailable(), true);
     }
     {
-        mockIntegration->createCaptureInterface(QMockIntegration::AudioAndVideo);
+        mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
         auto *service1 = mockIntegration->lastCaptureService();
         service1->mockMetaDataControl->populateMetaData();
         MockMediaSource object1(nullptr, service1);
@@ -1137,7 +1137,7 @@ void tst_QMediaRecorder::testIsAvailable()
     QMediaRecorder recorder(&object);
     QCOMPARE(recorder.isAvailable(), false);
 
-    mockIntegration->createCaptureInterface(QMockIntegration::AudioAndVideo);
+    mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
     auto *service1 = mockIntegration->lastCaptureService();
     service1->mockMetaDataControl->populateMetaData();
     MockMediaSource object1(nullptr, service1);

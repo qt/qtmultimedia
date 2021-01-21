@@ -81,7 +81,7 @@ QMediaPlatformPlayerInterface *QMockIntegration::createPlayerInterface()
     return m_lastPlayerService;
 }
 
-QMediaPlatformCaptureInterface *QMockIntegration::createCaptureInterface(QMediaPlatformIntegration::CaptureMode mode)
+QMediaPlatformCaptureInterface *QMockIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
 {
     Q_UNUSED(mode);
     if (m_flags & NoCaptureInterface)

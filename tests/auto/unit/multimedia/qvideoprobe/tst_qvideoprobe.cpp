@@ -35,7 +35,6 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "mockmediaserviceprovider.h"
 #include "mockmediarecorderservice.h"
 #include "mockmediaplayerservice.h"
 #include "mockmediasource.h"

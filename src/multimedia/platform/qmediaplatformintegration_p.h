@@ -51,6 +51,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <qmediarecorder.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -71,13 +72,8 @@ public:
     virtual ~QMediaPlatformIntegration();
     virtual QMediaPlatformDeviceManager *deviceManager() = 0;
 
-    enum CaptureMode {
-        AudioOnly,
-        AudioAndVideo
-    };
-
     virtual QAudioDecoderControl *createAudioDecoder() { return nullptr; }
-    virtual QMediaPlatformCaptureInterface *createCaptureInterface(CaptureMode /*mode*/) { return nullptr; }
+    virtual QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
     virtual QMediaPlatformPlayerInterface *createPlayerInterface() { return nullptr; }
 };
 

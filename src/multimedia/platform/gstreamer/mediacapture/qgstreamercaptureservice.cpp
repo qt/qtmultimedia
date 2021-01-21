@@ -59,11 +59,9 @@
 #include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstreamervideowindow_p.h>
 
-#include <qmediaserviceproviderplugin.h>
-
 QT_BEGIN_NAMESPACE
 
-QGstreamerCaptureService::QGstreamerCaptureService(QMediaPlatformIntegration::CaptureMode mode)
+QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode mode)
     : QMediaPlatformCaptureInterface()
     , m_captureSession(0)
     , m_cameraControl(0)
@@ -78,7 +76,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaPlatformIntegration::Ca
     , m_imageCaptureControl(0)
     , m_audioProbeControl(0)
 {
-    if (mode == QMediaPlatformIntegration::AudioOnly) {
+    if (mode == QMediaRecorder::AudioOnly) {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
     }
 

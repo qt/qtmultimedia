@@ -66,6 +66,7 @@ public:
 
     QMediaPlatformDeviceManager *deviceManager() override;
 
+    QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     QAndroidDeviceManager *m_manager = nullptr;

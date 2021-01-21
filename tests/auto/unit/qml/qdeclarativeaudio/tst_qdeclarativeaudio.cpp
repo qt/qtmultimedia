@@ -33,7 +33,6 @@
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativemediametadata_p.h"
 
-#include "mockmediaserviceprovider.h"
 #include "mockmediaplayerservice.h"
 #include "mockmetadatareadercontrol.h"
 #include "qmockintegration_p.h"
@@ -41,7 +40,6 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
-#include <private/qmediaserviceprovider_p.h>
 #include <private/qdeclarativevideooutput_p.h>
 #include <qmetadatareadercontrol.h>
 #include <QAbstractVideoSurface>
@@ -801,16 +799,13 @@ void tst_QDeclarativeAudio::audioRole()
 
 void tst_QDeclarativeAudio::customAudioRole()
 {
-    MockMediaPlayerService mockService;
-    MockMediaServiceProvider mockProvider(&mockService);
-    QMediaServiceProvider::setDefaultServiceProvider(&mockProvider);
-
     QQmlEngine engine;
     QQmlComponent component(&engine);
     component.setData("import QtQuick 2.0 \n import QtMultimedia 5.11 \n Audio { }", QUrl());
+    auto *service = mockIntegration->lastPlayerService();
 
     {
-        mockService.mockControl->hasCustomAudioRole = false;
+        service->player()->hasCustomAudioRole = false;
         QObject *audio = component.create();
         QVERIFY(audio);
 
@@ -830,8 +825,7 @@ void tst_QDeclarativeAudio::customAudioRole()
     }
 
     {
-        mockService.reset();
-        mockService.mockControl->hasAudioRole = false;
+        service->player()->hasAudioRole = false;
 
         QObject *audio = component.create();
         QVERIFY(audio);
@@ -852,8 +846,6 @@ void tst_QDeclarativeAudio::customAudioRole()
     }
 
     {
-        mockService.reset();
-
         QObject *audio = component.create();
         QVERIFY(audio);
 

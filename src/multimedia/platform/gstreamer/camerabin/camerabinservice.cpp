@@ -62,7 +62,6 @@
 
 #include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideorenderer_p.h>
-#include <private/qmediaserviceprovider_p.h>
 
 #include <QtCore/qdebug.h>
 

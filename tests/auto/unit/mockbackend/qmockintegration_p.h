@@ -70,7 +70,7 @@ public:
 
     QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
-    QMediaPlatformCaptureInterface *createCaptureInterface(CaptureMode mode) override;
+    QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
 
     enum Flag {
         NoPlayerInterface = 0x1,

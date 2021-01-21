@@ -14,7 +14,6 @@ PRIVATE_HEADERS += \
     qmediasource_p.h \
     qmediapluginloader_p.h \
     qmediaservice_p.h \
-    qmediaserviceprovider_p.h \
     qmediastoragelocation_p.h \
     qmultimediautils_p.h
 
@@ -26,7 +25,6 @@ PUBLIC_HEADERS += \
     qmediametadata.h \
     qmediasource.h \
     qmediaservice.h \
-    qmediaserviceproviderplugin.h \
     qmediatimerange.h \
     qmultimedia.h
 
@@ -36,7 +34,6 @@ SOURCES += \
     qmediametadata.cpp \
     qmediapluginloader.cpp \
     qmediaservice.cpp \
-    qmediaserviceprovider.cpp \
     qmediasource.cpp \
     qmediatimerange.cpp \
     qmediastoragelocation.cpp \

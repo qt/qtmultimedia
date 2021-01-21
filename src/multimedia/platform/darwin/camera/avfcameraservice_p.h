@@ -53,7 +53,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qset.h>
-#include <qmediaservice.h>
+#include <private/qmediaplatformcaptureinterface_p.h>
 
 
 QT_BEGIN_NAMESPACE
@@ -77,11 +77,11 @@ class AVFVideoEncoderSettingsControl;
 class AVFMediaContainerControl;
 class AVFCameraWindowControl;
 
-class AVFCameraService : public QMediaService
+class AVFCameraService : public QMediaPlatformCaptureInterface
 {
 Q_OBJECT
 public:
-    AVFCameraService(QObject *parent = nullptr);
+    AVFCameraService();
     ~AVFCameraService();
 
     QObject *requestControl(const char *name);

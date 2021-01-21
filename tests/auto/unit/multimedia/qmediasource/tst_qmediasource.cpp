@@ -38,7 +38,6 @@
 #include <qmetadatareadercontrol.h>
 
 #include "mockmediarecorderservice.h"
-#include "mockmediaserviceprovider.h"
 #include "mockmetadatareadercontrol.h"
 
 class QtTestMediaObjectService : public QMediaService

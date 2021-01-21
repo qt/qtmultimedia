@@ -37,7 +37,6 @@
 #include <qmediaplayer.h>
 #include <qmediaplayercontrol.h>
 
-#include "mockmediaserviceprovider.h"
 #include "mockmediaplayerservice.h"
 #include "mockvideosurface.h"
 #include "qmockintegration_p.h"

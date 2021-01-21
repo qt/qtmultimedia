@@ -44,7 +44,6 @@
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
 #include <qvideorenderercontrol.h>
-#include <private/qmediaserviceprovider_p.h>
 #include <qmediadevicemanager.h>
 
 QT_USE_NAMESPACE

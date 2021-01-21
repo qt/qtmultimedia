@@ -45,7 +45,6 @@
 #include <qvideorenderercontrol.h>
 #include <qmediadevicemanager.h>
 
-#include "mockmediaserviceprovider.h"
 #include "mockvideosurface.h"
 #include "mockvideorenderercontrol.h"
 #include "mockvideowindowcontrol.h"

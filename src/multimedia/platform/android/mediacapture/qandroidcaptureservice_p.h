@@ -53,6 +53,8 @@
 //
 
 #include <qmediaservice.h>
+#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qmediaplatformintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -71,19 +73,19 @@ class QAndroidAudioEncoderSettingsControl;
 class QAndroidVideoEncoderSettingsControl;
 class QAndroidMediaContainerControl;
 
-class QAndroidCaptureService : public QMediaService
+class QAndroidCaptureService : public QMediaPlatformCaptureInterface
 {
     Q_OBJECT
 
 public:
-    explicit QAndroidCaptureService(const QString &service, QObject *parent = 0);
+    explicit QAndroidCaptureService(QMediaRecorder::CaptureMode mode);
     virtual ~QAndroidCaptureService();
 
     QObject *requestControl(const char *name);
     void releaseControl(QObject *);
 
 private:
-    QString m_service;
+    bool m_videoEnabled = false;
 
     QAndroidMediaRecorderControl *m_recorderControl;
     QAndroidCaptureSession *m_captureSession;

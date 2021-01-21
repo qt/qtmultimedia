@@ -43,8 +43,6 @@
 #include <QtCore/qjsonarray.h>
 #include <private/qfactoryloader_p.h>
 
-#include "qmediaserviceproviderplugin.h"
-
 QT_BEGIN_NAMESPACE
 
 QMediaPluginLoader::QMediaPluginLoader(const char *iid, const QString &location, Qt::CaseSensitivity caseSensitivity):

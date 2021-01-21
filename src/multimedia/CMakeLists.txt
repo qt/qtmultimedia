@@ -64,8 +64,6 @@ qt_internal_add_module(Multimedia
         qmediametadata.cpp qmediametadata.h
         qmediapluginloader.cpp qmediapluginloader_p.h
         qmediaservice.cpp qmediaservice.h qmediaservice_p.h
-        qmediaserviceprovider.cpp qmediaserviceprovider_p.h
-        qmediaserviceproviderplugin.h
         qmediasink.cpp qmediasink.h
         qmediasource.cpp qmediasource.h qmediasource_p.h
         qmediastoragelocation.cpp qmediastoragelocation_p.h
@@ -253,7 +251,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_came
         platform/gstreamer/camerabin/camerabinmetadata.cpp platform/gstreamer/camerabin/camerabinmetadata_p.h
         platform/gstreamer/camerabin/camerabinrecorder.cpp platform/gstreamer/camerabin/camerabinrecorder_p.h
         platform/gstreamer/camerabin/camerabinservice.cpp platform/gstreamer/camerabin/camerabinservice_p.h
-        platform/gstreamer/camerabin/camerabinserviceplugin.cpp platform/gstreamer/camerabin/camerabinserviceplugin_p.h
         platform/gstreamer/camerabin/camerabinsession.cpp platform/gstreamer/camerabin/camerabinsession_p.h
         platform/gstreamer/camerabin/camerabinvideoencoder.cpp platform/gstreamer/camerabin/camerabinvideoencoder_p.h
     DEFINES
@@ -286,7 +283,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_
         platform/gstreamer/mediacapture/qgstreamercameracontrol.cpp platform/gstreamer/mediacapture/qgstreamercameracontrol_p.h
         platform/gstreamer/mediacapture/qgstreamercapturemetadatacontrol.cpp platform/gstreamer/mediacapture/qgstreamercapturemetadatacontrol_p.h
         platform/gstreamer/mediacapture/qgstreamercaptureservice.cpp platform/gstreamer/mediacapture/qgstreamercaptureservice_p.h
-        platform/gstreamer/mediacapture/qgstreamercaptureserviceplugin.cpp platform/gstreamer/mediacapture/qgstreamercaptureserviceplugin_p.h
         platform/gstreamer/mediacapture/qgstreamercapturesession.cpp platform/gstreamer/mediacapture/qgstreamercapturesession_p.h
         platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol.cpp platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol_p.h
         platform/gstreamer/mediacapture/qgstreamerimageencode.cpp platform/gstreamer/mediacapture/qgstreamerimageencode_p.h
@@ -385,7 +381,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediaplayer/qandroidmetadatareadercontrol.cpp platform/android/mediaplayer/qandroidmetadatareadercontrol_p.h
         platform/android/qandroiddevicemanager.cpp platform/android/qandroiddevicemanager_p.h
         platform/android/qandroidintegration.cpp platform/android/qandroidintegration_p.h
-        platform/android/qandroidmediaserviceplugin.cpp platform/android/qandroidmediaserviceplugin_p.h
         platform/android/wrappers/jni/androidcamera.cpp platform/android/wrappers/jni/androidcamera_p.h
         platform/android/wrappers/jni/androidmediametadataretriever.cpp platform/android/wrappers/jni/androidmediametadataretriever_p.h
         platform/android/wrappers/jni/androidmediaplayer.cpp platform/android/wrappers/jni/androidmediaplayer_p.h
@@ -471,7 +466,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfcamerametadatacontrol.mm platform/darwin/camera/avfcamerametadatacontrol_p.h
         platform/darwin/camera/avfcamerarenderercontrol.mm platform/darwin/camera/avfcamerarenderercontrol_p.h
         platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h
-        platform/darwin/camera/avfcameraserviceplugin.mm platform/darwin/camera/avfcameraserviceplugin_p.h
         platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
         platform/darwin/camera/avfcamerautility.mm platform/darwin/camera/avfcamerautility_p.h
         platform/darwin/camera/avfcamerawindowcontrol.mm platform/darwin/camera/avfcamerawindowcontrol_p.h

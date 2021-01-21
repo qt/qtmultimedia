@@ -29,7 +29,6 @@
 //TESTED_COMPONENT=src/multimedia
 
 #include <private/qmediapluginloader_p.h>
-#include <qmediaserviceproviderplugin.h>
 
 #include <QtTest/QtTest>
 #include <QDebug>

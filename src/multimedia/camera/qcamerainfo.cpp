@@ -40,7 +40,6 @@
 #include "qcamerainfo_p.h"
 
 #include "qcamera_p.h"
-#include "qmediaserviceprovider_p.h"
 
 #include <qvideodeviceselectorcontrol.h>
 

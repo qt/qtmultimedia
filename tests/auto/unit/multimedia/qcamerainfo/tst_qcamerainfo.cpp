@@ -33,7 +33,6 @@
 #include <qcamerainfo.h>
 #include <qmediadevicemanager.h>
 
-#include "mockmediaserviceprovider.h"
 #include "qmockintegration_p.h"
 #include "mockmediarecorderservice.h"
 

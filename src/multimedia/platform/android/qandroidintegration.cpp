@@ -40,8 +40,18 @@
 #include "qandroidintegration_p.h"
 #include "qandroiddevicemanager_p.h"
 #include "private/qandroidmediaservice_p.h"
+#include "private/qandroidglobal_p.h"
+#include "private/qandroidcaptureservice_p.h"
+#include "private/androidmediaplayer_p.h"
+#include "private/qandroidcamerasession_p.h"
+#include "private/androidsurfacetexture_p.h"
+#include "private/androidsurfaceview_p.h"
+#include "private/androidcamera_p.h"
+#include "private/androidmediarecorder_p.h"
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qtAndroidMediaPlugin, "qt.multimedia.android")
 
 QAndroidIntegration::QAndroidIntegration()
 {
@@ -60,9 +70,47 @@ QMediaPlatformDeviceManager *QAndroidIntegration::deviceManager()
     return m_manager;
 }
 
+QMediaPlatformCaptureInterface *QAndroidIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
+{
+    return new QAndroidCaptureService(mode);
+}
+
 QMediaPlatformPlayerInterface *QAndroidIntegration::createPlayerInterface()
 {
     return new QAndroidMediaService();
+}
+
+Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
+{
+    static bool initialized = false;
+    if (initialized)
+        return JNI_VERSION_1_6;
+    initialized = true;
+
+    QT_USE_NAMESPACE
+    typedef union {
+        JNIEnv *nativeEnvironment;
+        void *venv;
+    } UnionJNIEnvToVoid;
+
+    UnionJNIEnvToVoid uenv;
+    uenv.venv = NULL;
+
+    if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
+        return JNI_ERR;
+
+    JNIEnv *jniEnv = uenv.nativeEnvironment;
+
+    if (!AndroidMediaPlayer::initJNI(jniEnv) ||
+        !AndroidCamera::initJNI(jniEnv) ||
+        !AndroidMediaRecorder::initJNI(jniEnv) ||
+        !AndroidSurfaceHolder::initJNI(jniEnv)) {
+        return JNI_ERR;
+    }
+
+    AndroidSurfaceTexture::initJNI(jniEnv);
+
+    return JNI_VERSION_1_6;
 }
 
 QT_END_NAMESPACE

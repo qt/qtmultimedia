@@ -3,6 +3,8 @@ TARGET = tst_qdeclarativevideo
 
 QT += multimedia-private qml testlib
 
+include (../../mockbackend/mockbackend.pri)
+
 HEADERS += \
         ../../../../src/imports/multimedia/qdeclarativevideo_p.h \
         ../../../../src/imports/multimedia/qdeclarativemediabase_p.h \

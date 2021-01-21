@@ -9,8 +9,7 @@ HEADERS += $$PWD/qgstreamercaptureservice_p.h \
     $$PWD/qgstreamercameracontrol_p.h \
     $$PWD/qgstreamercapturemetadatacontrol_p.h \
     $$PWD/qgstreamerimagecapturecontrol_p.h \
-    $$PWD/qgstreamerimageencode_p.h \
-    $$PWD/qgstreamercaptureserviceplugin_p.h
+    $$PWD/qgstreamerimageencode_p.h
 
 SOURCES += $$PWD/qgstreamercaptureservice.cpp \
     $$PWD/qgstreamercapturesession.cpp \
@@ -21,8 +20,7 @@ SOURCES += $$PWD/qgstreamercaptureservice.cpp \
     $$PWD/qgstreamercameracontrol.cpp \
     $$PWD/qgstreamercapturemetadatacontrol.cpp \
     $$PWD/qgstreamerimagecapturecontrol.cpp \
-    $$PWD/qgstreamerimageencode.cpp \
-    $$PWD/qgstreamercaptureserviceplugin.cpp
+    $$PWD/qgstreamerimageencode.cpp
 
 # Camera usage with gstreamer needs to have
 CONFIG += use_gstreamer_camera

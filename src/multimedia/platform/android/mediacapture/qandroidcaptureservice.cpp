@@ -56,16 +56,13 @@
 #include "qandroidmediacontainercontrol_p.h"
 #include "qandroidmediavideoprobecontrol_p.h"
 
-#include <qmediaserviceproviderplugin.h>
-
 QT_BEGIN_NAMESPACE
 
-QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *parent)
-    : QMediaService(parent)
-    , m_service(service)
+QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
+    : m_videoEnabled(mode == QMediaRecorder::AudioAndVideo)
     , m_videoRendererControl(0)
 {
-    if (m_service == QLatin1String(Q_MEDIASERVICE_CAMERA)) {
+    if (m_videoEnabled) {
         m_cameraSession = new QAndroidCameraSession;
         m_cameraControl = new QAndroidCameraControl(m_cameraSession);
         m_videoInputControl = new QAndroidVideoDeviceSelectorControl(m_cameraSession);
@@ -91,7 +88,7 @@ QAndroidCaptureService::QAndroidCaptureService(const QString &service, QObject *
     m_audioEncoderSettingsControl = new QAndroidAudioEncoderSettingsControl(m_captureSession);
     m_mediaContainerControl = new QAndroidMediaContainerControl(m_captureSession);
 
-    if (m_service == QLatin1String(Q_MEDIASERVICE_CAMERA))
+    if (m_videoEnabled)
         m_videoEncoderSettingsControl = new QAndroidVideoEncoderSettingsControl(m_captureSession);
 }
 
@@ -149,7 +146,7 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
         return m_imageCaptureControl;
 
     if (qstrcmp(name, QVideoRendererControl_iid) == 0
-            && m_service == QLatin1String(Q_MEDIASERVICE_CAMERA)
+            && m_videoEnabled
             && !m_videoRendererControl) {
         m_videoRendererControl = new QAndroidCameraVideoRendererControl(m_cameraSession);
         return m_videoRendererControl;

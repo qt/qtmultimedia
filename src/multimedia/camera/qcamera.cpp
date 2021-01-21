@@ -290,7 +290,7 @@ void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockSt
 
 QCamera::QCamera(QObject *parent)
     : QMediaSource(*new QCameraPrivate, parent,
-                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaPlatformIntegration::AudioAndVideo))
+                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
 {
     Q_D(QCamera);
     d->init();
@@ -309,7 +309,7 @@ QCamera::QCamera(QObject *parent)
 
 QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
     QMediaSource(*new QCameraPrivate, parent,
-                 QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaPlatformIntegration::AudioAndVideo))
+                 QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
 {
     Q_D(QCamera);
     d->init();
@@ -368,7 +368,7 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
 QCamera::QCamera(QCamera::Position position, QObject *parent)
     : QMediaSource(*new QCameraPrivate,
                    parent,
-                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaPlatformIntegration::AudioAndVideo))
+                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
 {
     Q_D(QCamera);
     d->init();

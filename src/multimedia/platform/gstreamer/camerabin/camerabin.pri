@@ -1,6 +1,5 @@
 
 HEADERS += \
-    $$PWD/camerabinserviceplugin_p.h \
     $$PWD/camerabinservice_p.h \
     $$PWD/camerabinsession_p.h \
     $$PWD/camerabincontrol_p.h \
@@ -14,7 +13,6 @@ HEADERS += \
     $$PWD/camerabinvideoencoder_p.h \
 
 SOURCES += \
-    $$PWD/camerabinserviceplugin.cpp \
     $$PWD/camerabinservice.cpp \
     $$PWD/camerabinsession.cpp \
     $$PWD/camerabincontrol.cpp \

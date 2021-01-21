@@ -43,7 +43,6 @@
 #include <qmediaplayercontrol.h>
 
 #include <qmediaservice.h>
-#include <private/qmediaserviceprovider_p.h>
 #include <private/qdeclarativevideooutput_p.h>
 #include <qmetadatareadercontrol.h>
 

@@ -43,7 +43,6 @@
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include "qaudiodecodercontrol.h"
-#include <private/qmediaserviceprovider_p.h>
 
 #include <private/qmediaplatformintegration_p.h>
 

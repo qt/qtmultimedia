@@ -76,7 +76,7 @@ class QGstreamerCaptureService : public QMediaPlatformCaptureInterface
     Q_OBJECT
 
 public:
-    QGstreamerCaptureService(QMediaPlatformIntegration::CaptureMode mode);
+    QGstreamerCaptureService(QMediaRecorder::CaptureMode mode);
     virtual ~QGstreamerCaptureService();
 
     QObject *requestControl(const char *name) override;
