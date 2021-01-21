@@ -37,16 +37,16 @@
 #include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
 #include "mockaudioprobecontrol.h"
+#include <private/qmediaplatformcaptureinterface_p.h>
 
-class MockMediaRecorderService : public QMediaService
+class MockMediaRecorderService : public QMediaPlatformCaptureInterface
 {
     Q_OBJECT
 public:
-    MockMediaRecorderService(QObject *parent = 0, QObject *control = 0):
-        QMediaService(parent),
-        mockControl(control),
-        hasControls(true)
+    MockMediaRecorderService()
+        : hasControls(true)
     {
+        mockControl = new MockMediaRecorderControl(this);
         mockAudioEncoderControl = new MockAudioEncoderControl(this);
         mockFormatControl = new MockMediaContainerControl(this);
         mockVideoEncoderControl = new MockVideoEncoderControl(this);
@@ -76,10 +76,10 @@ public:
     {
     }
 
-    QObject *mockControl;
-    QAudioEncoderSettingsControl    *mockAudioEncoderControl;
-    QMediaContainerControl     *mockFormatControl;
-    QVideoEncoderSettingsControl    *mockVideoEncoderControl;
+    MockMediaRecorderControl *mockControl;
+    QAudioEncoderSettingsControl *mockAudioEncoderControl;
+    QMediaContainerControl *mockFormatControl;
+    QVideoEncoderSettingsControl *mockVideoEncoderControl;
     MockMetaDataWriterControl *mockMetaDataControl;
     MockAudioProbeControl *mockAudioProbeControl;
 

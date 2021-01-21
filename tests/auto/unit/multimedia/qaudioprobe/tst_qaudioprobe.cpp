@@ -37,6 +37,7 @@
 #include "mockmediaserviceprovider.h"
 #include "mockmediarecorderservice.h"
 #include "mockmediasource.h"
+#include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
 
@@ -54,40 +55,29 @@ private slots:
     void testRecorder();
     void testRecorderDeleteRecorder();
     void testRecorderDeleteProbe();
-    void testMediaSource();
 
 private:
-    QMediaRecorder *recorder;
-    MockMediaRecorderControl *mockMediaRecorderControl;
-    MockMediaRecorderService  *mockMediaRecorderService;
-    MockMediaServiceProvider *mockProvider;
+    QMediaRecorder *recorder = nullptr;
+    QMockIntegration *integration = nullptr;
 };
 
 void tst_QAudioProbe::init()
 {
-    mockMediaRecorderControl = new MockMediaRecorderControl(this);
-    mockMediaRecorderService = new MockMediaRecorderService(this, mockMediaRecorderControl);
-    mockProvider = new MockMediaServiceProvider(mockMediaRecorderService);
-    mockProvider->deleteServiceOnRelease = true;
+    integration = new QMockIntegration;
     recorder = nullptr;
-
-    QMediaServiceProvider::setDefaultServiceProvider(mockProvider);
 }
 
 void tst_QAudioProbe::cleanup()
 {
     delete recorder;
-    delete mockProvider;
-    delete mockMediaRecorderControl;
-    mockMediaRecorderControl = nullptr;
-    mockMediaRecorderService = nullptr;
-    mockProvider = nullptr;
+    delete integration;
     recorder = nullptr;
+    integration = nullptr;
 }
 
 void tst_QAudioProbe::testNullService()
 {
-    mockProvider->service = nullptr;
+    integration->setFlags(QMockIntegration::NoCaptureInterface);
     recorder = new QMediaRecorder;
 
     QVERIFY(!recorder->isAvailable());
@@ -105,8 +95,10 @@ void tst_QAudioProbe::testNullService()
 
 void tst_QAudioProbe::testNullControl()
 {
-    mockMediaRecorderService->hasControls = false;
     recorder = new QMediaRecorder;
+    auto *mockService = integration->lastCaptureService();
+    QVERIFY(mockService != nullptr);
+    mockService->hasControls = false;
 
     QVERIFY(!recorder->isAvailable());
     QCOMPARE(recorder->availability(), QMultimedia::ServiceMissing);
@@ -162,20 +154,6 @@ void tst_QAudioProbe::testRecorderDeleteProbe()
 
     delete probe;
     QVERIFY(recorder->isAvailable());
-}
-
-void tst_QAudioProbe::testMediaSource()
-{
-    QMediaSource *object = new MockMediaSource(nullptr, mockMediaRecorderService);
-    QVERIFY(object->isAvailable());
-
-    QAudioProbe probe;
-    QVERIFY(!probe.isActive());
-    QVERIFY(probe.setSource(object));
-    QVERIFY(probe.isActive());
-    probe.setSource((QMediaSource*)nullptr);
-    QVERIFY(!probe.isActive());
-    delete object;
 }
 
 QTEST_GUILESS_MAIN(tst_QAudioProbe)

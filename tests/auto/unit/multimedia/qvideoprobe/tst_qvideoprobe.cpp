@@ -39,6 +39,7 @@
 #include "mockmediarecorderservice.h"
 #include "mockmediaplayerservice.h"
 #include "mockmediasource.h"
+#include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
 
@@ -59,47 +60,24 @@ private slots:
 
 private:
     QMediaPlayer *player;
-    MockMediaPlayerService *mockMediaPlayerService;
-    MockMediaServiceProvider *mockProvider;
-
-    MockMediaRecorderControl *mockMediaRecorderControl;
-    MockMediaRecorderService *mockMediaRecorderService;
-    MockMediaServiceProvider *mockProviderRecorder;
+    QMockIntegration *mockIntegration = nullptr;
 };
 
 void tst_QVideoProbe::init()
 {
-    mockMediaPlayerService = new MockMediaPlayerService();
-    mockProvider = new MockMediaServiceProvider(mockMediaPlayerService);
-    mockProvider->deleteServiceOnRelease = true;
+    mockIntegration = new QMockIntegration;
     player = nullptr;
-
-    mockMediaRecorderControl = new MockMediaRecorderControl(this);
-    mockMediaRecorderService = new MockMediaRecorderService(this, mockMediaRecorderControl);
-    mockProviderRecorder = new MockMediaServiceProvider(mockMediaRecorderService);
-    mockProviderRecorder->deleteServiceOnRelease = true;
-
-    QMediaServiceProvider::setDefaultServiceProvider(mockProvider);
 }
 
 void tst_QVideoProbe::cleanup()
 {
     delete player;
-    delete mockProvider;
-    mockMediaPlayerService = nullptr;
-    mockProvider = nullptr;
-    player = nullptr;
-
-    delete mockMediaRecorderControl;
-    delete mockProviderRecorder;
-    mockMediaRecorderControl = nullptr;
-    mockMediaRecorderService = nullptr;
-    mockProviderRecorder = nullptr;
+    delete mockIntegration;
 }
 
 void tst_QVideoProbe::testNullService()
 {
-    mockProvider->service = nullptr;
+    mockIntegration->setFlags(QMockIntegration::NoPlayerInterface);
     player = new QMediaPlayer;
 
     QVERIFY(!player->isAvailable());
@@ -160,8 +138,6 @@ void tst_QVideoProbe::testPlayerDeleteProbe()
 
 void tst_QVideoProbe::testRecorder()
 {
-    QMediaServiceProvider::setDefaultServiceProvider(mockProviderRecorder);
-
     QMediaRecorder recorder;
     QVERIFY(recorder.isAvailable());
 

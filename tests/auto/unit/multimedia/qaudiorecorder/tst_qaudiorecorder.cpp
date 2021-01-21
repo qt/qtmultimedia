@@ -42,6 +42,7 @@
 
 #include "mockmediaserviceprovider.h"
 #include "mockmediarecorderservice.h"
+#include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
 
@@ -61,33 +62,27 @@ private slots:
     void testAvailability();
 
 private:
-    QMediaRecorder *audiosource;
-    MockMediaRecorderService  *mockMediaRecorderService;
-    MockMediaServiceProvider *mockProvider;
+    QMediaRecorder *audiosource = nullptr;
+    QMockIntegration *mockIntegration;
 };
 
 void tst_QAudioRecorder::init()
 {
-    mockMediaRecorderService = new MockMediaRecorderService(this, new MockMediaRecorderControl(this));
-    mockProvider = new MockMediaServiceProvider(mockMediaRecorderService);
+    mockIntegration = new QMockIntegration;
     audiosource = nullptr;
-
-    QMediaServiceProvider::setDefaultServiceProvider(mockProvider);
 }
 
 void tst_QAudioRecorder::cleanup()
 {
-    delete mockMediaRecorderService;
-    delete mockProvider;
+    delete mockIntegration;
     delete audiosource;
-    mockMediaRecorderService = nullptr;
-    mockProvider = nullptr;
+    mockIntegration = nullptr;
     audiosource = nullptr;
 }
 
 void tst_QAudioRecorder::testNullService()
 {
-    mockProvider->service = nullptr;
+    mockIntegration->setFlags(QMockIntegration::NoCaptureInterface);
     QMediaRecorder source;
 
     QVERIFY(!source.isAvailable());
@@ -99,8 +94,9 @@ void tst_QAudioRecorder::testNullService()
 
 void tst_QAudioRecorder::testNullControl()
 {
-    mockMediaRecorderService->hasControls = false;
     QMediaRecorder source;
+    auto *service = mockIntegration->lastCaptureService();
+    service->hasControls = false;
 
     QVERIFY(!source.isAvailable());
     QCOMPARE(source.availability(), QMultimedia::ServiceMissing);
@@ -117,15 +113,15 @@ void tst_QAudioRecorder::testAudioSource()
 {
     audiosource = new QMediaRecorder;
 
-    QCOMPARE(audiosource->mediaSource()->service(),(QMediaService *) mockMediaRecorderService);
+    QCOMPARE(audiosource->mediaSource()->service(),(QMediaService *) mockIntegration->lastCaptureService());
 }
 
 void tst_QAudioRecorder::testDevices()
 {
 //    audiosource = new QMediaRecorder;
-//    QList<QString> devices = audiosource->audioInputs();
+//    QList<QAudioDeviceInfo> devices = mockIntegration->audioInputs();
 //    QVERIFY(devices.size() > 0);
-//    QVERIFY(devices.at(0).compare("device1") == 0);
+//    QVERIFY(devices.at(0).id() == "device1");
 //    QVERIFY(audiosource->audioInputDescription("device1").compare("dev1 comment") == 0);
 //    QVERIFY(audiosource->defaultAudioInput() == "device1");
 //    QVERIFY(audiosource->isAvailable() == true);

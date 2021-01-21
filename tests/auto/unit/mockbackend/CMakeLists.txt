@@ -41,6 +41,10 @@ target_sources(QtMultimediaMockBackend INTERFACE
     mockvideorenderercontrol.h
     mockvideosurface.h
     mockvideowindowcontrol.h
+    qmockdevicemanager.cpp
+    qmockdevicemanager_p.h
+    qmockintegration.cpp
+    qmockintegration_p.h
 )
 # special case end
 

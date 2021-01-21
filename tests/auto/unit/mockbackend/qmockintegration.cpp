@@ -41,6 +41,7 @@
 #include "qmockdevicemanager_p.h"
 #include "mockmediaplayerservice.h"
 #include "mockaudiodecodercontrol.h"
+#include "mockmediarecorderservice.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -78,6 +79,16 @@ QMediaPlatformPlayerInterface *QMockIntegration::createPlayerInterface()
     else
         m_lastPlayerService = new MockMediaPlayerService;
     return m_lastPlayerService;
+}
+
+QMediaPlatformCaptureInterface *QMockIntegration::createCaptureInterface(QMediaPlatformIntegration::CaptureMode mode)
+{
+    Q_UNUSED(mode);
+    if (m_flags & NoCaptureInterface)
+        m_lastCaptureService = nullptr;
+    else
+        m_lastCaptureService = new MockMediaRecorderService();
+    return m_lastCaptureService;
 }
 
 QT_END_NAMESPACE
