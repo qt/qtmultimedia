@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
+CONFIG += ordered
 
-SUBDIRS += multimedia.pro
-qtHaveModule(widgets): SUBDIRS += multimediawidgets.pro
-qtHaveModule(qml): SUBDIRS += multimediaqml.pro
+SUBDIRS += mockbackend multimedia
+qtHaveModule(widgets): SUBDIRS += multimediawidgets
+qtHaveModule(qml): SUBDIRS += qml

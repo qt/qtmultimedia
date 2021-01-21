@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 
 
 
-class QWaveDecoder : public QIODevice
+class Q_AUTOTEST_EXPORT QWaveDecoder : public QIODevice
 {
     Q_OBJECT
 

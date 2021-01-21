@@ -1,0 +1,48 @@
+# Generated from mockbackend.pro.
+
+#####################################################################
+## QtMultimediaMockBackend Generic Library:
+#####################################################################
+
+# special case begin
+add_library(QtMultimediaMockBackend INTERFACE)
+target_include_directories(QtMultimediaMockBackend INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(QtMultimediaMockBackend INTERFACE
+    Qt::Core
+    Qt::Gui
+    Qt::MultimediaPrivate
+)
+target_sources(QtMultimediaMockBackend INTERFACE
+    mockaudiodecodercontrol.h
+    mockaudiodecoderservice.h
+    mockaudioencodercontrol.h
+    mockaudioprobecontrol.h
+    mockcameracontrol.h
+    mockcameraexposurecontrol.h
+    mockcamerafocuscontrol.h
+    mockcameraimagecapturecontrol.h
+    mockcameraimageprocessingcontrol.h
+    mockcameraservice.h
+    mockimageencodercontrol.h
+    mockmediacontainercontrol.h
+    mockmediaplayercontrol.h
+    mockmediaplayerservice.h
+    mockmediarecordercontrol.h
+    mockmediarecorderservice.h
+    mockmediaservice.h
+    mockmediaserviceprovider.h
+    mockmediasource.h
+    mockmediastreamscontrol.h
+    mockmetadatareadercontrol.h
+    mockmetadatawritercontrol.h
+    mockvideodeviceselectorcontrol.h
+    mockvideoencodercontrol.h
+    mockvideoprobecontrol.h
+    mockvideorenderercontrol.h
+    mockvideosurface.h
+    mockvideowindowcontrol.h
+)
+# special case end
+
+#### Keys ignored in scope 1:.:.:mockbackend.pro:<TRUE>:
+# TEMPLATE = "lib"
