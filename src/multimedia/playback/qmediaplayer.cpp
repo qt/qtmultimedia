@@ -266,6 +266,7 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
     d->playerInterface = static_cast<QMediaPlatformPlayerInterface *>(service());
     if (!d->playerInterface) {
         qWarning() << "QPlatformMediaPlayerInterface not implemented!";
+        d->_q_error(QMediaPlayer::ServiceMissingError, "QMediaPlayer is not supported.");
         return;
     }
 
@@ -601,10 +602,10 @@ void QMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     QUrl oldMedia = d->rootMedia;
     d->rootMedia = media;
 
-    if (oldMedia != media)
+    if (oldMedia != media) {
+        d->setMedia(media, stream);
         emit mediaChanged(d->rootMedia);
-
-    d->setMedia(media, stream);
+    }
 }
 
 /*!

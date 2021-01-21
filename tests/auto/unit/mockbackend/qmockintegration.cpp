@@ -45,11 +45,12 @@ QT_BEGIN_NAMESPACE
 
 QMockIntegration::QMockIntegration()
 {
-
+    setIntegration(this);
 }
 
 QMockIntegration::~QMockIntegration()
 {
+    setIntegration(nullptr);
     delete m_manager;
 }
 
@@ -62,7 +63,11 @@ QMediaPlatformDeviceManager *QMockIntegration::deviceManager()
 
 QMediaPlatformPlayerInterface *QMockIntegration::createPlayerInterface()
 {
-    return new MockMediaPlayerService;
+    if (m_flags & NoPlayerInterface)
+        m_lastPlayerService = nullptr;
+    else
+        m_lastPlayerService = new MockMediaPlayerService;
+    return m_lastPlayerService;
 }
 
 QT_END_NAMESPACE

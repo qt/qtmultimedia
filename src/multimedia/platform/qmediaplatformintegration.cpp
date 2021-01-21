@@ -87,8 +87,6 @@ QMediaPlatformIntegration *QMediaPlatformIntegration::instance()
 */
 void QMediaPlatformIntegration::setIntegration(QMediaPlatformIntegration *integration)
 {
-    if (holder.instance)
-        delete holder.instance;
     holder.instance = integration;
 }
 

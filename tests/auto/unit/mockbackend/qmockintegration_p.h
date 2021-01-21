@@ -56,6 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 class QMockDeviceManager;
+class MockMediaPlayerService;
 
 class QMockIntegration : public QMediaPlatformIntegration
 {
@@ -67,8 +68,23 @@ public:
 
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
+    enum Flag {
+        NoPlayerInterface = 1
+    };
+    Q_DECLARE_FLAGS(Flags, Flag);
+
+    void setFlags(Flags f) { m_flags = f; }
+    Flags flags() const { return m_flags; }
+
+    MockMediaPlayerService *lastPlayerService() const { return m_lastPlayerService; }
+
+private:
+    Flags m_flags = {};
     QMockDeviceManager *m_manager = nullptr;
+    MockMediaPlayerService *m_lastPlayerService = nullptr;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);
 
 QT_END_NAMESPACE
 
