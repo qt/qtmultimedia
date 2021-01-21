@@ -56,9 +56,23 @@ public:
     {}
 
     QMediaPlayer::State state() const { return _state; }
+    void updateState(QMediaPlayer::State state) { emit stateChanged(_state = state); }
     QMediaPlayer::MediaStatus mediaStatus() const { return _mediaStatus; }
+    void updateMediaStatus(QMediaPlayer::MediaStatus status)
+    {
+        emit mediaStatusChanged(_mediaStatus = status);
+    }
+    void updateMediaStatus(QMediaPlayer::MediaStatus status, QMediaPlayer::State state)
+    {
+        _mediaStatus = status;
+        _state = state;
+
+        emit mediaStatusChanged(_mediaStatus);
+        emit stateChanged(_state);
+    }
 
     qint64 duration() const { return _duration; }
+    void setDuration(qint64 duration) { emit durationChanged(_duration = duration); }
 
     qint64 position() const { return _position; }
 
@@ -71,11 +85,14 @@ public:
     void setMuted(bool muted) { if (muted != _muted) emit mutedChanged(_muted = muted); }
 
     int bufferStatus() const { return _bufferStatus; }
+    void setBufferStatus(int status) { emit bufferStatusChanged(_bufferStatus = status); }
 
     bool isAudioAvailable() const { return _audioAvailable; }
     bool isVideoAvailable() const { return _videoAvailable; }
 
     bool isSeekable() const { return _isSeekable; }
+    void setSeekable(bool seekable) { emit seekableChanged(_isSeekable = seekable); }
+
     QMediaTimeRange availablePlaybackRanges() const { return QMediaTimeRange(_seekRange.first, _seekRange.second); }
     void setSeekRange(qint64 minimum, qint64 maximum) { _seekRange = qMakePair(minimum, maximum); }
 
@@ -125,6 +142,11 @@ public:
             return {};
         return QStringList() << QStringLiteral("customRole")
                              << QStringLiteral("customRole2");
+    }
+
+    void emitError(QMediaPlayer::Error err, const QString &errorString)
+    {
+        emit error(err, errorString);
     }
 
     bool hasAudioRole = true;

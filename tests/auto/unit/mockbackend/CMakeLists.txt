@@ -22,7 +22,6 @@ target_sources(QtMultimediaMockBackend INTERFACE
     mockcamerafocuscontrol.h
     mockcameraimagecapturecontrol.h
     mockcameraimageprocessingcontrol.h
-    mockcameraservice.h
     mockimageencodercontrol.h
     mockmediacontainercontrol.h
     mockmediaplayercontrol.h

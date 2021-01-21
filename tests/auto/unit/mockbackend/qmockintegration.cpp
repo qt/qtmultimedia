@@ -91,4 +91,6 @@ QMediaPlatformCaptureInterface *QMockIntegration::createCaptureInterface(QMediaP
     return m_lastCaptureService;
 }
 
+bool MockMediaRecorderService::simpleCamera = false;
+
 QT_END_NAMESPACE

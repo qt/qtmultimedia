@@ -37,6 +37,15 @@
 #include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
 #include "mockaudioprobecontrol.h"
+#include "mockcamerafocuscontrol.h"
+#include "mockcameraimageprocessingcontrol.h"
+#include "mockcameraimagecapturecontrol.h"
+#include "mockcameraexposurecontrol.h"
+#include "mockimageencodercontrol.h"
+#include "mockcameracontrol.h"
+#include "mockvideorenderercontrol.h"
+#include "mockvideowindowcontrol.h"
+#include "mockvideodeviceselectorcontrol.h"
 #include <private/qmediaplatformcaptureinterface_p.h>
 
 class MockMediaRecorderService : public QMediaPlatformCaptureInterface
@@ -52,29 +61,93 @@ public:
         mockVideoEncoderControl = new MockVideoEncoderControl(this);
         mockMetaDataControl = new MockMetaDataWriterControl(this);
         mockAudioProbeControl = new MockAudioProbeControl(this);
+        mockCameraControl = new MockCameraControl(this);
+        mockExposureControl = new MockCameraExposureControl(this);
+        mockFocusControl = new MockCameraFocusControl(this);
+        mockCaptureControl = new MockCaptureControl(mockCameraControl, this);
+        mockImageProcessingControl = new MockImageProcessingControl(this);
+        mockImageEncoderControl = new MockImageEncoderControl(this);
+        rendererControl = new MockVideoRendererControl(this);
+        windowControl = new MockVideoWindowControl(this);
+        mockVideoDeviceSelectorControl = new MockVideoDeviceSelectorControl(this);
+        rendererRef = 0;
+        windowRef = 0;
     }
 
     QObject *requestControl(const char *name)
     {
-        if (hasControls && qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
+        if (!hasControls)
+            return nullptr;
+
+        if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
             return mockAudioEncoderControl;
-        if (hasControls && qstrcmp(name,QMediaRecorderControl_iid) == 0)
+        if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
-        if (hasControls && qstrcmp(name,QMediaContainerControl_iid) == 0)
+        if (qstrcmp(name,QMediaContainerControl_iid) == 0)
             return mockFormatControl;
-        if (hasControls && qstrcmp(name,QVideoEncoderSettingsControl_iid) == 0)
+        if (qstrcmp(name,QVideoEncoderSettingsControl_iid) == 0)
             return mockVideoEncoderControl;
-        if (hasControls && qstrcmp(name, QMetaDataWriterControl_iid) == 0)
+        if (qstrcmp(name, QMetaDataWriterControl_iid) == 0)
             return mockMetaDataControl;
-        if (hasControls && qstrcmp(name, QMediaAudioProbeControl_iid) == 0)
+        if (qstrcmp(name, QMediaAudioProbeControl_iid) == 0)
             return mockAudioProbeControl;
 
-        return 0;
+        if (qstrcmp(name, QCameraControl_iid) == 0)
+            return mockCameraControl;
+
+        if (simpleCamera)
+            return nullptr;
+
+        if (qstrcmp(name, QCameraExposureControl_iid) == 0)
+            return mockExposureControl;
+        if (qstrcmp(name, QCameraFocusControl_iid) == 0)
+            return mockFocusControl;
+        if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
+            return mockCaptureControl;
+        if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
+            return mockImageProcessingControl;
+        if (qstrcmp(name, QImageEncoderControl_iid) == 0)
+            return mockImageEncoderControl;
+        if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)
+            return mockVideoDeviceSelectorControl;
+
+        if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
+            if (rendererRef == 0) {
+                rendererRef += 1;
+                return rendererControl;
+            }
+        }
+        if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
+            if (windowRef == 0) {
+                windowRef += 1;
+                return windowControl;
+            }
+        }
+
+        return nullptr;
     }
 
-    void releaseControl(QObject *)
+    void releaseControl(QObject *control)
     {
+        if (control == rendererControl)
+            rendererRef -= 1;
+        if (control == windowControl)
+            windowRef -= 1;
     }
+
+    static bool simpleCamera;
+
+    MockCameraControl *mockCameraControl;
+    MockCaptureControl *mockCaptureControl;
+    MockCameraExposureControl *mockExposureControl;
+    MockCameraFocusControl *mockFocusControl;
+    MockImageProcessingControl *mockImageProcessingControl;
+    MockImageEncoderControl *mockImageEncoderControl;
+    MockVideoRendererControl *rendererControl;
+    MockVideoWindowControl *windowControl;
+    MockVideoDeviceSelectorControl *mockVideoDeviceSelectorControl;
+    int rendererRef;
+    int windowRef;
 
     MockMediaRecorderControl *mockControl;
     QAudioEncoderSettingsControl *mockAudioEncoderControl;

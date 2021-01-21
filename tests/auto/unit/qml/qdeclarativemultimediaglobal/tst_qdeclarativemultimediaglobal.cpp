@@ -28,15 +28,11 @@
 
 #include <QtQuickTest/quicktest.h>
 
-#include "mockcameraservice.h"
-#include "mockmediaserviceprovider.h"
+#include "qmockintegration_p.h"
 
 int main(int argc, char **argv)
 {
-    MockMediaServiceProvider provider;
-    MockCameraService mockCameraService;
-    provider.service = &mockCameraService;
-    QMediaServiceProvider::setDefaultServiceProvider(&provider);
+    QMockIntegration integration;
 
     return quick_test_main(argc, argv, "QDeclarativeMultimediaGlobal", QUICK_TEST_SOURCE_DIR);
 }

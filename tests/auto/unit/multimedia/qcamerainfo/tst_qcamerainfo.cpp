@@ -33,8 +33,9 @@
 #include <qcamerainfo.h>
 #include <qmediadevicemanager.h>
 
-#include "mockcameraservice.h"
 #include "mockmediaserviceprovider.h"
+#include "qmockintegration_p.h"
+#include "mockmediarecorderservice.h"
 
 QT_USE_NAMESPACE
 
@@ -54,40 +55,33 @@ private slots:
     void equality_operators();
 
 private:
-    MockSimpleCameraService  *mockSimpleCameraService;
-    MockCameraService *mockCameraService;
-    MockMediaServiceProvider *provider;
+    QMockIntegration *integration;
 };
 
 void tst_QCameraInfo::initTestCase()
 {
+    MockMediaRecorderService::simpleCamera = false;
 }
 
 void tst_QCameraInfo::init()
 {
-    provider = new MockMediaServiceProvider;
-    mockSimpleCameraService = new MockSimpleCameraService;
-    mockCameraService = new MockCameraService;
-
-    provider->service = mockCameraService;
-    QMediaServiceProvider::setDefaultServiceProvider(provider);
+    integration = new QMockIntegration;
 }
 
 void tst_QCameraInfo::cleanup()
 {
-    delete provider;
-    delete mockCameraService;
-    delete mockSimpleCameraService;
+    delete integration;
 }
 
 void tst_QCameraInfo::constructor()
 {
     // Service doesn't implement QVideoDeviceSelectorControl
     // QCameraInfo should not be valid in this case
-    provider->service = mockSimpleCameraService;
+    MockMediaRecorderService::simpleCamera = true;
 
     {
         QCamera camera;
+
         QCameraInfo info(camera);
         QVERIFY(info.isNull());
         QVERIFY(info.id().isEmpty());
@@ -97,7 +91,7 @@ void tst_QCameraInfo::constructor()
     }
 
     // Service implements QVideoDeviceSelectorControl
-    provider->service = mockCameraService;
+    MockMediaRecorderService::simpleCamera = false;
 
     {
         // default camera
@@ -128,8 +122,6 @@ void tst_QCameraInfo::constructor()
 
 void tst_QCameraInfo::defaultCamera()
 {
-    provider->service = mockCameraService;
-
     QCameraInfo info = QMediaDeviceManager::defaultVideoInput();
 
     QVERIFY(!info.isNull());
@@ -144,8 +136,6 @@ void tst_QCameraInfo::defaultCamera()
 
 void tst_QCameraInfo::availableCameras()
 {
-    provider->service = mockCameraService;
-
     QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
     QCOMPARE(cameras.count(), 2);
 
@@ -178,8 +168,6 @@ void tst_QCameraInfo::availableCameras()
 
 void tst_QCameraInfo::equality_operators()
 {
-    provider->service = mockCameraService;
-
     QCameraInfo defaultCamera = QMediaDeviceManager::defaultVideoInput();
     QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
 

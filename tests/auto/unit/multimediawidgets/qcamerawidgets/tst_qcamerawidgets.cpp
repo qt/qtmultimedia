@@ -46,12 +46,12 @@
 #include <qvideowidget.h>
 #include <qvideowindowcontrol.h>
 
-#include "mockcameraservice.h"
-
 #include "mockmediaserviceprovider.h"
 #include "mockvideosurface.h"
 #include "mockvideorenderercontrol.h"
 #include "mockvideowindowcontrol.h"
+#include "mockmediarecorderservice.h"
+#include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
 
@@ -73,32 +73,26 @@ private slots:
     void testSetVideoOutputNoControl();
 
 private:
-    MockCameraService  *mockCameraService;
-    MockMediaServiceProvider *provider;
+    QMockIntegration *mockIntegration;
 };
 
 void tst_QCameraWidgets::initTestCase()
 {
-    provider = new MockMediaServiceProvider;
-    QMediaServiceProvider::setDefaultServiceProvider(provider);
 }
 
 void tst_QCameraWidgets::init()
 {
-    mockCameraService = new MockCameraService;
-    provider->service = mockCameraService;
+    mockIntegration = new QMockIntegration;
 }
 
 void tst_QCameraWidgets::cleanup()
 {
-    delete mockCameraService;
-    provider->service = nullptr;
+    delete mockIntegration;
 }
 
 
 void tst_QCameraWidgets::cleanupTestCase()
 {
-    delete provider;
 }
 
 void tst_QCameraWidgets::testCameraEncodingProperyChange()
@@ -196,7 +190,8 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
 
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
 
-    mockCameraService->mockControl->m_propertyChangesSupported = true;
+    auto *mockCameraService = mockIntegration->lastCaptureService();
+    mockCameraService->mockCameraControl->m_propertyChangesSupported = true;
     //the changes to encoding settings,
     //capture mode and encoding parameters should not trigger service restart
     stateChangedSignal.clear();
@@ -218,6 +213,7 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
     QCamera camera;
+    auto *mockCameraService = mockIntegration->lastCaptureService();
 
     camera.setViewfinder(&widget);
     qDebug() << widget.mediaSource();
@@ -261,8 +257,9 @@ void tst_QCameraWidgets::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    provider->service = nullptr;
+    mockIntegration->setFlags(QMockIntegration::NoCaptureInterface);
     QCamera camera;
+    mockIntegration->setFlags({});
 
     camera.setViewfinder(&widget);
     QVERIFY(widget.mediaSource() == nullptr);
@@ -272,7 +269,9 @@ void tst_QCameraWidgets::testSetVideoOutputNoService()
 
     camera.setViewfinder(&surface);
     // Nothing we can verify here other than it doesn't assert.
+
 }
+
 
 void tst_QCameraWidgets::testSetVideoOutputNoControl()
 {
@@ -280,10 +279,11 @@ void tst_QCameraWidgets::testSetVideoOutputNoControl()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    mockCameraService->rendererRef = 1;
-    mockCameraService->windowRef = 1;
 
     QCamera camera;
+    auto *mockCameraService = mockIntegration->lastCaptureService();
+    mockCameraService->rendererRef = 1;
+    mockCameraService->windowRef = 1;
 
     camera.setViewfinder(&widget);
     QVERIFY(widget.mediaSource() == nullptr);

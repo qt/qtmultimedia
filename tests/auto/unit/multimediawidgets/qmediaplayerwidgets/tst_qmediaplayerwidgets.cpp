@@ -40,6 +40,7 @@
 #include "mockmediaserviceprovider.h"
 #include "mockmediaplayerservice.h"
 #include "mockvideosurface.h"
+#include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
 
@@ -59,25 +60,22 @@ private slots:
     void testSetVideoOutputNoControl();
 
 private:
-    MockMediaServiceProvider *provider;
+    QMockIntegration *mockIntegration;
     MockMediaPlayerService  *mockService;
 };
 
 void tst_QMediaPlayerWidgets::initTestCase()
 {
-    provider = new MockMediaServiceProvider;
-    QMediaServiceProvider::setDefaultServiceProvider(provider);
+    mockIntegration = new QMockIntegration;
 }
 
 void tst_QMediaPlayerWidgets::cleanupTestCase()
 {
-    delete provider;
+    delete mockIntegration;
 }
 
 void tst_QMediaPlayerWidgets::init()
 {
-    mockService = new MockMediaPlayerService;
-    provider->service = mockService;
 }
 
 void tst_QMediaPlayerWidgets::cleanup()
@@ -133,8 +131,9 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    provider->service = nullptr;
+    mockIntegration->setFlags(QMockIntegration::NoPlayerInterface);
     QMediaPlayer player;
+    mockIntegration->setFlags({});
 
     player.setVideoOutput(&widget);
     QVERIFY(widget.mediaSource() == nullptr);
@@ -152,13 +151,10 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoControl()
     QGraphicsVideoItem item;
     MockVideoSurface surface;
 
-    MockMediaPlayerService service;
-    service.rendererRef = 1;
-    service.windowRef = 1;
-
-    provider->service = &service;
-
     QMediaPlayer player;
+    auto *service = mockIntegration->lastPlayerService();
+    service->rendererRef = 1;
+    service->windowRef = 1;
 
     player.setVideoOutput(&widget);
     QVERIFY(widget.mediaSource() == nullptr);
@@ -167,7 +163,7 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoControl()
     QVERIFY(item.mediaSource() == nullptr);
 
     player.setVideoOutput(&surface);
-    QVERIFY(service.rendererControl->surface() == nullptr);
+    QVERIFY(service->rendererControl->surface() == nullptr);
 }
 
 QTEST_MAIN(tst_QMediaPlayerWidgets)

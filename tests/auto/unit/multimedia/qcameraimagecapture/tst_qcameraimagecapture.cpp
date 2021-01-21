@@ -49,8 +49,9 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 
-#include "mockcameraservice.h"
 #include "mockmediaserviceprovider.h"
+#include "mockmediarecorderservice.h"
+#include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
 
@@ -109,31 +110,25 @@ private slots:
     void cameraImageCaptureControl();
 
 private:
-    MockCameraService  *mockcameraservice;
-    MockMediaServiceProvider *provider;
+    QMockIntegration *mockIntegration;
 };
 
 void tst_QCameraImageCapture::initTestCase()
 {
-    provider = new MockMediaServiceProvider;
-    QMediaServiceProvider::setDefaultServiceProvider(provider);
+    mockIntegration = new QMockIntegration;
 }
 
 void tst_QCameraImageCapture::init()
 {
-    mockcameraservice = new MockCameraService;
-    provider->service = mockcameraservice;
 }
 
 void tst_QCameraImageCapture::cleanup()
 {
-    delete mockcameraservice;
-    mockcameraservice = nullptr;
 }
 
 void tst_QCameraImageCapture::cleanupTestCase()
 {
-    delete provider;
+    delete mockIntegration;
 }
 
 //MaemoAPI-1823:test QCameraImageCapture Constructor
@@ -147,13 +142,11 @@ void tst_QCameraImageCapture::constructor()
 //MaemoAPI-1824:test mediaSource
 void tst_QCameraImageCapture::mediaSource()
 {
-    NullService  mymockcameraservice ;
-    provider->service = &mymockcameraservice;
     QCamera camera;
+    mockIntegration->lastCaptureService()->hasControls = false;
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.camera() == nullptr);
 
-    provider->service = mockcameraservice;
     QCamera camera1;
     QCameraImageCapture imageCapture1(&camera1);
     QMediaSource *medobj1 = imageCapture1.camera();
@@ -162,8 +155,6 @@ void tst_QCameraImageCapture::mediaSource()
 
 void tst_QCameraImageCapture::deleteMediaSource()
 {
-    provider->service = new MockCameraService;
-
     QCamera *camera = new QCamera;
     QCameraImageCapture *capture = new QCameraImageCapture(camera);
 
@@ -171,7 +162,6 @@ void tst_QCameraImageCapture::deleteMediaSource()
     QVERIFY(capture->isAvailable());
 
     delete camera;
-    delete provider->service;
 
     //capture should detach from camera
     QVERIFY(capture->camera() == nullptr);
@@ -288,8 +278,7 @@ void tst_QCameraImageCapture::imageCodecDescription()
 //MaemoAPI-1830:test errors
 void tst_QCameraImageCapture::errors()
 {
-    MockSimpleCameraService mockSimpleCameraService ;
-    provider->service = &mockSimpleCameraService;
+    MockMediaRecorderService::simpleCamera = true;
 
     QCamera camera1;
     QCameraImageCapture imageCapture1(&camera1);
@@ -298,8 +287,6 @@ void tst_QCameraImageCapture::errors()
     QVERIFY(imageCapture1.error() == QCameraImageCapture::NotSupportedFeatureError);
     QVERIFY2(!imageCapture1.errorString().isEmpty(), "Device does not support images capture");
     QVERIFY(imageCapture1.availability() == QMultimedia::ServiceMissing);
-
-    provider->service = mockcameraservice;
 
     QCamera camera;
     QCameraImageCapture imageCapture(&camera);
@@ -312,6 +299,8 @@ void tst_QCameraImageCapture::errors()
     QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
     QVERIFY2(!imageCapture.errorString().isEmpty(), "Could not capture in stopped state");
     QVERIFY(imageCapture.availability() == QMultimedia::Available);
+
+    MockMediaRecorderService::simpleCamera = false;
 }
 
 //MaemoAPI-1831:test error

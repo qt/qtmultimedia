@@ -5,7 +5,6 @@ HEADERS *= \
     $$PWD/mockcamerafocuscontrol.h \
     $$PWD/mockcameraimagecapturecontrol.h \
     $$PWD/mockcameraimageprocessingcontrol.h \
-    $$PWD/mockcameraservice.h \
     $$PWD/mockimageencodercontrol.h \
     $$PWD/mockmediacontainercontrol.h \
     $$PWD/mockmediarecordercontrol.h \
