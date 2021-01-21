@@ -66,6 +66,7 @@ public:
 
     QMediaPlatformDeviceManager *deviceManager() override;
 
+    QMediaPlatformCaptureInterface *createCaptureInterface(bool audioOnly) override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     QGstreamerDeviceManager *m_manager = nullptr;

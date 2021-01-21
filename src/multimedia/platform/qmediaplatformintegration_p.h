@@ -64,10 +64,13 @@ class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
 public:
     static QMediaPlatformIntegration *instance();
 
+    // API to be able to test with a mock backend
+    static void setIntegration(QMediaPlatformIntegration *);
+
     virtual ~QMediaPlatformIntegration();
     virtual QMediaPlatformDeviceManager *deviceManager() = 0;
 
-    virtual QMediaPlatformCaptureInterface *captureInterface() { return nullptr; }
+    virtual QMediaPlatformCaptureInterface *createCaptureInterface(bool audioOnly) { return nullptr; }
     virtual QMediaPlatformPlayerInterface *createPlayerInterface() { return nullptr; }
 };
 

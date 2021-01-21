@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qmediaservice.h>
+#include <private/qmediaplatformcaptureinterface_p.h>
 
 #include <gst/gst.h>
 
@@ -70,12 +70,12 @@ class QGstreamerCaptureMetaDataControl;
 class QGstreamerImageCaptureControl;
 class QGstreamerV4L2Input;
 
-class QGstreamerCaptureService : public QMediaService
+class QGstreamerCaptureService : public QMediaPlatformCaptureInterface
 {
     Q_OBJECT
 
 public:
-    QGstreamerCaptureService(const QString &service, QObject *parent = 0);
+    QGstreamerCaptureService(bool audioOnly);
     virtual ~QGstreamerCaptureService();
 
     QObject *requestControl(const char *name) override;

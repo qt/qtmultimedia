@@ -41,6 +41,7 @@
 #include "qgstreamerdevicemanager_p.h"
 #include "qgstreamerplayerservice_p.h"
 #include "private/qgstreamerplayerservice_p.h"
+#include "private/qgstreamercaptureservice_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -59,6 +60,11 @@ QMediaPlatformDeviceManager *QGstreamerIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QGstreamerDeviceManager();
     return m_manager;
+}
+
+QMediaPlatformCaptureInterface *QGstreamerIntegration::createCaptureInterface(bool audioOnly)
+{
+    return new QGstreamerCaptureService(audioOnly);
 }
 
 QMediaPlatformPlayerInterface *QGstreamerIntegration::createPlayerInterface()

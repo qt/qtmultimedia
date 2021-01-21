@@ -51,6 +51,8 @@
 #include <qmediacontainercontrol.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>
+#include <private/qmediaplatformintegration_p.h>
+#include <private/qmediaplatformcaptureinterface_p.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
@@ -202,12 +204,7 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::Mode mode, QObject *parent)
     d->notifyTimer = new QTimer(this);
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
-    auto provider = QMediaServiceProvider::defaultServiceProvider();
-    QMediaService *service = nullptr;
-    if (mode == AudioOnly)
-        service = provider->requestService(Q_MEDIASERVICE_AUDIOSOURCE);
-    if (!service)
-        service = provider->requestService(Q_MEDIASERVICE_CAMERA);
+    QMediaService *service = QMediaPlatformIntegration::instance()->createCaptureInterface(mode == AudioOnly);
     setMediaSource(new QAudioRecorderObject(this, service));
 }
 

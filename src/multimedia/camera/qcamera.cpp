@@ -39,7 +39,6 @@
 
 
 #include "qcamera_p.h"
-#include "qmediaserviceprovider_p.h"
 
 #include <qcamerainfo.h>
 #include <qcameracontrol.h>
@@ -48,6 +47,8 @@
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideodeviceselectorcontrol.h>
+#include <private/qmediaplatformintegration_p.h>
+#include <private/qmediaplatformcaptureinterface_p.h>
 
 #include <QDebug>
 
@@ -166,7 +167,6 @@ void QCameraPrivate::_q_restartCamera()
 void QCameraPrivate::init()
 {
     Q_Q(QCamera);
-    provider = QMediaServiceProvider::defaultServiceProvider();
     initControls();
     cameraExposure = new QCameraExposure(q);
     cameraFocus = new QCameraFocus(q);
@@ -212,8 +212,6 @@ void QCameraPrivate::clear()
             service->releaseControl(control);
         if (deviceControl)
             service->releaseControl(deviceControl);
-
-        provider->releaseService(service);
     }
 
     cameraExposure = nullptr;
@@ -290,10 +288,9 @@ void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockSt
     Construct a QCamera with a \a parent.
 */
 
-QCamera::QCamera(QObject *parent):
-    QMediaSource(*new QCameraPrivate,
-                 parent,
-                 QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
+QCamera::QCamera(QObject *parent)
+    : QMediaSource(*new QCameraPrivate, parent,
+                   QMediaPlatformIntegration::instance()->createCaptureInterface(false))
 {
     Q_D(QCamera);
     d->init();
@@ -312,7 +309,7 @@ QCamera::QCamera(QObject *parent):
 
 QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
     QMediaSource(*new QCameraPrivate, parent,
-                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
+                 QMediaPlatformIntegration::instance()->createCaptureInterface(true))
 {
     Q_D(QCamera);
     d->init();
@@ -371,7 +368,7 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
 QCamera::QCamera(QCamera::Position position, QObject *parent)
     : QMediaSource(*new QCameraPrivate,
                    parent,
-                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
+                   QMediaPlatformIntegration::instance()->createCaptureInterface(true))
 {
     Q_D(QCamera);
     d->init();

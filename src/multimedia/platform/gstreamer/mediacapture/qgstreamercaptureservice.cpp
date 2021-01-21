@@ -63,8 +63,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObject *parent)
-    : QMediaService(parent)
+QGstreamerCaptureService::QGstreamerCaptureService(bool audioOnly)
+    : QMediaPlatformCaptureInterface()
     , m_captureSession(0)
     , m_cameraControl(0)
 #if defined(USE_GSTREAMER_CAMERA)
@@ -78,12 +78,12 @@ QGstreamerCaptureService::QGstreamerCaptureService(const QString &service, QObje
     , m_imageCaptureControl(0)
     , m_audioProbeControl(0)
 {
-    if (service == Q_MEDIASERVICE_AUDIOSOURCE) {
+    if (audioOnly) {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
     }
 
 #if defined(USE_GSTREAMER_CAMERA)
-   if (service == Q_MEDIASERVICE_CAMERA) {
+   else {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
         m_cameraControl = new QGstreamerCameraControl(m_captureSession);
         m_videoInput = new QGstreamerV4L2Input(this);

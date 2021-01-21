@@ -65,9 +65,7 @@ QAndroidMediaServicePlugin::~QAndroidMediaServicePlugin()
 QMediaService *QAndroidMediaServicePlugin::create(const QString &key)
 {
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA)
-            || key == QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE)) {
         return new QAndroidCaptureService(key);
-    }
 
     qCWarning(qtAndroidMediaPlugin) << "Android service plugin: unsupported key:" << key;
     return 0;

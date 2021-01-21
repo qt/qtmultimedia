@@ -51,12 +51,14 @@
 //
 
 #include <qtmultimediaglobal_p.h>
+#include <qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QMediaPlatformCaptureInterface
+class Q_MULTIMEDIA_EXPORT QMediaPlatformCaptureInterface : public QMediaService
 {
 public:
+    QMediaPlatformCaptureInterface();
     virtual ~QMediaPlatformCaptureInterface();
 };
 

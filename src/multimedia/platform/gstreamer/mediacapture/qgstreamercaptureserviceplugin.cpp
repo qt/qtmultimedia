@@ -56,9 +56,6 @@ QMediaService* QGstreamerCaptureServicePlugin::create(const QString &key)
 {
     QGstUtils::initializeGst();
 
-    if (key == QLatin1String(Q_MEDIASERVICE_AUDIOSOURCE))
-        return new QGstreamerCaptureService(key);
-
 #if defined(USE_GSTREAMER_CAMERA)
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
         return new QGstreamerCaptureService(key);

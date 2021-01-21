@@ -57,7 +57,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaServiceProvider;
 class QCameraControl;
 class QVideoDeviceSelectorControl;
 
@@ -89,8 +88,6 @@ public:
     void initControls();
 
     void clear();
-
-    QMediaServiceProvider *provider;
 
     QCameraControl *control;
     QVideoDeviceSelectorControl *deviceControl;

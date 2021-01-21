@@ -82,6 +82,16 @@ QMediaPlatformIntegration *QMediaPlatformIntegration::instance()
     return holder.instance;
 }
 
+/*
+    This API is there to be able to test with a mock backend.
+*/
+void QMediaPlatformIntegration::setIntegration(QMediaPlatformIntegration *integration)
+{
+    if (holder.instance)
+        delete holder.instance;
+    holder.instance = integration;
+}
+
 QMediaPlatformIntegration::~QMediaPlatformIntegration()
 {
 
