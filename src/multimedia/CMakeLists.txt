@@ -260,7 +260,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_came
         GST_USE_CAMERABIN
 )
 
-qt_internal_extend_target(Multimedia CONDITION ((QT_FEATURE_gstreamer) AND (use_camerabin)) AND (qtConfig(gstreamer__p.hotography))
+qt_internal_extend_target(Multimedia CONDITION ((QT_FEATURE_gstreamer) AND (use_camerabin)) AND (qtConfig(gstreamer_photography))
     SOURCES
         platform/gstreamer/camerabin/camerabinexposure.cpp platform/gstreamer/camerabin/camerabinexposure_p.h
         platform/gstreamer/camerabin/camerabinfocus.cpp platform/gstreamer/camerabin/camerabinfocus_p.h
@@ -297,7 +297,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_
         platform/gstreamer/mediacapture
 )
 
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_linux_v4l AND use_gstreamer_camera AND NOT use_camerabin
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_linux_v4l AND NOT use_camerabin
     SOURCES
         platform/gstreamer/mediacapture/qgstreamerv4l2input.cpp platform/gstreamer/mediacapture/qgstreamerv4l2input_p.h
     DEFINES
