@@ -62,7 +62,6 @@
 QT_BEGIN_NAMESPACE
 
 class QFactoryLoader;
-class QMediaServiceProviderPlugin;
 
 class Q_MULTIMEDIA_EXPORT QMediaPluginLoader
 {

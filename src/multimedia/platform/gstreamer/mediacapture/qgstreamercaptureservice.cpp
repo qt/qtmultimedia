@@ -63,7 +63,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerCaptureService::QGstreamerCaptureService(bool audioOnly)
+QGstreamerCaptureService::QGstreamerCaptureService(QMediaPlatformIntegration::CaptureMode mode)
     : QMediaPlatformCaptureInterface()
     , m_captureSession(0)
     , m_cameraControl(0)
@@ -78,7 +78,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(bool audioOnly)
     , m_imageCaptureControl(0)
     , m_audioProbeControl(0)
 {
-    if (audioOnly) {
+    if (mode == QMediaPlatformIntegration::AudioOnly) {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
     }
 

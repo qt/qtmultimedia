@@ -58,7 +58,7 @@ QMediaService* QGstreamerCaptureServicePlugin::create(const QString &key)
 
 #if defined(USE_GSTREAMER_CAMERA)
     if (key == QLatin1String(Q_MEDIASERVICE_CAMERA))
-        return new QGstreamerCaptureService(key);
+        return new QGstreamerCaptureService(QMediaPlatformIntegration::AudioAndVideo);
 #endif
 
     qWarning() << "Gstreamer capture service plugin: unsupported key:" << key;

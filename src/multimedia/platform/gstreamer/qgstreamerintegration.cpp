@@ -62,9 +62,9 @@ QMediaPlatformDeviceManager *QGstreamerIntegration::deviceManager()
     return m_manager;
 }
 
-QMediaPlatformCaptureInterface *QGstreamerIntegration::createCaptureInterface(bool audioOnly)
+QMediaPlatformCaptureInterface *QGstreamerIntegration::createCaptureInterface(CaptureMode mode)
 {
-    return new QGstreamerCaptureService(audioOnly);
+    return new QGstreamerCaptureService(mode);
 }
 
 QMediaPlatformPlayerInterface *QGstreamerIntegration::createPlayerInterface()

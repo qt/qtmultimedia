@@ -52,6 +52,7 @@
 //
 
 #include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qmediaplatformintegration_p.h>
 
 #include <gst/gst.h>
 
@@ -75,7 +76,7 @@ class QGstreamerCaptureService : public QMediaPlatformCaptureInterface
     Q_OBJECT
 
 public:
-    QGstreamerCaptureService(bool audioOnly);
+    QGstreamerCaptureService(QMediaPlatformIntegration::CaptureMode mode);
     virtual ~QGstreamerCaptureService();
 
     QObject *requestControl(const char *name) override;

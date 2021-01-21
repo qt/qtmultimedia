@@ -70,7 +70,12 @@ public:
     virtual ~QMediaPlatformIntegration();
     virtual QMediaPlatformDeviceManager *deviceManager() = 0;
 
-    virtual QMediaPlatformCaptureInterface *createCaptureInterface(bool audioOnly) { return nullptr; }
+    enum CaptureMode {
+        AudioOnly,
+        AudioAndVideo
+    };
+
+    virtual QMediaPlatformCaptureInterface *createCaptureInterface(CaptureMode /*mode*/) { return nullptr; }
     virtual QMediaPlatformPlayerInterface *createPlayerInterface() { return nullptr; }
 };
 

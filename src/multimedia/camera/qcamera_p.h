@@ -66,7 +66,6 @@ class QCameraPrivate : public QMediaSourcePrivate
 public:
     QCameraPrivate():
         QMediaSourcePrivate(),
-        provider(nullptr),
         control(nullptr),
         deviceControl(nullptr),
         cameraExposure(nullptr),
