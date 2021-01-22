@@ -43,7 +43,6 @@
 #include "qandroidmediarecordercontrol_p.h"
 #include "qandroidcapturesession_p.h"
 #include "qandroidcameracontrol_p.h"
-#include "qandroidvideodeviceselectorcontrol_p.h"
 #include "qandroidcamerasession_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcameraexposurecontrol_p.h"
@@ -65,7 +64,6 @@ QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
     if (m_videoEnabled) {
         m_cameraSession = new QAndroidCameraSession;
         m_cameraControl = new QAndroidCameraControl(m_cameraSession);
-        m_videoInputControl = new QAndroidVideoDeviceSelectorControl(m_cameraSession);
         m_cameraExposureControl = new QAndroidCameraExposureControl(m_cameraSession);
         m_cameraFocusControl = new QAndroidCameraFocusControl(m_cameraSession);
         m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(m_cameraSession);
@@ -74,7 +72,6 @@ QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
     } else {
         m_cameraSession = 0;
         m_cameraControl = 0;
-        m_videoInputControl = 0;
         m_cameraExposureControl = 0;
         m_cameraFocusControl = 0;
         m_cameraImageProcessingControl = 0;
@@ -100,7 +97,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_recorderControl;
     delete m_captureSession;
     delete m_cameraControl;
-    delete m_videoInputControl;
     delete m_videoRendererControl;
     delete m_cameraExposureControl;
     delete m_cameraFocusControl;
@@ -126,9 +122,6 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
-
-    if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)
-        return m_videoInputControl;
 
     if (qstrcmp(name, QCameraExposureControl_iid) == 0)
         return m_cameraExposureControl;

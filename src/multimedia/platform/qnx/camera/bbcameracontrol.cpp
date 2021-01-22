@@ -39,6 +39,7 @@
 #include "bbcameracontrol_p.h"
 
 #include "bbcamerasession_p.h"
+#include <qcamerainfo.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -78,6 +79,11 @@ void BbCameraControl::setCaptureMode(QCamera::CaptureModes mode)
 QCamera::Status BbCameraControl::status() const
 {
     return m_session->status();
+}
+
+void BbCameraControl::setCamera(const QCameraInfo &camera)
+{
+    m_session->setDevice(camera.id());
 }
 
 bool BbCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const

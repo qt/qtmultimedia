@@ -159,7 +159,6 @@ public:
     };
 
     explicit QCamera(QObject *parent = nullptr);
-    explicit QCamera(const QByteArray& deviceName, QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
     explicit QCamera(QCamera::Position position, QObject *parent = nullptr);
     ~QCamera();
@@ -168,6 +167,9 @@ public:
 
     State state() const;
     Status status() const;
+
+    QCameraInfo cameraInfo() const;
+    void setCameraInfo(const QCameraInfo &cameraInfo);
 
     CaptureModes captureMode() const;
     bool isCaptureModeSupported(CaptureModes mode) const;

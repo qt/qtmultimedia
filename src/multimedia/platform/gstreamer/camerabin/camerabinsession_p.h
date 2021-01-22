@@ -165,7 +165,8 @@ public:
 
     bool isMuted() const;
 
-    QString device() const { return m_inputDevice; }
+    QByteArray device() const { return m_inputDevice; }
+    void setDevice(const QByteArray &device);
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
     bool processBusMessage(const QGstreamerMessage &message) override;
@@ -185,7 +186,6 @@ signals:
     void busyChanged(bool);
 
 public slots:
-    void setDevice(const QString &device);
     void setState(QCamera::State);
     void setCaptureDevice(const QString &deviceName);
     void setMetaData(const QMap<QByteArray, QVariant>&);
@@ -221,7 +221,7 @@ private:
     QString m_captureDevice;
     QCamera::Status m_status;
     QCamera::State m_pendingState;
-    QString m_inputDevice;
+    QByteArray m_inputDevice;
     bool m_muted;
     bool m_busy;
     QMediaStorageLocation m_mediaStorageLocation;

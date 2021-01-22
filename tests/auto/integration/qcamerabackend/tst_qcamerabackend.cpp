@@ -65,7 +65,6 @@ public slots:
 
 private slots:
     void testCameraInfo();
-    void testCtorWithDevice();
     void testCtorWithCameraInfo();
     void testCtorWithPosition();
 
@@ -109,22 +108,6 @@ void tst_QCameraBackend::testCameraInfo()
         QVERIFY(!info.description().isEmpty());
         QVERIFY(info.orientation() % 90 == 0);
     }
-}
-
-void tst_QCameraBackend::testCtorWithDevice()
-{
-    const auto availableCameras = QMediaDeviceManager::videoInputs();
-    if (availableCameras.isEmpty())
-        QSKIP("Camera selection not supported");
-
-    QCamera *camera = new QCamera(availableCameras.first().id());
-    QCOMPARE(camera->error(), QCamera::NoError);
-    delete camera;
-
-    //loading non existing camera should fail
-    camera = new QCamera(QUuid::createUuid().toByteArray());
-    QCOMPARE(camera->error(), QCamera::CameraError);
-    delete camera;
 }
 
 void tst_QCameraBackend::testCtorWithCameraInfo()
@@ -533,7 +516,7 @@ void tst_QCameraBackend::testExposureMode()
 
 void tst_QCameraBackend::testVideoRecording_data()
 {
-    QTest::addColumn<QByteArray>("device");
+    QTest::addColumn<QCameraInfo>("device");
 
     const auto devices = QMediaDeviceManager::videoInputs();
 
@@ -543,14 +526,14 @@ void tst_QCameraBackend::testVideoRecording_data()
     }
 
     if (devices.isEmpty())
-        QTest::newRow("Default device") << QByteArray();
+        QTest::newRow("Default device") << QCameraInfo();
 }
 
 void tst_QCameraBackend::testVideoRecording()
 {
-    QFETCH(QByteArray, device);
+    QFETCH(QCameraInfo, device);
 
-    QScopedPointer<QCamera> camera(device.isEmpty() ? new QCamera : new QCamera(device));
+    QScopedPointer<QCamera> camera(new QCamera(device));
 
     QMediaRecorder recorder(camera.data());
 

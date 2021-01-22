@@ -54,8 +54,7 @@ static bool operator<(const QSize &s1, const QSize s2)
 }
 QT_END_NAMESPACE
 
-QGstreamerV4L2Input::QGstreamerV4L2Input(QObject *parent)
-    :QObject(parent)
+QGstreamerV4L2Input::QGstreamerV4L2Input()
 {
 }
 
@@ -78,11 +77,6 @@ void QGstreamerV4L2Input::setDevice(const QByteArray &newDevice)
         m_device = newDevice;
         updateSupportedResolutions(newDevice);
     }
-}
-
-void QGstreamerV4L2Input::setDevice(const QString &device)
-{
-    setDevice(QFile::encodeName(device));
 }
 
 void QGstreamerV4L2Input::updateSupportedResolutions(const QByteArray &device)

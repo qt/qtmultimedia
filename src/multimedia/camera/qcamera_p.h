@@ -54,11 +54,11 @@
 #include "qmediasource_p.h"
 #include "qvideosurfaceoutput_p.h"
 #include "qcamera.h"
+#include "qcamerainfo.h"
 
 QT_BEGIN_NAMESPACE
 
 class QCameraControl;
-class QVideoDeviceSelectorControl;
 
 class QCameraPrivate : public QMediaSourcePrivate
 {
@@ -67,7 +67,6 @@ public:
     QCameraPrivate():
         QMediaSourcePrivate(),
         control(nullptr),
-        deviceControl(nullptr),
         cameraExposure(nullptr),
         cameraFocus(nullptr),
         imageProcessing(nullptr),
@@ -89,7 +88,6 @@ public:
     void clear();
 
     QCameraControl *control;
-    QVideoDeviceSelectorControl *deviceControl;
 
     QCameraExposure *cameraExposure;
     QCameraFocus *cameraFocus;
@@ -102,6 +100,8 @@ public:
 
     QCamera::Error error;
     QString errorString;
+
+    QCameraInfo cameraInfo;
 
     QCamera::LockTypes requestedLocks;
 

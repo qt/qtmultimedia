@@ -51,7 +51,6 @@
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
-#include <qvideodeviceselectorcontrol.h>
 #include <QMediaDeviceManager>
 #include <QtQml/qqmlinfo.h>
 
@@ -362,37 +361,22 @@ int QDeclarativeCamera::orientation() const
 
 void QDeclarativeCamera::setupDevice(const QString &deviceName)
 {
-    QMediaService *service = m_camera->service();
-    if (!service)
-        return;
+    QCameraInfo oldCameraInfo = m_currentCameraInfo;
 
-    QVideoDeviceSelectorControl *deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
-    if (!deviceControl)
-        return;
-
-    int deviceIndex = -1;
-
-    if (deviceName.isEmpty()) {
-        deviceIndex = deviceControl->defaultDevice();
-    } else {
-        for (int i = 0; i < deviceControl->deviceCount(); ++i) {
-            if (deviceControl->deviceName(i) == deviceName) {
-                deviceIndex = i;
-                break;
-            }
+    auto cameras = QMediaDeviceManager::videoInputs();
+    QByteArray id = deviceName.toUtf8();
+    QCameraInfo info;
+    for (const auto &c : cameras) {
+        if (c.id() == id) {
+            info = c;
+            break;
         }
     }
-
-    if (deviceIndex == -1)
-        return;
-
     State previousState = cameraState();
     setCameraState(UnloadedState);
 
-    deviceControl->setSelectedDevice(deviceIndex);
-
-    QCameraInfo oldCameraInfo = m_currentCameraInfo;
-    m_currentCameraInfo = QCameraInfo(*m_camera);
+    m_currentCameraInfo = info;
+    m_camera->setCameraInfo(info);
 
     emit deviceIdChanged();
     if (oldCameraInfo.description() != m_currentCameraInfo.description())

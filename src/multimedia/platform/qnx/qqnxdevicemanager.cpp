@@ -44,8 +44,50 @@
 #include "private/qnxaudioinput_p.h"
 #include "private/qnxaudiooutput_p.h"
 #include "private/qnxaudiodeviceinfo_p.h"
+#include "bbcamerasession_p.h"
 
 QT_BEGIN_NAMESPACE
+
+static QList<QCameraInfo> enumerateCameras()
+{
+
+    camera_unit_t cameras[10];
+
+    unsigned int knownCameras = 0;
+    const camera_error_t result = camera_get_supported_cameras(10, &knownCameras, cameras);
+    if (result != CAMERA_EOK) {
+        qWarning() << "Unable to retrieve supported camera types:" << result;
+        return {};
+    }
+
+    QList<QCameraInfo> cameras;
+    for (unsigned int i = 0; i < knownCameras; ++i) {
+        QCameraInfoPrivate *p = new QCameraInfoPrivate;
+        switch (cameras[i]) {
+        case CAMERA_UNIT_FRONT:
+            p->id = BbCameraSession::cameraIdentifierFront();
+            p->description = tr("Front Camera");
+            p->position = QCamera::FrontFace;
+            break;
+        case CAMERA_UNIT_REAR:
+            p->id = BbCameraSession::cameraIdentifierRear();
+            p->description = tr("Rear Camera");
+            p->position = QCamera::BackFace;
+            break;
+        case CAMERA_UNIT_DESKTOP:
+            p->id = devices->append(BbCameraSession::cameraIdentifierDesktop();
+            p->description = tr("Desktop Camera");
+            p->position = QCamera::UnspecifiedPosition;
+            break;
+        default:
+            break;
+        }
+        if (i == 0)
+            p->isDefault = true;
+        cameras.append(QCameraInfo(p));
+    }
+    return cameras;
+}
 
 QQnxDeviceManager::QQnxDeviceManager()
     : QMediaPlatformDeviceManager()
@@ -64,7 +106,7 @@ QList<QAudioDeviceInfo> QQnxDeviceManager::audioOutputs() const
 
 QList<QCameraInfo> QQnxDeviceManager::videoInputs() const
 {
-    return {};
+    return enumerateCameras();
 }
 
 QAbstractAudioInput *QQnxDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)

@@ -3,7 +3,6 @@ INCLUDEPATH += $$PWD
 SOURCES += \
     $$PWD/qandroidcaptureservice.cpp \
     $$PWD/qandroidcameracontrol.cpp \
-    $$PWD/qandroidvideodeviceselectorcontrol.cpp \
     $$PWD/qandroidcamerasession.cpp \
     $$PWD/qandroidcameraexposurecontrol.cpp \
     $$PWD/qandroidcameraimageprocessingcontrol.cpp \
@@ -21,7 +20,6 @@ SOURCES += \
 HEADERS += \
     $$PWD/qandroidcaptureservice_p.h \
     $$PWD/qandroidcameracontrol_p.h \
-    $$PWD/qandroidvideodeviceselectorcontrol_p.h \
     $$PWD/qandroidcamerasession_p.h \
     $$PWD/qandroidcameraexposurecontrol_p.h \
     $$PWD/qandroidcameraimageprocessingcontrol_p.h \

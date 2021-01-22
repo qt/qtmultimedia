@@ -48,7 +48,6 @@ qt_internal_add_module(Multimedia
         controls/qmediavideoprobecontrol.cpp controls/qmediavideoprobecontrol.h
         controls/qmetadatareadercontrol.cpp controls/qmetadatareadercontrol.h
         controls/qmetadatawritercontrol.cpp controls/qmetadatawritercontrol.h
-        controls/qvideodeviceselectorcontrol.cpp controls/qvideodeviceselectorcontrol.h
         controls/qvideoencodersettingscontrol.cpp controls/qvideoencodersettingscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
@@ -216,7 +215,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstreamermessage.cpp platform/gstreamer/common/qgstreamermessage_p.h
         platform/gstreamer/common/qgstreamerplayercontrol.cpp platform/gstreamer/common/qgstreamerplayercontrol_p.h
         platform/gstreamer/common/qgstreamerplayersession.cpp platform/gstreamer/common/qgstreamerplayersession_p.h
-        platform/gstreamer/common/qgstreamervideoinputdevicecontrol.cpp platform/gstreamer/common/qgstreamervideoinputdevicecontrol_p.h
         platform/gstreamer/common/qgstreamervideooverlay.cpp platform/gstreamer/common/qgstreamervideooverlay_p.h
         platform/gstreamer/common/qgstreamervideoprobecontrol.cpp platform/gstreamer/common/qgstreamervideoprobecontrol_p.h
         platform/gstreamer/common/qgstreamervideorenderer.cpp platform/gstreamer/common/qgstreamervideorenderer_p.h
@@ -373,7 +371,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture/qandroidmediacontainercontrol.cpp platform/android/mediacapture/qandroidmediacontainercontrol_p.h
         platform/android/mediacapture/qandroidmediarecordercontrol.cpp platform/android/mediacapture/qandroidmediarecordercontrol_p.h
         platform/android/mediacapture/qandroidmediavideoprobecontrol.cpp platform/android/mediacapture/qandroidmediavideoprobecontrol_p.h
-        platform/android/mediacapture/qandroidvideodeviceselectorcontrol.cpp platform/android/mediacapture/qandroidvideodeviceselectorcontrol_p.h
         platform/android/mediacapture/qandroidvideoencodersettingscontrol.cpp platform/android/mediacapture/qandroidvideoencodersettingscontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
@@ -460,7 +457,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfaudioencodersettingscontrol.mm platform/darwin/camera/avfaudioencodersettingscontrol_p.h
         platform/darwin/camera/avfcameracontrol.mm platform/darwin/camera/avfcameracontrol_p.h
         platform/darwin/camera/avfcameradebug_p.h
-        platform/darwin/camera/avfcameradevicecontrol.mm platform/darwin/camera/avfcameradevicecontrol_p.h
         platform/darwin/camera/avfcameraexposurecontrol.mm platform/darwin/camera/avfcameraexposurecontrol_p.h
         platform/darwin/camera/avfcamerafocuscontrol.mm platform/darwin/camera/avfcamerafocuscontrol_p.h
         platform/darwin/camera/avfcamerametadatacontrol.mm platform/darwin/camera/avfcamerametadatacontrol_p.h
@@ -538,7 +534,6 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/camera/bbcameraviewfindersettingscontrol.cpp platform/qnx/camera/bbcameraviewfindersettingscontrol_p.h
         platform/qnx/camera/bbimageencodercontrol.cpp platform/qnx/camera/bbimageencodercontrol_p.h
         platform/qnx/camera/bbmediastoragelocation.cpp platform/qnx/camera/bbmediastoragelocation_p.h
-        platform/qnx/camera/bbvideodeviceselectorcontrol.cpp platform/qnx/camera/bbvideodeviceselectorcontrol_p.h
         platform/qnx/camera/bbvideorenderercontrol.cpp platform/qnx/camera/bbvideorenderercontrol_p.h
         platform/qnx/common/windowgrabber.cpp platform/qnx/common/windowgrabber_p.h
         platform/qnx/mediaplayer/mmrenderermediaplayercontrol.cpp platform/qnx/mediaplayer/mmrenderermediaplayercontrol_p.h

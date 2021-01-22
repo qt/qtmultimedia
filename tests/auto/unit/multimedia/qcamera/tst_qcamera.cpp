@@ -1618,76 +1618,61 @@ void tst_QCamera::testCameraControl()
 
 void tst_QCamera::testConstructor()
 {
-    // Service doesn't implement QVideoDeviceSelectorControl
-    MockMediaRecorderService::simpleCamera = true;
-
+    auto cameras = QMediaDeviceManager::videoInputs();
+    QCameraInfo defaultCamera = QMediaDeviceManager::defaultVideoInput();
+    QCameraInfo frontCamera, backCamera;
+    for (const auto &c : cameras) {
+        if (frontCamera.isNull() && c.position() == QCamera::FrontFace)
+            frontCamera = c;
+        if (backCamera.isNull() && c.position() == QCamera::BackFace)
+            backCamera = c;
+    }
+    QVERIFY(!defaultCamera.isNull());
+    QVERIFY(!frontCamera.isNull());
+    QVERIFY(!backCamera.isNull());
 
     {
         QCamera camera;
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(camera.cameraInfo(), defaultCamera);
     }
 
     {
-        // Requesting a camera at a specific position from a service which doesn't implement
-        // the QVideoDeviceSelectorControl should result in loading the default camera
         QCamera camera(QCamera::FrontFace);
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
-    }
-
-    {
-        QCamera camera;
-        auto *service = integration->lastCaptureService();
-        QCOMPARE(camera.availability(), QMultimedia::Available);
-        QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(service->mockVideoDeviceSelectorControl->selectedDevice(), 1); // default is 1
+        QCOMPARE(camera.cameraInfo(), frontCamera);
     }
 
     {
         QCamera camera(QMediaDeviceManager::defaultVideoInput());
-        auto *service = integration->lastCaptureService();
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(service->mockVideoDeviceSelectorControl->selectedDevice(), 1);
-        QCOMPARE(QCameraInfo(camera), QMediaDeviceManager::defaultVideoInput());
+        QCOMPARE(camera.cameraInfo(), defaultCamera);
     }
 
     {
         QCameraInfo cameraInfo = QMediaDeviceManager::videoInputs().at(0);
         QCamera camera(cameraInfo);
-        auto *service = integration->lastCaptureService();
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(service->mockVideoDeviceSelectorControl->selectedDevice(), 0);
         QCOMPARE(QCameraInfo(camera), cameraInfo);
     }
 
     {
-        // Requesting a camera at a position which is not available should result in
-        // loading the default camera
-        QCamera camera(QCamera::FrontFace);
-        auto *service = integration->lastCaptureService();
-        QCOMPARE(camera.availability(), QMultimedia::Available);
-        QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(service->mockVideoDeviceSelectorControl->selectedDevice(), 1);
-    }
-
-    {
         QCamera camera(QCamera::BackFace);
-        auto *service = integration->lastCaptureService();
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(service->mockVideoDeviceSelectorControl->selectedDevice(), 0);
+        QCOMPARE(camera.cameraInfo(), backCamera);
     }
 
     {
         // Should load the default camera when UnspecifiedPosition is requested
         QCamera camera(QCamera::UnspecifiedPosition);
-        auto *service = integration->lastCaptureService();
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(service->mockVideoDeviceSelectorControl->selectedDevice(), 1);
+        QCOMPARE(camera.cameraInfo(), defaultCamera);
     }
 }
 
@@ -1773,7 +1758,7 @@ void tst_QCamera::testQCameraIsAvailable()
 void tst_QCamera::testQCameraIsNotAvailable()
 {
     integration->setFlags(QMockIntegration::NoCaptureInterface);
-    QCamera camera("random");
+    QCamera camera;
 
     QCOMPARE(camera.error(), QCamera::CameraError);
     QVERIFY(!camera.isAvailable());

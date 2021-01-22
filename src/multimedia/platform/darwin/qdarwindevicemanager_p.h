@@ -53,6 +53,7 @@
 
 #include <private/qmediaplatformdevicemanager_p.h>
 #include <qelapsedtimer.h>
+#include <qcamerainfo.h>
 
 QT_BEGIN_NAMESPACE
 

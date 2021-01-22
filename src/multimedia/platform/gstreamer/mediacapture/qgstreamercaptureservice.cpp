@@ -53,7 +53,6 @@
 #endif
 
 #include "qgstreamerimagecapturecontrol_p.h"
-#include <private/qgstreamervideoinputdevicecontrol_p.h>
 #include <private/qgstreameraudioprobecontrol_p.h>
 
 #include <private/qgstreamervideorenderer_p.h>
@@ -62,19 +61,6 @@
 QT_BEGIN_NAMESPACE
 
 QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode mode)
-    : QMediaPlatformCaptureInterface()
-    , m_captureSession(0)
-    , m_cameraControl(0)
-#if defined(USE_GSTREAMER_CAMERA)
-    , m_videoInput(0)
-#endif
-    , m_metaDataControl(0)
-    , m_videoInputDevice(0)
-    , m_videoOutput(0)
-    , m_videoRenderer(0)
-    , m_videoWindow(0)
-    , m_imageCaptureControl(0)
-    , m_audioProbeControl(0)
 {
     if (mode == QMediaRecorder::AudioOnly) {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
@@ -84,15 +70,8 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
    else {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
         m_cameraControl = new QGstreamerCameraControl(m_captureSession);
-        m_videoInput = new QGstreamerV4L2Input(this);
+        m_videoInput = new QGstreamerV4L2Input;
         m_captureSession->setVideoInput(m_videoInput);
-        m_videoInputDevice = new QGstreamerVideoInputDeviceControl(this);
-
-        connect(m_videoInputDevice, SIGNAL(selectedDeviceChanged(QString)),
-                m_videoInput, SLOT(setDevice(QString)));
-
-        if (m_videoInputDevice->deviceCount())
-            m_videoInput->setDevice(m_videoInputDevice->deviceName(m_videoInputDevice->selectedDevice()));
 
         m_videoRenderer = new QGstreamerVideoRenderer(this);
 
@@ -115,15 +94,13 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
 
 QGstreamerCaptureService::~QGstreamerCaptureService()
 {
+    delete m_videoInput;
 }
 
 QObject *QGstreamerCaptureService::requestControl(const char *name)
 {
     if (!m_captureSession)
         return 0;
-
-    if (qstrcmp(name,QVideoDeviceSelectorControl_iid) == 0)
-        return m_videoInputDevice;
 
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_captureSession->recorderControl();

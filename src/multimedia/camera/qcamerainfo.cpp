@@ -41,8 +41,6 @@
 
 #include "qcamera_p.h"
 
-#include <qvideodeviceselectorcontrol.h>
-
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -86,17 +84,8 @@ QCameraInfo::QCameraInfo() = default;
     the QCameraInfo object will be invalid and isNull() will return true.
 */
 QCameraInfo::QCameraInfo(const QCamera &camera)
-    : d(new QCameraInfoPrivate)
+    : QCameraInfo(camera.cameraInfo())
 {
-    const QVideoDeviceSelectorControl *deviceControl = camera.d_func()->deviceControl;
-    if (deviceControl && deviceControl->deviceCount() > 0) {
-        const int selectedDevice = deviceControl->selectedDevice();
-        d->id = deviceControl->deviceName(selectedDevice).toLatin1();
-        d->description = deviceControl->deviceDescription(selectedDevice);
-        d->position = deviceControl->cameraPosition(selectedDevice);
-        d->orientation = deviceControl->cameraOrientation(selectedDevice);
-        d->isNull = false;
-    }
 }
 
 /*!
@@ -121,6 +110,9 @@ bool QCameraInfo::operator==(const QCameraInfo &other) const
 {
     if (d == other.d)
         return true;
+
+    if (!d || ! other.d)
+        return false;
 
     return (d->id == other.d->id
             && d->description == other.d->description

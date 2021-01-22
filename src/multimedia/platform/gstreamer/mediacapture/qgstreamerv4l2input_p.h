@@ -60,11 +60,10 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerV4L2Input : public QObject, public QGstreamerVideoInput
+class QGstreamerV4L2Input : public QGstreamerVideoInput
 {
-    Q_OBJECT
 public:
-    QGstreamerV4L2Input(QObject *parent = 0);
+    QGstreamerV4L2Input();
     virtual ~QGstreamerV4L2Input();
 
     GstElement *buildElement() override;
@@ -72,11 +71,8 @@ public:
     QList<qreal> supportedFrameRates(const QSize &frameSize = QSize()) const override;
     QList<QSize> supportedResolutions(qreal frameRate = -1) const override;
 
-    QByteArray device() const;
-
-public slots:
-    void setDevice(const QByteArray &device);
-    void setDevice(const QString &device);
+    QByteArray device() const override { return m_device; }
+    void setDevice(const QByteArray &device) override;
 
 private:
     void updateSupportedResolutions(const QByteArray &device);

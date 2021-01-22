@@ -55,6 +55,7 @@
 #include <QtCore/QByteArray>
 #include <QtCore/QSet>
 #include <QtCore/QResource>
+#include <QtCore/QUrl>
 
 #include <QtMultimedia/QMediaPlayerControl>
 #include <QtMultimedia/QMediaPlayer>

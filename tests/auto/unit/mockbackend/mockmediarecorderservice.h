@@ -45,7 +45,6 @@
 #include "mockcameracontrol.h"
 #include "mockvideorenderercontrol.h"
 #include "mockvideowindowcontrol.h"
-#include "mockvideodeviceselectorcontrol.h"
 #include <private/qmediaplatformcaptureinterface_p.h>
 
 class MockMediaRecorderService : public QMediaPlatformCaptureInterface
@@ -69,7 +68,6 @@ public:
         mockImageEncoderControl = new MockImageEncoderControl(this);
         rendererControl = new MockVideoRendererControl(this);
         windowControl = new MockVideoWindowControl(this);
-        mockVideoDeviceSelectorControl = new MockVideoDeviceSelectorControl(this);
         rendererRef = 0;
         windowRef = 0;
     }
@@ -108,8 +106,6 @@ public:
             return mockImageProcessingControl;
         if (qstrcmp(name, QImageEncoderControl_iid) == 0)
             return mockImageEncoderControl;
-        if (qstrcmp(name, QVideoDeviceSelectorControl_iid) == 0)
-            return mockVideoDeviceSelectorControl;
 
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             if (rendererRef == 0) {
@@ -145,7 +141,6 @@ public:
     MockImageEncoderControl *mockImageEncoderControl;
     MockVideoRendererControl *rendererControl;
     MockVideoWindowControl *windowControl;
-    MockVideoDeviceSelectorControl *mockVideoDeviceSelectorControl;
     int rendererRef;
     int windowRef;
 

@@ -30,7 +30,6 @@
 
 #include <QtTest/QtTest>
 
-#include <qvideodeviceselectorcontrol.h>
 #include <qmediaservice.h>
 #include <qmediaservice.h>
 

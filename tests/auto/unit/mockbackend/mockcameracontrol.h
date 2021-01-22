@@ -30,6 +30,7 @@
 #define MOCKCAMERACONTROL_H
 
 #include "qcameracontrol.h"
+#include "qcamerainfo.h"
 #include <qtimer.h>
 
 class MockCameraControl : public QCameraControl
@@ -234,9 +235,16 @@ public:
         emit statusChanged(newStatus);
     }
 
+    void setCamera(const QCameraInfo &camera)
+    {
+        m_camera = camera;
+    }
+
+
     QCamera::State m_state;
     QCamera::CaptureModes m_captureMode;
     QCamera::Status m_status;
+    QCameraInfo m_camera;
     bool m_propertyChangesSupported;
 
 

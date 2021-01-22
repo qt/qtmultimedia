@@ -57,7 +57,6 @@
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
-class QVideoDeviceSelectorControl;
 
 class QGstreamerAudioProbeControl;
 class QGstreamerCaptureSession;
@@ -85,22 +84,20 @@ public:
 private:
     void setAudioPreview(GstElement *);
 
-    QGstreamerCaptureSession *m_captureSession;
-    QGstreamerCameraControl *m_cameraControl;
+    QGstreamerCaptureSession *m_captureSession = nullptr;
+    QGstreamerCameraControl *m_cameraControl = nullptr;
 #if defined(USE_GSTREAMER_CAMERA)
-    QGstreamerV4L2Input *m_videoInput;
+    QGstreamerV4L2Input *m_videoInput = nullptr;
 #endif
-    QGstreamerCaptureMetaDataControl *m_metaDataControl;
+    QGstreamerCaptureMetaDataControl *m_metaDataControl = nullptr;
 
-    QVideoDeviceSelectorControl *m_videoInputDevice;
+    QObject *m_videoOutput = nullptr;
 
-    QObject *m_videoOutput;
+    QGstreamerVideoRenderer *m_videoRenderer = nullptr;
+    QGstreamerVideoWindow *m_videoWindow = nullptr;
+    QGstreamerImageCaptureControl *m_imageCaptureControl = nullptr;
 
-    QGstreamerVideoRenderer *m_videoRenderer;
-    QGstreamerVideoWindow *m_videoWindow;
-    QGstreamerImageCaptureControl *m_imageCaptureControl;
-
-    QGstreamerAudioProbeControl *m_audioProbeControl;
+    QGstreamerAudioProbeControl *m_audioProbeControl = nullptr;
 };
 
 QT_END_NAMESPACE

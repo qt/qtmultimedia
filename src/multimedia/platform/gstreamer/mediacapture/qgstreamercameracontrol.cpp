@@ -40,6 +40,8 @@
 #include "qgstreamercameracontrol_p.h"
 #include "qgstreamerimageencode_p.h"
 
+#include <qcamerainfo.h>
+
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
 
@@ -126,6 +128,11 @@ void QGstreamerCameraControl::setState(QCamera::State state)
 
     updateStatus();
     emit stateChanged(m_state);
+}
+
+void QGstreamerCameraControl::setCamera(const QCameraInfo &camera)
+{
+    m_session->videoInput()->setDevice(camera.id());
 }
 
 QCamera::State QGstreamerCameraControl::state() const

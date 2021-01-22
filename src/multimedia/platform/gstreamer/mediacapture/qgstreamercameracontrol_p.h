@@ -72,6 +72,8 @@ public:
 
     QCamera::Status status() const override { return m_status; }
 
+    void setCamera(const QCameraInfo &camera) override;
+
     QCamera::CaptureModes captureMode() const override { return m_captureMode; }
     void setCaptureMode(QCamera::CaptureModes mode) override;
 

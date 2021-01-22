@@ -91,6 +91,11 @@ QCamera::Status AVFCameraControl::status() const
     return statusTable[m_state][m_session->state()];
 }
 
+void AVFCameraControl::setCamera(const QCameraInfo &camera)
+{
+    m_session->setActiveCamera(camera);
+}
+
 void AVFCameraControl::updateStatus()
 {
     QCamera::Status newStatus = status();
@@ -116,7 +121,7 @@ void AVFCameraControl::setCaptureMode(QCamera::CaptureModes mode)
     Q_EMIT captureModeChanged(mode);
 }
 
-bool AVFCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
+bool AVFCameraControl::isCaptureModeSupported(QCamera::CaptureModes /*mode*/) const
 {
     return true;
 }

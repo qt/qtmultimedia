@@ -15,7 +15,6 @@ HEADERS += \
     $$PWD/bbcameraviewfindersettingscontrol_p.h \
     $$PWD/bbimageencodercontrol_p.h \
     $$PWD/bbmediastoragelocation_p.h \
-    $$PWD/bbvideodeviceselectorcontrol_p.h \
     $$PWD/bbvideorenderercontrol_p.h
 
 SOURCES += \
@@ -33,7 +32,6 @@ SOURCES += \
     $$PWD/bbcameraviewfindersettingscontrol.cpp \
     $$PWD/bbimageencodercontrol.cpp \
     $$PWD/bbmediastoragelocation.cpp \
-    $$PWD/bbvideodeviceselectorcontrol.cpp \
     $$PWD/bbvideorenderercontrol.cpp
 
 LIBS += -lcamapi -laudio_manager

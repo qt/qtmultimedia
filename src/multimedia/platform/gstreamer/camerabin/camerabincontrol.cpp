@@ -46,6 +46,8 @@
 #include "camerabinfocus.h"
 #include "camerabinimageprocessing.h"
 
+#include <qcamerainfo.h>
+
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qmetaobject.h>
@@ -149,6 +151,11 @@ QCamera::State CameraBinControl::state() const
 QCamera::Status CameraBinControl::status() const
 {
     return m_session->status();
+}
+
+void CameraBinControl::setCamera(const QCameraInfo &camera)
+{
+    m_session->setDevice(camera.id());
 }
 
 void CameraBinControl::reloadLater()

@@ -67,7 +67,6 @@ class BbCameraSession;
 class BbCameraVideoEncoderSettingsControl;
 class BbCameraViewfinderSettingsControl;
 class BbImageEncoderControl;
-class BbVideoDeviceSelectorControl;
 class BbVideoRendererControl;
 
 class BbCameraService : public QMediaService
@@ -94,7 +93,6 @@ private:
     BbCameraVideoEncoderSettingsControl* m_cameraVideoEncoderSettingsControl;
     BbCameraViewfinderSettingsControl* m_cameraViewfinderSettingsControl;
     BbImageEncoderControl* m_imageEncoderControl;
-    BbVideoDeviceSelectorControl* m_videoDeviceSelectorControl;
     BbVideoRendererControl* m_videoRendererControl;
 };
 

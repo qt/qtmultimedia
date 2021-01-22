@@ -33,7 +33,6 @@ target_sources(QtMultimediaMockBackend INTERFACE
     mockmediastreamscontrol.h
     mockmetadatareadercontrol.h
     mockmetadatawritercontrol.h
-    mockvideodeviceselectorcontrol.h
     mockvideoencodercontrol.h
     mockvideoprobecontrol.h
     mockvideorenderercontrol.h

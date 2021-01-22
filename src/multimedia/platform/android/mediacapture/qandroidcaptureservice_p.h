@@ -61,7 +61,6 @@ QT_BEGIN_NAMESPACE
 class QAndroidMediaRecorderControl;
 class QAndroidCaptureSession;
 class QAndroidCameraControl;
-class QAndroidVideoDeviceSelectorControl;
 class QAndroidCameraSession;
 class QAndroidCameraVideoRendererControl;
 class QAndroidCameraExposureControl;
@@ -90,7 +89,6 @@ private:
     QAndroidMediaRecorderControl *m_recorderControl;
     QAndroidCaptureSession *m_captureSession;
     QAndroidCameraControl *m_cameraControl;
-    QAndroidVideoDeviceSelectorControl *m_videoInputControl;
     QAndroidCameraSession *m_cameraSession;
     QAndroidCameraVideoRendererControl *m_videoRendererControl;
     QAndroidCameraExposureControl *m_cameraExposureControl;

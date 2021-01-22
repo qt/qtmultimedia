@@ -88,6 +88,9 @@ class QGstreamerVideoInput : public QGstreamerElementFactory
 public:
     virtual QList<qreal> supportedFrameRates(const QSize &frameSize = QSize()) const = 0;
     virtual QList<QSize> supportedResolutions(qreal frameRate = -1) const = 0;
+
+    virtual QByteArray device() const = 0;
+    virtual void setDevice(const QByteArray &device) = 0;
 };
 
 class QGstreamerCaptureSession

@@ -68,6 +68,8 @@ public:
 
     virtual QCamera::Status status() const = 0;
 
+    virtual void setCamera(const QCameraInfo &camera) = 0;
+
     virtual QCamera::CaptureModes captureMode() const = 0;
     virtual void setCaptureMode(QCamera::CaptureModes) = 0;
     virtual bool isCaptureModeSupported(QCamera::CaptureModes mode) const = 0;

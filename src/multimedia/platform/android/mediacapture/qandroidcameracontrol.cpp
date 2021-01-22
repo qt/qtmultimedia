@@ -39,6 +39,8 @@
 
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
+#include <qmediadevicemanager.h>
+#include <qcamerainfo.h>
 #include <qtimer.h>
 
 QT_BEGIN_NAMESPACE
@@ -100,6 +102,20 @@ QCamera::Status QAndroidCameraControl::status() const
 {
     return m_cameraSession->status();
 }
+
+void QAndroidCameraControl::setCamera(const QCameraInfo &camera)
+{
+    int id = 0;
+    auto cameras = QMediaDeviceManager::videoInputs();
+    for (int i = 0; i < cameras.size(); ++i) {
+        if (cameras.at(i) == camera) {
+            id = i;
+            break;
+        }
+    }
+    m_cameraSession->setSelectedCamera(id);
+}
+
 
 bool QAndroidCameraControl::canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
 {

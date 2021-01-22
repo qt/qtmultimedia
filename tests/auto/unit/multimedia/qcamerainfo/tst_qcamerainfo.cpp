@@ -74,24 +74,6 @@ void tst_QCameraInfo::cleanup()
 
 void tst_QCameraInfo::constructor()
 {
-    // Service doesn't implement QVideoDeviceSelectorControl
-    // QCameraInfo should not be valid in this case
-    MockMediaRecorderService::simpleCamera = true;
-
-    {
-        QCamera camera;
-
-        QCameraInfo info(camera);
-        QVERIFY(info.isNull());
-        QVERIFY(info.id().isEmpty());
-        QVERIFY(info.description().isEmpty());
-        QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
-        QCOMPARE(info.orientation(), 0);
-    }
-
-    // Service implements QVideoDeviceSelectorControl
-    MockMediaRecorderService::simpleCamera = false;
-
     {
         // default camera
         QCamera camera;
@@ -103,8 +85,17 @@ void tst_QCameraInfo::constructor()
         QCOMPARE(info.orientation(), 0);
     }
 
-    QCamera camera("backcamera");
-    QCameraInfo info(camera);
+    auto cameras = QMediaDeviceManager::videoInputs();
+    QCameraInfo info;
+    for (const auto &c : cameras) {
+        if (c.position() == QCamera::BackFace)
+            info = c;
+    }
+    QVERIFY(!info.isNull());
+
+    QCamera camera(info);
+    QCOMPARE(info, camera.cameraInfo());
+    QCOMPARE(info, QCameraInfo(camera));
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("backcamera"));
     QCOMPARE(info.description(), QStringLiteral("backcamera desc"));

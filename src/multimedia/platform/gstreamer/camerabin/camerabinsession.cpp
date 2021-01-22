@@ -519,16 +519,16 @@ GstElement *CameraBinSession::buildCameraSource()
 
             if (m_videoSrc) {
                 if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "device"))
-                    g_object_set(G_OBJECT(m_videoSrc), "device", m_inputDevice.toUtf8().constData(), NULL);
+                    g_object_set(G_OBJECT(m_videoSrc), "device", m_inputDevice.constData(), NULL);
 
                 if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "device-path"))
-                    g_object_set(G_OBJECT(m_videoSrc), "device-path", m_inputDevice.toUtf8().constData(), NULL);
+                    g_object_set(G_OBJECT(m_videoSrc), "device-path", m_inputDevice.constData(), NULL);
 
                 if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSrc), "device-index"))
                     g_object_set(G_OBJECT(m_videoSrc), "device-index", m_inputDevice.toInt(), NULL);
             }
         } else if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_cameraSrc), "camera-device")) {
-            if (m_inputDevice == QLatin1String("secondary")) {
+            if (m_inputDevice == "secondary") {
                 g_object_set(G_OBJECT(m_cameraSrc), "camera-device", 1, NULL);
             } else {
                 g_object_set(G_OBJECT(m_cameraSrc), "camera-device", 0, NULL);
@@ -599,7 +599,7 @@ bool CameraBinSession::setOutputLocation(const QUrl& sink)
     return true;
 }
 
-void CameraBinSession::setDevice(const QString &device)
+void CameraBinSession::setDevice(const QByteArray &device)
 {
     if (m_inputDevice != device) {
         m_inputDevice = device;

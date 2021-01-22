@@ -42,7 +42,6 @@
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
 #include "avfcamerarenderercontrol_p.h"
-#include "avfcameradevicecontrol_p.h"
 #include "avfmediavideoprobecontrol_p.h"
 #include "avfimageencodercontrol_p.h"
 #include "avfcamerautility_p.h"
@@ -60,7 +59,6 @@
 QT_USE_NAMESPACE
 
 int AVFCameraSession::m_defaultCameraIndex;
-QList<AVFCameraInfo> AVFCameraSession::m_cameraDevices;
 
 @interface AVFCameraSessionObserver : NSObject
 
@@ -173,85 +171,12 @@ AVFCameraSession::~AVFCameraSession()
     [m_captureSession release];
 }
 
-int AVFCameraSession::defaultCameraIndex()
+void AVFCameraSession::setActiveCamera(const QCameraInfo &info)
 {
-    updateCameraDevices();
-    return m_defaultCameraIndex;
-}
-
-const QList<AVFCameraInfo> &AVFCameraSession::availableCameraDevices()
-{
-    updateCameraDevices();
-    return m_cameraDevices;
-}
-
-AVFCameraInfo AVFCameraSession::cameraDeviceInfo(const QByteArray &device)
-{
-    updateCameraDevices();
-
-    for (const AVFCameraInfo &info : qAsConst(m_cameraDevices)) {
-        if (info.deviceId == device)
-            return info;
+    if (m_activeCameraInfo != info) {
+        m_activeCameraInfo = info;
+        attachVideoInputDevice();
     }
-
-    return AVFCameraInfo();
-}
-
-void AVFCameraSession::updateCameraDevices()
-{
-#ifdef Q_OS_IOS
-    // Cameras can't change dynamically on iOS. Update only once.
-    if (!m_cameraDevices.isEmpty())
-        return;
-#else
-    // On OS X, cameras can be added or removed. Update the list every time, but not more than
-    // once every 500 ms
-    static QElapsedTimer timer;
-    if (timer.isValid() && timer.elapsed() < 500) // ms
-        return;
-#endif
-
-    m_defaultCameraIndex = -1;
-    m_cameraDevices.clear();
-
-    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-    for (AVCaptureDevice *device in videoDevices) {
-        if (defaultDevice && [defaultDevice.uniqueID isEqualToString:device.uniqueID])
-            m_defaultCameraIndex = m_cameraDevices.count();
-
-        AVFCameraInfo info;
-        info.deviceId = QByteArray([[device uniqueID] UTF8String]);
-        info.description = QString::fromNSString([device localizedName]);
-
-        // There is no API to get the camera sensor orientation, however, cameras are always
-        // mounted in landscape on iDevices.
-        //   - Back-facing cameras have the top side of the sensor aligned with the right side of
-        //     the screen when held in portrait ==> 270 degrees clockwise angle
-        //   - Front-facing cameras have the top side of the sensor aligned with the left side of
-        //     the screen when held in portrait ==> 270 degrees clockwise angle
-        // On OS X, the position will always be unspecified and the sensor orientation unknown.
-        switch (device.position) {
-        case AVCaptureDevicePositionBack:
-            info.position = QCamera::BackFace;
-            info.orientation = 270;
-            break;
-        case AVCaptureDevicePositionFront:
-            info.position = QCamera::FrontFace;
-            info.orientation = 270;
-            break;
-        default:
-            info.position = QCamera::UnspecifiedPosition;
-            info.orientation = 0;
-            break;
-        }
-
-        m_cameraDevices.append(info);
-    }
-
-#ifndef Q_OS_IOS
-    timer.restart();
-#endif
 }
 
 void AVFCameraSession::setVideoOutput(AVFCameraRendererControl *output)
@@ -382,34 +307,48 @@ void AVFCameraSession::onCaptureModeChanged(QCamera::CaptureModes mode)
     }
 }
 
+AVCaptureDevice *AVFCameraSession::createCaptureDevice()
+{
+    AVCaptureDevice *device = nullptr;
+
+    QByteArray deviceId = m_activeCameraInfo.id();
+    if (!deviceId.isEmpty()) {
+        device = [AVCaptureDevice deviceWithUniqueID:
+                    [NSString stringWithUTF8String:
+                        deviceId.constData()]];
+    }
+
+    if (!device)
+        device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+
+    return device;
+}
+
 void AVFCameraSession::attachVideoInputDevice()
 {
     //Attach video input device:
-    if (m_service->videoDeviceControl()->isDirty()) {
-        if (m_videoInput) {
-            [m_captureSession removeInput:m_videoInput];
-            [m_videoInput release];
-            m_videoInput = nullptr;
-            m_activeCameraInfo = AVFCameraInfo();
-        }
+    if (m_videoInput) {
+        [m_captureSession removeInput:m_videoInput];
+        [m_videoInput release];
+        m_videoInput = nullptr;
+    }
 
-        AVCaptureDevice *videoDevice = m_service->videoDeviceControl()->createCaptureDevice();
+    AVCaptureDevice *videoDevice = createCaptureDevice();
 
-        NSError *error = nil;
-        m_videoInput = [AVCaptureDeviceInput
-                deviceInputWithDevice:videoDevice
-                error:&error];
+    NSError *error = nil;
+    m_videoInput = [AVCaptureDeviceInput
+            deviceInputWithDevice:videoDevice
+            error:&error];
 
-        if (!m_videoInput) {
-            qWarning() << "Failed to create video device input";
+    if (!m_videoInput) {
+        qWarning() << "Failed to create video device input";
+    } else {
+        if ([m_captureSession canAddInput:m_videoInput]) {
+            [m_videoInput retain];
+            [m_captureSession addInput:m_videoInput];
         } else {
-            if ([m_captureSession canAddInput:m_videoInput]) {
-                m_activeCameraInfo = m_cameraDevices.at(m_service->videoDeviceControl()->selectedDevice());
-                [m_videoInput retain];
-                [m_captureSession addInput:m_videoInput];
-            } else {
-                qWarning() << "Failed to connect video device input";
-            }
+            qWarning() << "Failed to connect video device input";
+            m_activeCameraInfo = QCameraInfo();
         }
     }
 }

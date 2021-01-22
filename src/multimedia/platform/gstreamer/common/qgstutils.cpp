@@ -59,7 +59,6 @@
 
 template<typename T, int N> static int lengthOf(const T (&)[N]) { return N; }
 
-#include "qgstreamervideoinputdevicecontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 

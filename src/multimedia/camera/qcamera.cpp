@@ -46,9 +46,9 @@
 #include <qcamerafocuscontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
-#include <qvideodeviceselectorcontrol.h>
 #include <private/qmediaplatformintegration_p.h>
 #include <private/qmediaplatformcaptureinterface_p.h>
+#include <qmediadevicemanager.h>
 
 #include <QDebug>
 
@@ -179,7 +179,6 @@ void QCameraPrivate::initControls()
 
     if (service) {
         control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
-        deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
 
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
@@ -194,7 +193,6 @@ void QCameraPrivate::initControls()
         error = QCamera::NoError;
     } else {
         control = nullptr;
-        deviceControl = nullptr;
 
         error = QCamera::CameraError;
         errorString = QCamera::tr("The camera service is missing");
@@ -210,15 +208,12 @@ void QCameraPrivate::clear()
     if (service) {
         if (control)
             service->releaseControl(control);
-        if (deviceControl)
-            service->releaseControl(deviceControl);
     }
 
     cameraExposure = nullptr;
     cameraFocus = nullptr;
     imageProcessing = nullptr;
     control = nullptr;
-    deviceControl = nullptr;
     service = nullptr;
 }
 
@@ -286,60 +281,13 @@ void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockSt
 
 /*!
     Construct a QCamera with a \a parent.
+
+    Selects the default camera on the system if more than one camera are available.
 */
 
 QCamera::QCamera(QObject *parent)
-    : QMediaSource(*new QCameraPrivate, parent,
-                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
+    : QCamera(QMediaDeviceManager::defaultVideoInput(), parent)
 {
-    Q_D(QCamera);
-    d->init();
-
-    // Select the default camera
-    if (d->service != nullptr && d->deviceControl)
-        d->deviceControl->setSelectedDevice(d->deviceControl->defaultDevice());
-}
-
-/*!
-    Construct a QCamera from \a deviceName and \a parent.
-
-    If no camera with that \a deviceName exists, the camera object will
-    be invalid.
-*/
-
-QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
-    QMediaSource(*new QCameraPrivate, parent,
-                 QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
-{
-    Q_D(QCamera);
-    d->init();
-
-    bool found = false;
-    // Pass device name to service.
-    if (d->deviceControl) {
-        const QString name = QString::fromLatin1(deviceName);
-        for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
-            if (d->deviceControl->deviceName(i) == name) {
-                d->deviceControl->setSelectedDevice(i);
-                found = true;
-                break;
-            }
-        }
-    }
-
-    // The camera should not be used if device with requested name does not exist.
-    if (!found) {
-        if (d->service) {
-            if (d->control)
-                d->service->releaseControl(d->control);
-            if (d->deviceControl)
-                d->service->releaseControl(d->deviceControl);
-        }
-        d->control = nullptr;
-        d->deviceControl = nullptr;
-        d->error = QCamera::CameraError;
-        d->errorString = QCamera::tr("The camera service is missing");
-    }
 }
 
 /*!
@@ -349,8 +297,12 @@ QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
 */
 
 QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
-    : QCamera(cameraInfo.id(), parent)
+    : QMediaSource(*new QCameraPrivate, parent,
+                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
 {
+    Q_D(QCamera);
+    d->init();
+    setCameraInfo(cameraInfo);
 }
 
 /*!
@@ -371,24 +323,17 @@ QCamera::QCamera(QCamera::Position position, QObject *parent)
                    QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
 {
     Q_D(QCamera);
+
     d->init();
-
-    if (d->service != nullptr && d->deviceControl) {
-        bool selectDefault = true;
-
-        if (d->deviceControl && position != UnspecifiedPosition) {
-            for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
-                if (d->deviceControl->cameraPosition(i) == position) {
-                    d->deviceControl->setSelectedDevice(i);
-                    selectDefault = false;
-                    break;
-                }
-            }
+    QCameraInfo info;
+    auto cameras = QMediaDeviceManager::videoInputs();
+    for (const auto &c : cameras) {
+        if (c.position() == position) {
+            info = c;
+            break;
         }
-
-        if (selectDefault)
-            d->deviceControl->setSelectedDevice(d->deviceControl->defaultDevice());
     }
+    setCameraInfo(info);
 }
 
 /*!
@@ -410,7 +355,7 @@ QMultimedia::AvailabilityStatus QCamera::availability() const
     if (d->control == nullptr)
         return QMultimedia::ServiceMissing;
 
-    if (d->deviceControl && d->deviceControl->deviceCount() == 0)
+    if (d->cameraInfo.isNull())
         return QMultimedia::ResourceError;
 
     if (d->error != QCamera::NoError)
@@ -785,6 +730,26 @@ QCamera::Status QCamera::status() const
         return (QCamera::Status)d_func()->control->status();
 
     return QCamera::UnavailableStatus;
+}
+
+/*!
+    Returns the QCameraInfo object associated with this camera.
+ */
+QCameraInfo QCamera::cameraInfo() const
+{
+    Q_D(const QCamera);
+    return d->cameraInfo;
+}
+
+void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
+{
+    Q_D(QCamera);
+    if (cameraInfo.isNull())
+        d->cameraInfo = QMediaDeviceManager::defaultVideoInput();
+    else
+        d->cameraInfo = cameraInfo;
+    if (d->control)
+        d->control->setCamera(d->cameraInfo);
 }
 
 

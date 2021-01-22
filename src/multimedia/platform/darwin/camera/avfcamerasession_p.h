@@ -54,6 +54,7 @@
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/qcamera.h>
 #include <QVideoFrame>
+#include <qcamerainfo.h>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -85,10 +86,8 @@ public:
     AVFCameraSession(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFCameraSession();
 
-    static int defaultCameraIndex();
-    static const QList<AVFCameraInfo> &availableCameraDevices();
-    static AVFCameraInfo cameraDeviceInfo(const QByteArray &device);
-    AVFCameraInfo activeCameraInfo() const { return m_activeCameraInfo; }
+    QCameraInfo activeCameraInfo() const { return m_activeCameraInfo; }
+    void setActiveCamera(const QCameraInfo &info);
 
     void setVideoOutput(AVFCameraRendererControl *output);
     void setCapturePreviewOutput(AVFCameraWindowControl *output);
@@ -124,14 +123,13 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 private:
-    static void updateCameraDevices();
+    AVCaptureDevice *createCaptureDevice();
     void attachVideoInputDevice();
     bool applyImageEncoderSettings();
     bool applyViewfinderSettings();
 
     static int m_defaultCameraIndex;
-    static QList<AVFCameraInfo> m_cameraDevices;
-    AVFCameraInfo m_activeCameraInfo;
+    QCameraInfo m_activeCameraInfo;
 
     AVFCameraService *m_service;
     AVFCameraRendererControl *m_videoOutput;

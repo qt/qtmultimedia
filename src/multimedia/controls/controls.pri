@@ -16,7 +16,6 @@ PUBLIC_HEADERS += \
     controls/qmediastreamscontrol.h \
     controls/qmetadatareadercontrol.h \
     controls/qmetadatawritercontrol.h \
-    controls/qvideodeviceselectorcontrol.h \
     controls/qvideoencodersettingscontrol.h \
     controls/qvideorenderercontrol.h \
     controls/qvideowindowcontrol.h \
@@ -43,4 +42,3 @@ SOURCES += \
     controls/qaudiodecodercontrol.cpp \
     controls/qvideoencodersettingscontrol.cpp \
     controls/qaudioencodersettingscontrol.cpp \
-    controls/qvideodeviceselectorcontrol.cpp
