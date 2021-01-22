@@ -118,7 +118,7 @@ private:
     Ui::Camera *ui;
 
     QScopedPointer<QCamera> m_camera;
-    QScopedPointer<QCameraImageCapture> m_imageCapture;
+    QCameraImageCapture *m_imageCapture;
     QScopedPointer<QMediaRecorder> m_mediaRecorder;
 
     QImageEncoderSettings m_imageSettings;

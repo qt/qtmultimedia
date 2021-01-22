@@ -74,7 +74,7 @@ public:
     void applySettingsLater();
     void restartCamera();
 
-    QMediaSource *mediaSource = nullptr;
+    QPointer<QMediaSource> mediaSource;
 
     QMediaRecorderControl *control = nullptr;
     QMediaContainerControl *formatControl = nullptr;

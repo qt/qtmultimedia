@@ -61,7 +61,6 @@ class QCameraInfoPrivate : public QSharedData
 public:
     QByteArray id;
     QString description;
-    bool isNull = true;
     bool isDefault = false;
     QCamera::Position position = QCamera::UnspecifiedPosition;
     int orientation = 0;

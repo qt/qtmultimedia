@@ -125,7 +125,7 @@ bool QCameraInfo::operator==(const QCameraInfo &other) const
 */
 bool QCameraInfo::isNull() const
 {
-    return d->isNull;
+    return !d;
 }
 
 /*!
@@ -135,12 +135,12 @@ bool QCameraInfo::isNull() const
 */
 QByteArray QCameraInfo::id() const
 {
-    return d->id;
+    return d ? d->id : QByteArray();
 }
 
 bool QCameraInfo::isDefault() const
 {
-    return d->isDefault;
+    return d ? d->isDefault : false;
 }
 
 /*!
@@ -148,7 +148,7 @@ bool QCameraInfo::isDefault() const
 */
 QString QCameraInfo::description() const
 {
-    return d->description;
+    return d ? d->description : QString();
 }
 
 /*!
@@ -156,7 +156,7 @@ QString QCameraInfo::description() const
 */
 QCamera::Position QCameraInfo::position() const
 {
-    return d->position;
+    return d ? d->position : QCamera::UnspecifiedPosition;
 }
 
 /*!
@@ -175,7 +175,7 @@ QCamera::Position QCameraInfo::position() const
 */
 int QCameraInfo::orientation() const
 {
-    return d->orientation;
+    return d ? d->orientation : 0;
 }
 
 QCameraInfo::QCameraInfo(QCameraInfoPrivate *p)

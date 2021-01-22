@@ -102,7 +102,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     m_mediaRecorder.reset(new QMediaRecorder(m_camera.data()));
     connect(m_mediaRecorder.data(), &QMediaRecorder::stateChanged, this, &Camera::updateRecorderState);
 
-    m_imageCapture.reset(new QCameraImageCapture(m_camera.data()));
+    m_imageCapture = new QCameraImageCapture(m_camera.data());
 
     connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
     connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error),
@@ -118,10 +118,10 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     updateLockStatus(m_camera->lockStatus(), QCamera::UserRequest);
     updateRecorderState(m_mediaRecorder->state());
 
-    connect(m_imageCapture.data(), &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
-    connect(m_imageCapture.data(), &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
-    connect(m_imageCapture.data(), &QCameraImageCapture::imageSaved, this, &Camera::imageSaved);
-    connect(m_imageCapture.data(), QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error),
+    connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
+    connect(m_imageCapture, &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
+    connect(m_imageCapture, &QCameraImageCapture::imageSaved, this, &Camera::imageSaved);
+    connect(m_imageCapture, QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error),
             this, &Camera::displayCaptureError);
 
     connect(m_camera.data(), QOverload<QCamera::LockStatus, QCamera::LockChangeReason>::of(&QCamera::lockStatusChanged),
@@ -235,7 +235,7 @@ void Camera::configureVideoSettings()
 
 void Camera::configureImageSettings()
 {
-    ImageSettings settingsDialog(m_imageCapture.data());
+    ImageSettings settingsDialog(m_imageCapture);
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     settingsDialog.setImageSettings(m_imageSettings);
