@@ -73,18 +73,10 @@ Camera::Camera() : ui(new Ui::Camera)
 
     //Camera devices:
 
-    QActionGroup *videoDevicesGroup = new QActionGroup(this);
+    videoDevicesGroup = new QActionGroup(this);
     videoDevicesGroup->setExclusive(true);
-    const QList<QCameraInfo> availableCameras = QMediaDeviceManager::videoInputs();
-    for (const QCameraInfo &cameraInfo : availableCameras) {
-        QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
-        videoDeviceAction->setCheckable(true);
-        videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
-        if (cameraInfo == QMediaDeviceManager::defaultVideoInput())
-            videoDeviceAction->setChecked(true);
-
-        ui->menuDevices->addAction(videoDeviceAction);
-    }
+    updateCameras();
+    connect(QMediaDeviceManager::instance(), &QMediaDeviceManager::videoInputsChanged, this, &Camera::updateCameras);
 
     connect(videoDevicesGroup, &QActionGroup::triggered, this, &Camera::updateCameraDevice);
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
@@ -431,5 +423,20 @@ void Camera::closeEvent(QCloseEvent *event)
         event->ignore();
     } else {
         event->accept();
+    }
+}
+
+void Camera::updateCameras()
+{
+    ui->menuDevices->clear();
+    const QList<QCameraInfo> availableCameras = QMediaDeviceManager::videoInputs();
+    for (const QCameraInfo &cameraInfo : availableCameras) {
+        QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
+        videoDeviceAction->setCheckable(true);
+        videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
+        if (cameraInfo == QMediaDeviceManager::defaultVideoInput())
+            videoDeviceAction->setChecked(true);
+
+        ui->menuDevices->addAction(videoDeviceAction);
     }
 }

@@ -60,6 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Camera; }
+class QActionGroup;
 QT_END_NAMESPACE
 
 class Camera : public QMainWindow
@@ -109,6 +110,8 @@ private slots:
     void readyForCapture(bool ready);
     void imageSaved(int id, const QString &fileName);
 
+    void updateCameras();
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
@@ -116,6 +119,8 @@ protected:
 
 private:
     Ui::Camera *ui;
+
+    QActionGroup *videoDevicesGroup  = nullptr;
 
     QScopedPointer<QCamera> m_camera;
     QCameraImageCapture *m_imageCapture;

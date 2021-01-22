@@ -144,10 +144,26 @@ QList<QAudioDeviceInfo> availableAudioDevices(QAudio::Mode mode)
 QDarwinDeviceManager::QDarwinDeviceManager()
     : QMediaPlatformDeviceManager()
 {
-}
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
+                                                                object:nil
+                                                                queue:[NSOperationQueue mainQueue]
+                                                                usingBlock:^(NSNotification *) {
+                                                                        this->updateCameraDevices();
+                                                                }];
 
+    m_deviceDisconnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasDisconnectedNotification
+                                                                object:nil
+                                                                queue:[NSOperationQueue mainQueue]
+                                                                usingBlock:^(NSNotification *) {
+                                                                        this->updateCameraDevices();
+                                                                }];
+}
 QDarwinDeviceManager::~QDarwinDeviceManager()
 {
+    NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter removeObserver:(id)m_deviceConnectedObserver];
+    [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
 }
 
 QList<QAudioDeviceInfo> QDarwinDeviceManager::audioInputs() const
@@ -184,14 +200,9 @@ void QDarwinDeviceManager::updateCameraDevices() const
     // Cameras can't change dynamically on iOS. Update only once.
     if (!m_cameraDevices.isEmpty())
         return;
-#else
-    // On OS X, cameras can be added or removed. Update the list every time, but not more than
-    // once every 500 ms
-    if (deviceCheckTimer.isValid() && deviceCheckTimer.elapsed() < 500) // ms
-        return;
 #endif
 
-    QList<QCameraInfoPrivate> cameras;
+    QList<QCameraInfo> cameras;
 
     AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
@@ -204,12 +215,15 @@ void QDarwinDeviceManager::updateCameraDevices() const
         info->description = QString::fromNSString([device localizedName]);
 
 
-        m_cameraDevices.append(QCameraInfo(info));
+        cameras.append(QCameraInfo(info));
     }
 
-#ifndef Q_OS_IOS
-    deviceCheckTimer.restart();
-#endif
+    if (cameras != m_cameraDevices) {
+        m_cameraDevices = cameras;
+        auto *m = deviceManager();
+        if (m)
+            m->videoInputsChanged();
+    }
 }
 
 

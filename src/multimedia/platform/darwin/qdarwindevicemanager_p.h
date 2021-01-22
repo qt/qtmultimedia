@@ -79,6 +79,9 @@ public:
 private:
     mutable QElapsedTimer deviceCheckTimer;
     mutable QList<QCameraInfo> m_cameraDevices;
+
+    void *m_deviceConnectedObserver;
+    void *m_deviceDisconnectedObserver;
 };
 
 QT_END_NAMESPACE
