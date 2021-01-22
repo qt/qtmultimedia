@@ -206,6 +206,7 @@ QT_BEGIN_NAMESPACE
 #endif
     }
 
+    m_sessionManager->devicesAvailableChanged();
 }
 
 @end //implementation CoreAudioSessionObserver

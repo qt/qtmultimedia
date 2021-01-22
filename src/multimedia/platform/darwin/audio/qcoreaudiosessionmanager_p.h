@@ -109,8 +109,7 @@ signals:
     void categoryChanged();
     void modeChanged();
     void routeChanged();
-    void inputDevicesAvailableChanged();
-    void outputDevicesAvailableChanged();
+    void devicesAvailableChanged();
 
 private:
     CoreAudioSessionManager();

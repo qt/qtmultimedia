@@ -139,7 +139,16 @@ QList<QAudioDeviceInfo> availableAudioDevices(QAudio::Mode mode)
 
     return devices;
 }
+
+static OSStatus
+audioDeviceChangeListener(AudioObjectID, UInt32, const AudioObjectPropertyAddress*, void* ptr)
+{
+    QDarwinDeviceManager *m = static_cast<QDarwinDeviceManager *>(ptr);
+    m->updateAudioDevices();
+    return 0;
+}
 #endif
+
 
 QDarwinDeviceManager::QDarwinDeviceManager()
     : QMediaPlatformDeviceManager()
@@ -150,6 +159,7 @@ QDarwinDeviceManager::QDarwinDeviceManager()
                                                                 queue:[NSOperationQueue mainQueue]
                                                                 usingBlock:^(NSNotification *) {
                                                                         this->updateCameraDevices();
+            this->updateAudioDevices();
                                                                 }];
 
     m_deviceDisconnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasDisconnectedNotification
@@ -157,13 +167,31 @@ QDarwinDeviceManager::QDarwinDeviceManager()
                                                                 queue:[NSOperationQueue mainQueue]
                                                                 usingBlock:^(NSNotification *) {
                                                                         this->updateCameraDevices();
+            this->updateAudioDevices();
                                                                 }];
+
+#ifdef Q_OS_MACOS
+    OSStatus err = noErr;
+    AudioObjectPropertyAddress *audioDevicesAddress = new AudioObjectPropertyAddress{ kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster };
+    m_audioDevicesProperty = audioDevicesAddress;
+    err = AudioObjectAddPropertyListener(kAudioObjectSystemObject, audioDevicesAddress, audioDeviceChangeListener, this);
+    if (err)
+        qDebug("error on AudioObjectAddPropertyListener");
+#else
+    // ### This should use the audio session manager
+#endif
 }
+
+
 QDarwinDeviceManager::~QDarwinDeviceManager()
 {
     NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
     [notificationCenter removeObserver:(id)m_deviceConnectedObserver];
     [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
+
+#ifdef Q_OS_MACOS
+    AudioObjectRemovePropertyListener(kAudioObjectSystemObject, (AudioObjectPropertyAddress *)m_audioDevicesProperty, audioDeviceChangeListener, this);
+#endif
 }
 
 QList<QAudioDeviceInfo> QDarwinDeviceManager::audioInputs() const
@@ -190,11 +218,10 @@ QList<QAudioDeviceInfo> QDarwinDeviceManager::audioOutputs() const
 
 QList<QCameraInfo> QDarwinDeviceManager::videoInputs() const
 {
-    updateCameraDevices();
     return m_cameraDevices;
 }
 
-void QDarwinDeviceManager::updateCameraDevices() const
+void QDarwinDeviceManager::updateCameraDevices()
 {
 #ifdef Q_OS_IOS
     // Cameras can't change dynamically on iOS. Update only once.
@@ -229,12 +256,23 @@ void QDarwinDeviceManager::updateCameraDevices() const
 
 void QDarwinDeviceManager::updateAudioDevices()
 {
-    // Headsets can be added or removed. Update the list every time, but not more than
-    // once every 500 ms
-    if (deviceCheckTimer.isValid() && deviceCheckTimer.elapsed() < 500) // ms
-        return;
+#ifdef Q_OS_MACOS
+    auto *m = deviceManager();
 
-    deviceCheckTimer.restart();
+    QList<QAudioDeviceInfo> inputs = availableAudioDevices(QAudio::AudioInput);
+    if (m_audioInputs != inputs) {
+        m_audioInputs = inputs;
+        if (m)
+            m->audioInputsChanged();
+    }
+
+    QList<QAudioDeviceInfo> outputs = availableAudioDevices(QAudio::AudioOutput);
+    if (m_audioOutputs!= outputs) {
+        m_audioOutputs = outputs;
+        if (m)
+            m->audioOutputsChanged();
+    }
+#endif
 }
 
 QAbstractAudioInput *QDarwinDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &info)

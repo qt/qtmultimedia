@@ -73,15 +73,17 @@ public:
     QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
     QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
 
-    void updateCameraDevices() const;
+    void updateCameraDevices();
     void updateAudioDevices();
 
 private:
-    mutable QElapsedTimer deviceCheckTimer;
-    mutable QList<QCameraInfo> m_cameraDevices;
+    QList<QCameraInfo> m_cameraDevices;
+    QList<QAudioDeviceInfo> m_audioInputs;
+    QList<QAudioDeviceInfo> m_audioOutputs;
 
     void *m_deviceConnectedObserver;
     void *m_deviceDisconnectedObserver;
+    void *m_audioDevicesProperty;
 };
 
 QT_END_NAMESPACE

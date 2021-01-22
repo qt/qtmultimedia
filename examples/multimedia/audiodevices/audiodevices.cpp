@@ -91,8 +91,6 @@ AudioDevicesBase::AudioDevicesBase(QWidget *parent)
     : QMainWindow(parent)
 {
     setupUi(this);
-    QMediaDeviceManager *m = QMediaDeviceManager::instance();
-    m->audioOutputs();
 }
 
 AudioDevicesBase::~AudioDevicesBase() {}
@@ -111,6 +109,8 @@ AudioTest::AudioTest(QWidget *parent)
     connect(sampleTypesBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleTypeChanged);
     connect(endianBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::endianChanged);
     connect(populateTableButton, &QPushButton::clicked, this, &AudioTest::populateTable);
+    connect(QMediaDeviceManager::instance(), &QMediaDeviceManager::audioInputsChanged, this, &AudioTest::updateAudioDevices);
+    connect(QMediaDeviceManager::instance(), &QMediaDeviceManager::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
 
     modeBox->setCurrentIndex(0);
     modeChanged(0);
@@ -147,16 +147,21 @@ void AudioTest::test()
         testResult->setText(tr("No Device"));
 }
 
+void AudioTest::updateAudioDevices()
+{
+    deviceBox->clear();
+    auto *deviceManager = QMediaDeviceManager::instance();
+    const auto devices = m_mode == QAudio::AudioInput ? deviceManager->audioInputs() : deviceManager->audioOutputs();
+    for (auto &deviceInfo: devices)
+        deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+}
+
+
 void AudioTest::modeChanged(int idx)
 {
     testResult->clear();
-    deviceBox->clear();
-    const QAudio::Mode mode = idx == 0 ? QAudio::AudioInput : QAudio::AudioOutput;
-    auto *deviceManager = QMediaDeviceManager::instance();
-    const auto devices = mode == QAudio::AudioInput ? deviceManager->audioInputs() : deviceManager->audioOutputs();
-    for (auto &deviceInfo: devices)
-        deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
-
+    m_mode = idx == 0 ? QAudio::AudioInput : QAudio::AudioOutput;
+    updateAudioDevices();
     deviceBox->setCurrentIndex(0);
     deviceChanged(0);
 }

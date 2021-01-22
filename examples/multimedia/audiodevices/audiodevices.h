@@ -74,8 +74,10 @@ public:
 private:
     QAudioDeviceInfo m_deviceInfo;
     QAudioFormat m_settings;
+    QAudio::Mode m_mode = QAudio::AudioInput;
 
 private slots:
+    void updateAudioDevices();
     void modeChanged(int idx);
     void deviceChanged(int idx);
     void sampleRateChanged(int idx);
