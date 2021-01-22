@@ -70,11 +70,11 @@ public:
     {
     }
 
-    MapMode mapMode() const { return NotMapped; }
-    MapData map(MapMode mode) override { return {}; }
-    void unmap() {}
+    MapMode mapMode() const override { return NotMapped; }
+    MapData map(MapMode /*mode*/) override { return {}; }
+    void unmap() override {}
 
-    QVariant handle() const
+    QVariant handle() const override
     {
         return QVariant::fromValue<unsigned long long>(m_texture);
     }

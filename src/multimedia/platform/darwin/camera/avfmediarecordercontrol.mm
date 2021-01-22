@@ -112,7 +112,7 @@ QT_USE_NAMESPACE
         messageParts << QString::fromUtf8([[error localizedFailureReason] UTF8String]);
         messageParts << QString::fromUtf8([[error localizedRecoverySuggestion] UTF8String]);
 
-        QString errorMessage = messageParts.join(" ");
+        QString errorMessage = messageParts.join(QChar(u' '));
 
         QMetaObject::invokeMethod(m_recorder, "handleRecordingFailed", Qt::QueuedConnection,
                                   Q_ARG(QString, errorMessage));

@@ -551,7 +551,7 @@ static void setURL(void *observer, const QByteArray &url, const QString &mimeTyp
 
 static void setStreamURL(void *observer, const QByteArray &url)
 {
-    setURL(observer, QByteArrayLiteral("iodevice://") + url, QFileInfo(url).suffix());
+    setURL(observer, QByteArrayLiteral("iodevice://") + url, QFileInfo(QString::fromUtf8(url)).suffix());
 }
 
 void AVFMediaPlayerSession::setMedia(const QUrl &content, QIODevice *stream)

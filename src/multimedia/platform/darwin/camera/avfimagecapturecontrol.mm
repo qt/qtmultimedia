@@ -65,7 +65,7 @@ AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObjec
     m_stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
 
     NSDictionary *outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                        AVVideoCodecJPEG, AVVideoCodecKey, nil];
+                                        AVVideoCodecTypeJPEG, AVVideoCodecKey, nil];
 
     [m_stillImageOutput setOutputSettings:outputSettings];
     [outputSettings release];
@@ -137,7 +137,7 @@ int AVFImageCaptureControl::capture(const QString &fileName)
             messageParts << QString::fromUtf8([[error localizedFailureReason] UTF8String]);
             messageParts << QString::fromUtf8([[error localizedRecoverySuggestion] UTF8String]);
 
-            QString errorMessage = messageParts.join(" ");
+            QString errorMessage = messageParts.join(QChar(u' '));
             qDebugCamera() << "Image capture failed:" << errorMessage;
 
             QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
@@ -218,7 +218,7 @@ void AVFImageCaptureControl::onNewViewfinderFrame(const QVideoFrame &frame)
     CaptureRequest request = m_captureRequests.dequeue();
     Q_EMIT imageExposed(request.captureId);
 
-    QtConcurrent::run(&AVFImageCaptureControl::makeCapturePreview, this,
+    (void) QtConcurrent::run(&AVFImageCaptureControl::makeCapturePreview, this,
                       request,
                       frame,
                       0 /* rotation */);

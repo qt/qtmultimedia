@@ -262,12 +262,11 @@ void MainWidget::createUi()
     windowLayout->addWidget(m_infoMessage);
 
 #ifdef SUPERIMPOSE_PROGRESS_ON_WAVEFORM
-    QScopedPointer<QHBoxLayout> waveformLayout(new QHBoxLayout);
+    std::unique_ptr<QHBoxLayout> waveformLayout(new QHBoxLayout);
     waveformLayout->addWidget(m_progressBar);
     m_progressBar->setMinimumHeight(m_waveform->minimumHeight());
     waveformLayout->setContentsMargins(0, 0, 0, 0);
-    m_waveform->setLayout(waveformLayout.data());
-    waveformLayout.take();
+    m_waveform->setLayout(waveformLayout.release());
     windowLayout->addWidget(m_waveform);
 #else
 #ifndef DISABLE_WAVEFORM
@@ -278,11 +277,10 @@ void MainWidget::createUi()
 
     // Spectrograph and level meter
 
-    QScopedPointer<QHBoxLayout> analysisLayout(new QHBoxLayout);
+    std::unique_ptr<QHBoxLayout> analysisLayout(new QHBoxLayout);
     analysisLayout->addWidget(m_spectrograph);
     analysisLayout->addWidget(m_levelMeter);
-    windowLayout->addLayout(analysisLayout.data());
-    analysisLayout.take();
+    windowLayout->addLayout(analysisLayout.release());
 
     // Button panel
 
@@ -314,7 +312,7 @@ void MainWidget::createUi()
     m_settingsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_settingsButton->setMinimumSize(buttonSize);
 
-    QScopedPointer<QHBoxLayout> buttonPanelLayout(new QHBoxLayout);
+    std::unique_ptr<QHBoxLayout> buttonPanelLayout(new QHBoxLayout);
     buttonPanelLayout->addStretch();
     buttonPanelLayout->addWidget(m_modeButton);
     buttonPanelLayout->addWidget(m_recordButton);
@@ -324,13 +322,11 @@ void MainWidget::createUi()
 
     QWidget *buttonPanel = new QWidget(this);
     buttonPanel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    buttonPanel->setLayout(buttonPanelLayout.data());
-    buttonPanelLayout.take(); // ownership transferred to buttonPanel
+    buttonPanel->setLayout(buttonPanelLayout.release());
 
-    QScopedPointer<QHBoxLayout> bottomPaneLayout(new QHBoxLayout);
+    std::unique_ptr<QHBoxLayout> bottomPaneLayout(new QHBoxLayout);
     bottomPaneLayout->addWidget(buttonPanel);
-    windowLayout->addLayout(bottomPaneLayout.data());
-    bottomPaneLayout.take(); // ownership transferred to windowLayout
+    windowLayout->addLayout(bottomPaneLayout.release());
 
     // Apply layout
 

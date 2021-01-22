@@ -266,7 +266,7 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
     d->playerInterface = static_cast<QMediaPlatformPlayerInterface *>(service());
     if (!d->playerInterface) {
         qWarning() << "QPlatformMediaPlayerInterface not implemented!";
-        d->_q_error(QMediaPlayer::ServiceMissingError, "QMediaPlayer is not supported.");
+        d->_q_error(QMediaPlayer::ServiceMissingError, QString::fromUtf8("QMediaPlayer is not supported."));
         return;
     }
 

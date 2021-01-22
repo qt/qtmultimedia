@@ -103,7 +103,7 @@ void QMediaPluginLoader::loadMetadata()
         QJsonObject jsonobj = meta.at(i).value(QStringLiteral("MetaData")).toObject();
         QJsonArray arr = jsonobj.value(QStringLiteral("Services")).toArray();
 
-        for (const QJsonValue &value : qAsConst(arr)) {
+        for (QJsonValue value : qAsConst(arr)) {
             QString key = value.toString();
 
             if (m_map.contains(key)) {
