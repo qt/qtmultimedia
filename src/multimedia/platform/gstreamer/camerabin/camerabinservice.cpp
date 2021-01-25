@@ -116,9 +116,6 @@ QObject *CameraBinService::requestControl(const char *name)
         }
     }
 
-    if (qstrcmp(name, QMediaVideoProbeControl_iid) == 0)
-        return m_captureSession->videoProbe();
-
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_captureSession->recorderControl();
 

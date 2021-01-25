@@ -26,6 +26,4 @@ SUBDIRS += \
 #    qwavedecoder \
     qaudiobuffer \
     qaudiodecoder \
-    qaudioprobe \
-    qvideoprobe \
     qsamplecache

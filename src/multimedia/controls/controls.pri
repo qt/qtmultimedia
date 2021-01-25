@@ -19,8 +19,6 @@ PUBLIC_HEADERS += \
     controls/qvideoencodersettingscontrol.h \
     controls/qvideorenderercontrol.h \
     controls/qvideowindowcontrol.h \
-    controls/qmediaaudioprobecontrol.h \
-    controls/qmediavideoprobecontrol.h \
 
 SOURCES += \
     controls/qcameracontrol.cpp \
@@ -37,8 +35,6 @@ SOURCES += \
     controls/qmetadatawritercontrol.cpp \
     controls/qvideorenderercontrol.cpp \
     controls/qvideowindowcontrol.cpp \
-    controls/qmediaaudioprobecontrol.cpp \
-    controls/qmediavideoprobecontrol.cpp \
     controls/qaudiodecodercontrol.cpp \
     controls/qvideoencodersettingscontrol.cpp \
     controls/qaudioencodersettingscontrol.cpp \

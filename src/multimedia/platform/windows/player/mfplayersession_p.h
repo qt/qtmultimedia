@@ -79,8 +79,6 @@ class MFMetaDataControl;
 class MFPlayerService;
 class AudioSampleGrabberCallback;
 class MFTransform;
-class MFAudioProbeControl;
-class MFVideoProbeControl;
 
 class MFPlayerSession : public QObject, public IMFAsyncCallback
 {
@@ -125,11 +123,6 @@ public:
     void changeStatus(QMediaPlayer::MediaStatus newStatus);
 
     void close();
-
-    void addProbe(MFAudioProbeControl* probe);
-    void removeProbe(MFAudioProbeControl* probe);
-    void addProbe(MFVideoProbeControl* probe);
-    void removeProbe(MFVideoProbeControl* probe);
 
     bool setAudioOutput(const QAudioDeviceInfo &device);
     QAudioDeviceInfo audioOutput() const { return m_audioOutput; }
@@ -243,14 +236,15 @@ private:
     bool addAudioSampleGrabberNode(IMFTopology* topology);
     bool setupAudioSampleGrabber(IMFTopology *topology, IMFTopologyNode *sourceNode, IMFTopologyNode *outputNode);
     QAudioFormat audioFormatForMFMediaType(IMFMediaType *mediaType) const;
+    // ### Below can be used to monitor the audio channel. Currently unused.
     AudioSampleGrabberCallback *m_audioSampleGrabber;
     IMFTopologyNode *m_audioSampleGrabberNode;
 
     IMFTopology *insertMFT(IMFTopology *topology, TOPOID outputNodeId);
     bool insertResizer(IMFTopology *topology);
     void insertColorConverter(IMFTopology *topology, TOPOID outputNodeId);
+    // ### Below can be used to monitor the video channel. Functionality currently unused.
     MFTransform *m_videoProbeMFT;
-    QList<MFVideoProbeControl*> m_videoProbes;
 };
 
 

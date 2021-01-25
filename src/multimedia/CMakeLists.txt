@@ -20,7 +20,6 @@ qt_internal_add_module(Multimedia
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
         audio/qaudioinput.cpp audio/qaudioinput.h
         audio/qaudiooutput.cpp audio/qaudiooutput.h
-        audio/qaudioprobe.cpp audio/qaudioprobe.h
         audio/qaudiosystem.cpp audio/qaudiosystem_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
@@ -40,12 +39,10 @@ qt_internal_add_module(Multimedia
         controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
         controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
         controls/qimageencodercontrol.cpp controls/qimageencodercontrol.h
-        controls/qmediaaudioprobecontrol.cpp controls/qmediaaudioprobecontrol.h
         controls/qmediacontainercontrol.cpp controls/qmediacontainercontrol.h
         controls/qmediaplayercontrol.cpp controls/qmediaplayercontrol.h
         controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
-        controls/qmediavideoprobecontrol.cpp controls/qmediavideoprobecontrol.h
         controls/qmetadatareadercontrol.cpp controls/qmetadatareadercontrol.h
         controls/qmetadatawritercontrol.cpp controls/qmetadatawritercontrol.h
         controls/qvideoencodersettingscontrol.cpp controls/qvideoencodersettingscontrol.h
@@ -80,7 +77,6 @@ qt_internal_add_module(Multimedia
         video/qvideoframe.cpp video/qvideoframe.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
         video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
-        video/qvideoprobe.cpp video/qvideoprobe.h
         video/qvideosurfaceformat.cpp video/qvideosurfaceformat.h
         video/qvideosurfaceoutput.cpp video/qvideosurfaceoutput_p.h
         video/qvideosurfaces.cpp video/qvideosurfaces_p.h
@@ -158,14 +154,12 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/evr/evrvideowindowcontrol.cpp platform/windows/evr/evrvideowindowcontrol_p.h
         platform/windows/mfstream.cpp platform/windows/mfstream_p.h
         platform/windows/player/mfactivate.cpp platform/windows/player/mfactivate_p.h
-        platform/windows/player/mfaudioprobecontrol.cpp platform/windows/player/mfaudioprobecontrol_p.h
         platform/windows/player/mfevrvideowindowcontrol.cpp platform/windows/player/mfevrvideowindowcontrol_p.h
         platform/windows/player/mfmetadatacontrol.cpp platform/windows/player/mfmetadatacontrol_p.h
         platform/windows/player/mfplayercontrol.cpp platform/windows/player/mfplayercontrol_p.h
         platform/windows/player/mfplayerservice.cpp platform/windows/player/mfplayerservice_p.h
         platform/windows/player/mfplayersession.cpp platform/windows/player/mfplayersession_p.h
         platform/windows/player/mftvideo.cpp platform/windows/player/mftvideo_p.h
-        platform/windows/player/mfvideoprobecontrol.cpp platform/windows/player/mfvideoprobecontrol_p.h
         platform/windows/player/mfvideorenderercontrol.cpp platform/windows/player/mfvideorenderercontrol_p.h
         platform/windows/player/samplegrabber.cpp platform/windows/player/samplegrabber_p.h
         platform/windows/qwindowsdevicemanager.cpp platform/windows/qwindowsdevicemanager_p.h
@@ -209,14 +203,12 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/audio/qgstreameraudiodecodercontrol.cpp platform/gstreamer/audio/qgstreameraudiodecodercontrol_p.h
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
         platform/gstreamer/common/qgstcodecsinfo.cpp platform/gstreamer/common/qgstcodecsinfo_p.h
-        platform/gstreamer/common/qgstreameraudioprobecontrol.cpp platform/gstreamer/common/qgstreameraudioprobecontrol_p.h
         platform/gstreamer/common/qgstreamerbufferprobe.cpp platform/gstreamer/common/qgstreamerbufferprobe_p.h
         platform/gstreamer/common/qgstreamerbushelper.cpp platform/gstreamer/common/qgstreamerbushelper_p.h
         platform/gstreamer/common/qgstreamermessage.cpp platform/gstreamer/common/qgstreamermessage_p.h
         platform/gstreamer/common/qgstreamerplayercontrol.cpp platform/gstreamer/common/qgstreamerplayercontrol_p.h
         platform/gstreamer/common/qgstreamerplayersession.cpp platform/gstreamer/common/qgstreamerplayersession_p.h
         platform/gstreamer/common/qgstreamervideooverlay.cpp platform/gstreamer/common/qgstreamervideooverlay_p.h
-        platform/gstreamer/common/qgstreamervideoprobecontrol.cpp platform/gstreamer/common/qgstreamervideoprobecontrol_p.h
         platform/gstreamer/common/qgstreamervideorenderer.cpp platform/gstreamer/common/qgstreamervideorenderer_p.h
         platform/gstreamer/common/qgstreamervideorendererinterface.cpp platform/gstreamer/common/qgstreamervideorendererinterface_p.h
         platform/gstreamer/common/qgstreamervideowindow.cpp platform/gstreamer/common/qgstreamervideowindow_p.h
@@ -370,7 +362,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture/qandroidimageencodercontrol.cpp platform/android/mediacapture/qandroidimageencodercontrol_p.h
         platform/android/mediacapture/qandroidmediacontainercontrol.cpp platform/android/mediacapture/qandroidmediacontainercontrol_p.h
         platform/android/mediacapture/qandroidmediarecordercontrol.cpp platform/android/mediacapture/qandroidmediarecordercontrol_p.h
-        platform/android/mediacapture/qandroidmediavideoprobecontrol.cpp platform/android/mediacapture/qandroidmediavideoprobecontrol_p.h
         platform/android/mediacapture/qandroidvideoencodersettingscontrol.cpp platform/android/mediacapture/qandroidvideoencodersettingscontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
@@ -468,7 +459,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfimagecapturecontrol.mm platform/darwin/camera/avfimagecapturecontrol_p.h
         platform/darwin/camera/avfimageencodercontrol.mm platform/darwin/camera/avfimageencodercontrol_p.h
         platform/darwin/camera/avfmediacontainercontrol.mm platform/darwin/camera/avfmediacontainercontrol_p.h
-        platform/darwin/camera/avfmediavideoprobecontrol.mm platform/darwin/camera/avfmediavideoprobecontrol_p.h
         platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
         platform/darwin/camera/avfvideoencodersettingscontrol.mm platform/darwin/camera/avfvideoencodersettingscontrol_p.h
 )

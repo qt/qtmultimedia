@@ -34,7 +34,6 @@
 #include "mockmediaplayercontrol.h"
 #include "mockmediastreamscontrol.h"
 #include "mockvideorenderercontrol.h"
-#include "mockvideoprobecontrol.h"
 #include "mockvideowindowcontrol.h"
 #include "mockmetadatareadercontrol.h"
 
@@ -49,7 +48,6 @@ public:
         mockStreamsControl = new MockStreamsControl;
         rendererControl = new MockVideoRendererControl;
         rendererRef = 0;
-        mockVideoProbeControl = new MockVideoProbeControl;
         windowControl = new MockVideoWindowControl;
         metaDataControl = new MockMetaDataReaderControl;
         windowRef = 0;
@@ -60,7 +58,6 @@ public:
         delete mockControl;
         delete mockStreamsControl;
         delete rendererControl;
-        delete mockVideoProbeControl;
         delete windowControl;
     }
 
@@ -73,10 +70,7 @@ public:
                 rendererRef += 1;
                 return rendererControl;
             }
-        } else if (qstrcmp(iid, QMediaVideoProbeControl_iid) == 0) {
-            return mockVideoProbeControl;
-        }
-        if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
+        } else if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
             if (windowRef == 0) {
                 windowRef += 1;
                 return windowControl;
@@ -100,10 +94,6 @@ public:
     QMetaDataReaderControl *dataReader() { return nullptr; } // ###
 
     QMediaStreamsControl *streams() { return nullptr; } // ###
-    QMediaVideoProbeControl *videoProbe() { return mockVideoProbeControl; }
-    void releaseVideoProbe(QMediaVideoProbeControl *) {}
-    QMediaAudioProbeControl *audioProbe() { return nullptr; } // ###
-    void releaseAudioProbe(QMediaAudioProbeControl *) {}
 
     virtual QVideoRendererControl *createVideoRenderer() { return rendererControl; }
     virtual QVideoWindowControl *createVideoWindow() { return windowControl; };
@@ -153,7 +143,6 @@ public:
     MockMediaPlayerControl *mockControl;
     MockStreamsControl *mockStreamsControl;
     MockVideoRendererControl *rendererControl;
-    MockVideoProbeControl *mockVideoProbeControl;
     MockVideoWindowControl *windowControl;
     MockMetaDataReaderControl *metaDataControl;
     int windowRef;

@@ -73,8 +73,6 @@ class QGstreamerBusHelper;
 class QGstreamerMessage;
 
 class QGstreamerVideoRendererInterface;
-class QGstreamerVideoProbeControl;
-class QGstreamerAudioProbeControl;
 
 typedef enum {
   GST_AUTOPLUG_SELECT_TRY,
@@ -138,12 +136,6 @@ public:
 
     bool isLiveSource() const;
 
-    void addProbe(QGstreamerVideoProbeControl* probe);
-    void removeProbe(QGstreamerVideoProbeControl* probe);
-
-    void addProbe(QGstreamerAudioProbeControl* probe);
-    void removeProbe(QGstreamerAudioProbeControl* probe);
-
     void endOfMediaReset();
 
     QAudioDeviceInfo audioOutputDevice() const { return m_audioDevice; }
@@ -202,13 +194,7 @@ private:
 
     static GstPadProbeReturn change_audio_sink_cb(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
 
-    void removeVideoBufferProbe();
-    void addVideoBufferProbe();
     void updateAudioSink();
-    void removeAudioBufferProbe();
-    void addAudioBufferProbe();
-    void flushVideoProbes();
-    void resumeVideoProbes();
     bool parsePipeline();
     bool setPipeline(GstElement *pipeline);
     void resetElements();
@@ -247,9 +233,6 @@ private:
     QList< QMap<QString,QVariant> > m_streamProperties;
     QList<QMediaStreamsControl::StreamType> m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> m_playbin2StreamOffset;
-
-    QGstreamerVideoProbeControl *m_videoProbe = nullptr;
-    QGstreamerAudioProbeControl *m_audioProbe = nullptr;
 
     int m_volume = 100;
     qreal m_playbackRate = 1.0;

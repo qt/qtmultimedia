@@ -53,7 +53,6 @@
 #endif
 
 #include "qgstreamerimagecapturecontrol_p.h"
-#include <private/qgstreameraudioprobecontrol_p.h>
 
 #include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstreamervideowindow_p.h>
@@ -127,15 +126,6 @@ QObject *QGstreamerCaptureService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
 
-    if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
-        if (!m_audioProbeControl) {
-            m_audioProbeControl = new QGstreamerAudioProbeControl(this);
-            m_captureSession->addProbe(m_audioProbeControl);
-        }
-        m_audioProbeControl->ref.ref();
-        return m_audioProbeControl;
-    }
-
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             m_videoOutput = m_videoRenderer;
@@ -159,10 +149,6 @@ void QGstreamerCaptureService::releaseControl(QObject *control)
     } else if (control == m_videoOutput) {
         m_videoOutput = 0;
         m_captureSession->setVideoPreview(0);
-    } else if (control == m_audioProbeControl && !m_audioProbeControl->ref.deref()) {
-        m_captureSession->removeProbe(m_audioProbeControl);
-        delete m_audioProbeControl;
-        m_audioProbeControl = 0;
     }
 }
 

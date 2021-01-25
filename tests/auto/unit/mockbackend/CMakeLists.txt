@@ -16,7 +16,6 @@ target_sources(QtMultimediaMockBackend INTERFACE
     mockaudiodecodercontrol.h
     mockaudiodecoderservice.h
     mockaudioencodercontrol.h
-    mockaudioprobecontrol.h
     mockcameracontrol.h
     mockcameraexposurecontrol.h
     mockcamerafocuscontrol.h
@@ -34,7 +33,6 @@ target_sources(QtMultimediaMockBackend INTERFACE
     mockmetadatareadercontrol.h
     mockmetadatawritercontrol.h
     mockvideoencodercontrol.h
-    mockvideoprobecontrol.h
     mockvideorenderercontrol.h
     mockvideosurface.h
     mockvideowindowcontrol.h

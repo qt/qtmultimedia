@@ -55,8 +55,5 @@ plugin. Basic features such as displaying a viewfinder and capturing a
 still image are supported, however, majority of camera controls are not
 implemented.
 
-Video recording is currently not supported. Additionally, the DirectShow
-plugin does not support any low-level video functionality such as
-monitoring video frames being played or recorded using \l QVideoProbe or
-related classes.
+Video recording is currently not supported. 
 */

@@ -58,8 +58,6 @@ QT_BEGIN_NAMESPACE
 class QMediaPlayerControl;
 class QMetaDataReaderControl;
 class QMediaStreamsControl;
-class QMediaVideoProbeControl;
-class QMediaAudioProbeControl;
 class QVideoRendererControl;
 class QVideoWindowControl;
 
@@ -74,10 +72,6 @@ public:
 
     // ### nothing in the frontend uses the stream info currently. Needs implementation in QMediaPlayer
     virtual QMediaStreamsControl *streams() { return nullptr; }
-    virtual QMediaVideoProbeControl *videoProbe() { return nullptr; }
-    virtual void releaseVideoProbe(QMediaVideoProbeControl *) {}
-    virtual QMediaAudioProbeControl *audioProbe() { return nullptr; }
-    virtual void releaseAudioProbe(QMediaAudioProbeControl *) {}
 
     virtual QVideoRendererControl *createVideoRenderer() = 0;
     virtual QVideoWindowControl *createVideoWindow() { return nullptr; };

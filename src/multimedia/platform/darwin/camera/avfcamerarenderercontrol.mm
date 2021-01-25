@@ -349,9 +349,6 @@ void AVFCameraRendererControl::syncHandleViewfinderFrame(const QVideoFrame &fram
     }
 
     m_lastViewfinderFrame = frame;
-
-    if (m_cameraSession && m_lastViewfinderFrame.isValid())
-        m_cameraSession->onCameraFrameFetched(m_lastViewfinderFrame);
 }
 
 AVCaptureVideoDataOutput *AVFCameraRendererControl::videoDataOutput() const

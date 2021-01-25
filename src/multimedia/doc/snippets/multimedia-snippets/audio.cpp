@@ -45,7 +45,6 @@
 #include "qaudiodeviceinfo.h"
 #include "qaudioinput.h"
 #include "qaudiooutput.h"
-#include "qaudioprobe.h"
 #include "qaudiodecoder.h"
 #include "qmediaplayer.h"
 

@@ -72,20 +72,6 @@ SoundEffect have essentially the same API.
 You can adjust the number of \l {QSoundEffect::loopCount()}{loops} a sound effect is played, as well as
 the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
 
-\section2 Monitoring Audio Data During Playback or Recording
-
-The \l QAudioProbe class allows you to monitor audio data being played or
-recorded in the higher level classes like \l QMediaPlayer, \l QCamera and
-\l QAudioRecorder.  After creating your high level class, you can simply
-set the source of the probe to your class, and receive audio buffers as they
-are processed.  This is useful for several audio processing tasks, particularly
-for visualization or adjusting gain.  You cannot modify the buffers, and
-they may arrive at a slightly different time than the media pipeline
-processes them.
-
-Here's an example of installing a probe during recording:
-    \snippet multimedia-snippets/media.cpp Audio probe
-
 \section2 Low Level Audio Playback and Recording
 Qt Multimedia offers classes for raw access to audio input and output
 facilities, allowing applications to receive raw data from devices like

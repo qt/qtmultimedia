@@ -157,35 +157,6 @@ void MFPlayerSession::close()
     m_hCloseEvent = 0;
 }
 
-void MFPlayerSession::addProbe(MFAudioProbeControl *probe)
-{
-    m_audioSampleGrabber->addProbe(probe);
-}
-
-void MFPlayerSession::removeProbe(MFAudioProbeControl *probe)
-{
-    m_audioSampleGrabber->removeProbe(probe);
-}
-
-void MFPlayerSession::addProbe(MFVideoProbeControl* probe)
-{
-    if (m_videoProbes.contains(probe))
-        return;
-
-    m_videoProbes.append(probe);
-
-    if (m_videoProbeMFT)
-        m_videoProbeMFT->addProbe(probe);
-}
-
-void MFPlayerSession::removeProbe(MFVideoProbeControl* probe)
-{
-    m_videoProbes.removeOne(probe);
-
-    if (m_videoProbeMFT)
-        m_videoProbeMFT->removeProbe(probe);
-}
-
 MFPlayerSession::~MFPlayerSession()
 {
     if (m_currentAudioActivate)
@@ -1076,8 +1047,8 @@ void MFPlayerSession::createSession()
     QObject::connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleSourceError(long)));
 
     m_videoProbeMFT = new MFTransform;
-    for (int i = 0; i < m_videoProbes.size(); ++i)
-        m_videoProbeMFT->addProbe(m_videoProbes.at(i));
+//    for (int i = 0; i < m_videoProbes.size(); ++i)
+//        m_videoProbeMFT->addProbe(m_videoProbes.at(i));
 
     Q_ASSERT(m_session == NULL);
     HRESULT hr = MFCreateMediaSession(NULL, &m_session);

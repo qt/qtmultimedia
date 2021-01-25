@@ -57,8 +57,6 @@
 
 #include <QMediaService>
 #include <QMediaPlaylist>
-#include <QVideoProbe>
-#include <QAudioProbe>
 #include <QMediaMetaData>
 #include <QMediaDeviceManager>
 #include <QAudioDeviceInfo>
@@ -115,13 +113,14 @@ Player::Player(QWidget *parent)
     histogramLayout->addWidget(m_videoHistogram, 1);
     histogramLayout->addWidget(m_audioHistogram, 2);
 
-    m_videoProbe = new QVideoProbe(this);
-    connect(m_videoProbe, &QVideoProbe::videoFrameProbed, m_videoHistogram, &HistogramWidget::processFrame);
-    m_videoProbe->setSource(m_player);
+    // ### replace by a monitoring outputs once we have them
+//    m_videoProbe = new QVideoProbe(this);
+//    connect(m_videoProbe, &QVideoProbe::videoFrameProbed, m_videoHistogram, &HistogramWidget::processFrame);
+//    m_videoProbe->setSource(m_player);
 
-    m_audioProbe = new QAudioProbe(this);
-    connect(m_audioProbe, &QAudioProbe::audioBufferProbed, m_audioHistogram, &HistogramWidget::processBuffer);
-    m_audioProbe->setSource(m_player);
+//    m_audioProbe = new QAudioProbe(this);
+//    connect(m_audioProbe, &QAudioProbe::audioBufferProbed, m_audioHistogram, &HistogramWidget::processBuffer);
+//    m_audioProbe->setSource(m_player);
 
     QPushButton *openButton = new QPushButton(tr("Open"), this);
 

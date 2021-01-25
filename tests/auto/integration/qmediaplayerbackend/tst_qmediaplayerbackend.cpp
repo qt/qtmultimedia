@@ -31,10 +31,9 @@
 #include <qabstractvideosurface.h>
 #include "qmediaservice.h"
 #include "qmediaplayer.h"
-#include "qaudioprobe.h"
-#include "qvideoprobe.h"
 #include <qmediaplaylist.h>
 #include <qmediametadata.h>
+#include <qaudiobuffer.h>
 
 #include "../shared/mediafileselector.h"
 //TESTED_COMPONENT=src/multimedia
@@ -73,7 +72,6 @@ private slots:
     void seekPauseSeek();
     void seekInStoppedState();
     void subsequentPlayback();
-    void probes();
     void surfaceTest_data();
     void surfaceTest();
     void multipleSurfaces();
@@ -121,22 +119,6 @@ public:
 private:
     bool m_storeFrames;
     QList<QVideoFrame::PixelFormat> m_supported;
-};
-
-class ProbeDataHandler : public QObject
-{
-    Q_OBJECT
-
-public:
-    QList<QVideoFrame> m_frameList;
-    QList<QAudioBuffer> m_bufferList;
-    bool isVideoFlushCalled = false;
-
-public slots:
-    void processFrame(const QVideoFrame&);
-    void processBuffer(const QAudioBuffer&);
-    void flushVideo();
-    void flushAudio();
 };
 
 void tst_QMediaPlayerBackend::init()
@@ -990,43 +972,6 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
     QVERIFY(player.position() > 2000 && player.position() < 5000);
 }
 
-void tst_QMediaPlayerBackend::probes()
-{
-    if (localVideoFile.isEmpty())
-        QSKIP("No supported video file");
-
-    QMediaPlayer *player = new QMediaPlayer;
-
-    TestVideoSurface *surface = new TestVideoSurface;
-    player->setVideoOutput(surface);
-
-    QVideoProbe *videoProbe = new QVideoProbe;
-    QAudioProbe *audioProbe = new QAudioProbe;
-
-    ProbeDataHandler probeHandler;
-    connect(videoProbe, SIGNAL(videoFrameProbed(QVideoFrame)), &probeHandler, SLOT(processFrame(QVideoFrame)));
-    connect(videoProbe, SIGNAL(flush()), &probeHandler, SLOT(flushVideo()));
-    connect(audioProbe, SIGNAL(audioBufferProbed(QAudioBuffer)), &probeHandler, SLOT(processBuffer(QAudioBuffer)));
-    connect(audioProbe, SIGNAL(flush()), &probeHandler, SLOT(flushAudio()));
-
-    if (!videoProbe->setSource(player))
-        QSKIP("QVideoProbe is not supported");
-    audioProbe->setSource(player);
-
-    player->setMedia(localVideoFile);
-    QTRY_COMPARE(player->mediaStatus(), QMediaPlayer::LoadedMedia);
-
-    player->pause();
-    QTRY_COMPARE(surface->m_frameList.size(), 1);
-    QVERIFY(!probeHandler.m_frameList.isEmpty());
-    QTRY_VERIFY(!probeHandler.m_bufferList.isEmpty());
-
-    delete player;
-    QTRY_VERIFY(probeHandler.isVideoFlushCalled);
-    delete videoProbe;
-    delete audioProbe;
-}
-
 void tst_QMediaPlayerBackend::surfaceTest_data()
 {
     QTest::addColumn< QList<QVideoFrame::PixelFormat> >("formatsList");
@@ -1219,27 +1164,6 @@ bool TestVideoSurface::present(const QVideoFrame &frame)
         m_frameList.push_back(frame);
     m_totalFrames++;
     return true;
-}
-
-
-void ProbeDataHandler::processFrame(const QVideoFrame &frame)
-{
-    m_frameList.append(frame);
-}
-
-void ProbeDataHandler::processBuffer(const QAudioBuffer &buffer)
-{
-    m_bufferList.append(buffer);
-}
-
-void ProbeDataHandler::flushVideo()
-{
-    isVideoFlushCalled = true;
-}
-
-void ProbeDataHandler::flushAudio()
-{
-
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

@@ -118,7 +118,7 @@ private:
 
     IMFMediaTypeHandler *m_videoSinkTypeHandler;
 
-    QList<MFVideoProbeControl*> m_videoProbes;
+//    QList<MFVideoProbeControl*> m_videoProbes;
     QMutex m_videoProbeMutex;
 
     QVideoSurfaceFormat m_format;

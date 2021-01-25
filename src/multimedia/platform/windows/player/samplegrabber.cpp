@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "samplegrabber_p.h"
-#include "mfaudioprobecontrol_p.h"
 
 STDMETHODIMP SampleGrabberCallback::QueryInterface(REFIID riid, void** ppv)
 {
@@ -120,21 +119,21 @@ STDMETHODIMP SampleGrabberCallback::OnShutdown()
     return S_OK;
 }
 
-void AudioSampleGrabberCallback::addProbe(MFAudioProbeControl* probe)
-{
-    QMutexLocker locker(&m_audioProbeMutex);
+//void AudioSampleGrabberCallback::addProbe(MFAudioProbeControl* probe)
+//{
+//    QMutexLocker locker(&m_audioProbeMutex);
 
-    if (m_audioProbes.contains(probe))
-        return;
+//    if (m_audioProbes.contains(probe))
+//        return;
 
-    m_audioProbes.append(probe);
-}
+//    m_audioProbes.append(probe);
+//}
 
-void AudioSampleGrabberCallback::removeProbe(MFAudioProbeControl* probe)
-{
-    QMutexLocker locker(&m_audioProbeMutex);
-    m_audioProbes.removeOne(probe);
-}
+//void AudioSampleGrabberCallback::removeProbe(MFAudioProbeControl* probe)
+//{
+//    QMutexLocker locker(&m_audioProbeMutex);
+//    m_audioProbes.removeOne(probe);
+//}
 
 void AudioSampleGrabberCallback::setFormat(const QAudioFormat& format)
 {
@@ -154,7 +153,7 @@ STDMETHODIMP AudioSampleGrabberCallback::OnProcessSample(REFGUID guidMajorMediaT
 
     QMutexLocker locker(&m_audioProbeMutex);
 
-    if (m_audioProbes.isEmpty())
+//    if (m_audioProbes.isEmpty())
         return S_OK;
 
     // Check if sample has a presentation time
@@ -166,8 +165,8 @@ STDMETHODIMP AudioSampleGrabberCallback::OnProcessSample(REFGUID guidMajorMediaT
         llSampleTime /= 10;
     }
 
-    for (MFAudioProbeControl* probe : qAsConst(m_audioProbes))
-        probe->bufferProbed((const char*)pSampleBuffer, dwSampleSize, m_format, llSampleTime);
+//    for (MFAudioProbeControl* probe : qAsConst(m_audioProbes))
+//        probe->bufferProbed((const char*)pSampleBuffer, dwSampleSize, m_format, llSampleTime);
 
     return S_OK;
 }

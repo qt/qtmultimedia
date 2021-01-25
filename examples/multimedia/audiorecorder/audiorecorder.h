@@ -58,7 +58,6 @@
 QT_BEGIN_NAMESPACE
 namespace Ui { class AudioRecorder; }
 class QMediaRecorder;
-class QAudioProbe;
 class QAudioBuffer;
 QT_END_NAMESPACE
 
@@ -90,7 +89,6 @@ private:
     Ui::AudioRecorder *ui = nullptr;
 
     QMediaRecorder *m_audioRecorder = nullptr;
-    QAudioProbe *m_probe = nullptr;
     QList<AudioLevel*> m_audioLevels;
     bool m_outputLocationSet = false;
 

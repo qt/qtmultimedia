@@ -49,7 +49,6 @@
 #include "avfcamerarenderercontrol_p.h"
 #include "avfmediarecordercontrol_p.h"
 #include "avfimagecapturecontrol_p.h"
-#include "avfmediavideoprobecontrol_p.h"
 #include "avfcamerafocuscontrol_p.h"
 #include "avfcameraexposurecontrol_p.h"
 #include "avfimageencodercontrol_p.h"
@@ -162,13 +161,6 @@ QObject *AVFCameraService::requestControl(const char *name)
     if (qstrcmp(name, QMediaContainerControl_iid) == 0)
         return m_mediaContainerControl;
 
-    if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
-        AVFMediaVideoProbeControl *videoProbe = nullptr;
-        videoProbe = new AVFMediaVideoProbeControl(this);
-        m_session->addProbe(videoProbe);
-        return videoProbe;
-    }
-
     if (!m_captureWindowControl) {
         if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
             m_captureWindowControl = new AVFCameraWindowControl(this);
@@ -192,11 +184,7 @@ QObject *AVFCameraService::requestControl(const char *name)
 
 void AVFCameraService::releaseControl(QObject *control)
 {
-    AVFMediaVideoProbeControl *videoProbe = qobject_cast<AVFMediaVideoProbeControl *>(control);
-    if (videoProbe) {
-        m_session->removeProbe(videoProbe);
-        delete videoProbe;
-    } else if (m_videoOutput == control) {
+    if (m_videoOutput == control) {
         m_session->setVideoOutput(nullptr);
         delete m_videoOutput;
         m_videoOutput = nullptr;

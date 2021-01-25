@@ -42,7 +42,6 @@
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
 #include "avfcamerarenderercontrol_p.h"
-#include "avfmediavideoprobecontrol_p.h"
 #include "avfimageencodercontrol_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamerawindowcontrol_p.h"
@@ -385,21 +384,6 @@ bool AVFCameraSession::applyViewfinderSettings()
     return false;
 }
 
-void AVFCameraSession::addProbe(AVFMediaVideoProbeControl *probe)
-{
-    m_videoProbesMutex.lock();
-    if (probe)
-        m_videoProbes << probe;
-    m_videoProbesMutex.unlock();
-}
-
-void AVFCameraSession::removeProbe(AVFMediaVideoProbeControl *probe)
-{
-    m_videoProbesMutex.lock();
-    m_videoProbes.remove(probe);
-    m_videoProbesMutex.unlock();
-}
-
 FourCharCode AVFCameraSession::defaultCodec()
 {
     if (!m_defaultCodec) {
@@ -411,19 +395,6 @@ FourCharCode AVFCameraSession::defaultCodec()
         }
     }
     return m_defaultCodec;
-}
-
-void AVFCameraSession::onCameraFrameFetched(const QVideoFrame &frame)
-{
-    Q_EMIT newViewfinderFrame(frame);
-
-    m_videoProbesMutex.lock();
-    QSet<AVFMediaVideoProbeControl *>::const_iterator i = m_videoProbes.constBegin();
-    while (i != m_videoProbes.constEnd()) {
-        (*i)->newFrameProbed(frame);
-        ++i;
-    }
-    m_videoProbesMutex.unlock();
 }
 
 #include "moc_avfcamerasession_p.cpp"

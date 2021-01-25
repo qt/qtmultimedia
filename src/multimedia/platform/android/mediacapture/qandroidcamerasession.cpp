@@ -43,7 +43,6 @@
 #include "androidcamera_p.h"
 #include "androidmultimediautils_p.h"
 #include "qandroidvideooutput_p.h"
-#include "qandroidmediavideoprobecontrol_p.h"
 #include "qandroidmultimediautils_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
 #include <qabstractvideosurface.h>
@@ -207,7 +206,7 @@ bool QAndroidCameraSession::open()
         if (m_camera->getPreviewFormat() != AndroidCamera::NV21)
             m_camera->setPreviewFormat(AndroidCamera::NV21);
 
-        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
+        m_camera->notifyNewFrames(m_previewCallback);
 
         emit opened();
         emit statusChanged(m_status);
@@ -530,25 +529,6 @@ int QAndroidCameraSession::currentCameraRotation() const
     return rotation;
 }
 
-void QAndroidCameraSession::addProbe(QAndroidMediaVideoProbeControl *probe)
-{
-    m_videoProbesMutex.lock();
-    if (probe)
-        m_videoProbes << probe;
-    if (m_camera)
-        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
-    m_videoProbesMutex.unlock();
-}
-
-void QAndroidCameraSession::removeProbe(QAndroidMediaVideoProbeControl *probe)
-{
-    m_videoProbesMutex.lock();
-    m_videoProbes.remove(probe);
-    if (m_camera)
-        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
-    m_videoProbesMutex.unlock();
-}
-
 void QAndroidCameraSession::setPreviewFormat(AndroidCamera::ImageFormat format)
 {
     if (format == AndroidCamera::UnknownImageFormat)
@@ -559,11 +539,11 @@ void QAndroidCameraSession::setPreviewFormat(AndroidCamera::ImageFormat format)
 
 void QAndroidCameraSession::setPreviewCallback(PreviewCallback *callback)
 {
-    m_videoProbesMutex.lock();
+    m_videoFrameCallbackMutex.lock();
     m_previewCallback = callback;
     if (m_camera)
-        m_camera->notifyNewFrames(m_videoProbes.count() || m_previewCallback);
-    m_videoProbesMutex.unlock();
+        m_camera->notifyNewFrames(m_previewCallback);
+    m_videoFrameCallbackMutex.unlock();
 }
 
 void QAndroidCameraSession::applyImageSettings()
@@ -754,15 +734,12 @@ void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
     if (!m_camera)
         return;
 
-    m_videoProbesMutex.lock();
-
-    for (QAndroidMediaVideoProbeControl *probe : qAsConst(m_videoProbes))
-        probe->newFrameProbed(frame);
+    m_videoFrameCallbackMutex.lock();
 
     if (m_previewCallback)
         m_previewCallback->onFrameAvailable(frame);
 
-    m_videoProbesMutex.unlock();
+    m_videoFrameCallbackMutex.unlock();
 }
 
 void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)

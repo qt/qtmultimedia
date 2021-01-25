@@ -73,10 +73,6 @@ public:
     QMediaPlayerControl *player() override;
     QMetaDataReaderControl *dataReader() override;
 //    QMediaStreamsControl *streams() override;
-//    QMediaVideoProbeControl *videoProbe() override;
-//    void releaseVideoProbe(QMediaVideoProbeControl *) override;
-//    QMediaAudioProbeControl *audioProbe() override;
-//    void releaseAudioProbe(QMediaAudioProbeControl *) override;
 
     QVideoRendererControl *createVideoRenderer() override;
 //    QVideoWindowControl *createVideoWindow() override;;

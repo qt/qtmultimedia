@@ -57,8 +57,6 @@
 #include <mfapi.h>
 #include <mfidl.h>
 
-class MFAudioProbeControl;
-
 class SampleGrabberCallback : public IMFSampleGrabberSinkCallback
 {
 public:
@@ -90,8 +88,6 @@ private:
 
 class AudioSampleGrabberCallback: public SampleGrabberCallback {
 public:
-    void addProbe(MFAudioProbeControl* probe);
-    void removeProbe(MFAudioProbeControl* probe);
     void setFormat(const QAudioFormat& format);
 
     STDMETHODIMP OnProcessSample(REFGUID guidMajorMediaType, DWORD dwSampleFlags,
@@ -99,7 +95,7 @@ public:
         DWORD dwSampleSize);
 
 private:
-    QList<MFAudioProbeControl*> m_audioProbes;
+//    QList<MFAudioProbeControl*> m_audioProbes;
     QMutex m_audioProbeMutex;
     QAudioFormat m_format;
 };

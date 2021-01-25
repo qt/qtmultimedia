@@ -58,7 +58,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerAudioProbeControl;
 class QGstreamerCaptureSession;
 class QGstreamerCameraControl;
 class QGstreamerMessage;
@@ -96,8 +95,6 @@ private:
     QGstreamerVideoRenderer *m_videoRenderer = nullptr;
     QGstreamerVideoWindow *m_videoWindow = nullptr;
     QGstreamerImageCaptureControl *m_imageCaptureControl = nullptr;
-
-    QGstreamerAudioProbeControl *m_audioProbeControl = nullptr;
 };
 
 QT_END_NAMESPACE

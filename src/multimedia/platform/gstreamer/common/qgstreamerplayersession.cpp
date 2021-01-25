@@ -40,8 +40,6 @@
 #include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamerbushelper_p.h>
 
-#include <private/qgstreameraudioprobecontrol_p.h>
-#include <private/qgstreamervideoprobecontrol_p.h>
 #include <private/qgstreamervideorendererinterface_p.h>
 #include <private/qgstutils_p.h>
 #include <private/qgstvideorenderersink_p.h>
@@ -179,8 +177,6 @@ QGstreamerPlayerSession::~QGstreamerPlayerSession()
     if (m_pipeline) {
         stop();
 
-        removeVideoBufferProbe();
-        removeAudioBufferProbe();
 
         delete m_busHelper;
         m_busHelper = nullptr;
@@ -624,12 +620,9 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
         qDebug() << "The pipeline has not started yet, pending state:" << m_pendingState;
 #endif
         //the pipeline has not started yet
-        flushVideoProbes();
         m_pendingVideoSink = 0;
         gst_element_set_state(m_videoSink, GST_STATE_NULL);
         gst_element_set_state(m_playbin, GST_STATE_NULL);
-
-        removeVideoBufferProbe();
 
         gst_bin_remove(GST_BIN(m_videoOutputBin), m_videoSink);
 
@@ -646,8 +639,6 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
             g_object_set(G_OBJECT(m_videoSink), "show-preroll-frame", value, nullptr);
         }
 
-        addVideoBufferProbe();
-
         switch (m_pendingState) {
         case QMediaPlayer::PausedState:
             gst_element_set_state(m_playbin, GST_STATE_PAUSED);
@@ -658,8 +649,6 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
         default:
             break;
         }
-
-        resumeVideoProbes();
 
     } else {
         if (m_pendingVideoSink) {
@@ -730,16 +719,12 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
     gst_element_set_state(m_videoSink, GST_STATE_NULL);
     gst_element_unlink(m_videoIdentity, m_videoSink);
 
-    removeVideoBufferProbe();
-
     gst_bin_remove(GST_BIN(m_videoOutputBin), m_videoSink);
 
     m_videoSink = m_pendingVideoSink;
     m_pendingVideoSink = 0;
 
     gst_bin_add(GST_BIN(m_videoOutputBin), m_videoSink);
-
-    addVideoBufferProbe();
 
     bool linked = gst_element_link(m_videoIdentity, m_videoSink);
 
@@ -766,15 +751,9 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
 
     gst_element_set_state(m_videoSink, state);
 
-    if (state == GST_STATE_NULL)
-        flushVideoProbes();
-
     // Set state change that was deferred due the video output
     // change being pending
     gst_element_set_state(m_playbin, state);
-
-    if (state != GST_STATE_NULL)
-        resumeVideoProbes();
 
     //don't have to wait here, it will unblock eventually
     if (gst_pad_is_blocked(srcPad))
@@ -811,7 +790,6 @@ bool QGstreamerPlayerSession::play()
             m_pendingState = m_state = QMediaPlayer::StoppedState;
             emit stateChanged(m_state);
         } else {
-            resumeVideoProbes();
             return true;
         }
     }
@@ -834,7 +812,6 @@ bool QGstreamerPlayerSession::pause()
             m_pendingState = m_state = QMediaPlayer::StoppedState;
             emit stateChanged(m_state);
         } else {
-            resumeVideoProbes();
             return true;
         }
     }
@@ -853,7 +830,6 @@ void QGstreamerPlayerSession::stop()
         if (m_renderer)
             m_renderer->stopRenderer();
 
-        flushVideoProbes();
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
 
         m_lastPosition = 0;
@@ -1589,34 +1565,6 @@ void QGstreamerPlayerSession::showPrerollFrames(bool enabled)
     }
 }
 
-void QGstreamerPlayerSession::addProbe(QGstreamerVideoProbeControl* probe)
-{
-    Q_ASSERT(!m_videoProbe);
-    m_videoProbe = probe;
-    addVideoBufferProbe();
-}
-
-void QGstreamerPlayerSession::removeProbe(QGstreamerVideoProbeControl* probe)
-{
-    Q_ASSERT(m_videoProbe == probe);
-    removeVideoBufferProbe();
-    m_videoProbe = 0;
-}
-
-void QGstreamerPlayerSession::addProbe(QGstreamerAudioProbeControl* probe)
-{
-    Q_ASSERT(!m_audioProbe);
-    m_audioProbe = probe;
-    addAudioBufferProbe();
-}
-
-void QGstreamerPlayerSession::removeProbe(QGstreamerAudioProbeControl* probe)
-{
-    Q_ASSERT(m_audioProbe == probe);
-    removeAudioBufferProbe();
-    m_audioProbe = 0;
-}
-
 // This function is similar to stop(),
 // but does not set m_everPlayed, m_lastPosition,
 // and setSeekable() values.
@@ -1625,7 +1573,6 @@ void QGstreamerPlayerSession::endOfMediaReset()
     if (m_renderer)
         m_renderer->stopRenderer();
 
-    flushVideoProbes();
     gst_element_set_state(m_pipeline, GST_STATE_PAUSED);
 
     QMediaPlayer::State oldState = m_state;
@@ -1645,30 +1592,6 @@ void QGstreamerPlayerSession::setAudioOutputDevice(const QAudioDeviceInfo &audio
     m_audioDevice = audioDevice;
     if (m_audioSink)
         updateAudioSink();
-}
-
-void QGstreamerPlayerSession::removeVideoBufferProbe()
-{
-    if (!m_videoProbe)
-        return;
-
-    GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-    if (pad) {
-        m_videoProbe->removeProbeFromPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
-    }
-}
-
-void QGstreamerPlayerSession::addVideoBufferProbe()
-{
-    if (!m_videoProbe)
-        return;
-
-    GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-    if (pad) {
-        m_videoProbe->addProbeToPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
-    }
 }
 
 void QGstreamerPlayerSession::updateAudioSink()
@@ -1752,40 +1675,5 @@ void QGstreamerPlayerSession::finishAudioOutputChange()
     }
 }
 
-void QGstreamerPlayerSession::removeAudioBufferProbe()
-{
-    if (!m_audioProbe)
-        return;
-
-    GstPad *pad = gst_element_get_static_pad(GST_ELEMENT(m_volumeElement), "src");
-    if (pad) {
-        m_audioProbe->removeProbeFromPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
-    }
-}
-
-void QGstreamerPlayerSession::addAudioBufferProbe()
-{
-    if (!m_audioProbe)
-        return;
-
-    GstPad *pad = gst_element_get_static_pad(GST_ELEMENT(m_volumeElement), "src");
-    if (pad) {
-        m_audioProbe->addProbeToPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
-    }
-}
-
-void QGstreamerPlayerSession::flushVideoProbes()
-{
-    if (m_videoProbe)
-        m_videoProbe->startFlushing();
-}
-
-void QGstreamerPlayerSession::resumeVideoProbes()
-{
-    if (m_videoProbe)
-        m_videoProbe->stopFlushing();
-}
 
 QT_END_NAMESPACE

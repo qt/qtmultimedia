@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "mftvideo_p.h"
-#include "mfvideoprobecontrol_p.h"
 #include <private/qmemoryvideobuffer_p.h>
 #include <mferror.h>
 #include <strmif.h>
@@ -75,21 +74,21 @@ MFTransform::~MFTransform()
         m_videoSinkTypeHandler->Release();
 }
 
-void MFTransform::addProbe(MFVideoProbeControl *probe)
-{
-    QMutexLocker locker(&m_videoProbeMutex);
+//void MFTransform::addProbe(MFVideoProbeControl *probe)
+//{
+//    QMutexLocker locker(&m_videoProbeMutex);
 
-    if (m_videoProbes.contains(probe))
-        return;
+//    if (m_videoProbes.contains(probe))
+//        return;
 
-    m_videoProbes.append(probe);
-}
+//    m_videoProbes.append(probe);
+//}
 
-void MFTransform::removeProbe(MFVideoProbeControl *probe)
-{
-    QMutexLocker locker(&m_videoProbeMutex);
-    m_videoProbes.removeOne(probe);
-}
+//void MFTransform::removeProbe(MFVideoProbeControl *probe)
+//{
+//    QMutexLocker locker(&m_videoProbeMutex);
+//    m_videoProbes.removeOne(probe);
+//}
 
 void MFTransform::setVideoSink(IUnknown *videoSink)
 {
@@ -519,12 +518,12 @@ STDMETHODIMP MFTransform::ProcessInput(DWORD dwInputStreamID, IMFSample *pSample
 
     QMutexLocker lockerProbe(&m_videoProbeMutex);
 
-    if (!m_videoProbes.isEmpty()) {
-        QVideoFrame frame = makeVideoFrame();
+//    if (!m_videoProbes.isEmpty()) {
+//        QVideoFrame frame = makeVideoFrame();
 
-        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
-            probe->bufferProbed(frame);
-    }
+//        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
+//            probe->bufferProbed(frame);
+//    }
 
     return S_OK;
 }
@@ -570,12 +569,12 @@ STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount,
     // We do it here (instead of inside ProcessInput) to make sure samples discarded by the renderer
     // are not sent.
     m_videoProbeMutex.lock();
-    if (!m_videoProbes.isEmpty()) {
-        QVideoFrame frame = makeVideoFrame();
+//    if (!m_videoProbes.isEmpty()) {
+//        QVideoFrame frame = makeVideoFrame();
 
-        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
-            probe->bufferProbed(frame);
-    }
+//        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
+//            probe->bufferProbed(frame);
+//    }
     m_videoProbeMutex.unlock();
 
 done:

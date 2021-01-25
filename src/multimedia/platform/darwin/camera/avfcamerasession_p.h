@@ -65,7 +65,6 @@ QT_BEGIN_NAMESPACE
 class AVFCameraControl;
 class AVFCameraService;
 class AVFCameraRendererControl;
-class AVFMediaVideoProbeControl;
 class AVFCameraWindowControl;
 
 struct AVFCameraInfo
@@ -98,8 +97,6 @@ public:
     QCamera::State requestedState() const { return m_state; }
     bool isActive() const { return m_active; }
 
-    void addProbe(AVFMediaVideoProbeControl *probe);
-    void removeProbe(AVFMediaVideoProbeControl *probe);
     FourCharCode defaultCodec();
 
     AVCaptureDeviceInput *videoInput() const {return m_videoInput;}
@@ -112,8 +109,6 @@ public Q_SLOTS:
     void processSessionStopped();
 
     void onCaptureModeChanged(QCamera::CaptureModes mode);
-
-    void onCameraFrameFetched(const QVideoFrame &frame);
 
 Q_SIGNALS:
     void readyToConfigureConnections();
@@ -141,9 +136,6 @@ private:
     AVCaptureSession *m_captureSession;
     AVCaptureDeviceInput *m_videoInput;
     AVFCameraSessionObserver *m_observer;
-
-    QSet<AVFMediaVideoProbeControl *> m_videoProbes;
-    QMutex m_videoProbesMutex;
 
     FourCharCode m_defaultCodec;
 };

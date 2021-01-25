@@ -46,7 +46,6 @@
 #include <qmediarecorder.h>
 #include <qmediadevicemanager.h>
 #include <private/qgstreamervideorendererinterface_p.h>
-#include <private/qgstreameraudioprobecontrol_p.h>
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstutils_p.h>
@@ -72,7 +71,6 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_waitingForEos(false),
      m_pipelineMode(EmptyPipeline),
      m_captureMode(captureMode),
-     m_audioProbe(0),
      m_audioPreviewFactory(0),
      m_videoInputFactory(0),
      m_viewfinder(0),
@@ -456,7 +454,6 @@ void QGstreamerCaptureSession::captureImage(int requestId, const QString &fileNa
 
 bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMode newMode)
 {
-    removeAudioBufferProbe();
     REMOVE_ELEMENT(m_audioSrc);
     REMOVE_ELEMENT(m_audioPreview);
     REMOVE_ELEMENT(m_audioPreviewQueue);
@@ -615,7 +612,6 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
 #endif
 
     if (ok) {
-        addAudioBufferProbe();
         m_pipelineMode = newMode;
     } else {
         m_pipelineMode = EmptyPipeline;
@@ -931,68 +927,6 @@ void QGstreamerCaptureSession::setVolume(qreal volume)
             g_object_set(G_OBJECT(m_audioVolume), "volume", m_volume, NULL);
 
         emit volumeChanged(volume);
-    }
-}
-
-void QGstreamerCaptureSession::addProbe(QGstreamerAudioProbeControl* probe)
-{
-    Q_ASSERT(!m_audioProbe);
-    m_audioProbe = probe;
-    addAudioBufferProbe();
-}
-
-void QGstreamerCaptureSession::removeProbe(QGstreamerAudioProbeControl* probe)
-{
-    Q_ASSERT(m_audioProbe == probe);
-    removeAudioBufferProbe();
-    m_audioProbe = 0;
-}
-
-GstPad *QGstreamerCaptureSession::getAudioProbePad()
-{
-    // first see if preview element is available
-    if (m_audioPreview) {
-        GstPad *pad = gst_element_get_static_pad(m_audioPreview, "sink");
-        if (pad)
-            return pad;
-    }
-
-    // preview element is not available,
-    // try to use sink pin of audio encoder.
-    if (m_encodeBin) {
-        GstElement *audioEncoder = gst_bin_get_by_name(GST_BIN(m_encodeBin), "audio-encoder-bin");
-        if (audioEncoder) {
-            GstPad *pad = gst_element_get_static_pad(audioEncoder, "sink");
-            gst_object_unref(audioEncoder);
-            if (pad)
-                return pad;
-        }
-    }
-
-    return 0;
-}
-
-void QGstreamerCaptureSession::removeAudioBufferProbe()
-{
-    if (!m_audioProbe)
-        return;
-
-    GstPad *pad = getAudioProbePad();
-    if (pad) {
-        m_audioProbe->removeProbeFromPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
-    }
-}
-
-void QGstreamerCaptureSession::addAudioBufferProbe()
-{
-    if (!m_audioProbe)
-        return;
-
-    GstPad *pad = getAudioProbePad();
-    if (pad) {
-        m_audioProbe->addProbeToPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
     }
 }
 

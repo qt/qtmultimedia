@@ -74,7 +74,6 @@ class QGstreamerImageEncode;
 class QGstreamerRecorderControl;
 class QGstreamerMediaContainerControl;
 class QGstreamerVideoRendererInterface;
-class QGstreamerAudioProbeControl;
 
 class QGstreamerElementFactory
 {
@@ -152,8 +151,6 @@ public:
 
     bool processBusMessage(const QGstreamerMessage &message) override;
 
-    void addProbe(QGstreamerAudioProbeControl* probe);
-    void removeProbe(QGstreamerAudioProbeControl* probe);
     QAudioDeviceInfo audioCaptureDevice() const { return m_audioDevice; }
 
 signals:
@@ -193,10 +190,6 @@ private:
 
     bool rebuildGraph(QGstreamerCaptureSession::PipelineMode newMode);
 
-    GstPad *getAudioProbePad();
-    void removeAudioBufferProbe();
-    void addAudioBufferProbe();
-
     QAudioDeviceInfo m_audioDevice;
     QUrl m_sink;
     State m_state;
@@ -205,8 +198,6 @@ private:
     PipelineMode m_pipelineMode;
     QGstreamerCaptureSession::CaptureMode m_captureMode;
     QMap<QByteArray, QVariant> m_metaData;
-
-    QGstreamerAudioProbeControl *m_audioProbe;
 
     QGstreamerElementFactory *m_audioPreviewFactory;
     QGstreamerVideoInput *m_videoInputFactory;

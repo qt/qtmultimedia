@@ -53,7 +53,6 @@
 
 #include "ui_audiorecorder.h"
 
-#include <QAudioProbe>
 #include <QMediaRecorder>
 #include <QDir>
 #include <QFileDialog>
@@ -61,6 +60,7 @@
 #include <QStandardPaths>
 #include <qmediadevicemanager.h>
 #include <qaudiodeviceinfo.h>
+#include <qaudiobuffer.h>
 
 static qreal getPeakValue(const QAudioFormat &format);
 static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
@@ -74,10 +74,11 @@ AudioRecorder::AudioRecorder()
     ui->setupUi(this);
 
     m_audioRecorder = new QMediaRecorder(QMediaRecorder::AudioOnly, this);
-    m_probe = new QAudioProbe(this);
-    connect(m_probe, &QAudioProbe::audioBufferProbed,
-            this, &AudioRecorder::processBuffer);
-    m_probe->setSource(m_audioRecorder);
+    // ### replace with a monitoring output once we have it.
+//    m_probe = new QAudioProbe(this);
+//    connect(m_probe, &QAudioProbe::audioBufferProbed,
+//            this, &AudioRecorder::processBuffer);
+//    m_probe->setSource(m_audioRecorder);
 
     QMediaDeviceManager *manager = QMediaDeviceManager::instance();
 

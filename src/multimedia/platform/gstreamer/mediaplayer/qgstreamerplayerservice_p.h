@@ -67,8 +67,6 @@ class QGstreamerStreamsControl;
 class QGstreamerVideoRenderer;
 class QGstreamerVideoWindow;
 class QGStreamerAvailabilityControl;
-class QGstreamerAudioProbeControl;
-class QGstreamerVideoProbeControl;
 
 class QGstreamerPlayerService : public QMediaPlatformPlayerInterface
 {
@@ -85,10 +83,6 @@ public:
     QMediaPlayerControl *player() override;
     QMetaDataReaderControl *dataReader() override;
     QMediaStreamsControl *streams() override;
-    QMediaVideoProbeControl *videoProbe() override;
-    void releaseVideoProbe(QMediaVideoProbeControl *) override;
-    QMediaAudioProbeControl *audioProbe() override;
-    void releaseAudioProbe(QMediaAudioProbeControl *) override;
 
     QVideoRendererControl *createVideoRenderer() override;
     QVideoWindowControl *createVideoWindow() override;;
@@ -98,9 +92,6 @@ private:
     QGstreamerPlayerSession *m_session = nullptr;
     QGstreamerMetaDataProvider *m_metaData = nullptr;
     QGstreamerStreamsControl *m_streamsControl = nullptr;
-
-    QGstreamerAudioProbeControl *m_audioProbeControl = nullptr;
-    QGstreamerVideoProbeControl *m_videoProbeControl = nullptr;
 
     QObject *m_videoOutput = nullptr;
     QVideoRendererControl *m_videoRenderer = nullptr;

@@ -44,8 +44,6 @@
 #include "mfplayercontrol_p.h"
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
-#include "mfaudioprobecontrol_p.h"
-#include "mfvideoprobecontrol_p.h"
 #include "mfplayerservice_p.h"
 #include "mfplayersession_p.h"
 #include "mfmetadatacontrol_p.h"
@@ -86,20 +84,6 @@ QObject *MFPlayerService::requestControl(const char *name)
             m_videoWindowControl = new MFEvrVideoWindowControl;
             return m_videoWindowControl;
         }
-    } else if (qstrcmp(name,QMediaAudioProbeControl_iid) == 0) {
-        if (m_session) {
-            MFAudioProbeControl *probe = new MFAudioProbeControl(this);
-            m_session->addProbe(probe);
-            return probe;
-        }
-        return 0;
-    } else if (qstrcmp(name,QMediaVideoProbeControl_iid) == 0) {
-        if (m_session) {
-            MFVideoProbeControl *probe = new MFVideoProbeControl(this);
-            m_session->addProbe(probe);
-            return probe;
-        }
-        return 0;
     }
 
     return 0;
@@ -120,22 +104,6 @@ void MFPlayerService::releaseControl(QObject *control)
         m_videoWindowControl = 0;
         return;
     }
-
-    MFAudioProbeControl* audioProbe = qobject_cast<MFAudioProbeControl*>(control);
-    if (audioProbe) {
-        if (m_session)
-            m_session->removeProbe(audioProbe);
-        delete audioProbe;
-        return;
-    }
-
-    MFVideoProbeControl* videoProbe = qobject_cast<MFVideoProbeControl*>(control);
-    if (videoProbe) {
-        if (m_session)
-            m_session->removeProbe(videoProbe);
-        delete videoProbe;
-        return;
-    }
 }
 
 QMediaPlayerControl *MFPlayerService::player()
@@ -146,41 +114,6 @@ QMediaPlayerControl *MFPlayerService::player()
 QMetaDataReaderControl *MFPlayerService::dataReader()
 {
     return m_metaDataControl;
-}
-
-QMediaVideoProbeControl *MFPlayerService::videoProbe()
-{
-    if (m_session) {
-        MFVideoProbeControl *probe = new MFVideoProbeControl(this);
-        m_session->addProbe(probe);
-        return probe;
-    }
-    return 0;
-}
-
-void MFPlayerService::releaseVideoProbe(QMediaVideoProbeControl *probe)
-{
-    MFVideoProbeControl* videoProbe = qobject_cast<MFVideoProbeControl*>(probe);
-    if (m_session)
-        m_session->removeProbe(videoProbe);
-    delete videoProbe;
-}
-
-QMediaAudioProbeControl *MFPlayerService::audioProbe()
-{
-    if (m_session) {
-        MFAudioProbeControl *probe = new MFAudioProbeControl(this);
-        m_session->addProbe(probe);
-        return probe;
-    }
-}
-
-void MFPlayerService::releaseAudioProbe(QMediaAudioProbeControl *probe)
-{
-    MFAudioProbeControl* audioProbe = qobject_cast<MFAudioProbeControl*>(probe);
-    if (m_session)
-        m_session->removeProbe(audioProbe);
-    delete audioProbe;
 }
 
 QVideoRendererControl *MFPlayerService::createVideoRenderer()

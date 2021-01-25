@@ -36,7 +36,6 @@
 #include "mockvideoencodercontrol.h"
 #include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
-#include "mockaudioprobecontrol.h"
 #include "mockcamerafocuscontrol.h"
 #include "mockcameraimageprocessingcontrol.h"
 #include "mockcameraimagecapturecontrol.h"
@@ -59,7 +58,6 @@ public:
         mockFormatControl = new MockMediaContainerControl(this);
         mockVideoEncoderControl = new MockVideoEncoderControl(this);
         mockMetaDataControl = new MockMetaDataWriterControl(this);
-        mockAudioProbeControl = new MockAudioProbeControl(this);
         mockCameraControl = new MockCameraControl(this);
         mockExposureControl = new MockCameraExposureControl(this);
         mockFocusControl = new MockCameraFocusControl(this);
@@ -87,8 +85,6 @@ public:
             return mockVideoEncoderControl;
         if (qstrcmp(name, QMetaDataWriterControl_iid) == 0)
             return mockMetaDataControl;
-        if (qstrcmp(name, QMediaAudioProbeControl_iid) == 0)
-            return mockAudioProbeControl;
 
         if (qstrcmp(name, QCameraControl_iid) == 0)
             return mockCameraControl;
@@ -149,7 +145,6 @@ public:
     QMediaContainerControl *mockFormatControl;
     QVideoEncoderSettingsControl *mockVideoEncoderControl;
     MockMetaDataWriterControl *mockMetaDataControl;
-    MockAudioProbeControl *mockAudioProbeControl;
 
     bool hasControls;
 };

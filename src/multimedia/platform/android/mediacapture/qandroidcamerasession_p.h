@@ -63,7 +63,6 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidVideoOutput;
-class QAndroidMediaVideoProbeControl;
 
 class QAndroidCameraSession : public QObject
 {
@@ -112,9 +111,6 @@ public:
     void cancelCapture();
 
     int currentCameraRotation() const;
-
-    void addProbe(QAndroidMediaVideoProbeControl *probe);
-    void removeProbe(QAndroidMediaVideoProbeControl *probe);
 
     void setPreviewFormat(AndroidCamera::ImageFormat format);
 
@@ -205,8 +201,7 @@ private:
 
     QMediaStorageLocation m_mediaStorageLocation;
 
-    QSet<QAndroidMediaVideoProbeControl *> m_videoProbes;
-    QMutex m_videoProbesMutex;
+    QMutex m_videoFrameCallbackMutex;
     PreviewCallback *m_previewCallback;
     bool m_keepActive;
 };

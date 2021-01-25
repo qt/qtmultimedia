@@ -63,7 +63,7 @@
 #endif
 
 #include <private/qgstreamerbushelper_p.h>
-#include <private/qgstreamervideoprobecontrol_p.h>
+#include <private/qgstreamerbufferprobe_p.h>
 #include <private/qmediastoragelocation_p.h>
 #include "qcamera.h"
 
@@ -171,8 +171,6 @@ public:
     bool processSyncMessage(const QGstreamerMessage &message) override;
     bool processBusMessage(const QGstreamerMessage &message) override;
 
-    QGstreamerVideoProbeControl *videoProbe();
-
 signals:
     void statusChanged(QCamera::Status status);
     void pendingStateChanged(QCamera::State state);
@@ -260,11 +258,10 @@ private:
     bool m_inputDeviceHasChanged;
     bool m_usingWrapperCameraBinSrc;
 
-    class ViewfinderProbe : public QGstreamerVideoProbeControl {
+    class ViewfinderProbe : public QGstreamerBufferProbe {
     public:
         ViewfinderProbe(CameraBinSession *s)
-            : QGstreamerVideoProbeControl(s)
-            , session(s)
+            : session(s)
         {}
 
         void probeCaps(GstCaps *caps) override;
