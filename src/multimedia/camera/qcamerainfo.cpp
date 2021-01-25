@@ -43,6 +43,46 @@
 
 QT_BEGIN_NAMESPACE
 
+QCameraFormat::QCameraFormat(const QCameraFormat &other)
+    : d(other.d)
+{
+}
+
+QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other)
+{
+    d = other.d;
+    return *this;
+}
+
+QCameraFormat::~QCameraFormat()
+{
+}
+
+QVideoFrame::PixelFormat QCameraFormat::pixelFormat() const
+{
+    return d->pixelFormat;
+}
+
+QSize QCameraFormat::resolution() const
+{
+    return d->resolution;
+}
+
+float QCameraFormat::minFrameRate() const
+{
+    return d->minFrameRate;
+}
+
+float QCameraFormat::maxFrameRate() const
+{
+    return d->maxFrameRate;
+}
+
+QCameraFormat::QCameraFormat(QCameraFormatPrivate *p)
+    : d(p)
+{
+}
+
 /*!
     \class QCameraInfo
     \brief The QCameraInfo class provides general information about camera devices.
@@ -76,19 +116,6 @@ QT_BEGIN_NAMESPACE
 QCameraInfo::QCameraInfo() = default;
 
 /*!
-    Constructs a camera info object for \a camera.
-
-    You can use it to query information about the \a camera object passed as argument.
-
-    If the \a camera is invalid, for example when no camera device is available on the system,
-    the QCameraInfo object will be invalid and isNull() will return true.
-*/
-QCameraInfo::QCameraInfo(const QCamera &camera)
-    : QCameraInfo(camera.cameraInfo())
-{
-}
-
-/*!
     Constructs a copy of \a other.
 */
 QCameraInfo::QCameraInfo(const QCameraInfo &other)
@@ -116,8 +143,7 @@ bool QCameraInfo::operator==(const QCameraInfo &other) const
 
     return (d->id == other.d->id
             && d->description == other.d->description
-            && d->position == other.d->position
-            && d->orientation == other.d->orientation);
+            && d->position == other.d->position);
 }
 
 /*!
@@ -154,28 +180,22 @@ QString QCameraInfo::description() const
 /*!
     Returns the physical position of the camera on the hardware system.
 */
-QCamera::Position QCameraInfo::position() const
+QCameraInfo::Position QCameraInfo::position() const
 {
-    return d ? d->position : QCamera::UnspecifiedPosition;
+    return d ? d->position : QCameraInfo::UnspecifiedPosition;
+}
+
+QList<QSize> QCameraInfo::photoResolutions() const
+{
+    return d->photoResolutions;
 }
 
 /*!
-    Returns the physical orientation of the camera sensor.
-
-    The value is the orientation angle (clockwise, in steps of 90 degrees) of the camera sensor
-    in relation to the display in its natural orientation.
-
-    You can show the camera image in the correct orientation by rotating it by this value in the
-    anti-clockwise direction.
-
-    For example, suppose a mobile device which is naturally in portrait orientation. The back-facing
-    camera is mounted in landscape. If the top side of the camera sensor is aligned with the
-    right edge of the screen in natural orientation, the value should be 270. If the top side of a
-    front-facing camera sensor is aligned with the right of the screen, the value should be 90.
+    Returns the video formats supported by the camera.
 */
-int QCameraInfo::orientation() const
+QList<QCameraFormat> QCameraInfo::videoFormats() const
 {
-    return d ? d->orientation : 0;
+    return d ? d->videoFormats : QList<QCameraFormat>{};
 }
 
 QCameraInfo::QCameraInfo(QCameraInfoPrivate *p)
@@ -203,8 +223,7 @@ QDebug operator<<(QDebug d, const QCameraInfo &camera)
     d.maybeSpace() << QStringLiteral("QCameraInfo(name=%1, position=%2, orientation=%3)")
                           .arg(camera.description())
                           .arg(QString::fromLatin1(QCamera::staticMetaObject.enumerator(QCamera::staticMetaObject.indexOfEnumerator("Position"))
-                               .valueToKey(camera.position())))
-                          .arg(camera.orientation());
+                               .valueToKey(camera.position())));
     return d.space();
 }
 #endif

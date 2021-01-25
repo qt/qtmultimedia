@@ -64,21 +64,21 @@ class QCameraPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCamera)
 public:
-    QCameraPrivate():
-        QMediaSourcePrivate(),
-        control(nullptr),
-        cameraExposure(nullptr),
-        cameraFocus(nullptr),
-        imageProcessing(nullptr),
-        viewfinder(nullptr),
-        capture(nullptr),
-        state(QCamera::UnloadedState),
-        error(QCamera::NoError),
-        requestedLocks(QCamera::NoLock),
-        lockStatus(QCamera::Unlocked),
-        lockChangeReason(QCamera::UserRequest),
-        supressLockChangedSignal(false),
-        restartPending(false)
+    QCameraPrivate()
+        : QMediaSourcePrivate(),
+          control(nullptr),
+          cameraExposure(nullptr),
+          cameraFocus(nullptr),
+          imageProcessing(nullptr),
+          viewfinder(nullptr),
+          capture(nullptr),
+          state(QCamera::UnloadedState),
+          error(QCamera::NoError),
+          requestedLocks(QCamera::NoLock),
+          lockStatus(QCamera::Unlocked),
+          lockChangeReason(QCamera::UserRequest),
+          supressLockChangedSignal(false),
+          restartPending(false)
     {
     }
 

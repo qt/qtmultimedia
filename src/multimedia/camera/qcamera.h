@@ -52,6 +52,7 @@
 #include <QtMultimedia/qcamerafocus.h>
 #include <QtMultimedia/qcameraimageprocessing.h>
 #include <QtMultimedia/qcameraviewfindersettings.h>
+#include <QtMultimedia/qcamerainfo.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>
 
@@ -151,16 +152,9 @@ public:
     };
     Q_DECLARE_FLAGS(LockTypes, LockType)
 
-    enum Position
-    {
-        UnspecifiedPosition,
-        BackFace,
-        FrontFace
-    };
-
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
-    explicit QCamera(QCamera::Position position, QObject *parent = nullptr);
+    explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
     ~QCamera();
 
     QMultimedia::AvailabilityStatus availability() const override;
@@ -273,7 +267,6 @@ Q_DECLARE_METATYPE(QCamera::CaptureModes)
 Q_DECLARE_METATYPE(QCamera::LockType)
 Q_DECLARE_METATYPE(QCamera::LockStatus)
 Q_DECLARE_METATYPE(QCamera::LockChangeReason)
-Q_DECLARE_METATYPE(QCamera::Position)
 
 Q_MEDIA_ENUM_DEBUG(QCamera, State)
 Q_MEDIA_ENUM_DEBUG(QCamera, Status)
@@ -282,6 +275,5 @@ Q_MEDIA_ENUM_DEBUG(QCamera, CaptureMode)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockType)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockStatus)
 Q_MEDIA_ENUM_DEBUG(QCamera, LockChangeReason)
-Q_MEDIA_ENUM_DEBUG(QCamera, Position)
 
 #endif  // QCAMERA_H

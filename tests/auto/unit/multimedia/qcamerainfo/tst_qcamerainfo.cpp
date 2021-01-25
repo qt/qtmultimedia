@@ -77,37 +77,33 @@ void tst_QCameraInfo::constructor()
     {
         // default camera
         QCamera camera;
-        QCameraInfo info(camera);
+        QCameraInfo info(camera.cameraInfo());
         QVERIFY(!info.isNull());
         QCOMPARE(info.id(), QStringLiteral("othercamera"));
         QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
-        QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
-        QCOMPARE(info.orientation(), 0);
+        QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
     }
 
     auto cameras = QMediaDeviceManager::videoInputs();
     QCameraInfo info;
     for (const auto &c : cameras) {
-        if (c.position() == QCamera::BackFace)
+        if (c.position() == QCameraInfo::BackFace)
             info = c;
     }
     QVERIFY(!info.isNull());
 
     QCamera camera(info);
     QCOMPARE(info, camera.cameraInfo());
-    QCOMPARE(info, QCameraInfo(camera));
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("backcamera"));
     QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
-    QCOMPARE(info.position(), QCamera::BackFace);
-    QCOMPARE(info.orientation(), 90);
+    QCOMPARE(info.position(), QCameraInfo::BackFace);
 
     QCameraInfo info2(info);
     QVERIFY(!info2.isNull());
     QCOMPARE(info2.id(), QStringLiteral("backcamera"));
     QCOMPARE(info2.description(), QStringLiteral("backcamera desc"));
-    QCOMPARE(info2.position(), QCamera::BackFace);
-    QCOMPARE(info2.orientation(), 90);
+    QCOMPARE(info2.position(), QCameraInfo::BackFace);
 }
 
 void tst_QCameraInfo::defaultCamera()
@@ -117,11 +113,10 @@ void tst_QCameraInfo::defaultCamera()
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("othercamera"));
     QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
-    QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
-    QCOMPARE(info.orientation(), 0);
+    QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
 
     QCamera camera(info);
-    QCOMPARE(QCameraInfo(camera), info);
+    QCOMPARE(camera.cameraInfo(), info);
 }
 
 void tst_QCameraInfo::availableCameras()
@@ -133,26 +128,24 @@ void tst_QCameraInfo::availableCameras()
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("backcamera"));
     QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
-    QCOMPARE(info.position(), QCamera::BackFace);
-    QCOMPARE(info.orientation(), 90);
+    QCOMPARE(info.position(), QCameraInfo::BackFace);
 
     info = cameras.at(1);
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("othercamera"));
     QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
-    QCOMPARE(info.position(), QCamera::UnspecifiedPosition);
-    QCOMPARE(info.orientation(), 0);
+    QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
 
-//    cameras = QMediaDeviceManager::videoInputs(QCamera::BackFace);
+//    cameras = QMediaDeviceManager::videoInputs(QCameraInfo::BackFace);
 //    QCOMPARE(cameras.count(), 1);
 //    info = cameras.at(0);
 //    QVERIFY(!info.isNull());
 //    QCOMPARE(info.id(), QStringLiteral("backcamera"));
 //    QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
-//    QCOMPARE(info.position(), QCamera::BackFace);
+//    QCOMPARE(info.position(), QCameraInfo::BackFace);
 //    QCOMPARE(info.orientation(), 90);
 
-//    cameras = QMediaDeviceManager::videoInputs(QCamera::FrontFace);
+//    cameras = QMediaDeviceManager::videoInputs(QCameraInfo::FrontFace);
 //    QCOMPARE(cameras.count(), 0);
 }
 
@@ -167,13 +160,13 @@ void tst_QCameraInfo::equality_operators()
 
     {
         QCamera camera(defaultCamera);
-        QVERIFY(QCameraInfo(camera) == defaultCamera);
-        QVERIFY(QCameraInfo(camera) == cameras.at(1));
+        QVERIFY(camera.cameraInfo() == defaultCamera);
+        QVERIFY(camera.cameraInfo() == cameras.at(1));
     }
 
     {
         QCamera camera(cameras.at(0));
-        QVERIFY(QCameraInfo(camera) == cameras.at(0));
+        QVERIFY(camera.cameraInfo() == cameras.at(0));
     }
 }
 

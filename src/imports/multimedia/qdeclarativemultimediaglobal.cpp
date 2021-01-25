@@ -160,7 +160,7 @@ static QJSValue cameraInfoToJSValue(QJSEngine *jsEngine, const QCameraInfo &came
     o.setProperty(QStringLiteral("deviceId"), QString::fromLatin1(camera.id()));
     o.setProperty(QStringLiteral("displayName"), camera.description());
     o.setProperty(QStringLiteral("position"), int(camera.position()));
-    o.setProperty(QStringLiteral("orientation"), camera.orientation());
+    // ### Add resolutions and framerates
     return o;
 }
 

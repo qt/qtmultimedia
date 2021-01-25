@@ -309,6 +309,9 @@ QVideoFrame::PixelFormat AVFCameraControl::QtPixelFormatFromCVFormat(unsigned av
         return QVideoFrame::Format_UYVY;
     case kCVPixelFormatType_422YpCbCr8_yuvs:
         return QVideoFrame::Format_YUYV;
+    case kCMVideoCodecType_JPEG:
+    case kCMVideoCodecType_JPEG_OpenDML:
+        return QVideoFrame::Format_Jpeg;
     default:
         return QVideoFrame::Format_Invalid;
     }

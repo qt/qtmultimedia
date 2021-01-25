@@ -44,6 +44,7 @@
 #include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaservice.h>
+#include <QtMultimedia/qcamera.h>
 #include <private/qfactoryloader_p.h>
 #include <QtCore/qloggingcategory.h>
 
@@ -321,7 +322,7 @@ void QDeclarativeVideoOutput::_q_updateCameraInfo()
     if (m_mediaSource) {
         const QCamera *camera = qobject_cast<const QCamera *>(m_mediaSource);
         if (camera) {
-            QCameraInfo info(*camera);
+            QCameraInfo info = camera->cameraInfo();
 
             if (m_cameraInfo != info) {
                 m_cameraInfo = info;
@@ -433,20 +434,6 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
 
 void QDeclarativeVideoOutput::_q_screenOrientationChanged(int orientation)
 {
-    // If the source is a camera, take into account its sensor position and orientation
-    if (!m_cameraInfo.isNull()) {
-        switch (m_cameraInfo.position()) {
-        case QCamera::FrontFace:
-            // Front facing cameras are flipped horizontally, compensate the mirror
-            orientation += (360 - m_cameraInfo.orientation());
-            break;
-        case QCamera::BackFace:
-        default:
-            orientation += m_cameraInfo.orientation();
-            break;
-        }
-    }
-
     setOrientation(orientation % 360);
 }
 

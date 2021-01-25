@@ -1606,8 +1606,8 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::NoLock;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::LockExposure");
     qDebug() << QCamera::LockExposure;
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::FrontFace ");
-    qDebug() << QCamera::FrontFace;
+    QTest::ignoreMessage(QtDebugMsg, "QCameraInfo::FrontFace ");
+    qDebug() << QCameraInfo::FrontFace;
 }
 
 void tst_QCamera::testCameraControl()
@@ -1622,9 +1622,9 @@ void tst_QCamera::testConstructor()
     QCameraInfo defaultCamera = QMediaDeviceManager::defaultVideoInput();
     QCameraInfo frontCamera, backCamera;
     for (const auto &c : cameras) {
-        if (frontCamera.isNull() && c.position() == QCamera::FrontFace)
+        if (frontCamera.isNull() && c.position() == QCameraInfo::FrontFace)
             frontCamera = c;
-        if (backCamera.isNull() && c.position() == QCamera::BackFace)
+        if (backCamera.isNull() && c.position() == QCameraInfo::BackFace)
             backCamera = c;
     }
     QVERIFY(!defaultCamera.isNull());
@@ -1639,7 +1639,7 @@ void tst_QCamera::testConstructor()
     }
 
     {
-        QCamera camera(QCamera::FrontFace);
+        QCamera camera(QCameraInfo::FrontFace);
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), frontCamera);
@@ -1657,11 +1657,11 @@ void tst_QCamera::testConstructor()
         QCamera camera(cameraInfo);
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(QCameraInfo(camera), cameraInfo);
+        QCOMPARE(camera.cameraInfo(), cameraInfo);
     }
 
     {
-        QCamera camera(QCamera::BackFace);
+        QCamera camera(QCameraInfo::BackFace);
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), backCamera);
@@ -1669,7 +1669,7 @@ void tst_QCamera::testConstructor()
 
     {
         // Should load the default camera when UnspecifiedPosition is requested
-        QCamera camera(QCamera::UnspecifiedPosition);
+        QCamera camera(QCameraInfo::UnspecifiedPosition);
         QCOMPARE(camera.availability(), QMultimedia::Available);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), defaultCamera);

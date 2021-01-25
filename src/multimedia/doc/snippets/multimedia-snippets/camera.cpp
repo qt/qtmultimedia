@@ -82,7 +82,7 @@ void overview_viewfinder()
 void overview_camera_by_position()
 {
     //! [Camera overview position]
-    camera = new QCamera(QCamera::FrontFace);
+    camera = new QCamera(QCameraInfo::FrontFace);
     //! [Camera overview position]
 }
 
@@ -128,7 +128,7 @@ void overview_viewfinder_orientation()
     const int screenAngle = screen->angleBetween(screen->nativeOrientation(), screen->orientation());
 
     int rotation;
-    if (cameraInfo.position() == QCamera::BackFace) {
+    if (cameraInfo.position() == QCameraInfo::BackFace) {
         rotation = (cameraInfo.orientation() - screenAngle) % 360;
     } else {
         // Front position, compensate the mirror
@@ -202,9 +202,9 @@ void camera_info()
     QCamera myCamera;
     QCameraInfo cameraInfo(myCamera);
 
-    if (cameraInfo.position() == QCamera::FrontFace)
+    if (cameraInfo.position() == QCameraInfo::FrontFace)
         qDebug() << "The camera is on the front face of the hardware system.";
-    else if (cameraInfo.position() == QCamera::BackFace)
+    else if (cameraInfo.position() == QCameraInfo::BackFace)
         qDebug() << "The camera is on the back face of the hardware system.";
 
     qDebug() << "The camera sensor orientation is " << cameraInfo.orientation() << " degrees.";

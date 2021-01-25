@@ -106,7 +106,6 @@ void tst_QCameraBackend::testCameraInfo()
     for (const QCameraInfo &info : cameras) {
         QVERIFY(!info.id().isEmpty());
         QVERIFY(!info.description().isEmpty());
-        QVERIFY(info.orientation() % 90 == 0);
     }
 }
 
@@ -119,19 +118,19 @@ void tst_QCameraBackend::testCtorWithCameraInfo()
         QCameraInfo info = QMediaDeviceManager::defaultVideoInput();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(QCameraInfo(camera), info);
+        QCOMPARE(camera.cameraInfo(), info);
     }
     {
         QCameraInfo info = QMediaDeviceManager::videoInputs().first();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(QCameraInfo(camera), info);
+        QCOMPARE(camera.cameraInfo(), info);
     }
     {
         // loading an invalid CameraInfo should fail
         QCamera *camera = new QCamera(QCameraInfo());
         QCOMPARE(camera->error(), QCamera::CameraError);
-        QVERIFY(QCameraInfo(*camera).isNull());
+        QVERIFY(camera->cameraInfo().isNull());
         delete camera;
     }
 }
@@ -139,17 +138,17 @@ void tst_QCameraBackend::testCtorWithCameraInfo()
 void tst_QCameraBackend::testCtorWithPosition()
 {
     {
-        QCamera camera(QCamera::UnspecifiedPosition);
+        QCamera camera(QCameraInfo::UnspecifiedPosition);
         QCOMPARE(camera.error(), QCamera::NoError);
     }
     {
-        QCamera camera(QCamera::FrontFace);
+        QCamera camera(QCameraInfo::FrontFace);
         // even if no camera is available at this position, it should not fail
         // and load the default camera
         QCOMPARE(camera.error(), QCamera::NoError);
     }
     {
-        QCamera camera(QCamera::BackFace);
+        QCamera camera(QCameraInfo::BackFace);
         // even if no camera is available at this position, it should not fail
         // and load the default camera
         QCOMPARE(camera.error(), QCamera::NoError);

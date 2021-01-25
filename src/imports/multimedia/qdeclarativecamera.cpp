@@ -296,13 +296,13 @@ QDeclarativeCamera::Position QDeclarativeCamera::position() const
 
 void QDeclarativeCamera::setPosition(Position position)
 {
-    QCamera::Position pos = QCamera::Position(position);
+    QCameraInfo::Position pos = QCameraInfo::Position(position);
     if (pos == m_currentCameraInfo.position())
         return;
 
     QByteArray id;
 
-    if (pos != QCamera::UnspecifiedPosition) {
+    if (pos != QCameraInfo::UnspecifiedPosition) {
         const QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
         for (auto c : cameras) {
             if (c.position() == pos) {
@@ -354,11 +354,6 @@ QString QDeclarativeCamera::displayName() const
     \since 5.4
 */
 
-int QDeclarativeCamera::orientation() const
-{
-    return m_currentCameraInfo.orientation();
-}
-
 void QDeclarativeCamera::setupDevice(const QString &deviceName)
 {
     QCameraInfo oldCameraInfo = m_currentCameraInfo;
@@ -383,8 +378,6 @@ void QDeclarativeCamera::setupDevice(const QString &deviceName)
         emit displayNameChanged();
     if (oldCameraInfo.position() != m_currentCameraInfo.position())
         emit positionChanged();
-    if (oldCameraInfo.orientation() != m_currentCameraInfo.orientation())
-        emit orientationChanged();
 
     setCameraState(previousState);
 }

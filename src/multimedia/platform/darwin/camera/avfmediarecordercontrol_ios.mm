@@ -269,10 +269,11 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
         QCameraInfo cameraInfo = m_service->session()->activeCameraInfo();
         int screenOrientation = 360 - m_orientationHandler.currentOrientation();
         float rotation = 0;
-        if (cameraInfo.position() == QCamera::FrontFace)
-            rotation = (screenOrientation + cameraInfo.orientation()) % 360;
-        else
-            rotation = (screenOrientation + (360 - cameraInfo.orientation())) % 360;
+        // ###
+//        if (cameraInfo.position() == QCameraInfo::FrontFace)
+//            rotation = (screenOrientation + cameraInfo.orientation()) % 360;
+//        else
+//            rotation = (screenOrientation + (360 - cameraInfo.orientation())) % 360;
 
         if ([m_writer setupWithFileURL:nsFileURL
                       cameraService:m_service

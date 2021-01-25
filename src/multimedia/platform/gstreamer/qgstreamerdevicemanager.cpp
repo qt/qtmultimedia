@@ -153,10 +153,40 @@ QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
             gst_structure_get_boolean(properties, "is-default", &def);
             info->isDefault = def;
             if (def)
-                devices.prepend(QCameraInfo(info));
+                devices.prepend(info->create());
             else
-                devices.append(QCameraInfo(info));
+                devices.append(info->create());
             gst_structure_free(properties);
+            auto *caps = gst_device_get_caps(d);
+            if (caps) {
+                QList<QCameraFormat> formats;
+                QSet<QSize> photoResolutions;
+
+                int size = gst_caps_get_size(caps);
+                for (int i = 0; i < size; ++i) {
+                    auto *cap = gst_caps_get_structure(caps, i);
+
+                    QSize resolution = QGstUtils::structureResolution(cap);
+                    if (!resolution.isValid())
+                        continue;
+
+                    auto pixelFormat = QGstUtils::structurePixelFormat(cap);
+                    auto frameRate = QGstUtils::structureFrameRateRange(cap);
+
+                    auto *f = new QCameraFormatPrivate{
+                        QSharedData(),
+                        pixelFormat,
+                        resolution,
+                        frameRate.first,
+                        frameRate.second
+                    };
+                    formats << f->create();
+                    photoResolutions.insert(resolution);
+                }
+                info->videoFormats = formats;
+                // ### sort resolutions?
+                info->photoResolutions = photoResolutions.values();
+            }
         }
     }
     return devices;

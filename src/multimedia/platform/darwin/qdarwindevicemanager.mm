@@ -44,7 +44,9 @@
 #include "private/qcoreaudiodeviceinfo_p.h"
 #include "private/qcoreaudioinput_p.h"
 #include "private/qcoreaudiooutput_p.h"
+#include "private/avfcameracontrol_p.h"
 
+#include <CoreVideo/CoreVideo.h>
 #import <AVFoundation/AVFoundation.h>
 
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
@@ -180,6 +182,8 @@ QDarwinDeviceManager::QDarwinDeviceManager()
 #else
     // ### This should use the audio session manager
 #endif
+    updateCameraDevices();
+    updateAudioDevices();
 }
 
 
@@ -233,6 +237,7 @@ void QDarwinDeviceManager::updateCameraDevices()
 
     AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
     for (AVCaptureDevice *device in videoDevices) {
 
         QCameraInfoPrivate *info = new QCameraInfoPrivate;
@@ -241,8 +246,55 @@ void QDarwinDeviceManager::updateCameraDevices()
         info->id = QByteArray([[device uniqueID] UTF8String]);
         info->description = QString::fromNSString([device localizedName]);
 
+//        qDebug() << "Camera:" << info->description;
 
-        cameras.append(QCameraInfo(info));
+        QSet<QSize> photoResolutions;
+        QList<QCameraFormat> videoFormats;
+
+        for (AVCaptureDeviceFormat *format in device.formats) {
+            if (![format.mediaType isEqualTo:AVMediaTypeVideo])
+                continue;
+
+            auto dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+            QSize resolution(dimensions.width, dimensions.height);
+            photoResolutions.insert(resolution);
+//            qDebug() << "    Format:" << resolution;
+            float maxFrameRate = 0;
+            float minFrameRate = 1.e6;
+
+            auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
+            auto pixelFormat = AVFCameraControl::QtPixelFormatFromCVFormat(encoding);
+            // Ignore pixel formats we can't handle
+            if (pixelFormat == QVideoFrame::Format_Invalid)
+                continue;
+
+            for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
+                if (frameRateRange.minFrameRate < minFrameRate)
+                    minFrameRate = frameRateRange.minFrameRate;
+                if (frameRateRange.maxFrameRate > maxFrameRate)
+                    maxFrameRate = frameRateRange.maxFrameRate;
+            }
+//                qDebug() << "        " << frameRateRange.minFrameRate << frameRateRange.maxFrameRate;
+
+#ifdef Q_OS_IOS
+            // ###
+//            CMVideoDimensions photoDim = format.highResolutionStillImageDimensions;
+//            QSize photoSize(photoDim.....)
+            // Add to photoresolutions
+#endif
+
+            auto *f = new QCameraFormatPrivate{
+                QSharedData(),
+                pixelFormat,
+                resolution,
+                minFrameRate,
+                maxFrameRate
+            };
+            videoFormats << f->create();
+        }
+        info->videoFormats = videoFormats;
+
+        cameras.append(info->create());
     }
 
     if (cameras != m_cameraDevices) {

@@ -77,7 +77,7 @@ namespace QGstUtils {
         QString name;
         QString description;
         int orientation;
-        QCamera::Position position;
+        QCameraInfo::Position position;
         QByteArray driver;
     };
 
@@ -115,7 +115,7 @@ namespace QGstUtils {
     Q_MULTIMEDIA_EXPORT QSize structureResolution(const GstStructure *s);
     Q_MULTIMEDIA_EXPORT QVideoFrame::PixelFormat structurePixelFormat(const GstStructure *s);
     Q_MULTIMEDIA_EXPORT QSize structurePixelAspectRatio(const GstStructure *s);
-    Q_MULTIMEDIA_EXPORT QPair<qreal, qreal> structureFrameRateRange(const GstStructure *s);
+    Q_MULTIMEDIA_EXPORT QPair<float, float> structureFrameRateRange(const GstStructure *s);
 
     Q_MULTIMEDIA_EXPORT QString fileExtensionForMimeType(const QString &mimeType);
 

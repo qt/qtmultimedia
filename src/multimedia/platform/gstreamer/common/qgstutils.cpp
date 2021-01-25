@@ -898,26 +898,55 @@ QSize QGstUtils::structurePixelAspectRatio(const GstStructure *s)
     return ratio;
 }
 
-QPair<qreal, qreal> QGstUtils::structureFrameRateRange(const GstStructure *s)
+QPair<float, float> QGstUtils::structureFrameRateRange(const GstStructure *s)
 {
-    QPair<qreal, qreal> rate;
+    float minRate = 0.;
+    float maxRate = 0.;
 
     if (!s)
-        return rate;
+        return {0.f, 0.f};
 
-    int n, d;
-    if (gst_structure_get_fraction(s, "framerate", &n, &d)) {
-        rate.second = qreal(n) / d;
-        rate.first = rate.second;
-    } else if (gst_structure_get_fraction(s, "max-framerate", &n, &d)) {
-        rate.second = qreal(n) / d;
-        if (gst_structure_get_fraction(s, "min-framerate", &n, &d))
-            rate.first = qreal(n) / d;
-        else
-            rate.first = qreal(1);
+    auto extractFraction = [] (const GValue *v) -> float {
+        return (float)gst_value_get_fraction_numerator(v)/(float)gst_value_get_fraction_denominator(v);
+    };
+    auto extractFrameRate = [&] (const GValue *v) {
+        auto insert = [&] (float min, float max) {
+            if (max > maxRate)
+                maxRate = max;
+            if (min < minRate)
+                minRate = min;
+        };
+
+        if (GST_VALUE_HOLDS_FRACTION(v)) {
+            float rate = extractFraction(v);
+            insert(rate, rate);
+        } else if (GST_VALUE_HOLDS_FRACTION_RANGE(v)) {
+            auto *min = gst_value_get_fraction_range_max(v);
+            auto *max = gst_value_get_fraction_range_max(v);
+            insert(extractFraction(min), extractFraction(max));
+        }
+    };
+
+    const GValue *gstFrameRates = gst_structure_get_value(s, "framerate");
+    if (gstFrameRates) {
+        if (GST_VALUE_HOLDS_LIST(gstFrameRates)) {
+            guint nFrameRates = gst_value_list_get_size(gstFrameRates);
+            for (guint f = 0; f < nFrameRates; ++f) {
+                extractFrameRate(gst_value_list_get_value(gstFrameRates, f));
+            }
+        } else {
+            extractFrameRate(gstFrameRates);
+        }
+    } else {
+        const GValue *min = gst_structure_get_value(s, "min-framerate");
+        const GValue *max = gst_structure_get_value(s, "max-framerate");
+        if (min && max) {
+            minRate = extractFraction(min);
+            maxRate = extractFraction(max);
+        }
     }
 
-    return rate;
+    return {minRate, maxRate};
 }
 
 typedef QMap<QString, QString> FileExtensionMap;

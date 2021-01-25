@@ -112,7 +112,7 @@ QList<QAudioDeviceInfo> QMediaDeviceManager::audioOutputs()
 /*!
     Returns a list of available cameras on the system which are located at \a position.
 
-    If \a position is not specified or if the value is QCamera::UnspecifiedPosition, a list of
+    If \a position is not specified or if the value is QCameraInfo::UnspecifiedPosition, a list of
     all available cameras will be returned.
 */
 QList<QCameraInfo> QMediaDeviceManager::videoInputs()

@@ -70,12 +70,12 @@ class AVFCameraWindowControl;
 
 struct AVFCameraInfo
 {
-    AVFCameraInfo() : position(QCamera::UnspecifiedPosition), orientation(0)
+    AVFCameraInfo() : position(QCameraInfo::UnspecifiedPosition), orientation(0)
     { }
 
     QByteArray deviceId;
     QString description;
-    QCamera::Position position;
+    QCameraInfo::Position position;
     int orientation;
 };
 

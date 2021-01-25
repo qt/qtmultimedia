@@ -67,24 +67,24 @@ static QList<QCameraInfo> enumerateCameras()
         case CAMERA_UNIT_FRONT:
             p->id = BbCameraSession::cameraIdentifierFront();
             p->description = tr("Front Camera");
-            p->position = QCamera::FrontFace;
+            p->position = QCameraInfo::FrontFace;
             break;
         case CAMERA_UNIT_REAR:
             p->id = BbCameraSession::cameraIdentifierRear();
             p->description = tr("Rear Camera");
-            p->position = QCamera::BackFace;
+            p->position = QCameraInfo::BackFace;
             break;
         case CAMERA_UNIT_DESKTOP:
             p->id = devices->append(BbCameraSession::cameraIdentifierDesktop();
             p->description = tr("Desktop Camera");
-            p->position = QCamera::UnspecifiedPosition;
+            p->position = QCameraInfo::UnspecifiedPosition;
             break;
         default:
             break;
         }
         if (i == 0)
             p->isDefault = true;
-        cameras.append(QCameraInfo(p));
+        cameras.append(p->create());
     }
     return cameras;
 }

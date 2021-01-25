@@ -40,36 +40,71 @@
 #ifndef QCAMERAINFO_H
 #define QCAMERAINFO_H
 
-#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qsharedpointer.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCameraInfoPrivate;
+class QCameraFormatPrivate;
+class Q_MULTIMEDIA_EXPORT QCameraFormat
+{
+public:
+    QCameraFormat() = delete;
+    QCameraFormat(const QCameraFormat &other);
+    QCameraFormat &operator=(const QCameraFormat &other);
+    ~QCameraFormat();
 
+    QVideoFrame::PixelFormat pixelFormat() const;
+    QSize resolution() const;
+    float minFrameRate() const;
+    float maxFrameRate() const;
+
+private:
+    friend class QCameraFormatPrivate;
+    QCameraFormat(QCameraFormatPrivate *p);
+    QExplicitlySharedDataPointer<QCameraFormatPrivate> d;
+};
+
+class QCameraInfoPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraInfo
 {
 public:
     QCameraInfo();
-    explicit QCameraInfo(const QCamera &camera);
     QCameraInfo(const QCameraInfo& other);
+    QCameraInfo& operator=(const QCameraInfo& other);
     ~QCameraInfo();
 
-    QCameraInfo& operator=(const QCameraInfo& other);
     bool operator==(const QCameraInfo &other) const;
     inline bool operator!=(const QCameraInfo &other) const;
 
     bool isNull() const;
 
     QByteArray id() const;
+    QString description() const;
+
+    // ### Add here and to QAudioDeviceInfo
+//    QByteArray groupId() const;
+//    QString groupDescription() const;
+
     bool isDefault() const;
 
-    QString description() const;
-    QCamera::Position position() const;
-    int orientation() const;
+    enum Position
+    {
+        UnspecifiedPosition,
+        BackFace,
+        FrontFace
+    };
 
-    QCameraInfo(QCameraInfoPrivate *p);
+    Position position() const;
+
+    QList<QSize> photoResolutions() const;
+    QList<QCameraFormat> videoFormats() const;
+
+    // ### Add zoom and other camera information
+
 private:
+    friend class QCameraInfoPrivate;
+    QCameraInfo(QCameraInfoPrivate *p);
     QExplicitlySharedDataPointer<QCameraInfoPrivate> d;
 };
 

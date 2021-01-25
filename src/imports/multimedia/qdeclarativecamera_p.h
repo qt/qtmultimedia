@@ -82,7 +82,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QString deviceId READ deviceId WRITE setDeviceId NOTIFY deviceIdChanged REVISION 1)
     Q_PROPERTY(Position position READ position WRITE setPosition NOTIFY positionChanged REVISION 1)
     Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged REVISION 1)
-    Q_PROPERTY(int orientation READ orientation NOTIFY orientationChanged REVISION 1)
 
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
@@ -123,9 +122,9 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
 
 public:
     enum Position {
-        UnspecifiedPosition = QCamera::UnspecifiedPosition,
-        BackFace = QCamera::BackFace,
-        FrontFace = QCamera::FrontFace
+        UnspecifiedPosition = QCameraInfo::UnspecifiedPosition,
+        BackFace = QCameraInfo::BackFace,
+        FrontFace = QCameraInfo::FrontFace
     };
 
     enum CaptureMode {
@@ -256,7 +255,6 @@ public:
     void setPosition(Position position);
 
     QString displayName() const;
-    int orientation() const;
 
     CaptureMode captureMode() const;
     State cameraState() const;
@@ -301,7 +299,6 @@ Q_SIGNALS:
     Q_REVISION(1) void deviceIdChanged();
     Q_REVISION(1) void positionChanged();
     Q_REVISION(1) void displayNameChanged();
-    Q_REVISION(1) void orientationChanged();
 
     void captureModeChanged();
     void cameraStateChanged(QDeclarativeCamera::State);

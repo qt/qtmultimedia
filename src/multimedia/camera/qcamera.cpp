@@ -63,7 +63,7 @@ static void qRegisterCameraMetaTypes()
     qRegisterMetaType<QCamera::LockType>("QCamera::LockType");
     qRegisterMetaType<QCamera::LockStatus>("QCamera::LockStatus");
     qRegisterMetaType<QCamera::LockChangeReason>("QCamera::LockChangeReason");
-    qRegisterMetaType<QCamera::Position>("QCamera::Position");
+    qRegisterMetaType<QCameraInfo::Position>("QCameraInfo::Position");
 }
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterCameraMetaTypes)
@@ -314,10 +314,10 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
     back-facing cameras.
 
     If no camera is available at the specified \a position or if \a position is
-    QCamera::UnspecifiedPosition, the default camera is used.
+    QCameraInfo::UnspecifiedPosition, the default camera is used.
 */
 
-QCamera::QCamera(QCamera::Position position, QObject *parent)
+QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
     : QMediaSource(*new QCameraPrivate,
                    parent,
                    QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
@@ -1118,7 +1118,7 @@ void QCamera::unlock()
 */
 
 /*!
-    \enum QCamera::Position
+    \enum QCameraInfo::Position
     \since 5.3
 
     This enum specifies the physical position of the camera on the system hardware.

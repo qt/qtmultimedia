@@ -165,7 +165,7 @@ void QAndroidCameraSession::updateAvailableCameras()
         AndroidCamera::getCameraInfo(i, info);
 
         if (!info->id.isEmpty())
-            g_availableCameras->append(QCameraInfo(info));
+            g_availableCameras->append(info->create());
     }
 }
 

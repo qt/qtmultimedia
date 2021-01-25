@@ -56,14 +56,29 @@
 
 QT_BEGIN_NAMESPACE
 
+class QCameraFormatPrivate : public QSharedData
+{
+public:
+    QVideoFrame::PixelFormat pixelFormat;
+    QSize resolution;
+    float minFrameRate = 0;
+    float maxFrameRate = 0;
+
+    QCameraFormat create() { return QCameraFormat(this); }
+};
+
 class QCameraInfoPrivate : public QSharedData
 {
 public:
     QByteArray id;
     QString description;
     bool isDefault = false;
-    QCamera::Position position = QCamera::UnspecifiedPosition;
+    QCameraInfo::Position position = QCameraInfo::UnspecifiedPosition;
     int orientation = 0;
+    QList<QSize> photoResolutions;
+    QList<QCameraFormat> videoFormats;
+
+    QCameraInfo create() { return QCameraInfo(this); }
 };
 
 QT_END_NAMESPACE
