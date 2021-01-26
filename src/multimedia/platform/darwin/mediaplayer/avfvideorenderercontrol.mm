@@ -160,12 +160,10 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
 }
 
-void AVFVideoRendererControl::setLayer(void *playerLayer)
+void AVFVideoRendererControl::setLayer(CALayer *playerLayer)
 {
     if (m_playerLayer == playerLayer)
         return;
-
-    [static_cast<AVPlayerLayer*>(m_playerLayer) release];
 
     m_playerLayer = [static_cast<AVPlayerLayer*>(playerLayer) retain];
 
@@ -299,3 +297,6 @@ void AVFVideoRendererControl::setupVideoOutput()
     if (playerLayer)
         m_nativeSize = QSize(playerLayer.bounds.size.width, playerLayer.bounds.size.height);
 }
+
+
+#include "moc_avfvideorenderercontrol_p.cpp"

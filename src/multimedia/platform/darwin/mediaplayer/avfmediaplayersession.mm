@@ -489,7 +489,7 @@ AVFMediaPlayerSession::~AVFMediaPlayerSession()
     qDebug() << Q_FUNC_INFO;
 #endif
     //Detatch the session from the sessionObserver (which could still be alive trying to communicate with this session).
-    [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) detatchSession];
+    [m_observer detatchSession];
     [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) release];
 }
 
@@ -513,7 +513,7 @@ void AVFMediaPlayerSession::setVideoOutput(AVFVideoOutput *output)
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerSessionObserver*>(m_observer) playerLayer]);
 }
 
-void *AVFMediaPlayerSession::currentAssetHandle()
+AVAsset *AVFMediaPlayerSession::currentAssetHandle()
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
@@ -542,14 +542,14 @@ QIODevice *AVFMediaPlayerSession::mediaStream() const
     return m_mediaStream;
 }
 
-static void setURL(void *observer, const QByteArray &url, const QString &mimeType = QString())
+static void setURL(AVFMediaPlayerSessionObserver *observer, const QByteArray &url, const QString &mimeType = QString())
 {
     NSString *urlString = [NSString stringWithUTF8String:url.constData()];
     NSURL *nsurl = [NSURL URLWithString:urlString];
-    [static_cast<AVFMediaPlayerSessionObserver*>(observer) setURL:nsurl mimeType:[NSString stringWithUTF8String:mimeType.toLatin1().constData()]];
+    [observer setURL:nsurl mimeType:[NSString stringWithUTF8String:mimeType.toLatin1().constData()]];
 }
 
-static void setStreamURL(void *observer, const QByteArray &url)
+static void setStreamURL(AVFMediaPlayerSessionObserver *observer, const QByteArray &url)
 {
     setURL(observer, QByteArrayLiteral("iodevice://") + url, QFileInfo(QString::fromUtf8(url)).suffix());
 }

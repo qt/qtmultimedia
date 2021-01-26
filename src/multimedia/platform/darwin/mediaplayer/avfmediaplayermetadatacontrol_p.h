@@ -56,6 +56,8 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
+
 class AVFMediaPlayerSession;
 
 class AVFMediaPlayerMetaDataControl : public QMetaDataReaderControl
@@ -77,7 +79,7 @@ private Q_SLOTS:
 private:
     AVFMediaPlayerSession *m_session;
     QVariantMap m_tags;
-    void *m_asset;
+    AVAsset *m_asset;
 
 };
 

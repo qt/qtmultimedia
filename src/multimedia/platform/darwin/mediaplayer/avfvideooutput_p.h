@@ -53,13 +53,15 @@
 
 #include <QtCore/qobject.h>
 
+Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
+
 QT_BEGIN_NAMESPACE
 
 class AVFVideoOutput
 {
 public:
     virtual ~AVFVideoOutput() {}
-    virtual void setLayer(void *playerLayer) = 0;
+    virtual void setLayer(CALayer *playerLayer) = 0;
 };
 
 #define AVFVideoOutput_iid \

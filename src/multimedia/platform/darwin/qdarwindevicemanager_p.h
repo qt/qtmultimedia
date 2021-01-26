@@ -55,6 +55,8 @@
 #include <qelapsedtimer.h>
 #include <qcamerainfo.h>
 
+Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
+
 QT_BEGIN_NAMESPACE
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
@@ -81,8 +83,8 @@ private:
     QList<QAudioDeviceInfo> m_audioInputs;
     QList<QAudioDeviceInfo> m_audioOutputs;
 
-    void *m_deviceConnectedObserver;
-    void *m_deviceDisconnectedObserver;
+    NSObject *m_deviceConnectedObserver;
+    NSObject *m_deviceDisconnectedObserver;
     void *m_audioDevicesProperty;
 };
 

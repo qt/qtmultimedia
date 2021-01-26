@@ -105,7 +105,7 @@ public:
     void setSaturation(int saturation) override;
 
     // AVFVideoOutput interface
-    void setLayer(void *playerLayer) override;
+    void setLayer(CALayer *playerLayer) override;
 
 private:
     void updateAspectRatio();

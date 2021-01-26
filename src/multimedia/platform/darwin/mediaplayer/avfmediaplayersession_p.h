@@ -60,6 +60,9 @@
 #include <QtMultimedia/QMediaPlayerControl>
 #include <QtMultimedia/QMediaPlayer>
 
+Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaPlayerSessionObserver);
+
 QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayerService;
@@ -73,7 +76,7 @@ public:
     virtual ~AVFMediaPlayerSession();
 
     void setVideoOutput(AVFVideoOutput *output);
-    void *currentAssetHandle();
+    AVAsset *currentAssetHandle();
 
     QMediaPlayer::State state() const;
     QMediaPlayer::MediaStatus mediaStatus() const;
@@ -171,7 +174,7 @@ private:
     bool m_audioAvailable;
     bool m_seekable;
 
-    void *m_observer;
+    AVFMediaPlayerSessionObserver *m_observer;
 };
 
 QT_END_NAMESPACE

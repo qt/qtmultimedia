@@ -75,7 +75,7 @@ public:
     QAbstractVideoSurface *surface() const override;
     void setSurface(QAbstractVideoSurface *surface) override;
 
-    void setLayer(void *playerLayer) override;
+    void setLayer(CALayer *playerLayer) override;
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
@@ -89,7 +89,7 @@ private:
     QMutex m_mutex;
     QAbstractVideoSurface *m_surface;
 
-    void *m_playerLayer;
+    CALayer *m_playerLayer;
 
     AVFVideoFrameRenderer *m_frameRenderer;
     AVFDisplayLink *m_displayLink;

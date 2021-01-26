@@ -187,7 +187,7 @@ void AVFVideoWindowControl::setSaturation(int saturation)
     }
 }
 
-void AVFVideoWindowControl::setLayer(void *playerLayer)
+void AVFVideoWindowControl::setLayer(CALayer *playerLayer)
 {
     AVPlayerLayer *layer = static_cast<AVPlayerLayer*>(playerLayer);
     if (m_playerLayer == layer)
