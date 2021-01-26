@@ -74,6 +74,7 @@ class QGstreamerImageEncode;
 class QGstreamerRecorderControl;
 class QGstreamerMediaContainerControl;
 class QGstreamerVideoRendererInterface;
+class QCameraInfo;
 
 class QGstreamerElementFactory
 {
@@ -85,11 +86,8 @@ public:
 class QGstreamerVideoInput : public QGstreamerElementFactory
 {
 public:
-    virtual QList<qreal> supportedFrameRates(const QSize &frameSize = QSize()) const = 0;
-    virtual QList<QSize> supportedResolutions(qreal frameRate = -1) const = 0;
-
-    virtual QByteArray device() const = 0;
-    virtual void setDevice(const QByteArray &device) = 0;
+    virtual QCameraInfo device() const = 0;
+    virtual void setDevice(const QCameraInfo &device) = 0;
 };
 
 class QGstreamerCaptureSession

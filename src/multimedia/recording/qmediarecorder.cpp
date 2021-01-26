@@ -644,13 +644,21 @@ QList<int> QMediaRecorder::supportedAudioSampleRates(const QAudioEncoderSettings
 
     \sa QVideoEncoderSettings::resolution()
 */
-QList<QSize> QMediaRecorder::supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous) const
+QList<QSize> QMediaRecorder::supportedResolutions(const QVideoEncoderSettings &, bool *continuous) const
 {
     if (continuous)
-        *continuous = false;
+        *continuous = true;
 
-    return d_func()->videoControl ?
-           d_func()->videoControl->supportedResolutions(settings, continuous) : QList<QSize>();
+    QCamera *camera = qobject_cast<QCamera *>(mediaSource());
+    if (!camera)
+        return {};
+
+    QCameraInfo info = camera->cameraInfo();
+    const auto formats = info.videoFormats();
+    QList<QSize> resolutions;
+    for (const auto &f : formats)
+        resolutions.append(f.resolution());
+    return resolutions;
 }
 
 /*!
@@ -668,10 +676,31 @@ QList<QSize> QMediaRecorder::supportedResolutions(const QVideoEncoderSettings &s
 QList<qreal> QMediaRecorder::supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous) const
 {
     if (continuous)
-        *continuous = false;
+        *continuous = true;
 
-    return d_func()->videoControl ?
-           d_func()->videoControl->supportedFrameRates(settings, continuous) : QList<qreal>();
+    QSize resolution = settings.resolution();
+
+    QCamera *camera = qobject_cast<QCamera *>(mediaSource());
+    if (!camera)
+        return {};
+
+    QCameraInfo info = camera->cameraInfo();
+    const auto formats = info.videoFormats();
+    qreal min = 0.;
+    qreal max = 1.e6;
+    for (const auto &f : formats) {
+        QSize formatResolution = f.resolution();
+        if (formatResolution.width() >= resolution.width() || formatResolution.height() >= resolution.height()) {
+            // we can downsample, framerates are usable
+            min = qMin(min, f.minFrameRate());
+            max = qMax(max, f.maxFrameRate());
+        }
+    }
+
+    if (min == 0.)
+        return {};
+
+    return QList<qreal>() << min << max;
 }
 
 /*!

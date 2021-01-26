@@ -47,24 +47,6 @@ public:
     QVideoEncoderSettings videoSettings() const { return m_videoSettings; }
     void setVideoSettings(const QVideoEncoderSettings &settings) { m_videoSettings = settings; };
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings & = QVideoEncoderSettings(),
-                                      bool *continuous = 0) const
-    {
-        if (continuous)
-            *continuous = true;
-
-        return m_sizes;
-    }
-
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings & = QVideoEncoderSettings(),
-                                     bool *continuous = 0) const
-    {
-        if (continuous)
-            *continuous = false;
-
-        return m_framerates;
-    }
-
     QStringList supportedVideoCodecs() const { return m_videoCodecs; }
     QString videoCodecDescription(const QString &codecName) const { return codecName; }
 

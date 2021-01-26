@@ -55,22 +55,6 @@ QGstreamerVideoEncode::~QGstreamerVideoEncode()
 {
 }
 
-QList<QSize> QGstreamerVideoEncode::supportedResolutions(const QVideoEncoderSettings &, bool *continuous) const
-{
-    if (continuous)
-        *continuous = m_session->videoInput() != 0;
-
-    return m_session->videoInput() ? m_session->videoInput()->supportedResolutions() : QList<QSize>();
-}
-
-QList< qreal > QGstreamerVideoEncode::supportedFrameRates(const QVideoEncoderSettings &, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return m_session->videoInput() ? m_session->videoInput()->supportedFrameRates() : QList<qreal>();
-}
-
 QStringList QGstreamerVideoEncode::supportedVideoCodecs() const
 {
     return m_codecs.supportedCodecs();

@@ -53,14 +53,6 @@ QGstreamerImageEncode::~QGstreamerImageEncode()
 {
 }
 
-QList<QSize> QGstreamerImageEncode::supportedResolutions(const QImageEncoderSettings &, bool *continuous) const
-{
-    if (continuous)
-        *continuous = m_session->videoInput() != 0;
-
-    return m_session->videoInput() ? m_session->videoInput()->supportedResolutions() : QList<QSize>();
-}
-
 QStringList QGstreamerImageEncode::supportedImageCodecs() const
 {
     return QStringList() << "jpeg";

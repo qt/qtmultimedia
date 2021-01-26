@@ -259,26 +259,6 @@ QString QCameraImageCapture::imageCodecDescription(const QString &codec) const
 }
 
 /*!
-    Returns a list of resolutions images can be encoded at.
-
-    If non null image \a settings parameter is passed,
-    the returned list is reduced to resolution supported with partial settings like image codec or quality applied.
-
-    If the encoder supports arbitrary resolutions within the supported range,
-    *\a continuous is set to true, otherwise *\a continuous is set to false.
-
-    \sa QImageEncoderSettings::resolution()
-*/
-QList<QSize> QCameraImageCapture::supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->supportedResolutions(settings, continuous) : QList<QSize>();
-}
-
-/*!
     Returns the image encoder settings being used.
 
     \sa setEncodingSettings()

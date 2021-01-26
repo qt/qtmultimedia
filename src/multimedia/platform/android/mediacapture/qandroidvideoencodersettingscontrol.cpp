@@ -49,22 +49,6 @@ QAndroidVideoEncoderSettingsControl::QAndroidVideoEncoderSettingsControl(QAndroi
 {
 }
 
-QList<QSize> QAndroidVideoEncoderSettingsControl::supportedResolutions(const QVideoEncoderSettings &, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return m_session->supportedResolutions();
-}
-
-QList<qreal> QAndroidVideoEncoderSettingsControl::supportedFrameRates(const QVideoEncoderSettings &, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return m_session->supportedFrameRates();
-}
-
 QStringList QAndroidVideoEncoderSettingsControl::supportedVideoCodecs() const
 {
     return QStringList() << QLatin1String("h263")

@@ -277,10 +277,14 @@ void QDarwinDeviceManager::updateCameraDevices()
 //                qDebug() << "        " << frameRateRange.minFrameRate << frameRateRange.maxFrameRate;
 
 #ifdef Q_OS_IOS
-            // ###
-//            CMVideoDimensions photoDim = format.highResolutionStillImageDimensions;
-//            QSize photoSize(photoDim.....)
-            // Add to photoresolutions
+            // From Apple's docs (iOS):
+            // By default, AVCaptureStillImageOutput emits images with the same dimensions as
+            // its source AVCaptureDevice instance’s activeFormat.formatDescription. However,
+            // if you set this property to YES, the receiver emits still images at the capture
+            // device’s highResolutionStillImageDimensions value.
+            const QSize hrRes(qt_device_format_high_resolution(format));
+            if (!hrRes.isNull() && hrRes.isValid())
+                photoResolutions.insert(res);
 #endif
 
             auto *f = new QCameraFormatPrivate{
@@ -293,6 +297,7 @@ void QDarwinDeviceManager::updateCameraDevices()
             videoFormats << f->create();
         }
         info->videoFormats = videoFormats;
+        info->photoResolutions = photoResolutions.values();
 
         cameras.append(info->create());
     }

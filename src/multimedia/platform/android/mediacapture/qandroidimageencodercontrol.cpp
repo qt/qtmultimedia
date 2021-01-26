@@ -48,8 +48,6 @@ QAndroidImageEncoderControl::QAndroidImageEncoderControl(QAndroidCameraSession *
     : QImageEncoderControl()
     , m_session(session)
 {
-    connect(m_session, SIGNAL(opened()),
-            this, SLOT(onCameraOpened()));
 }
 
 QStringList QAndroidImageEncoderControl::supportedImageCodecs() const
@@ -65,16 +63,6 @@ QString QAndroidImageEncoderControl::imageCodecDescription(const QString &codecN
     return QString();
 }
 
-QList<QSize> QAndroidImageEncoderControl::supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const
-{
-    Q_UNUSED(settings);
-
-    if (continuous)
-        *continuous = false;
-
-    return m_supportedResolutions;
-}
-
 QImageEncoderSettings QAndroidImageEncoderControl::imageSettings() const
 {
     return m_session->imageSettings();
@@ -83,11 +71,6 @@ QImageEncoderSettings QAndroidImageEncoderControl::imageSettings() const
 void QAndroidImageEncoderControl::setImageSettings(const QImageEncoderSettings &settings)
 {
     m_session->setImageSettings(settings);
-}
-
-void QAndroidImageEncoderControl::onCameraOpened()
-{
-    m_supportedResolutions = m_session->camera()->getSupportedPictureSizes();
 }
 
 QT_END_NAMESPACE

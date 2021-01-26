@@ -72,44 +72,6 @@ QString AVFImageEncoderControl::imageCodecDescription(const QString &codecName) 
     return QString();
 }
 
-QList<QSize> AVFImageEncoderControl::supportedResolutions(const QImageEncoderSettings &settings,
-                                                          bool *continuous) const
-{
-    Q_UNUSED(settings);
-
-    QList<QSize> resolutions;
-
-    if (!videoCaptureDeviceIsValid())
-        return resolutions;
-
-    AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
-    const QVector<AVCaptureDeviceFormat *> formats(qt_unique_device_formats(captureDevice,
-                                                   m_service->session()->defaultCodec()));
-
-    for (int i = 0; i < formats.size(); ++i) {
-        AVCaptureDeviceFormat *format = formats[i];
-
-        const QSize res(qt_device_format_resolution(format));
-        if (!res.isNull() && res.isValid())
-            resolutions << res;
-#ifdef Q_OS_IOS
-        // From Apple's docs (iOS):
-        // By default, AVCaptureStillImageOutput emits images with the same dimensions as
-        // its source AVCaptureDevice instance’s activeFormat.formatDescription. However,
-        // if you set this property to YES, the receiver emits still images at the capture
-        // device’s highResolutionStillImageDimensions value.
-        const QSize hrRes(qt_device_format_high_resolution(format));
-        if (!hrRes.isNull() && hrRes.isValid())
-            resolutions << res;
-#endif
-    }
-
-    if (continuous)
-        *continuous = false;
-
-    return resolutions;
-}
-
 QImageEncoderSettings AVFImageEncoderControl::requestedSettings() const
 {
     return m_settings;

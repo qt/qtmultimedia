@@ -54,6 +54,7 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QCameraImageCapture>
+#include <QCamera>
 #include <QMediaService>
 
 
@@ -75,7 +76,7 @@ ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent)
     ui->imageQualitySlider->setRange(0, int(QMultimedia::VeryHighQuality));
 
     ui->imageResolutionBox->addItem(tr("Default Resolution"));
-    const QList<QSize> supportedResolutions = imagecapture->supportedResolutions();
+    const QList<QSize> supportedResolutions = imagecapture->camera()->cameraInfo().photoResolutions();
     for (const QSize &resolution : supportedResolutions) {
         ui->imageResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
                                         QVariant(resolution));

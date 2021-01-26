@@ -56,6 +56,8 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qsize.h>
+#include <qcamerainfo.h>
+
 #include "qgstreamercapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -68,21 +70,13 @@ public:
 
     GstElement *buildElement() override;
 
-    QList<qreal> supportedFrameRates(const QSize &frameSize = QSize()) const override;
-    QList<QSize> supportedResolutions(qreal frameRate = -1) const override;
-
-    QByteArray device() const override { return m_device; }
-    void setDevice(const QByteArray &device) override;
+    QCameraInfo device() const override { return m_cameraInfo; }
+    void setDevice(const QCameraInfo &device) override;
 
 private:
-    void updateSupportedResolutions(const QByteArray &device);
-
-    QList<qreal> m_frameRates;
-    QList<QSize> m_resolutions;
+    QCameraInfo m_cameraInfo;
 
     QHash<QSize, QSet<int> > m_ratesByResolution;
-
-    QByteArray m_device;
 };
 
 QT_END_NAMESPACE

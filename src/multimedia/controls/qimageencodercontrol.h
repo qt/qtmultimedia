@@ -61,9 +61,6 @@ public:
     virtual QStringList supportedImageCodecs() const = 0;
     virtual QString imageCodecDescription(const QString &codec) const = 0;
 
-    virtual QList<QSize> supportedResolutions(const QImageEncoderSettings &settings,
-                                              bool *continuous = nullptr) const = 0;
-
     virtual QImageEncoderSettings imageSettings() const = 0;
     virtual void setImageSettings(const QImageEncoderSettings &settings) = 0;
 

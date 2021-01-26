@@ -132,7 +132,7 @@ void QGstreamerCameraControl::setState(QCamera::State state)
 
 void QGstreamerCameraControl::setCamera(const QCameraInfo &camera)
 {
-    m_session->videoInput()->setDevice(camera.id());
+    m_session->videoInput()->setDevice(camera);
 }
 
 QCamera::State QGstreamerCameraControl::state() const

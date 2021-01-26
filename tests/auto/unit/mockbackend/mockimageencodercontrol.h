@@ -40,30 +40,6 @@ public:
         m_settings = QImageEncoderSettings();
     }
 
-    QList<QSize> supportedResolutions(const QImageEncoderSettings & settings = QImageEncoderSettings(),
-                                      bool *continuous = 0) const
-    {
-        if (continuous)
-            *continuous = true;
-
-        QList<QSize> resolutions;
-        if (settings.resolution().isValid()) {
-            if (settings.resolution() == QSize(160,160) ||
-                settings.resolution() == QSize(320,240))
-                resolutions << settings.resolution();
-
-            if (settings.quality() == QMultimedia::HighQuality && settings.resolution() == QSize(640,480))
-                resolutions << settings.resolution();
-        } else {
-            resolutions << QSize(160, 120);
-            resolutions << QSize(320, 240);
-            if (settings.quality() == QMultimedia::HighQuality)
-                resolutions << QSize(640, 480);
-        }
-
-        return resolutions;
-    }
-
     QStringList supportedImageCodecs() const
     {
         QStringList codecs;

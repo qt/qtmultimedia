@@ -65,17 +65,11 @@ public:
 
     QStringList supportedImageCodecs() const override;
     QString imageCodecDescription(const QString &codecName) const override;
-    QList<QSize> supportedResolutions(const QImageEncoderSettings &settings, bool *continuous = 0) const override;
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
 
-private Q_SLOTS:
-    void onCameraOpened();
-
 private:
     QAndroidCameraSession *m_session;
-
-    QList<QSize> m_supportedResolutions;
 };
 
 QT_END_NAMESPACE

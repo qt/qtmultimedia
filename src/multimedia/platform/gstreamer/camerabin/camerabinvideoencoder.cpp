@@ -60,34 +60,6 @@ CameraBinVideoEncoder::~CameraBinVideoEncoder()
 {
 }
 
-QList<QSize> CameraBinVideoEncoder::supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    QPair<int,int> rate = rateAsRational(settings.frameRate());
-
-    //select the closest supported rational rate to settings.frameRate()
-
-    return m_session->supportedResolutions(rate, continuous, QCamera::CaptureVideo);
-}
-
-QList< qreal > CameraBinVideoEncoder::supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    QList< qreal > res;
-
-    const auto rates = m_session->supportedFrameRates(settings.resolution(), continuous);
-    for (const auto &rate : rates) {
-        if (rate.second > 0)
-            res << qreal(rate.first)/rate.second;
-    }
-
-    return res;
-}
-
 QStringList CameraBinVideoEncoder::supportedVideoCodecs() const
 {
 #if QT_CONFIG(gstreamer_encodingprofiles)

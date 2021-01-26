@@ -77,12 +77,6 @@ public:
     CameraBinVideoEncoder(CameraBinSession *session);
     virtual ~CameraBinVideoEncoder();
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                      bool *continuous = 0) const override;
-
-    QList< qreal > supportedFrameRates(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                       bool *continuous = 0) const override;
-
     QPair<int,int> rateAsRational(qreal) const;
 
     QStringList supportedVideoCodecs() const override;

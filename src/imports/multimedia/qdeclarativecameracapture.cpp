@@ -315,8 +315,13 @@ QString QDeclarativeCameraCapture::errorString() const
 QVariantList QDeclarativeCameraCapture::supportedResolutions()
 {
     QVariantList supportedResolutions;
-    for (const QSize &res : m_capture->supportedResolutions())
-        supportedResolutions.append(QVariant(res));
+
+    if (m_camera) {
+        auto resolutions = m_camera->cameraInfo().photoResolutions();
+        for (const auto &r : resolutions)
+            supportedResolutions.append(r);
+    }
+
     return supportedResolutions;
 }
 

@@ -72,12 +72,6 @@ public:
     QGstreamerVideoEncode(QGstreamerCaptureSession *session);
     virtual ~QGstreamerVideoEncode();
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                      bool *continuous = 0) const override;
-
-    QList< qreal > supportedFrameRates(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                       bool *continuous = 0) const override;
-
     QPair<int,int> rateAsRational() const;
 
     QStringList supportedVideoCodecs() const override;

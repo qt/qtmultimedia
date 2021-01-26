@@ -103,9 +103,6 @@ public:
     QStringList supportedImageCodecs() const;
     QString imageCodecDescription(const QString &codecName) const;
 
-    QList<QSize> supportedResolutions(const QImageEncoderSettings &settings = QImageEncoderSettings(),
-                                      bool *continuous = nullptr) const;
-
     QImageEncoderSettings encodingSettings() const;
     void setEncodingSettings(const QImageEncoderSettings& settings);
 

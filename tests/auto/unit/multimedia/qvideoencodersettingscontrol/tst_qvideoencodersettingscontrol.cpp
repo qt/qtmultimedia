@@ -45,23 +45,6 @@ public:
 
     }
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings,bool *continuous = nullptr) const override
-    {
-        Q_UNUSED(settings);
-        Q_UNUSED(continuous);
-
-        return (QList<QSize>());
-    }
-
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = nullptr) const override
-    {
-        Q_UNUSED(settings);
-        Q_UNUSED(continuous);
-
-        return (QList<qreal>());
-
-    }
-
     [[nodiscard]] QStringList supportedVideoCodecs() const override
     {
         return QStringList();

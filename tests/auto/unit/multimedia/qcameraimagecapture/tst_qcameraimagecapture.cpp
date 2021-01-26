@@ -103,7 +103,6 @@ private slots:
     void imageExposed();
     void imageSaved();
     void readyForCaptureChanged();
-    void supportedResolutions();
     void imageCodecDescription();
     void supportedImageCodecs();
     void cameraImageCaptureControl();
@@ -248,20 +247,6 @@ void tst_QCameraImageCapture::supportedImageCodecs()
     QCameraImageCapture imageCapture(&camera);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(!imageCapture.supportedImageCodecs().isEmpty());
-}
-
-//MaemoAPI-1836:test supportedResolutions
-void tst_QCameraImageCapture::supportedResolutions()
-{
-    QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
-    QVERIFY(imageCapture.isAvailable() == true);
-    QVERIFY(imageCapture.supportedResolutions().count() == 2);
-    QImageEncoderSettings settings1;
-    settings1.setCodec("PNG");;
-    settings1.setResolution(320, 240);
-    int result = imageCapture.supportedResolutions(settings1).count();
-    QVERIFY(result == 1);
 }
 
 //MaemoAPI-1837:test imageCodecDescription
