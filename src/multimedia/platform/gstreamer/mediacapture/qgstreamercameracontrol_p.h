@@ -91,12 +91,6 @@ public:
     void searchAndLock(QCamera::LockTypes /*locks*/) override {}
     void unlock(QCamera::LockTypes /*locks*/) override {}
 
-
-    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const override { return {}; }
-
-    QCameraViewfinderSettings viewfinderSettings() const override { return {}; }
-    void setViewfinderSettings(const QCameraViewfinderSettings &/*settings*/) override {}
-
 public slots:
     void reloadLater();
 

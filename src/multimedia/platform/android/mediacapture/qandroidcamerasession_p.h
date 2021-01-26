@@ -85,9 +85,7 @@ public:
     void setCaptureMode(QCamera::CaptureModes mode);
     bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
 
-    QCameraViewfinderSettings viewfinderSettings() const { return m_actualViewfinderSettings; }
-    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
-    void applyViewfinderSettings(const QSize &captureSize = QSize(), bool restartPreview = true);
+    void applyResolution(const QSize &captureSize = QSize(), bool restartPreview = true);
 
     QAndroidVideoOutput *videoOutput() const { return m_videoOutput; }
     void setVideoOutput(QAndroidVideoOutput *output);
@@ -185,9 +183,6 @@ private:
     int m_savedState;
     QCamera::Status m_status;
     bool m_previewStarted;
-
-    QCameraViewfinderSettings m_requestedViewfinderSettings;
-    QCameraViewfinderSettings m_actualViewfinderSettings;
 
     QImageEncoderSettings m_requestedImageSettings;
     QImageEncoderSettings m_actualImageSettings;

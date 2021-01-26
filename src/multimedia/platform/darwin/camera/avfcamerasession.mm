@@ -202,9 +202,9 @@ void AVFCameraSession::setCapturePreviewOutput(AVFCameraWindowControl *output)
     if (m_capturePreviewWindowOutput) {
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
         m_capturePreviewWindowOutput->setLayer(previewLayer);
-        if (auto *camera = m_service->cameraControl()) {
-            m_capturePreviewWindowOutput->setNativeSize(camera->viewfinderSettings().resolution());
-        }
+//        if (auto *camera = m_service->cameraControl()) {
+//            m_capturePreviewWindowOutput->setNativeSize(camera->viewfinderSettings().resolution());
+//        }
     }
 }
 
@@ -243,8 +243,7 @@ void AVFCameraSession::setState(QCamera::State newState)
         m_defaultCodec = 0;
         defaultCodec();
 
-        bool activeFormatSet = applyImageEncoderSettings()
-                             | applyViewfinderSettings();
+        bool activeFormatSet = applyImageEncoderSettings();
 
         [m_captureSession commitConfiguration];
 
@@ -300,10 +299,8 @@ void AVFCameraSession::onCaptureModeChanged(QCamera::CaptureModes mode)
     Q_UNUSED(mode);
 
     const QCamera::State s = state();
-    if (s == QCamera::LoadedState || s == QCamera::ActiveState) {
+    if (s == QCamera::LoadedState || s == QCamera::ActiveState)
         applyImageEncoderSettings();
-        applyViewfinderSettings();
-    }
 }
 
 AVCaptureDevice *AVFCameraSession::createCaptureDevice()
@@ -356,30 +353,6 @@ bool AVFCameraSession::applyImageEncoderSettings()
 {
     if (AVFImageEncoderControl *control = m_service->imageEncoderControl())
         return control->applySettings();
-
-    return false;
-}
-
-bool AVFCameraSession::applyViewfinderSettings()
-{
-    if (auto *camera = m_service->cameraControl()) {
-        QCamera::CaptureModes currentMode = m_service->cameraControl()->captureMode();
-        QCameraViewfinderSettings vfSettings(camera->requestedSettings());
-        // Viewfinder and image capture solutions must be the same, if an image capture
-        // resolution is set, it takes precedence over the viewfinder resolution.
-        if (currentMode.testFlag(QCamera::CaptureStillImage)) {
-            const QSize imageResolution(m_service->imageEncoderControl()->requestedSettings().resolution());
-            if (!imageResolution.isNull() && imageResolution.isValid())
-                vfSettings.setResolution(imageResolution);
-        }
-
-        camera->applySettings(vfSettings);
-
-        if (m_capturePreviewWindowOutput)
-            m_capturePreviewWindowOutput->setNativeSize(camera->viewfinderSettings().resolution());
-
-        return !vfSettings.isNull();
-    }
 
     return false;
 }

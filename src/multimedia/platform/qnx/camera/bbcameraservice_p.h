@@ -65,7 +65,6 @@ class BbCameraImageProcessingControl;
 class BbCameraMediaRecorderControl;
 class BbCameraSession;
 class BbCameraVideoEncoderSettingsControl;
-class BbCameraViewfinderSettingsControl;
 class BbImageEncoderControl;
 class BbVideoRendererControl;
 
@@ -91,7 +90,6 @@ private:
     BbCameraImageProcessingControl* m_cameraImageProcessingControl;
     BbCameraMediaRecorderControl* m_cameraMediaRecorderControl;
     BbCameraVideoEncoderSettingsControl* m_cameraVideoEncoderSettingsControl;
-    BbCameraViewfinderSettingsControl* m_cameraViewfinderSettingsControl;
     BbImageEncoderControl* m_imageEncoderControl;
     BbVideoRendererControl* m_videoRendererControl;
 };

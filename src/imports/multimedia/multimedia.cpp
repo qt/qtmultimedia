@@ -56,7 +56,6 @@
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
-#include "qdeclarativecameraviewfinder_p.h"
 #include "qdeclarativetorch_p.h"
 #include <QAbstractVideoSurface>
 
@@ -112,8 +111,6 @@ public:
         // 5.4 types
         qmlRegisterSingletonType<QDeclarativeMultimediaGlobal>(uri, 5, 4, "QtMultimedia", multimedia_global_object);
         qmlRegisterType<QDeclarativeCamera, 1>(uri, 5, 4, "Camera");
-        qmlRegisterUncreatableType<QDeclarativeCameraViewfinder>(uri, 5, 4, "CameraViewfinder",
-                                tr("CameraViewfinder is provided by Camera"));
 
         // 5.5 types
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 1>(uri, 5, 5, "CameraImageProcessing", tr("CameraImageProcessing is provided by Camera"));

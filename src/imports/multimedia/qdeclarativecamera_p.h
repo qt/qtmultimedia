@@ -72,8 +72,6 @@ class QDeclarativeCameraFocus;
 class QDeclarativeCameraFlash;
 class QDeclarativeCameraImageProcessing;
 class QDeclarativeMediaMetaData;
-class QDeclarativeCameraViewfinder;
-
 class QDeclarativeCamera : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
@@ -103,7 +101,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeCameraFocus* focus READ focus CONSTANT)
     Q_PROPERTY(QDeclarativeCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT REVISION 1)
-    Q_PROPERTY(QDeclarativeCameraViewfinder *viewfinder READ viewfinder CONSTANT REVISION 1)
 
     Q_ENUMS(Position)
     Q_ENUMS(CaptureMode)
@@ -128,7 +125,6 @@ public:
     };
 
     enum CaptureMode {
-        CaptureViewfinder = QCamera::CaptureViewfinder,
         CaptureStillImage = QCamera::CaptureStillImage,
         CaptureVideo = QCamera::CaptureVideo
     };
@@ -244,7 +240,6 @@ public:
     QDeclarativeCameraFlash *flash() { return m_flash; }
     QDeclarativeCameraFocus *focus() { return m_focus; }
     QDeclarativeCameraImageProcessing *imageProcessing() { return m_imageProcessing; }
-    QDeclarativeCameraViewfinder *viewfinder();
 
     QDeclarativeMediaMetaData *metaData();
 
@@ -287,10 +282,10 @@ public Q_SLOTS:
     void setOpticalZoom(qreal);
     void setDigitalZoom(qreal);
 
-    Q_REVISION(2) QJSValue supportedViewfinderResolutions(qreal minimumFrameRate = 0.0,
+    Q_REVISION(2) QJSValue supportedResolutions(qreal minimumFrameRate = 0.0,
                                                           qreal maximumFrameRate = 0.0);
 
-    Q_REVISION(2) QJSValue supportedViewfinderFrameRateRanges(const QJSValue &resolution = QJSValue());
+    Q_REVISION(2) QJSValue supportedFrameRateRanges(const QJSValue &resolution = QJSValue());
 
 Q_SIGNALS:
     void errorChanged();
@@ -335,7 +330,6 @@ private:
     QDeclarativeCameraFocus *m_focus;
     QDeclarativeCameraImageProcessing *m_imageProcessing;
     QDeclarativeMediaMetaData *m_metaData;
-    QDeclarativeCameraViewfinder *m_viewfinder;
 
     State m_pendingState;
     bool m_componentComplete;

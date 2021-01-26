@@ -60,7 +60,6 @@ public:
         ImageEncodingSettings = 2,
         VideoEncodingSettings = 3,
         Viewfinder = 4,
-        ViewfinderSettings = 5
     };
 
     virtual QCamera::State state() const = 0;
@@ -82,11 +81,6 @@ public:
 
     virtual void searchAndLock(QCamera::LockTypes locks) = 0;
     virtual void unlock(QCamera::LockTypes locks) = 0;
-
-    virtual QList<QCameraViewfinderSettings> supportedViewfinderSettings() const = 0;
-
-    virtual QCameraViewfinderSettings viewfinderSettings() const = 0;
-    virtual void setViewfinderSettings(const QCameraViewfinderSettings &settings) = 0;
 
 Q_SIGNALS:
     void stateChanged(QCamera::State);

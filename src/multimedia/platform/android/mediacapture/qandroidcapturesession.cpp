@@ -221,7 +221,7 @@ void QAndroidCaptureSession::start()
 
     // Set audio/video sources
     if (m_cameraSession) {
-        updateViewfinder();
+        updateResolution();
         m_cameraSession->camera()->unlock();
         m_mediaRecorder->setCamera(m_cameraSession->camera());
         m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
@@ -474,10 +474,10 @@ void QAndroidCaptureSession::applySettings()
     }
 }
 
-void QAndroidCaptureSession::updateViewfinder()
+void QAndroidCaptureSession::updateResolution()
 {
     m_cameraSession->camera()->stopPreviewSynchronous();
-    m_cameraSession->applyViewfinderSettings(m_videoSettings.resolution(), false);
+    m_cameraSession->applyResolution(m_videoSettings.resolution(), false);
 }
 
 void QAndroidCaptureSession::restartViewfinder()

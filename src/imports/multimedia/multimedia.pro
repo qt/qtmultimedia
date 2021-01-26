@@ -18,7 +18,6 @@ HEADERS += \
         qdeclarativecameraimageprocessing_p.h \
         qdeclarativecamerapreviewprovider_p.h \
         qdeclarativetorch_p.h \
-        qdeclarativecameraviewfinder_p.h \
         qdeclarativemultimediaglobal_p.h
 
 SOURCES += \
@@ -34,7 +33,6 @@ SOURCES += \
         qdeclarativecameraimageprocessing.cpp \
         qdeclarativecamerapreviewprovider.cpp \
         qdeclarativetorch.cpp \
-        qdeclarativecameraviewfinder.cpp \
         qdeclarativemultimediaglobal.cpp
 
 QML_FILES += \

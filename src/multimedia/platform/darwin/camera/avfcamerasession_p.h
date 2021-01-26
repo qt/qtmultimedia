@@ -121,7 +121,6 @@ private:
     AVCaptureDevice *createCaptureDevice();
     void attachVideoInputDevice();
     bool applyImageEncoderSettings();
-    bool applyViewfinderSettings();
 
     static int m_defaultCameraIndex;
     QCameraInfo m_activeCameraInfo;

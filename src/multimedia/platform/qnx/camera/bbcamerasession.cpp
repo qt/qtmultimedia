@@ -39,7 +39,6 @@
 #include "bbcamerasession_p.h"
 
 #include "bbcameraorientationhandler_p.h"
-#include "bbcameraviewfindersettingscontrol_p.h"
 #include "windowgrabber_p.h"
 
 #include <QAbstractVideoSurface>

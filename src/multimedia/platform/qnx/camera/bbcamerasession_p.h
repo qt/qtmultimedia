@@ -54,7 +54,6 @@
 
 #include <QCamera>
 #include <QCameraImageCapture>
-#include <QCameraViewfinderSettingsControl>
 #include <QElapsedTimer>
 #include <QMediaRecorder>
 #include <QMutex>

@@ -12,7 +12,6 @@ HEADERS += \
     $$PWD/bbcameraservice_p.h \
     $$PWD/bbcamerasession_p.h \
     $$PWD/bbcameravideoencodersettingscontrol_p.h \
-    $$PWD/bbcameraviewfindersettingscontrol_p.h \
     $$PWD/bbimageencodercontrol_p.h \
     $$PWD/bbmediastoragelocation_p.h \
     $$PWD/bbvideorenderercontrol_p.h
@@ -29,7 +28,6 @@ SOURCES += \
     $$PWD/bbcameraservice.cpp \
     $$PWD/bbcamerasession.cpp \
     $$PWD/bbcameravideoencodersettingscontrol.cpp \
-    $$PWD/bbcameraviewfindersettingscontrol.cpp \
     $$PWD/bbimageencodercontrol.cpp \
     $$PWD/bbmediastoragelocation.cpp \
     $$PWD/bbvideorenderercontrol.cpp

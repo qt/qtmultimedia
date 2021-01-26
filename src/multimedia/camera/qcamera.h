@@ -51,7 +51,6 @@
 #include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcamerafocus.h>
 #include <QtMultimedia/qcameraimageprocessing.h>
-#include <QtMultimedia/qcameraviewfindersettings.h>
 #include <QtMultimedia/qcamerainfo.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>
@@ -80,22 +79,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QMediaSource
     Q_ENUMS(LockType)
     Q_ENUMS(Position)
 public:
-    struct FrameRateRange
-    {
-        Q_DECL_CONSTEXPR FrameRateRange() Q_DECL_NOTHROW
-            : minimumFrameRate(0)
-            , maximumFrameRate(0)
-        { }
-
-        Q_DECL_CONSTEXPR FrameRateRange(qreal minimum, qreal maximum) Q_DECL_NOTHROW
-            : minimumFrameRate(minimum)
-            , maximumFrameRate(maximum)
-        { }
-
-        qreal minimumFrameRate;
-        qreal maximumFrameRate;
-    };
-
     enum Status {
         UnavailableStatus,
         UnloadedStatus,
@@ -116,7 +99,6 @@ public:
 
     enum CaptureMode
     {
-        CaptureViewfinder = 0,
         CaptureStillImage = 0x01,
         CaptureVideo = 0x02
     };
@@ -175,21 +157,6 @@ public:
     void setViewfinder(QMediaSink *viewfinder);
     void setViewfinder(QAbstractVideoSurface *surface);
 
-    QCameraViewfinderSettings viewfinderSettings() const;
-    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
-
-    QList<QCameraViewfinderSettings> supportedViewfinderSettings(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
-
-    QList<QSize> supportedViewfinderResolutions(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
-
-    QList<FrameRateRange> supportedViewfinderFrameRateRanges(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
-
-    QList<QVideoFrame::PixelFormat> supportedViewfinderPixelFormats(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
-
     Error error() const;
     QString errorString() const;
 
@@ -239,23 +206,6 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::LockTypes)
-
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_CLANG("-Wfloat-equal")
-QT_WARNING_DISABLE_GCC("-Wfloat-equal")
-
-Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator==(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
-{
-    return qFuzzyCompare(r1.minimumFrameRate, r2.minimumFrameRate)
-        && qFuzzyCompare(r1.maximumFrameRate, r2.maximumFrameRate);
-}
-
-QT_WARNING_POP
-
-Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator!=(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
-{ return !(r1 == r2); }
-
-Q_DECLARE_TYPEINFO(QCamera::FrameRateRange, Q_PRIMITIVE_TYPE);
 
 QT_END_NAMESPACE
 

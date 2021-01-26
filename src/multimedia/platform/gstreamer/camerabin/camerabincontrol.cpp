@@ -214,7 +214,6 @@ bool CameraBinControl::canChangeProperty(PropertyChangeType changeType, QCamera:
     case QCameraControl::CaptureMode:
     case QCameraControl::ImageEncodingSettings:
     case QCameraControl::VideoEncodingSettings:
-    case QCameraControl::ViewfinderSettings:
     default:
         return status != QCamera::ActiveStatus;
     }
@@ -419,21 +418,6 @@ void CameraBinControl::unlockWhiteBalance(
 {
     m_session->imageProcessingControl()->lockWhiteBalance();
     emit lockStatusChanged(QCamera::LockWhiteBalance, status, reason);
-}
-
-QList<QCameraViewfinderSettings> CameraBinControl::supportedViewfinderSettings() const
-{
-    return m_session->supportedViewfinderSettings();
-}
-
-QCameraViewfinderSettings CameraBinControl::viewfinderSettings() const
-{
-    return m_session->viewfinderSettings();
-}
-
-void CameraBinControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
-{
-    m_session->setViewfinderSettings(settings);
 }
 
 QT_END_NAMESPACE

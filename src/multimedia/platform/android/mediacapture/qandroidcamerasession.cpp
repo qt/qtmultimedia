@@ -103,7 +103,7 @@ void QAndroidCameraSession::setCaptureMode(QCamera::CaptureModes mode)
     emit captureModeChanged(m_captureMode);
 
     if (m_previewStarted && m_captureMode.testFlag(QCamera::CaptureStillImage))
-        applyViewfinderSettings(m_actualImageSettings.resolution());
+        applyResolution(m_actualImageSettings.resolution());
 }
 
 bool QAndroidCameraSession::isCaptureModeSupported(QCamera::CaptureModes mode) const
@@ -229,7 +229,6 @@ void QAndroidCameraSession::close()
     m_currentImageCaptureId = -1;
     m_currentImageCaptureFileName.clear();
     m_actualImageSettings = m_requestedImageSettings;
-    m_actualViewfinderSettings = m_requestedViewfinderSettings;
 
     m_camera->release();
     delete m_camera;
@@ -257,18 +256,7 @@ void QAndroidCameraSession::setVideoOutput(QAndroidVideoOutput *output)
     }
 }
 
-void QAndroidCameraSession::setViewfinderSettings(const QCameraViewfinderSettings &settings)
-{
-    if (m_requestedViewfinderSettings == settings)
-        return;
-
-    m_requestedViewfinderSettings = m_actualViewfinderSettings = settings;
-
-    if (m_readyForCapture)
-        applyViewfinderSettings();
-}
-
-void QAndroidCameraSession::applyViewfinderSettings(const QSize &captureSize, bool restartPreview)
+void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool restartPreview)
 {
     if (!m_camera)
         return;
@@ -293,12 +281,7 @@ void QAndroidCameraSession::applyViewfinderSettings(const QSize &captureSize, bo
 
         const QList<QSize> previewSizes = m_camera->getSupportedPreviewSizes();
 
-        const QSize vfRes = m_requestedViewfinderSettings.resolution();
-        if (vfRes.width() > 0 && vfRes.height() > 0
-                && (!validCaptureSize || qAbs(captureAspectRatio - (qreal(vfRes.width()) / vfRes.height())) < 0.01)
-                && previewSizes.contains(vfRes)) {
-            adjustedViewfinderResolution = vfRes;
-        } else if (validCaptureSize) {
+        if (validCaptureSize) {
             // search for viewfinder resolution with the same aspect ratio
             qreal minAspectDiff = 1;
             QSize closestResolution;
@@ -326,42 +309,14 @@ void QAndroidCameraSession::applyViewfinderSettings(const QSize &captureSize, bo
             adjustedViewfinderResolution = previewSizes.last();
         }
     }
-    m_actualViewfinderSettings.setResolution(adjustedViewfinderResolution);
 
     // -- adjust pixel format
 
     AndroidCamera::ImageFormat adjustedPreviewFormat = AndroidCamera::NV21;
-    if (m_requestedViewfinderSettings.pixelFormat() != QVideoFrame::Format_Invalid) {
-        const AndroidCamera::ImageFormat f = AndroidImageFormatFromQtPixelFormat(m_requestedViewfinderSettings.pixelFormat());
-        if (f == AndroidCamera::UnknownImageFormat || !m_camera->getSupportedPreviewFormats().contains(f))
-            qWarning("Unsupported viewfinder pixel format");
-        else
-            adjustedPreviewFormat = f;
-    }
-    m_actualViewfinderSettings.setPixelFormat(QtPixelFormatFromAndroidImageFormat(adjustedPreviewFormat));
 
     // -- adjust FPS
 
     AndroidCamera::FpsRange adjustedFps = currentFpsRange;
-    const AndroidCamera::FpsRange requestedFpsRange = AndroidCamera::FpsRange::makeFromQReal(m_requestedViewfinderSettings.minimumFrameRate(),
-                                                                                             m_requestedViewfinderSettings.maximumFrameRate());
-    if (requestedFpsRange.min > 0 || requestedFpsRange.max > 0) {
-        int minDist = INT_MAX;
-        const QList<AndroidCamera::FpsRange> supportedFpsRanges = m_camera->getSupportedPreviewFpsRange();
-        auto it = supportedFpsRanges.rbegin(), end = supportedFpsRanges.rend();
-        for (; it != end; ++it) {
-            int dist = (requestedFpsRange.min > 0 ? qAbs(requestedFpsRange.min - it->min) : 0)
-                       + (requestedFpsRange.max > 0 ? qAbs(requestedFpsRange.max - it->max) : 0);
-            if (dist < minDist) {
-                minDist = dist;
-                adjustedFps = *it;
-                if (minDist == 0)
-                    break; // exact match
-            }
-        }
-    }
-    m_actualViewfinderSettings.setMinimumFrameRate(adjustedFps.getMinReal());
-    m_actualViewfinderSettings.setMaximumFrameRate(adjustedFps.getMaxReal());
 
     // -- Set values on camera
 
@@ -462,8 +417,8 @@ bool QAndroidCameraSession::startPreview()
     emit statusChanged(m_status);
 
     applyImageSettings();
-    applyViewfinderSettings(m_captureMode.testFlag(QCamera::CaptureStillImage) ? m_actualImageSettings.resolution()
-                                                                               : QSize());
+    if (m_captureMode.testFlag(QCamera::CaptureStillImage))
+        applyResolution(m_actualImageSettings.resolution());
 
     AndroidMultimediaUtils::enableOrientationListener(true);
 
@@ -510,7 +465,7 @@ void QAndroidCameraSession::setImageSettings(const QImageEncoderSettings &settin
     applyImageSettings();
 
     if (m_readyForCapture && m_captureMode.testFlag(QCamera::CaptureStillImage))
-        applyViewfinderSettings(m_actualImageSettings.resolution());
+        applyResolution(m_actualImageSettings.resolution());
 }
 
 int QAndroidCameraSession::currentCameraRotation() const
@@ -557,23 +512,8 @@ void QAndroidCameraSession::applyImageSettings()
     const QSize requestedResolution = m_requestedImageSettings.resolution();
     const QList<QSize> supportedResolutions = m_camera->getSupportedPictureSizes();
     if (!requestedResolution.isValid()) {
-        // if the viewfinder resolution is explicitly set, pick the highest available capture
-        // resolution with the same aspect ratio
-        if (m_requestedViewfinderSettings.resolution().isValid()) {
-            const QSize vfResolution = m_actualViewfinderSettings.resolution();
-            const qreal vfAspectRatio = qreal(vfResolution.width()) / vfResolution.height();
-
-            auto it = supportedResolutions.rbegin(), end = supportedResolutions.rend();
-            for (; it != end; ++it) {
-                if (qAbs(vfAspectRatio - (qreal(it->width()) / it->height())) < 0.01) {
-                    m_actualImageSettings.setResolution(*it);
-                    break;
-                }
-            }
-        } else {
-            // otherwise, use the highest supported one
-            m_actualImageSettings.setResolution(supportedResolutions.last());
-        }
+        // use the highest supported one
+        m_actualImageSettings.setResolution(supportedResolutions.last());
     } else if (!supportedResolutions.contains(requestedResolution)) {
         // if the requested resolution is not supported, find the closest one
         int reqPixelCount = requestedResolution.width() * requestedResolution.height();
@@ -664,7 +604,7 @@ int QAndroidCameraSession::capture(const QString &fileName)
         m_currentImageCaptureFileName = fileName;
 
         applyImageSettings();
-        applyViewfinderSettings(m_actualImageSettings.resolution());
+        applyResolution(m_actualImageSettings.resolution());
 
         // adjust picture rotation depending on the device orientation
         m_camera->setRotation(currentCameraRotation());

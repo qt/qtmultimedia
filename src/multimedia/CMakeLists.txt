@@ -30,7 +30,6 @@ qt_internal_add_module(Multimedia
         camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
         camera/qcameraimageprocessing.cpp camera/qcameraimageprocessing.h
         camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h
-        camera/qcameraviewfindersettings.cpp camera/qcameraviewfindersettings.h
         controls/qaudiodecodercontrol.cpp controls/qaudiodecodercontrol.h
         controls/qaudioencodersettingscontrol.cpp controls/qaudioencodersettingscontrol.h
         controls/qcameracontrol.cpp controls/qcameracontrol.h
@@ -521,7 +520,6 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/camera/bbcameraservice.cpp platform/qnx/camera/bbcameraservice_p.h
         platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
         platform/qnx/camera/bbcameravideoencodersettingscontrol.cpp platform/qnx/camera/bbcameravideoencodersettingscontrol_p.h
-        platform/qnx/camera/bbcameraviewfindersettingscontrol.cpp platform/qnx/camera/bbcameraviewfindersettingscontrol_p.h
         platform/qnx/camera/bbimageencodercontrol.cpp platform/qnx/camera/bbimageencodercontrol_p.h
         platform/qnx/camera/bbmediastoragelocation.cpp platform/qnx/camera/bbmediastoragelocation_p.h
         platform/qnx/camera/bbvideorenderercontrol.cpp platform/qnx/camera/bbvideorenderercontrol_p.h

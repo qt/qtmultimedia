@@ -80,7 +80,6 @@ void QGstreamerCameraControl::setCaptureMode(QCamera::CaptureModes mode)
     m_captureMode = mode;
 
     switch (mode) {
-    case QCamera::CaptureViewfinder:
     case QCamera::CaptureStillImage:
         m_session->setCaptureMode(QGstreamerCaptureSession::Image);
         break;

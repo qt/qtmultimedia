@@ -151,7 +151,7 @@ private:
 
     void setStatus(QMediaRecorder::Status status);
 
-    void updateViewfinder();
+    void updateResolution();
     void restartViewfinder();
 
     AndroidMediaRecorder *m_mediaRecorder;

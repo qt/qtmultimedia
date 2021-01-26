@@ -148,10 +148,6 @@ public:
     QObject *viewfinder() const { return m_viewfinder; }
     void setViewfinder(QObject *viewfinder);
 
-    QList<QCameraViewfinderSettings> supportedViewfinderSettings() const;
-    QCameraViewfinderSettings viewfinderSettings() const;
-    void setViewfinderSettings(const QCameraViewfinderSettings &settings) { m_viewfinderSettings = settings; }
-
     void captureImage(int requestId, const QString &fileName);
 
     QCamera::Status status() const;
@@ -231,9 +227,6 @@ private:
     QGstreamerElementFactory *m_videoInputFactory;
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
-    mutable QList<QCameraViewfinderSettings> m_supportedViewfinderSettings;
-    QCameraViewfinderSettings m_viewfinderSettings;
-    QCameraViewfinderSettings m_actualViewfinderSettings;
 
     CameraBinControl *m_cameraControl;
     CameraBinAudioEncoder *m_audioEncodeControl;
@@ -257,18 +250,6 @@ private:
     bool m_viewfinderHasChanged;
     bool m_inputDeviceHasChanged;
     bool m_usingWrapperCameraBinSrc;
-
-    class ViewfinderProbe : public QGstreamerBufferProbe {
-    public:
-        ViewfinderProbe(CameraBinSession *s)
-            : session(s)
-        {}
-
-        void probeCaps(GstCaps *caps) override;
-
-    private:
-        CameraBinSession * const session;
-    } m_viewfinderProbe;
 
     GstElement *m_audioSrc;
     GstElement *m_audioConvert;

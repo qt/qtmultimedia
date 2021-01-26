@@ -320,40 +320,4 @@ void QAndroidCameraControl::setExposureLockStatus(QCamera::LockStatus status, QC
     emit lockStatusChanged(QCamera::LockExposure, m_exposureLockStatus, reason);
 }
 
-QList<QCameraViewfinderSettings> QAndroidCameraControl::supportedViewfinderSettings() const
-{
-    QList<QCameraViewfinderSettings> viewfinderSettings;
-
-    const QList<QSize> previewSizes = m_cameraSession->getSupportedPreviewSizes();
-    const QList<QVideoFrame::PixelFormat> pixelFormats = m_cameraSession->getSupportedPixelFormats();
-    const QList<AndroidCamera::FpsRange> fpsRanges = m_cameraSession->getSupportedPreviewFpsRange();
-
-    viewfinderSettings.reserve(previewSizes.size() * pixelFormats.size() * fpsRanges.size());
-
-    for (const QSize& size : previewSizes) {
-        for (QVideoFrame::PixelFormat pixelFormat : pixelFormats) {
-            for (const AndroidCamera::FpsRange& fpsRange : fpsRanges) {
-                QCameraViewfinderSettings s;
-                s.setResolution(size);
-                s.setPixelAspectRatio(QSize(1, 1));
-                s.setPixelFormat(pixelFormat);
-                s.setMinimumFrameRate(fpsRange.getMinReal());
-                s.setMaximumFrameRate(fpsRange.getMaxReal());
-                viewfinderSettings << s;
-            }
-        }
-    }
-    return viewfinderSettings;
-}
-
-QCameraViewfinderSettings QAndroidCameraControl::viewfinderSettings() const
-{
-    return m_cameraSession->viewfinderSettings();
-}
-
-void QAndroidCameraControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
-{
-    m_cameraSession->setViewfinderSettings(settings);
-}
-
 QT_END_NAMESPACE

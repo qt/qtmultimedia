@@ -11,7 +11,6 @@ PUBLIC_HEADERS += \
     camera/qcamerafocus.h \
     camera/qcameraimageprocessing.h \
     camera/qcamerainfo.h \
-    camera/qcameraviewfindersettings.h
 
 SOURCES += \
     camera/qcamera.cpp \
@@ -20,4 +19,3 @@ SOURCES += \
     camera/qcameraimageprocessing.cpp \
     camera/qcameraimagecapture.cpp \
     camera/qcamerainfo.cpp \
-    camera/qcameraviewfindersettings.cpp

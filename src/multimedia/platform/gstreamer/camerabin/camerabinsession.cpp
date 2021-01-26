@@ -308,6 +308,7 @@ static GstCaps *resolutionToCaps(const QSize &resolution,
     return caps;
 }
 
+#if 0
 void CameraBinSession::setupCaptureResolution()
 {
     QSize viewfinderResolution = m_viewfinderSettings.resolution();
@@ -404,6 +405,7 @@ void CameraBinSession::setupCaptureResolution()
     if (m_videoEncoder)
         m_videoEncodeControl->applySettings(m_videoEncoder);
 }
+#endif
 
 void CameraBinSession::setAudioCaptureCaps()
 {
@@ -663,68 +665,6 @@ void CameraBinSession::setViewfinder(QObject *viewfinder)
     }
 }
 
-static QList<QCameraViewfinderSettings> capsToViewfinderSettings(GstCaps *supportedCaps)
-{
-    QList<QCameraViewfinderSettings> settings;
-
-    if (!supportedCaps)
-        return settings;
-
-    supportedCaps = qt_gst_caps_normalize(supportedCaps);
-
-    // Convert caps to QCameraViewfinderSettings
-    for (uint i = 0; i < gst_caps_get_size(supportedCaps); ++i) {
-        const GstStructure *structure = gst_caps_get_structure(supportedCaps, i);
-
-        QCameraViewfinderSettings s;
-        s.setResolution(QGstUtils::structureResolution(structure));
-        s.setPixelFormat(QGstUtils::structurePixelFormat(structure));
-        s.setPixelAspectRatio(QGstUtils::structurePixelAspectRatio(structure));
-
-        QPair<qreal, qreal> frameRateRange = QGstUtils::structureFrameRateRange(structure);
-        s.setMinimumFrameRate(frameRateRange.first);
-        s.setMaximumFrameRate(frameRateRange.second);
-
-        if (!s.resolution().isEmpty()
-            && s.pixelFormat() != QVideoFrame::Format_Invalid
-            && !settings.contains(s)) {
-            settings.append(s);
-        }
-    }
-
-    gst_caps_unref(supportedCaps);
-    return settings;
-}
-
-QList<QCameraViewfinderSettings> CameraBinSession::supportedViewfinderSettings() const
-{
-    if (m_status >= QCamera::LoadedStatus && m_supportedViewfinderSettings.isEmpty()) {
-        m_supportedViewfinderSettings =
-            capsToViewfinderSettings(supportedCaps(QCamera::CaptureViewfinder));
-    }
-
-    return m_supportedViewfinderSettings;
-}
-
-QCameraViewfinderSettings CameraBinSession::viewfinderSettings() const
-{
-    return m_status == QCamera::ActiveStatus ? m_actualViewfinderSettings : m_viewfinderSettings;
-}
-
-void CameraBinSession::ViewfinderProbe::probeCaps(GstCaps *caps)
-{
-    QGstreamerBufferProbe::probeCaps(caps);
-
-    // Update actual viewfinder settings on viewfinder caps change
-    const GstStructure *s = gst_caps_get_structure(caps, 0);
-    const QPair<qreal, qreal> frameRate = QGstUtils::structureFrameRateRange(s);
-    session->m_actualViewfinderSettings.setResolution(QGstUtils::structureResolution(s));
-    session->m_actualViewfinderSettings.setMinimumFrameRate(frameRate.first);
-    session->m_actualViewfinderSettings.setMaximumFrameRate(frameRate.second);
-    session->m_actualViewfinderSettings.setPixelFormat(QGstUtils::structurePixelFormat(s));
-    session->m_actualViewfinderSettings.setPixelAspectRatio(QGstUtils::structurePixelAspectRatio(s));
-}
-
 void CameraBinSession::handleViewfinderChange()
 {
     //the viewfinder will be reloaded
@@ -849,8 +789,6 @@ void CameraBinSession::unload()
     if (m_busy)
         emit busyChanged(m_busy = false);
 
-    m_supportedViewfinderSettings.clear();
-
     setStatus(QCamera::UnloadedStatus);
 }
 
@@ -863,7 +801,7 @@ void CameraBinSession::start()
 
     setAudioCaptureCaps();
 
-    setupCaptureResolution();
+//    setupCaptureResolution();
 
     gst_element_set_state(m_camerabin, GST_STATE_PLAYING);
 }
@@ -1090,9 +1028,6 @@ bool CameraBinSession::processBusMessage(const QGstreamerMessage &message)
                         setStatus(QCamera::UnloadedStatus);
                         break;
                     case GST_STATE_READY:
-                        if (oldState == GST_STATE_NULL)
-                            m_supportedViewfinderSettings.clear();
-
                         setMetaData(m_metaData);
                         setStatus(QCamera::LoadedStatus);
                         break;
@@ -1220,7 +1155,6 @@ GstCaps *CameraBinSession::supportedCaps(QCamera::CaptureModes mode) const
         case QCamera::CaptureVideo:
             prop = SUPPORTED_VIDEO_CAPTURE_CAPS_PROPERTY;
             break;
-        case QCamera::CaptureViewfinder:
         default:
             prop = SUPPORTED_VIEWFINDER_CAPS_PROPERTY;
             break;

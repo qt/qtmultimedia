@@ -44,7 +44,6 @@
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
-#include "qdeclarativecameraviewfinder_p.h"
 
 #include "qdeclarativemediametadata_p.h"
 
@@ -184,7 +183,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_flash = new QDeclarativeCameraFlash(m_camera);
     m_focus = new QDeclarativeCameraFocus(m_camera);
     m_imageProcessing = new QDeclarativeCameraImageProcessing(m_camera);
-    m_viewfinder = new QDeclarativeCameraViewfinder(m_camera);
 
     connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
             this, SIGNAL(captureModeChanged()));
@@ -217,7 +215,6 @@ QDeclarativeCamera::~QDeclarativeCamera()
     delete m_focus;
     delete m_imageProcessing;
     delete m_metaData;
-    delete m_viewfinder;
 
     delete m_camera;
 }
@@ -849,44 +846,6 @@ QDeclarativeMediaMetaData *QDeclarativeCamera::metaData()
 }
 
 /*!
-    \qmlpropertygroup QtMultimedia::Camera::viewfinder
-    \qmlproperty size QtMultimedia::Camera::viewfinder.resolution
-    \qmlproperty real QtMultimedia::Camera::viewfinder.minimumFrameRate
-    \qmlproperty real QtMultimedia::Camera::viewfinder.maximumFrameRate
-
-    These properties hold the viewfinder settings.
-
-    \c viewfinder.resolution holds the resolution of the camera viewfinder. If no
-    resolution is given or if it is empty, the backend uses a default value.
-
-    \c viewfinder.minimumFrameRate holds the minimum frame rate for the viewfinder in
-    frames per second. If no value is given or if set to \c 0, the backend uses a default value.
-
-    \c viewfinder.maximumFrameRate holds the maximum frame rate for the viewfinder in
-    frames per second. If no value is given or if set to \c 0, the backend uses a default value.
-
-    If \c viewfinder.minimumFrameRate is equal to \c viewfinder.maximumFrameRate, the frame rate is
-    fixed. If not, the actual frame rate fluctuates between the two values.
-
-    Changing the viewfinder settings while the camera is in the \c Camera.ActiveState state may
-    cause the camera to be restarted.
-
-    If the camera is used to capture videos or images, the viewfinder settings might be
-    ignored if they conflict with the capture settings. You can check the actual viewfinder settings
-    once the camera is in the \c Camera.ActiveStatus status.
-
-    Supported values can be retrieved with supportedViewfinderResolutions() and
-    supportedViewfinderFrameRateRanges().
-
-    \since 5.4
- */
-
-QDeclarativeCameraViewfinder *QDeclarativeCamera::viewfinder()
-{
-    return m_viewfinder;
-}
-
-/*!
     \qmlmethod list<size> QtMultimedia::Camera::supportedViewfinderResolutions(real minimumFrameRate, real maximumFrameRate)
 
     Returns a list of supported viewfinder resolutions.
@@ -901,19 +860,23 @@ QDeclarativeCameraViewfinder *QDeclarativeCamera::viewfinder()
 
     \since 5.5
 */
-QJSValue QDeclarativeCamera::supportedViewfinderResolutions(qreal minimumFrameRate, qreal maximumFrameRate)
+QJSValue QDeclarativeCamera::supportedResolutions(qreal minimumFrameRate, qreal maximumFrameRate)
 {
     QQmlEngine *engine = qmlEngine(this);
 
-    QCameraViewfinderSettings settings;
-    settings.setMinimumFrameRate(minimumFrameRate);
-    settings.setMaximumFrameRate(maximumFrameRate);
-    const QList<QSize> resolutions = m_camera->supportedViewfinderResolutions(settings);
+    QCameraInfo info = m_camera->cameraInfo();
 
-    QJSValue supportedResolutions = engine->newArray(resolutions.count());
+    const auto formats = info.videoFormats();
+    QJSValue supportedResolutions = engine->newArray(formats.count());
     int i = 0;
-    for (const QSize &resolution : resolutions) {
+    for (const auto &f : formats) {
+        if (maximumFrameRate >= 0) {
+            if (f.maxFrameRate() < minimumFrameRate ||
+                f.minFrameRate() > maximumFrameRate)
+                continue;
+        }
         QJSValue size = engine->newObject();
+        QSize resolution = f.resolution();
         size.setProperty(QStringLiteral("width"), resolution.width());
         size.setProperty(QStringLiteral("height"), resolution.height());
         supportedResolutions.setProperty(i++, size);
@@ -939,27 +902,39 @@ QJSValue QDeclarativeCamera::supportedViewfinderResolutions(qreal minimumFrameRa
 
     \since 5.5
 */
-QJSValue QDeclarativeCamera::supportedViewfinderFrameRateRanges(const QJSValue &resolution)
+QJSValue QDeclarativeCamera::supportedFrameRateRanges(const QJSValue &resolution)
 {
     QQmlEngine *engine = qmlEngine(this);
 
-    QCameraViewfinderSettings settings;
+    QSize res;
     if (!resolution.isUndefined()) {
         QJSValue width = resolution.property(QStringLiteral("width"));
         QJSValue height = resolution.property(QStringLiteral("height"));
         if (width.isNumber() && height.isNumber())
-            settings.setResolution(width.toInt(), height.toInt());
+            res = QSize(width.toInt(), height.toInt());
     }
-    const QList<QCamera::FrameRateRange> frameRateRanges = m_camera->supportedViewfinderFrameRateRanges(settings);
+    QCameraInfo info = m_camera->cameraInfo();
 
-    QJSValue supportedFrameRateRanges = engine->newArray(frameRateRanges.count());
-    int i = 0;
-    for (const QCamera::FrameRateRange &frameRateRange : frameRateRanges) {
-        QJSValue range = engine->newObject();
-        range.setProperty(QStringLiteral("minimumFrameRate"), frameRateRange.minimumFrameRate);
-        range.setProperty(QStringLiteral("maximumFrameRate"), frameRateRange.maximumFrameRate);
-        supportedFrameRateRanges.setProperty(i++, range);
+    float min = 0.;
+    float max = 1.e6;
+    const auto formats = info.videoFormats();
+    QJSValue supportedResolutions = engine->newArray(formats.count());
+    for (const auto &f : formats) {
+        if (!res.isValid() || f.resolution() == res) {
+            min = qMin(min, f.minFrameRate());
+            max = qMin(max, f.maxFrameRate());
+        }
     }
+
+    if (max == 1.e6)
+        min = max = 0.;
+
+    // ### change Qt 5 semantics and not return an array????
+    QJSValue supportedFrameRateRanges = engine->newArray(1);
+    QJSValue range = engine->newObject();
+    range.setProperty(QStringLiteral("minimumFrameRate"), min);
+    range.setProperty(QStringLiteral("maximumFrameRate"), max);
+    supportedFrameRateRanges.setProperty(0, range);
 
     return supportedFrameRateRanges;
 }
