@@ -323,92 +323,12 @@ GstCaps *QGstUtils::capsForAudioFormat(const QAudioFormat &format)
     return 0;
 }
 
-static QSet<GstDevice *> m_videoSources;
-static QSet<GstDevice *> m_audioSources;
-static QSet<GstDevice *> m_audioSinks;
-
-static void addDevice(GstDevice *device)
-{
-    gchar *type = gst_device_get_device_class(device);
-//    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device) << gst_structure_to_string(gst_device_get_properties(device));
-    gst_object_ref(device);
-    if (!strcmp(type, "Video/Source"))
-        m_videoSources.insert(device);
-    else if (!strcmp(type, "Audio/Source"))
-        m_audioSources.insert(device);
-    else if (!strcmp(type, "Audio/Sink"))
-        m_audioSinks.insert(device);
-    else
-        gst_object_unref(device);
-    g_free(type);
-}
-
-static void removeDevice(GstDevice *device)
-{
-//    qDebug() << "removing device:" << device << gst_device_get_display_name(device);
-    if (m_videoSources.remove(device) ||
-        m_audioSources.remove(device) ||
-        m_audioSinks.remove(device))
-        gst_object_unref(device);
-}
-
-static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer)
-{
-    GstDevice *device = nullptr;
-
-    switch (GST_MESSAGE_TYPE (message)) {
-    case GST_MESSAGE_DEVICE_ADDED:
-        gst_message_parse_device_added(message, &device);
-        addDevice(device);
-        break;
-    case GST_MESSAGE_DEVICE_REMOVED:
-        gst_message_parse_device_removed(message, &device);
-        removeDevice(device);
-        break;
-    default:
-        break;
-    }
-    if (device)
-        gst_object_unref (device);
-
-    return G_SOURCE_CONTINUE;
-}
-
-void setupDeviceMonitor()
-{
-    GstDeviceMonitor *monitor;
-    GstBus *bus;
-
-    monitor = gst_device_monitor_new();
-
-    gst_device_monitor_add_filter (monitor, "Video/Source", NULL);
-    gst_device_monitor_add_filter (monitor, "Audio/Source", NULL);
-    gst_device_monitor_add_filter (monitor, "Audio/Sink", NULL);
-
-    bus = gst_device_monitor_get_bus(monitor);
-    gst_bus_add_watch(bus, deviceMonitor, NULL);
-    gst_object_unref(bus);
-
-    gst_device_monitor_start(monitor);
-
-        auto devices = gst_device_monitor_get_devices(monitor);
-
-        while (devices) {
-            GstDevice *device = static_cast<GstDevice *>(devices->data);
-            addDevice(device);
-            gst_object_unref(device);
-            devices = g_list_delete_link(devices, devices);
-        }
-}
-
-
 void QGstUtils::initializeGst()
 {
     static bool initialized = false;
     if (!initialized) {
         initialized = true;
         gst_init(nullptr, nullptr);
-        setupDeviceMonitor();
     }
 }
 
@@ -487,16 +407,6 @@ QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
         return QMultimedia::NotSupported;
 
     return QMultimedia::MaybeSupported;
-}
-
-const QSet<GstDevice *> &QGstUtils::audioSources()
-{
-    return m_audioSources;
-}
-
-const QSet<GstDevice *> &QGstUtils::audioSinks()
-{
-    return m_audioSinks;
 }
 
 QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory))

@@ -93,9 +93,6 @@ namespace QGstUtils {
                                              const QStringList &codecs,
                                              const QSet<QString> &supportedMimeTypeSet);
 
-    Q_MULTIMEDIA_EXPORT const QSet<GstDevice *> &audioSources();
-    Q_MULTIMEDIA_EXPORT const QSet<GstDevice *> &audioSinks();
-
     Q_MULTIMEDIA_EXPORT QSet<QString> supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory));
 
     Q_MULTIMEDIA_EXPORT QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
