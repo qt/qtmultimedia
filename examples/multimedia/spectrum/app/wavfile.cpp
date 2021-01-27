@@ -145,7 +145,6 @@ bool WavFile::readHeader()
 
             int bps = qFromLittleEndian<quint16>(header.wave.bitsPerSample);
             m_fileFormat.setChannelCount(qFromLittleEndian<quint16>(header.wave.numChannels));
-            m_fileFormat.setCodec("audio/x-raw");
             m_fileFormat.setSampleRate(qFromLittleEndian<quint32>(header.wave.sampleRate));
             m_fileFormat.setSampleSize(qFromLittleEndian<quint16>(header.wave.bitsPerSample));
             m_fileFormat.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);

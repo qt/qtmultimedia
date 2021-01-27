@@ -289,30 +289,6 @@ int QAudioFormat::sampleSize() const
 }
 
 /*!
-   Sets the codec to \a codec.
-
-   The parameter to this function should be one of the types
-   reported by the QAudioDeviceInfo::supportedCodecs() function
-   for the audio device you are working with.
-
-   \sa QAudioDeviceInfo::supportedCodecs()
-*/
-void QAudioFormat::setCodec(const QString &codec)
-{
-    d->codec = codec;
-}
-
-/*!
-    Returns the current codec identifier.
-
-   \sa QAudioDeviceInfo::supportedCodecs()
-*/
-QString QAudioFormat::codec() const
-{
-    return d->codec;
-}
-
-/*!
    Sets the byteOrder to \a byteOrder.
 */
 void QAudioFormat::setByteOrder(QAudioFormat::Endian byteOrder)
@@ -505,8 +481,7 @@ QDebug operator<<(QDebug dbg, const QAudioFormat &f)
     dbg.nospace();
     dbg << "QAudioFormat(" << f.sampleRate() << "Hz, "
         << f.sampleSize() << "bit, channelCount=" << f.channelCount()
-        << ", sampleType=" << f.sampleType() << ", byteOrder=" << f.byteOrder()
-        << ", codec=" << f.codec() << ')';
+        << ", sampleType=" << f.sampleType() << ", byteOrder=" << f.byteOrder();
 
     return dbg;
 }

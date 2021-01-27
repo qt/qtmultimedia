@@ -47,7 +47,6 @@ private slots:
     void initTestCase();
     void checkAvailableDefaultInput();
     void checkAvailableDefaultOutput();
-    void codecs();
     void channels();
     void sampleSizes();
     void byteOrders();
@@ -98,12 +97,6 @@ void tst_QAudioDeviceInfo::checkAvailableDefaultOutput()
     }
 }
 
-void tst_QAudioDeviceInfo::codecs()
-{
-    QStringList avail = device->supportedCodecs();
-    QVERIFY(avail.size() > 0);
-}
-
 void tst_QAudioDeviceInfo::channels()
 {
     QList<int> avail = device->supportedChannelCounts();
@@ -142,7 +135,6 @@ void tst_QAudioDeviceInfo::isFormatSupported()
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleSize(16);
-    format.setCodec("audio/x-raw");
 
     // Should always be true for these format
     QVERIFY(device->isFormatSupported(format));
@@ -171,7 +163,6 @@ void tst_QAudioDeviceInfo::nearest()
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleSize(16);
-    format.setCodec("audio/x-raw");
 
     QAudioFormat format2 = device->nearestFormat(format);
 

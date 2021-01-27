@@ -104,7 +104,6 @@ AudioTest::AudioTest(QWidget *parent)
     connect(deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
     connect(sampleRateBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleRateChanged);
     connect(channelsBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::channelChanged);
-    connect(codecsBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::codecChanged);
     connect(sampleSizesBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleSizeChanged);
     connect(sampleTypesBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleTypeChanged);
     connect(endianBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::endianChanged);
@@ -128,7 +127,6 @@ void AudioTest::test()
             testResult->setText(tr("Success"));
             nearestSampleRate->setText("");
             nearestChannel->setText("");
-            nearestCodec->setText("");
             nearestSampleSize->setText("");
             nearestSampleType->setText("");
             nearestEndian->setText("");
@@ -137,7 +135,6 @@ void AudioTest::test()
             testResult->setText(tr("Failed"));
             nearestSampleRate->setText(QString("%1").arg(nearest.sampleRate()));
             nearestChannel->setText(QString("%1").arg(nearest.channelCount()));
-            nearestCodec->setText(nearest.codec());
             nearestSampleSize->setText(QString("%1").arg(nearest.sampleSize()));
             nearestSampleType->setText(toString(nearest.sampleType()));
             nearestEndian->setText(toString(nearest.byteOrder()));
@@ -190,15 +187,6 @@ void AudioTest::deviceChanged(int idx)
     if (chz.size())
         m_settings.setChannelCount(chz.at(0));
 
-    codecsBox->clear();
-    const QStringList codecs = m_deviceInfo.supportedCodecs();
-    for (int i = 0; i < codecs.size(); ++i)
-        codecsBox->addItem(QString("%1").arg(codecs.at(i)));
-    if (codecs.size())
-        m_settings.setCodec(codecs.at(0));
-    // Add false to create failed condition!
-    codecsBox->addItem("audio/test");
-
     sampleSizesBox->clear();
     const QList<int> sampleSizez = m_deviceInfo.supportedSampleSizes();
     for (int i = 0; i < sampleSizez.size(); ++i)
@@ -228,41 +216,35 @@ void AudioTest::populateTable()
     int row = 0;
 
     QAudioFormat format;
-    for (auto codec: m_deviceInfo.supportedCodecs()) {
-        format.setCodec(codec);
-        for (auto sampleRate: m_deviceInfo.supportedSampleRates()) {
-            format.setSampleRate(sampleRate);
-            for (auto channels: m_deviceInfo.supportedChannelCounts()) {
-                format.setChannelCount(channels);
-                for (auto sampleType: m_deviceInfo.supportedSampleTypes()) {
-                    format.setSampleType(sampleType);
-                    for (auto sampleSize: m_deviceInfo.supportedSampleSizes()) {
-                        format.setSampleSize(sampleSize);
-                        for (auto endian: m_deviceInfo.supportedByteOrders()) {
-                            format.setByteOrder(endian);
-                            if (m_deviceInfo.isFormatSupported(format)) {
-                                allFormatsTable->setRowCount(row + 1);
+    for (auto sampleRate: m_deviceInfo.supportedSampleRates()) {
+        format.setSampleRate(sampleRate);
+        for (auto channels: m_deviceInfo.supportedChannelCounts()) {
+            format.setChannelCount(channels);
+            for (auto sampleType: m_deviceInfo.supportedSampleTypes()) {
+                format.setSampleType(sampleType);
+                for (auto sampleSize: m_deviceInfo.supportedSampleSizes()) {
+                    format.setSampleSize(sampleSize);
+                    for (auto endian: m_deviceInfo.supportedByteOrders()) {
+                        format.setByteOrder(endian);
+                        if (m_deviceInfo.isFormatSupported(format)) {
+                            allFormatsTable->setRowCount(row + 1);
 
-                                QTableWidgetItem *codecItem = new QTableWidgetItem(format.codec());
-                                allFormatsTable->setItem(row, 0, codecItem);
+                            QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1").arg(format.sampleRate()));
+                            allFormatsTable->setItem(row, 0, sampleRateItem);
 
-                                QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1").arg(format.sampleRate()));
-                                allFormatsTable->setItem(row, 1, sampleRateItem);
+                            QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1").arg(format.channelCount()));
+                            allFormatsTable->setItem(row, 1, channelsItem);
 
-                                QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1").arg(format.channelCount()));
-                                allFormatsTable->setItem(row, 2, channelsItem);
+                            QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(format.sampleType()));
+                            allFormatsTable->setItem(row, 2, sampleTypeItem);
 
-                                QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(format.sampleType()));
-                                allFormatsTable->setItem(row, 3, sampleTypeItem);
+                            QTableWidgetItem *sampleSizeItem = new QTableWidgetItem(QString("%1").arg(format.sampleSize()));
+                            allFormatsTable->setItem(row, 3, sampleSizeItem);
 
-                                QTableWidgetItem *sampleSizeItem = new QTableWidgetItem(QString("%1").arg(format.sampleSize()));
-                                allFormatsTable->setItem(row, 4, sampleSizeItem);
+                            QTableWidgetItem *byteOrderItem = new QTableWidgetItem(toString(format.byteOrder()));
+                            allFormatsTable->setItem(row, 4, byteOrderItem);
 
-                                QTableWidgetItem *byteOrderItem = new QTableWidgetItem(toString(format.byteOrder()));
-                                allFormatsTable->setItem(row, 5, byteOrderItem);
-
-                                ++row;
-                            }
+                            ++row;
                         }
                     }
                 }
@@ -280,11 +262,6 @@ void AudioTest::sampleRateChanged(int idx)
 void AudioTest::channelChanged(int idx)
 {
     m_settings.setChannelCount(channelsBox->itemText(idx).toInt());
-}
-
-void AudioTest::codecChanged(int idx)
-{
-    m_settings.setCodec(codecsBox->itemText(idx));
 }
 
 void AudioTest::sampleSizeChanged(int idx)

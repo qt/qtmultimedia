@@ -208,7 +208,6 @@ void AudioTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
     format.setSampleRate(44100);
     format.setChannelCount(1);
     format.setSampleSize(16);
-    format.setCodec("audio/x-raw");
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::SignedInt);
 

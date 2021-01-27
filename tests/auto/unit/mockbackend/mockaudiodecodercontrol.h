@@ -57,7 +57,6 @@ public:
         mFormat.setChannelCount(1);
         mFormat.setSampleSize(8);
         mFormat.setSampleRate(1000);
-        mFormat.setCodec("audio/x-raw");
         mFormat.setSampleType(QAudioFormat::UnSignedInt);
     }
 

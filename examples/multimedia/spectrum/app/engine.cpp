@@ -582,7 +582,6 @@ bool Engine::selectFormat()
 
         QAudioFormat format;
         format.setByteOrder(QAudioFormat::LittleEndian);
-        format.setCodec("audio/x-raw");
         format.setSampleSize(16);
         format.setSampleType(QAudioFormat::SignedInt);
         for (int sampleRate : qAsConst(sampleRatesList)) {

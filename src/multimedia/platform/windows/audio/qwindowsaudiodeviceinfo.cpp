@@ -96,11 +96,6 @@ QAudioFormat QWindowsAudioDeviceInfo::preferredFormat() const
     return nearest;
 }
 
-QStringList QWindowsAudioDeviceInfo::supportedCodecs() const
-{
-    return QStringList() << QStringLiteral("audio/x-raw");
-}
-
 QList<int> QWindowsAudioDeviceInfo::supportedSampleRates() const
 {
     return sampleRatez;

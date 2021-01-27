@@ -57,33 +57,18 @@ QnxAudioDeviceInfo::~QnxAudioDeviceInfo()
 QAudioFormat QnxAudioDeviceInfo::preferredFormat() const
 {
     QAudioFormat format;
-    if (mode == QAudio::AudioOutput) {
-        format.setSampleRate(44100);
-        format.setChannelCount(2);
-        format.setByteOrder(QAudioFormat::LittleEndian);
-        format.setSampleType(QAudioFormat::SignedInt);
-        format.setSampleSize(16);
-        format.setCodec(QLatin1String("audio/x-raw"));
-    } else {
-        format.setSampleRate(8000);
+    format.setSampleRate(44100);
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::SignedInt);
+    format.setSampleSize(16);
+    format.setChannelCount(2);
+    if(mode == QAudio::AudioInput && !isFormatSupported(format))
         format.setChannelCount(1);
-        format.setSampleType(QAudioFormat::UnSignedInt);
-        format.setSampleSize(8);
-        format.setCodec(QLatin1String("audio/x-raw"));
-        if (!isFormatSupported(format)) {
-            format.setChannelCount(2);
-            format.setSampleSize(16);
-            format.setSampleType(QAudioFormat::SignedInt);
-        }
-    }
     return format;
 }
 
 bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
-    if (!format.codec().startsWith(QLatin1String("audio/x-raw")))
-        return false;
-
     const int pcmMode = (mode == QAudio::AudioOutput) ? SND_PCM_OPEN_PLAYBACK : SND_PCM_OPEN_CAPTURE;
     snd_pcm_t *handle;
 
@@ -107,11 +92,6 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     snd_pcm_close(handle);
 
     return errorCode == 0;
-}
-
-QStringList QnxAudioDeviceInfo::supportedCodecs() const
-{
-    return QStringList() << QLatin1String("audio/x-raw");
 }
 
 QList<int> QnxAudioDeviceInfo::supportedSampleRates() const

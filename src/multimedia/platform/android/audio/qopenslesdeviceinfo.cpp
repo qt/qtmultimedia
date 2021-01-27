@@ -52,8 +52,7 @@ QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode 
 bool QOpenSLESDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
     QOpenSLESDeviceInfo *that = const_cast<QOpenSLESDeviceInfo*>(this);
-    return that->supportedCodecs().contains(format.codec())
-            && that->supportedSampleRates().contains(format.sampleRate())
+    return that->supportedSampleRates().contains(format.sampleRate())
             && that->supportedChannelCounts().contains(format.channelCount())
             && that->supportedSampleSizes().contains(format.sampleSize())
             && that->supportedByteOrders().contains(format.byteOrder())
@@ -63,7 +62,6 @@ bool QOpenSLESDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 QAudioFormat QOpenSLESDeviceInfo::preferredFormat() const
 {
     QAudioFormat format;
-    format.setCodec(QStringLiteral("audio/x-raw"));
     format.setSampleSize(16);
     format.setSampleType(QAudioFormat::SignedInt);
     format.setSampleRate(QOpenSLESEngine::getOutputValue(QOpenSLESEngine::SampleRate, 48000));
@@ -74,11 +72,6 @@ QAudioFormat QOpenSLESDeviceInfo::preferredFormat() const
 QString QOpenSLESDeviceInfo::deviceName() const
 {
     return id;
-}
-
-QStringList QOpenSLESDeviceInfo::supportedCodecs() const
-{
-    return QStringList() << QStringLiteral("audio/x-raw");
 }
 
 QList<int> QOpenSLESDeviceInfo::supportedSampleRates() const

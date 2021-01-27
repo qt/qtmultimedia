@@ -139,7 +139,6 @@ void tst_QAudioDecoderBackend::fileTest()
     QCOMPARE(buffer.format().sampleRate(), 44100);
     QCOMPARE(buffer.format().sampleSize(), 16);
     QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
-    QCOMPARE(buffer.format().codec(), QString("audio/x-raw"));
     QCOMPARE(buffer.byteCount(), buffer.sampleCount() * 2); // 16bit mono
 
     // The decoder should still have no format set
@@ -197,7 +196,6 @@ void tst_QAudioDecoderBackend::fileTest()
     format.setChannelCount(2);
     format.setSampleSize(8);
     format.setSampleRate(11050);
-    format.setCodec("audio/x-raw");
     format.setSampleType(QAudioFormat::SignedInt);
 
     d.setAudioFormat(format);
@@ -481,7 +479,6 @@ void tst_QAudioDecoderBackend::deviceTest()
     QCOMPARE(buffer.format().sampleRate(), 44100);
     QCOMPARE(buffer.format().sampleSize(), 16);
     QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
-    QCOMPARE(buffer.format().codec(), QString("audio/x-raw"));
 
     QVERIFY(errorSpy.isEmpty());
 
@@ -532,7 +529,6 @@ void tst_QAudioDecoderBackend::deviceTest()
     format.setChannelCount(2);
     format.setSampleSize(8);
     format.setSampleRate(8000);
-    format.setCodec("audio/x-raw");
     format.setSampleType(QAudioFormat::SignedInt);
 
     d.setAudioFormat(format);

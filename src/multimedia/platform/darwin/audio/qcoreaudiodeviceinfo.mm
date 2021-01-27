@@ -104,16 +104,10 @@ QAudioFormat QCoreAudioDeviceInfo::preferredFormat() const
     }
 #else //iOS
     format.setSampleSize(16);
-    if (mode == QAudio::AudioInput) {
-        format.setChannelCount(1);
-        format.setSampleRate(8000);
-    } else {
-        format.setChannelCount(2);
-        format.setSampleRate(44100);
-    }
-    format.setCodec(QString::fromLatin1("audio/x-raw"));
+    format.setSampleRate(44100);
     format.setByteOrder(QAudioFormat::LittleEndian);
     format.setSampleType(QAudioFormat::SignedInt);
+    format.setChannelCount(mode == QAudio::AudioInput ? 1 : 2);
 #endif
 
     return format;
@@ -127,7 +121,6 @@ bool QCoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     //Sample rates are more of a suggestion with CoreAudio so as long as we get a
     //sane value then we can likely use it.
     return format.isValid()
-            && format.codec() == QString::fromLatin1("audio/x-raw")
             && format.sampleRate() > 0
             && self->supportedChannelCounts().contains(format.channelCount())
             && self->supportedSampleSizes().contains(format.sampleSize());
@@ -157,13 +150,6 @@ QString QCoreAudioDeviceInfo::description() const
     return QString::fromUtf8(m_device);
 #endif
 }
-
-
-QStringList QCoreAudioDeviceInfo::supportedCodecs() const
-{
-    return QStringList() << QString::fromLatin1("audio/x-raw");
-}
-
 
 QList<int> QCoreAudioDeviceInfo::supportedSampleRates() const
 {

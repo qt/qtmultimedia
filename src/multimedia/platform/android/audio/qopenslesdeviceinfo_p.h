@@ -68,7 +68,6 @@ public:
     bool isFormatSupported(const QAudioFormat &format) const;
     QString deviceName() const;
     QString description() const { return deviceName(); }
-    QStringList supportedCodecs() const;
     QList<int> supportedSampleRates() const;
     QList<int> supportedChannelCounts() const;
     QList<int> supportedSampleSizes() const;

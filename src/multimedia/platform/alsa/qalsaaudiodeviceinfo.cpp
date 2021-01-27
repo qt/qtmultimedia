@@ -78,32 +78,14 @@ bool QAlsaAudioDeviceInfo::isFormatSupported(const QAudioFormat& format) const
 QAudioFormat QAlsaAudioDeviceInfo::preferredFormat() const
 {
     QAudioFormat nearest;
-    if(mode == QAudio::AudioOutput) {
-        nearest.setSampleRate(44100);
-        nearest.setChannelCount(2);
-        nearest.setByteOrder(QAudioFormat::LittleEndian);
-        nearest.setSampleType(QAudioFormat::SignedInt);
-        nearest.setSampleSize(16);
-        nearest.setCodec(QLatin1String("audio/x-raw"));
-    } else {
-        nearest.setSampleRate(8000);
+    nearest.setSampleRate(44100);
+    nearest.setByteOrder(QAudioFormat::LittleEndian);
+    nearest.setSampleType(QAudioFormat::SignedInt);
+    nearest.setSampleSize(16);
+    nearest.setChannelCount(2);
+    if(mode == QAudio::AudioInput && !testSettings(nearest))
         nearest.setChannelCount(1);
-        nearest.setSampleType(QAudioFormat::UnSignedInt);
-        nearest.setSampleSize(8);
-        nearest.setCodec(QLatin1String("audio/x-raw"));
-        if(!testSettings(nearest)) {
-            nearest.setChannelCount(2);
-            nearest.setSampleSize(16);
-            nearest.setSampleType(QAudioFormat::SignedInt);
-        }
-    }
     return nearest;
-}
-
-QStringList QAlsaAudioDeviceInfo::supportedCodecs() const
-{
-    updateLists();
-    return codecz;
 }
 
 QList<int> QAlsaAudioDeviceInfo::supportedSampleRates() const
@@ -219,10 +201,6 @@ bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     if (pcmFormat != SND_PCM_FORMAT_UNKNOWN)
         err = snd_pcm_hw_params_set_format(pcmHandle, params, pcmFormat);
 
-    // For now, just accept only audio/x-raw codec
-    if (!format.codec().startsWith(QLatin1String("audio/x-raw")))
-        err = -1;
-
     if (err >= 0 && format.channelCount() != -1) {
         err = snd_pcm_hw_params_test_channels(pcmHandle, params, format.channelCount());
         if (err >= 0)
@@ -254,7 +232,6 @@ void QAlsaAudioDeviceInfo::updateLists() const
     sizez.clear();
     byteOrderz.clear();
     typez.clear();
-    codecz.clear();
 
     if(!handle)
         open();
@@ -279,7 +256,6 @@ void QAlsaAudioDeviceInfo::updateLists() const
     typez.append(QAudioFormat::SignedInt);
     typez.append(QAudioFormat::UnSignedInt);
     typez.append(QAudioFormat::Float);
-    codecz.append(QLatin1String("audio/x-raw"));
     close();
 }
 

@@ -63,7 +63,6 @@ tst_QAudioBuffer::tst_QAudioBuffer()
     mFormat.setSampleSize(16);
     mFormat.setSampleType(QAudioFormat::UnSignedInt);
     mFormat.setSampleRate(10000);
-    mFormat.setCodec("audio/x-raw");
 
     QByteArray b(4000, char(0x80));
     mNull = new QAudioBuffer;
@@ -250,7 +249,6 @@ void tst_QAudioBuffer::durations()
     f.setSampleType(sampleType);
     f.setSampleSize(sampleSize);
     f.setSampleRate(sampleRate);
-    f.setCodec("audio/x-raw");
 
     QAudioBuffer b(frameCount, f);
 

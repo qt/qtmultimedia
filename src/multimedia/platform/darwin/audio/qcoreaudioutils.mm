@@ -75,7 +75,6 @@ QAudioFormat CoreAudioUtils::toQAudioFormat(AudioStreamBasicDescription const& s
     audioFormat.setSampleRate(sf.mSampleRate);
     audioFormat.setChannelCount(sf.mChannelsPerFrame);
     audioFormat.setSampleSize(sf.mBitsPerChannel);
-    audioFormat.setCodec(QString::fromLatin1("audio/x-raw"));
     audioFormat.setByteOrder((sf.mFormatFlags & kAudioFormatFlagIsBigEndian) != 0 ? QAudioFormat::BigEndian : QAudioFormat::LittleEndian);
     QAudioFormat::SampleType type = QAudioFormat::UnSignedInt;
     if ((sf.mFormatFlags & kAudioFormatFlagIsSignedInteger) != 0)

@@ -68,11 +68,6 @@ QString QPulseAudioDeviceInfo::description() const
     return m_description;
 }
 
-QStringList QPulseAudioDeviceInfo::supportedCodecs() const
-{
-    return QStringList() << QString::fromLatin1("audio/x-raw");
-}
-
 QList<int> QPulseAudioDeviceInfo::supportedSampleRates() const
 {
     return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;

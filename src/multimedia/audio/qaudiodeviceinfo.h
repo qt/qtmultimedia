@@ -80,7 +80,6 @@ public:
     QAudioFormat preferredFormat() const;
     QAudioFormat nearestFormat(const QAudioFormat &format) const;
 
-    QStringList supportedCodecs() const;
     QList<int> supportedSampleRates() const;
     QList<int> supportedChannelCounts() const;
     QList<int> supportedSampleSizes() const;

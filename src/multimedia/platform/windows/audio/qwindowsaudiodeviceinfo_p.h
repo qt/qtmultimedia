@@ -81,7 +81,6 @@ public:
     QAudioFormat preferredFormat() const;
     bool isFormatSupported(const QAudioFormat& format) const;
     QString description() const { return m_description; }
-    QStringList supportedCodecs() const;
     QList<int> supportedSampleRates() const;
     QList<int> supportedChannelCounts() const;
     QList<int> supportedSampleSizes() const;

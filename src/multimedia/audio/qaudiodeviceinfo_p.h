@@ -65,7 +65,6 @@ public:
     virtual QAudioFormat preferredFormat() const = 0;
     virtual bool isFormatSupported(const QAudioFormat &format) const = 0;
     virtual QString description() const = 0;
-    virtual QStringList supportedCodecs() const = 0;
     virtual QList<int> supportedSampleRates() const = 0;
     virtual QList<int> supportedChannelCounts() const = 0;
     virtual QList<int> supportedSampleSizes() const = 0;

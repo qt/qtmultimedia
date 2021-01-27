@@ -105,7 +105,7 @@ bool WaveFileWriter::open(const QString& fileName, const QAudioFormat& format)
     if (file.isOpen())
         return false; // file already open
 
-    if (format.codec() != "audio/x-raw" || format.sampleType() != QAudioFormat::SignedInt)
+    if (format.sampleType() != QAudioFormat::SignedInt)
         return false; // data format is not supported
 
     file.setFileName(fileName);

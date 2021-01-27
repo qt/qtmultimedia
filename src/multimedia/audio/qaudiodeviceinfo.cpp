@@ -250,7 +250,6 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
 
     QAudioFormat nearest = settings;
 
-    QList<QString> testCodecs = supportedCodecs();
     QList<int> testChannels = supportedChannelCounts();
     QList<QAudioFormat::Endian> testByteOrders = supportedByteOrders();
     QList<QAudioFormat::SampleType> testSampleTypes;
@@ -260,11 +259,6 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
     QMap<int,int> testSampleSizes;
     QList<int> sampleSizesAvailable = supportedSampleSizes();
 
-    // Get sorted lists for checking
-    if (testCodecs.contains(settings.codec())) {
-        testCodecs.removeAll(settings.codec());
-        testCodecs.insert(0, settings.codec());
-    }
     testChannels.removeAll(settings.channelCount());
     testChannels.insert(0, settings.channelCount());
     testByteOrders.removeAll(settings.byteOrder());
@@ -301,21 +295,18 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
     }
 
     // Try to find nearest
-    for (const QString &codec : qAsConst(testCodecs)) {
-        nearest.setCodec(codec);
-        for (QAudioFormat::Endian order : qAsConst(testByteOrders)) {
-            nearest.setByteOrder(order);
-            for (QAudioFormat::SampleType sample : qAsConst(testSampleTypes)) {
-                nearest.setSampleType(sample);
-                for (int sampleSize : qAsConst(testSampleSizes)) {
-                    nearest.setSampleSize(sampleSize);
-                    for (int channel : qAsConst(testChannels)) {
-                        nearest.setChannelCount(channel);
-                        for (int sampleRate : qAsConst(testSampleRates)) {
-                            nearest.setSampleRate(sampleRate);
-                            if (isFormatSupported(nearest))
-                                return nearest;
-                        }
+    for (QAudioFormat::Endian order : qAsConst(testByteOrders)) {
+        nearest.setByteOrder(order);
+        for (QAudioFormat::SampleType sample : qAsConst(testSampleTypes)) {
+            nearest.setSampleType(sample);
+            for (int sampleSize : qAsConst(testSampleSizes)) {
+                nearest.setSampleSize(sampleSize);
+                for (int channel : qAsConst(testChannels)) {
+                    nearest.setChannelCount(channel);
+                    for (int sampleRate : qAsConst(testSampleRates)) {
+                        nearest.setSampleRate(sampleRate);
+                        if (isFormatSupported(nearest))
+                            return nearest;
                     }
                 }
             }
@@ -323,22 +314,6 @@ QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
     }
     //Fallback
     return preferredFormat();
-}
-
-/*!
-    Returns a list of supported codecs.
-
-    All platform and plugin implementations should provide support for:
-
-    "audio/x-raw" - Linear PCM
-
-    For writing plugins to support additional codecs refer to:
-
-    http://www.iana.org/assignments/media-types/audio/
-*/
-QStringList QAudioDeviceInfo::supportedCodecs() const
-{
-    return isNull() ? QStringList() : d->supportedCodecs();
 }
 
 /*!

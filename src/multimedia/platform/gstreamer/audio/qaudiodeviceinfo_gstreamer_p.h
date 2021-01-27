@@ -72,7 +72,6 @@ public:
     QAudioFormat preferredFormat() const override;
     bool isFormatSupported(const QAudioFormat &format) const override;
     QString description() const override;
-    QStringList supportedCodecs() const override;
     QList<int> supportedSampleRates() const override;
     QList<int> supportedChannelCounts() const override;
     QList<int> supportedSampleSizes() const override;

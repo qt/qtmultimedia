@@ -207,8 +207,6 @@ void tst_QAudioOutput::initTestCase()
 
     QAudioFormat format;
 
-    format.setCodec("audio/x-raw");
-
     if (audioDevice.isFormatSupported(audioDevice.preferredFormat()))
         testFormats.append(audioDevice.preferredFormat());
 
@@ -288,8 +286,6 @@ void tst_QAudioOutput::format()
             QString("sampleRate: requested=%1, actual=%2").arg(requested.sampleRate()).arg(actual.sampleRate()).toLocal8Bit().constData());
     QVERIFY2((requested.sampleSize() == actual.sampleSize()),
             QString("sampleSize: requested=%1, actual=%2").arg(requested.sampleSize()).arg(actual.sampleSize()).toLocal8Bit().constData());
-    QVERIFY2((requested.codec() == actual.codec()),
-            QString("codec: requested=%1, actual=%2").arg(requested.codec()).arg(actual.codec()).toLocal8Bit().constData());
     QVERIFY2((requested.byteOrder() == actual.byteOrder()),
             QString("byteOrder: requested=%1, actual=%2").arg(requested.byteOrder()).arg(actual.byteOrder()).toLocal8Bit().constData());
     QVERIFY2((requested.sampleType() == actual.sampleType()),

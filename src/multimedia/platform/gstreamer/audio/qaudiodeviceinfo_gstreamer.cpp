@@ -86,11 +86,6 @@ QString QGStreamerAudioDeviceInfo::description() const
     return m_description;
 }
 
-QStringList QGStreamerAudioDeviceInfo::supportedCodecs() const
-{
-    return QStringList() << QString::fromLatin1("audio/x-raw");
-}
-
 QList<int> QGStreamerAudioDeviceInfo::supportedSampleRates() const
 {
     return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;

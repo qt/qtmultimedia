@@ -170,27 +170,27 @@ void QWaveDecoder::handleData()
                 // but don't support them at the moment.
                 parsingFailed();
                 return;
-            }                 format.setCodec(QLatin1String("audio/x-raw"));
+            }
 
-                if (bigEndian) {
-                    int bps = qFromBigEndian<quint16>(wave.bitsPerSample);
+            if (bigEndian) {
+                int bps = qFromBigEndian<quint16>(wave.bitsPerSample);
 
-                    format.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
-                    format.setByteOrder(QAudioFormat::BigEndian);
-                    format.setSampleRate(qFromBigEndian<quint32>(wave.sampleRate));
-                    format.setSampleSize(bps);
-                    format.setChannelCount(qFromBigEndian<quint16>(wave.numChannels));
-                } else {
-                    int bps = qFromLittleEndian<quint16>(wave.bitsPerSample);
+                format.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
+                format.setByteOrder(QAudioFormat::BigEndian);
+                format.setSampleRate(qFromBigEndian<quint32>(wave.sampleRate));
+                format.setSampleSize(bps);
+                format.setChannelCount(qFromBigEndian<quint16>(wave.numChannels));
+            } else {
+                int bps = qFromLittleEndian<quint16>(wave.bitsPerSample);
 
-                    format.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
-                    format.setByteOrder(QAudioFormat::LittleEndian);
-                    format.setSampleRate(qFromLittleEndian<quint32>(wave.sampleRate));
-                    format.setSampleSize(bps);
-                    format.setChannelCount(qFromLittleEndian<quint16>(wave.numChannels));
-                }
+                format.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
+                format.setByteOrder(QAudioFormat::LittleEndian);
+                format.setSampleRate(qFromLittleEndian<quint32>(wave.sampleRate));
+                format.setSampleSize(bps);
+                format.setChannelCount(qFromLittleEndian<quint16>(wave.numChannels));
+            }
 
-                state = QWaveDecoder::WaitingForDataState;
+            state = QWaveDecoder::WaitingForDataState;
         }
     }
 

@@ -46,7 +46,6 @@ public:
 private slots:
     void checkNull();
     void checkSampleSize();
-    void checkCodec();
     void checkByteOrder();
     void checkSampleType();
     void checkEquality();
@@ -71,7 +70,6 @@ void tst_QAudioFormat::checkNull()
     audioFormat0.setSampleRate(44100);
     audioFormat0.setChannelCount(2);
     audioFormat0.setSampleSize(16);
-    audioFormat0.setCodec("audio/x-raw");
     audioFormat0.setSampleType(QAudioFormat::SignedInt);
     QVERIFY(audioFormat0.isValid());
 }
@@ -81,13 +79,6 @@ void tst_QAudioFormat::checkSampleSize()
     QAudioFormat audioFormat;
     audioFormat.setSampleSize(16);
     QVERIFY(audioFormat.sampleSize() == 16);
-}
-
-void tst_QAudioFormat::checkCodec()
-{
-    QAudioFormat audioFormat;
-    audioFormat.setCodec(QString::fromLatin1("audio/x-raw"));
-    QVERIFY(audioFormat.codec() == QString::fromLatin1("audio/x-raw"));
 }
 
 void tst_QAudioFormat::checkByteOrder()
@@ -143,14 +134,12 @@ void tst_QAudioFormat::checkEquality()
     audioFormat0.setSampleRate(8000);
     audioFormat0.setChannelCount(1);
     audioFormat0.setSampleSize(8);
-    audioFormat0.setCodec("audio/x-raw");
     audioFormat0.setByteOrder(QAudioFormat::LittleEndian);
     audioFormat0.setSampleType(QAudioFormat::UnSignedInt);
 
     audioFormat1.setSampleRate(8000);
     audioFormat1.setChannelCount(1);
     audioFormat1.setSampleSize(8);
-    audioFormat1.setCodec("audio/x-raw");
     audioFormat1.setByteOrder(QAudioFormat::LittleEndian);
     audioFormat1.setSampleType(QAudioFormat::UnSignedInt);
 
@@ -170,7 +159,6 @@ void tst_QAudioFormat::checkAssignment()
     audioFormat0.setSampleRate(8000);
     audioFormat0.setChannelCount(1);
     audioFormat0.setSampleSize(8);
-    audioFormat0.setCodec("audio/x-raw");
     audioFormat0.setByteOrder(QAudioFormat::LittleEndian);
     audioFormat0.setSampleType(QAudioFormat::UnSignedInt);
 
@@ -255,7 +243,6 @@ void tst_QAudioFormat::checkSizes_data()
     f.setByteOrder(QAudioFormat::LittleEndian);
     f.setChannelCount(1);
     f.setSampleRate(8000);
-    f.setCodec("audio/x-raw");
     f.setSampleSize(8);
     f.setSampleType(QAudioFormat::SignedInt);
 
