@@ -109,11 +109,6 @@ namespace QGstUtils {
 
     Q_MULTIMEDIA_EXPORT GstCaps *videoFilterCaps();
 
-    Q_MULTIMEDIA_EXPORT QSize structureResolution(const GstStructure *s);
-    Q_MULTIMEDIA_EXPORT QVideoFrame::PixelFormat structurePixelFormat(const GstStructure *s);
-    Q_MULTIMEDIA_EXPORT QSize structurePixelAspectRatio(const GstStructure *s);
-    Q_MULTIMEDIA_EXPORT QPair<float, float> structureFrameRateRange(const GstStructure *s);
-
     Q_MULTIMEDIA_EXPORT QString fileExtensionForMimeType(const QString &mimeType);
 
     Q_MULTIMEDIA_EXPORT QVariant fromGStreamerOrientation(const QVariant &value);
@@ -121,6 +116,91 @@ namespace QGstUtils {
 
     Q_MULTIMEDIA_EXPORT bool useOpenGL();
 }
+
+template <typename T> struct QGRange
+{
+    T min;
+    T max;
+};
+
+class QGValue
+{
+public:
+    QGValue(const GValue *v) : value(v) {}
+    const GValue *value;
+
+    bool isNull() const { return !value; }
+
+    std::optional<bool> toBool() const
+    {
+        if (!G_VALUE_HOLDS_BOOLEAN(value))
+            return std::nullopt;
+        return g_value_get_boolean(value);
+    }
+    std::optional<int> toInt() const
+    {
+        if (!G_VALUE_HOLDS_INT(value))
+            return std::nullopt;
+        return g_value_get_int(value);
+    }
+    const char *toString() const
+    {
+        return g_value_get_string(value);
+    }
+    std::optional<float> getFraction() const
+    {
+        if (!GST_VALUE_HOLDS_FRACTION(value))
+            return std::nullopt;
+        return (float)gst_value_get_fraction_numerator(value)/(float)gst_value_get_fraction_denominator(value);
+    }
+
+    std::optional<QGRange<float>> getFractionRange() const
+    {
+        if (!GST_VALUE_HOLDS_FRACTION_RANGE(value))
+            return std::nullopt;
+        QGValue min = gst_value_get_fraction_range_min(value);
+        QGValue max = gst_value_get_fraction_range_max(value);
+        return QGRange<float>{ *min.getFraction(), *max.getFraction() };
+    }
+
+    std::optional<QGRange<int>> getIntRange() const
+    {
+        if (!GST_VALUE_HOLDS_INT_RANGE(value))
+            return std::nullopt;
+        return QGRange<int>{ gst_value_get_int_range_min(value), gst_value_get_int_range_max(value) };
+    }
+
+};
+
+class QGstStructure {
+public:
+    GstStructure *structure;
+    QGstStructure(GstStructure *s) : structure(s) {}
+    void free() { gst_structure_free(structure); structure = nullptr; }
+
+    bool isNull() const { return !structure; }
+
+    QByteArray name() const { return gst_structure_get_name(structure); }
+
+    QGValue operator[](const char *name) const { return gst_structure_get_value(structure, name); }
+
+    Q_MULTIMEDIA_EXPORT QSize resolution() const;
+    Q_MULTIMEDIA_EXPORT QVideoFrame::PixelFormat pixelFormat() const;
+    Q_MULTIMEDIA_EXPORT QSize pixelAspectRatio() const;
+    Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
+
+};
+
+class QGstCaps {
+public:
+    QGstCaps(const GstCaps *c) : caps(c) {}
+    const GstCaps *caps;
+
+    bool isNull() const { return !caps; }
+
+    int size() const { return gst_caps_get_size(caps); }
+    QGstStructure at(int index) { return gst_caps_get_structure(caps, index); }
+};
 
 Q_MULTIMEDIA_EXPORT void qt_gst_object_ref_sink(gpointer object);
 Q_MULTIMEDIA_EXPORT GstCaps *qt_gst_pad_get_current_caps(GstPad *pad);

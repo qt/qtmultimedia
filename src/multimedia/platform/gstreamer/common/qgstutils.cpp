@@ -190,7 +190,7 @@ QSize QGstUtils::capsResolution(const GstCaps *caps)
     if (gst_caps_get_size(caps) == 0)
         return QSize();
 
-    return structureResolution(gst_caps_get_structure(caps, 0));
+    return QGstCaps(caps).at(0).resolution();
 }
 
 /*!
@@ -757,12 +757,14 @@ GstCaps *QGstUtils::videoFilterCaps()
     return gst_caps_make_writable(gst_static_caps_get(&staticCaps));
 }
 
-QSize QGstUtils::structureResolution(const GstStructure *s)
+QSize QGstStructure::resolution() const
 {
     QSize size;
 
     int w, h;
-    if (s && gst_structure_get_int(s, "width", &w) && gst_structure_get_int(s, "height", &h)) {
+    if (structure &&
+        gst_structure_get_int(structure, "width", &w) &&
+        gst_structure_get_int(structure, "height", &h)) {
         size.rwidth() = w;
         size.rheight() = h;
     }
@@ -770,7 +772,7 @@ QSize QGstUtils::structureResolution(const GstStructure *s)
     return size;
 }
 
-QVideoFrame::PixelFormat QGstUtils::structurePixelFormat(const GstStructure *structure)
+QVideoFrame::PixelFormat QGstStructure::pixelFormat() const
 {
     QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
 
@@ -791,13 +793,13 @@ QVideoFrame::PixelFormat QGstUtils::structurePixelFormat(const GstStructure *str
     return pixelFormat;
 }
 
-QSize QGstUtils::structurePixelAspectRatio(const GstStructure *s)
+QSize QGstStructure::pixelAspectRatio() const
 {
     QSize ratio(1, 1);
 
     gint aspectNum = 0;
     gint aspectDenum = 0;
-    if (s && gst_structure_get_fraction(s, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
+    if (structure && gst_structure_get_fraction(structure, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
         if (aspectDenum > 0) {
             ratio.rwidth() = aspectNum;
             ratio.rheight() = aspectDenum;
@@ -807,12 +809,12 @@ QSize QGstUtils::structurePixelAspectRatio(const GstStructure *s)
     return ratio;
 }
 
-QPair<float, float> QGstUtils::structureFrameRateRange(const GstStructure *s)
+QGRange<float> QGstStructure::frameRateRange() const
 {
     float minRate = 0.;
     float maxRate = 0.;
 
-    if (!s)
+    if (!structure)
         return {0.f, 0.f};
 
     auto extractFraction = [] (const GValue *v) -> float {
@@ -836,7 +838,7 @@ QPair<float, float> QGstUtils::structureFrameRateRange(const GstStructure *s)
         }
     };
 
-    const GValue *gstFrameRates = gst_structure_get_value(s, "framerate");
+    const GValue *gstFrameRates = gst_structure_get_value(structure, "framerate");
     if (gstFrameRates) {
         if (GST_VALUE_HOLDS_LIST(gstFrameRates)) {
             guint nFrameRates = gst_value_list_get_size(gstFrameRates);
@@ -847,8 +849,8 @@ QPair<float, float> QGstUtils::structureFrameRateRange(const GstStructure *s)
             extractFrameRate(gstFrameRates);
         }
     } else {
-        const GValue *min = gst_structure_get_value(s, "min-framerate");
-        const GValue *max = gst_structure_get_value(s, "max-framerate");
+        const GValue *min = gst_structure_get_value(structure, "min-framerate");
+        const GValue *max = gst_structure_get_value(structure, "max-framerate");
         if (min && max) {
             minRate = extractFraction(min);
             maxRate = extractFraction(max);

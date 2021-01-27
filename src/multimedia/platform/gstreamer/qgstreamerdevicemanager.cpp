@@ -139,46 +139,44 @@ QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
     QList<QCameraInfo> devices;
 
     for (auto *d : qAsConst(m_videoSources)) {
-        auto *properties = gst_device_get_properties(d);
-        if (properties) {
+        QGstStructure properties = gst_device_get_properties(d);
+        if (!properties.isNull()) {
             QCameraInfoPrivate *info = new QCameraInfoPrivate;
             auto *desc = gst_device_get_display_name(d);
             info->description = QString::fromUtf8(desc);
             g_free(desc);
 
-            auto *name = gst_structure_get_string(properties, "device.path");
-            info->id = name;
-//            info->driver = gst_structure_get_string(properties, "v4l2.device.driver");
-            gboolean def = false;
-            gst_structure_get_boolean(properties, "is-default", &def);
-            info->isDefault = def;
+            info->id = properties["device.path"].toString();
+//            info->driver = properties["v4l2.device.driver"].getString();
+            auto def = properties["is-default"].toBool();
+            info->isDefault = *def;
             if (def)
                 devices.prepend(info->create());
             else
                 devices.append(info->create());
-            gst_structure_free(properties);
-            auto *caps = gst_device_get_caps(d);
-            if (caps) {
+            properties.free();
+            QGstCaps caps = gst_device_get_caps(d);
+            if (!caps.isNull()) {
                 QList<QCameraFormat> formats;
                 QSet<QSize> photoResolutions;
 
-                int size = gst_caps_get_size(caps);
+                int size = caps.size();
                 for (int i = 0; i < size; ++i) {
-                    auto *cap = gst_caps_get_structure(caps, i);
+                    auto cap = caps.at(i);
 
-                    QSize resolution = QGstUtils::structureResolution(cap);
+                    QSize resolution = cap.resolution();
                     if (!resolution.isValid())
                         continue;
 
-                    auto pixelFormat = QGstUtils::structurePixelFormat(cap);
-                    auto frameRate = QGstUtils::structureFrameRateRange(cap);
+                    auto pixelFormat = cap.pixelFormat();
+                    auto frameRate = cap.frameRateRange();
 
                     auto *f = new QCameraFormatPrivate{
                         QSharedData(),
                         pixelFormat,
                         resolution,
-                        frameRate.first,
-                        frameRate.second
+                        frameRate.min,
+                        frameRate.max
                     };
                     formats << f->create();
                     photoResolutions.insert(resolution);
