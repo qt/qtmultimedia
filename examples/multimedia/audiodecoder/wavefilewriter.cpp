@@ -105,7 +105,7 @@ bool WaveFileWriter::open(const QString& fileName, const QAudioFormat& format)
     if (file.isOpen())
         return false; // file already open
 
-    if (format.sampleType() != QAudioFormat::SignedInt)
+    if (format.sampleFormat() != QAudioFormat::Int16)
         return false; // data format is not supported
 
     file.setFileName(fileName);
@@ -145,7 +145,7 @@ bool WaveFileWriter::close()
 bool WaveFileWriter::writeHeader(const QAudioFormat &format)
 {
     // check if format is supported
-    if (format.byteOrder() == QAudioFormat::BigEndian || format.sampleType() != QAudioFormat::SignedInt)
+    if (format.sampleFormat() != QAudioFormat::Int16)
         return false;
 
     CombinedHeader header;
@@ -166,9 +166,9 @@ bool WaveFileWriter::writeHeader(const QAudioFormat &format)
     header.wave.audioFormat = quint16(1);
     header.wave.numChannels = quint16(format.channelCount());
     header.wave.sampleRate = quint32(format.sampleRate());
-    header.wave.byteRate = quint32(format.sampleRate() * format.channelCount() * format.sampleSize() / 8);
-    header.wave.blockAlign = quint16(format.channelCount() * format.sampleSize() / 8);
-    header.wave.bitsPerSample = quint16(format.sampleSize());
+    header.wave.byteRate = quint32(format.sampleRate() * format.channelCount() * format.bytesPerSample());
+    header.wave.blockAlign = quint16(format.channelCount() * format.bytesPerSample());
+    header.wave.bitsPerSample = quint16(format.bytesPerSample() * 8);
 
     // DATA header
     memcpy(header.data.descriptor.id,"data", 4);

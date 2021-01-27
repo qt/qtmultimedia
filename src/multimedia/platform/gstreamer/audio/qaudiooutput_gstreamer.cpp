@@ -286,7 +286,7 @@ int QGStreamerAudioOutput::bytesFree() const
 int QGStreamerAudioOutput::periodSize() const
 {
     // max 5ms periods. Gstreamer itself will ask for 4k data at a time
-    return qMin(4096, 5*m_format.sampleRate()*m_format.sampleSize()*m_format.channelCount()/8/1000);
+    return qMin(4096, 5*m_format.sampleRate()*m_format.bytesPerFrame()/1000);
 }
 
 void QGStreamerAudioOutput::setBufferSize(int value)
@@ -314,7 +314,7 @@ int QGStreamerAudioOutput::notifyInterval() const
 qint64 QGStreamerAudioOutput::processedUSecs() const
 {
     qint64 result = qint64(1000000) * m_totalTimeValue /
-        (m_format.channelCount() * (m_format.sampleSize() / 8)) /
+        m_format.bytesPerFrame() /
         m_format.sampleRate();
 
     return result;

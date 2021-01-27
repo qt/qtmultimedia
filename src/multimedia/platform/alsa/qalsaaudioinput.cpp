@@ -171,60 +171,35 @@ int QAlsaAudioInput::xrun_recovery(int err)
 
 int QAlsaAudioInput::setFormat()
 {
-    snd_pcm_format_t format = SND_PCM_FORMAT_UNKNOWN;
+    snd_pcm_format_t pcmformat = SND_PCM_FORMAT_UNKNOWN;
 
-    if(settings.sampleSize() == 8) {
-        format = SND_PCM_FORMAT_U8;
-    } else if(settings.sampleSize() == 16) {
-        if(settings.sampleType() == QAudioFormat::SignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                format = SND_PCM_FORMAT_S16_LE;
-            else
-                format = SND_PCM_FORMAT_S16_BE;
-        } else if(settings.sampleType() == QAudioFormat::UnSignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                format = SND_PCM_FORMAT_U16_LE;
-            else
-                format = SND_PCM_FORMAT_U16_BE;
-        }
-    } else if(settings.sampleSize() == 24) {
-        if(settings.sampleType() == QAudioFormat::SignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                format = SND_PCM_FORMAT_S24_LE;
-            else
-                format = SND_PCM_FORMAT_S24_BE;
-        } else if(settings.sampleType() == QAudioFormat::UnSignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                format = SND_PCM_FORMAT_U24_LE;
-            else
-                format = SND_PCM_FORMAT_U24_BE;
-        }
-    } else if(settings.sampleSize() == 32) {
-        if(settings.sampleType() == QAudioFormat::SignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                format = SND_PCM_FORMAT_S32_LE;
-            else
-                format = SND_PCM_FORMAT_S32_BE;
-        } else if(settings.sampleType() == QAudioFormat::UnSignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                format = SND_PCM_FORMAT_U32_LE;
-            else
-                format = SND_PCM_FORMAT_U32_BE;
-        } else if(settings.sampleType() == QAudioFormat::Float) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                format = SND_PCM_FORMAT_FLOAT_LE;
-            else
-                format = SND_PCM_FORMAT_FLOAT_BE;
-        }
-    } else if(settings.sampleSize() == 64) {
-        if(settings.byteOrder() == QAudioFormat::LittleEndian)
-            format = SND_PCM_FORMAT_FLOAT64_LE;
+    switch (settings.sampleFormat()) {
+    case QAudioFormat::UInt8:
+        pcmformat = SND_PCM_FORMAT_U8;
+        break;
+    case QAudioFormat::Int16:
+        if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
+            pcmformat = SND_PCM_FORMAT_S16_LE;
         else
-            format = SND_PCM_FORMAT_FLOAT64_BE;
+            pcmformat = SND_PCM_FORMAT_S16_BE;
+        break;
+    case QAudioFormat::Int32:
+        if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
+            pcmformat = SND_PCM_FORMAT_S32_LE;
+        else
+            pcmformat = SND_PCM_FORMAT_S32_BE;
+        break;
+    case QAudioFormat::Float:
+        if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
+            pcmformat = SND_PCM_FORMAT_FLOAT_LE;
+        else
+            pcmformat = SND_PCM_FORMAT_FLOAT_BE;
+    default:
+        break;
     }
 
-    return format != SND_PCM_FORMAT_UNKNOWN
-            ? snd_pcm_hw_params_set_format( handle, hwparams, format)
+    return pcmformat != SND_PCM_FORMAT_UNKNOWN
+            ? snd_pcm_hw_params_set_format( handle, hwparams, pcmformat)
             : -1;
 }
 
@@ -679,7 +654,7 @@ int QAlsaAudioInput::notifyInterval() const
 qint64 QAlsaAudioInput::processedUSecs() const
 {
     qint64 result = qint64(1000000) * totalTimeValue /
-        (settings.channelCount()*(settings.sampleSize()/8)) /
+        settings.bytesPerFrame() /
         settings.sampleRate();
 
     return result;

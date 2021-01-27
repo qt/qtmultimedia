@@ -111,11 +111,11 @@ static QList<QAudioDeviceInfo> devicesFromSet(const QSet<GstDevice *> &deviceSet
             if (strcmp(klass, "monitor")) {
                 auto *name = gst_structure_get_string(properties, "sysfs.path");
                 gboolean def;
-                QAudioDeviceInfo info(new QGStreamerAudioDeviceInfo(name, mode));
+                auto *info = new QGStreamerAudioDeviceInfo(name, mode);
                 if (gst_structure_get_boolean(properties, "is-default", &def) && def)
-                    devices.prepend(info);
+                    devices.prepend(info->create());
                 else
-                    devices.append(info);
+                    devices.append(info->create());
             }
 
             gst_structure_free(properties);

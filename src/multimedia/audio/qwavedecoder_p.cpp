@@ -44,14 +44,41 @@
 
 QT_BEGIN_NAMESPACE
 
-QWaveDecoder::QWaveDecoder(QIODevice *s, QObject *parent):
-    QIODevice(parent),
-    haveFormat(false),
-    dataSize(0),
-    source(s),
-    state(QWaveDecoder::InitialState),
-    junkToSkip(0),
-    bigEndian(false)
+namespace  {
+
+void bswap2(char *data, qsizetype count) noexcept
+{
+    for (qsizetype i = 0; i < count; ++i) {
+        qSwap(data[0], data[1]);
+        ++count;
+        data += 2;
+    }
+}
+
+void bswap3(char *data, qsizetype count) noexcept
+{
+    for (qsizetype i = 0; i < count; ++i) {
+        qSwap(data[0], data[2]);
+        ++count;
+        data += 3;
+    }
+}
+
+void bswap4(char *data, qsizetype count) noexcept
+{
+    for (qsizetype i = 0; i < count; ++i) {
+        qSwap(data[0], data[3]);
+        qSwap(data[1], data[2]);
+        ++count;
+        data += 4;
+    }
+}
+
+}
+
+QWaveDecoder::QWaveDecoder(QIODevice *s, QObject *parent)
+    : QIODevice(parent),
+      source(s)
 {
     open(QIODevice::ReadOnly | QIODevice::Unbuffered);
 
@@ -72,7 +99,7 @@ QAudioFormat QWaveDecoder::audioFormat() const
 
 int QWaveDecoder::duration() const
 {
-    return size() * 1000 / (format.sampleSize() / 8) / format.channelCount() / format.sampleRate();
+    return size() * 1000 / (format.bytesPerFrame() * format.sampleRate());
 }
 
 qint64 QWaveDecoder::size() const
@@ -92,7 +119,28 @@ qint64 QWaveDecoder::bytesAvailable() const
 
 qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
 {
-    return haveFormat ? source->read(data, maxlen) : 0;
+    if (!haveFormat)
+        return 0;
+
+    qint64 nSamples = maxlen / format.bytesPerSample();
+    maxlen = nSamples * format.bytesPerFrame();
+    source->read(data, maxlen);
+
+    if (!byteSwap || format.bytesPerFrame() == 1)
+        return maxlen;
+
+    switch (format.bytesPerSample()) {
+    case 2:
+        bswap2(data, nSamples);
+        break;
+    case 3:
+        bswap3(data, nSamples);
+        break;
+    case 4:
+        bswap4(data, nSamples);
+        break;
+    }
+    return maxlen;
 }
 
 qint64 QWaveDecoder::writeData(const char *data, qint64 len)
@@ -141,6 +189,7 @@ void QWaveDecoder::handleData()
 
         state = QWaveDecoder::WaitingForFormatState;
         bigEndian = (qstrncmp(riff.descriptor.id, "RIFX", 4) == 0);
+        byteSwap = (bigEndian != (QSysInfo::ByteOrder == QSysInfo::BigEndian));
     }
 
     if (state == QWaveDecoder::WaitingForFormatState) {
@@ -172,23 +221,39 @@ void QWaveDecoder::handleData()
                 return;
             }
 
+            int bps;
+            int rate;
+            int channels;
             if (bigEndian) {
-                int bps = qFromBigEndian<quint16>(wave.bitsPerSample);
-
-                format.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
-                format.setByteOrder(QAudioFormat::BigEndian);
-                format.setSampleRate(qFromBigEndian<quint32>(wave.sampleRate));
-                format.setSampleSize(bps);
-                format.setChannelCount(qFromBigEndian<quint16>(wave.numChannels));
+                 bps = qFromBigEndian<quint16>(wave.bitsPerSample);
+                 rate = qFromBigEndian<quint32>(wave.sampleRate);
+                 channels = qFromBigEndian<quint16>(wave.numChannels);
             } else {
-                int bps = qFromLittleEndian<quint16>(wave.bitsPerSample);
-
-                format.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
-                format.setByteOrder(QAudioFormat::LittleEndian);
-                format.setSampleRate(qFromLittleEndian<quint32>(wave.sampleRate));
-                format.setSampleSize(bps);
-                format.setChannelCount(qFromLittleEndian<quint16>(wave.numChannels));
+                bps = qFromLittleEndian<quint16>(wave.bitsPerSample);
+                rate = qFromLittleEndian<quint32>(wave.sampleRate);
+                channels = qFromLittleEndian<quint16>(wave.numChannels);
             }
+
+            QAudioFormat::SampleFormat fmt = QAudioFormat::Unknown;
+            switch(bps) {
+            case 8:
+                fmt = QAudioFormat::UInt8;
+                break;
+            case 16:
+                fmt = QAudioFormat::Int16;
+            case 24:
+                fmt = QAudioFormat::Unknown;
+            case 32:
+                fmt = QAudioFormat::Int32;
+            }
+            if (fmt == QAudioFormat::Unknown || rate == 0 || channels == 0) {
+                parsingFailed();
+                return;
+            }
+
+            format.setSampleFormat(fmt);
+            format.setSampleRate(qFromBigEndian<quint32>(wave.sampleRate));
+            format.setChannelCount(qFromBigEndian<quint16>(wave.numChannels));
 
             state = QWaveDecoder::WaitingForDataState;
         }

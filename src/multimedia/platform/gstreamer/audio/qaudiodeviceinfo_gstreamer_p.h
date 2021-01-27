@@ -69,16 +69,6 @@ public:
     QGStreamerAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
     ~QGStreamerAudioDeviceInfo();
 
-    QAudioFormat preferredFormat() const override;
-    bool isFormatSupported(const QAudioFormat &format) const override;
-    QString description() const override;
-    QList<int> supportedSampleRates() const override;
-    QList<int> supportedChannelCounts() const override;
-    QList<int> supportedSampleSizes() const override;
-    QList<QAudioFormat::Endian> supportedByteOrders() const override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
-
-    QString m_description;
     GstDevice *gstDevice = nullptr;
 };
 

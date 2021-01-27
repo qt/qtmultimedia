@@ -91,12 +91,12 @@ SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &f
     format_pcm.formatType = SL_DATAFORMAT_PCM;
     format_pcm.numChannels = format.channelCount();
     format_pcm.samplesPerSec = format.sampleRate() * 1000;
-    format_pcm.bitsPerSample = format.sampleSize();
-    format_pcm.containerSize = format.sampleSize();
+    format_pcm.bitsPerSample = format.bytesPerSample() * 8;
+    format_pcm.containerSize = format.bytesPerSample() * 8;
     format_pcm.channelMask = (format.channelCount() == 1 ?
                                   SL_SPEAKER_FRONT_CENTER :
                                   SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT);
-    format_pcm.endianness = (format.byteOrder() == QAudioFormat::LittleEndian ?
+    format_pcm.endianness = (QSysInfo::ByteOrder == QSysInfo::LittleEndian ?
                                  SL_BYTEORDER_LITTLEENDIAN :
                                  SL_BYTEORDER_BIGENDIAN);
     return format_pcm;
@@ -108,14 +108,14 @@ QList<QAudioDeviceInfo> QOpenSLESEngine::availableDevices(QAudio::Mode mode)
     QList<QAudioDeviceInfo> devices;
 #ifdef ANDROID
     if (mode == QAudio::AudioInput) {
-        devices << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_MIC, mode))
-                << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_CAMCORDER, mode))
-                << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_RECOGNITION, mode))
-                << QAudioDeviceInfo(new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_COMMUNICATION, mode));
+        devices << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_MIC, mode))->create()
+                << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_CAMCORDER, mode))->create()
+                << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_RECOGNITION, mode))->create()
+                << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_COMMUNICATION, mode))->create();
         return devices;
     }
 #endif
-    devices << QAudioDeviceInfo(new QOpenSLESDeviceInfo("default", mode));
+    devices << (new QOpenSLESDeviceInfo("default", mode))->create();
     return devices;
 }
 
@@ -223,11 +223,11 @@ int QOpenSLESEngine::getDefaultBufferSize(const QAudioFormat &format)
 
     const int audioFormat = [&format]() -> int
     {
-        if (format.sampleType() == QAudioFormat::Float && QtAndroidPrivate::androidSdkVersion() >= 21)
+        if (format.sampleFormat() == QAudioFormat::Float && QtAndroidPrivate::androidSdkVersion() >= 21)
             return 4; /* PCM_FLOAT */
-        else if (format.sampleSize() == 8)
+        else if (format.sampleFormat() == QAudioFormat::UInt8)
             return 3; /* PCM_8BIT */
-        else if (format.sampleSize() == 16)
+        else if (format.sampleFormat() == QAudioFormat::Int16)
             return 2; /* PCM_16BIT*/
         else
             return 1; /* DEFAULT */

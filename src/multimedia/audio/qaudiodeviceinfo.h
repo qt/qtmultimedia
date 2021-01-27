@@ -78,18 +78,21 @@ public:
 
     bool isFormatSupported(const QAudioFormat &format) const;
     QAudioFormat preferredFormat() const;
-    QAudioFormat nearestFormat(const QAudioFormat &format) const;
 
-    QList<int> supportedSampleRates() const;
-    QList<int> supportedChannelCounts() const;
-    QList<int> supportedSampleSizes() const;
-    QList<QAudioFormat::Endian> supportedByteOrders() const;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const;
+    struct Range {
+        int minimum = 0;
+        int maximum = 0;
+    };
 
-    QAudioDeviceInfo(QAudioDeviceInfoPrivate *p);
+    Range supportedSampleRates() const;
+    Range supportedChannelCounts() const;
+    QList<QAudioFormat::SampleFormat> supportedSampleFormats() const;
+
 
     const QAudioDeviceInfoPrivate *handle() const { return d.get(); }
 private:
+    friend class QAudioDeviceInfoPrivate;
+    QAudioDeviceInfo(QAudioDeviceInfoPrivate *p);
     QSharedDataPointer<QAudioDeviceInfoPrivate> d;
 };
 

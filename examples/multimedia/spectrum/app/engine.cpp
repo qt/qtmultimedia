@@ -155,7 +155,7 @@ bool Engine::loadFile(const QString &fileName)
     Q_ASSERT(!fileName.isEmpty());
     m_file = new WavFile(this);
     if (m_file->open(fileName)) {
-        if (isPCMS16LE(m_file->fileFormat())) {
+        if (m_file->fileFormat().sampleFormat() == QAudioFormat::Int16) {
             result = initialize();
         } else {
             emit errorMessage(tr("Audio format not supported"),
@@ -333,7 +333,7 @@ void Engine::audioNotify()
 {
     switch (m_mode) {
     case QAudio::AudioInput: {
-            const qint64 recordPosition = qMin(m_bufferLength, audioLength(m_format, m_audioInput->processedUSecs()));
+            const qint64 recordPosition = qMin(m_bufferLength, m_format.bytesForDuration(m_audioInput->processedUSecs()));
             setRecordPosition(recordPosition);
             const qint64 levelPosition = m_dataLength - m_levelBufferLength;
             if (levelPosition >= 0)
@@ -346,7 +346,7 @@ void Engine::audioNotify()
         }
         break;
     case QAudio::AudioOutput: {
-            const qint64 playPosition = audioLength(m_format, m_audioOutput->processedUSecs());
+            const qint64 playPosition = m_format.bytesForDuration(m_audioOutput->processedUSecs());
             setPlayPosition(qMin(bufferLength(), playPosition));
             const qint64 levelPosition = playPosition - m_levelBufferLength;
             const qint64 spectrumPosition = playPosition - m_spectrumBufferLength;
@@ -359,7 +359,7 @@ void Engine::audioNotify()
                     // Data needs to be read into m_buffer in order to be analysed
                     const qint64 readPos = qMax(qint64(0), qMin(levelPosition, spectrumPosition));
                     const qint64 readEnd = qMin(m_analysisFile->size(), qMax(levelPosition + m_levelBufferLength, spectrumPosition + m_spectrumBufferLength));
-                    const qint64 readLen = readEnd - readPos + audioLength(m_format, WaveformWindowDuration);
+                    const qint64 readLen = readEnd - readPos + m_format.bytesForDuration(WaveformWindowDuration);
                     qDebug() << "Engine::audioNotify [1]"
                              << "analysisFileSize" << m_analysisFile->size()
                              << "readPos" << readPos
@@ -494,7 +494,7 @@ bool Engine::initialize()
                 setRecordPosition(bufferLength());
                 result = true;
             } else {
-                m_bufferLength = audioLength(m_format, BufferDurationUs);
+                m_bufferLength = m_format.bytesForDuration(BufferDurationUs);
                 m_buffer.resize(m_bufferLength);
                 m_buffer.fill(0);
                 emit bufferLengthChanged(bufferLength());
@@ -555,56 +555,24 @@ bool Engine::selectFormat()
         }
     } else {
 
-        QList<int> sampleRatesList;
-    #ifdef Q_OS_WIN
-        // The Windows audio backend does not correctly report format support
-        // (see QTBUG-9100).  Furthermore, although the audio subsystem captures
-        // at 11025Hz, the resulting audio is corrupted.
-        sampleRatesList += 8000;
-    #endif
+        QAudioDeviceInfo::Range sampleRange = m_audioInputDevice.supportedSampleRates();
+        QAudioDeviceInfo::Range outputSampleRange = m_audioOutputDevice.supportedSampleRates();
+        if (sampleRange.minimum < outputSampleRange.minimum)
+            sampleRange.minimum = outputSampleRange.minimum;
+        if (sampleRange.maximum > outputSampleRange.maximum)
+            sampleRange.maximum = outputSampleRange.maximum;
 
-        if (!m_generateTone)
-            sampleRatesList += m_audioInputDevice.supportedSampleRates();
-
-        sampleRatesList += m_audioOutputDevice.supportedSampleRates();
-        std::sort(sampleRatesList.begin(), sampleRatesList.end());
-        const auto uniqueRatesEnd = std::unique(sampleRatesList.begin(), sampleRatesList.end());
-        sampleRatesList.erase(uniqueRatesEnd, sampleRatesList.end());
-        ENGINE_DEBUG << "Engine::initialize frequenciesList" << sampleRatesList;
-
-        QList<int> channelsList;
-        channelsList += m_audioInputDevice.supportedChannelCounts();
-        channelsList += m_audioOutputDevice.supportedChannelCounts();
-        std::sort(channelsList.begin(), channelsList.end());
-        const auto uniqueChannelsEnd = std::unique(channelsList.begin(), channelsList.end());
-        channelsList.erase(uniqueChannelsEnd, channelsList.end());
-        ENGINE_DEBUG << "Engine::initialize channelsList" << channelsList;
+        QAudioDeviceInfo::Range channelRange = m_audioInputDevice.supportedChannelCounts();
+        QAudioDeviceInfo::Range outputChannelRange = m_audioOutputDevice.supportedChannelCounts();
+        if (channelRange.minimum < outputChannelRange.minimum)
+            channelRange.minimum = outputChannelRange.minimum;
+        if (channelRange.maximum > outputChannelRange.maximum)
+            channelRange.maximum = outputChannelRange.maximum;
 
         QAudioFormat format;
-        format.setByteOrder(QAudioFormat::LittleEndian);
-        format.setSampleSize(16);
-        format.setSampleType(QAudioFormat::SignedInt);
-        for (int sampleRate : qAsConst(sampleRatesList)) {
-            if (foundSupportedFormat)
-                break;
-            format.setSampleRate(sampleRate);
-            for (int channels : qAsConst(channelsList)) {
-                format.setChannelCount(channels);
-                const bool inputSupport = m_generateTone ||
-                                          m_audioInputDevice.isFormatSupported(format);
-                const bool outputSupport = m_audioOutputDevice.isFormatSupported(format);
-                ENGINE_DEBUG << "Engine::initialize checking " << format
-                             << "input" << inputSupport
-                             << "output" << outputSupport;
-                if (inputSupport && outputSupport) {
-                    foundSupportedFormat = true;
-                    break;
-                }
-            }
-        }
-
-        if (!foundSupportedFormat)
-            format = QAudioFormat();
+        format.setSampleFormat(QAudioFormat::Int16);
+        format.setSampleRate(qBound(sampleRange.minimum, 48000, sampleRange.maximum));
+        format.setChannelCount(qBound(channelRange.minimum, 2, channelRange.maximum));
 
         setFormat(format);
     }
@@ -728,9 +696,8 @@ void Engine::setFormat(const QAudioFormat &format)
 {
     const bool changed = (format != m_format);
     m_format = format;
-    m_levelBufferLength = audioLength(m_format, LevelWindowUs);
-    m_spectrumBufferLength = SpectrumLengthSamples *
-                            (m_format.sampleSize() / 8) * m_format.channelCount();
+    m_levelBufferLength = m_format.bytesForDuration(LevelWindowUs);
+    m_spectrumBufferLength = SpectrumLengthSamples * format.bytesPerFrame();
     if (changed)
         emit formatChanged(m_format);
 }

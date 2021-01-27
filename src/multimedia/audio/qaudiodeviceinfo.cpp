@@ -53,11 +53,6 @@ static void qRegisterAudioDeviceInfoMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterAudioDeviceInfoMetaTypes)
 
-QAudioDeviceInfoPrivate::QAudioDeviceInfoPrivate(const QByteArray &h, QAudio::Mode m)
-    : id(h), mode(m)
-{
-}
-
 QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate()
 {
 }
@@ -198,7 +193,7 @@ QByteArray QAudioDeviceInfo::id() const
 */
 QString QAudioDeviceInfo::description() const
 {
-    return isNull() ? QString() : d->description();
+    return isNull() ? QString() : d->description;
 }
 
 /*!
@@ -215,7 +210,15 @@ bool QAudioDeviceInfo::isDefault() const
 */
 bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 {
-    return isNull() ? false : d->isFormatSupported(settings);
+    if (isNull())
+        return false;
+    if (settings.sampleRate() < d->supportedSampleRates.minimum || settings.sampleRate() > d->supportedSampleRates.maximum)
+        return false;
+    if (settings.channelCount() < d->supportedChannelCounts.minimum || settings.channelCount() > d->supportedChannelCounts.maximum)
+        return false;
+    if (!d->supportedSampleFormats.contains(settings.sampleFormat()))
+        return false;
+    return true;
 }
 
 /*!
@@ -233,96 +236,16 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 */
 QAudioFormat QAudioDeviceInfo::preferredFormat() const
 {
-    return isNull() ? QAudioFormat() : d->preferredFormat();
-}
-
-/*!
-    Returns the closest QAudioFormat to the supplied \a settings that the system supports.
-
-    These settings are provided by the platform/audio plugin being used.
-
-    They are also dependent on the \l {QAudio}::Mode being used.
-*/
-QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
-{
-    if (isFormatSupported(settings))
-        return settings;
-
-    QAudioFormat nearest = settings;
-
-    QList<int> testChannels = supportedChannelCounts();
-    QList<QAudioFormat::Endian> testByteOrders = supportedByteOrders();
-    QList<QAudioFormat::SampleType> testSampleTypes;
-    QList<QAudioFormat::SampleType> sampleTypesAvailable = supportedSampleTypes();
-    QMap<int,int> testSampleRates;
-    QList<int> sampleRatesAvailable = supportedSampleRates();
-    QMap<int,int> testSampleSizes;
-    QList<int> sampleSizesAvailable = supportedSampleSizes();
-
-    testChannels.removeAll(settings.channelCount());
-    testChannels.insert(0, settings.channelCount());
-    testByteOrders.removeAll(settings.byteOrder());
-    testByteOrders.insert(0, settings.byteOrder());
-
-    if (sampleTypesAvailable.contains(settings.sampleType()))
-        testSampleTypes.append(settings.sampleType());
-    if (sampleTypesAvailable.contains(QAudioFormat::SignedInt))
-        testSampleTypes.append(QAudioFormat::SignedInt);
-    if (sampleTypesAvailable.contains(QAudioFormat::UnSignedInt))
-        testSampleTypes.append(QAudioFormat::UnSignedInt);
-    if (sampleTypesAvailable.contains(QAudioFormat::Float))
-        testSampleTypes.append(QAudioFormat::Float);
-
-    if (sampleSizesAvailable.contains(settings.sampleSize()))
-        testSampleSizes.insert(0,settings.sampleSize());
-    sampleSizesAvailable.removeAll(settings.sampleSize());
-    for (int size : qAsConst(sampleSizesAvailable)) {
-        int larger  = (size > settings.sampleSize()) ? size : settings.sampleSize();
-        int smaller = (size > settings.sampleSize()) ? settings.sampleSize() : size;
-        bool isMultiple = ( 0 == (larger % smaller));
-        int diff = larger - smaller;
-        testSampleSizes.insert((isMultiple ? diff : diff+100000), size);
-    }
-    if (sampleRatesAvailable.contains(settings.sampleRate()))
-        testSampleRates.insert(0,settings.sampleRate());
-    sampleRatesAvailable.removeAll(settings.sampleRate());
-    for (int sampleRate : qAsConst(sampleRatesAvailable)) {
-        int larger  = (sampleRate > settings.sampleRate()) ? sampleRate : settings.sampleRate();
-        int smaller = (sampleRate > settings.sampleRate()) ? settings.sampleRate() : sampleRate;
-        bool isMultiple = ( 0 == (larger % smaller));
-        int diff = larger - smaller;
-        testSampleRates.insert((isMultiple ? diff : diff+100000), sampleRate);
-    }
-
-    // Try to find nearest
-    for (QAudioFormat::Endian order : qAsConst(testByteOrders)) {
-        nearest.setByteOrder(order);
-        for (QAudioFormat::SampleType sample : qAsConst(testSampleTypes)) {
-            nearest.setSampleType(sample);
-            for (int sampleSize : qAsConst(testSampleSizes)) {
-                nearest.setSampleSize(sampleSize);
-                for (int channel : qAsConst(testChannels)) {
-                    nearest.setChannelCount(channel);
-                    for (int sampleRate : qAsConst(testSampleRates)) {
-                        nearest.setSampleRate(sampleRate);
-                        if (isFormatSupported(nearest))
-                            return nearest;
-                    }
-                }
-            }
-        }
-    }
-    //Fallback
-    return preferredFormat();
+    return isNull() ? QAudioFormat() : d->preferredFormat;
 }
 
 /*!
     Returns a list of supported sample rates (in Hertz).
 
 */
-QList<int> QAudioDeviceInfo::supportedSampleRates() const
+QAudioDeviceInfo::Range QAudioDeviceInfo::supportedSampleRates() const
 {
-    return isNull() ? QList<int>() : d->supportedSampleRates();
+    return isNull() ? Range{0, 0} : d->supportedSampleRates;
 }
 
 /*!
@@ -331,36 +254,17 @@ QList<int> QAudioDeviceInfo::supportedSampleRates() const
     This is typically 1 for mono sound, or 2 for stereo sound.
 
 */
-QList<int> QAudioDeviceInfo::supportedChannelCounts() const
+QAudioDeviceInfo::Range QAudioDeviceInfo::supportedChannelCounts() const
 {
-    return isNull() ? QList<int>() : d->supportedChannelCounts();
-}
-
-/*!
-    Returns a list of supported sample sizes (in bits).
-
-    Typically this will include 8 and 16 bit sample sizes.
-
-*/
-QList<int> QAudioDeviceInfo::supportedSampleSizes() const
-{
-    return isNull() ? QList<int>() : d->supportedSampleSizes();
-}
-
-/*!
-    Returns a list of supported byte orders.
-*/
-QList<QAudioFormat::Endian> QAudioDeviceInfo::supportedByteOrders() const
-{
-    return isNull() ? QList<QAudioFormat::Endian>() : d->supportedByteOrders();
+    return isNull() ? Range{0, 0} : d->supportedChannelCounts;
 }
 
 /*!
     Returns a list of supported sample types.
 */
-QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
+QList<QAudioFormat::SampleFormat> QAudioDeviceInfo::supportedSampleFormats() const
 {
-    return isNull() ? QList<QAudioFormat::SampleType>() : d->supportedSampleTypes();
+    return isNull() ? QList<QAudioFormat::SampleFormat>() : d->supportedSampleFormats;
 }
 
 QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfoPrivate *p)

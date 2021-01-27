@@ -56,10 +56,15 @@ QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &d
     : QAudioDeviceInfoPrivate(device, mode),
       m_deviceId(id)
 {
+    preferredFormat = determinePreferredFormat();
+    description = getDescription();
+    supportedSampleRates = { 1, 96000 };
+    supportedChannelCounts = { 1, 16 };
+    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
 }
 
 
-QAudioFormat QCoreAudioDeviceInfo::preferredFormat() const
+QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
 {
     QAudioFormat format;
 
@@ -102,32 +107,19 @@ QAudioFormat QCoreAudioDeviceInfo::preferredFormat() const
             delete[] streams;
         }
     }
-#else //iOS
-    format.setSampleSize(16);
-    format.setSampleRate(44100);
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setChannelCount(mode == QAudio::AudioInput ? 1 : 2);
+    if (!format.isValid())
 #endif
+    {
+        format.setSampleRate(44100);
+        format.setSampleFormat(QAudioFormat::Int16);
+        format.setChannelCount(mode == QAudio::AudioInput ? 1 : 2);
+    }
 
     return format;
 }
 
 
-bool QCoreAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
-{
-    QCoreAudioDeviceInfo *self = const_cast<QCoreAudioDeviceInfo*>(this);
-
-    //Sample rates are more of a suggestion with CoreAudio so as long as we get a
-    //sane value then we can likely use it.
-    return format.isValid()
-            && format.sampleRate() > 0
-            && self->supportedChannelCounts().contains(format.channelCount())
-            && self->supportedSampleSizes().contains(format.sampleSize());
-}
-
-
-QString QCoreAudioDeviceInfo::description() const
+QString QCoreAudioDeviceInfo::getDescription() const
 {
 #ifdef Q_OS_MACOS
     CFStringRef name;
@@ -149,74 +141,6 @@ QString QCoreAudioDeviceInfo::description() const
 #else
     return QString::fromUtf8(m_device);
 #endif
-}
-
-QList<int> QCoreAudioDeviceInfo::supportedSampleRates() const
-{
-    QSet<int> sampleRates;
-
-#if defined(Q_OS_OSX)
-    UInt32  propSize = 0;
-    AudioObjectPropertyScope scope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
-    AudioObjectPropertyAddress availableNominalSampleRatesAddress = { kAudioDevicePropertyAvailableNominalSampleRates,
-                                                                      scope,
-                                                                      kAudioObjectPropertyElementMaster };
-
-    if (AudioObjectGetPropertyDataSize(m_deviceId, &availableNominalSampleRatesAddress, 0, NULL, &propSize) == noErr) {
-        const int pc = propSize / sizeof(AudioValueRange);
-
-        if (pc > 0) {
-            AudioValueRange* vr = new AudioValueRange[pc];
-
-            if (AudioObjectGetPropertyData(m_deviceId, &availableNominalSampleRatesAddress, 0, NULL, &propSize, vr) == noErr) {
-                for (int i = 0; i < pc; ++i) {
-                    sampleRates << vr[i].mMinimum << vr[i].mMaximum;
-                }
-            }
-
-            delete[] vr;
-        }
-    }
-#else //iOS
-    //iOS doesn't have a way to query available sample rates
-    //instead we provide reasonable targets
-    //It may be necessary have CoreAudioSessionManger test combinations
-    //with available hardware
-    sampleRates << 8000 << 11025 << 22050 << 44100 << 48000;
-#endif
-    return sampleRates.values();
-}
-
-
-QList<int> QCoreAudioDeviceInfo::supportedChannelCounts() const
-{
-    static QList<int> supportedChannels;
-
-    if (supportedChannels.isEmpty()) {
-        // If the number of channels is not supported by an audio device, Core Audio will
-        // automatically convert the audio data.
-        for (int i = 1; i <= 16; ++i)
-            supportedChannels.append(i);
-    }
-
-    return supportedChannels;
-}
-
-
-QList<int> QCoreAudioDeviceInfo::supportedSampleSizes() const
-{
-    return QList<int>() << 8 << 16 << 24 << 32 << 64;
-}
-
-
-QList<QAudioFormat::Endian> QCoreAudioDeviceInfo::supportedByteOrders() const
-{
-    return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian << QAudioFormat::BigEndian;
-}
-
-QList<QAudioFormat::SampleType> QCoreAudioDeviceInfo::supportedSampleTypes() const
-{
-    return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }
 
 QT_END_NAMESPACE

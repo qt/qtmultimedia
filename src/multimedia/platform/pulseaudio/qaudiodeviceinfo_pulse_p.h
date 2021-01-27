@@ -67,17 +67,6 @@ class QPulseAudioDeviceInfo : public QAudioDeviceInfoPrivate
 public:
     QPulseAudioDeviceInfo(const char *device, const char *description, bool isDefault, QAudio::Mode mode);
     ~QPulseAudioDeviceInfo() {}
-
-    QAudioFormat preferredFormat() const override;
-    bool isFormatSupported(const QAudioFormat &format) const override;
-    QString description() const override;
-    QList<int> supportedSampleRates() const override;
-    QList<int> supportedChannelCounts() const override;
-    QList<int> supportedSampleSizes() const override;
-    QList<QAudioFormat::Endian> supportedByteOrders() const override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
-
-    QString m_description;
 };
 
 QT_END_NAMESPACE

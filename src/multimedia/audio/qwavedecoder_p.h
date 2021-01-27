@@ -119,13 +119,14 @@ private:
         quint16     bitsPerSample;
     };
 
-    bool haveFormat;
-    qint64 dataSize;
+    bool haveFormat = false;
+    qint64 dataSize = 0;
     QAudioFormat format;
-    QIODevice *source;
-    State state;
-    quint32 junkToSkip;
-    bool bigEndian;
+    QIODevice *source = nullptr;
+    State state = InitialState;
+    quint32 junkToSkip = 0;
+    bool bigEndian = false;
+    bool byteSwap = false;
 };
 
 QT_END_NAMESPACE

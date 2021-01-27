@@ -163,13 +163,14 @@ public:
         return QGRange<float>{ *min.getFraction(), *max.getFraction() };
     }
 
-    std::optional<QGRange<int>> getIntRange() const
+    std::optional<QGRange<int>> toIntRange() const
     {
         if (!GST_VALUE_HOLDS_INT_RANGE(value))
             return std::nullopt;
         return QGRange<int>{ gst_value_get_int_range_min(value), gst_value_get_int_range_max(value) };
     }
 
+    Q_MULTIMEDIA_EXPORT QList<QAudioFormat::SampleFormat> getSampleFormats() const;
 };
 
 class QGstStructure {
@@ -188,7 +189,6 @@ public:
     Q_MULTIMEDIA_EXPORT QVideoFrame::PixelFormat pixelFormat() const;
     Q_MULTIMEDIA_EXPORT QSize pixelAspectRatio() const;
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
-
 };
 
 class QGstCaps {

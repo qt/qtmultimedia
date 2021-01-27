@@ -54,33 +54,25 @@ class QAudioFormatPrivate;
 class Q_MULTIMEDIA_EXPORT QAudioFormat
 {
 public:
-    enum SampleType { Unknown, SignedInt, UnSignedInt, Float };
-    enum Endian { BigEndian = QSysInfo::BigEndian, LittleEndian = QSysInfo::LittleEndian };
-
-    QAudioFormat();
-    QAudioFormat(const QAudioFormat &other);
-    ~QAudioFormat();
-
-    QAudioFormat& operator=(const QAudioFormat &other);
-    bool operator==(const QAudioFormat &other) const;
-    bool operator!=(const QAudioFormat &other) const;
+    enum SampleFormat {
+        Unknown,
+        UInt8,
+        Int16,
+        Int32,
+        Float,
+        NSampleFormats
+    };
 
     bool isValid() const;
 
-    void setSampleRate(int sampleRate);
-    int sampleRate() const;
+    void setSampleRate(int sampleRate) { m_sampleRate = sampleRate; }
+    int sampleRate() const { return m_sampleRate; }
 
-    void setChannelCount(int channelCount);
-    int channelCount() const;
+    void setChannelCount(int channelCount) { m_channelCount = channelCount; }
+    int channelCount() const { return m_channelCount; }
 
-    void setSampleSize(int sampleSize);
-    int sampleSize() const;
-
-    void setByteOrder(QAudioFormat::Endian byteOrder);
-    QAudioFormat::Endian byteOrder() const;
-
-    void setSampleType(QAudioFormat::SampleType sampleType);
-    QAudioFormat::SampleType sampleType() const;
+    void setSampleFormat(SampleFormat f) { m_sampleFormat = f; }
+    SampleFormat sampleFormat() const { return m_sampleFormat; }
 
     // Helper functions
     qint32 bytesForDuration(qint64 duration) const;
@@ -92,22 +84,33 @@ public:
     qint32 framesForDuration(qint64 duration) const;
     qint64 durationForFrames(qint32 frameCount) const;
 
-    int bytesPerFrame() const;
+    int bytesPerFrame() const { return bytesPerSample()*channelCount(); }
+    int bytesPerSample() const;
+
+    float normalizedSampleValue(const void *sample) const;
+
+    friend bool operator==(const QAudioFormat &a, const QAudioFormat &b)
+    {
+        return a.m_sampleRate == b.m_sampleRate &&
+                a.m_channelCount == b.m_channelCount &&
+                a.m_sampleFormat == b.m_sampleFormat;
+    }
+    friend bool operator!=(const QAudioFormat &a, const QAudioFormat &b)
+    {
+        return !(a == b);
+    }
 
 private:
-    QSharedDataPointer<QAudioFormatPrivate> d;
+    int m_sampleRate = 0;
+    short m_channelCount = 0;
+    SampleFormat m_sampleFormat = SampleFormat::Unknown;
 };
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QAudioFormat &);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAudioFormat::SampleType);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAudioFormat::Endian);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAudioFormat::SampleFormat);
 #endif
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QAudioFormat)
-Q_DECLARE_METATYPE(QAudioFormat::SampleType)
-Q_DECLARE_METATYPE(QAudioFormat::Endian)
 
 #endif  // QAUDIOFORMAT_H

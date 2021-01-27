@@ -66,45 +66,17 @@
 QT_BEGIN_NAMESPACE
 
 
-const unsigned int MAX_SAMPLE_RATES = 5;
-const unsigned int SAMPLE_RATES[] =
-    { 8000, 11025, 22050, 44100, 48000 };
-
 class QAlsaAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
 public:
     QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudio::Mode mode);
     ~QAlsaAudioDeviceInfo();
 
-    bool testSettings(const QAudioFormat& format) const;
-    void updateLists() const;
-    QAudioFormat preferredFormat() const override;
-    bool isFormatSupported(const QAudioFormat& format) const override;
-    QString description() const override { return m_description; }
-    QList<int> supportedSampleRates() const override;
-    QList<int> supportedChannelCounts() const override;
-    QList<int> supportedSampleSizes() const override;
-    QList<QAudioFormat::Endian> supportedByteOrders() const override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
-    static QByteArray defaultDevice(QAudio::Mode mode);
-
 private:
-    bool open() const;
-    void close() const;
-
     void checkSurround();
     bool surround40;
     bool surround51;
     bool surround71;
-
-    QString m_description;
-    QAudioFormat nearest;
-    mutable QList<int> sampleRatez;
-    mutable QList<int> channelz;
-    mutable QList<int> sizez;
-    mutable QList<QAudioFormat::Endian> byteOrderz;
-    mutable QList<QAudioFormat::SampleType> typez;
-    mutable snd_pcm_t* handle;
 };
 
 QT_END_NAMESPACE

@@ -82,9 +82,7 @@ private slots:
     void deviceChanged(int idx);
     void sampleRateChanged(int idx);
     void channelChanged(int idx);
-    void sampleSizeChanged(int idx);
-    void sampleTypeChanged(int idx);
-    void endianChanged(int idx);
+    void sampleFormatChanged(int idx);
     void test();
     void populateTable();
 

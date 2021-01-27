@@ -63,7 +63,6 @@ pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format);
 QString stateToQString(pa_stream_state_t state);
 QString stateToQString(pa_context_state_t state);
 QString sampleFormatToQString(pa_sample_format format);
-QAudioFormat sampleSpecToAudioFormat(pa_sample_spec spec);
 }
 
 QT_END_NAMESPACE

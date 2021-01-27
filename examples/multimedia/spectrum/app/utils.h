@@ -60,9 +60,6 @@ QT_FORWARD_DECLARE_CLASS(QAudioFormat)
 // Miscellaneous utility functions
 //-----------------------------------------------------------------------------
 
-qint64 audioDuration(const QAudioFormat &format, qint64 bytes);
-qint64 audioLength(const QAudioFormat &format, qint64 microSeconds);
-
 QString formatToString(const QAudioFormat &format);
 
 qreal nyquistFrequency(const QAudioFormat &format);
@@ -72,12 +69,6 @@ qreal pcmToReal(qint16 pcm);
 
 // Scale real value in [-1.0, 1.0] to PCM
 qint16 realToPcm(qreal real);
-
-// Check whether the audio format is PCM
-bool isPCM(const QAudioFormat &format);
-
-// Check whether the audio format is signed, little-endian, 16-bit PCM
-bool isPCMS16LE(const QAudioFormat &format);
 
 // Compile-time calculation of powers of two
 

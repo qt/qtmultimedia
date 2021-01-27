@@ -137,8 +137,7 @@ void tst_QAudioDecoderBackend::fileTest()
     // Test file is 44.1K 16bit mono, 44094 samples
     QCOMPARE(buffer.format().channelCount(), 1);
     QCOMPARE(buffer.format().sampleRate(), 44100);
-    QCOMPARE(buffer.format().sampleSize(), 16);
-    QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
+    QCOMPARE(buffer.format().sampleFormat(), QAudioFormat::Int16);
     QCOMPARE(buffer.byteCount(), buffer.sampleCount() * 2); // 16bit mono
 
     // The decoder should still have no format set
@@ -194,9 +193,8 @@ void tst_QAudioDecoderBackend::fileTest()
     // change output audio format
     QAudioFormat format;
     format.setChannelCount(2);
-    format.setSampleSize(8);
     format.setSampleRate(11050);
-    format.setSampleType(QAudioFormat::SignedInt);
+    format.setSampleFormat(QAudioFormat::UInt8);
 
     d.setAudioFormat(format);
 
@@ -477,8 +475,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     // Test file is 44.1K 16bit mono
     QCOMPARE(buffer.format().channelCount(), 1);
     QCOMPARE(buffer.format().sampleRate(), 44100);
-    QCOMPARE(buffer.format().sampleSize(), 16);
-    QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
+    QCOMPARE(buffer.format().sampleFormat(), QAudioFormat::Int16);
 
     QVERIFY(errorSpy.isEmpty());
 
@@ -527,9 +524,8 @@ void tst_QAudioDecoderBackend::deviceTest()
     // Now try changing formats
     QAudioFormat format;
     format.setChannelCount(2);
-    format.setSampleSize(8);
     format.setSampleRate(8000);
-    format.setSampleType(QAudioFormat::SignedInt);
+    format.setSampleFormat(QAudioFormat::UInt8);
 
     d.setAudioFormat(format);
 

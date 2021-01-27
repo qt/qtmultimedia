@@ -166,55 +166,29 @@ int QAlsaAudioOutput::setFormat()
 {
     snd_pcm_format_t pcmformat = SND_PCM_FORMAT_UNKNOWN;
 
-    if(settings.sampleSize() == 8) {
+    switch (settings.sampleFormat()) {
+    case QAudioFormat::UInt8:
         pcmformat = SND_PCM_FORMAT_U8;
-
-    } else if(settings.sampleSize() == 16) {
-        if(settings.sampleType() == QAudioFormat::SignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                pcmformat = SND_PCM_FORMAT_S16_LE;
-            else
-                pcmformat = SND_PCM_FORMAT_S16_BE;
-        } else if(settings.sampleType() == QAudioFormat::UnSignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                pcmformat = SND_PCM_FORMAT_U16_LE;
-            else
-                pcmformat = SND_PCM_FORMAT_U16_BE;
-        }
-    } else if(settings.sampleSize() == 24) {
-        if(settings.sampleType() == QAudioFormat::SignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                pcmformat = SND_PCM_FORMAT_S24_LE;
-            else
-                pcmformat = SND_PCM_FORMAT_S24_BE;
-        } else if(settings.sampleType() == QAudioFormat::UnSignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                pcmformat = SND_PCM_FORMAT_U24_LE;
-            else
-                pcmformat = SND_PCM_FORMAT_U24_BE;
-        }
-    } else if(settings.sampleSize() == 32) {
-        if(settings.sampleType() == QAudioFormat::SignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                pcmformat = SND_PCM_FORMAT_S32_LE;
-            else
-                pcmformat = SND_PCM_FORMAT_S32_BE;
-        } else if(settings.sampleType() == QAudioFormat::UnSignedInt) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                pcmformat = SND_PCM_FORMAT_U32_LE;
-            else
-                pcmformat = SND_PCM_FORMAT_U32_BE;
-        } else if(settings.sampleType() == QAudioFormat::Float) {
-            if(settings.byteOrder() == QAudioFormat::LittleEndian)
-                pcmformat = SND_PCM_FORMAT_FLOAT_LE;
-            else
-                pcmformat = SND_PCM_FORMAT_FLOAT_BE;
-        }
-    } else if(settings.sampleSize() == 64) {
-        if(settings.byteOrder() == QAudioFormat::LittleEndian)
-            pcmformat = SND_PCM_FORMAT_FLOAT64_LE;
+        break;
+    case QAudioFormat::Int16:
+        if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
+            pcmformat = SND_PCM_FORMAT_S16_LE;
         else
-            pcmformat = SND_PCM_FORMAT_FLOAT64_BE;
+            pcmformat = SND_PCM_FORMAT_S16_BE;
+        break;
+    case QAudioFormat::Int32:
+        if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
+            pcmformat = SND_PCM_FORMAT_S32_LE;
+        else
+            pcmformat = SND_PCM_FORMAT_S32_BE;
+        break;
+    case QAudioFormat::Float:
+        if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
+            pcmformat = SND_PCM_FORMAT_FLOAT_LE;
+        else
+            pcmformat = SND_PCM_FORMAT_FLOAT_BE;
+    default:
+        break;
     }
 
     return pcmformat != SND_PCM_FORMAT_UNKNOWN

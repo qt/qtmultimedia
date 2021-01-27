@@ -50,22 +50,16 @@ pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format)
     spec.rate = format.sampleRate();
     spec.channels = format.channelCount();
     spec.format = PA_SAMPLE_INVALID;
-    const bool isBigEndian = (format.byteOrder() == QAudioFormat::BigEndian);
+    const bool isBigEndian = QSysInfo::ByteOrder == QSysInfo::BigEndian;
 
-    if (format.sampleType() == QAudioFormat::UnSignedInt) {
-        if (format.sampleSize() == 8)
-            spec.format = PA_SAMPLE_U8;
-    } else if (format.sampleType() == QAudioFormat::SignedInt) {
-        if (format.sampleSize() == 16) {
-            spec.format = isBigEndian ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE;
-        } else if (format.sampleSize() == 24) {
-            spec.format = isBigEndian ? PA_SAMPLE_S24BE : PA_SAMPLE_S24LE;
-        } else if (format.sampleSize() == 32) {
-            spec.format = isBigEndian ? PA_SAMPLE_S32BE : PA_SAMPLE_S32LE;
-        }
-    } else if (format.sampleType() == QAudioFormat::Float) {
-        if (format.sampleSize() == 32)
-            spec.format = isBigEndian ? PA_SAMPLE_FLOAT32BE : PA_SAMPLE_FLOAT32LE;
+    if (format.sampleFormat() == QAudioFormat::UInt8) {
+        spec.format = PA_SAMPLE_U8;
+    } else if (format.sampleFormat() == QAudioFormat::Int16) {
+        spec.format = isBigEndian ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE;
+    } else if (format.sampleFormat() == QAudioFormat::Int32) {
+        spec.format = isBigEndian ? PA_SAMPLE_S32BE : PA_SAMPLE_S32LE;
+    } else if (format.sampleFormat() == QAudioFormat::Float) {
+        spec.format = isBigEndian ? PA_SAMPLE_FLOAT32BE : PA_SAMPLE_FLOAT32LE;
     }
 
     return spec;
@@ -127,85 +121,6 @@ QString stateToQString(pa_context_state_t state)
 }
 #endif
 
-QAudioFormat sampleSpecToAudioFormat(pa_sample_spec spec)
-{
-    QAudioFormat format;
-    format.setSampleRate(spec.rate);
-    format.setChannelCount(spec.channels);
-    format.setCodec(QString::fromLatin1("audio/x-raw"));
-
-    switch (spec.format) {
-        case PA_SAMPLE_U8:
-            format.setByteOrder(QAudioFormat::LittleEndian);
-            format.setSampleType(QAudioFormat::UnSignedInt);
-            format.setSampleSize(8);
-        break;
-        case PA_SAMPLE_ALAW:
-        // TODO:
-        break;
-        case PA_SAMPLE_ULAW:
-        // TODO:
-        break;
-        case PA_SAMPLE_S16LE:
-            format.setByteOrder(QAudioFormat::LittleEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(16);
-        break;
-        case PA_SAMPLE_S16BE:
-            format.setByteOrder(QAudioFormat::BigEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(16);
-        break;
-        case PA_SAMPLE_FLOAT32LE:
-            format.setByteOrder(QAudioFormat::LittleEndian);
-            format.setSampleType(QAudioFormat::Float);
-            format.setSampleSize(32);
-        break;
-        case PA_SAMPLE_FLOAT32BE:
-            format.setByteOrder(QAudioFormat::BigEndian);
-            format.setSampleType(QAudioFormat::Float);
-            format.setSampleSize(32);
-        break;
-        case PA_SAMPLE_S32LE:
-            format.setByteOrder(QAudioFormat::LittleEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(32);
-        break;
-        case PA_SAMPLE_S32BE:
-            format.setByteOrder(QAudioFormat::BigEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(32);
-        break;
-        case PA_SAMPLE_S24LE:
-            format.setByteOrder(QAudioFormat::LittleEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(24);
-        break;
-        case PA_SAMPLE_S24BE:
-            format.setByteOrder(QAudioFormat::BigEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(24);
-        break;
-        case PA_SAMPLE_S24_32LE:
-            format.setByteOrder(QAudioFormat::LittleEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(24);
-        break;
-        case PA_SAMPLE_S24_32BE:
-            format.setByteOrder(QAudioFormat::BigEndian);
-            format.setSampleType(QAudioFormat::SignedInt);
-            format.setSampleSize(24);
-        break;
-        case PA_SAMPLE_MAX:
-        case PA_SAMPLE_INVALID:
-        default:
-            format.setByteOrder(QAudioFormat::LittleEndian);
-            format.setSampleType(QAudioFormat::Unknown);
-            format.setSampleSize(0);
-    }
-
-    return format;
-}
 }
 
 QT_END_NAMESPACE

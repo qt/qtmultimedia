@@ -48,15 +48,10 @@ private slots:
     void checkAvailableDefaultInput();
     void checkAvailableDefaultOutput();
     void channels();
-    void sampleSizes();
-    void byteOrders();
-    void sampleTypes();
+    void sampleFormat();
     void sampleRates();
     void isFormatSupported();
     void preferred();
-    void nearest();
-    void supportedChannelCounts();
-    void supportedSampleRates();
     void assignOperator();
     void id();
     void defaultConstructor();
@@ -99,32 +94,22 @@ void tst_QAudioDeviceInfo::checkAvailableDefaultOutput()
 
 void tst_QAudioDeviceInfo::channels()
 {
-    QList<int> avail = device->supportedChannelCounts();
-    QVERIFY(avail.size() > 0);
+    auto range = device->supportedChannelCounts();
+    QVERIFY(range.minimum > 0);
+    QVERIFY(range.maximum > range.minimum);
 }
 
-void tst_QAudioDeviceInfo::sampleSizes()
+void tst_QAudioDeviceInfo::sampleFormat()
 {
-    QList<int> avail = device->supportedSampleSizes();
-    QVERIFY(avail.size() > 0);
-}
-
-void tst_QAudioDeviceInfo::byteOrders()
-{
-    QList<QAudioFormat::Endian> avail = device->supportedByteOrders();
-    QVERIFY(avail.size() > 0);
-}
-
-void tst_QAudioDeviceInfo::sampleTypes()
-{
-    QList<QAudioFormat::SampleType> avail = device->supportedSampleTypes();
+    QList<QAudioFormat::SampleFormat> avail = device->supportedSampleFormats();
     QVERIFY(avail.size() > 0);
 }
 
 void tst_QAudioDeviceInfo::sampleRates()
 {
-    QList<int> avail = device->supportedSampleRates();
-    QVERIFY(avail.size() > 0);
+    auto range = device->supportedSampleRates();
+    QVERIFY(range.minimum > 0);
+    QVERIFY(range.maximum > range.minimum);
 }
 
 void tst_QAudioDeviceInfo::isFormatSupported()
@@ -132,9 +117,7 @@ void tst_QAudioDeviceInfo::isFormatSupported()
     QAudioFormat format;
     format.setSampleRate(44100);
     format.setChannelCount(2);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleSize(16);
+    format.setSampleFormat(QAudioFormat::Int16);
 
     // Should always be true for these format
     QVERIFY(device->isFormatSupported(format));
@@ -145,43 +128,6 @@ void tst_QAudioDeviceInfo::preferred()
     QAudioFormat format = device->preferredFormat();
     QVERIFY(format.isValid());
     QVERIFY(device->isFormatSupported(format));
-    QVERIFY(device->nearestFormat(format) == format);
-}
-
-// Returns closest QAudioFormat to settings that system audio supports.
-void tst_QAudioDeviceInfo::nearest()
-{
-    /*
-    QAudioFormat format1, format2;
-    format1.setSampleRate(8000);
-    format2 = device->nearestFormat(format1);
-    QVERIFY(format2.sampleRate() == 44100);
-    */
-    QAudioFormat format;
-    format.setSampleRate(44100);
-    format.setChannelCount(2);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleSize(16);
-
-    QAudioFormat format2 = device->nearestFormat(format);
-
-    // This is definitely dependent on platform support (but isFormatSupported tests that above)
-    QVERIFY(format2.sampleRate() == 44100);
-}
-
-// Returns a list of supported channel counts.
-void tst_QAudioDeviceInfo::supportedChannelCounts()
-{
-    QList<int> avail = device->supportedChannelCounts();
-    QVERIFY(avail.size() > 0);
-}
-
-// Returns a list of supported sample rates.
-void tst_QAudioDeviceInfo::supportedSampleRates()
-{
-    QList<int> avail = device->supportedSampleRates();
-    QVERIFY(avail.size() > 0);
 }
 
 // QAudioDeviceInfo's assignOperator method

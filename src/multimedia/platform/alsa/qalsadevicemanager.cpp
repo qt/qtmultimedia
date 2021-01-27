@@ -84,8 +84,7 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
 
             if ((descr != NULL) && ((io == NULL) || (io == filter))) {
                 auto *infop = new QAlsaAudioDeviceInfo(name, QString::fromUtf8(descr), mode);
-                QAudioDeviceInfo info(infop);
-                devices.append(info);
+                devices.append(infop->create());
                 if (strcmp(name, "default") == 0)
                     infop->isDefault = true;
             }

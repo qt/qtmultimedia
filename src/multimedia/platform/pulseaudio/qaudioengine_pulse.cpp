@@ -123,13 +123,10 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
                   info->description);
 #endif
 
-    QAudioFormat format = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
-
     QWriteLocker locker(&pulseEngine->m_sinkLock);
-    pulseEngine->m_preferredFormats.insert(info->name, format);
     bool isDefault = pulseEngine->m_defaultSink == info->name;
-    QAudioDeviceInfo dinfo(new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioOutput));
-    pulseEngine->m_sinks.insert(info->index, dinfo);
+    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioOutput);
+    pulseEngine->m_sinks.insert(info->index, dinfo->create());
 }
 
 static void sourceInfoCallback(pa_context *context, const pa_source_info *info, int isLast, void *userdata)
@@ -161,15 +158,13 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
               info->description);
 #endif
 
-    QAudioFormat format = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
-
     QWriteLocker locker(&pulseEngine->m_sourceLock);
     // skip monitor channels
     if (info->monitor_of_sink != PA_INVALID_INDEX)
         return;
     bool isDefault = pulseEngine->m_defaultSink == info->name;
-    QAudioDeviceInfo dinfo(new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioInput));
-    pulseEngine->m_sources.insert(info->index, dinfo);
+    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioInput);
+    pulseEngine->m_sources.insert(info->index, dinfo->create());
 }
 
 static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32_t index, void* userdata)
@@ -215,13 +210,11 @@ static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32
         switch (facility) {
         case PA_SUBSCRIPTION_EVENT_SINK:
             pulseEngine->m_sinkLock.lockForWrite();
-            pulseEngine->m_preferredFormats.remove(pulseEngine->m_sinks.value(index).id());
             pulseEngine->m_sinks.remove(index);
             pulseEngine->m_sinkLock.unlock();
             break;
         case PA_SUBSCRIPTION_EVENT_SOURCE:
             pulseEngine->m_sourceLock.lockForWrite();
-            pulseEngine->m_preferredFormats.remove(pulseEngine->m_sources.value(index).id());
             pulseEngine->m_sources.remove(index);
             pulseEngine->m_sourceLock.unlock();
             break;

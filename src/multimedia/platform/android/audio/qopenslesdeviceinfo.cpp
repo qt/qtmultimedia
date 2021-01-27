@@ -47,59 +47,23 @@ QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode 
     : QAudioDeviceInfoPrivate(device, mode),
       m_engine(QOpenSLESEngine::instance())
 {
-}
+    auto channels = m_engine->supportedChannelCounts(mode);
+    if (channels.size())
+        supportedChannelCounts = { channels.first(), channels.last() };
 
-bool QOpenSLESDeviceInfo::isFormatSupported(const QAudioFormat &format) const
-{
-    QOpenSLESDeviceInfo *that = const_cast<QOpenSLESDeviceInfo*>(this);
-    return that->supportedSampleRates().contains(format.sampleRate())
-            && that->supportedChannelCounts().contains(format.channelCount())
-            && that->supportedSampleSizes().contains(format.sampleSize())
-            && that->supportedByteOrders().contains(format.byteOrder())
-            && that->supportedSampleTypes().contains(format.sampleType());
-}
-
-QAudioFormat QOpenSLESDeviceInfo::preferredFormat() const
-{
-    QAudioFormat format;
-    format.setSampleSize(16);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setSampleRate(QOpenSLESEngine::getOutputValue(QOpenSLESEngine::SampleRate, 48000));
-    format.setChannelCount(mode == QAudio::AudioInput ? 1 : 2);
-    return format;
-}
-
-QString QOpenSLESDeviceInfo::deviceName() const
-{
-    return id;
-}
-
-QList<int> QOpenSLESDeviceInfo::supportedSampleRates() const
-{
-    return m_engine->supportedSampleRates(mode);
-}
-
-QList<int> QOpenSLESDeviceInfo::supportedChannelCounts() const
-{
-    return m_engine->supportedChannelCounts(mode);
-}
-
-QList<int> QOpenSLESDeviceInfo::supportedSampleSizes() const
-{
+    auto sampleRates = m_engine->supportedSampleRates(mode);
+    if (sampleRates.size())
+        supportedSampleRates = { sampleRates.first(), sampleRates.last() };
     if (mode == QAudio::AudioInput)
-        return QList<int>() << 16;
-    else
-        return QList<int>() << 8 << 16;
-}
+        supportedSampleFormats.append(QAudioFormat::UInt8);
+    supportedSampleFormats.append(QAudioFormat::Int16);
 
-QList<QAudioFormat::Endian> QOpenSLESDeviceInfo::supportedByteOrders() const
-{
-    return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian;
-}
-
-QList<QAudioFormat::SampleType> QOpenSLESDeviceInfo::supportedSampleTypes() const
-{
-    return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt;
+    preferredFormat.setChannelCount(2);
+    preferredFormat.setSampleRate(48000);
+    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
+    if (!supportedSampleFormats.contains(f))
+        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
+    preferredFormat.setSampleFormat(f);
 }
 
 QT_END_NAMESPACE

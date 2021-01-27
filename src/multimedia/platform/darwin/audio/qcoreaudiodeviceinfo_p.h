@@ -65,17 +65,12 @@ public:
     QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode);
     ~QCoreAudioDeviceInfo() {}
 
-    QAudioFormat preferredFormat() const;
     bool isFormatSupported(const QAudioFormat &format) const;
-    QString description() const;
-    QList<int> supportedSampleRates() const;
-    QList<int> supportedChannelCounts() const;
-    QList<int> supportedSampleSizes() const;
-    QList<QAudioFormat::Endian> supportedByteOrders() const;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const;
 
     AudioDeviceID deviceID() const { return m_deviceId; }
 private:
+    QAudioFormat determinePreferredFormat() const;
+    QString getDescription() const;
 #if defined(Q_OS_OSX)
     AudioDeviceID m_deviceId;
 #endif

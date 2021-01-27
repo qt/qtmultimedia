@@ -61,9 +61,8 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
     // Our wav file writer only supports SignedInt sample type.
     QAudioFormat format;
     format.setChannelCount(2);
-    format.setSampleSize(16);
+    format.setSampleFormat(QAudioFormat::Int16);
     format.setSampleRate(48000);
-    format.setSampleType(QAudioFormat::SignedInt);
     m_decoder.setAudioFormat(format);
 
     connect(&m_decoder, &QAudioDecoder::bufferReady,

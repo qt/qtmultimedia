@@ -172,7 +172,7 @@ void Waveform::initialize(const QAudioFormat &format, qint64 audioBufferSize, qi
     m_tileLength = audioBufferSize;
 
     // Calculate window size
-    m_windowLength = audioLength(m_format, windowDurationUs);
+    m_windowLength = m_format.bytesForDuration(windowDurationUs);
 
     // Calculate number of tiles required
     int nTiles;

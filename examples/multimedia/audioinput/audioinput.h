@@ -80,7 +80,6 @@ public:
 
 private:
     const QAudioFormat m_format;
-    quint32 m_maxAmplitude = 0;
     qreal m_level = 0.0; // 0.0 <= m_level <= 1.0
 
 signals:

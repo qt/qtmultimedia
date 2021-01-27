@@ -139,17 +139,9 @@ void tst_QAudioInput::generate_audiofile_testrows()
 
 QString tst_QAudioInput::formatToFileName(const QAudioFormat &format)
 {
-    const QString formatEndian = (format.byteOrder() == QAudioFormat::LittleEndian)
-        ?   QString("LE") : QString("BE");
-
-    const QString formatSigned = (format.sampleType() == QAudioFormat::SignedInt)
-        ?   QString("signed") : QString("unsigned");
-
-    return QString("%1_%2_%3_%4_%5")
+    return QString("%1_%2_%3")
         .arg(format.sampleRate())
-        .arg(format.sampleSize())
-        .arg(formatSigned)
-        .arg(formatEndian)
+        .arg(format.bytesPerSample())
         .arg(format.channelCount());
 }
 
@@ -173,16 +165,14 @@ void tst_QAudioInput::initTestCase()
 
     // PCM 8000  mono S8
     format.setSampleRate(8000);
-    format.setSampleSize(8);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleFormat(QAudioFormat::UInt8);
     format.setChannelCount(1);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 11025 mono S16LE
     format.setSampleRate(11025);
-    format.setSampleSize(16);
+    format.setSampleFormat(QAudioFormat::Int16);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
@@ -236,12 +226,9 @@ void tst_QAudioInput::format()
             QString("channels: requested=%1, actual=%2").arg(requested.channelCount()).arg(actual.channelCount()).toLocal8Bit().constData());
     QVERIFY2((requested.sampleRate() == actual.sampleRate()),
             QString("sampleRate: requested=%1, actual=%2").arg(requested.sampleRate()).arg(actual.sampleRate()).toLocal8Bit().constData());
-    QVERIFY2((requested.sampleSize() == actual.sampleSize()),
-            QString("sampleSize: requested=%1, actual=%2").arg(requested.sampleSize()).arg(actual.sampleSize()).toLocal8Bit().constData());
-    QVERIFY2((requested.byteOrder() == actual.byteOrder()),
-            QString("byteOrder: requested=%1, actual=%2").arg(requested.byteOrder()).arg(actual.byteOrder()).toLocal8Bit().constData());
-    QVERIFY2((requested.sampleType() == actual.sampleType()),
-            QString("sampleType: requested=%1, actual=%2").arg(requested.sampleType()).arg(actual.sampleType()).toLocal8Bit().constData());
+    QVERIFY2((requested.sampleFormat() == actual.sampleFormat()),
+            QString("sampleFormat: requested=%1, actual=%2").arg(requested.sampleFormat()).arg(actual.sampleFormat()).toUtf8().constData());
+    QCOMPARE(actual, requested);
 }
 
 void tst_QAudioInput::invalidFormat_data()
@@ -264,7 +251,7 @@ void tst_QAudioInput::invalidFormat_data()
             << format;
 
     format = audioDevice.preferredFormat();
-    format.setSampleSize(0);
+    format.setSampleFormat(QAudioFormat::Unknown);
     QTest::newRow("Sample size 0")
             << format;
 }
@@ -633,7 +620,7 @@ void tst_QAudioInput::push()
     qint64 totalBytesRead = 0;
     bool firstBuffer = true;
     QByteArray buffer(AUDIO_BUFFER, 0);
-    qint64 len = (audioFormat.sampleRate()*audioFormat.channelCount()*(audioFormat.sampleSize()/8)*2); // 2 seconds
+    qint64 len = audioFormat.sampleRate()*audioFormat.bytesPerFrame()*2; // 2 seconds
     while (totalBytesRead < len) {
         QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 10000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
@@ -714,7 +701,7 @@ void tst_QAudioInput::pushSuspendResume()
     qint64 totalBytesRead = 0;
     bool firstBuffer = true;
     QByteArray buffer(AUDIO_BUFFER, 0);
-    qint64 len = (audioFormat.sampleRate()*audioFormat.channelCount()*(audioFormat.sampleSize()/8)); // 1 seconds
+    qint64 len = audioFormat.sampleRate() * audioFormat.bytesPerFrame(); // 1 second
     while (totalBytesRead < len) {
         QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 10000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());

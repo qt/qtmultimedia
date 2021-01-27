@@ -67,7 +67,7 @@ QCoreAudioOutputBuffer::QCoreAudioOutputBuffer(int bufferSize, int maxPeriodSize
     , m_device(0)
 {
     m_buffer = new CoreAudioRingBuffer(bufferSize + (bufferSize % maxPeriodSize == 0 ? 0 : maxPeriodSize - (bufferSize % maxPeriodSize)));
-    m_bytesPerFrame = (audioFormat.sampleSize() / 8) * audioFormat.channelCount();
+    m_bytesPerFrame = audioFormat.bytesPerFrame();
     m_periodTime = m_maxPeriodSize / m_bytesPerFrame * 1000 / audioFormat.sampleRate();
 
     m_fillTimer = new QTimer(this);

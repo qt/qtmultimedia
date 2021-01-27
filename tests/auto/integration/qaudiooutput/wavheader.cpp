@@ -93,21 +93,20 @@ bool WavHeader::read(QIODevice &device)
                 && memcmp(&header.wave.descriptor.id, "fmt ", 4) == 0
                 && header.wave.audioFormat == 1 // PCM
             ) {
-                if (memcmp(&header.riff.descriptor.id, "RIFF", 4) == 0)
-                    m_format.setByteOrder(QAudioFormat::LittleEndian);
-                else
-                    m_format.setByteOrder(QAudioFormat::BigEndian);
+//                if (memcmp(&header.riff.descriptor.id, "RIFF", 4) == 0)
+//                    m_format.setByteOrder(QAudioFormat::LittleEndian);
+//                else
+//                    m_format.setByteOrder(QAudioFormat::BigEndian);
 
                 m_format.setChannelCount(qFromLittleEndian<quint16>(header.wave.numChannels));
                 m_format.setSampleRate(qFromLittleEndian<quint32>(header.wave.sampleRate));
-                m_format.setSampleSize(qFromLittleEndian<quint16>(header.wave.bitsPerSample));
 
                 switch(header.wave.bitsPerSample) {
                 case 8:
-                    m_format.setSampleType(QAudioFormat::UnSignedInt);
+                    m_format.setSampleFormat(QAudioFormat::UInt8);
                     break;
                 case 16:
-                    m_format.setSampleType(QAudioFormat::SignedInt);
+                    m_format.setSampleFormat(QAudioFormat::Int16);
                     break;
                 default:
                     result = false;
@@ -130,10 +129,7 @@ bool WavHeader::write(QIODevice &device)
     memset(&header, 0, HeaderLength);
 
     // RIFF header
-    if (m_format.byteOrder() == QAudioFormat::LittleEndian)
-        memcpy(header.riff.descriptor.id,"RIFF",4);
-    else
-        memcpy(header.riff.descriptor.id,"RIFX",4);
+    memcpy(header.riff.descriptor.id,"RIFF",4);
     qToLittleEndian<quint32>(quint32(m_dataLength + HeaderLength - 8),
                              reinterpret_cast<unsigned char*>(&header.riff.descriptor.size));
     memcpy(header.riff.type, "WAVE",4);
@@ -148,11 +144,11 @@ bool WavHeader::write(QIODevice &device)
                              reinterpret_cast<unsigned char*>(&header.wave.numChannels));
     qToLittleEndian<quint32>(quint32(m_format.sampleRate()),
                              reinterpret_cast<unsigned char*>(&header.wave.sampleRate));
-    qToLittleEndian<quint32>(quint32(m_format.sampleRate() * m_format.channelCount() * m_format.sampleSize() / 8),
+    qToLittleEndian<quint32>(quint32(m_format.sampleRate() * m_format.bytesPerFrame()),
                              reinterpret_cast<unsigned char*>(&header.wave.byteRate));
-    qToLittleEndian<quint16>(quint16(m_format.channelCount() * m_format.sampleSize() / 8),
+    qToLittleEndian<quint16>(quint16(m_format.channelCount() * m_format.bytesPerSample()),
                              reinterpret_cast<unsigned char*>(&header.wave.blockAlign));
-    qToLittleEndian<quint16>(quint16(m_format.sampleSize()),
+    qToLittleEndian<quint16>(quint16(m_format.bytesPerSample() * 8),
                              reinterpret_cast<unsigned char*>(&header.wave.bitsPerSample));
 
     // DATA header
@@ -185,6 +181,7 @@ bool WavHeader::writeDataLength(QIODevice &device, qint64 dataLength)
         device.seek(40);
         unsigned char dataLengthLE[4];
         qToLittleEndian<quint32>(quint32(dataLength), dataLengthLE);
+        // ### Fix for big endian systems
         result = (device.write(reinterpret_cast<const char *>(dataLengthLE), 4) == 4);
     }
     return result;

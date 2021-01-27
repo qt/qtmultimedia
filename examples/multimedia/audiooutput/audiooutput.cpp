@@ -76,10 +76,9 @@ void Generator::stop()
 
 void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int sampleRate)
 {
-    const int channelBytes = format.sampleSize() / 8;
+    const int channelBytes = format.bytesPerSample();
     const int sampleBytes = format.channelCount() * channelBytes;
-    qint64 length = (format.sampleRate() * format.channelCount() * (format.sampleSize() / 8))
-                        * durationUs / 1000000;
+    qint64 length = format.bytesForDuration(durationUs);
     Q_ASSERT(length % sampleBytes == 0);
     Q_UNUSED(sampleBytes); // suppress warning in release builds
 
@@ -91,28 +90,21 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int 
         // Produces value (-1..1)
         const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex++ % format.sampleRate()) / format.sampleRate());
         for (int i=0; i<format.channelCount(); ++i) {
-            if (format.sampleSize() == 8) {
-                if (format.sampleType() == QAudioFormat::UnSignedInt) {
-                    const quint8 value = static_cast<quint8>((1.0 + x) / 2 * 255);
-                    *reinterpret_cast<quint8 *>(ptr) = value;
-                } else if (format.sampleType() == QAudioFormat::SignedInt) {
-                    const qint8 value = static_cast<qint8>(x * 127);
-                    *reinterpret_cast<qint8 *>(ptr) = value;
-                }
-            } else if (format.sampleSize() == 16) {
-                if (format.sampleType() == QAudioFormat::UnSignedInt) {
-                    quint16 value = static_cast<quint16>((1.0 + x) / 2 * 65535);
-                    if (format.byteOrder() == QAudioFormat::LittleEndian)
-                        qToLittleEndian<quint16>(value, ptr);
-                    else
-                        qToBigEndian<quint16>(value, ptr);
-                } else if (format.sampleType() == QAudioFormat::SignedInt) {
-                    qint16 value = static_cast<qint16>(x * 32767);
-                    if (format.byteOrder() == QAudioFormat::LittleEndian)
-                        qToLittleEndian<qint16>(value, ptr);
-                    else
-                        qToBigEndian<qint16>(value, ptr);
-                }
+            switch(format.sampleFormat()) {
+            case QAudioFormat::UInt8:
+                *reinterpret_cast<quint8 *>(ptr) = static_cast<quint8>((1.0 + x) / 2 * 255);
+                break;
+            case QAudioFormat::Int16:
+                *reinterpret_cast<qint16 *>(ptr) = static_cast<qint16>(x * 32767);
+                break;
+            case QAudioFormat::Int32:
+                *reinterpret_cast<qint32 *>(ptr) = static_cast<qint32>(x * std::numeric_limits<qint32>::max());
+                break;
+            case QAudioFormat::Float:
+                *reinterpret_cast<float *>(ptr) = x;
+                break;
+            default:
+                break;
             }
 
             ptr += channelBytes;
@@ -204,17 +196,7 @@ void AudioTest::initializeWindow()
 
 void AudioTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
 {
-    QAudioFormat format;
-    format.setSampleRate(44100);
-    format.setChannelCount(1);
-    format.setSampleSize(16);
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::SignedInt);
-
-    if (!deviceInfo.isFormatSupported(format)) {
-        qWarning() << "Default format not supported - trying to use nearest";
-        format = deviceInfo.nearestFormat(format);
-    }
+    QAudioFormat format = deviceInfo.preferredFormat();
 
     const int durationSeconds = 1;
     const int toneSampleRateHz = 600;

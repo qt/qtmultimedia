@@ -64,16 +64,6 @@ public:
     QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode mode);
     ~QOpenSLESDeviceInfo() {}
 
-    QAudioFormat preferredFormat() const;
-    bool isFormatSupported(const QAudioFormat &format) const;
-    QString deviceName() const;
-    QString description() const { return deviceName(); }
-    QList<int> supportedSampleRates() const;
-    QList<int> supportedChannelCounts() const;
-    QList<int> supportedSampleSizes() const;
-    QList<QAudioFormat::Endian> supportedByteOrders() const;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const;
-
 private:
     QOpenSLESEngine *m_engine;
 };

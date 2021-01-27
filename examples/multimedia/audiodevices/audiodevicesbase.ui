@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
-    <height>598</height>
+    <width>646</width>
+    <height>528</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,8 +31,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>653</width>
-         <height>545</height>
+         <width>626</width>
+         <height>480</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -72,17 +72,94 @@
           <item row="2" column="0" colspan="2">
            <widget class="QTabWidget" name="tabWidget">
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="testFormatTab">
              <attribute name="title">
               <string>Test format</string>
              </attribute>
              <layout class="QGridLayout" name="gridLayout">
-              <item row="14" column="1">
+              <item row="12" column="1">
                <widget class="QPushButton" name="testButton">
                 <property name="text">
                  <string>Test</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="2">
+               <widget class="QLabel" name="testResult">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="actualChannelLabel">
+                <property name="text">
+                 <string>Channels</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLineEdit" name="nearestSampleRate">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="2">
+               <widget class="QLineEdit" name="nearestSampleFormat">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="actualSampleTypeLabel">
+                <property name="text">
+                 <string>Sample Format</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
+               <widget class="QLineEdit" name="nearestChannel">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="sampleFormatBox"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="actualFreqLabel">
+                <property name="text">
+                 <string>Frequency (Hz)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="actualLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::NoFrame</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Plain</enum>
+                </property>
+                <property name="text">
+                 <string>&lt;i&gt;Actual Settings&lt;/i&gt;</string>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::RichText</enum>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -115,129 +192,24 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="8" column="2">
-               <widget class="QLineEdit" name="nearestSampleSize">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="14" column="2">
-               <widget class="QLabel" name="testResult">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="actualSampleTypeLabel">
-                <property name="text">
-                 <string>SampleType</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="0">
-               <widget class="QLabel" name="actualSampleSizeLabel">
-                <property name="text">
-                 <string>Sample size (bits)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="13" column="0">
-               <widget class="QLabel" name="actualEndianLabel">
-                <property name="text">
-                 <string>Endianness</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="2">
-               <widget class="QLineEdit" name="nearestSampleType">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QComboBox" name="sampleTypesBox"/>
-              </item>
-              <item row="4" column="2">
-               <widget class="QLineEdit" name="nearestChannel">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="actualChannelLabel">
-                <property name="text">
-                 <string>Channels</string>
-                </property>
-               </widget>
-              </item>
               <item row="13" column="1">
-               <widget class="QComboBox" name="endianBox"/>
-              </item>
-              <item row="8" column="1">
-               <widget class="QComboBox" name="sampleSizesBox"/>
-              </item>
-              <item row="2" column="2">
-               <widget class="QLineEdit" name="nearestSampleRate">
-                <property name="enabled">
-                 <bool>false</bool>
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
                 </property>
-               </widget>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
               <item row="2" column="1">
-               <widget class="QComboBox" name="sampleRateBox">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-               </widget>
+               <widget class="QSpinBox" name="sampleRateSpinBox"/>
               </item>
               <item row="4" column="1">
-               <widget class="QComboBox" name="channelsBox"/>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLabel" name="actualLabel">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::NoFrame</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Plain</enum>
-                </property>
-                <property name="text">
-                 <string>&lt;i&gt;Actual Settings&lt;/i&gt;</string>
-                </property>
-                <property name="textFormat">
-                 <enum>Qt::RichText</enum>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="actualFreqLabel">
-                <property name="text">
-                 <string>Frequency (Hz)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="13" column="2">
-               <widget class="QLineEdit" name="nearestEndian">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
+               <widget class="QSpinBox" name="channelsSpinBox"/>
               </item>
              </layout>
             </widget>
@@ -280,7 +252,7 @@ p, li { white-space: pre-wrap; }
                  <bool>false</bool>
                 </property>
                 <property name="columnCount">
-                 <number>5</number>
+                 <number>3</number>
                 </property>
                 <attribute name="horizontalHeaderHighlightSections">
                  <bool>false</bool>
@@ -296,6 +268,14 @@ p, li { white-space: pre-wrap; }
                 </attribute>
                 <column>
                  <property name="text">
+                  <string>Sample Format</string>
+                 </property>
+                 <property name="textAlignment">
+                  <set>AlignCenter</set>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
                   <string>Frequency (Hz)</string>
                  </property>
                  <property name="textAlignment">
@@ -308,27 +288,6 @@ p, li { white-space: pre-wrap; }
                  </property>
                  <property name="textAlignment">
                   <set>AlignCenter</set>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Sample type</string>
-                 </property>
-                 <property name="textAlignment">
-                  <set>AlignCenter</set>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Sample size (bits)</string>
-                 </property>
-                 <property name="textAlignment">
-                  <set>AlignCenter</set>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Endianness</string>
                  </property>
                 </column>
                </widget>

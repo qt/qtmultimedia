@@ -57,9 +57,9 @@
 
 void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray &buffer)
 {
-    Q_ASSERT(isPCMS16LE(format));
+    Q_ASSERT(format.sampleFormat() == QAudioFormat::Int16);
 
-    const int channelBytes = format.sampleSize() / 8;
+    const int channelBytes = format.bytesPerSample();
     const int sampleBytes = format.channelCount() * channelBytes;
     int length = buffer.size();
     const int numSamples = buffer.size() / sampleBytes;

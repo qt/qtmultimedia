@@ -118,15 +118,19 @@ public:
                 if (data) {
                     memcpy(mBuffer, data, numBytes);
                 } else {
-                    // We have to fill with the zero value..
-                    switch (format.sampleType()) {
-                        case QAudioFormat::SignedInt:
-                            // Signed int means 0x80, 0x8000 is zero
-                            // XXX this is not right for > 8 bits(0x8080 vs 0x8000)
-                            memset(mBuffer, 0x80, numBytes);
-                            break;
-                        default:
-                            memset(mBuffer, 0x0, numBytes);
+                    // We have to fill with the zero value
+                    switch (format.sampleFormat()) {
+                    case QAudioFormat::Unknown:
+                    case QAudioFormat::NSampleFormats:
+                        return;
+                    case QAudioFormat::UInt8:
+                        memset(mBuffer, 0x80, numBytes);
+                        break;
+                    case QAudioFormat::Int16:
+                    case QAudioFormat::Int32:
+                    case QAudioFormat::Float:
+                        memset(mBuffer, 0x0, numBytes);
+                        break;
                     }
                 }
             }
@@ -348,7 +352,6 @@ int QAudioBuffer::sampleCount() const
  */
 int QAudioBuffer::byteCount() const
 {
-    const QAudioFormat f(format());
     return format().bytesForFrames(frameCount());
 }
 

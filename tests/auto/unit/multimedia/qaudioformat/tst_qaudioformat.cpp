@@ -45,9 +45,7 @@ public:
 
 private slots:
     void checkNull();
-    void checkSampleSize();
-    void checkByteOrder();
-    void checkSampleType();
+    void checkSampleFormat();
     void checkEquality();
     void checkAssignment();
     void checkSampleRate();
@@ -69,54 +67,30 @@ void tst_QAudioFormat::checkNull()
 
     audioFormat0.setSampleRate(44100);
     audioFormat0.setChannelCount(2);
-    audioFormat0.setSampleSize(16);
-    audioFormat0.setSampleType(QAudioFormat::SignedInt);
+    audioFormat0.setSampleFormat(QAudioFormat::Int16);
     QVERIFY(audioFormat0.isValid());
 }
 
-void tst_QAudioFormat::checkSampleSize()
+void tst_QAudioFormat::checkSampleFormat()
 {
     QAudioFormat audioFormat;
-    audioFormat.setSampleSize(16);
-    QVERIFY(audioFormat.sampleSize() == 16);
-}
+    audioFormat.setSampleFormat(QAudioFormat::Int16);
+    QVERIFY(audioFormat.sampleFormat() == QAudioFormat::Int16);
+    QTest::ignoreMessage(QtDebugMsg, "Int16");
+    qDebug() << QAudioFormat::Int16;
 
-void tst_QAudioFormat::checkByteOrder()
-{
-    QAudioFormat audioFormat;
-    audioFormat.setByteOrder(QAudioFormat::LittleEndian);
-    QVERIFY(audioFormat.byteOrder() == QAudioFormat::LittleEndian);
-
-    QTest::ignoreMessage(QtDebugMsg, "LittleEndian");
-    qDebug() << QAudioFormat::LittleEndian;
-
-    audioFormat.setByteOrder(QAudioFormat::BigEndian);
-    QVERIFY(audioFormat.byteOrder() == QAudioFormat::BigEndian);
-
-    QTest::ignoreMessage(QtDebugMsg, "BigEndian");
-    qDebug() << QAudioFormat::BigEndian;
-}
-
-void tst_QAudioFormat::checkSampleType()
-{
-    QAudioFormat audioFormat;
-    audioFormat.setSampleType(QAudioFormat::SignedInt);
-    QVERIFY(audioFormat.sampleType() == QAudioFormat::SignedInt);
-    QTest::ignoreMessage(QtDebugMsg, "SignedInt");
-    qDebug() << QAudioFormat::SignedInt;
-
-    audioFormat.setSampleType(QAudioFormat::Unknown);
-    QVERIFY(audioFormat.sampleType() == QAudioFormat::Unknown);
+    audioFormat.setSampleFormat(QAudioFormat::Unknown);
+    QVERIFY(audioFormat.sampleFormat() == QAudioFormat::Unknown);
     QTest::ignoreMessage(QtDebugMsg, "Unknown");
     qDebug() << QAudioFormat::Unknown;
 
-    audioFormat.setSampleType(QAudioFormat::UnSignedInt);
-    QVERIFY(audioFormat.sampleType() == QAudioFormat::UnSignedInt);
-    QTest::ignoreMessage(QtDebugMsg, "UnSignedInt");
-    qDebug() << QAudioFormat::UnSignedInt;
+    audioFormat.setSampleFormat(QAudioFormat::UInt8);
+    QVERIFY(audioFormat.sampleFormat() == QAudioFormat::UInt8);
+    QTest::ignoreMessage(QtDebugMsg, "UInt8");
+    qDebug() << QAudioFormat::UInt8;
 
-    audioFormat.setSampleType(QAudioFormat::Float);
-    QVERIFY(audioFormat.sampleType() == QAudioFormat::Float);
+    audioFormat.setSampleFormat(QAudioFormat::Float);
+    QVERIFY(audioFormat.sampleFormat() == QAudioFormat::Float);
     QTest::ignoreMessage(QtDebugMsg, "Float");
     qDebug() << QAudioFormat::Float;
 }
@@ -133,15 +107,11 @@ void tst_QAudioFormat::checkEquality()
     // on filled formats
     audioFormat0.setSampleRate(8000);
     audioFormat0.setChannelCount(1);
-    audioFormat0.setSampleSize(8);
-    audioFormat0.setByteOrder(QAudioFormat::LittleEndian);
-    audioFormat0.setSampleType(QAudioFormat::UnSignedInt);
+    audioFormat0.setSampleFormat(QAudioFormat::UInt8);
 
     audioFormat1.setSampleRate(8000);
     audioFormat1.setChannelCount(1);
-    audioFormat1.setSampleSize(8);
-    audioFormat1.setByteOrder(QAudioFormat::LittleEndian);
-    audioFormat1.setSampleType(QAudioFormat::UnSignedInt);
+    audioFormat1.setSampleFormat(QAudioFormat::UInt8);
 
     QVERIFY(audioFormat0 == audioFormat1);
     QVERIFY(!(audioFormat0 != audioFormat1));
@@ -158,9 +128,7 @@ void tst_QAudioFormat::checkAssignment()
 
     audioFormat0.setSampleRate(8000);
     audioFormat0.setChannelCount(1);
-    audioFormat0.setSampleSize(8);
-    audioFormat0.setByteOrder(QAudioFormat::LittleEndian);
-    audioFormat0.setSampleType(QAudioFormat::UnSignedInt);
+    audioFormat0.setSampleFormat(QAudioFormat::UInt8);
 
     audioFormat1 = audioFormat0;
     QVERIFY(audioFormat1 == audioFormat0);
@@ -240,11 +208,9 @@ void tst_QAudioFormat::checkSizes_data()
     QAudioFormat f;
     QTest::newRow("invalid") << f << 0 << 0 << 0LL << 0 << 0 << 0LL << 0 << 0;
 
-    f.setByteOrder(QAudioFormat::LittleEndian);
     f.setChannelCount(1);
     f.setSampleRate(8000);
-    f.setSampleSize(8);
-    f.setSampleType(QAudioFormat::SignedInt);
+    f.setSampleFormat(QAudioFormat::UInt8);
 
     qint64 qrtr = 250000LL;
     qint64 half = 500000LL;
@@ -257,7 +223,7 @@ void tst_QAudioFormat::checkSizes_data()
     QTest::newRow("1ch_8b_8k_signed_16000") << f << 1 << 16000 << two << 16000 << 16000 << two << 16000 << 16000;
 
     // Mono 16bit
-    f.setSampleSize(16);
+    f.setSampleFormat(QAudioFormat::Int16);
     QTest::newRow("1ch_16b_8k_signed_8000") << f << 2 << 8000 << half << 4000 << 8000 << half << 8000 << 4000;
     QTest::newRow("1ch_16b_8k_signed_16000") << f << 2 << 16000 << one << 8000 << 16000 << one << 16000 << 8000;
 

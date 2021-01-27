@@ -219,34 +219,32 @@ QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
 
 namespace {
 
-struct AudioFormat
-{
-    GstAudioFormat format;
-    QAudioFormat::SampleType sampleType;
-    QAudioFormat::Endian byteOrder;
-    int sampleSize;
+static const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
+    nullptr,
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    "U8",
+    "S16LE",
+    "S32LE",
+    "F32LE"
+#else
+    "U8",
+    "S16BE",
+    "S32BE",
+    "F32BE"
+#endif
 };
-static const AudioFormat qt_audioLookup[] =
+
+static QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 {
-    { GST_AUDIO_FORMAT_S8   , QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 8  },
-    { GST_AUDIO_FORMAT_U8   , QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 8  },
-    { GST_AUDIO_FORMAT_S16LE, QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 16 },
-    { GST_AUDIO_FORMAT_S16BE, QAudioFormat::SignedInt  , QAudioFormat::BigEndian   , 16 },
-    { GST_AUDIO_FORMAT_U16LE, QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 16 },
-    { GST_AUDIO_FORMAT_U16BE, QAudioFormat::UnSignedInt, QAudioFormat::BigEndian   , 16 },
-    { GST_AUDIO_FORMAT_S32LE, QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 32 },
-    { GST_AUDIO_FORMAT_S32BE, QAudioFormat::SignedInt  , QAudioFormat::BigEndian   , 32 },
-    { GST_AUDIO_FORMAT_U32LE, QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 32 },
-    { GST_AUDIO_FORMAT_U32BE, QAudioFormat::UnSignedInt, QAudioFormat::BigEndian   , 32 },
-    { GST_AUDIO_FORMAT_S24LE, QAudioFormat::SignedInt  , QAudioFormat::LittleEndian, 24 },
-    { GST_AUDIO_FORMAT_S24BE, QAudioFormat::SignedInt  , QAudioFormat::BigEndian   , 24 },
-    { GST_AUDIO_FORMAT_U24LE, QAudioFormat::UnSignedInt, QAudioFormat::LittleEndian, 24 },
-    { GST_AUDIO_FORMAT_U24BE, QAudioFormat::UnSignedInt, QAudioFormat::BigEndian   , 24 },
-    { GST_AUDIO_FORMAT_F32LE, QAudioFormat::Float      , QAudioFormat::LittleEndian, 32 },
-    { GST_AUDIO_FORMAT_F32BE, QAudioFormat::Float      , QAudioFormat::BigEndian   , 32 },
-    { GST_AUDIO_FORMAT_F64LE, QAudioFormat::Float      , QAudioFormat::LittleEndian, 64 },
-    { GST_AUDIO_FORMAT_F64BE, QAudioFormat::Float      , QAudioFormat::BigEndian   , 64 }
-};
+    if (fmt) {
+        for (int i = 1; i < QAudioFormat::NSampleFormats; ++i) {
+            if (strcmp(fmt, audioSampleFormatNames[i]))
+                continue;
+            return QAudioFormat::SampleFormat(i);
+        }
+    }
+    return QAudioFormat::Unknown;
+}
 
 }
 
@@ -258,21 +256,19 @@ static const AudioFormat qt_audioLookup[] =
 QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
 {
     QAudioFormat format;
-    GstAudioInfo info;
-    if (gst_audio_info_from_caps(&info, caps)) {
-        for (int i = 0; i < lengthOf(qt_audioLookup); ++i) {
-            if (qt_audioLookup[i].format != info.finfo->format)
-                continue;
+    QGstStructure s = QGstCaps(caps).at(0);
+    if (s.name() != "audio/x-raw")
+        return format;
 
-            format.setSampleType(qt_audioLookup[i].sampleType);
-            format.setByteOrder(qt_audioLookup[i].byteOrder);
-            format.setSampleSize(qt_audioLookup[i].sampleSize);
-            format.setSampleRate(info.rate);
-            format.setChannelCount(info.channels);
+    auto rate = s["rate"].toInt();
+    auto channels = s["channels"].toInt();
+    QAudioFormat::SampleFormat fmt = gstSampleFormatToSampleFormat(s["format"].toString());
+    if (!rate || !channels || fmt == QAudioFormat::Unknown)
+        return format;
 
-            return format;
-        }
-    }
+    format.setSampleRate(*rate);
+    format.setChannelCount(*channels);
+    format.setSampleFormat(fmt);
 
     return format;
 }
@@ -301,26 +297,32 @@ GstCaps *QGstUtils::capsForAudioFormat(const QAudioFormat &format)
     if (!format.isValid())
         return 0;
 
-    const QAudioFormat::SampleType sampleType = format.sampleType();
-    const QAudioFormat::Endian byteOrder = format.byteOrder();
-    const int sampleSize = format.sampleSize();
+    auto sampleFormat = format.sampleFormat();
+    return gst_caps_new_simple(
+                "audio/x-raw",
+                "format"  , G_TYPE_STRING, audioSampleFormatNames[sampleFormat],
+                "rate"    , G_TYPE_INT   , format.sampleRate(),
+                "channels", G_TYPE_INT   , format.channelCount(),
+                "layout"  , G_TYPE_STRING, "interleaved",
+                nullptr);
+}
 
-    for (int i = 0; i < lengthOf(qt_audioLookup); ++i) {
-        if (qt_audioLookup[i].sampleType != sampleType
-                || qt_audioLookup[i].byteOrder != byteOrder
-                || qt_audioLookup[i].sampleSize != sampleSize) {
-            continue;
-        }
+QList<QAudioFormat::SampleFormat> QGValue::getSampleFormats() const
+{
+    if (!GST_VALUE_HOLDS_LIST(value))
+        return {};
 
-        return gst_caps_new_simple(
-                    "audio/x-raw",
-                    "format"  , G_TYPE_STRING, gst_audio_format_to_string(qt_audioLookup[i].format),
-                    "rate"    , G_TYPE_INT   , format.sampleRate(),
-                    "channels", G_TYPE_INT   , format.channelCount(),
-                    "layout"  , G_TYPE_STRING, "interleaved",
-                    nullptr);
+    QList<QAudioFormat::SampleFormat> formats;
+    guint nFormats = gst_value_list_get_size(value);
+    for (guint f = 0; f < nFormats; ++f) {
+        QGValue v = gst_value_list_get_value(value, f);
+        auto *name = v.toString();
+        QAudioFormat::SampleFormat fmt = gstSampleFormatToSampleFormat(name);
+        if (fmt == QAudioFormat::Unknown)
+            continue;;
+        formats.append(fmt);
     }
-    return 0;
+    return formats;
 }
 
 void QGstUtils::initializeGst()

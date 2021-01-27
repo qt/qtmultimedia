@@ -107,7 +107,6 @@ private:
 public:
     QMap<int, QAudioDeviceInfo> m_sinks;
     QMap<int, QAudioDeviceInfo> m_sources;
-    QMap<QByteArray, QAudioFormat> m_preferredFormats;
 
     QByteArray m_defaultSink;
     QByteArray m_defaultSource;

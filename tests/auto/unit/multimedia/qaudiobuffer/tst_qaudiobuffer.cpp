@@ -60,8 +60,7 @@ tst_QAudioBuffer::tst_QAudioBuffer()
 {
     // Initialize some common buffers
     mFormat.setChannelCount(2);
-    mFormat.setSampleSize(16);
-    mFormat.setSampleType(QAudioFormat::UnSignedInt);
+    mFormat.setSampleFormat(QAudioFormat::Int16);
     mFormat.setSampleRate(10000);
 
     QByteArray b(4000, char(0x80));
@@ -236,18 +235,16 @@ void tst_QAudioBuffer::data()
 void tst_QAudioBuffer::durations()
 {
     QFETCH(int, channelCount);
-    QFETCH(int, sampleSize);
     QFETCH(int, frameCount);
     int sampleCount = frameCount * channelCount;
-    QFETCH(QAudioFormat::SampleType, sampleType);
+    QFETCH(QAudioFormat::SampleFormat, sampleFormat);
     QFETCH(int, sampleRate);
     QFETCH(qint64, duration);
     QFETCH(int, byteCount);
 
     QAudioFormat f;
     f.setChannelCount(channelCount);
-    f.setSampleType(sampleType);
-    f.setSampleSize(sampleSize);
+    f.setSampleFormat(sampleFormat);
     f.setSampleRate(sampleRate);
 
     QAudioBuffer b(frameCount, f);
@@ -261,21 +258,20 @@ void tst_QAudioBuffer::durations()
 void tst_QAudioBuffer::durations_data()
 {
     QTest::addColumn<int>("channelCount");
-    QTest::addColumn<int>("sampleSize");
     QTest::addColumn<int>("frameCount");
-    QTest::addColumn<QAudioFormat::SampleType>("sampleType");
+    QTest::addColumn<QAudioFormat::SampleFormat>("sampleType");
     QTest::addColumn<int>("sampleRate");
     QTest::addColumn<qint64>("duration");
     QTest::addColumn<int>("byteCount");
-    QTest::newRow("M8_1000_8K") << 1 << 8 << 1000 << QAudioFormat::UnSignedInt << 8000 << 125000LL << 1000;
-    QTest::newRow("M8_2000_8K") << 1 << 8 << 2000 << QAudioFormat::UnSignedInt << 8000 << 250000LL << 2000;
-    QTest::newRow("M8_1000_4K") << 1 << 8 << 1000 << QAudioFormat::UnSignedInt << 4000 << 250000LL << 1000;
+    QTest::newRow("M8_1000_8K") << 1 << 1000 << QAudioFormat::UInt8 << 8000 << 125000LL << 1000;
+    QTest::newRow("M8_2000_8K") << 1 << 2000 << QAudioFormat::UInt8 << 8000 << 250000LL << 2000;
+    QTest::newRow("M8_1000_4K") << 1 << 1000 << QAudioFormat::UInt8 << 4000 << 250000LL << 1000;
 
-    QTest::newRow("S8_1000_8K") << 2 << 8 << 500 << QAudioFormat::UnSignedInt << 8000 << 62500LL << 1000;
+    QTest::newRow("S8_1000_8K") << 2 << 500 << QAudioFormat::UInt8 << 8000 << 62500LL << 1000;
 
-    QTest::newRow("SF_1000_8K") << 2 << 32 << 500 << QAudioFormat::Float << 8000 << 62500LL << 4000;
+    QTest::newRow("SF_1000_8K") << 2 << 500 << QAudioFormat::Float << 8000 << 62500LL << 4000;
 
-    QTest::newRow("4x128_1000_16K") << 4 << 128 << 250 << QAudioFormat::SignedInt << 16000 << 15625LL << 16000;
+    QTest::newRow("S32_1000_16K") << 4 << 250 << QAudioFormat::Int32 << 16000 << 15625LL << 16000;
 }
 
 void tst_QAudioBuffer::stereoSample()

@@ -121,24 +121,16 @@ private:
 
 QString tst_QAudioOutput::formatToFileName(const QAudioFormat &format)
 {
-    const QString formatEndian = (format.byteOrder() == QAudioFormat::LittleEndian)
-        ?   QString("LE") : QString("BE");
-
-    const QString formatSigned = (format.sampleType() == QAudioFormat::SignedInt)
-        ?   QString("signed") : QString("unsigned");
-
-    return QString("%1_%2_%3_%4_%5")
+    return QString("%1_%2_%3")
         .arg(format.sampleRate())
-        .arg(format.sampleSize())
-        .arg(formatSigned)
-        .arg(formatEndian)
+        .arg(format.bytesPerSample())
         .arg(format.channelCount());
 }
 
 void tst_QAudioOutput::createSineWaveData(const QAudioFormat &format, qint64 length, int sampleRate)
 {
-    const int channelBytes = format.sampleSize() / 8;
-    const int sampleBytes = format.channelCount() * channelBytes;
+    const int channelBytes = format.bytesPerSample();
+    const int sampleBytes = format.bytesPerFrame();
 
     Q_ASSERT(length % sampleBytes == 0);
     Q_UNUSED(sampleBytes); // suppress warning in release builds
@@ -149,25 +141,25 @@ void tst_QAudioOutput::createSineWaveData(const QAudioFormat &format, qint64 len
 
     while (length) {
         const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex % format.sampleRate()) / format.sampleRate());
-        for (int i=0; i<format.channelCount(); ++i) {
-            if (format.sampleSize() == 8 && format.sampleType() == QAudioFormat::UnSignedInt) {
+        for (int i = 0; i < format.channelCount(); ++i) {
+            switch (format.sampleFormat()) {
+            case QAudioFormat::UInt8: {
                 const quint8 value = static_cast<quint8>((1.0 + x) / 2 * 255);
-                *reinterpret_cast<quint8*>(ptr) = value;
-            } else if (format.sampleSize() == 8 && format.sampleType() == QAudioFormat::SignedInt) {
-                const qint8 value = static_cast<qint8>(x * 127);
-                *reinterpret_cast<quint8*>(ptr) = value;
-            } else if (format.sampleSize() == 16 && format.sampleType() == QAudioFormat::UnSignedInt) {
-                quint16 value = static_cast<quint16>((1.0 + x) / 2 * 65535);
-                if (format.byteOrder() == QAudioFormat::LittleEndian)
-                    qToLittleEndian<quint16>(value, ptr);
-                else
-                    qToBigEndian<quint16>(value, ptr);
-            } else if (format.sampleSize() == 16 && format.sampleType() == QAudioFormat::SignedInt) {
+                *reinterpret_cast<quint8 *>(ptr) = value;
+            }
+            case QAudioFormat::Int16: {
                 qint16 value = static_cast<qint16>(x * 32767);
-                if (format.byteOrder() == QAudioFormat::LittleEndian)
-                    qToLittleEndian<qint16>(value, ptr);
-                else
-                    qToBigEndian<qint16>(value, ptr);
+                *reinterpret_cast<qint16 *>(ptr) = value;
+            }
+            case QAudioFormat::Int32: {
+                quint32 value = static_cast<quint32>(x) * std::numeric_limits<qint32>::max();
+                *reinterpret_cast<qint32 *>(ptr) = value;
+            }
+            case QAudioFormat::Float:
+                *reinterpret_cast<float *>(ptr) = x;
+            case QAudioFormat::Unknown:
+            case QAudioFormat::NSampleFormats:
+                break;
             }
 
             ptr += channelBytes;
@@ -212,16 +204,14 @@ void tst_QAudioOutput::initTestCase()
 
     // PCM 8000  mono S8
     format.setSampleRate(8000);
-    format.setSampleSize(8);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleFormat(QAudioFormat::UInt8);
     format.setChannelCount(1);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
     // PCM 11025 mono S16LE
     format.setSampleRate(11025);
-    format.setSampleSize(16);
+    format.setSampleFormat(QAudioFormat::Int16);
     if (audioDevice.isFormatSupported(format))
         testFormats.append(format);
 
@@ -258,7 +248,7 @@ void tst_QAudioOutput::initTestCase()
 
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
     for (const QAudioFormat &format : qAsConst(testFormats)) {
-        qint64 len = (format.sampleRate()*format.channelCount()*(format.sampleSize()/8)*2); // 2 seconds
+        qint64 len = format.sampleRate()*format.bytesPerFrame()*2; // 2 seconds
         createSineWaveData(format, len);
         // Write generate sine wave data to file
         const QString fileName = temporaryAudioPath + QStringLiteral("generated")
@@ -284,12 +274,9 @@ void tst_QAudioOutput::format()
             QString("channels: requested=%1, actual=%2").arg(requested.channelCount()).arg(actual.channelCount()).toLocal8Bit().constData());
     QVERIFY2((requested.sampleRate() == actual.sampleRate()),
             QString("sampleRate: requested=%1, actual=%2").arg(requested.sampleRate()).arg(actual.sampleRate()).toLocal8Bit().constData());
-    QVERIFY2((requested.sampleSize() == actual.sampleSize()),
-            QString("sampleSize: requested=%1, actual=%2").arg(requested.sampleSize()).arg(actual.sampleSize()).toLocal8Bit().constData());
-    QVERIFY2((requested.byteOrder() == actual.byteOrder()),
-            QString("byteOrder: requested=%1, actual=%2").arg(requested.byteOrder()).arg(actual.byteOrder()).toLocal8Bit().constData());
-    QVERIFY2((requested.sampleType() == actual.sampleType()),
-            QString("sampleType: requested=%1, actual=%2").arg(requested.sampleType()).arg(actual.sampleType()).toLocal8Bit().constData());
+    QVERIFY2((requested.sampleFormat() == actual.sampleFormat()),
+            QString("sampleFormat: requested=%1, actual=%2").arg(requested.sampleFormat()).arg(actual.sampleFormat()).toLocal8Bit().constData());
+    QVERIFY(requested == actual);
 }
 
 void tst_QAudioOutput::invalidFormat_data()
@@ -312,7 +299,7 @@ void tst_QAudioOutput::invalidFormat_data()
             << format;
 
     format = audioDevice.preferredFormat();
-    format.setSampleSize(0);
+    format.setSampleFormat(QAudioFormat::Unknown);
     QTest::newRow("Sample size 0")
             << format;
 }

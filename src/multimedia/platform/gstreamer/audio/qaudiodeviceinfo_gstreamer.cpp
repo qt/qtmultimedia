@@ -54,8 +54,30 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(const QByteArray &device, Q
     if (gstDevice) {
         gst_object_ref(gstDevice);
         auto *n = gst_device_get_display_name(gstDevice);
-        m_description = QString::fromUtf8(n);
+        description = QString::fromUtf8(n);
         g_free(n);
+
+        QGstCaps caps = gst_device_get_caps(gstDevice);
+        int size = caps.size();
+        for (int i = 0; i < size; ++i) {
+            auto c = caps.at(i);
+            if (c.name() == "audio/x-raw") {
+                auto rate = c["rate"].toIntRange();
+                if (rate)
+                    supportedSampleRates = { rate->min, rate->max };
+                auto channels = c["channels"].toIntRange();
+                if (channels)
+                    supportedChannelCounts = { channels->min, channels->max };
+                supportedSampleFormats = c["format"].getSampleFormats();
+            }
+        }
+
+        preferredFormat.setChannelCount(qBound(supportedChannelCounts.minimum, 2, supportedChannelCounts.maximum));
+        preferredFormat.setSampleRate(qBound(supportedSampleRates.minimum, 48000, supportedSampleRates.maximum));
+        QAudioFormat::SampleFormat f = QAudioFormat::Int16;
+        if (!supportedSampleFormats.contains(f))
+            f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
+        preferredFormat.setSampleFormat(f);
     }
 }
 
@@ -63,52 +85,6 @@ QGStreamerAudioDeviceInfo::~QGStreamerAudioDeviceInfo()
 {
     if (gstDevice)
         gst_object_unref(gstDevice);
-}
-
-bool QGStreamerAudioDeviceInfo::isFormatSupported(const QAudioFormat &) const
-{
-    // ####
-    return true;
-}
-
-QAudioFormat QGStreamerAudioDeviceInfo::preferredFormat() const
-{
-    QAudioFormat format;
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setChannelCount(2);
-    format.setSampleRate(48000);
-    format.setSampleSize(16);
-    return format;
-}
-
-QString QGStreamerAudioDeviceInfo::description() const
-{
-    return m_description;
-}
-
-QList<int> QGStreamerAudioDeviceInfo::supportedSampleRates() const
-{
-    return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
-}
-
-QList<int> QGStreamerAudioDeviceInfo::supportedChannelCounts() const
-{
-    return QList<int>() << 1 << 2 << 4 << 6 << 8;
-}
-
-QList<int> QGStreamerAudioDeviceInfo::supportedSampleSizes() const
-{
-    return QList<int>() << 8 << 16 << 24 << 32;
-}
-
-QList<QAudioFormat::Endian> QGStreamerAudioDeviceInfo::supportedByteOrders() const
-{
-    return QList<QAudioFormat::Endian>() << QAudioFormat::BigEndian << QAudioFormat::LittleEndian;
-}
-
-QList<QAudioFormat::SampleType> QGStreamerAudioDeviceInfo::supportedSampleTypes() const
-{
-    return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }
 
 QT_END_NAMESPACE

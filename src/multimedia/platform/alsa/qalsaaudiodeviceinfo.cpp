@@ -54,209 +54,30 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudio::Mode mode)
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc, QAudio::Mode mode)
     : QAudioDeviceInfoPrivate(dev, mode)
-    , m_description(description)
 {
-    handle = 0;
-
-    this->mode = mode;
+    description = desc;
 
     checkSurround();
+
+    supportedChannelCounts.minimum = 1;
+    supportedChannelCounts.maximum = 2;
+    if (surround71)
+        supportedChannelCounts.maximum = 8;
+    else if (surround40)
+        supportedChannelCounts.maximum = 4;
+    else if (surround51)
+        supportedChannelCounts.maximum = 6;
+
+    supportedSampleRates.minimum = 8000;
+    supportedSampleRates.maximum = 48000;
+
+    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
 }
 
 QAlsaAudioDeviceInfo::~QAlsaAudioDeviceInfo()
 {
-    close();
-}
-
-bool QAlsaAudioDeviceInfo::isFormatSupported(const QAudioFormat& format) const
-{
-    return testSettings(format);
-}
-
-QAudioFormat QAlsaAudioDeviceInfo::preferredFormat() const
-{
-    QAudioFormat nearest;
-    nearest.setSampleRate(44100);
-    nearest.setByteOrder(QAudioFormat::LittleEndian);
-    nearest.setSampleType(QAudioFormat::SignedInt);
-    nearest.setSampleSize(16);
-    nearest.setChannelCount(2);
-    if(mode == QAudio::AudioInput && !testSettings(nearest))
-        nearest.setChannelCount(1);
-    return nearest;
-}
-
-QList<int> QAlsaAudioDeviceInfo::supportedSampleRates() const
-{
-    updateLists();
-    return sampleRatez;
-}
-
-QList<int> QAlsaAudioDeviceInfo::supportedChannelCounts() const
-{
-    updateLists();
-    return channelz;
-}
-
-QList<int> QAlsaAudioDeviceInfo::supportedSampleSizes() const
-{
-    updateLists();
-    return sizez;
-}
-
-QList<QAudioFormat::Endian> QAlsaAudioDeviceInfo::supportedByteOrders() const
-{
-    updateLists();
-    return byteOrderz;
-}
-
-QList<QAudioFormat::SampleType> QAlsaAudioDeviceInfo::supportedSampleTypes() const
-{
-    updateLists();
-    return typez;
-}
-
-QByteArray QAlsaAudioDeviceInfo::defaultDevice(QAudio::Mode)
-{
-    return "default";
-}
-
-bool QAlsaAudioDeviceInfo::open() const
-{
-    int err = 0;
-
-    if(mode == QAudio::AudioOutput) {
-        err = snd_pcm_open(&handle, id.constData(), SND_PCM_STREAM_PLAYBACK,0);
-    } else {
-        err = snd_pcm_open(&handle, id.constData(), SND_PCM_STREAM_CAPTURE,0);
-    }
-    if(err < 0) {
-        handle = 0;
-        return false;
-    }
-    return true;
-}
-
-void QAlsaAudioDeviceInfo::close() const
-{
-    if(handle)
-        snd_pcm_close(handle);
-    handle = 0;
-}
-
-bool QAlsaAudioDeviceInfo::testSettings(const QAudioFormat& format) const
-{
-    // Set nearest to closest settings that do work.
-    // See if what is in settings will work (return value).
-    int err = -1;
-    snd_pcm_t* pcmHandle;
-    snd_pcm_hw_params_t *params;
-
-    snd_pcm_stream_t stream = mode == QAudio::AudioOutput
-                            ? SND_PCM_STREAM_PLAYBACK : SND_PCM_STREAM_CAPTURE;
-
-    if (snd_pcm_open(&pcmHandle, id.constData(), stream, 0) < 0)
-        return false;
-
-    snd_pcm_nonblock(pcmHandle, 0);
-    snd_pcm_hw_params_alloca(&params);
-    snd_pcm_hw_params_any(pcmHandle, params);
-
-    // set the values!
-    snd_pcm_hw_params_set_channels(pcmHandle, params, format.channelCount());
-    snd_pcm_hw_params_set_rate(pcmHandle, params, format.sampleRate(), 0);
-
-    snd_pcm_format_t pcmFormat = SND_PCM_FORMAT_UNKNOWN;
-    switch (format.sampleSize()) {
-    case 8:
-        if (format.sampleType() == QAudioFormat::SignedInt)
-            pcmFormat = SND_PCM_FORMAT_S8;
-        else if (format.sampleType() == QAudioFormat::UnSignedInt)
-            pcmFormat = SND_PCM_FORMAT_U8;
-        break;
-    case 16:
-        if (format.sampleType() == QAudioFormat::SignedInt) {
-            pcmFormat = format.byteOrder() == QAudioFormat::LittleEndian
-                      ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE;
-        } else if (format.sampleType() == QAudioFormat::UnSignedInt) {
-            pcmFormat = format.byteOrder() == QAudioFormat::LittleEndian
-                      ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE;
-        }
-        break;
-    case 32:
-        if (format.sampleType() == QAudioFormat::SignedInt) {
-            pcmFormat = format.byteOrder() == QAudioFormat::LittleEndian
-                      ? SND_PCM_FORMAT_S32_LE : SND_PCM_FORMAT_S32_BE;
-        } else if (format.sampleType() == QAudioFormat::UnSignedInt) {
-            pcmFormat = format.byteOrder() == QAudioFormat::LittleEndian
-                      ? SND_PCM_FORMAT_U32_LE : SND_PCM_FORMAT_U32_BE;
-        } else if (format.sampleType() == QAudioFormat::Float) {
-            pcmFormat = format.byteOrder() == QAudioFormat::LittleEndian
-                      ? SND_PCM_FORMAT_FLOAT_LE : SND_PCM_FORMAT_FLOAT_BE;
-        }
-    }
-
-    if (pcmFormat != SND_PCM_FORMAT_UNKNOWN)
-        err = snd_pcm_hw_params_set_format(pcmHandle, params, pcmFormat);
-
-    if (err >= 0 && format.channelCount() != -1) {
-        err = snd_pcm_hw_params_test_channels(pcmHandle, params, format.channelCount());
-        if (err >= 0)
-            err = snd_pcm_hw_params_set_channels(pcmHandle, params, format.channelCount());
-    }
-
-    if (err >= 0 && format.sampleRate() != -1) {
-        err = snd_pcm_hw_params_test_rate(pcmHandle, params, format.sampleRate(), 0);
-        if (err >= 0)
-            err = snd_pcm_hw_params_set_rate(pcmHandle, params, format.sampleRate(), 0);
-    }
-
-    if (err >= 0 && pcmFormat != SND_PCM_FORMAT_UNKNOWN)
-        err = snd_pcm_hw_params_set_format(pcmHandle, params, pcmFormat);
-
-    if (err >= 0)
-        err = snd_pcm_hw_params(pcmHandle, params);
-
-    snd_pcm_close(pcmHandle);
-
-    return (err == 0);
-}
-
-void QAlsaAudioDeviceInfo::updateLists() const
-{
-    // redo all lists based on current settings
-    sampleRatez.clear();
-    channelz.clear();
-    sizez.clear();
-    byteOrderz.clear();
-    typez.clear();
-
-    if(!handle)
-        open();
-
-    if(!handle)
-        return;
-
-    for(int i=0; i<(int)MAX_SAMPLE_RATES; i++) {
-        //if(snd_pcm_hw_params_test_rate(handle, params, SAMPLE_RATES[i], dir) == 0)
-        sampleRatez.append(SAMPLE_RATES[i]);
-    }
-    channelz.append(1);
-    channelz.append(2);
-    if (surround40) channelz.append(4);
-    if (surround51) channelz.append(6);
-    if (surround71) channelz.append(8);
-    sizez.append(8);
-    sizez.append(16);
-    sizez.append(32);
-    byteOrderz.append(QAudioFormat::LittleEndian);
-    byteOrderz.append(QAudioFormat::BigEndian);
-    typez.append(QAudioFormat::SignedInt);
-    typez.append(QAudioFormat::UnSignedInt);
-    typez.append(QAudioFormat::Float);
-    close();
 }
 
 void QAlsaAudioDeviceInfo::checkSurround()

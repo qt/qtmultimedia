@@ -138,16 +138,28 @@ bool WavFile::readHeader()
                 return false;
 
             // Establish format
-            if (memcmp(&header.riff.descriptor.id, "RIFF", 4) == 0)
-                m_fileFormat.setByteOrder(QAudioFormat::LittleEndian);
-            else
-                m_fileFormat.setByteOrder(QAudioFormat::BigEndian);
+            // ### do byte swapping for RIFX
+//            if (memcmp(&header.riff.descriptor.id, "RIFF", 4) == 0)
+//                m_fileFormat.setByteOrder(QAudioFormat::LittleEndian);
+//            else
+//                m_fileFormat.setByteOrder(QAudioFormat::BigEndian);
 
-            int bps = qFromLittleEndian<quint16>(header.wave.bitsPerSample);
             m_fileFormat.setChannelCount(qFromLittleEndian<quint16>(header.wave.numChannels));
             m_fileFormat.setSampleRate(qFromLittleEndian<quint32>(header.wave.sampleRate));
-            m_fileFormat.setSampleSize(qFromLittleEndian<quint16>(header.wave.bitsPerSample));
-            m_fileFormat.setSampleType(bps == 8 ? QAudioFormat::UnSignedInt : QAudioFormat::SignedInt);
+            switch(header.wave.bitsPerSample) {
+            case 8:
+                m_fileFormat.setSampleFormat(QAudioFormat::UInt8);
+                break;
+            case 16:
+                m_fileFormat.setSampleFormat(QAudioFormat::Int16);
+                break;
+            case 24:
+                m_fileFormat.setSampleFormat(QAudioFormat::Unknown);
+                break;
+            case 32:
+                m_fileFormat.setSampleFormat(QAudioFormat::Int32);
+                break;
+            }
         } else {
             result = false;
         }

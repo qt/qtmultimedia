@@ -59,21 +59,22 @@ QT_BEGIN_NAMESPACE
 class QAudioDeviceInfoPrivate : public QSharedData
 {
 public:
-    QAudioDeviceInfoPrivate(const QByteArray &h, QAudio::Mode m);
+    QAudioDeviceInfoPrivate(const QByteArray &i, QAudio::Mode m)
+        : id(i),
+          mode(m)
+    {}
     virtual ~QAudioDeviceInfoPrivate();
-
-    virtual QAudioFormat preferredFormat() const = 0;
-    virtual bool isFormatSupported(const QAudioFormat &format) const = 0;
-    virtual QString description() const = 0;
-    virtual QList<int> supportedSampleRates() const = 0;
-    virtual QList<int> supportedChannelCounts() const = 0;
-    virtual QList<int> supportedSampleSizes() const = 0;
-    virtual QList<QAudioFormat::Endian> supportedByteOrders() const = 0;
-    virtual QList<QAudioFormat::SampleType> supportedSampleTypes() const = 0;
-
     QByteArray  id;
     QAudio::Mode mode = QAudio::AudioOutput;
     bool isDefault = false;
+
+    QAudioFormat preferredFormat;
+    QString description;
+    QAudioDeviceInfo::Range supportedSampleRates;
+    QAudioDeviceInfo::Range supportedChannelCounts;
+    QList<QAudioFormat::SampleFormat> supportedSampleFormats;
+
+    QAudioDeviceInfo create() { return QAudioDeviceInfo(this); }
 };
 
 QT_END_NAMESPACE

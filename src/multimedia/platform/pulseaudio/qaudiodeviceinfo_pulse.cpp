@@ -43,54 +43,43 @@
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *description, bool isDef, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(device, mode),
-      m_description(QString::fromUtf8(description))
+QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *desc, bool isDef, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(device, mode)
 {
+    description = QString::fromUtf8(desc);
     isDefault = isDef;
-}
 
-bool QPulseAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
-{
-    pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(format);
-    return pa_sample_spec_valid(&spec) != 0;
-}
+    supportedChannelCounts = { 1, PA_CHANNELS_MAX };
+    supportedSampleRates = { 1, PA_RATE_MAX };
 
-QAudioFormat QPulseAudioDeviceInfo::preferredFormat() const
-{
-    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
-    QAudioFormat format = pulseEngine->m_preferredFormats.value(id);
-    return format;
-}
+    constexpr bool isBigEndian = QSysInfo::ByteOrder == QSysInfo::BigEndian;
 
-QString QPulseAudioDeviceInfo::description() const
-{
-    return m_description;
-}
+    const struct {
+        pa_sample_format pa_fmt;
+        QAudioFormat::SampleFormat qt_fmt;
+    } formatMap[] = {
+        { PA_SAMPLE_U8, QAudioFormat::UInt8 },
+        { isBigEndian ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE, QAudioFormat::Int16 },
+        { isBigEndian ? PA_SAMPLE_S32BE : PA_SAMPLE_S32LE, QAudioFormat::Int32 },
+        { isBigEndian ? PA_SAMPLE_FLOAT32BE : PA_SAMPLE_FLOAT32LE, QAudioFormat::Float },
+    };
 
-QList<int> QPulseAudioDeviceInfo::supportedSampleRates() const
-{
-    return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
-}
+    pa_sample_spec spec;
+    spec.channels = 1;
+    spec.rate = 48000;
 
-QList<int> QPulseAudioDeviceInfo::supportedChannelCounts() const
-{
-    return QList<int>() << 1 << 2 << 4 << 6 << 8;
-}
+    for (const auto &f : formatMap) {
+        spec.format = f.pa_fmt;
+        if (pa_sample_spec_valid(&spec) != 0)
+            supportedSampleFormats.append(f.qt_fmt);
+    }
 
-QList<int> QPulseAudioDeviceInfo::supportedSampleSizes() const
-{
-    return QList<int>() << 8 << 16 << 24 << 32;
-}
-
-QList<QAudioFormat::Endian> QPulseAudioDeviceInfo::supportedByteOrders() const
-{
-    return QList<QAudioFormat::Endian>() << QAudioFormat::BigEndian << QAudioFormat::LittleEndian;
-}
-
-QList<QAudioFormat::SampleType> QPulseAudioDeviceInfo::supportedSampleTypes() const
-{
-    return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
+    preferredFormat.setChannelCount(2);
+    preferredFormat.setSampleRate(48000);
+    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
+    if (!supportedSampleFormats.contains(f))
+        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
+    preferredFormat.setSampleFormat(f);
 }
 
 QT_END_NAMESPACE

@@ -55,9 +55,8 @@ public:
         , mSerial(0)
     {
         mFormat.setChannelCount(1);
-        mFormat.setSampleSize(8);
+        mFormat.setSampleFormat(QAudioFormat::UInt8);
         mFormat.setSampleRate(1000);
-        mFormat.setSampleType(QAudioFormat::UnSignedInt);
     }
 
     QAudioDecoder::State state() const
