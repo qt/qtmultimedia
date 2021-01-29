@@ -56,9 +56,7 @@
 #include <qmediarecordercontrol.h>
 #include "camerabinsession.h"
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
 #include <gst/pbutils/encoding-profile.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -86,9 +84,7 @@ public:
     QAudioDeviceInfo audioInput() const override;
     bool setAudioInput(const QAudioDeviceInfo &id) override;
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingContainerProfile *videoProfile();
-#endif
 
 public slots:
     void setState(QMediaRecorder::State state) override;

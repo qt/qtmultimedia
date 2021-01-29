@@ -130,7 +130,6 @@ qint64 CameraBinRecorder::duration() const
 
 void CameraBinRecorder::applySettings()
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     CameraBinContainer *containerControl = m_session->mediaContainerControl();
     CameraBinAudioEncoder *audioEncoderControl = m_session->audioEncodeControl();
     CameraBinVideoEncoder *videoEncoderControl = m_session->videoEncodeControl();
@@ -201,7 +200,6 @@ void CameraBinRecorder::applySettings()
             }
         }
     }
-#endif
 }
 
 QAudioDeviceInfo CameraBinRecorder::audioInput() const
@@ -215,8 +213,6 @@ bool CameraBinRecorder::setAudioInput(const QAudioDeviceInfo &info)
     m_session->setCaptureDevice(QString::fromLatin1(info.id()));
     return true;
 }
-
-#if QT_CONFIG(gstreamer_encodingprofiles)
 
 GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
 {
@@ -238,8 +234,6 @@ GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
 
     return containerProfile;
 }
-
-#endif
 
 void CameraBinRecorder::setState(QMediaRecorder::State state)
 {

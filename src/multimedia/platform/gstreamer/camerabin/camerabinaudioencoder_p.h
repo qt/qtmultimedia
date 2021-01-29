@@ -61,10 +61,8 @@
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
-#endif
 
 #include <qaudioformat.h>
 
@@ -97,9 +95,7 @@ public:
     void setActualAudioSettings(const QAudioEncoderSettings&);
     void resetActualSettings();
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingProfile *createProfile();
-#endif
 
     void applySettings(GstElement *element);
 
@@ -107,9 +103,7 @@ Q_SIGNALS:
     void settingsChanged();
 
 private:
-#if QT_CONFIG(gstreamer_encodingprofiles)
     QGstCodecsInfo m_codecs;
-#endif
 
     QAudioEncoderSettings m_actualAudioSettings;
     QAudioEncoderSettings m_audioSettings;

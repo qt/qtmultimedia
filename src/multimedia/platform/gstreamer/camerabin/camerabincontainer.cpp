@@ -47,29 +47,18 @@ QT_BEGIN_NAMESPACE
 
 CameraBinContainer::CameraBinContainer(QObject *parent)
     :QMediaContainerControl(parent)
-#if QT_CONFIG(gstreamer_encodingprofiles)
     , m_supportedContainers(QGstCodecsInfo::Muxer)
-#endif
 {
 }
 
 QStringList CameraBinContainer::supportedContainers() const
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_supportedContainers.supportedCodecs();
-#else
-    return QStringList();
-#endif
 }
 
 QString CameraBinContainer::containerDescription(const QString &formatMimeType) const
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_supportedContainers.codecDescription(formatMimeType);
-#else
-    Q_UNUSED(formatMimeType);
-    return QString();
-#endif
 }
 
 QString CameraBinContainer::containerFormat() const
@@ -79,13 +68,11 @@ QString CameraBinContainer::containerFormat() const
 
 void CameraBinContainer::setContainerFormat(const QString &format)
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     if (m_format != format) {
         m_format = format;
         m_actualFormat = format;
         emit settingsChanged();
     }
-#endif
 }
 
 QString CameraBinContainer::actualContainerFormat() const
@@ -95,17 +82,13 @@ QString CameraBinContainer::actualContainerFormat() const
 
 void CameraBinContainer::setActualContainerFormat(const QString &containerFormat)
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     m_actualFormat = containerFormat;
-#endif
 }
 
 void CameraBinContainer::resetActualContainerFormat()
 {
     m_actualFormat = m_format;
 }
-
-#if QT_CONFIG(gstreamer_encodingprofiles)
 
 GstEncodingContainerProfile *CameraBinContainer::createProfile()
 {
@@ -145,7 +128,5 @@ GstEncodingContainerProfile *CameraBinContainer::createProfile()
 
     return profile;
 }
-
-#endif
 
 QT_END_NAMESPACE

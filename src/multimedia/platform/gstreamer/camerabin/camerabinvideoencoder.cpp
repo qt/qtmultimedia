@@ -50,9 +50,7 @@ QT_BEGIN_NAMESPACE
 CameraBinVideoEncoder::CameraBinVideoEncoder(CameraBinSession *session)
     :QVideoEncoderSettingsControl(session)
     , m_session(session)
-#if QT_CONFIG(gstreamer_encodingprofiles)
     , m_codecs(QGstCodecsInfo::VideoEncoder)
-#endif
 {
 }
 
@@ -62,21 +60,12 @@ CameraBinVideoEncoder::~CameraBinVideoEncoder()
 
 QStringList CameraBinVideoEncoder::supportedVideoCodecs() const
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.supportedCodecs();
-#else
-    return QStringList();
-#endif
 }
 
 QString CameraBinVideoEncoder::videoCodecDescription(const QString &codecName) const
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.codecDescription(codecName);
-#else
-    Q_UNUSED(codecName);
-    return QString();
-#endif
 }
 
 QVideoEncoderSettings CameraBinVideoEncoder::videoSettings() const
@@ -139,8 +128,6 @@ QPair<int,int> CameraBinVideoEncoder::rateAsRational(qreal frameRate) const
 
     return QPair<int,int>();
 }
-
-#if QT_CONFIG(gstreamer_encodingprofiles)
 
 GstEncodingProfile *CameraBinVideoEncoder::createProfile()
 {

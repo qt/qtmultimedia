@@ -30,11 +30,6 @@ qt_config_compile_test("evr"
                    PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/evr"
 )
 
-qt_config_compile_test("gstreamer_encodingprofiles"
-                   LABEL "GStreamer encoding-profile.h"
-                   PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/gstreamer_encodingprofiles"
-)
-
 qt_config_compile_test("gpu_vivante"
                    LABEL "Vivante GPU"
                    PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/gpu_vivante"
@@ -80,10 +75,6 @@ qt_feature("gstreamer" PRIVATE
 qt_feature("gstreamer_app" PRIVATE
     LABEL "GStreamer App"
     CONDITION ( QT_FEATURE_gstreamer_1_0 AND GStreamer_App_FOUND )
-)
-qt_feature("gstreamer_encodingprofiles" PRIVATE
-    LABEL "GStreamer encoding-profile.h"
-    CONDITION QT_FEATURE_gstreamer AND TEST_gstreamer_encodingprofiles
 )
 qt_feature("gstreamer_photography" PRIVATE
     LABEL "GStreamer Photography"

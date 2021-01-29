@@ -48,9 +48,7 @@ QT_BEGIN_NAMESPACE
 
 CameraBinAudioEncoder::CameraBinAudioEncoder(QObject *parent)
     :QAudioEncoderSettingsControl(parent)
-#if QT_CONFIG(gstreamer_encodingprofiles)
     , m_codecs(QGstCodecsInfo::AudioEncoder)
-#endif
 {
 }
 
@@ -60,21 +58,12 @@ CameraBinAudioEncoder::~CameraBinAudioEncoder()
 
 QStringList CameraBinAudioEncoder::supportedAudioCodecs() const
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.supportedCodecs();
-#else
-    return QStringList();
-#endif
 }
 
 QString CameraBinAudioEncoder::codecDescription(const QString &codecName) const
 {
-#if QT_CONFIG(gstreamer_encodingprofiles)
     return m_codecs.codecDescription(codecName);
-#else
-    Q_UNUSED(codecName);
-    return QString();
-#endif
 }
 
 QList<int> CameraBinAudioEncoder::supportedSampleRates(const QAudioEncoderSettings &, bool *) const
@@ -113,8 +102,6 @@ void CameraBinAudioEncoder::resetActualSettings()
     m_actualAudioSettings = m_audioSettings;
 }
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
-
 GstEncodingProfile *CameraBinAudioEncoder::createProfile()
 {
     QString codec = m_actualAudioSettings.codec();
@@ -136,8 +123,6 @@ GstEncodingProfile *CameraBinAudioEncoder::createProfile()
 
     return profile;
 }
-
-#endif
 
 void CameraBinAudioEncoder::applySettings(GstElement *encoder)
 {

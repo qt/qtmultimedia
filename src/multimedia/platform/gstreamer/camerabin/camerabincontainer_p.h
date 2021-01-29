@@ -60,10 +60,8 @@
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -84,9 +82,7 @@ public:
     void setActualContainerFormat(const QString &containerFormat);
     void resetActualContainerFormat();
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
     GstEncodingContainerProfile *createProfile();
-#endif
 
 Q_SIGNALS:
     void settingsChanged();
@@ -95,9 +91,7 @@ private:
     QString m_format;
     QString m_actualFormat;
 
-#if QT_CONFIG(gstreamer_encodingprofiles)
     QGstCodecsInfo m_supportedContainers;
-#endif
 };
 
 QT_END_NAMESPACE
