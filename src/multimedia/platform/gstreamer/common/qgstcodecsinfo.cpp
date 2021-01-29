@@ -180,6 +180,9 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
                     QString codec = QLatin1String(capsString);
                     if (capsString)
                         g_free(capsString);
+                    // skip stuff that's not really a known audio/video codec
+                    if (codec.startsWith("application"))
+                        continue;
                     GstRank rank = GstRank(gst_plugin_feature_get_rank(GST_PLUGIN_FEATURE(factory)));
 
                     // If two elements provide the same codec, use the highest ranked one
