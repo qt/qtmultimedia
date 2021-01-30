@@ -37,71 +37,123 @@
 **
 ****************************************************************************/
 
-#include "qgstreameraudioencode_p.h"
-#include "qgstreamercapturesession_p.h"
-#include "qgstreamermediacontainercontrol_p.h"
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include "qgstreameraudioencoder_p.h"
+#include "qgstreamercontainer_p.h"
 #include <private/qgstutils_p.h>
 
 #include <QtCore/qdebug.h>
 
-#include <math.h>
+QT_BEGIN_NAMESPACE
 
-QGstreamerAudioEncode::QGstreamerAudioEncode(QObject *parent)
-    :QAudioEncoderSettingsControl(parent)
+QGStreamerAudioEncoderControl::QGStreamerAudioEncoderControl(QObject *parent)
+    : QAudioEncoderSettingsControl(parent)
     , m_codecs(QGstCodecsInfo::AudioEncoder)
 {
 }
 
-QGstreamerAudioEncode::~QGstreamerAudioEncode()
+QGStreamerAudioEncoderControl::~QGStreamerAudioEncoderControl()
 {
 }
 
-QStringList QGstreamerAudioEncode::supportedAudioCodecs() const
+QStringList QGStreamerAudioEncoderControl::supportedAudioCodecs() const
 {
     return m_codecs.supportedCodecs();
 }
 
-QString QGstreamerAudioEncode::codecDescription(const QString &codecName) const
+QString QGStreamerAudioEncoderControl::codecDescription(const QString &codecName) const
 {
     return m_codecs.codecDescription(codecName);
 }
 
-QStringList QGstreamerAudioEncode::supportedEncodingOptions(const QString &codec) const
-{
-    return m_codecs.codecOptions(codec);
-}
-
-QVariant QGstreamerAudioEncode::encodingOption(
-        const QString &codec, const QString &name) const
-{
-    return m_options[codec].value(name);
-}
-
-void QGstreamerAudioEncode::setEncodingOption(
-        const QString &codec, const QString &name, const QVariant &value)
-{
-    m_options[codec][name] = value;
-}
-
-QList<int> QGstreamerAudioEncode::supportedSampleRates(const QAudioEncoderSettings &, bool *) const
+QList<int> QGStreamerAudioEncoderControl::supportedSampleRates(const QAudioEncoderSettings &, bool *) const
 {
     //TODO check element caps to find actual values
 
     return QList<int>();
 }
 
-QAudioEncoderSettings QGstreamerAudioEncode::audioSettings() const
+QAudioEncoderSettings QGStreamerAudioEncoderControl::audioSettings() const
 {
     return m_audioSettings;
 }
 
-void QGstreamerAudioEncode::setAudioSettings(const QAudioEncoderSettings &settings)
+void QGStreamerAudioEncoderControl::setAudioSettings(const QAudioEncoderSettings &settings)
 {
-    m_audioSettings = settings;
+    if (m_audioSettings != settings) {
+        m_audioSettings = settings;
+        m_actualAudioSettings = settings;
+        emit settingsChanged();
+    }
+}
+
+QAudioEncoderSettings QGStreamerAudioEncoderControl::actualAudioSettings() const
+{
+    return m_actualAudioSettings;
+}
+
+void QGStreamerAudioEncoderControl::setActualAudioSettings(const QAudioEncoderSettings &settings)
+{
+    m_actualAudioSettings = settings;
+}
+
+void QGStreamerAudioEncoderControl::resetActualSettings()
+{
+    m_actualAudioSettings = m_audioSettings;
+}
+
+GstEncodingProfile *QGStreamerAudioEncoderControl::createProfile()
+{
+    QString codec = m_actualAudioSettings.codec();
+    QString preset = m_actualAudioSettings.encodingOption(QStringLiteral("preset")).toString();
+    GstCaps *caps;
+
+    if (codec.isEmpty())
+        return 0;
+
+    caps = gst_caps_from_string(codec.toLatin1());
+
+    GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
+                caps,
+                !preset.isEmpty() ? preset.toLatin1().constData() : NULL, //preset
+                NULL,   //restriction
+                0);     //presence
+
+    gst_caps_unref(caps);
+
+    return profile;
+}
+
+void QGStreamerAudioEncoderControl::applySettings(GstElement *encoder)
+{
+    GObjectClass * const objectClass = G_OBJECT_GET_CLASS(encoder);
+    const char * const name = qt_gst_element_get_factory_name(encoder);
+
+    const bool isVorbis = qstrcmp(name, "vorbisenc") == 0;
+
+    const int bitRate = m_actualAudioSettings.bitRate();
+    if (!isVorbis && bitRate == -1) {
+        // Bit rate is invalid, don't evaluate the remaining conditions unless the encoder is
+        // vorbisenc which is known to accept -1 as an unspecified bitrate.
+    } else if (g_object_class_find_property(objectClass, "bitrate")) {
+        g_object_set(G_OBJECT(encoder), "bitrate", bitRate, NULL);
+    } else if (g_object_class_find_property(objectClass, "target-bitrate")) {
+        g_object_set(G_OBJECT(encoder), "target-bitrate", bitRate, NULL);
+    }
+
+    if (isVorbis) {
+        static const double qualities[] = { 0.1, 0.3, 0.5, 0.7, 1.0 };
+        g_object_set(G_OBJECT(encoder), "quality", qualities[m_actualAudioSettings.quality()], NULL);
+    }
 }
 
 
-GstElement *QGstreamerAudioEncode::createEncoder()
+QSet<QString> QGStreamerAudioEncoderControl::supportedStreamTypes(const QString &codecName) const
+{
+    return m_codecs.supportedStreamTypes(codecName);
+}
+
+GstElement *QGStreamerAudioEncoderControl::createEncoder()
 {
     QString codec = m_audioSettings.codec();
     GstElement *encoderElement = gst_element_factory_make(m_codecs.codecElement(codec).constData(), NULL);
@@ -203,6 +255,7 @@ GstElement *QGstreamerAudioEncode::createEncoder()
             }
         }
 
+#if 0
         QMap<QString, QVariant> options = m_options.value(codec);
         for (auto it = options.cbegin(), end = options.cend(); it != end; ++it) {
             const QString &option = it.key();
@@ -227,13 +280,10 @@ GstElement *QGstreamerAudioEncode::createEncoder()
             }
 
         }
+#endif
     }
 
     return GST_ELEMENT(encoderBin);
 }
 
-
-QSet<QString> QGstreamerAudioEncode::supportedStreamTypes(const QString &codecName) const
-{
-    return m_codecs.supportedStreamTypes(codecName);
-}
+QT_END_NAMESPACE

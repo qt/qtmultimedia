@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 
-#ifndef QGSTREAMERMEDIACONTAINERCONTROL_H
-#define QGSTREAMERMEDIACONTAINERCONTROL_H
+#ifndef QGSTREAMERCONTAINERCONTROL_H
+#define QGSTREAMERCONTAINERCONTROL_H
 
 //
 //  W A R N I N G
@@ -52,40 +52,60 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qmediacontainercontrol.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qset.h>
 
-#include <private/qgstcodecsinfo_p.h>
-
 #include <gst/gst.h>
+#include <gst/pbutils/pbutils.h>
+
+#include <gst/pbutils/encoding-profile.h>
+#include <private/qgstcodecsinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerMediaContainerControl : public QMediaContainerControl
+class QGStreamerAudioEncoderControl;
+class QGStreamerVideoEncoderControl;
+
+class QGStreamerContainerControl : public QMediaContainerControl
 {
 Q_OBJECT
 public:
-    QGstreamerMediaContainerControl(QObject *parent);
-    ~QGstreamerMediaContainerControl() {}
+    QGStreamerContainerControl(QObject *parent);
+    virtual ~QGStreamerContainerControl() {}
 
-    QStringList supportedContainers() const override { return m_containers.supportedCodecs(); }
-    QString containerFormat() const override { return m_format; }
-    void setContainerFormat(const QString &formatMimeType) override { m_format = formatMimeType; }
+    QStringList supportedContainers() const override;
+    QString containerDescription(const QString &formatMimeType) const override;
 
-    QString containerDescription(const QString &formatMimeType) const override { return m_containers.codecDescription(formatMimeType); }
+    QString containerFormat() const override;
+    void setContainerFormat(const QString &format) override;
 
-    QByteArray formatElementName() const { return m_containers.codecElement(containerFormat()); }
+    QString actualContainerFormat() const;
+    void setActualContainerFormat(const QString &containerFormat);
+    void resetActualContainerFormat();
 
+    GstEncodingContainerProfile *createProfile();
+
+    GstEncodingContainerProfile *fullProfile(QGStreamerAudioEncoderControl *audioEncoderControl, QGStreamerVideoEncoderControl *videoEncoderControl);
+
+    void applySettings(QGStreamerAudioEncoderControl *audioEncoderControl, QGStreamerVideoEncoderControl *videoEncoderControl);
+
+    QByteArray formatElementName() const { return m_supportedContainers.codecElement(containerFormat()); }
     QSet<QString> supportedStreamTypes(const QString &container) const;
 
     QString containerExtension() const;
 
+Q_SIGNALS:
+    void settingsChanged();
+
 private:
     QString m_format;
-    QGstCodecsInfo m_containers;
+    QString m_actualFormat;
+
+    QGstCodecsInfo m_supportedContainers;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERMEDIACONTAINERCONTROL_H
+#endif // CAMERABINMEDIACONTAINERCONTROL_H

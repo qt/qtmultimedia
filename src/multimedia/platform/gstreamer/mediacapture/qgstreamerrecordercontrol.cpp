@@ -38,16 +38,16 @@
 ****************************************************************************/
 
 #include "qgstreamerrecordercontrol_p.h"
-#include "qgstreameraudioencode_p.h"
-#include "qgstreamervideoencode_p.h"
-#include "qgstreamermediacontainercontrol_p.h"
+#include "private/qgstreameraudioencoder_p.h"
+#include "private/qgstreamervideoencoder_p.h"
+#include "private/qgstreamercontainer_p.h"
 #include <QtCore/QDebug>
 #include <QtGui/qdesktopservices.h>
 #include <QStandardPaths>
 #include "qaudiodeviceinfo.h"
 
 QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
-    :QMediaRecorderControl(session),
+    : QMediaRecorderControl(session),
       m_session(session),
       m_state(QMediaRecorder::StoppedState),
       m_status(QMediaRecorder::UnloadedStatus)
@@ -216,10 +216,13 @@ void QGstreamerRecorderControl::applySettings()
 {
     //Check the codecs are compatible with container,
     //and choose the compatible codecs/container if omitted
-    QGstreamerAudioEncode *audioEncodeControl = m_session->audioEncodeControl();
-    QGstreamerVideoEncode *videoEncodeControl = m_session->videoEncodeControl();
-    QGstreamerMediaContainerControl *mediaContainerControl = m_session->mediaContainerControl();
+    QGStreamerAudioEncoderControl *audioEncodeControl = m_session->audioEncodeControl();
+    QGStreamerVideoEncoderControl *videoEncodeControl = m_session->videoEncodeControl();
+    QGStreamerContainerControl *mediaContainerControl = m_session->mediaContainerControl();
 
+#if 0
+    mediaContainerControl->applySettings(audioEncodeControl, videoEncodeControl);
+#else
     bool needAudio = m_session->captureMode() & QGstreamerCaptureSession::Audio;
     bool needVideo = m_session->captureMode() & QGstreamerCaptureSession::Video;
 
@@ -307,6 +310,7 @@ void QGstreamerRecorderControl::applySettings()
             videoEncodeControl->setVideoSettings(videoSettings);
         }
     }
+#endif
 }
 
 QAudioDeviceInfo QGstreamerRecorderControl::audioInput() const

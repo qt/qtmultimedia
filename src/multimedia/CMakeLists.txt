@@ -201,12 +201,15 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/audio/qaudiooutput_gstreamer.cpp platform/gstreamer/audio/qaudiooutput_gstreamer_p.h
         platform/gstreamer/audio/qgstreameraudiodecodercontrol.cpp platform/gstreamer/audio/qgstreameraudiodecodercontrol_p.h
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
+        platform/gstreamer/common/qgstreameraudioencoder.cpp  platform/gstreamer/common/qgstreameraudioencoder_p.h
+        platform/gstreamer/common/qgstreamercontainer.cpp  platform/gstreamer/common/qgstreamercontainer_p.h
         platform/gstreamer/common/qgstcodecsinfo.cpp platform/gstreamer/common/qgstcodecsinfo_p.h
         platform/gstreamer/common/qgstreamerbufferprobe.cpp platform/gstreamer/common/qgstreamerbufferprobe_p.h
         platform/gstreamer/common/qgstreamerbushelper.cpp platform/gstreamer/common/qgstreamerbushelper_p.h
         platform/gstreamer/common/qgstreamermessage.cpp platform/gstreamer/common/qgstreamermessage_p.h
         platform/gstreamer/common/qgstreamerplayercontrol.cpp platform/gstreamer/common/qgstreamerplayercontrol_p.h
         platform/gstreamer/common/qgstreamerplayersession.cpp platform/gstreamer/common/qgstreamerplayersession_p.h
+        platform/gstreamer/common/qgstreamervideoencoder.cpp  platform/gstreamer/common/qgstreamervideoencoder_p.h
         platform/gstreamer/common/qgstreamervideooverlay.cpp platform/gstreamer/common/qgstreamervideooverlay_p.h
         platform/gstreamer/common/qgstreamervideorenderer.cpp platform/gstreamer/common/qgstreamervideorenderer_p.h
         platform/gstreamer/common/qgstreamervideorendererinterface.cpp platform/gstreamer/common/qgstreamervideorendererinterface_p.h
@@ -231,8 +234,8 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_camerabin
     SOURCES
-        platform/gstreamer/camerabin/camerabinaudioencoder.cpp platform/gstreamer/camerabin/camerabinaudioencoder_p.h
-        platform/gstreamer/camerabin/camerabincontainer.cpp platform/gstreamer/camerabin/camerabincontainer_p.h
+        platform/gstreamer/camerabin/qgstreameraudioencodercontrol.cpp platform/gstreamer/camerabin/qgstreameraudioencodercontrol_p.h
+        platform/gstreamer/camerabin/qgstreamercontainercontrol.cpp platform/gstreamer/camerabin/qgstreamercontainercontrol_p.h
         platform/gstreamer/camerabin/camerabincontrol.cpp platform/gstreamer/camerabin/camerabincontrol_p.h
         platform/gstreamer/camerabin/camerabinimagecapture.cpp platform/gstreamer/camerabin/camerabinimagecapture_p.h
         platform/gstreamer/camerabin/camerabinimageencoder.cpp platform/gstreamer/camerabin/camerabinimageencoder_p.h
@@ -241,7 +244,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_came
         platform/gstreamer/camerabin/camerabinrecorder.cpp platform/gstreamer/camerabin/camerabinrecorder_p.h
         platform/gstreamer/camerabin/camerabinservice.cpp platform/gstreamer/camerabin/camerabinservice_p.h
         platform/gstreamer/camerabin/camerabinsession.cpp platform/gstreamer/camerabin/camerabinsession_p.h
-        platform/gstreamer/camerabin/camerabinvideoencoder.cpp platform/gstreamer/camerabin/camerabinvideoencoder_p.h
+        platform/gstreamer/camerabin/qgstreamervideoencodercontrol.cpp platform/gstreamer/camerabin/qgstreamervideoencodercontrol_p.h
     DEFINES
         GST_USE_CAMERABIN
 )
@@ -268,16 +271,13 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATU
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_camerabin
     SOURCES
-        platform/gstreamer/mediacapture/qgstreameraudioencode.cpp platform/gstreamer/mediacapture/qgstreameraudioencode_p.h
         platform/gstreamer/mediacapture/qgstreamercameracontrol.cpp platform/gstreamer/mediacapture/qgstreamercameracontrol_p.h
         platform/gstreamer/mediacapture/qgstreamercapturemetadatacontrol.cpp platform/gstreamer/mediacapture/qgstreamercapturemetadatacontrol_p.h
         platform/gstreamer/mediacapture/qgstreamercaptureservice.cpp platform/gstreamer/mediacapture/qgstreamercaptureservice_p.h
         platform/gstreamer/mediacapture/qgstreamercapturesession.cpp platform/gstreamer/mediacapture/qgstreamercapturesession_p.h
         platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol.cpp platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol_p.h
         platform/gstreamer/mediacapture/qgstreamerimageencode.cpp platform/gstreamer/mediacapture/qgstreamerimageencode_p.h
-        platform/gstreamer/mediacapture/qgstreamermediacontainercontrol.cpp platform/gstreamer/mediacapture/qgstreamermediacontainercontrol_p.h
         platform/gstreamer/mediacapture/qgstreamerrecordercontrol.cpp platform/gstreamer/mediacapture/qgstreamerrecordercontrol_p.h
-        platform/gstreamer/mediacapture/qgstreamervideoencode.cpp platform/gstreamer/mediacapture/qgstreamervideoencode_p.h
     INCLUDE_DIRECTORIES
         platform/gstreamer/mediacapture
 )

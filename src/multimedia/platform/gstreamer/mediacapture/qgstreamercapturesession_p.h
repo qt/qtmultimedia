@@ -68,11 +68,11 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
-class QGstreamerAudioEncode;
-class QGstreamerVideoEncode;
+class QGStreamerAudioEncoderControl;
+class QGStreamerVideoEncoderControl;
 class QGstreamerImageEncode;
 class QGstreamerRecorderControl;
-class QGstreamerMediaContainerControl;
+class QGStreamerContainerControl;
 class QGstreamerVideoRendererInterface;
 class QCameraInfo;
 
@@ -120,12 +120,12 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl& sink);
 
-    QGstreamerAudioEncode *audioEncodeControl() const { return m_audioEncodeControl; }
-    QGstreamerVideoEncode *videoEncodeControl() const { return m_videoEncodeControl; }
+    QGStreamerAudioEncoderControl *audioEncodeControl() const { return m_audioEncodeControl; }
+    QGStreamerVideoEncoderControl *videoEncodeControl() const { return m_videoEncodeControl; }
     QGstreamerImageEncode *imageEncodeControl() const { return m_imageEncodeControl; }
 
     QGstreamerRecorderControl *recorderControl() const { return m_recorderControl; }
-    QGstreamerMediaContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
+    QGStreamerContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
     QGstreamerElementFactory *audioPreview() const { return m_audioPreviewFactory; }
     void setAudioPreview(QGstreamerElementFactory *audioPreview);
@@ -180,6 +180,7 @@ private:
     enum PipelineMode { EmptyPipeline, PreviewPipeline, RecordingPipeline, PreviewAndRecordingPipeline };
 
     GstElement *buildEncodeBin();
+    GstElement *buildFileSink();
     GstElement *buildAudioSrc();
     GstElement *buildAudioPreview();
     GstElement *buildVideoSrc();
@@ -202,11 +203,11 @@ private:
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
 
-    QGstreamerAudioEncode *m_audioEncodeControl;
-    QGstreamerVideoEncode *m_videoEncodeControl;
+    QGStreamerAudioEncoderControl *m_audioEncodeControl;
+    QGStreamerVideoEncoderControl *m_videoEncodeControl;
     QGstreamerImageEncode *m_imageEncodeControl;
     QGstreamerRecorderControl *m_recorderControl;
-    QGstreamerMediaContainerControl *m_mediaContainerControl;
+    QGStreamerContainerControl *m_mediaContainerControl;
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;
@@ -228,6 +229,7 @@ private:
     GstElement *m_imageCaptureBin;
 
     GstElement *m_encodeBin;
+    GstElement *m_fileSink = nullptr;
 
     GstVideoInfo m_previewInfo;
 

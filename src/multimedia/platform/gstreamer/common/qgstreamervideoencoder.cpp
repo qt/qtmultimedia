@@ -37,61 +37,171 @@
 **
 ****************************************************************************/
 
-#include "qgstreamervideoencode_p.h"
-#include "qgstreamercapturesession_p.h"
-#include "qgstreamermediacontainercontrol_p.h"
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include "qgstreamervideoencoder_p.h"
+#include "qgstreamercontainer_p.h"
 #include <private/qgstutils_p.h>
+
 #include <QtCore/qdebug.h>
 
-#include <math.h>
+QT_BEGIN_NAMESPACE
 
-QGstreamerVideoEncode::QGstreamerVideoEncode(QGstreamerCaptureSession *session)
-    :QVideoEncoderSettingsControl(session), m_session(session)
+QGStreamerVideoEncoderControl::QGStreamerVideoEncoderControl()
+    : QVideoEncoderSettingsControl()
     , m_codecs(QGstCodecsInfo::VideoEncoder)
 {
 }
 
-QGstreamerVideoEncode::~QGstreamerVideoEncode()
+QGStreamerVideoEncoderControl::~QGStreamerVideoEncoderControl()
 {
 }
 
-QStringList QGstreamerVideoEncode::supportedVideoCodecs() const
+QStringList QGStreamerVideoEncoderControl::supportedVideoCodecs() const
 {
     return m_codecs.supportedCodecs();
 }
 
-QString QGstreamerVideoEncode::videoCodecDescription(const QString &codecName) const
+QString QGStreamerVideoEncoderControl::videoCodecDescription(const QString &codecName) const
 {
     return m_codecs.codecDescription(codecName);
 }
 
-QStringList QGstreamerVideoEncode::supportedEncodingOptions(const QString &codec) const
-{
-    return m_codecs.codecOptions(codec);
-}
-
-QVariant QGstreamerVideoEncode::encodingOption(const QString &codec, const QString &name) const
-{
-    return m_options[codec].value(name);
-}
-
-void QGstreamerVideoEncode::setEncodingOption(
-        const QString &codec, const QString &name, const QVariant &value)
-{
-    m_options[codec][name] = value;
-}
-
-QVideoEncoderSettings QGstreamerVideoEncode::videoSettings() const
+QVideoEncoderSettings QGStreamerVideoEncoderControl::videoSettings() const
 {
     return m_videoSettings;
 }
 
-void QGstreamerVideoEncode::setVideoSettings(const QVideoEncoderSettings &settings)
+void QGStreamerVideoEncoderControl::setVideoSettings(const QVideoEncoderSettings &settings)
 {
-    m_videoSettings = settings;
+    if (m_videoSettings != settings) {
+        m_actualVideoSettings = settings;
+        m_videoSettings = settings;
+        emit settingsChanged();
+    }
 }
 
-GstElement *QGstreamerVideoEncode::createEncoder()
+QVideoEncoderSettings QGStreamerVideoEncoderControl::actualVideoSettings() const
+{
+    return m_actualVideoSettings;
+}
+
+void QGStreamerVideoEncoderControl::setActualVideoSettings(const QVideoEncoderSettings &settings)
+{
+    m_actualVideoSettings = settings;
+}
+
+void QGStreamerVideoEncoderControl::resetActualSettings()
+{
+    m_actualVideoSettings = m_videoSettings;
+}
+
+
+QPair<int,int> QGStreamerVideoEncoderControl::rateAsRational(qreal frameRate) const
+{
+    if (frameRate < 0)
+        frameRate = m_actualVideoSettings.frameRate();
+
+    if (frameRate > 0.001) {
+        //convert to rational number
+        QList<int> denumCandidates;
+        denumCandidates << 1 << 2 << 3 << 5 << 10 << 25 << 30 << 50 << 100 << 1001 << 1000;
+
+        qreal error = 1.0;
+        int num = 1;
+        int denum = 1;
+
+        for (int curDenum : qAsConst(denumCandidates)) {
+            int curNum = qRound(frameRate*curDenum);
+            qreal curError = qAbs(qreal(curNum)/curDenum - frameRate);
+
+            if (curError < error) {
+                error = curError;
+                num = curNum;
+                denum = curDenum;
+            }
+
+            if (curError < 1e-8)
+                break;
+        }
+
+        return QPair<int,int>(num,denum);
+    }
+
+    return QPair<int,int>();
+}
+
+GstEncodingProfile *QGStreamerVideoEncoderControl::createProfile()
+{
+    QString codec = m_actualVideoSettings.codec();
+    GstCaps *caps = !codec.isEmpty() ? gst_caps_from_string(codec.toLatin1()) : nullptr;
+
+    if (!caps)
+        return nullptr;
+
+    QString preset = m_actualVideoSettings.encodingOption(QStringLiteral("preset")).toString();
+    GstEncodingVideoProfile *profile = gst_encoding_video_profile_new(
+                caps,
+                !preset.isEmpty() ? preset.toLatin1().constData() : NULL, //preset
+                NULL, //restriction
+                0); //presence
+
+    gst_caps_unref(caps);
+
+    gst_encoding_video_profile_set_pass(profile, 0);
+    gst_encoding_video_profile_set_variableframerate(profile, TRUE);
+
+    return (GstEncodingProfile *)profile;
+}
+
+void QGStreamerVideoEncoderControl::applySettings(GstElement *encoder)
+{
+    GObjectClass * const objectClass = G_OBJECT_GET_CLASS(encoder);
+    const char * const name = qt_gst_element_get_factory_name(encoder);
+
+    const int bitRate = m_actualVideoSettings.bitRate();
+    if (bitRate == -1) {
+        // Bit rate is invalid, don't evaluate the remaining conditions.
+    } else if (g_object_class_find_property(objectClass, "bitrate")) {
+        g_object_set(G_OBJECT(encoder), "bitrate", bitRate, NULL);
+    } else if (g_object_class_find_property(objectClass, "target-bitrate")) {
+        g_object_set(G_OBJECT(encoder), "target-bitrate", bitRate, NULL);
+    }
+
+    if (qstrcmp(name, "theoraenc") == 0) {
+        static const int qualities[] = { 8, 16, 32, 45, 60 };
+        g_object_set(G_OBJECT(encoder), "quality", qualities[m_actualVideoSettings.quality()], NULL);
+    } else if (qstrncmp(name, "avenc_", 6) == 0) {
+        if (g_object_class_find_property(objectClass, "pass")) {
+            static const int modes[] = { 0, 2, 512, 1024 };
+            g_object_set(G_OBJECT(encoder), "pass", modes[m_actualVideoSettings.encodingMode()], NULL);
+        }
+        if (g_object_class_find_property(objectClass, "quantizer")) {
+            static const double qualities[] = { 20, 8.0, 3.0, 2.5, 2.0 };
+            g_object_set(G_OBJECT(encoder), "quantizer", qualities[m_actualVideoSettings.quality()], NULL);
+        }
+    } else if (qstrncmp(name, "omx", 3) == 0) {
+        if (!g_object_class_find_property(objectClass, "control-rate")) {
+        } else switch (m_actualVideoSettings.encodingMode()) {
+        case QMultimedia::ConstantBitRateEncoding:
+            g_object_set(G_OBJECT(encoder), "control-rate", 2, NULL);
+            break;
+        case QMultimedia::AverageBitRateEncoding:
+            g_object_set(G_OBJECT(encoder), "control-rate", 1, NULL);
+            break;
+        default:
+            g_object_set(G_OBJECT(encoder), "control-rate", 0, NULL);
+        }
+    }
+}
+
+
+QSet<QString> QGStreamerVideoEncoderControl::supportedStreamTypes(const QString &codecName) const
+{
+    return m_codecs.supportedStreamTypes(codecName);
+}
+
+
+GstElement *QGStreamerVideoEncoderControl::createEncoder()
 {
     QString codec = m_videoSettings.codec();
     GstElement *encoderElement = gst_element_factory_make(m_codecs.codecElement(codec).constData(), "video-encoder");
@@ -100,8 +210,8 @@ GstElement *QGstreamerVideoEncode::createEncoder()
 
     GstBin *encoderBin = GST_BIN(gst_bin_new("video-encoder-bin"));
 
-    GstElement *sinkCapsFilter = gst_element_factory_make("capsfilter", "capsfilter-video");
-    GstElement *srcCapsFilter = gst_element_factory_make("capsfilter", "capsfilter-video");
+    GstElement *sinkCapsFilter = gst_element_factory_make("capsfilter", "capsfilter-video-in");
+    GstElement *srcCapsFilter = gst_element_factory_make("capsfilter", "capsfilter-video-out");
     gst_bin_add_many(encoderBin, sinkCapsFilter, srcCapsFilter, NULL);
 
     GstElement *colorspace = gst_element_factory_make("videoconvert", NULL);
@@ -178,6 +288,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
             }
         }
 
+#if 0
         QMap<QString,QVariant> options = m_options.value(codec);
         for (auto it = options.cbegin(), end = options.cend(); it != end; ++it) {
             const QString &option = it.key();
@@ -202,6 +313,7 @@ GstElement *QGstreamerVideoEncode::createEncoder()
             }
 
         }
+#endif
     }
 
     if (!m_videoSettings.resolution().isEmpty() || m_videoSettings.frameRate() > 0.001) {
@@ -240,41 +352,4 @@ GstElement *QGstreamerVideoEncode::createEncoder()
     return GST_ELEMENT(encoderBin);
 }
 
-QPair<int,int> QGstreamerVideoEncode::rateAsRational() const
-{
-    qreal frameRate = m_videoSettings.frameRate();
-
-    if (frameRate > 0.001) {
-        //convert to rational number
-        QList<int> denumCandidates;
-        denumCandidates << 1 << 2 << 3 << 5 << 10 << 1001 << 1000;
-
-        qreal error = 1.0;
-        int num = 1;
-        int denum = 1;
-
-        for (int curDenum : qAsConst(denumCandidates)) {
-            int curNum = qRound(frameRate*curDenum);
-            qreal curError = qAbs(qreal(curNum)/curDenum - frameRate);
-
-            if (curError < error) {
-                error = curError;
-                num = curNum;
-                denum = curDenum;
-            }
-
-            if (curError < 1e-8)
-                break;
-        }
-
-        return QPair<int,int>(num,denum);
-    }
-
-    return QPair<int,int>();
-}
-
-
-QSet<QString> QGstreamerVideoEncode::supportedStreamTypes(const QString &codecName) const
-{
-    return m_codecs.supportedStreamTypes(codecName);
-}
+QT_END_NAMESPACE

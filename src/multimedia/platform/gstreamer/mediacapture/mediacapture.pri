@@ -2,10 +2,7 @@ INCLUDEPATH += $$PWD
 
 HEADERS += $$PWD/qgstreamercaptureservice_p.h \
     $$PWD/qgstreamercapturesession_p.h \
-    $$PWD/qgstreameraudioencode_p.h \
-    $$PWD/qgstreamervideoencode_p.h \
     $$PWD/qgstreamerrecordercontrol_p.h \
-    $$PWD/qgstreamermediacontainercontrol_p.h \
     $$PWD/qgstreamercameracontrol_p.h \
     $$PWD/qgstreamercapturemetadatacontrol_p.h \
     $$PWD/qgstreamerimagecapturecontrol_p.h \
@@ -13,10 +10,7 @@ HEADERS += $$PWD/qgstreamercaptureservice_p.h \
 
 SOURCES += $$PWD/qgstreamercaptureservice.cpp \
     $$PWD/qgstreamercapturesession.cpp \
-    $$PWD/qgstreameraudioencode.cpp \
-    $$PWD/qgstreamervideoencode.cpp \
     $$PWD/qgstreamerrecordercontrol.cpp \
-    $$PWD/qgstreamermediacontainercontrol.cpp \
     $$PWD/qgstreamercameracontrol.cpp \
     $$PWD/qgstreamercapturemetadatacontrol.cpp \
     $$PWD/qgstreamerimagecapturecontrol.cpp \

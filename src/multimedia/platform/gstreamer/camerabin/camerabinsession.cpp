@@ -41,9 +41,9 @@
 #include "camerabinsession.h"
 #include "camerabincontrol.h"
 #include "camerabinrecorder.h"
-#include "camerabincontainer.h"
-#include "camerabinaudioencoder.h"
-#include "camerabinvideoencoder.h"
+#include "private/qgstreamercontainer_p.h"
+#include "private/qgstreameraudioencoder_p.h"
+#include "private/qgstreamervideoencoder_p.h"
 #include "camerabinimageencoder.h"
 
 #if QT_CONFIG(gstreamer_photography)
@@ -162,11 +162,11 @@ CameraBinSession::CameraBinSession(GstElementFactory *sourceFactory, QObject *pa
     m_busHelper->installMessageFilter(this);
 
     m_cameraControl = new CameraBinControl(this);
-    m_audioEncodeControl = new CameraBinAudioEncoder(this);
-    m_videoEncodeControl = new CameraBinVideoEncoder(this);
+    m_audioEncodeControl = new QGStreamerAudioEncoderControl(this);
+    m_videoEncodeControl = new QGStreamerVideoEncoderControl(this);
     m_imageEncodeControl = new CameraBinImageEncoder(this);
     m_recorderControl = new CameraBinRecorder(this);
-    m_mediaContainerControl = new CameraBinContainer(this);
+    m_mediaContainerControl = new QGStreamerContainerControl(this);
     m_imageProcessingControl = new CameraBinImageProcessing(this);
 
     QByteArray envFlags = qgetenv("QT_GSTREAMER_CAMERABIN_FLAGS");

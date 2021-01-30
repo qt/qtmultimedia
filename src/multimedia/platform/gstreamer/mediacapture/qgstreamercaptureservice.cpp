@@ -40,9 +40,9 @@
 #include "qgstreamercaptureservice_p.h"
 #include "qgstreamercapturesession_p.h"
 #include "qgstreamerrecordercontrol_p.h"
-#include "qgstreamermediacontainercontrol_p.h"
-#include "qgstreameraudioencode_p.h"
-#include "qgstreamervideoencode_p.h"
+#include "private/qgstreameraudioencoder_p.h"
+#include "private/qgstreamervideoencoder_p.h"
+#include "private/qgstreamercontainer_p.h"
 #include "qgstreamerimageencode_p.h"
 #include "qgstreamercameracontrol_p.h"
 #include <private/qgstreamerbushelper_p.h>

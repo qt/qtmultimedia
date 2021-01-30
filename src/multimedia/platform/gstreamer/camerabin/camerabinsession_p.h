@@ -72,11 +72,11 @@ QT_BEGIN_NAMESPACE
 class QGstreamerMessage;
 class QGstreamerBusHelper;
 class CameraBinControl;
-class CameraBinAudioEncoder;
-class CameraBinVideoEncoder;
+class QGStreamerAudioEncoderControl;
+class QGStreamerVideoEncoderControl;
 class CameraBinImageEncoder;
 class CameraBinRecorder;
-class CameraBinContainer;
+class QGStreamerContainerControl;
 class CameraBinExposure;
 class CameraBinFlash;
 class CameraBinFocus;
@@ -124,8 +124,8 @@ public:
     GstElementFactory *sourceFactory() const { return m_sourceFactory; }
 
     CameraBinControl *cameraControl() const { return m_cameraControl; }
-    CameraBinAudioEncoder *audioEncodeControl() const { return m_audioEncodeControl; }
-    CameraBinVideoEncoder *videoEncodeControl() const { return m_videoEncodeControl; }
+    QGStreamerAudioEncoderControl *audioEncodeControl() const { return m_audioEncodeControl; }
+    QGStreamerVideoEncoderControl *videoEncodeControl() const { return m_videoEncodeControl; }
     CameraBinImageEncoder *imageEncodeControl() const { return m_imageEncodeControl; }
 
 #if QT_CONFIG(gstreamer_photography)
@@ -136,7 +136,7 @@ public:
     CameraBinImageProcessing *imageProcessingControl() const { return m_imageProcessingControl; }
 
     CameraBinRecorder *recorderControl() const { return m_recorderControl; }
-    CameraBinContainer *mediaContainerControl() const { return m_mediaContainerControl; }
+    QGStreamerContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
     QGstreamerElementFactory *audioInput() const { return m_audioInputFactory; }
     void setAudioInput(QGstreamerElementFactory *audioInput);
@@ -229,11 +229,11 @@ private:
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
 
     CameraBinControl *m_cameraControl;
-    CameraBinAudioEncoder *m_audioEncodeControl;
-    CameraBinVideoEncoder *m_videoEncodeControl;
+    QGStreamerAudioEncoderControl *m_audioEncodeControl;
+    QGStreamerVideoEncoderControl *m_videoEncodeControl;
     CameraBinImageEncoder *m_imageEncodeControl;
     CameraBinRecorder *m_recorderControl;
-    CameraBinContainer *m_mediaContainerControl;
+    QGStreamerContainerControl *m_mediaContainerControl;
 #if QT_CONFIG(gstreamer_photography)
     CameraBinExposure *m_cameraExposureControl;
     CameraBinFocus *m_cameraFocusControl;

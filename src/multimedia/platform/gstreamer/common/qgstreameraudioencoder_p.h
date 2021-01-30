@@ -37,9 +37,8 @@
 **
 ****************************************************************************/
 
-
-#ifndef CAMERABINMEDIACONTAINERCONTROL_H
-#define CAMERABINMEDIACONTAINERCONTROL_H
+#ifndef QGSTREAMERAUDIOENCODER_H
+#define QGSTREAMERAUDIOENCODER_H
 
 //
 //  W A R N I N G
@@ -53,8 +52,10 @@
 //
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <qmediacontainercontrol.h>
+#include <qaudioencodersettingscontrol.h>
+
 #include <QtCore/qstringlist.h>
+#include <QtCore/qmap.h>
 #include <QtCore/qset.h>
 
 #include <gst/gst.h>
@@ -63,37 +64,54 @@
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
 
+#include <qaudioformat.h>
+
 QT_BEGIN_NAMESPACE
+class CameraBinSession;
 
-class CameraBinContainer : public QMediaContainerControl
+class QGStreamerAudioEncoderControl : public QAudioEncoderSettingsControl
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    CameraBinContainer(QObject *parent);
-    virtual ~CameraBinContainer() {}
+    QGStreamerAudioEncoderControl(QObject *parent);
+    virtual ~QGStreamerAudioEncoderControl();
 
-    QStringList supportedContainers() const override;
-    QString containerDescription(const QString &formatMimeType) const override;
+    QStringList supportedAudioCodecs() const override;
+    QString codecDescription(const QString &codecName) const override;
 
-    QString containerFormat() const override;
-    void setContainerFormat(const QString &format) override;
+    QStringList supportedEncodingOptions(const QString &codec) const;
+    QVariant encodingOption(const QString &codec, const QString &name) const;
+    void setEncodingOption(const QString &codec, const QString &name, const QVariant &value);
 
-    QString actualContainerFormat() const;
-    void setActualContainerFormat(const QString &containerFormat);
-    void resetActualContainerFormat();
+    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings = QAudioEncoderSettings(),
+                                    bool *isContinuous = 0) const override;
+    QList<int> supportedChannelCounts(const QAudioEncoderSettings &settings = QAudioEncoderSettings()) const;
+    QList<int> supportedSampleSizes(const QAudioEncoderSettings &settings = QAudioEncoderSettings()) const;
 
-    GstEncodingContainerProfile *createProfile();
+    QAudioEncoderSettings audioSettings() const override;
+    void setAudioSettings(const QAudioEncoderSettings &) override;
+
+    QAudioEncoderSettings actualAudioSettings() const;
+    void setActualAudioSettings(const QAudioEncoderSettings&);
+    void resetActualSettings();
+
+    GstEncodingProfile *createProfile();
+
+    void applySettings(GstElement *element);
+
+    QSet<QString> supportedStreamTypes(const QString &codecName) const;
+    GstElement *createEncoder();
 
 Q_SIGNALS:
     void settingsChanged();
 
 private:
-    QString m_format;
-    QString m_actualFormat;
+    QGstCodecsInfo m_codecs;
 
-    QGstCodecsInfo m_supportedContainers;
+    QAudioEncoderSettings m_actualAudioSettings;
+    QAudioEncoderSettings m_audioSettings;
 };
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINMEDIACONTAINERCONTROL_H
+#endif

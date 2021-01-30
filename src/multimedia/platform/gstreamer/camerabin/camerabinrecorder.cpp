@@ -39,9 +39,9 @@
 
 #include "camerabinrecorder.h"
 #include "camerabincontrol.h"
-#include "camerabinaudioencoder.h"
-#include "camerabinvideoencoder.h"
-#include "camerabincontainer.h"
+#include "private/qgstreameraudioencoder_p.h"
+#include "private/qgstreamervideoencoder_p.h"
+#include "private/qgstreamercontainer_p.h"
 #include "qaudiodeviceinfo.h"
 #include <QtCore/QDebug>
 
@@ -130,76 +130,10 @@ qint64 CameraBinRecorder::duration() const
 
 void CameraBinRecorder::applySettings()
 {
-    CameraBinContainer *containerControl = m_session->mediaContainerControl();
-    CameraBinAudioEncoder *audioEncoderControl = m_session->audioEncodeControl();
-    CameraBinVideoEncoder *videoEncoderControl = m_session->videoEncodeControl();
-
-    containerControl->resetActualContainerFormat();
-    audioEncoderControl->resetActualSettings();
-    videoEncoderControl->resetActualSettings();
-
-    //encodebin doesn't like the encoding profile with ANY caps,
-    //if container and codecs are not specified,
-    //try to find a commonly used supported combination
-    if (containerControl->containerFormat().isEmpty() &&
-            audioEncoderControl->audioSettings().codec().isEmpty() &&
-            videoEncoderControl->videoSettings().codec().isEmpty()) {
-
-        QList<QStringList> candidates;
-
-        // By order of preference
-
-        // .mp4 (h264, AAC)
-        candidates.append(QStringList() << "video/quicktime, variant=(string)iso" << "video/x-h264" << "audio/mpeg, mpegversion=(int)4");
-
-        // .mp4 (h264, AC3)
-        candidates.append(QStringList() << "video/quicktime, variant=(string)iso" << "video/x-h264" << "audio/x-ac3");
-
-        // .mp4 (h264, MP3)
-        candidates.append(QStringList() << "video/quicktime, variant=(string)iso" << "video/x-h264" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
-
-        // .mkv (h264, AAC)
-        candidates.append(QStringList() << "video/x-matroska" << "video/x-h264" << "audio/mpeg, mpegversion=(int)4");
-
-        // .mkv (h264, AC3)
-        candidates.append(QStringList() << "video/x-matroska" << "video/x-h264" << "audio/x-ac3");
-
-        // .mkv (h264, MP3)
-        candidates.append(QStringList() << "video/x-matroska" << "video/x-h264" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
-
-        // .mov (h264, AAC)
-        candidates.append(QStringList() << "video/quicktime" << "video/x-h264" << "audio/mpeg, mpegversion=(int)4");
-
-        // .mov (h264, MP3)
-        candidates.append(QStringList() << "video/quicktime" << "video/x-h264" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
-
-        // .webm (VP8, Vorbis)
-        candidates.append(QStringList() << "video/webm" << "video/x-vp8" << "audio/x-vorbis");
-
-        // .ogg (Theora, Vorbis)
-        candidates.append(QStringList() << "application/ogg" << "video/x-theora" << "audio/x-vorbis");
-
-        // .avi (DivX, MP3)
-        candidates.append(QStringList() << "video/x-msvideo" << "video/x-divx" << "audio/mpeg, mpegversion=(int)1, layer=(int)3");
-
-        for (const QStringList &candidate : qAsConst(candidates)) {
-            if (containerControl->supportedContainers().contains(candidate[0]) &&
-                    videoEncoderControl->supportedVideoCodecs().contains(candidate[1]) &&
-                    audioEncoderControl->supportedAudioCodecs().contains(candidate[2])) {
-                containerControl->setActualContainerFormat(candidate[0]);
-
-                QVideoEncoderSettings videoSettings = videoEncoderControl->videoSettings();
-                videoSettings.setCodec(candidate[1]);
-                videoEncoderControl->setActualVideoSettings(videoSettings);
-
-                QAudioEncoderSettings audioSettings = audioEncoderControl->audioSettings();
-                audioSettings.setCodec(candidate[2]);
-                audioEncoderControl->setActualAudioSettings(audioSettings);
-
-                break;
-            }
-        }
-    }
+    QGStreamerContainerControl *containerControl = m_session->mediaContainerControl();
+    QGStreamerAudioEncoderControl *audioEncoderControl = m_session->audioEncodeControl();
+    QGStreamerVideoEncoderControl *audioEncoderControl = m_session->videoEncodeControl();
+    containerConrol->applySettings(audioEncoderControl, audioEncoderControl);
 }
 
 QAudioDeviceInfo CameraBinRecorder::audioInput() const
@@ -216,23 +150,7 @@ bool CameraBinRecorder::setAudioInput(const QAudioDeviceInfo &info)
 
 GstEncodingContainerProfile *CameraBinRecorder::videoProfile()
 {
-    GstEncodingContainerProfile *containerProfile = m_session->mediaContainerControl()->createProfile();
-
-    if (containerProfile) {
-        GstEncodingProfile *audioProfile = m_session->audioEncodeControl()->createProfile();
-        GstEncodingProfile *videoProfile = m_session->videoEncodeControl()->createProfile();
-
-        if (audioProfile) {
-            if (!gst_encoding_container_profile_add_profile(containerProfile, audioProfile))
-                gst_encoding_profile_unref(audioProfile);
-        }
-        if (videoProfile) {
-            if (!gst_encoding_container_profile_add_profile(containerProfile, videoProfile))
-                gst_encoding_profile_unref(videoProfile);
-        }
-    }
-
-    return containerProfile;
+    return m_session->mediaContainerControl()->fullProfile(m_session->audioEncodeControl(), m_session->videoEncodeControl());
 }
 
 void CameraBinRecorder::setState(QMediaRecorder::State state)

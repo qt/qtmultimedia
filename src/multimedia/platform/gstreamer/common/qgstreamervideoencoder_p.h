@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINAUDIOENCODE_H
-#define CAMERABINAUDIOENCODE_H
+#ifndef QGSTREAMERVIDEOENCODER_H
+#define QGSTREAMERVIDEOENCODER_H
 
 //
 //  W A R N I N G
@@ -52,7 +52,7 @@
 //
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <qaudioencodersettingscontrol.h>
+#include <qvideoencodersettingscontrol.h>
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmap.h>
@@ -64,40 +64,33 @@
 #include <gst/pbutils/encoding-profile.h>
 #include <private/qgstcodecsinfo_p.h>
 
-#include <qaudioformat.h>
-
 QT_BEGIN_NAMESPACE
-class CameraBinSession;
 
-class CameraBinAudioEncoder : public QAudioEncoderSettingsControl
+class QGStreamerVideoEncoderControl : public QVideoEncoderSettingsControl
 {
     Q_OBJECT
 public:
-    CameraBinAudioEncoder(QObject *parent);
-    virtual ~CameraBinAudioEncoder();
+    QGStreamerVideoEncoderControl();
+    virtual ~QGStreamerVideoEncoderControl();
 
-    QStringList supportedAudioCodecs() const override;
-    QString codecDescription(const QString &codecName) const override;
+    QPair<int,int> rateAsRational(qreal = -1.) const;
 
-    QStringList supportedEncodingOptions(const QString &codec) const;
-    QVariant encodingOption(const QString &codec, const QString &name) const;
-    void setEncodingOption(const QString &codec, const QString &name, const QVariant &value);
+    QStringList supportedVideoCodecs() const override;
+    QString videoCodecDescription(const QString &codecName) const override;
 
-    QList<int> supportedSampleRates(const QAudioEncoderSettings &settings = QAudioEncoderSettings(),
-                                    bool *isContinuous = 0) const override;
-    QList<int> supportedChannelCounts(const QAudioEncoderSettings &settings = QAudioEncoderSettings()) const;
-    QList<int> supportedSampleSizes(const QAudioEncoderSettings &settings = QAudioEncoderSettings()) const;
+    QVideoEncoderSettings videoSettings() const override;
+    void setVideoSettings(const QVideoEncoderSettings &settings) override;
 
-    QAudioEncoderSettings audioSettings() const override;
-    void setAudioSettings(const QAudioEncoderSettings &) override;
-
-    QAudioEncoderSettings actualAudioSettings() const;
-    void setActualAudioSettings(const QAudioEncoderSettings&);
+    QVideoEncoderSettings actualVideoSettings() const;
+    void setActualVideoSettings(const QVideoEncoderSettings&);
     void resetActualSettings();
 
     GstEncodingProfile *createProfile();
 
-    void applySettings(GstElement *element);
+    void applySettings(GstElement *encoder);
+
+    QSet<QString> supportedStreamTypes(const QString &codecName) const;
+    GstElement *createEncoder();
 
 Q_SIGNALS:
     void settingsChanged();
@@ -105,8 +98,8 @@ Q_SIGNALS:
 private:
     QGstCodecsInfo m_codecs;
 
-    QAudioEncoderSettings m_actualAudioSettings;
-    QAudioEncoderSettings m_audioSettings;
+    QVideoEncoderSettings m_actualVideoSettings;
+    QVideoEncoderSettings m_videoSettings;
 };
 
 QT_END_NAMESPACE
