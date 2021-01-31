@@ -65,11 +65,13 @@ public:
     ~QAndroidIntegration();
 
     QMediaPlatformDeviceManager *deviceManager() override;
+    QMediaPlatformFormatInfo *formatInfo() override;
 
     QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     QAndroidDeviceManager *m_manager = nullptr;
+    QMediaPlatformFormatInfo  *m_formatInfo = nullptr;
 };
 
 QT_END_NAMESPACE

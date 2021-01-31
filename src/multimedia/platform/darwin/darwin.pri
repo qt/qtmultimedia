@@ -21,8 +21,10 @@ include(mediaplayer/mediaplayer.pri)
 
 SOURCES += \
     $$PWD/qdarwinintegration.cpp \
-    $$PWD/qdarwindevicemanager.mm
+    $$PWD/qdarwindevicemanager.mm \
+    $$PWD/qdarwinformatsinfo.mm	
 
 HEADERS += \
     $$PWD/qdarwinintegration_p.h \
-    $$PWD/qdarwindevicemanager_p.h
+    $$PWD/qdarwindevicemanager_p.h \
+    $$PWD/qdarwinformatsinfo_p.h

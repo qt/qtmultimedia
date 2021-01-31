@@ -37,47 +37,41 @@
 **
 ****************************************************************************/
 
-#include "qdarwinintegration_p.h"
-#include "qdarwindevicemanager_p.h"
-#include <private/avfmediaplayerservice_p.h>
-#include <private/avfcameraservice_p.h>
-#include <private/qdarwinformatsinfo_p.h>
+#ifndef QMEDIAPLATFORMFORMATINFO_H
+#define QMEDIAPLATFORMFORMATINFO_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qtmultimediaglobal_p.h>
+#include <qmediaformat.h>
 
 QT_BEGIN_NAMESPACE
 
-QDarwinIntegration::QDarwinIntegration()
+class Q_AUTOTEST_EXPORT QMediaPlatformFormatInfo
 {
+public:
+    QMediaPlatformFormatInfo();
+    virtual ~QMediaPlatformFormatInfo();
 
-}
+    virtual QList<QMediaFormat::FileFormat> decodableMediaContainers() const = 0;
+    virtual QList<QMediaFormat::AudioCodec> decodableAudioCodecs() const = 0;
+    virtual QList<QMediaFormat::VideoCodec> decodableVideoCodecs() const = 0;
 
-QDarwinIntegration::~QDarwinIntegration()
-{
-    delete m_manager;
-    delete m_formatInfo;
-}
-
-QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
-{
-    if (!m_manager)
-        m_manager = new QDarwinDeviceManager();
-    return m_manager;
-}
-
-QMediaPlatformFormatInfo *QDarwinIntegration::formatInfo()
-{
-    if (!m_formatInfo)
-        m_formatInfo = new QDarwinFormatInfo();
-    return m_formatInfo;
-}
-
-QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMediaRecorder::CaptureMode)
-{
-    return new AVFCameraService;
-}
-
-QMediaPlatformPlayerInterface *QDarwinIntegration::createPlayerInterface()
-{
-    return new AVFMediaPlayerService;
-}
+    virtual QList<QMediaFormat::FileFormat> encodableMediaContainers() const = 0;
+    virtual QList<QMediaFormat::AudioCodec> encodableAudioCodecs() const = 0;
+    virtual QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const = 0;
+};
 
 QT_END_NAMESPACE
+
+
+#endif // QMEDIAPLATFORMDEVICEMANAGER_H

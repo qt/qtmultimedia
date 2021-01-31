@@ -65,12 +65,14 @@ public:
     ~QGstreamerIntegration();
 
     QMediaPlatformDeviceManager *deviceManager() override;
+    QMediaPlatformFormatInfo *formatInfo() override;
 
     QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     QGstreamerDeviceManager *m_manager = nullptr;
+    QMediaPlatformFormatInfo *m_formatsInfo = nullptr;
 };
 
 QT_END_NAMESPACE

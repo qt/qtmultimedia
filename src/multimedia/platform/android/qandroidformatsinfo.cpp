@@ -37,47 +37,54 @@
 **
 ****************************************************************************/
 
-#include "qdarwinintegration_p.h"
-#include "qdarwindevicemanager_p.h"
-#include <private/avfmediaplayerservice_p.h>
-#include <private/avfcameraservice_p.h>
-#include <private/qdarwinformatsinfo_p.h>
+#include "qandroidformatsinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QDarwinIntegration::QDarwinIntegration()
+QAndroidFormatInfo::QAndroidFormatInfo()
+{
+    // ### Properly determine the set of supported codecs, this is a minimal set gathered from the old code base
+    m_decodableAudioCodecs << Qt::AudioCodec::AAC << Qt::AudioCodec::MP3;
+    m_encodableAudioCodecs << Qt::AudioCodec::AAC << Qt::AudioCodec::MP3;
+    m_decodableVideoCodecs << Qt::VideoCodec::MPEG4 << Qt::VideoCodec::H264;
+    m_encodableVideoCodecs << Qt::VideoCodec::MPEG4 << Qt::VideoCodec::H264;
+    m_decodableMediaContainers << Qt::MediaContainer::MPEG4 << Qt::MediaContainer::MP3;
+    m_encodableMediaContainers << Qt::MediaContainer::MPEG4 << Qt::MediaContainer::MP3;
+}
+
+QAndroidFormatInfo::~QAndroidFormatInfo
 {
 
 }
 
-QDarwinIntegration::~QDarwinIntegration()
+QList<Qt::MediaContainer> QAndroidFormatInfo::decodableMediaContainers() const
 {
-    delete m_manager;
-    delete m_formatInfo;
+    return m_decodableMediaContainers;
 }
 
-QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
+QList<Qt::AudioCodec> QAndroidFormatInfo::decodableAudioCodecs() const
 {
-    if (!m_manager)
-        m_manager = new QDarwinDeviceManager();
-    return m_manager;
+    return m_decodableAudioCodecs;
 }
 
-QMediaPlatformFormatInfo *QDarwinIntegration::formatInfo()
+QList<Qt::VideoCodec> QAndroidFormatInfo::decodableVideoCodecs() const
 {
-    if (!m_formatInfo)
-        m_formatInfo = new QDarwinFormatInfo();
-    return m_formatInfo;
+    return m_decodableVideoCodecs;
 }
 
-QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMediaRecorder::CaptureMode)
+QList<Qt::MediaContainer> QAndroidFormatInfo::encodableMediaContainers() const
 {
-    return new AVFCameraService;
+    return m_encodableMediaContainers;
 }
 
-QMediaPlatformPlayerInterface *QDarwinIntegration::createPlayerInterface()
+QList<Qt::AudioCodec> QAndroidFormatInfo::encodableAudioCodecs() const
 {
-    return new AVFMediaPlayerService;
+    return m_encodableAudioCodecs;
+}
+
+QList<Qt::VideoCodec> QAndroidFormatInfo::encodableVideoCodecs() const
+{
+    return m_encodableVideoCodecs;
 }
 
 QT_END_NAMESPACE

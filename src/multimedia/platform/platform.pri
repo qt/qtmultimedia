@@ -3,12 +3,14 @@ HEADERS += \
     $$PWD/qmediaplatformintegration_p.h \
     $$PWD/qmediaplatformdevicemanager_p.h \
     $$PWD/qmediaplatformplayerinterface_p.h \
+    $$PWD/qmediaplatformformatinfo_p.h
 
 SOURCES += \
     $$PWD/qmediaplatformcaptureinterface.cpp \
     $$PWD/qmediaplatformintegration.cpp \
     $$PWD/qmediaplatformdevicemanager.cpp \
     $$PWD/qmediaplatformplayerinterface.cpp \
+    $$PWD/qmediaplatformformatinfo.cpp
 
 qtConfig(gstreamer):include(gstreamer/gstreamer.pri)
 qtConfig(pulseaudio): include(pulseaudio/pulseaudio.pri)

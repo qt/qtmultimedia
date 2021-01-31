@@ -48,6 +48,7 @@
 #include "private/androidsurfaceview_p.h"
 #include "private/androidcamera_p.h"
 #include "private/androidmediarecorder_p.h"
+#include "private/qandroidformatsinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -61,6 +62,7 @@ QAndroidIntegration::QAndroidIntegration()
 QAndroidIntegration::~QAndroidIntegration()
 {
     delete m_manager;
+    delete m_formatInfo;
 }
 
 QMediaPlatformDeviceManager *QAndroidIntegration::deviceManager()
@@ -68,6 +70,14 @@ QMediaPlatformDeviceManager *QAndroidIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QAndroidDeviceManager();
     return m_manager;
+}
+
+QMediaPlatformFormatInfo *QAndroidIntegration::formatInfo()
+{
+    if (!m_formatInfo)
+        m_formatInfo = new QAndroidFormatInfo();
+    return m_formatInfo;
+
 }
 
 QMediaPlatformCaptureInterface *QAndroidIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)

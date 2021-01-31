@@ -880,3 +880,8 @@ void QImageEncoderSettings::setEncodingOptions(const QVariantMap &options)
 
 QT_END_NAMESPACE
 
+
+QMediaEncoderSettings::QMediaEncoderSettings()
+{
+
+}

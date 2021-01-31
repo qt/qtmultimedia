@@ -64,6 +64,7 @@
 
 #include <QtWidgets>
 #include <QMediaDeviceManager>
+#include <QMediaFormat>
 
 Q_DECLARE_METATYPE(QCameraInfo)
 
@@ -82,6 +83,21 @@ Camera::Camera() : ui(new Ui::Camera)
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
 
     setCamera(QMediaDeviceManager::defaultVideoInput());
+
+    qDebug() << "Supported Containers:";
+    auto containers = QMediaEncoderInfo::supportedFileFormats();
+    for (const auto c : containers)
+        qDebug() << "    " << QMediaFormat::fileFormatName(c);
+
+    qDebug() << "Supported Audio Codecs:";
+    auto audio = QMediaEncoderInfo::supportedAudioCodecs();
+    for (const auto c : audio)
+        qDebug() << "    " << QMediaFormat::audioCodecName(c);
+
+    qDebug() << "Supported Video Codecs:";
+    auto video = QMediaEncoderInfo::supportedVideoCodecs();
+    for (const auto c : video)
+        qDebug() << "    " << QMediaFormat::videoCodecName(c);
 }
 
 void Camera::setCamera(const QCameraInfo &cameraInfo)

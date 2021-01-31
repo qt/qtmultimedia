@@ -2,11 +2,13 @@ QT += opengl core-private network
 
 HEADERS += \
     $$PWD/qandroidintegration_p.h \
-    $$PWD/qandroiddevicemanager_p.h
+    $$PWD/qandroiddevicemanager_p.h \
+    $$PWD/qandroidformatsinfo_p.h
 
 SOURCES += \
     $$PWD/qandroidintegration.cpp \
-    $$PWD/qandroiddevicemanager.cpp
+    $$PWD/qandroiddevicemanager.cpp \
+    $$PWD/qandroidformatsinfo.cpp
 
 include(audio/audio.pri)
 include(wrappers/jni/jni.pri)

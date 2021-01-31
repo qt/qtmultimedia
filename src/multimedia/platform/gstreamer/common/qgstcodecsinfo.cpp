@@ -228,6 +228,16 @@ GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
     case Muxer:
         gstElementType = GST_ELEMENT_FACTORY_TYPE_MUXER;
         break;
+    case AudioDecoder:
+        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_DECODER | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
+        break;
+    case VideoDecoder:
+        // GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER also lists image encoders. We don't want these here.
+        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_DECODER | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO);
+        break;
+    case Demuxer:
+        gstElementType = GST_ELEMENT_FACTORY_TYPE_DEMUXER;
+        break;
     }
 
     GList *list = gst_element_factory_list_get_elements(gstElementType, GST_RANK_MARGINAL);

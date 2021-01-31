@@ -37,47 +37,12 @@
 **
 ****************************************************************************/
 
-#include "qdarwinintegration_p.h"
-#include "qdarwindevicemanager_p.h"
-#include <private/avfmediaplayerservice_p.h>
-#include <private/avfcameraservice_p.h>
-#include <private/qdarwinformatsinfo_p.h>
+#include "qmediaplatformformatinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QDarwinIntegration::QDarwinIntegration()
-{
+QMediaPlatformFormatInfo::QMediaPlatformFormatInfo() = default;
 
-}
-
-QDarwinIntegration::~QDarwinIntegration()
-{
-    delete m_manager;
-    delete m_formatInfo;
-}
-
-QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
-{
-    if (!m_manager)
-        m_manager = new QDarwinDeviceManager();
-    return m_manager;
-}
-
-QMediaPlatformFormatInfo *QDarwinIntegration::formatInfo()
-{
-    if (!m_formatInfo)
-        m_formatInfo = new QDarwinFormatInfo();
-    return m_formatInfo;
-}
-
-QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMediaRecorder::CaptureMode)
-{
-    return new AVFCameraService;
-}
-
-QMediaPlatformPlayerInterface *QDarwinIntegration::createPlayerInterface()
-{
-    return new AVFMediaPlayerService;
-}
+QMediaPlatformFormatInfo::~QMediaPlatformFormatInfo() = default;
 
 QT_END_NAMESPACE

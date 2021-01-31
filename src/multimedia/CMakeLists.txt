@@ -51,11 +51,13 @@ qt_internal_add_module(Multimedia
         platform/qmediaplatformdevicemanager.cpp platform/qmediaplatformdevicemanager_p.h
         platform/qmediaplatformintegration.cpp platform/qmediaplatformintegration_p.h
         platform/qmediaplatformplayerinterface.cpp platform/qmediaplatformplayerinterface_p.h
+        platform/qmediaplatformformatinfo.cpp  platform/qmediaplatformformatinfo_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
         qmediadevicemanager.cpp qmediadevicemanager.h
         qmediaenumdebug.h
+        qmediaformat.cpp  qmediaformat.h
         qmediametadata.cpp qmediametadata.h
         qmediapluginloader.cpp qmediapluginloader_p.h
         qmediaservice.cpp qmediaservice.h qmediaservice_p.h
@@ -222,6 +224,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/mediaplayer/qgstreamerplayerservice.cpp platform/gstreamer/mediaplayer/qgstreamerplayerservice_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
         platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
+        platform/gstreamer/qgstreamerformatsinfo.cpp platform/gstreamer/qgstreamerformatsinfo_p.h
         platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
@@ -367,6 +370,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediaplayer/qandroidmediaservice.cpp platform/android/mediaplayer/qandroidmediaservice_p.h
         platform/android/mediaplayer/qandroidmetadatareadercontrol.cpp platform/android/mediaplayer/qandroidmetadatareadercontrol_p.h
         platform/android/qandroiddevicemanager.cpp platform/android/qandroiddevicemanager_p.h
+        platform/android/qandroidformatsinfo.cpp  platform/android/qandroidformatsinfo_p.h
         platform/android/qandroidintegration.cpp platform/android/qandroidintegration_p.h
         platform/android/wrappers/jni/androidcamera.cpp platform/android/wrappers/jni/androidcamera_p.h
         platform/android/wrappers/jni/androidmediametadataretriever.cpp platform/android/wrappers/jni/androidmediametadataretriever_p.h
@@ -415,6 +419,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/mediaplayer/avfvideooutput.mm platform/darwin/mediaplayer/avfvideooutput_p.h
         platform/darwin/mediaplayer/avfvideowindowcontrol.mm platform/darwin/mediaplayer/avfvideowindowcontrol_p.h
         platform/darwin/qdarwindevicemanager.mm platform/darwin/qdarwindevicemanager_p.h
+        platform/darwin/qdarwinformatsinfo.mm platform/darwin/qdarwinformatsinfo_p.h
         platform/darwin/qdarwinintegration.cpp platform/darwin/qdarwinintegration_p.h
     PUBLIC_LIBRARIES
         ${FWAudioToolbox}

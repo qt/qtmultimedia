@@ -5,10 +5,12 @@ QMAKE_USE_PRIVATE += gstreamer gstreamer_app
 SOURCES += \
     $$PWD/qgstreamerintegration.cpp \
     $$PWD/qgstreamerdevicemanager.cpp \
+    $$PWD/qgstreamerformatsinfo.cpp
 
 HEADERS += \
     $$PWD/qgstreamerintegration_p.h \
     $$PWD/qgstreamerdevicemanager_p.h \
+    $$PWD/qgstreamerformatsinfo_p.h
 
 include(audio/audio.pri)
 include(common/common.pri)

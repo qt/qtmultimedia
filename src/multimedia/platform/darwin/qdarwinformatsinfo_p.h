@@ -37,47 +37,51 @@
 **
 ****************************************************************************/
 
-#include "qdarwinintegration_p.h"
-#include "qdarwindevicemanager_p.h"
-#include <private/avfmediaplayerservice_p.h>
-#include <private/avfcameraservice_p.h>
-#include <private/qdarwinformatsinfo_p.h>
+#ifndef QDARWINFORMATINFO_H
+#define QDARWINFORMATINFO_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qmediaplatformformatinfo_p.h>
+#include <qlist.h>
 
 QT_BEGIN_NAMESPACE
 
-QDarwinIntegration::QDarwinIntegration()
-{
+class QDarwinDeviceManager;
 
-}
-
-QDarwinIntegration::~QDarwinIntegration()
+class QDarwinFormatInfo : public QMediaPlatformFormatInfo
 {
-    delete m_manager;
-    delete m_formatInfo;
-}
+public:
+    QDarwinFormatInfo();
+    ~QDarwinFormatInfo();
 
-QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
-{
-    if (!m_manager)
-        m_manager = new QDarwinDeviceManager();
-    return m_manager;
-}
+    QList<QMediaFormat::FileFormat> decodableMediaContainers() const override;
+    QList<QMediaFormat::AudioCodec> decodableAudioCodecs() const override;
+    QList<QMediaFormat::VideoCodec> decodableVideoCodecs() const override;
 
-QMediaPlatformFormatInfo *QDarwinIntegration::formatInfo()
-{
-    if (!m_formatInfo)
-        m_formatInfo = new QDarwinFormatInfo();
-    return m_formatInfo;
-}
+    QList<QMediaFormat::FileFormat> encodableMediaContainers() const override;
+    QList<QMediaFormat::AudioCodec> encodableAudioCodecs() const override;
+    QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const override;
 
-QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMediaRecorder::CaptureMode)
-{
-    return new AVFCameraService;
-}
+private:
+    QList<QMediaFormat::FileFormat> m_decodableMediaContainers;
+    QList<QMediaFormat::AudioCodec> m_decodableAudioCodecs;
+    QList<QMediaFormat::VideoCodec> m_decodableVideoCodecs;
 
-QMediaPlatformPlayerInterface *QDarwinIntegration::createPlayerInterface()
-{
-    return new AVFMediaPlayerService;
-}
+    QList<QMediaFormat::FileFormat> m_encodableMediaContainers;
+    QList<QMediaFormat::AudioCodec> m_encodableAudioCodecs;
+    QList<QMediaFormat::VideoCodec> m_encodableVideoCodecs;
+};
 
 QT_END_NAMESPACE
+
+#endif

@@ -43,6 +43,7 @@
 #include "private/qgstreamerplayerservice_p.h"
 #include "private/qgstreamercaptureservice_p.h"
 #include "private/qgstreameraudiodecodercontrol_p.h"
+#include "private/qgstreamerformatsinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -54,6 +55,7 @@ QGstreamerIntegration::QGstreamerIntegration()
 QGstreamerIntegration::~QGstreamerIntegration()
 {
     delete m_manager;
+    delete m_formatsInfo;
 }
 
 QMediaPlatformDeviceManager *QGstreamerIntegration::deviceManager()
@@ -61,6 +63,13 @@ QMediaPlatformDeviceManager *QGstreamerIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QGstreamerDeviceManager();
     return m_manager;
+}
+
+QMediaPlatformFormatInfo *QGstreamerIntegration::formatInfo()
+{
+    if (!m_formatsInfo)
+        m_formatsInfo = new QGstreamerFormatsInfo();
+    return m_formatsInfo;
 }
 
 QAudioDecoderControl *QGstreamerIntegration::createAudioDecoder()

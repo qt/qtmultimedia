@@ -63,7 +63,7 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIA_EXPORT QGstCodecsInfo
 {
 public:
-    enum ElementType { AudioEncoder, VideoEncoder, Muxer };
+    enum ElementType { AudioEncoder, VideoEncoder, Muxer, AudioDecoder, VideoDecoder, Demuxer };
 
     struct CodecInfo {
         QString description;

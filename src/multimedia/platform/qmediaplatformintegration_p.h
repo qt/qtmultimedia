@@ -60,6 +60,7 @@ class QMediaPlatformDeviceManager;
 class QMediaPlatformCaptureInterface;
 class QMediaPlatformPlayerInterface;
 class QAudioDecoderControl;
+class QMediaPlatformFormatInfo;
 
 class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
 {
@@ -71,10 +72,12 @@ public:
 
     virtual ~QMediaPlatformIntegration();
     virtual QMediaPlatformDeviceManager *deviceManager() = 0;
+    virtual QMediaPlatformFormatInfo *formatInfo() = 0;
 
     virtual QAudioDecoderControl *createAudioDecoder() { return nullptr; }
     virtual QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
     virtual QMediaPlatformPlayerInterface *createPlayerInterface() { return nullptr; }
+
 };
 
 QT_END_NAMESPACE

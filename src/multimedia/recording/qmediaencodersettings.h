@@ -136,6 +136,38 @@ private:
     QSharedDataPointer<QVideoEncoderSettingsPrivate> d;
 };
 
+class QMediaFormat;
+class Q_MULTIMEDIA_EXPORT QMediaEncoderSettings
+{
+
+    QMediaEncoderSettings();
+
+    QMediaFormat format();
+    void setMediaFormat(const QMediaFormat &);
+
+    QMultimedia::EncodingMode encodingMode() const;
+    void setEncodingMode(QMultimedia::EncodingMode);
+
+    QMultimedia::EncodingQuality quality() const;
+    void setQuality(QMultimedia::EncodingQuality quality);
+
+    QSize videoResolution() const;
+    void setVideoResolution(const QSize &);
+    void setVideoResolution(int width, int height);
+
+    qreal videoFrameRate() const;
+    void setVideoFrameRate(qreal rate);
+
+    int videoBitRate() const;
+    void setVideoBitRate(int bitrate);
+
+    int audioBitRate() const;
+    void setAudioBitRate(int bitrate);
+
+    int audioChannelCount() const;
+    void setAudioChannelCount(int channels);
+};
+
 class QImageEncoderSettingsPrivate;
 class Q_MULTIMEDIA_EXPORT QImageEncoderSettings
 {

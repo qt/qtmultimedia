@@ -67,6 +67,7 @@ public:
     ~QMockIntegration();
 
     QMediaPlatformDeviceManager *deviceManager() override;
+    QMediaPlatformFormatInfo *formatInfo() override { return nullptr; }
 
     QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;

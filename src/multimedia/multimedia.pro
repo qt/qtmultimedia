@@ -15,7 +15,7 @@ PRIVATE_HEADERS += \
     qmediapluginloader_p.h \
     qmediaservice_p.h \
     qmediastoragelocation_p.h \
-    qmultimediautils_p.h
+    qmultimediautils_p.h \
 
 PUBLIC_HEADERS += \
     qtmultimediaglobal.h \
@@ -26,7 +26,8 @@ PUBLIC_HEADERS += \
     qmediasource.h \
     qmediaservice.h \
     qmediatimerange.h \
-    qmultimedia.h
+    qmultimedia.h \
+    qmediaformat.h
 
 SOURCES += \
     qmediasink.cpp \
@@ -38,7 +39,8 @@ SOURCES += \
     qmediatimerange.cpp \
     qmediastoragelocation.cpp \
     qmultimedia.cpp \
-    qmultimediautils.cpp
+    qmultimediautils.cpp \
+    qmediaformat.cpp
 
 CONFIG += simd optimize_full
 
