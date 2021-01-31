@@ -222,7 +222,8 @@ GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
         gstElementType = GST_ELEMENT_FACTORY_TYPE_AUDIO_ENCODER;
         break;
     case VideoEncoder:
-        gstElementType = GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER;
+        // GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER also lists image encoders. We don't want these here.
+        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_ENCODER | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO);
         break;
     case Muxer:
         gstElementType = GST_ELEMENT_FACTORY_TYPE_MUXER;
