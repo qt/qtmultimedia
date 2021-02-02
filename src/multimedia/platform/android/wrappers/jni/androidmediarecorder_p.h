@@ -107,7 +107,9 @@ public:
         DefaultAudioEncoder = 0,
         AMR_NB_Encoder = 1,
         AMR_WB_Encoder = 2,
-        AAC = 3
+        AAC = 3,
+        OPUS = 7,
+        VORBIS = 6
     };
 
     enum AudioSource {
@@ -124,7 +126,8 @@ public:
         DefaultVideoEncoder = 0,
         H263 = 1,
         H264 = 2,
-        MPEG_4_SP = 3
+        MPEG_4_SP = 3,
+        HEVC = 5
     };
 
     enum VideoSource {
@@ -137,7 +140,10 @@ public:
         THREE_GPP = 1,
         MPEG_4 = 2,
         AMR_NB_Format = 3,
-        AMR_WB_Format = 4
+        AMR_WB_Format = 4,
+        AAC_ADTS = 6,
+        OGG = 11,
+        WEBM = 9
     };
 
     AndroidMediaRecorder();

@@ -222,19 +222,12 @@ void Camera::configureVideoSettings()
     VideoSettings settingsDialog(m_mediaRecorder.data());
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    settingsDialog.setAudioSettings(m_audioSettings);
-    settingsDialog.setVideoSettings(m_videoSettings);
-    settingsDialog.setFormat(m_videoContainerFormat);
+    settingsDialog.setEncoderSettings(m_encoderSettings);
 
     if (settingsDialog.exec()) {
-        m_audioSettings = settingsDialog.audioSettings();
-        m_videoSettings = settingsDialog.videoSettings();
-        m_videoContainerFormat = settingsDialog.format();
+        m_encoderSettings = settingsDialog.encoderSettings();
 
-        m_mediaRecorder->setEncodingSettings(
-                    m_audioSettings,
-                    m_videoSettings,
-                    m_videoContainerFormat);
+        m_mediaRecorder->setEncoderSettings(m_encoderSettings);
 
         m_camera->unload();
         m_camera->start();

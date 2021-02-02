@@ -35,12 +35,8 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qmetadatawritercontrol.h>
-#include <qaudioencodersettingscontrol.h>
-#include <qmediacontainercontrol.h>
-#include <qvideoencodersettingscontrol.h>
 #include <qaudioformat.h>
 
-#include "mockmediacontainercontrol.h"
 #include "mockmetadatawritercontrol.h"
 #include "mockmediarecordercontrol.h"
 #include "mockmediasource.h"
@@ -56,7 +52,6 @@ public:
         mockControl(control),
         hasControls(true)
     {
-        mockContainerControl = new MockMediaContainerControl(parent); //Creating the object for Media
         mockMetaDataControl = new MockMetaDataWriterControl(parent); //Creating the object for MetaData
     }
 
@@ -64,8 +59,6 @@ public:
     {
         if (hasControls && qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
-        if (hasControls && qstrcmp(name,QMediaContainerControl_iid) == 0)
-            return mockContainerControl;
         if (hasControls && qstrcmp(name, QMetaDataWriterControl_iid) == 0)
             return mockMetaDataControl;
 
@@ -75,7 +68,6 @@ public:
     void releaseControl(QObject *) override {}
     //Initialising the objects for the media
     QObject *mockControl;
-    QMediaContainerControl *mockContainerControl;
     MockMetaDataWriterControl *mockMetaDataControl;
     bool hasControls;
 };

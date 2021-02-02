@@ -10,7 +10,6 @@ SUBDIRS += \
     qcamerainfo \
     qcameraimagecapture \
     qmediasink \
-    qmediacontainercontrol \
     qmediasource \
     qmediaplayer \
     qmediaplaylist \
@@ -20,7 +19,6 @@ SUBDIRS += \
     qmediatimerange \
     qmetadatareadercontrol \
     qmetadatawritercontrol \
-    qvideoencodersettingscontrol \
     qvideoframe \
     qvideosurfaceformat \
 #    qwavedecoder \

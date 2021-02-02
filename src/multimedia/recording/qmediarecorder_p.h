@@ -77,9 +77,6 @@ public:
     QPointer<QMediaSource> mediaSource;
 
     QMediaRecorderControl *control = nullptr;
-    QMediaContainerControl *formatControl = nullptr;
-    QAudioEncoderSettingsControl *audioControl = nullptr;
-    QVideoEncoderSettingsControl *videoControl = nullptr;
     QMetaDataWriterControl *metaDataControl = nullptr;
 
     bool settingsChanged = false;
@@ -90,6 +87,7 @@ public:
     QMediaRecorder::Error error = QMediaRecorder::NoError;
     QString errorString;
     QUrl actualLocation;
+    QMediaEncoderSettings encoderSettings;
 
     void _q_stateChanged(QMediaRecorder::State state);
     void _q_error(int error, const QString &errorString);

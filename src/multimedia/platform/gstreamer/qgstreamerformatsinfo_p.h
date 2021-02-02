@@ -52,6 +52,7 @@
 //
 
 #include <private/qmediaplatformformatinfo_p.h>
+#include <qhash.h>
 #include <qlist.h>
 
 QT_BEGIN_NAMESPACE
@@ -70,6 +71,10 @@ public:
     QList<QMediaFormat::AudioCodec> encodableAudioCodecs() const override;
     QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const override;
 
+    const char *nativeFormat(QMediaFormat::FileFormat f) const { return formatToCaps.value(f); }
+    const char *nativeFormat(QMediaFormat::AudioCodec c) const { return audioToCaps.value(c); }
+    const char *nativeFormat(QMediaFormat::VideoCodec c) const { return videoToCaps.value(c); }
+
 private:
     QList<QMediaFormat::FileFormat> m_decodableMediaContainers;
     QList<QMediaFormat::AudioCodec> m_decodableAudioCodecs;
@@ -78,6 +83,10 @@ private:
     QList<QMediaFormat::FileFormat> m_encodableMediaContainers;
     QList<QMediaFormat::AudioCodec> m_encodableAudioCodecs;
     QList<QMediaFormat::VideoCodec> m_encodableVideoCodecs;
+
+    QHash<QMediaFormat::FileFormat, const char *> formatToCaps;
+    QHash<QMediaFormat::AudioCodec, const char *> audioToCaps;
+    QHash<QMediaFormat::VideoCodec, const char *> videoToCaps;
 };
 
 QT_END_NAMESPACE

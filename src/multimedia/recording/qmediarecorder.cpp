@@ -44,10 +44,7 @@
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include <qmetadatawritercontrol.h>
-#include <qaudioencodersettingscontrol.h>
-#include <qvideoencodersettingscontrol.h>
 #include <qaudiodeviceinfo.h>
-#include <qmediacontainercontrol.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>
 #include <private/qmediaplatformintegration_p.h>
@@ -121,9 +118,6 @@ void QMediaRecorderPrivate::_q_serviceDestroyed()
 {
     mediaSource = nullptr;
     control = nullptr;
-    formatControl = nullptr;
-    audioControl = nullptr;
-    videoControl = nullptr;
     metaDataControl = nullptr;
     settingsChanged = true;
 }
@@ -298,12 +292,6 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
 
             if (d->control)
                 service->releaseControl(d->control);
-            if (d->formatControl)
-                service->releaseControl(d->formatControl);
-            if (d->audioControl)
-                service->releaseControl(d->audioControl);
-            if (d->videoControl)
-                service->releaseControl(d->videoControl);
             if (d->metaDataControl) {
                 disconnect(d->metaDataControl, SIGNAL(metaDataChanged()),
                         this, SIGNAL(metaDataChanged()));
@@ -320,9 +308,6 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
     }
 
     d->control = nullptr;
-    d->formatControl = nullptr;
-    d->audioControl = nullptr;
-    d->videoControl = nullptr;
     d->metaDataControl = nullptr;
 
     d->mediaSource = object;
@@ -337,10 +322,6 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
             d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));
 
             if (d->control) {
-                d->formatControl = qobject_cast<QMediaContainerControl *>(service->requestControl(QMediaContainerControl_iid));
-                d->audioControl = qobject_cast<QAudioEncoderSettingsControl *>(service->requestControl(QAudioEncoderSettingsControl_iid));
-                d->videoControl = qobject_cast<QVideoEncoderSettingsControl *>(service->requestControl(QVideoEncoderSettingsControl_iid));
-
                 QObject *control = service->requestControl(QMetaDataWriterControl_iid);
                 if (control) {
                     d->metaDataControl = qobject_cast<QMetaDataWriterControl *>(control);
@@ -552,6 +533,30 @@ qreal QMediaRecorder::volume() const
     return d_func()->control ? d_func()->control->volume() : 1.0;
 }
 
+/*!
+    Sets the encoder settings to \a settings.
+
+    \sa QMediaEncoderSettings
+*/
+void QMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+    Q_D(QMediaRecorder);
+
+    d->encoderSettings = settings;
+    d->control->setEncoderSettings(settings);
+    d->applySettingsLater();
+}
+
+/*!
+    Returns the current encoder settings.
+
+    \sa QMediaEncoderSettings
+*/
+QMediaEncoderSettings QMediaRecorder::encoderSettings() const
+{
+    return d_func()->encoderSettings;
+}
+
 
 void QMediaRecorder::setVolume(qreal volume)
 {
@@ -561,299 +566,6 @@ void QMediaRecorder::setVolume(qreal volume)
         volume = qMax(qreal(0.0), volume);
         d->control->setVolume(volume);
     }
-}
-
-/*!
-    Returns a list of supported container formats.
-*/
-QStringList QMediaRecorder::supportedContainers() const
-{
-    return d_func()->formatControl ?
-           d_func()->formatControl->supportedContainers() : QStringList();
-}
-
-/*!
-    Returns a description of a container \a format.
-*/
-QString QMediaRecorder::containerDescription(const QString &format) const
-{
-    return d_func()->formatControl ?
-           d_func()->formatControl->containerDescription(format) : QString();
-}
-
-/*!
-    Returns the selected container format.
-*/
-
-QString QMediaRecorder::containerFormat() const
-{
-    return d_func()->formatControl ?
-           d_func()->formatControl->containerFormat() : QString();
-}
-
-/*!
-    Returns a list of supported audio codecs.
-*/
-QStringList QMediaRecorder::supportedAudioCodecs() const
-{
-    return d_func()->audioControl ?
-           d_func()->audioControl->supportedAudioCodecs() : QStringList();
-}
-
-/*!
-    Returns a description of an audio \a codec.
-*/
-QString QMediaRecorder::audioCodecDescription(const QString &codec) const
-{
-    return d_func()->audioControl ?
-           d_func()->audioControl->codecDescription(codec) : QString();
-}
-
-/*!
-    Returns a list of supported audio sample rates.
-
-    If non null audio \a settings parameter is passed, the returned list is
-    reduced to sample rates supported with partial settings applied.
-
-    This can be used to query the list of sample rates, supported by specific
-    audio codec.
-
-    If the encoder supports arbitrary sample rates within the supported rates
-    range, *\a continuous is set to true, otherwise *\a continuous is set to
-    false.
-*/
-
-QList<int> QMediaRecorder::supportedAudioSampleRates(const QAudioEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return d_func()->audioControl ?
-           d_func()->audioControl->supportedSampleRates(settings, continuous) : QList<int>();
-}
-
-/*!
-    Returns a list of resolutions video can be encoded at.
-
-    If non null video \a settings parameter is passed, the returned list is
-    reduced to resolution supported with partial settings like video codec or
-    framerate applied.
-
-    If the encoder supports arbitrary resolutions within the supported range,
-    *\a continuous is set to true, otherwise *\a continuous is set to false.
-
-    \sa QVideoEncoderSettings::resolution()
-*/
-QList<QSize> QMediaRecorder::supportedResolutions(const QVideoEncoderSettings &, bool *continuous) const
-{
-    if (continuous)
-        *continuous = true;
-
-    QCamera *camera = qobject_cast<QCamera *>(mediaSource());
-    if (!camera)
-        return {};
-
-    QCameraInfo info = camera->cameraInfo();
-    const auto formats = info.videoFormats();
-    QList<QSize> resolutions;
-    for (const auto &f : formats)
-        resolutions.append(f.resolution());
-    return resolutions;
-}
-
-/*!
-    Returns a list of frame rates video can be encoded at.
-
-    If non null video \a settings parameter is passed, the returned list is
-    reduced to frame rates supported with partial settings like video codec or
-    resolution applied.
-
-    If the encoder supports arbitrary frame rates within the supported range,
-    *\a continuous is set to true, otherwise *\a continuous is set to false.
-
-    \sa QVideoEncoderSettings::frameRate()
-*/
-QList<qreal> QMediaRecorder::supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = true;
-
-    QSize resolution = settings.resolution();
-
-    QCamera *camera = qobject_cast<QCamera *>(mediaSource());
-    if (!camera)
-        return {};
-
-    QCameraInfo info = camera->cameraInfo();
-    const auto formats = info.videoFormats();
-    qreal min = 0.;
-    qreal max = 1.e6;
-    for (const auto &f : formats) {
-        QSize formatResolution = f.resolution();
-        if (formatResolution.width() >= resolution.width() || formatResolution.height() >= resolution.height()) {
-            // we can downsample, framerates are usable
-            min = qMin(min, f.minFrameRate());
-            max = qMax(max, f.maxFrameRate());
-        }
-    }
-
-    if (min == 0.)
-        return {};
-
-    return QList<qreal>() << min << max;
-}
-
-/*!
-    Returns a list of supported video codecs.
-*/
-QStringList QMediaRecorder::supportedVideoCodecs() const
-{
-    return d_func()->videoControl ?
-           d_func()->videoControl->supportedVideoCodecs() : QStringList();
-}
-
-/*!
-    Returns a description of a video \a codec.
-
-    \sa setEncodingSettings()
-*/
-QString QMediaRecorder::videoCodecDescription(const QString &codec) const
-{
-    return d_func()->videoControl ?
-           d_func()->videoControl->videoCodecDescription(codec) : QString();
-}
-
-/*!
-    Returns the audio encoder settings being used.
-
-    \sa setEncodingSettings()
-*/
-
-QAudioEncoderSettings QMediaRecorder::audioSettings() const
-{
-    return d_func()->audioControl ?
-           d_func()->audioControl->audioSettings() : QAudioEncoderSettings();
-}
-
-/*!
-    Returns the video encoder settings being used.
-
-    \sa setEncodingSettings()
-*/
-
-QVideoEncoderSettings QMediaRecorder::videoSettings() const
-{
-    return d_func()->videoControl ?
-           d_func()->videoControl->videoSettings() : QVideoEncoderSettings();
-}
-
-/*!
-    Sets the audio encoder \a settings.
-
-    If some parameters are not specified, or null settings are passed, the
-    encoder will choose default encoding parameters, depending on media
-    source properties.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setAudioSettings(const QAudioEncoderSettings &settings)
-{
-    Q_D(QMediaRecorder);
-
-    //restart camera if it can't apply new settings in the Active state
-    d->restartCamera();
-
-    if (d->audioControl) {
-        d->audioControl->setAudioSettings(settings);
-        d->applySettingsLater();
-    }
-}
-
-/*!
-    Sets the video encoder \a settings.
-
-    If some parameters are not specified, or null settings are passed, the
-    encoder will choose default encoding parameters, depending on media
-    source properties.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setVideoSettings(const QVideoEncoderSettings &settings)
-{
-    Q_D(QMediaRecorder);
-
-    d->restartCamera();
-
-    if (d->videoControl) {
-        d->videoControl->setVideoSettings(settings);
-        d->applySettingsLater();
-    }
-}
-
-/*!
-    Sets the media \a container format.
-
-    If the container format is not specified, the
-    encoder will choose format, depending on media source properties
-    and encoding settings selected.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setContainerFormat(const QString &container)
-{
-    Q_D(QMediaRecorder);
-
-    d->restartCamera();
-
-    if (d->formatControl) {
-        d->formatControl->setContainerFormat(container);
-        d->applySettingsLater();
-    }
-}
-
-/*!
-    Sets the \a audio and \a video encoder settings and \a container format.
-
-    If some parameters are not specified, or null settings are passed, the
-    encoder will choose default encoding parameters, depending on media
-    source properties.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
-                                         const QVideoEncoderSettings &video,
-                                         const QString &container)
-{
-    Q_D(QMediaRecorder);
-
-    d->restartCamera();
-
-    if (d->audioControl)
-        d->audioControl->setAudioSettings(audio);
-
-    if (d->videoControl)
-        d->videoControl->setVideoSettings(video);
-
-    if (d->formatControl)
-        d->formatControl->setContainerFormat(container);
-
-    d->applySettingsLater();
 }
 
 /*!
@@ -1108,7 +820,7 @@ QStringList QMediaRecorder::availableMetaData() const
 */
 
 /*!
-    Returns the active audio input name.
+    Returns the active audio input.
 */
 
 QAudioDeviceInfo QMediaRecorder::audioInput() const
@@ -1116,6 +828,17 @@ QAudioDeviceInfo QMediaRecorder::audioInput() const
     Q_D(const QMediaRecorder);
 
     return d->control->audioInput();
+}
+
+/*!
+    Returns information about the active video input.
+*/
+QCameraInfo QMediaRecorder::videoInput() const
+{
+    Q_D(const QMediaRecorder);
+
+    auto *camera = qobject_cast<QCamera *>(d->mediaSource);
+    return camera ? camera->cameraInfo() : QCameraInfo();
 }
 
 /*!

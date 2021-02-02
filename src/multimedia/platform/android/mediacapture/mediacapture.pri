@@ -11,9 +11,6 @@ SOURCES += \
     $$PWD/qandroidcamerafocuscontrol.cpp \
     $$PWD/qandroidcapturesession.cpp \
     $$PWD/qandroidmediarecordercontrol.cpp \
-    $$PWD/qandroidaudioencodersettingscontrol.cpp \
-    $$PWD/qandroidmediacontainercontrol.cpp \
-    $$PWD/qandroidvideoencodersettingscontrol.cpp \
     $$PWD/qandroidcameravideorenderercontrol.cpp
 
 HEADERS += \
@@ -27,7 +24,4 @@ HEADERS += \
     $$PWD/qandroidcamerafocuscontrol_p.h \
     $$PWD/qandroidcapturesession_p.h \
     $$PWD/qandroidmediarecordercontrol_p.h \
-    $$PWD/qandroidaudioencodersettingscontrol_p.h \
-    $$PWD/qandroidmediacontainercontrol_p.h \
-    $$PWD/qandroidvideoencodersettingscontrol_p.h \
     $$PWD/qandroidcameravideorenderercontrol_p.h

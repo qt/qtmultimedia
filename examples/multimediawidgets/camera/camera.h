@@ -127,9 +127,7 @@ private:
     QScopedPointer<QMediaRecorder> m_mediaRecorder;
 
     QImageEncoderSettings m_imageSettings;
-    QAudioEncoderSettings m_audioSettings;
-    QVideoEncoderSettings m_videoSettings;
-    QString m_videoContainerFormat;
+    QMediaEncoderSettings m_encoderSettings;
     bool m_isCapturingImage = false;
     bool m_applicationExiting = false;
 };

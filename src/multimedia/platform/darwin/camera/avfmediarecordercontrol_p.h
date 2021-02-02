@@ -93,6 +93,8 @@ public:
     QAudioDeviceInfo audioInput() const override;
     bool setAudioInput(const QAudioDeviceInfo &id) override;
 
+    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
+
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) override;
     void setMuted(bool muted) override;
@@ -114,6 +116,7 @@ private:
 
     bool m_connected;
     QUrl m_outputLocation;
+    QMediaEncoderSettings m_settings;
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_lastStatus;
 

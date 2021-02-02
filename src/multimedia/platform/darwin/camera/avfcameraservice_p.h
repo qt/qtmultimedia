@@ -71,9 +71,6 @@ class AVFCameraExposureControl;
 class AVFImageEncoderControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
-class AVFAudioEncoderSettingsControl;
-class AVFVideoEncoderSettingsControl;
-class AVFMediaContainerControl;
 class AVFCameraWindowControl;
 
 class AVFCameraService : public QMediaPlatformCaptureInterface
@@ -95,9 +92,6 @@ public:
     AVFCameraExposureControl *cameraExposureControl() const {return m_cameraExposureControl; }
     AVFCameraRendererControl *videoOutput() const {return m_videoOutput; }
     AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
-    AVFAudioEncoderSettingsControl *audioEncoderSettingsControl() const { return m_audioEncoderSettingsControl; }
-    AVFVideoEncoderSettingsControl *videoEncoderSettingsControl() const {return m_videoEncoderSettingsControl; }
-    AVFMediaContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -109,9 +103,6 @@ private:
     AVFCameraFocusControl *m_cameraFocusControl;
     AVFCameraExposureControl *m_cameraExposureControl;
     AVFImageEncoderControl *m_imageEncoderControl;
-    AVFAudioEncoderSettingsControl *m_audioEncoderSettingsControl;
-    AVFVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
-    AVFMediaContainerControl *m_mediaContainerControl;
     AVFCameraWindowControl *m_captureWindowControl;
 };
 

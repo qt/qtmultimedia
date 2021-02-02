@@ -40,9 +40,6 @@
 #include "qgstreamercaptureservice_p.h"
 #include "qgstreamercapturesession_p.h"
 #include "qgstreamerrecordercontrol_p.h"
-#include "private/qgstreameraudioencoder_p.h"
-#include "private/qgstreamervideoencoder_p.h"
-#include "private/qgstreamercontainer_p.h"
 #include "qgstreamerimageencode_p.h"
 #include "qgstreamercameracontrol_p.h"
 #include <private/qgstreamerbushelper_p.h>
@@ -104,18 +101,8 @@ QObject *QGstreamerCaptureService::requestControl(const char *name)
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_captureSession->recorderControl();
 
-    if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
-        return m_captureSession->audioEncodeControl();
-
-    if (qstrcmp(name,QVideoEncoderSettingsControl_iid) == 0)
-        return m_captureSession->videoEncodeControl();
-
     if (qstrcmp(name,QImageEncoderControl_iid) == 0)
         return m_captureSession->imageEncodeControl();
-
-
-    if (qstrcmp(name,QMediaContainerControl_iid) == 0)
-        return m_captureSession->mediaContainerControl();
 
     if (qstrcmp(name,QCameraControl_iid) == 0)
         return m_cameraControl;

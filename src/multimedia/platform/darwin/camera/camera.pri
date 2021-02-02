@@ -11,9 +11,6 @@ HEADERS += \
     $$PWD/avfcameraexposurecontrol_p.h \
     $$PWD/avfcamerautility_p.h \
     $$PWD/avfimageencodercontrol_p.h \
-    $$PWD/avfvideoencodersettingscontrol_p.h \
-    $$PWD/avfmediacontainercontrol_p.h \
-    $$PWD/avfaudioencodersettingscontrol_p.h \
     $$PWD/avfcamerawindowcontrol_p.h \
 
 SOURCES += \
@@ -28,9 +25,6 @@ SOURCES += \
     $$PWD/avfcameraexposurecontrol.mm \
     $$PWD/avfcamerautility.mm \
     $$PWD/avfimageencodercontrol.mm \
-    $$PWD/avfvideoencodersettingscontrol.mm \
-    $$PWD/avfmediacontainercontrol.mm \
-    $$PWD/avfaudioencodersettingscontrol.mm \
     $$PWD/avfcamerawindowcontrol.mm \
 
 osx {

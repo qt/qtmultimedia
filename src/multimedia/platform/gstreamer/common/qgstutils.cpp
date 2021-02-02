@@ -999,6 +999,37 @@ void qt_gst_util_double_to_fraction(gdouble src, gint *dest_n, gint *dest_d)
     gst_util_double_to_fraction(src, dest_n, dest_d);
 }
 
+QPair<int,int> qt_gstRateAsRational(qreal frameRate)
+{
+    if (frameRate > 0.001) {
+        //convert to rational number
+        QList<int> denumCandidates;
+        denumCandidates << 1 << 2 << 3 << 5 << 10 << 25 << 30 << 50 << 100 << 1001 << 1000;
+
+        qreal error = 1.0;
+        int num = 1;
+        int denum = 1;
+
+        for (int curDenum : qAsConst(denumCandidates)) {
+            int curNum = qRound(frameRate*curDenum);
+            qreal curError = qAbs(qreal(curNum)/curDenum - frameRate);
+
+            if (curError < error) {
+                error = curError;
+                num = curNum;
+                denum = curDenum;
+            }
+
+            if (curError < 1e-8)
+                break;
+        }
+
+        return QPair<int,int>(num,denum);
+    }
+
+    return QPair<int,int>();
+}
+
 QDebug operator <<(QDebug debug, GstCaps *caps)
 {
     if (caps) {

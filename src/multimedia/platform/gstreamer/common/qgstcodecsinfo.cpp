@@ -132,8 +132,8 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
                   << "video/x-raw-yuv" << "video/x-raw-rgb";
 
     QSet<QByteArray> fieldsToAdd;
-    fieldsToAdd << "mpegversion" << "layer" << "layout" << "raversion"
-                << "wmaversion" << "wmvversion" << "variant" << "systemstream";
+    fieldsToAdd << "mpegversion" << "layer" << "layout"
+                << "variant";
 
     GList *element = elements;
     while (element) {
@@ -229,11 +229,10 @@ GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
         gstElementType = GST_ELEMENT_FACTORY_TYPE_MUXER;
         break;
     case AudioDecoder:
-        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_DECODER | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
+        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_PARSER | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
         break;
     case VideoDecoder:
-        // GST_ELEMENT_FACTORY_TYPE_VIDEO_ENCODER also lists image encoders. We don't want these here.
-        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_DECODER | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO);
+        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_PARSER | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO);
         break;
     case Demuxer:
         gstElementType = GST_ELEMENT_FACTORY_TYPE_DEMUXER;

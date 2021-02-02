@@ -68,9 +68,6 @@ class QAndroidCameraFocusControl;
 class QAndroidCameraImageProcessingControl;
 class QAndroidImageEncoderControl;
 class QAndroidCameraImageCaptureControl;
-class QAndroidAudioEncoderSettingsControl;
-class QAndroidVideoEncoderSettingsControl;
-class QAndroidMediaContainerControl;
 
 class QAndroidCaptureService : public QMediaPlatformCaptureInterface
 {
@@ -96,9 +93,6 @@ private:
     QAndroidCameraImageProcessingControl *m_cameraImageProcessingControl;
     QAndroidImageEncoderControl *m_imageEncoderControl;
     QAndroidCameraImageCaptureControl *m_imageCaptureControl;
-    QAndroidAudioEncoderSettingsControl *m_audioEncoderSettingsControl;
-    QAndroidVideoEncoderSettingsControl *m_videoEncoderSettingsControl;
-    QAndroidMediaContainerControl *m_mediaContainerControl;
 };
 
 QT_END_NAMESPACE

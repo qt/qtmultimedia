@@ -86,14 +86,8 @@ public:
 
     qint64 duration() const;
 
-    QString containerFormat() const { return m_containerFormat; }
-    void setContainerFormat(const QString &format);
-
-    QAudioEncoderSettings audioSettings() const { return m_audioSettings; }
-    void setAudioSettings(const QAudioEncoderSettings &settings);
-
-    QVideoEncoderSettings videoSettings() const { return m_videoSettings; }
-    void setVideoSettings(const QVideoEncoderSettings &settings);
+    void setEncoderSettings(const QMediaEncoderSettings &settings);
+    QMediaEncoderSettings encoderSettings() { return m_encoderSettings; }
 
     void applySettings();
 
@@ -139,7 +133,7 @@ private:
             , videoEncoder(AndroidMediaRecorder::DefaultVideoEncoder)
             , videoBitRate(1)
             , videoFrameRate(-1)
-            , videoResolution(320, 240)
+            , videoResolution(1280, 720)
             , isNull(true)
         { }
     };
@@ -174,12 +168,8 @@ private:
 
     CaptureProfile m_defaultSettings;
 
-    QString m_containerFormat;
-    QAudioEncoderSettings m_audioSettings;
-    QVideoEncoderSettings m_videoSettings;
-    bool m_containerFormatDirty;
-    bool m_videoSettingsDirty;
-    bool m_audioSettingsDirty;
+    QMediaEncoderSettings m_encoderSettings;
+    bool m_encoderSettingsDirty = false;
     AndroidMediaRecorder::OutputFormat m_outputFormat;
     AndroidMediaRecorder::AudioEncoder m_audioEncoder;
     AndroidMediaRecorder::VideoEncoder m_videoEncoder;

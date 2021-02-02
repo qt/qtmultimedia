@@ -546,9 +546,9 @@ void tst_QCameraBackend::testVideoRecording()
 
     camera->setCaptureMode(QCamera::CaptureVideo);
 
-    QVideoEncoderSettings videoSettings;
-    videoSettings.setResolution(320, 240);
-    recorder.setVideoSettings(videoSettings);
+    QMediaEncoderSettings videoSettings;
+    videoSettings.setVideoResolution(320, 240);
+    recorder.setEncoderSettings(videoSettings);
 
     QCOMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
 

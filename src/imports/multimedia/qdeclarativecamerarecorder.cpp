@@ -103,7 +103,7 @@ QDeclarativeCameraRecorder::~QDeclarativeCameraRecorder()
 */
 QSize QDeclarativeCameraRecorder::captureResolution()
 {
-    return m_videoSettings.resolution();
+    return m_encoderSettings.videoResolution();
 }
 
 /*!
@@ -114,9 +114,9 @@ QSize QDeclarativeCameraRecorder::captureResolution()
 
     \sa {QtMultimedia::CameraImageProcessing::whiteBalanceMode}{whileBalanceMode}
 */
-QString QDeclarativeCameraRecorder::audioCodec() const
+QMediaFormat::AudioCodec QDeclarativeCameraRecorder::audioCodec() const
 {
-    return m_audioSettings.codec();
+    return m_encoderSettings.audioCodec();
 }
 
 /*!
@@ -125,9 +125,9 @@ QString QDeclarativeCameraRecorder::audioCodec() const
     This property holds the video codec to be used for recording video.
     Typically this is \c h264.
 */
-QString QDeclarativeCameraRecorder::videoCodec() const
+QMediaFormat::VideoCodec QDeclarativeCameraRecorder::videoCodec() const
 {
-    return m_videoSettings.codec();
+    return m_encoderSettings.videoCodec();
 }
 
 /*!
@@ -136,47 +136,48 @@ QString QDeclarativeCameraRecorder::videoCodec() const
     This property holds the media container to be used for recording video.
     Typically this is \c mp4.
 */
-QString QDeclarativeCameraRecorder::mediaContainer() const
+QMediaFormat::FileFormat QDeclarativeCameraRecorder::mediaContainer() const
 {
-    return m_mediaContainer;
+    return m_encoderSettings.format();
 }
 
 void QDeclarativeCameraRecorder::setCaptureResolution(const QSize &resolution)
 {
-    m_videoSettings = m_recorder->videoSettings();
+    m_encoderSettings = m_recorder->encoderSettings();
     if (resolution != captureResolution()) {
-        m_videoSettings.setResolution(resolution);
-        m_recorder->setVideoSettings(m_videoSettings);
+        m_encoderSettings.setVideoResolution(resolution);
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit captureResolutionChanged(resolution);
     }
 }
 
-void QDeclarativeCameraRecorder::setAudioCodec(const QString &codec)
+void QDeclarativeCameraRecorder::setAudioCodec(QMediaFormat::AudioCodec codec)
 {
-    m_audioSettings = m_recorder->audioSettings();
+    m_encoderSettings = m_recorder->encoderSettings();
     if (codec != audioCodec()) {
-        m_audioSettings.setCodec(codec);
-        m_recorder->setAudioSettings(m_audioSettings);
-        emit audioCodecChanged(codec);
+        m_encoderSettings.setAudioCodec(codec);
+        m_recorder->setEncoderSettings(m_encoderSettings);
+        emit audioCodecChanged();
     }
 }
 
-void QDeclarativeCameraRecorder::setVideoCodec(const QString &codec)
+void QDeclarativeCameraRecorder::setVideoCodec(QMediaFormat::VideoCodec codec)
 {
-    m_videoSettings = m_recorder->videoSettings();
+    m_encoderSettings = m_recorder->encoderSettings();
     if (codec != videoCodec()) {
-        m_videoSettings.setCodec(codec);
-        m_recorder->setVideoSettings(m_videoSettings);
-        emit videoCodecChanged(codec);
+        m_encoderSettings.setVideoCodec(codec);
+        m_recorder->setEncoderSettings(m_encoderSettings);
+        emit videoCodecChanged();
     }
 }
 
-void QDeclarativeCameraRecorder::setMediaContainer(const QString &container)
+void QDeclarativeCameraRecorder::setMediaContainer(QMediaFormat::FileFormat container)
 {
-    if (container != m_mediaContainer) {
-        m_mediaContainer = container;
-        m_recorder->setContainerFormat(container);
-        emit mediaContainerChanged(container);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (container != m_encoderSettings.format()) {
+        m_encoderSettings.setFormat(container);
+        m_recorder->setEncoderSettings(m_encoderSettings);
+        emit mediaContainerChanged();
     }
 }
 
@@ -187,7 +188,7 @@ void QDeclarativeCameraRecorder::setMediaContainer(const QString &container)
 */
 qreal QDeclarativeCameraRecorder::frameRate() const
 {
-    return m_videoSettings.frameRate();
+    return m_encoderSettings.videoFrameRate();
 }
 
 /*!
@@ -197,7 +198,7 @@ qreal QDeclarativeCameraRecorder::frameRate() const
 */
 int QDeclarativeCameraRecorder::videoBitRate() const
 {
-    return m_videoSettings.bitRate();
+    return m_encoderSettings.videoBitRate();
 }
 
 /*!
@@ -207,7 +208,7 @@ int QDeclarativeCameraRecorder::videoBitRate() const
 */
 int QDeclarativeCameraRecorder::audioBitRate() const
 {
-    return m_audioSettings.bitRate();
+    return m_encoderSettings.audioBitRate();
 }
 
 /*!
@@ -218,7 +219,7 @@ int QDeclarativeCameraRecorder::audioBitRate() const
 */
 int QDeclarativeCameraRecorder::audioChannels() const
 {
-    return m_audioSettings.channelCount();
+    return m_encoderSettings.audioChannelCount();
 }
 
 /*!
@@ -228,7 +229,7 @@ int QDeclarativeCameraRecorder::audioChannels() const
 */
 int QDeclarativeCameraRecorder::audioSampleRate() const
 {
-    return m_audioSettings.sampleRate();
+    return m_encoderSettings.audioSampleRate();
 }
 
 /*!
@@ -254,7 +255,7 @@ int QDeclarativeCameraRecorder::audioSampleRate() const
 */
 QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::videoEncodingMode() const
 {
-    return EncodingMode(m_videoSettings.encodingMode());
+    return EncodingMode(m_encoderSettings.encodingMode());
 }
 
 /*!
@@ -277,75 +278,75 @@ QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::videoEncodi
 */
 QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::audioEncodingMode() const
 {
-    return EncodingMode(m_audioSettings.encodingMode());
+    return EncodingMode(m_encoderSettings.encodingMode());
 }
 
 void QDeclarativeCameraRecorder::setFrameRate(qreal frameRate)
 {
-    m_videoSettings = m_recorder->videoSettings();
-    if (!qFuzzyCompare(m_videoSettings.frameRate(),frameRate)) {
-        m_videoSettings.setFrameRate(frameRate);
-        m_recorder->setVideoSettings(m_videoSettings);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (!qFuzzyCompare(m_encoderSettings.videoFrameRate(),frameRate)) {
+        m_encoderSettings.setVideoFrameRate(frameRate);
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit frameRateChanged(frameRate);
     }
 }
 
 void QDeclarativeCameraRecorder::setVideoBitRate(int rate)
 {
-    m_videoSettings = m_recorder->videoSettings();
-    if (m_videoSettings.bitRate() != rate) {
-        m_videoSettings.setBitRate(rate);
-        m_recorder->setVideoSettings(m_videoSettings);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (m_encoderSettings.videoBitRate() != rate) {
+        m_encoderSettings.setVideoBitRate(rate);
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit videoBitRateChanged(rate);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioBitRate(int rate)
 {
-    m_audioSettings = m_recorder->audioSettings();
-    if (m_audioSettings.bitRate() != rate) {
-        m_audioSettings.setBitRate(rate);
-        m_recorder->setAudioSettings(m_audioSettings);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (m_encoderSettings.audioBitRate() != rate) {
+        m_encoderSettings.setAudioBitRate(rate);
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit audioBitRateChanged(rate);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioChannels(int channels)
 {
-    m_audioSettings = m_recorder->audioSettings();
-    if (m_audioSettings.channelCount() != channels) {
-        m_audioSettings.setChannelCount(channels);
-        m_recorder->setAudioSettings(m_audioSettings);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (m_encoderSettings.audioChannelCount() != channels) {
+        m_encoderSettings.setAudioChannelCount(channels);
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit audioChannelsChanged(channels);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioSampleRate(int rate)
 {
-    m_audioSettings = m_recorder->audioSettings();
-    if (m_audioSettings.sampleRate() != rate) {
-        m_audioSettings.setSampleRate(rate);
-        m_recorder->setAudioSettings(m_audioSettings);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (m_encoderSettings.audioSampleRate() != rate) {
+        m_encoderSettings.setAudioSampleRate(rate);
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit audioSampleRateChanged(rate);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
 {
-    m_audioSettings = m_recorder->audioSettings();
-    if (m_audioSettings.encodingMode() != QMultimedia::EncodingMode(encodingMode)) {
-        m_audioSettings.setEncodingMode(QMultimedia::EncodingMode(encodingMode));
-        m_recorder->setAudioSettings(m_audioSettings);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (m_encoderSettings.encodingMode() != QMultimedia::EncodingMode(encodingMode)) {
+        m_encoderSettings.setEncodingMode(QMultimedia::EncodingMode(encodingMode));
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit audioEncodingModeChanged(encodingMode);
     }
 }
 
 void QDeclarativeCameraRecorder::setVideoEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
 {
-    m_videoSettings = m_recorder->videoSettings();
-    if (m_videoSettings.encodingMode() != QMultimedia::EncodingMode(encodingMode)) {
-        m_videoSettings.setEncodingMode(QMultimedia::EncodingMode(encodingMode));
-        m_recorder->setVideoSettings(m_videoSettings);
+    m_encoderSettings = m_recorder->encoderSettings();
+    if (m_encoderSettings.encodingMode() != QMultimedia::EncodingMode(encodingMode)) {
+        m_encoderSettings.setEncodingMode(QMultimedia::EncodingMode(encodingMode));
+        m_recorder->setEncoderSettings(m_encoderSettings);
         emit videoEncodingModeChanged(encodingMode);
     }
 }

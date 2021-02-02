@@ -14,9 +14,6 @@ HEADERS += \
     $$PWD/qgstreamerplayercontrol_p.h \
     $$PWD/qgstvideorendererplugin_p.h \
     $$PWD/qgstvideorenderersink_p.h \
-    $$PWD/qgstreamercontainer_p.h \
-    $$PWD/qgstreameraudioencoder_p.h \
-    $$PWD/qgstreamervideoencoder_p.h
     
 SOURCES += \
     $$PWD/qgstappsrc.cpp \
@@ -34,6 +31,3 @@ SOURCES += \
     $$PWD/qgstreamerplayercontrol.cpp \
     $$PWD/qgstvideorendererplugin.cpp \
     $$PWD/qgstvideorenderersink.cpp \
-    $$PWD/qgstreamercontainer.cpp \
-    $$PWD/qgstreameraudioencoder.cpp \
-    $$PWD/qgstreamervideoencoder.cpp

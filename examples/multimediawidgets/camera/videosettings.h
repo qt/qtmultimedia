@@ -69,14 +69,8 @@ public:
     explicit VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent = nullptr);
     ~VideoSettings();
 
-    QAudioEncoderSettings audioSettings() const;
-    void setAudioSettings(const QAudioEncoderSettings&);
-
-    QVideoEncoderSettings videoSettings() const;
-    void setVideoSettings(const QVideoEncoderSettings&);
-
-    QString format() const;
-    void setFormat(const QString &format);
+    QMediaEncoderSettings encoderSettings() const;
+    void setEncoderSettings(const QMediaEncoderSettings&);
 
 protected:
     void changeEvent(QEvent *e) override;

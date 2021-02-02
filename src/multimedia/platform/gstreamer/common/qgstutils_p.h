@@ -213,6 +213,7 @@ Q_MULTIMEDIA_EXPORT const gchar *qt_gst_element_get_factory_name(GstElement *ele
 Q_MULTIMEDIA_EXPORT gboolean qt_gst_caps_can_intersect(const GstCaps * caps1, const GstCaps * caps2);
 Q_MULTIMEDIA_EXPORT GList *qt_gst_video_sinks();
 Q_MULTIMEDIA_EXPORT void qt_gst_util_double_to_fraction(gdouble src, gint *dest_n, gint *dest_d);
+QPair<int,int> qt_gstRateAsRational(qreal frameRate);
 
 Q_MULTIMEDIA_EXPORT QDebug operator <<(QDebug debug, GstCaps *caps);
 

@@ -53,6 +53,7 @@ QT_BEGIN_NAMESPACE
 class QUrl;
 class QSize;
 class QAudioFormat;
+class QCameraInfo;
 QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
@@ -139,35 +140,8 @@ public:
     bool isMuted() const;
     qreal volume() const;
 
-    QStringList supportedContainers() const;
-    QString containerDescription(const QString &format) const;
-
-    QStringList supportedAudioCodecs() const;
-    QString audioCodecDescription(const QString &codecName) const;
-
-    QList<int> supportedAudioSampleRates(const QAudioEncoderSettings &settings = QAudioEncoderSettings(),
-                                         bool *continuous = nullptr) const;
-
-    QStringList supportedVideoCodecs() const;
-    QString videoCodecDescription(const QString &codecName) const;
-
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                      bool *continuous = nullptr) const;
-
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings = QVideoEncoderSettings(),
-                                     bool *continuous = nullptr) const;
-
-    QAudioEncoderSettings audioSettings() const;
-    QVideoEncoderSettings videoSettings() const;
-    QString containerFormat() const;
-
-    void setAudioSettings(const QAudioEncoderSettings &audioSettings);
-    void setVideoSettings(const QVideoEncoderSettings &videoSettings);
-    void setContainerFormat(const QString &container);
-
-    void setEncodingSettings(const QAudioEncoderSettings &audioSettings,
-                             const QVideoEncoderSettings &videoSettings = QVideoEncoderSettings(),
-                             const QString &containerMimeType = QString());
+    void setEncoderSettings(const QMediaEncoderSettings &);
+    QMediaEncoderSettings encoderSettings() const;
 
     bool isMetaDataAvailable() const;
     bool isMetaDataWritable() const;
@@ -177,6 +151,7 @@ public:
     QStringList availableMetaData() const;
 
     QAudioDeviceInfo audioInput() const;
+    QCameraInfo videoInput() const;
 
 public Q_SLOTS:
     void record();

@@ -41,9 +41,6 @@
 #include "camerabinservice.h"
 #include "camerabinsession.h"
 #include "camerabinrecorder.h"
-#include "camerabincontainer.h"
-#include "camerabinaudioencoder.h"
-#include "camerabinvideoencoder.h"
 #include "camerabinimageencoder.h"
 #include "camerabincontrol.h"
 #include "camerabinmetadata.h"
@@ -119,18 +116,8 @@ QObject *CameraBinService::requestControl(const char *name)
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_captureSession->recorderControl();
 
-    if (qstrcmp(name,QAudioEncoderSettingsControl_iid) == 0)
-        return m_captureSession->audioEncodeControl();
-
-    if (qstrcmp(name,QVideoEncoderSettingsControl_iid) == 0)
-        return m_captureSession->videoEncodeControl();
-
     if (qstrcmp(name,QImageEncoderControl_iid) == 0)
         return m_captureSession->imageEncodeControl();
-
-
-    if (qstrcmp(name,QMediaContainerControl_iid) == 0)
-        return m_captureSession->mediaContainerControl();
 
     if (qstrcmp(name,QCameraControl_iid) == 0)
         return m_captureSession->cameraControl();

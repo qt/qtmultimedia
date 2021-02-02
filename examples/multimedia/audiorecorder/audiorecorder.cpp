@@ -87,22 +87,21 @@ AudioRecorder::AudioRecorder()
 
     //audio codecs
     ui->audioCodecBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto &codecName: m_audioRecorder->supportedAudioCodecs()) {
-        ui->audioCodecBox->addItem(codecName, QVariant(codecName));
-    }
+    for (auto &codec : QMediaEncoderInfo::supportedAudioCodecs())
+        ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec), QVariant::fromValue(codec));
 
     //containers
     ui->containerBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto &containerName: m_audioRecorder->supportedContainers()) {
-        ui->containerBox->addItem(containerName, QVariant(containerName));
+    for (auto &container : QMediaEncoderInfo::supportedFileFormats()) {
+        if (container < QMediaFormat::AAC) // ### Somewhat hacky, skip video formats
+            continue;
+        ui->containerBox->addItem(QMediaFormat::fileFormatDescription(container), QVariant::fromValue(container));
     }
 
     //sample rate
-    ui->sampleRateBox->addItem(tr("Default"), QVariant(0));
-    for (int sampleRate: m_audioRecorder->supportedAudioSampleRates()) {
-        ui->sampleRateBox->addItem(QString::number(sampleRate), QVariant(
-                sampleRate));
-    }
+    auto sampleRates = m_audioRecorder->audioInput().supportedSampleRates();
+    ui->sampleRateBox->setRange(sampleRates.minimum, sampleRates.maximum);
+    ui->sampleRateBox->setValue(qBound(sampleRates.minimum, 44100, sampleRates.maximum));
 
     //channels
     ui->channelsBox->addItem(tr("Default"), QVariant(-1));
@@ -194,19 +193,18 @@ void AudioRecorder::toggleRecord()
     if (m_audioRecorder->state() == QMediaRecorder::StoppedState) {
         m_audioRecorder->setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDeviceInfo>());
 
-        QAudioEncoderSettings settings;
-        settings.setCodec(boxValue(ui->audioCodecBox).toString());
-        settings.setSampleRate(boxValue(ui->sampleRateBox).toInt());
-        settings.setBitRate(boxValue(ui->bitrateBox).toInt());
-        settings.setChannelCount(boxValue(ui->channelsBox).toInt());
+        QMediaEncoderSettings settings;
+        settings.setFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
+        settings.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
+        settings.setAudioSampleRate(ui->sampleRateBox->value());
+        settings.setAudioBitRate(boxValue(ui->bitrateBox).toInt());
+        settings.setAudioChannelCount(boxValue(ui->channelsBox).toInt());
         settings.setQuality(QMultimedia::EncodingQuality(ui->qualitySlider->value()));
         settings.setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
                                  QMultimedia::ConstantQualityEncoding :
                                  QMultimedia::ConstantBitRateEncoding);
 
-        QString container = boxValue(ui->containerBox).toString();
-
-        m_audioRecorder->setEncodingSettings(settings, QVideoEncoderSettings(), container);
+        m_audioRecorder->setEncoderSettings(settings);
         m_audioRecorder->record();
     }
     else {

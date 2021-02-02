@@ -50,9 +50,6 @@
 #include "qandroidcameraimageprocessingcontrol_p.h"
 #include "qandroidimageencodercontrol_p.h"
 #include "qandroidcameraimagecapturecontrol_p.h"
-#include "qandroidaudioencodersettingscontrol_p.h"
-#include "qandroidvideoencodersettingscontrol_p.h"
-#include "qandroidmediacontainercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -76,23 +73,14 @@ QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
         m_cameraImageProcessingControl = 0;
         m_imageEncoderControl = 0;
         m_imageCaptureControl = 0;
-        m_videoEncoderSettingsControl = 0;
     }
 
     m_captureSession = new QAndroidCaptureSession(m_cameraSession);
     m_recorderControl = new QAndroidMediaRecorderControl(m_captureSession);
-    m_audioEncoderSettingsControl = new QAndroidAudioEncoderSettingsControl(m_captureSession);
-    m_mediaContainerControl = new QAndroidMediaContainerControl(m_captureSession);
-
-    if (m_videoEnabled)
-        m_videoEncoderSettingsControl = new QAndroidVideoEncoderSettingsControl(m_captureSession);
 }
 
 QAndroidCaptureService::~QAndroidCaptureService()
 {
-    delete m_audioEncoderSettingsControl;
-    delete m_videoEncoderSettingsControl;
-    delete m_mediaContainerControl;
     delete m_recorderControl;
     delete m_captureSession;
     delete m_cameraControl;
@@ -109,15 +97,6 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaRecorderControl_iid) == 0)
         return m_recorderControl;
-
-    if (qstrcmp(name, QMediaContainerControl_iid) == 0)
-        return m_mediaContainerControl;
-
-    if (qstrcmp(name, QAudioEncoderSettingsControl_iid) == 0)
-        return m_audioEncoderSettingsControl;
-
-    if (qstrcmp(name, QVideoEncoderSettingsControl_iid) == 0)
-        return m_videoEncoderSettingsControl;
 
     if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;

@@ -39,9 +39,6 @@
 
 #include "qgstreamercapturesession_p.h"
 #include "qgstreamerrecordercontrol_p.h"
-#include "private/qgstreamercontainer_p.h"
-#include "private/qgstreameraudioencoder_p.h"
-#include "private/qgstreamervideoencoder_p.h"
 #include "qgstreamerimageencode_p.h"
 #include <qmediarecorder.h>
 #include <qmediadevicemanager.h>
@@ -49,10 +46,12 @@
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstutils_p.h>
-
+#include <private/qgstreamerintegration_p.h>
+#include <private/qgstreamerformatsinfo_p.h>
 #include <gst/gsttagsetter.h>
 #include <gst/gstversion.h>
 #include <gst/video/video.h>
+#include <gst/pbutils/encoding-profile.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
@@ -98,14 +97,11 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
     m_busHelper->installMessageFilter(this);
 
-    m_audioEncodeControl = new QGStreamerAudioEncoderControl(this);
-    m_videoEncodeControl = new QGStreamerVideoEncoderControl();
     m_imageEncodeControl = new QGstreamerImageEncode(this);
     m_recorderControl = new QGstreamerRecorderControl(this);
     connect(m_recorderControl, &QGstreamerRecorderControl::error, [](int e, const QString &str) {
         qWarning() << QMediaRecorder::Error(e) << ":" << str.toLatin1().constData();
     });
-    m_mediaContainerControl = new QGStreamerContainerControl(this);
 }
 
 QGstreamerCaptureSession::~QGstreamerCaptureSession()
@@ -130,6 +126,107 @@ GstElement *QGstreamerCaptureSession::buildFileSink()
     return fileSink;
 }
 
+
+static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSettings &settings)
+{
+    GstCaps *caps = nullptr;
+
+    auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
+
+    if (!formatInfo->encodableMediaContainers().contains(settings.format()))
+        return nullptr;
+
+    const char *format = formatInfo->nativeFormat(settings.format());
+    Q_ASSERT(format);
+
+    caps = gst_caps_from_string(format);
+
+    GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
+                "container_profile",
+                (gchar *)"custom container profile",
+                caps,
+                NULL); //preset
+
+    gst_caps_unref(caps);
+
+    return profile;
+}
+
+static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &settings)
+{
+    auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
+
+    if (!formatInfo->encodableVideoCodecs().contains(settings.videoCodec()))
+        return nullptr;
+
+    const char *codec = formatInfo->nativeFormat(settings.videoCodec());
+    Q_ASSERT(codec);
+    GstCaps *caps = gst_caps_from_string(codec);
+
+    if (!caps)
+        return nullptr;
+
+    GstEncodingVideoProfile *profile = gst_encoding_video_profile_new(
+                caps,
+                nullptr,
+                NULL, //restriction
+                0); //presence
+
+    gst_caps_unref(caps);
+
+    gst_encoding_video_profile_set_pass(profile, 0);
+    gst_encoding_video_profile_set_variableframerate(profile, TRUE);
+
+    return (GstEncodingProfile *)profile;
+}
+
+static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &settings)
+{
+    auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
+
+    if (!formatInfo->encodableAudioCodecs().contains(settings.audioCodec()))
+        return nullptr;
+
+    const char *codec = formatInfo->nativeFormat(settings.audioCodec());
+    Q_ASSERT(codec);
+
+    GstCaps *caps = gst_caps_from_string(codec);
+
+    GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
+                caps,
+                nullptr, //preset
+                NULL,   //restriction
+                0);     //presence
+
+    gst_caps_unref(caps);
+
+    return profile;
+}
+
+
+static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSettings &settings, QGstreamerCaptureSession::CaptureMode mode)
+{
+    auto *containerProfile = createContainerProfile(settings);
+    if (containerProfile) {
+        GstEncodingProfile *audioProfile = mode & QGstreamerCaptureSession::Audio ? createAudioProfile(settings) : nullptr;
+        GstEncodingProfile *videoProfile = mode & QGstreamerCaptureSession::Video ? createVideoProfile(settings) : nullptr;
+        qDebug() << "audio profile" << gst_caps_to_string(gst_encoding_profile_get_format(audioProfile));
+        qDebug() << "video profile" << gst_caps_to_string(gst_encoding_profile_get_format(videoProfile));
+        qDebug() << "conta profile" << gst_caps_to_string(gst_encoding_profile_get_format((GstEncodingProfile *)containerProfile));
+
+        if (videoProfile) {
+            if (!gst_encoding_container_profile_add_profile(containerProfile, videoProfile))
+                gst_encoding_profile_unref(videoProfile);
+        }
+        if (audioProfile) {
+            if (!gst_encoding_container_profile_add_profile(containerProfile, audioProfile))
+                gst_encoding_profile_unref(audioProfile);
+        }
+    }
+
+    return containerProfile;
+}
+
 GstElement *QGstreamerCaptureSession::buildEncodeBin()
 {
     GstElement *encoder = gst_element_factory_make("encodebin", "encoder");
@@ -138,10 +235,7 @@ GstElement *QGstreamerCaptureSession::buildEncodeBin()
         return nullptr;
     }
 
-    m_mediaContainerControl->applySettings(m_audioEncodeControl, m_videoEncodeControl);
-    auto *audioEncode = m_captureMode & Audio ? m_audioEncodeControl : nullptr;
-    auto *videoEncode = m_captureMode & Video ? m_videoEncodeControl : nullptr;
-    auto *encodingProfile = m_mediaContainerControl->fullProfile(audioEncode, videoEncode);
+    auto *encodingProfile = createEncodingProfile(m_recorderControl->resolvedEncoderSettings(), m_captureMode);
 
     g_object_set (G_OBJECT(encoder),
                   "profile",
@@ -231,9 +325,9 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
         qreal frameRate = 0;
 
         if (m_captureMode & Video) {
-            QVideoEncoderSettings videoSettings = m_videoEncodeControl->videoSettings();
-            resolution = videoSettings.resolution();
-            frameRate = videoSettings.frameRate();
+            QMediaEncoderSettings videoSettings = m_recorderControl->resolvedEncoderSettings();
+            resolution = videoSettings.videoResolution();
+            frameRate = videoSettings.videoFrameRate();
         } else if (m_captureMode & Image) {
             resolution = m_imageEncodeControl->imageSettings().resolution();
         }
@@ -245,7 +339,7 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
             gst_caps_set_simple(caps, "height", G_TYPE_INT, resolution.height(), NULL);
         }
         if (frameRate > 0.001) {
-            QPair<int,int> rate = m_videoEncodeControl->rateAsRational();
+            QPair<int,int> rate = qt_gstRateAsRational(frameRate);
 
             //qDebug() << "frame rate:" << num << denum;
 

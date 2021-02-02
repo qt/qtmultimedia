@@ -54,6 +54,7 @@
 #include <qcamera.h>
 #include <qmediarecorder.h>
 #include <qmediaencodersettings.h>
+#include <qmediaformat.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -70,19 +71,19 @@ class QDeclarativeCameraRecorder : public QObject
     Q_PROPERTY(RecorderState recorderState READ recorderState WRITE setRecorderState NOTIFY recorderStateChanged)
     Q_PROPERTY(RecorderStatus recorderStatus READ recorderStatus NOTIFY recorderStatusChanged)
 
-    Q_PROPERTY(QString videoCodec READ videoCodec WRITE setVideoCodec NOTIFY videoCodecChanged)
+    Q_PROPERTY(QMediaFormat::VideoCodec videoCodec READ videoCodec WRITE setVideoCodec NOTIFY videoCodecChanged)
     Q_PROPERTY(QSize resolution READ captureResolution WRITE setCaptureResolution NOTIFY captureResolutionChanged)
     Q_PROPERTY(qreal frameRate READ frameRate WRITE setFrameRate NOTIFY frameRateChanged)
     Q_PROPERTY(int videoBitRate READ videoBitRate WRITE setVideoBitRate NOTIFY videoBitRateChanged)
     Q_PROPERTY(EncodingMode videoEncodingMode READ videoEncodingMode WRITE setVideoEncodingMode NOTIFY videoEncodingModeChanged)
 
-    Q_PROPERTY(QString audioCodec READ audioCodec WRITE setAudioCodec NOTIFY audioCodecChanged)
+    Q_PROPERTY(QMediaFormat::AudioCodec audioCodec READ audioCodec WRITE setAudioCodec NOTIFY audioCodecChanged)
     Q_PROPERTY(int audioBitRate READ audioBitRate WRITE setAudioBitRate NOTIFY audioBitRateChanged)
     Q_PROPERTY(int audioChannels READ audioChannels WRITE setAudioChannels NOTIFY audioChannelsChanged)
     Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
     Q_PROPERTY(EncodingMode audioEncodingMode READ audioEncodingMode WRITE setAudioEncodingMode NOTIFY audioEncodingModeChanged)
 
-    Q_PROPERTY(QString mediaContainer READ mediaContainer WRITE setMediaContainer NOTIFY mediaContainerChanged)
+    Q_PROPERTY(QMediaFormat::FileFormat mediaContainer READ mediaContainer WRITE setMediaContainer NOTIFY mediaContainerChanged)
 
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QString outputLocation READ outputLocation WRITE setOutputLocation NOTIFY outputLocationChanged)
@@ -137,9 +138,9 @@ public:
     qint64 duration() const;
     bool isMuted() const;
 
-    QString audioCodec() const;
-    QString videoCodec() const;
-    QString mediaContainer() const;
+    QMediaFormat::AudioCodec audioCodec() const;
+    QMediaFormat::VideoCodec videoCodec() const;
+    QMediaFormat::FileFormat mediaContainer() const;
 
     Error errorCode() const;
     QString errorString() const;
@@ -164,9 +165,9 @@ public Q_SLOTS:
     void setMetadata(const QString &key, const QVariant &value);
 
     void setCaptureResolution(const QSize &resolution);
-    void setAudioCodec(const QString &codec);
-    void setVideoCodec(const QString &codec);
-    void setMediaContainer(const QString &container);
+    void setAudioCodec(QMediaFormat::AudioCodec codec);
+    void setVideoCodec(QMediaFormat::VideoCodec codec);
+    void setMediaContainer(QMediaFormat::FileFormat container);
 
     void setFrameRate(qreal frameRate);
     void setVideoBitRate(int rate);
@@ -190,9 +191,9 @@ Q_SIGNALS:
     void metaDataChanged(const QString &key, const QVariant &value);
 
     void captureResolutionChanged(const QSize &);
-    void audioCodecChanged(const QString &codec);
-    void videoCodecChanged(const QString &codec);
-    void mediaContainerChanged(const QString &container);
+    void audioCodecChanged();
+    void videoCodecChanged();
+    void mediaContainerChanged();
 
     void frameRateChanged(qreal arg);
     void videoBitRateChanged(int arg);
@@ -214,9 +215,7 @@ private:
 
     QMediaRecorder *m_recorder;
 
-    QAudioEncoderSettings m_audioSettings;
-    QVideoEncoderSettings m_videoSettings;
-    QString m_mediaContainer;
+    QMediaEncoderSettings m_encoderSettings;
 };
 
 QT_END_NAMESPACE

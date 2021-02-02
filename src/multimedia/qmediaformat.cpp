@@ -67,6 +67,11 @@ constexpr bool audioSupportMatrix[QMediaFormat::FileFormat::LastFileFormat + 1][
     { false, false, false, false, false, false, false, false, false,  true }, // WindowsMediaAudio
 };
 
+inline bool formatSupportsCodec(QMediaFormat::FileFormat format, QMediaFormat::AudioCodec codec)
+{
+    return audioSupportMatrix[format][(int)codec];
+}
+
 // info from https://en.wikipedia.org/wiki/Comparison_of_video_container_formats
 constexpr bool videoSupportMatrix[QMediaFormat::FileFormat::LastFileFormat + 1][(int)QMediaFormat::VideoCodec::LastVideoCodec + 1] =
 {
@@ -89,6 +94,36 @@ constexpr bool videoSupportMatrix[QMediaFormat::FileFormat::LastFileFormat + 1][
     { false, false, false, false, false, false, false, false, false, false }, // WindowsMediaAudio
 };
 
+inline bool formatSupportsCodec(QMediaFormat::FileFormat format, QMediaFormat::VideoCodec codec)
+{
+    return videoSupportMatrix[format][(int)codec];
+}
+
+
+constexpr QMediaFormat::FileFormat videoFormatPriorityList[] =
+{
+    QMediaFormat::MPEG4,
+    QMediaFormat::QuickTime,
+    QMediaFormat::AVI,
+    QMediaFormat::WebM,
+    QMediaFormat::ASF,
+    QMediaFormat::Matroska,
+    QMediaFormat::Ogg,
+    QMediaFormat::UnspecifiedFormat
+};
+
+constexpr QMediaFormat::FileFormat audioFormatPriorityList[] =
+{
+    QMediaFormat::AAC,
+    QMediaFormat::MP3,
+    QMediaFormat::Mpeg4Audio,
+    QMediaFormat::Opus,
+    QMediaFormat::FLAC,
+    QMediaFormat::WindowsMediaAudio,
+    QMediaFormat::Wave,
+    QMediaFormat::UnspecifiedFormat
+};
+
 constexpr QMediaFormat::AudioCodec audioPriorityList[] =
 {
     QMediaFormat::AudioCodec::AAC,
@@ -101,7 +136,7 @@ constexpr QMediaFormat::AudioCodec audioPriorityList[] =
     QMediaFormat::AudioCodec::FLAC,
     QMediaFormat::AudioCodec::Vorbis,
     QMediaFormat::AudioCodec::Wave,
-    QMediaFormat::AudioCodec::Invalid
+    QMediaFormat::AudioCodec::Unspecified
 };
 
 constexpr QMediaFormat::VideoCodec videoPriorityList[] =
@@ -118,6 +153,84 @@ constexpr QMediaFormat::VideoCodec videoPriorityList[] =
     QMediaFormat::VideoCodec::MotionJPEG,
 };
 
+}
+
+void QMediaFormatPrivate::resolveForEncoding(QMediaFormat *f, bool audioOnly)
+{
+    auto supportedFormats = QMediaEncoderInfo::supportedFileFormats();
+    auto supportedAudioCodecs = QMediaEncoderInfo::supportedAudioCodecs();
+    auto supportedVideoCodecs = QMediaEncoderInfo::supportedVideoCodecs();
+
+    auto bestSupportedFileFormat = [&](QMediaFormat::AudioCodec audio = QMediaFormat::AudioCodec::Unspecified,
+                                       QMediaFormat::VideoCodec video = QMediaFormat::VideoCodec::Unspecified)
+    {
+        auto *list = audioOnly ? audioFormatPriorityList : videoFormatPriorityList;
+        while (*list != QMediaFormat::UnspecifiedFormat) {
+            if (supportedFormats.contains(*list)) {
+                if ((audio == QMediaFormat::AudioCodec::Unspecified || formatSupportsCodec(f->fmt, audio)) &&
+                    (video == QMediaFormat::VideoCodec::Unspecified || formatSupportsCodec(f->fmt, video)))
+                    break;
+            }
+            ++list;
+        }
+        return *list;
+    };
+
+    // reset non supported formats and codecs
+    if (!supportedFormats.contains(f->fmt))
+        f->fmt = QMediaFormat::UnspecifiedFormat;
+    if (!supportedAudioCodecs.contains(f->audio))
+        f->audio = QMediaFormat::AudioCodec::Unspecified;
+    if (audioOnly || !supportedVideoCodecs.contains(f->video))
+        f->video = QMediaFormat::VideoCodec::Unspecified;
+
+    // try finding a file format that is supported
+    if (f->fmt == QMediaFormat::UnspecifiedFormat)
+        f->fmt = bestSupportedFileFormat(f->audio, f->video);
+    // try without the audio codec
+    if (f->fmt == QMediaFormat::UnspecifiedFormat)
+        f->fmt = bestSupportedFileFormat(QMediaFormat::AudioCodec::Unspecified, f->video);
+    // try without the video codec
+    if (f->fmt == QMediaFormat::UnspecifiedFormat)
+        f->fmt = bestSupportedFileFormat(f->audio);
+    // give me a format that's supported
+    if (f->fmt == QMediaFormat::UnspecifiedFormat)
+        f->fmt = bestSupportedFileFormat();
+    // still nothing? Give up
+    if (f->fmt == QMediaFormat::UnspecifiedFormat)
+        return;
+
+    // now that we have a format, reset codecs that won't work
+    if (f->audio != QMediaFormat::AudioCodec::Unspecified) {
+        if (!formatSupportsCodec(f->fmt, f->audio) || !supportedAudioCodecs.contains(f->audio))
+            f->audio = QMediaFormat::AudioCodec::Unspecified;
+    }
+    if (f->video != QMediaFormat::VideoCodec::Unspecified) {
+        if (!formatSupportsCodec(f->fmt, f->video) || !supportedVideoCodecs.contains(f->video))
+            f->video = QMediaFormat::VideoCodec::Unspecified;
+    }
+
+    // find a matching audio format
+    if (f->audio == QMediaFormat::AudioCodec::Unspecified) {
+        auto *list = audioPriorityList;
+        while (*list != QMediaFormat::AudioCodec::Unspecified) {
+            if (supportedAudioCodecs.contains(*list) && formatSupportsCodec(f->fmt, *list))
+                break;
+            ++list;
+        }
+        f->audio = *list;
+    }
+
+    // find a matching video format
+    if (!audioOnly && f->video == QMediaFormat::VideoCodec::Unspecified) {
+        auto *list = videoPriorityList;
+        while (*list != QMediaFormat::VideoCodec::Unspecified) {
+            if (supportedVideoCodecs.contains(*list) && formatSupportsCodec(f->fmt, *list))
+                break;
+            ++list;
+        }
+        f->video = *list;
+    }
 }
 
 /*! \enum QMediaFormat::FileFormat
@@ -148,21 +261,6 @@ QMediaFormat::QMediaFormat(FileFormat format)
     : fmt(format)
 {
     Q_UNUSED(d);
-    const QMediaFormat::VideoCodec *v = videoPriorityList;
-    while (*v != QMediaFormat::VideoCodec::Invalid) {
-        if (videoSupportMatrix[fmt][(int)*v])
-            break;
-        ++v;
-    }
-    video = *v;
-
-    const QMediaFormat::AudioCodec *a = audioPriorityList;
-    while (*a != QMediaFormat::AudioCodec::Invalid) {
-        if (videoSupportMatrix[fmt][(int)*a])
-            break;
-        ++a;
-    }
-    audio = *a;
 }
 
 QMediaFormat::~QMediaFormat() = default;
@@ -240,13 +338,13 @@ bool QMediaFormat::canDecode() const
 {
     if (!QMediaDecoderInfo::supportedFileFormats().contains(fmt))
         return false;
-    if (audio == QMediaFormat::AudioCodec::Invalid && video == QMediaFormat::VideoCodec::Invalid)
+    if (audio == QMediaFormat::AudioCodec::Unspecified && video == QMediaFormat::VideoCodec::Unspecified)
         return false;
-    if (audio != QMediaFormat::AudioCodec::Invalid) {
+    if (audio != QMediaFormat::AudioCodec::Unspecified) {
         if (!QMediaDecoderInfo::supportedAudioCodecs().contains(audio))
             return false;
     }
-    if (video != QMediaFormat::VideoCodec::Invalid) {
+    if (video != QMediaFormat::VideoCodec::Unspecified) {
         if (!QMediaDecoderInfo::supportedVideoCodecs().contains(video))
             return false;
     }
@@ -262,13 +360,13 @@ bool QMediaFormat::canEncode() const
 {
     if (!QMediaEncoderInfo::supportedFileFormats().contains(fmt))
         return false;
-    if (audio == QMediaFormat::AudioCodec::Invalid && video == QMediaFormat::VideoCodec::Invalid)
+    if (audio == QMediaFormat::AudioCodec::Unspecified && video == QMediaFormat::VideoCodec::Unspecified)
         return false;
-    if (audio != QMediaFormat::AudioCodec::Invalid) {
+    if (audio != QMediaFormat::AudioCodec::Unspecified) {
         if (!QMediaEncoderInfo::supportedAudioCodecs().contains(audio))
             return false;
     }
-    if (video != QMediaFormat::VideoCodec::Invalid) {
+    if (video != QMediaFormat::VideoCodec::Unspecified) {
         if (!QMediaEncoderInfo::supportedVideoCodecs().contains(video))
             return false;
     }
@@ -344,6 +442,7 @@ QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec c)
 QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
 {
     constexpr const char *descriptions[] = {
+        "Unspecified File Format",
         "Windows Media Format (ASF)",
         "Audio Video Interleave (AVI)",
         "Matroska Multimedia Container",
@@ -360,13 +459,13 @@ QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
         "Wave File",
         "Windows Media Audio",
     };
-    return QString::fromUtf8(descriptions[int(c)]);
+    return QString::fromUtf8(descriptions[int(c) + 1]);
 }
 
 QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec c)
 {
     constexpr const char *descriptions[] = {
-        "Invalid Audio Codec",
+        "Unspecified Audio Codec",
         "MP3",
         "Advanced Audio Codec (AAC)",
         "Dolby Digital (AC3)",
@@ -384,7 +483,7 @@ QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec c)
 QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec c)
 {
     constexpr const char *descriptions[] = {
-        "Invalid",
+        "Unspecified Video Codec",
         "MPEG-1 Video",
         "MPEG-2 Video",
         "MPEG-4 Video",

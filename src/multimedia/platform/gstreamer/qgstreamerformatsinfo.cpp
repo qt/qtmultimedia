@@ -51,11 +51,11 @@ static struct {
     { "video/x-ms-asf", QMediaFormat::FileFormat::ASF },
     { "video/x-msvideo", QMediaFormat::FileFormat::AVI },
     { "video/x-matroska", QMediaFormat::FileFormat::Matroska },
-    { "video/quicktime, variant=(string)iso", QMediaFormat::FileFormat::MPEG4 },
+    { "video/mpeg", QMediaFormat::FileFormat::MPEG4 },
     { "video/quicktime", QMediaFormat::FileFormat::QuickTime },
     { "video/ogg", QMediaFormat::FileFormat::Ogg },
     { "video/webm", QMediaFormat::FileFormat::WebM },
-    { nullptr, QMediaFormat::FileFormat::MPEG4 }
+    { nullptr, QMediaFormat::FileFormat::UnspecifiedFormat }
 };
 
 static struct {
@@ -65,26 +65,25 @@ static struct {
     { "audio/mpeg, mpegversion=(int)1, layer=(int)3", QMediaFormat::FileFormat::MP3 },
     { "audio/mpeg, mpegversion=(int)4", QMediaFormat::FileFormat::AAC },
     { "audio/x-flac", QMediaFormat::FileFormat::FLAC },
-    { "audio/x-wma, wmaversion=(int)1", QMediaFormat::FileFormat::WindowsMediaAudio },
-    { "audio/x-wma, wmaversion=(int)2", QMediaFormat::FileFormat::WindowsMediaAudio },
-    { nullptr, QMediaFormat::FileFormat::MPEG4 },
+    { "audio/x-wma", QMediaFormat::FileFormat::WindowsMediaAudio },
+    { nullptr, QMediaFormat::FileFormat::UnspecifiedFormat },
 };
 
 static struct {
     const char *name;
     QMediaFormat::VideoCodec value;
 } videoCodecMap[] = {
-    { "video/mpeg, mpegversion=(int)1, systemstream=(boolean)false", QMediaFormat::VideoCodec::MPEG1 },
-    { "video/mpeg, mpegversion=(int)2, systemstream=(boolean)false", QMediaFormat::VideoCodec::MPEG2 },
-    { "video/mpeg, mpegversion=(int)4, systemstream=(boolean)false", QMediaFormat::VideoCodec::MPEG4 },
+    { "video/mpeg, mpegversion=(int)1", QMediaFormat::VideoCodec::MPEG1 },
+    { "video/mpeg, mpegversion=(int)2", QMediaFormat::VideoCodec::MPEG2 },
+    { "video/mpeg, mpegversion=(int)4", QMediaFormat::VideoCodec::MPEG4 },
     { "video/x-h264", QMediaFormat::VideoCodec::H264 },
     { "video/x-h265", QMediaFormat::VideoCodec::H265 },
     { "video/x-vp8", QMediaFormat::VideoCodec::VP8 },
     { "video/x-vp9", QMediaFormat::VideoCodec::VP9 },
     { "video/x-av1", QMediaFormat::VideoCodec::AV1 },
     { "video/x-theora", QMediaFormat::VideoCodec::Theora },
-    { "video/", QMediaFormat::VideoCodec::MotionJPEG },
-    { nullptr, QMediaFormat::VideoCodec::Invalid }
+    { "video/x-jpeg", QMediaFormat::VideoCodec::MotionJPEG },
+    { nullptr, QMediaFormat::VideoCodec::Unspecified }
 };
 
 static struct {
@@ -96,25 +95,27 @@ static struct {
     { "audio/x-ac3", QMediaFormat::AudioCodec::AC3 },
     { "audio/x-eac3", QMediaFormat::AudioCodec::EAC3 },
     { "audio/x-flac", QMediaFormat::AudioCodec::FLAC },
-    { "audio/x-wma, wmaversion=(int)1", QMediaFormat::AudioCodec::WindowsMediaAudio },
-    { "audio/x-wma, wmaversion=(int)2", QMediaFormat::AudioCodec::WindowsMediaAudio },
+    { "audio/x-wma", QMediaFormat::AudioCodec::WindowsMediaAudio },
     { "audio/x-true-hd", QMediaFormat::AudioCodec::DolbyTrueHD },
     { "audio/x-vorbis", QMediaFormat::AudioCodec::Vorbis },
-    { nullptr, QMediaFormat::AudioCodec::Invalid },
+    { nullptr, QMediaFormat::AudioCodec::Unspecified },
 };
 
-template<typename Map>
-static auto getList(QGstCodecsInfo::ElementType type, Map *map)
+template<typename Map, typename Hash>
+static auto getList(QGstCodecsInfo::ElementType type, Map *map, Hash &hash)
 {
     using T = decltype(map->value);
     QList<T> list;
     QGstCodecsInfo info(type);
     auto codecs = info.supportedCodecs();
     for (const auto &c : codecs) {
+        if (type == QGstCodecsInfo::AudioDecoder)
+            qDebug() << "gst format" << c;
         Map *m = map;
         while (m->name) {
             if (m->name == c.toLatin1()) {
                 list.append(m->value);
+                hash.insert(m->value, m->name);
                 break;
             }
             ++m;
@@ -125,15 +126,15 @@ static auto getList(QGstCodecsInfo::ElementType type, Map *map)
 
 QGstreamerFormatsInfo::QGstreamerFormatsInfo()
 {
-    m_decodableMediaContainers = getList(QGstCodecsInfo::Demuxer, videoFormatsMap);
-    m_decodableMediaContainers.append(getList(QGstCodecsInfo::AudioDecoder, audioFormatsMap));
-    m_decodableAudioCodecs = getList(QGstCodecsInfo::AudioDecoder, audioCodecMap);
-    m_decodableVideoCodecs = getList(QGstCodecsInfo::VideoDecoder, videoCodecMap);
+    m_decodableMediaContainers = getList(QGstCodecsInfo::Demuxer, videoFormatsMap, formatToCaps);
+    m_decodableMediaContainers.append(getList(QGstCodecsInfo::AudioDecoder, audioFormatsMap, formatToCaps));
+    m_decodableAudioCodecs = getList(QGstCodecsInfo::AudioDecoder, audioCodecMap, audioToCaps);
+    m_decodableVideoCodecs = getList(QGstCodecsInfo::VideoDecoder, videoCodecMap, videoToCaps);
 
-    m_encodableMediaContainers = getList(QGstCodecsInfo::Muxer, videoFormatsMap);
-    m_encodableMediaContainers.append(getList(QGstCodecsInfo::AudioEncoder, audioFormatsMap));
-    m_encodableAudioCodecs = getList(QGstCodecsInfo::AudioEncoder, audioCodecMap);
-    m_encodableVideoCodecs = getList(QGstCodecsInfo::VideoEncoder, videoCodecMap);
+    m_encodableMediaContainers = getList(QGstCodecsInfo::Muxer, videoFormatsMap, formatToCaps);
+    m_encodableMediaContainers.append(getList(QGstCodecsInfo::AudioEncoder, audioFormatsMap, formatToCaps));
+    m_encodableAudioCodecs = getList(QGstCodecsInfo::AudioEncoder, audioCodecMap, audioToCaps);
+    m_encodableVideoCodecs = getList(QGstCodecsInfo::VideoEncoder, videoCodecMap, videoToCaps);
 }
 
 QGstreamerFormatsInfo::~QGstreamerFormatsInfo()

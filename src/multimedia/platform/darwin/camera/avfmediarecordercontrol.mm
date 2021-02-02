@@ -42,16 +42,15 @@
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
-#include "avfaudioencodersettingscontrol_p.h"
-#include "avfvideoencodersettingscontrol_p.h"
-#include "avfmediacontainercontrol_p.h"
 #include "qaudiodeviceinfo.h"
 #include "qmediadevicemanager.h"
+#include "private/qdarwinformatsinfo_p.h"
+#include "avfcamerautility_p.h"
 
 #include <QtCore/qurl.h>
 #include <QtCore/qfileinfo.h>
 #include <QtMultimedia/qcameracontrol.h>
-
+#include <CoreAudio/CoreAudio.h>
 
 QT_USE_NAMESPACE
 
@@ -237,6 +236,231 @@ qreal AVFMediaRecorderControl::volume() const
     return m_volume;
 }
 
+static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettings)
+{
+    NSMutableDictionary *settings = [NSMutableDictionary dictionary];
+
+    int codecId = QDarwinFormatInfo::audioFormatForCodec(encoderSettings.audioCodec());
+
+    [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
+
+#ifdef Q_OS_OSX
+    if (encoderSettings.encodingMode() == QMultimedia::ConstantQualityEncoding) {
+        int quality;
+        switch (encoderSettings.quality()) {
+        case QMultimedia::VeryLowQuality:
+            quality = AVAudioQualityMin;
+            break;
+        case QMultimedia::LowQuality:
+            quality = AVAudioQualityLow;
+            break;
+        case QMultimedia::HighQuality:
+            quality = AVAudioQualityHigh;
+            break;
+        case QMultimedia::VeryHighQuality:
+            quality = AVAudioQualityMax;
+            break;
+        case QMultimedia::NormalQuality:
+        default:
+            quality = AVAudioQualityMedium;
+            break;
+        }
+        [settings setObject:[NSNumber numberWithInt:quality] forKey:AVEncoderAudioQualityKey];
+
+    } else
+#endif
+    if (encoderSettings.audioBitRate() > 0)
+        [settings setObject:[NSNumber numberWithInt:encoderSettings.audioBitRate()] forKey:AVEncoderBitRateKey];
+
+    int sampleRate = encoderSettings.audioSampleRate();
+    int channelCount = encoderSettings.audioChannelCount();
+
+#ifdef Q_OS_IOS
+    // Some keys are mandatory only on iOS
+    if (sampleRate <= 0)
+        sampleRate = 44100;
+    if (channelCount <= 0)
+        channelCount = 2;
+#endif
+
+    if (sampleRate > 0)
+        [settings setObject:[NSNumber numberWithInt:sampleRate] forKey:AVSampleRateKey];
+    if (channelCount > 0)
+        [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
+
+    return settings;
+}
+
+static bool formatSupportsFramerate(AVCaptureDeviceFormat *format, qreal fps)
+{
+    if (format && fps > qreal(0)) {
+        const qreal epsilon = 0.1;
+        for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
+            if (range.maxFrameRate - range.minFrameRate < epsilon) {
+                if (qAbs(fps - range.maxFrameRate) < epsilon)
+                    return true;
+            }
+
+            if (fps >= range.minFrameRate && fps <= range.maxFrameRate)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCaptureDevice *device, AVCaptureConnection *connection)
+{
+    if (!device)
+        return nil;
+
+    // ### How to set file type????
+    // Maybe need to use AVCaptureVideoDataOutput on macOS as well?
+
+    // ### re-add needFpsChange
+//    AVFPSRange currentFps = qt_current_framerates(device, connection);
+
+    NSMutableDictionary *videoSettings = [NSMutableDictionary dictionary];
+
+    // -- Codec
+
+    // AVVideoCodecKey is the only mandatory key
+    auto codec = encoderSettings.videoCodec();
+    NSString *c = QDarwinFormatInfo::videoFormatForCodec(codec);
+    [videoSettings setObject:c forKey:AVVideoCodecKey];
+    [c release];
+
+    // -- Resolution
+
+    int w = encoderSettings.videoResolution().width();
+    int h = encoderSettings.videoResolution().height();
+
+    if (AVCaptureDeviceFormat *currentFormat = device.activeFormat) {
+        CMFormatDescriptionRef formatDesc = currentFormat.formatDescription;
+        CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
+        FourCharCode formatCodec = CMVideoFormatDescriptionGetCodecType(formatDesc);
+
+        // We have to change the device's activeFormat in 3 cases:
+        // - the requested recording resolution is higher than the current device resolution
+        // - the requested recording resolution has a different aspect ratio than the current device aspect ratio
+        // - the requested frame rate is not available for the current device format
+        AVCaptureDeviceFormat *newFormat = nil;
+        if ((w <= 0 || h <= 0)
+                && encoderSettings.videoFrameRate() > 0
+                && !formatSupportsFramerate(currentFormat, encoderSettings.videoFrameRate())) {
+
+            newFormat = qt_find_best_framerate_match(device,
+                                                     formatCodec,
+                                                     encoderSettings.videoFrameRate());
+
+        } else if (w > 0 && h > 0) {
+            AVCaptureDeviceFormat *f = qt_find_best_resolution_match(device,
+                                                                     encoderSettings.videoResolution(),
+                                                                     formatCodec);
+
+            if (f) {
+                CMVideoDimensions d = CMVideoFormatDescriptionGetDimensions(f.formatDescription);
+                qreal fAspectRatio = qreal(d.width) / d.height;
+
+                if (w > dim.width || h > dim.height
+                        || qAbs((qreal(dim.width) / dim.height) - fAspectRatio) > 0.01) {
+                    newFormat = f;
+                }
+            }
+        }
+
+        if (qt_set_active_format(device, newFormat, false /*### !needFpsChange*/)) {
+            formatDesc = newFormat.formatDescription;
+            dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
+        }
+
+        if (w > 0 && h > 0) {
+            // Make sure the recording resolution has the same aspect ratio as the device's
+            // current resolution
+            qreal deviceAspectRatio = qreal(dim.width) / dim.height;
+            qreal recAspectRatio = qreal(w) / h;
+            if (qAbs(deviceAspectRatio - recAspectRatio) > 0.01) {
+                if (recAspectRatio > deviceAspectRatio)
+                    w = qRound(h * deviceAspectRatio);
+                else
+                    h = qRound(w / deviceAspectRatio);
+            }
+
+            // recording resolution can't be higher than the device's active resolution
+            w = qMin(w, dim.width);
+            h = qMin(h, dim.height);
+        }
+    }
+
+    if (w > 0 && h > 0) {
+        // Width and height must be divisible by 2
+        w += w & 1;
+        h += h & 1;
+
+        [videoSettings setObject:[NSNumber numberWithInt:w] forKey:AVVideoWidthKey];
+        [videoSettings setObject:[NSNumber numberWithInt:h] forKey:AVVideoHeightKey];
+        encoderSettings.setVideoResolution(w, h);
+    } else {
+        encoderSettings.setVideoResolution(qt_device_format_resolution(device.activeFormat));
+    }
+
+    // -- FPS
+
+    if (true /*needFpsChange*/) {
+        const qreal fps = encoderSettings.videoFrameRate();
+        qt_set_framerate_limits(device, connection, fps, fps);
+    }
+    encoderSettings.setVideoFrameRate(qt_current_framerates(device, connection).second);
+
+    // -- Codec Settings
+
+    NSMutableDictionary *codecProperties = [NSMutableDictionary dictionary];
+    int bitrate = -1;
+    float quality = -1.f;
+
+    if (encoderSettings.encodingMode() == QMultimedia::ConstantQualityEncoding) {
+        if (encoderSettings.quality() != QMultimedia::NormalQuality) {
+            if (codec != QMediaFormat::VideoCodec::MotionJPEG) {
+                qWarning("ConstantQualityEncoding is not supported for MotionJPEG");
+            } else {
+                switch (encoderSettings.quality()) {
+                case QMultimedia::VeryLowQuality:
+                    quality = 0.f;
+                    break;
+                case QMultimedia::LowQuality:
+                    quality = 0.25f;
+                    break;
+                case QMultimedia::HighQuality:
+                    quality = 0.75f;
+                    break;
+                case QMultimedia::VeryHighQuality:
+                    quality = 1.f;
+                    break;
+                default:
+                    quality = -1.f; // NormalQuality, let the system decide
+                    break;
+                }
+            }
+        }
+    } else if (encoderSettings.encodingMode() == QMultimedia::AverageBitRateEncoding){
+        if (codec != QMediaFormat::VideoCodec::H264 && codec != QMediaFormat::VideoCodec::H265)
+            qWarning() << "AverageBitRateEncoding is not supported for codec" <<  QMediaFormat::videoCodecName(codec);
+        else
+            bitrate = encoderSettings.videoBitRate();
+    } else {
+        qWarning("Encoding mode is not supported");
+    }
+
+    if (bitrate != -1)
+        [codecProperties setObject:[NSNumber numberWithInt:bitrate] forKey:AVVideoAverageBitRateKey];
+    if (quality != -1.f)
+        [codecProperties setObject:[NSNumber numberWithFloat:quality] forKey:AVVideoQualityKey];
+
+    [videoSettings setObject:codecProperties forKey:AVVideoCompressionPropertiesKey];
+
+    return videoSettings;
+}
+
 void AVFMediaRecorderControl::applySettings()
 {
     if (m_state != QMediaRecorder::StoppedState
@@ -245,13 +469,19 @@ void AVFMediaRecorderControl::applySettings()
         return;
     }
 
+    bool videoEnabled =  m_cameraControl->captureMode().testFlag(QCamera::CaptureVideo);
+    QMediaEncoderSettings resolved = m_settings;
+    resolved.resolveFormat(videoEnabled ? QMediaEncoderSettings::AudioAndVideo : QMediaEncoderSettings::AudioOnly);
+
     // Configure audio settings
-    [m_movieOutput setOutputSettings:m_service->audioEncoderSettingsControl()->applySettings()
+    [m_movieOutput setOutputSettings:avfAudioSettings(resolved)
                    forConnection:[m_movieOutput connectionWithMediaType:AVMediaTypeAudio]];
 
     // Configure video settings
     AVCaptureConnection *videoConnection = [m_movieOutput connectionWithMediaType:AVMediaTypeVideo];
-    NSDictionary *videoSettings = m_service->videoEncoderSettingsControl()->applySettings(videoConnection);
+    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+
+    NSDictionary *videoSettings = avfVideoSettings(resolved, captureDevice, videoConnection);
 
     const AVFConfigurationLock lock(m_session->videoCaptureDevice()); // prevents activeFormat from being overridden
 
@@ -260,8 +490,8 @@ void AVFMediaRecorderControl::applySettings()
 
 void AVFMediaRecorderControl::unapplySettings()
 {
-    m_service->audioEncoderSettingsControl()->unapplySettings();
-    m_service->videoEncoderSettingsControl()->unapplySettings([m_movieOutput connectionWithMediaType:AVMediaTypeVideo]);
+//    m_service->audioEncoderSettingsControl()->unapplySettings();
+//    m_service->videoEncoderSettingsControl()->unapplySettings([m_movieOutput connectionWithMediaType:AVMediaTypeVideo]);
 }
 
 QAudioDeviceInfo AVFMediaRecorderControl::audioInput() const
@@ -291,6 +521,11 @@ bool AVFMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &id)
     return false;
 }
 
+void AVFMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+    m_settings = settings;
+}
+
 void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
 {
     if (m_state == state)
@@ -305,7 +540,7 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
             QString outputLocationPath = m_outputLocation.scheme() == QLatin1String("file") ?
                         m_outputLocation.path() : m_outputLocation.toString();
 
-            QString extension = m_service->mediaContainerControl()->containerFormat();
+            QString extension = "mov";// ######m_service->mediaContainerControl()->containerFormat();
 
             QUrl actualLocation = QUrl::fromLocalFile(
                         m_storageLocation.generateFileName(outputLocationPath,

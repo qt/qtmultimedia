@@ -101,6 +101,8 @@ public:
         return true;
     }
 
+    void setEncoderSettings(const QMediaEncoderSettings &) {}
+
 
     using QMediaRecorderControl::error;
 

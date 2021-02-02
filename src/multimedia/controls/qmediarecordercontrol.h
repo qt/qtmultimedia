@@ -74,6 +74,8 @@ public:
     virtual QAudioDeviceInfo audioInput() const = 0;
     virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
 
+    virtual void setEncoderSettings(const QMediaEncoderSettings &settings) = 0;
+
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
     void statusChanged(QMediaRecorder::Status status);

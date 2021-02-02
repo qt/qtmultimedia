@@ -40,6 +40,7 @@
 #include "qdarwinformatsinfo_p.h"
 #include <AVFoundation/AVFoundation.h>
 #include <qdebug.h>
+
 QT_BEGIN_NAMESPACE
 
 static struct {
@@ -53,7 +54,7 @@ static struct {
     { "video/quicktime", QMediaFormat::QuickTime },
     { "video/ogg", QMediaFormat::Ogg },
     { "audio/mp3", QMediaFormat::MP3 },
-    { nullptr, QMediaFormat::MPEG4 }
+    { nullptr, QMediaFormat::UnspecifiedFormat }
 };
 
 static struct {
@@ -69,7 +70,7 @@ static struct {
     { "video/mp4; codecs=\"vp09\"", QMediaFormat::VideoCodec::VP9 },
     { "video/mp4; codecs=\"av01\"", QMediaFormat::VideoCodec::AV1 }, // ### ????
     { "video/mp4; codecs=\"jpeg\"", QMediaFormat::VideoCodec::MotionJPEG },
-    { nullptr, QMediaFormat::VideoCodec::Invalid }
+    { nullptr, QMediaFormat::VideoCodec::Unspecified }
 };
 
 static struct {
@@ -82,7 +83,7 @@ static struct {
     { "video/mp4; codecs=\"ac-3\"", QMediaFormat::AudioCodec::AC3 },
     { "video/mp4; codecs=\"ec-3\"", QMediaFormat::AudioCodec::EAC3 },
     { "audio/flac", QMediaFormat::AudioCodec::FLAC },
-    { nullptr, QMediaFormat::AudioCodec::Invalid },
+    { nullptr, QMediaFormat::AudioCodec::Unspecified },
 };
 
 QDarwinFormatInfo::QDarwinFormatInfo()
@@ -128,7 +129,6 @@ QDarwinFormatInfo::QDarwinFormatInfo()
 
 QDarwinFormatInfo::~QDarwinFormatInfo()
 {
-
 }
 
 QList<QMediaFormat::FileFormat> QDarwinFormatInfo::decodableMediaContainers() const
@@ -159,5 +159,67 @@ QList<QMediaFormat::AudioCodec> QDarwinFormatInfo::encodableAudioCodecs() const
 QList<QMediaFormat::VideoCodec> QDarwinFormatInfo::encodableVideoCodecs() const
 {
     return m_encodableVideoCodecs;
+}
+
+int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
+{
+    int codecId = kAudioFormatMPEG4AAC;
+    switch (codec) {
+    case QMediaFormat::AudioCodec::Unspecified:
+    case QMediaFormat::AudioCodec::DolbyTrueHD:
+    case QMediaFormat::AudioCodec::Opus:
+    case QMediaFormat::AudioCodec::Vorbis:
+    case QMediaFormat::AudioCodec::Wave:
+    case QMediaFormat::AudioCodec::WindowsMediaAudio:
+        // Unsupported, shouldn't happen. Fall back to AAC
+    case QMediaFormat::AudioCodec::AAC:
+        codecId = kAudioFormatMPEG4AAC;
+        break;
+    case QMediaFormat::AudioCodec::MP3:
+        codecId = kAudioFormatMPEGLayer3;
+        break;
+    case QMediaFormat::AudioCodec::AC3:
+        codecId = kAudioFormatAC3;
+        break;
+    case QMediaFormat::AudioCodec::EAC3:
+        codecId = kAudioFormatEnhancedAC3;
+        break;
+    case QMediaFormat::AudioCodec::FLAC:
+        codecId = kAudioFormatFLAC;
+        break;
+    }
+    return codecId;
+}
+
+NSString *QDarwinFormatInfo::videoFormatForCodec(QMediaFormat::VideoCodec codec)
+{
+    const char *c = "hvc1"; // fallback is H265
+    switch (codec) {
+    case QMediaFormat::VideoCodec::Unspecified:
+    case QMediaFormat::VideoCodec::VP8:
+    case QMediaFormat::VideoCodec::H265:
+    case QMediaFormat::VideoCodec::AV1:
+    case QMediaFormat::VideoCodec::Theora:
+        break;
+
+    case QMediaFormat::VideoCodec::MPEG1:
+        c = "mp1v";
+        break;
+    case QMediaFormat::VideoCodec::MPEG2:
+        c = "mp2v";
+        break;
+    case QMediaFormat::VideoCodec::MPEG4:
+        c = "mp4v";
+        break;
+    case QMediaFormat::VideoCodec::H264:
+        c = "avc1";
+        break;
+    case QMediaFormat::VideoCodec::VP9:
+        c = "vp09";
+        break;
+    case QMediaFormat::VideoCodec::MotionJPEG:
+        c = "jpeg";
+    }
+    return [NSString stringWithUTF8String:c];
 }
 QT_END_NAMESPACE

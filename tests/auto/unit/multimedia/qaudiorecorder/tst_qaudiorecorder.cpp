@@ -32,7 +32,6 @@
 #include <qaudioformat.h>
 
 #include <qmediarecorder.h>
-#include <qaudioencodersettingscontrol.h>
 #include <qmediarecordercontrol.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudioinput.h>

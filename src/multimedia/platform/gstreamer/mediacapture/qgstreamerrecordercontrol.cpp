@@ -38,9 +38,6 @@
 ****************************************************************************/
 
 #include "qgstreamerrecordercontrol_p.h"
-#include "private/qgstreameraudioencoder_p.h"
-#include "private/qgstreamervideoencoder_p.h"
-#include "private/qgstreamercontainer_p.h"
 #include <QtCore/QDebug>
 #include <QtGui/qdesktopservices.h>
 #include <QStandardPaths>
@@ -157,7 +154,7 @@ void QGstreamerRecorderControl::record()
     m_state = QMediaRecorder::RecordingState;
 
     if (m_outputLocation.isEmpty()) {
-        QString container = m_session->mediaContainerControl()->containerExtension();
+        QString container;// ### = m_session->mediaContainerControl()->containerExtension();
         if (container.isEmpty())
             container = "raw";
 
@@ -214,103 +211,6 @@ void QGstreamerRecorderControl::stop()
 
 void QGstreamerRecorderControl::applySettings()
 {
-    //Check the codecs are compatible with container,
-    //and choose the compatible codecs/container if omitted
-    QGStreamerAudioEncoderControl *audioEncodeControl = m_session->audioEncodeControl();
-    QGStreamerVideoEncoderControl *videoEncodeControl = m_session->videoEncodeControl();
-    QGStreamerContainerControl *mediaContainerControl = m_session->mediaContainerControl();
-
-#if 0
-    mediaContainerControl->applySettings(audioEncodeControl, videoEncodeControl);
-#else
-    bool needAudio = m_session->captureMode() & QGstreamerCaptureSession::Audio;
-    bool needVideo = m_session->captureMode() & QGstreamerCaptureSession::Video;
-
-    QStringList containerCandidates;
-    if (mediaContainerControl->containerFormat().isEmpty())
-        containerCandidates = mediaContainerControl->supportedContainers();
-    else
-        containerCandidates << mediaContainerControl->containerFormat();
-
-
-    QStringList audioCandidates;
-    if (needAudio) {
-        QAudioEncoderSettings audioSettings = audioEncodeControl->audioSettings();
-        if (audioSettings.codec().isEmpty())
-            audioCandidates = audioEncodeControl->supportedAudioCodecs();
-        else
-            audioCandidates << audioSettings.codec();
-    }
-
-    QStringList videoCandidates;
-    if (needVideo) {
-        QVideoEncoderSettings videoSettings = videoEncodeControl->videoSettings();
-        if (videoSettings.codec().isEmpty())
-            videoCandidates = videoEncodeControl->supportedVideoCodecs();
-        else
-            videoCandidates << videoSettings.codec();
-    }
-
-    QString container;
-    QString audioCodec;
-    QString videoCodec;
-
-    for (const QString &containerCandidate : qAsConst(containerCandidates)) {
-        QSet<QString> supportedTypes = mediaContainerControl->supportedStreamTypes(containerCandidate);
-
-        audioCodec.clear();
-        videoCodec.clear();
-
-        if (needAudio) {
-            bool found = false;
-            for (const QString &audioCandidate : qAsConst(audioCandidates)) {
-                QSet<QString> audioTypes = audioEncodeControl->supportedStreamTypes(audioCandidate);
-                if (audioTypes.intersects(supportedTypes)) {
-                    found = true;
-                    audioCodec = audioCandidate;
-                    break;
-                }
-            }
-            if (!found)
-                continue;
-        }
-
-        if (needVideo) {
-            bool found = false;
-            for (const QString &videoCandidate : qAsConst(videoCandidates)) {
-                QSet<QString> videoTypes = videoEncodeControl->supportedStreamTypes(videoCandidate);
-                if (videoTypes.intersects(supportedTypes)) {
-                    found = true;
-                    videoCodec = videoCandidate;
-                    break;
-                }
-            }
-            if (!found)
-                continue;
-        }
-
-        container = containerCandidate;
-        break;
-    }
-
-    if (container.isEmpty()) {
-        emit error(QMediaRecorder::FormatError, tr("Not compatible codecs and container format."));
-    } else {
-        mediaContainerControl->setContainerFormat(container);
-
-        if (needAudio) {
-            QAudioEncoderSettings audioSettings = audioEncodeControl->audioSettings();
-            audioSettings.setCodec(audioCodec);
-            audioEncodeControl->setAudioSettings(audioSettings);
-        }
-
-        if (needVideo) {
-            QVideoEncoderSettings videoSettings = videoEncodeControl->videoSettings();
-            videoSettings.setCodec(videoCodec);
-            videoEncodeControl->setVideoSettings(videoSettings);
-        }
-    }
-#endif
 }
 
 QAudioDeviceInfo QGstreamerRecorderControl::audioInput() const
@@ -322,6 +222,19 @@ bool QGstreamerRecorderControl::setAudioInput(const QAudioDeviceInfo &info)
 {
     m_session->setAudioCaptureDevice(info);
     return true;
+}
+
+void QGstreamerRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+    m_settings = settings;
+}
+
+QMediaEncoderSettings QGstreamerRecorderControl::resolvedEncoderSettings() const
+{
+    QMediaEncoderSettings f = m_settings;
+    f.resolveFormat(m_session->captureMode() & QGstreamerCaptureSession::Video ?
+                        QMediaEncoderSettings::AudioAndVideo : QMediaEncoderSettings::AudioOnly);
+    return f;
 }
 
 

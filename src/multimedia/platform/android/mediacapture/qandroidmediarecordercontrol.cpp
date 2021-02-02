@@ -136,5 +136,10 @@ bool QAndroidMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &info)
     return true;
 }
 
+void QAndroidMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+    m_session->setEncoderSettings(settings);
+}
+
 
 QT_END_NAMESPACE

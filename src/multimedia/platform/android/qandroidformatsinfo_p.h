@@ -70,11 +70,11 @@ public:
     QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const override;
 
 private:
-    QList<QMediaFormat::FileFormat> m_decodableMediaContainers;
+    QList<QMediaFormat::FileFormat> m_decodableFileFormats;
     QList<QMediaFormat::AudioCodec> m_decodableAudioCodecs;
     QList<QMediaFormat::VideoCodec> m_decodableVideoCodecs;
 
-    QList<QMediaFormat::FileFormat> m_encodableMediaContainers;
+    QList<QMediaFormat::FileFormat> m_encodableFileFormats;
     QList<QMediaFormat::AudioCodec> m_encodableAudioCodecs;
     QList<QMediaFormat::VideoCodec> m_encodableVideoCodecs;
 };

@@ -3,20 +3,17 @@ INCLUDEPATH += controls
 
 PUBLIC_HEADERS += \
     controls/qaudiodecodercontrol.h \
-    controls/qaudioencodersettingscontrol.h \
     controls/qcameracontrol.h \
     controls/qcameraexposurecontrol.h \
     controls/qcamerafocuscontrol.h \
     controls/qcameraimagecapturecontrol.h \
     controls/qcameraimageprocessingcontrol.h \
     controls/qimageencodercontrol.h \
-    controls/qmediacontainercontrol.h \
     controls/qmediaplayercontrol.h \
     controls/qmediarecordercontrol.h \
     controls/qmediastreamscontrol.h \
     controls/qmetadatareadercontrol.h \
     controls/qmetadatawritercontrol.h \
-    controls/qvideoencodersettingscontrol.h \
     controls/qvideorenderercontrol.h \
     controls/qvideowindowcontrol.h \
 
@@ -27,7 +24,6 @@ SOURCES += \
     controls/qcameraimagecapturecontrol.cpp \
     controls/qcameraimageprocessingcontrol.cpp \
     controls/qimageencodercontrol.cpp \
-    controls/qmediacontainercontrol.cpp \
     controls/qmediaplayercontrol.cpp \
     controls/qmediarecordercontrol.cpp \
     controls/qmediastreamscontrol.cpp \
@@ -36,5 +32,3 @@ SOURCES += \
     controls/qvideorenderercontrol.cpp \
     controls/qvideowindowcontrol.cpp \
     controls/qaudiodecodercontrol.cpp \
-    controls/qvideoencodersettingscontrol.cpp \
-    controls/qaudioencodersettingscontrol.cpp \

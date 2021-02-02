@@ -72,6 +72,9 @@ public:
     QList<QMediaFormat::AudioCodec> encodableAudioCodecs() const override;
     QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const override;
 
+    static int audioFormatForCodec(QMediaFormat::AudioCodec codec);
+    static NSString *videoFormatForCodec(QMediaFormat::VideoCodec codec);
+
 private:
     QList<QMediaFormat::FileFormat> m_decodableMediaContainers;
     QList<QMediaFormat::AudioCodec> m_decodableAudioCodecs;

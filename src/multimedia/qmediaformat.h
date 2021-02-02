@@ -46,11 +46,19 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaFormatPrivate;
+class QMediaFormat;
+class QMediaEncoderSettings;
+class QMediaFormatPrivate
+{
+    friend class QMediaEncoderSettings;
+    static void resolveForEncoding(QMediaFormat *fmt, bool audioOnly);
+};
+
 class Q_MULTIMEDIA_EXPORT QMediaFormat
 {
 public:
     enum FileFormat {
+        UnspecifiedFormat = -1,
         // Video Formats
         ASF,
         AVI,
@@ -71,7 +79,7 @@ public:
     };
 
     enum class AudioCodec {
-        Invalid = -1,
+        Unspecified = -1,
         MP3,
         AAC,
         AC3,
@@ -86,7 +94,7 @@ public:
     };
 
     enum class VideoCodec {
-        Invalid = -1,
+        Unspecified = -1,
         MPEG1,
         MPEG2,
         MPEG4,
@@ -100,12 +108,13 @@ public:
         LastVideoCodec = MotionJPEG
     };
 
-    QMediaFormat(FileFormat format);
+    QMediaFormat(FileFormat format = UnspecifiedFormat);
     ~QMediaFormat();
     QMediaFormat(const QMediaFormat &other);
     QMediaFormat &operator=(const QMediaFormat &other);
 
     FileFormat format() const { return fmt; }
+    void setFormat(FileFormat f) { fmt = f; }
 
     bool setVideoCodec(VideoCodec codec);
     VideoCodec videoCodec() const { return video; }
@@ -126,10 +135,11 @@ public:
     static QString audioCodecDescription(QMediaFormat::AudioCodec c);
     static QString videoCodecDescription(QMediaFormat::VideoCodec c);
 
-private:
+protected:
+    friend class QMediaFormatPrivate;
     FileFormat fmt;
-    AudioCodec audio = AudioCodec::Invalid;
-    VideoCodec video = VideoCodec::Invalid;
+    AudioCodec audio = AudioCodec::Unspecified;
+    VideoCodec video = VideoCodec::Unspecified;
     QMediaFormatPrivate *d = nullptr;
 };
 

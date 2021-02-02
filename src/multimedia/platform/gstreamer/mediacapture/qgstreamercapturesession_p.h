@@ -68,11 +68,8 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
-class QGStreamerAudioEncoderControl;
-class QGStreamerVideoEncoderControl;
 class QGstreamerImageEncode;
 class QGstreamerRecorderControl;
-class QGStreamerContainerControl;
 class QGstreamerVideoRendererInterface;
 class QCameraInfo;
 
@@ -120,12 +117,9 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl& sink);
 
-    QGStreamerAudioEncoderControl *audioEncodeControl() const { return m_audioEncodeControl; }
-    QGStreamerVideoEncoderControl *videoEncodeControl() const { return m_videoEncodeControl; }
     QGstreamerImageEncode *imageEncodeControl() const { return m_imageEncodeControl; }
 
     QGstreamerRecorderControl *recorderControl() const { return m_recorderControl; }
-    QGStreamerContainerControl *mediaContainerControl() const { return m_mediaContainerControl; }
 
     QGstreamerElementFactory *audioPreview() const { return m_audioPreviewFactory; }
     void setAudioPreview(QGstreamerElementFactory *audioPreview);
@@ -203,11 +197,8 @@ private:
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
 
-    QGStreamerAudioEncoderControl *m_audioEncodeControl;
-    QGStreamerVideoEncoderControl *m_videoEncodeControl;
     QGstreamerImageEncode *m_imageEncodeControl;
     QGstreamerRecorderControl *m_recorderControl;
-    QGStreamerContainerControl *m_mediaContainerControl;
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;

@@ -83,6 +83,10 @@ public:
     QAudioDeviceInfo audioInput() const override;
     bool setAudioInput(const QAudioDeviceInfo &id) override;
 
+    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
+    QMediaEncoderSettings encoderSettings() const { return m_settings; }
+    QMediaEncoderSettings resolvedEncoderSettings() const;
+
 public slots:
     void setState(QMediaRecorder::State state) override;
     void record();
@@ -100,6 +104,7 @@ private:
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
     QUrl m_outputLocation;
+    QMediaEncoderSettings m_settings;
     QGstreamerCaptureSession *m_session;
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;

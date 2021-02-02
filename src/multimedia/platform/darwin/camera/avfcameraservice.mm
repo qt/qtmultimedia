@@ -52,9 +52,6 @@
 #include "avfcamerafocuscontrol_p.h"
 #include "avfcameraexposurecontrol_p.h"
 #include "avfimageencodercontrol_p.h"
-#include "avfaudioencodersettingscontrol_p.h"
-#include "avfvideoencodersettingscontrol_p.h"
-#include "avfmediacontainercontrol_p.h"
 #include "avfcamerawindowcontrol_p.h"
 
 #ifdef Q_OS_IOS
@@ -87,9 +84,6 @@ AVFCameraService::AVFCameraService()
 #endif
 
     m_imageEncoderControl = new AVFImageEncoderControl(this);
-    m_audioEncoderSettingsControl = new AVFAudioEncoderSettingsControl(this);
-    m_videoEncoderSettingsControl = new AVFVideoEncoderSettingsControl(this);
-    m_mediaContainerControl = new AVFMediaContainerControl(this);
 }
 
 AVFCameraService::~AVFCameraService()
@@ -121,9 +115,6 @@ AVFCameraService::~AVFCameraService()
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
     delete m_imageEncoderControl;
-    delete m_audioEncoderSettingsControl;
-    delete m_videoEncoderSettingsControl;
-    delete m_mediaContainerControl;
 
     delete m_session;
 }
@@ -151,15 +142,6 @@ QObject *AVFCameraService::requestControl(const char *name)
 
     if (qstrcmp(name, QImageEncoderControl_iid) == 0)
         return m_imageEncoderControl;
-
-    if (qstrcmp(name, QAudioEncoderSettingsControl_iid) == 0)
-        return m_audioEncoderSettingsControl;
-
-    if (qstrcmp(name, QVideoEncoderSettingsControl_iid) == 0)
-        return m_videoEncoderSettingsControl;
-
-    if (qstrcmp(name, QMediaContainerControl_iid) == 0)
-        return m_mediaContainerControl;
 
     if (!m_captureWindowControl) {
         if (qstrcmp(name, QVideoWindowControl_iid) == 0) {

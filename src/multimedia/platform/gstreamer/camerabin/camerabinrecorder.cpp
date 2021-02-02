@@ -39,9 +39,6 @@
 
 #include "camerabinrecorder.h"
 #include "camerabincontrol.h"
-#include "private/qgstreameraudioencoder_p.h"
-#include "private/qgstreamervideoencoder_p.h"
-#include "private/qgstreamercontainer_p.h"
 #include "qaudiodeviceinfo.h"
 #include <QtCore/QDebug>
 
@@ -130,10 +127,11 @@ qint64 CameraBinRecorder::duration() const
 
 void CameraBinRecorder::applySettings()
 {
-    QGStreamerContainerControl *containerControl = m_session->mediaContainerControl();
-    QGStreamerAudioEncoderControl *audioEncoderControl = m_session->audioEncodeControl();
-    QGStreamerVideoEncoderControl *audioEncoderControl = m_session->videoEncodeControl();
-    containerConrol->applySettings(audioEncoderControl, audioEncoderControl);
+    // ######
+//    QGStreamerContainerControl *containerControl = m_session->mediaContainerControl();
+//    QGStreamerAudioEncoderControl *audioEncoderControl = m_session->audioEncodeControl();
+//    QGStreamerVideoEncoderControl *audioEncoderControl = m_session->videoEncodeControl();
+//    containerConrol->applySettings(audioEncoderControl, audioEncoderControl);
 }
 
 QAudioDeviceInfo CameraBinRecorder::audioInput() const

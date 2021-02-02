@@ -31,20 +31,17 @@ qt_internal_add_module(Multimedia
         camera/qcameraimageprocessing.cpp camera/qcameraimageprocessing.h
         camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h
         controls/qaudiodecodercontrol.cpp controls/qaudiodecodercontrol.h
-        controls/qaudioencodersettingscontrol.cpp controls/qaudioencodersettingscontrol.h
         controls/qcameracontrol.cpp controls/qcameracontrol.h
         controls/qcameraexposurecontrol.cpp controls/qcameraexposurecontrol.h
         controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h
         controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
         controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
         controls/qimageencodercontrol.cpp controls/qimageencodercontrol.h
-        controls/qmediacontainercontrol.cpp controls/qmediacontainercontrol.h
         controls/qmediaplayercontrol.cpp controls/qmediaplayercontrol.h
         controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
         controls/qmetadatareadercontrol.cpp controls/qmetadatareadercontrol.h
         controls/qmetadatawritercontrol.cpp controls/qmetadatawritercontrol.h
-        controls/qvideoencodersettingscontrol.cpp controls/qvideoencodersettingscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
         platform/qmediaplatformcaptureinterface.cpp platform/qmediaplatformcaptureinterface_p.h
@@ -203,15 +200,12 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/audio/qaudiooutput_gstreamer.cpp platform/gstreamer/audio/qaudiooutput_gstreamer_p.h
         platform/gstreamer/audio/qgstreameraudiodecodercontrol.cpp platform/gstreamer/audio/qgstreameraudiodecodercontrol_p.h
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
-        platform/gstreamer/common/qgstreameraudioencoder.cpp  platform/gstreamer/common/qgstreameraudioencoder_p.h
-        platform/gstreamer/common/qgstreamercontainer.cpp  platform/gstreamer/common/qgstreamercontainer_p.h
         platform/gstreamer/common/qgstcodecsinfo.cpp platform/gstreamer/common/qgstcodecsinfo_p.h
         platform/gstreamer/common/qgstreamerbufferprobe.cpp platform/gstreamer/common/qgstreamerbufferprobe_p.h
         platform/gstreamer/common/qgstreamerbushelper.cpp platform/gstreamer/common/qgstreamerbushelper_p.h
         platform/gstreamer/common/qgstreamermessage.cpp platform/gstreamer/common/qgstreamermessage_p.h
         platform/gstreamer/common/qgstreamerplayercontrol.cpp platform/gstreamer/common/qgstreamerplayercontrol_p.h
         platform/gstreamer/common/qgstreamerplayersession.cpp platform/gstreamer/common/qgstreamerplayersession_p.h
-        platform/gstreamer/common/qgstreamervideoencoder.cpp  platform/gstreamer/common/qgstreamervideoencoder_p.h
         platform/gstreamer/common/qgstreamervideooverlay.cpp platform/gstreamer/common/qgstreamervideooverlay_p.h
         platform/gstreamer/common/qgstreamervideorenderer.cpp platform/gstreamer/common/qgstreamervideorenderer_p.h
         platform/gstreamer/common/qgstreamervideorendererinterface.cpp platform/gstreamer/common/qgstreamervideorendererinterface_p.h
@@ -237,8 +231,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_camerabin
     SOURCES
-        platform/gstreamer/camerabin/qgstreameraudioencodercontrol.cpp platform/gstreamer/camerabin/qgstreameraudioencodercontrol_p.h
-        platform/gstreamer/camerabin/qgstreamercontainercontrol.cpp platform/gstreamer/camerabin/qgstreamercontainercontrol_p.h
         platform/gstreamer/camerabin/camerabincontrol.cpp platform/gstreamer/camerabin/camerabincontrol_p.h
         platform/gstreamer/camerabin/camerabinimagecapture.cpp platform/gstreamer/camerabin/camerabinimagecapture_p.h
         platform/gstreamer/camerabin/camerabinimageencoder.cpp platform/gstreamer/camerabin/camerabinimageencoder_p.h
@@ -247,7 +239,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_came
         platform/gstreamer/camerabin/camerabinrecorder.cpp platform/gstreamer/camerabin/camerabinrecorder_p.h
         platform/gstreamer/camerabin/camerabinservice.cpp platform/gstreamer/camerabin/camerabinservice_p.h
         platform/gstreamer/camerabin/camerabinsession.cpp platform/gstreamer/camerabin/camerabinsession_p.h
-        platform/gstreamer/camerabin/qgstreamervideoencodercontrol.cpp platform/gstreamer/camerabin/qgstreamervideoencodercontrol_p.h
     DEFINES
         GST_USE_CAMERABIN
 )
@@ -351,7 +342,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/common/qandroidglobal_p.h
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
         platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
-        platform/android/mediacapture/qandroidaudioencodersettingscontrol.cpp platform/android/mediacapture/qandroidaudioencodersettingscontrol_p.h
         platform/android/mediacapture/qandroidcameracontrol.cpp platform/android/mediacapture/qandroidcameracontrol_p.h
         platform/android/mediacapture/qandroidcameraexposurecontrol.cpp platform/android/mediacapture/qandroidcameraexposurecontrol_p.h
         platform/android/mediacapture/qandroidcamerafocuscontrol.cpp platform/android/mediacapture/qandroidcamerafocuscontrol_p.h
@@ -362,9 +352,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture/qandroidcaptureservice.cpp platform/android/mediacapture/qandroidcaptureservice_p.h
         platform/android/mediacapture/qandroidcapturesession.cpp platform/android/mediacapture/qandroidcapturesession_p.h
         platform/android/mediacapture/qandroidimageencodercontrol.cpp platform/android/mediacapture/qandroidimageencodercontrol_p.h
-        platform/android/mediacapture/qandroidmediacontainercontrol.cpp platform/android/mediacapture/qandroidmediacontainercontrol_p.h
         platform/android/mediacapture/qandroidmediarecordercontrol.cpp platform/android/mediacapture/qandroidmediarecordercontrol_p.h
-        platform/android/mediacapture/qandroidvideoencodersettingscontrol.cpp platform/android/mediacapture/qandroidvideoencodersettingscontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
         platform/android/mediaplayer/qandroidmediaservice.cpp platform/android/mediaplayer/qandroidmediaservice_p.h
@@ -449,7 +437,6 @@ qt_internal_extend_target(Multimedia CONDITION IOS AND NOT WATCHOS
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
     SOURCES
-        platform/darwin/camera/avfaudioencodersettingscontrol.mm platform/darwin/camera/avfaudioencodersettingscontrol_p.h
         platform/darwin/camera/avfcameracontrol.mm platform/darwin/camera/avfcameracontrol_p.h
         platform/darwin/camera/avfcameradebug_p.h
         platform/darwin/camera/avfcameraexposurecontrol.mm platform/darwin/camera/avfcameraexposurecontrol_p.h
@@ -462,9 +449,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfcamerawindowcontrol.mm platform/darwin/camera/avfcamerawindowcontrol_p.h
         platform/darwin/camera/avfimagecapturecontrol.mm platform/darwin/camera/avfimagecapturecontrol_p.h
         platform/darwin/camera/avfimageencodercontrol.mm platform/darwin/camera/avfimageencodercontrol_p.h
-        platform/darwin/camera/avfmediacontainercontrol.mm platform/darwin/camera/avfmediacontainercontrol_p.h
         platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
-        platform/darwin/camera/avfvideoencodersettingscontrol.mm platform/darwin/camera/avfvideoencodersettingscontrol_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT TVOS AND NOT WATCHOS
