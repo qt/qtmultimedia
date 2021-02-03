@@ -38,7 +38,7 @@
 #include <qaudio.h>
 #include <qmediadevicemanager.h>
 
-#include "wavheader.h"
+#include <qwavedecoder.h>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -440,8 +440,9 @@ void tst_QAudioInput::pull()
 
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
-    WavHeader wavHeader(audioFormat);
-    QVERIFY(wavHeader.write(*audioFile));
+    QWaveDecoder waveDecoder(audioFile.data(), audioFormat);
+    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     audioInput.start(audioFile.data());
 
@@ -476,7 +477,9 @@ void tst_QAudioInput::pull()
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
     QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
-    WavHeader::writeDataLength(*audioFile, audioFile->pos() - WavHeader::headerLength());
+    //QWaveHeader::writeDataLength(*audioFile, audioFile->pos() - WavHeader::headerLength());
+    //waveDecoder.writeDataLength();
+    waveDecoder.close();
     audioFile->close();
 
 }
@@ -504,8 +507,9 @@ void tst_QAudioInput::pullSuspendResume()
 
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
-    WavHeader wavHeader(audioFormat);
-    QVERIFY(wavHeader.write(*audioFile));
+    QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
+    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     audioInput.start(audioFile.data());
 
@@ -574,7 +578,9 @@ void tst_QAudioInput::pullSuspendResume()
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
     QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
-    WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
+    //WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
+    //waveDecoder.writeDataLength();
+    waveDecoder.close();
     audioFile->close();
 }
 
@@ -597,8 +603,9 @@ void tst_QAudioInput::push()
 
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
-    WavHeader wavHeader(audioFormat);
-    QVERIFY(wavHeader.write(*audioFile));
+    QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
+    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     // Set a large buffer to avoid underruns during QTest::qWaits
     audioInput.setBufferSize(audioFormat.bytesForDuration(1000000));
@@ -654,7 +661,9 @@ void tst_QAudioInput::push()
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
     QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
-    WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
+    //WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
+    //waveDecoder.writeDataLength();
+    waveDecoder.close();
     audioFile->close();
 }
 
@@ -681,8 +690,9 @@ void tst_QAudioInput::pushSuspendResume()
 
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
-    WavHeader wavHeader(audioFormat);
-    QVERIFY(wavHeader.write(*audioFile));
+    QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
+    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     QIODevice* feed = audioInput.start();
 
@@ -777,7 +787,9 @@ void tst_QAudioInput::pushSuspendResume()
              QString("processedUSecs() doesn't fall in acceptable range, should be 2040000 (%1)").arg(processedUs).toLocal8Bit().constData());
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
-    WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
+    //WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
+    //waveDecoder.writeDataLength();
+    waveDecoder.close();
     audioFile->close();
 }
 

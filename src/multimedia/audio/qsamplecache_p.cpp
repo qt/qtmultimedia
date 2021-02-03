@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qsamplecache_p.h"
-#include "qwavedecoder_p.h"
+#include "qwavedecoder.h"
 
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>

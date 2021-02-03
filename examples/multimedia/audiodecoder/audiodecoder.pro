@@ -3,10 +3,8 @@ TARGET = audiodecoder
 
 HEADERS = \
     audiodecoder.h \
-    wavefilewriter.h
 SOURCES = main.cpp \
     audiodecoder.cpp \
-    wavefilewriter.cpp
 
 QT += multimedia
 CONFIG += console

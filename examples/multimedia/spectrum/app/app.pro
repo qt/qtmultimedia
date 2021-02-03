@@ -19,7 +19,6 @@ SOURCES  += main.cpp \
             tonegeneratordialog.cpp \
             utils.cpp \
             waveform.cpp \
-            wavfile.cpp
 
 HEADERS  += engine.h \
             frequencyspectrum.h \
@@ -34,7 +33,6 @@ HEADERS  += engine.h \
             tonegeneratordialog.h \
             utils.h \
             waveform.h \
-            wavfile.h
 
 fftreal_dir = ../3rdparty/fftreal
 

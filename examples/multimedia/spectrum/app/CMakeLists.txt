@@ -35,7 +35,6 @@ qt_add_executable(spectrum
     tonegeneratordialog.cpp tonegeneratordialog.h
     utils.cpp utils.h
     waveform.cpp waveform.h
-    wavfile.cpp wavfile.h
 )
 set_target_properties(spectrum PROPERTIES
     WIN32_EXECUTABLE TRUE

@@ -22,7 +22,6 @@ find_package(Qt6 COMPONENTS Multimedia)
 qt_add_executable(audiodecoder
     audiodecoder.cpp audiodecoder.h
     main.cpp
-    wavefilewriter.cpp wavefilewriter.h
 )
 set_target_properties(audiodecoder PROPERTIES
     WIN32_EXECUTABLE FALSE

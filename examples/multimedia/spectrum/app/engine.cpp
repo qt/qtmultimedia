@@ -153,20 +153,27 @@ bool Engine::loadFile(const QString &fileName)
     Q_ASSERT(!m_generateTone);
     Q_ASSERT(!m_file);
     Q_ASSERT(!fileName.isEmpty());
-    m_file = new WavFile(this);
-    if (m_file->open(fileName)) {
-        if (m_file->fileFormat().sampleFormat() == QAudioFormat::Int16) {
-            result = initialize();
-        } else {
-            emit errorMessage(tr("Audio format not supported"),
-                              formatToString(m_file->fileFormat()));
+    QIODevice* file = new QFile(fileName);
+    if (file->open(QIODevice::ReadOnly)) {
+        m_file = new QWaveDecoder(file, this);
+        if (m_file->open(QIODevice::ReadOnly)) {
+            if (m_file->audioFormat().sampleFormat() == QAudioFormat::Int16) {
+                result = initialize();
+            } else {
+                emit errorMessage(tr("Audio format not supported"),
+                                formatToString(m_file->audioFormat()));
+            }
         }
+        else
+            emit errorMessage(tr("Could not open WAV decoder for file"), fileName);
     } else {
         emit errorMessage(tr("Could not open file"), fileName);
     }
     if (result) {
-        m_analysisFile = new WavFile(this);
-        m_analysisFile->open(fileName);
+        file->close();
+        file->open(QIODevice::ReadOnly);
+        m_analysisFile = new QWaveDecoder(file, this);
+        m_analysisFile->open(QIODevice::ReadOnly);
     }
     return result;
 }
@@ -212,7 +219,7 @@ bool Engine::initializeRecord()
 
 qint64 Engine::bufferLength() const
 {
-    return m_file ? m_file->size() : m_bufferLength;
+    return m_file ? m_file->getDevice()->size() : m_bufferLength;
 }
 
 void Engine::setWindowFunction(WindowFunction type)
@@ -282,7 +289,7 @@ void Engine::startPlayback()
                 m_file->seek(0);
                 m_bufferPosition = 0;
                 m_dataLength = 0;
-                m_audioOutput->start(m_file);
+                m_audioOutput->start(m_file->getDevice());
             } else {
                 m_audioOutputIODevice.close();
                 m_audioOutputIODevice.setBuffer(&m_buffer);
@@ -358,10 +365,10 @@ void Engine::audioNotify()
                     m_dataLength = 0;
                     // Data needs to be read into m_buffer in order to be analysed
                     const qint64 readPos = qMax(qint64(0), qMin(levelPosition, spectrumPosition));
-                    const qint64 readEnd = qMin(m_analysisFile->size(), qMax(levelPosition + m_levelBufferLength, spectrumPosition + m_spectrumBufferLength));
+                    const qint64 readEnd = qMin(m_analysisFile->getDevice()->size(), qMax(levelPosition + m_levelBufferLength, spectrumPosition + m_spectrumBufferLength));
                     const qint64 readLen = readEnd - readPos + m_format.bytesForDuration(WaveformWindowDuration);
                     qDebug() << "Engine::audioNotify [1]"
-                             << "analysisFileSize" << m_analysisFile->size()
+                             << "analysisFileSize" << m_analysisFile->getDevice()->size()
                              << "readPos" << readPos
                              << "readLen" << readLen;
                     if (m_analysisFile->seek(readPos + m_analysisFile->headerLength())) {
@@ -392,7 +399,7 @@ void Engine::audioStateChanged(QAudio::State state)
     ENGINE_DEBUG << "Engine::audioStateChanged from" << m_state
                  << "to" << state;
 
-    if (QAudio::IdleState == state && m_file && m_file->pos() == m_file->size()) {
+    if (QAudio::IdleState == state && m_file && m_file->pos() == m_file->getDevice()->size()) {
         stopPlayback();
     } else {
         if (QAudio::StoppedState == state) {
@@ -548,7 +555,7 @@ bool Engine::selectFormat()
         if (m_file)
             // Header is read from the WAV file; just need to check whether
             // it is supported by the audio output device
-            format = m_file->fileFormat();
+            format = m_file->audioFormat();
         if (m_audioOutputDevice.isFormatSupported(format)) {
             setFormat(format);
             foundSupportedFormat = true;

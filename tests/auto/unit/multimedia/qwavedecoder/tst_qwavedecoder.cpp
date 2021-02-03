@@ -29,7 +29,7 @@
 //TESTED_COMPONENT=src/multimedia
 
 #include <QtTest/QtTest>
-#include <private/qwavedecoder_p.h>
+#include <qwavedecoder.h>
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>

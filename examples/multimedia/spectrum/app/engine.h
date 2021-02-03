@@ -53,7 +53,6 @@
 
 #include "spectrum.h"
 #include "spectrumanalyser.h"
-#include "wavfile.h"
 
 #include <QAudioDeviceInfo>
 #include <QAudioFormat>
@@ -63,6 +62,7 @@
 #include <QList>
 #include <QObject>
 #include <QMediaDeviceManager>
+#include <QWaveDecoder>
 
 #ifdef DUMP_CAPTURED_AUDIO
 #define DUMP_DATA
@@ -283,10 +283,10 @@ private:
     bool                m_generateTone;
     SweptTone           m_tone;
 
-    WavFile*            m_file;
+    QWaveDecoder*       m_file;
     // We need a second file handle via which to read data into m_buffer
     // for analysis
-    WavFile*            m_analysisFile;
+    QWaveDecoder*       m_analysisFile;
 
     QAudioFormat        m_format;
 

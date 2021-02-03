@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qwavedecoder_p.h"
+#include "qwavedecoder.h"
 
 #include <QtCore/qtimer.h>
 #include <QtCore/qendian.h>
@@ -76,20 +76,66 @@ void bswap4(char *data, qsizetype count) noexcept
 
 }
 
-QWaveDecoder::QWaveDecoder(QIODevice *s, QObject *parent)
+QWaveDecoder::QWaveDecoder(QIODevice *device, QObject *parent)
     : QIODevice(parent),
-      source(s)
+      device(device)
 {
-    open(QIODevice::ReadOnly | QIODevice::Unbuffered);
+}
 
-    if (enoughDataAvailable())
-        QTimer::singleShot(0, this, SLOT(handleData()));
-    else
-        connect(source, SIGNAL(readyRead()), SLOT(handleData()));
+QWaveDecoder::QWaveDecoder(QIODevice *device, const QAudioFormat &format, QObject *parent)
+    : QIODevice(parent),
+        device(device),
+        format(format)
+{
 }
 
 QWaveDecoder::~QWaveDecoder()
 {
+}
+
+bool QWaveDecoder::open(QIODevice::OpenMode mode)
+{
+    bool canOpen = false;
+    if (mode & QIODevice::ReadOnly && mode & ~QIODevice::WriteOnly) {
+        canOpen = QIODevice::open(mode | QIODevice::Unbuffered);
+        if (canOpen && enoughDataAvailable())
+            handleData();
+        else
+            connect(device, SIGNAL(readyRead()), SLOT(handleData()));
+        return canOpen;
+    }
+
+    if (mode & QIODevice::WriteOnly) {
+        if (format.sampleFormat() != QAudioFormat::Int16)
+            return false; // data format is not supported
+        canOpen = QIODevice::open(mode);
+        if (canOpen && writeHeader())
+            haveHeader = true;
+        return canOpen;
+    }
+    return QIODevice::open(mode);
+}
+
+void QWaveDecoder::close()
+{
+    if (isOpen() && (openMode() & QIODevice::WriteOnly)) {
+        Q_ASSERT(dataSize < INT_MAX);
+        if (device->isOpen())
+            Q_ASSERT(writeDataLength());
+        else
+            qWarning() << "Failed to finalize output because output device was closed";
+    }
+    QIODevice::close();
+}
+
+bool QWaveDecoder::seek(qint64 pos)
+{
+    return device->seek(pos);
+}
+
+qint64 QWaveDecoder::pos() const
+{
+    return device->pos();
 }
 
 QAudioFormat QWaveDecoder::audioFormat() const
@@ -97,24 +143,39 @@ QAudioFormat QWaveDecoder::audioFormat() const
     return format;
 }
 
+QIODevice* QWaveDecoder::getDevice()
+{
+    return device;
+}
+
 int QWaveDecoder::duration() const
 {
-    return size() * 1000 / (format.bytesPerFrame() * format.sampleRate());
+    if (openMode() & QIODevice::WriteOnly)
+        return 0;
+    return dataSize * 1000 / (format.bytesPerFrame() * format.sampleRate());
 }
 
 qint64 QWaveDecoder::size() const
 {
-    return haveFormat ? dataSize : 0;
+    if (openMode() & QIODevice::ReadOnly)
+        return haveFormat ? dataSize : 0;
+    else
+        return device->size();
 }
 
 bool QWaveDecoder::isSequential() const
 {
-    return source->isSequential();
+    return device->isSequential();
 }
 
 qint64 QWaveDecoder::bytesAvailable() const
 {
-    return haveFormat ? source->bytesAvailable() : 0;
+    return haveFormat ? device->bytesAvailable() : 0;
+}
+
+qint64 QWaveDecoder::headerLength()
+{
+    return HeaderLength;
 }
 
 qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
@@ -124,7 +185,7 @@ qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
 
     qint64 nSamples = maxlen / format.bytesPerSample();
     maxlen = nSamples * format.bytesPerFrame();
-    source->read(data, maxlen);
+    device->read(data, maxlen);
 
     if (!byteSwap || format.bytesPerFrame() == 1)
         return maxlen;
@@ -141,25 +202,100 @@ qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
         break;
     }
     return maxlen;
+
 }
 
 qint64 QWaveDecoder::writeData(const char *data, qint64 len)
 {
-    Q_UNUSED(data);
-    Q_UNUSED(len);
+    if (!haveHeader)
+        return 0;
+    qint64 written = device->write(data, len);
+    dataSize += written;
+    return written;
+}
 
-    return -1;
+bool QWaveDecoder::writeHeader()
+{
+    if (device->size() != 0)
+        return false;
+
+#ifndef Q_LITTLE_ENDIAN
+    // only implemented for LITTLE ENDIAN
+    return false;
+#endif
+
+    CombinedHeader header;
+
+    memset(&header, 0, HeaderLength);
+
+    // RIFF header
+    memcpy(header.riff.descriptor.id,"RIFF",4);
+    qToLittleEndian<quint32>(quint32(dataSize + HeaderLength - 8),
+                             reinterpret_cast<unsigned char*>(&header.riff.descriptor.size));
+    memcpy(header.riff.type, "WAVE",4);
+
+    // WAVE header
+    memcpy(header.wave.descriptor.id,"fmt ",4);
+    qToLittleEndian<quint32>(quint32(16),
+                             reinterpret_cast<unsigned char*>(&header.wave.descriptor.size));
+    qToLittleEndian<quint16>(quint16(1),
+                             reinterpret_cast<unsigned char*>(&header.wave.audioFormat));
+    qToLittleEndian<quint16>(quint16(format.channelCount()),
+                             reinterpret_cast<unsigned char*>(&header.wave.numChannels));
+    qToLittleEndian<quint32>(quint32(format.sampleRate()),
+                             reinterpret_cast<unsigned char*>(&header.wave.sampleRate));
+    qToLittleEndian<quint32>(quint32(format.sampleRate() * format.bytesPerFrame()),
+                             reinterpret_cast<unsigned char*>(&header.wave.byteRate));
+    qToLittleEndian<quint16>(quint16(format.channelCount() * format.bytesPerSample()),
+                             reinterpret_cast<unsigned char*>(&header.wave.blockAlign));
+    qToLittleEndian<quint16>(quint16(format.bytesPerSample() * 8),
+                             reinterpret_cast<unsigned char*>(&header.wave.bitsPerSample));
+
+    // DATA header
+    memcpy(header.data.descriptor.id,"data",4);
+    qToLittleEndian<quint32>(quint32(dataSize),
+                             reinterpret_cast<unsigned char*>(&header.data.descriptor.size));
+
+    return device->write(reinterpret_cast<const char *>(&header), HeaderLength);
+}
+
+bool QWaveDecoder::writeDataLength()
+{
+#ifndef Q_LITTLE_ENDIAN
+    // only implemented for LITTLE ENDIAN
+    return false;
+#endif
+
+    if (isSequential())
+        return false;
+
+    // seek to RIFF header size, see header.riff.descriptor.size above
+    if (!device->seek(4))
+        return false;
+
+    quint32 length = dataSize + HeaderLength - 8;
+    if (device->write(reinterpret_cast<const char *>(&length), 4) != 4)
+        return false;
+
+    // seek to DATA header size, see header.data.descriptor.size above
+    if (!device->seek(40))
+        return false;
+
+    return device->write(reinterpret_cast<const char *>(&dataSize), 4);
 }
 
 void QWaveDecoder::parsingFailed()
 {
-    Q_ASSERT(source);
-    source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
+    Q_ASSERT(device);
+    device->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
     emit parsingError();
 }
 
 void QWaveDecoder::handleData()
 {
+    if (openMode() == QIODevice::WriteOnly)
+        return;
+
     // As a special "state", if we have junk to skip, we do
     if (junkToSkip > 0) {
         discardBytes(junkToSkip); // this also updates junkToSkip
@@ -167,18 +303,18 @@ void QWaveDecoder::handleData()
         // If we couldn't skip all the junk, return
         if (junkToSkip > 0) {
             // We might have run out
-            if (source->atEnd())
+            if (device->atEnd())
                 parsingFailed();
             return;
         }
     }
 
     if (state == QWaveDecoder::InitialState) {
-        if (source->bytesAvailable() < qint64(sizeof(RIFFHeader)))
+        if (device->bytesAvailable() < qint64(sizeof(RIFFHeader)))
             return;
 
         RIFFHeader riff;
-        source->read(reinterpret_cast<char *>(&riff), sizeof(RIFFHeader));
+        device->read(reinterpret_cast<char *>(&riff), sizeof(RIFFHeader));
 
         // RIFF = little endian RIFF, RIFX = big endian RIFF
         if (((qstrncmp(riff.descriptor.id, "RIFF", 4) != 0) && (qstrncmp(riff.descriptor.id, "RIFX", 4) != 0))
@@ -198,11 +334,11 @@ void QWaveDecoder::handleData()
             peekChunk(&descriptor);
 
             quint32 rawChunkSize = descriptor.size + sizeof(chunk);
-            if (source->bytesAvailable() < qint64(rawChunkSize))
+            if (device->bytesAvailable() < qint64(rawChunkSize))
                 return;
 
             WAVEHeader wave;
-            source->read(reinterpret_cast<char *>(&wave), sizeof(WAVEHeader));
+            device->read(reinterpret_cast<char *>(&wave), sizeof(WAVEHeader));
 
             if (rawChunkSize > sizeof(WAVEHeader))
                 discardBytes(rawChunkSize - sizeof(WAVEHeader));
@@ -241,10 +377,13 @@ void QWaveDecoder::handleData()
                 break;
             case 16:
                 fmt = QAudioFormat::Int16;
+                break;
             case 24:
                 fmt = QAudioFormat::Unknown;
+                break;
             case 32:
                 fmt = QAudioFormat::Int32;
+                break;
             }
             if (fmt == QAudioFormat::Unknown || rate == 0 || channels == 0) {
                 parsingFailed();
@@ -252,8 +391,8 @@ void QWaveDecoder::handleData()
             }
 
             format.setSampleFormat(fmt);
-            format.setSampleRate(qFromBigEndian<quint32>(wave.sampleRate));
-            format.setChannelCount(qFromBigEndian<quint16>(wave.numChannels));
+            format.setSampleRate(/*qFromBigEndian<quint32>*/(wave.sampleRate));
+            format.setChannelCount(/*qFromBigEndian<quint16>*/(wave.numChannels));
 
             state = QWaveDecoder::WaitingForDataState;
         }
@@ -261,19 +400,19 @@ void QWaveDecoder::handleData()
 
     if (state == QWaveDecoder::WaitingForDataState) {
         if (findChunk("data")) {
-            source->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
+            device->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
 
             chunk descriptor;
-            source->read(reinterpret_cast<char *>(&descriptor), sizeof(chunk));
+            device->read(reinterpret_cast<char *>(&descriptor), sizeof(chunk));
             if (bigEndian)
                 descriptor.size = qFromBigEndian<quint32>(descriptor.size);
             else
                 descriptor.size = qFromLittleEndian<quint32>(descriptor.size);
 
-            dataSize = descriptor.size;
+            dataSize = descriptor.size; //means the data size from the data header, not the actual file size
 
             haveFormat = true;
-            connect(source, SIGNAL(readyRead()), SIGNAL(readyRead()));
+            connect(device, SIGNAL(readyRead()), SIGNAL(readyRead()));
             emit formatKnown();
 
             return;
@@ -281,7 +420,7 @@ void QWaveDecoder::handleData()
     }
 
     // If we hit the end without finding data, it's a parsing error
-    if (source->atEnd()) {
+    if (device->atEnd()) {
         parsingFailed();
     }
 }
@@ -299,7 +438,7 @@ bool QWaveDecoder::enoughDataAvailable()
     if (qstrncmp(descriptor.id, "RIFF", 4) == 0)
         descriptor.size = qFromLittleEndian<quint32>(descriptor.size);
 
-    if (source->bytesAvailable() < qint64(sizeof(chunk) + descriptor.size))
+    if (device->bytesAvailable() < qint64(sizeof(chunk) + descriptor.size))
         return false;
 
     return true;
@@ -329,17 +468,19 @@ bool QWaveDecoder::findChunk(const char *chunkId)
         if (junkToSkip > 0)
             return false;
 
-    } while (source->bytesAvailable() > 0);
+    } while (device->bytesAvailable() > 0);
 
     return false;
 }
 
 bool QWaveDecoder::peekChunk(chunk *pChunk, bool handleEndianness)
 {
-    if (source->bytesAvailable() < qint64(sizeof(chunk)))
+    if (device->bytesAvailable() < qint64(sizeof(chunk)))
         return false;
 
-    source->peek(reinterpret_cast<char *>(pChunk), sizeof(chunk));
+    if (!device->peek(reinterpret_cast<char *>(pChunk), sizeof(chunk)))
+        return false;
+
     if (handleEndianness) {
         if (bigEndian)
             pChunk->size = qFromBigEndian<quint32>(pChunk->size);
@@ -354,19 +495,19 @@ void QWaveDecoder::discardBytes(qint64 numBytes)
     // Discards a number of bytes
     // If the iodevice doesn't have this many bytes in it,
     // remember how much more junk we have to skip.
-    if (source->isSequential()) {
-        QByteArray r = source->read(qMin(numBytes, qint64(16384))); // uggh, wasted memory, limit to a max of 16k
+    if (device->isSequential()) {
+        QByteArray r = device->read(qMin(numBytes, qint64(16384))); // uggh, wasted memory, limit to a max of 16k
         if (r.size() < numBytes)
             junkToSkip = numBytes - r.size();
         else
             junkToSkip = 0;
     } else {
-        quint64 origPos = source->pos();
-        source->seek(source->pos() + numBytes);
-        junkToSkip = origPos + numBytes - source->pos();
+        quint64 origPos = device->pos();
+        device->seek(device->pos() + numBytes);
+        junkToSkip = origPos + numBytes - device->pos();
     }
 }
 
 QT_END_NAMESPACE
 
-#include "moc_qwavedecoder_p.cpp"
+#include "moc_qwavedecoder.cpp"

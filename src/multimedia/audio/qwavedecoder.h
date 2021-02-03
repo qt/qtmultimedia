@@ -40,17 +40,6 @@
 #ifndef WAVEDECODER_H
 #define WAVEDECODER_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
 #include <QtCore/qiodevice.h>
 #include <qaudioformat.h>
 
@@ -64,12 +53,21 @@ class Q_AUTOTEST_EXPORT QWaveDecoder : public QIODevice
     Q_OBJECT
 
 public:
-    explicit QWaveDecoder(QIODevice *source, QObject *parent = nullptr);
+    explicit QWaveDecoder(QIODevice *device, QObject *parent = nullptr);
+    explicit QWaveDecoder(QIODevice *device, const QAudioFormat &format,
+                        QObject *parent = nullptr);
     ~QWaveDecoder();
 
     QAudioFormat audioFormat() const;
+    QIODevice* getDevice();
     int duration() const;
+    static qint64 headerLength();
 
+    bool open(QIODevice::OpenMode mode) override;
+    void close() override;
+    bool seek(qint64 pos) override;
+    qint64 pos() const override;
+    void setIODevice(QIODevice *device);
     qint64 size() const override;
     bool isSequential() const override;
     qint64 bytesAvailable() const override;
@@ -85,6 +83,8 @@ private:
     qint64 readData(char *data, qint64 maxlen) override;
     qint64 writeData(const char *data, qint64 len) override;
 
+    bool writeHeader();
+    bool writeDataLength();
     bool enoughDataAvailable();
     bool findChunk(const char *chunkId);
     void discardBytes(qint64 numBytes);
@@ -119,10 +119,24 @@ private:
         quint16     bitsPerSample;
     };
 
+    struct DATAHeader
+    {
+        chunk       descriptor;
+    };
+
+    struct CombinedHeader
+    {
+        RIFFHeader  riff;
+        WAVEHeader  wave;
+        DATAHeader  data;
+    };
+    static const int HeaderLength = sizeof(CombinedHeader);
+
     bool haveFormat = false;
+    bool haveHeader = false;
     qint64 dataSize = 0;
+    QIODevice *device = nullptr;
     QAudioFormat format;
-    QIODevice *source = nullptr;
     State state = InitialState;
     quint32 junkToSkip = 0;
     bool bigEndian = false;

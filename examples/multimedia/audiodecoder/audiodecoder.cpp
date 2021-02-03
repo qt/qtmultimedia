@@ -49,9 +49,10 @@
 ****************************************************************************/
 
 #include "audiodecoder.h"
+#include <QFile>
 #include <stdio.h>
 
-AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
+AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, const QString &targetFileName)
     : m_cout(stdout, QIODevice::WriteOnly)
 {
     m_isPlayback = isPlayback;
@@ -64,6 +65,10 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
     format.setSampleFormat(QAudioFormat::Int16);
     format.setSampleRate(48000);
     m_decoder.setAudioFormat(format);
+
+    QIODevice* target = new QFile(targetFileName);
+    if (target->open(QIODevice::WriteOnly))
+        m_waveDecoder = new QWaveDecoder(target, format);
 
     connect(&m_decoder, &QAudioDecoder::bufferReady,
             this, &AudioDecoder::bufferReady);
@@ -84,6 +89,11 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete)
             this, &AudioDecoder::playingChanged);
 
     m_progress = -1.0;
+}
+
+AudioDecoder::~AudioDecoder()
+{
+    delete m_waveDecoder;
 }
 
 void AudioDecoder::setSourceFilename(const QString &fileName)
@@ -113,12 +123,13 @@ void AudioDecoder::bufferReady()
     if (!buffer.isValid())
         return;
 
-    if (!m_fileWriter.isOpen() && !m_fileWriter.open(m_targetFilename, buffer.format())) {
+    if (!m_waveDecoder || (!m_waveDecoder->isOpen()
+                        && !m_waveDecoder->open(QIODevice::WriteOnly))) {
         m_decoder.stop();
         return;
     }
 
-    m_fileWriter.write(buffer);
+    m_waveDecoder->write((const char *)buffer.constData(), buffer.byteCount());
 }
 
 void AudioDecoder::error(QAudioDecoder::Error error)
@@ -157,9 +168,6 @@ void AudioDecoder::stateChanged(QAudioDecoder::State newState)
 
 void AudioDecoder::finished()
 {
-    if (!m_fileWriter.close())
-        m_cout << "Failed to finilize output file\n";
-
     m_cout << "Decoding finished\n";
 
     if (m_isPlayback) {

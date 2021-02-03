@@ -39,8 +39,7 @@
 #include <qaudioformat.h>
 #include <qaudio.h>
 #include <qmediadevicemanager.h>
-
-#include "wavheader.h"
+#include <qwavedecoder.h>
 
 #define AUDIO_BUFFER 192000
 
@@ -255,9 +254,11 @@ void tst_QAudioOutput::initTestCase()
                                  + formatToFileName(format) + QStringLiteral(".wav");
         FilePtr file(new QFile(fileName));
         QVERIFY2(file->open(QIODevice::WriteOnly), qPrintable(file->errorString()));
-        WavHeader wavHeader(format, len);
-        wavHeader.write(*file.data());
-        file->write(m_byteArray->data(), len);
+        QWaveDecoder waveDecoder(file.data(), format);
+        if (waveDecoder.open(QIODevice::WriteOnly)) {
+            waveDecoder.write(m_byteArray->data(), len);
+            waveDecoder.close();
+        }
         file->close();
         audioFiles.append(file);
     }
@@ -484,7 +485,7 @@ void tst_QAudioOutput::pull()
 
     audioFile->close();
     audioFile->open(QIODevice::ReadOnly);
-    audioFile->seek(WavHeader::headerLength());
+    audioFile->seek(QWaveDecoder::headerLength());
 
     audioOutput.start(audioFile.data());
 
@@ -543,7 +544,7 @@ void tst_QAudioOutput::pullSuspendResume()
 
     audioFile->close();
     audioFile->open(QIODevice::ReadOnly);
-    audioFile->seek(WavHeader::headerLength());
+    audioFile->seek(QWaveDecoder::headerLength());
 
     audioOutput.start(audioFile.data());
     // Check that QAudioOutput immediately transitions to ActiveState
@@ -630,7 +631,7 @@ void tst_QAudioOutput::push()
 
     audioFile->close();
     audioFile->open(QIODevice::ReadOnly);
-    audioFile->seek(WavHeader::headerLength());
+    audioFile->seek(QWaveDecoder::headerLength());
 
     QIODevice* feed = audioOutput.start();
 
@@ -651,7 +652,7 @@ void tst_QAudioOutput::push()
     bool firstBuffer = true;
     QByteArray buffer(AUDIO_BUFFER, 0);
 
-    while (written < audioFile->size()-WavHeader::headerLength()) {
+    while (written < audioFile->size() - QWaveDecoder::headerLength()) {
 
         if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
             qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
@@ -717,7 +718,7 @@ void tst_QAudioOutput::pushSuspendResume()
 
     audioFile->close();
     audioFile->open(QIODevice::ReadOnly);
-    audioFile->seek(WavHeader::headerLength());
+    audioFile->seek(QWaveDecoder::headerLength());
 
     QIODevice* feed = audioOutput.start();
 
@@ -739,7 +740,7 @@ void tst_QAudioOutput::pushSuspendResume()
     QByteArray buffer(AUDIO_BUFFER, 0);
 
     // Play half of the clip
-    while (written < (audioFile->size()-WavHeader::headerLength())/2) {
+    while (written < (audioFile->size() - QWaveDecoder::headerLength()) / 2) {
 
         if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
             qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
@@ -847,7 +848,7 @@ void tst_QAudioOutput::pushUnderrun()
 
     audioFile->close();
     audioFile->open(QIODevice::ReadOnly);
-    audioFile->seek(WavHeader::headerLength());
+    audioFile->seek(QWaveDecoder::headerLength());
 
     QIODevice* feed = audioOutput.start();
 
@@ -869,7 +870,7 @@ void tst_QAudioOutput::pushUnderrun()
     QByteArray buffer(AUDIO_BUFFER, 0);
 
     // Play half of the clip
-    while (written < (audioFile->size()-WavHeader::headerLength())/2) {
+    while (written < (audioFile->size() - QWaveDecoder::headerLength()) / 2) {
 
         if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
             qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
