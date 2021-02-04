@@ -89,7 +89,7 @@ private:
     QMap<QString, QSet<QString>> m_streamTypes;
 };
 
-Q_DECLARE_TYPEINFO(QGstCodecsInfo::CodecInfo, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QGstCodecsInfo::CodecInfo, Q_RELOCATABLE_TYPE);
 
 QT_END_NAMESPACE
 
