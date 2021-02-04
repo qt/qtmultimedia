@@ -40,6 +40,7 @@
 #include "qmediaformat.h"
 #include "private/qmediaplatformintegration_p.h"
 #include "private/qmediaplatformformatinfo_p.h"
+#include <QtCore/qmimedatabase.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -48,23 +49,22 @@ namespace {
 // info from https://en.wikipedia.org/wiki/Comparison_of_video_container_formats
 constexpr bool audioSupportMatrix[QMediaFormat::FileFormat::LastFileFormat + 1][(int)QMediaFormat::AudioCodec::LastAudioCodec + 1] =
 {
-    //  MP3,   AAC,   AC3, EAC3,   FLAC,  DTHD,  Opus,Vorbis,  Wave, WMA
+    //  MP3,   AAC,   AC3, EAC3,   FLAC,  DTHD,  Opus,Vorbis,  Wave, ALAC
         // Container formats (Audio and Video)
-    {  true,  true,  true,  true,  true, false,  true, false, false, true }, // ASF
+    {  true,  true,  true,  true,  true, false,  true, false, false,  true }, // ASF
     {  true,  true,  true, false,  true, false,  true, false, false,  true }, // AVI,
     {  true,  true,  true,  true,  true,  true,  true,  true, false,  true }, // Matroska,
     {  true,  true,  true,  true,  true,  true,  true, false, false,  true }, // MPEG4,
     { false, false, false, false,  true, false,  true,  true, false, false }, // Ogg,
-    {  true,  true,  true,  true, false, false, false, false, false, false }, // QuickTime,
+    {  true,  true,  true,  true, false, false, false, false, false,  true }, // QuickTime,
     { false, false, false, false,  true, false,  true,  true, false, false }, // WebM,
         // Audio Formats
     { false,  true, false, false, false, false, false, false, false, false }, // AAC,
     { false, false, false, false,  true, false, false, false, false, false }, // FLAC,
     {  true, false, false, false, false, false, false, false, false, false }, // Mpeg3,
     {  true,  true,  true,  true,  true,  true,  true, false, false,  true }, // Mpeg4Audio,
-    { false, false, false, false, false, false,  true, false, false, false }, // Opus,
+    { false, false, false, false, false, false, false, false, false,  true }, // ALAC,
     { false, false, false, false, false, false, false, false,  true, false }, // Wave,
-    { false, false, false, false, false, false, false, false, false,  true }, // WindowsMediaAudio
 };
 
 inline bool formatSupportsCodec(QMediaFormat::FileFormat format, QMediaFormat::AudioCodec codec)
@@ -89,9 +89,8 @@ constexpr bool videoSupportMatrix[QMediaFormat::FileFormat::LastFileFormat + 1][
     { false, false, false, false, false, false, false, false, false, false }, // FLAC,
     { false, false, false, false, false, false, false, false, false, false }, // Mpeg3,
     { false, false, false, false, false, false, false, false, false, false }, // Mpeg4Audio,
-    { false, false, false, false, false, false, false, false, false, false }, // Opus,
+    { false, false, false, false, false, false, false, false, false, false }, // ALAC,
     { false, false, false, false, false, false, false, false, false, false }, // Wave,
-    { false, false, false, false, false, false, false, false, false, false }, // WindowsMediaAudio
 };
 
 inline bool formatSupportsCodec(QMediaFormat::FileFormat format, QMediaFormat::VideoCodec codec)
@@ -117,9 +116,8 @@ constexpr QMediaFormat::FileFormat audioFormatPriorityList[] =
     QMediaFormat::AAC,
     QMediaFormat::MP3,
     QMediaFormat::Mpeg4Audio,
-    QMediaFormat::Opus,
     QMediaFormat::FLAC,
-    QMediaFormat::WindowsMediaAudio,
+    QMediaFormat::ALAC,
     QMediaFormat::Wave,
     QMediaFormat::UnspecifiedFormat
 };
@@ -132,7 +130,6 @@ constexpr QMediaFormat::AudioCodec audioPriorityList[] =
     QMediaFormat::AudioCodec::Opus,
     QMediaFormat::AudioCodec::EAC3,
     QMediaFormat::AudioCodec::DolbyTrueHD,
-    QMediaFormat::AudioCodec::WindowsMediaAudio,
     QMediaFormat::AudioCodec::FLAC,
     QMediaFormat::AudioCodec::Vorbis,
     QMediaFormat::AudioCodec::Wave,
@@ -152,6 +149,26 @@ constexpr QMediaFormat::VideoCodec videoPriorityList[] =
     QMediaFormat::VideoCodec::MPEG1,
     QMediaFormat::VideoCodec::MotionJPEG,
 };
+
+const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
+{
+    "",
+    "video/x-ms-asf",
+    "video/x-msvideo",
+    "video/x-matroska",
+    "video/mp4",
+    "video/ogg",
+    "video/quicktime",
+    "video/webm",
+    // Audio Formats
+    "audio/aac",
+    "audio/flac",
+    "audio/mpeg",
+    "audio/mp4",
+    "audio/alac",
+    "audio/wave",
+};
+
 
 }
 
@@ -381,9 +398,20 @@ bool QMediaFormat::isAudioFormat() const
     return fmt >= AAC;
 }
 
+/*!
+    Returns the mimetype for the file format used in this media format.
+
+    \sa format(), setFormat()
+ */
+QMimeType QMediaFormat::mimeType() const
+{
+    return QMimeDatabase().mimeTypeForName(QString::fromLatin1(mimeTypeForFormat[fmt + 1]));
+}
+
 QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
 {
-    constexpr const char *descriptions[] = {
+    constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
+        "Unspecified File Format"
         "ASF",
         "AVI",
         "Matroska",
@@ -396,11 +424,10 @@ QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
         "FLAC",
         "MP3",
         "MPEG-4 Audio",
-        "Opus",
-        "Wave",
-        "Windows Media Audio",
+        "ALAC",
+        "Wave"
     };
-    return QString::fromUtf8(descriptions[int(c)]);
+    return QString::fromUtf8(descriptions[int(c) + 1]);
 }
 
 QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec c)
@@ -416,7 +443,7 @@ QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec c)
         "Opus",
         "Vorbis",
         "Wave",
-        "WindowsMediaAudio",
+        "ALAC",
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
 }
@@ -441,10 +468,10 @@ QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec c)
 
 QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
 {
-    constexpr const char *descriptions[] = {
+    constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
         "Unspecified File Format",
-        "Windows Media Format (ASF)",
-        "Audio Video Interleave (AVI)",
+        "Windows Media Format",
+        "Audio Video Interleave",
         "Matroska Multimedia Container",
         "MPEG-4 Video Container",
         "Ogg",
@@ -455,9 +482,8 @@ QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
         "Free Lossless Audio Codec (FLAC)",
         "MP3",
         "MPEG-4 Audio Container",
-        "Opus Audio Encoding",
-        "Wave File",
-        "Windows Media Audio",
+        "Apple Lossless Audio Codec (ALAC)",
+        "Wave File"
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
 }
@@ -475,7 +501,7 @@ QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec c)
         "Opus",
         "Vorbis",
         "Wave",
-        "Windows Media Audio",
+        "Apple Lossless Audio Codec (ALAC)",
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
 }

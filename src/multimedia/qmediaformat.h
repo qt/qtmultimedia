@@ -46,6 +46,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QMimeType;
 class QMediaFormat;
 class QMediaEncoderSettings;
 class QMediaFormatPrivate
@@ -72,10 +73,9 @@ public:
         FLAC,
         MP3,
         Mpeg4Audio,
-        Opus,
+        ALAC,
         Wave,
-        WindowsMediaAudio,
-        LastFileFormat = WindowsMediaAudio
+        LastFileFormat = Wave
     };
 
     enum class AudioCodec {
@@ -89,8 +89,8 @@ public:
         Opus,
         Vorbis,
         Wave,
-        WindowsMediaAudio,
-        LastAudioCodec = WindowsMediaAudio
+        ALAC,
+        LastAudioCodec = ALAC
     };
 
     enum class VideoCodec {
@@ -126,6 +126,8 @@ public:
     bool canEncode() const;
 
     bool isAudioFormat() const;
+
+    QMimeType mimeType() const;
 
     static QString fileFormatName(QMediaFormat::FileFormat c);
     static QString audioCodecName(QMediaFormat::AudioCodec c);

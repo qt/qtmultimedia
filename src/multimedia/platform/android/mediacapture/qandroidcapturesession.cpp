@@ -269,14 +269,12 @@ void QAndroidCaptureSession::start()
     case QMediaFormat::Mpeg4Audio:
         extension = "m4a";
         break;
-    case QMediaFormat::Opus:
-        extension = "opus";
+    case QMediaFormat::ALAC:
     case QMediaFormat::ASF:
     case QMediaFormat::AVI:
     case QMediaFormat::Matroska:
     case QMediaFormat::FLAC:
     case QMediaFormat::Wave:
-    case QMediaFormat::WindowsMediaAudio:
     case QMediaFormat::UnspecifiedFormat:
         break;
     }

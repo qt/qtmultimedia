@@ -65,7 +65,7 @@ static struct {
     { "audio/mpeg, mpegversion=(int)1, layer=(int)3", QMediaFormat::FileFormat::MP3 },
     { "audio/mpeg, mpegversion=(int)4", QMediaFormat::FileFormat::AAC },
     { "audio/x-flac", QMediaFormat::FileFormat::FLAC },
-    { "audio/x-wma", QMediaFormat::FileFormat::WindowsMediaAudio },
+    { "audio/x-alac", QMediaFormat::FileFormat::ALAC },
     { nullptr, QMediaFormat::FileFormat::UnspecifiedFormat },
 };
 
@@ -95,7 +95,7 @@ static struct {
     { "audio/x-ac3", QMediaFormat::AudioCodec::AC3 },
     { "audio/x-eac3", QMediaFormat::AudioCodec::EAC3 },
     { "audio/x-flac", QMediaFormat::AudioCodec::FLAC },
-    { "audio/x-wma", QMediaFormat::AudioCodec::WindowsMediaAudio },
+    { "audio/x-alac", QMediaFormat::AudioCodec::ALAC },
     { "audio/x-true-hd", QMediaFormat::AudioCodec::DolbyTrueHD },
     { "audio/x-vorbis", QMediaFormat::AudioCodec::Vorbis },
     { nullptr, QMediaFormat::AudioCodec::Unspecified },
@@ -109,8 +109,6 @@ static auto getList(QGstCodecsInfo::ElementType type, Map *map, Hash &hash)
     QGstCodecsInfo info(type);
     auto codecs = info.supportedCodecs();
     for (const auto &c : codecs) {
-        if (type == QGstCodecsInfo::AudioDecoder)
-            qDebug() << "gst format" << c;
         Map *m = map;
         while (m->name) {
             if (m->name == c.toLatin1()) {
