@@ -124,6 +124,10 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
     m_codecs.clear();
     m_codecInfo.clear();
 
+    GstPadDirection padDirection = GST_PAD_SRC;
+    if (elementType == Demuxer || elementType == AudioDecoder || elementType == VideoDecoder)
+        padDirection = GST_PAD_SINK;
+
     GList *elements = elementFactories(elementType);
 
     QSet<QByteArray> fakeEncoderMimeTypes;
@@ -145,7 +149,7 @@ void QGstCodecsInfo::updateCodecs(ElementType elementType)
             GstStaticPadTemplate *padTemplate = (GstStaticPadTemplate *)padTemplates->data;
             padTemplates = padTemplates->next;
 
-            if (padTemplate->direction == GST_PAD_SRC) {
+            if (padTemplate->direction == padDirection) {
                 GstCaps *caps = gst_static_caps_get(&padTemplate->static_caps);
                 for (uint i=0; i<gst_caps_get_size(caps); i++) {
                     const GstStructure *structure = gst_caps_get_structure(caps, i);
@@ -229,10 +233,10 @@ GList *QGstCodecsInfo::elementFactories(ElementType elementType) const
         gstElementType = GST_ELEMENT_FACTORY_TYPE_MUXER;
         break;
     case AudioDecoder:
-        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_PARSER | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
+        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_DECODER | GST_ELEMENT_FACTORY_TYPE_MEDIA_AUDIO);
         break;
     case VideoDecoder:
-        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_PARSER | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO);
+        gstElementType = (GstElementFactoryListType)(GST_ELEMENT_FACTORY_TYPE_DECODER | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO);
         break;
     case Demuxer:
         gstElementType = GST_ELEMENT_FACTORY_TYPE_DEMUXER;
