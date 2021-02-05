@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include "avfcamerautility.h"
+#include "avfcamerautility_p.h"
 
 #include <QtCore/qglobal.h>
 
@@ -59,14 +59,14 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFMediaRecorderControlIOS;
+class AVFMediaRecorderControl;
 class AVFCameraService;
 
 QT_END_NAMESPACE
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate,
                                                                AVCaptureAudioDataOutputSampleBufferDelegate>
-- (id)initWithDelegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControlIOS) *)delegate;
+- (id)initWithDelegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControl) *)delegate;
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
         cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service

@@ -83,10 +83,8 @@ public:
 
     bool supportsTextures() const { return m_supportsTextures; }
 
-#ifdef Q_OS_IOS
     AVFCaptureFramesDelegate *captureDelegate() const;
     void resetCaptureDelegate() const;
-#endif
 
 Q_SIGNALS:
     void surfaceChanged(QAbstractVideoSurface *surface);

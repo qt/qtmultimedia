@@ -421,15 +421,10 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
 )
 
-qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT TVOS AND NOT WATCHOS
-    SOURCES
-        platform/darwin/camera/avfmediarecordercontrol.mm platform/darwin/camera/avfmediarecordercontrol_p.h
-)
-
-qt_internal_extend_target(Multimedia CONDITION IOS AND NOT TVOS AND NOT WATCHOS
+qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
     SOURCES
         platform/darwin/camera/avfmediaassetwriter.mm platform/darwin/camera/avfmediaassetwriter_p.h
-        platform/darwin/camera/avfmediarecordercontrol_ios.mm platform/darwin/camera/avfmediarecordercontrol_ios_p.h
+        platform/darwin/camera/avfmediarecordercontrol.mm platform/darwin/camera/avfmediarecordercontrol_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS AND (IOS OR TVOS)

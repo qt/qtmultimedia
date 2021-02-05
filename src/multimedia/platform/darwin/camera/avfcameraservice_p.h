@@ -67,7 +67,7 @@ class AVFCameraFocusControl;
 class AVFCameraExposureControl;
 class AVFCameraImageProcessingControl;
 class AVFMediaRecorderControl;
-class AVFMediaRecorderControlIOS;
+class AVFMediaRecorderControl;
 
 class AVFCameraService : public QPlatformMediaCapture
 {
@@ -82,7 +82,7 @@ public:
 
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
-    QPlatformMediaRecorder *recorderControl() const { return m_recorderControl; }
+    AVFMediaRecorderControl *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *avfImageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
@@ -91,7 +91,7 @@ public:
 private:
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
-    QPlatformMediaRecorder *m_recorderControl;
+    AVFMediaRecorderControl *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;
     AVFCameraFocusControl *m_cameraFocusControl;
     AVFCameraExposureControl *m_cameraExposureControl;

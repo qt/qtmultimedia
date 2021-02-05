@@ -356,8 +356,6 @@ AVCaptureVideoDataOutput *AVFCameraRendererControl::videoDataOutput() const
     return m_videoDataOutput;
 }
 
-#ifdef Q_OS_IOS
-
 AVFCaptureFramesDelegate *AVFCameraRendererControl::captureDelegate() const
 {
     return m_viewfinderFramesDelegate;
@@ -367,8 +365,6 @@ void AVFCameraRendererControl::resetCaptureDelegate() const
 {
     [m_videoDataOutput setSampleBufferDelegate:m_viewfinderFramesDelegate queue:m_delegateQueue];
 }
-
-#endif
 
 void AVFCameraRendererControl::handleViewfinderFrame()
 {

@@ -12,6 +12,9 @@ HEADERS += \
     $$PWD/avfcamerautility_p.h \
     $$PWD/avfimageencodercontrol_p.h \
     $$PWD/avfcamerawindowcontrol_p.h \
+    $$PWD/avfmediarecordercontrol_p.h \
+    $$PWD/avfmediaassetwriter_p.h
+
 
 SOURCES += \
     $$PWD/avfcameracontrol.mm \
@@ -26,21 +29,6 @@ SOURCES += \
     $$PWD/avfcamerautility.mm \
     $$PWD/avfimageencodercontrol.mm \
     $$PWD/avfcamerawindowcontrol.mm \
+    $$PWD/avfmediarecordercontrol.mm \
+    $$PWD/avfmediaassetwriter.mm
 
-osx {
-
-HEADERS += $$PWD/avfmediarecordercontrol_p.h
-SOURCES += $$PWD/avfmediarecordercontrol.mm
-
-}
-
-ios {
-
-HEADERS += \
-           $$PWD/avfmediaassetwriter_p.h \
-           $$PWD/avfmediarecordercontrol_ios_p.h
-SOURCES += \
-           $$PWD/avfmediaassetwriter.mm \
-           $$PWD/avfmediarecordercontrol_ios.mm
-
-}

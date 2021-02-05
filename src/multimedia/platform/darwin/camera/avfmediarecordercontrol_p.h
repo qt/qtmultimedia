@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFMEDIARECORDERCONTROL_H
-#define AVFMEDIARECORDERCONTROL_H
+#ifndef AVFMEDIARECORDERCONTROL_IOS_H
+#define AVFMEDIARECORDERCONTROL_IOS_H
 
 //
 //  W A R N I N G
@@ -51,30 +51,31 @@
 // We mean it.
 //
 
-#include <QtCore/qurl.h>
-#include <private/qplatformmediarecorder_p.h>
-
-#import <AVFoundation/AVFoundation.h>
+#include "avfmediaassetwriter_p.h"
 #include "avfstoragelocation_p.h"
 #include "avfcamerautility_p.h"
+#include "qaudiodeviceinfo.h"
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaRecorderDelegate);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceInput);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureMovieFileOutput);
+#include <private/qplatformmediarecorder_p.h>
+#include <private/qvideooutputorientationhandler_p.h>
+
+#include <QtCore/qglobal.h>
+#include <QtCore/qurl.h>
+
+#include <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraSession;
-class AVFCameraControl;
 class AVFCameraService;
+class QString;
+class QUrl;
 
 class AVFMediaRecorderControl : public QPlatformMediaRecorder
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     AVFMediaRecorderControl(AVFCameraService *service, QObject *parent = nullptr);
-    ~AVFMediaRecorderControl();
+    ~AVFMediaRecorderControl() override;
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
@@ -91,48 +92,50 @@ public:
     void unapplySettings();
 
     QAudioDeviceInfo audioInput() const override;
-    bool setAudioInput(const QAudioDeviceInfo &id) override;
+    bool setAudioInput(const QAudioDeviceInfo &) override;
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
+    QMediaEncoderSettings encoderSettings() const {
+        QMediaEncoderSettings s = m_settings;
+        s.resolveFormat();
+        return s;
+    }
 
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) override;
     void setMuted(bool muted) override;
     void setVolume(qreal volume) override;
 
-    void handleRecordingStarted();
-    void handleRecordingFinished();
-    void handleRecordingFailed(const QString &message);
+private:
+
+    Q_INVOKABLE void assetWriterStarted();
+    Q_INVOKABLE void assetWriterFinished();
 
 private Q_SLOTS:
-    void setupSessionForCapture();
-    void updateStatus();
+    void cameraStatusChanged(QCamera::Status newStatus);
 
 private:
-    AVFCameraControl *m_cameraControl;
-    AVFCameraSession *m_session;
+    void stopWriter();
+
+    AVFCameraService *m_service;
+    AVFScopedPointer<QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)> m_writer;
     AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
-    bool m_connected;
     QUrl m_outputLocation;
-    QMediaEncoderSettings m_settings;
+    AVFStorageLocation m_storageLocation;
+
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_lastStatus;
-
-    bool m_recordingStarted;
-    bool m_recordingFinished;
+    QMediaEncoderSettings m_settings;
 
     bool m_muted;
     qreal m_volume;
 
-    AVCaptureDeviceInput *m_audioInput;
-    AVCaptureMovieFileOutput *m_movieOutput;
-    AVFMediaRecorderDelegate *m_recorderDelagate;
-    AVFStorageLocation m_storageLocation;
-
-    AVFPSRange m_restoreFPS;
+    NSDictionary *m_audioSettings;
+    NSDictionary *m_videoSettings;
+    QVideoOutputOrientationHandler m_orientationHandler;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // AVFMEDIARECORDERCONTROL_IOS_H

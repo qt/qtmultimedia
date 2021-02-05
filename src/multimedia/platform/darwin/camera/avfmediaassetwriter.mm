@@ -37,14 +37,13 @@
 **
 ****************************************************************************/
 
-#include "avfaudioinputselectorcontrol.h"
-#include "avfmediarecordercontrol_ios.h"
-#include "avfcamerarenderercontrol.h"
-#include "avfmediaassetwriter.h"
-#include "avfcameraservice.h"
-#include "avfcamerasession.h"
-#include "avfcameradebug.h"
-#include "avfmediacontainercontrol.h"
+#include "avfmediarecordercontrol_p.h"
+#include "avfcamerarenderercontrol_p.h"
+#include "avfmediaassetwriter_p.h"
+#include "avfcameraservice_p.h"
+#include "avfcamerasession_p.h"
+#include "avfcameradebug_p.h"
+#include <private/qdarwinformatsinfo_p.h>
 
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qatomic.h>
@@ -65,8 +64,8 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     if (!session->videoInput())
         return false;
 
-    if (!service->videoOutput()
-        || !service->videoOutput()->videoDataOutput()) {
+    if (!session->videoOutput()
+        || !session->videoOutput()->videoDataOutput()) {
         return false;
     }
 
@@ -112,7 +111,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     AVFScopedPointer<AVAssetWriter> m_assetWriter;
 
-    AVFMediaRecorderControlIOS *m_delegate;
+    AVFMediaRecorderControl *m_delegate;
 
     bool m_setStartTime;
 
@@ -127,7 +126,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     AVFAtomicInt64 m_durationInMs;
 }
 
-- (id)initWithDelegate:(AVFMediaRecorderControlIOS *)delegate
+- (id)initWithDelegate:(AVFMediaRecorderControl *)delegate
 {
     Q_ASSERT(delegate);
 
@@ -180,8 +179,10 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         // But we still can write video!
     }
 
+//    auto settings = m_service->recorderControl()->encoderSettings();
+    auto fileType = AVFileTypeQuickTimeMovie;//QDarwinFormatInfo::videoFormatForCodec(settings.format())
     m_assetWriter.reset([[AVAssetWriter alloc] initWithURL:fileURL
-                                               fileType:m_service->mediaContainerControl()->fileType()
+                                               fileType:fileType
                                                error:nil]);
     if (!m_assetWriter) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create asset writer";
@@ -368,9 +369,9 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         }
         // Find renderercontrol's delegate and invoke its method to
         // show updated viewfinder's frame.
-        if (m_service && m_service->videoOutput()) {
+        if (m_service && m_service->session() && m_service->session()->videoOutput()) {
             NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *vfDelegate =
-                (NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *)m_service->videoOutput()->captureDelegate();
+                (NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *)m_service->session()->videoOutput()->captureDelegate();
             if (vfDelegate)
                 [vfDelegate captureOutput:nil didOutputSampleBuffer:sampleBuffer fromConnection:nil];
         }
@@ -389,12 +390,13 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 {
     Q_ASSERT(m_service && m_service->session() && m_service->session()->captureSession());
 
-    if (!m_service->audioInputSelectorControl())
-        return false;
-
     AVCaptureSession *captureSession = m_service->session()->captureSession();
 
-    m_audioCaptureDevice = m_service->audioInputSelectorControl()->createCaptureDevice();
+    // #####
+    const auto audioDeviceInfo = m_delegate->audioInput();
+    m_audioCaptureDevice = [AVCaptureDevice deviceWithUniqueID:
+                            [NSString stringWithUTF8String:audioDeviceInfo.id().constData()]];
+
     if (!m_audioCaptureDevice) {
         qWarning() << Q_FUNC_INFO << "no audio input device available";
         return false;
@@ -435,8 +437,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
 - (bool)addWriterInputs
 {
-    Q_ASSERT(m_service && m_service->videoOutput()
-             && m_service->videoOutput()->videoDataOutput());
+    Q_ASSERT(m_service && m_service->session() && m_service->session()->videoOutput()
+             && m_service->session()->videoOutput()->videoDataOutput());
     Q_ASSERT(m_assetWriter.data());
 
     m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo
@@ -480,10 +482,11 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
 - (void)setQueues
 {
-    Q_ASSERT(m_service && m_service->videoOutput() && m_service->videoOutput()->videoDataOutput());
+    Q_ASSERT(m_service && m_service->session() && m_service->session()->videoOutput()
+                       && m_service->session()->videoOutput()->videoDataOutput());
     Q_ASSERT(m_videoQueue);
 
-    [m_service->videoOutput()->videoDataOutput() setSampleBufferDelegate:self queue:m_videoQueue];
+    [m_service->session()->videoOutput()->videoDataOutput() setSampleBufferDelegate:self queue:m_videoQueue];
 
     if (m_audioOutput.data()) {
         Q_ASSERT(m_audioQueue);

@@ -43,19 +43,14 @@
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
 #include "avfcamerasession_p.h"
-#include "avfmediarecordercontrol_p.h"
 #include "avfimagecapturecontrol_p.h"
 #include "avfcamerarenderercontrol_p.h"
-#include "avfmediarecordercontrol_p.h"
 #include "avfimagecapturecontrol_p.h"
 #include "avfcamerafocuscontrol_p.h"
 #include "avfcameraexposurecontrol_p.h"
 #include "avfcameraimageprocessingcontrol_p.h"
 #include "avfcamerawindowcontrol_p.h"
-
-#ifdef Q_OS_IOS
-#include "avfmediarecordercontrol_ios_p.h"
-#endif
+#include "avfmediarecordercontrol_p.h"
 
 QT_USE_NAMESPACE
 
@@ -64,14 +59,8 @@ AVFCameraService::AVFCameraService()
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);
 
-#ifndef Q_OS_IOS
-    // This will connect a slot to 'captureModeChanged'
-    // and will break viewfinder by attaching AVCaptureMovieFileOutput
-    // in this slot.
     m_recorderControl = new AVFMediaRecorderControl(this);
-#else
-    m_recorderControl = new AVFMediaRecorderControlIOS(this);
-#endif
+
     m_imageCaptureControl = new AVFImageCaptureControl(this);
     m_cameraFocusControl = new AVFCameraFocusControl(this);
     m_cameraImageProcessingControl = new AVFCameraImageProcessingControl(this);
