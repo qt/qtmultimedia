@@ -62,14 +62,14 @@ static struct {
     QMediaFormat::VideoCodec value;
 } videoCodecMap[] = {
     // See CMVideoCodecType for the four character code names of codecs
-    { "video/mp4; codecs=\"mp1v\"", QMediaFormat::VideoCodec::MPEG1 },
-    { "video/mp4; codecs=\"mp2v\"", QMediaFormat::VideoCodec::MPEG2 },
-    { "video/mp4; codecs=\"mp4v\"", QMediaFormat::VideoCodec::MPEG4 },
-    { "video/mp4; codecs=\"avc1\"", QMediaFormat::VideoCodec::H264 },
-    { "video/mp4; codecs=\"hvc1\"", QMediaFormat::VideoCodec::H265 },
-    { "video/mp4; codecs=\"vp09\"", QMediaFormat::VideoCodec::VP9 },
-    { "video/mp4; codecs=\"av01\"", QMediaFormat::VideoCodec::AV1 }, // ### ????
-    { "video/mp4; codecs=\"jpeg\"", QMediaFormat::VideoCodec::MotionJPEG },
+    { "; codecs=\"mp1v\"", QMediaFormat::VideoCodec::MPEG1 },
+    { "; codecs=\"mp2v\"", QMediaFormat::VideoCodec::MPEG2 },
+    { "; codecs=\"mp4v\"", QMediaFormat::VideoCodec::MPEG4 },
+    { "; codecs=\"avc1\"", QMediaFormat::VideoCodec::H264 },
+    { "; codecs=\"hvc1\"", QMediaFormat::VideoCodec::H265 },
+    { "; codecs=\"vp09\"", QMediaFormat::VideoCodec::VP9 },
+    { "; codecs=\"av01\"", QMediaFormat::VideoCodec::AV1 }, // ### ????
+    { "; codecs=\"jpeg\"", QMediaFormat::VideoCodec::MotionJPEG },
     { nullptr, QMediaFormat::VideoCodec::Unspecified }
 };
 
@@ -78,11 +78,15 @@ static struct {
     QMediaFormat::AudioCodec value;
 } audioCodecMap[] = {
     // AudioFile.h
-    { "audio/mp3", QMediaFormat::AudioCodec::MP3 },
-    { "audio/aac", QMediaFormat::AudioCodec::AAC },
-    { "video/mp4; codecs=\"ac-3\"", QMediaFormat::AudioCodec::AC3 },
-    { "video/mp4; codecs=\"ec-3\"", QMediaFormat::AudioCodec::EAC3 },
-    { "audio/flac", QMediaFormat::AudioCodec::FLAC },
+    // ### The next two entries do not work, probably because they contain non a space and period and AVFoundation doesn't like that
+    // We know they are supported on all Apple platforms, so we'll add them manually below
+//    { "; codecs=\".mp3\"", QMediaFormat::AudioCodec::MP3 },
+//    { "; codecs=\"aac \"", QMediaFormat::AudioCodec::AAC },
+    { "; codecs=\"ac-3\"", QMediaFormat::AudioCodec::AC3 },
+    { "; codecs=\"ec-3\"", QMediaFormat::AudioCodec::EAC3 },
+    { "; codecs=\"flac\"", QMediaFormat::AudioCodec::FLAC },
+    { "; codecs=\"alac\"", QMediaFormat::AudioCodec::FLAC },
+    { "; codecs=\"opus\"", QMediaFormat::AudioCodec::Opus },
     { nullptr, QMediaFormat::AudioCodec::Unspecified },
 };
 
@@ -92,73 +96,76 @@ QDarwinFormatInfo::QDarwinFormatInfo()
     for (AVFileType filetype in avtypes) {
         auto *m = mediaContainerMap;
         while (m->name) {
-            if (!strcmp(filetype.UTF8String, m->name)) {
-                m_decodableMediaContainers.append(m->value);
-                break;
+            if (strcmp(filetype.UTF8String, m->name)) {
+                ++m;
+                continue;
             }
+
+            QList<QMediaFormat::VideoCodec> video;
+            QList<QMediaFormat::AudioCodec> audio;
+//            qDebug() << "Media container" << m->name << "supported";
+
+            auto *v = videoCodecMap;
+            while (v->name) {
+                QByteArray extendedMimetype = m->name;
+                extendedMimetype += v->name;
+//                qDebug() << "video" << extendedMimetype << [AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]];
+                if ([AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]])
+                    video << v->value;
+                ++v;
+            }
+
+            auto *a = audioCodecMap;
+            while (a->name) {
+                QByteArray extendedMimetype = m->name;
+                extendedMimetype += a->name;
+//                qDebug() << "audio" << extendedMimetype << [AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]];
+                if ([AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]])
+                    audio << a->value;
+                ++a;
+            }
+            // Added manually, see comment in the list above
+            if (m->value <= QMediaFormat::AAC)
+                audio << QMediaFormat::AudioCodec::AAC;
+            if (m->value < QMediaFormat::AAC || m->value == QMediaFormat::MP3)
+                audio << QMediaFormat::AudioCodec::MP3;
+
+            decoders << CodecMap{ m->value, audio, video };
             ++m;
         }
     }
 
-    {
-        auto *m = videoCodecMap;
-        while (m->name) {
-            if ([AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:m->name]])
-                m_decodableVideoCodecs << m->value;
-            ++m;
-        }
-    }
-    {
-        auto *m = audioCodecMap;
-        while (m->name) {
-            qDebug() << "audio" << m->name << [AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:m->name]];
-            if ([AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:m->name]])
-                m_decodableAudioCodecs << m->value;
-            ++m;
-        }
-    }
-    // Audio format seems to be symmetric
-    m_encodableAudioCodecs = m_decodableAudioCodecs;
-
+#if 1
+    // ### Verify that this is correct
+    encoders = decoders;
+#else
     // ### Haven't seen a good way to figure this out.
     // seems AVFoundation only supports those for encoding
-    m_encodableMediaContainers << QMediaFormat::MPEG4 << QMediaFormat::QuickTime;
-    // AVCaptureVideoDataOutput.availableVideoCodecTypes does not mention H265 even though it is supported
-    m_encodableVideoCodecs << QMediaFormat::VideoCodec::H264 << QMediaFormat::VideoCodec::H265 << QMediaFormat::VideoCodec::MotionJPEG;
+    encoders = {
+        { QMediaFormat::MPEG4,
+          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC, QMediaFormat::AudioCodec::AC3, QMediaFormat::AudioCodec::EAC3, },
+          { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265, QMediaFormat::VideoCodec::MotionJPEG } },
+        { QMediaFormat::QuickTime,
+          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC, QMediaFormat::AudioCodec::AC3, QMediaFormat::AudioCodec::EAC3, },
+          { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265, QMediaFormat::VideoCodec::MotionJPEG } },
+        { QMediaFormat::AAC,
+          { QMediaFormat::AudioCodec::AAC },
+          {} },
+        { QMediaFormat::MP3,
+          { QMediaFormat::AudioCodec::MP3 },
+          {} },
+        { QMediaFormat::FLAC,
+          { QMediaFormat::AudioCodec::FLAC },
+          {} },
+        { QMediaFormat::Mpeg4Audio,
+          { QMediaFormat::AudioCodec::AAC },
+          {} }
+    };
+#endif
 }
 
 QDarwinFormatInfo::~QDarwinFormatInfo()
 {
-}
-
-QList<QMediaFormat::FileFormat> QDarwinFormatInfo::decodableMediaContainers() const
-{
-    return m_decodableMediaContainers;
-}
-
-QList<QMediaFormat::AudioCodec> QDarwinFormatInfo::decodableAudioCodecs() const
-{
-    return m_decodableAudioCodecs;
-}
-
-QList<QMediaFormat::VideoCodec> QDarwinFormatInfo::decodableVideoCodecs() const
-{
-    return m_decodableVideoCodecs;
-}
-
-QList<QMediaFormat::FileFormat> QDarwinFormatInfo::encodableMediaContainers() const
-{
-    return m_encodableMediaContainers;
-}
-
-QList<QMediaFormat::AudioCodec> QDarwinFormatInfo::encodableAudioCodecs() const
-{
-    return m_encodableAudioCodecs;
-}
-
-QList<QMediaFormat::VideoCodec> QDarwinFormatInfo::encodableVideoCodecs() const
-{
-    return m_encodableVideoCodecs;
 }
 
 int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
@@ -167,10 +174,8 @@ int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
     switch (codec) {
     case QMediaFormat::AudioCodec::Unspecified:
     case QMediaFormat::AudioCodec::DolbyTrueHD:
-    case QMediaFormat::AudioCodec::Opus:
     case QMediaFormat::AudioCodec::Vorbis:
     case QMediaFormat::AudioCodec::Wave:
-    case QMediaFormat::AudioCodec::WindowsMediaAudio:
         // Unsupported, shouldn't happen. Fall back to AAC
     case QMediaFormat::AudioCodec::AAC:
         codecId = kAudioFormatMPEG4AAC;
@@ -186,6 +191,10 @@ int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
         break;
     case QMediaFormat::AudioCodec::FLAC:
         codecId = kAudioFormatFLAC;
+    case QMediaFormat::AudioCodec::ALAC:
+        codecId = kAudioFormatAppleLossless;
+    case QMediaFormat::AudioCodec::Opus:
+        codecId = kAudioFormatOpus;
         break;
     }
     return codecId;

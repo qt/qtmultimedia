@@ -42,6 +42,7 @@
 #include <QtGui/qdesktopservices.h>
 #include <QStandardPaths>
 #include "qaudiodeviceinfo.h"
+#include <qmimetype.h>
 
 QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
     : QMediaRecorderControl(session),
@@ -154,9 +155,9 @@ void QGstreamerRecorderControl::record()
     m_state = QMediaRecorder::RecordingState;
 
     if (m_outputLocation.isEmpty()) {
-        QString container;// ### = m_session->mediaContainerControl()->containerExtension();
+        QString container = resolvedEncoderSettings().mimeType().preferredSuffix();
         if (container.isEmpty())
-            container = "raw";
+            container = QString::fromLatin1("raw");
 
         m_session->setOutputLocation(QUrl(generateFileName(defaultDir(), container)));
     }
@@ -232,11 +233,9 @@ void QGstreamerRecorderControl::setEncoderSettings(const QMediaEncoderSettings &
 QMediaEncoderSettings QGstreamerRecorderControl::resolvedEncoderSettings() const
 {
     QMediaEncoderSettings f = m_settings;
-    f.resolveFormat(m_session->captureMode() & QGstreamerCaptureSession::Video ?
-                        QMediaEncoderSettings::AudioAndVideo : QMediaEncoderSettings::AudioOnly);
+    f.resolveFormat();
     return f;
 }
-
 
 bool QGstreamerRecorderControl::isMuted() const
 {

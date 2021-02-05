@@ -45,6 +45,7 @@
 #include "qandroidmultimediautils_p.h"
 #include "qandroidvideooutput_p.h"
 #include "qandroidglobal_p.h"
+#include <QtCore/qmimetype.h>
 
 #include <algorithm>
 
@@ -247,37 +248,7 @@ void QAndroidCaptureSession::start()
         m_mediaRecorder->setOrientationHint(m_cameraSession->currentCameraRotation());
     }
 
-    const char *extension = "mp4";
-    switch(m_encoderSettings.format()) {
-    case QMediaFormat::MPEG4:
-        break;
-    case QMediaFormat::Ogg:
-        extension = "ogg";
-        break;
-    case QMediaFormat::QuickTime:
-        extension = "mov";
-        break;
-    case QMediaFormat::WebM:
-        extension = "webm";
-        break;
-    case QMediaFormat::AAC:
-        extension = "aac";
-        break;
-    case QMediaFormat::MP3:
-        extension = "mp3";
-        break;
-    case QMediaFormat::Mpeg4Audio:
-        extension = "m4a";
-        break;
-    case QMediaFormat::ALAC:
-    case QMediaFormat::ASF:
-    case QMediaFormat::AVI:
-    case QMediaFormat::Matroska:
-    case QMediaFormat::FLAC:
-    case QMediaFormat::Wave:
-    case QMediaFormat::UnspecifiedFormat:
-        break;
-    }
+    QString extension = m_encoderSettings.mimeType().preferredSuffix();
 
     // Set output file
     QString filePath = m_mediaStorageLocation.generateFileName(
@@ -287,7 +258,7 @@ void QAndroidCaptureSession::start()
                                 : QMediaStorageLocation::Sounds,
                 m_cameraSession ? QLatin1String("VID_")
                                 : QLatin1String("REC_"),
-                QString::fromUtf8(extension));
+                extension);
 
     m_usedOutputLocation = QUrl::fromLocalFile(filePath);
     m_mediaRecorder->setOutputFile(filePath);
@@ -399,7 +370,7 @@ qint64 QAndroidCaptureSession::duration() const
 void QAndroidCaptureSession::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     m_encoderSettings = settings;
-    m_encoderSettings.resolveFormat(m_cameraSession ? QMediaEncoderSettings::AudioAndVideo : QMediaEncoderSettings::AudioOnly);
+    m_encoderSettings.resolveFormat();
     m_encoderSettingsDirty = true;
 }
 

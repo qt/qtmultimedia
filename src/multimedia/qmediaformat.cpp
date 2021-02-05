@@ -46,110 +46,6 @@ QT_BEGIN_NAMESPACE
 
 namespace {
 
-// info from https://en.wikipedia.org/wiki/Comparison_of_video_container_formats
-constexpr bool audioSupportMatrix[QMediaFormat::FileFormat::LastFileFormat + 1][(int)QMediaFormat::AudioCodec::LastAudioCodec + 1] =
-{
-    //  MP3,   AAC,   AC3, EAC3,   FLAC,  DTHD,  Opus,Vorbis,  Wave, ALAC
-        // Container formats (Audio and Video)
-    {  true,  true,  true,  true,  true, false,  true, false, false,  true }, // ASF
-    {  true,  true,  true, false,  true, false,  true, false, false,  true }, // AVI,
-    {  true,  true,  true,  true,  true,  true,  true,  true, false,  true }, // Matroska,
-    {  true,  true,  true,  true,  true,  true,  true, false, false,  true }, // MPEG4,
-    { false, false, false, false,  true, false,  true,  true, false, false }, // Ogg,
-    {  true,  true,  true,  true, false, false, false, false, false,  true }, // QuickTime,
-    { false, false, false, false,  true, false,  true,  true, false, false }, // WebM,
-        // Audio Formats
-    { false,  true, false, false, false, false, false, false, false, false }, // AAC,
-    { false, false, false, false,  true, false, false, false, false, false }, // FLAC,
-    {  true, false, false, false, false, false, false, false, false, false }, // Mpeg3,
-    {  true,  true,  true,  true,  true,  true,  true, false, false,  true }, // Mpeg4Audio,
-    { false, false, false, false, false, false, false, false, false,  true }, // ALAC,
-    { false, false, false, false, false, false, false, false,  true, false }, // Wave,
-};
-
-inline bool formatSupportsCodec(QMediaFormat::FileFormat format, QMediaFormat::AudioCodec codec)
-{
-    return audioSupportMatrix[format][(int)codec];
-}
-
-// info from https://en.wikipedia.org/wiki/Comparison_of_video_container_formats
-constexpr bool videoSupportMatrix[QMediaFormat::FileFormat::LastFileFormat + 1][(int)QMediaFormat::VideoCodec::LastVideoCodec + 1] =
-{
-    //MPEG1, MPEG2, MPEG4,  H264,  H265,   VP8,   VP9,   AV1,Theora, MotionJPEG,
-        // Container formats (Audio and Video)
-    {  true,  true,  true,  true,  true, false, false, false, false,false }, // ASF
-    {  true,  true,  true,  true,  true,  true,  true, false,  true,  true }, // AVI,
-    {  true,  true,  true,  true,  true,  true,  true,  true,  true, false }, // Matroska,
-    {  true,  true,  true,  true,  true,  true,  true,  true,  true,  true }, // MPEG4,
-    { false,  true,  true,  true,  true, false, false, false, false,  true }, // Ogg,
-    { false, false, false, false, false, false, false, false,  true, false }, // QuickTime,
-    { false, false, false, false, false,  true,  true,  true, false, false }, // WebM,
-        // Audio Formats
-    { false, false, false, false, false, false, false, false, false, false }, // AAC,
-    { false, false, false, false, false, false, false, false, false, false }, // FLAC,
-    { false, false, false, false, false, false, false, false, false, false }, // Mpeg3,
-    { false, false, false, false, false, false, false, false, false, false }, // Mpeg4Audio,
-    { false, false, false, false, false, false, false, false, false, false }, // ALAC,
-    { false, false, false, false, false, false, false, false, false, false }, // Wave,
-};
-
-inline bool formatSupportsCodec(QMediaFormat::FileFormat format, QMediaFormat::VideoCodec codec)
-{
-    return videoSupportMatrix[format][(int)codec];
-}
-
-
-constexpr QMediaFormat::FileFormat videoFormatPriorityList[] =
-{
-    QMediaFormat::MPEG4,
-    QMediaFormat::QuickTime,
-    QMediaFormat::AVI,
-    QMediaFormat::WebM,
-    QMediaFormat::ASF,
-    QMediaFormat::Matroska,
-    QMediaFormat::Ogg,
-    QMediaFormat::UnspecifiedFormat
-};
-
-constexpr QMediaFormat::FileFormat audioFormatPriorityList[] =
-{
-    QMediaFormat::AAC,
-    QMediaFormat::MP3,
-    QMediaFormat::Mpeg4Audio,
-    QMediaFormat::FLAC,
-    QMediaFormat::ALAC,
-    QMediaFormat::Wave,
-    QMediaFormat::UnspecifiedFormat
-};
-
-constexpr QMediaFormat::AudioCodec audioPriorityList[] =
-{
-    QMediaFormat::AudioCodec::AAC,
-    QMediaFormat::AudioCodec::MP3,
-    QMediaFormat::AudioCodec::AC3,
-    QMediaFormat::AudioCodec::Opus,
-    QMediaFormat::AudioCodec::EAC3,
-    QMediaFormat::AudioCodec::DolbyTrueHD,
-    QMediaFormat::AudioCodec::FLAC,
-    QMediaFormat::AudioCodec::Vorbis,
-    QMediaFormat::AudioCodec::Wave,
-    QMediaFormat::AudioCodec::Unspecified
-};
-
-constexpr QMediaFormat::VideoCodec videoPriorityList[] =
-{
-    QMediaFormat::VideoCodec::H265,
-    QMediaFormat::VideoCodec::VP9,
-    QMediaFormat::VideoCodec::H264,
-    QMediaFormat::VideoCodec::AV1,
-    QMediaFormat::VideoCodec::VP8,
-    QMediaFormat::VideoCodec::Theora,
-    QMediaFormat::VideoCodec::MPEG4,
-    QMediaFormat::VideoCodec::MPEG2,
-    QMediaFormat::VideoCodec::MPEG1,
-    QMediaFormat::VideoCodec::MotionJPEG,
-};
-
 const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
 {
     "",
@@ -169,85 +65,6 @@ const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
     "audio/wave",
 };
 
-
-}
-
-void QMediaFormatPrivate::resolveForEncoding(QMediaFormat *f, bool audioOnly)
-{
-    auto supportedFormats = QMediaEncoderInfo::supportedFileFormats();
-    auto supportedAudioCodecs = QMediaEncoderInfo::supportedAudioCodecs();
-    auto supportedVideoCodecs = QMediaEncoderInfo::supportedVideoCodecs();
-
-    auto bestSupportedFileFormat = [&](QMediaFormat::AudioCodec audio = QMediaFormat::AudioCodec::Unspecified,
-                                       QMediaFormat::VideoCodec video = QMediaFormat::VideoCodec::Unspecified)
-    {
-        auto *list = audioOnly ? audioFormatPriorityList : videoFormatPriorityList;
-        while (*list != QMediaFormat::UnspecifiedFormat) {
-            if (supportedFormats.contains(*list)) {
-                if ((audio == QMediaFormat::AudioCodec::Unspecified || formatSupportsCodec(f->fmt, audio)) &&
-                    (video == QMediaFormat::VideoCodec::Unspecified || formatSupportsCodec(f->fmt, video)))
-                    break;
-            }
-            ++list;
-        }
-        return *list;
-    };
-
-    // reset non supported formats and codecs
-    if (!supportedFormats.contains(f->fmt))
-        f->fmt = QMediaFormat::UnspecifiedFormat;
-    if (!supportedAudioCodecs.contains(f->audio))
-        f->audio = QMediaFormat::AudioCodec::Unspecified;
-    if (audioOnly || !supportedVideoCodecs.contains(f->video))
-        f->video = QMediaFormat::VideoCodec::Unspecified;
-
-    // try finding a file format that is supported
-    if (f->fmt == QMediaFormat::UnspecifiedFormat)
-        f->fmt = bestSupportedFileFormat(f->audio, f->video);
-    // try without the audio codec
-    if (f->fmt == QMediaFormat::UnspecifiedFormat)
-        f->fmt = bestSupportedFileFormat(QMediaFormat::AudioCodec::Unspecified, f->video);
-    // try without the video codec
-    if (f->fmt == QMediaFormat::UnspecifiedFormat)
-        f->fmt = bestSupportedFileFormat(f->audio);
-    // give me a format that's supported
-    if (f->fmt == QMediaFormat::UnspecifiedFormat)
-        f->fmt = bestSupportedFileFormat();
-    // still nothing? Give up
-    if (f->fmt == QMediaFormat::UnspecifiedFormat)
-        return;
-
-    // now that we have a format, reset codecs that won't work
-    if (f->audio != QMediaFormat::AudioCodec::Unspecified) {
-        if (!formatSupportsCodec(f->fmt, f->audio) || !supportedAudioCodecs.contains(f->audio))
-            f->audio = QMediaFormat::AudioCodec::Unspecified;
-    }
-    if (f->video != QMediaFormat::VideoCodec::Unspecified) {
-        if (!formatSupportsCodec(f->fmt, f->video) || !supportedVideoCodecs.contains(f->video))
-            f->video = QMediaFormat::VideoCodec::Unspecified;
-    }
-
-    // find a matching audio format
-    if (f->audio == QMediaFormat::AudioCodec::Unspecified) {
-        auto *list = audioPriorityList;
-        while (*list != QMediaFormat::AudioCodec::Unspecified) {
-            if (supportedAudioCodecs.contains(*list) && formatSupportsCodec(f->fmt, *list))
-                break;
-            ++list;
-        }
-        f->audio = *list;
-    }
-
-    // find a matching video format
-    if (!audioOnly && f->video == QMediaFormat::VideoCodec::Unspecified) {
-        auto *list = videoPriorityList;
-        while (*list != QMediaFormat::VideoCodec::Unspecified) {
-            if (supportedVideoCodecs.contains(*list) && formatSupportsCodec(f->fmt, *list))
-                break;
-            ++list;
-        }
-        f->video = *list;
-    }
 }
 
 /*! \enum QMediaFormat::FileFormat
@@ -274,8 +91,9 @@ void QMediaFormatPrivate::resolveForEncoding(QMediaFormat *f, bool audioOnly)
 */
 
 // these are non inline to make a possible future addition of a d pointer binary compatible
-QMediaFormat::QMediaFormat(FileFormat format)
-    : fmt(format)
+QMediaFormat::QMediaFormat(FileFormat format, Mode mode)
+    : fmtMode(mode),
+      fmt(format)
 {
     Q_UNUSED(d);
 }
@@ -305,13 +123,6 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) = default;
 
     \sa videoCodec(), QMediaFormat::VideoCodec
 */
-bool QMediaFormat::setVideoCodec(VideoCodec codec)
-{
-    if (!videoSupportMatrix[fmt][(int)codec])
-        return false;
-    video = codec;
-    return true;
-}
 
 /*! \fn QMediaFormat::VideoCodec QMediaFormat::videoCodec() const
 
@@ -326,13 +137,6 @@ bool QMediaFormat::setVideoCodec(VideoCodec codec)
 
     \sa audioCodec(), QMediaFormat::AudioCodec
 */
-bool QMediaFormat::setAudioCodec(QMediaFormat::AudioCodec codec)
-{
-    if (!audioSupportMatrix[fmt][(int)codec])
-        return false;
-    audio = codec;
-    return true;
-}
 
 /*! \fn QMediaFormat::AudioCodec QMediaFormat::audioCodec() const
 
@@ -353,19 +157,7 @@ bool QMediaFormat::setAudioCodec(QMediaFormat::AudioCodec codec)
  */
 bool QMediaFormat::canDecode() const
 {
-    if (!QMediaDecoderInfo::supportedFileFormats().contains(fmt))
-        return false;
-    if (audio == QMediaFormat::AudioCodec::Unspecified && video == QMediaFormat::VideoCodec::Unspecified)
-        return false;
-    if (audio != QMediaFormat::AudioCodec::Unspecified) {
-        if (!QMediaDecoderInfo::supportedAudioCodecs().contains(audio))
-            return false;
-    }
-    if (video != QMediaFormat::VideoCodec::Unspecified) {
-        if (!QMediaDecoderInfo::supportedVideoCodecs().contains(video))
-            return false;
-    }
-    return true;
+    return QMediaPlatformIntegration::instance()->formatInfo()->isSupported(*this, Decode);
 }
 
 /*!
@@ -375,27 +167,7 @@ bool QMediaFormat::canDecode() const
 */
 bool QMediaFormat::canEncode() const
 {
-    if (!QMediaEncoderInfo::supportedFileFormats().contains(fmt))
-        return false;
-    if (audio == QMediaFormat::AudioCodec::Unspecified && video == QMediaFormat::VideoCodec::Unspecified)
-        return false;
-    if (audio != QMediaFormat::AudioCodec::Unspecified) {
-        if (!QMediaEncoderInfo::supportedAudioCodecs().contains(audio))
-            return false;
-    }
-    if (video != QMediaFormat::VideoCodec::Unspecified) {
-        if (!QMediaEncoderInfo::supportedVideoCodecs().contains(video))
-            return false;
-    }
-    return true;
-}
-
-/*!
-    Returns true if is is an audio-only file format.
- */
-bool QMediaFormat::isAudioFormat() const
-{
-    return fmt >= AAC;
+    return QMediaPlatformIntegration::instance()->formatInfo()->isSupported(*this, Encode);
 }
 
 /*!
@@ -408,10 +180,49 @@ QMimeType QMediaFormat::mimeType() const
     return QMimeDatabase().mimeTypeForName(QString::fromLatin1(mimeTypeForFormat[fmt + 1]));
 }
 
+/*!
+    Returns a list of container formats that are supported for \a mode.
+
+    The list is constrained by the chosen audio and video codec and will only match file
+    formats that can be created with those codecs.
+
+    To get all supported file formats, run this query on a default constructed QMediaFormat.
+ */
+QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat::ConversionMode m)
+{
+    return QMediaPlatformIntegration::instance()->formatInfo()->supportedFileFormats(*this, m);
+}
+
+/*!
+    Returns a list of video codecs that are supported for \a mode.
+
+    The list is constrained by the chosen file format and audio codec and will only return
+    the video codecs that can be used with those settings.
+
+    To get all supported video codecs, run this query on a default constructed QMediaFormat.
+ */
+QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat::ConversionMode m)
+{
+    return QMediaPlatformIntegration::instance()->formatInfo()->supportedVideoCodecs(*this, m);
+}
+
+/*!
+    Returns a list of audio codecs that are supported for \a mode.
+
+    The list is constrained by the chosen file format and video codec and will only return
+    the audio codecs that can be used with those settings.
+
+    To get all supported audio codecs, run this query on a default constructed QMediaFormat.
+ */
+QList<QMediaFormat::AudioCodec> QMediaFormat::supportedAudioCodecs(QMediaFormat::ConversionMode m)
+{
+    return QMediaPlatformIntegration::instance()->formatInfo()->supportedAudioCodecs(*this, m);
+}
+
 QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
 {
     constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
-        "Unspecified File Format"
+        "Unspecified",
         "ASF",
         "AVI",
         "Matroska",
@@ -522,83 +333,6 @@ QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec c)
         "MotionJPEG"
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
-}
-
-/*! \class QMediaDecoderInfo
-
-    QMediaDecoderInfo describes the media formats supported for decoding
-    on the current platform.
-
-    Qt Multimedia might be able to decode formats that are not listed
-    in the QMediaFormat::FileFormat, QMediaFormat::AudioCodec and QMediaFormat::VideoCodec enums.
-
-    \sa QMediaFormat::canDecode()
-*/
-
-/*!
-    Returns a list of container formats that are supported for decoding by
-    Qt Multimedia.
-
-    This does not imply that Qt can successfully decode the media file or
-    stream, as the audio or video codec used within the container might not
-    be supported.
- */
-QList<QMediaFormat::FileFormat> QMediaDecoderInfo::supportedFileFormats()
-{
-    return QMediaPlatformIntegration::instance()->formatInfo()->decodableMediaContainers();
-}
-
-/*!
-    Returns a list of video codecs that are supported for decoding by
-    Qt Multimedia.
- */
-QList<QMediaFormat::VideoCodec> QMediaDecoderInfo::supportedVideoCodecs()
-{
-    return QMediaPlatformIntegration::instance()->formatInfo()->decodableVideoCodecs();
-}
-
-/*!
-    Returns a list of audio codecs that are supported for decoding by
-    Qt Multimedia.
- */
-QList<QMediaFormat::AudioCodec> QMediaDecoderInfo::supportedAudioCodecs()
-{
-    return QMediaPlatformIntegration::instance()->formatInfo()->decodableAudioCodecs();
-}
-
-/*! \class QMediaEncodecInfo
-
-    QMediaEncoderInfo describes the media formats supported for
-    encoding on the current platform.
-
-    \sa QMediaFormat::canEncode()
-*/
-
-/*!
-    Returns a list of container formats that are supported for encoding by
-    Qt Multimedia.
- */
-QList<QMediaFormat::FileFormat> QMediaEncoderInfo::supportedFileFormats()
-{
-    return QMediaPlatformIntegration::instance()->formatInfo()->encodableMediaContainers();
-}
-
-/*!
-    Returns a list of video codecs that are supported for encoding by
-    Qt Multimedia.
- */
-QList<QMediaFormat::VideoCodec> QMediaEncoderInfo::supportedVideoCodecs()
-{
-    return QMediaPlatformIntegration::instance()->formatInfo()->encodableVideoCodecs();
-}
-
-/*!
-    Returns a list of audio codecs that are supported for encoding by
-    Qt Multimedia.
- */
-QList<QMediaFormat::AudioCodec> QMediaEncoderInfo::supportedAudioCodecs()
-{
-    return QMediaPlatformIntegration::instance()->formatInfo()->encodableAudioCodecs();
 }
 
 QT_END_NAMESPACE

@@ -129,25 +129,17 @@ GstElement *QGstreamerCaptureSession::buildFileSink()
 
 static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSettings &settings)
 {
-    GstCaps *caps = nullptr;
-
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    if (!formatInfo->encodableMediaContainers().contains(settings.format()))
-        return nullptr;
-
-    const char *format = formatInfo->nativeFormat(settings.format());
-    Q_ASSERT(format);
-
-    caps = gst_caps_from_string(format);
+    QGstCaps caps = formatInfo->formatCaps(settings.format());
 
     GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
                 "container_profile",
                 (gchar *)"custom container profile",
-                caps,
+                const_cast<GstCaps *>(caps.caps),
                 NULL); //preset
 
-    gst_caps_unref(caps);
+    caps.unref();
 
     return profile;
 }
@@ -156,23 +148,17 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    if (!formatInfo->encodableVideoCodecs().contains(settings.videoCodec()))
-        return nullptr;
-
-    const char *codec = formatInfo->nativeFormat(settings.videoCodec());
-    Q_ASSERT(codec);
-    GstCaps *caps = gst_caps_from_string(codec);
-
-    if (!caps)
+    QGstCaps caps = formatInfo->videoCaps(settings);
+    if (caps.isNull())
         return nullptr;
 
     GstEncodingVideoProfile *profile = gst_encoding_video_profile_new(
-                caps,
+                const_cast<GstCaps *>(caps.caps),
                 nullptr,
                 NULL, //restriction
                 0); //presence
 
-    gst_caps_unref(caps);
+    caps.unref();
 
     gst_encoding_video_profile_set_pass(profile, 0);
     gst_encoding_video_profile_set_variableframerate(profile, TRUE);
@@ -184,21 +170,17 @@ static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    if (!formatInfo->encodableAudioCodecs().contains(settings.audioCodec()))
+    QGstCaps caps = formatInfo->audioCaps(settings);
+    if (caps.isNull())
         return nullptr;
 
-    const char *codec = formatInfo->nativeFormat(settings.audioCodec());
-    Q_ASSERT(codec);
-
-    GstCaps *caps = gst_caps_from_string(codec);
-
     GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
-                caps,
+                const_cast<GstCaps *>(caps.caps),
                 nullptr, //preset
                 NULL,   //restriction
                 0);     //presence
 
-    gst_caps_unref(caps);
+    caps.unref();
 
     return profile;
 }

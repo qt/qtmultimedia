@@ -38,11 +38,80 @@
 ****************************************************************************/
 
 #include "qmediaplatformformatinfo_p.h"
+#include <qset.h>
 
 QT_BEGIN_NAMESPACE
 
 QMediaPlatformFormatInfo::QMediaPlatformFormatInfo() = default;
 
 QMediaPlatformFormatInfo::~QMediaPlatformFormatInfo() = default;
+
+QList<QMediaFormat::FileFormat> QMediaPlatformFormatInfo::supportedFileFormats(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
+{
+    QSet<QMediaFormat::FileFormat> formats;
+
+    const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
+    for (const auto &m : codecMap) {
+        if (constraints.mode() == QMediaFormat::AudioAndVideo && m.video.isEmpty())
+            continue;
+        if (constraints.audioCodec() != QMediaFormat::AudioCodec::Unspecified && !m.audio.contains(constraints.audioCodec()))
+            continue;
+        if (constraints.videoCodec() != QMediaFormat::VideoCodec::Unspecified && !m.video.contains(constraints.videoCodec()))
+            continue;
+        formats.insert(m.format);
+    }
+    return formats.values();
+}
+
+QList<QMediaFormat::AudioCodec> QMediaPlatformFormatInfo::supportedAudioCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
+{
+    QSet<QMediaFormat::AudioCodec> codecs;
+
+    const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
+    for (const auto &m : codecMap) {
+        if (constraints.format() != QMediaFormat::UnspecifiedFormat && m.format != constraints.format())
+            continue;
+        if (constraints.videoCodec() != QMediaFormat::VideoCodec::Unspecified && !m.video.contains(constraints.videoCodec()))
+            continue;
+        for (const auto &c : m.audio)
+            codecs.insert(c);
+    }
+    return codecs.values();
+}
+
+QList<QMediaFormat::VideoCodec> QMediaPlatformFormatInfo::supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
+{
+    if (constraints.mode() == QMediaFormat::AudioOnly)
+        return {};
+
+    QSet<QMediaFormat::VideoCodec> codecs;
+
+    const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
+    for (const auto &m : codecMap) {
+        if (constraints.format() != QMediaFormat::UnspecifiedFormat && m.format != constraints.format())
+            continue;
+        if (constraints.audioCodec() != QMediaFormat::AudioCodec::Unspecified && !m.audio.contains(constraints.audioCodec()))
+            continue;
+        for (const auto &c : m.video)
+            codecs.insert(c);
+    }
+    return codecs.values();
+}
+
+bool QMediaPlatformFormatInfo::isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const
+{
+    const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
+
+    for (const auto &m : codecMap) {
+        if (m.format != format.format())
+            continue;
+        if (!m.audio.contains(format.audioCodec()))
+            continue;
+        if (format.mode() == QMediaFormat::AudioAndVideo && !m.video.contains(format.videoCodec()))
+            continue;
+        return true;
+    }
+    return false;
+}
 
 QT_END_NAMESPACE

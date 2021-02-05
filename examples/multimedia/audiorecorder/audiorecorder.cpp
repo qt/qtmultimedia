@@ -87,12 +87,12 @@ AudioRecorder::AudioRecorder()
 
     //audio codecs
     ui->audioCodecBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto &codec : QMediaEncoderInfo::supportedAudioCodecs())
+    for (auto &codec : QMediaFormat().supportedAudioCodecs(QMediaFormat::Encode))
         ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec), QVariant::fromValue(codec));
 
     //containers
     ui->containerBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto &container : QMediaEncoderInfo::supportedFileFormats()) {
+    for (auto &container : QMediaFormat().supportedFileFormats(QMediaFormat::Encode)) {
         if (container < QMediaFormat::AAC) // ### Somewhat hacky, skip video formats
             continue;
         ui->containerBox->addItem(QMediaFormat::fileFormatDescription(container), QVariant::fromValue(container));

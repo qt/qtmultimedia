@@ -68,8 +68,8 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
     ui->setupUi(this);
 
     //audio codecs
-    ui->audioCodecBox->addItem(tr("Default audio codec"), QVariant(QString()));
-    const auto supportedAudioCodecs = QMediaEncoderInfo::supportedAudioCodecs();
+    ui->audioCodecBox->addItem(tr("Default audio codec"), QVariant::fromValue(QMediaFormat::AudioCodec::Unspecified));
+    const auto supportedAudioCodecs = QMediaFormat().supportedAudioCodecs(QMediaFormat::Encode);
     for (const auto &codec : supportedAudioCodecs) {
         QString description = QMediaFormat::audioCodecDescription(codec);
         ui->audioCodecBox->addItem(QMediaFormat::audioCodecName(codec) + ": " + description, QVariant::fromValue(codec));
@@ -80,8 +80,8 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
     ui->audioSampleRateBox->setRange(sampleRates.minimum, sampleRates.maximum);
 
     //video codecs
-    ui->videoCodecBox->addItem(tr("Default video codec"), QVariant(QString()));
-    const auto supportedVideoCodecs = QMediaEncoderInfo::supportedVideoCodecs();
+    ui->videoCodecBox->addItem(tr("Default video codec"), QVariant::fromValue(QMediaFormat::VideoCodec::Unspecified));
+    const auto supportedVideoCodecs = QMediaFormat().supportedVideoCodecs(QMediaFormat::Encode);
     for (const auto &codec : supportedVideoCodecs) {
         QString description = QMediaFormat::videoCodecDescription(codec);
         ui->videoCodecBox->addItem(QMediaFormat::videoCodecName(codec) + ": " + description, QVariant::fromValue(codec));
@@ -103,8 +103,8 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
 //    }
 
     //containers
-    ui->containerFormatBox->addItem(tr("Default container"), QVariant(QString()));
-    const auto formats = QMediaEncoderInfo::supportedFileFormats();
+    ui->containerFormatBox->addItem(tr("Default container"), QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
+    const auto formats = QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
     for (auto format : formats) {
         ui->containerFormatBox->addItem(QMediaFormat::fileFormatName(format) + ": " + QMediaFormat::fileFormatDescription(format),
                                         QVariant::fromValue(format));

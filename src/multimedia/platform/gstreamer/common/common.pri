@@ -7,7 +7,6 @@ HEADERS += \
     $$PWD/qgstreamerbufferprobe_p.h \
     $$PWD/qgstreamervideorendererinterface_p.h \
     $$PWD/qgstreamervideorenderer_p.h \
-    $$PWD/qgstcodecsinfo_p.h \
     $$PWD/qgstreamervideowindow_p.h \
     $$PWD/qgstreamervideooverlay_p.h \
     $$PWD/qgstreamerplayersession_p.h \
@@ -24,7 +23,6 @@ SOURCES += \
     $$PWD/qgstreamerbufferprobe.cpp \
     $$PWD/qgstreamervideorendererinterface.cpp \
     $$PWD/qgstreamervideorenderer.cpp \
-    $$PWD/qgstcodecsinfo.cpp \
     $$PWD/qgstreamervideowindow.cpp \
     $$PWD/qgstreamervideooverlay.cpp \
     $$PWD/qgstreamerplayersession.cpp \

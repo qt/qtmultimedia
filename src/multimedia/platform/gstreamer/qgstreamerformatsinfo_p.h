@@ -54,6 +54,7 @@
 #include <private/qmediaplatformformatinfo_p.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <private/qgstutils_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -63,30 +64,14 @@ public:
     QGstreamerFormatsInfo();
     ~QGstreamerFormatsInfo();
 
-    QList<QMediaFormat::FileFormat> decodableMediaContainers() const override;
-    QList<QMediaFormat::AudioCodec> decodableAudioCodecs() const override;
-    QList<QMediaFormat::VideoCodec> decodableVideoCodecs() const override;
+    QGstCaps formatCaps(const QMediaFormat &f) const;
+    QGstCaps audioCaps(const QMediaFormat &f) const;
+    QGstCaps videoCaps(const QMediaFormat &f) const;
+    // ###
+//    QGstCaps audioEncoderCaps(const QMediaEncoderSettings &f) const;
+//    QGstCaps videoEncoderCaps(const QMediaEncoderSettings &f) const;
 
-    QList<QMediaFormat::FileFormat> encodableMediaContainers() const override;
-    QList<QMediaFormat::AudioCodec> encodableAudioCodecs() const override;
-    QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const override;
-
-    const char *nativeFormat(QMediaFormat::FileFormat f) const { return formatToCaps.value(f); }
-    const char *nativeFormat(QMediaFormat::AudioCodec c) const { return audioToCaps.value(c); }
-    const char *nativeFormat(QMediaFormat::VideoCodec c) const { return videoToCaps.value(c); }
-
-private:
-    QList<QMediaFormat::FileFormat> m_decodableMediaContainers;
-    QList<QMediaFormat::AudioCodec> m_decodableAudioCodecs;
-    QList<QMediaFormat::VideoCodec> m_decodableVideoCodecs;
-
-    QList<QMediaFormat::FileFormat> m_encodableMediaContainers;
-    QList<QMediaFormat::AudioCodec> m_encodableAudioCodecs;
-    QList<QMediaFormat::VideoCodec> m_encodableVideoCodecs;
-
-    QHash<QMediaFormat::FileFormat, const char *> formatToCaps;
-    QHash<QMediaFormat::AudioCodec, const char *> audioToCaps;
-    QHash<QMediaFormat::VideoCodec, const char *> videoToCaps;
+    QList<CodecMap> getMuxerList(bool demuxer, QList<QMediaFormat::AudioCodec> audioCodecs, QList<QMediaFormat::VideoCodec> videoCodecs);
 };
 
 QT_END_NAMESPACE

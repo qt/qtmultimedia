@@ -62,13 +62,19 @@ public:
     QMediaPlatformFormatInfo();
     virtual ~QMediaPlatformFormatInfo();
 
-    virtual QList<QMediaFormat::FileFormat> decodableMediaContainers() const = 0;
-    virtual QList<QMediaFormat::AudioCodec> decodableAudioCodecs() const = 0;
-    virtual QList<QMediaFormat::VideoCodec> decodableVideoCodecs() const = 0;
+    QList<QMediaFormat::FileFormat> supportedFileFormats(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
+    QList<QMediaFormat::AudioCodec> supportedAudioCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
+    QList<QMediaFormat::VideoCodec> supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
 
-    virtual QList<QMediaFormat::FileFormat> encodableMediaContainers() const = 0;
-    virtual QList<QMediaFormat::AudioCodec> encodableAudioCodecs() const = 0;
-    virtual QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const = 0;
+    bool isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const;
+
+    struct CodecMap {
+        QMediaFormat::FileFormat format;
+        QList<QMediaFormat::AudioCodec> audio;
+        QList<QMediaFormat::VideoCodec> video;
+    };
+    QList<CodecMap> encoders;
+    QList<CodecMap> decoders;
 };
 
 QT_END_NAMESPACE

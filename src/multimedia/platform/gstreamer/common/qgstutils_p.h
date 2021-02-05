@@ -195,6 +195,10 @@ class QGstCaps {
 public:
     QGstCaps(const GstCaps *c) : caps(c) {}
     const GstCaps *caps;
+    void unref() {
+        gst_caps_unref(const_cast<GstCaps *>(caps));
+        caps = nullptr;
+    }
 
     bool isNull() const { return !caps; }
 

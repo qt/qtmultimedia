@@ -48,6 +48,7 @@
 #include "avfcamerautility_p.h"
 
 #include <QtCore/qurl.h>
+#include <QtCore/qmimetype.h>
 #include <QtCore/qfileinfo.h>
 #include <QtMultimedia/qcameracontrol.h>
 #include <CoreAudio/CoreAudio.h>
@@ -469,9 +470,13 @@ void AVFMediaRecorderControl::applySettings()
         return;
     }
 
-    bool videoEnabled =  m_cameraControl->captureMode().testFlag(QCamera::CaptureVideo);
     QMediaEncoderSettings resolved = m_settings;
-    resolved.resolveFormat(videoEnabled ? QMediaEncoderSettings::AudioAndVideo : QMediaEncoderSettings::AudioOnly);
+    resolved.resolveFormat();
+    qDebug() << "file  profile" << QMediaFormat::fileFormatName(resolved.format());
+    qDebug() << "video profile" << QMediaFormat::videoCodecName(resolved.videoCodec());
+    qDebug() << "audio profile" << QMediaFormat::audioCodecName(resolved.audioCodec());
+
+    const AVFConfigurationLock lock(m_session->videoCaptureDevice()); // prevents activeFormat from being overridden
 
     // Configure audio settings
     [m_movieOutput setOutputSettings:avfAudioSettings(resolved)
@@ -482,8 +487,6 @@ void AVFMediaRecorderControl::applySettings()
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
 
     NSDictionary *videoSettings = avfVideoSettings(resolved, captureDevice, videoConnection);
-
-    const AVFConfigurationLock lock(m_session->videoCaptureDevice()); // prevents activeFormat from being overridden
 
     [m_movieOutput setOutputSettings:videoSettings forConnection:videoConnection];
 }
@@ -540,7 +543,9 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
             QString outputLocationPath = m_outputLocation.scheme() == QLatin1String("file") ?
                         m_outputLocation.path() : m_outputLocation.toString();
 
-            QString extension = "mov";// ######m_service->mediaContainerControl()->containerFormat();
+            QMediaEncoderSettings resolved = m_settings;
+            resolved.resolveFormat();
+            QString extension = resolved.mimeType().preferredSuffix();
 
             QUrl actualLocation = QUrl::fromLocalFile(
                         m_storageLocation.generateFileName(outputLocationPath,
@@ -550,7 +555,7 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
 
             qDebugCamera() << "Video capture location:" << actualLocation.toString();
 
-            applySettings();
+//            applySettings();
 
             [m_movieOutput startRecordingToOutputFileURL:actualLocation.toNSURL()
                            recordingDelegate:m_recorderDelagate];

@@ -85,17 +85,17 @@ Camera::Camera() : ui(new Ui::Camera)
     setCamera(QMediaDeviceManager::defaultVideoInput());
 
     qDebug() << "Supported Containers:";
-    auto containers = QMediaEncoderInfo::supportedFileFormats();
+    auto containers = QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
     for (const auto c : containers)
         qDebug() << "    " << QMediaFormat::fileFormatName(c);
 
     qDebug() << "Supported Audio Codecs:";
-    auto audio = QMediaEncoderInfo::supportedAudioCodecs();
+    auto audio = QMediaFormat().supportedAudioCodecs(QMediaFormat::Encode);
     for (const auto c : audio)
         qDebug() << "    " << QMediaFormat::audioCodecName(c);
 
     qDebug() << "Supported Video Codecs:";
-    auto video = QMediaEncoderInfo::supportedVideoCodecs();
+    auto video = QMediaFormat().supportedVideoCodecs(QMediaFormat::Encode);
     for (const auto c : video)
         qDebug() << "    " << QMediaFormat::videoCodecName(c);
 }

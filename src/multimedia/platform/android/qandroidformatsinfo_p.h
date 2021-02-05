@@ -60,23 +60,6 @@ class QAndroidFormatInfo : public QMediaPlatformFormatInfo
 public:
     QAndroidFormatInfo();
     ~QAndroidFormatInfo();
-
-    QList<QMediaFormat::FileFormat> decodableMediaContainers() const override;
-    QList<QMediaFormat::AudioCodec> decodableAudioCodecs() const override;
-    QList<QMediaFormat::VideoCodec> decodableVideoCodecs() const override;
-
-    QList<QMediaFormat::FileFormat> encodableMediaContainers() const override;
-    QList<QMediaFormat::AudioCodec> encodableAudioCodecs() const override;
-    QList<QMediaFormat::VideoCodec> encodableVideoCodecs() const override;
-
-private:
-    QList<QMediaFormat::FileFormat> m_decodableFileFormats;
-    QList<QMediaFormat::AudioCodec> m_decodableAudioCodecs;
-    QList<QMediaFormat::VideoCodec> m_decodableVideoCodecs;
-
-    QList<QMediaFormat::FileFormat> m_encodableFileFormats;
-    QList<QMediaFormat::AudioCodec> m_encodableAudioCodecs;
-    QList<QMediaFormat::VideoCodec> m_encodableVideoCodecs;
 };
 
 QT_END_NAMESPACE

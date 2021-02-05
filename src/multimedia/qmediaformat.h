@@ -49,11 +49,7 @@ QT_BEGIN_NAMESPACE
 class QMimeType;
 class QMediaFormat;
 class QMediaEncoderSettings;
-class QMediaFormatPrivate
-{
-    friend class QMediaEncoderSettings;
-    static void resolveForEncoding(QMediaFormat *fmt, bool audioOnly);
-};
+class QMediaFormatPrivate;
 
 class Q_MULTIMEDIA_EXPORT QMediaFormat
 {
@@ -108,7 +104,17 @@ public:
         LastVideoCodec = MotionJPEG
     };
 
-    QMediaFormat(FileFormat format = UnspecifiedFormat);
+    enum ConversionMode {
+        Encode,
+        Decode
+    };
+
+    enum Mode {
+        AudioOnly,
+        AudioAndVideo
+    };
+
+    QMediaFormat(FileFormat format = UnspecifiedFormat, Mode = AudioAndVideo);
     ~QMediaFormat();
     QMediaFormat(const QMediaFormat &other);
     QMediaFormat &operator=(const QMediaFormat &other);
@@ -116,18 +122,23 @@ public:
     FileFormat format() const { return fmt; }
     void setFormat(FileFormat f) { fmt = f; }
 
-    bool setVideoCodec(VideoCodec codec);
+    void setVideoCodec(VideoCodec codec) { video = codec; }
     VideoCodec videoCodec() const { return video; }
 
-    bool setAudioCodec(AudioCodec codec);
+    void setAudioCodec(AudioCodec codec) { audio = codec; }
     AudioCodec audioCodec() const { return audio; }
 
     bool canDecode() const;
     bool canEncode() const;
 
-    bool isAudioFormat() const;
+    void setMode(Mode m) { fmtMode = m; }
+    Mode mode() const { return fmtMode; }
 
     QMimeType mimeType() const;
+
+    QList<QMediaFormat::FileFormat> supportedFileFormats(ConversionMode m);
+    QList<QMediaFormat::VideoCodec> supportedVideoCodecs(ConversionMode m);
+    QList<QMediaFormat::AudioCodec> supportedAudioCodecs(ConversionMode m);
 
     static QString fileFormatName(QMediaFormat::FileFormat c);
     static QString audioCodecName(QMediaFormat::AudioCodec c);
@@ -139,27 +150,11 @@ public:
 
 protected:
     friend class QMediaFormatPrivate;
+    Mode fmtMode;
     FileFormat fmt;
     AudioCodec audio = AudioCodec::Unspecified;
     VideoCodec video = VideoCodec::Unspecified;
     QMediaFormatPrivate *d = nullptr;
-};
-
-
-class Q_MULTIMEDIA_EXPORT QMediaDecoderInfo
-{
-public:
-    static QList<QMediaFormat::FileFormat> supportedFileFormats();
-    static QList<QMediaFormat::VideoCodec> supportedVideoCodecs();
-    static QList<QMediaFormat::AudioCodec> supportedAudioCodecs();
-};
-
-class Q_MULTIMEDIA_EXPORT QMediaEncoderInfo
-{
-public:
-    static QList<QMediaFormat::FileFormat> supportedFileFormats();
-    static QList<QMediaFormat::VideoCodec> supportedVideoCodecs();
-    static QList<QMediaFormat::AudioCodec> supportedAudioCodecs();
 };
 
 QT_END_NAMESPACE

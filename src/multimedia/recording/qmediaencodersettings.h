@@ -66,12 +66,7 @@ public:
     QMultimedia::EncodingQuality quality() const;
     void setQuality(QMultimedia::EncodingQuality quality);
 
-    enum ResolveMode {
-        AudioOnly,
-        AudioAndVideo
-    };
-
-    void resolveFormat(ResolveMode mode = AudioAndVideo);
+    void resolveFormat();
 
     QSize videoResolution() const;
     void setVideoResolution(const QSize &);

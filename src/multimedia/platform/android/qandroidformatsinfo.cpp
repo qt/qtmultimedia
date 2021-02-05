@@ -43,50 +43,20 @@ QT_BEGIN_NAMESPACE
 
 QAndroidFormatInfo::QAndroidFormatInfo()
 {
-    // ### Properly determine the set of supported codecs, this is a minimal set gathered from the old code base
-    m_decodableAudioCodecs << QMediaFormat::AudioCodec::AAC << QMediaFormat::AudioCodec::MP3 << QMediaFormat::AudioCodec::Opus
-                           << QMediaFormat::AudioCodec::Vorbis;
-    m_encodableAudioCodecs = m_decodableAudioCodecs;
-    m_decodableVideoCodecs << QMediaFormat::VideoCodec::MPEG4 << QMediaFormat::VideoCodec::H264 << QMediaFormat::VideoCodec::H265;
-    m_encodableVideoCodecs = m_decodableVideoCodecs;
-    m_decodableFileFormats << QMediaFormat::FileFormat::MPEG4 << QMediaFormat::FileFormat::MP3 << QMediaFormat::AAC
-                           << QMediaFormat::Ogg << QMediaFormat::WebM;
-    m_encodableFileFormats = m_decodableFileFormats;
+    decoders = {
+        { QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {} },
+        { QMediaFormat::MP3, { QMediaFormat::AudioCodec::MP3}, {} },
+        { QMediaFormat::Ogg, { QMediaFormat::AudioCodec::Opus, QMediaFormat::AudioCodec::Vorbis },
+                             { QMediaFormat::VideoCodec::VP8 } },
+        { QMediaFormat::MPEG4, { QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::AAC },
+                               { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265 } }
+    };
+    encoders = decoders;
 }
 
 QAndroidFormatInfo::~QAndroidFormatInfo()
 {
 
-}
-
-QList<QMediaFormat::FileFormat> QAndroidFormatInfo::decodableMediaContainers() const
-{
-    return m_decodableFileFormats;
-}
-
-QList<QMediaFormat::AudioCodec> QAndroidFormatInfo::decodableAudioCodecs() const
-{
-    return m_decodableAudioCodecs;
-}
-
-QList<QMediaFormat::VideoCodec> QAndroidFormatInfo::decodableVideoCodecs() const
-{
-    return m_decodableVideoCodecs;
-}
-
-QList<QMediaFormat::FileFormat> QAndroidFormatInfo::encodableMediaContainers() const
-{
-    return m_encodableFileFormats;
-}
-
-QList<QMediaFormat::AudioCodec> QAndroidFormatInfo::encodableAudioCodecs() const
-{
-    return m_encodableAudioCodecs;
-}
-
-QList<QMediaFormat::VideoCodec> QAndroidFormatInfo::encodableVideoCodecs() const
-{
-    return m_encodableVideoCodecs;
 }
 
 QT_END_NAMESPACE
