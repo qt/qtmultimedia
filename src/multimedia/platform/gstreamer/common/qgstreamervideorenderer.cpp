@@ -51,7 +51,7 @@ static inline void resetSink(GstElement *&element, GstElement *v = nullptr)
         gst_object_unref(GST_OBJECT(element));
 
     if (v)
-        qt_gst_object_ref_sink(GST_OBJECT(v));
+        gst_object_ref_sink(GST_OBJECT(v));
 
     element = v;
 }

@@ -418,7 +418,7 @@ void QGstreamerVideoOverlay::setVideoSink(GstElement *sink)
         gst_object_unref(GST_OBJECT(m_videoSink));
 
     m_videoSink = sink;
-    qt_gst_object_ref_sink(GST_OBJECT(m_videoSink));
+    gst_object_ref_sink(GST_OBJECT(m_videoSink));
 
     GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
     addProbeToPad(pad);

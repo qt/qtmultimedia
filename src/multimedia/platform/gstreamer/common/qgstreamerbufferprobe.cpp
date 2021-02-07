@@ -53,7 +53,7 @@ QGstreamerBufferProbe::~QGstreamerBufferProbe()
 
 void QGstreamerBufferProbe::addProbeToPad(GstPad *pad, bool downstream)
 {
-    if (GstCaps *caps = qt_gst_pad_get_current_caps(pad)) {
+    if (GstCaps *caps = gst_pad_get_current_caps(pad)) {
         probeCaps(caps);
         gst_caps_unref(caps);
     }

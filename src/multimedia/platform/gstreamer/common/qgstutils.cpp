@@ -335,163 +335,6 @@ void QGstUtils::initializeGst()
 }
 
 namespace {
-    const char* getCodecAlias(const QString &codec)
-    {
-        if (codec.startsWith(QLatin1String("avc1.")))
-            return "video/x-h264";
-
-        if (codec.startsWith(QLatin1String("mp4a.")))
-            return "audio/mpeg4";
-
-        if (codec.startsWith(QLatin1String("mp4v.20.")))
-            return "video/mpeg4";
-
-        if (codec == QLatin1String("samr"))
-            return "audio/amr";
-
-        return 0;
-    }
-
-    const char* getMimeTypeAlias(const QString &mimeType)
-    {
-        if (mimeType == QLatin1String("video/mp4"))
-            return "video/mpeg4";
-
-        if (mimeType == QLatin1String("audio/mp4"))
-            return "audio/mpeg4";
-
-        if (mimeType == QLatin1String("video/ogg")
-            || mimeType == QLatin1String("audio/ogg"))
-            return "application/ogg";
-
-        return 0;
-    }
-}
-
-QMultimedia::SupportEstimate QGstUtils::hasSupport(const QString &mimeType,
-                                                    const QStringList &codecs,
-                                                    const QSet<QString> &supportedMimeTypeSet)
-{
-    if (supportedMimeTypeSet.isEmpty())
-        return QMultimedia::NotSupported;
-
-    QString mimeTypeLowcase = mimeType.toLower();
-    bool containsMimeType = supportedMimeTypeSet.contains(mimeTypeLowcase);
-    if (!containsMimeType) {
-        const char* mimeTypeAlias = getMimeTypeAlias(mimeTypeLowcase);
-        containsMimeType = supportedMimeTypeSet.contains(QLatin1String(mimeTypeAlias));
-        if (!containsMimeType) {
-            containsMimeType = supportedMimeTypeSet.contains(QLatin1String("video/") + mimeTypeLowcase)
-                               || supportedMimeTypeSet.contains(QLatin1String("video/x-") + mimeTypeLowcase)
-                               || supportedMimeTypeSet.contains(QLatin1String("audio/") + mimeTypeLowcase)
-                               || supportedMimeTypeSet.contains(QLatin1String("audio/x-") + mimeTypeLowcase);
-        }
-    }
-
-    int supportedCodecCount = 0;
-    for (const QString &codec : codecs) {
-        QString codecLowcase = codec.toLower();
-        const char* codecAlias = getCodecAlias(codecLowcase);
-        if (codecAlias) {
-            if (supportedMimeTypeSet.contains(QLatin1String(codecAlias)))
-                supportedCodecCount++;
-        } else if (supportedMimeTypeSet.contains(QLatin1String("video/") + codecLowcase)
-                   || supportedMimeTypeSet.contains(QLatin1String("video/x-") + codecLowcase)
-                   || supportedMimeTypeSet.contains(QLatin1String("audio/") + codecLowcase)
-                   || supportedMimeTypeSet.contains(QLatin1String("audio/x-") + codecLowcase)) {
-            supportedCodecCount++;
-        }
-    }
-    if (supportedCodecCount > 0 && supportedCodecCount == codecs.size())
-        return QMultimedia::ProbablySupported;
-
-    if (supportedCodecCount == 0 && !containsMimeType)
-        return QMultimedia::NotSupported;
-
-    return QMultimedia::MaybeSupported;
-}
-
-QSet<QString> QGstUtils::supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory))
-{
-    QSet<QString> supportedMimeTypes;
-
-    //enumerate supported mime types
-    gst_init(nullptr, nullptr);
-
-    GstRegistry *registry = gst_registry_get();
-    GList *orig_plugins = gst_registry_get_plugin_list(registry);
-    for (GList *plugins = orig_plugins; plugins; plugins = g_list_next(plugins)) {
-        GstPlugin *plugin = (GstPlugin *) (plugins->data);
-        if (GST_OBJECT_FLAG_IS_SET(GST_OBJECT(plugin), GST_PLUGIN_FLAG_BLACKLISTED))
-            continue;
-
-        GList *orig_features = gst_registry_get_feature_list_by_plugin(
-                    registry, gst_plugin_get_name(plugin));
-        for (GList *features = orig_features; features; features = g_list_next(features)) {
-            if (G_UNLIKELY(features->data == nullptr))
-                continue;
-
-            GstPluginFeature *feature = GST_PLUGIN_FEATURE(features->data);
-            GstElementFactory *factory;
-
-            if (GST_IS_TYPE_FIND_FACTORY(feature)) {
-                QString name(QLatin1String(gst_plugin_feature_get_name(feature)));
-                if (name.contains(QLatin1Char('/'))) //filter out any string without '/' which is obviously not a mime type
-                    supportedMimeTypes.insert(name.toLower());
-                continue;
-            } else if (!GST_IS_ELEMENT_FACTORY (feature)
-                        || !(factory = GST_ELEMENT_FACTORY(gst_plugin_feature_load(feature)))) {
-                continue;
-            } else if (!isValidFactory(factory)) {
-                // Do nothing
-            } else for (const GList *pads = gst_element_factory_get_static_pad_templates(factory);
-                        pads;
-                        pads = g_list_next(pads)) {
-                GstStaticPadTemplate *padtemplate = static_cast<GstStaticPadTemplate *>(pads->data);
-
-                if (padtemplate->direction == GST_PAD_SINK && padtemplate->static_caps.string) {
-                    GstCaps *caps = gst_static_caps_get(&padtemplate->static_caps);
-                    if (gst_caps_is_any(caps) || gst_caps_is_empty(caps)) {
-                    } else for (guint i = 0; i < gst_caps_get_size(caps); i++) {
-                        GstStructure *structure = gst_caps_get_structure(caps, i);
-                        QString nameLowcase = QString::fromLatin1(gst_structure_get_name(structure)).toLower();
-
-                        supportedMimeTypes.insert(nameLowcase);
-                        if (nameLowcase.contains(QLatin1String("mpeg"))) {
-                            //Because mpeg version number is only included in the detail
-                            //description,  it is necessary to manually extract this information
-                            //in order to match the mime type of mpeg4.
-                            const GValue *value = gst_structure_get_value(structure, "mpegversion");
-                            if (value) {
-                                gchar *str = gst_value_serialize(value);
-                                QString versions = QLatin1String(str);
-                                const QStringList elements = versions.split(QRegularExpression(QLatin1String("\\D+")), Qt::SkipEmptyParts);
-                                for (const QString &e : elements)
-                                    supportedMimeTypes.insert(nameLowcase + e);
-                                g_free(str);
-                            }
-                        }
-                    }
-                }
-            }
-            gst_object_unref(factory);
-        }
-        gst_plugin_feature_list_free(orig_features);
-    }
-    gst_plugin_list_free (orig_plugins);
-
-#if defined QT_SUPPORTEDMIMETYPES_DEBUG
-    QStringList list = supportedMimeTypes.toList();
-    list.sort();
-    if (qgetenv("QT_DEBUG_PLUGINS").toInt() > 0) {
-        for (const QString &type : qAsConst(list))
-            qDebug() << type;
-    }
-#endif
-    return supportedMimeTypes;
-}
-
-namespace {
 
 struct ColorFormat { QImage::Format imageFormat; GstVideoFormat gstFormat; };
 static const ColorFormat qt_colorLookup[] =
@@ -862,41 +705,6 @@ QGRange<float> QGstStructure::frameRateRange() const
     return {minRate, maxRate};
 }
 
-typedef QMap<QString, QString> FileExtensionMap;
-Q_GLOBAL_STATIC(FileExtensionMap, fileExtensionMap)
-
-QString QGstUtils::fileExtensionForMimeType(const QString &mimeType)
-{
-    if (fileExtensionMap->isEmpty()) {
-        //extension for containers hard to guess from mimetype
-        fileExtensionMap->insert(QStringLiteral("video/x-matroska"), QLatin1String("mkv"));
-        fileExtensionMap->insert(QStringLiteral("video/quicktime"), QLatin1String("mov"));
-        fileExtensionMap->insert(QStringLiteral("video/x-msvideo"), QLatin1String("avi"));
-        fileExtensionMap->insert(QStringLiteral("video/msvideo"), QLatin1String("avi"));
-        fileExtensionMap->insert(QStringLiteral("audio/mpeg"), QLatin1String("mp3"));
-        fileExtensionMap->insert(QStringLiteral("application/x-shockwave-flash"), QLatin1String("swf"));
-        fileExtensionMap->insert(QStringLiteral("application/x-pn-realmedia"), QLatin1String("rm"));
-    }
-
-    //for container names like avi instead of video/x-msvideo, use it as extension
-    if (!mimeType.contains(QLatin1Char('/')))
-        return mimeType;
-
-    QString format = mimeType.left(mimeType.indexOf(QLatin1Char(',')));
-    QString extension = fileExtensionMap->value(format);
-
-    if (!extension.isEmpty() || format.isEmpty())
-        return extension;
-
-    QRegularExpression rx(QStringLiteral("[-/]([\\w]+)$"));
-    QRegularExpressionMatch match = rx.match(format);
-
-    if (match.hasMatch())
-        extension = match.captured(1);
-
-    return extension;
-}
-
 QVariant QGstUtils::fromGStreamerOrientation(const QVariant &value)
 {
     // Note gstreamer tokens either describe the counter clockwise rotation of the
@@ -932,42 +740,6 @@ bool QGstUtils::useOpenGL()
     return result;
 }
 
-void qt_gst_object_ref_sink(gpointer object)
-{
-    gst_object_ref_sink(object);
-}
-
-GstCaps *qt_gst_pad_get_current_caps(GstPad *pad)
-{
-    return gst_pad_get_current_caps(pad);
-}
-
-GstCaps *qt_gst_pad_get_caps(GstPad *pad)
-{
-    return gst_pad_query_caps(pad, nullptr);
-}
-
-GstStructure *qt_gst_structure_new_empty(const char *name)
-{
-    return gst_structure_new_empty(name);
-}
-
-gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur)
-{
-    return gst_element_query_position(element, format, cur);
-}
-
-gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur)
-{
-    return gst_element_query_duration(element, format, cur);
-}
-
-GstCaps *qt_gst_caps_normalize(GstCaps *caps)
-{
-    // gst_caps_normalize() takes ownership of the argument in 1.0
-    return gst_caps_normalize(caps);
-}
-
 const gchar *qt_gst_element_get_factory_name(GstElement *element)
 {
     const gchar *name = 0;
@@ -979,11 +751,6 @@ const gchar *qt_gst_element_get_factory_name(GstElement *element)
     return name;
 }
 
-gboolean qt_gst_caps_can_intersect(const GstCaps * caps1, const GstCaps * caps2)
-{
-    return gst_caps_can_intersect(caps1, caps2);
-}
-
 GList *qt_gst_video_sinks()
 {
     GList *list = nullptr;
@@ -992,11 +759,6 @@ GList *qt_gst_video_sinks()
                                                  GST_RANK_MARGINAL);
 
     return list;
-}
-
-void qt_gst_util_double_to_fraction(gdouble src, gint *dest_n, gint *dest_d)
-{
-    gst_util_double_to_fraction(src, dest_n, dest_d);
 }
 
 QPair<int,int> qt_gstRateAsRational(qreal frameRate)

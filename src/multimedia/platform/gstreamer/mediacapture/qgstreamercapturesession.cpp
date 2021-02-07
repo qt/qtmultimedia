@@ -91,7 +91,7 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_passPrerollImage(false)
 {
     m_pipeline = gst_pipeline_new("media-capture-pipeline");
-    qt_gst_object_ref_sink(m_pipeline);
+    gst_object_ref_sink(m_pipeline);
 
     m_bus = gst_element_get_bus(m_pipeline);
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
@@ -851,7 +851,7 @@ void QGstreamerCaptureSession::setState(QGstreamerCaptureSession::State newState
 qint64 QGstreamerCaptureSession::duration() const
 {
     gint64 duration = 0;
-    if (m_encodeBin && qt_gst_element_query_position(m_encodeBin, GST_FORMAT_TIME, &duration))
+    if (m_encodeBin && gst_element_query_position(m_encodeBin, GST_FORMAT_TIME, &duration))
         return duration / 1000000;
     else
         return 0;

@@ -567,7 +567,7 @@ void QGstreamerAudioDecoderControl::updateDuration()
     gint64 gstDuration = 0;
     int duration = -1;
 
-    if (m_playbin && qt_gst_element_query_duration(m_playbin, GST_FORMAT_TIME, &gstDuration))
+    if (m_playbin && gst_element_query_duration(m_playbin, GST_FORMAT_TIME, &gstDuration))
         duration = gstDuration / 1000000;
 
     if (m_duration != duration) {

@@ -126,7 +126,7 @@ void QGstreamerPlayerSession::initPlaybin()
 
     m_videoOutputBin = gst_bin_new("video-output-bin");
     // might not get a parent, take ownership to avoid leak
-    qt_gst_object_ref_sink(GST_OBJECT(m_videoOutputBin));
+    gst_object_ref_sink(GST_OBJECT(m_videoOutputBin));
 
     GstElement *videoOutputSink = m_videoIdentity;
 #if QT_CONFIG(gstreamer_gl)
@@ -405,7 +405,7 @@ qint64 QGstreamerPlayerSession::position() const
 {
     gint64      position = 0;
 
-    if (m_pipeline && qt_gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position))
+    if (m_pipeline && gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position))
         m_lastPosition = position / 1000000;
     return m_lastPosition;
 }
@@ -1107,7 +1107,7 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
             case GST_MESSAGE_ASYNC_DONE:
             {
                 gint64      position = 0;
-                if (qt_gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position)) {
+                if (gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position)) {
                     position /= 1000000;
                     m_lastPosition = position;
                     emit positionChanged(position);
@@ -1303,7 +1303,7 @@ void QGstreamerPlayerSession::updateVideoResolutionTag()
     QSize size;
     QSize aspectRatio;
     GstPad *pad = gst_element_get_static_pad(m_videoIdentity, "src");
-    GstCaps *caps = qt_gst_pad_get_current_caps(pad);
+    GstCaps *caps = gst_pad_get_current_caps(pad);
 
     if (caps) {
         const GstStructure *structure = gst_caps_get_structure(caps, 0);
@@ -1346,7 +1346,7 @@ void QGstreamerPlayerSession::updateDuration()
     gint64 gstDuration = 0;
     int duration = 0;
 
-    if (m_pipeline && qt_gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &gstDuration))
+    if (m_pipeline && gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &gstDuration))
         duration = gstDuration / 1000000;
 
     if (m_duration != duration) {
@@ -1402,7 +1402,7 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
 
     // The rest
     if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "extra-headers") != 0) {
-        GstStructure *extras = qt_gst_structure_new_empty("extras");
+        GstStructure *extras = gst_structure_new_empty("extras");
 
         const auto rawHeaderList = self->m_request.rawHeaderList();
         for (const QByteArray &rawHeader : rawHeaderList) {

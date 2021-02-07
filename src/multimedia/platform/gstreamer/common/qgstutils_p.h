@@ -72,15 +72,6 @@ class QImage;
 class QVideoSurfaceFormat;
 
 namespace QGstUtils {
-    struct Q_MULTIMEDIA_EXPORT CameraInfo
-    {
-        QString name;
-        QString description;
-        int orientation;
-        QCameraInfo::Position position;
-        QByteArray driver;
-    };
-
     Q_MULTIMEDIA_EXPORT QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
 
     Q_MULTIMEDIA_EXPORT QSize capsResolution(const GstCaps *caps);
@@ -89,11 +80,6 @@ namespace QGstUtils {
     Q_MULTIMEDIA_EXPORT QAudioFormat audioFormatForSample(GstSample *sample);
     Q_MULTIMEDIA_EXPORT GstCaps *capsForAudioFormat(const QAudioFormat &format);
     Q_MULTIMEDIA_EXPORT void initializeGst();
-    Q_MULTIMEDIA_EXPORT QMultimedia::SupportEstimate hasSupport(const QString &mimeType,
-                                             const QStringList &codecs,
-                                             const QSet<QString> &supportedMimeTypeSet);
-
-    Q_MULTIMEDIA_EXPORT QSet<QString> supportedMimeTypes(bool (*isValidFactory)(GstElementFactory *factory));
 
     Q_MULTIMEDIA_EXPORT QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
     Q_MULTIMEDIA_EXPORT QVideoSurfaceFormat formatForCaps(
@@ -108,8 +94,6 @@ namespace QGstUtils {
     Q_MULTIMEDIA_EXPORT void setMetaData(GstBin *bin, const QMap<QByteArray, QVariant> &data);
 
     Q_MULTIMEDIA_EXPORT GstCaps *videoFilterCaps();
-
-    Q_MULTIMEDIA_EXPORT QString fileExtensionForMimeType(const QString &mimeType);
 
     Q_MULTIMEDIA_EXPORT QVariant fromGStreamerOrientation(const QVariant &value);
     Q_MULTIMEDIA_EXPORT QVariant toGStreamerOrientation(const QVariant &value);
@@ -206,17 +190,8 @@ public:
     QGstStructure at(int index) { return gst_caps_get_structure(caps, index); }
 };
 
-Q_MULTIMEDIA_EXPORT void qt_gst_object_ref_sink(gpointer object);
-Q_MULTIMEDIA_EXPORT GstCaps *qt_gst_pad_get_current_caps(GstPad *pad);
-Q_MULTIMEDIA_EXPORT GstCaps *qt_gst_pad_get_caps(GstPad *pad);
-Q_MULTIMEDIA_EXPORT GstStructure *qt_gst_structure_new_empty(const char *name);
-Q_MULTIMEDIA_EXPORT gboolean qt_gst_element_query_position(GstElement *element, GstFormat format, gint64 *cur);
-Q_MULTIMEDIA_EXPORT gboolean qt_gst_element_query_duration(GstElement *element, GstFormat format, gint64 *cur);
-Q_MULTIMEDIA_EXPORT GstCaps *qt_gst_caps_normalize(GstCaps *caps);
 Q_MULTIMEDIA_EXPORT const gchar *qt_gst_element_get_factory_name(GstElement *element);
-Q_MULTIMEDIA_EXPORT gboolean qt_gst_caps_can_intersect(const GstCaps * caps1, const GstCaps * caps2);
 Q_MULTIMEDIA_EXPORT GList *qt_gst_video_sinks();
-Q_MULTIMEDIA_EXPORT void qt_gst_util_double_to_fraction(gdouble src, gint *dest_n, gint *dest_d);
 QPair<int,int> qt_gstRateAsRational(qreal frameRate);
 
 Q_MULTIMEDIA_EXPORT QDebug operator <<(QDebug debug, GstCaps *caps);
