@@ -140,7 +140,6 @@ QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
 
     for (auto *d : qAsConst(m_videoSources)) {
         QGstStructure properties = gst_device_get_properties(d);
-        qDebug() << properties.toString();
         if (!properties.isNull()) {
             QCameraInfoPrivate *info = new QCameraInfoPrivate;
             auto *desc = gst_device_get_display_name(d);

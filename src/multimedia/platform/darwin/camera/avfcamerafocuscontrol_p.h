@@ -83,24 +83,13 @@ public:
 
     QCameraFocusZoneList focusZones() const override;
 
-    qreal maximumOpticalZoom() const override;
-    qreal maximumDigitalZoom() const override;
-
-    qreal requestedOpticalZoom() const override;
-    qreal requestedDigitalZoom() const override;
-    qreal currentOpticalZoom() const override;
-    qreal currentDigitalZoom() const override;
-
-    void zoomTo(qreal optical, qreal digital) override;
+    ZoomRange zoomFactorRange() const override;
+    void zoomTo(float newZoomFactor, float rate = -1.) override;
 
 private Q_SLOTS:
     void cameraStateChanged();
 
 private:
-#ifdef QOS_IOS
-    void zoomToRequestedDigital();
-#endif
-
     AVFCameraSession *m_session;
     QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
@@ -109,7 +98,6 @@ private:
 
     CGFloat m_maxZoomFactor;
     CGFloat m_zoomFactor;
-    CGFloat m_requestedZoomFactor;
 };
 
 

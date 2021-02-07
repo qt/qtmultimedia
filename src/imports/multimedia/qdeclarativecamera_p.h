@@ -88,10 +88,9 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
-    Q_PROPERTY(qreal opticalZoom READ opticalZoom WRITE setOpticalZoom NOTIFY opticalZoomChanged)
-    Q_PROPERTY(qreal maximumOpticalZoom READ maximumOpticalZoom NOTIFY maximumOpticalZoomChanged)
-    Q_PROPERTY(qreal digitalZoom READ digitalZoom WRITE setDigitalZoom NOTIFY digitalZoomChanged)
-    Q_PROPERTY(qreal maximumDigitalZoom READ maximumDigitalZoom NOTIFY maximumDigitalZoomChanged)
+    Q_PROPERTY(qreal minimumZoomFactor READ minimumZoomFactor)
+    Q_PROPERTY(qreal maximumZoomFactor READ maximumZoomFactor)
+    Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
 
     Q_PROPERTY(QObject *mediaSource READ mediaSource NOTIFY mediaSourceChanged SCRIPTABLE false DESIGNABLE false)
     Q_PROPERTY(QDeclarativeCameraCapture* imageCapture READ imageCapture CONSTANT)
@@ -260,11 +259,10 @@ public:
 
     LockStatus lockStatus() const;
 
-    qreal maximumOpticalZoom() const;
-    qreal maximumDigitalZoom() const;
+    qreal minimumZoomFactor() const;
+    qreal maximumZoomFactor() const;
 
-    qreal opticalZoom() const;
-    qreal digitalZoom() const;
+    qreal zoomFactor() const;
 
     Availability availability() const;
 
@@ -279,8 +277,7 @@ public Q_SLOTS:
     void searchAndLock();
     void unlock();
 
-    void setOpticalZoom(qreal);
-    void setDigitalZoom(qreal);
+    void setZoomFactor(qreal);
 
     Q_REVISION(2) QJSValue supportedResolutions(qreal minimumFrameRate = 0.0,
                                                           qreal maximumFrameRate = 0.0);
@@ -301,10 +298,7 @@ Q_SIGNALS:
 
     void lockStatusChanged();
 
-    void opticalZoomChanged(qreal);
-    void digitalZoomChanged(qreal);
-    void maximumOpticalZoomChanged(qreal);
-    void maximumDigitalZoomChanged(qreal);
+    void zoomFactorChanged(qreal);
 
     void mediaSourceChanged();
 

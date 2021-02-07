@@ -44,7 +44,7 @@
 
 #include <private/qgstreamerintegration_p.h>
 #include <private/qgstreamerdevicemanager_p.h>
-
+#include <private/qgstutils_p.h>
 #include <algorithm>
 
 QGstreamerVideoInput::QGstreamerVideoInput()

@@ -192,14 +192,8 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
 
-    connect(m_camera->focus(), &QCameraFocus::opticalZoomChanged,
-            this, &QDeclarativeCamera::opticalZoomChanged);
-    connect(m_camera->focus(), &QCameraFocus::digitalZoomChanged,
-            this, &QDeclarativeCamera::digitalZoomChanged);
-    connect(m_camera->focus(), &QCameraFocus::maximumOpticalZoomChanged,
-            this, &QDeclarativeCamera::maximumOpticalZoomChanged);
-    connect(m_camera->focus(), &QCameraFocus::maximumDigitalZoomChanged,
-            this, &QDeclarativeCamera::maximumDigitalZoomChanged);
+    connect(m_camera->focus(), &QCameraFocus::zoomFactorChanged,
+            this, &QDeclarativeCamera::zoomFactorChanged);
 }
 
 /*! Destructor, clean up memory */
@@ -626,72 +620,39 @@ void QDeclarativeCamera::unlock()
 {
     m_camera->unlock();
 }
-/*!
-    \property QDeclarativeCamera::maximumOpticalZoom
 
-    This property holds the maximum optical zoom factor supported, or 1.0 if optical zoom is not supported.
-*/
 /*!
-    \qmlproperty real QtMultimedia::Camera::maximumOpticalZoom
+    \qmlproperty real QtMultimedia::Camera::minimumZoomFactor
 
-    This property holds the maximum optical zoom factor supported, or 1.0 if optical zoom is not supported.
+    This property holds the minimum zoom factor supported.
 */
-qreal QDeclarativeCamera::maximumOpticalZoom() const
+qreal QDeclarativeCamera::minimumZoomFactor() const
 {
-    return m_camera->focus()->maximumOpticalZoom();
-}
-/*!
-    \property  QDeclarativeCamera::maximumDigitalZoom
-
-    This property holds the maximum digital zoom factor supported, or 1.0 if digital zoom is not supported.
-*/
-/*!
-    \qmlproperty real QtMultimedia::Camera::maximumDigitalZoom
-
-    This property holds the maximum digital zoom factor supported, or 1.0 if digital zoom is not supported.
-*/
-qreal QDeclarativeCamera::maximumDigitalZoom() const
-{
-    return m_camera->focus()->maximumDigitalZoom();
-}
-/*!
-    \property QDeclarativeCamera::opticalZoom
-
-    This property holds the current optical zoom factor.
-*/
-
-/*!
-    \qmlproperty real QtMultimedia::Camera::opticalZoom
-
-    This property holds the current optical zoom factor.
-*/
-qreal QDeclarativeCamera::opticalZoom() const
-{
-    return m_camera->focus()->opticalZoom();
+    return m_camera->focus()->minimumZoomFactor();
 }
 
-void QDeclarativeCamera::setOpticalZoom(qreal value)
+/*!
+    \qmlproperty real QtMultimedia::Camera::maximumZoomFactor
+
+    This property holds the maximum zoom factor supported, or 1.0 if zooming is not supported.
+*/
+qreal QDeclarativeCamera::maximumZoomFactor() const
 {
-    m_camera->focus()->zoomTo(value, digitalZoom());
+    return m_camera->focus()->maximumZoomFactor();
 }
 /*!
-    \property   QDeclarativeCamera::digitalZoom
+    \property QDeclarativeCamera::zoomFactor
 
-    This property holds the current digital zoom factor.
+    This property holds the current zoom factor.
 */
-/*!
-    \qmlproperty real QtMultimedia::Camera::digitalZoom
-
-    This property holds the current digital zoom factor.
-*/
-qreal QDeclarativeCamera::digitalZoom() const
+qreal QDeclarativeCamera::zoomFactor() const
 {
-    return m_camera->focus()->digitalZoom();
+    return m_camera->focus()->zoomFactor();
 }
 
-void QDeclarativeCamera::setDigitalZoom(qreal value)
+void QDeclarativeCamera::setZoomFactor(qreal value)
 {
-    m_camera->focus()->zoomTo(opticalZoom(), value);
+    m_camera->focus()->setZoomFactor(value);
 }
 
 /*!

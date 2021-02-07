@@ -327,80 +327,32 @@ void AVFCameraFocusControl::cameraStateChanged()
         Q_EMIT maximumDigitalZoomChanged(1.);
     }
 
-    zoomToRequestedDigital();
+    captureDevice.videoZoomFactor = m_zoomFactor;
 #endif
 }
 
-qreal AVFCameraFocusControl::maximumOpticalZoom() const
+AVFCameraFocusControl::ZoomRange AVFCameraFocusControl::zoomFactorRange() const
 {
-    // Not supported.
-    return 1.;
+    return { 1., (float)m_maxZoomFactor };
 }
 
-qreal AVFCameraFocusControl::maximumDigitalZoom() const
+void AVFCameraFocusControl::zoomTo(float factor, float rate)
 {
-    return m_maxZoomFactor;
-}
-
-qreal AVFCameraFocusControl::requestedOpticalZoom() const
-{
-    // Not supported.
-    return 1;
-}
-
-qreal AVFCameraFocusControl::requestedDigitalZoom() const
-{
-    return m_requestedZoomFactor;
-}
-
-qreal AVFCameraFocusControl::currentOpticalZoom() const
-{
-    // Not supported.
-    return 1.;
-}
-
-qreal AVFCameraFocusControl::currentDigitalZoom() const
-{
-    return m_zoomFactor;
-}
-
-void AVFCameraFocusControl::zoomTo(qreal optical, qreal digital)
-{
-    Q_UNUSED(optical);
-    Q_UNUSED(digital);
+    Q_UNUSED(factor);
+    Q_UNUSED(rate);
 
 #ifdef QOS_IOS
-    if (qFuzzyCompare(CGFloat(digital), m_requestedZoomFactor))
+    if (qFuzzyCompare(CGFloat(factor), m_zoomFactor))
         return;
 
-    m_requestedZoomFactor = digital;
+    m_requestedZoomFactor = factor;
     Q_EMIT requestedDigitalZoomChanged(digital);
 
-    zoomToRequestedDigital();
-#endif
-}
-
-#ifdef QOS_IOS
-void AVFCameraFocusControl::zoomToRequestedDigital()
-{
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice || !captureDevice.activeFormat)
         return;
 
-    if (qFuzzyCompare(captureDevice.activeFormat.videoMaxZoomFactor, CGFloat(1.)))
-        return;
-
-    const CGFloat clampedZoom = qBound(CGFloat(1.), m_requestedZoomFactor,
-                                       captureDevice.activeFormat.videoMaxZoomFactor);
-    const CGFloat deviceZoom = captureDevice.videoZoomFactor;
-    if (qFuzzyCompare(clampedZoom, deviceZoom)) {
-        // Nothing to set, but check if a signal must be emitted:
-        if (!qFuzzyCompare(m_zoomFactor, deviceZoom)) {
-            m_zoomFactor = deviceZoom;
-            Q_EMIT currentDigitalZoomChanged(deviceZoom);
-        }
-        return;
-    }
+    m_zoomFactor = qBound(CGFloat(1.), factor, captureDevice.activeFormat.videoMaxZoomFactor);
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
@@ -408,14 +360,12 @@ void AVFCameraFocusControl::zoomToRequestedDigital()
         return;
     }
 
-    captureDevice.videoZoomFactor = clampedZoom;
-
-    if (!qFuzzyCompare(clampedZoom, m_zoomFactor)) {
-        m_zoomFactor = clampedZoom;
-        Q_EMIT currentDigitalZoomChanged(clampedZoom);
-    }
-}
+    if (rate < 0)
+        captureDevice.videoZoomFactor = clampedZoom;
+    else
+        [AVCaptureDevice rampToVideoZoomFactor:factor withRate:rate];
 #endif
+}
 
 QT_END_NAMESPACE
 

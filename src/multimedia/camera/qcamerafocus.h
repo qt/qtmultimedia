@@ -99,8 +99,7 @@ class Q_MULTIMEDIA_EXPORT QCameraFocus : public QObject
     Q_PROPERTY(FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode)
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint)
     Q_PROPERTY(QCameraFocusZoneList focusZones READ focusZones NOTIFY focusZonesChanged)
-    Q_PROPERTY(qreal opticalZoom READ opticalZoom NOTIFY opticalZoomChanged)
-    Q_PROPERTY(qreal digitalZoom READ digitalZoom NOTIFY digitalZoomChanged)
+    Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
 
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
@@ -136,21 +135,16 @@ public:
 
     QCameraFocusZoneList focusZones() const;
 
-    qreal maximumOpticalZoom() const;
-    qreal maximumDigitalZoom() const;
-    qreal opticalZoom() const;
-    qreal digitalZoom() const;
+    float minimumZoomFactor() const;
+    float maximumZoomFactor() const;
+    float zoomFactor() const;
+    void setZoomFactor(float factor);
 
-    void zoomTo(qreal opticalZoom, qreal digitalZoom);
+    void zoomTo(float zoom, float rate);
 
 Q_SIGNALS:
-    void opticalZoomChanged(qreal);
-    void digitalZoomChanged(qreal);
-
+    void zoomFactorChanged(float);
     void focusZonesChanged();
-
-    void maximumOpticalZoomChanged(qreal);
-    void maximumDigitalZoomChanged(qreal);
 
 protected:
     ~QCameraFocus();

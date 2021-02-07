@@ -67,15 +67,14 @@ public:
 
     virtual QCameraFocusZoneList focusZones() const = 0;
 
-    virtual qreal maximumOpticalZoom() const = 0;
-    virtual qreal maximumDigitalZoom() const = 0;
+    struct ZoomRange {
+        float min;
+        float max;
+    };
 
-    virtual qreal requestedOpticalZoom() const = 0;
-    virtual qreal requestedDigitalZoom() const = 0;
-    virtual qreal currentOpticalZoom() const = 0;
-    virtual qreal currentDigitalZoom() const = 0;
-
-    virtual void zoomTo(qreal optical, qreal digital) = 0;
+    virtual ZoomRange zoomFactorRange() const = 0;
+    // smaller 0: zoom instantly, rate in power-of-two/sec
+    virtual void zoomTo(float newZoomFactor, float rate = -1.) = 0;
 
 Q_SIGNALS:
     void focusModeChanged(QCameraFocus::FocusModes mode);
@@ -84,13 +83,6 @@ Q_SIGNALS:
 
     void focusZonesChanged();
 
-    void maximumOpticalZoomChanged(qreal);
-    void maximumDigitalZoomChanged(qreal);
-
-    void requestedOpticalZoomChanged(qreal opticalZoom);
-    void requestedDigitalZoomChanged(qreal digitalZoom);
-    void currentOpticalZoomChanged(qreal opticalZoom);
-    void currentDigitalZoomChanged(qreal digitalZoom);
 
 protected:
     explicit QCameraFocusControl(QObject *parent = nullptr);

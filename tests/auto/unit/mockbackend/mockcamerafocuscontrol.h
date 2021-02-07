@@ -113,68 +113,13 @@ public:
         }
     }
 
-    qreal maximumOpticalZoom() const
-    {
-        return m_maxOpticalZoom;
+    ZoomRange zoomFactorRange() const {
+        return { 1., m_maxZoom };
     }
 
-    qreal maximumDigitalZoom() const
+    void zoomTo(float zoom, float /*rate*/)
     {
-        return m_maxDigitalZoom;
-    }
-
-    qreal currentOpticalZoom() const
-    {
-        return m_opticalZoom;
-    }
-
-    qreal currentDigitalZoom() const
-    {
-        return m_digitalZoom;
-    }
-
-    qreal requestedOpticalZoom() const
-    {
-        return m_opticalZoom;
-    }
-
-    qreal requestedDigitalZoom() const
-    {
-        return m_digitalZoom;
-    }
-
-    void zoomTo(qreal optical, qreal digital)
-    {
-        optical = qBound<qreal>(1.0, optical, maximumOpticalZoom());
-        digital = qBound<qreal>(1.0, digital, maximumDigitalZoom());
-
-        if (!qFuzzyCompare(digital, m_digitalZoom)) {
-            m_digitalZoom = digital;
-            emit requestedDigitalZoomChanged(m_digitalZoom);
-            emit currentDigitalZoomChanged(m_digitalZoom);
-        }
-
-        if (!qFuzzyCompare(optical, m_opticalZoom)) {
-            m_opticalZoom = optical;
-            emit requestedOpticalZoomChanged(m_opticalZoom);
-            emit currentOpticalZoomChanged(m_opticalZoom);
-        }
-
-        maxOpticalDigitalZoomChange(4.0, 5.0);
-    }
-
-    // helper function to emit maximum Optical and Digital Zoom Changed signals
-    void maxOpticalDigitalZoomChange(qreal maxOptical, qreal maxDigital)
-    {
-        if (maxOptical != m_maxOpticalZoom) {
-            m_maxOpticalZoom = maxOptical;
-            emit maximumOpticalZoomChanged(m_maxOpticalZoom);
-        }
-
-        if (maxDigital != m_maxDigitalZoom) {
-            m_maxDigitalZoom = maxDigital;
-            emit maximumDigitalZoomChanged(m_maxDigitalZoom);
-        }
+        m_zoom = zoom;
     }
 
 private:
@@ -184,10 +129,8 @@ private:
     // to emit focus zone changed signal
     QCameraFocusZoneList m_zones;
 
-    qreal m_opticalZoom = 1.;
-    qreal m_digitalZoom = 1.;
-    qreal m_maxOpticalZoom = 3.;
-    qreal m_maxDigitalZoom = 4.;
+    float m_zoom = 1.;
+    float m_maxZoom = 4.;
 };
 
 #endif // MOCKCAMERAFOCUSCONTROL_H

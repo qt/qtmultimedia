@@ -257,16 +257,13 @@ void tst_QCamera::testSimpleCameraFocus()
     cameraFocus->setFocusMode(QCameraFocus::ContinuousFocus);
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
 
-    QCOMPARE(cameraFocus->maximumOpticalZoom(), 1.0);
-    QCOMPARE(cameraFocus->maximumDigitalZoom(), 1.0);
-    QCOMPARE(cameraFocus->opticalZoom(), 1.0);
-    QCOMPARE(cameraFocus->digitalZoom(), 1.0);
+    QCOMPARE(cameraFocus->maximumZoomFactor(), 1.0);
+    QCOMPARE(cameraFocus->minimumZoomFactor(), 1.0);
+    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
 
     QTest::ignoreMessage(QtWarningMsg, "The camera doesn't support zooming.");
     cameraFocus->zoomTo(100.0, 100.0);
-    QCOMPARE(cameraFocus->opticalZoom(), 1.0);
-    QCOMPARE(cameraFocus->digitalZoom(), 1.0);
-
+    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
 
     QVERIFY(!cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointAuto));
     QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointAuto);
@@ -626,22 +623,17 @@ void tst_QCamera::testCameraFocus()
     cameraFocus->setFocusMode(QCameraFocus::ContinuousFocus);
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::ContinuousFocus);
 
-    QVERIFY(cameraFocus->maximumOpticalZoom() >= 1.0);
-    QVERIFY(cameraFocus->maximumDigitalZoom() >= 1.0);
-    QCOMPARE(cameraFocus->opticalZoom(), 1.0);
-    QCOMPARE(cameraFocus->digitalZoom(), 1.0);
+    QVERIFY(cameraFocus->maximumZoomFactor() >= 1.0);
+    QVERIFY(cameraFocus->minimumZoomFactor() == 1.0);
+    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
     cameraFocus->zoomTo(0.5, 1.0);
-    QCOMPARE(cameraFocus->opticalZoom(), 1.0);
-    QCOMPARE(cameraFocus->digitalZoom(), 1.0);
+    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
     cameraFocus->zoomTo(2.0, 0.5);
-    QCOMPARE(cameraFocus->opticalZoom(), 2.0);
-    QCOMPARE(cameraFocus->digitalZoom(), 1.0);
+    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
     cameraFocus->zoomTo(2.0, 2.5);
-    QCOMPARE(cameraFocus->opticalZoom(), 2.0);
-    QCOMPARE(cameraFocus->digitalZoom(), 2.5);
-    cameraFocus->zoomTo(2000000.0, 1000000.0);
-    QVERIFY(qFuzzyCompare(cameraFocus->opticalZoom(), cameraFocus->maximumOpticalZoom()));
-    QVERIFY(qFuzzyCompare(cameraFocus->digitalZoom(), cameraFocus->maximumDigitalZoom()));
+    QCOMPARE(cameraFocus->zoomFactor(), 2.5);
+    cameraFocus->zoomTo(2000000.0, -1);
+    QVERIFY(qFuzzyCompare(cameraFocus->zoomFactor(), cameraFocus->maximumZoomFactor()));
 
     QVERIFY(cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointAuto));
     QVERIFY(cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointCenter));

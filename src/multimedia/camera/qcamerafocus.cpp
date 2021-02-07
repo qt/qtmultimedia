@@ -50,14 +50,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static void qRegisterCameraFocusMetaTypes()
-{
-    qRegisterMetaType<QCameraFocus::FocusModes>("QCameraFocus::FocusModes");
-    qRegisterMetaType<QCameraFocus::FocusPointMode>("QCameraFocus::FocusPointMode");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraFocusMetaTypes)
-
 class QCameraFocusFakeFocusControl : public QCameraFocusControl
 {
 public:
@@ -76,15 +68,11 @@ public:
 
     [[nodiscard]] QCameraFocusZoneList focusZones() const override { return QCameraFocusZoneList(); }
 
-    [[nodiscard]] qreal maximumOpticalZoom() const override { return 1.0; }
-    [[nodiscard]] qreal maximumDigitalZoom() const override { return 1.0; }
-
-    [[nodiscard]] qreal requestedOpticalZoom() const override { return 1.0; }
-    [[nodiscard]] qreal requestedDigitalZoom() const override { return 1.0; }
-    [[nodiscard]] qreal currentOpticalZoom() const override { return 1.0; }
-    [[nodiscard]] qreal currentDigitalZoom() const override { return 1.0; }
-
-    void zoomTo(qreal, qreal) override { qWarning("The camera doesn't support zooming."); }
+    ZoomRange zoomFactorRange() const override { return {1., 1.}; };
+    void zoomTo(float, float) override
+    {
+        qWarning("The camera doesn't support zooming.");
+    }
 };
 
 
@@ -297,6 +285,7 @@ public:
 
     QCameraFocusControl *focusControl;
     bool available;
+    float zoomFactor = 1.;
 };
 
 
@@ -454,61 +443,54 @@ QCameraFocusZoneList QCameraFocus::focusZones() const
 }
 
 /*!
-    Returns the maximum optical zoom.
+    Returns the maximum zoom factor.
 
-    This will be \c 1.0 on cameras that do not support optical zoom.
+    This will be \c 1.0 on cameras that do not support zooming.
 */
 
-qreal QCameraFocus::maximumOpticalZoom() const
+float QCameraFocus::maximumZoomFactor() const
 {
-    return d_func()->focusControl->maximumOpticalZoom();
+    return d_func()->focusControl->zoomFactorRange().max;
 }
 
 /*!
-    Returns the maximum digital zoom
+    Returns the minimum zoom factor.
 
-    This will be \c 1.0 on cameras that do not support digital zoom.
+    This will be \c 1.0 on cameras that do not support zooming.
 */
 
-qreal QCameraFocus::maximumDigitalZoom() const
+float QCameraFocus::minimumZoomFactor() const
 {
-    return d_func()->focusControl->maximumDigitalZoom();
+    return d_func()->focusControl->zoomFactorRange().min;
 }
 
 /*!
-  \property QCameraFocus::opticalZoom
-  \brief the current optical zoom value.
-
-  \sa QCameraFocus::digitalZoom
+  \property QCameraFocus::zoomFactor
+  \brief The current zoom factor.
 */
-
-qreal QCameraFocus::opticalZoom() const
+float QCameraFocus::zoomFactor() const
 {
-    return d_func()->focusControl->currentOpticalZoom();
+    return d_func()->zoomFactor;
+}
+
+void QCameraFocus::setZoomFactor(float factor)
+{
+    Q_D(QCameraFocus);
+    d->zoomFactor = factor;
+    d->focusControl->zoomTo(factor, -1);
 }
 
 /*!
-  \property QCameraFocus::digitalZoom
-  \brief the current digital zoom value.
+    Zooms to a zoom factor \a factor using \a rate.
 
-  \sa QCameraFocus::opticalZoom
-*/
-qreal QCameraFocus::digitalZoom() const
+    The rate is specified in powers of two per second. A rate of 1
+    would take two seconds to zoom from a zoom factor of 1 to a zoom factor of 4.
+ */
+void QCameraFocus::zoomTo(float factor, float rate)
 {
-    return d_func()->focusControl->currentDigitalZoom();
-}
-
-
-/*!
-    Set the camera \a optical and \a digital zoom values.
-
-    Since there may be a physical component to move, the change in
-    zoom value may not be instantaneous.
-
-*/
-void QCameraFocus::zoomTo(qreal optical, qreal digital)
-{
-    d_func()->focusControl->zoomTo(optical, digital);
+    Q_D(QCameraFocus);
+    d->zoomFactor = factor;
+    d->focusControl->zoomTo(factor, rate);
 }
 
 /*!
