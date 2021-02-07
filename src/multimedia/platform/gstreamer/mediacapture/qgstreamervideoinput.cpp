@@ -37,48 +37,33 @@
 **
 ****************************************************************************/
 
+#include "qgstreamervideoinput_p.h"
 
-#ifndef QGSTREAMERV4L2INPUT_H
-#define QGSTREAMERV4L2INPUT_H
+#include <QtCore/qdebug.h>
+#include <QtCore/qfile.h>
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include <private/qgstreamerintegration_p.h>
+#include <private/qgstreamerdevicemanager_p.h>
 
-#include <QtCore/qhash.h>
-#include <QtCore/qbytearray.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qsize.h>
-#include <qcamerainfo.h>
+#include <algorithm>
 
-#include "qgstreamercapturesession_p.h"
-
-QT_BEGIN_NAMESPACE
-
-class QGstreamerV4L2Input : public QGstreamerVideoInput
+QGstreamerVideoInput::QGstreamerVideoInput()
 {
-public:
-    QGstreamerV4L2Input();
-    virtual ~QGstreamerV4L2Input();
+}
 
-    GstElement *buildElement() override;
+QGstreamerVideoInput::~QGstreamerVideoInput()
+{
+}
 
-    QCameraInfo device() const override { return m_cameraInfo; }
-    void setDevice(const QCameraInfo &device) override;
+GstElement *QGstreamerVideoInput::buildElement()
+{
+    auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QGstreamerIntegration::instance()->deviceManager());
+    GstDevice *videoDevice = deviceManager->videoDevice(m_cameraInfo.id());
+    return gst_device_create_element(videoDevice, "camerasrc");
+}
 
-private:
-    QCameraInfo m_cameraInfo;
-
-    QHash<QSize, QSet<int> > m_ratesByResolution;
-};
-
-QT_END_NAMESPACE
-
-#endif // QGSTREAMERV4L2INPUT_H
+void QGstreamerVideoInput::setDevice(const QCameraInfo &newDevice)
+{
+    if (m_cameraInfo != newDevice)
+        m_cameraInfo = newDevice;
+}

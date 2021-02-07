@@ -72,8 +72,8 @@ public:
     void addDevice(GstDevice *);
     void removeDevice(GstDevice *);
 
-    QByteArray cameraDriver(const QByteArray &cameraId) const;
     GstDevice *audioDevice(const QByteArray &id, QAudio::Mode mode) const;
+    GstDevice *videoDevice(const QByteArray &id) const;
 
 private:
     QSet<GstDevice *> m_videoSources;

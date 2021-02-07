@@ -72,19 +72,13 @@ class QGstreamerImageEncode;
 class QGstreamerRecorderControl;
 class QGstreamerVideoRendererInterface;
 class QCameraInfo;
+class QGstreamerVideoInput;
 
 class QGstreamerElementFactory
 {
 public:
     virtual GstElement *buildElement() = 0;
     virtual void prepareWinId() {}
-};
-
-class QGstreamerVideoInput : public QGstreamerElementFactory
-{
-public:
-    virtual QCameraInfo device() const = 0;
-    virtual void setDevice(const QCameraInfo &device) = 0;
 };
 
 class QGstreamerCaptureSession

@@ -271,13 +271,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_
         platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol.cpp platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol_p.h
         platform/gstreamer/mediacapture/qgstreamerimageencode.cpp platform/gstreamer/mediacapture/qgstreamerimageencode_p.h
         platform/gstreamer/mediacapture/qgstreamerrecordercontrol.cpp platform/gstreamer/mediacapture/qgstreamerrecordercontrol_p.h
+        platform/gstreamer/mediacapture/qgstreamervideoinput.cpp platform/gstreamer/mediacapture/qgstreamervideoinput_p.h
     INCLUDE_DIRECTORIES
         platform/gstreamer/mediacapture
-)
-
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_linux_v4l AND NOT use_camerabin
-    SOURCES
-        platform/gstreamer/mediacapture/qgstreamerv4l2input.cpp platform/gstreamer/mediacapture/qgstreamerv4l2input_p.h
     DEFINES
         USE_GSTREAMER_CAMERA
 )

@@ -140,6 +140,7 @@ QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
 
     for (auto *d : qAsConst(m_videoSources)) {
         QGstStructure properties = gst_device_get_properties(d);
+        qDebug() << properties.toString();
         if (!properties.isNull()) {
             QCameraInfoPrivate *info = new QCameraInfoPrivate;
             auto *desc = gst_device_get_display_name(d);
@@ -147,7 +148,6 @@ QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
             g_free(desc);
 
             info->id = properties["device.path"].toString();
-//            info->driver = properties["v4l2.device.driver"].getString();
             auto def = properties["is-default"].toBool();
             info->isDefault = *def;
             if (def)
@@ -242,41 +242,35 @@ void QGstreamerDeviceManager::removeDevice(GstDevice *device)
     gst_object_unref(device);
 }
 
-QByteArray QGstreamerDeviceManager::cameraDriver(const QByteArray &cameraId) const
+static GstDevice *getDevice(const QSet<GstDevice *> &devices, const char *key, const QByteArray &id)
 {
-    for (auto *d : qAsConst(m_videoSources)) {
-        auto *properties = gst_device_get_properties(d);
-        if (properties) {
-            auto *name = gst_structure_get_string(properties, "device.path");
-            if (cameraId == name) {
-                QByteArray driver = gst_structure_get_string(properties, "v4l2.device.driver");
-                gst_structure_free(properties);
-                return driver;
+    GstDevice *gstDevice = nullptr;
+    for (auto *d : devices) {
+        QGstStructure properties = gst_device_get_properties(d);
+        if (!properties.isNull()) {
+            auto *name = properties[key].toString();
+            if (id == name) {
+                gstDevice = d;
             }
-            gst_structure_free(properties);
         }
+        properties.free();
+        if (gstDevice)
+            break;
     }
-    return QByteArray();
+    return gstDevice;
+
 }
 
 GstDevice *QGstreamerDeviceManager::audioDevice(const QByteArray &id, QAudio::Mode mode) const
 {
     const auto devices = (mode == QAudio::AudioOutput) ? m_audioSinks : m_audioSources;
 
-    GstDevice *gstDevice = nullptr;
-    for (auto *d : devices) {
-        auto *properties = gst_device_get_properties(d);
-        if (properties) {
-            auto *name = gst_structure_get_string(properties, "sysfs.path");
-            if (id == name) {
-                gstDevice = d;
-            }
-        }
-        gst_structure_free(properties);
-        if (gstDevice)
-            break;
-    }
-    return gstDevice;
+    return getDevice(devices, "sysfs.path", id);
+}
+
+GstDevice *QGstreamerDeviceManager::videoDevice(const QByteArray &id) const
+{
+    return getDevice(m_videoSources, "device.path", id);
 }
 
 QT_END_NAMESPACE

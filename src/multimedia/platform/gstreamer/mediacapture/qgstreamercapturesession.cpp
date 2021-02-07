@@ -40,6 +40,7 @@
 #include "qgstreamercapturesession_p.h"
 #include "qgstreamerrecordercontrol_p.h"
 #include "qgstreamerimageencode_p.h"
+#include "qgstreamervideoinput_p.h"
 #include <qmediarecorder.h>
 #include <qmediadevicemanager.h>
 #include <private/qgstreamervideorendererinterface_p.h>
@@ -283,7 +284,6 @@ GstElement *QGstreamerCaptureSession::buildVideoSrc()
         videoSrc = m_videoInputFactory->buildElement();
     } else {
         videoSrc = gst_element_factory_make("videotestsrc", "video_test_src");
-        //videoSrc = gst_element_factory_make("v4l2src", "video_test_src");
     }
 
     return videoSrc;

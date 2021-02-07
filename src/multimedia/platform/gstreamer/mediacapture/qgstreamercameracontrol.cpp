@@ -39,6 +39,7 @@
 
 #include "qgstreamercameracontrol_p.h"
 #include "qgstreamerimageencode_p.h"
+#include "qgstreamervideoinput_p.h"
 
 #include <qcamerainfo.h>
 

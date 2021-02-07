@@ -46,7 +46,7 @@
 #include "qgstreamercapturemetadatacontrol_p.h"
 
 #if defined(USE_GSTREAMER_CAMERA)
-#include "qgstreamerv4l2input_p.h"
+#include "qgstreamervideoinput_p.h"
 #endif
 
 #include "qgstreamerimagecapturecontrol_p.h"
@@ -66,7 +66,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
    else {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
         m_cameraControl = new QGstreamerCameraControl(m_captureSession);
-        m_videoInput = new QGstreamerV4L2Input;
+        m_videoInput = new QGstreamerVideoInput;
         m_captureSession->setVideoInput(m_videoInput);
 
         m_videoRenderer = new QGstreamerVideoRenderer(this);

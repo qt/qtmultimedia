@@ -67,7 +67,7 @@ class QGstreamerVideoWindow;
 class QGstreamerElementFactory;
 class QGstreamerCaptureMetaDataControl;
 class QGstreamerImageCaptureControl;
-class QGstreamerV4L2Input;
+class QGstreamerVideoInput;
 
 class QGstreamerCaptureService : public QMediaPlatformCaptureInterface
 {
@@ -86,7 +86,7 @@ private:
     QGstreamerCaptureSession *m_captureSession = nullptr;
     QGstreamerCameraControl *m_cameraControl = nullptr;
 #if defined(USE_GSTREAMER_CAMERA)
-    QGstreamerV4L2Input *m_videoInput = nullptr;
+    QGstreamerVideoInput *m_videoInput = nullptr;
 #endif
     QGstreamerCaptureMetaDataControl *m_metaDataControl = nullptr;
 
