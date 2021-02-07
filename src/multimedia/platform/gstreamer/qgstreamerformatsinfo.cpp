@@ -97,8 +97,10 @@ static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructure structure)
             return QMediaFormat::VideoCodec::MPEG4;
     } else if (!strcmp(name, "x-h264")) {
         return QMediaFormat::VideoCodec::H264;
+#if GST_CHECK_VERSION(1, 17, 0) // x265enc seems to be broken on 1.16 at least
     } else if (!strcmp(name, "x-h265")) {
         return QMediaFormat::VideoCodec::H265;
+#endif
     } else if (!strcmp(name, "x-vp8")) {
         return QMediaFormat::VideoCodec::VP8;
     } else if (!strcmp(name, "x-vp9")) {
