@@ -67,17 +67,6 @@ class AVFCameraService;
 class AVFCameraRendererControl;
 class AVFCameraWindowControl;
 
-struct AVFCameraInfo
-{
-    AVFCameraInfo() : position(QCameraInfo::UnspecifiedPosition), orientation(0)
-    { }
-
-    QByteArray deviceId;
-    QString description;
-    QCameraInfo::Position position;
-    int orientation;
-};
-
 class AVFCameraSession : public QObject
 {
     Q_OBJECT
