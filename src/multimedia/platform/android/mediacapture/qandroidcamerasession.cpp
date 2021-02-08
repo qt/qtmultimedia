@@ -516,8 +516,8 @@ void QAndroidCameraSession::applyImageSettings()
     if (!m_camera)
         return;
 
-    if (m_actualImageSettings.codec().isEmpty())
-        m_actualImageSettings.setCodec(QLatin1String("jpeg"));
+    // only supported format right now.
+    m_actualImageSettings.setFormat(QImageEncoderSettings::JPEG);
 
     const QSize requestedResolution = m_requestedImageSettings.resolution();
     const QList<QSize> supportedResolutions = m_camera->getSupportedPictureSizes();

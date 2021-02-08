@@ -111,3 +111,16 @@ void QGstreamerImageCaptureControl::updateState()
         emit readyForCaptureChanged(m_ready = ready);
     }
 }
+
+QImageEncoderSettings QGstreamerImageCaptureControl::imageSettings() const
+{
+    return m_settings;
+}
+
+void QGstreamerImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+{
+    if (m_settings != settings) {
+        m_settings = settings;
+        emit settingsChanged();
+    }
+}

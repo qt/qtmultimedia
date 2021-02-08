@@ -67,7 +67,6 @@ class AVFImageCaptureControl;
 class AVFCameraSession;
 class AVFCameraFocusControl;
 class AVFCameraExposureControl;
-class AVFImageEncoderControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
 class AVFCameraWindowControl;
@@ -89,7 +88,6 @@ public:
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
     AVFCameraRendererControl *videoOutput() const { return m_videoOutput; }
-    AVFImageEncoderControl *imageEncoderControl() const { return m_imageEncoderControl; }
 
 private:
     AVFCameraSession *m_session;
@@ -99,7 +97,6 @@ private:
     AVFImageCaptureControl *m_imageCaptureControl;
     AVFCameraFocusControl *m_cameraFocusControl;
     AVFCameraExposureControl *m_cameraExposureControl;
-    AVFImageEncoderControl *m_imageEncoderControl;
     AVFCameraWindowControl *m_captureWindowControl;
 };
 

@@ -83,6 +83,9 @@ public:
         m_destination = destination;
     }
 
+    QImageEncoderSettings imageSettings() const { return m_settings; }
+    void setImageSettings(const QImageEncoderSettings &settings) { m_settings = settings; }
+
 private Q_SLOTS:
     void captured()
     {
@@ -121,6 +124,7 @@ private:
     bool m_ready;
     bool m_captureCanceled;
     QCameraImageCapture::CaptureDestinations m_destination;
+    QImageEncoderSettings m_settings;
 };
 
 #endif // MOCKCAMERACAPTURECONTROL_H

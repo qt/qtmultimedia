@@ -40,7 +40,6 @@
 #include <qcameraimagecapturecontrol.h>
 #include <qmediaencodersettings.h>
 
-#include <qimageencodercontrol.h>
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include <qcamera.h>
@@ -79,16 +78,6 @@ QT_BEGIN_NAMESPACE
     \value CaptureToBuffer  Capture the image to a buffer for further processing.
 */
 
-static void qRegisterCameraImageCaptureMetaTypes()
-{
-    qRegisterMetaType<QCameraImageCapture::Error>("QCameraImageCapture::Error");
-    qRegisterMetaType<QCameraImageCapture::CaptureDestination>("QCameraImageCapture::CaptureDestination");
-    qRegisterMetaType<QCameraImageCapture::CaptureDestinations>("QCameraImageCapture::CaptureDestinations");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageCaptureMetaTypes)
-
-
 class QCameraImageCapturePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraImageCapture)
@@ -96,7 +85,6 @@ public:
     QCamera *camera = nullptr;
 
     QCameraImageCaptureControl *control = nullptr;
-    QImageEncoderControl *encoderControl = nullptr;
 
     QCameraImageCapture::Error error = QCameraImageCapture::NoError;
     QString errorString;
@@ -130,7 +118,6 @@ void QCameraImageCapturePrivate::_q_serviceDestroyed()
 {
     camera = nullptr;
     control = nullptr;
-    encoderControl = nullptr;
 }
 
 /*!
@@ -153,8 +140,6 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
         d->control = qobject_cast<QCameraImageCaptureControl*>(service->requestControl(QCameraImageCaptureControl_iid));
 
         if (d->control) {
-            d->encoderControl = qobject_cast<QImageEncoderControl *>(service->requestControl(QImageEncoderControl_iid));
-
             connect(d->control, SIGNAL(imageExposed(int)),
                     this, SIGNAL(imageExposed(int)));
             connect(d->control, SIGNAL(imageCaptured(int,QImage)),
@@ -179,7 +164,6 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
     // without QCameraImageCaptureControl discard the camera
     d->camera = nullptr;
     d->control = nullptr;
-    d->encoderControl = nullptr;
 }
 
 /*!
@@ -247,8 +231,8 @@ QString QCameraImageCapture::errorString() const
 
 QImageEncoderSettings QCameraImageCapture::encodingSettings() const
 {
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->imageSettings() : QImageEncoderSettings();
+    return d_func()->control ?
+           d_func()->control->imageSettings() : QImageEncoderSettings();
 }
 
 /*!
@@ -264,7 +248,7 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
 {
     Q_D(QCameraImageCapture);
 
-    if (d->encoderControl) {
+    if (d->control) {
         QCamera *camera = qobject_cast<QCamera*>(d->camera);
         if (camera && camera->captureMode() == QCamera::CaptureStillImage) {
             QMetaObject::invokeMethod(camera,
@@ -273,7 +257,7 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
                                       Q_ARG(int, QCameraControl::ImageEncodingSettings));
         }
 
-        d->encoderControl->setImageSettings(settings);
+        d->control->setImageSettings(settings);
     }
 }
 

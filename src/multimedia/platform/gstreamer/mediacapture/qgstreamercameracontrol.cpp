@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamercameracontrol_p.h"
-#include "qgstreamerimageencode_p.h"
+#include "qgstreamerimagecapturecontrol_p.h"
 #include "qgstreamervideoinput_p.h"
 
 #include <qcamerainfo.h>
@@ -59,7 +59,7 @@ QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *sessi
     connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)),
             this, SLOT(updateStatus()));
 
-    connect(m_session->imageEncodeControl(), SIGNAL(settingsChanged()),
+    connect(m_session->imageCaptureControl(), SIGNAL(settingsChanged()),
             SLOT(reloadLater()));
     connect(m_session, SIGNAL(viewfinderChanged()),
             SLOT(reloadLater()));

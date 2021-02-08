@@ -65,7 +65,6 @@ class QGstreamerBusHelper;
 class QGstreamerVideoRenderer;
 class QGstreamerVideoWindow;
 class QGstreamerElementFactory;
-class QGstreamerImageCaptureControl;
 class QGstreamerVideoInput;
 
 class QGstreamerCaptureService : public QMediaPlatformCaptureInterface
@@ -92,7 +91,6 @@ private:
 
     QGstreamerVideoRenderer *m_videoRenderer = nullptr;
     QGstreamerVideoWindow *m_videoWindow = nullptr;
-    QGstreamerImageCaptureControl *m_imageCaptureControl = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -71,13 +71,20 @@ public:
     QCameraImageCapture::CaptureDestinations captureDestination() const override { return QCameraImageCapture::CaptureToBuffer; }
     virtual void setCaptureDestination(QCameraImageCapture::CaptureDestinations /*destination*/) override {}
 
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
+
 private slots:
     void updateState();
+
+Q_SIGNALS:
+    void settingsChanged();
 
 private:
     QGstreamerCaptureSession *m_session;
     bool m_ready;
     int m_lastId;
+    QImageEncoderSettings m_settings;
 };
 
 QT_END_NAMESPACE

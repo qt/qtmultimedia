@@ -66,6 +66,9 @@ public:
     virtual QCameraImageCapture::CaptureDestinations captureDestination() const = 0;
     virtual void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) = 0;
 
+    virtual QImageEncoderSettings imageSettings() const = 0;
+    virtual void setImageSettings(const QImageEncoderSettings &settings) = 0;
+
 Q_SIGNALS:
     void readyForCaptureChanged(bool ready);
 

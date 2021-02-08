@@ -162,6 +162,21 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
+    \fn QCameraImageCaptureControl::imageSettings() const
+
+    Returns the currently used image encoder settings.
+
+    The returned value may be different than passed to setImageSettings()
+    if the settings contains defaulted or undefined parameters.
+*/
+
+/*!
+    \fn QCameraImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+
+    Sets the selected image encoder \a settings.
+*/
+
+/*!
     \fn QCameraImageCaptureControl::error(int id, int error, const QString &errorString)
 
     Signals the capture request \a id failed with \a error code and message \a errorString.

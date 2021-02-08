@@ -47,7 +47,6 @@
 #include "bbcameramediarecordercontrol_p.h"
 #include "bbcamerasession_p.h"
 #include "bbcameravideoencodersettingscontrol_p.h"
-#include "bbimageencodercontrol_p.h"
 #include "bbvideorenderercontrol_p.h"
 
 #include <QDebug>
@@ -66,7 +65,6 @@ BbCameraService::BbCameraService(QObject *parent)
     , m_cameraImageProcessingControl(new BbCameraImageProcessingControl(m_cameraSession, this))
     , m_cameraMediaRecorderControl(new BbCameraMediaRecorderControl(m_cameraSession, this))
     , m_cameraVideoEncoderSettingsControl(new BbCameraVideoEncoderSettingsControl(m_cameraSession, this))
-    , m_imageEncoderControl(new BbImageEncoderControl(m_cameraSession, this))
     , m_videoRendererControl(new BbVideoRendererControl(m_cameraSession, this))
 {
 }
@@ -93,8 +91,6 @@ QMediaControl* BbCameraService::requestControl(const char *name)
         return m_cameraMediaRecorderControl;
     else if (qstrcmp(name, QVideoEncoderSettingsControl_iid) == 0)
         return m_cameraVideoEncoderSettingsControl;
-    else if (qstrcmp(name, QImageEncoderControl_iid) == 0)
-        return m_imageEncoderControl;
     else if (qstrcmp(name, QVideoRendererControl_iid) == 0)
         return m_videoRendererControl;
 

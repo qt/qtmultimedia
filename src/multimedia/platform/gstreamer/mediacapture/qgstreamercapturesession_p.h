@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
-class QGstreamerImageEncode;
+class QGstreamerImageCaptureControl;
 class QGstreamerRecorderControl;
 class QGstreamerVideoRendererInterface;
 class QCameraInfo;
@@ -111,7 +111,7 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl& sink);
 
-    QGstreamerImageEncode *imageEncodeControl() const { return m_imageEncodeControl; }
+    QGstreamerImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
 
     QGstreamerRecorderControl *recorderControl() const { return m_recorderControl; }
 
@@ -191,7 +191,7 @@ private:
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
 
-    QGstreamerImageEncode *m_imageEncodeControl;
+    QGstreamerImageCaptureControl *m_imageCaptureControl;
     QGstreamerRecorderControl *m_recorderControl;
 
     QGstreamerBusHelper *m_busHelper;

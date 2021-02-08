@@ -42,7 +42,7 @@
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
 #include "avfcamerarenderercontrol_p.h"
-#include "avfimageencodercontrol_p.h"
+#include "avfimagecapturecontrol_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamerawindowcontrol_p.h"
 
@@ -351,7 +351,7 @@ void AVFCameraSession::attachVideoInputDevice()
 
 bool AVFCameraSession::applyImageEncoderSettings()
 {
-    if (AVFImageEncoderControl *control = m_service->imageEncoderControl())
+    if (AVFImageCaptureControl *control = m_service->imageCaptureControl())
         return control->applySettings();
 
     return false;

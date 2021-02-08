@@ -70,6 +70,9 @@ public:
     QCameraImageCapture::CaptureDestinations captureDestination() const override;
     void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
 
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
+
 private:
     BbCameraSession *m_session;
 };

@@ -39,7 +39,7 @@
 
 #include "qgstreamercapturesession_p.h"
 #include "qgstreamerrecordercontrol_p.h"
-#include "qgstreamerimageencode_p.h"
+#include "qgstreamerimagecapturecontrol_p.h"
 #include "qgstreamervideoinput_p.h"
 #include <qmediarecorder.h>
 #include <qmediadevicemanager.h>
@@ -98,7 +98,7 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
     m_busHelper->installMessageFilter(this);
 
-    m_imageEncodeControl = new QGstreamerImageEncode(this);
+    m_imageCaptureControl = new QGstreamerImageCaptureControl(this);
     m_recorderControl = new QGstreamerRecorderControl(this);
     connect(m_recorderControl, &QGstreamerRecorderControl::error, [](int e, const QString &str) {
         qWarning() << QMediaRecorder::Error(e) << ":" << str.toLatin1().constData();
@@ -311,7 +311,7 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
             resolution = videoSettings.videoResolution();
             frameRate = videoSettings.videoFrameRate();
         } else if (m_captureMode & Image) {
-            resolution = m_imageEncodeControl->imageSettings().resolution();
+            resolution = m_imageCaptureControl->imageSettings().resolution();
         }
 
         GstCaps *caps = QGstUtils::videoFilterCaps();

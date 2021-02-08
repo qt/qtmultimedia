@@ -65,7 +65,6 @@ class BbCameraImageProcessingControl;
 class BbCameraMediaRecorderControl;
 class BbCameraSession;
 class BbCameraVideoEncoderSettingsControl;
-class BbImageEncoderControl;
 class BbVideoRendererControl;
 
 class BbCameraService : public QMediaService
@@ -90,7 +89,6 @@ private:
     BbCameraImageProcessingControl* m_cameraImageProcessingControl;
     BbCameraMediaRecorderControl* m_cameraMediaRecorderControl;
     BbCameraVideoEncoderSettingsControl* m_cameraVideoEncoderSettingsControl;
-    BbImageEncoderControl* m_imageEncoderControl;
     BbVideoRendererControl* m_videoRendererControl;
 };
 

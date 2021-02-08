@@ -81,4 +81,14 @@ void QAndroidCameraImageCaptureControl::setCaptureDestination(QCameraImageCaptur
     m_session->setCaptureDestination(destination);
 }
 
+QImageEncoderSettings QAndroidCameraImageCaptureControl::imageSettings() const
+{
+    return m_session->imageSettings();
+}
+
+void QAndroidCameraImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+{
+    m_session->setImageSettings(settings);
+}
+
 QT_END_NAMESPACE

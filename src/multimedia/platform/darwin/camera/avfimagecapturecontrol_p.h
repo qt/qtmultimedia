@@ -84,6 +84,10 @@ public:
     QCameraImageCapture::CaptureDestinations captureDestination() const override;
     void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
 
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
+    bool applySettings();
+
 private Q_SLOTS:
     void updateCaptureConnection();
     void updateReadyStatus();
@@ -91,6 +95,7 @@ private Q_SLOTS:
 
 private:
     void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
+    bool videoCaptureDeviceIsValid() const;
 
     AVFCameraService *m_service;
     AVFCameraSession *m_session;
@@ -103,6 +108,7 @@ private:
 
     QMutex m_requestsMutex;
     QQueue<CaptureRequest> m_captureRequests;
+    QImageEncoderSettings m_settings;
 
     QCameraImageCapture::CaptureDestinations m_destination = QCameraImageCapture::CaptureToFile;
 };

@@ -80,4 +80,14 @@ void BbCameraImageCaptureControl::setCaptureDestination(QCameraImageCapture::Cap
     m_session->setCaptureDestination(destination);
 }
 
+QImageEncoderSettings BbCameraImageCaptureControl::imageSettings() const
+{
+    return m_session->imageSettings();
+}
+
+void BbCameraImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+{
+    m_session->setImageSettings(settings);
+}
+
 QT_END_NAMESPACE

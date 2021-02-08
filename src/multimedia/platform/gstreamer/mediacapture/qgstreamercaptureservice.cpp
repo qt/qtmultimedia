@@ -40,7 +40,6 @@
 #include "qgstreamercaptureservice_p.h"
 #include "qgstreamercapturesession_p.h"
 #include "qgstreamerrecordercontrol_p.h"
-#include "qgstreamerimageencode_p.h"
 #include "qgstreamercameracontrol_p.h"
 #include <private/qgstreamerbushelper_p.h>
 #include "qgstreamercapturemetadatacontrol_p.h"
@@ -78,8 +77,6 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
             delete m_videoWindow;
             m_videoWindow = 0;
         }
-
-        m_imageCaptureControl = new QGstreamerImageCaptureControl(m_captureSession);
     }
 #endif
 }
@@ -97,14 +94,11 @@ QObject *QGstreamerCaptureService::requestControl(const char *name)
     if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
         return m_captureSession->recorderControl();
 
-    if (qstrcmp(name,QImageEncoderControl_iid) == 0)
-        return m_captureSession->imageEncodeControl();
-
     if (qstrcmp(name,QCameraControl_iid) == 0)
         return m_cameraControl;
 
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
-        return m_imageCaptureControl;
+        return m_captureSession->imageCaptureControl();
 
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {

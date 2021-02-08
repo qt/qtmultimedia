@@ -8,7 +8,6 @@ PUBLIC_HEADERS += \
     controls/qcamerafocuscontrol.h \
     controls/qcameraimagecapturecontrol.h \
     controls/qcameraimageprocessingcontrol.h \
-    controls/qimageencodercontrol.h \
     controls/qmediaplayercontrol.h \
     controls/qmediarecordercontrol.h \
     controls/qmediastreamscontrol.h \
@@ -23,7 +22,6 @@ SOURCES += \
     controls/qcamerafocuscontrol.cpp \
     controls/qcameraimagecapturecontrol.cpp \
     controls/qcameraimageprocessingcontrol.cpp \
-    controls/qimageencodercontrol.cpp \
     controls/qmediaplayercontrol.cpp \
     controls/qmediarecordercontrol.cpp \
     controls/qmediastreamscontrol.cpp \

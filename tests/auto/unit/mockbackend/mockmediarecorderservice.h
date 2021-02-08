@@ -37,7 +37,6 @@
 #include "mockcameraimageprocessingcontrol.h"
 #include "mockcameraimagecapturecontrol.h"
 #include "mockcameraexposurecontrol.h"
-#include "mockimageencodercontrol.h"
 #include "mockcameracontrol.h"
 #include "mockvideorenderercontrol.h"
 #include "mockvideowindowcontrol.h"
@@ -57,7 +56,6 @@ public:
         mockFocusControl = new MockCameraFocusControl(this);
         mockCaptureControl = new MockCaptureControl(mockCameraControl, this);
         mockImageProcessingControl = new MockImageProcessingControl(this);
-        mockImageEncoderControl = new MockImageEncoderControl(this);
         rendererControl = new MockVideoRendererControl(this);
         windowControl = new MockVideoWindowControl(this);
         rendererRef = 0;
@@ -88,8 +86,6 @@ public:
             return mockCaptureControl;
         if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
             return mockImageProcessingControl;
-        if (qstrcmp(name, QImageEncoderControl_iid) == 0)
-            return mockImageEncoderControl;
 
         if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
             if (rendererRef == 0) {
@@ -122,7 +118,6 @@ public:
     MockCameraExposureControl *mockExposureControl;
     MockCameraFocusControl *mockFocusControl;
     MockImageProcessingControl *mockImageProcessingControl;
-    MockImageEncoderControl *mockImageEncoderControl;
     MockVideoRendererControl *rendererControl;
     MockVideoWindowControl *windowControl;
     int rendererRef;
