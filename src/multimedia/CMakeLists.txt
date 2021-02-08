@@ -231,8 +231,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_camerabin
     SOURCES
         platform/gstreamer/camerabin/camerabincontrol.cpp platform/gstreamer/camerabin/camerabincontrol_p.h
-        platform/gstreamer/camerabin/camerabinimagecapture.cpp platform/gstreamer/camerabin/camerabinimagecapture_p.h
-        platform/gstreamer/camerabin/camerabinimageencoder.cpp platform/gstreamer/camerabin/camerabinimageencoder_p.h
         platform/gstreamer/camerabin/camerabinimageprocessing.cpp platform/gstreamer/camerabin/camerabinimageprocessing_p.h
         platform/gstreamer/camerabin/camerabinrecorder.cpp platform/gstreamer/camerabin/camerabinrecorder_p.h
         platform/gstreamer/camerabin/camerabinservice.cpp platform/gstreamer/camerabin/camerabinservice_p.h
