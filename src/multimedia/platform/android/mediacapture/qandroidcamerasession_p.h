@@ -103,8 +103,6 @@ public:
 
     bool isReadyForCapture() const;
     void setReadyForCapture(bool ready);
-    QCameraImageCapture::DriveMode driveMode() const;
-    void setDriveMode(QCameraImageCapture::DriveMode mode);
     int capture(const QString &fileName);
     void cancelCapture();
 
@@ -187,7 +185,6 @@ private:
     QImageEncoderSettings m_requestedImageSettings;
     QImageEncoderSettings m_actualImageSettings;
     QCameraImageCapture::CaptureDestinations m_captureDestination;
-    QCameraImageCapture::DriveMode m_captureImageDriveMode;
     int m_lastImageCaptureId;
     bool m_readyForCapture;
     bool m_captureCanceled;

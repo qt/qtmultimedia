@@ -162,19 +162,6 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraImageCaptureControl::driveMode() const
-
-    Returns the current camera drive mode.
-*/
-
-/*!
-    \fn QCameraImageCaptureControl::setDriveMode(QCameraImageCapture::DriveMode mode)
-
-    Sets the current camera drive \a mode.
-*/
-
-
-/*!
     \fn QCameraImageCaptureControl::error(int id, int error, const QString &errorString)
 
     Signals the capture request \a id failed with \a error code and message \a errorString.

@@ -123,7 +123,6 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_device("bb:RearCamera")
     , m_previewIsVideo(true)
     , m_surface(0)
-    , m_captureImageDriveMode(QCameraImageCapture::SingleImageCapture)
     , m_lastImageCaptureId(0)
     , m_captureDestination(QCameraImageCapture::CaptureToFile)
     , m_videoState(QMediaRecorder::StoppedState)
@@ -294,16 +293,6 @@ bool BbCameraSession::isReadyForCapture() const
     return false;
 }
 
-QCameraImageCapture::DriveMode BbCameraSession::driveMode() const
-{
-    return m_captureImageDriveMode;
-}
-
-void BbCameraSession::setDriveMode(QCameraImageCapture::DriveMode mode)
-{
-    m_captureImageDriveMode = mode;
-}
-
 /**
  * A helper structure that keeps context data for image capture callbacks.
  */
@@ -371,25 +360,21 @@ int BbCameraSession::capture(const QString &fileName)
         return m_lastImageCaptureId;
     }
 
-    if (m_captureImageDriveMode == QCameraImageCapture::SingleImageCapture) {
-        // prepare context object for callback
-        ImageCaptureData *context = new ImageCaptureData;
-        context->requestId = m_lastImageCaptureId;
-        context->fileName = fileName;
-        context->session = this;
+    // prepare context object for callback
+    ImageCaptureData *context = new ImageCaptureData;
+    context->requestId = m_lastImageCaptureId;
+    context->fileName = fileName;
+    context->session = this;
 
-        const camera_error_t result = camera_take_photo(m_handle,
-                                                        imageCaptureShutterCallback,
-                                                        0,
-                                                        0,
-                                                        imageCaptureImageCallback,
-                                                        context, false);
+    const camera_error_t result = camera_take_photo(m_handle,
+                                                    imageCaptureShutterCallback,
+                                                    0,
+                                                    0,
+                                                    imageCaptureImageCallback,
+                                                    context, false);
 
-        if (result != CAMERA_EOK)
-            qWarning() << "Unable to take photo:" << result;
-    } else {
-        // TODO: implement burst mode when available in Qt API
-    }
+    if (result != CAMERA_EOK)
+        qWarning() << "Unable to take photo:" << result;
 
     return m_lastImageCaptureId;
 }

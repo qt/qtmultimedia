@@ -60,16 +60,6 @@ bool BbCameraImageCaptureControl::isReadyForCapture() const
     return m_session->isReadyForCapture();
 }
 
-QCameraImageCapture::DriveMode BbCameraImageCaptureControl::driveMode() const
-{
-    return m_session->driveMode();
-}
-
-void BbCameraImageCaptureControl::setDriveMode(QCameraImageCapture::DriveMode mode)
-{
-    m_session->setDriveMode(mode);
-}
-
 int BbCameraImageCaptureControl::capture(const QString &fileName)
 {
     return m_session->capture(fileName);

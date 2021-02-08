@@ -71,7 +71,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_status(QCamera::UnloadedStatus)
     , m_previewStarted(false)
     , m_captureDestination(QCameraImageCapture::CaptureToFile)
-    , m_captureImageDriveMode(QCameraImageCapture::SingleImageCapture)
     , m_lastImageCaptureId(0)
     , m_readyForCapture(false)
     , m_captureCanceled(false)
@@ -577,16 +576,6 @@ void QAndroidCameraSession::setReadyForCapture(bool ready)
     emit readyForCaptureChanged(ready);
 }
 
-QCameraImageCapture::DriveMode QAndroidCameraSession::driveMode() const
-{
-    return m_captureImageDriveMode;
-}
-
-void QAndroidCameraSession::setDriveMode(QCameraImageCapture::DriveMode mode)
-{
-    m_captureImageDriveMode = mode;
-}
-
 int QAndroidCameraSession::capture(const QString &fileName)
 {
     ++m_lastImageCaptureId;
@@ -597,24 +586,18 @@ int QAndroidCameraSession::capture(const QString &fileName)
         return m_lastImageCaptureId;
     }
 
-    if (m_captureImageDriveMode == QCameraImageCapture::SingleImageCapture) {
-        setReadyForCapture(false);
+    setReadyForCapture(false);
 
-        m_currentImageCaptureId = m_lastImageCaptureId;
-        m_currentImageCaptureFileName = fileName;
+    m_currentImageCaptureId = m_lastImageCaptureId;
+    m_currentImageCaptureFileName = fileName;
 
-        applyImageSettings();
-        applyResolution(m_actualImageSettings.resolution());
+    applyImageSettings();
+    applyResolution(m_actualImageSettings.resolution());
 
-        // adjust picture rotation depending on the device orientation
-        m_camera->setRotation(currentCameraRotation());
+    // adjust picture rotation depending on the device orientation
+    m_camera->setRotation(currentCameraRotation());
 
-        m_camera->takePicture();
-    } else {
-        //: Drive mode is the camera's shutter mode, for example single shot, continuos exposure, etc.
-        emit imageCaptureError(m_lastImageCaptureId, QCameraImageCapture::NotSupportedFeatureError,
-                               tr("Drive mode not supported"));
-    }
+    m_camera->takePicture();
 
     return m_lastImageCaptureId;
 }

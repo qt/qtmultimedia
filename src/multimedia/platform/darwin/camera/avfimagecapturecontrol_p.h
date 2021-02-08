@@ -76,8 +76,6 @@ public:
 
     bool isReadyForCapture() const override;
 
-    QCameraImageCapture::DriveMode driveMode() const override { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode ) override {}
     AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
 
     int capture(const QString &fileName) override;

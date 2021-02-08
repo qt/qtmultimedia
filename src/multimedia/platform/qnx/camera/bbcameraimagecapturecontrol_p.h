@@ -64,9 +64,6 @@ public:
 
     bool isReadyForCapture() const override;
 
-    QCameraImageCapture::DriveMode driveMode() const override;
-    void setDriveMode(QCameraImageCapture::DriveMode mode) override;
-
     int capture(const QString &fileName) override;
     void cancelCapture() override;
 

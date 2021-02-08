@@ -98,8 +98,6 @@ public:
 
     // image capture control
     bool isReadyForCapture() const;
-    QCameraImageCapture::DriveMode driveMode() const;
-    void setDriveMode(QCameraImageCapture::DriveMode mode);
     int capture(const QString &fileName);
     void cancelCapture();
 
@@ -197,7 +195,6 @@ private:
     QPointer<QAbstractVideoSurface> m_surface;
     QMutex m_surfaceMutex;
 
-    QCameraImageCapture::DriveMode m_captureImageDriveMode;
     int m_lastImageCaptureId;
     QCameraImageCapture::CaptureDestinations m_captureDestination;
 

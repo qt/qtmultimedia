@@ -50,9 +50,6 @@ public:
     {
     }
 
-    QCameraImageCapture::DriveMode driveMode() const { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode) {}
-
     bool isReadyForCapture() const { return m_ready && m_cameraControl->state() == QCamera::ActiveState; }
 
     int capture(const QString &fileName)

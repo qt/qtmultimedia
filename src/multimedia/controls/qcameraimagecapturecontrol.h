@@ -60,9 +60,6 @@ class Q_MULTIMEDIA_EXPORT QCameraImageCaptureControl : public QObject
 public:
     virtual bool isReadyForCapture() const = 0;
 
-    virtual QCameraImageCapture::DriveMode driveMode() const = 0;
-    virtual void setDriveMode(QCameraImageCapture::DriveMode mode) = 0;
-
     virtual int capture(const QString &fileName) = 0;
     virtual void cancelCapture() = 0;
 

@@ -61,16 +61,6 @@ bool QAndroidCameraImageCaptureControl::isReadyForCapture() const
     return m_session->isReadyForCapture();
 }
 
-QCameraImageCapture::DriveMode QAndroidCameraImageCaptureControl::driveMode() const
-{
-    return m_session->driveMode();
-}
-
-void QAndroidCameraImageCaptureControl::setDriveMode(QCameraImageCapture::DriveMode mode)
-{
-    m_session->setDriveMode(mode);
-}
-
 int QAndroidCameraImageCaptureControl::capture(const QString &fileName)
 {
     return m_session->capture(fileName);

@@ -71,9 +71,6 @@ public:
     CameraBinImageCapture(CameraBinSession *session);
     virtual ~CameraBinImageCapture();
 
-    QCameraImageCapture::DriveMode driveMode() const override { return QCameraImageCapture::SingleImageCapture; }
-    void setDriveMode(QCameraImageCapture::DriveMode) override {}
-
     bool isReadyForCapture() const override;
     int capture(const QString &fileName) override;
     void cancelCapture() override;

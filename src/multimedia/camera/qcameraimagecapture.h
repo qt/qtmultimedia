@@ -75,11 +75,6 @@ public:
         FormatError
     };
 
-    enum DriveMode
-    {
-        SingleImageCapture
-    };
-
     enum CaptureDestination
     {
         CaptureToFile = 0x01,

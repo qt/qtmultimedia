@@ -416,12 +416,6 @@ void QCameraImageCapture::cancelCapture()
 */
 
 /*!
-    \enum QCameraImageCapture::DriveMode
-
-    \value SingleImageCapture Drive mode is capturing a single picture.
-*/
-
-/*!
     \fn QCameraImageCapture::error(int id, QCameraImageCapture::Error error, const QString &errorString)
 
     Signals that the capture request \a id has failed with an \a error
