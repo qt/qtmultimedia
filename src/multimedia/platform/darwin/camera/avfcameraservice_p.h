@@ -60,7 +60,6 @@ QT_BEGIN_NAMESPACE
 class QCameraControl;
 class QMediaRecorderControl;
 class AVFCameraControl;
-class AVFCameraMetaDataControl;
 class AVFVideoWindowControl;
 class AVFVideoWidgetControl;
 class AVFCameraRendererControl;
@@ -85,7 +84,6 @@ public:
 
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *cameraControl() const { return m_cameraControl; }
-    AVFCameraMetaDataControl *metaDataControl() const { return m_metaDataControl; }
     QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
@@ -97,7 +95,6 @@ private:
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     AVFCameraRendererControl *m_videoOutput;
-    AVFCameraMetaDataControl *m_metaDataControl;
     QMediaRecorderControl *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;
     AVFCameraFocusControl *m_cameraFocusControl;

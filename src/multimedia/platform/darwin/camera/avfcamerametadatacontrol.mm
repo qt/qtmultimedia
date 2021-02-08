@@ -40,15 +40,15 @@
 #include "avfcamerametadatacontrol_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
+#include "avfmediarecordercontrol_p.h"
 
 QT_USE_NAMESPACE
 
 //metadata support is not implemented yet
 
-AVFCameraMetaDataControl::AVFCameraMetaDataControl(AVFCameraService *service, QObject *parent)
-    :QMetaDataWriterControl(parent)
+AVFCameraMetaDataControl::AVFCameraMetaDataControl(AVFMediaRecorderControl *parent)
+    : QMetaDataWriterControl(parent)
 {
-    Q_UNUSED(service);
 }
 
 AVFCameraMetaDataControl::~AVFCameraMetaDataControl()

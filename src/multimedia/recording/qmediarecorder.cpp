@@ -290,8 +290,6 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
         if (service) {
             disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
 
-            if (d->control)
-                service->releaseControl(d->control);
             if (d->metaDataControl) {
                 disconnect(d->metaDataControl, SIGNAL(metaDataChanged()),
                         this, SIGNAL(metaDataChanged()));
@@ -301,9 +299,9 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
                         this, SIGNAL(metaDataAvailableChanged(bool)));
                 disconnect(d->metaDataControl, SIGNAL(writableChanged(bool)),
                         this, SIGNAL(metaDataWritableChanged(bool)));
-
-                service->releaseControl(d->metaDataControl);
             }
+            if (d->control)
+                service->releaseControl(d->control);
         }
     }
 
@@ -322,25 +320,20 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
             d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));
 
             if (d->control) {
-                QObject *control = service->requestControl(QMetaDataWriterControl_iid);
-                if (control) {
-                    d->metaDataControl = qobject_cast<QMetaDataWriterControl *>(control);
-                    if (!d->metaDataControl) {
-                        service->releaseControl(control);
-                    } else {
-                        connect(d->metaDataControl,
-                                SIGNAL(metaDataChanged()),
-                                SIGNAL(metaDataChanged()));
-                        connect(d->metaDataControl, SIGNAL(metaDataChanged(QString,QVariant)),
-                                this, SIGNAL(metaDataChanged(QString,QVariant)));
-                        connect(d->metaDataControl,
-                                SIGNAL(metaDataAvailableChanged(bool)),
-                                SIGNAL(metaDataAvailableChanged(bool)));
-                        connect(d->metaDataControl,
-                                SIGNAL(writableChanged(bool)),
-                                SIGNAL(metaDataWritableChanged(bool)));
-                    }
-                }
+                d->metaDataControl = d->control->metaDataControl();
+                Q_ASSERT(d->metaDataControl);
+
+                connect(d->metaDataControl,
+                        SIGNAL(metaDataChanged()),
+                        SIGNAL(metaDataChanged()));
+                connect(d->metaDataControl, SIGNAL(metaDataChanged(QString,QVariant)),
+                        this, SIGNAL(metaDataChanged(QString,QVariant)));
+                connect(d->metaDataControl,
+                        SIGNAL(metaDataAvailableChanged(bool)),
+                        SIGNAL(metaDataAvailableChanged(bool)));
+                connect(d->metaDataControl,
+                        SIGNAL(writableChanged(bool)),
+                        SIGNAL(metaDataWritableChanged(bool)));
 
                 connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
                         this, SLOT(_q_stateChanged(QMediaRecorder::State)));

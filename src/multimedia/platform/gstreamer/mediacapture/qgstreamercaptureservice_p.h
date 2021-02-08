@@ -65,7 +65,6 @@ class QGstreamerBusHelper;
 class QGstreamerVideoRenderer;
 class QGstreamerVideoWindow;
 class QGstreamerElementFactory;
-class QGstreamerCaptureMetaDataControl;
 class QGstreamerImageCaptureControl;
 class QGstreamerVideoInput;
 
@@ -88,7 +87,6 @@ private:
 #if defined(USE_GSTREAMER_CAMERA)
     QGstreamerVideoInput *m_videoInput = nullptr;
 #endif
-    QGstreamerCaptureMetaDataControl *m_metaDataControl = nullptr;
 
     QObject *m_videoOutput = nullptr;
 

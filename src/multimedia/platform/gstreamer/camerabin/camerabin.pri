@@ -7,7 +7,6 @@ HEADERS += \
     $$PWD/camerabinrecorder_p.h \
     $$PWD/camerabinimagecapture_p.h \
     $$PWD/camerabinimageprocessing_p.h \
-    $$PWD/camerabinmetadata_p.h \
 
 SOURCES += \
     $$PWD/camerabinservice.cpp \
@@ -16,7 +15,6 @@ SOURCES += \
     $$PWD/camerabinimagecapture.cpp \
     $$PWD/camerabinimageencoder.cpp \
     $$PWD/camerabinimageprocessing.cpp \
-    $$PWD/camerabinmetadata.cpp \
     $$PWD/camerabinrecorder.cpp \
 
 qtConfig(gstreamer__p.hotography) {

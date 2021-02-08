@@ -56,13 +56,13 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraService;
+class AVFMediaRecorderControl;
 
 class AVFCameraMetaDataControl : public QMetaDataWriterControl
 {
     Q_OBJECT
 public:
-    AVFCameraMetaDataControl(AVFCameraService *service, QObject *parent = nullptr);
+    AVFCameraMetaDataControl(AVFMediaRecorderControl *parent = nullptr);
     virtual ~AVFCameraMetaDataControl();
 
     bool isMetaDataAvailable() const override;

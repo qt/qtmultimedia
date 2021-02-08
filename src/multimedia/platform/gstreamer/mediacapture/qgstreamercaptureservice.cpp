@@ -82,10 +82,6 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
         m_imageCaptureControl = new QGstreamerImageCaptureControl(m_captureSession);
     }
 #endif
-
-    m_metaDataControl = new QGstreamerCaptureMetaDataControl(this);
-    connect(m_metaDataControl, SIGNAL(metaDataChanged(QMap<QByteArray,QVariant>)),
-            m_captureSession, SLOT(setMetaData(QMap<QByteArray,QVariant>)));
 }
 
 QGstreamerCaptureService::~QGstreamerCaptureService()
@@ -106,9 +102,6 @@ QObject *QGstreamerCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name,QCameraControl_iid) == 0)
         return m_cameraControl;
-
-    if (qstrcmp(name,QMetaDataWriterControl_iid) == 0)
-        return m_metaDataControl;
 
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;

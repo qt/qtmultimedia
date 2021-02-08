@@ -67,7 +67,6 @@ AVFCameraService::AVFCameraService()
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);
 
-    m_metaDataControl = new AVFCameraMetaDataControl(this);
 #ifndef Q_OS_IOS
     // This will connect a slot to 'captureModeChanged'
     // and will break viewfinder by attaching AVCaptureMovieFileOutput
@@ -110,7 +109,6 @@ AVFCameraService::~AVFCameraService()
     //so they have a chance to do deinitialization
     delete m_imageCaptureControl;
     //delete m_recorderControl;
-    delete m_metaDataControl;
     delete m_cameraControl;
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
@@ -123,10 +121,6 @@ QObject *AVFCameraService::requestControl(const char *name)
 {
     if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
-
-    //metadata support is not implemented yet
-    //if (qstrcmp(name, QMetaDataWriterControl_iid) == 0)
-    //    return m_metaDataControl;
 
     if (qstrcmp(name, QMediaRecorderControl_iid) == 0)
         return m_recorderControl;

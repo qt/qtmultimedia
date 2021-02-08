@@ -59,6 +59,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QGstreamerCaptureMetaDataControl;
+
 class QGstreamerRecorderControl : public QMediaRecorderControl
 {
     Q_OBJECT
@@ -87,6 +89,8 @@ public:
     QMediaEncoderSettings encoderSettings() const { return m_settings; }
     QMediaEncoderSettings resolvedEncoderSettings() const;
 
+    QMetaDataWriterControl *metaDataControl() override;
+
 public slots:
     void setState(QMediaRecorder::State state) override;
     void record();
@@ -106,6 +110,7 @@ private:
     QUrl m_outputLocation;
     QMediaEncoderSettings m_settings;
     QGstreamerCaptureSession *m_session;
+    QGstreamerCaptureMetaDataControl *m_metaData = nullptr;;
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;
     bool m_hasPreviewState;

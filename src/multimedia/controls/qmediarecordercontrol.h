@@ -52,6 +52,7 @@ QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
 class QString;
+class QMetaDataWriterControl;
 
 class Q_MULTIMEDIA_EXPORT QMediaRecorderControl : public QObject
 {
@@ -75,6 +76,8 @@ public:
     virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
 
     virtual void setEncoderSettings(const QMediaEncoderSettings &settings) = 0;
+
+    virtual QMetaDataWriterControl *metaDataControl() { return nullptr; }
 
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);

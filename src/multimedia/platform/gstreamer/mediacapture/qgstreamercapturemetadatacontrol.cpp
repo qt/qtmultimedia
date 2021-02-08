@@ -55,6 +55,7 @@ static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
         metadataKeys->insert(QMediaMetaData::SubTitle, 0);
         //metadataKeys->insert(QMediaMetaData::Author, 0);
         metadataKeys->insert(QMediaMetaData::Comment, GST_TAG_COMMENT);
+        metadataKeys->insert(QMediaMetaData::Date, GST_TAG_DATE_TIME);
         metadataKeys->insert(QMediaMetaData::Description, GST_TAG_DESCRIPTION);
         //metadataKeys->insert(QMediaMetaData::Category, 0);
         metadataKeys->insert(QMediaMetaData::Genre, GST_TAG_GENRE);
@@ -110,10 +111,20 @@ static const QGstreamerMetaDataKeyLookup *qt_gstreamerMetaDataKeys()
         //metadataKeys->insert(QMediaMetaData::Writer, 0);
 
         // Photos
-        //metadataKeys->insert(QMediaMetaData::CameraManufacturer, 0);
-        //metadataKeys->insert(QMediaMetaData::CameraModel, 0);
-        //metadataKeys->insert(QMediaMetaData::Event, 0);
-        //metadataKeys->insert(QMediaMetaData::Subject, 0 }
+        metadataKeys->insert(QMediaMetaData::CameraManufacturer, GST_TAG_DEVICE_MANUFACTURER);
+        metadataKeys->insert(QMediaMetaData::CameraModel, GST_TAG_DEVICE_MODEL);
+        //metadataKeys->insert(QMediaMetaData::Event, 0, QMetaType::QString));
+        //metadataKeys->insert(QMediaMetaData::Subject, 0, QMetaType::QString));
+
+        metadataKeys->insert(QMediaMetaData::Orientation, GST_TAG_IMAGE_ORIENTATION);
+
+        // GPS
+        metadataKeys->insert(QMediaMetaData::GPSLatitude, GST_TAG_GEO_LOCATION_LATITUDE);
+        metadataKeys->insert(QMediaMetaData::GPSLongitude, GST_TAG_GEO_LOCATION_LONGITUDE);
+        metadataKeys->insert(QMediaMetaData::GPSAltitude, GST_TAG_GEO_LOCATION_ELEVATION);
+        metadataKeys->insert(QMediaMetaData::GPSTrack, GST_TAG_GEO_LOCATION_MOVEMENT_DIRECTION);
+        metadataKeys->insert(QMediaMetaData::GPSSpeed, GST_TAG_GEO_LOCATION_MOVEMENT_SPEED);
+        metadataKeys->insert(QMediaMetaData::GPSImgDirection, GST_TAG_GEO_LOCATION_CAPTURE_DIRECTION);
     }
 
     return metadataKeys;
