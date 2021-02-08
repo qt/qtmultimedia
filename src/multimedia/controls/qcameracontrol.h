@@ -49,6 +49,9 @@ QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
 class QString;
+class QCameraFocusControl;
+class QCameraExposureControl;
+class QCameraImageProcessingControl;
 
 class Q_MULTIMEDIA_EXPORT QCameraControl : public QObject
 {
@@ -81,6 +84,10 @@ public:
 
     virtual void searchAndLock(QCamera::LockTypes locks) = 0;
     virtual void unlock(QCamera::LockTypes locks) = 0;
+
+    virtual QCameraFocusControl *focusControl() { return nullptr; }
+    virtual QCameraExposureControl *exposureControl() { return nullptr; }
+    virtual QCameraImageProcessingControl *imageProcessingControl() { return nullptr; }
 
 Q_SIGNALS:
     void stateChanged(QCamera::State);

@@ -63,6 +63,9 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidVideoOutput;
+class QAndroidCameraExposureControl;
+class QAndroidCameraFocusControl;
+class QAndroidCameraImageProcessingControl;
 
 class QAndroidCameraSession : public QObject
 {
@@ -116,6 +119,10 @@ public:
     };
     void setPreviewCallback(PreviewCallback *callback);
     bool requestRecordingPermission();
+
+    QAndroidCameraFocusControl *focusControl() { return m_cameraFocusControl; }
+    QAndroidCameraExposureControl *exposureControl() { return m_cameraExposureControl; }
+    QAndroidCameraImageProcessingControl *imageProcessingControl() { return m_cameraImageProcessingControl; }
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status status);
@@ -181,6 +188,10 @@ private:
     int m_savedState;
     QCamera::Status m_status;
     bool m_previewStarted;
+
+    QAndroidCameraExposureControl *m_cameraExposureControl;
+    QAndroidCameraFocusControl *m_cameraFocusControl;
+    QAndroidCameraImageProcessingControl *m_cameraImageProcessingControl;
 
     QImageEncoderSettings m_requestedImageSettings;
     QImageEncoderSettings m_actualImageSettings;

@@ -63,9 +63,6 @@ class QAndroidCaptureSession;
 class QAndroidCameraControl;
 class QAndroidCameraSession;
 class QAndroidCameraVideoRendererControl;
-class QAndroidCameraExposureControl;
-class QAndroidCameraFocusControl;
-class QAndroidCameraImageProcessingControl;
 class QAndroidImageEncoderControl;
 class QAndroidCameraImageCaptureControl;
 
@@ -80,7 +77,6 @@ public:
     QObject *requestControl(const char *name);
     void releaseControl(QObject *);
 
-private:
     bool m_videoEnabled = false;
 
     QAndroidMediaRecorderControl *m_recorderControl;
@@ -88,9 +84,6 @@ private:
     QAndroidCameraControl *m_cameraControl;
     QAndroidCameraSession *m_cameraSession;
     QAndroidCameraVideoRendererControl *m_videoRendererControl;
-    QAndroidCameraExposureControl *m_cameraExposureControl;
-    QAndroidCameraFocusControl *m_cameraFocusControl;
-    QAndroidCameraImageProcessingControl *m_cameraImageProcessingControl;
     QAndroidImageEncoderControl *m_imageEncoderControl;
     QAndroidCameraImageCaptureControl *m_imageCaptureControl;
 };

@@ -47,6 +47,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QCamera;
+class QCameraControl;
 class QCameraExposurePrivate;
 
 class Q_MULTIMEDIA_EXPORT QCameraExposure : public QObject
@@ -156,7 +157,7 @@ protected:
 private:
     friend class QCamera;
     friend class QCameraPrivate;
-    explicit QCameraExposure(QCamera *parent = nullptr);
+    explicit QCameraExposure(QCamera *parent, QCameraControl *cameraControl);
 
     Q_DISABLE_COPY(QCameraExposure)
     Q_DECLARE_PRIVATE(QCameraExposure)
@@ -168,9 +169,6 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraExposure::FlashModes)
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QCameraExposure::ExposureMode)
-Q_DECLARE_METATYPE(QCameraExposure::FlashModes)
 
 Q_MEDIA_ENUM_DEBUG(QCameraExposure, ExposureMode)
 Q_MEDIA_ENUM_DEBUG(QCameraExposure, FlashMode)

@@ -55,6 +55,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QCamera;
+class QCameraControl;
 
 class QCameraImageProcessingPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraImageProcessing : public QObject
@@ -122,16 +123,13 @@ protected:
 private:
     friend class QCamera;
     friend class QCameraPrivate;
-    QCameraImageProcessing(QCamera *camera);
+    QCameraImageProcessing(QCamera *camera, QCameraControl *cameraControl);
 
     Q_DISABLE_COPY(QCameraImageProcessing)
     Q_DECLARE_PRIVATE(QCameraImageProcessing)
 };
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QCameraImageProcessing::WhiteBalanceMode)
-Q_DECLARE_METATYPE(QCameraImageProcessing::ColorFilter)
 
 Q_MEDIA_ENUM_DEBUG(QCameraImageProcessing, WhiteBalanceMode)
 Q_MEDIA_ENUM_DEBUG(QCameraImageProcessing, ColorFilter)

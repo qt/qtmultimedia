@@ -43,6 +43,8 @@
 #include "avfcameraservice_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamerarenderercontrol_p.h"
+#include "avfcameraexposurecontrol_p.h"
+#include "avfcamerafocuscontrol_p.h"
 #include "qabstractvideosurface.h"
 
 QT_USE_NAMESPACE
@@ -228,6 +230,22 @@ AVCaptureConnection *AVFCameraControl::videoConnection() const
         return nil;
 
     return [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+}
+
+
+QCameraFocusControl *AVFCameraControl::focusControl()
+{
+    return m_service->cameraFocusControl();
+}
+
+QCameraExposureControl *AVFCameraControl::exposureControl()
+{
+    return m_service->cameraExposureControl();
+}
+
+QCameraImageProcessingControl *AVFCameraControl::imageProcessingControl()
+{
+    return nullptr;
 }
 
 #include "moc_avfcameracontrol_p.cpp"

@@ -83,6 +83,10 @@ public:
     void searchAndLock(QCamera::LockTypes locks) override;
     void unlock(QCamera::LockTypes locks) override;
 
+    QCameraFocusControl *focusControl() override;
+    QCameraExposureControl *exposureControl() override;
+    QCameraImageProcessingControl *imageProcessingControl() override;
+
 private Q_SLOTS:
     void onCameraOpened();
     void onCameraAutoFocusComplete(bool success);

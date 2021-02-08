@@ -42,6 +42,7 @@
 
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>
+#include <qcameracontrol.h>
 
 #include <QtCore/QMetaObject>
 #include <QtCore/QDebug>
@@ -62,20 +63,12 @@ QT_BEGIN_NAMESPACE
 
 //#define DEBUG_EXPOSURE_CHANGES 1
 
-static void qRegisterCameraExposureMetaTypes()
-{
-    qRegisterMetaType<QCameraExposure::ExposureMode>("QCameraExposure::ExposureMode");
-    qRegisterMetaType<QCameraExposure::FlashModes>("QCameraExposure::FlashModes");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraExposureMetaTypes)
-
 
 class QCameraExposurePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraExposure)
 public:
-    void initControls();
+    void init(QCameraControl *cameraControl);
     QCameraExposure *q_ptr;
 
     template<typename T> T actualExposureParameter(QCameraExposureControl::ExposureParameter parameter, const T &defaultValue) const;
@@ -90,22 +83,20 @@ public:
     void _q_exposureParameterRangeChanged(int parameter);
 };
 
-void QCameraExposurePrivate::initControls()
+void QCameraExposurePrivate::init(QCameraControl *cameraControl)
 {
     Q_Q(QCameraExposure);
 
-    QMediaService *service = camera->service();
-    exposureControl = nullptr;
-    if (service) {
-        exposureControl = qobject_cast<QCameraExposureControl *>(service->requestControl(QCameraExposureControl_iid));
-    }
-    if (exposureControl) {
-        q->connect(exposureControl, SIGNAL(actualValueChanged(int)),
-                   q, SLOT(_q_exposureParameterChanged(int)));
-        q->connect(exposureControl, SIGNAL(parameterRangeChanged(int)),
-                   q, SLOT(_q_exposureParameterRangeChanged(int)));
-        q->connect(exposureControl, SIGNAL(flashReady(bool)), q, SIGNAL(flashReady(bool)));
-    }
+    exposureControl = cameraControl->exposureControl();
+
+    if (!exposureControl)
+        return;
+
+    q->connect(exposureControl, SIGNAL(actualValueChanged(int)),
+               q, SLOT(_q_exposureParameterChanged(int)));
+    q->connect(exposureControl, SIGNAL(parameterRangeChanged(int)),
+               q, SLOT(_q_exposureParameterRangeChanged(int)));
+    q->connect(exposureControl, SIGNAL(flashReady(bool)), q, SIGNAL(flashReady(bool)));
 }
 
 template<typename T>
@@ -182,13 +173,13 @@ void QCameraExposurePrivate::_q_exposureParameterRangeChanged(int parameter)
     Construct a QCameraExposure from service \a provider and \a parent.
 */
 
-QCameraExposure::QCameraExposure(QCamera *parent):
+QCameraExposure::QCameraExposure(QCamera *parent, QCameraControl *cameraControl):
     QObject(parent), d_ptr(new QCameraExposurePrivate)
 {
     Q_D(QCameraExposure);
     d->camera = parent;
     d->q_ptr = this;
-    d->initControls();
+    d->init(cameraControl);
 }
 
 

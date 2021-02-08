@@ -39,6 +39,9 @@
 
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
+#include "qandroidcameraexposurecontrol_p.h"
+#include "qandroidcamerafocuscontrol_p.h"
+#include "qandroidcameraimageprocessingcontrol_p.h"
 #include <qmediadevicemanager.h>
 #include <qcamerainfo.h>
 #include <qtimer.h>
@@ -233,6 +236,21 @@ void QAndroidCameraControl::unlock(QCamera::LockTypes locks)
         m_cameraSession->camera()->setAutoWhiteBalanceLock(false);
         setWhiteBalanceLockStatus(QCamera::Unlocked, QCamera::UserRequest);
     }
+}
+
+QCameraFocusControl *QAndroidCameraControl::focusControl()
+{
+    return m_cameraSession->focusControl();
+}
+
+QCameraExposureControl *QAndroidCameraControl::exposureControl()
+{
+    return m_cameraSession->exposureControl();
+}
+
+QCameraImageProcessingControl *QAndroidCameraControl::imageProcessingControl()
+{
+    return m_cameraSession->imageProcessingControl();
 }
 
 void QAndroidCameraControl::onCameraOpened()

@@ -89,6 +89,10 @@ public:
     void searchAndLock(QCamera::LockTypes locks) override;
     void unlock(QCamera::LockTypes locks) override;
 
+    QCameraFocusControl *focusControl() override;
+    QCameraExposureControl *exposureControl() override;
+    QCameraImageProcessingControl *imageProcessingControl() override;
+
     // "Converters":
     static QVideoFrame::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);
     static bool CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv);

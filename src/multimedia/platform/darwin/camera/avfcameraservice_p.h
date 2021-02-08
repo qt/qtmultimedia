@@ -87,9 +87,9 @@ public:
     QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
-    AVFCameraExposureControl *cameraExposureControl() const {return m_cameraExposureControl; }
-    AVFCameraRendererControl *videoOutput() const {return m_videoOutput; }
-    AVFImageEncoderControl *imageEncoderControl() const {return m_imageEncoderControl; }
+    AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
+    AVFCameraRendererControl *videoOutput() const { return m_videoOutput; }
+    AVFImageEncoderControl *imageEncoderControl() const { return m_imageEncoderControl; }
 
 private:
     AVFCameraSession *m_session;

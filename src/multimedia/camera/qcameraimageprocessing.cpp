@@ -41,22 +41,11 @@
 #include "qmediasource_p.h"
 
 #include <qcameracontrol.h>
-#include <qcameraexposurecontrol.h>
-#include <qcamerafocuscontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 
 #include <QtCore/QDebug>
 
 QT_BEGIN_NAMESPACE
-
-static void qRegisterCameraImageProcessingMetaTypes()
-        {
-            qRegisterMetaType<QCameraImageProcessing::WhiteBalanceMode>();
-            qRegisterMetaType<QCameraImageProcessing::ColorFilter>();
-        }
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingMetaTypes)
-
 
 /*!
     \class QCameraImageProcessing
@@ -92,55 +81,31 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingMetaTypes)
     \sa QCameraImageProcessingControl
 */
 
-class QCameraImageProcessingFakeControl : public QCameraImageProcessingControl {
-public:
-    QCameraImageProcessingFakeControl(QObject *parent) :
-        QCameraImageProcessingControl(parent)
-    {}
-
-    [[nodiscard]] bool isParameterSupported(ProcessingParameter) const override { return false; }
-    [[nodiscard]] bool isParameterValueSupported(ProcessingParameter, const QVariant &) const override { return false; }
-    [[nodiscard]] QVariant parameter(ProcessingParameter) const override { return QVariant(); }
-    void setParameter(ProcessingParameter, const QVariant &) override {}
-};
-
-
 class QCameraImageProcessingPrivate : public QMediaSourcePrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QCameraImageProcessing)
 public:
-    void initControls();
+    void init(QCameraControl *cameraControl);
 
     QCamera *camera;
     QCameraImageProcessingControl *imageControl;
-    bool available;
 };
 
 
-void QCameraImageProcessingPrivate::initControls()
+void QCameraImageProcessingPrivate::init(QCameraControl *cameraControl)
 {
-    imageControl = nullptr;
-
-    QMediaService *service = camera->service();
-    if (service)
-        imageControl = qobject_cast<QCameraImageProcessingControl *>(service->requestControl(QCameraImageProcessingControl_iid));
-
-    available = (imageControl != nullptr);
-
-    if (!imageControl)
-        imageControl = new QCameraImageProcessingFakeControl(q_ptr);
+    imageControl = cameraControl->imageProcessingControl();
 }
 
 /*!
     Construct a QCameraImageProcessing for \a camera.
 */
 
-QCameraImageProcessing::QCameraImageProcessing(QCamera *camera)
+QCameraImageProcessing::QCameraImageProcessing(QCamera *camera, QCameraControl *cameraControl)
     : QObject(*new QCameraImageProcessingPrivate, camera)
 {
     Q_D(QCameraImageProcessing);
     d->camera = camera;
-    d->initControls();
+    d->init(cameraControl);
 }
 
 
@@ -158,7 +123,7 @@ QCameraImageProcessing::~QCameraImageProcessing()
 */
 bool QCameraImageProcessing::isAvailable() const
 {
-    return d_func()->available;
+    return d_func()->imageControl;
 }
 
 
@@ -168,7 +133,10 @@ bool QCameraImageProcessing::isAvailable() const
 
 QCameraImageProcessing::WhiteBalanceMode QCameraImageProcessing::whiteBalanceMode() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::WhiteBalancePreset)
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return WhiteBalanceAuto;
+    return d->imageControl->parameter(QCameraImageProcessingControl::WhiteBalancePreset)
             .value<QCameraImageProcessing::WhiteBalanceMode>();
 }
 
@@ -178,7 +146,9 @@ QCameraImageProcessing::WhiteBalanceMode QCameraImageProcessing::whiteBalanceMod
 
 void QCameraImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
 {
-    d_func()->imageControl->setParameter(
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(
                 QCameraImageProcessingControl::WhiteBalancePreset,
                 QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode));
 }
@@ -189,7 +159,10 @@ void QCameraImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBa
 
 bool QCameraImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const
 {
-    return d_func()->imageControl->isParameterValueSupported(
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return false;
+    return d->imageControl->isParameterValueSupported(
                 QCameraImageProcessingControl::WhiteBalancePreset,
                 QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode));
 
@@ -203,7 +176,11 @@ bool QCameraImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing:
 
 qreal QCameraImageProcessing::manualWhiteBalance() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::ColorTemperature).toReal();
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return 0.;
+
+    return d->imageControl->parameter(QCameraImageProcessingControl::ColorTemperature).toReal();
 }
 
 /*!
@@ -213,7 +190,9 @@ qreal QCameraImageProcessing::manualWhiteBalance() const
 
 void QCameraImageProcessing::setManualWhiteBalance(qreal colorTemperature)
 {
-    d_func()->imageControl->setParameter(
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(
                 QCameraImageProcessingControl::ColorTemperature,
                 QVariant(colorTemperature));
 }
@@ -223,7 +202,10 @@ void QCameraImageProcessing::setManualWhiteBalance(qreal colorTemperature)
  */
 qreal QCameraImageProcessing::brightness() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::BrightnessAdjustment).toReal();
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return 0.;
+    return d->imageControl->parameter(QCameraImageProcessingControl::BrightnessAdjustment).toReal();
 }
 
 /*!
@@ -233,7 +215,9 @@ qreal QCameraImageProcessing::brightness() const
  */
 void QCameraImageProcessing::setBrightness(qreal value)
 {
-    d_func()->imageControl->setParameter(QCameraImageProcessingControl::BrightnessAdjustment,
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(QCameraImageProcessingControl::BrightnessAdjustment,
                                          QVariant(value));
 }
 
@@ -242,7 +226,10 @@ void QCameraImageProcessing::setBrightness(qreal value)
 */
 qreal QCameraImageProcessing::contrast() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::ContrastAdjustment).toReal();
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return 0.;
+    return d->imageControl->parameter(QCameraImageProcessingControl::ContrastAdjustment).toReal();
 }
 
 /*!
@@ -252,7 +239,9 @@ qreal QCameraImageProcessing::contrast() const
 */
 void QCameraImageProcessing::setContrast(qreal value)
 {
-    d_func()->imageControl->setParameter(QCameraImageProcessingControl::ContrastAdjustment,
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(QCameraImageProcessingControl::ContrastAdjustment,
                                          QVariant(value));
 }
 
@@ -261,7 +250,10 @@ void QCameraImageProcessing::setContrast(qreal value)
 */
 qreal QCameraImageProcessing::saturation() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::SaturationAdjustment).toReal();
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return 0.;
+    return d->imageControl->parameter(QCameraImageProcessingControl::SaturationAdjustment).toReal();
 }
 
 /*!
@@ -272,7 +264,9 @@ qreal QCameraImageProcessing::saturation() const
 
 void QCameraImageProcessing::setSaturation(qreal value)
 {
-    d_func()->imageControl->setParameter(QCameraImageProcessingControl::SaturationAdjustment,
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(QCameraImageProcessingControl::SaturationAdjustment,
                                          QVariant(value));
 }
 
@@ -281,7 +275,10 @@ void QCameraImageProcessing::setSaturation(qreal value)
 */
 qreal QCameraImageProcessing::sharpeningLevel() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::SharpeningAdjustment).toReal();
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return 0.;
+    return d->imageControl->parameter(QCameraImageProcessingControl::SharpeningAdjustment).toReal();
 }
 
 /*!
@@ -292,7 +289,9 @@ qreal QCameraImageProcessing::sharpeningLevel() const
 
 void QCameraImageProcessing::setSharpeningLevel(qreal level)
 {
-    d_func()->imageControl->setParameter(QCameraImageProcessingControl::SharpeningAdjustment,
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(QCameraImageProcessingControl::SharpeningAdjustment,
                                          QVariant(level));
 }
 
@@ -301,7 +300,10 @@ void QCameraImageProcessing::setSharpeningLevel(qreal level)
 */
 qreal QCameraImageProcessing::denoisingLevel() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::DenoisingAdjustment).toReal();
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return 0.;
+    return d->imageControl->parameter(QCameraImageProcessingControl::DenoisingAdjustment).toReal();
 }
 
 /*!
@@ -316,7 +318,9 @@ qreal QCameraImageProcessing::denoisingLevel() const
 */
 void QCameraImageProcessing::setDenoisingLevel(qreal level)
 {
-    d_func()->imageControl->setParameter(QCameraImageProcessingControl::DenoisingAdjustment,
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(QCameraImageProcessingControl::DenoisingAdjustment,
                                          QVariant(level));
 }
 
@@ -361,7 +365,10 @@ void QCameraImageProcessing::setDenoisingLevel(qreal level)
 
 QCameraImageProcessing::ColorFilter QCameraImageProcessing::colorFilter() const
 {
-    return d_func()->imageControl->parameter(QCameraImageProcessingControl::ColorFilter)
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return ColorFilterNone;
+    return d->imageControl->parameter(QCameraImageProcessingControl::ColorFilter)
             .value<QCameraImageProcessing::ColorFilter>();
 }
 
@@ -374,9 +381,11 @@ QCameraImageProcessing::ColorFilter QCameraImageProcessing::colorFilter() const
 
 void QCameraImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilter filter)
 {
-    d_func()->imageControl->setParameter(
-                QCameraImageProcessingControl::ColorFilter,
-                QVariant::fromValue<QCameraImageProcessing::ColorFilter>(filter));
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(
+                    QCameraImageProcessingControl::ColorFilter,
+                    QVariant::fromValue<QCameraImageProcessing::ColorFilter>(filter));
 }
 
 /*!
@@ -387,7 +396,10 @@ void QCameraImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilter 
 
 bool QCameraImageProcessing::isColorFilterSupported(QCameraImageProcessing::ColorFilter filter) const
 {
-    return d_func()->imageControl->isParameterValueSupported(
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return false;
+    return d->imageControl->isParameterValueSupported(
                 QCameraImageProcessingControl::ColorFilter,
                 QVariant::fromValue<QCameraImageProcessing::ColorFilter>(filter));
 

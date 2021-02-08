@@ -128,12 +128,6 @@ QObject *AVFCameraService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
 
-    if (qstrcmp(name, QCameraExposureControl_iid) == 0)
-        return m_cameraExposureControl;
-
-    if (qstrcmp(name, QCameraFocusControl_iid) == 0)
-        return m_cameraFocusControl;
-
     if (qstrcmp(name, QImageEncoderControl_iid) == 0)
         return m_imageEncoderControl;
 

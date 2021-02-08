@@ -157,9 +157,9 @@ void QCameraPrivate::init()
 {
     Q_Q(QCamera);
     initControls();
-    cameraExposure = new QCameraExposure(q);
-    cameraFocus = new QCameraFocus(q);
-    imageProcessing = new QCameraImageProcessing(q);
+    cameraExposure = new QCameraExposure(q, control);
+    cameraFocus = new QCameraFocus(q, control);
+    imageProcessing = new QCameraImageProcessing(q, control);
 }
 
 void QCameraPrivate::initControls()

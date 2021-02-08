@@ -50,33 +50,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCameraFocusFakeFocusControl : public QCameraFocusControl
-{
-public:
-    QCameraFocusFakeFocusControl(QObject *parent) :
-        QCameraFocusControl(parent) {}
-
-    [[nodiscard]] QCameraFocus::FocusModes focusMode() const override { return QCameraFocus::AutoFocus; }
-    void setFocusMode(QCameraFocus::FocusModes) override { qWarning("Focus mode selection is not supported"); }
-    [[nodiscard]] bool isFocusModeSupported(QCameraFocus::FocusModes) const override { return false; }
-
-    [[nodiscard]] QCameraFocus::FocusPointMode focusPointMode() const override { return QCameraFocus::FocusPointAuto; }
-    void setFocusPointMode(QCameraFocus::FocusPointMode) override { qWarning("Focus points mode selection is not supported"); }
-    [[nodiscard]] bool isFocusPointModeSupported(QCameraFocus::FocusPointMode) const override { return false; }
-    [[nodiscard]] QPointF customFocusPoint() const override { return QPointF(0.5,0.5); }
-    void setCustomFocusPoint(const QPointF &) override { qWarning("Focus points selection is not supported"); }
-
-    [[nodiscard]] QCameraFocusZoneList focusZones() const override { return QCameraFocusZoneList(); }
-
-    ZoomRange zoomFactorRange() const override { return {1., 1.}; };
-    void zoomTo(float, float) override
-    {
-        qWarning("The camera doesn't support zooming.");
-    }
-};
-
-
-
 class QCameraFocusZoneData : public QSharedData
 {
 public:
@@ -279,7 +252,7 @@ class QCameraFocusPrivate : public QMediaSourcePrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraFocus)
 public:
-    void initControls();
+    void init(QCameraControl *cameraControl);
 
     QCamera *camera;
 
@@ -289,21 +262,15 @@ public:
 };
 
 
-void QCameraFocusPrivate::initControls()
+void QCameraFocusPrivate::init(QCameraControl *cameraControl)
 {
     Q_Q(QCameraFocus);
 
-    focusControl = nullptr;
-
-    QMediaService *service = camera->service();
-    if (service) {
-        focusControl = qobject_cast<QCameraFocusControl *>(service->requestControl(QCameraFocusControl_iid));
-    }
-
+    focusControl = cameraControl->focusControl();
     available = focusControl != nullptr;
 
     if (!focusControl)
-        focusControl = new QCameraFocusFakeFocusControl(q);
+        return;
 
     q->connect(focusControl, SIGNAL(focusZonesChanged()), q, SIGNAL(focusZonesChanged()));
 
@@ -322,12 +289,12 @@ void QCameraFocusPrivate::initControls()
     Construct a QCameraFocus for \a camera.
 */
 
-QCameraFocus::QCameraFocus(QCamera *camera)
+QCameraFocus::QCameraFocus(QCamera *camera, QCameraControl *cameraControl)
     : QObject(*new QCameraFocusPrivate, camera)
 {
     Q_D(QCameraFocus);
     d->camera = camera;
-    d->initControls();
+    d->init(cameraControl);
 }
 
 
@@ -361,12 +328,15 @@ bool QCameraFocus::isAvailable() const
 
 QCameraFocus::FocusModes QCameraFocus::focusMode() const
 {
-    return d_func()->focusControl->focusMode();
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->focusMode() : QCameraFocus::AutoFocus;
 }
 
 void QCameraFocus::setFocusMode(QCameraFocus::FocusModes mode)
 {
-    d_func()->focusControl->setFocusMode(mode);
+    Q_D(QCameraFocus);
+    if (d->focusControl)
+        d->focusControl->setFocusMode(mode);
 }
 
 /*!
@@ -375,7 +345,8 @@ void QCameraFocus::setFocusMode(QCameraFocus::FocusModes mode)
 
 bool QCameraFocus::isFocusModeSupported(FocusModes mode) const
 {
-    return d_func()->focusControl->isFocusModeSupported(mode);
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->isFocusModeSupported(mode) : false;
 }
 
 /*!
@@ -391,12 +362,15 @@ bool QCameraFocus::isFocusModeSupported(FocusModes mode) const
 
 QCameraFocus::FocusPointMode QCameraFocus::focusPointMode() const
 {
-    return d_func()->focusControl->focusPointMode();
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->focusPointMode() : QCameraFocus::FocusPointAuto;
 }
 
 void QCameraFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 {
-    d_func()->focusControl->setFocusPointMode(mode);
+    Q_D(QCameraFocus);
+    if (d->focusControl)
+        d->focusControl->setFocusPointMode(mode);
 }
 
 /*!
@@ -404,7 +378,8 @@ void QCameraFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
  */
 bool QCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
 {
-    return d_func()->focusControl->isFocusPointModeSupported(mode);
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->isFocusPointModeSupported(mode) : false;
 }
 
 /*!
@@ -418,12 +393,15 @@ bool QCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) 
 
 QPointF QCameraFocus::customFocusPoint() const
 {
-    return d_func()->focusControl->customFocusPoint();
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->customFocusPoint() : QPointF(0.5,0.5);
 }
 
 void QCameraFocus::setCustomFocusPoint(const QPointF &point)
 {
-    d_func()->focusControl->setCustomFocusPoint(point);
+    Q_D(QCameraFocus);
+    if (d->focusControl)
+        d->focusControl->setCustomFocusPoint(point);
 }
 
 /*!
@@ -439,7 +417,8 @@ void QCameraFocus::setCustomFocusPoint(const QPointF &point)
  */
 QCameraFocusZoneList QCameraFocus::focusZones() const
 {
-    return d_func()->focusControl->focusZones();
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->focusZones() : QCameraFocusZoneList();
 }
 
 /*!
@@ -450,7 +429,8 @@ QCameraFocusZoneList QCameraFocus::focusZones() const
 
 float QCameraFocus::maximumZoomFactor() const
 {
-    return d_func()->focusControl->zoomFactorRange().max;
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->zoomFactorRange().max : 1.;
 }
 
 /*!
@@ -461,7 +441,8 @@ float QCameraFocus::maximumZoomFactor() const
 
 float QCameraFocus::minimumZoomFactor() const
 {
-    return d_func()->focusControl->zoomFactorRange().min;
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->zoomFactorRange().min : 1.;
 }
 
 /*!
@@ -476,6 +457,7 @@ float QCameraFocus::zoomFactor() const
 void QCameraFocus::setZoomFactor(float factor)
 {
     Q_D(QCameraFocus);
+    factor = qBound(minimumZoomFactor(), factor, maximumZoomFactor());
     d->zoomFactor = factor;
     d->focusControl->zoomTo(factor, -1);
 }
@@ -488,7 +470,10 @@ void QCameraFocus::setZoomFactor(float factor)
  */
 void QCameraFocus::zoomTo(float factor, float rate)
 {
+    Q_ASSERT(rate > 0);
+
     Q_D(QCameraFocus);
+    factor = qBound(minimumZoomFactor(), factor, maximumZoomFactor());
     d->zoomFactor = factor;
     d->focusControl->zoomTo(factor, rate);
 }

@@ -45,6 +45,9 @@
 #include "qandroidvideooutput_p.h"
 #include "qandroidmultimediautils_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
+#include "qandroidcameraexposurecontrol_p.h"
+#include "qandroidcamerafocuscontrol_p.h"
+#include "qandroidcameraimageprocessingcontrol_p.h"
 #include <qabstractvideosurface.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>
@@ -82,6 +85,10 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
                 QMediaStorageLocation::Pictures,
                 AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM));
 
+    m_cameraExposureControl = new QAndroidCameraExposureControl(this);
+    m_cameraFocusControl = new QAndroidCameraFocusControl(this);
+    m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(this);
+
     if (qApp) {
         connect(qApp, SIGNAL(applicationStateChanged(Qt::ApplicationState)),
                 this, SLOT(onApplicationStateChanged(Qt::ApplicationState)));
@@ -90,6 +97,10 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
 
 QAndroidCameraSession::~QAndroidCameraSession()
 {
+    delete m_cameraExposureControl;
+    delete m_cameraFocusControl;
+    delete m_cameraImageProcessingControl;
+
     close();
 }
 

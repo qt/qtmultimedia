@@ -54,6 +54,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QCamera;
+class QCameraControl;
 
 class QCameraFocusZoneData;
 
@@ -152,7 +153,7 @@ protected:
 private:
     friend class QCamera;
     friend class QCameraPrivate;
-    QCameraFocus(QCamera *camera);
+    QCameraFocus(QCamera *camera, QCameraControl *cameraControl);
 
     Q_DISABLE_COPY(QCameraFocus)
     Q_DECLARE_PRIVATE(QCameraFocus)

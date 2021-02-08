@@ -45,9 +45,6 @@
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
-#include "qandroidcameraexposurecontrol_p.h"
-#include "qandroidcamerafocuscontrol_p.h"
-#include "qandroidcameraimageprocessingcontrol_p.h"
 #include "qandroidimageencodercontrol_p.h"
 #include "qandroidcameraimagecapturecontrol_p.h"
 
@@ -60,17 +57,11 @@ QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
     if (m_videoEnabled) {
         m_cameraSession = new QAndroidCameraSession;
         m_cameraControl = new QAndroidCameraControl(m_cameraSession);
-        m_cameraExposureControl = new QAndroidCameraExposureControl(m_cameraSession);
-        m_cameraFocusControl = new QAndroidCameraFocusControl(m_cameraSession);
-        m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(m_cameraSession);
         m_imageEncoderControl = new QAndroidImageEncoderControl(m_cameraSession);
         m_imageCaptureControl = new QAndroidCameraImageCaptureControl(m_cameraSession);
     } else {
         m_cameraSession = 0;
         m_cameraControl = 0;
-        m_cameraExposureControl = 0;
-        m_cameraFocusControl = 0;
-        m_cameraImageProcessingControl = 0;
         m_imageEncoderControl = 0;
         m_imageCaptureControl = 0;
     }
@@ -85,9 +76,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_captureSession;
     delete m_cameraControl;
     delete m_videoRendererControl;
-    delete m_cameraExposureControl;
-    delete m_cameraFocusControl;
-    delete m_cameraImageProcessingControl;
     delete m_imageEncoderControl;
     delete m_imageCaptureControl;
     delete m_cameraSession;
@@ -100,15 +88,6 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
 
     if (qstrcmp(name, QCameraControl_iid) == 0)
         return m_cameraControl;
-
-    if (qstrcmp(name, QCameraExposureControl_iid) == 0)
-        return m_cameraExposureControl;
-
-    if (qstrcmp(name, QCameraFocusControl_iid) == 0)
-        return m_cameraFocusControl;
-
-    if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
-        return m_cameraImageProcessingControl;
 
     if (qstrcmp(name, QImageEncoderControl_iid) == 0)
         return m_imageEncoderControl;
