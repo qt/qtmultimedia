@@ -1349,7 +1349,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     Defines the status of a media player's current media.
 
     \value UnknownMediaStatus The status of the media cannot be determined.
-    \value NoMedia The is no current media.  The player is in the StoppedState.
+    \value NoMedia There is no current media. The player is in the StoppedState.
     \value LoadingMedia The current media is being loaded. The player may be in any state.
     \value LoadedMedia The current media has been loaded. The player is in the StoppedState.
     \value StalledMedia Playback of the current media has stalled due to insufficient buffering or
