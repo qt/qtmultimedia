@@ -4,3 +4,4 @@ classname QMultimediaDeclarativeModule
 typeinfo plugins.qmltypes
 typeinfo plugins.qmltypes
 Video 5.0 Video.qml
+
