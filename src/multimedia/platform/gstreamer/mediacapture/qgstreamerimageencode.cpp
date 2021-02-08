@@ -53,19 +53,6 @@ QGstreamerImageEncode::~QGstreamerImageEncode()
 {
 }
 
-QStringList QGstreamerImageEncode::supportedImageCodecs() const
-{
-    return QStringList() << "jpeg";
-}
-
-QString QGstreamerImageEncode::imageCodecDescription(const QString &codecName) const
-{
-    if (codecName == "jpeg")
-        return tr("JPEG image encoder");
-
-    return QString();
-}
-
 QImageEncoderSettings QGstreamerImageEncode::imageSettings() const
 {
     return m_settings;

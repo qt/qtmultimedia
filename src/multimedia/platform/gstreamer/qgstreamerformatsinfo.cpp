@@ -139,6 +139,25 @@ static QMediaFormat::FileFormat fileFormatForCaps(QGstStructure structure)
     return QMediaFormat::UnspecifiedFormat;
 }
 
+
+static QImageEncoderSettings::FileFormat imageFormatForCaps(QGstStructure structure)
+{
+    const char *name = structure.name();
+
+    if (!strcmp(name, "image/jpeg")) {
+        return QImageEncoderSettings::JPEG;
+    } else if (!strcmp(name, "image/png")) {
+        return QImageEncoderSettings::PNG;
+    } else if (!strcmp(name, "image/webp")) {
+        return QImageEncoderSettings::WebP;
+    } else if (!strcmp(name, "image/webp")) {
+        return QImageEncoderSettings::WebP;
+    } else if (!strcmp(name, "image/tiff")) {
+        return QImageEncoderSettings::Tiff;
+    }
+    return QImageEncoderSettings::UnspecifiedFormat;
+}
+
 static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> getCodecsList(bool decode)
 {
     QList<QMediaFormat::AudioCodec> audio;
@@ -250,6 +269,42 @@ QList<QGstreamerFormatsInfo::CodecMap> QGstreamerFormatsInfo::getMuxerList(bool 
     return muxers;
 }
 
+static QList<QImageEncoderSettings::FileFormat> getImageFormatList()
+{
+    QSet<QImageEncoderSettings::FileFormat> formats;
+
+    GList *elementList = gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_ENCODER,
+                                                               GST_RANK_MARGINAL);
+
+    GList *element = elementList;
+    while (element) {
+        GstElementFactory *factory = (GstElementFactory *)element->data;
+        element = element->next;
+
+        const GList *padTemplates = gst_element_factory_get_static_pad_templates(factory);
+        while (padTemplates) {
+            GstStaticPadTemplate *padTemplate = (GstStaticPadTemplate *)padTemplates->data;
+            padTemplates = padTemplates->next;
+
+            if (padTemplate->direction == GST_PAD_SRC) {
+                QGstCaps caps = gst_static_caps_get(&padTemplate->static_caps);
+
+                for (int i = 0; i < caps.size(); i++) {
+                    QGstStructure structure = caps.at(i);
+                    auto f = imageFormatForCaps(structure);
+                    if (f != QImageEncoderSettings::UnspecifiedFormat) {
+                        qDebug() << structure.toString() << f;
+                        formats.insert(f);
+                    }
+                }
+                caps.unref();
+            }
+        }
+    }
+    gst_plugin_feature_list_free(elementList);
+    return formats.values();
+}
+
 #if 0
 static void dumpMuxers(const QList<QGstreamerFormatsInfo::CodecMap> &muxerList)
 {
@@ -274,6 +329,8 @@ QGstreamerFormatsInfo::QGstreamerFormatsInfo()
     codecs = getCodecsList(/*decode = */ false);
     encoders = getMuxerList(/* demuxer = */false, codecs.first, codecs.second);
     //dumpMuxers(encoders);
+
+    imageFormats = getImageFormatList();
 }
 
 QGstreamerFormatsInfo::~QGstreamerFormatsInfo()

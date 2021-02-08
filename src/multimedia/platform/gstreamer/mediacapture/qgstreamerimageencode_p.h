@@ -69,9 +69,6 @@ public:
     QGstreamerImageEncode(QGstreamerCaptureSession *session);
     virtual ~QGstreamerImageEncode();
 
-    QStringList supportedImageCodecs() const override;
-    QString imageCodecDescription(const QString &codecName) const override;
-
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
 

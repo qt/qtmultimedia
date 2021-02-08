@@ -162,6 +162,9 @@ QDarwinFormatInfo::QDarwinFormatInfo()
           {} }
     };
 #endif
+
+    // ###
+    imageFormats << QImageEncoderSettings::JPEG;
 }
 
 QDarwinFormatInfo::~QDarwinFormatInfo()

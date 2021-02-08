@@ -52,7 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qmediaformat.h>
+#include <qmediaencodersettings.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -75,6 +75,8 @@ public:
     };
     QList<CodecMap> encoders;
     QList<CodecMap> decoders;
+
+    QList<QImageEncoderSettings::FileFormat> imageFormats;
 };
 
 QT_END_NAMESPACE

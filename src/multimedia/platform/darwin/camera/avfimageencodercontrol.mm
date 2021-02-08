@@ -59,19 +59,6 @@ AVFImageEncoderControl::AVFImageEncoderControl(AVFCameraService *service)
     Q_ASSERT(service);
 }
 
-QStringList AVFImageEncoderControl::supportedImageCodecs() const
-{
-    return QStringList() << QLatin1String("jpeg");
-}
-
-QString AVFImageEncoderControl::imageCodecDescription(const QString &codecName) const
-{
-    if (codecName == QLatin1String("jpeg"))
-        return tr("JPEG image");
-
-    return QString();
-}
-
 QImageEncoderSettings AVFImageEncoderControl::requestedSettings() const
 {
     return m_settings;

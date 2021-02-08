@@ -39,6 +39,8 @@
 
 #include "qmediaencodersettings.h"
 #include "qmediaformat.h"
+#include <private/qmediaplatformintegration_p.h>
+#include <private/qmediaplatformformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -438,7 +440,7 @@ class QImageEncoderSettingsPrivate  : public QSharedData
 {
 public:
     bool isNull = true;
-    QString codec;
+    QImageEncoderSettings::FileFormat format;
     QSize resolution;
     QMultimedia::EncodingQuality quality = QMultimedia::NormalQuality;
     QVariantMap encodingOptions;
@@ -513,7 +515,7 @@ bool QImageEncoderSettings::operator==(const QImageEncoderSettings &other) const
     return (d == other.d) ||
            (d->isNull == other.d->isNull &&
             d->quality == other.d->quality &&
-            d->codec == other.d->codec &&
+            d->format == other.d->format &&
             d->resolution == other.d->resolution &&
             d->encodingOptions == other.d->encodingOptions);
 
@@ -542,21 +544,72 @@ bool QImageEncoderSettings::isNull() const
 }
 
 /*!
-    Returns the image codec.
+    Returns the image format.
 */
 
-QString QImageEncoderSettings::codec() const
+QImageEncoderSettings::FileFormat QImageEncoderSettings::format() const
 {
-    return d->codec;
+    return d->format;
 }
 
 /*!
-    Sets the image \a codec.
+    Sets the image \a format.
 */
-void QImageEncoderSettings::setCodec(const QString& codec)
+void QImageEncoderSettings::setFormat(QImageEncoderSettings::FileFormat format)
 {
     d->isNull = false;
-    d->codec = codec;
+    d->format = format;
+}
+
+QList<QImageEncoderSettings::FileFormat> QImageEncoderSettings::supportedFormats()
+{
+    return QMediaPlatformIntegration::instance()->formatInfo()->imageFormats;
+}
+
+QString QImageEncoderSettings::fileFormatName(QImageEncoderSettings::FileFormat f)
+{
+    const char *name = nullptr;
+    switch (f) {
+    case UnspecifiedFormat:
+        name = "Unspecified image format";
+        break;
+    case JPEG:
+        name = "JPEG";
+        break;
+    case PNG:
+        name = "PNG";
+        break;
+    case WebP:
+        name = "WebP";
+        break;
+    case Tiff:
+        name = "Tiff";
+        break;
+    }
+    return QString::fromUtf8(name);
+}
+
+QString QImageEncoderSettings::fileFormatDescription(QImageEncoderSettings::FileFormat f)
+{
+    const char *name = nullptr;
+    switch (f) {
+    case UnspecifiedFormat:
+        name = "Unspecified image format";
+        break;
+    case JPEG:
+        name = "JPEG";
+        break;
+    case PNG:
+        name = "PNG";
+        break;
+    case WebP:
+        name = "WebP";
+        break;
+    case Tiff:
+        name = "Tiff";
+        break;
+    }
+    return QString::fromUtf8(name);
 }
 
 /*!

@@ -50,19 +50,6 @@ QAndroidImageEncoderControl::QAndroidImageEncoderControl(QAndroidCameraSession *
 {
 }
 
-QStringList QAndroidImageEncoderControl::supportedImageCodecs() const
-{
-    return QStringList() << QLatin1String("jpeg");
-}
-
-QString QAndroidImageEncoderControl::imageCodecDescription(const QString &codecName) const
-{
-    if (codecName == QLatin1String("jpeg"))
-        return tr("JPEG image");
-
-    return QString();
-}
-
 QImageEncoderSettings QAndroidImageEncoderControl::imageSettings() const
 {
     return m_session->imageSettings();

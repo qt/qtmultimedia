@@ -103,8 +103,6 @@ private slots:
     void imageExposed();
     void imageSaved();
     void readyForCaptureChanged();
-    void imageCodecDescription();
-    void supportedImageCodecs();
     void cameraImageCaptureControl();
 
 private:
@@ -232,31 +230,12 @@ void tst_QCameraImageCapture::encodingSettings()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.encodingSettings() == QImageEncoderSettings());
     QImageEncoderSettings settings;
-    settings.setCodec("JPEG");
+    settings.setFormat(QImageEncoderSettings::JPEG);
     settings.setQuality(QMultimedia::NormalQuality);
     imageCapture.setEncodingSettings(settings);
     QVERIFY(!imageCapture.encodingSettings().isNull());
-    QVERIFY(imageCapture.encodingSettings().codec() == "JPEG");
+    QVERIFY(imageCapture.encodingSettings().format() == QImageEncoderSettings::JPEG);
     QVERIFY(imageCapture.encodingSettings().quality() == QMultimedia::NormalQuality);
-}
-
-//MaemoAPI-1838:test supportedImageCodecs
-void tst_QCameraImageCapture::supportedImageCodecs()
-{
-    QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
-    QVERIFY(imageCapture.isAvailable() == true);
-    QVERIFY(!imageCapture.supportedImageCodecs().isEmpty());
-}
-
-//MaemoAPI-1837:test imageCodecDescription
-void tst_QCameraImageCapture::imageCodecDescription()
-{
-    QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
-    QVERIFY(imageCapture.isAvailable() == true);
-    QVERIFY(imageCapture.imageCodecDescription(" ").isNull());
-    QVERIFY(imageCapture.imageCodecDescription("PNG").isNull() == false);
 }
 
 //MaemoAPI-1830:test errors

@@ -239,25 +239,6 @@ QString QCameraImageCapture::errorString() const
     return d_func()->errorString;
 }
 
-
-/*!
-    Returns a list of supported image codecs.
-*/
-QStringList QCameraImageCapture::supportedImageCodecs() const
-{
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->supportedImageCodecs() : QStringList();
-}
-
-/*!
-    Returns a description of an image \a codec.
-*/
-QString QCameraImageCapture::imageCodecDescription(const QString &codec) const
-{
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->imageCodecDescription(codec) : QString();
-}
-
 /*!
     Returns the image encoder settings being used.
 

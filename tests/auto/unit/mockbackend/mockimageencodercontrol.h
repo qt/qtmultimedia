@@ -40,21 +40,6 @@ public:
         m_settings = QImageEncoderSettings();
     }
 
-    QStringList supportedImageCodecs() const
-    {
-        QStringList codecs;
-        codecs << "PNG" << "JPEG";
-        return codecs;
-    }
-
-    QString imageCodecDescription(const QString &codecName) const {
-        if (codecName == "PNG")
-            return QString("Portable Network Graphic");
-        if (codecName == "JPEG")
-            return QString("Joint Photographic Expert Group");
-        return QString();
-    }
-
     QImageEncoderSettings imageSettings() const { return m_settings; }
     void setImageSettings(const QImageEncoderSettings &settings) { m_settings = settings; }
 

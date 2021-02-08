@@ -657,9 +657,9 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings.isNull());
     QVERIFY(settings == QImageEncoderSettings());
 
-    QCOMPARE(settings.codec(), QString());
-    settings.setCodec(QLatin1String("codecName"));
-    QCOMPARE(settings.codec(), QLatin1String("codecName"));
+    QCOMPARE(settings.format(), QImageEncoderSettings::UnspecifiedFormat);
+    settings.setFormat(QImageEncoderSettings::Tiff);
+    QCOMPARE(settings.format(), QImageEncoderSettings::Tiff);
     QVERIFY(!settings.isNull());
     QVERIFY(settings != QImageEncoderSettings());
 
@@ -693,7 +693,7 @@ void tst_QCamera::testImageSettings()
 
     settings = QImageEncoderSettings();
     QVERIFY(settings.isNull());
-    QCOMPARE(settings.codec(), QString());
+    QCOMPARE(settings.format(), QImageEncoderSettings::UnspecifiedFormat);
     QCOMPARE(settings.quality(), QMultimedia::NormalQuality);
     QCOMPARE(settings.resolution(), QSize());
     QVERIFY(settings.encodingOptions().isEmpty());
@@ -742,11 +742,11 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings1 != settings2);
 
     settings1 = QImageEncoderSettings();
-    settings1.setCodec("codec1");
+    settings1.setFormat(QImageEncoderSettings::PNG);
     settings2 = QImageEncoderSettings();
-    settings2.setCodec("codec1");
+    settings2.setFormat(QImageEncoderSettings::PNG);
     QVERIFY(settings1 == settings2);
-    settings2.setCodec("codec2");
+    settings2.setFormat(QImageEncoderSettings::Tiff);
     QVERIFY(settings1 != settings2);
 
     settings1 = QImageEncoderSettings();

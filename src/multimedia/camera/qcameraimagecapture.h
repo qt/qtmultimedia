@@ -95,9 +95,6 @@ public:
 
     bool isReadyForCapture() const;
 
-    QStringList supportedImageCodecs() const;
-    QString imageCodecDescription(const QString &codecName) const;
-
     QImageEncoderSettings encodingSettings() const;
     void setEncodingSettings(const QImageEncoderSettings& settings);
 

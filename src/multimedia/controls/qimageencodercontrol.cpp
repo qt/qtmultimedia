@@ -98,18 +98,6 @@ QImageEncoderControl::QImageEncoderControl(QObject *parent)
 */
 
 /*!
-    \fn QImageEncoderControl::supportedImageCodecs() const
-
-    Returns a list of supported image codecs.
-*/
-
-/*!
-    \fn QImageEncoderControl::imageCodecDescription(const QString &codec) const
-
-    Returns a description of an image \a codec.
-*/
-
-/*!
     \fn QImageEncoderControl::imageSettings() const
 
     Returns the currently used image encoder settings.

@@ -48,24 +48,6 @@ BbImageEncoderControl::BbImageEncoderControl(BbCameraSession *session, QObject *
 {
 }
 
-QStringList BbImageEncoderControl::supportedImageCodecs() const
-{
-    return QStringList() << QLatin1String("jpeg");
-}
-
-QString BbImageEncoderControl::imageCodecDescription(const QString &codecName) const
-{
-    if (codecName == QLatin1String("jpeg"))
-        return tr("JPEG image");
-
-    return QString();
-}
-
-QList<QSize> BbImageEncoderControl::supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const
-{
-    return m_session->supportedResolutions(settings, continuous);
-}
-
 QImageEncoderSettings BbImageEncoderControl::imageSettings() const
 {
     return m_session->imageSettings();

@@ -95,6 +95,15 @@ class QImageEncoderSettingsPrivate;
 class Q_MULTIMEDIA_EXPORT QImageEncoderSettings
 {
 public:
+    enum FileFormat {
+        UnspecifiedFormat,
+        JPEG,
+        PNG,
+        WebP,
+        Tiff,
+        LastFileFormat = Tiff
+    };
+
     QImageEncoderSettings();
     QImageEncoderSettings(const QImageEncoderSettings& other);
 
@@ -106,8 +115,12 @@ public:
 
     bool isNull() const;
 
-    QString codec() const;
-    void setCodec(const QString &);
+    FileFormat format() const;
+    void setFormat(FileFormat format);
+
+    static QList<FileFormat> supportedFormats();
+    static QString fileFormatName(FileFormat c);
+    static QString fileFormatDescription(FileFormat c);
 
     QSize resolution() const;
     void setResolution(const QSize &);

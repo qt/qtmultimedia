@@ -52,6 +52,8 @@ QAndroidFormatInfo::QAndroidFormatInfo()
                                { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265 } }
     };
     encoders = decoders;
+
+    imageFormats << QImageEncoderSettings::JPEG;
 }
 
 QAndroidFormatInfo::~QAndroidFormatInfo()
