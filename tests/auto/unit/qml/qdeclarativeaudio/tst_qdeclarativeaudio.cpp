@@ -613,7 +613,6 @@ void tst_QDeclarativeAudio::metaData()
     QFETCH(QVariant, value);
 
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
     audio.classBegin();
     audio.componentComplete();
 

@@ -41,6 +41,8 @@
 
 #include <QtCore/qtimer.h>
 #include <QtCore/qendian.h>
+#include <limits.h>
+#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
