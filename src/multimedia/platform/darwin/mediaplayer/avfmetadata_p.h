@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERMETADATAPROVIDER_H
-#define QGSTREAMERMETADATAPROVIDER_H
+#ifndef AVFMEDIAPLAYERMETADATACONTROL_H
+#define AVFMEDIAPLAYERMETADATACONTROL_H
 
 //
 //  W A R N I N G
@@ -51,34 +51,21 @@
 // We mean it.
 //
 
-#include <qmetadatareadercontrol.h>
-#include <qvariant.h>
+#include <QtMultimedia/QMediaMetaData>
+#include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerPlayerSession;
+Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
 
-class QGstreamerMetaDataProvider : public QMetaDataReaderControl
+class AVFMediaPlayerSession;
+
+class AVFMetaData
 {
-    Q_OBJECT
 public:
-    QGstreamerMetaDataProvider( QGstreamerPlayerSession *session, QObject *parent );
-    virtual ~QGstreamerMetaDataProvider();
-
-    bool isMetaDataAvailable() const override;
-    bool isWritable() const;
-
-    QVariant metaData(const QString &key) const override;
-    QStringList availableMetaData() const override;
-
-private slots:
-    void updateTags();
-
-private:
-    QGstreamerPlayerSession *m_session = nullptr;
-    QVariantMap m_tags;
+    static QMediaMetaData fromAsset(AVAsset *asset);
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERMETADATAPROVIDER_H
+#endif // AVFMEDIAPLAYERMETADATACONTROL_H

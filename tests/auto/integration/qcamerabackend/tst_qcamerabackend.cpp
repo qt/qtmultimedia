@@ -428,7 +428,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
     QCameraImageCapture imageCapture(&camera);
     camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
 
     camera.start();

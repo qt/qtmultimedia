@@ -42,7 +42,6 @@
 #include "qgstreamerrecordercontrol_p.h"
 #include "qgstreamercameracontrol_p.h"
 #include <private/qgstreamerbushelper_p.h>
-#include "qgstreamercapturemetadatacontrol_p.h"
 
 #if defined(USE_GSTREAMER_CAMERA)
 #include "qgstreamervideoinput_p.h"

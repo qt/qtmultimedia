@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFMEDIAPLAYERMETADATACONTROL_H
-#define AVFMEDIAPLAYERMETADATACONTROL_H
+#ifndef QANDROIDMETADATA_H
+#define QANDROIDMETADATA_H
 
 //
 //  W A R N I N G
@@ -51,38 +51,21 @@
 // We mean it.
 //
 
-#include <QtMultimedia/QMetaDataReaderControl>
-#include <QtCore/qvariant.h>
+#include <qmediametadata.h>
+#include <qurl.h>
+#include <QMutex>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
+class AndroidMediaMetadataRetriever;
 
-class AVFMediaPlayerSession;
-
-class AVFMediaPlayerMetaDataControl : public QMetaDataReaderControl
+class QAndroidMetaData : public QMediaMetaData
 {
-    Q_OBJECT
 public:
-    explicit AVFMediaPlayerMetaDataControl(AVFMediaPlayerSession *session, QObject *parent = nullptr);
-    virtual ~AVFMediaPlayerMetaDataControl();
-
-    bool isMetaDataAvailable() const override;
-    bool isWritable() const;
-
-    QVariant metaData(const QString &key) const override;
-    QStringList availableMetaData() const override;
-
-private Q_SLOTS:
-    void updateTags();
-
-private:
-    AVFMediaPlayerSession *m_session;
-    QVariantMap m_tags;
-    AVAsset *m_asset;
-
+    static QMediaMetaData extractMetadata(const QUrl &url);
 };
 
 QT_END_NAMESPACE
 
-#endif // AVFMEDIAPLAYERMETADATACONTROL_H
+#endif // QANDROIDMETADATA_H

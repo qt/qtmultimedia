@@ -140,10 +140,9 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraImageCaptureControl::imageMetadataAvailable(int id, const QString &key, const QVariant &value)
+    \fn QCameraImageCaptureControl::imageMetadataAvailable(int id, const QMediaMetaData &metaData)
 
-    Signals that a metadata for an image with request \a id is available. Signal
-    also contains the \a key and \a value of the metadata.
+    Signals that a metadata for an image with request \a id is available.
 
     This signal should be emitted between imageExposed and imageSaved signals.
 */

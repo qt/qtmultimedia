@@ -42,6 +42,7 @@
 
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qmediametadata.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -52,7 +53,6 @@ QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
 class QString;
-class QMetaDataWriterControl;
 
 class Q_MULTIMEDIA_EXPORT QMediaRecorderControl : public QObject
 {
@@ -77,7 +77,8 @@ public:
 
     virtual void setEncoderSettings(const QMediaEncoderSettings &settings) = 0;
 
-    virtual QMetaDataWriterControl *metaDataControl() { return nullptr; }
+    virtual void setMetaData(const QMediaMetaData &) {}
+    virtual QMediaMetaData metaData() const { return {}; }
 
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
@@ -87,6 +88,7 @@ Q_SIGNALS:
     void volumeChanged(qreal volume);
     void actualLocationChanged(const QUrl &location);
     void error(int error, const QString &errorString);
+    void metaDataChanged();
 
 public Q_SLOTS:
     virtual void setState(QMediaRecorder::State state) = 0;

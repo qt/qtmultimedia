@@ -51,6 +51,7 @@ QT_BEGIN_NAMESPACE
 
 class QMediaService;
 class QMediaSink;
+class QMediaMetaData;
 
 class QMediaSourcePrivate;
 class Q_MULTIMEDIA_EXPORT QMediaSource : public QObject
@@ -74,17 +75,12 @@ public:
     bool bind(QMediaSink *);
     void unbind(QMediaSink *);
 
-    bool isMetaDataAvailable() const;
-
-    QVariant metaData(const QString &key) const;
-    QStringList availableMetaData() const;
+    virtual QMediaMetaData metaData() const;
 
 Q_SIGNALS:
     void notifyIntervalChanged(int milliSeconds);
 
-    void metaDataAvailableChanged(bool available);
     void metaDataChanged();
-    void metaDataChanged(const QString &key, const QVariant &value);
 
 protected:
     QMediaSource(QObject *parent, QMediaService *service);
@@ -94,8 +90,6 @@ protected:
     void removePropertyWatch(QByteArray const &name);
 
 private:
-    void setupControls();
-
     Q_DECLARE_PRIVATE(QMediaSource)
     Q_PRIVATE_SLOT(d_func(), void _q_notify())
 };

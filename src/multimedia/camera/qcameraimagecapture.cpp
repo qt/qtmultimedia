@@ -39,6 +39,7 @@
 #include <qcameraimagecapture.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qmediaencodersettings.h>
+#include <qmediametadata.h>
 
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
@@ -88,6 +89,7 @@ public:
 
     QCameraImageCapture::Error error = QCameraImageCapture::NoError;
     QString errorString;
+    QMediaMetaData metaData;
 
     void _q_error(int id, int error, const QString &errorString);
     void _q_readyChanged(bool);
@@ -144,8 +146,8 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
                     this, SIGNAL(imageExposed(int)));
             connect(d->control, SIGNAL(imageCaptured(int,QImage)),
                     this, SIGNAL(imageCaptured(int,QImage)));
-            connect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
-                    this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+            connect(d->control, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)),
+                    this, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
             connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
                     this, SIGNAL(imageAvailable(int,QVideoFrame)));
             connect(d->control, SIGNAL(imageSaved(int,QString)),
@@ -286,6 +288,28 @@ void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDest
 
     d->control->setCaptureDestination(destination);
     emit captureDestinationChanged(destination);
+}
+
+QMediaMetaData QCameraImageCapture::metaData() const
+{
+    Q_D(const QCameraImageCapture);
+    return d->metaData;
+}
+
+void QCameraImageCapture::setMetaData(const QMediaMetaData &metaData)
+{
+    Q_D(QCameraImageCapture);
+    d->metaData = metaData;
+    d->control->setMetaData(d->metaData);
+}
+
+void QCameraImageCapture::addMetaData(const QMediaMetaData &metaData)
+{
+    Q_D(QCameraImageCapture);
+    auto data = d->metaData;
+    for (auto k : metaData.keys())
+        data.insert(k, metaData.value(k));
+    setMetaData(data);
 }
 
 /*!

@@ -17,8 +17,6 @@ SUBDIRS += \
     qmediarecorder \
     qmediaservice \
     qmediatimerange \
-    qmetadatareadercontrol \
-    qmetadatawritercontrol \
     qvideoframe \
     qvideosurfaceformat \
 #    qwavedecoder \

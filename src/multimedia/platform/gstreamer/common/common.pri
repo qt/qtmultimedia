@@ -2,6 +2,7 @@ HEADERS += \
     $$PWD/qgstappsrc_p.h \
     $$PWD/qgstreamerbushelper_p.h \
     $$PWD/qgstreamermessage_p.h \
+    $$PWD/qgstreamermetadata_p.h \
     $$PWD/qgstutils_p.h \
     $$PWD/qgstvideobuffer_p.h \
     $$PWD/qgstreamerbufferprobe_p.h \
@@ -18,6 +19,7 @@ SOURCES += \
     $$PWD/qgstappsrc.cpp \
     $$PWD/qgstreamerbushelper.cpp \
     $$PWD/qgstreamermessage.cpp \
+    $$PWD/qgstreamermetadata.cpp \
     $$PWD/qgstutils.cpp \
     $$PWD/qgstvideobuffer.cpp \
     $$PWD/qgstreamerbufferprobe.cpp \

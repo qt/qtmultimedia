@@ -45,6 +45,7 @@
 #include <QtMultimedia/qmediaencodersettings.h>
 #include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qmediaenumdebug.h>
+#include <QtMultimedia/qmediametadata.h>
 
 #include <QtCore/qpair.h>
 
@@ -78,8 +79,7 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaSink
     Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
-    Q_PROPERTY(bool metaDataAvailable READ isMetaDataAvailable NOTIFY metaDataAvailableChanged)
-    Q_PROPERTY(bool metaDataWritable READ isMetaDataWritable NOTIFY metaDataWritableChanged)
+    Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(QAudioDeviceInfo audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
 public:
 
@@ -143,12 +143,9 @@ public:
     void setEncoderSettings(const QMediaEncoderSettings &);
     QMediaEncoderSettings encoderSettings() const;
 
-    bool isMetaDataAvailable() const;
-    bool isMetaDataWritable() const;
-
-    QVariant metaData(const QString &key) const;
-    void setMetaData(const QString &key, const QVariant &value);
-    QStringList availableMetaData() const;
+    QMediaMetaData metaData() const;
+    void setMetaData(const QMediaMetaData &metaData);
+    void addMetaData(const QMediaMetaData &metaData);
 
     QAudioDeviceInfo audioInput() const;
     QCameraInfo videoInput() const;
@@ -172,10 +169,7 @@ Q_SIGNALS:
 
     void error(QMediaRecorder::Error error);
 
-    void metaDataAvailableChanged(bool available);
-    void metaDataWritableChanged(bool writable);
     void metaDataChanged();
-    void metaDataChanged(const QString &key, const QVariant &value);
 
 protected:
     QMediaRecorder(QMediaRecorderPrivate &dd, QMediaSource *mediaSource, QObject *parent = nullptr);

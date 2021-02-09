@@ -34,14 +34,12 @@
 #include "qdeclarativemediametadata_p.h"
 
 #include "mockmediaplayerservice.h"
-#include "mockmetadatareadercontrol.h"
 #include "qmockintegration_p.h"
 
 #include <QtMultimedia/qmediametadata.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaservice.h>
 #include <private/qdeclarativevideooutput_p.h>
-#include <qmetadatareadercontrol.h>
 #include <QAbstractVideoSurface>
 
 #include <QtGui/qguiapplication.h>
@@ -626,12 +624,7 @@ void tst_QDeclarativeAudio::metaData()
 
     property.write(audio.metaData(), value);
     QCOMPARE(property.read(audio.metaData()), QVariant());
-    QCOMPARE(service->metaDataControl->metaData(propertyKey), QVariant());
     QCOMPARE(spy.count(), 0);
-
-    service->metaDataControl->setMetaData(propertyKey, value);
-    QCOMPARE(property.read(audio.metaData()), value);
-    QCOMPARE(spy.count(), 1);
 }
 
 void tst_QDeclarativeAudio::error()

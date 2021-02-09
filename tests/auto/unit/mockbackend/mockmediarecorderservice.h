@@ -32,7 +32,6 @@
 #include "qmediaservice.h"
 
 #include "mockmediarecordercontrol.h"
-#include "mockmetadatawritercontrol.h"
 #include "mockcamerafocuscontrol.h"
 #include "mockcameraimageprocessingcontrol.h"
 #include "mockcameraimagecapturecontrol.h"
@@ -50,7 +49,6 @@ public:
         : hasControls(true)
     {
         mockControl = new MockMediaRecorderControl(this);
-        mockMetaDataControl = new MockMetaDataWriterControl(this);
         mockCameraControl = new MockCameraControl(this);
         mockExposureControl = new MockCameraExposureControl(this);
         mockFocusControl = new MockCameraFocusControl(this);
@@ -69,8 +67,6 @@ public:
 
         if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
-        if (qstrcmp(name, QMetaDataWriterControl_iid) == 0)
-            return mockMetaDataControl;
 
         if (qstrcmp(name, QCameraControl_iid) == 0)
             return mockCameraControl;
@@ -124,7 +120,6 @@ public:
     int windowRef;
 
     MockMediaRecorderControl *mockControl;
-    MockMetaDataWriterControl *mockMetaDataControl;
 
     bool hasControls;
 };

@@ -3,7 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the Qt Mobility Components.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMETADATAREADERCONTROL_H
-#define QANDROIDMETADATAREADERCONTROL_H
+#ifndef MFMETADATACONTROL_H
+#define MFMETADATACONTROL_H
 
 //
 //  W A R N I N G
@@ -51,41 +51,15 @@
 // We mean it.
 //
 
-#include <QMetaDataReaderControl>
-#include <qurl.h>
-#include <QMutex>
-#include <QVariant>
+#include <qmediametadata.h>
+#include "Mfidl.h"
 
-QT_BEGIN_NAMESPACE
+QT_USE_NAMESPACE
 
-class AndroidMediaMetadataRetriever;
-
-class QAndroidMetaDataReaderControl : public QMetaDataReaderControl
+class MFMetaData
 {
-    Q_OBJECT
 public:
-    explicit QAndroidMetaDataReaderControl(QObject *parent = 0);
-    ~QAndroidMetaDataReaderControl() override;
-
-    bool isMetaDataAvailable() const override;
-
-    QVariant metaData(const QString &key) const override;
-    QStringList availableMetaData() const override;
-
-public Q_SLOTS:
-    void onMediaChanged(const QUrl &media);
-    void onUpdateMetaData();
-
-private:
-    void updateData(const QVariantMap &metadata, const QUrl &url);
-    static void extractMetadata(QAndroidMetaDataReaderControl *caller, const QUrl &url);
-
-    mutable QMutex m_mtx;
-    QUrl m_mediaContent;
-    bool m_available;
-    QVariantMap m_metadata;
+    static QMediaMetaData fromNative(IMFMediaSource* mediaSource);
 };
 
-QT_END_NAMESPACE
-
-#endif // QANDROIDMETADATAREADERCONTROL_H
+#endif

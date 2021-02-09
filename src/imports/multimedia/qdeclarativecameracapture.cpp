@@ -41,8 +41,6 @@
 #include "qdeclarativecameracapture_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
 
-#include <qmetadatawritercontrol.h>
-
 #include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
@@ -106,17 +104,14 @@ QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera)
     connect(m_capture, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
     connect(m_capture, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
     connect(m_capture, SIGNAL(imageCaptured(int,QImage)), this, SLOT(_q_imageCaptured(int,QImage)));
-    connect(m_capture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this,
-            SLOT(_q_imageMetadataAvailable(int,QString,QVariant)));
+    connect(m_capture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)), this,
+            SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
     connect(m_capture, SIGNAL(imageSaved(int,QString)), this, SLOT(_q_imageSaved(int,QString)));
     connect(m_capture, SIGNAL(error(int,QCameraImageCapture::Error,QString)),
             this, SLOT(_q_captureFailed(int,QCameraImageCapture::Error,QString)));
 
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)),
             this, SLOT(_q_cameraStatusChanged(QCamera::Status)));
-
-    QMediaService *service = camera->service();
-    m_metadataWriterControl = service ? service->requestControl<QMetaDataWriterControl*>() : 0;
 }
 
 QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
@@ -230,12 +225,6 @@ void QDeclarativeCameraCapture::_q_imageSaved(int id, const QString &fileName)
     emit imageSaved(id, fileName);
 }
 
-void QDeclarativeCameraCapture::_q_imageMetadataAvailable(int id, const QString &key, const QVariant &value)
-{
-    emit imageMetadataAvailable(id, key, value);
-}
-
-
 void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Error error, const QString &message)
 {
     Q_UNUSED(error);
@@ -333,10 +322,11 @@ QVariantList QDeclarativeCameraCapture::supportedResolutions()
 
     \sa QMediaMetaData
 */
-void QDeclarativeCameraCapture::setMetadata(const QString &key, const QVariant &value)
+void QDeclarativeCameraCapture::setMetadata(QMediaMetaData::Key key, const QVariant &value)
 {
-    if (m_metadataWriterControl)
-        m_metadataWriterControl->setMetaData(key, value);
+    QMediaMetaData data;
+    data.insert(key, value);
+    m_capture->addMetaData(data);
 }
 
 /*!

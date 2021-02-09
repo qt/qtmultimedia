@@ -1,7 +1,6 @@
 HEADERS += \
     $$PWD/avfcameradebug_p.h \
     $$PWD/avfcameracontrol_p.h \
-    $$PWD/avfcamerametadatacontrol_p.h \
     $$PWD/avfimagecapturecontrol_p.h \
     $$PWD/avfcameraservice_p.h \
     $$PWD/avfcamerasession_p.h \
@@ -15,7 +14,6 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/avfcameracontrol.mm \
-    $$PWD/avfcamerametadatacontrol.mm \
     $$PWD/avfimagecapturecontrol.mm \
     $$PWD/avfcameraservice.mm \
     $$PWD/avfcamerasession.mm \

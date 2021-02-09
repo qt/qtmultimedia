@@ -40,7 +40,6 @@
 #include "avfmediaplayerservice_p.h"
 #include "avfmediaplayersession_p.h"
 #include "avfmediaplayercontrol_p.h"
-#include "avfmediaplayermetadatacontrol_p.h"
 #include "avfvideooutput_p.h"
 #if QT_CONFIG(opengl)
 #include "avfvideorenderercontrol_p.h"
@@ -56,9 +55,6 @@ AVFMediaPlayerService::AVFMediaPlayerService()
     m_session = new AVFMediaPlayerSession(this);
     m_control = new AVFMediaPlayerControl(this);
     m_control->setSession(m_session);
-    m_playerMetaDataControl = new AVFMediaPlayerMetaDataControl(m_session, this);
-
-    connect(m_control, SIGNAL(mediaChanged(QMediaContent)), m_playerMetaDataControl, SLOT(updateTags()));
 }
 
 AVFMediaPlayerService::~AVFMediaPlayerService()
@@ -77,9 +73,6 @@ QObject *AVFMediaPlayerService::requestControl(const char *name)
 
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
         return m_control;
-
-    if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
-        return m_playerMetaDataControl;
 
 #if QT_CONFIG(opengl)
     if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
@@ -124,11 +117,6 @@ QMediaPlayerControl *AVFMediaPlayerService::player()
     return m_control;
 }
 
-QMetaDataReaderControl *AVFMediaPlayerService::dataReader()
-{
-    return m_playerMetaDataControl;
-}
-
 QVideoRendererControl *AVFMediaPlayerService::createVideoRenderer()
 {
     if (m_videoOutput)
@@ -152,20 +140,3 @@ QVideoWindowControl *AVFMediaPlayerService::createVideoWindow()
     m_session->setVideoOutput(control);
     return control;
 }
-
-#if 0
-void listSupportedMimeTypes()
-{
-    //Populate m_supportedMimeTypes with mimetypes AVAsset supports
-    NSArray *mimeTypes = [AVURLAsset audiovisualMIMETypes];
-    for (NSString *mimeType in mimeTypes)
-    {
-        m_supportedMimeTypes.append(QString::fromUtf8([mimeType UTF8String]));
-    }
-#ifdef QT_DEBUG_AVF
-    qDebug() << "AVFMediaPlayerServicePlugin::buildSupportedTypes";
-    qDebug() << "Supported Types: " << m_supportedMimeTypes;
-#endif
-
-}
-#endif

@@ -65,7 +65,6 @@ QT_BEGIN_NAMESPACE
 
 class MmRendererAudioRoleControl;
 class MmRendererCustomAudioRoleControl;
-class MmRendererMetaDataReaderControl;
 class MmRendererPlayerVideoRendererControl;
 class MmRendererVideoWindowControl;
 
@@ -121,7 +120,6 @@ public:
 
     MmRendererVideoWindowControl *videoWindowControl() const;
     void setVideoWindowControl(MmRendererVideoWindowControl *videoControl);
-    void setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl);
 
 protected:
     virtual void startMonitoring() = 0;
@@ -178,7 +176,6 @@ private:
     qreal m_rate;
     QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
     QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
     MmRendererMetaData m_metaData;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;

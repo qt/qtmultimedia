@@ -39,7 +39,6 @@
 #include "mmrendereraudiorolecontrol_p.h"
 #include "mmrenderercustomaudiorolecontrol_p.h"
 #include "mmrenderermediaplayercontrol_p.h"
-#include "mmrenderermetadatareadercontrol_p.h"
 #include "mmrendererplayervideorenderercontrol_p.h"
 #include "mmrendererutil_p.h"
 #include "mmrenderervideowindowcontrol_p.h"
@@ -599,11 +598,6 @@ void MmRendererMediaPlayerControl::setVideoWindowControl(MmRendererVideoWindowCo
     m_videoWindowControl = videoControl;
 }
 
-void MmRendererMediaPlayerControl::setMetaDataReaderControl(MmRendererMetaDataReaderControl *metaDataReaderControl)
-{
-    m_metaDataReaderControl = metaDataReaderControl;
-}
-
 void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)
 {
     if (newPosition != 0 && newPosition != m_position) {
@@ -635,9 +629,7 @@ void MmRendererMediaPlayerControl::updateMetaData(const strm_dict *dict)
     if (m_videoWindowControl)
         m_videoWindowControl->setMetaData(m_metaData);
 
-    if (m_metaDataReaderControl)
-        m_metaDataReaderControl->setMetaData(m_metaData);
-
+    // ### convert to QMediaMetaData and notify the player about metadata changes
     emit durationChanged(m_metaData.duration());
     emit audioAvailableChanged(m_metaData.hasAudio());
     emit videoAvailableChanged(m_metaData.hasVideo());

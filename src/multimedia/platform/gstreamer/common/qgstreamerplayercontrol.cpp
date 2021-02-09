@@ -71,6 +71,7 @@ QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *sessio
     connect(m_session, &QGstreamerPlayerSession::error, this, &QGstreamerPlayerControl::error);
     connect(m_session, &QGstreamerPlayerSession::invalidMedia, this, &QGstreamerPlayerControl::handleInvalidMedia);
     connect(m_session, &QGstreamerPlayerSession::playbackRateChanged, this, &QGstreamerPlayerControl::playbackRateChanged);
+    connect(m_session, &QGstreamerPlayerSession::metaDataChanged, this, &QGstreamerPlayerControl::metaDataChanged);
 }
 
 QGstreamerPlayerControl::~QGstreamerPlayerControl()
@@ -377,6 +378,11 @@ bool QGstreamerPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
 QAudioDeviceInfo QGstreamerPlayerControl::audioOutput() const
 {
     return m_session->audioOutputDevice();
+}
+
+QMediaMetaData QGstreamerPlayerControl::metaData() const
+{
+    return m_session->metaData();
 }
 
 void QGstreamerPlayerControl::setVideoOutput(QObject *output)

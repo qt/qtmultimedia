@@ -37,8 +37,7 @@
 **
 ****************************************************************************/
 
-#include "avfmediaplayermetadatacontrol_p.h"
-#include "avfmediaplayersession_p.h"
+#include "avfmetadata_p.h"
 
 #include <QtMultimedia/qmediametadata.h>
 
@@ -46,50 +45,15 @@
 
 QT_USE_NAMESPACE
 
-AVFMediaPlayerMetaDataControl::AVFMediaPlayerMetaDataControl(AVFMediaPlayerSession *session, QObject *parent)
-    : QMetaDataReaderControl(parent)
-    , m_session(session)
-    , m_asset(nullptr)
-{
-    QObject::connect(m_session, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(updateTags()));
-}
-
-AVFMediaPlayerMetaDataControl::~AVFMediaPlayerMetaDataControl()
-{
-#ifdef QT_DEBUG_AVF
-    qDebug() << Q_FUNC_INFO;
-#endif
-}
-
-bool AVFMediaPlayerMetaDataControl::isMetaDataAvailable() const
-{
-    return !m_tags.isEmpty();
-}
-
-bool AVFMediaPlayerMetaDataControl::isWritable() const
-{
-    return false;
-}
-
-QVariant AVFMediaPlayerMetaDataControl::metaData(const QString &key) const
-{
-    return m_tags.value(key);
-}
-
-QStringList AVFMediaPlayerMetaDataControl::availableMetaData() const
-{
-    return m_tags.keys();
-}
-
-static QString itemKey(AVMetadataItem *item)
+static std::optional<QMediaMetaData::Key> itemKey(AVMetadataItem *item)
 {
     NSString *keyString = [item commonKey];
 
     if (keyString.length != 0) {
         if ([keyString isEqualToString:AVMetadataCommonKeyTitle]) {
             return QMediaMetaData::Title;
-        } else if ([keyString isEqualToString: AVMetadataCommonKeySubject]) {
-            return QMediaMetaData::SubTitle;
+//        } else if ([keyString isEqualToString: AVMetadataCommonKeySubject]) {
+//            return QMediaMetaData::SubTitle;
         } else if ([keyString isEqualToString: AVMetadataCommonKeyDescription]) {
             return QMediaMetaData::Description;
         } else if ([keyString isEqualToString: AVMetadataCommonKeyPublisher]) {
@@ -108,54 +72,32 @@ static QString itemKey(AVMetadataItem *item)
             return QMediaMetaData::Author;
         } else if ([keyString isEqualToString: AVMetadataCommonKeyArtist]) {
             return QMediaMetaData::ContributingArtist;
-        } else if ([keyString isEqualToString: AVMetadataCommonKeyArtwork]) {
-            return QMediaMetaData::PosterUrl;
+//        } else if ([keyString isEqualToString: AVMetadataCommonKeyArtwork]) {
+//            return QMediaMetaData::PosterUrl;
         }
     }
 
-    return QString();
+    return std::nullopt;
 }
 
-void AVFMediaPlayerMetaDataControl::updateTags()
+QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
-    AVAsset *currentAsset = static_cast<AVAsset*>(m_session->currentAssetHandle());
-
-    //Don't read the tags from the same asset more than once
-    if (currentAsset == m_asset)
-        return;
-
-    m_asset = currentAsset;
-
-    QVariantMap oldTags = m_tags;
-    //Since we've changed assets, clear old tags
-    m_tags.clear();
-    bool changed = false;
+    QMediaMetaData metaData;
 
     // TODO: also process ID3, iTunes and QuickTime metadata
 
-    NSArray *metadataItems = [currentAsset commonMetadata];
+    NSArray *metadataItems = [asset commonMetadata];
     for (AVMetadataItem* item in metadataItems) {
-        const QString key = itemKey(item);
-        if (!key.isEmpty()) {
-            const QString value = QString::fromNSString([item stringValue]);
-            if (!value.isNull()) {
-                m_tags.insert(key, value);
-                if (value != oldTags.value(key)) {
-                    changed = true;
-                    Q_EMIT metaDataChanged(key, value);
-                }
-            }
-        }
-    }
+        auto key = itemKey(item);
+        if (!key)
+            continue;
 
-    if (oldTags.isEmpty() != m_tags.isEmpty()) {
-        Q_EMIT metaDataAvailableChanged(!m_tags.isEmpty());
-        changed = true;
+        const QString value = QString::fromNSString([item stringValue]);
+        if (!value.isNull())
+            metaData.insert(*key, value);
     }
-
-    if (changed)
-        Q_EMIT metaDataChanged();
+    return metaData;
 }

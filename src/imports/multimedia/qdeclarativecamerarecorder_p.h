@@ -59,6 +59,7 @@
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;
+class QDeclarativeMediaMetaData;
 
 class QDeclarativeCameraRecorder : public QObject
 {
@@ -91,7 +92,7 @@ class QDeclarativeCameraRecorder : public QObject
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY error)
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY error)
-
+    Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
 public:
     enum RecorderState
     {
@@ -162,7 +163,6 @@ public Q_SLOTS:
     void setRecorderState(QDeclarativeCameraRecorder::RecorderState state);
 
     void setMuted(bool muted);
-    void setMetadata(const QString &key, const QVariant &value);
 
     void setCaptureResolution(const QSize &resolution);
     void setAudioCodec(QMediaFormat::AudioCodec codec);
@@ -178,6 +178,8 @@ public Q_SLOTS:
     void setVideoEncodingMode(EncodingMode encodingMode);
     void setAudioEncodingMode(EncodingMode encodingMode);
 
+    QDeclarativeMediaMetaData *metaData();
+
 Q_SIGNALS:
     void recorderStateChanged(QDeclarativeCameraRecorder::RecorderState state);
     void recorderStatusChanged();
@@ -187,8 +189,6 @@ Q_SIGNALS:
     void actualLocationChanged(const QString &location);
 
     void error(QDeclarativeCameraRecorder::Error errorCode, const QString &errorString);
-
-    void metaDataChanged(const QString &key, const QVariant &value);
 
     void captureResolutionChanged(const QSize &);
     void audioCodecChanged();
@@ -213,7 +213,8 @@ private:
     friend class QDeclarativeCamera;
     QDeclarativeCameraRecorder(QCamera *camera, QObject *parent = 0);
 
-    QMediaRecorder *m_recorder;
+    QMediaRecorder *m_recorder = nullptr;
+    QDeclarativeMediaMetaData *m_metaData = nullptr;
 
     QMediaEncoderSettings m_encoderSettings;
 };

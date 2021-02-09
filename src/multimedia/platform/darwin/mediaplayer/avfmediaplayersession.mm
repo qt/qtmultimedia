@@ -39,7 +39,9 @@
 
 #include "avfmediaplayersession_p.h"
 #include "avfmediaplayerservice_p.h"
+#include "avfmediaplayercontrol_p.h"
 #include "avfvideooutput_p.h"
+#include "avfmetadata_p.h"
 
 #include <qpointer.h>
 #include <QFileInfo>
@@ -944,6 +946,10 @@ void AVFMediaPlayerSession::processLoadStateChange(QMediaPlayer::State newState)
         QMediaPlayer::MediaStatus newStatus = m_mediaStatus;
 
         AVPlayerItem *playerItem = [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) playerItem];
+
+        // get the meta data
+        QMediaMetaData metaData = AVFMetaData::fromAsset(playerItem.asset);
+        static_cast<AVFMediaPlayerControl *>(m_service->player())->setMetaData(metaData);
 
         if (playerItem) {
             // Check each track for audio and video content

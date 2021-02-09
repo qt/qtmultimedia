@@ -39,7 +39,6 @@
 #include "mmrenderermediaplayerservice_p.h"
 
 #include "mmrenderermediaplayercontrol_p.h"
-#include "mmrenderermetadatareadercontrol_p.h"
 #include "mmrendererplayervideorenderercontrol_p.h"
 #include "mmrendererutil_p.h"
 #include "mmrenderervideowindowcontrol_p.h"
@@ -53,7 +52,6 @@ MmRendererMediaPlayerService::MmRendererMediaPlayerService(QObject *parent)
       m_videoRendererControl(0),
       m_videoWindowControl(0),
       m_mediaPlayerControl(0),
-      m_metaDataReaderControl(0),
       m_appHasDrmPermission(false),
       m_appHasDrmPermissionChecked(false)
 {
@@ -65,7 +63,6 @@ MmRendererMediaPlayerService::~MmRendererMediaPlayerService()
     delete m_videoRendererControl;
     delete m_videoWindowControl;
     delete m_mediaPlayerControl;
-    delete m_metaDataReaderControl;
 }
 
 QObject *MmRendererMediaPlayerService::requestControl(const char *name)
@@ -76,12 +73,6 @@ QObject *MmRendererMediaPlayerService::requestControl(const char *name)
             updateControls();
         }
         return m_mediaPlayerControl;
-    } else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
-        if (!m_metaDataReaderControl) {
-            m_metaDataReaderControl = new MmRendererMetaDataReaderControl();
-            updateControls();
-        }
-        return m_metaDataReaderControl;
     } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!m_appHasDrmPermissionChecked) {
             m_appHasDrmPermission = checkForDrmPermission();
@@ -118,8 +109,6 @@ void MmRendererMediaPlayerService::releaseControl(QObject *control)
         m_videoWindowControl = 0;
     if (control == m_mediaPlayerControl)
         m_mediaPlayerControl = 0;
-    if (control == m_metaDataReaderControl)
-        m_metaDataReaderControl = 0;
     delete control;
 }
 
@@ -130,19 +119,11 @@ void MmRendererMediaPlayerService::updateControls()
 
     if (m_videoWindowControl && m_mediaPlayerControl)
         m_mediaPlayerControl->setVideoWindowControl(m_videoWindowControl);
-
-    if (m_metaDataReaderControl && m_mediaPlayerControl)
-        m_mediaPlayerControl->setMetaDataReaderControl(m_metaDataReaderControl);
 }
 
 QMediaPlayerControl *MmRendererMediaPlayerService::player()
 {
     return m_mediaPlayerControl;
-}
-
-QMetaDataReaderControl *MmRendererMediaPlayerService::dataReader()
-{
-    return m_metaDataReaderControl;
 }
 
 QVideoRendererControl *MmRendererMediaPlayerService::createVideoRenderer()

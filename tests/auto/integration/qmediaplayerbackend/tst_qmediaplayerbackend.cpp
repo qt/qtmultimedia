@@ -1055,30 +1055,22 @@ void tst_QMediaPlayerBackend::metadata()
 
     QMediaPlayer player;
 
-    QSignalSpy metadataAvailableSpy(&player, SIGNAL(metaDataAvailableChanged(bool)));
     QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
 
     player.setMedia(localFileWithMetadata);
 
-    QTRY_VERIFY(player.isMetaDataAvailable());
-    QCOMPARE(metadataAvailableSpy.count(), 1);
-    QVERIFY(metadataAvailableSpy.last()[0].toBool());
     QVERIFY(metadataChangedSpy.count() > 0);
 
-    QCOMPARE(player.metaData(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
-    QCOMPARE(player.metaData(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
-    QCOMPARE(player.metaData(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
+    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
+    QCOMPARE(player.metaData().value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
+    QCOMPARE(player.metaData().value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
 
-    metadataAvailableSpy.clear();
     metadataChangedSpy.clear();
 
     player.setMedia(QUrl());
 
-    QVERIFY(!player.isMetaDataAvailable());
-    QCOMPARE(metadataAvailableSpy.count(), 1);
-    QVERIFY(!metadataAvailableSpy.last()[0].toBool());
     QCOMPARE(metadataChangedSpy.count(), 1);
-    QVERIFY(player.availableMetaData().isEmpty());
+    QVERIFY(player.metaData().isEmpty());
 }
 
 void tst_QMediaPlayerBackend::playerStateAtEOS()

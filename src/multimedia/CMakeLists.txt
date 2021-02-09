@@ -39,8 +39,6 @@ qt_internal_add_module(Multimedia
         controls/qmediaplayercontrol.cpp controls/qmediaplayercontrol.h
         controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
-        controls/qmetadatareadercontrol.cpp controls/qmetadatareadercontrol.h
-        controls/qmetadatawritercontrol.cpp controls/qmetadatawritercontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
         platform/qmediaplatformcaptureinterface.cpp platform/qmediaplatformcaptureinterface_p.h
@@ -152,7 +150,7 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/mfstream.cpp platform/windows/mfstream_p.h
         platform/windows/player/mfactivate.cpp platform/windows/player/mfactivate_p.h
         platform/windows/player/mfevrvideowindowcontrol.cpp platform/windows/player/mfevrvideowindowcontrol_p.h
-        platform/windows/player/mfmetadatacontrol.cpp platform/windows/player/mfmetadatacontrol_p.h
+        platform/windows/player/mfmetadata.cpp platform/windows/player/mfmetadata_p.h
         platform/windows/player/mfplayercontrol.cpp platform/windows/player/mfplayercontrol_p.h
         platform/windows/player/mfplayerservice.cpp platform/windows/player/mfplayerservice_p.h
         platform/windows/player/mfplayersession.cpp platform/windows/player/mfplayersession_p.h
@@ -202,6 +200,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
         platform/gstreamer/common/qgstreamerbufferprobe.cpp platform/gstreamer/common/qgstreamerbufferprobe_p.h
         platform/gstreamer/common/qgstreamerbushelper.cpp platform/gstreamer/common/qgstreamerbushelper_p.h
+        platform/gstreamer/common/qgstreamermetadata.cpp platform/gstreamer/common/qgstreamermetadata_p.h
         platform/gstreamer/common/qgstreamermessage.cpp platform/gstreamer/common/qgstreamermessage_p.h
         platform/gstreamer/common/qgstreamerplayercontrol.cpp platform/gstreamer/common/qgstreamerplayercontrol_p.h
         platform/gstreamer/common/qgstreamerplayersession.cpp platform/gstreamer/common/qgstreamerplayersession_p.h
@@ -213,7 +212,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstvideobuffer.cpp platform/gstreamer/common/qgstvideobuffer_p.h
         platform/gstreamer/common/qgstvideorendererplugin.cpp platform/gstreamer/common/qgstvideorendererplugin_p.h
         platform/gstreamer/common/qgstvideorenderersink.cpp platform/gstreamer/common/qgstvideorenderersink_p.h
-        platform/gstreamer/mediaplayer/qgstreamermetadataprovider.cpp platform/gstreamer/mediaplayer/qgstreamermetadataprovider_p.h
         platform/gstreamer/mediaplayer/qgstreamerplayerservice.cpp platform/gstreamer/mediaplayer/qgstreamerplayerservice_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
         platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
@@ -261,7 +259,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATU
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_camerabin
     SOURCES
         platform/gstreamer/mediacapture/qgstreamercameracontrol.cpp platform/gstreamer/mediacapture/qgstreamercameracontrol_p.h
-        platform/gstreamer/mediacapture/qgstreamercapturemetadatacontrol.cpp platform/gstreamer/mediacapture/qgstreamercapturemetadatacontrol_p.h
         platform/gstreamer/mediacapture/qgstreamercaptureservice.cpp platform/gstreamer/mediacapture/qgstreamercaptureservice_p.h
         platform/gstreamer/mediacapture/qgstreamercapturesession.cpp platform/gstreamer/mediacapture/qgstreamercapturesession_p.h
         platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol.cpp platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol_p.h
@@ -345,7 +342,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
         platform/android/mediaplayer/qandroidmediaservice.cpp platform/android/mediaplayer/qandroidmediaservice_p.h
-        platform/android/mediaplayer/qandroidmetadatareadercontrol.cpp platform/android/mediaplayer/qandroidmetadatareadercontrol_p.h
+        platform/android/mediaplayer/qandroidmetadata.cpp platform/android/mediaplayer/qandroidmetadata_p.h
         platform/android/qandroiddevicemanager.cpp platform/android/qandroiddevicemanager_p.h
         platform/android/qandroidformatsinfo.cpp  platform/android/qandroidformatsinfo_p.h
         platform/android/qandroidintegration.cpp platform/android/qandroidintegration_p.h
@@ -390,9 +387,9 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/audio/qcoreaudiooutput.mm platform/darwin/audio/qcoreaudiooutput_p.h
         platform/darwin/audio/qcoreaudioutils.mm platform/darwin/audio/qcoreaudioutils_p.h
         platform/darwin/mediaplayer/avfmediaplayercontrol.mm platform/darwin/mediaplayer/avfmediaplayercontrol_p.h
-        platform/darwin/mediaplayer/avfmediaplayermetadatacontrol.mm platform/darwin/mediaplayer/avfmediaplayermetadatacontrol_p.h
         platform/darwin/mediaplayer/avfmediaplayerservice.mm platform/darwin/mediaplayer/avfmediaplayerservice_p.h
         platform/darwin/mediaplayer/avfmediaplayersession.mm platform/darwin/mediaplayer/avfmediaplayersession_p.h
+        platform/darwin/mediaplayer/avfmetadata.mm platform/darwin/mediaplayer/avfmetadata_p.h
         platform/darwin/mediaplayer/avfvideooutput.mm platform/darwin/mediaplayer/avfvideooutput_p.h
         platform/darwin/mediaplayer/avfvideowindowcontrol.mm platform/darwin/mediaplayer/avfvideowindowcontrol_p.h
         platform/darwin/qdarwindevicemanager.mm platform/darwin/qdarwindevicemanager_p.h
@@ -430,7 +427,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfcameradebug_p.h
         platform/darwin/camera/avfcameraexposurecontrol.mm platform/darwin/camera/avfcameraexposurecontrol_p.h
         platform/darwin/camera/avfcamerafocuscontrol.mm platform/darwin/camera/avfcamerafocuscontrol_p.h
-        platform/darwin/camera/avfcamerametadatacontrol.mm platform/darwin/camera/avfcamerametadatacontrol_p.h
         platform/darwin/camera/avfcamerarenderercontrol.mm platform/darwin/camera/avfcamerarenderercontrol_p.h
         platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h
         platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
@@ -504,7 +500,6 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/mediaplayer/mmrenderermediaplayercontrol.cpp platform/qnx/mediaplayer/mmrenderermediaplayercontrol_p.h
         platform/qnx/mediaplayer/mmrenderermediaplayerservice.cpp platform/qnx/mediaplayer/mmrenderermediaplayerservice_p.h
         platform/qnx/mediaplayer/mmrenderermetadata.cpp platform/qnx/mediaplayer/mmrenderermetadata_p.h
-        platform/qnx/mediaplayer/mmrenderermetadatareadercontrol.cpp platform/qnx/mediaplayer/mmrenderermetadatareadercontrol_p.h
         platform/qnx/mediaplayer/mmrendererplayervideorenderercontrol.cpp platform/qnx/mediaplayer/mmrendererplayervideorenderercontrol_p.h
         platform/qnx/mediaplayer/mmrendererutil.cpp platform/qnx/mediaplayer/mmrendererutil_p.h
         platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h

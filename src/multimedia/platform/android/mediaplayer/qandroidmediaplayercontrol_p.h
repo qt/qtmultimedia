@@ -90,10 +90,11 @@ public:
     void setCustomAudioRole(const QString &role) override;
     QStringList supportedCustomAudioRoles() const override;
 
+    QMediaMetaData metaData() const override;
+
     void setVideoOutput(QAndroidVideoOutput *videoOutput);
 
 Q_SIGNALS:
-    void metaDataUpdated();
     void audioRoleChanged(QAudio::Role role);
     void customAudioRoleChanged(const QString &role);
 

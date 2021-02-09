@@ -44,6 +44,7 @@
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qmediametadata.h>
 
 #include <QtCore/qpair.h>
 
@@ -100,6 +101,8 @@ public:
     virtual bool setAudioOutput(const QAudioDeviceInfo &) { return false; }
     virtual QAudioDeviceInfo audioOutput() const { return QAudioDeviceInfo(); }
 
+    virtual QMediaMetaData metaData() const { return {}; }
+
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
     void customAudioRoleChanged(const QString &role);
@@ -116,6 +119,7 @@ Q_SIGNALS:
     void availablePlaybackRangesChanged(const QMediaTimeRange &ranges);
     void playbackRateChanged(qreal rate);
     void error(int error, const QString &errorString);
+    void metaDataChanged();
 
 protected:
     explicit QMediaPlayerControl(QObject *parent = nullptr);

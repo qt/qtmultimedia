@@ -42,9 +42,7 @@
 
 #include <qmediaplayercontrol.h>
 
-#include <qmediaservice.h>
 #include <private/qdeclarativevideooutput_p.h>
-#include <qmetadatareadercontrol.h>
 
 #include "qdeclarativemediametadata_p.h"
 

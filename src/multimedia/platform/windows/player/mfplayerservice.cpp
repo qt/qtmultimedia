@@ -46,13 +46,11 @@
 #include "mfvideorenderercontrol_p.h"
 #include "mfplayerservice_p.h"
 #include "mfplayersession_p.h"
-#include "mfmetadatacontrol_p.h"
 
 MFPlayerService::MFPlayerService()
 {
     m_session = new MFPlayerSession(this);
     m_player = new MFPlayerControl(m_session);
-    m_metaDataControl = new MFMetaDataControl(this);
 }
 
 MFPlayerService::~MFPlayerService()
@@ -72,8 +70,6 @@ QObject *MFPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
         return m_player;
-    } else if (qstrcmp(name, QMetaDataReaderControl_iid) == 0) {
-        return m_metaDataControl;
     } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!m_videoRendererControl && !m_videoWindowControl) {
             m_videoRendererControl = new MFVideoRendererControl;
@@ -111,11 +107,6 @@ QMediaPlayerControl *MFPlayerService::player()
     return m_player;
 }
 
-QMetaDataReaderControl *MFPlayerService::dataReader()
-{
-    return m_metaDataControl;
-}
-
 QVideoRendererControl *MFPlayerService::createVideoRenderer()
 {
     return m_videoRendererControl;
@@ -134,9 +125,4 @@ MFVideoRendererControl* MFPlayerService::videoRendererControl() const
 MFEvrVideoWindowControl* MFPlayerService::videoWindowControl() const
 {
     return m_videoWindowControl;
-}
-
-MFMetaDataControl* MFPlayerService::metaDataControl() const
-{
-    return m_metaDataControl;
 }

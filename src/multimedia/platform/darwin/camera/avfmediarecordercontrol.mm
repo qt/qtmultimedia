@@ -42,7 +42,6 @@
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
-#include "avfcamerametadatacontrol_p.h"
 
 #include "qaudiodeviceinfo.h"
 #include "qmediadevicemanager.h"
@@ -151,8 +150,6 @@ AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObj
     connect(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(setupSessionForCapture()));
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(setupSessionForCapture()));
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(setupSessionForCapture()));
-
-    m_metaData = new AVFCameraMetaDataControl(this);
 }
 
 AVFMediaRecorderControl::~AVFMediaRecorderControl()
@@ -531,11 +528,6 @@ bool AVFMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &id)
 void AVFMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     m_settings = settings;
-}
-
-QMetaDataWriterControl *AVFMediaRecorderControl::metaDataControl()
-{
-    return m_metaData;
 }
 
 void AVFMediaRecorderControl::setState(QMediaRecorder::State state)

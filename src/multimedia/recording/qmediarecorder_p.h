@@ -61,7 +61,6 @@ class QMediaRecorderControl;
 class QMediaContainerControl;
 class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
-class QMetaDataWriterControl;
 class QTimer;
 
 class QMediaRecorderPrivate
@@ -77,7 +76,6 @@ public:
     QPointer<QMediaSource> mediaSource;
 
     QMediaRecorderControl *control = nullptr;
-    QMetaDataWriterControl *metaDataControl = nullptr;
 
     bool settingsChanged = false;
 

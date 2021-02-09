@@ -56,7 +56,6 @@
 QT_BEGIN_NAMESPACE
 
 class MmRendererMediaPlayerControl;
-class MmRendererMetaDataReaderControl;
 class MmRendererPlayerVideoRendererControl;
 class MmRendererVideoWindowControl;
 
@@ -72,7 +71,6 @@ public:
 
     // QMediaPlatformPlayerInterface
     QMediaPlayerControl *player() override;
-    QMetaDataReaderControl *dataReader() override;
 //    QMediaStreamsControl *streams() override;
 
     QVideoRendererControl *createVideoRenderer() override;
@@ -84,7 +82,6 @@ private:
     QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
     QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
     QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
-    QPointer<MmRendererMetaDataReaderControl> m_metaDataReaderControl;
 
     bool m_appHasDrmPermission : 1;
     bool m_appHasDrmPermissionChecked : 1;

@@ -75,7 +75,6 @@ QT_USE_NAMESPACE
 class SourceResolver;
 class MFVideoRendererControl;
 class MFPlayerControl;
-class MFMetaDataControl;
 class MFPlayerService;
 class AudioSampleGrabberCallback;
 class MFTransform;
@@ -127,6 +126,8 @@ public:
     bool setAudioOutput(const QAudioDeviceInfo &device);
     QAudioDeviceInfo audioOutput() const { return m_audioOutput; }
 
+    QMediaMetaData metaData() const { return m_metaData; }
+
 Q_SIGNALS:
     void error(QMediaPlayer::Error error, QString errorString, bool isFatal);
     void sessionEvent(IMFMediaEvent  *sessionEvent);
@@ -140,6 +141,7 @@ Q_SIGNALS:
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
     void bufferStatusChanged(int percentFilled);
+    void metaDataChanged();
 
 private Q_SLOTS:
     void handleMediaSourceReady();
@@ -221,6 +223,7 @@ private:
     bool m_muted;
 
     QAudioDeviceInfo m_audioOutput;
+    QMediaMetaData m_metaData;
     IMFActivate *m_currentAudioActivate = nullptr;
 
 

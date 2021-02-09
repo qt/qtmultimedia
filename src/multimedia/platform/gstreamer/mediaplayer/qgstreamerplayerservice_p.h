@@ -62,7 +62,6 @@ class QMediaPlayerControl;
 class QGstreamerMetaData;
 class QGstreamerPlayerControl;
 class QGstreamerPlayerSession;
-class QGstreamerMetaDataProvider;
 class QGstreamerStreamsControl;
 class QGstreamerVideoRenderer;
 class QGstreamerVideoWindow;
@@ -81,7 +80,6 @@ public:
 
     // QMediaPlatformPlayerInterface
     QMediaPlayerControl *player() override;
-    QMetaDataReaderControl *dataReader() override;
     QMediaStreamsControl *streams() override;
 
     QVideoRendererControl *createVideoRenderer() override;
@@ -90,7 +88,6 @@ public:
 private:
     QGstreamerPlayerControl *m_control = nullptr;
     QGstreamerPlayerSession *m_session = nullptr;
-    QGstreamerMetaDataProvider *m_metaData = nullptr;
     QGstreamerStreamsControl *m_streamsControl = nullptr;
 
     QObject *m_videoOutput = nullptr;

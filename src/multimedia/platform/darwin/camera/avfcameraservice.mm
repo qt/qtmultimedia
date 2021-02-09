@@ -43,7 +43,6 @@
 #include "avfcameraservice_p.h"
 #include "avfcameracontrol_p.h"
 #include "avfcamerasession_p.h"
-#include "avfcamerametadatacontrol_p.h"
 #include "avfmediarecordercontrol_p.h"
 #include "avfimagecapturecontrol_p.h"
 #include "avfcamerarenderercontrol_p.h"

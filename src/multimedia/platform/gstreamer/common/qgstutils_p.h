@@ -72,8 +72,6 @@ class QImage;
 class QVideoSurfaceFormat;
 
 namespace QGstUtils {
-    Q_MULTIMEDIA_EXPORT QMap<QByteArray, QVariant> gstTagListToMap(const GstTagList *list);
-
     Q_MULTIMEDIA_EXPORT QSize capsResolution(const GstCaps *caps);
     Q_MULTIMEDIA_EXPORT QSize capsCorrectedResolution(const GstCaps *caps);
     Q_MULTIMEDIA_EXPORT QAudioFormat audioFormatForCaps(const GstCaps *caps);

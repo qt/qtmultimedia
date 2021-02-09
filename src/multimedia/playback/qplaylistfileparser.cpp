@@ -164,9 +164,9 @@ public:
             }
         } else {
             QUrl url = expandToFullPath(root, line);
-            m_extraInfo[QLatin1String("url")] = url;
+            m_extraInfo[QMediaMetaData::Url] = url;
             m_parent->playlist.append(url);
-            newItemFound(QVariant(m_extraInfo));
+            newItemFound(QVariant::fromValue(m_extraInfo));
             m_extraInfo.clear();
         }
 
@@ -191,7 +191,7 @@ public:
     }
 
 private:
-    QVariantMap     m_extraInfo;
+    QMediaMetaData  m_extraInfo;
     bool            m_extendedFormat;
 };
 

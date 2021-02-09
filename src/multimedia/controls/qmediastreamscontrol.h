@@ -50,6 +50,7 @@ QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
 class QString;
+class QMediaMetaData;
 
 class Q_MULTIMEDIA_EXPORT QMediaStreamsControl : public QObject
 {
@@ -61,7 +62,7 @@ public:
     virtual int streamCount() = 0;
     virtual StreamType streamType(int streamNumber) = 0;
 
-    virtual QVariant metaData(int streamNumber, const QString &key) = 0;
+    virtual QMediaMetaData metaData(int streamNumber) = 0;
 
     virtual bool isActive(int streamNumber) = 0;
     virtual void setActive(int streamNumber, bool state) = 0;

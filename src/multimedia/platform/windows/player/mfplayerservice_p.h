@@ -68,7 +68,6 @@ QT_USE_NAMESPACE
 class MFEvrVideoWindowControl;
 class MFVideoRendererControl;
 class MFPlayerControl;
-class MFMetaDataControl;
 class MFPlayerSession;
 
 class MFPlayerService : public QMediaPlatformPlayerInterface
@@ -82,7 +81,6 @@ public:
     void releaseControl(QObject *control) override;
 
     QMediaPlayerControl *player() override;
-    QMetaDataReaderControl *dataReader() override;
     // ### QMediaStreamsControl *streams() override;
 
     virtual QVideoRendererControl *createVideoRenderer() override;
@@ -90,14 +88,12 @@ public:
 
     MFVideoRendererControl* videoRendererControl() const;
     MFEvrVideoWindowControl* videoWindowControl() const;
-    MFMetaDataControl* metaDataControl() const;
 
 private:
     MFPlayerSession *m_session = nullptr;
     MFVideoRendererControl *m_videoRendererControl = nullptr;
     MFEvrVideoWindowControl *m_videoWindowControl = nullptr;
     MFPlayerControl        *m_player = nullptr;
-    MFMetaDataControl      *m_metaDataControl = nullptr;
 };
 
 #endif

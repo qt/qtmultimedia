@@ -351,7 +351,7 @@ void tst_QCamera::testCameraCaptureMetadata()
     QCamera camera;
     QCameraImageCapture imageCapture(&camera);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
 
     camera.start();
@@ -359,24 +359,14 @@ void tst_QCamera::testCameraCaptureMetadata()
 
     QTRY_COMPARE(savedSignal.size(), 1);
 
-    QCOMPARE(metadataSignal.size(), 3);
+    QCOMPARE(metadataSignal.size(), 1);
 
     QVariantList metadata = metadataSignal[0];
     QCOMPARE(metadata[0].toInt(), id);
-    QCOMPARE(metadata[1].toString(), QMediaMetaData::FocalLengthIn35mmFilm);
-    QCOMPARE(metadata[2].value<QVariant>().toInt(), 50);
-
-    metadata = metadataSignal[1];
-    QCOMPARE(metadata[0].toInt(), id);
-    QCOMPARE(metadata[1].toString(), QMediaMetaData::DateTimeOriginal);
-    QDateTime captureTime = metadata[2].value<QVariant>().value<QDateTime>();
-    const qint64 dt = captureTime.secsTo(QDateTime::currentDateTime());
-    QVERIFY2(qAbs(dt) < 5, QByteArray::number(dt).constData()); // it should not take more than 5 seconds for signal to arrive here
-
-    metadata = metadataSignal[2];
-    QCOMPARE(metadata[0].toInt(), id);
-    QCOMPARE(metadata[1].toString(), QLatin1String("Answer to the Ultimate Question of Life, the Universe, and Everything"));
-    QCOMPARE(metadata[2].value<QVariant>().toInt(), 42);
+    QMediaMetaData data = metadata[1].value<QMediaMetaData>();
+    QCOMPARE(data.keys().length(), 2);
+    QCOMPARE(data[QMediaMetaData::Author].toString(), "Author");
+    QCOMPARE(data[QMediaMetaData::Year].toInt(), 2021);
 }
 
 

@@ -35,10 +35,8 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <qmediasource.h>
 #include <qmediaservice.h>
-#include <qmetadatareadercontrol.h>
 
 #include "mockmediarecorderservice.h"
-#include "mockmetadatareadercontrol.h"
 
 class QtTestMediaObjectService : public QMediaService
 {
@@ -49,21 +47,14 @@ public:
     {
     }
 
-    QObject *requestControl(const char *iid) override
+    QObject *requestControl(const char *) override
     {
-        if (hasMetaData && qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
-            return &metaData;
-
         return nullptr;
     }
 
     void releaseControl(QObject *) override
     {
     }
-
-    MockMetaDataReaderControl metaData;
-    int metaDataRef = 0;
-    bool hasMetaData = true;
 };
 
 QT_USE_NAMESPACE
@@ -79,11 +70,6 @@ private slots:
     void notifyInterval_data();
     void notifyInterval();
 
-    void nullMetaDataControl();
-    void isMetaDataAvailable();
-    void metaDataChanged();
-    void metaData_data();
-    void metaData();
     void availability();
 
     void service();
@@ -310,110 +296,6 @@ void tst_QMediaSource::notifyInterval()
     object.setNotifyInterval(interval);
     QCOMPARE(object.notifyInterval(), interval);
     QCOMPARE(spy.count(), 1);
-}
-
-void tst_QMediaSource::nullMetaDataControl()
-{
-    const QString titleKey(QLatin1String("Title"));
-    const QString title(QLatin1String("Host of Seraphim"));
-
-    QtTestMediaObjectService service;
-    service.hasMetaData = false;
-
-    QtTestMediaObject object(&service);
-
-    QSignalSpy spy(&object, SIGNAL(metaDataChanged()));
-
-    QCOMPARE(object.isMetaDataAvailable(), false);
-
-    QCOMPARE(object.metaData(QMediaMetaData::Title).toString(), QString());
-    QCOMPARE(object.availableMetaData(), QStringList());
-    QCOMPARE(spy.count(), 0);
-}
-
-void tst_QMediaSource::isMetaDataAvailable()
-{
-    QtTestMediaObjectService service;
-    service.metaData.setMetaDataAvailable(false);
-
-    QtTestMediaObject object(&service);
-    QCOMPARE(object.isMetaDataAvailable(), false);
-
-    QSignalSpy spy(&object, SIGNAL(metaDataAvailableChanged(bool)));
-    service.metaData.setMetaDataAvailable(true);
-
-    QCOMPARE(object.isMetaDataAvailable(), true);
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.at(0).at(0).toBool(), true);
-
-    service.metaData.setMetaDataAvailable(false);
-
-    QCOMPARE(object.isMetaDataAvailable(), false);
-    QCOMPARE(spy.count(), 2);
-    QCOMPARE(spy.at(1).at(0).toBool(), false);
-}
-
-void tst_QMediaSource::metaDataChanged()
-{
-    QtTestMediaObjectService service;
-    QtTestMediaObject object(&service);
-
-    QSignalSpy changedSpy(&object, SIGNAL(metaDataChanged()));
-    QSignalSpy changedWithValueSpy(&object, SIGNAL(metaDataChanged(QString,QVariant)));
-
-    service.metaData.setMetaData("key", "Value");
-    QCOMPARE(changedSpy.count(), 1);
-    QCOMPARE(changedWithValueSpy.count(), 1);
-    QCOMPARE(changedWithValueSpy.last()[0], QVariant("key"));
-    QCOMPARE(changedWithValueSpy.last()[1].value<QVariant>(), QVariant("Value"));
-
-    service.metaData.setMetaData("key", "Value");
-    QCOMPARE(changedSpy.count(), 1);
-    QCOMPARE(changedWithValueSpy.count(), 1);
-
-    service.metaData.setMetaData("key2", "Value");
-    QCOMPARE(changedSpy.count(), 2);
-    QCOMPARE(changedWithValueSpy.count(), 2);
-    QCOMPARE(changedWithValueSpy.last()[0], QVariant("key2"));
-    QCOMPARE(changedWithValueSpy.last()[1].value<QVariant>(), QVariant("Value"));
-}
-
-void tst_QMediaSource::metaData_data()
-{
-    QTest::addColumn<QString>("artist");
-    QTest::addColumn<QString>("title");
-    QTest::addColumn<QString>("genre");
-
-    QTest::newRow("")
-            << QString::fromLatin1("Dead Can Dance")
-            << QString::fromLatin1("Host of Seraphim")
-            << QString::fromLatin1("Awesome");
-}
-
-void tst_QMediaSource::metaData()
-{
-    QFETCH(QString, artist);
-    QFETCH(QString, title);
-    QFETCH(QString, genre);
-
-    QtTestMediaObjectService service;
-    service.metaData.populateMetaData();
-
-    QtTestMediaObject object(&service);
-    QVERIFY(object.availableMetaData().isEmpty());
-
-    service.metaData.m_data.insert(QMediaMetaData::AlbumArtist, artist);
-    service.metaData.m_data.insert(QMediaMetaData::Title, title);
-    service.metaData.m_data.insert(QMediaMetaData::Genre, genre);
-
-    QCOMPARE(object.metaData(QMediaMetaData::AlbumArtist).toString(), artist);
-    QCOMPARE(object.metaData(QMediaMetaData::Title).toString(), title);
-
-    QStringList metaDataKeys = object.availableMetaData();
-    QCOMPARE(metaDataKeys.size(), 3);
-    QVERIFY(metaDataKeys.contains(QMediaMetaData::AlbumArtist));
-    QVERIFY(metaDataKeys.contains(QMediaMetaData::Title));
-    QVERIFY(metaDataKeys.contains(QMediaMetaData::Genre));
 }
 
 void tst_QMediaSource::availability()

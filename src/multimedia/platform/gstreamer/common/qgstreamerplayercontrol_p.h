@@ -99,6 +99,8 @@ public:
     bool setAudioOutput(const QAudioDeviceInfo &) override;
     QAudioDeviceInfo audioOutput() const override;
 
+    QMediaMetaData metaData() const override;
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 

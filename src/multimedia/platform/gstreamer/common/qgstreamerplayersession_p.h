@@ -119,8 +119,7 @@ public:
 
     QMediaTimeRange availablePlaybackRanges() const;
 
-    QMap<QByteArray ,QVariant> tags() const { return m_tags; }
-    QMap<QString,QVariant> streamProperties(int streamNumber) const { return m_streamProperties[streamNumber]; }
+    QMediaMetaData streamProperties(int streamNumber) const { return m_streamProperties[streamNumber]; }
     int streamCount() const { return m_streamProperties.count(); }
     QMediaStreamsControl::StreamType streamType(int streamNumber) { return m_streamTypes.value(streamNumber, QMediaStreamsControl::UnknownStream); }
 
@@ -142,6 +141,8 @@ public:
     void setAudioOutputDevice(const QAudioDeviceInfo &audioDevice);
 
     void finishAudioOutputChange();
+
+    QMediaMetaData metaData() const { return m_metaData; }
 
 public slots:
     void loadFromUri(const QNetworkRequest &url);
@@ -167,7 +168,7 @@ signals:
     void videoAvailableChanged(bool videoAvailable);
     void bufferingProgressChanged(int percentFilled);
     void playbackFinished();
-    void tagsChanged();
+    void metaDataChanged();
     void streamsChanged();
     void seekableChanged(bool);
     void error(int error, const QString &errorString);
@@ -229,8 +230,8 @@ private:
     QGstAppSrc *m_appSrc = nullptr;
 #endif
 
-    QMap<QByteArray, QVariant> m_tags;
-    QList< QMap<QString,QVariant> > m_streamProperties;
+    QMediaMetaData m_metaData;
+    QList<QMediaMetaData> m_streamProperties;
     QList<QMediaStreamsControl::StreamType> m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> m_playbin2StreamOffset;
 

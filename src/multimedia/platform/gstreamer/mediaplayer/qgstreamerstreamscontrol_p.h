@@ -67,7 +67,7 @@ public:
     int streamCount() override;
     StreamType streamType(int streamNumber) override;
 
-    QVariant metaData(int streamNumber, const QString &key) override;
+    QMediaMetaData metaData(int streamNumber) override;
 
     bool isActive(int streamNumber) override;
     void setActive(int streamNumber, bool state) override;

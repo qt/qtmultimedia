@@ -50,6 +50,7 @@
 QT_BEGIN_NAMESPACE
 
 class QSize;
+class QMediaMetaData;
 QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
@@ -101,6 +102,10 @@ public:
     CaptureDestinations captureDestination() const;
     void setCaptureDestination(CaptureDestinations destination);
 
+    QMediaMetaData metaData() const;
+    void setMetaData(const QMediaMetaData &metaData);
+    void addMetaData(const QMediaMetaData &metaData);
+
 public Q_SLOTS:
     int capture(const QString &location = QString());
     void cancelCapture();
@@ -113,7 +118,7 @@ Q_SIGNALS:
 
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);
-    void imageMetadataAvailable(int id, const QString &key, const QVariant &value);
+    void imageMetadataAvailable(int id, const QMediaMetaData &metaData);
     void imageAvailable(int id, const QVideoFrame &frame);
     void imageSaved(int id, const QString &fileName);
 
@@ -130,10 +135,6 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraImageCapture::CaptureDestinations)
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QCameraImageCapture::Error)
-Q_DECLARE_METATYPE(QCameraImageCapture::CaptureDestination)
-Q_DECLARE_METATYPE(QCameraImageCapture::CaptureDestinations)
 
 Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, Error)
 Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, CaptureDestination)

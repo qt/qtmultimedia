@@ -103,6 +103,12 @@ public:
 
     void setEncoderSettings(const QMediaEncoderSettings &) {}
 
+    virtual void setMetaData(const QMediaMetaData &m)
+    {
+        m_metaData = m;
+        emit metaDataChanged();
+    }
+    virtual QMediaMetaData metaData() const { return m_metaData; }
 
     using QMediaRecorderControl::error;
 
@@ -166,6 +172,7 @@ public slots:
     }
 
 public:
+    QMediaMetaData m_metaData;
     QAudioDeviceInfo m_audioInput;
     QUrl       m_sink;
     QMediaRecorder::State m_state;

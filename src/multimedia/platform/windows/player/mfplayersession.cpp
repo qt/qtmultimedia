@@ -50,10 +50,10 @@
 #include "mfplayercontrol_p.h"
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
+#include "mfmetadata_p.h"
 
 #include "mfplayersession_p.h"
 #include "mfplayerservice_p.h"
-#include "mfmetadatacontrol_p.h"
 #include <mferror.h>
 #include <nserror.h>
 #include "private/sourceresolver_p.h"
@@ -67,8 +67,8 @@
 //#define DEBUG_MEDIAFOUNDATION
 
 MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
-    : m_playerService(playerService)
-    , m_cRef(1)
+    : m_cRef(1)
+    , m_playerService(playerService)
     , m_session(0)
     , m_presentationClock(0)
     , m_rateControl(0)
@@ -235,7 +235,8 @@ void MFPlayerSession::handleMediaSourceReady()
     hr = mediaSource->CreatePresentationDescriptor(&sourcePD);
     if (SUCCEEDED(hr)) {
         m_duration = 0;
-        m_playerService->metaDataControl()->updateSource(sourcePD, mediaSource);
+        m_metaData = MFMetaData::fromNative(mediaSource);
+        emit metaDataChanged();
         sourcePD->GetUINT64(MF_PD_DURATION, &m_duration);
         //convert from 100 nanosecond to milisecond
         emit durationUpdate(qint64(m_duration / 10000));

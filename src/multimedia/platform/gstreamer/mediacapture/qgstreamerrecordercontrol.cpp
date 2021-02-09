@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qgstreamerrecordercontrol_p.h"
-#include "qgstreamercapturemetadatacontrol_p.h"
 #include <QtCore/QDebug>
 #include <QtGui/qdesktopservices.h>
 #include <QStandardPaths>
@@ -57,15 +56,10 @@ QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *s
     connect(m_session, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
     connect(m_session, SIGNAL(volumeChanged(qreal)), SIGNAL(volumeChanged(qreal)));
     m_hasPreviewState = m_session->captureMode() != QGstreamerCaptureSession::Audio;
-
-    m_metaData = new QGstreamerCaptureMetaDataControl(this);
-    connect(m_metaData, SIGNAL(metaDataChanged(QMap<QByteArray,QVariant>)),
-            m_session, SLOT(setMetaData(QMap<QByteArray,QVariant>)));
 }
 
 QGstreamerRecorderControl::~QGstreamerRecorderControl()
 {
-    delete m_metaData;
 }
 
 QUrl QGstreamerRecorderControl::outputLocation() const
@@ -243,7 +237,12 @@ QMediaEncoderSettings QGstreamerRecorderControl::resolvedEncoderSettings() const
     return f;
 }
 
-QMetaDataWriterControl *QGstreamerRecorderControl::metaDataControl()
+void QGstreamerRecorderControl::setMetaData(const QMediaMetaData &metaData)
+{
+    m_metaData = static_cast<const QGstreamerMetaData &>(metaData);
+}
+
+QMediaMetaData QGstreamerRecorderControl::metaData() const
 {
     return m_metaData;
 }

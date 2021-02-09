@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERAMETADATACONTROL_H
-#define AVFCAMERAMETADATACONTROL_H
+#ifndef QGSTREAMERMETADATA_H
+#define QGSTREAMERMETADATA_H
 
 //
 //  W A R N I N G
@@ -51,31 +51,25 @@
 // We mean it.
 //
 
-#include <qmetadatawritercontrol.h>
-#include <QtCore/qvariant.h>
+#include <qmediametadata.h>
+#include <qvariant.h>
+
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
-class AVFMediaRecorderControl;
+class QGstreamerPlayerSession;
 
-class AVFCameraMetaDataControl : public QMetaDataWriterControl
+class QGstreamerMetaData : public QMediaMetaData
 {
-    Q_OBJECT
 public:
-    AVFCameraMetaDataControl(AVFMediaRecorderControl *parent = nullptr);
-    virtual ~AVFCameraMetaDataControl();
+    static QGstreamerMetaData fromGstTagList(const GstTagList *tags);
+    GstTagList *toGstTagList() const;
 
-    bool isMetaDataAvailable() const override;
-    bool isWritable() const override;
-
-    QVariant metaData(const QString &key) const override;
-    void setMetaData(const QString &key, const QVariant &value) override;
-    QStringList availableMetaData() const override;
-
-private:
-    QMap<QString, QVariant> m_tags;
+    void setMetaData(GstBin *bin);
+    void setMetaData(GstElement *element);
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QGSTREAMERMETADATA_H

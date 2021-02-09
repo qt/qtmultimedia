@@ -43,7 +43,6 @@
 
 
 #include "qgstreamerplayerservice_p.h"
-#include "qgstreamermetadataprovider_p.h"
 
 #include <private/qgstreamervideowindow_p.h>
 #include <private/qgstreamervideorenderer_p.h>
@@ -59,7 +58,6 @@ QGstreamerPlayerService::QGstreamerPlayerService()
 {
     m_session = new QGstreamerPlayerSession(this);
     m_control = new QGstreamerPlayerControl(m_session, this);
-    m_metaData = new QGstreamerMetaDataProvider(m_session, this);
     m_streamsControl = new QGstreamerStreamsControl(m_session,this);
     m_videoRenderer = new QGstreamerVideoRenderer(this);
     m_videoWindow = new QGstreamerVideoWindow(this);
@@ -79,9 +77,6 @@ QObject *QGstreamerPlayerService::requestControl(const char *name)
 {
     if (qstrcmp(name,QMediaPlayerControl_iid) == 0)
         return m_control;
-
-    if (qstrcmp(name,QMetaDataReaderControl_iid) == 0)
-        return m_metaData;
 
     if (!m_videoOutput) {
         if (qstrcmp(name, QVideoRendererControl_iid) == 0)
@@ -114,11 +109,6 @@ void QGstreamerPlayerService::releaseControl(QObject *control)
 QMediaPlayerControl *QGstreamerPlayerService::player()
 {
     return m_control;
-}
-
-QMetaDataReaderControl *QGstreamerPlayerService::dataReader()
-{
-    return m_metaData;
 }
 
 QMediaStreamsControl *QGstreamerPlayerService::streams()
@@ -159,33 +149,5 @@ void QGstreamerPlayerService::decreaseVideoRef()
 {
     m_videoReferenceCount--;
 }
-
-#if 0
-// ### Re-add something similar to be able to check for support of certain file formats
-QMultimedia::SupportEstimate QGstreamerPlayerServicePlugin::hasSupport(const QString &mimeType,
-                                                                     const QStringList &codecs) const
-{
-    if (m_supportedMimeTypeSet.isEmpty())
-        updateSupportedMimeTypes();
-
-    return QGstUtils::hasSupport(mimeType, codecs, m_supportedMimeTypeSet);
-}
-
-static bool isDecoderOrDemuxer(GstElementFactory *factory)
-{
-    return gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DEMUXER)
-                || gst_element_factory_list_is_type(factory, GST_ELEMENT_FACTORY_TYPE_DECODER);
-}
-
-void QGstreamerPlayerServicePlugin::updateSupportedMimeTypes() const
-{
-     m_supportedMimeTypeSet = QGstUtils::supportedMimeTypes(isDecoderOrDemuxer);
-}
-
-QStringList QGstreamerPlayerServicePlugin::supportedMimeTypes() const
-{
-    return QStringList();
-}
-#endif
 
 QT_END_NAMESPACE

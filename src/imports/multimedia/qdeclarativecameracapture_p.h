@@ -54,13 +54,13 @@
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 #include <qmediaencodersettings.h>
+#include <qmediametadata.h>
 
 #include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;
-class QMetaDataWriterControl;
 
 class QDeclarativeCameraCapture : public QObject
 {
@@ -89,14 +89,14 @@ public Q_SLOTS:
     void cancelCapture();
 
     void setResolution(const QSize &resolution);
-    void setMetadata(const QString &key, const QVariant &value);
+    void setMetadata(QMediaMetaData::Key key, const QVariant &value);
 
 Q_SIGNALS:
     void readyForCaptureChanged(bool);
 
     void imageExposed(int requestId);
     void imageCaptured(int requestId, const QString &preview);
-    void imageMetadataAvailable(int requestId, const QString &key, const QVariant &value);
+    void imageMetadataAvailable(int requestId, const QMediaMetaData &);
     void imageSaved(int requestId, const QString &path);
     void captureFailed(int requestId, const QString &message);
 
@@ -106,7 +106,6 @@ Q_SIGNALS:
 private slots:
     void _q_imageCaptured(int, const QImage&);
     void _q_imageSaved(int, const QString&);
-    void _q_imageMetadataAvailable(int, const QString &, const QVariant &);
     void _q_captureFailed(int, QCameraImageCapture::Error, const QString&);
     void _q_cameraStatusChanged(QCamera::Status status);
 
@@ -118,7 +117,6 @@ private:
     QCameraImageCapture *m_capture;
     QImageEncoderSettings m_imageSettings;
     QString m_capturedImagePath;
-    QMetaDataWriterControl *m_metadataWriterControl;
 };
 
 QT_END_NAMESPACE

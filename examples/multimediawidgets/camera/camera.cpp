@@ -116,8 +116,6 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error),
             this, &Camera::displayRecorderError);
 
-    m_mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
-
     connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
 
     m_camera->setViewfinder(ui->viewfinder);

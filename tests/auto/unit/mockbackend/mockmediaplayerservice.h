@@ -35,7 +35,6 @@
 #include "mockmediastreamscontrol.h"
 #include "mockvideorenderercontrol.h"
 #include "mockvideowindowcontrol.h"
-#include "mockmetadatareadercontrol.h"
 
 class MockMediaPlayerService : public QMediaPlatformPlayerInterface
 {
@@ -49,7 +48,6 @@ public:
         rendererControl = new MockVideoRendererControl;
         rendererRef = 0;
         windowControl = new MockVideoWindowControl;
-        metaDataControl = new MockMetaDataReaderControl;
         windowRef = 0;
     }
 
@@ -76,8 +74,6 @@ public:
                 return windowControl;
             }
         }
-        if (qstrcmp(iid, QMetaDataReaderControl_iid) == 0)
-            return metaDataControl;
 
         return 0;
     }
@@ -91,7 +87,6 @@ public:
     }
 
     MockMediaPlayerControl *player() { return mockControl; }
-    QMetaDataReaderControl *dataReader() { return nullptr; } // ###
 
     QMediaStreamsControl *streams() { return nullptr; } // ###
 
@@ -144,7 +139,6 @@ public:
     MockStreamsControl *mockStreamsControl;
     MockVideoRendererControl *rendererControl;
     MockVideoWindowControl *windowControl;
-    MockMetaDataReaderControl *metaDataControl;
     int windowRef;
     int rendererRef;
 };

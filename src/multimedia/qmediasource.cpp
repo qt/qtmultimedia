@@ -43,8 +43,8 @@
 #include "qmediasource_p.h"
 
 #include <qmediaservice.h>
-#include <qmetadatareadercontrol.h>
 #include <qmediasink.h>
+#include <qmediametadata.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -216,8 +216,6 @@ QMediaSource::QMediaSource(QObject *parent, QMediaService *service)
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
     d->service = service;
-
-    setupControls();
 }
 
 /*!
@@ -234,8 +232,6 @@ QMediaSource::QMediaSource(QMediaSourcePrivate &dd, QObject *parent, QMediaServi
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
     d->service = service;
-
-    setupControls();
 }
 
 /*!
@@ -299,48 +295,13 @@ void QMediaSource::removePropertyWatch(QByteArray const &name)
 */
 
 /*!
-    Returns true if there is meta-data associated with this media object, else false.
-*/
-
-bool QMediaSource::isMetaDataAvailable() const
-{
-    Q_D(const QMediaSource);
-
-    return d->metaDataControl
-            ? d->metaDataControl->isMetaDataAvailable()
-            : false;
-}
-
-/*!
-    \fn QMediaSource::metaDataAvailableChanged(bool available)
-
-    Signals that the \a available state of a media object's meta-data has changed.
-*/
-
-/*!
     Returns the value associated with a meta-data \a key.
 
     See the list of predefined \l {QMediaMetaData}{meta-data keys}.
 */
-QVariant QMediaSource::metaData(const QString &key) const
+QMediaMetaData QMediaSource::metaData() const
 {
-    Q_D(const QMediaSource);
-
-    return d->metaDataControl
-            ? d->metaDataControl->metaData(key)
-            : QVariant();
-}
-
-/*!
-    Returns a list of keys there is meta-data available for.
-*/
-QStringList QMediaSource::availableMetaData() const
-{
-    Q_D(const QMediaSource);
-
-    return d->metaDataControl
-            ? d->metaDataControl->availableMetaData()
-            : QStringList();
+    return QMediaMetaData();
 }
 
 /*!
@@ -352,33 +313,6 @@ QStringList QMediaSource::availableMetaData() const
     metaDataChanged(const QString &key, const QVariant &value) signal is emitted
     for each of them with metaDataChanged() changed emitted once.
 */
-
-/*!
-    \fn QMediaSource::metaDataChanged(const QString &key, const QVariant &value)
-
-    Signal the changes of one meta-data element \a value with the given \a key.
-*/
-
-
-void QMediaSource::setupControls()
-{
-    Q_D(QMediaSource);
-
-    if (d->service != nullptr) {
-        d->metaDataControl = qobject_cast<QMetaDataReaderControl*>(
-                d->service->requestControl(QMetaDataReaderControl_iid));
-
-        if (d->metaDataControl) {
-            connect(d->metaDataControl, SIGNAL(metaDataChanged()), SIGNAL(metaDataChanged()));
-            connect(d->metaDataControl,
-                    SIGNAL(metaDataChanged(QString,QVariant)),
-                    SIGNAL(metaDataChanged(QString,QVariant)));
-            connect(d->metaDataControl,
-                    SIGNAL(metaDataAvailableChanged(bool)),
-                    SIGNAL(metaDataAvailableChanged(bool)));
-        }
-    }
-}
 
 QT_END_NAMESPACE
 

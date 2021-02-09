@@ -34,10 +34,8 @@
 #include <qmediaservice.h>
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
-#include <qmetadatawritercontrol.h>
 #include <qaudioformat.h>
 
-#include "mockmetadatawritercontrol.h"
 #include "mockmediarecordercontrol.h"
 #include "mockmediasource.h"
 
@@ -52,15 +50,12 @@ public:
         mockControl(control),
         hasControls(true)
     {
-        mockMetaDataControl = new MockMetaDataWriterControl(parent); //Creating the object for MetaData
     }
 
     QObject *requestControl(const char *name) override
     {
         if (hasControls && qstrcmp(name,QMediaRecorderControl_iid) == 0)
             return mockControl;
-        if (hasControls && qstrcmp(name, QMetaDataWriterControl_iid) == 0)
-            return mockMetaDataControl;
 
         return nullptr;
     }
@@ -68,7 +63,6 @@ public:
     void releaseControl(QObject *) override {}
     //Initialising the objects for the media
     QObject *mockControl;
-    MockMetaDataWriterControl *mockMetaDataControl;
     bool hasControls;
 };
 
@@ -90,7 +84,6 @@ private slots:
     {
         MockMediaRecorderControl recorderControl(nullptr);
         TestBindableService service(nullptr, &recorderControl);
-        service.mockMetaDataControl->populateMetaData();
         MockMediaSource object(nullptr, &service);
         QMediaRecorder recorder(&object);
         QMediaSource *obj = recorder.mediaSource();
@@ -102,7 +95,6 @@ private slots:
     {
         MockMediaRecorderControl recorderControl(nullptr);
         TestBindableService service(nullptr, &recorderControl);
-        service.mockMetaDataControl->populateMetaData();
         MockMediaSource object(nullptr, &service);
         QMediaRecorder *recorder = new QMediaRecorder(&object);
         QVERIFY(recorder->isAvailable());

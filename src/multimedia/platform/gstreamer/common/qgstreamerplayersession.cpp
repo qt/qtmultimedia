@@ -43,6 +43,7 @@
 #include <private/qgstreamervideorendererinterface_p.h>
 #include <private/qgstutils_p.h>
 #include <private/qgstvideorenderersink_p.h>
+#include <private/qgstreamermetadata_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>
@@ -247,8 +248,8 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
     m_appSrc->setStream(appSrcStream);
 
     if (!parsePipeline() && m_playbin) {
-        m_tags.clear();
-        emit tagsChanged();
+        m_metaData.clear();
+        emit metaDataChanged();
 
         g_object_set(G_OBJECT(m_playbin), "uri", "appsrc://", nullptr);
 
@@ -279,8 +280,8 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
 #endif
 
     if (!parsePipeline() && m_playbin) {
-        m_tags.clear();
-        emit tagsChanged();
+        m_metaData.clear();
+        emit metaDataChanged();
 
         g_object_set(G_OBJECT(m_playbin), "uri", m_request.url().toEncoded().constData(), nullptr);
 
@@ -921,14 +922,11 @@ bool QGstreamerPlayerSession::processBusMessage(const QGstreamerMessage &message
             GstTagList *tag_list;
             gst_message_parse_tag(gm, &tag_list);
 
-            QMap<QByteArray, QVariant> newTags = QGstUtils::gstTagListToMap(tag_list);
-            QMap<QByteArray, QVariant>::const_iterator it = newTags.constBegin();
-            for ( ; it != newTags.constEnd(); ++it)
-                m_tags.insert(it.key(), it.value()); // overwrite existing tags
+            m_metaData = QGstreamerMetaData::fromGstTagList(tag_list);
 
             gst_tag_list_free(tag_list);
 
-            emit tagsChanged();
+            emit metaDataChanged();
         } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_DURATION) {
             updateDuration();
         }
@@ -1207,7 +1205,7 @@ void QGstreamerPlayerSession::getStreamsInfo()
     if (!m_playbin)
         return;
 
-    QList< QMap<QString,QVariant> > oldProperties = m_streamProperties;
+    QList<QMediaMetaData> oldProperties = m_streamProperties;
     QList<QMediaStreamsControl::StreamType> oldTypes = m_streamTypes;
     QMap<QMediaStreamsControl::StreamType, int> oldOffset = m_playbin2StreamOffset;
 
@@ -1244,7 +1242,7 @@ void QGstreamerPlayerSession::getStreamsInfo()
 
     for (int i=0; i<m_streamTypes.count(); i++) {
         QMediaStreamsControl::StreamType streamType = m_streamTypes[i];
-        QMap<QString, QVariant> streamProperties;
+        QMediaMetaData streamProperties;
 
         int streamIndex = i - m_playbin2StreamOffset[streamType];
 
@@ -1322,22 +1320,16 @@ void QGstreamerPlayerSession::updateVideoResolutionTag()
 
     gst_object_unref(GST_OBJECT(pad));
 
-    QSize currentSize = m_tags.value("resolution").toSize();
-    QSize currentAspectRatio = m_tags.value("pixel-aspect-ratio").toSize();
+    QSize currentSize = m_metaData.value(QMediaMetaData::Resolution).toSize();
 
-    if (currentSize != size || currentAspectRatio != aspectRatio) {
-        if (aspectRatio.isEmpty())
-            m_tags.remove("pixel-aspect-ratio");
-
+    if (currentSize != size) {
         if (size.isEmpty()) {
-            m_tags.remove("resolution");
+            m_metaData.remove(QMediaMetaData::Resolution);
         } else {
-            m_tags.insert("resolution", QVariant(size));
-            if (!aspectRatio.isEmpty())
-                m_tags.insert("pixel-aspect-ratio", QVariant(aspectRatio));
+            m_metaData.insert(QMediaMetaData::Resolution, QVariant(size));
         }
 
-        emit tagsChanged();
+        emit metaDataChanged();
     }
 }
 

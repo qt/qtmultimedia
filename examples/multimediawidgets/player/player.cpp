@@ -265,18 +265,14 @@ void Player::positionChanged(qint64 progress)
 
 void Player::metaDataChanged()
 {
-    if (m_player->isMetaDataAvailable()) {
-        setTrackInfo(QString("%1 - %2")
-                .arg(m_player->metaData(QMediaMetaData::AlbumArtist).toString())
-                .arg(m_player->metaData(QMediaMetaData::Title).toString()));
+    auto metaData = m_player->metaData();
+    setTrackInfo(QString("%1 - %2")
+            .arg(metaData.value(QMediaMetaData::AlbumArtist).toString())
+            .arg(metaData.value(QMediaMetaData::Title).toString()));
 
-        if (m_coverLabel) {
-            QUrl url = m_player->metaData(QMediaMetaData::CoverArtUrlLarge).value<QUrl>();
-
-            m_coverLabel->setPixmap(!url.isEmpty()
-                    ? QPixmap(url.toString())
-                    : QPixmap());
-        }
+    if (m_coverLabel) {
+        QImage cover = metaData.value(QMediaMetaData::CoverArtImage).value<QImage>();
+        m_coverLabel->setPixmap(QPixmap::fromImage(cover));
     }
 }
 

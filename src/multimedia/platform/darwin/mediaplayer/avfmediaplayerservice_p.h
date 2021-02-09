@@ -57,7 +57,6 @@ QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayerSession;
 class AVFMediaPlayerControl;
-class AVFMediaPlayerMetaDataControl;
 class AVFVideoOutput;
 
 class AVFMediaPlayerService : public QMediaPlatformPlayerInterface
@@ -71,7 +70,6 @@ public:
 
     // QMediaPlatformPlayerInterface
     QMediaPlayerControl *player() override;
-    QMetaDataReaderControl *dataReader() override;
 //    QMediaStreamsControl *streams() override;
 
     QVideoRendererControl *createVideoRenderer() override;
@@ -82,7 +80,6 @@ private:
     AVFMediaPlayerSession *m_session = nullptr;
     AVFMediaPlayerControl *m_control = nullptr;
     QObject *m_videoOutput = nullptr;
-    AVFMediaPlayerMetaDataControl *m_playerMetaDataControl = nullptr;
 };
 
 QT_END_NAMESPACE

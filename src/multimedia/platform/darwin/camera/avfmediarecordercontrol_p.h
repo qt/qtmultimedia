@@ -68,7 +68,6 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraControl;
 class AVFCameraService;
-class AVFCameraMetaDataControl;
 
 class AVFMediaRecorderControl : public QMediaRecorderControl
 {
@@ -96,8 +95,6 @@ public:
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
 
-    QMetaDataWriterControl *metaDataControl() override;
-
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) override;
     void setMuted(bool muted) override;
@@ -116,7 +113,6 @@ private:
     AVFCameraControl *m_cameraControl;
     AVFCameraSession *m_session;
     AVCaptureDevice *m_audioCaptureDevice = nullptr;
-    AVFCameraMetaDataControl *m_metaData = nullptr;
 
     bool m_connected;
     QUrl m_outputLocation;

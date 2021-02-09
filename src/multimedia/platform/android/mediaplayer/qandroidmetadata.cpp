@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qandroidmetadatareadercontrol_p.h"
+#include "qandroidmetadata_p.h"
 
 #include "androidmediametadataretriever_p.h"
 #include <QtMultimedia/qmediametadata.h>
@@ -71,90 +71,14 @@ static const char* qt_ID3GenreNames[] =
     "Euro-House", "Dance Hall"
 };
 
-typedef QList<QAndroidMetaDataReaderControl *> AndroidMetaDataReaders;
-Q_GLOBAL_STATIC(AndroidMetaDataReaders, g_metaDataReaders)
-Q_GLOBAL_STATIC(QMutex, g_metaDataReadersMtx)
-
-QAndroidMetaDataReaderControl::QAndroidMetaDataReaderControl(QObject *parent)
-    : QMetaDataReaderControl(parent)
-    , m_available(false)
+QMediaMetaData QAndroidMetaData::extractMetadata(const QUrl &url)
 {
-}
-
-QAndroidMetaDataReaderControl::~QAndroidMetaDataReaderControl()
-{
-    QMutexLocker l(g_metaDataReadersMtx());
-    const int idx = g_metaDataReaders->indexOf(this);
-    if (idx != -1)
-        g_metaDataReaders->remove(idx);
-}
-
-bool QAndroidMetaDataReaderControl::isMetaDataAvailable() const
-{
-    const QMutexLocker l(&m_mtx);
-    return m_available && !m_metadata.isEmpty();
-}
-
-QVariant QAndroidMetaDataReaderControl::metaData(const QString &key) const
-{
-    const QMutexLocker l(&m_mtx);
-    return m_metadata.value(key);
-}
-
-QStringList QAndroidMetaDataReaderControl::availableMetaData() const
-{
-    const QMutexLocker l(&m_mtx);
-    return m_metadata.keys();
-}
-
-void QAndroidMetaDataReaderControl::onMediaChanged(const QUrl &media)
-{
-    const QMutexLocker l(&m_mtx);
-    m_metadata.clear();
-    m_mediaContent = media;
-}
-
-void QAndroidMetaDataReaderControl::onUpdateMetaData()
-{
-    {
-        const QMutexLocker l(g_metaDataReadersMtx());
-        if (!g_metaDataReaders->contains(this))
-            g_metaDataReaders->append(this);
-    }
-
-    const QMutexLocker ml(&m_mtx);
-    if (m_mediaContent.isEmpty())
-        return;
-
-    (void)QtConcurrent::run(&extractMetadata, this, m_mediaContent);
-}
-
-void QAndroidMetaDataReaderControl::updateData(const QVariantMap &metadata, const QUrl &url)
-{
-    const QMutexLocker l(&m_mtx);
-
-    if (m_mediaContent != url)
-        return;
-
-    const bool oldAvailable = m_available;
-    m_metadata = metadata;
-    m_available = !m_metadata.isEmpty();
-
-    if (m_available != oldAvailable)
-        Q_EMIT metaDataAvailableChanged(m_available);
-
-    Q_EMIT metaDataChanged();
-}
-
-void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderControl *caller,
-                                                    const QUrl &url)
-{
-    QVariantMap metadata;
+    QMediaMetaData metadata;
 
     if (!url.isEmpty()) {
         AndroidMediaMetadataRetriever retriever;
         if (!retriever.setDataSource(url))
-            return;
+            return metadata;
 
         QString mimeType = retriever.extractMetadata(AndroidMediaMetadataRetriever::MimeType);
         if (!mimeType.isNull())
@@ -175,12 +99,12 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
         if (!string.isNull()) {
             metadata.insert(isVideo ? QMediaMetaData::LeadPerformer
                                     : QMediaMetaData::ContributingArtist,
-                            string.split('/', Qt::SkipEmptyParts));
+                            string.split(QLatin1Char('/'), Qt::SkipEmptyParts));
         }
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Author);
         if (!string.isNull())
-            metadata.insert(QMediaMetaData::Author, string.split('/', Qt::SkipEmptyParts));
+            metadata.insert(QMediaMetaData::Author, string.split(QLatin1Char('/'), Qt::SkipEmptyParts));
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Bitrate);
         if (!string.isNull()) {
@@ -195,7 +119,7 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Composer);
         if (!string.isNull())
-            metadata.insert(QMediaMetaData::Composer, string.split('/', Qt::SkipEmptyParts));
+            metadata.insert(QMediaMetaData::Composer, string.split(QLatin1Char('/'), Qt::SkipEmptyParts));
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Date);
         if (!string.isNull())
@@ -208,7 +132,7 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Genre);
         if (!string.isNull()) {
             // The genre can be returned as an ID3v2 id, get the name for it in that case
-            if (string.startsWith('(') && string.endsWith(')')) {
+            if (string.startsWith(QLatin1Char('(')) && string.endsWith(QLatin1Char(')'))) {
                 bool ok = false;
                 const int genreId = QStringView{string}.mid(1, string.length() - 2).toInt(&ok);
                 if (ok && genreId >= 0 && genreId <= 125)
@@ -228,20 +152,16 @@ void QAndroidMetaDataReaderControl::extractMetadata(QAndroidMetaDataReaderContro
             metadata.insert(QMediaMetaData::Resolution, QSize(width, height));
         }
 
-        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Writer);
-        if (!string.isNull())
-            metadata.insert(QMediaMetaData::Writer, string.split('/', Qt::SkipEmptyParts));
+//        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Writer);
+//        if (!string.isNull())
+//            metadata.insert(QMediaMetaData::Writer, string.split('/', Qt::SkipEmptyParts));
 
         string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Year);
         if (!string.isNull())
             metadata.insert(QMediaMetaData::Year, string.toInt());
     }
 
-    const QMutexLocker lock(g_metaDataReadersMtx());
-    if (!g_metaDataReaders->contains(caller))
-        return;
-
-    caller->updateData(metadata, url);
+    return metadata;
 }
 
 QT_END_NAMESPACE

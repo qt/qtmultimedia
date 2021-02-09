@@ -40,7 +40,6 @@
 #include "qandroidmediaservice_p.h"
 
 #include "qandroidmediaplayercontrol_p.h"
-#include "qandroidmetadatareadercontrol_p.h"
 #include "qandroidmediaplayervideorenderercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -48,17 +47,11 @@ QT_BEGIN_NAMESPACE
 QAndroidMediaService::QAndroidMediaService()
 {
     mMediaControl = new QAndroidMediaPlayerControl;
-    mMetadataControl = new QAndroidMetaDataReaderControl;
-    connect(mMediaControl, SIGNAL(mediaChanged(QUrl)),
-            mMetadataControl, SLOT(onMediaChanged(QUrl)));
-    connect(mMediaControl, SIGNAL(metaDataUpdated()),
-            mMetadataControl, SLOT(onUpdateMetaData()));
 }
 
 QAndroidMediaService::~QAndroidMediaService()
 {
     delete mVideoRendererControl;
-    delete mMetadataControl;
     delete mMediaControl;
 }
 
@@ -66,9 +59,6 @@ QObject *QAndroidMediaService::requestControl(const char *name)
 {
     if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
         return mMediaControl;
-
-    if (qstrcmp(name, QMetaDataReaderControl_iid) == 0)
-        return mMetadataControl;
 
     if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
         if (!mVideoRendererControl) {
@@ -91,11 +81,6 @@ void QAndroidMediaService::releaseControl(QObject *control)
 QMediaPlayerControl *QAndroidMediaService::player()
 {
     return mMediaControl;
-}
-
-QMetaDataReaderControl *QAndroidMediaService::dataReader()
-{
-    return mMetadataControl;
 }
 
 QVideoRendererControl *QAndroidMediaService::createVideoRenderer()

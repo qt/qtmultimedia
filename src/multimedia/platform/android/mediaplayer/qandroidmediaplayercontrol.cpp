@@ -40,6 +40,7 @@
 #include "qandroidmediaplayercontrol_p.h"
 #include "androidmediaplayer_p.h"
 #include "qandroidvideooutput_p.h"
+#include "qandroidmetadata_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -298,6 +299,11 @@ QStringList QAndroidMediaPlayerControl::supportedCustomAudioRoles() const
         << "USAGE_VOICE_COMMUNICATION_SIGNALLING";
 }
 
+QMediaMetaData QAndroidMediaPlayerControl::metaData() const
+{
+    return QAndroidMetaData::extractMetadata(mMediaContent);
+}
+
 int QAndroidMediaPlayerControl::bufferStatus() const
 {
     return mBufferFilled ? 100 : 0;
@@ -536,7 +542,7 @@ void QAndroidMediaPlayerControl::onInfo(qint32 what, qint32 extra)
         setSeekable(false);
         break;
     case AndroidMediaPlayer::MEDIA_INFO_METADATA_UPDATE:
-        Q_EMIT metaDataUpdated();
+        Q_EMIT metaDataChanged();
         break;
     }
 }
@@ -650,7 +656,7 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
         } else {
             onBufferingChanged(100);
         }
-        Q_EMIT metaDataUpdated();
+        Q_EMIT metaDataChanged();
         setAudioAvailable(true);
         flushPendingStates();
         break;

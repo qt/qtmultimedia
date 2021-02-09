@@ -56,7 +56,6 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaPlayerControl;
-class QMetaDataReaderControl;
 class QMediaStreamsControl;
 class QVideoRendererControl;
 class QVideoWindowControl;
@@ -68,7 +67,6 @@ public:
     virtual ~QMediaPlatformPlayerInterface();
 
     virtual QMediaPlayerControl *player() = 0;
-    virtual QMetaDataReaderControl *dataReader() { return nullptr; }
 
     // ### nothing in the frontend uses the stream info currently. Needs implementation in QMediaPlayer
     virtual QMediaStreamsControl *streams() { return nullptr; }

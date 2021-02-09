@@ -862,13 +862,13 @@ void QGstreamerCaptureSession::setAudioCaptureDevice(const QAudioDeviceInfo &dev
     m_audioDevice = device;
 }
 
-void QGstreamerCaptureSession::setMetaData(const QMap<QByteArray, QVariant> &data)
+void QGstreamerCaptureSession::setMetaData(const QGstreamerMetaData &data)
 {
     //qDebug() << "QGstreamerCaptureSession::setMetaData" << data;
     m_metaData = data;
 
     if (m_encodeBin)
-        QGstUtils::setMetaData(GST_BIN(m_encodeBin), data);
+        m_metaData.setMetaData(GST_BIN(m_encodeBin));
 }
 
 bool QGstreamerCaptureSession::processBusMessage(const QGstreamerMessage &message)

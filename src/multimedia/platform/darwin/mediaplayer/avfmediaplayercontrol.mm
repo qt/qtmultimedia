@@ -177,6 +177,17 @@ QAudioDeviceInfo AVFMediaPlayerControl::audioOutput() const
 #endif
 }
 
+QMediaMetaData AVFMediaPlayerControl::metaData() const
+{
+    return m_metaData;
+}
+
+void AVFMediaPlayerControl::setMetaData(const QMediaMetaData &metaData)
+{
+    m_metaData = metaData;
+    metaDataChanged();
+}
+
 void AVFMediaPlayerControl::setPosition(qint64 pos)
 {
     m_session->setPosition(pos);

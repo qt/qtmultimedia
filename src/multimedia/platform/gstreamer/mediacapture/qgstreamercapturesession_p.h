@@ -63,6 +63,7 @@
 
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamerbufferprobe_p.h>
+#include <private/qgstreamermetadata_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -157,7 +158,7 @@ public slots:
 
     void dumpGraph(const QString &fileName);
 
-    void setMetaData(const QMap<QByteArray, QVariant>&);
+    void setMetaData(const QGstreamerMetaData &);
     void setMuted(bool);
     void setVolume(qreal volume);
 
@@ -184,7 +185,7 @@ private:
     bool m_waitingForEos;
     PipelineMode m_pipelineMode;
     QGstreamerCaptureSession::CaptureMode m_captureMode;
-    QMap<QByteArray, QVariant> m_metaData;
+    QGstreamerMetaData m_metaData;
 
     QGstreamerElementFactory *m_audioPreviewFactory;
     QGstreamerVideoInput *m_videoInputFactory;

@@ -69,12 +69,13 @@ public:
     virtual QImageEncoderSettings imageSettings() const = 0;
     virtual void setImageSettings(const QImageEncoderSettings &settings) = 0;
 
+    virtual void setMetaData(const QMediaMetaData &) {}
 Q_SIGNALS:
     void readyForCaptureChanged(bool ready);
 
     void imageExposed(int requestId);
     void imageCaptured(int requestId, const QImage &preview);
-    void imageMetadataAvailable(int id, const QString &key, const QVariant &value);
+    void imageMetadataAvailable(int id, const QMediaMetaData &);
     void imageAvailable(int requestId, const QVideoFrame &buffer);
     void imageSaved(int requestId, const QString &fileName);
 

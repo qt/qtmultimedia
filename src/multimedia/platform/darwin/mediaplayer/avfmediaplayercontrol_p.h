@@ -94,6 +94,9 @@ public:
     bool setAudioOutput(const QAudioDeviceInfo &) override;
     QAudioDeviceInfo audioOutput() const override;
 
+    QMediaMetaData metaData() const override;
+    void setMetaData(const QMediaMetaData &metaData);
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 
@@ -106,6 +109,7 @@ public Q_SLOTS:
 
 private:
     AVFMediaPlayerSession *m_session;
+    QMediaMetaData m_metaData;
 };
 
 QT_END_NAMESPACE

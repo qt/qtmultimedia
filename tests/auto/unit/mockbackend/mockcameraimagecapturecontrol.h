@@ -92,17 +92,11 @@ private Q_SLOTS:
         if (!m_captureCanceled) {
             emit imageCaptured(m_captureRequest, QImage());
 
-            emit imageMetadataAvailable(m_captureRequest,
-                                        QMediaMetaData::FocalLengthIn35mmFilm,
-                                        QVariant(50));
+            QMediaMetaData metaData;
+            metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+            metaData.insert(QMediaMetaData::Year, 2021);
 
-            emit imageMetadataAvailable(m_captureRequest,
-                                        QMediaMetaData::DateTimeOriginal,
-                                        QVariant(QDateTime::currentDateTime()));
-
-            emit imageMetadataAvailable(m_captureRequest,
-                                        QLatin1String("Answer to the Ultimate Question of Life, the Universe, and Everything"),
-                                        QVariant(42));
+            emit imageMetadataAvailable(m_captureRequest, metaData);
         }
 
         if (!m_ready)
