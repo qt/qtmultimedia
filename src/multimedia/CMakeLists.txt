@@ -160,6 +160,7 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/player/mfvideorenderercontrol.cpp platform/windows/player/mfvideorenderercontrol_p.h
         platform/windows/player/samplegrabber.cpp platform/windows/player/samplegrabber_p.h
         platform/windows/qwindowsdevicemanager.cpp platform/windows/qwindowsdevicemanager_p.h
+        platform/windows/qwindowsformatinfo.cpp platform/windows/qwindowsformatinfo_p.h
         platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
         platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h
     INCLUDE_DIRECTORIES

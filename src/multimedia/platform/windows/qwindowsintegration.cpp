@@ -39,6 +39,7 @@
 
 #include "qwindowsintegration_p.h"
 #include "qwindowsdevicemanager_p.h"
+#include "qwindowsformatinfo_p.h"
 #include <private/mfplayerservice_p.h>
 #include <private/mfaudiodecodercontrol_p.h>
 
@@ -57,8 +58,10 @@ QWindowsIntegration::QWindowsIntegration()
 
 QWindowsIntegration::~QWindowsIntegration()
 {
-    g_refCount--;
     delete m_manager;
+    delete m_formatInfo;
+
+    g_refCount--;
     if (g_refCount == 0) {
         // ### This currently crashes on exit
 //        MFShutdown();
@@ -71,6 +74,13 @@ QMediaPlatformDeviceManager *QWindowsIntegration::deviceManager()
     if (!m_manager)
         m_manager = new QWindowsDeviceManager();
     return m_manager;
+}
+
+QMediaPlatformFormatInfo *QWindowsIntegration::formatInfo()
+{
+    if (!m_formatInfo)
+        m_formatInfo = new QWindowsFormatInfo();
+    return m_formatInfo;
 }
 
 QAudioDecoderControl *QWindowsIntegration::createAudioDecoder()

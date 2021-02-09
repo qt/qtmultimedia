@@ -82,22 +82,19 @@ bool qt_convertFormat(const QAudioFormat &format, WAVEFORMATEXTENSIBLE *wfx)
 {
     if (!wfx
             || !format.isValid()
-            || format.codec() != QStringLiteral("audio/x-raw")
             || format.sampleRate() <= 0
-            || format.channelCount() <= 0
-            || format.sampleSize() <= 0
-            || format.byteOrder() != QAudioFormat::LittleEndian) {
+            || format.channelCount() <= 0) {
         return false;
     }
 
     wfx->Format.nSamplesPerSec = format.sampleRate();
-    wfx->Format.wBitsPerSample = wfx->Samples.wValidBitsPerSample = format.sampleSize();
+    wfx->Format.wBitsPerSample = wfx->Samples.wValidBitsPerSample = format.bytesPerSample()*8;
     wfx->Format.nChannels = format.channelCount();
     wfx->Format.nBlockAlign = (wfx->Format.wBitsPerSample / 8) * wfx->Format.nChannels;
     wfx->Format.nAvgBytesPerSec = wfx->Format.nBlockAlign * wfx->Format.nSamplesPerSec;
     wfx->Format.cbSize = 0;
 
-    if (format.sampleType() == QAudioFormat::Float) {
+    if (format.sampleFormat() == QAudioFormat::Float) {
         wfx->Format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
         wfx->SubFormat = _KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
     } else {

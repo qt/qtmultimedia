@@ -233,9 +233,8 @@ bool QWindowsAudioOutput::open()
         // Default buffer size, 200ms, default period size is 40ms
         buffer_size
                 = (settings.sampleRate()
-                * settings.channelCount()
-                * settings.sampleSize()
-                + 39) / 40;
+                * settings.bytesPerFrame()
+                + 39) / 5;
         period_size = buffer_size / 5;
     } else {
         period_size = buffer_size / 5;
@@ -304,7 +303,7 @@ bool QWindowsAudioOutput::open()
 void QWindowsAudioOutput::pauseAndSleep()
 {
     waveOutPause(hWaveOut);
-    int bitrate = settings.sampleRate() * settings.channelCount() * settings.sampleSize() / 8;
+    int bitrate = settings.sampleRate() * settings.bytesPerFrame();
     // Time of written data.
     int delay = (buffer_size - bytesFree()) * 1000 / bitrate;
     Sleep(delay + 10);
@@ -367,8 +366,7 @@ qint64 QWindowsAudioOutput::processedUSecs() const
     if (deviceState == QAudio::StoppedState)
         return 0;
     qint64 result = qint64(1000000) * totalTimeValue /
-        (settings.channelCount()*(settings.sampleSize()/8)) /
-        settings.sampleRate();
+        settings.bytesPerFrame() / settings.sampleRate();
 
     return result;
 }
@@ -381,30 +379,6 @@ qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
 
     char* p = (char*)data;
     int l = (int)len;
-
-    QByteArray reverse;
-    if (settings.byteOrder() == QAudioFormat::BigEndian) {
-
-        switch (settings.sampleSize()) {
-            case 8:
-                // No need to convert
-                break;
-
-            case 16:
-                reverse.resize(l);
-                for (qint64 i = 0; i < (l >> 1); i++)
-                    *((qint16*)reverse.data() + i) = qFromBigEndian(*((qint16*)data + i));
-                p = reverse.data();
-                break;
-
-            case 32:
-                reverse.resize(l);
-                for (qint64 i = 0; i < (l >> 2); i++)
-                    *((qint32*)reverse.data() + i) = qFromBigEndian(*((qint32*)data + i));
-                p = reverse.data();
-                break;
-        }
-    }
 
     WAVEHDR* current;
     int remain;

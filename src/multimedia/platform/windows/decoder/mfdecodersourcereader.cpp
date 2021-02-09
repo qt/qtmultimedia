@@ -91,7 +91,7 @@ IMFMediaType* MFDecoderSourceReader::setSource(IMFMediaSource *source, const QAu
             MFCreateMediaType(&pPartialType);
             pPartialType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
 
-            if (audioFormat.sampleType() == QAudioFormat::Float) {
+            if (audioFormat.sampleFormat() == QAudioFormat::Float) {
                 pPartialType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
             } else {
                 pPartialType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);

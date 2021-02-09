@@ -70,7 +70,6 @@ MFAudioDecoderControl::MFAudioDecoderControl(QObject *parent)
     connect(m_decoderSourceReader, SIGNAL(finished()), this, SLOT(handleSourceFinished()));
 
     QAudioFormat defaultFormat;
-    defaultFormat.setCodec("audio/x-raw");
     setAudioFormat(defaultFormat);
 }
 
@@ -207,39 +206,25 @@ void MFAudioDecoderControl::handleMediaSourceReady()
         if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &val))) {
             m_sourceOutputFormat.setSampleRate(int(val));
         }
-        if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &val))) {
-            m_sourceOutputFormat.setSampleSize(int(val));
-        }
+        UINT32 bitsPerSample = 0;
+        mediaType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitsPerSample);
 
         GUID subType;
         if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subType))) {
             if (subType == MFAudioFormat_Float) {
-                m_sourceOutputFormat.setSampleType(QAudioFormat::Float);
-            } else if (m_sourceOutputFormat.sampleSize() == 8) {
-                m_sourceOutputFormat.setSampleType(QAudioFormat::UnSignedInt);
+                m_sourceOutputFormat.setSampleFormat(QAudioFormat::Float);
+            } else if (bitsPerSample == 8) {
+                m_sourceOutputFormat.setSampleFormat(QAudioFormat::UInt8);
             } else {
-                m_sourceOutputFormat.setSampleType(QAudioFormat::SignedInt);
+                m_sourceOutputFormat.setSampleFormat(QAudioFormat::Int16);
             }
         }
-        if (m_sourceOutputFormat.sampleType() != QAudioFormat::Float) {
-            m_sourceOutputFormat.setByteOrder(QAudioFormat::LittleEndian);
-        }
 
-        if (m_audioFormat.sampleType() != QAudioFormat::Float
-            && m_audioFormat.sampleType() != QAudioFormat::SignedInt) {
-            af.setSampleType(m_sourceOutputFormat.sampleType());
-        }
-        if (af.sampleType() == QAudioFormat::SignedInt) {
-            af.setByteOrder(QAudioFormat::LittleEndian);
-        }
         if (m_audioFormat.channelCount() <= 0) {
             af.setChannelCount(m_sourceOutputFormat.channelCount());
         }
         if (m_audioFormat.sampleRate() <= 0) {
             af.setSampleRate(m_sourceOutputFormat.sampleRate());
-        }
-        if (m_audioFormat.sampleSize() <= 0) {
-            af.setSampleSize(m_sourceOutputFormat.sampleSize());
         }
         setAudioFormat(af);
     }
@@ -416,17 +401,13 @@ void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
 {
     if (m_audioFormat == format || !m_resampler)
         return;
-    if (format.codec() != QLatin1String("audio/x-wav") && format.codec() != QLatin1String("audio/x-raw")) {
-        qWarning("MFAudioDecoderControl does not accept non-pcm audio format!");
-        return;
-    }
     m_audioFormat = format;
 
     if (m_audioFormat.isValid()) {
         IMFMediaType *mediaType = 0;
         MFCreateMediaType(&mediaType);
         mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
-        if (format.sampleType() == QAudioFormat::Float) {
+        if (format.sampleFormat() == QAudioFormat::Float) {
             mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
         } else {
             mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
@@ -434,11 +415,11 @@ void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
 
         mediaType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, UINT32(m_audioFormat.channelCount()));
         mediaType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, UINT32(m_audioFormat.sampleRate()));
-        UINT32 alignmentBlock = UINT32(m_audioFormat.channelCount() * m_audioFormat.sampleSize() / 8);
+        UINT32 alignmentBlock = UINT32(m_audioFormat.bytesPerFrame());
         mediaType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, alignmentBlock);
-        UINT32 avgBytesPerSec = UINT32(m_audioFormat.sampleRate() * m_audioFormat.sampleSize() / 8 * m_audioFormat.channelCount());
+        UINT32 avgBytesPerSec = UINT32(m_audioFormat.sampleRate() * m_audioFormat.bytesPerFrame());
         mediaType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, avgBytesPerSec);
-        mediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, UINT32(m_audioFormat.sampleSize()));
+        mediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, UINT32(m_audioFormat.bytesPerSample()*8));
         mediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
 
         if (m_mfOutputType)

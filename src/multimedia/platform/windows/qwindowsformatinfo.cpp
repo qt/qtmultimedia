@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,55 +37,43 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-
-#ifndef QWINDOWSAUDIODEVICEINFO_H
-#define QWINDOWSAUDIODEVICEINFO_H
-
-#include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qdebug.h>
-
-#include <QtMultimedia/qaudiodeviceinfo.h>
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiodeviceinfo_p.h>
+#include "qwindowsformatinfo_p.h"
 
 
 QT_BEGIN_NAMESPACE
 
-const unsigned int MAX_SAMPLE_RATES = 5;
-const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
-
-class QWindowsAudioDeviceInfo : public QAudioDeviceInfoPrivate
+QWindowsFormatInfo::QWindowsFormatInfo()
 {
-public:
-    QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode);
-    ~QWindowsAudioDeviceInfo();
+    decoders = {
+        { QMediaFormat::MPEG4,
+          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC, QMediaFormat::AudioCodec::AC3, QMediaFormat::AudioCodec::EAC3, },
+          { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265, QMediaFormat::VideoCodec::MotionJPEG } },
+        { QMediaFormat::QuickTime,
+          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC, QMediaFormat::AudioCodec::AC3, QMediaFormat::AudioCodec::EAC3, },
+          { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265, QMediaFormat::VideoCodec::MotionJPEG } },
+        { QMediaFormat::AAC,
+          { QMediaFormat::AudioCodec::AAC },
+          {} },
+        { QMediaFormat::MP3,
+          { QMediaFormat::AudioCodec::MP3 },
+          {} },
+        { QMediaFormat::FLAC,
+          { QMediaFormat::AudioCodec::FLAC },
+          {} },
+        { QMediaFormat::Mpeg4Audio,
+          { QMediaFormat::AudioCodec::AAC },
+          {} }
+    };
 
-    bool open();
-    void close();
+    // ### no encoders yet
 
-    bool testSettings(const QAudioFormat& format) const;
+    // ####
+    imageFormats = { QImageEncoderSettings::JPEG, QImageEncoderSettings::PNG };
 
-    int waveId() const { return devId; }
-private:
-    quint32 devId;
-};
+}
 
-
+QWindowsFormatInfo::~QWindowsFormatInfo()
+{
+}
 
 QT_END_NAMESPACE
-
-
-#endif // QWINDOWSAUDIODEVICEINFO_H

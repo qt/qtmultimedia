@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,55 +37,33 @@
 **
 ****************************************************************************/
 
+#ifndef QWINDOWSFORMATSINFO_H
+#define QWINDOWSFORMATSINFO_H
+
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-
-#ifndef QWINDOWSAUDIODEVICEINFO_H
-#define QWINDOWSAUDIODEVICEINFO_H
-
-#include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qdebug.h>
-
-#include <QtMultimedia/qaudiodeviceinfo.h>
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiodeviceinfo_p.h>
-
+#include <private/qmediaplatformformatinfo_p.h>
+#include <qhash.h>
+#include <qlist.h>
 
 QT_BEGIN_NAMESPACE
 
-const unsigned int MAX_SAMPLE_RATES = 5;
-const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
-
-class QWindowsAudioDeviceInfo : public QAudioDeviceInfoPrivate
+class QWindowsFormatInfo : public QMediaPlatformFormatInfo
 {
 public:
-    QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode);
-    ~QWindowsAudioDeviceInfo();
-
-    bool open();
-    void close();
-
-    bool testSettings(const QAudioFormat& format) const;
-
-    int waveId() const { return devId; }
-private:
-    quint32 devId;
+    QWindowsFormatInfo();
+    ~QWindowsFormatInfo();
 };
-
-
 
 QT_END_NAMESPACE
 
-
-#endif // QWINDOWSAUDIODEVICEINFO_H
+#endif

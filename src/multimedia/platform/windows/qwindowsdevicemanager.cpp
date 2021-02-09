@@ -119,8 +119,7 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
                             continue;
                         QByteArray strId = QString::fromWCharArray(id.data()).toUtf8();
 
-                        QAudioDeviceInfo info(new QWindowsAudioDeviceInfo(strId, waveID, description, mode));
-                        devices.append(info);
+                        devices.append((new QWindowsAudioDeviceInfo(strId, waveID, description, mode))->create());
                     }
                 }
 

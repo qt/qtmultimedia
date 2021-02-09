@@ -56,6 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 class QWindowsDeviceManager;
+class QWindowsFormatInfo;
 
 class QWindowsIntegration : public QMediaPlatformIntegration
 {
@@ -67,11 +68,13 @@ public:
     void releaseRefCount();
 
     QMediaPlatformDeviceManager *deviceManager() override;
+    QMediaPlatformFormatInfo *formatInfo() override;
 
     QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformPlayerInterface *createPlayerInterface() override;
 
     QWindowsDeviceManager *m_manager = nullptr;
+    QWindowsFormatInfo *m_formatInfo = nullptr;
 };
 
 QT_END_NAMESPACE

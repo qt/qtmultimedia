@@ -309,8 +309,8 @@ bool QWindowsAudioInput::open()
         buffer_size
                 = (settings.sampleRate()
                 * settings.channelCount()
-                * settings.sampleSize()
-                + 39) / 40;
+                * settings.bytesPerSample()
+                + 39) / 5;
         period_size = buffer_size / 5;
     } else {
         period_size = buffer_size / 5;
@@ -625,8 +625,7 @@ qint64 QWindowsAudioInput::processedUSecs() const
     if (deviceState == QAudio::StoppedState)
         return 0;
     qint64 result = qint64(1000000) * totalTimeValue /
-        (settings.channelCount()*(settings.sampleSize()/8)) /
-        settings.sampleRate();
+        settings.bytesPerFrame() / settings.sampleRate();
 
     return result;
 }

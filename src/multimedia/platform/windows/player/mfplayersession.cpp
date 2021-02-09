@@ -547,13 +547,12 @@ QAudioFormat MFPlayerSession::audioFormatForMFMediaType(IMFMediaType *mediaType)
     QAudioFormat format;
     format.setSampleRate(wfx->nSamplesPerSec);
     format.setChannelCount(wfx->nChannels);
-    format.setSampleSize(wfx->wBitsPerSample);
-    format.setCodec("audio/x-raw");
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    if (format.sampleSize() == 8)
-        format.setSampleType(QAudioFormat::UnSignedInt);
-    else
-        format.setSampleType(QAudioFormat::SignedInt);
+    if (wfx->wBitsPerSample == 8)
+        format.setSampleFormat(QAudioFormat::UInt8);
+    else if (wfx->wBitsPerSample == 16)
+        format.setSampleFormat(QAudioFormat::Int16);
+    else if (wfx->wBitsPerSample == 32)
+        format.setSampleFormat(QAudioFormat::Int32);
 
     CoTaskMemFree(wfx);
     return format;
