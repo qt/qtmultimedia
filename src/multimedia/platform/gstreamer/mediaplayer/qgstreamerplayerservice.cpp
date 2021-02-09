@@ -71,39 +71,11 @@ QGstreamerPlayerService::QGstreamerPlayerService()
 
 QGstreamerPlayerService::~QGstreamerPlayerService()
 {
-}
-
-QObject *QGstreamerPlayerService::requestControl(const char *name)
-{
-    if (qstrcmp(name,QMediaPlayerControl_iid) == 0)
-        return m_control;
-
-    if (!m_videoOutput) {
-        if (qstrcmp(name, QVideoRendererControl_iid) == 0)
-            m_videoOutput = m_videoRenderer;
-        else if (qstrcmp(name, QVideoWindowControl_iid) == 0)
-            m_videoOutput = m_videoWindow;
-
-        if (m_videoOutput) {
-            increaseVideoRef();
-            m_control->setVideoOutput(m_videoOutput);
-            return m_videoOutput;
-        }
-    }
-
-    return 0;
-}
-
-void QGstreamerPlayerService::releaseControl(QObject *control)
-{
-    if (!control)
-        return;
-
-    if (control == m_videoOutput) {
-        m_videoOutput = 0;
-        m_control->setVideoOutput(0);
-        decreaseVideoRef();
-    }
+    // delete m_session;
+    // delete m_control;
+    // delete m_streamsControl;
+    // delete m_videoRenderer;
+    // delete m_videoWindow;
 }
 
 QMediaPlayerControl *QGstreamerPlayerService::player()

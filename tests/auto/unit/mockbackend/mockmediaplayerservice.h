@@ -55,43 +55,32 @@ public:
     {
         delete mockControl;
         delete mockStreamsControl;
+        rendererRef = 0;
         delete rendererControl;
+        windowRef = 0;
         delete windowControl;
-    }
-
-    QObject *requestControl(const char *iid)
-    {
-        if (qstrcmp(iid, QMediaPlayerControl_iid) == 0) {
-            return mockControl;
-        } else if (qstrcmp(iid, QVideoRendererControl_iid) == 0) {
-            if (rendererRef == 0) {
-                rendererRef += 1;
-                return rendererControl;
-            }
-        } else if (qstrcmp(iid, QVideoWindowControl_iid) == 0) {
-            if (windowRef == 0) {
-                windowRef += 1;
-                return windowControl;
-            }
-        }
-
-        return 0;
-    }
-
-    void releaseControl(QObject *control)
-    {
-        if (control == rendererControl)
-            rendererRef -= 1;
-        if (control == windowControl)
-            windowRef -= 1;
     }
 
     MockMediaPlayerControl *player() { return mockControl; }
 
-    QMediaStreamsControl *streams() { return nullptr; } // ###
+    QMediaStreamsControl *streams() { return mockStreamsControl; } // ###
 
-    virtual QVideoRendererControl *createVideoRenderer() { return rendererControl; }
-    virtual QVideoWindowControl *createVideoWindow() { return windowControl; };
+    virtual QVideoRendererControl *createVideoRenderer()
+    {
+        if (rendererRef == 0) {
+            rendererRef += 1;
+            return rendererControl;
+        }
+        return nullptr;
+    }
+    virtual QVideoWindowControl *createVideoWindow()
+    {
+        if (windowRef == 0) {
+            windowRef += 1;
+            return windowControl;
+        }
+        return nullptr;
+    }
 
     void setState(QMediaPlayer::State state) { emit mockControl->stateChanged(mockControl->_state = state); }
     void setState(QMediaPlayer::State state, QMediaPlayer::MediaStatus status) {

@@ -66,9 +66,6 @@ public:
     explicit MmRendererMediaPlayerService(QObject *parent = 0);
     ~MmRendererMediaPlayerService();
 
-    QObject *requestControl(const char *name) override;
-    void releaseControl(QObject *control) override;
-
     // QMediaPlatformPlayerInterface
     QMediaPlayerControl *player() override;
 //    QMediaStreamsControl *streams() override;
@@ -79,9 +76,13 @@ public:
 private:
     void updateControls();
 
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
+    // QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
+    // QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
+    // QPointer<MmRendererMediaPlayerControl> m_mediaPlayerControl;
+
+    MmRendererPlayerVideoRendererControl *m_videoRendererControl;
+    MmRendererVideoWindowControl *m_videoWindowControl;
+    MmRendererMediaPlayerControl *m_mediaPlayerControl;
 
     bool m_appHasDrmPermission : 1;
     bool m_appHasDrmPermissionChecked : 1;

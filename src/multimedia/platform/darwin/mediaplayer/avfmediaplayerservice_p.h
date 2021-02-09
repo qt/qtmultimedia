@@ -65,9 +65,6 @@ public:
     explicit AVFMediaPlayerService();
     ~AVFMediaPlayerService();
 
-    QObject *requestControl(const char *name) override;
-    void releaseControl(QObject *control) override;
-
     // QMediaPlatformPlayerInterface
     QMediaPlayerControl *player() override;
 //    QMediaStreamsControl *streams() override;

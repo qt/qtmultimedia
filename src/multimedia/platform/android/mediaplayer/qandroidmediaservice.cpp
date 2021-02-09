@@ -55,29 +55,6 @@ QAndroidMediaService::~QAndroidMediaService()
     delete mMediaControl;
 }
 
-QObject *QAndroidMediaService::requestControl(const char *name)
-{
-    if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
-        return mMediaControl;
-
-    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-        if (!mVideoRendererControl) {
-            mVideoRendererControl = new QAndroidMediaPlayerVideoRendererControl(mMediaControl);
-            return mVideoRendererControl;
-        }
-    }
-
-    return 0;
-}
-
-void QAndroidMediaService::releaseControl(QObject *control)
-{
-    if (control == mVideoRendererControl) {
-        delete mVideoRendererControl;
-        mVideoRendererControl = 0;
-    }
-}
-
 QMediaPlayerControl *QAndroidMediaService::player()
 {
     return mMediaControl;

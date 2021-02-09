@@ -60,7 +60,7 @@ class QMediaStreamsControl;
 class QVideoRendererControl;
 class QVideoWindowControl;
 
-class Q_MULTIMEDIA_EXPORT QMediaPlatformPlayerInterface : public QMediaService // ### for now, get rid of me
+class Q_MULTIMEDIA_EXPORT QMediaPlatformPlayerInterface : public QObject
 {
 public:
     QMediaPlatformPlayerInterface();

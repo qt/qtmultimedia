@@ -65,53 +65,6 @@ MmRendererMediaPlayerService::~MmRendererMediaPlayerService()
     delete m_mediaPlayerControl;
 }
 
-QObject *MmRendererMediaPlayerService::requestControl(const char *name)
-{
-    if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
-        if (!m_mediaPlayerControl) {
-            m_mediaPlayerControl = new MmrEventMediaPlayerControl;
-            updateControls();
-        }
-        return m_mediaPlayerControl;
-    } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-        if (!m_appHasDrmPermissionChecked) {
-            m_appHasDrmPermission = checkForDrmPermission();
-            m_appHasDrmPermissionChecked = true;
-        }
-
-        if (m_appHasDrmPermission) {
-            // When the application wants to play back DRM secured media, we can't use
-            // the QVideoRendererControl, because we won't have access to the pixel data
-            // in this case.
-            return 0;
-        }
-
-        if (!m_videoRendererControl) {
-            m_videoRendererControl = new MmRendererPlayerVideoRendererControl();
-            updateControls();
-        }
-        return m_videoRendererControl;
-    } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
-        if (!m_videoWindowControl) {
-            m_videoWindowControl = new MmRendererVideoWindowControl();
-            updateControls();
-        }
-        return m_videoWindowControl;
-    }
-    return 0;
-}
-
-void MmRendererMediaPlayerService::releaseControl(QObject *control)
-{
-    if (control == m_videoRendererControl)
-        m_videoRendererControl = 0;
-    if (control == m_videoWindowControl)
-        m_videoWindowControl = 0;
-    if (control == m_mediaPlayerControl)
-        m_mediaPlayerControl = 0;
-    delete control;
-}
-
 void MmRendererMediaPlayerService::updateControls()
 {
     if (m_videoRendererControl && m_mediaPlayerControl)
@@ -123,16 +76,40 @@ void MmRendererMediaPlayerService::updateControls()
 
 QMediaPlayerControl *MmRendererMediaPlayerService::player()
 {
+    if (!m_mediaPlayerControl) {
+        m_mediaPlayerControl = new MmrEventMediaPlayerControl;
+        updateControls();
+    }
     return m_mediaPlayerControl;
 }
 
 QVideoRendererControl *MmRendererMediaPlayerService::createVideoRenderer()
 {
+    if (!m_appHasDrmPermissionChecked) {
+        m_appHasDrmPermission = checkForDrmPermission();
+        m_appHasDrmPermissionChecked = true;
+    }
+
+    if (m_appHasDrmPermission) {
+        // When the application wants to play back DRM secured media, we can't use
+        // the QVideoRendererControl, because we won't have access to the pixel data
+        // in this case.
+        return nullptr;
+    }
+
+    if (!m_videoRendererControl) {
+        m_videoRendererControl = new MmRendererPlayerVideoRendererControl();
+        updateControls();
+    }
     return m_videoRendererControl;
 }
 
 QVideoWindowControl *MmRendererMediaPlayerService::createVideoWindow()
 {
+    if (!m_videoWindowControl) {
+        m_videoWindowControl = new MmRendererVideoWindowControl();
+        updateControls();
+    }
     return m_videoWindowControl;
 }
 

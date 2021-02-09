@@ -43,7 +43,7 @@
 QT_BEGIN_NAMESPACE
 
 QMediaPlatformPlayerInterface::QMediaPlatformPlayerInterface()
-    : QMediaService(nullptr)
+    : QObject(nullptr)
 {
 }
 

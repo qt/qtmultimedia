@@ -63,53 +63,7 @@ AVFMediaPlayerService::~AVFMediaPlayerService()
     qDebug() << Q_FUNC_INFO;
 #endif
     delete m_session;
-}
-
-QObject *AVFMediaPlayerService::requestControl(const char *name)
-{
-#ifdef QT_DEBUG_AVF
-    qDebug() << Q_FUNC_INFO << name;
-#endif
-
-    if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
-        return m_control;
-
-#if QT_CONFIG(opengl)
-    if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-        if (!m_videoOutput)
-            m_videoOutput = new AVFVideoRendererControl(this);
-
-        m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
-        return m_videoOutput;
-    }
-#endif
-    if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
-        if (!m_videoOutput)
-            m_videoOutput = new AVFVideoWindowControl(this);
-
-        m_session->setVideoOutput(qobject_cast<AVFVideoOutput*>(m_videoOutput));
-        return m_videoOutput;
-    }
-    return nullptr;
-}
-
-void AVFMediaPlayerService::releaseControl(QObject *control)
-{
-#ifdef QT_DEBUG_AVF
-    qDebug() << Q_FUNC_INFO << control;
-#endif
-    if (m_videoOutput == control) {
-#if QT_CONFIG(opengl)
-        AVFVideoRendererControl *renderControl = qobject_cast<AVFVideoRendererControl*>(m_videoOutput);
-
-        if (renderControl)
-            renderControl->setSurface(nullptr);
-#endif
-        m_videoOutput = nullptr;
-        m_session->setVideoOutput(nullptr);
-
-        delete control;
-    }
+    //delete m_control;
 }
 
 QMediaPlayerControl *AVFMediaPlayerService::player()

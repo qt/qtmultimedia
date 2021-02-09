@@ -77,9 +77,6 @@ public:
     MFPlayerService();
     ~MFPlayerService();
 
-    QObject *requestControl(const char *name) override;
-    void releaseControl(QObject *control) override;
-
     QMediaPlayerControl *player() override;
     // ### QMediaStreamsControl *streams() override;
 

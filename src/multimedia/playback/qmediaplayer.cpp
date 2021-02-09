@@ -259,11 +259,12 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 QMediaPlayer::QMediaPlayer(QObject *parent):
     QMediaSource(*new QMediaPlayerPrivate,
                  parent,
-                 QMediaPlatformIntegration::instance()->createPlayerInterface())
+                 nullptr
+                 /*QMediaPlatformIntegration::instance()->createPlayerInterface()*/)
 {
     Q_D(QMediaPlayer);
 
-    d->playerInterface = static_cast<QMediaPlatformPlayerInterface *>(service());
+    d->playerInterface = QMediaPlatformIntegration::instance()->createPlayerInterface();
     if (!d->playerInterface) {
         qWarning() << "QPlatformMediaPlayerInterface not implemented!";
         d->_q_error(QMediaPlayer::ServiceMissingError, QString::fromUtf8("QMediaPlayer is not supported."));
@@ -689,10 +690,10 @@ QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
 {
     Q_D(const QMediaPlayer);
 
-    if (!d->control)
+    if (!d->control || !d->playerInterface)
         return QMultimedia::ServiceMissing;
 
-    return QMediaSource::availability();
+    return QMultimedia::Available;
 }
 
 QAudio::Role QMediaPlayer::audioRole() const

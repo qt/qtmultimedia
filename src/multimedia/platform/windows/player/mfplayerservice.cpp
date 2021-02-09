@@ -64,42 +64,8 @@ MFPlayerService::~MFPlayerService()
         delete m_videoRendererControl;
 
     m_session->Release();
-}
 
-QObject *MFPlayerService::requestControl(const char *name)
-{
-    if (qstrcmp(name, QMediaPlayerControl_iid) == 0) {
-        return m_player;
-    } else if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-        if (!m_videoRendererControl && !m_videoWindowControl) {
-            m_videoRendererControl = new MFVideoRendererControl;
-            return m_videoRendererControl;
-        }
-    } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
-        if (!m_videoRendererControl && !m_videoWindowControl) {
-            m_videoWindowControl = new MFEvrVideoWindowControl;
-            return m_videoWindowControl;
-        }
-    }
-
-    return 0;
-}
-
-void MFPlayerService::releaseControl(QObject *control)
-{
-    if (!control) {
-        qWarning("QMediaService::releaseControl():"
-                " Attempted release of null control");
-    } else if (control == m_videoRendererControl) {
-        m_videoRendererControl->setSurface(0);
-        delete m_videoRendererControl;
-        m_videoRendererControl = 0;
-        return;
-    } else if (control == m_videoWindowControl) {
-        delete m_videoWindowControl;
-        m_videoWindowControl = 0;
-        return;
-    }
+    //delete m_player;
 }
 
 QMediaPlayerControl *MFPlayerService::player()
@@ -109,12 +75,20 @@ QMediaPlayerControl *MFPlayerService::player()
 
 QVideoRendererControl *MFPlayerService::createVideoRenderer()
 {
-    return m_videoRendererControl;
+    if (!m_videoRendererControl && !m_videoWindowControl) {
+        m_videoRendererControl = new MFVideoRendererControl;
+        return m_videoRendererControl;
+    }
+    return nullptr;
 }
 
 QVideoWindowControl *MFPlayerService::createVideoWindow()
 {
-    return m_videoWindowControl;
+    if (!m_videoRendererControl && !m_videoWindowControl) {
+        m_videoWindowControl = new MFEvrVideoWindowControl;
+        return m_videoWindowControl;
+    }
+    return nullptr;
 }
 
 MFVideoRendererControl* MFPlayerService::videoRendererControl() const
