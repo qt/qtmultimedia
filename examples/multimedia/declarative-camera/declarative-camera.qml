@@ -65,7 +65,6 @@ Rectangle {
             name: "PhotoCapture"
             StateChangeScript {
                 script: {
-                    camera.captureMode = Camera.CaptureStillImage
                     camera.start()
                 }
             }
@@ -77,7 +76,6 @@ Rectangle {
             name: "VideoCapture"
             StateChangeScript {
                 script: {
-                    camera.captureMode = Camera.CaptureVideo
                     camera.start()
                 }
             }
@@ -94,7 +92,6 @@ Rectangle {
 
     Camera {
         id: camera
-        captureMode: Camera.CaptureStillImage
 
         imageCapture {
             onImageCaptured: {

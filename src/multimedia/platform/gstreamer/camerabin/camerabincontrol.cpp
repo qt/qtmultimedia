@@ -83,25 +83,6 @@ CameraBinControl::~CameraBinControl()
 {
 }
 
-QCamera::CaptureModes CameraBinControl::captureMode() const
-{
-    return m_session->captureMode();
-}
-
-void CameraBinControl::setCaptureMode(QCamera::CaptureModes mode)
-{
-    if (m_session->captureMode() != mode) {
-        m_session->setCaptureMode(mode);
-
-        emit captureModeChanged(mode);
-    }
-}
-
-bool CameraBinControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
-{
-    return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
-}
-
 void CameraBinControl::setState(QCamera::State state)
 {
 #ifdef CAMEABIN_DEBUG

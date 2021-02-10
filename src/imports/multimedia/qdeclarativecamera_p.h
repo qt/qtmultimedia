@@ -81,7 +81,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(Position position READ position WRITE setPosition NOTIFY positionChanged REVISION 1)
     Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged REVISION 1)
 
-    Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
     Q_PROPERTY(Status cameraStatus READ cameraStatus NOTIFY cameraStatusChanged)
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
@@ -91,7 +90,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(qreal maximumZoomFactor READ maximumZoomFactor)
     Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
 
-    Q_PROPERTY(QObject *mediaSource READ mediaSource NOTIFY mediaSourceChanged SCRIPTABLE false DESIGNABLE false)
     Q_PROPERTY(QDeclarativeCameraCapture* imageCapture READ imageCapture CONSTANT)
     Q_PROPERTY(QDeclarativeCameraRecorder* videoRecorder READ videoRecorder CONSTANT)
     Q_PROPERTY(QDeclarativeCameraExposure* exposure READ exposure CONSTANT)
@@ -101,7 +99,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT REVISION 1)
 
     Q_ENUMS(Position)
-    Q_ENUMS(CaptureMode)
     Q_ENUMS(State)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
@@ -119,11 +116,6 @@ public:
         UnspecifiedPosition = QCameraInfo::UnspecifiedPosition,
         BackFace = QCameraInfo::BackFace,
         FrontFace = QCameraInfo::FrontFace
-    };
-
-    enum CaptureMode {
-        CaptureStillImage = QCamera::CaptureStillImage,
-        CaptureVideo = QCamera::CaptureVideo
     };
 
     enum State
@@ -241,7 +233,6 @@ public:
 
     QString displayName() const;
 
-    CaptureMode captureMode() const;
     State cameraState() const;
     Status cameraStatus() const;
 
@@ -256,8 +247,6 @@ public:
     Availability availability() const;
 
 public Q_SLOTS:
-    void setCaptureMode(CaptureMode mode);
-
     void start();
     void stop();
 
@@ -278,13 +267,10 @@ Q_SIGNALS:
     Q_REVISION(1) void positionChanged();
     Q_REVISION(1) void displayNameChanged();
 
-    void captureModeChanged();
     void cameraStateChanged(QDeclarativeCamera::State);
     void cameraStatusChanged();
 
     void zoomFactorChanged(qreal);
-
-    void mediaSourceChanged();
 
 private Q_SLOTS:
     void _q_updateState(QCamera::State);

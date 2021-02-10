@@ -129,9 +129,6 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(m_imageCapture, QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error),
             this, &Camera::displayCaptureError);
 
-    ui->captureWidget->setTabEnabled(0, (m_camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
-    ui->captureWidget->setTabEnabled(1, (m_camera->isCaptureModeSupported(QCamera::CaptureVideo)));
-
     updateCaptureMode();
     m_camera->start();
 }
@@ -147,7 +144,7 @@ void Camera::keyPressEvent(QKeyEvent * event)
         event->accept();
         break;
     case Qt::Key_Camera:
-        if (m_camera->captureMode() == QCamera::CaptureStillImage) {
+        if (m_doImageCapture) {
             takeImage();
         } else {
             if (m_mediaRecorder->state() == QMediaRecorder::RecordingState)
@@ -189,16 +186,10 @@ void Camera::processCapturedImage(int requestId, const QImage& img)
 
 void Camera::configureCaptureSettings()
 {
-    switch (m_camera->captureMode()) {
-    case QCamera::CaptureStillImage:
+    if (m_doImageCapture)
         configureImageSettings();
-        break;
-    case QCamera::CaptureVideo:
+    else
         configureVideoSettings();
-        break;
-    default:
-        break;
-    }
 }
 
 void Camera::configureVideoSettings()
@@ -279,10 +270,7 @@ void Camera::stopCamera()
 void Camera::updateCaptureMode()
 {
     int tabIndex = ui->captureWidget->currentIndex();
-    QCamera::CaptureModes captureMode = tabIndex == 0 ? QCamera::CaptureStillImage : QCamera::CaptureVideo;
-
-    if (m_camera->isCaptureModeSupported(captureMode))
-        m_camera->setCaptureMode(captureMode);
+    m_doImageCapture = (tabIndex == 0);
 }
 
 void Camera::updateCameraState(QCamera::State state)

@@ -67,11 +67,9 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QMediaSource
     Q_OBJECT
     Q_PROPERTY(QCamera::State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QCamera::CaptureModes captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
 
     Q_ENUMS(Status)
     Q_ENUMS(State)
-    Q_ENUMS(CaptureMode)
     Q_ENUMS(Error)
     Q_ENUMS(Position)
 public:
@@ -93,13 +91,6 @@ public:
         ActiveState
     };
 
-    enum CaptureMode
-    {
-        CaptureStillImage = 0x01,
-        CaptureVideo = 0x02
-    };
-    Q_DECLARE_FLAGS(CaptureModes, CaptureMode)
-
     enum Error
     {
         NoError,
@@ -119,9 +110,6 @@ public:
     QCameraInfo cameraInfo() const;
     void setCameraInfo(const QCameraInfo &cameraInfo);
 
-    CaptureModes captureMode() const;
-    bool isCaptureModeSupported(CaptureModes mode) const;
-
     QCameraExposure *exposure() const;
     QCameraFocus *focus() const;
     QCameraImageProcessing *imageProcessing() const;
@@ -133,8 +121,6 @@ public:
     QString errorString() const;
 
 public Q_SLOTS:
-    void setCaptureMode(QCamera::CaptureModes mode);
-
     void load();
     void unload();
 
@@ -143,7 +129,6 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void stateChanged(QCamera::State state);
-    void captureModeChanged(QCamera::CaptureModes);
     void statusChanged(QCamera::Status status);
     void errorOccurred(QCamera::Error);
 
@@ -162,6 +147,5 @@ QT_END_NAMESPACE
 Q_MEDIA_ENUM_DEBUG(QCamera, State)
 Q_MEDIA_ENUM_DEBUG(QCamera, Status)
 Q_MEDIA_ENUM_DEBUG(QCamera, Error)
-Q_MEDIA_ENUM_DEBUG(QCamera, CaptureMode)
 
 #endif  // QCAMERA_H

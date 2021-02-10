@@ -183,8 +183,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_focus = new QDeclarativeCameraFocus(m_camera);
     m_imageProcessing = new QDeclarativeCameraImageProcessing(m_camera);
 
-    connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
-            this, SIGNAL(captureModeChanged()));
     connect(m_camera, &QCamera::stateChanged, this, &QDeclarativeCamera::_q_updateState);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
@@ -228,7 +226,7 @@ void QDeclarativeCamera::componentComplete()
     You can get all available device IDs from \l{QtMultimedia::QtMultimedia::availableCameras}{QtMultimedia.availableCameras}.
     If no value is provided or if set to an empty string, the system's default camera will be used.
 
-    If possible, \l cameraState, \l captureMode, \l digitalZoom and other camera parameters are
+    If possible, \l cameraState, \l zoomFactor and other camera parameters are
     preserved when changing the camera device.
 
     \sa displayName, position
@@ -258,7 +256,7 @@ void QDeclarativeCamera::setDeviceId(const QString &name)
     front-facing and back-facing cameras. If this property is set to
     \c Camera.UnspecifiedPosition, the system's default camera is used.
 
-    If possible, \l cameraState, \l captureMode, \l digitalZoom and other camera
+    If possible, \l cameraState, \l zoomFactor and other camera
     parameters are preserved when changing the camera device.
 
     \value  Camera.UnspecifiedPosition
@@ -412,31 +410,6 @@ QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
 {
     return Availability(m_camera->availability());
 }
-
-
-/*!
-    \qmlproperty enumeration QtMultimedia::Camera::captureMode
-
-    This property holds the camera capture mode. The default capture mode is
-    \c CaptureStillImage.
-
-    \value  Camera.CaptureViewfinder
-            Camera is only configured to display viewfinder.
-    \value  Camera.CaptureStillImage
-            Prepares the Camera for capturing still images.
-    \value  Camera.CaptureVideo
-            Prepares the Camera for capturing video.
-*/
-QDeclarativeCamera::CaptureMode QDeclarativeCamera::captureMode() const
-{
-    return QDeclarativeCamera::CaptureMode(int(m_camera->captureMode()));
-}
-
-void QDeclarativeCamera::setCaptureMode(QDeclarativeCamera::CaptureMode mode)
-{
-    m_camera->setCaptureMode(QCamera::CaptureModes(int(mode)));
-}
-
 
 /*!
     \qmlproperty enumeration QtMultimedia::Camera::cameraState

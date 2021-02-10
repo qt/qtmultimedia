@@ -84,10 +84,6 @@ public:
 
     QCamera::Status status() const { return m_status; }
 
-    QCamera::CaptureModes captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureModes mode);
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const;
-
     void applyResolution(const QSize &captureSize = QSize(), bool restartPreview = true);
 
     QAndroidVideoOutput *videoOutput() const { return m_videoOutput; }
@@ -128,7 +124,6 @@ Q_SIGNALS:
     void statusChanged(QCamera::Status status);
     void stateChanged(QCamera::State);
     void error(int error, const QString &errorString);
-    void captureModeChanged(QCamera::CaptureModes);
     void opened();
 
     void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
@@ -183,7 +178,6 @@ private:
     int m_nativeOrientation;
     QAndroidVideoOutput *m_videoOutput;
 
-    QCamera::CaptureModes m_captureMode;
     QCamera::State m_state;
     int m_savedState;
     QCamera::Status m_status;

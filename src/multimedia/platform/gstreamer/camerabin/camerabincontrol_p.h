@@ -76,10 +76,6 @@ public:
 
     void setCamera(const QCameraInfo &camera) override;
 
-    QCamera::CaptureModes captureMode() const override;
-    void setCaptureMode(QCamera::CaptureModes mode) override;
-
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
     bool viewfinderColorSpaceConversion() const;
 

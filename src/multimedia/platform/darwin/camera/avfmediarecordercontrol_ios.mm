@@ -231,7 +231,7 @@ void AVFMediaRecorderControlIOS::setState(QMediaRecorder::State state)
 
         const QString path(m_outputLocation.scheme() == QLatin1String("file") ?
                            m_outputLocation.path() : m_outputLocation.toString());
-        const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path, QCamera::CaptureVideo,
+        const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path, AVFStorageLocation::Video,
                            QLatin1String("clip_"),
                            m_service->mediaContainerControl()->containerFormat())));
 
@@ -354,27 +354,6 @@ void AVFMediaRecorderControlIOS::assetWriterFinished()
         Q_EMIT statusChanged(m_lastStatus);
     if (m_state != lastState)
         Q_EMIT stateChanged(m_state);
-}
-
-void AVFMediaRecorderControlIOS::captureModeChanged(QCamera::CaptureModes newMode)
-{
-    AVFCameraControl *cameraControl = m_service->cameraControl();
-    Q_ASSERT(cameraControl);
-
-    const QMediaRecorder::Status lastStatus = m_lastStatus;
-
-    if (newMode & QCamera::CaptureVideo) {
-        if (cameraControl->status() == QCamera::ActiveStatus)
-            m_lastStatus = QMediaRecorder::LoadedStatus;
-    } else {
-        if (m_lastStatus == QMediaRecorder::RecordingStatus)
-           return stopWriter();
-        else
-            m_lastStatus = QMediaRecorder::UnloadedStatus;
-    }
-
-    if (m_lastStatus != lastStatus)
-        Q_EMIT statusChanged(m_lastStatus);
 }
 
 void AVFMediaRecorderControlIOS::cameraStatusChanged(QCamera::Status newStatus)

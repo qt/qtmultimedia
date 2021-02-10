@@ -92,13 +92,6 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
                 if (status == QCamera::LoadingStatus)
                     setStatus(QMediaRecorder::LoadingStatus);
             });
-        connect(cameraSession, &QAndroidCameraSession::captureModeChanged, this,
-            [this](QCamera::CaptureModes mode) {
-                if (!mode.testFlag(QCamera::CaptureVideo)) {
-                    setState(QMediaRecorder::StoppedState);
-                    setStatus(QMediaRecorder::UnloadedStatus);
-                }
-            });
         connect(cameraSession, &QAndroidCameraSession::readyForCaptureChanged, this,
             [this](bool ready) {
                 if (ready)

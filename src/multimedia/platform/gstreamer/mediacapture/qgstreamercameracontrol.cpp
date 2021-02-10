@@ -49,7 +49,6 @@
 
 QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *session)
     :QCameraControl(session),
-    m_captureMode(QCamera::CaptureStillImage),
     m_session(session),
     m_state(QCamera::UnloadedState),
     m_status(QCamera::UnloadedStatus),
@@ -66,41 +65,11 @@ QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *sessi
     connect(m_session, SIGNAL(readyChanged(bool)),
             SLOT(reloadLater()));
 
-    m_session->setCaptureMode(QGstreamerCaptureSession::Image);
+    m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideoAndImage);
 }
 
 QGstreamerCameraControl::~QGstreamerCameraControl()
 {
-}
-
-void QGstreamerCameraControl::setCaptureMode(QCamera::CaptureModes mode)
-{
-    if (m_captureMode == mode || !isCaptureModeSupported(mode))
-        return;
-
-    m_captureMode = mode;
-
-    switch (mode) {
-    case QCamera::CaptureStillImage:
-        m_session->setCaptureMode(QGstreamerCaptureSession::Image);
-        break;
-    case QCamera::CaptureVideo:
-        m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideo);
-        break;
-    case QCamera::CaptureVideo | QCamera::CaptureStillImage:
-        m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideoAndImage);
-        break;
-    }
-
-    emit captureModeChanged(mode);
-    updateStatus();
-    reloadLater();
-}
-
-bool QGstreamerCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
-{
-    //only CaptureStillImage and CaptureVideo bits are allowed
-    return (mode & (QCamera::CaptureStillImage | QCamera::CaptureVideo)) == mode;
 }
 
 void QGstreamerCameraControl::setState(QCamera::State state)
@@ -192,7 +161,6 @@ bool QGstreamerCameraControl::canChangeProperty(PropertyChangeType changeType, Q
     Q_UNUSED(status);
 
     switch (changeType) {
-    case QCameraControl::CaptureMode:
     case QCameraControl::ImageEncodingSettings:
     case QCameraControl::VideoEncodingSettings:
     case QCameraControl::Viewfinder:

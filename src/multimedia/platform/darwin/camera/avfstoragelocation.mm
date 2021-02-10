@@ -59,7 +59,7 @@ AVFStorageLocation::~AVFStorageLocation()
  * or specify the full actual path.
  */
 QString AVFStorageLocation::generateFileName(const QString &requestedName,
-                                             QCamera::CaptureMode mode,
+                                             Mode mode,
                                              const QString &prefix,
                                              const QString &ext) const
 {
@@ -72,11 +72,11 @@ QString AVFStorageLocation::generateFileName(const QString &requestedName,
     return requestedName;
 }
 
-QDir AVFStorageLocation::defaultDir(QCamera::CaptureMode mode) const
+QDir AVFStorageLocation::defaultDir(Mode mode) const
 {
     QStringList dirCandidates;
 
-    if (mode == QCamera::CaptureVideo) {
+    if (mode == Video) {
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     } else {
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);

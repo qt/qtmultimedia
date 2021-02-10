@@ -80,12 +80,8 @@ private slots:
     void testCaptureDestination();
 
     void testConstructor();
-    void testCaptureMode();
-    void testIsCaptureModeSupported();
     void testQCameraIsAvailable();
     void testQCameraIsNotAvailable();
-    void testSetCaptureMode();
-    void testCaptureModeChangedSignal();
     void testErrorSignal();
     void testError();
     void testErrorString();
@@ -102,7 +98,6 @@ private slots:
 
     // Test cases for QCameraControl class.
     void testCameraControl();
-    void testCaptureModeChanged_signal();
     void testEnumsOfQCameraControl();
 
     // Test case for QCameraImageProcessing class
@@ -723,75 +718,6 @@ void tst_QCamera::testCameraEncodingProperyChange()
     QCOMPARE(statusChangedSignal.count(), 1);
     stateChangedSignal.clear();
     statusChangedSignal.clear();
-
-
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(camera.status(), QCamera::LoadedStatus);
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    //backens should not be stopped since the capture mode is Video
-    imageCapture.setEncodingSettings(QImageEncoderSettings());
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 0);
-
-    camera.setCaptureMode(QCamera::CaptureStillImage);
-
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    //the settings change should trigger camera stop/start
-    imageCapture.setEncodingSettings(QImageEncoderSettings());
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(camera.status(), QCamera::LoadedStatus);
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    //the settings change should trigger camera stop/start only once
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    camera.setCaptureMode(QCamera::CaptureStillImage);
-    imageCapture.setEncodingSettings(QImageEncoderSettings());
-    imageCapture.setEncodingSettings(QImageEncoderSettings());
-
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(camera.status(), QCamera::LoadedStatus);
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
-
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-
-    QCOMPARE(stateChangedSignal.count(), 0);
-    QCOMPARE(statusChangedSignal.count(), 1);
 }
 
 void tst_QCamera::testSetVideoOutput()
@@ -871,8 +797,6 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::ActiveState;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::ActiveStatus");
     qDebug() << QCamera::ActiveStatus;
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::CaptureVideo");
-    qDebug() << QCamera::CaptureVideo;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::CameraError");
     qDebug() << QCamera::CameraError;
     QTest::ignoreMessage(QtDebugMsg, "QCameraInfo::FrontFace ");
@@ -945,38 +869,6 @@ void tst_QCamera::testConstructor()
     }
 }
 
-/* captureModeChanged Signal test case. */
-void tst_QCamera::testCaptureModeChanged_signal()
-{
-    MockCameraControl *m_cameraControl= new MockCameraControl(this);
-    QSignalSpy spy(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
-    QVERIFY(spy.size() == 0);
-
-    m_cameraControl->setCaptureMode(QCamera::CaptureVideo);
-    QVERIFY(spy.size() == 1);
-
-    m_cameraControl->setCaptureMode(QCamera::CaptureStillImage);
-    QVERIFY(spy.size() == 2);
-}
-
-/* Test case for captureMode */
-void tst_QCamera::testCaptureMode()
-{
-    QCamera camera;
-    QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
-
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    QVERIFY(camera.captureMode() == QCamera::CaptureVideo);
-}
-
-/* Test case for isCaptureModeSupported */
-void tst_QCamera::testIsCaptureModeSupported()
-{
-    QCamera camera;
-    QVERIFY(camera.isCaptureModeSupported(QCamera::CaptureStillImage) == true);
-    QVERIFY(camera.isCaptureModeSupported(QCamera::CaptureVideo) == true);
-}
-
 /* Test case for isAvailable */
 void tst_QCamera::testQCameraIsAvailable()
 {
@@ -994,38 +886,6 @@ void tst_QCamera::testQCameraIsNotAvailable()
     QVERIFY(!camera.isAvailable());
     QCOMPARE(camera.availability(), QMultimedia::ServiceMissing);
     integration->setFlags({});
-}
-
-/* Test case for setCaptureMode() */
-void tst_QCamera::testSetCaptureMode()
-{
-    QCamera camera;
-
-    /* Set the capture mode and verify if it set correctly */
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    QVERIFY(camera.captureMode() == QCamera::CaptureVideo);
-
-    camera.setCaptureMode(QCamera::CaptureStillImage);
-    QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
-}
-
-/* Test case for signal captureModeChanged(QCamera::CaptureModes) */
-void tst_QCamera::testCaptureModeChangedSignal()
-{
-    QCamera camera;
-    QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
-
-    qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
-
-    /* Spy the signal */
-    QSignalSpy lockCaptureModeChangedSignal(&camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
-
-    /* set the capture mode and Verify if the signal is emitted */
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    QVERIFY(camera.captureMode() == QCamera::CaptureVideo);
-    QCOMPARE(lockCaptureModeChangedSignal.count(), 1);
-    QCamera::CaptureModes lockCaptureMode = qvariant_cast<QCamera::CaptureModes >(lockCaptureModeChangedSignal.at(0).at(0));
-    QVERIFY(lockCaptureMode == QCamera::CaptureVideo);
 }
 
 /* Test case for verifying if error signal generated correctly */
@@ -1130,9 +990,6 @@ void tst_QCamera::testEnumsOfQCameraControl()
     bool result;
 
     // In still mode, can't change much
-    QVERIFY(m_cameraControl->captureMode() == QCamera::CaptureStillImage);
-    result = m_cameraControl->canChangeProperty(MockCameraControl::CaptureMode, QCamera::ActiveStatus);
-    QVERIFY(!result);
     result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
     QVERIFY(!result);
     result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
@@ -1141,18 +998,12 @@ void tst_QCamera::testEnumsOfQCameraControl()
     QVERIFY(!result);
 
     // In video mode can change image encoding settings
-    m_cameraControl->setCaptureMode(QCamera::CaptureVideo);
-    result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
-    QVERIFY(result);
     result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
     QVERIFY(result);
     result = m_cameraControl->canChangeProperty(MockCameraControl::Viewfinder, QCamera::ActiveStatus);
     QVERIFY(!result);
 
     // Flip the allow everything bit
-    m_cameraControl->m_propertyChangesSupported = true;
-    result = m_cameraControl->canChangeProperty(MockCameraControl::CaptureMode, QCamera::ActiveStatus);
-    QVERIFY(result);
     result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
     QVERIFY(result);
     result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);

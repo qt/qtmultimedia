@@ -101,7 +101,6 @@ private:
     Q_INVOKABLE void assetWriterFinished();
 
 private Q_SLOTS:
-    void captureModeChanged(QCamera::CaptureModes);
     void cameraStatusChanged(QCamera::Status newStatus);
 
 private:

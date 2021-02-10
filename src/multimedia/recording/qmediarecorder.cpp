@@ -158,7 +158,7 @@ void QMediaRecorderPrivate::restartCamera()
 {
     //restart camera if it can't apply new settings in the Active state
     QCamera *camera = qobject_cast<QCamera*>(mediaSource);
-    if (camera && camera->captureMode() == QCamera::CaptureVideo) {
+    if (camera) {
         QMetaObject::invokeMethod(camera,
                                   "_q_preparePropertyChange",
                                   Qt::DirectConnection,

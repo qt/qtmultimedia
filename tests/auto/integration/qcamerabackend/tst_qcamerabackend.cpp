@@ -70,7 +70,6 @@ private slots:
 
     void testCameraStates();
     void testCameraStartError();
-    void testCaptureMode();
     void testCameraCapture();
     void testCaptureToBuffer();
     void testCameraCaptureMetadata();
@@ -223,82 +222,6 @@ void tst_QCameraBackend::testCameraStartError()
 
     QCOMPARE(errorSpy1.count(), 0);
     QCOMPARE(errorSpy2.count(), 1);
-}
-
-void tst_QCameraBackend::testCaptureMode()
-{
-    QCamera camera;
-
-    QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error)));
-    QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
-    QSignalSpy captureModeSignal(&camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
-
-    QCOMPARE(camera.captureMode(), QCamera::CaptureStillImage);
-
-    if (!camera.isCaptureModeSupported(QCamera::CaptureVideo)) {
-        camera.setCaptureMode(QCamera::CaptureVideo);
-        QCOMPARE(camera.captureMode(), QCamera::CaptureStillImage);
-        QSKIP("Video capture not supported");
-    }
-
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    QCOMPARE(camera.captureMode(), QCamera::CaptureVideo);
-    QTRY_COMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureVideo);
-    captureModeSignal.clear();
-
-    camera.load();
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-    //capture mode should still be video
-    QCOMPARE(camera.captureMode(), QCamera::CaptureVideo);
-
-    //it should be possible to switch capture mode in Loaded state
-    camera.setCaptureMode(QCamera::CaptureStillImage);
-    QTRY_COMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureStillImage);
-    captureModeSignal.clear();
-
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    QTRY_COMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureVideo);
-    captureModeSignal.clear();
-
-    camera.start();
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-    //capture mode should still be video
-    QCOMPARE(camera.captureMode(), QCamera::CaptureVideo);
-
-    stateChangedSignal.clear();
-    //it should be possible to switch capture mode in Active state
-    camera.setCaptureMode(QCamera::CaptureStillImage);
-    //camera may leave Active status, but should return to Active
-    QTest::qWait(10); //camera may leave Active status async
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-    QCOMPARE(camera.captureMode(), QCamera::CaptureStillImage);
-    QVERIFY2(stateChangedSignal.isEmpty(), "camera should not change the state during capture mode changes");
-
-    QCOMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureStillImage);
-    captureModeSignal.clear();
-
-    camera.setCaptureMode(QCamera::CaptureVideo);
-    //camera may leave Active status, but should return to Active
-    QTest::qWait(10); //camera may leave Active status async
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-    QCOMPARE(camera.captureMode(), QCamera::CaptureVideo);
-
-    QVERIFY2(stateChangedSignal.isEmpty(), "camera should not change the state during capture mode changes");
-
-    QCOMPARE(captureModeSignal.size(), 1);
-    QCOMPARE(captureModeSignal.last().first().value<QCamera::CaptureModes>(), QCamera::CaptureVideo);
-    captureModeSignal.clear();
-
-    camera.stop();
-    QCOMPARE(camera.captureMode(), QCamera::CaptureVideo);
-    camera.unload();
-    QCOMPARE(camera.captureMode(), QCamera::CaptureVideo);
-
-    QVERIFY2(errorSignal.isEmpty(), QString("Camera error: %1").arg(camera.errorString()).toLocal8Bit());
 }
 
 void tst_QCameraBackend::testCameraCapture()
@@ -540,12 +463,6 @@ void tst_QCameraBackend::testVideoRecording()
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(error(QMediaRecorder::Error)));
     QSignalSpy recorderStatusSignal(&recorder, SIGNAL(statusChanged(QMediaRecorder::Status)));
 
-    if (!camera->isCaptureModeSupported(QCamera::CaptureVideo)) {
-        QSKIP("Video capture not supported");
-    }
-
-    camera->setCaptureMode(QCamera::CaptureVideo);
-
     QMediaEncoderSettings videoSettings;
     videoSettings.setVideoResolution(320, 240);
     recorder.setEncoderSettings(videoSettings);
@@ -587,7 +504,6 @@ void tst_QCameraBackend::testVideoRecording()
     QVERIFY(QFileInfo(fileName).size() > 0);
     QFile(fileName).remove();
 
-    camera->setCaptureMode(QCamera::CaptureStillImage);
     QTRY_COMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
 }

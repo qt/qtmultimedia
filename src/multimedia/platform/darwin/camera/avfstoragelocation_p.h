@@ -64,13 +64,18 @@ public:
     AVFStorageLocation();
     ~AVFStorageLocation();
 
+    enum Mode {
+        Image,
+        Video
+    };
+
     QString generateFileName(const QString &requestedName,
-                             QCamera::CaptureMode mode,
+                             Mode mode,
                              const QString &prefix,
                              const QString &ext) const;
 
 
-    QDir defaultDir(QCamera::CaptureMode mode) const;
+    QDir defaultDir(Mode mode) const;
     QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
 private:

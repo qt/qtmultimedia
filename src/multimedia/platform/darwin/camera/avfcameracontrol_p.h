@@ -76,10 +76,6 @@ public:
 
     void setCamera(const QCameraInfo &camera) override;
 
-    QCamera::CaptureModes captureMode() const override;
-    void setCaptureMode(QCamera::CaptureModes) override;
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
-
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
     QCameraFocusControl *focusControl() override;
@@ -104,7 +100,6 @@ private:
 
     QCamera::State m_state;
     QCamera::Status m_lastStatus;
-    QCamera::CaptureModes m_captureMode;
 };
 
 QT_END_NAMESPACE

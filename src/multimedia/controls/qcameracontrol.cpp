@@ -136,39 +136,6 @@ QCameraControl::QCameraControl(QObject *parent)
 */
 
 /*!
-    \fn Camera::CaptureModes QCameraControl::captureMode() const = 0
-
-    Returns the current capture mode.
-*/
-
-/*!
-    \fn void QCameraControl::setCaptureMode(QCamera::CaptureModes mode) = 0;
-
-    Sets the current capture \a mode.
-
-    The capture mode changes are synchronous and allowed in any camera state.
-
-    If the capture mode is changed while camera is active,
-    it's recommended to change status to QCamera::LoadedStatus
-    and start activating the camera in the next event loop
-    with the status changed to QCamera::StartingStatus.
-    This allows the capture settings to be applied before camera is started.
-    Than change the status to QCamera::StartedStatus when the capture mode change is done.
-*/
-
-/*!
-    \fn bool QCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const = 0;
-
-    Returns true if the capture \a mode is suported.
-*/
-
-/*!
-    \fn QCameraControl::captureModeChanged(QCamera::CaptureModes mode)
-
-    Signal emitted when the camera capture \a mode changes.
- */
-
-/*!
     \fn bool QCameraControl::canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
 
     Returns true if backend can effectively apply changing camera properties of \a changeType type

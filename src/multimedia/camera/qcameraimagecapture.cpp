@@ -252,7 +252,7 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
 
     if (d->control) {
         QCamera *camera = qobject_cast<QCamera*>(d->camera);
-        if (camera && camera->captureMode() == QCamera::CaptureStillImage) {
+        if (camera) {
             QMetaObject::invokeMethod(camera,
                                       "_q_preparePropertyChange",
                                       Qt::DirectConnection,

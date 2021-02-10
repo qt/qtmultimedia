@@ -68,7 +68,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_camera(0)
     , m_nativeOrientation(0)
     , m_videoOutput(0)
-    , m_captureMode(QCamera::CaptureStillImage)
     , m_state(QCamera::UnloadedState)
     , m_savedState(-1)
     , m_status(QCamera::UnloadedStatus)
@@ -104,25 +103,17 @@ QAndroidCameraSession::~QAndroidCameraSession()
     close();
 }
 
-void QAndroidCameraSession::setCaptureMode(QCamera::CaptureModes mode)
-{
-    if (m_captureMode == mode || !isCaptureModeSupported(mode))
-        return;
+//void QAndroidCameraSession::setCaptureMode(QCamera::CaptureModes mode)
+//{
+//    if (m_captureMode == mode || !isCaptureModeSupported(mode))
+//        return;
 
-    m_captureMode = mode;
-    emit captureModeChanged(m_captureMode);
+//    m_captureMode = mode;
+//    emit captureModeChanged(m_captureMode);
 
-    if (m_previewStarted && m_captureMode.testFlag(QCamera::CaptureStillImage))
-        applyResolution(m_actualImageSettings.resolution());
-}
-
-bool QAndroidCameraSession::isCaptureModeSupported(QCamera::CaptureModes mode) const
-{
-    if (mode & (QCamera::CaptureStillImage & QCamera::CaptureVideo))
-        return false;
-
-    return true;
-}
+//    if (m_previewStarted && m_captureMode.testFlag(QCamera::CaptureStillImage))
+//        applyResolution(m_actualImageSettings.resolution());
+//}
 
 void QAndroidCameraSession::setState(QCamera::State state)
 {
@@ -278,8 +269,7 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
     // -- adjust resolution
     QSize adjustedViewfinderResolution;
     const bool validCaptureSize = captureSize.width() > 0 && captureSize.height() > 0;
-    if (m_captureMode.testFlag(QCamera::CaptureVideo)
-            && validCaptureSize
+    if (validCaptureSize
             && m_camera->getPreferredPreviewSizeForVideo().isEmpty()) {
         // According to the Android doc, if getPreferredPreviewSizeForVideo() returns null, it means
         // the preview size cannot be different from the capture size
@@ -427,8 +417,7 @@ bool QAndroidCameraSession::startPreview()
     emit statusChanged(m_status);
 
     applyImageSettings();
-    if (m_captureMode.testFlag(QCamera::CaptureStillImage))
-        applyResolution(m_actualImageSettings.resolution());
+    applyResolution(m_actualImageSettings.resolution());
 
     AndroidMultimediaUtils::enableOrientationListener(true);
 
@@ -474,7 +463,7 @@ void QAndroidCameraSession::setImageSettings(const QImageEncoderSettings &settin
 
     applyImageSettings();
 
-    if (m_readyForCapture && m_captureMode.testFlag(QCamera::CaptureStillImage))
+    if (m_readyForCapture)
         applyResolution(m_actualImageSettings.resolution());
 }
 

@@ -62,9 +62,6 @@ QAndroidCameraControl::QAndroidCameraControl(QAndroidCameraSession *session)
 
     connect(m_cameraSession, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
 
-    connect(m_cameraSession, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
-            this, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
-
     m_recalculateTimer = new QTimer(this);
     m_recalculateTimer->setInterval(1000);
     m_recalculateTimer->setSingleShot(true);
@@ -74,21 +71,6 @@ QAndroidCameraControl::QAndroidCameraControl(QAndroidCameraSession *session)
 QAndroidCameraControl::~QAndroidCameraControl()
 {
     delete m_renderer;
-}
-
-QCamera::CaptureModes QAndroidCameraControl::captureMode() const
-{
-    return m_cameraSession->captureMode();
-}
-
-void QAndroidCameraControl::setCaptureMode(QCamera::CaptureModes mode)
-{
-    m_cameraSession->setCaptureMode(mode);
-}
-
-bool QAndroidCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
-{
-    return m_cameraSession->isCaptureModeSupported(mode);
 }
 
 void QAndroidCameraControl::setState(QCamera::State state)
@@ -125,7 +107,6 @@ bool QAndroidCameraControl::canChangeProperty(PropertyChangeType changeType, QCa
     Q_UNUSED(status);
 
     switch (changeType) {
-    case QCameraControl::CaptureMode:
     case QCameraControl::ImageEncodingSettings:
     case QCameraControl::VideoEncodingSettings:
     case QCameraControl::Viewfinder:

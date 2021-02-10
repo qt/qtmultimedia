@@ -147,7 +147,6 @@ AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObj
 
     connect(m_cameraControl, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
     connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateStatus()));
-    connect(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(setupSessionForCapture()));
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(setupSessionForCapture()));
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(setupSessionForCapture()));
 }
@@ -466,10 +465,8 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
 void AVFMediaRecorderControl::applySettings()
 {
     if (m_state != QMediaRecorder::StoppedState
-            || (m_session->state() != QCamera::ActiveState && m_session->state() != QCamera::LoadedState)
-            || !m_service->cameraControl()->captureMode().testFlag(QCamera::CaptureVideo)) {
+            || (m_session->state() != QCamera::ActiveState && m_session->state() != QCamera::LoadedState))
         return;
-    }
 
     QMediaEncoderSettings resolved = m_settings;
     resolved.resolveFormat();
@@ -550,7 +547,7 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
 
             QUrl actualLocation = QUrl::fromLocalFile(
                         m_storageLocation.generateFileName(outputLocationPath,
-                                                           QCamera::CaptureVideo,
+                                                           AVFStorageLocation::Video,
                                                            QLatin1String("clip_"),
                                                            extension));
 
@@ -644,9 +641,7 @@ void AVFMediaRecorderControl::setupSessionForCapture()
     // request on iOS, but it shoudn't do so until we actually try to record.
     AVCaptureSession *captureSession = m_session->captureSession();
 
-    if (!m_connected
-            && m_cameraControl->captureMode().testFlag(QCamera::CaptureVideo)
-            && m_session->state() != QCamera::UnloadedState) {
+    if (!m_connected && m_session->state() != QCamera::UnloadedState) {
 
         // Lock the video capture device to make sure the active format is not reset
         const AVFConfigurationLock lock(m_session->videoCaptureDevice());
@@ -678,9 +673,7 @@ void AVFMediaRecorderControl::setupSessionForCapture()
             Q_EMIT error(QMediaRecorder::ResourceError, tr("Could not connect the video recorder"));
             qWarning() << "Could not connect the video recorder";
         }
-    } else if (m_connected
-               && (!m_cameraControl->captureMode().testFlag(QCamera::CaptureVideo)
-                   || m_session->state() == QCamera::UnloadedState)) {
+    } else if (m_connected || m_session->state() == QCamera::UnloadedState) {
 
         // Lock the video capture device to make sure the active format is not reset
         const AVFConfigurationLock lock(m_session->videoCaptureDevice());

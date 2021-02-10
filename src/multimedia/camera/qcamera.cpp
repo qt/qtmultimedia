@@ -159,8 +159,6 @@ void QCameraPrivate::initControls()
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
             q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
-            q->connect(control, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
-                       q, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
             q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
         }
 
@@ -346,46 +344,6 @@ QString QCamera::errorString() const
     return d_func()->errorString;
 }
 
-
-/*!
-    Returns true if the capture \a mode is suported.
-*/
-bool QCamera::isCaptureModeSupported(QCamera::CaptureModes mode) const
-{
-    return d_func()->control ? d_func()->control->isCaptureModeSupported(mode) : false;
-}
-
-/*!
-  \property QCamera::captureMode
-
-  The type of media (video or still images),
-  the camera is configured to capture.
-
-  It's allowed to change capture mode in any camera state,
-  but if the camera is currently active,
-  chaging capture mode is likely to lead to camera status
-  chaged to QCamera::LoadedStatus, QCamera::LoadingStatus,
-  and when the camera is ready to QCamera::ActiveStatus.
-*/
-
-QCamera::CaptureModes QCamera::captureMode() const
-{
-    return d_func()->control ? d_func()->control->captureMode() : QCamera::CaptureStillImage;
-}
-
-void QCamera::setCaptureMode(QCamera::CaptureModes mode)
-{
-    Q_D(QCamera);
-
-    if (mode != captureMode()) {
-        if (d->control) {
-            d->_q_preparePropertyChange(QCameraControl::CaptureMode);
-            d->control->setCaptureMode(mode);
-        }
-    }
-}
-
-
 /*!
     Starts the camera.
 
@@ -554,18 +512,6 @@ void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
     \brief The current status of the camera object.
 */
 
-
-/*!
-    \enum QCamera::CaptureMode
-
-    This enum holds the capture mode of the camera.
-
-    \value CaptureViewfinder Camera is only configured to display viewfinder.
-    \value CaptureStillImage Camera is configured for still frames capture.
-    \value CaptureVideo  Camera is configured for video capture.
-*/
-
-
 /*!
     \enum QCamera::Error
 
@@ -606,12 +552,6 @@ void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
     into a mirror. Captured images or videos are not mirrored.
 
     \sa QCameraInfo::position()
-*/
-
-/*!
-    \fn void QCamera::captureModeChanged(QCamera::CaptureModes mode)
-
-    Signals the capture \a mode has changed.
 */
 
 /*!

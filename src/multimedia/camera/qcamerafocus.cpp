@@ -274,14 +274,8 @@ void QCameraFocusPrivate::init(QCameraControl *cameraControl)
 
     q->connect(focusControl, SIGNAL(focusZonesChanged()), q, SIGNAL(focusZonesChanged()));
 
-    q->connect(focusControl, SIGNAL(currentOpticalZoomChanged(qreal)),
-               q, SIGNAL(opticalZoomChanged(qreal)));
-    q->connect(focusControl, SIGNAL(currentDigitalZoomChanged(qreal)),
-               q, SIGNAL(digitalZoomChanged(qreal)));
-    q->connect(focusControl, SIGNAL(maximumOpticalZoomChanged(qreal)),
-               q, SIGNAL(maximumOpticalZoomChanged(qreal)));
-    q->connect(focusControl, SIGNAL(maximumDigitalZoomChanged(qreal)),
-               q, SIGNAL(maximumDigitalZoomChanged(qreal)));
+    q->connect(focusControl, SIGNAL(zoomFactorChanged(qreal)),
+               q, SIGNAL(zoomFactorChanged(qreal)));
 }
 
 /*!

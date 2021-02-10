@@ -69,11 +69,9 @@ AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObjec
 
     [m_stillImageOutput setOutputSettings:outputSettings];
     [outputSettings release];
-    connect(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateReadyStatus()));
     connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateReadyStatus()));
 
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
-    connect(m_cameraControl, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateCaptureConnection()));
 
     connect(m_session, &AVFCameraSession::newViewfinderFrame,
             this, &AVFImageCaptureControl::onNewViewfinderFrame,
@@ -86,9 +84,7 @@ AVFImageCaptureControl::~AVFImageCaptureControl()
 
 bool AVFImageCaptureControl::isReadyForCapture() const
 {
-    return m_videoConnection &&
-            m_cameraControl->captureMode().testFlag(QCamera::CaptureStillImage) &&
-            m_cameraControl->status() == QCamera::ActiveStatus;
+    return m_videoConnection && m_cameraControl->status() == QCamera::ActiveStatus;
 }
 
 void AVFImageCaptureControl::updateReadyStatus()
@@ -116,7 +112,7 @@ int AVFImageCaptureControl::capture(const QString &fileName)
     QString actualFileName;
     if (destination & QCameraImageCapture::CaptureToFile) {
         actualFileName = m_storageLocation.generateFileName(fileName,
-                                                            QCamera::CaptureStillImage,
+                                                            AVFStorageLocation::Image,
                                                             QLatin1String("img_"),
                                                             QLatin1String("jpg"));
 
@@ -256,8 +252,7 @@ void AVFImageCaptureControl::setCaptureDestination(QCameraImageCapture::CaptureD
 
 void AVFImageCaptureControl::updateCaptureConnection()
 {
-    if (m_session->videoCaptureDevice()
-        && m_cameraControl->captureMode().testFlag(QCamera::CaptureStillImage)) {
+    if (m_session->videoCaptureDevice()) {
         qDebugCamera() << Q_FUNC_INFO;
         AVCaptureSession *captureSession = m_session->captureSession();
 
@@ -327,10 +322,8 @@ bool AVFImageCaptureControl::applySettings()
 
     AVFCameraSession *session = m_service->session();
     if (!session || (session->state() != QCamera::ActiveState
-        && session->state() != QCamera::LoadedState)
-            || !m_service->cameraControl()->captureMode().testFlag(QCamera::CaptureStillImage)) {
+        && session->state() != QCamera::LoadedState))
         return false;
-    }
 
     if (!m_service->imageCaptureControl()
         || !m_service->imageCaptureControl()->stillImageOutput()) {

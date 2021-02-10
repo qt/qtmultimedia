@@ -55,11 +55,9 @@ AVFCameraControl::AVFCameraControl(AVFCameraService *service, QObject *parent)
    , m_service(service)
    , m_state(QCamera::UnloadedState)
    , m_lastStatus(QCamera::UnloadedStatus)
-   , m_captureMode(QCamera::CaptureStillImage)
 {
     Q_UNUSED(service);
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
-    connect(this, &AVFCameraControl::captureModeChanged, m_session, &AVFCameraSession::onCaptureModeChanged);
 }
 
 AVFCameraControl::~AVFCameraControl()
@@ -107,30 +105,6 @@ void AVFCameraControl::updateStatus()
         m_lastStatus = newStatus;
         Q_EMIT statusChanged(m_lastStatus);
     }
-}
-
-QCamera::CaptureModes AVFCameraControl::captureMode() const
-{
-    return m_captureMode;
-}
-
-void AVFCameraControl::setCaptureMode(QCamera::CaptureModes mode)
-{
-    if (m_captureMode == mode)
-        return;
-
-    m_captureMode = mode;
-    Q_EMIT captureModeChanged(mode);
-}
-
-bool AVFCameraControl::isCaptureModeSupported(QCamera::CaptureModes /*mode*/) const
-{
-    return true;
-}
-
-void AVFCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
-{
-    m_session->setVideoSurface(surface);
 }
 
 bool AVFCameraControl::canChangeProperty(QCameraControl::PropertyChangeType changeType, QCamera::Status status) const
@@ -207,6 +181,11 @@ bool AVFCameraControl::CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtForm
     }
 
     return true;
+}
+
+void AVFCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_session->setVideoSurface(surface);
 }
 
 AVCaptureConnection *AVFCameraControl::videoConnection() const

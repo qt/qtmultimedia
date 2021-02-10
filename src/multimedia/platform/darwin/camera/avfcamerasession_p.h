@@ -100,8 +100,6 @@ public Q_SLOTS:
     void processSessionStarted();
     void processSessionStopped();
 
-    void onCaptureModeChanged(QCamera::CaptureModes mode);
-
 Q_SIGNALS:
     void readyToConfigureConnections();
     void stateChanged(QCamera::State newState);

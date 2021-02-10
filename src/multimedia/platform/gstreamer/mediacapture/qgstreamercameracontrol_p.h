@@ -74,11 +74,6 @@ public:
 
     void setCamera(const QCameraInfo &camera) override;
 
-    QCamera::CaptureModes captureMode() const override { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureModes mode) override;
-
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
-
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
     void setVideoSurface(QAbstractVideoSurface *surface) override;
@@ -92,7 +87,6 @@ private slots:
 
 
 private:
-    QCamera::CaptureModes m_captureMode;
     QGstreamerCaptureSession *m_session;
     QCamera::State m_state;
     QCamera::Status m_status;

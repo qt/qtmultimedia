@@ -41,7 +41,6 @@ public:
     MockCameraControl(QObject *parent = 0):
             QCameraControl(parent),
             m_state(QCamera::UnloadedState),
-            m_captureMode(QCamera::CaptureStillImage),
             m_status(QCamera::UnloadedStatus),
             m_propertyChangesSupported(false)
     {
@@ -75,26 +74,10 @@ public:
 
     QCamera::Status status() const { return m_status; }
 
-    QCamera::CaptureModes captureMode() const { return m_captureMode; }
-    void setCaptureMode(QCamera::CaptureModes mode)
-    {
-        if (m_captureMode != mode) {
-            if (m_state == QCamera::ActiveState && !m_propertyChangesSupported)
-                return;
-            m_captureMode = mode;
-            emit captureModeChanged(mode);
-        }
-    }
-
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const
-    {
-        return mode == QCamera::CaptureStillImage || mode == QCamera::CaptureVideo;
-    }
-
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
     {
         Q_UNUSED(status);
-        if (changeType == QCameraControl::ImageEncodingSettings && m_captureMode == QCamera::CaptureVideo)
+        if (changeType == QCameraControl::ImageEncodingSettings)
             return true;
         else if (changeType== QCameraControl::VideoEncodingSettings)
             return true;
@@ -123,7 +106,6 @@ public:
     void setVideoSurface(QAbstractVideoSurface *) {}
 
     QCamera::State m_state;
-    QCamera::CaptureModes m_captureMode;
     QCamera::Status m_status;
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;
