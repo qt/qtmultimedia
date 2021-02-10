@@ -81,6 +81,8 @@ public:
 
     QTimer* notifyTimer = nullptr;
 
+    QSet<int> notifyProperties;
+
     QMediaRecorder::State state = QMediaRecorder::StoppedState;
     QMediaRecorder::Error error = QMediaRecorder::NoError;
     QString errorString;

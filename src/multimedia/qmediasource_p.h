@@ -70,15 +70,10 @@ class QMediaSourcePrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QMediaSource)
 
 public:
-    QMediaSourcePrivate() : service(nullptr), notifyTimer(nullptr) {}
+    QMediaSourcePrivate() : service(nullptr) {}
     virtual ~QMediaSourcePrivate() {}
 
-    void _q_notify();
-
     QMediaService *service;
-
-    QTimer* notifyTimer;
-    QSet<int> notifyProperties;
 };
 
 QT_END_NAMESPACE

@@ -238,6 +238,66 @@ QMediaRecorder::~QMediaRecorder()
     delete d_ptr;
 }
 
+int QMediaRecorder::notifyInterval() const
+{
+    return d_func()->notifyTimer->interval();
+}
+
+void QMediaRecorder::setNotifyInterval(int milliSeconds)
+{
+    Q_D(QMediaRecorder);
+
+    if (d->notifyTimer->interval() != milliSeconds) {
+        d->notifyTimer->setInterval(milliSeconds);
+
+        emit notifyIntervalChanged(milliSeconds);
+    }
+}
+
+/*!
+    Watch the property \a name. The property's notify signal will be emitted
+    once every \c notifyInterval milliseconds.
+
+    \sa notifyInterval
+*/
+
+void QMediaRecorder::addPropertyWatch(QByteArray const &name)
+{
+    Q_D(QMediaRecorder);
+
+    const QMetaObject* m = metaObject();
+
+    int index = m->indexOfProperty(name.constData());
+
+    if (index != -1 && m->property(index).hasNotifySignal()) {
+        d->notifyProperties.insert(index);
+
+        if (!d->notifyTimer->isActive())
+            d->notifyTimer->start();
+    }
+}
+
+/*!
+    Remove property \a name from the list of properties whose changes are
+    regularly signaled.
+
+    \sa notifyInterval
+*/
+
+void QMediaRecorder::removePropertyWatch(QByteArray const &name)
+{
+    Q_D(QMediaRecorder);
+
+    int index = metaObject()->indexOfProperty(name.constData());
+
+    if (index != -1) {
+        d->notifyProperties.remove(index);
+
+        if (d->notifyProperties.isEmpty())
+            d->notifyTimer->stop();
+    }
+}
+
 /*!
     Returns the QMediaSource instance that this QMediaRecorder is bound too,
     or 0 otherwise.
@@ -281,7 +341,7 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
                        this, SLOT(_q_error(int,QString)));
         }
 
-        disconnect(d->mediaSource, SIGNAL(notifyIntervalChanged(int)), this, SLOT(_q_updateNotifyInterval(int)));
+        disconnect(this, SIGNAL(notifyIntervalChanged(int)), this, SLOT(_q_updateNotifyInterval(int)));
 
         QMediaService *service = d->mediaSource->service();
 
@@ -300,8 +360,8 @@ bool QMediaRecorder::setMediaSource(QMediaSource *object)
     if (d->mediaSource) {
         QMediaService *service = d->mediaSource->service();
 
-        d->notifyTimer->setInterval(d->mediaSource->notifyInterval());
-        connect(d->mediaSource, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
+        d->notifyTimer->setInterval(notifyInterval());
+        connect(this, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
 
         if (service) {
             d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));

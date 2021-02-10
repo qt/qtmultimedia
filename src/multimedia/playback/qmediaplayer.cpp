@@ -101,6 +101,7 @@ class QMediaPlayerPrivate : public QMediaSourcePrivate
     Q_DECLARE_NON_CONST_PUBLIC(QMediaPlayer)
 
 public:
+    QMediaPlayerPrivate() : notifyTimer(nullptr) {}
     QMediaPlatformPlayerInterface *playerInterface = nullptr;
     QMediaPlayerControl* control = nullptr;
     QString errorString;
@@ -125,7 +126,30 @@ public:
     void _q_stateChanged(QMediaPlayer::State state);
     void _q_mediaStatusChanged(QMediaPlayer::MediaStatus status);
     void _q_error(int error, const QString &errorString);
+    void _q_notify();
+
+    QTimer* notifyTimer;
+    QSet<int> notifyProperties;
 };
+
+void QMediaPlayerPrivate::_q_notify()
+{
+    Q_Q(QMediaPlayer);
+
+    const QMetaObject* m = q->metaObject();
+
+    // QTBUG-57045
+    // we create a copy of notifyProperties container to ensure that if a property is removed
+    // from the original container as a result of invoking propertyChanged signal, the iterator
+    // won't become invalidated
+    QSet<int> properties = notifyProperties;
+
+    for (int pi : qAsConst(properties)) {
+        QMetaProperty p = m->property(pi);
+        p.notifySignal().invoke(
+            q, QGenericArgument(p.metaType().name(), p.read(q).data()));
+    }
+}
 
 void QMediaPlayerPrivate::_q_stateChanged(QMediaPlayer::State ps)
 {
@@ -264,6 +288,10 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
 {
     Q_D(QMediaPlayer);
 
+    d->notifyTimer = new QTimer(this);
+    d->notifyTimer->setInterval(1000);
+    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
+
     d->playerInterface = QMediaPlatformIntegration::instance()->createPlayerInterface();
     if (!d->playerInterface) {
         qWarning() << "QPlatformMediaPlayerInterface not implemented!";
@@ -314,6 +342,66 @@ QMediaPlayer::~QMediaPlayer()
     disconnect();
 
     delete d->playerInterface;
+}
+
+int QMediaPlayer::notifyInterval() const
+{
+    return d_func()->notifyTimer->interval();
+}
+
+void QMediaPlayer::setNotifyInterval(int milliSeconds)
+{
+    Q_D(QMediaPlayer);
+
+    if (d->notifyTimer->interval() != milliSeconds) {
+        d->notifyTimer->setInterval(milliSeconds);
+
+        emit notifyIntervalChanged(milliSeconds);
+    }
+}
+
+/*!
+    Watch the property \a name. The property's notify signal will be emitted
+    once every \c notifyInterval milliseconds.
+
+    \sa notifyInterval
+*/
+
+void QMediaPlayer::addPropertyWatch(QByteArray const &name)
+{
+    Q_D(QMediaPlayer);
+
+    const QMetaObject* m = metaObject();
+
+    int index = m->indexOfProperty(name.constData());
+
+    if (index != -1 && m->property(index).hasNotifySignal()) {
+        d->notifyProperties.insert(index);
+
+        if (!d->notifyTimer->isActive())
+            d->notifyTimer->start();
+    }
+}
+
+/*!
+    Remove property \a name from the list of properties whose changes are
+    regularly signaled.
+
+    \sa notifyInterval
+*/
+
+void QMediaPlayer::removePropertyWatch(QByteArray const &name)
+{
+    Q_D(QMediaPlayer);
+
+    int index = metaObject()->indexOfProperty(name.constData());
+
+    if (index != -1) {
+        d->notifyProperties.remove(index);
+
+        if (d->notifyProperties.isEmpty())
+            d->notifyTimer->stop();
+    }
 }
 
 QUrl QMediaPlayer::media() const

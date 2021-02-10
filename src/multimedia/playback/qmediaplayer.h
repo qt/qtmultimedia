@@ -55,6 +55,7 @@ class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
 {
     Q_OBJECT
+    Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged)
     Q_PROPERTY(QUrl media READ media WRITE setMedia NOTIFY mediaChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
@@ -111,6 +112,11 @@ public:
     // new API
 //    bool enableLowLatencyPlayback(bool tryEnable);
 //    bool isLowLatencyPlaybackEnabled() const;
+
+    int notifyInterval() const;
+    void setNotifyInterval(int milliSeconds);
+    void addPropertyWatch(QByteArray const &name);
+    void removePropertyWatch(QByteArray const &name);
 
     bool setAudioOutput(const QAudioDeviceInfo &device);
     QAudioDeviceInfo audioOutput() const;
@@ -179,6 +185,8 @@ public Q_SLOTS:
     void setMedia(const QUrl &media, QIODevice *stream = nullptr);
 
 Q_SIGNALS:
+    void notifyIntervalChanged(int milliSeconds);
+
     void mediaChanged(const QUrl &media);
 
     void stateChanged(QMediaPlayer::State newState);
@@ -208,6 +216,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaPlayer::State))
     Q_PRIVATE_SLOT(d_func(), void _q_mediaStatusChanged(QMediaPlayer::MediaStatus))
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
+    Q_PRIVATE_SLOT(d_func(), void _q_notify())
 };
 
 QT_END_NAMESPACE

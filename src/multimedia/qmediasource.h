@@ -57,7 +57,6 @@ class QMediaSourcePrivate;
 class Q_MULTIMEDIA_EXPORT QMediaSource : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged)
 public:
     ~QMediaSource();
 
@@ -69,29 +68,20 @@ public:
 
     virtual QMediaService* service() const;
 
-    int notifyInterval() const;
-    void setNotifyInterval(int milliSeconds);
-
     bool bind(QMediaSink *);
     void unbind(QMediaSink *);
 
     virtual QMediaMetaData metaData() const;
 
 Q_SIGNALS:
-    void notifyIntervalChanged(int milliSeconds);
-
     void metaDataChanged();
 
 protected:
     QMediaSource(QObject *parent, QMediaService *service);
     QMediaSource(QMediaSourcePrivate &dd, QObject *parent, QMediaService *service);
 
-    void addPropertyWatch(QByteArray const &name);
-    void removePropertyWatch(QByteArray const &name);
-
 private:
     Q_DECLARE_PRIVATE(QMediaSource)
-    Q_PRIVATE_SLOT(d_func(), void _q_notify())
 };
 
 

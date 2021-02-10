@@ -48,25 +48,6 @@
 
 QT_BEGIN_NAMESPACE
 
-void QMediaSourcePrivate::_q_notify()
-{
-    Q_Q(QMediaSource);
-
-    const QMetaObject* m = q->metaObject();
-
-    // QTBUG-57045
-    // we create a copy of notifyProperties container to ensure that if a property is removed
-    // from the original container as a result of invoking propertyChanged signal, the iterator
-    // won't become invalidated
-    QSet<int> properties = notifyProperties;
-
-    for (int pi : qAsConst(properties)) {
-        QMetaProperty p = m->property(pi);
-        p.notifySignal().invoke(
-            q, QGenericArgument(p.metaType().name(), p.read(q).data()));
-    }
-}
-
 /*!
     \class QMediaSource
 
@@ -133,22 +114,6 @@ QMediaService* QMediaSource::service() const
     return d_func()->service;
 }
 
-int QMediaSource::notifyInterval() const
-{
-    return d_func()->notifyTimer->interval();
-}
-
-void QMediaSource::setNotifyInterval(int milliSeconds)
-{
-    Q_D(QMediaSource);
-
-    if (d->notifyTimer->interval() != milliSeconds) {
-        d->notifyTimer->setInterval(milliSeconds);
-
-        emit notifyIntervalChanged(milliSeconds);
-    }
-}
-
 /*!
     Bind \a object to this QMediaSource instance.
 
@@ -211,10 +176,6 @@ QMediaSource::QMediaSource(QObject *parent, QMediaService *service)
 {
     Q_D(QMediaSource);
 
-    d->notifyTimer = new QTimer(this);
-    d->notifyTimer->setInterval(1000);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-
     d->service = service;
 }
 
@@ -227,72 +188,8 @@ QMediaSource::QMediaSource(QMediaSourcePrivate &dd, QObject *parent, QMediaServi
 {
     Q_D(QMediaSource);
 
-    d->notifyTimer = new QTimer(this);
-    d->notifyTimer->setInterval(1000);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-
     d->service = service;
 }
-
-/*!
-    Watch the property \a name. The property's notify signal will be emitted
-    once every \c notifyInterval milliseconds.
-
-    \sa notifyInterval
-*/
-
-void QMediaSource::addPropertyWatch(QByteArray const &name)
-{
-    Q_D(QMediaSource);
-
-    const QMetaObject* m = metaObject();
-
-    int index = m->indexOfProperty(name.constData());
-
-    if (index != -1 && m->property(index).hasNotifySignal()) {
-        d->notifyProperties.insert(index);
-
-        if (!d->notifyTimer->isActive())
-            d->notifyTimer->start();
-    }
-}
-
-/*!
-    Remove property \a name from the list of properties whose changes are
-    regularly signaled.
-
-    \sa notifyInterval
-*/
-
-void QMediaSource::removePropertyWatch(QByteArray const &name)
-{
-    Q_D(QMediaSource);
-
-    int index = metaObject()->indexOfProperty(name.constData());
-
-    if (index != -1) {
-        d->notifyProperties.remove(index);
-
-        if (d->notifyProperties.isEmpty())
-            d->notifyTimer->stop();
-    }
-}
-
-/*!
-    \property QMediaSource::notifyInterval
-
-    The interval at which notifiable properties will update.
-
-    The interval is expressed in milliseconds, the default value is 1000.
-
-    \sa addPropertyWatch(), removePropertyWatch()
-*/
-
-/*!
-    \fn void QMediaSource::notifyIntervalChanged(int milliseconds)
-
-    Signal a change in the notify interval period to \a milliseconds.
-*/
 
 /*!
     Returns the value associated with a meta-data \a key.
