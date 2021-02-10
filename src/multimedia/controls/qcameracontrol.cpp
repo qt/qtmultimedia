@@ -192,36 +192,6 @@ QCameraControl::QCameraControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraControl::supportedLocks() const
-
-    Returns the lock types, the camera supports.
-*/
-
-/*!
-    \fn QCameraControl::lockStatus(QCamera::LockType lock) const
-
-    Returns the camera \a lock status.
-*/
-
-/*!
-    \fn QCameraControl::searchAndLock(QCamera::LockTypes locks)
-
-    Request camera \a locks.
-*/
-
-/*!
-    \fn QCameraControl::unlock(QCamera::LockTypes locks)
-
-    Unlock camera \a locks.
-*/
-
-/*!
-    \fn QCameraControl::lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason)
-
-    Signals the lock \a type \a status was changed with the specified \a reason.
-*/
-
-/*!
     \fn QCameraControl::supportedViewfinderSettings() const
 
     Returns a list of supported camera viewfinder settings.

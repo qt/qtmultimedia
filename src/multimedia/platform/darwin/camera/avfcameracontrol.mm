@@ -136,26 +136,6 @@ bool AVFCameraControl::canChangeProperty(QCameraControl::PropertyChangeType chan
     return true;
 }
 
-QCamera::LockTypes AVFCameraControl::supportedLocks() const
-{
-    return {};
-}
-
-QCamera::LockStatus AVFCameraControl::lockStatus(QCamera::LockType) const
-{
-    return QCamera::Unlocked;
-}
-
-void AVFCameraControl::searchAndLock(QCamera::LockTypes locks)
-{
-    Q_UNUSED(locks);
-}
-
-void AVFCameraControl::unlock(QCamera::LockTypes locks)
-{
-    Q_UNUSED(locks);
-}
-
 QVideoFrame::PixelFormat AVFCameraControl::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
 {
     // BGRA <-> ARGB "swap" is intentional:

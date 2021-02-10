@@ -74,9 +74,6 @@ public:
           capture(nullptr),
           state(QCamera::UnloadedState),
           error(QCamera::NoError),
-          requestedLocks(QCamera::NoLock),
-          lockStatus(QCamera::Unlocked),
-          lockChangeReason(QCamera::UserRequest),
           supressLockChangedSignal(false),
           restartPending(false)
     {
@@ -103,10 +100,6 @@ public:
 
     QCameraInfo cameraInfo;
 
-    QCamera::LockTypes requestedLocks;
-
-    QCamera::LockStatus lockStatus;
-    QCamera::LockChangeReason lockChangeReason;
     bool supressLockChangedSignal;
 
     bool restartPending;
@@ -118,11 +111,9 @@ public:
 
     void setState(QCamera::State);
 
-    void _q_updateLockStatus(QCamera::LockType, QCamera::LockStatus, QCamera::LockChangeReason);
     void _q_updateState(QCamera::State newState);
     void _q_preparePropertyChange(int changeType);
     void _q_restartCamera();
-    void updateLockStatus();
 };
 
 QT_END_NAMESPACE

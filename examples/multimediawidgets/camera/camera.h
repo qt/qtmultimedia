@@ -81,7 +81,6 @@ private slots:
     void stop();
     void setMuted(bool);
 
-    void toggleLock();
     void takeImage();
     void displayCaptureError(int, QCameraImageCapture::Error, const QString &errorString);
 
@@ -102,7 +101,6 @@ private slots:
     void updateRecordTime();
 
     void processCapturedImage(int requestId, const QImage &img);
-    void updateLockStatus(QCamera::LockStatus, QCamera::LockChangeReason);
 
     void displayViewfinder();
     void displayCapturedImage();

@@ -68,7 +68,6 @@ private slots:
     void testSimpleCameraExposure();
     void testSimpleCameraFocus();
     void testSimpleCameraCapture();
-    void testSimpleCameraLock();
     void testSimpleCaptureDestination();
 
     void testCameraWhiteBalance();
@@ -77,29 +76,20 @@ private slots:
     void testCameraCapture();
     void testCameraCaptureMetadata();
     void testImageSettings();
-    void testCameraLock();
-    void testCameraLockCancel();
     void testCameraEncodingProperyChange();
     void testCaptureDestination();
 
     void testConstructor();
     void testCaptureMode();
     void testIsCaptureModeSupported();
-    void testRequestedLocks();
-    void testSupportedLocks();
     void testQCameraIsAvailable();
     void testQCameraIsNotAvailable();
-    void testSearchAndLockWithLockTypes();
     void testSetCaptureMode();
-    void testUnlockWithType();
     void testCaptureModeChangedSignal();
-    void testLockStatusChangedWithTypesSignal();
     void testErrorSignal();
     void testError();
     void testErrorString();
     void testStatus();
-    void testLockType();
-    void testLockChangeReason();
 
 
     // Test cases to for QCameraFocus
@@ -295,44 +285,6 @@ void tst_QCamera::testSimpleCameraCapture()
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NotSupportedFeatureError);
     QVERIFY(!imageCapture.errorString().isEmpty());
-}
-
-void tst_QCamera::testSimpleCameraLock()
-{
-    MockMediaRecorderService::simpleCamera = true;
-
-    QCamera camera;
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockExposure), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockFocus), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockWhiteBalance), QCamera::Unlocked);
-
-    QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
-    QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
-
-    camera.searchAndLock();
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockExposure), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockFocus), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockWhiteBalance), QCamera::Unlocked);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 0);
-
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-
-    camera.unlock();
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockExposure), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockFocus), QCamera::Unlocked);
-    QCOMPARE(camera.lockStatus(QCamera::LockWhiteBalance), QCamera::Unlocked);
-
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 0);
 }
 
 void tst_QCamera::testSimpleCaptureDestination()
@@ -765,82 +717,6 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings1 != settings2);
 }
 
-void tst_QCamera::testCameraLock()
-{
-    QCamera camera;
-
-    camera.focus()->setFocusMode(QCameraFocus::AutoFocus);
-
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-
-    QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
-    QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
-
-    camera.searchAndLock();
-    QCOMPARE(camera.lockStatus(), QCamera::Searching);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-
-    QTRY_COMPARE(camera.lockStatus(), QCamera::Locked);
-    QCOMPARE(lockedSignal.count(), 1);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-
-    camera.searchAndLock();
-    QCOMPARE(camera.lockStatus(), QCamera::Searching);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-
-    camera.unlock();
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-}
-
-void tst_QCamera::testCameraLockCancel()
-{
-    QCamera camera;
-
-    camera.focus()->setFocusMode(QCameraFocus::AutoFocus);
-
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-
-    QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
-    QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
-    camera.searchAndLock();
-    QCOMPARE(camera.lockStatus(), QCamera::Searching);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-
-    camera.unlock();
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-}
-
 void tst_QCamera::testCameraEncodingProperyChange()
 {
     QCamera camera;
@@ -1009,14 +885,6 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::CaptureVideo;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::CameraError");
     qDebug() << QCamera::CameraError;
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::Unlocked");
-    qDebug() << QCamera::Unlocked;
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::LockAcquired");
-    qDebug() << QCamera::LockAcquired;
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::NoLock");
-    qDebug() << QCamera::NoLock;
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::LockExposure");
-    qDebug() << QCamera::LockExposure;
     QTest::ignoreMessage(QtDebugMsg, "QCameraInfo::FrontFace ");
     qDebug() << QCameraInfo::FrontFace;
 }
@@ -1119,45 +987,6 @@ void tst_QCamera::testIsCaptureModeSupported()
     QVERIFY(camera.isCaptureModeSupported(QCamera::CaptureVideo) == true);
 }
 
-/* Test case for requestedLocks. LockType is stored in OR combination so all
-   types of combinations are verified here.*/
-void tst_QCamera::testRequestedLocks()
-{
-    QCamera camera;
-
-    QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
-
-    camera.searchAndLock(QCamera::LockExposure);
-    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure);
-
-    camera.unlock();
-    camera.searchAndLock(QCamera::LockFocus);
-    QCOMPARE(camera.requestedLocks(),QCamera::LockFocus );
-
-    camera.unlock();
-    camera.searchAndLock(QCamera::LockWhiteBalance);
-    QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
-
-    camera.unlock();
-    camera.searchAndLock(QCamera::LockExposure |QCamera::LockFocus );
-    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure |QCamera::LockFocus );
-    camera.searchAndLock(QCamera::LockWhiteBalance);
-    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure |QCamera::LockFocus);
-    camera.unlock(QCamera::LockExposure);
-    QCOMPARE(camera.requestedLocks(),QCamera::LockFocus);
-    camera.unlock(QCamera::LockFocus);
-    camera.searchAndLock(QCamera::LockExposure |QCamera::LockWhiteBalance );
-    QCOMPARE(camera.requestedLocks(),QCamera::LockExposure);
-}
-
-/* Test case for supportedLocks() */
-void tst_QCamera::testSupportedLocks()
-{
-    QCamera camera;
-
-    QCOMPARE(camera.supportedLocks(),QCamera::LockExposure | QCamera::LockFocus);
-}
-
 /* Test case for isAvailable */
 void tst_QCamera::testQCameraIsAvailable()
 {
@@ -1177,28 +1006,6 @@ void tst_QCamera::testQCameraIsNotAvailable()
     integration->setFlags({});
 }
 
-/* Test case for searchAndLock ( QCamera::LockTypes locks ) */
-void tst_QCamera::testSearchAndLockWithLockTypes()
-{
-    QCamera camera;
-
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-
-    /* Spy the signals */
-    QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
-    QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
-
-    /* search and lock the camera with QCamera::LockExposure and verify if the signal is emitted correctly */
-    camera.searchAndLock(QCamera::LockExposure);
-    QCOMPARE(camera.lockStatus(), QCamera::Locked);
-    QCOMPARE(lockedSignal.count(), 1);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
-}
-
 /* Test case for setCaptureMode() */
 void tst_QCamera::testSetCaptureMode()
 {
@@ -1210,70 +1017,6 @@ void tst_QCamera::testSetCaptureMode()
 
     camera.setCaptureMode(QCamera::CaptureStillImage);
     QVERIFY(camera.captureMode() == QCamera::CaptureStillImage);
-}
-
-/* Test case for unlock (QCamera::LockTypes) */
-void tst_QCamera::testUnlockWithType()
-{
-    QCamera camera;
-
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-
-    /* Spy the signal */
-    QSignalSpy lockedSignal(&camera, SIGNAL(locked()));
-    QSignalSpy lockFailedSignal(&camera, SIGNAL(lockFailed()));
-    QSignalSpy lockStatusChangedSignal(&camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)));
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
-
-    /* lock the camera with QCamera::LockExposure and Verify if the signal is emitted correctly */
-    camera.searchAndLock(QCamera::LockExposure);
-    QCOMPARE(camera.lockStatus(), QCamera::Locked);
-    QCOMPARE(lockedSignal.count(), 1);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
-
-    /* Clear the signal */
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-    lockStatusChangedSignalWithType.clear();
-
-    /* Unlock the camera and verify if the signal is emitted correctly */
-    camera.unlock(QCamera::LockExposure);
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
-    QCamera::LockType lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
-    QCamera::LockStatus lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
-    QVERIFY(lockType == QCamera::LockExposure);
-    QVERIFY(lockStatus == QCamera::Unlocked);
-
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-    lockStatusChangedSignalWithType.clear();
-
-    /* Lock the camera with QCamera::LockFocus */
-    camera.searchAndLock(QCamera::LockFocus);
-    lockedSignal.clear();
-    lockFailedSignal.clear();
-    lockStatusChangedSignal.clear();
-    lockStatusChangedSignalWithType.clear();
-
-    /* Unlock the camera and Verify if the signal is emitted correctly */
-    camera.unlock(QCamera::LockFocus);
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(lockedSignal.count(), 0);
-    QCOMPARE(lockFailedSignal.count(), 0);
-    QCOMPARE(lockStatusChangedSignal.count(), 1);
-    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
-    lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
-    lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
-    QVERIFY(lockType == QCamera::LockFocus);
-    QVERIFY(lockStatus == QCamera::Unlocked);
 }
 
 /* Test case for signal captureModeChanged(QCamera::CaptureModes) */
@@ -1293,41 +1036,6 @@ void tst_QCamera::testCaptureModeChangedSignal()
     QCOMPARE(lockCaptureModeChangedSignal.count(), 1);
     QCamera::CaptureModes lockCaptureMode = qvariant_cast<QCamera::CaptureModes >(lockCaptureModeChangedSignal.at(0).at(0));
     QVERIFY(lockCaptureMode == QCamera::CaptureVideo);
-}
-
-/* Test case for signal lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason) */
-void tst_QCamera::testLockStatusChangedWithTypesSignal()
-{
-    QCamera camera;
-
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-
-    /* Spy the signal lockStatusChanged(QCamera::LockType,QCamera::LockStatus, QCamera::LockChangeReason) */
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
-
-    /* Lock the camera with type QCamera::LockExposure */
-    camera.searchAndLock(QCamera::LockExposure);
-
-    /* Verify if the signal is emitted and lock status is set correclty */
-    QCOMPARE(camera.lockStatus(), QCamera::Locked);
-    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
-    QCamera::LockType lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
-    QCamera::LockStatus lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
-    QVERIFY(lockType == QCamera::LockExposure);
-    QVERIFY(lockStatus == QCamera::Locked);
-
-    lockStatusChangedSignalWithType.clear();
-
-    /* Unlock the camera */
-    camera.unlock();
-
-    /* Verify if the signal is emitted and lock status is set correclty */
-    QCOMPARE(camera.lockStatus(), QCamera::Unlocked);
-    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
-    lockType = qvariant_cast<QCamera::LockType >(lockStatusChangedSignalWithType.at(0).at(0));
-    lockStatus = qvariant_cast<QCamera::LockStatus >(lockStatusChangedSignalWithType.at(0).at(1));
-    QVERIFY(lockType == QCamera::LockExposure);
-    QVERIFY(lockStatus == QCamera::Unlocked);
 }
 
 /* Test case for verifying if error signal generated correctly */
@@ -1423,32 +1131,6 @@ void tst_QCamera::testStatus()
     /* Set the QCameraControl status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::UnavailableStatus);
     QVERIFY(camera.status() == QCamera::UnavailableStatus);
-}
-
-/* Test case for verifying default locktype QCamera::NoLock */
-void tst_QCamera::testLockType()
-{
-    QCamera camera;
-
-    QCOMPARE(camera.requestedLocks(),QCamera::NoLock);
-}
-
-/* Test case for QCamera::LockChangeReason with QCamera::LockAcquired */
-void tst_QCamera::testLockChangeReason()
-{
-    QCamera camera;
-    auto *service = integration->lastCaptureService();
-
-    QSignalSpy lockStatusChangedSignalWithType(&camera, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
-
-    /* Set the lockChangeReason */
-    service->mockCameraControl->setLockChangeReason(QCamera::LockAcquired);
-
-    /* Verify if lockChangeReson is eqaul toQCamera::LockAcquired */
-    QCOMPARE(lockStatusChangedSignalWithType.count(), 1);
-    QCamera::LockChangeReason LockChangeReason = qvariant_cast<QCamera::LockChangeReason >(lockStatusChangedSignalWithType.at(0).at(2));
-    QVERIFY(LockChangeReason == QCamera::LockAcquired);
-
 }
 
 /* All the enums test case for QCameraControl class*/

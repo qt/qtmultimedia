@@ -4,7 +4,6 @@
         <file>ZoomControl.qml</file>
         <file>VideoCaptureControls.qml</file>
         <file>VideoPreview.qml</file>
-        <file>FocusButton.qml</file>
         <file>PhotoCaptureControls.qml</file>
         <file>declarative-camera.qml</file>
         <file>Popup.qml</file>

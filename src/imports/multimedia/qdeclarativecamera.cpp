@@ -186,8 +186,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
 
     connect(m_camera, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
             this, SIGNAL(captureModeChanged()));
-    connect(m_camera, SIGNAL(lockStatusChanged(QCamera::LockStatus,QCamera::LockChangeReason)),
-            this, SIGNAL(lockStatusChanged()));
     connect(m_camera, &QCamera::stateChanged, this, &QDeclarativeCamera::_q_updateState);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
@@ -561,66 +559,6 @@ void QDeclarativeCamera::stop()
     setCameraState(QDeclarativeCamera::LoadedState);
 }
 
-
-/*!
-    \qmlproperty enumeration QtMultimedia::Camera::lockStatus
-
-    This property holds the status of all the requested camera locks.
-
-    \value  Camera.Unlocked
-            The application is not interested in camera settings value.
-            The camera may keep this parameter without changes, which is common
-            with camera focus, or adjust exposure and white balance constantly
-            to keep the viewfinder image nice.
-    \value  Camera.Searching
-            The application has requested the camera focus, exposure, or white
-            balance lock with searchAndLock(). This state indicates the camera
-            is focusing or calculating exposure and white balance.
-    \value  Camera.Locked
-            The camera focus, exposure, or white balance is locked.
-            The camera is ready to capture, and the application may check the
-            exposure parameters.
-            The locked state usually means the requested parameter stays the
-            same, except in cases where the parameter is requested to be updated
-            constantly. For example, in continuous focusing mode, the focus is
-            considered locked as long as the object is in focus, even while the
-            actual focusing distance may be constantly changing.
-*/
-/*!
-    \property QDeclarativeCamera::lockStatus
-
-    This property holds the status of all the requested camera locks.
-*/
-QDeclarativeCamera::LockStatus QDeclarativeCamera::lockStatus() const
-{
-    return QDeclarativeCamera::LockStatus(m_camera->lockStatus());
-}
-
-/*!
-    \qmlmethod QtMultimedia::Camera::searchAndLock()
-
-    Start focusing, exposure and white balance calculation.
-
-    This is appropriate to call when the camera focus button is pressed
-    (or on a camera capture button half-press).  If the camera supports
-    autofocusing, information on the focus zones is available through
-    the \l {CameraFocus}{focus} property.
-*/
-void QDeclarativeCamera::searchAndLock()
-{
-    m_camera->searchAndLock();
-}
-
-/*!
-    \qmlmethod QtMultimedia::Camera::unlock()
-
-    Unlock focus, exposure and white balance locks.
- */
-void QDeclarativeCamera::unlock()
-{
-    m_camera->unlock();
-}
-
 /*!
     \qmlproperty real QtMultimedia::Camera::minimumZoomFactor
 
@@ -700,15 +638,6 @@ void QDeclarativeCamera::setZoomFactor(qreal value)
     The corresponding handler is \c onError.
 
     \sa errorCode, errorString
-*/
-
-/*!
-    \qmlsignal Camera::lockStatusChanged()
-
-    This signal is emitted when the lock status (focus, exposure etc) changes.
-    This can happen when locking (e.g. autofocusing) is complete or has failed.
-
-    The corresponding handler is \c onLockStatusChanged.
 */
 
 /*!

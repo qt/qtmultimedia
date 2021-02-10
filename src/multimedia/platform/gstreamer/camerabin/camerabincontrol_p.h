@@ -83,13 +83,6 @@ public:
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
     bool viewfinderColorSpaceConversion() const;
 
-    QCamera::LockTypes supportedLocks() const override;
-
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const override;
-
-    void searchAndLock(QCamera::LockTypes locks) override;
-    void unlock(QCamera::LockTypes locks) override;
-
 public slots:
     void reloadLater();
     void setViewfinderColorSpaceConversion(bool enabled);
@@ -106,26 +99,12 @@ private:
 protected:
     void timerEvent(QTimerEvent *event) override;
 
-private slots:
-    void updateFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
-
-private:
-    bool isExposureLocked() const;
-    void lockExposure(QCamera::LockChangeReason reason);
-    void unlockExposure(QCamera::LockStatus status, QCamera::LockChangeReason reason);
-
-    bool isWhiteBalanceLocked() const;
-    void lockWhiteBalance(QCamera::LockChangeReason reason);
-    void unlockWhiteBalance(QCamera::LockStatus status, QCamera::LockChangeReason reason);
-
     CameraBinSession *m_session;
     QCamera::State m_state;
 
     bool m_reloadPending;
 
     CameraBinFocus *m_focus;
-    QBasicTimer m_lockTimer;
-    QCamera::LockTypes m_pendingLocks;
 };
 
 QT_END_NAMESPACE

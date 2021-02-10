@@ -248,72 +248,6 @@ QCameraFocusZoneList CameraBinFocus::focusZones() const
     return zones;
 }
 
-void CameraBinFocus::handleFocusMessage(GstMessage *gm)
-{
-    //it's a sync message, so it's called from non main thread
-    const GstStructure *structure = gst_message_get_structure(gm);
-    if (gst_structure_has_name(structure, GST_PHOTOGRAPHY_AUTOFOCUS_DONE)) {
-        gint status = GST_PHOTOGRAPHY_FOCUS_STATUS_NONE;
-        gst_structure_get_int (structure, "status", &status);
-        QCamera::LockStatus focusStatus = m_focusStatus;
-        QCamera::LockChangeReason reason = QCamera::UserRequest;
-
-        switch (status) {
-            case GST_PHOTOGRAPHY_FOCUS_STATUS_FAIL:
-                focusStatus = QCamera::Unlocked;
-                reason = QCamera::LockFailed;
-                break;
-            case GST_PHOTOGRAPHY_FOCUS_STATUS_SUCCESS:
-                focusStatus = QCamera::Locked;
-                break;
-            case GST_PHOTOGRAPHY_FOCUS_STATUS_NONE:
-                break;
-            case GST_PHOTOGRAPHY_FOCUS_STATUS_RUNNING:
-                focusStatus = QCamera::Searching;
-                break;
-            default:
-                break;
-        }
-
-        static int signalIndex = metaObject()->indexOfSlot(
-                    "_q_setFocusStatus(QCamera::LockStatus,QCamera::LockChangeReason)");
-        metaObject()->method(signalIndex).invoke(this,
-                                                 Qt::QueuedConnection,
-                                                 Q_ARG(QCamera::LockStatus,focusStatus),
-                                                 Q_ARG(QCamera::LockChangeReason,reason));
-    }
-}
-
-void CameraBinFocus::_q_setFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason)
-{
-#ifdef CAMERABIN_DEBUG
-    qDebug() << Q_FUNC_INFO << "Current:"
-                << m_focusStatus
-                << "New:"
-                << status << reason;
-#endif
-
-    if (m_focusStatus != status) {
-        m_focusStatus = status;
-
-        QCameraFocusZone::FocusZoneStatus zonesStatus =
-                m_focusStatus == QCamera::Locked ?
-                    QCameraFocusZone::Focused : QCameraFocusZone::Selected;
-
-        if (m_focusZoneStatus != zonesStatus) {
-            m_focusZoneStatus = zonesStatus;
-            emit focusZonesChanged();
-        }
-
-        if (m_focusPointMode == QCameraFocus::FocusPointFaceDetection
-                && m_focusStatus == QCamera::Unlocked) {
-            _q_updateFaces();
-        }
-
-        emit _q_focusStatusChanged(m_focusStatus, reason);
-    }
-}
-
 void CameraBinFocus::_q_handleCameraStatusChange(QCamera::Status status)
 {
     m_cameraStatus = status;
@@ -339,18 +273,6 @@ void CameraBinFocus::_q_handleCameraStatusChange(QCamera::Status status)
 
         resetFocusPoint();
     }
-}
-
-void CameraBinFocus::_q_startFocusing()
-{
-    _q_setFocusStatus(QCamera::Searching, QCamera::UserRequest);
-    gst_photography_set_autofocus(m_session->photography(), TRUE);
-}
-
-void CameraBinFocus::_q_stopFocusing()
-{
-    gst_photography_set_autofocus(m_session->photography(), FALSE);
-    _q_setFocusStatus(QCamera::Unlocked, QCamera::UserRequest);
 }
 
 void CameraBinFocus::setViewfinderResolution(const QSize &resolution)
@@ -455,10 +377,8 @@ void CameraBinFocus::updateRegionOfInterest(const QList<QRect> &rectangles)
 
 void CameraBinFocus::_q_updateFaces()
 {
-    if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection
-            || m_focusStatus != QCamera::Unlocked) {
+    if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection)
         return;
-    }
 
     QList<QRect> faces;
 

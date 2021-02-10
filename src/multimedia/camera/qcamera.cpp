@@ -54,20 +54,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static void qRegisterCameraMetaTypes()
-{
-    qRegisterMetaType<QCamera::Error>("QCamera::Error");
-    qRegisterMetaType<QCamera::State>("QCamera::State");
-    qRegisterMetaType<QCamera::Status>("QCamera::Status");
-    qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
-    qRegisterMetaType<QCamera::LockType>("QCamera::LockType");
-    qRegisterMetaType<QCamera::LockStatus>("QCamera::LockStatus");
-    qRegisterMetaType<QCamera::LockChangeReason>("QCamera::LockChangeReason");
-    qRegisterMetaType<QCameraInfo::Position>("QCameraInfo::Position");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraMetaTypes)
-
 /*!
     \class QCamera
 
@@ -175,8 +161,6 @@ void QCameraPrivate::initControls()
             q->connect(control, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
                        q, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
             q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
-            q->connect(control, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)),
-                       q, SLOT(_q_updateLockStatus(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
         }
 
         error = QCamera::NoError;
@@ -205,68 +189,6 @@ void QCameraPrivate::clear()
     control = nullptr;
     service = nullptr;
 }
-
-void QCameraPrivate::updateLockStatus()
-{
-    Q_Q(QCamera);
-
-    QCamera::LockStatus oldStatus = lockStatus;
-
-    QMap<QCamera::LockStatus, int> lockStatusPriority;
-    lockStatusPriority.insert(QCamera::Locked, 1);
-    lockStatusPriority.insert(QCamera::Unlocked, 2);
-    lockStatusPriority.insert(QCamera::Searching, 3);
-
-    lockStatus = requestedLocks ? QCamera::Locked : QCamera::Unlocked;
-    int priority = 0;
-
-    QList<QCamera::LockStatus> lockStatuses;
-
-    if (requestedLocks & QCamera::LockFocus)
-        lockStatuses << q->lockStatus(QCamera::LockFocus);
-
-    if (requestedLocks & QCamera::LockExposure)
-        lockStatuses << q->lockStatus(QCamera::LockExposure);
-
-    if (requestedLocks & QCamera::LockWhiteBalance)
-        lockStatuses << q->lockStatus(QCamera::LockWhiteBalance);
-
-
-    for (QCamera::LockStatus currentStatus : qAsConst(lockStatuses)) {
-        int currentPriority = lockStatusPriority.value(currentStatus, -1);
-        if (currentPriority > priority) {
-            priority = currentPriority;
-            lockStatus = currentStatus;
-        }
-    }
-
-    if (!supressLockChangedSignal && oldStatus != lockStatus) {
-        emit q->lockStatusChanged(lockStatus, lockChangeReason);
-
-        if (lockStatus == QCamera::Locked)
-            emit q->locked();
-        else if (lockStatus == QCamera::Unlocked && lockChangeReason == QCamera::LockFailed)
-            emit q->lockFailed();
-    }
-/*
-    qDebug() << "Requested locks:" << (requestedLocks & QCamera::LockExposure ? 'e' : ' ')
-            << (requestedLocks & QCamera::LockFocus ? 'f' : ' ')
-            << (requestedLocks & QCamera::LockWhiteBalance ? 'w' : ' ');
-    qDebug() << "Lock status: f:" << q->lockStatus(QCamera::LockFocus)
-             << " e:" << q->lockStatus(QCamera::LockExposure)
-             << " w:" << q->lockStatus(QCamera::LockWhiteBalance)
-             << " composite:" << lockStatus;
-*/
-}
-
-void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockStatus status, QCamera::LockChangeReason reason)
-{
-    Q_Q(QCamera);
-    lockChangeReason = reason;
-    updateLockStatus();
-    emit q->lockStatusChanged(type, status, reason);
-}
-
 
 /*!
     Construct a QCamera with a \a parent.
@@ -562,134 +484,6 @@ void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
         d->control->setCamera(d->cameraInfo);
 }
 
-
-/*!
-    Returns the lock types that the camera supports.
-*/
-QCamera::LockTypes QCamera::supportedLocks() const
-{
-    Q_D(const QCamera);
-
-    return d->control
-            ? d->control->supportedLocks()
-            : QCamera::LockTypes();
-}
-
-/*!
-    Returns the requested lock types.
-*/
-QCamera::LockTypes QCamera::requestedLocks() const
-{
-    return d_func()->requestedLocks;
-}
-
-/*!
-    Returns the status of requested camera settings locks.
-*/
-QCamera::LockStatus QCamera::lockStatus() const
-{
-    return d_func()->lockStatus;
-}
-
-/*!
-    Returns the lock status for a given \a lockType.
-*/
-QCamera::LockStatus QCamera::lockStatus(QCamera::LockType lockType) const
-{
-    const QCameraPrivate *d = d_func();
-
-    if (!(lockType & d->requestedLocks))
-        return QCamera::Unlocked;
-
-    if (d->control)
-        return d->control->lockStatus(lockType);
-
-    return QCamera::Locked;
-}
-
-/*!
-    \fn void QCamera::searchAndLock(QCamera::LockTypes locks)
-
-    Locks the camera settings with the requested \a locks, including focusing in the single autofocus mode,
-    exposure and white balance if the exposure and white balance modes are not manual.
-
-    The camera settings are usually locked before taking one or multiple still images,
-    in responce to the shutter button being half pressed.
-
-    The QCamera::locked() signal is emitted when camera settings are successfully locked,
-    otherwise QCamera::lockFailed() is emitted.
-
-    QCamera also emits lockStatusChanged(QCamera::LockType, QCamera::LockStatus)
-    on individual lock status changes and lockStatusChanged(QCamera::LockStatus) signal on composite status changes.
-
-    Locking serves two roles: it initializes calculation of automatic parameter
-    (focusing, calculating the correct exposure and white balance) and allows
-    to keep some or all of those parameters during number of shots.
-
-    If the camera doesn't support keeping one of parameters between shots, the related
-    lock state changes to QCamera::Unlocked.
-
-    It's also acceptable to relock already locked settings,
-    depending on the lock parameter this initiates new focusing, exposure or white balance calculation.
- */
-void QCamera::searchAndLock(QCamera::LockTypes locks)
-{
-    Q_D(QCamera);
-
-    QCamera::LockStatus oldStatus = d->lockStatus;
-    d->supressLockChangedSignal = true;
-
-    if (d->control) {
-        locks &= d->control->supportedLocks();
-        d->requestedLocks |= locks;
-        d->control->searchAndLock(locks);
-    }
-
-    d->supressLockChangedSignal = false;
-
-    d->lockStatus = oldStatus;
-    d->updateLockStatus();
-}
-
-/*!
-    Lock all the supported camera settings.
- */
-void QCamera::searchAndLock()
-{
-    searchAndLock(LockExposure | LockWhiteBalance | LockFocus);
-}
-
-/*!
-    Unlocks the camera settings specified with \a locks or cancel the current locking if one is active.
- */
-void QCamera::unlock(QCamera::LockTypes locks)
-{
-    Q_D(QCamera);
-
-    QCamera::LockStatus oldStatus = d->lockStatus;
-    d->supressLockChangedSignal = true;
-
-    d->requestedLocks &= ~locks;
-
-    if (d->control) {
-        locks &= d->control->supportedLocks();
-        d->control->unlock(locks);
-    }
-
-    d->supressLockChangedSignal = false;
-
-    d->lockStatus = oldStatus;
-    d->updateLockStatus();
-}
-
-/*!
-    Unlock all the requested camera locks.
- */
-void QCamera::unlock()
-{
-    unlock(d_func()->requestedLocks);
-}
-
 /*!
     \enum QCamera::State
 
@@ -777,93 +571,6 @@ void QCamera::unlock()
     \value CaptureVideo  Camera is configured for video capture.
 */
 
-/*!
-    \enum QCamera::LockType
-
-    This enum holds the camera lock type.
-
-    \value NoLock
-    \value LockExposure
-        Lock camera exposure.
-    \value LockWhiteBalance
-        Lock the white balance.
-    \value LockFocus
-        Lock camera focus.
-*/
-
-
-/*!
-    \property QCamera::lockStatus
-    \brief The overall status for all the requested camera locks.
-*/
-
-/*!
-    \fn void QCamera::locked()
-
-    Signals all the requested camera settings are locked.
-*/
-
-/*!
-    \fn void QCamera::lockFailed()
-
-    Signals locking of at least one requested camera settings failed.
-*/
-
-/*!
-    \fn QCamera::lockStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason)
-
-    Signals the overall \a status for all the requested camera locks was changed with specified \a reason.
-*/
-
-/*!
-    \fn QCamera::lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason)
-    Signals the \a lock \a status was changed with specified \a reason.
-*/
-
-/*!
-  \enum QCamera::LockStatus
-
-    This enum holds the overall status for all the requested camera locks.
-
-    \value Unlocked
-        The application is not interested in camera settings value.
-        The camera may keep this parameter without changes, this is common with camera focus,
-        or adjust exposure and white balance constantly to keep the viewfinder image nice.
-    \value Searching
-        The application has requested the camera focus, exposure or white balance lock with
-        QCamera::searchAndLock(). This state indicates the camera is focusing or
-        calculating exposure and white balance.
-    \value Locked
-        The camera focus, exposure or white balance is locked.
-        The camera is ready to capture, application may check the exposure
-        stays the same, parameters. The \c Locked status usually means the
-        requested parameter except in the cases when the parameter is requested
-        to be constantly updated. For example, in continuous focusing mode,
-        the focus is considered locked as long as the object is in focus, even
-        while the actual focusing distance may be constantly changing.
-*/
-
-/*!
-    \enum QCamera::LockChangeReason
-
-    This enum holds the reason why the camera lock status changed.
-
-    \value UserRequest
-        The lock status changed in result of user request, usually to unlock camera settings.
-    \value LockAcquired
-        The lock status successfuly changed to QCamera::Locked.
-    \value LockFailed
-        The camera failed to acquire the requested lock in result of
-        autofocus failure, exposure out of supported range, etc.
-    \value LockLost
-        The camera is not able to maintain the requested lock any more.
-        Lock status is changed to QCamera::Unlocked.
-    \value LockTemporaryLost
-        The lock is lost, but the camera is working hard to reacquire it.
-        This value may be used in continuous focusing mode,
-        when the camera loses the focus, the focus lock state is changed to Qcamera::Searching
-        with LockTemporaryLost reason.
-*/
 
 /*!
     \enum QCamera::Error

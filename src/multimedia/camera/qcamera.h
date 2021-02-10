@@ -68,15 +68,11 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QMediaSource
     Q_PROPERTY(QCamera::State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(QCamera::CaptureModes captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
-    Q_PROPERTY(QCamera::LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
 
     Q_ENUMS(Status)
     Q_ENUMS(State)
     Q_ENUMS(CaptureMode)
     Q_ENUMS(Error)
-    Q_ENUMS(LockStatus)
-    Q_ENUMS(LockChangeReason)
-    Q_ENUMS(LockType)
     Q_ENUMS(Position)
 public:
     enum Status {
@@ -110,30 +106,6 @@ public:
         CameraError
     };
 
-    enum LockStatus
-    {
-        Unlocked,
-        Searching,
-        Locked
-    };
-
-    enum LockChangeReason {
-        UserRequest,
-        LockAcquired,
-        LockFailed,
-        LockLost,
-        LockTemporaryLost
-    };
-
-    enum LockType
-    {
-        NoLock = 0,
-        LockExposure = 0x01,
-        LockWhiteBalance = 0x02,
-        LockFocus = 0x04
-    };
-    Q_DECLARE_FLAGS(LockTypes, LockType)
-
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
     explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
@@ -160,12 +132,6 @@ public:
     Error error() const;
     QString errorString() const;
 
-    QCamera::LockTypes supportedLocks() const;
-    QCamera::LockTypes requestedLocks() const;
-
-    QCamera::LockStatus lockStatus() const;
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const;
-
 public Q_SLOTS:
     void setCaptureMode(QCamera::CaptureModes mode);
 
@@ -175,23 +141,10 @@ public Q_SLOTS:
     void start();
     void stop();
 
-    void searchAndLock();
-    void unlock();
-
-    void searchAndLock(QCamera::LockTypes locks);
-    void unlock(QCamera::LockTypes locks);
-
 Q_SIGNALS:
     void stateChanged(QCamera::State state);
     void captureModeChanged(QCamera::CaptureModes);
     void statusChanged(QCamera::Status status);
-
-    void locked();
-    void lockFailed();
-
-    void lockStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason);
-    void lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason);
-
     void errorOccurred(QCamera::Error);
 
 private:
@@ -200,30 +153,15 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_preparePropertyChange(int))
     Q_PRIVATE_SLOT(d_func(), void _q_restartCamera())
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_updateLockStatus(QCamera::LockType, QCamera::LockStatus, QCamera::LockChangeReason))
     Q_PRIVATE_SLOT(d_func(), void _q_updateState(QCamera::State))
     friend class QCameraInfo;
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::LockTypes)
-
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QCamera::State)
-Q_DECLARE_METATYPE(QCamera::Status)
-Q_DECLARE_METATYPE(QCamera::Error)
-Q_DECLARE_METATYPE(QCamera::CaptureMode)
-Q_DECLARE_METATYPE(QCamera::CaptureModes)
-Q_DECLARE_METATYPE(QCamera::LockType)
-Q_DECLARE_METATYPE(QCamera::LockStatus)
-Q_DECLARE_METATYPE(QCamera::LockChangeReason)
 
 Q_MEDIA_ENUM_DEBUG(QCamera, State)
 Q_MEDIA_ENUM_DEBUG(QCamera, Status)
 Q_MEDIA_ENUM_DEBUG(QCamera, Error)
 Q_MEDIA_ENUM_DEBUG(QCamera, CaptureMode)
-Q_MEDIA_ENUM_DEBUG(QCamera, LockType)
-Q_MEDIA_ENUM_DEBUG(QCamera, LockStatus)
-Q_MEDIA_ENUM_DEBUG(QCamera, LockChangeReason)
 
 #endif  // QCAMERA_H

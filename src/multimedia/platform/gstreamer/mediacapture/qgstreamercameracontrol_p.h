@@ -81,16 +81,6 @@ public:
 
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
-    QCamera::LockTypes supportedLocks() const override
-    {
-        return QCamera::NoLock;
-    }
-
-    QCamera::LockStatus lockStatus(QCamera::LockType /*lock*/) const override { return QCamera::Unlocked; }
-
-    void searchAndLock(QCamera::LockTypes /*locks*/) override {}
-    void unlock(QCamera::LockTypes /*locks*/) override {}
-
 public slots:
     void reloadLater();
 

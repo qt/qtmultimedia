@@ -100,23 +100,12 @@ public:
 
     void zoomTo(qreal optical, qreal digital) override;
 
-    void handleFocusMessage(GstMessage*);
-    QCamera::LockStatus focusStatus() const { return m_focusStatus; }
-
-Q_SIGNALS:
-    void _q_focusStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason);
-
-public Q_SLOTS:
-    void _q_startFocusing();
-    void _q_stopFocusing();
-
     void setViewfinderResolution(const QSize &resolution);
 
 protected:
     void timerEvent(QTimerEvent *event) override;
 
 private Q_SLOTS:
-    void _q_setFocusStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason);
     void _q_handleCameraStatusChange(QCamera::Status status);
     void _q_updateFaces();
 
@@ -130,7 +119,6 @@ private:
     QCamera::Status m_cameraStatus;
     QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
-    QCamera::LockStatus m_focusStatus;
     QCameraFocusZone::FocusZoneStatus m_focusZoneStatus;
     QPointF m_focusPoint;
     QRectF m_focusRect;

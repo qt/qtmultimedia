@@ -346,33 +346,6 @@ Module {
             }
         }
         Enum {
-            name: "LockStatus"
-            values: {
-                "Unlocked": 0,
-                "Searching": 1,
-                "Locked": 2
-            }
-        }
-        Enum {
-            name: "LockChangeReason"
-            values: {
-                "UserRequest": 0,
-                "LockAcquired": 1,
-                "LockFailed": 2,
-                "LockLost": 3,
-                "LockTemporaryLost": 4
-            }
-        }
-        Enum {
-            name: "LockType"
-            values: {
-                "NoLock": 0,
-                "LockExposure": 1,
-                "LockWhiteBalance": 2,
-                "LockFocus": 4
-            }
-        }
-        Enum {
             name: "Position"
             values: {
                 "UnspecifiedPosition": 0,
@@ -383,7 +356,6 @@ Module {
         Property { name: "state"; type: "QCamera::State"; isReadonly: true }
         Property { name: "status"; type: "QCamera::Status"; isReadonly: true }
         Property { name: "captureMode"; type: "QCamera::CaptureModes" }
-        Property { name: "lockStatus"; type: "QCamera::LockStatus"; isReadonly: true }
         Signal {
             name: "stateChanged"
             Parameter { name: "state"; type: "QCamera::State" }
@@ -395,19 +367,6 @@ Module {
         Signal {
             name: "statusChanged"
             Parameter { name: "status"; type: "QCamera::Status" }
-        }
-        Signal { name: "locked" }
-        Signal { name: "lockFailed" }
-        Signal {
-            name: "lockStatusChanged"
-            Parameter { name: "status"; type: "QCamera::LockStatus" }
-            Parameter { name: "reason"; type: "QCamera::LockChangeReason" }
-        }
-        Signal {
-            name: "lockStatusChanged"
-            Parameter { name: "lock"; type: "QCamera::LockType" }
-            Parameter { name: "status"; type: "QCamera::LockStatus" }
-            Parameter { name: "reason"; type: "QCamera::LockChangeReason" }
         }
         Signal {
             name: "error"
@@ -421,16 +380,6 @@ Module {
         Method { name: "unload" }
         Method { name: "start" }
         Method { name: "stop" }
-        Method { name: "searchAndLock" }
-        Method { name: "unlock" }
-        Method {
-            name: "searchAndLock"
-            Parameter { name: "locks"; type: "QCamera::LockTypes" }
-        }
-        Method {
-            name: "unlock"
-            Parameter { name: "locks"; type: "QCamera::LockTypes" }
-        }
     }
     Component {
         name: "QDeclarativeAudio"
@@ -612,14 +561,6 @@ Module {
             }
         }
         Enum {
-            name: "LockStatus"
-            values: {
-                "Unlocked": 0,
-                "Searching": 1,
-                "Locked": 2
-            }
-        }
-        Enum {
             name: "Error"
             values: {
                 "NoError": 0,
@@ -712,7 +653,6 @@ Module {
         Property { name: "captureMode"; type: "CaptureMode" }
         Property { name: "cameraState"; type: "State" }
         Property { name: "cameraStatus"; type: "Status"; isReadonly: true }
-        Property { name: "lockStatus"; type: "LockStatus"; isReadonly: true }
         Property { name: "errorCode"; type: "Error"; isReadonly: true }
         Property { name: "errorString"; type: "string"; isReadonly: true }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
@@ -800,12 +740,6 @@ Module {
         Method {
             name: "setCameraState"
             Parameter { name: "state"; type: "State" }
-        }
-        Method { name: "searchAndLock" }
-        Method { name: "unlock" }
-        Method {
-            name: "setOpticalZoom"
-            Parameter { type: "double" }
         }
         Method {
             name: "setDigitalZoom"

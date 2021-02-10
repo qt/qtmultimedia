@@ -79,11 +79,6 @@ FocusScope {
             id: buttonsColumn
             spacing: 8
 
-            FocusButton {
-                camera: captureControls.camera
-                visible: camera.cameraStatus == Camera.ActiveStatus && camera.focus.isFocusModeSupported(Camera.FocusAuto)
-            }
-
             CameraButton {
                 text: "Record"
                 visible: camera.videoRecorder.recorderStatus == CameraRecorder.LoadedStatus

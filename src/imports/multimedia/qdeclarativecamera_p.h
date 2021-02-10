@@ -84,7 +84,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
     Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
     Q_PROPERTY(Status cameraStatus READ cameraStatus NOTIFY cameraStatusChanged)
-    Q_PROPERTY(LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
@@ -105,7 +104,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_ENUMS(CaptureMode)
     Q_ENUMS(State)
     Q_ENUMS(Status)
-    Q_ENUMS(LockStatus)
     Q_ENUMS(Error)
 
     Q_ENUMS(FlashMode)
@@ -146,13 +144,6 @@ public:
         StartingStatus = QCamera::StartingStatus,
         StoppingStatus = QCamera::StoppingStatus,
         ActiveStatus = QCamera::ActiveStatus
-    };
-
-    enum LockStatus
-    {
-        Unlocked = QCamera::Unlocked,
-        Searching = QCamera::Searching,
-        Locked = QCamera::Locked
     };
 
     enum Error
@@ -257,8 +248,6 @@ public:
     Error errorCode() const;
     QString errorString() const;
 
-    LockStatus lockStatus() const;
-
     qreal minimumZoomFactor() const;
     qreal maximumZoomFactor() const;
 
@@ -273,9 +262,6 @@ public Q_SLOTS:
     void stop();
 
     void setCameraState(State state);
-
-    void searchAndLock();
-    void unlock();
 
     void setZoomFactor(qreal);
 
@@ -295,8 +281,6 @@ Q_SIGNALS:
     void captureModeChanged();
     void cameraStateChanged(QDeclarativeCamera::State);
     void cameraStatusChanged();
-
-    void lockStatusChanged();
 
     void zoomFactorChanged(qreal);
 

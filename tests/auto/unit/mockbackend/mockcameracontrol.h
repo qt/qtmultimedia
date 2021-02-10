@@ -102,66 +102,6 @@ public:
             return m_propertyChangesSupported;
     }
 
-    QCamera::LockTypes supportedLocks() const
-    {
-        return QCamera::LockExposure | QCamera::LockFocus;
-    }
-
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const
-    {
-        switch (lock) {
-        case QCamera::LockExposure:
-            return m_exposureLock;
-        case QCamera::LockFocus:
-            return m_focusLock;
-        default:
-            return QCamera::Unlocked;
-        }
-    }
-
-    void searchAndLock(QCamera::LockTypes locks)
-    {
-        if (locks & QCamera::LockExposure) {
-            QCamera::LockStatus newStatus = locks & QCamera::LockFocus ? QCamera::Searching : QCamera::Locked;
-
-            if (newStatus != m_exposureLock)
-                emit lockStatusChanged(QCamera::LockExposure,
-                                       m_exposureLock = newStatus,
-                                       QCamera::UserRequest);
-        }
-
-        if (locks & QCamera::LockFocus) {
-            emit lockStatusChanged(QCamera::LockFocus,
-                                   m_focusLock = QCamera::Searching,
-                                   QCamera::UserRequest);
-
-            QTimer::singleShot(5, this, SLOT(focused()));
-        }
-    }
-
-    void unlock(QCamera::LockTypes locks) {
-        if (locks & QCamera::LockFocus && m_focusLock != QCamera::Unlocked) {
-            emit lockStatusChanged(QCamera::LockFocus,
-                                   m_focusLock = QCamera::Unlocked,
-                                   QCamera::UserRequest);
-        }
-
-        if (locks & QCamera::LockExposure && m_exposureLock != QCamera::Unlocked) {
-            emit lockStatusChanged(QCamera::LockExposure,
-                                   m_exposureLock = QCamera::Unlocked,
-                                   QCamera::UserRequest);
-        }
-    }
-
-    /* helper method to emit the signal with LockChangeReason */
-    void setLockChangeReason (QCamera::LockChangeReason lockChangeReason)
-    {
-        emit lockStatusChanged(QCamera::NoLock,
-                               QCamera::Unlocked,
-                               lockChangeReason);
-
-    }
-
     /* helper method to emit the signal error */
     void setError(QCamera::Error err, QString errorString)
     {
@@ -186,28 +126,6 @@ public:
     QCamera::Status m_status;
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;
-
-
-private slots:
-    void focused()
-    {
-        if (m_focusLock == QCamera::Searching) {
-            emit lockStatusChanged(QCamera::LockFocus,
-                                   m_focusLock = QCamera::Locked,
-                                   QCamera::UserRequest);
-        }
-
-        if (m_exposureLock == QCamera::Searching) {
-            emit lockStatusChanged(QCamera::LockExposure,
-                                   m_exposureLock = QCamera::Locked,
-                                   QCamera::UserRequest);
-        }
-    }
-
-
-private:
-    QCamera::LockStatus m_focusLock = QCamera::Unlocked;
-    QCamera::LockStatus m_exposureLock = QCamera::Unlocked;
 };
 
 

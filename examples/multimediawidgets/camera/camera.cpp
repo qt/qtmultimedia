@@ -123,7 +123,6 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     m_camera->setViewfinder(ui->viewfinder);
 
     updateCameraState(m_camera->state());
-    updateLockStatus(m_camera->lockStatus(), QCamera::UserRequest);
     updateRecorderState(m_mediaRecorder->state());
 
     connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
@@ -131,9 +130,6 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(m_imageCapture, &QCameraImageCapture::imageSaved, this, &Camera::imageSaved);
     connect(m_imageCapture, QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error),
             this, &Camera::displayCaptureError);
-
-    connect(m_camera.data(), QOverload<QCamera::LockStatus, QCamera::LockChangeReason>::of(&QCamera::lockStatusChanged),
-            this, &Camera::updateLockStatus);
 
     ui->captureWidget->setTabEnabled(0, (m_camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
     ui->captureWidget->setTabEnabled(1, (m_camera->isCaptureModeSupported(QCamera::CaptureVideo)));
@@ -150,7 +146,6 @@ void Camera::keyPressEvent(QKeyEvent * event)
     switch (event->key()) {
     case Qt::Key_CameraFocus:
         displayViewfinder();
-        m_camera->searchAndLock();
         event->accept();
         break;
     case Qt::Key_Camera:
@@ -171,16 +166,7 @@ void Camera::keyPressEvent(QKeyEvent * event)
 
 void Camera::keyReleaseEvent(QKeyEvent *event)
 {
-    if (event->isAutoRepeat())
-        return;
-
-    switch (event->key()) {
-    case Qt::Key_CameraFocus:
-        m_camera->unlock();
-        break;
-    default:
-        QMainWindow::keyReleaseEvent(event);
-    }
+    QMainWindow::keyReleaseEvent(event);
 }
 
 void Camera::updateRecordTime()
@@ -266,45 +252,6 @@ void Camera::stop()
 void Camera::setMuted(bool muted)
 {
     m_mediaRecorder->setMuted(muted);
-}
-
-void Camera::toggleLock()
-{
-    switch (m_camera->lockStatus()) {
-    case QCamera::Searching:
-    case QCamera::Locked:
-        m_camera->unlock();
-        break;
-    case QCamera::Unlocked:
-        m_camera->searchAndLock();
-    }
-}
-
-void Camera::updateLockStatus(QCamera::LockStatus status, QCamera::LockChangeReason reason)
-{
-    QColor indicationColor = Qt::black;
-
-    switch (status) {
-    case QCamera::Searching:
-        indicationColor = Qt::yellow;
-        ui->statusbar->showMessage(tr("Focusing..."));
-        ui->lockButton->setText(tr("Focusing..."));
-        break;
-    case QCamera::Locked:
-        indicationColor = Qt::darkGreen;
-        ui->lockButton->setText(tr("Unlock"));
-        ui->statusbar->showMessage(tr("Focused"), 2000);
-        break;
-    case QCamera::Unlocked:
-        indicationColor = reason == QCamera::LockFailed ? Qt::red : Qt::black;
-        ui->lockButton->setText(tr("Focus"));
-        if (reason == QCamera::LockFailed)
-            ui->statusbar->showMessage(tr("Focus Failed"), 2000);
-    }
-
-    QPalette palette = ui->lockButton->palette();
-    palette.setColor(QPalette::ButtonText, indicationColor);
-    ui->lockButton->setPalette(palette);
 }
 
 void Camera::takeImage()
