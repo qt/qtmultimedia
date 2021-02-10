@@ -82,9 +82,6 @@ private:
 
     QGstreamerCaptureSession *m_captureSession = nullptr;
     QGstreamerCameraControl *m_cameraControl = nullptr;
-#if defined(USE_GSTREAMER_CAMERA)
-    QGstreamerVideoInput *m_videoInput = nullptr;
-#endif
 
     QObject *m_videoOutput = nullptr;
 

@@ -40,7 +40,7 @@
 #include "qgstreamercapturesession_p.h"
 #include "qgstreamerrecordercontrol_p.h"
 #include "qgstreamerimagecapturecontrol_p.h"
-#include "qgstreamervideoinput_p.h"
+#include "private/qgstreamerdevicemanager_p.h"
 #include <qmediarecorder.h>
 #include <qmediadevicemanager.h>
 #include <private/qgstreamervideorendererinterface_p.h>
@@ -71,7 +71,6 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_waitingForEos(false),
      m_pipelineMode(EmptyPipeline),
      m_captureMode(captureMode),
-     m_videoInputFactory(0),
      m_viewfinder(0),
      m_viewfinderInterface(0),
      m_audioSrc(0),
@@ -272,14 +271,12 @@ GstElement *QGstreamerCaptureSession::buildAudioPreview()
 
 GstElement *QGstreamerCaptureSession::buildVideoSrc()
 {
-    GstElement *videoSrc = 0;
-    if (m_videoInputFactory) {
-        videoSrc = m_videoInputFactory->buildElement();
-    } else {
-        videoSrc = gst_element_factory_make("videotestsrc", "video_test_src");
-    }
+    if (m_camera.isNull())
+        return nullptr;
 
-    return videoSrc;
+    auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QGstreamerIntegration::instance()->deviceManager());
+    auto *device = deviceManager->videoDevice(m_camera.id());
+    return gst_device_create_element(device, "camerasrc");
 }
 
 GstElement *QGstreamerCaptureSession::buildVideoPreview()
@@ -703,11 +700,6 @@ bool QGstreamerCaptureSession::setOutputLocation(const QUrl& sink)
 
     m_sink = sink;
     return true;
-}
-
-void QGstreamerCaptureSession::setVideoInput(QGstreamerVideoInput *videoInput)
-{
-    m_videoInputFactory = videoInput;
 }
 
 void QGstreamerCaptureSession::setVideoPreview(QObject *viewfinder)

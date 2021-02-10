@@ -39,7 +39,6 @@
 
 #include "qgstreamercameracontrol_p.h"
 #include "qgstreamerimagecapturecontrol_p.h"
-#include "qgstreamervideoinput_p.h"
 
 #include <qcamerainfo.h>
 
@@ -132,7 +131,8 @@ void QGstreamerCameraControl::setState(QCamera::State state)
 
 void QGstreamerCameraControl::setCamera(const QCameraInfo &camera)
 {
-    m_session->videoInput()->setDevice(camera);
+    m_session->setVideoDevice(camera);
+    reloadLater();
 }
 
 QCamera::State QGstreamerCameraControl::state() const

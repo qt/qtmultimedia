@@ -43,10 +43,6 @@
 #include "qgstreamercameracontrol_p.h"
 #include <private/qgstreamerbushelper_p.h>
 
-#if defined(USE_GSTREAMER_CAMERA)
-#include "qgstreamervideoinput_p.h"
-#endif
-
 #include "qgstreamerimagecapturecontrol_p.h"
 
 #include <private/qgstreamervideorenderer_p.h>
@@ -58,14 +54,9 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
 {
     if (mode == QMediaRecorder::AudioOnly) {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
-    }
-
-#if defined(USE_GSTREAMER_CAMERA)
-   else {
+    } else {
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
         m_cameraControl = new QGstreamerCameraControl(m_captureSession);
-        m_videoInput = new QGstreamerVideoInput;
-        m_captureSession->setVideoInput(m_videoInput);
 
         m_videoRenderer = new QGstreamerVideoRenderer(this);
 
@@ -77,12 +68,10 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
             m_videoWindow = 0;
         }
     }
-#endif
 }
 
 QGstreamerCaptureService::~QGstreamerCaptureService()
 {
-    delete m_videoInput;
 }
 
 QObject *QGstreamerCaptureService::requestControl(const char *name)

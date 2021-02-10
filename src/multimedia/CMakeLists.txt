@@ -263,7 +263,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_
         platform/gstreamer/mediacapture/qgstreamercapturesession.cpp platform/gstreamer/mediacapture/qgstreamercapturesession_p.h
         platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol.cpp platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol_p.h
         platform/gstreamer/mediacapture/qgstreamerrecordercontrol.cpp platform/gstreamer/mediacapture/qgstreamerrecordercontrol_p.h
-        platform/gstreamer/mediacapture/qgstreamervideoinput.cpp platform/gstreamer/mediacapture/qgstreamervideoinput_p.h
     INCLUDE_DIRECTORIES
         platform/gstreamer/mediacapture
     DEFINES

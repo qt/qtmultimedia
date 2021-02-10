@@ -54,6 +54,7 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qaudiodeviceinfo.h>
+#include <qcamerainfo.h>
 
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
@@ -109,8 +110,7 @@ public:
 
     QGstreamerRecorderControl *recorderControl() const { return m_recorderControl; }
 
-    QGstreamerVideoInput *videoInput() const { return m_videoInputFactory; }
-    void setVideoInput(QGstreamerVideoInput *videoInput);
+    void setVideoDevice(const QCameraInfo &camera) { m_camera = camera; }
 
     QObject *videoPreview() const { return m_viewfinder; }
     void setVideoPreview(QObject *viewfinder);
@@ -169,6 +169,7 @@ private:
     bool rebuildGraph(QGstreamerCaptureSession::PipelineMode newMode);
 
     QAudioDeviceInfo m_audioDevice;
+    QCameraInfo m_camera;
     QUrl m_sink;
     State m_state;
     State m_pendingState;
@@ -177,7 +178,6 @@ private:
     QGstreamerCaptureSession::CaptureMode m_captureMode;
     QGstreamerMetaData m_metaData;
 
-    QGstreamerVideoInput *m_videoInputFactory;
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;
 
