@@ -62,7 +62,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoInput : public QGstreamerElementFactory
+class QGstreamerVideoInput
 {
 public:
     QGstreamerVideoInput();

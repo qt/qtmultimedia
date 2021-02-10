@@ -64,7 +64,6 @@ class QGstreamerMessage;
 class QGstreamerBusHelper;
 class QGstreamerVideoRenderer;
 class QGstreamerVideoWindow;
-class QGstreamerElementFactory;
 class QGstreamerVideoInput;
 
 class QGstreamerCaptureService : public QMediaPlatformCaptureInterface

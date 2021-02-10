@@ -75,13 +75,6 @@ class QGstreamerVideoRendererInterface;
 class QCameraInfo;
 class QGstreamerVideoInput;
 
-class QGstreamerElementFactory
-{
-public:
-    virtual GstElement *buildElement() = 0;
-    virtual void prepareWinId() {}
-};
-
 class QGstreamerCaptureSession
         : public QObject
         , public QGstreamerBusMessageFilter
@@ -115,9 +108,6 @@ public:
     QGstreamerImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
 
     QGstreamerRecorderControl *recorderControl() const { return m_recorderControl; }
-
-    QGstreamerElementFactory *audioPreview() const { return m_audioPreviewFactory; }
-    void setAudioPreview(QGstreamerElementFactory *audioPreview);
 
     QGstreamerVideoInput *videoInput() const { return m_videoInputFactory; }
     void setVideoInput(QGstreamerVideoInput *videoInput);
@@ -187,7 +177,6 @@ private:
     QGstreamerCaptureSession::CaptureMode m_captureMode;
     QGstreamerMetaData m_metaData;
 
-    QGstreamerElementFactory *m_audioPreviewFactory;
     QGstreamerVideoInput *m_videoInputFactory;
     QObject *m_viewfinder;
     QGstreamerVideoRendererInterface *m_viewfinderInterface;

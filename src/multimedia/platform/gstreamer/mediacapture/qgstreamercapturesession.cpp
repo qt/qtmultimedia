@@ -71,7 +71,6 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_waitingForEos(false),
      m_pipelineMode(EmptyPipeline),
      m_captureMode(captureMode),
-     m_audioPreviewFactory(0),
      m_videoInputFactory(0),
      m_viewfinder(0),
      m_viewfinderInterface(0),
@@ -249,30 +248,24 @@ GstElement *QGstreamerCaptureSession::buildAudioPreview()
 {
     GstElement *previewElement = 0;
 
-    if (m_audioPreviewFactory) {
-        previewElement = m_audioPreviewFactory->buildElement();
-    } else {
-
-
 #if 1
-        previewElement = gst_element_factory_make("fakesink", "audio-preview");
+    previewElement = gst_element_factory_make("fakesink", "audio-preview");
 #else
-        GstElement *bin = gst_bin_new("audio-preview-bin");
-        GstElement *visual = gst_element_factory_make("libvisual_lv_scope", "audio-preview");
-        GstElement *sink = gst_element_factory_make("ximagesink", NULL);
-        gst_bin_add_many(GST_BIN(bin), visual, sink,  NULL);
-        gst_element_link_many(visual,sink, NULL);
+    GstElement *bin = gst_bin_new("audio-preview-bin");
+    GstElement *visual = gst_element_factory_make("libvisual_lv_scope", "audio-preview");
+    GstElement *sink = gst_element_factory_make("ximagesink", NULL);
+    gst_bin_add_many(GST_BIN(bin), visual, sink,  NULL);
+    gst_element_link_many(visual,sink, NULL);
 
 
-        // add ghostpads
-        GstPad *pad = gst_element_get_static_pad(visual, "sink");
-        Q_ASSERT(pad);
-        gst_element_add_pad(GST_ELEMENT(bin), gst_ghost_pad_new("audiosink", pad));
-        gst_object_unref(GST_OBJECT(pad));
+    // add ghostpads
+    GstPad *pad = gst_element_get_static_pad(visual, "sink");
+    Q_ASSERT(pad);
+    gst_element_add_pad(GST_ELEMENT(bin), gst_ghost_pad_new("audiosink", pad));
+    gst_object_unref(GST_OBJECT(pad));
 
-        previewElement = bin;
+    previewElement = bin;
 #endif
-    }
 
     return previewElement;
 }
@@ -710,11 +703,6 @@ bool QGstreamerCaptureSession::setOutputLocation(const QUrl& sink)
 
     m_sink = sink;
     return true;
-}
-
-void QGstreamerCaptureSession::setAudioPreview(QGstreamerElementFactory *audioPreview)
-{
-    m_audioPreviewFactory = audioPreview;
 }
 
 void QGstreamerCaptureSession::setVideoInput(QGstreamerVideoInput *videoInput)
