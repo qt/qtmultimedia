@@ -37,8 +37,6 @@
 #include "mockcameraimagecapturecontrol.h"
 #include "mockcameraexposurecontrol.h"
 #include "mockcameracontrol.h"
-#include "mockvideorenderercontrol.h"
-#include "mockvideowindowcontrol.h"
 #include <private/qmediaplatformcaptureinterface_p.h>
 
 class MockMediaRecorderService : public QMediaPlatformCaptureInterface
@@ -54,10 +52,6 @@ public:
         mockFocusControl = new MockCameraFocusControl(this);
         mockCaptureControl = new MockCaptureControl(mockCameraControl, this);
         mockImageProcessingControl = new MockImageProcessingControl(this);
-        rendererControl = new MockVideoRendererControl(this);
-        windowControl = new MockVideoWindowControl(this);
-        rendererRef = 0;
-        windowRef = 0;
     }
 
     QObject *requestControl(const char *name)
@@ -83,28 +77,11 @@ public:
         if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
             return mockImageProcessingControl;
 
-        if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-            if (rendererRef == 0) {
-                rendererRef += 1;
-                return rendererControl;
-            }
-        }
-        if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
-            if (windowRef == 0) {
-                windowRef += 1;
-                return windowControl;
-            }
-        }
-
         return nullptr;
     }
 
-    void releaseControl(QObject *control)
+    void releaseControl(QObject *)
     {
-        if (control == rendererControl)
-            rendererRef -= 1;
-        if (control == windowControl)
-            windowRef -= 1;
     }
 
     static bool simpleCamera;
@@ -114,11 +91,6 @@ public:
     MockCameraExposureControl *mockExposureControl;
     MockCameraFocusControl *mockFocusControl;
     MockImageProcessingControl *mockImageProcessingControl;
-    MockVideoRendererControl *rendererControl;
-    MockVideoWindowControl *windowControl;
-    int rendererRef;
-    int windowRef;
-
     MockMediaRecorderControl *mockControl;
 
     bool hasControls;

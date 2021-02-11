@@ -33,8 +33,6 @@
 
 #include "mockmediaplayercontrol.h"
 #include "mockmediastreamscontrol.h"
-#include "mockvideorenderercontrol.h"
-#include "mockvideowindowcontrol.h"
 
 class MockMediaPlayerService : public QMediaPlatformPlayerInterface
 {
@@ -45,42 +43,17 @@ public:
     {
         mockControl = new MockMediaPlayerControl;
         mockStreamsControl = new MockStreamsControl;
-        rendererControl = new MockVideoRendererControl;
-        rendererRef = 0;
-        windowControl = new MockVideoWindowControl;
-        windowRef = 0;
     }
 
     ~MockMediaPlayerService()
     {
         delete mockControl;
         delete mockStreamsControl;
-        rendererRef = 0;
-        delete rendererControl;
-        windowRef = 0;
-        delete windowControl;
     }
 
     MockMediaPlayerControl *player() { return mockControl; }
 
     QMediaStreamsControl *streams() { return mockStreamsControl; } // ###
-
-    virtual QVideoRendererControl *createVideoRenderer()
-    {
-        if (rendererRef == 0) {
-            rendererRef += 1;
-            return rendererControl;
-        }
-        return nullptr;
-    }
-    virtual QVideoWindowControl *createVideoWindow()
-    {
-        if (windowRef == 0) {
-            windowRef += 1;
-            return windowControl;
-        }
-        return nullptr;
-    }
 
     void setState(QMediaPlayer::State state) { emit mockControl->stateChanged(mockControl->_state = state); }
     void setState(QMediaPlayer::State state, QMediaPlayer::MediaStatus status) {
@@ -126,10 +99,6 @@ public:
 
     MockMediaPlayerControl *mockControl;
     MockStreamsControl *mockStreamsControl;
-    MockVideoRendererControl *rendererControl;
-    MockVideoWindowControl *windowControl;
-    int windowRef;
-    int rendererRef;
 };
 
 

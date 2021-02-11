@@ -60,7 +60,6 @@ private slots:
 
 private:
     QMockIntegration *mockIntegration;
-    MockMediaPlayerService  *mockService;
 };
 
 void tst_QMediaPlayerWidgets::initTestCase()
@@ -149,9 +148,6 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoControl()
     MockVideoSurface surface;
 
     QMediaPlayer player;
-    auto *service = mockIntegration->lastPlayerService();
-    service->rendererRef = 1;
-    service->windowRef = 1;
 
     player.setVideoOutput(&widget);
 

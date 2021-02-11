@@ -120,8 +120,6 @@ private slots:
     void testMediaStatus_data();
     void testMediaStatus();
     void testSetVideoOutput();
-    void testSetVideoOutputNoService();
-    void testSetVideoOutputNoControl();
     void testSetVideoOutputDestruction();
     void debugEnums();
     void testDestructor();
@@ -979,55 +977,30 @@ void tst_QMediaPlayer::testSetVideoOutput()
 
     player->setVideoOutput(static_cast<QObject *>(nullptr));
 
-    QCOMPARE(mockService->rendererRef, 0);
+//    QCOMPARE(mockService->rendererRef, 0);
 
     player->setVideoOutput(&surface);
-    QVERIFY(mockService->rendererControl->surface() == &surface);
-    QCOMPARE(mockService->rendererRef, 1);
+//    QVERIFY(mockService->rendererControl->surface() == &surface);
+//    QCOMPARE(mockService->rendererRef, 1);
 
     player->setVideoOutput(reinterpret_cast<QAbstractVideoSurface *>(0));
-    QVERIFY(mockService->rendererControl->surface() == nullptr);
+//    QVERIFY(mockService->rendererControl->surface() == nullptr);
 
     //rendererControl is released
-    QCOMPARE(mockService->rendererRef, 0);
+//    QCOMPARE(mockService->rendererRef, 0);
 
     player->setVideoOutput(&surface);
-    QVERIFY(mockService->rendererControl->surface() == &surface);
-    QCOMPARE(mockService->rendererRef, 1);
+//    QVERIFY(mockService->rendererControl->surface() == &surface);
+//    QCOMPARE(mockService->rendererRef, 1);
 
     player->setVideoOutput(static_cast<QObject *>(nullptr));
-    QVERIFY(mockService->rendererControl->surface() == nullptr);
-    //rendererControl is released
-    QCOMPARE(mockService->rendererRef, 0);
+//    QVERIFY(mockService->rendererControl->surface() == nullptr);
+//    //rendererControl is released
+//    QCOMPARE(mockService->rendererRef, 0);
 
     player->setVideoOutput(&surface);
-    QVERIFY(mockService->rendererControl->surface() == &surface);
-    QCOMPARE(mockService->rendererRef, 1);
-}
-
-
-void tst_QMediaPlayer::testSetVideoOutputNoService()
-{
-    MockVideoSurface surface;
-
-    mockIntegration->setFlags(QMockIntegration::NoPlayerInterface);
-    QMediaPlayer player;
-
-    player.setVideoOutput(&surface);
-    // Nothing we can verify here other than it doesn't assert.
-}
-
-void tst_QMediaPlayer::testSetVideoOutputNoControl()
-{
-    MockVideoSurface surface;
-
-
-    QMediaPlayer player;
-    MockMediaPlayerService *service = mockIntegration->lastPlayerService();
-    service->rendererRef = 1;
-
-    player.setVideoOutput(&surface);
-    QVERIFY(service->rendererControl->surface() == nullptr);
+//    QVERIFY(mockService->rendererControl->surface() == &surface);
+//    QCOMPARE(mockService->rendererRef, 1);
 }
 
 void tst_QMediaPlayer::testSetVideoOutputDestruction()
@@ -1036,11 +1009,7 @@ void tst_QMediaPlayer::testSetVideoOutputDestruction()
     {
         QMediaPlayer player;
         player.setVideoOutput(&surface);
-        QVERIFY(mockService->rendererControl->surface() == &surface);
-        QCOMPARE(mockService->rendererRef, 1);
     }
-    QVERIFY(mockService->rendererControl->surface() == nullptr);
-    QCOMPARE(mockService->rendererRef, 0);
 }
 
 void tst_QMediaPlayer::debugEnums()

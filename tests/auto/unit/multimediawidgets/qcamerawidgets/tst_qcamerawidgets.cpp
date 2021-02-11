@@ -46,8 +46,6 @@
 #include <qvideowindowcontrol.h>
 
 #include "mockvideosurface.h"
-#include "mockvideorenderercontrol.h"
-#include "mockvideowindowcontrol.h"
 #include "mockmediarecorderservice.h"
 #include "qmockintegration_p.h"
 

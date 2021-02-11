@@ -45,8 +45,6 @@
 #include <qmediadevicemanager.h>
 
 #include "mockvideosurface.h"
-#include "mockvideorenderercontrol.h"
-#include "mockvideowindowcontrol.h"
 #include "qmockintegration_p.h"
 #include "mockmediarecorderservice.h"
 
@@ -109,7 +107,6 @@ private slots:
 
     void testSetVideoOutput();
     void testSetVideoOutputNoService();
-    void testSetVideoOutputNoControl();
     void testSetVideoOutputDestruction();
 
     void testEnumDebug();
@@ -724,34 +721,33 @@ void tst_QCamera::testSetVideoOutput()
 {
     MockVideoSurface surface;
     QCamera camera;
-    auto *mockCameraService = integration->lastCaptureService();
 
     camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
 
-    QCOMPARE(mockCameraService->rendererRef, 0);
+//    QCOMPARE(mockCameraService->rendererRef, 0);
 
-    camera.setViewfinder(&surface);
-    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-    QCOMPARE(mockCameraService->rendererRef, 1);
+//    camera.setViewfinder(&surface);
+//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+//    QCOMPARE(mockCameraService->rendererRef, 1);
 
-    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
-    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
+//    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
+//    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
 
-    //rendererControl is released
-    QCOMPARE(mockCameraService->rendererRef, 0);
+//    //rendererControl is released
+//    QCOMPARE(mockCameraService->rendererRef, 0);
 
-    camera.setViewfinder(&surface);
-    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-    QCOMPARE(mockCameraService->rendererRef, 1);
+//    camera.setViewfinder(&surface);
+//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+//    QCOMPARE(mockCameraService->rendererRef, 1);
 
-    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
-    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
-    //rendererControl is released
-    QCOMPARE(mockCameraService->rendererRef, 0);
+//    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
+//    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
+//    //rendererControl is released
+//    QCOMPARE(mockCameraService->rendererRef, 0);
 
-    camera.setViewfinder(&surface);
-    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-    QCOMPARE(mockCameraService->rendererRef, 1);
+//    camera.setViewfinder(&surface);
+//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+//    QCOMPARE(mockCameraService->rendererRef, 1);
 }
 
 
@@ -766,28 +762,13 @@ void tst_QCamera::testSetVideoOutputNoService()
     // Nothing we can verify here other than it doesn't assert.
 }
 
-void tst_QCamera::testSetVideoOutputNoControl()
-{
-    MockVideoSurface surface;
-
-    QCamera camera;
-    auto *service = integration->lastCaptureService();
-    service->rendererRef = 1;
-
-    camera.setViewfinder(&surface);
-    QVERIFY(service->rendererControl->surface() == nullptr);
-}
-
 void tst_QCamera::testSetVideoOutputDestruction()
 {
     MockVideoSurface surface;
 
     {
         QCamera camera;
-        auto *service = integration->lastCaptureService();
         camera.setViewfinder(&surface);
-        QVERIFY(service->rendererControl->surface() == &surface);
-        QCOMPARE(service->rendererRef, 1);
     }
 }
 
