@@ -52,8 +52,9 @@
 //
 
 #include "qmediarecorder.h"
-#include "qmediasource_p.h"
+#include "qcamera.h"
 #include <QtCore/qurl.h>
+#include <QtCore/qpointer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -62,6 +63,10 @@ class QMediaContainerControl;
 class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QTimer;
+
+#define Q_DECLARE_NON_CONST_PUBLIC(Class) \
+    inline Class* q_func() { return static_cast<Class *>(q_ptr); } \
+    friend class Class;
 
 class QMediaRecorderPrivate
 {
@@ -73,7 +78,7 @@ public:
     void applySettingsLater();
     void restartCamera();
 
-    QPointer<QMediaSource> mediaSource;
+    QPointer<QCamera> camera;
 
     QMediaRecorderControl *control = nullptr;
 
@@ -91,7 +96,6 @@ public:
 
     void _q_stateChanged(QMediaRecorder::State state);
     void _q_error(int error, const QString &errorString);
-    void _q_serviceDestroyed();
     void _q_updateActualLocation(const QUrl &);
     void _q_notify();
     void _q_updateNotifyInterval(int ms);
@@ -99,6 +103,8 @@ public:
 
     QMediaRecorder *q_ptr = nullptr;
 };
+
+#undef Q_DECLARE_NON_CONST_PUBLIC
 
 QT_END_NAMESPACE
 

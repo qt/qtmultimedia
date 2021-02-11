@@ -91,7 +91,7 @@ private slots:
 
 private:
     QMockIntegration *mockIntegration = nullptr;
-    MockMediaSource *object = nullptr;
+    QCamera *object = nullptr;
     MockMediaRecorderService *service = nullptr;
     MockMediaRecorderControl *mock;
     QMediaRecorder *capture;
@@ -103,7 +103,7 @@ void tst_QMediaRecorder::initTestCase()
     qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
 
     mockIntegration = new QMockIntegration;
-    object = new MockMediaSource(this, mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo));
+    object = new QCamera;
     capture = new QMediaRecorder(object);
     service = mockIntegration->lastCaptureService();
     mock = service->mockControl;
@@ -121,7 +121,7 @@ void tst_QMediaRecorder::testNullService()
 {
     const QString id(QLatin1String("application/x-format"));
 
-    MockMediaSource object(nullptr, nullptr);
+    QCamera object;
     QMediaRecorder recorder(&object);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
@@ -136,7 +136,7 @@ void tst_QMediaRecorder::testNullService()
 void tst_QMediaRecorder::testNullControls()
 {
     service->hasControls = false;
-    MockMediaSource object(nullptr, service);
+    QCamera object;
     QMediaRecorder recorder(&object);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
@@ -182,17 +182,15 @@ void tst_QMediaRecorder::testNullControls()
 
 void tst_QMediaRecorder::testDeleteMediaSource()
 {
-    MockMediaSource *object = new MockMediaSource(this, service);
+    QCamera *object = new QCamera;
     QMediaRecorder *capture = new QMediaRecorder(object);
 
-    QVERIFY(capture->mediaSource() == object);
+    QVERIFY(capture->camera() == object);
     QVERIFY(capture->isAvailable());
 
     delete object;
-    delete service;
-    delete mock;
 
-    QVERIFY(capture->mediaSource() == nullptr);
+    QVERIFY(capture->camera() == nullptr);
     QVERIFY(!capture->isAvailable());
 
     delete capture;
@@ -729,7 +727,7 @@ void tst_QMediaRecorder::metaData()
     QFETCH(QString, genre);
     QFETCH(QString, custom);
 
-    MockMediaSource object(nullptr, service);
+    QCamera object;
 
     QMediaRecorder recorder(&object);
     QVERIFY(object.metaData().isEmpty());
@@ -879,23 +877,21 @@ void tst_QMediaRecorder::testAudioSettingsDestructor()
 void tst_QMediaRecorder::testAvailabilityStatus()
 {
     {
-        MockMediaSource object(nullptr, service);
+        QCamera object;
         QMediaRecorder recorder(&object);
         QCOMPARE(recorder.availability(), QMultimedia::ServiceMissing);
         QCOMPARE(recorder.isAvailable(), false);
     }
     {
         mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
-        auto *service1 = mockIntegration->lastCaptureService();
-        MockMediaSource object1(nullptr, service1);
+        QCamera object1;
         QMediaRecorder recorder1(&object1);
         QCOMPARE(recorder1.availability(), QMultimedia::Available);
         QCOMPARE(recorder1.isAvailable(), true);
     }
     {
         mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
-        auto *service1 = mockIntegration->lastCaptureService();
-        MockMediaSource object1(nullptr, service1);
+        QCamera object1;
         QMediaRecorder recorder1(&object1);
 
         QCOMPARE(recorder1.availability(), QMultimedia::Available);
@@ -906,13 +902,12 @@ void tst_QMediaRecorder::testAvailabilityStatus()
 /* isAvailable() API test. */
 void tst_QMediaRecorder::testIsAvailable()
 {
-    MockMediaSource object(nullptr, service);
+    QCamera object;
     QMediaRecorder recorder(&object);
     QCOMPARE(recorder.isAvailable(), false);
 
     mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
-    auto *service1 = mockIntegration->lastCaptureService();
-    MockMediaSource object1(nullptr, service1);
+    QCamera object1;
     QMediaRecorder recorder1(&object1);
     QCOMPARE(recorder1.isAvailable(), true);
 }
@@ -921,13 +916,13 @@ void tst_QMediaRecorder::testIsAvailable()
 void tst_QMediaRecorder::testMediaSource()
 {
     service->hasControls = false;
-    MockMediaSource object(nullptr, service);
+    QCamera object;
     QMediaRecorder recorder(&object);
 
-    QMediaSource *medobj = recorder.mediaSource();
+    QCamera *medobj = recorder.camera();
     QVERIFY(medobj == nullptr);
 
-    QMediaSource *medobj1 = capture->mediaSource();
+    QMediaSource *medobj1 = capture->camera();
     QVERIFY(medobj1 != nullptr);
 }
 

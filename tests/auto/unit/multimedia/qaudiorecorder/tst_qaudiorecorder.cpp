@@ -109,9 +109,9 @@ void tst_QAudioRecorder::testNullControl()
 
 void tst_QAudioRecorder::testAudioSource()
 {
-    audiosource = new QMediaRecorder;
+    audiosource = new QMediaRecorder(QMediaRecorder::AudioOnly);
 
-    QCOMPARE(audiosource->mediaSource()->service(),(QMediaService *) mockIntegration->lastCaptureService());
+    QCOMPARE(audiosource->camera(), nullptr);
 }
 
 void tst_QAudioRecorder::testDevices()

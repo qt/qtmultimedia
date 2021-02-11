@@ -35,6 +35,7 @@
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qaudioformat.h>
+#include <qcamera.h>
 
 #include "mockmediarecordercontrol.h"
 #include "mockmediasource.h"
@@ -84,9 +85,9 @@ private slots:
     {
         MockMediaRecorderControl recorderControl(nullptr);
         TestBindableService service(nullptr, &recorderControl);
-        MockMediaSource object(nullptr, &service);
+        QCamera object;
         QMediaRecorder recorder(&object);
-        QMediaSource *obj = recorder.mediaSource();
+        QCamera *obj = recorder.camera();
         QVERIFY(obj != nullptr);
         QVERIFY(obj->isAvailable());
     }
@@ -95,7 +96,7 @@ private slots:
     {
         MockMediaRecorderControl recorderControl(nullptr);
         TestBindableService service(nullptr, &recorderControl);
-        MockMediaSource object(nullptr, &service);
+        QCamera object;
         QMediaRecorder *recorder = new QMediaRecorder(&object);
         QVERIFY(recorder->isAvailable());
         delete recorder;

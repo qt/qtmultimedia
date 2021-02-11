@@ -73,15 +73,6 @@ QT_BEGIN_NAMESPACE
     \snippet multimedia-snippets/media.cpp Media recorder
 */
 
-static void qRegisterMediaRecorderMetaTypes()
-{
-    qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::State");
-    qRegisterMetaType<QMediaRecorder::Status>("QMediaRecorder::Status");
-    qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterMediaRecorderMetaTypes)
-
 
 #define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
 
@@ -111,13 +102,6 @@ void QMediaRecorderPrivate::_q_error(int error, const QString &errorString)
     this->errorString = errorString;
 
     emit q->error(this->error);
-}
-
-void QMediaRecorderPrivate::_q_serviceDestroyed()
-{
-    mediaSource = nullptr;
-    control = nullptr;
-    settingsChanged = true;
 }
 
 void QMediaRecorderPrivate::_q_updateActualLocation(const QUrl &location)
@@ -157,7 +141,6 @@ void QMediaRecorderPrivate::_q_applySettings()
 void QMediaRecorderPrivate::restartCamera()
 {
     //restart camera if it can't apply new settings in the Active state
-    QCamera *camera = qobject_cast<QCamera*>(mediaSource);
     if (camera) {
         QMetaObject::invokeMethod(camera,
                                   "_q_preparePropertyChange",
@@ -195,11 +178,15 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent
     d->notifyTimer = new QTimer(this);
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
-    QMediaService *service = QMediaPlatformIntegration::instance()->createCaptureInterface(mode);
-    setMediaSource(new QAudioRecorderObject(this, service));
+    if (mode != AudioOnly) {
+        setCamera(new QCamera(this));
+    } else {
+        auto *captureIface = QMediaPlatformIntegration::instance()->createCaptureInterface(mode);
+        d->control = qobject_cast<QMediaRecorderControl*>(captureIface->requestControl(QMediaRecorderControl_iid));
+    }
 }
 
-QMediaRecorder::QMediaRecorder(QMediaSource *mediaSource, QObject *parent)
+QMediaRecorder::QMediaRecorder(QCamera *camera, QObject *parent)
     : QObject(parent),
       d_ptr(new QMediaRecorderPrivate)
 {
@@ -209,23 +196,7 @@ QMediaRecorder::QMediaRecorder(QMediaSource *mediaSource, QObject *parent)
     d->notifyTimer = new QTimer(this);
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
-    setMediaSource(mediaSource);
-}
-
-/*!
-    \internal
-*/
-QMediaRecorder::QMediaRecorder(QMediaRecorderPrivate &dd, QMediaSource *mediaSource, QObject *parent):
-    QObject(parent),
-    d_ptr(&dd)
-{
-    Q_D(QMediaRecorder);
-    d->q_ptr = this;
-
-    d->notifyTimer = new QTimer(this);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-
-    setMediaSource(mediaSource);
+    setCamera(camera);
 }
 
 /*!
@@ -234,7 +205,6 @@ QMediaRecorder::QMediaRecorder(QMediaRecorderPrivate &dd, QMediaSource *mediaSou
 
 QMediaRecorder::~QMediaRecorder()
 {
-    setMediaSource(nullptr);
     delete d_ptr;
 }
 
@@ -299,110 +269,49 @@ void QMediaRecorder::removePropertyWatch(QByteArray const &name)
 }
 
 /*!
-    Returns the QMediaSource instance that this QMediaRecorder is bound too,
-    or 0 otherwise.
-*/
-QMediaSource *QMediaRecorder::mediaSource() const
-{
-    return d_func()->mediaSource;
-}
-
-/*!
     \internal
 */
-bool QMediaRecorder::setMediaSource(QMediaSource *object)
+bool QMediaRecorder::setCamera(QCamera *object)
 {
     Q_D(QMediaRecorder);
+    Q_ASSERT(!d->camera);
 
-    if (object == d->mediaSource)
-        return true;
+    d->camera = object;
 
-    if (d->mediaSource) {
-        if (d->control) {
-            disconnect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
-                       this, SLOT(_q_stateChanged(QMediaRecorder::State)));
+    QMediaService *service = d->camera->service();
+    Q_ASSERT(service);
 
-            disconnect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
-                       this, SIGNAL(statusChanged(QMediaRecorder::Status)));
+    d->notifyTimer->setInterval(notifyInterval());
+    connect(this, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
 
-            disconnect(d->control, SIGNAL(mutedChanged(bool)),
-                       this, SIGNAL(mutedChanged(bool)));
+    d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));
+    Q_ASSERT(d->control);
 
-            disconnect(d->control, SIGNAL(volumeChanged(qreal)),
-                       this, SIGNAL(volumeChanged(qreal)));
+    connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
+            this, SLOT(_q_stateChanged(QMediaRecorder::State)));
 
-            disconnect(d->control, SIGNAL(durationChanged(qint64)),
-                       this, SIGNAL(durationChanged(qint64)));
+    connect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
+            this, SIGNAL(statusChanged(QMediaRecorder::Status)));
 
-            disconnect(d->control, SIGNAL(actualLocationChanged(QUrl)),
-                       this, SLOT(_q_updateActualLocation(QUrl)));
+    connect(d->control, SIGNAL(mutedChanged(bool)),
+            this, SIGNAL(mutedChanged(bool)));
 
-            disconnect(d->control, SIGNAL(error(int,QString)),
-                       this, SLOT(_q_error(int,QString)));
-        }
+    connect(d->control, SIGNAL(volumeChanged(qreal)),
+            this, SIGNAL(volumeChanged(qreal)));
 
-        disconnect(this, SIGNAL(notifyIntervalChanged(int)), this, SLOT(_q_updateNotifyInterval(int)));
+    connect(d->control, SIGNAL(durationChanged(qint64)),
+            this, SIGNAL(durationChanged(qint64)));
 
-        QMediaService *service = d->mediaSource->service();
+    connect(d->control, SIGNAL(actualLocationChanged(QUrl)),
+            this, SLOT(_q_updateActualLocation(QUrl)));
 
-        if (service) {
-            disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
+    connect(d->control, SIGNAL(error(int,QString)),
+            this, SLOT(_q_error(int,QString)));
 
-            if (d->control)
-                service->releaseControl(d->control);
-        }
-    }
+    connect(d->control, SIGNAL(metaDataChanged()),
+            this, SIGNAL(metaDataChanged()));
 
-    d->control = nullptr;
-
-    d->mediaSource = object;
-
-    if (d->mediaSource) {
-        QMediaService *service = d->mediaSource->service();
-
-        d->notifyTimer->setInterval(notifyInterval());
-        connect(this, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
-
-        if (service) {
-            d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));
-
-            if (d->control) {
-                connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
-                        this, SLOT(_q_stateChanged(QMediaRecorder::State)));
-
-                connect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
-                        this, SIGNAL(statusChanged(QMediaRecorder::Status)));
-
-                connect(d->control, SIGNAL(mutedChanged(bool)),
-                        this, SIGNAL(mutedChanged(bool)));
-
-                connect(d->control, SIGNAL(volumeChanged(qreal)),
-                        this, SIGNAL(volumeChanged(qreal)));
-
-                connect(d->control, SIGNAL(durationChanged(qint64)),
-                        this, SIGNAL(durationChanged(qint64)));
-
-                connect(d->control, SIGNAL(actualLocationChanged(QUrl)),
-                        this, SLOT(_q_updateActualLocation(QUrl)));
-
-                connect(d->control, SIGNAL(error(int,QString)),
-                        this, SLOT(_q_error(int,QString)));
-
-                connect(d->control, SIGNAL(metaDataChanged()),
-                        this, SIGNAL(metaDataChanged()));
-
-                connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-
-                d->applySettingsLater();
-
-                return true;
-            }
-        }
-
-        d->mediaSource = nullptr;
-        return false;
-    }
+    d->applySettingsLater();
 
     return true;
 }
@@ -816,8 +725,13 @@ QCameraInfo QMediaRecorder::videoInput() const
 {
     Q_D(const QMediaRecorder);
 
-    auto *camera = qobject_cast<QCamera *>(d->mediaSource);
-    return camera ? camera->cameraInfo() : QCameraInfo();
+    return d->camera ? d->camera->cameraInfo() : QCameraInfo();
+}
+
+QCamera *QMediaRecorder::camera() const
+{
+    Q_D(const QMediaRecorder);
+    return d->camera;
 }
 
 /*!

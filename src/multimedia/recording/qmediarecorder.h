@@ -54,21 +54,17 @@ QT_BEGIN_NAMESPACE
 class QUrl;
 class QSize;
 class QAudioFormat;
+class QCamera;
 class QCameraInfo;
-QT_END_NAMESPACE
-
-QT_BEGIN_NAMESPACE
-
 class QMediaRecorderService;
 class QAudioEncoderSettings;
 class QVideoEncoderSettings;
 class QAudioDeviceInfo;
 
 class QMediaRecorderPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject, public QMediaSink
+class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaSink)
     Q_ENUMS(State)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
@@ -116,16 +112,13 @@ public:
     };
 
     QMediaRecorder(CaptureMode mode = AudioOnly, QObject *parent = nullptr);
-    explicit QMediaRecorder(QMediaSource *mediaSource, QObject *parent = nullptr);
+    explicit QMediaRecorder(QCamera *mediaSource, QObject *parent = nullptr);
     ~QMediaRecorder();
 
     int notifyInterval() const;
     void setNotifyInterval(int milliSeconds);
     void addPropertyWatch(QByteArray const &name);
     void removePropertyWatch(QByteArray const &name);
-
-    QMediaSource *mediaSource() const override;
-    QObject *asObject() override { return this; }
 
     bool isAvailable() const;
     QMultimedia::AvailabilityStatus availability() const;
@@ -156,6 +149,8 @@ public:
     QAudioDeviceInfo audioInput() const;
     QCameraInfo videoInput() const;
 
+    QCamera *camera() const;
+
 public Q_SLOTS:
     void record();
     void pause();
@@ -179,8 +174,7 @@ Q_SIGNALS:
     void metaDataChanged();
 
 protected:
-    QMediaRecorder(QMediaRecorderPrivate &dd, QMediaSource *mediaSource, QObject *parent = nullptr);
-    bool setMediaSource(QMediaSource *object) override;
+    bool setCamera(QCamera *object);
 
     QMediaRecorderPrivate *d_ptr;
 private:
@@ -188,7 +182,6 @@ private:
     Q_DECLARE_PRIVATE(QMediaRecorder)
     Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaRecorder::State))
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
     Q_PRIVATE_SLOT(d_func(), void _q_notify())
     Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
     Q_PRIVATE_SLOT(d_func(), void _q_updateNotifyInterval(int))
