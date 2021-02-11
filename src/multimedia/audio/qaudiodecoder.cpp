@@ -120,9 +120,7 @@ void QAudioDecoderPrivate::_q_error(int error, const QString &errorString)
     parented to \a parent.
 */
 QAudioDecoder::QAudioDecoder(QObject *parent)
-    : QMediaSource(*new QAudioDecoderPrivate,
-                   parent,
-                   nullptr)
+    : QObject(*new QAudioDecoderPrivate, parent)
 {
     Q_D(QAudioDecoder);
 
@@ -154,6 +152,11 @@ QAudioDecoder::~QAudioDecoder()
 
     if (d->control)
         delete d->control;
+}
+
+bool QAudioDecoder::isAvailable() const
+{
+    return d_func()->control != nullptr;
 }
 
 QAudioDecoder::State QAudioDecoder::state() const
