@@ -52,8 +52,6 @@ public slots:
 
 private slots:
     void nullObject();
-    void nullService();
-    void noOutputs();
     void serviceDestroyed();
     void mediaSourceDestroyed();
     void setMediaSource();
@@ -198,45 +196,6 @@ void tst_QGraphicsVideoItem::nullObject()
     QGraphicsVideoItem item(nullptr);
 
     QVERIFY(item.boundingRect().isEmpty());
-}
-
-void tst_QGraphicsVideoItem::nullService()
-{
-    QtTestVideoService *service = nullptr;
-
-    QtTestVideoObject object(service);
-
-    QtTestGraphicsVideoItem *item = new QtTestGraphicsVideoItem;
-    object.bind(item);
-
-    QVERIFY(item->boundingRect().isEmpty());
-
-    item->hide();
-    item->show();
-
-    QGraphicsScene graphicsScene;
-    graphicsScene.addItem(item);
-    QGraphicsView graphicsView(&graphicsScene);
-    graphicsView.show();
-}
-
-void tst_QGraphicsVideoItem::noOutputs()
-{
-    QtTestRendererControl *control = nullptr;
-    QtTestVideoObject object(control);
-
-    QtTestGraphicsVideoItem *item = new QtTestGraphicsVideoItem;
-    object.bind(item);
-
-    QVERIFY(item->boundingRect().isEmpty());
-
-    item->hide();
-    item->show();
-
-    QGraphicsScene graphicsScene;
-    graphicsScene.addItem(item);
-    QGraphicsView graphicsView(&graphicsScene);
-    graphicsView.show();
 }
 
 void tst_QGraphicsVideoItem::serviceDestroyed()

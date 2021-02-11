@@ -51,11 +51,9 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSurfaceFormat;
 class QGraphicsVideoItemPrivate;
-class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaSink
+class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaSink)
-    Q_PROPERTY(QMediaSource* mediaSource READ mediaSource WRITE setMediaSource)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
     Q_PROPERTY(QPointF offset READ offset WRITE setOffset)
     Q_PROPERTY(QSizeF size READ size WRITE setSize)
@@ -65,8 +63,6 @@ public:
     explicit QGraphicsVideoItem(QGraphicsItem *parent = nullptr);
     ~QGraphicsVideoItem();
 
-    QMediaSource *mediaSource() const override;
-    QObject *asObject() override { return this; }
     Q_INVOKABLE QAbstractVideoSurface *videoSurface() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
@@ -97,8 +93,6 @@ Q_SIGNALS:
 protected:
     void timerEvent(QTimerEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
-
-    bool setMediaSource(QMediaSource *object) override;
 
     QGraphicsVideoItemPrivate *d_ptr;
 

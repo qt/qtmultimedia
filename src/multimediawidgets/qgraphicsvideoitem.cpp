@@ -40,8 +40,6 @@
 #include "qgraphicsvideoitem.h"
 #include "qpaintervideosurface_p.h"
 
-#include <qmediasource.h>
-#include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
 #include <qvideosurfaceformat.h>
 
@@ -200,17 +198,6 @@ QGraphicsVideoItem::~QGraphicsVideoItem()
 }
 
 /*!
-    \property QGraphicsVideoItem::mediaSource
-    \brief the media object which provides the video displayed by a graphics
-    item.
-*/
-
-QMediaSource *QGraphicsVideoItem::mediaSource() const
-{
-    return d_func()->mediaSource;
-}
-
-/*!
     \since 5.15
     \property QGraphicsVideoItem::videoSurface
     \brief Returns the underlying video surface that can render video frames
@@ -224,28 +211,6 @@ QMediaSource *QGraphicsVideoItem::mediaSource() const
 QAbstractVideoSurface *QGraphicsVideoItem::videoSurface() const
 {
     return d_func()->surface;
-}
-
-/*!
-  \internal
-*/
-bool QGraphicsVideoItem::setMediaSource(QMediaSource *object)
-{
-    Q_D(QGraphicsVideoItem);
-
-    if (object == d->mediaSource)
-        return true;
-
-    d->clearService();
-
-    d->mediaSource = object;
-
-    if (d->mediaSource) {
-        d->service = d->mediaSource->service();
-    }
-
-    d->mediaSource = nullptr;
-    return false;
 }
 
 /*!
