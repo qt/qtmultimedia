@@ -144,7 +144,7 @@ void tst_QCameraImageCapture::mediaSource()
 
     QCamera camera1;
     QCameraImageCapture imageCapture1(&camera1);
-    QMediaSource *medobj1 = imageCapture1.camera();
+    auto *medobj1 = imageCapture1.camera();
     QCOMPARE(medobj1, &camera1);
 }
 

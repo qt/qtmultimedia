@@ -730,7 +730,7 @@ void tst_QMediaRecorder::metaData()
     QCamera object;
 
     QMediaRecorder recorder(&object);
-    QVERIFY(object.metaData().isEmpty());
+    QVERIFY(recorder.metaData().isEmpty());
 
     QMediaMetaData data;
     data.insert(QMediaMetaData::Author, QString::fromUtf8("John Doe"));
@@ -922,7 +922,7 @@ void tst_QMediaRecorder::testMediaSource()
     QCamera *medobj = recorder.camera();
     QVERIFY(medobj == nullptr);
 
-    QMediaSource *medobj1 = capture->camera();
+    auto *medobj1 = capture->camera();
     QVERIFY(medobj1 != nullptr);
 }
 

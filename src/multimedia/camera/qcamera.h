@@ -60,9 +60,10 @@ QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
 class QCameraInfo;
+class QMediaPlatformCaptureInterface;
 
 class QCameraPrivate;
-class Q_MULTIMEDIA_EXPORT QCamera : public QMediaSource
+class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QCamera::State state READ state NOTIFY stateChanged)
@@ -102,7 +103,7 @@ public:
     explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
     ~QCamera();
 
-    QMultimedia::AvailabilityStatus availability() const override;
+    bool isAvailable() const;
 
     State state() const;
     Status status() const;
@@ -120,6 +121,7 @@ public:
     Error error() const;
     QString errorString() const;
 
+    QMediaPlatformCaptureInterface *captureInterface() const;
 public Q_SLOTS:
     void load();
     void unload();

@@ -153,8 +153,9 @@ void QCameraPrivate::initControls()
 {
     Q_Q(QCamera);
 
-    if (service) {
-        control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
+    captureInterface = QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo);
+    if (captureInterface) {
+        control = qobject_cast<QCameraControl *>(captureInterface->requestControl(QCameraControl_iid));
 
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
@@ -167,7 +168,7 @@ void QCameraPrivate::initControls()
         control = nullptr;
 
         error = QCamera::CameraError;
-        errorString = QCamera::tr("The camera service is missing");
+        errorString = QCamera::tr("The camera captureInterface is missing");
     }
 }
 
@@ -177,16 +178,16 @@ void QCameraPrivate::clear()
     delete cameraFocus;
     delete imageProcessing;
 
-    if (service) {
+    if (captureInterface) {
         if (control)
-            service->releaseControl(control);
+            captureInterface->releaseControl(control);
     }
 
     cameraExposure = nullptr;
     cameraFocus = nullptr;
     imageProcessing = nullptr;
     control = nullptr;
-    service = nullptr;
+    captureInterface = nullptr;
 }
 
 /*!
@@ -207,8 +208,7 @@ QCamera::QCamera(QObject *parent)
 */
 
 QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
-    : QMediaSource(*new QCameraPrivate, parent,
-                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
+    : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
     d->init();
@@ -228,9 +228,7 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
 */
 
 QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
-    : QMediaSource(*new QCameraPrivate,
-                   parent,
-                   QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo))
+    : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
 
@@ -259,19 +257,10 @@ QCamera::~QCamera()
 /*!
     Returns the availability state of the camera service.
 */
-QMultimedia::AvailabilityStatus QCamera::availability() const
+bool QCamera::isAvailable() const
 {
     Q_D(const QCamera);
-    if (d->control == nullptr)
-        return QMultimedia::ServiceMissing;
-
-    if (d->cameraInfo.isNull())
-        return QMultimedia::ResourceError;
-
-    if (d->error != QCamera::NoError)
-        return QMultimedia::ResourceError;
-
-    return QMediaSource::availability();
+    return (d->control != nullptr);
 }
 
 
@@ -342,6 +331,14 @@ QCamera::Error QCamera::error() const
 QString QCamera::errorString() const
 {
     return d_func()->errorString;
+}
+
+/*!
+    \internal
+ */
+QMediaPlatformCaptureInterface *QCamera::captureInterface() const
+{
+    return d_func()->captureInterface;
 }
 
 /*!

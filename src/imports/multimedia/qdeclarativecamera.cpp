@@ -390,25 +390,13 @@ QString QDeclarativeCamera::errorString() const
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia::Camera::availability
+    \qmlproperty enumeration QtMultimedia::Camera::isAvailable
 
-    This property holds the availability state of the camera.
-
-    \value  Camera.Available
-            The camera is available for use.
-    \value  Camera.Busy
-            The camera is busy at the moment as it is being used by another
-            process.
-    \value  Camera.Unavailable
-            The camera is not available for use (there may be no camera
-            hardware).
-    \value  Camera.ResourceMissing
-            The camera cannot be used because of missing resources.
-            It may be possible to try again at a later time.
+    This property returns the availability of the camera.
  */
-QDeclarativeCamera::Availability QDeclarativeCamera::availability() const
+bool QDeclarativeCamera::isAvailable() const
 {
-    return Availability(m_camera->availability());
+    return m_camera->isAvailable();
 }
 
 /*!

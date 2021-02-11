@@ -278,7 +278,7 @@ bool QMediaRecorder::setCamera(QCamera *object)
 
     d->camera = object;
 
-    QMediaService *service = d->camera->service();
+    auto *service = d->camera->captureInterface();
     Q_ASSERT(service);
 
     d->notifyTimer->setInterval(notifyInterval());

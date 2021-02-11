@@ -807,21 +807,21 @@ void tst_QCamera::testConstructor()
 
     {
         QCamera camera;
-        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), defaultCamera);
     }
 
     {
         QCamera camera(QCameraInfo::FrontFace);
-        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), frontCamera);
     }
 
     {
         QCamera camera(QMediaDeviceManager::defaultVideoInput());
-        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), defaultCamera);
     }
@@ -829,14 +829,14 @@ void tst_QCamera::testConstructor()
     {
         QCameraInfo cameraInfo = QMediaDeviceManager::videoInputs().at(0);
         QCamera camera(cameraInfo);
-        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), cameraInfo);
     }
 
     {
         QCamera camera(QCameraInfo::BackFace);
-        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), backCamera);
     }
@@ -844,7 +844,7 @@ void tst_QCamera::testConstructor()
     {
         // Should load the default camera when UnspecifiedPosition is requested
         QCamera camera(QCameraInfo::UnspecifiedPosition);
-        QCOMPARE(camera.availability(), QMultimedia::Available);
+        QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), defaultCamera);
     }
@@ -855,7 +855,6 @@ void tst_QCamera::testQCameraIsAvailable()
 {
     QCamera camera;
     QVERIFY(camera.isAvailable());
-    QVERIFY(camera.availability() == QMultimedia::Available);
 }
 
 void tst_QCamera::testQCameraIsNotAvailable()
@@ -865,7 +864,6 @@ void tst_QCamera::testQCameraIsNotAvailable()
 
     QCOMPARE(camera.error(), QCamera::CameraError);
     QVERIFY(!camera.isAvailable());
-    QCOMPARE(camera.availability(), QMultimedia::ServiceMissing);
     integration->setFlags({});
 }
 

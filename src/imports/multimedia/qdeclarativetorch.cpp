@@ -39,6 +39,7 @@
 
 #include <QDebug>
 #include <QMediaService>
+#include <private/qmediaplatformcaptureinterface_p.h>
 
 #include "qdeclarativetorch_p.h"
 
@@ -70,7 +71,7 @@ QDeclarativeTorch::QDeclarativeTorch(QObject *parent)
     : QObject(parent)
 {
     m_camera = new QCamera(this);
-    QMediaService *service = m_camera->service();
+    auto *service = m_camera->captureInterface();
 
     m_exposure = service ? service->requestControl<QCameraExposureControl*>() : 0;
 

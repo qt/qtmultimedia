@@ -58,19 +58,14 @@
 QT_BEGIN_NAMESPACE
 
 class QCameraControl;
+class QMediaPlatformCaptureInterface;
 
-class QCameraPrivate : public QMediaSourcePrivate
+class QCameraPrivate : public QObjectPrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCamera)
 public:
     QCameraPrivate()
-        : QMediaSourcePrivate(),
-          control(nullptr),
-          cameraExposure(nullptr),
-          cameraFocus(nullptr),
-          imageProcessing(nullptr),
-          viewfinder(nullptr),
-          capture(nullptr),
+        : QObjectPrivate(),
           state(QCamera::UnloadedState),
           error(QCamera::NoError),
           supressLockChangedSignal(false),
@@ -83,14 +78,15 @@ public:
 
     void clear();
 
-    QCameraControl *control;
+    QMediaPlatformCaptureInterface *captureInterface = nullptr;
+    QCameraControl *control = nullptr;
 
-    QCameraExposure *cameraExposure;
-    QCameraFocus *cameraFocus;
-    QCameraImageProcessing *imageProcessing;
+    QCameraExposure *cameraExposure = nullptr;
+    QCameraFocus *cameraFocus = nullptr;
+    QCameraImageProcessing *imageProcessing = nullptr;
 
-    QMediaSink *viewfinder;
-    QObject *capture;
+    QMediaSink *viewfinder = nullptr;
+    QObject *capture = nullptr;
 
     QCamera::State state;
 

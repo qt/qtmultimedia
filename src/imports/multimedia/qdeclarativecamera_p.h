@@ -110,7 +110,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
     Q_ENUMS(FocusAreaStatus)
-    Q_ENUMS(Availability)
 
 public:
     enum Position {
@@ -205,13 +204,6 @@ public:
         FocusAreaFocused = QCameraFocusZone::Focused
     };
 
-    enum Availability {
-        Available = QMultimedia::Available,
-        Busy = QMultimedia::Busy,
-        Unavailable = QMultimedia::ServiceMissing,
-        ResourceMissing = QMultimedia::ResourceError
-    };
-
     QDeclarativeCamera(QObject *parent = 0);
     ~QDeclarativeCamera();
 
@@ -245,7 +237,7 @@ public:
 
     qreal zoomFactor() const;
 
-    Availability availability() const;
+    bool isAvailable() const;
 
 public Q_SLOTS:
     void start();
