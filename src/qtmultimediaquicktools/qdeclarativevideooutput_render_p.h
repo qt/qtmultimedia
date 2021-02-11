@@ -52,7 +52,8 @@
 // We mean it.
 //
 
-#include <private/qdeclarativevideooutput_backend_p.h>
+#include <QtQuick/qquickitem.h>
+#include <QtQuick/qsgnode.h>
 #include <private/qsgvideonode_yuv_p.h>
 #include <private/qsgvideonode_rgb_p.h>
 #include <private/qsgvideonode_texture_p.h>
@@ -67,22 +68,20 @@ class QVideoRendererControl;
 class QOpenGLContext;
 class QAbstractVideoFilter;
 class QVideoFilterRunnable;
+class QDeclarativeVideoOutput;
 
-class QDeclarativeVideoRendererBackend : public QDeclarativeVideoBackend
+class QDeclarativeVideoBackend
 {
 public:
-    QDeclarativeVideoRendererBackend(QDeclarativeVideoOutput *parent);
-    ~QDeclarativeVideoRendererBackend();
+    QDeclarativeVideoBackend(QDeclarativeVideoOutput *parent);
+    ~QDeclarativeVideoBackend();
 
-    bool init(QMediaService *service) override;
-    void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &changeData) override;
-    void releaseSource() override;
-    void releaseControl() override;
-    QSize nativeSize() const override;
-    void updateGeometry() override;
-    QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data) override;
-    QAbstractVideoSurface *videoSurface() const override;
-    QRectF adjustedViewport() const override;
+    void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &changeData);
+    QSize nativeSize() const;
+    void updateGeometry();
+    QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data);
+    QAbstractVideoSurface *videoSurface() const;
+    QRectF adjustedViewport() const;
 
 #if QT_CONFIG(opengl)
     QOpenGLContext *glContext() const;
@@ -92,15 +91,15 @@ public:
     void present(const QVideoFrame &frame);
     void stop();
 
-    void appendFilter(QAbstractVideoFilter *filter) override;
-    void clearFilters() override;
-    void releaseResources() override;
-    void invalidateSceneGraph() override;
+    void appendFilter(QAbstractVideoFilter *filter);
+    void clearFilters();
+    void releaseResources();
+    void invalidateSceneGraph();
 
 private:
     void scheduleDeleteFilterResources();
+    QDeclarativeVideoOutput *q;
 
-    QPointer<QVideoRendererControl> m_rendererControl;
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
     QVideoSurfaceFormat m_surfaceFormat;
@@ -132,7 +131,7 @@ class QSGVideoItemSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
 public:
-    explicit QSGVideoItemSurface(QDeclarativeVideoRendererBackend *backend, QObject *parent = 0);
+    explicit QSGVideoItemSurface(QDeclarativeVideoBackend *backend, QObject *parent = 0);
     ~QSGVideoItemSurface();
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
     bool start(const QVideoSurfaceFormat &format) override;
@@ -146,8 +145,30 @@ private slots:
 #endif
 
 private:
-    QDeclarativeVideoRendererBackend *m_backend;
+    QDeclarativeVideoBackend *m_backend;
 };
+
+
+namespace {
+
+inline bool qIsDefaultAspect(int o)
+{
+    return (o % 180) == 0;
+}
+
+/*
+ * Return the orientation normalized to 0-359
+ */
+inline int qNormalizedOrientation(int o)
+{
+    // Negative orientations give negative results
+    int o2 = o % 360;
+    if (o2 < 0)
+        o2 += 360;
+    return o2;
+}
+
+}
 
 QT_END_NAMESPACE
 

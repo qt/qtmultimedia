@@ -40,10 +40,9 @@
 #include "qdeclarativevideooutput_p.h"
 
 #include "qdeclarativevideooutput_render_p.h"
-#include "qdeclarativevideooutput_window_p.h"
+#include "qdeclarativevideooutput_p.h"
 #include <private/qvideooutputorientationhandler_p.h>
-#include <QtMultimedia/qmediasource.h>
-#include <QtMultimedia/qmediaservice.h>
+#include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qcamera.h>
 #include <private/qfactoryloader_p.h>
 #include <QtCore/qloggingcategory.h>
@@ -130,7 +129,6 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     QQuickItem(parent),
-    m_sourceType(NoSource),
     m_fillMode(PreserveAspectFit),
     m_geometryDirty(true),
     m_orientation(0),
@@ -139,14 +137,12 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
 {
     initResource();
     setFlag(ItemHasContents, true);
-    createBackend(nullptr);
+    createBackend();
 }
 
 QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
 {
     m_backend.reset();
-    m_source.clear();
-    _q_updateMediaSource();
 }
 
 /*!
@@ -185,157 +181,38 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
 
     if (source == m_source.data())
         return;
-
-    if (m_source && m_sourceType == MediaSourceSource) {
-        disconnect(m_source.data(), nullptr, this, SLOT(_q_updateMediaSource()));
-        disconnect(m_source.data(), nullptr, this, SLOT(_q_updateCameraInfo()));
-    }
-
-    if (m_backend)
-        m_backend->releaseSource();
-
     m_source = source;
 
-    if (m_source) {
+    QObject *s = source;
+    if (s) {
         const QMetaObject *metaObject = m_source.data()->metaObject();
-
         int mediaSourcePropertyIndex = metaObject->indexOfProperty("mediaSource");
         if (mediaSourcePropertyIndex != -1) {
             const QMetaProperty mediaSourceProperty = metaObject->property(mediaSourcePropertyIndex);
-
-            if (mediaSourceProperty.hasNotifySignal()) {
-                QMetaMethod method = mediaSourceProperty.notifySignal();
-                QMetaObject::connect(m_source.data(), method.methodIndex(),
-                                     this, this->metaObject()->indexOfSlot("_q_updateMediaSource()"),
-                                     Qt::DirectConnection, nullptr);
-
-            }
-
-            int deviceIdPropertyIndex = metaObject->indexOfProperty("deviceId");
-            if (deviceIdPropertyIndex != -1) { // Camera source
-                const QMetaProperty deviceIdProperty = metaObject->property(deviceIdPropertyIndex);
-
-                if (deviceIdProperty.hasNotifySignal()) {
-                    QMetaMethod method = deviceIdProperty.notifySignal();
-                    QMetaObject::connect(m_source.data(), method.methodIndex(),
-                                         this, this->metaObject()->indexOfSlot("_q_updateCameraInfo()"),
-                                         Qt::DirectConnection, nullptr);
-
-                }
-            }
-
-            m_sourceType = MediaSourceSource;
-        } else if (metaObject->indexOfProperty("videoSurface") != -1) {
-            m_source.data()->setProperty("videoSurface",
-                QVariant::fromValue<QAbstractVideoSurface *>(videoSurface()));
-            m_sourceType = VideoSurfaceSource;
-        } else {
-            m_sourceType = NoSource;
+            s = mediaSourceProperty.read(s).value<QObject *>();
         }
-    } else {
-        m_sourceType = NoSource;
     }
 
-    _q_updateMediaSource();
+    if (QCamera *c = qobject_cast<QCamera *>(s)) {
+        c->setViewfinder(videoSurface());
+    } else if (QMediaPlayer *p = qobject_cast<QMediaPlayer *>(s)) {
+        p->setVideoOutput(videoSurface());
+    }
     emit sourceChanged();
 }
 
-Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, videoBackendFactoryLoader,
-        (QDeclarativeVideoBackendFactoryInterface_iid, QLatin1String("video/declarativevideobackend"), Qt::CaseInsensitive))
-
-bool QDeclarativeVideoOutput::createBackend(QMediaService *service)
+bool QDeclarativeVideoOutput::createBackend()
 {
-    bool backendAvailable = false;
+    m_backend.reset(new QDeclarativeVideoBackend(this));
 
-    int i = 0;
-    while (const auto instance = videoBackendFactoryLoader()->instance(i)) {
-        if (QDeclarativeVideoBackendFactoryInterface *plugin = qobject_cast<QDeclarativeVideoBackendFactoryInterface*>(instance)) {
-            if (!m_backend)
-                m_backend.reset(plugin->create(this));
-            if (m_backend && m_backend->init(service)) {
-                backendAvailable = true;
-                break;
-            }
-        }
-    }
+    // Since new backend has been created needs to update its geometry.
+    m_geometryDirty = true;
 
-    if (!backendAvailable) {
-        if (!m_backend)
-            m_backend.reset(new QDeclarativeVideoRendererBackend(this));
-        if (m_backend->init(service))
-            backendAvailable = true;
-    }
+    m_backend->clearFilters();
+    for (int i = 0; i < m_filters.count(); ++i)
+        m_backend->appendFilter(m_filters[i]);
 
-    // QDeclarativeVideoWindowBackend only works when there is a service with a QVideoWindowControl.
-    // Without service, the QDeclarativeVideoRendererBackend should always work.
-    if (!backendAvailable) {
-        Q_ASSERT(service);
-        m_backend.reset(new QDeclarativeVideoWindowBackend(this));
-        if (m_backend->init(service))
-            backendAvailable = true;
-    }
-
-    if (backendAvailable) {
-        // Since new backend has been created needs to update its geometry.
-        m_geometryDirty = true;
-
-        m_backend->clearFilters();
-        for (int i = 0; i < m_filters.count(); ++i)
-            m_backend->appendFilter(m_filters[i]);
-    } else {
-        qWarning() << Q_FUNC_INFO << "Media service has neither renderer nor window control available.";
-        m_backend.reset();
-    }
-
-    return backendAvailable;
-}
-
-void QDeclarativeVideoOutput::_q_updateMediaSource()
-{
-    QMediaSource *mediaSource = nullptr;
-
-    if (m_source)
-        mediaSource = qobject_cast<QMediaSource*>(m_source.data()->property("mediaSource").value<QObject*>());
-
-    qCDebug(qLcVideo) << "media object is" << mediaSource;
-
-    if (m_mediaSource.data() == mediaSource)
-        return;
-
-    m_mediaSource.clear();
-    m_service.clear();
-
-    if (mediaSource) {
-        if (QMediaService *service = mediaSource->service()) {
-            if (createBackend(service)) {
-                m_service = service;
-                m_mediaSource = mediaSource;
-            }
-        }
-    }
-
-    _q_updateCameraInfo();
-}
-
-void QDeclarativeVideoOutput::_q_updateCameraInfo()
-{
-    if (m_mediaSource) {
-        const QCamera *camera = qobject_cast<const QCamera *>(m_mediaSource);
-        if (camera) {
-            QCameraInfo info = camera->cameraInfo();
-
-            if (m_cameraInfo != info) {
-                m_cameraInfo = info;
-
-                // The camera position and orientation need to be taken into account for
-                // the viewport auto orientation
-                if (m_autoOrientation)
-                    _q_screenOrientationChanged(m_screenOrientationHandler->currentOrientation());
-            }
-        }
-    } else {
-        m_cameraInfo = QCameraInfo();
-    }
+    return true;
 }
 
 /*!
@@ -744,11 +621,6 @@ QRectF QDeclarativeVideoOutput::mapRectToSourceNormalized(const QRectF &rectangl
 {
     return QRectF(mapPointToSourceNormalized(rectangle.topLeft()),
                   mapPointToSourceNormalized(rectangle.bottomRight())).normalized();
-}
-
-QDeclarativeVideoOutput::SourceType QDeclarativeVideoOutput::sourceType() const
-{
-    return m_sourceType;
 }
 
 /*!

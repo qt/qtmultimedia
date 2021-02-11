@@ -61,8 +61,8 @@ Q_DECLARE_LOGGING_CATEGORY(qLcVideo)
 Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
         (QSGVideoNodeFactoryInterface_iid, QLatin1String("video/videonode"), Qt::CaseInsensitive))
 
-QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeVideoOutput *parent)
-    : QDeclarativeVideoBackend(parent),
+QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *parent)
+    : q(parent),
       m_frameChanged(false)
 {
     m_surface = new QSGVideoItemSurface(this);
@@ -91,37 +91,18 @@ QDeclarativeVideoRendererBackend::QDeclarativeVideoRendererBackend(QDeclarativeV
     m_videoNodeFactories.append(&m_textureFactory);
 }
 
-QDeclarativeVideoRendererBackend::~QDeclarativeVideoRendererBackend()
+QDeclarativeVideoBackend::~QDeclarativeVideoBackend()
 {
-    releaseSource();
-    releaseControl();
     delete m_surface;
 }
 
-bool QDeclarativeVideoRendererBackend::init(QMediaService *service)
-{
-    // When there is no service, the source is an object with a "videoSurface" property, which
-    // doesn't require a QVideoRendererControl and therefore always works
-    if (!service)
-        return true;
-
-    if (QObject *control = service->requestControl(QVideoRendererControl_iid)) {
-        if ((m_rendererControl = qobject_cast<QVideoRendererControl *>(control))) {
-            m_rendererControl->setSurface(m_surface);
-            m_service = service;
-            return true;
-        }
-    }
-    return false;
-}
-
-void QDeclarativeVideoRendererBackend::appendFilter(QAbstractVideoFilter *filter)
+void QDeclarativeVideoBackend::appendFilter(QAbstractVideoFilter *filter)
 {
     QMutexLocker lock(&m_frameMutex);
     m_filters.append(Filter(filter));
 }
 
-void QDeclarativeVideoRendererBackend::clearFilters()
+void QDeclarativeVideoBackend::clearFilters()
 {
     QMutexLocker lock(&m_frameMutex);
     scheduleDeleteFilterResources();
@@ -140,7 +121,7 @@ private:
     QList<QVideoFilterRunnable *> m_runnables;
 };
 
-void QDeclarativeVideoRendererBackend::scheduleDeleteFilterResources()
+void QDeclarativeVideoBackend::scheduleDeleteFilterResources()
 {
     if (!q->window())
         return;
@@ -161,13 +142,13 @@ void QDeclarativeVideoRendererBackend::scheduleDeleteFilterResources()
     }
 }
 
-void QDeclarativeVideoRendererBackend::releaseResources()
+void QDeclarativeVideoBackend::releaseResources()
 {
     // Called on the gui thread when the window is closed or changed.
     invalidateSceneGraph();
 }
 
-void QDeclarativeVideoRendererBackend::invalidateSceneGraph()
+void QDeclarativeVideoBackend::invalidateSceneGraph()
 {
     // Called on the render thread, e.g. when the context is lost.
     QMutexLocker lock(&m_frameMutex);
@@ -179,7 +160,7 @@ void QDeclarativeVideoRendererBackend::invalidateSceneGraph()
     }
 }
 
-void QDeclarativeVideoRendererBackend::itemChange(QQuickItem::ItemChange change,
+void QDeclarativeVideoBackend::itemChange(QQuickItem::ItemChange change,
                                       const QQuickItem::ItemChangeData &changeData)
 {
     if (change == QQuickItem::ItemSceneChange) {
@@ -189,32 +170,12 @@ void QDeclarativeVideoRendererBackend::itemChange(QQuickItem::ItemChange change,
     }
 }
 
-void QDeclarativeVideoRendererBackend::releaseSource()
-{
-    if (q->source() && q->sourceType() == QDeclarativeVideoOutput::VideoSurfaceSource) {
-        if (q->source()->property("videoSurface").value<QAbstractVideoSurface*>() == m_surface)
-            q->source()->setProperty("videoSurface", QVariant::fromValue<QAbstractVideoSurface*>(0));
-    }
-
-    m_surface->stop();
-}
-
-void QDeclarativeVideoRendererBackend::releaseControl()
-{
-    if (m_rendererControl) {
-        m_rendererControl->setSurface(nullptr);
-        if (m_service)
-            m_service->releaseControl(m_rendererControl);
-        m_rendererControl = nullptr;
-    }
-}
-
-QSize QDeclarativeVideoRendererBackend::nativeSize() const
+QSize QDeclarativeVideoBackend::nativeSize() const
 {
     return m_surfaceFormat.sizeHint();
 }
 
-void QDeclarativeVideoRendererBackend::updateGeometry()
+void QDeclarativeVideoBackend::updateGeometry()
 {
     const QRectF viewport = m_surfaceFormat.viewport();
     const QSizeF frameSize = m_surfaceFormat.frameSize();
@@ -271,7 +232,7 @@ void QDeclarativeVideoRendererBackend::updateGeometry()
     }
 }
 
-QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
+QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
                                                            QQuickItem::UpdatePaintNodeData *data)
 {
     Q_UNUSED(data);
@@ -385,12 +346,12 @@ QSGNode *QDeclarativeVideoRendererBackend::updatePaintNode(QSGNode *oldNode,
     return videoNode;
 }
 
-QAbstractVideoSurface *QDeclarativeVideoRendererBackend::videoSurface() const
+QAbstractVideoSurface *QDeclarativeVideoBackend::videoSurface() const
 {
     return m_surface;
 }
 
-QRectF QDeclarativeVideoRendererBackend::adjustedViewport() const
+QRectF QDeclarativeVideoBackend::adjustedViewport() const
 {
     const QRectF viewport = m_surfaceFormat.viewport();
     const QSizeF pixelAspectRatio = m_surfaceFormat.pixelAspectRatio();
@@ -407,13 +368,13 @@ QRectF QDeclarativeVideoRendererBackend::adjustedViewport() const
 }
 
 #if QT_CONFIG(opengl)
-QOpenGLContext *QDeclarativeVideoRendererBackend::glContext() const
+QOpenGLContext *QDeclarativeVideoBackend::glContext() const
 {
     return m_glContext;
 }
 #endif
 
-void QDeclarativeVideoRendererBackend::present(const QVideoFrame &frame)
+void QDeclarativeVideoBackend::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
     m_frame = frame.isValid() ? frame : m_frameOnFlush;
@@ -423,12 +384,12 @@ void QDeclarativeVideoRendererBackend::present(const QVideoFrame &frame)
     q->update();
 }
 
-void QDeclarativeVideoRendererBackend::stop()
+void QDeclarativeVideoBackend::stop()
 {
     present(QVideoFrame());
 }
 
-QSGVideoItemSurface::QSGVideoItemSurface(QDeclarativeVideoRendererBackend *backend, QObject *parent)
+QSGVideoItemSurface::QSGVideoItemSurface(QDeclarativeVideoBackend *backend, QObject *parent)
     : QAbstractVideoSurface(parent),
       m_backend(backend)
 {

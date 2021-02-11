@@ -89,6 +89,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(qreal minimumZoomFactor READ minimumZoomFactor)
     Q_PROPERTY(qreal maximumZoomFactor READ maximumZoomFactor)
     Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
+    Q_PROPERTY(QObject *mediaSource READ mediaSource CONSTANT);
 
     Q_PROPERTY(QDeclarativeCameraCapture* imageCapture READ imageCapture CONSTANT)
     Q_PROPERTY(QDeclarativeCameraRecorder* videoRecorder READ videoRecorder CONSTANT)

@@ -56,7 +56,6 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
-#include <QtMultimedia/qcamerainfo.h>
 #include <QtMultimedia/qabstractvideofilter.h>
 
 #include <private/qtmultimediaquickdefs_p.h>
@@ -106,10 +105,10 @@ public:
     QDeclarativeVideoOutput(QQuickItem *parent = 0);
     ~QDeclarativeVideoOutput();
 
-    QAbstractVideoSurface *videoSurface() const;
-
     QObject *source() const { return m_source.data(); }
     void setSource(QObject *source);
+
+    Q_INVOKABLE QAbstractVideoSurface *videoSurface() const;
 
     FillMode fillMode() const;
     void setFillMode(FillMode mode);
@@ -160,27 +159,20 @@ protected:
     void releaseResources() override;
 
 private Q_SLOTS:
-    void _q_updateMediaSource();
-    void _q_updateCameraInfo();
     void _q_updateNativeSize();
     void _q_updateGeometry();
     void _q_screenOrientationChanged(int);
     void _q_invalidateSceneGraph();
 
 private:
-    bool createBackend(QMediaService *service);
+    bool createBackend();
 
     static void filter_append(QQmlListProperty<QAbstractVideoFilter> *property, QAbstractVideoFilter *value);
     static qsizetype filter_count(QQmlListProperty<QAbstractVideoFilter> *property);
     static QAbstractVideoFilter *filter_at(QQmlListProperty<QAbstractVideoFilter> *property, qsizetype index);
     static void filter_clear(QQmlListProperty<QAbstractVideoFilter> *property);
 
-    SourceType m_sourceType;
-
     QPointer<QObject> m_source;
-    QPointer<QMediaSource> m_mediaSource;
-    QPointer<QMediaService> m_service;
-    QCameraInfo m_cameraInfo;
 
     FillMode m_fillMode;
     QSize m_nativeSize;

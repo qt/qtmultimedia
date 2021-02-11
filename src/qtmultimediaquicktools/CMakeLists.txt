@@ -9,9 +9,7 @@ qt_add_module(MultimediaQuick
     INTERNAL_MODULE
     SOURCES
         qdeclarativevideooutput.cpp qdeclarativevideooutput_p.h
-        qdeclarativevideooutput_backend_p.h
         qdeclarativevideooutput_render.cpp qdeclarativevideooutput_render_p.h
-        qdeclarativevideooutput_window.cpp qdeclarativevideooutput_window_p.h
         qsgvideonode_p.cpp qsgvideonode_p.h
         qsgvideonode_rgb.cpp qsgvideonode_rgb_p.h
         qsgvideonode_texture.cpp qsgvideonode_texture_p.h

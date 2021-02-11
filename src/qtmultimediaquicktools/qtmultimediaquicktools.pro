@@ -5,20 +5,17 @@ CONFIG += internal_module
 
 PRIVATE_HEADERS += \
     qdeclarativevideooutput_p.h \
-    qdeclarativevideooutput_backend_p.h \
     qsgvideonode_p.h \
     qsgvideotexture_p.h \
     qtmultimediaquickdefs_p.h
 
 HEADERS += \
     $$PRIVATE_HEADERS \
-    qdeclarativevideooutput_window_p.h
 
 SOURCES += \
     qsgvideonode_p.cpp \
     qsgvideotexture.cpp \
     qdeclarativevideooutput.cpp \
-    qdeclarativevideooutput_window.cpp
 
 SOURCES += qdeclarativevideooutput_render.cpp \
            qsgvideonode_rgb.cpp \
