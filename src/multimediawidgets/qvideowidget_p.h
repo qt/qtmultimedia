@@ -64,46 +64,13 @@
 
 QT_BEGIN_NAMESPACE
 
-
-class QMediaService;
-
-class QVideoWidgetControlInterface
-{
-public:
-    virtual ~QVideoWidgetControlInterface() {}
-
-    virtual void setBrightness(int brightness) = 0;
-    virtual void setContrast(int contrast) = 0;
-    virtual void setHue(int hue) = 0;
-    virtual void setSaturation(int saturation) = 0;
-
-    virtual void setFullScreen(bool fullScreen) = 0;
-
-    virtual Qt::AspectRatioMode aspectRatioMode() const = 0;
-    virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
-};
-
-class QVideoWidgetBackend : public QObject, public QVideoWidgetControlInterface
-{
-    Q_OBJECT
-public:
-    virtual QSize sizeHint() const = 0;
-
-    virtual void showEvent() = 0;
-    virtual void hideEvent(QHideEvent *event) = 0;
-    virtual void resizeEvent(QResizeEvent *event) = 0;
-    virtual void moveEvent(QMoveEvent *event) = 0;
-    virtual void paintEvent(QPaintEvent *event) = 0;
-};
-
-
 class QVideoRendererControl;
 
-class QRendererVideoWidgetBackend : public QVideoWidgetBackend
+class QRendererVideoWidgetBackend : public QObject
 {
     Q_OBJECT
 public:
-    QRendererVideoWidgetBackend(QMediaService *service, QVideoRendererControl *control, QWidget *widget);
+    QRendererVideoWidgetBackend(QWidget *widget);
     ~QRendererVideoWidgetBackend();
 
     QAbstractVideoSurface *videoSurface() const;
@@ -111,23 +78,23 @@ public:
     void releaseControl();
     void clearSurface();
 
-    void setBrightness(int brightness) override;
-    void setContrast(int contrast) override;
-    void setHue(int hue) override;
-    void setSaturation(int saturation) override;
+    void setBrightness(int brightness);
+    void setContrast(int contrast);
+    void setHue(int hue);
+    void setSaturation(int saturation);
 
-    void setFullScreen(bool fullScreen) override;
+    void setFullScreen(bool fullScreen);
 
-    Qt::AspectRatioMode aspectRatioMode() const override;
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
+    Qt::AspectRatioMode aspectRatioMode() const;
+    void setAspectRatioMode(Qt::AspectRatioMode mode);
 
-    QSize sizeHint() const override;
+    QSize sizeHint() const;
 
-    void showEvent() override;
-    void hideEvent(QHideEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
-    void moveEvent(QMoveEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
+    void showEvent();
+    void hideEvent(QHideEvent *event);
+    void resizeEvent(QResizeEvent *event);
+    void moveEvent(QMoveEvent *event);
+    void paintEvent(QPaintEvent *event);
 
 Q_SIGNALS:
     void fullScreenChanged(bool fullScreen);
@@ -143,7 +110,6 @@ private Q_SLOTS:
 private:
     void updateRects();
 
-    QMediaService *m_service;
     QVideoRendererControl *m_rendererControl;
     QWidget *m_widget;
     QPainterVideoSurface *m_surface;
@@ -154,45 +120,6 @@ private:
     bool m_updatePaintDevice;
 };
 
-class QVideoWindowControl;
-
-class QWindowVideoWidgetBackend : public QVideoWidgetBackend
-{
-    Q_OBJECT
-public:
-    QWindowVideoWidgetBackend(QMediaService *service, QVideoWindowControl *control, QWidget *widget);
-    ~QWindowVideoWidgetBackend();
-
-    void releaseControl();
-
-    void setBrightness(int brightness) override;
-    void setContrast(int contrast) override;
-    void setHue(int hue) override;
-    void setSaturation(int saturation) override;
-
-   void setFullScreen(bool fullScreen) override;
-
-    Qt::AspectRatioMode aspectRatioMode() const override;
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
-
-    QSize sizeHint() const override;
-
-    void showEvent() override;
-    void hideEvent(QHideEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
-    void moveEvent(QMoveEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
-
-private:
-    void updateDisplayRect();
-
-    QMediaService *m_service;
-    QVideoWindowControl *m_windowControl;
-    QWidget *m_widget;
-    QSize m_pixelAspectRatio;
-};
-
-class QMediaService;
 class QVideoOutputControl;
 
 class QVideoWidgetPrivate
@@ -200,12 +127,7 @@ class QVideoWidgetPrivate
     Q_DECLARE_PUBLIC(QVideoWidget)
 public:
     QVideoWidget *q_ptr = nullptr;
-    QPointer<QMediaSource> mediaSource;
-    QMediaService *service = nullptr;
-    QWindowVideoWidgetBackend *windowBackend = nullptr;
-    QRendererVideoWidgetBackend *rendererBackend = nullptr;
-    QVideoWidgetControlInterface *currentControl = nullptr;
-    QVideoWidgetBackend *currentBackend = nullptr;
+    QRendererVideoWidgetBackend *backend = nullptr;
     int brightness = 0;
     int contrast = 0;
     int hue = 0;
@@ -214,13 +136,8 @@ public:
     Qt::WindowFlags nonFullScreenFlags;
     bool wasFullScreen = false;
 
-    bool createWindowBackend();
-    bool createRendererBackend();
+    bool createBackend();
 
-    void setCurrentControl(QVideoWidgetControlInterface *control);
-    void clearService();
-
-    void _q_serviceDestroyed();
     void _q_brightnessChanged(int brightness);
     void _q_contrastChanged(int contrast);
     void _q_hueChanged(int hue);
