@@ -176,30 +176,15 @@ void QDeclarativeAudio::setVideoOutput(const QVariant &v)
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia::Audio::availability
+    \qmlproperty bool QtMultimedia::Audio::isAvailable
 
     Returns the availability state of the media player.
-
-    This is one of:
-    \table
-    \header \li Value \li Description
-    \row \li Available
-        \li The media player is available to use.
-    \row \li Busy
-        \li The media player is usually available, but some other
-           process is utilizing the hardware necessary to play media.
-    \row \li Unavailable
-        \li There are no supported media playback facilities.
-    \row \li ResourceMissing
-        \li There is one or more resources missing, so the media player cannot
-           be used.  It may be possible to try again at a later time.
-    \endtable
  */
-QDeclarativeAudio::Availability QDeclarativeAudio::availability() const
+bool QDeclarativeAudio::isAvailable() const
 {
     if (!m_player)
-        return Unavailable;
-    return Availability(m_player->availability());
+        return false;
+    return m_player->isAvailable();
 }
 
 /*!
@@ -884,7 +869,7 @@ void QDeclarativeAudio::classBegin()
     connect(m_player, SIGNAL(notifyIntervalChanged(int)),
             this, SIGNAL(notifyIntervalChanged()));
 
-    m_error = m_player->availability() == QMultimedia::ServiceMissing ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
+    m_error = !m_player->isAvailable() ? QMediaPlayer::ServiceMissingError : QMediaPlayer::NoError;
 
     m_metaData.reset(new QDeclarativeMediaMetaData(m_player));
 

@@ -153,266 +153,268 @@ class QDeclarativeMediaMetaData : public QObject
 //    Q_PROPERTY(QVariant gpsAreaInformation READ gpsAreaInformation WRITE setGPSAreaInformation NOTIFY metaDataChanged)
 
 public:
-    QDeclarativeMediaMetaData(QMediaSource *player, QObject *parent = 0)
+    QDeclarativeMediaMetaData(QObject *player, QObject *parent = 0)
         : QObject(parent)
         , m_mediaSource(player)
     {
         connect(player, SIGNAL(metaDataChanged()), this, SIGNAL(metaDataChanged()));
+        connect(player, SIGNAL(metaDataChanged()), this, SLOT(updateMetaData()));
         auto *mo = player->metaObject();
-        int idx = mo->indexOfMethod("addMetaData");
+        int idx = mo->indexOfProperty("metaData");
         if (idx >= 0)
-            setter = mo->method(idx);
+            m_property = mo->property(idx);
+        updateMetaData();
     }
 
     ~QDeclarativeMediaMetaData()
     {
     }
 
-    QVariant title() const { return m_mediaSource->metaData().value(QMediaMetaData::Title); }
+    QVariant title() const { return metaData.value(QMediaMetaData::Title); }
     void setTitle(const QVariant &title) { setMetaData(QMediaMetaData::Title, title); }
-    QVariant author() const { return m_mediaSource->metaData().value(QMediaMetaData::Author); }
+    QVariant author() const { return metaData.value(QMediaMetaData::Author); }
     void setAuthor(const QVariant &author) { setMetaData(QMediaMetaData::Author, author); }
-    QVariant comment() const { return m_mediaSource->metaData().value(QMediaMetaData::Comment); }
+    QVariant comment() const { return metaData.value(QMediaMetaData::Comment); }
     void setComment(const QVariant &comment) { setMetaData(QMediaMetaData::Comment, comment); }
-    QVariant description() const { return m_mediaSource->metaData().value(QMediaMetaData::Description); }
+    QVariant description() const { return metaData.value(QMediaMetaData::Description); }
     void setDescription(const QVariant &description) {
         setMetaData(QMediaMetaData::Description, description); }
-    QVariant genre() const { return m_mediaSource->metaData().value(QMediaMetaData::Genre); }
+    QVariant genre() const { return metaData.value(QMediaMetaData::Genre); }
     void setGenre(const QVariant &genre) { setMetaData(QMediaMetaData::Genre, genre); }
-    QVariant year() const { return m_mediaSource->metaData().value(QMediaMetaData::Year); }
+    QVariant year() const { return metaData.value(QMediaMetaData::Year); }
     void setYear(const QVariant &year) { setMetaData(QMediaMetaData::Year, year); }
-    QVariant date() const { return m_mediaSource->metaData().value(QMediaMetaData::Date); }
+    QVariant date() const { return metaData.value(QMediaMetaData::Date); }
     void setDate(const QVariant &date) { setMetaData(QMediaMetaData::Date, date); }
-//    QVariant userRating() const { return m_mediaSource->metaData().value(QMediaMetaData::UserRating); }
+//    QVariant userRating() const { return metaData.value(QMediaMetaData::UserRating); }
 //    void setUserRating(const QVariant &rating) { setMetaData(QMediaMetaData::UserRating, rating); }
-//    QVariant keywords() const { return m_mediaSource->metaData().value(QMediaMetaData::Keywords); }
+//    QVariant keywords() const { return metaData.value(QMediaMetaData::Keywords); }
 //    void setKeywords(const QVariant &keywords) { setMetaData(QMediaMetaData::Keywords, keywords); }
-//    QVariant language() const { return m_mediaSource->metaData().value(QMediaMetaData::Language); }
+//    QVariant language() const { return metaData.value(QMediaMetaData::Language); }
 //    void setLanguage(const QVariant &language) { setMetaData(QMediaMetaData::Language, language); }
-//    QVariant publisher() const { return m_mediaSource->metaData().value(QMediaMetaData::Publisher); }
+//    QVariant publisher() const { return metaData.value(QMediaMetaData::Publisher); }
 //    void setPublisher(const QVariant &publisher) {
 //        setMetaData(QMediaMetaData::Publisher, publisher); }
-//    QVariant copyright() const { return m_mediaSource->metaData().value(QMediaMetaData::Copyright); }
+//    QVariant copyright() const { return metaData.value(QMediaMetaData::Copyright); }
 //    void setCopyright(const QVariant &copyright) {
 //        setMetaData(QMediaMetaData::Copyright, copyright); }
-//    QVariant parentalRating() const { return m_mediaSource->metaData().value(QMediaMetaData::ParentalRating); }
+//    QVariant parentalRating() const { return metaData.value(QMediaMetaData::ParentalRating); }
 //    void setParentalRating(const QVariant &rating) {
 //        setMetaData(QMediaMetaData::ParentalRating, rating); }
 //    QVariant ratingOrganization() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::RatingOrganization); }
+//        return metaData.value(QMediaMetaData::RatingOrganization); }
 //    void setRatingOrganization(const QVariant &organization) {
 //        setMetaData(QMediaMetaData::RatingOrganization, organization); }
-//    QVariant size() const { return m_mediaSource->metaData().value(QMediaMetaData::Size); }
+//    QVariant size() const { return metaData.value(QMediaMetaData::Size); }
 //    void setSize(const QVariant &size) { setMetaData(QMediaMetaData::Size, size); }
-//    QVariant mediaType() const { return m_mediaSource->metaData().value(QMediaMetaData::MediaType); }
+//    QVariant mediaType() const { return metaData.value(QMediaMetaData::MediaType); }
 //    void setMediaType(const QVariant &type) { setMetaData(QMediaMetaData::MediaType, type); }
-//    QVariant duration() const { return m_mediaSource->metaData().value(QMediaMetaData::Duration); }
+//    QVariant duration() const { return metaData.value(QMediaMetaData::Duration); }
 //    void setDuration(const QVariant &duration) { setMetaData(QMediaMetaData::Duration, duration); }
-//    QVariant audioBitRate() const { return m_mediaSource->metaData().value(QMediaMetaData::AudioBitRate); }
+//    QVariant audioBitRate() const { return metaData.value(QMediaMetaData::AudioBitRate); }
 //    void setAudioBitRate(const QVariant &rate) { setMetaData(QMediaMetaData::AudioBitRate, rate); }
-//    QVariant audioCodec() const { return m_mediaSource->metaData().value(QMediaMetaData::AudioCodec); }
+//    QVariant audioCodec() const { return metaData.value(QMediaMetaData::AudioCodec); }
 //    void setAudioCodec(const QVariant &codec) { setMetaData(QMediaMetaData::AudioCodec, codec); }
-//    QVariant averageLevel() const { return m_mediaSource->metaData().value(QMediaMetaData::AverageLevel); }
+//    QVariant averageLevel() const { return metaData.value(QMediaMetaData::AverageLevel); }
 //    void setAverageLevel(const QVariant &level) {
 //        setMetaData(QMediaMetaData::AverageLevel, level); }
-//    QVariant channelCount() const { return m_mediaSource->metaData().value(QMediaMetaData::ChannelCount); }
+//    QVariant channelCount() const { return metaData.value(QMediaMetaData::ChannelCount); }
 //    void setChannelCount(const QVariant &count) {
 //        setMetaData(QMediaMetaData::ChannelCount, count); }
-//    QVariant peakValue() const { return m_mediaSource->metaData().value(QMediaMetaData::PeakValue); }
+//    QVariant peakValue() const { return metaData.value(QMediaMetaData::PeakValue); }
 //    void setPeakValue(const QVariant &value) { setMetaData(QMediaMetaData::PeakValue, value); }
-//    QVariant sampleRate() const { return m_mediaSource->metaData().value(QMediaMetaData::SampleRate); }
+//    QVariant sampleRate() const { return metaData.value(QMediaMetaData::SampleRate); }
 //    void setSampleRate(const QVariant &rate) { setMetaData(QMediaMetaData::SampleRate, rate); }
-//    QVariant albumTitle() const { return m_mediaSource->metaData().value(QMediaMetaData::AlbumTitle); }
+//    QVariant albumTitle() const { return metaData.value(QMediaMetaData::AlbumTitle); }
 //    void setAlbumTitle(const QVariant &title) { setMetaData(QMediaMetaData::AlbumTitle, title); }
-//    QVariant albumArtist() const { return m_mediaSource->metaData().value(QMediaMetaData::AlbumArtist); }
+//    QVariant albumArtist() const { return metaData.value(QMediaMetaData::AlbumArtist); }
 //    void setAlbumArtist(const QVariant &artist) {
 //        setMetaData(QMediaMetaData::AlbumArtist, artist); }
 //    QVariant contributingArtist() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::ContributingArtist); }
+//        return metaData.value(QMediaMetaData::ContributingArtist); }
 //    void setContributingArtist(const QVariant &artist) {
 //        setMetaData(QMediaMetaData::ContributingArtist, artist); }
-//    QVariant composer() const { return m_mediaSource->metaData().value(QMediaMetaData::Composer); }
+//    QVariant composer() const { return metaData.value(QMediaMetaData::Composer); }
 //    void setComposer(const QVariant &composer) { setMetaData(QMediaMetaData::Composer, composer); }
-//    QVariant conductor() const { return m_mediaSource->metaData().value(QMediaMetaData::Conductor); }
+//    QVariant conductor() const { return metaData.value(QMediaMetaData::Conductor); }
 //    void setConductor(const QVariant &conductor) {
 //        setMetaData(QMediaMetaData::Conductor, conductor); }
-//    QVariant lyrics() const { return m_mediaSource->metaData().value(QMediaMetaData::Lyrics); }
+//    QVariant lyrics() const { return metaData.value(QMediaMetaData::Lyrics); }
 //    void setLyrics(const QVariant &lyrics) { setMetaData(QMediaMetaData::Lyrics, lyrics); }
-//    QVariant mood() const { return m_mediaSource->metaData().value(QMediaMetaData::Mood); }
+//    QVariant mood() const { return metaData.value(QMediaMetaData::Mood); }
 //    void setMood(const QVariant &mood) { setMetaData(QMediaMetaData::Mood, mood); }
-//    QVariant trackNumber() const { return m_mediaSource->metaData().value(QMediaMetaData::TrackNumber); }
+//    QVariant trackNumber() const { return metaData.value(QMediaMetaData::TrackNumber); }
 //    void setTrackNumber(const QVariant &track) { setMetaData(QMediaMetaData::TrackNumber, track); }
-//    QVariant trackCount() const { return m_mediaSource->metaData().value(QMediaMetaData::TrackCount); }
+//    QVariant trackCount() const { return metaData.value(QMediaMetaData::TrackCount); }
 //    void setTrackCount(const QVariant &count) { setMetaData(QMediaMetaData::TrackCount, count); }
 //    QVariant coverArtUrlSmall() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::CoverArtUrlSmall); }
+//        return metaData.value(QMediaMetaData::CoverArtUrlSmall); }
 //    void setCoverArtUrlSmall(const QVariant &url) {
 //        setMetaData(QMediaMetaData::CoverArtUrlSmall, url); }
 //    QVariant coverArtUrlLarge() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::CoverArtUrlLarge); }
+//        return metaData.value(QMediaMetaData::CoverArtUrlLarge); }
 //    void setCoverArtUrlLarge(const QVariant &url) {
 //        setMetaData(QMediaMetaData::CoverArtUrlLarge, url); }
-//    QVariant resolution() const { return m_mediaSource->metaData().value(QMediaMetaData::Resolution); }
+//    QVariant resolution() const { return metaData.value(QMediaMetaData::Resolution); }
 //    void setResolution(const QVariant &resolution) {
 //        setMetaData(QMediaMetaData::Resolution, resolution); }
 //    QVariant pixelAspectRatio() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::PixelAspectRatio); }
+//        return metaData.value(QMediaMetaData::PixelAspectRatio); }
 //    void setPixelAspectRatio(const QVariant &ratio) {
 //        setMetaData(QMediaMetaData::PixelAspectRatio, ratio); }
-//    QVariant videoFrameRate() const { return m_mediaSource->metaData().value(QMediaMetaData::VideoFrameRate); }
+//    QVariant videoFrameRate() const { return metaData.value(QMediaMetaData::VideoFrameRate); }
 //    void setVideoFrameRate(const QVariant &rate) {
 //        setMetaData(QMediaMetaData::VideoFrameRate, rate); }
-//    QVariant videoBitRate() const { return m_mediaSource->metaData().value(QMediaMetaData::VideoBitRate); }
+//    QVariant videoBitRate() const { return metaData.value(QMediaMetaData::VideoBitRate); }
 //    void setVideoBitRate(const QVariant &rate) {
 //        setMetaData(QMediaMetaData::VideoBitRate, rate); }
-//    QVariant videoCodec() const { return m_mediaSource->metaData().value(QMediaMetaData::VideoCodec); }
+//    QVariant videoCodec() const { return metaData.value(QMediaMetaData::VideoCodec); }
 //    void setVideoCodec(const QVariant &codec) {
 //        setMetaData(QMediaMetaData::VideoCodec, codec); }
-//    QVariant posterUrl() const { return m_mediaSource->metaData().value(QMediaMetaData::PosterUrl); }
+//    QVariant posterUrl() const { return metaData.value(QMediaMetaData::PosterUrl); }
 //    void setPosterUrl(const QVariant &url) {
 //        setMetaData(QMediaMetaData::PosterUrl, url); }
-//    QVariant chapterNumber() const { return m_mediaSource->metaData().value(QMediaMetaData::ChapterNumber); }
+//    QVariant chapterNumber() const { return metaData.value(QMediaMetaData::ChapterNumber); }
 //    void setChapterNumber(const QVariant &chapter) {
 //        setMetaData(QMediaMetaData::ChapterNumber, chapter); }
-//    QVariant director() const { return m_mediaSource->metaData().value(QMediaMetaData::Director); }
+//    QVariant director() const { return metaData.value(QMediaMetaData::Director); }
 //    void setDirector(const QVariant &director) { setMetaData(QMediaMetaData::Director, director); }
-//    QVariant leadPerformer() const { return m_mediaSource->metaData().value(QMediaMetaData::LeadPerformer); }
+//    QVariant leadPerformer() const { return metaData.value(QMediaMetaData::LeadPerformer); }
 //    void setLeadPerformer(const QVariant &performer) {
 //        setMetaData(QMediaMetaData::LeadPerformer, performer); }
-//    QVariant writer() const { return m_mediaSource->metaData().value(QMediaMetaData::Writer); }
+//    QVariant writer() const { return metaData.value(QMediaMetaData::Writer); }
 //    void setWriter(const QVariant &writer) { setMetaData(QMediaMetaData::Writer, writer); }
 
 //    QVariant cameraManufacturer() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::CameraManufacturer); }
+//        return metaData.value(QMediaMetaData::CameraManufacturer); }
 //    void setCameraManufacturer(const QVariant &manufacturer) {
 //        setMetaData(QMediaMetaData::CameraManufacturer, manufacturer); }
-//    QVariant cameraModel() const { return m_mediaSource->metaData().value(QMediaMetaData::CameraModel); }
+//    QVariant cameraModel() const { return metaData.value(QMediaMetaData::CameraModel); }
 //    void setCameraModel(const QVariant &model) { setMetaData(QMediaMetaData::CameraModel, model); }
 
 //QT_WARNING_PUSH
 //QT_WARNING_DISABLE_GCC("-Woverloaded-virtual")
 //QT_WARNING_DISABLE_CLANG("-Woverloaded-virtual")
-//    QVariant event() const { return m_mediaSource->metaData().value(QMediaMetaData::Event); }
+//    QVariant event() const { return metaData.value(QMediaMetaData::Event); }
 //QT_WARNING_POP
 
 //    void setEvent(const QVariant &event) { setMetaData(QMediaMetaData::Event, event); }
-//    QVariant subject() const { return m_mediaSource->metaData().value(QMediaMetaData::Subject); }
+//    QVariant subject() const { return metaData.value(QMediaMetaData::Subject); }
 //    void setSubject(const QVariant &subject) { setMetaData(QMediaMetaData::Subject, subject); }
-//    QVariant orientation() const { return m_mediaSource->metaData().value(QMediaMetaData::Orientation); }
+//    QVariant orientation() const { return metaData.value(QMediaMetaData::Orientation); }
 //    void setOrientation(const QVariant &orientation) {
 //        setMetaData(QMediaMetaData::Orientation, orientation); }
-//    QVariant exposureTime() const { return m_mediaSource->metaData().value(QMediaMetaData::ExposureTime); }
+//    QVariant exposureTime() const { return metaData.value(QMediaMetaData::ExposureTime); }
 //    void setExposureTime(const QVariant &time) { setMetaData(QMediaMetaData::ExposureTime, time); }
-//    QVariant fNumber() const { return m_mediaSource->metaData().value(QMediaMetaData::FNumber); }
+//    QVariant fNumber() const { return metaData.value(QMediaMetaData::FNumber); }
 //    void setFNumber(const QVariant &number) { setMetaData(QMediaMetaData::FNumber, number); }
 //    QVariant exposureProgram() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::ExposureProgram); }
+//        return metaData.value(QMediaMetaData::ExposureProgram); }
 //    void setExposureProgram(const QVariant &program) {
 //        setMetaData(QMediaMetaData::ExposureProgram, program); }
 //    QVariant isoSpeedRatings() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::ISOSpeedRatings); }
+//        return metaData.value(QMediaMetaData::ISOSpeedRatings); }
 //    void setISOSpeedRatings(const QVariant &ratings) {
 //        setMetaData(QMediaMetaData::ISOSpeedRatings, ratings); }
 //    QVariant exposureBiasValue() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::ExposureBiasValue); }
+//        return metaData.value(QMediaMetaData::ExposureBiasValue); }
 //    void setExposureBiasValue(const QVariant &bias) {
 //        setMetaData(QMediaMetaData::ExposureBiasValue, bias); }
 //    QVariant dateTimeOriginal() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::DateTimeOriginal); }
+//        return metaData.value(QMediaMetaData::DateTimeOriginal); }
 //    void setDateTimeOriginal(const QVariant &dateTime) {
 //        setMetaData(QMediaMetaData::DateTimeOriginal, dateTime); }
 //    QVariant dateTimeDigitized() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::DateTimeDigitized); }
+//        return metaData.value(QMediaMetaData::DateTimeDigitized); }
 //    void setDateTimeDigitized(const QVariant &dateTime) {
 //        setMetaData(QMediaMetaData::DateTimeDigitized, dateTime); }
 //    QVariant subjectDistance() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::SubjectDistance); }
+//        return metaData.value(QMediaMetaData::SubjectDistance); }
 //    void setSubjectDistance(const QVariant &distance) {
 //        setMetaData(QMediaMetaData::SubjectDistance, distance); }
-//    QVariant lightSource() const { return m_mediaSource->metaData().value(QMediaMetaData::LightSource); }
+//    QVariant lightSource() const { return metaData.value(QMediaMetaData::LightSource); }
 //    void setLightSource(const QVariant &source) {
 //        setMetaData(QMediaMetaData::LightSource, source); }
-//    QVariant flash() const { return m_mediaSource->metaData().value(QMediaMetaData::Flash); }
+//    QVariant flash() const { return metaData.value(QMediaMetaData::Flash); }
 //    void setFlash(const QVariant &flash) { setMetaData(QMediaMetaData::Flash, flash); }
-//    QVariant focalLength() const { return m_mediaSource->metaData().value(QMediaMetaData::FocalLength); }
+//    QVariant focalLength() const { return metaData.value(QMediaMetaData::FocalLength); }
 //    void setFocalLength(const QVariant &length) {
 //        setMetaData(QMediaMetaData::FocalLength, length); }
-//    QVariant exposureMode() const { return m_mediaSource->metaData().value(QMediaMetaData::ExposureMode); }
+//    QVariant exposureMode() const { return metaData.value(QMediaMetaData::ExposureMode); }
 //    void setExposureMode(const QVariant &mode) {
 //        setMetaData(QMediaMetaData::ExposureMode, mode); }
-//    QVariant whiteBalance() const { return m_mediaSource->metaData().value(QMediaMetaData::WhiteBalance); }
+//    QVariant whiteBalance() const { return metaData.value(QMediaMetaData::WhiteBalance); }
 //    void setWhiteBalance(const QVariant &balance) {
 //        setMetaData(QMediaMetaData::WhiteBalance, balance); }
 //    QVariant digitalZoomRatio() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::DigitalZoomRatio); }
+//        return metaData.value(QMediaMetaData::DigitalZoomRatio); }
 //    void setDigitalZoomRatio(const QVariant &ratio) {
 //        setMetaData(QMediaMetaData::DigitalZoomRatio, ratio); }
 //    QVariant focalLengthIn35mmFilm() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::FocalLengthIn35mmFilm); }
+//        return metaData.value(QMediaMetaData::FocalLengthIn35mmFilm); }
 //    void setFocalLengthIn35mmFilm(const QVariant &length) {
 //        setMetaData(QMediaMetaData::FocalLengthIn35mmFilm, length); }
 //    QVariant sceneCaptureType() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::SceneCaptureType); }
+//        return metaData.value(QMediaMetaData::SceneCaptureType); }
 //    void setSceneCaptureType(const QVariant &type) {
 //        setMetaData(QMediaMetaData::SceneCaptureType, type); }
-//    QVariant gainControl() const { return m_mediaSource->metaData().value(QMediaMetaData::GainControl); }
+//    QVariant gainControl() const { return metaData.value(QMediaMetaData::GainControl); }
 //    void setGainControl(const QVariant &gain) { setMetaData(QMediaMetaData::GainControl, gain); }
-//    QVariant contrast() const { return m_mediaSource->metaData().value(QMediaMetaData::Contrast); }
+//    QVariant contrast() const { return metaData.value(QMediaMetaData::Contrast); }
 //    void setContrast(const QVariant &contrast) { setMetaData(QMediaMetaData::Contrast, contrast); }
-//    QVariant saturation() const { return m_mediaSource->metaData().value(QMediaMetaData::Saturation); }
+//    QVariant saturation() const { return metaData.value(QMediaMetaData::Saturation); }
 //    void setSaturation(const QVariant &saturation) {
 //        setMetaData(QMediaMetaData::Saturation, saturation); }
-//    QVariant sharpness() const { return m_mediaSource->metaData().value(QMediaMetaData::Sharpness); }
+//    QVariant sharpness() const { return metaData.value(QMediaMetaData::Sharpness); }
 //    void setSharpness(const QVariant &sharpness) {
 //        setMetaData(QMediaMetaData::Sharpness, sharpness); }
 //    QVariant deviceSettingDescription() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::DeviceSettingDescription); }
+//        return metaData.value(QMediaMetaData::DeviceSettingDescription); }
 //    void setDeviceSettingDescription(const QVariant &description) {
 //        setMetaData(QMediaMetaData::DeviceSettingDescription, description); }
 
-//    QVariant gpsLatitude() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSLatitude); }
+//    QVariant gpsLatitude() const { return metaData.value(QMediaMetaData::GPSLatitude); }
 //    void setGPSLatitude(const QVariant &latitude) {
 //        setMetaData(QMediaMetaData::GPSLatitude, latitude); }
-//    QVariant gpsLongitude() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSLongitude); }
+//    QVariant gpsLongitude() const { return metaData.value(QMediaMetaData::GPSLongitude); }
 //    void setGPSLongitude(const QVariant &longitude) {
 //        setMetaData(QMediaMetaData::GPSLongitude, longitude); }
-//    QVariant gpsAltitude() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSAltitude); }
+//    QVariant gpsAltitude() const { return metaData.value(QMediaMetaData::GPSAltitude); }
 //    void setGPSAltitude(const QVariant &altitude) {
 //        setMetaData(QMediaMetaData::GPSAltitude, altitude); }
-//    QVariant gpsTimeStamp() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSTimeStamp); }
+//    QVariant gpsTimeStamp() const { return metaData.value(QMediaMetaData::GPSTimeStamp); }
 //    void setGPSTimeStamp(const QVariant &timestamp) {
 //        setMetaData(QMediaMetaData::GPSTimeStamp, timestamp); }
 //    QVariant gpsSatellites() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::GPSSatellites); }
+//        return metaData.value(QMediaMetaData::GPSSatellites); }
 //    void setGPSSatellites(const QVariant &satellites) {
 //        setMetaData(QMediaMetaData::GPSSatellites, satellites); }
-//    QVariant gpsStatus() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSStatus); }
+//    QVariant gpsStatus() const { return metaData.value(QMediaMetaData::GPSStatus); }
 //    void setGPSStatus(const QVariant &status) { setMetaData(QMediaMetaData::GPSStatus, status); }
-//    QVariant gpsDOP() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSDOP); }
+//    QVariant gpsDOP() const { return metaData.value(QMediaMetaData::GPSDOP); }
 //    void setGPSDOP(const QVariant &dop) { setMetaData(QMediaMetaData::GPSDOP, dop); }
-//    QVariant gpsSpeed() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSSpeed); }
+//    QVariant gpsSpeed() const { return metaData.value(QMediaMetaData::GPSSpeed); }
 //    void setGPSSpeed(const QVariant &speed) { setMetaData(QMediaMetaData::GPSSpeed, speed); }
-//    QVariant gpsTrack() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSTrack); }
+//    QVariant gpsTrack() const { return metaData.value(QMediaMetaData::GPSTrack); }
 //    void setGPSTrack(const QVariant &track) { setMetaData(QMediaMetaData::GPSTrack, track); }
-//    QVariant gpsTrackRef() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSTrackRef); }
+//    QVariant gpsTrackRef() const { return metaData.value(QMediaMetaData::GPSTrackRef); }
 //    void setGPSTrackRef(const QVariant &ref) { setMetaData(QMediaMetaData::GPSTrackRef, ref); }
 //    QVariant gpsImgDirection() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::GPSImgDirection); }
+//        return metaData.value(QMediaMetaData::GPSImgDirection); }
 //    void setGPSImgDirection(const QVariant &direction) {
 //        setMetaData(QMediaMetaData::GPSImgDirection, direction); }
 //    QVariant gpsImgDirectionRef() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::GPSImgDirectionRef); }
+//        return metaData.value(QMediaMetaData::GPSImgDirectionRef); }
 //    void setGPSImgDirectionRef(const QVariant &ref) {
 //        setMetaData(QMediaMetaData::GPSImgDirectionRef, ref); }
-//    QVariant gpsMapDatum() const { return m_mediaSource->metaData().value(QMediaMetaData::GPSMapDatum); }
+//    QVariant gpsMapDatum() const { return metaData.value(QMediaMetaData::GPSMapDatum); }
 //    void setGPSMapDatum(const QVariant &datum) {
 //        setMetaData(QMediaMetaData::GPSMapDatum, datum); }
 //    QVariant gpsProcessingMethod() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::GPSProcessingMethod); }
+//        return metaData.value(QMediaMetaData::GPSProcessingMethod); }
 //    void setGPSProcessingMethod(const QVariant &method) {
 //        setMetaData(QMediaMetaData::GPSProcessingMethod, method); }
 //    QVariant gpsAreaInformation() const {
-//        return m_mediaSource->metaData().value(QMediaMetaData::GPSAreaInformation); }
+//        return metaData.value(QMediaMetaData::GPSAreaInformation); }
 //    void setGPSAreaInformation(const QVariant &information) {
 //        setMetaData(QMediaMetaData::GPSAreaInformation, information); }
 
@@ -422,15 +424,22 @@ Q_SIGNALS:
 private:
     void setMetaData(QMediaMetaData::Key key, const QVariant &value)
     {
-        if (!setter.isValid())
-            return;
-        QMediaMetaData metaData;
         metaData.insert(key, value);
-        setter.invoke(m_mediaSource, Q_ARG(QMediaMetaData, metaData));
+        if (!m_property.isValid() || !m_property.isWritable())
+            return;
+        m_property.write(m_mediaSource, QVariant::fromValue(metaData));
     }
 
-    QMetaMethod setter;
-    QMediaSource *m_mediaSource;
+    void updateMetaData()
+    {
+        if (!m_property.isValid() || !m_property.isReadable())
+            return;
+        metaData = m_property.read(m_mediaSource).value<QMediaMetaData>();
+    }
+
+    QMetaProperty m_property;
+    QObject *m_mediaSource;
+    QMediaMetaData metaData;
 };
 
 QT_END_NAMESPACE

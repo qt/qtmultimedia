@@ -133,11 +133,6 @@ public:
         StoppedState = QMediaPlayer::StoppedState
     };
 
-    enum Availability {
-        Available = QMultimedia::Available,
-        Unavailable = QMultimedia::ServiceMissing
-    };
-
     enum AudioRole {
         UnknownRole = QAudio::UnknownRole,
         AccessibilityRole = QAudio::AccessibilityRole,
@@ -171,7 +166,7 @@ public:
 
     QObject *mediaSource() { return m_player; }
 
-    Availability availability() const;
+    bool isAvailable() const;
 
     AudioRole audioRole() const;
     void setAudioRole(AudioRole audioRole);

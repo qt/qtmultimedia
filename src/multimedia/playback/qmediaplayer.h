@@ -40,8 +40,8 @@
 #ifndef QMEDIAPLAYER_H
 #define QMEDIAPLAYER_H
 
+#include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qaudio.h>
 
@@ -50,9 +50,10 @@ QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
 class QAudioDeviceInfo;
+class QMediaMetaData;
 
 class QMediaPlayerPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
+class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged)
@@ -70,6 +71,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QMediaSource
     Q_PROPERTY(MediaStatus mediaStatus READ mediaStatus NOTIFY mediaStatusChanged)
     Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
     Q_PROPERTY(QString customAudioRole READ customAudioRole WRITE setCustomAudioRole NOTIFY customAudioRoleChanged)
+    Q_PROPERTY(QMediaMetaData metaData READ metaData NOTIFY metaDataChanged)
     Q_PROPERTY(QString error READ errorString)
     Q_ENUMS(State)
     Q_ENUMS(MediaStatus)
@@ -161,7 +163,8 @@ public:
     Error error() const;
     QString errorString() const;
 
-    QMultimedia::AvailabilityStatus availability() const override;
+    bool isAvailable() const;
+    QMediaMetaData metaData() const;
 
     QAudio::Role audioRole() const;
     void setAudioRole(QAudio::Role audioRole);
@@ -206,6 +209,8 @@ Q_SIGNALS:
 
     void audioRoleChanged(QAudio::Role role);
     void customAudioRoleChanged(const QString &role);
+
+    void metaDataChanged();
 
     void error(QMediaPlayer::Error error);
 

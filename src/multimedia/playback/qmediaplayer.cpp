@@ -279,10 +279,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 */
 
 QMediaPlayer::QMediaPlayer(QObject *parent):
-    QMediaSource(*new QMediaPlayerPrivate,
-                 parent,
-                 nullptr
-                 /*QMediaPlatformIntegration::instance()->createPlayerInterface()*/)
+    QObject(*new QMediaPlayerPrivate, parent)
 {
     Q_D(QMediaPlayer);
 
@@ -313,6 +310,7 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
     connect(d->control, &QMediaPlayerControl::seekableChanged, this, &QMediaPlayer::seekableChanged);
     connect(d->control, &QMediaPlayerControl::playbackRateChanged, this, &QMediaPlayer::playbackRateChanged);
     connect(d->control, &QMediaPlayerControl::bufferStatusChanged, this, &QMediaPlayer::bufferStatusChanged);
+    connect(d->control, &QMediaPlayerControl::metaDataChanged, this, &QMediaPlayer::metaDataChanged);
 
     d->state = d->control->state();
     d->status = d->control->mediaStatus();
@@ -767,14 +765,20 @@ void QMediaPlayer::setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces
 }
 
 /*! \reimp */
-QMultimedia::AvailabilityStatus QMediaPlayer::availability() const
+bool QMediaPlayer::isAvailable() const
 {
     Q_D(const QMediaPlayer);
 
     if (!d->control || !d->playerInterface)
-        return QMultimedia::ServiceMissing;
+        return false;
 
-    return QMultimedia::Available;
+    return true;
+}
+
+QMediaMetaData QMediaPlayer::metaData() const
+{
+    Q_D(const QMediaPlayer);
+    return d->control->metaData();
 }
 
 QAudio::Role QMediaPlayer::audioRole() const
