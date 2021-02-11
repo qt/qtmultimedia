@@ -70,27 +70,3 @@ QMediaPlayerControl *AVFMediaPlayerService::player()
 {
     return m_control;
 }
-
-QVideoRendererControl *AVFMediaPlayerService::createVideoRenderer()
-{
-    if (m_videoOutput)
-        return nullptr;
-
-    auto *control = new AVFVideoRendererControl(this);
-    m_videoOutput = control;
-
-    m_session->setVideoOutput(control);
-    return control;
-}
-
-QVideoWindowControl *AVFMediaPlayerService::createVideoWindow()
-{
-    if (m_videoOutput)
-        return nullptr;
-
-    auto *control = new AVFVideoWindowControl(this);
-    m_videoOutput = control;
-
-    m_session->setVideoOutput(control);
-    return control;
-}

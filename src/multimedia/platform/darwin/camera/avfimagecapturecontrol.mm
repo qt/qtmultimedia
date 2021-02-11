@@ -156,7 +156,7 @@ int AVFImageCaptureControl::capture(const QString &fileName)
         // not the same thread that initiated a capture and stopped the camera),
         // so we cannot reliably check the camera's status. Instead, we wait
         // with a timeout and treat a failure to acquire a semaphore as an error.
-        if (!m_service->videoOutput() || request.previewReady->tryAcquire(1, 1000)) {
+        if (!m_session->videoOutput() || request.previewReady->tryAcquire(1, 1000)) {
             qDebugCamera() << "Image capture completed";
 
             NSData *nsJpgData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];

@@ -67,9 +67,7 @@ public:
     QPainterVideoSurface *surface = nullptr;
     QPointer<QMediaSource> mediaSource;
     QMediaService *service = nullptr;
-    QVideoRendererControl *rendererControl = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
-    bool updatePaintDevice = true;
     QRectF rect;
     QRectF boundingRect;
     QRectF sourceRect;
@@ -86,12 +84,6 @@ public:
 
 void QGraphicsVideoItemPrivate::clearService()
 {
-    if (rendererControl) {
-        surface->stop();
-        rendererControl->setSurface(nullptr);
-        service->releaseControl(rendererControl);
-        rendererControl = nullptr;
-    }
     if (service) {
         QObject::disconnect(service, SIGNAL(destroyed()), q_ptr, SLOT(_q_serviceDestroyed()));
         service = nullptr;
@@ -152,7 +144,6 @@ void QGraphicsVideoItemPrivate::_q_updateNativeSize()
 
 void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
 {
-    rendererControl = nullptr;
     service = nullptr;
 
     surface->stop();
@@ -204,11 +195,6 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
 */
 QGraphicsVideoItem::~QGraphicsVideoItem()
 {
-    if (d_ptr->rendererControl) {
-        d_ptr->rendererControl->setSurface(nullptr);
-        d_ptr->service->releaseControl(d_ptr->rendererControl);
-    }
-
     delete d_ptr->surface;
     delete d_ptr;
 }
@@ -256,28 +242,6 @@ bool QGraphicsVideoItem::setMediaSource(QMediaSource *object)
 
     if (d->mediaSource) {
         d->service = d->mediaSource->service();
-
-        if (d->service) {
-            QObject *control = d->service->requestControl(QVideoRendererControl_iid);
-            if (control) {
-                d->rendererControl = qobject_cast<QVideoRendererControl *>(control);
-
-                if (d->rendererControl) {
-                    //don't set the surface until the item is painted
-                    //at least once and the surface is configured
-                    if (!d->updatePaintDevice)
-                        d->rendererControl->setSurface(d->surface);
-                    else
-                        update(boundingRect());
-
-                    connect(d->service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-                    return true;
-                }
-                if (control)
-                    d->service->releaseControl(control);
-            }
-        }
     }
 
     d->mediaSource = nullptr;
@@ -379,8 +343,7 @@ void QGraphicsVideoItem::paint(
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    if (d->surface && d->updatePaintDevice) {
-        d->updatePaintDevice = false;
+    if (d->surface) {
 #if QT_CONFIG(opengl)
         if (widget)
             connect(widget, SIGNAL(destroyed()), d->surface, SLOT(viewportDestroyed()));
@@ -396,8 +359,6 @@ void QGraphicsVideoItem::paint(
             }
         }
 #endif
-        if (d->rendererControl && d->rendererControl->surface() != d->surface)
-            d->rendererControl->setSurface(d->surface);
     }
 
     if (d->surface && d->surface->isActive()) {

@@ -58,15 +58,15 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
         m_cameraControl = new QGstreamerCameraControl(m_captureSession);
 
-        m_videoRenderer = new QGstreamerVideoRenderer(this);
+//        m_videoRenderer = new QGstreamerVideoRenderer(this);
 
-        m_videoWindow = new QGstreamerVideoWindow(this);
-        // If the GStreamer video sink is not available, don't provide the video window control since
-        // it won't work anyway.
-        if (!m_videoWindow->videoSink()) {
-            delete m_videoWindow;
-            m_videoWindow = 0;
-        }
+//        m_videoWindow = new QGstreamerVideoWindow(this);
+//        // If the GStreamer video sink is not available, don't provide the video window control since
+//        // it won't work anyway.
+//        if (!m_videoWindow->videoSink()) {
+//            delete m_videoWindow;
+//            m_videoWindow = 0;
+//        }
     }
 }
 
@@ -88,30 +88,11 @@ QObject *QGstreamerCaptureService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_captureSession->imageCaptureControl();
 
-    if (!m_videoOutput) {
-        if (qstrcmp(name, QVideoRendererControl_iid) == 0) {
-            m_videoOutput = m_videoRenderer;
-        } else if (qstrcmp(name, QVideoWindowControl_iid) == 0) {
-            m_videoOutput = m_videoWindow;
-        }
-
-        if (m_videoOutput) {
-            m_captureSession->setVideoPreview(m_videoOutput);
-            return m_videoOutput;
-        }
-    }
-
     return 0;
 }
 
-void QGstreamerCaptureService::releaseControl(QObject *control)
+void QGstreamerCaptureService::releaseControl(QObject *)
 {
-    if (!control) {
-        return;
-    } else if (control == m_videoOutput) {
-        m_videoOutput = 0;
-        m_captureSession->setVideoPreview(0);
-    }
 }
 
 QT_END_NAMESPACE

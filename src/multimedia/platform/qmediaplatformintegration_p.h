@@ -61,6 +61,7 @@ class QMediaPlatformCaptureInterface;
 class QMediaPlatformPlayerInterface;
 class QAudioDecoderControl;
 class QMediaPlatformFormatInfo;
+class QVideoRendererControl;
 
 class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
 {
@@ -77,7 +78,6 @@ public:
     virtual QAudioDecoderControl *createAudioDecoder() { return nullptr; }
     virtual QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
     virtual QMediaPlatformPlayerInterface *createPlayerInterface() { return nullptr; }
-
 };
 
 QT_END_NAMESPACE

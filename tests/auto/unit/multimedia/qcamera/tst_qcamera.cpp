@@ -800,7 +800,7 @@ void tst_QCamera::testSetVideoOutput()
     QCamera camera;
     auto *mockCameraService = integration->lastCaptureService();
 
-    camera.setViewfinder(static_cast<QMediaSink *>(nullptr));
+    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
 
     QCOMPARE(mockCameraService->rendererRef, 0);
 
@@ -808,7 +808,7 @@ void tst_QCamera::testSetVideoOutput()
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
     QCOMPARE(mockCameraService->rendererRef, 1);
 
-    camera.setViewfinder(reinterpret_cast<QAbstractVideoSurface *>(0));
+    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
     QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
 
     //rendererControl is released
@@ -818,7 +818,7 @@ void tst_QCamera::testSetVideoOutput()
     QVERIFY(mockCameraService->rendererControl->surface() == &surface);
     QCOMPARE(mockCameraService->rendererRef, 1);
 
-    camera.setViewfinder(static_cast<QMediaSink *>(nullptr));
+    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
     QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
     //rendererControl is released
     QCOMPARE(mockCameraService->rendererRef, 0);

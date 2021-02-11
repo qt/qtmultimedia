@@ -72,9 +72,10 @@ class QGstreamerMessage;
 class QGstreamerBusHelper;
 class QGstreamerImageCaptureControl;
 class QGstreamerRecorderControl;
-class QGstreamerVideoRendererInterface;
+class QGstreamerVideoRenderer;
 class QCameraInfo;
 class QGstreamerVideoInput;
+class QAbstractVideoSurface;
 
 class QGstreamerCaptureSession
         : public QObject
@@ -113,7 +114,7 @@ public:
     void setVideoDevice(const QCameraInfo &camera) { m_camera = camera; }
 
     QObject *videoPreview() const { return m_viewfinder; }
-    void setVideoPreview(QObject *viewfinder);
+    void setVideoPreview(QAbstractVideoSurface *viewfinder);
 
     void captureImage(int requestId, const QString &fileName);
 
@@ -179,7 +180,7 @@ private:
     QGstreamerMetaData m_metaData;
 
     QObject *m_viewfinder;
-    QGstreamerVideoRendererInterface *m_viewfinderInterface;
+    QGstreamerVideoRenderer *m_viewfinderInterface;
 
     QGstreamerImageCaptureControl *m_imageCaptureControl;
     QGstreamerRecorderControl *m_recorderControl;

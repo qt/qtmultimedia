@@ -52,7 +52,6 @@
 //
 
 #include "qmediasource_p.h"
-#include "qvideosurfaceoutput_p.h"
 #include "qcamera.h"
 #include "qcamerainfo.h"
 
@@ -103,8 +102,6 @@ public:
     bool supressLockChangedSignal;
 
     bool restartPending;
-
-    QVideoSurfaceOutput surfaceViewfinder;
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }

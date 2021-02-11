@@ -57,6 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
+class QAndroidCameraVideoRendererControl;
 
 class QAndroidCameraControl : public QCameraControl
 {
@@ -82,8 +83,11 @@ public:
     QCameraExposureControl *exposureControl() override;
     QCameraImageProcessingControl *imageProcessingControl() override;
 
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
+
 private:
     QAndroidCameraSession *m_cameraSession;
+    QAndroidCameraVideoRendererControl *m_renderer = nullptr;
 
     QTimer *m_recalculateTimer;
 };

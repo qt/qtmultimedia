@@ -43,7 +43,7 @@
 #include "private/qgstreamerdevicemanager_p.h"
 #include <qmediarecorder.h>
 #include <qmediadevicemanager.h>
-#include <private/qgstreamervideorendererinterface_p.h>
+#include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstutils_p.h>
@@ -702,40 +702,24 @@ bool QGstreamerCaptureSession::setOutputLocation(const QUrl& sink)
     return true;
 }
 
-void QGstreamerCaptureSession::setVideoPreview(QObject *viewfinder)
+void QGstreamerCaptureSession::setVideoPreview(QAbstractVideoSurface *surface)
 {
-    m_viewfinderInterface = qobject_cast<QGstreamerVideoRendererInterface*>(viewfinder);
-    if (!m_viewfinderInterface)
-        viewfinder = 0;
-
-    if (m_viewfinder != viewfinder) {
+    if (!m_viewfinderInterface) {
+        m_viewfinderInterface = new QGstreamerVideoRenderer;
         bool oldReady = isReady();
 
-        if (m_viewfinder) {
-            disconnect(m_viewfinder, SIGNAL(sinkChanged()),
-                       this, SIGNAL(viewfinderChanged()));
-            disconnect(m_viewfinder, SIGNAL(readyChanged(bool)),
-                       this, SIGNAL(readyChanged(bool)));
+        connect(m_viewfinder, SIGNAL(sinkChanged()),
+                   this, SIGNAL(viewfinderChanged()));
+        connect(m_viewfinder, SIGNAL(readyChanged(bool)),
+                this, SIGNAL(readyChanged(bool)));
 
-            m_busHelper->removeMessageFilter(m_viewfinder);
-        }
-
-        m_viewfinder = viewfinder;
-        //m_viewfinderHasChanged = true;
-
-        if (m_viewfinder) {
-            connect(m_viewfinder, SIGNAL(sinkChanged()),
-                       this, SIGNAL(viewfinderChanged()));
-            connect(m_viewfinder, SIGNAL(readyChanged(bool)),
-                    this, SIGNAL(readyChanged(bool)));
-
-            m_busHelper->installMessageFilter(m_viewfinder);
-        }
+        m_busHelper->installMessageFilter(m_viewfinder);
 
         emit viewfinderChanged();
         if (oldReady != isReady())
             emit readyChanged(isReady());
     }
+    m_viewfinderInterface->setSurface(surface);
 }
 
 bool QGstreamerCaptureSession::isReady() const

@@ -150,12 +150,12 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::start(const QVideoSurf
 
     const QAbstractVideoBuffer::HandleType t = format.handleType();
     if (t == QAbstractVideoBuffer::NoHandle) {
-        bool ok = m_imageFormat != QImage::Format_Invalid && !m_imageSize.isEmpty();
-#ifndef QT_NO_OPENGL
-        if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES)
-            ok &= format.pixelFormat() != QVideoFrame::Format_RGB24;
-#endif
-        if (ok)
+//        bool ok = m_imageFormat != QImage::Format_Invalid && !m_imageSize.isEmpty();
+//#ifndef QT_NO_OPENGL
+//        if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES)
+//            ok &= format.pixelFormat() != QVideoFrame::Format_RGB24;
+//#endif
+//        if (ok)
             return QAbstractVideoSurface::NoError;
     } else if (t == QAbstractVideoBuffer::QPixmapHandle) {
         return QAbstractVideoSurface::NoError;
@@ -186,12 +186,7 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::paint(
     if (m_frame.handleType() == QAbstractVideoBuffer::QPixmapHandle) {
         painter->drawPixmap(target, m_frame.handle().value<QPixmap>(), source);
     } else if (m_frame.map(QAbstractVideoBuffer::ReadOnly)) {
-        QImage image(
-                m_frame.bits(),
-                m_imageSize.width(),
-                m_imageSize.height(),
-                m_frame.bytesPerLine(),
-                m_imageFormat);
+        QImage image = m_frame.image();
 
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;

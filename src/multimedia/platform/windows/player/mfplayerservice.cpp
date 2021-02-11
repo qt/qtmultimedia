@@ -57,12 +57,6 @@ MFPlayerService::~MFPlayerService()
 {
     m_session->close();
 
-    if (m_videoWindowControl)
-        delete m_videoWindowControl;
-
-    if (m_videoRendererControl)
-        delete m_videoRendererControl;
-
     m_session->Release();
 
     //delete m_player;
@@ -71,32 +65,4 @@ MFPlayerService::~MFPlayerService()
 QMediaPlayerControl *MFPlayerService::player()
 {
     return m_player;
-}
-
-QVideoRendererControl *MFPlayerService::createVideoRenderer()
-{
-    if (!m_videoRendererControl && !m_videoWindowControl) {
-        m_videoRendererControl = new MFVideoRendererControl;
-        return m_videoRendererControl;
-    }
-    return nullptr;
-}
-
-QVideoWindowControl *MFPlayerService::createVideoWindow()
-{
-    if (!m_videoRendererControl && !m_videoWindowControl) {
-        m_videoWindowControl = new MFEvrVideoWindowControl;
-        return m_videoWindowControl;
-    }
-    return nullptr;
-}
-
-MFVideoRendererControl* MFPlayerService::videoRendererControl() const
-{
-    return m_videoRendererControl;
-}
-
-MFEvrVideoWindowControl* MFPlayerService::videoWindowControl() const
-{
-    return m_videoWindowControl;
 }

@@ -217,3 +217,8 @@ void AVFMediaPlayerControl::setMuted(bool muted)
 {
     m_session->setMuted(muted);
 }
+
+void AVFMediaPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_session->setVideoSurface(surface);
+}

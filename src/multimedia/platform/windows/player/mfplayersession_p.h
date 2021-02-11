@@ -128,6 +128,8 @@ public:
 
     QMediaMetaData metaData() const { return m_metaData; }
 
+    void setVideoSurface(QAbstractVideoSurface *surface);
+
 Q_SIGNALS:
     void error(QMediaPlayer::Error error, QString errorString, bool isFatal);
     void sessionEvent(IMFMediaEvent  *sessionEvent);
@@ -151,6 +153,7 @@ private Q_SLOTS:
 private:
     long m_cRef;
     MFPlayerService *m_playerService;
+    MFVideoRendererControl *m_videoRendererControl = nullptr;
     IMFMediaSession *m_session;
     IMFPresentationClock *m_presentationClock;
     IMFRateControl *m_rateControl;

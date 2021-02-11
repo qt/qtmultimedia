@@ -69,14 +69,9 @@ public:
     QMediaPlayerControl *player() override;
 //    QMediaStreamsControl *streams() override;
 
-    QVideoRendererControl *createVideoRenderer() override;
-    QVideoWindowControl *createVideoWindow() override;;
-
-
 private:
     AVFMediaPlayerSession *m_session = nullptr;
     AVFMediaPlayerControl *m_control = nullptr;
-    QObject *m_videoOutput = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -62,7 +62,6 @@ class QAndroidMediaRecorderControl;
 class QAndroidCaptureSession;
 class QAndroidCameraControl;
 class QAndroidCameraSession;
-class QAndroidCameraVideoRendererControl;
 class QAndroidCameraImageCaptureControl;
 
 class QAndroidCaptureService : public QMediaPlatformCaptureInterface
@@ -82,7 +81,6 @@ public:
     QAndroidCaptureSession *m_captureSession;
     QAndroidCameraControl *m_cameraControl;
     QAndroidCameraSession *m_cameraSession;
-    QAndroidCameraVideoRendererControl *m_videoRendererControl;
     QAndroidCameraImageCaptureControl *m_imageCaptureControl;
 };
 

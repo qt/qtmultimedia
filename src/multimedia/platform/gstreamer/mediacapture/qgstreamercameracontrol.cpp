@@ -39,6 +39,7 @@
 
 #include "qgstreamercameracontrol_p.h"
 #include "qgstreamerimagecapturecontrol_p.h"
+#include <qvideorenderercontrol.h>
 
 #include <qcamerainfo.h>
 
@@ -199,4 +200,9 @@ bool QGstreamerCameraControl::canChangeProperty(PropertyChangeType changeType, Q
     default:
         return false;
     }
+}
+
+void QGstreamerCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_session->setVideoPreview(surface);
 }

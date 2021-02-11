@@ -120,6 +120,7 @@ public:
         m_camera = camera;
     }
 
+    void setVideoSurface(QAbstractVideoSurface *) {}
 
     QCamera::State m_state;
     QCamera::CaptureModes m_captureMode;

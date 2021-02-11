@@ -51,22 +51,12 @@ QAndroidMediaService::QAndroidMediaService()
 
 QAndroidMediaService::~QAndroidMediaService()
 {
-    delete mVideoRendererControl;
     delete mMediaControl;
 }
 
 QMediaPlayerControl *QAndroidMediaService::player()
 {
     return mMediaControl;
-}
-
-QVideoRendererControl *QAndroidMediaService::createVideoRenderer()
-{
-    if (!mVideoRendererControl) {
-        mVideoRendererControl = new QAndroidMediaPlayerVideoRendererControl(mMediaControl);
-        return mVideoRendererControl;
-    }
-    return nullptr;
 }
 
 QT_END_NAMESPACE

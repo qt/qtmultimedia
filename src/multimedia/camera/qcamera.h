@@ -126,7 +126,7 @@ public:
     QCameraFocus *focus() const;
     QCameraImageProcessing *imageProcessing() const;
 
-    void setViewfinder(QMediaSink *viewfinder);
+    void setViewfinder(QObject *viewfinder);
     void setViewfinder(QAbstractVideoSurface *surface);
 
     Error error() const;

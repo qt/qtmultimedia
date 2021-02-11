@@ -73,6 +73,7 @@ class QGstreamerBusHelper;
 class QGstreamerMessage;
 
 class QGstreamerVideoRendererInterface;
+class QGstreamerVideoRenderer;
 
 typedef enum {
   GST_AUTOPLUG_SELECT_TRY,
@@ -108,7 +109,7 @@ public:
 
     bool isAudioAvailable() const;
 
-    void setVideoRenderer(QObject *renderer);
+    void setVideoRenderer(QAbstractVideoSurface *renderer);
     QGstreamerVideoRendererInterface *renderer() const { return m_renderer; }
     bool isVideoAvailable() const;
 
@@ -223,7 +224,7 @@ private:
     GstElement *m_volumeElement = nullptr;
 
     GstBus *m_bus = nullptr;
-    QObject *m_videoOutput = nullptr;
+    QGstreamerVideoRenderer *m_videoOutput = nullptr;
     QGstreamerVideoRendererInterface *m_renderer = nullptr;
 
 #if QT_CONFIG(gstreamer_app)

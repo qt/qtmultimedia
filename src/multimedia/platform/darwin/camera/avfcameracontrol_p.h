@@ -90,6 +90,8 @@ public:
     static QVideoFrame::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);
     static bool CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv);
 
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
+
     AVCaptureConnection *videoConnection() const;
 
 private Q_SLOTS:

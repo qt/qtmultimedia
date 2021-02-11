@@ -44,9 +44,6 @@
 
 #include "qgstreamerplayerservice_p.h"
 
-#include <private/qgstreamervideowindow_p.h>
-#include <private/qgstreamervideorenderer_p.h>
-
 #include "qgstreamerstreamscontrol_p.h"
 #include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamerplayercontrol_p.h>
@@ -59,14 +56,6 @@ QGstreamerPlayerService::QGstreamerPlayerService()
     m_session = new QGstreamerPlayerSession(this);
     m_control = new QGstreamerPlayerControl(m_session, this);
     m_streamsControl = new QGstreamerStreamsControl(m_session,this);
-    m_videoRenderer = new QGstreamerVideoRenderer(this);
-    m_videoWindow = new QGstreamerVideoWindow(this);
-   // If the GStreamer video sink is not available, don't provide the video window control since
-    // it won't work anyway.
-    if (!m_videoWindow->videoSink()) {
-        delete m_videoWindow;
-        m_videoWindow = 0;
-    }
 }
 
 QGstreamerPlayerService::~QGstreamerPlayerService()
@@ -86,40 +75,6 @@ QMediaPlayerControl *QGstreamerPlayerService::player()
 QMediaStreamsControl *QGstreamerPlayerService::streams()
 {
     return m_streamsControl;
-}
-
-QVideoRendererControl *QGstreamerPlayerService::createVideoRenderer()
-{
-    if (!m_videoOutput) {
-        m_videoOutput = m_videoRenderer;
-
-        increaseVideoRef();
-        m_control->setVideoOutput(m_videoOutput);
-        return m_videoRenderer;
-    }
-    return nullptr;
-}
-
-QVideoWindowControl *QGstreamerPlayerService::createVideoWindow()
-{
-    if (!m_videoOutput) {
-        m_videoOutput = m_videoWindow;
-
-        increaseVideoRef();
-        m_control->setVideoOutput(m_videoOutput);
-        return m_videoWindow;
-    }
-    return nullptr;
-}
-
-void QGstreamerPlayerService::increaseVideoRef()
-{
-    m_videoReferenceCount++;
-}
-
-void QGstreamerPlayerService::decreaseVideoRef()
-{
-    m_videoReferenceCount--;
 }
 
 QT_END_NAMESPACE

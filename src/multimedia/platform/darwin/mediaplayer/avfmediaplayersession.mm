@@ -40,6 +40,7 @@
 #include "avfmediaplayersession_p.h"
 #include "avfmediaplayerservice_p.h"
 #include "avfmediaplayercontrol_p.h"
+#include "avfvideorenderercontrol_p.h"
 #include "avfvideooutput_p.h"
 #include "avfmetadata_p.h"
 
@@ -483,6 +484,7 @@ AVFMediaPlayerSession::AVFMediaPlayerSession(AVFMediaPlayerService *service, QOb
     , m_seekable(false)
 {
     m_observer = [[AVFMediaPlayerSessionObserver alloc] initWithMediaPlayerSession:this];
+    setVideoOutput(new AVFVideoRendererControl(this));
 }
 
 AVFMediaPlayerSession::~AVFMediaPlayerSession()
@@ -495,7 +497,12 @@ AVFMediaPlayerSession::~AVFMediaPlayerSession()
     [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) release];
 }
 
-void AVFMediaPlayerSession::setVideoOutput(AVFVideoOutput *output)
+void AVFMediaPlayerSession::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_videoOutput->setSurface(surface);
+}
+
+void AVFMediaPlayerSession::setVideoOutput(AVFVideoRendererControl *output)
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO << output;

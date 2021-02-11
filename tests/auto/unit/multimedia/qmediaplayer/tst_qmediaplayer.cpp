@@ -977,7 +977,7 @@ void tst_QMediaPlayer::testSetVideoOutput()
 {
     MockVideoSurface surface;
 
-    player->setVideoOutput(static_cast<QMediaSink *>(nullptr));
+    player->setVideoOutput(static_cast<QObject *>(nullptr));
 
     QCOMPARE(mockService->rendererRef, 0);
 
@@ -995,7 +995,7 @@ void tst_QMediaPlayer::testSetVideoOutput()
     QVERIFY(mockService->rendererControl->surface() == &surface);
     QCOMPARE(mockService->rendererRef, 1);
 
-    player->setVideoOutput(static_cast<QMediaSink *>(nullptr));
+    player->setVideoOutput(static_cast<QObject *>(nullptr));
     QVERIFY(mockService->rendererControl->surface() == nullptr);
     //rendererControl is released
     QCOMPARE(mockService->rendererRef, 0);

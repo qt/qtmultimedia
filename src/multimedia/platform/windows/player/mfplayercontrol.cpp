@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "mfplayercontrol_p.h"
+#include "mfvideorenderercontrol_p.h"
 #include <qtcore/qdebug.h>
 
 //#define DEBUG_MEDIAFOUNDATION
@@ -137,6 +138,11 @@ bool MFPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
 QAudioDeviceInfo MFPlayerControl::audioOutput() const
 {
     return m_session->audioOutput();
+}
+
+void MFPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_session->setVideoSurface(surface);
 }
 
 void MFPlayerControl::changeState(QMediaPlayer::State state)

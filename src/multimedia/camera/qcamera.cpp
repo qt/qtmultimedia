@@ -46,6 +46,7 @@
 #include <qcamerafocuscontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
+#include <qvideorenderercontrol.h>
 #include <private/qmediaplatformintegration_p.h>
 #include <private/qmediaplatformcaptureinterface_p.h>
 #include <qmediadevicemanager.h>
@@ -304,20 +305,15 @@ QCameraImageProcessing *QCamera::imageProcessing() const
     Sets the QMediaSink based camera \a viewfinder.
     The previously set viewfinder is detached.
 */
-void QCamera::setViewfinder(QMediaSink *viewfinder)
+void QCamera::setViewfinder(QObject *viewfinder)
 {
-    Q_D(QCamera);
-    d->_q_preparePropertyChange(QCameraControl::Viewfinder);
-
-    if (d->viewfinder)
-        unbind(d->viewfinder);
-
-    if (!viewfinder) {
-        d->viewfinder = nullptr;
+    auto *mo = viewfinder->metaObject();
+    QAbstractVideoSurface *surface = nullptr;
+    if (viewfinder && !mo->invokeMethod(viewfinder, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
+        qWarning() << "QCamera::setViewFinder: Object" << viewfinder->metaObject()->className() << "does not have a videoSurface()";
         return;
     }
-
-    d->viewfinder = bind(viewfinder) ? viewfinder : nullptr;
+    setViewfinder(surface);
 }
 
 /*!
@@ -330,9 +326,7 @@ void QCamera::setViewfinder(QMediaSink *viewfinder)
 void QCamera::setViewfinder(QAbstractVideoSurface *surface)
 {
     Q_D(QCamera);
-
-    d->surfaceViewfinder.setVideoSurface(surface);
-    setViewfinder(surface ? &d->surfaceViewfinder : nullptr);
+    d->control->setVideoSurface(surface);
 }
 
 /*!

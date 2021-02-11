@@ -153,6 +153,7 @@ AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
 
     //configuration is commited during transition to Active state
     [m_captureSession beginConfiguration];
+    setVideoOutput(new AVFCameraRendererControl(this));
 }
 
 AVFCameraSession::~AVFCameraSession()
@@ -368,6 +369,11 @@ FourCharCode AVFCameraSession::defaultCodec()
         }
     }
     return m_defaultCodec;
+}
+
+void AVFCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_videoOutput->setSurface(surface);
 }
 
 #include "moc_avfcamerasession_p.cpp"

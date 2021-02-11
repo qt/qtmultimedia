@@ -80,17 +80,9 @@ public:
     QMediaPlayerControl *player() override;
     // ### QMediaStreamsControl *streams() override;
 
-    virtual QVideoRendererControl *createVideoRenderer() override;
-    virtual QVideoWindowControl *createVideoWindow() override;
-
-    MFVideoRendererControl* videoRendererControl() const;
-    MFEvrVideoWindowControl* videoWindowControl() const;
-
 private:
     MFPlayerSession *m_session = nullptr;
-    MFVideoRendererControl *m_videoRendererControl = nullptr;
-    MFEvrVideoWindowControl *m_videoWindowControl = nullptr;
-    MFPlayerControl        *m_player = nullptr;
+    MFPlayerControl *m_player = nullptr;
 };
 
 #endif

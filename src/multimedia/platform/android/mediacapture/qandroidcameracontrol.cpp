@@ -42,6 +42,7 @@
 #include "qandroidcameraexposurecontrol_p.h"
 #include "qandroidcamerafocuscontrol_p.h"
 #include "qandroidcameraimageprocessingcontrol_p.h"
+#include "qandroidcameravideorenderercontrol_p.h"
 #include <qmediadevicemanager.h>
 #include <qcamerainfo.h>
 #include <qtimer.h>
@@ -72,6 +73,7 @@ QAndroidCameraControl::QAndroidCameraControl(QAndroidCameraSession *session)
 
 QAndroidCameraControl::~QAndroidCameraControl()
 {
+    delete m_renderer;
 }
 
 QCamera::CaptureModes QAndroidCameraControl::captureMode() const
@@ -146,6 +148,13 @@ QCameraExposureControl *QAndroidCameraControl::exposureControl()
 QCameraImageProcessingControl *QAndroidCameraControl::imageProcessingControl()
 {
     return m_cameraSession->imageProcessingControl();
+}
+
+void QAndroidCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    if (!m_renderer)
+        m_renderer = new QAndroidCameraVideoRendererControl(m_cameraSession);
+    m_renderer->setSurface(surface);
 }
 
 QT_END_NAMESPACE

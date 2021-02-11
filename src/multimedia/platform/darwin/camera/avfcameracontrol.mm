@@ -128,6 +128,11 @@ bool AVFCameraControl::isCaptureModeSupported(QCamera::CaptureModes /*mode*/) co
     return true;
 }
 
+void AVFCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_session->setVideoSurface(surface);
+}
+
 bool AVFCameraControl::canChangeProperty(QCameraControl::PropertyChangeType changeType, QCamera::Status status) const
 {
     Q_UNUSED(changeType);
@@ -206,10 +211,10 @@ bool AVFCameraControl::CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtForm
 
 AVCaptureConnection *AVFCameraControl::videoConnection() const
 {
-    if (!m_service->videoOutput() || !m_service->videoOutput()->videoDataOutput())
+    if (!m_session->videoOutput() || !m_session->videoOutput()->videoDataOutput())
         return nil;
 
-    return [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+    return [m_session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
 }
 
 

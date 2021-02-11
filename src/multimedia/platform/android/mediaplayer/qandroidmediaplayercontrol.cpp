@@ -41,6 +41,7 @@
 #include "androidmediaplayer_p.h"
 #include "qandroidvideooutput_p.h"
 #include "qandroidmetadata_p.h"
+#include "qandroidmediaplayervideorenderercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -454,6 +455,13 @@ void QAndroidMediaPlayerControl::setVideoOutput(QAndroidVideoOutput *videoOutput
         mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
 
     connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
+}
+
+void QAndroidMediaPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    if (!mVideoRendererControl)
+        mVideoRendererControl = new QAndroidMediaPlayerVideoRendererControl(this);
+    mVideoRendererControl->setSurface(surface);
 }
 
 void QAndroidMediaPlayerControl::play()

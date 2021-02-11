@@ -97,6 +97,8 @@ public:
     QMediaMetaData metaData() const override;
     void setMetaData(const QMediaMetaData &metaData);
 
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 

@@ -103,6 +103,8 @@ public:
 
     virtual QMediaMetaData metaData() const { return {}; }
 
+    virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
+
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
     void customAudioRoleChanged(const QString &role);

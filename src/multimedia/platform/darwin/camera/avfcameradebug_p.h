@@ -57,7 +57,7 @@
 
 QT_USE_NAMESPACE
 
-#define AVF_DEBUG_CAMERA
+//#define AVF_DEBUG_CAMERA
 
 #ifdef AVF_DEBUG_CAMERA
 #define qDebugCamera qDebug

@@ -81,6 +81,8 @@ public:
 
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
+
 public slots:
     void reloadLater();
 

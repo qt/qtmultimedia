@@ -51,7 +51,6 @@ QT_BEGIN_NAMESPACE
 
 QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
     : m_videoEnabled(mode == QMediaRecorder::AudioAndVideo)
-    , m_videoRendererControl(0)
 {
     if (m_videoEnabled) {
         m_cameraSession = new QAndroidCameraSession;
@@ -72,7 +71,6 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_recorderControl;
     delete m_captureSession;
     delete m_cameraControl;
-    delete m_videoRendererControl;
     delete m_imageCaptureControl;
     delete m_cameraSession;
 }
@@ -88,26 +86,11 @@ QObject *QAndroidCaptureService::requestControl(const char *name)
     if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
         return m_imageCaptureControl;
 
-    if (qstrcmp(name, QVideoRendererControl_iid) == 0
-            && m_videoEnabled
-            && !m_videoRendererControl) {
-        m_videoRendererControl = new QAndroidCameraVideoRendererControl(m_cameraSession);
-        return m_videoRendererControl;
-    }
-
     return 0;
 }
 
-void QAndroidCaptureService::releaseControl(QObject *control)
+void QAndroidCaptureService::releaseControl(QObject *)
 {
-    if (control) {
-        if (control == m_videoRendererControl) {
-            delete m_videoRendererControl;
-            m_videoRendererControl = 0;
-            return;
-        }
-    }
-
 }
 
 QT_END_NAMESPACE

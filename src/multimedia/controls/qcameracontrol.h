@@ -52,6 +52,7 @@ class QString;
 class QCameraFocusControl;
 class QCameraExposureControl;
 class QCameraImageProcessingControl;
+class QVideoRendererControl;
 
 class Q_MULTIMEDIA_EXPORT QCameraControl : public QObject
 {
@@ -81,6 +82,8 @@ public:
     virtual QCameraFocusControl *focusControl() { return nullptr; }
     virtual QCameraExposureControl *exposureControl() { return nullptr; }
     virtual QCameraImageProcessingControl *imageProcessingControl() { return nullptr; }
+
+    virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
 
 Q_SIGNALS:
     void stateChanged(QCamera::State);

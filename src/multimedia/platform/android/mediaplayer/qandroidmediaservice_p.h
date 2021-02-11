@@ -56,7 +56,6 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidMediaPlayerControl;
-class QAndroidMediaPlayerVideoRendererControl;
 
 class QAndroidMediaService : public QMediaPlatformPlayerInterface
 {
@@ -69,12 +68,8 @@ public:
     QMediaPlayerControl *player() override;
 //    QMediaStreamsControl *streams() override;
 
-    QVideoRendererControl *createVideoRenderer() override;
-//    QVideoWindowControl *createVideoWindow() override;;
-
 private:
     QAndroidMediaPlayerControl *mMediaControl = nullptr;
-    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
 };
 
 QT_END_NAMESPACE

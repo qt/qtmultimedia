@@ -78,6 +78,7 @@ public:
     void setActiveCamera(const QCameraInfo &info);
 
     void setVideoOutput(AVFCameraRendererControl *output);
+    AVFCameraRendererControl *videoOutput() const { return m_videoOutput; }
     void setCapturePreviewOutput(AVFCameraWindowControl *output);
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
@@ -89,6 +90,8 @@ public:
     FourCharCode defaultCodec();
 
     AVCaptureDeviceInput *videoInput() const {return m_videoInput;}
+
+    void setVideoSurface(QAbstractVideoSurface *surface);
 
 public Q_SLOTS:
     void setState(QCamera::State state);

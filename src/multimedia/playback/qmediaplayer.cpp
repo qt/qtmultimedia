@@ -722,22 +722,15 @@ QAudioDeviceInfo QMediaPlayer::audioOutput() const
     If the media player has already video output attached,
     it will be replaced with a new one.
 */
-void QMediaPlayer::setVideoOutput(QMediaSink *output)
+void QMediaPlayer::setVideoOutput(QObject *output)
 {
-    Q_D(QMediaPlayer);
-
-    if (d->videoOutput)
-        unbind(qobject_cast<QMediaSink *>(d->videoOutput));
-
-    if (!output) {
-        d->videoOutput = nullptr;
+    auto *mo = output->metaObject();
+    QAbstractVideoSurface *surface = nullptr;
+    if (output && !mo->invokeMethod(output, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
+        qWarning() << "QMediaPlayer::setVideoOutput: Object" << output->metaObject()->className() << "does not have a videoSurface()";
         return;
     }
-
-    QObject *outputObject = output->asObject();
-    Q_ASSERT(outputObject);
-
-    d->videoOutput = bind(output) ? outputObject : nullptr;
+    setVideoOutput(surface);
 }
 
 /*!
@@ -751,8 +744,10 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 {
     Q_D(QMediaPlayer);
 
-    d->surfaceOutput.setVideoSurface(surface);
-    setVideoOutput(surface ? &d->surfaceOutput : nullptr);
+    if (!d->control)
+        return;
+
+    d->control->setVideoSurface(surface);
 }
 
 /*!

@@ -67,6 +67,7 @@ QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayerService;
 class AVFVideoOutput;
+class AVFVideoRendererControl;
 
 class AVFMediaPlayerSession : public QObject
 {
@@ -75,7 +76,8 @@ public:
     AVFMediaPlayerSession(AVFMediaPlayerService *service, QObject *parent = nullptr);
     virtual ~AVFMediaPlayerSession();
 
-    void setVideoOutput(AVFVideoOutput *output);
+    void setVideoSurface(QAbstractVideoSurface *surface);
+    void setVideoOutput(AVFVideoRendererControl *output);
     AVAsset *currentAssetHandle();
 
     QMediaPlayer::State state() const;
@@ -155,7 +157,7 @@ private:
     void resetStream(QIODevice *stream = nullptr);
 
     AVFMediaPlayerService *m_service;
-    AVFVideoOutput *m_videoOutput;
+    AVFVideoRendererControl *m_videoOutput;
 
     QMediaPlayer::State m_state;
     QMediaPlayer::MediaStatus m_mediaStatus;

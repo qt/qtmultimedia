@@ -63,8 +63,6 @@ class QGstreamerMetaData;
 class QGstreamerPlayerControl;
 class QGstreamerPlayerSession;
 class QGstreamerStreamsControl;
-class QGstreamerVideoRenderer;
-class QGstreamerVideoWindow;
 class QGStreamerAvailabilityControl;
 
 class QGstreamerPlayerService : public QMediaPlatformPlayerInterface
@@ -78,21 +76,10 @@ public:
     QMediaPlayerControl *player() override;
     QMediaStreamsControl *streams() override;
 
-    QVideoRendererControl *createVideoRenderer() override;
-    QVideoWindowControl *createVideoWindow() override;;
-
 private:
     QGstreamerPlayerControl *m_control = nullptr;
     QGstreamerPlayerSession *m_session = nullptr;
     QGstreamerStreamsControl *m_streamsControl = nullptr;
-
-    QObject *m_videoOutput = nullptr;
-    QVideoRendererControl *m_videoRenderer = nullptr;
-    QGstreamerVideoWindow *m_videoWindow = nullptr;
-
-    void increaseVideoRef();
-    void decreaseVideoRef();
-    int m_videoReferenceCount = 0;
 };
 
 QT_END_NAMESPACE

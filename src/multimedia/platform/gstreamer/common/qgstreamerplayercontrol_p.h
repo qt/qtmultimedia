@@ -82,7 +82,6 @@ public:
 
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;
-    void setVideoOutput(QObject *output);
 
     bool isSeekable() const override;
     QMediaTimeRange availablePlaybackRanges() const override;
@@ -100,6 +99,8 @@ public:
     QAudioDeviceInfo audioOutput() const override;
 
     QMediaMetaData metaData() const override;
+
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
 
 public Q_SLOTS:
     void setPosition(qint64 pos) override;

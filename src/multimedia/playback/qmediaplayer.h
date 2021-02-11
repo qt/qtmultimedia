@@ -135,8 +135,7 @@ public:
 //    void setVideoStream(int index) const;
 //    void setSubtitleStream(int index) const;
 
-    // ### should be QVideoSink
-    void setVideoOutput(QMediaSink *);
+    void setVideoOutput(QObject *);
     void setVideoOutput(QAbstractVideoSurface *surface);
     void setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces);
 

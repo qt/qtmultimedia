@@ -70,9 +70,6 @@ public:
 
     // ### nothing in the frontend uses the stream info currently. Needs implementation in QMediaPlayer
     virtual QMediaStreamsControl *streams() { return nullptr; }
-
-    virtual QVideoRendererControl *createVideoRenderer() = 0;
-    virtual QVideoWindowControl *createVideoWindow() { return nullptr; };
 };
 
 QT_END_NAMESPACE

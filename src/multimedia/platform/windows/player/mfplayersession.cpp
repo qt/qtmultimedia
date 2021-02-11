@@ -103,6 +103,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     m_request.rate = 1.0f;
 
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
+    m_videoRendererControl = new MFVideoRendererControl;
 }
 
 void MFPlayerSession::close()
@@ -143,11 +144,10 @@ void MFPlayerSession::close()
         m_videoProbeMFT = 0;
     }
 
-    if (m_playerService->videoRendererControl()) {
-        m_playerService->videoRendererControl()->releaseActivate();
-    } else if (m_playerService->videoWindowControl()) {
-        m_playerService->videoWindowControl()->releaseActivate();
-    }
+    m_videoRendererControl->releaseActivate();
+//    } else if (m_playerService->videoWindowControl()) {
+//        m_playerService->videoWindowControl()->releaseActivate();
+//    }
 
     if (m_session)
         m_session->Release();
@@ -406,13 +406,9 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
             setAudioOutput(QAudioDeviceInfo());
         activate = m_currentAudioActivate;
     } else if (mediaType == Video) {
-        if (m_playerService->videoRendererControl()) {
-            activate = m_playerService->videoRendererControl()->createActivate();
-        } else if (m_playerService->videoWindowControl()) {
-            activate = m_playerService->videoWindowControl()->createActivate();
-        } else {
-            qWarning() << "no videoWindowControl or videoRendererControl, unable to add output node for video data";
-        }
+        activate = m_videoRendererControl->createActivate();
+//        } else if (m_playerService->videoWindowControl()) {
+//            activate = m_playerService->videoWindowControl()->createActivate();
     } else {
         // Unknown stream type.
         emit error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);
@@ -1563,9 +1559,9 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         updatePendingCommands(CmdStart);
         // playback started, we can now set again the procAmpValues if they have been
         // changed previously (these are lost when loading a new media)
-        if (m_playerService->videoWindowControl()) {
-            m_playerService->videoWindowControl()->applyImageControls();
-        }
+//        if (m_playerService->videoWindowControl()) {
+//            m_playerService->videoWindowControl()->applyImageControls();
+//        }
         break;
     case MESessionStopped:
         if (m_status != QMediaPlayer::EndOfMedia) {
@@ -1832,4 +1828,9 @@ bool MFPlayerSession::setAudioOutput(const QAudioDeviceInfo &device)
     m_currentAudioActivate = activate;
     m_audioOutput = device;
     return true;
+}
+
+void MFPlayerSession::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    m_videoRendererControl->setSurface(surface);
 }

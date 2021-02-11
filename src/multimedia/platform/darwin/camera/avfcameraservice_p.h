@@ -60,16 +60,12 @@ QT_BEGIN_NAMESPACE
 class QCameraControl;
 class QMediaRecorderControl;
 class AVFCameraControl;
-class AVFVideoWindowControl;
-class AVFVideoWidgetControl;
-class AVFCameraRendererControl;
 class AVFImageCaptureControl;
 class AVFCameraSession;
 class AVFCameraFocusControl;
 class AVFCameraExposureControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
-class AVFCameraWindowControl;
 
 class AVFCameraService : public QMediaPlatformCaptureInterface
 {
@@ -87,17 +83,14 @@ public:
     AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
-    AVFCameraRendererControl *videoOutput() const { return m_videoOutput; }
 
 private:
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
-    AVFCameraRendererControl *m_videoOutput;
     QMediaRecorderControl *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;
     AVFCameraFocusControl *m_cameraFocusControl;
     AVFCameraExposureControl *m_cameraExposureControl;
-    AVFCameraWindowControl *m_captureWindowControl;
 };
 
 QT_END_NAMESPACE

@@ -144,6 +144,9 @@ public:
                              << QStringLiteral("customRole2");
     }
 
+    void setVideoSurface(QAbstractVideoSurface *) {}
+
+
     void emitError(QMediaPlayer::Error err, const QString &errorString)
     {
         emit error(err, errorString);

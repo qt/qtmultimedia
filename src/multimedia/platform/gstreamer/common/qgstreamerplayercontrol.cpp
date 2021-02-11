@@ -385,9 +385,9 @@ QMediaMetaData QGstreamerPlayerControl::metaData() const
     return m_session->metaData();
 }
 
-void QGstreamerPlayerControl::setVideoOutput(QObject *output)
+void QGstreamerPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
 {
-    m_session->setVideoRenderer(output);
+    m_session->setVideoRenderer(surface);
 }
 
 bool QGstreamerPlayerControl::isAudioAvailable() const

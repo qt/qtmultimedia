@@ -71,7 +71,7 @@ public:
 
     QMediaSource *mediaSource() const override;
     QObject *asObject() override { return this; }
-    QAbstractVideoSurface *videoSurface() const;
+    Q_INVOKABLE QAbstractVideoSurface *videoSurface() const;
 
 #ifdef Q_QDOC
     bool isFullScreen() const;

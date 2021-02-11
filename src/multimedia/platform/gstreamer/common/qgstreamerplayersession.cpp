@@ -40,7 +40,7 @@
 #include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamerbushelper_p.h>
 
-#include <private/qgstreamervideorendererinterface_p.h>
+#include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstutils_p.h>
 #include <private/qgstvideorenderersink_p.h>
 #include <private/qgstreamermetadata_p.h>
@@ -552,42 +552,8 @@ void QGstreamerPlayerSession::updateVideoRenderer()
     qDebug() << "Video sink has chaged, reload video output";
 #endif
 
-    if (m_videoOutput)
-        setVideoRenderer(m_videoOutput);
-}
-
-void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
-{
-#ifdef DEBUG_PLAYBIN
-    qDebug() << Q_FUNC_INFO;
-#endif
-    if (m_videoOutput != videoOutput) {
-        if (m_videoOutput) {
-            disconnect(m_videoOutput, SIGNAL(sinkChanged()),
-                       this, SLOT(updateVideoRenderer()));
-            disconnect(m_videoOutput, SIGNAL(readyChanged(bool)),
-                   this, SLOT(updateVideoRenderer()));
-
-            m_busHelper->removeMessageFilter(m_videoOutput);
-        }
-
-        m_videoOutput = videoOutput;
-
-        if (m_videoOutput) {
-            connect(m_videoOutput, SIGNAL(sinkChanged()),
-                    this, SLOT(updateVideoRenderer()));
-            connect(m_videoOutput, SIGNAL(readyChanged(bool)),
-                   this, SLOT(updateVideoRenderer()));
-
-            m_busHelper->installMessageFilter(m_videoOutput);
-        }
-    }
-
-    m_renderer = qobject_cast<QGstreamerVideoRendererInterface*>(videoOutput);
-    emit rendererChanged();
-
     // No sense to continue if custom pipeline requested.
-    if (!m_playbin)
+    if (!m_playbin || !m_videoOutput)
         return;
 
     GstElement *videoSink = 0;
@@ -681,6 +647,27 @@ void QGstreamerPlayerSession::setVideoRenderer(QObject *videoOutput)
             gst_element_set_state(m_videoSink, GST_STATE_PLAYING);
         }
     }
+}
+
+void QGstreamerPlayerSession::setVideoRenderer(QAbstractVideoSurface *videoOutput)
+{
+    if (!m_videoOutput) {
+        m_videoOutput = new QGstreamerVideoRenderer;
+#ifdef DEBUG_PLAYBIN
+    qDebug() << Q_FUNC_INFO;
+#endif
+        connect(m_videoOutput, SIGNAL(sinkChanged()),
+                this, SLOT(updateVideoRenderer()));
+        connect(m_videoOutput, SIGNAL(readyChanged(bool)),
+               this, SLOT(updateVideoRenderer()));
+
+        m_busHelper->installMessageFilter(m_videoOutput);
+        m_renderer = qobject_cast<QGstreamerVideoRendererInterface*>(m_videoOutput);
+        emit rendererChanged();
+    }
+
+    m_videoOutput->setSurface(videoOutput);
+    updateVideoRenderer();
 }
 
 void QGstreamerPlayerSession::finishVideoOutputChange()

@@ -60,6 +60,7 @@ QT_BEGIN_NAMESPACE
 
 class AndroidMediaPlayer;
 class QAndroidVideoOutput;
+class QAndroidMediaPlayerVideoRendererControl;
 
 class QAndroidMediaPlayerControl : public QMediaPlayerControl
 {
@@ -93,6 +94,7 @@ public:
     QMediaMetaData metaData() const override;
 
     void setVideoOutput(QAndroidVideoOutput *videoOutput);
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
 
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
@@ -116,6 +118,7 @@ private Q_SLOTS:
 
 private:
     AndroidMediaPlayer *mMediaPlayer;
+    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
     QMediaPlayer::State mCurrentState;
     QMediaPlayer::MediaStatus mCurrentMediaStatus;
     QUrl mMediaContent;
