@@ -13,7 +13,6 @@ PRIVATE_HEADERS += \
     video/qimagevideobuffer_p.h \
     video/qmemoryvideobuffer_p.h \
     video/qvideooutputorientationhandler_p.h \
-    video/qvideosurfaceoutput_p.h \
     video/qvideoframeconversionhelper_p.h \
     video/qvideosurfaces_p.h
 
@@ -25,7 +24,6 @@ SOURCES += \
     video/qvideoframe.cpp \
     video/qvideooutputorientationhandler.cpp \
     video/qvideosurfaceformat.cpp \
-    video/qvideosurfaceoutput.cpp \
     video/qabstractvideofilter.cpp \
     video/qvideoframeconversionhelper.cpp \
     video/qvideosurfaces.cpp

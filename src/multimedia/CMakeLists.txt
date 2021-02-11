@@ -73,7 +73,6 @@ qt_internal_add_module(Multimedia
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
         video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
         video/qvideosurfaceformat.cpp video/qvideosurfaceformat.h
-        video/qvideosurfaceoutput.cpp video/qvideosurfaceoutput_p.h
         video/qvideosurfaces.cpp video/qvideosurfaces_p.h
     INCLUDE_DIRECTORIES
         audio

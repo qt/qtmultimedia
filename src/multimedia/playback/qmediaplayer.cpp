@@ -39,7 +39,6 @@
 
 #include "qmediaplayer.h"
 #include "qvideosurfaces_p.h"
-#include "qvideosurfaceoutput_p.h"
 
 #include "qmediasource_p.h"
 #include <qmediaservice.h>
@@ -107,7 +106,6 @@ public:
     QString errorString;
 
     QPointer<QObject> videoOutput;
-    QVideoSurfaceOutput surfaceOutput;
     QUrl qrcMedia;
     QScopedPointer<QFile> qrcFile;
     QUrl rootMedia;
