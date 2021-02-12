@@ -74,8 +74,7 @@ class QGstreamerAudioDecoderControl
         : public QAudioDecoderControl,
           public QGstreamerBusMessageFilter
 {
-Q_OBJECT
-Q_INTERFACES(QGstreamerBusMessageFilter)
+    Q_OBJECT
 
 public:
     QGstreamerAudioDecoderControl(QObject *parent);

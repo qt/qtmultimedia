@@ -85,8 +85,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerPlayerSession
     : public QObject
     , public QGstreamerBusMessageFilter
 {
-Q_OBJECT
-Q_INTERFACES(QGstreamerBusMessageFilter)
+    Q_OBJECT
 
 public:
     QGstreamerPlayerSession(QObject *parent);

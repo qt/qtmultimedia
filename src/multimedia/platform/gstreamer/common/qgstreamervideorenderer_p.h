@@ -63,7 +63,6 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface)
 public:
     QGstreamerVideoRenderer(QObject *parent = 0);
     virtual ~QGstreamerVideoRenderer();

@@ -65,8 +65,6 @@ public:
     //returns true if message was processed and should be dropped, false otherwise
     virtual bool processSyncMessage(const QGstreamerMessage &message) = 0;
 };
-#define QGstreamerSyncMessageFilter_iid "org.qt-project.qt.gstreamersyncmessagefilter/5.0"
-Q_DECLARE_INTERFACE(QGstreamerSyncMessageFilter, QGstreamerSyncMessageFilter_iid)
 
 
 class QGstreamerBusMessageFilter {
@@ -74,8 +72,6 @@ public:
     //returns true if message was processed and should be dropped, false otherwise
     virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
 };
-#define QGstreamerBusMessageFilter_iid "org.qt-project.qt.gstreamerbusmessagefilter/5.0"
-Q_DECLARE_INTERFACE(QGstreamerBusMessageFilter, QGstreamerBusMessageFilter_iid)
 
 
 class QGstreamerBusHelperPrivate;
@@ -89,8 +85,10 @@ public:
     QGstreamerBusHelper(GstBus* bus, QObject* parent = 0);
     ~QGstreamerBusHelper();
 
-    void installMessageFilter(QObject *filter);
-    void removeMessageFilter(QObject *filter);
+    void installMessageFilter(QGstreamerSyncMessageFilter *filter);
+    void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
+    void installMessageFilter(QGstreamerBusMessageFilter *filter);
+    void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 
 signals:
     void message(QGstreamerMessage const& message);

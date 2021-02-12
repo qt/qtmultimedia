@@ -66,7 +66,6 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
         , private QGstreamerBufferProbe
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 public:
     explicit QGstreamerVideoOverlay(QObject *parent = 0, const QByteArray &elementName = QByteArray());
     virtual ~QGstreamerVideoOverlay();

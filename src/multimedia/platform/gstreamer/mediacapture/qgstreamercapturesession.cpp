@@ -71,7 +71,6 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_waitingForEos(false),
      m_pipelineMode(EmptyPipeline),
      m_captureMode(captureMode),
-     m_viewfinder(0),
      m_viewfinderInterface(0),
      m_audioSrc(0),
      m_audioTee(0),
@@ -708,12 +707,10 @@ void QGstreamerCaptureSession::setVideoPreview(QAbstractVideoSurface *surface)
         m_viewfinderInterface = new QGstreamerVideoRenderer;
         bool oldReady = isReady();
 
-        connect(m_viewfinder, SIGNAL(sinkChanged()),
+        connect(m_viewfinderInterface, SIGNAL(sinkChanged()),
                    this, SIGNAL(viewfinderChanged()));
-        connect(m_viewfinder, SIGNAL(readyChanged(bool)),
+        connect(m_viewfinderInterface, SIGNAL(readyChanged(bool)),
                 this, SIGNAL(readyChanged(bool)));
-
-        m_busHelper->installMessageFilter(m_viewfinder);
 
         emit viewfinderChanged();
         if (oldReady != isReady())

@@ -86,7 +86,6 @@ class QGstreamerCaptureSession
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_ENUMS(State)
     Q_ENUMS(CaptureMode)
-    Q_INTERFACES(QGstreamerBusMessageFilter)
 public:
     enum CaptureMode { Audio = 1,
                        Video = 2,
@@ -113,7 +112,6 @@ public:
 
     void setVideoDevice(const QCameraInfo &camera) { m_camera = camera; }
 
-    QObject *videoPreview() const { return m_viewfinder; }
     void setVideoPreview(QAbstractVideoSurface *viewfinder);
 
     void captureImage(int requestId, const QString &fileName);
@@ -179,7 +177,6 @@ private:
     QGstreamerCaptureSession::CaptureMode m_captureMode;
     QGstreamerMetaData m_metaData;
 
-    QObject *m_viewfinder;
     QGstreamerVideoRenderer *m_viewfinderInterface;
 
     QGstreamerImageCaptureControl *m_imageCaptureControl;

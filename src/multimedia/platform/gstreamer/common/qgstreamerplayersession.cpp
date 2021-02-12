@@ -393,8 +393,8 @@ void QGstreamerPlayerSession::setBus(GstBus *bus)
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
     m_busHelper->installMessageFilter(this);
 
-    if (m_videoOutput)
-        m_busHelper->installMessageFilter(m_videoOutput);
+//    if (m_videoOutput)
+//        m_busHelper->installMessageFilter(m_videoOutput);
 }
 
 qint64 QGstreamerPlayerSession::duration() const
@@ -661,8 +661,8 @@ void QGstreamerPlayerSession::setVideoRenderer(QAbstractVideoSurface *videoOutpu
         connect(m_videoOutput, SIGNAL(readyChanged(bool)),
                this, SLOT(updateVideoRenderer()));
 
-        m_busHelper->installMessageFilter(m_videoOutput);
-        m_renderer = qobject_cast<QGstreamerVideoRendererInterface*>(m_videoOutput);
+//        m_busHelper->installMessageFilter(m_videoOutput);
+        m_renderer = m_videoOutput;
         emit rendererChanged();
     }
 

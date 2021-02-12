@@ -69,7 +69,6 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoWindow :
         public QGstreamerBusMessageFilter
 {
     Q_OBJECT
-    Q_INTERFACES(QGstreamerVideoRendererInterface QGstreamerSyncMessageFilter QGstreamerBusMessageFilter)
 public:
     explicit QGstreamerVideoWindow(QObject *parent = 0, const QByteArray &elementName = QByteArray());
     ~QGstreamerVideoWindow();
