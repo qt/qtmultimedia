@@ -153,7 +153,7 @@ audioDeviceChangeListener(AudioObjectID, UInt32, const AudioObjectPropertyAddres
 
 
 QDarwinDeviceManager::QDarwinDeviceManager()
-    : QMediaPlatformDeviceManager()
+    : QPlatformMediaDeviceManager()
 {
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification

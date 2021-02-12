@@ -51,8 +51,8 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformcaptureinterface_p.h>
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediacapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 #include <gst/gst.h>
 
@@ -66,7 +66,7 @@ class QGstreamerVideoRenderer;
 class QGstreamerVideoWindow;
 class QGstreamerVideoInput;
 
-class QGstreamerCaptureService : public QMediaPlatformCaptureInterface
+class QGstreamerCaptureService : public QPlatformMediaCapture
 {
     Q_OBJECT
 

@@ -47,8 +47,8 @@
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qvideorenderercontrol.h>
-#include <private/qmediaplatformintegration_p.h>
-#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformmediacapture_p.h>
 #include <qmediadevicemanager.h>
 
 #include <QDebug>
@@ -153,7 +153,7 @@ void QCameraPrivate::initControls()
 {
     Q_Q(QCamera);
 
-    captureInterface = QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo);
+    captureInterface = QPlatformMediaIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo);
     if (captureInterface) {
         control = captureInterface->cameraControl();
 
@@ -336,7 +336,7 @@ QString QCamera::errorString() const
 /*!
     \internal
  */
-QMediaPlatformCaptureInterface *QCamera::captureInterface() const
+QPlatformMediaCapture *QCamera::captureInterface() const
 {
     return d_func()->captureInterface;
 }

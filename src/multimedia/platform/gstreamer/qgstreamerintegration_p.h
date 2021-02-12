@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -59,18 +59,18 @@ class QGstreamerDeviceManager;
 class QGstreamerPlayerInterface;
 class QGstreamerFormatsInfo;
 
-class QGstreamerIntegration : public QMediaPlatformIntegration
+class QGstreamerIntegration : public QPlatformMediaIntegration
 {
 public:
     QGstreamerIntegration();
     ~QGstreamerIntegration();
 
-    static QGstreamerIntegration *instance() { return static_cast<QGstreamerIntegration *>(QMediaPlatformIntegration::instance()); }
-    QMediaPlatformDeviceManager *deviceManager() override;
-    QMediaPlatformFormatInfo *formatInfo() override;
+    static QGstreamerIntegration *instance() { return static_cast<QGstreamerIntegration *>(QPlatformMediaIntegration::instance()); }
+    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaFormatInfo *formatInfo() override;
 
     QAudioDecoderControl *createAudioDecoder() override;
-    QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
+    QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
     QPlatformMediaPlayer *createPlayer() override;
 
     QGstreamerDeviceManager *m_manager = nullptr;

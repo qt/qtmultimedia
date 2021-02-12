@@ -51,14 +51,14 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformformatinfo_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 #include <qlist.h>
 
 QT_BEGIN_NAMESPACE
 
 class QDarwinDeviceManager;
 
-class QDarwinFormatInfo : public QMediaPlatformFormatInfo
+class QDarwinFormatInfo : public QPlatformMediaFormatInfo
 {
 public:
     QDarwinFormatInfo();

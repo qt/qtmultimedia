@@ -37,16 +37,16 @@
 **
 ****************************************************************************/
 
-#include "qmediaplatformformatinfo_p.h"
+#include "qplatformmediaformatinfo_p.h"
 #include <qset.h>
 
 QT_BEGIN_NAMESPACE
 
-QMediaPlatformFormatInfo::QMediaPlatformFormatInfo() = default;
+QPlatformMediaFormatInfo::QPlatformMediaFormatInfo() = default;
 
-QMediaPlatformFormatInfo::~QMediaPlatformFormatInfo() = default;
+QPlatformMediaFormatInfo::~QPlatformMediaFormatInfo() = default;
 
-QList<QMediaFormat::FileFormat> QMediaPlatformFormatInfo::supportedFileFormats(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
+QList<QMediaFormat::FileFormat> QPlatformMediaFormatInfo::supportedFileFormats(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
 {
     QSet<QMediaFormat::FileFormat> formats;
 
@@ -63,7 +63,7 @@ QList<QMediaFormat::FileFormat> QMediaPlatformFormatInfo::supportedFileFormats(c
     return formats.values();
 }
 
-QList<QMediaFormat::AudioCodec> QMediaPlatformFormatInfo::supportedAudioCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
+QList<QMediaFormat::AudioCodec> QPlatformMediaFormatInfo::supportedAudioCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
 {
     QSet<QMediaFormat::AudioCodec> codecs;
 
@@ -79,7 +79,7 @@ QList<QMediaFormat::AudioCodec> QMediaPlatformFormatInfo::supportedAudioCodecs(c
     return codecs.values();
 }
 
-QList<QMediaFormat::VideoCodec> QMediaPlatformFormatInfo::supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
+QList<QMediaFormat::VideoCodec> QPlatformMediaFormatInfo::supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
 {
     if (constraints.mode() == QMediaFormat::AudioOnly)
         return {};
@@ -98,7 +98,7 @@ QList<QMediaFormat::VideoCodec> QMediaPlatformFormatInfo::supportedVideoCodecs(c
     return codecs.values();
 }
 
-bool QMediaPlatformFormatInfo::isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const
+bool QPlatformMediaFormatInfo::isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const
 {
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
 

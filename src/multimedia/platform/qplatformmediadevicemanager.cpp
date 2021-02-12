@@ -36,40 +36,75 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QMEDIAPLATFORMCAPTUREINTERFACE_H
-#define QMEDIAPLATFORMCAPTUREINTERFACE_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qtmultimediaglobal_p.h>
-#include <QtCore/qobject.h>
+#include "qplatformmediadevicemanager_p.h"
+#include "qaudiodeviceinfo.h"
+#include "qcamerainfo.h"
+#include "qaudiosystem_p.h"
 
 QT_BEGIN_NAMESPACE
-class QCameraControl;
-class QCameraImageCaptureControl;
-class QMediaRecorderControl;
 
-class Q_MULTIMEDIA_EXPORT QMediaPlatformCaptureInterface : public QObject
+QPlatformMediaDeviceManager::QPlatformMediaDeviceManager()
 {
-public:
-    QMediaPlatformCaptureInterface() = default;
-    virtual ~QMediaPlatformCaptureInterface();
+}
 
-    virtual QCameraControl *cameraControl() = 0;
-    virtual QCameraImageCaptureControl *imageCaptureControl() = 0;
-    virtual QMediaRecorderControl *mediaRecorderControl() = 0;
-};
+QPlatformMediaDeviceManager::~QPlatformMediaDeviceManager()
+{
+}
+
+QAudioDeviceInfo QPlatformMediaDeviceManager::audioInput(const QByteArray &id) const
+{
+    const auto inputs = audioInputs();
+    for (auto i : inputs) {
+        if (i.id() == id)
+            return i;
+    }
+    return {};
+}
+
+QAudioDeviceInfo QPlatformMediaDeviceManager::audioOutput(const QByteArray &id) const
+{
+    const auto outputs = audioOutputs();
+    for (auto o : outputs) {
+        if (o.id() == id)
+            return o;
+    }
+    return {};
+}
+
+QCameraInfo QPlatformMediaDeviceManager::videoInput(const QByteArray &id) const
+{
+    const auto inputs = videoInputs();
+    for (auto i : inputs) {
+        if (i.id() == id)
+            return i;
+    }
+    return QCameraInfo();
+}
+
+QAbstractAudioInput* QPlatformMediaDeviceManager::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+{
+    QAudioDeviceInfo info = deviceInfo;
+    if (info.isNull())
+        info = audioInputs().value(0);
+
+    QAbstractAudioInput* p = createAudioInputDevice(info);
+    if (p)
+        p->setFormat(format);
+    return p;
+}
+
+QAbstractAudioOutput* QPlatformMediaDeviceManager::audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+{
+    QAudioDeviceInfo info = deviceInfo;
+    if (info.isNull())
+        info = audioOutputs().value(0);
+
+    QAbstractAudioOutput* p = createAudioOutputDevice(info);
+    if (p)
+        p->setFormat(format);
+    return p;
+}
+
 
 QT_END_NAMESPACE
-
-
-#endif // QMEDIAPLATFORMINTERFACE_H

@@ -39,8 +39,8 @@
 
 #include "qaudiosystem_p.h"
 #include "qaudiodeviceinfo_p.h"
-#include <private/qmediaplatformdevicemanager_p.h>
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qmap.h>
 

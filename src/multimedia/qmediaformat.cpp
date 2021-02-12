@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 #include "qmediaformat.h"
-#include "private/qmediaplatformintegration_p.h"
-#include "private/qmediaplatformformatinfo_p.h"
+#include "private/qplatformmediaintegration_p.h"
+#include "private/qplatformmediaformatinfo_p.h"
 #include <QtCore/qmimedatabase.h>
 
 QT_BEGIN_NAMESPACE
@@ -157,7 +157,7 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) = default;
  */
 bool QMediaFormat::canDecode() const
 {
-    return QMediaPlatformIntegration::instance()->formatInfo()->isSupported(*this, Decode);
+    return QPlatformMediaIntegration::instance()->formatInfo()->isSupported(*this, Decode);
 }
 
 /*!
@@ -167,7 +167,7 @@ bool QMediaFormat::canDecode() const
 */
 bool QMediaFormat::canEncode() const
 {
-    return QMediaPlatformIntegration::instance()->formatInfo()->isSupported(*this, Encode);
+    return QPlatformMediaIntegration::instance()->formatInfo()->isSupported(*this, Encode);
 }
 
 /*!
@@ -190,7 +190,7 @@ QMimeType QMediaFormat::mimeType() const
  */
 QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat::ConversionMode m)
 {
-    return QMediaPlatformIntegration::instance()->formatInfo()->supportedFileFormats(*this, m);
+    return QPlatformMediaIntegration::instance()->formatInfo()->supportedFileFormats(*this, m);
 }
 
 /*!
@@ -203,7 +203,7 @@ QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat:
  */
 QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat::ConversionMode m)
 {
-    return QMediaPlatformIntegration::instance()->formatInfo()->supportedVideoCodecs(*this, m);
+    return QPlatformMediaIntegration::instance()->formatInfo()->supportedVideoCodecs(*this, m);
 }
 
 /*!
@@ -216,7 +216,7 @@ QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat:
  */
 QList<QMediaFormat::AudioCodec> QMediaFormat::supportedAudioCodecs(QMediaFormat::ConversionMode m)
 {
-    return QMediaPlatformIntegration::instance()->formatInfo()->supportedAudioCodecs(*this, m);
+    return QPlatformMediaIntegration::instance()->formatInfo()->supportedAudioCodecs(*this, m);
 }
 
 QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)

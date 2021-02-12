@@ -65,14 +65,14 @@ QAndroidIntegration::~QAndroidIntegration()
     delete m_formatInfo;
 }
 
-QMediaPlatformDeviceManager *QAndroidIntegration::deviceManager()
+QPlatformMediaDeviceManager *QAndroidIntegration::deviceManager()
 {
     if (!m_manager)
         m_manager = new QAndroidDeviceManager();
     return m_manager;
 }
 
-QMediaPlatformFormatInfo *QAndroidIntegration::formatInfo()
+QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()
 {
     if (!m_formatInfo)
         m_formatInfo = new QAndroidFormatInfo();
@@ -80,7 +80,7 @@ QMediaPlatformFormatInfo *QAndroidIntegration::formatInfo()
 
 }
 
-QMediaPlatformCaptureInterface *QAndroidIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
+QPlatformMediaCaptureInterface *QAndroidIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
 {
     return new QAndroidCaptureService(mode);
 }

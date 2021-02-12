@@ -38,11 +38,11 @@
 ****************************************************************************/
 
 #include <qtmultimediaglobal_p.h>
-#include "qmediaplatformcaptureinterface_p.h"
+#include "qplatformmediacapture_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QMediaPlatformCaptureInterface::~QMediaPlatformCaptureInterface()
+QPlatformMediaCapture::~QPlatformMediaCapture()
 {
 
 }

@@ -58,14 +58,14 @@ QGstreamerIntegration::~QGstreamerIntegration()
     delete m_formatsInfo;
 }
 
-QMediaPlatformDeviceManager *QGstreamerIntegration::deviceManager()
+QPlatformMediaDeviceManager *QGstreamerIntegration::deviceManager()
 {
     if (!m_manager)
         m_manager = new QGstreamerDeviceManager();
     return m_manager;
 }
 
-QMediaPlatformFormatInfo *QGstreamerIntegration::formatInfo()
+QPlatformMediaFormatInfo *QGstreamerIntegration::formatInfo()
 {
     if (!m_formatsInfo)
         m_formatsInfo = new QGstreamerFormatsInfo();
@@ -77,7 +77,7 @@ QAudioDecoderControl *QGstreamerIntegration::createAudioDecoder()
     return new QGstreamerAudioDecoderControl(nullptr);
 }
 
-QMediaPlatformCaptureInterface *QGstreamerIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
+QPlatformMediaCapture *QGstreamerIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
 {
     return new QGstreamerCaptureService(mode);
 }

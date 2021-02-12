@@ -42,7 +42,7 @@
 
 #include "qaudiodecodercontrol.h"
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 #include <private/qobject_p.h>
 
 #include <QtCore/qcoreevent.h>
@@ -121,7 +121,7 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
 {
     Q_D(QAudioDecoder);
 
-    d->control = QMediaPlatformIntegration::instance()->createAudioDecoder();
+    d->control = QPlatformMediaIntegration::instance()->createAudioDecoder();
     if (d->control != nullptr) {
         connect(d->control, SIGNAL(stateChanged(QAudioDecoder::State)), SLOT(_q_stateChanged(QAudioDecoder::State)));
         connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));

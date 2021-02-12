@@ -36,75 +36,51 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QPLATFORMMEDIAINTEGRATION_H
+#define QPLATFORMMEDIAINTEGRATION_H
 
-#include "qmediaplatformdevicemanager_p.h"
-#include "qaudiodeviceinfo.h"
-#include "qcamerainfo.h"
-#include "qaudiosystem_p.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qtmultimediaglobal_p.h>
+#include <qmediarecorder.h>
 
 QT_BEGIN_NAMESPACE
 
-QMediaPlatformDeviceManager::QMediaPlatformDeviceManager()
+class QMediaDeviceManager;
+class QPlatformMediaDeviceManager;
+class QPlatformMediaCapture;
+class QPlatformMediaPlayer;
+class QAudioDecoderControl;
+class QPlatformMediaFormatInfo;
+class QVideoRendererControl;
+
+class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {
-}
+public:
+    static QPlatformMediaIntegration *instance();
 
-QMediaPlatformDeviceManager::~QMediaPlatformDeviceManager()
-{
-}
+    // API to be able to test with a mock backend
+    static void setIntegration(QPlatformMediaIntegration *);
 
-QAudioDeviceInfo QMediaPlatformDeviceManager::audioInput(const QByteArray &id) const
-{
-    const auto inputs = audioInputs();
-    for (auto i : inputs) {
-        if (i.id() == id)
-            return i;
-    }
-    return {};
-}
+    virtual ~QPlatformMediaIntegration();
+    virtual QPlatformMediaDeviceManager *deviceManager() = 0;
+    virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
-QAudioDeviceInfo QMediaPlatformDeviceManager::audioOutput(const QByteArray &id) const
-{
-    const auto outputs = audioOutputs();
-    for (auto o : outputs) {
-        if (o.id() == id)
-            return o;
-    }
-    return {};
-}
-
-QCameraInfo QMediaPlatformDeviceManager::videoInput(const QByteArray &id) const
-{
-    const auto inputs = videoInputs();
-    for (auto i : inputs) {
-        if (i.id() == id)
-            return i;
-    }
-    return QCameraInfo();
-}
-
-QAbstractAudioInput* QMediaPlatformDeviceManager::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
-{
-    QAudioDeviceInfo info = deviceInfo;
-    if (info.isNull())
-        info = audioInputs().value(0);
-
-    QAbstractAudioInput* p = createAudioInputDevice(info);
-    if (p)
-        p->setFormat(format);
-    return p;
-}
-
-QAbstractAudioOutput* QMediaPlatformDeviceManager::audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
-{
-    QAudioDeviceInfo info = deviceInfo;
-    if (info.isNull())
-        info = audioOutputs().value(0);
-
-    QAbstractAudioOutput* p = createAudioOutputDevice(info);
-    if (p)
-        p->setFormat(format);
-    return p;
-}
-
+    virtual QAudioDecoderControl *createAudioDecoder() { return nullptr; }
+    virtual QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
+    virtual QPlatformMediaPlayer *createPlayer() { return nullptr; }
+};
 
 QT_END_NAMESPACE
+
+
+#endif // QPLATFORMMEDIAINTERFACE_H

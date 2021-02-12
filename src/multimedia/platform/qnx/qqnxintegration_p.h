@@ -51,22 +51,22 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QQnxDeviceManager;
 class QQnxPlayerInterface;
 
-class QQnxIntegration : public QMediaPlatformIntegration
+class QQnxIntegration : public QPlatformMediaIntegration
 {
 public:
     QQnxIntegration();
     ~QQnxIntegration();
 
-    QMediaPlatformDeviceManager *deviceManager() override;
+    QPlatformMediaDeviceManager *deviceManager() override;
 
-    QMediaPlatformPlayerInterface *createPlayerInterface() override;
+    QPlatformMediaPlayerInterface *createPlayerInterface() override;
 
     QQnxDeviceManager *m_manager = nullptr;
 };

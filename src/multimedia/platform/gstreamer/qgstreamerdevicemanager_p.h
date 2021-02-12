@@ -51,14 +51,14 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformdevicemanager_p.h>
+#include <private/qplatformmediadevicemanager_p.h>
 #include <gst/gst.h>
 #include <qset.h>
 #include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerDeviceManager : public QMediaPlatformDeviceManager
+class QGstreamerDeviceManager : public QPlatformMediaDeviceManager
 {
 public:
     QGstreamerDeviceManager();

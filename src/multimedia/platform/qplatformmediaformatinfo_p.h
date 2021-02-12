@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QMEDIAPLATFORMINTEGRATION_H
-#define QMEDIAPLATFORMINTEGRATION_H
+
+#ifndef QPLATFORMMEDIAFORMATINFO_H
+#define QPLATFORMMEDIAFORMATINFO_H
 
 //
 //  W A R N I N G
@@ -51,36 +52,34 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qmediarecorder.h>
+#include <qmediaencodersettings.h>
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDeviceManager;
-class QMediaPlatformDeviceManager;
-class QMediaPlatformCaptureInterface;
-class QPlatformMediaPlayer;
-class QAudioDecoderControl;
-class QMediaPlatformFormatInfo;
-class QVideoRendererControl;
-
-class Q_MULTIMEDIA_EXPORT QMediaPlatformIntegration
+class Q_AUTOTEST_EXPORT QPlatformMediaFormatInfo
 {
 public:
-    static QMediaPlatformIntegration *instance();
+    QPlatformMediaFormatInfo();
+    virtual ~QPlatformMediaFormatInfo();
 
-    // API to be able to test with a mock backend
-    static void setIntegration(QMediaPlatformIntegration *);
+    QList<QMediaFormat::FileFormat> supportedFileFormats(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
+    QList<QMediaFormat::AudioCodec> supportedAudioCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
+    QList<QMediaFormat::VideoCodec> supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
 
-    virtual ~QMediaPlatformIntegration();
-    virtual QMediaPlatformDeviceManager *deviceManager() = 0;
-    virtual QMediaPlatformFormatInfo *formatInfo() = 0;
+    bool isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const;
 
-    virtual QAudioDecoderControl *createAudioDecoder() { return nullptr; }
-    virtual QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
-    virtual QPlatformMediaPlayer *createPlayer() { return nullptr; }
+    struct CodecMap {
+        QMediaFormat::FileFormat format;
+        QList<QMediaFormat::AudioCodec> audio;
+        QList<QMediaFormat::VideoCodec> video;
+    };
+    QList<CodecMap> encoders;
+    QList<CodecMap> decoders;
+
+    QList<QImageEncoderSettings::FileFormat> imageFormats;
 };
 
 QT_END_NAMESPACE
 
 
-#endif // QMEDIAPLATFORMINTERFACE_H
+#endif // QPLATFORMMEDIADEVICEMANAGER_H

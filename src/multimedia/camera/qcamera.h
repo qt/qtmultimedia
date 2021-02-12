@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
 class QCameraInfo;
-class QMediaPlatformCaptureInterface;
+class QPlatformMediaCapture;
 
 class QCameraPrivate;
 class Q_MULTIMEDIA_EXPORT QCamera : public QObject
@@ -121,7 +121,7 @@ public:
     Error error() const;
     QString errorString() const;
 
-    QMediaPlatformCaptureInterface *captureInterface() const;
+    QPlatformMediaCapture *captureInterface() const;
 public Q_SLOTS:
     void load();
     void unload();

@@ -40,10 +40,10 @@ qt_internal_add_module(Multimedia
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
-        platform/qmediaplatformcaptureinterface.cpp platform/qmediaplatformcaptureinterface_p.h
-        platform/qmediaplatformdevicemanager.cpp platform/qmediaplatformdevicemanager_p.h
-        platform/qmediaplatformintegration.cpp platform/qmediaplatformintegration_p.h
-        platform/qmediaplatformformatinfo.cpp  platform/qmediaplatformformatinfo_p.h
+        platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
+        platform/qplatformmediadevicemanager.cpp platform/qplatformmediadevicemanager_p.h
+        platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
+        platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h

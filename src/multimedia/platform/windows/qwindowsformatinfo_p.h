@@ -51,13 +51,13 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformformatinfo_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 #include <qhash.h>
 #include <qlist.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsFormatInfo : public QMediaPlatformFormatInfo
+class QWindowsFormatInfo : public QPlatformMediaFormatInfo
 {
 public:
     QWindowsFormatInfo();

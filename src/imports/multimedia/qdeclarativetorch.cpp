@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include <QDebug>
-#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qplatformmediacapture_p.h>
 #include <qcameracontrol.h>
 
 #include "qdeclarativetorch_p.h"

@@ -35,9 +35,9 @@
 #include "mockcameraimagecapturecontrol.h"
 #include "mockcameraexposurecontrol.h"
 #include "mockcameracontrol.h"
-#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qplatformmediacapture_p.h>
 
-class MockMediaRecorderService : public QMediaPlatformCaptureInterface
+class MockMediaRecorderService : public QPlatformMediaCapture
 {
     Q_OBJECT
 public:

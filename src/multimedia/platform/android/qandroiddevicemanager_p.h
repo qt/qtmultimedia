@@ -51,12 +51,12 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformdevicemanager_p.h>
+#include <private/qplatformmediadevicemanager_p.h>
 #include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidDeviceManager : public QMediaPlatformDeviceManager
+class QAndroidDeviceManager : public QPlatformMediaDeviceManager
 {
 public:
     QAndroidDeviceManager();

@@ -56,7 +56,7 @@ QMockIntegration::~QMockIntegration()
     delete m_manager;
 }
 
-QMediaPlatformDeviceManager *QMockIntegration::deviceManager()
+QPlatformMediaDeviceManager *QMockIntegration::deviceManager()
 {
     if (!m_manager)
         m_manager = new QMockDeviceManager();
@@ -81,7 +81,7 @@ QPlatformMediaPlayer *QMockIntegration::createPlayer()
     return m_lastPlayer;
 }
 
-QMediaPlatformCaptureInterface *QMockIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
+QPlatformMediaCapture *QMockIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
 {
     Q_UNUSED(mode);
     if (m_flags & NoCaptureInterface)

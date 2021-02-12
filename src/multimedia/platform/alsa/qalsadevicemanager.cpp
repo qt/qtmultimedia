@@ -50,7 +50,7 @@
 QT_BEGIN_NAMESPACE
 
 QAlsaDeviceManager::QAlsaDeviceManager()
-    : QMediaPlatformDeviceManager()
+    : QPlatformMediaDeviceManager()
 {
 }
 

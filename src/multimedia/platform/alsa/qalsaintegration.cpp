@@ -51,7 +51,7 @@ QAlsaIntegration::~QAlsaIntegration()
     delete m_manager;
 }
 
-QMediaPlatformDeviceManager *QAlsaIntegration::deviceManager()
+QPlatformMediaDeviceManager *QAlsaIntegration::deviceManager()
 {
     if (!m_manager)
         m_manager = new QAlsaDeviceManager();

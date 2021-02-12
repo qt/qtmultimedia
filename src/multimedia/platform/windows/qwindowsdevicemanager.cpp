@@ -53,7 +53,7 @@
 QT_BEGIN_NAMESPACE
 
 QWindowsDeviceManager::QWindowsDeviceManager()
-    : QMediaPlatformDeviceManager()
+    : QPlatformMediaDeviceManager()
 {
 }
 

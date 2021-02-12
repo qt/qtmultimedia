@@ -43,7 +43,7 @@
 QT_BEGIN_NAMESPACE
 
 QMockDeviceManager::QMockDeviceManager()
-    : QMediaPlatformDeviceManager()
+    : QPlatformMediaDeviceManager()
 {
 }
 

@@ -51,7 +51,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidDeviceManager::QAndroidDeviceManager()
-    : QMediaPlatformDeviceManager()
+    : QPlatformMediaDeviceManager()
 {
 }
 

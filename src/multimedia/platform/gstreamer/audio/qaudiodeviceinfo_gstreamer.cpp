@@ -41,7 +41,7 @@
 #include "qaudioengine_gstreamer_p.h"
 
 #include <private/qgstutils_p.h>
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 #include <private/qgstreamerdevicemanager_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -49,7 +49,7 @@ QT_BEGIN_NAMESPACE
 QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
     : QAudioDeviceInfoPrivate(device, mode)
 {
-    auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QMediaPlatformIntegration::instance()->deviceManager());
+    auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QPlatformMediaIntegration::instance()->deviceManager());
     gstDevice = deviceManager->audioDevice(device, mode);
     if (gstDevice) {
         gst_object_ref(gstDevice);

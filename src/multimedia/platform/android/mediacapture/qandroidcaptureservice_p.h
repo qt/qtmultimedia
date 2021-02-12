@@ -52,8 +52,8 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformcaptureinterface_p.h>
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediacapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -63,7 +63,7 @@ class QAndroidCameraControl;
 class QAndroidCameraSession;
 class QAndroidCameraImageCaptureControl;
 
-class QAndroidCaptureService : public QMediaPlatformCaptureInterface
+class QAndroidCaptureService : public QPlatformMediaCapture
 {
     Q_OBJECT
 

@@ -46,8 +46,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <private/qmediaplatformdevicemanager_p.h>
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 #include <private/qgstutils_p.h>
 
@@ -67,7 +67,7 @@ QGStreamerAudioEngine *QGStreamerAudioEngine::instance()
 
 QList<QByteArray> QGStreamerAudioEngine::availableDevices(QAudio::Mode mode) const
 {
-    auto *m = QMediaPlatformIntegration::instance()->deviceManager();
+    auto *m = QPlatformMediaIntegration::instance()->deviceManager();
     const auto devices = (mode == QAudio::AudioOutput) ? m->audioOutputs() : m->audioInputs();
     QList<QByteArray> list;
     for (auto d : devices)
@@ -77,7 +77,7 @@ QList<QByteArray> QGStreamerAudioEngine::availableDevices(QAudio::Mode mode) con
 
 QByteArray QGStreamerAudioEngine::defaultDevice(QAudio::Mode mode) const
 {
-    auto *m = QMediaPlatformIntegration::instance()->deviceManager();
+    auto *m = QPlatformMediaIntegration::instance()->deviceManager();
     const auto devices = (mode == QAudio::AudioOutput) ? m->audioOutputs() : m->audioInputs();
     return devices.value(0).id();
 }

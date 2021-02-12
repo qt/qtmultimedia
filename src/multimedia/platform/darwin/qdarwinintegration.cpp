@@ -56,21 +56,21 @@ QDarwinIntegration::~QDarwinIntegration()
     delete m_formatInfo;
 }
 
-QMediaPlatformDeviceManager *QDarwinIntegration::deviceManager()
+QPlatformMediaDeviceManager *QDarwinIntegration::deviceManager()
 {
     if (!m_manager)
         m_manager = new QDarwinDeviceManager();
     return m_manager;
 }
 
-QMediaPlatformFormatInfo *QDarwinIntegration::formatInfo()
+QPlatformMediaFormatInfo *QDarwinIntegration::formatInfo()
 {
     if (!m_formatInfo)
         m_formatInfo = new QDarwinFormatInfo();
     return m_formatInfo;
 }
 
-QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMediaRecorder::CaptureMode)
+QPlatformMediaCaptureInterface *QDarwinIntegration::createCaptureInterface(QMediaRecorder::CaptureMode)
 {
     return new AVFCameraService;
 }

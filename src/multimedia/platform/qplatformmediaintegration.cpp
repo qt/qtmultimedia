@@ -37,49 +37,62 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAPLATFORMFORMATINFO_H
-#define QMEDIAPLATFORMFORMATINFO_H
+#include <qtmultimediaglobal_p.h>
+#include "qplatformmediaintegration_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qtmultimediaglobal_p.h>
-#include <qmediaencodersettings.h>
+#if QT_CONFIG(gstreamer)
+#include <private/qgstreamerintegration_p.h>
+using PlatformIntegration = QGstreamerIntegration;
+#elif QT_CONFIG(pulseaudio)
+#include <private/qpulseaudiointegration_p.h>
+using PlatformIntegration = QPulseAudioIntegration;
+#elif QT_CONFIG(alsa)
+#include <private/qalsaintegration_p.h>
+using PlatformIntegration = QAlsaIntegration;
+#elif QT_CONFIG(avfoundation)
+#include <private/qdarwinintegration_p.h>
+using PlatformIntegration = QDarwinIntegration;
+#elif defined(Q_OS_WIN)
+#include <private/qwindowsintegration_p.h>
+using PlatformIntegration = QWindowsIntegration;
+#elif defined(Q_OS_ANDROID)
+#include <private/qandroidintegration_p.h>
+using PlatformIntegration = QAndroidIntegration;
+#endif
 
 QT_BEGIN_NAMESPACE
 
-class Q_AUTOTEST_EXPORT QMediaPlatformFormatInfo
+namespace {
+struct Holder {
+    ~Holder()
+    {
+        delete instance;
+        instance = nullptr;
+    }
+    QPlatformMediaIntegration *instance = nullptr;
+} holder;
+
+}
+
+QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-public:
-    QMediaPlatformFormatInfo();
-    virtual ~QMediaPlatformFormatInfo();
+    if (!holder.instance) {
+        holder.instance = new PlatformIntegration;
+    }
+    return holder.instance;
+}
 
-    QList<QMediaFormat::FileFormat> supportedFileFormats(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
-    QList<QMediaFormat::AudioCodec> supportedAudioCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
-    QList<QMediaFormat::VideoCodec> supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const;
+/*
+    This API is there to be able to test with a mock backend.
+*/
+void QPlatformMediaIntegration::setIntegration(QPlatformMediaIntegration *integration)
+{
+    holder.instance = integration;
+}
 
-    bool isSupported(const QMediaFormat &format, QMediaFormat::ConversionMode m) const;
+QPlatformMediaIntegration::~QPlatformMediaIntegration()
+{
 
-    struct CodecMap {
-        QMediaFormat::FileFormat format;
-        QList<QMediaFormat::AudioCodec> audio;
-        QList<QMediaFormat::VideoCodec> video;
-    };
-    QList<CodecMap> encoders;
-    QList<CodecMap> decoders;
-
-    QList<QImageEncoderSettings::FileFormat> imageFormats;
-};
+}
 
 QT_END_NAMESPACE
-
-
-#endif // QMEDIAPLATFORMDEVICEMANAGER_H

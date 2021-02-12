@@ -51,11 +51,11 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformformatinfo_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidFormatInfo : public QMediaPlatformFormatInfo
+class QAndroidFormatInfo : public QPlatformMediaFormatInfo
 {
 public:
     QAndroidFormatInfo();

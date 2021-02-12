@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -60,18 +60,18 @@ class MockMediaPlayer;
 class MockAudioDecoderControl;
 class MockMediaRecorderService;
 
-class QMockIntegration : public QMediaPlatformIntegration
+class QMockIntegration : public QPlatformMediaIntegration
 {
 public:
     QMockIntegration();
     ~QMockIntegration();
 
-    QMediaPlatformDeviceManager *deviceManager() override;
-    QMediaPlatformFormatInfo *formatInfo() override { return nullptr; }
+    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 
     QAudioDecoderControl *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer() override;
-    QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
+    QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
 
     enum Flag {
         NoPlayerInterface = 0x1,

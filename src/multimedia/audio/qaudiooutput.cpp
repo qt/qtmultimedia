@@ -43,8 +43,8 @@
 #include "qaudiosystem_p.h"
 #include "qaudiooutput.h"
 
-#include <private/qmediaplatformdevicemanager_p.h>
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -131,7 +131,7 @@ QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent)
 QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QMediaPlatformIntegration::instance()->deviceManager()->audioOutputDevice(format, audioDevice);
+    d = QPlatformMediaIntegration::instance()->deviceManager()->audioOutputDevice(format, audioDevice);
     if (d) {
         connect(d, SIGNAL(notify()), SIGNAL(notify()));
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));

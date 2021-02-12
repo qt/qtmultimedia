@@ -52,7 +52,7 @@
 
 #include <QObject>
 
-#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qplatformmediacapture_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -67,7 +67,7 @@ class BbCameraSession;
 class BbCameraVideoEncoderSettingsControl;
 class BbVideoRendererControl;
 
-class BbCameraService : public QMediaPlatformCaptureInterface
+class BbCameraService : public QPlatformMediaCapture
 {
     Q_OBJECT
 

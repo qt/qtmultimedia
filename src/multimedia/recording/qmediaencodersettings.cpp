@@ -39,8 +39,8 @@
 
 #include "qmediaencodersettings.h"
 #include "qmediaformat.h"
-#include <private/qmediaplatformintegration_p.h>
-#include <private/qmediaplatformformatinfo_p.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -563,7 +563,7 @@ void QImageEncoderSettings::setFormat(QImageEncoderSettings::FileFormat format)
 
 QList<QImageEncoderSettings::FileFormat> QImageEncoderSettings::supportedFormats()
 {
-    return QMediaPlatformIntegration::instance()->formatInfo()->imageFormats;
+    return QPlatformMediaIntegration::instance()->formatInfo()->imageFormats;
 }
 
 QString QImageEncoderSettings::fileFormatName(QImageEncoderSettings::FileFormat f)

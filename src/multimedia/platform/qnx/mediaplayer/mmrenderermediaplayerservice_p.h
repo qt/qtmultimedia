@@ -50,7 +50,7 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformplayerinterface_p.h>
+#include <private/qplatformmediaplayerinterface_p.h>
 #include <QtCore/qpointer.h>
 
 QT_BEGIN_NAMESPACE
@@ -59,14 +59,14 @@ class MmRendererMediaPlayerControl;
 class MmRendererPlayerVideoRendererControl;
 class MmRendererVideoWindowControl;
 
-class MmRendererMediaPlayerService : public QMediaPlatformPlayerInterface
+class MmRendererMediaPlayerService : public QPlatformMediaPlayerInterface
 {
     Q_OBJECT
 public:
     explicit MmRendererMediaPlayerService(QObject *parent = 0);
     ~MmRendererMediaPlayerService();
 
-    // QMediaPlatformPlayerInterface
+    // QPlatformMediaPlayerInterface
     QPlatformMediaPlayer *player() override;
 //    QMediaStreamsControl *streams() override;
 

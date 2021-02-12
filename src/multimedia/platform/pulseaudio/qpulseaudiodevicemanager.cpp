@@ -49,7 +49,7 @@
 QT_BEGIN_NAMESPACE
 
 QPulseAudioDeviceManager::QPulseAudioDeviceManager(QPulseAudioEngine *engine)
-    : QMediaPlatformDeviceManager(),
+    : QPlatformMediaDeviceManager(),
       pulseEngine(engine)
 {
 }

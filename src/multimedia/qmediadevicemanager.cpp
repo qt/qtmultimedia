@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 #include "qmediadevicemanager.h"
-#include "private/qmediaplatformintegration_p.h"
-#include "private/qmediaplatformdevicemanager_p.h"
+#include "private/qplatformmediaintegration_p.h"
+#include "private/qplatformmediadevicemanager_p.h"
 
 #include <qaudiodeviceinfo.h>
 #include <qcamerainfo.h>
@@ -52,7 +52,7 @@ public:
     QMediaDeviceManagerPrivate()
         : manager(new QMediaDeviceManager)
     {
-        pmanager = QMediaPlatformIntegration::instance()->deviceManager();
+        pmanager = QPlatformMediaIntegration::instance()->deviceManager();
         pmanager->setDeviceManager(manager);
     }
     ~QMediaDeviceManagerPrivate()
@@ -62,7 +62,7 @@ public:
     }
 
     QMediaDeviceManager *manager = nullptr;
-    QMediaPlatformDeviceManager *pmanager = nullptr;
+    QPlatformMediaDeviceManager *pmanager = nullptr;
 
 } priv;
 

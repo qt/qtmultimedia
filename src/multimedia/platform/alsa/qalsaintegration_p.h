@@ -51,19 +51,19 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAlsaDeviceManager;
 
-class QAlsaIntegration : public QMediaPlatformIntegration
+class QAlsaIntegration : public QPlatformMediaIntegration
 {
 public:
     QAlsaIntegration();
     ~QAlsaIntegration();
 
-    QMediaPlatformDeviceManager *deviceManager() override;
+    QPlatformMediaDeviceManager *deviceManager() override;
 
     QAlsaDeviceManager *m_manager = nullptr;
 };

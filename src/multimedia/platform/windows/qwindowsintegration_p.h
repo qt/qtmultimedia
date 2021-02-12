@@ -51,14 +51,14 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QWindowsDeviceManager;
 class QWindowsFormatInfo;
 
-class QWindowsIntegration : public QMediaPlatformIntegration
+class QWindowsIntegration : public QPlatformMediaIntegration
 {
 public:
     QWindowsIntegration();
@@ -67,8 +67,8 @@ public:
     void addRefCount();
     void releaseRefCount();
 
-    QMediaPlatformDeviceManager *deviceManager() override;
-    QMediaPlatformFormatInfo *formatInfo() override;
+    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaFormatInfo *formatInfo() override;
 
     QAudioDecoderControl *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer() override;

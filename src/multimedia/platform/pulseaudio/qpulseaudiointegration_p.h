@@ -51,20 +51,20 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 #include <private/qaudioengine_pulse_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QPulseAudioDeviceManager;
 
-class QPulseAudioIntegration : public QMediaPlatformIntegration
+class QPulseAudioIntegration : public QPlatformMediaIntegration
 {
 public:
     QPulseAudioIntegration();
     ~QPulseAudioIntegration();
 
-    QMediaPlatformDeviceManager *deviceManager() override;
+    QPlatformMediaDeviceManager *deviceManager() override;
 
     QPulseAudioDeviceManager *m_manager = nullptr;
     QPulseAudioEngine *pulseEngine = nullptr;

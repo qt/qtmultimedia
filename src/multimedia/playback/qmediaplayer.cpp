@@ -42,7 +42,7 @@
 
 #include "private/qobject_p.h"
 #include <qplatformmediaplayer_p.h>
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -276,7 +276,7 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
     d->notifyTimer->setInterval(1000);
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
-    d->control = QMediaPlatformIntegration::instance()->createPlayer();
+    d->control = QPlatformMediaIntegration::instance()->createPlayer();
     Q_ASSERT(d->control);
 
     connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));

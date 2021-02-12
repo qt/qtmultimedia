@@ -69,14 +69,14 @@ QWindowsIntegration::~QWindowsIntegration()
     }
 }
 
-QMediaPlatformDeviceManager *QWindowsIntegration::deviceManager()
+QPlatformMediaDeviceManager *QWindowsIntegration::deviceManager()
 {
     if (!m_manager)
         m_manager = new QWindowsDeviceManager();
     return m_manager;
 }
 
-QMediaPlatformFormatInfo *QWindowsIntegration::formatInfo()
+QPlatformMediaFormatInfo *QWindowsIntegration::formatInfo()
 {
     if (!m_formatInfo)
         m_formatInfo = new QWindowsFormatInfo();

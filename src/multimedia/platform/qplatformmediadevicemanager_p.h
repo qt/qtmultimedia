@@ -37,62 +37,62 @@
 **
 ****************************************************************************/
 
-#include <qtmultimediaglobal_p.h>
-#include "qmediaplatformintegration_p.h"
+#ifndef QPLATFORMMEDIADEVICEMANAGER_H
+#define QPLATFORMMEDIADEVICEMANAGER_H
 
-#if QT_CONFIG(gstreamer)
-#include <private/qgstreamerintegration_p.h>
-using PlatformIntegration = QGstreamerIntegration;
-#elif QT_CONFIG(pulseaudio)
-#include <private/qpulseaudiointegration_p.h>
-using PlatformIntegration = QPulseAudioIntegration;
-#elif QT_CONFIG(alsa)
-#include <private/qalsaintegration_p.h>
-using PlatformIntegration = QAlsaIntegration;
-#elif QT_CONFIG(avfoundation)
-#include <private/qdarwinintegration_p.h>
-using PlatformIntegration = QDarwinIntegration;
-#elif defined(Q_OS_WIN)
-#include <private/qwindowsintegration_p.h>
-using PlatformIntegration = QWindowsIntegration;
-#elif defined(Q_OS_ANDROID)
-#include <private/qandroidintegration_p.h>
-using PlatformIntegration = QAndroidIntegration;
-#endif
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qtmultimediaglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace {
-struct Holder {
-    ~Holder()
+class QMediaDeviceManager;
+class QAudioDeviceInfo;
+class QCameraInfo;
+class QAbstractAudioInput;
+class QAbstractAudioOutput;
+class QAudioFormat;
+
+class Q_AUTOTEST_EXPORT QPlatformMediaDeviceManager
+{
+public:
+    QPlatformMediaDeviceManager();
+    virtual ~QPlatformMediaDeviceManager();
+
+    virtual QList<QAudioDeviceInfo> audioInputs() const = 0;
+    virtual QList<QAudioDeviceInfo> audioOutputs() const = 0;
+    virtual QList<QCameraInfo> videoInputs() const = 0;
+    virtual QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
+    virtual QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
+
+    QAudioDeviceInfo audioInput(const QByteArray &id) const;
+    QAudioDeviceInfo audioOutput(const QByteArray &id) const;
+    QCameraInfo videoInput(const QByteArray &id) const;
+
+    QAbstractAudioInput *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+    QAbstractAudioOutput *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+
+    QMediaDeviceManager *deviceManager() const { return m_manager; }
+    void setDeviceManager(QMediaDeviceManager *m)
     {
-        delete instance;
-        instance = nullptr;
+        Q_ASSERT(!m_manager);
+        m_manager = m;
     }
-    QMediaPlatformIntegration *instance = nullptr;
-} holder;
 
-}
-
-QMediaPlatformIntegration *QMediaPlatformIntegration::instance()
-{
-    if (!holder.instance) {
-        holder.instance = new PlatformIntegration;
-    }
-    return holder.instance;
-}
-
-/*
-    This API is there to be able to test with a mock backend.
-*/
-void QMediaPlatformIntegration::setIntegration(QMediaPlatformIntegration *integration)
-{
-    holder.instance = integration;
-}
-
-QMediaPlatformIntegration::~QMediaPlatformIntegration()
-{
-
-}
+private:
+    QMediaDeviceManager *m_manager = nullptr;
+};
 
 QT_END_NAMESPACE
+
+
+#endif // QPLATFORMMEDIADEVICEMANAGER_H

@@ -44,8 +44,8 @@
 #include <qaudiodeviceinfo.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>
-#include <private/qmediaplatformintegration_p.h>
-#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformmediacapture_p.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
@@ -165,7 +165,7 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent
     if (mode != AudioOnly) {
         setCamera(new QCamera(this));
     } else {
-        auto *captureIface = QMediaPlatformIntegration::instance()->createCaptureInterface(mode);
+        auto *captureIface = QPlatformMediaIntegration::instance()->createCaptureInterface(mode);
         d->control = captureIface->mediaRecorderControl();
     }
 }

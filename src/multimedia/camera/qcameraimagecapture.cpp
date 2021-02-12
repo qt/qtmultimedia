@@ -40,7 +40,7 @@
 #include <qcameraimagecapturecontrol.h>
 #include <qmediaencodersettings.h>
 #include <qmediametadata.h>
-#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qplatformmediacapture_p.h>
 
 #include "private/qobject_p.h"
 #include <qcamera.h>
@@ -137,7 +137,7 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
     d->q_ptr = this;
     d->camera = camera;
 
-    QMediaPlatformCaptureInterface *service = camera->captureInterface();
+    QPlatformMediaCapture *service = camera->captureInterface();
     if (service) {
         d->control = service->imageCaptureControl();
 

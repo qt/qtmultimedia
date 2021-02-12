@@ -53,7 +53,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qset.h>
-#include <private/qmediaplatformcaptureinterface_p.h>
+#include <private/qplatformmediacapture_p.h>
 
 
 QT_BEGIN_NAMESPACE
@@ -67,7 +67,7 @@ class AVFCameraExposureControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControlIOS;
 
-class AVFCameraService : public QMediaPlatformCaptureInterface
+class AVFCameraService : public QPlatformMediaCapture
 {
 Q_OBJECT
 public:

@@ -52,7 +52,7 @@ QPulseAudioIntegration::~QPulseAudioIntegration()
     delete m_manager;
 }
 
-QMediaPlatformDeviceManager *QPulseAudioIntegration::deviceManager()
+QPlatformMediaDeviceManager *QPulseAudioIntegration::deviceManager()
 {
     if (!m_manager)
         m_manager = new QPulseAudioDeviceManager(pulseEngine);

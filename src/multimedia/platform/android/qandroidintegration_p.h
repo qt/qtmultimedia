@@ -51,26 +51,26 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformintegration_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidDeviceManager;
 
-class QAndroidIntegration : public QMediaPlatformIntegration
+class QAndroidIntegration : public QPlatformMediaIntegration
 {
 public:
     QAndroidIntegration();
     ~QAndroidIntegration();
 
-    QMediaPlatformDeviceManager *deviceManager() override;
-    QMediaPlatformFormatInfo *formatInfo() override;
+    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaFormatInfo *formatInfo() override;
 
-    QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
+    QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
     QPlatformMediaPlayer *createPlayer() override;
 
     QAndroidDeviceManager *m_manager = nullptr;
-    QMediaPlatformFormatInfo  *m_formatInfo = nullptr;
+    QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
 };
 
 QT_END_NAMESPACE

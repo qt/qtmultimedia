@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformdevicemanager_p.h>
+#include <private/qplatformmediadevicemanager_p.h>
 #include <qelapsedtimer.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamerainfo.h>
@@ -62,7 +62,7 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
 
 class QCameraInfo;
 
-class QMockDeviceManager : public QMediaPlatformDeviceManager
+class QMockDeviceManager : public QPlatformMediaDeviceManager
 {
 public:
     QMockDeviceManager();

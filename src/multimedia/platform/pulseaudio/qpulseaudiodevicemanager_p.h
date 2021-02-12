@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qmediaplatformdevicemanager_p.h>
+#include <private/qplatformmediadevicemanager_p.h>
 #include <qset.h>
 #include <qaudio.h>
 
@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 
 class QPulseAudioEngine;
 
-class QPulseAudioDeviceManager : public QMediaPlatformDeviceManager
+class QPulseAudioDeviceManager : public QPlatformMediaDeviceManager
 {
 public:
     QPulseAudioDeviceManager(QPulseAudioEngine *engine);

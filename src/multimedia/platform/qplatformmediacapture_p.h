@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QMEDIAPLATFORMDEVICEMANAGER_H
-#define QMEDIAPLATFORMDEVICEMANAGER_H
+#ifndef QPLATFORMMEDIACAPTURE_H
+#define QPLATFORMMEDIACAPTURE_H
 
 //
 //  W A R N I N G
@@ -52,47 +51,25 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
+class QCameraControl;
+class QCameraImageCaptureControl;
+class QMediaRecorderControl;
 
-class QMediaDeviceManager;
-class QAudioDeviceInfo;
-class QCameraInfo;
-class QAbstractAudioInput;
-class QAbstractAudioOutput;
-class QAudioFormat;
-
-class Q_AUTOTEST_EXPORT QMediaPlatformDeviceManager
+class Q_MULTIMEDIA_EXPORT QPlatformMediaCapture : public QObject
 {
 public:
-    QMediaPlatformDeviceManager();
-    virtual ~QMediaPlatformDeviceManager();
+    QPlatformMediaCapture() = default;
+    virtual ~QPlatformMediaCapture();
 
-    virtual QList<QAudioDeviceInfo> audioInputs() const = 0;
-    virtual QList<QAudioDeviceInfo> audioOutputs() const = 0;
-    virtual QList<QCameraInfo> videoInputs() const = 0;
-    virtual QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
-    virtual QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
-
-    QAudioDeviceInfo audioInput(const QByteArray &id) const;
-    QAudioDeviceInfo audioOutput(const QByteArray &id) const;
-    QCameraInfo videoInput(const QByteArray &id) const;
-
-    QAbstractAudioInput *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
-    QAbstractAudioOutput *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
-
-    QMediaDeviceManager *deviceManager() const { return m_manager; }
-    void setDeviceManager(QMediaDeviceManager *m)
-    {
-        Q_ASSERT(!m_manager);
-        m_manager = m;
-    }
-
-private:
-    QMediaDeviceManager *m_manager = nullptr;
+    virtual QCameraControl *cameraControl() = 0;
+    virtual QCameraImageCaptureControl *imageCaptureControl() = 0;
+    virtual QMediaRecorderControl *mediaRecorderControl() = 0;
 };
 
 QT_END_NAMESPACE
 
 
-#endif // QMEDIAPLATFORMDEVICEMANAGER_H
+#endif // QPLATFORMMEDIAINTERFACE_H
