@@ -53,8 +53,7 @@ QT_BEGIN_NAMESPACE
 QGstreamerPlayerService::QGstreamerPlayerService()
     : QMediaPlatformPlayerInterface()
 {
-    m_session = new QGstreamerPlayerSession(this);
-    m_control = new QGstreamerPlayerControl(m_session, this);
+    m_control = new QGstreamerPlayerControl(this);
 }
 
 QGstreamerPlayerService::~QGstreamerPlayerService()

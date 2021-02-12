@@ -55,10 +55,10 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerPlayerControl::QGstreamerPlayerControl(QGstreamerPlayerSession *session, QObject *parent)
+QGstreamerPlayerControl::QGstreamerPlayerControl(QObject *parent)
     : QMediaPlayerControl(parent)
-    , m_session(session)
 {
+    m_session = new QGstreamerPlayerSession(this);
     connect(m_session, &QGstreamerPlayerSession::positionChanged, this, &QGstreamerPlayerControl::positionChanged);
     connect(m_session, &QGstreamerPlayerSession::durationChanged, this, &QGstreamerPlayerControl::durationChanged);
     connect(m_session, &QGstreamerPlayerSession::mutedStateChanged, this, &QGstreamerPlayerControl::mutedChanged);

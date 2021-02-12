@@ -66,7 +66,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerPlayerControl : public QMediaPlayerControl
     Q_OBJECT
 
 public:
-    QGstreamerPlayerControl(QGstreamerPlayerSession *session, QObject *parent = 0);
+    QGstreamerPlayerControl(QObject *parent = 0);
     ~QGstreamerPlayerControl();
 
     QGstreamerPlayerSession *session() { return m_session; }

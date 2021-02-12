@@ -76,7 +76,6 @@ public:
 
 private:
     QGstreamerPlayerControl *m_control = nullptr;
-    QGstreamerPlayerSession *m_session = nullptr;
 };
 
 QT_END_NAMESPACE
