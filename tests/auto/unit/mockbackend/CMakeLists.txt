@@ -14,7 +14,6 @@ target_link_libraries(QtMultimediaMockBackend INTERFACE
 )
 target_sources(QtMultimediaMockBackend INTERFACE
     mockaudiodecodercontrol.h
-    mockaudiodecoderservice.h
     mockcameracontrol.h
     mockcameraexposurecontrol.h
     mockcamerafocuscontrol.h

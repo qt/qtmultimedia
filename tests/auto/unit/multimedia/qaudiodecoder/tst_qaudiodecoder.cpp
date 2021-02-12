@@ -31,7 +31,7 @@
 #include <QtTest/QtTest>
 
 #include "qaudiodecoder.h"
-#include "mockaudiodecoderservice.h"
+#include "mockaudiodecodercontrol.h"
 #include "qmockintegration_p.h"
 
 class tst_QAudioDecoder : public QObject

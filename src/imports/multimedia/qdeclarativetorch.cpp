@@ -40,6 +40,7 @@
 #include <QDebug>
 #include <QMediaService>
 #include <private/qmediaplatformcaptureinterface_p.h>
+#include <qcameracontrol.h>
 
 #include "qdeclarativetorch_p.h"
 
@@ -67,13 +68,14 @@ QT_BEGIN_NAMESPACE
 
     \endqml
 */
-QDeclarativeTorch::QDeclarativeTorch(QObject *parent)
-    : QObject(parent)
+QDeclarativeTorch::QDeclarativeTorch(QCamera *camera)
+    : QObject(camera),
+      m_camera(camera)
 {
-    m_camera = new QCamera(this);
+    if (!camera)
+        return;
     auto *service = m_camera->captureInterface();
-
-    m_exposure = service ? service->requestControl<QCameraExposureControl*>() : 0;
+    m_exposure = service->cameraControl()->exposureControl();
 
     if (m_exposure)
         connect(m_exposure, SIGNAL(actualValueChanged(int)), SLOT(parameterChanged(int)));

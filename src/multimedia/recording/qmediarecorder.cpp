@@ -167,7 +167,7 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent
         setCamera(new QCamera(this));
     } else {
         auto *captureIface = QMediaPlatformIntegration::instance()->createCaptureInterface(mode);
-        d->control = qobject_cast<QMediaRecorderControl*>(captureIface->requestControl(QMediaRecorderControl_iid));
+        d->control = captureIface->mediaRecorderControl();
     }
 }
 
@@ -269,7 +269,7 @@ bool QMediaRecorder::setCamera(QCamera *object)
     d->notifyTimer->setInterval(notifyInterval());
     connect(this, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
 
-    d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));
+    d->control = service->mediaRecorderControl();
     Q_ASSERT(d->control);
 
     connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),

@@ -74,13 +74,14 @@ public:
     AVFCameraService();
     ~AVFCameraService();
 
-    QObject *requestControl(const char *name);
-    void releaseControl(QObject *control);
+    QCameraControl *cameraControl() override;
+    QCameraImageCaptureControl *imageCaptureControl() override;
+    QMediaRecorderControl *mediaRecorderControl() override;
 
     AVFCameraSession *session() const { return m_session; }
-    AVFCameraControl *cameraControl() const { return m_cameraControl; }
+    AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
     QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
-    AVFImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
+    AVFImageCaptureControl *avfImageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
 

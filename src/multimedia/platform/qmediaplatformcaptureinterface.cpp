@@ -42,12 +42,6 @@
 
 QT_BEGIN_NAMESPACE
 
-QMediaPlatformCaptureInterface::QMediaPlatformCaptureInterface()
-    : QMediaService(nullptr)
-{
-
-}
-
 QMediaPlatformCaptureInterface::~QMediaPlatformCaptureInterface()
 {
 

@@ -61,9 +61,6 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingControlMetaTypes)
     for controlling image processing parameters, like white balance,
     contrast, saturation, sharpening and denoising.
 
-    The interface name of QCameraImageProcessingControl is \c org.qt-project.qt.cameraimageprocessingcontrol/5.0 as
-    defined in QCameraImageProcessingControl_iid.
-
     Camera service may choose the parameters of image processing pipeline depending
     on sensor properties camera settings and capture parameters.
 
@@ -78,17 +75,7 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingControlMetaTypes)
     slightly reduces the amount of sharpening applied,
     while settings the Sharpening parameter to 0 disables sharpening at all.
 
-    \sa QMediaService::requestControl(), QCamera
-*/
-
-/*!
-    \macro QCameraImageProcessingControl_iid
-
-    \c org.qt-project.qt.cameraimageprocessingcontrol/5.0
-
-    Defines the interface name of the QCameraImageProcessingControl class.
-
-    \relates QCameraImageProcessingControl
+    \sa QCamera
 */
 
 /*!

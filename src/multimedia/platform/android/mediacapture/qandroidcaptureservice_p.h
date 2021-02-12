@@ -72,8 +72,9 @@ public:
     explicit QAndroidCaptureService(QMediaRecorder::CaptureMode mode);
     virtual ~QAndroidCaptureService();
 
-    QObject *requestControl(const char *name);
-    void releaseControl(QObject *);
+    QCameraControl *cameraControl() override;
+    QCameraImageCaptureControl *imageCaptureControl() override;
+    QMediaRecorderControl *mediaRecorderControl() override;
 
     bool m_videoEnabled = false;
 

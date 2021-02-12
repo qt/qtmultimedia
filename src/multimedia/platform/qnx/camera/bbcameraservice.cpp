@@ -73,35 +73,19 @@ BbCameraService::~BbCameraService()
 {
 }
 
-QMediaControl* BbCameraService::requestControl(const char *name)
+QCameraControl *BbCameraService::cameraControl()
 {
-    if (qstrcmp(name, QAudioEncoderSettingsControl_iid) == 0)
-        return m_cameraAudioEncoderSettingsControl;
-    else if (qstrcmp(name, QCameraControl_iid) == 0)
-        return m_cameraControl;
-    else if (qstrcmp(name, QCameraExposureControl_iid) == 0)
-        return m_cameraExposureControl;
-    else if (qstrcmp(name, QCameraFocusControl_iid) == 0)
-        return m_cameraFocusControl;
-    else if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
-        return m_cameraImageCaptureControl;
-    else if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
-        return m_cameraImageProcessingControl;
-    else if (qstrcmp(name, QMediaRecorderControl_iid) == 0)
-        return m_cameraMediaRecorderControl;
-    else if (qstrcmp(name, QVideoEncoderSettingsControl_iid) == 0)
-        return m_cameraVideoEncoderSettingsControl;
-    else if (qstrcmp(name, QVideoRendererControl_iid) == 0)
-        return m_videoRendererControl;
-
-    return 0;
+    return m_cameraControl;
 }
 
-void BbCameraService::releaseControl(QMediaControl *control)
+QCameraImageCaptureControl *BbCameraService::imageCaptureControl()
 {
-    Q_UNUSED(control);
+    return m_cameraImageCaptureControl;
+}
 
-    // Implemented as a singleton, so we do nothing.
+QMediaRecorderControl *BbCameraService::mediaRecorderControl()
+{
+    return m_cameraMediaRecorderControl;
 }
 
 QT_END_NAMESPACE

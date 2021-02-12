@@ -42,6 +42,7 @@
 
 #include "qdeclarativecameraexposure_p.h"
 #include "qdeclarativecameraflash_p.h"
+#include "qdeclarativetorch_p.h"
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
 
@@ -180,6 +181,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_videoRecorder = new QDeclarativeCameraRecorder(m_camera);
     m_exposure = new QDeclarativeCameraExposure(m_camera);
     m_flash = new QDeclarativeCameraFlash(m_camera);
+    m_torch = new QDeclarativeTorch(m_camera);
     m_focus = new QDeclarativeCameraFocus(m_camera);
     m_imageProcessing = new QDeclarativeCameraImageProcessing(m_camera);
 

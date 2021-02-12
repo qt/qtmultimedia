@@ -93,9 +93,6 @@ protected:
     explicit QAudioDecoderControl(QObject *parent = nullptr);
 };
 
-#define QAudioDecoderControl_iid "org.qt-project.qt.audiodecodercontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QAudioDecoderControl, QAudioDecoderControl_iid)
-
 QT_END_NAMESPACE
 
 #endif  // QAUDIODECODERCONTROL_H

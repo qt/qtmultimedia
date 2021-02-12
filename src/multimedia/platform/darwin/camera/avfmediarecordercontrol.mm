@@ -127,8 +127,7 @@ QT_USE_NAMESPACE
 
 AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObject *parent)
    : QMediaRecorderControl(parent)
-   , m_service(service)
-   , m_cameraControl(service->cameraControl())
+   , m_cameraControl(service->avfCameraControl())
    , m_session(service->session())
    , m_connected(false)
    , m_state(QMediaRecorder::StoppedState)

@@ -155,7 +155,7 @@ void QCameraPrivate::initControls()
 
     captureInterface = QMediaPlatformIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo);
     if (captureInterface) {
-        control = qobject_cast<QCameraControl *>(captureInterface->requestControl(QCameraControl_iid));
+        control = captureInterface->cameraControl();
 
         if (control) {
             q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
@@ -177,11 +177,7 @@ void QCameraPrivate::clear()
     delete cameraExposure;
     delete cameraFocus;
     delete imageProcessing;
-
-    if (captureInterface) {
-        if (control)
-            captureInterface->releaseControl(control);
-    }
+    delete control;
 
     cameraExposure = nullptr;
     cameraFocus = nullptr;

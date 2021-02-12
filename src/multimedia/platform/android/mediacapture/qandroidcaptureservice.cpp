@@ -75,22 +75,19 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraSession;
 }
 
-QObject *QAndroidCaptureService::requestControl(const char *name)
+QCameraControl *QAndroidCaptureService::cameraControl()
 {
-    if (qstrcmp(name, QMediaRecorderControl_iid) == 0)
-        return m_recorderControl;
-
-    if (qstrcmp(name, QCameraControl_iid) == 0)
-        return m_cameraControl;
-
-    if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
-        return m_imageCaptureControl;
-
-    return 0;
+    return m_cameraControl;
 }
 
-void QAndroidCaptureService::releaseControl(QObject *)
+QCameraImageCaptureControl *QAndroidCaptureService::imageCaptureControl()
 {
+    return m_imageCaptureControl;
+}
+
+QMediaRecorderControl *QAndroidCaptureService::mediaRecorderControl()
+{
+    return m_recorderControl;
 }
 
 QT_END_NAMESPACE

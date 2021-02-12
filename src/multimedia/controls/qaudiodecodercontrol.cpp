@@ -54,24 +54,6 @@ QT_BEGIN_NAMESPACE
     functionality of a QMediaService.
 
     \preliminary
-
-    The functionality provided by this control is exposed to application
-    code through the QAudioDecoder class.
-
-    The interface name of QAudioDecoderControl is \c org.qt-project.qt.audiodecodercontrol/5.0 as
-    defined in QAudioDecoderControl_iid.
-
-    \sa QMediaService::requestControl(), QAudioDecoder
-*/
-
-/*!
-    \macro QAudioDecoderControl_iid
-
-    \c org.qt-project.qt.audiodecodercontrol/5.0
-
-    Defines the interface name of the QAudioDecoderControl class.
-
-    \relates QAudioDecoderControl
 */
 
 /*!

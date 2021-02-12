@@ -62,21 +62,8 @@ QT_BEGIN_NAMESPACE
     and record, pause and stop recording via the \l setState() method.  It also
     provides feedback on the \l {duration()}{duration} of the recording.
 
-    The interface name of QMediaRecorderControl is \c org.qt-project.qt.mediarecordercontrol/5.0 as
-    defined in QMediaRecorderControl_iid.
+    \sa QMediaRecorder
 
-    \sa QMediaService::requestControl(), QMediaRecorder
-
-*/
-
-/*!
-    \macro QMediaRecorderControl_iid
-
-    \c org.qt-project.qt.mediarecordercontrol/5.0
-
-    Defines the interface name of the QMediaRecorderControl class.
-
-    \relates QMediaRecorderControl
 */
 
 /*!

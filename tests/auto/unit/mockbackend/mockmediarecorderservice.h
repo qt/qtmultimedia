@@ -53,36 +53,14 @@ public:
         mockCaptureControl = new MockCaptureControl(mockCameraControl, this);
         mockImageProcessingControl = new MockImageProcessingControl(this);
     }
-
-    QObject *requestControl(const char *name)
-    {
-        if (!hasControls)
-            return nullptr;
-
-        if (qstrcmp(name,QMediaRecorderControl_iid) == 0)
-            return mockControl;
-
-        if (qstrcmp(name, QCameraControl_iid) == 0)
-            return mockCameraControl;
-
-        if (simpleCamera)
-            return nullptr;
-
-        if (qstrcmp(name, QCameraExposureControl_iid) == 0)
-            return mockExposureControl;
-        if (qstrcmp(name, QCameraFocusControl_iid) == 0)
-            return mockFocusControl;
-        if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
-            return mockCaptureControl;
-        if (qstrcmp(name, QCameraImageProcessingControl_iid) == 0)
-            return mockImageProcessingControl;
-
-        return nullptr;
-    }
-
-    void releaseControl(QObject *)
+    ~MockMediaRecorderService()
     {
     }
+
+    QCameraControl *cameraControl() override { return hasControls ? mockCameraControl : nullptr; }
+    QCameraImageCaptureControl *imageCaptureControl() override { return hasControls ? mockCaptureControl : nullptr; }
+    QMediaRecorderControl *mediaRecorderControl() override { return hasControls ? mockControl : nullptr; }
+
 
     static bool simpleCamera;
 

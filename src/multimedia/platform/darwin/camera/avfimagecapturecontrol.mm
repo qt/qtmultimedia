@@ -56,7 +56,7 @@ AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObjec
    : QCameraImageCaptureControl(parent)
    , m_service(service)
    , m_session(service->session())
-   , m_cameraControl(service->cameraControl())
+   , m_cameraControl(service->avfCameraControl())
    , m_ready(false)
    , m_lastCaptureId(0)
    , m_videoConnection(nil)
@@ -326,7 +326,7 @@ bool AVFImageCaptureControl::applySettings()
         return false;
 
     if (!m_service->imageCaptureControl()
-        || !m_service->imageCaptureControl()->stillImageOutput()) {
+        || !m_service->avfImageCaptureControl()->stillImageOutput()) {
         qDebugCamera() << Q_FUNC_INFO << "no still image output";
         return false;
     }

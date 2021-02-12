@@ -69,7 +69,7 @@ QT_BEGIN_NAMESPACE
     The interface name of QMediaPlayerControl is \c org.qt-project.qt.mediaplayercontrol/5.0 as
     defined in QMediaPlayerControl_iid.
 
-    \sa QMediaService::requestControl(), QMediaPlayer
+    \sa QMediaPlayer
 */
 
 /*!

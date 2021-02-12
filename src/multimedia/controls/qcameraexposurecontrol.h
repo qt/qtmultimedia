@@ -91,9 +91,6 @@ protected:
     explicit QCameraExposureControl(QObject *parent = nullptr);
 };
 
-#define QCameraExposureControl_iid "org.qt-project.qt.cameraexposurecontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraExposureControl, QCameraExposureControl_iid)
-
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QCameraExposureControl::ExposureParameter)

@@ -54,12 +54,19 @@
 #include <qmediaservice.h>
 
 QT_BEGIN_NAMESPACE
+class QCameraControl;
+class QCameraImageCaptureControl;
+class QMediaRecorderControl;
 
-class Q_MULTIMEDIA_EXPORT QMediaPlatformCaptureInterface : public QMediaService
+class Q_MULTIMEDIA_EXPORT QMediaPlatformCaptureInterface : public QObject
 {
 public:
-    QMediaPlatformCaptureInterface();
+    QMediaPlatformCaptureInterface() = default;
     virtual ~QMediaPlatformCaptureInterface();
+
+    virtual QCameraControl *cameraControl() = 0;
+    virtual QCameraImageCaptureControl *imageCaptureControl() = 0;
+    virtual QMediaRecorderControl *mediaRecorderControl() = 0;
 };
 
 QT_END_NAMESPACE

@@ -99,22 +99,19 @@ AVFCameraService::~AVFCameraService()
     delete m_session;
 }
 
-QObject *AVFCameraService::requestControl(const char *name)
+QCameraControl *AVFCameraService::cameraControl()
 {
-    if (qstrcmp(name, QCameraControl_iid) == 0)
-        return m_cameraControl;
-
-    if (qstrcmp(name, QMediaRecorderControl_iid) == 0)
-        return m_recorderControl;
-
-    if (qstrcmp(name, QCameraImageCaptureControl_iid) == 0)
-        return m_imageCaptureControl;
-
-    return nullptr;
+    return m_cameraControl;
 }
 
-void AVFCameraService::releaseControl(QObject *)
+QCameraImageCaptureControl *AVFCameraService::imageCaptureControl()
 {
+    return m_imageCaptureControl;
+}
+
+QMediaRecorderControl *AVFCameraService::mediaRecorderControl()
+{
+    return m_recorderControl;
 }
 
 

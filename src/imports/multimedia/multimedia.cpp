@@ -86,7 +86,6 @@ public:
         qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 5, 0, "VideoOutput");
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
-        qmlRegisterType<QDeclarativeTorch>(uri, 5, 0, "Torch");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
                                 tr("CameraCapture is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 5, 0, "CameraRecorder",
@@ -97,6 +96,8 @@ public:
                                 tr("CameraFocus is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 5, 0, "CameraFlash",
                                 tr("CameraFlash is provided by Camera"));
+        qmlRegisterUncreatableType<QDeclarativeTorch>(uri, 5, 0, "CameraTorch",
+                                tr("CameraTorch is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing>(uri, 5, 0, "CameraImageProcessing",
                                 tr("CameraImageProcessing is provided by Camera"));
 

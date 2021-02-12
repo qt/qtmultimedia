@@ -352,7 +352,7 @@ void AVFCameraSession::attachVideoInputDevice()
 
 bool AVFCameraSession::applyImageEncoderSettings()
 {
-    if (AVFImageCaptureControl *control = m_service->imageCaptureControl())
+    if (AVFImageCaptureControl *control = m_service->avfImageCaptureControl())
         return control->applySettings();
 
     return false;

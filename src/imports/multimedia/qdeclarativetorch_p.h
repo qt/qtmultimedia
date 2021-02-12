@@ -59,6 +59,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QDeclarativeCamera;
+
 class QDeclarativeTorch : public QObject
 {
     Q_OBJECT
@@ -68,7 +70,7 @@ class QDeclarativeTorch : public QObject
     // Errors?
 
 public:
-    explicit QDeclarativeTorch(QObject *parent = 0);
+    explicit QDeclarativeTorch(QCamera *parent = 0);
     ~QDeclarativeTorch();
 
     bool enabled() const;
@@ -85,8 +87,8 @@ private slots:
     void parameterChanged(int parameter);
 
 private:
-    QCamera *m_camera;
-    QCameraExposureControl *m_exposure;
+    QCamera *m_camera = nullptr;
+    QCameraExposureControl *m_exposure = nullptr;
 };
 
 QT_END_NAMESPACE

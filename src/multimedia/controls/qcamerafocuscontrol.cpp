@@ -50,25 +50,9 @@ QT_BEGIN_NAMESPACE
     focusing related camera parameters.
 
     \inmodule QtMultimedia
-
-
     \ingroup multimedia_control
 
-    The interface name of QCameraFocusControl is \c org.qt-project.qt.camerafocuscontrol/5.0 as
-    defined in QCameraFocusControl_iid.
-
-
-    \sa QMediaService::requestControl(), QCamera
-*/
-
-/*!
-    \macro QCameraFocusControl_iid
-
-    \c org.qt-project.qt.camerafocuscontrol/5.0
-
-    Defines the interface name of the QCameraFocusControl class.
-
-    \relates QCameraFocusControl
+    \sa QCamera
 */
 
 /*!

@@ -90,9 +90,6 @@ protected:
     explicit QCameraControl(QObject *parent = nullptr);
 };
 
-#define QCameraControl_iid "org.qt-project.qt.cameracontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraControl, QCameraControl_iid)
-
 QT_END_NAMESPACE
 
 

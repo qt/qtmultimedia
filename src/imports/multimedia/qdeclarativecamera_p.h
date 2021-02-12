@@ -70,6 +70,7 @@ QT_BEGIN_NAMESPACE
 class QDeclarativeCameraExposure;
 class QDeclarativeCameraFocus;
 class QDeclarativeCameraFlash;
+class QDeclarativeTorch;
 class QDeclarativeCameraImageProcessing;
 class QDeclarativeMediaMetaData;
 class QDeclarativeCamera : public QObject, public QQmlParserStatus
@@ -95,6 +96,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeCameraRecorder* videoRecorder READ videoRecorder CONSTANT)
     Q_PROPERTY(QDeclarativeCameraExposure* exposure READ exposure CONSTANT)
     Q_PROPERTY(QDeclarativeCameraFlash* flash READ flash CONSTANT)
+    Q_PROPERTY(QDeclarativeTorch* torch READ torch CONSTANT)
     Q_PROPERTY(QDeclarativeCameraFocus* focus READ focus CONSTANT)
     Q_PROPERTY(QDeclarativeCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT REVISION 1)
@@ -213,6 +215,7 @@ public:
     QDeclarativeCameraRecorder *videoRecorder() { return m_videoRecorder; }
     QDeclarativeCameraExposure *exposure() { return m_exposure; }
     QDeclarativeCameraFlash *flash() { return m_flash; }
+    QDeclarativeTorch *torch() { return m_torch; }
     QDeclarativeCameraFocus *focus() { return m_focus; }
     QDeclarativeCameraImageProcessing *imageProcessing() { return m_imageProcessing; }
 
@@ -284,6 +287,7 @@ private:
     QDeclarativeCameraRecorder *m_videoRecorder;
     QDeclarativeCameraExposure *m_exposure;
     QDeclarativeCameraFlash *m_flash;
+    QDeclarativeTorch *m_torch;
     QDeclarativeCameraFocus *m_focus;
     QDeclarativeCameraImageProcessing *m_imageProcessing;
     QDeclarativeMediaMetaData *m_metaData;

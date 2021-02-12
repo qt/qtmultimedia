@@ -140,7 +140,7 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
 
     QMediaPlatformCaptureInterface *service = camera->captureInterface();
     if (service) {
-        d->control = qobject_cast<QCameraImageCaptureControl*>(service->requestControl(QCameraImageCaptureControl_iid));
+        d->control = service->imageCaptureControl();
 
         if (d->control) {
             connect(d->control, SIGNAL(imageExposed(int)),

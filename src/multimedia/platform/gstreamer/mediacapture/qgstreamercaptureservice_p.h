@@ -74,19 +74,13 @@ public:
     QGstreamerCaptureService(QMediaRecorder::CaptureMode mode);
     virtual ~QGstreamerCaptureService();
 
-    QObject *requestControl(const char *name) override;
-    void releaseControl(QObject *) override;
+    QCameraControl *cameraControl() override;
+    QCameraImageCaptureControl *imageCaptureControl() override;
+    QMediaRecorderControl *mediaRecorderControl() override;
 
 private:
-    void setAudioPreview(GstElement *);
-
     QGstreamerCaptureSession *m_captureSession = nullptr;
     QGstreamerCameraControl *m_cameraControl = nullptr;
-
-    QObject *m_videoOutput = nullptr;
-
-    QGstreamerVideoRenderer *m_videoRenderer = nullptr;
-    QGstreamerVideoWindow *m_videoWindow = nullptr;
 };
 
 QT_END_NAMESPACE

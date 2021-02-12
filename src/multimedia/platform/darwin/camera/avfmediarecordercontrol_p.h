@@ -109,7 +109,6 @@ private Q_SLOTS:
     void updateStatus();
 
 private:
-    AVFCameraService *m_service;
     AVFCameraControl *m_cameraControl;
     AVFCameraSession *m_session;
     AVCaptureDevice *m_audioCaptureDevice = nullptr;

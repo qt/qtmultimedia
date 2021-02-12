@@ -59,20 +59,7 @@ QT_BEGIN_NAMESPACE
     You can adjust a number of parameters that will affect images and video taken with
     the corresponding QCamera object - see the \l {QCameraExposureControl::ExposureParameter}{ExposureParameter} enumeration.
 
-    The interface name of QCameraExposureControl is \c org.qt-project.qt.cameraexposurecontrol/5.0 as
-    defined in QCameraExposureControl_iid.
-
     \sa QCameraExposure, QCamera
-*/
-
-/*!
-    \macro QCameraExposureControl_iid
-
-    \c org.qt-project.qt.cameraexposurecontrol/5.0
-
-    Defines the interface name of the QCameraExposureControl class.
-
-    \relates QCameraExposureControl
 */
 
 /*!

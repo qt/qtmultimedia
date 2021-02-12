@@ -99,9 +99,6 @@ protected:
     explicit QMediaRecorderControl(QObject *parent = nullptr);
 };
 
-#define QMediaRecorderControl_iid "org.qt-project.qt.mediarecordercontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QMediaRecorderControl, QMediaRecorderControl_iid)
-
 QT_END_NAMESPACE
 
 

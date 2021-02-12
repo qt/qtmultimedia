@@ -46,12 +46,6 @@
 QT_BEGIN_NAMESPACE
 
 class QImage;
-QT_END_NAMESPACE
-
-QT_BEGIN_NAMESPACE
-
-// Required for QDoc workaround
-class QString;
 
 class Q_MULTIMEDIA_EXPORT QCameraImageCaptureControl : public QObject
 {
@@ -84,9 +78,6 @@ Q_SIGNALS:
 protected:
     explicit QCameraImageCaptureControl(QObject *parent = nullptr);
 };
-
-#define QCameraImageCaptureControl_iid "org.qt-project.qt.cameraimagecapturecontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraImageCaptureControl, QCameraImageCaptureControl_iid)
 
 QT_END_NAMESPACE
 

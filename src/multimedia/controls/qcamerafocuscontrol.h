@@ -89,9 +89,6 @@ protected:
     explicit QCameraFocusControl(QObject *parent = nullptr);
 };
 
-#define QCameraFocusControl_iid "org.qt-project.qt.camerafocuscontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QCameraFocusControl, QCameraFocusControl_iid)
-
 QT_END_NAMESPACE
 
 
