@@ -55,7 +55,6 @@ QGstreamerPlayerService::QGstreamerPlayerService()
 {
     m_session = new QGstreamerPlayerSession(this);
     m_control = new QGstreamerPlayerControl(m_session, this);
-    m_streamsControl = new QGstreamerStreamsControl(m_session,this);
 }
 
 QGstreamerPlayerService::~QGstreamerPlayerService()
@@ -70,11 +69,6 @@ QGstreamerPlayerService::~QGstreamerPlayerService()
 QMediaPlayerControl *QGstreamerPlayerService::player()
 {
     return m_control;
-}
-
-QMediaStreamsControl *QGstreamerPlayerService::streams()
-{
-    return m_streamsControl;
 }
 
 QT_END_NAMESPACE

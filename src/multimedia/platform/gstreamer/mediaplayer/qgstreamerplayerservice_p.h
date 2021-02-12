@@ -62,7 +62,6 @@ class QMediaPlayerControl;
 class QGstreamerMetaData;
 class QGstreamerPlayerControl;
 class QGstreamerPlayerSession;
-class QGstreamerStreamsControl;
 class QGStreamerAvailabilityControl;
 
 class QGstreamerPlayerService : public QMediaPlatformPlayerInterface
@@ -74,12 +73,10 @@ public:
 
     // QMediaPlatformPlayerInterface
     QMediaPlayerControl *player() override;
-    QMediaStreamsControl *streams() override;
 
 private:
     QGstreamerPlayerControl *m_control = nullptr;
     QGstreamerPlayerSession *m_session = nullptr;
-    QGstreamerStreamsControl *m_streamsControl = nullptr;
 };
 
 QT_END_NAMESPACE

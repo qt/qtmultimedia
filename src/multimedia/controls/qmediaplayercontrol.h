@@ -49,6 +49,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QMediaStreamsControl;
+
 class Q_MULTIMEDIA_EXPORT QMediaPlayerControl : public QObject
 {
     Q_OBJECT
@@ -103,6 +105,8 @@ public:
     virtual QMediaMetaData metaData() const { return {}; }
 
     virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
+
+    virtual QMediaStreamsControl *mediaStreams() { return nullptr; }
 
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);

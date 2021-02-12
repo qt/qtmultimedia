@@ -39,6 +39,7 @@
 
 #include <private/qgstreamerplayercontrol_p.h>
 #include <private/qgstreamerplayersession_p.h>
+#include <private/qgstreamerstreamscontrol_p.h>
 #include <qaudiodeviceinfo.h>
 
 #include <QtCore/qdir.h>
@@ -388,6 +389,13 @@ QMediaMetaData QGstreamerPlayerControl::metaData() const
 void QGstreamerPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_session->setVideoRenderer(surface);
+}
+
+QMediaStreamsControl *QGstreamerPlayerControl::mediaStreams()
+{
+    if (!m_streamsControl)
+        m_streamsControl = new QGstreamerStreamsControl(m_session, this);
+    return m_streamsControl;
 }
 
 bool QGstreamerPlayerControl::isAudioAvailable() const

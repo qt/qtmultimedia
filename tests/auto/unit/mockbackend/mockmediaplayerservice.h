@@ -32,7 +32,6 @@
 #include "private/qmediaplatformplayerinterface_p.h"
 
 #include "mockmediaplayercontrol.h"
-#include "mockmediastreamscontrol.h"
 
 class MockMediaPlayerService : public QMediaPlatformPlayerInterface
 {
@@ -42,18 +41,14 @@ public:
     MockMediaPlayerService()
     {
         mockControl = new MockMediaPlayerControl;
-        mockStreamsControl = new MockStreamsControl;
     }
 
     ~MockMediaPlayerService()
     {
         delete mockControl;
-        delete mockStreamsControl;
     }
 
     MockMediaPlayerControl *player() { return mockControl; }
-
-    QMediaStreamsControl *streams() { return mockStreamsControl; } // ###
 
     void setState(QMediaPlayer::State state) { emit mockControl->stateChanged(mockControl->_state = state); }
     void setState(QMediaPlayer::State state, QMediaPlayer::MediaStatus status) {
@@ -98,7 +93,6 @@ public:
     }
 
     MockMediaPlayerControl *mockControl;
-    MockStreamsControl *mockStreamsControl;
 };
 
 

@@ -59,6 +59,8 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerPlayerSession;
+class QGstreamerStreamsControl;
+
 class Q_MULTIMEDIA_EXPORT QGstreamerPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
@@ -102,6 +104,8 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 
+    QMediaStreamsControl *mediaStreams() override;
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 
@@ -127,6 +131,8 @@ private:
     void popAndNotifyState();
 
     QGstreamerPlayerSession *m_session = nullptr;
+    QGstreamerStreamsControl *m_streamsControl = nullptr;
+
     QMediaPlayer::State m_userRequestedState = QMediaPlayer::StoppedState;
     QMediaPlayer::State m_currentState = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
