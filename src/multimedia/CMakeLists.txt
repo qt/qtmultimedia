@@ -209,7 +209,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstvideorenderersink.cpp platform/gstreamer/common/qgstvideorenderersink_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
         platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
-        platform/gstreamer/qgstreamerformatsinfo.cpp platform/gstreamer/qgstreamerformatsinfo_p.h
+        platform/gstreamer/qgstreamerformatinfo.cpp platform/gstreamer/qgstreamerformatinfo_p.h
         platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26

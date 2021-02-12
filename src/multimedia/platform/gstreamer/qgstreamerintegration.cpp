@@ -42,7 +42,7 @@
 #include "private/qgstreamerplayercontrol_p.h"
 #include "private/qgstreamercaptureservice_p.h"
 #include "private/qgstreameraudiodecodercontrol_p.h"
-#include "private/qgstreamerformatsinfo_p.h"
+#include "private/qgstreamerformatinfo_p.h"
 #include "private/qgstreamervideorenderer_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -68,7 +68,7 @@ QPlatformMediaDeviceManager *QGstreamerIntegration::deviceManager()
 QPlatformMediaFormatInfo *QGstreamerIntegration::formatInfo()
 {
     if (!m_formatsInfo)
-        m_formatsInfo = new QGstreamerFormatsInfo();
+        m_formatsInfo = new QGstreamerFormatInfo();
     return m_formatsInfo;
 }
 

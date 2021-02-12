@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERFORMATSINFO_H
-#define QGSTREAMERFORMATSINFO_H
+#ifndef QGSTREAMERFORMATINFO_H
+#define QGSTREAMERFORMATINFO_H
 
 //
 //  W A R N I N G
@@ -58,11 +58,11 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerFormatsInfo : public QPlatformMediaFormatInfo
+class QGstreamerFormatInfo : public QPlatformMediaFormatInfo
 {
 public:
-    QGstreamerFormatsInfo();
-    ~QGstreamerFormatsInfo();
+    QGstreamerFormatInfo();
+    ~QGstreamerFormatInfo();
 
     QGstCaps formatCaps(const QMediaFormat &f) const;
     QGstCaps audioCaps(const QMediaFormat &f) const;

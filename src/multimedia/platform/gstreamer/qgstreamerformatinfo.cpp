@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamerformatsinfo_p.h"
+#include "qgstreamerformatinfo_p.h"
 
 #include "private/qgstutils_p.h"
 
@@ -199,11 +199,11 @@ static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> g
 }
 
 
-QList<QGstreamerFormatsInfo::CodecMap> QGstreamerFormatsInfo::getMuxerList(bool demuxer,
+QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool demuxer,
                                                                         QList<QMediaFormat::AudioCodec> supportedAudioCodecs,
                                                                         QList<QMediaFormat::VideoCodec> supportedVideoCodecs)
 {
-    QList<QGstreamerFormatsInfo::CodecMap> muxers;
+    QList<QGstreamerFormatInfo::CodecMap> muxers;
 
     GstPadDirection padDirection = demuxer ? GST_PAD_SINK : GST_PAD_SRC;
 
@@ -321,7 +321,7 @@ static void dumpMuxers(const QList<QGstreamerFormatsInfo::CodecMap> &muxerList)
 }
 #endif
 
-QGstreamerFormatsInfo::QGstreamerFormatsInfo()
+QGstreamerFormatInfo::QGstreamerFormatInfo()
 {
     auto codecs = getCodecsList(/*decode = */ true);
     decoders = getMuxerList(true, codecs.first, codecs.second);
@@ -333,11 +333,11 @@ QGstreamerFormatsInfo::QGstreamerFormatsInfo()
     imageFormats = getImageFormatList();
 }
 
-QGstreamerFormatsInfo::~QGstreamerFormatsInfo()
+QGstreamerFormatInfo::~QGstreamerFormatInfo()
 {
 }
 
-QGstCaps QGstreamerFormatsInfo::formatCaps(const QMediaFormat &f) const
+QGstCaps QGstreamerFormatInfo::formatCaps(const QMediaFormat &f) const
 {
     auto format = f.format();
     Q_ASSERT(format != QMediaFormat::UnspecifiedFormat);
@@ -361,7 +361,7 @@ QGstCaps QGstreamerFormatsInfo::formatCaps(const QMediaFormat &f) const
     return gst_caps_from_string(capsForFormat[format]);
 }
 
-QGstCaps QGstreamerFormatsInfo::audioCaps(const QMediaFormat &f) const
+QGstCaps QGstreamerFormatInfo::audioCaps(const QMediaFormat &f) const
 {
     auto codec = f.audioCodec();
     if (codec == QMediaFormat::AudioCodec::Unspecified)
@@ -382,7 +382,7 @@ QGstCaps QGstreamerFormatsInfo::audioCaps(const QMediaFormat &f) const
     return gst_caps_from_string(capsForCodec[(int)codec]);
 }
 
-QGstCaps QGstreamerFormatsInfo::videoCaps(const QMediaFormat &f) const
+QGstCaps QGstreamerFormatInfo::videoCaps(const QMediaFormat &f) const
 {
     auto codec = f.videoCodec();
     if (codec == QMediaFormat::VideoCodec::Unspecified)

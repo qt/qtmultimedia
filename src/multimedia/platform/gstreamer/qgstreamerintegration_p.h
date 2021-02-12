@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerDeviceManager;
 class QGstreamerPlayerInterface;
-class QGstreamerFormatsInfo;
+class QGstreamerFormatInfo;
 
 class QGstreamerIntegration : public QPlatformMediaIntegration
 {
@@ -74,7 +74,7 @@ public:
     QPlatformMediaPlayer *createPlayer() override;
 
     QGstreamerDeviceManager *m_manager = nullptr;
-    QGstreamerFormatsInfo *m_formatsInfo = nullptr;
+    QGstreamerFormatInfo *m_formatsInfo = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -48,7 +48,7 @@
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstutils_p.h>
 #include <private/qgstreamerintegration_p.h>
-#include <private/qgstreamerformatsinfo_p.h>
+#include <private/qgstreamerformatinfo_p.h>
 #include <gst/gsttagsetter.h>
 #include <gst/gstversion.h>
 #include <gst/video/video.h>
