@@ -52,7 +52,7 @@
 //
 
 #include <QtCore/qstack.h>
-#include <qmediaplayercontrol.h>
+#include <qplatformmediaplayer_p.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <qurl.h>
 
@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerPlayerSession;
 class QGstreamerStreamsControl;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerPlayerControl : public QMediaPlayerControl
+class Q_MULTIMEDIA_EXPORT QGstreamerPlayerControl : public QPlatformMediaPlayer
 {
     Q_OBJECT
 

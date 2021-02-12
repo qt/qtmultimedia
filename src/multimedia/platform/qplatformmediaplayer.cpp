@@ -37,14 +37,14 @@
 **
 ****************************************************************************/
 
-#include "qmediaplayercontrol.h"
+#include "qplatformmediaplayer_p.h"
 #include "qmediaplayer.h"
 
 QT_BEGIN_NAMESPACE
 
 
 /*!
-    \class QMediaPlayerControl
+    \class QPlatformMediaPlayer
     \obsolete
     \inmodule QtMultimedia
 
@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_control
 
 
-    \brief The QMediaPlayerControl class provides access to the media playing
+    \brief The QPlatformMediaPlayer class provides access to the media playing
     functionality.
 
     This control provides a means to set the \l {setMedia()}{media} to play,
@@ -71,19 +71,19 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a new media player control with the given \a parent.
 */
-QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
+QPlatformMediaPlayer::QPlatformMediaPlayer(QObject *parent)
     : QObject(parent)
 {
 }
 
 /*!
-    \fn QMediaPlayerControl::state() const
+    \fn QPlatformMediaPlayer::state() const
 
     Returns the state of a player control.
 */
 
 /*!
-    \fn QMediaPlayerControl::stateChanged(QMediaPlayer::State newState)
+    \fn QPlatformMediaPlayer::stateChanged(QMediaPlayer::State newState)
 
     Signals that the state of a player control has changed to \a newState.
 
@@ -91,14 +91,14 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::mediaStatus() const
+    \fn QPlatformMediaPlayer::mediaStatus() const
 
     Returns the status of the current media.
 */
 
 
 /*!
-    \fn QMediaPlayerControl::mediaStatusChanged(QMediaPlayer::MediaStatus status)
+    \fn QPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 
     Signals that the \a status of the current media has changed.
 
@@ -107,13 +107,13 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 
 
 /*!
-    \fn QMediaPlayerControl::duration() const
+    \fn QPlatformMediaPlayer::duration() const
 
     Returns the duration of the current media in milliseconds.
 */
 
 /*!
-    \fn QMediaPlayerControl::durationChanged(qint64 duration)
+    \fn QPlatformMediaPlayer::durationChanged(qint64 duration)
 
     Signals that the \a duration of the current media has changed.
 
@@ -121,20 +121,20 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::position() const
+    \fn QPlatformMediaPlayer::position() const
 
     Returns the current playback position in milliseconds.
 */
 
 /*!
-    \fn QMediaPlayerControl::setPosition(qint64 position)
+    \fn QPlatformMediaPlayer::setPosition(qint64 position)
 
     Sets the playback \a position of the current media.  This will initiate a seek and it may take
     some time for playback to reach the position set.
 */
 
 /*!
-    \fn QMediaPlayerControl::positionChanged(qint64 position)
+    \fn QPlatformMediaPlayer::positionChanged(qint64 position)
 
     Signals the playback \a position has changed.
 
@@ -145,13 +145,13 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::volume() const
+    \fn QPlatformMediaPlayer::volume() const
 
     Returns the audio volume of a player control.
 */
 
 /*!
-    \fn QMediaPlayerControl::setVolume(int volume)
+    \fn QPlatformMediaPlayer::setVolume(int volume)
 
     Sets the audio \a volume of a player control.
 
@@ -159,7 +159,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::volumeChanged(int volume)
+    \fn QPlatformMediaPlayer::volumeChanged(int volume)
 
     Signals the audio \a volume of a player control has changed.
 
@@ -167,19 +167,19 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::isMuted() const
+    \fn QPlatformMediaPlayer::isMuted() const
 
     Returns the mute state of a player control.
 */
 
 /*!
-    \fn QMediaPlayerControl::setMuted(bool mute)
+    \fn QPlatformMediaPlayer::setMuted(bool mute)
 
     Sets the \a mute state of a player control.
 */
 
 /*!
-    \fn QMediaPlayerControl::mutedChanged(bool mute)
+    \fn QPlatformMediaPlayer::mutedChanged(bool mute)
 
     Signals a change in the \a mute status of a player control.
 
@@ -187,14 +187,14 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::bufferStatus() const
+    \fn QPlatformMediaPlayer::bufferStatus() const
 
     Returns the buffering progress of the current media.  Progress is measured in the percentage
     of the buffer filled.
 */
 
 /*!
-    \fn QMediaPlayerControl::bufferStatusChanged(int percentFilled)
+    \fn QPlatformMediaPlayer::bufferStatusChanged(int percentFilled)
 
     Signal the amount of the local buffer filled as a percentage by \a percentFilled.
 
@@ -202,7 +202,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::isAudioAvailable() const
+    \fn QPlatformMediaPlayer::isAudioAvailable() const
 
     Identifies if there is audio output available for the current media.
 
@@ -210,7 +210,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::audioAvailableChanged(bool audioAvailable)
+    \fn QPlatformMediaPlayer::audioAvailableChanged(bool audioAvailable)
 
     Signals that there has been a change in the availability of audio output \a audioAvailable.
 
@@ -218,7 +218,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::isVideoAvailable() const
+    \fn QPlatformMediaPlayer::isVideoAvailable() const
 
     Identifies if there is video output available for the current media.
 
@@ -226,7 +226,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::videoAvailableChanged(bool videoAvailable)
+    \fn QPlatformMediaPlayer::videoAvailableChanged(bool videoAvailable)
 
     Signal that the availability of visual content has changed to \a videoAvailable.
 
@@ -234,7 +234,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::isSeekable() const
+    \fn QPlatformMediaPlayer::isSeekable() const
 
     Identifies if the current media is seekable.
 
@@ -242,7 +242,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::seekableChanged(bool seekable)
+    \fn QPlatformMediaPlayer::seekableChanged(bool seekable)
 
     Signals that the \a seekable state of a player control has changed.
 
@@ -250,7 +250,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::availablePlaybackRanges() const
+    \fn QPlatformMediaPlayer::availablePlaybackRanges() const
 
     Returns a range of times in milliseconds that can be played back.
 
@@ -260,33 +260,33 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::availablePlaybackRangesChanged(const QMediaTimeRange &ranges)
+    \fn QPlatformMediaPlayer::availablePlaybackRangesChanged(const QMediaTimeRange &ranges)
 
     Signals that the available media playback \a ranges have changed.
 
-    \sa QMediaPlayerControl::availablePlaybackRanges()
+    \sa QPlatformMediaPlayer::availablePlaybackRanges()
 */
 
 /*!
-    \fn qreal QMediaPlayerControl::playbackRate() const
+    \fn qreal QPlatformMediaPlayer::playbackRate() const
 
     Returns the rate of playback.
 */
 
 /*!
-    \fn QMediaPlayerControl::setPlaybackRate(qreal rate)
+    \fn QPlatformMediaPlayer::setPlaybackRate(qreal rate)
 
     Sets the \a rate of playback.
 */
 
 /*!
-    \fn QMediaPlayerControl::media() const
+    \fn QPlatformMediaPlayer::media() const
 
     Returns the current media source.
 */
 
 /*!
-    \fn QMediaPlayerControl::mediaStream() const
+    \fn QPlatformMediaPlayer::mediaStream() const
 
     Returns the current media stream. This is only a valid if a stream was passed to setMedia().
 
@@ -294,7 +294,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
+    \fn QPlatformMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     Sets the current \a media source.  If a \a stream is supplied; data will be read from that
     instead of attempting to resolve the media source.  The media source may still be used to
@@ -313,13 +313,13 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::mediaChanged(const QUrl& content)
+    \fn QPlatformMediaPlayer::mediaChanged(const QUrl& content)
 
     Signals that the current media \a content has changed.
 */
 
 /*!
-    \fn QMediaPlayerControl::play()
+    \fn QPlatformMediaPlayer::play()
 
     Starts playback of the current media.
 
@@ -330,7 +330,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::pause()
+    \fn QPlatformMediaPlayer::pause()
 
     Pauses playback of the current media.
 
@@ -341,7 +341,7 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::stop()
+    \fn QPlatformMediaPlayer::stop()
 
     Stops playback of the current media.
 
@@ -350,37 +350,37 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QAudio::Role QMediaPlayerControl::audioRole() const
+    \fn QAudio::Role QPlatformMediaPlayer::audioRole() const
 
     Returns the audio role of the media played by the media service.
 */
 
 /*!
-    \fn void QMediaPlayerControl::setAudioRole(QAudio::Role role)
+    \fn void QPlatformMediaPlayer::setAudioRole(QAudio::Role role)
 
     Sets the audio \a role of the media played by the media service.
 */
 
 /*!
-    \fn QList<QAudio::Role> QMediaPlayerControl::supportedAudioRoles() const
+    \fn QList<QAudio::Role> QPlatformMediaPlayer::supportedAudioRoles() const
 
     Returns a list of audio roles that the media service supports.
 */
 
 /*!
-    \fn QAudio::Role QMediaPlayerControl::customAudioRole() const
+    \fn QAudio::Role QPlatformMediaPlayer::customAudioRole() const
 
     Returns the audio role of the media played by the media service.
 */
 
 /*!
-    \fn void QMediaPlayerControl::setCustomAudioRole(const QString &role)
+    \fn void QPlatformMediaPlayer::setCustomAudioRole(const QString &role)
 
     Sets the audio \a role of the media played by the media service.
 */
 
 /*!
-    \fn QStringList QMediaPlayerControl::supportedCustomAudioRoles() const
+    \fn QStringList QPlatformMediaPlayer::supportedCustomAudioRoles() const
 
     Returns a list of custom audio roles that the media service supports. An
     empty list may indicate that the supported custom audio roles aren't known.
@@ -388,17 +388,17 @@ QMediaPlayerControl::QMediaPlayerControl(QObject *parent)
 */
 
 /*!
-    \fn QMediaPlayerControl::error(int error, const QString &errorString)
+    \fn QPlatformMediaPlayer::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString provides a more detailed explanation.
 */
 
 /*!
-    \fn QMediaPlayerControl::playbackRateChanged(qreal rate)
+    \fn QPlatformMediaPlayer::playbackRateChanged(qreal rate)
 
     Signal emitted when playback rate changes to \a rate.
 */
 
 QT_END_NAMESPACE
 
-#include "moc_qmediaplayercontrol.cpp"
+#include "moc_qplatformmediaplayer_p.cpp"

@@ -76,7 +76,7 @@ private:
 
 
 QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
-    : QMediaPlayerControl(parent),
+    : QPlatformMediaPlayer(parent),
       mMediaPlayer(new AndroidMediaPlayer),
       mCurrentState(QMediaPlayer::StoppedState),
       mCurrentMediaStatus(QMediaPlayer::NoMedia),
@@ -606,7 +606,7 @@ void QAndroidMediaPlayerControl::onError(qint32 what, qint32 extra)
         break;
     }
 
-    Q_EMIT QMediaPlayerControl::error(error, errorString);
+    Q_EMIT QPlatformMediaPlayer::error(error, errorString);
 }
 
 void QAndroidMediaPlayerControl::onBufferingChanged(qint32 percent)

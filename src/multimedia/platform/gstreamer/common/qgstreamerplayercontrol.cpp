@@ -56,7 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 QGstreamerPlayerControl::QGstreamerPlayerControl(QObject *parent)
-    : QMediaPlayerControl(parent)
+    : QPlatformMediaPlayer(parent)
 {
     m_session = new QGstreamerPlayerSession(this);
     connect(m_session, &QGstreamerPlayerSession::positionChanged, this, &QGstreamerPlayerControl::positionChanged);

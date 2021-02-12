@@ -8,7 +8,7 @@ PUBLIC_HEADERS += \
     controls/qcamerafocuscontrol.h \
     controls/qcameraimagecapturecontrol.h \
     controls/qcameraimageprocessingcontrol.h \
-    controls/qmediaplayercontrol.h \
+    controls/qplatformmediaplayer_p.h \
     controls/qmediarecordercontrol.h \
     controls/qmediastreamscontrol.h \
     controls/qvideorenderercontrol.h \

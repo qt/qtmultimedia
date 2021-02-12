@@ -74,7 +74,7 @@ void MmRendererMediaPlayerService::updateControls()
         m_mediaPlayerControl->setVideoWindowControl(m_videoWindowControl);
 }
 
-QMediaPlayerControl *MmRendererMediaPlayerService::player()
+QPlatformMediaPlayer *MmRendererMediaPlayerService::player()
 {
     if (!m_mediaPlayerControl) {
         m_mediaPlayerControl = new MmrEventMediaPlayerControl;

@@ -37,7 +37,7 @@
 #include "qmockintegration_p.h"
 
 #include <QtMultimedia/qmediametadata.h>
-#include <qmediaplayercontrol.h>
+#include <private/qplatformmediaplayer_p.h>
 #include <private/qdeclarativevideooutput_p.h>
 #include <QAbstractVideoSurface>
 

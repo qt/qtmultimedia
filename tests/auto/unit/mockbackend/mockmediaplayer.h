@@ -29,17 +29,17 @@
 #ifndef MOCKMEDIAPLAYER_H
 #define MOCKMEDIAPLAYER_H
 
-#include "qmediaplayercontrol.h"
+#include "private/qplatformmediaplayer_p.h"
 #include "mockmediastreamscontrol.h"
 #include <qurl.h>
 
-class MockMediaPlayer : public QMediaPlayerControl
+class MockMediaPlayer : public QPlatformMediaPlayer
 {
     friend class MockMediaPlayerService;
 
 public:
     MockMediaPlayer()
-        : QMediaPlayerControl(0)
+        : QPlatformMediaPlayer(0)
         , _state(QMediaPlayer::StoppedState)
         , _mediaStatus(QMediaPlayer::NoMedia)
         , _error(QMediaPlayer::NoError)

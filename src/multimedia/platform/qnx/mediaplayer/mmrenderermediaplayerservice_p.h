@@ -67,7 +67,7 @@ public:
     ~MmRendererMediaPlayerService();
 
     // QMediaPlatformPlayerInterface
-    QMediaPlayerControl *player() override;
+    QPlatformMediaPlayer *player() override;
 //    QMediaStreamsControl *streams() override;
 
     QVideoRendererControl *createVideoRenderer() override;

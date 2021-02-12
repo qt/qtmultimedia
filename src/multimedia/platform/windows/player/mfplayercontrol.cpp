@@ -45,7 +45,7 @@
 //#define DEBUG_MEDIAFOUNDATION
 
 MFPlayerControl::MFPlayerControl()
-    : QMediaPlayerControl()
+    : QPlatformMediaPlayer()
     , m_state(QMediaPlayer::StoppedState)
     , m_stateDirty(false)
     , m_videoAvailable(false)

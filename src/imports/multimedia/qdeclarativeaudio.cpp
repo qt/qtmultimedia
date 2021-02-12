@@ -40,7 +40,7 @@
 
 #include "qdeclarativeaudio_p.h"
 
-#include <qmediaplayercontrol.h>
+#include <private/qplatformmediaplayer_p.h>
 
 #include <private/qdeclarativevideooutput_p.h>
 

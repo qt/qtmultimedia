@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qmediaplayercontrol.h"
+#include "qplatformmediaplayer_p.h"
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdatetime.h>

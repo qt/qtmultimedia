@@ -72,7 +72,7 @@ QAudioDecoderControl *QMockIntegration::createAudioDecoder()
     return m_lastAudioDecoderControl;
 }
 
-QMediaPlayerControl *QMockIntegration::createPlayer()
+QPlatformMediaPlayer *QMockIntegration::createPlayer()
 {
     if (m_flags & NoPlayerInterface)
         m_lastPlayer = nullptr;

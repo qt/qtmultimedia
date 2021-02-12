@@ -52,7 +52,7 @@
 //
 
 #include "QUrl.h"
-#include "qmediaplayercontrol.h"
+#include "qplatformmediaplayer_p.h"
 
 #include <QtCore/qcoreevent.h>
 
@@ -60,7 +60,7 @@
 
 QT_USE_NAMESPACE
 
-class MFPlayerControl : public QMediaPlayerControl
+class MFPlayerControl : public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:

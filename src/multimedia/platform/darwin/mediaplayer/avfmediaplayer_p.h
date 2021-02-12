@@ -51,14 +51,14 @@
 // We mean it.
 //
 
-#include <QtMultimedia/QMediaPlayerControl>
+#include <QtMultimedia/QPlatformMediaPlayer>
 #include <QtCore/QObject>
 
 QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayerSession;
 
-class AVFMediaPlayer : public QMediaPlayerControl
+class AVFMediaPlayer : public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:

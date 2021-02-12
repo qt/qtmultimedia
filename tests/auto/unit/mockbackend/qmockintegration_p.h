@@ -70,7 +70,7 @@ public:
     QMediaPlatformFormatInfo *formatInfo() override { return nullptr; }
 
     QAudioDecoderControl *createAudioDecoder() override;
-    QMediaPlayerControl *createPlayer() override;
+    QPlatformMediaPlayer *createPlayer() override;
     QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
 
     enum Flag {

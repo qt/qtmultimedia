@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
 class QMediaStreamsControl;
 
-class Q_MULTIMEDIA_EXPORT QMediaPlayerControl : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer : public QObject
 {
     Q_OBJECT
 
@@ -127,7 +127,7 @@ Q_SIGNALS:
     void metaDataChanged();
 
 protected:
-    explicit QMediaPlayerControl(QObject *parent = nullptr);
+    explicit QPlatformMediaPlayer(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE

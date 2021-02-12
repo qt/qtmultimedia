@@ -71,7 +71,7 @@ public:
     QMediaPlatformFormatInfo *formatInfo() override;
 
     QAudioDecoderControl *createAudioDecoder() override;
-    QMediaPlayerControl *createPlayer() override;
+    QPlatformMediaPlayer *createPlayer() override;
 
     QWindowsDeviceManager *m_manager = nullptr;
     QWindowsFormatInfo *m_formatInfo = nullptr;

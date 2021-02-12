@@ -35,7 +35,7 @@
 
 #include <qabstractvideosurface.h>
 #include <qgraphicsvideoitem.h>
-#include <qmediaplayercontrol.h>
+#include <qplatformmediaplayer_p.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
 #include <qvideowindowcontrol.h>
@@ -70,12 +70,12 @@ private:
 
 Q_DECLARE_METATYPE(QDeclarativeVideo::Error);
 
-class QtTestMediaPlayerControl : public QMediaPlayerControl
+class QtTestMediaPlayerControl : public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
     QtTestMediaPlayerControl(QObject *parent = 0)
-        : QMediaPlayerControl(parent)
+        : QPlatformMediaPlayer(parent)
         , m_state(QMediaPlayer::StoppedState)
         , m_mediaStatus(QMediaPlayer::NoMedia)
         , m_duration(0)
@@ -260,7 +260,7 @@ public:
 
     QObject *requestControl(const char *name)
     {
-        if (qstrcmp(name, QMediaPlayerControl_iid) == 0)
+        if (qstrcmp(name, QPlatformMediaPlayer_iid) == 0)
             return playerControl;
         else if (qstrcmp(name, QVideoRendererControl_iid) == 0)
             return rendererControl;

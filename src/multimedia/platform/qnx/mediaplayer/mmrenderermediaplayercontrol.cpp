@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 static int idCounter = 0;
 
 MmRendererMediaPlayerControl::MmRendererMediaPlayerControl(QObject *parent)
-    : QMediaPlayerControl(parent),
+    : QPlatformMediaPlayer(parent),
       m_context(0),
       m_id(-1),
       m_connection(0),

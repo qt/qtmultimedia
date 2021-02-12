@@ -51,7 +51,7 @@
 //
 
 #include "mmrenderermetadata_p.h"
-#include <qmediaplayercontrol.h>
+#include <qplatformmediaplayer_p.h>
 #include <QtCore/qabstractnativeeventfilter.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qtimer.h>
@@ -68,7 +68,7 @@ class MmRendererCustomAudioRoleControl;
 class MmRendererPlayerVideoRendererControl;
 class MmRendererVideoWindowControl;
 
-class MmRendererMediaPlayerControl : public QMediaPlayerControl, public QAbstractNativeEventFilter
+class MmRendererMediaPlayerControl : public QPlatformMediaPlayer, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 public:

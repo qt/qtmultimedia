@@ -67,7 +67,7 @@ public:
     QMediaPlatformFormatInfo *formatInfo() override;
 
     QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) override;
-    QMediaPlayerControl *createPlayer() override;
+    QPlatformMediaPlayer *createPlayer() override;
 
     QDarwinDeviceManager *m_manager = nullptr;
     QMediaPlatformFormatInfo *m_formatInfo = nullptr;

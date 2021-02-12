@@ -88,7 +88,7 @@ QAudioDecoderControl *QWindowsIntegration::createAudioDecoder()
     return new MFAudioDecoderControl;
 }
 
-QMediaPlayerControl *QWindowsIntegration::createPlayer()
+QPlatformMediaPlayer *QWindowsIntegration::createPlayer()
 {
     return new MFPlayerControl;
 }

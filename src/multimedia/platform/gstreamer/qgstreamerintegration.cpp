@@ -82,7 +82,7 @@ QMediaPlatformCaptureInterface *QGstreamerIntegration::createCaptureInterface(QM
     return new QGstreamerCaptureService(mode);
 }
 
-QMediaPlayerControl *QGstreamerIntegration::createPlayer()
+QPlatformMediaPlayer *QGstreamerIntegration::createPlayer()
 {
     return new QGstreamerPlayerControl();
 }

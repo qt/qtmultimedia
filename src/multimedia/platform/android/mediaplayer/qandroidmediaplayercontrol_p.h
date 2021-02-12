@@ -52,7 +52,7 @@
 //
 
 #include <qglobal.h>
-#include <QMediaPlayerControl>
+#include <QPlatformMediaPlayer>
 #include <qsize.h>
 #include <qurl.h>
 
@@ -62,7 +62,7 @@ class AndroidMediaPlayer;
 class QAndroidVideoOutput;
 class QAndroidMediaPlayerVideoRendererControl;
 
-class QAndroidMediaPlayerControl : public QMediaPlayerControl
+class QAndroidMediaPlayerControl : public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:

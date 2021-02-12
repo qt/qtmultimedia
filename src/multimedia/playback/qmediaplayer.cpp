@@ -41,7 +41,7 @@
 #include "qvideosurfaces_p.h"
 
 #include "private/qobject_p.h"
-#include <qmediaplayercontrol.h>
+#include <qplatformmediaplayer_p.h>
 #include <private/qmediaplatformintegration_p.h>
 
 #include <QtCore/qcoreevent.h>
@@ -91,7 +91,7 @@ class QMediaPlayerPrivate : public QObjectPrivate
 
 public:
     QMediaPlayerPrivate() : notifyTimer(nullptr) {}
-    QMediaPlayerControl* control = nullptr;
+    QPlatformMediaPlayer* control = nullptr;
     QString errorString;
 
     QPointer<QObject> videoOutput;
@@ -284,16 +284,16 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
             SLOT(_q_mediaStatusChanged(QMediaPlayer::MediaStatus)));
     connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
 
-    connect(d->control, &QMediaPlayerControl::durationChanged, this, &QMediaPlayer::durationChanged);
-    connect(d->control, &QMediaPlayerControl::positionChanged, this, &QMediaPlayer::positionChanged);
-    connect(d->control, &QMediaPlayerControl::audioAvailableChanged, this, &QMediaPlayer::audioAvailableChanged);
-    connect(d->control, &QMediaPlayerControl::videoAvailableChanged, this, &QMediaPlayer::videoAvailableChanged);
-    connect(d->control, &QMediaPlayerControl::volumeChanged, this, &QMediaPlayer::volumeChanged);
-    connect(d->control, &QMediaPlayerControl::mutedChanged, this, &QMediaPlayer::mutedChanged);
-    connect(d->control, &QMediaPlayerControl::seekableChanged, this, &QMediaPlayer::seekableChanged);
-    connect(d->control, &QMediaPlayerControl::playbackRateChanged, this, &QMediaPlayer::playbackRateChanged);
-    connect(d->control, &QMediaPlayerControl::bufferStatusChanged, this, &QMediaPlayer::bufferStatusChanged);
-    connect(d->control, &QMediaPlayerControl::metaDataChanged, this, &QMediaPlayer::metaDataChanged);
+    connect(d->control, &QPlatformMediaPlayer::durationChanged, this, &QMediaPlayer::durationChanged);
+    connect(d->control, &QPlatformMediaPlayer::positionChanged, this, &QMediaPlayer::positionChanged);
+    connect(d->control, &QPlatformMediaPlayer::audioAvailableChanged, this, &QMediaPlayer::audioAvailableChanged);
+    connect(d->control, &QPlatformMediaPlayer::videoAvailableChanged, this, &QMediaPlayer::videoAvailableChanged);
+    connect(d->control, &QPlatformMediaPlayer::volumeChanged, this, &QMediaPlayer::volumeChanged);
+    connect(d->control, &QPlatformMediaPlayer::mutedChanged, this, &QMediaPlayer::mutedChanged);
+    connect(d->control, &QPlatformMediaPlayer::seekableChanged, this, &QMediaPlayer::seekableChanged);
+    connect(d->control, &QPlatformMediaPlayer::playbackRateChanged, this, &QMediaPlayer::playbackRateChanged);
+    connect(d->control, &QPlatformMediaPlayer::bufferStatusChanged, this, &QMediaPlayer::bufferStatusChanged);
+    connect(d->control, &QPlatformMediaPlayer::metaDataChanged, this, &QMediaPlayer::metaDataChanged);
 
     d->state = d->control->state();
     d->status = d->control->mediaStatus();

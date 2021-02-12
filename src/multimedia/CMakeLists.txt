@@ -36,7 +36,6 @@ qt_internal_add_module(Multimedia
         controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h
         controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
         controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
-        controls/qmediaplayercontrol.cpp controls/qmediaplayercontrol.h
         controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
         controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
@@ -45,6 +44,7 @@ qt_internal_add_module(Multimedia
         platform/qmediaplatformdevicemanager.cpp platform/qmediaplatformdevicemanager_p.h
         platform/qmediaplatformintegration.cpp platform/qmediaplatformintegration_p.h
         platform/qmediaplatformformatinfo.cpp  platform/qmediaplatformformatinfo_p.h
+        platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
@@ -74,6 +74,7 @@ qt_internal_add_module(Multimedia
         audio
         camera
         controls
+        platform
         playback
         recording
         video

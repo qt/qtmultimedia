@@ -75,7 +75,7 @@ QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMedi
     return new AVFCameraService;
 }
 
-QMediaPlayerControl *QDarwinIntegration::createPlayer()
+QPlatformMediaPlayer *QDarwinIntegration::createPlayer()
 {
     return new AVFMediaPlayer;
 }

@@ -37,7 +37,7 @@ qt_internal_add_module(Multimedia
         controls/qimageencodercontrol.cpp controls/qimageencodercontrol.h
         controls/qmediaaudioprobecontrol.cpp controls/qmediaaudioprobecontrol.h
         controls/qmediacontainercontrol.cpp controls/qmediacontainercontrol.h
-        controls/qmediaplayercontrol.cpp controls/qmediaplayercontrol.h
+        controls/qmediaplayercontrol.cpp controls/qplatformmediaplayer_p.h
         controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
         controls/qmediavideoprobecontrol.cpp controls/qmediavideoprobecontrol.h

@@ -48,7 +48,7 @@
 
 #include "qdeclarativemediametadata_p.h"
 
-#include <qmediaplayercontrol.h>
+#include <private/qplatformmediaplayer_p.h>
 #include <qvideorenderercontrol.h>
 #include <QMediaDeviceManager>
 #include <QtQml/qqmlinfo.h>

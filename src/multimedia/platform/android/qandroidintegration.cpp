@@ -85,7 +85,7 @@ QMediaPlatformCaptureInterface *QAndroidIntegration::createCaptureInterface(QMed
     return new QAndroidCaptureService(mode);
 }
 
-QMediaPlayerControl *QAndroidIntegration::createPlayer()
+QPlatformMediaPlayer *QAndroidIntegration::createPlayer()
 {
     return new QAndroidMediaPlayerControl();
 }

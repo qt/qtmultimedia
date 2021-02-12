@@ -44,7 +44,7 @@
 
 #include "qmediaplaylist.h"
 #include "qmediarecorder.h"
-#include "qmediaplayercontrol.h"
+#include "qplatformmediaplayer_p.h"
 #include "qmediaplayer.h"
 #include "qvideowidget.h"
 #include "qcameraimagecapture.h"

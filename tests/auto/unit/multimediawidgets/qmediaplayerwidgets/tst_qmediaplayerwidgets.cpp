@@ -35,7 +35,7 @@
 #include <qgraphicsvideoitem.h>
 #include <qabstractvideosurface.h>
 #include <qmediaplayer.h>
-#include <qmediaplayercontrol.h>
+#include <private/qplatformmediaplayer_p.h>
 
 #include "mockvideosurface.h"
 #include "qmockintegration_p.h"
