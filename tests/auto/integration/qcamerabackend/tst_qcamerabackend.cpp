@@ -38,7 +38,6 @@
 #include <qcamerafocuscontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qcameraimageprocessingcontrol.h>
-#include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>

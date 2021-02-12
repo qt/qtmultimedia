@@ -40,7 +40,6 @@
 #ifndef QAUDIODECODERCONTROL_H
 #define QAUDIODECODERCONTROL_H
 
-#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qaudiodecoder.h>
 
 #include <QtCore/qpair.h>

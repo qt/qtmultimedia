@@ -12,7 +12,6 @@ INCLUDEPATH *= .
 PRIVATE_HEADERS += \
     qtmultimediaglobal_p.h \
     qmediapluginloader_p.h \
-    qmediaservice_p.h \
     qmediastoragelocation_p.h \
     qmultimediautils_p.h \
 
@@ -21,7 +20,6 @@ PUBLIC_HEADERS += \
     qmediadevicemanager.h \
     qmediaenumdebug.h \
     qmediametadata.h \
-    qmediaservice.h \
     qmediatimerange.h \
     qmultimedia.h \
     qmediaformat.h
@@ -30,7 +28,6 @@ SOURCES += \
     qmediadevicemanager.cpp \
     qmediametadata.cpp \
     qmediapluginloader.cpp \
-    qmediaservice.cpp \
     qmediatimerange.cpp \
     qmediastoragelocation.cpp \
     qmultimedia.cpp \

@@ -29,8 +29,6 @@
 #ifndef MOCKSERVICE_H
 #define MOCKSERVICE_H
 
-#include "qmediaservice.h"
-
 #include "mockmediarecordercontrol.h"
 #include "mockcamerafocuscontrol.h"
 #include "mockcameraimageprocessingcontrol.h"

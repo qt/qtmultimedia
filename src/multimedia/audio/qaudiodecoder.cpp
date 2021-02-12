@@ -40,7 +40,6 @@
 #include "qtmultimediaglobal_p.h"
 #include "qaudiodecoder.h"
 
-#include <qmediaservice.h>
 #include "qaudiodecodercontrol.h"
 
 #include <private/qmediaplatformintegration_p.h>

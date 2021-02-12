@@ -52,7 +52,6 @@
 // We mean it.
 //
 
-#include <qmediaservice.h>
 #include <private/qmediaplatformcaptureinterface_p.h>
 #include <private/qmediaplatformintegration_p.h>
 

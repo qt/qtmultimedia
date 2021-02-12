@@ -40,7 +40,6 @@
 #ifndef QMEDIARECORDERCONTROL_H
 #define QMEDIARECORDERCONTROL_H
 
-#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qmediametadata.h>
 

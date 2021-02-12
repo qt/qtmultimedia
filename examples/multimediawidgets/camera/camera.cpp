@@ -53,7 +53,6 @@
 #include "videosettings.h"
 #include "imagesettings.h"
 
-#include <QMediaService>
 #include <QMediaRecorder>
 #include <QVideoWidget>
 #include <QCameraInfo>

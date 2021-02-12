@@ -31,7 +31,6 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
-#include <qmediaservice.h>
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
 #include <qaudioformat.h>

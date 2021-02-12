@@ -41,7 +41,6 @@
 #include "qmediarecorder_p.h"
 
 #include <qmediarecordercontrol.h>
-#include <qmediaservice.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>

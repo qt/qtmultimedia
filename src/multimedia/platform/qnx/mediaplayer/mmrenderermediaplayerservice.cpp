@@ -48,7 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 MmRendererMediaPlayerService::MmRendererMediaPlayerService(QObject *parent)
-    : QMediaService(parent),
+    : QObject(parent),
       m_videoRendererControl(0),
       m_videoWindowControl(0),
       m_mediaPlayerControl(0),

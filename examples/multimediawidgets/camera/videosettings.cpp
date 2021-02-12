@@ -55,7 +55,6 @@
 #include <QSpinBox>
 #include <QDebug>
 #include <QMediaRecorder>
-#include <QMediaService>
 #include <QMediaFormat>
 #include <QAudioDeviceInfo>
 #include <QCameraInfo>

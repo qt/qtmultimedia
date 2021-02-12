@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include <QDebug>
-#include <QMediaService>
 #include <private/qmediaplatformcaptureinterface_p.h>
 #include <qcameracontrol.h>
 

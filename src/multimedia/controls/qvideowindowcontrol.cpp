@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 
 
     The winId() property QVideoWindowControl allows a platform specific window
-    ID to be set as the video render target of a QMediaService.  The
+    ID to be set as the video render target.  The
     displayRect() property is used to set the region of the window the video
     should be rendered to, and the aspectRatioMode() property indicates how the
     video should be scaled to fit the displayRect().
@@ -61,20 +61,7 @@ QT_BEGIN_NAMESPACE
 
     QVideoWindowControl is one of a number of possible video output controls.
 
-    The interface name of QVideoWindowControl is \c org.qt-project.qt.videowindowcontrol/5.0 as
-    defined in QVideoWindowControl_iid.
-
-    \sa QMediaService::requestControl(), QVideoWidget
-*/
-
-/*!
-    \macro QVideoWindowControl_iid
-
-    \c org.qt-project.qt.videowindowcontrol/5.0
-
-    Defines the interface name of the QVideoWindowControl class.
-
-    \relates QVideoWindowControl
+    \sa QVideoWidget
 */
 
 /*!

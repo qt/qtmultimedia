@@ -36,7 +36,6 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
-#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qvideowindowcontrol.h>
 
 Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FillMode)
@@ -104,35 +103,11 @@ private:
     bool m_fullScreen = 0;
 };
 
-class QtTestVideoService : public QMediaService
-{
-    Q_OBJECT
-public:
-    QtTestVideoService(QtTestWindowControl *window)
-        : QMediaService(nullptr)
-        , windowControl(window)
-    {}
-
-    QObject *requestControl(const char *name) override
-    {
-        if (qstrcmp(name, QVideoWindowControl_iid) == 0)
-            return windowControl;
-        return nullptr;
-    }
-
-    void releaseControl(QObject *control) override
-    {
-        Q_ASSERT(control);
-    }
-
-    QtTestWindowControl *windowControl;
-};
-
 class QtTestVideoObject : public QObject
 {
     Q_OBJECT
 public:
-    explicit QtTestVideoObject(QtTestVideoService */*service*/)
+    explicit QtTestVideoObject()
         : QObject(nullptr)
     {
     }
@@ -144,8 +119,6 @@ class tst_QDeclarativeVideoOutputWindow : public QObject
 public:
     tst_QDeclarativeVideoOutputWindow()
         : QObject(nullptr)
-        , m_service(new QtTestVideoService(&m_windowControl))
-        , m_videoObject(m_service)
         , m_sourceObject(&m_videoObject)
     {
     }
@@ -170,7 +143,6 @@ private:
     QQuickItem *m_videoItem;
     QScopedPointer<QQuickItem> m_rootItem;
     QtTestWindowControl m_windowControl;
-    QtTestVideoService *m_service;
     QtTestVideoObject m_videoObject;
     SourceObject m_sourceObject;
     QQuickView m_view;
@@ -198,8 +170,6 @@ void tst_QDeclarativeVideoOutputWindow::cleanupTestCase()
 {
     // Make sure that QDeclarativeVideoOutput doesn't segfault when it is being destroyed after
     // the service is already gone
-    delete m_service;
-    m_service = nullptr;
     m_view.setSource(QUrl());
     m_rootItem.reset();
 }

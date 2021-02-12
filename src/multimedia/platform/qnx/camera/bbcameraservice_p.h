@@ -75,8 +75,9 @@ public:
     explicit BbCameraService(QObject *parent = 0);
     ~BbCameraService();
 
-    virtual QMediaControl* requestControl(const char *name);
-    virtual void releaseControl(QMediaControl *control);
+    QCameraControl *cameraControl() override;
+    QCameraImageCaptureControl *imageCaptureControl() override;
+    QMediaRecorderControl *mediaRecorderControl() override;
 
 private:
     BbCameraSession* m_cameraSession;

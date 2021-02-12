@@ -99,7 +99,6 @@ private:
     Q_DECLARE_PRIVATE(QGraphicsVideoItem)
     Q_PRIVATE_SLOT(d_func(), void _q_present())
     Q_PRIVATE_SLOT(d_func(), void _q_updateNativeSize())
-    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
 };
 
 QT_END_NAMESPACE

@@ -40,7 +40,6 @@
 #include <QtWidgets>
 
 #include <qaudiorecorder.h>
-#include <qmediaservice.h>
 
 #include <QtMultimedia/qaudioformat.h>
 

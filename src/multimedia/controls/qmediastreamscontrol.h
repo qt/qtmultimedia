@@ -41,7 +41,6 @@
 #ifndef QMEDIASTREAMSCONTROL_H
 #define QMEDIASTREAMSCONTROL_H
 
-#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmultimedia.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
@@ -74,9 +73,6 @@ Q_SIGNALS:
 protected:
     explicit QMediaStreamsControl(QObject *parent = nullptr);
 };
-
-#define QMediaStreamsControl_iid "org.qt-project.qt.mediastreamscontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QMediaStreamsControl, QMediaStreamsControl_iid)
 
 QT_END_NAMESPACE
 

@@ -53,9 +53,8 @@ QT_BEGIN_NAMESPACE
 
 
     \brief The QMediaPlayerControl class provides access to the media playing
-    functionality of a QMediaService.
+    functionality.
 
-    If a QMediaService can play media is will implement QMediaPlayerControl.
     This control provides a means to set the \l {setMedia()}{media} to play,
     \l {play()}{start}, \l {pause()} {pause} and \l {stop()}{stop} playback,
     \l {setPosition()}{seek}, and control the \l {setVolume()}{volume}.
@@ -66,20 +65,7 @@ QT_BEGIN_NAMESPACE
     The functionality provided by this control is exposed to application
     code through the QMediaPlayer class.
 
-    The interface name of QMediaPlayerControl is \c org.qt-project.qt.mediaplayercontrol/5.0 as
-    defined in QMediaPlayerControl_iid.
-
     \sa QMediaPlayer
-*/
-
-/*!
-    \macro QMediaPlayerControl_iid
-
-    \c org.qt-project.qt.mediaplayercontrol/5.0
-
-    Defines the interface name of the QMediaPlayerControl class.
-
-    \relates QMediaPlayerControl
 */
 
 /*!

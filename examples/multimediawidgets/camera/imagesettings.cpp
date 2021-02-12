@@ -55,7 +55,6 @@
 #include <QDebug>
 #include <QCameraImageCapture>
 #include <QCamera>
-#include <QMediaService>
 
 
 ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent) :

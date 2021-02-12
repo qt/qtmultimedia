@@ -62,21 +62,6 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterMediaStreamControlMetaTypes)
 
     The QMediaStreamsControl class provides descriptions of the available media streams
     and allows individual streams to be activated and deactivated.
-
-    The interface name of QMediaStreamsControl is \c org.qt-project.qt.mediastreamscontrol/5.0 as
-    defined in QMediaStreamsControl_iid.
-
-    \sa QMediaService::requestControl()
-*/
-
-/*!
-    \macro QMediaStreamsControl_iid
-
-    \c org.qt-project.qt.mediastreamscontrol/5.0
-
-    Defines the interface name of the QMediaStreamsControl class.
-
-    \relates QMediaStreamsControl
 */
 
 /*!

@@ -51,13 +51,8 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_control
 
     \brief The QMediaRecorderControl class provides access to the recording
-    functionality of a QMediaService.
+    functionality.
 
-    Generally you will use the QMediaRecorder class in application code - this
-    class is mostly used when implementing a new QMediaService or if there is
-    access to specific low level functionality not otherwise present in QMediaRecorder.
-
-    If a QMediaService can record media it will implement QMediaRecorderControl.
     This control provides a means to set the \l {outputLocation()}{output location},
     and record, pause and stop recording via the \l setState() method.  It also
     provides feedback on the \l {duration()}{duration} of the recording.

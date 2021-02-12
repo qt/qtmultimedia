@@ -29,7 +29,6 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <qabstractvideosurface.h>
-#include "qmediaservice.h"
 #include "qmediaplayer.h"
 #include <qmediaplaylist.h>
 #include <qmediametadata.h>

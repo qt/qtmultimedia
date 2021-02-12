@@ -40,7 +40,6 @@
 #ifndef QMEDIAPLAYERCONTROL_H
 #define QMEDIAPLAYERCONTROL_H
 
-#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
@@ -126,9 +125,6 @@ Q_SIGNALS:
 protected:
     explicit QMediaPlayerControl(QObject *parent = nullptr);
 };
-
-#define QMediaPlayerControl_iid "org.qt-project.qt.mediaplayercontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QMediaPlayerControl, QMediaPlayerControl_iid)
 
 QT_END_NAMESPACE
 

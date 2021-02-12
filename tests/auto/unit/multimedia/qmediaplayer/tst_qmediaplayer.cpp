@@ -37,7 +37,6 @@
 #include <qmediaplayer.h>
 #include <qmediaplayercontrol.h>
 #include <qmediaplaylist.h>
-#include <qmediaservice.h>
 #include <qmediastreamscontrol.h>
 #include <qvideorenderercontrol.h>
 

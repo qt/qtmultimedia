@@ -44,7 +44,6 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include <qcamerafocuscontrol.h>
 #include <qcameraimagecapturecontrol.h>
 #include <qcameraimageprocessingcontrol.h>
-#include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 
@@ -52,31 +51,6 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
-
-class NullService: public QMediaService
-{
-    Q_OBJECT
-
-public:
-    NullService(): QMediaService(nullptr)
-    {
-
-    }
-
-    ~NullService() override
-    {
-
-    }
-
-    QObject *requestControl(const char *iid) override
-    {
-        Q_UNUSED(iid);
-        return nullptr;
-    }
-
-    void releaseControl(QObject *) override {}
-
-};
 
 class tst_QCameraImageCapture: public QObject
 {

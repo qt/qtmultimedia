@@ -38,7 +38,6 @@
 
 #include <QtMultimedia/qmediametadata.h>
 #include <qmediaplayercontrol.h>
-#include <qmediaservice.h>
 #include <private/qdeclarativevideooutput_p.h>
 #include <QAbstractVideoSurface>
 

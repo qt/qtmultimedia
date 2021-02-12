@@ -40,7 +40,8 @@
 #ifndef QVIDEOWINDOWCONTROL_H
 #define QVIDEOWINDOWCONTROL_H
 
-#include <QtMultimedia/qmediaservice.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qwindowdefs.h>
@@ -94,9 +95,6 @@ Q_SIGNALS:
 protected:
     explicit QVideoWindowControl(QObject *parent = nullptr);
 };
-
-#define QVideoWindowControl_iid "org.qt-project.qt.videowindowcontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QVideoWindowControl, QVideoWindowControl_iid)
 
 QT_END_NAMESPACE
 

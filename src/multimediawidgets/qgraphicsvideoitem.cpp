@@ -63,29 +63,18 @@ public:
     QGraphicsVideoItem *q_ptr = nullptr;
 
     QPainterVideoSurface *surface = nullptr;
-    QMediaService *service = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     QRectF rect;
     QRectF boundingRect;
     QRectF sourceRect;
     QSizeF nativeSize;
 
-    void clearService();
     void updateRects();
 
     void _q_present();
     void _q_formatChanged(const QVideoSurfaceFormat &format);
     void _q_updateNativeSize();
-    void _q_serviceDestroyed();
 };
-
-void QGraphicsVideoItemPrivate::clearService()
-{
-    if (service) {
-        QObject::disconnect(service, SIGNAL(destroyed()), q_ptr, SLOT(_q_serviceDestroyed()));
-        service = nullptr;
-    }
-}
 
 void QGraphicsVideoItemPrivate::updateRects()
 {
@@ -138,14 +127,6 @@ void QGraphicsVideoItemPrivate::_q_updateNativeSize()
         emit q_ptr->nativeSizeChanged(nativeSize);
     }
 }
-
-void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
-{
-    service = nullptr;
-
-    surface->stop();
-}
-
 
 /*!
     \class QGraphicsVideoItem

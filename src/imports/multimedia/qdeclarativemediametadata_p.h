@@ -53,7 +53,6 @@
 
 #include <QtQml/qqml.h>
 #include <QtMultimedia/qmediametadata.h>
-#include <QtMultimedia/qmediaservice.h>
 #include "qmediametadata.h"
 
 QT_BEGIN_NAMESPACE

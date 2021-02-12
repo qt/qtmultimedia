@@ -39,7 +39,6 @@
 
 /* Video related snippets */
 #include "qvideorenderercontrol.h"
-#include "qmediaservice.h"
 #include "qmediaplayer.h"
 #include "qabstractvideosurface.h"
 #include "qvideowindowcontrol.h"
@@ -112,7 +111,6 @@ class VideoExample : public QObject {
     Q_OBJECT
 public:
     void VideoGraphicsItem();
-    void VideoRendererControl();
     void VideoWidget();
     void VideoWindowControl();
     void VideoWidgetControl();
@@ -120,7 +118,6 @@ public:
 
 private:
     // Common naming
-    QMediaService *mediaService;
     QMediaPlaylist *playlist;
     QVideoWidget *videoWidget;
     QWidget *widget;
@@ -130,14 +127,6 @@ private:
     QMediaContent video;
     QGraphicsView *graphicsView;
 };
-
-void VideoExample::VideoRendererControl()
-{
-    //! [Video renderer control]
-    QVideoRendererControl *rendererControl = mediaService->requestControl<QVideoRendererControl *>();
-    rendererControl->setSurface(myVideoSurface);
-    //! [Video renderer control]
-}
 
 void VideoExample::VideoWidget()
 {

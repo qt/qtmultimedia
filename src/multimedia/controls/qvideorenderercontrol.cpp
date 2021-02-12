@@ -52,27 +52,13 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_control
 
     Using the surface() property of QVideoRendererControl a
-    QAbstractVideoSurface may be set as the video render target of a
-    QMediaService.
+    QAbstractVideoSurface may be set as the video render target.
 
     \snippet multimedia-snippets/video.cpp Video renderer control
 
     QVideoRendererControl is one of a number of possible video output controls.
 
-    The interface name of QVideoRendererControl is \c org.qt-project.qt.videorenderercontrol/5.0 as
-    defined in QVideoRendererControl_iid.
-
-    \sa QMediaService::requestControl(), QVideoWidget
-*/
-
-/*!
-    \macro QVideoRendererControl_iid
-
-    \c org.qt-project.qt.videorenderercontrol/5.0
-
-    Defines the interface name of the QVideoRendererControl class.
-
-    \relates QVideoRendererControl
+    \sa QVideoWidget
 */
 
 /*!

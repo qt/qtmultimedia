@@ -51,7 +51,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qmediaservice.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 class QCameraControl;

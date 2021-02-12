@@ -40,7 +40,6 @@
 #ifndef QCAMERAIMAGECAPTURECONTROL_H
 #define QCAMERAIMAGECAPTURECONTROL_H
 
-#include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qcameraimagecapture.h>
 
 QT_BEGIN_NAMESPACE

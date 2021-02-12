@@ -44,7 +44,6 @@
 
 #include "qmediaplaylist.h"
 #include "qmediarecorder.h"
-#include "qmediaservice.h"
 #include "qmediaplayercontrol.h"
 #include "qmediaplayer.h"
 #include "qvideowidget.h"
@@ -66,7 +65,6 @@ class MediaExample : public QObject {
     
 private:
     // Common naming
-    QMediaService *mediaService;
     QVideoWidget *videoWidget;
     QWidget *widget;
     QMediaPlayer *player;
@@ -86,20 +84,6 @@ private:
 
 void MediaExample::MediaControl()
 {
-    {
-    //! [Request control]
-    QMediaPlayerControl *control = qobject_cast<QMediaPlayerControl *>(
-            mediaService->requestControl("org.qt-project.qt.mediaplayercontrol/5.0"));
-    //! [Request control]
-    Q_UNUSED(control);
-    }
-
-    {
-    //! [Request control templated]
-    QMediaPlayerControl *control = mediaService->requestControl<QMediaPlayerControl *>();
-    //! [Request control templated]
-    Q_UNUSED(control);
-    }
 }
 
 

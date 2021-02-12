@@ -28,7 +28,6 @@
 
 #include <QtTest/QtTest>
 #include <QDebug>
-#include "qmediaservice.h"
 #include "qmediaplaylist.h"
 
 //TESTED_COMPONENT=src/multimedia

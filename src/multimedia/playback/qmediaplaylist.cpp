@@ -39,7 +39,6 @@
 
 #include "qmediaplaylist.h"
 #include "qmediaplaylist_p.h"
-#include "qmediaservice.h"
 #include "qmediaplayercontrol.h"
 #include "qplaylistfileparser_p.h"
 

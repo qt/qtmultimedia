@@ -39,7 +39,6 @@
 
 // Video related snippets
 // Extracted from src/multimedia/doc/snippets/multimedia-snippets/video.cpp
-#include "qmediaservice.h"
 #include "qmediaplayer.h"
 #include "qvideowidgetcontrol.h"
 #include "qvideowindowcontrol.h"
@@ -54,11 +53,9 @@ class VideoExample : public QObject {
 public:
     void VideoGraphicsItem();
     void VideoWidget();
-    void VideoWidgetControl();
 
 private:
     // Common naming
-    QMediaService *mediaService;
     QMediaPlaylist *playlist;
     QVideoWidget *videoWidget;
     QFormLayout *layout;
@@ -84,14 +81,6 @@ void VideoExample::VideoWidget()
     //! [Video widget]
 
     player->stop();
-}
-
-void VideoExample::VideoWidgetControl()
-{
-    //! [Video widget control]
-    QVideoWidgetControl *widgetControl = mediaService->requestControl<QVideoWidgetControl *>();
-    layout->addWidget(widgetControl->videoWidget());
-    //! [Video widget control]
 }
 
 void VideoExample::VideoGraphicsItem()

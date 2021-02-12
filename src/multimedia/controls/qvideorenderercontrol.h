@@ -40,7 +40,8 @@
 #ifndef QVIDEORENDERERCONTROL_H
 #define QVIDEORENDERERCONTROL_H
 
-#include <QtMultimedia/qmediaservice.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -56,9 +57,6 @@ public:
 protected:
     explicit QVideoRendererControl(QObject *parent = nullptr);
 };
-
-#define QVideoRendererControl_iid "org.qt-project.qt.videorenderercontrol/5.0"
-Q_MEDIA_DECLARE_CONTROL(QVideoRendererControl, QVideoRendererControl_iid)
 
 QT_END_NAMESPACE
 

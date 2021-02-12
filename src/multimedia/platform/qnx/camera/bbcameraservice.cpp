@@ -55,7 +55,7 @@
 QT_BEGIN_NAMESPACE
 
 BbCameraService::BbCameraService(QObject *parent)
-    : QMediaService(parent)
+    : QObject(parent)
     , m_cameraSession(new BbCameraSession(this))
     , m_cameraAudioEncoderSettingsControl(new BbCameraAudioEncoderSettingsControl(m_cameraSession, this))
     , m_cameraControl(new BbCameraControl(m_cameraSession, this))

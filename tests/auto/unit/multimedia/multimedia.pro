@@ -13,7 +13,6 @@ SUBDIRS += \
     qmediaplaylist \
     qmediapluginloader \
     qmediarecorder \
-    qmediaservice \
     qmediatimerange \
     qvideoframe \
     qvideosurfaceformat \

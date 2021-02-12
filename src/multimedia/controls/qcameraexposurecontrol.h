@@ -42,7 +42,6 @@
 
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediaservice.h>
 
 #include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcamera.h>

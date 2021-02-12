@@ -43,7 +43,6 @@
 #include <private/qmediaplatformcaptureinterface_p.h>
 
 #include "private/qobject_p.h"
-#include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>
 #include <QtCore/qdebug.h>

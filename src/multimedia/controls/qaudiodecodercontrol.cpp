@@ -50,8 +50,8 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia_control
 
-    \brief The QAudioDecoderControl class provides access to the audio decoding
-    functionality of a QMediaService.
+    \brief The QAudioDecoderControl class provides access audio decoding
+    functionality.
 
     \preliminary
 */

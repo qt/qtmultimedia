@@ -64,7 +64,6 @@ Q_MOC_INCLUDE("QtMultimedia/qabstractvideosurface.h")
 
 QT_BEGIN_NAMESPACE
 
-class QMediaService;
 class QDeclarativeVideoBackend;
 class QVideoOutputOrientationHandler;
 class QAbstractVideoSurface;
