@@ -52,8 +52,6 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <QMetaType>
-
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
@@ -78,7 +76,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QGstreamerMessage);
 
 #endif

@@ -43,9 +43,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static int wuchi = qRegisterMetaType<QGstreamerMessage>();
-
-
 /*!
     \class QGstreamerMessage
     \internal

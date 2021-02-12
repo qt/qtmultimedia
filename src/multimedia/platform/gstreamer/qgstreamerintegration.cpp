@@ -39,7 +39,7 @@
 
 #include "qgstreamerintegration_p.h"
 #include "qgstreamerdevicemanager_p.h"
-#include "private/qgstreamerplayercontrol_p.h"
+#include "private/qgstreamermediaplayer_p.h"
 #include "private/qgstreamercaptureservice_p.h"
 #include "private/qgstreameraudiodecodercontrol_p.h"
 #include "private/qgstreamerformatinfo_p.h"
@@ -84,7 +84,7 @@ QPlatformMediaCapture *QGstreamerIntegration::createCaptureInterface(QMediaRecor
 
 QPlatformMediaPlayer *QGstreamerIntegration::createPlayer()
 {
-    return new QGstreamerPlayerControl();
+    return new QGstreamerMediaPlayer();
 }
 
 QT_END_NAMESPACE

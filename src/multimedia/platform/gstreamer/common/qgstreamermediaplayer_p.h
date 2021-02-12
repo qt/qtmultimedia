@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERPLAYERCONTROL_P_H
-#define QGSTREAMERPLAYERCONTROL_P_H
+#ifndef QGSTREAMERMEDIAPLAYER_P_H
+#define QGSTREAMERMEDIAPLAYER_P_H
 
 //
 //  W A R N I N G
@@ -61,13 +61,13 @@ QT_BEGIN_NAMESPACE
 class QGstreamerPlayerSession;
 class QGstreamerStreamsControl;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerPlayerControl : public QPlatformMediaPlayer
+class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QPlatformMediaPlayer
 {
     Q_OBJECT
 
 public:
-    QGstreamerPlayerControl(QObject *parent = 0);
-    ~QGstreamerPlayerControl();
+    QGstreamerMediaPlayer(QObject *parent = 0);
+    ~QGstreamerMediaPlayer();
 
     QGstreamerPlayerSession *session() { return m_session; }
 

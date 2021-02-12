@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include <private/qgstreamerplayercontrol_p.h>
+#include <private/qgstreamermediaplayer_p.h>
 #include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamerstreamscontrol_p.h>
 #include <qaudiodeviceinfo.h>
@@ -55,31 +55,31 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerPlayerControl::QGstreamerPlayerControl(QObject *parent)
+QGstreamerMediaPlayer::QGstreamerMediaPlayer(QObject *parent)
     : QPlatformMediaPlayer(parent)
 {
     m_session = new QGstreamerPlayerSession(this);
-    connect(m_session, &QGstreamerPlayerSession::positionChanged, this, &QGstreamerPlayerControl::positionChanged);
-    connect(m_session, &QGstreamerPlayerSession::durationChanged, this, &QGstreamerPlayerControl::durationChanged);
-    connect(m_session, &QGstreamerPlayerSession::mutedStateChanged, this, &QGstreamerPlayerControl::mutedChanged);
-    connect(m_session, &QGstreamerPlayerSession::volumeChanged, this, &QGstreamerPlayerControl::volumeChanged);
-    connect(m_session, &QGstreamerPlayerSession::stateChanged, this, &QGstreamerPlayerControl::updateSessionState);
-    connect(m_session, &QGstreamerPlayerSession::bufferingProgressChanged, this, &QGstreamerPlayerControl::setBufferProgress);
-    connect(m_session, &QGstreamerPlayerSession::playbackFinished, this, &QGstreamerPlayerControl::processEOS);
-    connect(m_session, &QGstreamerPlayerSession::audioAvailableChanged, this, &QGstreamerPlayerControl::audioAvailableChanged);
-    connect(m_session, &QGstreamerPlayerSession::videoAvailableChanged, this, &QGstreamerPlayerControl::videoAvailableChanged);
-    connect(m_session, &QGstreamerPlayerSession::seekableChanged, this, &QGstreamerPlayerControl::seekableChanged);
-    connect(m_session, &QGstreamerPlayerSession::error, this, &QGstreamerPlayerControl::error);
-    connect(m_session, &QGstreamerPlayerSession::invalidMedia, this, &QGstreamerPlayerControl::handleInvalidMedia);
-    connect(m_session, &QGstreamerPlayerSession::playbackRateChanged, this, &QGstreamerPlayerControl::playbackRateChanged);
-    connect(m_session, &QGstreamerPlayerSession::metaDataChanged, this, &QGstreamerPlayerControl::metaDataChanged);
+    connect(m_session, &QGstreamerPlayerSession::positionChanged, this, &QGstreamerMediaPlayer::positionChanged);
+    connect(m_session, &QGstreamerPlayerSession::durationChanged, this, &QGstreamerMediaPlayer::durationChanged);
+    connect(m_session, &QGstreamerPlayerSession::mutedStateChanged, this, &QGstreamerMediaPlayer::mutedChanged);
+    connect(m_session, &QGstreamerPlayerSession::volumeChanged, this, &QGstreamerMediaPlayer::volumeChanged);
+    connect(m_session, &QGstreamerPlayerSession::stateChanged, this, &QGstreamerMediaPlayer::updateSessionState);
+    connect(m_session, &QGstreamerPlayerSession::bufferingProgressChanged, this, &QGstreamerMediaPlayer::setBufferProgress);
+    connect(m_session, &QGstreamerPlayerSession::playbackFinished, this, &QGstreamerMediaPlayer::processEOS);
+    connect(m_session, &QGstreamerPlayerSession::audioAvailableChanged, this, &QGstreamerMediaPlayer::audioAvailableChanged);
+    connect(m_session, &QGstreamerPlayerSession::videoAvailableChanged, this, &QGstreamerMediaPlayer::videoAvailableChanged);
+    connect(m_session, &QGstreamerPlayerSession::seekableChanged, this, &QGstreamerMediaPlayer::seekableChanged);
+    connect(m_session, &QGstreamerPlayerSession::error, this, &QGstreamerMediaPlayer::error);
+    connect(m_session, &QGstreamerPlayerSession::invalidMedia, this, &QGstreamerMediaPlayer::handleInvalidMedia);
+    connect(m_session, &QGstreamerPlayerSession::playbackRateChanged, this, &QGstreamerMediaPlayer::playbackRateChanged);
+    connect(m_session, &QGstreamerPlayerSession::metaDataChanged, this, &QGstreamerMediaPlayer::metaDataChanged);
 }
 
-QGstreamerPlayerControl::~QGstreamerPlayerControl()
+QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
 {
 }
 
-qint64 QGstreamerPlayerControl::position() const
+qint64 QGstreamerMediaPlayer::position() const
 {
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
         return m_session->duration();
@@ -87,22 +87,22 @@ qint64 QGstreamerPlayerControl::position() const
     return m_pendingSeekPosition != -1 ? m_pendingSeekPosition : m_session->position();
 }
 
-qint64 QGstreamerPlayerControl::duration() const
+qint64 QGstreamerMediaPlayer::duration() const
 {
     return m_session->duration();
 }
 
-QMediaPlayer::State QGstreamerPlayerControl::state() const
+QMediaPlayer::State QGstreamerMediaPlayer::state() const
 {
     return m_currentState;
 }
 
-QMediaPlayer::MediaStatus QGstreamerPlayerControl::mediaStatus() const
+QMediaPlayer::MediaStatus QGstreamerMediaPlayer::mediaStatus() const
 {
     return m_mediaStatus;
 }
 
-int QGstreamerPlayerControl::bufferStatus() const
+int QGstreamerMediaPlayer::bufferStatus() const
 {
     if (m_bufferProgress == -1)
         return m_session->state() == QMediaPlayer::StoppedState ? 0 : 100;
@@ -110,37 +110,37 @@ int QGstreamerPlayerControl::bufferStatus() const
     return m_bufferProgress;
 }
 
-int QGstreamerPlayerControl::volume() const
+int QGstreamerMediaPlayer::volume() const
 {
     return m_session->volume();
 }
 
-bool QGstreamerPlayerControl::isMuted() const
+bool QGstreamerMediaPlayer::isMuted() const
 {
     return m_session->isMuted();
 }
 
-bool QGstreamerPlayerControl::isSeekable() const
+bool QGstreamerMediaPlayer::isSeekable() const
 {
     return m_session->isSeekable();
 }
 
-QMediaTimeRange QGstreamerPlayerControl::availablePlaybackRanges() const
+QMediaTimeRange QGstreamerMediaPlayer::availablePlaybackRanges() const
 {
     return m_session->availablePlaybackRanges();
 }
 
-qreal QGstreamerPlayerControl::playbackRate() const
+qreal QGstreamerMediaPlayer::playbackRate() const
 {
     return m_session->playbackRate();
 }
 
-void QGstreamerPlayerControl::setPlaybackRate(qreal rate)
+void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
 {
     m_session->setPlaybackRate(rate);
 }
 
-void QGstreamerPlayerControl::setPosition(qint64 pos)
+void QGstreamerMediaPlayer::setPosition(qint64 pos)
 {
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO << pos/1000.0;
@@ -170,7 +170,7 @@ void QGstreamerPlayerControl::setPosition(qint64 pos)
     popAndNotifyState();
 }
 
-void QGstreamerPlayerControl::play()
+void QGstreamerMediaPlayer::play()
 {
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
@@ -182,7 +182,7 @@ void QGstreamerPlayerControl::play()
     playOrPause(QMediaPlayer::PlayingState);
 }
 
-void QGstreamerPlayerControl::pause()
+void QGstreamerMediaPlayer::pause()
 {
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
@@ -196,7 +196,7 @@ void QGstreamerPlayerControl::pause()
     playOrPause(QMediaPlayer::PausedState);
 }
 
-void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
+void QGstreamerMediaPlayer::playOrPause(QMediaPlayer::State newState)
 {
     if (m_mediaStatus == QMediaPlayer::NoMedia)
         return;
@@ -257,7 +257,7 @@ void QGstreamerPlayerControl::playOrPause(QMediaPlayer::State newState)
     emit positionChanged(position());
 }
 
-void QGstreamerPlayerControl::stop()
+void QGstreamerMediaPlayer::stop()
 {
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
@@ -286,27 +286,27 @@ void QGstreamerPlayerControl::stop()
     popAndNotifyState();
 }
 
-void QGstreamerPlayerControl::setVolume(int volume)
+void QGstreamerMediaPlayer::setVolume(int volume)
 {
     m_session->setVolume(volume);
 }
 
-void QGstreamerPlayerControl::setMuted(bool muted)
+void QGstreamerMediaPlayer::setMuted(bool muted)
 {
     m_session->setMuted(muted);
 }
 
-QUrl QGstreamerPlayerControl::media() const
+QUrl QGstreamerMediaPlayer::media() const
 {
     return m_currentResource;
 }
 
-const QIODevice *QGstreamerPlayerControl::mediaStream() const
+const QIODevice *QGstreamerMediaPlayer::mediaStream() const
 {
     return m_stream;
 }
 
-void QGstreamerPlayerControl::setMedia(const QUrl &content, QIODevice *stream)
+void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 {
 #ifdef DEBUG_PLAYBIN
     qDebug() << Q_FUNC_INFO;
@@ -370,45 +370,45 @@ void QGstreamerPlayerControl::setMedia(const QUrl &content, QIODevice *stream)
     popAndNotifyState();
 }
 
-bool QGstreamerPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
+bool QGstreamerMediaPlayer::setAudioOutput(const QAudioDeviceInfo &info)
 {
     m_session->setAudioOutputDevice(info);
     return true;
 }
 
-QAudioDeviceInfo QGstreamerPlayerControl::audioOutput() const
+QAudioDeviceInfo QGstreamerMediaPlayer::audioOutput() const
 {
     return m_session->audioOutputDevice();
 }
 
-QMediaMetaData QGstreamerPlayerControl::metaData() const
+QMediaMetaData QGstreamerMediaPlayer::metaData() const
 {
     return m_session->metaData();
 }
 
-void QGstreamerPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
+void QGstreamerMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_session->setVideoRenderer(surface);
 }
 
-QMediaStreamsControl *QGstreamerPlayerControl::mediaStreams()
+QMediaStreamsControl *QGstreamerMediaPlayer::mediaStreams()
 {
     if (!m_streamsControl)
         m_streamsControl = new QGstreamerStreamsControl(m_session, this);
     return m_streamsControl;
 }
 
-bool QGstreamerPlayerControl::isAudioAvailable() const
+bool QGstreamerMediaPlayer::isAudioAvailable() const
 {
     return m_session->isAudioAvailable();
 }
 
-bool QGstreamerPlayerControl::isVideoAvailable() const
+bool QGstreamerMediaPlayer::isVideoAvailable() const
 {
     return m_session->isVideoAvailable();
 }
 
-void QGstreamerPlayerControl::updateSessionState(QMediaPlayer::State state)
+void QGstreamerMediaPlayer::updateSessionState(QMediaPlayer::State state)
 {
     pushState();
 
@@ -435,7 +435,7 @@ void QGstreamerPlayerControl::updateSessionState(QMediaPlayer::State state)
     popAndNotifyState();
 }
 
-void QGstreamerPlayerControl::updateMediaStatus()
+void QGstreamerMediaPlayer::updateMediaStatus()
 {
     //EndOfMedia status should be kept, until reset by pause, play or setMedia
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
@@ -468,7 +468,7 @@ void QGstreamerPlayerControl::updateMediaStatus()
     popAndNotifyState();
 }
 
-void QGstreamerPlayerControl::processEOS()
+void QGstreamerMediaPlayer::processEOS()
 {
     pushState();
     m_mediaStatus = QMediaPlayer::EndOfMedia;
@@ -483,7 +483,7 @@ void QGstreamerPlayerControl::processEOS()
     popAndNotifyState();
 }
 
-void QGstreamerPlayerControl::setBufferProgress(int progress)
+void QGstreamerMediaPlayer::setBufferProgress(int progress)
 {
     if (m_bufferProgress == progress || m_mediaStatus == QMediaPlayer::NoMedia)
         return;
@@ -508,7 +508,7 @@ void QGstreamerPlayerControl::setBufferProgress(int progress)
     emit bufferStatusChanged(m_bufferProgress);
 }
 
-void QGstreamerPlayerControl::handleInvalidMedia()
+void QGstreamerMediaPlayer::handleInvalidMedia()
 {
     pushState();
     m_mediaStatus = QMediaPlayer::InvalidMedia;
@@ -517,13 +517,13 @@ void QGstreamerPlayerControl::handleInvalidMedia()
     popAndNotifyState();
 }
 
-void QGstreamerPlayerControl::pushState()
+void QGstreamerMediaPlayer::pushState()
 {
     m_stateStack.push(m_currentState);
     m_mediaStatusStack.push(m_mediaStatus);
 }
 
-void QGstreamerPlayerControl::popAndNotifyState()
+void QGstreamerMediaPlayer::popAndNotifyState()
 {
     Q_ASSERT(!m_stateStack.isEmpty());
 
