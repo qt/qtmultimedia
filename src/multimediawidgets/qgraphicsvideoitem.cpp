@@ -63,7 +63,6 @@ public:
     QGraphicsVideoItem *q_ptr = nullptr;
 
     QPainterVideoSurface *surface = nullptr;
-    QPointer<QMediaSource> mediaSource;
     QMediaService *service = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     QRectF rect;
@@ -151,22 +150,20 @@ void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
 /*!
     \class QGraphicsVideoItem
 
-    \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaSource.
+    \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaPlayer or QCamera.
 
     \inmodule QtMultimediaWidgets
     \ingroup multimedia
 
-    Attaching a QGraphicsVideoItem to a QMediaSource allows it to display
-    the video or image output of that media object.  A QGraphicsVideoItem
-    is attached to a media object by passing a pointer to the QMediaSource
-    to the setMediaSource() function.
+    Attaching a QGraphicsVideoItem to a QMediaPlayer or QCamera allows it to display
+    the video or image output of that media object.
 
     \snippet multimedia-snippets/video.cpp Video graphics item
 
     \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
-    \sa QMediaSource, QMediaPlayer, QVideoWidget
+    \sa QMediaPlayer, QVideoWidget, QCamera
 */
 
 /*!

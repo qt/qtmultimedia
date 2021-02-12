@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qcamerafocus.h"
-#include "qmediasource_p.h"
+#include "private/qobject_p.h"
 
 #include <qcamera.h>
 #include <qcameracontrol.h>
@@ -247,8 +247,11 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
     \sa QCameraFocusZone
 */
 
+#define Q_DECLARE_NON_CONST_PUBLIC(Class) \
+    inline Class* q_func() { return static_cast<Class *>(q_ptr); } \
+    friend class Class;
 
-class QCameraFocusPrivate : public QMediaSourcePrivate
+class QCameraFocusPrivate : public QObjectPrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraFocus)
 public:
@@ -261,6 +264,7 @@ public:
     float zoomFactor = 1.;
 };
 
+#undef Q_DECLARE_NON_CONST_PUBLIC
 
 void QCameraFocusPrivate::init(QCameraControl *cameraControl)
 {

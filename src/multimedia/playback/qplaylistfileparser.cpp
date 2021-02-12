@@ -41,10 +41,10 @@
 #include <qfileinfo.h>
 #include <QtCore/QDebug>
 #include <QtCore/qiodevice.h>
+#include <QtCore/qpointer.h>
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include "qmediaplayer.h"
-#include "qmediasource_p.h"
 #include "qmediametadata.h"
 
 QT_BEGIN_NAMESPACE

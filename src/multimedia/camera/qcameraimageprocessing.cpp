@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qcameraimageprocessing.h"
-#include "qmediasource_p.h"
+#include "private/qobject_p.h"
 
 #include <qcameracontrol.h>
 #include <qcameraimageprocessingcontrol.h>
@@ -81,7 +81,7 @@ QT_BEGIN_NAMESPACE
     \sa QCameraImageProcessingControl
 */
 
-class QCameraImageProcessingPrivate : public QMediaSourcePrivate
+class QCameraImageProcessingPrivate : public QObjectPrivate
 {
 public:
     void init(QCameraControl *cameraControl);

@@ -307,7 +307,7 @@ Module {
     }
     Component {
         name: "QCamera"
-        prototype: "QMediaSource"
+        prototype: "QObject"
         Enum {
             name: "Status"
             values: {
@@ -1741,25 +1741,6 @@ Module {
             name: "mapRectToSourceNormalized"
             type: "QRectF"
             Parameter { name: "rectangle"; type: "QRectF" }
-        }
-    }
-    Component {
-        name: "QMediaSource"
-        prototype: "QObject"
-        Property { name: "notifyInterval"; type: "int" }
-        Signal {
-            name: "notifyIntervalChanged"
-            Parameter { name: "milliSeconds"; type: "int" }
-        }
-        Signal {
-            name: "metaDataAvailableChanged"
-            Parameter { name: "available"; type: "bool" }
-        }
-        Signal { name: "metaDataChanged" }
-        Signal {
-            name: "metaDataChanged"
-            Parameter { name: "key"; type: "string" }
-            Parameter { name: "value"; type: "QVariant" }
         }
     }
     Component { name: "QSGVideoItemSurface"; prototype: "QAbstractVideoSurface" }

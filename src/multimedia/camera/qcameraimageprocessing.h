@@ -45,10 +45,9 @@
 #include <QtCore/qsize.h>
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
+#include <QtCore/qobject.h>
 
-#include <QtMultimedia/qmediaservice.h>
-#include <QtMultimedia/qmediasource.h>
-#include <QtMultimedia/qmediaservice.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE

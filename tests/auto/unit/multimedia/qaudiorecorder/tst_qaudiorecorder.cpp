@@ -35,7 +35,6 @@
 #include <qmediarecordercontrol.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudioinput.h>
-#include <qmediasource.h>
 
 //TESTED_COMPONENT=src/multimedia
 

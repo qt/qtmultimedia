@@ -42,7 +42,7 @@
 #include <qmediametadata.h>
 #include <private/qmediaplatformcaptureinterface_p.h>
 
-#include "qmediasource_p.h"
+#include "private/qobject_p.h"
 #include <qmediaservice.h>
 #include <qcamera.h>
 #include <qcameracontrol.h>
@@ -82,7 +82,7 @@ QT_BEGIN_NAMESPACE
 
 class QCameraImageCapturePrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QCameraImageCapture)
+    Q_DECLARE_PUBLIC(QCameraImageCapture)
 public:
     QCamera *camera = nullptr;
 

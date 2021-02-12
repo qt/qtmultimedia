@@ -41,7 +41,6 @@
 #include "qmediarecorder_p.h"
 
 #include <qmediarecordercontrol.h>
-#include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamera.h>
@@ -53,6 +52,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qmetaobject.h>
+#include <QtCore/qtimer.h>
 
 #include <qaudioformat.h>
 
@@ -149,23 +149,8 @@ void QMediaRecorderPrivate::restartCamera()
     }
 }
 
-class QAudioRecorderObject : public QMediaSource
-{
-public:
-    QAudioRecorderObject(QObject *parent, QMediaService *service)
-        : QMediaSource(parent, service)
-    {
-    }
-
-    ~QAudioRecorderObject() override
-    {
-    }
-};
-
 /*!
-    Constructs a media recorder which records the media produced by \a mediaSource.
-
-    The \a parent is passed to QMediaSource.
+    Constructs a media recorder which records the media produced by a microphone and camera.
 */
 
 QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent)

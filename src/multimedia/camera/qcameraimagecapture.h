@@ -40,9 +40,8 @@
 #ifndef QCAMERAIMAGECAPTURE_H
 #define QCAMERAIMAGECAPTURE_H
 
-#include <QtMultimedia/qmediasource.h>
+#include <QtCore/qobject.h>
 #include <QtMultimedia/qmediaencodersettings.h>
-#include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qvideoframe.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>

@@ -36,7 +36,6 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
-#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaservice.h>
 #include <QtMultimedia/qvideowindowcontrol.h>
 
@@ -47,7 +46,7 @@ class SourceObject : public QObject
     Q_OBJECT
     Q_PROPERTY(QObject *mediaSource READ mediaSource CONSTANT)
 public:
-    explicit SourceObject(QMediaSource *mediaSource, QObject *parent = nullptr)
+    explicit SourceObject(QObject *mediaSource, QObject *parent = nullptr)
         : QObject(parent), m_mediaSource(mediaSource)
     {}
 
@@ -55,7 +54,7 @@ public:
     { return m_mediaSource; }
 
 private:
-    QMediaSource *m_mediaSource;
+    QObject *m_mediaSource;
 };
 
 class QtTestWindowControl : public QVideoWindowControl
@@ -129,12 +128,12 @@ public:
     QtTestWindowControl *windowControl;
 };
 
-class QtTestVideoObject : public QMediaSource
+class QtTestVideoObject : public QObject
 {
     Q_OBJECT
 public:
-    explicit QtTestVideoObject(QtTestVideoService *service):
-        QMediaSource(nullptr, service)
+    explicit QtTestVideoObject(QtTestVideoService */*service*/)
+        : QObject(nullptr)
     {
     }
 };

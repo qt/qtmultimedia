@@ -40,11 +40,11 @@
 #include "qtmultimediaglobal_p.h"
 #include "qaudiodecoder.h"
 
-#include "qmediasource_p.h"
 #include <qmediaservice.h>
 #include "qaudiodecodercontrol.h"
 
 #include <private/qmediaplatformintegration_p.h>
+#include <private/qobject_p.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -72,15 +72,11 @@ QT_BEGIN_NAMESPACE
     \sa QAudioBuffer
 */
 
-static void qRegisterAudioDecoderMetaTypes()
-{
-    qRegisterMetaType<QAudioDecoder::State>("QAudioDecoder::State");
-    qRegisterMetaType<QAudioDecoder::Error>("QAudioDecoder::Error");
-}
+#define Q_DECLARE_NON_CONST_PUBLIC(Class) \
+    inline Class* q_func() { return static_cast<Class *>(q_ptr); } \
+    friend class Class;
 
-Q_CONSTRUCTOR_FUNCTION(qRegisterAudioDecoderMetaTypes)
-
-class QAudioDecoderPrivate : public QMediaSourcePrivate
+class QAudioDecoderPrivate : public QObjectPrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QAudioDecoder)
 
@@ -93,6 +89,8 @@ public:
     void _q_stateChanged(QAudioDecoder::State state);
     void _q_error(int error, const QString &errorString);
 };
+
+#undef Q_DECLARE_NON_CONST_PUBLIC
 
 void QAudioDecoderPrivate::_q_stateChanged(QAudioDecoder::State ps)
 {

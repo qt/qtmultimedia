@@ -40,7 +40,8 @@
 #ifndef QCAMERAEXPOSURE_H
 #define QCAMERAEXPOSURE_H
 
-#include <QtMultimedia/qmediasource.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE

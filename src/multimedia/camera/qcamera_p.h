@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include "qmediasource_p.h"
+#include "private/qobject_p.h"
 #include "qcamera.h"
 #include "qcamerainfo.h"
 
@@ -62,7 +62,7 @@ class QMediaPlatformCaptureInterface;
 
 class QCameraPrivate : public QObjectPrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QCamera)
+    Q_DECLARE_PUBLIC(QCamera)
 public:
     QCameraPrivate()
         : QObjectPrivate(),
@@ -85,7 +85,6 @@ public:
     QCameraFocus *cameraFocus = nullptr;
     QCameraImageProcessing *imageProcessing = nullptr;
 
-    QMediaSink *viewfinder = nullptr;
     QObject *capture = nullptr;
 
     QCamera::State state;

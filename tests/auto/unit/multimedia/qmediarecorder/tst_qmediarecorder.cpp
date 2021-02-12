@@ -31,8 +31,6 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
-#include <qmediasource.h>
-#include <qmediaservice.h>
 #include <qmediaservice.h>
 #include <qmediarecordercontrol.h>
 #include <qmediarecorder.h>
@@ -41,7 +39,6 @@
 
 #include "mockmediarecorderservice.h"
 #include "mockmediarecordercontrol.h"
-#include "mockmediasource.h"
 
 QT_USE_NAMESPACE
 

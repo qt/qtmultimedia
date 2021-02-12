@@ -40,10 +40,10 @@
 #ifndef QMEDIARECORDER_H
 #define QMEDIARECORDER_H
 
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
-#include <QtMultimedia/qmediasource.h>
 #include <QtMultimedia/qmediaencodersettings.h>
-#include <QtMultimedia/qmediasink.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qmediametadata.h>
 

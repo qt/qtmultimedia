@@ -166,13 +166,6 @@ QAbstractVideoSurface *QDeclarativeVideoOutput::videoSurface() const
     \qmlproperty variant QtMultimedia::VideoOutput::source
 
     This property holds the source item providing the video frames like MediaPlayer or Camera.
-
-    If you are extending your own C++ classes to interoperate with VideoOutput, you can
-    either provide a QObject based class with a \c mediaSource property that exposes a
-    QMediaSource derived class that has a QVideoRendererControl available, or you can
-    provide a QObject based class with a writable \c videoSurface property that can
-    accept a QAbstractVideoSurface based class and can follow the correct protocol to
-    deliver QVideoFrames to it.
 */
 
 void QDeclarativeVideoOutput::setSource(QObject *source)

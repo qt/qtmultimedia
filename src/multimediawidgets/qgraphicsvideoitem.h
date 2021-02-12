@@ -43,7 +43,6 @@
 #include <QtWidgets/qgraphicsitem.h>
 
 #include <QtMultimediaWidgets/qvideowidget.h>
-#include <QtMultimedia/qmediasink.h>
 
 #if QT_CONFIG(graphicsview)
 

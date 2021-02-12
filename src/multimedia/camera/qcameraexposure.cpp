@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qcameraexposure.h"
-#include "qmediasource_p.h"
+#include "private/qobject_p.h"
 
 #include <qcamera.h>
 #include <qcameraexposurecontrol.h>
@@ -63,10 +63,9 @@ QT_BEGIN_NAMESPACE
 
 //#define DEBUG_EXPOSURE_CHANGES 1
 
-
 class QCameraExposurePrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QCameraExposure)
+    Q_DECLARE_PUBLIC(QCameraExposure)
 public:
     void init(QCameraControl *cameraControl);
     QCameraExposure *q_ptr;

@@ -40,8 +40,9 @@
 #ifndef QCAMERAEXPOSURECONTROL_H
 #define QCAMERAEXPOSURECONTROL_H
 
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaservice.h>
-#include <QtMultimedia/qmediasource.h>
 
 #include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcamera.h>

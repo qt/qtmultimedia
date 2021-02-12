@@ -40,8 +40,9 @@
 #ifndef QCAMERAFOCUSCONTROL_H
 #define QCAMERAFOCUSCONTROL_H
 
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaservice.h>
-#include <QtMultimedia/qmediasource.h>
 
 #include <QtMultimedia/qcamerafocus.h>
 

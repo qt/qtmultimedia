@@ -289,7 +289,11 @@ QCameraImageProcessing *QCamera::imageProcessing() const
 }
 
 /*!
-    Sets the QMediaSink based camera \a viewfinder.
+    Sets a QObject based camera \a viewfinder.
+
+    A QObject based viewfinder is expected to have an invokable videoSurface()
+    method that returns a QAbstractVideoSurface.
+
     The previously set viewfinder is detached.
 */
 void QCamera::setViewfinder(QObject *viewfinder)

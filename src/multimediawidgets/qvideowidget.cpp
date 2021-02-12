@@ -41,8 +41,8 @@
 #include "qvideowidget_p.h"
 #include "qpaintervideosurface_p.h"
 
-#include <qmediasource.h>
-#include <qmediaservice.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <qvideowindowcontrol.h>
 
 #include <qvideorenderercontrol.h>
@@ -297,17 +297,15 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     \ingroup multimedia
     \inmodule QtMultimediaWidgets
 
-    Attaching a QVideoWidget to a QMediaSource allows it to display the
-    video or image output of that media object.  A QVideoWidget is attached
-    to media object by passing a pointer to the QMediaSource in its
-    constructor, and detached by destroying the QVideoWidget.
+    Attaching a QVideoWidget to a QMediaPlayer or QCamera allows it to display the
+    video or image output of that object.
 
     \snippet multimedia-snippets/video.cpp Video widget
 
     \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
-    \sa QMediaSource, QMediaPlayer, QGraphicsVideoItem
+    \sa QCamera, QMediaPlayer, QGraphicsVideoItem
 */
 
 /*!

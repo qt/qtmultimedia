@@ -54,7 +54,6 @@
 #include "qmediaplaylist.h"
 #include "qmediaplayer.h"
 #include "qmediaplayercontrol.h"
-#include "qmediasource_p.h"
 #include "qplaylistfileparser_p.h"
 
 #include <QtCore/qdebug.h>

@@ -25,7 +25,6 @@ target_sources(QtMultimediaMockBackend INTERFACE
     mockmediarecordercontrol.h
     mockmediarecorderservice.h
     mockmediaservice.h
-    mockmediasource.h
     mockmediastreamscontrol.h
     mockvideosurface.h
     qmockdevicemanager.cpp

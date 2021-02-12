@@ -43,12 +43,8 @@
 #include <QtWidgets/qwidget.h>
 
 #include <QtMultimediaWidgets/qtmultimediawidgetdefs.h>
-#include <QtMultimedia/qmediasink.h>
 
 QT_BEGIN_NAMESPACE
-
-
-class QMediaSource;
 
 class QVideoWidgetPrivate;
 class QAbstractVideoSurface;

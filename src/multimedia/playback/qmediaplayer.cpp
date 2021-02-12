@@ -40,7 +40,7 @@
 #include "qmediaplayer.h"
 #include "qvideosurfaces_p.h"
 
-#include "qmediasource_p.h"
+#include "private/qobject_p.h"
 #include <qmediaservice.h>
 #include <qmediaplayercontrol.h>
 #include <private/qmediaplatformplayerinterface_p.h>
@@ -75,15 +75,7 @@ QT_BEGIN_NAMESPACE
 
     QVideoWidget can be used with QMediaPlayer for video rendering.
 
-    Since QMediaPlayer is a QMediaSource, you can use several of the QMediaSource
-    functions for things like:
-
-    \list
-    \li Accessing the currently playing media's metadata (\l {QMediaSource::metaData()} and \l {QMediaMetaData}{predefined meta-data keys})
-    \li Checking to see if the media playback service is currently available (\l {QMediaSource::availability()})
-    \endlist
-
-    \sa QMediaSource, QMediaService, QVideoWidget
+    \sa QVideoWidget
 */
 
 static void qRegisterMediaPlayerMetaTypes()
@@ -95,9 +87,9 @@ static void qRegisterMediaPlayerMetaTypes()
 
 Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlayerMetaTypes)
 
-class QMediaPlayerPrivate : public QMediaSourcePrivate
+class QMediaPlayerPrivate : public QObjectPrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QMediaPlayer)
+    Q_DECLARE_PUBLIC(QMediaPlayer)
 
 public:
     QMediaPlayerPrivate() : notifyTimer(nullptr) {}
@@ -1030,7 +1022,7 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     The value is the current playback position, expressed in milliseconds since
     the beginning of the media. Periodically changes in the position will be
     indicated with the signal positionChanged(), the interval between updates
-    can be set with QMediaSource's method setNotifyInterval().
+    can be set with setNotifyInterval().
 */
 
 /*!

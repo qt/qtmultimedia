@@ -9,8 +9,6 @@ SUBDIRS += \
     qcamera \
     qcamerainfo \
     qcameraimagecapture \
-    qmediasink \
-    qmediasource \
     qmediaplayer \
     qmediaplaylist \
     qmediapluginloader \

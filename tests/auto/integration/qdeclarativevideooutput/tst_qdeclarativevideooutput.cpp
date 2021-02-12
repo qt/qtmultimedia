@@ -40,8 +40,6 @@
 #include <qvideorenderercontrol.h>
 #include <qvideosurfaceformat.h>
 
-#include <qmediasource.h>
-
 class SurfaceHolder : public QObject
 {
     Q_OBJECT
