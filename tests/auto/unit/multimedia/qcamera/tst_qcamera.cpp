@@ -40,7 +40,7 @@
 #include <qcamera.h>
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 #include <qmediadevicemanager.h>
 
 #include "mockvideosurface.h"

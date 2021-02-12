@@ -52,7 +52,7 @@
 
 #include <QPointer>
 #include <qabstractvideosurface.h>
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 
 typedef struct mmr_context mmr_context_t;
 
@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
 
 class WindowGrabber;
 
-class MmRendererPlayerVideoRendererControl : public QVideoRendererControl
+class MmRendererPlayerVideoRendererControl : public QObject
 {
     Q_OBJECT
 public:

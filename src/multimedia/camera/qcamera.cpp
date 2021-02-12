@@ -46,7 +46,6 @@
 #include <qcamerafocuscontrol.h>
 #include <qcameraimageprocessingcontrol.h>
 #include <qcameraimagecapturecontrol.h>
-#include <qvideorenderercontrol.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
 #include <qmediadevicemanager.h>

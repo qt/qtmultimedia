@@ -52,7 +52,6 @@ class QString;
 class QCameraFocusControl;
 class QCameraExposureControl;
 class QCameraImageProcessingControl;
-class QVideoRendererControl;
 
 class Q_MULTIMEDIA_EXPORT QCameraControl : public QObject
 {

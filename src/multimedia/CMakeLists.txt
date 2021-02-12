@@ -38,7 +38,6 @@ qt_internal_add_module(Multimedia
         controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
         controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
-        controls/qvideorenderercontrol.cpp controls/qvideorenderercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevicemanager.cpp platform/qplatformmediadevicemanager_p.h
@@ -489,7 +488,6 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/camera/bbvideorenderercontrol.cpp platform/qnx/camera/bbvideorenderercontrol_p.h
         platform/qnx/common/windowgrabber.cpp platform/qnx/common/windowgrabber_p.h
         platform/qnx/mediaplayer/mmrenderermediaplayercontrol.cpp platform/qnx/mediaplayer/mmrenderermediaplayercontrol_p.h
-        platform/qnx/mediaplayer/mmrenderermediaplayerservice.cpp platform/qnx/mediaplayer/mmrenderermediaplayerservice_p.h
         platform/qnx/mediaplayer/mmrenderermetadata.cpp platform/qnx/mediaplayer/mmrenderermetadata_p.h
         platform/qnx/mediaplayer/mmrendererplayervideorenderercontrol.cpp platform/qnx/mediaplayer/mmrendererplayervideorenderercontrol_p.h
         platform/qnx/mediaplayer/mmrendererutil.cpp platform/qnx/mediaplayer/mmrendererutil_p.h

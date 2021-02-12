@@ -46,7 +46,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidMediaPlayerVideoRendererControl::QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent)
-    : QVideoRendererControl(parent)
+    : QObject(parent)
     , m_mediaPlayerControl(mediaPlayer)
     , m_surface(0)
     , m_textureOutput(new QAndroidTextureVideoOutput(this))

@@ -39,7 +39,8 @@
 
 #include "qqnxintegration_p.h"
 #include "qqnxdevicemanager_p.h"
-#include "private/mmrenderermediaplayerservice_p.h"
+#include "private/mmrenderermediaplayercontrol_p.h"
+#include "private/mmrendererutil_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -60,9 +61,9 @@ QMediaPlatformDeviceManager *QQnxIntegration::deviceManager()
     return m_manager;
 }
 
-QMediaPlatformPlayerInterface *QQnxIntegration::createPlayerInterface()
+QPlatformMediaPlayer *QQnxIntegration::createPlayer()
 {
-    return new MmRendererMediaPlayerService();
+    return new MmRendererMediaPlayerControl();
 }
 
 QT_END_NAMESPACE

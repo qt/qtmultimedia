@@ -51,22 +51,22 @@
 // We mean it.
 //
 
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidMediaPlayerControl;
 class QAndroidTextureVideoOutput;
 
-class QAndroidMediaPlayerVideoRendererControl : public QVideoRendererControl
+class QAndroidMediaPlayerVideoRendererControl : public QObject
 {
     Q_OBJECT
 public:
     QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent = 0);
     ~QAndroidMediaPlayerVideoRendererControl() override;
 
-    QAbstractVideoSurface *surface() const override;
-    void setSurface(QAbstractVideoSurface *surface) override;
+    QAbstractVideoSurface *surface() const;
+    void setSurface(QAbstractVideoSurface *surface);
 
 private:
     QAndroidMediaPlayerControl *m_mediaPlayerControl;

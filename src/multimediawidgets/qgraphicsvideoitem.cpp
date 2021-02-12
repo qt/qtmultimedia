@@ -40,7 +40,7 @@
 #include "qgraphicsvideoitem.h"
 #include "qpaintervideosurface_p.h"
 
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 #include <qvideosurfaceformat.h>
 
 #include <QtCore/qcoreevent.h>

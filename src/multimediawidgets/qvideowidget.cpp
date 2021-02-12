@@ -45,7 +45,7 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <qvideowindowcontrol.h>
 
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 #include <qvideosurfaceformat.h>
 #include <qpainter.h>
 

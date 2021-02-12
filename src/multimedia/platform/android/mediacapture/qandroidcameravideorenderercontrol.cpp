@@ -226,7 +226,7 @@ void QAndroidCameraDataVideoOutput::presentFrame()
 
 
 QAndroidCameraVideoRendererControl::QAndroidCameraVideoRendererControl(QAndroidCameraSession *session, QObject *parent)
-    : QVideoRendererControl(parent)
+    : QObject(parent)
     , m_cameraSession(session)
     , m_surface(0)
     , m_textureOutput(0)

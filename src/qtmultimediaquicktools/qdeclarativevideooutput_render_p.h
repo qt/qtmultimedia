@@ -64,7 +64,7 @@
 QT_BEGIN_NAMESPACE
 
 class QSGVideoItemSurface;
-class QVideoRendererControl;
+class QObject;
 class QOpenGLContext;
 class QAbstractVideoFilter;
 class QVideoFilterRunnable;

@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include "qvideorenderercontrol.h"
+#include "qobject.h"
 #include <mfapi.h>
 #include <mfidl.h>
 
@@ -59,7 +59,7 @@ QT_USE_NAMESPACE
 
 class EVRCustomPresenterActivate;
 
-class MFVideoRendererControl : public QVideoRendererControl
+class MFVideoRendererControl : public QObject
 {
     Q_OBJECT
 public:

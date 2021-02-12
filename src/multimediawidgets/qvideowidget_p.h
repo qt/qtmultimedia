@@ -64,7 +64,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QVideoRendererControl;
+class QObject;
 
 class QRendererVideoWidgetBackend : public QObject
 {
@@ -110,7 +110,7 @@ private Q_SLOTS:
 private:
     void updateRects();
 
-    QVideoRendererControl *m_rendererControl;
+    QObject *m_rendererControl;
     QWidget *m_widget;
     QPainterVideoSurface *m_surface;
     Qt::AspectRatioMode m_aspectRatioMode;

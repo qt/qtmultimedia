@@ -41,7 +41,7 @@
 #include "qdeclarativevideooutput_render_p.h"
 #include "qdeclarativevideooutput_p.h"
 #include <QtMultimedia/qabstractvideofilter.h>
-#include <QtMultimedia/qvideorenderercontrol.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qloggingcategory.h>
 #include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>

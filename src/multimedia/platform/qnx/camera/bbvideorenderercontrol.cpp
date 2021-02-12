@@ -44,7 +44,7 @@
 QT_BEGIN_NAMESPACE
 
 BbVideoRendererControl::BbVideoRendererControl(BbCameraSession *session, QObject *parent)
-    : QVideoRendererControl(parent)
+    : QObject(parent)
     , m_session(session)
 {
 }

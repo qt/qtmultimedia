@@ -61,7 +61,7 @@ class QPlatformMediaCapture;
 class QPlatformMediaPlayer;
 class QAudioDecoderControl;
 class QPlatformMediaFormatInfo;
-class QVideoRendererControl;
+class QObject;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {

@@ -56,7 +56,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 #include <QUrlQuery>
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 
@@ -306,9 +306,8 @@ bool QGstreamerPlayerSession::parsePipeline()
     }
 
     // Set current surface to video sink before creating a pipeline.
-    auto renderer = qobject_cast<QVideoRendererControl *>(m_videoOutput);
-    if (renderer)
-        QGstVideoRendererSink::setSurface(renderer->surface());
+    if (m_videoOutput)
+        QGstVideoRendererSink::setSurface(m_videoOutput->surface());
 
     QString url = m_request.url().toString(QUrl::RemoveScheme);
     QString desc = QUrl::fromPercentEncoding(url.toLatin1().constData());

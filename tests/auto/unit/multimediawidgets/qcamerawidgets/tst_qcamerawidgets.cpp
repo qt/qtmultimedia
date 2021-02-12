@@ -40,7 +40,7 @@
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 #include <qgraphicsvideoitem.h>
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 #include <qvideowidget.h>
 #include <qvideowindowcontrol.h>
 

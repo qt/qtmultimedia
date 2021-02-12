@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qvideorenderercontrol.h>
+#include <QtCore/qobject.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qmutex.h>
 
@@ -65,15 +65,15 @@ class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraRendererControl;
 
-class AVFCameraRendererControl : public QVideoRendererControl
+class AVFCameraRendererControl : public QObject
 {
 Q_OBJECT
 public:
     AVFCameraRendererControl(QObject *parent = nullptr);
     ~AVFCameraRendererControl();
 
-    QAbstractVideoSurface *surface() const override;
-    void setSurface(QAbstractVideoSurface *surface) override;
+    QAbstractVideoSurface *surface() const;
+    void setSurface(QAbstractVideoSurface *surface);
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);

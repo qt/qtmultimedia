@@ -50,13 +50,13 @@
 // We mean it.
 //
 
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 
 QT_BEGIN_NAMESPACE
 
 class BbCameraSession;
 
-class BbVideoRendererControl : public QVideoRendererControl
+class BbVideoRendererControl : public QObject
 {
     Q_OBJECT
 public:

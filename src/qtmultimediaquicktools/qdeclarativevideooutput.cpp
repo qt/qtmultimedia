@@ -90,7 +90,7 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
     For a description of stretched uniformly scaled presentation, see the \l fillMode property
     description.
 
-    The VideoOutput item works with backends that support either QVideoRendererControl or
+    The VideoOutput item works with backends that support either QObject or
     QVideoWindowControl. If the backend only supports QVideoWindowControl, the video is rendered
     onto an overlay window that is layered on top of the QtQuick window. Due to the nature of the
     video overlays, certain features are not available for these kind of backends:
@@ -98,7 +98,7 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
     \li Some transformations like rotations
     \li Having other QtQuick items on top of the VideoOutput item
     \endlist
-    Most backends however do support QVideoRendererControl and therefore don't have the limitations
+    Most backends however do support QObject and therefore don't have the limitations
     listed above.
 
     \sa MediaPlayer, Camera

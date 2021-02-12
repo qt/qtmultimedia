@@ -39,7 +39,6 @@
 
 #include "qgstreamercameracontrol_p.h"
 #include "qgstreamerimagecapturecontrol_p.h"
-#include <qvideorenderercontrol.h>
 
 #include <qcamerainfo.h>
 
@@ -48,7 +47,7 @@
 
 
 QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *session)
-    :QCameraControl(session),
+    : QCameraControl(session),
     m_session(session),
     m_state(QCamera::UnloadedState),
     m_status(QCamera::UnloadedStatus),

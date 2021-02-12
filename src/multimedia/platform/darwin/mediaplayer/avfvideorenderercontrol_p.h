@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/QVideoRendererControl>
+#include <QtCore/QObject>
 #include <QtCore/QMutex>
 #include <QtCore/QSize>
 
@@ -64,15 +64,15 @@ QT_BEGIN_NAMESPACE
 class AVFDisplayLink;
 class AVFVideoFrameRenderer;
 
-class AVFVideoRendererControl : public QVideoRendererControl, public AVFVideoOutput
+class AVFVideoRendererControl : public QObject, public AVFVideoOutput
 {
     Q_OBJECT
 public:
     explicit AVFVideoRendererControl(QObject *parent = nullptr);
     virtual ~AVFVideoRendererControl();
 
-    QAbstractVideoSurface *surface() const override;
-    void setSurface(QAbstractVideoSurface *surface) override;
+    QAbstractVideoSurface *surface() const;
+    void setSurface(QAbstractVideoSurface *surface);
 
     void setLayer(CALayer *playerLayer) override;
 

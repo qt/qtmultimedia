@@ -84,7 +84,7 @@ private:
 };
 
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
-    : QVideoRendererControl(parent)
+    : QObject(parent)
     , m_surface(nullptr)
     , m_playerLayer(nullptr)
     , m_frameRenderer(nullptr)

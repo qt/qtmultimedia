@@ -37,7 +37,7 @@
 #include "private/qdeclarativevideooutput_p.h"
 
 #include <qabstractvideosurface.h>
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 #include <qvideosurfaceformat.h>
 
 class SurfaceHolder : public QObject

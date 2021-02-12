@@ -57,7 +57,7 @@ static inline void resetSink(GstElement *&element, GstElement *v = nullptr)
 }
 
 QGstreamerVideoRenderer::QGstreamerVideoRenderer(QObject *parent)
-    : QVideoRendererControl(parent)
+    : QObject(parent)
 {
 }
 

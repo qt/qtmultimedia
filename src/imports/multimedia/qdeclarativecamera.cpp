@@ -49,7 +49,7 @@
 #include "qdeclarativemediametadata_p.h"
 
 #include <private/qplatformmediaplayer_p.h>
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 #include <QMediaDeviceManager>
 #include <QtQml/qqmlinfo.h>
 

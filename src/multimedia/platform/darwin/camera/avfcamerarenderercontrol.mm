@@ -263,7 +263,7 @@ private:
 
 
 AVFCameraRendererControl::AVFCameraRendererControl(QObject *parent)
-   : QVideoRendererControl(parent)
+   : QObject(parent)
    , m_surface(nullptr)
    , m_supportsTextures(false)
    , m_needsHorizontalMirroring(false)

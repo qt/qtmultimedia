@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qvideorenderercontrol.h>
+#include <qobject.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -59,15 +59,15 @@ class QAndroidCameraSession;
 class QAndroidTextureVideoOutput;
 class QAndroidCameraDataVideoOutput;
 
-class QAndroidCameraVideoRendererControl : public QVideoRendererControl
+class QAndroidCameraVideoRendererControl : public QObject
 {
     Q_OBJECT
 public:
     QAndroidCameraVideoRendererControl(QAndroidCameraSession *session, QObject *parent = 0);
     ~QAndroidCameraVideoRendererControl() override;
 
-    QAbstractVideoSurface *surface() const override;
-    void setSurface(QAbstractVideoSurface *surface) override;
+    QAbstractVideoSurface *surface() const;
+    void setSurface(QAbstractVideoSurface *surface);
 
     QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
 

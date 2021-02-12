@@ -53,22 +53,21 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qgstvideorenderersink_p.h>
-#include <qvideorenderercontrol.h>
 #include <qabstractvideosurface.h>
 
 #include "qgstreamervideorendererinterface_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QVideoRendererControl, public QGstreamerVideoRendererInterface
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QObject, public QGstreamerVideoRendererInterface
 {
     Q_OBJECT
 public:
     QGstreamerVideoRenderer(QObject *parent = 0);
     virtual ~QGstreamerVideoRenderer();
 
-    QAbstractVideoSurface *surface() const override;
-    void setSurface(QAbstractVideoSurface *surface) override;
+    QAbstractVideoSurface *surface() const;
+    void setSurface(QAbstractVideoSurface *surface);
 
     GstElement *videoSink() override;
     void setVideoSink(GstElement *) override;
