@@ -56,7 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 class QMockDeviceManager;
-class MockMediaPlayerService;
+class MockMediaPlayer;
 class MockAudioDecoderControl;
 class MockMediaRecorderService;
 
@@ -70,7 +70,7 @@ public:
     QMediaPlatformFormatInfo *formatInfo() override { return nullptr; }
 
     QAudioDecoderControl *createAudioDecoder() override;
-    QMediaPlatformPlayerInterface *createPlayerInterface() override;
+    QMediaPlayerControl *createPlayer() override;
     QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
 
     enum Flag {
@@ -83,14 +83,14 @@ public:
     void setFlags(Flags f) { m_flags = f; }
     Flags flags() const { return m_flags; }
 
-    MockMediaPlayerService *lastPlayerService() const { return m_lastPlayerService; }
+    MockMediaPlayer *lastPlayer() const { return m_lastPlayer; }
     MockAudioDecoderControl *lastAudioDecoder() const { return m_lastAudioDecoderControl; }
     MockMediaRecorderService *lastCaptureService() const { return m_lastCaptureService; }
 
 private:
     Flags m_flags = {};
     QMockDeviceManager *m_manager = nullptr;
-    MockMediaPlayerService *m_lastPlayerService = nullptr;
+    MockMediaPlayer *m_lastPlayer = nullptr;
     MockAudioDecoderControl *m_lastAudioDecoderControl = nullptr;
     MockMediaRecorderService *m_lastCaptureService = nullptr;
 };

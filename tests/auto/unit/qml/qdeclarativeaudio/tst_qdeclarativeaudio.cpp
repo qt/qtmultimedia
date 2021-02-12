@@ -33,7 +33,7 @@
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativemediametadata_p.h"
 
-#include "mockmediaplayerservice.h"
+#include "mockmediaplayer.h"
 #include "qmockintegration_p.h"
 
 #include <QtMultimedia/qmediametadata.h>
@@ -144,7 +144,7 @@ void tst_QDeclarativeAudio::source()
     const QUrl url3;
 
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -152,17 +152,17 @@ void tst_QDeclarativeAudio::source()
 
     audio.setSource(url1);
     QCOMPARE(audio.source(), url1);
-    QCOMPARE(service->player()->media(), url1);
+    QCOMPARE(player->media(), url1);
     QCOMPARE(spy.count(), 1);
 
     audio.setSource(url2);
     QCOMPARE(audio.source(), url2);
-    QCOMPARE(service->player()->media(), url2);
+    QCOMPARE(player->media(), url2);
     QCOMPARE(spy.count(), 2);
 
     audio.setSource(url3);
     QCOMPARE(audio.source(), url3);
-    QCOMPARE(service->player()->media(), url3);
+    QCOMPARE(player->media(), url3);
     QCOMPARE(spy.count(), 3);
 }
 
@@ -196,7 +196,7 @@ void tst_QDeclarativeAudio::autoLoad()
 void tst_QDeclarativeAudio::playing()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *mockPlayer = mockIntegration->lastPlayer();
     audio.classBegin();
 
     QSignalSpy stateChangedSpy(&audio, SIGNAL(playbackStateChanged()));
@@ -215,7 +215,7 @@ void tst_QDeclarativeAudio::playing()
     // play() when stopped.
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(mockPlayer->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(playingSpy.count(),        ++playing);
     QCOMPARE(stoppedSpy.count(),          stopped);
@@ -223,7 +223,7 @@ void tst_QDeclarativeAudio::playing()
     // stop() when playing.
     audio.stop();
     QCOMPARE(audio.playbackState(), audio.StoppedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::StoppedState);
+    QCOMPARE(mockPlayer->state(), QMediaPlayer::StoppedState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(playingSpy.count(),          playing);
     QCOMPARE(stoppedSpy.count(),        ++stopped);
@@ -231,14 +231,14 @@ void tst_QDeclarativeAudio::playing()
     // stop() when stopped.
     audio.stop();
     QCOMPARE(audio.playbackState(), audio.StoppedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::StoppedState);
+    QCOMPARE(mockPlayer->state(), QMediaPlayer::StoppedState);
     QCOMPARE(stateChangedSpy.count(),   stateChanged);
     QCOMPARE(playingSpy.count(),          playing);
     QCOMPARE(stoppedSpy.count(),          stopped);
 
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(mockPlayer->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(playingSpy.count(),        ++playing);
     QCOMPARE(stoppedSpy.count(),          stopped);
@@ -246,7 +246,7 @@ void tst_QDeclarativeAudio::playing()
     // play() when playing.
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(mockPlayer->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(),   stateChanged);
     QCOMPARE(playingSpy.count(),          playing);
     QCOMPARE(stoppedSpy.count(),          stopped);
@@ -255,7 +255,7 @@ void tst_QDeclarativeAudio::playing()
 void tst_QDeclarativeAudio::paused()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
 
     QSignalSpy stateChangedSpy(&audio, SIGNAL(playbackStateChanged()));
@@ -271,42 +271,42 @@ void tst_QDeclarativeAudio::paused()
     // play() when stopped.
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(pausedSpy.count(), pausedCount);
 
     // pause() when playing.
     audio.pause();
     QCOMPARE(audio.playbackState(), audio.PausedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PausedState);
+    QCOMPARE(player->state(), QMediaPlayer::PausedState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(pausedSpy.count(), ++pausedCount);
 
     // pause() when paused.
     audio.pause();
     QCOMPARE(audio.playbackState(), audio.PausedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PausedState);
+    QCOMPARE(player->state(), QMediaPlayer::PausedState);
     QCOMPARE(stateChangedSpy.count(),   stateChanged);
     QCOMPARE(pausedSpy.count(), pausedCount);
 
     // stop() when paused.
     audio.stop();
     QCOMPARE(audio.playbackState(), audio.StoppedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player->state(), QMediaPlayer::StoppedState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(pausedSpy.count(), pausedCount);
 
     // pause() when stopped.
     audio.pause();
     QCOMPARE(audio.playbackState(), audio.PausedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PausedState);
+    QCOMPARE(player->state(), QMediaPlayer::PausedState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(pausedSpy.count(), ++pausedCount);
 
     // play() when paused.
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(pausedSpy.count(), pausedCount);
 }
@@ -314,7 +314,7 @@ void tst_QDeclarativeAudio::paused()
 void tst_QDeclarativeAudio::duration()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -322,20 +322,20 @@ void tst_QDeclarativeAudio::duration()
 
     QCOMPARE(audio.duration(), 0);
 
-    service->player()->setDuration(4040);
+    player->setDuration(4040);
     QCOMPARE(audio.duration(), 4040);
     QCOMPARE(spy.count(), 1);
 
-    service->player()->setDuration(-129);
+    player->setDuration(-129);
     QCOMPARE(audio.duration(), -129);
     QCOMPARE(spy.count(), 2);
 
-    service->player()->setDuration(0);
+    player->setDuration(0);
     QCOMPARE(audio.duration(), 0);
     QCOMPARE(spy.count(), 3);
 
     // Unnecessary duration changed signals aren't filtered.
-    service->player()->setDuration(0);
+    player->setDuration(0);
     QCOMPARE(audio.duration(), 0);
     QCOMPARE(spy.count(), 4);
 }
@@ -343,7 +343,7 @@ void tst_QDeclarativeAudio::duration()
 void tst_QDeclarativeAudio::position()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -356,31 +356,31 @@ void tst_QDeclarativeAudio::position()
 
     audio.seek(450);
     QCOMPARE(audio.position(), 450);
-    QCOMPARE(service->player()->position(), qint64(450));
+    QCOMPARE(player->position(), qint64(450));
     QCOMPARE(spy.count(), 1);
 
     audio.seek(-5403);
     QCOMPARE(audio.position(), 0);
-    QCOMPARE(service->player()->position(), qint64(0));
+    QCOMPARE(player->position(), qint64(0));
     QCOMPARE(spy.count(), 2);
 
     audio.seek(-5403);
     QCOMPARE(audio.position(), 0);
-    QCOMPARE(service->player()->position(), qint64(0));
+    QCOMPARE(player->position(), qint64(0));
     QCOMPARE(spy.count(), 2);
 
     // Check the signal change signal is emitted if the change originates from the media service.
-    service->player()->setPosition(450);
+    player->setPosition(450);
     QCOMPARE(audio.position(), 450);
     QCOMPARE(spy.count(), 3);
 
     connect(&audio, SIGNAL(positionChanged()), &QTestEventLoop::instance(), SLOT(exitLoop()));
 
-    service->player()->updateState(QMediaPlayer::PlayingState);
+    player->updateState(QMediaPlayer::PlayingState);
     QTestEventLoop::instance().enterLoop(2);
     QVERIFY(spy.count() > 3 && spy.count() < 6); // 4 or 5
 
-    service->player()->updateState(QMediaPlayer::PausedState);
+    player->updateState(QMediaPlayer::PausedState);
     QTestEventLoop::instance().enterLoop(1);
     QVERIFY(spy.count() < 6);
 }
@@ -388,7 +388,7 @@ void tst_QDeclarativeAudio::position()
 void tst_QDeclarativeAudio::volume()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -398,15 +398,15 @@ void tst_QDeclarativeAudio::volume()
 
     audio.setVolume(0.7);
     QCOMPARE(audio.volume(), qreal(0.7));
-    QCOMPARE(service->player()->volume(), 70);
+    QCOMPARE(player->volume(), 70);
     QCOMPARE(spy.count(), 1);
 
     audio.setVolume(0.7);
     QCOMPARE(audio.volume(), qreal(0.7));
-    QCOMPARE(service->player()->volume(), 70);
+    QCOMPARE(player->volume(), 70);
     QCOMPARE(spy.count(), 1);
 
-    service->player()->setVolume(30);
+    player->setVolume(30);
     QCOMPARE(audio.volume(), qreal(0.3));
     QCOMPARE(spy.count(), 2);
 }
@@ -414,7 +414,7 @@ void tst_QDeclarativeAudio::volume()
 void tst_QDeclarativeAudio::muted()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -424,23 +424,23 @@ void tst_QDeclarativeAudio::muted()
 
     audio.setMuted(true);
     QCOMPARE(audio.isMuted(), true);
-    QCOMPARE(service->player()->isMuted(), true);
+    QCOMPARE(player->isMuted(), true);
     QCOMPARE(spy.count(), 1);
 
-    service->player()->setMuted(false);
+    player->setMuted(false);
     QCOMPARE(audio.isMuted(), false);
     QCOMPARE(spy.count(), 2);
 
     audio.setMuted(false);
     QCOMPARE(audio.isMuted(), false);
-    QCOMPARE(service->player()->isMuted(), false);
+    QCOMPARE(player->isMuted(), false);
     QCOMPARE(spy.count(), 2);
 }
 
 void tst_QDeclarativeAudio::bufferProgress()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -448,26 +448,26 @@ void tst_QDeclarativeAudio::bufferProgress()
 
     QCOMPARE(audio.bufferProgress(), qreal(0.0));
 
-    service->player()->setBufferStatus(20);
+    player->setBufferStatus(20);
     QCOMPARE(audio.bufferProgress(), qreal(0.2));
     QCOMPARE(spy.count(), 1);
 
-    service->player()->setBufferStatus(20);
+    player->setBufferStatus(20);
     QCOMPARE(audio.bufferProgress(), qreal(0.2));
     QCOMPARE(spy.count(), 2);
 
-    service->player()->setBufferStatus(40);
+    player->setBufferStatus(40);
     QCOMPARE(audio.bufferProgress(), qreal(0.4));
     QCOMPARE(spy.count(), 3);
 
     connect(&audio, SIGNAL(positionChanged()), &QTestEventLoop::instance(), SLOT(exitLoop()));
 
-    service->player()->updateMediaStatus(
+    player->updateMediaStatus(
             QMediaPlayer::BufferingMedia, QMediaPlayer::PlayingState);
     QTestEventLoop::instance().enterLoop(2);
     QVERIFY(spy.count() > 3 && spy.count() < 6); // 4 or 5
 
-    service->player()->updateMediaStatus(QMediaPlayer::BufferedMedia);
+    player->updateMediaStatus(QMediaPlayer::BufferedMedia);
     QTestEventLoop::instance().enterLoop(1);
     QVERIFY(spy.count() < 6);
 }
@@ -475,7 +475,7 @@ void tst_QDeclarativeAudio::bufferProgress()
 void tst_QDeclarativeAudio::seekable()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -483,15 +483,15 @@ void tst_QDeclarativeAudio::seekable()
 
     QCOMPARE(audio.isSeekable(), false);
 
-    service->player()->setSeekable(true);
+    player->setSeekable(true);
     QCOMPARE(audio.isSeekable(), true);
     QCOMPARE(spy.count(), 1);
 
-    service->player()->setSeekable(true);
+    player->setSeekable(true);
     QCOMPARE(audio.isSeekable(), true);
     QCOMPARE(spy.count(), 2);
 
-    service->player()->setSeekable(false);
+    player->setSeekable(false);
     QCOMPARE(audio.isSeekable(), false);
     QCOMPARE(spy.count(), 3);
 }
@@ -499,7 +499,7 @@ void tst_QDeclarativeAudio::seekable()
 void tst_QDeclarativeAudio::playbackRate()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -509,23 +509,23 @@ void tst_QDeclarativeAudio::playbackRate()
 
     audio.setPlaybackRate(0.5);
     QCOMPARE(audio.playbackRate(), qreal(0.5));
-    QCOMPARE(service->player()->playbackRate(), qreal(0.5));
+    QCOMPARE(player->playbackRate(), qreal(0.5));
     QCOMPARE(spy.count(), 1);
 
-    service->player()->setPlaybackRate(2.0);
-    QCOMPARE(service->player()->playbackRate(), qreal(2.0));
+    player->setPlaybackRate(2.0);
+    QCOMPARE(player->playbackRate(), qreal(2.0));
     QCOMPARE(spy.count(), 2);
 
     audio.setPlaybackRate(2.0);
     QCOMPARE(audio.playbackRate(), qreal(2.0));
-    QCOMPARE(service->player()->playbackRate(), qreal(2.0));
+    QCOMPARE(player->playbackRate(), qreal(2.0));
     QCOMPARE(spy.count(), 2);
 }
 
 void tst_QDeclarativeAudio::status()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -534,48 +534,48 @@ void tst_QDeclarativeAudio::status()
     QCOMPARE(audio.status(), QDeclarativeAudio::NoMedia);
 
     // Set media, start loading.
-    service->player()->updateMediaStatus(QMediaPlayer::LoadingMedia);
+    player->updateMediaStatus(QMediaPlayer::LoadingMedia);
     QCOMPARE(audio.status(), QDeclarativeAudio::Loading);
     QCOMPARE(statusChangedSpy.count(), 1);
 
     // Finish loading.
-    service->player()->updateMediaStatus(QMediaPlayer::LoadedMedia);
+    player->updateMediaStatus(QMediaPlayer::LoadedMedia);
     QCOMPARE(audio.status(), QDeclarativeAudio::Loaded);
     QCOMPARE(statusChangedSpy.count(), 2);
 
     // Play, start buffering.
-    service->player()->updateMediaStatus(
+    player->updateMediaStatus(
             QMediaPlayer::StalledMedia, QMediaPlayer::PlayingState);
     QCOMPARE(audio.status(), QDeclarativeAudio::Stalled);
     QCOMPARE(statusChangedSpy.count(), 3);
 
     // Enough data buffered to proceed.
-    service->player()->updateMediaStatus(QMediaPlayer::BufferingMedia);
+    player->updateMediaStatus(QMediaPlayer::BufferingMedia);
     QCOMPARE(audio.status(), QDeclarativeAudio::Buffering);
     QCOMPARE(statusChangedSpy.count(), 4);
 
     // Errant second buffering status changed.
-    service->player()->updateMediaStatus(QMediaPlayer::BufferingMedia);
+    player->updateMediaStatus(QMediaPlayer::BufferingMedia);
     QCOMPARE(audio.status(), QDeclarativeAudio::Buffering);
     QCOMPARE(statusChangedSpy.count(), 4);
 
     // Buffer full.
-    service->player()->updateMediaStatus(QMediaPlayer::BufferedMedia);
+    player->updateMediaStatus(QMediaPlayer::BufferedMedia);
     QCOMPARE(audio.status(), QDeclarativeAudio::Buffered);
     QCOMPARE(statusChangedSpy.count(), 5);
 
     // Buffer getting low.
-    service->player()->updateMediaStatus(QMediaPlayer::BufferingMedia);
+    player->updateMediaStatus(QMediaPlayer::BufferingMedia);
     QCOMPARE(audio.status(), QDeclarativeAudio::Buffering);
     QCOMPARE(statusChangedSpy.count(), 6);
 
     // Buffer full.
-    service->player()->updateMediaStatus(QMediaPlayer::BufferedMedia);
+    player->updateMediaStatus(QMediaPlayer::BufferedMedia);
     QCOMPARE(audio.status(), QDeclarativeAudio::Buffered);
     QCOMPARE(statusChangedSpy.count(), 7);
 
     // Finished.
-    service->player()->updateMediaStatus(
+    player->updateMediaStatus(
             QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
     QCOMPARE(audio.status(), QDeclarativeAudio::EndOfMedia);
     QCOMPARE(statusChangedSpy.count(), 8);
@@ -631,7 +631,7 @@ void tst_QDeclarativeAudio::error()
     const QString errorString = QLatin1String("Failed to open device.");
 
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
     audio.classBegin();
     audio.componentComplete();
 
@@ -641,7 +641,7 @@ void tst_QDeclarativeAudio::error()
     QCOMPARE(audio.error(), QDeclarativeAudio::NoError);
     QCOMPARE(audio.errorString(), QString());
 
-    service->player()->emitError(QMediaPlayer::ResourceError, errorString);
+    player->emitError(QMediaPlayer::ResourceError, errorString);
 
     QCOMPARE(audio.error(), QDeclarativeAudio::ResourceError);
     QCOMPARE(audio.errorString(), errorString);
@@ -666,7 +666,7 @@ void tst_QDeclarativeAudio::error()
 void tst_QDeclarativeAudio::loops()
 {
     QDeclarativeAudio audio;
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
 
     QSignalSpy loopsChangedSpy(&audio, SIGNAL(loopCountChanged()));
     QSignalSpy stateChangedSpy(&audio, SIGNAL(playbackStateChanged()));
@@ -689,42 +689,42 @@ void tst_QDeclarativeAudio::loops()
     //play till end
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(stoppedSpy.count(), stoppedCount);
 
     // play() when playing.
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(),   stateChanged);
     QCOMPARE(stoppedSpy.count(), stoppedCount);
 
-    service->player()->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
+    player->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(),   stateChanged);
     QCOMPARE(stoppedSpy.count(), stoppedCount);
 
     //play to end
-    service->player()->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
+    player->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
     QCOMPARE(stoppedSpy.count(), stoppedCount);
     //play to end
-    service->player()->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
+    player->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
     QCOMPARE(audio.playbackState(), audio.StoppedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player->state(), QMediaPlayer::StoppedState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(stoppedSpy.count(), ++stoppedCount);
 
     // stop when playing
     audio.play();
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(stoppedSpy.count(), stoppedCount);
-    service->player()->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
+    player->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
     audio.stop();
     QCOMPARE(audio.playbackState(), audio.StoppedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player->state(), QMediaPlayer::StoppedState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(stoppedSpy.count(), ++stoppedCount);
 
@@ -735,16 +735,16 @@ void tst_QDeclarativeAudio::loops()
     audio.play();
     QCOMPARE(audio.playbackState(), audio.PlayingState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
-    service->player()->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
+    player->updateMediaStatus(QMediaPlayer::EndOfMedia, QMediaPlayer::StoppedState);
     QCOMPARE(audio.playbackState(), audio.PlayingState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::PlayingState);
+    QCOMPARE(player->state(), QMediaPlayer::PlayingState);
     QCOMPARE(stateChangedSpy.count(), stateChanged);
 
     // stop() when playing in infinite loop.
     audio.stop();
     QCOMPARE(audio.playbackState(), audio.StoppedState);
-    QCOMPARE(service->player()->state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player->state(), QMediaPlayer::StoppedState);
     QCOMPARE(stateChangedSpy.count(), ++stateChanged);
     QCOMPARE(stoppedSpy.count(), ++stoppedCount);
 
@@ -759,8 +759,8 @@ void tst_QDeclarativeAudio::audioRole()
 
     {
         QDeclarativeAudio *audio = static_cast<QDeclarativeAudio*>(component.create());
-        auto *service = mockIntegration->lastPlayerService();
-        service->player()->hasAudioRole = false;
+        auto *player = mockIntegration->lastPlayer();
+        player->hasAudioRole = false;
 
         QCOMPARE(audio->audioRole(), QDeclarativeAudio::UnknownRole);
         QVERIFY(audio->supportedAudioRoles().isArray());
@@ -774,8 +774,8 @@ void tst_QDeclarativeAudio::audioRole()
 
     {
         QDeclarativeAudio *audio = static_cast<QDeclarativeAudio*>(component.create());
-        auto *service = mockIntegration->lastPlayerService();
-        service->player()->hasAudioRole = false;
+        auto *player = mockIntegration->lastPlayer();
+        player->hasAudioRole = false;
         QSignalSpy spy(audio, SIGNAL(audioRoleChanged()));
 
         QCOMPARE(audio->audioRole(), QDeclarativeAudio::UnknownRole);
@@ -793,10 +793,10 @@ void tst_QDeclarativeAudio::customAudioRole()
     QQmlEngine engine;
     QQmlComponent component(&engine);
     component.setData("import QtQuick 2.0 \n import QtMultimedia 5.11 \n Audio { }", QUrl());
-    auto *service = mockIntegration->lastPlayerService();
+    auto *player = mockIntegration->lastPlayer();
 
     {
-        service->player()->hasCustomAudioRole = false;
+        player->hasCustomAudioRole = false;
         QObject *audio = component.create();
         QVERIFY(audio);
 
@@ -816,7 +816,7 @@ void tst_QDeclarativeAudio::customAudioRole()
     }
 
     {
-        service->player()->hasAudioRole = false;
+        player->hasAudioRole = false;
 
         QObject *audio = component.create();
         QVERIFY(audio);

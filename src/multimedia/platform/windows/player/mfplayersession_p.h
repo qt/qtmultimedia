@@ -83,7 +83,7 @@ class MFPlayerSession : public QObject, public IMFAsyncCallback
     Q_OBJECT
     friend class SourceResolver;
 public:
-    MFPlayerSession(MFPlayerService *playerService = 0);
+    MFPlayerSession(MFPlayerControl *playerControl = 0);
     ~MFPlayerSession();
 
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
@@ -151,7 +151,7 @@ private Q_SLOTS:
 
 private:
     long m_cRef;
-    MFPlayerService *m_playerService;
+    MFPlayerControl *m_playerControl;
     MFVideoRendererControl *m_videoRendererControl = nullptr;
     IMFMediaSession *m_session;
     IMFPresentationClock *m_presentationClock;

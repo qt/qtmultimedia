@@ -67,7 +67,6 @@ class AVFVideoFrameRenderer;
 class AVFVideoRendererControl : public QVideoRendererControl, public AVFVideoOutput
 {
     Q_OBJECT
-    Q_INTERFACES(AVFVideoOutput)
 public:
     explicit AVFVideoRendererControl(QObject *parent = nullptr);
     virtual ~AVFVideoRendererControl();

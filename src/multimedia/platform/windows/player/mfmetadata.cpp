@@ -42,7 +42,7 @@
 #include <qimage.h>
 
 #include "mfmetadata_p.h"
-#include "mfplayerservice_p.h"
+#include "mfplayercontrol_p.h"
 #include "Propkey.h"
 
 //#define DEBUG_MEDIAFOUNDATION

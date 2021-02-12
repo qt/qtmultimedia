@@ -69,7 +69,6 @@ QT_BEGIN_NAMESPACE
 class AVFVideoWindowControl : public QVideoWindowControl, public AVFVideoOutput
 {
     Q_OBJECT
-    Q_INTERFACES(AVFVideoOutput)
 
 public:
     AVFVideoWindowControl(QObject *parent = nullptr);

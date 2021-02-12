@@ -38,21 +38,22 @@
 ****************************************************************************/
 
 #include "mfplayercontrol_p.h"
+#include "mfplayersession_p.h"
 #include "mfvideorenderercontrol_p.h"
 #include <qtcore/qdebug.h>
 
 //#define DEBUG_MEDIAFOUNDATION
 
-MFPlayerControl::MFPlayerControl(MFPlayerSession *session)
-: QMediaPlayerControl(session)
-, m_state(QMediaPlayer::StoppedState)
-, m_stateDirty(false)
-, m_videoAvailable(false)
-, m_audioAvailable(false)
-, m_duration(-1)
-, m_seekable(false)
-, m_session(session)
+MFPlayerControl::MFPlayerControl()
+    : QMediaPlayerControl()
+    , m_state(QMediaPlayer::StoppedState)
+    , m_stateDirty(false)
+    , m_videoAvailable(false)
+    , m_audioAvailable(false)
+    , m_duration(-1)
+    , m_seekable(false)
 {
+    m_session = new MFPlayerSession(this);
     QObject::connect(m_session, SIGNAL(statusChanged()), this, SLOT(handleStatusChanged()));
     QObject::connect(m_session, SIGNAL(videoAvailable()), this, SLOT(handleVideoAvailable()));
     QObject::connect(m_session, SIGNAL(audioAvailable()), this, SLOT(handleAudioAvailable()));
@@ -68,6 +69,7 @@ MFPlayerControl::MFPlayerControl(MFPlayerSession *session)
 
 MFPlayerControl::~MFPlayerControl()
 {
+    m_session->Release();
 }
 
 void MFPlayerControl::setMedia(const QUrl &media, QIODevice *stream)

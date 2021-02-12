@@ -56,7 +56,6 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidDeviceManager;
-class QAndroidPlayerInterface;
 
 class QAndroidIntegration : public QMediaPlatformIntegration
 {
@@ -68,7 +67,7 @@ public:
     QMediaPlatformFormatInfo *formatInfo() override;
 
     QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
-    QMediaPlatformPlayerInterface *createPlayerInterface() override;
+    QMediaPlayerControl *createPlayer() override;
 
     QAndroidDeviceManager *m_manager = nullptr;
     QMediaPlatformFormatInfo  *m_formatInfo = nullptr;

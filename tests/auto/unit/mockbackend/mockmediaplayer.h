@@ -26,19 +26,19 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKMEDIAPLAYERCONTROL_H
-#define MOCKMEDIAPLAYERCONTROL_H
+#ifndef MOCKMEDIAPLAYER_H
+#define MOCKMEDIAPLAYER_H
 
 #include "qmediaplayercontrol.h"
 #include "mockmediastreamscontrol.h"
 #include <qurl.h>
 
-class MockMediaPlayerControl : public QMediaPlayerControl
+class MockMediaPlayer : public QMediaPlayerControl
 {
     friend class MockMediaPlayerService;
 
 public:
-    MockMediaPlayerControl()
+    MockMediaPlayer()
         : QMediaPlayerControl(0)
         , _state(QMediaPlayer::StoppedState)
         , _mediaStatus(QMediaPlayer::NoMedia)
@@ -57,7 +57,7 @@ public:
     {
         mockStreamsControl = new MockStreamsControl;
     }
-    ~MockMediaPlayerControl()
+    ~MockMediaPlayer()
     {
         delete mockStreamsControl;
     }
@@ -160,6 +160,42 @@ public:
     {
         emit error(err, errorString);
     }
+
+    void setState(QMediaPlayer::State state) { emit stateChanged(_state = state); }
+    void setState(QMediaPlayer::State state, QMediaPlayer::MediaStatus status) {
+        _state = state;
+        _mediaStatus = status;
+        emit mediaStatusChanged(status);
+        emit stateChanged(state);
+    }
+    void setMediaStatus(QMediaPlayer::MediaStatus status) { emit mediaStatusChanged(_mediaStatus = status); }
+    void setIsValid(bool isValid) { _isValid = isValid; }
+    void setMedia(QUrl media) { _media = media; }
+    void setVideoAvailable(bool videoAvailable) { _videoAvailable = videoAvailable; }
+    void setError(QMediaPlayer::Error err) { _error = err; emit error(_error, _errorString); }
+    void setErrorString(QString errorString) { _errorString = errorString; emit error(_error, _errorString); }
+
+    void reset()
+    {
+        _state = QMediaPlayer::StoppedState;
+        _mediaStatus = QMediaPlayer::UnknownMediaStatus;
+        _error = QMediaPlayer::NoError;
+        _duration = 0;
+        _position = 0;
+        _volume = 0;
+        _muted = false;
+        _bufferStatus = 0;
+        _videoAvailable = false;
+        _isSeekable = false;
+        _playbackRate = 0.0;
+        _media = QUrl();
+        _stream = 0;
+        _isValid = false;
+        _errorString = QString();
+        hasAudioRole = true;
+        hasCustomAudioRole = true;
+    }
+
 
     MockStreamsControl *mockStreamsControl;
     bool hasAudioRole = true;

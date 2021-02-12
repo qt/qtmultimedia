@@ -37,24 +37,25 @@
 **
 ****************************************************************************/
 
-#include "avfmediaplayercontrol_p.h"
+#include "avfmediaplayer_p.h"
 #include "avfmediaplayersession_p.h"
 
 QT_USE_NAMESPACE
 
-AVFMediaPlayerControl::AVFMediaPlayerControl(QObject *parent) :
+AVFMediaPlayer::AVFMediaPlayer(QObject *parent) :
     QMediaPlayerControl(parent)
 {
+    setSession(new AVFMediaPlayerSession(this));
 }
 
-AVFMediaPlayerControl::~AVFMediaPlayerControl()
+AVFMediaPlayer::~AVFMediaPlayer()
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
 }
 
-void AVFMediaPlayerControl::setSession(AVFMediaPlayerSession *session)
+void AVFMediaPlayer::setSession(AVFMediaPlayerSession *session)
 {
     m_session = session;
 
@@ -71,94 +72,94 @@ void AVFMediaPlayerControl::setSession(AVFMediaPlayerSession *session)
     connect(m_session, SIGNAL(videoAvailableChanged(bool)), this, SIGNAL(videoAvailableChanged(bool)));
     connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
     connect(m_session, &AVFMediaPlayerSession::playbackRateChanged,
-            this, &AVFMediaPlayerControl::playbackRateChanged);
+            this, &AVFMediaPlayer::playbackRateChanged);
     connect(m_session, &AVFMediaPlayerSession::seekableChanged,
-            this, &AVFMediaPlayerControl::seekableChanged);
+            this, &AVFMediaPlayer::seekableChanged);
 }
 
-QMediaPlayer::State AVFMediaPlayerControl::state() const
+QMediaPlayer::State AVFMediaPlayer::state() const
 {
     return m_session->state();
 }
 
-QMediaPlayer::MediaStatus AVFMediaPlayerControl::mediaStatus() const
+QMediaPlayer::MediaStatus AVFMediaPlayer::mediaStatus() const
 {
     return m_session->mediaStatus();
 }
 
-QUrl AVFMediaPlayerControl::media() const
+QUrl AVFMediaPlayer::media() const
 {
     return m_session->media();
 }
 
-const QIODevice *AVFMediaPlayerControl::mediaStream() const
+const QIODevice *AVFMediaPlayer::mediaStream() const
 {
     return m_session->mediaStream();
 }
 
-void AVFMediaPlayerControl::setMedia(const QUrl &content, QIODevice *stream)
+void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 {
     const QUrl oldContent = m_session->media();
 
     m_session->setMedia(content, stream);
 }
 
-qint64 AVFMediaPlayerControl::position() const
+qint64 AVFMediaPlayer::position() const
 {
     return m_session->position();
 }
 
-qint64 AVFMediaPlayerControl::duration() const
+qint64 AVFMediaPlayer::duration() const
 {
     return m_session->duration();
 }
 
-int AVFMediaPlayerControl::bufferStatus() const
+int AVFMediaPlayer::bufferStatus() const
 {
     return m_session->bufferStatus();
 }
 
-int AVFMediaPlayerControl::volume() const
+int AVFMediaPlayer::volume() const
 {
     return m_session->volume();
 }
 
-bool AVFMediaPlayerControl::isMuted() const
+bool AVFMediaPlayer::isMuted() const
 {
     return m_session->isMuted();
 }
 
-bool AVFMediaPlayerControl::isAudioAvailable() const
+bool AVFMediaPlayer::isAudioAvailable() const
 {
     return m_session->isAudioAvailable();
 }
 
-bool AVFMediaPlayerControl::isVideoAvailable() const
+bool AVFMediaPlayer::isVideoAvailable() const
 {
     return m_session->isVideoAvailable();
 }
 
-bool AVFMediaPlayerControl::isSeekable() const
+bool AVFMediaPlayer::isSeekable() const
 {
     return m_session->isSeekable();
 }
 
-QMediaTimeRange AVFMediaPlayerControl::availablePlaybackRanges() const
+QMediaTimeRange AVFMediaPlayer::availablePlaybackRanges() const
 {
     return m_session->availablePlaybackRanges();
 }
 
-qreal AVFMediaPlayerControl::playbackRate() const
+qreal AVFMediaPlayer::playbackRate() const
 {
     return m_session->playbackRate();
 }
 
-void AVFMediaPlayerControl::setPlaybackRate(qreal rate)
+void AVFMediaPlayer::setPlaybackRate(qreal rate)
 {
     m_session->setPlaybackRate(rate);
 }
 
-bool AVFMediaPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
+bool AVFMediaPlayer::setAudioOutput(const QAudioDeviceInfo &info)
 {
 #ifdef Q_OS_IOS
     Q_UNUSED(info);
@@ -168,7 +169,7 @@ bool AVFMediaPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
 #endif
 }
 
-QAudioDeviceInfo AVFMediaPlayerControl::audioOutput() const
+QAudioDeviceInfo AVFMediaPlayer::audioOutput() const
 {
 #ifdef Q_OS_IOS
     return QAudioDeviceInfo();
@@ -177,48 +178,48 @@ QAudioDeviceInfo AVFMediaPlayerControl::audioOutput() const
 #endif
 }
 
-QMediaMetaData AVFMediaPlayerControl::metaData() const
+QMediaMetaData AVFMediaPlayer::metaData() const
 {
     return m_metaData;
 }
 
-void AVFMediaPlayerControl::setMetaData(const QMediaMetaData &metaData)
+void AVFMediaPlayer::setMetaData(const QMediaMetaData &metaData)
 {
     m_metaData = metaData;
     metaDataChanged();
 }
 
-void AVFMediaPlayerControl::setPosition(qint64 pos)
+void AVFMediaPlayer::setPosition(qint64 pos)
 {
     m_session->setPosition(pos);
 }
 
-void AVFMediaPlayerControl::play()
+void AVFMediaPlayer::play()
 {
     m_session->play();
 }
 
-void AVFMediaPlayerControl::pause()
+void AVFMediaPlayer::pause()
 {
     m_session->pause();
 }
 
-void AVFMediaPlayerControl::stop()
+void AVFMediaPlayer::stop()
 {
     m_session->stop();
 }
 
-void AVFMediaPlayerControl::setVolume(int volume)
+void AVFMediaPlayer::setVolume(int volume)
 {
     m_session->setVolume(volume);
 }
 
-void AVFMediaPlayerControl::setMuted(bool muted)
+void AVFMediaPlayer::setMuted(bool muted)
 {
     m_session->setMuted(muted);
 }
 
-void AVFMediaPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
+void AVFMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_session->setVideoSurface(surface);
 }

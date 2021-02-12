@@ -64,7 +64,7 @@ class MFPlayerControl : public QMediaPlayerControl
 {
     Q_OBJECT
 public:
-    MFPlayerControl(MFPlayerSession *session);
+    MFPlayerControl();
     ~MFPlayerControl();
 
     QMediaPlayer::State state() const;

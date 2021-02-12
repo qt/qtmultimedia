@@ -4,7 +4,6 @@ LIBS += -lgdi32 -luser32
 QMAKE_USE += wmf
 
 HEADERS += \
-    $$PWD/mfplayerservice_p.h \
     $$PWD/mfplayersession_p.h \
     $$PWD/mfplayercontrol_p.h \
     $$PWD/mfvideorenderercontrol_p.h \
@@ -15,7 +14,6 @@ HEADERS += \
     $$PWD/mfactivate_p.h
 
 SOURCES += \
-    $$PWD/mfplayerservice.cpp \
     $$PWD/mfplayersession.cpp \
     $$PWD/mfplayercontrol.cpp \
     $$PWD/mfvideorenderercontrol.cpp \

@@ -53,7 +53,6 @@
 #include "mfmetadata_p.h"
 
 #include "mfplayersession_p.h"
-#include "mfplayerservice_p.h"
 #include <mferror.h>
 #include <nserror.h>
 #include "private/sourceresolver_p.h"
@@ -66,9 +65,9 @@
 
 //#define DEBUG_MEDIAFOUNDATION
 
-MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
+MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     : m_cRef(1)
-    , m_playerService(playerService)
+    , m_playerControl(playerControl)
     , m_session(0)
     , m_presentationClock(0)
     , m_rateControl(0)
@@ -76,16 +75,16 @@ MFPlayerSession::MFPlayerSession(MFPlayerService *playerService)
     , m_volumeControl(0)
     , m_netsourceStatistics(0)
     , m_duration(0)
+    , m_scrubbing(false)
+    , m_restoreRate(1)
     , m_sourceResolver(0)
     , m_hCloseEvent(0)
     , m_closing(false)
+    , m_mediaTypes(0)
     , m_pendingRate(1)
+    , m_status(QMediaPlayer::NoMedia)
     , m_volume(100)
     , m_muted(false)
-    , m_status(QMediaPlayer::NoMedia)
-    , m_scrubbing(false)
-    , m_restoreRate(1)
-    , m_mediaTypes(0)
     , m_audioSampleGrabber(0)
     , m_audioSampleGrabberNode(0)
     , m_videoProbeMFT(0)

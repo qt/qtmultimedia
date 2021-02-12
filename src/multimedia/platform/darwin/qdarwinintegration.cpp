@@ -39,7 +39,7 @@
 
 #include "qdarwinintegration_p.h"
 #include "qdarwindevicemanager_p.h"
-#include <private/avfmediaplayerservice_p.h>
+#include <private/avfmediaplayer_p.h>
 #include <private/avfcameraservice_p.h>
 #include <private/qdarwinformatsinfo_p.h>
 
@@ -75,9 +75,9 @@ QMediaPlatformCaptureInterface *QDarwinIntegration::createCaptureInterface(QMedi
     return new AVFCameraService;
 }
 
-QMediaPlatformPlayerInterface *QDarwinIntegration::createPlayerInterface()
+QMediaPlayerControl *QDarwinIntegration::createPlayer()
 {
-    return new AVFMediaPlayerService;
+    return new AVFMediaPlayer;
 }
 
 QT_END_NAMESPACE

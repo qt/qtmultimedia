@@ -671,8 +671,8 @@ bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, qintp
 
     MSG *mes = reinterpret_cast<MSG *>(message);
     if (mes->message == WM_PAINT || mes->message == WM_ERASEBKGND) {
-        if (d->windowBackend)
-            d->windowBackend->showEvent();
+//        if (d->windowBackend)
+//            d->windowBackend->showEvent();
     }
 
     return false;

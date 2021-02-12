@@ -39,7 +39,7 @@
 
 #include "qmockintegration_p.h"
 #include "qmockdevicemanager_p.h"
-#include "mockmediaplayerservice.h"
+#include "mockmediaplayer.h"
 #include "mockaudiodecodercontrol.h"
 #include "mockmediarecorderservice.h"
 
@@ -72,13 +72,13 @@ QAudioDecoderControl *QMockIntegration::createAudioDecoder()
     return m_lastAudioDecoderControl;
 }
 
-QMediaPlatformPlayerInterface *QMockIntegration::createPlayerInterface()
+QMediaPlayerControl *QMockIntegration::createPlayer()
 {
     if (m_flags & NoPlayerInterface)
-        m_lastPlayerService = nullptr;
+        m_lastPlayer = nullptr;
     else
-        m_lastPlayerService = new MockMediaPlayerService;
-    return m_lastPlayerService;
+        m_lastPlayer = new MockMediaPlayer;
+    return m_lastPlayer;
 }
 
 QMediaPlatformCaptureInterface *QMockIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)

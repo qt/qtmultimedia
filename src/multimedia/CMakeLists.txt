@@ -44,7 +44,6 @@ qt_internal_add_module(Multimedia
         platform/qmediaplatformcaptureinterface.cpp platform/qmediaplatformcaptureinterface_p.h
         platform/qmediaplatformdevicemanager.cpp platform/qmediaplatformdevicemanager_p.h
         platform/qmediaplatformintegration.cpp platform/qmediaplatformintegration_p.h
-        platform/qmediaplatformplayerinterface.cpp platform/qmediaplatformplayerinterface_p.h
         platform/qmediaplatformformatinfo.cpp  platform/qmediaplatformformatinfo_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
@@ -148,7 +147,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/player/mfevrvideowindowcontrol.cpp platform/windows/player/mfevrvideowindowcontrol_p.h
         platform/windows/player/mfmetadata.cpp platform/windows/player/mfmetadata_p.h
         platform/windows/player/mfplayercontrol.cpp platform/windows/player/mfplayercontrol_p.h
-        platform/windows/player/mfplayerservice.cpp platform/windows/player/mfplayerservice_p.h
         platform/windows/player/mfplayersession.cpp platform/windows/player/mfplayersession_p.h
         platform/windows/player/mftvideo.cpp platform/windows/player/mftvideo_p.h
         platform/windows/player/mfvideorenderercontrol.cpp platform/windows/player/mfvideorenderercontrol_p.h
@@ -208,7 +206,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstvideobuffer.cpp platform/gstreamer/common/qgstvideobuffer_p.h
         platform/gstreamer/common/qgstvideorendererplugin.cpp platform/gstreamer/common/qgstvideorendererplugin_p.h
         platform/gstreamer/common/qgstvideorenderersink.cpp platform/gstreamer/common/qgstvideorenderersink_p.h
-        platform/gstreamer/mediaplayer/qgstreamerplayerservice.cpp platform/gstreamer/mediaplayer/qgstreamerplayerservice_p.h
         platform/gstreamer/mediaplayer/qgstreamerstreamscontrol.cpp platform/gstreamer/mediaplayer/qgstreamerstreamscontrol_p.h
         platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
         platform/gstreamer/qgstreamerformatsinfo.cpp platform/gstreamer/qgstreamerformatsinfo_p.h
@@ -336,7 +333,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture/qandroidmediarecordercontrol.cpp platform/android/mediacapture/qandroidmediarecordercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
-        platform/android/mediaplayer/qandroidmediaservice.cpp platform/android/mediaplayer/qandroidmediaservice_p.h
         platform/android/mediaplayer/qandroidmetadata.cpp platform/android/mediaplayer/qandroidmetadata_p.h
         platform/android/qandroiddevicemanager.cpp platform/android/qandroiddevicemanager_p.h
         platform/android/qandroidformatsinfo.cpp  platform/android/qandroidformatsinfo_p.h
@@ -381,8 +377,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/audio/qcoreaudioinput.mm platform/darwin/audio/qcoreaudioinput_p.h
         platform/darwin/audio/qcoreaudiooutput.mm platform/darwin/audio/qcoreaudiooutput_p.h
         platform/darwin/audio/qcoreaudioutils.mm platform/darwin/audio/qcoreaudioutils_p.h
-        platform/darwin/mediaplayer/avfmediaplayercontrol.mm platform/darwin/mediaplayer/avfmediaplayercontrol_p.h
-        platform/darwin/mediaplayer/avfmediaplayerservice.mm platform/darwin/mediaplayer/avfmediaplayerservice_p.h
+        platform/darwin/mediaplayer/avfmediaplayer.mm platform/darwin/mediaplayer/avfmediaplayer_p.h
         platform/darwin/mediaplayer/avfmediaplayersession.mm platform/darwin/mediaplayer/avfmediaplayersession_p.h
         platform/darwin/mediaplayer/avfmetadata.mm platform/darwin/mediaplayer/avfmetadata_p.h
         platform/darwin/mediaplayer/avfvideooutput.mm platform/darwin/mediaplayer/avfvideooutput_p.h

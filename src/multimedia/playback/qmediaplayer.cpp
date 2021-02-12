@@ -42,7 +42,6 @@
 
 #include "private/qobject_p.h"
 #include <qmediaplayercontrol.h>
-#include <private/qmediaplatformplayerinterface_p.h>
 #include <private/qmediaplatformintegration_p.h>
 
 #include <QtCore/qcoreevent.h>
@@ -92,7 +91,6 @@ class QMediaPlayerPrivate : public QObjectPrivate
 
 public:
     QMediaPlayerPrivate() : notifyTimer(nullptr) {}
-    QMediaPlatformPlayerInterface *playerInterface = nullptr;
     QMediaPlayerControl* control = nullptr;
     QString errorString;
 
@@ -278,15 +276,9 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
     d->notifyTimer->setInterval(1000);
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
-    d->playerInterface = QMediaPlatformIntegration::instance()->createPlayerInterface();
-    if (!d->playerInterface) {
-        qWarning() << "QPlatformMediaPlayerInterface not implemented!";
-        d->_q_error(QMediaPlayer::ServiceMissingError, QString::fromUtf8("QMediaPlayer is not supported."));
-        return;
-    }
-
-    d->control = d->playerInterface->player();
+    d->control = QMediaPlatformIntegration::instance()->createPlayer();
     Q_ASSERT(d->control);
+
     connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
     connect(d->control, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
             SLOT(_q_mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -328,7 +320,7 @@ QMediaPlayer::~QMediaPlayer()
     // when a receiver is already destroyed.
     disconnect();
 
-    delete d->playerInterface;
+    delete d->control;
 }
 
 int QMediaPlayer::notifyInterval() const
@@ -760,7 +752,7 @@ bool QMediaPlayer::isAvailable() const
 {
     Q_D(const QMediaPlayer);
 
-    if (!d->control || !d->playerInterface)
+    if (!d->control)
         return false;
 
     return true;

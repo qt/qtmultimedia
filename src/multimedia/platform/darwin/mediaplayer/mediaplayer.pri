@@ -1,17 +1,15 @@
 QT += opengl network
 
 HEADERS += \
-    $$PWD/avfmediaplayercontrol_p.h \
+    $$PWD/avfmediaplayer_p.h \
     $$PWD/avfmetadata_p.h \
-    $$PWD/avfmediaplayerservice_p.h \
     $$PWD/avfmediaplayersession_p.h \
     $$PWD/avfvideooutput_p.h \
     $$PWD/avfvideowindowcontrol_p.h
 
 SOURCES += \
-    $$PWD/avfmediaplayercontrol.mm \
+    $$PWD/avfmediaplayer.mm \
     $$PWD/avfmetadata.mm \
-    $$PWD/avfmediaplayerservice.mm \
     $$PWD/avfmediaplayersession.mm \
     $$PWD/avfvideooutput.mm \
     $$PWD/avfvideowindowcontrol.mm

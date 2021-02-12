@@ -71,7 +71,7 @@ public:
 
     QAudioDecoderControl *createAudioDecoder() override;
     QMediaPlatformCaptureInterface *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
-    QMediaPlatformPlayerInterface *createPlayerInterface() override;
+    QMediaPlayerControl *createPlayer() override;
 
     QGstreamerDeviceManager *m_manager = nullptr;
     QGstreamerFormatsInfo *m_formatsInfo = nullptr;

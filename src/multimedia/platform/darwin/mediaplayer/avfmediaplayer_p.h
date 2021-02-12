@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFMEDIAPLAYERCONTROL_H
-#define AVFMEDIAPLAYERCONTROL_H
+#ifndef AVFMEDIAPLAYER_H
+#define AVFMEDIAPLAYER_H
 
 //
 //  W A R N I N G
@@ -58,12 +58,12 @@ QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayerSession;
 
-class AVFMediaPlayerControl : public QMediaPlayerControl
+class AVFMediaPlayer : public QMediaPlayerControl
 {
     Q_OBJECT
 public:
-    explicit AVFMediaPlayerControl(QObject *parent = nullptr);
-    ~AVFMediaPlayerControl();
+    explicit AVFMediaPlayer(QObject *parent = nullptr);
+    ~AVFMediaPlayer();
 
     void setSession(AVFMediaPlayerSession *session);
 
@@ -116,4 +116,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // AVFMEDIAPLAYERCONTROL_H
+#endif // AVFMEDIAPLAYER_H

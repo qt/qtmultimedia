@@ -39,7 +39,6 @@
 
 #include "qandroidintegration_p.h"
 #include "qandroiddevicemanager_p.h"
-#include "private/qandroidmediaservice_p.h"
 #include "private/qandroidglobal_p.h"
 #include "private/qandroidcaptureservice_p.h"
 #include "private/androidmediaplayer_p.h"
@@ -49,6 +48,7 @@
 #include "private/androidcamera_p.h"
 #include "private/androidmediarecorder_p.h"
 #include "private/qandroidformatsinfo_p.h"
+#include "private/qandroidmediaplayercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -85,9 +85,9 @@ QMediaPlatformCaptureInterface *QAndroidIntegration::createCaptureInterface(QMed
     return new QAndroidCaptureService(mode);
 }
 
-QMediaPlatformPlayerInterface *QAndroidIntegration::createPlayerInterface()
+QMediaPlayerControl *QAndroidIntegration::createPlayer()
 {
-    return new QAndroidMediaService();
+    return new QAndroidMediaPlayerControl();
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
