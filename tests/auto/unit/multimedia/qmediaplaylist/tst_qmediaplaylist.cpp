@@ -76,7 +76,6 @@ void tst_QMediaPlaylist::init()
 
 void tst_QMediaPlaylist::initTestCase()
 {
-    qRegisterMetaType<QUrl>();
     content1 = QUrl(QUrl(QLatin1String("file:///1")));
     content2 = QUrl(QUrl(QLatin1String("file:///2")));
     content3 = QUrl(QUrl(QLatin1String("file:///3")));

@@ -99,7 +99,6 @@ HistogramWidget::HistogramWidget(QWidget *parent)
     : QWidget(parent)
 {
     m_processor.moveToThread(&m_processorThread);
-    qRegisterMetaType<QList<qreal>>("QList<qreal>");
     connect(&m_processor, &FrameProcessor::histogramReady, this, &HistogramWidget::setHistogram);
     m_processorThread.start(QThread::LowestPriority);
     setLayout(new QHBoxLayout);

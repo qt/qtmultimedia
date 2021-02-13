@@ -147,8 +147,6 @@ QString tst_QAudioInput::formatToFileName(const QAudioFormat &format)
 
 void tst_QAudioInput::initTestCase()
 {
-    qRegisterMetaType<QAudioFormat>();
-
     // Only perform tests if audio output device exists
     const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
 

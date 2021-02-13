@@ -399,10 +399,6 @@ void tst_QMediaPlayer::setupCommonTestData()
 
 void tst_QMediaPlayer::initTestCase()
 {
-    qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
-    qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
-    qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
-    qRegisterMetaType<QUrl>("QUrl");
 }
 
 void tst_QMediaPlayer::cleanupTestCase()

@@ -138,9 +138,5 @@ Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoSurfaceFormat::YCbCrColorSpa
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QVideoSurfaceFormat)
-Q_DECLARE_METATYPE(QVideoSurfaceFormat::Direction)
-Q_DECLARE_METATYPE(QVideoSurfaceFormat::YCbCrColorSpace)
-
 #endif
 

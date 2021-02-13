@@ -46,17 +46,6 @@ QT_BEGIN_NAMESPACE
 
 #define LOG100 4.60517018599
 
-static void qRegisterAudioMetaTypes()
-{
-    qRegisterMetaType<QAudio::Error>();
-    qRegisterMetaType<QAudio::State>();
-    qRegisterMetaType<QAudio::Mode>();
-    qRegisterMetaType<QAudio::Role>();
-    qRegisterMetaType<QAudio::VolumeScale>();
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
-
 /*!
     \namespace QAudio
     \ingroup multimedia-namespaces

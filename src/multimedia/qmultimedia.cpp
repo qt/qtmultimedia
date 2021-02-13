@@ -54,17 +54,6 @@ QT_BEGIN_NAMESPACE
 
 */
 
-static void qRegisterMultimediaMetaTypes()
-{
-    qRegisterMetaType<QMultimedia::AvailabilityStatus>();
-    qRegisterMetaType<QMultimedia::SupportEstimate>();
-    qRegisterMetaType<QMultimedia::EncodingMode>();
-    qRegisterMetaType<QMultimedia::EncodingQuality>();
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterMultimediaMetaTypes)
-
-
 /*!
     \enum QMultimedia::SupportEstimate
 

@@ -76,15 +76,6 @@ QT_BEGIN_NAMESPACE
     \sa QVideoWidget
 */
 
-static void qRegisterMediaPlayerMetaTypes()
-{
-    qRegisterMetaType<QMediaPlayer::State>("QMediaPlayer::State");
-    qRegisterMetaType<QMediaPlayer::MediaStatus>("QMediaPlayer::MediaStatus");
-    qRegisterMetaType<QMediaPlayer::Error>("QMediaPlayer::Error");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterMediaPlayerMetaTypes)
-
 class QMediaPlayerPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QMediaPlayer)

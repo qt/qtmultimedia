@@ -289,11 +289,6 @@ AndroidCamera::AndroidCamera(AndroidCameraPrivate *d, QThread *worker)
       m_worker(worker)
 
 {
-    qRegisterMetaType<QList<int> >();
-    qRegisterMetaType<QList<QSize> >();
-    qRegisterMetaType<QList<QRect> >();
-    qRegisterMetaType<ImageFormat>();
-
     connect(d, &AndroidCameraPrivate::previewSizeChanged, this, &AndroidCamera::previewSizeChanged);
     connect(d, &AndroidCameraPrivate::previewStarted, this, &AndroidCamera::previewStarted);
     connect(d, &AndroidCameraPrivate::previewFailedToStart, this, &AndroidCamera::previewFailedToStart);

@@ -41,13 +41,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static void qRegisterCameraImageProcessingControlMetaTypes()
-{
-    qRegisterMetaType<QCameraImageProcessingControl::ProcessingParameter>();
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageProcessingControlMetaTypes)
-
 /*!
     \class QCameraImageProcessingControl
     \obsolete

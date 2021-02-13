@@ -75,6 +75,8 @@ private:
     GstMessage* m_message = nullptr;
 };
 
+Q_DECLARE_METATYPE(QGstreamerMessage);
+
 QT_END_NAMESPACE
 
 #endif

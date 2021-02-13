@@ -87,10 +87,4 @@ namespace QMultimedia
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QMultimedia::AvailabilityStatus)
-Q_DECLARE_METATYPE(QMultimedia::SupportEstimate)
-Q_DECLARE_METATYPE(QMultimedia::EncodingMode)
-Q_DECLARE_METATYPE(QMultimedia::EncodingQuality)
-
-
 #endif

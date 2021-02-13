@@ -104,8 +104,6 @@ Engine::Engine(QObject *parent)
     ,   m_spectrumPosition(0)
     ,   m_count(0)
 {
-    qRegisterMetaType<FrequencySpectrum>("FrequencySpectrum");
-    qRegisterMetaType<WindowFunction>("WindowFunction");
     connect(&m_spectrumAnalyser, QOverload<const FrequencySpectrum&>::of(&SpectrumAnalyser::spectrumChanged),
             this, QOverload<const FrequencySpectrum&>::of(&Engine::spectrumChanged));
 

@@ -95,9 +95,6 @@ private:
 
 void tst_QMediaRecorder::initTestCase()
 {
-    qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::State");
-    qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
-
     mockIntegration = new QMockIntegration;
     object = new QCamera;
     capture = new QMediaRecorder(object);

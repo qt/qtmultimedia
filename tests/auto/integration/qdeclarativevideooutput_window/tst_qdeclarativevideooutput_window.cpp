@@ -38,8 +38,6 @@
 #include <QtQuick/qquickview.h>
 #include <QtMultimedia/qvideowindowcontrol.h>
 
-Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FillMode)
-
 class SourceObject : public QObject
 {
     Q_OBJECT
@@ -150,8 +148,6 @@ private:
 
 void tst_QDeclarativeVideoOutputWindow::initTestCase()
 {
-    qRegisterMetaType<QDeclarativeVideoOutput::FillMode>();
-
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
 

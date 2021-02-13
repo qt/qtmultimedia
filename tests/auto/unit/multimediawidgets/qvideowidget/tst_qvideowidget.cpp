@@ -75,9 +75,6 @@ private:
     void color_data();
 };
 
-Q_DECLARE_METATYPE(Qt::AspectRatioMode)
-Q_DECLARE_METATYPE(const uchar *)
-
 class QtTestVideoWidget : public QVideoWidget
 {
 public:

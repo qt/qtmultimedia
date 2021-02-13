@@ -78,10 +78,7 @@ private:
     bool m_libGL = QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL;
 };
 
-Q_DECLARE_METATYPE(const uchar *)
-
 #if QT_CONFIG(opengl)
-Q_DECLARE_METATYPE(QPainterVideoSurface::ShaderType);
 
 class QtTestGLVideoBuffer : public QAbstractVideoBuffer
 {

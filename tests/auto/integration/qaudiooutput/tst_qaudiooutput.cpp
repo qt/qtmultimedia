@@ -185,8 +185,6 @@ void tst_QAudioOutput::generate_audiofile_testrows()
 
 void tst_QAudioOutput::initTestCase()
 {
-    qRegisterMetaType<QAudioFormat>();
-
     // Only perform tests if audio output device exists
     const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
 

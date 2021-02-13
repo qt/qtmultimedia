@@ -92,10 +92,4 @@ Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::VolumeScale role);
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QAudio::Error)
-Q_DECLARE_METATYPE(QAudio::State)
-Q_DECLARE_METATYPE(QAudio::Mode)
-Q_DECLARE_METATYPE(QAudio::Role)
-Q_DECLARE_METATYPE(QAudio::VolumeScale)
-
 #endif // QAUDIO_H

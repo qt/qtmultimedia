@@ -164,9 +164,6 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraFocus::FocusModes)
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QCameraFocus::FocusModes)
-Q_DECLARE_METATYPE(QCameraFocus::FocusPointMode)
-
 Q_MEDIA_ENUM_DEBUG(QCameraFocus, FocusMode)
 Q_MEDIA_ENUM_DEBUG(QCameraFocus, FocusPointMode)
 

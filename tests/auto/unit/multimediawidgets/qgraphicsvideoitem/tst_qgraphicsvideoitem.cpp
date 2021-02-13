@@ -70,9 +70,6 @@ private slots:
     void paintSurface();
 };
 
-Q_DECLARE_METATYPE(const uchar *)
-Q_DECLARE_METATYPE(Qt::AspectRatioMode)
-
 class QtTestRendererControl : public QVideoRendererControl
 {
 public:
@@ -187,7 +184,6 @@ private:
 
 void tst_QGraphicsVideoItem::initTestCase()
 {
-    qRegisterMetaType<Qt::AspectRatioMode>();
 }
 
 void tst_QGraphicsVideoItem::nullObject()

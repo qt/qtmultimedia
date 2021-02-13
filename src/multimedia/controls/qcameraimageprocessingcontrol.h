@@ -85,8 +85,6 @@ protected:
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QCameraImageProcessingControl::ProcessingParameter)
-
 Q_MEDIA_ENUM_DEBUG(QCameraImageProcessingControl, ProcessingParameter)
 
 #endif

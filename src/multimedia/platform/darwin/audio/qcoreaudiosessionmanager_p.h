@@ -128,8 +128,4 @@ QDebug operator <<(QDebug dbg, CoreAudioSessionManager::AudioSessionModes mode);
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(CoreAudioSessionManager::AudioSessionCategorys)
-Q_DECLARE_METATYPE(CoreAudioSessionManager::AudioSessionCategoryOptions)
-Q_DECLARE_METATYPE(CoreAudioSessionManager::AudioSessionModes)
-
 #endif // IOSAUDIOSESSIONMANAGER_H

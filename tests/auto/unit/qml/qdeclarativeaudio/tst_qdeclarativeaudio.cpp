@@ -83,13 +83,8 @@ private:
     QMockIntegration *mockIntegration;
 };
 
-Q_DECLARE_METATYPE(QDeclarativeAudio::Error);
-Q_DECLARE_METATYPE(QDeclarativeAudio::AudioRole);
-
 void tst_QDeclarativeAudio::initTestCase()
 {
-    qRegisterMetaType<QDeclarativeAudio::Error>();
-    qRegisterMetaType<QDeclarativeAudio::AudioRole>();
     mockIntegration = new QMockIntegration;
 }
 

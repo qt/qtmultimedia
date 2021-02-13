@@ -41,14 +41,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static void qRegisterMediaStreamControlMetaTypes()
-{
-    qRegisterMetaType<QMediaStreamsControl::StreamType>();
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterMediaStreamControlMetaTypes)
-
-
 /*!
     \class QMediaStreamsControl
     \obsolete

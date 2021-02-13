@@ -65,8 +65,6 @@
 #include <QMediaDeviceManager>
 #include <QMediaFormat>
 
-Q_DECLARE_METATYPE(QCameraInfo)
-
 Camera::Camera() : ui(new Ui::Camera)
 {
     ui->setupUi(this);

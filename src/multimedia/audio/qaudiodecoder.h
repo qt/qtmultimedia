@@ -127,9 +127,6 @@ private:
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QAudioDecoder::State)
-Q_DECLARE_METATYPE(QAudioDecoder::Error)
-
 Q_MEDIA_ENUM_DEBUG(QAudioDecoder, State)
 Q_MEDIA_ENUM_DEBUG(QAudioDecoder, Error)
 

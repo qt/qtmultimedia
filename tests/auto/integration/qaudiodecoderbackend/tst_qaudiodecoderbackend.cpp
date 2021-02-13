@@ -72,8 +72,6 @@ void tst_QAudioDecoderBackend::initTestCase()
     QAudioDecoder d;
     if (!d.isAvailable())
         QSKIP("Audio decoder service is not available");
-
-    qRegisterMetaType<QUrl>();
 }
 
 void tst_QAudioDecoderBackend::cleanup()

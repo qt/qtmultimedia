@@ -92,8 +92,6 @@ protected:
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QCameraExposureControl::ExposureParameter)
-
 Q_MEDIA_ENUM_DEBUG(QCameraExposureControl, ExposureParameter)
 
 

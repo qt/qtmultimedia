@@ -165,8 +165,6 @@ void tst_QMediaPlayerBackend::initTestCase()
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
 
-    qRegisterMetaType<QUrl>();
-
     localWavFile = MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA("testdata/test.wav"));
     localWavFile2 = MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA("testdata/_test.wav"));;
 

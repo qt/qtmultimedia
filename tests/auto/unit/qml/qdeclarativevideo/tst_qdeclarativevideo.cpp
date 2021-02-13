@@ -68,8 +68,6 @@ private:
     QMockIntegration *mockIntegration;
 };
 
-Q_DECLARE_METATYPE(QDeclarativeVideo::Error);
-
 class QtTestMediaPlayerControl : public QPlatformMediaPlayer
 {
     Q_OBJECT
@@ -331,7 +329,6 @@ public:
 
 void tst_QDeclarativeVideo::initTestCase()
 {
-    qRegisterMetaType<QDeclarativeVideo::Error>();
     mockIntegration = new QMockIntegration;
 }
 

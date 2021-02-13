@@ -190,10 +190,6 @@ private:
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QMediaRecorder::State)
-Q_DECLARE_METATYPE(QMediaRecorder::Status)
-Q_DECLARE_METATYPE(QMediaRecorder::Error)
-
 Q_MEDIA_ENUM_DEBUG(QMediaRecorder, State)
 Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Status)
 Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Error)

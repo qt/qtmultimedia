@@ -113,7 +113,4 @@ Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAbstractVideoBuffer::MapMode);
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QAbstractVideoBuffer::HandleType)
-Q_DECLARE_METATYPE(QAbstractVideoBuffer::MapMode)
-
 #endif

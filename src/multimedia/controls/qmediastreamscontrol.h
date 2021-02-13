@@ -76,8 +76,6 @@ protected:
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QMediaStreamsControl::StreamType)
-
 Q_MEDIA_ENUM_DEBUG(QMediaStreamsControl, StreamType)
 
 #endif // QMEDIASTREAMSCONTROL_H

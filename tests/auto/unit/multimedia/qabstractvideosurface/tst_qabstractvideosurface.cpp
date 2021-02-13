@@ -60,8 +60,6 @@ private slots:
 
 using SupportedFormatMap = QMultiMap<QAbstractVideoBuffer::HandleType, QVideoFrame::PixelFormat>;
 
-Q_DECLARE_METATYPE(SupportedFormatMap)
-
 class QtTestVideoSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
@@ -124,8 +122,6 @@ void tst_QAbstractVideoSurface::cleanup()
 
 void tst_QAbstractVideoSurface::setError()
 {
-    qRegisterMetaType<QAbstractVideoSurface::Error>();
-
     QtTestVideoSurface surface;
 
     QCOMPARE(surface.error(), QAbstractVideoSurface::NoError);

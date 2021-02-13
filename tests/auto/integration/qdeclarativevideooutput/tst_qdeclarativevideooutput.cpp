@@ -152,12 +152,8 @@ void tst_QDeclarativeVideoOutput::initTestCase()
     updateOutputGeometry(m_mappingOutput);
 }
 
-Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FillMode)
-Q_DECLARE_METATYPE(QDeclarativeVideoOutput::FlushMode)
-
 tst_QDeclarativeVideoOutput::tst_QDeclarativeVideoOutput()
 {
-    qRegisterMetaType<QDeclarativeVideoOutput::FillMode>();
 }
 
 void tst_QDeclarativeVideoOutput::fillMode()

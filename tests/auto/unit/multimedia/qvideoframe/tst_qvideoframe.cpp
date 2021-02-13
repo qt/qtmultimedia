@@ -94,8 +94,6 @@ private slots:
     void emptyData();
 };
 
-Q_DECLARE_METATYPE(QImage::Format)
-
 class QtTestDummyVideoBuffer : public QObject, public QAbstractVideoBuffer
 {
     Q_OBJECT

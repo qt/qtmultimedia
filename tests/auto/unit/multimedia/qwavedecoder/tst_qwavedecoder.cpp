@@ -67,8 +67,6 @@ private slots:
     void readPerByte();
 };
 
-Q_DECLARE_METATYPE(tst_QWaveDecoder::Corruption)
-
 void tst_QWaveDecoder::init()
 {
 }

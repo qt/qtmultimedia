@@ -125,9 +125,6 @@ private:
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QMediaPlaylist::PlaybackMode)
-Q_DECLARE_METATYPE(QMediaPlaylist::Error)
-
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, PlaybackMode)
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, Error)
 
