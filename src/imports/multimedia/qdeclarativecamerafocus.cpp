@@ -112,9 +112,7 @@ QDeclarativeCameraFocus::QDeclarativeCameraFocus(QCamera *camera, QObject *paren
     });
 }
 
-QDeclarativeCameraFocus::~QDeclarativeCameraFocus()
-{
-}
+QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
 /*!
     \property QDeclarativeCameraFocus::focusMode
 

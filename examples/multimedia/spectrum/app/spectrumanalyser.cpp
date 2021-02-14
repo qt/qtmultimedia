@@ -176,10 +176,7 @@ SpectrumAnalyser::SpectrumAnalyser(QObject *parent)
             this, &SpectrumAnalyser::calculationComplete);
 }
 
-SpectrumAnalyser::~SpectrumAnalyser()
-{
-
-}
+SpectrumAnalyser::~SpectrumAnalyser() = default;
 
 #ifdef DUMP_SPECTRUMANALYSER
 void SpectrumAnalyser::setOutputPath(const QString &outputDir)

@@ -76,9 +76,7 @@ QMemoryVideoBuffer::QMemoryVideoBuffer(const QByteArray &array, int bytesPerLine
 /*!
     Destroys a system memory allocated video buffer.
 */
-QMemoryVideoBuffer::~QMemoryVideoBuffer()
-{
-}
+QMemoryVideoBuffer::~QMemoryVideoBuffer() = default;
 
 /*!
     \reimp

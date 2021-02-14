@@ -81,9 +81,9 @@ QGstreamerDeviceManager::QGstreamerDeviceManager()
 
     monitor = gst_device_monitor_new();
 
-    gst_device_monitor_add_filter (monitor, "Video/Source", NULL);
-    gst_device_monitor_add_filter (monitor, "Audio/Source", NULL);
-    gst_device_monitor_add_filter (monitor, "Audio/Sink", NULL);
+    gst_device_monitor_add_filter (monitor, "Video/Source", nullptr);
+    gst_device_monitor_add_filter (monitor, "Audio/Source", nullptr);
+    gst_device_monitor_add_filter (monitor, "Audio/Sink", nullptr);
 
     bus = gst_device_monitor_get_bus(monitor);
     gst_bus_add_watch(bus, deviceMonitor, this);

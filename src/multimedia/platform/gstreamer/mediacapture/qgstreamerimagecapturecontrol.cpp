@@ -50,9 +50,7 @@ QGstreamerImageCaptureControl::QGstreamerImageCaptureControl(QGstreamerCaptureSe
     connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
 }
 
-QGstreamerImageCaptureControl::~QGstreamerImageCaptureControl()
-{
-}
+QGstreamerImageCaptureControl::~QGstreamerImageCaptureControl() = default;
 
 bool QGstreamerImageCaptureControl::isReadyForCapture() const
 {

@@ -47,10 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerIntegration::QGstreamerIntegration()
-{
-
-}
+QGstreamerIntegration::QGstreamerIntegration() = default;
 
 QGstreamerIntegration::~QGstreamerIntegration()
 {

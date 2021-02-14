@@ -44,13 +44,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QPlatformMediaDeviceManager::QPlatformMediaDeviceManager()
-{
-}
+QPlatformMediaDeviceManager::QPlatformMediaDeviceManager() = default;
 
-QPlatformMediaDeviceManager::~QPlatformMediaDeviceManager()
-{
-}
+QPlatformMediaDeviceManager::~QPlatformMediaDeviceManager() = default;
 
 QAudioDeviceInfo QPlatformMediaDeviceManager::audioInput(const QByteArray &id) const
 {

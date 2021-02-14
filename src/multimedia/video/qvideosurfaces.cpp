@@ -55,9 +55,7 @@ QVideoSurfaces::QVideoSurfaces(const QList<QAbstractVideoSurface *> &s, QObject 
     }
 }
 
-QVideoSurfaces::~QVideoSurfaces()
-{
-}
+QVideoSurfaces::~QVideoSurfaces() = default;
 
 QList<QVideoFrame::PixelFormat> QVideoSurfaces::supportedPixelFormats(QAbstractVideoBuffer::HandleType type) const
 {

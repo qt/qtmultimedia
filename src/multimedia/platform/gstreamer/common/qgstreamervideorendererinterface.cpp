@@ -39,6 +39,4 @@
 
 #include "qgstreamervideorendererinterface_p.h"
 
-QGstreamerVideoRendererInterface::~QGstreamerVideoRendererInterface()
-{
-}
+QGstreamerVideoRendererInterface::~QGstreamerVideoRendererInterface() = default;

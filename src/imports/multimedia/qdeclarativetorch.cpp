@@ -83,8 +83,7 @@ QDeclarativeTorch::QDeclarativeTorch(QCamera *camera)
 }
 
 QDeclarativeTorch::~QDeclarativeTorch()
-{
-}
+= default;
 
 /*!
     \qmlproperty bool QtMultimedia::Torch::enabled

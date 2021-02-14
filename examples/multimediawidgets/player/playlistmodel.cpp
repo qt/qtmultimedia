@@ -65,9 +65,7 @@ PlaylistModel::PlaylistModel(QObject *parent)
     connect(m_playlist.data(), &QMediaPlaylist::mediaChanged, this, &PlaylistModel::changeItems);
 }
 
-PlaylistModel::~PlaylistModel()
-{
-}
+PlaylistModel::~PlaylistModel() = default;
 
 int PlaylistModel::rowCount(const QModelIndex &parent) const
 {

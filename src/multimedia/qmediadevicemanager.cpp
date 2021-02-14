@@ -158,18 +158,12 @@ QCameraInfo QMediaDeviceManager::defaultVideoInput()
 /*!
     \internal
 */
-QMediaDeviceManager::QMediaDeviceManager()
-{
-
-}
+QMediaDeviceManager::QMediaDeviceManager() = default;
 
 /*!
     \internal
 */
-QMediaDeviceManager::~QMediaDeviceManager()
-{
-
-}
+QMediaDeviceManager::~QMediaDeviceManager() = default;
 
 
 QT_END_NAMESPACE

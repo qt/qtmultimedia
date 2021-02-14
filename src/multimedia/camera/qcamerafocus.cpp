@@ -121,28 +121,17 @@ QCameraFocusZone::QCameraFocusZone(const QRectF &area, QCameraFocusZone::FocusZo
 /*!
  * Creates a new QCameraFocusZone as a copy of \a other.
  */
-QCameraFocusZone::QCameraFocusZone(const QCameraFocusZone &other)
-    :d(other.d)
-{
-
-}
+QCameraFocusZone::QCameraFocusZone(const QCameraFocusZone &other) = default;
 
 /*!
  * Destroys this QCameraFocusZone.
  */
-QCameraFocusZone::~QCameraFocusZone()
-{
-
-}
+QCameraFocusZone::~QCameraFocusZone() = default;
 
 /*!
  * Assigns \a other to this QCameraFocusZone.
  */
-QCameraFocusZone& QCameraFocusZone::operator=(const QCameraFocusZone &other)
-{
-    d = other.d;
-    return *this;
-}
+QCameraFocusZone& QCameraFocusZone::operator=(const QCameraFocusZone &other) = default;
 
 /*!
  * Returns true if this focus zone is the same as \a other.
@@ -300,9 +289,7 @@ QCameraFocus::QCameraFocus(QCamera *camera, QCameraControl *cameraControl)
     Destroys the camera focus object.
 */
 
-QCameraFocus::~QCameraFocus()
-{
-}
+QCameraFocus::~QCameraFocus() = default;
 
 /*!
     Returns true if focus related settings are supported by this camera.

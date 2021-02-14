@@ -46,11 +46,11 @@ QGstVideoRendererPlugin::QGstVideoRendererPlugin(QObject *parent) :
 {
 }
 
-QGstVideoRenderer::~QGstVideoRenderer() {}
+QGstVideoRenderer::~QGstVideoRenderer() = default;
 
-QGstVideoRendererInterface::~QGstVideoRendererInterface() {}
+QGstVideoRendererInterface::~QGstVideoRendererInterface() = default;
 
-QGstVideoRendererPlugin::~QGstVideoRendererPlugin() {}
+QGstVideoRendererPlugin::~QGstVideoRendererPlugin() = default;
 
 QT_END_NAMESPACE
 

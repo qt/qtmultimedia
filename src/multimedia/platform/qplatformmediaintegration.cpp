@@ -91,8 +91,6 @@ void QPlatformMediaIntegration::setIntegration(QPlatformMediaIntegration *integr
 }
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration()
-{
-
-}
+= default;
 
 QT_END_NAMESPACE

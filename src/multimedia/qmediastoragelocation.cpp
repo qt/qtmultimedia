@@ -43,9 +43,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QMediaStorageLocation::QMediaStorageLocation()
-{
-}
+QMediaStorageLocation::QMediaStorageLocation() = default;
 
 void QMediaStorageLocation::addStorageLocation(MediaType type, const QString &location)
 {

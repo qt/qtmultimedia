@@ -69,9 +69,7 @@ Spectrograph::Spectrograph(QWidget *parent)
 }
 
 Spectrograph::~Spectrograph()
-{
-
-}
+= default;
 
 void Spectrograph::setParams(int numBars, qreal lowFreq, qreal highFreq)
 {

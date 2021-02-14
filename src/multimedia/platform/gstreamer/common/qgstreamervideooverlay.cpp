@@ -68,9 +68,7 @@ static constexpr ElementMap elementMap[] =
 class QGstreamerSinkProperties
 {
 public:
-    virtual ~QGstreamerSinkProperties()
-    {
-    }
+    virtual ~QGstreamerSinkProperties() = default;
 
     virtual bool hasShowPrerollFrame() const = 0;
     virtual void reset() = 0;
@@ -331,13 +329,13 @@ static bool qt_gst_element_is_functioning(GstElement *element)
 
 static GstElement *findBestVideoSink()
 {
-    GstElement *choice = 0;
+    GstElement *choice = nullptr;
     QString platform = QGuiApplication::platformName();
 
     // We need a native window ID to use the GstVideoOverlay interface.
     // Bail out if the Qt platform plugin in use cannot provide a sensible WId.
     if (platform != QLatin1String("xcb"))
-        return 0;
+        return nullptr;
 
     // First, try some known video sinks, depending on the Qt platform plugin in use.
     for (auto i : elementMap) {
@@ -352,7 +350,7 @@ static GstElement *findBestVideoSink()
                 return choice;
 
             gst_object_unref(choice);
-            choice = 0;
+            choice = nullptr;
         }
     }
 

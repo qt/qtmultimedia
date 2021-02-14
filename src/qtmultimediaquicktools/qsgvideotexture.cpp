@@ -65,9 +65,7 @@ QSGVideoTexture::QSGVideoTexture()
     d_ptr->q_ptr = this;
 }
 
-QSGVideoTexture::~QSGVideoTexture()
-{
-}
+QSGVideoTexture::~QSGVideoTexture() = default;
 
 qint64 QSGVideoTexture::comparisonKey() const
 {

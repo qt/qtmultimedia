@@ -75,25 +75,25 @@ QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QObject *parent)
     : QAudioDecoderControl(parent),
      m_state(QAudioDecoder::StoppedState),
      m_pendingState(QAudioDecoder::StoppedState),
-     m_busHelper(0),
-     m_bus(0),
-     m_playbin(0),
-     m_outputBin(0),
-     m_audioConvert(0),
-     m_appSink(0),
+     m_busHelper(nullptr),
+     m_bus(nullptr),
+     m_playbin(nullptr),
+     m_outputBin(nullptr),
+     m_audioConvert(nullptr),
+     m_appSink(nullptr),
 #if QT_CONFIG(gstreamer_app)
-     m_appSrc(0),
+     m_appSrc(nullptr),
 #endif
-     mDevice(0),
+     mDevice(nullptr),
      m_buffersAvailable(0),
      m_position(-1),
      m_duration(-1),
      m_durationQueries(0)
 {
     // Create pipeline here
-    m_playbin = gst_element_factory_make("playbin", NULL);
+    m_playbin = gst_element_factory_make("playbin", nullptr);
 
-    if (m_playbin != 0) {
+    if (m_playbin != nullptr) {
         // Sort out messages
         m_bus = gst_element_get_bus(m_playbin);
         m_busHelper = new QGstreamerBusHelper(m_bus, this);
@@ -102,7 +102,7 @@ QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QObject *parent)
         // Set the rest of the pipeline up
         setAudioFlags(true);
 
-        m_audioConvert = gst_element_factory_make("audioconvert", NULL);
+        m_audioConvert = gst_element_factory_make("audioconvert", nullptr);
 
         m_outputBin = gst_bin_new("audio-output-bin");
         gst_bin_add(GST_BIN(m_outputBin), m_audioConvert);
@@ -306,11 +306,11 @@ QString QGstreamerAudioDecoderControl::sourceFilename() const
 void QGstreamerAudioDecoderControl::setSourceFilename(const QString &fileName)
 {
     stop();
-    mDevice = 0;
+    mDevice = nullptr;
 #if QT_CONFIG(gstreamer_app)
     if (m_appSrc)
         m_appSrc->deleteLater();
-    m_appSrc = 0;
+    m_appSrc = nullptr;
 #endif
 
     bool isSignalRequired = (mSource != fileName);
@@ -373,7 +373,7 @@ void QGstreamerAudioDecoderControl::start()
         } else {
             // We want whatever the native audio format is
             setAudioFlags(true);
-            gst_app_sink_set_caps(m_appSink, NULL);
+            gst_app_sink_set_caps(m_appSink, nullptr);
         }
     }
 
@@ -448,7 +448,7 @@ QAudioBuffer QGstreamerAudioDecoderControl::read()
         if (buffersAvailable == 1)
             emit bufferAvailableChanged(false);
 
-        const char* bufferData = 0;
+        const char* bufferData = nullptr;
         int bufferSize = 0;
 
         GstSample *sample = gst_app_sink_pull_sample(m_appSink);
@@ -538,12 +538,12 @@ void QGstreamerAudioDecoderControl::addAppSink()
     if (m_appSink)
         return;
 
-    m_appSink = (GstAppSink*)gst_element_factory_make("appsink", NULL);
+    m_appSink = (GstAppSink*)gst_element_factory_make("appsink", nullptr);
 
     GstAppSinkCallbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.new_sample = &new_sample;
-    gst_app_sink_set_callbacks(m_appSink, &callbacks, this, NULL);
+    gst_app_sink_set_callbacks(m_appSink, &callbacks, this, nullptr);
     gst_app_sink_set_max_buffers(m_appSink, MAX_BUFFERS_IN_QUEUE);
     gst_base_sink_set_sync(GST_BASE_SINK(m_appSink), FALSE);
 
@@ -559,7 +559,7 @@ void QGstreamerAudioDecoderControl::removeAppSink()
     gst_element_unlink(m_audioConvert, GST_ELEMENT(m_appSink));
     gst_bin_remove(GST_BIN(m_outputBin), GST_ELEMENT(m_appSink));
 
-    m_appSink = 0;
+    m_appSink = nullptr;
 }
 
 void QGstreamerAudioDecoderControl::updateDuration()

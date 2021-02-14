@@ -194,27 +194,17 @@ QVideoSurfaceFormat::QVideoSurfaceFormat(
 /*!
     Constructs a copy of \a other.
 */
-QVideoSurfaceFormat::QVideoSurfaceFormat(const QVideoSurfaceFormat &other)
-    : d(other.d)
-{
-}
+QVideoSurfaceFormat::QVideoSurfaceFormat(const QVideoSurfaceFormat &other) = default;
 
 /*!
     Assigns the values of \a other to this object.
 */
-QVideoSurfaceFormat &QVideoSurfaceFormat::operator =(const QVideoSurfaceFormat &other)
-{
-    d = other.d;
-
-    return *this;
-}
+QVideoSurfaceFormat &QVideoSurfaceFormat::operator =(const QVideoSurfaceFormat &other) = default;
 
 /*!
     Destroys a video stream description.
 */
-QVideoSurfaceFormat::~QVideoSurfaceFormat()
-{
-}
+QVideoSurfaceFormat::~QVideoSurfaceFormat() = default;
 
 /*!
     Identifies if a video surface format has a valid pixel format and frame size.

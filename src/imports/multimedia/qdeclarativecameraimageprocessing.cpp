@@ -96,9 +96,7 @@ QDeclarativeCameraImageProcessing::QDeclarativeCameraImageProcessing(QCamera *ca
     });
 }
 
-QDeclarativeCameraImageProcessing::~QDeclarativeCameraImageProcessing()
-{
-}
+QDeclarativeCameraImageProcessing::~QDeclarativeCameraImageProcessing() = default;
 
 /*!
     \qmlproperty enumeration QtMultimedia::CameraImageProcessing::whiteBalanceMode

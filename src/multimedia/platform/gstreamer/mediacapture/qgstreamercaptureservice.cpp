@@ -60,9 +60,7 @@ QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode m
     }
 }
 
-QGstreamerCaptureService::~QGstreamerCaptureService()
-{
-}
+QGstreamerCaptureService::~QGstreamerCaptureService() = default;
 
 QCameraControl *QGstreamerCaptureService::cameraControl()
 {

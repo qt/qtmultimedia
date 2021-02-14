@@ -58,9 +58,7 @@ QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *s
     m_hasPreviewState = m_session->captureMode() != QGstreamerCaptureSession::Audio;
 }
 
-QGstreamerRecorderControl::~QGstreamerRecorderControl()
-{
-}
+QGstreamerRecorderControl::~QGstreamerRecorderControl() = default;
 
 QUrl QGstreamerRecorderControl::outputLocation() const
 {

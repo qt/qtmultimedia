@@ -47,9 +47,7 @@ QMockDeviceManager::QMockDeviceManager()
 {
 }
 
-QMockDeviceManager::~QMockDeviceManager()
-{
-}
+QMockDeviceManager::~QMockDeviceManager() = default;
 
 QList<QAudioDeviceInfo> QMockDeviceManager::audioInputs() const
 {

@@ -113,9 +113,7 @@ QCameraImageProcessing::QCameraImageProcessing(QCamera *camera, QCameraControl *
     Destroys the camera focus object.
 */
 
-QCameraImageProcessing::~QCameraImageProcessing()
-{
-}
+QCameraImageProcessing::~QCameraImageProcessing() = default;
 
 
 /*!

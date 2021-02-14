@@ -423,7 +423,7 @@ qint64 QMediaRecorder::duration() const
 
 bool QMediaRecorder::isMuted() const
 {
-    return d_func()->control ? d_func()->control->isMuted() : 0;
+    return d_func()->control ? d_func()->control->isMuted() : false;
 }
 
 void QMediaRecorder::setMuted(bool muted)

@@ -394,9 +394,7 @@ QSGVideoItemSurface::QSGVideoItemSurface(QDeclarativeVideoBackend *backend, QObj
 {
 }
 
-QSGVideoItemSurface::~QSGVideoItemSurface()
-{
-}
+QSGVideoItemSurface::~QSGVideoItemSurface() = default;
 
 QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
         QAbstractVideoBuffer::HandleType handleType) const

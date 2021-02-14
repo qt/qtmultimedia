@@ -394,9 +394,7 @@ QSGVideoNode_YUV::QSGVideoNode_YUV(const QVideoSurfaceFormat &format) :
     setMaterial(m_material);
 }
 
-QSGVideoNode_YUV::~QSGVideoNode_YUV()
-{
-}
+QSGVideoNode_YUV::~QSGVideoNode_YUV() = default;
 
 void QSGVideoNode_YUV::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {

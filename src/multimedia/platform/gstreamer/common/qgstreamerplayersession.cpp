@@ -151,7 +151,7 @@ void QGstreamerPlayerSession::initPlaybin()
     gst_element_add_pad(GST_ELEMENT(m_videoOutputBin), gst_ghost_pad_new("sink", pad));
     gst_object_unref(GST_OBJECT(pad));
 
-    if (m_playbin != 0) {
+    if (m_playbin != nullptr) {
         // Sort out messages
         setBus(gst_element_get_bus(m_playbin));
 
@@ -275,7 +275,7 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
 #if QT_CONFIG(gstreamer_app)
     if (m_appSrc) {
         m_appSrc->deleteLater();
-        m_appSrc = 0;
+        m_appSrc = nullptr;
     }
 #endif
 
@@ -555,7 +555,7 @@ void QGstreamerPlayerSession::updateVideoRenderer()
     if (!m_playbin || !m_videoOutput)
         return;
 
-    GstElement *videoSink = 0;
+    GstElement *videoSink = nullptr;
     if (m_renderer && m_renderer->isReady())
         videoSink = m_renderer->videoSink();
 
@@ -570,7 +570,7 @@ void QGstreamerPlayerSession::updateVideoRenderer()
 #endif
 
     if (m_pendingVideoSink == videoSink ||
-        (m_pendingVideoSink == 0 && m_videoSink == videoSink)) {
+        (m_pendingVideoSink == nullptr && m_videoSink == videoSink)) {
 #ifdef DEBUG_PLAYBIN
         qDebug() << "Video sink has not changed, skip video output reconfiguration";
 #endif
@@ -586,7 +586,7 @@ void QGstreamerPlayerSession::updateVideoRenderer()
         qDebug() << "The pipeline has not started yet, pending state:" << m_pendingState;
 #endif
         //the pipeline has not started yet
-        m_pendingVideoSink = 0;
+        m_pendingVideoSink = nullptr;
         gst_element_set_state(m_videoSink, GST_STATE_NULL);
         gst_element_set_state(m_playbin, GST_STATE_NULL);
 
@@ -600,7 +600,7 @@ void QGstreamerPlayerSession::updateVideoRenderer()
         if (!linked)
             qWarning() << "Linking video output element failed";
 
-        if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "show-preroll-frame") != 0) {
+        if (g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "show-preroll-frame") != nullptr) {
             gboolean value = m_displayPrerolledFrame;
             g_object_set(G_OBJECT(m_videoSink), "show-preroll-frame", value, nullptr);
         }
@@ -698,7 +698,7 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
         if (gst_pad_is_blocked(srcPad))
             gst_pad_remove_probe(srcPad, this->pad_probe_id);
 
-        m_pendingVideoSink = 0;
+        m_pendingVideoSink = nullptr;
         gst_object_unref(GST_OBJECT(srcPad));
         return;
     }
@@ -709,7 +709,7 @@ void QGstreamerPlayerSession::finishVideoOutputChange()
     gst_bin_remove(GST_BIN(m_videoOutputBin), m_videoSink);
 
     m_videoSink = m_pendingVideoSink;
-    m_pendingVideoSink = 0;
+    m_pendingVideoSink = nullptr;
 
     gst_bin_add(GST_BIN(m_videoOutputBin), m_videoSink);
 
@@ -791,7 +791,7 @@ bool QGstreamerPlayerSession::pause()
 #endif
     if (m_pipeline) {
         m_pendingState = QMediaPlayer::PausedState;
-        if (m_pendingVideoSink != 0)
+        if (m_pendingVideoSink != nullptr)
             return true;
 
         if (gst_element_set_state(m_pipeline, GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE) {
@@ -1232,7 +1232,7 @@ void QGstreamerPlayerSession::getStreamsInfo()
 
         int streamIndex = i - m_playbin2StreamOffset[streamType];
 
-        GstTagList *tags = 0;
+        GstTagList *tags = nullptr;
         switch (streamType) {
         case QMediaStreamsControl::AudioStream:
             g_signal_emit_by_name(G_OBJECT(m_playbin), "get-audio-tags", streamIndex, &tags);
@@ -1247,7 +1247,7 @@ void QGstreamerPlayerSession::getStreamsInfo()
             break;
         }
         if (tags && GST_IS_TAG_LIST(tags)) {
-            gchar *languageCode = 0;
+            gchar *languageCode = nullptr;
             if (gst_tag_list_get_string(tags, GST_TAG_LANGUAGE_CODE, &languageCode))
                 streamProperties[QMediaMetaData::Language] = QString::fromUtf8(languageCode);
 
@@ -1337,7 +1337,7 @@ void QGstreamerPlayerSession::updateDuration()
         m_durationQueries = 0;
         GstQuery *query = gst_query_new_seeking(GST_FORMAT_TIME);
         if (gst_element_query(m_pipeline, query))
-            gst_query_parse_seeking(query, 0, &seekable, 0, 0);
+            gst_query_parse_seeking(query, nullptr, &seekable, nullptr, nullptr);
         gst_query_unref(query);
     }
     setSeekable(seekable);
@@ -1357,9 +1357,9 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
 {
     Q_UNUSED(p);
 
-    GstElement *source = 0;
+    GstElement *source = nullptr;
     g_object_get(o, "source", &source, nullptr);
-    if (source == 0)
+    if (source == nullptr)
         return;
 
 #ifdef DEBUG_PLAYBIN
@@ -1373,13 +1373,13 @@ void QGstreamerPlayerSession::playbinNotifySource(GObject *o, GParamSpec *p, gpo
 
     // User-Agent - special case, souphhtpsrc will always set something, even if
     // defined in extra-headers
-    if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "user-agent") != 0) {
+    if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "user-agent") != nullptr) {
         g_object_set(G_OBJECT(source), "user-agent",
                      self->m_request.rawHeader(userAgentString).constData(), nullptr);
     }
 
     // The rest
-    if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "extra-headers") != 0) {
+    if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "extra-headers") != nullptr) {
         GstStructure *extras = gst_structure_new_empty("extras");
 
         const auto rawHeaderList = self->m_request.rawHeaderList();
@@ -1535,7 +1535,7 @@ void QGstreamerPlayerSession::showPrerollFrames(bool enabled)
     qDebug() << Q_FUNC_INFO << enabled;
 #endif
     if (enabled != m_displayPrerolledFrame && m_videoSink &&
-            g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "show-preroll-frame") != 0) {
+            g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "show-preroll-frame") != nullptr) {
 
         gboolean value = enabled;
         g_object_set(G_OBJECT(m_videoSink), "show-preroll-frame", value, nullptr);

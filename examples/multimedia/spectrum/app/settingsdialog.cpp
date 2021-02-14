@@ -131,10 +131,7 @@ SettingsDialog::SettingsDialog(
     setLayout(dialogLayout);
 }
 
-SettingsDialog::~SettingsDialog()
-{
-
-}
+SettingsDialog::~SettingsDialog() = default;
 
 void SettingsDialog::windowFunctionChanged(int index)
 {

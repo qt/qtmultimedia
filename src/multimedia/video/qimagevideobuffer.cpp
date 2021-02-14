@@ -67,9 +67,7 @@ QImageVideoBuffer::QImageVideoBuffer(const QImage &image)
     d->image = image;
 }
 
-QImageVideoBuffer::~QImageVideoBuffer()
-{
-}
+QImageVideoBuffer::~QImageVideoBuffer() = default;
 
 QAbstractVideoBuffer::MapMode QImageVideoBuffer::mapMode() const
 {

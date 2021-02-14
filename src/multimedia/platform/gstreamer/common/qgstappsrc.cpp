@@ -60,7 +60,7 @@ bool QGstAppSrc::setup(GstElement* appsrc)
 {
     if (m_appSrc) {
         gst_object_unref(G_OBJECT(m_appSrc));
-        m_appSrc = 0;
+        m_appSrc = nullptr;
     }
 
     if (!appsrc || (!m_stream && !m_buffer))
@@ -96,12 +96,12 @@ void QGstAppSrc::setStream(QIODevice *stream)
     if (m_stream) {
         disconnect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
         disconnect(m_stream, SIGNAL(destroyed()), this, SLOT(streamDestroyed()));
-        m_stream = 0;
+        m_stream = nullptr;
     }
 
     if (m_appSrc) {
         gst_object_unref(G_OBJECT(m_appSrc));
-        m_appSrc = 0;
+        m_appSrc = nullptr;
     }
 
     m_dataRequestSize = ~0;
@@ -140,7 +140,7 @@ void QGstAppSrc::onDataReady()
 void QGstAppSrc::streamDestroyed()
 {
     if (sender() == m_stream) {
-        m_stream = 0;
+        m_stream = nullptr;
         sendEOS();
     }
 }

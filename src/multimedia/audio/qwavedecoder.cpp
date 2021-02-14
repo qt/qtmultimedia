@@ -91,9 +91,7 @@ QWaveDecoder::QWaveDecoder(QIODevice *device, const QAudioFormat &format, QObjec
 {
 }
 
-QWaveDecoder::~QWaveDecoder()
-{
-}
+QWaveDecoder::~QWaveDecoder() = default;
 
 bool QWaveDecoder::open(QIODevice::OpenMode mode)
 {

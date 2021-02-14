@@ -158,22 +158,11 @@ QMediaEncoderSettings::QMediaEncoderSettings(FileFormat format)
 /*!
     Creates a copy of the encoder settings object \a other.
 */
-QMediaEncoderSettings::QMediaEncoderSettings(const QMediaEncoderSettings &other)
-    : QMediaFormat(other),
-      d(other.d)
-{
-}
+QMediaEncoderSettings::QMediaEncoderSettings(const QMediaEncoderSettings &other) = default;
 
-QMediaEncoderSettings &QMediaEncoderSettings::operator=(const QMediaEncoderSettings &other)
-{
-    QMediaFormat::operator=(other);
-    d = other.d;
-    return *this;
-}
+QMediaEncoderSettings &QMediaEncoderSettings::operator=(const QMediaEncoderSettings &other) = default;
 
-QMediaEncoderSettings::~QMediaEncoderSettings()
-{
-}
+QMediaEncoderSettings::~QMediaEncoderSettings() = default;
 
 /*!
     Returns the encoding mode.
@@ -481,27 +470,18 @@ QImageEncoderSettings::QImageEncoderSettings()
     Constructs a copy of the image encoder settings object \a other.
 */
 
-QImageEncoderSettings::QImageEncoderSettings(const QImageEncoderSettings& other)
-    :d(other.d)
-{
-}
+QImageEncoderSettings::QImageEncoderSettings(const QImageEncoderSettings& other) = default;
 
 /*!
     Destroys a image encoder settings object.
 */
 
-QImageEncoderSettings::~QImageEncoderSettings()
-{
-}
+QImageEncoderSettings::~QImageEncoderSettings() = default;
 
 /*!
     Assigns the value of \a other to a image encoder settings object.
 */
-QImageEncoderSettings &QImageEncoderSettings::operator=(const QImageEncoderSettings &other)
-{
-    d = other.d;
-    return *this;
-}
+QImageEncoderSettings &QImageEncoderSettings::operator=(const QImageEncoderSettings &other) = default;
 
 /*!
     Determines if \a other is of equal value to a image encoder settings

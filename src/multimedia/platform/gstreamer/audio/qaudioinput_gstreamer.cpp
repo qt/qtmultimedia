@@ -159,7 +159,7 @@ bool QGStreamerAudioInput::open()
         return false;
     }
 
-    gstInput = gst_device_create_element(deviceInfo.gstDevice, NULL);
+    gstInput = gst_device_create_element(deviceInfo.gstDevice, nullptr);
     if (!gstInput) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
@@ -350,14 +350,14 @@ void QGStreamerAudioInput::reset()
 
 GstElement *QGStreamerAudioInput::createAppSink()
 {
-    GstElement *sink = gst_element_factory_make("appsink", NULL);
+    GstElement *sink = gst_element_factory_make("appsink", nullptr);
     GstAppSink *appSink = reinterpret_cast<GstAppSink *>(sink);
 
     GstAppSinkCallbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.eos = &eos;
     callbacks.new_sample = &new_sample;
-    gst_app_sink_set_callbacks(appSink, &callbacks, this, NULL);
+    gst_app_sink_set_callbacks(appSink, &callbacks, this, nullptr);
 //    gst_app_sink_set_max_buffers(appSink, MAX_BUFFERS_IN_QUEUE);
     gst_base_sink_set_sync(GST_BASE_SINK(appSink), FALSE);
 

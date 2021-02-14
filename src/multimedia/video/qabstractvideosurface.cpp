@@ -127,9 +127,7 @@ QAbstractVideoSurface::QAbstractVideoSurface(QObject *parent)
 /*!
     Destroys a video surface.
 */
-QAbstractVideoSurface::~QAbstractVideoSurface()
-{
-}
+QAbstractVideoSurface::~QAbstractVideoSurface() = default;
 
 /*!
     \fn QAbstractVideoSurface::supportedPixelFormats(QAbstractVideoBuffer::HandleType type) const

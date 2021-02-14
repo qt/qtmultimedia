@@ -71,7 +71,7 @@ public:
     }
 
     virtual void abort() { m_aborted = true; }
-    virtual ~ParserBase() { }
+    virtual ~ParserBase() = default;
 
 protected:
     virtual bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root) = 0;
@@ -430,10 +430,7 @@ QPlaylistFileParser::QPlaylistFileParser(QObject *parent)
 
 }
 
-QPlaylistFileParser::~QPlaylistFileParser()
-{
-
-}
+QPlaylistFileParser::~QPlaylistFileParser() = default;
 
 QPlaylistFileParser::FileType QPlaylistFileParser::findByMimeType(const QString &mime)
 {

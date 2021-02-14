@@ -71,20 +71,20 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
      m_waitingForEos(false),
      m_pipelineMode(EmptyPipeline),
      m_captureMode(captureMode),
-     m_viewfinderInterface(0),
-     m_audioSrc(0),
-     m_audioTee(0),
-     m_audioPreviewQueue(0),
-     m_audioPreview(0),
-     m_audioVolume(0),
+     m_viewfinderInterface(nullptr),
+     m_audioSrc(nullptr),
+     m_audioTee(nullptr),
+     m_audioPreviewQueue(nullptr),
+     m_audioPreview(nullptr),
+     m_audioVolume(nullptr),
      m_muted(false),
      m_volume(1.0),
-     m_videoSrc(0),
-     m_videoTee(0),
-     m_videoPreviewQueue(0),
-     m_videoPreview(0),
-     m_imageCaptureBin(0),
-     m_encodeBin(0),
+     m_videoSrc(nullptr),
+     m_videoTee(nullptr),
+     m_videoPreviewQueue(nullptr),
+     m_videoPreview(nullptr),
+     m_imageCaptureBin(nullptr),
+     m_encodeBin(nullptr),
      m_passImage(false),
      m_passPrerollImage(false)
 {
@@ -135,7 +135,7 @@ static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSe
                 "container_profile",
                 (gchar *)"custom container profile",
                 const_cast<GstCaps *>(caps.get()),
-                NULL); //preset
+                nullptr); //preset
     return profile;
 }
 
@@ -150,7 +150,7 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
     GstEncodingVideoProfile *profile = gst_encoding_video_profile_new(
                 const_cast<GstCaps *>(caps.get()),
                 nullptr,
-                NULL, //restriction
+                nullptr, //restriction
                 0); //presence
 
     gst_encoding_video_profile_set_pass(profile, 0);
@@ -170,7 +170,7 @@ static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &setti
     GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
                 const_cast<GstCaps *>(caps.get()),
                 nullptr, //preset
-                NULL,   //restriction
+                nullptr,   //restriction
                 0);     //presence
 
     return profile;
@@ -237,7 +237,7 @@ GstElement *QGstreamerCaptureSession::buildAudioSrc()
 
 GstElement *QGstreamerCaptureSession::buildAudioPreview()
 {
-    GstElement *previewElement = 0;
+    GstElement *previewElement = nullptr;
 
 #if 1
     previewElement = gst_element_factory_make("fakesink", "audio-preview");
@@ -273,7 +273,7 @@ GstElement *QGstreamerCaptureSession::buildVideoSrc()
 
 GstElement *QGstreamerCaptureSession::buildVideoPreview()
 {
-    GstElement *previewElement = 0;
+    GstElement *previewElement = nullptr;
 
     if (m_viewfinderInterface) {
         GstElement *bin = gst_bin_new("video-preview-bin");
@@ -473,7 +473,7 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
     REMOVE_ELEMENT(m_encodeBin);
     REMOVE_ELEMENT(m_imageCaptureBin);
     REMOVE_ELEMENT(m_fileSink);
-    m_audioVolume = 0;
+    m_audioVolume = nullptr;
 
     bool ok = true;
 
@@ -534,7 +534,7 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
 
             if (m_captureMode & Audio) {
                 m_audioSrc = buildAudioSrc();
-                ok &= m_audioSrc != 0;
+                ok &= m_audioSrc != nullptr;
 
                 gst_bin_add(GST_BIN(m_pipeline), m_audioSrc);
                 ok &= gst_element_link(m_audioSrc, m_encodeBin);
@@ -542,7 +542,7 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
 
             if (m_captureMode & Video) {
                 m_videoSrc = buildVideoSrc();
-                ok &= m_videoSrc != 0;
+                ok &= m_videoSrc != nullptr;
 
                 gst_bin_add(GST_BIN(m_pipeline), m_videoSrc);
                 ok &= gst_element_link(m_videoSrc, m_encodeBin);
@@ -564,11 +564,11 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
                 qWarning() << "Could not link encoder to filesink";
             }
 
-            ok &= m_encodeBin != 0;
+            ok &= m_encodeBin != nullptr;
 
             if (ok && (m_captureMode & Video || m_captureMode & Image)) {
                 m_videoSrc = buildVideoSrc();
-                m_videoTee = gst_element_factory_make("tee", NULL);
+                m_videoTee = gst_element_factory_make("tee", nullptr);
                 ok &= m_videoSrc && m_videoTee;
 
                 // ### This causes the whole pipeline to hang for some reason
@@ -601,8 +601,8 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
             if (ok && m_captureMode & Audio) {
                 m_audioSrc = buildAudioSrc();
                 m_audioPreview = buildAudioPreview();
-                m_audioTee = gst_element_factory_make("tee", NULL);
-                m_audioPreviewQueue = gst_element_factory_make("queue", NULL);
+                m_audioTee = gst_element_factory_make("tee", nullptr);
+                m_audioPreviewQueue = gst_element_factory_make("queue", nullptr);
 
                 ok &= m_audioSrc && m_audioPreview && m_audioTee && m_audioPreviewQueue;
 

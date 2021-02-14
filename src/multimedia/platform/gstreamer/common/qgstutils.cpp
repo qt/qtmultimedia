@@ -176,7 +176,7 @@ QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
 GstCaps *QGstUtils::capsForAudioFormat(const QAudioFormat &format)
 {
     if (!format.isValid())
-        return 0;
+        return nullptr;
 
     auto sampleFormat = format.sampleFormat();
     return gst_caps_new_simple(
@@ -623,8 +623,8 @@ bool QGstUtils::useOpenGL()
 
 const gchar *qt_gst_element_get_factory_name(GstElement *element)
 {
-    const gchar *name = 0;
-    const GstElementFactory *factory = 0;
+    const gchar *name = nullptr;
+    const GstElementFactory *factory = nullptr;
 
     if (element && (factory = gst_element_get_factory(element)))
         name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));

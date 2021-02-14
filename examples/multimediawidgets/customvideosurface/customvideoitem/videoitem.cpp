@@ -61,9 +61,7 @@ VideoItem::VideoItem(QGraphicsItem *parent)
 {
 }
 
-VideoItem::~VideoItem()
-{
-}
+VideoItem::~VideoItem() = default;
 
 QRectF VideoItem::boundingRect() const
 {

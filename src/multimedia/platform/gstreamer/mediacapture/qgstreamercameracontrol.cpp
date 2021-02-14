@@ -67,9 +67,7 @@ QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *sessi
     m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideoAndImage);
 }
 
-QGstreamerCameraControl::~QGstreamerCameraControl()
-{
-}
+QGstreamerCameraControl::~QGstreamerCameraControl() = default;
 
 void QGstreamerCameraControl::setState(QCamera::State state)
 {

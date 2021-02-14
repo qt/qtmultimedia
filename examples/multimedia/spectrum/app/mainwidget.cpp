@@ -103,10 +103,7 @@ MainWidget::MainWidget(QWidget *parent)
     connectUi();
 }
 
-MainWidget::~MainWidget()
-{
-
-}
+MainWidget::~MainWidget() = default;
 
 
 //-----------------------------------------------------------------------------

@@ -349,30 +349,19 @@ QMediaTimeRange::QMediaTimeRange(const QMediaTimeInterval &interval)
 
     Constructs a time range by copying another time \a range.
 */
-QMediaTimeRange::QMediaTimeRange(const QMediaTimeRange &range)
-    : d(range.d)
-{
-
-}
+QMediaTimeRange::QMediaTimeRange(const QMediaTimeRange &range) = default;
 
 /*!
     \fn QMediaTimeRange::~QMediaTimeRange()
 
     Destructor.
 */
-QMediaTimeRange::~QMediaTimeRange()
-{
-
-}
+QMediaTimeRange::~QMediaTimeRange() = default;
 
 /*!
     Takes a copy of the \a other time range and returns itself.
 */
-QMediaTimeRange &QMediaTimeRange::operator=(const QMediaTimeRange &other)
-{
-    d = other.d;
-    return *this;
-}
+QMediaTimeRange &QMediaTimeRange::operator=(const QMediaTimeRange &other) = default;
 
 /*!
     Sets the time range to a single continuous interval, \a interval.

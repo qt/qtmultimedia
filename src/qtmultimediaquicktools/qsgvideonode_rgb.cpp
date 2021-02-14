@@ -192,9 +192,7 @@ QSGVideoNode_RGB::QSGVideoNode_RGB(const QVideoSurfaceFormat &format) :
     setMaterial(m_material);
 }
 
-QSGVideoNode_RGB::~QSGVideoNode_RGB()
-{
-}
+QSGVideoNode_RGB::~QSGVideoNode_RGB() = default;
 
 void QSGVideoNode_RGB::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {

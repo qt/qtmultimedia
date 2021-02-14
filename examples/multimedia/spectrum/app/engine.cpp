@@ -135,10 +135,7 @@ Engine::Engine(QObject *parent)
 #endif
 }
 
-Engine::~Engine()
-{
-
-}
+Engine::~Engine() = default;
 
 //-----------------------------------------------------------------------------
 // Public functions

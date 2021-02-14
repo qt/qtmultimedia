@@ -117,9 +117,7 @@ QDeclarativeCameraExposure::QDeclarativeCameraExposure(QCamera *camera, QObject 
     });
 }
 
-QDeclarativeCameraExposure::~QDeclarativeCameraExposure()
-{
-}
+QDeclarativeCameraExposure::~QDeclarativeCameraExposure() = default;
 /*!
     \property QDeclarativeCameraExposure::exposureCompensation
 

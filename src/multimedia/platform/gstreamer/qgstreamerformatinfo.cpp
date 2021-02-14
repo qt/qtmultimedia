@@ -329,9 +329,7 @@ QGstreamerFormatInfo::QGstreamerFormatInfo()
     imageFormats = getImageFormatList();
 }
 
-QGstreamerFormatInfo::~QGstreamerFormatInfo()
-{
-}
+QGstreamerFormatInfo::~QGstreamerFormatInfo() = default;
 
 QGstMutableCaps QGstreamerFormatInfo::formatCaps(const QMediaFormat &f) const
 {

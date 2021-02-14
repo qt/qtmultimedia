@@ -43,20 +43,11 @@
 
 QT_BEGIN_NAMESPACE
 
-QCameraFormat::QCameraFormat(const QCameraFormat &other)
-    : d(other.d)
-{
-}
+QCameraFormat::QCameraFormat(const QCameraFormat &other) = default;
 
-QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other)
-{
-    d = other.d;
-    return *this;
-}
+QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other) = default;
 
-QCameraFormat::~QCameraFormat()
-{
-}
+QCameraFormat::~QCameraFormat() = default;
 
 QVideoFrame::PixelFormat QCameraFormat::pixelFormat() const
 {
@@ -118,17 +109,12 @@ QCameraInfo::QCameraInfo() = default;
 /*!
     Constructs a copy of \a other.
 */
-QCameraInfo::QCameraInfo(const QCameraInfo &other)
-    : d(other.d)
-{
-}
+QCameraInfo::QCameraInfo(const QCameraInfo &other) = default;
 
 /*!
     Destroys the QCameraInfo.
 */
-QCameraInfo::~QCameraInfo()
-{
-}
+QCameraInfo::~QCameraInfo() = default;
 
 /*!
     Returns true if this QCameraInfo is equal to \a other.
@@ -205,11 +191,7 @@ QCameraInfo::QCameraInfo(QCameraInfoPrivate *p)
 /*!
     Sets the QCameraInfo object to be equal to \a other.
 */
-QCameraInfo& QCameraInfo::operator=(const QCameraInfo& other)
-{
-    d = other.d;
-    return *this;
-}
+QCameraInfo& QCameraInfo::operator=(const QCameraInfo& other) = default;
 
 /*!
     \fn QCameraInfo::operator!=(const QCameraInfo &other) const

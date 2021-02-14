@@ -46,9 +46,7 @@ QGstreamerStreamsControl::QGstreamerStreamsControl(QGstreamerPlayerSession *sess
     connect(m_session, SIGNAL(streamsChanged()), SIGNAL(streamsChanged()));
 }
 
-QGstreamerStreamsControl::~QGstreamerStreamsControl()
-{
-}
+QGstreamerStreamsControl::~QGstreamerStreamsControl() = default;
 
 int QGstreamerStreamsControl::streamCount()
 {

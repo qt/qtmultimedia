@@ -75,9 +75,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QObject *parent)
     connect(m_session, &QGstreamerPlayerSession::metaDataChanged, this, &QGstreamerMediaPlayer::metaDataChanged);
 }
 
-QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
-{
-}
+QGstreamerMediaPlayer::~QGstreamerMediaPlayer() = default;
 
 qint64 QGstreamerMediaPlayer::position() const
 {

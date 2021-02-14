@@ -47,9 +47,7 @@ QGstreamerBufferProbe::QGstreamerBufferProbe(Flags flags)
 {
 }
 
-QGstreamerBufferProbe::~QGstreamerBufferProbe()
-{
-}
+QGstreamerBufferProbe::~QGstreamerBufferProbe() = default;
 
 void QGstreamerBufferProbe::addProbeToPad(GstPad *pad, bool downstream)
 {

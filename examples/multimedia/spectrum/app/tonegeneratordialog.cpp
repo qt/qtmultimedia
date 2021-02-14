@@ -127,10 +127,7 @@ ToneGeneratorDialog::ToneGeneratorDialog(QWidget *parent)
     setLayout(dialogLayout);
 }
 
-ToneGeneratorDialog::~ToneGeneratorDialog()
-{
-
-}
+ToneGeneratorDialog::~ToneGeneratorDialog() = default;
 
 bool ToneGeneratorDialog::isFrequencySweepEnabled() const
 {

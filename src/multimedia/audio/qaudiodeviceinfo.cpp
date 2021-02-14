@@ -46,9 +46,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate()
-{
-}
+QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate() = default;
 
 /*!
     \class QAudioDeviceInfo
@@ -112,26 +110,17 @@ QAudioDeviceInfo::QAudioDeviceInfo():
 /*!
     Constructs a copy of \a other.
 */
-QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other):
-    d(other.d)
-{
-}
+QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other) = default;
 
 /*!
     Destroy this audio device info.
 */
-QAudioDeviceInfo::~QAudioDeviceInfo()
-{
-}
+QAudioDeviceInfo::~QAudioDeviceInfo() = default;
 
 /*!
     Sets the QAudioDeviceInfo object to be equal to \a other.
 */
-QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other)
-{
-    d = other.d;
-    return *this;
-}
+QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other) = default;
 
 /*!
     Returns true if this QAudioDeviceInfo class represents the

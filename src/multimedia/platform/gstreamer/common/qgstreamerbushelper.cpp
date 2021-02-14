@@ -73,9 +73,9 @@ public:
         }
     }
 
-    ~QGstreamerBusHelperPrivate()
+    ~QGstreamerBusHelperPrivate() override
     {
-        m_helper = 0;
+        m_helper = nullptr;
         delete m_intervalTimer;
 
         if (m_tag)
@@ -88,7 +88,7 @@ private slots:
     void interval()
     {
         GstMessage* message;
-        while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != 0) {
+        while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != nullptr) {
             processMessage(message);
             gst_message_unref(message);
         }
@@ -162,13 +162,13 @@ QGstreamerBusHelper::QGstreamerBusHelper(GstBus* bus, QObject* parent):
     QObject(parent)
 {
     d = new QGstreamerBusHelperPrivate(this, bus);
-    gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, d, 0);
+    gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, d, nullptr);
     gst_object_ref(GST_OBJECT(bus));
 }
 
 QGstreamerBusHelper::~QGstreamerBusHelper()
 {
-    gst_bus_set_sync_handler(d->bus(), 0, 0, 0);
+    gst_bus_set_sync_handler(d->bus(), nullptr, nullptr, nullptr);
     gst_object_unref(GST_OBJECT(d->bus()));
 }
 

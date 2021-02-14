@@ -58,9 +58,7 @@ QGstreamerVideoWindow::QGstreamerVideoWindow(QObject *parent, const QByteArray &
             this, &QGstreamerVideoWindow::saturationChanged);
 }
 
-QGstreamerVideoWindow::~QGstreamerVideoWindow()
-{
-}
+QGstreamerVideoWindow::~QGstreamerVideoWindow() = default;
 
 GstElement *QGstreamerVideoWindow::videoSink()
 {

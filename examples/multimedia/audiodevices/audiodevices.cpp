@@ -76,7 +76,7 @@ AudioDevicesBase::AudioDevicesBase(QWidget *parent)
     setupUi(this);
 }
 
-AudioDevicesBase::~AudioDevicesBase() {}
+AudioDevicesBase::~AudioDevicesBase() = default;
 
 
 AudioTest::AudioTest(QWidget *parent)
@@ -167,8 +167,8 @@ void AudioTest::deviceChanged(int idx)
 
     sampleFormatBox->clear();
     const QList<QAudioFormat::SampleFormat> sampleFormats = m_deviceInfo.supportedSampleFormats();
-    for (int i = 0; i < sampleFormats.size(); ++i)
-        sampleFormatBox->addItem(toString(sampleFormats.at(i)));
+    for (auto sampleFormat : sampleFormats)
+        sampleFormatBox->addItem(toString(sampleFormat));
     if (sampleFormats.size())
         m_settings.setSampleFormat(sampleFormats.at(0));
 

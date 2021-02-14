@@ -98,7 +98,7 @@ private:
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
     QRect m_displayRect;
     QSize m_nativeSize;
-    bool m_fullScreen = 0;
+    bool m_fullScreen = false;
 };
 
 class QtTestVideoObject : public QObject
@@ -122,8 +122,7 @@ public:
     }
 
     ~tst_QDeclarativeVideoOutputWindow() override
-    {
-    }
+    = default;
 
 public slots:
     void initTestCase();

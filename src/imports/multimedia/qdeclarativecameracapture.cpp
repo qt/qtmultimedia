@@ -114,9 +114,7 @@ QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera)
             this, SLOT(_q_cameraStatusChanged(QCamera::Status)));
 }
 
-QDeclarativeCameraCapture::~QDeclarativeCameraCapture()
-{
-}
+QDeclarativeCameraCapture::~QDeclarativeCameraCapture() = default;
 
 /*!
     \property QDeclarativeCameraCapture::ready

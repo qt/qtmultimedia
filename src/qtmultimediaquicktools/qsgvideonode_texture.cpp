@@ -119,9 +119,7 @@ public:
         m_texture.reset(new QSGVideoTexture);
     }
 
-    ~QSGVideoMaterial_Texture() override
-    {
-    }
+    ~QSGVideoMaterial_Texture() override = default;
 
     [[nodiscard]] QSGMaterialType *type() const override {
         static QSGMaterialType normalType, swizzleType;
@@ -216,9 +214,7 @@ QSGVideoNode_Texture::QSGVideoNode_Texture(const QVideoSurfaceFormat &format) :
     setMaterial(m_material);
 }
 
-QSGVideoNode_Texture::~QSGVideoNode_Texture()
-{
-}
+QSGVideoNode_Texture::~QSGVideoNode_Texture() = default;
 
 void QSGVideoNode_Texture::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
 {

@@ -52,7 +52,7 @@ class QSoundEffectPrivate : public QIODevice
 {
 public:
     QSoundEffectPrivate(QSoundEffect *q, const QAudioDeviceInfo &audioDevice = QAudioDeviceInfo());
-    ~QSoundEffectPrivate() {}
+    ~QSoundEffectPrivate() override = default;
 
     qint64 readData(char *data, qint64 len) override;
     qint64 writeData(const char *data, qint64 len) override;

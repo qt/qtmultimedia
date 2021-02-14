@@ -256,9 +256,7 @@ public:
 /*!
   \internal
  */
-QVideoFilterRunnable::~QVideoFilterRunnable()
-{
-}
+QVideoFilterRunnable::~QVideoFilterRunnable() = default;
 
 /*!
   Constructs a new QAbstractVideoFilter instance with parent object \a parent.

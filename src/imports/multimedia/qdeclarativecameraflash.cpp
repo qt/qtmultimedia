@@ -82,9 +82,7 @@ QDeclarativeCameraFlash::QDeclarativeCameraFlash(QCamera *camera, QObject *paren
             this, SLOT(_q_cameraStatusChanged(QCamera::Status)));
 }
 
-QDeclarativeCameraFlash::~QDeclarativeCameraFlash()
-{
-}
+QDeclarativeCameraFlash::~QDeclarativeCameraFlash() = default;
 
 /*!
     \qmlproperty bool QtMultimedia::CameraFlash::ready
