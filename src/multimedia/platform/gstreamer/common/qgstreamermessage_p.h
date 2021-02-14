@@ -52,7 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -66,6 +66,10 @@ public:
     QGstreamerMessage(GstMessage* message);
     QGstreamerMessage(QGstreamerMessage const& m);
     ~QGstreamerMessage();
+
+    bool isNull() const { return !m_message; }
+    GstMessageType type() const { return GST_MESSAGE_TYPE(m_message); }
+    QGstObject source() const { return QGstObject(GST_MESSAGE_SRC(m_message), QGstObject::NeedsRef); }
 
     GstMessage* rawMessage() const;
 

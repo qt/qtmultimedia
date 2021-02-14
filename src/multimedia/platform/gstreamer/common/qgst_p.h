@@ -276,6 +276,8 @@ public:
     const char *name() const { return GST_OBJECT_NAME(m_object); }
 };
 
+class QGstElement;
+
 class QGstPad : public QGstObject
 {
 public:
@@ -292,6 +294,9 @@ public:
 
     bool isLinked() const { return gst_pad_is_linked(pad()); }
     bool link(const QGstPad &sink) const { return gst_pad_link(pad(), sink.pad()) == GST_PAD_LINK_OK; }
+    bool unlink(const QGstPad &sink) const { return gst_pad_unlink(pad(), sink.pad()); }
+    QGstPad peer() const { return QGstPad(gst_pad_get_peer(pad()), HasRef); }
+    inline QGstElement parent() const;
 
     GstPad *pad() const { return GST_PAD_CAST(object()); }
 
@@ -332,9 +337,12 @@ public:
     { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), nullptr); }
     bool link(const QGstElement &n1, const QGstElement &n2, const QGstElement &n3, const QGstElement &n4)
     { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), n4.element(), nullptr); }
+    bool link(const QGstElement &n1, const QGstElement &n2, const QGstElement &n3, const QGstElement &n4, const QGstElement &n5)
+    { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), n4.element(), n5.element(), nullptr); }
 
     QGstPad staticPad(const char *name) { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
     QGstPad getRequestPad(const char *name) { return QGstPad(gst_element_get_request_pad(element(), name), HasRef); }
+    void releaseRequestPad(const QGstPad &pad) { return gst_element_release_request_pad(element(), pad.pad()); }
 
     GstState state() const
     {
@@ -384,9 +392,24 @@ public:
 
         g_signal_connect (element(), "pad-added", G_CALLBACK(Impl::callback), instance);
     }
+    template<auto Member, typename T>
+    void onPadRemoved(T *instance) {
+        struct Impl {
+            static void callback(GstElement *e, GstPad *pad, gpointer userData) {
+                (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef), QGstPad(pad, NeedsRef));
+            };
+        };
+
+        g_signal_connect (element(), "pad-removed", G_CALLBACK(Impl::callback), instance);
+    }
 
     GstElement *element() const { return GST_ELEMENT_CAST(m_object); }
 };
+
+inline QGstElement QGstPad::parent() const
+{
+    return QGstElement(gst_pad_get_parent_element(pad()), HasRef);
+}
 
 class QGstBin : public QGstElement
 {
@@ -412,6 +435,8 @@ public:
     { gst_bin_add_many(bin(), e1.element(), e2.element(), e3.element(), e4.element(), nullptr); }
     void add(const QGstElement &e1, const QGstElement &e2, const QGstElement &e3, const QGstElement &e4, const QGstElement &e5)
     { gst_bin_add_many(bin(), e1.element(), e2.element(), e3.element(), e4.element(), e5.element(), nullptr); }
+    void add(const QGstElement &e1, const QGstElement &e2, const QGstElement &e3, const QGstElement &e4, const QGstElement &e5, const QGstElement &e6)
+    { gst_bin_add_many(bin(), e1.element(), e2.element(), e3.element(), e4.element(), e5.element(), e6.element(), nullptr); }
     void remove(const QGstElement &element)
     { gst_bin_remove(bin(), element.element()); }
 

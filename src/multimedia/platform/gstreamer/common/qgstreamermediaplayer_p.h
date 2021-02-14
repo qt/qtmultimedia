@@ -55,12 +55,17 @@
 #include <qplatformmediaplayer_p.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <qurl.h>
-#include <private/qgstutils_p.h>
+#include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
+class QNetworkAccessManager;
 class QGstreamerPlayerSession;
 class QGstreamerStreamsControl;
+class QGstreamerVideoRenderer;
+class QGstreamerBusHelper;
+class QGstreamerMessage;
+class QGstAppSrc;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QPlatformMediaPlayer
 {
@@ -69,8 +74,6 @@ class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QPlatformMediaPlayer
 public:
     QGstreamerMediaPlayer(QObject *parent = 0);
     ~QGstreamerMediaPlayer();
-
-    QGstreamerPlayerSession *session() { return m_session; }
 
     QMediaPlayer::State state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;
@@ -117,34 +120,63 @@ public Q_SLOTS:
     void setVolume(int volume) override;
     void setMuted(bool muted) override;
 
-private Q_SLOTS:
-    void updateSessionState(QMediaPlayer::State state);
-    void updateMediaStatus();
-    void processEOS();
-    void setBufferProgress(int progress);
-
-    void handleInvalidMedia();
+    void busMessage(const QGstreamerMessage& message);
 
 private:
-    void playOrPause(QMediaPlayer::State state);
+    friend class QGstreamerStreamsControl;
+    void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
+    void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
+    void prepareAudioOutputChange(const QGstPad &pad);
+    bool changeAudioOutput();
+    void updateVideoSink();
+    void setSeekable(bool seekable);
 
-    void pushState();
-    void popAndNotifyState();
-
-    QGstreamerPlayerSession *m_session = nullptr;
     QGstreamerStreamsControl *m_streamsControl = nullptr;
+    QMediaMetaData m_metaData;
 
-    QMediaPlayer::State m_userRequestedState = QMediaPlayer::StoppedState;
-    QMediaPlayer::State m_currentState = QMediaPlayer::StoppedState;
+    QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
-    QStack<QMediaPlayer::State> m_stateStack;
-    QStack<QMediaPlayer::MediaStatus> m_mediaStatusStack;
 
     int m_bufferProgress = -1;
-    qint64 m_pendingSeekPosition = -1;
-    bool m_setMediaPending = false;
-    QUrl m_currentResource;
+    QUrl m_url;
+    QNetworkAccessManager *networkManager = nullptr;
     QIODevice *m_stream = nullptr;
+    bool ownStream = false;
+
+    int m_volume = 100.;
+    bool m_muted = false;
+    double m_playbackRate = 1.;
+    bool m_seekable = false;
+    qint64 m_duration = 0;
+
+    QAudioDeviceInfo m_audioOutput;
+    QAbstractVideoSurface *m_videoSurface = nullptr;
+    QGstreamerVideoRenderer *m_videoOutput = nullptr;
+
+    QGstreamerBusHelper *busHelper;
+    QGstAppSrc *m_appSrc;
+
+    // Gst elements
+    QGstPipeline playerPipeline;
+    QGstElement src;
+    QGstElement decoder;
+    QGstElement audioInputSelector;
+    QGstElement videoInputSelector;
+    QGstElement subTitleInputSelector;
+//    QGstElement streamSynchronizer;
+
+    QGstElement audioQueue;
+    QGstElement audioConvert;
+    QGstElement audioResample;
+    QGstElement audioVolume;
+    QGstElement audioSink;
+
+    QGstElement videoQueue;
+    QGstElement videoConvert;
+    QGstElement videoScale;
+    QGstElement videoSink;
+
+    QHash<QByteArray, QGstPad> decoderOutputMap;
 };
 
 QT_END_NAMESPACE

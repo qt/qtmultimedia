@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     if (!parser.positionalArguments().isEmpty() && player.isPlayerAvailable()) {
         QList<QUrl> urls;
         for (auto &a: parser.positionalArguments())
-            urls.append(QUrl::fromUserInput(a, QDir::currentPath(), QUrl::AssumeLocalFile));
+            urls.append(QUrl::fromUserInput(a, QDir::currentPath()));
         player.addToPlaylist(urls);
     }
 

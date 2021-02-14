@@ -41,6 +41,10 @@
 
 #include "qgstappsrc_p.h"
 #include "qgstutils_p.h"
+#include "qnetworkreply.h"
+#include "qloggingcategory.h"
+
+Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
 
 QGstAppSrc::QGstAppSrc(QObject *parent)
     : QObject(parent)
@@ -84,9 +88,11 @@ bool QGstAppSrc::setup(GstElement* appsrc)
             g_object_set(m_appSrc, "caps",  caps, nullptr);
             g_object_set(m_appSrc, "format", GST_FORMAT_TIME, nullptr);
         } else {
-            qWarning() << "QGstAppSrc: Invalid caps";
+            qCWarning(qLcAppSrc) << "Invalid caps";
         }
     }
+
+    m_networkReply = qobject_cast<QNetworkReply *>(m_stream);
 
     return true;
 }
@@ -131,6 +137,7 @@ GstAppSrc *QGstAppSrc::element()
 
 void QGstAppSrc::onDataReady()
 {
+    qCDebug(qLcAppSrc) << "onDataReady" << m_stream->bytesAvailable() << m_stream->size();
     if (!m_enoughData) {
         m_dataRequested = true;
         pushDataToAppSrc();
@@ -147,10 +154,11 @@ void QGstAppSrc::streamDestroyed()
 
 void QGstAppSrc::pushDataToAppSrc()
 {
+    qCDebug(qLcAppSrc) << "pushData" << m_stream->bytesAvailable();
     if ((!isStreamValid() && !m_buffer) || !m_appSrc)
         return;
 
-    if (m_stream->atEnd()) {
+    if (m_stream->atEnd() && (!m_networkReply || !m_networkReply->isRunning())) {
         sendEOS();
         return;
     }
@@ -176,15 +184,20 @@ void QGstAppSrc::pushDataToAppSrc()
         gst_buffer_map(buffer, &mapInfo, GST_MAP_WRITE);
         void* bufferData = mapInfo.data;
 
-        buffer->offset = m_stream->pos();
+        if (m_sequential)
+            buffer->offset = bytesReadSoFar;
+        else
+            buffer->offset = m_stream->pos();
         qint64 bytesRead;
         if (m_buffer)
             bytesRead = m_buffer->read((char*)bufferData, size);
         else
             bytesRead = m_stream->read((char*)bufferData, size);
         buffer->offset_end =  buffer->offset + bytesRead - 1;
+        bytesReadSoFar += bytesRead;
 
         gst_buffer_unmap(buffer, &mapInfo);
+        qCDebug(qLcAppSrc) << "pushing bytes into gstreamer" << m_stream->pos() << buffer->offset << bytesRead;
 
         if (bytesRead > 0) {
             m_dataRequested = false;
@@ -198,7 +211,7 @@ void QGstAppSrc::pushDataToAppSrc()
         }
     }
 
-    if (m_stream->atEnd())
+    if (m_stream->atEnd() && (!m_networkReply || !m_networkReply->isRunning()))
         sendEOS();
 }
 
@@ -229,6 +242,7 @@ gboolean QGstAppSrc::on_seek_data(GstAppSrc *element, guint64 arg0, gpointer use
 
 void QGstAppSrc::on_enough_data(GstAppSrc *element, gpointer userdata)
 {
+    qCDebug(qLcAppSrc) << "on_enough_data";
     Q_UNUSED(element);
     QGstAppSrc *self = static_cast<QGstAppSrc*>(userdata);
     if (self)
@@ -237,6 +251,7 @@ void QGstAppSrc::on_enough_data(GstAppSrc *element, gpointer userdata)
 
 void QGstAppSrc::on_need_data(GstAppSrc *element, guint arg0, gpointer userdata)
 {
+    qCDebug(qLcAppSrc) << "on_need_data requesting bytes" << arg0;
     Q_UNUSED(element);
     QGstAppSrc *self = static_cast<QGstAppSrc*>(userdata);
     if (self) {
@@ -254,6 +269,7 @@ void QGstAppSrc::destroy_notify(gpointer data)
 
 void QGstAppSrc::sendEOS()
 {
+    qCDebug(qLcAppSrc) << "sending EOS";
     if (!m_appSrc)
         return;
 

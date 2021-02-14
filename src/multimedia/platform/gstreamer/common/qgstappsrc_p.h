@@ -63,6 +63,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QNetworkReply;
+
 class Q_MULTIMEDIA_EXPORT QGstAppSrc  : public QObject
 {
     Q_OBJECT
@@ -119,6 +121,7 @@ private:
     void sendEOS();
 
     QIODevice *m_stream = nullptr;
+    QNetworkReply *m_networkReply = nullptr;
     QRingBuffer *m_buffer = nullptr;
     QAudioFormat m_format;
 
@@ -127,6 +130,7 @@ private:
     GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     GstAppSrcCallbacks m_callbacks;
     qint64 m_maxBytes = 0;
+    qint64 bytesReadSoFar = 0;
     unsigned int m_dataRequestSize = ~0;
     bool m_dataRequested = false;
     bool m_enoughData = false;
