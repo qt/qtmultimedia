@@ -129,16 +129,13 @@ static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSe
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    QGstCaps caps = formatInfo->formatCaps(settings.format());
+    QGstMutableCaps caps = formatInfo->formatCaps(settings.format());
 
     GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
                 "container_profile",
                 (gchar *)"custom container profile",
-                const_cast<GstCaps *>(caps.caps),
+                const_cast<GstCaps *>(caps.get()),
                 NULL); //preset
-
-    caps.unref();
-
     return profile;
 }
 
@@ -146,17 +143,15 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    QGstCaps caps = formatInfo->videoCaps(settings);
+    QGstMutableCaps caps = formatInfo->videoCaps(settings);
     if (caps.isNull())
         return nullptr;
 
     GstEncodingVideoProfile *profile = gst_encoding_video_profile_new(
-                const_cast<GstCaps *>(caps.caps),
+                const_cast<GstCaps *>(caps.get()),
                 nullptr,
                 NULL, //restriction
                 0); //presence
-
-    caps.unref();
 
     gst_encoding_video_profile_set_pass(profile, 0);
     gst_encoding_video_profile_set_variableframerate(profile, TRUE);
@@ -168,17 +163,15 @@ static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    QGstCaps caps = formatInfo->audioCaps(settings);
+    auto caps = formatInfo->audioCaps(settings);
     if (caps.isNull())
         return nullptr;
 
     GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
-                const_cast<GstCaps *>(caps.caps),
+                const_cast<GstCaps *>(caps.get()),
                 nullptr, //preset
                 NULL,   //restriction
                 0);     //presence
-
-    caps.unref();
 
     return profile;
 }

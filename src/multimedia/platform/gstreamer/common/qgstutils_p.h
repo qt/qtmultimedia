@@ -176,18 +176,52 @@ public:
 };
 
 class QGstCaps {
+    const GstCaps *caps;
 public:
     QGstCaps(const GstCaps *c) : caps(c) {}
-    const GstCaps *caps;
-    void unref() {
-        gst_caps_unref(const_cast<GstCaps *>(caps));
-        caps = nullptr;
+
+    bool isNull() const { return !caps; }
+
+    int size() const { return gst_caps_get_size(caps); }
+    QGstStructure at(int index) { return gst_caps_get_structure(caps, index); }
+    const GstCaps *get() const { return caps; }
+};
+
+class QGstMutableCaps {
+    GstCaps *caps;
+public:
+    enum RefMode { HasRef, NeedsRef };
+    QGstMutableCaps(GstCaps *c, RefMode mode = HasRef)
+        : caps(c)
+    {
+        if (mode == NeedsRef)
+            gst_caps_ref(caps);
+    }
+    QGstMutableCaps(const QGstMutableCaps &other)
+        : caps(other.caps)
+    {
+        if (caps)
+            gst_caps_ref(caps);
+    }
+    QGstMutableCaps &operator=(const QGstMutableCaps &other)
+    {
+        if (other.caps)
+            gst_caps_ref(other.caps);
+        if (caps)
+            gst_caps_unref(const_cast<GstCaps *>(caps));
+        caps = other.caps;
+        return *this;
+    }
+    ~QGstMutableCaps() {
+        if (caps)
+            gst_caps_unref(const_cast<GstCaps *>(caps));
     }
 
     bool isNull() const { return !caps; }
 
     int size() const { return gst_caps_get_size(caps); }
     QGstStructure at(int index) { return gst_caps_get_structure(caps, index); }
+    GstCaps *get() { return caps; }
 };
 
 Q_MULTIMEDIA_EXPORT const gchar *qt_gst_element_get_factory_name(GstElement *element);

@@ -64,9 +64,9 @@ public:
     QGstreamerFormatInfo();
     ~QGstreamerFormatInfo();
 
-    QGstCaps formatCaps(const QMediaFormat &f) const;
-    QGstCaps audioCaps(const QMediaFormat &f) const;
-    QGstCaps videoCaps(const QMediaFormat &f) const;
+    QGstMutableCaps formatCaps(const QMediaFormat &f) const;
+    QGstMutableCaps audioCaps(const QMediaFormat &f) const;
+    QGstMutableCaps videoCaps(const QMediaFormat &f) const;
     // ###
 //    QGstCaps audioEncoderCaps(const QMediaEncoderSettings &f) const;
 //    QGstCaps videoEncoderCaps(const QMediaEncoderSettings &f) const;
