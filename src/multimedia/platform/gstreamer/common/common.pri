@@ -1,4 +1,5 @@
 HEADERS += \
+    $$PWD/qgst_p.h \
     $$PWD/qgstappsrc_p.h \
     $$PWD/qgstreamerbushelper_p.h \
     $$PWD/qgstreamermessage_p.h \

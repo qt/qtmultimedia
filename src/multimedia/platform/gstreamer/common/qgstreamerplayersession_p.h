@@ -196,7 +196,6 @@ private:
     static GstPadProbeReturn change_audio_sink_cb(GstPad *pad, GstPadProbeInfo *info, gpointer user_data);
 
     void updateAudioSink();
-    bool parsePipeline();
     bool setPipeline(GstElement *pipeline);
     void resetElements();
     void initPlaybin();

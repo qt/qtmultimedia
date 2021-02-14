@@ -247,7 +247,7 @@ void QGstreamerPlayerSession::loadFromStream(const QNetworkRequest &request, QIO
         m_appSrc = new QGstAppSrc(this);
     m_appSrc->setStream(appSrcStream);
 
-    if (!parsePipeline() && m_playbin) {
+    if (m_playbin) {
         m_metaData.clear();
         emit metaDataChanged();
 
@@ -279,7 +279,7 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
     }
 #endif
 
-    if (!parsePipeline() && m_playbin) {
+    if (m_playbin) {
         m_metaData.clear();
         emit metaDataChanged();
 
@@ -292,35 +292,6 @@ void QGstreamerPlayerSession::loadFromUri(const QNetworkRequest &request)
             emit streamsChanged();
         }
     }
-}
-
-bool QGstreamerPlayerSession::parsePipeline()
-{
-    if (m_request.url().scheme() != QLatin1String("gst-pipeline")) {
-        if (!m_playbin) {
-            resetElements();
-            initPlaybin();
-            updateVideoRenderer();
-        }
-        return false;
-    }
-
-    // Set current surface to video sink before creating a pipeline.
-    if (m_videoOutput)
-        QGstVideoRendererSink::setSurface(m_videoOutput->surface());
-
-    QString url = m_request.url().toString(QUrl::RemoveScheme);
-    QString desc = QUrl::fromPercentEncoding(url.toLatin1().constData());
-    GError *err = nullptr;
-    GstElement *pipeline = gst_parse_launch(desc.toLatin1().constData(), &err);
-    if (err) {
-        auto errstr = QLatin1String(err->message);
-        qWarning() << "Error:" << desc << ":" << errstr;
-        emit error(QMediaPlayer::FormatError, errstr);
-        g_clear_error(&err);
-    }
-
-    return setPipeline(pipeline);
 }
 
 static void gst_foreach(GstIterator *it, const std::function<bool(GstElement *)> &cmp)

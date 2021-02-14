@@ -55,6 +55,7 @@
 #include <qplatformmediaplayer_p.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <qurl.h>
+#include <private/qgstutils_p.h>
 
 QT_BEGIN_NAMESPACE
 
