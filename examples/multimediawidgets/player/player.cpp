@@ -112,6 +112,26 @@ Player::Player(QWidget *parent)
     histogramLayout->addWidget(m_videoHistogram, 1);
     histogramLayout->addWidget(m_audioHistogram, 2);
 
+    QLabel *metaDataLabel = new QLabel(tr("Metadata for file:"));
+    QGridLayout *metaDataLayout = new QGridLayout;
+    int key = QMediaMetaData::Title;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 6; j+=2) {
+            m_metaDataLabels[key] = new QLabel(QMediaMetaData::metaDataKeyToString
+                                    (static_cast<QMediaMetaData::Key>(key)));
+            if (key == QMediaMetaData::ThumbnailImage
+                    || key == QMediaMetaData::CoverArtImage)
+                m_metaDataFields[key] = new QLabel;
+            else
+                m_metaDataFields[key] = new QLineEdit;
+            m_metaDataLabels[key]->setDisabled(true);
+            m_metaDataFields[key]->setDisabled(true);
+            metaDataLayout->addWidget(m_metaDataLabels[key], i, j);
+            metaDataLayout->addWidget(m_metaDataFields[key], i, j+1);
+            key++;
+        }
+    }
+
     // ### replace by a monitoring outputs once we have them
 //    m_videoProbe = new QVideoProbe(this);
 //    connect(m_videoProbe, &QVideoProbe::videoFrameProbed, m_videoHistogram, &HistogramWidget::processFrame);
@@ -179,6 +199,8 @@ Player::Player(QWidget *parent)
     layout->addLayout(hLayout);
     layout->addLayout(controlLayout);
     layout->addLayout(histogramLayout);
+    layout->addWidget(metaDataLabel);
+    layout->addLayout(metaDataLayout);
 #if defined(Q_OS_QNX)
     // On QNX, the main window doesn't have a title bar (or any other decorations).
     // Create a status bar for the status information instead.
@@ -269,9 +291,33 @@ void Player::metaDataChanged()
             .arg(metaData.value(QMediaMetaData::AlbumArtist).toString())
             .arg(metaData.value(QMediaMetaData::Title).toString()));
 
-    if (m_coverLabel) {
-        QImage cover = metaData.value(QMediaMetaData::CoverArtImage).value<QImage>();
-        m_coverLabel->setPixmap(QPixmap::fromImage(cover));
+    for (int i = 0; i < QMediaMetaData::NumMetaData; i++) {
+        if (QLineEdit* field = qobject_cast<QLineEdit*>(m_metaDataFields[i]))
+            field->clear();
+        else if (QLabel* label = qobject_cast<QLabel*>(m_metaDataFields[i]))
+            label->clear();
+        m_metaDataFields[i]->setDisabled(true);
+        m_metaDataLabels[i]->setDisabled(true);
+    }
+
+    for (auto &key : metaData.keys()) {
+        int i = int(key);
+        if (key == QMediaMetaData::CoverArtImage) {
+            if (QLabel *cover = qobject_cast<QLabel*>(m_metaDataFields[key])) {
+                QImage coverImage = metaData.value(QMediaMetaData::CoverArtImage).value<QImage>();
+                cover->setPixmap(QPixmap::fromImage(coverImage));
+            }
+        }
+        else if (key == QMediaMetaData::ThumbnailImage) {
+            if (QLabel *thumbnail = qobject_cast<QLabel*>(m_metaDataFields[key])) {
+                QImage thumbnailImage = metaData.value(QMediaMetaData::CoverArtImage).value<QImage>();
+                thumbnail->setPixmap(QPixmap::fromImage(thumbnailImage));
+            }
+        }
+        else if (QLineEdit *field = qobject_cast<QLineEdit*>(m_metaDataFields[key]))
+            field->setText(QString("%1").arg(metaData.value(key).toString()));
+        m_metaDataFields[i]->setDisabled(false);
+        m_metaDataLabels[i]->setDisabled(false);
     }
 }
 
@@ -487,3 +533,4 @@ void Player::clearHistogram()
     QMetaObject::invokeMethod(m_videoHistogram, "processFrame", Qt::QueuedConnection, Q_ARG(QVideoFrame, QVideoFrame()));
     QMetaObject::invokeMethod(m_audioHistogram, "processBuffer", Qt::QueuedConnection, Q_ARG(QAudioBuffer, QAudioBuffer()));
 }
+

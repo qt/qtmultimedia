@@ -39,6 +39,7 @@
 
 #include "qmediametadata.h"
 #include <qvariant.h>
+#include <qobject.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -230,6 +231,66 @@ QVariant QMediaMetaData::value(QMediaMetaData::Key k) const
 void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
 {
     data.insert(k, value);
+}
+
+QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
+{
+    switch (k) {
+        case QMediaMetaData::Title:
+            return (QObject::tr("Title"));
+        case QMediaMetaData::Author:
+            return (QObject::tr("Author"));
+        case QMediaMetaData::Comment:
+            return (QObject::tr("Comment"));
+        case QMediaMetaData::Description:
+            return (QObject::tr("Description"));
+        case QMediaMetaData::Genre:
+            return (QObject::tr("Genre"));
+        case QMediaMetaData::Year:
+            return (QObject::tr("Year"));
+        case QMediaMetaData::Date:
+            return (QObject::tr("Date"));
+        case QMediaMetaData::Language:
+            return (QObject::tr("Language"));
+        case QMediaMetaData::Publisher:
+            return (QObject::tr("Publisher"));
+        case QMediaMetaData::Copyright:
+            return (QObject::tr("Copyright"));
+        case QMediaMetaData::Url:
+            return (QObject::tr("Url"));
+        case QMediaMetaData::Duration:
+            return (QObject::tr("Duration"));
+        case QMediaMetaData::MediaType:
+            return (QObject::tr("Media type"));
+        case QMediaMetaData::AudioBitRate:
+            return (QObject::tr("Audio bit rate"));
+        case QMediaMetaData::AudioCodec:
+            return (QObject::tr("Audio codec"));
+        case QMediaMetaData::VideoBitRate:
+            return (QObject::tr("Video bit rate"));
+        case QMediaMetaData::VideoCodec:
+            return (QObject::tr("Video codec"));
+        case QMediaMetaData::AlbumTitle:
+            return (QObject::tr("Album title"));
+        case QMediaMetaData::AlbumArtist:
+            return (QObject::tr("Album artist"));
+        case QMediaMetaData::ContributingArtist:
+            return (QObject::tr("Contributing artist"));
+        case QMediaMetaData::TrackNumber:
+            return (QObject::tr("Track number"));
+        case QMediaMetaData::Composer:
+            return (QObject::tr("Composer"));
+        case QMediaMetaData::ThumbnailImage:
+            return (QObject::tr("Thumbnail image"));
+        case QMediaMetaData::CoverArtImage:
+            return (QObject::tr("Cover art image"));
+        case QMediaMetaData::Orientation:
+            return (QObject::tr("Orientation"));
+        case QMediaMetaData::Resolution:
+            return (QObject::tr("Resolution"));
+        case QMediaMetaData::LeadPerformer:
+            return (QObject::tr("Lead performer"));
+    }
 }
 
 

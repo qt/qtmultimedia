@@ -89,6 +89,8 @@ public:
         LeadPerformer,
     };
 
+    static const int NumMetaData = 27;
+
 //    QMetaType typeForKey(Key k);
     QVariant value(Key k) const;
     void insert(Key k, const QVariant &value);
@@ -99,6 +101,8 @@ public:
     void clear() { data.clear(); }
 
     bool isEmpty() const { return data.isEmpty(); }
+
+    static QString metaDataKeyToString(Key k);
 
 protected:
     friend bool operator==(const QMediaMetaData &a, const QMediaMetaData &b)

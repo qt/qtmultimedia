@@ -54,6 +54,7 @@
 #include <QWidget>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
+#include <QMediaMetaData>
 
 QT_BEGIN_NAMESPACE
 class QAbstractItemView;
@@ -119,7 +120,6 @@ private:
     QMediaPlayer *m_player = nullptr;
     QMediaPlaylist *m_playlist = nullptr;
     QVideoWidget *m_videoWidget = nullptr;
-    QLabel *m_coverLabel = nullptr;
     QSlider *m_slider = nullptr;
     QLabel *m_labelDuration = nullptr;
     QPushButton *m_fullScreenButton = nullptr;
@@ -138,6 +138,9 @@ private:
     QString m_trackInfo;
     QString m_statusInfo;
     qint64 m_duration;
+
+    QWidget *m_metaDataFields[QMediaMetaData::NumMetaData] = {};
+    QLabel *m_metaDataLabels[QMediaMetaData::NumMetaData] = {};
 };
 
 #endif // PLAYER_H
