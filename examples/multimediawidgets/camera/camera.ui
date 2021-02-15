@@ -129,6 +129,16 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="0">
+          <widget class="QPushButton" name="metaDataButton">
+          <property name="text">
+           <string>Set metadata</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </widget>

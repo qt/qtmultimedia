@@ -26,6 +26,7 @@ qt_add_executable(camera
     imagesettings.cpp imagesettings.h imagesettings.ui
     main.cpp
     videosettings.cpp videosettings.h videosettings.ui
+    metadatadialog.cpp metadatadialog.h
 )
 set_target_properties(camera PROPERTIES
     WIN32_EXECUTABLE TRUE

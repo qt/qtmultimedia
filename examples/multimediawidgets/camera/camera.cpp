@@ -52,6 +52,7 @@
 #include "ui_camera.h"
 #include "videosettings.h"
 #include "imagesettings.h"
+#include "metadatadialog.h"
 
 #include <QMediaRecorder>
 #include <QVideoWidget>
@@ -60,6 +61,7 @@
 
 #include <QMessageBox>
 #include <QPalette>
+#include <QImage>
 
 #include <QtWidgets>
 #include <QMediaDeviceManager>
@@ -78,6 +80,8 @@ Camera::Camera() : ui(new Ui::Camera)
 
     connect(videoDevicesGroup, &QActionGroup::triggered, this, &Camera::updateCameraDevice);
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
+
+    connect(ui->metaDataButton, &QPushButton::clicked, this, &Camera::showMetaDataDialog);
 
     setCamera(QMediaDeviceManager::defaultVideoInput());
 
@@ -295,16 +299,19 @@ void Camera::updateRecorderState(QMediaRecorder::State state)
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(false);
+        ui->metaDataButton->setEnabled(false);
         break;
     case QMediaRecorder::PausedState:
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(false);
         ui->stopButton->setEnabled(true);
+        ui->metaDataButton->setEnabled(true);
         break;
     case QMediaRecorder::RecordingState:
         ui->recordButton->setEnabled(false);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(true);
+        ui->metaDataButton->setEnabled(true);
         break;
     }
 }
@@ -379,3 +386,36 @@ void Camera::updateCameras()
         ui->menuDevices->addAction(videoDeviceAction);
     }
 }
+
+void Camera::showMetaDataDialog()
+{
+    if (!m_metaDataDialog)
+        m_metaDataDialog = new MetaDataDialog(this);
+    m_metaDataDialog->setAttribute(Qt::WA_DeleteOnClose, false);
+    if (m_metaDataDialog->exec() == QDialog::Accepted)
+        saveMetaData();
+}
+
+void Camera::saveMetaData()
+{
+    QMediaMetaData data;
+    for (int i = 0; i < QMediaMetaData::NumMetaData; i++) {
+        QString val = m_metaDataDialog->m_metaDataFields[i]->text();
+        if (!val.isEmpty()) {
+            auto key = static_cast<QMediaMetaData::Key>(i);
+            if (i == QMediaMetaData::CoverArtImage) {
+                QImage coverArt(val);
+                data.insert(key, coverArt);
+            }
+            else if (i == QMediaMetaData::ThumbnailImage) {
+                QImage thumbnail(val);
+                data.insert(key, thumbnail);
+            }
+            else {
+                data.insert(key, val);
+            }
+        }
+    }
+    m_mediaRecorder->setMetaData(data);
+}
+

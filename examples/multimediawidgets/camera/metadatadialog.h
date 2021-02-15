@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2020 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -48,97 +48,31 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef DIALOG_H
+#define DIALOG_H
 
-#include <QCamera>
-#include <QCameraImageCapture>
-#include <QMediaRecorder>
-#include <QScopedPointer>
+#include <QDialog>
 #include <QMediaMetaData>
 
-#include <QMainWindow>
-
 QT_BEGIN_NAMESPACE
-namespace Ui { class Camera; }
-class QActionGroup;
+class QLabel;
+class QLineEdit;
 QT_END_NAMESPACE
 
-class MetaDataDialog;
-
-class Camera : public QMainWindow
+//! [0]
+class MetaDataDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    Camera();
+    explicit MetaDataDialog(QWidget *parent = nullptr);
 
-public slots:
-    void saveMetaData();
+    QLineEdit *m_metaDataFields[QMediaMetaData::NumMetaData] = {};
 
 private slots:
-    void setCamera(const QCameraInfo &cameraInfo);
-
-    void startCamera();
-    void stopCamera();
-
-    void record();
-    void pause();
-    void stop();
-    void setMuted(bool);
-
-    void takeImage();
-    void displayCaptureError(int, QCameraImageCapture::Error, const QString &errorString);
-
-    void configureCaptureSettings();
-    void configureVideoSettings();
-    void configureImageSettings();
-
-    void displayRecorderError();
-    void displayCameraError();
-
-    void updateCameraDevice(QAction *action);
-
-    void updateCameraState(QCamera::State);
-    void updateCaptureMode();
-    void updateRecorderState(QMediaRecorder::State state);
-    void setExposureCompensation(int index);
-
-    void updateRecordTime();
-
-    void processCapturedImage(int requestId, const QImage &img);
-
-    void displayViewfinder();
-    void displayCapturedImage();
-
-    void readyForCapture(bool ready);
-    void imageSaved(int id, const QString &fileName);
-
-    void updateCameras();
-
-    void showMetaDataDialog();
-
-protected:
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
-    void closeEvent(QCloseEvent *event) override;
-
-private:
-    Ui::Camera *ui;
-
-    QActionGroup *videoDevicesGroup  = nullptr;
-
-    QScopedPointer<QCamera> m_camera;
-    QCameraImageCapture *m_imageCapture;
-    QScopedPointer<QMediaRecorder> m_mediaRecorder;
-
-    QImageEncoderSettings m_imageSettings;
-    QMediaEncoderSettings m_encoderSettings;
-    bool m_isCapturingImage = false;
-    bool m_applicationExiting = false;
-    bool m_doImageCapture = true;
-
-    MetaDataDialog *m_metaDataDialog = nullptr;
+    void openThumbnailImage();
+    void openCoverArtImage();
 };
+//! [0]
 
 #endif
