@@ -288,6 +288,7 @@ int QAudioFormat::bytesPerSample() const
     case Float:
         return 4;
     }
+    return 0;
 }
 
 /*!
