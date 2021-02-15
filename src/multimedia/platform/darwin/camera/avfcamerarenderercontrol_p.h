@@ -64,6 +64,7 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraRendererControl;
+class QAbstractVideoSurface;
 
 class AVFCameraRendererControl : public QObject
 {

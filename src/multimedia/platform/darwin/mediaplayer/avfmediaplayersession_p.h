@@ -57,7 +57,7 @@
 #include <QtCore/QResource>
 #include <QtCore/QUrl>
 
-#include <QtMultimedia/QPlatformMediaPlayer>
+#include <qplatformmediaplayer_p.h>
 #include <QtMultimedia/QMediaPlayer>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);

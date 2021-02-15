@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/QPlatformMediaPlayer>
+#include <qplatformmediaplayer_p.h>
 #include <QtCore/QObject>
 
 QT_BEGIN_NAMESPACE

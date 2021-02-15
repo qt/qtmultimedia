@@ -63,6 +63,7 @@ QT_BEGIN_NAMESPACE
 
 class AVFDisplayLink;
 class AVFVideoFrameRenderer;
+class QAbstractVideoSurface;
 
 class AVFVideoRendererControl : public QObject, public AVFVideoOutput
 {
