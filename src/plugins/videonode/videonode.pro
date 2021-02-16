@@ -1,7 +1,7 @@
 TEMPLATE = subdirs
 QT_FOR_CONFIG += gui-private multimedia-private
 
-qtConfig(gpu_vivante) {
+qtConfig(gpu_vivante):qtConfig(gstreamer) {
     SUBDIRS += imx6
 }
 
