@@ -106,7 +106,13 @@ public:
 
     virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
 
-    virtual QMediaStreamsControl *mediaStreams() { return nullptr; }
+    // media streams
+    enum TrackType { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
+
+    virtual int trackCount(TrackType) { return 0; };
+    virtual QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) { return QMediaMetaData(); }
+    virtual int activeTrack(TrackType) { return -1; }
+    virtual void setActiveTrack(TrackType, int /*streamNumber*/) {}
 
 Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
@@ -125,6 +131,8 @@ Q_SIGNALS:
     void playbackRateChanged(qreal rate);
     void error(int error, const QString &errorString);
     void metaDataChanged();
+    void tracksChanged();
+    void activeTracksChanged();
 
 protected:
     explicit QPlatformMediaPlayer(QObject *parent = nullptr);

@@ -91,6 +91,7 @@ Player::Player(QWidget *parent)
     connect(m_player, &QMediaPlayer::videoAvailableChanged, this, &Player::videoAvailableChanged);
     connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &Player::displayErrorMessage);
     connect(m_player, &QMediaPlayer::stateChanged, this, &Player::stateChanged);
+    connect(m_player, &QMediaPlayer::tracksChanged, this, &Player::tracksChanged);
 
     m_playlistView = new QListView(this);
     m_playlistView->setModel(m_playlistModel);
@@ -103,6 +104,20 @@ Player::Player(QWidget *parent)
 
     m_labelDuration = new QLabel(this);
     connect(m_slider, &QSlider::sliderMoved, this, &Player::seek);
+
+    m_audioTracks = new QComboBox(this);
+    m_videoTracks = new QComboBox(this);
+    m_subtitleTracks = new QComboBox(this);
+    connect(m_audioTracks, &QComboBox::activated, this, &Player::selectAudioStream);
+    connect(m_videoTracks, &QComboBox::activated, this, &Player::selectVideoStream);
+    connect(m_subtitleTracks, &QComboBox::activated, this, &Player::selectSubtitleStream);
+    QGridLayout *tracksLayout = new QGridLayout;
+    tracksLayout->addWidget(new QLabel(tr("Audio Tracks:"), this), 0, 0);
+    tracksLayout->addWidget(m_audioTracks, 0, 1);
+    tracksLayout->addWidget(new QLabel(tr("Video Tracks:"), this), 1, 0);
+    tracksLayout->addWidget(m_videoTracks, 1, 1);
+    tracksLayout->addWidget(new QLabel(tr("Subtitle Tracks:"), this), 2, 0);
+    tracksLayout->addWidget(m_subtitleTracks, 2, 1);
 
     m_labelHistogram = new QLabel(this);
     m_labelHistogram->setText("Histogram:");
@@ -201,6 +216,7 @@ Player::Player(QWidget *parent)
     hLayout->addWidget(m_labelDuration);
     layout->addLayout(hLayout);
     layout->addLayout(controlLayout);
+    layout->addLayout(tracksLayout);
     layout->addLayout(histogramLayout);
     layout->addWidget(metaDataLabel);
     layout->addLayout(metaDataLayout);
@@ -326,6 +342,25 @@ void Player::metaDataChanged()
     }
 }
 
+void Player::tracksChanged()
+{
+    m_audioTracks->clear();
+    m_videoTracks->clear();
+    m_subtitleTracks->clear();
+
+    const auto audioStreams = m_player->audioTracks();
+    for (int i = 0; i < audioStreams.size(); ++i)
+        m_audioTracks->addItem(audioStreams.at(i).stringValue(QMediaMetaData::Language), i);
+
+    const auto videoStreams = m_player->videoTracks();
+    for (int i = 0; i < videoStreams.size(); ++i)
+        m_videoTracks->addItem(videoStreams.at(i).stringValue(QMediaMetaData::Language), i);
+
+    const auto subtitleStreams = m_player->subtitleTracks();
+    for (int i = 0; i < subtitleStreams.size(); ++i)
+        m_subtitleTracks->addItem(subtitleStreams.at(i).stringValue(QMediaMetaData::Language), i);
+}
+
 void Player::previousClicked()
 {
     // Go to previous track if we are within the first 5 seconds of playback
@@ -427,6 +462,24 @@ void Player::videoAvailableChanged(bool available)
             m_videoWidget->setFullScreen(true);
     }
     m_colorButton->setEnabled(available);
+}
+
+void Player::selectAudioStream()
+{
+    int stream = m_audioTracks->currentData().toInt();
+    m_player->setActiveAudioTrack(stream);
+}
+
+void Player::selectVideoStream()
+{
+    int stream = m_audioTracks->currentData().toInt();
+    m_player->setActiveVideoTrack(stream);
+}
+
+void Player::selectSubtitleStream()
+{
+    int stream = m_audioTracks->currentData().toInt();
+    m_player->setActiveSubtitleTrack(stream);
 }
 
 void Player::setTrackInfo(const QString &info)

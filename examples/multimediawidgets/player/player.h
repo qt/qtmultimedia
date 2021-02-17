@@ -92,6 +92,7 @@ private slots:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 progress);
     void metaDataChanged();
+    void tracksChanged();
 
     void previousClicked();
 
@@ -103,6 +104,10 @@ private slots:
     void stateChanged(QMediaPlayer::State state);
     void bufferingProgress(int progress);
     void videoAvailableChanged(bool available);
+
+    void selectAudioStream();
+    void selectVideoStream();
+    void selectSubtitleStream();
 
     void displayErrorMessage();
 
@@ -128,6 +133,10 @@ private:
     QDialog *m_colorDialog = nullptr;
     QLabel *m_statusLabel = nullptr;
     QStatusBar *m_statusBar = nullptr;
+
+    QComboBox *m_audioTracks = nullptr;
+    QComboBox *m_videoTracks = nullptr;
+    QComboBox *m_subtitleTracks = nullptr;
 
     QLabel *m_labelHistogram = nullptr;
     HistogramWidget *m_videoHistogram = nullptr;

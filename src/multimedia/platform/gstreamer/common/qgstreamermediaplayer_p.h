@@ -61,7 +61,6 @@ QT_BEGIN_NAMESPACE
 
 class QNetworkAccessManager;
 class QGstreamerPlayerSession;
-class QGstreamerStreamsControl;
 class QGstreamerVideoRenderer;
 class QGstreamerBusHelper;
 class QGstreamerMessage;
@@ -108,7 +107,10 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 
-    QMediaStreamsControl *mediaStreams() override;
+    int trackCount(TrackType) override;
+    QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) override;
+    int activeTrack(TrackType) override;
+    void setActiveTrack(TrackType, int /*streamNumber*/) override;
 
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
@@ -122,11 +124,12 @@ public Q_SLOTS:
 
     void busMessage(const QGstreamerMessage& message);
 
+
+
 private:
     friend class QGstreamerStreamsControl;
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
-    void padsDone(const QGstElement &src);
     void prepareAudioOutputChange(const QGstPad &pad);
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
     bool changeAudioOutput();
@@ -134,8 +137,8 @@ private:
     void setSeekable(bool seekable);
     void parseStreamsAndMetadata();
 
-    QGstreamerStreamsControl *m_streamsControl = nullptr;
     QMediaMetaData m_metaData;
+    QList<QGstPad> m_streams[3];
 
     QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
@@ -146,6 +149,7 @@ private:
     QIODevice *m_stream = nullptr;
     bool ownStream = false;
 
+    bool prerolling = false;
     int m_volume = 100.;
     bool m_muted = false;
     double m_playbackRate = 1.;
@@ -166,9 +170,8 @@ private:
     QGstPipeline playerPipeline;
     QGstElement src;
     QGstElement decoder;
-    QGstElement audioInputSelector;
-    QGstElement videoInputSelector;
-    QGstElement subTitleInputSelector;
+    QGstElement inputSelector[3];
+
 //    QGstElement streamSynchronizer;
 
     QGstElement audioQueue;

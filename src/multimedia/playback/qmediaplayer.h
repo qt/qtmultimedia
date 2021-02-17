@@ -123,19 +123,17 @@ public:
     bool setAudioOutput(const QAudioDeviceInfo &device);
     QAudioDeviceInfo audioOutput() const;
 
-//    using ContentStream = QVariantHash;
+    QList<QMediaMetaData> audioTracks() const;
+    QList<QMediaMetaData> videoTracks() const;
+    QList<QMediaMetaData> subtitleTracks() const;
 
-//    QList<ContentStream> audioStreams() const;
-//    QList<ContentStream> videoStreams() const;
-//    QList<ContentStream> subtitleStreams() const;
+    int activeAudioTrack() const;
+    int activeVideoTrack() const;
+    int activeSubtitleTrack() const;
 
-//    int audioStream() const;
-//    int videoStream() const;
-//    int subtitleStream() const;
-
-//    void setAudioStream(int index) const;
-//    void setVideoStream(int index) const;
-//    void setSubtitleStream(int index) const;
+    void setActiveAudioTrack(int index);
+    void setActiveVideoTrack(int index);
+    void setActiveSubtitleTrack(int index);
 
     void setVideoOutput(QObject *);
     void setVideoOutput(QAbstractVideoSurface *surface);
@@ -211,6 +209,9 @@ Q_SIGNALS:
     void customAudioRoleChanged(const QString &role);
 
     void metaDataChanged();
+
+    void tracksChanged();
+    void activeTracksChanged();
 
     void error(QMediaPlayer::Error error);
 

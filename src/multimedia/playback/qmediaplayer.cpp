@@ -101,6 +101,8 @@ public:
 
     void setMedia(const QUrl &media, QIODevice *stream = nullptr);
 
+    QList<QMediaMetaData> streamMetaData(QPlatformMediaPlayer::TrackType s) const;
+
     void _q_stateChanged(QMediaPlayer::State state);
     void _q_mediaStatusChanged(QMediaPlayer::MediaStatus status);
     void _q_error(int error, const QString &errorString);
@@ -253,6 +255,18 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
     qrcFile.swap(file); // Cleans up any previous file
 }
 
+QList<QMediaMetaData> QMediaPlayerPrivate::streamMetaData(QPlatformMediaPlayer::TrackType s) const
+{
+    QList<QMediaMetaData> streams;
+    if (control) {
+        int count = control->trackCount(s);
+        for (int i = 0; i < count; ++i) {
+            streams.append(control->trackMetaData(s, i));
+        }
+    }
+    return streams;
+}
+
 /*!
     Construct a QMediaPlayer instance
     parented to \a parent and with \a flags.
@@ -285,6 +299,8 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
     connect(d->control, &QPlatformMediaPlayer::playbackRateChanged, this, &QMediaPlayer::playbackRateChanged);
     connect(d->control, &QPlatformMediaPlayer::bufferStatusChanged, this, &QMediaPlayer::bufferStatusChanged);
     connect(d->control, &QPlatformMediaPlayer::metaDataChanged, this, &QMediaPlayer::metaDataChanged);
+    connect(d->control, &QPlatformMediaPlayer::tracksChanged, this, &QMediaPlayer::tracksChanged);
+    connect(d->control, &QPlatformMediaPlayer::activeTracksChanged, this, &QMediaPlayer::activeTracksChanged);
 
     d->state = d->control->state();
     d->status = d->control->mediaStatus();
@@ -684,6 +700,69 @@ QAudioDeviceInfo QMediaPlayer::audioOutput() const
 {
     Q_D(const QMediaPlayer);
     return d->control->audioOutput();
+}
+
+QList<QMediaMetaData> QMediaPlayer::audioTracks() const
+{
+    Q_D(const QMediaPlayer);
+    return d->streamMetaData(QPlatformMediaPlayer::AudioStream);
+}
+
+QList<QMediaMetaData> QMediaPlayer::videoTracks() const
+{
+    Q_D(const QMediaPlayer);
+    return d->streamMetaData(QPlatformMediaPlayer::VideoStream);
+}
+
+QList<QMediaMetaData> QMediaPlayer::subtitleTracks() const
+{
+    Q_D(const QMediaPlayer);
+    return d->streamMetaData(QPlatformMediaPlayer::SubtitleStream);
+}
+
+int QMediaPlayer::activeAudioTrack() const
+{
+    Q_D(const QMediaPlayer);
+    if (d->control)
+        return d->control->activeTrack(QPlatformMediaPlayer::AudioStream);
+    return 0;
+}
+
+int QMediaPlayer::activeVideoTrack() const
+{
+    Q_D(const QMediaPlayer);
+    if (d->control)
+        return d->control->activeTrack(QPlatformMediaPlayer::VideoStream);
+    return 0;
+}
+
+int QMediaPlayer::activeSubtitleTrack() const
+{
+    Q_D(const QMediaPlayer);
+    if (d->control)
+        return d->control->activeTrack(QPlatformMediaPlayer::SubtitleStream);
+    return 0;
+}
+
+void QMediaPlayer::setActiveAudioTrack(int index)
+{
+    Q_D(QMediaPlayer);
+    if (d->control)
+        d->control->setActiveTrack(QPlatformMediaPlayer::AudioStream, index);
+}
+
+void QMediaPlayer::setActiveVideoTrack(int index)
+{
+    Q_D(QMediaPlayer);
+    if (d->control)
+        d->control->setActiveTrack(QPlatformMediaPlayer::VideoStream, index);
+}
+
+void QMediaPlayer::setActiveSubtitleTrack(int index)
+{
+    Q_D(QMediaPlayer);
+    if (d->control)
+        d->control->setActiveTrack(QPlatformMediaPlayer::SubtitleStream, index);
 }
 
 /*!

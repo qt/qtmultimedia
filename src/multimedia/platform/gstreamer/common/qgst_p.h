@@ -236,7 +236,7 @@ public:
     QGstObject(GstObject *o, RefMode mode = HasRef)
         : m_object(o)
     {
-        if (mode == NeedsRef)
+        if (o && mode == NeedsRef)
             // Use ref_sink to remove any floating references
             gst_object_ref_sink(m_object);
     }
@@ -274,6 +274,7 @@ public:
     void set(const char *property, qint64 i) { g_object_set(m_object, property, gint64(i), nullptr); }
     void set(const char *property, quint64 i) { g_object_set(m_object, property, guint64(i), nullptr); }
     void set(const char *property, double d) { g_object_set(m_object, property, gdouble(d), nullptr); }
+    void set(const char *property, const QGstObject &o) { g_object_set(m_object, property, o.object(), nullptr); }
 
     QGString getString(const char *property) const
     { char *s = nullptr; g_object_get(m_object, property, &s, nullptr); return s; }
