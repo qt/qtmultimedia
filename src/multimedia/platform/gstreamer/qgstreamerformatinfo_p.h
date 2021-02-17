@@ -67,9 +67,11 @@ public:
     QGstMutableCaps formatCaps(const QMediaFormat &f) const;
     QGstMutableCaps audioCaps(const QMediaFormat &f) const;
     QGstMutableCaps videoCaps(const QMediaFormat &f) const;
-    // ###
-//    QGstCaps audioEncoderCaps(const QMediaEncoderSettings &f) const;
-//    QGstCaps videoEncoderCaps(const QMediaEncoderSettings &f) const;
+
+    static QMediaFormat::AudioCodec audioCodecForCaps(QGstStructure structure);
+    static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructure structure);
+    static QMediaFormat::FileFormat fileFormatForCaps(QGstStructure structure);
+    static QImageEncoderSettings::FileFormat imageFormatForCaps(QGstStructure structure);
 
     QList<CodecMap> getMuxerList(bool demuxer, QList<QMediaFormat::AudioCodec> audioCodecs, QList<QMediaFormat::VideoCodec> videoCodecs);
 };

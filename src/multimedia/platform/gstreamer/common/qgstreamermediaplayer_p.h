@@ -126,10 +126,13 @@ private:
     friend class QGstreamerStreamsControl;
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
+    void padsDone(const QGstElement &src);
     void prepareAudioOutputChange(const QGstPad &pad);
+    static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
     bool changeAudioOutput();
     void updateVideoSink();
     void setSeekable(bool seekable);
+    void parseStreamsAndMetadata();
 
     QGstreamerStreamsControl *m_streamsControl = nullptr;
     QMediaMetaData m_metaData;
@@ -155,6 +158,9 @@ private:
 
     QGstreamerBusHelper *busHelper;
     QGstAppSrc *m_appSrc;
+
+    GType decodebinType;
+    QGstStructure topology;
 
     // Gst elements
     QGstPipeline playerPipeline;

@@ -70,10 +70,12 @@ public:
         Duration,
 
         MediaType,
+        FileFormat,
         AudioBitRate,
         AudioCodec,
         VideoBitRate,
         VideoCodec,
+        VideoFrameRate,
 
         AlbumTitle,
         AlbumArtist,
@@ -86,10 +88,10 @@ public:
         Orientation,
 
         Resolution,
-        LeadPerformer,
+        LeadPerformer
     };
 
-    static const int NumMetaData = 27;
+    static constexpr int NumMetaData = LeadPerformer + 1;
 
 //    QMetaType typeForKey(Key k);
     QVariant value(Key k) const;
@@ -101,6 +103,7 @@ public:
     void clear() { data.clear(); }
 
     bool isEmpty() const { return data.isEmpty(); }
+    QString stringValue(Key k) const;
 
     static QString metaDataKeyToString(Key k);
 

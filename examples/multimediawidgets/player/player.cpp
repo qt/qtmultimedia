@@ -59,6 +59,7 @@
 #include <QMediaMetaData>
 #include <QMediaDeviceManager>
 #include <QAudioDeviceInfo>
+#include <QMediaFormat>
 #include <QtWidgets>
 
 Player::Player(QWidget *parent)
@@ -115,7 +116,7 @@ Player::Player(QWidget *parent)
     QLabel *metaDataLabel = new QLabel(tr("Metadata for file:"));
     QGridLayout *metaDataLayout = new QGridLayout;
     int key = QMediaMetaData::Title;
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < (QMediaMetaData::NumMetaData + 2)/3; i++) {
         for (int j = 0; j < 6; j+=2) {
             m_metaDataLabels[key] = new QLabel(QMediaMetaData::metaDataKeyToString
                                     (static_cast<QMediaMetaData::Key>(key)));
@@ -129,6 +130,8 @@ Player::Player(QWidget *parent)
             metaDataLayout->addWidget(m_metaDataLabels[key], i, j);
             metaDataLayout->addWidget(m_metaDataFields[key], i, j+1);
             key++;
+            if (key == QMediaMetaData::NumMetaData)
+                break;
         }
     }
 
@@ -303,19 +306,21 @@ void Player::metaDataChanged()
     for (auto &key : metaData.keys()) {
         int i = int(key);
         if (key == QMediaMetaData::CoverArtImage) {
+            QVariant v = metaData.value(key);
             if (QLabel *cover = qobject_cast<QLabel*>(m_metaDataFields[key])) {
-                QImage coverImage = metaData.value(QMediaMetaData::CoverArtImage).value<QImage>();
+                QImage coverImage = v.value<QImage>();
                 cover->setPixmap(QPixmap::fromImage(coverImage));
             }
-        }
-        else if (key == QMediaMetaData::ThumbnailImage) {
+        } else if (key == QMediaMetaData::ThumbnailImage) {
+            QVariant v = metaData.value(key);
             if (QLabel *thumbnail = qobject_cast<QLabel*>(m_metaDataFields[key])) {
-                QImage thumbnailImage = metaData.value(QMediaMetaData::CoverArtImage).value<QImage>();
+                QImage thumbnailImage = v.value<QImage>();
                 thumbnail->setPixmap(QPixmap::fromImage(thumbnailImage));
             }
+        } else if (QLineEdit *field = qobject_cast<QLineEdit*>(m_metaDataFields[key])) {
+            QString stringValue = metaData.stringValue(key);
+            field->setText(stringValue);
         }
-        else if (QLineEdit *field = qobject_cast<QLineEdit*>(m_metaDataFields[key]))
-            field->setText(QString("%1").arg(metaData.value(key).toString()));
         m_metaDataFields[i]->setDisabled(false);
         m_metaDataLabels[i]->setDisabled(false);
     }
@@ -336,7 +341,6 @@ void Player::jump(const QModelIndex &index)
 {
     if (index.isValid()) {
         m_playlist->setCurrentIndex(index.row());
-        m_player->play();
     }
 }
 
@@ -345,7 +349,6 @@ void Player::playlistPositionChanged(int currentItem)
     clearHistogram();
     m_playlistView->setCurrentIndex(m_playlistModel->index(currentItem, 0));
     m_player->setMedia(m_playlist->currentMedia());
-    m_player->play();
 }
 
 void Player::seek(int seconds)
@@ -533,4 +536,3 @@ void Player::clearHistogram()
     QMetaObject::invokeMethod(m_videoHistogram, "processFrame", Qt::QueuedConnection, Q_ARG(QVideoFrame, QVideoFrame()));
     QMetaObject::invokeMethod(m_audioHistogram, "processBuffer", Qt::QueuedConnection, Q_ARG(QAudioBuffer, QAudioBuffer()));
 }
-

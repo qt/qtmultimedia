@@ -43,7 +43,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static QMediaFormat::AudioCodec audioCodecForCaps(QGstStructure structure)
+QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure structure)
 {
     const char *name = structure.name();
 
@@ -79,7 +79,7 @@ static QMediaFormat::AudioCodec audioCodecForCaps(QGstStructure structure)
     return QMediaFormat::AudioCodec::Unspecified;
 }
 
-static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructure structure)
+QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructure structure)
 {
     const char *name = structure.name();
 
@@ -115,7 +115,7 @@ static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructure structure)
     return QMediaFormat::VideoCodec::Unspecified;
 }
 
-static QMediaFormat::FileFormat fileFormatForCaps(QGstStructure structure)
+QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure structure)
 {
     const char *name = structure.name();
 
@@ -140,7 +140,7 @@ static QMediaFormat::FileFormat fileFormatForCaps(QGstStructure structure)
 }
 
 
-static QImageEncoderSettings::FileFormat imageFormatForCaps(QGstStructure structure)
+QImageEncoderSettings::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure structure)
 {
     const char *name = structure.name();
 
@@ -183,10 +183,10 @@ static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> g
 
                 for (int i = 0; i < caps.size(); i++) {
                     QGstStructure structure = caps.at(i);
-                    auto a = audioCodecForCaps(structure);
+                    auto a = QGstreamerFormatInfo::audioCodecForCaps(structure);
                     if (a != QMediaFormat::AudioCodec::Unspecified)
                         audio.append(a);
-                    auto v = videoCodecForCaps(structure);
+                    auto v = QGstreamerFormatInfo::videoCodecForCaps(structure);
                     if (v != QMediaFormat::VideoCodec::Unspecified)
                         video.append(v);
                 }
@@ -288,7 +288,7 @@ static QList<QImageEncoderSettings::FileFormat> getImageFormatList()
 
                 for (int i = 0; i < caps.size(); i++) {
                     QGstStructure structure = caps.at(i);
-                    auto f = imageFormatForCaps(structure);
+                    auto f = QGstreamerFormatInfo::imageFormatForCaps(structure);
                     if (f != QImageEncoderSettings::UnspecifiedFormat) {
                         qDebug() << structure.toString() << f;
                         formats.insert(f);

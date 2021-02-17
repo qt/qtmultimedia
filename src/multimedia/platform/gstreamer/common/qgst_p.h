@@ -63,6 +63,8 @@
 QT_BEGIN_NAMESPACE
 
 class QSize;
+class QGstStructure;
+class QGstCaps;
 
 template <typename T> struct QGRange
 {
@@ -127,14 +129,22 @@ public:
         return QGRange<int>{ gst_value_get_int_range_min(value), gst_value_get_int_range_max(value) };
     }
 
+    inline QGstStructure toStructure() const;
+    inline QGstCaps toCaps() const;
+
+    inline bool isList() const { return value && GST_VALUE_HOLDS_LIST(value); }
+    inline int listSize() const { return gst_value_list_get_size(value); }
+    inline QGValue at(int index) const { return gst_value_list_get_value(value, index); }
+
     Q_MULTIMEDIA_EXPORT QList<QAudioFormat::SampleFormat> getSampleFormats() const;
 };
 
 class QGstStructure {
 public:
-    GstStructure *structure;
-    QGstStructure(GstStructure *s) : structure(s) {}
-    void free() { gst_structure_free(structure); structure = nullptr; }
+    const GstStructure *structure = nullptr;
+    QGstStructure() = default;
+    QGstStructure(const GstStructure *s) : structure(s) {}
+    void free() { if (structure) gst_structure_free(const_cast<GstStructure *>(structure)); structure = nullptr; }
 
     bool isNull() const { return !structure; }
 
@@ -148,11 +158,13 @@ public:
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
 
     QByteArray toString() const { return gst_structure_to_string(structure); }
+    QGstStructure copy() const { return gst_structure_copy(structure); }
 };
 
 class QGstCaps {
-    const GstCaps *caps;
+    const GstCaps *caps = nullptr;
 public:
+    QGstCaps() = default;
     QGstCaps(const GstCaps *c) : caps(c) {}
 
     bool isNull() const { return !caps; }
@@ -271,6 +283,9 @@ public:
     quint64 getUInt64(const char *property) const { guint64 i = 0; g_object_get(m_object, property, &i, nullptr); return i; }
     qint64 getInt64(const char *property) const { gint64 i = 0; g_object_get(m_object, property, &i, nullptr); return i; }
     double getDouble(const char *property) const { gdouble d = 0; g_object_get(m_object, property, &d, nullptr); return d; }
+    QGstObject getObject(const char *property) const { GstObject *o = nullptr; g_object_get(m_object, property, &o, nullptr); return o; }
+
+    void connect(const char *name, GCallback callback, gpointer userData) { g_signal_connect(m_object, name, callback, userData); }
 
     GstObject *object() const { return m_object; }
     const char *name() const { return GST_OBJECT_NAME(m_object); }
@@ -285,7 +300,7 @@ public:
     QGstPad(const QGstObject &o)
         : QGstPad(GST_PAD(o.object()), NeedsRef)
     {}
-    QGstPad(GstPad *pad, RefMode mode)
+    QGstPad(GstPad *pad, RefMode mode = NeedsRef)
         : QGstObject(&pad->object, mode)
     {}
 
@@ -320,7 +335,7 @@ public:
     QGstElement(const QGstObject &o)
         : QGstElement(GST_ELEMENT(o.object()), NeedsRef)
     {}
-    QGstElement(GstElement *element, RefMode mode)
+    QGstElement(GstElement *element, RefMode mode = NeedsRef)
         : QGstObject(&element->object, mode)
     {}
 
@@ -386,21 +401,31 @@ public:
     void onPadAdded(T *instance) {
         struct Impl {
             static void callback(GstElement *e, GstPad *pad, gpointer userData) {
-                (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef), QGstPad(pad, NeedsRef));
+                (static_cast<T *>(userData)->*Member)(QGstElement(e), QGstPad(pad, NeedsRef));
             };
         };
 
-        g_signal_connect (element(), "pad-added", G_CALLBACK(Impl::callback), instance);
+        connect("pad-added", G_CALLBACK(Impl::callback), instance);
     }
     template<auto Member, typename T>
     void onPadRemoved(T *instance) {
         struct Impl {
             static void callback(GstElement *e, GstPad *pad, gpointer userData) {
-                (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef), QGstPad(pad, NeedsRef));
+                (static_cast<T *>(userData)->*Member)(QGstElement(e), QGstPad(pad, NeedsRef));
             };
         };
 
-        g_signal_connect (element(), "pad-removed", G_CALLBACK(Impl::callback), instance);
+        connect("pad-removed", G_CALLBACK(Impl::callback), instance);
+    }
+    template<auto Member, typename T>
+    void onNoMorePads(T *instance) {
+        struct Impl {
+            static void callback(GstElement *e, gpointer userData) {
+                (static_cast<T *>(userData)->*Member)(QGstElement(e));
+            };
+        };
+
+        connect("no-more-pads", G_CALLBACK(Impl::callback), instance);
     }
 
     GstElement *element() const { return GST_ELEMENT_CAST(m_object); }
@@ -421,7 +446,7 @@ public:
         : QGstElement(gst_bin_new(name), NeedsRef)
     {
     }
-    QGstBin(GstBin *bin, RefMode mode)
+    QGstBin(GstBin *bin, RefMode mode = NeedsRef)
         : QGstElement(&bin->element, mode)
     {}
 
@@ -462,13 +487,27 @@ public:
         : QGstBin(GST_BIN(gst_pipeline_new(name)), NeedsRef)
     {
     }
-    QGstPipeline(GstPipeline *p, RefMode mode)
+    QGstPipeline(GstPipeline *p, RefMode mode = NeedsRef)
         : QGstBin(&p->bin, mode)
     {}
 
     GstPipeline *pipeline() const { return GST_PIPELINE_CAST(m_object); }
     QGstBus bus() { return gst_element_get_bus(element()); }
 };
+
+inline QGstStructure QGValue::toStructure() const
+{
+    if (!value || !GST_VALUE_HOLDS_STRUCTURE(value))
+        return QGstStructure();
+    return QGstStructure(gst_value_get_structure(value));
+}
+
+inline QGstCaps QGValue::toCaps() const
+{
+    if (!value || !GST_VALUE_HOLDS_CAPS(value))
+        return QGstCaps();
+    return QGstCaps(gst_value_get_caps(value));
+}
 
 QT_END_NAMESPACE
 

@@ -40,6 +40,9 @@
 #include "qmediametadata.h"
 #include <qvariant.h>
 #include <qobject.h>
+#include <qdatetime.h>
+#include <qmediaformat.h>
+#include <qsize.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -78,12 +81,13 @@ QT_BEGIN_NAMESPACE
     Media attributes
     \row \li Size \li The size in bytes of the media. \li qint64
     \row \li MediaType \li The type of the media (audio, video, etc).  \li QString
+    \row \li FileFormat \li The file format of the media.  \li QMediaFormat::FileFormat
     \row \li Duration \li The duration in millseconds of the media.  \li qint64
 
     \header \li {3,1}
     Audio attributes
     \row \li AudioBitRate \li The bit rate of the media's audio stream in bits per second.  \li int
-    \row \li AudioCodec \li The codec of the media's audio stream.  \li QString
+    \row \li AudioCodec \li The codec of the media's audio stream.  \li QMediaForma::AudioCodec
     \row \li AverageLevel \li The average volume level of the media.  \li int
     \row \li ChannelCount \li The number of channels in the media's audio stream. \li int
     \row \li PeakValue \li The peak volume of the media's audio stream. \li int
@@ -115,7 +119,7 @@ QT_BEGIN_NAMESPACE
     Video attributes
     \row \li VideoFrameRate \li The frame rate of the media's video stream. \li qreal
     \row \li VideoBitRate \li The bit rate of the media's video stream in bits per second.  \li int
-    \row \li VideoCodec \li The codec of the media's video stream.  \li QString
+    \row \li VideoCodec \li The codec of the media's video stream.  \li QMediaFormat::VideoCodec
 
     \row \li PosterUrl \li The URL of a poster image. \li QUrl
     \row \li PosterImage \li An embedded poster image. \li QImage
@@ -233,6 +237,57 @@ void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
     data.insert(k, value);
 }
 
+QString QMediaMetaData::stringValue(QMediaMetaData::Key k) const
+{
+    QVariant value = data.value(k);
+    if (value.isNull())
+        return QString();
+
+    switch (k) {
+    // string based or convertible to string
+    case Title:
+    case Author:
+    case Comment:
+    case Description:
+    case Genre:
+    case Year:
+    case Language:
+    case Publisher:
+    case Copyright:
+    case Date:
+    case Url:
+    case MediaType:
+    case AudioBitRate:
+    case VideoBitRate:
+    case VideoFrameRate:
+    case AlbumTitle:
+    case AlbumArtist:
+    case ContributingArtist:
+    case TrackNumber:
+    case Composer:
+    case Orientation:
+    case LeadPerformer:
+        return value.toString();
+    case Duration: {
+        QTime time = QTime::fromMSecsSinceStartOfDay(value.toInt());
+        return time.toString();
+    }
+    case FileFormat:
+        return QMediaFormat::fileFormatName(value.value<QMediaFormat::FileFormat>());
+    case AudioCodec:
+        return QMediaFormat::audioCodecName(value.value<QMediaFormat::AudioCodec>());
+    case VideoCodec:
+        return QMediaFormat::videoCodecName(value.value<QMediaFormat::VideoCodec>());
+    case Resolution: {
+        QSize size = value.toSize();
+        return QString::fromUtf8("%1 x %2").arg(size.width()).arg(size.height());
+    }
+    case ThumbnailImage:
+    case CoverArtImage:
+        return QString();
+    }
+}
+
 QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
 {
     switch (k) {
@@ -262,6 +317,8 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
             return (QObject::tr("Duration"));
         case QMediaMetaData::MediaType:
             return (QObject::tr("Media type"));
+        case QMediaMetaData::FileFormat:
+            return (QObject::tr("Container Format"));
         case QMediaMetaData::AudioBitRate:
             return (QObject::tr("Audio bit rate"));
         case QMediaMetaData::AudioCodec:
@@ -270,6 +327,8 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
             return (QObject::tr("Video bit rate"));
         case QMediaMetaData::VideoCodec:
             return (QObject::tr("Video codec"));
+        case QMediaMetaData::VideoFrameRate:
+            return (QObject::tr("Video frame rate"));
         case QMediaMetaData::AlbumTitle:
             return (QObject::tr("Album title"));
         case QMediaMetaData::AlbumArtist:
