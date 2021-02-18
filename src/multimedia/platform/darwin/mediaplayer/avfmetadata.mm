@@ -48,6 +48,8 @@ QT_USE_NAMESPACE
 static std::optional<QMediaMetaData::Key> itemKey(AVMetadataItem *item)
 {
     NSString *keyString = [item commonKey];
+//    qDebug() << "metadatakey:" << QString::fromNSString(keyString)
+//             << QString::fromNSString([item identifier]) << QString::fromNSString([item description]);
 
     if (keyString.length != 0) {
         if ([keyString isEqualToString:AVMetadataCommonKeyTitle]) {
@@ -77,6 +79,21 @@ static std::optional<QMediaMetaData::Key> itemKey(AVMetadataItem *item)
         }
     }
 
+    // check by identifier
+    NSString *id = [item identifier];
+    if (!id)
+        return std::nullopt;
+
+    if ([id isEqualToString: AVMetadataIdentifieriTunesMetadataUserComment] ||
+        [id isEqualToString: AVMetadataIdentifierID3MetadataComments] ||
+            [id isEqualToString: AVMetadataIdentifierQuickTimeMetadataComment])
+        return QMediaMetaData::Comment;
+
+    if ([id isEqualToString: AVMetadataIdentifierID3MetadataDate] ||
+        [id isEqualToString: AVMetadataIdentifierISOUserDataDate])
+        return QMediaMetaData::Date;
+
+
     return std::nullopt;
 }
 
@@ -89,7 +106,7 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
 
     // TODO: also process ID3, iTunes and QuickTime metadata
 
-    NSArray *metadataItems = [asset commonMetadata];
+    NSArray *metadataItems = [asset metadata];
     for (AVMetadataItem* item in metadataItems) {
         auto key = itemKey(item);
         if (!key)
@@ -99,5 +116,11 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
         if (!value.isNull())
             metaData.insert(*key, value);
     }
+
+    // add duration
+    const CMTime time = [asset duration];
+    const qint64 duration =  static_cast<qint64>(float(time.value) / float(time.timescale) * 1000.0f);
+    metaData.insert(QMediaMetaData::Duration, duration);
+
     return metaData;
 }
