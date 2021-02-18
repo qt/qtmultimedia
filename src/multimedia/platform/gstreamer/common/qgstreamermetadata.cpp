@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qgstreamermetadata_p.h"
-#include <private/qgstreamerplayersession_p.h>
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
 #include <QtCore/qdatetime.h>

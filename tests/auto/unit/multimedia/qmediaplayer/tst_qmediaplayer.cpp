@@ -37,7 +37,6 @@
 #include <qmediaplayer.h>
 #include <private/qplatformmediaplayer_p.h>
 #include <qmediaplaylist.h>
-#include <qmediastreamscontrol.h>
 #include <qobject.h>
 
 #include "qmockintegration_p.h"

@@ -43,6 +43,7 @@
 #include <private/qgstreamermetadata_p.h>
 #include <private/qgstreamerformatinfo_p.h>
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
+#include <private/qgstappsrc_p.h>
 #include <qaudiodeviceinfo.h>
 
 #include <QtCore/qdir.h>

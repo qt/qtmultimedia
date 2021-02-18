@@ -10,7 +10,6 @@ PUBLIC_HEADERS += \
     controls/qcameraimageprocessingcontrol.h \
     controls/qplatformmediaplayer_p.h \
     controls/qmediarecordercontrol.h \
-    controls/qmediastreamscontrol.h \
     controls/qvideorenderercontrol.h \
     controls/qvideowindowcontrol.h \
 
@@ -22,7 +21,6 @@ SOURCES += \
     controls/qcameraimageprocessingcontrol.cpp \
     controls/qmediaplayercontrol.cpp \
     controls/qmediarecordercontrol.cpp \
-    controls/qmediastreamscontrol.cpp \
     controls/qvideorenderercontrol.cpp \
     controls/qvideowindowcontrol.cpp \
     controls/qaudiodecodercontrol.cpp \

@@ -37,7 +37,6 @@ qt_internal_add_module(Multimedia
         controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
         controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
         controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
-        controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevicemanager.cpp platform/qplatformmediadevicemanager_p.h

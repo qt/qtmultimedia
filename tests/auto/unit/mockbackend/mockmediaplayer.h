@@ -30,7 +30,6 @@
 #define MOCKMEDIAPLAYER_H
 
 #include "private/qplatformmediaplayer_p.h"
-#include "mockmediastreamscontrol.h"
 #include <qurl.h>
 
 class MockMediaPlayer : public QPlatformMediaPlayer
@@ -55,11 +54,9 @@ public:
         , _stream(0)
         , _isValid(false)
     {
-        mockStreamsControl = new MockStreamsControl;
     }
     ~MockMediaPlayer()
     {
-        delete mockStreamsControl;
     }
 
     QMediaPlayer::State state() const { return _state; }
@@ -153,9 +150,6 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *) {}
 
-    QMediaStreamsControl *streams() { return mockStreamsControl; }
-
-
     void emitError(QMediaPlayer::Error err, const QString &errorString)
     {
         emit error(err, errorString);
@@ -197,7 +191,6 @@ public:
     }
 
 
-    MockStreamsControl *mockStreamsControl;
     bool hasAudioRole = true;
     bool hasCustomAudioRole = true;
     QAudio::Role m_audioRole = QAudio::UnknownRole;
