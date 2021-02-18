@@ -61,6 +61,7 @@
 #include <QtMultimedia/QMediaPlayer>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemTrack);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaPlayerSessionObserver);
 
 QT_BEGIN_NAMESPACE
@@ -135,6 +136,13 @@ public Q_SLOTS:
 
     void streamReady();
     void streamDestroyed();
+    void updateTracks();
+    void setActiveTrack(QPlatformMediaPlayer::TrackType type, int index);
+    int activeTrack(QPlatformMediaPlayer::TrackType type);
+
+public:
+    QList<QMediaMetaData> tracks[QPlatformMediaPlayer::NTrackTypes];
+    QList<AVPlayerItemTrack *> nativeTracks[QPlatformMediaPlayer::NTrackTypes];
 
 Q_SIGNALS:
     void positionChanged(qint64 position);

@@ -57,6 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVAssetTrack);
 
 class AVFMediaPlayerSession;
 
@@ -64,6 +65,7 @@ class AVFMetaData
 {
 public:
     static QMediaMetaData fromAsset(AVAsset *asset);
+    static QMediaMetaData fromAssetTrack(AVAssetTrack *asset);
 };
 
 QT_END_NAMESPACE

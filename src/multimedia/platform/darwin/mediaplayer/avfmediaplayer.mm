@@ -223,3 +223,27 @@ void AVFMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_session->setVideoSurface(surface);
 }
+
+int AVFMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)
+{
+    return m_session->tracks[type].count();
+}
+
+QMediaMetaData AVFMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackType type, int index)
+{
+    const auto &tracks = m_session->tracks[type];
+    if (index < 0 || index >= tracks.size())
+        return QMediaMetaData();
+    return tracks.at(index);
+}
+
+int AVFMediaPlayer::activeTrack(QPlatformMediaPlayer::TrackType type)
+{
+    return m_session->activeTrack(type);
+}
+
+void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
+{
+    m_session->setActiveTrack(type, index);
+// ####
+}

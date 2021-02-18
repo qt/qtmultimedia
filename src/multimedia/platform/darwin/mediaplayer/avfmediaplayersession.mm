@@ -66,6 +66,7 @@ static NSString* const AVF_CURRENT_ITEM_DURATION_KEY    = @"currentItem.duration
 static void *AVFMediaPlayerSessionObserverRateObservationContext = &AVFMediaPlayerSessionObserverRateObservationContext;
 static void *AVFMediaPlayerSessionObserverStatusObservationContext = &AVFMediaPlayerSessionObserverStatusObservationContext;
 static void *AVFMediaPlayerSessionObserverBufferLikelyToKeepUpContext = &AVFMediaPlayerSessionObserverBufferLikelyToKeepUpContext;
+static void *AVFMediaPlayerSessionObserverTracksContext = &AVFMediaPlayerSessionObserverTracksContext;
 static void *AVFMediaPlayerSessionObserverCurrentItemObservationContext = &AVFMediaPlayerSessionObserverCurrentItemObservationContext;
 static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext = &AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext;
 
@@ -75,6 +76,7 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
 @property (readonly, getter=playerItem) AVPlayerItem* m_playerItem;
 @property (readonly, getter=playerLayer) AVPlayerLayer* m_playerLayer;
 @property (readonly, getter=session) AVFMediaPlayerSession* m_session;
+@property (retain) AVPlayerItemTrack *videoTrack;
 
 - (AVFMediaPlayerSessionObserver *) initWithMediaPlayerSession:(AVFMediaPlayerSession *)session;
 - (void) setURL:(NSURL *)url mimeType:(NSString *)mimeType;
@@ -157,6 +159,7 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
     if (m_playerItem) {
         [m_playerItem removeObserver:self forKeyPath:AVF_STATUS_KEY];
         [m_playerItem removeObserver:self forKeyPath:AVF_BUFFER_LIKELY_KEEP_UP_KEY];
+        [m_playerItem removeObserver:self forKeyPath:AVF_TRACKS_KEY];
 
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemDidPlayToEndTimeNotification
@@ -242,6 +245,11 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
                    forKeyPath:AVF_BUFFER_LIKELY_KEEP_UP_KEY
                       options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
                       context:AVFMediaPlayerSessionObserverBufferLikelyToKeepUpContext];
+
+    [m_playerItem addObserver:self
+                   forKeyPath:AVF_TRACKS_KEY
+                      options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+                      context:AVFMediaPlayerSessionObserverTracksContext];
 
     //When the player item has played to its end time we'll toggle
     //the movie controller Pause button to be the Play button
@@ -373,6 +381,10 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
             QMetaObject::invokeMethod(m_session, "processBufferStateChange", Qt::AutoConnection,
                                       Q_ARG(int, isPlaybackLikelyToKeepUp ? 100 : 0));
         }
+    }
+    else if (context == AVFMediaPlayerSessionObserverTracksContext)
+    {
+        QMetaObject::invokeMethod(m_session, "updateTracks", Qt::AutoConnection);
     }
     //AVPlayer "rate" property value observer.
     else if (context == AVFMediaPlayerSessionObserverRateObservationContext)
@@ -951,38 +963,23 @@ void AVFMediaPlayerSession::processLoadStateChange(QMediaPlayer::State newState)
 
         QMediaPlayer::MediaStatus newStatus = m_mediaStatus;
 
-        AVPlayerItem *playerItem = [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) playerItem];
+        AVPlayerItem *playerItem = [m_observer playerItem];
 
         // get the meta data
         QMediaMetaData metaData = AVFMetaData::fromAsset(playerItem.asset);
         m_player->setMetaData(metaData);
+        updateTracks();
 
         if (playerItem) {
-            // Check each track for audio and video content
-            AVAssetTrack *videoTrack = nil;
-            NSArray *tracks =  playerItem.tracks;
-            for (AVPlayerItemTrack *track in tracks) {
-                AVAssetTrack *assetTrack = track.assetTrack;
-                if (assetTrack) {
-                    if ([assetTrack.mediaType isEqualToString:AVMediaTypeAudio])
-                        setAudioAvailable(true);
-                    if ([assetTrack.mediaType isEqualToString:AVMediaTypeVideo]) {
-                        setVideoAvailable(true);
-                        if (!videoTrack)
-                            videoTrack = assetTrack;
-                    }
-                }
-            }
-
             setSeekable([[playerItem seekableTimeRanges] count] > 0);
 
             // Get the native size of the video, and reset the bounds of the player layer
-            AVPlayerLayer *playerLayer = [static_cast<AVFMediaPlayerSessionObserver*>(m_observer) playerLayer];
-            if (videoTrack && playerLayer) {
+            AVPlayerLayer *playerLayer = [m_observer playerLayer];
+            if (m_observer.videoTrack && playerLayer) {
                 if (!playerLayer.bounds.size.width || !playerLayer.bounds.size.height) {
                     playerLayer.bounds = CGRectMake(0.0f, 0.0f,
-                                                    videoTrack.naturalSize.width,
-                                                    videoTrack.naturalSize.height);
+                                                    m_observer.videoTrack.assetTrack.naturalSize.width,
+                                                    m_observer.videoTrack.assetTrack.naturalSize.height);
                 }
 
                 if (m_videoOutput && newState != QMediaPlayer::StoppedState) {
@@ -1082,6 +1079,62 @@ void AVFMediaPlayerSession::streamReady()
 void AVFMediaPlayerSession::streamDestroyed()
 {
     resetStream(nullptr);
+}
+
+void AVFMediaPlayerSession::updateTracks()
+{
+    for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+        tracks[i].clear();
+        nativeTracks[i].clear();
+    }
+    AVPlayerItem *playerItem = [m_observer playerItem];
+    if (playerItem) {
+        // Check each track for audio and video content
+        NSArray *tracks =  playerItem.tracks;
+        for (AVPlayerItemTrack *track in tracks) {
+            AVAssetTrack *assetTrack = track.assetTrack;
+            if (assetTrack) {
+                int qtTrack = -1;
+                if ([assetTrack.mediaType isEqualToString:AVMediaTypeAudio]) {
+                    qtTrack = QPlatformMediaPlayer::AudioStream;
+                    setAudioAvailable(true);
+                } else if ([assetTrack.mediaType isEqualToString:AVMediaTypeVideo]) {
+                    qtTrack = QPlatformMediaPlayer::VideoStream;
+                    setVideoAvailable(true);
+                    if (!m_observer.videoTrack)
+                        m_observer.videoTrack = track;
+                }
+                else if ([assetTrack.mediaType isEqualToString:AVMediaTypeSubtitle]) {
+                    qtTrack = QPlatformMediaPlayer::SubtitleStream;
+                    setVideoAvailable(true);
+                    if (!m_observer.videoTrack)
+                        m_observer.videoTrack = track;
+                }
+                if (qtTrack != -1) {
+                    QMediaMetaData metaData = AVFMetaData::fromAssetTrack(assetTrack);
+                    this->tracks[qtTrack].append(metaData);
+                    nativeTracks[qtTrack].append(track);
+                }
+            }
+        }
+    }
+    emit m_player->tracksChanged();
+}
+
+void AVFMediaPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
+{
+    const auto &t = nativeTracks[type];
+    for (int i = 0; i < t.count(); ++i)
+        t.at(i).enabled = (i == index);
+}
+
+int AVFMediaPlayerSession::activeTrack(QPlatformMediaPlayer::TrackType type)
+{
+    const auto &t = nativeTracks[type];
+    for (int i = 0; i < t.count(); ++i)
+        if (t.at(i).enabled)
+            return i;
+    return -1;
 }
 
 void AVFMediaPlayerSession::resetStream(QIODevice *stream)

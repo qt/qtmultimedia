@@ -348,17 +348,20 @@ void Player::tracksChanged()
     m_videoTracks->clear();
     m_subtitleTracks->clear();
 
-    const auto audioStreams = m_player->audioTracks();
-    for (int i = 0; i < audioStreams.size(); ++i)
-        m_audioTracks->addItem(audioStreams.at(i).stringValue(QMediaMetaData::Language), i);
+    const auto audioTracks = m_player->audioTracks();
+    for (int i = 0; i < audioTracks.size(); ++i)
+        m_audioTracks->addItem(audioTracks.at(i).stringValue(QMediaMetaData::Language), i);
+    m_audioTracks->setCurrentIndex(m_player->activeAudioTrack());
 
-    const auto videoStreams = m_player->videoTracks();
-    for (int i = 0; i < videoStreams.size(); ++i)
-        m_videoTracks->addItem(videoStreams.at(i).stringValue(QMediaMetaData::Language), i);
+    const auto videoTracks = m_player->videoTracks();
+    for (int i = 0; i < videoTracks.size(); ++i)
+        m_videoTracks->addItem(videoTracks.at(i).stringValue(QMediaMetaData::Language), i);
+    m_videoTracks->setCurrentIndex(m_player->activeVideoTrack());
 
-    const auto subtitleStreams = m_player->subtitleTracks();
-    for (int i = 0; i < subtitleStreams.size(); ++i)
-        m_subtitleTracks->addItem(subtitleStreams.at(i).stringValue(QMediaMetaData::Language), i);
+    const auto subtitleTracks = m_player->subtitleTracks();
+    for (int i = 0; i < subtitleTracks.size(); ++i)
+        m_subtitleTracks->addItem(subtitleTracks.at(i).stringValue(QMediaMetaData::Language), i);
+    m_subtitleTracks->setCurrentIndex(m_player->activeSubtitleTrack());
 }
 
 void Player::previousClicked()

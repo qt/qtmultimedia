@@ -99,6 +99,11 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 
+    int trackCount(TrackType) override;
+    QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) override;
+    int activeTrack(TrackType) override;
+    void setActiveTrack(TrackType, int /*streamNumber*/) override;
+
 public Q_SLOTS:
     void setPosition(qint64 pos) override;
 

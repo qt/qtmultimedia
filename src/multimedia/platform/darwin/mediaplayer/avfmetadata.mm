@@ -97,17 +97,11 @@ static std::optional<QMediaMetaData::Key> itemKey(AVMetadataItem *item)
     return std::nullopt;
 }
 
-QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
+static QMediaMetaData fromAVMetaData(NSArray *metaDataItems)
 {
-#ifdef QT_DEBUG_AVF
-    qDebug() << Q_FUNC_INFO;
-#endif
     QMediaMetaData metaData;
 
-    // TODO: also process ID3, iTunes and QuickTime metadata
-
-    NSArray *metadataItems = [asset metadata];
-    for (AVMetadataItem* item in metadataItems) {
+    for (AVMetadataItem* item in metaDataItems) {
         auto key = itemKey(item);
         if (!key)
             continue;
@@ -116,11 +110,31 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
         if (!value.isNull())
             metaData.insert(*key, value);
     }
+    return metaData;
+}
+
+QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
+{
+#ifdef QT_DEBUG_AVF
+    qDebug() << Q_FUNC_INFO;
+#endif
+    QMediaMetaData metaData = fromAVMetaData([asset metadata]);
 
     // add duration
     const CMTime time = [asset duration];
     const qint64 duration =  static_cast<qint64>(float(time.value) / float(time.timescale) * 1000.0f);
     metaData.insert(QMediaMetaData::Duration, duration);
 
+    return metaData;
+}
+
+QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
+{
+    QMediaMetaData metaData = fromAVMetaData([asset metadata]);
+    if (metaData.value(QMediaMetaData::Language).isNull()) {
+        auto *lang = asset.languageCode;
+        if (lang)
+            metaData.insert(QMediaMetaData::Language, QString::fromNSString(lang));
+    }
     return metaData;
 }
