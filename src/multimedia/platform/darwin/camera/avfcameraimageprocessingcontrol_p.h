@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERASERVICE_H
-#define AVFCAMERASERVICE_H
+#ifndef AVFCAMERAIMAGEPROCESSINGCONTROL_H
+#define AVFCAMERAIMAGEPROCESSINGCONTROL_H
 
 //
 //  W A R N I N G
@@ -51,53 +51,51 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
-#include <QtCore/qset.h>
-#include <private/qplatformmediacapture_p.h>
-
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <qcamera.h>
+#include <qcameraimageprocessingcontrol.h>
 
 QT_BEGIN_NAMESPACE
-class QCameraControl;
-class QMediaRecorderControl;
-class QCameraImageProcessingControl;
-class AVFCameraControl;
-class AVFImageCaptureControl;
+
 class AVFCameraSession;
-class AVFCameraFocusControl;
-class AVFCameraExposureControl;
-class AVFCameraImageProcessingControl;
-class AVFMediaRecorderControl;
-class AVFMediaRecorderControlIOS;
+class AVFCameraService;
 
-class AVFCameraService : public QPlatformMediaCapture
+class AVFCameraImageProcessingControl : public QCameraImageProcessingControl
 {
-Q_OBJECT
+    Q_OBJECT
+
 public:
-    AVFCameraService();
-    ~AVFCameraService();
+    AVFCameraImageProcessingControl(AVFCameraService *service);
+    virtual ~AVFCameraImageProcessingControl();
 
-    QCameraControl *cameraControl() override;
-    QCameraImageCaptureControl *imageCaptureControl() override;
-    QMediaRecorderControl *mediaRecorderControl() override;
+    bool isParameterSupported(ProcessingParameter) const override;
+    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
+    QVariant parameter(ProcessingParameter parameter) const override;
+    void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
-    AVFCameraSession *session() const { return m_session; }
-    AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
-    QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
-    AVFImageCaptureControl *avfImageCaptureControl() const { return m_imageCaptureControl; }
-    AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
-    AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
-    QCameraImageProcessingControl *cameraImageProcessingControl() const;
+    QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const;
+    bool setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
+
+#ifdef Q_OS_IOS
+    float colorTemperature() const;
+    bool setColorTemperature(float temperature);
+#endif
+
+private Q_SLOTS:
+    void cameraStateChanged();
 
 private:
+    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
+
     AVFCameraSession *m_session;
-    AVFCameraControl *m_cameraControl;
-    QMediaRecorderControl *m_recorderControl;
-    AVFImageCaptureControl *m_imageCaptureControl;
-    AVFCameraFocusControl *m_cameraFocusControl;
-    AVFCameraExposureControl *m_cameraExposureControl;
-    AVFCameraImageProcessingControl *m_cameraImageProcessingControl;
+    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
+
+#ifdef Q_OS_IOS
+    float m_colorTemperature = .0;
+    QMap<QCameraImageProcessing::WhiteBalanceMode, QPair<float, float>> m_mappedWhiteBalancePresets;
+#endif
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // AVFCAMERAIMAGEPROCESSINGCONTROL_H

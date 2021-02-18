@@ -209,7 +209,7 @@ QCameraExposureControl *AVFCameraControl::exposureControl()
 
 QCameraImageProcessingControl *AVFCameraControl::imageProcessingControl()
 {
-    return nullptr;
+    return m_service->cameraImageProcessingControl();
 }
 
 #include "moc_avfcameracontrol_p.cpp"

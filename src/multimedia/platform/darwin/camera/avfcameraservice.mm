@@ -50,6 +50,7 @@
 #include "avfimagecapturecontrol_p.h"
 #include "avfcamerafocuscontrol_p.h"
 #include "avfcameraexposurecontrol_p.h"
+#include "avfcameraimageprocessingcontrol_p.h"
 #include "avfcamerawindowcontrol_p.h"
 
 #ifdef Q_OS_IOS
@@ -73,6 +74,7 @@ AVFCameraService::AVFCameraService()
 #endif
     m_imageCaptureControl = new AVFImageCaptureControl(this);
     m_cameraFocusControl = new AVFCameraFocusControl(this);
+    m_cameraImageProcessingControl = new AVFCameraImageProcessingControl(this);
     m_cameraExposureControl = nullptr;
 #ifdef Q_OS_IOS
     m_cameraExposureControl = new AVFCameraExposureControl(this);
@@ -95,6 +97,7 @@ AVFCameraService::~AVFCameraService()
     delete m_cameraControl;
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
+    delete m_cameraImageProcessingControl;
 
     delete m_session;
 }
@@ -112,6 +115,11 @@ QCameraImageCaptureControl *AVFCameraService::imageCaptureControl()
 QMediaRecorderControl *AVFCameraService::mediaRecorderControl()
 {
     return m_recorderControl;
+}
+
+QCameraImageProcessingControl *AVFCameraService::cameraImageProcessingControl() const
+{
+    return m_cameraImageProcessingControl;
 }
 
 
