@@ -58,8 +58,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerPlayerSession;
-
 class QGstreamerMetaData : public QMediaMetaData
 {
 public:

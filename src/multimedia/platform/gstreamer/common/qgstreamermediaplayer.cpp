@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include <private/qgstreamermediaplayer_p.h>
-#include <private/qgstreamerplayersession_p.h>
 #include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamermetadata_p.h>

@@ -20,7 +20,6 @@ use_camerabin {
 } else {
     include(mediacapture/mediacapture.pri)
 }
-include(mediaplayer/mediaplayer.pri)
 
 qtConfig(gstreamer_gl): QMAKE_USE += gstreamer_gl
 
