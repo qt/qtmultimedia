@@ -54,7 +54,6 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qvideowindowcontrol.h>
 
-#include "qgstreamervideorendererinterface_p.h"
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamervideooverlay_p.h>
 #include <QtGui/qcolor.h>
@@ -64,7 +63,6 @@ class QAbstractVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoWindow :
         public QVideoWindowControl,
-        public QGstreamerVideoRendererInterface,
         public QGstreamerSyncMessageFilter,
         public QGstreamerBusMessageFilter
 {
@@ -103,11 +101,11 @@ public:
 
     QAbstractVideoSurface *surface() const;
 
-    GstElement *videoSink() override;
+    GstElement *videoSink();
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
     bool processBusMessage(const QGstreamerMessage &message) override;
-    bool isReady() const override { return m_windowId != 0; }
+    bool isReady() const { return m_windowId != 0; }
 
 signals:
     void sinkChanged();

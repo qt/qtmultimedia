@@ -55,11 +55,9 @@
 #include <private/qgstvideorenderersink_p.h>
 #include <qabstractvideosurface.h>
 
-#include "qgstreamervideorendererinterface_p.h"
-
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QObject, public QGstreamerVideoRendererInterface
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QObject
 {
     Q_OBJECT
 public:
@@ -69,11 +67,11 @@ public:
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
-    GstElement *videoSink() override;
-    void setVideoSink(GstElement *) override;
+    GstElement *videoSink();
+    void setVideoSink(GstElement *);
 
-    void stopRenderer() override;
-    bool isReady() const override { return m_surface != 0; }
+    void stopRenderer();
+    bool isReady() const { return m_surface != 0; }
 
 signals:
     void sinkChanged();
