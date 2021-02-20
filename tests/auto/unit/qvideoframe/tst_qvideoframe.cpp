@@ -1244,14 +1244,14 @@ void tst_QVideoFrame::image_data()
     QTest::newRow("64x64 YUV420P")
             << QSize(64, 64)
             << QVideoFrame::Format_YUV420P
-            << 13288
+            << 18432
             << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 YV12")
             << QSize(64, 64)
             << QVideoFrame::Format_YV12
-            << 16384
+            << 18432
             << 256
             << QImage::Format_ARGB32;
 
@@ -1272,14 +1272,14 @@ void tst_QVideoFrame::image_data()
     QTest::newRow("64x64 NV12")
             << QSize(64, 64)
             << QVideoFrame::Format_NV12
-            << 16384
+            << 24576
             << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 NV21")
             << QSize(64, 64)
             << QVideoFrame::Format_NV21
-            << 16384
+            << 24576
             << 256
             << QImage::Format_ARGB32;
 #endif
