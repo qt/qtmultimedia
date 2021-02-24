@@ -63,7 +63,7 @@ QPlatformMediaDeviceManager *QMockIntegration::deviceManager()
     return m_manager;
 }
 
-QAudioDecoderControl *QMockIntegration::createAudioDecoder()
+QPlatformAudioDecoder *QMockIntegration::createAudioDecoder()
 {
     if (m_flags & NoAudioDecoderInterface)
         m_lastAudioDecoderControl = nullptr;

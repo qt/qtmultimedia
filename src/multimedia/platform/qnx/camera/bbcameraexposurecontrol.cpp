@@ -45,7 +45,7 @@
 QT_BEGIN_NAMESPACE
 
 BbCameraExposureControl::BbCameraExposureControl(BbCameraSession *session, QObject *parent)
-    : QCameraExposureControl(parent)
+    : QPlatformCameraExposure(parent)
     , m_session(session)
     , m_requestedExposureMode(QCameraExposure::ExposureAuto)
 {
@@ -55,23 +55,23 @@ BbCameraExposureControl::BbCameraExposureControl(BbCameraSession *session, QObje
 bool BbCameraExposureControl::isParameterSupported(ExposureParameter parameter) const
 {
     switch (parameter) {
-    case QCameraExposureControl::ISO:
+    case QPlatformCameraExposure::ISO:
         return false;
-    case QCameraExposureControl::Aperture:
+    case QPlatformCameraExposure::Aperture:
         return false;
-    case QCameraExposureControl::ShutterSpeed:
+    case QPlatformCameraExposure::ShutterSpeed:
         return false;
-    case QCameraExposureControl::ExposureCompensation:
+    case QPlatformCameraExposure::ExposureCompensation:
         return false;
-    case QCameraExposureControl::FlashPower:
+    case QPlatformCameraExposure::FlashPower:
         return false;
-    case QCameraExposureControl::FlashCompensation:
+    case QPlatformCameraExposure::FlashCompensation:
         return false;
-    case QCameraExposureControl::TorchPower:
+    case QPlatformCameraExposure::TorchPower:
         return false;
-    case QCameraExposureControl::ExposureMode:
+    case QPlatformCameraExposure::ExposureMode:
         return true;
-    case QCameraExposureControl::MeteringMode:
+    case QPlatformCameraExposure::MeteringMode:
         return false;
     default:
         return false;
@@ -80,7 +80,7 @@ bool BbCameraExposureControl::isParameterSupported(ExposureParameter parameter) 
 
 QVariantList BbCameraExposureControl::supportedParameterRange(ExposureParameter parameter, bool *continuous) const
 {
-    if (parameter != QCameraExposureControl::ExposureMode) // no other parameter supported by BB10 API at the moment
+    if (parameter != QPlatformCameraExposure::ExposureMode) // no other parameter supported by BB10 API at the moment
         return QVariantList();
 
     if (m_session->status() != QCamera::ActiveStatus) // we can query supported exposure modes only with active viewfinder
@@ -127,7 +127,7 @@ QVariantList BbCameraExposureControl::supportedParameterRange(ExposureParameter 
 
 QVariant BbCameraExposureControl::requestedValue(ExposureParameter parameter) const
 {
-    if (parameter != QCameraExposureControl::ExposureMode) // no other parameter supported by BB10 API at the moment
+    if (parameter != QPlatformCameraExposure::ExposureMode) // no other parameter supported by BB10 API at the moment
         return QVariant();
 
     return QVariant::fromValue(m_requestedExposureMode);
@@ -135,7 +135,7 @@ QVariant BbCameraExposureControl::requestedValue(ExposureParameter parameter) co
 
 QVariant BbCameraExposureControl::actualValue(ExposureParameter parameter) const
 {
-    if (parameter != QCameraExposureControl::ExposureMode) // no other parameter supported by BB10 API at the moment
+    if (parameter != QPlatformCameraExposure::ExposureMode) // no other parameter supported by BB10 API at the moment
         return QVariantList();
 
     if (m_session->status() != QCamera::ActiveStatus) // we can query actual scene modes only with active viewfinder
@@ -172,7 +172,7 @@ QVariant BbCameraExposureControl::actualValue(ExposureParameter parameter) const
 
 bool BbCameraExposureControl::setValue(ExposureParameter parameter, const QVariant& value)
 {
-    if (parameter != QCameraExposureControl::ExposureMode) // no other parameter supported by BB10 API at the moment
+    if (parameter != QPlatformCameraExposure::ExposureMode) // no other parameter supported by BB10 API at the moment
         return false;
 
     if (m_session->status() != QCamera::ActiveStatus) // we can set actual scene modes only with active viewfinder
@@ -182,7 +182,7 @@ bool BbCameraExposureControl::setValue(ExposureParameter parameter, const QVaria
 
     if (value.isValid()) {
         m_requestedExposureMode = value.value<QCameraExposure::ExposureMode>();
-        emit requestedValueChanged(QCameraExposureControl::ExposureMode);
+        emit requestedValueChanged(QPlatformCameraExposure::ExposureMode);
 
         switch (m_requestedExposureMode) {
         case QCameraExposure::ExposureAuto:
@@ -216,7 +216,7 @@ bool BbCameraExposureControl::setValue(ExposureParameter parameter, const QVaria
         return false;
     }
 
-    emit actualValueChanged(QCameraExposureControl::ExposureMode);
+    emit actualValueChanged(QPlatformCameraExposure::ExposureMode);
 
     return true;
 }
@@ -224,7 +224,7 @@ bool BbCameraExposureControl::setValue(ExposureParameter parameter, const QVaria
 void BbCameraExposureControl::statusChanged(QCamera::Status status)
 {
     if (status == QCamera::ActiveStatus || status == QCamera::LoadedStatus)
-        emit parameterRangeChanged(QCameraExposureControl::ExposureMode);
+        emit parameterRangeChanged(QPlatformCameraExposure::ExposureMode);
 }
 
 QCameraExposure::FlashModes BbCameraExposureControl::flashMode() const

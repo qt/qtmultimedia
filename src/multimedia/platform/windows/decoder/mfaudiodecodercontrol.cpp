@@ -41,7 +41,7 @@
 #include "mfaudiodecodercontrol_p.h"
 
 MFAudioDecoderControl::MFAudioDecoderControl(QObject *parent)
-    : QAudioDecoderControl(parent)
+    : QPlatformAudioDecoder(parent)
     , m_decoderSourceReader(new MFDecoderSourceReader)
     , m_sourceResolver(new SourceResolver)
     , m_resampler(0)

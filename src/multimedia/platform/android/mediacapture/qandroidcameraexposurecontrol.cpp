@@ -45,7 +45,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidCameraExposureControl::QAndroidCameraExposureControl(QAndroidCameraSession *session)
-    : QCameraExposureControl()
+    : QPlatformCameraExposure()
     , m_session(session)
     , m_minExposureCompensationIndex(0)
     , m_maxExposureCompensationIndex(0)
@@ -65,17 +65,17 @@ bool QAndroidCameraExposureControl::isParameterSupported(ExposureParameter param
         return false;
 
     switch (parameter) {
-    case QCameraExposureControl::ISO:
+    case QPlatformCameraExposure::ISO:
         return false;
-    case QCameraExposureControl::Aperture:
+    case QPlatformCameraExposure::Aperture:
         return false;
-    case QCameraExposureControl::ShutterSpeed:
+    case QPlatformCameraExposure::ShutterSpeed:
         return false;
-    case QCameraExposureControl::ExposureCompensation:
+    case QPlatformCameraExposure::ExposureCompensation:
         return !m_supportedExposureCompensations.isEmpty();
-    case QCameraExposureControl::TorchPower:
+    case QPlatformCameraExposure::TorchPower:
         return false;
-    case QCameraExposureControl::ExposureMode:
+    case QPlatformCameraExposure::ExposureMode:
         return !m_supportedExposureModes.isEmpty();
     default:
         return false;
@@ -90,9 +90,9 @@ QVariantList QAndroidCameraExposureControl::supportedParameterRange(ExposurePara
     if (continuous)
         *continuous = false;
 
-    if (parameter == QCameraExposureControl::ExposureCompensation)
+    if (parameter == QPlatformCameraExposure::ExposureCompensation)
         return m_supportedExposureCompensations;
-    else if (parameter == QCameraExposureControl::ExposureMode)
+    else if (parameter == QPlatformCameraExposure::ExposureMode)
         return m_supportedExposureModes;
 
     return QVariantList();
@@ -100,9 +100,9 @@ QVariantList QAndroidCameraExposureControl::supportedParameterRange(ExposurePara
 
 QVariant QAndroidCameraExposureControl::requestedValue(ExposureParameter parameter) const
 {
-    if (parameter == QCameraExposureControl::ExposureCompensation)
+    if (parameter == QPlatformCameraExposure::ExposureCompensation)
         return QVariant::fromValue(m_requestedExposureCompensation);
-    else if (parameter == QCameraExposureControl::ExposureMode)
+    else if (parameter == QPlatformCameraExposure::ExposureMode)
         return QVariant::fromValue(m_requestedExposureMode);
 
     return QVariant();
@@ -110,9 +110,9 @@ QVariant QAndroidCameraExposureControl::requestedValue(ExposureParameter paramet
 
 QVariant QAndroidCameraExposureControl::actualValue(ExposureParameter parameter) const
 {
-    if (parameter == QCameraExposureControl::ExposureCompensation)
+    if (parameter == QPlatformCameraExposure::ExposureCompensation)
         return QVariant::fromValue(m_actualExposureCompensation);
-    else if (parameter == QCameraExposureControl::ExposureMode)
+    else if (parameter == QPlatformCameraExposure::ExposureMode)
         return QVariant::fromValue(m_actualExposureMode);
 
     return QVariant();
@@ -123,11 +123,11 @@ bool QAndroidCameraExposureControl::setValue(ExposureParameter parameter, const 
     if (!value.isValid())
         return false;
 
-    if (parameter == QCameraExposureControl::ExposureCompensation) {
+    if (parameter == QPlatformCameraExposure::ExposureCompensation) {
         qreal expComp = value.toReal();
         if (!qFuzzyCompare(m_requestedExposureCompensation, expComp)) {
             m_requestedExposureCompensation = expComp;
-            emit requestedValueChanged(QCameraExposureControl::ExposureCompensation);
+            emit requestedValueChanged(QPlatformCameraExposure::ExposureCompensation);
         }
 
         if (!m_session->camera())
@@ -140,17 +140,17 @@ bool QAndroidCameraExposureControl::setValue(ExposureParameter parameter, const 
             m_session->camera()->setExposureCompensation(expCompIndex);
             if (!qFuzzyCompare(m_actualExposureCompensation, comp)) {
                 m_actualExposureCompensation = expCompIndex * m_exposureCompensationStep;
-                emit actualValueChanged(QCameraExposureControl::ExposureCompensation);
+                emit actualValueChanged(QPlatformCameraExposure::ExposureCompensation);
             }
 
             return true;
         }
 
-    } else if (parameter == QCameraExposureControl::ExposureMode) {
+    } else if (parameter == QPlatformCameraExposure::ExposureMode) {
         QCameraExposure::ExposureMode expMode = value.value<QCameraExposure::ExposureMode>();
         if (m_requestedExposureMode != expMode) {
             m_requestedExposureMode = expMode;
-            emit requestedValueChanged(QCameraExposureControl::ExposureMode);
+            emit requestedValueChanged(QPlatformCameraExposure::ExposureMode);
         }
 
         if (!m_session->camera())
@@ -216,7 +216,7 @@ bool QAndroidCameraExposureControl::setValue(ExposureParameter parameter, const 
             }
 
             m_session->camera()->setSceneMode(sceneMode);
-            emit actualValueChanged(QCameraExposureControl::ExposureMode);
+            emit actualValueChanged(QPlatformCameraExposure::ExposureMode);
 
             return true;
         }
@@ -234,7 +234,7 @@ void QAndroidCameraExposureControl::onCameraOpened()
     if (m_minExposureCompensationIndex != 0 || m_maxExposureCompensationIndex != 0) {
         for (int i = m_minExposureCompensationIndex; i <= m_maxExposureCompensationIndex; ++i)
             m_supportedExposureCompensations.append(i * m_exposureCompensationStep);
-        emit parameterRangeChanged(QCameraExposureControl::ExposureCompensation);
+        emit parameterRangeChanged(QPlatformCameraExposure::ExposureCompensation);
     }
 
     m_supportedExposureModes.clear();
@@ -275,11 +275,11 @@ void QAndroidCameraExposureControl::onCameraOpened()
             else if (sceneMode == QLatin1String("barcode"))
                 m_supportedExposureModes << QVariant::fromValue(QCameraExposure::ExposureBarcode);
         }
-        emit parameterRangeChanged(QCameraExposureControl::ExposureMode);
+        emit parameterRangeChanged(QPlatformCameraExposure::ExposureMode);
     }
 
-    setValue(QCameraExposureControl::ExposureCompensation, QVariant::fromValue(m_requestedExposureCompensation));
-    setValue(QCameraExposureControl::ExposureMode, QVariant::fromValue(m_requestedExposureMode));
+    setValue(QPlatformCameraExposure::ExposureCompensation, QVariant::fromValue(m_requestedExposureCompensation));
+    setValue(QPlatformCameraExposure::ExposureMode, QVariant::fromValue(m_requestedExposureMode));
 
     m_supportedFlashModes.clear();
 

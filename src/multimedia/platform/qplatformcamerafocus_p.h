@@ -37,51 +37,59 @@
 **
 ****************************************************************************/
 
-#ifndef QCAMERAIMAGEPROCESSINGCONTROL_H
-#define QCAMERAIMAGEPROCESSINGCONTROL_H
+#ifndef QCAMERAFOCUSCONTROL_H
+#define QCAMERAFOCUSCONTROL_H
 
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
-#include <QtMultimedia/qcamera.h>
-#include <QtMultimedia/qmediaenumdebug.h>
+#include <QtMultimedia/qcamerafocus.h>
 
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraImageProcessingControl : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformCameraFocus : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(ProcessingParameter)
 
 public:
-    enum ProcessingParameter {
-        WhiteBalancePreset,
-        ColorTemperature,
-        Contrast,
-        Saturation,
-        Brightness,
-        ContrastAdjustment,
-        SaturationAdjustment,
-        BrightnessAdjustment,
-        ColorFilter,
-        ExtendedParameter = 1000
+    virtual QCameraFocus::FocusModes focusMode() const = 0;
+    virtual void setFocusMode(QCameraFocus::FocusModes mode) = 0;
+    virtual bool isFocusModeSupported(QCameraFocus::FocusModes mode) const = 0;
+
+    virtual QCameraFocus::FocusPointMode focusPointMode() const = 0;
+    virtual void setFocusPointMode(QCameraFocus::FocusPointMode mode) = 0;
+    virtual bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const = 0;
+    virtual QPointF customFocusPoint() const = 0;
+    virtual void setCustomFocusPoint(const QPointF &point) = 0;
+
+    virtual QCameraFocusZoneList focusZones() const = 0;
+
+    struct ZoomRange {
+        float min;
+        float max;
     };
 
-    virtual bool isParameterSupported(ProcessingParameter) const = 0;
-    virtual bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const = 0;
-    virtual QVariant parameter(ProcessingParameter parameter) const = 0;
-    virtual void setParameter(ProcessingParameter parameter, const QVariant &value) = 0;
+    virtual ZoomRange zoomFactorRange() const = 0;
+    // smaller 0: zoom instantly, rate in power-of-two/sec
+    virtual void zoomTo(float newZoomFactor, float rate = -1.) = 0;
+
+Q_SIGNALS:
+    void focusModeChanged(QCameraFocus::FocusModes mode);
+    void focusPointModeChanged(QCameraFocus::FocusPointMode mode);
+    void customFocusPointChanged(const QPointF &point);
+
+    void focusZonesChanged();
+
 
 protected:
-    explicit QCameraImageProcessingControl(QObject *parent = nullptr);
+    explicit QPlatformCameraFocus(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QCameraImageProcessingControl, ProcessingParameter)
 
-#endif
+#endif  // QCAMERAFOCUSCONTROL_H
 

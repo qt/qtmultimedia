@@ -41,8 +41,8 @@
 #include "private/qobject_p.h"
 
 #include <qcamera.h>
-#include <qcameraexposurecontrol.h>
-#include <qcameracontrol.h>
+#include <private/qplatformcameraexposure_p.h>
+#include <private/qplatformcamera_p.h>
 
 #include <QtCore/QMetaObject>
 #include <QtCore/QDebug>
@@ -67,22 +67,22 @@ class QCameraExposurePrivate
 {
     Q_DECLARE_PUBLIC(QCameraExposure)
 public:
-    void init(QCameraControl *cameraControl);
+    void init(QPlatformCamera *cameraControl);
     QCameraExposure *q_ptr;
 
-    template<typename T> T actualExposureParameter(QCameraExposureControl::ExposureParameter parameter, const T &defaultValue) const;
-    template<typename T> T requestedExposureParameter(QCameraExposureControl::ExposureParameter parameter, const T &defaultValue) const;
-    template<typename T> void setExposureParameter(QCameraExposureControl::ExposureParameter parameter, const T &value);
-    void resetExposureParameter(QCameraExposureControl::ExposureParameter parameter);
+    template<typename T> T actualExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
+    template<typename T> T requestedExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
+    template<typename T> void setExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &value);
+    void resetExposureParameter(QPlatformCameraExposure::ExposureParameter parameter);
 
     QCamera *camera;
-    QCameraExposureControl *exposureControl;
+    QPlatformCameraExposure *exposureControl;
 
     void _q_exposureParameterChanged(int parameter);
     void _q_exposureParameterRangeChanged(int parameter);
 };
 
-void QCameraExposurePrivate::init(QCameraControl *cameraControl)
+void QCameraExposurePrivate::init(QPlatformCamera *cameraControl)
 {
     Q_Q(QCameraExposure);
 
@@ -99,7 +99,7 @@ void QCameraExposurePrivate::init(QCameraControl *cameraControl)
 }
 
 template<typename T>
-T QCameraExposurePrivate::actualExposureParameter(QCameraExposureControl::ExposureParameter parameter, const T &defaultValue) const
+T QCameraExposurePrivate::actualExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const
 {
     QVariant value = exposureControl ? exposureControl->actualValue(parameter) : QVariant();
 
@@ -107,7 +107,7 @@ T QCameraExposurePrivate::actualExposureParameter(QCameraExposureControl::Exposu
 }
 
 template<typename T>
-T QCameraExposurePrivate::requestedExposureParameter(QCameraExposureControl::ExposureParameter parameter, const T &defaultValue) const
+T QCameraExposurePrivate::requestedExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const
 {
     QVariant value = exposureControl ? exposureControl->requestedValue(parameter) : QVariant();
 
@@ -115,13 +115,13 @@ T QCameraExposurePrivate::requestedExposureParameter(QCameraExposureControl::Exp
 }
 
 template<typename T>
-void QCameraExposurePrivate::setExposureParameter(QCameraExposureControl::ExposureParameter parameter, const T &value)
+void QCameraExposurePrivate::setExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &value)
 {
     if (exposureControl)
         exposureControl->setValue(parameter, QVariant::fromValue<T>(value));
 }
 
-void QCameraExposurePrivate::resetExposureParameter(QCameraExposureControl::ExposureParameter parameter)
+void QCameraExposurePrivate::resetExposureParameter(QPlatformCameraExposure::ExposureParameter parameter)
 {
     if (exposureControl)
         exposureControl->setValue(parameter, QVariant());
@@ -134,21 +134,21 @@ void QCameraExposurePrivate::_q_exposureParameterChanged(int parameter)
 
 #if DEBUG_EXPOSURE_CHANGES
     qDebug() << "Exposure parameter changed:"
-             << QCameraExposureControl::ExposureParameter(parameter)
-             << exposureControl->actualValue(QCameraExposureControl::ExposureParameter(parameter));
+             << QPlatformCameraExposure::ExposureParameter(parameter)
+             << exposureControl->actualValue(QPlatformCameraExposure::ExposureParameter(parameter));
 #endif
 
     switch (parameter) {
-    case QCameraExposureControl::ISO:
+    case QPlatformCameraExposure::ISO:
         emit q->isoSensitivityChanged(q->isoSensitivity());
         break;
-    case QCameraExposureControl::Aperture:
+    case QPlatformCameraExposure::Aperture:
         emit q->apertureChanged(q->aperture());
         break;
-    case QCameraExposureControl::ShutterSpeed:
+    case QPlatformCameraExposure::ShutterSpeed:
         emit q->shutterSpeedChanged(q->shutterSpeed());
         break;
-    case QCameraExposureControl::ExposureCompensation:
+    case QPlatformCameraExposure::ExposureCompensation:
         emit q->exposureCompensationChanged(q->exposureCompensation());
         break;
     }
@@ -159,10 +159,10 @@ void QCameraExposurePrivate::_q_exposureParameterRangeChanged(int parameter)
     Q_Q(QCameraExposure);
 
     switch (parameter) {
-    case QCameraExposureControl::Aperture:
+    case QPlatformCameraExposure::Aperture:
         emit q->apertureRangeChanged();
         break;
-    case QCameraExposureControl::ShutterSpeed:
+    case QPlatformCameraExposure::ShutterSpeed:
         emit q->shutterSpeedRangeChanged();
         break;
     }
@@ -172,7 +172,7 @@ void QCameraExposurePrivate::_q_exposureParameterRangeChanged(int parameter)
     Construct a QCameraExposure from service \a provider and \a parent.
 */
 
-QCameraExposure::QCameraExposure(QCamera *parent, QCameraControl *cameraControl):
+QCameraExposure::QCameraExposure(QCamera *parent, QPlatformCamera *cameraControl):
     QObject(parent), d_ptr(new QCameraExposurePrivate)
 {
     Q_D(QCameraExposure);
@@ -250,12 +250,12 @@ bool QCameraExposure::isFlashReady() const
 
 QCameraExposure::ExposureMode QCameraExposure::exposureMode() const
 {
-    return d_func()->actualExposureParameter<QCameraExposure::ExposureMode>(QCameraExposureControl::ExposureMode, QCameraExposure::ExposureAuto);
+    return d_func()->actualExposureParameter<QCameraExposure::ExposureMode>(QPlatformCameraExposure::ExposureMode, QCameraExposure::ExposureAuto);
 }
 
 void QCameraExposure::setExposureMode(QCameraExposure::ExposureMode mode)
 {
-    d_func()->setExposureParameter<QCameraExposure::ExposureMode>(QCameraExposureControl::ExposureMode, mode);
+    d_func()->setExposureParameter<QCameraExposure::ExposureMode>(QPlatformCameraExposure::ExposureMode, mode);
 }
 
 /*!
@@ -268,7 +268,7 @@ bool QCameraExposure::isExposureModeSupported(QCameraExposure::ExposureMode mode
         return false;
 
     bool continuous = false;
-    return d_func()->exposureControl->supportedParameterRange(QCameraExposureControl::ExposureMode, &continuous)
+    return d_func()->exposureControl->supportedParameterRange(QPlatformCameraExposure::ExposureMode, &continuous)
             .contains(QVariant::fromValue<QCameraExposure::ExposureMode>(mode));
 }
 
@@ -281,17 +281,17 @@ bool QCameraExposure::isExposureModeSupported(QCameraExposure::ExposureMode mode
 
 qreal QCameraExposure::exposureCompensation() const
 {
-    return d_func()->actualExposureParameter<qreal>(QCameraExposureControl::ExposureCompensation, 0.0);
+    return d_func()->actualExposureParameter<qreal>(QPlatformCameraExposure::ExposureCompensation, 0.0);
 }
 
 void QCameraExposure::setExposureCompensation(qreal ev)
 {
-    d_func()->setExposureParameter<qreal>(QCameraExposureControl::ExposureCompensation, ev);
+    d_func()->setExposureParameter<qreal>(QPlatformCameraExposure::ExposureCompensation, ev);
 }
 
 int QCameraExposure::isoSensitivity() const
 {
-    return d_func()->actualExposureParameter<int>(QCameraExposureControl::ISO, -1);
+    return d_func()->actualExposureParameter<int>(QPlatformCameraExposure::ISO, -1);
 }
 
 /*!
@@ -300,7 +300,7 @@ int QCameraExposure::isoSensitivity() const
 */
 int QCameraExposure::requestedIsoSensitivity() const
 {
-    return d_func()->requestedExposureParameter<int>(QCameraExposureControl::ISO, -1);
+    return d_func()->requestedExposureParameter<int>(QPlatformCameraExposure::ISO, -1);
 }
 
 /*!
@@ -312,7 +312,7 @@ int QCameraExposure::requestedIsoSensitivity() const
 QList<int> QCameraExposure::supportedIsoSensitivities(bool *continuous) const
 {
     QList<int> res;
-    QCameraExposureControl *control = d_func()->exposureControl;
+    QPlatformCameraExposure *control = d_func()->exposureControl;
 
     bool tmp = false;
     if (!continuous)
@@ -321,7 +321,7 @@ QList<int> QCameraExposure::supportedIsoSensitivities(bool *continuous) const
     if (!control)
         return res;
 
-    const auto range = control->supportedParameterRange(QCameraExposureControl::ISO, continuous);
+    const auto range = control->supportedParameterRange(QPlatformCameraExposure::ISO, continuous);
     for (const QVariant &value : range) {
         bool ok = false;
         int intValue = value.toInt(&ok);
@@ -341,7 +341,7 @@ QList<int> QCameraExposure::supportedIsoSensitivities(bool *continuous) const
 
 void QCameraExposure::setManualIsoSensitivity(int iso)
 {
-    d_func()->setExposureParameter<int>(QCameraExposureControl::ISO, iso);
+    d_func()->setExposureParameter<int>(QPlatformCameraExposure::ISO, iso);
 }
 
 /*!
@@ -351,7 +351,7 @@ void QCameraExposure::setManualIsoSensitivity(int iso)
 
 void QCameraExposure::setAutoIsoSensitivity()
 {
-    d_func()->resetExposureParameter(QCameraExposureControl::ISO);
+    d_func()->resetExposureParameter(QPlatformCameraExposure::ISO);
 }
 
 /*!
@@ -384,7 +384,7 @@ void QCameraExposure::setAutoIsoSensitivity()
 
 qreal QCameraExposure::aperture() const
 {
-    return d_func()->actualExposureParameter<qreal>(QCameraExposureControl::Aperture, -1.0);
+    return d_func()->actualExposureParameter<qreal>(QPlatformCameraExposure::Aperture, -1.0);
 }
 
 /*!
@@ -393,7 +393,7 @@ qreal QCameraExposure::aperture() const
 */
 qreal QCameraExposure::requestedAperture() const
 {
-    return d_func()->requestedExposureParameter<qreal>(QCameraExposureControl::Aperture, -1.0);
+    return d_func()->requestedExposureParameter<qreal>(QPlatformCameraExposure::Aperture, -1.0);
 }
 
 
@@ -408,7 +408,7 @@ qreal QCameraExposure::requestedAperture() const
 QList<qreal> QCameraExposure::supportedApertures(bool * continuous) const
 {
     QList<qreal> res;
-    QCameraExposureControl *control = d_func()->exposureControl;
+    QPlatformCameraExposure *control = d_func()->exposureControl;
 
     bool tmp = false;
     if (!continuous)
@@ -417,7 +417,7 @@ QList<qreal> QCameraExposure::supportedApertures(bool * continuous) const
     if (!control)
         return res;
 
-    const auto range = control->supportedParameterRange(QCameraExposureControl::Aperture, continuous);
+    const auto range = control->supportedParameterRange(QPlatformCameraExposure::Aperture, continuous);
     for (const QVariant &value : range) {
         bool ok = false;
         qreal realValue = value.toReal(&ok);
@@ -437,7 +437,7 @@ QList<qreal> QCameraExposure::supportedApertures(bool * continuous) const
 
 void QCameraExposure::setManualAperture(qreal aperture)
 {
-    d_func()->setExposureParameter<qreal>(QCameraExposureControl::Aperture, aperture);
+    d_func()->setExposureParameter<qreal>(QPlatformCameraExposure::Aperture, aperture);
 }
 
 /*!
@@ -447,7 +447,7 @@ void QCameraExposure::setManualAperture(qreal aperture)
 
 void QCameraExposure::setAutoAperture()
 {
-    d_func()->resetExposureParameter(QCameraExposureControl::Aperture);
+    d_func()->resetExposureParameter(QPlatformCameraExposure::Aperture);
 }
 
 /*!
@@ -456,7 +456,7 @@ void QCameraExposure::setAutoAperture()
 
 qreal QCameraExposure::shutterSpeed() const
 {
-    return d_func()->actualExposureParameter<qreal>(QCameraExposureControl::ShutterSpeed, -1.0);
+    return d_func()->actualExposureParameter<qreal>(QPlatformCameraExposure::ShutterSpeed, -1.0);
 }
 
 /*!
@@ -465,7 +465,7 @@ qreal QCameraExposure::shutterSpeed() const
 */
 qreal QCameraExposure::requestedShutterSpeed() const
 {
-    return d_func()->requestedExposureParameter<qreal>(QCameraExposureControl::ShutterSpeed, -1.0);
+    return d_func()->requestedExposureParameter<qreal>(QPlatformCameraExposure::ShutterSpeed, -1.0);
 }
 
 /*!
@@ -477,7 +477,7 @@ qreal QCameraExposure::requestedShutterSpeed() const
 QList<qreal> QCameraExposure::supportedShutterSpeeds(bool *continuous) const
 {
     QList<qreal> res;
-    QCameraExposureControl *control = d_func()->exposureControl;
+    QPlatformCameraExposure *control = d_func()->exposureControl;
 
     bool tmp = false;
     if (!continuous)
@@ -486,7 +486,7 @@ QList<qreal> QCameraExposure::supportedShutterSpeeds(bool *continuous) const
     if (!control)
         return res;
 
-    const auto range = control->supportedParameterRange(QCameraExposureControl::ShutterSpeed, continuous);
+    const auto range = control->supportedParameterRange(QPlatformCameraExposure::ShutterSpeed, continuous);
     for (const QVariant &value : range) {
         bool ok = false;
         qreal realValue = value.toReal(&ok);
@@ -505,7 +505,7 @@ QList<qreal> QCameraExposure::supportedShutterSpeeds(bool *continuous) const
 
 void QCameraExposure::setManualShutterSpeed(qreal seconds)
 {
-    d_func()->setExposureParameter<qreal>(QCameraExposureControl::ShutterSpeed, seconds);
+    d_func()->setExposureParameter<qreal>(QPlatformCameraExposure::ShutterSpeed, seconds);
 }
 
 /*!
@@ -514,7 +514,7 @@ void QCameraExposure::setManualShutterSpeed(qreal seconds)
 
 void QCameraExposure::setAutoShutterSpeed()
 {
-    d_func()->resetExposureParameter(QCameraExposureControl::ShutterSpeed);
+    d_func()->resetExposureParameter(QPlatformCameraExposure::ShutterSpeed);
 }
 
 

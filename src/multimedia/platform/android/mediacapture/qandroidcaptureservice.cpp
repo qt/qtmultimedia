@@ -75,17 +75,17 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraSession;
 }
 
-QCameraControl *QAndroidCaptureService::cameraControl()
+QPlatformCamera *QAndroidCaptureService::cameraControl()
 {
     return m_cameraControl;
 }
 
-QCameraImageCaptureControl *QAndroidCaptureService::imageCaptureControl()
+QPlatformCameraImageCapture *QAndroidCaptureService::imageCaptureControl()
 {
     return m_imageCaptureControl;
 }
 
-QMediaRecorderControl *QAndroidCaptureService::mediaRecorderControl()
+QPlatformMediaRecorder *QAndroidCaptureService::mediaRecorderControl()
 {
     return m_recorderControl;
 }

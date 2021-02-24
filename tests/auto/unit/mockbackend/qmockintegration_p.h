@@ -69,7 +69,7 @@ public:
     QPlatformMediaDeviceManager *deviceManager() override;
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 
-    QAudioDecoderControl *createAudioDecoder() override;
+    QPlatformAudioDecoder *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer() override;
     QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
 

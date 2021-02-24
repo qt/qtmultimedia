@@ -53,14 +53,14 @@
 //
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 #include "camerabinsession.h"
 
 #include <gst/pbutils/encoding-profile.h>
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinRecorder : public QMediaRecorderControl
+class CameraBinRecorder : public QPlatformMediaRecorder
 {
     Q_OBJECT
 

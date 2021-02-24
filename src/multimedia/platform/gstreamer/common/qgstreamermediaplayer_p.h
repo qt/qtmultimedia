@@ -52,7 +52,7 @@
 //
 
 #include <QtCore/qstack.h>
-#include <qplatformmediaplayer_p.h>
+#include <private/qplatformmediaplayer_p.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <qurl.h>
 #include <private/qgst_p.h>

@@ -39,11 +39,11 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include <QtTest/QtTest>
 #include <QDebug>
 
-#include <qcameracontrol.h>
-#include <qcameraexposurecontrol.h>
-#include <qcamerafocuscontrol.h>
-#include <qcameraimagecapturecontrol.h>
-#include <qcameraimageprocessingcontrol.h>
+#include <private/qplatformcamera_p.h>
+#include <private/qplatformcameraexposure_p.h>
+#include <private/qplatformcamerafocus_p.h>
+#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformcameraimageprocessing_p.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 

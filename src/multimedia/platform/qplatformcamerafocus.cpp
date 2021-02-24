@@ -37,16 +37,16 @@
 **
 ****************************************************************************/
 
-#include <qcamerafocuscontrol.h>
+#include "qplatformcamerafocus_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCameraFocusControl
+    \class QPlatformCameraFocus
     \obsolete
 
 
-    \brief The QCameraFocusControl class supplies control for
+    \brief The QPlatformCameraFocus class supplies control for
     focusing related camera parameters.
 
     \inmodule QtMultimedia
@@ -59,51 +59,51 @@ QT_BEGIN_NAMESPACE
     Constructs a camera control object with \a parent.
 */
 
-QCameraFocusControl::QCameraFocusControl(QObject *parent)
+QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
     : QObject(parent)
 {
 }
 
 /*!
-  \fn QCameraFocus::FocusModes QCameraFocusControl::focusMode() const
+  \fn QCameraFocus::FocusModes QPlatformCameraFocus::focusMode() const
 
   Returns the focus mode being used.
 */
 
 
 /*!
-  \fn void QCameraFocusControl::setFocusMode(QCameraFocus::FocusModes mode)
+  \fn void QPlatformCameraFocus::setFocusMode(QCameraFocus::FocusModes mode)
 
   Set the focus mode to \a mode.
 */
 
 
 /*!
-  \fn bool QCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusModes mode) const
+  \fn bool QPlatformCameraFocus::isFocusModeSupported(QCameraFocus::FocusModes mode) const
 
   Returns true if focus \a mode is supported.
 */
 
 /*!
-  \fn QCameraFocusControl::focusPointMode() const
+  \fn QPlatformCameraFocus::focusPointMode() const
 
   Returns the camera focus point selection mode.
 */
 
 /*!
-  \fn QCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
+  \fn QPlatformCameraFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 
   Sets the camera focus point selection \a mode.
 */
 
 /*!
-  \fn QCameraFocusControl::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
+  \fn QPlatformCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
 
   Returns true if the camera focus point \a mode is supported.
 */
 
 /*!
-  \fn QCameraFocusControl::customFocusPoint() const
+  \fn QPlatformCameraFocus::customFocusPoint() const
 
   Return the position of custom focus point, in relative frame coordinates:
   QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
@@ -112,99 +112,99 @@ QCameraFocusControl::QCameraFocusControl(QObject *parent)
 */
 
 /*!
-  \fn QCameraFocusControl::setCustomFocusPoint(const QPointF &point)
+  \fn QPlatformCameraFocus::setCustomFocusPoint(const QPointF &point)
 
   Sets the custom focus \a point.
 
   If camera supports fixed set of focus points,
   it should use the nearest supported focus point,
-  and return the actual focus point with QCameraFocusControl::focusZones().
+  and return the actual focus point with QPlatformCameraFocus::focusZones().
 
-  \sa QCameraFocusControl::customFocusPoint(), QCameraFocusControl::focusZones()
+  \sa QPlatformCameraFocus::customFocusPoint(), QPlatformCameraFocus::focusZones()
 */
 
 /*!
-  \fn QCameraFocusControl::focusZones() const
+  \fn QPlatformCameraFocus::focusZones() const
 
   Returns the list of zones, the camera is using for focusing or focused on.
 */
 
 /*!
-  \fn QCameraFocusControl::focusZonesChanged()
+  \fn QPlatformCameraFocus::focusZonesChanged()
 
   Signal is emitted when the set of zones, camera focused on is changed.
 
   Usually the zones list is changed when the camera is focused.
 
-  \sa QCameraFocusControl::focusZones()
+  \sa QPlatformCameraFocus::focusZones()
 */
 
 /*!
-  \fn void QCameraFocusControl::focusModeChanged(QCameraFocus::FocusModes mode)
+  \fn void QPlatformCameraFocus::focusModeChanged(QCameraFocus::FocusModes mode)
 
   Signal is emitted when the focus \a mode is changed,
-  usually in result of QCameraFocusControl::setFocusMode call or capture mode changes.
+  usually in result of QPlatformCameraFocus::setFocusMode call or capture mode changes.
 
-  \sa QCameraFocusControl::focusMode(), QCameraFocusControl::setFocusMode()
+  \sa QPlatformCameraFocus::focusMode(), QPlatformCameraFocus::setFocusMode()
 */
 
 /*!
-  \fn void QCameraFocusControl::focusPointModeChanged(QCameraFocus::FocusPointMode mode)
+  \fn void QPlatformCameraFocus::focusPointModeChanged(QCameraFocus::FocusPointMode mode)
 
   Signal is emitted when the focus point \a mode is changed,
-  usually in result of QCameraFocusControl::setFocusPointMode call or capture mode changes.
+  usually in result of QPlatformCameraFocus::setFocusPointMode call or capture mode changes.
 
-  \sa QCameraFocusControl::focusPointMode(), QCameraFocusControl::setFocusPointMode()
+  \sa QPlatformCameraFocus::focusPointMode(), QPlatformCameraFocus::setFocusPointMode()
 */
 
 /*!
-  \fn void QCameraFocusControl::customFocusPointChanged(const QPointF &point)
+  \fn void QPlatformCameraFocus::customFocusPointChanged(const QPointF &point)
 
   Signal is emitted when the custom focus \a point is changed.
 
-  \sa QCameraFocusControl::customFocusPoint(), QCameraFocusControl::setCustomFocusPoint()
+  \sa QPlatformCameraFocus::customFocusPoint(), QPlatformCameraFocus::setCustomFocusPoint()
 */
 
 /*!
-  \fn qreal QCameraFocusControl::maximumOpticalZoom() const
+  \fn qreal QPlatformCameraFocus::maximumOpticalZoom() const
 
   Returns the maximum optical zoom value, or 1.0 if optical zoom is not supported.
 */
 
 
 /*!
-  \fn qreal QCameraFocusControl::maximumDigitalZoom() const
+  \fn qreal QPlatformCameraFocus::maximumDigitalZoom() const
 
   Returns the maximum digital zoom value, or 1.0 if digital zoom is not supported.
 */
 
 
 /*!
-  \fn qreal QCameraFocusControl::requestedOpticalZoom() const
+  \fn qreal QPlatformCameraFocus::requestedOpticalZoom() const
 
   Return the requested optical zoom value.
 */
 
 /*!
-  \fn qreal QCameraFocusControl::requestedDigitalZoom() const
+  \fn qreal QPlatformCameraFocus::requestedDigitalZoom() const
 
   Return the requested digital zoom value.
 */
 
 /*!
-  \fn qreal QCameraFocusControl::currentOpticalZoom() const
+  \fn qreal QPlatformCameraFocus::currentOpticalZoom() const
 
   Return the current optical zoom value.
 */
 
 /*!
-  \fn qreal QCameraFocusControl::currentDigitalZoom() const
+  \fn qreal QPlatformCameraFocus::currentDigitalZoom() const
 
   Return the current digital zoom value.
 */
 
 /*!
-  \fn void QCameraFocusControl::zoomTo(qreal optical, qreal digital)
+  \fn void QPlatformCameraFocus::zoomTo(qreal optical, qreal digital)
 
   Sets \a optical and \a digital zoom values.
 
@@ -217,32 +217,32 @@ QCameraFocusControl::QCameraFocusControl(QObject *parent)
 
 
 /*!
-    \fn void QCameraFocusControl::currentOpticalZoomChanged(qreal zoom)
+    \fn void QPlatformCameraFocus::currentOpticalZoomChanged(qreal zoom)
 
     Signal emitted when the current optical \a zoom value changed.
 */
 
 /*!
-    \fn void QCameraFocusControl::currentDigitalZoomChanged(qreal zoom)
+    \fn void QPlatformCameraFocus::currentDigitalZoomChanged(qreal zoom)
 
     Signal emitted when the current digital \a zoom value changed.
 */
 
 /*!
-    \fn void QCameraFocusControl::requestedOpticalZoomChanged(qreal zoom)
+    \fn void QPlatformCameraFocus::requestedOpticalZoomChanged(qreal zoom)
 
     Signal emitted when the requested optical \a zoom value changed.
 */
 
 /*!
-    \fn void QCameraFocusControl::requestedDigitalZoomChanged(qreal zoom)
+    \fn void QPlatformCameraFocus::requestedDigitalZoomChanged(qreal zoom)
 
     Signal emitted when the requested digital \a zoom value changed.
 */
 
 
 /*!
-    \fn void QCameraFocusControl::maximumOpticalZoomChanged(qreal zoom)
+    \fn void QPlatformCameraFocus::maximumOpticalZoomChanged(qreal zoom)
 
     Signal emitted when the maximum supported optical \a zoom value changed.
 
@@ -251,7 +251,7 @@ QCameraFocusControl::QCameraFocusControl(QObject *parent)
 */
 
 /*!
-    \fn void QCameraFocusControl::maximumDigitalZoomChanged(qreal zoom)
+    \fn void QPlatformCameraFocus::maximumDigitalZoomChanged(qreal zoom)
 
     Signal emitted when the maximum supported digital \a zoom value changed.
 
@@ -261,4 +261,4 @@ QCameraFocusControl::QCameraFocusControl(QObject *parent)
 
 QT_END_NAMESPACE
 
-#include "moc_qcamerafocuscontrol.cpp"
+#include "moc_qplatformcamerafocus_p.cpp"

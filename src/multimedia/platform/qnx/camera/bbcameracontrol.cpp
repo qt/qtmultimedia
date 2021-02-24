@@ -44,7 +44,7 @@
 QT_BEGIN_NAMESPACE
 
 BbCameraControl::BbCameraControl(BbCameraSession *session, QObject *parent)
-    : QCameraControl(parent)
+    : QPlatformCamera(parent)
     , m_session(session)
 {
     connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(statusChanged(QCamera::Status)));

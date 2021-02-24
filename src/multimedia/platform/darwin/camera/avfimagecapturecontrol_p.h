@@ -56,13 +56,13 @@
 #include <QtCore/qqueue.h>
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qsharedpointer.h>
-#include <QtMultimedia/qcameraimagecapturecontrol.h>
+#include <private/qplatformcameraimagecapture_p.h>
 #include "avfcamerasession_p.h"
 #include "avfstoragelocation_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class AVFImageCaptureControl : public QCameraImageCaptureControl
+class AVFImageCaptureControl : public QPlatformCameraImageCapture
 {
 Q_OBJECT
 public:

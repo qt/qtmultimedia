@@ -83,7 +83,7 @@ QPlatformMediaFormatInfo *QWindowsIntegration::formatInfo()
     return m_formatInfo;
 }
 
-QAudioDecoderControl *QWindowsIntegration::createAudioDecoder()
+QPlatformAudioDecoder *QWindowsIntegration::createAudioDecoder()
 {
     return new MFAudioDecoderControl;
 }

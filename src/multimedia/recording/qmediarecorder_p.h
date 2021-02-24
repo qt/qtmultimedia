@@ -58,7 +58,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaRecorderControl;
+class QPlatformMediaRecorder;
 class QMediaContainerControl;
 class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
@@ -80,7 +80,7 @@ public:
 
     QPointer<QCamera> camera;
 
-    QMediaRecorderControl *control = nullptr;
+    QPlatformMediaRecorder *control = nullptr;
 
     bool settingsChanged = false;
 

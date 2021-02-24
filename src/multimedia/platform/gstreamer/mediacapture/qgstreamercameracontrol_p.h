@@ -53,12 +53,12 @@
 //
 
 #include <QHash>
-#include <qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 #include "qgstreamercapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCameraControl : public QCameraControl
+class QGstreamerCameraControl : public QPlatformCamera
 {
     Q_OBJECT
 public:

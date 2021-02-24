@@ -37,20 +37,20 @@
 **
 ****************************************************************************/
 
-#include "qaudiodecodercontrol.h"
+#include "qplatformaudiodecoder_p.h"
 
 QT_BEGIN_NAMESPACE
 
 
 /*!
-    \class QAudioDecoderControl
+    \class QPlatformAudioDecoder
     \obsolete
     \inmodule QtMultimedia
 
 
     \ingroup multimedia_control
 
-    \brief The QAudioDecoderControl class provides access audio decoding
+    \brief The QPlatformAudioDecoder class provides access audio decoding
     functionality.
 
     \preliminary
@@ -59,19 +59,19 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a new audio decoder control with the given \a parent.
 */
-QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
+QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
     : QObject(parent)
 {
 }
 
 /*!
-    \fn QAudioDecoderControl::state() const
+    \fn QPlatformAudioDecoder::state() const
 
     Returns the state of a player control.
 */
 
 /*!
-    \fn QAudioDecoderControl::stateChanged(QAudioDecoder::State newState)
+    \fn QPlatformAudioDecoder::stateChanged(QAudioDecoder::State newState)
 
     Signals that the state of a player control has changed to \a newState.
 
@@ -79,13 +79,13 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::sourceFilename() const
+    \fn QPlatformAudioDecoder::sourceFilename() const
 
     Returns the current media source filename, or a null QString if none (or a device)
 */
 
 /*!
-    \fn QAudioDecoderControl::setSourceFilename(const QString &fileName)
+    \fn QPlatformAudioDecoder::setSourceFilename(const QString &fileName)
 
     Sets the current source to \a fileName.  Changing the source will
     stop any current decoding and discard any buffers.
@@ -94,13 +94,13 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::sourceDevice() const
+    \fn QPlatformAudioDecoder::sourceDevice() const
 
     Returns the current media source QIODevice, or 0 if none (or a file).
 */
 
 /*!
-    \fn QAudioDecoderControl::setSourceDevice(QIODevice *device)
+    \fn QPlatformAudioDecoder::setSourceDevice(QIODevice *device)
 
     Sets the current source to \a device.  Changing the source will
     stop any current decoding and discard any buffers.
@@ -109,7 +109,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::start()
+    \fn QPlatformAudioDecoder::start()
 
     Starts decoding the current media.
 
@@ -120,7 +120,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::stop()
+    \fn QPlatformAudioDecoder::stop()
 
     Stops playback of the current media and discards any buffers.
 
@@ -129,32 +129,32 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::error(int error, const QString &errorString)
+    \fn QPlatformAudioDecoder::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString provides a more detailed explanation.
 */
 
 /*!
-    \fn QAudioDecoderControl::bufferAvailableChanged(bool available)
+    \fn QPlatformAudioDecoder::bufferAvailableChanged(bool available)
 
     Signals that the bufferAvailable property has changed to \a available.
 */
 
 /*!
-    \fn QAudioDecoderControl::bufferReady()
+    \fn QPlatformAudioDecoder::bufferReady()
 
     Signals that a new buffer is ready for reading.
 */
 
 /*!
-    \fn QAudioDecoderControl::bufferAvailable() const
+    \fn QPlatformAudioDecoder::bufferAvailable() const
 
     Returns true if a buffer is available to be read,
     and false otherwise.
 */
 
 /*!
-    \fn QAudioDecoderControl::sourceChanged()
+    \fn QPlatformAudioDecoder::sourceChanged()
 
     Signals that the current source of the decoder has changed.
 
@@ -162,7 +162,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::formatChanged(const QAudioFormat &format)
+    \fn QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 
     Signals that the current audio format of the decoder has changed to \a format.
 
@@ -170,7 +170,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn void QAudioDecoderControl::finished()
+    \fn void QPlatformAudioDecoder::finished()
 
     Signals that the decoding has finished successfully.
     If decoding fails, error signal is emitted instead.
@@ -179,7 +179,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn void QAudioDecoderControl::positionChanged(qint64 position)
+    \fn void QPlatformAudioDecoder::positionChanged(qint64 position)
 
     Signals that the current \a position of the decoder has changed.
 
@@ -187,7 +187,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn void QAudioDecoderControl::durationChanged(qint64 duration)
+    \fn void QPlatformAudioDecoder::durationChanged(qint64 duration)
 
     Signals that the estimated \a duration of the decoded data has changed.
 
@@ -195,7 +195,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::audioFormat() const
+    \fn QPlatformAudioDecoder::audioFormat() const
     Returns the current audio format of the decoded stream.
 
     Any buffers returned should have this format.
@@ -204,7 +204,7 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
+    \fn QPlatformAudioDecoder::setAudioFormat(const QAudioFormat &format)
     Set the desired audio format for decoded samples to \a format.
 
     If the decoder does not support this format, \l error() will
@@ -219,23 +219,23 @@ QAudioDecoderControl::QAudioDecoderControl(QObject *parent)
 */
 
 /*!
-    \fn QAudioDecoderControl::read()
+    \fn QPlatformAudioDecoder::read()
     Attempts to read a buffer from the decoder, without blocking. Returns invalid buffer if there are
     no decoded buffers available, or on error.
 */
 
 /*!
-    \fn QAudioDecoderControl::position() const
+    \fn QPlatformAudioDecoder::position() const
     Returns position (in milliseconds) of the last buffer read from
     the decoder or -1 if no buffers have been read.
 */
 
 /*!
-    \fn QAudioDecoderControl::duration() const
+    \fn QPlatformAudioDecoder::duration() const
     Returns total duration (in milliseconds) of the audio stream
     or -1 if not available.
 */
 
 QT_END_NAMESPACE
 
-#include "moc_qaudiodecodercontrol.cpp"
+#include "moc_qplatformaudiodecoder_p.cpp"

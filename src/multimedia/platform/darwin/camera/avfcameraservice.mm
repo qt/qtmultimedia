@@ -102,22 +102,22 @@ AVFCameraService::~AVFCameraService()
     delete m_session;
 }
 
-QCameraControl *AVFCameraService::cameraControl()
+QPlatformCamera *AVFCameraService::cameraControl()
 {
     return m_cameraControl;
 }
 
-QCameraImageCaptureControl *AVFCameraService::imageCaptureControl()
+QPlatformCameraImageCapture *AVFCameraService::imageCaptureControl()
 {
     return m_imageCaptureControl;
 }
 
-QMediaRecorderControl *AVFCameraService::mediaRecorderControl()
+QPlatformMediaRecorder *AVFCameraService::mediaRecorderControl()
 {
     return m_recorderControl;
 }
 
-QCameraImageProcessingControl *AVFCameraService::cameraImageProcessingControl() const
+QPlatformCameraImageProcessing *AVFCameraService::cameraImageProcessingControl() const
 {
     return m_cameraImageProcessingControl;
 }

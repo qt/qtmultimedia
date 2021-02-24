@@ -42,7 +42,7 @@
 #include <QtCore/QDir>
 
 QGstreamerImageCaptureControl::QGstreamerImageCaptureControl(QGstreamerCaptureSession *session)
-    :QCameraImageCaptureControl(session), m_session(session), m_ready(false), m_lastId(0)
+    :QPlatformCameraImageCapture(session), m_session(session), m_ready(false), m_lastId(0)
 {
     connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)), SLOT(updateState()));
     connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));

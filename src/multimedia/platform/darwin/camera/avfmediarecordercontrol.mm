@@ -51,7 +51,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qmimetype.h>
 #include <QtCore/qfileinfo.h>
-#include <QtMultimedia/qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 #include <CoreAudio/CoreAudio.h>
 
 QT_USE_NAMESPACE
@@ -126,7 +126,7 @@ QT_USE_NAMESPACE
 
 
 AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObject *parent)
-   : QMediaRecorderControl(parent)
+   : QPlatformMediaRecorder(parent)
    , m_cameraControl(service->avfCameraControl())
    , m_session(service->session())
    , m_connected(false)

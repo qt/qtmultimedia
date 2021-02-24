@@ -27,18 +27,18 @@ qt_internal_add_module(Multimedia
         camera/qcameraimageprocessing.cpp camera/qcameraimageprocessing.h
         camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h
         camera/qcameraviewfindersettings.cpp camera/qcameraviewfindersettings.h
-        controls/qaudiodecodercontrol.cpp controls/qaudiodecodercontrol.h
+        controls/qplatformaudiodecoder.cpp controls/qplatformaudiodecoder_p.h
         controls/qaudioencodersettingscontrol.cpp controls/qaudioencodersettingscontrol.h
-        controls/qcameracontrol.cpp controls/qcameracontrol.h
-        controls/qcameraexposurecontrol.cpp controls/qcameraexposurecontrol.h
-        controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h
-        controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
-        controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
+        controls/qplatformcamera.cpp controls/qplatformcamera_p.h
+        controls/qplatformcameraexposure.cpp controls/qplatformcameraexposure_p.h
+        controls/qplatformcamerafocus.cpp controls/qplatformcamerafocus_p.h
+        controls/qplatformcameraimagecapture.cpp controls/qplatformcameraimagecapture_p.h
+        controls/qplatformcameraimageprocessing.cpp controls/qplatformcameraimageprocessing_p.h
         controls/qimageencodercontrol.cpp controls/qimageencodercontrol.h
         controls/qmediaaudioprobecontrol.cpp controls/qmediaaudioprobecontrol.h
         controls/qmediacontainercontrol.cpp controls/qmediacontainercontrol.h
         controls/qmediaplayercontrol.cpp controls/qplatformmediaplayer_p.h
-        controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
+        controls/qplatformmediarecorder.cpp controls/qplatformmediarecorder_p.h
         controls/qmediastreamscontrol.cpp controls/qmediastreamscontrol.h
         controls/qmediavideoprobecontrol.cpp controls/qmediavideoprobecontrol.h
         controls/qmetadatareadercontrol.cpp controls/qmetadatareadercontrol.h

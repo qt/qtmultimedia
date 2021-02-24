@@ -56,7 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 CameraBinFocus::CameraBinFocus(CameraBinSession *session)
-    :QCameraFocusControl(session),
+    :QPlatformCameraFocus(session),
      QGstreamerBufferProbe(ProbeBuffers),
      m_session(session),
      m_cameraStatus(QCamera::UnloadedStatus),
@@ -408,7 +408,7 @@ void CameraBinFocus::timerEvent(QTimerEvent *event)
             emit focusZonesChanged();
         }
     } else {
-        QCameraFocusControl::timerEvent(event);
+        QPlatformCameraFocus::timerEvent(event);
     }
 }
 

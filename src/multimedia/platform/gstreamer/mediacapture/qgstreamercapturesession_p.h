@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 #include <qmediarecorder.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamerainfo.h>

@@ -46,7 +46,7 @@
 QT_BEGIN_NAMESPACE
 
 CameraBinExposure::CameraBinExposure(CameraBinSession *session)
-    :QCameraExposureControl(session),
+    :QPlatformCameraExposure(session),
      m_session(session)
 {
 }
@@ -58,10 +58,10 @@ CameraBinExposure::~CameraBinExposure()
 bool CameraBinExposure::isParameterSupported(ExposureParameter parameter) const
 {
     switch (parameter) {
-    case QCameraExposureControl::ExposureCompensation:
-    case QCameraExposureControl::ISO:
-    case QCameraExposureControl::Aperture:
-    case QCameraExposureControl::ShutterSpeed:
+    case QPlatformCameraExposure::ExposureCompensation:
+    case QPlatformCameraExposure::ISO:
+    case QPlatformCameraExposure::Aperture:
+    case QPlatformCameraExposure::ShutterSpeed:
         return true;
     default:
         return false;
@@ -76,15 +76,15 @@ QVariantList CameraBinExposure::supportedParameterRange(ExposureParameter parame
 
     QVariantList res;
     switch (parameter) {
-    case QCameraExposureControl::ExposureCompensation:
+    case QPlatformCameraExposure::ExposureCompensation:
         if (continuous)
             *continuous = true;
         res << -2.0 << 2.0;
         break;
-    case QCameraExposureControl::ISO:
+    case QPlatformCameraExposure::ISO:
         res << 100 << 200 << 400;
         break;
-    case QCameraExposureControl::Aperture:
+    case QPlatformCameraExposure::Aperture:
         res << 2.8;
         break;
     default:
@@ -102,28 +102,28 @@ QVariant CameraBinExposure::requestedValue(ExposureParameter parameter) const
 QVariant CameraBinExposure::actualValue(ExposureParameter parameter) const
 {
     switch (parameter) {
-    case QCameraExposureControl::ExposureCompensation:
+    case QPlatformCameraExposure::ExposureCompensation:
     {
         gfloat ev;
         gst_photography_get_ev_compensation(m_session->photography(), &ev);
         return QVariant(ev);
     }
-    case QCameraExposureControl::ISO:
+    case QPlatformCameraExposure::ISO:
     {
         guint isoSpeed = 0;
         gst_photography_get_iso_speed(m_session->photography(), &isoSpeed);
         return QVariant(isoSpeed);
     }
-    case QCameraExposureControl::Aperture:
+    case QPlatformCameraExposure::Aperture:
         return QVariant(2.8);
-    case QCameraExposureControl::ShutterSpeed:
+    case QPlatformCameraExposure::ShutterSpeed:
     {
         guint32 shutterSpeed = 0;
         gst_photography_get_exposure(m_session->photography(), &shutterSpeed);
 
         return QVariant(shutterSpeed/1000000.0);
     }
-    case QCameraExposureControl::ExposureMode:
+    case QPlatformCameraExposure::ExposureMode:
     {
         GstPhotographySceneMode sceneMode;
         gst_photography_get_scene_mode(m_session->photography(), &sceneMode);
@@ -178,19 +178,19 @@ bool CameraBinExposure::setValue(ExposureParameter parameter, const QVariant& va
     QVariant oldValue = actualValue(parameter);
 
     switch (parameter) {
-    case QCameraExposureControl::ExposureCompensation:
+    case QPlatformCameraExposure::ExposureCompensation:
         gst_photography_set_ev_compensation(m_session->photography(), value.toReal());
         break;
-    case QCameraExposureControl::ISO:
+    case QPlatformCameraExposure::ISO:
         gst_photography_set_iso_speed(m_session->photography(), value.toInt());
         break;
-    case QCameraExposureControl::Aperture:
+    case QPlatformCameraExposure::Aperture:
         gst_photography_set_aperture(m_session->photography(), guint(value.toReal()*1000000));
         break;
-    case QCameraExposureControl::ShutterSpeed:
+    case QPlatformCameraExposure::ShutterSpeed:
         gst_photography_set_exposure(m_session->photography(), guint(value.toReal()*1000000));
         break;
-    case QCameraExposureControl::ExposureMode:
+    case QPlatformCameraExposure::ExposureMode:
     {
         QCameraExposure::ExposureMode mode = value.value<QCameraExposure::ExposureMode>();
         GstPhotographySceneMode sceneMode;

@@ -40,10 +40,10 @@
 #include "qmediarecorder.h"
 #include "qmediarecorder_p.h"
 
-#include <qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamera.h>
-#include <qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
 
@@ -144,7 +144,7 @@ void QMediaRecorderPrivate::restartCamera()
         QMetaObject::invokeMethod(camera,
                                   "_q_preparePropertyChange",
                                   Qt::DirectConnection,
-                                  Q_ARG(int, QCameraControl::VideoEncodingSettings));
+                                  Q_ARG(int, QPlatformCamera::VideoEncodingSettings));
     }
 }
 

@@ -69,7 +69,7 @@ QPlatformMediaFormatInfo *QGstreamerIntegration::formatInfo()
     return m_formatsInfo;
 }
 
-QAudioDecoderControl *QGstreamerIntegration::createAudioDecoder()
+QPlatformAudioDecoder *QGstreamerIntegration::createAudioDecoder()
 {
     return new QGstreamerAudioDecoderControl(nullptr);
 }

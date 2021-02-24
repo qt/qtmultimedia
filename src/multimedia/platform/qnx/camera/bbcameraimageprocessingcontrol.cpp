@@ -45,19 +45,19 @@
 QT_BEGIN_NAMESPACE
 
 BbCameraImageProcessingControl::BbCameraImageProcessingControl(BbCameraSession *session, QObject *parent)
-    : QCameraImageProcessingControl(parent)
+    : QPlatformCameraImageProcessing(parent)
     , m_session(session)
 {
 }
 
 bool BbCameraImageProcessingControl::isParameterSupported(ProcessingParameter parameter) const
 {
-    return (parameter == QCameraImageProcessingControl::WhiteBalancePreset);
+    return (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset);
 }
 
 bool BbCameraImageProcessingControl::isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const
 {
-    if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
         return false;
 
     if (m_session->handle() == CAMERA_HANDLE_INVALID)
@@ -91,7 +91,7 @@ bool BbCameraImageProcessingControl::isParameterValueSupported(ProcessingParamet
 
 QVariant BbCameraImageProcessingControl::parameter(ProcessingParameter parameter) const
 {
-    if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
         return QVariant();
 
     if (m_session->handle() == CAMERA_HANDLE_INVALID)
@@ -117,7 +117,7 @@ QVariant BbCameraImageProcessingControl::parameter(ProcessingParameter parameter
 
 void BbCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
 {
-    if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
         return;
 
     if (m_session->handle() == CAMERA_HANDLE_INVALID)

@@ -173,7 +173,7 @@ void qt_set_exposure_bias(QPointer<AVFCameraService> service, QPointer<AVFCamera
         if (service) {
             if (control) {
                 if (service->session() && service->session()->videoCaptureDevice() == device)
-                    Q_EMIT control->actualValueChanged(int(QCameraExposureControl::ExposureCompensation));
+                    Q_EMIT control->actualValueChanged(int(QPlatformCameraExposure::ExposureCompensation));
             }
         }
         device = nil;
@@ -198,9 +198,9 @@ void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraE
             if (control) {
                 if (service->session() && service->session()->videoCaptureDevice() == device) {
                     if (setDuration)
-                        Q_EMIT control->actualValueChanged(int(QCameraExposureControl::ShutterSpeed));
+                        Q_EMIT control->actualValueChanged(int(QPlatformCameraExposure::ShutterSpeed));
                     if (setISO)
-                        Q_EMIT control->actualValueChanged(int(QCameraExposureControl::ISO));
+                        Q_EMIT control->actualValueChanged(int(QPlatformCameraExposure::ISO));
                 }
             }
         }
@@ -235,10 +235,10 @@ bool AVFCameraExposureControl::isParameterSupported(ExposureParameter parameter)
         return false;
 
     // These are the parameters we have an API to support:
-    return parameter == QCameraExposureControl::ISO
-           || parameter == QCameraExposureControl::ShutterSpeed
-           || parameter == QCameraExposureControl::ExposureCompensation
-           || parameter == QCameraExposureControl::ExposureMode;
+    return parameter == QPlatformCameraExposure::ISO
+           || parameter == QPlatformCameraExposure::ShutterSpeed
+           || parameter == QPlatformCameraExposure::ExposureCompensation
+           || parameter == QPlatformCameraExposure::ExposureMode;
 #else
     Q_UNUSED(parameter);
     return false;
@@ -262,7 +262,7 @@ QVariantList AVFCameraExposureControl::supportedParameterRange(ExposureParameter
 
     AVCaptureDeviceFormat *activeFormat = captureDevice.activeFormat;
 
-    if (parameter == QCameraExposureControl::ISO) {
+    if (parameter == QPlatformCameraExposure::ISO) {
         if (!activeFormat) {
             qDebugCamera() << Q_FUNC_INFO << "failed to obtain capture device format";
             return parameterRange;
@@ -277,12 +277,12 @@ QVariantList AVFCameraExposureControl::supportedParameterRange(ExposureParameter
         parameterRange << QVariant(int(activeFormat.maxISO));
         if (continuous)
             *continuous = true;
-    } else if (parameter == QCameraExposureControl::ExposureCompensation) {
+    } else if (parameter == QPlatformCameraExposure::ExposureCompensation) {
         parameterRange << captureDevice.minExposureTargetBias;
         parameterRange << captureDevice.maxExposureTargetBias;
         if (continuous)
             *continuous = true;
-    } else if (parameter == QCameraExposureControl::ShutterSpeed) {
+    } else if (parameter == QPlatformCameraExposure::ShutterSpeed) {
         if (!activeFormat) {
             qDebugCamera() << Q_FUNC_INFO << "failed to obtain capture device format";
             return parameterRange;
@@ -294,7 +294,7 @@ QVariantList AVFCameraExposureControl::supportedParameterRange(ExposureParameter
 
         if (continuous)
             *continuous = true;
-    } else if (parameter == QCameraExposureControl::ExposureMode) {
+    } else if (parameter == QPlatformCameraExposure::ExposureMode) {
         if ([captureDevice isExposureModeSupported:AVCaptureExposureModeCustom])
             parameterRange << QVariant::fromValue(QCameraExposure::ExposureManual);
 
@@ -315,16 +315,16 @@ QVariant AVFCameraExposureControl::requestedValue(ExposureParameter parameter) c
         return QVariant();
     }
 
-    if (parameter == QCameraExposureControl::ExposureMode)
+    if (parameter == QPlatformCameraExposure::ExposureMode)
         return m_requestedMode;
 
-    if (parameter == QCameraExposureControl::ExposureCompensation)
+    if (parameter == QPlatformCameraExposure::ExposureCompensation)
         return m_requestedCompensation;
 
-    if (parameter == QCameraExposureControl::ShutterSpeed)
+    if (parameter == QPlatformCameraExposure::ShutterSpeed)
         return m_requestedShutterSpeed;
 
-    if (parameter == QCameraExposureControl::ISO)
+    if (parameter == QPlatformCameraExposure::ISO)
         return m_requestedISO;
 
     return QVariant();
@@ -340,20 +340,20 @@ QVariant AVFCameraExposureControl::actualValue(ExposureParameter parameter) cons
         return QVariant();
     }
 
-    if (parameter == QCameraExposureControl::ExposureMode) {
+    if (parameter == QPlatformCameraExposure::ExposureMode) {
         // This code expects exposureMode to be continuous by default ...
         if (captureDevice.exposureMode == AVCaptureExposureModeContinuousAutoExposure)
             return QVariant::fromValue(QCameraExposure::ExposureAuto);
         return QVariant::fromValue(QCameraExposure::ExposureManual);
     }
 
-    if (parameter == QCameraExposureControl::ExposureCompensation)
+    if (parameter == QPlatformCameraExposure::ExposureCompensation)
         return captureDevice.exposureTargetBias;
 
-    if (parameter == QCameraExposureControl::ShutterSpeed)
+    if (parameter == QPlatformCameraExposure::ShutterSpeed)
         return qreal(CMTimeGetSeconds(captureDevice.exposureDuration));
 
-    if (parameter == QCameraExposureControl::ISO) {
+    if (parameter == QPlatformCameraExposure::ISO) {
         if (captureDevice.activeFormat && qt_check_ISO_range(captureDevice.activeFormat)
             && qt_check_ISO_conversion(captureDevice.ISO)) {
             // Can be represented as int ...
@@ -371,13 +371,13 @@ QVariant AVFCameraExposureControl::actualValue(ExposureParameter parameter) cons
 
 bool AVFCameraExposureControl::setValue(ExposureParameter parameter, const QVariant &value)
 {
-    if (parameter == QCameraExposureControl::ExposureMode)
+    if (parameter == QPlatformCameraExposure::ExposureMode)
         return setExposureMode(value);
-    else if (parameter == QCameraExposureControl::ExposureCompensation)
+    else if (parameter == QPlatformCameraExposure::ExposureCompensation)
         return setExposureCompensation(value);
-    else if (parameter == QCameraExposureControl::ShutterSpeed)
+    else if (parameter == QPlatformCameraExposure::ShutterSpeed)
         return setShutterSpeed(value);
-    else if (parameter == QCameraExposureControl::ISO)
+    else if (parameter == QPlatformCameraExposure::ISO)
         return setISO(value);
 
     return false;
@@ -401,7 +401,7 @@ bool AVFCameraExposureControl::setExposureMode(const QVariant &value)
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice) {
         m_requestedMode = value;
-        Q_EMIT requestedValueChanged(int(QCameraExposureControl::ExposureMode));
+        Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ExposureMode));
         return true;
     }
 
@@ -420,8 +420,8 @@ bool AVFCameraExposureControl::setExposureMode(const QVariant &value)
 
     m_requestedMode = value;
     [captureDevice setExposureMode:avMode];
-    Q_EMIT requestedValueChanged(int(QCameraExposureControl::ExposureMode));
-    Q_EMIT actualValueChanged(int(QCameraExposureControl::ExposureMode));
+    Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ExposureMode));
+    Q_EMIT actualValueChanged(int(QPlatformCameraExposure::ExposureMode));
 
     return true;
 #else
@@ -443,7 +443,7 @@ bool AVFCameraExposureControl::setExposureCompensation(const QVariant &value)
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice) {
         m_requestedCompensation = value;
-        Q_EMIT requestedValueChanged(int(QCameraExposureControl::ExposureCompensation));
+        Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ExposureCompensation));
         return true;
     }
 
@@ -462,7 +462,7 @@ bool AVFCameraExposureControl::setExposureCompensation(const QVariant &value)
 
     qt_set_exposure_bias(m_service, this, captureDevice, bias);
     m_requestedCompensation = value;
-    Q_EMIT requestedValueChanged(int(QCameraExposureControl::ExposureCompensation));
+    Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ExposureCompensation));
 
     return true;
 #else
@@ -486,7 +486,7 @@ bool AVFCameraExposureControl::setShutterSpeed(const QVariant &value)
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice) {
         m_requestedShutterSpeed = value;
-        Q_EMIT requestedValueChanged(int(QCameraExposureControl::ShutterSpeed));
+        Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ShutterSpeed));
         return true;
     }
 
@@ -509,7 +509,7 @@ bool AVFCameraExposureControl::setShutterSpeed(const QVariant &value)
     qt_set_duration_iso(m_service, this, captureDevice, newDuration, AVCaptureISOCurrent);
 
     m_requestedShutterSpeed = value;
-    Q_EMIT requestedValueChanged(int(QCameraExposureControl::ShutterSpeed));
+    Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ShutterSpeed));
 
     return true;
 #else
@@ -532,7 +532,7 @@ bool AVFCameraExposureControl::setISO(const QVariant &value)
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice) {
         m_requestedISO = value;
-        Q_EMIT requestedValueChanged(int(QCameraExposureControl::ISO));
+        Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ISO));
         return true;
     }
 
@@ -553,7 +553,7 @@ bool AVFCameraExposureControl::setISO(const QVariant &value)
     qt_set_duration_iso(m_service, this, captureDevice, AVCaptureExposureDurationCurrent, value.toInt());
 
     m_requestedISO = value;
-    Q_EMIT requestedValueChanged(int(QCameraExposureControl::ISO));
+    Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ISO));
 
     return true;
 #else
@@ -575,10 +575,10 @@ void AVFCameraExposureControl::cameraStateChanged(QCamera::State newState)
         return;
     }
 
-    Q_EMIT parameterRangeChanged(int(QCameraExposureControl::ExposureCompensation));
-    Q_EMIT parameterRangeChanged(int(QCameraExposureControl::ExposureMode));
-    Q_EMIT parameterRangeChanged(int(QCameraExposureControl::ShutterSpeed));
-    Q_EMIT parameterRangeChanged(int(QCameraExposureControl::ISO));
+    Q_EMIT parameterRangeChanged(int(QPlatformCameraExposure::ExposureCompensation));
+    Q_EMIT parameterRangeChanged(int(QPlatformCameraExposure::ExposureMode));
+    Q_EMIT parameterRangeChanged(int(QPlatformCameraExposure::ShutterSpeed));
+    Q_EMIT parameterRangeChanged(int(QPlatformCameraExposure::ISO));
 
     const AVFConfigurationLock lock(captureDevice);
 
@@ -651,7 +651,7 @@ void AVFCameraExposureControl::cameraStateChanged(QCamera::State newState)
         }
 
         [captureDevice setExposureMode:avMode];
-        Q_EMIT actualValueChanged(int(QCameraExposureControl::ExposureMode));
+        Q_EMIT actualValueChanged(int(QPlatformCameraExposure::ExposureMode));
     }
 #endif
 

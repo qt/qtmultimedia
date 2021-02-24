@@ -73,17 +73,17 @@ BbCameraService::~BbCameraService()
 {
 }
 
-QCameraControl *BbCameraService::cameraControl()
+QPlatformCamera *BbCameraService::cameraControl()
 {
     return m_cameraControl;
 }
 
-QCameraImageCaptureControl *BbCameraService::imageCaptureControl()
+QPlatformCameraImageCapture *BbCameraService::imageCaptureControl()
 {
     return m_cameraImageCaptureControl;
 }
 
-QMediaRecorderControl *BbCameraService::mediaRecorderControl()
+QPlatformMediaRecorder *BbCameraService::mediaRecorderControl()
 {
     return m_cameraMediaRecorderControl;
 }

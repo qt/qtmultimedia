@@ -72,7 +72,7 @@ typedef enum {
 } GstPlayFlags;
 
 QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QObject *parent)
-    : QAudioDecoderControl(parent),
+    : QPlatformAudioDecoder(parent),
      m_state(QAudioDecoder::StoppedState),
      m_pendingState(QAudioDecoder::StoppedState),
      m_busHelper(nullptr),

@@ -50,7 +50,7 @@
 QT_USE_NAMESPACE
 
 AVFCameraControl::AVFCameraControl(AVFCameraService *service, QObject *parent)
-   : QCameraControl(parent)
+   : QPlatformCamera(parent)
    , m_session(service->session())
    , m_service(service)
    , m_state(QCamera::UnloadedState)
@@ -107,7 +107,7 @@ void AVFCameraControl::updateStatus()
     }
 }
 
-bool AVFCameraControl::canChangeProperty(QCameraControl::PropertyChangeType changeType, QCamera::Status status) const
+bool AVFCameraControl::canChangeProperty(QPlatformCamera::PropertyChangeType changeType, QCamera::Status status) const
 {
     Q_UNUSED(changeType);
     Q_UNUSED(status);
@@ -197,17 +197,17 @@ AVCaptureConnection *AVFCameraControl::videoConnection() const
 }
 
 
-QCameraFocusControl *AVFCameraControl::focusControl()
+QPlatformCameraFocus *AVFCameraControl::focusControl()
 {
     return m_service->cameraFocusControl();
 }
 
-QCameraExposureControl *AVFCameraControl::exposureControl()
+QPlatformCameraExposure *AVFCameraControl::exposureControl()
 {
     return m_service->cameraExposureControl();
 }
 
-QCameraImageProcessingControl *AVFCameraControl::imageProcessingControl()
+QPlatformCameraImageProcessing *AVFCameraControl::imageProcessingControl()
 {
     return m_service->cameraImageProcessingControl();
 }

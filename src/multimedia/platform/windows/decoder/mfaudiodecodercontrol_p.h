@@ -51,13 +51,13 @@
 // We mean it.
 //
 
-#include "qaudiodecodercontrol.h"
+#include "private/qplatformaudiodecoder_p.h"
 #include "mfdecodersourcereader_p.h"
 #include "private/sourceresolver_p.h"
 
 QT_USE_NAMESPACE
 
-class MFAudioDecoderControl : public QAudioDecoderControl
+class MFAudioDecoderControl : public QPlatformAudioDecoder
 {
     Q_OBJECT
 public:

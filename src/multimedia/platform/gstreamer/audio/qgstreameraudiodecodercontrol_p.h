@@ -54,7 +54,7 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QObject>
 #include <QtCore/qmutex.h>
-#include "qaudiodecodercontrol.h"
+#include "private/qplatformaudiodecoder_p.h"
 #include <private/qgstreamerbushelper_p.h>
 #include "qaudiodecoder.h"
 
@@ -71,7 +71,7 @@ class QGstreamerBusHelper;
 class QGstreamerMessage;
 
 class QGstreamerAudioDecoderControl
-        : public QAudioDecoderControl,
+        : public QPlatformAudioDecoder,
           public QGstreamerBusMessageFilter
 {
     Q_OBJECT

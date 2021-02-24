@@ -46,7 +46,7 @@ QT_BEGIN_NAMESPACE
 
 class QImage;
 
-class Q_MULTIMEDIA_EXPORT QCameraImageCaptureControl : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformCameraImageCapture : public QObject
 {
     Q_OBJECT
 
@@ -75,7 +75,7 @@ Q_SIGNALS:
     void error(int id, int error, const QString &errorString);
 
 protected:
-    explicit QCameraImageCaptureControl(QObject *parent = nullptr);
+    explicit QPlatformCameraImageCapture(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE

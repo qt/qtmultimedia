@@ -44,7 +44,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidCameraImageCaptureControl::QAndroidCameraImageCaptureControl(QAndroidCameraSession *session)
-    : QCameraImageCaptureControl()
+    : QPlatformCameraImageCapture()
     , m_session(session)
 {
     connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));

@@ -54,7 +54,7 @@
 #include <QtCore/qscopedpointer.h>
 #include <QtCore/qglobal.h>
 
-#include <qcamerafocuscontrol.h>
+#include <private/qplatformcamerafocus_p.h>
 
 #include <AVFoundation/AVFoundation.h>
 
@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 class AVFCameraService;
 class AVFCameraSession;
 
-class AVFCameraFocusControl : public QCameraFocusControl
+class AVFCameraFocusControl : public QPlatformCameraFocus
 {
     Q_OBJECT
 public:

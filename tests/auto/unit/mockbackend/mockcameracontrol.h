@@ -29,17 +29,17 @@
 #ifndef MOCKCAMERACONTROL_H
 #define MOCKCAMERACONTROL_H
 
-#include "qcameracontrol.h"
+#include "private/qplatformcamera_p.h"
 #include "qcamerainfo.h"
 #include <qtimer.h>
 
-class MockCameraControl : public QCameraControl
+class MockCameraControl : public QPlatformCamera
 {
     friend class MockCaptureControl;
     Q_OBJECT
 public:
     MockCameraControl(QObject *parent = 0):
-            QCameraControl(parent),
+            QPlatformCamera(parent),
             m_state(QCamera::UnloadedState),
             m_status(QCamera::UnloadedStatus),
             m_propertyChangesSupported(false)
@@ -77,9 +77,9 @@ public:
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
     {
         Q_UNUSED(status);
-        if (changeType == QCameraControl::ImageEncodingSettings)
+        if (changeType == QPlatformCamera::ImageEncodingSettings)
             return true;
-        else if (changeType== QCameraControl::VideoEncodingSettings)
+        else if (changeType== QPlatformCamera::VideoEncodingSettings)
             return true;
         else
             return m_propertyChangesSupported;

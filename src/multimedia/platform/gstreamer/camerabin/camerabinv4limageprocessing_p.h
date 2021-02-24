@@ -52,13 +52,13 @@
 //
 
 #include <qcamera.h>
-#include <qcameraimageprocessingcontrol.h>
+#include <private/qplatformcameraimageprocessing_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class CameraBinSession;
 
-class CameraBinV4LImageProcessing : public QCameraImageProcessingControl
+class CameraBinV4LImageProcessing : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 

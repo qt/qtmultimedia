@@ -47,7 +47,7 @@
 
 
 QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *session)
-    : QCameraControl(session),
+    : QPlatformCamera(session),
     m_session(session),
     m_state(QCamera::UnloadedState),
     m_status(QCamera::UnloadedStatus),
@@ -158,9 +158,9 @@ bool QGstreamerCameraControl::canChangeProperty(PropertyChangeType changeType, Q
     Q_UNUSED(status);
 
     switch (changeType) {
-    case QCameraControl::ImageEncodingSettings:
-    case QCameraControl::VideoEncodingSettings:
-    case QCameraControl::Viewfinder:
+    case QPlatformCamera::ImageEncodingSettings:
+    case QPlatformCamera::VideoEncodingSettings:
+    case QPlatformCamera::Viewfinder:
         return true;
     default:
         return false;

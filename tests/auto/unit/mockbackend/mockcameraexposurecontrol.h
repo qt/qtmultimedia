@@ -29,14 +29,14 @@
 #ifndef MOCKCAMERAEXPOSURECONTROL_H
 #define MOCKCAMERAEXPOSURECONTROL_H
 
-#include "qcameraexposurecontrol.h"
+#include "private/qplatformcameraexposure_p.h"
 
-class MockCameraExposureControl : public QCameraExposureControl
+class MockCameraExposureControl : public QPlatformCameraExposure
 {
     Q_OBJECT
 public:
     MockCameraExposureControl(QObject *parent = 0):
-        QCameraExposureControl(parent),
+        QPlatformCameraExposure(parent),
         m_aperture(2.8),
         m_shutterSpeed(0.01),
         m_isoSensitivity(100),
@@ -73,11 +73,11 @@ public:
     bool isParameterSupported(ExposureParameter parameter) const
     {
         switch (parameter) {
-        case QCameraExposureControl::ExposureMode:
-        case QCameraExposureControl::ExposureCompensation:
-        case QCameraExposureControl::ISO:
-        case QCameraExposureControl::Aperture:
-        case QCameraExposureControl::ShutterSpeed:
+        case QPlatformCameraExposure::ExposureMode:
+        case QPlatformCameraExposure::ExposureCompensation:
+        case QPlatformCameraExposure::ISO:
+        case QPlatformCameraExposure::Aperture:
+        case QPlatformCameraExposure::ShutterSpeed:
             return true;
         default:
             return false;
@@ -92,15 +92,15 @@ public:
     QVariant actualValue(ExposureParameter param) const
     {
         switch (param) {
-        case QCameraExposureControl::ExposureMode:
+        case QPlatformCameraExposure::ExposureMode:
             return QVariant::fromValue<QCameraExposure::ExposureMode>(m_exposureMode);
-        case QCameraExposureControl::ExposureCompensation:
+        case QPlatformCameraExposure::ExposureCompensation:
             return QVariant(m_exposureCompensation);
-        case QCameraExposureControl::ISO:
+        case QPlatformCameraExposure::ISO:
             return QVariant(m_isoSensitivity);
-        case QCameraExposureControl::Aperture:
+        case QPlatformCameraExposure::Aperture:
             return QVariant(m_aperture);
-        case QCameraExposureControl::ShutterSpeed:
+        case QPlatformCameraExposure::ShutterSpeed:
             return QVariant(m_shutterSpeed);
         default:
             return QVariant();
@@ -113,18 +113,18 @@ public:
 
         QVariantList res;
         switch (parameter) {
-        case QCameraExposureControl::ExposureCompensation:
+        case QPlatformCameraExposure::ExposureCompensation:
             *continuous = true;
             return m_exposureRanges;
-        case QCameraExposureControl::ISO:
+        case QPlatformCameraExposure::ISO:
             return m_isoRanges;
-        case QCameraExposureControl::Aperture:
+        case QPlatformCameraExposure::Aperture:
             *continuous = true;
             return m_apertureRanges;
-        case QCameraExposureControl::ShutterSpeed:
+        case QPlatformCameraExposure::ShutterSpeed:
             *continuous = true;
             return m_shutterRanges;
-        case QCameraExposureControl::ExposureMode:
+        case QPlatformCameraExposure::ExposureMode:
             return m_exposureModes;
         default:
             break;
@@ -145,7 +145,7 @@ public:
         }
 
         switch (param) {
-        case QCameraExposureControl::ExposureMode:
+        case QPlatformCameraExposure::ExposureMode:
         {
             QCameraExposure::ExposureMode mode = value.value<QCameraExposure::ExposureMode>();
             if (mode != m_exposureMode && m_exposureModes.contains(value)) {
@@ -154,7 +154,7 @@ public:
             }
         }
             break;
-        case QCameraExposureControl::ExposureCompensation:
+        case QPlatformCameraExposure::ExposureCompensation:
         {
             m_res.clear();
             m_res << -4.0 << 4.0;
@@ -171,7 +171,7 @@ public:
             }
         }
             break;
-        case QCameraExposureControl::ISO:
+        case QPlatformCameraExposure::ISO:
         {
             m_res.clear();
             m_res << 20 << 50;
@@ -188,7 +188,7 @@ public:
             }
         }
             break;
-        case QCameraExposureControl::Aperture:
+        case QPlatformCameraExposure::Aperture:
         {
             m_res.clear();
             m_res << 12.0 << 18.0 << 20.0;
@@ -205,7 +205,7 @@ public:
             }
         }
             break;
-        case QCameraExposureControl::ShutterSpeed:
+        case QPlatformCameraExposure::ShutterSpeed:
         {
             m_res.clear();
             m_res << 0.12 << 1.0 << 2.0;
@@ -265,7 +265,7 @@ private:
     QCameraExposure::FlashModes m_flashMode;
     QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes;
 
-    QMap<QCameraExposureControl::ExposureParameter, QVariant> m_requestedParameters;
+    QMap<QPlatformCameraExposure::ExposureParameter, QVariant> m_requestedParameters;
 };
 
 #endif // MOCKCAMERAEXPOSURECONTROL_H

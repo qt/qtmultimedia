@@ -45,7 +45,7 @@
 #include <qmimetype.h>
 
 QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
-    : QMediaRecorderControl(session),
+    : QPlatformMediaRecorder(session),
       m_session(session),
       m_state(QMediaRecorder::StoppedState),
       m_status(QMediaRecorder::UnloadedStatus)

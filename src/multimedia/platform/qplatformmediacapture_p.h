@@ -54,9 +54,9 @@
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
-class QCameraControl;
-class QCameraImageCaptureControl;
-class QMediaRecorderControl;
+class QPlatformCamera;
+class QPlatformCameraImageCapture;
+class QPlatformMediaRecorder;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCapture : public QObject
 {
@@ -64,9 +64,9 @@ public:
     QPlatformMediaCapture() = default;
     virtual ~QPlatformMediaCapture();
 
-    virtual QCameraControl *cameraControl() = 0;
-    virtual QCameraImageCaptureControl *imageCaptureControl() = 0;
-    virtual QMediaRecorderControl *mediaRecorderControl() = 0;
+    virtual QPlatformCamera *cameraControl() = 0;
+    virtual QPlatformCameraImageCapture *imageCaptureControl() = 0;
+    virtual QPlatformMediaRecorder *mediaRecorderControl() = 0;
 };
 
 QT_END_NAMESPACE

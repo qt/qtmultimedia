@@ -37,63 +37,68 @@
 **
 ****************************************************************************/
 
-#ifndef QCAMERAEXPOSURECONTROL_H
-#define QCAMERAEXPOSURECONTROL_H
+#ifndef QMEDIARECORDERCONTROL_H
+#define QMEDIARECORDERCONTROL_H
 
-#include <QtCore/qobject.h>
-#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qmediametadata.h>
 
-#include <QtMultimedia/qcameraexposure.h>
-#include <QtMultimedia/qcamera.h>
-#include <QtMultimedia/qmediaenumdebug.h>
+QT_BEGIN_NAMESPACE
+
+class QUrl;
+QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QCameraExposureControl : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformMediaRecorder : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(ExposureParameter)
 
 public:
-    enum ExposureParameter {
-        ISO,
-        Aperture,
-        ShutterSpeed,
-        ExposureCompensation,
-        TorchPower,
-        ExposureMode
-    };
+    virtual QUrl outputLocation() const = 0;
+    virtual bool setOutputLocation(const QUrl &location) = 0;
 
-    virtual bool isParameterSupported(ExposureParameter parameter) const = 0;
-    virtual QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const = 0;
+    virtual QMediaRecorder::State state() const = 0;
+    virtual QMediaRecorder::Status status() const = 0;
 
-    virtual QVariant requestedValue(ExposureParameter parameter) const = 0;
-    virtual QVariant actualValue(ExposureParameter parameter) const = 0;
-    virtual bool setValue(ExposureParameter parameter, const QVariant& value) = 0;
+    virtual qint64 duration() const = 0;
 
-    virtual QCameraExposure::FlashModes flashMode() const = 0;
-    virtual void setFlashMode(QCameraExposure::FlashModes mode) = 0;
-    virtual bool isFlashModeSupported(QCameraExposure::FlashModes mode) const = 0;
+    virtual bool isMuted() const = 0;
+    virtual qreal volume() const = 0;
 
-    virtual bool isFlashReady() const = 0;
+    virtual void applySettings() = 0;
+
+    virtual QAudioDeviceInfo audioInput() const = 0;
+    virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
+
+    virtual void setEncoderSettings(const QMediaEncoderSettings &settings) = 0;
+
+    virtual void setMetaData(const QMediaMetaData &) {}
+    virtual QMediaMetaData metaData() const { return {}; }
 
 Q_SIGNALS:
-    void flashReady(bool);
-    void requestedValueChanged(int parameter);
-    void actualValueChanged(int parameter);
-    void parameterRangeChanged(int parameter);
+    void stateChanged(QMediaRecorder::State state);
+    void statusChanged(QMediaRecorder::Status status);
+    void durationChanged(qint64 position);
+    void mutedChanged(bool muted);
+    void volumeChanged(qreal volume);
+    void actualLocationChanged(const QUrl &location);
+    void error(int error, const QString &errorString);
+    void metaDataChanged();
+
+public Q_SLOTS:
+    virtual void setState(QMediaRecorder::State state) = 0;
+    virtual void setMuted(bool muted) = 0;
+    virtual void setVolume(qreal volume) = 0;
 
 protected:
-    explicit QCameraExposureControl(QObject *parent = nullptr);
+    explicit QPlatformMediaRecorder(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QCameraExposureControl, ExposureParameter)
 
-
-#endif  // QCAMERAEXPOSURECONTROL_H
-
+#endif

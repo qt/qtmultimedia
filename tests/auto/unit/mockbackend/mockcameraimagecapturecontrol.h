@@ -33,16 +33,16 @@
 #include <QTimer>
 #include <QtMultimedia/qmediametadata.h>
 
-#include "qcameraimagecapturecontrol.h"
-#include "qcameracontrol.h"
+#include "private/qplatformcameraimagecapture_p.h"
+#include "private/qplatformcamera_p.h"
 #include "mockcameracontrol.h"
 
-class MockCaptureControl : public QCameraImageCaptureControl
+class MockCaptureControl : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:
     MockCaptureControl(MockCameraControl *cameraControl, QObject *parent = 0)
-        : QCameraImageCaptureControl(parent), m_cameraControl(cameraControl), m_captureRequest(0), m_ready(true), m_captureCanceled(false)
+        : QPlatformCameraImageCapture(parent), m_cameraControl(cameraControl), m_captureRequest(0), m_ready(true), m_captureCanceled(false)
     {
     }
 

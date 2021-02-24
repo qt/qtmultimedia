@@ -50,13 +50,13 @@
 // We mean it.
 //
 
-#include <qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class BbCameraSession;
 
-class BbCameraMediaRecorderControl : public QMediaRecorderControl
+class BbCameraMediaRecorderControl : public QPlatformMediaRecorder
 {
     Q_OBJECT
 public:

@@ -53,7 +53,7 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
-#include <qcameraimageprocessingcontrol.h>
+#include <private/qplatformcameraimageprocessing_p.h>
 
 #include <gst/gst.h>
 #include <glib.h>
@@ -70,7 +70,7 @@ class CameraBinV4LImageProcessing;
 
 class CameraBinSession;
 
-class CameraBinImageProcessing : public QCameraImageProcessingControl
+class CameraBinImageProcessing : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 
@@ -98,7 +98,7 @@ private:
 
 private:
     CameraBinSession *m_session;
-    QMap<QCameraImageProcessingControl::ProcessingParameter, int> m_values;
+    QMap<QPlatformCameraImageProcessing::ProcessingParameter, int> m_values;
 #if QT_CONFIG(gstreamer_photography)
     QMap<GstPhotographyWhiteBalanceMode, QCameraImageProcessing::WhiteBalanceMode> m_mappedWbValues;
     QMap<QCameraImageProcessing::ColorFilter, GstPhotographyColorToneMode> m_filterMap;

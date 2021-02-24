@@ -30,14 +30,14 @@ qt_internal_add_module(Multimedia
         camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
         camera/qcameraimageprocessing.cpp camera/qcameraimageprocessing.h
         camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h
-        controls/qaudiodecodercontrol.cpp controls/qaudiodecodercontrol.h
-        controls/qcameracontrol.cpp controls/qcameracontrol.h
-        controls/qcameraexposurecontrol.cpp controls/qcameraexposurecontrol.h
-        controls/qcamerafocuscontrol.cpp controls/qcamerafocuscontrol.h
-        controls/qcameraimagecapturecontrol.cpp controls/qcameraimagecapturecontrol.h
-        controls/qcameraimageprocessingcontrol.cpp controls/qcameraimageprocessingcontrol.h
-        controls/qmediarecordercontrol.cpp controls/qmediarecordercontrol.h
         controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
+        platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
+        platform/qplatformcamera.cpp platform/qplatformcamera_p.h
+        platform/qplatformcameraexposure.cpp platform/qplatformcameraexposure_p.h
+        platform/qplatformcamerafocus.cpp platform/qplatformcamerafocus_p.h
+        platform/qplatformcameraimagecapture.cpp platform/qplatformcameraimagecapture_p.h
+        platform/qplatformcameraimageprocessing.cpp platform/qplatformcameraimageprocessing_p.h
+        platform/qplatformmediarecorder.cpp platform/qplatformmediarecorder_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevicemanager.cpp platform/qplatformmediadevicemanager_p.h
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h

@@ -37,17 +37,17 @@
 **
 ****************************************************************************/
 
-#include <qcameracontrol.h>
+#include "qplatformcamera_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCameraControl
+    \class QPlatformCamera
     \obsolete
 
 
 
-    \brief The QCameraControl class is an abstract base class for
+    \brief The QPlatformCamera class is an abstract base class for
     classes that control still cameras or video cameras.
 
     \inmodule QtMultimedia
@@ -59,13 +59,13 @@ QT_BEGIN_NAMESPACE
     Constructs a camera control object with \a parent.
 */
 
-QCameraControl::QCameraControl(QObject *parent)
+QPlatformCamera::QPlatformCamera(QObject *parent)
     : QObject(parent)
 {
 }
 
 /*!
-    \fn QCameraControl::state() const
+    \fn QPlatformCamera::state() const
 
     Returns the state of the camera service.
 
@@ -73,28 +73,28 @@ QCameraControl::QCameraControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraControl::setState(QCamera::State state)
+    \fn QPlatformCamera::setState(QCamera::State state)
 
     Sets the camera \a state.
 
     State changes are synchronous and indicate user intention,
     while camera status is used as a feedback mechanism to inform application about backend status.
-    Status changes are reported asynchronously with QCameraControl::statusChanged() signal.
+    Status changes are reported asynchronously with QPlatformCamera::statusChanged() signal.
 
     \sa QCamera::State
 */
 
 /*!
-    \fn void QCameraControl::stateChanged(QCamera::State state)
+    \fn void QPlatformCamera::stateChanged(QCamera::State state)
 
     Signal emitted when the camera \a state changes.
 
-    In most cases the state chage is caused by QCameraControl::setState(),
+    In most cases the state chage is caused by QPlatformCamera::setState(),
     but if critical error has occurred the state changes to QCamera::UnloadedState.
 */
 
 /*!
-    \fn QCameraControl::status() const
+    \fn QPlatformCamera::status() const
 
     Returns the status of the camera service.
 
@@ -102,21 +102,21 @@ QCameraControl::QCameraControl(QObject *parent)
 */
 
 /*!
-    \fn void QCameraControl::statusChanged(QCamera::Status status)
+    \fn void QPlatformCamera::statusChanged(QCamera::Status status)
 
     Signal emitted when the camera \a status changes.
 */
 
 
 /*!
-    \fn void QCameraControl::error(int error, const QString &errorString)
+    \fn void QPlatformCamera::error(int error, const QString &errorString)
 
     Signal emitted when an error occurs with error code \a error and
     a description of the error \a errorString.
 */
 
 /*!
-    \fn bool QCameraControl::canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
+    \fn bool QPlatformCamera::canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
 
     Returns true if backend can effectively apply changing camera properties of \a changeType type
     while the camera state is QCamera::Active and camera status matches \a status parameter.
@@ -128,7 +128,7 @@ QCameraControl::QCameraControl(QObject *parent)
 */
 
 /*!
-  \enum QCameraControl::PropertyChangeType
+  \enum QPlatformCamera::PropertyChangeType
 
   \value CaptureMode Indicates the capture mode is changed.
   \value ImageEncodingSettings Image encoder settings are changed, including resolution.
@@ -139,7 +139,7 @@ QCameraControl::QCameraControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraControl::supportedViewfinderSettings() const
+    \fn QPlatformCamera::supportedViewfinderSettings() const
 
     Returns a list of supported camera viewfinder settings.
 
@@ -147,21 +147,21 @@ QCameraControl::QCameraControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraControl::viewfinderSettings() const
+    \fn QPlatformCamera::viewfinderSettings() const
 
     Returns the viewfinder settings.
 
-    If undefined or unsupported values are passed to QCameraControl::setViewfinderSettings(),
+    If undefined or unsupported values are passed to QPlatformCamera::setViewfinderSettings(),
     this function returns the actual settings used by the camera viewfinder. These may be available
     only once the camera is active.
 */
 
 /*!
-    \fn QCameraControl::setViewfinderSettings(const QCameraViewfinderSettings &settings)
+    \fn QPlatformCamera::setViewfinderSettings(const QCameraViewfinderSettings &settings)
 
     Sets the camera viewfinder \a settings.
 */
 
 QT_END_NAMESPACE
 
-#include "moc_qcameracontrol.cpp"
+#include "moc_qplatformcamera_p.cpp"

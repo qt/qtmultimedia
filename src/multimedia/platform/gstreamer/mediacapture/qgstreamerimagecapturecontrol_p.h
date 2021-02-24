@@ -52,12 +52,12 @@
 // We mean it.
 //
 
-#include <qcameraimagecapturecontrol.h>
+#include <private/qplatformcameraimagecapture_p.h>
 #include "qgstreamercapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerImageCaptureControl : public QCameraImageCaptureControl
+class QGstreamerImageCaptureControl : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:

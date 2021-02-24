@@ -37,20 +37,20 @@
 **
 ****************************************************************************/
 
-#include "qmediarecordercontrol.h"
+#include "qplatformmediarecorder_p.h"
 
 QT_BEGIN_NAMESPACE
 
 
 /*!
-    \class QMediaRecorderControl
+    \class QPlatformMediaRecorder
     \obsolete
     \inmodule QtMultimedia
 
 
     \ingroup multimedia_control
 
-    \brief The QMediaRecorderControl class provides access to the recording
+    \brief The QPlatformMediaRecorder class provides access to the recording
     functionality.
 
     This control provides a means to set the \l {outputLocation()}{output location},
@@ -65,19 +65,19 @@ QT_BEGIN_NAMESPACE
     Constructs a media recorder control with the given \a parent.
 */
 
-QMediaRecorderControl::QMediaRecorderControl(QObject* parent)
+QPlatformMediaRecorder::QPlatformMediaRecorder(QObject* parent)
     : QObject(parent)
 {
 }
 
 /*!
-    \fn QUrl QMediaRecorderControl::outputLocation() const
+    \fn QUrl QPlatformMediaRecorder::outputLocation() const
 
     Returns the current output location being used.
 */
 
 /*!
-    \fn bool QMediaRecorderControl::setOutputLocation(const QUrl &location)
+    \fn bool QPlatformMediaRecorder::setOutputLocation(const QUrl &location)
 
     Sets the output \a location and returns if this operation is successful.
     If file at the output location already exists, it should be overwritten.
@@ -90,56 +90,56 @@ QMediaRecorderControl::QMediaRecorderControl(QObject* parent)
 */
 
 /*!
-    \fn QMediaRecorder::State QMediaRecorderControl::state() const
+    \fn QMediaRecorder::State QPlatformMediaRecorder::state() const
 
     Return the current recording state.
 */
 
 /*!
-    \fn QMediaRecorder::Status QMediaRecorderControl::status() const
+    \fn QMediaRecorder::Status QPlatformMediaRecorder::status() const
 
     Return the current recording status.
 */
 
 /*!
-    \fn qint64 QMediaRecorderControl::duration() const
+    \fn qint64 QPlatformMediaRecorder::duration() const
 
     Return the current duration in milliseconds.
 */
 
 /*!
-    \fn void QMediaRecorderControl::setState(QMediaRecorder::State state)
+    \fn void QPlatformMediaRecorder::setState(QMediaRecorder::State state)
 
     Set the media recorder \a state.
 */
 
 /*!
-    \fn void QMediaRecorderControl::applySettings()
+    \fn void QPlatformMediaRecorder::applySettings()
 
     Commits the encoder settings and performs pre-initialization to reduce delays when recording
     is started.
 */
 
 /*!
-    \fn bool QMediaRecorderControl::isMuted() const
+    \fn bool QPlatformMediaRecorder::isMuted() const
 
     Returns true if the recorder is muted, and false if it is not.
 */
 
 /*!
-    \fn void QMediaRecorderControl::setMuted(bool muted)
+    \fn void QPlatformMediaRecorder::setMuted(bool muted)
 
     Sets the \a muted state of a media recorder.
 */
 
 /*!
-    \fn qreal QMediaRecorderControl::volume() const
+    \fn qreal QPlatformMediaRecorder::volume() const
 
     Returns the audio volume of a media recorder control.
 */
 
 /*!
-    \fn void QMediaRecorderControl::setVolume(qreal volume)
+    \fn void QPlatformMediaRecorder::setVolume(qreal volume)
 
     Sets the audio \a volume of a media recorder control.
 
@@ -147,20 +147,20 @@ QMediaRecorderControl::QMediaRecorderControl(QObject* parent)
 */
 
 /*!
-    \fn void QMediaRecorderControl::stateChanged(QMediaRecorder::State state)
+    \fn void QPlatformMediaRecorder::stateChanged(QMediaRecorder::State state)
 
     Signals that the \a state of a media recorder has changed.
 */
 
 /*!
-    \fn void QMediaRecorderControl::statusChanged(QMediaRecorder::Status status)
+    \fn void QPlatformMediaRecorder::statusChanged(QMediaRecorder::Status status)
 
     Signals that the \a status of a media recorder has changed.
 */
 
 
 /*!
-    \fn void QMediaRecorderControl::durationChanged(qint64 duration)
+    \fn void QPlatformMediaRecorder::durationChanged(qint64 duration)
 
     Signals that the \a duration of the recorded media has changed.
 
@@ -168,30 +168,30 @@ QMediaRecorderControl::QMediaRecorderControl(QObject* parent)
 */
 
 /*!
-    \fn void QMediaRecorderControl::mutedChanged(bool muted)
+    \fn void QPlatformMediaRecorder::mutedChanged(bool muted)
 
     Signals that the \a muted state of a media recorder has changed.
 */
 
 /*!
-    \fn void QMediaRecorderControl::volumeChanged(qreal gain)
+    \fn void QPlatformMediaRecorder::volumeChanged(qreal gain)
 
     Signals that the audio \a gain value has changed.
 */
 
 /*!
-    \fn void QMediaRecorderControl::actualLocationChanged(const QUrl &location)
+    \fn void QPlatformMediaRecorder::actualLocationChanged(const QUrl &location)
 
     Signals that the actual media \a location has changed.
     This signal should be emitted at start of recording.
 */
 
 /*!
-    \fn void QMediaRecorderControl::error(int error, const QString &errorString)
+    \fn void QPlatformMediaRecorder::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString describes the error.
 */
 
 QT_END_NAMESPACE
 
-#include "moc_qmediarecordercontrol.cpp"
+#include "moc_qplatformmediarecorder_p.cpp"

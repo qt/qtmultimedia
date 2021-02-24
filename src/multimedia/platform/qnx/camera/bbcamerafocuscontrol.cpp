@@ -45,7 +45,7 @@
 QT_BEGIN_NAMESPACE
 
 BbCameraFocusControl::BbCameraFocusControl(BbCameraSession *session, QObject *parent)
-    : QCameraFocusControl(parent)
+    : QPlatformCameraFocus(parent)
     , m_session(session)
     , m_focusMode(QCameraFocus::FocusModes())
     , m_focusPointMode(QCameraFocus::FocusPointAuto)

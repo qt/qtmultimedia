@@ -32,11 +32,11 @@
 #include <QDebug>
 
 #include <qabstractvideosurface.h>
-#include <qcameracontrol.h>
-#include <qcameraexposurecontrol.h>
-#include <qcamerafocuscontrol.h>
-#include <qcameraimagecapturecontrol.h>
-#include <qcameraimageprocessingcontrol.h>
+#include <private/qplatformcamera_p.h>
+#include <private/qplatformcameraexposure_p.h>
+#include <private/qplatformcamerafocus_p.h>
+#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformcameraimageprocessing_p.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
@@ -93,9 +93,9 @@ private slots:
     void testMaxDigitalZoomChangedSignal();
     void testfocusZonesChangedSignal();
 
-    // Test cases for QCameraControl class.
+    // Test cases for QPlatformCamera class.
     void testCameraControl();
-    void testEnumsOfQCameraControl();
+    void testEnumsOfQPlatformCamera();
 
     // Test case for QCameraImageProcessing class
     void testContrast();
@@ -371,7 +371,7 @@ void tst_QCamera::testCameraWhiteBalance()
     service->mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
     service->mockImageProcessingControl->setSupportedWhiteBalanceModes(whiteBalanceModes);
     service->mockImageProcessingControl->setParameter(
-                QCameraImageProcessingControl::ColorTemperature,
+                QPlatformCameraImageProcessing::ColorTemperature,
                 QVariant(34));
 
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
@@ -872,7 +872,7 @@ void tst_QCamera::testErrorSignal()
 
     QSignalSpy spyError(&camera, SIGNAL(errorOccurred(QCamera::Error)));
 
-    /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
 
     QVERIFY(spyError.count() == 1);
@@ -881,7 +881,7 @@ void tst_QCamera::testErrorSignal()
 
     spyError.clear();
 
-    /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
     QVERIFY(spyError.count() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
@@ -889,7 +889,7 @@ void tst_QCamera::testErrorSignal()
 
     spyError.clear();
 
-    /* Set the QCameraControl error and verify if the signal is emitted correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("NotSupportedFeatureError Error"));
     QVERIFY(spyError.count() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
@@ -903,15 +903,15 @@ void tst_QCamera::testError()
     QCamera camera;
     auto *service = integration->lastCaptureService();
 
-    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
-    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
-    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("CameraError Error"));
     QVERIFY(camera.error() == QCamera::CameraError);
 
@@ -923,15 +923,15 @@ void tst_QCamera::testErrorString()
     QCamera camera;
     auto *service = integration->lastCaptureService();
 
-    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
     QVERIFY(camera.errorString() == QString("Camera Error"));
 
-    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
     QVERIFY(camera.errorString() == QString("InvalidRequestError Error"));
 
-    /* Set the QCameraControl error and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("CameraError Error"));
     QVERIFY(camera.errorString() == QString("CameraError Error"));
 }
@@ -942,25 +942,25 @@ void tst_QCamera::testStatus()
     QCamera camera;
     auto *service = integration->lastCaptureService();
 
-    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::StartingStatus);
     QVERIFY(camera.status() == QCamera::StartingStatus);
 
-    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::StandbyStatus);
     QVERIFY(camera.status() == QCamera::StandbyStatus);
 
-    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::LoadingStatus);
     QVERIFY(camera.status() == QCamera::LoadingStatus);
 
-    /* Set the QCameraControl status and verify if it is set correctly in QCamera */
+    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::UnavailableStatus);
     QVERIFY(camera.status() == QCamera::UnavailableStatus);
 }
 
-/* All the enums test case for QCameraControl class*/
-void tst_QCamera::testEnumsOfQCameraControl()
+/* All the enums test case for QPlatformCamera class*/
+void tst_QCamera::testEnumsOfQPlatformCamera()
 {
     MockCameraControl *m_cameraControl = new MockCameraControl(this);
     bool result;

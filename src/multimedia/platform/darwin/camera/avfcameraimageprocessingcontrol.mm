@@ -149,32 +149,31 @@ AVFCameraImageProcessingControl::~AVFCameraImageProcessingControl()
 }
 
 bool AVFCameraImageProcessingControl::isParameterSupported(
-        QCameraImageProcessingControl::ProcessingParameter parameter) const
+        QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
 #ifdef Q_OS_IOS
-    return (parameter == QCameraImageProcessingControl::WhiteBalancePreset
-            || parameter == QCameraImageProcessingControl::ColorTemperature)
+    return (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset
+            || parameter == QPlatformCameraImageProcessing::ColorTemperature)
             && m_session->videoCaptureDevice();
 #else
-    return parameter == QCameraImageProcessingControl::WhiteBalancePreset
+    return parameter == QPlatformCameraImageProcessing::WhiteBalancePreset
             && m_session->videoCaptureDevice();
 #endif
 }
 
 bool AVFCameraImageProcessingControl::isParameterValueSupported(
-        QCameraImageProcessingControl::ProcessingParameter parameter,
+        QPlatformCameraImageProcessing::ProcessingParameter parameter,
         const QVariant &value) const
 {
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     Q_ASSERT(captureDevice);
 
-    if (parameter == QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
         return isWhiteBalanceModeSupported(
             value.value<QCameraImageProcessing::WhiteBalanceMode>());
 
 #ifdef Q_OS_IOS
-    if (parameter == QCameraImageProcessing::ColorTemperature) {
-        AVCaptureWhiteBalanceGains gains;
+    if (parameter == QPlatformCameraImageProcessing::ColorTemperature)
         return avf_convert_temp_and_tint_to_wb_gains(
             captureDevice, value.value<float>(), .0, gains);
     }
@@ -184,13 +183,13 @@ bool AVFCameraImageProcessingControl::isParameterValueSupported(
 }
 
 QVariant AVFCameraImageProcessingControl::parameter(
-        QCameraImageProcessingControl::ProcessingParameter parameter) const
+        QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
-    if (parameter == QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
         return QVariant::fromValue(m_whiteBalanceMode);
 
 #ifdef Q_OS_IOS
-    if (parameter == QCameraImageProcessingControl::ColorTemperature)
+    if (parameter == QPlatformCameraImageProcessing::ColorTemperature)
         return QVariant::fromValue(m_colorTemperature);
 #endif
 
@@ -198,15 +197,15 @@ QVariant AVFCameraImageProcessingControl::parameter(
 }
 
 void AVFCameraImageProcessingControl::setParameter(
-        QCameraImageProcessingControl::ProcessingParameter parameter,
+        QPlatformCameraImageProcessing::ProcessingParameter parameter,
         const QVariant &value)
 {
     bool result = false;
-    if (parameter == QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
         result = setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>());
 
 #ifdef Q_OS_IOS
-    else if (parameter == QCameraImageProcessingControl::ColorTemperature)
+    else if (parameter == QPlatformCameraImageProcessing::ColorTemperature)
         result = setColorTemperature(value.value<float>());
 #endif
 

@@ -52,7 +52,7 @@
 //
 
 #include <QtCore/qurl.h>
-#include <QtMultimedia/qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 
 #import <AVFoundation/AVFoundation.h>
 #include "avfstoragelocation_p.h"
@@ -69,7 +69,7 @@ class AVFCameraSession;
 class AVFCameraControl;
 class AVFCameraService;
 
-class AVFMediaRecorderControl : public QMediaRecorderControl
+class AVFMediaRecorderControl : public QPlatformMediaRecorder
 {
 Q_OBJECT
 public:

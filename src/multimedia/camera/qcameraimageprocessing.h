@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QCamera;
-class QCameraControl;
+class QPlatformCamera;
 
 class QCameraImageProcessingPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraImageProcessing : public QObject
@@ -116,7 +116,7 @@ protected:
 private:
     friend class QCamera;
     friend class QCameraPrivate;
-    QCameraImageProcessing(QCamera *camera, QCameraControl *cameraControl);
+    QCameraImageProcessing(QCamera *camera, QPlatformCamera *cameraControl);
 
     Q_DISABLE_COPY(QCameraImageProcessing)
     Q_DECLARE_PRIVATE(QCameraImageProcessing)

@@ -51,13 +51,13 @@
 // We mean it.
 //
 
-#include <qcameraimageprocessingcontrol.h>
+#include <private/qplatformcameraimageprocessing_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 
-class QAndroidCameraImageProcessingControl : public QCameraImageProcessingControl
+class QAndroidCameraImageProcessingControl : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 public:

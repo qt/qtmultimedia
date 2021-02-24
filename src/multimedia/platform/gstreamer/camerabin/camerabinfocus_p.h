@@ -52,7 +52,7 @@
 //
 
 #include <qcamera.h>
-#include <qcamerafocuscontrol.h>
+#include <private/qplatformcamerafocus_p.h>
 
 #include <private/qgstreamerbufferprobe_p.h>
 
@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
 class CameraBinSession;
 
 class CameraBinFocus
-    : public QCameraFocusControl
+    : public QPlatformCameraFocus
     , QGstreamerBufferProbe
 {
     Q_OBJECT

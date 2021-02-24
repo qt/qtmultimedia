@@ -50,7 +50,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidCameraControl::QAndroidCameraControl(QAndroidCameraSession *session)
-    : QCameraControl(0)
+    : QPlatformCamera(0)
     , m_cameraSession(session)
 
 {
@@ -107,26 +107,26 @@ bool QAndroidCameraControl::canChangeProperty(PropertyChangeType changeType, QCa
     Q_UNUSED(status);
 
     switch (changeType) {
-    case QCameraControl::ImageEncodingSettings:
-    case QCameraControl::VideoEncodingSettings:
-    case QCameraControl::Viewfinder:
+    case QPlatformCamera::ImageEncodingSettings:
+    case QPlatformCamera::VideoEncodingSettings:
+    case QPlatformCamera::Viewfinder:
         return true;
     default:
         return false;
     }
 }
 
-QCameraFocusControl *QAndroidCameraControl::focusControl()
+QPlatformCameraFocus *QAndroidCameraControl::focusControl()
 {
     return m_cameraSession->focusControl();
 }
 
-QCameraExposureControl *QAndroidCameraControl::exposureControl()
+QPlatformCameraExposure *QAndroidCameraControl::exposureControl()
 {
     return m_cameraSession->exposureControl();
 }
 
-QCameraImageProcessingControl *QAndroidCameraControl::imageProcessingControl()
+QPlatformCameraImageProcessing *QAndroidCameraControl::imageProcessingControl()
 {
     return m_cameraSession->imageProcessingControl();
 }

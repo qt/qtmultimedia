@@ -41,10 +41,10 @@
 #include "private/qobject_p.h"
 
 #include <qcamera.h>
-#include <qcameracontrol.h>
-#include <qcameraexposurecontrol.h>
-#include <qcamerafocuscontrol.h>
-#include <qcameraimagecapturecontrol.h>
+#include <private/qplatformcamera_p.h>
+#include <private/qplatformcameraexposure_p.h>
+#include <private/qplatformcamerafocus_p.h>
+#include <private/qplatformcameraimagecapture_p.h>
 
 #include <QtCore/QDebug>
 
@@ -244,18 +244,18 @@ class QCameraFocusPrivate : public QObjectPrivate
 {
     Q_DECLARE_NON_CONST_PUBLIC(QCameraFocus)
 public:
-    void init(QCameraControl *cameraControl);
+    void init(QPlatformCamera *cameraControl);
 
     QCamera *camera;
 
-    QCameraFocusControl *focusControl;
+    QPlatformCameraFocus *focusControl;
     bool available;
     float zoomFactor = 1.;
 };
 
 #undef Q_DECLARE_NON_CONST_PUBLIC
 
-void QCameraFocusPrivate::init(QCameraControl *cameraControl)
+void QCameraFocusPrivate::init(QPlatformCamera *cameraControl)
 {
     Q_Q(QCameraFocus);
 
@@ -276,7 +276,7 @@ void QCameraFocusPrivate::init(QCameraControl *cameraControl)
     Construct a QCameraFocus for \a camera.
 */
 
-QCameraFocus::QCameraFocus(QCamera *camera, QCameraControl *cameraControl)
+QCameraFocus::QCameraFocus(QCamera *camera, QPlatformCamera *cameraControl)
     : QObject(*new QCameraFocusPrivate, camera)
 {
     Q_D(QCameraFocus);

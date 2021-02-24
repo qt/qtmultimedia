@@ -37,14 +37,14 @@
 **
 ****************************************************************************/
 #include <qcameraimagecapture.h>
-#include <qcameraimagecapturecontrol.h>
+#include <private/qplatformcameraimagecapture_p.h>
 #include <qmediaencodersettings.h>
 #include <qmediametadata.h>
 #include <private/qplatformmediacapture_p.h>
 
 #include "private/qobject_p.h"
 #include <qcamera.h>
-#include <qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>
@@ -85,7 +85,7 @@ class QCameraImageCapturePrivate
 public:
     QCamera *camera = nullptr;
 
-    QCameraImageCaptureControl *control = nullptr;
+    QPlatformCameraImageCapture *control = nullptr;
 
     QCameraImageCapture::Error error = QCameraImageCapture::NoError;
     QString errorString;
@@ -163,7 +163,7 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
         }
     }
 
-    // without QCameraImageCaptureControl discard the camera
+    // without QPlatformCameraImageCapture discard the camera
     d->camera = nullptr;
     d->control = nullptr;
 }
@@ -256,7 +256,7 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
             QMetaObject::invokeMethod(camera,
                                       "_q_preparePropertyChange",
                                       Qt::DirectConnection,
-                                      Q_ARG(int, QCameraControl::ImageEncodingSettings));
+                                      Q_ARG(int, QPlatformCamera::ImageEncodingSettings));
         }
 
         d->control->setImageSettings(settings);

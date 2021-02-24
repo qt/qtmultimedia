@@ -37,59 +37,61 @@
 **
 ****************************************************************************/
 
-#ifndef QCAMERAFOCUSCONTROL_H
-#define QCAMERAFOCUSCONTROL_H
+#ifndef QAUDIODECODERCONTROL_H
+#define QAUDIODECODERCONTROL_H
 
-#include <QtCore/qobject.h>
-#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qaudiodecoder.h>
 
-#include <QtMultimedia/qcamerafocus.h>
+#include <QtCore/qpair.h>
+
+#include <QtMultimedia/qaudiobuffer.h>
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
-
-class Q_MULTIMEDIA_EXPORT QCameraFocusControl : public QObject
+class QIODevice;
+class Q_MULTIMEDIA_EXPORT QPlatformAudioDecoder : public QObject
 {
     Q_OBJECT
 
 public:
-    virtual QCameraFocus::FocusModes focusMode() const = 0;
-    virtual void setFocusMode(QCameraFocus::FocusModes mode) = 0;
-    virtual bool isFocusModeSupported(QCameraFocus::FocusModes mode) const = 0;
+    virtual QAudioDecoder::State state() const = 0;
 
-    virtual QCameraFocus::FocusPointMode focusPointMode() const = 0;
-    virtual void setFocusPointMode(QCameraFocus::FocusPointMode mode) = 0;
-    virtual bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const = 0;
-    virtual QPointF customFocusPoint() const = 0;
-    virtual void setCustomFocusPoint(const QPointF &point) = 0;
+    virtual QString sourceFilename() const = 0;
+    virtual void setSourceFilename(const QString &fileName) = 0;
 
-    virtual QCameraFocusZoneList focusZones() const = 0;
+    virtual QIODevice* sourceDevice() const = 0;
+    virtual void setSourceDevice(QIODevice *device) = 0;
 
-    struct ZoomRange {
-        float min;
-        float max;
-    };
+    virtual void start() = 0;
+    virtual void stop() = 0;
 
-    virtual ZoomRange zoomFactorRange() const = 0;
-    // smaller 0: zoom instantly, rate in power-of-two/sec
-    virtual void zoomTo(float newZoomFactor, float rate = -1.) = 0;
+    virtual QAudioFormat audioFormat() const = 0;
+    virtual void setAudioFormat(const QAudioFormat &format) = 0;
+
+    virtual QAudioBuffer read() = 0;
+    virtual bool bufferAvailable() const = 0;
+
+    virtual qint64 position() const = 0;
+    virtual qint64 duration() const = 0;
 
 Q_SIGNALS:
-    void focusModeChanged(QCameraFocus::FocusModes mode);
-    void focusPointModeChanged(QCameraFocus::FocusPointMode mode);
-    void customFocusPointChanged(const QPointF &point);
+    void stateChanged(QAudioDecoder::State newState);
+    void formatChanged(const QAudioFormat &format);
+    void sourceChanged();
 
-    void focusZonesChanged();
+    void error(int error, const QString &errorString);
 
+    void bufferReady();
+    void bufferAvailableChanged(bool available);
+    void finished();
+
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
 
 protected:
-    explicit QCameraFocusControl(QObject *parent = nullptr);
+    explicit QPlatformAudioDecoder(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE
 
-
-#endif  // QCAMERAFOCUSCONTROL_H
-
+#endif  // QAUDIODECODERCONTROL_H

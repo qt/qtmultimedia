@@ -59,7 +59,7 @@ class QMediaDeviceManager;
 class QPlatformMediaDeviceManager;
 class QPlatformMediaCapture;
 class QPlatformMediaPlayer;
-class QAudioDecoderControl;
+class QPlatformAudioDecoder;
 class QPlatformMediaFormatInfo;
 class QObject;
 
@@ -75,7 +75,7 @@ public:
     virtual QPlatformMediaDeviceManager *deviceManager() = 0;
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
-    virtual QAudioDecoderControl *createAudioDecoder() { return nullptr; }
+    virtual QPlatformAudioDecoder *createAudioDecoder() { return nullptr; }
     virtual QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer() { return nullptr; }
 };

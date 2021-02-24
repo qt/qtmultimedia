@@ -53,14 +53,14 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
-#include <qcameraimageprocessingcontrol.h>
+#include <private/qplatformcameraimageprocessing_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
 
-class AVFCameraImageProcessingControl : public QCameraImageProcessingControl
+class AVFCameraImageProcessingControl : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 

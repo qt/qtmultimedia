@@ -55,7 +55,7 @@
 #include <QtCore/QObject>
 #include <QtQml/qqml.h>
 #include <qcamera.h>
-#include <qcameraexposurecontrol.h>
+#include <private/qplatformcameraexposure_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -88,7 +88,7 @@ private slots:
 
 private:
     QCamera *m_camera = nullptr;
-    QCameraExposureControl *m_exposure = nullptr;
+    QPlatformCameraExposure *m_exposure = nullptr;
 };
 
 QT_END_NAMESPACE

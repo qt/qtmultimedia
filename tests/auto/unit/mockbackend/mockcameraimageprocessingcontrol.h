@@ -29,14 +29,14 @@
 #ifndef MOCKCAMERAIMAGEPROCESSINGCONTROL_H
 #define MOCKCAMERAIMAGEPROCESSINGCONTROL_H
 
-#include "qcameraimageprocessingcontrol.h"
+#include "private/qplatformcameraimageprocessing_p.h"
 
-class MockImageProcessingControl : public QCameraImageProcessingControl
+class MockImageProcessingControl : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 public:
     MockImageProcessingControl(QObject *parent = 0)
-        : QCameraImageProcessingControl(parent)
+        : QPlatformCameraImageProcessing(parent)
     {
         m_supportedWhiteBalance.insert(QCameraImageProcessing::WhiteBalanceAuto);
     }

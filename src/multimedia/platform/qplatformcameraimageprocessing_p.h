@@ -37,61 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIODECODERCONTROL_H
-#define QAUDIODECODERCONTROL_H
+#ifndef QCAMERAIMAGEPROCESSINGCONTROL_H
+#define QCAMERAIMAGEPROCESSINGCONTROL_H
 
-#include <QtMultimedia/qaudiodecoder.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
-#include <QtCore/qpair.h>
-
-#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE
 
-class QIODevice;
-class Q_MULTIMEDIA_EXPORT QAudioDecoderControl : public QObject
+// Required for QDoc workaround
+class QString;
+
+class Q_MULTIMEDIA_EXPORT QPlatformCameraImageProcessing : public QObject
 {
     Q_OBJECT
+    Q_ENUMS(ProcessingParameter)
 
 public:
-    virtual QAudioDecoder::State state() const = 0;
+    enum ProcessingParameter {
+        WhiteBalancePreset,
+        ColorTemperature,
+        Contrast,
+        Saturation,
+        Brightness,
+        ContrastAdjustment,
+        SaturationAdjustment,
+        BrightnessAdjustment,
+        ColorFilter,
+        ExtendedParameter = 1000
+    };
 
-    virtual QString sourceFilename() const = 0;
-    virtual void setSourceFilename(const QString &fileName) = 0;
-
-    virtual QIODevice* sourceDevice() const = 0;
-    virtual void setSourceDevice(QIODevice *device) = 0;
-
-    virtual void start() = 0;
-    virtual void stop() = 0;
-
-    virtual QAudioFormat audioFormat() const = 0;
-    virtual void setAudioFormat(const QAudioFormat &format) = 0;
-
-    virtual QAudioBuffer read() = 0;
-    virtual bool bufferAvailable() const = 0;
-
-    virtual qint64 position() const = 0;
-    virtual qint64 duration() const = 0;
-
-Q_SIGNALS:
-    void stateChanged(QAudioDecoder::State newState);
-    void formatChanged(const QAudioFormat &format);
-    void sourceChanged();
-
-    void error(int error, const QString &errorString);
-
-    void bufferReady();
-    void bufferAvailableChanged(bool available);
-    void finished();
-
-    void positionChanged(qint64 position);
-    void durationChanged(qint64 duration);
+    virtual bool isParameterSupported(ProcessingParameter) const = 0;
+    virtual bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const = 0;
+    virtual QVariant parameter(ProcessingParameter parameter) const = 0;
+    virtual void setParameter(ProcessingParameter parameter, const QVariant &value) = 0;
 
 protected:
-    explicit QAudioDecoderControl(QObject *parent = nullptr);
+    explicit QPlatformCameraImageProcessing(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE
 
-#endif  // QAUDIODECODERCONTROL_H
+Q_MEDIA_ENUM_DEBUG(QPlatformCameraImageProcessing, ProcessingParameter)
+
+#endif
+

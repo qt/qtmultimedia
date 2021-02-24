@@ -53,7 +53,7 @@
 
 #include <QtCore/qobject.h>
 
-#include <QtMultimedia/qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -62,7 +62,7 @@ class AVFCameraService;
 @class AVCaptureDeviceFormat;
 @class AVCaptureConnection;
 
-class AVFCameraControl : public QCameraControl
+class AVFCameraControl : public QPlatformCamera
 {
 Q_OBJECT
 public:
@@ -78,9 +78,9 @@ public:
 
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
-    QCameraFocusControl *focusControl() override;
-    QCameraExposureControl *exposureControl() override;
-    QCameraImageProcessingControl *imageProcessingControl() override;
+    QPlatformCameraFocus *focusControl() override;
+    QPlatformCameraExposure *exposureControl() override;
+    QPlatformCameraImageProcessing *imageProcessingControl() override;
 
     // "Converters":
     static QVideoFrame::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);

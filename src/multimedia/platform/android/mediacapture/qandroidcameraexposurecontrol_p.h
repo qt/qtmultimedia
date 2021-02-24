@@ -51,13 +51,13 @@
 // We mean it.
 //
 
-#include <qcameraexposurecontrol.h>
+#include <private/qplatformcameraexposure_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 
-class QAndroidCameraExposureControl : public QCameraExposureControl
+class QAndroidCameraExposureControl : public QPlatformCameraExposure
 {
     Q_OBJECT
 public:

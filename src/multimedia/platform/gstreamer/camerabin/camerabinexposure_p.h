@@ -52,7 +52,7 @@
 //
 
 #include <qcamera.h>
-#include <qcameraexposurecontrol.h>
+#include <private/qplatformcameraexposure_p.h>
 
 #include <gst/gst.h>
 #include <glib.h>
@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 
 class CameraBinSession;
 
-class CameraBinExposure : public QCameraExposureControl
+class CameraBinExposure : public QPlatformCameraExposure
 {
     Q_OBJECT
 

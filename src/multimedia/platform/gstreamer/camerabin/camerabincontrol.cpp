@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
 #define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
 
 CameraBinControl::CameraBinControl(CameraBinSession *session)
-    :QCameraControl(session),
+    :QPlatformCamera(session),
     m_session(session),
     m_state(QCamera::UnloadedState),
     m_reloadPending(false),
@@ -187,11 +187,11 @@ bool CameraBinControl::canChangeProperty(PropertyChangeType changeType, QCamera:
     Q_UNUSED(status);
 
     switch (changeType) {
-    case QCameraControl::Viewfinder:
+    case QPlatformCamera::Viewfinder:
         return true;
-    case QCameraControl::CaptureMode:
-    case QCameraControl::ImageEncodingSettings:
-    case QCameraControl::VideoEncodingSettings:
+    case QPlatformCamera::CaptureMode:
+    case QPlatformCamera::ImageEncodingSettings:
+    case QPlatformCamera::VideoEncodingSettings:
     default:
         return status != QCamera::ActiveStatus;
     }

@@ -40,7 +40,7 @@
 #include "qtmultimediaglobal_p.h"
 #include "qaudiodecoder.h"
 
-#include "qaudiodecodercontrol.h"
+#include "private/qplatformaudiodecoder_p.h"
 
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qobject_p.h>
@@ -80,7 +80,7 @@ class QAudioDecoderPrivate : public QObjectPrivate
     Q_DECLARE_NON_CONST_PUBLIC(QAudioDecoder)
 
 public:
-    QAudioDecoderControl *control = nullptr;
+    QPlatformAudioDecoder *control = nullptr;
     QAudioDecoder::State state = QAudioDecoder::StoppedState;
     QAudioDecoder::Error error = QAudioDecoder::NoError;
     QString errorString;

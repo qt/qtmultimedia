@@ -29,7 +29,7 @@
 #ifndef MOCKAUDIODECODERCONTROL_H
 #define MOCKAUDIODECODERCONTROL_H
 
-#include "qaudiodecodercontrol.h"
+#include "private/qplatformaudiodecoder_p.h"
 
 #include <QtCore/qpair.h>
 
@@ -41,13 +41,13 @@
 
 QT_BEGIN_NAMESPACE
 
-class MockAudioDecoderControl : public QAudioDecoderControl
+class MockAudioDecoderControl : public QPlatformAudioDecoder
 {
     Q_OBJECT
 
 public:
     MockAudioDecoderControl(QObject *parent = 0)
-        : QAudioDecoderControl(parent)
+        : QPlatformAudioDecoder(parent)
         , mState(QAudioDecoder::StoppedState)
         , mDevice(0)
         , mPosition(-1)

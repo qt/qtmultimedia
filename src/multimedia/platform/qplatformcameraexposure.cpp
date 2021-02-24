@@ -37,15 +37,15 @@
 **
 ****************************************************************************/
 
-#include <qcameraexposurecontrol.h>
+#include "qplatformcameraexposure_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCameraExposureControl
+    \class QPlatformCameraExposure
     \obsolete
 
-    \brief The QCameraExposureControl class allows controlling camera exposure parameters.
+    \brief The QPlatformCameraExposure class allows controlling camera exposure parameters.
 
     \inmodule QtMultimedia
 
@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
     implementation of QCamera functionality.
 
     You can adjust a number of parameters that will affect images and video taken with
-    the corresponding QCamera object - see the \l {QCameraExposureControl::ExposureParameter}{ExposureParameter} enumeration.
+    the corresponding QCamera object - see the \l {QPlatformCameraExposure::ExposureParameter}{ExposureParameter} enumeration.
 
     \sa QCameraExposure, QCamera
 */
@@ -65,13 +65,13 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a camera exposure control object with \a parent.
 */
-QCameraExposureControl::QCameraExposureControl(QObject *parent)
+QPlatformCameraExposure::QPlatformCameraExposure(QObject *parent)
     : QObject(parent)
 {
 }
 
 /*!
-  \enum QCameraExposureControl::ExposureParameter
+  \enum QPlatformCameraExposure::ExposureParameter
   \value ISO
          Camera ISO sensitivity, specified as integer value.
   \value Aperture
@@ -93,14 +93,14 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 */
 
 /*!
-  \fn QCameraExposureControl::isParameterSupported(ExposureParameter parameter) const
+  \fn QPlatformCameraExposure::isParameterSupported(ExposureParameter parameter) const
 
   Returns true is exposure \a parameter is supported by backend.
   \since 5.0
 */
 
 /*!
-  \fn QCameraExposureControl::requestedValue(ExposureParameter parameter) const
+  \fn QPlatformCameraExposure::requestedValue(ExposureParameter parameter) const
 
   Returns the requested exposure \a parameter value.
 
@@ -108,7 +108,7 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 */
 
 /*!
-  \fn QCameraExposureControl::actualValue(ExposureParameter parameter) const
+  \fn QPlatformCameraExposure::actualValue(ExposureParameter parameter) const
 
   Returns the actual exposure \a parameter value, or invalid QVariant() if the value is unknown or not supported.
 
@@ -119,7 +119,7 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 
 
 /*!
-  \fn QCameraExposureControl::supportedParameterRange(ExposureParameter parameter, bool *continuous = 0) const
+  \fn QPlatformCameraExposure::supportedParameterRange(ExposureParameter parameter, bool *continuous = 0) const
 
   Returns the list of supported \a parameter values;
 
@@ -130,18 +130,18 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 */
 
 /*!
-  \fn bool QCameraExposureControl::setValue(ExposureParameter parameter, const QVariant& value)
+  \fn bool QPlatformCameraExposure::setValue(ExposureParameter parameter, const QVariant& value)
 
   Set the exposure \a parameter to \a value.
   If a null or invalid QVariant is passed, backend should choose the value automatically,
-  and if possible report the actual value to user with QCameraExposureControl::actualValue().
+  and if possible report the actual value to user with QPlatformCameraExposure::actualValue().
 
   Returns true if parameter is supported and value is correct.
   \since 5.0
 */
 
 /*!
-    \fn void QCameraExposureControl::requestedValueChanged(int parameter)
+    \fn void QPlatformCameraExposure::requestedValueChanged(int parameter)
 
     Signal emitted when the requested exposure \a parameter value has changed,
     usually in result of setValue() call.
@@ -149,7 +149,7 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 */
 
 /*!
-    \fn void QCameraExposureControl::actualValueChanged(int parameter)
+    \fn void QPlatformCameraExposure::actualValueChanged(int parameter)
 
     Signal emitted when the actual exposure \a parameter value has changed,
     usually in result of auto exposure algorithms or manual exposure parameter applied.
@@ -158,7 +158,7 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 */
 
 /*!
-    \fn void QCameraExposureControl::parameterRangeChanged(int parameter)
+    \fn void QPlatformCameraExposure::parameterRangeChanged(int parameter)
 
     Signal emitted when the supported range of exposure \a parameter values has changed.
 
@@ -167,4 +167,4 @@ QCameraExposureControl::QCameraExposureControl(QObject *parent)
 
 QT_END_NAMESPACE
 
-#include "moc_qcameraexposurecontrol.cpp"
+#include "moc_qplatformcameraexposure_p.cpp"

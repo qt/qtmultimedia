@@ -52,14 +52,14 @@
 // We mean it.
 //
 
-#include <qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 class QAndroidCameraVideoRendererControl;
 
-class QAndroidCameraControl : public QCameraControl
+class QAndroidCameraControl : public QPlatformCamera
 {
     Q_OBJECT
 public:
@@ -75,9 +75,9 @@ public:
 
     bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
 
-    QCameraFocusControl *focusControl() override;
-    QCameraExposureControl *exposureControl() override;
-    QCameraImageProcessingControl *imageProcessingControl() override;
+    QPlatformCameraFocus *focusControl() override;
+    QPlatformCameraExposure *exposureControl() override;
+    QPlatformCameraImageProcessing *imageProcessingControl() override;
 
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 

@@ -54,7 +54,7 @@
 
 #include <QtCore/QDir>
 
-#include <qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 #include "qgstreamercapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerCaptureMetaDataControl;
 class QMediaMetaData;
 
-class QGstreamerRecorderControl : public QMediaRecorderControl
+class QGstreamerRecorderControl : public QPlatformMediaRecorder
 {
     Q_OBJECT
 

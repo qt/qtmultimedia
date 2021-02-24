@@ -46,7 +46,7 @@
 QT_BEGIN_NAMESPACE
 
 CameraBinRecorder::CameraBinRecorder(CameraBinSession *session)
-    :QMediaRecorderControl(session),
+    :QPlatformMediaRecorder(session),
      m_session(session),
      m_state(QMediaRecorder::StoppedState),
      m_status(QMediaRecorder::UnloadedStatus)

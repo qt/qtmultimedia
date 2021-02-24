@@ -41,7 +41,7 @@
 #include "qvideosurfaces_p.h"
 
 #include "private/qobject_p.h"
-#include <qplatformmediaplayer_p.h>
+#include <private/qplatformmediaplayer_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qcoreevent.h>

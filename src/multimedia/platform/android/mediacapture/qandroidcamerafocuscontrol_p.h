@@ -51,13 +51,13 @@
 // We mean it.
 //
 
-#include <qcamerafocuscontrol.h>
+#include <private/qplatformcamerafocus_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 
-class QAndroidCameraFocusControl : public QCameraFocusControl
+class QAndroidCameraFocusControl : public QPlatformCameraFocus
 {
     Q_OBJECT
 public:

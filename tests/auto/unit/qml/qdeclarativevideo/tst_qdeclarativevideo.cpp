@@ -35,7 +35,7 @@
 
 #include <qabstractvideosurface.h>
 #include <qgraphicsvideoitem.h>
-#include <qplatformmediaplayer_p.h>
+#include <private/qplatformmediaplayer_p.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
 #include <qvideowindowcontrol.h>

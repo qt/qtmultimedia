@@ -53,7 +53,7 @@
 QT_USE_NAMESPACE
 
 AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObject *parent)
-   : QCameraImageCaptureControl(parent)
+   : QPlatformCameraImageCapture(parent)
    , m_service(service)
    , m_session(service->session())
    , m_cameraControl(service->avfCameraControl())

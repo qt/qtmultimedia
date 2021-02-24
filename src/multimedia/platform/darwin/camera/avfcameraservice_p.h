@@ -57,9 +57,9 @@
 
 
 QT_BEGIN_NAMESPACE
-class QCameraControl;
-class QMediaRecorderControl;
-class QCameraImageProcessingControl;
+class QPlatformCamera;
+class QPlatformMediaRecorder;
+class QPlatformCameraImageProcessing;
 class AVFCameraControl;
 class AVFImageCaptureControl;
 class AVFCameraSession;
@@ -76,22 +76,22 @@ public:
     AVFCameraService();
     ~AVFCameraService();
 
-    QCameraControl *cameraControl() override;
-    QCameraImageCaptureControl *imageCaptureControl() override;
-    QMediaRecorderControl *mediaRecorderControl() override;
+    QPlatformCamera *cameraControl() override;
+    QPlatformCameraImageCapture *imageCaptureControl() override;
+    QPlatformMediaRecorder *mediaRecorderControl() override;
 
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
-    QMediaRecorderControl *recorderControl() const { return m_recorderControl; }
+    QPlatformMediaRecorder *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *avfImageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
-    QCameraImageProcessingControl *cameraImageProcessingControl() const;
+    QPlatformCameraImageProcessing *cameraImageProcessingControl() const;
 
 private:
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
-    QMediaRecorderControl *m_recorderControl;
+    QPlatformMediaRecorder *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;
     AVFCameraFocusControl *m_cameraFocusControl;
     AVFCameraExposureControl *m_cameraExposureControl;

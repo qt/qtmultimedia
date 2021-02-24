@@ -41,11 +41,11 @@
 #include "qcamera_p.h"
 
 #include <qcamerainfo.h>
-#include <qcameracontrol.h>
-#include <qcameraexposurecontrol.h>
-#include <qcamerafocuscontrol.h>
-#include <qcameraimageprocessingcontrol.h>
-#include <qcameraimagecapturecontrol.h>
+#include <private/qplatformcamera_p.h>
+#include <private/qplatformcameraexposure_p.h>
+#include <private/qplatformcamerafocus_p.h>
+#include <private/qplatformcameraimageprocessing_p.h>
+#include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
 #include <qmediadevicemanager.h>
@@ -123,7 +123,7 @@ void QCameraPrivate::_q_preparePropertyChange(int changeType)
     if (control->state() != QCamera::ActiveState)
         return;
 
-    if (control->canChangeProperty(QCameraControl::PropertyChangeType(changeType), status))
+    if (control->canChangeProperty(QPlatformCamera::PropertyChangeType(changeType), status))
         return;
 
     restartPending = true;

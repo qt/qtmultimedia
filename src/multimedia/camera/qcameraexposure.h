@@ -48,7 +48,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QCamera;
-class QCameraControl;
+class QPlatformCamera;
 class QCameraExposurePrivate;
 
 class Q_MULTIMEDIA_EXPORT QCameraExposure : public QObject
@@ -158,7 +158,7 @@ protected:
 private:
     friend class QCamera;
     friend class QCameraPrivate;
-    explicit QCameraExposure(QCamera *parent, QCameraControl *cameraControl);
+    explicit QCameraExposure(QCamera *parent, QPlatformCamera *cameraControl);
 
     Q_DISABLE_COPY(QCameraExposure)
     Q_DECLARE_PRIVATE(QCameraExposure)

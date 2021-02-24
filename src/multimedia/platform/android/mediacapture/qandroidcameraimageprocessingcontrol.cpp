@@ -45,7 +45,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidCameraImageProcessingControl::QAndroidCameraImageProcessingControl(QAndroidCameraSession *session)
-    : QCameraImageProcessingControl()
+    : QPlatformCameraImageProcessing()
     , m_session(session)
     , m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
 {
@@ -55,7 +55,7 @@ QAndroidCameraImageProcessingControl::QAndroidCameraImageProcessingControl(QAndr
 
 bool QAndroidCameraImageProcessingControl::isParameterSupported(ProcessingParameter parameter) const
 {
-    return parameter == QCameraImageProcessingControl::WhiteBalancePreset
+    return parameter == QPlatformCameraImageProcessing::WhiteBalancePreset
             && m_session->camera()
             && !m_supportedWhiteBalanceModes.isEmpty();
 }
@@ -63,14 +63,14 @@ bool QAndroidCameraImageProcessingControl::isParameterSupported(ProcessingParame
 bool QAndroidCameraImageProcessingControl::isParameterValueSupported(ProcessingParameter parameter,
                                                                      const QVariant &value) const
 {
-    return parameter == QCameraImageProcessingControl::WhiteBalancePreset
+    return parameter == QPlatformCameraImageProcessing::WhiteBalancePreset
             && m_session->camera()
             && m_supportedWhiteBalanceModes.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
 }
 
 QVariant QAndroidCameraImageProcessingControl::parameter(ProcessingParameter parameter) const
 {
-    if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
         return QVariant();
 
     return QVariant::fromValue(m_whiteBalanceMode);
@@ -78,7 +78,7 @@ QVariant QAndroidCameraImageProcessingControl::parameter(ProcessingParameter par
 
 void QAndroidCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
 {
-    if (parameter != QCameraImageProcessingControl::WhiteBalancePreset)
+    if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
         return;
 
     QCameraImageProcessing::WhiteBalanceMode mode = value.value<QCameraImageProcessing::WhiteBalanceMode>();

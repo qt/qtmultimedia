@@ -74,9 +74,9 @@ public:
     QGstreamerCaptureService(QMediaRecorder::CaptureMode mode);
     virtual ~QGstreamerCaptureService();
 
-    QCameraControl *cameraControl() override;
-    QCameraImageCaptureControl *imageCaptureControl() override;
-    QMediaRecorderControl *mediaRecorderControl() override;
+    QPlatformCamera *cameraControl() override;
+    QPlatformCameraImageCapture *imageCaptureControl() override;
+    QPlatformMediaRecorder *mediaRecorderControl() override;
 
 private:
     QGstreamerCaptureSession *m_captureSession = nullptr;

@@ -51,13 +51,13 @@
 // We mean it.
 //
 
-#include <qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCaptureSession;
 
-class QAndroidMediaRecorderControl : public QMediaRecorderControl
+class QAndroidMediaRecorderControl : public QPlatformMediaRecorder
 {
     Q_OBJECT
 public:

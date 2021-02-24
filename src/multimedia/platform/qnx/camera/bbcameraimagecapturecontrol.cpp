@@ -43,7 +43,7 @@
 QT_BEGIN_NAMESPACE
 
 BbCameraImageCaptureControl::BbCameraImageCaptureControl(BbCameraSession *session, QObject *parent)
-    : QCameraImageCaptureControl(parent)
+    : QPlatformCameraImageCapture(parent)
     , m_session(session)
 {
     connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));

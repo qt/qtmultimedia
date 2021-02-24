@@ -55,9 +55,9 @@ public:
     {
     }
 
-    QCameraControl *cameraControl() override { return hasControls ? mockCameraControl : nullptr; }
-    QCameraImageCaptureControl *imageCaptureControl() override { return hasControls ? mockCaptureControl : nullptr; }
-    QMediaRecorderControl *mediaRecorderControl() override { return hasControls ? mockControl : nullptr; }
+    QPlatformCamera *cameraControl() override { return hasControls ? mockCameraControl : nullptr; }
+    QPlatformCameraImageCapture *imageCaptureControl() override { return hasControls ? mockCaptureControl : nullptr; }
+    QPlatformMediaRecorder *mediaRecorderControl() override { return hasControls ? mockControl : nullptr; }
 
 
     static bool simpleCamera;

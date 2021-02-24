@@ -46,7 +46,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidMediaRecorderControl::QAndroidMediaRecorderControl(QAndroidCaptureSession *session)
-    : QMediaRecorderControl()
+    : QPlatformMediaRecorder()
     , m_session(session)
 {
     connect(m_session, SIGNAL(stateChanged(QMediaRecorder::State)), this, SIGNAL(stateChanged(QMediaRecorder::State)));

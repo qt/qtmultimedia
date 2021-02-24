@@ -54,12 +54,12 @@
 
 #include <QHash>
 #include <qbasictimer.h>
-#include <qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 #include "camerabinsession.h"
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinControl : public QCameraControl
+class CameraBinControl : public QPlatformCamera
 {
     Q_OBJECT
     Q_PROPERTY(bool viewfinderColorSpaceConversion READ viewfinderColorSpaceConversion WRITE setViewfinderColorSpaceConversion)

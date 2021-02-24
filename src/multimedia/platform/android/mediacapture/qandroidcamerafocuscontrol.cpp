@@ -60,7 +60,7 @@ static QRect adjustedArea(const QRectF &area)
 }
 
 QAndroidCameraFocusControl::QAndroidCameraFocusControl(QAndroidCameraSession *session)
-    : QCameraFocusControl()
+    : QPlatformCameraFocus()
     , m_session(session)
     , m_focusMode(QCameraFocus::AutoFocus)
     , m_focusPointMode(QCameraFocus::FocusPointAuto)

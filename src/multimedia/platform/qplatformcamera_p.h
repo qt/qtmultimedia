@@ -49,11 +49,11 @@ QT_BEGIN_NAMESPACE
 
 // Required for QDoc workaround
 class QString;
-class QCameraFocusControl;
-class QCameraExposureControl;
-class QCameraImageProcessingControl;
+class QPlatformCameraFocus;
+class QPlatformCameraExposure;
+class QPlatformCameraImageProcessing;
 
-class Q_MULTIMEDIA_EXPORT QCameraControl : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QObject
 {
     Q_OBJECT
 
@@ -73,9 +73,9 @@ public:
 
     virtual bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const = 0;
 
-    virtual QCameraFocusControl *focusControl() { return nullptr; }
-    virtual QCameraExposureControl *exposureControl() { return nullptr; }
-    virtual QCameraImageProcessingControl *imageProcessingControl() { return nullptr; }
+    virtual QPlatformCameraFocus *focusControl() { return nullptr; }
+    virtual QPlatformCameraExposure *exposureControl() { return nullptr; }
+    virtual QPlatformCameraImageProcessing *imageProcessingControl() { return nullptr; }
 
     virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
 
@@ -85,7 +85,7 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 protected:
-    explicit QCameraControl(QObject *parent = nullptr);
+    explicit QPlatformCamera(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE

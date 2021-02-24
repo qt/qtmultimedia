@@ -37,16 +37,16 @@
 **
 ****************************************************************************/
 
-#include <qcameraimagecapturecontrol.h>
+#include "qplatformcameraimagecapture_p.h"
 #include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCameraImageCaptureControl
+    \class QPlatformCameraImageCapture
     \obsolete
 
-    \brief The QCameraImageCaptureControl class provides a control interface
+    \brief The QPlatformCameraImageCapture class provides a control interface
     for image capture services.
 
     \inmodule QtMultimedia
@@ -57,13 +57,13 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a new image capture control object with the given \a parent
 */
-QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
+QPlatformCameraImageCapture::QPlatformCameraImageCapture(QObject *parent)
     :QObject(parent)
 {
 }
 
 /*!
-    \fn QCameraImageCaptureControl::isReadyForCapture() const
+    \fn QPlatformCameraImageCapture::isReadyForCapture() const
 
     Identifies if a capture control is ready to perform a capture
     immediately (all the resources necessary for image capture are allocated,
@@ -79,13 +79,13 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraImageCaptureControl::readyForCaptureChanged(bool ready)
+    \fn QPlatformCameraImageCapture::readyForCaptureChanged(bool ready)
 
     Signals that a capture control's \a ready state has changed.
 */
 
 /*!
-    \fn QCameraImageCaptureControl::capture(const QString &fileName)
+    \fn QPlatformCameraImageCapture::capture(const QString &fileName)
 
     Initiates the capture of an image to \a fileName.
     The \a fileName can be relative or empty,
@@ -102,13 +102,13 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraImageCaptureControl::cancelCapture()
+    \fn QPlatformCameraImageCapture::cancelCapture()
 
     Cancel pending capture requests.
 */
 
 /*!
-    \fn QCameraImageCaptureControl::imageExposed(int requestId)
+    \fn QPlatformCameraImageCapture::imageExposed(int requestId)
 
     Signals that an image with it \a requestId
     has just been exposed.
@@ -116,14 +116,14 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraImageCaptureControl::imageCaptured(int requestId, const QImage &preview)
+    \fn QPlatformCameraImageCapture::imageCaptured(int requestId, const QImage &preview)
 
     Signals that an image with it \a requestId
     has been captured and a \a preview is available.
 */
 
 /*!
-    \fn QCameraImageCaptureControl::imageMetadataAvailable(int id, const QMediaMetaData &metaData)
+    \fn QPlatformCameraImageCapture::imageMetadataAvailable(int id, const QMediaMetaData &metaData)
 
     Signals that a metadata for an image with request \a id is available.
 
@@ -131,20 +131,20 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraImageCaptureControl::imageAvailable(int requestId, const QVideoFrame &buffer)
+    \fn QPlatformCameraImageCapture::imageAvailable(int requestId, const QVideoFrame &buffer)
 
     Signals that a captured \a buffer with a \a requestId is available.
 */
 
 /*!
-    \fn QCameraImageCaptureControl::imageSaved(int requestId, const QString &fileName)
+    \fn QPlatformCameraImageCapture::imageSaved(int requestId, const QString &fileName)
 
     Signals that a captured image with a \a requestId has been saved
     to \a fileName.
 */
 
 /*!
-    \fn QCameraImageCaptureControl::imageSettings() const
+    \fn QPlatformCameraImageCapture::imageSettings() const
 
     Returns the currently used image encoder settings.
 
@@ -153,13 +153,13 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 */
 
 /*!
-    \fn QCameraImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+    \fn QPlatformCameraImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 
     Sets the selected image encoder \a settings.
 */
 
 /*!
-    \fn QCameraImageCaptureControl::error(int id, int error, const QString &errorString)
+    \fn QPlatformCameraImageCapture::error(int id, int error, const QString &errorString)
 
     Signals the capture request \a id failed with \a error code and message \a errorString.
 
@@ -169,4 +169,4 @@ QCameraImageCaptureControl::QCameraImageCaptureControl(QObject *parent)
 
 QT_END_NAMESPACE
 
-#include "moc_qcameraimagecapturecontrol.cpp"
+#include "moc_qplatformcameraimagecapture_p.cpp"

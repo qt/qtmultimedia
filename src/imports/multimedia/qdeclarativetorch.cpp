@@ -39,7 +39,7 @@
 
 #include <QDebug>
 #include <private/qplatformmediacapture_p.h>
-#include <qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 
 #include "qdeclarativetorch_p.h"
 
@@ -151,7 +151,7 @@ int QDeclarativeTorch::power() const
     if (!m_exposure)
         return 0;
 
-    return m_exposure->requestedValue(QCameraExposureControl::TorchPower).toInt();
+    return m_exposure->requestedValue(QPlatformCameraExposure::TorchPower).toInt();
 }
 
 /*!
@@ -165,13 +165,13 @@ void QDeclarativeTorch::setPower(int power)
 
     power = qBound(0, power, 100);
     if (this->power() != power)
-        m_exposure->setValue(QCameraExposureControl::TorchPower, power);
+        m_exposure->setValue(QPlatformCameraExposure::TorchPower, power);
 }
 
 /* Check for changes in flash power */
 void QDeclarativeTorch::parameterChanged(int parameter)
 {
-    if (parameter == QCameraExposureControl::TorchPower)
+    if (parameter == QPlatformCameraExposure::TorchPower)
         emit powerChanged();
 }
 

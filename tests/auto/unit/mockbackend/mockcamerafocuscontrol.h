@@ -29,15 +29,15 @@
 #ifndef MOCKCAMERAFOCUSCONTROL_H
 #define MOCKCAMERAFOCUSCONTROL_H
 
-#include "qcamerafocuscontrol.h"
+#include "private/qplatformcamerafocus_p.h"
 #include "qcamerafocus.h"
 
-class MockCameraFocusControl : public QCameraFocusControl
+class MockCameraFocusControl : public QPlatformCameraFocus
 {
     Q_OBJECT
 public:
     MockCameraFocusControl(QObject *parent = 0):
-        QCameraFocusControl(parent),
+        QPlatformCameraFocus(parent),
         m_focusMode(QCameraFocus::AutoFocus),
         m_focusPointMode(QCameraFocus::FocusPointAuto),
         m_focusPoint(0.5, 0.5)

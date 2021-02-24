@@ -32,15 +32,15 @@
 #include <QUrl>
 #include <qaudiodeviceinfo.h>
 
-#include "qmediarecordercontrol.h"
+#include "private/qplatformmediarecorder_p.h"
 
-class MockMediaRecorderControl : public QMediaRecorderControl
+class MockMediaRecorderControl : public QPlatformMediaRecorder
 {
     Q_OBJECT
 
 public:
     MockMediaRecorderControl(QObject *parent = 0):
-        QMediaRecorderControl(parent),
+        QPlatformMediaRecorder(parent),
         m_state(QMediaRecorder::StoppedState),
         m_status(QMediaRecorder::LoadedStatus),
         m_position(0),
@@ -110,7 +110,7 @@ public:
     }
     virtual QMediaMetaData metaData() const { return m_metaData; }
 
-    using QMediaRecorderControl::error;
+    using QPlatformMediaRecorder::error;
 
 public slots:
     void record()

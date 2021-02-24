@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qcameraexposurecontrol.h>
+#include <private/qplatformcameraexposure_p.h>
 #include <QtMultimedia/qcameraexposure.h>
 
 #include <QtCore/qglobal.h>
@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 
-class AVFCameraExposureControl : public QCameraExposureControl
+class AVFCameraExposureControl : public QPlatformCameraExposure
 {
     Q_OBJECT
 

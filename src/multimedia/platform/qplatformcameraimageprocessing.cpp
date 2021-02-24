@@ -37,12 +37,12 @@
 **
 ****************************************************************************/
 
-#include <qcameraimageprocessingcontrol.h>
+#include "qplatformcameraimageprocessing_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCameraImageProcessingControl
+    \class QPlatformCameraImageProcessing
     \obsolete
     \inmodule QtMultimedia
 
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_control
 
 
-    \brief The QCameraImageProcessingControl class provides an abstract class
+    \brief The QPlatformCameraImageProcessing class provides an abstract class
     for controlling image processing parameters, like white balance,
     contrast, saturation.
 
@@ -71,13 +71,13 @@ QT_BEGIN_NAMESPACE
     Constructs an image processing control object with \a parent.
 */
 
-QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
+QPlatformCameraImageProcessing::QPlatformCameraImageProcessing(QObject *parent)
     : QObject(parent)
 {
 }
 
 /*!
-    \fn bool QCameraImageProcessingControl::isParameterSupported(ProcessingParameter parameter) const
+    \fn bool QPlatformCameraImageProcessing::isParameterSupported(ProcessingParameter parameter) const
 
     Returns true if the camera supports adjusting image processing \a parameter.
 
@@ -88,7 +88,7 @@ QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
 */
 
 /*!
-    \fn bool QCameraImageProcessingControl::isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const
+    \fn bool QPlatformCameraImageProcessing::isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const
 
     Returns true if the camera supports setting the image processing \a parameter \a value.
 
@@ -97,13 +97,13 @@ QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
 
 
 /*!
-    \fn QCameraImageProcessingControl::parameter(ProcessingParameter parameter) const
+    \fn QPlatformCameraImageProcessing::parameter(ProcessingParameter parameter) const
 
     Returns the image processing \a parameter value.
 */
 
 /*!
-    \fn QCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
+    \fn QPlatformCameraImageProcessing::setParameter(ProcessingParameter parameter, const QVariant &value)
 
     Sets the image processing \a parameter \a value.
     Passing the null or invalid QVariant value allows
@@ -118,7 +118,7 @@ QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
 */
 
 /*!
-  \enum QCameraImageProcessingControl::ProcessingParameter
+  \enum QPlatformCameraImageProcessing::ProcessingParameter
 
   \value WhiteBalancePreset
     The white balance preset.
@@ -144,4 +144,4 @@ QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
 
 QT_END_NAMESPACE
 
-#include "moc_qcameraimageprocessingcontrol.cpp"
+#include "moc_qplatformcameraimageprocessing_p.cpp"

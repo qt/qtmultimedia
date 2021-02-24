@@ -52,7 +52,7 @@
 //
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <qmediarecordercontrol.h>
+#include <private/qplatformmediarecorder_p.h>
 
 #include <QtCore/qurl.h>
 #include <QtCore/qdir.h>

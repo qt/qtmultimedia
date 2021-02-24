@@ -48,7 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 CameraBinV4LImageProcessing::CameraBinV4LImageProcessing(CameraBinSession *session)
-    : QCameraImageProcessingControl(session)
+    : QPlatformCameraImageProcessing(session)
     , m_session(session)
 {
 }
@@ -73,7 +73,7 @@ bool CameraBinV4LImageProcessing::isParameterValueSupported(
 
     switch (parameter) {
 
-    case QCameraImageProcessingControl::WhiteBalancePreset: {
+    case QPlatformCameraImageProcessing::WhiteBalancePreset: {
         const QCameraImageProcessing::WhiteBalanceMode checkedValue =
                 value.value<QCameraImageProcessing::WhiteBalanceMode>();
         const QCameraImageProcessing::WhiteBalanceMode firstAllowedValue =
@@ -89,7 +89,7 @@ bool CameraBinV4LImageProcessing::isParameterValueSupported(
     }
         break;
 
-    case QCameraImageProcessingControl::ColorTemperature: {
+    case QPlatformCameraImageProcessing::ColorTemperature: {
         const qint32 checkedValue = value.toInt();
         if (checkedValue < (*sourceValueInfo).minimumValue
                 || checkedValue > (*sourceValueInfo).maximumValue) {
@@ -98,9 +98,9 @@ bool CameraBinV4LImageProcessing::isParameterValueSupported(
     }
         break;
 
-    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
-    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
-    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QPlatformCameraImageProcessing::ContrastAdjustment: // falling back
+    case QPlatformCameraImageProcessing::SaturationAdjustment: // falling back
+    case QPlatformCameraImageProcessing::BrightnessAdjustment: // falling back
 
     default:
         return false;
@@ -143,17 +143,17 @@ QVariant CameraBinV4LImageProcessing::parameter(
 
     switch (parameter) {
 
-    case QCameraImageProcessingControl::WhiteBalancePreset:
+    case QPlatformCameraImageProcessing::WhiteBalancePreset:
         return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(
                     control.value ? QCameraImageProcessing::WhiteBalanceAuto
                                   : QCameraImageProcessing::WhiteBalanceManual);
 
-    case QCameraImageProcessingControl::ColorTemperature:
+    case QPlatformCameraImageProcessing::ColorTemperature:
         return QVariant::fromValue<qint32>(control.value);
 
-    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
-    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
-    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QPlatformCameraImageProcessing::ContrastAdjustment: // falling back
+    case QPlatformCameraImageProcessing::SaturationAdjustment: // falling back
+    case QPlatformCameraImageProcessing::BrightnessAdjustment: // falling back
 
     default:
         return QVariant();
@@ -185,7 +185,7 @@ void CameraBinV4LImageProcessing::setParameter(
 
     switch (parameter) {
 
-    case QCameraImageProcessingControl::WhiteBalancePreset: {
+    case QPlatformCameraImageProcessing::WhiteBalancePreset: {
         const QCameraImageProcessing::WhiteBalanceMode m =
                 value.value<QCameraImageProcessing::WhiteBalanceMode>();
         if (m != QCameraImageProcessing::WhiteBalanceAuto
@@ -198,13 +198,13 @@ void CameraBinV4LImageProcessing::setParameter(
     }
         break;
 
-    case QCameraImageProcessingControl::ColorTemperature:
+    case QPlatformCameraImageProcessing::ColorTemperature:
         control.value = value.toInt();
         break;
 
-    case QCameraImageProcessingControl::ContrastAdjustment: // falling back
-    case QCameraImageProcessingControl::SaturationAdjustment: // falling back
-    case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
+    case QPlatformCameraImageProcessing::ContrastAdjustment: // falling back
+    case QPlatformCameraImageProcessing::SaturationAdjustment: // falling back
+    case QPlatformCameraImageProcessing::BrightnessAdjustment: // falling back
 
     default:
         qt_safe_close(fd);
@@ -233,13 +233,13 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
 
         constexpr struct SupportedParameterEntry {
             quint32 cid;
-            QCameraImageProcessingControl::ProcessingParameter parameter;
+            QPlatformCameraImageProcessing::ProcessingParameter parameter;
         } supportedParametersEntries[] = {
-            { V4L2_CID_AUTO_WHITE_BALANCE, QCameraImageProcessingControl::WhiteBalancePreset },
-            { V4L2_CID_WHITE_BALANCE_TEMPERATURE, QCameraImageProcessingControl::ColorTemperature },
-            { V4L2_CID_CONTRAST, QCameraImageProcessingControl::ContrastAdjustment },
-            { V4L2_CID_SATURATION, QCameraImageProcessingControl::SaturationAdjustment },
-            { V4L2_CID_BRIGHTNESS, QCameraImageProcessingControl::BrightnessAdjustment },
+            { V4L2_CID_AUTO_WHITE_BALANCE, QPlatformCameraImageProcessing::WhiteBalancePreset },
+            { V4L2_CID_WHITE_BALANCE_TEMPERATURE, QPlatformCameraImageProcessing::ColorTemperature },
+            { V4L2_CID_CONTRAST, QPlatformCameraImageProcessing::ContrastAdjustment },
+            { V4L2_CID_SATURATION, QPlatformCameraImageProcessing::SaturationAdjustment },
+            { V4L2_CID_BRIGHTNESS, QPlatformCameraImageProcessing::BrightnessAdjustment },
         };
 
         for (auto supportedParametersEntrie : supportedParametersEntries) {
