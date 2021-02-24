@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 
     \brief The QCameraImageProcessingControl class provides an abstract class
     for controlling image processing parameters, like white balance,
-    contrast, saturation, sharpening and denoising.
+    contrast, saturation.
 
     Camera service may choose the parameters of image processing pipeline depending
     on sensor properties camera settings and capture parameters.
@@ -63,10 +63,6 @@ QT_BEGIN_NAMESPACE
     Parameters with the "Adjustment" suffix, like ContrastAdjustment, SaturationAdjustment etc
     allows to adjust the parameter values, selected by camera engine,
     while parameters like Contrast and Saturation overwrites them.
-
-    For example setting the SharpeningAdjustment parameter to -0.1
-    slightly reduces the amount of sharpening applied,
-    while settings the Sharpening parameter to 0 disables sharpening at all.
 
     \sa QCamera
 */
@@ -115,10 +111,9 @@ QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
 
     The valid values range depends on the parameter type.
     For WhiteBalancePreset the value should be one of QCameraImageProcessing::WhiteBalanceMode values;
-    for Contrast, Saturation, Brightness, Sharpening and Denoising the value should be
-    in [0..1.0] range with invalid QVariant value indicating the default parameter value;
-    for ContrastAdjustment, SaturationAdjustment, BrightnessAdjustment,
-    SharpeningAdjustment and DenoisingAdjustment the value should be
+    for Contrast, Saturation and Brightness the value should be in [0..1.0] range with invalid QVariant
+    value indicating the default parameter value;
+    for ContrastAdjustment, SaturationAdjustment, BrightnessAdjustment, the value should be
     in [-1.0..1.0] range with default 0.
 */
 
@@ -135,20 +130,12 @@ QCameraImageProcessingControl::QCameraImageProcessingControl(QObject *parent)
     Image saturation.
   \value Brightness
     Image brightness.
-  \value Sharpening
-    Amount of sharpening applied.
-  \value Denoising
-    Amount of denoising applied.
   \value ContrastAdjustment
     Image contrast adjustment.
   \value SaturationAdjustment
     Image saturation adjustment.
   \value BrightnessAdjustment
     Image brightness adjustment.
-  \value SharpeningAdjustment
-    Adjustment of sharpening applied.
-  \value DenoisingAdjustment
-    Adjustment of denoising applied.
   \value ColorFilter
     Image filter applied.  Since 5.5
   \value ExtendedParameter

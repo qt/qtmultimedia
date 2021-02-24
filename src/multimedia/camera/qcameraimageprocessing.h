@@ -106,12 +106,6 @@ public:
     qreal saturation() const;
     void setSaturation(qreal value);
 
-    qreal sharpeningLevel() const;
-    void setSharpeningLevel(qreal value);
-
-    qreal denoisingLevel() const;
-    void setDenoisingLevel(qreal value);
-
     ColorFilter colorFilter() const;
     void setColorFilter(ColorFilter filter);
     bool isColorFilterSupported(ColorFilter filter) const;

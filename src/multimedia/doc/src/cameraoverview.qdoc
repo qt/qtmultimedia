@@ -279,10 +279,10 @@ torch functionality.
 
 The QCameraImageProcessing class lets you adjust the image processing
 part of the pipeline.  This includes the \l {QCameraImageProcessing::WhiteBalanceMode}{white balance}
-(or color temperature), \l {QCameraImageProcessing::contrast()}{contrast},
-\l {QCameraImageProcessing::saturation()}{saturation}, \l {QCameraImageProcessing::setSharpeningLevel()}{sharpening}
-and \l {QCameraImageProcessing::setDenoisingLevel()}{denoising}.  Most cameras support automatic settings
-for all of these, so you shouldn't need to adjust them unless the user wants a specific setting.
+(or color temperature), \l {QCameraImageProcessing::contrast()}{contrast}, and
+\l {QCameraImageProcessing::saturation()}{saturation}.
+Most cameras support automatic settings for all of these, so you shouldn't need to adjust them unless
+the user wants a specific setting.
 
 If you're taking a series of images (for example, to stitch them together for
 a panoramic image), you should lock the image processing settings so that all the

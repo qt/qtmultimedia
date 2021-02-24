@@ -99,10 +99,8 @@ private slots:
 
     // Test case for QCameraImageProcessing class
     void testContrast();
-    void testDenoisingLevel();
     void testIsAvailable();
     void testSaturation();
-    void testSharpeningLevel();
 
     void testSetVideoOutput();
     void testSetVideoOutputNoService();
@@ -1004,20 +1002,6 @@ void tst_QCamera::testContrast()
     QCOMPARE(cameraImageProcessing->contrast(), 4.56);
 }
 
-void tst_QCamera::testDenoisingLevel()
-{
-    QCamera camera;
-    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
-
-    QCOMPARE(cameraImageProcessing->denoisingLevel()+1 , 1.0);
-
-    cameraImageProcessing->setDenoisingLevel(-0.3);
-    QCOMPARE(cameraImageProcessing->denoisingLevel() , -0.3);
-
-    cameraImageProcessing->setDenoisingLevel(0.3);
-    QCOMPARE(cameraImageProcessing->denoisingLevel() , 0.3);
-}
-
 void tst_QCamera::testIsAvailable()
 {
     QCamera camera;
@@ -1036,21 +1020,6 @@ void tst_QCamera::testSaturation()
 
     cameraImageProcessing->setSaturation(-0.5);
     QCOMPARE(cameraImageProcessing->saturation(), -0.5);
-}
-
-void tst_QCamera::testSharpeningLevel()
-{
-    QCamera camera;
-
-    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
-
-    QCOMPARE(cameraImageProcessing->sharpeningLevel()+1 , 1.0);
-
-    cameraImageProcessing->setSharpeningLevel(-0.3);
-    QCOMPARE(cameraImageProcessing->sharpeningLevel() , -0.3);
-
-    cameraImageProcessing->setSharpeningLevel(0.3);
-    QCOMPARE(cameraImageProcessing->sharpeningLevel() , 0.3);
 }
 
 //Added test cases for QCameraFocus

@@ -247,10 +247,6 @@ void cameraimageprocessing()
         imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFluorescent);
     }
     //! [Camera image whitebalance]
-
-    //! [Camera image denoising]
-    imageProcessing->setDenoisingLevel(-0.3); //reduce the amount of denoising applied
-    //! [Camera image denoising]
 }
 
 void camerafocus()

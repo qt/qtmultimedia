@@ -63,13 +63,9 @@ public:
         Contrast,
         Saturation,
         Brightness,
-        Sharpening,
-        Denoising,
         ContrastAdjustment,
         SaturationAdjustment,
         BrightnessAdjustment,
-        SharpeningAdjustment,
-        DenoisingAdjustment,
         ColorFilter,
         ExtendedParameter = 1000
     };

@@ -69,8 +69,6 @@ class QDeclarativeCameraImageProcessing : public QObject
     Q_PROPERTY(qreal brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged REVISION 2)
     Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
     Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
-    Q_PROPERTY(qreal sharpeningLevel READ sharpeningLevel WRITE setSharpeningLevel NOTIFY sharpeningLevelChanged)
-    Q_PROPERTY(qreal denoisingLevel READ denoisingLevel WRITE setDenoisingLevel NOTIFY denoisingLevelChanged)
     Q_PROPERTY(ColorFilter colorFilter READ colorFilter WRITE setColorFilter NOTIFY colorFilterChanged REVISION 1)
     Q_PROPERTY(bool available READ isAvailable NOTIFY availableChanged REVISION 3)
     Q_PROPERTY(QVariantList supportedColorFilters READ supportedColorFilters
@@ -112,8 +110,6 @@ public:
     qreal brightness() const;
     qreal contrast() const;
     qreal saturation() const;
-    qreal sharpeningLevel() const;
-    qreal denoisingLevel() const;
 
     ColorFilter colorFilter() const;
 
@@ -128,8 +124,6 @@ public Q_SLOTS:
     Q_REVISION(2) void setBrightness(qreal value);
     void setContrast(qreal value);
     void setSaturation(qreal value);
-    void setSharpeningLevel(qreal value);
-    void setDenoisingLevel(qreal value);
 
     void setColorFilter(ColorFilter colorFilter);
 
@@ -140,8 +134,6 @@ Q_SIGNALS:
     Q_REVISION(2) void brightnessChanged(qreal);
     void contrastChanged(qreal);
     void saturationChanged(qreal);
-    void sharpeningLevelChanged(qreal);
-    void denoisingLevelChanged(qreal);
 
     void colorFilterChanged();
 

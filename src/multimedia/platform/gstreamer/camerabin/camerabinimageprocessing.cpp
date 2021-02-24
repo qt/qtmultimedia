@@ -232,13 +232,6 @@ bool CameraBinImageProcessing::isParameterValueSupported(QCameraImageProcessingC
 #endif
         return isGstColorBalanceValueSupported;
     }
-    case SharpeningAdjustment: {
-#if QT_CONFIG(linux_v4l)
-        return m_v4lImageControl->isParameterValueSupported(parameter, value);
-#else
-        return false;
-#endif
-    }
     case WhiteBalancePreset: {
         const QCameraImageProcessing::WhiteBalanceMode mode =
                 value.value<QCameraImageProcessing::WhiteBalanceMode>();
@@ -307,8 +300,7 @@ QVariant CameraBinImageProcessing::parameter(
         if (!isGstParameterSupported) {
             if (parameter == QCameraImageProcessingControl::BrightnessAdjustment
                     || parameter == QCameraImageProcessingControl::ContrastAdjustment
-                    || parameter == QCameraImageProcessingControl::SaturationAdjustment
-                    || parameter == QCameraImageProcessingControl::SharpeningAdjustment) {
+                    || parameter == QCameraImageProcessingControl::SaturationAdjustment) {
                 return m_v4lImageControl->parameter(parameter);
             }
         }
@@ -346,12 +338,6 @@ void CameraBinImageProcessing::setParameter(QCameraImageProcessingControl::Proce
             m_v4lImageControl->setParameter(parameter, value);
 #endif
         }
-    }
-        break;
-    case SharpeningAdjustment: {
-#if QT_CONFIG(linux_v4l)
-        m_v4lImageControl->setParameter(parameter, value);
-#endif
     }
         break;
     case WhiteBalancePreset: {

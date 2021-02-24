@@ -69,10 +69,6 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/camera.cpp Camera image whitebalance
 
-    Or adjust the amount of denoising performed:
-
-    \snippet multimedia-snippets/camera.cpp Camera image denoising
-
     In some cases changing these settings may result in a longer delay
     before an image is ready.
 
@@ -266,60 +262,6 @@ void QCameraImageProcessing::setSaturation(qreal value)
     if (d->imageControl)
         d->imageControl->setParameter(QCameraImageProcessingControl::SaturationAdjustment,
                                          QVariant(value));
-}
-
-/*!
-    Returns the sharpening adjustment level.
-*/
-qreal QCameraImageProcessing::sharpeningLevel() const
-{
-    Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return 0.;
-    return d->imageControl->parameter(QCameraImageProcessingControl::SharpeningAdjustment).toReal();
-}
-
-/*!
-    Sets the sharpening adjustment \a level.
-
-    Valid sharpening values range between -1.0 and 1.0, with a default of 0.
-*/
-
-void QCameraImageProcessing::setSharpeningLevel(qreal level)
-{
-    Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(QCameraImageProcessingControl::SharpeningAdjustment,
-                                         QVariant(level));
-}
-
-/*!
-    Returns the denoising adjustment level.
-*/
-qreal QCameraImageProcessing::denoisingLevel() const
-{
-    Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return 0.;
-    return d->imageControl->parameter(QCameraImageProcessingControl::DenoisingAdjustment).toReal();
-}
-
-/*!
-    Sets the denoising adjustment \a level.
-
-    Valid denoising values range between -1.0 and 1.0, with a default of 0.
-
-    If the parameter value is set to 0, the amount of denoising applied
-    is selected by camera and depends on camera capabilities and settings.
-    Changing value in -1.0..1.0 range adjusts the amount of denoising applied
-    within the supported range.
-*/
-void QCameraImageProcessing::setDenoisingLevel(qreal level)
-{
-    Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(QCameraImageProcessingControl::DenoisingAdjustment,
-                                         QVariant(level));
 }
 
 /*!

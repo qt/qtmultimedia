@@ -101,15 +101,6 @@ bool CameraBinV4LImageProcessing::isParameterValueSupported(
     case QCameraImageProcessingControl::ContrastAdjustment: // falling back
     case QCameraImageProcessingControl::SaturationAdjustment: // falling back
     case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
-    case QCameraImageProcessingControl::SharpeningAdjustment: {
-        const qint32 sourceValue = sourceImageProcessingParameterValue(
-                    value.toReal(), (*sourceValueInfo));
-        if (sourceValue < (*sourceValueInfo).minimumValue
-                || sourceValue > (*sourceValueInfo).maximumValue) {
-            return false;
-        }
-    }
-        break;
 
     default:
         return false;
@@ -163,10 +154,6 @@ QVariant CameraBinV4LImageProcessing::parameter(
     case QCameraImageProcessingControl::ContrastAdjustment: // falling back
     case QCameraImageProcessingControl::SaturationAdjustment: // falling back
     case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
-    case QCameraImageProcessingControl::SharpeningAdjustment: {
-        return scaledImageProcessingParameterValue(
-                    control.value, (*sourceValueInfo));
-    }
 
     default:
         return QVariant();
@@ -218,10 +205,6 @@ void CameraBinV4LImageProcessing::setParameter(
     case QCameraImageProcessingControl::ContrastAdjustment: // falling back
     case QCameraImageProcessingControl::SaturationAdjustment: // falling back
     case QCameraImageProcessingControl::BrightnessAdjustment: // falling back
-    case QCameraImageProcessingControl::SharpeningAdjustment:
-        control.value = sourceImageProcessingParameterValue(
-                    value.toReal(), (*sourceValueInfo));
-        break;
 
     default:
         qt_safe_close(fd);
@@ -257,7 +240,6 @@ void CameraBinV4LImageProcessing::updateParametersInfo(
             { V4L2_CID_CONTRAST, QCameraImageProcessingControl::ContrastAdjustment },
             { V4L2_CID_SATURATION, QCameraImageProcessingControl::SaturationAdjustment },
             { V4L2_CID_BRIGHTNESS, QCameraImageProcessingControl::BrightnessAdjustment },
-            { V4L2_CID_SHARPNESS, QCameraImageProcessingControl::SharpeningAdjustment }
         };
 
         for (auto supportedParametersEntrie : supportedParametersEntries) {

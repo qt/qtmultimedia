@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 
     CameraImageProcessing provides control over post-processing
     done by the camera middleware, including white balance adjustments,
-    contrast, saturation, sharpening, and denoising
+    contrast and saturation
 
     It should not be constructed separately, instead the
     \c imageProcessing property of a \l Camera should be used.
@@ -207,48 +207,6 @@ void QDeclarativeCameraImageProcessing::setSaturation(qreal value)
     if (value != saturation()) {
         m_imageProcessing->setSaturation(value);
         emit saturationChanged(saturation());
-    }
-}
-
-/*!
-    \qmlproperty qreal QtMultimedia::CameraImageProcessing::sharpeningLevel
-
-    Adjustment of sharpening level applied to image.
-
-    Valid sharpening level values range between -1.0 for for sharpening disabled,
-    0 for default sharpening level and 1.0 for maximum sharpening applied.
-*/
-qreal QDeclarativeCameraImageProcessing::sharpeningLevel() const
-{
-    return m_imageProcessing->sharpeningLevel();
-}
-
-void QDeclarativeCameraImageProcessing::setSharpeningLevel(qreal value)
-{
-    if (value != sharpeningLevel()) {
-        m_imageProcessing->setSharpeningLevel(value);
-        emit sharpeningLevelChanged(sharpeningLevel());
-    }
-}
-
-/*!
-    \qmlproperty qreal QtMultimedia::CameraImageProcessing::denoisingLevel
-
-    Adjustment of denoising applied to image.
-
-    Valid denoising level values range between -1.0 for for denoising disabled,
-    0 for default denoising level and 1.0 for maximum denoising applied.
-*/
-qreal QDeclarativeCameraImageProcessing::denoisingLevel() const
-{
-    return m_imageProcessing->denoisingLevel();
-}
-
-void QDeclarativeCameraImageProcessing::setDenoisingLevel(qreal value)
-{
-    if (value != denoisingLevel()) {
-        m_imageProcessing->setDenoisingLevel(value);
-        emit denoisingLevelChanged(denoisingLevel());
     }
 }
 

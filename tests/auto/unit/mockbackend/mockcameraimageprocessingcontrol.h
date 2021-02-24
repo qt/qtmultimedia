@@ -66,9 +66,7 @@ public:
         {
         case ContrastAdjustment:
         case BrightnessAdjustment:
-        case SharpeningAdjustment:
         case SaturationAdjustment:
-        case DenoisingAdjustment:
         case ColorTemperature:
         case WhiteBalancePreset:
             return true;
@@ -94,10 +92,6 @@ public:
             return m_saturation;
         case BrightnessAdjustment:
             return m_brightness;
-        case SharpeningAdjustment:
-            return m_sharpeningLevel;
-        case DenoisingAdjustment:
-            return m_denoising;
         case ColorTemperature:
             return m_manualWhiteBalance;
         case WhiteBalancePreset:
@@ -118,12 +112,6 @@ public:
         case BrightnessAdjustment:
             m_brightness = value;
             break;
-        case SharpeningAdjustment:
-            m_sharpeningLevel = value;
-            break;
-        case DenoisingAdjustment:
-            m_denoising = value;
-            break;
         case ColorTemperature:
             m_manualWhiteBalance = value;
             break;
@@ -141,10 +129,8 @@ private:
     QSet<QCameraImageProcessing::WhiteBalanceMode> m_supportedWhiteBalance;
     QVariant m_manualWhiteBalance;
     QVariant m_contrast;
-    QVariant m_sharpeningLevel;
     QVariant m_saturation;
     QVariant m_brightness;
-    QVariant m_denoising;
 };
 
 #endif // MOCKCAMERAIMAGEPROCESSINGCONTROL_H
