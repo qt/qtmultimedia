@@ -2245,7 +2245,7 @@ private:
 
 
 MFVideoRendererControl::MFVideoRendererControl(QObject *parent)
-    : QVideoRendererControl(parent)
+    : QObject(parent)
     , m_surface(0)
     , m_currentActivate(0)
     , m_callback(0)

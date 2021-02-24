@@ -58,6 +58,7 @@
 QT_USE_NAMESPACE
 
 class EVRCustomPresenterActivate;
+class QAbstractVideoSurface;
 
 class MFVideoRendererControl : public QObject
 {
