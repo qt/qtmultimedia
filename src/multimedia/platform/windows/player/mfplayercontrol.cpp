@@ -121,6 +121,11 @@ void MFPlayerControl::stop()
     refreshState();
 }
 
+QMediaMetaData MFPlayerControl::metaData() const
+{
+    return m_session->metaData();
+}
+
 bool MFPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
 {
     return m_session->setAudioOutput(info);
