@@ -51,27 +51,41 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaplayer_p.h>
 #include <QtCore/QObject>
+#include <QtCore/QByteArray>
+#include <QtCore/QSet>
+#include <QtCore/QResource>
+#include <QtCore/QUrl>
+
+#include <private/qplatformmediaplayer_p.h>
+#include <QtMultimedia/QMediaPlayer>
+
+Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemTrack);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaPlayerObserver);
 
 QT_BEGIN_NAMESPACE
 
-class AVFMediaPlayerSession;
+class AVFMediaPlayer;
+class AVFVideoOutput;
+class AVFVideoRendererControl;
 
-class AVFMediaPlayer : public QPlatformMediaPlayer
+class AVFMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
-    explicit AVFMediaPlayer(QMediaPlayer *parent = nullptr);
-    ~AVFMediaPlayer();
+    AVFMediaPlayer(QMediaPlayer *parent);
+    virtual ~AVFMediaPlayer();
 
-    void setSession(AVFMediaPlayerSession *session);
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
+    void setVideoOutput(AVFVideoRendererControl *output);
+    AVAsset *currentAssetHandle();
 
     QMediaPlayer::State state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;
 
     QUrl media() const override;
-    const QIODevice *mediaStream() const override;
+    QIODevice *mediaStream() const override;
     void setMedia(const QUrl &content, QIODevice *stream) override;
 
     qint64 position() const override;
@@ -89,22 +103,14 @@ public:
     QMediaTimeRange availablePlaybackRanges() const override;
 
     qreal playbackRate() const override;
-    void setPlaybackRate(qreal rate) override;
 
     bool setAudioOutput(const QAudioDeviceInfo &) override;
     QAudioDeviceInfo audioOutput() const override;
-
-    QMediaMetaData metaData() const override;
-    void setMetaData(const QMediaMetaData &metaData);
-
-    void setVideoSurface(QAbstractVideoSurface *surface) override;
-
-    int trackCount(TrackType) override;
-    QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) override;
-    int activeTrack(TrackType) override;
-    void setActiveTrack(TrackType, int /*streamNumber*/) override;
+    QAudioDeviceInfo m_audioOutput;
 
 public Q_SLOTS:
+    void setPlaybackRate(qreal rate) override;
+
     void setPosition(qint64 pos) override;
 
     void play() override;
@@ -114,9 +120,57 @@ public Q_SLOTS:
     void setVolume(int volume) override;
     void setMuted(bool muted) override;
 
+    void processEOS();
+    void processLoadStateChange(QMediaPlayer::State newState);
+    void processPositionChange();
+    void processMediaLoadError();
+
+    void processLoadStateChange();
+    void processLoadStateFailure();
+
+    void processBufferStateChange(int bufferStatus);
+
+    void processDurationChange(qint64 duration);
+
+    void streamReady();
+    void streamDestroyed();
+    void updateTracks();
+    void setActiveTrack(QPlatformMediaPlayer::TrackType type, int index) override;
+    int activeTrack(QPlatformMediaPlayer::TrackType type) override;
+    int trackCount(TrackType) override;
+    QMediaMetaData trackMetaData(TrackType type, int trackNumber) override;
+
+public:
+    QList<QMediaMetaData> tracks[QPlatformMediaPlayer::NTrackTypes];
+    QList<AVPlayerItemTrack *> nativeTracks[QPlatformMediaPlayer::NTrackTypes];
+
 private:
-    AVFMediaPlayerSession *m_session;
+    void setAudioAvailable(bool available);
+    void setVideoAvailable(bool available);
+    void setSeekable(bool seekable);
+    void resetStream(QIODevice *stream = nullptr);
+
+    AVFVideoRendererControl *m_videoOutput;
+
+    QMediaPlayer::State m_state;
+    QMediaPlayer::MediaStatus m_mediaStatus;
+    QIODevice *m_mediaStream;
+    QUrl m_resources;
     QMediaMetaData m_metaData;
+
+    bool m_muted;
+    bool m_tryingAsync;
+    int m_volume;
+    qreal m_rate;
+    qint64 m_requestedPosition;
+
+    qint64 m_duration;
+    int m_bufferStatus;
+    bool m_videoAvailable;
+    bool m_audioAvailable;
+    bool m_seekable;
+
+    AVFMediaPlayerObserver *m_observer;
 };
 
 QT_END_NAMESPACE

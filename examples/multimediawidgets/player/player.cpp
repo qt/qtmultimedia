@@ -481,7 +481,7 @@ void Player::selectVideoStream()
 
 void Player::selectSubtitleStream()
 {
-    int stream = m_audioTracks->currentData().toInt();
+    int stream = m_subtitleTracks->currentData().toInt();
     m_player->setActiveSubtitleTrack(stream);
 }
 
