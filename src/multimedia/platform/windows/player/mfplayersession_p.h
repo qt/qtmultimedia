@@ -64,6 +64,7 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 #include <qaudiodeviceinfo.h>
+#include "mfplayercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
 class QUrl;
@@ -129,20 +130,21 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface);
 
+    void statusChanged() { m_playerControl->handleStatusChanged(); }
+    void audioAvailable() { m_playerControl->handleAudioAvailable(); }
+    void videoAvailable() { m_playerControl->handleVideoAvailable(); }
+    void durationUpdate(qint64 duration) { m_playerControl->handleDurationUpdate(duration); }
+    void seekableUpdate(bool seekable) { m_playerControl->handleSeekableUpdate(seekable); }
+    void error(QMediaPlayer::Error error, QString errorString, bool isFatal) { m_playerControl->handleError(error, errorString, isFatal); }
+    void playbackRateChanged(qreal rate) { m_playerControl->playbackRateChanged(rate); }
+    void volumeChanged(int volume) { m_playerControl->volumeChanged(volume); }
+    void mutedChanged(bool muted) { m_playerControl->mutedChanged(muted); }
+    void bufferStatusChanged(int percentFilled) { m_playerControl->bufferStatusChanged(percentFilled); }
+    void metaDataChanged() { m_playerControl->metaDataChanged(); }
+    void positionChanged(qint64 position) { m_playerControl->positionChanged(position); }
+
 Q_SIGNALS:
-    void error(QMediaPlayer::Error error, QString errorString, bool isFatal);
     void sessionEvent(IMFMediaEvent  *sessionEvent);
-    void statusChanged();
-    void audioAvailable();
-    void videoAvailable();
-    void durationUpdate(qint64 duration);
-    void seekableUpdate(bool seekable);
-    void positionChanged(qint64 position);
-    void playbackRateChanged(qreal rate);
-    void volumeChanged(int volume);
-    void mutedChanged(bool muted);
-    void bufferStatusChanged(int percentFilled);
-    void metaDataChanged();
 
 private Q_SLOTS:
     void handleMediaSourceReady();

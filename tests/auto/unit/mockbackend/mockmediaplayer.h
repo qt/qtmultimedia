@@ -37,8 +37,8 @@ class MockMediaPlayer : public QPlatformMediaPlayer
     friend class MockMediaPlayerService;
 
 public:
-    MockMediaPlayer()
-        : QPlatformMediaPlayer(0)
+    MockMediaPlayer(QMediaPlayer *parent)
+        : QPlatformMediaPlayer(parent)
         , _state(QMediaPlayer::StoppedState)
         , _mediaStatus(QMediaPlayer::NoMedia)
         , _error(QMediaPlayer::NoError)
@@ -121,8 +121,8 @@ public:
 
     void setAudioRole(QAudio::Role role)
     {
-        if (hasAudioRole && role != m_audioRole)
-            emit audioRoleChanged(m_audioRole = role);
+        if (hasAudioRole)
+            m_audioRole = role;
     }
 
     QList<QAudio::Role> supportedAudioRoles() const

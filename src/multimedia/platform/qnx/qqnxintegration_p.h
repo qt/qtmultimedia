@@ -66,7 +66,7 @@ public:
 
     QPlatformMediaDeviceManager *deviceManager() override;
 
-    QPlatformMediaPlayer *createPlayer() override;
+    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 
     QQnxDeviceManager *m_manager = nullptr;
 };

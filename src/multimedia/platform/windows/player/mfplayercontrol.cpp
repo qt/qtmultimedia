@@ -40,12 +40,12 @@
 #include "mfplayercontrol_p.h"
 #include "mfplayersession_p.h"
 #include "mfvideorenderercontrol_p.h"
-#include <qtcore/qdebug.h>
+#include <qdebug.h>
 
 //#define DEBUG_MEDIAFOUNDATION
 
-MFPlayerControl::MFPlayerControl()
-    : QPlatformMediaPlayer()
+MFPlayerControl::MFPlayerControl(QMediaPlayer *player)
+    : QPlatformMediaPlayer(player)
     , m_state(QMediaPlayer::StoppedState)
     , m_stateDirty(false)
     , m_videoAvailable(false)
@@ -54,17 +54,6 @@ MFPlayerControl::MFPlayerControl()
     , m_seekable(false)
 {
     m_session = new MFPlayerSession(this);
-    QObject::connect(m_session, SIGNAL(statusChanged()), this, SLOT(handleStatusChanged()));
-    QObject::connect(m_session, SIGNAL(videoAvailable()), this, SLOT(handleVideoAvailable()));
-    QObject::connect(m_session, SIGNAL(audioAvailable()), this, SLOT(handleAudioAvailable()));
-    QObject::connect(m_session, SIGNAL(durationUpdate(qint64)), this, SLOT(handleDurationUpdate(qint64)));
-    QObject::connect(m_session, SIGNAL(seekableUpdate(bool)), this, SLOT(handleSeekableUpdate(bool)));
-    QObject::connect(m_session, SIGNAL(error(QMediaPlayer::Error,QString,bool)), this, SLOT(handleError(QMediaPlayer::Error,QString,bool)));
-    QObject::connect(m_session, SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
-    QObject::connect(m_session, SIGNAL(volumeChanged(int)), this, SIGNAL(volumeChanged(int)));
-    QObject::connect(m_session, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
-    QObject::connect(m_session, SIGNAL(playbackRateChanged(qreal)), this, SIGNAL(playbackRateChanged(qreal)));
-    QObject::connect(m_session, SIGNAL(bufferStatusChanged(int)), this, SIGNAL(bufferStatusChanged(int)));
 }
 
 MFPlayerControl::~MFPlayerControl()

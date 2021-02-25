@@ -43,7 +43,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
-        playback/qmediaplayer.cpp playback/qmediaplayer.h
+        playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
         qmediadevicemanager.cpp qmediadevicemanager.h

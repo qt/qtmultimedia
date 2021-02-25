@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qplatformmediaplayer_p.h"
+#include <private/qmediaplayer_p.h>
 #include "qmediaplayer.h"
 
 QT_BEGIN_NAMESPACE
@@ -45,12 +46,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QPlatformMediaPlayer
-    \obsolete
-    \inmodule QtMultimedia
-
-
-    \ingroup multimedia_control
-
+    \internal
 
     \brief The QPlatformMediaPlayer class provides access to the media playing
     functionality.
@@ -68,13 +64,14 @@ QT_BEGIN_NAMESPACE
     \sa QMediaPlayer
 */
 
-/*!
-    Constructs a new media player control with the given \a parent.
-*/
-QPlatformMediaPlayer::QPlatformMediaPlayer(QObject *parent)
-    : QObject(parent)
+QPlatformMediaPlayer::~QPlatformMediaPlayer()
 {
 }
+
+/*! \fn QPlatformMediaPlayer::QPlatformMediaPlayer(QMediaPlayer *parent)
+
+    Constructs a new media player control with the given \a parent.
+*/
 
 /*!
     \fn QPlatformMediaPlayer::state() const
@@ -90,6 +87,11 @@ QPlatformMediaPlayer::QPlatformMediaPlayer(QObject *parent)
     \sa state()
 */
 
+void QPlatformMediaPlayer::stateChanged(QMediaPlayer::State newState)
+{
+    player->d_func()->setState(newState);
+}
+
 /*!
     \fn QPlatformMediaPlayer::mediaStatus() const
 
@@ -104,7 +106,15 @@ QPlatformMediaPlayer::QPlatformMediaPlayer(QObject *parent)
 
     \sa mediaStatus()
 */
+void QPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+    player->d_func()->setStatus(status);
+}
 
+void QPlatformMediaPlayer::error(int error, const QString &errorString)
+{
+    player->d_func()->setError(error, errorString);
+}
 
 /*!
     \fn QPlatformMediaPlayer::duration() const
@@ -257,14 +267,6 @@ QPlatformMediaPlayer::QPlatformMediaPlayer(QObject *parent)
     Usually for local files this is a continuous interval equal to [0..duration()]
     or an empty time range if seeking is not supported, but for network sources
     it refers to the buffered parts of the media.
-*/
-
-/*!
-    \fn QPlatformMediaPlayer::availablePlaybackRangesChanged(const QMediaTimeRange &ranges)
-
-    Signals that the available media playback \a ranges have changed.
-
-    \sa QPlatformMediaPlayer::availablePlaybackRanges()
 */
 
 /*!

@@ -80,14 +80,14 @@ QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()
 
 }
 
-QPlatformMediaCaptureInterface *QAndroidIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
+QPlatformMediaCapture *QAndroidIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
 {
     return new QAndroidCaptureService(mode);
 }
 
-QPlatformMediaPlayer *QAndroidIntegration::createPlayer()
+QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)
 {
-    return new QAndroidMediaPlayerControl();
+    return new QAndroidMediaPlayerControl(player);
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)

@@ -42,8 +42,8 @@
 
 QT_USE_NAMESPACE
 
-AVFMediaPlayer::AVFMediaPlayer(QObject *parent) :
-    QPlatformMediaPlayer(parent)
+AVFMediaPlayer::AVFMediaPlayer(QMediaPlayer *)
+    : QPlatformMediaPlayer(parent)
 {
     setSession(new AVFMediaPlayerSession(this));
 }

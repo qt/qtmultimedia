@@ -52,7 +52,7 @@
 //
 
 #include <qglobal.h>
-#include <QPlatformMediaPlayer>
+#include <private/qplatformmediaplayer_p.h>
 #include <qsize.h>
 #include <qurl.h>
 
@@ -62,11 +62,11 @@ class AndroidMediaPlayer;
 class QAndroidVideoOutput;
 class QAndroidMediaPlayerVideoRendererControl;
 
-class QAndroidMediaPlayerControl : public QPlatformMediaPlayer
+class QAndroidMediaPlayerControl : public QObject, public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
-    explicit QAndroidMediaPlayerControl(QObject *parent = 0);
+    explicit QAndroidMediaPlayerControl(QMediaPlayer *parent = 0);
     ~QAndroidMediaPlayerControl() override;
 
     QMediaPlayer::State state() const override;
@@ -96,11 +96,6 @@ public:
     void setVideoOutput(QAndroidVideoOutput *videoOutput);
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 
-Q_SIGNALS:
-    void audioRoleChanged(QAudio::Role role);
-    void customAudioRoleChanged(const QString &role);
-
-public Q_SLOTS:
     void setPosition(qint64 position) override;
     void play() override;
     void pause() override;

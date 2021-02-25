@@ -57,6 +57,7 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidMediaPlayerControl;
 class QAndroidTextureVideoOutput;
+class QAbstractVideoSurface;
 
 class QAndroidMediaPlayerVideoRendererControl : public QObject
 {

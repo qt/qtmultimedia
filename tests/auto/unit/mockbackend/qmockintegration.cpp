@@ -72,12 +72,12 @@ QPlatformAudioDecoder *QMockIntegration::createAudioDecoder()
     return m_lastAudioDecoderControl;
 }
 
-QPlatformMediaPlayer *QMockIntegration::createPlayer()
+QPlatformMediaPlayer *QMockIntegration::createPlayer(QMediaPlayer *parent)
 {
     if (m_flags & NoPlayerInterface)
         m_lastPlayer = nullptr;
     else
-        m_lastPlayer = new MockMediaPlayer;
+        m_lastPlayer = new MockMediaPlayer(parent);
     return m_lastPlayer;
 }
 

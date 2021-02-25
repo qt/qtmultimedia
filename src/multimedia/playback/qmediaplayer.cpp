@@ -37,11 +37,9 @@
 **
 ****************************************************************************/
 
-#include "qmediaplayer.h"
+#include "qmediaplayer_p.h"
 #include "qvideosurfaces_p.h"
 
-#include "private/qobject_p.h"
-#include <private/qplatformmediaplayer_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qcoreevent.h>
@@ -51,8 +49,7 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qtemporaryfile.h>
-#include <QDir>
-#include <QUrl>
+#include <QtCore/qdir.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -76,42 +73,6 @@ QT_BEGIN_NAMESPACE
     \sa QVideoWidget
 */
 
-class QMediaPlayerPrivate : public QObjectPrivate
-{
-    Q_DECLARE_PUBLIC(QMediaPlayer)
-
-public:
-    QMediaPlayerPrivate() : notifyTimer(nullptr) {}
-    QPlatformMediaPlayer* control = nullptr;
-    QString errorString;
-
-    QPointer<QObject> videoOutput;
-    QUrl qrcMedia;
-    QScopedPointer<QFile> qrcFile;
-    QUrl rootMedia;
-
-    QMediaPlayer::State state = QMediaPlayer::StoppedState;
-    QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
-    QMediaPlayer::Error error = QMediaPlayer::NoError;
-    int ignoreNextStatusChange = -1;
-    bool hasStreamPlaybackFeature = false;
-
-    QAudio::Role audioRole = QAudio::UnknownRole;
-    QString customAudioRole;
-
-    void setMedia(const QUrl &media, QIODevice *stream = nullptr);
-
-    QList<QMediaMetaData> streamMetaData(QPlatformMediaPlayer::TrackType s) const;
-
-    void _q_stateChanged(QMediaPlayer::State state);
-    void _q_mediaStatusChanged(QMediaPlayer::MediaStatus status);
-    void _q_error(int error, const QString &errorString);
-    void _q_notify();
-
-    QTimer* notifyTimer;
-    QSet<int> notifyProperties;
-};
-
 void QMediaPlayerPrivate::_q_notify()
 {
     Q_Q(QMediaPlayer);
@@ -131,7 +92,7 @@ void QMediaPlayerPrivate::_q_notify()
     }
 }
 
-void QMediaPlayerPrivate::_q_stateChanged(QMediaPlayer::State ps)
+void QMediaPlayerPrivate::setState(QMediaPlayer::State ps)
 {
     Q_Q(QMediaPlayer);
 
@@ -147,7 +108,7 @@ void QMediaPlayerPrivate::_q_stateChanged(QMediaPlayer::State ps)
     }
 }
 
-void QMediaPlayerPrivate::_q_mediaStatusChanged(QMediaPlayer::MediaStatus s)
+void QMediaPlayerPrivate::setStatus(QMediaPlayer::MediaStatus s)
 {
     Q_Q(QMediaPlayer);
 
@@ -173,7 +134,7 @@ void QMediaPlayerPrivate::_q_mediaStatusChanged(QMediaPlayer::MediaStatus s)
     }
 }
 
-void QMediaPlayerPrivate::_q_error(int error, const QString &errorString)
+void QMediaPlayerPrivate::setError(int error, const QString &errorString)
 {
     Q_Q(QMediaPlayer);
 
@@ -199,9 +160,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 
         file.reset(new QFile(QLatin1Char(':') + media.path()));
         if (!file->open(QFile::ReadOnly)) {
-            QMetaObject::invokeMethod(q, "_q_error", Qt::QueuedConnection,
-                                      Q_ARG(int, QMediaPlayer::ResourceError),
-                                      Q_ARG(QString, QMediaPlayer::tr("Attempting to play invalid Qt resource")));
+            setError(QMediaPlayer::ResourceError, QMediaPlayer::tr("Attempting to play invalid Qt resource"));
             QMetaObject::invokeMethod(q, "_q_mediaStatusChanged", Qt::QueuedConnection,
                                       Q_ARG(QMediaPlayer::MediaStatus, QMediaPlayer::InvalidMedia));
             file.reset();
@@ -255,16 +214,16 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
     qrcFile.swap(file); // Cleans up any previous file
 }
 
-QList<QMediaMetaData> QMediaPlayerPrivate::streamMetaData(QPlatformMediaPlayer::TrackType s) const
+QList<QMediaMetaData> QMediaPlayerPrivate::trackMetaData(QPlatformMediaPlayer::TrackType s) const
 {
-    QList<QMediaMetaData> streams;
+    QList<QMediaMetaData> tracks;
     if (control) {
         int count = control->trackCount(s);
         for (int i = 0; i < count; ++i) {
-            streams.append(control->trackMetaData(s, i));
+            tracks.append(control->trackMetaData(s, i));
         }
     }
-    return streams;
+    return tracks;
 }
 
 /*!
@@ -272,8 +231,8 @@ QList<QMediaMetaData> QMediaPlayerPrivate::streamMetaData(QPlatformMediaPlayer::
     parented to \a parent and with \a flags.
 */
 
-QMediaPlayer::QMediaPlayer(QObject *parent):
-    QObject(*new QMediaPlayerPrivate, parent)
+QMediaPlayer::QMediaPlayer(QObject *parent)
+    : QObject(*new QMediaPlayerPrivate, parent)
 {
     Q_D(QMediaPlayer);
 
@@ -281,26 +240,12 @@ QMediaPlayer::QMediaPlayer(QObject *parent):
     d->notifyTimer->setInterval(1000);
     connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
 
-    d->control = QPlatformMediaIntegration::instance()->createPlayer();
+    d->control = QPlatformMediaIntegration::instance()->createPlayer(this);
+    if (!d->control) { // ### Should this be an assertion?
+        d->setError(QMediaPlayer::ResourceError, QMediaPlayer::tr("Platform does not support media playback."));
+        return;
+    }
     Q_ASSERT(d->control);
-
-    connect(d->control, SIGNAL(stateChanged(QMediaPlayer::State)), SLOT(_q_stateChanged(QMediaPlayer::State)));
-    connect(d->control, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)),
-            SLOT(_q_mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    connect(d->control, SIGNAL(error(int,QString)), SLOT(_q_error(int,QString)));
-
-    connect(d->control, &QPlatformMediaPlayer::durationChanged, this, &QMediaPlayer::durationChanged);
-    connect(d->control, &QPlatformMediaPlayer::positionChanged, this, &QMediaPlayer::positionChanged);
-    connect(d->control, &QPlatformMediaPlayer::audioAvailableChanged, this, &QMediaPlayer::audioAvailableChanged);
-    connect(d->control, &QPlatformMediaPlayer::videoAvailableChanged, this, &QMediaPlayer::videoAvailableChanged);
-    connect(d->control, &QPlatformMediaPlayer::volumeChanged, this, &QMediaPlayer::volumeChanged);
-    connect(d->control, &QPlatformMediaPlayer::mutedChanged, this, &QMediaPlayer::mutedChanged);
-    connect(d->control, &QPlatformMediaPlayer::seekableChanged, this, &QMediaPlayer::seekableChanged);
-    connect(d->control, &QPlatformMediaPlayer::playbackRateChanged, this, &QMediaPlayer::playbackRateChanged);
-    connect(d->control, &QPlatformMediaPlayer::bufferStatusChanged, this, &QMediaPlayer::bufferStatusChanged);
-    connect(d->control, &QPlatformMediaPlayer::metaDataChanged, this, &QMediaPlayer::metaDataChanged);
-    connect(d->control, &QPlatformMediaPlayer::tracksChanged, this, &QMediaPlayer::tracksChanged);
-    connect(d->control, &QPlatformMediaPlayer::activeTracksChanged, this, &QMediaPlayer::activeTracksChanged);
 
     d->state = d->control->state();
     d->status = d->control->mediaStatus();
@@ -541,7 +486,6 @@ QString QMediaPlayer::errorString() const
     return d_func()->errorString;
 }
 
-//public Q_SLOTS:
 /*!
     Start or resume playing the current source.
 */
@@ -550,12 +494,8 @@ void QMediaPlayer::play()
 {
     Q_D(QMediaPlayer);
 
-    if (d->control == nullptr) {
-        QMetaObject::invokeMethod(this, "_q_error", Qt::QueuedConnection,
-                                    Q_ARG(int, QMediaPlayer::ServiceMissingError),
-                                    Q_ARG(QString, tr("The QMediaPlayer object does not have a valid service")));
+    if (!d->control)
         return;
-    }
 
     // Reset error conditions
     d->error = NoError;
@@ -705,19 +645,19 @@ QAudioDeviceInfo QMediaPlayer::audioOutput() const
 QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 {
     Q_D(const QMediaPlayer);
-    return d->streamMetaData(QPlatformMediaPlayer::AudioStream);
+    return d->trackMetaData(QPlatformMediaPlayer::AudioStream);
 }
 
 QList<QMediaMetaData> QMediaPlayer::videoTracks() const
 {
     Q_D(const QMediaPlayer);
-    return d->streamMetaData(QPlatformMediaPlayer::VideoStream);
+    return d->trackMetaData(QPlatformMediaPlayer::VideoStream);
 }
 
 QList<QMediaMetaData> QMediaPlayer::subtitleTracks() const
 {
     Q_D(const QMediaPlayer);
-    return d->streamMetaData(QPlatformMediaPlayer::SubtitleStream);
+    return d->trackMetaData(QPlatformMediaPlayer::SubtitleStream);
 }
 
 int QMediaPlayer::activeAudioTrack() const

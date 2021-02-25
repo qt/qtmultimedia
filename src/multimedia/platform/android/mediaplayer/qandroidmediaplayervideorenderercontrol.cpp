@@ -40,7 +40,7 @@
 #include "qandroidmediaplayervideorenderercontrol_p.h"
 
 #include "qandroidmediaplayercontrol_p.h"
-#include "qandroidvideooutput_p.h"
+#include "private/qandroidvideooutput_p.h"
 #include <qabstractvideosurface.h>
 
 QT_BEGIN_NAMESPACE

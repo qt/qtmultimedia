@@ -65,12 +65,12 @@ class QGstreamerBusHelper;
 class QGstreamerMessage;
 class QGstAppSrc;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QPlatformMediaPlayer
+class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
     Q_OBJECT
 
 public:
-    QGstreamerMediaPlayer(QObject *parent = 0);
+    QGstreamerMediaPlayer(QMediaPlayer *parent = 0);
     ~QGstreamerMediaPlayer();
 
     QMediaPlayer::State state() const override;
@@ -111,7 +111,6 @@ public:
     int activeTrack(TrackType) override;
     void setActiveTrack(TrackType, int /*streamNumber*/) override;
 
-public Q_SLOTS:
     void setPosition(qint64 pos) override;
 
     void play() override;
@@ -121,9 +120,8 @@ public Q_SLOTS:
     void setVolume(int volume) override;
     void setMuted(bool muted) override;
 
+public Q_SLOTS:
     void busMessage(const QGstreamerMessage& message);
-
-
 
 private:
     friend class QGstreamerStreamsControl;

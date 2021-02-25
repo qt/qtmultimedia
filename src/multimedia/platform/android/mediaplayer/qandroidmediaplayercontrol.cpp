@@ -75,7 +75,7 @@ private:
 };
 
 
-QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QObject *parent)
+QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QMediaPlayer *parent)
     : QPlatformMediaPlayer(parent),
       mMediaPlayer(new AndroidMediaPlayer),
       mCurrentState(QMediaPlayer::StoppedState),
@@ -342,7 +342,7 @@ void QAndroidMediaPlayerControl::updateAvailablePlaybackRanges()
         mAvailablePlaybackRange = QMediaTimeRange();
     }
 
-    Q_EMIT availablePlaybackRangesChanged(mAvailablePlaybackRange);
+// ####    Q_EMIT availablePlaybackRangesChanged(mAvailablePlaybackRange);
 }
 
 qreal QAndroidMediaPlayerControl::playbackRate() const

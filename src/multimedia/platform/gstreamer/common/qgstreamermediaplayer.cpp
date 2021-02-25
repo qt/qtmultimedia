@@ -62,8 +62,9 @@ Q_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player")
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerMediaPlayer::QGstreamerMediaPlayer(QObject *parent)
-    : QPlatformMediaPlayer(parent)
+QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
+    : QObject(parent),
+      QPlatformMediaPlayer(parent)
 {
     inputSelector[AudioStream] = QGstElement("input-selector", "audioInputSelector");
     audioQueue = QGstElement("queue", "audioQueue");

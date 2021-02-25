@@ -72,7 +72,7 @@ class MmRendererMediaPlayerControl : public QPlatformMediaPlayer, public QAbstra
 {
     Q_OBJECT
 public:
-    explicit MmRendererMediaPlayerControl(QObject *parent = 0);
+    explicit MmRendererMediaPlayerControl(QMediaPlayer *parent = 0);
 
     QMediaPlayer::State state() const override;
 

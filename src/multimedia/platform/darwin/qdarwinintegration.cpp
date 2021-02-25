@@ -75,9 +75,9 @@ QPlatformMediaCapture *QDarwinIntegration::createCaptureInterface(QMediaRecorder
     return new AVFCameraService;
 }
 
-QPlatformMediaPlayer *QDarwinIntegration::createPlayer()
+QPlatformMediaPlayer *QDarwinIntegration::createPlayer(QMediaPlayer *player)
 {
-    return new AVFMediaPlayer;
+    return new AVFMediaPlayer(player);
 }
 
 QT_END_NAMESPACE

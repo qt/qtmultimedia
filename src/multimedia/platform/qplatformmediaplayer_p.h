@@ -51,11 +51,10 @@ QT_BEGIN_NAMESPACE
 
 class QMediaStreamsControl;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer
 {
-    Q_OBJECT
-
 public:
+    virtual ~QPlatformMediaPlayer();
     virtual QMediaPlayer::State state() const = 0;
 
     virtual QMediaPlayer::MediaStatus mediaStatus() const = 0;
@@ -114,28 +113,29 @@ public:
     virtual int activeTrack(TrackType) { return -1; }
     virtual void setActiveTrack(TrackType, int /*streamNumber*/) {}
 
-Q_SIGNALS:
-    void audioRoleChanged(QAudio::Role role);
-    void customAudioRoleChanged(const QString &role);
-    void durationChanged(qint64 duration);
-    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration) { player->durationChanged(duration); }
+    void positionChanged(qint64 position) { player->positionChanged(position); }
+    void audioAvailableChanged(bool audioAvailable) { player->audioAvailableChanged(audioAvailable); }
+    void videoAvailableChanged(bool videoAvailable) { player->videoAvailableChanged(videoAvailable); }
+    void volumeChanged(int volume) { player->volumeChanged(volume); }
+    void mutedChanged(bool mute) { player->mutedChanged(mute); }
+    void seekableChanged(bool seekable) { player->seekableChanged(seekable); }
+    void playbackRateChanged(qreal rate) { player->playbackRateChanged(rate); }
+    void bufferStatusChanged(int percentFilled) { player->bufferStatusChanged(percentFilled); }
+    void metaDataChanged() { player->metaDataChanged(); }
+    void tracksChanged() { player->tracksChanged(); }
+    void activeTracksChanged() { player->activeTracksChanged(); }
+
     void stateChanged(QMediaPlayer::State newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
-    void volumeChanged(int volume);
-    void mutedChanged(bool mute);
-    void audioAvailableChanged(bool audioAvailable);
-    void videoAvailableChanged(bool videoAvailable);
-    void bufferStatusChanged(int percentFilled);
-    void seekableChanged(bool seekable);
-    void availablePlaybackRangesChanged(const QMediaTimeRange &ranges);
-    void playbackRateChanged(qreal rate);
     void error(int error, const QString &errorString);
-    void metaDataChanged();
-    void tracksChanged();
-    void activeTracksChanged();
 
 protected:
-    explicit QPlatformMediaPlayer(QObject *parent = nullptr);
+    explicit QPlatformMediaPlayer(QMediaPlayer *parent = nullptr)
+        : player(parent)
+    {}
+private:
+    QMediaPlayer *player = nullptr;
 };
 
 QT_END_NAMESPACE

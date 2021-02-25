@@ -58,6 +58,7 @@ QT_BEGIN_NAMESPACE
 class QAndroidCameraSession;
 class QAndroidTextureVideoOutput;
 class QAndroidCameraDataVideoOutput;
+class QAbstractVideoSurface;
 
 class QAndroidCameraVideoRendererControl : public QObject
 {

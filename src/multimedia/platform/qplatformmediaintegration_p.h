@@ -55,6 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QMediaPlayer;
 class QMediaDeviceManager;
 class QPlatformMediaDeviceManager;
 class QPlatformMediaCapture;
@@ -77,7 +78,7 @@ public:
 
     virtual QPlatformAudioDecoder *createAudioDecoder() { return nullptr; }
     virtual QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
-    virtual QPlatformMediaPlayer *createPlayer() { return nullptr; }
+    virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
 };
 
 QT_END_NAMESPACE

@@ -62,7 +62,7 @@ class AVFMediaPlayer : public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
-    explicit AVFMediaPlayer(QObject *parent = nullptr);
+    explicit AVFMediaPlayer(QMediaPlayer *parent = nullptr);
     ~AVFMediaPlayer();
 
     void setSession(AVFMediaPlayerSession *session);

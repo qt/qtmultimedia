@@ -56,15 +56,14 @@
 
 #include <QtCore/qcoreevent.h>
 
-#include "mfplayersession_p.h"
-
 QT_USE_NAMESPACE
+
+class MFPlayerSession;
 
 class MFPlayerControl : public QPlatformMediaPlayer
 {
-    Q_OBJECT
 public:
-    MFPlayerControl();
+    MFPlayerControl(QMediaPlayer *player);
     ~MFPlayerControl();
 
     QMediaPlayer::State state() const;
@@ -109,7 +108,6 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 
-private Q_SLOTS:
     void handleStatusChanged();
     void handleVideoAvailable();
     void handleAudioAvailable();

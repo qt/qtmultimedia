@@ -61,9 +61,9 @@ QMediaPlatformDeviceManager *QQnxIntegration::deviceManager()
     return m_manager;
 }
 
-QPlatformMediaPlayer *QQnxIntegration::createPlayer()
+QPlatformMediaPlayer *QQnxIntegration::createPlayer(QMediaPlayer *parent)
 {
-    return new MmRendererMediaPlayerControl();
+    return new MmRendererMediaPlayerControl(parent);
 }
 
 QT_END_NAMESPACE

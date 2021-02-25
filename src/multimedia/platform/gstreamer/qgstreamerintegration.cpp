@@ -79,9 +79,9 @@ QPlatformMediaCapture *QGstreamerIntegration::createCaptureInterface(QMediaRecor
     return new QGstreamerCaptureService(mode);
 }
 
-QPlatformMediaPlayer *QGstreamerIntegration::createPlayer()
+QPlatformMediaPlayer *QGstreamerIntegration::createPlayer(QMediaPlayer *player)
 {
-    return new QGstreamerMediaPlayer();
+    return new QGstreamerMediaPlayer(player);
 }
 
 QT_END_NAMESPACE

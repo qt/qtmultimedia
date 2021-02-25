@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,44 +37,59 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QMEDIAPLAYER_P_H
+#define QMEDIAPLAYER_P_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include "qmediaplayer.h"
+#include "qmediametadata.h"
+#include <private/qplatformmediaplayer_p.h>
 
-#include <private/qplatformmediaintegration_p.h>
+#include "private/qobject_p.h"
+#include <QtCore/qobject.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qtimer.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+class QPlatformMediaPlayer;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QMediaPlayerPrivate : public QObjectPrivate
 {
+    Q_DECLARE_PUBLIC(QMediaPlayer)
+
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    QMediaPlayerPrivate() : notifyTimer(nullptr) {}
+    QPlatformMediaPlayer* control = nullptr;
+    QString errorString;
 
-    void addRefCount();
-    void releaseRefCount();
+    QPointer<QObject> videoOutput;
+    QUrl qrcMedia;
+    QScopedPointer<QFile> qrcFile;
+    QUrl rootMedia;
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    QMediaPlayer::State state = QMediaPlayer::StoppedState;
+    QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
+    QMediaPlayer::Error error = QMediaPlayer::NoError;
+    int ignoreNextStatusChange = -1;
+    bool hasStreamPlaybackFeature = false;
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
+    QAudio::Role audioRole = QAudio::UnknownRole;
+    QString customAudioRole;
 
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+    void setMedia(const QUrl &media, QIODevice *stream = nullptr);
+
+    QList<QMediaMetaData> trackMetaData(QPlatformMediaPlayer::TrackType s) const;
+
+    void setState(QMediaPlayer::State state);
+    void setStatus(QMediaPlayer::MediaStatus status);
+    void setError(int error, const QString &errorString);
+    void _q_notify();
+
+    QTimer *notifyTimer;
+    QSet<int> notifyProperties;
 };
 
 QT_END_NAMESPACE
