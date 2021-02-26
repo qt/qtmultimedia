@@ -46,8 +46,15 @@
 #include "private/qwindowsaudiooutput_p.h"
 #include "private/qwindowsaudiodeviceinfo_p.h"
 
+#include <private/mftvideo_p.h>
+
 #include <mmsystem.h>
 #include <mmddk.h>
+#include <mfapi.h>
+#include <mfobjects.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
+#include <Mferror.h>
 #include "private/qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -148,7 +155,130 @@ QList<QAudioDeviceInfo> QWindowsDeviceManager::audioOutputs() const
 
 QList<QCameraInfo> QWindowsDeviceManager::videoInputs() const
 {
-    return {};
+    QList<QCameraInfo> cameras;
+    auto hrCoInit = CoInitialize(nullptr);
+
+    IMFAttributes *pAttributes = NULL;
+    IMFActivate **ppDevices = NULL;
+
+    // Create an attribute store to specify the enumeration parameters.
+    HRESULT hr = MFCreateAttributes(&pAttributes, 1);
+    if (SUCCEEDED(hr)) {
+        // Source type: video capture devices
+        hr = pAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                                  MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+
+        if (SUCCEEDED(hr)) {
+            // Enumerate devices.
+            UINT32 count;
+            hr = MFEnumDeviceSources(pAttributes, &ppDevices, &count);
+            if (SUCCEEDED(hr)) {
+                // Iterate through devices.
+                for (int index = 0; index < int(count); index++) {
+                    QCameraInfoPrivate *info = new QCameraInfoPrivate;
+
+                    IMFMediaSource *pSource = NULL;
+                    IMFSourceReader *reader = NULL;
+
+                    WCHAR *deviceName = NULL;
+                    UINT32 deviceNameLength = 0;
+                    UINT32 deviceIdLength = 0;
+                    WCHAR *deviceId = NULL;
+
+                    hr = ppDevices[index]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
+                                                              &deviceName, &deviceNameLength);
+                    if (SUCCEEDED(hr))
+                        info->description = QString::fromWCharArray(deviceName);
+                    CoTaskMemFree(deviceName);
+
+                    hr = ppDevices[index]->GetAllocatedString(
+                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &deviceId,
+                            &deviceIdLength);
+                    if (SUCCEEDED(hr))
+                        info->id = QString::fromWCharArray(deviceId).toUtf8();
+                    CoTaskMemFree(deviceId);
+
+                    // Create the media source object.
+                    hr = ppDevices[index]->ActivateObject(
+                            IID_PPV_ARGS(&pSource));
+                    // Create the media source reader.
+                    hr = MFCreateSourceReaderFromMediaSource(pSource, NULL, &reader);
+                    if (SUCCEEDED(hr)) {
+                        QList<QSize> photoResolutions;
+                        QList<QCameraFormat> videoFormats;
+
+                        DWORD dwMediaTypeIndex = 0;
+                        IMFMediaType *mediaFormat = NULL;
+                        GUID subtype = GUID_NULL;
+                        HRESULT mediaFormatResult = S_OK;
+
+                        UINT32 frameRateMin = 0u;
+                        UINT32 frameRateMax = 0u;
+                        UINT32 denominator = 0u;
+                        DWORD index = 0u;
+                        UINT32 width = 0u;
+                        UINT32 height = 0u;
+
+                        while (SUCCEEDED(mediaFormatResult)) {
+                            // Loop through the supported formats for the video device
+                            mediaFormatResult = reader->GetNativeMediaType(
+                                    (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, dwMediaTypeIndex,
+                                    &mediaFormat);
+                            if (mediaFormatResult == MF_E_NO_MORE_TYPES)
+                                break;
+                            else if (SUCCEEDED(mediaFormatResult)) {
+                                QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+                                QSize resolution;
+                                float minFr = .0;
+                                float maxFr = .0;
+
+                                if (SUCCEEDED(mediaFormat->GetGUID(MF_MT_SUBTYPE, &subtype)))
+                                    pixelFormat = MFTransform::formatFromSubtype(subtype);
+
+                                if (SUCCEEDED(MFGetAttributeSize(mediaFormat, MF_MT_FRAME_SIZE, &width,
+                                                        &height))) {
+                                    resolution.rheight() = (int)height;
+                                    resolution.rwidth() = (int)width;
+                                    photoResolutions << resolution;
+                                }
+
+                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MIN,
+                                                         &frameRateMin, &denominator)))
+                                    minFr = qreal(frameRateMin) / denominator;
+                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MAX,
+                                                         &frameRateMax, &denominator)))
+                                    maxFr = qreal(frameRateMax) / denominator;
+
+                                auto *f = new QCameraFormatPrivate { QSharedData(), pixelFormat,
+                                                                     resolution, minFr, maxFr };
+                                videoFormats << f->create();
+                            }
+                            ++dwMediaTypeIndex;
+                        }
+                        if (mediaFormat)
+                            mediaFormat->Release();
+
+                        info->videoFormats = videoFormats;
+                        info->photoResolutions = photoResolutions;
+                    }
+                    if (reader)
+                        reader->Release();
+                    cameras.append(info->create());
+                }
+            }
+            for (DWORD i = 0; i < count; i++) {
+                if (ppDevices[i])
+                    ppDevices[i]->Release();
+            }
+            CoTaskMemFree(ppDevices);
+        }
+    }
+    if (pAttributes)
+        pAttributes->Release();
+    if (SUCCEEDED(hrCoInit))
+        CoUninitialize();
+
+    return cameras;
 }
 
 QAbstractAudioInput *QWindowsDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)

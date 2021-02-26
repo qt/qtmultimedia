@@ -72,6 +72,8 @@ public:
 
     void setVideoSink(IUnknown *videoSink);
 
+    static QVideoFrame::PixelFormat formatFromSubtype(const GUID& subtype);
+
     // IUnknown methods
     STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
     STDMETHODIMP_(ULONG) AddRef();
@@ -104,7 +106,6 @@ public:
 
 private:
     HRESULT OnFlush();
-    static QVideoFrame::PixelFormat formatFromSubtype(const GUID& subtype);
     static QVideoSurfaceFormat videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine);
     QVideoFrame makeVideoFrame();
     QByteArray dataFromBuffer(IMFMediaBuffer *buffer, int height, int *bytesPerLine);
