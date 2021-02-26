@@ -277,7 +277,6 @@ void QCameraImageProcessing::setSaturation(qreal value)
     \value WhiteBalanceFluorescent  Fluorescent white balance mode.
     \value WhiteBalanceFlash        Flash white balance mode.
     \value WhiteBalanceSunset       Sunset white balance mode.
-    \value WhiteBalanceVendor       Base value for vendor defined white balance modes.
 */
 
 /*!
@@ -292,7 +291,6 @@ void QCameraImageProcessing::setSaturation(qreal value)
     \value ColorFilterWhiteboard         A whiteboard filter.
     \value ColorFilterBlackboard         A blackboard filter.
     \value ColorFilterAqua               An aqua filter.
-    \value ColorFilterVendor             The base value for vendor defined filters.
 
     \since 5.5
 */

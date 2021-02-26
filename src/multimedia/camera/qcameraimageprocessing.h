@@ -71,8 +71,7 @@ public:
         WhiteBalanceTungsten = 5,
         WhiteBalanceFluorescent = 6,
         WhiteBalanceFlash = 7,
-        WhiteBalanceSunset = 8,
-        WhiteBalanceVendor = 1000
+        WhiteBalanceSunset = 8
     };
 
     enum ColorFilter {
@@ -84,8 +83,7 @@ public:
         ColorFilterPosterize,
         ColorFilterWhiteboard,
         ColorFilterBlackboard,
-        ColorFilterAqua,
-        ColorFilterVendor = 1000
+        ColorFilterAqua
     };
 
     bool isAvailable() const;

@@ -1009,7 +1009,6 @@ Module {
                 "WhiteBalanceFluorescent": 6,
                 "WhiteBalanceFlash": 7,
                 "WhiteBalanceSunset": 8,
-                "WhiteBalanceVendor": 1000
             }
         }
         Enum {
@@ -1024,7 +1023,6 @@ Module {
                 "ColorFilterWhiteboard": 6,
                 "ColorFilterBlackboard": 7,
                 "ColorFilterAqua": 8,
-                "ColorFilterVendor": 1000
             }
         }
         Property { name: "whiteBalanceMode"; type: "WhiteBalanceMode" }

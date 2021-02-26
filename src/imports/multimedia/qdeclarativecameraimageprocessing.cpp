@@ -112,7 +112,6 @@ QDeclarativeCameraImageProcessing::~QDeclarativeCameraImageProcessing() = defaul
     \row \li WhiteBalanceFluorescent  \li Fluorescent white balance mode.
     \row \li WhiteBalanceFlash        \li Flash white balance mode.
     \row \li WhiteBalanceSunset       \li Sunset white balance mode.
-    \row \li WhiteBalanceVendor       \li Vendor defined white balance mode.
     \endtable
 
     \sa manualWhiteBalance
@@ -227,7 +226,6 @@ void QDeclarativeCameraImageProcessing::setSaturation(qreal value)
     \row \li CameraImageProcessing.ColorFilterWhiteboard \li A whiteboard filter.
     \row \li CameraImageProcessing.ColorFilterBlackboard \li A blackboard filter.
     \row \li CameraImageProcessing.ColorFilterAqua       \li An aqua filter.
-    \row \li CameraImageProcessing.ColorFilterVendor     \li The base value for vendor defined filters.
     \endtable
 
     \since 5.5
@@ -261,7 +259,7 @@ QVariantList QDeclarativeCameraImageProcessing::supportedColorFilters() const
 {
     QVariantList supportedFilters;
 
-    for (int i = int(ColorFilterNone); i <= int(ColorFilterVendor); ++i) {
+    for (int i = int(ColorFilterNone); i <= int(ColorFilterAqua); ++i) {
         if (m_imageProcessing->isColorFilterSupported((QCameraImageProcessing::ColorFilter) i))
             supportedFilters.append(i);
     }
@@ -280,7 +278,7 @@ QVariantList QDeclarativeCameraImageProcessing::supportedWhiteBalanceModes() con
 {
     QVariantList supportedModes;
 
-    for (int i = int(WhiteBalanceAuto); i <= int(WhiteBalanceVendor); i++) {
+    for (int i = int(WhiteBalanceAuto); i <= int(WhiteBalanceSunset); i++) {
         if (m_imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode(i)))
             supportedModes.append(i);
     }

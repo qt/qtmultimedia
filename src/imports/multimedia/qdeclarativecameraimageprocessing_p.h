@@ -86,7 +86,6 @@ public:
         WhiteBalanceFluorescent = QCameraImageProcessing::WhiteBalanceFluorescent,
         WhiteBalanceFlash = QCameraImageProcessing::WhiteBalanceFlash,
         WhiteBalanceSunset = QCameraImageProcessing::WhiteBalanceSunset,
-        WhiteBalanceVendor = QCameraImageProcessing::WhiteBalanceVendor
     };
 
     enum ColorFilter {
@@ -99,7 +98,6 @@ public:
         ColorFilterWhiteboard = QCameraImageProcessing::ColorFilterWhiteboard,
         ColorFilterBlackboard = QCameraImageProcessing::ColorFilterBlackboard,
         ColorFilterAqua = QCameraImageProcessing::ColorFilterAqua,
-        ColorFilterVendor = QCameraImageProcessing::ColorFilterVendor
     };
 
     ~QDeclarativeCameraImageProcessing();
