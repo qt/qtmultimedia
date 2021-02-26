@@ -153,8 +153,6 @@ void BbCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
             qWarning() << "Unable to set focus region:" << result;
             return;
         }
-
-        emit focusZonesChanged();
     } else if (m_focusPointMode == QCameraFocus::FocusPointCenter) {
         // get the size of the viewfinder
         int viewfinderWidth = 0;
@@ -180,8 +178,6 @@ void BbCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
         camera_focusmode_t focusMode = CAMERA_FOCUSMODE_OFF;
         result = camera_get_focus_mode(m_session->handle(), &focusMode);
         camera_set_focus_mode(m_session->handle(), focusMode);
-
-        emit focusZonesChanged();
 
     } else if (m_focusPointMode == QCameraFocus::FocusPointFaceDetection) {
         //TODO: implement later
@@ -224,56 +220,6 @@ void BbCameraFocusControl::setCustomFocusPoint(const QPointF &point)
     updateCustomFocusRegion();
 }
 
-QCameraFocusZoneList BbCameraFocusControl::focusZones() const
-{
-    if (m_session->state() == QCamera::UnloadedState)
-        return QCameraFocusZoneList();
-
-    camera_region_t regions[20];
-    int supported = 0;
-    int asked = 0;
-    camera_error_t result = camera_get_focus_regions(m_session->handle(), 20, &supported, &asked, regions);
-
-    if (result != CAMERA_EOK) {
-        qWarning() << "Unable to retrieve focus regions:" << result;
-        return QCameraFocusZoneList();
-    }
-
-    // retrieve width and height of viewfinder
-    int viewfinderWidth = 0;
-    int viewfinderHeight = 0;
-    if (m_session->captureMode() & QCamera::CaptureStillImage)
-        result = camera_get_photovf_property(m_session->handle(),
-                                             CAMERA_IMGPROP_WIDTH, &viewfinderWidth,
-                                             CAMERA_IMGPROP_HEIGHT, &viewfinderHeight);
-    else if (m_session->captureMode() & QCamera::CaptureVideo)
-        result = camera_get_videovf_property(m_session->handle(),
-                                             CAMERA_IMGPROP_WIDTH, &viewfinderWidth,
-                                             CAMERA_IMGPROP_HEIGHT, &viewfinderHeight);
-
-    if (result != CAMERA_EOK) {
-        qWarning() << "Unable to retrieve viewfinder size:" << result;
-        return QCameraFocusZoneList();
-    }
-
-    QCameraFocusZoneList list;
-    for (int i = 0; i < asked; ++i) {
-        const int x = regions[i].left;
-        const int y = regions[i].top;
-        const int width = regions[i].width;
-        const int height = regions[i].height;
-
-        QRectF rect(static_cast<float>(x)/static_cast<float>(viewfinderWidth),
-                    static_cast<float>(y)/static_cast<float>(viewfinderHeight),
-                    static_cast<float>(width)/static_cast<float>(viewfinderWidth),
-                    static_cast<float>(height)/static_cast<float>(viewfinderHeight));
-
-        list << QCameraFocusZone(rect, QCameraFocusZone::Focused); //TODO: how to know if a zone is unused/selected/focused?!?
-    }
-
-    return list;
-}
-
 void BbCameraFocusControl::updateCustomFocusRegion()
 {
     // get the size of the viewfinder
@@ -300,8 +246,6 @@ void BbCameraFocusControl::updateCustomFocusRegion()
     camera_focusmode_t focusMode = CAMERA_FOCUSMODE_OFF;
     result = camera_get_focus_mode(m_session->handle(), &focusMode);
     camera_set_focus_mode(m_session->handle(), focusMode);
-
-    emit focusZonesChanged();
 }
 
 bool BbCameraFocusControl::retrieveViewfinderSize(int *width, int *height)

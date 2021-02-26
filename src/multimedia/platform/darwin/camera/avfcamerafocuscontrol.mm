@@ -247,12 +247,6 @@ void AVFCameraFocusControl::setCustomFocusPoint(const QPointF &point)
     }
 }
 
-QCameraFocusZoneList AVFCameraFocusControl::focusZones() const
-{
-    // Unsupported.
-    return QCameraFocusZoneList();
-}
-
 void AVFCameraFocusControl::cameraStateChanged()
 {
     if (m_session->state() != QCamera::ActiveState)

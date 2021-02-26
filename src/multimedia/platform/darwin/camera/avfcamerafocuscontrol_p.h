@@ -81,8 +81,6 @@ public:
     QPointF customFocusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
 
-    QCameraFocusZoneList focusZones() const override;
-
     ZoomRange zoomFactorRange() const override;
     void zoomTo(float newZoomFactor, float rate = -1.) override;
 

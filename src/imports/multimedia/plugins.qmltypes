@@ -616,14 +616,6 @@ Module {
             }
         }
         Enum {
-            name: "FocusAreaStatus"
-            values: {
-                "FocusAreaUnused": 1,
-                "FocusAreaSelected": 2,
-                "FocusAreaFocused": 3
-            }
-        }
-        Enum {
             name: "Availability"
             values: {
                 "Available": 0,
@@ -980,7 +972,6 @@ Module {
         Property { name: "focusPointMode"; type: "FocusPointMode" }
         Property { name: "supportedFocusPointModes"; revision: 1; type: "QVariantList"; isReadonly: true }
         Property { name: "customFocusPoint"; type: "QPointF" }
-        Property { name: "focusZones"; type: "QObject"; isReadonly: true; isPointer: true }
         Signal {
             name: "focusModeChanged"
             Parameter { type: "FocusMode" }

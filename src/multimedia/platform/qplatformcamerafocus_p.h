@@ -65,8 +65,6 @@ public:
     virtual QPointF customFocusPoint() const = 0;
     virtual void setCustomFocusPoint(const QPointF &point) = 0;
 
-    virtual QCameraFocusZoneList focusZones() const = 0;
-
     struct ZoomRange {
         float min;
         float max;
@@ -80,9 +78,6 @@ Q_SIGNALS:
     void focusModeChanged(QCameraFocus::FocusModes mode);
     void focusPointModeChanged(QCameraFocus::FocusPointMode mode);
     void customFocusPointChanged(const QPointF &point);
-
-    void focusZonesChanged();
-
 
 protected:
     explicit QPlatformCameraFocus(QObject *parent = nullptr);

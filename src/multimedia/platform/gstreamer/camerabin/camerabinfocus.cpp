@@ -63,7 +63,6 @@ CameraBinFocus::CameraBinFocus(CameraBinSession *session)
      m_focusMode(QCameraFocus::AutoFocus),
      m_focusPointMode(QCameraFocus::FocusPointAuto),
      m_focusStatus(QCamera::Unlocked),
-     m_focusZoneStatus(QCameraFocusZone::Selected),
      m_focusPoint(0.5, 0.5),
      m_focusRect(0, 0, 0.3, 0.3)
 {
@@ -184,7 +183,6 @@ void CameraBinFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
 
     m_focusPointMode = mode;
     emit focusPointModeChanged(m_focusPointMode);
-    emit focusZonesChanged();
 }
 
 bool CameraBinFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
@@ -221,31 +219,10 @@ void CameraBinFocus::setCustomFocusPoint(const QPointF &point)
             m_focusRect.moveCenter(m_focusPoint);
 
             updateRegionOfInterest(m_focusRect);
-
-            if (focusRect != m_focusRect) {
-                emit focusZonesChanged();
-            }
         }
 
         emit customFocusPointChanged(m_focusPoint);
     }
-}
-
-QCameraFocusZoneList CameraBinFocus::focusZones() const
-{
-    QCameraFocusZoneList zones;
-
-    if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection) {
-        zones.append(QCameraFocusZone(m_focusRect, m_focusZoneStatus));
-    } else for (const QRect &face : qAsConst(m_faceFocusRects)) {
-        const QRectF normalizedRect(
-                    face.x() / qreal(m_viewfinderResolution.width()),
-                    face.y() / qreal(m_viewfinderResolution.height()),
-                    face.width() / qreal(m_viewfinderResolution.width()),
-                    face.height() / qreal(m_viewfinderResolution.height()));
-        zones.append(QCameraFocusZone(normalizedRect, m_focusZoneStatus));
-    }
-    return zones;
 }
 
 void CameraBinFocus::_q_handleCameraStatusChange(QCamera::Status status)
@@ -297,7 +274,6 @@ void CameraBinFocus::resetFocusPoint()
 
     if (focusRect != m_focusRect) {
         emit customFocusPointChanged(m_focusPoint);
-        emit focusZonesChanged();
     }
 }
 
@@ -391,7 +367,6 @@ void CameraBinFocus::_q_updateFaces()
         m_faceResetTimer.stop();
         m_faceFocusRects = faces;
         updateRegionOfInterest(m_faceFocusRects);
-        emit focusZonesChanged();
     } else {
         m_faceResetTimer.start(500, this);
     }
@@ -405,7 +380,6 @@ void CameraBinFocus::timerEvent(QTimerEvent *event)
         if (m_focusStatus == QCamera::Unlocked) {
             m_faceFocusRects.clear();
             updateRegionOfInterest(m_faceFocusRects);
-            emit focusZonesChanged();
         }
     } else {
         QPlatformCameraFocus::timerEvent(event);

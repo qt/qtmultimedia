@@ -70,7 +70,6 @@ public:
     bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const override;
     QPointF customFocusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
-    QCameraFocusZoneList focusZones() const override;
 
     qreal maximumOpticalZoom() const override;
     qreal maximumDigitalZoom() const override;

@@ -143,7 +143,6 @@ void QAndroidCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode 
 
         setFocusPointModeHelper(mode);
 
-        updateFocusZones();
         setCameraFocusArea();
     }
 }
@@ -167,14 +166,8 @@ void QAndroidCameraFocusControl::setCustomFocusPoint(const QPointF &point)
 
     if (m_session->camera() && m_focusPointMode == QCameraFocus::FocusPointCustom) {
         m_actualFocusPoint = m_customFocusPoint;
-        updateFocusZones();
         setCameraFocusArea();
     }
-}
-
-QCameraFocusZoneList QAndroidCameraFocusControl::focusZones() const
-{
-    return m_focusZones;
 }
 
 void QAndroidCameraFocusControl::onCameraOpened()
@@ -239,20 +232,18 @@ void QAndroidCameraFocusControl::onCameraOpened()
     }
 }
 
-void QAndroidCameraFocusControl::updateFocusZones(QCameraFocusZone::FocusZoneStatus status)
+void QAndroidCameraFocusControl::setCameraFocusArea()
 {
-    if (!m_session->camera())
-        return;
-
-    // create a focus zone (50x50 pixel) around the focus point
-    m_focusZones.clear();
-
-    if (!m_actualFocusPoint.isNull()) {
+    QList<QRect> areas;
+    if (m_focusPointMode != QCameraFocus::FocusPointAuto) {
+        // in FocusPointAuto mode, leave the area list empty
+        // to let the driver choose the focus point.
         QSize viewportSize = m_session->camera()->previewSize();
 
         if (!viewportSize.isValid())
             return;
 
+        // Set up a 50x50 pixel focus area around the focal point
         QSizeF focusSize(50.f / viewportSize.width(), 50.f / viewportSize.height());
         float x = qBound(qreal(0),
                          m_actualFocusPoint.x() - (focusSize.width() / 2),
@@ -263,32 +254,13 @@ void QAndroidCameraFocusControl::updateFocusZones(QCameraFocusZone::FocusZoneSta
 
         QRectF area(QPointF(x, y), focusSize);
 
-        m_focusZones.append(QCameraFocusZone(area, status));
-    }
-
-    emit focusZonesChanged();
-}
-
-void QAndroidCameraFocusControl::setCameraFocusArea()
-{
-    QList<QRect> areas;
-    if (m_focusPointMode != QCameraFocus::FocusPointAuto) {
-        // in FocusPointAuto mode, leave the area list empty
-        // to let the driver choose the focus point.
-
-        for (int i = 0; i < m_focusZones.size(); ++i)
-            areas.append(adjustedArea(m_focusZones.at(i).area()));
-
+        areas.append(adjustedArea(area));
     }
     m_session->camera()->setFocusAreas(areas);
 }
 
 void QAndroidCameraFocusControl::onViewportSizeChanged()
 {
-    QCameraFocusZone::FocusZoneStatus status = QCameraFocusZone::Selected;
-    if (!m_focusZones.isEmpty())
-        status = m_focusZones.at(0).status();
-    updateFocusZones(status);
     setCameraFocusArea();
 }
 
@@ -309,13 +281,10 @@ void QAndroidCameraFocusControl::onCameraCaptureModeChanged()
 
 void QAndroidCameraFocusControl::onAutoFocusStarted()
 {
-    updateFocusZones(QCameraFocusZone::Selected);
 }
 
-void QAndroidCameraFocusControl::onAutoFocusComplete(bool success)
+void QAndroidCameraFocusControl::onAutoFocusComplete(bool /*success*/)
 {
-    if (success)
-        updateFocusZones(QCameraFocusZone::Focused);
 }
 
 

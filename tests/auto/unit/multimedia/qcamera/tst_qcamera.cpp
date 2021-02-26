@@ -91,7 +91,6 @@ private slots:
     void testOpticalAndDigitalZoomChanged();
     void testMaxOpticalZoomChangedSignal();
     void testMaxDigitalZoomChangedSignal();
-    void testfocusZonesChangedSignal();
 
     // Test cases for QPlatformCamera class.
     void testCameraControl();
@@ -1054,18 +1053,6 @@ void tst_QCamera::testMaxOpticalZoomChangedSignal()
     QSignalSpy spy(cameraFocus,SIGNAL(maximumOpticalZoomChanged(qreal)));
     QVERIFY(spy.count() == 0);
     cameraFocus->zoomTo(5.0,6.0);
-    QVERIFY(spy.count() == 1);
-}
-
-void tst_QCamera::testfocusZonesChangedSignal()
-{
-    QCamera camera;
-
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
-
-    QSignalSpy spy(cameraFocus,SIGNAL(focusZonesChanged()));
-    cameraFocus->setCustomFocusPoint(QPointF(0.1, 0.1));
     QVERIFY(spy.count() == 1);
 }
 

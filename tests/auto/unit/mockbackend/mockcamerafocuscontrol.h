@@ -42,7 +42,6 @@ public:
         m_focusPointMode(QCameraFocus::FocusPointAuto),
         m_focusPoint(0.5, 0.5)
     {
-        m_zones << QCameraFocusZone(QRectF(0.45, 0.45, 0.1, 0.1));
     }
 
     ~MockCameraFocusControl() {}
@@ -94,23 +93,6 @@ public:
     void setCustomFocusPoint(const QPointF &point)
     {
         m_focusPoint = point;
-        focusZonesChange(0.50, 0.50, 0.3, 0.3);
-    }
-
-    QCameraFocusZoneList focusZones() const
-    {
-        return m_zones;
-    }
-
-    // helper function to emit Focus Zones Changed signals
-    void focusZonesChange(qreal left, qreal top, qreal width, qreal height)
-    {
-        QCameraFocusZone myZone(QRectF(left, top, width, height));
-        if (m_zones.last().area() != myZone.area()) {
-            m_zones.clear();
-            m_zones << myZone;
-            emit focusZonesChanged();
-        }
     }
 
     ZoomRange zoomFactorRange() const {
@@ -126,8 +108,6 @@ private:
     QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_focusPoint;
-    // to emit focus zone changed signal
-    QCameraFocusZoneList m_zones;
 
     float m_zoom = 1.;
     float m_maxZoom = 4.;

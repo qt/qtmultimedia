@@ -57,41 +57,6 @@ QT_BEGIN_NAMESPACE
 class QCamera;
 class QPlatformCamera;
 
-class QCameraFocusZoneData;
-
-class Q_MULTIMEDIA_EXPORT QCameraFocusZone {
-public:
-    enum FocusZoneStatus {
-        Invalid,
-        Unused,
-        Selected,
-        Focused
-    };
-
-    QCameraFocusZone();
-    QCameraFocusZone(const QRectF &area, FocusZoneStatus status = Selected);
-    QCameraFocusZone(const QCameraFocusZone &other);
-
-    QCameraFocusZone& operator=(const QCameraFocusZone &other);
-    bool operator==(const QCameraFocusZone &other) const;
-    bool operator!=(const QCameraFocusZone &other) const;
-
-    ~QCameraFocusZone();
-
-    bool isValid() const;
-
-    QRectF area() const;
-
-    FocusZoneStatus status() const;
-    void setStatus(FocusZoneStatus status);
-
-private:
-     QSharedDataPointer<QCameraFocusZoneData> d;
-};
-
-typedef QList<QCameraFocusZone> QCameraFocusZoneList;
-
-
 class QCameraFocusPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraFocus : public QObject
 {
@@ -100,7 +65,6 @@ class Q_MULTIMEDIA_EXPORT QCameraFocus : public QObject
     Q_PROPERTY(FocusModes focusMode READ focusMode WRITE setFocusMode)
     Q_PROPERTY(FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode)
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint)
-    Q_PROPERTY(QCameraFocusZoneList focusZones READ focusZones NOTIFY focusZonesChanged)
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
 
     Q_ENUMS(FocusMode)
@@ -135,8 +99,6 @@ public:
     QPointF customFocusPoint() const;
     void setCustomFocusPoint(const QPointF &point);
 
-    QCameraFocusZoneList focusZones() const;
-
     float minimumZoomFactor() const;
     float maximumZoomFactor() const;
     float zoomFactor() const;
@@ -146,7 +108,6 @@ public:
 
 Q_SIGNALS:
     void zoomFactorChanged(float);
-    void focusZonesChanged();
 
 protected:
     ~QCameraFocus();

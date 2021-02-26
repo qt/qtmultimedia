@@ -111,7 +111,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
 
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
-    Q_ENUMS(FocusAreaStatus)
 
 public:
     enum Position {
@@ -185,12 +184,6 @@ public:
         FocusPointCenter = QCameraFocus::FocusPointCenter,
         FocusPointFaceDetection = QCameraFocus::FocusPointFaceDetection,
         FocusPointCustom = QCameraFocus::FocusPointCustom
-    };
-
-    enum FocusAreaStatus {
-        FocusAreaUnused = QCameraFocusZone::Unused,
-        FocusAreaSelected = QCameraFocusZone::Selected,
-        FocusAreaFocused = QCameraFocusZone::Focused
     };
 
     QDeclarativeCamera(QObject *parent = 0);

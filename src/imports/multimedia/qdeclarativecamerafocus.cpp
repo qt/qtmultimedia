@@ -96,11 +96,7 @@ QDeclarativeCameraFocus::QDeclarativeCameraFocus(QCamera *camera, QObject *paren
     QObject(parent)
 {
     m_focus = camera->focus();
-    m_focusZones = new FocusZonesModel(this);
 
-    updateFocusZones();
-
-    connect(m_focus, SIGNAL(focusZonesChanged()), SLOT(updateFocusZones()));
     connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
         if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
             && status != QCamera::ActiveStatus) {
@@ -122,7 +118,7 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
     for example QCameraFocus::MacroFocus + QCameraFocus::ContinuousFocus.
 
     In automatic focusing modes, the \l focusPointMode
-    and \l focusZones properties provide information and control
+    property provides information and control
     over how automatic focusing is performed.
 */
 
@@ -159,7 +155,7 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
     for example Camera.FocusMacro + Camera.FocusContinuous.
 
     In automatic focusing modes, the \l focusPointMode property
-    and \l focusZones property provide information and control
+    provides information and control
     over how automatic focusing is performed.
 */
 QDeclarativeCameraFocus::FocusMode QDeclarativeCameraFocus::focusMode() const
@@ -295,115 +291,6 @@ void QDeclarativeCameraFocus::setCustomFocusPoint(const QPointF &point)
         m_focus->setCustomFocusPoint(point);
         emit customFocusPointChanged(customFocusPoint());
     }
-}
-/*!
-  \property QDeclarativeCameraFocus::focusZones
-
-  This property holds the list of current camera focus zones,
-  each including \c area specified in the same coordinates as \l customFocusPoint, and zone \c status as one of the following values:
-    \table
-    \header \li Value \li Description
-    \row \li QCameraFocusZone::Unused  \li This focus point area is currently unused in autofocusing.
-    \row \li QCameraFocusZone::Selected    \li This focus point area is used in autofocusing, but is not in focus.
-    \row \li QCameraFocusZone::Focused  \li This focus point is used in autofocusing, and is in focus.
-    \endtable
-*/
-/*!
-  \qmlproperty list<focusZone> QtMultimedia::CameraFocus::focusZones
-
-  This property holds the list of current camera focus zones,
-  each including \c area specified in the same coordinates as \l customFocusPoint,
-  and zone \c status as one of the following values:
-
-    \table
-    \header \li Value \li Description
-    \row \li Camera.FocusAreaUnused  \li This focus point area is currently unused in autofocusing.
-    \row \li Camera.FocusAreaSelected    \li This focus point area is used in autofocusing, but is not in focus.
-    \row \li Camera.FocusAreaFocused  \li This focus point is used in autofocusing, and is in focus.
-    \endtable
-
-  \qml
-
-  VideoOutput {
-      id: viewfinder
-      source: camera
-
-      //display focus areas on camera viewfinder:
-      Repeater {
-            model: camera.focus.focusZones
-
-            Rectangle {
-                border {
-                    width: 2
-                    color: status == Camera.FocusAreaFocused ? "green" : "white"
-                }
-                color: "transparent"
-
-                // Map from the relative, normalized frame coordinates
-                property variant mappedRect: viewfinder.mapNormalizedRectToItem(area);
-
-                x: mappedRect.x
-                y: mappedRect.y
-                width: mappedRect.width
-                height: mappedRect.height
-            }
-      }
-  }
-  \endqml
-*/
-
-QAbstractListModel *QDeclarativeCameraFocus::focusZones() const
-{
-    return m_focusZones;
-}
-
-/*! \internal */
-void QDeclarativeCameraFocus::updateFocusZones()
-{
-    m_focusZones->setFocusZones(m_focus->focusZones());
-}
-
-
-FocusZonesModel::FocusZonesModel(QObject *parent)
-    :QAbstractListModel(parent)
-{
-}
-
-int FocusZonesModel::rowCount(const QModelIndex &parent) const
-{
-    if (parent == QModelIndex())
-        return m_focusZones.count();
-
-    return 0;
-}
-
-QVariant FocusZonesModel::data(const QModelIndex &index, int role) const
-{
-    if (index.row() < 0 || index.row() > m_focusZones.count())
-        return QVariant();
-
-    QCameraFocusZone zone = m_focusZones.value(index.row());
-
-    if (role == StatusRole)
-        return zone.status();
-
-    if (role == AreaRole)
-        return zone.area();
-
-    return QVariant();
-}
-
-QHash<int,QByteArray> FocusZonesModel::roleNames() const
-{
-    return {{StatusRole, QByteArrayLiteral("status")},
-            {AreaRole, QByteArrayLiteral("area")}};
-}
-
-void FocusZonesModel::setFocusZones(const QCameraFocusZoneList &zones)
-{
-    beginResetModel();
-    m_focusZones = zones;
-    endResetModel();
 }
 
 QT_END_NAMESPACE

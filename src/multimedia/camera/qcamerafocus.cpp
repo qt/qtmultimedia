@@ -50,143 +50,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCameraFocusZoneData : public QSharedData
-{
-public:
-    QCameraFocusZoneData() = default;
-    QCameraFocusZoneData(const QRectF &_area, QCameraFocusZone::FocusZoneStatus _status)
-        : area(_area),
-          status(_status)
-    {
-    }
-
-    QRectF area;
-    QCameraFocusZone::FocusZoneStatus status = QCameraFocusZone::Invalid;
-};
-
-
-/*!
-    \class QCameraFocusZone
-
-    \brief The QCameraFocusZone class provides information on zones used for autofocusing a camera.
-
-    \inmodule QtMultimedia
-    \ingroup multimedia
-    \ingroup multimedia_camera
-
-    For cameras that support autofocusing, in order for a camera to autofocus on
-    part of a sensor frame, it considers different zones within the frame.  Which
-    zones to use, and where the zones are located vary between different cameras.
-
-    This class exposes what zones are used by a particular camera, and a list of the
-    zones can be retrieved by a \l QCameraFocus instance.
-
-    You can use this information to present visual feedback - for example, drawing
-    rectangles around areas of the camera frame that are in focus, or changing the
-    color of a zone as it comes into focus.
-
-    \snippet multimedia-snippets/camera.cpp Camera focus zones
-
-    \sa QCameraFocus
-*/
-
-/*!
-    \enum QCameraFocusZone::FocusZoneStatus
-
-    \value Invalid      This zone is not valid
-    \value Unused       This zone may be used for autofocusing, but is not currently.
-    \value Selected     This zone is currently being used for autofocusing, but is not in focus.
-    \value Focused      This zone is being used for autofocusing and is currently in focus.
-*/
-
-/*!
- * \internal
- * Creates a new, empty QCameraFocusZone.
- */
-QCameraFocusZone::QCameraFocusZone()
-    :d(new QCameraFocusZoneData)
-{
-
-}
-
-/*!
- * \internal
- * Creates a new QCameraFocusZone with the supplied \a area and \a status.
- */
-QCameraFocusZone::QCameraFocusZone(const QRectF &area, QCameraFocusZone::FocusZoneStatus status)
-    :d(new QCameraFocusZoneData(area, status))
-{
-}
-
-/*!
- * Creates a new QCameraFocusZone as a copy of \a other.
- */
-QCameraFocusZone::QCameraFocusZone(const QCameraFocusZone &other) = default;
-
-/*!
- * Destroys this QCameraFocusZone.
- */
-QCameraFocusZone::~QCameraFocusZone() = default;
-
-/*!
- * Assigns \a other to this QCameraFocusZone.
- */
-QCameraFocusZone& QCameraFocusZone::operator=(const QCameraFocusZone &other) = default;
-
-/*!
- * Returns true if this focus zone is the same as \a other.
- */
-bool QCameraFocusZone::operator==(const QCameraFocusZone &other) const
-{
-    return d == other.d ||
-           (d->area == other.d->area && d->status == other.d->status);
-}
-
-/*!
- * Returns true if this focus zone is not the same as \a other.
- */
-bool QCameraFocusZone::operator!=(const QCameraFocusZone &other) const
-{
-    return !(*this == other);
-}
-
-/*!
- * Returns true if this focus zone has a valid area and status.
- */
-bool QCameraFocusZone::isValid() const
-{
-    return d->status != Invalid && !d->area.isValid();
-}
-
-/*!
- * Returns the area of the camera frame that this focus zone encompasses.
- *
- * Coordinates are in frame relative coordinates - \c QPointF(0,0) is the top
- * left of the frame, and \c QPointF(1,1) is the bottom right.
- */
-QRectF QCameraFocusZone::area() const
-{
-    return d->area;
-}
-
-/*!
- * Returns the current status of this focus zone.
- */
-QCameraFocusZone::FocusZoneStatus QCameraFocusZone::status() const
-{
-    return d->status;
-}
-
-/*!
- * \internal
- * Sets the current status of this focus zone to \a status.
- */
-void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
-{
-    d->status = status;
-}
-
-
 /*!
     \class QCameraFocus
 
@@ -225,15 +88,6 @@ void QCameraFocusZone::setStatus(QCameraFocusZone::FocusZoneStatus status)
     also supports focusing on any faces detected in the frame, or on
     a specific point (usually provided by a user in a "touch to focus"
     scenario).
-
-    This class (in combination with \l QCameraFocusZone)
-    can expose information on what parts of the camera sensor image
-    are in focus or are being used for autofocusing via the \l focusZones()
-    property:
-
-    \snippet multimedia-snippets/camera.cpp Camera focus zones
-
-    \sa QCameraFocusZone
 */
 
 #define Q_DECLARE_NON_CONST_PUBLIC(Class) \
@@ -264,8 +118,6 @@ void QCameraFocusPrivate::init(QPlatformCamera *cameraControl)
 
     if (!focusControl)
         return;
-
-    q->connect(focusControl, SIGNAL(focusZonesChanged()), q, SIGNAL(focusZonesChanged()));
 
     q->connect(focusControl, SIGNAL(zoomFactorChanged(qreal)),
                q, SIGNAL(zoomFactorChanged(qreal)));
@@ -390,23 +242,6 @@ void QCameraFocus::setCustomFocusPoint(const QPointF &point)
 }
 
 /*!
-  \property QCameraFocus::focusZones
-
-  Returns the list of active focus zones.
-
-  If QCamera::FocusPointAuto or QCamera::FocusPointFaceDetection focus mode is selected
-  this method returns the list of zones the camera is actually focused on.
-
-  The coordinates system is the same as for custom focus points:
-  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
- */
-QCameraFocusZoneList QCameraFocus::focusZones() const
-{
-    Q_D(const QCameraFocus);
-    return d->focusControl ? d->focusControl->focusZones() : QCameraFocusZoneList();
-}
-
-/*!
     Returns the maximum zoom factor.
 
     This will be \c 1.0 on cameras that do not support zooming.
@@ -510,17 +345,6 @@ void QCameraFocus::zoomTo(float factor, float rate)
 
     The maximum supported zoom value can depend on other camera settings,
     like capture mode or resolution.
-*/
-
-
-
-/*!
-  \fn QCameraFocus::focusZonesChanged()
-
-  This signal is emitted when the set of zones used in autofocusing is changed.
-
-  This can change when a zone is focused or loses focus, or new focus zones
-  have been detected.
 */
 
 QT_END_NAMESPACE

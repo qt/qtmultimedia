@@ -87,9 +87,6 @@ public:
     QPointF customFocusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
 
-    QCameraFocusZoneList focusZones() const override;
-
-
     qreal maximumOpticalZoom() const override;
     qreal maximumDigitalZoom() const override;
 
@@ -119,7 +116,6 @@ private:
     QCamera::Status m_cameraStatus;
     QCameraFocus::FocusModes m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
-    QCameraFocusZone::FocusZoneStatus m_focusZoneStatus;
     QPointF m_focusPoint;
     QRectF m_focusRect;
     QSize m_viewfinderResolution;

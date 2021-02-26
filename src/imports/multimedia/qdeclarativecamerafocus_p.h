@@ -58,7 +58,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class FocusZonesModel;
 class QDeclarativeCamera;
 
 class QDeclarativeCameraFocus : public QObject
@@ -72,7 +71,6 @@ class QDeclarativeCameraFocus : public QObject
     Q_PROPERTY(QVariantList supportedFocusPointModes READ supportedFocusPointModes NOTIFY supportedFocusPointModesChanged REVISION 1)
 
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
-    Q_PROPERTY(QObject *focusZones READ focusZones CONSTANT)
 
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
@@ -102,7 +100,6 @@ public:
     QVariantList supportedFocusPointModes() const;
 
     QPointF customFocusPoint() const;
-    QAbstractListModel *focusZones() const;
 
 public Q_SLOTS:
     void setFocusMode(FocusMode);
@@ -116,39 +113,12 @@ Q_SIGNALS:
     void supportedFocusPointModesChanged();
     void customFocusPointChanged(const QPointF &);
 
-private Q_SLOTS:
-    void updateFocusZones();
-
 private:
     friend class QDeclarativeCamera;
     QDeclarativeCameraFocus(QCamera *camera, QObject *parent = 0);
 
     QCameraFocus *m_focus;
-    FocusZonesModel *m_focusZones;
 };
-
-class FocusZonesModel : public QAbstractListModel
-{
-Q_OBJECT
-public:
-    enum FocusZoneRoles {
-        StatusRole = Qt::UserRole + 1,
-        AreaRole
-    };
-
-    FocusZonesModel(QObject *parent = 0);
-
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    QHash<int,QByteArray> roleNames() const override;
-
-public slots:
-    void setFocusZones(const QCameraFocusZoneList &zones);
-
-private:
-    QCameraFocusZoneList m_focusZones;
-};
-
 
 QT_END_NAMESPACE
 

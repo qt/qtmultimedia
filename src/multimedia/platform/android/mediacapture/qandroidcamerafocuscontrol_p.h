@@ -71,7 +71,6 @@ public:
     bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const override;
     QPointF customFocusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
-    QCameraFocusZoneList focusZones() const override;
 
     ZoomRange zoomFactorRange() const override;
     void zoomTo(float newZoomFactor, float rate) override;
@@ -100,7 +99,6 @@ private:
         }
     }
 
-    void updateFocusZones(QCameraFocusZone::FocusZoneStatus status = QCameraFocusZone::Selected);
     void setCameraFocusArea();
 
     QAndroidCameraSession *m_session;
@@ -109,7 +107,6 @@ private:
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_actualFocusPoint;
     QPointF m_customFocusPoint;
-    QCameraFocusZoneList m_focusZones;
 
     QList<QCameraFocus::FocusModes> m_supportedFocusModes;
     bool m_continuousPictureFocusSupported;

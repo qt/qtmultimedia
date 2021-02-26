@@ -260,17 +260,4 @@ void camerafocus()
     //! [Camera combined zoom]
     focus->zoomTo(3.0, 4.0); // Super zoom!
     //! [Camera combined zoom]
-
-    //! [Camera focus zones]
-    focus->setFocusPointMode(QCameraFocus::FocusPointAuto);
-    const QList<QCameraFocusZone> zones = focus->focusZones();
-    for (const QCameraFocusZone &zone : zones) {
-        if (zone.status() == QCameraFocusZone::Focused) {
-            // Draw a green box at zone.area()
-        } else if (zone.status() == QCameraFocusZone::Selected) {
-            // This area is selected for autofocusing, but is not in focus
-            // Draw a yellow box at zone.area()
-        }
-    }
-    //! [Camera focus zones]
 }

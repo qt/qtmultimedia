@@ -116,27 +116,7 @@ QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
 
   Sets the custom focus \a point.
 
-  If camera supports fixed set of focus points,
-  it should use the nearest supported focus point,
-  and return the actual focus point with QPlatformCameraFocus::focusZones().
-
-  \sa QPlatformCameraFocus::customFocusPoint(), QPlatformCameraFocus::focusZones()
-*/
-
-/*!
-  \fn QPlatformCameraFocus::focusZones() const
-
-  Returns the list of zones, the camera is using for focusing or focused on.
-*/
-
-/*!
-  \fn QPlatformCameraFocus::focusZonesChanged()
-
-  Signal is emitted when the set of zones, camera focused on is changed.
-
-  Usually the zones list is changed when the camera is focused.
-
-  \sa QPlatformCameraFocus::focusZones()
+  \sa QPlatformCameraFocus::customFocusPoint()
 */
 
 /*!
