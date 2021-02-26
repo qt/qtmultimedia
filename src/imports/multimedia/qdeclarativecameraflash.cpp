@@ -105,18 +105,6 @@ bool QDeclarativeCameraFlash::isFlashReady() const
     \row \li Camera.FlashOff             \li Flash is Off.
     \row \li Camera.FlashOn              \li Flash is On.
     \row \li Camera.FlashAuto            \li Automatic flash.
-    \row \li Camera.FlashRedEyeReduction \li Red eye reduction flash.
-    \row \li Camera.FlashFill            \li Use flash to fillin shadows.
-    \row \li Camera.FlashTorch           \li Constant light source. If supported, torch can be
-                                             enabled without loading the camera.
-    \row \li Camera.FlashVideoLight      \li Constant light source, useful for video capture.
-                                             The light is turned on only while the camera is active.
-    \row \li Camera.FlashSlowSyncFrontCurtain
-                                \li Use the flash in conjunction with a slow shutter speed.
-                                This mode allows better exposure of distant objects and/or motion blur effect.
-    \row \li Camera.FlashSlowSyncRearCurtain
-                                \li The similar mode to FlashSlowSyncFrontCurtain but flash is fired at the end of exposure.
-    \row \li Camera.FlashManual          \li Flash power is manually set.
     \endtable
 
 */
@@ -128,7 +116,7 @@ QDeclarativeCameraFlash::FlashMode QDeclarativeCameraFlash::flashMode() const
 void QDeclarativeCameraFlash::setFlashMode(QDeclarativeCameraFlash::FlashMode mode)
 {
     if (flashMode() != mode) {
-        m_exposure->setFlashMode(QCameraExposure::FlashModes(mode));
+        m_exposure->setFlashMode(QCameraExposure::FlashMode(mode));
         emit flashModeChanged(mode);
     }
 }
@@ -170,7 +158,7 @@ QVariantList QDeclarativeCameraFlash::supportedModes() const
 {
     QVariantList supportedModes;
 
-    for (int i=1; i <= (int) QCameraExposure::FlashManual; i = (i << 1)) {
+    for (int i = 0; i <= QCameraExposure::FlashAuto; ++i) {
         if (m_exposure->isFlashModeSupported((QCameraExposure::FlashMode) i))
             supportedModes.append(QVariant(i));
     }

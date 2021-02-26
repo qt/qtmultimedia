@@ -104,7 +104,7 @@ bool QDeclarativeTorch::enabled() const
     if (!m_exposure)
         return false;
 
-    return m_exposure->flashMode() & QCameraExposure::FlashTorch;
+    return m_exposure->torchMode() == QCameraExposure::TorchOn;
 }
 
 
@@ -118,19 +118,11 @@ void QDeclarativeTorch::setEnabled(bool on)
     if (!m_exposure)
         return;
 
-    QCameraExposure::FlashModes mode = m_exposure->flashMode();
+    if (enabled() == on)
+        return;
 
-    if (mode & QCameraExposure::FlashTorch) {
-        if (!on) {
-            m_exposure->setFlashMode(mode & ~QCameraExposure::FlashTorch);
-            emit enabledChanged();
-        }
-    } else {
-        if (on) {
-            m_exposure->setFlashMode(mode | QCameraExposure::FlashTorch);
-            emit enabledChanged();
-        }
-    }
+    m_exposure->setTorchMode(QCameraExposure::TorchOn);
+    emit enabledChanged();
 }
 
 /*!

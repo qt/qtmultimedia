@@ -59,25 +59,24 @@ class Q_MULTIMEDIA_EXPORT QCameraExposure : public QObject
     Q_PROPERTY(int isoSensitivity READ isoSensitivity NOTIFY isoSensitivityChanged)
     Q_PROPERTY(qreal exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
     Q_PROPERTY(bool flashReady READ isFlashReady NOTIFY flashReady)
-    Q_PROPERTY(QCameraExposure::FlashModes flashMode READ flashMode WRITE setFlashMode)
+    Q_PROPERTY(QCameraExposure::FlashMode flashMode READ flashMode WRITE setFlashMode)
+    Q_PROPERTY(QCameraExposure::TorchMode torchMode READ torchMode WRITE setTorchMode)
     Q_PROPERTY(QCameraExposure::ExposureMode exposureMode READ exposureMode WRITE setExposureMode)
 
     Q_ENUMS(FlashMode)
     Q_ENUMS(ExposureMode)
 public:
     enum FlashMode {
-        FlashAuto = 0x1,
-        FlashOff = 0x2,
-        FlashOn = 0x4,
-        FlashRedEyeReduction  = 0x8,
-        FlashFill = 0x10,
-        FlashTorch = 0x20,
-        FlashVideoLight = 0x40,
-        FlashSlowSyncFrontCurtain = 0x80,
-        FlashSlowSyncRearCurtain = 0x100,
-        FlashManual = 0x200
+        FlashOff,
+        FlashOn,
+        FlashAuto
     };
-    Q_DECLARE_FLAGS(FlashModes, FlashMode)
+
+    enum TorchMode {
+        TorchOff,
+        TorchOn,
+        TorchAuto
+    };
 
     enum ExposureMode {
         ExposureAuto = 0,
@@ -106,9 +105,12 @@ public:
 
     bool isAvailable() const;
 
-    FlashModes flashMode() const;
-    bool isFlashModeSupported(FlashModes mode) const;
+    FlashMode flashMode() const;
+    bool isFlashModeSupported(FlashMode mode) const;
     bool isFlashReady() const;
+
+    TorchMode torchMode() const;
+    bool isTorchModeSupported(TorchMode mode) const;
 
     ExposureMode exposureMode() const;
     bool isExposureModeSupported(ExposureMode mode) const;
@@ -128,7 +130,8 @@ public:
     QList<qreal> supportedShutterSpeeds(bool *continuous = nullptr) const;
 
 public Q_SLOTS:
-    void setFlashMode(FlashModes mode);
+    void setFlashMode(FlashMode mode);
+    void setTorchMode(TorchMode mode);
     void setExposureMode(ExposureMode mode);
 
     void setExposureCompensation(qreal ev);
@@ -166,8 +169,6 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_exposureParameterRangeChanged(int))
     QCameraExposurePrivate *d_ptr;
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraExposure::FlashModes)
 
 QT_END_NAMESPACE
 

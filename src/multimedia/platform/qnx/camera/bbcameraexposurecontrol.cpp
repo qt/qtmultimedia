@@ -240,24 +240,28 @@ void BbCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
     if (m_session->status() != QCamera::ActiveStatus) // can only be changed when viewfinder is active
         return;
 
-    if (m_flashMode == QCameraExposure::FlashVideoLight) {
-        const camera_error_t result = camera_config_videolight(m_session->handle(), CAMERA_VIDEOLIGHT_OFF);
-        if (result != CAMERA_EOK)
-            qWarning() << "Unable to switch off video light:" << result;
-    }
+//    if (m_flashMode == QCameraExposure::FlashVideoLight) {
+//        const camera_error_t result = camera_config_videolight(m_session->handle(), CAMERA_VIDEOLIGHT_OFF);
+//        if (result != CAMERA_EOK)
+//            qWarning() << "Unable to switch off video light:" << result;
+//    }
 
     m_flashMode = mode;
 
-    if (m_flashMode == QCameraExposure::FlashVideoLight) {
-        const camera_error_t result = camera_config_videolight(m_session->handle(), CAMERA_VIDEOLIGHT_ON);
-        if (result != CAMERA_EOK)
-            qWarning() << "Unable to switch on video light:" << result;
-    } else {
+//    if (m_flashMode == QCameraExposure::FlashVideoLight) {
+//        const camera_error_t result = camera_config_videolight(m_session->handle(), CAMERA_VIDEOLIGHT_ON);
+//        if (result != CAMERA_EOK)
+//            qWarning() << "Unable to switch on video light:" << result;
+//    } else
+    {
         camera_flashmode_t flashMode = CAMERA_FLASH_AUTO;
 
-        if (m_flashMode.testFlag(QCameraExposure::FlashAuto)) flashMode = CAMERA_FLASH_AUTO;
-        else if (mode.testFlag(QCameraExposure::FlashOff)) flashMode = CAMERA_FLASH_OFF;
-        else if (mode.testFlag(QCameraExposure::FlashOn)) flashMode = CAMERA_FLASH_ON;
+        if (m_flashMode == QCameraExposure::FlashAuto)
+            flashMode = CAMERA_FLASH_AUTO;
+        else if (mode == QCameraExposure::FlashOff)
+            flashMode = CAMERA_FLASH_OFF;
+        else if (mode == QCameraExposure::FlashOn)
+            flashMode = CAMERA_FLASH_ON;
 
         const camera_error_t result = camera_config_flash(m_session->handle(), flashMode);
         if (result != CAMERA_EOK)
@@ -267,15 +271,14 @@ void BbCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
 
 bool BbCameraExposureControl::isFlashModeSupported(QCameraExposure::FlashModes mode) const
 {
-    bool supportsVideoLight = false;
-    if (m_session->handle() != CAMERA_HANDLE_INVALID) {
-        supportsVideoLight = camera_has_feature(m_session->handle(), CAMERA_FEATURE_VIDEOLIGHT);
-    }
+    // ### Videolight maps to QCameraExposure::TorchOn.
+//    bool supportsVideoLight = false;
+//    if (m_session->handle() != CAMERA_HANDLE_INVALID) {
+//        supportsVideoLight = camera_has_feature(m_session->handle(), CAMERA_FEATURE_VIDEOLIGHT);
+//    }
 
-    return  (mode == QCameraExposure::FlashOff ||
-             mode == QCameraExposure::FlashOn ||
-             mode == QCameraExposure::FlashAuto ||
-             ((mode == QCameraExposure::FlashVideoLight) && supportsVideoLight));
+    // ### is this correct?
+    return true;
 }
 
 bool BbCameraExposureControl::isFlashReady() const

@@ -568,16 +568,9 @@ Module {
         Enum {
             name: "FlashMode"
             values: {
-                "FlashAuto": 1,
-                "FlashOff": 2,
-                "FlashOn": 4,
-                "FlashRedEyeReduction": 8,
-                "FlashFill": 16,
-                "FlashTorch": 32,
-                "FlashVideoLight": 64,
-                "FlashSlowSyncFrontCurtain": 128,
-                "FlashSlowSyncRearCurtain": 256,
-                "FlashManual": 512
+                "FlashOff": 0,
+                "FlashOn": 1,
+                "FlashAuto": 2
             }
         }
         Enum {
@@ -942,16 +935,9 @@ Module {
         Enum {
             name: "FlashMode"
             values: {
-                "FlashAuto": 1,
-                "FlashOff": 2,
-                "FlashOn": 4,
-                "FlashRedEyeReduction": 8,
-                "FlashFill": 16,
-                "FlashTorch": 32,
-                "FlashVideoLight": 64,
-                "FlashSlowSyncFrontCurtain": 128,
-                "FlashSlowSyncRearCurtain": 256,
-                "FlashManual": 512
+                "FlashOff": 0,
+                "FlashOn": 1,
+                "FlashAuto": 2
             }
         }
         Property { name: "ready"; type: "bool"; isReadonly: true }

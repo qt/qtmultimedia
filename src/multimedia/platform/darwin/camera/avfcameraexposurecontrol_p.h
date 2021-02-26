@@ -76,16 +76,20 @@ public:
     QVariant actualValue(ExposureParameter parameter) const override;
     bool setValue(ExposureParameter parameter, const QVariant &value) override;
 
-    QCameraExposure::FlashModes flashMode() const override;
-    void setFlashMode(QCameraExposure::FlashModes mode) override;
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const override;
+    QCameraExposure::FlashMode flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashMode mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
     bool isFlashReady() const override;
+
+    QCameraExposure::TorchMode torchMode() const override;
+    void setTorchMode(QCameraExposure::TorchMode mode) override;
+    bool isTorchModeSupported(QCameraExposure::TorchMode mode) const override;
 
 private Q_SLOTS:
     void cameraStateChanged(QCamera::State newState);
 
 private:
-    bool applyFlashSettings();
+    void applyFlashSettings();
 
     AVFCameraService *m_service;
     AVFCameraSession *m_session;
@@ -102,9 +106,12 @@ private:
     bool setISO(const QVariant &value);
 
     // Set of bits:
-    QCameraExposure::FlashModes m_supportedModes = QCameraExposure::FlashOff;
-    // Only one bit set actually:
-    QCameraExposure::FlashModes m_flashMode = QCameraExposure::FlashOff;
+    bool isFlashSupported = false;
+    bool isFlashAutoSupported = false;
+    bool isTorchSupported = false;
+    bool isTorchAutoSupported = false;
+    QCameraExposure::FlashMode m_flashMode = QCameraExposure::FlashOff;
+    QCameraExposure::TorchMode m_torchMode = QCameraExposure::TorchOff;
 };
 
 QT_END_NAMESPACE

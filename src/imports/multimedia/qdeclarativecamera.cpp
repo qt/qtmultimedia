@@ -98,7 +98,7 @@ void QDeclarativeCamera::_q_updateState(QCamera::State state)
                 exposureMode: Camera.ExposurePortrait
             }
 
-            flash.mode: Camera.FlashRedEyeReduction
+            flash.mode: Camera.FlashOn
 
             imageCapture {
                 onImageCaptured: {

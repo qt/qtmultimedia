@@ -453,16 +453,8 @@ void tst_QCamera::testCameraExposure()
     cameraExposure->setFlashMode(QCameraExposure::FlashAuto);
     QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashAuto);
     QCOMPARE(cameraExposure->isFlashReady(), true);
-    cameraExposure->setFlashMode(QCameraExposure::FlashRedEyeReduction);
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashRedEyeReduction);
     cameraExposure->setFlashMode(QCameraExposure::FlashOn);
     QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashOn);
-    cameraExposure->setFlashMode(QCameraExposure::FlashFill);
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashFill);
-    cameraExposure->setFlashMode(QCameraExposure::FlashTorch);
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashTorch);
-    cameraExposure->setFlashMode(QCameraExposure::FlashSlowSyncFrontCurtain);
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashSlowSyncFrontCurtain);
 
     QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
     cameraExposure->setExposureCompensation(2.0);

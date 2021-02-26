@@ -202,22 +202,19 @@ bool QCameraExposure::isAvailable() const
 
 
 /*!
-  \property QCameraExposure::flashMode
-  \brief The flash mode being used.
+    \property QCameraExposure::flashMode
+    \brief The flash mode being used.
 
-  Usually the single QCameraExposure::FlashMode flag is used,
-  but some non conflicting flags combination are also allowed,
-  like QCameraExposure::FlashManual | QCameraExposure::FlashSlowSyncRearCurtain.
+    Enables a certain flash mode if the camera has a flash.
 
-  \sa QCameraExposure::isFlashModeSupported(), QCameraExposure::isFlashReady()
+    \sa QCameraExposure::isFlashModeSupported(), QCameraExposure::isFlashReady()
 */
-
-QCameraExposure::FlashModes QCameraExposure::flashMode() const
+QCameraExposure::FlashMode QCameraExposure::flashMode() const
 {
     return d_func()->exposureControl ? d_func()->exposureControl->flashMode() : QCameraExposure::FlashOff;
 }
 
-void QCameraExposure::setFlashMode(QCameraExposure::FlashModes mode)
+void QCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
 {
     if (d_func()->exposureControl)
         d_func()->exposureControl->setFlashMode(mode);
@@ -227,9 +224,9 @@ void QCameraExposure::setFlashMode(QCameraExposure::FlashModes mode)
     Returns true if the flash \a mode is supported.
 */
 
-bool QCameraExposure::isFlashModeSupported(QCameraExposure::FlashModes mode) const
+bool QCameraExposure::isFlashModeSupported(QCameraExposure::FlashMode mode) const
 {
-    return d_func()->exposureControl ? d_func()->exposureControl->isFlashModeSupported(mode) : false;
+    return d_func()->exposureControl ? d_func()->exposureControl->isFlashModeSupported(mode) : (mode == FlashOff);
 }
 
 /*!
@@ -239,6 +236,34 @@ bool QCameraExposure::isFlashModeSupported(QCameraExposure::FlashModes mode) con
 bool QCameraExposure::isFlashReady() const
 {
     return d_func()->exposureControl ? d_func()->exposureControl->isFlashReady() : false;
+}
+
+/*!
+    \property QCameraExposure::torchMode
+    \brief The torch mode being used.
+
+    A torch is a continuous light source used for low light video recording. Enabling torch mode
+    will usually override any currently set flash mode.
+
+    \sa QCameraExposure::isTorchModeSupported(), QCameraExposure::flashMode
+*/
+QCameraExposure::TorchMode QCameraExposure::torchMode() const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->torchMode() : TorchOff;
+}
+
+void QCameraExposure::setTorchMode(QCameraExposure::TorchMode mode)
+{
+    if (d_func()->exposureControl)
+        d_func()->exposureControl->setTorchMode(mode);
+}
+
+/*!
+    Returns true if the torch \a mode is supported.
+*/
+bool QCameraExposure::isTorchModeSupported(QCameraExposure::TorchMode mode) const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->isTorchModeSupported(mode) : (mode == TorchOff);
 }
 
 /*!
@@ -521,21 +546,17 @@ void QCameraExposure::setAutoShutterSpeed()
 /*!
     \enum QCameraExposure::FlashMode
 
-    \value FlashAuto            Automatic flash.
     \value FlashOff             Flash is Off.
     \value FlashOn              Flash is On.
-    \value FlashRedEyeReduction Red eye reduction flash.
-    \value FlashFill            Use flash to fillin shadows.
-    \value FlashTorch           Constant light source. If supported,
-                                torch can be enabled without loading the camera.
-    \value FlashVideoLight      Constant light source, useful for video capture.
-                                The light is turned on only while camera is active.
-    \value FlashSlowSyncFrontCurtain
-                                Use the flash in conjunction with a slow shutter speed.
-                                This mode allows better exposure of distant objects and/or motion blur effect.
-    \value FlashSlowSyncRearCurtain
-                                The similar mode to FlashSlowSyncFrontCurtain but flash is fired at the end of exposure.
-    \value FlashManual          Flash power is manualy set.
+    \value FlashAuto            Automatic flash.
+*/
+
+/*!
+    \enum QCameraExposure::TorchMode
+
+    \value TorchOff             Torch is Off.
+    \value TorchOn              Torch is On.
+    \value TorchAuto            Automatic torch.
 */
 
 /*!

@@ -230,12 +230,12 @@ public:
         return true;
     }
 
-    QCameraExposure::FlashModes flashMode() const
+    QCameraExposure::FlashMode flashMode() const
     {
         return m_flashMode;
     }
 
-    void setFlashMode(QCameraExposure::FlashModes mode)
+    void setFlashMode(QCameraExposure::FlashMode mode)
     {
         if (isFlashModeSupported(mode)) {
             m_flashMode = mode;
@@ -244,11 +244,9 @@ public:
     }
     //Setting the values for Flash mode
 
-    bool isFlashModeSupported(QCameraExposure::FlashModes mode) const
+    bool isFlashModeSupported(QCameraExposure::FlashMode /*mode*/) const
     {
-        return (mode & (QCameraExposure::FlashAuto | QCameraExposure::FlashOff | QCameraExposure::FlashOn |
-                        QCameraExposure::FlashFill |QCameraExposure::FlashTorch |QCameraExposure::FlashSlowSyncFrontCurtain |
-                        QCameraExposure::FlashRedEyeReduction));
+        return true;
     }
 
     bool isFlashReady() const
@@ -262,7 +260,7 @@ private:
     int m_isoSensitivity;
     qreal m_exposureCompensation;
     QCameraExposure::ExposureMode m_exposureMode;
-    QCameraExposure::FlashModes m_flashMode;
+    QCameraExposure::FlashMode m_flashMode;
     QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes;
 
     QMap<QPlatformCameraExposure::ExposureParameter, QVariant> m_requestedParameters;

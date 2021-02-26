@@ -282,6 +282,7 @@ void QAndroidCameraExposureControl::onCameraOpened()
     setValue(QPlatformCameraExposure::ExposureMode, QVariant::fromValue(m_requestedExposureMode));
 
     m_supportedFlashModes.clear();
+    torchModeSupported = false;
 
     QStringList flashModes = m_session->camera()->getSupportedFlashModes();
     for (int i = 0; i < flashModes.size(); ++i) {
@@ -292,10 +293,8 @@ void QAndroidCameraExposureControl::onCameraOpened()
             m_supportedFlashModes << QCameraExposure::FlashAuto;
         else if (flashMode == QLatin1String("on"))
             m_supportedFlashModes << QCameraExposure::FlashOn;
-        else if (flashMode == QLatin1String("red-eye"))
-            m_supportedFlashModes << QCameraExposure::FlashRedEyeReduction;
         else if (flashMode == QLatin1String("torch"))
-            m_supportedFlashModes << QCameraExposure::FlashVideoLight;
+            torchModeSupported = true;
     }
 
     if (!m_supportedFlashModes.contains(m_flashMode))
@@ -305,43 +304,36 @@ void QAndroidCameraExposureControl::onCameraOpened()
 }
 
 
-QCameraExposure::FlashModes QAndroidCameraExposureControl::flashMode() const
+QCameraExposure::FlashMode QAndroidCameraExposureControl::flashMode() const
 {
     return m_flashMode;
 }
 
-void QAndroidCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
+void QAndroidCameraExposureControl::setFlashMode(QCameraExposure::FlashMode mode)
 {
     if (!m_session->camera()) {
-        m_flashMode = mode;
+        m_flashMode = QCameraExposure::FlashOff;
         return;
     }
 
     if (!isFlashModeSupported(mode))
         return;
 
-    // if torch was enabled, it first needs to be turned off before setting another mode
-    if (m_flashMode == QCameraExposure::FlashVideoLight)
-        m_session->camera()->setFlashMode(QLatin1String("off"));
 
     m_flashMode = mode;
 
     QString flashMode;
-    if (mode.testFlag(QCameraExposure::FlashAuto))
+    if (mode == QCameraExposure::FlashAuto)
         flashMode = QLatin1String("auto");
-    else if (mode.testFlag(QCameraExposure::FlashOn))
+    else if (mode == QCameraExposure::FlashOn)
         flashMode = QLatin1String("on");
-    else if (mode.testFlag(QCameraExposure::FlashRedEyeReduction))
-        flashMode = QLatin1String("red-eye");
-    else if (mode.testFlag(QCameraExposure::FlashVideoLight))
-        flashMode = QLatin1String("torch");
     else // FlashOff
         flashMode = QLatin1String("off");
 
     m_session->camera()->setFlashMode(flashMode);
 }
 
-bool QAndroidCameraExposureControl::isFlashModeSupported(QCameraExposure::FlashModes mode) const
+bool QAndroidCameraExposureControl::isFlashModeSupported(QCameraExposure::FlashMode mode) const
 {
     return m_session->camera() ? m_supportedFlashModes.contains(mode) : false;
 }
@@ -350,6 +342,38 @@ bool QAndroidCameraExposureControl::isFlashReady() const
 {
     // Android doesn't have an API for that
     return true;
+}
+
+QCameraExposure::TorchMode QAndroidCameraExposureControl::torchMode() const
+{
+    return torchEnabled ? QCameraExposure::TorchOn : QCameraExposure::TorchOff;
+}
+
+void QAndroidCameraExposureControl::setTorchMode(QCameraExposure::TorchMode mode)
+{
+    auto *camera = m_session->camera();
+    if (!camera || !torchModeSupported)
+        return;
+
+    if (mode == QCameraExposure::TorchOn) {
+        camera->setFlashMode(QLatin1String("torch"));
+        torchEnabled = true;
+    } else if (mode == QCameraExposure::TorchOff) {
+        // if torch was enabled, it first needs to be turned off before restoring the flash mode
+        camera->setFlashMode(QLatin1String("off"));
+        setFlashMode(m_flashMode);
+        torchEnabled = false;
+    }
+}
+
+bool QAndroidCameraExposureControl::isTorchModeSupported(QCameraExposure::TorchMode mode) const
+{
+    if (mode == QCameraExposure::TorchAuto)
+        return false;
+    else if (mode == QCameraExposure::TorchOn)
+        return torchModeSupported;
+    else
+        return true;
 }
 
 QT_END_NAMESPACE

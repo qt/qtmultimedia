@@ -74,9 +74,13 @@ public:
     virtual QVariant actualValue(ExposureParameter parameter) const = 0;
     virtual bool setValue(ExposureParameter parameter, const QVariant& value) = 0;
 
-    virtual QCameraExposure::FlashModes flashMode() const = 0;
-    virtual void setFlashMode(QCameraExposure::FlashModes mode) = 0;
-    virtual bool isFlashModeSupported(QCameraExposure::FlashModes mode) const = 0;
+    virtual QCameraExposure::FlashMode flashMode() const = 0;
+    virtual void setFlashMode(QCameraExposure::FlashMode mode) = 0;
+    virtual bool isFlashModeSupported(QCameraExposure::FlashMode mode) const = 0;
+
+    virtual QCameraExposure::TorchMode torchMode() const { return QCameraExposure::TorchOff; }
+    virtual void setTorchMode(QCameraExposure::TorchMode /*mode*/) {}
+    virtual bool isTorchModeSupported(QCameraExposure::TorchMode mode) const { return mode == QCameraExposure::TorchOff; }
 
     virtual bool isFlashReady() const = 0;
 
