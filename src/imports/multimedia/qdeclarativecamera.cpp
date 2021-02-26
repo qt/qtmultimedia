@@ -449,10 +449,6 @@ QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
     \value  Camera.StoppingStatus
             The camera is transitioning from \c {Camera.ActiveState} to
             \c {Camera.LoadedState} or \c {Camera.UnloadedState}.
-    \value  Camera.StandbyStatus
-            The camera is in the power saving standby mode.
-            The camera may enter standby mode after some time of inactivity
-            in the \c {Camera.LoadedState} state.
     \value  Camera.LoadedStatus
             The camera is loaded and ready to be configured.
             This status indicates that the camera is opened and it's

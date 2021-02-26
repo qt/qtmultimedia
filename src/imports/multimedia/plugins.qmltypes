@@ -316,10 +316,9 @@ Module {
                 "LoadingStatus": 2,
                 "UnloadingStatus": 3,
                 "LoadedStatus": 4,
-                "StandbyStatus": 5,
-                "StartingStatus": 6,
-                "StoppingStatus": 7,
-                "ActiveStatus": 8
+                "StartingStatus": 5,
+                "StoppingStatus": 6,
+                "ActiveStatus": 7
             }
         }
         Enum {
@@ -554,10 +553,9 @@ Module {
                 "LoadingStatus": 2,
                 "UnloadingStatus": 3,
                 "LoadedStatus": 4,
-                "StandbyStatus": 5,
-                "StartingStatus": 6,
-                "StoppingStatus": 7,
-                "ActiveStatus": 8
+                "StartingStatus": 5,
+                "StoppingStatus": 6,
+                "ActiveStatus": 7
             }
         }
         Enum {

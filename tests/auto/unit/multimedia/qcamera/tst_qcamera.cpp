@@ -947,10 +947,6 @@ void tst_QCamera::testStatus()
     QVERIFY(camera.status() == QCamera::StartingStatus);
 
     /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::StandbyStatus);
-    QVERIFY(camera.status() == QCamera::StandbyStatus);
-
-    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::LoadingStatus);
     QVERIFY(camera.status() == QCamera::LoadingStatus);
 

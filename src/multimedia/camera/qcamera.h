@@ -80,7 +80,6 @@ public:
         LoadingStatus,
         UnloadingStatus,
         LoadedStatus,
-        StandbyStatus,
         StartingStatus,
         StoppingStatus,
         ActiveStatus

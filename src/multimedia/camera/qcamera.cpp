@@ -480,10 +480,6 @@ void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
     \value StoppingStatus
            The camera is stopping in result of state transition from QCamera::ActiveState
            to QCamera::LoadedState or QCamera::UnloadedState.
-    \value StandbyStatus
-           The camera is in the power saving standby mode.
-           The camera may come to the standby mode after some time of inactivity
-           in the QCamera::LoadedState state.
     \value LoadedStatus
            The camera is loaded and ready to be configured.
            This status indicates the camera device is opened and

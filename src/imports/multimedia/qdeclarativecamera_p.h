@@ -134,7 +134,6 @@ public:
         LoadingStatus = QCamera::LoadingStatus,
         UnloadingStatus = QCamera::UnloadingStatus,
         LoadedStatus = QCamera::LoadedStatus,
-        StandbyStatus = QCamera::StandbyStatus,
         StartingStatus = QCamera::StartingStatus,
         StoppingStatus = QCamera::StoppingStatus,
         ActiveStatus = QCamera::ActiveStatus
