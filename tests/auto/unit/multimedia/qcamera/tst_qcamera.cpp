@@ -412,15 +412,6 @@ void tst_QCamera::testCameraExposure()
     cameraExposure->setExposureMode(QCameraExposure::ExposureNight);
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureNight);
 
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureBacklight));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureBacklight);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureBacklight);
-
-
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSpotlight ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureSpotlight);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSpotlight);
-
     QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSports ));
     cameraExposure->setExposureMode(QCameraExposure::ExposureSports);
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSports);
@@ -433,21 +424,9 @@ void tst_QCamera::testCameraExposure()
     cameraExposure->setExposureMode(QCameraExposure::ExposureBeach);
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureBeach);
 
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureLargeAperture ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureLargeAperture);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureLargeAperture);
-
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSmallAperture ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureSmallAperture);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSmallAperture);
-
     QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposurePortrait ));
     cameraExposure->setExposureMode(QCameraExposure::ExposurePortrait);
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposurePortrait);
-
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureModeVendor ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureModeVendor);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureModeVendor);
 
 
     cameraExposure->setFlashMode(QCameraExposure::FlashAuto);

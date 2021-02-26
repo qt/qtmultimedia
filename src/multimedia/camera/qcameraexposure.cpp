@@ -566,13 +566,9 @@ void QCameraExposure::setAutoShutterSpeed()
     \value ExposureManual        Manual mode.
     \value ExposurePortrait      Portrait exposure mode.
     \value ExposureNight         Night mode.
-    \value ExposureBacklight     Backlight exposure mode.
-    \value ExposureSpotlight     Spotlight exposure mode.
     \value ExposureSports        Spots exposure mode.
     \value ExposureSnow          Snow exposure mode.
     \value ExposureBeach         Beach exposure mode.
-    \value ExposureLargeAperture Use larger aperture with small depth of field.
-    \value ExposureSmallAperture Use smaller aperture.
     \value ExposureAction        Action mode. Since 5.5
     \value ExposureLandscape     Landscape mode. Since 5.5
     \value ExposureNightPortrait Night portrait mode. Since 5.5
@@ -583,7 +579,6 @@ void QCameraExposure::setAutoShutterSpeed()
     \value ExposureParty         Party mode. Since 5.5
     \value ExposureCandlelight   Candlelight mode. Since 5.5
     \value ExposureBarcode       Barcode mode. Since 5.5
-    \value ExposureModeVendor    The base value for device specific exposure modes.
 */
 
 /*!

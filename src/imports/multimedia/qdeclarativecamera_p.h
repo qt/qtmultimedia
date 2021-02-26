@@ -156,13 +156,9 @@ public:
         ExposureManual = QCameraExposure::ExposureManual,
         ExposurePortrait = QCameraExposure::ExposurePortrait,
         ExposureNight = QCameraExposure::ExposureNight,
-        ExposureBacklight = QCameraExposure::ExposureBacklight,
-        ExposureSpotlight = QCameraExposure::ExposureSpotlight,
         ExposureSports = QCameraExposure::ExposureSports,
         ExposureSnow = QCameraExposure::ExposureSnow,
         ExposureBeach = QCameraExposure::ExposureBeach,
-        ExposureLargeAperture = QCameraExposure::ExposureLargeAperture,
-        ExposureSmallAperture = QCameraExposure::ExposureSmallAperture,
         ExposureAction = QCameraExposure::ExposureAction,
         ExposureLandscape = QCameraExposure::ExposureLandscape,
         ExposureNightPortrait = QCameraExposure::ExposureNightPortrait,
@@ -173,7 +169,6 @@ public:
         ExposureParty = QCameraExposure::ExposureParty,
         ExposureCandlelight = QCameraExposure::ExposureCandlelight,
         ExposureBarcode = QCameraExposure::ExposureBarcode,
-        ExposureModeVendor = QCameraExposure::ExposureModeVendor
     };
 
     enum FocusMode {

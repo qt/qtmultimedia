@@ -79,28 +79,23 @@ public:
     };
 
     enum ExposureMode {
-        ExposureAuto = 0,
-        ExposureManual = 1,
-        ExposurePortrait = 2,
-        ExposureNight = 3,
-        ExposureBacklight = 4,
-        ExposureSpotlight = 5,
-        ExposureSports = 6,
-        ExposureSnow = 7,
-        ExposureBeach = 8,
-        ExposureLargeAperture = 9,
-        ExposureSmallAperture = 10,
-        ExposureAction = 11,
-        ExposureLandscape = 12,
-        ExposureNightPortrait = 13,
-        ExposureTheatre = 14,
-        ExposureSunset = 15,
-        ExposureSteadyPhoto = 16,
-        ExposureFireworks = 17,
-        ExposureParty = 18,
-        ExposureCandlelight = 19,
-        ExposureBarcode = 20,
-        ExposureModeVendor = 1000
+        ExposureAuto,
+        ExposureManual,
+        ExposurePortrait,
+        ExposureNight,
+        ExposureSports,
+        ExposureSnow,
+        ExposureBeach,
+        ExposureAction,
+        ExposureLandscape,
+        ExposureNightPortrait,
+        ExposureTheatre,
+        ExposureSunset,
+        ExposureSteadyPhoto,
+        ExposureFireworks,
+        ExposureParty,
+        ExposureCandlelight,
+        ExposureBarcode
     };
 
     bool isAvailable() const;

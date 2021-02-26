@@ -52,16 +52,11 @@ public:
         const QCameraExposure::ExposureMode exposureModes[] = {
             QCameraExposure::ExposureAuto,
             QCameraExposure::ExposureManual,
-            QCameraExposure::ExposureBacklight,
             QCameraExposure::ExposureNight,
-            QCameraExposure::ExposureSpotlight,
             QCameraExposure::ExposureSports,
             QCameraExposure::ExposureSnow,
-            QCameraExposure:: ExposureLargeAperture,
-            QCameraExposure::ExposureSmallAperture,
             QCameraExposure::ExposurePortrait,
-            QCameraExposure::ExposureModeVendor,
-            QCameraExposure::ExposureBeach,
+            QCameraExposure::ExposureBeach
         };
 
         for (QCameraExposure::ExposureMode mode : exposureModes)
