@@ -65,7 +65,7 @@ class QDeclarativeCameraFocus : public QObject
     Q_OBJECT
 
     Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode NOTIFY focusModeChanged)
-    Q_PROPERTY(QVariantList supportedFocusModes READ supportedFocusModes NOTIFY supportedFocusModesChanged REVISION 1)
+    Q_PROPERTY(QVariantList supportedFocusMode READ supportedFocusMode NOTIFY supportedFocusModeChanged REVISION 1)
 
     Q_PROPERTY(FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode NOTIFY focusPointModeChanged)
     Q_PROPERTY(QVariantList supportedFocusPointModes READ supportedFocusPointModes NOTIFY supportedFocusPointModesChanged REVISION 1)
@@ -76,12 +76,20 @@ class QDeclarativeCameraFocus : public QObject
     Q_ENUMS(FocusPointMode)
 public:
     enum FocusMode {
-        FocusManual = QCameraFocus::ManualFocus,
-        FocusHyperfocal = QCameraFocus::HyperfocalFocus,
-        FocusInfinity = QCameraFocus::InfinityFocus,
-        FocusAuto = QCameraFocus::AutoFocus,
-        FocusContinuous = QCameraFocus::ContinuousFocus,
-        FocusMacro = QCameraFocus::MacroFocus
+        FocusModeAuto = QCameraFocus::FocusModeAuto,
+        FocusModeAutoNear = QCameraFocus::FocusModeAutoNear,
+        FocusModeAutoFar = QCameraFocus::FocusModeAutoFar,
+        FocusModeHyperfocal = QCameraFocus::FocusModeHyperfocal,
+        FocusModeInfinity = QCameraFocus::FocusModeInfinity,
+        FocusModeManual = QCameraFocus::FocusModeManual
+#if 1 // QT_DEPRECATED
+        , FocusContinuous = FocusModeAuto,
+        FocusAuto = FocusModeAuto,
+        FocusMacro = FocusModeAutoNear,
+        FocusHyperfocal = FocusModeHyperfocal,
+        FocusInfinity = FocusModeInfinity,
+        FocusManual = FocusModeManual
+#endif
     };
 
     enum FocusPointMode {
@@ -94,7 +102,7 @@ public:
     ~QDeclarativeCameraFocus();
 
     FocusMode focusMode() const;
-    QVariantList supportedFocusModes() const;
+    QVariantList supportedFocusMode() const;
 
     FocusPointMode focusPointMode() const;
     QVariantList supportedFocusPointModes() const;
@@ -108,7 +116,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void focusModeChanged(FocusMode);
-    void supportedFocusModesChanged();
+    void supportedFocusModeChanged();
     void focusPointModeChanged(FocusPointMode);
     void supportedFocusPointModesChanged();
     void customFocusPointChanged(const QPointF &);

@@ -63,9 +63,9 @@ class QAndroidCameraFocusControl : public QPlatformCameraFocus
 public:
     explicit QAndroidCameraFocusControl(QAndroidCameraSession *session);
 
-    QCameraFocus::FocusModes focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusModes mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const override;
+    QCameraFocus::FocusMode focusMode() const override;
+    void setFocusMode(QCameraFocus::FocusMode mode) override;
+    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
     QCameraFocus::FocusPointMode focusPointMode() const override;
     void setFocusPointMode(QCameraFocus::FocusPointMode mode) override;
     bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const override;
@@ -83,7 +83,7 @@ private Q_SLOTS:
     void onAutoFocusComplete(bool success);
 
 private:
-    inline void setFocusModeHelper(QCameraFocus::FocusModes mode)
+    inline void setFocusModeHelper(QCameraFocus::FocusMode mode)
     {
         if (m_focusMode != mode) {
             m_focusMode = mode;
@@ -103,12 +103,12 @@ private:
 
     QAndroidCameraSession *m_session;
 
-    QCameraFocus::FocusModes m_focusMode;
+    QCameraFocus::FocusMode m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_actualFocusPoint;
     QPointF m_customFocusPoint;
 
-    QList<QCameraFocus::FocusModes> m_supportedFocusModes;
+    QList<QCameraFocus::FocusMode> m_supportedFocusModes;
     bool m_continuousPictureFocusSupported;
     bool m_continuousVideoFocusSupported;
 

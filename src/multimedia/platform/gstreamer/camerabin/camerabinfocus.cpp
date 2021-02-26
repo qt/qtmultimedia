@@ -82,12 +82,12 @@ CameraBinFocus::~CameraBinFocus()
 {
 }
 
-QCameraFocus::FocusModes CameraBinFocus::focusMode() const
+QCameraFocus::FocusMode CameraBinFocus::focusMode() const
 {
     return m_focusMode;
 }
 
-void CameraBinFocus::setFocusMode(QCameraFocus::FocusModes mode)
+void CameraBinFocus::setFocusMode(QCameraFocus::FocusMode mode)
 {
     GstPhotographyFocusMode photographyMode;
 
@@ -120,7 +120,7 @@ void CameraBinFocus::setFocusMode(QCameraFocus::FocusModes mode)
         m_focusMode = mode;
 }
 
-bool CameraBinFocus::isFocusModeSupported(QCameraFocus::FocusModes mode) const
+bool CameraBinFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 {
     switch (mode) {
     case QCameraFocus::AutoFocus:

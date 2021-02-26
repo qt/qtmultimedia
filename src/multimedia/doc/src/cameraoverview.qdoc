@@ -235,8 +235,8 @@ Focusing (and zoom) is managed primarily by the \l QCameraFocus class.
 QCameraFocus allows the developer to set the general policy by means of the
 enums for the \l {QCameraFocus::FocusMode}{FocusMode} and the
 \l {QCameraFocus::FocusPointMode}{FocusPointMode}. \l {QCameraFocus::FocusMode}{FocusMode}
-deals with settings such as \l {QCameraFocus::FocusMode}{AutoFocus},
-\l {QCameraFocus::FocusMode}{ContinuousFocus} and \l {QCameraFocus::FocusMode}{InfinityFocus},
+deals with settings such as \l {QCameraFocus::FocusModeAuto},
+and \l {QCameraFocus::FocusModeInfinity},
 whereas \l {QCameraFocus::FocusMode}{FocusPointMode} deals with the
 various focus zones within the view that are used for autofocus modes. \l {QCameraFocus::FocusMode}{FocusPointMode}
 has support for face recognition (where the camera supports it), center focus and a custom

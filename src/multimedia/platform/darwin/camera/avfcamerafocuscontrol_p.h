@@ -71,15 +71,18 @@ class AVFCameraFocusControl : public QPlatformCameraFocus
 public:
     explicit AVFCameraFocusControl(AVFCameraService *service);
 
-    QCameraFocus::FocusModes focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusModes mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const override;
+    QCameraFocus::FocusMode focusMode() const override;
+    void setFocusMode(QCameraFocus::FocusMode mode) override;
+    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
 
     QCameraFocus::FocusPointMode focusPointMode() const override;
     void setFocusPointMode(QCameraFocus::FocusPointMode mode) override;
     bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const override;
     QPointF customFocusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
+
+    void setFocusDistance(float) override;
+    float focusDistance() const override;
 
     ZoomRange zoomFactorRange() const override;
     void zoomTo(float newZoomFactor, float rate = -1.) override;
@@ -89,7 +92,7 @@ private Q_SLOTS:
 
 private:
     AVFCameraSession *m_session;
-    QCameraFocus::FocusModes m_focusMode;
+    QCameraFocus::FocusMode m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_customFocusPoint;
     QPointF m_actualFocusPoint;

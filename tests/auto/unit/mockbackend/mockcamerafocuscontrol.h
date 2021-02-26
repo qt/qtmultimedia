@@ -46,20 +46,20 @@ public:
 
     ~MockCameraFocusControl() {}
 
-    QCameraFocus::FocusModes focusMode() const
+    QCameraFocus::FocusMode focusMode() const
     {
         return m_focusMode;
     }
 
-    void setFocusMode(QCameraFocus::FocusModes mode)
+    void setFocusMode(QCameraFocus::FocusMode mode)
     {
         if (isFocusModeSupported(mode))
             m_focusMode = mode;
     }
 
-    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const
+    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const
     {
-        return mode == QCameraFocus::AutoFocus || mode == QCameraFocus::ContinuousFocus;
+        return mode == QCameraFocus::FocusModeAuto;
     }
 
     QCameraFocus::FocusPointMode focusPointMode() const
@@ -105,7 +105,7 @@ public:
     }
 
 private:
-    QCameraFocus::FocusModes m_focusMode;
+    QCameraFocus::FocusMode m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_focusPoint;
 

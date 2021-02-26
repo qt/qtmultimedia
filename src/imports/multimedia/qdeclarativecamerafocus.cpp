@@ -103,7 +103,7 @@ QDeclarativeCameraFocus::QDeclarativeCameraFocus(QCamera *camera, QObject *paren
             return;
         }
 
-        emit supportedFocusModesChanged();
+        emit supportedFocusModeChanged();
         emit supportedFocusPointModesChanged();
     });
 }
@@ -113,9 +113,6 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
     \property QDeclarativeCameraFocus::focusMode
 
     This property holds the current camera focus mode.
-
-    It's possible to combine multiple QCameraFocus::FocusMode enum values,
-    for example QCameraFocus::MacroFocus + QCameraFocus::ContinuousFocus.
 
     In automatic focusing modes, the \l focusPointMode
     property provides information and control
@@ -132,27 +129,25 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
       \li Value
       \li Description
      \row
-      \li FocusManual
-      \li Manual or fixed focus mode.
-     \row
-      \li FocusHyperfocal
-      \li Focus to hyperfocal distance, with the maximum depth of field achieved. All objects at distances from half of this distance out to infinity will be acceptably sharp.
-     \row
-      \li FocusInfinity
-      \li Focus strictly to infinity.
-     \row
-      \li FocusAuto
-      \li One-shot auto focus mode.
-     \row
-      \li FocusContinuous
+      \li FocusModeAuto
       \li Continuous auto focus mode.
      \row
-      \li FocusMacro
-      \li One shot auto focus to objects close to camera.
+      \li FocusModeAutoNear
+      \li Continuous auto focus, preferring objects near to the camera.
+     \row
+      \li FocusModeAutoFar
+      \li Continuous auto focus, preferring objects far away from the camera.
+     \row
+      \li FocusModeHyperfocal
+      \li Focus to hyperfocal distance, with the maximum depth of field achieved. All objects at distances
+          from half of this distance out to infinity will be acceptably sharp.
+     \row
+      \li FocusModeInfinity
+      \li Focus strictly to infinity.
+     \row
+      \li FocusModeManual
+      \li Manual or fixed focus mode.
     \endtable
-
-    It's possible to combine multiple Camera::FocusMode values,
-    for example Camera.FocusMacro + Camera.FocusContinuous.
 
     In automatic focusing modes, the \l focusPointMode property
     provides information and control
@@ -164,14 +159,14 @@ QDeclarativeCameraFocus::FocusMode QDeclarativeCameraFocus::focusMode() const
 }
 
 /*!
-    \qmlproperty list<FocusMode> CameraFocus::supportedFocusModes
+    \qmlproperty list<FocusMode> CameraFocus::supportedFocusMode
 
     This property holds the supported focus modes of the camera.
 
     \since 5.11
     \sa focusMode
 */
-QVariantList QDeclarativeCameraFocus::supportedFocusModes() const
+QVariantList QDeclarativeCameraFocus::supportedFocusMode() const
 {
     QVariantList supportedModes;
 
@@ -186,7 +181,7 @@ QVariantList QDeclarativeCameraFocus::supportedFocusModes() const
 void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCameraFocus::FocusMode mode)
 {
     if (mode != focusMode()) {
-        m_focus->setFocusMode(QCameraFocus::FocusModes(int(mode)));
+        m_focus->setFocusMode(QCameraFocus::FocusMode(int(mode)));
         emit focusModeChanged(focusMode());
     }
 }

@@ -55,15 +55,18 @@ class Q_MULTIMEDIA_EXPORT QPlatformCameraFocus : public QObject
     Q_OBJECT
 
 public:
-    virtual QCameraFocus::FocusModes focusMode() const = 0;
-    virtual void setFocusMode(QCameraFocus::FocusModes mode) = 0;
-    virtual bool isFocusModeSupported(QCameraFocus::FocusModes mode) const = 0;
+    virtual QCameraFocus::FocusMode focusMode() const = 0;
+    virtual void setFocusMode(QCameraFocus::FocusMode mode) = 0;
+    virtual bool isFocusModeSupported(QCameraFocus::FocusMode mode) const = 0;
 
     virtual QCameraFocus::FocusPointMode focusPointMode() const = 0;
     virtual void setFocusPointMode(QCameraFocus::FocusPointMode mode) = 0;
     virtual bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const = 0;
     virtual QPointF customFocusPoint() const = 0;
     virtual void setCustomFocusPoint(const QPointF &point) = 0;
+
+    virtual void setFocusDistance(float) {}
+    virtual float focusDistance() const { return 0.; }
 
     struct ZoomRange {
         float min;
@@ -75,7 +78,7 @@ public:
     virtual void zoomTo(float newZoomFactor, float rate = -1.) = 0;
 
 Q_SIGNALS:
-    void focusModeChanged(QCameraFocus::FocusModes mode);
+    void focusModeChanged(QCameraFocus::FocusMode mode);
     void focusPointModeChanged(QCameraFocus::FocusPointMode mode);
     void customFocusPointChanged(const QPointF &point);
 

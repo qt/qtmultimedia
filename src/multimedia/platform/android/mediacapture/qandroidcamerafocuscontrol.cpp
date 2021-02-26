@@ -72,12 +72,12 @@ QAndroidCameraFocusControl::QAndroidCameraFocusControl(QAndroidCameraSession *se
             this, SLOT(onCameraOpened()));
 }
 
-QCameraFocus::FocusModes QAndroidCameraFocusControl::focusMode() const
+QCameraFocus::FocusMode QAndroidCameraFocusControl::focusMode() const
 {
     return m_focusMode;
 }
 
-void QAndroidCameraFocusControl::setFocusMode(QCameraFocus::FocusModes mode)
+void QAndroidCameraFocusControl::setFocusMode(QCameraFocus::FocusMode mode)
 {
     if (!m_session->camera()) {
         setFocusModeHelper(mode);
@@ -85,24 +85,29 @@ void QAndroidCameraFocusControl::setFocusMode(QCameraFocus::FocusModes mode)
     }
 
     if (isFocusModeSupported(mode)) {
-        QString focusMode = QLatin1String("fixed");
+        QString focusMode;
 
-        if (mode.testFlag(QCameraFocus::HyperfocalFocus)) {
+        switch (mode) {
+        case QCameraFocus::FocusModeHyperfocal:
             focusMode = QLatin1String("edof");
-        } else if (mode.testFlag(QCameraFocus::ManualFocus)) {
+            break;
+        case QCameraFocus::FocusModeInfinity: // not 100%, but close
+            focusMode = QLatin1String("infinity");
+            break;
+        case QCameraFocus::FocusModeManual:
             focusMode = QLatin1String("fixed");
-        } else if (mode.testFlag(QCameraFocus::AutoFocus)) {
-            focusMode = QLatin1String("auto");
-        } else if (mode.testFlag(QCameraFocus::MacroFocus)) {
+            break;
+        case QCameraFocus::FocusModeAutoNear:
             focusMode = QLatin1String("macro");
-        } else if (mode.testFlag(QCameraFocus::ContinuousFocus)) {
+            break;
+        case QCameraFocus::FocusModeAuto:
+        case QCameraFocus::FocusModeAutoFar:
             if (1) { // ###?
                 focusMode = QLatin1String("continuous-video");
             } else {
                 focusMode = QLatin1String("continuous-picture");
             }
-        } else if (mode.testFlag(QCameraFocus::InfinityFocus)) {
-            focusMode = QLatin1String("infinity");
+            break;
         }
 
         m_session->camera()->setFocusMode(focusMode);
@@ -114,7 +119,7 @@ void QAndroidCameraFocusControl::setFocusMode(QCameraFocus::FocusModes mode)
     }
 }
 
-bool QAndroidCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusModes mode) const
+bool QAndroidCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 {
     return m_session->camera() ? m_supportedFocusModes.contains(mode) : false;
 }
@@ -187,22 +192,20 @@ void QAndroidCameraFocusControl::onCameraOpened()
     QStringList focusModes = m_session->camera()->getSupportedFocusModes();
     for (int i = 0; i < focusModes.size(); ++i) {
         const QString &focusMode = focusModes.at(i);
-        if (focusMode == QLatin1String("auto")) {
-            m_supportedFocusModes << QCameraFocus::AutoFocus;
-        } else if (focusMode == QLatin1String("continuous-picture")) {
-            m_supportedFocusModes << QCameraFocus::ContinuousFocus;
+        if (focusMode == QLatin1String("continuous-picture")) {
+            m_supportedFocusModes << QCameraFocus::FocusModeAuto;
             m_continuousPictureFocusSupported = true;
         } else if (focusMode == QLatin1String("continuous-video")) {
-            m_supportedFocusModes << QCameraFocus::ContinuousFocus;
+            m_supportedFocusModes << QCameraFocus::FocusModeAuto;
             m_continuousVideoFocusSupported = true;
         } else if (focusMode == QLatin1String("edof")) {
-            m_supportedFocusModes << QCameraFocus::HyperfocalFocus;
+            m_supportedFocusModes << QCameraFocus::FocusModeHyperfocal;
         } else if (focusMode == QLatin1String("fixed")) {
-            m_supportedFocusModes << QCameraFocus::ManualFocus;
+            m_supportedFocusModes << QCameraFocus::FocusModeManual;
         } else if (focusMode == QLatin1String("infinity")) {
-            m_supportedFocusModes << QCameraFocus::InfinityFocus;
+            m_supportedFocusModes << QCameraFocus::FocusModeInfinity;
         } else if (focusMode == QLatin1String("macro")) {
-            m_supportedFocusModes << QCameraFocus::MacroFocus;
+            m_supportedFocusModes << QCameraFocus::FocusModeAutoNear;
         }
     }
 

@@ -77,9 +77,9 @@ public:
     CameraBinFocus(CameraBinSession *session);
     virtual ~CameraBinFocus();
 
-    QCameraFocus::FocusModes focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusModes mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusModes mode) const override;
+    QCameraFocus::FocusMode focusMode() const override;
+    void setFocusMode(QCameraFocus::FocusMode mode) override;
+    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
 
     QCameraFocus::FocusPointMode focusPointMode() const override;
     void setFocusPointMode(QCameraFocus::FocusPointMode mode) override;
@@ -114,7 +114,7 @@ private:
 
     CameraBinSession *m_session;
     QCamera::Status m_cameraStatus;
-    QCameraFocus::FocusModes m_focusMode;
+    QCameraFocus::FocusMode m_focusMode;
     QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_focusPoint;
     QRectF m_focusRect;

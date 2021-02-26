@@ -171,12 +171,20 @@ public:
     };
 
     enum FocusMode {
-        FocusManual = QCameraFocus::ManualFocus,
-        FocusHyperfocal = QCameraFocus::HyperfocalFocus,
-        FocusInfinity = QCameraFocus::InfinityFocus,
-        FocusAuto = QCameraFocus::AutoFocus,
-        FocusContinuous = QCameraFocus::ContinuousFocus,
-        FocusMacro = QCameraFocus::MacroFocus
+        FocusModeAuto = QCameraFocus::FocusModeAuto,
+        FocusModeAutoNear = QCameraFocus::FocusModeAutoNear,
+        FocusModeAutoFar = QCameraFocus::FocusModeAutoFar,
+        FocusModeHyperfocal = QCameraFocus::FocusModeHyperfocal,
+        FocusModeInfinity = QCameraFocus::FocusModeInfinity,
+        FocusModeManual = QCameraFocus::FocusModeManual
+#if 1 // QT_DEPRECATED
+        , FocusContinuous = FocusModeAuto,
+        FocusAuto = FocusModeAuto,
+        FocusMacro = FocusModeAutoNear,
+        FocusHyperfocal = FocusModeHyperfocal,
+        FocusInfinity = FocusModeInfinity,
+        FocusManual = FocusModeManual
+#endif
     };
 
     enum FocusPointMode {

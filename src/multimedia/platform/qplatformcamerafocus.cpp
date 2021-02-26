@@ -65,21 +65,21 @@ QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
 }
 
 /*!
-  \fn QCameraFocus::FocusModes QPlatformCameraFocus::focusMode() const
+  \fn QCameraFocus::FocusMode QPlatformCameraFocus::focusMode() const
 
   Returns the focus mode being used.
 */
 
 
 /*!
-  \fn void QPlatformCameraFocus::setFocusMode(QCameraFocus::FocusModes mode)
+  \fn void QPlatformCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
 
   Set the focus mode to \a mode.
 */
 
 
 /*!
-  \fn bool QPlatformCameraFocus::isFocusModeSupported(QCameraFocus::FocusModes mode) const
+  \fn bool QPlatformCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 
   Returns true if focus \a mode is supported.
 */
@@ -120,7 +120,7 @@ QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
 */
 
 /*!
-  \fn void QPlatformCameraFocus::focusModeChanged(QCameraFocus::FocusModes mode)
+  \fn void QPlatformCameraFocus::focusModeChanged(QCameraFocus::FocusMode mode)
 
   Signal is emitted when the focus \a mode is changed,
   usually in result of QPlatformCameraFocus::setFocusMode call or capture mode changes.

@@ -154,22 +154,23 @@ bool QCameraFocus::isAvailable() const
 }
 
 /*!
-  \property QCameraFocus::focusMode
-  \brief the current camera focus mode.
+    \property QCameraFocus::focusMode
+    \brief the current camera focus mode.
 
+    Sets up different focus modes for the camera. All auto focus modes will focus continuously.
+    Locking the focus is possible by setting the focus mode to \l FocusModeManual. This will keep
+    the current focus and stop any automatic focusing.
 
-  This controls the way the camera lens assembly is configured.
-
-  \sa QCameraFocus::isFocusModeSupported()
+    \sa QCameraFocus::isFocusModeSupported()
 */
 
-QCameraFocus::FocusModes QCameraFocus::focusMode() const
+QCameraFocus::FocusMode QCameraFocus::focusMode() const
 {
     Q_D(const QCameraFocus);
-    return d->focusControl ? d->focusControl->focusMode() : QCameraFocus::AutoFocus;
+    return d->focusControl ? d->focusControl->focusMode() : QCameraFocus::FocusModeAuto;
 }
 
-void QCameraFocus::setFocusMode(QCameraFocus::FocusModes mode)
+void QCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
 {
     Q_D(QCameraFocus);
     if (d->focusControl)
@@ -180,7 +181,7 @@ void QCameraFocus::setFocusMode(QCameraFocus::FocusModes mode)
     Returns true if the focus \a mode is supported by camera.
 */
 
-bool QCameraFocus::isFocusModeSupported(FocusModes mode) const
+bool QCameraFocus::isFocusModeSupported(FocusMode mode) const
 {
     Q_D(const QCameraFocus);
     return d->focusControl ? d->focusControl->isFocusModeSupported(mode) : false;
@@ -239,6 +240,29 @@ void QCameraFocus::setCustomFocusPoint(const QPointF &point)
     Q_D(QCameraFocus);
     if (d->focusControl)
         d->focusControl->setCustomFocusPoint(point);
+}
+
+/*!
+    \property QCameraFocus::focusDistance
+
+    This property return an approximate focus distance of the camera. The value reported is between 0 and 1, 0 being the closest
+    possible focus distance, 1 being as far away as possible. Note that 1 is often, but not always infinity.
+
+    Setting the focus distance will be ignored unless the focus mode is set to \l FocusModeManual.
+ */
+void QCameraFocus::setFocusDistance(float d)
+{
+    if (focusMode() != FocusModeManual)
+        return;
+    if (d_func()->focusControl)
+        d_func()->focusControl->setFocusDistance(d);
+}
+
+float QCameraFocus::focusDistance() const
+{
+    if (d_func()->focusControl)
+        return d_func()->focusControl->focusDistance();
+    return 0.;
 }
 
 /*!
@@ -301,14 +325,14 @@ void QCameraFocus::zoomTo(float factor, float rate)
 /*!
     \enum QCameraFocus::FocusMode
 
-    \value ManualFocus          Manual or fixed focus mode.
-    \value HyperfocalFocus      Focus to hyperfocal distance, with the maximum depth of field achieved.
+    \value FocusModeAuto        Continuous auto focus mode.
+    \value FocusModeAutoNear    Continuous auto focus mode on near objects.
+    \value FocusModeAutoFar     Continuous auto focus mode on objects far away.
+    \value FocusModeHyperfocal  Focus to hyperfocal distance, with the maximum depth of field achieved.
                                 All objects at distances from half of this
                                 distance out to infinity will be acceptably sharp.
-    \value InfinityFocus        Focus strictly to infinity.
-    \value AutoFocus            One-shot auto focus mode.
-    \value ContinuousFocus      Continuous auto focus mode.
-    \value MacroFocus           One shot auto focus to objects close to camera.
+    \value FocusModeInfinity    Focus strictly to infinity.
+    \value FocusModeManual      Manual or fixed focus mode.
 */
 
 /*!

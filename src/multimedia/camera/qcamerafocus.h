@@ -62,23 +62,31 @@ class Q_MULTIMEDIA_EXPORT QCameraFocus : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(FocusModes focusMode READ focusMode WRITE setFocusMode)
+    Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode)
     Q_PROPERTY(FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode)
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint)
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
+    Q_PROPERTY(float focusDistance READ focusDistance WRITE setFocusDistance NOTIFY focusDistanceChanged)
 
     Q_ENUMS(FocusMode)
     Q_ENUMS(FocusPointMode)
 public:
     enum FocusMode {
-        ManualFocus = 0x1,
-        HyperfocalFocus = 0x02,
-        InfinityFocus = 0x04,
-        AutoFocus = 0x8,
-        ContinuousFocus = 0x10,
-        MacroFocus = 0x20
+        FocusModeAuto,
+        FocusModeAutoNear,
+        FocusModeAutoFar,
+        FocusModeHyperfocal,
+        FocusModeInfinity,
+        FocusModeManual
+#if 1 // QT_DEPRECATED
+        , ContinuousFocus = FocusModeAuto,
+        AutoFocus = FocusModeAuto, // Not quite
+        MacroFocus = FocusModeAutoNear,
+        HyperfocalFocus = FocusModeHyperfocal,
+        InfinityFocus = FocusModeInfinity,
+        ManualFocus = FocusModeManual
+#endif
     };
-    Q_DECLARE_FLAGS(FocusModes, FocusMode)
 
     enum FocusPointMode {
         FocusPointAuto,
@@ -89,15 +97,18 @@ public:
 
     bool isAvailable() const;
 
-    FocusModes focusMode() const;
-    void setFocusMode(FocusModes mode);
-    bool isFocusModeSupported(FocusModes mode) const;
+    FocusMode focusMode() const;
+    void setFocusMode(FocusMode mode);
+    bool isFocusModeSupported(FocusMode mode) const;
 
     FocusPointMode focusPointMode() const;
     void setFocusPointMode(FocusPointMode mode);
     bool isFocusPointModeSupported(FocusPointMode) const;
     QPointF customFocusPoint() const;
     void setCustomFocusPoint(const QPointF &point);
+
+    void setFocusDistance(float d);
+    float focusDistance() const;
 
     float minimumZoomFactor() const;
     float maximumZoomFactor() const;
@@ -108,6 +119,7 @@ public:
 
 Q_SIGNALS:
     void zoomFactorChanged(float);
+    void focusDistanceChanged(float);
 
 protected:
     ~QCameraFocus();
@@ -120,8 +132,6 @@ private:
     Q_DISABLE_COPY(QCameraFocus)
     Q_DECLARE_PRIVATE(QCameraFocus)
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraFocus::FocusModes)
 
 QT_END_NAMESPACE
 

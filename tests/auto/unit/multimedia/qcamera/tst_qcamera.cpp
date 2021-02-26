@@ -87,7 +87,7 @@ private slots:
 
     // Test cases to for QCameraFocus
     void testCameraFocusIsAvailable();
-    void testFocusModes();
+    void testFocusMode();
     void testOpticalAndDigitalZoomChanged();
     void testMaxOpticalZoomChangedSignal();
     void testMaxDigitalZoomChangedSignal();
@@ -225,13 +225,12 @@ void tst_QCamera::testSimpleCameraFocus()
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != nullptr);
 
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::AutoFocus));
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::ContinuousFocus));
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::InfinityFocus));
+    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::FocusModeAuto));
+    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::FocusModeInfinity));
 
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
     QTest::ignoreMessage(QtWarningMsg, "Focus mode selection is not supported");
-    cameraFocus->setFocusMode(QCameraFocus::ContinuousFocus);
+    cameraFocus->setFocusMode(QCameraFocus::FocusModeAuto);
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
 
     QCOMPARE(cameraFocus->maximumZoomFactor(), 1.0);
@@ -514,14 +513,14 @@ void tst_QCamera::testCameraFocus()
     QVERIFY(cameraFocus != nullptr);
 
     QVERIFY(cameraFocus->isFocusModeSupported(QCameraFocus::AutoFocus));
-    QVERIFY(cameraFocus->isFocusModeSupported(QCameraFocus::ContinuousFocus));
+    QVERIFY(cameraFocus->isFocusModeSupported(QCameraFocus::FocusModeAuto));
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::InfinityFocus));
 
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
     cameraFocus->setFocusMode(QCameraFocus::ManualFocus);
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    cameraFocus->setFocusMode(QCameraFocus::ContinuousFocus);
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::ContinuousFocus);
+    cameraFocus->setFocusMode(QCameraFocus::FocusModeAuto);
+    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::FocusModeAuto);
 
     QVERIFY(cameraFocus->maximumZoomFactor() >= 1.0);
     QVERIFY(cameraFocus->minimumZoomFactor() == 1.0);
@@ -1000,7 +999,7 @@ void tst_QCamera::testCameraFocusIsAvailable()
 
 //Added this code to cover QCameraFocus::HyperfocalFocus and QCameraFocus::MacroFocus
 //As the HyperfocalFocus and MacroFocus are not supported we can not set the focus mode to these Focus Modes
-void tst_QCamera::testFocusModes()
+void tst_QCamera::testFocusMode()
 {
     QCamera camera;
 

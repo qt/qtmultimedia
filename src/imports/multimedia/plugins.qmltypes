@@ -598,12 +598,18 @@ Module {
         Enum {
             name: "FocusMode"
             values: {
-                "FocusManual": 1,
-                "FocusHyperfocal": 2,
+                "FocusModeAuto": 0,
+                "FocusModeAutoNear": 1,
+                "FocusModeAutoFar": 2,
+                "FocusModeHyperfocal": 3,
+                "FocusModeInfinity": 4,
+                "FocusModeManual": 5,
+                "FocusContinuous": 0,
+                "FocusAuto": 0,
+                "FocusMacro": 1,
+                "FocusHyperfocal": 3,
                 "FocusInfinity": 4,
-                "FocusAuto": 8,
-                "FocusContinuous": 16,
-                "FocusMacro": 32
+                "FocusManual": 5
             }
         }
         Enum {
@@ -950,12 +956,18 @@ Module {
         Enum {
             name: "FocusMode"
             values: {
-                "FocusManual": 1,
-                "FocusHyperfocal": 2,
+                "FocusModeAuto": 0,
+                "FocusModeAutoNear": 1,
+                "FocusModeAutoFar": 2,
+                "FocusModeHyperfocal": 3,
+                "FocusModeInfinity": 4,
+                "FocusModeManual": 5,
+                "FocusContinuous": 0,
+                "FocusAuto": 0,
+                "FocusMacro": 1,
+                "FocusHyperfocal": 3,
                 "FocusInfinity": 4,
-                "FocusAuto": 8,
-                "FocusContinuous": 16,
-                "FocusMacro": 32
+                "FocusManual": 5
             }
         }
         Enum {

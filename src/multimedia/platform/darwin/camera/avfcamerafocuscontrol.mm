@@ -51,16 +51,15 @@ QT_BEGIN_NAMESPACE
 
 namespace {
 
-bool qt_focus_mode_supported(QCameraFocus::FocusModes mode)
+bool qt_focus_mode_supported(QCameraFocus::FocusMode mode)
 {
     // Check if QCameraFocus::FocusMode has counterpart in AVFoundation.
 
     // AVFoundation has 'Manual', 'Auto' and 'Continuous',
     // where 'Manual' is actually 'Locked' + writable property 'lensPosition'.
-    // Since Qt does not provide an API to manipulate a lens position, 'Maual' mode
-    // (at the moment) is not supported.
     return mode == QCameraFocus::AutoFocus
-           || mode == QCameraFocus::ContinuousFocus;
+           || mode == QCameraFocus::ContinuousFocus
+           || mode == QCameraFocus::ManualFocus;
 }
 
 bool qt_focus_point_mode_supported(QCameraFocus::FocusPointMode mode)
@@ -70,12 +69,17 @@ bool qt_focus_point_mode_supported(QCameraFocus::FocusPointMode mode)
            || mode == QCameraFocus::FocusPointCenter;
 }
 
-AVCaptureFocusMode avf_focus_mode(QCameraFocus::FocusModes requestedMode)
+AVCaptureFocusMode avf_focus_mode(QCameraFocus::FocusMode requestedMode)
 {
-    if (requestedMode == QCameraFocus::AutoFocus)
-        return AVCaptureFocusModeAutoFocus;
+    switch (requestedMode) {
+        case QCameraFocus::FocusModeHyperfocal:
+        case QCameraFocus::FocusModeInfinity:
+        case QCameraFocus::FocusModeManual:
+            return AVCaptureFocusModeLocked;
+        default:
+            return AVCaptureFocusModeContinuousAutoFocus;
+    }
 
-    return AVCaptureFocusModeContinuousAutoFocus;
 }
 
 }
@@ -91,12 +95,12 @@ AVFCameraFocusControl::AVFCameraFocusControl(AVFCameraService *service)
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(cameraStateChanged()));
 }
 
-QCameraFocus::FocusModes AVFCameraFocusControl::focusMode() const
+QCameraFocus::FocusMode AVFCameraFocusControl::focusMode() const
 {
     return m_focusMode;
 }
 
-void AVFCameraFocusControl::setFocusMode(QCameraFocus::FocusModes mode)
+void AVFCameraFocusControl::setFocusMode(QCameraFocus::FocusMode mode)
 {
     if (m_focusMode == mode)
         return;
@@ -131,16 +135,29 @@ void AVFCameraFocusControl::setFocusMode(QCameraFocus::FocusModes mode)
     Q_EMIT focusModeChanged(m_focusMode);
 }
 
-bool AVFCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusModes mode) const
+bool AVFCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 {
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     if (!captureDevice)
         return false;
 
-    if (!qt_focus_mode_supported(mode))
-        return false;
-
-    return [captureDevice isFocusModeSupported:avf_focus_mode(mode)];
+#ifdef Q_OS_IOS
+    AVCaptureFocusMode avMode = avf_focus_mode(mode);
+    switch (mode) {
+        case QCameraFocus::FocusModeAuto:
+        case QCameraFocus::FocusModeHyperfocal:
+        case QCameraFocus::FocusModeInfinity:
+        case QCameraFocus::FocusModeManual:
+            return [captureDevice isFocusModeSupported:avMode];
+    case QCameraFocus::FocusModeAutoNear:
+        Q_FALLTHROUGH();
+    case QCameraFocus::FocusModeAutoFar:
+        return captureDevice.autoFocusRangeRestrictionSupported
+            && [captureDevice isFocusModeSupported:avMode];
+    }
+#else
+    return mode == QCameraFocus::FocusModeAuto; // stupid builtin webcam doesn't do any focus handling, but hey it's usually focused :)
+#endif
 }
 
 QCameraFocus::FocusPointMode AVFCameraFocusControl::focusPointMode() const
@@ -245,6 +262,42 @@ void AVFCameraFocusControl::setCustomFocusPoint(const QPointF &point)
         qDebugCamera() << Q_FUNC_INFO << "focus point of interest not supported";
         return;
     }
+}
+
+void AVFCameraFocusControl::setFocusDistance(float d)
+{
+#ifdef Q_OS_IOS
+    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    if (!captureDevice)
+        return;
+
+    if (captureDevice.lockingFocusWithCustomLensPositionSupported) {
+        qDebugCamera() << Q_FUNC_INFO << "Setting custom focus distance not supported\n";
+        return;
+    }
+
+    const bool lock = [captureDevice lockForConfiguration:nil];
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "Failed to lock a capture device for configuration\n";
+        return;
+    }
+
+    [captureDevice setFocusModeLockedWithLensPosition:d completionHandler:nil];
+#else
+    Q_UNUSED(d);
+#endif
+}
+
+float AVFCameraFocusControl::focusDistance() const
+{
+#ifdef Q_OS_IOS
+    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    if (!captureDevice)
+        return 1.;
+    return captureDevice.lensPosition;
+#else
+    return 1.;
+#endif
 }
 
 void AVFCameraFocusControl::cameraStateChanged()
