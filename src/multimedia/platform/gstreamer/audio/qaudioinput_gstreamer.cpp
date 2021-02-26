@@ -43,7 +43,6 @@
 #include <private/qaudiohelpers_p.h>
 
 #include "qaudioinput_gstreamer_p.h"
-#include "qaudioengine_gstreamer_p.h"
 #include "qaudiodeviceinfo_gstreamer_p.h"
 #include <sys/types.h>
 #include <unistd.h>

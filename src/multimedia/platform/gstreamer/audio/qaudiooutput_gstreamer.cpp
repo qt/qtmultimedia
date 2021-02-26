@@ -44,7 +44,6 @@
 
 #include "qaudiooutput_gstreamer_p.h"
 #include "qaudiodeviceinfo_gstreamer_p.h"
-#include "qaudioengine_gstreamer_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 

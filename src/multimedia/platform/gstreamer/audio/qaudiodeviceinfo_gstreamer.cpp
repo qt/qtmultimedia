@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qaudiodeviceinfo_gstreamer_p.h"
-#include "qaudioengine_gstreamer_p.h"
 
 #include <private/qgstutils_p.h>
 #include <private/qplatformmediaintegration_p.h>
