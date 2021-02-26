@@ -83,11 +83,8 @@ QT_BEGIN_NAMESPACE
     \section2 Some notes on autofocus
     Some hardware supports a movable focus lens assembly, and typically
     this hardware also supports automatically focusing via some heuristic.
-    You can influence this via the \l FocusPointMode setting - typically
-    the center of the frame is brought into focus, but some hardware
-    also supports focusing on any faces detected in the frame, or on
-    a specific point (usually provided by a user in a "touch to focus"
-    scenario).
+    You can influence this via the \l focusPoint property (usually provided
+    by a user in a "touch to focus" scenario).
 */
 
 #define Q_DECLARE_NON_CONST_PUBLIC(Class) \
@@ -105,6 +102,7 @@ public:
     QPlatformCameraFocus *focusControl;
     bool available;
     float zoomFactor = 1.;
+    QPointF customFocusPoint{-1, -1};
 };
 
 #undef Q_DECLARE_NON_CONST_PUBLIC
@@ -188,36 +186,13 @@ bool QCameraFocus::isFocusModeSupported(FocusMode mode) const
 }
 
 /*!
-  \property QCameraFocus::focusPointMode
-  \brief the current camera focus point selection mode.
-
-  If the camera focus mode is set to use an autofocusing mode,
-  this property controls the way the camera will select areas
-  of the frame to use for autofocusing.
-
-  \sa QCameraFocus::isFocusPointModeSupported()
-*/
-
-QCameraFocus::FocusPointMode QCameraFocus::focusPointMode() const
-{
-    Q_D(const QCameraFocus);
-    return d->focusControl ? d->focusControl->focusPointMode() : QCameraFocus::FocusPointAuto;
-}
-
-void QCameraFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
-{
-    Q_D(QCameraFocus);
-    if (d->focusControl)
-        d->focusControl->setFocusPointMode(mode);
-}
-
-/*!
-  Returns true if focus point \a mode is supported.
+    Returns the point currently used by the auto focus system to focus onto.
  */
-bool QCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
+QPointF QCameraFocus::focusPoint() const
 {
     Q_D(const QCameraFocus);
-    return d->focusControl ? d->focusControl->isFocusPointModeSupported(mode) : false;
+    return d->focusControl ? d->focusControl->focusPoint() : QPointF(-1., -1.);
+
 }
 
 /*!
@@ -232,14 +207,24 @@ bool QCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) 
 QPointF QCameraFocus::customFocusPoint() const
 {
     Q_D(const QCameraFocus);
-    return d->focusControl ? d->focusControl->customFocusPoint() : QPointF(0.5,0.5);
+    return d->customFocusPoint;
 }
 
 void QCameraFocus::setCustomFocusPoint(const QPointF &point)
 {
     Q_D(QCameraFocus);
+    if (d->customFocusPoint == point)
+        return;
+    d->customFocusPoint = point;
     if (d->focusControl)
         d->focusControl->setCustomFocusPoint(point);
+    Q_EMIT customFocusPointChanged();
+}
+
+bool QCameraFocus::isCustomFocusPointSupported() const
+{
+    Q_D(const QCameraFocus);
+    return d->focusControl ? d->focusControl->isCustomFocusPointSupported() : false;
 }
 
 /*!
@@ -333,15 +318,6 @@ void QCameraFocus::zoomTo(float factor, float rate)
                                 distance out to infinity will be acceptably sharp.
     \value FocusModeInfinity    Focus strictly to infinity.
     \value FocusModeManual      Manual or fixed focus mode.
-*/
-
-/*!
-    \enum QCameraFocus::FocusPointMode
-
-    \value FocusPointAuto       Automatically select one or multiple focus points.
-    \value FocusPointCenter     Focus to the frame center.
-    \value FocusPointFaceDetection Focus on faces in the frame.
-    \value FocusPointCustom     Focus to the custom point, defined by QCameraFocus::customFocusPoint property.
 */
 
 /*!

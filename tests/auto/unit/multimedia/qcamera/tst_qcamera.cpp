@@ -241,13 +241,6 @@ void tst_QCamera::testSimpleCameraFocus()
     cameraFocus->zoomTo(100.0, 100.0);
     QCOMPARE(cameraFocus->zoomFactor(), 1.0);
 
-    QVERIFY(!cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointAuto));
-    QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointAuto);
-
-    QTest::ignoreMessage(QtWarningMsg, "Focus points mode selection is not supported");
-    cameraFocus->setFocusPointMode( QCameraFocus::FocusPointCenter );
-    QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointAuto);
-
     QCOMPARE(cameraFocus->customFocusPoint(), QPointF(0.5, 0.5));
     QTest::ignoreMessage(QtWarningMsg, "Focus points selection is not supported");
     cameraFocus->setCustomFocusPoint(QPointF(1.0, 1.0));
@@ -533,17 +526,6 @@ void tst_QCamera::testCameraFocus()
     QCOMPARE(cameraFocus->zoomFactor(), 2.5);
     cameraFocus->zoomTo(2000000.0, -1);
     QVERIFY(qFuzzyCompare(cameraFocus->zoomFactor(), cameraFocus->maximumZoomFactor()));
-
-    QVERIFY(cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointAuto));
-    QVERIFY(cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointCenter));
-    QVERIFY(cameraFocus->isFocusPointModeSupported(QCameraFocus::FocusPointCustom));
-    QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointAuto);
-
-    cameraFocus->setFocusPointMode( QCameraFocus::FocusPointCenter );
-    QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointCenter);
-
-    cameraFocus->setFocusPointMode( QCameraFocus::FocusPointFaceDetection );
-    QCOMPARE(cameraFocus->focusPointMode(), QCameraFocus::FocusPointCenter);
 
     QCOMPARE(cameraFocus->customFocusPoint(), QPointF(0.5, 0.5));
     cameraFocus->setCustomFocusPoint(QPointF(1.0, 1.0));

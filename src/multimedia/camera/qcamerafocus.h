@@ -63,13 +63,11 @@ class Q_MULTIMEDIA_EXPORT QCameraFocus : public QObject
     Q_OBJECT
 
     Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode)
-    Q_PROPERTY(FocusPointMode focusPointMode READ focusPointMode WRITE setFocusPointMode)
-    Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint)
+    Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
     Q_PROPERTY(float focusDistance READ focusDistance WRITE setFocusDistance NOTIFY focusDistanceChanged)
 
     Q_ENUMS(FocusMode)
-    Q_ENUMS(FocusPointMode)
 public:
     enum FocusMode {
         FocusModeAuto,
@@ -88,24 +86,17 @@ public:
 #endif
     };
 
-    enum FocusPointMode {
-        FocusPointAuto,
-        FocusPointCenter,
-        FocusPointFaceDetection,
-        FocusPointCustom
-    };
-
     bool isAvailable() const;
 
     FocusMode focusMode() const;
     void setFocusMode(FocusMode mode);
     bool isFocusModeSupported(FocusMode mode) const;
 
-    FocusPointMode focusPointMode() const;
-    void setFocusPointMode(FocusPointMode mode);
-    bool isFocusPointModeSupported(FocusPointMode) const;
+    QPointF focusPoint() const;
+
     QPointF customFocusPoint() const;
     void setCustomFocusPoint(const QPointF &point);
+    bool isCustomFocusPointSupported() const;
 
     void setFocusDistance(float d);
     float focusDistance() const;
@@ -120,6 +111,7 @@ public:
 Q_SIGNALS:
     void zoomFactorChanged(float);
     void focusDistanceChanged(float);
+    void customFocusPointChanged();
 
 protected:
     ~QCameraFocus();
@@ -136,6 +128,5 @@ private:
 QT_END_NAMESPACE
 
 Q_MEDIA_ENUM_DEBUG(QCameraFocus, FocusMode)
-Q_MEDIA_ENUM_DEBUG(QCameraFocus, FocusPointMode)
 
 #endif  // QCAMERAFOCUS_H

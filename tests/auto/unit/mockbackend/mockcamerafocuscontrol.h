@@ -39,7 +39,6 @@ public:
     MockCameraFocusControl(QObject *parent = 0):
         QPlatformCameraFocus(parent),
         m_focusMode(QCameraFocus::AutoFocus),
-        m_focusPointMode(QCameraFocus::FocusPointAuto),
         m_focusPoint(0.5, 0.5)
     {
     }
@@ -62,30 +61,7 @@ public:
         return mode == QCameraFocus::FocusModeAuto;
     }
 
-    QCameraFocus::FocusPointMode focusPointMode() const
-    {
-        return m_focusPointMode;
-    }
-
-    void setFocusPointMode(QCameraFocus::FocusPointMode mode)
-    {
-        if (isFocusPointModeSupported(mode))
-            m_focusPointMode = mode;
-    }
-
-    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
-    {
-        switch (mode) {
-        case QCameraFocus::FocusPointAuto:
-        case QCameraFocus::FocusPointCenter:
-        case QCameraFocus::FocusPointCustom:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    QPointF customFocusPoint() const
+    QPointF focusPoint() const
     {
         return m_focusPoint;
     }
@@ -106,7 +82,6 @@ public:
 
 private:
     QCameraFocus::FocusMode m_focusMode;
-    QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_focusPoint;
 
     float m_zoom = 1.;

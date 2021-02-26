@@ -110,7 +110,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_ENUMS(ExposureMode)
 
     Q_ENUMS(FocusMode)
-    Q_ENUMS(FocusPointMode)
 
 public:
     enum Position {
@@ -185,13 +184,6 @@ public:
         FocusInfinity = FocusModeInfinity,
         FocusManual = FocusModeManual
 #endif
-    };
-
-    enum FocusPointMode {
-        FocusPointAuto = QCameraFocus::FocusPointAuto,
-        FocusPointCenter = QCameraFocus::FocusPointCenter,
-        FocusPointFaceDetection = QCameraFocus::FocusPointFaceDetection,
-        FocusPointCustom = QCameraFocus::FocusPointCustom
     };
 
     QDeclarativeCamera(QObject *parent = 0);

@@ -81,10 +81,7 @@ public:
     void setFocusMode(QCameraFocus::FocusMode mode) override;
     bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
 
-    QCameraFocus::FocusPointMode focusPointMode() const override;
-    void setFocusPointMode(QCameraFocus::FocusPointMode mode) override;
-    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode) const override;
-    QPointF customFocusPoint() const override;
+    QPointF focusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
 
     qreal maximumOpticalZoom() const override;
@@ -115,7 +112,6 @@ private:
     CameraBinSession *m_session;
     QCamera::Status m_cameraStatus;
     QCameraFocus::FocusMode m_focusMode;
-    QCameraFocus::FocusPointMode m_focusPointMode;
     QPointF m_focusPoint;
     QRectF m_focusRect;
     QSize m_viewfinderResolution;

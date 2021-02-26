@@ -61,9 +61,8 @@ CameraBinFocus::CameraBinFocus(CameraBinSession *session)
      m_session(session),
      m_cameraStatus(QCamera::UnloadedStatus),
      m_focusMode(QCameraFocus::AutoFocus),
-     m_focusPointMode(QCameraFocus::FocusPointAuto),
      m_focusStatus(QCamera::Unlocked),
-     m_focusPoint(0.5, 0.5),
+     m_focusPoint(-1., -1.),
      m_focusRect(0, 0, 0.3, 0.3)
 {
     m_focusRect.moveCenter(m_focusPoint);
@@ -134,72 +133,6 @@ bool CameraBinFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
     }
 }
 
-QCameraFocus::FocusPointMode CameraBinFocus::focusPointMode() const
-{
-    return m_focusPointMode;
-}
-
-void CameraBinFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
-{
-    GstElement *source = m_session->cameraSource();
-
-    if (m_focusPointMode == mode || !source)
-        return;
-
-    if (m_focusPointMode == QCameraFocus::FocusPointFaceDetection) {
-        g_object_set (G_OBJECT(source), "detect-faces", FALSE, NULL);
-
-        if (GstPad *pad = gst_element_get_static_pad(source, "vfsrc")) {
-            removeProbeFromPad(pad);
-            gst_object_unref(GST_OBJECT(pad));
-        }
-
-        m_faceResetTimer.stop();
-        m_faceFocusRects.clear();
-
-        QMutexLocker locker(&m_mutex);
-        m_faces.clear();
-    }
-
-    if (m_focusPointMode != QCameraFocus::FocusPointAuto)
-        resetFocusPoint();
-
-    switch (mode) {
-    case QCameraFocus::FocusPointAuto:
-    case QCameraFocus::FocusPointCustom:
-        break;
-    case QCameraFocus::FocusPointFaceDetection:
-        if (g_object_class_find_property(G_OBJECT_GET_CLASS(source), "detect-faces")) {
-            if (GstPad *pad = gst_element_get_static_pad(source, "vfsrc")) {
-                addProbeToPad(pad);
-                g_object_set (G_OBJECT(source), "detect-faces", TRUE, NULL);
-                break;
-            }
-        }
-        return;
-    default:
-        return;
-    }
-
-    m_focusPointMode = mode;
-    emit focusPointModeChanged(m_focusPointMode);
-}
-
-bool CameraBinFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
-{
-    switch (mode) {
-    case QCameraFocus::FocusPointAuto:
-    case QCameraFocus::FocusPointCustom:
-        return true;
-    case QCameraFocus::FocusPointFaceDetection:
-        if (GstElement *source = m_session->cameraSource())
-            return g_object_class_find_property(G_OBJECT_GET_CLASS(source), "detect-faces");
-        return false;
-    default:
-        return false;
-    }
-}
-
 QPointF CameraBinFocus::customFocusPoint() const
 {
     return m_focusPoint;
@@ -214,12 +147,9 @@ void CameraBinFocus::setCustomFocusPoint(const QPointF &point)
         m_focusPoint.setX(qBound(m_focusRect.width() / 2, m_focusPoint.x(), 1 - m_focusRect.width() / 2));
         m_focusPoint.setY(qBound(m_focusRect.height() / 2, m_focusPoint.y(), 1 - m_focusRect.height() / 2));
 
-        if (m_focusPointMode == QCameraFocus::FocusPointCustom) {
-            const QRectF focusRect = m_focusRect;
-            m_focusRect.moveCenter(m_focusPoint);
+        m_focusRect.moveCenter(m_focusPoint);
 
-            updateRegionOfInterest(m_focusRect);
-        }
+        updateRegionOfInterest(m_focusRect);
 
         emit customFocusPointChanged(m_focusPoint);
     }
@@ -242,9 +172,7 @@ void CameraBinFocus::_q_handleCameraStatusChange(QCamera::Status status)
             }
             gst_object_unref(GST_OBJECT(pad));
         }
-        if (m_focusPointMode == QCameraFocus::FocusPointCustom) {
-                updateRegionOfInterest(m_focusRect);
-        }
+        updateRegionOfInterest(m_focusRect);
     } else {
         _q_setFocusStatus(QCamera::Unlocked, QCamera::LockLost);
 
@@ -353,8 +281,8 @@ void CameraBinFocus::updateRegionOfInterest(const QList<QRect> &rectangles)
 
 void CameraBinFocus::_q_updateFaces()
 {
-    if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection)
-        return;
+//    if (m_focusPointMode != QCameraFocus::FocusPointFaceDetection)
+//        return;
 
     QList<QRect> faces;
 

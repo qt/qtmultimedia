@@ -62,13 +62,6 @@ bool qt_focus_mode_supported(QCameraFocus::FocusMode mode)
            || mode == QCameraFocus::ManualFocus;
 }
 
-bool qt_focus_point_mode_supported(QCameraFocus::FocusPointMode mode)
-{
-    return mode == QCameraFocus::FocusPointAuto
-           || mode == QCameraFocus::FocusPointCustom
-           || mode == QCameraFocus::FocusPointCenter;
-}
-
 AVCaptureFocusMode avf_focus_mode(QCameraFocus::FocusMode requestedMode)
 {
     switch (requestedMode) {
@@ -87,7 +80,6 @@ AVCaptureFocusMode avf_focus_mode(QCameraFocus::FocusMode requestedMode)
 AVFCameraFocusControl::AVFCameraFocusControl(AVFCameraService *service)
     : m_session(service->session()),
       m_focusMode(QCameraFocus::ContinuousFocus),
-      m_focusPointMode(QCameraFocus::FocusPointAuto),
       m_customFocusPoint(0.5f, 0.5f),
       m_actualFocusPoint(m_customFocusPoint)
 {
@@ -160,71 +152,7 @@ bool AVFCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mode) c
 #endif
 }
 
-QCameraFocus::FocusPointMode AVFCameraFocusControl::focusPointMode() const
-{
-    return m_focusPointMode;
-}
-
-void AVFCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
-{
-    if (m_focusPointMode == mode)
-        return;
-
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
-    if (!captureDevice) {
-        if (qt_focus_point_mode_supported(mode)) {
-            m_focusPointMode = mode;
-            Q_EMIT focusPointModeChanged(mode);
-        }
-        return;
-    }
-
-    if (isFocusPointModeSupported(mode)) {
-        const AVFConfigurationLock lock(captureDevice);
-        if (!lock) {
-            qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
-            return;
-        }
-
-        bool resetPOI = false;
-        if (mode == QCameraFocus::FocusPointCenter || mode == QCameraFocus::FocusPointAuto) {
-            if (m_actualFocusPoint != QPointF(0.5, 0.5)) {
-                m_actualFocusPoint = QPointF(0.5, 0.5);
-                resetPOI = true;
-            }
-        } else if (mode == QCameraFocus::FocusPointCustom) {
-            if (m_actualFocusPoint != m_customFocusPoint) {
-                m_actualFocusPoint = m_customFocusPoint;
-                resetPOI = true;
-            }
-        } // else for any other mode in future.
-
-        if (resetPOI) {
-            const CGPoint focusPOI = CGPointMake(m_actualFocusPoint.x(), m_actualFocusPoint.y());
-            [captureDevice setFocusPointOfInterest:focusPOI];
-        }
-        m_focusPointMode = mode;
-    } else {
-        qDebugCamera() << Q_FUNC_INFO << "focus point mode is not supported";
-        return;
-    }
-
-    Q_EMIT focusPointModeChanged(mode);
-}
-
-bool AVFCameraFocusControl::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
-{
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
-    if (!captureDevice)
-        return false;
-
-    if (!qt_focus_point_mode_supported(mode))
-        return false;
-
-    return [captureDevice isFocusPointOfInterestSupported];
-}
-
-QPointF AVFCameraFocusControl::customFocusPoint() const
+QPointF AVFCameraFocusControl::focusPoint() const
 {
     return m_customFocusPoint;
 }
@@ -235,6 +163,7 @@ void AVFCameraFocusControl::setCustomFocusPoint(const QPointF &point)
         return;
 
     if (!QRectF(0.f, 0.f, 1.f, 1.f).contains(point)) {
+        // ### release custom focus point, tell the camera to focus where it wants...
         qDebugCamera() << Q_FUNC_INFO << "invalid focus point (out of range)";
         return;
     }
@@ -243,7 +172,7 @@ void AVFCameraFocusControl::setCustomFocusPoint(const QPointF &point)
     Q_EMIT customFocusPointChanged(m_customFocusPoint);
 
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
-    if (!captureDevice || m_focusPointMode != QCameraFocus::FocusPointCustom)
+    if (!captureDevice)
         return;
 
     if ([captureDevice isFocusPointOfInterestSupported]) {
@@ -262,6 +191,11 @@ void AVFCameraFocusControl::setCustomFocusPoint(const QPointF &point)
         qDebugCamera() << Q_FUNC_INFO << "focus point of interest not supported";
         return;
     }
+}
+
+bool AVFCameraFocusControl::isCustomFocusPointSupported() const
+{
+    return true;
 }
 
 void AVFCameraFocusControl::setFocusDistance(float d)
@@ -312,8 +246,7 @@ void AVFCameraFocusControl::cameraStateChanged()
     }
 
     const AVFConfigurationLock lock(captureDevice);
-    if (m_customFocusPoint != m_actualFocusPoint
-        && m_focusPointMode == QCameraFocus::FocusPointCustom) {
+    if (m_customFocusPoint != m_actualFocusPoint) {
         if (![captureDevice isFocusPointOfInterestSupported]) {
             qDebugCamera() << Q_FUNC_INFO
                            << "focus point of interest not supported";

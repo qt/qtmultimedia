@@ -48,7 +48,6 @@ BbCameraFocusControl::BbCameraFocusControl(BbCameraSession *session, QObject *pa
     : QPlatformCameraFocus(parent)
     , m_session(session)
     , m_focusMode(QCameraFocus::FocusModeAuto)
-    , m_focusPointMode(QCameraFocus::FocusPointAuto)
     , m_customFocusPoint(QPointF(0, 0))
 {
     connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(statusChanged(QCamera::Status)));
@@ -133,81 +132,7 @@ bool BbCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mode) co
     return false;
 }
 
-QCameraFocus::FocusPointMode BbCameraFocusControl::focusPointMode() const
-{
-    return m_focusPointMode;
-}
-
-void BbCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
-{
-    if (m_session->status() != QCamera::ActiveStatus)
-        return;
-
-    if (m_focusPointMode == mode)
-        return;
-
-    m_focusPointMode = mode;
-    emit focusPointModeChanged(m_focusPointMode);
-
-    if (m_focusPointMode == QCameraFocus::FocusPointAuto) {
-        //TODO: is this correct?
-        const camera_error_t result = camera_set_focus_regions(m_session->handle(), 0, 0);
-        if (result != CAMERA_EOK) {
-            qWarning() << "Unable to set focus region:" << result;
-            return;
-        }
-    } else if (m_focusPointMode == QCameraFocus::FocusPointCenter) {
-        // get the size of the viewfinder
-        int viewfinderWidth = 0;
-        int viewfinderHeight = 0;
-
-        if (!retrieveViewfinderSize(&viewfinderWidth, &viewfinderHeight))
-            return;
-
-        // define a 40x40 pixel focus region in the center of the viewfinder
-        camera_region_t focusRegion;
-        focusRegion.left = (viewfinderWidth / 2) - 20;
-        focusRegion.top = (viewfinderHeight / 2) - 20;
-        focusRegion.width = 40;
-        focusRegion.height = 40;
-
-        camera_error_t result = camera_set_focus_regions(m_session->handle(), 1, &focusRegion);
-        if (result != CAMERA_EOK) {
-            qWarning() << "Unable to set focus region:" << result;
-            return;
-        }
-
-        // re-set focus mode to apply focus region changes
-        camera_focusmode_t focusMode = CAMERA_FOCUSMODE_OFF;
-        result = camera_get_focus_mode(m_session->handle(), &focusMode);
-        camera_set_focus_mode(m_session->handle(), focusMode);
-
-    } else if (m_focusPointMode == QCameraFocus::FocusPointFaceDetection) {
-        //TODO: implement later
-    } else if (m_focusPointMode == QCameraFocus::FocusPointCustom) {
-        updateCustomFocusRegion();
-    }
-}
-
-bool BbCameraFocusControl::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
-{
-    if (m_session->state() == QCamera::UnloadedState)
-        return false;
-
-    if (mode == QCameraFocus::FocusPointAuto) {
-        return camera_has_feature(m_session->handle(), CAMERA_FEATURE_AUTOFOCUS);
-    } else if (mode == QCameraFocus::FocusPointCenter) {
-        return camera_has_feature(m_session->handle(), CAMERA_FEATURE_REGIONFOCUS);
-    } else if (mode == QCameraFocus::FocusPointFaceDetection) {
-        return false; //TODO: implement via custom region in combination with face detection in viewfinder
-    } else if (mode == QCameraFocus::FocusPointCustom) {
-        return camera_has_feature(m_session->handle(), CAMERA_FEATURE_REGIONFOCUS);
-    }
-
-    return false;
-}
-
-QPointF BbCameraFocusControl::customFocusPoint() const
+QPointF BbCameraFocusControl::focusPoint() const
 {
     return m_customFocusPoint;
 }

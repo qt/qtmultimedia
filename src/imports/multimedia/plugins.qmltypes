@@ -613,15 +613,6 @@ Module {
             }
         }
         Enum {
-            name: "FocusPointMode"
-            values: {
-                "FocusPointAuto": 0,
-                "FocusPointCenter": 1,
-                "FocusPointFaceDetection": 2,
-                "FocusPointCustom": 3
-            }
-        }
-        Enum {
             name: "Availability"
             values: {
                 "Available": 0,
@@ -970,27 +961,12 @@ Module {
                 "FocusManual": 5
             }
         }
-        Enum {
-            name: "FocusPointMode"
-            values: {
-                "FocusPointAuto": 0,
-                "FocusPointCenter": 1,
-                "FocusPointFaceDetection": 2,
-                "FocusPointCustom": 3
-            }
-        }
         Property { name: "focusMode"; type: "FocusMode" }
         Property { name: "supportedFocusModes"; revision: 1; type: "QVariantList"; isReadonly: true }
-        Property { name: "focusPointMode"; type: "FocusPointMode" }
-        Property { name: "supportedFocusPointModes"; revision: 1; type: "QVariantList"; isReadonly: true }
         Property { name: "customFocusPoint"; type: "QPointF" }
         Signal {
             name: "focusModeChanged"
             Parameter { type: "FocusMode" }
-        }
-        Signal {
-            name: "focusPointModeChanged"
-            Parameter { type: "FocusPointMode" }
         }
         Signal {
             name: "customFocusPointChanged"
@@ -1001,10 +977,6 @@ Module {
             Parameter { type: "FocusMode" }
         }
         Method {
-            name: "setFocusPointMode"
-            Parameter { name: "mode"; type: "FocusPointMode" }
-        }
-        Method {
             name: "setCustomFocusPoint"
             Parameter { name: "point"; type: "QPointF" }
         }
@@ -1012,11 +984,6 @@ Module {
             name: "isFocusModeSupported"
             type: "bool"
             Parameter { name: "mode"; type: "FocusMode" }
-        }
-        Method {
-            name: "isFocusPointModeSupported"
-            type: "bool"
-            Parameter { name: "mode"; type: "FocusPointMode" }
         }
     }
     Component {

@@ -68,7 +68,6 @@ QT_BEGIN_NAMESPACE
 
             focus {
                 focusMode: Camera.FocusMacro
-                focusPointMode: Camera.FocusPointCustom
                 customFocusPoint: Qt.point(0.2, 0.2) // Focus relative to top-left corner
             }
         }
@@ -104,7 +103,6 @@ QDeclarativeCameraFocus::QDeclarativeCameraFocus(QCamera *camera, QObject *paren
         }
 
         emit supportedFocusModeChanged();
-        emit supportedFocusPointModesChanged();
     });
 }
 
@@ -114,9 +112,8 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
 
     This property holds the current camera focus mode.
 
-    In automatic focusing modes, the \l focusPointMode
-    property provides information and control
-    over how automatic focusing is performed.
+    In automatic focusing modes, the \l focusPoint
+    property provides a hint on where the camera should focus.
 */
 
 /*!
@@ -149,9 +146,9 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
       \li Manual or fixed focus mode.
     \endtable
 
-    In automatic focusing modes, the \l focusPointMode property
+    In automatic focusing modes, the \l focusPoint property
     provides information and control
-    over how automatic focusing is performed.
+    over the area of the image that is being focused.
 */
 QDeclarativeCameraFocus::FocusMode QDeclarativeCameraFocus::focusMode() const
 {
@@ -183,75 +180,6 @@ void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCameraFocus::FocusMode mo
     if (mode != focusMode()) {
         m_focus->setFocusMode(QCameraFocus::FocusMode(int(mode)));
         emit focusModeChanged(focusMode());
-    }
-}
-/*!
-    \property QDeclarativeCameraFocus::focusPointMode
-
-    This property holds the current camera focus point mode. It is used in
-    automatic focusing modes to determine what to focus on.
-
-    If the current focus point mode is \l QCameraFocus::FocusPointCustom, the
-    \l customFocusPoint property allows you to specify which part of
-    the frame to focus on.
-*/
-/*!
-    \qmlproperty enumeration CameraFocus::focusPointMode
-
-    This property holds the current camera focus point mode. It is used in automatic
-    focusing modes to determine what to focus on. If the current
-    focus point mode is \c Camera.FocusPointCustom, the \l customFocusPoint
-    property allows you to specify which part of the frame to focus on.
-
-    The property can take one of the following values:
-    \table
-     \header
-      \li Value
-      \li Description
-     \row
-      \li FocusPointAuto
-      \li Automatically select one or multiple focus points.
-     \row
-      \li FocusPointCenter
-      \li Focus to the frame center.
-     \row
-      \li FocusPointFaceDetection
-      \li Focus on faces in the frame.
-     \row
-      \li FocusPointCustom
-      \li Focus to the custom point, defined by the customFocusPoint property.
-    \endtable
-*/
-QDeclarativeCameraFocus::FocusPointMode QDeclarativeCameraFocus::focusPointMode() const
-{
-    return QDeclarativeCameraFocus::FocusPointMode(m_focus->focusPointMode());
-}
-
-/*!
-    \qmlproperty list<enumeration> CameraFocus::supportedFocusPointModes
-
-    This property holds the supported focus point modes of the camera.
-
-    \since 5.10
-    \sa focusPointMode
-*/
-QVariantList QDeclarativeCameraFocus::supportedFocusPointModes() const
-{
-    QVariantList supportedModes;
-
-    for (int i = int(FocusPointAuto); i <= int(FocusPointCustom); i++) {
-        if (m_focus->isFocusPointModeSupported(QCameraFocus::FocusPointMode(i)))
-            supportedModes.append(i);
-    }
-
-    return supportedModes;
-}
-
-void QDeclarativeCameraFocus::setFocusPointMode(QDeclarativeCameraFocus::FocusPointMode mode)
-{
-    if (mode != focusPointMode()) {
-        m_focus->setFocusPointMode(QCameraFocus::FocusPointMode(mode));
-        emit focusPointModeChanged(focusPointMode());
     }
 }
 

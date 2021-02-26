@@ -63,8 +63,7 @@ QAndroidCameraFocusControl::QAndroidCameraFocusControl(QAndroidCameraSession *se
     : QPlatformCameraFocus()
     , m_session(session)
     , m_focusMode(QCameraFocus::AutoFocus)
-    , m_focusPointMode(QCameraFocus::FocusPointAuto)
-    , m_actualFocusPoint(0.5, 0.5)
+    , m_focusPoint(0.5, 0.5)
     , m_continuousPictureFocusSupported(false)
     , m_continuousVideoFocusSupported(false)
 {
@@ -124,55 +123,25 @@ bool QAndroidCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mo
     return m_session->camera() ? m_supportedFocusModes.contains(mode) : false;
 }
 
-QCameraFocus::FocusPointMode QAndroidCameraFocusControl::focusPointMode() const
+bool QAndroidCameraFocusControl::isCustomFocusPointSupported() const
 {
-    return m_focusPointMode;
+    return m_focusPointSupported;
 }
 
-void QAndroidCameraFocusControl::setFocusPointMode(QCameraFocus::FocusPointMode mode)
+QPointF QAndroidCameraFocusControl::focusPoint() const
 {
-    if (!m_session->camera()) {
-        setFocusPointModeHelper(mode);
-        return;
-    }
-
-    if (isFocusPointModeSupported(mode)) {
-        if (mode == QCameraFocus::FocusPointCustom) {
-            m_actualFocusPoint = m_customFocusPoint;
-        } else {
-            // FocusPointAuto | FocusPointCenter
-            // note: there is no way to know the actual focus point in FocusPointAuto mode,
-            // so just report the focus point to be at the center of the frame
-            m_actualFocusPoint = QPointF(0.5, 0.5);
-        }
-
-        setFocusPointModeHelper(mode);
-
-        setCameraFocusArea();
-    }
-}
-
-bool QAndroidCameraFocusControl::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
-{
-    return m_session->camera() ? m_supportedFocusPointModes.contains(mode) : false;
-}
-
-QPointF QAndroidCameraFocusControl::customFocusPoint() const
-{
-    return m_customFocusPoint;
+    return m_focusPoint;
 }
 
 void QAndroidCameraFocusControl::setCustomFocusPoint(const QPointF &point)
 {
-    if (m_customFocusPoint != point) {
-        m_customFocusPoint = point;
-        emit customFocusPointChanged(m_customFocusPoint);
+    if (m_focusPoint != point) {
+        m_focusPoint = point;
+        emit customFocusPointChanged(m_focusPoint);
     }
 
-    if (m_session->camera() && m_focusPointMode == QCameraFocus::FocusPointCustom) {
-        m_actualFocusPoint = m_customFocusPoint;
+    if (m_session->camera())
         setCameraFocusArea();
-    }
 }
 
 void QAndroidCameraFocusControl::onCameraOpened()
@@ -187,7 +156,7 @@ void QAndroidCameraFocusControl::onCameraOpened()
     m_supportedFocusModes.clear();
     m_continuousPictureFocusSupported = false;
     m_continuousVideoFocusSupported = false;
-    m_supportedFocusPointModes.clear();
+    m_focusPointSupported = false;
 
     QStringList focusModes = m_session->camera()->getSupportedFocusModes();
     for (int i = 0; i < focusModes.size(); ++i) {
@@ -209,18 +178,14 @@ void QAndroidCameraFocusControl::onCameraOpened()
         }
     }
 
-    m_supportedFocusPointModes << QCameraFocus::FocusPointAuto;
     if (m_session->camera()->getMaxNumFocusAreas() > 0)
-        m_supportedFocusPointModes << QCameraFocus::FocusPointCenter << QCameraFocus::FocusPointCustom;
+        m_focusPointSupported = true;
 
     if (!m_supportedFocusModes.contains(m_focusMode))
         setFocusModeHelper(QCameraFocus::AutoFocus);
-    if (!m_supportedFocusPointModes.contains(m_focusPointMode))
-        setFocusPointModeHelper(QCameraFocus::FocusPointAuto);
 
     setFocusMode(m_focusMode);
-    setCustomFocusPoint(m_customFocusPoint);
-    setFocusPointMode(m_focusPointMode);
+    setCustomFocusPoint(m_focusPoint);
 
     if (m_session->camera()->isZoomSupported()) {
         m_zoomRatios = m_session->camera()->getZoomRatios();
@@ -238,7 +203,7 @@ void QAndroidCameraFocusControl::onCameraOpened()
 void QAndroidCameraFocusControl::setCameraFocusArea()
 {
     QList<QRect> areas;
-    if (m_focusPointMode != QCameraFocus::FocusPointAuto) {
+    if (QRectF(0., 0., 1., 1.).contains(m_focusPoint)) {
         // in FocusPointAuto mode, leave the area list empty
         // to let the driver choose the focus point.
         QSize viewportSize = m_session->camera()->previewSize();
@@ -249,10 +214,10 @@ void QAndroidCameraFocusControl::setCameraFocusArea()
         // Set up a 50x50 pixel focus area around the focal point
         QSizeF focusSize(50.f / viewportSize.width(), 50.f / viewportSize.height());
         float x = qBound(qreal(0),
-                         m_actualFocusPoint.x() - (focusSize.width() / 2),
+                         m_focusPoint.x() - (focusSize.width() / 2),
                          1.f - focusSize.width());
         float y = qBound(qreal(0),
-                         m_actualFocusPoint.y() - (focusSize.height() / 2),
+                         m_focusPoint.y() - (focusSize.height() / 2),
                          1.f - focusSize.height());
 
         QRectF area(QPointF(x, y), focusSize);

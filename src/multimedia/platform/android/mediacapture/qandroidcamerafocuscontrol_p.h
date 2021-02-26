@@ -66,10 +66,9 @@ public:
     QCameraFocus::FocusMode focusMode() const override;
     void setFocusMode(QCameraFocus::FocusMode mode) override;
     bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
-    QCameraFocus::FocusPointMode focusPointMode() const override;
-    void setFocusPointMode(QCameraFocus::FocusPointMode mode) override;
-    bool isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const override;
-    QPointF customFocusPoint() const override;
+
+    bool isCustomFocusPointSupported() const override;
+    QPointF focusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
 
     ZoomRange zoomFactorRange() const override;
@@ -91,28 +90,17 @@ private:
         }
     }
 
-    inline void setFocusPointModeHelper(QCameraFocus::FocusPointMode mode)
-    {
-        if (m_focusPointMode != mode) {
-            m_focusPointMode = mode;
-            emit focusPointModeChanged(mode);
-        }
-    }
-
     void setCameraFocusArea();
 
     QAndroidCameraSession *m_session;
 
     QCameraFocus::FocusMode m_focusMode;
-    QCameraFocus::FocusPointMode m_focusPointMode;
-    QPointF m_actualFocusPoint;
-    QPointF m_customFocusPoint;
+    QPointF m_focusPoint;
 
     QList<QCameraFocus::FocusMode> m_supportedFocusModes;
     bool m_continuousPictureFocusSupported;
     bool m_continuousVideoFocusSupported;
-
-    QList<QCameraFocus::FocusPointMode> m_supportedFocusPointModes;
+    bool m_focusPointSupported = false;
 
     float m_maximumZoom;
     QList<int> m_zoomRatios;
