@@ -40,36 +40,21 @@ class MockCameraControl : public QPlatformCamera
 public:
     MockCameraControl(QObject *parent = 0):
             QPlatformCamera(parent),
-            m_state(QCamera::UnloadedState),
-            m_status(QCamera::UnloadedStatus),
+            m_status(QCamera::InactiveStatus),
             m_propertyChangesSupported(false)
     {
     }
 
     ~MockCameraControl() {}
 
-    void start() { m_state = QCamera::ActiveState; }
-    virtual void stop() { m_state = QCamera::UnloadedState; }
-    QCamera::State state() const { return m_state; }
-    void setState(QCamera::State state) {
-        if (m_state != state) {
-            m_state = state;
-
-            switch (state) {
-            case QCamera::UnloadedState:
-                m_status = QCamera::UnloadedStatus;
-                break;
-            case QCamera::LoadedState:
-                m_status = QCamera::LoadedStatus;
-                break;
-            case QCamera::ActiveState:
-                m_status = QCamera::ActiveStatus;
-                break;
-            }
-
-            emit stateChanged(m_state);
-            emit statusChanged(m_status);
-        }
+    void start() { setActive(true); }
+    void stop() { setActive(false); }
+    bool isActive() const { return m_active; }
+    void setActive(bool active) {
+        if (m_active == active)
+            return;
+        m_active = active;
+        emit activeChanged(active);
     }
 
     QCamera::Status status() const { return m_status; }
@@ -94,7 +79,7 @@ public:
 
     void setVideoSurface(QAbstractVideoSurface *) {}
 
-    QCamera::State m_state;
+    bool m_active = false;
     QCamera::Status m_status;
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;

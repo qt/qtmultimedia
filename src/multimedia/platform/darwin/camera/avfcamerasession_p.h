@@ -83,9 +83,7 @@ public:
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
 
-    QCamera::State state() const;
-    QCamera::State requestedState() const { return m_state; }
-    bool isActive() const { return m_active; }
+    bool isActive() const;
 
     FourCharCode defaultCodec();
 
@@ -94,7 +92,7 @@ public:
     void setVideoSurface(QAbstractVideoSurface *surface);
 
 public Q_SLOTS:
-    void setState(QCamera::State state);
+    void setActive(bool active);
 
     void processRuntimeError();
     void processSessionStarted();
@@ -102,7 +100,6 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void readyToConfigureConnections();
-    void stateChanged(QCamera::State newState);
     void activeChanged(bool);
     void newViewfinderFrame(const QVideoFrame &frame);
     void error(int error, const QString &errorString);
@@ -119,8 +116,7 @@ private:
     AVFCameraRendererControl *m_videoOutput;
     AVFCameraWindowControl *m_capturePreviewWindowOutput;
 
-    QCamera::State m_state;
-    bool m_active;
+    bool m_active = false;
 
     AVCaptureSession *m_captureSession;
     AVCaptureDeviceInput *m_videoInput;

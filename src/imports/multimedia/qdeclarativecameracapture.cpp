@@ -232,8 +232,7 @@ void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Er
 
 void QDeclarativeCameraCapture::_q_cameraStatusChanged(QCamera::Status status)
 {
-    if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus &&
-            status != QCamera::ActiveStatus)
+    if (status != QCamera::InactiveStatus && status != QCamera::ActiveStatus)
         return;
 
     emit supportedResolutionsChanged();

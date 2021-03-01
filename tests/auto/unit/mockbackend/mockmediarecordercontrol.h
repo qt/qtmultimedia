@@ -42,7 +42,7 @@ public:
     MockMediaRecorderControl(QObject *parent = 0):
         QPlatformMediaRecorder(parent),
         m_state(QMediaRecorder::StoppedState),
-        m_status(QMediaRecorder::LoadedStatus),
+        m_status(QMediaRecorder::StoppedStatus),
         m_position(0),
         m_muted(false),
         m_volume(1.0),
@@ -138,7 +138,7 @@ public slots:
     {
         m_position=0;
         m_state = QMediaRecorder::StoppedState;
-        m_status = QMediaRecorder::LoadedStatus;
+        m_status = QMediaRecorder::StoppedStatus;
         emit stateChanged(m_state);
         emit statusChanged(m_status);
     }

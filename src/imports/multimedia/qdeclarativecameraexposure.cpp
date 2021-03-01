@@ -108,10 +108,8 @@ QDeclarativeCameraExposure::QDeclarativeCameraExposure(QCamera *camera, QObject 
 
     connect(m_exposure, SIGNAL(exposureCompensationChanged(qreal)), this, SIGNAL(exposureCompensationChanged(qreal)));
     connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
-        if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
-            && status != QCamera::ActiveStatus) {
+        if (status != QCamera::InactiveStatus && status != QCamera::ActiveStatus)
             return;
-        }
 
         emit supportedExposureModesChanged();
     });

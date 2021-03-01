@@ -321,8 +321,7 @@ bool AVFImageCaptureControl::applySettings()
         return false;
 
     AVFCameraSession *session = m_service->session();
-    if (!session || (session->state() != QCamera::ActiveState
-        && session->state() != QCamera::LoadedState))
+    if (!session)
         return false;
 
     if (!m_service->imageCaptureControl()

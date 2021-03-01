@@ -123,8 +123,7 @@ void QDeclarativeCameraFlash::setFlashMode(QDeclarativeCameraFlash::FlashMode mo
 
 void QDeclarativeCameraFlash::_q_cameraStatusChanged(QCamera::Status status)
 {
-    if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus &&
-            status != QCamera::ActiveStatus)
+    if (status != QCamera::InactiveStatus && status != QCamera::ActiveStatus)
         return;
 
     emit supportedModesChanged();

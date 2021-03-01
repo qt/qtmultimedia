@@ -66,9 +66,7 @@ class QCameraPrivate : public QObjectPrivate
 public:
     QCameraPrivate()
         : QObjectPrivate(),
-          state(QCamera::UnloadedState),
-          error(QCamera::NoError),
-          supressLockChangedSignal(false)
+          error(QCamera::NoError)
     {
     }
 
@@ -86,21 +84,13 @@ public:
 
     QObject *capture = nullptr;
 
-    QCamera::State state;
-
     QCamera::Error error;
     QString errorString;
 
     QCameraInfo cameraInfo;
 
-    bool supressLockChangedSignal;
-
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }
-
-    void setState(QCamera::State);
-
-    void _q_updateState(QCamera::State newState);
 };
 
 QT_END_NAMESPACE

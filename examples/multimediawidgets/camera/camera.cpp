@@ -105,7 +105,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
 {
     m_camera.reset(new QCamera(cameraInfo));
 
-    connect(m_camera.data(), &QCamera::stateChanged, this, &Camera::updateCameraState);
+    connect(m_camera.data(), &QCamera::activeChanged, this, &Camera::updateCameraActive);
     connect(m_camera.data(), &QCamera::errorOccurred, this, &Camera::displayCameraError);
 
     m_mediaRecorder.reset(new QMediaRecorder(m_camera.data()));
@@ -121,7 +121,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
 
     m_camera->setViewfinder(ui->viewfinder);
 
-    updateCameraState(m_camera->state());
+    updateCameraActive(m_camera->isActive());
     updateRecorderState(m_mediaRecorder->state());
 
     connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
@@ -204,9 +204,6 @@ void Camera::configureVideoSettings()
         m_encoderSettings = settingsDialog.encoderSettings();
 
         m_mediaRecorder->setEncoderSettings(m_encoderSettings);
-
-        m_camera->unload();
-        m_camera->start();
     }
 }
 
@@ -274,17 +271,14 @@ void Camera::updateCaptureMode()
     m_doImageCapture = (tabIndex == 0);
 }
 
-void Camera::updateCameraState(QCamera::State state)
+void Camera::updateCameraActive(bool active)
 {
-    switch (state) {
-    case QCamera::ActiveState:
+    if (active) {
         ui->actionStartCamera->setEnabled(false);
         ui->actionStopCamera->setEnabled(true);
         ui->captureWidget->setEnabled(true);
         ui->actionSettings->setEnabled(true);
-        break;
-    case QCamera::UnloadedState:
-    case QCamera::LoadedState:
+    } else {
         ui->actionStartCamera->setEnabled(true);
         ui->actionStopCamera->setEnabled(false);
         ui->captureWidget->setEnabled(false);

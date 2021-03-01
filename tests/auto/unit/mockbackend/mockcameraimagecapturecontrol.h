@@ -50,7 +50,7 @@ public:
     {
     }
 
-    bool isReadyForCapture() const { return m_ready && m_cameraControl->state() == QCamera::ActiveState; }
+    bool isReadyForCapture() const { return m_ready && m_cameraControl->isActive(); }
 
     int capture(const QString &fileName)
     {

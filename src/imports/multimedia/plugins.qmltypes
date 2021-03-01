@@ -312,21 +312,17 @@ Module {
             name: "Status"
             values: {
                 "UnavailableStatus": 0,
-                "UnloadedStatus": 1,
-                "LoadingStatus": 2,
-                "UnloadingStatus": 3,
-                "LoadedStatus": 4,
-                "StartingStatus": 5,
-                "StoppingStatus": 6,
-                "ActiveStatus": 7
+                "InactiveStatus": 1,
+                "StartingStatus": 2,
+                "StoppingStatus": 3,
+                "ActiveStatus": 4
             }
         }
         Enum {
             name: "State"
             values: {
-                "UnloadedState": 0,
-                "LoadedState": 1,
-                "ActiveState": 2
+                "InactiveState": 0,
+                "ActiveState": 1
             }
         }
         Enum {
@@ -540,22 +536,18 @@ Module {
         Enum {
             name: "State"
             values: {
-                "ActiveState": 2,
-                "LoadedState": 1,
-                "UnloadedState": 0
+                "InactiveState": 0,
+                "ActiveState": 1
             }
         }
         Enum {
             name: "Status"
             values: {
                 "UnavailableStatus": 0,
-                "UnloadedStatus": 1,
-                "LoadingStatus": 2,
-                "UnloadingStatus": 3,
-                "LoadedStatus": 4,
-                "StartingStatus": 5,
-                "StoppingStatus": 6,
-                "ActiveStatus": 7
+                "InactiveStatus": 1,
+                "StartingStatus": 2,
+                "StoppingStatus": 3,
+                "ActiveStatus": 4
             }
         }
         Enum {
@@ -1103,13 +1095,11 @@ Module {
             name: "RecorderStatus"
             values: {
                 "UnavailableStatus": 0,
-                "UnloadedStatus": 1,
-                "LoadingStatus": 2,
-                "LoadedStatus": 3,
-                "StartingStatus": 4,
-                "RecordingStatus": 5,
-                "PausedStatus": 6,
-                "FinalizingStatus": 7
+                "StoppedStatus": 1,
+                "StartingStatus": 2,
+                "RecordingStatus": 3,
+                "PausedStatus": 4,
+                "FinalizingStatus": 5
             }
         }
         Enum {

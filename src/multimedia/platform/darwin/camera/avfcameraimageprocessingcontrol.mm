@@ -320,7 +320,7 @@ bool AVFCameraImageProcessingControl::setColorTemperature(float temperature)
 
 void AVFCameraImageProcessingControl::cameraStateChanged()
 {
-    if (m_session->state() != QCamera::ActiveState)
+    if (!m_session->isActive())
         return;
     setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto);
 }

@@ -66,7 +66,7 @@ class QCameraPrivate;
 class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QCamera::State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
 
     Q_ENUMS(Status)
@@ -76,19 +76,10 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 public:
     enum Status {
         UnavailableStatus,
-        UnloadedStatus,
-        LoadingStatus,
-        UnloadingStatus,
-        LoadedStatus,
+        InactiveStatus,
         StartingStatus,
         StoppingStatus,
         ActiveStatus
-    };
-
-    enum State {
-        UnloadedState,
-        LoadedState,
-        ActiveState
     };
 
     enum Error
@@ -103,8 +94,8 @@ public:
     ~QCamera();
 
     bool isAvailable() const;
+    bool isActive() const;
 
-    State state() const;
     Status status() const;
 
     QCameraInfo cameraInfo() const;
@@ -122,14 +113,12 @@ public:
 
     QPlatformMediaCapture *captureInterface() const;
 public Q_SLOTS:
-    void load();
-    void unload();
-
-    void start();
-    void stop();
+    void setActive(bool active);
+    void start() { setActive(true); }
+    void stop() { setActive(false); }
 
 Q_SIGNALS:
-    void stateChanged(QCamera::State state);
+    void activeChanged(bool);
     void statusChanged(QCamera::Status status);
     void errorOccurred(QCamera::Error);
 
@@ -137,13 +126,11 @@ private:
     Q_DISABLE_COPY(QCamera)
     Q_DECLARE_PRIVATE(QCamera)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_updateState(QCamera::State))
     friend class QCameraInfo;
 };
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QCamera, State)
 Q_MEDIA_ENUM_DEBUG(QCamera, Status)
 Q_MEDIA_ENUM_DEBUG(QCamera, Error)
 

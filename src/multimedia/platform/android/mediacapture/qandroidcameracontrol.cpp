@@ -73,14 +73,14 @@ QAndroidCameraControl::~QAndroidCameraControl()
     delete m_renderer;
 }
 
-void QAndroidCameraControl::setState(QCamera::State state)
+void QAndroidCameraControl::setActive(bool active)
 {
-    m_cameraSession->setState(state);
+    m_cameraSession->setActive(active);
 }
 
-QCamera::State QAndroidCameraControl::state() const
+bool QAndroidCameraControl::isActive() const
 {
-    return m_cameraSession->state();
+    return m_cameraSession->isActive();
 }
 
 QCamera::Status QAndroidCameraControl::status() const

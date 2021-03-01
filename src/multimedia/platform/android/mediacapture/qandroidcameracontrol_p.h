@@ -66,8 +66,8 @@ public:
     explicit QAndroidCameraControl(QAndroidCameraSession *session);
     virtual ~QAndroidCameraControl();
 
-    QCamera::State state() const override;
-    void setState(QCamera::State state) override;
+    bool isActive() const override;
+    void setActive(bool active) override;
 
     QCamera::Status status() const override;
 

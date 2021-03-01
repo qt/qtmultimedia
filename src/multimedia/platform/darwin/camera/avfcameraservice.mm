@@ -84,8 +84,6 @@ AVFCameraService::AVFCameraService()
 
 AVFCameraService::~AVFCameraService()
 {
-    m_cameraControl->setState(QCamera::UnloadedState);
-
 #ifdef Q_OS_IOS
     delete m_recorderControl;
 #endif

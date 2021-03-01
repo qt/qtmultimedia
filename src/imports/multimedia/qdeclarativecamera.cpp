@@ -64,11 +64,6 @@ void QDeclarativeCamera::_q_errorOccurred(QCamera::Error errorCode)
     emit errorChanged();
 }
 
-void QDeclarativeCamera::_q_updateState(QCamera::State state)
-{
-    emit cameraStateChanged(QDeclarativeCamera::State(state));
-}
-
 /*!
     \qmltype Camera
     \instantiates QDeclarativeCamera
@@ -171,7 +166,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     QObject(parent),
     m_camera(nullptr),
     m_metaData(nullptr),
-    m_pendingState(ActiveState),
     m_componentComplete(false)
 {
     m_currentCameraInfo = QMediaDeviceManager::defaultVideoInput();
@@ -185,7 +179,7 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_focus = new QDeclarativeCameraFocus(m_camera);
     m_imageProcessing = new QDeclarativeCameraImageProcessing(m_camera);
 
-    connect(m_camera, &QCamera::stateChanged, this, &QDeclarativeCamera::_q_updateState);
+    connect(m_camera, &QCamera::activeChanged, this, &QDeclarativeCamera::activeChanged);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
 
@@ -196,8 +190,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
 /*! Destructor, clean up memory */
 QDeclarativeCamera::~QDeclarativeCamera()
 {
-    m_camera->unload();
-
     // These must be deleted before QCamera
     delete m_imageCapture;
     delete m_videoRecorder;
@@ -217,7 +209,7 @@ void QDeclarativeCamera::classBegin()
 void QDeclarativeCamera::componentComplete()
 {
     m_componentComplete = true;
-    setCameraState(m_pendingState);
+    setActive(pendingActive);
 }
 
 /*!
@@ -355,9 +347,6 @@ void QDeclarativeCamera::setupDevice(const QString &deviceName)
             break;
         }
     }
-    State previousState = cameraState();
-    setCameraState(UnloadedState);
-
     m_currentCameraInfo = info;
     m_camera->setCameraInfo(info);
 
@@ -366,8 +355,6 @@ void QDeclarativeCamera::setupDevice(const QString &deviceName)
         emit displayNameChanged();
     if (oldCameraInfo.position() != m_currentCameraInfo.position())
         emit positionChanged();
-
-    setCameraState(previousState);
 }
 
 /*!
@@ -402,32 +389,14 @@ bool QDeclarativeCamera::isAvailable() const
 }
 
 /*!
-    \qmlproperty enumeration QtMultimedia::Camera::cameraState
+    \qmlproperty bool QtMultimedia::Camera::active
 
-    This property holds the camera object's current state. The default camera
-    state is \c ActiveState.
-
-    \value  Camera.UnloadedState
-            The initial camera state, with the camera not loaded.
-            The camera capabilities (with the exception of supported capture modes)
-            are unknown. This state saves the most power, but takes the longest
-            time to be ready for capture.
-            While the supported settings are unknown in this state,
-            you can still set the camera capture settings like codec,
-            resolution, or frame rate.
-    \value  Camera.LoadedState
-            The camera is loaded and ready to be configured.
-            In this state you can query camera capabilities,
-            set capture resolution, codecs, and so on.
-            The viewfinder is not active in the loaded state.
-            The camera consumes power in this state.
-    \value  Camera.ActiveState
-            In the active state, the viewfinder frames are available
-            and the camera is ready for capture.
+    This property holds the camera object's current state. By default, the default
+    camera is inactive.
 */
-QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
+bool QDeclarativeCamera::isActive() const
 {
-    return m_componentComplete ? QDeclarativeCamera::State(m_camera->state()) : m_pendingState;
+    return m_componentComplete ? m_camera->isActive() : pendingActive;
 }
 
 /*!
@@ -448,48 +417,25 @@ QDeclarativeCamera::State QDeclarativeCamera::cameraState() const
             service is not ready to capture yet.
     \value  Camera.StoppingStatus
             The camera is transitioning from \c {Camera.ActiveState} to
-            \c {Camera.LoadedState} or \c {Camera.UnloadedState}.
-    \value  Camera.LoadedStatus
-            The camera is loaded and ready to be configured.
-            This status indicates that the camera is opened and it's
-            possible to query for supported image and video capture
-            settings, such as resolution, frame rate, and codecs.
-    \value  Camera.LoadingStatus
-            The camera is transitioning from \c {Camera.UnloadedState} to
-            \c {Camera.LoadedState} or \c {Camera.ActiveState}.
-    \value  Camera.UnloadingStatus
-            The camera is transitioning from \c {Camera.LoadedState} or
-            \c {Camera.ActiveState} to \c {Camera.UnloadedState}.
-    \value  Camera.UnloadedStatus
-            The initial camera status, with camera not loaded.
-            The camera capabilities including supported capture
-            settings may be unknown.
+            \c {Camera.InactiveState}.
+    \value  Camera.InactiveStatus
+            The camera is inactive.
     \value  Camera.UnavailableStatus
-            The camera or camera backend is not available.
+            The camera is not available.
 */
 QDeclarativeCamera::Status QDeclarativeCamera::cameraStatus() const
 {
     return QDeclarativeCamera::Status(m_camera->status());
 }
 
-void QDeclarativeCamera::setCameraState(QDeclarativeCamera::State state)
+void QDeclarativeCamera::setActive(bool active)
 {
     if (!m_componentComplete) {
-        m_pendingState = state;
+        pendingActive = active;
         return;
     }
 
-    switch (state) {
-    case QDeclarativeCamera::ActiveState:
-        m_camera->start();
-        break;
-    case QDeclarativeCamera::UnloadedState:
-        m_camera->unload();
-        break;
-    case QDeclarativeCamera::LoadedState:
-        m_camera->load();
-        break;
-    }
+    m_camera->setActive(active);
 }
 
 /*!
@@ -499,10 +445,6 @@ void QDeclarativeCamera::setCameraState(QDeclarativeCamera::State state)
     be available and image or movie capture will
     be possible.
 */
-void QDeclarativeCamera::start()
-{
-    setCameraState(QDeclarativeCamera::ActiveState);
-}
 
 /*!
     \qmlmethod QtMultimedia::Camera::stop()
@@ -512,10 +454,6 @@ void QDeclarativeCamera::start()
 
     In this state, the camera still consumes power.
 */
-void QDeclarativeCamera::stop()
-{
-    setCameraState(QDeclarativeCamera::LoadedState);
-}
 
 /*!
     \qmlproperty real QtMultimedia::Camera::minimumZoomFactor
@@ -599,13 +537,13 @@ void QDeclarativeCamera::setZoomFactor(qreal value)
 */
 
 /*!
-    \qmlsignal Camera::cameraStateChanged(state)
+    \qmlsignal Camera::activeChanged(active)
 
-    This signal is emitted when the camera state has changed to \a state.  Since the
+    This signal is emitted when the camera state has changed to \a active. Since the
     state changes may take some time to occur this signal may arrive sometime
     after the state change has been requested.
 
-    The corresponding handler is \c onCameraStateChanged.
+    The corresponding handler is \c onActiveChanged.
 */
 
 /*!

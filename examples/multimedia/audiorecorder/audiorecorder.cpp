@@ -147,8 +147,7 @@ void AudioRecorder::updateStatus(QMediaRecorder::Status status)
         clearAudioLevels();
         statusMessage = tr("Paused");
         break;
-    case QMediaRecorder::UnloadedStatus:
-    case QMediaRecorder::LoadedStatus:
+    case QMediaRecorder::StoppedStatus:
         clearAudioLevels();
         statusMessage = tr("Stopped");
     default:

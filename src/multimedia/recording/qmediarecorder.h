@@ -89,9 +89,7 @@ public:
 
     enum Status {
         UnavailableStatus,
-        UnloadedStatus,
-        LoadingStatus,
-        LoadedStatus,
+        StoppedStatus,
         StartingStatus,
         RecordingStatus,
         PausedStatus,

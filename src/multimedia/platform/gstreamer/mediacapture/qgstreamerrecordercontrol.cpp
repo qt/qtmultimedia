@@ -48,7 +48,7 @@ QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *s
     : QPlatformMediaRecorder(session),
       m_session(session),
       m_state(QMediaRecorder::StoppedState),
-      m_status(QMediaRecorder::UnloadedStatus)
+      m_status(QMediaRecorder::StoppedStatus)
 {
     connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)), SLOT(updateStatus()));
     connect(m_session, SIGNAL(error(int,QString)), SLOT(handleSessionError(int,QString)));
@@ -82,7 +82,7 @@ QMediaRecorder::Status QGstreamerRecorderControl::status() const
 {
     static QMediaRecorder::Status statusTable[3][3] = {
         //Stopped recorder state:
-        { QMediaRecorder::LoadedStatus, QMediaRecorder::FinalizingStatus, QMediaRecorder::FinalizingStatus },
+        { QMediaRecorder::StoppedStatus, QMediaRecorder::FinalizingStatus, QMediaRecorder::FinalizingStatus },
         //Recording recorder state:
         { QMediaRecorder::StartingStatus, QMediaRecorder::RecordingStatus, QMediaRecorder::PausedStatus },
         //Paused recorder state:
@@ -114,7 +114,7 @@ void QGstreamerRecorderControl::updateStatus()
         m_status = newStatus;
         emit statusChanged(m_status);
         // If stop has been called and session state became stopped.
-        if (m_status == QMediaRecorder::LoadedStatus)
+        if (m_status == QMediaRecorder::StoppedStatus)
             emit stateChanged(m_state);
     }
 }

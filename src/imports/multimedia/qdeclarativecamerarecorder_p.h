@@ -103,9 +103,7 @@ public:
     enum RecorderStatus
     {
         UnavailableStatus = QMediaRecorder::UnavailableStatus,
-        UnloadedStatus = QMediaRecorder::UnloadedStatus,
-        LoadingStatus = QMediaRecorder::LoadingStatus,
-        LoadedStatus = QMediaRecorder::LoadedStatus,
+        StoppedStatus = QMediaRecorder::StoppedStatus,
         StartingStatus = QMediaRecorder::StartingStatus,
         RecordingStatus = QMediaRecorder::RecordingStatus,
         PausedStatus = QMediaRecorder::PausedStatus,

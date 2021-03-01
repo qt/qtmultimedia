@@ -97,7 +97,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
 
     camera.start();
-    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QCOMPARE(camera.isActive(), true);
     QCOMPARE(camera.status(), QCamera::ActiveStatus);
 
     QCOMPARE(stateChangedSignal.count(), 1);

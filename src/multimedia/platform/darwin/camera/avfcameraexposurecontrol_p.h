@@ -86,7 +86,7 @@ public:
     bool isTorchModeSupported(QCameraExposure::TorchMode mode) const override;
 
 private Q_SLOTS:
-    void cameraStateChanged(QCamera::State newState);
+    void cameraActiveChanged(bool active);
 
 private:
     void applyFlashSettings();

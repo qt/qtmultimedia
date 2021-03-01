@@ -151,12 +151,12 @@ void QAndroidCameraDataVideoOutput::configureFormat()
     } else {
         m_control->cameraSession()->setPreviewCallback(this);
 
-        if (m_control->cameraSession()->status() > QCamera::LoadedStatus)
+        if (m_control->cameraSession()->status() > QCamera::InactiveStatus)
             m_control->cameraSession()->camera()->stopPreview();
 
         m_control->cameraSession()->setPreviewFormat(qt_androidImageFormatFromPixelFormat(m_pixelFormat));
 
-        if (m_control->cameraSession()->status() > QCamera::LoadedStatus)
+        if (m_control->cameraSession()->status() > QCamera::InactiveStatus)
             m_control->cameraSession()->camera()->startPreview();
     }
 }

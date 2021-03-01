@@ -97,10 +97,8 @@ QDeclarativeCameraFocus::QDeclarativeCameraFocus(QCamera *camera, QObject *paren
     m_focus = camera->focus();
 
     connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
-        if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
-            && status != QCamera::ActiveStatus) {
+        if (status != QCamera::InactiveStatus && status != QCamera::ActiveStatus)
             return;
-        }
 
         emit supportedFocusModeChanged();
     });

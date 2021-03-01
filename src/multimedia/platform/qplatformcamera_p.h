@@ -58,8 +58,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QObject
     Q_OBJECT
 
 public:
-    virtual QCamera::State state() const = 0;
-    virtual void setState(QCamera::State state) = 0;
+    virtual bool isActive() const = 0;
+    virtual void setActive(bool active) = 0;
 
     virtual QCamera::Status status() const = 0;
 
@@ -72,7 +72,7 @@ public:
     virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
 
 Q_SIGNALS:
-    void stateChanged(QCamera::State);
+    void activeChanged(bool);
     void statusChanged(QCamera::Status);
     void error(int error, const QString &errorString);
 

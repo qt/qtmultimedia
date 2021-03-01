@@ -269,9 +269,9 @@ void tst_QMediaRecorder::testRecord()
     QCOMPARE(stateSignal.count(), 3);
 
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(capture->status(), QMediaRecorder::LoadedStatus);
+    QCOMPARE(capture->status(), QMediaRecorder::StoppedStatus);
     QVERIFY(!statusSignal.isEmpty());
-    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::LoadedStatus);
+    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::StoppedStatus);
     statusSignal.clear();
 
     mock->stop();

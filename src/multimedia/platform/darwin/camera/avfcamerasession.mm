@@ -143,8 +143,6 @@ AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
    : QObject(parent)
    , m_service(service)
    , m_capturePreviewWindowOutput(nullptr)
-   , m_state(QCamera::UnloadedState)
-   , m_active(false)
    , m_videoInput(nil)
    , m_defaultCodec(0)
 {
@@ -217,29 +215,20 @@ AVCaptureDevice *AVFCameraSession::videoCaptureDevice() const
     return nullptr;
 }
 
-QCamera::State AVFCameraSession::state() const
+bool AVFCameraSession::isActive() const
 {
-    if (m_active)
-        return QCamera::ActiveState;
-
-    return m_state == QCamera::ActiveState ? QCamera::LoadedState : m_state;
+    return m_active;
 }
 
-void AVFCameraSession::setState(QCamera::State newState)
+void AVFCameraSession::setActive(bool active)
 {
-    if (m_state == newState)
+    if (m_active == active)
         return;
 
-    qDebugCamera() << Q_FUNC_INFO << m_state << " -> " << newState;
+    qDebugCamera() << Q_FUNC_INFO << m_active << " -> " << active;
 
-    QCamera::State oldState = m_state;
-    m_state = newState;
-
-    //attach video input during Unloaded->Loaded transition
-    if (oldState == QCamera::UnloadedState)
+    if (active) {
         attachVideoInputDevice();
-
-    if (m_state == QCamera::ActiveState) {
         Q_EMIT readyToConfigureConnections();
         m_defaultCodec = 0;
         defaultCodec();
@@ -259,19 +248,16 @@ void AVFCameraSession::setState(QCamera::State newState)
 
         if (activeFormatSet)
             [videoCaptureDevice() unlockForConfiguration];
-    }
-
-    if (oldState == QCamera::ActiveState) {
+    } else {
         [m_captureSession stopRunning];
         [m_captureSession beginConfiguration];
     }
-
-    Q_EMIT stateChanged(m_state);
 }
 
 void AVFCameraSession::processRuntimeError()
 {
     qWarning() << tr("Runtime camera error");
+    m_active = false;
     Q_EMIT error(QCamera::CameraError, tr("Runtime camera error"));
 }
 
@@ -281,7 +267,6 @@ void AVFCameraSession::processSessionStarted()
     if (!m_active) {
         m_active = true;
         Q_EMIT activeChanged(m_active);
-        Q_EMIT stateChanged(state());
     }
 }
 
@@ -291,7 +276,6 @@ void AVFCameraSession::processSessionStopped()
     if (m_active) {
         m_active = false;
         Q_EMIT activeChanged(m_active);
-        Q_EMIT stateChanged(state());
     }
 }
 

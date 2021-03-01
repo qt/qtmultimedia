@@ -126,7 +126,7 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_lastImageCaptureId(0)
     , m_captureDestination(QCameraImageCapture::CaptureToFile)
     , m_videoState(QMediaRecorder::StoppedState)
-    , m_videoStatus(QMediaRecorder::LoadedStatus)
+    , m_videoStatus(QMediaRecorder::StoppedStatus)
     , m_handle(CAMERA_HANDLE_INVALID)
     , m_windowGrabber(new WindowGrabber(this))
 {
@@ -1029,7 +1029,7 @@ bool BbCameraSession::startVideoRecording()
 
     const camera_error_t result = camera_start_video(m_handle, QFile::encodeName(m_videoOutputLocation), 0, videoRecordingStatusCallback, this);
     if (result != CAMERA_EOK) {
-        m_videoStatus = QMediaRecorder::LoadedStatus;
+        m_videoStatus = QMediaRecorder::StoppedStatus;
         emit videoStatusChanged(m_videoStatus);
 
         emit videoError(QMediaRecorder::ResourceError, tr("Unable to start video recording"));
@@ -1049,7 +1049,7 @@ void BbCameraSession::stopVideoRecording()
         emit videoError(QMediaRecorder::ResourceError, tr("Unable to stop video recording"));
     }
 
-    m_videoStatus = QMediaRecorder::LoadedStatus;
+    m_videoStatus = QMediaRecorder::StoppedStatus;
     emit videoStatusChanged(m_videoStatus);
 
     m_videoRecordingDuration.invalidate();

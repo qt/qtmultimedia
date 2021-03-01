@@ -49,10 +49,7 @@
 QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *session)
     : QPlatformCamera(session),
     m_session(session),
-    m_state(QCamera::UnloadedState),
-    m_status(QCamera::UnloadedStatus),
     m_reloadPending(false)
-
 {
     connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)),
             this, SLOT(updateStatus()));
@@ -69,18 +66,15 @@ QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *sessi
 
 QGstreamerCameraControl::~QGstreamerCameraControl() = default;
 
-void QGstreamerCameraControl::setState(QCamera::State state)
+void QGstreamerCameraControl::setActive(bool active)
 {
-    if (m_state == state)
+    if (m_active == active)
         return;
 
-    m_state = state;
-    switch (state) {
-    case QCamera::UnloadedState:
-    case QCamera::LoadedState:
+    m_active = active;
+    if (!m_active)
         m_session->setState(QGstreamerCaptureSession::StoppedState);
-        break;
-    case QCamera::ActiveState:
+    else {
         //postpone changing to Active if the session is nor ready yet
         if (m_session->isReady()) {
             m_session->setState(QGstreamerCaptureSession::PreviewState);
@@ -89,11 +83,10 @@ void QGstreamerCameraControl::setState(QCamera::State state)
             qDebug() << "Camera session is not ready yet, postpone activating";
 #endif
         }
-        break;
     }
 
     updateStatus();
-    emit stateChanged(m_state);
+    emit activeChanged(active);
 }
 
 void QGstreamerCameraControl::setCamera(const QCameraInfo &camera)
@@ -102,28 +95,25 @@ void QGstreamerCameraControl::setCamera(const QCameraInfo &camera)
     reloadLater();
 }
 
-QCamera::State QGstreamerCameraControl::state() const
+bool QGstreamerCameraControl::isActive() const
 {
-    return m_state;
+    return m_active;
 }
 
 void QGstreamerCameraControl::updateStatus()
 {
     QCamera::Status oldStatus = m_status;
 
-    switch (m_state) {
-    case QCamera::UnloadedState:
-        m_status = QCamera::UnloadedStatus;
-        break;
-    case QCamera::LoadedState:
-        m_status = QCamera::LoadedStatus;
-        break;
-    case QCamera::ActiveState:
+    if (m_active) {
         if (m_session->state() == QGstreamerCaptureSession::StoppedState)
             m_status = QCamera::StartingStatus;
         else
             m_status = QCamera::ActiveStatus;
-        break;
+    } else {
+        if (m_session->state() == QGstreamerCaptureSession::StoppedState)
+            m_status = QCamera::InactiveStatus;
+        else
+            m_status = QCamera::StoppingStatus;
     }
 
     if (oldStatus != m_status) {
@@ -135,7 +125,7 @@ void QGstreamerCameraControl::updateStatus()
 void QGstreamerCameraControl::reloadLater()
 {
     //qDebug() << "reload pipeline requested";
-    if (!m_reloadPending && m_state == QCamera::ActiveState) {
+    if (!m_reloadPending && m_active) {
         m_reloadPending = true;
         m_session->setState(QGstreamerCaptureSession::StoppedState);
         QMetaObject::invokeMethod(this, "reloadPipeline", Qt::QueuedConnection);
@@ -147,7 +137,7 @@ void QGstreamerCameraControl::reloadPipeline()
     //qDebug() << "reload pipeline";
     if (m_reloadPending) {
         m_reloadPending = false;
-        if (m_state == QCamera::ActiveState && m_session->isReady()) {
+        if (m_active && m_session->isReady()) {
             m_session->setState(QGstreamerCaptureSession::PreviewState);
         }
     }

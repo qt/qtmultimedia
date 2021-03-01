@@ -79,8 +79,8 @@ public:
     void setSelectedCamera(int cameraId) { m_selectedCamera = cameraId; }
     AndroidCamera *camera() const { return m_camera; }
 
-    QCamera::State state() const { return m_state; }
-    void setState(QCamera::State state);
+    bool isActive() const { return m_active; }
+    void setActive(bool active);
 
     QCamera::Status status() const { return m_status; }
 
@@ -122,7 +122,7 @@ public:
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status status);
-    void stateChanged(QCamera::State);
+    void activeChanged(bool);
     void error(int error, const QString &errorString);
     void opened();
 
@@ -171,15 +171,15 @@ private:
     static QVideoFrame::PixelFormat QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat);
     static AndroidCamera::ImageFormat AndroidImageFormatFromQtPixelFormat(QVideoFrame::PixelFormat);
 
-    void setStateHelper(QCamera::State state);
+    void setActiveHelper(bool active);
 
     int m_selectedCamera;
     AndroidCamera *m_camera;
     int m_nativeOrientation;
     QAndroidVideoOutput *m_videoOutput;
 
-    QCamera::State m_state;
-    int m_savedState;
+    bool m_active = false;
+    int m_savedState = -1;
     QCamera::Status m_status;
     bool m_previewStarted;
 

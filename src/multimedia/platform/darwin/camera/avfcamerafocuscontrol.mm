@@ -236,7 +236,7 @@ float AVFCameraFocusControl::focusDistance() const
 
 void AVFCameraFocusControl::cameraStateChanged()
 {
-    if (m_session->state() != QCamera::ActiveState)
+    if (m_session->isActive())
         return;
 
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();

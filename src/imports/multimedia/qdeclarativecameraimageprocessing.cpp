@@ -86,10 +86,8 @@ QDeclarativeCameraImageProcessing::QDeclarativeCameraImageProcessing(QCamera *ca
     m_imageProcessing = camera->imageProcessing();
 
     connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
-        if (status != QCamera::UnloadedStatus && status != QCamera::LoadedStatus
-            && status != QCamera::ActiveStatus) {
+        if (status != QCamera::InactiveStatus && status != QCamera::ActiveStatus)
             return;
-        }
 
         emit supportedColorFiltersChanged();
         emit supportedWhiteBalanceModesChanged();

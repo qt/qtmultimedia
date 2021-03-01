@@ -143,15 +143,11 @@ void tst_QCamera::testSimpleCamera()
     MockMediaRecorderService::simpleCamera = true;
     QCamera camera;
 
-    QCOMPARE(camera.state(), QCamera::UnloadedState);
+    QCOMPARE(camera.isActive(), false);
     camera.start();
-    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QCOMPARE(camera.isActive(), true);
     camera.stop();
-    QCOMPARE(camera.state(), QCamera::LoadedState);
-    camera.unload();
-    QCOMPARE(camera.state(), QCamera::UnloadedState);
-    camera.load();
-    QCOMPARE(camera.state(), QCamera::LoadedState);
+    QCOMPARE(camera.isActive(), false);
 }
 
 void tst_QCamera::testSimpleCameraWhiteBalance()
@@ -655,7 +651,7 @@ void tst_QCamera::testCameraEncodingProperyChange()
     QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
 
     camera.start();
-    QCOMPARE(camera.state(), QCamera::ActiveState);
+    QCOMPARE(camera.isActive(), true);
     QCOMPARE(camera.status(), QCamera::ActiveStatus);
 
     QCOMPARE(stateChangedSignal.count(), 1);
@@ -721,8 +717,6 @@ void tst_QCamera::testSetVideoOutputDestruction()
 
 void tst_QCamera::testEnumDebug()
 {
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::ActiveState");
-    qDebug() << QCamera::ActiveState;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::ActiveStatus");
     qDebug() << QCamera::ActiveStatus;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::CameraError");
@@ -897,8 +891,8 @@ void tst_QCamera::testStatus()
     QVERIFY(camera.status() == QCamera::StartingStatus);
 
     /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::LoadingStatus);
-    QVERIFY(camera.status() == QCamera::LoadingStatus);
+    service->mockCameraControl->setStatus(QCamera::StartingStatus);
+    QVERIFY(camera.status() == QCamera::StartingStatus);
 
     /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::UnavailableStatus);

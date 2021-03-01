@@ -159,44 +159,23 @@ void tst_QCameraBackend::testCameraStates()
     QCameraImageCapture imageCapture(&camera);
 
     QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error)));
-    QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
+    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged()));
     QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
 
-    QCOMPARE(camera.state(), QCamera::UnloadedState);
-    QCOMPARE(camera.status(), QCamera::UnloadedStatus);
-
-    camera.load();
-    QCOMPARE(camera.state(), QCamera::LoadedState);
-    QCOMPARE(stateChangedSignal.count(), 1);
-    QCOMPARE(stateChangedSignal.last().first().value<QCamera::State>(), QCamera::LoadedState);
-    QVERIFY(stateChangedSignal.count() > 0);
-
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-    QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::LoadedStatus);
-
-    camera.unload();
-    QCOMPARE(camera.state(), QCamera::UnloadedState);
-    QCOMPARE(stateChangedSignal.last().first().value<QCamera::State>(), QCamera::UnloadedState);
-    QTRY_COMPARE(camera.status(), QCamera::UnloadedStatus);
-    QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::UnloadedStatus);
+    QCOMPARE(camera.isActive(), false);
+    QCOMPARE(camera.status(), QCamera::InactiveStatus);
 
     camera.start();
-    QCOMPARE(camera.state(), QCamera::ActiveState);
-    QCOMPARE(stateChangedSignal.last().first().value<QCamera::State>(), QCamera::ActiveState);
+    QCOMPARE(camera.isActive(), true);
+    QCOMPARE(activeChangedSignal.last().first().value<bool>(), true);
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
     QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::ActiveStatus);
 
     camera.stop();
-    QCOMPARE(camera.state(), QCamera::LoadedState);
-    QCOMPARE(stateChangedSignal.last().first().value<QCamera::State>(), QCamera::LoadedState);
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-    QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::LoadedStatus);
-
-    camera.unload();
-    QCOMPARE(camera.state(), QCamera::UnloadedState);
-    QCOMPARE(stateChangedSignal.last().first().value<QCamera::State>(), QCamera::UnloadedState);
-    QTRY_COMPARE(camera.status(), QCamera::UnloadedStatus);
-    QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::UnloadedStatus);
+    QCOMPARE(camera.isActive(), false);
+    QCOMPARE(activeChangedSignal.last().first().value<bool>(), false);
+    QTRY_COMPARE(camera.status(), QCamera::InactiveStatus);
+    QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::InactiveStatus);
 
     QCOMPARE(camera.errorString(), QString());
     QCOMPARE(errorSignal.count(), 0);
@@ -212,11 +191,10 @@ void tst_QCameraBackend::testCameraStartError()
     camera1.start();
     camera2.start();
 
-    QCOMPARE(camera1.state(), QCamera::ActiveState);
+    QCOMPARE(camera1.isActive(), true);
     QTRY_COMPARE(camera1.status(), QCamera::ActiveStatus);
     QCOMPARE(camera1.error(), QCamera::NoError);
-    QCOMPARE(camera2.state(), QCamera::UnloadedState);
-    QCOMPARE(camera2.status(), QCamera::UnloadedStatus);
+    QCOMPARE(camera2.isActive(), false);
     QCOMPARE(camera2.error(), QCamera::CameraError);
 
     QCOMPARE(errorSpy1.count(), 0);
@@ -275,9 +253,9 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QCameraImageCapture imageCapture(&camera);
     camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
 
-    camera.load();
+    camera.setActive(true);
 
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
+    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
 
     QSignalSpy destinationChangedSignal(&imageCapture, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
 
@@ -384,18 +362,7 @@ void tst_QCameraBackend::testExposureCompensation()
     QTest::qWait(50);
     QCOMPARE(exposureCompensationSignal.count(), 1);
 
-    //exposure compensation should be preserved during load/start
-    camera.load();
-    QTRY_COMPARE(camera.status(), QCamera::LoadedStatus);
-
-    QCOMPARE(exposure->exposureCompensation(), 1.0);
-
-    exposureCompensationSignal.clear();
-    exposure->setExposureCompensation(-1.0);
-    QCOMPARE(exposure->exposureCompensation(), -1.0);
-    QTRY_COMPARE(exposureCompensationSignal.count(), 1);
-    QCOMPARE(exposureCompensationSignal.last().first().toReal(), -1.0);
-
+    //exposure compensation should be preserved during start
     camera.start();
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
 
@@ -424,8 +391,8 @@ void tst_QCameraBackend::testExposureMode()
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
     QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureNight);
 
-    camera.unload();
-    QTRY_COMPARE(camera.status(), QCamera::UnloadedStatus);
+    camera.stop();
+    QTRY_COMPARE(camera.status(), QCamera::InactiveStatus);
 
     // Auto
     exposure->setExposureMode(QCameraExposure::ExposureAuto);
@@ -466,14 +433,14 @@ void tst_QCameraBackend::testVideoRecording()
     videoSettings.setVideoResolution(320, 240);
     recorder.setEncoderSettings(videoSettings);
 
-    QCOMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
+    QCOMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
 
     camera->start();
-    QVERIFY(recorder.status() == QMediaRecorder::LoadingStatus ||
-            recorder.status() == QMediaRecorder::LoadedStatus);
+    QVERIFY(recorder.status() == QMediaRecorder::StartingStatus ||
+            recorder.status() == QMediaRecorder::RecordingStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
     QTRY_COMPARE(camera->status(), QCamera::ActiveStatus);
-    QTRY_COMPARE(recorder.status(), QMediaRecorder::LoadedStatus);
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
 
     //record 5 seconds clip
@@ -491,7 +458,7 @@ void tst_QCameraBackend::testVideoRecording()
         }
     }
     QVERIFY(foundFinalizingStatus);
-    QTRY_COMPARE(recorder.status(), QMediaRecorder::LoadedStatus);
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
 
     QVERIFY(errorSignal.isEmpty());
@@ -503,7 +470,7 @@ void tst_QCameraBackend::testVideoRecording()
     QVERIFY(QFileInfo(fileName).size() > 0);
     QFile(fileName).remove();
 
-    QTRY_COMPARE(recorder.status(), QMediaRecorder::UnloadedStatus);
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
     QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
 }
 

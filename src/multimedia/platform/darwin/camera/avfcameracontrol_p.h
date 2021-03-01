@@ -69,8 +69,8 @@ public:
     AVFCameraControl(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFCameraControl();
 
-    QCamera::State state() const override;
-    void setState(QCamera::State state) override;
+    bool isActive() const override;
+    void setActive(bool activce) override;
 
     QCamera::Status status() const override;
 
@@ -96,7 +96,7 @@ private:
     AVFCameraSession *m_session;
     AVFCameraService *m_service;
 
-    QCamera::State m_state;
+    bool m_active;
     QCamera::Status m_lastStatus;
 };
 

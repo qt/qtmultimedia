@@ -53,42 +53,41 @@ AVFCameraControl::AVFCameraControl(AVFCameraService *service, QObject *parent)
    : QPlatformCamera(parent)
    , m_session(service->session())
    , m_service(service)
-   , m_state(QCamera::UnloadedState)
-   , m_lastStatus(QCamera::UnloadedStatus)
+   , m_active(false)
+   , m_lastStatus(QCamera::InactiveStatus)
 {
     Q_UNUSED(service);
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(updateStatus()));
+    connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 }
 
 AVFCameraControl::~AVFCameraControl()
 {
 }
 
-QCamera::State AVFCameraControl::state() const
+bool AVFCameraControl::isActive() const
 {
-    return m_state;
+    return m_active;
 }
 
-void AVFCameraControl::setState(QCamera::State state)
+void AVFCameraControl::setActive(bool active)
 {
-    if (m_state == state)
+    if (m_active == active)
         return;
-    m_state = state;
-    m_session->setState(state);
+    m_active = active;
+    m_session->setActive(active);
 
-    Q_EMIT stateChanged(m_state);
+    Q_EMIT activeChanged(m_active);
     updateStatus();
 }
 
 QCamera::Status AVFCameraControl::status() const
 {
-    static QCamera::Status statusTable[3][3] = {
-        { QCamera::UnloadedStatus, QCamera::UnloadingStatus, QCamera::StoppingStatus }, //Unloaded state
-        { QCamera::LoadingStatus,  QCamera::LoadedStatus,    QCamera::StoppingStatus }, //Loaded state
-        { QCamera::LoadingStatus,  QCamera::StartingStatus,  QCamera::ActiveStatus } //ActiveState
+    static QCamera::Status statusTable[2][2] = {
+        { QCamera::InactiveStatus,    QCamera::StoppingStatus }, //Inactive state
+        { QCamera::StartingStatus,  QCamera::ActiveStatus } //ActiveState
     };
 
-    return statusTable[m_state][m_session->state()];
+    return statusTable[m_active ? 1 : 0][m_session->isActive() ? 1 : 0];
 }
 
 void AVFCameraControl::setCamera(const QCameraInfo &camera)

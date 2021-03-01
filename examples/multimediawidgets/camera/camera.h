@@ -99,7 +99,7 @@ private slots:
 
     void updateCameraDevice(QAction *action);
 
-    void updateCameraState(QCamera::State);
+    void updateCameraActive(bool active);
     void updateCaptureMode();
     void updateRecorderState(QMediaRecorder::State state);
     void setExposureCompensation(int index);

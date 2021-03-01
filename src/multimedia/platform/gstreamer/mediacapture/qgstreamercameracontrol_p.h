@@ -67,8 +67,8 @@ public:
 
     bool isValid() const { return true; }
 
-    QCamera::State state() const override;
-    void setState(QCamera::State state) override;
+    bool isActive() const override;
+    void setActive(bool active) override;
 
     QCamera::Status status() const override { return m_status; }
 
@@ -86,8 +86,8 @@ private slots:
 
 private:
     QGstreamerCaptureSession *m_session;
-    QCamera::State m_state;
-    QCamera::Status m_status;
+    bool m_active = false;
+    QCamera::Status m_status = QCamera::InactiveStatus;
     bool m_reloadPending;
 };
 

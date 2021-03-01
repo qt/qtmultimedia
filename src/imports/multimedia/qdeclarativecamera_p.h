@@ -82,7 +82,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(Position position READ position WRITE setPosition NOTIFY positionChanged REVISION 1)
     Q_PROPERTY(QString displayName READ displayName NOTIFY displayNameChanged REVISION 1)
 
-    Q_PROPERTY(State cameraState READ cameraState WRITE setCameraState NOTIFY cameraStateChanged)
+    Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(Status cameraStatus READ cameraStatus NOTIFY cameraStatusChanged)
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
@@ -118,20 +118,10 @@ public:
         FrontFace = QCameraInfo::FrontFace
     };
 
-    enum State
-    {
-        ActiveState = QCamera::ActiveState,
-        LoadedState = QCamera::LoadedState,
-        UnloadedState = QCamera::UnloadedState
-    };
-
     enum Status
     {
         UnavailableStatus = QCamera::UnavailableStatus,
-        UnloadedStatus = QCamera::UnloadedStatus,
-        LoadingStatus = QCamera::LoadingStatus,
-        UnloadingStatus = QCamera::UnloadingStatus,
-        LoadedStatus = QCamera::LoadedStatus,
+        InactiveStatus = QCamera::InactiveStatus,
         StartingStatus = QCamera::StartingStatus,
         StoppingStatus = QCamera::StoppingStatus,
         ActiveStatus = QCamera::ActiveStatus
@@ -209,7 +199,7 @@ public:
 
     QString displayName() const;
 
-    State cameraState() const;
+    bool isActive() const;
     Status cameraStatus() const;
 
     Error errorCode() const;
@@ -223,10 +213,10 @@ public:
     bool isAvailable() const;
 
 public Q_SLOTS:
-    void start();
-    void stop();
+    void start() { setActive(true); }
+    void stop() { setActive(false); }
 
-    void setCameraState(State state);
+    void setActive(bool active);
 
     void setZoomFactor(qreal);
 
@@ -243,13 +233,12 @@ Q_SIGNALS:
     Q_REVISION(1) void positionChanged();
     Q_REVISION(1) void displayNameChanged();
 
-    void cameraStateChanged(QDeclarativeCamera::State);
+    void activeChanged();
     void cameraStatusChanged();
 
     void zoomFactorChanged(qreal);
 
 private Q_SLOTS:
-    void _q_updateState(QCamera::State);
     void _q_errorOccurred(QCamera::Error);
 
 protected:
@@ -272,8 +261,8 @@ private:
     QDeclarativeCameraImageProcessing *m_imageProcessing;
     QDeclarativeMediaMetaData *m_metaData;
 
-    State m_pendingState;
     bool m_componentComplete;
+    bool pendingActive = false;
 };
 
 QT_END_NAMESPACE

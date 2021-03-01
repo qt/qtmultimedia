@@ -58,7 +58,7 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
     , m_audioSource(AndroidMediaRecorder::DefaultAudioSource)
     , m_duration(0)
     , m_state(QMediaRecorder::StoppedState)
-    , m_status(QMediaRecorder::UnloadedStatus)
+    , m_status(QMediaRecorder::StoppedStatus)
     , m_encoderSettingsDirty(true)
     , m_outputFormat(AndroidMediaRecorder::DefaultOutputFormat)
     , m_audioEncoder(AndroidMediaRecorder::DefaultAudioEncoder)
@@ -85,21 +85,18 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
                 // Stop recording when stopping the camera.
                 if (status == QCamera::StoppingStatus) {
                     setState(QMediaRecorder::StoppedState);
-                    setStatus(QMediaRecorder::UnloadedStatus);
+                    setStatus(QMediaRecorder::StoppedStatus);
                     return;
                 }
-
-                if (status == QCamera::LoadingStatus)
-                    setStatus(QMediaRecorder::LoadingStatus);
             });
         connect(cameraSession, &QAndroidCameraSession::readyForCaptureChanged, this,
             [this](bool ready) {
                 if (ready)
-                    setStatus(QMediaRecorder::LoadedStatus);
+                    setStatus(QMediaRecorder::StoppedStatus);
             });
     } else {
         // Audio-only recording.
-        setStatus(QMediaRecorder::LoadedStatus);
+        setStatus(QMediaRecorder::StoppedStatus);
     }
 
     m_notifyTimer.setInterval(1000);
@@ -188,7 +185,7 @@ void QAndroidCaptureSession::setState(QMediaRecorder::State state)
 
 void QAndroidCaptureSession::start()
 {
-    if (m_state == QMediaRecorder::RecordingState || m_status != QMediaRecorder::LoadedStatus)
+    if (m_state == QMediaRecorder::RecordingState || m_status != QMediaRecorder::StoppedStatus)
         return;
 
     setStatus(QMediaRecorder::StartingStatus);
@@ -337,8 +334,7 @@ void QAndroidCaptureSession::stop(bool error)
 
     m_state = QMediaRecorder::StoppedState;
     emit stateChanged(m_state);
-    if (!m_cameraSession)
-        setStatus(QMediaRecorder::LoadedStatus);
+    setStatus(QMediaRecorder::StoppedStatus);
 }
 
 void QAndroidCaptureSession::setStatus(QMediaRecorder::Status status)

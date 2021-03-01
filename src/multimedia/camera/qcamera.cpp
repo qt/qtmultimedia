@@ -84,28 +84,6 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
     emit q->errorOccurred(this->error);
 }
 
-void QCameraPrivate::setState(QCamera::State newState)
-{
-    unsetError();
-
-    if (!control) {
-        _q_error(QCamera::CameraError, QCamera::tr("The camera service is missing"));
-        return;
-    }
-
-    control->setState(newState);
-}
-
-void QCameraPrivate::_q_updateState(QCamera::State newState)
-{
-    Q_Q(QCamera);
-
-    if (newState != state) {
-        state = newState;
-        emit q->stateChanged(state);
-    }
-}
-
 void QCameraPrivate::init()
 {
     Q_Q(QCamera);
@@ -124,7 +102,7 @@ void QCameraPrivate::initControls()
         control = captureInterface->cameraControl();
 
         if (control) {
-            q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
+            q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
             q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
             q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
         }
@@ -225,6 +203,17 @@ bool QCamera::isAvailable() const
     return (d->control != nullptr);
 }
 
+bool QCamera::isActive() const
+{
+    Q_D(const QCamera);
+    return d->control->isActive();
+}
+
+void QCamera::setActive(bool active)
+{
+    Q_D(const QCamera);
+    d->control->setActive(active);
+}
 
 /*!
     Returns the camera exposure control object.
@@ -307,7 +296,8 @@ QPlatformMediaCapture *QCamera::captureInterface() const
     return d_func()->captureInterface;
 }
 
-/*!
+/*! \fn void QCamera::start()
+
     Starts the camera.
 
     State is changed to QCamera::ActiveState if camera is started
@@ -317,13 +307,9 @@ QPlatformMediaCapture *QCamera::captureInterface() const
     starting the camera service can be asynchronous with the actual
     status reported with QCamera::status property.
 */
-void QCamera::start()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::ActiveState);
-}
 
-/*!
+/*! \fn void QCamera::stop()
+
     Stops the camera.
     The camera state is changed from QCamera::ActiveState to QCamera::LoadedState.
 
@@ -331,45 +317,6 @@ void QCamera::start()
 
     \sa unload(), QCamera::UnloadedState
 */
-void QCamera::stop()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::LoadedState);
-}
-
-/*!
-    Opens the camera device.
-    The camera state is changed to QCamera::LoadedState.
-
-    It's not necessary to explicitly load the camera, unless the application
-    needs to read the supported camera settings and change the default values
-    according to the camera capabilities.
-
-    In all the other cases, it's possible to start the camera directly
-    from the unloaded state.
-
-    /sa QCamera::UnloadedState
-*/
-void QCamera::load()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::LoadedState);
-}
-
-/*!
-    Closes the camera device and deallocates the related resources.
-    The camera state is changed to QCamera::UnloadedState.
-*/
-void QCamera::unload()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::UnloadedState);
-}
-
-QCamera::State QCamera::state() const
-{
-    return d_func()->state;
-}
 
 QCamera::Status QCamera::status() const
 {
