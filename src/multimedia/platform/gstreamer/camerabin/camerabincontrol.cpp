@@ -182,21 +182,6 @@ void CameraBinControl::delayedReload()
     }
 }
 
-bool CameraBinControl::canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
-{
-    Q_UNUSED(status);
-
-    switch (changeType) {
-    case QPlatformCamera::Viewfinder:
-        return true;
-    case QPlatformCamera::CaptureMode:
-    case QPlatformCamera::ImageEncodingSettings:
-    case QPlatformCamera::VideoEncodingSettings:
-    default:
-        return status != QCamera::ActiveStatus;
-    }
-}
-
 #define VIEWFINDER_COLORSPACE_CONVERSION 0x00000004
 
 bool CameraBinControl::viewfinderColorSpaceConversion() const

@@ -74,17 +74,6 @@ public:
 
     QCamera::Status status() const { return m_status; }
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
-    {
-        Q_UNUSED(status);
-        if (changeType == QPlatformCamera::ImageEncodingSettings)
-            return true;
-        else if (changeType== QPlatformCamera::VideoEncodingSettings)
-            return true;
-        else
-            return m_propertyChangesSupported;
-    }
-
     /* helper method to emit the signal error */
     void setError(QCamera::Error err, QString errorString)
     {

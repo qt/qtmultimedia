@@ -101,21 +101,6 @@ void QAndroidCameraControl::setCamera(const QCameraInfo &camera)
     m_cameraSession->setSelectedCamera(id);
 }
 
-
-bool QAndroidCameraControl::canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
-{
-    Q_UNUSED(status);
-
-    switch (changeType) {
-    case QPlatformCamera::ImageEncodingSettings:
-    case QPlatformCamera::VideoEncodingSettings:
-    case QPlatformCamera::Viewfinder:
-        return true;
-    default:
-        return false;
-    }
-}
-
 QPlatformCameraFocus *QAndroidCameraControl::focusControl()
 {
     return m_cameraSession->focusControl();

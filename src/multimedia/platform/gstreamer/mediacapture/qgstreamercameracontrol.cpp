@@ -153,20 +153,6 @@ void QGstreamerCameraControl::reloadPipeline()
     }
 }
 
-bool QGstreamerCameraControl::canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const
-{
-    Q_UNUSED(status);
-
-    switch (changeType) {
-    case QPlatformCamera::ImageEncodingSettings:
-    case QPlatformCamera::VideoEncodingSettings:
-    case QPlatformCamera::Viewfinder:
-        return true;
-    default:
-        return false;
-    }
-}
-
 void QGstreamerCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_session->setVideoPreview(surface);

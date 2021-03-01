@@ -58,20 +58,12 @@ class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QObject
     Q_OBJECT
 
 public:
-    enum PropertyChangeType {
-        ImageEncodingSettings = 2,
-        VideoEncodingSettings = 3,
-        Viewfinder = 4,
-    };
-
     virtual QCamera::State state() const = 0;
     virtual void setState(QCamera::State state) = 0;
 
     virtual QCamera::Status status() const = 0;
 
     virtual void setCamera(const QCameraInfo &camera) = 0;
-
-    virtual bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const = 0;
 
     virtual QPlatformCameraFocus *focusControl() { return nullptr; }
     virtual QPlatformCameraExposure *exposureControl() { return nullptr; }

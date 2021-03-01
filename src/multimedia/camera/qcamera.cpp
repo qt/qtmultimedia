@@ -93,7 +93,6 @@ void QCameraPrivate::setState(QCamera::State newState)
         return;
     }
 
-    restartPending = false;
     control->setState(newState);
 }
 
@@ -101,41 +100,9 @@ void QCameraPrivate::_q_updateState(QCamera::State newState)
 {
     Q_Q(QCamera);
 
-    //omit changins state to Loaded when the camera is temporarily
-    //stopped to apply shanges
-    if (restartPending)
-        return;
-
     if (newState != state) {
         state = newState;
         emit q->stateChanged(state);
-    }
-}
-
-void QCameraPrivate::_q_preparePropertyChange(int changeType)
-{
-    if (!control)
-        return;
-
-    QCamera::Status status = control->status();
-
-    //all the changes are allowed until the camera is starting
-    if (control->state() != QCamera::ActiveState)
-        return;
-
-    if (control->canChangeProperty(QPlatformCamera::PropertyChangeType(changeType), status))
-        return;
-
-    restartPending = true;
-    control->setState(QCamera::LoadedState);
-    QMetaObject::invokeMethod(q_ptr, "_q_restartCamera", Qt::QueuedConnection);
-}
-
-void QCameraPrivate::_q_restartCamera()
-{
-    if (restartPending) {
-        restartPending = false;
-        control->setState(QCamera::ActiveState);
     }
 }
 

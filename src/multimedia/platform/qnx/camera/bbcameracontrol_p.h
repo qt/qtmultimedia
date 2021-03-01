@@ -73,8 +73,6 @@ public:
     void setCaptureMode(QCamera::CaptureModes) override;
     bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
-
     enum LocksApplyMode
     {
         IndependentMode,

@@ -250,17 +250,8 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
 {
     Q_D(QCameraImageCapture);
 
-    if (d->control) {
-        QCamera *camera = qobject_cast<QCamera*>(d->camera);
-        if (camera) {
-            QMetaObject::invokeMethod(camera,
-                                      "_q_preparePropertyChange",
-                                      Qt::DirectConnection,
-                                      Q_ARG(int, QPlatformCamera::ImageEncodingSettings));
-        }
-
+    if (d->control)
         d->control->setImageSettings(settings);
-    }
 }
 
 /*!

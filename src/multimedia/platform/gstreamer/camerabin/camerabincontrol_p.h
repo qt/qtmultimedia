@@ -76,7 +76,6 @@ public:
 
     void setCamera(const QCameraInfo &camera) override;
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
     bool viewfinderColorSpaceConversion() const;
 
 public slots:

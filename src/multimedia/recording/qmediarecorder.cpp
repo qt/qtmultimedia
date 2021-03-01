@@ -137,17 +137,6 @@ void QMediaRecorderPrivate::_q_applySettings()
     }
 }
 
-void QMediaRecorderPrivate::restartCamera()
-{
-    //restart camera if it can't apply new settings in the Active state
-    if (camera) {
-        QMetaObject::invokeMethod(camera,
-                                  "_q_preparePropertyChange",
-                                  Qt::DirectConnection,
-                                  Q_ARG(int, QPlatformCamera::VideoEncodingSettings));
-    }
-}
-
 /*!
     Constructs a media recorder which records the media produced by a microphone and camera.
 */

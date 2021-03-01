@@ -90,11 +90,6 @@ bool BbCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
     return m_session->isCaptureModeSupported(mode);
 }
 
-bool BbCameraControl::canChangeProperty(PropertyChangeType /* changeType */, QCamera::Status /* status */) const
-{
-    return false;
-}
-
 void BbCameraControl::cameraOpened()
 {
 }

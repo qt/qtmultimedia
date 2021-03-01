@@ -107,14 +107,6 @@ void AVFCameraControl::updateStatus()
     }
 }
 
-bool AVFCameraControl::canChangeProperty(QPlatformCamera::PropertyChangeType changeType, QCamera::Status status) const
-{
-    Q_UNUSED(changeType);
-    Q_UNUSED(status);
-
-    return true;
-}
-
 QVideoFrame::PixelFormat AVFCameraControl::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
 {
     // BGRA <-> ARGB "swap" is intentional:

@@ -74,8 +74,6 @@ public:
 
     void setCamera(const QCameraInfo &camera) override;
 
-    bool canChangeProperty(PropertyChangeType changeType, QCamera::Status status) const override;
-
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 
 public slots:

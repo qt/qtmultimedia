@@ -94,7 +94,6 @@ private slots:
 
     // Test cases for QPlatformCamera class.
     void testCameraControl();
-    void testEnumsOfQPlatformCamera();
 
     // Test case for QCameraImageProcessing class
     void testContrast();
@@ -904,35 +903,6 @@ void tst_QCamera::testStatus()
     /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::UnavailableStatus);
     QVERIFY(camera.status() == QCamera::UnavailableStatus);
-}
-
-/* All the enums test case for QPlatformCamera class*/
-void tst_QCamera::testEnumsOfQPlatformCamera()
-{
-    MockCameraControl *m_cameraControl = new MockCameraControl(this);
-    bool result;
-
-    // In still mode, can't change much
-    result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
-    QVERIFY(!result);
-    result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
-    QVERIFY(result);
-    result = m_cameraControl->canChangeProperty(MockCameraControl::Viewfinder, QCamera::ActiveStatus);
-    QVERIFY(!result);
-
-    // In video mode can change image encoding settings
-    result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
-    QVERIFY(result);
-    result = m_cameraControl->canChangeProperty(MockCameraControl::Viewfinder, QCamera::ActiveStatus);
-    QVERIFY(!result);
-
-    // Flip the allow everything bit
-    result = m_cameraControl->canChangeProperty(MockCameraControl::ImageEncodingSettings, QCamera::ActiveStatus);
-    QVERIFY(result);
-    result = m_cameraControl->canChangeProperty(MockCameraControl::VideoEncodingSettings, QCamera::ActiveStatus);
-    QVERIFY(result);
-    result = m_cameraControl->canChangeProperty(MockCameraControl::Viewfinder, QCamera::ActiveStatus);
-    QVERIFY(result);
 }
 
 // Test case for QCameraImageProcessing class

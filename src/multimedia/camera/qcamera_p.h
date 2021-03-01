@@ -68,8 +68,7 @@ public:
         : QObjectPrivate(),
           state(QCamera::UnloadedState),
           error(QCamera::NoError),
-          supressLockChangedSignal(false),
-          restartPending(false)
+          supressLockChangedSignal(false)
     {
     }
 
@@ -96,16 +95,12 @@ public:
 
     bool supressLockChangedSignal;
 
-    bool restartPending;
-
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }
 
     void setState(QCamera::State);
 
     void _q_updateState(QCamera::State newState);
-    void _q_preparePropertyChange(int changeType);
-    void _q_restartCamera();
 };
 
 QT_END_NAMESPACE

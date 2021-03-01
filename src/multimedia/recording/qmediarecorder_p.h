@@ -76,7 +76,6 @@ public:
     QMediaRecorderPrivate() = default;
 
     void applySettingsLater();
-    void restartCamera();
 
     QPointer<QCamera> camera;
 
