@@ -402,5 +402,3 @@ void QPlatformMediaPlayer::error(int error, const QString &errorString)
 */
 
 QT_END_NAMESPACE
-
-#include "moc_qplatformmediaplayer_p.cpp"
