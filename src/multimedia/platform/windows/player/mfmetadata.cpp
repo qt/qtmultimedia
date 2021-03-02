@@ -314,8 +314,6 @@ QMediaMetaData MFMetaData::fromNative(IMFMediaSource* mediaSource)
                 mediaKey = QMediaMetaData::Resolution;
             } else if (key == PKEY_Video_Orientation) {
                 mediaKey = QMediaMetaData::Orientation;
-//            } else if (key == PKEY_Video_HorizontalAspectRatio) {
-//                mediaKey = QMediaMetaData::PixelAspectRatio;
 //            } else if (key == PKEY_Video_FrameRate) {
 //                mediaKey = QMediaMetaData::VideoFrameRate;
             } else if (key == PKEY_Video_EncodingBitrate) {

@@ -154,7 +154,6 @@ public:
 
     Q_MULTIMEDIA_EXPORT QSize resolution() const;
     Q_MULTIMEDIA_EXPORT QVideoFrame::PixelFormat pixelFormat() const;
-    Q_MULTIMEDIA_EXPORT QSize pixelAspectRatio() const;
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
 
     QByteArray toString() const { return gst_structure_to_string(structure); }

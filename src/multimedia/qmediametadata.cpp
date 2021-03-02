@@ -112,7 +112,6 @@ QT_BEGIN_NAMESPACE
     \header \li {3,1}
     Image and video attributes
     \row \li Resolution \li The dimensions of an image or video. \li QSize
-    \row \li PixelAspectRatio \li The pixel aspect ratio of an image or video. \li QSize
     \row \li Orientation \li Orientation of an image or video. \li int (degrees)
 
     \header \li {3,1}

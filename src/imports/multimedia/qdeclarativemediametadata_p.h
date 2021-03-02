@@ -97,7 +97,6 @@ class QDeclarativeMediaMetaData : public QObject
 //    Q_PROPERTY(QVariant coverArtUrlSmall READ coverArtUrlSmall WRITE setCoverArtUrlSmall NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant coverArtUrlLarge READ coverArtUrlLarge WRITE setCoverArtUrlLarge NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant resolution READ resolution WRITE setResolution NOTIFY metaDataChanged)
-//    Q_PROPERTY(QVariant pixelAspectRatio READ pixelAspectRatio WRITE setPixelAspectRatio NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant videoFrameRate READ videoFrameRate WRITE setVideoFrameRate NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant videoBitRate READ videoBitRate WRITE setVideoBitRate NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant videoCodec READ videoCodec WRITE setVideoCodec NOTIFY metaDataChanged)
@@ -255,10 +254,6 @@ public:
 //    QVariant resolution() const { return metaData.value(QMediaMetaData::Resolution); }
 //    void setResolution(const QVariant &resolution) {
 //        setMetaData(QMediaMetaData::Resolution, resolution); }
-//    QVariant pixelAspectRatio() const {
-//        return metaData.value(QMediaMetaData::PixelAspectRatio); }
-//    void setPixelAspectRatio(const QVariant &ratio) {
-//        setMetaData(QMediaMetaData::PixelAspectRatio, ratio); }
 //    QVariant videoFrameRate() const { return metaData.value(QMediaMetaData::VideoFrameRate); }
 //    void setVideoFrameRate(const QVariant &rate) {
 //        setMetaData(QMediaMetaData::VideoFrameRate, rate); }

@@ -71,9 +71,6 @@ public:
         YCbCr_xvYCC601,
         YCbCr_xvYCC709,
         YCbCr_JPEG,
-#ifndef Q_QDOC
-        YCbCr_CustomMatrix
-#endif
     };
 
     QVideoSurfaceFormat();
@@ -110,10 +107,6 @@ public:
     qreal frameRate() const;
     void setFrameRate(qreal rate);
 
-    QSize pixelAspectRatio() const;
-    void setPixelAspectRatio(const QSize &ratio);
-    void setPixelAspectRatio(int width, int height);
-
     YCbCrColorSpace yCbCrColorSpace() const;
     void setYCbCrColorSpace(YCbCrColorSpace colorSpace);
 
@@ -121,10 +114,6 @@ public:
     void setMirrored(bool mirrored);
 
     QSize sizeHint() const;
-
-    QList<QByteArray> propertyNames() const;
-    QVariant property(const char *name) const;
-    void setProperty(const char *name, const QVariant &value);
 
 private:
     QSharedDataPointer<QVideoSurfaceFormatPrivate> d;

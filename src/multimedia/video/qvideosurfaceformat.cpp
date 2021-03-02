@@ -59,7 +59,6 @@ public:
         : pixelFormat(format)
         , handleType(type)
         , frameSize(size)
-        , pixelAspectRatio(1, 1)
         , viewport(QPoint(0, 0), size)
     {
     }
@@ -70,20 +69,11 @@ public:
             && handleType == other.handleType
             && scanLineDirection == other.scanLineDirection
             && frameSize == other.frameSize
-            && pixelAspectRatio == other.pixelAspectRatio
             && viewport == other.viewport
             && frameRatesEqual(frameRate, other.frameRate)
             && ycbcrColorSpace == other.ycbcrColorSpace
-            && mirrored == other.mirrored
-            && propertyNames.count() == other.propertyNames.count()) {
-            for (int i = 0; i < propertyNames.count(); ++i) {
-                int j = other.propertyNames.indexOf(propertyNames.at(i));
-
-                if (j == -1 || propertyValues.at(i) != other.propertyValues.at(j))
-                    return false;
-            }
+            && mirrored == other.mirrored)
             return true;
-        }
 
         return false;
     }
@@ -97,13 +87,10 @@ public:
     QVideoFrame::HandleType handleType = QVideoFrame::NoHandle;
     QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;
     QSize frameSize;
-    QSize pixelAspectRatio;
     QVideoSurfaceFormat::YCbCrColorSpace ycbcrColorSpace = QVideoSurfaceFormat::YCbCr_Undefined;
     QRect viewport;
     qreal frameRate = 0.0;
     bool mirrored = false;
-    QList<QByteArray> propertyNames;
-    QList<QVariant> propertyValues;
 };
 
 /*!
@@ -129,7 +116,7 @@ public:
     than the nearest optimal size of a video frame.  For example the width of a frame may be
     extended so that the start of each scan line is eight byte aligned.
 
-    Other common properties are the pixelAspectRatio(), scanLineDirection(), and frameRate().
+    Other common properties are the scanLineDirection(), and frameRate().
     Additionally a stream may have some additional type specific properties which are listed by the
     dynamicPropertyNames() function and can be accessed using the property(), and setProperty()
     functions.
@@ -358,32 +345,6 @@ void QVideoSurfaceFormat::setFrameRate(qreal rate)
 }
 
 /*!
-    Returns a video stream's pixel aspect ratio.
-*/
-QSize QVideoSurfaceFormat::pixelAspectRatio() const
-{
-    return d->pixelAspectRatio;
-}
-
-/*!
-    Sets a video stream's pixel aspect \a ratio.
-*/
-void QVideoSurfaceFormat::setPixelAspectRatio(const QSize &ratio)
-{
-    d->pixelAspectRatio = ratio;
-}
-
-/*!
-    \overload
-
-    Sets the \a horizontal and \a vertical elements of a video stream's pixel aspect ratio.
-*/
-void QVideoSurfaceFormat::setPixelAspectRatio(int horizontal, int vertical)
-{
-    d->pixelAspectRatio = QSize(horizontal, vertical);
-}
-
-/*!
     Returns the Y'CbCr color space of a video stream.
 */
 QVideoSurfaceFormat::YCbCrColorSpace QVideoSurfaceFormat::yCbCrColorSpace() const
@@ -432,136 +393,12 @@ void QVideoSurfaceFormat::setMirrored(bool mirrored)
 /*!
     Returns a suggested size in pixels for the video stream.
 
-    This is the size of the viewport scaled according to the pixel aspect ratio.
+    This is the same as the size of the viewport.
 */
 QSize QVideoSurfaceFormat::sizeHint() const
 {
-    QSize size = d->viewport.size();
-
-    if (d->pixelAspectRatio.height() != 0)
-        size.setWidth(size.width() * d->pixelAspectRatio.width() / d->pixelAspectRatio.height());
-
-    return size;
+    return d->viewport.size();
 }
-
-/*!
-    Returns a list of video format dynamic property names.
-*/
-QList<QByteArray> QVideoSurfaceFormat::propertyNames() const
-{
-    return (QList<QByteArray>()
-            << "handleType"
-            << "pixelFormat"
-            << "frameSize"
-            << "frameWidth"
-            << "viewport"
-            << "scanLineDirection"
-            << "frameRate"
-            << "pixelAspectRatio"
-            << "sizeHint"
-            << "yCbCrColorSpace"
-            << "mirrored")
-            + d->propertyNames;
-}
-
-/*!
-    Returns the value of the video format's \a name property.
-*/
-QVariant QVideoSurfaceFormat::property(const char *name) const
-{
-    if (qstrcmp(name, "handleType") == 0) {
-        return QVariant::fromValue(d->handleType);
-    } else if (qstrcmp(name, "pixelFormat") == 0) {
-        return QVariant::fromValue(d->pixelFormat);
-    } else if (qstrcmp(name, "frameSize") == 0) {
-        return d->frameSize;
-    } else if (qstrcmp(name, "frameWidth") == 0) {
-        return d->frameSize.width();
-    } else if (qstrcmp(name, "frameHeight") == 0) {
-        return d->frameSize.height();
-    } else if (qstrcmp(name, "viewport") == 0) {
-        return d->viewport;
-    } else if (qstrcmp(name, "scanLineDirection") == 0) {
-        return QVariant::fromValue(d->scanLineDirection);
-    } else if (qstrcmp(name, "frameRate") == 0) {
-        return QVariant::fromValue(d->frameRate);
-    } else if (qstrcmp(name, "pixelAspectRatio") == 0) {
-        return QVariant::fromValue(d->pixelAspectRatio);
-    } else if (qstrcmp(name, "sizeHint") == 0) {
-        return sizeHint();
-    } else if (qstrcmp(name, "yCbCrColorSpace") == 0) {
-        return QVariant::fromValue(d->ycbcrColorSpace);
-    } else if (qstrcmp(name, "mirrored") == 0) {
-        return d->mirrored;
-    } else {
-        int id = 0;
-        for (; id < d->propertyNames.count() && d->propertyNames.at(id) != name; ++id) {}
-
-        return id < d->propertyValues.count()
-                ? d->propertyValues.at(id)
-                : QVariant();
-    }
-}
-
-/*!
-    Sets the video format's \a name property to \a value.
-
-    Trying to set a read only property will be ignored.
-
-*/
-void QVideoSurfaceFormat::setProperty(const char *name, const QVariant &value)
-{
-    if (qstrcmp(name, "handleType") == 0) {
-        // read only.
-    } else if (qstrcmp(name, "pixelFormat") == 0) {
-        // read only.
-    } else if (qstrcmp(name, "frameSize") == 0) {
-        if (value.canConvert<QSize>()) {
-            d->frameSize = qvariant_cast<QSize>(value);
-            d->viewport = QRect(QPoint(0, 0), d->frameSize);
-        }
-    } else if (qstrcmp(name, "frameWidth") == 0) {
-        // read only.
-    } else if (qstrcmp(name, "frameHeight") == 0) {
-        // read only.
-    } else if (qstrcmp(name, "viewport") == 0) {
-        if (value.canConvert<QRect>())
-            d->viewport = qvariant_cast<QRect>(value);
-    } else if (qstrcmp(name, "scanLineDirection") == 0) {
-        if (value.canConvert<Direction>())
-            d->scanLineDirection = qvariant_cast<Direction>(value);
-    } else if (qstrcmp(name, "frameRate") == 0) {
-        if (value.canConvert<qreal>())
-            d->frameRate = qvariant_cast<qreal>(value);
-    } else if (qstrcmp(name, "pixelAspectRatio") == 0) {
-        if (value.canConvert<QSize>())
-            d->pixelAspectRatio = qvariant_cast<QSize>(value);
-    } else if (qstrcmp(name, "sizeHint") == 0) {
-        // read only.
-    } else if (qstrcmp(name, "yCbCrColorSpace") == 0) {
-          if (value.canConvert<YCbCrColorSpace>())
-              d->ycbcrColorSpace = qvariant_cast<YCbCrColorSpace>(value);
-    } else if (qstrcmp(name, "mirrored") == 0) {
-        if (value.canConvert<bool>())
-            d->mirrored = qvariant_cast<bool>(value);
-    } else {
-        int id = 0;
-        for (; id < d->propertyNames.count() && d->propertyNames.at(id) != name; ++id) {}
-
-        if (id < d->propertyValues.count()) {
-            if (value.isNull()) {
-                d->propertyNames.removeAt(id);
-                d->propertyValues.removeAt(id);
-            } else {
-                d->propertyValues[id] = value;
-            }
-        } else if (!value.isNull()) {
-            d->propertyNames.append(QByteArray(name));
-            d->propertyValues.append(value);
-        }
-    }
-}
-
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
@@ -583,9 +420,6 @@ QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
             break;
         case QVideoSurfaceFormat::YCbCr_xvYCC709:
             dbg << "YCbCr_xvYCC709";
-            break;
-        case QVideoSurfaceFormat::YCbCr_CustomMatrix:
-            dbg << "YCbCr_CustomMatrix";
             break;
         default:
             dbg << "YCbCr_Undefined";
@@ -614,13 +448,15 @@ QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)
     QDebugStateSaver saver(dbg);
     dbg.nospace();
     dbg << "QVideoSurfaceFormat(" << f.pixelFormat() << ", " << f.frameSize()
-        << ", viewport=" << f.viewport() << ", pixelAspectRatio=" << f.pixelAspectRatio()
+        << ", viewport=" << f.viewport()
         << ", handleType=" << f.handleType() <<  ", yCbCrColorSpace=" << f.yCbCrColorSpace()
-        << ')';
-
-    const auto propertyNames = f.propertyNames();
-    for (const QByteArray& propertyName : propertyNames)
-        dbg << "\n    " << propertyName.data() << " = " << f.property(propertyName.data());
+        << ')'
+        << "\n    pixel format=" << f.pixelFormat()
+        << "\n    frame size=" << f.frameSize()
+        << "\n    viewport=" << f.viewport()
+        << "\n    yCbCrColorSpace=" << f.yCbCrColorSpace()
+        << "\n    frameRate=" << f.frameRate()
+        << "\n    mirrored=" << f.isMirrored();
 
     return dbg;
 }

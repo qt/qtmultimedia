@@ -966,12 +966,6 @@ void tst_QVideoFrame::formatConversion_data()
     QTest::newRow("QVideoFrame::Format_AdobeDng")
             << QImage::Format_Invalid
             << QVideoFrame::Format_AdobeDng;
-    QTest::newRow("QVideoFrame::Format_User")
-            << QImage::Format_Invalid
-            << QVideoFrame::Format_User;
-    QTest::newRow("QVideoFrame::Format_User + 1")
-            << QImage::Format_Invalid
-            << QVideoFrame::PixelFormat(QVideoFrame::Format_User + 1);
 }
 
 void tst_QVideoFrame::formatConversion()

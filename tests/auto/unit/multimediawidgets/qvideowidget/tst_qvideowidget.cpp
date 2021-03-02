@@ -225,27 +225,17 @@ void tst_QVideoWidget::sizeHintWindowControl_data()
 
     QTest::addColumn<QSize>("frameSize");
     QTest::addColumn<QRect>("viewport");
-    QTest::addColumn<QSize>("pixelAspectRatio");
     QTest::addColumn<QSize>("expectedSize");
 
     QTest::newRow("640x480")
             << QSize(640, 480)
             << QRect(0, 0, 640, 480)
-            << QSize(1, 1)
             << QSize(640, 480);
 
     QTest::newRow("800x600, (80,60, 640x480) viewport")
             << QSize(800, 600)
             << QRect(80, 60, 640, 480)
-            << QSize(1, 1)
             << QSize(640, 480);
-
-    QTest::newRow("800x600, (80,60, 640x480) viewport, 4:3")
-            << QSize(800, 600)
-            << QRect(80, 60, 640, 480)
-            << QSize(4, 3)
-            << QSize(853, 480);
-
 }
 
 void tst_QVideoWidget::sizeHintWindowControl()
@@ -256,7 +246,6 @@ void tst_QVideoWidget::sizeHintWindowControl()
 
     QFETCH(QSize, frameSize);
     QFETCH(QRect, viewport);
-    QFETCH(QSize, pixelAspectRatio);
     QFETCH(QSize, expectedSize);
 
     QtTestVideoObject object(nullptr, new QtTestRendererControl);
@@ -268,7 +257,6 @@ void tst_QVideoWidget::sizeHintWindowControl()
 
     QVideoSurfaceFormat format(frameSize, QVideoFrame::Format_ARGB32);
     format.setViewport(viewport);
-    format.setPixelAspectRatio(pixelAspectRatio);
 
     QVERIFY(object.testService->rendererControl->surface()->start(format));
 

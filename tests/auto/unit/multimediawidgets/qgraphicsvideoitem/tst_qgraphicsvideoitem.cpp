@@ -359,33 +359,23 @@ void tst_QGraphicsVideoItem::nativeSize_data()
 {
     QTest::addColumn<QSize>("frameSize");
     QTest::addColumn<QRect>("viewport");
-    QTest::addColumn<QSize>("pixelAspectRatio");
     QTest::addColumn<QSizeF>("nativeSize");
 
     QTest::newRow("640x480")
             << QSize(640, 480)
             << QRect(0, 0, 640, 480)
-            << QSize(1, 1)
             << QSizeF(640, 480);
 
     QTest::newRow("800x600, (80,60, 640x480) viewport")
             << QSize(800, 600)
             << QRect(80, 60, 640, 480)
-            << QSize(1, 1)
             << QSizeF(640, 480);
-
-    QTest::newRow("800x600, (80,60, 640x480) viewport, 4:3")
-            << QSize(800, 600)
-            << QRect(80, 60, 640, 480)
-            << QSize(4, 3)
-            << QSizeF(853, 480);
 }
 
 void tst_QGraphicsVideoItem::nativeSize()
 {
     QFETCH(QSize, frameSize);
     QFETCH(QRect, viewport);
-    QFETCH(QSize, pixelAspectRatio);
     QFETCH(QSizeF, nativeSize);
 
     QtTestVideoObject object(new QtTestRendererControl);
@@ -398,7 +388,6 @@ void tst_QGraphicsVideoItem::nativeSize()
 
     QVideoSurfaceFormat format(frameSize, QVideoFrame::Format_ARGB32);
     format.setViewport(viewport);
-    format.setPixelAspectRatio(pixelAspectRatio);
 
     {   // Surface setup is deferred until after the first paint.
         QImage image(320, 240, QImage::Format_RGB32);

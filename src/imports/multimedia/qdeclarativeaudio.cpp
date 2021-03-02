@@ -1027,7 +1027,6 @@ void QDeclarativeAudio::_q_mediaChanged(const QUrl &)
     \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlSmall
     \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlLarge
     \qmlproperty variant QtMultimedia::Audio::metaData.resolution
-    \qmlproperty variant QtMultimedia::Audio::metaData.pixelAspectRatio
     \qmlproperty variant QtMultimedia::Audio::metaData.videoFrameRate
     \qmlproperty variant QtMultimedia::Audio::metaData.videoBitRate
     \qmlproperty variant QtMultimedia::Audio::metaData.videoCodec
@@ -1078,7 +1077,6 @@ void QDeclarativeAudio::_q_mediaChanged(const QUrl &)
     \li \c metaData.coverArtUrlSmall - the URL of a small cover art image.
     \li \c metaData.coverArtUrlLarge - the URL of a large cover art image.
     \li \c metaData.resolution - the dimension of an image or video.
-    \li \c metaData.pixelAspectRatio - the pixel aspect ratio of an image or video.
     \li \c metaData.videoFrameRate - the frame rate of the media's video stream.
     \li \c metaData.videoBitRate - the bit rate of the media's video stream in bits per second.
     \li \c metaData.videoCodec - the encoding of the media's video stream.
@@ -1559,7 +1557,6 @@ void QDeclarativeAudio::_q_mediaChanged(const QUrl &)
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.coverArtUrlSmall
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.coverArtUrlLarge
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.resolution
-    \qmlproperty variant QtMultimedia::MediaPlayer::metaData.pixelAspectRatio
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoFrameRate
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoBitRate
     \qmlproperty variant QtMultimedia::MediaPlayer::metaData.videoCodec
@@ -1610,7 +1607,6 @@ void QDeclarativeAudio::_q_mediaChanged(const QUrl &)
     \li \c metaData.coverArtUrlSmall - the URL of a small cover art image.
     \li \c metaData.coverArtUrlLarge - the URL of a large cover art image.
     \li \c metaData.resolution - the dimension of an image or video.
-    \li \c metaData.pixelAspectRatio - the pixel aspect ratio of an image or video.
     \li \c metaData.videoFrameRate - the frame rate of the media's video stream.
     \li \c metaData.videoBitRate - the bit rate of the media's video stream in bits per second.
     \li \c metaData.videoCodec - the encoding of the media's video stream.

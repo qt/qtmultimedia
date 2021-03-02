@@ -1326,7 +1326,6 @@ Module {
         Property { name: "coverArtUrlSmall"; type: "QVariant" }
         Property { name: "coverArtUrlLarge"; type: "QVariant" }
         Property { name: "resolution"; type: "QVariant" }
-        Property { name: "pixelAspectRatio"; type: "QVariant" }
         Property { name: "videoFrameRate"; type: "QVariant" }
         Property { name: "videoBitRate"; type: "QVariant" }
         Property { name: "videoCodec"; type: "QVariant" }

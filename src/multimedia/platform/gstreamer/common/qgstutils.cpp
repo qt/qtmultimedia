@@ -362,9 +362,6 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
             if (infoPtr->fps_d > 0)
                 format.setFrameRate(qreal(infoPtr->fps_n) / infoPtr->fps_d);
 
-            if (infoPtr->par_d > 0)
-                format.setPixelAspectRatio(infoPtr->par_n, infoPtr->par_d);
-
             return format;
         }
     }
@@ -517,22 +514,6 @@ QVideoFrame::PixelFormat QGstStructure::pixelFormat() const
     }
 
     return pixelFormat;
-}
-
-QSize QGstStructure::pixelAspectRatio() const
-{
-    QSize ratio(1, 1);
-
-    gint aspectNum = 0;
-    gint aspectDenum = 0;
-    if (structure && gst_structure_get_fraction(structure, "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
-        if (aspectDenum > 0) {
-            ratio.rwidth() = aspectNum;
-            ratio.rheight() = aspectDenum;
-        }
-    }
-
-    return ratio;
 }
 
 QGRange<float> QGstStructure::frameRateRange() const

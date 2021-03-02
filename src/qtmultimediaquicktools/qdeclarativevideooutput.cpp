@@ -446,7 +446,6 @@ QRectF QDeclarativeVideoOutput::contentRect() const
 
     The orientation setting does not affect this rectangle.
 
-    \sa QVideoSurfaceFormat::pixelAspectRatio()
     \sa QVideoSurfaceFormat::viewport()
 */
 QRectF QDeclarativeVideoOutput::sourceRect() const

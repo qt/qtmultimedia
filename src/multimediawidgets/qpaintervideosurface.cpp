@@ -146,7 +146,7 @@ QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::start(const QVideoSurf
 
     m_imageSize = format.frameSize();
     m_scanLineDirection = format.scanLineDirection();
-    m_mirrored = format.property("mirrored").toBool();
+    m_mirrored = format.isMirrored();
 
     const QVideoFrame::HandleType t = format.handleType();
     if (t == QVideoFrame::NoHandle) {
@@ -823,7 +823,7 @@ QAbstractVideoSurface::Error QVideoSurfaceArbFpPainter::start(const QVideoSurfac
             } else {
                 m_handleType = format.handleType();
                 m_scanLineDirection = format.scanLineDirection();
-                m_mirrored = format.property("mirrored").toBool();
+                m_mirrored = format.isMirrored();
                 m_frameSize = format.frameSize();
                 m_colorSpace = format.yCbCrColorSpace();
 
@@ -1182,7 +1182,7 @@ QAbstractVideoSurface::Error QVideoSurfaceGlslPainter::start(const QVideoSurface
     } else {
         m_handleType = format.handleType();
         m_scanLineDirection = format.scanLineDirection();
-        m_mirrored = format.property("mirrored").toBool();
+        m_mirrored = format.isMirrored();
         m_frameSize = format.frameSize();
         m_colorSpace = format.yCbCrColorSpace();
 

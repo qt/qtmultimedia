@@ -654,10 +654,6 @@ QVideoSurfaceFormat MFTransform::videoFormatForMFMediaType(IMFMediaType *mediaTy
     QVideoFrame::PixelFormat pixelFormat = formatFromSubtype(subtype);
     QVideoSurfaceFormat format(size, pixelFormat);
 
-    UINT32 num, den;
-    if (SUCCEEDED(MFGetAttributeRatio(mediaType, MF_MT_PIXEL_ASPECT_RATIO, &num, &den))) {
-        format.setPixelAspectRatio(num, den);
-    }
     if (SUCCEEDED(MFGetAttributeRatio(mediaType, MF_MT_FRAME_RATE, &num, &den))) {
         format.setFrameRate(qreal(num)/den);
     }

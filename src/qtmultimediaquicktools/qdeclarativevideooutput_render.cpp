@@ -224,7 +224,7 @@ void QDeclarativeVideoBackend::updateGeometry()
         m_sourceTextureRect.setBottom(top);
     }
 
-    if (m_surfaceFormat.property("mirrored").toBool()) {
+    if (m_surfaceFormat.isMirrored()) {
         qreal left = m_sourceTextureRect.left();
         m_sourceTextureRect.setLeft(m_sourceTextureRect.right());
         m_sourceTextureRect.setRight(left);
@@ -299,7 +299,6 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
                 // QSGVideoItemSurface supports (logically) anything.
                 QVideoSurfaceFormat nodeFormat(m_frame.size(), m_frame.pixelFormat(), m_frame.handleType());
                 nodeFormat.setYCbCrColorSpace(m_surfaceFormat.yCbCrColorSpace());
-                nodeFormat.setPixelAspectRatio(m_surfaceFormat.pixelAspectRatio());
                 nodeFormat.setScanLineDirection(m_surfaceFormat.scanLineDirection());
                 nodeFormat.setViewport(m_surfaceFormat.viewport());
                 nodeFormat.setFrameRate(m_surfaceFormat.frameRate());
@@ -352,18 +351,7 @@ QAbstractVideoSurface *QDeclarativeVideoBackend::videoSurface() const
 
 QRectF QDeclarativeVideoBackend::adjustedViewport() const
 {
-    const QRectF viewport = m_surfaceFormat.viewport();
-    const QSizeF pixelAspectRatio = m_surfaceFormat.pixelAspectRatio();
-
-    if (pixelAspectRatio.isValid()) {
-        const qreal ratio = pixelAspectRatio.width() / pixelAspectRatio.height();
-        QRectF result = viewport;
-        result.setX(result.x() * ratio);
-        result.setWidth(result.width() * ratio);
-        return result;
-    }
-
-    return viewport;
+    return m_surfaceFormat.viewport();
 }
 
 #if QT_CONFIG(opengl)
