@@ -52,17 +52,14 @@
 //
 
 #include <qabstractvideobuffer.h>
+#include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 
-
 class QImage;
-
-class QImageVideoBufferPrivate;
 
 class Q_MULTIMEDIA_EXPORT QImageVideoBuffer : public QAbstractVideoBuffer
 {
-    Q_DECLARE_PRIVATE(QImageVideoBuffer)
 public:
     QImageVideoBuffer(const QImage &image);
     ~QImageVideoBuffer();
@@ -71,6 +68,10 @@ public:
 
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
+
+private:
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
+    QImage image;
 };
 
 QT_END_NAMESPACE

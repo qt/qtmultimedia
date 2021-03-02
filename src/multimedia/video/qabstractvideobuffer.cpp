@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qabstractvideobuffer_p.h"
+#include "qabstractvideobuffer.h"
 
 #include <qvariant.h>
 
@@ -114,21 +114,10 @@ QAbstractVideoBuffer::QAbstractVideoBuffer(QVideoFrame::HandleType type)
 }
 
 /*!
-    \internal
-*/
-QAbstractVideoBuffer::QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, QVideoFrame::HandleType type)
-    : d_ptr(&dd)
-    , m_type(type)
-{
-    d_ptr->q_ptr = this;
-}
-
-/*!
     Destroys an abstract video buffer.
 */
 QAbstractVideoBuffer::~QAbstractVideoBuffer()
 {
-    delete d_ptr;
 }
 
 /*!

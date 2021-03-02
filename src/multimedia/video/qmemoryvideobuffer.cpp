@@ -39,18 +39,7 @@
 
 #include "qmemoryvideobuffer_p.h"
 
-#include "qabstractvideobuffer_p.h"
-#include <qbytearray.h>
-
 QT_BEGIN_NAMESPACE
-
-class QMemoryVideoBufferPrivate : public QAbstractVideoBufferPrivate
-{
-public:
-    int bytesPerLine = 0;
-    QVideoFrame::MapMode mapMode = QVideoFrame::NotMapped;
-    QByteArray data;
-};
 
 /*!
     \class QMemoryVideoBuffer
@@ -65,12 +54,10 @@ public:
     Constructs a video buffer with an image stride of \a bytesPerLine from a byte \a array.
 */
 QMemoryVideoBuffer::QMemoryVideoBuffer(const QByteArray &array, int bytesPerLine)
-    : QAbstractVideoBuffer(*new QMemoryVideoBufferPrivate, QVideoFrame::NoHandle)
+    : QAbstractVideoBuffer(QVideoFrame::NoHandle)
 {
-    Q_D(QMemoryVideoBuffer);
-
-    d->data = array;
-    d->bytesPerLine = bytesPerLine;
+    data = array;
+    this->bytesPerLine = bytesPerLine;
 }
 
 /*!
@@ -83,7 +70,7 @@ QMemoryVideoBuffer::~QMemoryVideoBuffer() = default;
 */
 QVideoFrame::MapMode QMemoryVideoBuffer::mapMode() const
 {
-    return d_func()->mapMode;
+    return m_mapMode;
 }
 
 /*!
@@ -91,16 +78,14 @@ QVideoFrame::MapMode QMemoryVideoBuffer::mapMode() const
 */
 QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 {
-    Q_D(QMemoryVideoBuffer);
-
     MapData mapData;
-    if (d->mapMode == QVideoFrame::NotMapped && d->data.size() && mode != QVideoFrame::NotMapped) {
-        d->mapMode = mode;
+    if (m_mapMode == QVideoFrame::NotMapped && data.size() && mode != QVideoFrame::NotMapped) {
+        m_mapMode = mode;
 
-        mapData.nBytes = d->data.size();
+        mapData.nBytes = data.size();
         mapData.nPlanes = 1;
-        mapData.bytesPerLine[0] = d->bytesPerLine;
-        mapData.data[0] = reinterpret_cast<uchar *>(d->data.data());
+        mapData.bytesPerLine[0] = bytesPerLine;
+        mapData.data[0] = reinterpret_cast<uchar *>(data.data());
     }
 
     return mapData;
@@ -111,7 +96,7 @@ QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 */
 void QMemoryVideoBuffer::unmap()
 {
-    d_func()->mapMode = QVideoFrame::NotMapped;
+    m_mapMode = QVideoFrame::NotMapped;
 }
 
 QT_END_NAMESPACE

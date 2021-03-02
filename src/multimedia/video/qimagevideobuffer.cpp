@@ -39,10 +39,7 @@
 
 #include "qimagevideobuffer_p.h"
 
-#include "qabstractvideobuffer_p.h"
-
 #include <qimage.h>
-#include <qvariant.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -52,40 +49,30 @@ QT_BEGIN_NAMESPACE
  *
  * A video buffer class for a QImage.
  */
-class QImageVideoBufferPrivate : public QAbstractVideoBufferPrivate
-{
-public:
-    QVideoFrame::MapMode mapMode = QVideoFrame::NotMapped;
-    QImage image;
-};
 
 QImageVideoBuffer::QImageVideoBuffer(const QImage &image)
-    : QAbstractVideoBuffer(*new QImageVideoBufferPrivate, QVideoFrame::NoHandle)
+    : QAbstractVideoBuffer(QVideoFrame::NoHandle)
 {
-    Q_D(QImageVideoBuffer);
-
-    d->image = image;
+    this->image = image;
 }
 
 QImageVideoBuffer::~QImageVideoBuffer() = default;
 
 QVideoFrame::MapMode QImageVideoBuffer::mapMode() const
 {
-    return d_func()->mapMode;
+    return m_mapMode;
 }
 
 QImageVideoBuffer::MapData QImageVideoBuffer::map(QVideoFrame::MapMode mode)
 {
-    Q_D(QImageVideoBuffer);
-
     MapData mapData;
-    if (d->mapMode == QVideoFrame::NotMapped && d->image.bits() && mode != QVideoFrame::NotMapped) {
-        d->mapMode = mode;
+    if (m_mapMode == QVideoFrame::NotMapped && image.bits() && mode != QVideoFrame::NotMapped) {
+        m_mapMode = mode;
 
-        mapData.nBytes = int(d->image.sizeInBytes());
+        mapData.nBytes = int(image.sizeInBytes());
         mapData.nPlanes = 1;
-        mapData.bytesPerLine[0] = d->image.bytesPerLine();
-        mapData.data[0] = d->image.bits();
+        mapData.bytesPerLine[0] = image.bytesPerLine();
+        mapData.data[0] = image.bits();
     }
 
     return mapData;
@@ -93,9 +80,7 @@ QImageVideoBuffer::MapData QImageVideoBuffer::map(QVideoFrame::MapMode mode)
 
 void QImageVideoBuffer::unmap()
 {
-    Q_D(QImageVideoBuffer);
-
-    d->mapMode = QVideoFrame::NotMapped;
+    m_mapMode = QVideoFrame::NotMapped;
 }
 
 QT_END_NAMESPACE

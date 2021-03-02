@@ -51,8 +51,6 @@ QT_BEGIN_NAMESPACE
 
 class QVariant;
 
-class QAbstractVideoBufferPrivate;
-
 class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 {
 public:
@@ -76,9 +74,6 @@ public:
     virtual QVariant handle() const;
 
 protected:
-    QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, QVideoFrame::HandleType type);
-
-    QAbstractVideoBufferPrivate *d_ptr = nullptr;  // currently unused
     QVideoFrame::HandleType m_type;
 
 private:

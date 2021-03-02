@@ -41,6 +41,7 @@
 #define QMEMORYVIDEOBUFFER_P_H
 
 #include <qabstractvideobuffer.h>
+#include <qvideoframe.h>
 
 //
 //  W A R N I N G
@@ -55,12 +56,8 @@
 
 QT_BEGIN_NAMESPACE
 
-
-class QMemoryVideoBufferPrivate;
-
 class Q_MULTIMEDIA_EXPORT QMemoryVideoBuffer : public QAbstractVideoBuffer
 {
-    Q_DECLARE_PRIVATE(QMemoryVideoBuffer)
 public:
     QMemoryVideoBuffer(const QByteArray &data, int bytesPerLine);
     ~QMemoryVideoBuffer();
@@ -69,6 +66,10 @@ public:
 
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
+
+    int bytesPerLine = 0;
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
+    QByteArray data;
 };
 
 QT_END_NAMESPACE
