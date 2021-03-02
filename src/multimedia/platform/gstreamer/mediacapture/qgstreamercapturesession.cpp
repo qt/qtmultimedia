@@ -639,7 +639,7 @@ bool QGstreamerCaptureSession::rebuildGraph(QGstreamerCaptureSession::PipelineMo
         emit error(int(QMediaRecorder::FormatError),tr("Failed to build media capture pipeline."));
     }
 
-    dumpGraph( QString("rebuild_graph_%1_%2").arg(m_pipelineMode).arg(newMode) );
+    dumpGraph( QString::fromLatin1("rebuild_graph_%1_%2").arg(m_pipelineMode).arg(newMode) );
 #ifdef QT_GST_CAPTURE_DEBUG
     if (m_encodeBin) {
         QString fileName = QString("rebuild_graph_encode_%1_%2").arg(m_pipelineMode).arg(newMode);
@@ -859,8 +859,8 @@ bool QGstreamerCaptureSession::processBusMessage(const QGstreamerMessage &messag
 
                     gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
 
-                    QStringList states;
-                    states << "GST_STATE_VOID_PENDING" <<  "GST_STATE_NULL" << "GST_STATE_READY" << "GST_STATE_PAUSED" << "GST_STATE_PLAYING";
+//                    QStringList states;
+//                    states << "GST_STATE_VOID_PENDING" <<  "GST_STATE_NULL" << "GST_STATE_READY" << "GST_STATE_PAUSED" << "GST_STATE_PLAYING";
 
                     /*
                     qDebug() << QString("state changed: old: %1  new: %2  pending: %3") \
@@ -880,13 +880,13 @@ bool QGstreamerCaptureSession::processBusMessage(const QGstreamerMessage &messag
                     case GST_STATE_READY:
                         if (m_state != StoppedState && m_pendingState == StoppedState) {
                             emit stateChanged(m_state = StoppedState);
-                            dumpGraph("stopped");
+                            dumpGraph(QLatin1String("stopped"));
                         }
                         break;
                     case GST_STATE_PAUSED:
                         if (m_state != PausedState && m_pendingState == PausedState)
                             emit stateChanged(m_state = PausedState);
-                        dumpGraph("paused");
+                        dumpGraph(QLatin1String("paused"));
 
                         if (m_pipelineMode == RecordingPipeline && !m_metaData.isEmpty())
                             setMetaData(m_metaData);
@@ -901,9 +901,9 @@ bool QGstreamerCaptureSession::processBusMessage(const QGstreamerMessage &messag
                             }
 
                             if (m_pipelineMode == PreviewPipeline)
-                                dumpGraph("preview");
+                                dumpGraph(QLatin1String("preview"));
                             else
-                                dumpGraph("recording");
+                                dumpGraph(QLatin1String("recording"));
                         }
                         break;
                     }

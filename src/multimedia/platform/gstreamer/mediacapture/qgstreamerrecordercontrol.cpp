@@ -160,13 +160,13 @@ void QGstreamerRecorderControl::record()
         m_session->setOutputLocation(QUrl(generateFileName(defaultDir(), container)));
     }
 
-    m_session->dumpGraph("before-record");
+    m_session->dumpGraph(QLatin1String("before-record"));
     if (!m_hasPreviewState || m_session->state() != QGstreamerCaptureSession::StoppedState) {
         m_session->setState(QGstreamerCaptureSession::RecordingState);
     } else
         emit error(QMediaRecorder::ResourceError, tr("Service has not been started"));
 
-    m_session->dumpGraph("after-record");
+    m_session->dumpGraph(QLatin1String("after-record"));
 
     emit stateChanged(m_state);
     updateStatus();
@@ -181,7 +181,7 @@ void QGstreamerRecorderControl::pause()
 
     m_state = QMediaRecorder::PausedState;
 
-    m_session->dumpGraph("before-pause");
+    m_session->dumpGraph(QLatin1String("before-pause"));
     if (!m_hasPreviewState || m_session->state() != QGstreamerCaptureSession::StoppedState) {
         m_session->setState(QGstreamerCaptureSession::PausedState);
     } else
@@ -274,8 +274,8 @@ QDir QGstreamerRecorderControl::defaultDir() const
     else
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
 
-    dirCandidates << QDir::home().filePath("Documents");
-    dirCandidates << QDir::home().filePath("My Documents");
+    dirCandidates << QDir::home().filePath(QLatin1String("Documents"));
+    dirCandidates << QDir::home().filePath(QLatin1String("My Documents"));
     dirCandidates << QDir::homePath();
     dirCandidates << QDir::currentPath();
     dirCandidates << QDir::tempPath();
@@ -293,13 +293,13 @@ QString QGstreamerRecorderControl::generateFileName(const QDir &dir, const QStri
 {
 
     int lastClip = 0;
-    const auto list = dir.entryList(QStringList() << QString("clip_*.%1").arg(ext));
+    const auto list = dir.entryList(QStringList() << QString::fromLatin1("clip_*.%1").arg(ext));
     for (const QString &fileName : list) {
         int imgNumber = QStringView{fileName}.mid(5, fileName.size()-6-ext.length()).toInt();
         lastClip = qMax(lastClip, imgNumber);
     }
 
-    QString name = QString("clip_%1.%2").arg(lastClip+1,
+    QString name = QString::fromLatin1("clip_%1.%2").arg(lastClip+1,
                                      4, //fieldWidth
                                      10,
                                      QLatin1Char('0')).arg(ext);

@@ -78,13 +78,13 @@ int QGstreamerImageCaptureControl::capture(const QString &fileName)
     if (path.isEmpty()) {
         int lastImage = 0;
         QDir outputDir = QDir::currentPath();
-        const auto list = outputDir.entryList(QStringList() << "img_*.jpg");
+        const auto list = outputDir.entryList(QStringList() << QLatin1String("img_*.jpg"));
         for (const QString &fileName : list) {
             int imgNumber = QStringView{fileName}.mid(4, fileName.size()-8).toInt();
             lastImage = qMax(lastImage, imgNumber);
         }
 
-        path = QString("img_%1.jpg").arg(lastImage+1,
+        path = QString::fromLatin1("img_%1.jpg").arg(lastImage+1,
                                          4, //fieldWidth
                                          10,
                                          QLatin1Char('0'));

@@ -337,7 +337,7 @@ void QGstreamerAudioDecoderControl::setSourceDevice(QIODevice *device)
 void QGstreamerAudioDecoderControl::start()
 {
     if (!m_playbin) {
-        processInvalidMedia(QAudioDecoder::ResourceError, "Playbin element is not valid");
+        processInvalidMedia(QAudioDecoder::ResourceError, QLatin1String("Playbin element is not valid"));
         return;
     }
 
@@ -349,7 +349,7 @@ void QGstreamerAudioDecoderControl::start()
 #if QT_CONFIG(gstreamer_app)
         // make sure we can read from device
         if (!mDevice->isOpen() || !mDevice->isReadable()) {
-            processInvalidMedia(QAudioDecoder::AccessDeniedError, "Unable to read from specified device");
+            processInvalidMedia(QAudioDecoder::AccessDeniedError, QLatin1String("Unable to read from specified device"));
             return;
         }
 
