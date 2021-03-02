@@ -72,7 +72,6 @@ public:
     void updateRects();
 
     void _q_present();
-    void _q_formatChanged(const QVideoSurfaceFormat &format);
     void _q_updateNativeSize();
 };
 

@@ -570,7 +570,6 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case Format_Jpeg:
         case Format_CameraRaw:
         case Format_AdobeDng:
-        case Format_User:
             // Single plane or opaque format.
             break;
         case Format_YUV420P:
@@ -952,7 +951,6 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
     case Format_CameraRaw:
     case Format_AdobeDng:
         return QImage::Format_Invalid;
-    case Format_User:
     default:
         return QImage::Format_Invalid;
     }
