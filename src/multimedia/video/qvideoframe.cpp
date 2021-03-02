@@ -56,10 +56,7 @@ QT_BEGIN_NAMESPACE
 class QVideoFramePrivate : public QSharedData
 {
 public:
-    QVideoFramePrivate()
-    {
-    }
-
+    QVideoFramePrivate() = default;
     QVideoFramePrivate(const QSize &size, QVideoFrame::PixelFormat format)
         : size(size)
         , pixelFormat(format)
@@ -68,8 +65,7 @@ public:
 
     ~QVideoFramePrivate()
     {
-        if (buffer)
-            buffer->release();
+        delete buffer;
     }
 
     QSize size;
@@ -274,8 +270,7 @@ QVideoFrame::QVideoFrame()
 
     \note This doesn't increment the reference count of the video buffer.
 */
-QVideoFrame::QVideoFrame(
-        QAbstractVideoBuffer *buffer, const QSize &size, PixelFormat format)
+QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QSize &size, PixelFormat format)
     : d(new QVideoFramePrivate(size, format))
 {
     d->buffer = buffer;

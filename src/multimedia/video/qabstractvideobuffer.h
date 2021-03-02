@@ -58,7 +58,6 @@ class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 public:
     QAbstractVideoBuffer(QVideoFrame::HandleType type);
     virtual ~QAbstractVideoBuffer();
-    virtual void release();
 
     QVideoFrame::HandleType handleType() const;
 
