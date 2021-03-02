@@ -61,7 +61,7 @@ QT_USE_NAMESPACE
 class TextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    TextureVideoBuffer(HandleType type, quint64 tex)
+    TextureVideoBuffer(QVideoFrame::HandleType type, quint64 tex)
         : QAbstractVideoBuffer(type)
         , m_texture(tex)
     {}
@@ -70,8 +70,8 @@ public:
     {
     }
 
-    MapMode mapMode() const override { return NotMapped; }
-    MapData map(MapMode /*mode*/) override { return {}; }
+    QVideoFrame::MapMode mapMode() const override { return QVideoFrame::NotMapped; }
+    MapData map(QVideoFrame::MapMode /*mode*/) override { return {}; }
     void unmap() override {}
 
     QVariant handle() const override
@@ -147,8 +147,8 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 #endif
 
     auto checkHandleType = [this] {
-        m_enableOpenGL = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
-        m_enableMetal = m_surface->supportedPixelFormats(QAbstractVideoBuffer::MTLTextureHandle).contains(QVideoFrame::Format_BGR32);
+        m_enableOpenGL = m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+        m_enableMetal = m_surface->supportedPixelFormats(QVideoFrame::MTLTextureHandle).contains(QVideoFrame::Format_BGR32);
     };
     checkHandleType();
     connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged, this, checkHandleType);
@@ -211,13 +211,13 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
         if (tex == 0)
             return;
 
-        auto buffer = new TextureVideoBuffer(QAbstractVideoBuffer::MTLTextureHandle, tex);
+        auto buffer = new TextureVideoBuffer(QVideoFrame::MTLTextureHandle, tex);
         QVideoFrame frame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
         if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
             m_surface->stop();
 
         if (!m_surface->isActive()) {
-            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::MTLTextureHandle);
+            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::MTLTextureHandle);
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
             format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
 #else
@@ -239,7 +239,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
         if (tex == 0)
             return;
 
-        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(QAbstractVideoBuffer::GLTextureHandle, tex);
+        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(QVideoFrame::GLTextureHandle, tex);
         QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
 
         if (m_surface && frame.isValid()) {
@@ -247,7 +247,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
                 m_surface->stop();
 
             if (!m_surface->isActive()) {
-                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::GLTextureHandle);
+                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::GLTextureHandle);
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
                 format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
 #else
@@ -277,7 +277,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
                 m_surface->stop();
 
             if (!m_surface->isActive()) {
-                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::NoHandle);
+                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::NoHandle);
 
                 if (!m_surface->start(format)) {
                     qWarning("Failed to activate video surface");

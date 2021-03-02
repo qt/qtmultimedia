@@ -48,7 +48,7 @@ class QMemoryVideoBufferPrivate : public QAbstractVideoBufferPrivate
 {
 public:
     int bytesPerLine = 0;
-    QAbstractVideoBuffer::MapMode mapMode = QAbstractVideoBuffer::NotMapped;
+    QVideoFrame::MapMode mapMode = QVideoFrame::NotMapped;
     QByteArray data;
 };
 
@@ -65,7 +65,7 @@ public:
     Constructs a video buffer with an image stride of \a bytesPerLine from a byte \a array.
 */
 QMemoryVideoBuffer::QMemoryVideoBuffer(const QByteArray &array, int bytesPerLine)
-    : QAbstractVideoBuffer(*new QMemoryVideoBufferPrivate, NoHandle)
+    : QAbstractVideoBuffer(*new QMemoryVideoBufferPrivate, QVideoFrame::NoHandle)
 {
     Q_D(QMemoryVideoBuffer);
 
@@ -81,7 +81,7 @@ QMemoryVideoBuffer::~QMemoryVideoBuffer() = default;
 /*!
     \reimp
 */
-QAbstractVideoBuffer::MapMode QMemoryVideoBuffer::mapMode() const
+QVideoFrame::MapMode QMemoryVideoBuffer::mapMode() const
 {
     return d_func()->mapMode;
 }
@@ -89,12 +89,12 @@ QAbstractVideoBuffer::MapMode QMemoryVideoBuffer::mapMode() const
 /*!
     \reimp
 */
-QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(MapMode mode)
+QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     Q_D(QMemoryVideoBuffer);
 
     MapData mapData;
-    if (d->mapMode == NotMapped && d->data.size() && mode != NotMapped) {
+    if (d->mapMode == QVideoFrame::NotMapped && d->data.size() && mode != QVideoFrame::NotMapped) {
         d->mapMode = mode;
 
         mapData.nBytes = d->data.size();
@@ -111,7 +111,7 @@ QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(MapMode mode)
 */
 void QMemoryVideoBuffer::unmap()
 {
-    d_func()->mapMode = NotMapped;
+    d_func()->mapMode = QVideoFrame::NotMapped;
 }
 
 QT_END_NAMESPACE

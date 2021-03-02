@@ -333,7 +333,7 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
 
         if ((q->flushMode() == QDeclarativeVideoOutput::FirstFrame && !m_frameOnFlush.isValid())
             || q->flushMode() == QDeclarativeVideoOutput::LastFrame) {
-            m_frameOnFlush = m_surfaceFormat.handleType() == QAbstractVideoBuffer::NoHandle
+            m_frameOnFlush = m_surfaceFormat.handleType() == QVideoFrame::NoHandle
                 ? m_frame
                 : m_frame.image();
         }
@@ -397,13 +397,13 @@ QSGVideoItemSurface::QSGVideoItemSurface(QDeclarativeVideoBackend *backend, QObj
 QSGVideoItemSurface::~QSGVideoItemSurface() = default;
 
 QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
-        QAbstractVideoBuffer::HandleType handleType) const
+        QVideoFrame::HandleType handleType) const
 {
     QList<QVideoFrame::PixelFormat> formats;
 
     static bool noGLTextures = false;
     static bool noGLTexturesChecked = false;
-    if (handleType == QAbstractVideoBuffer::GLTextureHandle) {
+    if (handleType == QVideoFrame::GLTextureHandle) {
         if (!noGLTexturesChecked) {
             noGLTexturesChecked = true;
             noGLTextures = qEnvironmentVariableIsSet("QT_QUICK_NO_TEXTURE_VIDEOFRAMES");

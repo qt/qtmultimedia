@@ -85,14 +85,14 @@ GstCaps *QGstDefaultVideoRenderer::getCaps(QAbstractVideoSurface *surface)
 {
 #if QT_CONFIG(gstreamer_gl)
     if (QGstUtils::useOpenGL()) {
-        m_handleType = QAbstractVideoBuffer::GLTextureHandle;
+        m_handleType = QVideoFrame::GLTextureHandle;
         auto formats = surface->supportedPixelFormats(m_handleType);
         // Even if the surface does not support gl textures,
         // glupload will be added to the pipeline and GLMemory will be requested.
         // This will lead to upload data to gl textures
         // and download it when the buffer will be used within rendering.
         if (formats.isEmpty()) {
-            m_handleType = QAbstractVideoBuffer::NoHandle;
+            m_handleType = QVideoFrame::NoHandle;
             formats = surface->supportedPixelFormats(m_handleType);
         }
 
@@ -103,7 +103,7 @@ GstCaps *QGstDefaultVideoRenderer::getCaps(QAbstractVideoSurface *surface)
         return caps;
     }
 #endif
-    return QGstUtils::capsForFormats(surface->supportedPixelFormats(QAbstractVideoBuffer::NoHandle));
+    return QGstUtils::capsForFormats(surface->supportedPixelFormats(QVideoFrame::NoHandle));
 }
 
 bool QGstDefaultVideoRenderer::start(QAbstractVideoSurface *surface, GstCaps *caps)
@@ -127,7 +127,7 @@ bool QGstDefaultVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer
 
     QGstVideoBuffer *videoBuffer = nullptr;
 #if QT_CONFIG(gstreamer_gl)
-    if (m_format.handleType() == QAbstractVideoBuffer::GLTextureHandle) {
+    if (m_format.handleType() == QVideoFrame::GLTextureHandle) {
         GstGLMemory *glmem = GST_GL_MEMORY_CAST(gst_buffer_peek_memory(buffer, 0));
         guint textureId = gst_gl_memory_get_texture_id(glmem);
         videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_format.handleType(), textureId);
@@ -652,7 +652,7 @@ struct NullSurface : QAbstractVideoSurface
 {
     NullSurface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
 
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType) const override
     {
         return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB32;
     }

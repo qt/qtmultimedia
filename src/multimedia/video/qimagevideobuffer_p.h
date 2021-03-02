@@ -67,9 +67,9 @@ public:
     QImageVideoBuffer(const QImage &image);
     ~QImageVideoBuffer();
 
-    MapMode mapMode() const override;
+    QVideoFrame::MapMode mapMode() const override;
 
-    MapData map(MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 };
 

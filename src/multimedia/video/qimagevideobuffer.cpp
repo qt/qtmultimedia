@@ -55,12 +55,12 @@ QT_BEGIN_NAMESPACE
 class QImageVideoBufferPrivate : public QAbstractVideoBufferPrivate
 {
 public:
-    QAbstractVideoBuffer::MapMode mapMode = QAbstractVideoBuffer::NotMapped;
+    QVideoFrame::MapMode mapMode = QVideoFrame::NotMapped;
     QImage image;
 };
 
 QImageVideoBuffer::QImageVideoBuffer(const QImage &image)
-    : QAbstractVideoBuffer(*new QImageVideoBufferPrivate, NoHandle)
+    : QAbstractVideoBuffer(*new QImageVideoBufferPrivate, QVideoFrame::NoHandle)
 {
     Q_D(QImageVideoBuffer);
 
@@ -69,17 +69,17 @@ QImageVideoBuffer::QImageVideoBuffer(const QImage &image)
 
 QImageVideoBuffer::~QImageVideoBuffer() = default;
 
-QAbstractVideoBuffer::MapMode QImageVideoBuffer::mapMode() const
+QVideoFrame::MapMode QImageVideoBuffer::mapMode() const
 {
     return d_func()->mapMode;
 }
 
-QImageVideoBuffer::MapData QImageVideoBuffer::map(MapMode mode)
+QImageVideoBuffer::MapData QImageVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     Q_D(QImageVideoBuffer);
 
     MapData mapData;
-    if (d->mapMode == NotMapped && d->image.bits() && mode != NotMapped) {
+    if (d->mapMode == QVideoFrame::NotMapped && d->image.bits() && mode != QVideoFrame::NotMapped) {
         d->mapMode = mode;
 
         mapData.nBytes = int(d->image.sizeInBytes());
@@ -95,7 +95,7 @@ void QImageVideoBuffer::unmap()
 {
     Q_D(QImageVideoBuffer);
 
-    d->mapMode = NotMapped;
+    d->mapMode = QVideoFrame::NotMapped;
 }
 
 QT_END_NAMESPACE

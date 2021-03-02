@@ -208,7 +208,7 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
         if (!levels)
             break;
 
-        if (!frame.map(QAbstractVideoBuffer::ReadOnly))
+        if (!frame.map(QVideoFrame::ReadOnly))
             break;
 
         if (frame.pixelFormat() == QVideoFrame::Format_YUV420P ||

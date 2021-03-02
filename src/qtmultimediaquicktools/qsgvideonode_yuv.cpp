@@ -44,17 +44,17 @@
 QT_BEGIN_NAMESPACE
 
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_YUV::supportedPixelFormats(
-                                        QAbstractVideoBuffer::HandleType handleType) const
+                                        QVideoFrame::HandleType handleType) const
 {
     QList<QVideoFrame::PixelFormat> formats;
 
-    if (handleType == QAbstractVideoBuffer::NoHandle) {
+    if (handleType == QVideoFrame::NoHandle) {
         formats << QVideoFrame::Format_YUV420P << QVideoFrame::Format_YV12 << QVideoFrame::Format_YUV422P
                 << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21
                 << QVideoFrame::Format_UYVY << QVideoFrame::Format_YUYV;
-    } else if (handleType == QAbstractVideoBuffer::GLTextureHandle) {
+    } else if (handleType == QVideoFrame::GLTextureHandle) {
         formats << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21;
-    } else if (handleType == QAbstractVideoBuffer::MTLTextureHandle) {
+    } else if (handleType == QVideoFrame::MTLTextureHandle) {
         formats << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21;
     }
 
@@ -269,7 +269,7 @@ void QSGVideoMaterialRhiShader_YUV::updateSampledImage(RenderState &state, int b
 
 void QSGVideoMaterialRhiShader_UYVY::mapFrame(QSGVideoMaterial_YUV *m)
 {
-    if (!m->m_frame.isValid() || !m->m_frame.map(QAbstractVideoBuffer::ReadOnly))
+    if (!m->m_frame.isValid() || !m->m_frame.map(QVideoFrame::ReadOnly))
         return;
 
     int fw = m->m_frame.width();
@@ -290,7 +290,7 @@ void QSGVideoMaterialRhiShader_UYVY::mapFrame(QSGVideoMaterial_YUV *m)
 
 void QSGVideoMaterialRhiShader_YUV_YV::mapFrame(QSGVideoMaterial_YUV *m)
 {
-    if (!m->m_frame.isValid() || !m->m_frame.map(QAbstractVideoBuffer::ReadOnly))
+    if (!m->m_frame.isValid() || !m->m_frame.map(QVideoFrame::ReadOnly))
         return;
 
     int y = 0;
@@ -318,7 +318,7 @@ void QSGVideoMaterialRhiShader_NV12::mapFrame(QSGVideoMaterial_YUV *m)
     if (!m->m_frame.isValid())
         return;
 
-    if (m->m_frame.handleType() == QAbstractVideoBuffer::GLTextureHandle || m->m_frame.handleType() == QAbstractVideoBuffer::MTLTextureHandle) {
+    if (m->m_frame.handleType() == QVideoFrame::GLTextureHandle || m->m_frame.handleType() == QVideoFrame::MTLTextureHandle) {
         m->m_planeWidth[0] = m->m_planeWidth[1] = 1;
         auto textures = m->m_frame.handle().toList();
         if (!textures.isEmpty()) {
@@ -333,7 +333,7 @@ void QSGVideoMaterialRhiShader_NV12::mapFrame(QSGVideoMaterial_YUV *m)
         return;
     }
 
-    if (!m->m_frame.map(QAbstractVideoBuffer::ReadOnly))
+    if (!m->m_frame.map(QVideoFrame::ReadOnly))
         return;
 
     int y = 0;

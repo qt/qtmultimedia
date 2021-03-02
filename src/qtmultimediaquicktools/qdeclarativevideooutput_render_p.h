@@ -133,7 +133,7 @@ class QSGVideoItemSurface : public QAbstractVideoSurface
 public:
     explicit QSGVideoItemSurface(QDeclarativeVideoBackend *backend, QObject *parent = 0);
     ~QSGVideoItemSurface();
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override;
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;
     bool present(const QVideoFrame &frame) override;

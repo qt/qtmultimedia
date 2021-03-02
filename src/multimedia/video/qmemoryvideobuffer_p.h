@@ -65,9 +65,9 @@ public:
     QMemoryVideoBuffer(const QByteArray &data, int bytesPerLine);
     ~QMemoryVideoBuffer();
 
-    MapMode mapMode() const override;
+    QVideoFrame::MapMode mapMode() const override;
 
-    MapData map(MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 };
 

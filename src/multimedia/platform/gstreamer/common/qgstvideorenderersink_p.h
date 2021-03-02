@@ -97,7 +97,7 @@ private:
     QVideoSurfaceFormat m_format;
     GstVideoInfo m_videoInfo;
     bool m_flushed = true;
-    QAbstractVideoBuffer::HandleType m_handleType = QAbstractVideoBuffer::NoHandle;
+    QVideoFrame::HandleType m_handleType = QVideoFrame::NoHandle;
 };
 
 class QVideoSurfaceGstDelegate : public QObject

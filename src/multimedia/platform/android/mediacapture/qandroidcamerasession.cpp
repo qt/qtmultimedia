@@ -366,10 +366,10 @@ struct NullSurface : QAbstractVideoSurface
 {
     NullSurface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-        QAbstractVideoBuffer::HandleType type = QAbstractVideoBuffer::NoHandle) const override
+        QVideoFrame::HandleType type = QVideoFrame::NoHandle) const override
     {
         QList<QVideoFrame::PixelFormat> result;
-        if (type == QAbstractVideoBuffer::NoHandle)
+        if (type == QVideoFrame::NoHandle)
             result << QVideoFrame::Format_NV21;
 
         return result;

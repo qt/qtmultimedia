@@ -63,9 +63,9 @@ VideoWidgetSurface::VideoWidgetSurface(QWidget *widget, QObject *parent)
 
 //! [0]
 QList<QVideoFrame::PixelFormat> VideoWidgetSurface::supportedPixelFormats(
-        QAbstractVideoBuffer::HandleType handleType) const
+        QVideoFrame::HandleType handleType) const
 {
-    if (handleType == QAbstractVideoBuffer::NoHandle) {
+    if (handleType == QVideoFrame::NoHandle) {
         return QList<QVideoFrame::PixelFormat>()
                 << QVideoFrame::Format_RGB32
                 << QVideoFrame::Format_ARGB32
@@ -86,7 +86,7 @@ bool VideoWidgetSurface::isFormatSupported(const QVideoSurfaceFormat &format) co
 
     return imageFormat != QImage::Format_Invalid
             && !size.isEmpty()
-            && format.handleType() == QAbstractVideoBuffer::NoHandle;
+            && format.handleType() == QVideoFrame::NoHandle;
 }
 //! [1]
 
@@ -157,7 +157,7 @@ void VideoWidgetSurface::updateVideoRect()
 //! [6]
 void VideoWidgetSurface::paint(QPainter *painter)
 {
-    if (currentFrame.map(QAbstractVideoBuffer::ReadOnly)) {
+    if (currentFrame.map(QVideoFrame::ReadOnly)) {
         const QTransform oldTransform = painter->transform();
 
         if (surfaceFormat().scanLineDirection() == QVideoSurfaceFormat::BottomToTop) {

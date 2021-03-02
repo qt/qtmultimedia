@@ -35,7 +35,7 @@
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \
     QTest::newRow(#x) \
-        << QAbstractVideoBuffer::x \
+        << QVideoFrame::x \
     << QString(QLatin1String(#x));
 
 class tst_QAbstractVideoBuffer : public QObject
@@ -63,11 +63,11 @@ private slots:
 class QtTestVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QtTestVideoBuffer(QAbstractVideoBuffer::HandleType type) : QAbstractVideoBuffer(type) {}
+    QtTestVideoBuffer(QVideoFrame::HandleType type) : QAbstractVideoBuffer(type) {}
 
-    [[nodiscard]] MapMode mapMode() const override { return QAbstractVideoBuffer::ReadWrite; }
+    [[nodiscard]] QVideoFrame::MapMode mapMode() const override { return QVideoFrame::ReadWrite; }
 
-    MapData map(MapMode) override { return {}; }
+    MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 };
 
@@ -97,7 +97,7 @@ void tst_QAbstractVideoBuffer::cleanup()
 
 void tst_QAbstractVideoBuffer::handleType_data()
 {
-    QTest::addColumn<QAbstractVideoBuffer::HandleType>("type");
+    QTest::addColumn<QVideoFrame::HandleType>("type");
     QTest::addColumn<QString>("stringized");
 
     ADD_ENUM_TEST(NoHandle);
@@ -105,18 +105,11 @@ void tst_QAbstractVideoBuffer::handleType_data()
     ADD_ENUM_TEST(XvShmImageHandle);
     ADD_ENUM_TEST(QPixmapHandle);
     ADD_ENUM_TEST(CoreImageHandle);
-
-    // User handles are different
-
-    QTest::newRow("user1")
-            << QAbstractVideoBuffer::UserHandle << QString::fromLatin1("UserHandle(1000)");
-    QTest::newRow("user2")
-            << QAbstractVideoBuffer::HandleType(QAbstractVideoBuffer::UserHandle + 1) << QString::fromLatin1("UserHandle(1001)");
 }
 
 void tst_QAbstractVideoBuffer::handleType()
 {
-    QFETCH(QAbstractVideoBuffer::HandleType, type);
+    QFETCH(QVideoFrame::HandleType, type);
     QFETCH(QString, stringized);
 
     QtTestVideoBuffer buffer(type);
@@ -129,20 +122,20 @@ void tst_QAbstractVideoBuffer::handleType()
 
 void tst_QAbstractVideoBuffer::handle()
 {
-    QtTestVideoBuffer buffer(QAbstractVideoBuffer::NoHandle);
+    QtTestVideoBuffer buffer(QVideoFrame::NoHandle);
 
     QVERIFY(buffer.handle().isNull());
 }
 
 void tst_QAbstractVideoBuffer::mapMode()
 {
-    QtTestVideoBuffer maptest(QAbstractVideoBuffer::NoHandle);
-    QVERIFY2(maptest.mapMode() == QAbstractVideoBuffer::ReadWrite, "ReadWrite Failed");
+    QtTestVideoBuffer maptest(QVideoFrame::NoHandle);
+    QVERIFY2(maptest.mapMode() == QVideoFrame::ReadWrite, "ReadWrite Failed");
 }
 
 void tst_QAbstractVideoBuffer::mapModeDebug_data()
 {
-    QTest::addColumn<QAbstractVideoBuffer::MapMode>("mapMode");
+    QTest::addColumn<QVideoFrame::MapMode>("mapMode");
     QTest::addColumn<QString>("stringized");
 
     ADD_ENUM_TEST(NotMapped);
@@ -153,7 +146,7 @@ void tst_QAbstractVideoBuffer::mapModeDebug_data()
 
 void tst_QAbstractVideoBuffer::mapModeDebug()
 {
-    QFETCH(QAbstractVideoBuffer::MapMode, mapMode);
+    QFETCH(QVideoFrame::MapMode, mapMode);
     QFETCH(QString, stringized);
 
     QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());

@@ -35,7 +35,7 @@ class MockVideoSurface : public QAbstractVideoSurface
 {
 public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType = QAbstractVideoBuffer::NoHandle) const
+            QVideoFrame::HandleType = QVideoFrame::NoHandle) const
     {
         return QList<QVideoFrame::PixelFormat>();
     }

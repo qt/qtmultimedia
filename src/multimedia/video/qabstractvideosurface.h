@@ -68,7 +68,7 @@ public:
     ~QAbstractVideoSurface();
 
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType type = QAbstractVideoBuffer::NoHandle) const = 0;
+            QVideoFrame::HandleType type = QVideoFrame::NoHandle) const = 0;
     virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const;
     virtual QVideoSurfaceFormat nearestFormat(const QVideoSurfaceFormat &format) const;
 

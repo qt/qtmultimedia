@@ -40,17 +40,18 @@
 #ifndef QVIDEOFRAME_H
 #define QVIDEOFRAME_H
 
+#include <QtMultimedia/qtmultimediaglobal.h>
+
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
-#include <QtGui/qimage.h>
-#include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtCore/qvariant.h>
+#include <QtGui/qimage.h>
 
 QT_BEGIN_NAMESPACE
 
 class QSize;
-
 class QVideoFramePrivate;
+class QAbstractVideoBuffer;
 
 class Q_MULTIMEDIA_EXPORT QVideoFrame
 {
@@ -102,6 +103,25 @@ public:
         Format_User = 1000
     };
 
+    enum HandleType
+    {
+        NoHandle,
+        GLTextureHandle,
+        MTLTextureHandle,
+        XvShmImageHandle,
+        CoreImageHandle,
+        QPixmapHandle,
+        EGLImageHandle
+    };
+
+    enum MapMode
+    {
+        NotMapped = 0x00,
+        ReadOnly  = 0x01,
+        WriteOnly = 0x02,
+        ReadWrite = ReadOnly | WriteOnly
+    };
+
     QVideoFrame();
     QVideoFrame(QAbstractVideoBuffer *buffer, const QSize &size, PixelFormat format);
     QVideoFrame(int bytes, const QSize &size, int bytesPerLine, PixelFormat format);
@@ -118,7 +138,7 @@ public:
 
     PixelFormat pixelFormat() const;
 
-    QAbstractVideoBuffer::HandleType handleType() const;
+    QVideoFrame::HandleType handleType() const;
 
     QSize size() const;
     int width() const;
@@ -128,9 +148,9 @@ public:
     bool isReadable() const;
     bool isWritable() const;
 
-    QAbstractVideoBuffer::MapMode mapMode() const;
+    QVideoFrame::MapMode mapMode() const;
 
-    bool map(QAbstractVideoBuffer::MapMode mode);
+    bool map(QVideoFrame::MapMode mode);
     void unmap();
 
     int bytesPerLine() const;
@@ -168,6 +188,7 @@ Q_DECLARE_METATYPE(QVideoFrame);
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrame&);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::HandleType);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::PixelFormat);
 #endif
 

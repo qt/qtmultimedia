@@ -65,7 +65,7 @@ public:
     VideoWidgetSurface(QWidget *widget, QObject *parent = 0);
 
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override;
+            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const override;
     bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
 
     bool start(const QVideoSurfaceFormat &format) override;

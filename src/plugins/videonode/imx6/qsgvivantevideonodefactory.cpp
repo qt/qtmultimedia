@@ -42,10 +42,10 @@
 #include <QtGui/QGuiApplication>
 
 QList<QVideoFrame::PixelFormat> QSGVivanteVideoNodeFactory::supportedPixelFormats(
-        QAbstractVideoBuffer::HandleType handleType) const
+        QVideoFrame::HandleType handleType) const
 {
     const bool isWebGl = QGuiApplication::platformName() == QLatin1String("webgl");
-    if (!isWebGl && handleType == QAbstractVideoBuffer::NoHandle)
+    if (!isWebGl && handleType == QVideoFrame::NoHandle)
         return QSGVivanteVideoNode::getVideoFormat2GLFormatMap().keys();
     else
         return QList<QVideoFrame::PixelFormat>();

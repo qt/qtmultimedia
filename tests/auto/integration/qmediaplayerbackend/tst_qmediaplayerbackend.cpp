@@ -106,7 +106,7 @@ public:
 
     //video surface
     [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override;
+            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const override;
 
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;
@@ -776,7 +776,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QCOMPARE(frame.height(), 120);
 
         // create QImage for QVideoFrame to verify RGB pixel colors
-        QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+        QVERIFY(frame.map(QVideoFrame::ReadOnly));
         QImage image(frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
         QVERIFY(!image.isNull());
         QVERIFY(qRed(image.pixel(0, 0)) >= 230); // conversion from YUV => RGB, that's why it's not 255
@@ -800,7 +800,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QCOMPARE(frame.width(), 160);
         QCOMPARE(frame.height(), 120);
 
-        QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+        QVERIFY(frame.map(QVideoFrame::ReadOnly));
         QImage image(frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
         QVERIFY(!image.isNull());
         QVERIFY(qRed(image.pixel(0, 0)) < 20);
@@ -1123,9 +1123,9 @@ TestVideoSurface::TestVideoSurface(bool storeFrames)
 }
 
 QList<QVideoFrame::PixelFormat> TestVideoSurface::supportedPixelFormats(
-        QAbstractVideoBuffer::HandleType handleType) const
+        QVideoFrame::HandleType handleType) const
 {
-    if (handleType == QAbstractVideoBuffer::NoHandle) {
+    if (handleType == QVideoFrame::NoHandle) {
         return m_supported;
     }
 

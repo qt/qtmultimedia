@@ -146,13 +146,13 @@ class QnxTextureBuffer : public QAbstractVideoBuffer
 {
 public:
     QnxTextureBuffer(WindowGrabber *windowGrabber) :
-        QAbstractVideoBuffer(QAbstractVideoBuffer::GLTextureHandle)
+        QAbstractVideoBuffer(QVideoFrame::GLTextureHandle)
     {
         m_windowGrabber = windowGrabber;
         m_handle = 0;
     }
     MapMode mapMode() const {
-        return QAbstractVideoBuffer::ReadWrite;
+        return QVideoFrame::ReadWrite;
     }
     void unmap() {}
     MapData map(MapMode mode) override { return {}; }
@@ -173,7 +173,7 @@ void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
         if (!m_surface->isActive()) {
             if (m_windowGrabber->eglImageSupported()) {
                 m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_BGR32,
-                                                     QAbstractVideoBuffer::GLTextureHandle));
+                                                     QVideoFrame::GLTextureHandle));
             } else {
                 m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_ARGB32));
             }
@@ -182,7 +182,7 @@ void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
                 m_surface->stop();
                 if (m_windowGrabber->eglImageSupported()) {
                     m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_BGR32,
-                                                         QAbstractVideoBuffer::GLTextureHandle));
+                                                         QVideoFrame::GLTextureHandle));
                 } else {
                     m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_ARGB32));
                 }

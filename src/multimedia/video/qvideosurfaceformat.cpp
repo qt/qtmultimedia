@@ -55,7 +55,7 @@ public:
     QVideoSurfaceFormatPrivate(
             const QSize &size,
             QVideoFrame::PixelFormat format,
-            QAbstractVideoBuffer::HandleType type)
+            QVideoFrame::HandleType type)
         : pixelFormat(format)
         , handleType(type)
         , frameSize(size)
@@ -94,7 +94,7 @@ public:
     }
 
     QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
-    QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle;
+    QVideoFrame::HandleType handleType = QVideoFrame::NoHandle;
     QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;
     QSize frameSize;
     QSize pixelAspectRatio;
@@ -186,7 +186,7 @@ QVideoSurfaceFormat::QVideoSurfaceFormat()
     \a size and pixel \a format.
 */
 QVideoSurfaceFormat::QVideoSurfaceFormat(
-        const QSize& size, QVideoFrame::PixelFormat format, QAbstractVideoBuffer::HandleType type)
+        const QSize& size, QVideoFrame::PixelFormat format, QVideoFrame::HandleType type)
     : d(new QVideoSurfaceFormatPrivate(size, format, type))
 {
 }
@@ -243,12 +243,12 @@ QVideoFrame::PixelFormat QVideoSurfaceFormat::pixelFormat() const
 /*!
     Returns the type of handle the surface uses to present the frame data.
 
-    If the handle type is \c QAbstractVideoBuffer::NoHandle, buffers with any handle type are valid
-    provided they can be \l {QAbstractVideoBuffer::map()}{mapped} with the
-    QAbstractVideoBuffer::ReadOnly flag.  If the handleType() is not QAbstractVideoBuffer::NoHandle
+    If the handle type is \c QVideoFrame::NoHandle, buffers with any handle type are valid
+    provided they can be \l {QVideoFrame::map()}{mapped} with the
+    QVideoFrame::ReadOnly flag.  If the handleType() is not QVideoFrame::NoHandle
     then the handle type of the buffer must be the same as that of the surface format.
 */
-QAbstractVideoBuffer::HandleType QVideoSurfaceFormat::handleType() const
+QVideoFrame::HandleType QVideoSurfaceFormat::handleType() const
 {
     return d->handleType;
 }

@@ -52,7 +52,6 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qabstractvideobuffer.h>
 #include <qvideosurfaceformat.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qplugin.h>
@@ -62,10 +61,6 @@
 QT_BEGIN_NAMESPACE
 
 class QAbstractVideoSurface;
-
-#ifndef Q_MULTIMEDIA_EXPORT
-#error XXX
-#endif
 
 class Q_MULTIMEDIA_EXPORT QGstVideoRenderer
 {

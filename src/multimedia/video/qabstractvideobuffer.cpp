@@ -73,7 +73,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \enum QAbstractVideoBuffer::HandleType
+    \enum QVideoFrame::HandleType
 
     Identifies the type of a video buffers handle.
 
@@ -90,7 +90,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \enum QAbstractVideoBuffer::MapMode
+    \enum QVideoFrame::MapMode
 
     Enumerates how a video buffer's data is mapped to system memory.
 
@@ -108,7 +108,7 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs an abstract video buffer of the given \a type.
 */
-QAbstractVideoBuffer::QAbstractVideoBuffer(HandleType type)
+QAbstractVideoBuffer::QAbstractVideoBuffer(QVideoFrame::HandleType type)
     : m_type(type)
 {
 }
@@ -116,7 +116,7 @@ QAbstractVideoBuffer::QAbstractVideoBuffer(HandleType type)
 /*!
     \internal
 */
-QAbstractVideoBuffer::QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, HandleType type)
+QAbstractVideoBuffer::QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, QVideoFrame::HandleType type)
     : d_ptr(&dd)
     , m_type(type)
 {
@@ -149,13 +149,13 @@ void QAbstractVideoBuffer::release()
 
     \sa handle()
 */
-QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
+QVideoFrame::HandleType QAbstractVideoBuffer::handleType() const
 {
     return m_type;
 }
 
 /*!
-    \fn QAbstractVideoBuffer::mapMode() const
+    \fn QVideoFrame::mapMode() const
 
     Returns the mode a video buffer is mapped in.
 
@@ -167,9 +167,9 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
     Independently maps the planes of a video buffer to memory.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the buffer.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
+    written to the buffer.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
     mapped memory will be populated with the content of the buffer when initially mapped.  If the map
-    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
+    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
     mapped memory will be written back to the buffer when unmapped.
 
     When access to the data is no longer needed be sure to call the unmap() function to release the
@@ -195,7 +195,7 @@ QAbstractVideoBuffer::HandleType QAbstractVideoBuffer::handleType() const
 
     Releases the memory mapped by the map() function.
 
-    If the \l {QAbstractVideoBuffer::MapMode}{MapMode} included the \c QAbstractVideoBuffer::WriteOnly
+    If the \l {QVideoFrame::MapMode}{MapMode} included the \c QVideoFrame::WriteOnly
     flag this will write the current content of the mapped memory back to the video frame.
 
     \sa map()
@@ -219,9 +219,9 @@ QVariant QAbstractVideoBuffer::handle() const
     Maps the contents of a video buffer to memory.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the buffer.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
+    written to the buffer.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
     mapped memory will be populated with the content of the buffer when initially mapped.  If the map
-    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
+    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
     mapped memory will be written back to the buffer when unmapped.
 
     When access to the data is no longer needed be sure to call the unmap() function to release the
@@ -231,42 +231,20 @@ QVariant QAbstractVideoBuffer::handle() const
     plane will be returned in \a bytesPerLine, and a pointer to the plane data will be returned in
     \a data.  The accumulative size of the mapped data is returned in \a numBytes.
 
-    \sa QAbstractVideoBuffer::map(), QAbstractVideoBuffer::unmap(), QAbstractVideoBuffer::mapMode()
+    \sa QAbstractVideoBuffer::map(), QAbstractVideoBuffer::unmap(), QVideoFrame::mapMode()
 */
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::HandleType type)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace();
-    switch (type) {
-    case QAbstractVideoBuffer::NoHandle:
-        return dbg << "NoHandle";
-    case QAbstractVideoBuffer::GLTextureHandle:
-        return dbg << "GLTextureHandle";
-    case QAbstractVideoBuffer::MTLTextureHandle:
-        return dbg << "MTLTextureHandle";
-    case QAbstractVideoBuffer::XvShmImageHandle:
-        return dbg << "XvShmImageHandle";
-    case QAbstractVideoBuffer::CoreImageHandle:
-        return dbg << "CoreImageHandle";
-    case QAbstractVideoBuffer::QPixmapHandle:
-        return dbg << "QPixmapHandle";
-    default:
-        return dbg << "UserHandle(" << int(type) << ')';
-    }
-}
-
-QDebug operator<<(QDebug dbg, QAbstractVideoBuffer::MapMode mode)
+QDebug operator<<(QDebug dbg, QVideoFrame::MapMode mode)
 {
     QDebugStateSaver saver(dbg);
     dbg.nospace();
     switch (mode) {
-    case QAbstractVideoBuffer::ReadOnly:
+    case QVideoFrame::ReadOnly:
         return dbg << "ReadOnly";
-    case QAbstractVideoBuffer::ReadWrite:
+    case QVideoFrame::ReadWrite:
         return dbg << "ReadWrite";
-    case QAbstractVideoBuffer::WriteOnly:
+    case QVideoFrame::WriteOnly:
         return dbg << "WriteOnly";
     default:
         return dbg << "NotMapped";

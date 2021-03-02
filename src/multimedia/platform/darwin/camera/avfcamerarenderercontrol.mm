@@ -60,16 +60,16 @@ class CVImageVideoBuffer : public QAbstractVideoBuffer
 public:
     CVImageVideoBuffer(CVImageBufferRef buffer, AVFCameraRendererControl *renderer)
 #ifndef Q_OS_IOS
-        : QAbstractVideoBuffer(NoHandle)
+        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
 #else
         : QAbstractVideoBuffer(renderer->supportsTextures()
                                && CVPixelBufferGetPixelFormatType(buffer) == kCVPixelFormatType_32BGRA
-                               ? GLTextureHandle : NoHandle)
+                               ? QVideoFrame::GLTextureHandle : QVideoFrame::NoHandle)
         , m_texture(nullptr)
         , m_renderer(renderer)
 #endif
         , m_buffer(buffer)
-        , m_mode(NotMapped)
+        , m_mode(QVideoFrame::NotMapped)
     {
 #ifndef Q_OS_IOS
         Q_UNUSED(renderer);
@@ -87,9 +87,9 @@ public:
         CVPixelBufferRelease(m_buffer);
     }
 
-    MapMode mapMode() const { return m_mode; }
+    QVideoFrame::MapMode mapMode() const { return m_mode; }
 
-    MapData map(QAbstractVideoBuffer::MapMode mode)
+    MapData map(QVideoFrame::MapMode mode)
     {
         MapData mapData;
 
@@ -105,8 +105,8 @@ public:
         }
 
         // For a bi-planar format we have to set the parameters correctly:
-        if (mode != QAbstractVideoBuffer::NotMapped && m_mode == QAbstractVideoBuffer::NotMapped) {
-            CVPixelBufferLockBaseAddress(m_buffer, mode == QAbstractVideoBuffer::ReadOnly
+        if (mode != QVideoFrame::NotMapped && m_mode == QVideoFrame::NotMapped) {
+            CVPixelBufferLockBaseAddress(m_buffer, mode == QVideoFrame::ReadOnly
                                                                ? kCVPixelBufferLock_ReadOnly
                                                                : 0);
 
@@ -125,10 +125,10 @@ public:
         return mapData;
     }
 
-    uchar *map(MapMode mode, qsizetype *numBytes, int *bytesPerLine)
+    uchar *map(QVideoFrame::MapMode mode, qsizetype *numBytes, int *bytesPerLine)
     {
-        if (mode != NotMapped && m_mode == NotMapped) {
-            CVPixelBufferLockBaseAddress(m_buffer, mode == QAbstractVideoBuffer::ReadOnly
+        if (mode != QVideoFrame::NotMapped && m_mode == QVideoFrame::NotMapped) {
+            CVPixelBufferLockBaseAddress(m_buffer, mode == QVideoFrame::ReadOnly
                                                                ? kCVPixelBufferLock_ReadOnly
                                                                : 0);
             if (numBytes)
@@ -146,11 +146,11 @@ public:
 
     void unmap()
     {
-        if (m_mode != NotMapped) {
-            CVPixelBufferUnlockBaseAddress(m_buffer, m_mode == QAbstractVideoBuffer::ReadOnly
+        if (m_mode != QVideoFrame::NotMapped) {
+            CVPixelBufferUnlockBaseAddress(m_buffer, m_mode == QVideoFrame::ReadOnly
                                                                    ? kCVPixelBufferLock_ReadOnly
                                                                    : 0);
-            m_mode = NotMapped;
+            m_mode = QVideoFrame::NotMapped;
         }
     }
 
@@ -204,7 +204,7 @@ private:
     AVFCameraRendererControl *m_renderer;
 #endif
     CVImageBufferRef m_buffer;
-    MapMode m_mode;
+    QVideoFrame::MapMode m_mode;
 };
 
 
@@ -296,7 +296,7 @@ void AVFCameraRendererControl::setSurface(QAbstractVideoSurface *surface)
     if (m_surface != surface) {
         m_surface = surface;
         m_supportsTextures = m_surface
-                ? !m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()
+                ? !m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle).isEmpty()
                 : false;
         Q_EMIT surfaceChanged(surface);
     }

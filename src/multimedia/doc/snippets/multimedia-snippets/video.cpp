@@ -53,7 +53,7 @@
 class MyVideoSurface : public QAbstractVideoSurface
 {
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const
+            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const
     {
         Q_UNUSED(handleType);
 

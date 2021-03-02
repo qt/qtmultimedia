@@ -42,7 +42,7 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmultimedia.h>
-
+#include <QtMultimedia/qvideoframe.h>
 
 #include <QtCore/qmetatype.h>
 
@@ -56,31 +56,11 @@ class QAbstractVideoBufferPrivate;
 class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 {
 public:
-    enum HandleType
-    {
-        NoHandle,
-        GLTextureHandle,
-        MTLTextureHandle,
-        XvShmImageHandle,
-        CoreImageHandle,
-        QPixmapHandle,
-        EGLImageHandle,
-        UserHandle = 1000
-    };
-
-    enum MapMode
-    {
-        NotMapped = 0x00,
-        ReadOnly  = 0x01,
-        WriteOnly = 0x02,
-        ReadWrite = ReadOnly | WriteOnly
-    };
-
-    QAbstractVideoBuffer(HandleType type);
+    QAbstractVideoBuffer(QVideoFrame::HandleType type);
     virtual ~QAbstractVideoBuffer();
     virtual void release();
 
-    HandleType handleType() const;
+    QVideoFrame::HandleType handleType() const;
 
     struct MapData
     {
@@ -90,25 +70,24 @@ public:
         uchar *data[4] = {};
     };
 
-    virtual MapMode mapMode() const = 0;
-    virtual MapData map(MapMode mode) = 0;
+    virtual QVideoFrame::MapMode mapMode() const = 0;
+    virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap() = 0;
 
     virtual QVariant handle() const;
 
 protected:
-    QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, HandleType type);
+    QAbstractVideoBuffer(QAbstractVideoBufferPrivate &dd, QVideoFrame::HandleType type);
 
     QAbstractVideoBufferPrivate *d_ptr = nullptr;  // currently unused
-    HandleType m_type;
+    QVideoFrame::HandleType m_type;
 
 private:
     Q_DISABLE_COPY(QAbstractVideoBuffer)
 };
 
 #ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAbstractVideoBuffer::HandleType);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAbstractVideoBuffer::MapMode);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::MapMode);
 #endif
 
 QT_END_NAMESPACE

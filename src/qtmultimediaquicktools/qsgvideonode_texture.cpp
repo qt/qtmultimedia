@@ -46,19 +46,19 @@
 QT_BEGIN_NAMESPACE
 
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelFormats(
-                                        QAbstractVideoBuffer::HandleType handleType) const
+                                        QVideoFrame::HandleType handleType) const
 {
     QList<QVideoFrame::PixelFormat> pixelFormats;
 
-    QList<QAbstractVideoBuffer::HandleType> types;
+    QList<QVideoFrame::HandleType> types;
 
     auto rhi = QSGRhiSupport::instance();
     auto metalEnabled = rhi->isRhiEnabled() && rhi->rhiBackend() == QRhi::Metal;
     if (metalEnabled)
-        types.append(QAbstractVideoBuffer::MTLTextureHandle);
+        types.append(QVideoFrame::MTLTextureHandle);
 
 #if QT_CONFIG(opengl)
-    types.append(QAbstractVideoBuffer::GLTextureHandle);
+    types.append(QVideoFrame::GLTextureHandle);
 #endif
 
     if (types.contains(handleType)) {

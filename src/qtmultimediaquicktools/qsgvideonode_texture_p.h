@@ -67,7 +67,7 @@ public:
     QVideoFrame::PixelFormat pixelFormat() const override {
         return m_format.pixelFormat();
     }
-    QAbstractVideoBuffer::HandleType handleType() const override {
+    QVideoFrame::HandleType handleType() const override {
         return m_format.handleType();
     }
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) override;
@@ -80,7 +80,7 @@ private:
 
 class QSGVideoNodeFactory_Texture : public QSGVideoNodeFactoryInterface {
 public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType handleType) const override;
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override;
 };
 

@@ -58,7 +58,7 @@ private slots:
     void supportedFormatsChanged();
 };
 
-using SupportedFormatMap = QMultiMap<QAbstractVideoBuffer::HandleType, QVideoFrame::PixelFormat>;
+using SupportedFormatMap = QMultiMap<QVideoFrame::HandleType, QVideoFrame::PixelFormat>;
 
 class QtTestVideoSurface : public QAbstractVideoSurface
 {
@@ -69,7 +69,7 @@ public:
             : QAbstractVideoSurface(parent), supportedFormats(formats) {}
 
     [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override
+            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const override
     {
         return supportedFormats.values(handleType);
     }
@@ -84,7 +84,7 @@ public:
     /* fun to generate supportedFormatsChanged signal */
     QList<QVideoFrame::PixelFormat> supportedPixelFormatsChange(QList<QVideoFrame::PixelFormat> formats)
     {
-        supportedFormats.insert(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_RGB32);
+        supportedFormats.insert(QVideoFrame::NoHandle, QVideoFrame::Format_RGB32);
         QList<QVideoFrame::PixelFormat> supportedFormats = supportedPixelFormats();
         if (supportedFormats.count() != formats.count()) {
             emit supportedFormatsChanged();
@@ -175,20 +175,20 @@ void tst_QAbstractVideoSurface::isFormatSupported_data()
             << QVideoSurfaceFormat(
                     QSize(800, 600),
                     QVideoFrame::Format_RGB32,
-                    QAbstractVideoBuffer::GLTextureHandle)
+                    QVideoFrame::GLTextureHandle)
             << false;
     QTest::newRow("no formats: rgb24 gl")
             << formats
             << QVideoSurfaceFormat(
                     QSize(800, 600),
                     QVideoFrame::Format_RGB24,
-                    QAbstractVideoBuffer::GLTextureHandle)
+                    QVideoFrame::GLTextureHandle)
             << false;
 
-    formats.insert(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_RGB32);
-    formats.insert(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_RGB24);
-    formats.insert(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_YUV444);
-    formats.insert(QAbstractVideoBuffer::GLTextureHandle, QVideoFrame::Format_RGB32);
+    formats.insert(QVideoFrame::NoHandle, QVideoFrame::Format_RGB32);
+    formats.insert(QVideoFrame::NoHandle, QVideoFrame::Format_RGB24);
+    formats.insert(QVideoFrame::NoHandle, QVideoFrame::Format_YUV444);
+    formats.insert(QVideoFrame::GLTextureHandle, QVideoFrame::Format_RGB32);
 
     QTest::newRow("supported: rgb32")
             << formats
@@ -207,25 +207,25 @@ void tst_QAbstractVideoSurface::isFormatSupported_data()
             << QVideoSurfaceFormat(
                     QSize(800, 600),
                     QVideoFrame::Format_RGB32,
-                    QAbstractVideoBuffer::GLTextureHandle)
+                    QVideoFrame::GLTextureHandle)
             << true;
     QTest::newRow("unsupported: rgb24 gl")
             << formats
             << QVideoSurfaceFormat(
                     QSize(800, 600),
                     QVideoFrame::Format_RGB24,
-                    QAbstractVideoBuffer::GLTextureHandle)
+                    QVideoFrame::GLTextureHandle)
             << false;
     QTest::newRow("unsupported: yv12 gl")
             << formats
             << QVideoSurfaceFormat(
                     QSize(800, 600),
                     QVideoFrame::Format_YV12,
-                    QAbstractVideoBuffer::GLTextureHandle)
+                    QVideoFrame::GLTextureHandle)
             << false;
 
-    formats.insert(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_YV12);
-    formats.insert(QAbstractVideoBuffer::GLTextureHandle, QVideoFrame::Format_RGB24);
+    formats.insert(QVideoFrame::NoHandle, QVideoFrame::Format_YV12);
+    formats.insert(QVideoFrame::GLTextureHandle, QVideoFrame::Format_RGB24);
 
     QTest::newRow("supported: yv12")
             << formats
@@ -236,7 +236,7 @@ void tst_QAbstractVideoSurface::isFormatSupported_data()
             << QVideoSurfaceFormat(
                     QSize(800, 600),
                     QVideoFrame::Format_RGB24,
-                    QAbstractVideoBuffer::GLTextureHandle)
+                    QVideoFrame::GLTextureHandle)
             << true;
 }
 
@@ -280,7 +280,7 @@ void tst_QAbstractVideoSurface::start_data()
     QTest::newRow("rgb32 gl") << QVideoSurfaceFormat(
             QSize(800, 600),
             QVideoFrame::Format_RGB32,
-            QAbstractVideoBuffer::GLTextureHandle);
+            QVideoFrame::GLTextureHandle);
 }
 
 void tst_QAbstractVideoSurface::start()
@@ -373,7 +373,7 @@ void tst_QAbstractVideoSurface::nativeResolution()
 void tst_QAbstractVideoSurface::supportedFormatsChanged()
 {
     SupportedFormatMap formatMap;
-    formatMap.insert(QAbstractVideoBuffer::NoHandle, QVideoFrame::Format_RGB24);
+    formatMap.insert(QVideoFrame::NoHandle, QVideoFrame::Format_RGB24);
     QtTestVideoSurface surface(formatMap);
     QSignalSpy spy(&surface, SIGNAL(supportedFormatsChanged()));
     QList<QVideoFrame::PixelFormat> formats = surface.supportedPixelFormats();

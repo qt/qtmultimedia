@@ -73,7 +73,7 @@ void VideoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    if (currentFrame.map(QAbstractVideoBuffer::ReadOnly)) {
+    if (currentFrame.map(QVideoFrame::ReadOnly)) {
         const QTransform oldTransform = painter->transform();
 
         if (surfaceFormat().scanLineDirection() == QVideoSurfaceFormat::BottomToTop) {
@@ -96,9 +96,9 @@ void VideoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 }
 
 QList<QVideoFrame::PixelFormat> VideoItem::supportedPixelFormats(
-        QAbstractVideoBuffer::HandleType handleType) const
+        QVideoFrame::HandleType handleType) const
 {
-    if (handleType == QAbstractVideoBuffer::NoHandle) {
+    if (handleType == QVideoFrame::NoHandle) {
         return QList<QVideoFrame::PixelFormat>()
                 << QVideoFrame::Format_RGB32
                 << QVideoFrame::Format_ARGB32

@@ -590,7 +590,7 @@ void tst_QGraphicsVideoItem::paint()
 
     QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
 
-    frame.map(QAbstractVideoBuffer::WriteOnly);
+    frame.map(QVideoFrame::WriteOnly);
     memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
     frame.unmap();
 
@@ -633,7 +633,7 @@ void tst_QGraphicsVideoItem::paintSurface()
 
     QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
 
-    frame.map(QAbstractVideoBuffer::WriteOnly);
+    frame.map(QVideoFrame::WriteOnly);
     memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
     frame.unmap();
 

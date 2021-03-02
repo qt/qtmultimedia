@@ -44,11 +44,11 @@
 QT_BEGIN_NAMESPACE
 
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_RGB::supportedPixelFormats(
-                                        QAbstractVideoBuffer::HandleType handleType) const
+                                        QVideoFrame::HandleType handleType) const
 {
     QList<QVideoFrame::PixelFormat> pixelFormats;
 
-    if (handleType == QAbstractVideoBuffer::NoHandle) {
+    if (handleType == QVideoFrame::NoHandle) {
         pixelFormats.append(QVideoFrame::Format_RGB32);
         pixelFormats.append(QVideoFrame::Format_ARGB32);
         pixelFormats.append(QVideoFrame::Format_BGR32);
@@ -174,7 +174,7 @@ void QSGVideoMaterialRhiShader_RGB::updateSampledImage(RenderState &state, int b
         format = QRhiTexture::BGRA8;
     }
 
-    if (frame.isValid() && frame.map(QAbstractVideoBuffer::ReadOnly)) {
+    if (frame.isValid() && frame.map(QVideoFrame::ReadOnly)) {
         m->m_texture->setData(format, frame.size(), frame.bits(), frame.bytesPerLine() * frame.height());
         frame.unmap();
     }

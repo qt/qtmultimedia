@@ -395,9 +395,9 @@ QVideoFrame::PixelFormat QVideoFrame::pixelFormat() const
     Returns the type of a video frame's handle.
 
 */
-QAbstractVideoBuffer::HandleType QVideoFrame::handleType() const
+QVideoFrame::HandleType QVideoFrame::handleType() const
 {
-    return d->buffer ? d->buffer->handleType() : QAbstractVideoBuffer::NoHandle;
+    return d->buffer ? d->buffer->handleType() : QVideoFrame::NoHandle;
 }
 
 /*!
@@ -427,25 +427,25 @@ int QVideoFrame::height() const
 /*!
     Identifies if a video frame's contents are currently mapped to system memory.
 
-    This is a convenience function which checks that the \l {QAbstractVideoBuffer::MapMode}{MapMode}
-    of the frame is not equal to QAbstractVideoBuffer::NotMapped.
+    This is a convenience function which checks that the \l {QVideoFrame::MapMode}{MapMode}
+    of the frame is not equal to QVideoFrame::NotMapped.
 
     Returns true if the contents of the video frame are mapped to system memory, and false
     otherwise.
 
-    \sa mapMode(), QAbstractVideoBuffer::MapMode
+    \sa mapMode(), QVideoFrame::MapMode
 */
 
 bool QVideoFrame::isMapped() const
 {
-    return d->buffer != nullptr && d->buffer->mapMode() != QAbstractVideoBuffer::NotMapped;
+    return d->buffer != nullptr && d->buffer->mapMode() != QVideoFrame::NotMapped;
 }
 
 /*!
     Identifies if the mapped contents of a video frame will be persisted when the frame is unmapped.
 
-    This is a convenience function which checks if the \l {QAbstractVideoBuffer::MapMode}{MapMode}
-    contains the QAbstractVideoBuffer::WriteOnly flag.
+    This is a convenience function which checks if the \l {QVideoFrame::MapMode}{MapMode}
+    contains the QVideoFrame::WriteOnly flag.
 
     Returns true if the video frame will be updated when unmapped, and false otherwise.
 
@@ -453,37 +453,37 @@ bool QVideoFrame::isMapped() const
     Depending on the buffer implementation the changes may be persisted, or worse alter a shared
     buffer.
 
-    \sa mapMode(), QAbstractVideoBuffer::MapMode
+    \sa mapMode(), QVideoFrame::MapMode
 */
 bool QVideoFrame::isWritable() const
 {
-    return d->buffer != nullptr && (d->buffer->mapMode() & QAbstractVideoBuffer::WriteOnly);
+    return d->buffer != nullptr && (d->buffer->mapMode() & QVideoFrame::WriteOnly);
 }
 
 /*!
     Identifies if the mapped contents of a video frame were read from the frame when it was mapped.
 
-    This is a convenience function which checks if the \l {QAbstractVideoBuffer::MapMode}{MapMode}
-    contains the QAbstractVideoBuffer::WriteOnly flag.
+    This is a convenience function which checks if the \l {QVideoFrame::MapMode}{MapMode}
+    contains the QVideoFrame::WriteOnly flag.
 
     Returns true if the contents of the mapped memory were read from the video frame, and false
     otherwise.
 
-    \sa mapMode(), QAbstractVideoBuffer::MapMode
+    \sa mapMode(), QVideoFrame::MapMode
 */
 bool QVideoFrame::isReadable() const
 {
-    return d->buffer != nullptr && (d->buffer->mapMode() & QAbstractVideoBuffer::ReadOnly);
+    return d->buffer != nullptr && (d->buffer->mapMode() & QVideoFrame::ReadOnly);
 }
 
 /*!
     Returns the mode a video frame was mapped to system memory in.
 
-    \sa map(), QAbstractVideoBuffer::MapMode
+    \sa map(), QVideoFrame::MapMode
 */
-QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
+QVideoFrame::MapMode QVideoFrame::mapMode() const
 {
-    return d->buffer != nullptr ? d->buffer->mapMode() : QAbstractVideoBuffer::NotMapped;
+    return d->buffer != nullptr ? d->buffer->mapMode() : QVideoFrame::NotMapped;
 }
 
 /*!
@@ -494,9 +494,9 @@ QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
     copying the contents around, so avoid mapping and unmapping unless required.
 
     The map \a mode indicates whether the contents of the mapped memory should be read from and/or
-    written to the frame.  If the map mode includes the \c QAbstractVideoBuffer::ReadOnly flag the
+    written to the frame.  If the map mode includes the \c QVideoFrame::ReadOnly flag the
     mapped memory will be populated with the content of the video frame when initially mapped.  If the map
-    mode includes the \c QAbstractVideoBuffer::WriteOnly flag the content of the possibly modified
+    mode includes the \c QVideoFrame::WriteOnly flag the content of the possibly modified
     mapped memory will be written back to the frame when unmapped.
 
     While mapped the contents of a video frame can be accessed directly through the pointer returned
@@ -516,20 +516,20 @@ QAbstractVideoBuffer::MapMode QVideoFrame::mapMode() const
 
     \sa unmap(), mapMode(), bits()
 */
-bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
+bool QVideoFrame::map(QVideoFrame::MapMode mode)
 {
     QMutexLocker lock(&d->mapMutex);
 
     if (!d->buffer)
         return false;
 
-    if (mode == QAbstractVideoBuffer::NotMapped)
+    if (mode == QVideoFrame::NotMapped)
         return false;
 
     if (d->mappedCount > 0) {
         //it's allowed to map the video frame multiple times in read only mode
-        if (d->buffer->mapMode() == QAbstractVideoBuffer::ReadOnly
-                && mode == QAbstractVideoBuffer::ReadOnly) {
+        if (d->buffer->mapMode() == QVideoFrame::ReadOnly
+                && mode == QVideoFrame::ReadOnly) {
             d->mappedCount++;
             return true;
         }
@@ -630,7 +630,7 @@ bool QVideoFrame::map(QAbstractVideoBuffer::MapMode mode)
 /*!
     Releases the memory mapped by the map() function.
 
-    If the \l {QAbstractVideoBuffer::MapMode}{MapMode} included the QAbstractVideoBuffer::WriteOnly
+    If the \l {QVideoFrame::MapMode}{MapMode} included the QVideoFrame::WriteOnly
     flag this will persist the current content of the mapped memory to the video frame.
 
     unmap() should not be called if map() function failed.
@@ -1053,7 +1053,7 @@ QImage QVideoFrame::image() const
     QVideoFrame frame = *this;
     QImage result;
 
-    if (!frame.isValid() || !frame.map(QAbstractVideoBuffer::ReadOnly))
+    if (!frame.isValid() || !frame.map(QVideoFrame::ReadOnly))
         return result;
 
     // Formats supported by QImage don't need conversion
@@ -1237,6 +1237,28 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
             .arg(e_minutes, 2, 10, QLatin1Char('0'))
             .arg(e_seconds, 2, 10, QLatin1Char('0'))
             .arg(e_millis, 2, 10, QLatin1Char('0'));
+}
+
+QDebug operator<<(QDebug dbg, QVideoFrame::HandleType type)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    switch (type) {
+    case QVideoFrame::NoHandle:
+        return dbg << "NoHandle";
+    case QVideoFrame::GLTextureHandle:
+        return dbg << "GLTextureHandle";
+    case QVideoFrame::MTLTextureHandle:
+        return dbg << "MTLTextureHandle";
+    case QVideoFrame::XvShmImageHandle:
+        return dbg << "XvShmImageHandle";
+    case QVideoFrame::CoreImageHandle:
+        return dbg << "CoreImageHandle";
+    case QVideoFrame::QPixmapHandle:
+        return dbg << "QPixmapHandle";
+    default:
+        return dbg << "UserHandle(" << int(type) << ')';
+    }
 }
 
 QDebug operator<<(QDebug dbg, const QVideoFrame& f)

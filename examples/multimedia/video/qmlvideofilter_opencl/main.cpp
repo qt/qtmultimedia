@@ -317,8 +317,8 @@ QVideoFrame CLFilterRunnable::run(QVideoFrame *input, const QVideoSurfaceFormat 
     // The latter is the fast path where everything happens on GPU. THe former involves a texture upload.
 
     if (!input->isValid()
-            || (input->handleType() != QAbstractVideoBuffer::NoHandle
-                && input->handleType() != QAbstractVideoBuffer::GLTextureHandle)) {
+            || (input->handleType() != QVideoFrame::NoHandle
+                && input->handleType() != QVideoFrame::GLTextureHandle)) {
         qWarning("Invalid input format");
         return *input;
     }
@@ -337,13 +337,13 @@ QVideoFrame CLFilterRunnable::run(QVideoFrame *input, const QVideoSurfaceFormat 
     // Create a texture from the image data.
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
     GLuint texture;
-    if (input->handleType() == QAbstractVideoBuffer::NoHandle) {
+    if (input->handleType() == QVideoFrame::NoHandle) {
         // Upload.
         if (m_tempTexture)
             f->glBindTexture(GL_TEXTURE_2D, m_tempTexture);
         else
             m_tempTexture = newTexture();
-        input->map(QAbstractVideoBuffer::ReadOnly);
+        input->map(QVideoFrame::ReadOnly);
         // glTexImage2D only once and use TexSubImage later on. This avoids the need
         // to recreate the CL image object on every frame.
         f->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_size.width(), m_size.height(),
@@ -482,11 +482,11 @@ QVideoFrame InfoFilterRunnable::run(QVideoFrame *input, const QVideoSurfaceForma
     InfoFilterResult *result = new InfoFilterResult;
     result->m_frameResolution = input->size();
     switch (input->handleType()) {
-    case QAbstractVideoBuffer::NoHandle:
+    case QVideoFrame::NoHandle:
         result->m_handleType = QLatin1String("pixel data");
         result->m_pixelFormat = input->pixelFormat();
         break;
-    case QAbstractVideoBuffer::GLTextureHandle:
+    case QVideoFrame::GLTextureHandle:
         result->m_handleType = QLatin1String("OpenGL texture");
         break;
     default:

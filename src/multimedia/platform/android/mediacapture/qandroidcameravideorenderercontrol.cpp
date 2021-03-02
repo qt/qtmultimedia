@@ -255,7 +255,7 @@ void QAndroidCameraVideoRendererControl::setSurface(QAbstractVideoSurface *surfa
     QAndroidVideoOutput *newOutput = 0;
 
     if (m_surface) {
-        if (!m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).isEmpty()) {
+        if (!m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle).isEmpty()) {
             if (!m_textureOutput) {
                 m_dataOutput = 0;
                 newOutput = m_textureOutput = new QAndroidTextureVideoOutput(this);

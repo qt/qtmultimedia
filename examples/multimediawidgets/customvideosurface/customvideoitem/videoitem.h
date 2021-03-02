@@ -70,7 +70,7 @@ public:
 
     //video surface
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override;
+            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const override;
 
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;

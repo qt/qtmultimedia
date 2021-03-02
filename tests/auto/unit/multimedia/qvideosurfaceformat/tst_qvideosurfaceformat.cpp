@@ -111,7 +111,7 @@ void tst_QVideoSurfaceFormat::constructNull()
     QVideoSurfaceFormat format;
 
     QVERIFY(!format.isValid());
-    QCOMPARE(format.handleType(), QAbstractVideoBuffer::NoHandle);
+    QCOMPARE(format.handleType(), QVideoFrame::NoHandle);
     QCOMPARE(format.pixelFormat(), QVideoFrame::Format_Invalid);
     QCOMPARE(format.frameSize(), QSize());
     QCOMPARE(format.frameWidth(), -1);
@@ -127,37 +127,37 @@ void tst_QVideoSurfaceFormat::construct_data()
 {
     QTest::addColumn<QSize>("frameSize");
     QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
-    QTest::addColumn<QAbstractVideoBuffer::HandleType>("handleType");
+    QTest::addColumn<QVideoFrame::HandleType>("handleType");
     QTest::addColumn<bool>("valid");
 
     QTest::newRow("32x32 rgb32 no handle")
             << QSize(32, 32)
             << QVideoFrame::Format_RGB32
-            << QAbstractVideoBuffer::NoHandle
+            << QVideoFrame::NoHandle
             << true;
 
     QTest::newRow("1024x768 YUV444 GL texture")
             << QSize(32, 32)
             << QVideoFrame::Format_YUV444
-            << QAbstractVideoBuffer::GLTextureHandle
+            << QVideoFrame::GLTextureHandle
             << true;
 
     QTest::newRow("32x32 invalid no handle")
             << QSize(32, 32)
             << QVideoFrame::Format_Invalid
-            << QAbstractVideoBuffer::NoHandle
+            << QVideoFrame::NoHandle
             << false;
 
     QTest::newRow("invalid size, rgb32 no handle")
             << QSize()
             << QVideoFrame::Format_RGB32
-            << QAbstractVideoBuffer::NoHandle
+            << QVideoFrame::NoHandle
             << false;
 
     QTest::newRow("0x0 rgb32 no handle")
             << QSize(0,0)
             << QVideoFrame::Format_RGB32
-            << QAbstractVideoBuffer::NoHandle
+            << QVideoFrame::NoHandle
             << true;
 }
 
@@ -165,7 +165,7 @@ void tst_QVideoSurfaceFormat::construct()
 {
     QFETCH(QSize, frameSize);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
-    QFETCH(QAbstractVideoBuffer::HandleType, handleType);
+    QFETCH(QVideoFrame::HandleType, handleType);
     QFETCH(bool, valid);
 
     QRect viewport(QPoint(0, 0), frameSize);
@@ -173,7 +173,7 @@ void tst_QVideoSurfaceFormat::construct()
     QVideoSurfaceFormat format(frameSize, pixelFormat, handleType);
 
     QCOMPARE(format.handleType(), handleType);
-    QCOMPARE(format.property("handleType").value<QAbstractVideoBuffer::HandleType>(), handleType);
+    QCOMPARE(format.property("handleType").value<QVideoFrame::HandleType>(), handleType);
     QCOMPARE(format.pixelFormat(), pixelFormat);
     QCOMPARE(format.property("pixelFormat").value<QVideoFrame::PixelFormat>(), pixelFormat);
     QCOMPARE(format.frameSize(), frameSize);
@@ -583,13 +583,13 @@ void tst_QVideoSurfaceFormat::dynamicProperty()
 void tst_QVideoSurfaceFormat::compare()
 {
     QVideoSurfaceFormat format1(
-            QSize(16, 16), QVideoFrame::Format_RGB32, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(16, 16), QVideoFrame::Format_RGB32, QVideoFrame::GLTextureHandle);
     QVideoSurfaceFormat format2(
-            QSize(16, 16), QVideoFrame::Format_RGB32, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(16, 16), QVideoFrame::Format_RGB32, QVideoFrame::GLTextureHandle);
     QVideoSurfaceFormat format3(
-            QSize(32, 32), QVideoFrame::Format_YUV444, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(32, 32), QVideoFrame::Format_YUV444, QVideoFrame::GLTextureHandle);
     QVideoSurfaceFormat format4(
-            QSize(16, 16), QVideoFrame::Format_RGB32, QAbstractVideoBuffer::UserHandle);
+            QSize(16, 16), QVideoFrame::Format_RGB32, QVideoFrame::NoHandle);
 
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
@@ -714,12 +714,12 @@ void tst_QVideoSurfaceFormat::compare()
 void tst_QVideoSurfaceFormat::copy()
 {
     QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoFrame::Format_ARGB32, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(1024, 768), QVideoFrame::Format_ARGB32, QVideoFrame::GLTextureHandle);
     original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
 
     QVideoSurfaceFormat copy(original);
 
-    QCOMPARE(copy.handleType(), QAbstractVideoBuffer::GLTextureHandle);
+    QCOMPARE(copy.handleType(), QVideoFrame::GLTextureHandle);
     QCOMPARE(copy.pixelFormat(), QVideoFrame::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
@@ -740,15 +740,15 @@ void tst_QVideoSurfaceFormat::copy()
 void tst_QVideoSurfaceFormat::assign()
 {
     QVideoSurfaceFormat copy(
-            QSize(64, 64), QVideoFrame::Format_AYUV444, QAbstractVideoBuffer::UserHandle);
+            QSize(64, 64), QVideoFrame::Format_AYUV444, QVideoFrame::NoHandle);
 
     QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoFrame::Format_ARGB32, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(1024, 768), QVideoFrame::Format_ARGB32, QVideoFrame::GLTextureHandle);
     original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
 
     copy = original;
 
-    QCOMPARE(copy.handleType(), QAbstractVideoBuffer::GLTextureHandle);
+    QCOMPARE(copy.handleType(), QVideoFrame::GLTextureHandle);
     QCOMPARE(copy.pixelFormat(), QVideoFrame::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
@@ -794,7 +794,7 @@ void tst_QVideoSurfaceFormat::copyAllParameters()
 {
     /* Create the instance and set all the parameters. */
     QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoFrame::Format_ARGB32, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(1024, 768), QVideoFrame::Format_ARGB32, QVideoFrame::GLTextureHandle);
 
     original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
@@ -806,7 +806,7 @@ void tst_QVideoSurfaceFormat::copyAllParameters()
       have the same parameters. */
     QVideoSurfaceFormat copy(original);
 
-    QCOMPARE(copy.handleType(), QAbstractVideoBuffer::GLTextureHandle);
+    QCOMPARE(copy.handleType(), QVideoFrame::GLTextureHandle);
     QCOMPARE(copy.pixelFormat(), QVideoFrame::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
@@ -825,7 +825,7 @@ void tst_QVideoSurfaceFormat::assignAllParameters()
 {
     /* Create the instance and set all the parameters. */
     QVideoSurfaceFormat copy(
-            QSize(64, 64), QVideoFrame::Format_AYUV444, QAbstractVideoBuffer::UserHandle);
+            QSize(64, 64), QVideoFrame::Format_AYUV444, QVideoFrame::NoHandle);
     copy.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
     copy.setViewport(QRect(0, 0, 640, 320));
     copy.setFrameRate(qreal(7.5));
@@ -834,7 +834,7 @@ void tst_QVideoSurfaceFormat::assignAllParameters()
 
     /* Create the instance and set all the parameters. */
     QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoFrame::Format_ARGB32, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(1024, 768), QVideoFrame::Format_ARGB32, QVideoFrame::GLTextureHandle);
     original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
     original.setFrameRate(qreal(15.0));
@@ -845,7 +845,7 @@ void tst_QVideoSurfaceFormat::assignAllParameters()
       have the same parameters. */
     copy = original;
 
-    QCOMPARE(copy.handleType(), QAbstractVideoBuffer::GLTextureHandle);
+    QCOMPARE(copy.handleType(), QVideoFrame::GLTextureHandle);
     QCOMPARE(copy.pixelFormat(), QVideoFrame::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
@@ -863,10 +863,10 @@ void tst_QVideoSurfaceFormat::propertyEdgeCases()
 {
     // Test setting read only properties doesn't change anything
     QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoFrame::Format_ARGB32, QAbstractVideoBuffer::GLTextureHandle);
+            QSize(1024, 768), QVideoFrame::Format_ARGB32, QVideoFrame::GLTextureHandle);
 
-    original.setProperty("handleType", QAbstractVideoBuffer::UserHandle);
-    QCOMPARE(original.handleType(), QAbstractVideoBuffer::GLTextureHandle);
+    original.setProperty("handleType", QVideoFrame::NoHandle);
+    QCOMPARE(original.handleType(), QVideoFrame::GLTextureHandle);
 
     original.setProperty("pixelFormat", QVideoFrame::Format_AYUV444);
     QCOMPARE(original.pixelFormat(), QVideoFrame::Format_ARGB32);

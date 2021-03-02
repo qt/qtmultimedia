@@ -99,13 +99,13 @@ class QtTestDummyVideoBuffer : public QObject, public QAbstractVideoBuffer
     Q_OBJECT
 public:
     QtTestDummyVideoBuffer()
-        : QAbstractVideoBuffer(NoHandle) {}
-    explicit QtTestDummyVideoBuffer(QAbstractVideoBuffer::HandleType type)
+        : QAbstractVideoBuffer(QVideoFrame::NoHandle) {}
+    explicit QtTestDummyVideoBuffer(QVideoFrame::HandleType type)
         : QAbstractVideoBuffer(type) {}
 
-    [[nodiscard]] MapMode mapMode() const override { return NotMapped; }
+    [[nodiscard]] QVideoFrame::MapMode mapMode() const override { return QVideoFrame::NotMapped; }
 
-    MapData map(MapMode) override { return {}; }
+    MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 };
 
@@ -113,15 +113,15 @@ class QtTestVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     QtTestVideoBuffer()
-        : QAbstractVideoBuffer(NoHandle)
+        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
     {}
-    explicit QtTestVideoBuffer(QAbstractVideoBuffer::HandleType type)
+    explicit QtTestVideoBuffer(QVideoFrame::HandleType type)
         : QAbstractVideoBuffer(type)
     {}
 
-    [[nodiscard]] MapMode mapMode() const override { return m_mapMode; }
+    [[nodiscard]] QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
 
-    MapData map(MapMode mode) override
+    MapData map(QVideoFrame::MapMode mode) override
     {
         m_mapMode = mode;
         MapData mapData;
@@ -133,13 +133,13 @@ public:
         }
         return mapData;
     }
-    void unmap() override { m_mapMode = NotMapped; }
+    void unmap() override { m_mapMode = QVideoFrame::NotMapped; }
 
     uchar *m_data[4];
     int m_bytesPerLine[4];
     int m_planeCount = 0;
     int m_numBytes;
-    MapMode m_mapMode = NotMapped;
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
 };
 
 tst_QVideoFrame::tst_QVideoFrame()
@@ -195,7 +195,7 @@ void tst_QVideoFrame::create()
     QVideoFrame frame(bytes, size, bytesPerLine, pixelFormat);
 
     QVERIFY(frame.isValid());
-    QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
+    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
     QCOMPARE(frame.handle(), QVariant());
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
@@ -234,7 +234,7 @@ void tst_QVideoFrame::createInvalid()
     QVideoFrame frame(bytes, size, bytesPerLine, pixelFormat);
 
     QVERIFY(!frame.isValid());
-    QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
+    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
     QCOMPARE(frame.handle(), QVariant());
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
@@ -246,27 +246,27 @@ void tst_QVideoFrame::createInvalid()
 
 void tst_QVideoFrame::createFromBuffer_data()
 {
-    QTest::addColumn<QAbstractVideoBuffer::HandleType>("handleType");
+    QTest::addColumn<QVideoFrame::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
 
     QTest::newRow("64x64 ARGB32 no handle")
-            << QAbstractVideoBuffer::NoHandle
+            << QVideoFrame::NoHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32;
     QTest::newRow("64x64 ARGB32 gl handle")
-            << QAbstractVideoBuffer::GLTextureHandle
+            << QVideoFrame::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32;
-    QTest::newRow("64x64 ARGB32 user handle")
-            << QAbstractVideoBuffer::UserHandle
+    QTest::newRow("64x64 ARGB32 pixmap handle")
+            << QVideoFrame::QPixmapHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32;
 }
 
 void tst_QVideoFrame::createFromBuffer()
 {
-    QFETCH(QAbstractVideoBuffer::HandleType, handleType);
+    QFETCH(QVideoFrame::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
 
@@ -313,7 +313,7 @@ void tst_QVideoFrame::createFromImage()
     QVideoFrame frame(image);
 
     QVERIFY(frame.isValid());
-    QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
+    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
@@ -329,7 +329,7 @@ void tst_QVideoFrame::createFromIncompatibleImage()
     QVideoFrame frame(image);
 
     QVERIFY(!frame.isValid());
-    QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
+    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
     QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_Invalid);
     QCOMPARE(frame.size(), QSize(64, 64));
     QCOMPARE(frame.width(), 64);
@@ -345,17 +345,17 @@ void tst_QVideoFrame::createNull()
         QVideoFrame frame;
 
         QVERIFY(!frame.isValid());
-        QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
+        QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
         QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_Invalid);
         QCOMPARE(frame.size(), QSize());
         QCOMPARE(frame.width(), -1);
         QCOMPARE(frame.height(), -1);
         QCOMPARE(frame.startTime(), qint64(-1));
         QCOMPARE(frame.endTime(), qint64(-1));
-        QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
-        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadOnly));
-        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadWrite));
-        QVERIFY(!frame.map(QAbstractVideoBuffer::WriteOnly));
+        QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
+        QVERIFY(!frame.map(QVideoFrame::ReadOnly));
+        QVERIFY(!frame.map(QVideoFrame::ReadWrite));
+        QVERIFY(!frame.map(QVideoFrame::WriteOnly));
         QCOMPARE(frame.isMapped(), false);
         frame.unmap(); // Shouldn't crash
         QCOMPARE(frame.isReadable(), false);
@@ -366,17 +366,17 @@ void tst_QVideoFrame::createNull()
     {
         QVideoFrame frame(nullptr, QSize(1024,768), QVideoFrame::Format_ARGB32);
         QVERIFY(!frame.isValid());
-        QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
+        QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
         QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_ARGB32);
         QCOMPARE(frame.size(), QSize(1024, 768));
         QCOMPARE(frame.width(), 1024);
         QCOMPARE(frame.height(), 768);
         QCOMPARE(frame.startTime(), qint64(-1));
         QCOMPARE(frame.endTime(), qint64(-1));
-        QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
-        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadOnly));
-        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadWrite));
-        QVERIFY(!frame.map(QAbstractVideoBuffer::WriteOnly));
+        QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
+        QVERIFY(!frame.map(QVideoFrame::ReadOnly));
+        QVERIFY(!frame.map(QVideoFrame::ReadWrite));
+        QVERIFY(!frame.map(QVideoFrame::WriteOnly));
         QCOMPARE(frame.isMapped(), false);
         frame.unmap(); // Shouldn't crash
         QCOMPARE(frame.isReadable(), false);
@@ -397,38 +397,38 @@ void tst_QVideoFrame::destructor()
 
 void tst_QVideoFrame::copy_data()
 {
-    QTest::addColumn<QAbstractVideoBuffer::HandleType>("handleType");
+    QTest::addColumn<QVideoFrame::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
     QTest::addColumn<qint64>("startTime");
     QTest::addColumn<qint64>("endTime");
 
     QTest::newRow("64x64 ARGB32")
-            << QAbstractVideoBuffer::GLTextureHandle
+            << QVideoFrame::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32
             << qint64(63641740)
             << qint64(63641954);
     QTest::newRow("64x64 ARGB32")
-            << QAbstractVideoBuffer::GLTextureHandle
+            << QVideoFrame::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32
             << qint64(63641740)
             << qint64(63641954);
     QTest::newRow("32x256 YUV420P")
-            << QAbstractVideoBuffer::UserHandle
+            << QVideoFrame::NoHandle
             << QSize(32, 256)
             << QVideoFrame::Format_YUV420P
             << qint64(12345)
             << qint64(12389);
     QTest::newRow("1052x756 ARGB32")
-            << QAbstractVideoBuffer::NoHandle
+            << QVideoFrame::NoHandle
             << QSize(1052, 756)
             << QVideoFrame::Format_ARGB32
             << qint64(12345)
             << qint64(12389);
     QTest::newRow("32x256 YUV420P")
-            << QAbstractVideoBuffer::UserHandle
+            << QVideoFrame::NoHandle
             << QSize(32, 256)
             << QVideoFrame::Format_YUV420P
             << qint64(12345)
@@ -437,7 +437,7 @@ void tst_QVideoFrame::copy_data()
 
 void tst_QVideoFrame::copy()
 {
-    QFETCH(QAbstractVideoBuffer::HandleType, handleType);
+    QFETCH(QVideoFrame::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
     QFETCH(qint64, startTime);
@@ -504,20 +504,20 @@ void tst_QVideoFrame::copy()
 
 void tst_QVideoFrame::assign_data()
 {
-    QTest::addColumn<QAbstractVideoBuffer::HandleType>("handleType");
+    QTest::addColumn<QVideoFrame::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
     QTest::addColumn<qint64>("startTime");
     QTest::addColumn<qint64>("endTime");
 
     QTest::newRow("64x64 ARGB32")
-            << QAbstractVideoBuffer::GLTextureHandle
+            << QVideoFrame::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32
             << qint64(63641740)
             << qint64(63641954);
     QTest::newRow("32x256 YUV420P")
-            << QAbstractVideoBuffer::UserHandle
+            << QVideoFrame::NoHandle
             << QSize(32, 256)
             << QVideoFrame::Format_YUV420P
             << qint64(12345)
@@ -526,7 +526,7 @@ void tst_QVideoFrame::assign_data()
 
 void tst_QVideoFrame::assign()
 {
-    QFETCH(QAbstractVideoBuffer::HandleType, handleType);
+    QFETCH(QVideoFrame::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
     QFETCH(qint64, startTime);
@@ -583,7 +583,7 @@ void tst_QVideoFrame::assign()
     QVERIFY(buffer.isNull());
 
     QVERIFY(!frame.isValid());
-    QCOMPARE(frame.handleType(), QAbstractVideoBuffer::NoHandle);
+    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
     QCOMPARE(frame.pixelFormat(), QVideoFrame::Format_Invalid);
     QCOMPARE(frame.size(), QSize());
     QCOMPARE(frame.width(), -1);
@@ -598,28 +598,28 @@ void tst_QVideoFrame::map_data()
     QTest::addColumn<int>("mappedBytes");
     QTest::addColumn<int>("bytesPerLine");
     QTest::addColumn<QVideoFrame::PixelFormat>("pixelFormat");
-    QTest::addColumn<QAbstractVideoBuffer::MapMode>("mode");
+    QTest::addColumn<QVideoFrame::MapMode>("mode");
 
     QTest::newRow("read-only")
             << QSize(64, 64)
             << 16384
             << 256
             << QVideoFrame::Format_ARGB32
-            << QAbstractVideoBuffer::ReadOnly;
+            << QVideoFrame::ReadOnly;
 
     QTest::newRow("write-only")
             << QSize(64, 64)
             << 16384
             << 256
             << QVideoFrame::Format_ARGB32
-            << QAbstractVideoBuffer::WriteOnly;
+            << QVideoFrame::WriteOnly;
 
     QTest::newRow("read-write")
             << QSize(64, 64)
             << 16384
             << 256
             << QVideoFrame::Format_ARGB32
-            << QAbstractVideoBuffer::ReadWrite;
+            << QVideoFrame::ReadWrite;
 }
 
 void tst_QVideoFrame::map()
@@ -628,22 +628,22 @@ void tst_QVideoFrame::map()
     QFETCH(int, mappedBytes);
     QFETCH(int, bytesPerLine);
     QFETCH(QVideoFrame::PixelFormat, pixelFormat);
-    QFETCH(QAbstractVideoBuffer::MapMode, mode);
+    QFETCH(QVideoFrame::MapMode, mode);
 
     QVideoFrame frame(mappedBytes, size, bytesPerLine, pixelFormat);
 
     QVERIFY(!frame.bits());
     QCOMPARE(frame.mappedBytes(), 0);
     QCOMPARE(frame.bytesPerLine(), 0);
-    QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
+    QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
 
     QVERIFY(frame.map(mode));
 
     // Mapping multiple times is allowed in ReadOnly mode
-    if (mode == QAbstractVideoBuffer::ReadOnly) {
+    if (mode == QVideoFrame::ReadOnly) {
         const uchar *bits = frame.bits();
 
-        QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+        QVERIFY(frame.map(QVideoFrame::ReadOnly));
         QVERIFY(frame.isMapped());
         QCOMPARE(frame.bits(), bits);
 
@@ -653,12 +653,12 @@ void tst_QVideoFrame::map()
         QCOMPARE(frame.bits(), bits);
 
         //re-mapping in Write or ReadWrite modes should fail
-        QVERIFY(!frame.map(QAbstractVideoBuffer::WriteOnly));
-        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadWrite));
+        QVERIFY(!frame.map(QVideoFrame::WriteOnly));
+        QVERIFY(!frame.map(QVideoFrame::ReadWrite));
     } else {
         // Mapping twice in ReadWrite or WriteOnly modes should fail, but leave it mapped (and the mode is ignored)
         QVERIFY(!frame.map(mode));
-        QVERIFY(!frame.map(QAbstractVideoBuffer::ReadOnly));
+        QVERIFY(!frame.map(QVideoFrame::ReadOnly));
     }
 
     QVERIFY(frame.bits());
@@ -671,36 +671,36 @@ void tst_QVideoFrame::map()
     QVERIFY(!frame.bits());
     QCOMPARE(frame.mappedBytes(), 0);
     QCOMPARE(frame.bytesPerLine(), 0);
-    QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
+    QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
 }
 
 void tst_QVideoFrame::mapImage_data()
 {
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QImage::Format>("format");
-    QTest::addColumn<QAbstractVideoBuffer::MapMode>("mode");
+    QTest::addColumn<QVideoFrame::MapMode>("mode");
 
     QTest::newRow("read-only")
             << QSize(64, 64)
             << QImage::Format_ARGB32
-            << QAbstractVideoBuffer::ReadOnly;
+            << QVideoFrame::ReadOnly;
 
     QTest::newRow("write-only")
             << QSize(15, 106)
             << QImage::Format_RGB32
-            << QAbstractVideoBuffer::WriteOnly;
+            << QVideoFrame::WriteOnly;
 
     QTest::newRow("read-write")
             << QSize(23, 111)
             << QImage::Format_RGB16
-            << QAbstractVideoBuffer::ReadWrite;
+            << QVideoFrame::ReadWrite;
 }
 
 void tst_QVideoFrame::mapImage()
 {
     QFETCH(QSize, size);
     QFETCH(QImage::Format, format);
-    QFETCH(QAbstractVideoBuffer::MapMode, mode);
+    QFETCH(QVideoFrame::MapMode, mode);
 
     QImage image(size.width(), size.height(), format);
 
@@ -709,7 +709,7 @@ void tst_QVideoFrame::mapImage()
     QVERIFY(!frame.bits());
     QCOMPARE(frame.mappedBytes(), 0);
     QCOMPARE(frame.bytesPerLine(), 0);
-    QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
+    QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
 
     QVERIFY(frame.map(mode));
 
@@ -723,7 +723,7 @@ void tst_QVideoFrame::mapImage()
     QVERIFY(!frame.bits());
     QCOMPARE(frame.mappedBytes(), 0);
     QCOMPARE(frame.bytesPerLine(), 0);
-    QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped);
+    QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
 }
 
 void tst_QVideoFrame::mapPlanes_data()
@@ -794,7 +794,7 @@ void tst_QVideoFrame::mapPlanes()
 
     QCOMPARE(strides.count(), offsets.count() + 1);
 
-    QCOMPARE(frame.map(QAbstractVideoBuffer::ReadOnly), true);
+    QCOMPARE(frame.map(QVideoFrame::ReadOnly), true);
     QCOMPARE(frame.planeCount(), strides.count());
 
     QVERIFY(strides.count() > 0);
@@ -829,7 +829,7 @@ void tst_QVideoFrame::imageDetach()
 
     QVideoFrame frame(image);
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadWrite));
+    QVERIFY(frame.map(QVideoFrame::ReadWrite));
 
     QImage frameImage(frame.bits(), 8, 8, frame.bytesPerLine(), QImage::Format_RGB32);
 
@@ -1030,7 +1030,7 @@ do { \
     QVERIFY(!frame.isMapped()); \
     QCOMPARE(frame.mappedBytes(), 0); \
     QCOMPARE(frame.bytesPerLine(), 0); \
-    QCOMPARE(frame.mapMode(), QAbstractVideoBuffer::NotMapped); \
+    QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped); \
 } while (0)
 
 void tst_QVideoFrame::isMapped()
@@ -1041,23 +1041,23 @@ void tst_QVideoFrame::isMapped()
     TEST_UNMAPPED(frame);
     TEST_UNMAPPED(constFrame);
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
-    TEST_MAPPED(frame, QAbstractVideoBuffer::ReadOnly);
-    TEST_MAPPED(constFrame, QAbstractVideoBuffer::ReadOnly);
+    QVERIFY(frame.map(QVideoFrame::ReadOnly));
+    TEST_MAPPED(frame, QVideoFrame::ReadOnly);
+    TEST_MAPPED(constFrame, QVideoFrame::ReadOnly);
     frame.unmap();
     TEST_UNMAPPED(frame);
     TEST_UNMAPPED(constFrame);
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::WriteOnly));
-    TEST_MAPPED(frame, QAbstractVideoBuffer::WriteOnly);
-    TEST_MAPPED(constFrame, QAbstractVideoBuffer::WriteOnly);
+    QVERIFY(frame.map(QVideoFrame::WriteOnly));
+    TEST_MAPPED(frame, QVideoFrame::WriteOnly);
+    TEST_MAPPED(constFrame, QVideoFrame::WriteOnly);
     frame.unmap();
     TEST_UNMAPPED(frame);
     TEST_UNMAPPED(constFrame);
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadWrite));
-    TEST_MAPPED(frame, QAbstractVideoBuffer::ReadWrite);
-    TEST_MAPPED(constFrame, QAbstractVideoBuffer::ReadWrite);
+    QVERIFY(frame.map(QVideoFrame::ReadWrite));
+    TEST_MAPPED(frame, QVideoFrame::ReadWrite);
+    TEST_MAPPED(constFrame, QVideoFrame::ReadWrite);
     frame.unmap();
     TEST_UNMAPPED(frame);
     TEST_UNMAPPED(constFrame);
@@ -1070,17 +1070,17 @@ void tst_QVideoFrame::isReadable()
     QVERIFY(!frame.isMapped());
     QVERIFY(!frame.isReadable());
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+    QVERIFY(frame.map(QVideoFrame::ReadOnly));
     QVERIFY(frame.isMapped());
     QVERIFY(frame.isReadable());
     frame.unmap();
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::WriteOnly));
+    QVERIFY(frame.map(QVideoFrame::WriteOnly));
     QVERIFY(frame.isMapped());
     QVERIFY(!frame.isReadable());
     frame.unmap();
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadWrite));
+    QVERIFY(frame.map(QVideoFrame::ReadWrite));
     QVERIFY(frame.isMapped());
     QVERIFY(frame.isReadable());
     frame.unmap();
@@ -1093,17 +1093,17 @@ void tst_QVideoFrame::isWritable()
     QVERIFY(!frame.isMapped());
     QVERIFY(!frame.isWritable());
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadOnly));
+    QVERIFY(frame.map(QVideoFrame::ReadOnly));
     QVERIFY(frame.isMapped());
     QVERIFY(!frame.isWritable());
     frame.unmap();
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::WriteOnly));
+    QVERIFY(frame.map(QVideoFrame::WriteOnly));
     QVERIFY(frame.isMapped());
     QVERIFY(frame.isWritable());
     frame.unmap();
 
-    QVERIFY(frame.map(QAbstractVideoBuffer::ReadWrite));
+    QVERIFY(frame.map(QVideoFrame::ReadWrite));
     QVERIFY(frame.isMapped());
     QVERIFY(frame.isWritable());
     frame.unmap();
@@ -1280,7 +1280,7 @@ void tst_QVideoFrame::emptyData()
     QVideoFrame f(new QMemoryVideoBuffer(data, 600),
                   QSize(800, 600),
                   QVideoFrame::Format_ARGB32);
-    QVERIFY(!f.map(QAbstractVideoBuffer::ReadOnly));
+    QVERIFY(!f.map(QVideoFrame::ReadOnly));
 }
 
 QTEST_MAIN(tst_QVideoFrame)

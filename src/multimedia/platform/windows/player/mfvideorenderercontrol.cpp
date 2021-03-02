@@ -44,6 +44,7 @@
 
 #include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
+#include <qabstractvideobuffer.h>
 #include <qtcore/qtimer.h>
 #include <qtcore/qmutex.h>
 #include <qtcore/qcoreevent.h>
@@ -61,10 +62,10 @@ namespace
     {
     public:
         MediaSampleVideoBuffer(IMFMediaBuffer *buffer, int bytesPerLine)
-            : QAbstractVideoBuffer(NoHandle)
+            : QAbstractVideoBuffer(QVideoFrame::NoHandle)
             , m_buffer(buffer)
             , m_bytesPerLine(bytesPerLine)
-            , m_mapMode(NotMapped)
+            , m_mapMode(QVideoFrame::NotMapped)
         {
             buffer->AddRef();
         }
@@ -74,10 +75,10 @@ namespace
             m_buffer->Release();
         }
 
-        MapData map(MapMode mode) override
+        MapData map(QVideoFrame::MapMode mode) override
         {
             MapData mapData;
-            if (m_mapMode == NotMapped && mode != NotMapped) {
+            if (m_mapMode == QVideoFrame::NotMapped && mode != QVideoFrame::NotMapped) {
                 BYTE *bytes;
                 DWORD length;
                 HRESULT hr = m_buffer->Lock(&bytes, NULL, &length);
@@ -96,13 +97,13 @@ namespace
 
         void unmap() override
         {
-            if (m_mapMode == NotMapped)
+            if (m_mapMode == QVideoFrame::NotMapped)
                 return;
-            m_mapMode = NotMapped;
+            m_mapMode = QVideoFrame::NotMapped;
             m_buffer->Unlock();
         }
 
-        MapMode mapMode() const override
+        QVideoFrame::MapMode mapMode() const override
         {
             return m_mapMode;
         }
@@ -110,7 +111,7 @@ namespace
     private:
         IMFMediaBuffer *m_buffer;
         int m_bytesPerLine;
-        MapMode m_mapMode;
+        QVideoFrame::MapMode m_mapMode;
     };
 
     // Custom interface for handling IMFStreamSink::PlaceMarker calls asynchronously.

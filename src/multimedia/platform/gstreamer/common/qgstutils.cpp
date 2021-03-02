@@ -345,7 +345,7 @@ static int indexOfVideoFormat(GstVideoFormat format)
 }
 
 QVideoSurfaceFormat QGstUtils::formatForCaps(
-        GstCaps *caps, GstVideoInfo *info, QAbstractVideoBuffer::HandleType handleType)
+        GstCaps *caps, GstVideoInfo *info, QVideoFrame::HandleType handleType)
 {
     GstVideoInfo vidInfo;
     GstVideoInfo *infoPtr = info ? info : &vidInfo;

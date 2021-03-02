@@ -69,7 +69,7 @@ public:
     virtual ~QVideoSurfacePainter();
 
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType) const = 0;
+            QVideoFrame::HandleType handleType) const = 0;
 
     virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
 
@@ -94,7 +94,7 @@ public:
     ~QPainterVideoSurface();
 
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const override;
+            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const override;
 
     bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
 

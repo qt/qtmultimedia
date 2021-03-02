@@ -65,14 +65,14 @@ class Q_MULTIMEDIA_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 public:
     QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info);
     QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
-                    HandleType handleType, const QVariant &handle);
+                    QVideoFrame::HandleType handleType, const QVariant &handle);
 
     ~QGstVideoBuffer();
 
     GstBuffer *buffer() const { return m_buffer; }
-    MapMode mapMode() const override;
+    QVideoFrame::MapMode mapMode() const override;
 
-    MapData map(MapMode mode) override;
+    MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
     QVariant handle() const override { return m_handle; }
@@ -80,7 +80,7 @@ private:
     GstVideoInfo m_videoInfo;
     GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;
-    MapMode m_mode = NotMapped;
+    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     QVariant m_handle;
 };
 

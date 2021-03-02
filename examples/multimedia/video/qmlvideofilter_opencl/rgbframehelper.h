@@ -60,21 +60,21 @@
 /*
   Returns a QImage that wraps the given video frame.
 
-  This is suitable only for QAbstractVideoBuffer::NoHandle frames with RGB (or BGR)
+  This is suitable only for QVideoFrame::NoHandle frames with RGB (or BGR)
   data. YUV is not supported here.
 
   The QVideoFrame must be mapped and kept mapped as long as the wrapping QImage
   exists.
 
   As a convenience the function also supports frames with a handle type of
-  QAbstractVideoBuffer::GLTextureHandle. This allows creating a system memory backed
+  QVideoFrame::GLTextureHandle. This allows creating a system memory backed
   QVideoFrame containing the image data from an OpenGL texture. However, readback is a
   slow operation and may stall the GPU pipeline and should be avoided in production code.
 */
 QImage imageWrapper(const QVideoFrame &frame)
 {
 #ifndef QT_NO_OPENGL
-    if (frame.handleType() == QAbstractVideoBuffer::GLTextureHandle) {
+    if (frame.handleType() == QVideoFrame::GLTextureHandle) {
         // Slow and inefficient path. Ideally what's on the GPU should remain on the GPU, instead of readbacks like this.
         QImage img(frame.width(), frame.height(), QImage::Format_RGBA8888);
         GLuint textureId = frame.handle().toUInt();

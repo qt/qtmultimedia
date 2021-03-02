@@ -41,6 +41,7 @@
 
 #include "androidsurfacetexture_p.h"
 #include <QAbstractVideoSurface>
+#include <QAbstractVideoBuffer>
 #include <QVideoSurfaceFormat>
 #include <qevent.h>
 #include <qcoreapplication.h>
@@ -93,8 +94,8 @@ class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output, const QSize &size)
-        : QAbstractVideoBuffer(GLTextureHandle)
-        , m_mapMode(NotMapped)
+        : QAbstractVideoBuffer(QVideoFrame::GLTextureHandle)
+        , m_mapMode(QVideoFrame::NotMapped)
         , m_output(output)
         , m_size(size)
         , m_textureUpdated(false)
@@ -103,12 +104,12 @@ public:
 
     virtual ~AndroidTextureVideoBuffer() {}
 
-    MapMode mapMode() const override { return m_mapMode; }
+    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
 
-    MapData map(MapMode mode) override
+    MapData map(QVideoFrame::MapMode mode) override
     {
         MapData mapData;
-        if (m_mapMode == NotMapped && mode == ReadOnly && updateFrame()) {
+        if (m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly && updateFrame()) {
             m_mapMode = mode;
             m_image = m_output->m_fbo->toImage();
 
@@ -124,7 +125,7 @@ public:
     void unmap() override
     {
         m_image = QImage();
-        m_mapMode = NotMapped;
+        m_mapMode = QVideoFrame::NotMapped;
     }
 
     QVariant handle() const override
@@ -160,7 +161,7 @@ private:
         return (m_textureUpdated = m_output->renderFrameToFbo());
     }
 
-    MapMode m_mapMode;
+    QVideoFrame::MapMode m_mapMode;
     QAndroidTextureVideoOutput *m_output;
     QImage m_image;
     QSize m_size;
@@ -331,7 +332,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
 
     if (!m_surface->isActive()) {
         QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(),
-                                   QAbstractVideoBuffer::GLTextureHandle);
+                                   QVideoFrame::GLTextureHandle);
 
         m_surface->start(format);
     }

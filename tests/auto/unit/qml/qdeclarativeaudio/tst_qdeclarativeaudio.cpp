@@ -916,7 +916,7 @@ int tst_QDeclarativeAudio::keyToValue(const QMetaEnum &enumeration, const char *
 struct Surface : QAbstractVideoSurface
 {
     Surface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
-    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
+    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType) const override
     {
         return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB32;
     }

@@ -130,11 +130,11 @@ QAbstractVideoSurface::QAbstractVideoSurface(QObject *parent)
 QAbstractVideoSurface::~QAbstractVideoSurface() = default;
 
 /*!
-    \fn QAbstractVideoSurface::supportedPixelFormats(QAbstractVideoBuffer::HandleType type) const
+    \fn QAbstractVideoSurface::supportedPixelFormats(QVideoFrame::HandleType type) const
 
     Returns a list of pixel formats a video surface can present for a given handle \a type.
 
-    The pixel formats returned for the QAbstractVideoBuffer::NoHandle type are valid for any buffer
+    The pixel formats returned for the QVideoFrame::NoHandle type are valid for any buffer
     that can be mapped in read-only mode.
 
     Types that are first in the list can be assumed to be faster to render.

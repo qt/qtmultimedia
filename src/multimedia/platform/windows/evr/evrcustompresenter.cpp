@@ -1026,12 +1026,12 @@ void EVRCustomPresenter::supportedFormatsChanged()
 
     // check if we can render to the surface (compatible formats)
     if (m_surface) {
-        QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle);
+        QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle);
         if (m_presentEngine->supportsTextureRendering() && formats.contains(QVideoFrame::Format_RGB32)) {
             m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, true);
             m_canRenderToSurface = true;
         } else {
-            formats = m_surface->supportedPixelFormats(QAbstractVideoBuffer::NoHandle);
+            formats = m_surface->supportedPixelFormats(QVideoFrame::NoHandle);
             for (QVideoFrame::PixelFormat format : qAsConst(formats)) {
                 if (SUCCEEDED(m_presentEngine->checkFormat(qt_evr_D3DFormatFromPixelFormat(format)))) {
                     m_canRenderToSurface = true;

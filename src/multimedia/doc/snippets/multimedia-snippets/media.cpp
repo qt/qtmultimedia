@@ -62,7 +62,7 @@ class MediaExample : public QObject {
     void AudioRecorder();
     void EncoderSettings();
     void ImageEncoderSettings();
-    
+
 private:
     // Common naming
     QVideoWidget *videoWidget;
@@ -174,7 +174,7 @@ void MediaExample::MediaPlayer()
     {
     public:
         Surface(QObject *p) : QAbstractVideoSurface(p) { }
-        QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
+        QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType) const override
         {
             // Make sure that the driver supports this pixel format.
             return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_YUYV;

@@ -51,7 +51,7 @@ public:
     ~QSGVivanteVideoNode();
 
     QVideoFrame::PixelFormat pixelFormat() const { return mFormat.pixelFormat(); }
-    QAbstractVideoBuffer::HandleType handleType() const { return QAbstractVideoBuffer::NoHandle; }
+    QVideoFrame::HandleType handleType() const { return QVideoFrame::NoHandle; }
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
     static const QMap<QVideoFrame::PixelFormat, GLenum>& getVideoFormat2GLFormatMap();

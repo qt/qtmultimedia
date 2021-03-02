@@ -55,12 +55,12 @@ QT_BEGIN_NAMESPACE
 class IMFSampleVideoBuffer: public QAbstractVideoBuffer
 {
 public:
-    IMFSampleVideoBuffer(D3DPresentEngine *engine, IMFSample *sample, QAbstractVideoBuffer::HandleType handleType)
+    IMFSampleVideoBuffer(D3DPresentEngine *engine, IMFSample *sample, QVideoFrame::HandleType handleType)
         : QAbstractVideoBuffer(handleType)
         , m_engine(engine)
         , m_sample(sample)
         , m_surface(0)
-        , m_mapMode(NotMapped)
+        , m_mapMode(QVideoFrame::NotMapped)
     {
         if (m_sample) {
             m_sample->AddRef();
@@ -79,7 +79,7 @@ public:
     ~IMFSampleVideoBuffer() override
     {
         if (m_surface) {
-            if (m_mapMode != NotMapped)
+            if (m_mapMode != QVideoFrame::NotMapped)
                 m_surface->UnlockRect();
             m_surface->Release();
         }
@@ -89,21 +89,21 @@ public:
 
     QVariant handle() const override;
 
-    MapMode mapMode() const override { return m_mapMode; }
-    MapData map(MapMode mode) override;
+    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
+    MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
 private:
     mutable D3DPresentEngine *m_engine;
     IMFSample *m_sample;
     IDirect3DSurface9 *m_surface;
-    MapMode m_mapMode;
+    QVideoFrame::MapMode m_mapMode;
     mutable unsigned int m_textureId = 0;
 };
 
-IMFSampleVideoBuffer::MapData IMFSampleVideoBuffer::map(MapMode mode)
+IMFSampleVideoBuffer::MapData IMFSampleVideoBuffer::map(QVideoFrame::MapMode mode)
 {
-    if (!m_surface || m_mapMode != NotMapped)
+    if (!m_surface || m_mapMode != QVideoFrame::NotMapped)
         return {};
 
     D3DSURFACE_DESC desc;
@@ -111,7 +111,7 @@ IMFSampleVideoBuffer::MapData IMFSampleVideoBuffer::map(MapMode mode)
         return {};
 
     D3DLOCKED_RECT rect;
-    if (FAILED(m_surface->LockRect(&rect, NULL, mode == ReadOnly ? D3DLOCK_READONLY : 0)))
+    if (FAILED(m_surface->LockRect(&rect, NULL, mode == QVideoFrame::ReadOnly ? D3DLOCK_READONLY : 0)))
         return {};
 
     m_mapMode = mode;
@@ -126,10 +126,10 @@ IMFSampleVideoBuffer::MapData IMFSampleVideoBuffer::map(MapMode mode)
 
 void IMFSampleVideoBuffer::unmap()
 {
-    if (m_mapMode == NotMapped)
+    if (m_mapMode == QVideoFrame::NotMapped)
         return;
 
-    m_mapMode = NotMapped;
+    m_mapMode = QVideoFrame::NotMapped;
     m_surface->UnlockRect();
 }
 
@@ -371,8 +371,8 @@ done:
         m_surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
                                               m_useTextureRendering ? QVideoFrame::Format_RGB32
                                                                     : qt_evr_pixelFormatFromD3DFormat(d3dFormat),
-                                              m_useTextureRendering ? QAbstractVideoBuffer::GLTextureHandle
-                                                                    : QAbstractVideoBuffer::NoHandle);
+                                              m_useTextureRendering ? QVideoFrame::GLTextureHandle
+                                                                    : QVideoFrame::NoHandle);
         UINT32 horizontal = 1, vertical = 1;
         hr = MFGetAttributeRatio(format, MF_MT_PIXEL_ASPECT_RATIO, &horizontal, &vertical);
         if (SUCCEEDED(hr))
