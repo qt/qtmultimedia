@@ -40,7 +40,7 @@
 #ifndef QMEMORYVIDEOBUFFER_P_H
 #define QMEMORYVIDEOBUFFER_P_H
 
-#include <qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <qvideoframe.h>
 
 //

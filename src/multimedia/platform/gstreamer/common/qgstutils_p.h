@@ -59,7 +59,6 @@
 #include <gst/video/video.h>
 #include <qaudioformat.h>
 #include <qcamera.h>
-#include <qabstractvideobuffer.h>
 #include <qvideoframe.h>
 #include <QDebug>
 

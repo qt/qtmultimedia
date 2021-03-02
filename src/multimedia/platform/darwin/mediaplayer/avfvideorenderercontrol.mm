@@ -46,7 +46,7 @@
 #include "avfvideoframerenderer_p.h"
 #endif
 
-#include <QtMultimedia/qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 

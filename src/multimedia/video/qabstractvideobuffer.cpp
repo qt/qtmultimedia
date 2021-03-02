@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qabstractvideobuffer.h"
+#include "qabstractvideobuffer_p.h"
 
 #include <qvariant.h>
 
@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAbstractVideoBuffer
+    \internal
     \brief The QAbstractVideoBuffer class is an abstraction for video data.
     \inmodule QtMultimedia
     \ingroup multimedia

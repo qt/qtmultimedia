@@ -33,7 +33,7 @@
 
 #include <QtWidgets/qapplication.h>
 #include <qvideosurfaceformat.h>
-#include <qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 
 #if QT_CONFIG(opengl)
 #include <QOpenGLContext>

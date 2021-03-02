@@ -49,7 +49,7 @@
 #endif
 
 #include <QtMultimedia/qabstractvideosurface.h>
-#include <QtMultimedia/qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 
 #include <QtMultimedia/qvideosurfaceformat.h>
 

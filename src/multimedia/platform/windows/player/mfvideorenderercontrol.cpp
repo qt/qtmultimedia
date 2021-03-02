@@ -42,9 +42,8 @@
 
 #include "evrcustompresenter_p.h"
 
-#include <qabstractvideosurface.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <qvideosurfaceformat.h>
-#include <qabstractvideobuffer.h>
 #include <qtcore/qtimer.h>
 #include <qtcore/qmutex.h>
 #include <qtcore/qcoreevent.h>

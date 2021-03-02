@@ -52,7 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <QtCore/qvariant.h>
 
 #include <gst/gst.h>

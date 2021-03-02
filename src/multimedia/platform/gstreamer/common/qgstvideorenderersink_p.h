@@ -62,7 +62,6 @@
 #include <QtCore/qwaitcondition.h>
 #include <qvideosurfaceformat.h>
 #include <qvideoframe.h>
-#include <qabstractvideobuffer.h>
 
 #include "qgstvideorendererplugin_p.h"
 

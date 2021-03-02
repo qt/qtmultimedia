@@ -30,7 +30,7 @@
 
 #include <QtTest/QtTest>
 
-#include <qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \

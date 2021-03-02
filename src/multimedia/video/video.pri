@@ -2,7 +2,6 @@
 INCLUDEPATH += video
 
 PUBLIC_HEADERS += \
-    video/qabstractvideobuffer.h \
     video/qabstractvideosurface.h \
     video/qvideoframe.h \
     video/qvideosurfaceformat.h \

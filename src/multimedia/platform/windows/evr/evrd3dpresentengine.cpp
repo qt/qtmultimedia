@@ -41,7 +41,7 @@
 
 #include "evrhelpers_p.h"
 
-#include <qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <QAbstractVideoSurface>
 #include <qvideoframe.h>
 #include <QDebug>

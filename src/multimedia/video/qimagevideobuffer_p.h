@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qabstractvideobuffer.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
