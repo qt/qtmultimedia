@@ -69,7 +69,7 @@ class AVFCameraImageProcessingControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControl;
 
-class AVFCameraService : public QPlatformMediaCapture
+class AVFCameraService : public QPlatformMediaCaptureSession
 {
 Q_OBJECT
 public:

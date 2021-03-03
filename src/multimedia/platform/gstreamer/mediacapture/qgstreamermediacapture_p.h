@@ -66,7 +66,7 @@ class QGstreamerVideoRenderer;
 class QGstreamerVideoWindow;
 class QGstreamerVideoInput;
 
-class QGstreamerMediaCapture : public QPlatformMediaCapture
+class QGstreamerMediaCapture : public QPlatformMediaCaptureSession
 {
     Q_OBJECT
 

@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 class QMediaPlayer;
 class QMediaDeviceManager;
 class QPlatformMediaDeviceManager;
-class QPlatformMediaCapture;
+class QPlatformMediaCaptureSession;
 class QPlatformMediaPlayer;
 class QPlatformAudioDecoder;
 class QPlatformMediaFormatInfo;
@@ -77,7 +77,8 @@ public:
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
     virtual QPlatformAudioDecoder *createAudioDecoder() { return nullptr; }
-    virtual QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode /*mode*/) { return nullptr; }
+    // ### get rid of the mode once refactoring is done
+    virtual QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/ = QMediaRecorder::AudioAndVideo) { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
 };
 

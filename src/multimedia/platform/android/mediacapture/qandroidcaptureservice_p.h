@@ -63,7 +63,7 @@ class QAndroidCameraControl;
 class QAndroidCameraSession;
 class QAndroidCameraImageCaptureControl;
 
-class QAndroidCaptureService : public QPlatformMediaCapture
+class QAndroidCaptureService : public QPlatformMediaCaptureSession
 {
     Q_OBJECT
 

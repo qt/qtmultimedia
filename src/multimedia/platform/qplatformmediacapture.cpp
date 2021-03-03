@@ -42,6 +42,6 @@
 
 QT_BEGIN_NAMESPACE
 
-QPlatformMediaCapture::~QPlatformMediaCapture() = default;
+QPlatformMediaCaptureSession::~QPlatformMediaCaptureSession() = default;
 
 QT_END_NAMESPACE

@@ -97,7 +97,7 @@ void QCameraPrivate::initControls()
 {
     Q_Q(QCamera);
 
-    captureInterface = QPlatformMediaIntegration::instance()->createCaptureInterface(QMediaRecorder::AudioAndVideo);
+    captureInterface = QPlatformMediaIntegration::instance()->createCaptureSession(QMediaRecorder::AudioAndVideo);
     if (captureInterface) {
         control = captureInterface->cameraControl();
 
@@ -291,7 +291,7 @@ QString QCamera::errorString() const
 /*!
     \internal
  */
-QPlatformMediaCapture *QCamera::captureInterface() const
+QPlatformMediaCaptureSession *QCamera::captureInterface() const
 {
     return d_func()->captureInterface;
 }

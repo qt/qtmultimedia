@@ -58,7 +58,7 @@
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
-class QPlatformMediaCapture;
+class QPlatformMediaCaptureSession;
 
 class QCameraPrivate : public QObjectPrivate
 {
@@ -75,7 +75,7 @@ public:
 
     void clear();
 
-    QPlatformMediaCapture *captureInterface = nullptr;
+    QPlatformMediaCaptureSession *captureInterface = nullptr;
     QPlatformCamera *control = nullptr;
 
     QCameraExposure *cameraExposure = nullptr;

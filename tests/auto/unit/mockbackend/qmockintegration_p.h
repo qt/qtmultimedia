@@ -71,7 +71,7 @@ public:
 
     QPlatformAudioDecoder *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *) override;
-    QPlatformMediaCapture *createCaptureInterface(QMediaRecorder::CaptureMode mode) override;
+    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
 
     enum Flag {
         NoPlayerInterface = 0x1,

@@ -154,7 +154,7 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent
     if (mode != AudioOnly) {
         setCamera(new QCamera(this));
     } else {
-        auto *captureIface = QPlatformMediaIntegration::instance()->createCaptureInterface(mode);
+        auto *captureIface = QPlatformMediaIntegration::instance()->createCaptureSession(mode);
         d->control = captureIface->mediaRecorderControl();
     }
 }

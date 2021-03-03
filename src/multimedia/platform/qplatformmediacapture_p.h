@@ -57,12 +57,14 @@ QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformCameraImageCapture;
 class QPlatformMediaRecorder;
+class QAudioDeviceInfo;
+class QCameraInfo;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaCapture : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
 public:
-    QPlatformMediaCapture() = default;
-    virtual ~QPlatformMediaCapture();
+    QPlatformMediaCaptureSession() = default;
+    virtual ~QPlatformMediaCaptureSession();
 
     virtual QPlatformCamera *cameraControl() = 0;
     virtual QPlatformCameraImageCapture *imageCaptureControl() = 0;

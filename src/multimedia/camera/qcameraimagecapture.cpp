@@ -137,7 +137,7 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
     d->q_ptr = this;
     d->camera = camera;
 
-    QPlatformMediaCapture *service = camera->captureInterface();
+    QPlatformMediaCaptureSession *service = camera->captureInterface();
     if (service) {
         d->control = service->imageCaptureControl();
 

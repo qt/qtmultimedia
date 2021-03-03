@@ -67,7 +67,7 @@ class BbCameraSession;
 class BbCameraVideoEncoderSettingsControl;
 class BbVideoRendererControl;
 
-class BbCameraService : public QPlatformMediaCapture
+class BbCameraService : public QPlatformMediaCaptureSession
 {
     Q_OBJECT
 

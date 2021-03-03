@@ -875,13 +875,13 @@ void tst_QMediaRecorder::testAvailabilityStatus()
         QCOMPARE(recorder.isAvailable(), false);
     }
     {
-        mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
+        mockIntegration->createCaptureSession(QMediaRecorder::AudioAndVideo);
         QCamera object1;
         QMediaRecorder recorder1(&object1);
         QCOMPARE(recorder1.isAvailable(), true);
     }
     {
-        mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
+        mockIntegration->createCaptureSession(QMediaRecorder::AudioAndVideo);
         QCamera object1;
         QMediaRecorder recorder1(&object1);
 
@@ -896,7 +896,7 @@ void tst_QMediaRecorder::testIsAvailable()
     QMediaRecorder recorder(&object);
     QCOMPARE(recorder.isAvailable(), false);
 
-    mockIntegration->createCaptureInterface(QMediaRecorder::AudioAndVideo);
+    mockIntegration->createCaptureSession(QMediaRecorder::AudioAndVideo);
     QCamera object1;
     QMediaRecorder recorder1(&object1);
     QCOMPARE(recorder1.isAvailable(), true);
