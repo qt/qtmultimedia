@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 #include "qgstreamercapturesession_p.h"
-#include "qgstreamerrecordercontrol_p.h"
-#include "qgstreamerimagecapturecontrol_p.h"
+#include "qgstreamermediarecorder_p.h"
+#include "qgstreamercameraimagecapture_p.h"
 #include "private/qgstreamerdevicemanager_p.h"
 #include <qmediarecorder.h>
 #include <qmediadevicemanager.h>
@@ -95,9 +95,9 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
     m_busHelper->installMessageFilter(this);
 
-    m_imageCaptureControl = new QGstreamerImageCaptureControl(this);
-    m_recorderControl = new QGstreamerRecorderControl(this);
-    connect(m_recorderControl, &QGstreamerRecorderControl::error, [](int e, const QString &str) {
+    m_imageCaptureControl = new QGstreamerCameraImageCapture(this);
+    m_recorderControl = new QGstreamerMediaRecorder(this);
+    connect(m_recorderControl, &QGstreamerMediaRecorder::error, [](int e, const QString &str) {
         qWarning() << QMediaRecorder::Error(e) << ":" << str.toLatin1().constData();
     });
 }

@@ -37,44 +37,56 @@
 **
 ****************************************************************************/
 
-#include "qgstreamercaptureservice_p.h"
+
+#ifndef QGSTREAMERIMAGECAPTURECONTROL_H
+#define QGSTREAMERIMAGECAPTURECONTROL_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformcameraimagecapture_p.h>
 #include "qgstreamercapturesession_p.h"
-#include "qgstreamerrecordercontrol_p.h"
-#include "qgstreamercameracontrol_p.h"
-#include <private/qgstreamerbushelper_p.h>
-
-#include "qgstreamerimagecapturecontrol_p.h"
-
-#include <private/qgstreamervideorenderer_p.h>
-#include <private/qgstreamervideowindow_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerCaptureService::QGstreamerCaptureService(QMediaRecorder::CaptureMode mode)
+class QGstreamerCameraImageCapture : public QPlatformCameraImageCapture
 {
-    if (mode == QMediaRecorder::AudioOnly) {
-        m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
-    } else {
-        m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
-        m_cameraControl = new QGstreamerCameraControl(m_captureSession);
-    }
-}
+    Q_OBJECT
+public:
+    QGstreamerCameraImageCapture(QGstreamerCaptureSession *session);
+    virtual ~QGstreamerCameraImageCapture();
 
-QGstreamerCaptureService::~QGstreamerCaptureService() = default;
+    bool isReadyForCapture() const override;
+    int capture(const QString &fileName) override;
+    void cancelCapture() override;
 
-QPlatformCamera *QGstreamerCaptureService::cameraControl()
-{
-    return m_cameraControl;
-}
+    QCameraImageCapture::CaptureDestinations captureDestination() const override { return QCameraImageCapture::CaptureToBuffer; }
+    virtual void setCaptureDestination(QCameraImageCapture::CaptureDestinations /*destination*/) override {}
 
-QPlatformCameraImageCapture *QGstreamerCaptureService::imageCaptureControl()
-{
-    return m_captureSession->imageCaptureControl();
-}
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
 
-QPlatformMediaRecorder *QGstreamerCaptureService::mediaRecorderControl()
-{
-    return m_captureSession->recorderControl();
-}
+private slots:
+    void updateState();
+
+Q_SIGNALS:
+    void settingsChanged();
+
+private:
+    QGstreamerCaptureSession *m_session;
+    bool m_ready;
+    int m_lastId;
+    QImageEncoderSettings m_settings;
+};
 
 QT_END_NAMESPACE
+
+#endif // QGSTREAMERCAPTURECORNTROL_H

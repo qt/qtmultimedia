@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qgstreamercameracontrol_p.h"
-#include "qgstreamerimagecapturecontrol_p.h"
+#include "qgstreamercamera_p.h"
+#include "qgstreamercameraimagecapture_p.h"
 
 #include <qcamerainfo.h>
 
@@ -46,7 +46,7 @@
 #include <QtCore/qfile.h>
 
 
-QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *session)
+QGstreamerCamera::QGstreamerCamera(QGstreamerCaptureSession *session)
     : QPlatformCamera(session),
     m_session(session),
     m_reloadPending(false)
@@ -64,9 +64,9 @@ QGstreamerCameraControl::QGstreamerCameraControl(QGstreamerCaptureSession *sessi
     m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideoAndImage);
 }
 
-QGstreamerCameraControl::~QGstreamerCameraControl() = default;
+QGstreamerCamera::~QGstreamerCamera() = default;
 
-void QGstreamerCameraControl::setActive(bool active)
+void QGstreamerCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
@@ -89,18 +89,18 @@ void QGstreamerCameraControl::setActive(bool active)
     emit activeChanged(active);
 }
 
-void QGstreamerCameraControl::setCamera(const QCameraInfo &camera)
+void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 {
     m_session->setVideoDevice(camera);
     reloadLater();
 }
 
-bool QGstreamerCameraControl::isActive() const
+bool QGstreamerCamera::isActive() const
 {
     return m_active;
 }
 
-void QGstreamerCameraControl::updateStatus()
+void QGstreamerCamera::updateStatus()
 {
     QCamera::Status oldStatus = m_status;
 
@@ -122,7 +122,7 @@ void QGstreamerCameraControl::updateStatus()
     }
 }
 
-void QGstreamerCameraControl::reloadLater()
+void QGstreamerCamera::reloadLater()
 {
     //qDebug() << "reload pipeline requested";
     if (!m_reloadPending && m_active) {
@@ -132,7 +132,7 @@ void QGstreamerCameraControl::reloadLater()
     }
 }
 
-void QGstreamerCameraControl::reloadPipeline()
+void QGstreamerCamera::reloadPipeline()
 {
     //qDebug() << "reload pipeline";
     if (m_reloadPending) {
@@ -143,7 +143,7 @@ void QGstreamerCameraControl::reloadPipeline()
     }
 }
 
-void QGstreamerCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
+void QGstreamerCamera::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_session->setVideoPreview(surface);
 }

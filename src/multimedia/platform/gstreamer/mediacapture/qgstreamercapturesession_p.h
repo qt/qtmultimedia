@@ -70,8 +70,8 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QGstreamerBusHelper;
-class QGstreamerImageCaptureControl;
-class QGstreamerRecorderControl;
+class QGstreamerCameraImageCapture;
+class QGstreamerMediaRecorder;
 class QGstreamerVideoRenderer;
 class QCameraInfo;
 class QGstreamerVideoInput;
@@ -106,9 +106,9 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl& sink);
 
-    QGstreamerImageCaptureControl *imageCaptureControl() const { return m_imageCaptureControl; }
+    QGstreamerCameraImageCapture *imageCaptureControl() const { return m_imageCaptureControl; }
 
-    QGstreamerRecorderControl *recorderControl() const { return m_recorderControl; }
+    QGstreamerMediaRecorder *recorderControl() const { return m_recorderControl; }
 
     void setVideoDevice(const QCameraInfo &camera) { m_camera = camera; }
 
@@ -179,8 +179,8 @@ private:
 
     QGstreamerVideoRenderer *m_viewfinderInterface;
 
-    QGstreamerImageCaptureControl *m_imageCaptureControl;
-    QGstreamerRecorderControl *m_recorderControl;
+    QGstreamerCameraImageCapture *m_imageCaptureControl;
+    QGstreamerMediaRecorder *m_recorderControl;
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;

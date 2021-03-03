@@ -38,7 +38,7 @@
 ****************************************************************************/
 //#define DEBUG_DECODER
 
-#include "qgstreameraudiodecodercontrol_p.h"
+#include "qgstreameraudiodecoder_p.h"
 #include <private/qgstreamerbushelper_p.h>
 
 #include <private/qgstutils_p.h>
@@ -71,7 +71,7 @@ typedef enum {
     GST_PLAY_FLAG_BUFFERING     = 0x000000100
 } GstPlayFlags;
 
-QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QObject *parent)
+QGstreamerAudioDecoder::QGstreamerAudioDecoder(QObject *parent)
     : QPlatformAudioDecoder(parent),
      m_state(QAudioDecoder::StoppedState),
      m_pendingState(QAudioDecoder::StoppedState),
@@ -115,7 +115,7 @@ QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QObject *parent)
 
         g_object_set(G_OBJECT(m_playbin), "audio-sink", m_outputBin, NULL);
 #if QT_CONFIG(gstreamer_app)
-        g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", (GCallback) &QGstreamerAudioDecoderControl::configureAppSrcElement, (gpointer)this);
+        g_signal_connect(G_OBJECT(m_playbin), "deep-notify::source", (GCallback) &QGstreamerAudioDecoder::configureAppSrcElement, (gpointer)this);
 #endif
 
         // Set volume to 100%
@@ -124,7 +124,7 @@ QGstreamerAudioDecoderControl::QGstreamerAudioDecoderControl(QObject *parent)
     }
 }
 
-QGstreamerAudioDecoderControl::~QGstreamerAudioDecoderControl()
+QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
 {
     if (m_playbin) {
         stop();
@@ -139,7 +139,7 @@ QGstreamerAudioDecoderControl::~QGstreamerAudioDecoderControl()
 }
 
 #if QT_CONFIG(gstreamer_app)
-void QGstreamerAudioDecoderControl::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerAudioDecoderControl* self)
+void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerAudioDecoder *self)
 {
     Q_UNUSED(object);
     Q_UNUSED(pspec);
@@ -158,7 +158,7 @@ void QGstreamerAudioDecoderControl::configureAppSrcElement(GObject* object, GObj
 }
 #endif
 
-bool QGstreamerAudioDecoderControl::processBusMessage(const QGstreamerMessage &message)
+bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
     if (gm) {
@@ -298,12 +298,12 @@ bool QGstreamerAudioDecoderControl::processBusMessage(const QGstreamerMessage &m
     return false;
 }
 
-QString QGstreamerAudioDecoderControl::sourceFilename() const
+QString QGstreamerAudioDecoder::sourceFilename() const
 {
     return mSource;
 }
 
-void QGstreamerAudioDecoderControl::setSourceFilename(const QString &fileName)
+void QGstreamerAudioDecoder::setSourceFilename(const QString &fileName)
 {
     stop();
     mDevice = nullptr;
@@ -319,12 +319,12 @@ void QGstreamerAudioDecoderControl::setSourceFilename(const QString &fileName)
         emit sourceChanged();
 }
 
-QIODevice *QGstreamerAudioDecoderControl::sourceDevice() const
+QIODevice *QGstreamerAudioDecoder::sourceDevice() const
 {
     return mDevice;
 }
 
-void QGstreamerAudioDecoderControl::setSourceDevice(QIODevice *device)
+void QGstreamerAudioDecoder::setSourceDevice(QIODevice *device)
 {
     stop();
     mSource.clear();
@@ -334,7 +334,7 @@ void QGstreamerAudioDecoderControl::setSourceDevice(QIODevice *device)
         emit sourceChanged();
 }
 
-void QGstreamerAudioDecoderControl::start()
+void QGstreamerAudioDecoder::start()
 {
     if (!m_playbin) {
         processInvalidMedia(QAudioDecoder::ResourceError, QLatin1String("Playbin element is not valid"));
@@ -386,7 +386,7 @@ void QGstreamerAudioDecoderControl::start()
     }
 }
 
-void QGstreamerAudioDecoderControl::stop()
+void QGstreamerAudioDecoder::stop()
 {
     if (m_playbin) {
         gst_element_set_state(m_playbin, GST_STATE_NULL);
@@ -416,12 +416,12 @@ void QGstreamerAudioDecoderControl::stop()
     }
 }
 
-QAudioFormat QGstreamerAudioDecoderControl::audioFormat() const
+QAudioFormat QGstreamerAudioDecoder::audioFormat() const
 {
     return mFormat;
 }
 
-void QGstreamerAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
+void QGstreamerAudioDecoder::setAudioFormat(const QAudioFormat &format)
 {
     if (mFormat != format) {
         mFormat = format;
@@ -429,7 +429,7 @@ void QGstreamerAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
     }
 }
 
-QAudioBuffer QGstreamerAudioDecoderControl::read()
+QAudioBuffer QGstreamerAudioDecoder::read()
 {
     QAudioBuffer audioBuffer;
 
@@ -477,32 +477,32 @@ QAudioBuffer QGstreamerAudioDecoderControl::read()
     return audioBuffer;
 }
 
-bool QGstreamerAudioDecoderControl::bufferAvailable() const
+bool QGstreamerAudioDecoder::bufferAvailable() const
 {
     QMutexLocker locker(&m_buffersMutex);
     return m_buffersAvailable > 0;
 }
 
-qint64 QGstreamerAudioDecoderControl::position() const
+qint64 QGstreamerAudioDecoder::position() const
 {
     return m_position;
 }
 
-qint64 QGstreamerAudioDecoderControl::duration() const
+qint64 QGstreamerAudioDecoder::duration() const
 {
      return m_duration;
 }
 
-void QGstreamerAudioDecoderControl::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
+void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
 {
     stop();
     emit error(int(errorCode), errorString);
 }
 
-GstFlowReturn QGstreamerAudioDecoderControl::new_sample(GstAppSink *, gpointer user_data)
+GstFlowReturn QGstreamerAudioDecoder::new_sample(GstAppSink *, gpointer user_data)
 {
     // "Note that the preroll buffer will also be returned as the first buffer when calling gst_app_sink_pull_buffer()."
-    QGstreamerAudioDecoderControl *control = reinterpret_cast<QGstreamerAudioDecoderControl*>(user_data);
+    QGstreamerAudioDecoder *control = reinterpret_cast<QGstreamerAudioDecoder*>(user_data);
 
     int buffersAvailable;
     {
@@ -518,7 +518,7 @@ GstFlowReturn QGstreamerAudioDecoderControl::new_sample(GstAppSink *, gpointer u
     return GST_FLOW_OK;
 }
 
-void QGstreamerAudioDecoderControl::setAudioFlags(bool wantNativeAudio)
+void QGstreamerAudioDecoder::setAudioFlags(bool wantNativeAudio)
 {
     int flags = 0;
     if (m_playbin) {
@@ -533,7 +533,7 @@ void QGstreamerAudioDecoderControl::setAudioFlags(bool wantNativeAudio)
     }
 }
 
-void QGstreamerAudioDecoderControl::addAppSink()
+void QGstreamerAudioDecoder::addAppSink()
 {
     if (m_appSink)
         return;
@@ -551,7 +551,7 @@ void QGstreamerAudioDecoderControl::addAppSink()
     gst_element_link(m_audioConvert, GST_ELEMENT(m_appSink));
 }
 
-void QGstreamerAudioDecoderControl::removeAppSink()
+void QGstreamerAudioDecoder::removeAppSink()
 {
     if (!m_appSink)
         return;
@@ -562,7 +562,7 @@ void QGstreamerAudioDecoderControl::removeAppSink()
     m_appSink = nullptr;
 }
 
-void QGstreamerAudioDecoderControl::updateDuration()
+void QGstreamerAudioDecoder::updateDuration()
 {
     gint64 gstDuration = 0;
     int duration = -1;
@@ -586,7 +586,7 @@ void QGstreamerAudioDecoderControl::updateDuration()
     }
 }
 
-qint64 QGstreamerAudioDecoderControl::getPositionFromBuffer(GstBuffer* buffer)
+qint64 QGstreamerAudioDecoder::getPositionFromBuffer(GstBuffer* buffer)
 {
     qint64 position = GST_BUFFER_TIMESTAMP(buffer);
     if (position >= 0)

@@ -37,60 +37,44 @@
 **
 ****************************************************************************/
 
-
-#ifndef QGSTREAMERCAMERACONTROL_H
-#define QGSTREAMERCAMERACONTROL_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <QHash>
-#include <private/qplatformcamera_p.h>
+#include "qgstreamermediacapture_p.h"
 #include "qgstreamercapturesession_p.h"
+#include "qgstreamermediarecorder_p.h"
+#include "qgstreamercamera_p.h"
+#include <private/qgstreamerbushelper_p.h>
+
+#include "qgstreamercameraimagecapture_p.h"
+
+#include <private/qgstreamervideorenderer_p.h>
+#include <private/qgstreamervideowindow_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCameraControl : public QPlatformCamera
+QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode mode)
 {
-    Q_OBJECT
-public:
-    QGstreamerCameraControl( QGstreamerCaptureSession *session );
-    virtual ~QGstreamerCameraControl();
+    if (mode == QMediaRecorder::AudioOnly) {
+        m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
+    } else {
+        m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
+        m_cameraControl = new QGstreamerCamera(m_captureSession);
+    }
+}
 
-    bool isValid() const { return true; }
+QGstreamerMediaCapture::~QGstreamerMediaCapture() = default;
 
-    bool isActive() const override;
-    void setActive(bool active) override;
+QPlatformCamera *QGstreamerMediaCapture::cameraControl()
+{
+    return m_cameraControl;
+}
 
-    QCamera::Status status() const override { return m_status; }
+QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCaptureControl()
+{
+    return m_captureSession->imageCaptureControl();
+}
 
-    void setCamera(const QCameraInfo &camera) override;
-
-    void setVideoSurface(QAbstractVideoSurface *surface) override;
-
-public slots:
-    void reloadLater();
-
-private slots:
-    void updateStatus();
-    void reloadPipeline();
-
-
-private:
-    QGstreamerCaptureSession *m_session;
-    bool m_active = false;
-    QCamera::Status m_status = QCamera::InactiveStatus;
-    bool m_reloadPending;
-};
+QPlatformMediaRecorder *QGstreamerMediaCapture::mediaRecorderControl()
+{
+    return m_captureSession->recorderControl();
+}
 
 QT_END_NAMESPACE
-
-#endif // QGSTREAMERCAMERACONTROL_H

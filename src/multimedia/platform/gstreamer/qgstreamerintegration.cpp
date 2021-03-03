@@ -40,8 +40,8 @@
 #include "qgstreamerintegration_p.h"
 #include "qgstreamerdevicemanager_p.h"
 #include "private/qgstreamermediaplayer_p.h"
-#include "private/qgstreamercaptureservice_p.h"
-#include "private/qgstreameraudiodecodercontrol_p.h"
+#include "private/qgstreamermediacapture_p.h"
+#include "private/qgstreameraudiodecoder_p.h"
 #include "private/qgstreamerformatinfo_p.h"
 #include "private/qgstreamervideorenderer_p.h"
 
@@ -71,12 +71,12 @@ QPlatformMediaFormatInfo *QGstreamerIntegration::formatInfo()
 
 QPlatformAudioDecoder *QGstreamerIntegration::createAudioDecoder()
 {
-    return new QGstreamerAudioDecoderControl(nullptr);
+    return new QGstreamerAudioDecoder(nullptr);
 }
 
 QPlatformMediaCapture *QGstreamerIntegration::createCaptureInterface(QMediaRecorder::CaptureMode mode)
 {
-    return new QGstreamerCaptureService(mode);
+    return new QGstreamerMediaCapture(mode);
 }
 
 QPlatformMediaPlayer *QGstreamerIntegration::createPlayer(QMediaPlayer *player)

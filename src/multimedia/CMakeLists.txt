@@ -188,7 +188,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/audio/qaudiodeviceinfo_gstreamer.cpp platform/gstreamer/audio/qaudiodeviceinfo_gstreamer_p.h
         platform/gstreamer/audio/qaudioinput_gstreamer.cpp platform/gstreamer/audio/qaudioinput_gstreamer_p.h
         platform/gstreamer/audio/qaudiooutput_gstreamer.cpp platform/gstreamer/audio/qaudiooutput_gstreamer_p.h
-        platform/gstreamer/audio/qgstreameraudiodecodercontrol.cpp platform/gstreamer/audio/qgstreameraudiodecodercontrol_p.h
+        platform/gstreamer/audio/qgstreameraudiodecoder.cpp platform/gstreamer/audio/qgstreameraudiodecoder_p.h
         platform/gstreamer/common/qgst_p.h
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
         platform/gstreamer/common/qgstreamerbufferprobe.cpp platform/gstreamer/common/qgstreamerbufferprobe_p.h
@@ -247,11 +247,11 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATU
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_camerabin
     SOURCES
-        platform/gstreamer/mediacapture/qgstreamercameracontrol.cpp platform/gstreamer/mediacapture/qgstreamercameracontrol_p.h
-        platform/gstreamer/mediacapture/qgstreamercaptureservice.cpp platform/gstreamer/mediacapture/qgstreamercaptureservice_p.h
+        platform/gstreamer/mediacapture/qgstreamercamera.cpp platform/gstreamer/mediacapture/qgstreamercamera_p.h
+        platform/gstreamer/mediacapture/qgstreamermediacapture.cpp platform/gstreamer/mediacapture/qgstreamermediacapture_p.h
         platform/gstreamer/mediacapture/qgstreamercapturesession.cpp platform/gstreamer/mediacapture/qgstreamercapturesession_p.h
-        platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol.cpp platform/gstreamer/mediacapture/qgstreamerimagecapturecontrol_p.h
-        platform/gstreamer/mediacapture/qgstreamerrecordercontrol.cpp platform/gstreamer/mediacapture/qgstreamerrecordercontrol_p.h
+        platform/gstreamer/mediacapture/qgstreamercameraimagecapture.cpp platform/gstreamer/mediacapture/qgstreamercameraimagecapture_p.h
+        platform/gstreamer/mediacapture/qgstreamermediarecorder.cpp platform/gstreamer/mediacapture/qgstreamermediarecorder_p.h
     INCLUDE_DIRECTORIES
         platform/gstreamer/mediacapture
     DEFINES

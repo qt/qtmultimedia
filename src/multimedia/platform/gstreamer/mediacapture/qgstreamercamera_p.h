@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 
-#ifndef QGSTREAMERIMAGECAPTURECONTROL_H
-#define QGSTREAMERIMAGECAPTURECONTROL_H
+#ifndef QGSTREAMERCAMERACONTROL_H
+#define QGSTREAMERCAMERACONTROL_H
 
 //
 //  W A R N I N G
@@ -52,41 +52,45 @@
 // We mean it.
 //
 
-#include <private/qplatformcameraimagecapture_p.h>
+#include <QHash>
+#include <private/qplatformcamera_p.h>
 #include "qgstreamercapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerImageCaptureControl : public QPlatformCameraImageCapture
+class QGstreamerCamera : public QPlatformCamera
 {
     Q_OBJECT
 public:
-    QGstreamerImageCaptureControl(QGstreamerCaptureSession *session);
-    virtual ~QGstreamerImageCaptureControl();
+    QGstreamerCamera( QGstreamerCaptureSession *session );
+    virtual ~QGstreamerCamera();
 
-    bool isReadyForCapture() const override;
-    int capture(const QString &fileName) override;
-    void cancelCapture() override;
+    bool isValid() const { return true; }
 
-    QCameraImageCapture::CaptureDestinations captureDestination() const override { return QCameraImageCapture::CaptureToBuffer; }
-    virtual void setCaptureDestination(QCameraImageCapture::CaptureDestinations /*destination*/) override {}
+    bool isActive() const override;
+    void setActive(bool active) override;
 
-    QImageEncoderSettings imageSettings() const override;
-    void setImageSettings(const QImageEncoderSettings &settings) override;
+    QCamera::Status status() const override { return m_status; }
+
+    void setCamera(const QCameraInfo &camera) override;
+
+    void setVideoSurface(QAbstractVideoSurface *surface) override;
+
+public slots:
+    void reloadLater();
 
 private slots:
-    void updateState();
+    void updateStatus();
+    void reloadPipeline();
 
-Q_SIGNALS:
-    void settingsChanged();
 
 private:
     QGstreamerCaptureSession *m_session;
-    bool m_ready;
-    int m_lastId;
-    QImageEncoderSettings m_settings;
+    bool m_active = false;
+    QCamera::Status m_status = QCamera::InactiveStatus;
+    bool m_reloadPending;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURECORNTROL_H
+#endif // QGSTREAMERCAMERACONTROL_H

@@ -37,11 +37,11 @@
 **
 ****************************************************************************/
 
-#include "qgstreamerimagecapturecontrol_p.h"
+#include "qgstreamercameraimagecapture_p.h"
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 
-QGstreamerImageCaptureControl::QGstreamerImageCaptureControl(QGstreamerCaptureSession *session)
+QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QGstreamerCaptureSession *session)
     :QPlatformCameraImageCapture(session), m_session(session), m_ready(false), m_lastId(0)
 {
     connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)), SLOT(updateState()));
@@ -50,14 +50,14 @@ QGstreamerImageCaptureControl::QGstreamerImageCaptureControl(QGstreamerCaptureSe
     connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
 }
 
-QGstreamerImageCaptureControl::~QGstreamerImageCaptureControl() = default;
+QGstreamerCameraImageCapture::~QGstreamerCameraImageCapture() = default;
 
-bool QGstreamerImageCaptureControl::isReadyForCapture() const
+bool QGstreamerCameraImageCapture::isReadyForCapture() const
 {
     return m_ready;
 }
 
-int QGstreamerImageCaptureControl::capture(const QString &fileName)
+int QGstreamerCameraImageCapture::capture(const QString &fileName)
 {
     m_lastId++;
 
@@ -95,12 +95,12 @@ int QGstreamerImageCaptureControl::capture(const QString &fileName)
     return m_lastId;
 }
 
-void QGstreamerImageCaptureControl::cancelCapture()
+void QGstreamerCameraImageCapture::cancelCapture()
 {
 
 }
 
-void QGstreamerImageCaptureControl::updateState()
+void QGstreamerCameraImageCapture::updateState()
 {
     bool ready = (m_session->state() == QGstreamerCaptureSession::PreviewState) &&
             (m_session->captureMode() & QGstreamerCaptureSession::Image);
@@ -110,12 +110,12 @@ void QGstreamerImageCaptureControl::updateState()
     }
 }
 
-QImageEncoderSettings QGstreamerImageCaptureControl::imageSettings() const
+QImageEncoderSettings QGstreamerCameraImageCapture::imageSettings() const
 {
     return m_settings;
 }
 
-void QGstreamerImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+void QGstreamerCameraImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
     if (m_settings != settings) {
         m_settings = settings;

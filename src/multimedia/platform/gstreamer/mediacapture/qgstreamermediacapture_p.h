@@ -37,9 +37,8 @@
 **
 ****************************************************************************/
 
-
-#ifndef QGSTREAMERRECORDERCONTROL_H
-#define QGSTREAMERRECORDERCONTROL_H
+#ifndef QGSTREAMERCAPTURESERVICE_H
+#define QGSTREAMERCAPTURESERVICE_H
 
 //
 //  W A R N I N G
@@ -52,72 +51,38 @@
 // We mean it.
 //
 
-#include <QtCore/QDir>
+#include <private/qplatformmediacapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
-#include <private/qplatformmediarecorder_p.h>
-#include "qgstreamercapturesession_p.h"
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCaptureMetaDataControl;
-class QMediaMetaData;
+class QGstreamerCaptureSession;
+class QGstreamerCamera;
+class QGstreamerMessage;
+class QGstreamerBusHelper;
+class QGstreamerVideoRenderer;
+class QGstreamerVideoWindow;
+class QGstreamerVideoInput;
 
-class QGstreamerRecorderControl : public QPlatformMediaRecorder
+class QGstreamerMediaCapture : public QPlatformMediaCapture
 {
     Q_OBJECT
 
 public:
-    QGstreamerRecorderControl(QGstreamerCaptureSession *session);
-    virtual ~QGstreamerRecorderControl();
+    QGstreamerMediaCapture(QMediaRecorder::CaptureMode mode);
+    virtual ~QGstreamerMediaCapture();
 
-    QUrl outputLocation() const override;
-    bool setOutputLocation(const QUrl &sink) override;
-
-    QMediaRecorder::State state() const override;
-    QMediaRecorder::Status status() const override;
-
-    qint64 duration() const override;
-
-    bool isMuted() const override;
-    qreal volume() const override;
-
-    void applySettings() override;
-
-    QAudioDeviceInfo audioInput() const override;
-    bool setAudioInput(const QAudioDeviceInfo &id) override;
-
-    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
-    QMediaEncoderSettings encoderSettings() const { return m_settings; }
-    QMediaEncoderSettings resolvedEncoderSettings() const;
-
-    void setMetaData(const QMediaMetaData &) override;
-    QMediaMetaData metaData() const override;
-
-public slots:
-    void setState(QMediaRecorder::State state) override;
-    void record();
-    void pause();
-    void stop();
-    void setMuted(bool) override;
-    void setVolume(qreal volume) override;
-
-private slots:
-    void updateStatus();
-    void handleSessionError(int code, const QString &description);
+    QPlatformCamera *cameraControl() override;
+    QPlatformCameraImageCapture *imageCaptureControl() override;
+    QPlatformMediaRecorder *mediaRecorderControl() override;
 
 private:
-    QDir defaultDir() const;
-    QString generateFileName(const QDir &dir, const QString &ext) const;
-
-    QUrl m_outputLocation;
-    QMediaEncoderSettings m_settings;
-    QGstreamerCaptureSession *m_session;
-    QGstreamerMetaData m_metaData;
-    QMediaRecorder::State m_state;
-    QMediaRecorder::Status m_status;
-    bool m_hasPreviewState;
+    QGstreamerCaptureSession *m_captureSession = nullptr;
+    QGstreamerCamera *m_cameraControl = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURECORNTROL_H
+#endif // QGSTREAMERCAPTURESERVICE_H

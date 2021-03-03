@@ -37,14 +37,14 @@
 **
 ****************************************************************************/
 
-#include "qgstreamerrecordercontrol_p.h"
+#include "qgstreamermediarecorder_p.h"
 #include <QtCore/QDebug>
 #include <QtGui/qdesktopservices.h>
 #include <QStandardPaths>
 #include "qaudiodeviceinfo.h"
 #include <qmimetype.h>
 
-QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *session)
+QGstreamerMediaRecorder::QGstreamerMediaRecorder(QGstreamerCaptureSession *session)
     : QPlatformMediaRecorder(session),
       m_session(session),
       m_state(QMediaRecorder::StoppedState),
@@ -58,14 +58,14 @@ QGstreamerRecorderControl::QGstreamerRecorderControl(QGstreamerCaptureSession *s
     m_hasPreviewState = m_session->captureMode() != QGstreamerCaptureSession::Audio;
 }
 
-QGstreamerRecorderControl::~QGstreamerRecorderControl() = default;
+QGstreamerMediaRecorder::~QGstreamerMediaRecorder() = default;
 
-QUrl QGstreamerRecorderControl::outputLocation() const
+QUrl QGstreamerMediaRecorder::outputLocation() const
 {
     return m_session->outputLocation();
 }
 
-bool QGstreamerRecorderControl::setOutputLocation(const QUrl &sink)
+bool QGstreamerMediaRecorder::setOutputLocation(const QUrl &sink)
 {
     m_outputLocation = sink;
     m_session->setOutputLocation(sink);
@@ -73,12 +73,12 @@ bool QGstreamerRecorderControl::setOutputLocation(const QUrl &sink)
 }
 
 
-QMediaRecorder::State QGstreamerRecorderControl::state() const
+QMediaRecorder::State QGstreamerMediaRecorder::state() const
 {
     return m_state;
 }
 
-QMediaRecorder::Status QGstreamerRecorderControl::status() const
+QMediaRecorder::Status QGstreamerMediaRecorder::status() const
 {
     static QMediaRecorder::Status statusTable[3][3] = {
         //Stopped recorder state:
@@ -107,7 +107,7 @@ QMediaRecorder::Status QGstreamerRecorderControl::status() const
     return statusTable[m_state][sessionState];
 }
 
-void QGstreamerRecorderControl::updateStatus()
+void QGstreamerMediaRecorder::updateStatus()
 {
     QMediaRecorder::Status newStatus = status();
     if (m_status != newStatus) {
@@ -119,18 +119,18 @@ void QGstreamerRecorderControl::updateStatus()
     }
 }
 
-void QGstreamerRecorderControl::handleSessionError(int code, const QString &description)
+void QGstreamerMediaRecorder::handleSessionError(int code, const QString &description)
 {
     emit error(code, description);
     stop();
 }
 
-qint64 QGstreamerRecorderControl::duration() const
+qint64 QGstreamerMediaRecorder::duration() const
 {
     return m_session->duration();
 }
 
-void QGstreamerRecorderControl::setState(QMediaRecorder::State state)
+void QGstreamerMediaRecorder::setState(QMediaRecorder::State state)
 {
     switch (state) {
     case QMediaRecorder::StoppedState:
@@ -145,7 +145,7 @@ void QGstreamerRecorderControl::setState(QMediaRecorder::State state)
     }
 }
 
-void QGstreamerRecorderControl::record()
+void QGstreamerMediaRecorder::record()
 {
     if (m_state == QMediaRecorder::RecordingState)
         return;
@@ -174,7 +174,7 @@ void QGstreamerRecorderControl::record()
     emit actualLocationChanged(m_session->outputLocation());
 }
 
-void QGstreamerRecorderControl::pause()
+void QGstreamerMediaRecorder::pause()
 {
     if (m_state == QMediaRecorder::PausedState)
         return;
@@ -191,7 +191,7 @@ void QGstreamerRecorderControl::pause()
     updateStatus();
 }
 
-void QGstreamerRecorderControl::stop()
+void QGstreamerMediaRecorder::stop()
 {
     if (m_state == QMediaRecorder::StoppedState)
         return;
@@ -208,64 +208,64 @@ void QGstreamerRecorderControl::stop()
     updateStatus();
 }
 
-void QGstreamerRecorderControl::applySettings()
+void QGstreamerMediaRecorder::applySettings()
 {
 }
 
-QAudioDeviceInfo QGstreamerRecorderControl::audioInput() const
+QAudioDeviceInfo QGstreamerMediaRecorder::audioInput() const
 {
     return m_session->audioCaptureDevice();
 }
 
-bool QGstreamerRecorderControl::setAudioInput(const QAudioDeviceInfo &info)
+bool QGstreamerMediaRecorder::setAudioInput(const QAudioDeviceInfo &info)
 {
     m_session->setAudioCaptureDevice(info);
     return true;
 }
 
-void QGstreamerRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)
+void QGstreamerMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     m_settings = settings;
 }
 
-QMediaEncoderSettings QGstreamerRecorderControl::resolvedEncoderSettings() const
+QMediaEncoderSettings QGstreamerMediaRecorder::resolvedEncoderSettings() const
 {
     QMediaEncoderSettings f = m_settings;
     f.resolveFormat();
     return f;
 }
 
-void QGstreamerRecorderControl::setMetaData(const QMediaMetaData &metaData)
+void QGstreamerMediaRecorder::setMetaData(const QMediaMetaData &metaData)
 {
     m_metaData = static_cast<const QGstreamerMetaData &>(metaData);
 }
 
-QMediaMetaData QGstreamerRecorderControl::metaData() const
+QMediaMetaData QGstreamerMediaRecorder::metaData() const
 {
     return m_metaData;
 }
 
-bool QGstreamerRecorderControl::isMuted() const
+bool QGstreamerMediaRecorder::isMuted() const
 {
     return m_session->isMuted();
 }
 
-qreal QGstreamerRecorderControl::volume() const
+qreal QGstreamerMediaRecorder::volume() const
 {
     return m_session->volume();
 }
 
-void QGstreamerRecorderControl::setMuted(bool muted)
+void QGstreamerMediaRecorder::setMuted(bool muted)
 {
     m_session->setMuted(muted);
 }
 
-void QGstreamerRecorderControl::setVolume(qreal volume)
+void QGstreamerMediaRecorder::setVolume(qreal volume)
 {
     m_session->setVolume(volume);
 }
 
-QDir QGstreamerRecorderControl::defaultDir() const
+QDir QGstreamerMediaRecorder::defaultDir() const
 {
     QStringList dirCandidates;
 
@@ -289,7 +289,7 @@ QDir QGstreamerRecorderControl::defaultDir() const
     return QDir();
 }
 
-QString QGstreamerRecorderControl::generateFileName(const QDir &dir, const QString &ext) const
+QString QGstreamerMediaRecorder::generateFileName(const QDir &dir, const QString &ext) const
 {
 
     int lastClip = 0;

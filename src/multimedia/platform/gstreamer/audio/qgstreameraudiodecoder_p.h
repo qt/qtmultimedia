@@ -70,15 +70,15 @@ QT_BEGIN_NAMESPACE
 class QGstreamerBusHelper;
 class QGstreamerMessage;
 
-class QGstreamerAudioDecoderControl
+class QGstreamerAudioDecoder
         : public QPlatformAudioDecoder,
           public QGstreamerBusMessageFilter
 {
     Q_OBJECT
 
 public:
-    QGstreamerAudioDecoderControl(QObject *parent);
-    virtual ~QGstreamerAudioDecoderControl();
+    QGstreamerAudioDecoder(QObject *parent);
+    virtual ~QGstreamerAudioDecoder();
 
     // QAudioDecoder interface
     QAudioDecoder::State state() const override { return m_state; }
@@ -109,7 +109,7 @@ public:
 
 #if QT_CONFIG(gstreamer_app)
     QGstAppSrc *appsrc() const { return m_appSrc; }
-    static void configureAppSrcElement(GObject*, GObject*, GParamSpec*, QGstreamerAudioDecoderControl *_this);
+    static void configureAppSrcElement(GObject*, GObject*, GParamSpec*, QGstreamerAudioDecoder *_this);
 #endif
 
     static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
