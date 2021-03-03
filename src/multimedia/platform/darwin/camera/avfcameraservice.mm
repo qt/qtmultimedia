@@ -109,5 +109,9 @@ QPlatformCameraImageProcessing *AVFCameraService::cameraImageProcessingControl()
     return m_cameraImageProcessingControl;
 }
 
+void AVFCameraService::setVideoPreview(QAbstractVideoSurface *surface)
+{
+    m_session->setVideoSurface(surface);
+}
 
 #include "moc_avfcameraservice_p.cpp"

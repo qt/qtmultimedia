@@ -88,4 +88,9 @@ QPlatformMediaRecorder *BbCameraService::mediaRecorderControl()
     return m_cameraMediaRecorderControl;
 }
 
+void BbCameraService::setVideoPreview(QAbstractVideoSurface *surface)
+{
+    // ####
+}
+
 QT_END_NAMESPACE

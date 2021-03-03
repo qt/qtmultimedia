@@ -75,6 +75,8 @@ public:
     QPlatformCameraImageCapture *imageCaptureControl() override;
     QPlatformMediaRecorder *mediaRecorderControl() override;
 
+    void setVideoPreview(QAbstractVideoSurface *surface) override;
+
     bool m_videoEnabled = false;
 
     QAndroidMediaRecorderControl *m_recorderControl;

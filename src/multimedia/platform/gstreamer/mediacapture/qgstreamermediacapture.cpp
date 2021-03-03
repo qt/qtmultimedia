@@ -77,4 +77,9 @@ QPlatformMediaRecorder *QGstreamerMediaCapture::mediaRecorderControl()
     return m_captureSession->recorderControl();
 }
 
+void QGstreamerMediaCapture::setVideoPreview(QAbstractVideoSurface *surface)
+{
+    m_captureSession->setVideoPreview(surface);
+}
+
 QT_END_NAMESPACE

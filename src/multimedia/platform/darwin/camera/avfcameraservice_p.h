@@ -80,6 +80,8 @@ public:
     QPlatformCameraImageCapture *imageCaptureControl() override;
     QPlatformMediaRecorder *mediaRecorderControl() override;
 
+    void setVideoPreview(QAbstractVideoSurface *surface) override;
+
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
     AVFMediaRecorderControl *recorderControl() const { return m_recorderControl; }

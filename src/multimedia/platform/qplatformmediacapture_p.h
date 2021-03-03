@@ -59,6 +59,7 @@ class QPlatformCameraImageCapture;
 class QPlatformMediaRecorder;
 class QAudioDeviceInfo;
 class QCameraInfo;
+class QAbstractVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
@@ -69,6 +70,8 @@ public:
     virtual QPlatformCamera *cameraControl() = 0;
     virtual QPlatformCameraImageCapture *imageCaptureControl() = 0;
     virtual QPlatformMediaRecorder *mediaRecorderControl() = 0;
+
+    virtual void setVideoPreview(QAbstractVideoSurface *surface) = 0;
 };
 
 QT_END_NAMESPACE

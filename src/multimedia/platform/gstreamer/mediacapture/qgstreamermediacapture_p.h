@@ -78,6 +78,8 @@ public:
     QPlatformCameraImageCapture *imageCaptureControl() override;
     QPlatformMediaRecorder *mediaRecorderControl() override;
 
+    void setVideoPreview(QAbstractVideoSurface *surface) override;
+
 private:
     QGstreamerCaptureSession *m_captureSession = nullptr;
     QGstreamerCamera *m_cameraControl = nullptr;

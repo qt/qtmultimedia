@@ -59,6 +59,7 @@ public:
     QPlatformCameraImageCapture *imageCaptureControl() override { return hasControls ? mockCaptureControl : nullptr; }
     QPlatformMediaRecorder *mediaRecorderControl() override { return hasControls ? mockControl : nullptr; }
 
+    void setVideoPreview(QAbstractVideoSurface *) override {}
 
     static bool simpleCamera;
 
