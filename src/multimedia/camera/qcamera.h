@@ -70,9 +70,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
 
     Q_ENUMS(Status)
-    Q_ENUMS(State)
     Q_ENUMS(Error)
-    Q_ENUMS(Position)
 public:
     enum Status {
         UnavailableStatus,
