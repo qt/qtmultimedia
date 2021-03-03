@@ -194,16 +194,6 @@ bool QCameraImageCapture::isAvailable() const
 }
 
 /*!
-    Returns the availability of this functionality.
-*/
-QMultimedia::AvailabilityStatus QCameraImageCapture::availability() const
-{
-    if (d_func()->control != nullptr)
-        return QMultimedia::Available;
-    return QMultimedia::ServiceMissing;
-}
-
-/*!
     Returns the current error state.
 
     \sa errorString()

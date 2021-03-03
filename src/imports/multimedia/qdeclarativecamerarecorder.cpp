@@ -334,8 +334,8 @@ void QDeclarativeCameraRecorder::setAudioSampleRate(int rate)
 void QDeclarativeCameraRecorder::setAudioEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
 {
     m_encoderSettings = m_recorder->encoderSettings();
-    if (m_encoderSettings.encodingMode() != QMultimedia::EncodingMode(encodingMode)) {
-        m_encoderSettings.setEncodingMode(QMultimedia::EncodingMode(encodingMode));
+    if (m_encoderSettings.encodingMode() != QMediaEncoderSettings::EncodingMode(encodingMode)) {
+        m_encoderSettings.setEncodingMode(QMediaEncoderSettings::EncodingMode(encodingMode));
         m_recorder->setEncoderSettings(m_encoderSettings);
         emit audioEncodingModeChanged(encodingMode);
     }
@@ -344,8 +344,8 @@ void QDeclarativeCameraRecorder::setAudioEncodingMode(QDeclarativeCameraRecorder
 void QDeclarativeCameraRecorder::setVideoEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
 {
     m_encoderSettings = m_recorder->encoderSettings();
-    if (m_encoderSettings.encodingMode() != QMultimedia::EncodingMode(encodingMode)) {
-        m_encoderSettings.setEncodingMode(QMultimedia::EncodingMode(encodingMode));
+    if (m_encoderSettings.encodingMode() != QMediaEncoderSettings::EncodingMode(encodingMode)) {
+        m_encoderSettings.setEncodingMode(QMediaEncoderSettings::EncodingMode(encodingMode));
         m_recorder->setEncoderSettings(m_encoderSettings);
         emit videoEncodingModeChanged(encodingMode);
     }

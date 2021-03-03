@@ -518,19 +518,19 @@ void QAndroidCameraSession::applyImageSettings()
 
     int jpegQuality = 100;
     switch (m_requestedImageSettings.quality()) {
-    case QMultimedia::VeryLowQuality:
+    case QImageEncoderSettings::VeryLowQuality:
         jpegQuality = 20;
         break;
-    case QMultimedia::LowQuality:
+    case QImageEncoderSettings::LowQuality:
         jpegQuality = 40;
         break;
-    case QMultimedia::NormalQuality:
+    case QImageEncoderSettings::NormalQuality:
         jpegQuality = 60;
         break;
-    case QMultimedia::HighQuality:
+    case QImageEncoderSettings::HighQuality:
         jpegQuality = 80;
         break;
-    case QMultimedia::VeryHighQuality:
+    case QImageEncoderSettings::VeryHighQuality:
         jpegQuality = 100;
         break;
     }

@@ -965,19 +965,19 @@ void BbCameraSession::applyConfiguration()
 
         int jpegQuality = 100;
         switch (m_imageEncoderSettings.quality()) {
-        case QMultimedia::VeryLowQuality:
+        case QMediaEncoderSettings::VeryLowQuality:
             jpegQuality = 20;
             break;
-        case QMultimedia::LowQuality:
+        case QMediaEncoderSettings::LowQuality:
             jpegQuality = 40;
             break;
-        case QMultimedia::NormalQuality:
+        case QMediaEncoderSettings::NormalQuality:
             jpegQuality = 60;
             break;
-        case QMultimedia::HighQuality:
+        case QMediaEncoderSettings::HighQuality:
             jpegQuality = 80;
             break;
-        case QMultimedia::VeryHighQuality:
+        case QMediaEncoderSettings::VeryHighQuality:
             jpegQuality = 100;
             break;
         }

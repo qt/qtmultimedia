@@ -45,7 +45,6 @@
 #include <QtCore/qsize.h>
 #include <QtCore/qvariant.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmultimedia.h>
 #include <QtMultimedia/qmediaformat.h>
 
 QT_BEGIN_NAMESPACE
@@ -54,17 +53,34 @@ class QMediaEncoderSettingsPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaEncoderSettings : public QMediaFormat
 {
 public:
+    enum Quality
+    {
+        VeryLowQuality,
+        LowQuality,
+        NormalQuality,
+        HighQuality,
+        VeryHighQuality
+    };
+
+    enum EncodingMode
+    {
+        ConstantQualityEncoding,
+        ConstantBitRateEncoding,
+        AverageBitRateEncoding,
+        TwoPassEncoding
+    };
+
     QMediaEncoderSettings();
     QMediaEncoderSettings(FileFormat format);
     QMediaEncoderSettings(const QMediaEncoderSettings& other);
     QMediaEncoderSettings& operator=(const QMediaEncoderSettings &other);
     ~QMediaEncoderSettings();
 
-    QMultimedia::EncodingMode encodingMode() const;
-    void setEncodingMode(QMultimedia::EncodingMode);
+    EncodingMode encodingMode() const;
+    void setEncodingMode(EncodingMode);
 
-    QMultimedia::EncodingQuality quality() const;
-    void setQuality(QMultimedia::EncodingQuality quality);
+    Quality quality() const;
+    void setQuality(Quality quality);
 
     void resolveFormat();
 
@@ -95,6 +111,15 @@ class QImageEncoderSettingsPrivate;
 class Q_MULTIMEDIA_EXPORT QImageEncoderSettings
 {
 public:
+    enum Quality
+    {
+        VeryLowQuality,
+        LowQuality,
+        NormalQuality,
+        HighQuality,
+        VeryHighQuality
+    };
+
     enum FileFormat {
         UnspecifiedFormat,
         JPEG,
@@ -126,8 +151,8 @@ public:
     void setResolution(const QSize &);
     void setResolution(int width, int height);
 
-    QMultimedia::EncodingQuality quality() const;
-    void setQuality(QMultimedia::EncodingQuality quality);
+    Quality quality() const;
+    void setQuality(Quality quality);
 
     QVariant encodingOption(const QString &option) const;
     QVariantMap encodingOptions() const;

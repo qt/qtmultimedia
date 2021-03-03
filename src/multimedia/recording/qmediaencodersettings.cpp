@@ -123,8 +123,8 @@ class QMediaEncoderSettingsPrivate  : public QSharedData
 {
 public:
     bool isNull = true;
-    QMultimedia::EncodingMode encodingMode = QMultimedia::ConstantQualityEncoding;
-    QMultimedia::EncodingQuality quality = QMultimedia::NormalQuality;
+    QMediaEncoderSettings::EncodingMode encodingMode = QMediaEncoderSettings::ConstantQualityEncoding;
+    QMediaEncoderSettings::Quality quality = QMediaEncoderSettings::NormalQuality;
 
     int audioBitrate = -1;
     int audioSampleRate = -1;
@@ -164,12 +164,39 @@ QMediaEncoderSettings &QMediaEncoderSettings::operator=(const QMediaEncoderSetti
 
 QMediaEncoderSettings::~QMediaEncoderSettings() = default;
 
+
+/*!
+    \enum QMediaEncoderSettings::EncodingQuality
+
+    Enumerates quality encoding levels.
+
+    \value VeryLowQuality
+    \value LowQuality
+    \value NormalQuality
+    \value HighQuality
+    \value VeryHighQuality
+*/
+
+/*!
+    \enum QMediaEncoderSettings::EncodingMode
+
+    Enumerates encoding modes.
+
+    \value ConstantQualityEncoding Encoding will aim to have a constant quality, adjusting bitrate to fit.
+    \value ConstantBitRateEncoding Encoding will use a constant bit rate, adjust quality to fit.
+    \value AverageBitRateEncoding Encoding will try to keep an average bitrate setting, but will use
+           more or less as needed.
+    \value TwoPassEncoding The media will first be processed to determine the characteristics,
+           and then processed a second time allocating more bits to the areas
+           that need it.
+*/
+
 /*!
     Returns the encoding mode.
 
-    \sa QMultimedia::EncodingMode
+    \sa EncodingMode
 */
-QMultimedia::EncodingMode QMediaEncoderSettings::encodingMode() const
+QMediaEncoderSettings::EncodingMode QMediaEncoderSettings::encodingMode() const
 {
     return d->encodingMode;
 }
@@ -177,23 +204,23 @@ QMultimedia::EncodingMode QMediaEncoderSettings::encodingMode() const
 /*!
     Sets the encoding \a mode setting.
 
-    If QMultimedia::ConstantQualityEncoding is set, the quality
+    If ConstantQualityEncoding is set, the quality
     encoding parameter is used and bit rates are ignored,
     otherwise the bitrates are used.
 
-    \sa encodingMode(), QMultimedia::EncodingMode
+    \sa encodingMode(), EncodingMode
 */
-void QMediaEncoderSettings::setEncodingMode(QMultimedia::EncodingMode mode)
+void QMediaEncoderSettings::setEncodingMode(EncodingMode mode)
 {
     d->encodingMode = mode;
 }
 
-QMultimedia::EncodingQuality QMediaEncoderSettings::quality() const
+QMediaEncoderSettings::Quality QMediaEncoderSettings::quality() const
 {
     return d->quality;
 }
 
-void QMediaEncoderSettings::setQuality(QMultimedia::EncodingQuality quality)
+void QMediaEncoderSettings::setQuality(Quality quality)
 {
     d->quality = quality;
 }
@@ -411,27 +438,13 @@ void QMediaEncoderSettings::setAudioSampleRate(int rate)
 }
 
 
-class QAudioEncoderSettingsPrivate  : public QSharedData
-{
-public:
-    bool isNull = true;
-    QMultimedia::EncodingMode encodingMode = QMultimedia::ConstantQualityEncoding;
-    QString codec;
-    int bitrate = -1;
-    int sampleRate = -1;
-    int channels = -1;
-    QMultimedia::EncodingQuality quality = QMultimedia::NormalQuality;
-    QVariantMap encodingOptions;
-};
-
-
 class QImageEncoderSettingsPrivate  : public QSharedData
 {
 public:
     bool isNull = true;
     QImageEncoderSettings::FileFormat format;
     QSize resolution;
-    QMultimedia::EncodingQuality quality = QMultimedia::NormalQuality;
+    QImageEncoderSettings::Quality quality = QImageEncoderSettings::NormalQuality;
     QVariantMap encodingOptions;
 };
 
@@ -627,10 +640,21 @@ void QImageEncoderSettings::setResolution(int width, int height)
 }
 
 /*!
-    Returns the image encoding quality.
+    \enum QImageEncoderSettings::EncodingQuality
+
+    Enumerates quality encoding levels.
+
+    \value VeryLowQuality
+    \value LowQuality
+    \value NormalQuality
+    \value HighQuality
+    \value VeryHighQuality
 */
 
-QMultimedia::EncodingQuality QImageEncoderSettings::quality() const
+/*!
+    Returns the image encoding quality.
+*/
+QImageEncoderSettings::Quality QImageEncoderSettings::quality() const
 {
     return d->quality;
 }
@@ -638,8 +662,7 @@ QMultimedia::EncodingQuality QImageEncoderSettings::quality() const
 /*!
     Sets the image encoding \a quality.
 */
-
-void QImageEncoderSettings::setQuality(QMultimedia::EncodingQuality quality)
+void QImageEncoderSettings::setQuality(Quality quality)
 {
     d->isNull = false;
     d->quality = quality;

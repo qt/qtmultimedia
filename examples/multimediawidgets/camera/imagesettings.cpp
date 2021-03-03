@@ -72,7 +72,7 @@ ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent)
         ui->imageCodecBox->addItem(QImageEncoderSettings::fileFormatName(f) + ": " + description, QVariant::fromValue(f));
     }
 
-    ui->imageQualitySlider->setRange(0, int(QMultimedia::VeryHighQuality));
+    ui->imageQualitySlider->setRange(0, int(QImageEncoderSettings::VeryHighQuality));
 
     ui->imageResolutionBox->addItem(tr("Default Resolution"));
     const QList<QSize> supportedResolutions = imagecapture->camera()->cameraInfo().photoResolutions();
@@ -103,7 +103,7 @@ QImageEncoderSettings ImageSettings::imageSettings() const
 {
     QImageEncoderSettings settings = imagecapture->encodingSettings();
     settings.setFormat(boxValue(ui->imageCodecBox).value<QImageEncoderSettings::FileFormat>());
-    settings.setQuality(QMultimedia::EncodingQuality(ui->imageQualitySlider->value()));
+    settings.setQuality(QImageEncoderSettings::Quality(ui->imageQualitySlider->value()));
     settings.setResolution(boxValue(ui->imageResolutionBox).toSize());
 
     return settings;

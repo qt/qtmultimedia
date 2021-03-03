@@ -42,7 +42,6 @@
 
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmultimedia.h>
 #include <QtMultimedia/qmediaencodersettings.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qmediametadata.h>
@@ -119,7 +118,6 @@ public:
     void removePropertyWatch(QByteArray const &name);
 
     bool isAvailable() const;
-    QMultimedia::AvailabilityStatus availability() const;
 
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);

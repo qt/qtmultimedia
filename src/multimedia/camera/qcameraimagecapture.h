@@ -86,7 +86,6 @@ public:
     ~QCameraImageCapture();
 
     bool isAvailable() const;
-    QMultimedia::AvailabilityStatus availability() const;
 
     QCamera *camera() const;
 

@@ -83,7 +83,6 @@ void tst_QAudioRecorder::testNullService()
     QMediaRecorder source;
 
     QVERIFY(!source.isAvailable());
-    QCOMPARE(source.availability(), QMultimedia::ServiceMissing);
 
     QCOMPARE(source.audioInput(), QAudioDeviceInfo());
 }
@@ -96,7 +95,6 @@ void tst_QAudioRecorder::testNullControl()
     service->hasControls = false;
 
     QVERIFY(!source.isAvailable());
-    QCOMPARE(source.availability(), QMultimedia::ServiceMissing);
 
     QCOMPARE(source.audioInput(), QAudioDeviceInfo());
 
@@ -135,7 +133,6 @@ void tst_QAudioRecorder::testAvailability()
     QMediaRecorder source;
 
     QVERIFY(source.isAvailable());
-    QCOMPARE(source.availability(), QMultimedia::Available);
 }
 
 QTEST_GUILESS_MAIN(tst_QAudioRecorder)

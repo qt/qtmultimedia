@@ -318,18 +318,7 @@ bool QMediaRecorder::setCamera(QCamera *object)
 */
 bool QMediaRecorder::isAvailable() const
 {
-    return availability() == QMultimedia::Available;
-}
-
-/*!
-    Returns the availability of this functionality.
-*/
-QMultimedia::AvailabilityStatus QMediaRecorder::availability() const
-{
-    if (d_func()->control == nullptr)
-        return QMultimedia::ServiceMissing;
-
-    return QMultimedia::Available;
+    return d_func()->control != nullptr;
 }
 
 QUrl QMediaRecorder::outputLocation() const

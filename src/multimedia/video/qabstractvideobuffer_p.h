@@ -41,7 +41,6 @@
 #define QABSTRACTVIDEOBUFFER_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmultimedia.h>
 #include <QtMultimedia/qvideoframe.h>
 
 #include <QtCore/qmetatype.h>

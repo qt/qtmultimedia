@@ -229,9 +229,9 @@ void MediaExample::MediaRecorder()
     //! [Media recorder]
     recorder = new QMediaRecorder(camera);
 
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QMultimedia::HighQuality);
+    QMediaEncoderSettings audioSettings;
+    audioSettings.setFormat(QMediaEncoderSettings::MP3);
+    audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
 
     recorder->setAudioSettings(audioSettings);
 
@@ -245,9 +245,9 @@ void MediaExample::AudioRecorder()
     //! [Audio recorder]
     audioRecorder = new QAudioRecorder;
 
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QMultimedia::HighQuality);
+    QMediaEncoderSettings audioSettings;
+    audioSettings.setFormat(QMediaEncoderSettings::MP3);
+    audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
 
     audioRecorder->setEncodingSettings(audioSettings);
 

@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qmultimedia.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
 QT_BEGIN_NAMESPACE
 

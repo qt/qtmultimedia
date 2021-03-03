@@ -109,7 +109,7 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
                                         QVariant::fromValue(format));
     }
 
-    ui->qualitySlider->setRange(0, int(QMultimedia::VeryHighQuality));
+    ui->qualitySlider->setRange(0, int(QImageEncoderSettings::VeryHighQuality));
 }
 
 VideoSettings::~VideoSettings()
@@ -132,7 +132,7 @@ void VideoSettings::changeEvent(QEvent *e)
 QMediaEncoderSettings VideoSettings::encoderSettings() const
 {
     QMediaEncoderSettings settings = mediaRecorder->encoderSettings();
-    settings.setQuality(QMultimedia::EncodingQuality(ui->qualitySlider->value()));
+    settings.setQuality(QMediaEncoderSettings::Quality(ui->qualitySlider->value()));
     settings.setFormat(boxValue(ui->containerFormatBox).value<QMediaFormat::FileFormat>());
 
     settings.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());

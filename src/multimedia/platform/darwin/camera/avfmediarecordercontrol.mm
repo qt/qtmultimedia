@@ -244,22 +244,22 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
     [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
 
 #ifdef Q_OS_OSX
-    if (encoderSettings.encodingMode() == QMultimedia::ConstantQualityEncoding) {
+    if (encoderSettings.encodingMode() == QMediaEncoderSettings::ConstantQualityEncoding) {
         int quality;
         switch (encoderSettings.quality()) {
-        case QMultimedia::VeryLowQuality:
+        case QMediaEncoderSettings::VeryLowQuality:
             quality = AVAudioQualityMin;
             break;
-        case QMultimedia::LowQuality:
+        case QMediaEncoderSettings::LowQuality:
             quality = AVAudioQualityLow;
             break;
-        case QMultimedia::HighQuality:
+        case QMediaEncoderSettings::HighQuality:
             quality = AVAudioQualityHigh;
             break;
-        case QMultimedia::VeryHighQuality:
+        case QMediaEncoderSettings::VeryHighQuality:
             quality = AVAudioQualityMax;
             break;
-        case QMultimedia::NormalQuality:
+        case QMediaEncoderSettings::NormalQuality:
         default:
             quality = AVAudioQualityMedium;
             break;
@@ -417,22 +417,22 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
     int bitrate = -1;
     float quality = -1.f;
 
-    if (encoderSettings.encodingMode() == QMultimedia::ConstantQualityEncoding) {
-        if (encoderSettings.quality() != QMultimedia::NormalQuality) {
+    if (encoderSettings.encodingMode() == QMediaEncoderSettings::ConstantQualityEncoding) {
+        if (encoderSettings.quality() != QMediaEncoderSettings::NormalQuality) {
             if (codec != QMediaFormat::VideoCodec::MotionJPEG) {
                 qWarning("ConstantQualityEncoding is not supported for MotionJPEG");
             } else {
                 switch (encoderSettings.quality()) {
-                case QMultimedia::VeryLowQuality:
+                case QMediaEncoderSettings::VeryLowQuality:
                     quality = 0.f;
                     break;
-                case QMultimedia::LowQuality:
+                case QMediaEncoderSettings::LowQuality:
                     quality = 0.25f;
                     break;
-                case QMultimedia::HighQuality:
+                case QMediaEncoderSettings::HighQuality:
                     quality = 0.75f;
                     break;
-                case QMultimedia::VeryHighQuality:
+                case QMediaEncoderSettings::VeryHighQuality:
                     quality = 1.f;
                     break;
                 default:
@@ -441,7 +441,7 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
                 }
             }
         }
-    } else if (encoderSettings.encodingMode() == QMultimedia::AverageBitRateEncoding){
+    } else if (encoderSettings.encodingMode() == QMediaEncoderSettings::AverageBitRateEncoding){
         if (codec != QMediaFormat::VideoCodec::H264 && codec != QMediaFormat::VideoCodec::H265)
             qWarning() << "AverageBitRateEncoding is not supported for codec" <<  QMediaFormat::videoCodecName(codec);
         else

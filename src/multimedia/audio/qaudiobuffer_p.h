@@ -52,7 +52,6 @@
 //
 
 #include <qtmultimediaglobal.h>
-#include <qmultimedia.h>
 
 #include "qaudioformat.h"
 

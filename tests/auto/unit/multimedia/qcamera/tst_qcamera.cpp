@@ -540,9 +540,9 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings != QImageEncoderSettings());
 
     settings = QImageEncoderSettings();
-    QCOMPARE(settings.quality(), QMultimedia::NormalQuality);
-    settings.setQuality(QMultimedia::HighQuality);
-    QCOMPARE(settings.quality(), QMultimedia::HighQuality);
+    QCOMPARE(settings.quality(), QImageEncoderSettings::NormalQuality);
+    settings.setQuality(QImageEncoderSettings::HighQuality);
+    QCOMPARE(settings.quality(), QImageEncoderSettings::HighQuality);
     QVERIFY(!settings.isNull());
 
     settings = QImageEncoderSettings();
@@ -570,7 +570,7 @@ void tst_QCamera::testImageSettings()
     settings = QImageEncoderSettings();
     QVERIFY(settings.isNull());
     QCOMPARE(settings.format(), QImageEncoderSettings::UnspecifiedFormat);
-    QCOMPARE(settings.quality(), QMultimedia::NormalQuality);
+    QCOMPARE(settings.quality(), QImageEncoderSettings::NormalQuality);
     QCOMPARE(settings.resolution(), QSize());
     QVERIFY(settings.encodingOptions().isEmpty());
 
@@ -583,7 +583,7 @@ void tst_QCamera::testImageSettings()
         QCOMPARE(settings2, settings1);
         QVERIFY(settings2.isNull());
 
-        settings1.setQuality(QMultimedia::HighQuality);
+        settings1.setQuality(QImageEncoderSettings::HighQuality);
 
         QVERIFY(settings2.isNull());
         QVERIFY(!settings1.isNull());
@@ -599,7 +599,7 @@ void tst_QCamera::testImageSettings()
         QCOMPARE(settings2, settings1);
         QVERIFY(settings2.isNull());
 
-        settings1.setQuality(QMultimedia::HighQuality);
+        settings1.setQuality(QImageEncoderSettings::HighQuality);
 
         QVERIFY(settings2.isNull());
         QVERIFY(!settings1.isNull());
@@ -626,11 +626,11 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings1 != settings2);
 
     settings1 = QImageEncoderSettings();
-    settings1.setQuality(QMultimedia::NormalQuality);
+    settings1.setQuality(QImageEncoderSettings::NormalQuality);
     settings2 = QImageEncoderSettings();
-    settings2.setQuality(QMultimedia::NormalQuality);
+    settings2.setQuality(QImageEncoderSettings::NormalQuality);
     QVERIFY(settings1 == settings2);
-    settings2.setQuality(QMultimedia::LowQuality);
+    settings2.setQuality(QImageEncoderSettings::LowQuality);
     QVERIFY(settings1 != settings2);
 
     settings1 = QImageEncoderSettings();
