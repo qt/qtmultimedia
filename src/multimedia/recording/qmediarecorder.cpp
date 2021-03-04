@@ -79,11 +79,6 @@ void QMediaRecorderPrivate::_q_stateChanged(QMediaRecorder::State ps)
 {
     Q_Q(QMediaRecorder);
 
-    if (ps == QMediaRecorder::RecordingState)
-        notifyTimer->start();
-    else
-        notifyTimer->stop();
-
 //    qDebug() << "Recorder state changed:" << ENUM_NAME(QMediaRecorder,"State",ps);
     if (state != ps) {
         emit q->stateChanged(ps);
@@ -109,16 +104,6 @@ void QMediaRecorderPrivate::_q_updateActualLocation(const QUrl &location)
         actualLocation = location;
         emit q_func()->actualLocationChanged(actualLocation);
     }
-}
-
-void QMediaRecorderPrivate::_q_notify()
-{
-    emit q_func()->durationChanged(q_func()->duration());
-}
-
-void QMediaRecorderPrivate::_q_updateNotifyInterval(int ms)
-{
-    notifyTimer->setInterval(ms);
 }
 
 void QMediaRecorderPrivate::applySettingsLater()
@@ -148,9 +133,6 @@ QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent
     Q_D(QMediaRecorder);
     d->q_ptr = this;
 
-    d->notifyTimer = new QTimer(this);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-
     if (mode != AudioOnly) {
         setCamera(new QCamera(this));
     } else {
@@ -166,9 +148,6 @@ QMediaRecorder::QMediaRecorder(QCamera *camera, QObject *parent)
     Q_D(QMediaRecorder);
     d->q_ptr = this;
 
-    d->notifyTimer = new QTimer(this);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-
     setCamera(camera);
 }
 
@@ -179,66 +158,6 @@ QMediaRecorder::QMediaRecorder(QCamera *camera, QObject *parent)
 QMediaRecorder::~QMediaRecorder()
 {
     delete d_ptr;
-}
-
-int QMediaRecorder::notifyInterval() const
-{
-    return d_func()->notifyTimer->interval();
-}
-
-void QMediaRecorder::setNotifyInterval(int milliSeconds)
-{
-    Q_D(QMediaRecorder);
-
-    if (d->notifyTimer->interval() != milliSeconds) {
-        d->notifyTimer->setInterval(milliSeconds);
-
-        emit notifyIntervalChanged(milliSeconds);
-    }
-}
-
-/*!
-    Watch the property \a name. The property's notify signal will be emitted
-    once every \c notifyInterval milliseconds.
-
-    \sa notifyInterval
-*/
-
-void QMediaRecorder::addPropertyWatch(QByteArray const &name)
-{
-    Q_D(QMediaRecorder);
-
-    const QMetaObject* m = metaObject();
-
-    int index = m->indexOfProperty(name.constData());
-
-    if (index != -1 && m->property(index).hasNotifySignal()) {
-        d->notifyProperties.insert(index);
-
-        if (!d->notifyTimer->isActive())
-            d->notifyTimer->start();
-    }
-}
-
-/*!
-    Remove property \a name from the list of properties whose changes are
-    regularly signaled.
-
-    \sa notifyInterval
-*/
-
-void QMediaRecorder::removePropertyWatch(QByteArray const &name)
-{
-    Q_D(QMediaRecorder);
-
-    int index = metaObject()->indexOfProperty(name.constData());
-
-    if (index != -1) {
-        d->notifyProperties.remove(index);
-
-        if (d->notifyProperties.isEmpty())
-            d->notifyTimer->stop();
-    }
 }
 
 /*!
@@ -253,9 +172,6 @@ bool QMediaRecorder::setCamera(QCamera *object)
 
     auto *service = d->camera->captureInterface();
     Q_ASSERT(service);
-
-    d->notifyTimer->setInterval(notifyInterval());
-    connect(this, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
 
     d->control = service->mediaRecorderControl();
     Q_ASSERT(d->control);

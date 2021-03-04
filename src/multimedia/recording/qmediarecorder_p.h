@@ -83,10 +83,6 @@ public:
 
     bool settingsChanged = false;
 
-    QTimer* notifyTimer = nullptr;
-
-    QSet<int> notifyProperties;
-
     QMediaRecorder::State state = QMediaRecorder::StoppedState;
     QMediaRecorder::Error error = QMediaRecorder::NoError;
     QString errorString;
@@ -96,8 +92,6 @@ public:
     void _q_stateChanged(QMediaRecorder::State state);
     void _q_error(int error, const QString &errorString);
     void _q_updateActualLocation(const QUrl &);
-    void _q_notify();
-    void _q_updateNotifyInterval(int ms);
     void _q_applySettings();
 
     QMediaRecorder *q_ptr = nullptr;

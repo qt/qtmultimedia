@@ -67,7 +67,6 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
     Q_ENUMS(State)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
-    Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged)
     Q_PROPERTY(QMediaRecorder::State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QMediaRecorder::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -112,11 +111,6 @@ public:
     explicit QMediaRecorder(QCamera *mediaSource, QObject *parent = nullptr);
     ~QMediaRecorder();
 
-    int notifyInterval() const;
-    void setNotifyInterval(int milliSeconds);
-    void addPropertyWatch(QByteArray const &name);
-    void removePropertyWatch(QByteArray const &name);
-
     bool isAvailable() const;
 
     QUrl outputLocation() const;
@@ -156,7 +150,6 @@ public Q_SLOTS:
     bool setAudioInput(const QAudioDeviceInfo &device);
 
 Q_SIGNALS:
-    void notifyIntervalChanged(int milliSeconds);
     void stateChanged(QMediaRecorder::State state);
     void statusChanged(QMediaRecorder::Status status);
     void durationChanged(qint64 duration);
@@ -178,9 +171,7 @@ private:
     Q_DECLARE_PRIVATE(QMediaRecorder)
     Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaRecorder::State))
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_notify())
     Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
-    Q_PRIVATE_SLOT(d_func(), void _q_updateNotifyInterval(int))
     Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };
 
