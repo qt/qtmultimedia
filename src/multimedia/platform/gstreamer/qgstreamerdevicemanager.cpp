@@ -148,7 +148,7 @@ QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
 
             info->id = properties["device.path"].toString();
             auto def = properties["is-default"].toBool();
-            info->isDefault = *def;
+            info->isDefault = def && *def;
             if (def)
                 devices.prepend(info->create());
             else

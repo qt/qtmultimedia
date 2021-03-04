@@ -45,7 +45,7 @@ QT_BEGIN_NAMESPACE
 
 QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure structure)
 {
-    const char *name = structure.name();
+    const char *name = structure.name().data();
 
     if (!name || strncmp(name, "audio/", 6))
         return QMediaFormat::AudioCodec::Unspecified;
@@ -81,7 +81,7 @@ QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure s
 
 QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructure structure)
 {
-    const char *name = structure.name();
+    const char *name = structure.name().data();
 
     if (!name || strncmp(name, "video/", 6))
         return QMediaFormat::VideoCodec::Unspecified;
@@ -117,7 +117,7 @@ QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructure s
 
 QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure structure)
 {
-    const char *name = structure.name();
+    const char *name = structure.name().data();
 
     if (!strcmp(name, "video/x-ms-asf")) {
         return QMediaFormat::FileFormat::ASF;
@@ -142,7 +142,7 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure s
 
 QImageEncoderSettings::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure structure)
 {
-    const char *name = structure.name();
+    const char *name = structure.name().data();
 
     if (!strcmp(name, "image/jpeg")) {
         return QImageEncoderSettings::JPEG;

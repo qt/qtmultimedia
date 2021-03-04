@@ -148,7 +148,7 @@ public:
 
     bool isNull() const { return !structure; }
 
-    QByteArray name() const { return gst_structure_get_name(structure); }
+    QByteArrayView name() const { return gst_structure_get_name(structure); }
 
     QGValue operator[](const char *name) const { return gst_structure_get_value(structure, name); }
 
