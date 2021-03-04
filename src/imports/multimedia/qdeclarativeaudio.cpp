@@ -875,8 +875,6 @@ void QDeclarativeAudio::classBegin()
 
     connect(m_player, SIGNAL(metaDataChanged()),
             m_metaData.data(), SIGNAL(metaDataChanged()));
-
-    emit mediaSourceChanged();
 }
 
 void QDeclarativeAudio::componentComplete()

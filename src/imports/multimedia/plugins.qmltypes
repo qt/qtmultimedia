@@ -479,7 +479,6 @@ Module {
             isReadonly: true
             isPointer: true
         }
-        Property { name: "mediaSource"; type: "QObject"; isReadonly: true; isPointer: true }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
         Property { name: "audioRole"; revision: 1; type: "AudioRole" }
         Property { name: "customAudioRole"; revision: 3; type: "string" }
@@ -627,7 +626,6 @@ Module {
         Property { name: "maximumOpticalZoom"; type: "double"; isReadonly: true }
         Property { name: "digitalZoom"; type: "double" }
         Property { name: "maximumDigitalZoom"; type: "double"; isReadonly: true }
-        Property { name: "mediaSource"; type: "QObject"; isReadonly: true; isPointer: true }
         Property {
             name: "imageCapture"
             type: "QDeclarativeCameraCapture"
