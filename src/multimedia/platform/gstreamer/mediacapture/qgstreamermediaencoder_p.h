@@ -37,62 +37,78 @@
 **
 ****************************************************************************/
 
-#include "qandroidmediarecordercontrol_p.h"
 
-#include "qandroidcapturesession_p.h"
+#ifndef QGSTREAMERRECORDERCONTROL_H
+#define QGSTREAMERRECORDERCONTROL_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtCore/QDir>
+
+#include <private/qplatformmediaencoder_p.h>
+#include "qgstreamercapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaRecorderControl::QAndroidMediaRecorderControl(QAndroidCaptureSession *session)
-    : QPlatformMediaRecorder()
-    , m_session(session)
-{
-    connect(m_session, SIGNAL(stateChanged(QMediaRecorder::State)), this, SIGNAL(stateChanged(QMediaRecorder::State)));
-    connect(m_session, SIGNAL(statusChanged(QMediaRecorder::Status)), this, SIGNAL(statusChanged(QMediaRecorder::Status)));
-    connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
-    connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
-    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
-}
+class QMediaMetaData;
 
-QUrl QAndroidMediaRecorderControl::outputLocation() const
+class QGstreamerMediaRecorder : public QPlatformMediaEncoder
 {
-    return m_session->outputLocation();
-}
+    Q_OBJECT
 
-bool QAndroidMediaRecorderControl::setOutputLocation(const QUrl &location)
-{
-    return m_session->setOutputLocation(location);
-}
+public:
+    QGstreamerMediaRecorder(QGstreamerCaptureSession *session);
+    virtual ~QGstreamerMediaRecorder();
 
-QMediaRecorder::State QAndroidMediaRecorderControl::state() const
-{
-    return m_session->state();
-}
+    QUrl outputLocation() const override;
+    bool setOutputLocation(const QUrl &sink) override;
 
-QMediaRecorder::Status QAndroidMediaRecorderControl::status() const
-{
-    return m_session->status();
-}
+    QMediaRecorder::State state() const override;
+    QMediaRecorder::Status status() const override;
 
-qint64 QAndroidMediaRecorderControl::duration() const
-{
-    return m_session->duration();
-}
+    qint64 duration() const override;
 
-void QAndroidMediaRecorderControl::applySettings()
-{
-    m_session->applySettings();
-}
+    void applySettings() override;
 
-void QAndroidMediaRecorderControl::setState(QMediaRecorder::State state)
-{
-    m_session->setState(state);
-}
+    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
+    QMediaEncoderSettings encoderSettings() const { return m_settings; }
+    QMediaEncoderSettings resolvedEncoderSettings() const;
 
-void QAndroidMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)
-{
-    m_session->setEncoderSettings(settings);
-}
+    void setMetaData(const QMediaMetaData &) override;
+    QMediaMetaData metaData() const override;
 
+public slots:
+    void setState(QMediaRecorder::State state) override;
+    void record();
+    void pause();
+    void stop();
+
+private slots:
+    void updateStatus();
+    void handleSessionError(int code, const QString &description);
+
+private:
+    QDir defaultDir() const;
+    QString generateFileName(const QDir &dir, const QString &ext) const;
+
+    QUrl m_outputLocation;
+    QMediaEncoderSettings m_settings;
+    QGstreamerCaptureSession *m_session;
+    QGstreamerMetaData m_metaData;
+    QMediaRecorder::State m_state;
+    QMediaRecorder::Status m_status;
+    bool m_hasPreviewState;
+};
 
 QT_END_NAMESPACE
+
+#endif // QGSTREAMERCAPTURECORNTROL_H

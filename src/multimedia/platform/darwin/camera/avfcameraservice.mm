@@ -100,7 +100,7 @@ QPlatformCameraImageCapture *AVFCameraService::imageCaptureControl()
     return m_imageCaptureControl;
 }
 
-QPlatformMediaRecorder *AVFCameraService::mediaRecorderControl()
+QPlatformMediaEncoder *AVFCameraService::mediaEncoder()
 {
     return m_recorderControl;
 }

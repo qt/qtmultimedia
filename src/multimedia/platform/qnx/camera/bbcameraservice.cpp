@@ -83,7 +83,7 @@ QPlatformCameraImageCapture *BbCameraService::imageCaptureControl()
     return m_cameraImageCaptureControl;
 }
 
-QPlatformMediaRecorder *BbCameraService::mediaRecorderControl()
+QPlatformMediaEncoder *BbCameraService::mediaEncoder()
 {
     return m_cameraMediaRecorderControl;
 }

@@ -39,7 +39,7 @@
 
 #include "qgstreamermediacapture_p.h"
 #include "qgstreamercapturesession_p.h"
-#include "qgstreamermediarecorder_p.h"
+#include "qgstreamermediaencoder_p.h"
 #include "qgstreamercamera_p.h"
 #include <private/qgstreamerbushelper_p.h>
 
@@ -74,7 +74,7 @@ QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCaptureControl()
     return m_captureSession->imageCaptureControl();
 }
 
-QPlatformMediaRecorder *QGstreamerMediaCapture::mediaRecorderControl()
+QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()
 {
     return m_captureSession->recorderControl();
 }

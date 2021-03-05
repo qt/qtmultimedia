@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIARECORDERCONTROL_H
-#define QANDROIDMEDIARECORDERCONTROL_H
+#ifndef QANDROIDMEDIAENCODER_H
+#define QANDROIDMEDIAENCODER_H
 
 //
 //  W A R N I N G
@@ -51,17 +51,17 @@
 // We mean it.
 //
 
-#include <private/qplatformmediarecorder_p.h>
+#include <private/qplatformmediaencoder_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCaptureSession;
 
-class QAndroidMediaRecorderControl : public QPlatformMediaRecorder
+class QAndroidMediaEncoder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:
-    explicit QAndroidMediaRecorderControl(QAndroidCaptureSession *session);
+    explicit QAndroidMediaEncoder(QAndroidCaptureSession *session);
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
@@ -81,4 +81,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDMEDIARECORDERCONTROL_H
+#endif // QANDROIDMEDIAENCODER_H

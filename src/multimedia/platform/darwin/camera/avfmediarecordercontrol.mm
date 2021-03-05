@@ -86,7 +86,7 @@ bool qt_file_exists(NSURL *fileURL)
 }
 
 AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObject *parent)
-    : QPlatformMediaRecorder(parent)
+    : QPlatformMediaEncoder(parent)
     , m_service(service)
     , m_state(QMediaRecorder::StoppedState)
     , m_lastStatus(QMediaRecorder::StoppedStatus)

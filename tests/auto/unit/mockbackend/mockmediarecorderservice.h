@@ -44,7 +44,7 @@ public:
     MockMediaRecorderService()
         : hasControls(true)
     {
-        mockControl = new MockMediaRecorderControl(this);
+        mockControl = new MockMediaEncoderControl(this);
         mockCameraControl = new MockCameraControl(this);
         mockExposureControl = new MockCameraExposureControl(this);
         mockFocusControl = new MockCameraFocusControl(this);
@@ -57,7 +57,7 @@ public:
 
     QPlatformCamera *cameraControl() override { return hasControls ? mockCameraControl : nullptr; }
     QPlatformCameraImageCapture *imageCaptureControl() override { return hasControls ? mockCaptureControl : nullptr; }
-    QPlatformMediaRecorder *mediaRecorderControl() override { return hasControls ? mockControl : nullptr; }
+    QPlatformMediaEncoder *mediaEncoder() override { return hasControls ? mockControl : nullptr; }
 
     void setVideoPreview(QAbstractVideoSurface *) override {}
 
@@ -100,7 +100,7 @@ public:
     MockCameraExposureControl *mockExposureControl;
     MockCameraFocusControl *mockFocusControl;
     MockImageProcessingControl *mockImageProcessingControl;
-    MockMediaRecorderControl *mockControl;
+    MockMediaEncoderControl *mockControl;
 
     QAudioDeviceInfo m_audioInput;
     bool m_muted = false;

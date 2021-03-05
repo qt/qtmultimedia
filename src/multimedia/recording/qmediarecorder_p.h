@@ -58,7 +58,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QPlatformMediaRecorder;
+class QPlatformMediaEncoder;
 class QMediaContainerControl;
 class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;

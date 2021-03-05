@@ -40,7 +40,7 @@
 
 #include "qandroidcaptureservice_p.h"
 
-#include "qandroidmediarecordercontrol_p.h"
+#include "qandroidmediaencoder_p.h"
 #include "qandroidcapturesession_p.h"
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
@@ -65,7 +65,7 @@ QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
     }
 
     m_captureSession = new QAndroidCaptureSession(m_cameraSession);
-    m_recorderControl = new QAndroidMediaRecorderControl(m_captureSession);
+    m_recorderControl = new QAndroidMediaEncoder(m_captureSession);
 }
 
 QAndroidCaptureService::~QAndroidCaptureService()
@@ -87,7 +87,7 @@ QPlatformCameraImageCapture *QAndroidCaptureService::imageCaptureControl()
     return m_imageCaptureControl;
 }
 
-QPlatformMediaRecorder *QAndroidCaptureService::mediaRecorderControl()
+QPlatformMediaEncoder *QAndroidCaptureService::mediaEncoder()
 {
     return m_recorderControl;
 }

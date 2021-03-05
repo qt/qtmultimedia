@@ -57,7 +57,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaRecorderControl;
+class QAndroidMediaEncoder;
 class QAndroidCaptureSession;
 class QAndroidCameraControl;
 class QAndroidCameraSession;
@@ -73,7 +73,7 @@ public:
 
     QPlatformCamera *cameraControl() override;
     QPlatformCameraImageCapture *imageCaptureControl() override;
-    QPlatformMediaRecorder *mediaRecorderControl() override;
+    QPlatformMediaEncoder *mediaEncoder() override;
 
     bool isMuted() const override;
     void setMuted(bool muted) override;
@@ -86,7 +86,7 @@ public:
 
     bool m_videoEnabled = false;
 
-    QAndroidMediaRecorderControl *m_recorderControl;
+    QAndroidMediaEncoder *m_recorderControl;
     QAndroidCaptureSession *m_captureSession;
     QAndroidCameraControl *m_cameraControl;
     QAndroidCameraSession *m_cameraSession;

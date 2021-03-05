@@ -37,9 +37,9 @@ qt_internal_add_module(Multimedia
         platform/qplatformcamerafocus.cpp platform/qplatformcamerafocus_p.h
         platform/qplatformcameraimagecapture.cpp platform/qplatformcameraimagecapture_p.h
         platform/qplatformcameraimageprocessing.cpp platform/qplatformcameraimageprocessing_p.h
-        platform/qplatformmediarecorder.cpp platform/qplatformmediarecorder_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevicemanager.cpp platform/qplatformmediadevicemanager_p.h
+        platform/qplatformmediaencoder.cpp platform/qplatformmediaencoder_p.h
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
@@ -252,7 +252,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND NOT use_
         platform/gstreamer/mediacapture/qgstreamermediacapture.cpp platform/gstreamer/mediacapture/qgstreamermediacapture_p.h
         platform/gstreamer/mediacapture/qgstreamercapturesession.cpp platform/gstreamer/mediacapture/qgstreamercapturesession_p.h
         platform/gstreamer/mediacapture/qgstreamercameraimagecapture.cpp platform/gstreamer/mediacapture/qgstreamercameraimagecapture_p.h
-        platform/gstreamer/mediacapture/qgstreamermediarecorder.cpp platform/gstreamer/mediacapture/qgstreamermediarecorder_p.h
+        platform/gstreamer/mediacapture/qgstreamermediaencoder.cpp platform/gstreamer/mediacapture/qgstreamermediaencoder_p.h
     INCLUDE_DIRECTORIES
         platform/gstreamer/mediacapture
     DEFINES
@@ -327,7 +327,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture/qandroidcameravideorenderercontrol.cpp platform/android/mediacapture/qandroidcameravideorenderercontrol_p.h
         platform/android/mediacapture/qandroidcaptureservice.cpp platform/android/mediacapture/qandroidcaptureservice_p.h
         platform/android/mediacapture/qandroidcapturesession.cpp platform/android/mediacapture/qandroidcapturesession_p.h
-        platform/android/mediacapture/qandroidmediarecordercontrol.cpp platform/android/mediacapture/qandroidmediarecordercontrol_p.h
+        platform/android/mediacapture/qandroidmediaencoder.cpp platform/android/mediacapture/qandroidmediaencoder_p.h
         platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
         platform/android/mediaplayer/qandroidmetadata.cpp platform/android/mediaplayer/qandroidmetadata_p.h

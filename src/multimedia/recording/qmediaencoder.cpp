@@ -39,7 +39,7 @@
 
 #include "qmediaencoder_p.h"
 
-#include <private/qplatformmediarecorder_p.h>
+#include <private/qplatformmediaencoder_p.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamera.h>
 #include <qmediacapturesession.h>
@@ -164,7 +164,7 @@ void QMediaEncoder::setCaptureSession(QMediaCaptureSession *session)
         return;
     }
 
-    d->control = d->captureSession->platformSession()->mediaRecorderControl();
+    d->control = d->captureSession->platformSession()->mediaEncoder();
     Q_ASSERT(d->control);
 
     connect(d->control, SIGNAL(stateChanged(QMediaEncoder::State)),

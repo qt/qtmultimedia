@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamermediarecorder_p.h"
+#include "qgstreamermediaencoder_p.h"
 #include <QtCore/QDebug>
 #include <QtGui/qdesktopservices.h>
 #include <QStandardPaths>
@@ -45,7 +45,7 @@
 #include <qmimetype.h>
 
 QGstreamerMediaRecorder::QGstreamerMediaRecorder(QGstreamerCaptureSession *session)
-    : QPlatformMediaRecorder(session),
+    : QPlatformMediaEncoder(session),
       m_session(session),
       m_state(QMediaRecorder::StoppedState),
       m_status(QMediaRecorder::StoppedStatus)

@@ -77,7 +77,7 @@ public:
 
     QPlatformCamera *cameraControl() override;
     QPlatformCameraImageCapture *imageCaptureControl() override;
-    QPlatformMediaRecorder *mediaRecorderControl() override;
+    QPlatformMediaEncoder *mediaEncoder() override;
 
     void setVideoPreview(QAbstractVideoSurface *surface) override;
 

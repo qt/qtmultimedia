@@ -76,7 +76,7 @@ public:
 
     QPlatformCamera *cameraControl() override;
     QPlatformCameraImageCapture *imageCaptureControl() override;
-    QPlatformMediaRecorder *mediaRecorderControl() override;
+    QPlatformMediaEncoder *mediaEncoder() override;
 
     bool isMuted() const override;
     void setMuted(bool) override;

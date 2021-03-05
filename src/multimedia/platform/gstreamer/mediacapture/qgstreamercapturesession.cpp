@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamercapturesession_p.h"
-#include "qgstreamermediarecorder_p.h"
+#include "qgstreamermediaencoder_p.h"
 #include "qgstreamercameraimagecapture_p.h"
 #include "private/qgstreamerdevicemanager_p.h"
 #include <qmediarecorder.h>

@@ -37,68 +37,62 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include "qandroidmediaencoder_p.h"
 
-#ifndef QMEDIARECORDERCONTROL_H
-#define QMEDIARECORDERCONTROL_H
-
-#include <QtMultimedia/qmediarecorder.h>
-#include <QtMultimedia/qmediametadata.h>
+#include "qandroidcapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QUrl;
-QT_END_NAMESPACE
-
-QT_BEGIN_NAMESPACE
-
-// Required for QDoc workaround
-class QString;
-
-class Q_MULTIMEDIA_EXPORT QPlatformMediaRecorder : public QObject
+QAndroidMediaEncoder::QAndroidMediaEncoder(QAndroidCaptureSession *session)
+    : QPlatformMediaEncoder()
+    , m_session(session)
 {
-    Q_OBJECT
+    connect(m_session, SIGNAL(stateChanged(QMediaRecorder::State)), this, SIGNAL(stateChanged(QMediaRecorder::State)));
+    connect(m_session, SIGNAL(statusChanged(QMediaRecorder::Status)), this, SIGNAL(statusChanged(QMediaRecorder::Status)));
+    connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
+    connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
+    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+}
 
-public:
-    virtual QUrl outputLocation() const = 0;
-    virtual bool setOutputLocation(const QUrl &location) = 0;
+QUrl QAndroidMediaEncoder::outputLocation() const
+{
+    return m_session->outputLocation();
+}
 
-    virtual QMediaRecorder::State state() const = 0;
-    virtual QMediaRecorder::Status status() const = 0;
+bool QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
+{
+    return m_session->setOutputLocation(location);
+}
 
-    virtual qint64 duration() const = 0;
+QMediaRecorder::State QAndroidMediaEncoder::state() const
+{
+    return m_session->state();
+}
 
-    virtual void applySettings() = 0;
-    virtual void setEncoderSettings(const QMediaEncoderSettings &settings) = 0;
+QMediaRecorder::Status QAndroidMediaEncoder::status() const
+{
+    return m_session->status();
+}
 
-    virtual void setMetaData(const QMediaMetaData &) {}
-    virtual QMediaMetaData metaData() const { return {}; }
+qint64 QAndroidMediaEncoder::duration() const
+{
+    return m_session->duration();
+}
 
-Q_SIGNALS:
-    void stateChanged(QMediaRecorder::State state);
-    void statusChanged(QMediaRecorder::Status status);
-    void durationChanged(qint64 position);
-    void actualLocationChanged(const QUrl &location);
-    void error(int error, const QString &errorString);
-    void metaDataChanged();
+void QAndroidMediaEncoder::applySettings()
+{
+    m_session->applySettings();
+}
 
-public Q_SLOTS:
-    virtual void setState(QMediaRecorder::State state) = 0;
+void QAndroidMediaEncoder::setState(QMediaRecorder::State state)
+{
+    m_session->setState(state);
+}
 
-protected:
-    explicit QPlatformMediaRecorder(QObject *parent = nullptr);
-};
+void QAndroidMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+    m_session->setEncoderSettings(settings);
+}
+
 
 QT_END_NAMESPACE
-
-
-#endif

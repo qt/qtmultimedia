@@ -56,7 +56,7 @@
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformCameraImageCapture;
-class QPlatformMediaRecorder;
+class QPlatformMediaEncoder;
 class QAudioDeviceInfo;
 class QCameraInfo;
 class QAbstractVideoSurface;
@@ -70,7 +70,7 @@ public:
 
     virtual QPlatformCamera *cameraControl() = 0;
     virtual QPlatformCameraImageCapture *imageCaptureControl() = 0;
-    virtual QPlatformMediaRecorder *mediaRecorderControl() = 0;
+    virtual QPlatformMediaEncoder *mediaEncoder() = 0;
 
     virtual bool isMuted() const = 0;
     virtual void setMuted(bool muted) = 0;

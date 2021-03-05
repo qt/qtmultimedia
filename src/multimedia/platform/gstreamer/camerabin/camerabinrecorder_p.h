@@ -60,7 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinRecorder : public QPlatformMediaRecorder
+class CameraBinRecorder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 

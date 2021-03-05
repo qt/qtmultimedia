@@ -31,7 +31,7 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
-#include <private/qplatformmediarecorder_p.h>
+#include <private/qplatformmediaencoder_p.h>
 #include <qmediaencoder.h>
 #include <qaudioformat.h>
 #include <qmockintegration_p.h>
@@ -87,7 +87,7 @@ private:
     QMediaCaptureSession *captureSession;
     QCamera *object = nullptr;
     MockMediaRecorderService *service = nullptr;
-    MockMediaRecorderControl *mock;
+    MockMediaEncoderControl *mock;
     QMediaEncoder *capture;
 };
 
