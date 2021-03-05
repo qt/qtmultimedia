@@ -63,6 +63,7 @@ class QAbstractVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
+    Q_OBJECT
 public:
     QPlatformMediaCaptureSession() = default;
     virtual ~QPlatformMediaCaptureSession();
@@ -71,7 +72,20 @@ public:
     virtual QPlatformCameraImageCapture *imageCaptureControl() = 0;
     virtual QPlatformMediaRecorder *mediaRecorderControl() = 0;
 
+    virtual bool isMuted() const = 0;
+    virtual void setMuted(bool muted) = 0;
+    virtual qreal volume() const = 0;
+    virtual void setVolume(qreal volume) = 0;
+
+    virtual QAudioDeviceInfo audioInput() const = 0;
+    virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
+
     virtual void setVideoPreview(QAbstractVideoSurface *surface) = 0;
+
+Q_SIGNALS:
+    void mutedChanged(bool muted);
+    void volumeChanged(qreal volume);
+
 };
 
 QT_END_NAMESPACE

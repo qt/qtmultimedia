@@ -58,6 +58,8 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode mode)
         m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
         m_cameraControl = new QGstreamerCamera(m_captureSession);
     }
+    connect(m_captureSession, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
+    connect(m_captureSession, SIGNAL(volumeChanged(qreal)), SIGNAL(volumeChanged(qreal)));
 }
 
 QGstreamerMediaCapture::~QGstreamerMediaCapture() = default;
@@ -75,6 +77,37 @@ QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCaptureControl()
 QPlatformMediaRecorder *QGstreamerMediaCapture::mediaRecorderControl()
 {
     return m_captureSession->recorderControl();
+}
+
+QAudioDeviceInfo QGstreamerMediaCapture::audioInput() const
+{
+    return m_captureSession->audioCaptureDevice();
+}
+
+bool QGstreamerMediaCapture::setAudioInput(const QAudioDeviceInfo &info)
+{
+    m_captureSession->setAudioCaptureDevice(info);
+    return true;
+}
+
+bool QGstreamerMediaCapture::isMuted() const
+{
+    return m_captureSession->isMuted();
+}
+
+void QGstreamerMediaCapture::setMuted(bool muted)
+{
+    m_captureSession->setMuted(muted);
+}
+
+qreal QGstreamerMediaCapture::volume() const
+{
+    return m_captureSession->volume();
+}
+
+void QGstreamerMediaCapture::setVolume(qreal volume)
+{
+    m_captureSession->setVolume(volume);
 }
 
 void QGstreamerMediaCapture::setVideoPreview(QAbstractVideoSurface *surface)

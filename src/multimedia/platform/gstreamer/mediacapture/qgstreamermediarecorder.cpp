@@ -53,8 +53,6 @@ QGstreamerMediaRecorder::QGstreamerMediaRecorder(QGstreamerCaptureSession *sessi
     connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)), SLOT(updateStatus()));
     connect(m_session, SIGNAL(error(int,QString)), SLOT(handleSessionError(int,QString)));
     connect(m_session, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
-    connect(m_session, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
-    connect(m_session, SIGNAL(volumeChanged(qreal)), SIGNAL(volumeChanged(qreal)));
     m_hasPreviewState = m_session->captureMode() != QGstreamerCaptureSession::Audio;
 }
 
@@ -212,17 +210,6 @@ void QGstreamerMediaRecorder::applySettings()
 {
 }
 
-QAudioDeviceInfo QGstreamerMediaRecorder::audioInput() const
-{
-    return m_session->audioCaptureDevice();
-}
-
-bool QGstreamerMediaRecorder::setAudioInput(const QAudioDeviceInfo &info)
-{
-    m_session->setAudioCaptureDevice(info);
-    return true;
-}
-
 void QGstreamerMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     m_settings = settings;
@@ -243,26 +230,6 @@ void QGstreamerMediaRecorder::setMetaData(const QMediaMetaData &metaData)
 QMediaMetaData QGstreamerMediaRecorder::metaData() const
 {
     return m_metaData;
-}
-
-bool QGstreamerMediaRecorder::isMuted() const
-{
-    return m_session->isMuted();
-}
-
-qreal QGstreamerMediaRecorder::volume() const
-{
-    return m_session->volume();
-}
-
-void QGstreamerMediaRecorder::setMuted(bool muted)
-{
-    m_session->setMuted(muted);
-}
-
-void QGstreamerMediaRecorder::setVolume(qreal volume)
-{
-    m_session->setVolume(volume);
 }
 
 QDir QGstreamerMediaRecorder::defaultDir() const

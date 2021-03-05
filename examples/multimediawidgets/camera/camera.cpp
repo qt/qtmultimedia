@@ -241,7 +241,7 @@ void Camera::stop()
 
 void Camera::setMuted(bool muted)
 {
-    m_mediaEncoder->setMuted(muted);
+    m_captureSession.setMuted(muted);
 }
 
 void Camera::takeImage()

@@ -40,8 +40,6 @@
 #include "qandroidmediarecordercontrol_p.h"
 
 #include "qandroidcapturesession_p.h"
-#include "qmediadevicemanager.h"
-#include "qaudiodeviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -81,18 +79,6 @@ qint64 QAndroidMediaRecorderControl::duration() const
     return m_session->duration();
 }
 
-bool QAndroidMediaRecorderControl::isMuted() const
-{
-    // No API for this in Android
-    return false;
-}
-
-qreal QAndroidMediaRecorderControl::volume() const
-{
-    // No API for this in Android
-    return 1.0;
-}
-
 void QAndroidMediaRecorderControl::applySettings()
 {
     m_session->applySettings();
@@ -101,39 +87,6 @@ void QAndroidMediaRecorderControl::applySettings()
 void QAndroidMediaRecorderControl::setState(QMediaRecorder::State state)
 {
     m_session->setState(state);
-}
-
-void QAndroidMediaRecorderControl::setMuted(bool muted)
-{
-    // No API for this in Android
-    Q_UNUSED(muted);
-    qWarning("QMediaRecorder::setMuted() is not supported on Android.");
-}
-
-void QAndroidMediaRecorderControl::setVolume(qreal volume)
-{
-    // No API for this in Android
-    Q_UNUSED(volume);
-    qWarning("QMediaRecorder::setVolume() is not supported on Android.");
-}
-
-QAudioDeviceInfo QAndroidMediaRecorderControl::audioInput() const
-{
-    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
-    const auto devices = manager->audioInputs();
-    QByteArray id = m_session->audioInput().toLatin1();
-
-    for (auto c : devices) {
-        if (c.id() == id)
-            return c;
-    }
-    return manager->defaultAudioInput();
-}
-
-bool QAndroidMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &info)
-{
-    m_session->setAudioInput(QString::fromLatin1(info.id()));
-    return true;
 }
 
 void QAndroidMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)

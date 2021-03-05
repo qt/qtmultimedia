@@ -75,8 +75,9 @@ QT_BEGIN_NAMESPACE
     \sa QAudioEncoderSettings, QVideoEncoderSettings
 */
 
-QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QMediaCaptureSession *session, QObject *parent) :
-    QObject(parent)
+QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QMediaCaptureSession *session, QObject *parent)
+    : QObject(parent),
+    m_captureSession(session)
 {
     m_encoder = new QMediaEncoder(this);
     session->setEncoder(m_encoder);
@@ -551,12 +552,12 @@ qint64 QDeclarativeCameraRecorder::duration() const
 */
 bool QDeclarativeCameraRecorder::isMuted() const
 {
-    return m_encoder->isMuted();
+    return m_captureSession->isMuted();
 }
 
 void QDeclarativeCameraRecorder::setMuted(bool muted)
 {
-    m_encoder->setMuted(muted);
+    m_captureSession->setMuted(muted);
 }
 
 /*!

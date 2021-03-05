@@ -46,6 +46,8 @@
 #include "qandroidcamerasession_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcameraimagecapturecontrol_p.h"
+#include "qmediadevicemanager.h"
+#include "qaudiodeviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -88,6 +90,52 @@ QPlatformCameraImageCapture *QAndroidCaptureService::imageCaptureControl()
 QPlatformMediaRecorder *QAndroidCaptureService::mediaRecorderControl()
 {
     return m_recorderControl;
+}
+
+
+bool QAndroidCaptureService::isMuted() const
+{
+    // No API for this in Android
+    return false;
+}
+
+void QAndroidCaptureService::setMuted(bool muted)
+{
+    // No API for this in Android
+    Q_UNUSED(muted);
+    qWarning("QMediaRecorder::setMuted() is not supported on Android.");
+}
+
+qreal QAndroidCaptureService::volume() const
+{
+    // No API for this in Android
+    return 1.0;
+}
+
+void QAndroidCaptureService::setVolume(qreal volume)
+{
+    // No API for this in Android
+    Q_UNUSED(volume);
+    qWarning("QMediaRecorder::setVolume() is not supported on Android.");
+}
+
+QAudioDeviceInfo QAndroidCaptureService::audioInput() const
+{
+    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
+    const auto devices = manager->audioInputs();
+    QByteArray id = m_captureSession->audioInput().toLatin1();
+
+    for (auto c : devices) {
+        if (c.id() == id)
+            return c;
+    }
+    return manager->defaultAudioInput();
+}
+
+bool QAndroidCaptureService::setAudioInput(const QAudioDeviceInfo &info)
+{
+    m_captureSession->setAudioInput(QString::fromLatin1(info.id()));
+    return true;
 }
 
 void QAndroidCaptureService::setVideoPreview(QAbstractVideoSurface *surface)

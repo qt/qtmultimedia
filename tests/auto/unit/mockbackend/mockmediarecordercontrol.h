@@ -44,8 +44,6 @@ public:
         m_state(QMediaRecorder::StoppedState),
         m_status(QMediaRecorder::StoppedStatus),
         m_position(0),
-        m_muted(false),
-        m_volume(1.0),
         m_settingAppliedCount(0)
     {
     }
@@ -76,29 +74,9 @@ public:
         return m_position;
     }
 
-    bool isMuted() const
-    {
-        return m_muted;
-    }
-
-    qreal volume() const
-    {
-        return m_volume;
-    }
-
     void applySettings()
     {
         m_settingAppliedCount++;
-    }
-
-    QAudioDeviceInfo audioInput() const
-    {
-        return m_audioInput;
-    }
-    bool setAudioInput(const QAudioDeviceInfo &id)
-    {
-        m_audioInput = id;
-        return true;
     }
 
     void setEncoderSettings(const QMediaEncoderSettings &) {}
@@ -158,28 +136,12 @@ public slots:
         }
     }
 
-
-    void setMuted(bool muted)
-    {
-        if (m_muted != muted)
-            emit mutedChanged(m_muted = muted);
-    }
-
-    void setVolume(qreal volume)
-    {
-        if (!qFuzzyCompare(m_volume, volume))
-            emit volumeChanged(m_volume = volume);
-    }
-
 public:
     QMediaMetaData m_metaData;
-    QAudioDeviceInfo m_audioInput;
     QUrl       m_sink;
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;
     qint64     m_position;
-    bool m_muted;
-    qreal m_volume;
     int m_settingAppliedCount;
 };
 

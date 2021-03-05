@@ -99,6 +99,48 @@ void QMediaCaptureSession::setAudioInput(const QAudioDeviceInfo &device)
     emit audioInputChanged();
 }
 
+/*!
+    \property QMediaCaptureSession::muted
+
+    \brief whether a recording audio stream is muted.
+*/
+
+bool QMediaCaptureSession::isMuted() const
+{
+    return d_ptr->captureSession->isMuted();
+}
+
+void QMediaCaptureSession::setMuted(bool muted)
+{
+    d_ptr->captureSession->setMuted(muted);
+}
+
+/*!
+    \property QMediaCaptureSession::volume
+
+    \brief the current recording audio volume.
+
+    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
+    range will be clamped.
+
+    The default volume is \c 1.0.
+
+    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
+    will produce linear changes in perceived loudness, which is what a user would normally expect
+    from a volume control. See QAudio::convertVolume() for more details.
+*/
+
+qreal QMediaCaptureSession::volume() const
+{
+    return d_ptr->captureSession->volume();
+}
+
+void QMediaCaptureSession::setVolume(qreal volume)
+{
+    d_ptr->captureSession->setVolume(volume);
+}
+
+
 QCamera *QMediaCaptureSession::camera() const
 {
     return d_ptr->camera;

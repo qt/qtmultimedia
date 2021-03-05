@@ -77,13 +77,7 @@ public:
 
     qint64 duration() const override;
 
-    bool isMuted() const override;
-    qreal volume() const override;
-
     void applySettings() override;
-
-    QAudioDeviceInfo audioInput() const override;
-    bool setAudioInput(const QAudioDeviceInfo &id) override;
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
     QMediaEncoderSettings encoderSettings() const { return m_settings; }
@@ -97,8 +91,6 @@ public slots:
     void record();
     void pause();
     void stop();
-    void setMuted(bool) override;
-    void setVolume(qreal volume) override;
 
 private slots:
     void updateStatus();

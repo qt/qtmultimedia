@@ -95,8 +95,8 @@ QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
 
     connect(d->encoder, &QMediaEncoder::stateChanged, this, &QMediaRecorder::stateChanged);
     connect(d->encoder, &QMediaEncoder::statusChanged, this, &QMediaRecorder::statusChanged);
-    connect(d->encoder, &QMediaEncoder::mutedChanged, this, &QMediaRecorder::mutedChanged);
-    connect(d->encoder, &QMediaEncoder::volumeChanged, this, &QMediaRecorder::volumeChanged);
+    connect(d->captureSession, &QMediaCaptureSession::mutedChanged, this, &QMediaRecorder::mutedChanged);
+    connect(d->captureSession, &QMediaCaptureSession::volumeChanged, this, &QMediaRecorder::volumeChanged);
     connect(d->captureSession, &QMediaCaptureSession::audioInputChanged, this, &QMediaRecorder::audioInputChanged);
 }
 
@@ -256,12 +256,12 @@ qint64 QMediaRecorder::duration() const
 
 bool QMediaRecorder::isMuted() const
 {
-    return d_ptr->encoder->isMuted();
+    return d_ptr->captureSession->isMuted();
 }
 
 void QMediaRecorder::setMuted(bool muted)
 {
-    d_ptr->encoder->setMuted(muted);
+    d_ptr->captureSession->setMuted(muted);
 }
 
 /*!
@@ -281,7 +281,12 @@ void QMediaRecorder::setMuted(bool muted)
 
 qreal QMediaRecorder::volume() const
 {
-    return d_ptr->encoder->volume();
+    return d_ptr->captureSession->volume();
+}
+
+void QMediaRecorder::setVolume(qreal volume)
+{
+    d_ptr->captureSession->setVolume(volume);
 }
 
 /*!
@@ -302,12 +307,6 @@ void QMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
 QMediaEncoderSettings QMediaRecorder::encoderSettings() const
 {
     return d_ptr->encoder->encoderSettings();
-}
-
-
-void QMediaRecorder::setVolume(qreal volume)
-{
-    d_ptr->encoder->setVolume(volume);
 }
 
 /*!

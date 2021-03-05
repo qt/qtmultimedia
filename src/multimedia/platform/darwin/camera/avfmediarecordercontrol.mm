@@ -90,15 +90,11 @@ AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObj
     , m_service(service)
     , m_state(QMediaRecorder::StoppedState)
     , m_lastStatus(QMediaRecorder::StoppedStatus)
-    , m_muted(false)
-    , m_volume(1.0)
     , m_audioSettings(nil)
     , m_videoSettings(nil)
     //, m_restoreFPS(-1, -1)
 {
     Q_ASSERT(service);
-
-    m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 
     m_writer.reset([[QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) alloc] initWithDelegate:this]);
     if (!m_writer) {
@@ -150,32 +146,6 @@ QMediaRecorder::Status AVFMediaRecorderControl::status() const
 qint64 AVFMediaRecorderControl::duration() const
 {
     return m_writer.data().durationInMs;
-}
-
-bool AVFMediaRecorderControl::isMuted() const
-{
-    return m_muted;
-}
-
-qreal AVFMediaRecorderControl::volume() const
-{
-    return m_volume;
-}
-
-void AVFMediaRecorderControl::setMuted(bool muted)
-{
-    if (m_muted != muted) {
-        m_muted = muted;
-        Q_EMIT mutedChanged(muted);
-    }
-}
-
-void AVFMediaRecorderControl::setVolume(qreal volume)
-{
-    if (m_volume != volume) {
-        m_volume = volume;
-        Q_EMIT volumeChanged(volume);
-    }
 }
 
 static bool formatSupportsFramerate(AVCaptureDeviceFormat *format, qreal fps)
@@ -445,33 +415,6 @@ void AVFMediaRecorderControl::unapplySettings()
         [m_videoSettings release];
         m_videoSettings = nil;
     }
-}
-
-QAudioDeviceInfo AVFMediaRecorderControl::audioInput() const
-{
-    QByteArray id = [[m_audioCaptureDevice uniqueID] UTF8String];
-    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioInputs();
-    for (auto d : devices)
-        if (d.id() == id)
-            return d;
-    return QMediaDeviceManager::defaultAudioInput();
-}
-
-bool AVFMediaRecorderControl::setAudioInput(const QAudioDeviceInfo &id)
-{
-    AVCaptureDevice *device = nullptr;
-
-    if (!id.isNull()) {
-        device = [AVCaptureDevice deviceWithUniqueID: [NSString stringWithUTF8String:id.id().constData()]];
-    } else {
-        device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
-    }
-
-    if (device) {
-        m_audioCaptureDevice = device;
-        return true;
-    }
-    return false;
 }
 
 void AVFMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)

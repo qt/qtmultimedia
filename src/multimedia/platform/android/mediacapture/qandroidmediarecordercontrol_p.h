@@ -68,19 +68,12 @@ public:
     QMediaRecorder::State state() const override;
     QMediaRecorder::Status status() const override;
     qint64 duration() const override;
-    bool isMuted() const override;
-    qreal volume() const override;
     void applySettings() override;
-
-    QAudioDeviceInfo audioInput() const override;
-    bool setAudioInput(const QAudioDeviceInfo &id) override;
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
 
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) override;
-    void setMuted(bool muted) override;
-    void setVolume(qreal volume) override;
 
 private:
     QAndroidCaptureSession *m_session;

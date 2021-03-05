@@ -55,6 +55,7 @@
 #include <QtCore/qset.h>
 #include <private/qplatformmediacapture_p.h>
 
+#include <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;
@@ -80,6 +81,13 @@ public:
     QPlatformCameraImageCapture *imageCaptureControl() override;
     QPlatformMediaRecorder *mediaRecorderControl() override;
 
+    bool isMuted() const override;
+    void setMuted(bool muted) override;
+    qreal volume() const override;
+    void setVolume(qreal volume) override;
+    QAudioDeviceInfo audioInput() const override;
+    bool setAudioInput(const QAudioDeviceInfo &) override;
+
     void setVideoPreview(QAbstractVideoSurface *surface) override;
 
     AVFCameraSession *session() const { return m_session; }
@@ -91,6 +99,10 @@ public:
     QPlatformCameraImageProcessing *cameraImageProcessingControl() const;
 
 private:
+    bool m_muted = false;
+    qreal m_volume = 1.0;
+    AVCaptureDevice *m_audioCaptureDevice = nullptr;
+
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
     AVFMediaRecorderControl *m_recorderControl;

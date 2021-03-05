@@ -108,8 +108,6 @@ class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
     Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
-    Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
-    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
 
 public:
@@ -131,10 +129,6 @@ public:
 
     qint64 duration() const;
 
-    // ### These two properties should move to the capture session or a QAudioDevice object
-    bool isMuted() const;
-    qreal volume() const;
-
     void setEncoderSettings(const QMediaEncoderSettings &);
     QMediaEncoderSettings encoderSettings() const;
 
@@ -148,15 +142,11 @@ public Q_SLOTS:
     void record();
     void pause();
     void stop();
-    void setMuted(bool muted);
-    void setVolume(qreal volume);
 
 Q_SIGNALS:
     void stateChanged(QMediaEncoder::State state);
     void statusChanged(QMediaEncoder::Status status);
     void durationChanged(qint64 duration);
-    void mutedChanged(bool muted);
-    void volumeChanged(qreal volume);
     void actualLocationChanged(const QUrl &location);
 
     void error(QMediaEncoder::Error error);

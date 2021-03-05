@@ -69,6 +69,7 @@ AVFCameraService::AVFCameraService()
     m_cameraExposureControl = new AVFCameraExposureControl(this);
 #endif
 
+    m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 }
 
 AVFCameraService::~AVFCameraService()
@@ -107,6 +108,59 @@ QPlatformMediaRecorder *AVFCameraService::mediaRecorderControl()
 QPlatformCameraImageProcessing *AVFCameraService::cameraImageProcessingControl() const
 {
     return m_cameraImageProcessingControl;
+}
+
+bool AVFCameraService::isMuted() const
+{
+    return m_muted;
+}
+
+void AVFCameraService::setMuted(bool muted)
+{
+    if (m_muted != muted) {
+        m_muted = muted;
+        Q_EMIT mutedChanged(muted);
+    }
+}
+
+qreal AVFCameraService::volume() const
+{
+    return m_volume;
+}
+
+void AVFCameraService::setVolume(qreal volume)
+{
+    if (m_volume != volume) {
+        m_volume = volume;
+        Q_EMIT volumeChanged(volume);
+    }
+}
+
+QAudioDeviceInfo AVFCameraService::audioInput() const
+{
+    QByteArray id = [[m_audioCaptureDevice uniqueID] UTF8String];
+    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioInputs();
+    for (auto d : devices)
+        if (d.id() == id)
+            return d;
+    return QMediaDeviceManager::defaultAudioInput();
+}
+
+bool AVFCameraService::setAudioInput(const QAudioDeviceInfo &id)
+{
+    AVCaptureDevice *device = nullptr;
+
+    if (!id.isNull()) {
+        device = [AVCaptureDevice deviceWithUniqueID: [NSString stringWithUTF8String:id.id().constData()]];
+    } else {
+        device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
+    }
+
+    if (device) {
+        m_audioCaptureDevice = device;
+        return true;
+    }
+    return false;
 }
 
 void AVFCameraService::setVideoPreview(QAbstractVideoSurface *surface)

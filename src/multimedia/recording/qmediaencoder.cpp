@@ -300,45 +300,6 @@ qint64 QMediaEncoder::duration() const
 }
 
 /*!
-    \property QMediaEncoder::muted
-
-    \brief whether a recording audio stream is muted.
-*/
-
-bool QMediaEncoder::isMuted() const
-{
-    return d_func()->control ? d_func()->control->isMuted() : false;
-}
-
-void QMediaEncoder::setMuted(bool muted)
-{
-    Q_D(QMediaEncoder);
-
-    if (d->control)
-        d->control->setMuted(muted);
-}
-
-/*!
-    \property QMediaEncoder::volume
-
-    \brief the current recording audio volume.
-
-    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
-    range will be clamped.
-
-    The default volume is \c 1.0.
-
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See QAudio::convertVolume() for more details.
-*/
-
-qreal QMediaEncoder::volume() const
-{
-    return d_func()->control ? d_func()->control->volume() : 1.0;
-}
-
-/*!
     Sets the encoder settings to \a settings.
 
     \sa QMediaEncoderSettings
@@ -360,17 +321,6 @@ void QMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
 QMediaEncoderSettings QMediaEncoder::encoderSettings() const
 {
     return d_func()->encoderSettings;
-}
-
-
-void QMediaEncoder::setVolume(qreal volume)
-{
-    Q_D(QMediaEncoder);
-
-    if (d->control) {
-        volume = qMax(qreal(0.0), volume);
-        d->control->setVolume(volume);
-    }
 }
 
 /*!

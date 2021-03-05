@@ -211,6 +211,7 @@ private:
     friend class QDeclarativeCamera;
     QDeclarativeCameraRecorder(QMediaCaptureSession *session, QObject *parent = 0);
 
+    QMediaCaptureSession *m_captureSession = nullptr;
     QMediaEncoder *m_encoder = nullptr;
     QDeclarativeMediaMetaData *m_metaData = nullptr;
 

@@ -85,14 +85,8 @@ public:
 
     qint64 duration() const override;
 
-    bool isMuted() const override;
-    qreal volume() const override;
-
     void applySettings() override;
     void unapplySettings();
-
-    QAudioDeviceInfo audioInput() const override;
-    bool setAudioInput(const QAudioDeviceInfo &) override;
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
     QMediaEncoderSettings encoderSettings() const {
@@ -103,8 +97,6 @@ public:
 
 public Q_SLOTS:
     void setState(QMediaRecorder::State state) override;
-    void setMuted(bool muted) override;
-    void setVolume(qreal volume) override;
 
 private:
 
@@ -119,7 +111,6 @@ private:
 
     AVFCameraService *m_service;
     AVFScopedPointer<QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)> m_writer;
-    AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
     QUrl m_outputLocation;
     AVFStorageLocation m_storageLocation;
@@ -127,9 +118,6 @@ private:
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_lastStatus;
     QMediaEncoderSettings m_settings;
-
-    bool m_muted;
-    qreal m_volume;
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;

@@ -78,6 +78,14 @@ public:
     QPlatformCameraImageCapture *imageCaptureControl() override;
     QPlatformMediaRecorder *mediaRecorderControl() override;
 
+    bool isMuted() const override;
+    void setMuted(bool) override;
+    qreal volume() const override;
+    void setVolume(qreal volume) override;
+
+    QAudioDeviceInfo audioInput() const override;
+    bool setAudioInput(const QAudioDeviceInfo &id) override;
+
     void setVideoPreview(QAbstractVideoSurface *surface) override;
 
 private:

@@ -57,9 +57,6 @@ private slots:
     void testError();
     void testSink();
     void testRecord();
-    void testMute();
-    void testVolume();
-    void testAudioDeviceControl();
     void testEncodingSettings();
     void testAudioSettings();
     void testVideoSettings();
@@ -128,9 +125,6 @@ void tst_QMediaEncoder::testNullService()
     QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
     QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(recorder.duration(), qint64(0));
-    QVERIFY(!recorder.isMuted());
-    recorder.setMuted(true);
-    QVERIFY(!recorder.isMuted());
 }
 
 void tst_QMediaEncoder::testNullControls()
@@ -289,58 +283,6 @@ void tst_QMediaEncoder::testRecord()
 
     mock->stop();
     QCOMPARE(stateSignal.count(), 3);
-}
-
-void tst_QMediaEncoder::testMute()
-{
-    QSignalSpy mutedChanged(capture, SIGNAL(mutedChanged(bool)));
-    QVERIFY(!capture->isMuted());
-    capture->setMuted(true);
-
-    QCOMPARE(mutedChanged.size(), 1);
-    QCOMPARE(mutedChanged[0][0].toBool(), true);
-    QVERIFY(capture->isMuted());
-
-    capture->setMuted(false);
-
-    QCOMPARE(mutedChanged.size(), 2);
-    QCOMPARE(mutedChanged[1][0].toBool(), false);
-    QVERIFY(!capture->isMuted());
-
-    capture->setMuted(false);
-    QCOMPARE(mutedChanged.size(), 2);
-}
-
-void tst_QMediaEncoder::testVolume()
-{
-    QSignalSpy volumeChanged(capture, SIGNAL(volumeChanged(qreal)));
-    QCOMPARE(capture->volume(), 1.0);
-    capture->setVolume(2.0);
-
-    QCOMPARE(volumeChanged.size(), 1);
-    QCOMPARE(volumeChanged[0][0].toReal(), 2.0);
-    QCOMPARE(capture->volume(), 2.0);
-
-    capture->setVolume(1.0);
-
-    QCOMPARE(volumeChanged.size(), 2);
-    QCOMPARE(volumeChanged[1][0].toReal(), 1.0);
-    QCOMPARE(capture->volume(), 1.0);
-
-    capture->setVolume(1.0);
-    QCOMPARE(volumeChanged.size(), 2);
-}
-
-void tst_QMediaEncoder::testAudioDeviceControl()
-{
-//    QSignalSpy readSignal(capture,SIGNAL(audioInputChanged()));
-//    QVERIFY(audio->availableInputs().size() == 3);
-//    QVERIFY(audio->defaultInput().compare("device1") == 0);
-//    audio->setActiveInput("device2");
-//    QTestEventLoop::instance().enterLoop(1);
-//    QVERIFY(audio->activeInput().compare("device2") == 0);
-//    QVERIFY(readSignal.count() == 1);
-//    QVERIFY(audio->inputDescription("device2").compare("dev2 comment") == 0);
 }
 
 void tst_QMediaEncoder::testEncodingSettings()
