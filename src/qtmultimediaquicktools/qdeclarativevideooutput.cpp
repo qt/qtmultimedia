@@ -43,7 +43,7 @@
 #include "qdeclarativevideooutput_p.h"
 #include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediaplayer.h>
-#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qmediacapturesession.h>
 #include <private/qfactoryloader_p.h>
 #include <QtCore/qloggingcategory.h>
 
@@ -176,19 +176,18 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
         return;
     m_source = source;
 
-    QObject *s = source;
-    if (s) {
+    if (source) {
         const QMetaObject *metaObject = m_source.data()->metaObject();
         int mediaSourcePropertyIndex = metaObject->indexOfProperty("mediaSource");
         if (mediaSourcePropertyIndex != -1) {
             const QMetaProperty mediaSourceProperty = metaObject->property(mediaSourcePropertyIndex);
-            s = mediaSourceProperty.read(s).value<QObject *>();
+            source = mediaSourceProperty.read(source).value<QObject *>();
         }
     }
 
-    if (QCamera *c = qobject_cast<QCamera *>(s)) {
-        c->setViewfinder(videoSurface());
-    } else if (QMediaPlayer *p = qobject_cast<QMediaPlayer *>(s)) {
+    if (QMediaCaptureSession *s = qobject_cast<QMediaCaptureSession *>(source)) {
+        s->setVideoPreview(videoSurface());
+    } else if (QMediaPlayer *p = qobject_cast<QMediaPlayer *>(source)) {
         p->setVideoOutput(videoSurface());
     }
     emit sourceChanged();

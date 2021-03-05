@@ -59,6 +59,7 @@ class QMediaRecorderService;
 class QAudioEncoderSettings;
 class QVideoEncoderSettings;
 class QAudioDeviceInfo;
+class QMediaCaptureSession;
 
 class QMediaRecorderPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
@@ -107,8 +108,7 @@ public:
         AudioAndVideo
     };
 
-    QMediaRecorder(CaptureMode mode = AudioOnly, QObject *parent = nullptr);
-    explicit QMediaRecorder(QCamera *mediaSource, QObject *parent = nullptr);
+    QMediaRecorder(QObject *parent = nullptr);
     ~QMediaRecorder();
 
     bool isAvailable() const;
@@ -139,7 +139,7 @@ public:
     QAudioDeviceInfo audioInput() const;
     QCameraInfo videoInput() const;
 
-    QCamera *camera() const;
+    QMediaCaptureSession *captureSession() const;
 
 public Q_SLOTS:
     void record();
@@ -162,11 +162,13 @@ Q_SIGNALS:
 
     void metaDataChanged();
 
-protected:
-    bool setCamera(QCamera *object);
+private:
+    // This is here to flag an incompatibilities with Qt 5
+    QMediaRecorder(QCamera *) = delete;
 
     QMediaRecorderPrivate *d_ptr;
-private:
+    friend class QMediaCaptureSession;
+    void setCaptureSession(QMediaCaptureSession *session);
     Q_DISABLE_COPY(QMediaRecorder)
     Q_DECLARE_PRIVATE(QMediaRecorder)
     Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaRecorder::State))

@@ -67,28 +67,22 @@ class QDeclarativeCameraCapture : public QObject
     Q_OBJECT
     Q_PROPERTY(bool ready READ isReadyForCapture NOTIFY readyForCaptureChanged)
     Q_PROPERTY(QString capturedImagePath READ capturedImagePath NOTIFY imageSaved)
-    Q_PROPERTY(QSize resolution READ resolution WRITE setResolution NOTIFY resolutionChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY captureFailed)
-    Q_PROPERTY(QVariantList supportedResolutions READ supportedResolutions NOTIFY supportedResolutionsChanged REVISION 1)
 
 public:
     ~QDeclarativeCameraCapture();
 
     bool isReadyForCapture() const;
 
-    QSize resolution();
-
     QString capturedImagePath() const;
     QCameraImageCapture::Error error() const;
     QString errorString() const;
-    QVariantList supportedResolutions();
 
 public Q_SLOTS:
     int capture();
     int captureToLocation(const QString &location);
     void cancelCapture();
 
-    void setResolution(const QSize &resolution);
     void setMetadata(QMediaMetaData::Key key, const QVariant &value);
 
 Q_SIGNALS:
@@ -100,20 +94,15 @@ Q_SIGNALS:
     void imageSaved(int requestId, const QString &path);
     void captureFailed(int requestId, const QString &message);
 
-    void resolutionChanged(const QSize &);
-    void supportedResolutionsChanged();
-
 private slots:
     void _q_imageCaptured(int, const QImage&);
     void _q_imageSaved(int, const QString&);
     void _q_captureFailed(int, QCameraImageCapture::Error, const QString&);
-    void _q_cameraStatusChanged(QCamera::Status status);
 
 private:
     friend class QDeclarativeCamera;
-    QDeclarativeCameraCapture(QCamera *camera);
+    QDeclarativeCameraCapture(QMediaCaptureSession *captureSession);
 
-    QCamera *m_camera;
     QCameraImageCapture *m_capture;
     QImageEncoderSettings m_imageSettings;
     QString m_capturedImagePath;

@@ -39,10 +39,12 @@
 
 #include "qmediacapturesession.h"
 #include "qaudiodeviceinfo.h"
-#include "qplatformmediaintegration_p.h"
 #include "qcamera.h"
 #include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
+
+#include "qplatformmediaintegration_p.h"
+#include "qplatformmediacapture_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -50,10 +52,10 @@ class QMediaCaptureSessionPrivate
 {
 public:
     QPlatformMediaCaptureSession *captureSession;
-    QCamera *camera;
     QAudioDeviceInfo audioInput;
-    QCameraImageCapture *imageCapture;
-    QMediaRecorder *recorder;
+    QCamera *camera = nullptr;
+    QCameraImageCapture *imageCapture = nullptr;
+    QMediaRecorder *recorder = nullptr;
 };
 
 
@@ -104,7 +106,14 @@ QCamera *QMediaCaptureSession::camera() const
 
 void QMediaCaptureSession::setCamera(QCamera *camera)
 {
+    if (d_ptr->camera == camera)
+        return;
+    if (d_ptr->camera)
+        d_ptr->camera->setCaptureSession(nullptr);
+
     d_ptr->camera = camera;
+    if (d_ptr->camera)
+        d_ptr->camera->setCaptureSession(this);
     emit cameraChanged();
 }
 
@@ -115,7 +124,14 @@ QCameraImageCapture *QMediaCaptureSession::imageCapture()
 
 void QMediaCaptureSession::setImageCapture(QCameraImageCapture *imageCapture)
 {
+    if (d_ptr->imageCapture == imageCapture)
+        return;
+    if (d_ptr->imageCapture)
+        d_ptr->imageCapture->setCaptureSession(nullptr);
+
     d_ptr->imageCapture = imageCapture;
+    if (d_ptr->imageCapture)
+        d_ptr->imageCapture->setCaptureSession(this);
     emit imageCaptureChanged();
 }
 
@@ -126,8 +142,45 @@ QMediaRecorder *QMediaCaptureSession::recorder()
 
 void QMediaCaptureSession::setRecorder(QMediaRecorder *recorder)
 {
+    if (d_ptr->recorder == recorder)
+        return;
+    if (d_ptr->recorder)
+        d_ptr->recorder->setCaptureSession(nullptr);
+
     d_ptr->recorder = recorder;
+    if (d_ptr->recorder)
+        d_ptr->recorder->setCaptureSession(this);
     emit recorderChanged();
+}
+
+/*!
+    Sets a QObject based video preview for the capture session.
+
+    A QObject based preview is expected to have an invokable videoSurface()
+    method that returns a QAbstractVideoSurface.
+
+    The previously set preview is detached.
+*/
+void QMediaCaptureSession::setVideoPreview(QObject *preview)
+{
+    auto *mo = preview->metaObject();
+    QAbstractVideoSurface *surface = nullptr;
+    if (preview && !mo->invokeMethod(preview, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
+        qWarning() << "QCamera::setViewFinder: Object" << preview->metaObject()->className() << "does not have a videoSurface()";
+        return;
+    }
+    setVideoPreview(surface);
+}
+
+/*!
+    Sets a video \a surface as the preview for the capture session.
+
+    If a preview has already been set on the session, the new surface
+    will replace it.
+*/
+void QMediaCaptureSession::setVideoPreview(QAbstractVideoSurface *preview)
+{
+    d_ptr->captureSession->setVideoPreview(preview);
 }
 
 QPlatformMediaCaptureSession *QMediaCaptureSession::platformSession() const

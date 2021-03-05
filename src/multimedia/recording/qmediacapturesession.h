@@ -47,9 +47,11 @@ QT_BEGIN_NAMESPACE
 
 class QCamera;
 class QAudioDeviceInfo;
+class QCameraInfo;
 class QCameraImageCapture; // ### rename to QMediaImageCapture
 class QMediaRecorder;
 class QPlatformMediaCaptureSession;
+class QAbstractVideoSurface;
 
 class QMediaCaptureSessionPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
@@ -76,6 +78,9 @@ public:
 
     QMediaRecorder *recorder();
     void setRecorder(QMediaRecorder *recorder);
+
+    void setVideoPreview(QObject *preview);
+    void setVideoPreview(QAbstractVideoSurface *preview);
 
     QPlatformMediaCaptureSession *platformSession() const;
 

@@ -75,10 +75,11 @@ QT_BEGIN_NAMESPACE
     \sa QAudioEncoderSettings, QVideoEncoderSettings
 */
 
-QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QCamera *camera, QObject *parent) :
+QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QMediaCaptureSession *session, QObject *parent) :
     QObject(parent)
 {
-    m_recorder = new QMediaRecorder(camera, this);
+    m_recorder = new QMediaRecorder(this);
+    session->setRecorder(m_recorder);
     connect(m_recorder, SIGNAL(stateChanged(QMediaRecorder::State)),
             SLOT(updateRecorderState(QMediaRecorder::State)));
     connect(m_recorder, SIGNAL(statusChanged(QMediaRecorder::Status)),

@@ -95,11 +95,10 @@ QT_BEGIN_NAMESPACE
 
 */
 
-QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera)
-    : QObject(camera),
-      m_camera(camera)
+QDeclarativeCameraCapture::QDeclarativeCameraCapture(QMediaCaptureSession *captureSession)
+    : QObject(captureSession)
 {
-    m_capture = new QCameraImageCapture(camera);
+    m_capture = new QCameraImageCapture(captureSession);
 
     connect(m_capture, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
     connect(m_capture, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
@@ -109,9 +108,6 @@ QDeclarativeCameraCapture::QDeclarativeCameraCapture(QCamera *camera)
     connect(m_capture, SIGNAL(imageSaved(int,QString)), this, SLOT(_q_imageSaved(int,QString)));
     connect(m_capture, SIGNAL(error(int,QCameraImageCapture::Error,QString)),
             this, SLOT(_q_captureFailed(int,QCameraImageCapture::Error,QString)));
-
-    connect(m_camera, SIGNAL(statusChanged(QCamera::Status)),
-            this, SLOT(_q_cameraStatusChanged(QCamera::Status)));
 }
 
 QDeclarativeCameraCapture::~QDeclarativeCameraCapture() = default;
@@ -230,44 +226,12 @@ void QDeclarativeCameraCapture::_q_captureFailed(int id, QCameraImageCapture::Er
     emit captureFailed(id, message);
 }
 
-void QDeclarativeCameraCapture::_q_cameraStatusChanged(QCamera::Status status)
-{
-    if (status != QCamera::InactiveStatus && status != QCamera::ActiveStatus)
-        return;
-
-    emit supportedResolutionsChanged();
-}
 /*!
     \property QDeclarativeCameraCapture::resolution
 
     This property holds the resolution/size of the image to be captured.
     If empty, the system chooses the appropriate resolution.
 */
-
-/*!
-    \qmlproperty size QtMultimedia::CameraCapture::resolution
-
-    This property holds the resolution/size of the image to be captured.
-    If empty, the system chooses the appropriate resolution.
-
-    \sa supportedResolutions
-*/
-
-QSize QDeclarativeCameraCapture::resolution()
-{
-    return m_imageSettings.resolution();
-}
-
-void QDeclarativeCameraCapture::setResolution(const QSize &captureResolution)
-{
-    m_imageSettings = m_capture->encodingSettings();
-    if (captureResolution != resolution()) {
-        m_imageSettings.setResolution(captureResolution);
-        m_capture->setEncodingSettings(m_imageSettings);
-        emit resolutionChanged(captureResolution);
-    }
-}
-
 QCameraImageCapture::Error QDeclarativeCameraCapture::error() const
 {
     return m_capture->error();
@@ -286,29 +250,6 @@ QCameraImageCapture::Error QDeclarativeCameraCapture::error() const
 QString QDeclarativeCameraCapture::errorString() const
 {
     return m_capture->errorString();
-}
-
-/*!
-    \qmlproperty list<size> QtMultimedia::CameraCapture::supportedResolutions
-
-    This property holds a list of resolutions which are supported for capturing.
-    The information can be used to set a valid \e resolution. If the camera isn't
-    loaded, the list will be empty.
-
-    \since 5.9
-    \sa resolution
- */
-QVariantList QDeclarativeCameraCapture::supportedResolutions()
-{
-    QVariantList supportedResolutions;
-
-    if (m_camera) {
-        auto resolutions = m_camera->cameraInfo().photoResolutions();
-        for (const auto &r : resolutions)
-            supportedResolutions.append(r);
-    }
-
-    return supportedResolutions;
 }
 
 /*!

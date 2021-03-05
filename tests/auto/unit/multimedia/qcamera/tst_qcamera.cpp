@@ -40,6 +40,7 @@
 #include <qcamera.h>
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
+#include <qmediacapturesession.h>
 #include <qobject.h>
 #include <qmediadevicemanager.h>
 
@@ -246,8 +247,11 @@ void tst_QCamera::testSimpleCameraCapture()
 {
     MockMediaRecorderService::simpleCamera = true;
 
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QVERIFY(!imageCapture.isReadyForCapture());
     QVERIFY(!imageCapture.isAvailable());
@@ -266,8 +270,11 @@ void tst_QCamera::testSimpleCaptureDestination()
 {
     MockMediaRecorderService::simpleCamera = true;
 
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
     imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer);
@@ -276,8 +283,11 @@ void tst_QCamera::testSimpleCaptureDestination()
 
 void tst_QCamera::testCaptureDestination()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QSignalSpy destinationChangedSignal(&imageCapture, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
 
@@ -295,8 +305,11 @@ void tst_QCamera::testCaptureDestination()
 
 void tst_QCamera::testCameraCapture()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
@@ -323,8 +336,11 @@ void tst_QCamera::testCameraCapture()
 
 void tst_QCamera::testCameraCaptureMetadata()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
@@ -644,8 +660,11 @@ void tst_QCamera::testImageSettings()
 
 void tst_QCamera::testCameraEncodingProperyChange()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
     QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
@@ -665,7 +684,7 @@ void tst_QCamera::testSetVideoOutput()
     MockVideoSurface surface;
     QCamera camera;
 
-    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
+//    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
 
 //    QCOMPARE(mockCameraService->rendererRef, 0);
 
@@ -701,7 +720,7 @@ void tst_QCamera::testSetVideoOutputNoService()
     integration->setFlags(QMockIntegration::NoCaptureInterface);
     QCamera camera;
 
-    camera.setViewfinder(&surface);
+//    camera.setViewfinder(&surface);
     // Nothing we can verify here other than it doesn't assert.
 }
 
@@ -711,7 +730,7 @@ void tst_QCamera::testSetVideoOutputDestruction()
 
     {
         QCamera camera;
-        camera.setViewfinder(&surface);
+//        camera.setViewfinder(&surface);
     }
 }
 

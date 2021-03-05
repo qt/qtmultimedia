@@ -40,6 +40,7 @@
 #include <QDebug>
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformcamera_p.h>
+#include <qmediacapturesession.h>
 
 #include "qdeclarativetorch_p.h"
 
@@ -73,7 +74,7 @@ QDeclarativeTorch::QDeclarativeTorch(QCamera *camera)
 {
     if (!camera)
         return;
-    auto *service = m_camera->captureInterface();
+    auto *service = m_camera->captureSession()->platformSession();
     m_exposure = service->cameraControl()->exposureControl();
 
     if (m_exposure)

@@ -43,6 +43,7 @@
 #include <private/qplatformmediarecorder_p.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamera.h>
+#include <qmediacapturesession.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
@@ -126,29 +127,12 @@ void QMediaRecorderPrivate::_q_applySettings()
     Constructs a media recorder which records the media produced by a microphone and camera.
 */
 
-QMediaRecorder::QMediaRecorder(QMediaRecorder::CaptureMode mode, QObject *parent)
+QMediaRecorder::QMediaRecorder(QObject *parent)
     : QObject(parent),
       d_ptr(new QMediaRecorderPrivate)
 {
     Q_D(QMediaRecorder);
     d->q_ptr = this;
-
-    if (mode != AudioOnly) {
-        setCamera(new QCamera(this));
-    } else {
-        auto *captureIface = QPlatformMediaIntegration::instance()->createCaptureSession(mode);
-        d->control = captureIface->mediaRecorderControl();
-    }
-}
-
-QMediaRecorder::QMediaRecorder(QCamera *camera, QObject *parent)
-    : QObject(parent),
-      d_ptr(new QMediaRecorderPrivate)
-{
-    Q_D(QMediaRecorder);
-    d->q_ptr = this;
-
-    setCamera(camera);
 }
 
 /*!
@@ -157,23 +141,31 @@ QMediaRecorder::QMediaRecorder(QCamera *camera, QObject *parent)
 
 QMediaRecorder::~QMediaRecorder()
 {
+    if (d_ptr->captureSession)
+        d_ptr->captureSession->setRecorder(nullptr);
     delete d_ptr;
 }
 
 /*!
     \internal
 */
-bool QMediaRecorder::setCamera(QCamera *object)
+void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QMediaRecorder);
-    Q_ASSERT(!d->camera);
+    if (d->captureSession == session)
+        return;
 
-    d->camera = object;
+    if (d->control)
+        d->control->disconnect(this);
 
-    auto *service = d->camera->captureInterface();
-    Q_ASSERT(service);
+    d->captureSession = session;
 
-    d->control = service->mediaRecorderControl();
+    if (!d->captureSession) {
+        d->control = nullptr;
+        return;
+    }
+
+    d->control = d->captureSession->platformSession()->mediaRecorderControl();
     Q_ASSERT(d->control);
 
     connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
@@ -202,7 +194,6 @@ bool QMediaRecorder::setCamera(QCamera *object)
 
     d->applySettingsLater();
 
-    return true;
 }
 
 /*!
@@ -603,13 +594,14 @@ QCameraInfo QMediaRecorder::videoInput() const
 {
     Q_D(const QMediaRecorder);
 
-    return d->camera ? d->camera->cameraInfo() : QCameraInfo();
+    auto *camera = d->captureSession->camera();
+    return camera ? camera->cameraInfo() : QCameraInfo();
 }
 
-QCamera *QMediaRecorder::camera() const
+QMediaCaptureSession *QMediaRecorder::captureSession() const
 {
     Q_D(const QMediaRecorder);
-    return d->camera;
+    return d->captureSession;
 }
 
 /*!

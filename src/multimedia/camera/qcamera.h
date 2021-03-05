@@ -61,6 +61,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 class QCameraInfo;
 class QPlatformMediaCaptureSession;
+class QMediaCaptureSession;
 
 class QCameraPrivate;
 class Q_MULTIMEDIA_EXPORT QCamera : public QObject
@@ -96,6 +97,8 @@ public:
 
     Status status() const;
 
+    QMediaCaptureSession *captureSession() const;
+
     QCameraInfo cameraInfo() const;
     void setCameraInfo(const QCameraInfo &cameraInfo);
 
@@ -103,13 +106,9 @@ public:
     QCameraFocus *focus() const;
     QCameraImageProcessing *imageProcessing() const;
 
-    void setViewfinder(QObject *viewfinder);
-    void setViewfinder(QAbstractVideoSurface *surface);
-
     Error error() const;
     QString errorString() const;
 
-    QPlatformMediaCaptureSession *captureInterface() const;
 public Q_SLOTS:
     void setActive(bool active);
     void start() { setActive(true); }
@@ -121,6 +120,8 @@ Q_SIGNALS:
     void errorOccurred(QCamera::Error);
 
 private:
+    void setCaptureSession(QMediaCaptureSession *session);
+    friend class QMediaCaptureSession;
     Q_DISABLE_COPY(QCamera)
     Q_DECLARE_PRIVATE(QCamera)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))

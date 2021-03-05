@@ -209,7 +209,7 @@ private slots:
 
 private:
     friend class QDeclarativeCamera;
-    QDeclarativeCameraRecorder(QCamera *camera, QObject *parent = 0);
+    QDeclarativeCameraRecorder(QMediaCaptureSession *session, QObject *parent = 0);
 
     QMediaRecorder *m_recorder = nullptr;
     QDeclarativeMediaMetaData *m_metaData = nullptr;

@@ -56,6 +56,7 @@ QT_BEGIN_NAMESPACE
 
 class QImageEncoderSettings;
 class QCamera;
+class QMediaCaptureSession;
 
 class QCameraImageCapturePrivate;
 class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
@@ -82,12 +83,12 @@ public:
     };
     Q_DECLARE_FLAGS(CaptureDestinations, CaptureDestination)
 
-    explicit QCameraImageCapture(QCamera *camera);
+    explicit QCameraImageCapture(QObject *parent = nullptr);
     ~QCameraImageCapture();
 
     bool isAvailable() const;
 
-    QCamera *camera() const;
+    QMediaCaptureSession *captureSession() const;
 
     Error error() const;
     QString errorString() const;
@@ -120,14 +121,17 @@ Q_SIGNALS:
     void imageAvailable(int id, const QVideoFrame &frame);
     void imageSaved(int id, const QString &fileName);
 
-protected:
-    QCameraImageCapturePrivate *d_ptr;
 private:
+    // This is here to flag an incompatibilities with Qt 5
+    QCameraImageCapture(QCamera *) = delete;
+
+    friend class QMediaCaptureSession;
+    void setCaptureSession(QMediaCaptureSession *session);
+    QCameraImageCapturePrivate *d_ptr;
     Q_DISABLE_COPY(QCameraImageCapture)
     Q_DECLARE_PRIVATE(QCameraImageCapture)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, int, const QString &))
     Q_PRIVATE_SLOT(d_func(), void _q_readyChanged(bool))
-    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraImageCapture::CaptureDestinations)

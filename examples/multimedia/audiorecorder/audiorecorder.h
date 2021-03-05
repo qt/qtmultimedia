@@ -53,6 +53,7 @@
 
 #include <QMainWindow>
 #include <QMediaRecorder>
+#include <QMediaCaptureSession>
 #include <QUrl>
 
 QT_BEGIN_NAMESPACE
@@ -88,6 +89,7 @@ private:
 
     Ui::AudioRecorder *ui = nullptr;
 
+    QMediaCaptureSession m_captureSession;
     QMediaRecorder *m_audioRecorder = nullptr;
     QList<AudioLevel*> m_audioLevels;
     bool m_outputLocationSet = false;

@@ -35,6 +35,7 @@
 #include <private/qplatformmediarecorder_p.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudioinput.h>
+#include <qmediacapturesession.h>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -106,9 +107,11 @@ void tst_QAudioRecorder::testNullControl()
 
 void tst_QAudioRecorder::testAudioSource()
 {
-    audiosource = new QMediaRecorder(QMediaRecorder::AudioOnly);
+    QMediaCaptureSession session;
+    audiosource = new QMediaRecorder;
+    session.setRecorder(audiosource);
 
-    QCOMPARE(audiosource->camera(), nullptr);
+    QCOMPARE(session.camera(), nullptr);
 }
 
 void tst_QAudioRecorder::testDevices()

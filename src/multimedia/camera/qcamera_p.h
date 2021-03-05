@@ -71,13 +71,14 @@ public:
     }
 
     void init();
-    void initControls();
 
     void clear();
 
+    QMediaCaptureSession *captureSession = nullptr;
     QPlatformMediaCaptureSession *captureInterface = nullptr;
     QPlatformCamera *control = nullptr;
 
+    QCameraInfo cameraDevice;
     QCameraExposure *cameraExposure = nullptr;
     QCameraFocus *cameraFocus = nullptr;
     QCameraImageProcessing *imageProcessing = nullptr;

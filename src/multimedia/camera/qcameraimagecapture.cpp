@@ -41,6 +41,7 @@
 #include <qmediaencodersettings.h>
 #include <qmediametadata.h>
 #include <private/qplatformmediacapture_p.h>
+#include <qmediacapturesession.h>
 
 #include "private/qobject_p.h"
 #include <qcamera.h>
@@ -85,6 +86,7 @@ class QCameraImageCapturePrivate
 public:
     QCamera *camera = nullptr;
 
+    QMediaCaptureSession *captureSession = nullptr;
     QPlatformCameraImageCapture *control = nullptr;
 
     QCameraImageCapture::Error error = QCameraImageCapture::NoError;
@@ -93,7 +95,6 @@ public:
 
     void _q_error(int id, int error, const QString &errorString);
     void _q_readyChanged(bool);
-    void _q_serviceDestroyed();
 
     void unsetError() { error = QCameraImageCapture::NoError; errorString.clear(); }
 
@@ -116,56 +117,48 @@ void QCameraImageCapturePrivate::_q_readyChanged(bool ready)
     emit q->readyForCaptureChanged(ready);
 }
 
-void QCameraImageCapturePrivate::_q_serviceDestroyed()
-{
-    camera = nullptr;
-    control = nullptr;
-}
-
 /*!
     Constructs a media recorder which records the media produced by \a camera.
 
     The \a camera is also used as the parent of this object.
 */
 
-QCameraImageCapture::QCameraImageCapture(QCamera *camera)
-    : QObject(camera), d_ptr(new QCameraImageCapturePrivate)
+QCameraImageCapture::QCameraImageCapture(QObject *parent)
+    : QObject(parent), d_ptr(new QCameraImageCapturePrivate)
 {
-    Q_ASSERT(camera);
     Q_D(QCameraImageCapture);
-
     d->q_ptr = this;
-    d->camera = camera;
+}
 
-    QPlatformMediaCaptureSession *service = camera->captureInterface();
-    if (service) {
-        d->control = service->imageCaptureControl();
+void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
+{
+    Q_D(QCameraImageCapture);
+    d->captureSession = session;
 
-        if (d->control) {
-            connect(d->control, SIGNAL(imageExposed(int)),
-                    this, SIGNAL(imageExposed(int)));
-            connect(d->control, SIGNAL(imageCaptured(int,QImage)),
-                    this, SIGNAL(imageCaptured(int,QImage)));
-            connect(d->control, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)),
-                    this, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
-            connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
-                    this, SIGNAL(imageAvailable(int,QVideoFrame)));
-            connect(d->control, SIGNAL(imageSaved(int,QString)),
-                    this, SIGNAL(imageSaved(int,QString)));
-            connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
-                    this, SLOT(_q_readyChanged(bool)));
-            connect(d->control, SIGNAL(error(int,int,QString)),
-                    this, SLOT(_q_error(int,int,QString)));
-
-            connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-            return;
-        }
+    if (!session) {
+        d->control = nullptr;
+        return;
     }
 
-    // without QPlatformCameraImageCapture discard the camera
-    d->camera = nullptr;
-    d->control = nullptr;
+    d->control = session->platformSession()->imageCaptureControl();
+
+    if (!d->control)
+        return;
+
+    connect(d->control, SIGNAL(imageExposed(int)),
+            this, SIGNAL(imageExposed(int)));
+    connect(d->control, SIGNAL(imageCaptured(int,QImage)),
+            this, SIGNAL(imageCaptured(int,QImage)));
+    connect(d->control, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)),
+            this, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
+    connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
+            this, SIGNAL(imageAvailable(int,QVideoFrame)));
+    connect(d->control, SIGNAL(imageSaved(int,QString)),
+            this, SIGNAL(imageSaved(int,QString)));
+    connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
+            this, SLOT(_q_readyChanged(bool)));
+    connect(d->control, SIGNAL(error(int,int,QString)),
+            this, SLOT(_q_error(int,int,QString)));
 }
 
 /*!
@@ -174,15 +167,9 @@ QCameraImageCapture::QCameraImageCapture(QCamera *camera)
 
 QCameraImageCapture::~QCameraImageCapture()
 {
+    if (d_ptr->captureSession)
+        d_ptr->captureSession->setImageCapture(nullptr);
     delete d_ptr;
-}
-
-/*!
-  \reimp
-*/
-QCamera *QCameraImageCapture::camera() const
-{
-    return d_func()->camera;
 }
 
 /*!
@@ -191,6 +178,11 @@ QCamera *QCameraImageCapture::camera() const
 bool QCameraImageCapture::isAvailable() const
 {
     return d_func()->control != nullptr;
+}
+
+QMediaCaptureSession *QCameraImageCapture::captureSession() const
+{
+    return d_ptr->captureSession;
 }
 
 /*!

@@ -37,6 +37,7 @@
 #include <private/qplatformcamerafocus_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformcameraimageprocessing_p.h>
+#include <qmediacapturesession.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 #include <qgraphicsvideoitem.h>
@@ -90,8 +91,11 @@ void tst_QCameraWidgets::cleanupTestCase()
 
 void tst_QCameraWidgets::testCameraEncodingProperyChange()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
     QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
@@ -111,39 +115,39 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QVideoWidget widget;
     QGraphicsVideoItem item;
     MockVideoSurface surface;
-    QCamera camera;
+    QMediaCaptureSession session;
 
-    camera.setViewfinder(&widget);
+    session.setVideoPreview(&widget);
 //    qDebug() << widget.mediaSource();
-//    QVERIFY(widget.mediaSource() == &camera);
+//    QVERIFY(widget.mediaSource() == &session);
 
-    camera.setViewfinder(&item);
+    session.setVideoPreview(&item);
 //    QVERIFY(widget.mediaSource() == nullptr);
-//    QVERIFY(item.mediaSource() == &camera);
+//    QVERIFY(item.mediaSource() == &session);
 
-    camera.setViewfinder(reinterpret_cast<QVideoWidget *>(0));
+    session.setVideoPreview(reinterpret_cast<QVideoWidget *>(0));
 //    QVERIFY(item.mediaSource() == nullptr);
 
-    camera.setViewfinder(&widget);
-//    QVERIFY(widget.mediaSource() == &camera);
+    session.setVideoPreview(&widget);
+//    QVERIFY(widget.mediaSource() == &session);
 
-    camera.setViewfinder(reinterpret_cast<QGraphicsVideoItem *>(0));
+    session.setVideoPreview(reinterpret_cast<QGraphicsVideoItem *>(0));
 //    QVERIFY(widget.mediaSource() == nullptr);
 
-    camera.setViewfinder(&surface);
-//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+    session.setVideoPreview(&surface);
+//    QVERIFY(mocksessionService->rendererControl->surface() == &surface);
 
-    camera.setViewfinder(reinterpret_cast<QAbstractVideoSurface *>(0));
-//    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
+    session.setVideoPreview(reinterpret_cast<QAbstractVideoSurface *>(0));
+//    QVERIFY(mocksessionService->rendererControl->surface() == nullptr);
 
-    camera.setViewfinder(&surface);
-//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
+    session.setVideoPreview(&surface);
+//    QVERIFY(mocksessionService->rendererControl->surface() == &surface);
 
-    camera.setViewfinder(&widget);
-//    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
-//    QVERIFY(widget.mediaSource() == &camera);
+    session.setVideoPreview(&widget);
+//    QVERIFY(mocksessionService->rendererControl->surface() == nullptr);
+//    QVERIFY(widget.mediaSource() == &session);
 
-    camera.setViewfinder(&surface);
+    session.setVideoPreview(&surface);
 //    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 //    QVERIFY(widget.mediaSource() == nullptr);
 }

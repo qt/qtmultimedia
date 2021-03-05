@@ -41,6 +41,7 @@
 #include <qcamera.h>
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
+#include <qmediacapturesession.h>
 #include <qobject.h>
 #include <qmediadevicemanager.h>
 #include <qmediarecorder.h>
@@ -155,8 +156,11 @@ void tst_QCameraBackend::testCtorWithPosition()
 
 void tst_QCameraBackend::testCameraStates()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
 
     QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error)));
     QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged()));
@@ -183,8 +187,12 @@ void tst_QCameraBackend::testCameraStates()
 
 void tst_QCameraBackend::testCameraStartError()
 {
+    QMediaCaptureSession session1;
+    QMediaCaptureSession session2;
     QCamera camera1(QMediaDeviceManager::defaultVideoInput());
     QCamera camera2(QMediaDeviceManager::defaultVideoInput());
+    session1.setCamera(&camera1);
+    session2.setCamera(&camera2);
     QSignalSpy errorSpy1(&camera1, &QCamera::errorOccurred);
     QSignalSpy errorSpy2(&camera2, &QCamera::errorOccurred);
 
@@ -203,8 +211,12 @@ void tst_QCameraBackend::testCameraStartError()
 
 void tst_QCameraBackend::testCameraCapture()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     //prevents camera to flash during the test
     camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
 
@@ -249,8 +261,12 @@ void tst_QCameraBackend::testCameraCapture()
 
 void tst_QCameraBackend::testCaptureToBuffer()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
 
     camera.setActive(true);
@@ -324,8 +340,12 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 {
     QSKIP("Capture metadata is supported only on harmattan");
 
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
 
     QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
@@ -421,9 +441,12 @@ void tst_QCameraBackend::testVideoRecording()
 {
     QFETCH(QCameraInfo, device);
 
+    QMediaCaptureSession session;
     QScopedPointer<QCamera> camera(new QCamera(device));
+    session.setCamera(camera.data());
 
-    QMediaRecorder recorder(camera.data());
+    QMediaRecorder recorder;
+    session.setRecorder(&recorder);
 
     QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error)));
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(error(QMediaRecorder::Error)));

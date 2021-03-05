@@ -46,6 +46,7 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include <private/qplatformcameraimageprocessing_p.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
+#include <qmediacapturesession.h>
 
 #include "mockmediarecorderservice.h"
 #include "qmockintegration_p.h"
@@ -103,37 +104,53 @@ void tst_QCameraImageCapture::cleanupTestCase()
 //MaemoAPI-1823:test QCameraImageCapture Constructor
 void tst_QCameraImageCapture::constructor()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QVERIFY(imageCapture.isAvailable() == true);
 }
 
 //MaemoAPI-1824:test mediaSource
 void tst_QCameraImageCapture::mediaSource()
 {
-    QCamera camera;
-    mockIntegration->lastCaptureService()->hasControls = false;
-    QCameraImageCapture imageCapture(&camera);
-    QVERIFY(imageCapture.camera() == nullptr);
+    {
+        QMediaCaptureSession session;
+        QCamera camera;
+        mockIntegration->lastCaptureService()->hasControls = false;
+        QCameraImageCapture imageCapture;
+        session.setCamera(&camera);
+        session.setImageCapture(&imageCapture);
 
-    QCamera camera1;
-    QCameraImageCapture imageCapture1(&camera1);
-    auto *medobj1 = imageCapture1.camera();
-    QCOMPARE(medobj1, &camera1);
+        QVERIFY(!imageCapture.isAvailable());
+    }
+
+    {
+        QMediaCaptureSession session;
+        QCamera camera;
+        QCameraImageCapture imageCapture;
+        session.setCamera(&camera);
+        session.setImageCapture(&imageCapture);
+
+        QVERIFY(imageCapture.isAvailable());
+    }
 }
 
 void tst_QCameraImageCapture::deleteMediaSource()
 {
+    QMediaCaptureSession session;
     QCamera *camera = new QCamera;
-    QCameraImageCapture *capture = new QCameraImageCapture(camera);
+    QCameraImageCapture *capture = new QCameraImageCapture;
+    session.setCamera(camera);
+    session.setImageCapture(capture);
 
-    QVERIFY(capture->camera() == camera);
     QVERIFY(capture->isAvailable());
 
     delete camera;
 
-    //capture should detach from camera
-    QVERIFY(capture->camera() == nullptr);
+    QVERIFY(session.camera() == nullptr);
     QVERIFY(!capture->isAvailable());
 
     capture->capture();
@@ -143,8 +160,12 @@ void tst_QCameraImageCapture::deleteMediaSource()
 //MaemoAPI-1825:test isReadyForCapture
 void tst_QCameraImageCapture::isReadyForCapture()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
@@ -156,8 +177,12 @@ void tst_QCameraImageCapture::isReadyForCapture()
 //MaemoAPI-1826:test capture
 void tst_QCameraImageCapture::capture()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     QVERIFY(imageCapture.capture() == -1);
@@ -171,8 +196,12 @@ void tst_QCameraImageCapture::capture()
 //MaemoAPI-1827:test cancelCapture
 void tst_QCameraImageCapture::cancelCapture()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QSignalSpy spy(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy spy1(&imageCapture, SIGNAL(imageSaved(int,QString)));
     QVERIFY(imageCapture.isAvailable() == true);
@@ -198,8 +227,12 @@ void tst_QCameraImageCapture::cancelCapture()
 //MaemoAPI-1829:test set encodingSettings
 void tst_QCameraImageCapture::encodingSettings()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.encodingSettings() == QImageEncoderSettings());
     QImageEncoderSettings settings;
@@ -216,15 +249,25 @@ void tst_QCameraImageCapture::errors()
 {
     MockMediaRecorderService::simpleCamera = true;
 
-    QCamera camera1;
-    QCameraImageCapture imageCapture1(&camera1);
-    QVERIFY(imageCapture1.isAvailable() == false);
-    imageCapture1.capture(QString::fromLatin1("/dev/null"));
-    QVERIFY(imageCapture1.error() == QCameraImageCapture::NotSupportedFeatureError);
-    QVERIFY2(!imageCapture1.errorString().isEmpty(), "Device does not support images capture");
+    {
+        QMediaCaptureSession session;
+        QCamera camera;
+        QCameraImageCapture imageCapture;
+        session.setCamera(&camera);
 
+        session.setImageCapture(&imageCapture);
+        QVERIFY(imageCapture.isAvailable() == false);
+        imageCapture.capture(QString::fromLatin1("/dev/null"));
+        QVERIFY(imageCapture.error() == QCameraImageCapture::NotSupportedFeatureError);
+        QVERIFY2(!imageCapture.errorString().isEmpty(), "Device does not support images capture");
+    }
+
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
@@ -239,8 +282,12 @@ void tst_QCameraImageCapture::errors()
 //MaemoAPI-1831:test error
 void tst_QCameraImageCapture::error()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QSignalSpy spy(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
     imageCapture.capture();
     QTest::qWait(30);
@@ -254,8 +301,12 @@ void tst_QCameraImageCapture::error()
 //MaemoAPI-1832:test imageCaptured
 void tst_QCameraImageCapture::imageCaptured()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QSignalSpy spy(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
@@ -274,8 +325,12 @@ void tst_QCameraImageCapture::imageCaptured()
 //MaemoAPI-1833:test imageExposed
 void tst_QCameraImageCapture::imageExposed()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QSignalSpy spy(&imageCapture, SIGNAL(imageExposed(int)));
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
@@ -292,8 +347,12 @@ void tst_QCameraImageCapture::imageExposed()
 //MaemoAPI-1834:test imageSaved
 void tst_QCameraImageCapture::imageSaved()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QSignalSpy spy(&imageCapture, SIGNAL(imageSaved(int,QString)));
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
@@ -311,8 +370,12 @@ void tst_QCameraImageCapture::imageSaved()
 //MaemoAPI-1835:test readyForCaptureChanged
 void tst_QCameraImageCapture::readyForCaptureChanged()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture(&camera);
+    QCameraImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
     QSignalSpy spy(&imageCapture, SIGNAL(readyForCaptureChanged(bool)));
     QVERIFY(imageCapture.isReadyForCapture() == false);
     imageCapture.capture();

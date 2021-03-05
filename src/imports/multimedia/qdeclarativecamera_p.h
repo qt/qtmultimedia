@@ -58,6 +58,7 @@
 #include <qcamerainfo.h>
 #include <qcameraimageprocessing.h>
 #include <qcameraimagecapture.h>
+#include <qmediacapturesession.h>
 
 #include <QtCore/qbasictimer.h>
 #include <QtCore/qdatetime.h>
@@ -246,6 +247,7 @@ private:
     Q_DISABLE_COPY(QDeclarativeCamera)
     void setupDevice(const QString &deviceName);
 
+    QMediaCaptureSession captureSession;
     QCamera *m_camera;
     QCameraInfo m_currentCameraInfo;
 

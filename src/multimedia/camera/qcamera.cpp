@@ -49,6 +49,7 @@
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
 #include <qmediadevicemanager.h>
+#include <qmediacapturesession.h>
 
 #include <QDebug>
 
@@ -87,33 +88,30 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
 void QCameraPrivate::init()
 {
     Q_Q(QCamera);
-    initControls();
+    control = nullptr;
+    if (captureInterface && !cameraInfo.isNull()) {
+        control = captureInterface->cameraControl();
+        control->setCamera(cameraInfo);
+    } else {
+        clear();
+        error = QCamera::CameraError;
+        errorString = QCamera::tr("The camera is not connected to a capture session");
+        return;
+    }
+
+    if (!control) {
+        clear();
+        error = QCamera::CameraError;
+        errorString = QCamera::tr("The capture session doesn't support cameras.");
+        return;
+    }
+
+    q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
+    q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
+    q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
     cameraExposure = new QCameraExposure(q, control);
     cameraFocus = new QCameraFocus(q, control);
     imageProcessing = new QCameraImageProcessing(q, control);
-}
-
-void QCameraPrivate::initControls()
-{
-    Q_Q(QCamera);
-
-    captureInterface = QPlatformMediaIntegration::instance()->createCaptureSession(QMediaRecorder::AudioAndVideo);
-    if (captureInterface) {
-        control = captureInterface->cameraControl();
-
-        if (control) {
-            q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
-            q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
-            q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
-        }
-
-        error = QCamera::NoError;
-    } else {
-        control = nullptr;
-
-        error = QCamera::CameraError;
-        errorString = QCamera::tr("The camera captureInterface is missing");
-    }
 }
 
 void QCameraPrivate::clear()
@@ -151,6 +149,7 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
     : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
+
     d->init();
     setCameraInfo(cameraInfo);
 }
@@ -191,7 +190,9 @@ QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
 QCamera::~QCamera()
 {
     Q_D(QCamera);
-    d->clear();
+    if (d->captureSession)
+        d->captureSession->setCamera(nullptr);
+    Q_ASSERT(!d->captureSession);
 }
 
 /*!
@@ -206,13 +207,14 @@ bool QCamera::isAvailable() const
 bool QCamera::isActive() const
 {
     Q_D(const QCamera);
-    return d->control->isActive();
+    return d->control && d->control->isActive();
 }
 
 void QCamera::setActive(bool active)
 {
     Q_D(const QCamera);
-    d->control->setActive(active);
+    if (d->control)
+        d->control->setActive(active);
 }
 
 /*!
@@ -240,38 +242,6 @@ QCameraImageProcessing *QCamera::imageProcessing() const
 }
 
 /*!
-    Sets a QObject based camera \a viewfinder.
-
-    A QObject based viewfinder is expected to have an invokable videoSurface()
-    method that returns a QAbstractVideoSurface.
-
-    The previously set viewfinder is detached.
-*/
-void QCamera::setViewfinder(QObject *viewfinder)
-{
-    auto *mo = viewfinder->metaObject();
-    QAbstractVideoSurface *surface = nullptr;
-    if (viewfinder && !mo->invokeMethod(viewfinder, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
-        qWarning() << "QCamera::setViewFinder: Object" << viewfinder->metaObject()->className() << "does not have a videoSurface()";
-        return;
-    }
-    setViewfinder(surface);
-}
-
-/*!
-    Sets a video \a surface as the viewfinder of a camera.
-
-    If a viewfinder has already been set on the camera the new surface
-    will replace it.
-*/
-
-void QCamera::setViewfinder(QAbstractVideoSurface *surface)
-{
-    Q_D(QCamera);
-    d->control->setVideoSurface(surface);
-}
-
-/*!
     Returns the error state of the object.
 */
 
@@ -286,14 +256,6 @@ QCamera::Error QCamera::error() const
 QString QCamera::errorString() const
 {
     return d_func()->errorString;
-}
-
-/*!
-    \internal
- */
-QPlatformMediaCaptureSession *QCamera::captureInterface() const
-{
-    return d_func()->captureInterface;
 }
 
 /*! \fn void QCamera::start()
@@ -326,6 +288,20 @@ QCamera::Status QCamera::status() const
     return QCamera::UnavailableStatus;
 }
 
+QMediaCaptureSession *QCamera::captureSession() const
+{
+    Q_D(const QCamera);
+    return d->captureSession;
+}
+
+void QCamera::setCaptureSession(QMediaCaptureSession *session)
+{
+    Q_D(QCamera);
+    d->captureSession = session;
+    d->captureInterface = session ? session->platformSession() : nullptr;
+    d->init();
+}
+
 /*!
     Returns the QCameraInfo object associated with this camera.
  */
@@ -338,10 +314,7 @@ QCameraInfo QCamera::cameraInfo() const
 void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
 {
     Q_D(QCamera);
-    if (cameraInfo.isNull())
-        d->cameraInfo = QMediaDeviceManager::defaultVideoInput();
-    else
-        d->cameraInfo = cameraInfo;
+    d->cameraInfo = cameraInfo;
     if (d->control)
         d->control->setCamera(d->cameraInfo);
 }

@@ -69,7 +69,8 @@ AudioRecorder::AudioRecorder()
 {
     ui->setupUi(this);
 
-    m_audioRecorder = new QMediaRecorder(QMediaRecorder::AudioOnly, this);
+    m_audioRecorder = new QMediaRecorder(this);
+    m_captureSession.setRecorder(m_audioRecorder);
     // ### replace with a monitoring output once we have it.
 //    m_probe = new QAudioProbe(this);
 //    connect(m_probe, &QAudioProbe::audioBufferProbed,

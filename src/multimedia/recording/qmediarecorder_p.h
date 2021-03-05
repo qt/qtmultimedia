@@ -64,20 +64,16 @@ class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QTimer;
 
-#define Q_DECLARE_NON_CONST_PUBLIC(Class) \
-    inline Class* q_func() { return static_cast<Class *>(q_ptr); } \
-    friend class Class;
-
 class QMediaRecorderPrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QMediaRecorder)
+    Q_DECLARE_PUBLIC(QMediaRecorder)
 
 public:
     QMediaRecorderPrivate() = default;
 
     void applySettingsLater();
 
-    QPointer<QCamera> camera;
+    QMediaCaptureSession *captureSession = nullptr;
 
     QPlatformMediaRecorder *control = nullptr;
 

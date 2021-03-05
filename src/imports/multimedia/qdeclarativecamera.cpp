@@ -171,8 +171,8 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_currentCameraInfo = QMediaDeviceManager::defaultVideoInput();
     m_camera = new QCamera(m_currentCameraInfo);
 
-    m_imageCapture = new QDeclarativeCameraCapture(m_camera);
-    m_videoRecorder = new QDeclarativeCameraRecorder(m_camera);
+    m_imageCapture = new QDeclarativeCameraCapture(&captureSession);
+    m_videoRecorder = new QDeclarativeCameraRecorder(&captureSession);
     m_exposure = new QDeclarativeCameraExposure(m_camera);
     m_flash = new QDeclarativeCameraFlash(m_camera);
     m_torch = new QDeclarativeTorch(m_camera);

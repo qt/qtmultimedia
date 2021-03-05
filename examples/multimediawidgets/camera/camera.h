@@ -56,6 +56,7 @@
 #include <QMediaRecorder>
 #include <QScopedPointer>
 #include <QMediaMetaData>
+#include <QMediaCaptureSession>
 
 #include <QMainWindow>
 
@@ -128,6 +129,7 @@ private:
 
     QActionGroup *videoDevicesGroup  = nullptr;
 
+    QMediaCaptureSession m_captureSession;
     QScopedPointer<QCamera> m_camera;
     QCameraImageCapture *m_imageCapture;
     QScopedPointer<QMediaRecorder> m_mediaRecorder;

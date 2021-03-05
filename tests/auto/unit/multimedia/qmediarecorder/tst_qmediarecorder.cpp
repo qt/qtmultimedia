@@ -35,6 +35,7 @@
 #include <qmediarecorder.h>
 #include <qaudioformat.h>
 #include <qmockintegration_p.h>
+#include <qmediacapturesession.h>
 
 #include "mockmediarecorderservice.h"
 #include "mockmediarecordercontrol.h"
@@ -72,7 +73,6 @@ private slots:
     void testAudioSettingsOperatorAssign();
     void testAudioSettingsDestructor();
 
-    void testAvailabilityStatus();
     void testIsAvailable();
     void testMediaSource();
     void testEnum();
@@ -87,6 +87,7 @@ private slots:
 
 private:
     QMockIntegration *mockIntegration = nullptr;
+    QMediaCaptureSession *captureSession;
     QCamera *object = nullptr;
     MockMediaRecorderService *service = nullptr;
     MockMediaRecorderControl *mock;
@@ -96,8 +97,11 @@ private:
 void tst_QMediaRecorder::initTestCase()
 {
     mockIntegration = new QMockIntegration;
+    captureSession = new QMediaCaptureSession;
     object = new QCamera;
-    capture = new QMediaRecorder(object);
+    capture = new QMediaRecorder;
+    captureSession->setCamera(object);
+    captureSession->setRecorder(capture);
     service = mockIntegration->lastCaptureService();
     mock = service->mockControl;
 }
@@ -114,8 +118,11 @@ void tst_QMediaRecorder::testNullService()
 {
     const QString id(QLatin1String("application/x-format"));
 
-    QCamera object;
-    QMediaRecorder recorder(&object);
+    QMediaCaptureSession session;
+    QCamera camera;
+    QMediaRecorder recorder;
+    session.setCamera(&camera);
+    session.setRecorder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
     QCOMPARE(recorder.state(), QMediaRecorder::StoppedState);
@@ -129,8 +136,11 @@ void tst_QMediaRecorder::testNullService()
 void tst_QMediaRecorder::testNullControls()
 {
     service->hasControls = false;
-    QCamera object;
-    QMediaRecorder recorder(&object);
+    QMediaCaptureSession session;
+    QCamera camera;
+    QMediaRecorder recorder;
+    session.setCamera(&camera);
+    session.setRecorder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
     QCOMPARE(recorder.state(), QMediaRecorder::StoppedState);
@@ -175,18 +185,21 @@ void tst_QMediaRecorder::testNullControls()
 
 void tst_QMediaRecorder::testDeleteMediaSource()
 {
-    QCamera *object = new QCamera;
-    QMediaRecorder *capture = new QMediaRecorder(object);
+    QMediaCaptureSession session;
+    QCamera *camera = new QCamera;
+    QMediaRecorder *recorder = new QMediaRecorder;
+    session.setCamera(camera);
+    session.setRecorder(recorder);
 
-    QVERIFY(capture->camera() == object);
-    QVERIFY(capture->isAvailable());
+    QVERIFY(session.camera() == camera);
+    QVERIFY(recorder->isAvailable());
 
-    delete object;
+    delete camera;
 
-    QVERIFY(capture->camera() == nullptr);
-    QVERIFY(!capture->isAvailable());
+    QVERIFY(session.camera() == nullptr);
+    QVERIFY(recorder->isAvailable());
 
-    delete capture;
+    delete recorder;
 }
 
 void tst_QMediaRecorder::testError()
@@ -720,9 +733,12 @@ void tst_QMediaRecorder::metaData()
     QFETCH(QString, genre);
     QFETCH(QString, custom);
 
-    QCamera object;
+    QMediaCaptureSession session;
+    QCamera camera;
+    QMediaRecorder recorder;
+    session.setCamera(&camera);
+    session.setRecorder(&recorder);
 
-    QMediaRecorder recorder(&object);
     QVERIFY(recorder.metaData().isEmpty());
 
     QMediaMetaData data;
@@ -866,54 +882,35 @@ void tst_QMediaRecorder::testAudioSettingsDestructor()
 //    delete audiosettings;
 }
 
-/* availability() API test. */
-void tst_QMediaRecorder::testAvailabilityStatus()
-{
-    {
-        QCamera object;
-        QMediaRecorder recorder(&object);
-        QCOMPARE(recorder.isAvailable(), false);
-    }
-    {
-        mockIntegration->createCaptureSession(QMediaRecorder::AudioAndVideo);
-        QCamera object1;
-        QMediaRecorder recorder1(&object1);
-        QCOMPARE(recorder1.isAvailable(), true);
-    }
-    {
-        mockIntegration->createCaptureSession(QMediaRecorder::AudioAndVideo);
-        QCamera object1;
-        QMediaRecorder recorder1(&object1);
-
-        QCOMPARE(recorder1.isAvailable(), true);
-    }
-}
-
-/* isAvailable() API test. */
 void tst_QMediaRecorder::testIsAvailable()
 {
-    QCamera object;
-    QMediaRecorder recorder(&object);
-    QCOMPARE(recorder.isAvailable(), false);
-
-    mockIntegration->createCaptureSession(QMediaRecorder::AudioAndVideo);
-    QCamera object1;
-    QMediaRecorder recorder1(&object1);
-    QCOMPARE(recorder1.isAvailable(), true);
+    {
+        QMediaCaptureSession session;
+        QCamera camera;
+        QMediaRecorder recorder;
+        session.setCamera(&camera);
+        session.setRecorder(&recorder);
+        QCOMPARE(recorder.isAvailable(), true);
+    }
+    {
+        QMediaRecorder recorder;
+        QCOMPARE(recorder.isAvailable(), false);
+    }
 }
 
 /* mediaSource() API test. */
 void tst_QMediaRecorder::testMediaSource()
 {
     service->hasControls = false;
-    QCamera object;
-    QMediaRecorder recorder(&object);
+    QMediaCaptureSession session;
+    QCamera camera;
+    QMediaRecorder recorder;
+    session.setCamera(&camera);
+    session.setRecorder(&recorder);
 
-    QCamera *medobj = recorder.camera();
-    QVERIFY(medobj == nullptr);
-
-    auto *medobj1 = capture->camera();
-    QVERIFY(medobj1 != nullptr);
+    QCamera *medobj = session.camera();
+    QVERIFY(medobj != nullptr);
+    QVERIFY(!camera.isAvailable());
 }
 
 /* enum QMediaRecorder::ResourceError property test. */
