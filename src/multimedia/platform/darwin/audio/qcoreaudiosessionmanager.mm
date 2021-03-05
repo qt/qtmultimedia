@@ -470,4 +470,4 @@ QDebug operator<<(QDebug dbg, CoreAudioSessionManager::AudioSessionModes mode)
 
 QT_END_NAMESPACE
 
-#include "moc_coreaudiosessionmanager.cpp"
+#include "moc_qcoreaudiosessionmanager_p.cpp"

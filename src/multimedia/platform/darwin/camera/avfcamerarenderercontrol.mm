@@ -384,7 +384,7 @@ void AVFCameraRendererControl::handleViewfinderFrame()
         if (!m_surface->isActive()) {
             QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), frame.handleType());
             if (m_needsHorizontalMirroring)
-                format.setProperty("mirrored", true);
+                format.setMirrored(true);
 
             if (!m_surface->start(format)) {
                 qWarning() << "Failed to start viewfinder m_surface, format:" << format;

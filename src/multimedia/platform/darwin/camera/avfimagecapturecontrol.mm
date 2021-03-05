@@ -286,12 +286,12 @@ QImageEncoderSettings AVFImageCaptureControl::imageSettings() const
 
     QSize res(qt_device_format_resolution(captureDevice.activeFormat));
 #ifdef Q_OS_IOS
-    if (!m_service->imageCaptureControl() || !m_service->imageCaptureControl()->stillImageOutput()) {
+    if (!m_service->imageCaptureControl() || !m_service->avfImageCaptureControl()->stillImageOutput()) {
         qDebugCamera() << Q_FUNC_INFO << "no still image output";
         return settings;
     }
 
-    AVCaptureStillImageOutput *stillImageOutput = m_service->imageCaptureControl()->stillImageOutput();
+    AVCaptureStillImageOutput *stillImageOutput = m_service->avfImageCaptureControl()->stillImageOutput();
     if (stillImageOutput.highResolutionStillImageOutputEnabled)
         res = qt_device_format_high_resolution(captureDevice.activeFormat);
 #endif
@@ -363,7 +363,7 @@ bool AVFImageCaptureControl::applySettings()
     activeFormatChanged = qt_set_active_format(captureDevice, match, true);
 
 #ifdef Q_OS_IOS
-    AVCaptureStillImageOutput *imageOutput = m_service->imageCaptureControl()->stillImageOutput();
+    AVCaptureStillImageOutput *imageOutput = m_service->avfImageCaptureControl()->stillImageOutput();
     if (res == qt_device_format_high_resolution(captureDevice.activeFormat))
         imageOutput.highResolutionStillImageOutputEnabled = YES;
     else

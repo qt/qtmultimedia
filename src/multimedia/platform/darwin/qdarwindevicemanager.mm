@@ -45,12 +45,13 @@
 #include "private/qcoreaudioinput_p.h"
 #include "private/qcoreaudiooutput_p.h"
 #include "private/avfcameracontrol_p.h"
+#include "private/avfcamerautility_p.h"
 
 #include <CoreVideo/CoreVideo.h>
 #import <AVFoundation/AVFoundation.h>
 
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-# include "qcoreaudiosessionmanager_p.h"
+#include "private/qcoreaudiosessionmanager_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -202,7 +203,7 @@ QList<QAudioDeviceInfo> QDarwinDeviceManager::audioInputs() const
 {
 #ifdef Q_OS_IOS
     QList<QAudioDeviceInfo> devices;
-    devices.append(QAudioDeviceInfo(new QCoreAudioDeviceInfo(0, "default", QAudio::AudioInput)));
+    devices.append((new QCoreAudioDeviceInfo("default", QAudio::AudioInput))->create());
     return devices;
 #else
     return availableAudioDevices(QAudio::AudioInput);
@@ -213,7 +214,7 @@ QList<QAudioDeviceInfo> QDarwinDeviceManager::audioOutputs() const
 {
 #ifdef Q_OS_IOS
     QList<QAudioDeviceInfo> devices;
-    devices.append(QAudioDeviceInfo(new QCoreAudioDeviceInfo(0, "default", QAudio::AudioOutput)));
+    devices.append((new QCoreAudioDeviceInfo("default", QAudio::AudioOutput))->create());
     return devices;
 #else
     return availableAudioDevices(QAudio::AudioOutput);
@@ -284,7 +285,7 @@ void QDarwinDeviceManager::updateCameraDevices()
             // device’s highResolutionStillImageDimensions value.
             const QSize hrRes(qt_device_format_high_resolution(format));
             if (!hrRes.isNull() && hrRes.isValid())
-                photoResolutions.insert(res);
+                photoResolutions.insert(hrRes);
 #endif
 
             auto *f = new QCameraFormatPrivate{

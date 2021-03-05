@@ -52,23 +52,35 @@
 
 QT_BEGIN_NAMESPACE
 
-QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(device, mode),
-      m_deviceId(id)
-{
-    preferredFormat = determinePreferredFormat();
-    description = getDescription();
-    supportedSampleRates = { 1, 96000 };
-    supportedChannelCounts = { 1, 16 };
-    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
-}
+#if defined(Q_OS_MACOS)
+    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode)
+        : QAudioDeviceInfoPrivate(device, mode),
+        m_deviceId(id)
+    {
+        preferredFormat = determinePreferredFormat();
+        description = getDescription();
+        supportedSampleRates = { 1, 96000 };
+        supportedChannelCounts = { 1, 16 };
+        supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+    }
+#else
+    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+        : QAudioDeviceInfoPrivate(device, mode)
+    {
+        preferredFormat = determinePreferredFormat();
+        description = getDescription();
+        supportedSampleRates = { 1, 96000 };
+        supportedChannelCounts = { 1, 16 };
+        supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+    }
+#endif
 
 
 QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
 {
     QAudioFormat format;
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     UInt32  propSize = 0;
     AudioObjectPropertyScope audioDevicePropertyScope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
     AudioObjectPropertyAddress audioDevicePropertyStreamsAddress = { kAudioDevicePropertyStreams,
@@ -139,7 +151,7 @@ QString QCoreAudioDeviceInfo::getDescription() const
     CFRelease(name);
     return s;
 #else
-    return QString::fromUtf8(m_device);
+    return QString::fromUtf8(id);
 #endif
 }
 

@@ -48,7 +48,7 @@
 #endif
 
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-# include "coreaudiosessionmanager.h"
+# include "qcoreaudiosessionmanager_p.h"
 #endif
 
 #include <QtMultimedia/private/qaudiohelpers_p.h>

@@ -803,7 +803,7 @@ void AVFCameraExposureControl::applyFlashSettings()
 #ifdef Q_OS_IOS
             if (![captureDevice isFlashAvailable]) {
                 qDebugCamera() << Q_FUNC_INFO << "flash is not available at the moment";
-                return false;
+                return;
             }
 #endif
             if (m_flashMode == QCameraExposure::FlashOn)
@@ -820,7 +820,7 @@ void AVFCameraExposureControl::applyFlashSettings()
 #ifdef Q_OS_IOS
             if (![captureDevice isTorchAvailable]) {
                 qDebugCamera() << Q_FUNC_INFO << "torch is not available at the moment";
-                return false;
+                return;
             }
 #endif
             if (m_torchMode == QCameraExposure::TorchOn)

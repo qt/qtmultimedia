@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "avfvideoframerenderer_ios.h"
+#include "private/avfvideoframerenderer_ios_p.h"
 
 #include <QtMultimedia/qabstractvideosurface.h>
 #include <QtOpenGL/QOpenGLFramebufferObject>

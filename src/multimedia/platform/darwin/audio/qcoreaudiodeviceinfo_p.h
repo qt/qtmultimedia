@@ -53,7 +53,7 @@
 #include <qaudiosystem_p.h>
 #include <private/qaudiodeviceinfo_p.h>
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
 # include <CoreAudio/CoreAudio.h>
 #endif
 
@@ -62,16 +62,22 @@ QT_BEGIN_NAMESPACE
 class QCoreAudioDeviceInfo : public QAudioDeviceInfoPrivate
 {
 public:
+#if defined(Q_OS_MACOS)
     QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode);
+#else
+    QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+#endif
     ~QCoreAudioDeviceInfo() {}
 
     bool isFormatSupported(const QAudioFormat &format) const;
 
+#if defined(Q_OS_MACOS)
     AudioDeviceID deviceID() const { return m_deviceId; }
+#endif
 private:
     QAudioFormat determinePreferredFormat() const;
     QString getDescription() const;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     AudioDeviceID m_deviceId;
 #endif
 };
