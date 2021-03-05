@@ -92,8 +92,7 @@ QPlatformMediaRecorder *QAndroidCaptureService::mediaRecorderControl()
 
 void QAndroidCaptureService::setVideoPreview(QAbstractVideoSurface *surface)
 {
-    // ### Should move to the session
-    m_cameraControl->setVideoSurface(surface);
+    m_captureSession->setVideoSurface(surface);
 }
 
 QT_END_NAMESPACE

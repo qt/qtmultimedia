@@ -174,11 +174,6 @@ bool AVFCameraControl::CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtForm
     return true;
 }
 
-void AVFCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
-{
-    m_session->setVideoSurface(surface);
-}
-
 AVCaptureConnection *AVFCameraControl::videoConnection() const
 {
     if (!m_session->videoOutput() || !m_session->videoOutput()->videoDataOutput())

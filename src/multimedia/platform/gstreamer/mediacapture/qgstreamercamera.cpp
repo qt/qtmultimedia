@@ -142,8 +142,3 @@ void QGstreamerCamera::reloadPipeline()
         }
     }
 }
-
-void QGstreamerCamera::setVideoSurface(QAbstractVideoSurface *surface)
-{
-    m_session->setVideoPreview(surface);
-}

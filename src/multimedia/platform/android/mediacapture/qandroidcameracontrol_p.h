@@ -77,11 +77,8 @@ public:
     QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 
-    void setVideoSurface(QAbstractVideoSurface *surface) override;
-
 private:
     QAndroidCameraSession *m_cameraSession;
-    QAndroidCameraVideoRendererControl *m_renderer = nullptr;
 
     QTimer *m_recalculateTimer;
 };

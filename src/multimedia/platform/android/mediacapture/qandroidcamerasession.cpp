@@ -827,4 +827,11 @@ bool QAndroidCameraSession::requestRecordingPermission()
     return result;
 }
 
+void QAndroidCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
+{
+    if (!m_renderer)
+        m_renderer = new QAndroidCameraVideoRendererControl(m_cameraSession);
+    m_renderer->setSurface(surface);
+}
+
 QT_END_NAMESPACE

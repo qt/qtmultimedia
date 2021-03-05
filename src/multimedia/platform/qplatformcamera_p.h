@@ -80,8 +80,6 @@ public:
     virtual QPlatformCameraExposure *exposureControl() { return nullptr; }
     virtual QPlatformCameraImageProcessing *imageProcessingControl() { return nullptr; }
 
-    virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
-
 Q_SIGNALS:
     void activeChanged(bool);
     void statusChanged(QCamera::Status);

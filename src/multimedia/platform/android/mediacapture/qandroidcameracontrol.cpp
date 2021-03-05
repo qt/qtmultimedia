@@ -116,11 +116,4 @@ QPlatformCameraImageProcessing *QAndroidCameraControl::imageProcessingControl()
     return m_cameraSession->imageProcessingControl();
 }
 
-void QAndroidCameraControl::setVideoSurface(QAbstractVideoSurface *surface)
-{
-    if (!m_renderer)
-        m_renderer = new QAndroidCameraVideoRendererControl(m_cameraSession);
-    m_renderer->setSurface(surface);
-}
-
 QT_END_NAMESPACE

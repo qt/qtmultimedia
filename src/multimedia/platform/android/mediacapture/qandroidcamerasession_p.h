@@ -66,6 +66,7 @@ class QAndroidVideoOutput;
 class QAndroidCameraExposureControl;
 class QAndroidCameraFocusControl;
 class QAndroidCameraImageProcessingControl;
+class QAndroidCameraVideoRendererControl;
 
 class QAndroidCameraSession : public QObject
 {
@@ -119,6 +120,8 @@ public:
     QAndroidCameraFocusControl *focusControl() { return m_cameraFocusControl; }
     QAndroidCameraExposureControl *exposureControl() { return m_cameraExposureControl; }
     QAndroidCameraImageProcessingControl *imageProcessingControl() { return m_cameraImageProcessingControl; }
+
+    void setVideoSurface(QAbstractVideoSurface *surface);
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status status);
@@ -182,6 +185,8 @@ private:
     int m_savedState = -1;
     QCamera::Status m_status;
     bool m_previewStarted;
+
+    QAndroidCameraVideoRendererControl *m_renderer = nullptr;
 
     QAndroidCameraExposureControl *m_cameraExposureControl;
     QAndroidCameraFocusControl *m_cameraFocusControl;
