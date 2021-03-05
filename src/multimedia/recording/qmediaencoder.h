@@ -111,7 +111,6 @@ class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
-    Q_PROPERTY(QAudioDeviceInfo audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
 
 public:
     QMediaEncoder(QObject *parent = nullptr);
@@ -132,6 +131,7 @@ public:
 
     qint64 duration() const;
 
+    // ### These two properties should move to the capture session or a QAudioDevice object
     bool isMuted() const;
     qreal volume() const;
 
@@ -142,9 +142,6 @@ public:
     void setMetaData(const QMediaMetaData &metaData);
     void addMetaData(const QMediaMetaData &metaData);
 
-    QAudioDeviceInfo audioInput() const;
-    QCameraInfo videoInput() const;
-
     QMediaCaptureSession *captureSession() const;
 
 public Q_SLOTS:
@@ -153,7 +150,6 @@ public Q_SLOTS:
     void stop();
     void setMuted(bool muted);
     void setVolume(qreal volume);
-    bool setAudioInput(const QAudioDeviceInfo &device);
 
 Q_SIGNALS:
     void stateChanged(QMediaEncoder::State state);
@@ -162,7 +158,6 @@ Q_SIGNALS:
     void mutedChanged(bool muted);
     void volumeChanged(qreal volume);
     void actualLocationChanged(const QUrl &location);
-    void audioInputChanged();
 
     void error(QMediaEncoder::Error error);
 

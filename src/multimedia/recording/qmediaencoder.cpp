@@ -569,60 +569,11 @@ void QMediaEncoder::addMetaData(const QMediaMetaData &metaData)
     for each of them with metaDataChanged() changed emitted once.
 */
 
-/*!
-    \property QMediaEncoder::audioInput
-    \brief the active audio input name.
-
-*/
-
-/*!
-    Returns the active audio input.
-*/
-
-QAudioDeviceInfo QMediaEncoder::audioInput() const
-{
-    Q_D(const QMediaEncoder);
-
-    return d->control->audioInput();
-}
-
-/*!
-    Returns information about the active video input.
-*/
-QCameraInfo QMediaEncoder::videoInput() const
-{
-    Q_D(const QMediaEncoder);
-
-    auto *camera = d->captureSession->camera();
-    return camera ? camera->cameraInfo() : QCameraInfo();
-}
-
 QMediaCaptureSession *QMediaEncoder::captureSession() const
 {
     Q_D(const QMediaEncoder);
     return d->captureSession;
 }
-
-/*!
-    Set the active audio input to \a device.
-*/
-
-bool QMediaEncoder::setAudioInput(const QAudioDeviceInfo &device)
-{
-    Q_D(QMediaEncoder);
-
-    if (d->control && d->control->setAudioInput(device)) {
-        audioInputChanged();
-        return true;
-    }
-    return false;
-}
-
-/*!
-    \fn QMediaEncoder::audioInputChanged(const QString& name)
-
-    Signal emitted when active audio input changes to \a name.
-*/
 
 QT_END_NAMESPACE
 

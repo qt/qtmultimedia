@@ -97,7 +97,7 @@ QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
     connect(d->encoder, &QMediaEncoder::statusChanged, this, &QMediaRecorder::statusChanged);
     connect(d->encoder, &QMediaEncoder::mutedChanged, this, &QMediaRecorder::mutedChanged);
     connect(d->encoder, &QMediaEncoder::volumeChanged, this, &QMediaRecorder::volumeChanged);
-    connect(d->encoder, &QMediaEncoder::audioInputChanged, this, &QMediaRecorder::audioInputChanged);
+    connect(d->captureSession, &QMediaCaptureSession::audioInputChanged, this, &QMediaRecorder::audioInputChanged);
 }
 
 /*!
@@ -452,15 +452,7 @@ void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
 
 QAudioDeviceInfo QMediaRecorder::audioInput() const
 {
-    return d_ptr->encoder->audioInput();
-}
-
-/*!
-    Returns information about the active video input.
-*/
-QCameraInfo QMediaRecorder::videoInput() const
-{
-    return d_ptr->encoder->videoInput();
+    return d_ptr->captureSession->audioInput();
 }
 
 QMediaCaptureSession *QMediaRecorder::captureSession() const
@@ -473,9 +465,9 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
     Set the active audio input to \a device.
 */
 
-bool QMediaRecorder::setAudioInput(const QAudioDeviceInfo &device)
+void QMediaRecorder::setAudioInput(const QAudioDeviceInfo &device)
 {
-    return d_ptr->encoder->setAudioInput(device);
+    d_ptr->captureSession->setAudioInput(device);
 }
 
 /*!

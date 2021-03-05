@@ -99,7 +99,6 @@ public:
     void addMetaData(const QMediaMetaData &metaData);
 
     QAudioDeviceInfo audioInput() const;
-    QCameraInfo videoInput() const;
 
     QMediaCaptureSession *captureSession() const;
 
@@ -109,7 +108,7 @@ public Q_SLOTS:
     void stop();
     void setMuted(bool muted);
     void setVolume(qreal volume);
-    bool setAudioInput(const QAudioDeviceInfo &device);
+    void setAudioInput(const QAudioDeviceInfo &device);
 
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);

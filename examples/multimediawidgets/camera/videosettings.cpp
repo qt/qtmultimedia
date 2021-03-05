@@ -57,7 +57,9 @@
 #include <QMediaEncoder>
 #include <QMediaFormat>
 #include <QAudioDeviceInfo>
+#include <QMediaCaptureSession>
 #include <QCameraInfo>
+#include <QCamera>
 
 VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
     : QDialog(parent),
@@ -75,7 +77,7 @@ VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
     }
 
     //sample rate:
-    const auto sampleRates = mediaRecorder->audioInput().supportedSampleRates();
+    const auto sampleRates = mediaRecorder->captureSession()->audioInput().supportedSampleRates();
     ui->audioSampleRateBox->setRange(sampleRates.minimum, sampleRates.maximum);
 
     //video codecs
@@ -88,7 +90,7 @@ VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
 
 
     ui->videoResolutionBox->addItem(tr("Default"));
-    auto supportedResolutions = mediaRecorder->videoInput().photoResolutions(); // ### Should use resolutions from video formats
+    auto supportedResolutions = mediaRecorder->captureSession()->camera()->cameraInfo().photoResolutions(); // ### Should use resolutions from video formats
     for (const QSize &resolution : supportedResolutions) {
         ui->videoResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
                                         QVariant(resolution));

@@ -100,7 +100,7 @@ AudioRecorder::AudioRecorder()
     }
 
     //sample rate
-    auto sampleRates = m_audioEncoder->audioInput().supportedSampleRates();
+    auto sampleRates = m_captureSession.audioInput().supportedSampleRates();
     ui->sampleRateBox->setRange(sampleRates.minimum, sampleRates.maximum);
     ui->sampleRateBox->setValue(qBound(sampleRates.minimum, 44100, sampleRates.maximum));
 
@@ -191,7 +191,7 @@ static QVariant boxValue(const QComboBox *box)
 void AudioRecorder::toggleRecord()
 {
     if (m_audioEncoder->state() == QMediaEncoder::StoppedState) {
-        m_audioEncoder->setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDeviceInfo>());
+        m_captureSession.setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDeviceInfo>());
 
         QMediaEncoderSettings settings;
         settings.setFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
