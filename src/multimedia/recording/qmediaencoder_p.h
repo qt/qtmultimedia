@@ -37,65 +37,65 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIACAPTURESESSION_H
-#define QMEDIACAPTURESESSION_H
+#ifndef QMEDIAENCODER_P_H
+#define QMEDIAENCODER_P_H
 
-#include <QtCore/qobject.h>
-#include <QtMultimedia/qtmultimediaglobal.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qmediaencoder.h"
+#include "qcamera.h"
+#include <QtCore/qurl.h>
+#include <QtCore/qpointer.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCamera;
-class QAudioDeviceInfo;
-class QCameraInfo;
-class QCameraImageCapture; // ### rename to QMediaImageCapture
-class QMediaEncoder;
-class QPlatformMediaCaptureSession;
-class QAbstractVideoSurface;
+class QPlatformMediaRecorder;
+class QMediaContainerControl;
+class QAudioEncoderSettingsControl;
+class QVideoEncoderSettingsControl;
+class QTimer;
 
-class QMediaCaptureSessionPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
+class QMediaEncoderPrivate
 {
-    Q_OBJECT
-    Q_PROPERTY(QAudioDeviceInfo audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
-    Q_PROPERTY(QCamera *camera READ camera WRITE setCamera NOTIFY cameraChanged)
-    Q_PROPERTY(QCameraImageCapture *imageCapture READ imageCapture WRITE setImageCapture NOTIFY imageCaptureChanged)
-    Q_PROPERTY(QMediaEncoder *encoder READ encoder WRITE setEncoder NOTIFY encoderChanged)
+    Q_DECLARE_PUBLIC(QMediaEncoder)
+
 public:
-    explicit QMediaCaptureSession(QObject *parent = nullptr);
-    ~QMediaCaptureSession();
+    QMediaEncoderPrivate() = default;
 
-    bool isAvailable() const;
+    void applySettingsLater();
 
-    QAudioDeviceInfo audioInput() const; // ### Should use a QAudioDevice *
-    void setAudioInput(const QAudioDeviceInfo &device);
+    QMediaCaptureSession *captureSession = nullptr;
 
-    QCamera *camera() const;
-    void setCamera(QCamera *camera);
+    QPlatformMediaRecorder *control = nullptr;
 
-    QCameraImageCapture *imageCapture();
-    void setImageCapture(QCameraImageCapture *imageCapture);
+    bool settingsChanged = false;
 
-    QMediaEncoder *encoder();
-    void setEncoder(QMediaEncoder *recorder);
+    QMediaEncoder::State state = QMediaEncoder::StoppedState;
+    QMediaEncoder::Error error = QMediaEncoder::NoError;
+    QString errorString;
+    QUrl actualLocation;
+    QMediaEncoderSettings encoderSettings;
 
-    void setVideoPreview(QObject *preview);
-    void setVideoPreview(QAbstractVideoSurface *preview);
+    void _q_stateChanged(QMediaEncoder::State state);
+    void _q_error(int error, const QString &errorString);
+    void _q_updateActualLocation(const QUrl &);
+    void _q_applySettings();
 
-    QPlatformMediaCaptureSession *platformSession() const;
-
-Q_SIGNALS:
-    void audioInputChanged();
-    void cameraChanged();
-    void imageCaptureChanged();
-    void encoderChanged();
-
-private:
-    QMediaCaptureSessionPrivate *d_ptr;
-    Q_DISABLE_COPY(QMediaCaptureSession)
-    Q_DECLARE_PRIVATE(QMediaCaptureSession)
+    QMediaEncoder *q_ptr = nullptr;
 };
+
+#undef Q_DECLARE_NON_CONST_PUBLIC
 
 QT_END_NAMESPACE
 
-#endif  // QMEDIACAPTURESESSION_H
+#endif
+

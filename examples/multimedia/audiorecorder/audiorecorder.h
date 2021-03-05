@@ -52,13 +52,12 @@
 #define AUDIORECORDER_H
 
 #include <QMainWindow>
-#include <QMediaRecorder>
+#include <QMediaEncoder>
 #include <QMediaCaptureSession>
 #include <QUrl>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class AudioRecorder; }
-class QMediaRecorder;
 class QAudioBuffer;
 QT_END_NAMESPACE
 
@@ -79,8 +78,8 @@ private slots:
     void togglePause();
     void toggleRecord();
 
-    void updateStatus(QMediaRecorder::Status);
-    void onStateChanged(QMediaRecorder::State);
+    void updateStatus(QMediaEncoder::Status);
+    void onStateChanged(QMediaEncoder::State);
     void updateProgress(qint64 pos);
     void displayErrorMessage();
 
@@ -90,7 +89,7 @@ private:
     Ui::AudioRecorder *ui = nullptr;
 
     QMediaCaptureSession m_captureSession;
-    QMediaRecorder *m_audioRecorder = nullptr;
+    QMediaEncoder *m_audioEncoder = nullptr;
     QList<AudioLevel*> m_audioLevels;
     bool m_outputLocationSet = false;
 

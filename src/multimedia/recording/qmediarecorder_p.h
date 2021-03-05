@@ -64,34 +64,6 @@ class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QTimer;
 
-class QMediaRecorderPrivate
-{
-    Q_DECLARE_PUBLIC(QMediaRecorder)
-
-public:
-    QMediaRecorderPrivate() = default;
-
-    void applySettingsLater();
-
-    QMediaCaptureSession *captureSession = nullptr;
-
-    QPlatformMediaRecorder *control = nullptr;
-
-    bool settingsChanged = false;
-
-    QMediaRecorder::State state = QMediaRecorder::StoppedState;
-    QMediaRecorder::Error error = QMediaRecorder::NoError;
-    QString errorString;
-    QUrl actualLocation;
-    QMediaEncoderSettings encoderSettings;
-
-    void _q_stateChanged(QMediaRecorder::State state);
-    void _q_error(int error, const QString &errorString);
-    void _q_updateActualLocation(const QUrl &);
-    void _q_applySettings();
-
-    QMediaRecorder *q_ptr = nullptr;
-};
 
 #undef Q_DECLARE_NON_CONST_PUBLIC
 

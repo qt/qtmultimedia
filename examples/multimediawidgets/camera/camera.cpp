@@ -54,7 +54,7 @@
 #include "imagesettings.h"
 #include "metadatadialog.h"
 
-#include <QMediaRecorder>
+#include <QMediaEncoder>
 #include <QVideoWidget>
 #include <QCameraInfo>
 #include <QMediaMetaData>
@@ -109,15 +109,15 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(m_camera.data(), &QCamera::activeChanged, this, &Camera::updateCameraActive);
     connect(m_camera.data(), &QCamera::errorOccurred, this, &Camera::displayCameraError);
 
-    m_mediaRecorder.reset(new QMediaRecorder);
-    m_captureSession.setRecorder(m_mediaRecorder.data());
-    connect(m_mediaRecorder.data(), &QMediaRecorder::stateChanged, this, &Camera::updateRecorderState);
+    m_mediaEncoder.reset(new QMediaEncoder);
+    m_captureSession.setEncoder(m_mediaEncoder.data());
+    connect(m_mediaEncoder.data(), &QMediaEncoder::stateChanged, this, &Camera::updateRecorderState);
 
     m_imageCapture = new QCameraImageCapture;
     m_captureSession.setImageCapture(m_imageCapture);
 
-    connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
-    connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error),
+    connect(m_mediaEncoder.data(), &QMediaEncoder::durationChanged, this, &Camera::updateRecordTime);
+    connect(m_mediaEncoder.data(), QOverload<QMediaEncoder::Error>::of(&QMediaEncoder::error),
             this, &Camera::displayRecorderError);
 
     connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
@@ -125,7 +125,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     m_captureSession.setVideoPreview(ui->viewfinder);
 
     updateCameraActive(m_camera->isActive());
-    updateRecorderState(m_mediaRecorder->state());
+    updateRecorderState(m_mediaEncoder->state());
 
     connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
     connect(m_imageCapture, &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
@@ -151,7 +151,7 @@ void Camera::keyPressEvent(QKeyEvent * event)
         if (m_doImageCapture) {
             takeImage();
         } else {
-            if (m_mediaRecorder->state() == QMediaRecorder::RecordingState)
+            if (m_mediaEncoder->state() == QMediaEncoder::RecordingState)
                 stop();
             else
                 record();
@@ -170,7 +170,7 @@ void Camera::keyReleaseEvent(QKeyEvent *event)
 
 void Camera::updateRecordTime()
 {
-    QString str = QString("Recorded %1 sec").arg(m_mediaRecorder->duration()/1000);
+    QString str = QString("Recorded %1 sec").arg(m_mediaEncoder->duration()/1000);
     ui->statusbar->showMessage(str);
 }
 
@@ -198,7 +198,7 @@ void Camera::configureCaptureSettings()
 
 void Camera::configureVideoSettings()
 {
-    VideoSettings settingsDialog(m_mediaRecorder.data());
+    VideoSettings settingsDialog(m_mediaEncoder.data());
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     settingsDialog.setEncoderSettings(m_encoderSettings);
@@ -206,7 +206,7 @@ void Camera::configureVideoSettings()
     if (settingsDialog.exec()) {
         m_encoderSettings = settingsDialog.encoderSettings();
 
-        m_mediaRecorder->setEncoderSettings(m_encoderSettings);
+        m_mediaEncoder->setEncoderSettings(m_encoderSettings);
     }
 }
 
@@ -225,23 +225,23 @@ void Camera::configureImageSettings()
 
 void Camera::record()
 {
-    m_mediaRecorder->record();
+    m_mediaEncoder->record();
     updateRecordTime();
 }
 
 void Camera::pause()
 {
-    m_mediaRecorder->pause();
+    m_mediaEncoder->pause();
 }
 
 void Camera::stop()
 {
-    m_mediaRecorder->stop();
+    m_mediaEncoder->stop();
 }
 
 void Camera::setMuted(bool muted)
 {
-    m_mediaRecorder->setMuted(muted);
+    m_mediaEncoder->setMuted(muted);
 }
 
 void Camera::takeImage()
@@ -289,22 +289,22 @@ void Camera::updateCameraActive(bool active)
     }
 }
 
-void Camera::updateRecorderState(QMediaRecorder::State state)
+void Camera::updateRecorderState(QMediaEncoder::State state)
 {
     switch (state) {
-    case QMediaRecorder::StoppedState:
+    case QMediaEncoder::StoppedState:
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(false);
         ui->metaDataButton->setEnabled(false);
         break;
-    case QMediaRecorder::PausedState:
+    case QMediaEncoder::PausedState:
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(false);
         ui->stopButton->setEnabled(true);
         ui->metaDataButton->setEnabled(true);
         break;
-    case QMediaRecorder::RecordingState:
+    case QMediaEncoder::RecordingState:
         ui->recordButton->setEnabled(false);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(true);
@@ -320,7 +320,7 @@ void Camera::setExposureCompensation(int index)
 
 void Camera::displayRecorderError()
 {
-    QMessageBox::warning(this, tr("Capture Error"), m_mediaRecorder->errorString());
+    QMessageBox::warning(this, tr("Capture Error"), m_mediaEncoder->errorString());
 }
 
 void Camera::displayCameraError()
@@ -413,6 +413,6 @@ void Camera::saveMetaData()
             }
         }
     }
-    m_mediaRecorder->setMetaData(data);
+    m_mediaEncoder->setMetaData(data);
 }
 

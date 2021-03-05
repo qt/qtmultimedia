@@ -56,7 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 class QComboBox;
-class QMediaRecorder;
+class QMediaEncoder;
 namespace Ui { class VideoSettingsUi; }
 QT_END_NAMESPACE
 
@@ -65,7 +65,7 @@ class VideoSettings : public QDialog
     Q_OBJECT
 
 public:
-    explicit VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent = nullptr);
+    explicit VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent = nullptr);
     ~VideoSettings();
 
     QMediaEncoderSettings encoderSettings() const;
@@ -79,7 +79,7 @@ private:
     void selectComboBoxItem(QComboBox *box, const QVariant &value);
 
     Ui::VideoSettingsUi *ui;
-    QMediaRecorder *mediaRecorder;
+    QMediaEncoder *mediaRecorder;
 };
 
 #endif // VIDEOSETTINGS_H

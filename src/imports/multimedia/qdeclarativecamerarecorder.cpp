@@ -78,17 +78,17 @@ QT_BEGIN_NAMESPACE
 QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QMediaCaptureSession *session, QObject *parent) :
     QObject(parent)
 {
-    m_recorder = new QMediaRecorder(this);
-    session->setRecorder(m_recorder);
-    connect(m_recorder, SIGNAL(stateChanged(QMediaRecorder::State)),
-            SLOT(updateRecorderState(QMediaRecorder::State)));
-    connect(m_recorder, SIGNAL(statusChanged(QMediaRecorder::Status)),
+    m_encoder = new QMediaEncoder(this);
+    session->setEncoder(m_encoder);
+    connect(m_encoder, SIGNAL(stateChanged(QMediaEncoder::State)),
+            SLOT(updateRecorderState(QMediaEncoder::State)));
+    connect(m_encoder, SIGNAL(statusChanged(QMediaEncoder::Status)),
             SIGNAL(recorderStatusChanged()));
-    connect(m_recorder, SIGNAL(error(QMediaRecorder::Error)),
-            SLOT(updateRecorderError(QMediaRecorder::Error)));
-    connect(m_recorder, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
-    connect(m_recorder, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
-    connect(m_recorder, SIGNAL(actualLocationChanged(QUrl)),
+    connect(m_encoder, SIGNAL(error(QMediaEncoder::Error)),
+            SLOT(updateRecorderError(QMediaEncoder::Error)));
+    connect(m_encoder, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
+    connect(m_encoder, SIGNAL(durationChanged(qint64)), SIGNAL(durationChanged(qint64)));
+    connect(m_encoder, SIGNAL(actualLocationChanged(QUrl)),
             SLOT(updateActualLocation(QUrl)));
 }
 
@@ -144,40 +144,40 @@ QMediaFormat::FileFormat QDeclarativeCameraRecorder::mediaContainer() const
 
 void QDeclarativeCameraRecorder::setCaptureResolution(const QSize &resolution)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (resolution != captureResolution()) {
         m_encoderSettings.setVideoResolution(resolution);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit captureResolutionChanged(resolution);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioCodec(QMediaFormat::AudioCodec codec)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (codec != audioCodec()) {
         m_encoderSettings.setAudioCodec(codec);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit audioCodecChanged();
     }
 }
 
 void QDeclarativeCameraRecorder::setVideoCodec(QMediaFormat::VideoCodec codec)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (codec != videoCodec()) {
         m_encoderSettings.setVideoCodec(codec);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit videoCodecChanged();
     }
 }
 
 void QDeclarativeCameraRecorder::setMediaContainer(QMediaFormat::FileFormat container)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (container != m_encoderSettings.format()) {
         m_encoderSettings.setFormat(container);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit mediaContainerChanged();
     }
 }
@@ -284,70 +284,70 @@ QDeclarativeCameraRecorder::EncodingMode QDeclarativeCameraRecorder::audioEncodi
 
 void QDeclarativeCameraRecorder::setFrameRate(qreal frameRate)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (!qFuzzyCompare(m_encoderSettings.videoFrameRate(),frameRate)) {
         m_encoderSettings.setVideoFrameRate(frameRate);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit frameRateChanged(frameRate);
     }
 }
 
 void QDeclarativeCameraRecorder::setVideoBitRate(int rate)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (m_encoderSettings.videoBitRate() != rate) {
         m_encoderSettings.setVideoBitRate(rate);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit videoBitRateChanged(rate);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioBitRate(int rate)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (m_encoderSettings.audioBitRate() != rate) {
         m_encoderSettings.setAudioBitRate(rate);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit audioBitRateChanged(rate);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioChannels(int channels)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (m_encoderSettings.audioChannelCount() != channels) {
         m_encoderSettings.setAudioChannelCount(channels);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit audioChannelsChanged(channels);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioSampleRate(int rate)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (m_encoderSettings.audioSampleRate() != rate) {
         m_encoderSettings.setAudioSampleRate(rate);
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit audioSampleRateChanged(rate);
     }
 }
 
 void QDeclarativeCameraRecorder::setAudioEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (m_encoderSettings.encodingMode() != QMediaEncoderSettings::EncodingMode(encodingMode)) {
         m_encoderSettings.setEncodingMode(QMediaEncoderSettings::EncodingMode(encodingMode));
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit audioEncodingModeChanged(encodingMode);
     }
 }
 
 void QDeclarativeCameraRecorder::setVideoEncodingMode(QDeclarativeCameraRecorder::EncodingMode encodingMode)
 {
-    m_encoderSettings = m_recorder->encoderSettings();
+    m_encoderSettings = m_encoder->encoderSettings();
     if (m_encoderSettings.encodingMode() != QMediaEncoderSettings::EncodingMode(encodingMode)) {
         m_encoderSettings.setEncodingMode(QMediaEncoderSettings::EncodingMode(encodingMode));
-        m_recorder->setEncoderSettings(m_encoderSettings);
+        m_encoder->setEncoderSettings(m_encoderSettings);
         emit videoEncodingModeChanged(encodingMode);
     }
 }
@@ -375,7 +375,7 @@ void QDeclarativeCameraRecorder::setVideoEncodingMode(QDeclarativeCameraRecorder
 */
 QDeclarativeCameraRecorder::Error QDeclarativeCameraRecorder::errorCode() const
 {
-    return QDeclarativeCameraRecorder::Error(m_recorder->error());
+    return QDeclarativeCameraRecorder::Error(m_encoder->error());
 }
 
 /*!
@@ -385,7 +385,7 @@ QDeclarativeCameraRecorder::Error QDeclarativeCameraRecorder::errorCode() const
 */
 QString QDeclarativeCameraRecorder::errorString() const
 {
-    return m_recorder->errorString();
+    return m_encoder->errorString();
 }
 
 /*!
@@ -407,10 +407,10 @@ QString QDeclarativeCameraRecorder::errorString() const
 QDeclarativeCameraRecorder::RecorderState QDeclarativeCameraRecorder::recorderState() const
 {
     //paused state is not supported for camera
-    QMediaRecorder::State state = m_recorder->state();
+    QMediaEncoder::State state = m_encoder->state();
 
-    if (state == QMediaRecorder::PausedState)
-        state = QMediaRecorder::StoppedState;
+    if (state == QMediaEncoder::PausedState)
+        state = QMediaEncoder::StoppedState;
 
     return RecorderState(state);
 }
@@ -444,7 +444,7 @@ QDeclarativeCameraRecorder::RecorderState QDeclarativeCameraRecorder::recorderSt
 
 QDeclarativeCameraRecorder::RecorderStatus QDeclarativeCameraRecorder::recorderStatus() const
 {
-    return RecorderStatus(m_recorder->status());
+    return RecorderStatus(m_encoder->status());
 }
 
 /*!
@@ -469,15 +469,15 @@ void QDeclarativeCameraRecorder::stop()
 
 void QDeclarativeCameraRecorder::setRecorderState(QDeclarativeCameraRecorder::RecorderState state)
 {
-    if (!m_recorder)
+    if (!m_encoder)
         return;
 
     switch (state) {
     case QDeclarativeCameraRecorder::RecordingState:
-        m_recorder->record();
+        m_encoder->record();
         break;
     case QDeclarativeCameraRecorder::StoppedState:
-        m_recorder->stop();
+        m_encoder->stop();
         break;
     }
 }
@@ -496,7 +496,7 @@ void QDeclarativeCameraRecorder::setRecorderState(QDeclarativeCameraRecorder::Re
 
 QString QDeclarativeCameraRecorder::outputLocation() const
 {
-    return m_recorder->outputLocation().toString();
+    return m_encoder->outputLocation().toString();
 }
 /*!
     \property QDeclarativeCameraRecorder::actualLocation
@@ -514,13 +514,13 @@ QString QDeclarativeCameraRecorder::outputLocation() const
 
 QString QDeclarativeCameraRecorder::actualLocation() const
 {
-    return m_recorder->actualLocation().toString();
+    return m_encoder->actualLocation().toString();
 }
 
 void QDeclarativeCameraRecorder::setOutputLocation(const QString &location)
 {
     if (outputLocation() != location) {
-        m_recorder->setOutputLocation(location);
+        m_encoder->setOutputLocation(location);
         emit outputLocationChanged(outputLocation());
     }
 }
@@ -536,7 +536,7 @@ void QDeclarativeCameraRecorder::setOutputLocation(const QString &location)
 */
 qint64 QDeclarativeCameraRecorder::duration() const
 {
-    return m_recorder->duration();
+    return m_encoder->duration();
 }
 /*!
     \property QDeclarativeCameraRecorder::muted
@@ -551,12 +551,12 @@ qint64 QDeclarativeCameraRecorder::duration() const
 */
 bool QDeclarativeCameraRecorder::isMuted() const
 {
-    return m_recorder->isMuted();
+    return m_encoder->isMuted();
 }
 
 void QDeclarativeCameraRecorder::setMuted(bool muted)
 {
-    m_recorder->setMuted(muted);
+    m_encoder->setMuted(muted);
 }
 
 /*!
@@ -574,17 +574,17 @@ QDeclarativeMediaMetaData *QDeclarativeCameraRecorder::metaData()
     return m_metaData;
 }
 
-void QDeclarativeCameraRecorder::updateRecorderState(QMediaRecorder::State state)
+void QDeclarativeCameraRecorder::updateRecorderState(QMediaEncoder::State state)
 {
-    if (state == QMediaRecorder::PausedState)
-        state = QMediaRecorder::StoppedState;
+    if (state == QMediaEncoder::PausedState)
+        state = QMediaEncoder::StoppedState;
 
     emit recorderStateChanged(RecorderState(state));
 }
 
-void QDeclarativeCameraRecorder::updateRecorderError(QMediaRecorder::Error errorCode)
+void QDeclarativeCameraRecorder::updateRecorderError(QMediaEncoder::Error errorCode)
 {
-    qWarning() << "QMediaRecorder error:" << errorString();
+    qWarning() << "QMediaEncoder error:" << errorString();
     emit error(Error(errorCode), errorString());
 }
 

@@ -6,7 +6,7 @@
 
 qt_add_test(tst_qmediarecorder
     SOURCES
-        tst_qmediarecorder.cpp
+        tst_qmediaencoder.cpp
     INCLUDE_DIRECTORIES
         ../../mockbackend
     PUBLIC_LIBRARIES

@@ -32,7 +32,7 @@
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
 #include <private/qplatformmediarecorder_p.h>
-#include <qmediarecorder.h>
+#include <qmediaencoder.h>
 #include <qaudioformat.h>
 #include <qmockintegration_p.h>
 #include <qmediacapturesession.h>
@@ -42,7 +42,7 @@
 
 QT_USE_NAMESPACE
 
-class tst_QMediaRecorder: public QObject
+class tst_QMediaEncoder : public QObject
 {
     Q_OBJECT
 
@@ -91,22 +91,22 @@ private:
     QCamera *object = nullptr;
     MockMediaRecorderService *service = nullptr;
     MockMediaRecorderControl *mock;
-    QMediaRecorder *capture;
+    QMediaEncoder *capture;
 };
 
-void tst_QMediaRecorder::initTestCase()
+void tst_QMediaEncoder::initTestCase()
 {
     mockIntegration = new QMockIntegration;
     captureSession = new QMediaCaptureSession;
     object = new QCamera;
-    capture = new QMediaRecorder;
+    capture = new QMediaEncoder;
     captureSession->setCamera(object);
-    captureSession->setRecorder(capture);
+    captureSession->setEncoder(capture);
     service = mockIntegration->lastCaptureService();
     mock = service->mockControl;
 }
 
-void tst_QMediaRecorder::cleanupTestCase()
+void tst_QMediaEncoder::cleanupTestCase()
 {
     delete capture;
     delete object;
@@ -114,37 +114,37 @@ void tst_QMediaRecorder::cleanupTestCase()
     delete mockIntegration;
 }
 
-void tst_QMediaRecorder::testNullService()
+void tst_QMediaEncoder::testNullService()
 {
     const QString id(QLatin1String("application/x-format"));
 
     QMediaCaptureSession session;
     QCamera camera;
-    QMediaRecorder recorder;
+    QMediaEncoder recorder;
     session.setCamera(&camera);
-    session.setRecorder(&recorder);
+    session.setEncoder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
-    QCOMPARE(recorder.state(), QMediaRecorder::StoppedState);
-    QCOMPARE(recorder.error(), QMediaRecorder::NoError);
+    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(recorder.duration(), qint64(0));
     QVERIFY(!recorder.isMuted());
     recorder.setMuted(true);
     QVERIFY(!recorder.isMuted());
 }
 
-void tst_QMediaRecorder::testNullControls()
+void tst_QMediaEncoder::testNullControls()
 {
     service->hasControls = false;
     QMediaCaptureSession session;
     QCamera camera;
-    QMediaRecorder recorder;
+    QMediaEncoder recorder;
     session.setCamera(&camera);
-    session.setRecorder(&recorder);
+    session.setEncoder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
-    QCOMPARE(recorder.state(), QMediaRecorder::StoppedState);
-    QCOMPARE(recorder.error(), QMediaRecorder::NoError);
+    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(recorder.duration(), qint64(0));
 
     recorder.setOutputLocation(QUrl("file://test/save/file.mp4"));
@@ -165,31 +165,31 @@ void tst_QMediaRecorder::testNullControls()
     QCOMPARE(recorder.encoderSettings().videoCodec(), QMediaFormat::VideoCodec::VP9);
     QCOMPARE(recorder.encoderSettings().format(), QMediaFormat::MPEG4);
 
-    QSignalSpy spy(&recorder, SIGNAL(stateChanged(QMediaRecorder::State)));
+    QSignalSpy spy(&recorder, SIGNAL(stateChanged(QMediaEncoder::State)));
 
     recorder.record();
-    QCOMPARE(recorder.state(), QMediaRecorder::StoppedState);
-    QCOMPARE(recorder.error(), QMediaRecorder::NoError);
+    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(spy.count(), 0);
 
     recorder.pause();
-    QCOMPARE(recorder.state(), QMediaRecorder::StoppedState);
-    QCOMPARE(recorder.error(), QMediaRecorder::NoError);
+    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(spy.count(), 0);
 
     recorder.stop();
-    QCOMPARE(recorder.state(), QMediaRecorder::StoppedState);
-    QCOMPARE(recorder.error(), QMediaRecorder::NoError);
+    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(spy.count(), 0);
 }
 
-void tst_QMediaRecorder::testDeleteMediaSource()
+void tst_QMediaEncoder::testDeleteMediaSource()
 {
     QMediaCaptureSession session;
     QCamera *camera = new QCamera;
-    QMediaRecorder *recorder = new QMediaRecorder;
+    QMediaEncoder *recorder = new QMediaEncoder;
     session.setCamera(camera);
-    session.setRecorder(recorder);
+    session.setEncoder(recorder);
 
     QVERIFY(session.camera() == camera);
     QVERIFY(recorder->isAvailable());
@@ -202,24 +202,24 @@ void tst_QMediaRecorder::testDeleteMediaSource()
     delete recorder;
 }
 
-void tst_QMediaRecorder::testError()
+void tst_QMediaEncoder::testError()
 {
     const QString errorString(QLatin1String("format error"));
 
-    QSignalSpy spy(capture, SIGNAL(error(QMediaRecorder::Error)));
+    QSignalSpy spy(capture, SIGNAL(error(QMediaEncoder::Error)));
 
-    QCOMPARE(capture->error(), QMediaRecorder::NoError);
+    QCOMPARE(capture->error(), QMediaEncoder::NoError);
     QCOMPARE(capture->errorString(), QString());
 
-    mock->error(QMediaRecorder::FormatError, errorString);
-    QCOMPARE(capture->error(), QMediaRecorder::FormatError);
+    mock->error(QMediaEncoder::FormatError, errorString);
+    QCOMPARE(capture->error(), QMediaEncoder::FormatError);
     QCOMPARE(capture->errorString(), errorString);
     QCOMPARE(spy.count(), 1);
 
-    QCOMPARE(spy.last()[0].value<QMediaRecorder::Error>(), QMediaRecorder::FormatError);
+    QCOMPARE(spy.last()[0].value<QMediaEncoder::Error>(), QMediaEncoder::FormatError);
 }
 
-void tst_QMediaRecorder::testSink()
+void tst_QMediaEncoder::testSink()
 {
     capture->setOutputLocation(QUrl("test.tmp"));
     QUrl s = capture->outputLocation();
@@ -242,56 +242,56 @@ void tst_QMediaRecorder::testSink()
     QCOMPARE(capture->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
 }
 
-void tst_QMediaRecorder::testRecord()
+void tst_QMediaEncoder::testRecord()
 {
-    QSignalSpy stateSignal(capture,SIGNAL(stateChanged(QMediaRecorder::State)));
-    QSignalSpy statusSignal(capture,SIGNAL(statusChanged(QMediaRecorder::Status)));
+    QSignalSpy stateSignal(capture,SIGNAL(stateChanged(QMediaEncoder::State)));
+    QSignalSpy statusSignal(capture,SIGNAL(statusChanged(QMediaEncoder::Status)));
     QSignalSpy progressSignal(capture, SIGNAL(durationChanged(qint64)));
     capture->record();
-    QCOMPARE(capture->state(), QMediaRecorder::RecordingState);
-    QCOMPARE(capture->error(), QMediaRecorder::NoError);
+    QCOMPARE(capture->state(), QMediaEncoder::RecordingState);
+    QCOMPARE(capture->error(), QMediaEncoder::NoError);
     QCOMPARE(capture->errorString(), QString());
 
     QCOMPARE(stateSignal.count(), 1);
-    QCOMPARE(stateSignal.last()[0].value<QMediaRecorder::State>(), QMediaRecorder::RecordingState);
+    QCOMPARE(stateSignal.last()[0].value<QMediaEncoder::State>(), QMediaEncoder::RecordingState);
 
     QTestEventLoop::instance().enterLoop(1);
 
-    QCOMPARE(capture->status(), QMediaRecorder::RecordingStatus);
+    QCOMPARE(capture->status(), QMediaEncoder::RecordingStatus);
     QVERIFY(!statusSignal.isEmpty());
-    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::RecordingStatus);
+    QCOMPARE(statusSignal.last()[0].value<QMediaEncoder::Status>(), QMediaEncoder::RecordingStatus);
     statusSignal.clear();
 
     QVERIFY(progressSignal.count() > 0);
 
     capture->pause();
 
-    QCOMPARE(capture->state(), QMediaRecorder::PausedState);
+    QCOMPARE(capture->state(), QMediaEncoder::PausedState);
 
     QCOMPARE(stateSignal.count(), 2);
 
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(capture->status(), QMediaRecorder::PausedStatus);
+    QCOMPARE(capture->status(), QMediaEncoder::PausedStatus);
     QVERIFY(!statusSignal.isEmpty());
-    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::PausedStatus);
+    QCOMPARE(statusSignal.last()[0].value<QMediaEncoder::Status>(), QMediaEncoder::PausedStatus);
     statusSignal.clear();
 
     capture->stop();
 
-    QCOMPARE(capture->state(), QMediaRecorder::StoppedState);
+    QCOMPARE(capture->state(), QMediaEncoder::StoppedState);
     QCOMPARE(stateSignal.count(), 3);
 
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(capture->status(), QMediaRecorder::StoppedStatus);
+    QCOMPARE(capture->status(), QMediaEncoder::StoppedStatus);
     QVERIFY(!statusSignal.isEmpty());
-    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::StoppedStatus);
+    QCOMPARE(statusSignal.last()[0].value<QMediaEncoder::Status>(), QMediaEncoder::StoppedStatus);
     statusSignal.clear();
 
     mock->stop();
     QCOMPARE(stateSignal.count(), 3);
 }
 
-void tst_QMediaRecorder::testMute()
+void tst_QMediaEncoder::testMute()
 {
     QSignalSpy mutedChanged(capture, SIGNAL(mutedChanged(bool)));
     QVERIFY(!capture->isMuted());
@@ -311,7 +311,7 @@ void tst_QMediaRecorder::testMute()
     QCOMPARE(mutedChanged.size(), 2);
 }
 
-void tst_QMediaRecorder::testVolume()
+void tst_QMediaEncoder::testVolume()
 {
     QSignalSpy volumeChanged(capture, SIGNAL(volumeChanged(qreal)));
     QCOMPARE(capture->volume(), 1.0);
@@ -331,7 +331,7 @@ void tst_QMediaRecorder::testVolume()
     QCOMPARE(volumeChanged.size(), 2);
 }
 
-void tst_QMediaRecorder::testAudioDeviceControl()
+void tst_QMediaEncoder::testAudioDeviceControl()
 {
 //    QSignalSpy readSignal(capture,SIGNAL(audioInputChanged()));
 //    QVERIFY(audio->availableInputs().size() == 3);
@@ -343,7 +343,7 @@ void tst_QMediaRecorder::testAudioDeviceControl()
 //    QVERIFY(audio->inputDescription("device2").compare("dev2 comment") == 0);
 }
 
-void tst_QMediaRecorder::testEncodingSettings()
+void tst_QMediaEncoder::testEncodingSettings()
 {
 //    QAudioEncoderSettings audioSettings = capture->audioSettings();
 //    QCOMPARE(audioSettings.codec(), QString("audio/x-raw"));
@@ -389,7 +389,7 @@ void tst_QMediaRecorder::testEncodingSettings()
 //    QCOMPARE(capture->containerFormat(), format);
 }
 
-void tst_QMediaRecorder::testAudioSettings()
+void tst_QMediaEncoder::testAudioSettings()
 {
 //    QAudioEncoderSettings settings;
 //    QVERIFY(settings.isNull());
@@ -536,7 +536,7 @@ void tst_QMediaRecorder::testAudioSettings()
 //    QVERIFY(settings1 != settings2);
 }
 
-void tst_QMediaRecorder::testVideoSettings()
+void tst_QMediaEncoder::testVideoSettings()
 {
 //    QVideoEncoderSettings settings;
 //    QVERIFY(settings.isNull());
@@ -688,13 +688,13 @@ void tst_QMediaRecorder::testVideoSettings()
 //    QVERIFY(settings1 != settings2);
 }
 
-void tst_QMediaRecorder::testSettingsApplied()
+void tst_QMediaEncoder::testSettingsApplied()
 {
 //    MockMediaSource object(nullptr, service);
 
 //    //if the media recorder is not configured after construction
 //    //the settings are applied in the next event loop
-//    QMediaRecorder recorder(&object);
+//    QMediaEncoder recorder(&object);
 //    QCOMPARE(mock->m_settingAppliedCount, 0);
 //    QTRY_COMPARE(mock->m_settingAppliedCount, 1);
 
@@ -726,7 +726,7 @@ void tst_QMediaRecorder::testSettingsApplied()
 //    QCOMPARE(mock->m_settingAppliedCount, 3);
 }
 
-void tst_QMediaRecorder::metaData()
+void tst_QMediaEncoder::metaData()
 {
     QFETCH(QString, artist);
     QFETCH(QString, title);
@@ -735,9 +735,9 @@ void tst_QMediaRecorder::metaData()
 
     QMediaCaptureSession session;
     QCamera camera;
-    QMediaRecorder recorder;
+    QMediaEncoder recorder;
     session.setCamera(&camera);
-    session.setRecorder(&recorder);
+    session.setEncoder(&recorder);
 
     QVERIFY(recorder.metaData().isEmpty());
 
@@ -748,7 +748,7 @@ void tst_QMediaRecorder::metaData()
     QCOMPARE(recorder.metaData().value(QMediaMetaData::Author).toString(), QString::fromUtf8("John Doe"));
 }
 
-void tst_QMediaRecorder::testAudioSettingsCopyConstructor()
+void tst_QMediaEncoder::testAudioSettingsCopyConstructor()
 {
     /* create an object for AudioEncodersettings */
 //    QAudioEncoderSettings audiosettings;
@@ -775,7 +775,7 @@ void tst_QMediaRecorder::testAudioSettingsCopyConstructor()
 //    QVERIFY(other.quality() == audiosettings.quality());
 }
 
-void tst_QMediaRecorder::testAudioSettingsOperatorNotEqual()
+void tst_QMediaEncoder::testAudioSettingsOperatorNotEqual()
 {
     /* create an object for AudioEncodersettings */
 //    QAudioEncoderSettings audiosettings1;
@@ -814,7 +814,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorNotEqual()
 //    QVERIFY(audiosettings2.encodingMode() != audiosettings1.encodingMode());
 }
 
-void tst_QMediaRecorder::testAudioSettingsOperatorEqual()
+void tst_QMediaEncoder::testAudioSettingsOperatorEqual()
 {
     /* create an object for AudioEncodersettings */
 //    QAudioEncoderSettings audiosettings1;
@@ -845,7 +845,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorEqual()
 //    QVERIFY(audiosettings1 != audiosettings2);
 }
 
-void tst_QMediaRecorder::testAudioSettingsOperatorAssign()
+void tst_QMediaEncoder::testAudioSettingsOperatorAssign()
 {
 
     /* create an object for AudioEncodersettings */
@@ -871,7 +871,7 @@ void tst_QMediaRecorder::testAudioSettingsOperatorAssign()
 //    QVERIFY(audiosettings2.quality() == audiosettings1.quality());
 }
 
-void tst_QMediaRecorder::testAudioSettingsDestructor()
+void tst_QMediaEncoder::testAudioSettingsDestructor()
 {
     /* Creating null object for the audioencodersettings */
 //    QAudioEncoderSettings * audiosettings = new QAudioEncoderSettings;
@@ -882,57 +882,57 @@ void tst_QMediaRecorder::testAudioSettingsDestructor()
 //    delete audiosettings;
 }
 
-void tst_QMediaRecorder::testIsAvailable()
+void tst_QMediaEncoder::testIsAvailable()
 {
     {
         QMediaCaptureSession session;
         QCamera camera;
-        QMediaRecorder recorder;
+        QMediaEncoder recorder;
         session.setCamera(&camera);
-        session.setRecorder(&recorder);
+        session.setEncoder(&recorder);
         QCOMPARE(recorder.isAvailable(), true);
     }
     {
-        QMediaRecorder recorder;
+        QMediaEncoder recorder;
         QCOMPARE(recorder.isAvailable(), false);
     }
 }
 
 /* mediaSource() API test. */
-void tst_QMediaRecorder::testMediaSource()
+void tst_QMediaEncoder::testMediaSource()
 {
     service->hasControls = false;
     QMediaCaptureSession session;
     QCamera camera;
-    QMediaRecorder recorder;
+    QMediaEncoder recorder;
     session.setCamera(&camera);
-    session.setRecorder(&recorder);
+    session.setEncoder(&recorder);
 
     QCamera *medobj = session.camera();
     QVERIFY(medobj != nullptr);
     QVERIFY(!camera.isAvailable());
 }
 
-/* enum QMediaRecorder::ResourceError property test. */
-void tst_QMediaRecorder::testEnum()
+/* enum QMediaEncoder::ResourceError property test. */
+void tst_QMediaEncoder::testEnum()
 {
     const QString errorString(QLatin1String("resource error"));
 
-    QSignalSpy spy(capture, SIGNAL(error(QMediaRecorder::Error)));
+    QSignalSpy spy(capture, SIGNAL(error(QMediaEncoder::Error)));
 
-    QCOMPARE(capture->error(), QMediaRecorder::NoError);
+    QCOMPARE(capture->error(), QMediaEncoder::NoError);
     QCOMPARE(capture->errorString(), QString());
 
-    mock->error(QMediaRecorder::ResourceError, errorString);
-    QCOMPARE(capture->error(), QMediaRecorder::ResourceError);
+    mock->error(QMediaEncoder::ResourceError, errorString);
+    QCOMPARE(capture->error(), QMediaEncoder::ResourceError);
     QCOMPARE(capture->errorString(), errorString);
     QCOMPARE(spy.count(), 1);
 
-    QCOMPARE(spy.last()[0].value<QMediaRecorder::Error>(), QMediaRecorder::ResourceError);
+    QCOMPARE(spy.last()[0].value<QMediaEncoder::Error>(), QMediaEncoder::ResourceError);
 }
 
 /* Test the QVideoEncoderSettings quality API*/
-void tst_QMediaRecorder::testVideoSettingsQuality()
+void tst_QMediaEncoder::testVideoSettingsQuality()
 {
 //    /* Create the instance*/
 //    QVideoEncoderSettings settings;
@@ -958,7 +958,7 @@ void tst_QMediaRecorder::testVideoSettingsQuality()
 }
 
 /* Test  QVideoEncoderSettings encodingMode */
-void tst_QMediaRecorder::testVideoSettingsEncodingMode()
+void tst_QMediaEncoder::testVideoSettingsEncodingMode()
 {
 //    /* Create the instance*/
 //    QVideoEncoderSettings settings;
@@ -982,7 +982,7 @@ void tst_QMediaRecorder::testVideoSettingsEncodingMode()
 }
 
 /* Test QVideoEncoderSettings copy constructor */
-void tst_QMediaRecorder::testVideoSettingsCopyConstructor()
+void tst_QMediaEncoder::testVideoSettingsCopyConstructor()
 {
 //    /* Create the instance and initialise it*/
 //    QVideoEncoderSettings settings1;
@@ -1011,7 +1011,7 @@ void tst_QMediaRecorder::testVideoSettingsCopyConstructor()
 }
 
 /* Test QVideoEncoderSettings Overloaded Operator assignment*/
-void tst_QMediaRecorder::testVideoSettingsOperatorAssignment()
+void tst_QMediaEncoder::testVideoSettingsOperatorAssignment()
 {
 //    /* Create two instances.*/
 //    QVideoEncoderSettings settings1;
@@ -1042,7 +1042,7 @@ void tst_QMediaRecorder::testVideoSettingsOperatorAssignment()
 }
 
 /* Test QVideoEncoderSettings Overloaded OperatorNotEqual*/
-void tst_QMediaRecorder::testVideoSettingsOperatorNotEqual()
+void tst_QMediaEncoder::testVideoSettingsOperatorNotEqual()
 {
 //    /* Create the instance and set the bit rate and Verify objects with OperatorNotEqual*/
 //    QVideoEncoderSettings settings1;
@@ -1112,7 +1112,7 @@ void tst_QMediaRecorder::testVideoSettingsOperatorNotEqual()
 }
 
 /* Test QVideoEncoderSettings Overloaded comparison operator*/
-void tst_QMediaRecorder::testVideoSettingsOperatorComparison()
+void tst_QMediaEncoder::testVideoSettingsOperatorComparison()
 {
 //    /* Create the instance and set the bit rate and Verify objects with comparison operator*/
 //    QVideoEncoderSettings settings1;
@@ -1183,7 +1183,7 @@ void tst_QMediaRecorder::testVideoSettingsOperatorComparison()
 }
 
 /* Test the destuctor of the QVideoEncoderSettings*/
-void tst_QMediaRecorder::testVideoSettingsDestructor()
+void tst_QMediaEncoder::testVideoSettingsDestructor()
 {
 //    /* Create the instance on heap and verify if object deleted correctly*/
 //    QVideoEncoderSettings *settings1 = new QVideoEncoderSettings();
@@ -1199,5 +1199,5 @@ void tst_QMediaRecorder::testVideoSettingsDestructor()
 //    delete settings2;
 }
 
-QTEST_GUILESS_MAIN(tst_QMediaRecorder)
-#include "tst_qmediarecorder.moc"
+QTEST_GUILESS_MAIN(tst_QMediaEncoder)
+#include "tst_qmediaencoder.moc"

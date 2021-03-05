@@ -38,25 +38,30 @@
 ****************************************************************************/
 
 #include "qmediarecorder.h"
-#include "qmediarecorder_p.h"
 
-#include <private/qplatformmediarecorder_p.h>
 #include <qaudiodeviceinfo.h>
 #include <qcamera.h>
 #include <qmediacapturesession.h>
-#include <private/qplatformcamera_p.h>
-#include <private/qplatformmediaintegration_p.h>
-#include <private/qplatformmediacapture_p.h>
+#include <qmediaencoder.h>
+#include <qcamera.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qmetaobject.h>
-#include <QtCore/qtimer.h>
-
-#include <qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
+
+class QMediaRecorderPrivate
+{
+    Q_DECLARE_PUBLIC(QMediaRecorder)
+public:
+    QMediaRecorder::CaptureMode mode = QMediaRecorder::AudioOnly;
+    QMediaCaptureSession *captureSession = nullptr;
+    QCamera *camera = nullptr;
+    QMediaEncoder *encoder = nullptr;
+
+    QMediaRecorder *q_ptr = nullptr;
+};
 
 /*!
     \class QMediaRecorder
@@ -73,66 +78,26 @@ QT_BEGIN_NAMESPACE
     \snippet multimedia-snippets/media.cpp Media recorder
 */
 
-
-#define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
-
-void QMediaRecorderPrivate::_q_stateChanged(QMediaRecorder::State ps)
-{
-    Q_Q(QMediaRecorder);
-
-//    qDebug() << "Recorder state changed:" << ENUM_NAME(QMediaRecorder,"State",ps);
-    if (state != ps) {
-        emit q->stateChanged(ps);
-    }
-
-    state = ps;
-}
-
-
-void QMediaRecorderPrivate::_q_error(int error, const QString &errorString)
-{
-    Q_Q(QMediaRecorder);
-
-    this->error = QMediaRecorder::Error(error);
-    this->errorString = errorString;
-
-    emit q->error(this->error);
-}
-
-void QMediaRecorderPrivate::_q_updateActualLocation(const QUrl &location)
-{
-    if (actualLocation != location) {
-        actualLocation = location;
-        emit q_func()->actualLocationChanged(actualLocation);
-    }
-}
-
-void QMediaRecorderPrivate::applySettingsLater()
-{
-    if (control && !settingsChanged) {
-        settingsChanged = true;
-        QMetaObject::invokeMethod(q_func(), "_q_applySettings", Qt::QueuedConnection);
-    }
-}
-
-void QMediaRecorderPrivate::_q_applySettings()
-{
-    if (control && settingsChanged) {
-        settingsChanged = false;
-        control->applySettings();
-    }
-}
-
 /*!
     Constructs a media recorder which records the media produced by a microphone and camera.
 */
 
-QMediaRecorder::QMediaRecorder(QObject *parent)
-    : QObject(parent),
+QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
+    : QMediaEncoderBase(parent),
       d_ptr(new QMediaRecorderPrivate)
 {
     Q_D(QMediaRecorder);
     d->q_ptr = this;
+
+    d->captureSession = new QMediaCaptureSession(this);
+    d->encoder = new QMediaEncoder(this);
+    setCaptureMode(mode);
+
+    connect(d->encoder, &QMediaEncoder::stateChanged, this, &QMediaRecorder::stateChanged);
+    connect(d->encoder, &QMediaEncoder::statusChanged, this, &QMediaRecorder::statusChanged);
+    connect(d->encoder, &QMediaEncoder::mutedChanged, this, &QMediaRecorder::mutedChanged);
+    connect(d->encoder, &QMediaEncoder::volumeChanged, this, &QMediaRecorder::volumeChanged);
+    connect(d->encoder, &QMediaEncoder::audioInputChanged, this, &QMediaRecorder::audioInputChanged);
 }
 
 /*!
@@ -141,59 +106,7 @@ QMediaRecorder::QMediaRecorder(QObject *parent)
 
 QMediaRecorder::~QMediaRecorder()
 {
-    if (d_ptr->captureSession)
-        d_ptr->captureSession->setRecorder(nullptr);
     delete d_ptr;
-}
-
-/*!
-    \internal
-*/
-void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
-{
-    Q_D(QMediaRecorder);
-    if (d->captureSession == session)
-        return;
-
-    if (d->control)
-        d->control->disconnect(this);
-
-    d->captureSession = session;
-
-    if (!d->captureSession) {
-        d->control = nullptr;
-        return;
-    }
-
-    d->control = d->captureSession->platformSession()->mediaRecorderControl();
-    Q_ASSERT(d->control);
-
-    connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
-            this, SLOT(_q_stateChanged(QMediaRecorder::State)));
-
-    connect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
-            this, SIGNAL(statusChanged(QMediaRecorder::Status)));
-
-    connect(d->control, SIGNAL(mutedChanged(bool)),
-            this, SIGNAL(mutedChanged(bool)));
-
-    connect(d->control, SIGNAL(volumeChanged(qreal)),
-            this, SIGNAL(volumeChanged(qreal)));
-
-    connect(d->control, SIGNAL(durationChanged(qint64)),
-            this, SIGNAL(durationChanged(qint64)));
-
-    connect(d->control, SIGNAL(actualLocationChanged(QUrl)),
-            this, SLOT(_q_updateActualLocation(QUrl)));
-
-    connect(d->control, SIGNAL(error(int,QString)),
-            this, SLOT(_q_error(int,QString)));
-
-    connect(d->control, SIGNAL(metaDataChanged()),
-            this, SIGNAL(metaDataChanged()));
-
-    d->applySettingsLater();
-
 }
 
 /*!
@@ -225,24 +138,59 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 */
 bool QMediaRecorder::isAvailable() const
 {
-    return d_func()->control != nullptr;
+    return d_ptr->encoder->isAvailable();
+}
+
+/*!
+    \property QMediaRecorder::captureMode
+    \brief The current mode the recorder operates in.
+
+    The capture mode defines whether QMediaRecorder will record audio and
+    video or audio only.
+
+    The capture mode can only be changed while nothing is being recorded.
+*/
+
+QMediaRecorder::CaptureMode QMediaRecorder::captureMode() const
+{
+    return d_ptr->mode;
+}
+
+void QMediaRecorder::setCaptureMode(QMediaRecorder::CaptureMode mode)
+{
+    if (d_ptr->mode == mode)
+        return;
+    if (mode == AudioAndVideo) {
+        Q_ASSERT(!d_ptr->camera);
+        d_ptr->camera = new QCamera(this);
+        d_ptr->captureSession->setCamera(d_ptr->camera);
+    } else { // AudioOnly
+        Q_ASSERT(d_ptr->camera);
+        d_ptr->captureSession->setCamera(nullptr);
+        delete d_ptr->camera;
+        d_ptr->camera = nullptr;
+    }
+}
+
+/*!
+    Returns the camera object associated with this recording session.
+    If the current \l captureMode is \l AudioOnly, a nullptr will be
+    returned.
+ */
+QCamera *QMediaRecorder::camera() const
+{
+    return d_ptr->camera;
 }
 
 QUrl QMediaRecorder::outputLocation() const
 {
-    return d_func()->control ? d_func()->control->outputLocation() : QUrl();
+    return d_ptr->encoder->outputLocation();
 }
 
 bool QMediaRecorder::setOutputLocation(const QUrl &location)
 {
     Q_D(QMediaRecorder);
-    d->actualLocation.clear();
-    return d->control ? d->control->setOutputLocation(location) : false;
-}
-
-QUrl QMediaRecorder::actualLocation() const
-{
-    return d_func()->actualLocation;
+    return d->encoder->setOutputLocation(location);
 }
 
 /*!
@@ -253,7 +201,7 @@ QUrl QMediaRecorder::actualLocation() const
 
 QMediaRecorder::State QMediaRecorder::state() const
 {
-    return d_func()->control ? QMediaRecorder::State(d_func()->control->state()) : StoppedState;
+    return d_ptr->encoder->state();
 }
 
 /*!
@@ -264,7 +212,7 @@ QMediaRecorder::State QMediaRecorder::state() const
 
 QMediaRecorder::Status QMediaRecorder::status() const
 {
-    return d_func()->control ? QMediaRecorder::Status(d_func()->control->status()) : UnavailableStatus;
+    return d_ptr->encoder->status();
 }
 
 /*!
@@ -275,7 +223,7 @@ QMediaRecorder::Status QMediaRecorder::status() const
 
 QMediaRecorder::Error QMediaRecorder::error() const
 {
-    return d_func()->error;
+    return d_ptr->encoder->error();
 }
 
 /*!
@@ -286,7 +234,7 @@ QMediaRecorder::Error QMediaRecorder::error() const
 
 QString QMediaRecorder::errorString() const
 {
-    return d_func()->errorString;
+    return d_ptr->encoder->errorString();
 }
 
 /*!
@@ -297,7 +245,7 @@ QString QMediaRecorder::errorString() const
 
 qint64 QMediaRecorder::duration() const
 {
-    return d_func()->control ? d_func()->control->duration() : 0;
+    return d_ptr->encoder->duration();
 }
 
 /*!
@@ -308,15 +256,12 @@ qint64 QMediaRecorder::duration() const
 
 bool QMediaRecorder::isMuted() const
 {
-    return d_func()->control ? d_func()->control->isMuted() : false;
+    return d_ptr->encoder->isMuted();
 }
 
 void QMediaRecorder::setMuted(bool muted)
 {
-    Q_D(QMediaRecorder);
-
-    if (d->control)
-        d->control->setMuted(muted);
+    d_ptr->encoder->setMuted(muted);
 }
 
 /*!
@@ -336,7 +281,7 @@ void QMediaRecorder::setMuted(bool muted)
 
 qreal QMediaRecorder::volume() const
 {
-    return d_func()->control ? d_func()->control->volume() : 1.0;
+    return d_ptr->encoder->volume();
 }
 
 /*!
@@ -346,11 +291,7 @@ qreal QMediaRecorder::volume() const
 */
 void QMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
-    Q_D(QMediaRecorder);
-
-    d->encoderSettings = settings;
-    d->control->setEncoderSettings(settings);
-    d->applySettingsLater();
+    d_ptr->encoder->setEncoderSettings(settings);
 }
 
 /*!
@@ -360,18 +301,13 @@ void QMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
 */
 QMediaEncoderSettings QMediaRecorder::encoderSettings() const
 {
-    return d_func()->encoderSettings;
+    return d_ptr->encoder->encoderSettings();
 }
 
 
 void QMediaRecorder::setVolume(qreal volume)
 {
-    Q_D(QMediaRecorder);
-
-    if (d->control) {
-        volume = qMax(qreal(0.0), volume);
-        d->control->setVolume(volume);
-    }
+    d_ptr->encoder->setVolume(volume);
 }
 
 /*!
@@ -387,19 +323,7 @@ void QMediaRecorder::setVolume(qreal volume)
 
 void QMediaRecorder::record()
 {
-    Q_D(QMediaRecorder);
-
-    d->actualLocation.clear();
-
-    if (d->settingsChanged)
-        d->_q_applySettings();
-
-    // reset error
-    d->error = NoError;
-    d->errorString = QString();
-
-    if (d->control)
-        d->control->setState(RecordingState);
+    d_ptr->encoder->record();
 }
 
 /*!
@@ -413,9 +337,7 @@ void QMediaRecorder::record()
 
 void QMediaRecorder::pause()
 {
-    Q_D(QMediaRecorder);
-    if (d->control)
-        d->control->setState(PausedState);
+    d_ptr->encoder->pause();
 }
 
 /*!
@@ -426,52 +348,9 @@ void QMediaRecorder::pause()
 
 void QMediaRecorder::stop()
 {
-    Q_D(QMediaRecorder);
-    if (d->control)
-        d->control->setState(StoppedState);
+    d_ptr->encoder->stop();
 }
 
-/*!
-    \enum QMediaRecorder::State
-
-    \value StoppedState    The recorder is not active.
-        If this is the state after recording then the actual created recording has
-        finished being written to the final location and is ready on all platforms
-        except on Android. On Android, due to platform limitations, there is no way
-        to be certain that the recording has finished writing to the final location.
-    \value RecordingState  The recording is requested.
-    \value PausedState     The recorder is paused.
-*/
-
-/*!
-    \enum QMediaRecorder::Status
-
-    \value UnavailableStatus
-        The recorder is not available or not supported by connected media object.
-    \value UnloadedStatus
-        The recorder is avilable but not loaded.
-    \value LoadingStatus
-        The recorder is initializing.
-    \value LoadedStatus
-        The recorder is initialized and ready to record media.
-    \value StartingStatus
-        Recording is requested but not active yet.
-    \value RecordingStatus
-        Recording is active.
-    \value PausedStatus
-        Recording is paused.
-    \value FinalizingStatus
-        Recording is stopped with media being finalized.
-*/
-
-/*!
-    \enum QMediaRecorder::Error
-
-    \value NoError         No Errors.
-    \value ResourceError   Device is not ready or not available.
-    \value FormatError     Current format is not supported.
-    \value OutOfSpaceError No space left on device.
-*/
 
 /*!
     \property QMediaRecorder::state
@@ -532,9 +411,7 @@ void QMediaRecorder::stop()
 */
 QMediaMetaData QMediaRecorder::metaData() const
 {
-    Q_D(const QMediaRecorder);
-
-    return d->control ? d->control->metaData() : QMediaMetaData{};
+    return d_ptr->encoder->metaData();
 }
 
 /*!
@@ -545,19 +422,12 @@ QMediaMetaData QMediaRecorder::metaData() const
 */
 void QMediaRecorder::setMetaData(const QMediaMetaData &metaData)
 {
-    Q_D(QMediaRecorder);
-
-    if (d->control)
-        d->control->setMetaData(metaData);
+    d_ptr->encoder->setMetaData(metaData);
 }
 
 void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
 {
-    auto data = this->metaData();
-    // merge data
-    for (const auto &k : metaData.keys())
-        data.insert(k, metaData.value(k));
-    setMetaData(data);
+    d_ptr->encoder->addMetaData(metaData);
 }
 
 /*!
@@ -582,9 +452,7 @@ void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
 
 QAudioDeviceInfo QMediaRecorder::audioInput() const
 {
-    Q_D(const QMediaRecorder);
-
-    return d->control->audioInput();
+    return d_ptr->encoder->audioInput();
 }
 
 /*!
@@ -592,10 +460,7 @@ QAudioDeviceInfo QMediaRecorder::audioInput() const
 */
 QCameraInfo QMediaRecorder::videoInput() const
 {
-    Q_D(const QMediaRecorder);
-
-    auto *camera = d->captureSession->camera();
-    return camera ? camera->cameraInfo() : QCameraInfo();
+    return d_ptr->encoder->videoInput();
 }
 
 QMediaCaptureSession *QMediaRecorder::captureSession() const
@@ -610,13 +475,7 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
 
 bool QMediaRecorder::setAudioInput(const QAudioDeviceInfo &device)
 {
-    Q_D(QMediaRecorder);
-
-    if (d->control && d->control->setAudioInput(device)) {
-        audioInputChanged();
-        return true;
-    }
-    return false;
+    return d_ptr->encoder->setAudioInput(device);
 }
 
 /*!

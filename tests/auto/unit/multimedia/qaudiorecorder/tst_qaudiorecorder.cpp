@@ -31,7 +31,7 @@
 
 #include <qaudioformat.h>
 
-#include <qmediarecorder.h>
+#include <qmediaencoder.h>
 #include <private/qplatformmediarecorder_p.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudioinput.h>
@@ -60,7 +60,7 @@ private slots:
     void testAvailability();
 
 private:
-    QMediaRecorder *audiosource = nullptr;
+    QMediaEncoder *audiosource = nullptr;
     QMockIntegration *mockIntegration;
 };
 
@@ -108,8 +108,8 @@ void tst_QAudioRecorder::testNullControl()
 void tst_QAudioRecorder::testAudioSource()
 {
     QMediaCaptureSession session;
-    audiosource = new QMediaRecorder;
-    session.setRecorder(audiosource);
+    audiosource = new QMediaEncoder;
+    session.setEncoder(audiosource);
 
     QCOMPARE(session.camera(), nullptr);
 }

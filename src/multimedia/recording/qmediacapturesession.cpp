@@ -40,7 +40,7 @@
 #include "qmediacapturesession.h"
 #include "qaudiodeviceinfo.h"
 #include "qcamera.h"
-#include "qmediarecorder.h"
+#include "qmediaencoder.h"
 #include "qcameraimagecapture.h"
 
 #include "qplatformmediaintegration_p.h"
@@ -55,7 +55,7 @@ public:
     QAudioDeviceInfo audioInput;
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
-    QMediaRecorder *recorder = nullptr;
+    QMediaEncoder *encoder = nullptr;
 };
 
 
@@ -135,22 +135,22 @@ void QMediaCaptureSession::setImageCapture(QCameraImageCapture *imageCapture)
     emit imageCaptureChanged();
 }
 
-QMediaRecorder *QMediaCaptureSession::recorder()
+QMediaEncoder *QMediaCaptureSession::encoder()
 {
-    return d_ptr->recorder;
+    return d_ptr->encoder;
 }
 
-void QMediaCaptureSession::setRecorder(QMediaRecorder *recorder)
+void QMediaCaptureSession::setEncoder(QMediaEncoder *recorder)
 {
-    if (d_ptr->recorder == recorder)
+    if (d_ptr->encoder == recorder)
         return;
-    if (d_ptr->recorder)
-        d_ptr->recorder->setCaptureSession(nullptr);
+    if (d_ptr->encoder)
+        d_ptr->encoder->setCaptureSession(nullptr);
 
-    d_ptr->recorder = recorder;
-    if (d_ptr->recorder)
-        d_ptr->recorder->setCaptureSession(this);
-    emit recorderChanged();
+    d_ptr->encoder = recorder;
+    if (d_ptr->encoder)
+        d_ptr->encoder->setCaptureSession(this);
+    emit encoderChanged();
 }
 
 /*!

@@ -54,12 +54,12 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QDebug>
-#include <QMediaRecorder>
+#include <QMediaEncoder>
 #include <QMediaFormat>
 #include <QAudioDeviceInfo>
 #include <QCameraInfo>
 
-VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
+VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::VideoSettingsUi),
       mediaRecorder(mediaRecorder)

@@ -37,48 +37,92 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIARECORDER_H
-#define QMEDIARECORDER_H
+#ifndef QMEDIAENCODER_H
+#define QMEDIAENCODER_H
 
-#include <QtMultimedia/qmediaencoder.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qmediaencodersettings.h>
+#include <QtMultimedia/qmediaenumdebug.h>
+#include <QtMultimedia/qmediametadata.h>
+
+#include <QtCore/qpair.h>
 
 QT_BEGIN_NAMESPACE
 
-class QMediaRecorderPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QMediaEncoderBase
+class QUrl;
+class QSize;
+class QAudioFormat;
+class QCamera;
+class QCameraInfo;
+class QMediaRecorderService;
+class QAudioEncoderSettings;
+class QVideoEncoderSettings;
+class QAudioDeviceInfo;
+class QMediaCaptureSession;
+
+class Q_MULTIMEDIA_EXPORT QMediaEncoderBase : public QObject
 {
     Q_OBJECT
     Q_ENUMS(State)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
-    Q_PROPERTY(QMediaRecorder::State state READ state NOTIFY stateChanged)
-    Q_PROPERTY(QMediaRecorder::Status status READ status NOTIFY statusChanged)
+
+public:
+    QMediaEncoderBase(QObject *parent) : QObject(parent) {}
+    enum State
+    {
+        StoppedState,
+        RecordingState,
+        PausedState
+    };
+
+    enum Status {
+        UnavailableStatus,
+        StoppedStatus,
+        StartingStatus,
+        RecordingStatus,
+        PausedStatus,
+        FinalizingStatus
+    };
+
+    enum Error
+    {
+        NoError,
+        ResourceError,
+        FormatError,
+        OutOfSpaceError
+    };
+
+};
+
+class QMediaEncoderPrivate;
+class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
+{
+    Q_OBJECT
+    Q_ENUMS(State)
+    Q_ENUMS(Status)
+    Q_ENUMS(Error)
+    Q_PROPERTY(QMediaEncoder::State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(QMediaEncoder::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
+    Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(QAudioDeviceInfo audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
-    Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
+
 public:
-
-    enum CaptureMode {
-        AudioOnly,
-        AudioAndVideo
-    };
-
-    QMediaRecorder(QObject *parent = nullptr, CaptureMode mode = AudioOnly);
-    ~QMediaRecorder();
+    QMediaEncoder(QObject *parent = nullptr);
+    ~QMediaEncoder();
 
     bool isAvailable() const;
 
-    CaptureMode captureMode() const;
-    void setCaptureMode(CaptureMode mode);
-
-    QCamera *camera() const;
-
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
+
+    QUrl actualLocation() const;
 
     State state() const;
     Status status() const;
@@ -112,28 +156,34 @@ public Q_SLOTS:
     bool setAudioInput(const QAudioDeviceInfo &device);
 
 Q_SIGNALS:
-    void stateChanged(QMediaRecorder::State state);
-    void statusChanged(QMediaRecorder::Status status);
+    void stateChanged(QMediaEncoder::State state);
+    void statusChanged(QMediaEncoder::Status status);
     void durationChanged(qint64 duration);
     void mutedChanged(bool muted);
     void volumeChanged(qreal volume);
+    void actualLocationChanged(const QUrl &location);
     void audioInputChanged();
-    void captureModeChanged();
 
-    void error(QMediaRecorder::Error error);
+    void error(QMediaEncoder::Error error);
 
     void metaDataChanged();
 
 private:
-    // This is here to flag an incompatibilities with Qt 5
-    QMediaRecorder(QCamera *) = delete;
-
-    QMediaRecorderPrivate *d_ptr;
+    QMediaEncoderPrivate *d_ptr;
     friend class QMediaCaptureSession;
-    Q_DISABLE_COPY(QMediaRecorder)
-    Q_DECLARE_PRIVATE(QMediaRecorder)
+    void setCaptureSession(QMediaCaptureSession *session);
+    Q_DISABLE_COPY(QMediaEncoder)
+    Q_DECLARE_PRIVATE(QMediaEncoder)
+    Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaEncoder::State))
+    Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
+    Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
+    Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };
 
 QT_END_NAMESPACE
 
-#endif  // QMEDIARECORDER_H
+Q_MEDIA_ENUM_DEBUG(QMediaEncoderBase, State)
+Q_MEDIA_ENUM_DEBUG(QMediaEncoderBase, Status)
+Q_MEDIA_ENUM_DEBUG(QMediaEncoderBase, Error)
+
+#endif  // QMEDIAENCODER_H

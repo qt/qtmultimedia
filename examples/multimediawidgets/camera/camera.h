@@ -53,7 +53,7 @@
 
 #include <QCamera>
 #include <QCameraImageCapture>
-#include <QMediaRecorder>
+#include <QMediaEncoder>
 #include <QScopedPointer>
 #include <QMediaMetaData>
 #include <QMediaCaptureSession>
@@ -102,7 +102,7 @@ private slots:
 
     void updateCameraActive(bool active);
     void updateCaptureMode();
-    void updateRecorderState(QMediaRecorder::State state);
+    void updateRecorderState(QMediaEncoder::State state);
     void setExposureCompensation(int index);
 
     void updateRecordTime();
@@ -132,7 +132,7 @@ private:
     QMediaCaptureSession m_captureSession;
     QScopedPointer<QCamera> m_camera;
     QCameraImageCapture *m_imageCapture;
-    QScopedPointer<QMediaRecorder> m_mediaRecorder;
+    QScopedPointer<QMediaEncoder> m_mediaEncoder;
 
     QImageEncoderSettings m_imageSettings;
     QMediaEncoderSettings m_encoderSettings;

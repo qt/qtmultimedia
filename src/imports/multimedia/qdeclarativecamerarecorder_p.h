@@ -52,7 +52,7 @@
 //
 
 #include <qcamera.h>
-#include <qmediarecorder.h>
+#include <qmediaencoder.h>
 #include <qmediaencodersettings.h>
 #include <qmediaformat.h>
 
@@ -96,18 +96,18 @@ class QDeclarativeCameraRecorder : public QObject
 public:
     enum RecorderState
     {
-        StoppedState = QMediaRecorder::StoppedState,
-        RecordingState = QMediaRecorder::RecordingState
+        StoppedState = QMediaEncoder::StoppedState,
+        RecordingState = QMediaEncoder::RecordingState
     };
 
     enum RecorderStatus
     {
-        UnavailableStatus = QMediaRecorder::UnavailableStatus,
-        StoppedStatus = QMediaRecorder::StoppedStatus,
-        StartingStatus = QMediaRecorder::StartingStatus,
-        RecordingStatus = QMediaRecorder::RecordingStatus,
-        PausedStatus = QMediaRecorder::PausedStatus,
-        FinalizingStatus = QMediaRecorder::FinalizingStatus
+        UnavailableStatus = QMediaEncoder::UnavailableStatus,
+        StoppedStatus = QMediaEncoder::StoppedStatus,
+        StartingStatus = QMediaEncoder::StartingStatus,
+        RecordingStatus = QMediaEncoder::RecordingStatus,
+        PausedStatus = QMediaEncoder::PausedStatus,
+        FinalizingStatus = QMediaEncoder::FinalizingStatus
     };
 
     enum EncodingMode
@@ -118,10 +118,10 @@ public:
     };
 
     enum Error {
-        NoError = QMediaRecorder::NoError,
-        ResourceError = QMediaRecorder::ResourceError,
-        FormatError = QMediaRecorder::FormatError,
-        OutOfSpaceError = QMediaRecorder::OutOfSpaceError
+        NoError = QMediaEncoder::NoError,
+        ResourceError = QMediaEncoder::ResourceError,
+        FormatError = QMediaEncoder::FormatError,
+        OutOfSpaceError = QMediaEncoder::OutOfSpaceError
     };
 
     ~QDeclarativeCameraRecorder();
@@ -203,15 +203,15 @@ Q_SIGNALS:
     void videoEncodingModeChanged(EncodingMode encodingMode);
 
 private slots:
-    void updateRecorderState(QMediaRecorder::State);
-    void updateRecorderError(QMediaRecorder::Error);
+    void updateRecorderState(QMediaEncoder::State);
+    void updateRecorderError(QMediaEncoder::Error);
     void updateActualLocation(const QUrl&);
 
 private:
     friend class QDeclarativeCamera;
     QDeclarativeCameraRecorder(QMediaCaptureSession *session, QObject *parent = 0);
 
-    QMediaRecorder *m_recorder = nullptr;
+    QMediaEncoder *m_encoder = nullptr;
     QDeclarativeMediaMetaData *m_metaData = nullptr;
 
     QMediaEncoderSettings m_encoderSettings;
