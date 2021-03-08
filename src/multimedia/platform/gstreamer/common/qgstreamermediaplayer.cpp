@@ -43,6 +43,7 @@
 #include <private/qgstreamermetadata_p.h>
 #include <private/qgstreamerformatinfo_p.h>
 #include <private/qgstreameraudiooutput_p.h>
+#include <private/qgstreamervideooutput_p.h>
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstappsrc_p.h>
 #include <qaudiodeviceinfo.h>
@@ -76,12 +77,12 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
     playerPipeline.add(inputSelector[AudioStream], gstAudioOutput->gstElement());
     inputSelector[AudioStream].link(gstAudioOutput->gstElement());
 
+    gstVideoOutput = new QGstreamerVideoOutput(this);
+    gstVideoOutput->setPipeline(playerPipeline);
+
     inputSelector[VideoStream] = QGstElement("input-selector", "videoInputSelector");
-    videoQueue = QGstElement("queue", "videoQueue");
-    videoConvert = QGstElement("videoconvert", "videoConvert");
-    videoScale = QGstElement("videoscale", "videoScale");
-    playerPipeline.add(inputSelector[VideoStream], videoQueue, videoConvert, videoScale);
-    inputSelector[VideoStream].link(videoQueue, videoConvert, videoScale);
+    playerPipeline.add(inputSelector[VideoStream], gstVideoOutput->gstElement());
+    inputSelector[VideoStream].link(gstVideoOutput->gstElement());
 
     inputSelector[SubtitleStream] = QGstElement("input-selector", "subTitleInputSelector");
     playerPipeline.add(inputSelector[SubtitleStream]);
@@ -604,76 +605,6 @@ QMediaMetaData QGstreamerMediaPlayer::metaData() const
     return m_metaData;
 }
 
-void QGstreamerMediaPlayer::updateVideoSink()
-{
-    qCDebug(qLcMediaPlayer) << "Video sink has changed, reload video output";
-
-    QGstElement newSink;
-    if (m_videoOutput && m_videoOutput->isReady())
-        newSink = m_videoOutput->videoSink();
-
-    if (newSink.isNull())
-        newSink = QGstElement("fakesink", "fakevideosink");
-
-    if (newSink == videoSink)
-        return;
-
-    qCDebug(qLcMediaPlayer) << "Reconfiguring video output";
-
-    if (m_state == QMediaPlayer::StoppedState) {
-        qCDebug(qLcMediaPlayer) << "The pipeline has not started yet";
-
-        //the pipeline has not started yet
-        playerPipeline.setState(GST_STATE_NULL);
-        if (!videoSink.isNull()) {
-            videoSink.setState(GST_STATE_NULL);
-            playerPipeline.remove(videoSink);
-        }
-        videoSink = newSink;
-        playerPipeline.add(videoSink);
-        if (!videoScale.link(videoSink))
-            qCWarning(qLcMediaPlayer) << "Linking new video output failed";
-
-        if (g_object_class_find_property(G_OBJECT_GET_CLASS(videoSink.object()), "show-preroll-frame") != nullptr)
-            videoSink.set("show-preroll-frame", true);
-
-//        switch (m_pendingState) {
-//        case QMediaPlayer::PausedState:
-//            gst_element_set_state(m_playbin, GST_STATE_PAUSED);
-//            break;
-//        case QMediaPlayer::PlayingState:
-//            gst_element_set_state(m_playbin, GST_STATE_PLAYING);
-//            break;
-//        default:
-//            break;
-//        }
-
-    } else {
-//        if (m_pendingVideoSink) {
-//            qCDebug(qLcMediaPlayer) << "already waiting for pad to be blocked, just change the pending sink";
-//            m_pendingVideoSink = videoSink;
-//            return;
-//        }
-
-//        m_pendingVideoSink = videoSink;
-
-//        qCDebug(qLcMediaPlayer) << "Blocking the video output pad...";
-
-//        //block pads, async to avoid locking in paused state
-//        GstPad *srcPad = gst_element_get_static_pad(m_videoIdentity, "src");
-//        this->pad_probe_id = gst_pad_add_probe(srcPad, (GstPadProbeType)(GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BLOCKING), block_pad_cb, this, nullptr);
-//        gst_object_unref(GST_OBJECT(srcPad));
-
-//        //Unpause the sink to avoid waiting until the buffer is processed
-//        //while the sink is paused. The pad will be blocked as soon as the current
-//        //buffer is processed.
-//        if (m_state == QMediaPlayer::PausedState) {
-//            qCDebug(qLcMediaPlayer) << "Starting video output to avoid blocking in paused state...";
-//            gst_element_set_state(m_videoSink, GST_STATE_PLAYING);
-//        }
-    }
-}
-
 void QGstreamerMediaPlayer::setSeekable(bool seekable)
 {
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << seekable;
@@ -759,15 +690,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
 
 void QGstreamerMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 {
-    if (!m_videoOutput) {
-        m_videoOutput = new QGstreamerVideoRenderer;
-        qCDebug(qLcMediaPlayer) << Q_FUNC_INFO;
-        connect(m_videoOutput, SIGNAL(sinkChanged()),
-                this, SLOT(updateVideoRenderer()));
-    }
-
-    m_videoOutput->setSurface(surface);
-    updateVideoSink();
+    gstVideoOutput->setVideoSurface(surface);
 }
 
 int QGstreamerMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)

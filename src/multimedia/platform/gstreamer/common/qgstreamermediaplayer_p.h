@@ -65,6 +65,7 @@ class QGstreamerBusHelper;
 class QGstreamerMessage;
 class QGstAppSrc;
 class QGstreamerAudioOutput;
+class QGstreamerVideoOutput;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
@@ -131,7 +132,6 @@ private:
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
-    void updateVideoSink();
     void setSeekable(bool seekable);
     void parseStreamsAndMetadata();
 
@@ -152,10 +152,6 @@ private:
     bool m_seekable = false;
     qint64 m_duration = 0;
 
-    QAudioDeviceInfo m_audioOutput;
-    QAbstractVideoSurface *m_videoSurface = nullptr;
-    QGstreamerVideoRenderer *m_videoOutput = nullptr;
-
     QGstreamerBusHelper *busHelper;
     QGstAppSrc *m_appSrc;
 
@@ -169,13 +165,9 @@ private:
     QGstElement inputSelector[3];
 
     QGstreamerAudioOutput *gstAudioOutput;
+    QGstreamerVideoOutput *gstVideoOutput;
 
     //    QGstElement streamSynchronizer;
-
-    QGstElement videoQueue;
-    QGstElement videoConvert;
-    QGstElement videoScale;
-    QGstElement videoSink;
 
     QHash<QByteArray, QGstPad> decoderOutputMap;
 };
