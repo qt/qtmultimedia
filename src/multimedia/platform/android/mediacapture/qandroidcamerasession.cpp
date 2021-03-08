@@ -98,6 +98,7 @@ QAndroidCameraSession::~QAndroidCameraSession()
     delete m_cameraExposureControl;
     delete m_cameraFocusControl;
     delete m_cameraImageProcessingControl;
+    delete m_renderer;
 
     close();
 }
@@ -830,7 +831,7 @@ bool QAndroidCameraSession::requestRecordingPermission()
 void QAndroidCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
 {
     if (!m_renderer)
-        m_renderer = new QAndroidCameraVideoRendererControl(m_cameraSession);
+        m_renderer = new QAndroidCameraVideoRendererControl(this);
     m_renderer->setSurface(surface);
 }
 

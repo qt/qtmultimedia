@@ -70,7 +70,6 @@ QAndroidCameraControl::QAndroidCameraControl(QAndroidCameraSession *session)
 
 QAndroidCameraControl::~QAndroidCameraControl()
 {
-    delete m_renderer;
 }
 
 void QAndroidCameraControl::setActive(bool active)

@@ -41,7 +41,7 @@
 
 #include "androidsurfacetexture_p.h"
 #include <QAbstractVideoSurface>
-#include <QAbstractVideoBuffer>
+#include "private/qabstractvideobuffer_p.h"
 #include <QVideoSurfaceFormat>
 #include <qevent.h>
 #include <qcoreapplication.h>

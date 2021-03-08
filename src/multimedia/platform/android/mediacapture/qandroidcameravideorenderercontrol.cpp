@@ -212,7 +212,7 @@ void QAndroidCameraDataVideoOutput::presentFrame()
             // but the buffers we get from the data callback are not. Tell the QAbstractVideoSurface
             // that it needs to mirror the frames.
             if (m_control->cameraSession()->camera()->getFacing() == AndroidCamera::CameraFacingFront)
-                format.setProperty("mirrored", true);
+                format.setMirrored(true);
 
             m_control->surface()->start(format);
         }

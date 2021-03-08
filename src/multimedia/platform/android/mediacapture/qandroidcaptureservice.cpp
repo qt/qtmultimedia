@@ -140,7 +140,7 @@ bool QAndroidCaptureService::setAudioInput(const QAudioDeviceInfo &info)
 
 void QAndroidCaptureService::setVideoPreview(QAbstractVideoSurface *surface)
 {
-    m_captureSession->setVideoSurface(surface);
+    m_cameraSession->setVideoSurface(surface);
 }
 
 QT_END_NAMESPACE
