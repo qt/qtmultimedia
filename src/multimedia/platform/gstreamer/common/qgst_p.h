@@ -355,8 +355,8 @@ public:
     bool link(const QGstElement &n1, const QGstElement &n2, const QGstElement &n3, const QGstElement &n4, const QGstElement &n5)
     { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), n4.element(), n5.element(), nullptr); }
 
-    QGstPad staticPad(const char *name) { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
-    QGstPad getRequestPad(const char *name) { return QGstPad(gst_element_get_request_pad(element(), name), HasRef); }
+    QGstPad staticPad(const char *name) const { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
+    QGstPad getRequestPad(const char *name) const { return QGstPad(gst_element_get_request_pad(element(), name), HasRef); }
     void releaseRequestPad(const QGstPad &pad) { return gst_element_release_request_pad(element(), pad.pad()); }
 
     GstState state() const
@@ -466,6 +466,15 @@ public:
     { gst_bin_remove(bin(), element.element()); }
 
     GstBin *bin() const { return GST_BIN_CAST(m_object); }
+
+    void addGhostPad(const QGstElement &child, const char *name)
+    {
+        addGhostPad(name, child.staticPad(name));
+    }
+    void addGhostPad(const char *name, const QGstPad &pad)
+    {
+        gst_element_add_pad(element(), gst_ghost_pad_new(name, pad.pad()));
+    }
 };
 
 class QGstBus : public QGstObject

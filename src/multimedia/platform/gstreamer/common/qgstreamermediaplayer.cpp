@@ -42,6 +42,7 @@
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamermetadata_p.h>
 #include <private/qgstreamerformatinfo_p.h>
+#include <private/qgstreameraudiooutput_p.h>
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstappsrc_p.h>
 #include <qaudiodeviceinfo.h>
@@ -66,14 +67,14 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
     : QObject(parent),
       QPlatformMediaPlayer(parent)
 {
+    gstAudioOutput = new QGstreamerAudioOutput(this);
+    gstAudioOutput->setPipeline(playerPipeline);
+    connect(gstAudioOutput, &QGstreamerAudioOutput::mutedChanged, this, &QGstreamerMediaPlayer::mutedChangedHandler);
+    connect(gstAudioOutput, &QGstreamerAudioOutput::volumeChanged, this, &QGstreamerMediaPlayer::volumeChangedHandler);
+
     inputSelector[AudioStream] = QGstElement("input-selector", "audioInputSelector");
-    audioQueue = QGstElement("queue", "audioQueue");
-    audioConvert = QGstElement("audioconvert", "audioConvert");
-    audioResample = QGstElement("audioresample", "audioResample");
-    audioVolume = QGstElement("volume", "volume");
-    audioSink = QGstElement("autoaudiosink", "autoAudioSink");
-    playerPipeline.add(inputSelector[AudioStream], audioQueue, audioConvert, audioResample, audioVolume, audioSink);
-    inputSelector[AudioStream].link(audioQueue, audioConvert, audioResample, audioVolume, audioSink);
+    playerPipeline.add(inputSelector[AudioStream], gstAudioOutput->gstElement());
+    inputSelector[AudioStream].link(gstAudioOutput->gstElement());
 
     inputSelector[VideoStream] = QGstElement("input-selector", "videoInputSelector");
     videoQueue = QGstElement("queue", "videoQueue");
@@ -139,12 +140,12 @@ int QGstreamerMediaPlayer::bufferStatus() const
 
 int QGstreamerMediaPlayer::volume() const
 {
-    return m_volume;
+    return gstAudioOutput->volume();
 }
 
 bool QGstreamerMediaPlayer::isMuted() const
 {
-    return m_muted;
+    return gstAudioOutput->isMuted();
 }
 
 bool QGstreamerMediaPlayer::isSeekable() const
@@ -207,20 +208,12 @@ void QGstreamerMediaPlayer::stop()
 
 void QGstreamerMediaPlayer::setVolume(int vol)
 {
-    if (vol == m_volume)
-        return;
-    m_volume = vol;
-    audioVolume.set("volume", vol/100.);
-    emit volumeChanged(m_volume);
+    gstAudioOutput->setVolume(vol);
 }
 
 void QGstreamerMediaPlayer::setMuted(bool muted)
 {
-    if (muted == m_muted)
-        return;
-    m_muted = muted;
-    audioVolume.set("mute", muted);
-    emit mutedChanged(muted);
+    gstAudioOutput->setMuted(muted);
 }
 
 void QGstreamerMediaPlayer::busMessage(const QGstreamerMessage &message)
@@ -598,58 +591,12 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
 bool QGstreamerMediaPlayer::setAudioOutput(const QAudioDeviceInfo &info)
 {
-    if (info == m_audioOutput)
-        return true;
-    qCDebug(qLcMediaPlayer) << "setAudioOutput" << info.description() << info.isNull();
-    m_audioOutput = info;
-
-    if (m_state == QMediaPlayer::StoppedState)
-        return changeAudioOutput();
-
-    auto pad = audioVolume.staticPad("src");
-    pad.addProbe<&QGstreamerMediaPlayer::prepareAudioOutputChange>(this, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM);
-
-    return true;
-}
-
-bool QGstreamerMediaPlayer::changeAudioOutput()
-{
-    qCDebug(qLcMediaPlayer) << "Changing audio output";
-    QGstElement newSink;
-    auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioOutput.handle());
-    if (deviceInfo && deviceInfo->gstDevice)
-        newSink = gst_device_create_element(deviceInfo->gstDevice , "audiosink");
-
-    if (newSink.isNull())
-        newSink = QGstElement("autoaudiosink", "audiosink");
-
-    playerPipeline.remove(audioSink);
-    audioSink = newSink;
-    playerPipeline.add(audioSink);
-    audioVolume.link(audioSink);
-
-    return true;
-}
-
-void QGstreamerMediaPlayer::prepareAudioOutputChange(const QGstPad &/*pad*/)
-{
-    qCDebug(qLcMediaPlayer) << "Reconfiguring audio output";
-
-    Q_ASSERT(m_state != QMediaPlayer::StoppedState);
-
-    auto state = playerPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        playerPipeline.setStateSync(GST_STATE_PAUSED);
-    audioSink.setStateSync(GST_STATE_NULL);
-    changeAudioOutput();
-    audioSink.setStateSync(GST_STATE_PAUSED);
-    if (state == GST_STATE_PLAYING)
-        playerPipeline.setStateSync(state);
+    return gstAudioOutput->setAudioOutput(info);
 }
 
 QAudioDeviceInfo QGstreamerMediaPlayer::audioOutput() const
 {
-    return m_audioOutput;
+    return gstAudioOutput->audioOutput();
 }
 
 QMediaMetaData QGstreamerMediaPlayer::metaData() const

@@ -64,6 +64,7 @@ class QGstreamerVideoRenderer;
 class QGstreamerBusHelper;
 class QGstreamerMessage;
 class QGstAppSrc;
+class QGstreamerAudioOutput;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
@@ -122,14 +123,14 @@ public:
 
 public Q_SLOTS:
     void busMessage(const QGstreamerMessage& message);
+    void volumeChangedHandler(int volume) { volumeChanged(volume); }
+    void mutedChangedHandler(bool mute) { mutedChanged(mute); }
 
 private:
     friend class QGstreamerStreamsControl;
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
-    void prepareAudioOutputChange(const QGstPad &pad);
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
-    bool changeAudioOutput();
     void updateVideoSink();
     void setSeekable(bool seekable);
     void parseStreamsAndMetadata();
@@ -147,8 +148,6 @@ private:
     bool ownStream = false;
 
     bool prerolling = false;
-    int m_volume = 100.;
-    bool m_muted = false;
     double m_playbackRate = 1.;
     bool m_seekable = false;
     qint64 m_duration = 0;
@@ -169,13 +168,9 @@ private:
     QGstElement decoder;
     QGstElement inputSelector[3];
 
-//    QGstElement streamSynchronizer;
+    QGstreamerAudioOutput *gstAudioOutput;
 
-    QGstElement audioQueue;
-    QGstElement audioConvert;
-    QGstElement audioResample;
-    QGstElement audioVolume;
-    QGstElement audioSink;
+    //    QGstElement streamSynchronizer;
 
     QGstElement videoQueue;
     QGstElement videoConvert;
