@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,9 +37,8 @@
 **
 ****************************************************************************/
 
-
-#ifndef QGSTREAMERCAMERACONTROL_H
-#define QGSTREAMERCAMERACONTROL_H
+#ifndef QGSTREAMERAUDIOINPUT_P_H
+#define QGSTREAMERAUDIOINPUT_P_H
 
 //
 //  W A R N I N G
@@ -52,46 +51,61 @@
 // We mean it.
 //
 
-#include <QHash>
-#include <private/qplatformcamera_p.h>
-#include "qgstreamermediacapture_p.h"
+#include <private/qtmultimediaglobal_p.h>
+#include <qaudiodeviceinfo.h>
+
+#include <QtCore/qobject.h>
+
 #include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCamera : public QPlatformCamera
+class QGstreamerBusHelper;
+class QGstreamerMessage;
+class QAudioDeviceInfo;
+
+class Q_MULTIMEDIA_EXPORT QGstreamerAudioInput : public QObject
 {
     Q_OBJECT
+
 public:
-    QGstreamerCamera(QGstreamerMediaCapture *session);
-    virtual ~QGstreamerCamera();
+    QGstreamerAudioInput(QObject *parent = 0);
+    ~QGstreamerAudioInput();
 
-    bool isActive() const override;
-    void setActive(bool active) override;
+    int volume() const;
+    bool isMuted() const;
 
-    QCamera::Status status() const override { return m_status; }
+    bool setAudioInput(const QAudioDeviceInfo &);
+    QAudioDeviceInfo audioInput() const;
 
-    void setCamera(const QCameraInfo &camera) override;
+    void setVolume(int volume);
+    void setMuted(bool muted);
 
-    QGstElement gstElement() const { return gstCameraBin.element(); }
-    void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
+    void setPipeline(const QGstPipeline &pipeline);
+
+    QGstElement gstElement() const { return gstAudioInput; }
+
+Q_SIGNALS:
+    void mutedChanged(bool);
+    void volumeChanged(int);
 
 private:
-    QGstreamerMediaCapture *m_session;
+    void prepareAudioInputChange(const QGstPad &pad);
+    bool changeAudioInput();
 
-    QCameraInfo m_cameraInfo;
+    int m_volume = 100.;
+    bool m_muted = false;
 
+    QAudioDeviceInfo m_audioInput;
+
+    // Gst elements
     QGstPipeline gstPipeline;
+    QGstBin gstAudioInput;
 
-    QGstBin gstCameraBin;
-    QGstElement gstCamera;
-    QGstElement gstVideoConvert;
-    QGstElement gstVideoScale;
-
-    bool m_active = false;
-    QCamera::Status m_status = QCamera::InactiveStatus;
+    QGstElement audioSrc;
+    QGstElement audioVolume;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAMERACONTROL_H
+#endif

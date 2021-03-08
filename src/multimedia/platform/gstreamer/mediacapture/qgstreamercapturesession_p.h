@@ -71,7 +71,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerMessage;
 class QGstreamerBusHelper;
 class QGstreamerCameraImageCapture;
-class QGstreamerMediaRecorder;
+class QGstreamerMediaEncoder;
 class QGstreamerVideoRenderer;
 class QCameraInfo;
 class QGstreamerVideoInput;
@@ -108,7 +108,7 @@ public:
 
     QGstreamerCameraImageCapture *imageCaptureControl() const { return m_imageCaptureControl; }
 
-    QGstreamerMediaRecorder *recorderControl() const { return m_recorderControl; }
+    QGstreamerMediaEncoder *recorderControl() const { return m_recorderControl; }
 
     void setVideoDevice(const QCameraInfo &camera) { m_camera = camera; }
 
@@ -180,7 +180,7 @@ private:
     QGstreamerVideoRenderer *m_viewfinderInterface;
 
     QGstreamerCameraImageCapture *m_imageCaptureControl;
-    QGstreamerMediaRecorder *m_recorderControl;
+    QGstreamerMediaEncoder *m_recorderControl;
 
     QGstreamerBusHelper *m_busHelper;
     GstBus* m_bus;

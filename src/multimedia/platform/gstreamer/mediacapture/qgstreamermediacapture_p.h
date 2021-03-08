@@ -54,17 +54,17 @@
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCaptureSession;
 class QGstreamerCamera;
-class QGstreamerMessage;
-class QGstreamerBusHelper;
+class QGstreamerImageCapture;
+class QGstreamerMediaEncoder;
 class QGstreamerVideoRenderer;
-class QGstreamerVideoWindow;
-class QGstreamerVideoInput;
+class QGstreamerAudioInput;
+class QGstreamerAudioOutput;
+class QGstreamerVideoOutput;
 
 class QGstreamerMediaCapture : public QPlatformMediaCaptureSession
 {
@@ -87,10 +87,33 @@ public:
     bool setAudioInput(const QAudioDeviceInfo &id) override;
 
     void setVideoPreview(QAbstractVideoSurface *surface) override;
+    QAudioDeviceInfo audioPreview() const override;
+    bool setAudioPreview(const QAudioDeviceInfo &info) override;
+
+    void cameraChanged();
+
+    void dumpGraph(const QString &fileName);
+
+    QGstPad getAudioPad() const;
+    QGstPad getVideoPad() const;
+    void releaseAudioPad(const QGstPad &pad) const;
+    void releaseVideoPad(const QGstPad &pad) const;
 
 private:
-    QGstreamerCaptureSession *m_captureSession = nullptr;
-    QGstreamerCamera *m_cameraControl = nullptr;
+    // Gst elements
+    QGstPipeline gstPipeline;
+
+    QGstreamerAudioInput *gstAudioInput = nullptr;
+    QGstreamerCamera *gstCamera = nullptr;
+
+    QGstElement gstAudioTee;
+    QGstElement gstVideoTee;
+
+    QGstreamerAudioOutput *gstAudioOutput = nullptr;
+    QGstreamerVideoOutput *gstVideoOutput = nullptr;
+
+    QGstreamerMediaEncoder *m_mediaEncoder = nullptr;
+    QGstreamerImageCapture *m_imageCapture = nullptr;
 };
 
 QT_END_NAMESPACE

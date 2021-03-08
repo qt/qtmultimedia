@@ -102,9 +102,15 @@ public:
             return std::nullopt;
         return g_value_get_int(value);
     }
+    template<typename T>
+    T *getPointer() const
+    {
+        return value ? static_cast<T *>(g_value_get_pointer(value)) : nullptr;
+    }
+
     const char *toString() const
     {
-        return g_value_get_string(value);
+        return value ? g_value_get_string(value) : nullptr;
     }
     std::optional<float> getFraction() const
     {
@@ -151,6 +157,13 @@ public:
     QByteArrayView name() const { return gst_structure_get_name(structure); }
 
     QGValue operator[](const char *name) const { return gst_structure_get_value(structure, name); }
+
+    GstMessage *getMessage() const
+    {
+        GstMessage *msg;
+        gst_structure_get(structure, "message", GST_TYPE_MESSAGE, &msg, nullptr);
+        return msg;
+    }
 
     Q_MULTIMEDIA_EXPORT QSize resolution() const;
     Q_MULTIMEDIA_EXPORT QVideoFrame::PixelFormat pixelFormat() const;
@@ -310,6 +323,7 @@ public:
     bool isLinked() const { return gst_pad_is_linked(pad()); }
     bool link(const QGstPad &sink) const { return gst_pad_link(pad(), sink.pad()) == GST_PAD_LINK_OK; }
     bool unlink(const QGstPad &sink) const { return gst_pad_unlink(pad(), sink.pad()); }
+    bool unlinkPeer() const { return unlink(peer()); }
     QGstPad peer() const { return QGstPad(gst_pad_get_peer(pad()), HasRef); }
     inline QGstElement parent() const;
 
@@ -318,13 +332,27 @@ public:
     template<auto Member, typename T>
     void addProbe(T *instance, GstPadProbeType type) {
         struct Impl {
-            static GstPadProbeReturn callback(GstPad * pad, GstPadProbeInfo */*info*/, gpointer userData) {
+            static GstPadProbeReturn callback(GstPad *pad, GstPadProbeInfo */*info*/, gpointer userData) {
                 (static_cast<T *>(userData)->*Member)(QGstPad(pad, NeedsRef));
                 return GST_PAD_PROBE_REMOVE;
             };
         };
 
-        gst_pad_add_probe (pad(), type, Impl::callback, instance, NULL);
+        gst_pad_add_probe (pad(), type, Impl::callback, instance, nullptr);
+    }
+
+    template<auto Member, typename T>
+    void addEosProbe(T *instance) {
+        struct Impl {
+            static GstPadProbeReturn callback(GstPad */*pad*/, GstPadProbeInfo *info, gpointer userData) {
+                if (GST_EVENT_TYPE(GST_PAD_PROBE_INFO_DATA(info)) != GST_EVENT_EOS)
+                    return GST_PAD_PROBE_PASS;
+                (static_cast<T *>(userData)->*Member)();
+                return GST_PAD_PROBE_REMOVE;
+            };
+        };
+
+        gst_pad_add_probe (pad(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, Impl::callback, instance, nullptr);
     }
 };
 
@@ -376,7 +404,7 @@ public:
 
     QGstPad staticPad(const char *name) const { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
     QGstPad getRequestPad(const char *name) const { return QGstPad(gst_element_get_request_pad(element(), name), HasRef); }
-    void releaseRequestPad(const QGstPad &pad) { return gst_element_release_request_pad(element(), pad.pad()); }
+    void releaseRequestPad(const QGstPad &pad) const { return gst_element_release_request_pad(element(), pad.pad()); }
 
     GstState state() const
     {
@@ -396,6 +424,9 @@ public:
 
     void lockState(bool locked) { gst_element_set_locked_state(element(), locked); }
     bool isStateLocked() const { return gst_element_is_locked_state(element()); }
+
+    void sendEvent(GstEvent *event) const { gst_element_send_event(element(), event); }
+    void sendEos() const { sendEvent(gst_event_new_eos()); }
 
     bool seek(qint64 pos, double rate)
     {
@@ -464,10 +495,11 @@ inline QGstElement QGstPad::parent() const
 class QGstBin : public QGstElement
 {
 public:
+    QGstBin() = default;
     QGstBin(const QGstObject &o)
         : QGstBin(GST_BIN(o.object()), NeedsRef)
     {}
-    QGstBin(const char *name = nullptr)
+    QGstBin(const char *name)
         : QGstElement(gst_bin_new(name), NeedsRef)
     {
     }

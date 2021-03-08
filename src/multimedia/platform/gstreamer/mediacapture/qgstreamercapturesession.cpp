@@ -96,8 +96,8 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
     m_busHelper->installMessageFilter(this);
 
     m_imageCaptureControl = new QGstreamerCameraImageCapture(this);
-    m_recorderControl = new QGstreamerMediaRecorder(this);
-    connect(m_recorderControl, &QGstreamerMediaRecorder::error, [](int e, const QString &str) {
+    m_recorderControl = nullptr;//new QGstreamerMediaEncoder(this);
+    connect(m_recorderControl, &QGstreamerMediaEncoder::error, [](int e, const QString &str) {
         qWarning() << QMediaRecorder::Error(e) << ":" << str.toLatin1().constData();
     });
 }
@@ -208,7 +208,7 @@ GstElement *QGstreamerCaptureSession::buildEncodeBin()
         return nullptr;
     }
 
-    auto *encodingProfile = createEncodingProfile(m_recorderControl->resolvedEncoderSettings(), m_captureMode);
+    auto *encodingProfile = createEncodingProfile(m_recorderControl->encoderSettings(), m_captureMode);
 
     g_object_set (G_OBJECT(encoder),
                   "profile",
@@ -289,7 +289,7 @@ GstElement *QGstreamerCaptureSession::buildVideoPreview()
         qreal frameRate = 0;
 
         if (m_captureMode & Video) {
-            QMediaEncoderSettings videoSettings = m_recorderControl->resolvedEncoderSettings();
+            QMediaEncoderSettings videoSettings = m_recorderControl->encoderSettings();
             resolution = videoSettings.videoResolution();
             frameRate = videoSettings.videoFrameRate();
         } else if (m_captureMode & Image) {

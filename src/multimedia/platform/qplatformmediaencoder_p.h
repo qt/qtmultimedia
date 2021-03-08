@@ -48,10 +48,10 @@
 // We mean it.
 //
 
-#ifndef QMEDIARECORDERCONTROL_H
-#define QMEDIARECORDERCONTROL_H
+#ifndef QPLATFORMMEDIAENCODER_H
+#define QPLATFORMMEDIAENCODER_H
 
-#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qmediaencoder.h>
 #include <QtMultimedia/qmediametadata.h>
 
 QT_BEGIN_NAMESPACE
@@ -72,8 +72,8 @@ public:
     virtual QUrl outputLocation() const = 0;
     virtual bool setOutputLocation(const QUrl &location) = 0;
 
-    virtual QMediaRecorder::State state() const = 0;
-    virtual QMediaRecorder::Status status() const = 0;
+    virtual QMediaEncoder::State state() const = 0;
+    virtual QMediaEncoder::Status status() const = 0;
 
     virtual qint64 duration() const = 0;
 
@@ -84,21 +84,20 @@ public:
     virtual QMediaMetaData metaData() const { return {}; }
 
 Q_SIGNALS:
-    void stateChanged(QMediaRecorder::State state);
-    void statusChanged(QMediaRecorder::Status status);
+    void stateChanged(QMediaEncoder::State state);
+    void statusChanged(QMediaEncoder::Status status);
     void durationChanged(qint64 position);
     void actualLocationChanged(const QUrl &location);
     void error(int error, const QString &errorString);
     void metaDataChanged();
 
 public Q_SLOTS:
-    virtual void setState(QMediaRecorder::State state) = 0;
+    virtual void setState(QMediaEncoder::State state) = 0;
 
 protected:
     explicit QPlatformMediaEncoder(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE
-
 
 #endif

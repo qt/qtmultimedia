@@ -173,12 +173,6 @@ void QMediaEncoder::setCaptureSession(QMediaCaptureSession *session)
     connect(d->control, SIGNAL(statusChanged(QMediaEncoder::Status)),
             this, SIGNAL(statusChanged(QMediaEncoder::Status)));
 
-    connect(d->control, SIGNAL(mutedChanged(bool)),
-            this, SIGNAL(mutedChanged(bool)));
-
-    connect(d->control, SIGNAL(volumeChanged(qreal)),
-            this, SIGNAL(volumeChanged(qreal)));
-
     connect(d->control, SIGNAL(durationChanged(qint64)),
             this, SIGNAL(durationChanged(qint64)));
 

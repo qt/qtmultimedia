@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 
-#ifndef QGSTREAMERRECORDERCONTROL_H
-#define QGSTREAMERRECORDERCONTROL_H
+#ifndef QGSTREAMERENCODERCONTROL_H
+#define QGSTREAMERENCODERCONTROL_H
 
 //
 //  W A R N I N G
@@ -52,28 +52,34 @@
 // We mean it.
 //
 
-#include <QtCore/QDir>
-
 #include <private/qplatformmediaencoder_p.h>
-#include "qgstreamercapturesession_p.h"
+#include "qgstreamermediacapture_p.h"
+#include "private/qgstreamermetadata_p.h"
+
+#include <QtCore/qurl.h>
+#include <QtCore/qdir.h>
+#include <qelapsedtimer.h>
+#include <qtimer.h>
 
 QT_BEGIN_NAMESPACE
 
 class QMediaMetaData;
+class QGstreamerBusHelper;
+class QGstreamerMessage;
 
-class QGstreamerMediaRecorder : public QPlatformMediaEncoder
+class QGstreamerMediaEncoder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 
 public:
-    QGstreamerMediaRecorder(QGstreamerCaptureSession *session);
-    virtual ~QGstreamerMediaRecorder();
+    QGstreamerMediaEncoder(QGstreamerMediaCapture *session, const QGstPipeline &pipeline);
+    virtual ~QGstreamerMediaEncoder();
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &sink) override;
 
-    QMediaRecorder::State state() const override;
-    QMediaRecorder::Status status() const override;
+    QMediaEncoder::State state() const override;
+    QMediaEncoder::Status status() const override;
 
     qint64 duration() const override;
 
@@ -81,13 +87,12 @@ public:
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
     QMediaEncoderSettings encoderSettings() const { return m_settings; }
-    QMediaEncoderSettings resolvedEncoderSettings() const;
 
     void setMetaData(const QMediaMetaData &) override;
     QMediaMetaData metaData() const override;
 
 public slots:
-    void setState(QMediaRecorder::State state) override;
+    void setState(QMediaEncoder::State state) override;
     void record();
     void pause();
     void stop();
@@ -95,20 +100,34 @@ public slots:
 private slots:
     void updateStatus();
     void handleSessionError(int code, const QString &description);
+    void busMessage(const QGstreamerMessage& message);
+    void updateDuration();
+    void finalize();
 
 private:
     QDir defaultDir() const;
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
+    QUrl m_requestedOutputLocation;
     QUrl m_outputLocation;
     QMediaEncoderSettings m_settings;
-    QGstreamerCaptureSession *m_session;
+    QGstreamerMediaCapture *m_session;
     QGstreamerMetaData m_metaData;
-    QMediaRecorder::State m_state;
-    QMediaRecorder::Status m_status;
-    bool m_hasPreviewState;
+    QMediaEncoder::State m_state = QMediaEncoder::StoppedState;
+    QMediaEncoder::Status m_status = QMediaEncoder::StoppedStatus;
+    QElapsedTimer m_duration;
+    QTimer heartbeat;
+
+    QGstreamerBusHelper *m_busHelper = nullptr;
+
+    QGstPipeline gstPipeline;
+    QGstBin gstEncoder;
+    QGstElement gstFileSink;
+
+    QGstPad audioSrcPad;
+    QGstPad videoSrcPad;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURECORNTROL_H
+#endif // QGSTREAMERENCODERCONTROL_H

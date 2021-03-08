@@ -192,6 +192,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/audio/qgstreameraudiodecoder.cpp platform/gstreamer/audio/qgstreameraudiodecoder_p.h
         platform/gstreamer/common/qgst_p.h
         platform/gstreamer/common/qgstappsrc.cpp platform/gstreamer/common/qgstappsrc_p.h
+        platform/gstreamer/common/qgstreameraudioinput.cpp platform/gstreamer/common/qgstreameraudioinput_p.h
         platform/gstreamer/common/qgstreameraudiooutput.cpp platform/gstreamer/common/qgstreameraudiooutput_p.h
         platform/gstreamer/common/qgstreamerbufferprobe.cpp platform/gstreamer/common/qgstreamerbufferprobe_p.h
         platform/gstreamer/common/qgstreamerbushelper.cpp platform/gstreamer/common/qgstreamerbushelper_p.h

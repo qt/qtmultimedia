@@ -67,6 +67,9 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
     d_ptr(new QMediaCaptureSessionPrivate)
 {
     d_ptr->captureSession = QPlatformMediaIntegration::instance()->createCaptureSession(QMediaRecorder::AudioAndVideo);
+
+    connect(d_ptr->captureSession, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
+    connect(d_ptr->captureSession, SIGNAL(volumeChanged(qreal)), this, SIGNAL(volumeChanged(qreal)));
 }
 
 /*!

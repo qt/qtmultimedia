@@ -38,81 +38,164 @@
 ****************************************************************************/
 
 #include "qgstreamermediacapture_p.h"
-#include "qgstreamercapturesession_p.h"
 #include "qgstreamermediaencoder_p.h"
 #include "qgstreamercamera_p.h"
 #include <private/qgstreamerbushelper_p.h>
 
 #include "qgstreamercameraimagecapture_p.h"
+#include "private/qgstreameraudioinput_p.h"
+#include "private/qgstreameraudiooutput_p.h"
+#include "private/qgstreamervideooutput_p.h"
 
-#include <private/qgstreamervideorenderer_p.h>
-#include <private/qgstreamervideowindow_p.h>
+#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode mode)
+Q_LOGGING_CATEGORY(qLcMediaCapture, "qt.multimedia.capture")
+
+QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
+    : gstPipeline("pipeline")
 {
-    if (mode == QMediaRecorder::AudioOnly) {
-        m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::Audio, this);
-    } else {
-        m_captureSession = new QGstreamerCaptureSession(QGstreamerCaptureSession::AudioAndVideo, this);
-        m_cameraControl = new QGstreamerCamera(m_captureSession);
-    }
-    connect(m_captureSession, SIGNAL(mutedChanged(bool)), SIGNAL(mutedChanged(bool)));
-    connect(m_captureSession, SIGNAL(volumeChanged(qreal)), SIGNAL(volumeChanged(qreal)));
+    gstCamera = new QGstreamerCamera(this);
+
+    gstAudioInput = new QGstreamerAudioInput(this);
+    gstAudioInput->setPipeline(gstPipeline);
+    connect(gstAudioInput, &QGstreamerAudioInput::mutedChanged, this, &QGstreamerMediaCapture::mutedChanged);
+    connect(gstAudioInput, &QGstreamerAudioInput::volumeChanged, this, &QGstreamerMediaCapture::volumeChanged);
+
+    gstAudioOutput = new QGstreamerAudioOutput(this);
+    gstAudioOutput->setPipeline(gstPipeline);
+
+    gstVideoOutput = new QGstreamerVideoOutput(this);
+    gstVideoOutput->setIsPreview();
+    gstVideoOutput->setPipeline(gstPipeline);
+
+    // ### imageCapture
+    m_mediaEncoder = new QGstreamerMediaEncoder(this, gstPipeline);
+
+    gstAudioTee = QGstElement("tee", "audiotee");
+    gstVideoTee = QGstElement("tee", "videotee");
+
+    gstPipeline.add(gstCamera->gstElement(), gstVideoTee, gstVideoOutput->gstElement());
+    gstCamera->gstElement().link(gstVideoTee);
+    auto pad = gstVideoTee.getRequestPad("src_%u");
+    pad.link(gstVideoOutput->gstElement().staticPad("sink"));
+
+    gstPipeline.add(gstAudioInput->gstElement(), gstAudioTee, gstAudioOutput->gstElement());
+    gstAudioInput->gstElement().link(gstAudioTee);
+    pad = gstAudioTee.getRequestPad("src_%u");
+    pad.link(gstAudioOutput->gstElement().staticPad("sink"));
+
+    dumpGraph(QLatin1String("initial"));
+
+    qDebug() << "AAAAAAAAAAAAAAAAAAAAA";
+    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    qDebug() << "BBBBBB" << gstPipeline.state();
 }
 
-QGstreamerMediaCapture::~QGstreamerMediaCapture() = default;
+QGstreamerMediaCapture::~QGstreamerMediaCapture()
+{
+    gstPipeline.setStateSync(GST_STATE_NULL);
+}
 
 QPlatformCamera *QGstreamerMediaCapture::cameraControl()
 {
-    return m_cameraControl;
+    return gstCamera;
 }
 
 QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCaptureControl()
 {
-    return m_captureSession->imageCaptureControl();
+    // ####
+    return nullptr;
 }
 
 QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()
 {
-    return m_captureSession->recorderControl();
+    return m_mediaEncoder;
 }
 
 QAudioDeviceInfo QGstreamerMediaCapture::audioInput() const
 {
-    return m_captureSession->audioCaptureDevice();
+    return gstAudioInput->audioInput();
 }
 
 bool QGstreamerMediaCapture::setAudioInput(const QAudioDeviceInfo &info)
 {
-    m_captureSession->setAudioCaptureDevice(info);
-    return true;
+    return gstAudioInput->setAudioInput(info);
 }
 
 bool QGstreamerMediaCapture::isMuted() const
 {
-    return m_captureSession->isMuted();
+    return gstAudioOutput->isMuted();
 }
 
 void QGstreamerMediaCapture::setMuted(bool muted)
 {
-    m_captureSession->setMuted(muted);
+    gstAudioOutput->setMuted(muted);
 }
 
 qreal QGstreamerMediaCapture::volume() const
 {
-    return m_captureSession->volume();
+    return gstAudioOutput->volume();
 }
 
 void QGstreamerMediaCapture::setVolume(qreal volume)
 {
-    m_captureSession->setVolume(volume);
+    gstAudioOutput->setVolume(volume);
 }
 
 void QGstreamerMediaCapture::setVideoPreview(QAbstractVideoSurface *surface)
 {
-    m_captureSession->setVideoPreview(surface);
+    gstVideoOutput->setVideoSurface(surface);
 }
+
+QAudioDeviceInfo QGstreamerMediaCapture::audioPreview() const
+{
+    return gstAudioOutput->audioOutput();
+}
+
+bool QGstreamerMediaCapture::setAudioPreview(const QAudioDeviceInfo &info)
+{
+    gstAudioOutput->setAudioOutput(info);
+    return true;
+}
+
+void QGstreamerMediaCapture::cameraChanged()
+{
+}
+
+void QGstreamerMediaCapture::dumpGraph(const QString &fileName)
+{
+#if 1 //def QT_GST_CAPTURE_DEBUG
+    GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
+                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
+                              fileName.toLatin1());
+#else
+    Q_UNUSED(fileName);
+#endif
+}
+
+QGstPad QGstreamerMediaCapture::getAudioPad() const
+{
+    return gstAudioTee.getRequestPad("src_%u");
+}
+
+QGstPad QGstreamerMediaCapture::getVideoPad() const
+{
+    return gstVideoTee.getRequestPad("src_%u");
+}
+
+void QGstreamerMediaCapture::releaseAudioPad(const QGstPad &pad) const
+{
+    if (!pad.isNull())
+        gstAudioTee.releaseRequestPad(pad);
+}
+
+void QGstreamerMediaCapture::releaseVideoPad(const QGstPad &pad) const
+{
+    if (!pad.isNull())
+        gstVideoTee.releaseRequestPad(pad);
+}
+
 
 QT_END_NAMESPACE

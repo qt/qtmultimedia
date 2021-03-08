@@ -81,6 +81,8 @@ public:
     virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
 
     virtual void setVideoPreview(QAbstractVideoSurface *surface) = 0;
+    virtual QAudioDeviceInfo audioPreview() const;
+    virtual bool setAudioPreview(const QAudioDeviceInfo &) { return true; }
 
 Q_SIGNALS:
     void mutedChanged(bool muted);

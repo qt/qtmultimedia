@@ -37,34 +37,35 @@
 **
 ****************************************************************************/
 
-#include "qgstreamercamera_p.h"
-#include "qgstreamercameraimagecapture_p.h"
-
 #include <qcamerainfo.h>
 
+#include "qgstreamercamera_p.h"
+#include "qgstreamercameraimagecapture_p.h"
+#include <private/qgstreamerdevicemanager_p.h>
+#include <private/qgstreamerintegration_p.h>
+
 #include <QtCore/qdebug.h>
-#include <QtCore/qfile.h>
 
-
-QGstreamerCamera::QGstreamerCamera(QGstreamerCaptureSession *session)
+QGstreamerCamera::QGstreamerCamera(QGstreamerMediaCapture *session)
     : QPlatformCamera(session),
-    m_session(session),
-    m_reloadPending(false)
+      m_session(session),
+      gstCameraBin("camerabin")
 {
-    connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)),
-            this, SLOT(updateStatus()));
+    gstCamera = QGstElement("videotestsrc");
+    gstVideoConvert = QGstElement("videoconvert", "videoConvert");
+    gstVideoScale = QGstElement("videoscale", "videoScale");
+    gstCameraBin.add(gstCamera, gstVideoConvert, gstVideoScale);
+    gstCamera.link(gstVideoConvert, gstVideoScale);
 
-    connect(m_session->imageCaptureControl(), SIGNAL(settingsChanged()),
-            SLOT(reloadLater()));
-    connect(m_session, SIGNAL(viewfinderChanged()),
-            SLOT(reloadLater()));
-    connect(m_session, SIGNAL(readyChanged(bool)),
-            SLOT(reloadLater()));
-
-    m_session->setCaptureMode(QGstreamerCaptureSession::AudioAndVideoAndImage);
+    gstCameraBin.addGhostPad(gstVideoScale, "src");
 }
 
 QGstreamerCamera::~QGstreamerCamera() = default;
+
+bool QGstreamerCamera::isActive() const
+{
+    return m_active;
+}
 
 void QGstreamerCamera::setActive(bool active)
 {
@@ -72,73 +73,38 @@ void QGstreamerCamera::setActive(bool active)
         return;
 
     m_active = active;
-    if (!m_active)
-        m_session->setState(QGstreamerCaptureSession::StoppedState);
-    else {
-        //postpone changing to Active if the session is nor ready yet
-        if (m_session->isReady()) {
-            m_session->setState(QGstreamerCaptureSession::PreviewState);
-        } else {
-#ifdef CAMEABIN_DEBUG
-            qDebug() << "Camera session is not ready yet, postpone activating";
-#endif
-        }
-    }
 
-    updateStatus();
     emit activeChanged(active);
 }
 
 void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 {
-    m_session->setVideoDevice(camera);
-    reloadLater();
-}
+    if (m_cameraInfo == camera)
+        return;
 
-bool QGstreamerCamera::isActive() const
-{
-    return m_active;
-}
+    auto state = gstPipeline.state();
+    gstPipeline.setStateSync(GST_STATE_NULL); // ### Can we do it pausing only????
 
-void QGstreamerCamera::updateStatus()
-{
-    QCamera::Status oldStatus = m_status;
+    Q_ASSERT(!gstCamera.isNull());
 
-    if (m_active) {
-        if (m_session->state() == QGstreamerCaptureSession::StoppedState)
-            m_status = QCamera::StartingStatus;
-        else
-            m_status = QCamera::ActiveStatus;
+    gstCamera.setStateSync(GST_STATE_NULL);
+    gstCameraBin.remove(gstCamera);
+
+    if (camera.isNull()) {
+        gstCamera = QGstElement("videotestsrc");
     } else {
-        if (m_session->state() == QGstreamerCaptureSession::StoppedState)
-            m_status = QCamera::InactiveStatus;
-        else
-            m_status = QCamera::StoppingStatus;
+        auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QGstreamerIntegration::instance()->deviceManager());
+        auto *device = deviceManager->videoDevice(camera.id());
+        gstCamera = gst_device_create_element(device, "camerasrc");
     }
 
-    if (oldStatus != m_status) {
-        //qDebug() << "Status changed:" << m_status;
-        emit statusChanged(m_status);
-    }
+    gstCameraBin.add(gstCamera);
+    gstCamera.link(gstVideoConvert);
+
+    gstCamera.setStateSync(GST_STATE_PAUSED);
+
+    gstPipeline.setStateSync(state);
+
+    m_session->cameraChanged();
 }
 
-void QGstreamerCamera::reloadLater()
-{
-    //qDebug() << "reload pipeline requested";
-    if (!m_reloadPending && m_active) {
-        m_reloadPending = true;
-        m_session->setState(QGstreamerCaptureSession::StoppedState);
-        QMetaObject::invokeMethod(this, "reloadPipeline", Qt::QueuedConnection);
-    }
-}
-
-void QGstreamerCamera::reloadPipeline()
-{
-    //qDebug() << "reload pipeline";
-    if (m_reloadPending) {
-        m_reloadPending = false;
-        if (m_active && m_session->isReady()) {
-            m_session->setState(QGstreamerCaptureSession::PreviewState);
-        }
-    }
-}
