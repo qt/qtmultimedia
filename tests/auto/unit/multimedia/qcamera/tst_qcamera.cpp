@@ -357,7 +357,7 @@ void tst_QCamera::testCameraCaptureMetadata()
     QMediaMetaData data = metadata[1].value<QMediaMetaData>();
     QCOMPARE(data.keys().length(), 2);
     QCOMPARE(data[QMediaMetaData::Author].toString(), "Author");
-    QCOMPARE(data[QMediaMetaData::Year].toInt(), 2021);
+    QCOMPARE(data[QMediaMetaData::Date].toDateTime().date().year(), 2021);
 }
 
 

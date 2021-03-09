@@ -262,8 +262,6 @@ QMediaMetaData MFMetaData::fromNative(IMFMediaSource* mediaSource)
                 mediaKey = QMediaMetaData::Comment;
             } else if (key == PKEY_Media_ProviderStyle) {
                 mediaKey = QMediaMetaData::Genre;
-            } else if (key == PKEY_Media_Year) {
-                mediaKey = QMediaMetaData::Year;
             } else if (key == PKEY_Media_DateEncoded) {
                 mediaKey = QMediaMetaData::Date;
 //            } else if (key == PKEY_Rating) {

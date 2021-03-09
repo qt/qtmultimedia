@@ -156,9 +156,6 @@ QMediaMetaData QAndroidMetaData::extractMetadata(const QUrl &url)
 //        if (!string.isNull())
 //            metadata.insert(QMediaMetaData::Writer, string.split('/', Qt::SkipEmptyParts));
 
-        string = retriever.extractMetadata(AndroidMediaMetadataRetriever::Year);
-        if (!string.isNull())
-            metadata.insert(QMediaMetaData::Year, string.toInt());
     }
 
     return metadata;

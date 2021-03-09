@@ -83,8 +83,8 @@ MetaDataDialog::MetaDataDialog(QWidget *parent)
                 m_metaDataFields[key]->setText(tr("Qt Camera Example"));
             else if (key == QMediaMetaData::Author)
                 m_metaDataFields[key]->setText(tr("The Qt Company"));
-            else if (key == QMediaMetaData::Year)
-                m_metaDataFields[key]->setText("2020");
+            else if (key == QMediaMetaData::Date)
+                m_metaDataFields[key]->setText(QDateTime::currentDateTime().toString());
             else if (key == QMediaMetaData::Date)
                 m_metaDataFields[key]->setText(QDate::currentDate().toString());
             metaDataLayout->addRow(label, m_metaDataFields[key]);

@@ -296,19 +296,19 @@ void Camera::updateRecorderState(QMediaEncoder::State state)
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(false);
-        ui->metaDataButton->setEnabled(false);
+        ui->metaDataButton->setEnabled(true);
         break;
     case QMediaEncoder::PausedState:
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(false);
         ui->stopButton->setEnabled(true);
-        ui->metaDataButton->setEnabled(true);
+        ui->metaDataButton->setEnabled(false);
         break;
     case QMediaEncoder::RecordingState:
         ui->recordButton->setEnabled(false);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(true);
-        ui->metaDataButton->setEnabled(true);
+        ui->metaDataButton->setEnabled(false);
         break;
     }
 }
@@ -407,6 +407,10 @@ void Camera::saveMetaData()
             else if (i == QMediaMetaData::ThumbnailImage) {
                 QImage thumbnail(val);
                 data.insert(key, thumbnail);
+            }
+            else if (i == QMediaMetaData::Date) {
+                QDateTime date = QDateTime::fromString(val);
+                data.insert(key, date);
             }
             else {
                 data.insert(key, val);

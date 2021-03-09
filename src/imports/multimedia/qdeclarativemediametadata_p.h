@@ -67,7 +67,6 @@ class QDeclarativeMediaMetaData : public QObject
     Q_PROPERTY(QVariant description READ description WRITE setDescription NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant category READ category WRITE setCategory NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant genre READ genre WRITE setGenre NOTIFY metaDataChanged)
-    Q_PROPERTY(QVariant year READ year WRITE setYear NOTIFY metaDataChanged)
     Q_PROPERTY(QVariant date READ date WRITE setDate NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant userRating READ userRating WRITE setUserRating NOTIFY metaDataChanged)
 //    Q_PROPERTY(QVariant keywords READ keywords WRITE setKeywords NOTIFY metaDataChanged)
@@ -178,8 +177,6 @@ public:
         setMetaData(QMediaMetaData::Description, description); }
     QVariant genre() const { return metaData.value(QMediaMetaData::Genre); }
     void setGenre(const QVariant &genre) { setMetaData(QMediaMetaData::Genre, genre); }
-    QVariant year() const { return metaData.value(QMediaMetaData::Year); }
-    void setYear(const QVariant &year) { setMetaData(QMediaMetaData::Year, year); }
     QVariant date() const { return metaData.value(QMediaMetaData::Date); }
     void setDate(const QVariant &date) { setMetaData(QMediaMetaData::Date, date); }
 //    QVariant userRating() const { return metaData.value(QMediaMetaData::UserRating); }

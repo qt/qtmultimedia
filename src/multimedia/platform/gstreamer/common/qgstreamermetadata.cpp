@@ -55,7 +55,8 @@ struct {
     { GST_TAG_COMMENT, QMediaMetaData::Comment },
     { GST_TAG_DESCRIPTION, QMediaMetaData::Description },
     { GST_TAG_GENRE, QMediaMetaData::Genre },
-    { "year", QMediaMetaData::Year },
+    { GST_TAG_DATE_TIME, QMediaMetaData::Date },
+    { GST_TAG_DATE, QMediaMetaData::Date },
 
     { GST_TAG_LANGUAGE_CODE, QMediaMetaData::Language },
 
@@ -162,28 +163,28 @@ static void addTagToMap(const GstTagList *list,
                     int year = g_date_get_year(date);
                     int month = g_date_get_month(date);
                     int day = g_date_get_day(date);
-                    map->insert(key, QDate(year,month,day));
-                    if (!map->contains(QMediaMetaData::Year))
-                        map->insert(QMediaMetaData::Year, year);
+                    // don't insert if we already have a datetime.
+                    if (!map->contains(key))
+                        map->insert(key, QDateTime(QDate(year, month, day), QTime()));
                 }
             } else if (G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME) {
                 const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
                 int year = gst_date_time_has_year(dateTime) ? gst_date_time_get_year(dateTime) : 0;
                 int month = gst_date_time_has_month(dateTime) ? gst_date_time_get_month(dateTime) : 0;
                 int day = gst_date_time_has_day(dateTime) ? gst_date_time_get_day(dateTime) : 0;
+                int hour = 0;
+                int minute = 0;
+                int second = 0;
+                float tz = 0;
                 if (gst_date_time_has_time(dateTime)) {
-                    int hour = gst_date_time_get_hour(dateTime);
-                    int minute = gst_date_time_get_minute(dateTime);
-                    int second = gst_date_time_get_second(dateTime);
-                    float tz = gst_date_time_get_time_zone_offset(dateTime);
-                    QDateTime dateTime(QDate(year, month, day), QTime(hour, minute, second),
-                                       Qt::OffsetFromUTC, tz * 60 * 60);
-                    map->insert(key, dateTime);
-                } else if (year > 0 && month > 0 && day > 0) {
-                    map->insert(key, QDate(year,month,day));
+                    hour = gst_date_time_get_hour(dateTime);
+                    minute = gst_date_time_get_minute(dateTime);
+                    second = gst_date_time_get_second(dateTime);
+                    tz = gst_date_time_get_time_zone_offset(dateTime);
                 }
-                if (!map->contains(QMediaMetaData::Year) && year > 0)
-                    map->insert(QMediaMetaData::Year, year);
+                QDateTime qDateTime(QDate(year, month, day), QTime(hour, minute, second),
+                                   Qt::OffsetFromUTC, tz * 60 * 60);
+                map->insert(key, qDateTime);
             } else if (G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE) {
                 GstSample *sample = (GstSample *)g_value_get_boxed(&val);
                 GstCaps* caps = gst_sample_get_caps(sample);
@@ -232,7 +233,10 @@ void QGstreamerMetaData::setMetaData(GstElement *element)
 
     for (auto it = data.cbegin(), end = data.cend(); it != end; ++it) {
         const char *tagName = keyToTag(it.key());
+        if (!tagName)
+            continue;
         const QVariant &tagValue = it.value();
+        qDebug() << tagName << tagValue;
 
         switch (tagValue.typeId()) {
             case QMetaType::QString:
@@ -258,11 +262,12 @@ void QGstreamerMetaData::setMetaData(GstElement *element)
                     nullptr);
                 break;
             case QMetaType::QDateTime: {
-                QDateTime date = tagValue.toDateTime().toLocalTime();
+                QDateTime date = tagValue.toDateTime();
+                qDebug() << "XXXXX" << date;
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
                     GST_TAG_MERGE_REPLACE,
                     tagName,
-                    gst_date_time_new_local_time(
+                    gst_date_time_new(date.offsetFromUtc() / 60. / 60.,
                                 date.date().year(), date.date().month(), date.date().day(),
                                 date.time().hour(), date.time().minute(), date.time().second()),
                     nullptr);

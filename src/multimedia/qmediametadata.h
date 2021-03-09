@@ -59,7 +59,6 @@ public:
         Comment,
         Description,
         Genre,
-        Year,
         Date,
 
         Language,

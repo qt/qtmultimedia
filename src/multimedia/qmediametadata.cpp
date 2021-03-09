@@ -65,7 +65,6 @@ QT_BEGIN_NAMESPACE
     \row \li Description \li A description of the media.  \li QString
     \row \li Category \li The category of the media.  \li QStringList
     \row \li Genre \li The genre of the media.  \li QStringList
-    \row \li Year \li The year of release of the media.  \li int
     \row \li Date \li The date of the media. \li QDate.
     \row \li UserRating \li A user rating of the media. \li int [0..100]
     \row \li Keywords \li A list of keywords describing the media.  \li QStringList
@@ -249,7 +248,6 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key k) const
     case Comment:
     case Description:
     case Genre:
-    case Year:
     case Language:
     case Publisher:
     case Copyright:
@@ -300,8 +298,6 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
             return (QObject::tr("Description"));
         case QMediaMetaData::Genre:
             return (QObject::tr("Genre"));
-        case QMediaMetaData::Year:
-            return (QObject::tr("Year"));
         case QMediaMetaData::Date:
             return (QObject::tr("Date"));
         case QMediaMetaData::Language:
