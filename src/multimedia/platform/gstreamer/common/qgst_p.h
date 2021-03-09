@@ -328,6 +328,22 @@ public:
     }
 };
 
+class QGstClock : public QGstObject
+{
+public:
+    QGstClock() = default;
+    QGstClock(const QGstObject &o)
+        : QGstClock(GST_CLOCK(o.object()))
+    {}
+    QGstClock(GstClock *clock, RefMode mode = NeedsRef)
+        : QGstObject(&clock->object, mode)
+    {}
+
+    GstClock *clock() const { return GST_CLOCK_CAST(object()); }
+
+    GstClockTime time() const { return gst_clock_get_time(clock()); }
+};
+
 class QGstElement : public QGstObject
 {
 public:
@@ -355,6 +371,9 @@ public:
     bool link(const QGstElement &n1, const QGstElement &n2, const QGstElement &n3, const QGstElement &n4, const QGstElement &n5)
     { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), n4.element(), n5.element(), nullptr); }
 
+    void unlink(const QGstElement &next)
+    { gst_element_unlink(element(), next.element()); }
+
     QGstPad staticPad(const char *name) const { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
     QGstPad getRequestPad(const char *name) const { return QGstPad(gst_element_get_request_pad(element(), name), HasRef); }
     void releaseRequestPad(const QGstPad &pad) { return gst_element_release_request_pad(element(), pad.pad()); }
@@ -374,6 +393,9 @@ public:
         }
         return change == GST_STATE_CHANGE_SUCCESS;
     }
+
+    void lockState(bool locked) { gst_element_set_locked_state(element(), locked); }
+    bool isStateLocked() const { return gst_element_is_locked_state(element()); }
 
     bool seek(qint64 pos, double rate)
     {
@@ -427,6 +449,9 @@ public:
 
         connect("no-more-pads", G_CALLBACK(Impl::callback), instance);
     }
+
+    GstClockTime baseTime() const { return gst_element_get_base_time(element()); }
+    void setBaseTime(GstClockTime time) const { gst_element_set_base_time(element(), time); }
 
     GstElement *element() const { return GST_ELEMENT_CAST(m_object); }
 };
