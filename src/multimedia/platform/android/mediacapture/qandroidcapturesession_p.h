@@ -52,7 +52,7 @@
 //
 
 #include <qobject.h>
-#include <qmediarecorder.h>
+#include <qmediaencoder.h>
 #include <qurl.h>
 #include <qelapsedtimer.h>
 #include <qtimer.h>
@@ -79,10 +79,10 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
-    QMediaRecorder::State state() const;
-    void setState(QMediaRecorder::State state);
+    QMediaEncoder::State state() const;
+    void setState(QMediaEncoder::State state);
 
-    QMediaRecorder::Status status() const;
+    QMediaEncoder::Status status() const;
 
     qint64 duration() const;
 
@@ -93,8 +93,8 @@ public:
 
 Q_SIGNALS:
     void audioInputChanged(const QString& name);
-    void stateChanged(QMediaRecorder::State state);
-    void statusChanged(QMediaRecorder::Status status);
+    void stateChanged(QMediaEncoder::State state);
+    void statusChanged(QMediaEncoder::Status status);
     void durationChanged(qint64 position);
     void actualLocationChanged(const QUrl &location);
     void error(int error, const QString &errorString);
@@ -143,7 +143,7 @@ private:
     void start();
     void stop(bool error = false);
 
-    void setStatus(QMediaRecorder::Status status);
+    void setStatus(QMediaEncoder::Status status);
 
     void updateResolution();
     void restartViewfinder();
@@ -160,8 +160,8 @@ private:
     QTimer m_notifyTimer;
     qint64 m_duration;
 
-    QMediaRecorder::State m_state;
-    QMediaRecorder::Status m_status;
+    QMediaEncoder::State m_state;
+    QMediaEncoder::Status m_status;
     QUrl m_requestedOutputLocation;
     QUrl m_usedOutputLocation;
     QUrl m_actualOutputLocation;

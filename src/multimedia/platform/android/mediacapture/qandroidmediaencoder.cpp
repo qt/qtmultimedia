@@ -47,8 +47,8 @@ QAndroidMediaEncoder::QAndroidMediaEncoder(QAndroidCaptureSession *session)
     : QPlatformMediaEncoder()
     , m_session(session)
 {
-    connect(m_session, SIGNAL(stateChanged(QMediaRecorder::State)), this, SIGNAL(stateChanged(QMediaRecorder::State)));
-    connect(m_session, SIGNAL(statusChanged(QMediaRecorder::Status)), this, SIGNAL(statusChanged(QMediaRecorder::Status)));
+    connect(m_session, SIGNAL(stateChanged(QMediaEncoder::State)), this, SIGNAL(stateChanged(QMediaEncoder::State)));
+    connect(m_session, SIGNAL(statusChanged(QMediaEncoder::Status)), this, SIGNAL(statusChanged(QMediaEncoder::Status)));
     connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
     connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
@@ -64,12 +64,12 @@ bool QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
     return m_session->setOutputLocation(location);
 }
 
-QMediaRecorder::State QAndroidMediaEncoder::state() const
+QMediaEncoder::State QAndroidMediaEncoder::state() const
 {
     return m_session->state();
 }
 
-QMediaRecorder::Status QAndroidMediaEncoder::status() const
+QMediaEncoder::Status QAndroidMediaEncoder::status() const
 {
     return m_session->status();
 }
@@ -84,7 +84,7 @@ void QAndroidMediaEncoder::applySettings()
     m_session->applySettings();
 }
 
-void QAndroidMediaEncoder::setState(QMediaRecorder::State state)
+void QAndroidMediaEncoder::setState(QMediaEncoder::State state)
 {
     m_session->setState(state);
 }
