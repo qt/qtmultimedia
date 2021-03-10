@@ -66,11 +66,6 @@ int QAndroidCameraImageCaptureControl::capture(const QString &fileName)
     return m_session->capture(fileName);
 }
 
-void QAndroidCameraImageCaptureControl::cancelCapture()
-{
-    m_session->cancelCapture();
-}
-
 QCameraImageCapture::CaptureDestinations QAndroidCameraImageCaptureControl::captureDestination() const
 {
     return m_session->captureDestination();;

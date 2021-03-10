@@ -346,27 +346,6 @@ int QCameraImageCapture::capture(const QString &file)
 }
 
 /*!
-    Cancel incomplete capture requests.
-    Already captured and queused for proicessing images may be discarded.
-*/
-void QCameraImageCapture::cancelCapture()
-{
-    Q_D(QCameraImageCapture);
-
-    d->unsetError();
-
-    if (d->control) {
-        d->control->cancelCapture();
-    } else {
-        d->error = NotSupportedFeatureError;
-        d->errorString = tr("Device does not support images capture.");
-
-        emit error(-1, d->error, d->errorString);
-    }
-}
-
-
-/*!
     \enum QCameraImageCapture::Error
 
     \value NoError         No Errors.

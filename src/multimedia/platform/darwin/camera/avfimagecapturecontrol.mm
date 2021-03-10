@@ -232,11 +232,6 @@ void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
     request.previewReady->release();
 }
 
-void AVFImageCaptureControl::cancelCapture()
-{
-    //not supported
-}
-
 QCameraImageCapture::CaptureDestinations AVFImageCaptureControl::captureDestination() const
 {
     return m_destination;

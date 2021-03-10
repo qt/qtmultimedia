@@ -95,11 +95,6 @@ int QGstreamerCameraImageCapture::capture(const QString &fileName)
     return m_lastId;
 }
 
-void QGstreamerCameraImageCapture::cancelCapture()
-{
-
-}
-
 void QGstreamerCameraImageCapture::updateState()
 {
     bool ready = (m_session->state() == QGstreamerCaptureSession::PreviewState) &&

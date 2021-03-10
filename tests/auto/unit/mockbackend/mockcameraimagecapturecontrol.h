@@ -42,7 +42,7 @@ class MockCaptureControl : public QPlatformCameraImageCapture
     Q_OBJECT
 public:
     MockCaptureControl(MockCameraControl *cameraControl, QObject *parent = 0)
-        : QPlatformCameraImageCapture(parent), m_cameraControl(cameraControl), m_captureRequest(0), m_ready(true), m_captureCanceled(false)
+        : QPlatformCameraImageCapture(parent), m_cameraControl(cameraControl), m_captureRequest(0), m_ready(true)
     {
     }
 
@@ -68,11 +68,6 @@ public:
         return -1;
     }
 
-    void cancelCapture()
-    {
-        m_captureCanceled = true;
-    }
-
     QCameraImageCapture::CaptureDestinations captureDestination() const
     {
         return m_destination;
@@ -89,15 +84,13 @@ public:
 private Q_SLOTS:
     void captured()
     {
-        if (!m_captureCanceled) {
-            emit imageCaptured(m_captureRequest, QImage());
+        emit imageCaptured(m_captureRequest, QImage());
 
-            QMediaMetaData metaData;
-            metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
-            metaData.insert(QMediaMetaData::Date, QDateTime(QDate(2021, 1, 1), QTime()));
+        QMediaMetaData metaData;
+        metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+        metaData.insert(QMediaMetaData::Date, QDateTime(QDate(2021, 1, 1), QTime()));
 
-            emit imageMetadataAvailable(m_captureRequest, metaData);
-        }
+        emit imageMetadataAvailable(m_captureRequest, metaData);
 
         if (!m_ready)
         {
@@ -105,10 +98,7 @@ private Q_SLOTS:
             emit imageExposed(m_captureRequest);
         }
 
-        if (!m_captureCanceled)
-            emit imageSaved(m_captureRequest, m_fileName);
-
-        m_captureCanceled = false;
+        emit imageSaved(m_captureRequest, m_fileName);
     }
 
 private:
@@ -116,7 +106,6 @@ private:
     QString m_fileName;
     int m_captureRequest;
     bool m_ready;
-    bool m_captureCanceled;
     QCameraImageCapture::CaptureDestinations m_destination;
     QImageEncoderSettings m_settings;
 };

@@ -107,7 +107,6 @@ public:
 
 public Q_SLOTS:
     int capture(const QString &location = QString());
-    void cancelCapture();
 
 Q_SIGNALS:
     void error(int id, QCameraImageCapture::Error error, const QString &errorString);

@@ -104,7 +104,6 @@ public:
     bool isReadyForCapture() const;
     void setReadyForCapture(bool ready);
     int capture(const QString &fileName);
-    void cancelCapture();
 
     int currentCameraRotation() const;
 
@@ -197,7 +196,6 @@ private:
     QCameraImageCapture::CaptureDestinations m_captureDestination;
     int m_lastImageCaptureId;
     bool m_readyForCapture;
-    bool m_captureCanceled;
     int m_currentImageCaptureId;
     QString m_currentImageCaptureFileName;
 

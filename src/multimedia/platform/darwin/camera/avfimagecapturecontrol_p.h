@@ -79,7 +79,6 @@ public:
     AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
 
     int capture(const QString &fileName) override;
-    void cancelCapture() override;
 
     QCameraImageCapture::CaptureDestinations captureDestination() const override;
     void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;

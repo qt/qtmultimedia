@@ -74,7 +74,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_captureDestination(QCameraImageCapture::CaptureToFile)
     , m_lastImageCaptureId(0)
     , m_readyForCapture(false)
-    , m_captureCanceled(false)
     , m_currentImageCaptureId(-1)
     , m_previewCallback(0)
     , m_keepActive(false)
@@ -593,14 +592,6 @@ int QAndroidCameraSession::capture(const QString &fileName)
     return m_lastImageCaptureId;
 }
 
-void QAndroidCameraSession::cancelCapture()
-{
-    if (m_readyForCapture)
-        return;
-
-    m_captureCanceled = true;
-}
-
 void QAndroidCameraSession::onCameraTakePictureFailed()
 {
     emit imageCaptureError(m_currentImageCaptureId, QCameraImageCapture::ResourceError,
@@ -612,7 +603,7 @@ void QAndroidCameraSession::onCameraTakePictureFailed()
 
 void QAndroidCameraSession::onCameraPictureExposed()
 {
-    if (m_captureCanceled || !m_camera)
+    if (!m_camera)
         return;
 
     emit imageExposed(m_currentImageCaptureId);
@@ -621,7 +612,7 @@ void QAndroidCameraSession::onCameraPictureExposed()
 
 void QAndroidCameraSession::onLastPreviewFrameFetched(const QVideoFrame &frame)
 {
-    if (m_captureCanceled || !m_camera)
+    if (!m_camera)
         return;
 
     (void) QtConcurrent::run(&QAndroidCameraSession::processPreviewImage, this,
@@ -658,17 +649,13 @@ void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
 
 void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 {
-    if (!m_captureCanceled) {
-        // Loading and saving the captured image can be slow, do it in a separate thread
-        (void) QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
-                          m_currentImageCaptureId,
-                          data,
-                          m_actualImageSettings.resolution(),
-                          m_captureDestination,
-                          m_currentImageCaptureFileName);
-    }
-
-    m_captureCanceled = false;
+    // Loading and saving the captured image can be slow, do it in a separate thread
+    (void) QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
+                      m_currentImageCaptureId,
+                      data,
+                      m_actualImageSettings.resolution(),
+                      m_captureDestination,
+                      m_currentImageCaptureFileName);
 
     // Preview needs to be restarted after taking a picture
     if (m_camera)

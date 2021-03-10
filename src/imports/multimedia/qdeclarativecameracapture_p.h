@@ -81,7 +81,6 @@ public:
 public Q_SLOTS:
     int capture();
     int captureToLocation(const QString &location);
-    void cancelCapture();
 
     void setMetadata(QMediaMetaData::Key key, const QVariant &value);
 

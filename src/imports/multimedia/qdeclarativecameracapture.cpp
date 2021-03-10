@@ -181,16 +181,6 @@ int QDeclarativeCameraCapture::captureToLocation(const QString &location)
 }
 
 /*!
-    \qmlmethod QtMultimedia::CameraCapture::cancelCapture()
-
-    Cancel pending image capture requests.
-*/
-
-void QDeclarativeCameraCapture::cancelCapture()
-{
-    m_capture->cancelCapture();
-}
-/*!
     \property QDeclarativeCameraCapture::capturedImagePath
 
     This property holds the location of the last captured image.

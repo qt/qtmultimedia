@@ -69,7 +69,6 @@ private slots:
     void deleteMediaSource();
     void isReadyForCapture();
     void capture();
-    void cancelCapture();
     void encodingSettings();
     void errors();
     void error();
@@ -190,36 +189,6 @@ void tst_QCameraImageCapture::capture()
     QVERIFY(imageCapture.isReadyForCapture() == true);
     QTest::qWait(300);
     QVERIFY(imageCapture.capture() != -1);
-    camera.stop();
-}
-
-//MaemoAPI-1827:test cancelCapture
-void tst_QCameraImageCapture::cancelCapture()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    QCameraImageCapture imageCapture;
-    session.setCamera(&camera);
-    session.setImageCapture(&imageCapture);
-
-    QSignalSpy spy(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy spy1(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QVERIFY(imageCapture.isAvailable() == true);
-    QVERIFY(imageCapture.isReadyForCapture() == false);
-    camera.start();
-    imageCapture.capture();
-    QTRY_VERIFY(imageCapture.isReadyForCapture());
-    QVERIFY(spy.count() == 1 && spy1.count() == 1);
-    spy.clear();
-    spy1.clear();
-    camera.stop();
-
-    QVERIFY(imageCapture.isReadyForCapture() == false);
-    camera.start();
-    imageCapture.capture();
-    imageCapture.cancelCapture();
-    QTRY_VERIFY(imageCapture.isReadyForCapture());
-    QVERIFY(spy.count() == 0 && spy1.count() == 0);
     camera.stop();
 }
 
