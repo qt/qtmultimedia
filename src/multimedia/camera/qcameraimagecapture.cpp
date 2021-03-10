@@ -87,7 +87,6 @@ public:
     QMediaMetaData metaData;
 
     void _q_error(int id, int error, const QString &errorString);
-    void _q_readyChanged(bool);
 
     void unsetError() { error = QCameraImageCapture::NoError; errorString.clear(); }
 
@@ -102,12 +101,6 @@ void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &erro
     this->errorString = errorString;
 
     emit q->error(id, this->error, errorString);
-}
-
-void QCameraImageCapturePrivate::_q_readyChanged(bool ready)
-{
-    Q_Q(QCameraImageCapture);
-    emit q->readyForCaptureChanged(ready);
 }
 
 /*!
@@ -149,7 +142,7 @@ void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
     connect(d->control, SIGNAL(imageSaved(int,QString)),
             this, SIGNAL(imageSaved(int,QString)));
     connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
-            this, SLOT(_q_readyChanged(bool)));
+            this, SIGNAL(readyForCaptureChanged(bool)));
     connect(d->control, SIGNAL(error(int,int,QString)),
             this, SLOT(_q_error(int,int,QString)));
 }

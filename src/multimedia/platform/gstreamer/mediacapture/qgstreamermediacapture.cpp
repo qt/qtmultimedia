@@ -39,6 +39,7 @@
 
 #include "qgstreamermediacapture_p.h"
 #include "qgstreamermediaencoder_p.h"
+#include "qgstreamercameraimagecapture_p.h"
 #include "qgstreamercamera_p.h"
 #include <private/qgstreamerbushelper_p.h>
 
@@ -70,9 +71,6 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
     gstVideoOutput->setIsPreview();
     gstVideoOutput->setPipeline(gstPipeline);
 
-    // ### imageCapture
-    m_mediaEncoder = new QGstreamerMediaEncoder(this, gstPipeline);
-
     gstAudioTee = QGstElement("tee", "audiotee");
     gstVideoTee = QGstElement("tee", "videotee");
 
@@ -86,16 +84,19 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
     pad = gstAudioTee.getRequestPad("src_%u");
     pad.link(gstAudioOutput->gstElement().staticPad("sink"));
 
-    dumpGraph(QLatin1String("initial"));
+    m_imageCapture = new QGstreamerCameraImageCapture(this, gstPipeline);
+    m_mediaEncoder = new QGstreamerMediaEncoder(this, gstPipeline);
 
-    qDebug() << "AAAAAAAAAAAAAAAAAAAAA";
     gstPipeline.setStateSync(GST_STATE_PLAYING);
-    qDebug() << "BBBBBB" << gstPipeline.state();
+
+    dumpGraph(QLatin1String("initial"));
 }
 
 QGstreamerMediaCapture::~QGstreamerMediaCapture()
 {
     gstPipeline.setStateSync(GST_STATE_NULL);
+    delete m_imageCapture;
+    delete m_mediaEncoder;
 }
 
 QPlatformCamera *QGstreamerMediaCapture::cameraControl()
@@ -105,8 +106,7 @@ QPlatformCamera *QGstreamerMediaCapture::cameraControl()
 
 QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCaptureControl()
 {
-    // ####
-    return nullptr;
+    return m_imageCapture;
 }
 
 QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()

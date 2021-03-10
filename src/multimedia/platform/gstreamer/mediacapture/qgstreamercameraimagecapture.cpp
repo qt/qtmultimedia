@@ -38,82 +38,268 @@
 ****************************************************************************/
 
 #include "qgstreamercameraimagecapture_p.h"
+#include "qplatformcamera_p.h"
+
+#include <private/qgstutils_p.h>
+
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
+#include <qstandardpaths.h>
 
-QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QGstreamerCaptureSession *session)
-    :QPlatformCameraImageCapture(session), m_session(session), m_ready(false), m_lastId(0)
+#include <qloggingcategory.h>
+
+QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qLcImageCapture, "qt.multimedia.imageCapture")
+
+QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QGstreamerMediaCapture *session, const QGstPipeline &pipeline)
+  : QPlatformCameraImageCapture(session),
+    QGstreamerBufferProbe(ProbeBuffers),
+    m_session(session),
+    gstPipeline(pipeline)
 {
-    connect(m_session, SIGNAL(stateChanged(QGstreamerCaptureSession::State)), SLOT(updateState()));
-    connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
-    connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
-    connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
+    bin = QGstBin("imageCaptureBin");
+
+    queue = QGstElement("queue", "imageCaptureQueue");
+    // configures the queue to be fast, lightweight and non blocking
+    queue.set("leaky", 2 /*downstream*/);
+    queue.set("silent", true);
+    queue.set("max-size-buffers", 1);
+    queue.set("max-size-bytes", 0);
+    queue.set("max-size-time", 0);
+
+    videoConvert = QGstElement("videoconvert", "imageCaptureConvert");
+    encoder = QGstElement("jpegenc", "jpegEncoder");
+    sink = QGstElement("fakesink","imageCaptureSink");
+    bin.add(queue, videoConvert, encoder, sink);
+    queue.link(videoConvert, encoder, sink);
+    bin.addGhostPad(queue, "sink");
+    bin.lockState(true);
+    gstPipeline.add(bin);
+
+    addProbeToPad(queue.staticPad("src").pad(), false);
+
+    sink.set("signal-handoffs", true);
+    g_signal_connect(sink.object(), "handoff", G_CALLBACK(&QGstreamerCameraImageCapture::saveImageFilter), this);
+
+    connect(m_session->cameraControl(), &QPlatformCamera::activeChanged, this, &QGstreamerCameraImageCapture::cameraActiveChanged);
+    cameraActive = m_session->cameraControl()->isActive();
 }
 
-QGstreamerCameraImageCapture::~QGstreamerCameraImageCapture() = default;
+QGstreamerCameraImageCapture::~QGstreamerCameraImageCapture()
+{
+    m_session->releaseVideoPad(videoSrcPad);
+}
 
 bool QGstreamerCameraImageCapture::isReadyForCapture() const
 {
-    return m_ready;
+    return !passImage && cameraActive;
 }
+
+
+static QDir defaultDir()
+{
+    QStringList dirCandidates;
+
+    dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+    dirCandidates << QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    dirCandidates << QDir::homePath();
+    dirCandidates << QDir::currentPath();
+    dirCandidates << QDir::tempPath();
+
+    for (const QString &path : qAsConst(dirCandidates)) {
+        QDir dir(path);
+        if (dir.exists() && QFileInfo(path).isWritable())
+            return dir;
+    }
+
+    return QDir();
+}
+
+QString generateFileName(const QDir &dir, const QString &ext)
+{
+    int lastClip = 0;
+    const auto list = dir.entryList(QStringList() << QString::fromLatin1("img_*.%1").arg(ext));
+    for (const QString &fileName : list) {
+        int imgNumber = QStringView{fileName}.mid(5, fileName.size()-6-ext.length()).toInt();
+        lastClip = qMax(lastClip, imgNumber);
+    }
+
+    QString name = QString::fromLatin1("img_%1.%2")
+                       .arg(lastClip+1,
+                            4, //fieldWidth
+                            10,
+                            QLatin1Char('0'))
+                       .arg(ext);
+
+    return dir.absoluteFilePath(name);
+}
+
 
 int QGstreamerCameraImageCapture::capture(const QString &fileName)
 {
-    m_lastId++;
-
-    //it's allowed to request image capture while camera is starting
-    if (m_session->pendingState() == QGstreamerCaptureSession::StoppedState ||
-            !(m_session->captureMode() & QGstreamerCaptureSession::Image)) {
-        //emit error in the next event loop,
-        //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, m_lastId),
-                                  Q_ARG(int, QCameraImageCapture::NotReadyError),
-                                  Q_ARG(QString,tr("Not ready to capture")));
-
-        return m_lastId;
-    }
-
     QString path = fileName;
-    if (path.isEmpty()) {
-        int lastImage = 0;
-        QDir outputDir = QDir::currentPath();
-        const auto list = outputDir.entryList(QStringList() << QLatin1String("img_*.jpg"));
-        for (const QString &fileName : list) {
-            int imgNumber = QStringView{fileName}.mid(4, fileName.size()-8).toInt();
-            lastImage = qMax(lastImage, imgNumber);
-        }
+    if (path.isEmpty())
+        path = generateFileName(defaultDir(), QLatin1String("jpg"));
 
-        path = QString::fromLatin1("img_%1.jpg").arg(lastImage+1,
-                                         4, //fieldWidth
-                                         10,
-                                         QLatin1Char('0'));
-    }
-
-    m_session->captureImage(m_lastId, path);
-
-    return m_lastId;
+    return doCapture(path);
 }
 
 int QGstreamerCameraImageCapture::captureToBuffer()
 {
-    // ### implement me!
-    const QLatin1String errorMessage("Capturing to buffer not supported.");
-    QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                              Q_ARG(int, -1),
-                              Q_ARG(int, QCameraImageCapture::NotSupportedFeatureError),
-                              Q_ARG(QString, errorMessage));
-    return -1;
+    return doCapture(QString());
 }
 
-void QGstreamerCameraImageCapture::updateState()
+int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
 {
-    bool ready = (m_session->state() == QGstreamerCaptureSession::PreviewState) &&
-            (m_session->captureMode() & QGstreamerCaptureSession::Image);
+    if (!m_session->cameraControl()) {
+        //emit error in the next event loop,
+        //so application can associate it with returned request id.
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                                  Q_ARG(int, m_lastId),
+                                  Q_ARG(int, QCameraImageCapture::ResourceError),
+                                  Q_ARG(QString,tr("No camera available.")));
 
-    if (m_ready != ready) {
-        emit readyForCaptureChanged(m_ready = ready);
+        return -1;
     }
+    if (passImage) {
+        //emit error in the next event loop,
+        //so application can associate it with returned request id.
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                                  Q_ARG(int, -1),
+                                  Q_ARG(int, QCameraImageCapture::NotReadyError),
+                                  Q_ARG(QString,tr("Camera is not ready.")));
+        return -1;
+    }
+    m_lastId++;
+
+    pendingImages.enqueue({m_lastId, fileName});
+    // let one image pass the pipeline
+    passImage = true;
+
+    link();
+
+    m_session->dumpGraph(QLatin1String("captureImage"));
+
+    emit readyForCaptureChanged(false);
+    return m_lastId;
+}
+
+bool QGstreamerCameraImageCapture::probeBuffer(GstBuffer *buffer)
+{
+    if (!passImage)
+        return false;
+    qCDebug(qLcImageCapture) << "probe buffer";
+
+    passImage = false;
+
+    emit readyForCaptureChanged(isReadyForCapture());
+
+    GstCaps *caps = gst_pad_get_current_caps(bin.staticPad("sink").pad());
+    GstVideoInfo previewInfo;
+    gst_video_info_from_caps(&previewInfo, caps);
+
+    QImage img = QGstUtils::bufferToImage(buffer, previewInfo);
+    if (img.isNull())
+        return true;
+
+    auto &imageData = pendingImages.head();
+
+    static QMetaMethod exposedSignal = QMetaMethod::fromSignal(&QGstreamerCameraImageCapture::imageExposed);
+    exposedSignal.invoke(this,
+                         Qt::QueuedConnection,
+                         Q_ARG(int, imageData.id));
+
+    static QMetaMethod capturedSignal = QMetaMethod::fromSignal(&QGstreamerCameraImageCapture::imageCaptured);
+    capturedSignal.invoke(this,
+                          Qt::QueuedConnection,
+                          Q_ARG(int, imageData.id),
+                          Q_ARG(QImage, img));
+
+    // #### metadata missing
+
+    return true;
+}
+
+void QGstreamerCameraImageCapture::cameraActiveChanged(bool active)
+{
+    qCDebug(qLcImageCapture) << "cameraActiveChanged" << cameraActive << active;
+    if (cameraActive == active)
+        return;
+    cameraActive = active;
+    qCDebug(qLcImageCapture) << "isReady" << isReadyForCapture();
+    emit readyForCaptureChanged(isReadyForCapture());
+}
+
+gboolean QGstreamerCameraImageCapture::saveImageFilter(GstElement *element,
+                                                       GstBuffer *buffer,
+                                                       GstPad *pad,
+                                                       void *appdata)
+{
+    Q_UNUSED(element);
+    Q_UNUSED(pad);
+    QGstreamerCameraImageCapture *capture = static_cast<QGstreamerCameraImageCapture *>(appdata);
+
+    if (capture->pendingImages.isEmpty())
+        return true;
+
+    auto imageData = capture->pendingImages.dequeue();
+
+    qCDebug(qLcImageCapture) << "saving image as" << imageData.filename;
+
+    if (!imageData.filename.isEmpty()) {
+        QFile f(imageData.filename);
+        if (f.open(QFile::WriteOnly)) {
+            GstMapInfo info;
+            if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
+                f.write(reinterpret_cast<const char *>(info.data), info.size);
+                gst_buffer_unmap(buffer, &info);
+            }
+            f.close();
+
+            static QMetaMethod savedSignal = QMetaMethod::fromSignal(&QGstreamerCameraImageCapture::imageSaved);
+            savedSignal.invoke(capture,
+                               Qt::QueuedConnection,
+                               Q_ARG(int, imageData.id),
+                               Q_ARG(QString, imageData.filename));
+        }
+    } else {
+        // ### expose buffer as video frame
+    }
+
+    capture->unlink();
+
+    return TRUE;
+}
+
+void QGstreamerCameraImageCapture::unlink()
+{
+    return;
+    if (passImage)
+        return;
+
+    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    videoSrcPad.unlinkPeer();
+    m_session->releaseVideoPad(videoSrcPad);
+    videoSrcPad = {};
+    bin.setStateSync(GST_STATE_READY);
+    bin.lockState(true);
+    gstPipeline.setStateSync(GST_STATE_PLAYING);
+}
+
+void QGstreamerCameraImageCapture::link()
+{
+    Q_ASSERT(m_session->cameraControl());
+
+    if (!bin.staticPad("sink").peer().isNull())
+        return;
+
+    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    videoSrcPad = m_session->getVideoPad();
+    videoSrcPad.link(bin.staticPad("sink"));
+    bin.lockState(false);
+    bin.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.setStateSync(GST_STATE_PLAYING);
 }
 
 QImageEncoderSettings QGstreamerCameraImageCapture::imageSettings() const
@@ -125,6 +311,8 @@ void QGstreamerCameraImageCapture::setImageSettings(const QImageEncoderSettings 
 {
     if (m_settings != settings) {
         m_settings = settings;
-        emit settingsChanged();
+        // ###
     }
 }
+
+QT_END_NAMESPACE

@@ -119,7 +119,6 @@ private:
     Q_DISABLE_COPY(QCameraImageCapture)
     Q_DECLARE_PRIVATE(QCameraImageCapture)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_readyChanged(bool))
 };
 
 QT_END_NAMESPACE

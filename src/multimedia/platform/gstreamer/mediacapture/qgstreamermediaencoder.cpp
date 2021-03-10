@@ -442,8 +442,7 @@ QDir QGstreamerMediaEncoder::defaultDir() const
     else
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
 
-    dirCandidates << QDir::home().filePath(QLatin1String("Documents"));
-    dirCandidates << QDir::home().filePath(QLatin1String("My Documents"));
+    dirCandidates << QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     dirCandidates << QDir::homePath();
     dirCandidates << QDir::currentPath();
     dirCandidates << QDir::tempPath();
@@ -460,13 +459,13 @@ QDir QGstreamerMediaEncoder::defaultDir() const
 QString QGstreamerMediaEncoder::generateFileName(const QDir &dir, const QString &ext) const
 {
     int lastClip = 0;
-    const auto list = dir.entryList(QStringList() << QString::fromLatin1(m_settings.mode() == QMediaFormat::AudioAndVideo ? "clip_*.%1" : "img_*.%1").arg(ext));
+    const auto list = dir.entryList(QStringList() << QString::fromLatin1("clip_*.%1").arg(ext));
     for (const QString &fileName : list) {
         int imgNumber = QStringView{fileName}.mid(5, fileName.size()-6-ext.length()).toInt();
         lastClip = qMax(lastClip, imgNumber);
     }
 
-    QString name = QString::fromLatin1(m_settings.mode() == QMediaFormat::AudioAndVideo ? "clip_%1.%2" : "img_%1.%2")
+    QString name = QString::fromLatin1("clip_%1.%2")
                        .arg(lastClip+1,
                             4, //fieldWidth
                             10,

@@ -417,8 +417,12 @@ public:
     {
         auto change = gst_element_set_state(element(), state);
         if (change == GST_STATE_CHANGE_ASYNC) {
-            change = gst_element_get_state(element(), nullptr, &state, 100*1e6 /*100ms*/);
+            change = gst_element_get_state(element(), nullptr, &state, 1000*1e6 /*100ms*/);
         }
+#ifndef QT_NO_DEBUG
+        if (change != GST_STATE_CHANGE_SUCCESS)
+            qWarning() << "Could not change state of" << name() << "to" << state;
+#endif
         return change == GST_STATE_CHANGE_SUCCESS;
     }
 

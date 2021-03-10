@@ -132,6 +132,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(m_imageCapture, &QCameraImageCapture::imageSaved, this, &Camera::imageSaved);
     connect(m_imageCapture, QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error),
             this, &Camera::displayCaptureError);
+    readyForCapture(m_imageCapture->isReadyForCapture());
 
     updateCaptureMode();
     m_camera->start();

@@ -59,7 +59,7 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerCamera;
-class QGstreamerImageCapture;
+class QGstreamerCameraImageCapture;
 class QGstreamerMediaEncoder;
 class QGstreamerVideoRenderer;
 class QGstreamerAudioInput;
@@ -113,7 +113,7 @@ private:
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
 
     QGstreamerMediaEncoder *m_mediaEncoder = nullptr;
-    QGstreamerImageCapture *m_imageCapture = nullptr;
+    QGstreamerCameraImageCapture *m_imageCapture = nullptr;
 };
 
 QT_END_NAMESPACE

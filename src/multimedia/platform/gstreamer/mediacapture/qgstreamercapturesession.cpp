@@ -95,7 +95,7 @@ QGstreamerCaptureSession::QGstreamerCaptureSession(QGstreamerCaptureSession::Cap
     m_busHelper = new QGstreamerBusHelper(m_bus, this);
     m_busHelper->installMessageFilter(this);
 
-    m_imageCaptureControl = new QGstreamerCameraImageCapture(this);
+    m_imageCaptureControl = nullptr;//new QGstreamerCameraImageCapture(this);
     m_recorderControl = nullptr;//new QGstreamerMediaEncoder(this);
     connect(m_recorderControl, &QGstreamerMediaEncoder::error, [](int e, const QString &str) {
         qWarning() << QMediaRecorder::Error(e) << ":" << str.toLatin1().constData();

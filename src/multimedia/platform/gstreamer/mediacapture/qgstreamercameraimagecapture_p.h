@@ -53,15 +53,22 @@
 //
 
 #include <private/qplatformcameraimagecapture_p.h>
-#include "qgstreamercapturesession_p.h"
+#include "qgstreamermediacapture_p.h"
+#include "private/qgstreamerbufferprobe_p.h"
+
+#include <qqueue.h>
+
+#include <private/qgst_p.h>
+#include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCameraImageCapture : public QPlatformCameraImageCapture
+class QGstreamerCameraImageCapture : public QPlatformCameraImageCapture, private QGstreamerBufferProbe
+
 {
     Q_OBJECT
 public:
-    QGstreamerCameraImageCapture(QGstreamerCaptureSession *session);
+    QGstreamerCameraImageCapture(QGstreamerMediaCapture *session, const QGstPipeline &pipeline);
     virtual ~QGstreamerCameraImageCapture();
 
     bool isReadyForCapture() const override;
@@ -71,17 +78,38 @@ public:
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
 
-private slots:
-    void updateState();
+    bool probeBuffer(GstBuffer *buffer) override;
 
-Q_SIGNALS:
-    void settingsChanged();
+public Q_SLOTS:
+    void cameraActiveChanged(bool active);
 
 private:
-    QGstreamerCaptureSession *m_session;
-    bool m_ready;
-    int m_lastId;
+    int doCapture(const QString &fileName);
+    static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
+    void link();
+    void unlink();
+
+    QGstreamerMediaCapture *m_session;
+    int m_lastId = 0;
     QImageEncoderSettings m_settings;
+
+    struct PendingImage {
+        int id;
+        QString filename;
+    };
+
+    QQueue<PendingImage> pendingImages;
+
+    QGstPipeline gstPipeline;
+    QGstBin bin;
+    QGstElement queue;
+    QGstElement videoConvert;
+    QGstElement encoder;
+    QGstElement sink;
+    QGstPad videoSrcPad;
+
+    bool passImage = false;
+    bool cameraActive = false;
 };
 
 QT_END_NAMESPACE
