@@ -71,7 +71,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_savedState(-1)
     , m_status(QCamera::InactiveStatus)
     , m_previewStarted(false)
-    , m_captureDestination(QCameraImageCapture::CaptureToFile)
     , m_lastImageCaptureId(0)
     , m_readyForCapture(false)
     , m_currentImageCaptureId(-1)
@@ -537,21 +536,6 @@ void QAndroidCameraSession::applyImageSettings()
     m_camera->setJpegQuality(jpegQuality);
 }
 
-bool QAndroidCameraSession::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
-{
-    return destination & (QCameraImageCapture::CaptureToFile | QCameraImageCapture::CaptureToBuffer);
-}
-
-QCameraImageCapture::CaptureDestinations QAndroidCameraSession::captureDestination() const
-{
-    return m_captureDestination;
-}
-
-void QAndroidCameraSession::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-{
-    m_captureDestination = destination;
-}
-
 bool QAndroidCameraSession::isReadyForCapture() const
 {
     return m_status == QCamera::ActiveStatus && m_readyForCapture;
@@ -654,7 +638,7 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
                       m_currentImageCaptureId,
                       data,
                       m_actualImageSettings.resolution(),
-                      m_captureDestination,
+                      /* captureToBuffer = */ false,
                       m_currentImageCaptureFileName);
 
     // Preview needs to be restarted after taking a picture
@@ -706,12 +690,12 @@ void QAndroidCameraSession::onCameraPreviewStopped()
 void QAndroidCameraSession::processCapturedImage(int id,
                                                  const QByteArray &data,
                                                  const QSize &resolution,
-                                                 QCameraImageCapture::CaptureDestinations dest,
+                                                 bool captureToBuffer,
                                                  const QString &fileName)
 {
 
 
-    if (dest & QCameraImageCapture::CaptureToFile) {
+    if (!captureToBuffer) {
         const QString actualFileName = m_mediaStorageLocation.generateFileName(fileName,
                                                                                QMediaStorageLocation::Pictures,
                                                                                QLatin1String("IMG_"),
@@ -735,9 +719,7 @@ void QAndroidCameraSession::processCapturedImage(int id,
             const QString errorMessage = tr("Could not open destination file: %1").arg(actualFileName);
             emit imageCaptureError(id, QCameraImageCapture::ResourceError, errorMessage);
         }
-    }
-
-    if (dest & QCameraImageCapture::CaptureToBuffer) {
+    } else {
         QVideoFrame frame(new QMemoryVideoBuffer(data, -1), resolution, QVideoFrame::Format_Jpeg);
         emit imageAvailable(id, frame);
     }

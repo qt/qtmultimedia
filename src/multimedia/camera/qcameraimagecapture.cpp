@@ -73,13 +73,6 @@ QT_BEGIN_NAMESPACE
     \sa QCamera
 */
 
-/*!
-    \enum QCameraImageCapture::CaptureDestination
-
-    \value CaptureToFile  Capture the image to a file.
-    \value CaptureToBuffer  Capture the image to a buffer for further processing.
-*/
-
 class QCameraImageCapturePrivate
 {
     Q_DECLARE_PUBLIC(QCameraImageCapture)
@@ -236,33 +229,6 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
         d->control->setImageSettings(settings);
 }
 
-/*!
-    Returns the image capture destination being used.
-
-    \sa isCaptureDestinationSupported(), setCaptureDestination()
-*/
-QCameraImageCapture::CaptureDestinations QCameraImageCapture::captureDestination() const
-{
-    return d_func()->control->captureDestination();
-}
-
-/*!
-    Sets the capture \a destination to be used.
-
-    \sa isCaptureDestinationSupported(), captureDestination()
-*/
-void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-{
-    Q_D(QCameraImageCapture);
-
-    auto old = d->control->captureDestination();
-    if (old == destination)
-        return;
-
-    d->control->setCaptureDestination(destination);
-    emit captureDestinationChanged(destination);
-}
-
 QMediaMetaData QCameraImageCapture::metaData() const
 {
     Q_D(const QCameraImageCapture);
@@ -345,6 +311,23 @@ int QCameraImageCapture::capture(const QString &file)
     return -1;
 }
 
+int QCameraImageCapture::captureToBuffer()
+{
+    Q_D(QCameraImageCapture);
+
+    d->unsetError();
+
+    if (d->control)
+        return d->control->captureToBuffer();
+
+    d->error = NotSupportedFeatureError;
+    d->errorString = tr("Device does not support images capture.");
+
+    emit error(-1, d->error, d->errorString);
+
+    return -1;
+}
+
 /*!
     \enum QCameraImageCapture::Error
 
@@ -367,12 +350,6 @@ int QCameraImageCapture::capture(const QString &file)
     \fn QCameraImageCapture::bufferFormatChanged(QVideoFrame::PixelFormat format)
 
     Signal emitted when the buffer \a format for the buffer image capture has changed.
-*/
-
-/*!
-    \fn QCameraImageCapture::captureDestinationChanged(CaptureDestinations destination)
-
-    Signal emitted when the capture \a destination has changed.
 */
 
 /*!

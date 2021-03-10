@@ -63,7 +63,6 @@ class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
 {
     Q_OBJECT
     Q_ENUMS(Error)
-    Q_ENUMS(CaptureDestination)
     Q_PROPERTY(bool readyForCapture READ isReadyForCapture NOTIFY readyForCaptureChanged)
 public:
     enum Error
@@ -75,13 +74,6 @@ public:
         NotSupportedFeatureError,
         FormatError
     };
-
-    enum CaptureDestination
-    {
-        CaptureToFile = 0x01,
-        CaptureToBuffer = 0x02
-    };
-    Q_DECLARE_FLAGS(CaptureDestinations, CaptureDestination)
 
     explicit QCameraImageCapture(QObject *parent = nullptr);
     ~QCameraImageCapture();
@@ -98,21 +90,18 @@ public:
     QImageEncoderSettings encodingSettings() const;
     void setEncodingSettings(const QImageEncoderSettings& settings);
 
-    CaptureDestinations captureDestination() const;
-    void setCaptureDestination(CaptureDestinations destination);
-
     QMediaMetaData metaData() const;
     void setMetaData(const QMediaMetaData &metaData);
     void addMetaData(const QMediaMetaData &metaData);
 
 public Q_SLOTS:
     int capture(const QString &location = QString());
+    int captureToBuffer();
 
 Q_SIGNALS:
     void error(int id, QCameraImageCapture::Error error, const QString &errorString);
 
     void readyForCaptureChanged(bool ready);
-    void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
 
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);
@@ -133,12 +122,9 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_readyChanged(bool))
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraImageCapture::CaptureDestinations)
-
 QT_END_NAMESPACE
 
 Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, Error)
-Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, CaptureDestination)
 
 #endif
 

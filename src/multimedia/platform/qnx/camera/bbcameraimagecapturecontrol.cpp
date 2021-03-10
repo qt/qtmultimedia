@@ -65,19 +65,15 @@ int BbCameraImageCaptureControl::capture(const QString &fileName)
     return m_session->capture(fileName);
 }
 
+int BbCameraImageCaptureControl::captureToBuffer()
+{
+    // ### implement me
+    return -1;
+}
+
 void BbCameraImageCaptureControl::cancelCapture()
 {
     m_session->cancelCapture();
-}
-
-QCameraImageCapture::CaptureDestinations BbCameraImageCaptureControl::captureDestination() const
-{
-    return m_session->captureDestination();
-}
-
-void BbCameraImageCaptureControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-{
-    m_session->setCaptureDestination(destination);
 }
 
 QImageEncoderSettings BbCameraImageCaptureControl::imageSettings() const

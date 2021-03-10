@@ -96,9 +96,8 @@ void AVFImageCaptureControl::updateReadyStatus()
     }
 }
 
-int AVFImageCaptureControl::capture(const QString &fileName)
+int AVFImageCaptureControl::doCapture(const QString &actualFileName)
 {
-    m_lastCaptureId++;
 
     if (!isReadyForCapture()) {
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
@@ -107,17 +106,9 @@ int AVFImageCaptureControl::capture(const QString &fileName)
                                   Q_ARG(QString, tr("Camera not ready")));
         return m_lastCaptureId;
     }
+    m_lastCaptureId++;
 
-    auto destination = m_service->imageCaptureControl()->captureDestination();
-    QString actualFileName;
-    if (destination & QCameraImageCapture::CaptureToFile) {
-        actualFileName = m_storageLocation.generateFileName(fileName,
-                                                            AVFStorageLocation::Image,
-                                                            QLatin1String("img_"),
-                                                            QLatin1String("jpg"));
-
-        qDebugCamera() << "Capture image to" << actualFileName;
-    }
+    bool captureToBuffer = actualFileName.isEmpty();
 
     CaptureRequest request = { m_lastCaptureId, QSharedPointer<QSemaphore>::create()};
     m_requestsMutex.lock();
@@ -158,7 +149,7 @@ int AVFImageCaptureControl::capture(const QString &fileName)
             NSData *nsJpgData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
             QByteArray jpgData = QByteArray::fromRawData((const char *)[nsJpgData bytes], [nsJpgData length]);
 
-            if (destination & QCameraImageCapture::CaptureToBuffer) {
+            if (captureToBuffer) {
                 QBuffer data(&jpgData);
                 QImageReader reader(&data, "JPEG");
                 QSize size = reader.size();
@@ -166,29 +157,26 @@ int AVFImageCaptureControl::capture(const QString &fileName)
                 QMetaObject::invokeMethod(this, "imageAvailable", Qt::QueuedConnection,
                                           Q_ARG(int, request.captureId),
                                           Q_ARG(QVideoFrame, frame));
-            }
-
-            if (!(destination & QCameraImageCapture::CaptureToFile))
-                return;
-
-            QFile f(actualFileName);
-            if (f.open(QFile::WriteOnly)) {
-                if (f.write(jpgData) != -1) {
-                    QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
-                                              Q_ARG(int, request.captureId),
-                                              Q_ARG(QString, actualFileName));
+            } else {
+                QFile f(actualFileName);
+                if (f.open(QFile::WriteOnly)) {
+                    if (f.write(jpgData) != -1) {
+                        QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
+                                                  Q_ARG(int, request.captureId),
+                                                  Q_ARG(QString, actualFileName));
+                    } else {
+                        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                                                  Q_ARG(int, request.captureId),
+                                                  Q_ARG(int, QCameraImageCapture::OutOfSpaceError),
+                                                  Q_ARG(QString, f.errorString()));
+                    }
                 } else {
+                    QString errorMessage = tr("Could not open destination file:\n%1").arg(actualFileName);
                     QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                               Q_ARG(int, request.captureId),
-                                              Q_ARG(int, QCameraImageCapture::OutOfSpaceError),
-                                              Q_ARG(QString, f.errorString()));
+                                              Q_ARG(int, QCameraImageCapture::ResourceError),
+                                              Q_ARG(QString, errorMessage));
                 }
-            } else {
-                QString errorMessage = tr("Could not open destination file:\n%1").arg(actualFileName);
-                QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                          Q_ARG(int, request.captureId),
-                                          Q_ARG(int, QCameraImageCapture::ResourceError),
-                                          Q_ARG(QString, errorMessage));
             }
         } else {
             const QLatin1String errorMessage("Image capture failed: timed out waiting"
@@ -202,6 +190,23 @@ int AVFImageCaptureControl::capture(const QString &fileName)
     }];
 
     return request.captureId;
+}
+
+int AVFImageCaptureControl::capture(const QString &fileName)
+{
+    QString actualFileName;
+    actualFileName = m_storageLocation.generateFileName(fileName,
+                                                        AVFStorageLocation::Image,
+                                                        QLatin1String("img_"),
+                                                        QLatin1String("jpg"));
+
+    qDebugCamera() << "Capture image to" << actualFileName;
+    return doCapture(actualFileName);
+}
+
+int AVFImageCaptureControl::captureToBuffer()
+{
+    return doCapture(QString());
 }
 
 void AVFImageCaptureControl::onNewViewfinderFrame(const QVideoFrame &frame)
@@ -230,19 +235,6 @@ void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
     Q_EMIT imageCaptured(request.captureId, frame.image().transformed(transform));
 
     request.previewReady->release();
-}
-
-QCameraImageCapture::CaptureDestinations AVFImageCaptureControl::captureDestination() const
-{
-    return m_destination;
-}
-
-void AVFImageCaptureControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-{
-    if (m_destination != destination) {
-        m_destination = destination;
-        updateCaptureConnection();
-    }
 }
 
 void AVFImageCaptureControl::updateCaptureConnection()

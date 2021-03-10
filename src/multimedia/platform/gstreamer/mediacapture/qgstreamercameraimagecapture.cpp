@@ -95,6 +95,17 @@ int QGstreamerCameraImageCapture::capture(const QString &fileName)
     return m_lastId;
 }
 
+int QGstreamerCameraImageCapture::captureToBuffer()
+{
+    // ### implement me!
+    const QLatin1String errorMessage("Capturing to buffer not supported.");
+    QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                              Q_ARG(int, -1),
+                              Q_ARG(int, QCameraImageCapture::NotSupportedFeatureError),
+                              Q_ARG(QString, errorMessage));
+    return -1;
+}
+
 void QGstreamerCameraImageCapture::updateState()
 {
     bool ready = (m_session->state() == QGstreamerCaptureSession::PreviewState) &&

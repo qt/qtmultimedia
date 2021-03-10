@@ -66,9 +66,7 @@ public:
 
     bool isReadyForCapture() const override;
     int capture(const QString &fileName) override;
-
-    QCameraImageCapture::CaptureDestinations captureDestination() const override { return QCameraImageCapture::CaptureToBuffer; }
-    virtual void setCaptureDestination(QCameraImageCapture::CaptureDestinations /*destination*/) override {}
+    int captureToBuffer() override;
 
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;

@@ -273,15 +273,6 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
 
-    QSignalSpy destinationChangedSignal(&imageCapture, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
-
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
-    imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer);
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToBuffer);
-    QCOMPARE(destinationChangedSignal.size(), 1);
-    QCOMPARE(destinationChangedSignal.first().first().value<QCameraImageCapture::CaptureDestinations>(),
-             QCameraImageCapture::CaptureToBuffer);
-
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy imageAvailableSignal(&imageCapture, SIGNAL(imageAvailable(int,QVideoFrame)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
@@ -290,7 +281,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
     camera.start();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
-    int id = imageCapture.capture();
+    int id = imageCapture.captureToBuffer();
     QTRY_VERIFY(!imageAvailableSignal.isEmpty());
 
     QVERIFY(errorSignal.isEmpty());
@@ -312,28 +303,6 @@ void tst_QCameraBackend::testCaptureToBuffer()
     savedSignal.clear();
 
     QTRY_VERIFY(imageCapture.isReadyForCapture());
-
-    //Try to capture to both buffer and file
-    imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
-
-    int oldId = id;
-    id = imageCapture.capture();
-    QVERIFY(id != oldId);
-    QTRY_VERIFY(!savedSignal.isEmpty());
-
-    QVERIFY(errorSignal.isEmpty());
-    QVERIFY(!capturedSignal.isEmpty());
-    QVERIFY(!imageAvailableSignal.isEmpty());
-    QVERIFY(!savedSignal.isEmpty());
-
-    QCOMPARE(capturedSignal.first().first().toInt(), id);
-    QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
-
-    frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-    QVERIFY(!frame.image().isNull());
-
-    QString fileName = savedSignal.first().last().toString();
-    QVERIFY(QFileInfo(fileName).exists());
 }
 
 void tst_QCameraBackend::testCameraCaptureMetadata()

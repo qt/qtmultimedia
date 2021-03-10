@@ -101,11 +101,6 @@ public:
     int capture(const QString &fileName);
     void cancelCapture();
 
-    // capture destination control
-    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const;
-    QCameraImageCapture::CaptureDestinations captureDestination() const;
-    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination);
-
     // image encoder control
     QList<QSize> supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const;
     QImageEncoderSettings imageSettings() const;
@@ -145,9 +140,6 @@ Q_SIGNALS:
     void imageAvailable(int id, const QVideoFrame &buffer);
     void imageSaved(int id, const QString &fileName);
     void imageCaptureError(int id, int error, const QString &errorString);
-
-    // capture destination control
-    void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
 
     // media recorder control
     void videoStateChanged(QMediaRecorder::State state);
@@ -196,7 +188,6 @@ private:
     QMutex m_surfaceMutex;
 
     int m_lastImageCaptureId;
-    QCameraImageCapture::CaptureDestinations m_captureDestination;
 
     QImageEncoderSettings m_imageEncoderSettings;
 

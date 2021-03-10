@@ -97,10 +97,6 @@ public:
     QImageEncoderSettings imageSettings() const { return m_actualImageSettings; }
     void setImageSettings(const QImageEncoderSettings &settings);
 
-    bool isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const;
-    QCameraImageCapture::CaptureDestinations captureDestination() const;
-    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination);
-
     bool isReadyForCapture() const;
     void setReadyForCapture(bool ready);
     int capture(const QString &fileName);
@@ -127,8 +123,6 @@ Q_SIGNALS:
     void activeChanged(bool);
     void error(int error, const QString &errorString);
     void opened();
-
-    void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
 
     void readyForCaptureChanged(bool);
     void imageExposed(int id);
@@ -167,7 +161,7 @@ private:
     void processCapturedImage(int id,
                               const QByteArray &data,
                               const QSize &resolution,
-                              QCameraImageCapture::CaptureDestinations dest,
+                              bool captureToBuffer,
                               const QString &fileName);
 
     static QVideoFrame::PixelFormat QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat);
@@ -193,7 +187,6 @@ private:
 
     QImageEncoderSettings m_requestedImageSettings;
     QImageEncoderSettings m_actualImageSettings;
-    QCameraImageCapture::CaptureDestinations m_captureDestination;
     int m_lastImageCaptureId;
     bool m_readyForCapture;
     int m_currentImageCaptureId;

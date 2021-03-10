@@ -67,16 +67,7 @@ public:
 
         return -1;
     }
-
-    QCameraImageCapture::CaptureDestinations captureDestination() const
-    {
-        return m_destination;
-    }
-
-    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-    {
-        m_destination = destination;
-    }
+    int captureToBuffer() { return -1; }
 
     QImageEncoderSettings imageSettings() const { return m_settings; }
     void setImageSettings(const QImageEncoderSettings &settings) { m_settings = settings; }
@@ -106,7 +97,6 @@ private:
     QString m_fileName;
     int m_captureRequest;
     bool m_ready;
-    QCameraImageCapture::CaptureDestinations m_destination;
     QImageEncoderSettings m_settings;
 };
 

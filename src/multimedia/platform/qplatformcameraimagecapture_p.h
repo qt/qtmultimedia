@@ -65,9 +65,7 @@ public:
     virtual bool isReadyForCapture() const = 0;
 
     virtual int capture(const QString &fileName) = 0;
-
-    virtual QCameraImageCapture::CaptureDestinations captureDestination() const = 0;
-    virtual void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) = 0;
+    virtual int captureToBuffer() = 0;
 
     virtual QImageEncoderSettings imageSettings() const = 0;
     virtual void setImageSettings(const QImageEncoderSettings &settings) = 0;

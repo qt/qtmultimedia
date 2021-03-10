@@ -66,7 +66,6 @@ private slots:
     void testSimpleCameraExposure();
     void testSimpleCameraFocus();
     void testSimpleCameraCapture();
-    void testSimpleCaptureDestination();
 
     void testCameraWhiteBalance();
     void testCameraExposure();
@@ -75,7 +74,6 @@ private slots:
     void testCameraCaptureMetadata();
     void testImageSettings();
     void testCameraEncodingProperyChange();
-    void testCaptureDestination();
 
     void testConstructor();
     void testQCameraIsAvailable();
@@ -264,43 +262,6 @@ void tst_QCamera::testSimpleCameraCapture()
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NotSupportedFeatureError);
     QVERIFY(!imageCapture.errorString().isEmpty());
-}
-
-void tst_QCamera::testSimpleCaptureDestination()
-{
-    MockMediaRecorderService::simpleCamera = true;
-
-    QMediaCaptureSession session;
-    QCamera camera;
-    QCameraImageCapture imageCapture;
-    session.setCamera(&camera);
-    session.setImageCapture(&imageCapture);
-
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
-    imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer);
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
-}
-
-void tst_QCamera::testCaptureDestination()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    QCameraImageCapture imageCapture;
-    session.setCamera(&camera);
-    session.setImageCapture(&imageCapture);
-
-    QSignalSpy destinationChangedSignal(&imageCapture, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
-
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToFile);
-    imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer);
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToBuffer);
-    QCOMPARE(destinationChangedSignal.size(), 1);
-    QCOMPARE(destinationChangedSignal.first().first().value<QCameraImageCapture::CaptureDestinations>(),
-             QCameraImageCapture::CaptureToBuffer);
-
-    imageCapture.setCaptureDestination(QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
-    QCOMPARE(imageCapture.captureDestination(), QCameraImageCapture::CaptureToBuffer | QCameraImageCapture::CaptureToFile);
-    QCOMPARE(destinationChangedSignal.size(), 2);
 }
 
 void tst_QCamera::testCameraCapture()

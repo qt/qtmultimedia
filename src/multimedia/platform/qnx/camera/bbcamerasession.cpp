@@ -124,7 +124,6 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_previewIsVideo(true)
     , m_surface(0)
     , m_lastImageCaptureId(0)
-    , m_captureDestination(QCameraImageCapture::CaptureToFile)
     , m_videoState(QMediaRecorder::StoppedState)
     , m_videoStatus(QMediaRecorder::StoppedStatus)
     , m_handle(CAMERA_HANDLE_INVALID)
@@ -382,25 +381,6 @@ int BbCameraSession::capture(const QString &fileName)
 void BbCameraSession::cancelCapture()
 {
     // BB10 API doesn't provide functionality for that
-}
-
-bool BbCameraSession::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
-{
-    // capture to buffer, file and both are supported.
-    return destination & (QCameraImageCapture::CaptureToFile | QCameraImageCapture::CaptureToBuffer);
-}
-
-QCameraImageCapture::CaptureDestinations BbCameraSession::captureDestination() const
-{
-    return m_captureDestination;
-}
-
-void BbCameraSession::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-{
-    if (m_captureDestination != destination) {
-        m_captureDestination = destination;
-        emit captureDestinationChanged(m_captureDestination);
-    }
 }
 
 QList<QSize> BbCameraSession::supportedResolutions(const QImageEncoderSettings&, bool *continuous) const
@@ -689,13 +669,10 @@ void BbCameraSession::imageCaptured(int requestId, const QImage &rawImage, const
         emit imageCaptured(requestId, snapPreview);
     }
 
-    if (m_captureDestination & QCameraImageCapture::CaptureToBuffer) {
+    if (/* capture to buffer */ fileName.isEmpty()) {
         QVideoFrame frame(image);
-
         emit imageAvailable(requestId, frame);
-    }
-
-    if (m_captureDestination & QCameraImageCapture::CaptureToFile) {
+    } else {
         const QString actualFileName = m_mediaStorageLocation.generateFileName(fileName,
                                                                                QCamera::CaptureStillImage,
                                                                                QLatin1String("IMG_"),

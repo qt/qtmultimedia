@@ -78,10 +78,9 @@ public:
 
     AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
 
+    int doCapture(const QString &fileName);
     int capture(const QString &fileName) override;
-
-    QCameraImageCapture::CaptureDestinations captureDestination() const override;
-    void setCaptureDestination(QCameraImageCapture::CaptureDestinations destination) override;
+    int captureToBuffer() override;
 
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
@@ -108,8 +107,6 @@ private:
     QMutex m_requestsMutex;
     QQueue<CaptureRequest> m_captureRequests;
     QImageEncoderSettings m_settings;
-
-    QCameraImageCapture::CaptureDestinations m_destination = QCameraImageCapture::CaptureToFile;
 };
 
 Q_DECLARE_TYPEINFO(AVFImageCaptureControl::CaptureRequest, Q_PRIMITIVE_TYPE);

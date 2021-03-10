@@ -66,14 +66,15 @@ int QAndroidCameraImageCaptureControl::capture(const QString &fileName)
     return m_session->capture(fileName);
 }
 
-QCameraImageCapture::CaptureDestinations QAndroidCameraImageCaptureControl::captureDestination() const
+int QAndroidCameraImageCaptureControl::captureToBuffer()
 {
-    return m_session->captureDestination();;
-}
-
-void QAndroidCameraImageCaptureControl::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
-{
-    m_session->setCaptureDestination(destination);
+    // ### implement me!
+    const QLatin1String errorMessage("Capturing to buffer not supported.");
+    QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                              Q_ARG(int, -1),
+                              Q_ARG(int, QCameraImageCapture::NotSupportedFeatureError),
+                              Q_ARG(QString, errorMessage));
+    return -1;
 }
 
 QImageEncoderSettings QAndroidCameraImageCaptureControl::imageSettings() const
