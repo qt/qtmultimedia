@@ -211,6 +211,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/qgstreamerformatinfo.cpp platform/gstreamer/qgstreamerformatinfo_p.h
         platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
         platform/gstreamer/mediacapture/qgstreamercamera.cpp platform/gstreamer/mediacapture/qgstreamercamera_p.h
+        platform/gstreamer/mediacapture/qgstreamercameraimageprocessing.cpp platform/gstreamer/mediacapture/qgstreamercameraimageprocessing_p.h
+        platform/gstreamer/mediacapture/qgstreamercameraexposure.cpp platform/gstreamer/mediacapture/qgstreamercameraexposure_p.h
+        platform/gstreamer/mediacapture/qgstreamercamerafocus.cpp platform/gstreamer/mediacapture/qgstreamercamerafocus_p.h
         platform/gstreamer/mediacapture/qgstreamermediacapture.cpp platform/gstreamer/mediacapture/qgstreamermediacapture_p.h
         platform/gstreamer/mediacapture/qgstreamercameraimagecapture.cpp platform/gstreamer/mediacapture/qgstreamercameraimagecapture_p.h
         platform/gstreamer/mediacapture/qgstreamermediaencoder.cpp platform/gstreamer/mediacapture/qgstreamermediaencoder_p.h
@@ -234,14 +237,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_came
         GST_USE_CAMERABIN
 )
 
-qt_internal_extend_target(Multimedia CONDITION ((QT_FEATURE_gstreamer) AND (use_camerabin)) AND (qtConfig(gstreamer_photography))
-    SOURCES
-        platform/gstreamer/camerabin/camerabinexposure.cpp platform/gstreamer/camerabin/camerabinexposure_p.h
-        platform/gstreamer/camerabin/camerabinfocus.cpp platform/gstreamer/camerabin/camerabinfocus_p.h
-    DEFINES
-        GST_USE_UNSTABLE_API
-    PUBLIC_LIBRARIES
-        GStreamer::Photography # special case
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_photography
+    LIBRARIES
+        -lgstphotography-1.0#GStreamer::Photography # special case
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl AND use_camerabin

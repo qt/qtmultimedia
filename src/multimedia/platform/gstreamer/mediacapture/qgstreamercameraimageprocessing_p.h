@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef CAMERABINEXPOSURECONTROL_H
-#define CAMERABINEXPOSURECONTROL_H
+#ifndef QGSTREAMERIMAGEPROCESSING_P_H
+#define QGSTREAMERIMAGEPROCESSING_P_H
 
 //
 //  W A R N I N G
@@ -51,42 +51,60 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
-#include <private/qplatformcameraexposure_p.h>
+#include <private/qplatformcameraimageprocessing_p.h>
 
-#include <gst/gst.h>
-#include <glib.h>
+#include <private/qgst_p.h>
+
+#if QT_CONFIG(gstreamer_photography)
+# include <gst/interfaces/photography.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinSession;
+#if QT_CONFIG(linux_v4l)
+class QGstreamerImageProcessingV4L2;
+#endif
 
-class CameraBinExposure : public QPlatformCameraExposure
+class QGstreamerCamera;
+
+class QGstreamerImageProcessing : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 
 public:
-    CameraBinExposure(CameraBinSession *session);
-    virtual ~CameraBinExposure();
+    QGstreamerImageProcessing(QGstreamerCamera *camera);
+    virtual ~QGstreamerImageProcessing();
 
-    bool isParameterSupported(ExposureParameter parameter) const override;
-    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const override;
+    QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const;
+    bool setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
+    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
 
-    QVariant requestedValue(ExposureParameter parameter) const override;
-    QVariant actualValue(ExposureParameter parameter) const override;
-    bool setValue(ExposureParameter parameter, const QVariant &value) override;
+    QCameraImageProcessing::ColorFilter colorFilter() const;
+    bool setColorFilter(QCameraImageProcessing::ColorFilter filter);
+    bool isColorFilterSupported(QCameraImageProcessing::ColorFilter mode) const;
 
-    QCameraExposure::FlashMode flashMode() const override;
-    void setFlashMode(QCameraExposure::FlashMode mode) override;
-    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
-
-    bool isFlashReady() const override;
+    bool isParameterSupported(ProcessingParameter) const override;
+    bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
+    QVariant parameter(ProcessingParameter parameter) const override;
+    void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
 private:
-    CameraBinSession *m_session;
-    QHash<ExposureParameter, QVariant> m_requestedValues;
+    bool setColorBalanceValue(const char *channel, qreal value);
+    void updateColorBalanceValues();
+
+private:
+    QGstreamerCamera *m_camera;
+    QMap<QPlatformCameraImageProcessing::ProcessingParameter, int> m_values;
+    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode = QCameraImageProcessing::WhiteBalanceAuto;
+    QCameraImageProcessing::ColorFilter m_colorFilter = QCameraImageProcessing::ColorFilterNone;
+
+#if QT_CONFIG(linux_v4l)
+    QGstreamerImageProcessingV4L2 *m_v4lImageControl = nullptr;
+#endif
 };
 
 QT_END_NAMESPACE
 
-#endif // CAMERABINEXPOSURECONTROL_H
+#endif // QGSTREAMERIMAGEPROCESSING_P_H

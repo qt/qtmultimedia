@@ -43,6 +43,9 @@
 #include "qgstreamercameraimagecapture_p.h"
 #include <private/qgstreamerdevicemanager_p.h>
 #include <private/qgstreamerintegration_p.h>
+#include <private/qgstreamercameraexposure_p.h>
+#include <private/qgstreamercamerafocus_p.h>
+#include <private/qgstreamercameraimageprocessing_p.h>
 
 #include <QtCore/qdebug.h>
 
@@ -96,6 +99,9 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
         auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QGstreamerIntegration::instance()->deviceManager());
         auto *device = deviceManager->videoDevice(camera.id());
         gstCamera = gst_device_create_element(device, "camerasrc");
+        QGstStructure properties = gst_device_get_properties(device);
+        if (properties.name() == "v4l2deviceprovider")
+            m_v4l2Device = QString::fromUtf8(properties["device.path"].toString());
     }
 
     gstCameraBin.add(gstCamera);
@@ -108,3 +114,32 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
     m_session->cameraChanged();
 }
 
+QPlatformCameraImageProcessing *QGstreamerCamera::imageProcessingControl()
+{
+    return imageProcessing;
+}
+
+QPlatformCameraFocus *QGstreamerCamera::focusControl()
+{
+    return focus;
+}
+
+QPlatformCameraExposure *QGstreamerCamera::exposureControl()
+{
+    return exposure;
+}
+
+GstColorBalance *QGstreamerCamera::colorBalance() const
+{
+    return nullptr; // ####
+}
+
+#if QT_CONFIG(gstreamer_photography)
+GstPhotography *QGstreamerCamera::photography()
+{
+    if (!gstCamera.isNull() && GST_IS_PHOTOGRAPHY(gstCamera.element()))
+        return GST_PHOTOGRAPHY(gstCamera.element());
+
+    return 0;
+}
+#endif

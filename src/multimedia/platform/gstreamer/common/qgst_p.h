@@ -60,6 +60,12 @@
 
 #include <gst/gst.h>
 
+#if QT_CONFIG(gstreamer_photography)
+#define GST_USE_UNSTABLE_API
+#include <gst/interfaces/photography.h>
+#undef GST_USE_UNSTABLE_API
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QSize;
@@ -290,6 +296,8 @@ public:
 
     QGString getString(const char *property) const
     { char *s = nullptr; g_object_get(m_object, property, &s, nullptr); return s; }
+    QGstStructure getStructure(const char *property) const
+    { GstStructure *s = nullptr; g_object_get(m_object, property, &s, nullptr); return QGstStructure(s); }
     bool getBool(const char *property) const { gboolean b = false; g_object_get(m_object, property, &b, nullptr); return b; }
     uint getUInt(const char *property) const { guint i = 0; g_object_get(m_object, property, &i, nullptr); return i; }
     int getInt(const char *property) const { gint i = 0; g_object_get(m_object, property, &i, nullptr); return i; }

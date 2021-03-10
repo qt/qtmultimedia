@@ -65,67 +65,28 @@
 
 QT_BEGIN_NAMESPACE
 
-class CameraBinSession;
+class QGstreamerCamera;
 
-class CameraBinFocus
-    : public QPlatformCameraFocus
-    , QGstreamerBufferProbe
+class QGstreamerCameraFocus : public QPlatformCameraFocus
 {
     Q_OBJECT
 
 public:
-    CameraBinFocus(CameraBinSession *session);
-    virtual ~CameraBinFocus();
+    QGstreamerCameraFocus(QGstreamerCamera *session);
+    virtual ~QGstreamerCameraFocus();
 
     QCameraFocus::FocusMode focusMode() const override;
     void setFocusMode(QCameraFocus::FocusMode mode) override;
     bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
 
-    QPointF focusPoint() const override;
-    void setCustomFocusPoint(const QPointF &point) override;
-
-    qreal maximumOpticalZoom() const override;
-    qreal maximumDigitalZoom() const override;
-
-    qreal requestedOpticalZoom() const override;
-    qreal requestedDigitalZoom() const override;
-    qreal currentOpticalZoom() const override;
-    qreal currentDigitalZoom() const override;
-
-    void zoomTo(qreal optical, qreal digital) override;
-
-    void setViewfinderResolution(const QSize &resolution);
-
-protected:
-    void timerEvent(QTimerEvent *event) override;
-
-private Q_SLOTS:
-    void _q_handleCameraStatusChange(QCamera::Status status);
-    void _q_updateFaces();
+    ZoomRange zoomFactorRange() const override;
+    void zoomTo(float newZoomFactor, float rate) override;
 
 private:
-    void resetFocusPoint();
-    void updateRegionOfInterest(const QRectF &rectangle);
-    void updateRegionOfInterest(const QList<QRect> &rectangles);
-    bool probeBuffer(GstBuffer *buffer) override;
-
-    CameraBinSession *m_session;
-    QCamera::Status m_cameraStatus;
+    QGstreamerCamera *m_camera;
     QCameraFocus::FocusMode m_focusMode;
-    QPointF m_focusPoint;
-    QRectF m_focusRect;
-    QSize m_viewfinderResolution;
-    QList<QRect> m_faces;
-    QList<QRect> m_faceFocusRects;
-    QBasicTimer m_faceResetTimer;
-    mutable QMutex m_mutex;
-
-    static void updateZoom(GObject *o, GParamSpec *p, gpointer d);
-    static void updateMaxZoom(GObject *o, GParamSpec *p, gpointer d);
-
-    qreal m_requestedOpticalZoom = 1.;
-    qreal m_requestedDigitalZoom = 1.;
-
+    float requestedZoomFactor = 1.;
+    float maxZoomFactor = 1.;
 };
 
 QT_END_NAMESPACE

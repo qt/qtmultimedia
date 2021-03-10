@@ -56,8 +56,12 @@
 #include <private/qplatformcamera_p.h>
 #include "qgstreamermediacapture_p.h"
 #include <private/qgst_p.h>
+#include <gst/video/colorbalance.h>
 
 QT_BEGIN_NAMESPACE
+class QGstreamerCameraFocus;
+class QGstreamerCameraExposure;
+class QGstreamerImageProcessing;
 
 class QGstreamerCamera : public QPlatformCamera
 {
@@ -76,8 +80,24 @@ public:
     QGstElement gstElement() const { return gstCameraBin.element(); }
     void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
 
+    QPlatformCameraImageProcessing *imageProcessingControl() override;
+    QPlatformCameraFocus *focusControl() override;
+    QPlatformCameraExposure *exposureControl() override;
+
+#if QT_CONFIG(gstreamer_photography)
+    GstPhotography *photography();
+#endif
+    QString v4l2Device() const { return m_v4l2Device; }
+    bool isV4L2Camera() const { return !m_v4l2Device.isEmpty(); }
+
+    GstColorBalance *colorBalance() const;
+
 private:
     QGstreamerMediaCapture *m_session;
+
+    QGstreamerCameraFocus *focus = nullptr;
+    QGstreamerCameraExposure *exposure = nullptr;
+    QGstreamerImageProcessing *imageProcessing = nullptr;
 
     QCameraInfo m_cameraInfo;
 
@@ -90,6 +110,7 @@ private:
 
     bool m_active = false;
     QCamera::Status m_status = QCamera::InactiveStatus;
+    QString m_v4l2Device;
 };
 
 QT_END_NAMESPACE
