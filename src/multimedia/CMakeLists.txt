@@ -227,29 +227,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         GStreamer::App # special case
 )
 
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND use_camerabin
-    SOURCES
-        platform/gstreamer/camerabin/camerabincontrol.cpp platform/gstreamer/camerabin/camerabincontrol_p.h
-        platform/gstreamer/camerabin/camerabinimageprocessing.cpp platform/gstreamer/camerabin/camerabinimageprocessing_p.h
-        platform/gstreamer/camerabin/camerabinrecorder.cpp platform/gstreamer/camerabin/camerabinrecorder_p.h
-        platform/gstreamer/camerabin/camerabinsession.cpp platform/gstreamer/camerabin/camerabinsession_p.h
-    DEFINES
-        GST_USE_CAMERABIN
-)
-
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_photography
     LIBRARIES
         -lgstphotography-1.0#GStreamer::Photography # special case
-)
-
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl AND use_camerabin
-    PUBLIC_LIBRARIES
-        GStreamer::Gl # special case
-)
-
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_linux_v4l AND use_camerabin
-    SOURCES
-        platform/gstreamer/camerabin/camerabinv4limageprocessing.cpp platform/gstreamer/camerabin/camerabinv4limageprocessing_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl
