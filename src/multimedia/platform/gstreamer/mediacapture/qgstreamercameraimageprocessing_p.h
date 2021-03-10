@@ -90,6 +90,8 @@ public:
     QVariant parameter(ProcessingParameter parameter) const override;
     void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
+    void update();
+
 private:
     bool setColorBalanceValue(const char *channel, qreal value);
     void updateColorBalanceValues();
@@ -101,7 +103,25 @@ private:
     QCameraImageProcessing::ColorFilter m_colorFilter = QCameraImageProcessing::ColorFilterNone;
 
 #if QT_CONFIG(linux_v4l)
-    QGstreamerImageProcessingV4L2 *m_v4lImageControl = nullptr;
+    bool isV4L2Device = false;
+    void updateV4L2Controls();
+    std::optional<float> getV4L2Param(QGstreamerImageProcessing::ProcessingParameter param) const;
+    bool setV4L2Param(ProcessingParameter parameter, const QVariant &value);
+
+public:
+    struct SourceParameterValueInfo {
+        quint32 cid = 0; // V4L control id
+        qint32 defaultValue = 0;
+        qint32 minimumValue = 0;
+        qint32 maximumValue = 0;
+    };
+private:
+    bool v4l2AutoWhiteBalanceSupported = false;
+    bool v4l2ColorTemperatureSupported = false;
+    SourceParameterValueInfo v4l2ColorTemperature;
+    SourceParameterValueInfo v4l2Brightness;
+    SourceParameterValueInfo v4l2Contrast;
+    SourceParameterValueInfo v4l2Saturation;
 #endif
 };
 

@@ -71,14 +71,10 @@ public:
     enum ProcessingParameter {
         WhiteBalancePreset,
         ColorTemperature,
-        Contrast,
-        Saturation,
-        Brightness,
         ContrastAdjustment,
         SaturationAdjustment,
         BrightnessAdjustment,
         ColorFilter,
-        ExtendedParameter = 1000
     };
 
     virtual bool isParameterSupported(ProcessingParameter) const = 0;

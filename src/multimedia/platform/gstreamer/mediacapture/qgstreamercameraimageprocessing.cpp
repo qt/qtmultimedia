@@ -1,6 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 Denis Shienkov <denis.shienkov@gmail.com>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -42,50 +43,25 @@
 
 #include <gst/video/colorbalance.h>
 
-QT_BEGIN_NAMESPACE
-
-#if 0 && QT_CONFIG(linux_v4l)
-class QGstreamerImageProcessingV4L2
-{
-public:
-    struct SourceParameterValueInfo {
-        SourceParameterValueInfo()
-            : cid(0)
-        {
-        }
-
-        qint32 defaultValue;
-        qint32 minimumValue;
-        qint32 maximumValue;
-        quint32 cid; // V4L control id
-    };
-
-    static qreal scaledImageProcessingParameterValue(
-        qint32 sourceValue, const SourceParameterValueInfo &sourceValueInfo);
-    static qint32 sourceImageProcessingParameterValue(
-        qreal scaledValue, const SourceParameterValueInfo &valueRange);
-
-    QMap<QGstreamerImageProcessing::ProcessingParameter, SourceParameterValueInfo> m_parametersInfo;
-};
+#if QT_CONFIG(linux_v4l)
+#include <linux/videodev2.h>
+#include <private/qcore_unix_p.h>
 #endif
+
+QT_BEGIN_NAMESPACE
 
 QGstreamerImageProcessing::QGstreamerImageProcessing(QGstreamerCamera *camera)
     : QPlatformCameraImageProcessing(camera)
     , m_camera(camera)
-#if 0 && QT_CONFIG(linux_v4l)
-    , m_v4lImageControl(nullptr)
-#endif
 {
+#if QT_CONFIG(linux_v4l)
+    if (m_camera->isV4L2Camera())
+        updateV4L2Controls();
+#endif
 #if QT_CONFIG(gstreamer_photography)
     if (auto *photography = m_camera->photography())
         gst_photography_set_white_balance_mode(photography, GST_PHOTOGRAPHY_WB_MODE_AUTO);
 #endif
-
-#if 0 && QT_CONFIG(linux_v4l)
-    if (m_camera->isV4L2Camera())
-        m_v4lImageControl = new QGstreamerImageProcessingV4L2;
-#endif
-
     updateColorBalanceValues();
 }
 
@@ -203,6 +179,16 @@ bool QGstreamerImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::Whit
 
 bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const
 {
+#if QT_CONFIG(linux_v4l)
+    if (m_camera->isV4L2Camera()) {
+        if (mode == QCameraImageProcessing::WhiteBalanceAuto)
+            return true;
+        if (v4l2AutoWhiteBalanceSupported && mode == QCameraImageProcessing::WhiteBalanceManual)
+            return true;
+        // ### Could emulate the others through hardcoded color temperatures
+        return false;
+    }
+#endif
 #if QT_CONFIG(gstreamer_photography)
     if (m_camera->photography()) {
         switch (mode) {
@@ -218,10 +204,6 @@ bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessi
             break;
         }
     }
-#endif
-#if 0 && QT_CONFIG(linux_v4l)
-        if (!isPhotographyWhiteBalanceSupported)
-            return m_v4lImageControl->isParameterValueSupported(parameter, value);
 #endif
 
     return mode == QCameraImageProcessing::WhiteBalanceAuto;
@@ -286,6 +268,25 @@ bool QGstreamerImageProcessing::isColorFilterSupported(QCameraImageProcessing::C
 
 bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
+#if QT_CONFIG(linux_v4l)
+    if (m_camera->isV4L2Camera()) {
+        switch (parameter) {
+        case WhiteBalancePreset:
+            return v4l2AutoWhiteBalanceSupported;
+        case ColorTemperature:
+            return v4l2ColorTemperatureSupported;
+        case ContrastAdjustment:
+            return v4l2Contrast.cid != 0;
+        case SaturationAdjustment:
+            return v4l2Saturation.cid != 0;
+        case BrightnessAdjustment:
+            return v4l2Brightness.cid != 0;
+        case ColorFilter:
+            return false;
+        }
+    }
+#endif
+
 #if QT_CONFIG(gstreamer_photography)
     if (m_camera->photography()) {
         if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset || parameter == QPlatformCameraImageProcessing::ColorFilter)
@@ -293,17 +294,12 @@ bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcess
     }
 #endif
 
-    if (parameter == QPlatformCameraImageProcessing::Contrast
-            || parameter == QPlatformCameraImageProcessing::Brightness
-            || parameter == QPlatformCameraImageProcessing::Saturation) {
+    if (parameter == QPlatformCameraImageProcessing::ContrastAdjustment
+        || parameter == QPlatformCameraImageProcessing::BrightnessAdjustment
+        || parameter == QPlatformCameraImageProcessing::SaturationAdjustment) {
         if (m_camera->colorBalance())
             return true;
     }
-
-#if 0 && QT_CONFIG(linux_v4l)
-    if (m_v4lImageControl->isParameterSupported(parameter))
-        return true;
-#endif
 
     return false;
 }
@@ -313,21 +309,20 @@ bool QGstreamerImageProcessing::isParameterValueSupported(QPlatformCameraImagePr
     switch (parameter) {
     case ContrastAdjustment:
     case BrightnessAdjustment:
-    case SaturationAdjustment: {
-        GstColorBalance *balance = m_camera->colorBalance();
-        const bool isGstColorBalanceValueSupported = balance && qAbs(value.toReal()) <= 1.0;
-#if 0 && QT_CONFIG(linux_v4l)
-        if (!isGstColorBalanceValueSupported)
-            return m_v4lImageControl->isParameterValueSupported(parameter, value);
-#endif
-        return isGstColorBalanceValueSupported;
-    }
+    case SaturationAdjustment:
+        if (qAbs(value.toReal() > 1))
+            return false;
+        return isParameterSupported(parameter);
     case ColorTemperature: {
-#if 0 && QT_CONFIG(linux_v4l)
-        return m_v4lImageControl->isParameterValueSupported(parameter, value);
-#else
-        return false;
+#if QT_CONFIG(linux_v4l)
+        if (m_camera->isV4L2Camera()) {
+            int temp = value.toInt();
+            return v4l2ColorTemperatureSupported &&
+                   v4l2ColorTemperature.maximumValue <= temp &&
+                   temp <= v4l2ColorTemperature.maximumValue;
+        }
 #endif
+        return false;
     }
     case WhiteBalancePreset:
         return isWhiteBalanceModeSupported(value.value<QCameraImageProcessing::WhiteBalanceMode>());
@@ -342,37 +337,22 @@ bool QGstreamerImageProcessing::isParameterValueSupported(QPlatformCameraImagePr
 
 QVariant QGstreamerImageProcessing::parameter(QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
+#if QT_CONFIG(linux_v4l)
+    if (m_camera->isV4L2Camera()) {
+        auto result = getV4L2Param(parameter);
+        if (result)
+            return QVariant(*result);
+    }
+#endif
     switch (parameter) {
-    case QPlatformCameraImageProcessing::WhiteBalancePreset: {
-        const QCameraImageProcessing::WhiteBalanceMode mode = whiteBalanceMode();
-#if 0 && QT_CONFIG(linux_v4l)
-        if (mode == QCameraImageProcessing::WhiteBalanceAuto
-                || mode == QCameraImageProcessing::WhiteBalanceManual) {
-            return m_v4lImageControl->parameter(parameter);
-        }
-#endif
-        return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode);
-    }
-    case QPlatformCameraImageProcessing::ColorTemperature: {
-#if 0 && QT_CONFIG(linux_v4l)
-        return m_v4lImageControl->parameter(parameter);
-#else
+    case QPlatformCameraImageProcessing::WhiteBalancePreset:
+        return whiteBalanceMode();
+    case QPlatformCameraImageProcessing::ColorTemperature:
         return QVariant();
-#endif
-    }
     case QPlatformCameraImageProcessing::ColorFilter:
         return QVariant::fromValue(colorFilter());
     default: {
         const bool isGstParameterSupported = m_values.contains(parameter);
-#if 0 && QT_CONFIG(linux_v4l)
-        if (!isGstParameterSupported) {
-            if (parameter == QPlatformCameraImageProcessing::BrightnessAdjustment
-                    || parameter == QPlatformCameraImageProcessing::ContrastAdjustment
-                    || parameter == QPlatformCameraImageProcessing::SaturationAdjustment) {
-                return m_v4lImageControl->parameter(parameter);
-            }
-        }
-#endif
         return isGstParameterSupported
                 ? QVariant(m_values.value(parameter))
                 : QVariant();
@@ -380,54 +360,30 @@ QVariant QGstreamerImageProcessing::parameter(QPlatformCameraImageProcessing::Pr
     }
 }
 
-void QGstreamerImageProcessing::setParameter(QPlatformCameraImageProcessing::ProcessingParameter parameter,
-        const QVariant &value)
+void QGstreamerImageProcessing::setParameter(QPlatformCameraImageProcessing::ProcessingParameter parameter, const QVariant &value)
 {
+#if QT_CONFIG(linux_v4l)
+    if (m_camera->isV4L2Camera()) {
+        if (setV4L2Param(parameter, value))
+            return;
+    }
+#endif
+
     switch (parameter) {
-    case ContrastAdjustment: {
-        if (!setColorBalanceValue("contrast", value.toReal())) {
-#if 0 && QT_CONFIG(linux_v4l)
-            m_v4lImageControl->setParameter(parameter, value);
-#endif
-        }
-    }
+    case ContrastAdjustment:
+        setColorBalanceValue("contrast", value.toReal());
         break;
-    case BrightnessAdjustment: {
-        if (!setColorBalanceValue("brightness", value.toReal())) {
-#if 0 && QT_CONFIG(linux_v4l)
-            m_v4lImageControl->setParameter(parameter, value);
-#endif
-        }
-    }
+    case BrightnessAdjustment:
+        setColorBalanceValue("brightness", value.toReal());
         break;
-    case SaturationAdjustment: {
-        if (!setColorBalanceValue("saturation", value.toReal())) {
-#if 0 && QT_CONFIG(linux_v4l)
-            m_v4lImageControl->setParameter(parameter, value);
-#endif
-        }
-    }
+    case SaturationAdjustment:
+        setColorBalanceValue("saturation", value.toReal());
         break;
-    case WhiteBalancePreset: {
-        if (!setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>())) {
-#if 0 && QT_CONFIG(linux_v4l)
-            const QCameraImageProcessing::WhiteBalanceMode mode =
-                    value.value<QCameraImageProcessing::WhiteBalanceMode>();
-            if (mode == QCameraImageProcessing::WhiteBalanceAuto
-                    || mode == QCameraImageProcessing::WhiteBalanceManual) {
-                m_v4lImageControl->setParameter(parameter, value);
-                return;
-            }
-#endif
-        }
-    }
+    case WhiteBalancePreset:
+        setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>());
         break;
-    case QPlatformCameraImageProcessing::ColorTemperature: {
-#if 0 && QT_CONFIG(linux_v4l)
-        m_v4lImageControl->setParameter(parameter, value);
-#endif
+    case QPlatformCameraImageProcessing::ColorTemperature:
         break;
-    }
     case QPlatformCameraImageProcessing::ColorFilter:
         setColorFilter(value.value<QCameraImageProcessing::ColorFilter>());
         break;
@@ -437,5 +393,202 @@ void QGstreamerImageProcessing::setParameter(QPlatformCameraImageProcessing::Pro
 
     updateColorBalanceValues();
 }
+
+void QGstreamerImageProcessing::update()
+{
+#if QT_CONFIG(linux_v4l)
+    updateV4L2Controls();
+#endif
+}
+
+#if QT_CONFIG(linux_v4l)
+void QGstreamerImageProcessing::updateV4L2Controls()
+{
+    const QString deviceName = m_camera->v4l2Device();
+    if (deviceName.isEmpty())
+        return;
+    isV4L2Device = true;
+
+    const int fd = qt_safe_open(deviceName.toLocal8Bit().constData(), O_RDONLY);
+    if (fd == -1) {
+        qWarning() << "Unable to open the camera" << deviceName
+                   << "for read to query the parameter info:" << qt_error_string(errno);
+        return;
+    }
+
+    struct v4l2_queryctrl queryControl;
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
+
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0)
+        v4l2AutoWhiteBalanceSupported = true;
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2ColorTemperature = { queryControl.id, queryControl.default_value, queryControl.minimum, queryControl.maximum };
+        v4l2ColorTemperatureSupported = true;
+    }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_BRIGHTNESS;
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2Brightness = { queryControl.id, queryControl.default_value, queryControl.minimum, queryControl.maximum };
+        qDebug() << "V4L2: query brightness" << queryControl.minimum << queryControl.default_value << queryControl.maximum;
+    }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_CONTRAST;
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2Contrast = { queryControl.id, queryControl.default_value, queryControl.minimum, queryControl.maximum };
+        qDebug() << "V4L2: query contrast" << queryControl.minimum << queryControl.default_value << queryControl.maximum;
+    }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_SATURATION;
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2Saturation = { queryControl.id, queryControl.default_value, queryControl.minimum, queryControl.maximum };
+        qDebug() << "V4L2: query saturation" << queryControl.minimum << queryControl.default_value << queryControl.maximum;
+    }
+
+    qt_safe_close(fd);
+
+}
+
+static qreal scaledImageProcessingParameterValue(qint32 sourceValue, const QGstreamerImageProcessing::SourceParameterValueInfo &sourceValueInfo)
+{
+    if (sourceValue == sourceValueInfo.defaultValue)
+        return 0.0f;
+
+    if (sourceValue < sourceValueInfo.defaultValue)
+        return ((sourceValue - sourceValueInfo.minimumValue)
+                / qreal(sourceValueInfo.defaultValue - sourceValueInfo.minimumValue))
+               + (-1.0f);
+
+    return ((sourceValue - sourceValueInfo.defaultValue)
+            / qreal(sourceValueInfo.maximumValue - sourceValueInfo.defaultValue));
+}
+
+qint32 sourceImageProcessingParameterValue(qreal scaledValue, const QGstreamerImageProcessing::SourceParameterValueInfo &valueRange)
+{
+    if (qFuzzyIsNull(scaledValue))
+        return valueRange.defaultValue;
+
+    qint32 value;
+    if (scaledValue < 0.0f)
+        value = ((scaledValue - (-1.0f)) * (valueRange.defaultValue - valueRange.minimumValue)) + valueRange.minimumValue;
+    else
+        value = (scaledValue * (valueRange.maximumValue - valueRange.defaultValue)) + valueRange.defaultValue;
+    return qBound(valueRange.minimumValue, value, valueRange.maximumValue);
+}
+
+
+std::optional<float> QGstreamerImageProcessing::getV4L2Param(QGstreamerImageProcessing::ProcessingParameter param) const
+{
+    struct v4l2_control control;
+    ::memset(&control, 0, sizeof(control));
+    const SourceParameterValueInfo *info = nullptr;
+    switch (param) {
+    case ContrastAdjustment:
+        info = &v4l2Contrast;
+        break;
+    case SaturationAdjustment:
+        info = &v4l2Saturation;
+        break;
+    case BrightnessAdjustment:
+        info = &v4l2Brightness;
+        break;
+    case ColorTemperature:
+        info = &v4l2ColorTemperature;
+        break;
+    default:
+        return std::nullopt;
+    }
+    if (!info || !info->cid)
+        return std::nullopt;
+
+    control.id = info->cid;
+
+    const int fd = qt_safe_open(m_camera->v4l2Device().toLocal8Bit().constData(), O_RDONLY);
+    if (fd == -1) {
+        qWarning() << "Unable to open the camera" << m_camera->v4l2Device()
+                   << "for read to get the parameter value:" << qt_error_string(errno);
+        return std::nullopt;
+    }
+
+    const bool ret = (::ioctl(fd, VIDIOC_G_CTRL, &control) == 0);
+
+    qt_safe_close(fd);
+
+    if (!ret) {
+        qWarning() << "Unable to get the parameter value:" << param << ":" << qt_error_string(errno);
+        return std::nullopt;
+    }
+
+    if (param == ColorTemperature)
+        return control.value;
+    return scaledImageProcessingParameterValue(control.value, *info);
+}
+
+
+bool QGstreamerImageProcessing::setV4L2Param(ProcessingParameter parameter, const QVariant &value)
+{
+    struct v4l2_control control;
+    ::memset(&control, 0, sizeof(control));
+
+    switch (parameter) {
+    case QPlatformCameraImageProcessing::WhiteBalancePreset: {
+        if (!v4l2AutoWhiteBalanceSupported)
+            return false;
+        const QCameraImageProcessing::WhiteBalanceMode mode = value.value<QCameraImageProcessing::WhiteBalanceMode>();
+        if (mode != QCameraImageProcessing::WhiteBalanceAuto && mode != QCameraImageProcessing::WhiteBalanceManual)
+            return false;
+        control.id = V4L2_CID_AUTO_WHITE_BALANCE;
+        control.value = (mode == QCameraImageProcessing::WhiteBalanceAuto);
+        m_whiteBalanceMode = mode;
+        break;
+    }
+    case QPlatformCameraImageProcessing::ColorTemperature:
+        control.id = v4l2ColorTemperature.cid;
+        control.value = qBound(v4l2ColorTemperature.minimumValue, value.toInt(), v4l2ColorTemperature.maximumValue);
+        break;
+
+    case QPlatformCameraImageProcessing::ContrastAdjustment: // falling back
+        control.id = v4l2Contrast.cid;
+        control.value = sourceImageProcessingParameterValue(value.toFloat(), v4l2Contrast);
+        break;
+    case QPlatformCameraImageProcessing::SaturationAdjustment: // falling back
+        control.id = v4l2Saturation.cid;
+        control.value = sourceImageProcessingParameterValue(value.toFloat(), v4l2Saturation);
+        break;
+    case QPlatformCameraImageProcessing::BrightnessAdjustment: // falling back
+        control.id = v4l2Brightness.cid;
+        control.value = sourceImageProcessingParameterValue(value.toFloat(), v4l2Brightness);
+        break;
+    default:
+        return false;
+    }
+
+    if (!control.id)
+        return false;
+
+    const int fd = qt_safe_open(m_camera->v4l2Device().toLocal8Bit().constData(), O_RDONLY);
+    if (fd == -1) {
+        qWarning() << "Unable to open the camera" << m_camera->v4l2Device()
+                   << "for read to get the parameter value:" << qt_error_string(errno);
+        return false;
+    }
+
+    if (::ioctl(fd, VIDIOC_S_CTRL, &control) != 0) {
+        qDebug() << "setting" << parameter << control.id << control.value;
+        qWarning() << "Unable to set the parameter value:" << parameter << ":" << qt_error_string(errno);
+        return false;
+    }
+
+    qt_safe_close(fd);
+    return true;
+}
+#endif
+
 
 QT_END_NAMESPACE

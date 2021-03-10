@@ -61,6 +61,8 @@ QGstreamerCamera::QGstreamerCamera(QGstreamerMediaCapture *session)
     gstCamera.link(gstVideoConvert, gstVideoScale);
 
     gstCameraBin.addGhostPad(gstVideoScale, "src");
+
+    imageProcessing = new QGstreamerImageProcessing(this);
 }
 
 QGstreamerCamera::~QGstreamerCamera() = default;
@@ -112,6 +114,7 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
     gstPipeline.setStateSync(state);
 
     m_session->cameraChanged();
+    imageProcessing->update();
 }
 
 QPlatformCameraImageProcessing *QGstreamerCamera::imageProcessingControl()

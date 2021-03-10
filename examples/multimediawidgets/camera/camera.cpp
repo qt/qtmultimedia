@@ -134,6 +134,24 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
             this, &Camera::displayCaptureError);
     readyForCapture(m_imageCapture->isReadyForCapture());
 
+    QCameraImageProcessing *imageProcessing = m_camera->imageProcessing();
+    if (!imageProcessing) {
+        ui->brightnessSlider->setEnabled(false);
+        ui->contrastSlider->setEnabled(false);
+        ui->saturationSlider->setEnabled(false);
+    } else {
+        connect(ui->brightnessSlider, &QSlider::valueChanged, [imageProcessing](int value) {
+            imageProcessing->setBrightness(value/100.);
+        });
+        connect(ui->contrastSlider, &QSlider::valueChanged, [imageProcessing](int value) {
+            imageProcessing->setContrast(value/100.);
+        });
+        connect(ui->saturationSlider, &QSlider::valueChanged, [imageProcessing](int value) {
+            imageProcessing->setSaturation(value/100.);
+        });
+    }
+
+
     updateCaptureMode();
     m_camera->start();
 }
