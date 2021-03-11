@@ -139,6 +139,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
         ui->brightnessSlider->setEnabled(false);
         ui->contrastSlider->setEnabled(false);
         ui->saturationSlider->setEnabled(false);
+        ui->hueSlider->setEnabled(false);
     } else {
         connect(ui->brightnessSlider, &QSlider::valueChanged, [imageProcessing](int value) {
             imageProcessing->setBrightness(value/100.);
@@ -148,6 +149,9 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
         });
         connect(ui->saturationSlider, &QSlider::valueChanged, [imageProcessing](int value) {
             imageProcessing->setSaturation(value/100.);
+        });
+        connect(ui->hueSlider, &QSlider::valueChanged, [imageProcessing](int value) {
+            imageProcessing->setHue(value/100.);
         });
     }
 

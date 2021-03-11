@@ -122,6 +122,7 @@ private:
     SourceParameterValueInfo v4l2Brightness;
     SourceParameterValueInfo v4l2Contrast;
     SourceParameterValueInfo v4l2Saturation;
+    SourceParameterValueInfo v4l2Hue;
 #endif
 };
 

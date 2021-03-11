@@ -261,7 +261,28 @@ void QCameraImageProcessing::setSaturation(qreal value)
     Q_D(QCameraImageProcessing);
     if (d->imageControl)
         d->imageControl->setParameter(QPlatformCameraImageProcessing::SaturationAdjustment,
-                                         QVariant(value));
+                                      QVariant(value));
+}
+
+qreal QCameraImageProcessing::hue() const
+{
+    Q_D(const QCameraImageProcessing);
+    if (!d->imageControl)
+        return 0.;
+    return d->imageControl->parameter(QPlatformCameraImageProcessing::HueAdjustment).toReal();
+}
+
+/*!
+    Sets the hue adjustment value to \a value.
+
+    Valid hue values range between -1.0 and 1.0, with a default of 0.
+*/
+void QCameraImageProcessing::setHue(qreal value)
+{
+    Q_D(QCameraImageProcessing);
+    if (d->imageControl)
+        d->imageControl->setParameter(QPlatformCameraImageProcessing::HueAdjustment,
+                                      QVariant(value));
 }
 
 /*!

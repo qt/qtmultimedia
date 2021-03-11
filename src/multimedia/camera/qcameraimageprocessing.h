@@ -104,6 +104,9 @@ public:
     qreal saturation() const;
     void setSaturation(qreal value);
 
+    qreal hue() const;
+    void setHue(qreal value);
+
     ColorFilter colorFilter() const;
     void setColorFilter(ColorFilter filter);
     bool isColorFilterSupported(ColorFilter filter) const;

@@ -73,6 +73,7 @@ public:
         ColorTemperature,
         ContrastAdjustment,
         SaturationAdjustment,
+        HueAdjustment,
         BrightnessAdjustment,
         ColorFilter,
     };

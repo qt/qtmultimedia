@@ -281,6 +281,8 @@ bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcess
             return v4l2Saturation.cid != 0;
         case BrightnessAdjustment:
             return v4l2Brightness.cid != 0;
+        case HueAdjustment:
+            return v4l2Hue.cid != 0;
         case ColorFilter:
             return false;
         }
@@ -451,6 +453,13 @@ void QGstreamerImageProcessing::updateV4L2Controls()
         qDebug() << "V4L2: query saturation" << queryControl.minimum << queryControl.default_value << queryControl.maximum;
     }
 
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_HUE;
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2Hue = { queryControl.id, queryControl.default_value, queryControl.minimum, queryControl.maximum };
+        qDebug() << "V4L2: query hue" << queryControl.minimum << queryControl.default_value << queryControl.maximum;
+    }
+
     qt_safe_close(fd);
 
 }
@@ -497,6 +506,9 @@ std::optional<float> QGstreamerImageProcessing::getV4L2Param(QGstreamerImageProc
         break;
     case BrightnessAdjustment:
         info = &v4l2Brightness;
+        break;
+    case HueAdjustment:
+        info = &v4l2Hue;
         break;
     case ColorTemperature:
         info = &v4l2ColorTemperature;
@@ -563,6 +575,10 @@ bool QGstreamerImageProcessing::setV4L2Param(ProcessingParameter parameter, cons
         break;
     case QPlatformCameraImageProcessing::BrightnessAdjustment: // falling back
         control.id = v4l2Brightness.cid;
+        control.value = sourceImageProcessingParameterValue(value.toFloat(), v4l2Brightness);
+        break;
+    case QPlatformCameraImageProcessing::HueAdjustment: // falling back
+        control.id = v4l2Hue.cid;
         control.value = sourceImageProcessingParameterValue(value.toFloat(), v4l2Brightness);
         break;
     default:
