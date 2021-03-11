@@ -69,12 +69,12 @@ class Q_MULTIMEDIA_EXPORT QPlatformCameraImageProcessing : public QObject
 
 public:
     enum ProcessingParameter {
-        WhiteBalancePreset,
-        ColorTemperature,
         ContrastAdjustment,
         SaturationAdjustment,
         HueAdjustment,
         BrightnessAdjustment,
+        WhiteBalancePreset,
+        ColorTemperature,
         ColorFilter,
     };
 

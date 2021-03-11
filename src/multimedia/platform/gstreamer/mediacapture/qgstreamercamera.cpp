@@ -134,7 +134,10 @@ QPlatformCameraExposure *QGstreamerCamera::exposureControl()
 
 GstColorBalance *QGstreamerCamera::colorBalance() const
 {
-    return nullptr; // ####
+    if (!gstCamera.isNull() && GST_IS_COLOR_BALANCE(gstCamera.element()))
+        return GST_COLOR_BALANCE(gstCamera.element());
+    // ### Add support for manual/SW color balancing using the gstreamer colorbalance element
+    return nullptr;
 }
 
 #if QT_CONFIG(gstreamer_photography)
@@ -142,7 +145,6 @@ GstPhotography *QGstreamerCamera::photography()
 {
     if (!gstCamera.isNull() && GST_IS_PHOTOGRAPHY(gstCamera.element()))
         return GST_PHOTOGRAPHY(gstCamera.element());
-
-    return 0;
+    return nullptr;
 }
 #endif

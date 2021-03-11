@@ -56,6 +56,7 @@
 #include <private/qplatformcameraimageprocessing_p.h>
 
 #include <private/qgst_p.h>
+#include <gst/video/colorbalance.h>
 
 #if QT_CONFIG(gstreamer_photography)
 # include <gst/interfaces/photography.h>
@@ -93,36 +94,47 @@ public:
     void update();
 
 private:
-    bool setColorBalanceValue(const char *channel, qreal value);
+    bool setColorBalanceValue(ProcessingParameter param, qreal value);
     void updateColorBalanceValues();
 
 private:
     QGstreamerCamera *m_camera;
-    QMap<QPlatformCameraImageProcessing::ProcessingParameter, int> m_values;
+    struct ColorBalanceParameter {
+        GstColorBalanceChannel *channel = nullptr;
+        int current = 0;
+        int min = 0;
+        int max = 0;
+        double scaledValue() const {
+            // map [min..max] to [-1.0 .. 1.0]
+            if (min == max)
+                return 0;
+            return double(current - min) / double(max - min) * 2 - 1;
+        }
+        void setScaledValue(double value) {
+            // map [-1.0 .. 1.0] to [min..max]
+            if (min == max)
+                current = min;
+            value = qBound(-1., value, 1.);
+            current = min + qRound((value + 1.)/2. * double(max - min));
+        }
+    };
+    ColorBalanceParameter colorBalanceParameters[BrightnessAdjustment + 1];
+
     QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode = QCameraImageProcessing::WhiteBalanceAuto;
     QCameraImageProcessing::ColorFilter m_colorFilter = QCameraImageProcessing::ColorFilterNone;
 
 #if QT_CONFIG(linux_v4l)
     bool isV4L2Device = false;
-    void updateV4L2Controls();
-    std::optional<float> getV4L2Param(QGstreamerImageProcessing::ProcessingParameter param) const;
+    void initV4L2Controls();
     bool setV4L2Param(ProcessingParameter parameter, const QVariant &value);
 
 public:
-    struct SourceParameterValueInfo {
-        quint32 cid = 0; // V4L control id
-        qint32 defaultValue = 0;
-        qint32 minimumValue = 0;
-        qint32 maximumValue = 0;
-    };
 private:
     bool v4l2AutoWhiteBalanceSupported = false;
     bool v4l2ColorTemperatureSupported = false;
-    SourceParameterValueInfo v4l2ColorTemperature;
-    SourceParameterValueInfo v4l2Brightness;
-    SourceParameterValueInfo v4l2Contrast;
-    SourceParameterValueInfo v4l2Saturation;
-    SourceParameterValueInfo v4l2Hue;
+    qint32 v4l2MinColorTemp = 5600; // Daylight...
+    qint32 v4l2MaxColorTemp = 5600;
+    qint32 v4l2CurrentColorTemp = 5600;
 #endif
 };
 
