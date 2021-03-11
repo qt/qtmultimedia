@@ -63,7 +63,7 @@
 #include "qaudiodeviceinfo.h"
 #include <private/qaudiosystem_p.h>
 
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -135,10 +135,10 @@ private:
     qreal m_volume = 1.;
     QByteArray pushData;
 
-    GstElement *gstPipeline = nullptr;
-    GstElement *gstOutput = nullptr;
-    GstElement *gstVolume = nullptr;
-    GstElement *gstAppSrc = nullptr;
+    QGstPipeline gstPipeline;
+    QGstElement gstOutput;
+    QGstElement gstVolume;
+    QGstElement gstAppSrc;
     QGstAppSrc *m_appSrc = nullptr;
 };
 

@@ -105,7 +105,7 @@ private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
 
-    GstElement *createAppSink();
+    QGstElement createAppSink();
     static GstFlowReturn new_sample(GstAppSink *, gpointer user_data);
     static void eos(GstAppSink *, gpointer user_data);
 
@@ -133,10 +133,11 @@ private:
     QElapsedTimer m_clockStamp;
     QByteArray m_device;
     QByteArray m_tempBuffer;
-    GstElement *gstInput = nullptr;
-    GstElement *gstPipeline = nullptr;
-    GstElement *gstVolume = nullptr;
-    GstElement *gstAppSink = nullptr;
+
+    QGstElement gstInput;
+    QGstPipeline gstPipeline;
+    QGstElement gstVolume;
+    QGstElement gstAppSink;
 };
 
 class GStreamerInputPrivate : public QIODevice

@@ -59,13 +59,10 @@ QGStreamerAudioOutput::QGStreamerAudioOutput(const QByteArray &device)
 {
     QGStreamerAudioDeviceInfo audioInfo(device, QAudio::AudioOutput);
     gstOutput = gst_device_create_element(audioInfo.gstDevice, nullptr);
-    gst_object_ref(gstOutput);
 }
 
 QGStreamerAudioOutput::~QGStreamerAudioOutput()
 {
-    if (gstOutput)
-        gst_object_unref(gstOutput);
     close();
     QCoreApplication::processEvents();
 }
@@ -184,21 +181,21 @@ bool QGStreamerAudioOutput::open()
     if (m_opened)
         return true;
 
-    if (!gstOutput) {
+    if (gstOutput.isNull()) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
         return false;
     }
 
-    gstPipeline = gst_pipeline_new ("pipeline");
+    gstPipeline = QGstPipeline("pipeline");
 
-    auto *gstBus = gst_pipeline_get_bus(GST_PIPELINE(gstPipeline));
+    auto *gstBus = gst_pipeline_get_bus(gstPipeline.pipeline());
     gst_bus_add_watch(gstBus, &QGStreamerAudioOutput::busMessage, this);
     gst_object_unref (gstBus);
 
     gstAppSrc = gst_element_factory_make("appsrc", "appsrc");
 
-    m_bufferSize = gst_app_src_get_max_bytes(GST_APP_SRC(gstAppSrc));
+    m_bufferSize = gst_app_src_get_max_bytes(GST_APP_SRC(gstAppSrc.element()));
 
 //    qDebug() << "GST caps:" << gst_caps_to_string(caps);
     m_appSrc = new QGstAppSrc;
@@ -208,26 +205,22 @@ bool QGStreamerAudioOutput::open()
         m_appSrc->setBuffer(&m_buffer);
     }
     m_appSrc->setAudioFormat(m_format);
-    m_appSrc->setup(gstAppSrc);
+    m_appSrc->setup(gstAppSrc.element());
 
 //    gstDecodeBin = gst_element_factory_make ("decodebin", "dec");
-    GstElement *conv = gst_element_factory_make("audioconvert", "conv");
-    gstVolume = gst_element_factory_make ("volume", "volume");
+    QGstElement conv("audioconvert", "conv");
+    gstVolume = QGstElement("volume", "volume");
     if (m_volume != 1.)
-        g_object_set(gstVolume, "volume", m_volume, nullptr);
+        gstVolume.set("volume", m_volume);
 
-    gst_bin_add_many(GST_BIN (gstPipeline), gstAppSrc, /*gstDecodeBin, */ conv, gstVolume, gstOutput, nullptr);
-
-    gst_element_link(gstAppSrc, conv);
-    gst_element_link(conv, gstVolume);
-    gst_element_link(gstVolume, gstOutput);
-//    gst_element_link(gstVolume, gstOutput);
+    gstPipeline.add(gstAppSrc, /*gstDecodeBin, */ conv, gstVolume, gstOutput);
+    gstAppSrc.link(conv, gstVolume, gstOutput);
 
     // link decodeBin to audioconvert in a callback once we get a pad from the decoder
 //    g_signal_connect (gstDecodeBin, "pad-added", (GCallback) padAdded, conv);
 
     /* run */
-    gst_element_set_state(gstPipeline, GST_STATE_PLAYING);
+    gstPipeline.setState(GST_STATE_PLAYING);
 
     m_opened = true;
 
@@ -243,10 +236,9 @@ void QGStreamerAudioOutput::close()
     if (!m_opened)
         return;
 
-    gst_element_set_state(gstPipeline, GST_STATE_NULL);
-    gst_object_unref (gstPipeline);
-    gstVolume = nullptr;
-    gstAppSrc = nullptr;
+    gstPipeline = {};
+    gstVolume = {};
+    gstAppSrc = {};
 
     if (!m_pullMode && m_audioSource) {
         delete m_audioSource;
@@ -291,8 +283,8 @@ int QGStreamerAudioOutput::periodSize() const
 void QGStreamerAudioOutput::setBufferSize(int value)
 {
     m_bufferSize = value;
-    if (gstAppSrc)
-        gst_app_src_set_max_bytes(GST_APP_SRC(gstAppSrc), value);
+    if (!gstAppSrc.isNull())
+        gst_app_src_set_max_bytes(GST_APP_SRC(gstAppSrc.element()), value);
 }
 
 int QGStreamerAudioOutput::bufferSize() const
@@ -322,7 +314,7 @@ qint64 QGStreamerAudioOutput::processedUSecs() const
 void QGStreamerAudioOutput::resume()
 {
     if (m_deviceState == QAudio::SuspendedState) {
-        gst_element_set_state (gstPipeline, GST_STATE_PLAYING);
+        gstPipeline.setState(GST_STATE_PLAYING);
 
         setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
         setError(QAudio::NoError);
@@ -345,7 +337,7 @@ void QGStreamerAudioOutput::suspend()
         setError(QAudio::NoError);
         setState(QAudio::SuspendedState);
 
-        gst_element_set_state (gstPipeline, GST_STATE_PAUSED);
+        gstPipeline.setState(GST_STATE_PAUSED);
         // ### elapsed time
     }
 }
@@ -387,8 +379,8 @@ void QGStreamerAudioOutput::setVolume(qreal vol)
         return;
 
     m_volume = vol;
-    if (gstVolume)
-        g_object_set(gstVolume, "volume", vol, nullptr);
+    if (!gstVolume.isNull())
+        gstVolume.set("volume", vol);
 }
 
 qreal QGStreamerAudioOutput::volume() const

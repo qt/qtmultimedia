@@ -62,7 +62,7 @@
 #include <private/qgstappsrc_p.h>
 #endif
 
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 #include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE
@@ -125,30 +125,27 @@ private:
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
     static qint64 getPositionFromBuffer(GstBuffer* buffer);
 
-    QAudioDecoder::State m_state;
-    QAudioDecoder::State m_pendingState;
-    QGstreamerBusHelper *m_busHelper;
-    GstBus *m_bus;
-    GstElement *m_playbin;
-    GstElement *m_outputBin;
-    GstElement *m_audioConvert;
-    GstAppSink *m_appSink;
-
-#if QT_CONFIG(gstreamer_app)
-    QGstAppSrc *m_appSrc;
-#endif
+    QAudioDecoder::State m_state = QAudioDecoder::StoppedState;
+    QAudioDecoder::State m_pendingState = QAudioDecoder::StoppedState;
+    QGstreamerBusHelper *m_busHelper = nullptr;
+    GstBus *m_bus = nullptr;
+    QGstElement m_playbin;
+    QGstBin m_outputBin;
+    QGstElement m_audioConvert;
+    GstAppSink *m_appSink = nullptr;
+    QGstAppSrc *m_appSrc = nullptr;
 
     QString mSource;
-    QIODevice *mDevice; // QWeakPointer perhaps
+    QIODevice *mDevice = nullptr;
     QAudioFormat mFormat;
 
     mutable QMutex m_buffersMutex;
-    int m_buffersAvailable;
+    int m_buffersAvailable = 0;
 
-    qint64 m_position;
-    qint64 m_duration;
+    qint64 m_position = -1;
+    qint64 m_duration = -1;
 
-    int m_durationQueries;
+    int m_durationQueries = 0;
 };
 
 QT_END_NAMESPACE

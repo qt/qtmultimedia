@@ -158,8 +158,8 @@ bool QGStreamerAudioInput::open()
         return false;
     }
 
-    gstInput = gst_device_create_element(deviceInfo.gstDevice, nullptr);
-    if (!gstInput) {
+    gstInput = QGstElement(gst_device_create_element(deviceInfo.gstDevice, nullptr));
+    if (gstInput.isNull()) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
         return false;
@@ -179,33 +179,24 @@ bool QGStreamerAudioInput::open()
     qDebug() << "Caps: " << gst_caps_to_string(gstCaps);
 #endif
 
-    gstPipeline = gst_pipeline_new ("pipeline");
+    gstPipeline = QGstPipeline("pipeline");
 
-    auto *gstBus = gst_pipeline_get_bus(GST_PIPELINE(gstPipeline));
+    auto *gstBus = gst_pipeline_get_bus(gstPipeline.pipeline());
     gst_bus_add_watch(gstBus, &QGStreamerAudioInput::busMessage, this);
     gst_object_unref (gstBus);
 
-#if 1
     gstAppSink = createAppSink();
-    g_object_set(gstAppSink, "caps", gstCaps, nullptr);
-#else
-    gstAppSrc = gst_element_factory_make ("filesink", "file");
-    g_object_set (G_OBJECT (gstAppSrc), "location", "/home/lars/out.pcm", NULL);
-#endif
+    g_object_set(gstAppSink.object(), "caps", gstCaps, nullptr);
 
-    GstElement *conv = gst_element_factory_make ("audioconvert", "conv");
-    gstVolume = gst_element_factory_make ("volume", "volume");
+    QGstElement conv("audioconvert", "conv");
+    gstVolume = QGstElement("volume", "volume");
     if (m_volume != 1.)
-        g_object_set(gstVolume, "volume", m_volume, nullptr);
+        gstVolume.set("volume", m_volume);
 
-    gst_bin_add_many(GST_BIN (gstPipeline), gstInput, gstVolume, conv, gstAppSink, nullptr);
+    gstPipeline.add(gstInput, gstVolume, conv, gstAppSink);
+    gstInput.link(gstVolume, conv, gstAppSink);
 
-    gst_element_link(gstInput, gstVolume);
-    gst_element_link(gstVolume, conv);
-    gst_element_link(conv, gstAppSink);
-
-    /* run */
-    gst_element_set_state (gstPipeline, GST_STATE_PLAYING);
+    gstPipeline.setState(GST_STATE_PLAYING);
 
     m_opened = true;
 
@@ -222,11 +213,11 @@ void QGStreamerAudioInput::close()
     if (!m_opened)
         return;
 
-    gst_element_set_state(gstPipeline, GST_STATE_NULL);
-    gst_object_unref(gstPipeline);
-    gstVolume = nullptr;
-    gstAppSink = nullptr;
-    gstInput = nullptr;
+    gstPipeline.setState(GST_STATE_NULL);
+    gstPipeline = {};
+    gstVolume = {};
+    gstAppSink = {};
+    gstInput = {};
 
     if (!m_pullMode && m_audioSink) {
         delete m_audioSink;
@@ -269,7 +260,7 @@ int QGStreamerAudioInput::bytesReady() const
 void QGStreamerAudioInput::resume()
 {
     if (m_deviceState == QAudio::SuspendedState || m_deviceState == QAudio::IdleState) {
-        gst_element_set_state (gstPipeline, GST_STATE_PLAYING);
+        gstPipeline.setState(GST_STATE_PLAYING);
 
         setState(QAudio::ActiveState);
         setError(QAudio::NoError);
@@ -282,8 +273,8 @@ void QGStreamerAudioInput::setVolume(qreal vol)
         return;
 
     m_volume = vol;
-    if (gstVolume)
-        g_object_set(gstVolume, "volume", vol, nullptr);
+    if (!gstVolume.isNull())
+        gstVolume.set("volume", vol);
 }
 
 qreal QGStreamerAudioInput::volume() const
@@ -327,7 +318,7 @@ void QGStreamerAudioInput::suspend()
         setError(QAudio::NoError);
         setState(QAudio::SuspendedState);
 
-            gst_element_set_state (gstPipeline, GST_STATE_PLAYING);
+        gstPipeline.setState(GST_STATE_PLAYING);
     }
 }
 
@@ -347,10 +338,10 @@ void QGStreamerAudioInput::reset()
 
 //#define MAX_BUFFERS_IN_QUEUE 4
 
-GstElement *QGStreamerAudioInput::createAppSink()
+QGstElement QGStreamerAudioInput::createAppSink()
 {
-    GstElement *sink = gst_element_factory_make("appsink", nullptr);
-    GstAppSink *appSink = reinterpret_cast<GstAppSink *>(sink);
+    QGstElement sink("appsink", "appsink");
+    GstAppSink *appSink = reinterpret_cast<GstAppSink *>(sink.element());
 
     GstAppSinkCallbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
