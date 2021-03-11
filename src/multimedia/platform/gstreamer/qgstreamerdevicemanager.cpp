@@ -74,8 +74,6 @@ static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
 QGstreamerDeviceManager::QGstreamerDeviceManager()
     : QPlatformMediaDeviceManager()
 {
-    QGstUtils::initializeGst();
-
     GstDeviceMonitor *monitor;
     GstBus *bus;
 

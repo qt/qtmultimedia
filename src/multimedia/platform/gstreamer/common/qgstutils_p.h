@@ -71,12 +71,8 @@ class QImage;
 class QVideoSurfaceFormat;
 
 namespace QGstUtils {
-    Q_MULTIMEDIA_EXPORT QSize capsResolution(const GstCaps *caps);
-    Q_MULTIMEDIA_EXPORT QSize capsCorrectedResolution(const GstCaps *caps);
-    Q_MULTIMEDIA_EXPORT QAudioFormat audioFormatForCaps(const GstCaps *caps);
     Q_MULTIMEDIA_EXPORT QAudioFormat audioFormatForSample(GstSample *sample);
     Q_MULTIMEDIA_EXPORT GstCaps *capsForAudioFormat(const QAudioFormat &format);
-    Q_MULTIMEDIA_EXPORT void initializeGst();
 
     Q_MULTIMEDIA_EXPORT QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
     Q_MULTIMEDIA_EXPORT QVideoSurfaceFormat formatForCaps(
@@ -87,22 +83,10 @@ namespace QGstUtils {
     Q_MULTIMEDIA_EXPORT GstCaps *capsForFormats(const QList<QVideoFrame::PixelFormat> &formats);
     void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
 
-    Q_MULTIMEDIA_EXPORT void setMetaData(GstElement *element, const QMap<QByteArray, QVariant> &data);
-    Q_MULTIMEDIA_EXPORT void setMetaData(GstBin *bin, const QMap<QByteArray, QVariant> &data);
-
-    Q_MULTIMEDIA_EXPORT GstCaps *videoFilterCaps();
-
-    Q_MULTIMEDIA_EXPORT QVariant fromGStreamerOrientation(const QVariant &value);
-    Q_MULTIMEDIA_EXPORT QVariant toGStreamerOrientation(const QVariant &value);
-
     Q_MULTIMEDIA_EXPORT bool useOpenGL();
 }
 
-Q_MULTIMEDIA_EXPORT const gchar *qt_gst_element_get_factory_name(GstElement *element);
 Q_MULTIMEDIA_EXPORT GList *qt_gst_video_sinks();
-QPair<int,int> qt_gstRateAsRational(qreal frameRate);
-
-Q_MULTIMEDIA_EXPORT QDebug operator <<(QDebug debug, GstCaps *caps);
 
 QT_END_NAMESPACE
 

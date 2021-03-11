@@ -62,41 +62,6 @@ template<typename T, int N> static int lengthOf(const T (&)[N]) { return N; }
 
 QT_BEGIN_NAMESPACE
 
-/*!
-  Returns resolution of \a caps.
-  If caps doesn't have a valid size, an empty QSize is returned.
-*/
-QSize QGstUtils::capsResolution(const GstCaps *caps)
-{
-    if (gst_caps_get_size(caps) == 0)
-        return QSize();
-
-    return QGstCaps(caps).at(0).resolution();
-}
-
-/*!
-  Returns aspect ratio corrected resolution of \a caps.
-  If caps doesn't have a valid size, an empty QSize is returned.
-*/
-QSize QGstUtils::capsCorrectedResolution(const GstCaps *caps)
-{
-    QSize size;
-
-    if (caps) {
-        size = capsResolution(caps);
-
-        gint aspectNum = 0;
-        gint aspectDenum = 0;
-        if (!size.isEmpty() && gst_structure_get_fraction(
-                    gst_caps_get_structure(caps, 0), "pixel-aspect-ratio", &aspectNum, &aspectDenum)) {
-            if (aspectDenum > 0)
-                size.setWidth(size.width()*aspectNum/aspectDenum);
-        }
-    }
-
-    return size;
-}
-
 
 namespace {
 
@@ -129,13 +94,16 @@ static QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 
 }
 
-/*!
-  Returns audio format for caps.
-  If caps doesn't have a valid audio format, an empty QAudioFormat is returned.
+/*
+  Returns audio format for a sample.
+  If the buffer doesn't have a valid audio format, an empty QAudioFormat is returned.
 */
-
-QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
+QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
 {
+    GstCaps* caps = gst_sample_get_caps(sample);
+    if (!caps)
+        return QAudioFormat();
+
     QAudioFormat format;
     QGstStructure s = QGstCaps(caps).at(0);
     if (s.name() != "audio/x-raw")
@@ -152,19 +120,6 @@ QAudioFormat QGstUtils::audioFormatForCaps(const GstCaps *caps)
     format.setSampleFormat(fmt);
 
     return format;
-}
-
-/*
-  Returns audio format for a sample.
-  If the buffer doesn't have a valid audio format, an empty QAudioFormat is returned.
-*/
-QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
-{
-    GstCaps* caps = gst_sample_get_caps(sample);
-    if (!caps)
-        return QAudioFormat();
-
-    return QGstUtils::audioFormatForCaps(caps);
 }
 
 /*!
@@ -204,15 +159,6 @@ QList<QAudioFormat::SampleFormat> QGValue::getSampleFormats() const
         formats.append(fmt);
     }
     return formats;
-}
-
-void QGstUtils::initializeGst()
-{
-    static bool initialized = false;
-    if (!initialized) {
-        initialized = true;
-        gst_init(nullptr, nullptr);
-    }
 }
 
 namespace {
@@ -406,80 +352,6 @@ void QGstUtils::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
     }
 }
 
-void QGstUtils::setMetaData(GstElement *element, const QMap<QByteArray, QVariant> &data)
-{
-    if (!GST_IS_TAG_SETTER(element))
-        return;
-
-    gst_tag_setter_reset_tags(GST_TAG_SETTER(element));
-
-    for (auto it = data.cbegin(), end = data.cend(); it != end; ++it) {
-        const QString tagName = QString::fromLatin1(it.key());
-        const QVariant &tagValue = it.value();
-
-        switch (tagValue.typeId()) {
-            case QMetaType::QString:
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName.toUtf8().constData(),
-                    tagValue.toString().toUtf8().constData(),
-                    nullptr);
-                break;
-            case QMetaType::Int:
-            case QMetaType::LongLong:
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName.toUtf8().constData(),
-                    tagValue.toInt(),
-                    nullptr);
-                break;
-            case QMetaType::Double:
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName.toUtf8().constData(),
-                    tagValue.toDouble(),
-                    nullptr);
-                break;
-            case QMetaType::QDateTime: {
-                QDateTime date = tagValue.toDateTime().toLocalTime();
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName.toUtf8().constData(),
-                    gst_date_time_new_local_time(
-                                date.date().year(), date.date().month(), date.date().day(),
-                                date.time().hour(), date.time().minute(), date.time().second()),
-                    nullptr);
-                break;
-            }
-            default:
-                break;
-        }
-    }
-}
-
-void QGstUtils::setMetaData(GstBin *bin, const QMap<QByteArray, QVariant> &data)
-{
-    GstIterator *elements = gst_bin_iterate_all_by_interface(bin, GST_TYPE_TAG_SETTER);
-    GValue item = G_VALUE_INIT;
-    while (gst_iterator_next(elements, &item) == GST_ITERATOR_OK) {
-        GstElement * const element = GST_ELEMENT(g_value_get_object(&item));
-        setMetaData(element, data);
-    }
-    gst_iterator_free(elements);
-}
-
-
-GstCaps *QGstUtils::videoFilterCaps()
-{
-    const char *caps =
-        "video/x-raw(ANY);"
-        "image/jpeg;"
-        "video/x-h264";
-    static GstStaticCaps staticCaps = GST_STATIC_CAPS(caps);
-
-    return gst_caps_make_writable(gst_static_caps_get(&staticCaps));
-}
-
 QSize QGstStructure::resolution() const
 {
     QSize size;
@@ -567,50 +439,10 @@ QGRange<float> QGstStructure::frameRateRange() const
     return {minRate, maxRate};
 }
 
-QVariant QGstUtils::fromGStreamerOrientation(const QVariant &value)
-{
-    // Note gstreamer tokens either describe the counter clockwise rotation of the
-    // image or the clockwise transform to apply to correct the image.  The orientation
-    // value returned is the clockwise rotation of the image.
-    const QString token = value.toString();
-    if (token == QStringLiteral("rotate-90"))
-        return 270;
-    if (token == QStringLiteral("rotate-180"))
-        return 180;
-    if (token == QStringLiteral("rotate-270"))
-        return 90;
-    return 0;
-}
-
-QVariant QGstUtils::toGStreamerOrientation(const QVariant &value)
-{
-    switch (value.toInt()) {
-    case 90:
-        return QStringLiteral("rotate-270");
-    case 180:
-        return QStringLiteral("rotate-180");
-    case 270:
-        return QStringLiteral("rotate-90");
-    default:
-        return QStringLiteral("rotate-0");
-    }
-}
-
 bool QGstUtils::useOpenGL()
 {
     static bool result = qEnvironmentVariableIntValue("QT_GSTREAMER_USE_OPENGL_PLUGIN");
     return result;
-}
-
-const gchar *qt_gst_element_get_factory_name(GstElement *element)
-{
-    const gchar *name = nullptr;
-    const GstElementFactory *factory = nullptr;
-
-    if (element && (factory = gst_element_get_factory(element)))
-        name = gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory));
-
-    return name;
 }
 
 GList *qt_gst_video_sinks()
@@ -621,47 +453,6 @@ GList *qt_gst_video_sinks()
                                                  GST_RANK_MARGINAL);
 
     return list;
-}
-
-QPair<int,int> qt_gstRateAsRational(qreal frameRate)
-{
-    if (frameRate > 0.001) {
-        //convert to rational number
-        QList<int> denumCandidates;
-        denumCandidates << 1 << 2 << 3 << 5 << 10 << 25 << 30 << 50 << 100 << 1001 << 1000;
-
-        qreal error = 1.0;
-        int num = 1;
-        int denum = 1;
-
-        for (int curDenum : qAsConst(denumCandidates)) {
-            int curNum = qRound(frameRate*curDenum);
-            qreal curError = qAbs(qreal(curNum)/curDenum - frameRate);
-
-            if (curError < error) {
-                error = curError;
-                num = curNum;
-                denum = curDenum;
-            }
-
-            if (curError < 1e-8)
-                break;
-        }
-
-        return QPair<int,int>(num,denum);
-    }
-
-    return QPair<int,int>();
-}
-
-QDebug operator <<(QDebug debug, GstCaps *caps)
-{
-    if (caps) {
-        gchar *string = gst_caps_to_string(caps);
-        debug = debug << string;
-        g_free(string);
-    }
-    return debug;
 }
 
 QT_END_NAMESPACE

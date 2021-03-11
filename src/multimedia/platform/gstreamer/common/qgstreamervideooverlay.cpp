@@ -510,7 +510,7 @@ bool QGstreamerVideoOverlay::processBusMessage(const QGstreamerMessage &message)
 
 void QGstreamerVideoOverlay::probeCaps(GstCaps *caps)
 {
-    QSize size = QGstUtils::capsCorrectedResolution(caps);
+    QSize size = QGstCaps(caps).at(0).resolution();
     if (size != m_nativeVideoSize) {
         m_nativeVideoSize = size;
         emit nativeVideoSizeChanged();
