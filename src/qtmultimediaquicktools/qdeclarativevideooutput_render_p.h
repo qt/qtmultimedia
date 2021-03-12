@@ -65,7 +65,6 @@ QT_BEGIN_NAMESPACE
 
 class QSGVideoItemSurface;
 class QObject;
-class QOpenGLContext;
 class QAbstractVideoFilter;
 class QVideoFilterRunnable;
 class QDeclarativeVideoOutput;
@@ -83,10 +82,6 @@ public:
     QAbstractVideoSurface *videoSurface() const;
     QRectF adjustedViewport() const;
 
-#if QT_CONFIG(opengl)
-    QOpenGLContext *glContext() const;
-#endif
-
     friend class QSGVideoItemSurface;
     void present(const QVideoFrame &frame);
     void stop();
@@ -103,10 +98,6 @@ private:
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     QSGVideoItemSurface *m_surface;
     QVideoSurfaceFormat m_surfaceFormat;
-
-#if QT_CONFIG(opengl)
-    QOpenGLContext *m_glContext = nullptr;
-#endif
 
     QVideoFrame m_frame;
     QVideoFrame m_frameOnFlush;
@@ -137,12 +128,6 @@ public:
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;
     bool present(const QVideoFrame &frame) override;
-
-#if QT_CONFIG(opengl)
-    void scheduleOpenGLContextUpdate();
-private slots:
-    void updateOpenGLContext();
-#endif
 
 private:
     QDeclarativeVideoBackend *m_backend;

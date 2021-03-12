@@ -51,7 +51,6 @@ private slots:
     void isFormatSupported_data();
     void isFormatSupported();
     void nearestFormat_data();
-    void nearestFormat();
     void start_data();
     void start();
     void nativeResolution();
@@ -254,17 +253,6 @@ void tst_QAbstractVideoSurface::isFormatSupported()
 void tst_QAbstractVideoSurface::nearestFormat_data()
 {
     isFormatSupported_data();
-}
-
-void tst_QAbstractVideoSurface::nearestFormat()
-{
-    QFETCH(SupportedFormatMap, supportedFormats);
-    QFETCH(QVideoSurfaceFormat, format);
-    QFETCH(bool, supported);
-
-    QtTestVideoSurface surface(supportedFormats);
-
-    QCOMPARE(surface.nearestFormat(format) == format, supported);
 }
 
 void tst_QAbstractVideoSurface::start_data()
