@@ -102,9 +102,8 @@ void tst_QAbstractVideoBuffer::handleType_data()
 
     ADD_ENUM_TEST(NoHandle);
     ADD_ENUM_TEST(GLTextureHandle);
-    ADD_ENUM_TEST(XvShmImageHandle);
+    ADD_ENUM_TEST(MTLTextureHandle);
     ADD_ENUM_TEST(QPixmapHandle);
-    ADD_ENUM_TEST(CoreImageHandle);
 }
 
 void tst_QAbstractVideoBuffer::handleType()
