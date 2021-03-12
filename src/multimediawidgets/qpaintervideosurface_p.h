@@ -71,8 +71,6 @@ public:
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QVideoFrame::HandleType handleType) const = 0;
 
-    virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const = 0;
-
     virtual QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format) = 0;
     virtual void stop() = 0;
 
@@ -95,8 +93,6 @@ public:
 
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const override;
-
-    bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
 
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;

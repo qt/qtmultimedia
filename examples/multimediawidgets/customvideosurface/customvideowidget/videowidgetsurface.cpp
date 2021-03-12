@@ -78,18 +78,6 @@ QList<QVideoFrame::PixelFormat> VideoWidgetSurface::supportedPixelFormats(
 }
 //! [0]
 
-//! [1]
-bool VideoWidgetSurface::isFormatSupported(const QVideoSurfaceFormat &format) const
-{
-    const QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(format.pixelFormat());
-    const QSize size = format.frameSize();
-
-    return imageFormat != QImage::Format_Invalid
-            && !size.isEmpty()
-            && format.handleType() == QVideoFrame::NoHandle;
-}
-//! [1]
-
 //! [2]
 bool VideoWidgetSurface::start(const QVideoSurfaceFormat &format)
 {

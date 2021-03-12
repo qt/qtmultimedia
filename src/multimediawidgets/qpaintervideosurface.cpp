@@ -73,8 +73,6 @@ public:
     [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QVideoFrame::HandleType handleType) const override;
 
-    [[nodiscard]] bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
-
     QAbstractVideoSurface::Error start(const QVideoSurfaceFormat &format) override;
     void stop() override;
 
@@ -119,20 +117,6 @@ QList<QVideoFrame::PixelFormat> QVideoSurfaceGenericPainter::supportedPixelForma
         ;
     }
     return QList<QVideoFrame::PixelFormat>();
-}
-
-bool QVideoSurfaceGenericPainter::isFormatSupported(const QVideoSurfaceFormat &format) const
-{
-    switch (format.handleType()) {
-    case QVideoFrame::QPixmapHandle:
-        return true;
-    case QVideoFrame::NoHandle:
-        return m_imagePixelFormats.contains(format.pixelFormat())
-               && !format.frameSize().isEmpty();
-    default:
-        ;
-    }
-    return false;
 }
 
 QAbstractVideoSurface::Error QVideoSurfaceGenericPainter::start(const QVideoSurfaceFormat &format)
@@ -251,8 +235,6 @@ public:
     [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QVideoFrame::HandleType handleType) const override;
 
-    [[nodiscard]] bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
-
     void stop() override;
 
     QAbstractVideoSurface::Error setCurrentFrame(const QVideoFrame &frame) override;
@@ -339,25 +321,6 @@ QList<QVideoFrame::PixelFormat> QVideoSurfaceGLPainter::supportedPixelFormats(
     }
     return QList<QVideoFrame::PixelFormat>();
 }
-
-bool QVideoSurfaceGLPainter::isFormatSupported(const QVideoSurfaceFormat &format) const
-{
-    if (format.frameSize().isEmpty())
-        return false;
-
-    switch (format.handleType()) {
-    case QVideoFrame::NoHandle:
-        return m_imagePixelFormats.contains(format.pixelFormat());
-    case QVideoFrame::QPixmapHandle:
-    case QVideoFrame::GLTextureHandle:
-        return m_glPixelFormats.contains(format.pixelFormat());
-    default:
-        ;
-    }
-
-    return false;
-}
-
 
 void QVideoSurfaceGLPainter::stop()
 {
@@ -1374,16 +1337,6 @@ QList<QVideoFrame::PixelFormat> QPainterVideoSurface::supportedPixelFormats(
         const_cast<QPainterVideoSurface *>(this)->createPainter();
 
     return m_painter->supportedPixelFormats(handleType);
-}
-
-/*!
-*/
-bool QPainterVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) const
-{
-    if (!m_painter)
-        const_cast<QPainterVideoSurface *>(this)->createPainter();
-
-    return m_painter->isFormatSupported(format);
 }
 
 /*!

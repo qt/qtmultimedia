@@ -66,7 +66,6 @@ public:
 
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const override;
-    bool isFormatSupported(const QVideoSurfaceFormat &format) const override;
 
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;
