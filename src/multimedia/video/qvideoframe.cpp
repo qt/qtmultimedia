@@ -1243,14 +1243,8 @@ QDebug operator<<(QDebug dbg, QVideoFrame::HandleType type)
         return dbg << "GLTextureHandle";
     case QVideoFrame::MTLTextureHandle:
         return dbg << "MTLTextureHandle";
-    case QVideoFrame::XvShmImageHandle:
-        return dbg << "XvShmImageHandle";
-    case QVideoFrame::CoreImageHandle:
-        return dbg << "CoreImageHandle";
     case QVideoFrame::QPixmapHandle:
         return dbg << "QPixmapHandle";
-    default:
-        return dbg << "UserHandle(" << int(type) << ')';
     }
 }
 

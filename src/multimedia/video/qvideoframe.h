@@ -106,10 +106,7 @@ public:
         NoHandle,
         GLTextureHandle,
         MTLTextureHandle,
-        XvShmImageHandle,
-        CoreImageHandle,
-        QPixmapHandle,
-        EGLImageHandle
+        QPixmapHandle
     };
 
     enum MapMode
