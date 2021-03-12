@@ -151,25 +151,6 @@ bool QAbstractVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format)
 }
 
 /*!
-    Returns a supported video surface format that is similar to \a format.
-
-    A similar surface format is one that has the same \l {QVideoSurfaceFormat::pixelFormat()}{pixel
-    format} and \l {QVideoSurfaceFormat::handleType()}{handle type} but may differ in some of the other
-    properties.  For example, if there are restrictions on the \l {QVideoSurfaceFormat::frameSize()}
-    {frame sizes} a video surface can accept it may suggest a format with a larger frame size and
-    a \l {QVideoSurfaceFormat::viewport()}{viewport} the size of the original frame size.
-
-    If the format is already supported it will be returned unchanged, or if there is no similar
-    supported format an invalid format will be returned.
-*/
-QVideoSurfaceFormat QAbstractVideoSurface::nearestFormat(const QVideoSurfaceFormat &format) const
-{
-    return isFormatSupported(format)
-            ? format
-            : QVideoSurfaceFormat();
-}
-
-/*!
     \fn QAbstractVideoSurface::supportedFormatsChanged()
 
     Signals that the set of formats supported by a video surface has changed.

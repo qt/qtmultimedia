@@ -70,7 +70,6 @@ public:
     virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(
             QVideoFrame::HandleType type = QVideoFrame::NoHandle) const = 0;
     virtual bool isFormatSupported(const QVideoSurfaceFormat &format) const;
-    virtual QVideoSurfaceFormat nearestFormat(const QVideoSurfaceFormat &format) const;
 
     QVideoSurfaceFormat surfaceFormat() const;
 
