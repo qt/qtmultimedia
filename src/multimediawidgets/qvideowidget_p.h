@@ -58,7 +58,7 @@
 #include <QOpenGLWidget>
 #endif
 
-#include "qpaintervideosurface_p.h"
+#include <private/qpaintervideosurface_p.h>
 
 #include <QtCore/qpointer.h>
 

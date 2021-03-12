@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qtmultimediawidgetdefs.h>
+#include <qtmultimediaglobal.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qimage.h>
 #include <QtGui/qmatrix4x4.h>
@@ -84,7 +84,7 @@ public:
 };
 
 class QOpenGLContext;
-class Q_AUTOTEST_EXPORT QPainterVideoSurface : public QAbstractVideoSurface
+class Q_MULTIMEDIA_EXPORT  QPainterVideoSurface : public QAbstractVideoSurface
 {
     Q_OBJECT
 public:

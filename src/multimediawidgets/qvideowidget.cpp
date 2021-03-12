@@ -39,7 +39,6 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include "qvideowidget_p.h"
-#include "qpaintervideosurface_p.h"
 
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>

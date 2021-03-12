@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgraphicsvideoitem.h"
-#include "qpaintervideosurface_p.h"
+#include <private/qpaintervideosurface_p.h>
 
 #include <qobject.h>
 #include <qvideosurfaceformat.h>

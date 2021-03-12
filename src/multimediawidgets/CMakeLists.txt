@@ -6,7 +6,6 @@
 
 qt_add_module(MultimediaWidgets
     SOURCES
-        qpaintervideosurface.cpp qpaintervideosurface_p.h
         qtmultimediawidgetdefs.h
         qvideowidget.cpp qvideowidget.h qvideowidget_p.h
     LIBRARIES

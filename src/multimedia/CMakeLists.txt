@@ -64,6 +64,7 @@ qt_internal_add_module(Multimedia
         video/qabstractvideosurface.cpp video/qabstractvideosurface.h
         video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
+        video/qpaintervideosurface.cpp video/qpaintervideosurface_p.h
         video/qvideoframe.cpp video/qvideoframe.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
         video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
@@ -89,6 +90,11 @@ qt_internal_add_module(Multimedia
         Qt::GuiPrivate
 )
 
+# ### Get rid of me!
+qt_extend_target(Multimedia CONDITION TARGET Qt::OpenGL
+    LIBRARIES
+        Qt::OpenGL
+)
 
 qt_internal_add_simd_part(Multimedia SIMD sse2
     SOURCES
