@@ -270,7 +270,7 @@ void QMediaNetworkPlaylistProvider::shuffle()
         QList<QMediaContent> resources;
 
         while (!d->resources.isEmpty()) {
-            resources.append(d->resources.takeAt(QRandomGenerator::global()->bounded(int(d->resources.size()))));
+            resources.append(d->resources.takeAt(QRandomGenerator::global()->bounded(d->resources.size())));
         }
 
         d->resources = resources;
