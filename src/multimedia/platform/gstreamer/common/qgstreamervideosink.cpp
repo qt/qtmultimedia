@@ -61,7 +61,7 @@ bool QGstreamerVideoSink::setGraphicsType(QVideoSink::GraphicsType /*type*/)
     return false;
 }
 
-GstElement *QGstreamerVideoSink::videoSink()
+QGstElement QGstreamerVideoSink::videoSink()
 {
     return m_videoOverlay.videoSink();
 }

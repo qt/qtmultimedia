@@ -64,7 +64,10 @@ static constexpr ElementMap elementMap[] =
 #endif
     { "xcb", "vaapisink" },
     { "xcb", "xvimagesink" },
-    { "xcb", "ximagesink" }
+    { "xcb", "ximagesink" },
+
+    // wayland
+    { "wayland", "vaapisink" }
 };
 
 class QGstreamerSinkProperties
@@ -89,15 +92,16 @@ public:
 class QXVImageSinkProperties : public QGstreamerSinkProperties
 {
 public:
-    QXVImageSinkProperties(GstElement *sink)
+    QXVImageSinkProperties(const QGstElement &sink)
         : m_videoSink(sink)
     {
-        m_hasForceAspectRatio = g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "force-aspect-ratio");
-        m_hasBrightness = g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "brightness");
-        m_hasContrast = g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "contrast");
-        m_hasHue = g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "hue");
-        m_hasSaturation = g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "saturation");
-        m_hasShowPrerollFrame = g_object_class_find_property(G_OBJECT_GET_CLASS(m_videoSink), "show-preroll-frame");
+        auto *klass = G_OBJECT_GET_CLASS(m_videoSink.object());
+        m_hasForceAspectRatio = g_object_class_find_property(klass, "force-aspect-ratio");
+        m_hasBrightness = g_object_class_find_property(klass, "brightness");
+        m_hasContrast = g_object_class_find_property(klass, "contrast");
+        m_hasHue = g_object_class_find_property(klass, "hue");
+        m_hasSaturation = g_object_class_find_property(klass, "saturation");
+        m_hasShowPrerollFrame = g_object_class_find_property(klass, "show-preroll-frame");
     }
 
     bool hasShowPrerollFrame() const override
@@ -118,7 +122,7 @@ public:
     {
         int brightness = 0;
         if (m_hasBrightness)
-            g_object_get(G_OBJECT(m_videoSink), "brightness", &brightness, nullptr);
+            brightness = m_videoSink.getInt("brightness");
 
         return brightness / 10;
     }
@@ -127,7 +131,7 @@ public:
     {
         m_brightness = brightness;
         if (m_hasBrightness)
-            g_object_set(G_OBJECT(m_videoSink), "brightness", brightness * 10, nullptr);
+            m_videoSink.set("brightness", brightness * 10);
 
         return m_hasBrightness;
     }
@@ -136,7 +140,7 @@ public:
     {
         int contrast = 0;
         if (m_hasContrast)
-            g_object_get(G_OBJECT(m_videoSink), "contrast", &contrast, nullptr);
+            contrast = m_videoSink.getInt("contrast");
 
         return contrast / 10;
     }
@@ -145,7 +149,7 @@ public:
     {
         m_contrast = contrast;
         if (m_hasContrast)
-            g_object_set(G_OBJECT(m_videoSink), "contrast", contrast * 10, nullptr);
+            m_videoSink.set("contrast", contrast * 10);
 
         return m_hasContrast;
     }
@@ -154,7 +158,7 @@ public:
     {
         int hue = 0;
         if (m_hasHue)
-            g_object_get(G_OBJECT(m_videoSink), "hue", &hue, nullptr);
+            hue = m_videoSink.getInt("hue");
 
         return hue / 10;
     }
@@ -163,7 +167,7 @@ public:
     {
         m_hue = hue;
         if (m_hasHue)
-            g_object_set(G_OBJECT(m_videoSink), "hue", hue * 10, nullptr);
+            m_videoSink.set("hue", hue * 10);
 
         return m_hasHue;
     }
@@ -172,7 +176,7 @@ public:
     {
         int saturation = 0;
         if (m_hasSaturation)
-            g_object_get(G_OBJECT(m_videoSink), "saturation", &saturation, nullptr);
+            saturation = m_videoSink.getInt("saturation");
 
         return saturation / 10;
     }
@@ -181,7 +185,7 @@ public:
     {
         m_saturation = saturation;
         if (m_hasSaturation)
-            g_object_set(G_OBJECT(m_videoSink), "saturation", saturation * 10, nullptr);
+            m_videoSink.set("saturation", saturation * 10);
 
         return m_hasSaturation;
     }
@@ -190,8 +194,7 @@ public:
     {
         Qt::AspectRatioMode mode = Qt::KeepAspectRatio;
         if (m_hasForceAspectRatio) {
-            gboolean forceAR = false;
-            g_object_get(G_OBJECT(m_videoSink), "force-aspect-ratio", &forceAR, nullptr);
+            gboolean forceAR = m_videoSink.getBool("force-aspect-ratio");
             if (!forceAR)
                 mode = Qt::IgnoreAspectRatio;
         }
@@ -202,17 +205,13 @@ public:
     void setAspectRatioMode(Qt::AspectRatioMode mode) override
     {
         m_aspectRatioMode = mode;
-        if (m_hasForceAspectRatio) {
-            g_object_set(G_OBJECT(m_videoSink),
-                         "force-aspect-ratio",
-                         (mode == Qt::KeepAspectRatio),
-                         nullptr);
-        }
+        if (m_hasForceAspectRatio)
+            m_videoSink.set("force-aspect-ratio", (mode == Qt::KeepAspectRatio));
     }
 
 protected:
 
-    GstElement *m_videoSink = nullptr;
+    QGstElement m_videoSink;
     bool m_hasForceAspectRatio = false;
     bool m_hasBrightness = false;
     bool m_hasContrast = false;
@@ -229,7 +228,7 @@ protected:
 class QVaapiSinkProperties : public QXVImageSinkProperties
 {
 public:
-    QVaapiSinkProperties(GstElement *sink)
+    QVaapiSinkProperties(QGstElement sink)
         : QXVImageSinkProperties(sink)
     {
         // Set default values.
@@ -241,7 +240,7 @@ public:
     {
         gfloat brightness = 0;
         if (m_hasBrightness)
-            g_object_get(G_OBJECT(m_videoSink), "brightness", &brightness, nullptr);
+            brightness = m_videoSink.getFloat("brightness");
 
         return brightness * 100; // [-1,1] -> [-100,100]
     }
@@ -251,7 +250,7 @@ public:
         m_brightness = brightness;
         if (m_hasBrightness) {
             gfloat v = brightness / 100.0; // [-100,100] -> [-1,1]
-            g_object_set(G_OBJECT(m_videoSink), "brightness", v, nullptr);
+            m_videoSink.set("brightness", v);
         }
 
         return m_hasBrightness;
@@ -261,7 +260,7 @@ public:
     {
         gfloat contrast = 1;
         if (m_hasContrast)
-            g_object_get(G_OBJECT(m_videoSink), "contrast", &contrast, nullptr);
+            contrast = m_videoSink.getFloat("contrast");
 
         return (contrast - 1) * 100; // [0,2] -> [-100,100]
     }
@@ -271,7 +270,7 @@ public:
         m_contrast = contrast;
         if (m_hasContrast) {
             gfloat v = (contrast / 100.0) + 1; // [-100,100] -> [0,2]
-            g_object_set(G_OBJECT(m_videoSink), "contrast", v, nullptr);
+            m_videoSink.set("contrast", v);
         }
 
         return m_hasContrast;
@@ -281,7 +280,7 @@ public:
     {
         gfloat hue = 0;
         if (m_hasHue)
-            g_object_get(G_OBJECT(m_videoSink), "hue", &hue, nullptr);
+            hue = m_videoSink.getFloat("hue");
 
         return hue / 180 * 100; // [-180,180] -> [-100,100]
     }
@@ -291,7 +290,7 @@ public:
         m_hue = hue;
         if (m_hasHue) {
             gfloat v = hue / 100.0 * 180; // [-100,100] -> [-180,180]
-            g_object_set(G_OBJECT(m_videoSink), "hue", v, nullptr);
+            m_videoSink.set("hue", v);
         }
 
         return m_hasHue;
@@ -301,7 +300,7 @@ public:
     {
         gfloat saturation = 1;
         if (m_hasSaturation)
-            g_object_get(G_OBJECT(m_videoSink), "saturation", &saturation, nullptr);
+            saturation = m_videoSink.getFloat("saturation");
 
         return (saturation - 1) * 100; // [0,2] -> [-100,100]
     }
@@ -311,33 +310,27 @@ public:
         m_saturation = saturation;
         if (m_hasSaturation) {
             gfloat v = (saturation / 100.0) + 1; // [-100,100] -> [0,2]
-            g_object_set(G_OBJECT(m_videoSink), "saturation", v, nullptr);
+            m_videoSink.set("saturation", v);
         }
 
         return m_hasSaturation;
     }
 };
 
-static bool qt_gst_element_is_functioning(GstElement *element)
+static bool qt_gst_element_is_functioning(QGstElement element)
 {
-    GstStateChangeReturn ret = gst_element_set_state(element, GST_STATE_READY);
+    GstStateChangeReturn ret = element.setState(GST_STATE_READY);
     if (ret == GST_STATE_CHANGE_SUCCESS) {
-        gst_element_set_state(element, GST_STATE_NULL);
+        element.setState(GST_STATE_NULL);
         return true;
     }
 
     return false;
 }
 
-static GstElement *findBestVideoSink()
+static QGstElement findBestVideoSink()
 {
-    GstElement *choice = nullptr;
     QString platform = QGuiApplication::platformName();
-
-    // We need a native window ID to use the GstVideoOverlay interface.
-    // Bail out if the Qt platform plugin in use cannot provide a sensible WId.
-    if (platform != QLatin1String("xcb"))
-        return nullptr;
 
     // First, try some known video sinks, depending on the Qt platform plugin in use.
     for (auto i : elementMap) {
@@ -345,17 +338,22 @@ static GstElement *findBestVideoSink()
         if (!QGstUtils::useOpenGL() && qstrcmp(i.gstreamerElement, "glimagesink") == 0)
             continue;
 #endif
-        if (platform == QLatin1String(i.qtPlatform)
-                && (choice = gst_element_factory_make(i.gstreamerElement, nullptr))) {
+        if (platform != QLatin1String(i.qtPlatform))
+            continue;
+        QGstElement choice(i.gstreamerElement, i.gstreamerElement);
+        if (choice.isNull())
+            continue;
 
-            if (qt_gst_element_is_functioning(choice))
-                return choice;
-
-            gst_object_unref(choice);
-            choice = nullptr;
-        }
+        if (qt_gst_element_is_functioning(choice))
+            return choice;
     }
 
+    // We need a native window ID to use the GstVideoOverlay interface.
+    // Bail out if the Qt platform plugin in use cannot provide a sensible WId.
+    if (platform != QLatin1String("xcb"))
+        return {};
+
+    QGstElement choice;
     // If none of the known video sinks are available, try to find one that implements the
     // GstVideoOverlay interface and has autoplugging rank.
     GList *list = qt_gst_video_sinks();
@@ -365,14 +363,13 @@ static GstElement *findBestVideoSink()
         if (!gst_element_factory_has_interface(f, "GstVideoOverlay"))
             continue;
 
-        if (GstElement *el = gst_element_factory_create(f, nullptr)) {
-            if (qt_gst_element_is_functioning(el)) {
-                choice = el;
-                break;
-            }
+        choice = QGstElement(gst_element_factory_create(f, nullptr));
+        if (choice.isNull())
+            continue;
 
-            gst_object_unref(el);
-        }
+        if (qt_gst_element_is_functioning(choice))
+            break;
+        choice = {};
     }
 
     gst_plugin_feature_list_free(list);
@@ -384,9 +381,9 @@ QGstreamerVideoOverlay::QGstreamerVideoOverlay(QObject *parent, const QByteArray
     : QObject(parent)
     , QGstreamerBufferProbe(QGstreamerBufferProbe::ProbeCaps)
 {
-    GstElement *sink = nullptr;
+    QGstElement sink;
     if (!elementName.isEmpty())
-        sink = gst_element_factory_make(elementName.constData(), nullptr);
+        sink = QGstElement(elementName.constData(), nullptr);
     else
         sink = findBestVideoSink();
 
@@ -395,42 +392,35 @@ QGstreamerVideoOverlay::QGstreamerVideoOverlay(QObject *parent, const QByteArray
 
 QGstreamerVideoOverlay::~QGstreamerVideoOverlay()
 {
-    if (m_videoSink) {
+    if (!m_videoSink.isNull()) {
         delete m_sinkProperties;
-        GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-        removeProbeFromPad(pad);
-        gst_object_unref(GST_OBJECT(pad));
-        gst_object_unref(GST_OBJECT(m_videoSink));
+        QGstPad pad = m_videoSink.staticPad("sink");
+        removeProbeFromPad(pad.pad());
     }
 }
 
-GstElement *QGstreamerVideoOverlay::videoSink() const
+QGstElement QGstreamerVideoOverlay::videoSink() const
 {
     return m_videoSink;
 }
 
-void QGstreamerVideoOverlay::setVideoSink(GstElement *sink)
+void QGstreamerVideoOverlay::setVideoSink(QGstElement sink)
 {
-    if (!sink)
+    if (sink.isNull())
         return;
 
-    if (m_videoSink)
-        gst_object_unref(GST_OBJECT(m_videoSink));
-
     m_videoSink = sink;
-    gst_object_ref_sink(GST_OBJECT(m_videoSink));
 
-    GstPad *pad = gst_element_get_static_pad(m_videoSink, "sink");
-    addProbeToPad(pad);
-    gst_object_unref(GST_OBJECT(pad));
+    QGstPad pad = m_videoSink.staticPad("sink");
+    addProbeToPad(pad.pad());
 
-    QString sinkName(QLatin1String(GST_OBJECT_NAME(sink)));
-    bool isVaapi = sinkName.startsWith(QLatin1String("vaapisink"));
+    QByteArray sinkName(sink.name());
+    bool isVaapi = sinkName.startsWith("vaapisink");
     delete m_sinkProperties;
     m_sinkProperties = isVaapi ? new QVaapiSinkProperties(sink) : new QXVImageSinkProperties(sink);
 
     if (m_sinkProperties->hasShowPrerollFrame())
-        g_signal_connect(m_videoSink, "notify::show-preroll-frame",
+        g_signal_connect(m_videoSink.object(), "notify::show-preroll-frame",
                          G_CALLBACK(showPrerollFrameChanged), this);
 }
 
@@ -449,8 +439,8 @@ void QGstreamerVideoOverlay::setWindowHandle(WId id)
 
 void QGstreamerVideoOverlay::setWindowHandle_helper(WId id)
 {
-    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink)) {
-        gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink), id);
+    if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object())) {
+        gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink.object()), id);
 
         // Properties need to be reset when changing the winId.
         m_sinkProperties->reset();
@@ -462,8 +452,8 @@ void QGstreamerVideoOverlay::expose()
     if (!isActive())
         return;
 
-    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink))
-        gst_video_overlay_expose(GST_VIDEO_OVERLAY(m_videoSink));
+    if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object()))
+        gst_video_overlay_expose(GST_VIDEO_OVERLAY(m_videoSink.object()));
 }
 
 void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
@@ -480,16 +470,16 @@ void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
         h = rect.height();
     }
 
-    if (m_videoSink && GST_IS_VIDEO_OVERLAY(m_videoSink))
-        gst_video_overlay_set_render_rectangle(GST_VIDEO_OVERLAY(m_videoSink), x, y, w, h);
+    if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object()))
+        gst_video_overlay_set_render_rectangle(GST_VIDEO_OVERLAY(m_videoSink.object()), x, y, w, h);
 }
 
 bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
 
-      if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
-              gst_structure_has_name(gst_message_get_structure(gm), "prepare-window-handle")) {
+    if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
+        gst_structure_has_name(gst_message_get_structure(gm), "prepare-window-handle")) {
         setWindowHandle_helper(m_windowId);
         return true;
     }
@@ -501,11 +491,8 @@ bool QGstreamerVideoOverlay::processBusMessage(const QGstreamerMessage &message)
 {
     GstMessage* gm = message.rawMessage();
 
-    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED &&
-            GST_MESSAGE_SRC(gm) == GST_OBJECT_CAST(m_videoSink)) {
-
+    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED && GST_MESSAGE_SRC(gm) == m_videoSink.object())
         updateIsActive();
-    }
 
     return false;
 }
@@ -526,14 +513,14 @@ bool QGstreamerVideoOverlay::isActive() const
 
 void QGstreamerVideoOverlay::updateIsActive()
 {
-    if (!m_videoSink)
+    if (m_videoSink.isNull())
         return;
 
-    GstState state = GST_STATE(m_videoSink);
+    GstState state = m_videoSink.state();
     gboolean showPreroll = true;
 
     if (m_sinkProperties->hasShowPrerollFrame())
-        g_object_get(G_OBJECT(m_videoSink), "show-preroll-frame", &showPreroll, nullptr);
+        showPreroll = m_videoSink.getBool("show-preroll-frame");
 
     bool newIsActive = (state == GST_STATE_PLAYING || (state == GST_STATE_PAUSED && showPreroll));
 

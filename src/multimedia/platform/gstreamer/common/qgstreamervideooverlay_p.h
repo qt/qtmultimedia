@@ -53,8 +53,8 @@
 
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamerbufferprobe_p.h>
+#include <private/qgst_p.h>
 #include <QtGui/qwindowdefs.h>
-#include <QtCore/qsize.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -70,8 +70,8 @@ public:
     explicit QGstreamerVideoOverlay(QObject *parent = 0, const QByteArray &elementName = QByteArray());
     virtual ~QGstreamerVideoOverlay();
 
-    GstElement *videoSink() const;
-    void setVideoSink(GstElement *);
+    QGstElement videoSink() const;
+    void setVideoSink(QGstElement);
     QSize nativeVideoSize() const;
 
     void setWindowHandle(WId id);
@@ -108,7 +108,7 @@ private:
     void probeCaps(GstCaps *caps) override;
     static void showPrerollFrameChanged(GObject *, GParamSpec *, QGstreamerVideoOverlay *);
 
-    GstElement *m_videoSink = nullptr;
+    QGstElement m_videoSink;
     QSize m_nativeVideoSize;
     bool m_isActive = false;
 

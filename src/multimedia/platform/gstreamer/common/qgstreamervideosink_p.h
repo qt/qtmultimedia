@@ -104,7 +104,7 @@ public:
 
     QAbstractVideoSurface *surface() const;
 
-    GstElement *videoSink();
+    QGstElement videoSink();
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
     bool processBusMessage(const QGstreamerMessage &message) override;
