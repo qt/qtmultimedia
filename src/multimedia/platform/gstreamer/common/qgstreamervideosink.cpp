@@ -76,14 +76,8 @@ void QGstreamerVideoSink::setWinId(WId id)
     if (m_windowId == id)
         return;
 
-    WId oldId = m_windowId;
-    m_videoOverlay.setWindowHandle(m_windowId = id);
-
-    if (!oldId)
-        emit readyChanged(true);
-
-    if (!id)
-        emit readyChanged(false);
+    m_windowId = id;
+    m_videoOverlay.setWindowHandle(m_windowId);
 }
 
 bool QGstreamerVideoSink::processSyncMessage(const QGstreamerMessage &message)

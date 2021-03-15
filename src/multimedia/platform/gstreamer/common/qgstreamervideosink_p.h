@@ -112,7 +112,6 @@ public:
 
 signals:
     void sinkChanged();
-    void readyChanged(bool);
 
 private:
     QGstreamerVideoOverlay m_videoOverlay;
