@@ -36,7 +36,7 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
-#include <QtMultimedia/qvideowindowcontrol.h>
+#include <private/qplatformvideosink_p.h>
 
 class SourceObject : public QObject
 {
@@ -54,7 +54,7 @@ private:
     QObject *m_mediaSource;
 };
 
-class QtTestWindowControl : public QVideoWindowControl
+class QtTestWindowControl : public QPlatformVideoSink
 {
 public:
     [[nodiscard]] WId winId() const override { return m_winId; }

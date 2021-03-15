@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QVideoWindowControl>
+#include "private/qplatformvideosink_p.h"
 
 @class AVPlayerLayer;
 #if defined(Q_OS_OSX)
@@ -66,7 +66,7 @@ typedef UIView NativeView;
 
 QT_BEGIN_NAMESPACE
 
-class AVFVideoWindowControl : public QVideoWindowControl, public AVFVideoOutput
+class AVFVideoWindowControl : public QPlatformVideoSink, public AVFVideoOutput
 {
     Q_OBJECT
 
@@ -74,7 +74,7 @@ public:
     AVFVideoWindowControl(QObject *parent = nullptr);
     virtual ~AVFVideoWindowControl();
 
-    // QVideoWindowControl interface
+    // QPlatformVideoSink interface
 public:
     WId winId() const override;
     void setWinId(WId id) override;

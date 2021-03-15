@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 static int winIdCounter = 0;
 
 MmRendererVideoWindowControl::MmRendererVideoWindowControl(QObject *parent)
-    : QVideoWindowControl(parent),
+    : QPlatformVideoSink(parent),
       m_videoId(-1),
       m_winId(0),
       m_context(0),

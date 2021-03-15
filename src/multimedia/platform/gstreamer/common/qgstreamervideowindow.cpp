@@ -43,7 +43,7 @@
 #include <QtCore/qdebug.h>
 
 QGstreamerVideoWindow::QGstreamerVideoWindow(QObject *parent, const QByteArray &elementName)
-    : QVideoWindowControl(parent)
+    : QPlatformVideoSink(parent)
     , m_videoOverlay(this, !elementName.isEmpty() ? elementName : qgetenv("QT_GSTREAMER_WINDOW_VIDEOSINK"))
 {
     connect(&m_videoOverlay, &QGstreamerVideoOverlay::nativeVideoSizeChanged,

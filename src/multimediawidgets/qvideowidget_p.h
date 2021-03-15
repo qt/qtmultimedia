@@ -54,80 +54,15 @@
 #include <qtmultimediawidgetdefs.h>
 #include "qvideowidget.h"
 
-#ifndef QT_NO_OPENGL
-#include <QOpenGLWidget>
-#endif
-
-#include <private/qpaintervideosurface_p.h>
-
-#include <QtCore/qpointer.h>
-
 QT_BEGIN_NAMESPACE
 
 class QObject;
-
-class QRendererVideoWidgetBackend : public QObject
-{
-    Q_OBJECT
-public:
-    QRendererVideoWidgetBackend(QWidget *widget);
-    ~QRendererVideoWidgetBackend();
-
-    QAbstractVideoSurface *videoSurface() const;
-
-    void releaseControl();
-    void clearSurface();
-
-    void setBrightness(int brightness);
-    void setContrast(int contrast);
-    void setHue(int hue);
-    void setSaturation(int saturation);
-
-    void setFullScreen(bool fullScreen);
-
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    QSize sizeHint() const;
-
-    void showEvent();
-    void hideEvent(QHideEvent *event);
-    void resizeEvent(QResizeEvent *event);
-    void moveEvent(QMoveEvent *event);
-    void paintEvent(QPaintEvent *event);
-
-Q_SIGNALS:
-    void fullScreenChanged(bool fullScreen);
-    void brightnessChanged(int brightness);
-    void contrastChanged(int contrast);
-    void hueChanged(int hue);
-    void saturationChanged(int saturation);
-
-private Q_SLOTS:
-    void formatChanged(const QVideoSurfaceFormat &format);
-    void frameChanged();
-
-private:
-    void updateRects();
-
-    QObject *m_rendererControl;
-    QWidget *m_widget;
-    QPainterVideoSurface *m_surface;
-    Qt::AspectRatioMode m_aspectRatioMode;
-    QRect m_boundingRect;
-    QRectF m_sourceRect;
-    QSize m_nativeSize;
-    bool m_updatePaintDevice;
-};
-
-class QVideoOutputControl;
 
 class QVideoWidgetPrivate
 {
     Q_DECLARE_PUBLIC(QVideoWidget)
 public:
     QVideoWidget *q_ptr = nullptr;
-    QRendererVideoWidgetBackend *backend = nullptr;
     int brightness = 0;
     int contrast = 0;
     int hue = 0;

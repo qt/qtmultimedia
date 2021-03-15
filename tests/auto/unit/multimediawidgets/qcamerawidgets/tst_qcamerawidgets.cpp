@@ -43,7 +43,6 @@
 #include <qgraphicsvideoitem.h>
 #include <qobject.h>
 #include <qvideowidget.h>
-#include <qvideowindowcontrol.h>
 
 #include "mockvideosurface.h"
 #include "mockmediarecorderservice.h"

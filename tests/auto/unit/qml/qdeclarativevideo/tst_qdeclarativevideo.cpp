@@ -38,7 +38,7 @@
 #include <private/qplatformmediaplayer_p.h>
 #include <qmediaservice.h>
 #include <qvideorenderercontrol.h>
-#include <qvideowindowcontrol.h>
+#include "private/qplatformvideosink_p.h"
 #include <qvideosurfaceformat.h>
 #include <qmockintegration_p.h>
 
@@ -181,11 +181,11 @@ private:
     QAbstractVideoSurface *m_surface;
 };
 
-class QtTestWindowControl : public QVideoWindowControl
+class QtTestWindowControl : public QPlatformVideoSink
 {
 public:
     QtTestWindowControl(QObject *parent)
-        : QVideoWindowControl(parent)
+        : QPlatformVideoSink(parent)
         , m_winId(0)
         , m_repaintCount(0)
         , m_brightness(0)
@@ -262,7 +262,7 @@ public:
             return playerControl;
         else if (qstrcmp(name, QVideoRendererControl_iid) == 0)
             return rendererControl;
-        else if (qstrcmp(name, QVideoWindowControl_iid) == 0)
+        else if (qstrcmp(name, QPlatformVideoSink_iid) == 0)
             return windowControl;
         else
             return 0;

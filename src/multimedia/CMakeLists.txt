@@ -30,7 +30,6 @@ qt_internal_add_module(Multimedia
         camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
         camera/qcameraimageprocessing.cpp camera/qcameraimageprocessing.h
         camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h
-        controls/qvideowindowcontrol.cpp controls/qvideowindowcontrol.h
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
         platform/qplatformcameraexposure.cpp platform/qplatformcameraexposure_p.h
@@ -43,6 +42,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
+        platform/qplatformvideosink.cpp platform/qplatformvideosink_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h

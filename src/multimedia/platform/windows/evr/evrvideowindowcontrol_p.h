@@ -51,13 +51,13 @@
 // We mean it.
 //
 
-#include "qvideowindowcontrol.h"
+#include "private/qplatformvideosink_p.h"
 
 #include "evrdefs_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class EvrVideoWindowControl : public QVideoWindowControl
+class EvrVideoWindowControl : public QPlatformVideoSink
 {
     Q_OBJECT
 public:

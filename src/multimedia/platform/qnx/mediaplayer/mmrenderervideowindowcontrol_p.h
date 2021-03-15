@@ -51,14 +51,14 @@
 //
 
 #include "mmrenderermetadata_p.h"
-#include <qvideowindowcontrol.h>
+#include "private/qplatformvideosink_p.h"
 #include <screen/screen.h>
 
 typedef struct mmr_context mmr_context_t;
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererVideoWindowControl : public QVideoWindowControl
+class MmRendererVideoWindowControl : public QPlatformVideoSink
 {
     Q_OBJECT
 public:

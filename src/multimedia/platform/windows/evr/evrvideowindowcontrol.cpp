@@ -40,7 +40,7 @@
 #include "evrvideowindowcontrol_p.h"
 
 EvrVideoWindowControl::EvrVideoWindowControl(QObject *parent)
-    : QVideoWindowControl(parent)
+    : QPlatformVideoSink(parent)
     , m_windowId(0)
     , m_windowColor(RGB(0, 0, 0))
     , m_dirtyValues(0)

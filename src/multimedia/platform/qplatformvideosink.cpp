@@ -37,21 +37,21 @@
 **
 ****************************************************************************/
 
-#include "qvideowindowcontrol.h"
+#include "qplatformvideosink_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QVideoWindowControl
+    \class QPlatformVideoSink
     \obsolete
 
     \inmodule QtMultimedia
 
     \ingroup multimedia_control
-    \brief The QVideoWindowControl class provides a media control for rendering video to a window.
+    \brief The QPlatformVideoSink class provides a media control for rendering video to a window.
 
 
-    The winId() property QVideoWindowControl allows a platform specific window
+    The winId() property QPlatformVideoSink allows a platform specific window
     ID to be set as the video render target.  The
     displayRect() property is used to set the region of the window the video
     should be rendered to, and the aspectRatioMode() property indicates how the
@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/video.cpp Video window control
 
-    QVideoWindowControl is one of a number of possible video output controls.
+    QPlatformVideoSink is one of a number of possible video output controls.
 
     \sa QVideoWidget
 */
@@ -67,35 +67,35 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a new video window control with the given \a parent.
 */
-QVideoWindowControl::QVideoWindowControl(QObject *parent)
+QPlatformVideoSink::QPlatformVideoSink(QObject *parent)
     : QObject(parent)
 {
 }
 
 /*!
-    \fn QVideoWindowControl::winId() const
+    \fn QPlatformVideoSink::winId() const
 
     Returns the ID of the window a video overlay end point renders to.
 */
 
 /*!
-    \fn QVideoWindowControl::setWinId(WId id)
+    \fn QPlatformVideoSink::setWinId(WId id)
 
     Sets the \a id of the window a video overlay end point renders to.
 */
 
 /*!
-    \fn QVideoWindowControl::displayRect() const
+    \fn QPlatformVideoSink::displayRect() const
     Returns the sub-rect of a window where video is displayed.
 */
 
 /*!
-    \fn QVideoWindowControl::setDisplayRect(const QRect &rect)
+    \fn QPlatformVideoSink::setDisplayRect(const QRect &rect)
     Sets the sub-\a rect of a window where video is displayed.
 */
 
 /*!
-    \fn QVideoWindowControl::isFullScreen() const
+    \fn QPlatformVideoSink::isFullScreen() const
 
     Identifies if a video overlay is a fullScreen overlay.
 
@@ -103,52 +103,52 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::setFullScreen(bool fullScreen)
+    \fn QPlatformVideoSink::setFullScreen(bool fullScreen)
 
     Sets whether a video overlay is a \a fullScreen overlay.
 */
 
 /*!
-    \fn QVideoWindowControl::fullScreenChanged(bool fullScreen)
+    \fn QPlatformVideoSink::fullScreenChanged(bool fullScreen)
 
     Signals that the \a fullScreen state of a video overlay has changed.
 */
 
 /*!
-    \fn QVideoWindowControl::repaint()
+    \fn QPlatformVideoSink::repaint()
 
     Repaints the last frame.
 */
 
 /*!
-    \fn QVideoWindowControl::nativeSize() const
+    \fn QPlatformVideoSink::nativeSize() const
 
     Returns a suggested size for the video display based on the resolution and aspect ratio of the
     video.
 */
 
 /*!
-    \fn QVideoWindowControl::nativeSizeChanged()
+    \fn QPlatformVideoSink::nativeSizeChanged()
 
     Signals that the native dimensions of the video have changed.
 */
 
 
 /*!
-    \fn QVideoWindowControl::aspectRatioMode() const
+    \fn QPlatformVideoSink::aspectRatioMode() const
 
     Returns how video is scaled to fit the display region with respect to its aspect ratio.
 */
 
 /*!
-    \fn QVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
+    \fn QPlatformVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 
     Sets the aspect ratio \a mode which determines how video is scaled to the fit the display region
     with respect to its aspect ratio.
 */
 
 /*!
-    \fn QVideoWindowControl::brightness() const
+    \fn QPlatformVideoSink::brightness() const
 
     Returns the brightness adjustment applied to a video overlay.
 
@@ -156,7 +156,7 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::setBrightness(int brightness)
+    \fn QPlatformVideoSink::setBrightness(int brightness)
 
     Sets a \a brightness adjustment for a video overlay.
 
@@ -164,13 +164,13 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::brightnessChanged(int brightness)
+    \fn QPlatformVideoSink::brightnessChanged(int brightness)
 
     Signals that a video overlay's \a brightness adjustment has changed.
 */
 
 /*!
-    \fn QVideoWindowControl::contrast() const
+    \fn QPlatformVideoSink::contrast() const
 
     Returns the contrast adjustment applied to a video overlay.
 
@@ -178,7 +178,7 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::setContrast(int contrast)
+    \fn QPlatformVideoSink::setContrast(int contrast)
 
     Sets the \a contrast adjustment for a video overlay.
 
@@ -186,13 +186,13 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::contrastChanged(int contrast)
+    \fn QPlatformVideoSink::contrastChanged(int contrast)
 
     Signals that a video overlay's \a contrast adjustment has changed.
 */
 
 /*!
-    \fn QVideoWindowControl::hue() const
+    \fn QPlatformVideoSink::hue() const
 
     Returns the hue adjustment applied to a video overlay.
 
@@ -200,7 +200,7 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::setHue(int hue)
+    \fn QPlatformVideoSink::setHue(int hue)
 
     Sets a \a hue adjustment for a video overlay.
 
@@ -208,13 +208,13 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::hueChanged(int hue)
+    \fn QPlatformVideoSink::hueChanged(int hue)
 
     Signals that a video overlay's \a hue adjustment has changed.
 */
 
 /*!
-    \fn QVideoWindowControl::saturation() const
+    \fn QPlatformVideoSink::saturation() const
 
     Returns the saturation adjustment applied to a video overlay.
 
@@ -222,18 +222,18 @@ QVideoWindowControl::QVideoWindowControl(QObject *parent)
 */
 
 /*!
-    \fn QVideoWindowControl::setSaturation(int saturation)
+    \fn QPlatformVideoSink::setSaturation(int saturation)
     Sets a \a saturation adjustment for a video overlay.
 
     Valid saturation values range between -100 and 100, the default is 0.
 */
 
 /*!
-    \fn QVideoWindowControl::saturationChanged(int saturation)
+    \fn QPlatformVideoSink::saturationChanged(int saturation)
 
     Signals that a video overlay's \a saturation adjustment has changed.
 */
 
 QT_END_NAMESPACE
 
-#include "moc_qvideowindowcontrol.cpp"
+#include "moc_qplatformvideosink_p.cpp"

@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QVideoWindowControl>
+#include "private/qplatformvideosink_p.h"
 
 @class AVCaptureVideoPreviewLayer;
 #if defined(Q_OS_MACOS)
@@ -64,14 +64,14 @@ typedef UIView NativeView;
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraWindowControl : public QVideoWindowControl
+class AVFCameraWindowControl : public QPlatformVideoSink
 {
     Q_OBJECT
 public:
     AVFCameraWindowControl(QObject *parent = nullptr);
     virtual ~AVFCameraWindowControl() override;
 
-    // QVideoWindowControl interface
+    // QPlatformVideoSink interface
 public:
     WId winId() const override;
     void setWinId(WId id) override;

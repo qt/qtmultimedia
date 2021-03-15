@@ -53,7 +53,7 @@
 QT_USE_NAMESPACE
 
 AVFCameraWindowControl::AVFCameraWindowControl(QObject *parent)
-    : QVideoWindowControl(parent)
+    : QPlatformVideoSink(parent)
 {
     setObjectName(QStringLiteral("AVFCameraWindowControl"));
 }

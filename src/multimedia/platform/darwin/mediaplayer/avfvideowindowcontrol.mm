@@ -53,7 +53,7 @@
 QT_USE_NAMESPACE
 
 AVFVideoWindowControl::AVFVideoWindowControl(QObject *parent)
-    : QVideoWindowControl(parent)
+    : QPlatformVideoSink(parent)
     , m_winId(0)
     , m_fullscreen(false)
     , m_brightness(0)
@@ -107,7 +107,7 @@ void AVFVideoWindowControl::setFullScreen(bool fullScreen)
 {
     if (m_fullscreen != fullScreen) {
         m_fullscreen = fullScreen;
-        Q_EMIT QVideoWindowControl::fullScreenChanged(fullScreen);
+        Q_EMIT QPlatformVideoSink::fullScreenChanged(fullScreen);
     }
 }
 
@@ -144,7 +144,7 @@ void AVFVideoWindowControl::setBrightness(int brightness)
 {
     if (m_brightness != brightness) {
         m_brightness = brightness;
-        Q_EMIT QVideoWindowControl::brightnessChanged(brightness);
+        Q_EMIT QPlatformVideoSink::brightnessChanged(brightness);
     }
 }
 
@@ -157,7 +157,7 @@ void AVFVideoWindowControl::setContrast(int contrast)
 {
     if (m_contrast != contrast) {
         m_contrast = contrast;
-        Q_EMIT QVideoWindowControl::contrastChanged(contrast);
+        Q_EMIT QPlatformVideoSink::contrastChanged(contrast);
     }
 }
 
@@ -170,7 +170,7 @@ void AVFVideoWindowControl::setHue(int hue)
 {
     if (m_hue != hue) {
         m_hue = hue;
-        Q_EMIT QVideoWindowControl::hueChanged(hue);
+        Q_EMIT QPlatformVideoSink::hueChanged(hue);
     }
 }
 
@@ -183,7 +183,7 @@ void AVFVideoWindowControl::setSaturation(int saturation)
 {
     if (m_saturation != saturation) {
         m_saturation = saturation;
-        Q_EMIT QVideoWindowControl::saturationChanged(saturation);
+        Q_EMIT QPlatformVideoSink::saturationChanged(saturation);
     }
 }
 

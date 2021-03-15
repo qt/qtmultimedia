@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QVIDEOWINDOWCONTROL_H
-#define QVIDEOWINDOWCONTROL_H
+#ifndef QPLATFORMVIDEOSINK_H
+#define QPLATFORMVIDEOSINK_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QVideoWindowControl : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
 {
     Q_OBJECT
 
@@ -93,7 +93,7 @@ Q_SIGNALS:
     void nativeSizeChanged();
 
 protected:
-    explicit QVideoWindowControl(QObject *parent = nullptr);
+    explicit QPlatformVideoSink(QObject *parent = nullptr);
 };
 
 QT_END_NAMESPACE

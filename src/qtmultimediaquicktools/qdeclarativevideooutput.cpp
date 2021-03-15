@@ -91,7 +91,7 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
     description.
 
     The VideoOutput item works with backends that support either QObject or
-    QVideoWindowControl. If the backend only supports QVideoWindowControl, the video is rendered
+    QPlatformVideoSink. If the backend only supports QPlatformVideoSink, the video is rendered
     onto an overlay window that is layered on top of the QtQuick window. Due to the nature of the
     video overlays, certain features are not available for these kind of backends:
     \list

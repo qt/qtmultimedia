@@ -52,7 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qvideowindowcontrol.h>
+#include <private/qplatformvideosink_p.h>
 
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamervideooverlay_p.h>
@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoWindow :
-        public QVideoWindowControl,
+        public QPlatformVideoSink,
         public QGstreamerSyncMessageFilter,
         public QGstreamerBusMessageFilter
 {

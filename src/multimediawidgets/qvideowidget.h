@@ -54,18 +54,16 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget
 {
     Q_OBJECT
     Q_PROPERTY(bool fullScreen READ isFullScreen WRITE setFullScreen NOTIFY fullScreenChanged)
-    Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
+    Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode NOTIFY aspectRatioModeChanged)
     Q_PROPERTY(int brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
     Q_PROPERTY(int contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
     Q_PROPERTY(int hue READ hue WRITE setHue NOTIFY hueChanged)
     Q_PROPERTY(int saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
-    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface CONSTANT)
 
 public:
     explicit QVideoWidget(QWidget *parent = nullptr);
     ~QVideoWidget();
 
-    Q_INVOKABLE QAbstractVideoSurface *videoSurface() const;
     Q_INVOKABLE QVideoSink *videoSink() const;
 
 #ifdef Q_QDOC
@@ -98,6 +96,7 @@ Q_SIGNALS:
     void contrastChanged(int contrast);
     void hueChanged(int hue);
     void saturationChanged(int saturation);
+    void aspectRatioModeChanged(Qt::AspectRatioMode mode);
 
 protected:
     bool event(QEvent *event) override;
@@ -106,17 +105,10 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
     void moveEvent(QMoveEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
-
-    QVideoWidget(QVideoWidgetPrivate &dd, QWidget *parent);
     QVideoWidgetPrivate *d_ptr;
 
 private:
     Q_DECLARE_PRIVATE(QVideoWidget)
-    Q_PRIVATE_SLOT(d_func(), void _q_brightnessChanged(int))
-    Q_PRIVATE_SLOT(d_func(), void _q_contrastChanged(int))
-    Q_PRIVATE_SLOT(d_func(), void _q_hueChanged(int))
-    Q_PRIVATE_SLOT(d_func(), void _q_saturationChanged(int))
-    Q_PRIVATE_SLOT(d_func(), void _q_fullScreenChanged(bool))
     Q_PRIVATE_SLOT(d_func(), void _q_dimensionsChanged())
     Q_PRIVATE_SLOT(d_func(), void _q_newFrame(const QVideoFrame &))
 };
