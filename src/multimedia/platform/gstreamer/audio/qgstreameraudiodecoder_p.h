@@ -67,7 +67,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerBusHelper;
 class QGstreamerMessage;
 
 class QGstreamerAudioDecoder
@@ -104,7 +103,6 @@ public:
     // GStreamerBusMessageFilter interface
     bool processBusMessage(const QGstreamerMessage &message) override;
 
-    QGstreamerBusHelper *bus() const { return m_busHelper; }
     QAudioDecoder::State pendingState() const { return m_pendingState; }
 
 #if QT_CONFIG(gstreamer_app)
@@ -127,9 +125,7 @@ private:
 
     QAudioDecoder::State m_state = QAudioDecoder::StoppedState;
     QAudioDecoder::State m_pendingState = QAudioDecoder::StoppedState;
-    QGstreamerBusHelper *m_busHelper = nullptr;
-    GstBus *m_bus = nullptr;
-    QGstElement m_playbin;
+    QGstPipeline m_playbin;
     QGstBin m_outputBin;
     QGstElement m_audioConvert;
     GstAppSink *m_appSink = nullptr;

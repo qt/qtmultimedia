@@ -41,6 +41,7 @@
 #include "private/qgstreamerintegration_p.h"
 #include "private/qgstreamerformatinfo_p.h"
 #include "private/qgstreamerbushelper_p.h"
+#include "private/qgstreamermessage_p.h"
 #include "qaudiodeviceinfo.h"
 
 #include <qdebug.h>
@@ -64,9 +65,7 @@ QGstreamerMediaEncoder::QGstreamerMediaEncoder(QGstreamerMediaCapture *session, 
 {
     gstPipeline = pipeline;
     gstPipeline.set("message-forward", true);
-    m_busHelper = new QGstreamerBusHelper(gstPipeline.bus().bus(), this);
-    qRegisterMetaType<QGstreamerMessage>();
-    connect(m_busHelper, &QGstreamerBusHelper::message, this, &QGstreamerMediaEncoder::busMessage);
+    gstPipeline.installMessageFilter(this);
 
     // used to update duration every second
     heartbeat.setInterval(1000);
@@ -87,7 +86,6 @@ QGstreamerMediaEncoder::QGstreamerMediaEncoder(QGstreamerMediaCapture *session, 
 QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
 {
     gstPipeline.setStateSync(GST_STATE_NULL);
-    delete m_busHelper;
 }
 
 QUrl QGstreamerMediaEncoder::outputLocation() const
@@ -154,11 +152,11 @@ void QGstreamerMediaEncoder::handleSessionError(int code, const QString &descrip
     stop();
 }
 
-void QGstreamerMediaEncoder::busMessage(const QGstreamerMessage &message)
+bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
 {
     GstMessage *gm = message.rawMessage();
     if (!gm)
-        return;
+        return false;
 
 //    qCDebug(qLcMediaEncoder) << "received event from" << message.source().name() << Qt::hex << message.type();
 //    if (message.type() == GST_MESSAGE_STATE_CHANGED) {
@@ -174,13 +172,13 @@ void QGstreamerMediaEncoder::busMessage(const QGstreamerMessage &message)
         if (s.name() == "GstBinForwarded")
             gm = s.getMessage();
         if (!gm)
-            return;
+            return false;
     }
 
     if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_EOS) {
         qCDebug(qLcMediaEncoder) << "received EOS from" << QGstObject(GST_MESSAGE_SRC(gm)).name();
         finalize();
-        return;
+        return false;
     }
 
     if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ERROR) {
@@ -210,6 +208,7 @@ void QGstreamerMediaEncoder::busMessage(const QGstreamerMessage &message)
             break;
         }
     }
+    return false;
 }
 
 void QGstreamerMediaEncoder::updateDuration()

@@ -44,6 +44,7 @@
 #include <private/qgstreamerformatinfo_p.h>
 #include <private/qgstreameraudiooutput_p.h>
 #include <private/qgstreamervideooutput_p.h>
+#include "private/qgstreamermessage_p.h"
 #include <private/qaudiodeviceinfo_gstreamer_p.h>
 #include <private/qgstappsrc_p.h>
 #include <qaudiodeviceinfo.h>
@@ -89,9 +90,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
 
     playerPipeline.setState(GST_STATE_NULL);
 
-    busHelper = new QGstreamerBusHelper(playerPipeline.bus().bus(), this);
-    qRegisterMetaType<QGstreamerMessage>();
-    connect(busHelper, &QGstreamerBusHelper::message, this, &QGstreamerMediaPlayer::busMessage);
+    playerPipeline.installMessageFilter(this);
 
     /* Taken from gstdicoverer.c:
      * This is ugly. We get the GType of decodebin so we can quickly detect
@@ -217,10 +216,10 @@ void QGstreamerMediaPlayer::setMuted(bool muted)
     gstAudioOutput->setMuted(muted);
 }
 
-void QGstreamerMediaPlayer::busMessage(const QGstreamerMessage &message)
+bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 {
     if (message.isNull())
-        return;
+        return false;
 
     qCDebug(qLcMediaPlayer) << "received bus message from" << message.source().name() << message.type() << (message.type() == GST_MESSAGE_TAG);
 
@@ -244,7 +243,7 @@ void QGstreamerMediaPlayer::busMessage(const QGstreamerMessage &message)
             m_duration = d;
             emit durationChanged(duration());
         }
-        return;
+        return false;
     }
     case GST_MESSAGE_EOS:
         stop();
@@ -260,7 +259,7 @@ void QGstreamerMediaPlayer::busMessage(const QGstreamerMessage &message)
     }
     case GST_MESSAGE_STATE_CHANGED: {
         if (message.source() != playerPipeline)
-            return;
+            return false;
 
         GstState    oldState;
         GstState    newState;
@@ -449,6 +448,7 @@ void QGstreamerMediaPlayer::busMessage(const QGstreamerMessage &message)
         }
     }
 #endif
+    return false;
 }
 
 QUrl QGstreamerMediaPlayer::media() const

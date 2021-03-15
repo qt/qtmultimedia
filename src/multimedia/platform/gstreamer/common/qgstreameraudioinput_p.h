@@ -60,7 +60,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerBusHelper;
 class QGstreamerMessage;
 class QAudioDeviceInfo;
 

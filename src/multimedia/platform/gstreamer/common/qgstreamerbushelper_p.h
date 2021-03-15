@@ -54,11 +54,11 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <QObject>
 
-#include "qgstreamermessage_p.h"
-
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
+
+class QGstreamerMessage;
 
 class QGstreamerSyncMessageFilter {
 public:
@@ -81,9 +81,14 @@ class Q_MULTIMEDIA_EXPORT QGstreamerBusHelper : public QObject
     Q_OBJECT
     friend class QGstreamerBusHelperPrivate;
 
+    int m_ref = 0;
+
 public:
     QGstreamerBusHelper(GstBus* bus, QObject* parent = 0);
     ~QGstreamerBusHelper();
+
+    void ref() { ++ m_ref; }
+    void deref() { if (!--m_ref) delete this; }
 
     void installMessageFilter(QGstreamerSyncMessageFilter *filter);
     void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
@@ -91,7 +96,7 @@ public:
     void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 
 signals:
-    void message(QGstreamerMessage const& message);
+    void message(const QGstreamerMessage &message);
 
 private:
     QGstreamerBusHelperPrivate *d = nullptr;

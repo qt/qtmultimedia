@@ -41,6 +41,8 @@
 
 #include <QtGui/qguiapplication.h>
 #include "qgstutils_p.h"
+#include "private/qgst_p.h"
+#include "private/qgstreamermessage_p.h"
 
 #include <gst/video/videooverlay.h>
 

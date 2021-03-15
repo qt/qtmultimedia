@@ -39,7 +39,7 @@
 //#define DEBUG_DECODER
 
 #include "qgstreameraudiodecoder_p.h"
-#include <private/qgstreamerbushelper_p.h>
+#include "private/qgstreamermessage_p.h"
 
 #include <private/qgstutils_p.h>
 
@@ -71,21 +71,19 @@ typedef enum {
     GST_PLAY_FLAG_BUFFERING     = 0x000000100
 } GstPlayFlags;
 
-QGstreamerAudioDecoder::QGstreamerAudioDecoder(QObject *parent)
-    : QPlatformAudioDecoder(parent)
-{
-    // Create pipeline here
-    m_playbin = QGstElement("playbin", "playbin");
 
+
+QGstreamerAudioDecoder::QGstreamerAudioDecoder(QObject *parent)
+    : QPlatformAudioDecoder(parent),
+    m_playbin(GST_PIPELINE_CAST(QGstElement("playbin", "playbin").element()))
+{
     if (m_playbin.isNull()) {
         // ### set error
         return;
     }
 
     // Sort out messages
-    m_bus = gst_element_get_bus(m_playbin.element());
-    m_busHelper = new QGstreamerBusHelper(m_bus, this);
-    m_busHelper->installMessageFilter(this);
+    m_playbin.installMessageFilter(this);
 
     // Set the rest of the pipeline up
     setAudioFlags(true);
@@ -113,7 +111,6 @@ QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
 
     stop();
 
-    delete m_busHelper;
 #if QT_CONFIG(gstreamer_app)
     delete m_appSrc;
 #endif

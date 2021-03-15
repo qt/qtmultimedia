@@ -61,13 +61,15 @@ QT_BEGIN_NAMESPACE
 
 class QNetworkAccessManager;
 class QGstreamerVideoRenderer;
-class QGstreamerBusHelper;
 class QGstreamerMessage;
 class QGstAppSrc;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer : public QObject, public QPlatformMediaPlayer
+class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer
+    : public QObject,
+      public QPlatformMediaPlayer,
+      public QGstreamerBusMessageFilter
 {
     Q_OBJECT
 
@@ -122,8 +124,8 @@ public:
     void setVolume(int volume) override;
     void setMuted(bool muted) override;
 
+    bool processBusMessage(const QGstreamerMessage& message) override;
 public Q_SLOTS:
-    void busMessage(const QGstreamerMessage& message);
     void volumeChangedHandler(int volume) { volumeChanged(volume); }
     void mutedChangedHandler(bool mute) { mutedChanged(mute); }
 
@@ -152,7 +154,6 @@ private:
     bool m_seekable = false;
     qint64 m_duration = 0;
 
-    QGstreamerBusHelper *busHelper;
     QGstAppSrc *m_appSrc;
 
     GType decodebinType;

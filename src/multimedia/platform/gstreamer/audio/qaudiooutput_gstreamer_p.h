@@ -67,7 +67,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerBusHelper;
 class QGstAppSrc;
 
 class QGStreamerAudioOutput

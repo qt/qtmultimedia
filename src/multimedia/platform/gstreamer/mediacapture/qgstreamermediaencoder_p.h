@@ -64,10 +64,9 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaMetaData;
-class QGstreamerBusHelper;
 class QGstreamerMessage;
 
-class QGstreamerMediaEncoder : public QPlatformMediaEncoder
+class QGstreamerMediaEncoder : public QPlatformMediaEncoder, QGstreamerBusMessageFilter
 {
     Q_OBJECT
 
@@ -91,6 +90,8 @@ public:
     void setMetaData(const QMediaMetaData &) override;
     QMediaMetaData metaData() const override;
 
+private:
+    bool processBusMessage(const QGstreamerMessage& message) override;
 public slots:
     void setState(QMediaEncoder::State state) override;
     void record();
@@ -100,7 +101,6 @@ public slots:
 private slots:
     void updateStatus();
     void handleSessionError(int code, const QString &description);
-    void busMessage(const QGstreamerMessage& message);
     void updateDuration();
     void finalize();
 
@@ -117,8 +117,6 @@ private:
     QMediaEncoder::Status m_status = QMediaEncoder::StoppedStatus;
     QElapsedTimer m_duration;
     QTimer heartbeat;
-
-    QGstreamerBusHelper *m_busHelper = nullptr;
 
     QGstPipeline gstPipeline;
     QGstBin gstEncoder;

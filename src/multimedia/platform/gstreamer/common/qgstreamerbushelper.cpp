@@ -45,6 +45,7 @@
 #include <QtCore/qcoreapplication.h>
 
 #include "qgstreamerbushelper_p.h"
+#include "qgstreamermessage_p.h"
 
 QT_BEGIN_NAMESPACE
 
