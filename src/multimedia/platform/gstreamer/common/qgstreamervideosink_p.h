@@ -71,6 +71,9 @@ public:
     explicit QGstreamerVideoSink(QObject *parent = 0, const QByteArray &elementName = QByteArray());
     ~QGstreamerVideoSink();
 
+    QVideoSink::GraphicsType graphicsType() const override;
+    bool setGraphicsType(QVideoSink::GraphicsType type) override;
+
     WId winId() const override;
     void setWinId(WId id) override;
 

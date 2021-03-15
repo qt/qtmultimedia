@@ -45,6 +45,7 @@
 #include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qwindowdefs.h>
+#include <qvideosink.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -56,6 +57,10 @@ class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
     Q_OBJECT
 
 public:
+
+    virtual QVideoSink::GraphicsType graphicsType() const { return QVideoSink::NativeWindow; }
+    virtual bool setGraphicsType(QVideoSink::GraphicsType /*type*/) { return false; }
+
     virtual WId winId() const = 0;
     virtual void setWinId(WId id) = 0;
 

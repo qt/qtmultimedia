@@ -51,6 +51,15 @@ QGstreamerVideoSink::QGstreamerVideoSink(QObject *parent, const QByteArray &elem
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink() = default;
+QVideoSink::GraphicsType QGstreamerVideoSink::graphicsType() const
+{
+    return QVideoSink::NativeWindow;
+}
+
+bool QGstreamerVideoSink::setGraphicsType(QVideoSink::GraphicsType /*type*/)
+{
+    return false;
+}
 
 GstElement *QGstreamerVideoSink::videoSink()
 {
