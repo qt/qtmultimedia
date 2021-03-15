@@ -487,6 +487,13 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
           qCWarning(qLcMediaPlayer) << "Failed to link video pads.";
     m_streams[streamType].append(sinkPad);
 
+    if (m_streams[streamType].size() == 1) {
+        if (streamType == VideoStream)
+            emit videoAvailableChanged(true);
+        else if (streamType == AudioStream)
+            emit audioAvailableChanged(true);
+    }
+
     if (!prerolling)
         emit tracksChanged();
 
@@ -513,6 +520,14 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
 
     Q_ASSERT(m_streams[streamType].indexOf(peer) != -1);
     m_streams[streamType].removeAll(peer);
+
+    if (m_streams[streamType].size() == 0) {
+        if (streamType == VideoStream)
+            emit videoAvailableChanged(false);
+        else if (streamType == AudioStream)
+            emit audioAvailableChanged(false);
+    }
+
 
     if (!prerolling)
         emit tracksChanged();
