@@ -104,6 +104,16 @@ void QVideoSink::setNativeWindowId(WId id)
     d->window = id;
 }
 
+void QVideoSink::setFullScreen(bool fullscreen)
+{
+    Q_UNUSED(fullscreen);
+}
+
+bool QVideoSink::isFullscreen() const
+{
+    return false;
+}
+
 Qt::AspectRatioMode QVideoSink::aspectRatioMode() const
 {
     return d->aspectRatioMode;

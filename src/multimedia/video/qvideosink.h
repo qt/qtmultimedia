@@ -79,6 +79,9 @@ public:
     WId nativeWindowId() const;
     void setNativeWindowId(WId id);
 
+    void setFullScreen(bool fullscreen);
+    bool isFullscreen() const;
+
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
 
