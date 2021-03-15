@@ -63,6 +63,7 @@ class QPlatformMediaPlayer;
 class QPlatformAudioDecoder;
 class QPlatformMediaFormatInfo;
 class QObject;
+class QPlatformVideoSink;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {
@@ -80,6 +81,8 @@ public:
     // ### get rid of the mode once refactoring is done
     virtual QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/ = QMediaRecorder::AudioAndVideo) { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
+
+    virtual QPlatformVideoSink *createVideoSink() { return nullptr; }
 };
 
 QT_END_NAMESPACE

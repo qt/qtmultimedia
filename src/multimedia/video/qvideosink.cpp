@@ -46,11 +46,22 @@
 #include <qpainter.h>
 #include <qmatrix4x4.h>
 #include <QDebug>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformvideosink_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoSinkPrivate {
 public:
+    QVideoSinkPrivate()
+    {
+        videoSink = QPlatformMediaIntegration::instance()->createVideoSink();
+    }
+    ~QVideoSinkPrivate()
+    {
+        delete videoSink;
+    }
+    QPlatformVideoSink *videoSink = nullptr;
     QVideoSink::GraphicsType type = QVideoSink::Memory;
     QVideoSurfaceFormat surfaceFormat;
     QSize nativeResolution;
@@ -70,7 +81,6 @@ QVideoSink::QVideoSink(QObject *parent)
     : QObject(parent),
     d(new QVideoSinkPrivate)
 {
-
 }
 
 QVideoSink::~QVideoSink()
@@ -96,32 +106,32 @@ bool QVideoSink::isGraphicsTypeSupported(QVideoSink::GraphicsType type)
 
 WId QVideoSink::nativeWindowId() const
 {
-    return d->window;
+    return d->videoSink->winId();
 }
 
 void QVideoSink::setNativeWindowId(WId id)
 {
-    d->window = id;
+    d->videoSink->setWinId(id);
 }
 
 void QVideoSink::setFullScreen(bool fullscreen)
 {
-    Q_UNUSED(fullscreen);
+    d->videoSink->setFullScreen(fullscreen);
 }
 
 bool QVideoSink::isFullscreen() const
 {
-    return false;
+    return d->videoSink->isFullScreen();
 }
 
 Qt::AspectRatioMode QVideoSink::aspectRatioMode() const
 {
-    return d->aspectRatioMode;
+    return d->videoSink->aspectRatioMode();
 }
 
 void QVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
-    d->aspectRatioMode = mode;
+    d->videoSink->setAspectRatioMode(mode);
 }
 
 QRectF QVideoSink::targetRect() const
@@ -136,42 +146,42 @@ void QVideoSink::setTargetRect(const QRectF &rect)
 
 int QVideoSink::brightness() const
 {
-    return d->brightness;
+    return d->videoSink->brightness();
 }
 
 void QVideoSink::setBrightness(int brightness)
 {
-    d->brightness = brightness;
+    d->videoSink->setBrightness(brightness);
 }
 
 int QVideoSink::contrast() const
 {
-    return d->contrast;
+    return d->videoSink->contrast();
 }
 
 void QVideoSink::setContrast(int contrast)
 {
-    d->contrast = contrast;
+    d->videoSink->setContrast(contrast);
 }
 
 int QVideoSink::hue() const
 {
-    return d->hue;
+    return d->videoSink->hue();
 }
 
 void QVideoSink::setHue(int hue)
 {
-    d->hue = hue;
+    d->videoSink->setHue(hue);
 }
 
 int QVideoSink::saturation() const
 {
-    return d->saturation;
+    return d->videoSink->saturation();
 }
 
 void QVideoSink::setSaturation(int saturation)
 {
-    d->saturation = saturation;
+    d->videoSink->setSaturation(saturation);
 }
 
 QMatrix4x4 QVideoSink::transform() const
@@ -251,6 +261,11 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
     } else {
         painter->fillRect(targetRect(), Qt::black);
     }
+}
+
+QPlatformVideoSink *QVideoSink::platformVideoSink()
+{
+    return d->videoSink;
 }
 
 QT_END_NAMESPACE

@@ -113,15 +113,20 @@ void QGstreamerVideoOutput::setVideoSurface(QAbstractVideoSurface *surface)
 
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
-    if (!m_videoWindow) {
-        m_videoWindow = new QGstreamerVideoWindow;
+    auto *videoSink = static_cast<QGstreamerVideoWindow *>(sink->platformVideoSink());
+    if (m_videoWindow) {
+        gstPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(m_videoWindow));
+        gstPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(m_videoWindow));
+    }
+
+    m_videoWindow = videoSink;
+    if (m_videoWindow) {
         gstPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(m_videoWindow));
         gstPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(m_videoWindow));
-        m_videoWindow->setWinId(sink->nativeWindowId());
     }
 
     newVideoSink = m_videoWindow->videoSink();
-    if (newVideoSink == videoSink) {
+    if (newVideoSink == this->videoSink) {
         newVideoSink = {};
         return;
     }

@@ -51,6 +51,7 @@ class QVideoSurfaceFormat;
 class QVideoFrame;
 
 class QVideoSinkPrivate;
+class QPlatformVideoSink;
 
 class Q_MULTIMEDIA_EXPORT QVideoSink : public QObject
 {
@@ -112,6 +113,8 @@ public:
     void render(const QVideoFrame &frame);
 
     void paint(QPainter *painter, const QVideoFrame &frame);
+
+    QPlatformVideoSink *platformVideoSink();
 
 Q_SIGNALS:
     // would never get called in windowed mode
