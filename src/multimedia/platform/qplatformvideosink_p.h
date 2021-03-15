@@ -85,11 +85,6 @@ public:
     virtual void setSaturation(int saturation) = 0;
 
 Q_SIGNALS:
-    void fullScreenChanged(bool fullScreen);
-    void brightnessChanged(int brightness);
-    void contrastChanged(int contrast);
-    void hueChanged(int hue);
-    void saturationChanged(int saturation);
     void nativeSizeChanged();
 
 protected:

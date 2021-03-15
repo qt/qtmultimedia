@@ -48,14 +48,6 @@ QGstreamerVideoSink::QGstreamerVideoSink(QObject *parent, const QByteArray &elem
 {
     connect(&m_videoOverlay, &QGstreamerVideoOverlay::nativeVideoSizeChanged,
             this, &QGstreamerVideoSink::nativeSizeChanged);
-    connect(&m_videoOverlay, &QGstreamerVideoOverlay::brightnessChanged,
-            this, &QGstreamerVideoSink::brightnessChanged);
-    connect(&m_videoOverlay, &QGstreamerVideoOverlay::contrastChanged,
-            this, &QGstreamerVideoSink::contrastChanged);
-    connect(&m_videoOverlay, &QGstreamerVideoOverlay::hueChanged,
-            this, &QGstreamerVideoSink::hueChanged);
-    connect(&m_videoOverlay, &QGstreamerVideoOverlay::saturationChanged,
-            this, &QGstreamerVideoSink::saturationChanged);
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink() = default;
@@ -168,7 +160,7 @@ bool QGstreamerVideoSink::isFullScreen() const
 
 void QGstreamerVideoSink::setFullScreen(bool fullScreen)
 {
-    emit fullScreenChanged(m_fullScreen = fullScreen);
+    m_fullScreen = fullScreen;
 }
 
 QSize QGstreamerVideoSink::nativeSize() const

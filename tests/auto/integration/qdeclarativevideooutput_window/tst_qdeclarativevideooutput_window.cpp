@@ -64,7 +64,7 @@ public:
     void setDisplayRect(const QRect &rect) override { m_displayRect = rect; }
 
     [[nodiscard]] bool isFullScreen() const override { return m_fullScreen; }
-    void setFullScreen(bool fullScreen) override { emit fullScreenChanged(m_fullScreen = fullScreen); }
+    void setFullScreen(bool fullScreen) override { m_fullScreen = fullScreen; }
 
     [[nodiscard]] int repaintCount() const { return m_repaintCount; }
     void setRepaintCount(int count) { m_repaintCount = count; }
@@ -77,16 +77,16 @@ public:
     void setAspectRatioMode(Qt::AspectRatioMode mode) override { m_aspectRatioMode = mode; }
 
     [[nodiscard]] int brightness() const override { return m_brightness; }
-    void setBrightness(int brightness) override { emit brightnessChanged(m_brightness = brightness); }
+    void setBrightness(int brightness) override { m_brightness = brightness; }
 
     [[nodiscard]] int contrast() const override { return m_contrast; }
-    void setContrast(int contrast) override { emit contrastChanged(m_contrast = contrast); }
+    void setContrast(int contrast) override { m_contrast = contrast; }
 
     [[nodiscard]] int hue() const override { return m_hue; }
-    void setHue(int hue) override { emit hueChanged(m_hue = hue); }
+    void setHue(int hue) override { m_hue = hue; }
 
     [[nodiscard]] int saturation() const override { return m_saturation; }
-    void setSaturation(int saturation) override { emit saturationChanged(m_saturation = saturation); }
+    void setSaturation(int saturation) override { m_saturation = saturation; }
 
 private:
     WId m_winId = 0;

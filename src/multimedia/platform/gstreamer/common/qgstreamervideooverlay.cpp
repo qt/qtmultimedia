@@ -565,8 +565,7 @@ int QGstreamerVideoOverlay::brightness() const
 
 void QGstreamerVideoOverlay::setBrightness(int brightness)
 {
-    if (m_sinkProperties->setBrightness(brightness))
-        emit brightnessChanged(brightness);
+    m_sinkProperties->setBrightness(brightness);
 }
 
 int QGstreamerVideoOverlay::contrast() const
@@ -576,8 +575,7 @@ int QGstreamerVideoOverlay::contrast() const
 
 void QGstreamerVideoOverlay::setContrast(int contrast)
 {
-    if (m_sinkProperties->setContrast(contrast))
-        emit contrastChanged(contrast);
+    m_sinkProperties->setContrast(contrast);
 }
 
 int QGstreamerVideoOverlay::hue() const
@@ -587,8 +585,7 @@ int QGstreamerVideoOverlay::hue() const
 
 void QGstreamerVideoOverlay::setHue(int hue)
 {
-    if (m_sinkProperties->setHue(hue))
-        emit hueChanged(hue);
+    m_sinkProperties->setHue(hue);
 }
 
 int QGstreamerVideoOverlay::saturation() const
@@ -598,8 +595,7 @@ int QGstreamerVideoOverlay::saturation() const
 
 void QGstreamerVideoOverlay::setSaturation(int saturation)
 {
-    if (m_sinkProperties->setSaturation(saturation))
-        emit saturationChanged(saturation);
+    m_sinkProperties->setSaturation(saturation);
 }
 
 QT_END_NAMESPACE

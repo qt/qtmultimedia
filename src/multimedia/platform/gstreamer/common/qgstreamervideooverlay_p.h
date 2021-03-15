@@ -101,10 +101,6 @@ public:
 Q_SIGNALS:
     void nativeVideoSizeChanged();
     void activeChanged();
-    void brightnessChanged(int brightness);
-    void contrastChanged(int contrast);
-    void hueChanged(int hue);
-    void saturationChanged(int saturation);
 
 private:
     void setWindowHandle_helper(WId id);
