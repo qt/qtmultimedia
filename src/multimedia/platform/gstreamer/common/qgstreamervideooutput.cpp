@@ -39,7 +39,7 @@
 
 #include <private/qgstreamervideooutput_p.h>
 #include <private/qgstreamervideorenderer_p.h>
-#include <private/qgstreamervideowindow_p.h>
+#include <private/qgstreamervideosink_p.h>
 #include <qvideosink.h>
 
 #include <QtCore/qloggingcategory.h>
@@ -113,7 +113,7 @@ void QGstreamerVideoOutput::setVideoSurface(QAbstractVideoSurface *surface)
 
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
-    auto *videoSink = static_cast<QGstreamerVideoWindow *>(sink->platformVideoSink());
+    auto *videoSink = static_cast<QGstreamerVideoSink *>(sink->platformVideoSink());
     if (m_videoWindow) {
         gstPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(m_videoWindow));
         gstPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(m_videoWindow));

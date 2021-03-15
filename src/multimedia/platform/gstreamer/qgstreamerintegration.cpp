@@ -44,7 +44,7 @@
 #include "private/qgstreameraudiodecoder_p.h"
 #include "private/qgstreamerformatinfo_p.h"
 #include "private/qgstreamervideorenderer_p.h"
-#include "private/qgstreamervideowindow_p.h"
+#include "private/qgstreamervideosink_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -90,7 +90,7 @@ QPlatformMediaPlayer *QGstreamerIntegration::createPlayer(QMediaPlayer *player)
 
 QPlatformVideoSink *QGstreamerIntegration::createVideoSink()
 {
-    return new QGstreamerVideoWindow();
+    return new QGstreamerVideoSink();
 }
 
 QT_END_NAMESPACE

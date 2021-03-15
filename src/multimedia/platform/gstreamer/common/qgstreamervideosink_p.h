@@ -61,15 +61,15 @@
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoWindow :
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink :
         public QPlatformVideoSink,
         public QGstreamerSyncMessageFilter,
         public QGstreamerBusMessageFilter
 {
     Q_OBJECT
 public:
-    explicit QGstreamerVideoWindow(QObject *parent = 0, const QByteArray &elementName = QByteArray());
-    ~QGstreamerVideoWindow();
+    explicit QGstreamerVideoSink(QObject *parent = 0, const QByteArray &elementName = QByteArray());
+    ~QGstreamerVideoSink();
 
     WId winId() const override;
     void setWinId(WId id) override;
