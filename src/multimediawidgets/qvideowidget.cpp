@@ -43,6 +43,7 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <qvideowindowcontrol.h>
+#include <qvideosink.h>
 
 #include <qobject.h>
 #include <qvideosurfaceformat.h>
@@ -287,6 +288,12 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     q_func()->update();
 }
 
+void QVideoWidgetPrivate::_q_newFrame(const QVideoFrame &frame)
+{
+    lastFrame = frame;
+    q_ptr->update();
+}
+
 /*!
     \class QVideoWidget
 
@@ -317,6 +324,9 @@ QVideoWidget::QVideoWidget(QWidget *parent)
     , d_ptr(new QVideoWidgetPrivate)
 {
     d_ptr->q_ptr = this;
+    d_ptr->videoSink = new QVideoSink(this);
+    d_ptr->videoSink->setGraphicsType(QVideoSink::NativeWindow);
+    d_ptr->videoSink->setNativeWindowId(winId());
 }
 
 /*!
@@ -360,6 +370,11 @@ QAbstractVideoSurface *QVideoWidget::videoSurface() const
         d->createBackend();
 
     return d->backend->videoSurface();
+}
+
+QVideoSink *QVideoWidget::videoSink() const
+{
+    return d_ptr->videoSink;
 }
 
 /*!
@@ -652,6 +667,11 @@ void QVideoWidget::paintEvent(QPaintEvent *event)
 {
     Q_D(QVideoWidget);
 
+    if (d->videoSink && d->lastFrame.isValid()) {
+        QPainter painter(this);
+        d->videoSink->paint(&painter, d->lastFrame);
+        return;
+    }
     if (d->backend) {
         d->backend->paintEvent(event);
     } else if (testAttribute(Qt::WA_OpaquePaintEvent)) {

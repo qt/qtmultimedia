@@ -136,6 +136,9 @@ public:
     Qt::WindowFlags nonFullScreenFlags;
     bool wasFullScreen = false;
 
+    QVideoFrame lastFrame;
+    QVideoSink *videoSink = nullptr;
+
     bool createBackend();
 
     void _q_brightnessChanged(int brightness);
@@ -144,6 +147,7 @@ public:
     void _q_saturationChanged(int saturation);
     void _q_fullScreenChanged(bool fullScreen);
     void _q_dimensionsChanged();
+    void _q_newFrame(const QVideoFrame &frame);
 };
 
 QT_END_NAMESPACE

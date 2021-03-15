@@ -108,6 +108,7 @@ public:
 
     QMediaMetaData metaData() const override;
 
+    void setVideoSink(QVideoSink *sink) override;
     void setVideoSurface(QAbstractVideoSurface *surface) override;
 
     int trackCount(TrackType) override;

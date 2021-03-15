@@ -714,6 +714,11 @@ void QMediaPlayer::setActiveSubtitleTrack(int index)
 void QMediaPlayer::setVideoOutput(QObject *output)
 {
     auto *mo = output->metaObject();
+    QVideoSink *sink = nullptr;
+    if (!output || mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink))) {
+        setVideoOutput(sink);
+        return;
+    }
     QAbstractVideoSurface *surface = nullptr;
     if (output && !mo->invokeMethod(output, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
         qWarning() << "QMediaPlayer::setVideoOutput: Object" << output->metaObject()->className() << "does not have a videoSurface()";
@@ -728,7 +733,6 @@ void QMediaPlayer::setVideoOutput(QObject *output)
     If a video output has already been set on the media player the new surface
     will replace it.
 */
-
 void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 {
     Q_D(QMediaPlayer);
@@ -737,6 +741,16 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
         return;
 
     d->control->setVideoSurface(surface);
+}
+
+void QMediaPlayer::setVideoOutput(QVideoSink *sink)
+{
+    Q_D(QMediaPlayer);
+
+    if (!d->control)
+        return;
+
+    d->control->setVideoSink(sink);
 }
 
 /*!
@@ -751,7 +765,6 @@ void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
 
     \sa QAbstractVideoSurface::supportedPixelFormats
 */
-
 void QMediaPlayer::setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces)
 {
     setVideoOutput(!surfaces.empty() ? new QVideoSurfaces(surfaces, this) : nullptr);

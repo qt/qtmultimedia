@@ -115,6 +115,7 @@ public:
     virtual QMediaMetaData metaData() const { return {}; }
 
     virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
+    virtual void setVideoSink(QVideoSink */*sink*/) {}
 
     // media streams
     enum TrackType { VideoStream, AudioStream, SubtitleStream, NTrackTypes };

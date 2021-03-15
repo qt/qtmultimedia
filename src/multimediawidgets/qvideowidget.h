@@ -46,8 +46,10 @@
 
 QT_BEGIN_NAMESPACE
 
-class QVideoWidgetPrivate;
 class QAbstractVideoSurface;
+class QVideoSink;
+
+class QVideoWidgetPrivate;
 class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget
 {
     Q_OBJECT
@@ -64,6 +66,7 @@ public:
     ~QVideoWidget();
 
     Q_INVOKABLE QAbstractVideoSurface *videoSurface() const;
+    Q_INVOKABLE QVideoSink *videoSink() const;
 
 #ifdef Q_QDOC
     bool isFullScreen() const;
@@ -115,6 +118,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_saturationChanged(int))
     Q_PRIVATE_SLOT(d_func(), void _q_fullScreenChanged(bool))
     Q_PRIVATE_SLOT(d_func(), void _q_dimensionsChanged())
+    Q_PRIVATE_SLOT(d_func(), void _q_newFrame(const QVideoFrame &))
 };
 
 QT_END_NAMESPACE

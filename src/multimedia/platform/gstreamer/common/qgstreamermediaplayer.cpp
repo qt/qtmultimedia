@@ -605,6 +605,11 @@ QMediaMetaData QGstreamerMediaPlayer::metaData() const
     return m_metaData;
 }
 
+void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
+{
+    gstVideoOutput->setVideoSink(sink);
+}
+
 void QGstreamerMediaPlayer::setSeekable(bool seekable)
 {
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << seekable;

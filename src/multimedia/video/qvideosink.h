@@ -40,6 +40,7 @@
 #ifndef QABSTRACTVIDEOSINK_H
 #define QABSTRACTVIDEOSINK_H
 
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
 #include <QtGui/qwindowdefs.h>
 
@@ -51,7 +52,7 @@ class QVideoFrame;
 
 class QVideoSinkPrivate;
 
-class QVideoSink : public QObject
+class Q_MULTIMEDIA_EXPORT QVideoSink : public QObject
 {
     Q_OBJECT
 public:
@@ -59,6 +60,7 @@ public:
     {
         Memory,
         NativeWindow,
+        NativeTexture,
         OpenGL,
         Metal,
         Direct3D11,
@@ -70,6 +72,8 @@ public:
 
     GraphicsType graphicsType() const;
     void setGraphicsType(GraphicsType type);
+
+    static bool isGraphicsTypeSupported(GraphicsType type);
 
     // setter sets graphics type to NativeWindow
     WId nativeWindowId() const;
@@ -108,7 +112,7 @@ public:
 
 Q_SIGNALS:
     // would never get called in windowed mode
-    QVideoFrame newVideoFrame() const;
+    QVideoFrame newVideoFrame(const QVideoFrame &frame) const;
 
 private:
     QVideoSinkPrivate *d = nullptr;

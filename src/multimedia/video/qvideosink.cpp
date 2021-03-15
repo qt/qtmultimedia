@@ -88,6 +88,12 @@ void QVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
     d->type = type;
 }
 
+bool QVideoSink::isGraphicsTypeSupported(QVideoSink::GraphicsType type)
+{
+    // ####
+    return type == NativeWindow;
+}
+
 WId QVideoSink::nativeWindowId() const
 {
     return d->window;
@@ -184,11 +190,57 @@ void QVideoSink::render(const QVideoFrame &frame)
 
 }
 
-void QVideoSink::paint(QPainter *painter, const QVideoFrame &frame)
+void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
 {
-    Q_UNUSED(painter);
-    Q_UNUSED(frame);
+    QVideoFrame frame(f);
+    if (!frame.isValid()) {
+        painter->fillRect(d->targetRect, Qt::black);
+        return;
+    }
 
+    auto imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
+    // Do not render into ARGB32 images using QPainter.
+    // Using QImage::Format_ARGB32_Premultiplied is significantly faster.
+    if (imageFormat == QImage::Format_ARGB32)
+        imageFormat = QImage::Format_ARGB32_Premultiplied;
+
+    QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;//format.scanLineDirection();
+    bool mirrored = false;//format.isMirrored();
+
+    QRectF source = d->targetRect; // ####
+
+    if (frame.handleType() == QVideoFrame::QPixmapHandle) {
+        painter->drawPixmap(d->targetRect, frame.handle().value<QPixmap>(), source);
+    } else if (frame.map(QVideoFrame::ReadOnly)) {
+        QImage image = frame.image();
+
+        auto oldOpacity = painter->opacity();
+        const QTransform oldTransform = painter->transform();
+        QTransform transform = oldTransform;
+        QRectF targetRect = d->targetRect;
+        if (scanLineDirection == QVideoSurfaceFormat::BottomToTop) {
+            transform.scale(1, -1);
+            transform.translate(0, -targetRect.bottom());
+            targetRect = QRectF(targetRect.x(), 0, targetRect.width(), targetRect.height());
+        }
+
+        if (mirrored) {
+            transform.scale(-1, 1);
+            transform.translate(-targetRect.right(), 0);
+            targetRect = QRectF(0, targetRect.y(), targetRect.width(), targetRect.height());
+        }
+        painter->setTransform(transform);
+        painter->setOpacity(d->opacity);
+        painter->drawImage(targetRect, image, source);
+        painter->setTransform(oldTransform);
+        painter->setOpacity(oldOpacity);
+
+        frame.unmap();
+    } else if (frame.isValid()) {
+        // #### error handling
+    } else {
+        painter->fillRect(targetRect(), Qt::black);
+    }
 }
 
 QT_END_NAMESPACE

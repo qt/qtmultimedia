@@ -47,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-
+class QVideoSink;
 class QAbstractVideoSurface;
 class QAudioDeviceInfo;
 class QMediaMetaData;
@@ -138,6 +138,7 @@ public:
     void setVideoOutput(QObject *);
     void setVideoOutput(QAbstractVideoSurface *surface);
     void setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces);
+    void setVideoOutput(QVideoSink *sink);
 
     QUrl media() const;
     const QIODevice *mediaStream() const;
