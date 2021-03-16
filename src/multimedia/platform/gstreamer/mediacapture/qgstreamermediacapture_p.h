@@ -61,7 +61,6 @@ QT_BEGIN_NAMESPACE
 class QGstreamerCamera;
 class QGstreamerCameraImageCapture;
 class QGstreamerMediaEncoder;
-class QGstreamerVideoRenderer;
 class QGstreamerAudioInput;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;

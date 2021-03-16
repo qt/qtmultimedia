@@ -60,7 +60,6 @@
 QT_BEGIN_NAMESPACE
 
 class QNetworkAccessManager;
-class QGstreamerVideoRenderer;
 class QGstreamerMessage;
 class QGstAppSrc;
 class QGstreamerAudioOutput;

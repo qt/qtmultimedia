@@ -54,6 +54,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qgstvideorenderersink_p.h>
 #include <qabstractvideosurface.h>
+#include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -67,8 +68,7 @@ public:
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
-    GstElement *videoSink();
-    void setVideoSink(GstElement *);
+    QGstElement videoSink();
 
     void stopRenderer();
     bool isReady() const { return m_surface != 0; }
@@ -81,7 +81,7 @@ private slots:
     void handleFormatChange();
 
 private:
-    GstElement *m_videoSink = nullptr;
+    QGstElement m_videoSink;
     QPointer<QAbstractVideoSurface> m_surface;
 };
 
