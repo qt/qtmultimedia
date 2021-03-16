@@ -100,7 +100,6 @@ private:
     QGstBin gstVideoOutput;
     QGstElement videoQueue;
     QGstElement videoConvert;
-    QGstElement videoScale;
     QGstElement videoSink;
     QGstElement newVideoSink;
 };

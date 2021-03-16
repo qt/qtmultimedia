@@ -55,10 +55,9 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
 {
     videoQueue = QGstElement("queue", "videoQueue");
     videoConvert = QGstElement("videoconvert", "videoConvert");
-    videoScale = QGstElement("videoscale", "videoScale");
     videoSink = QGstElement("fakesink", "fakeVideoSink");
-    gstVideoOutput.add(videoQueue, videoConvert, videoScale, videoSink);
-    videoQueue.link(videoConvert, videoScale, videoSink);
+    gstVideoOutput.add(videoQueue, videoConvert, videoSink);
+    videoQueue.link(videoConvert, videoSink);
 
     gstVideoOutput.addGhostPad(videoQueue, "sink");
 }
@@ -143,7 +142,7 @@ void QGstreamerVideoOutput::updateVideoSink(const QGstElement &sink)
     }
 
     // This doesn't quite work, as we're be getting the callback in another thread where state changes aren't allowed.
-    auto pad = videoScale.staticPad("src");
+    auto pad = videoConvert.staticPad("src");
     pad.addProbe<&QGstreamerVideoOutput::prepareVideoOutputChange>(this, GstPadProbeType(GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BLOCKING));
 }
 
@@ -171,7 +170,7 @@ void QGstreamerVideoOutput::changeVideoOutput()
     videoSink.setState(GST_STATE_NULL);
     gstVideoOutput.remove(videoSink);
     videoSink = newVideoSink;
-    videoScale.link(videoSink);
+    videoConvert.link(videoSink);
     GstEvent *event = gst_event_new_reconfigure();
     gst_element_send_event(videoSink.element(), event);
     videoSink.setState(state);
