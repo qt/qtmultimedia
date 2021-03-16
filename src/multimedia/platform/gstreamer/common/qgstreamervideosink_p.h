@@ -57,9 +57,12 @@
 #include <private/qgstreamerbushelper_p.h>
 #include <private/qgstreamervideooverlay_p.h>
 #include <QtGui/qcolor.h>
+#include <qvideosink.h>
 
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
+class QGstreamerVideoRenderer;
+class QPainterVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink :
         public QPlatformVideoSink,
@@ -68,7 +71,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink :
 {
     Q_OBJECT
 public:
-    explicit QGstreamerVideoSink(QObject *parent = 0, const QByteArray &elementName = QByteArray());
+    explicit QGstreamerVideoSink(QVideoSink *parent = 0);
     ~QGstreamerVideoSink();
 
     QVideoSink::GraphicsType graphicsType() const override;
@@ -104,7 +107,7 @@ public:
 
     QAbstractVideoSurface *surface() const;
 
-    QGstElement videoSink();
+    QGstElement gstSink();
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
     bool processBusMessage(const QGstreamerMessage &message) override;
@@ -114,7 +117,12 @@ signals:
     void sinkChanged();
 
 private:
-    QGstreamerVideoOverlay m_videoOverlay;
+    void createOverlay();
+    void createRenderer();
+    QGstreamerVideoOverlay *m_videoOverlay = nullptr;
+    QGstreamerVideoRenderer *m_videoRenderer = nullptr;
+    QAbstractVideoSurface *m_videoSurface = nullptr;
+    QVideoSink::GraphicsType m_graphicsType = QVideoSink::Memory;
     WId m_windowId = 0;
     QRect m_displayRect;
     bool m_fullScreen = false;

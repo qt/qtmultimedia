@@ -38,32 +38,75 @@
 ****************************************************************************/
 
 #include "qgstreamervideosink_p.h"
+#include "qgstreamervideorenderer_p.h"
 #include <private/qgstutils_p.h>
+#include <private/qpaintervideosurface_p.h>
 
 #include <QtCore/qdebug.h>
 
-QGstreamerVideoSink::QGstreamerVideoSink(QObject *parent, const QByteArray &elementName)
-    : QPlatformVideoSink(parent)
-    , m_videoOverlay(this, !elementName.isEmpty() ? elementName : qgetenv("QT_GSTREAMER_WINDOW_VIDEOSINK"))
+#include <QtCore/qloggingcategory.h>
+
+Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
+
+class QGstreamerVideoSurface : public QAbstractVideoSurface
 {
-    connect(&m_videoOverlay, &QGstreamerVideoOverlay::nativeVideoSizeChanged,
-            this, &QGstreamerVideoSink::nativeSizeChanged);
+public:
+    explicit QGstreamerVideoSurface(QGstreamerVideoSink *parent = nullptr)
+        : QAbstractVideoSurface(parent)
+    {
+        m_sink = parent;
+    }
+    ~QGstreamerVideoSurface();
+
+    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+        QVideoFrame::HandleType /*type*/) const override
+    {
+        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_ABGR32 << QVideoFrame::Format_RGB32;
+    }
+    bool present(const QVideoFrame &frame) override
+    {
+        m_sink->videoSink()->newVideoFrame(frame);
+        return true;
+    }
+    QGstreamerVideoSink *m_sink;
+};
+
+QGstreamerVideoSurface::~QGstreamerVideoSurface() = default;
+
+QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
+    : QPlatformVideoSink(parent)
+{
+    createOverlay();
+    createRenderer();
 }
 
-QGstreamerVideoSink::~QGstreamerVideoSink() = default;
+QGstreamerVideoSink::~QGstreamerVideoSink()
+{
+    delete m_videoOverlay;
+}
+
 QVideoSink::GraphicsType QGstreamerVideoSink::graphicsType() const
 {
-    return QVideoSink::NativeWindow;
+    return m_graphicsType;
 }
 
-bool QGstreamerVideoSink::setGraphicsType(QVideoSink::GraphicsType /*type*/)
+bool QGstreamerVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
 {
-    return false;
+    if (type == QVideoSink::NativeWindow)
+        createOverlay();
+    else if (type == QVideoSink::Memory)
+        createRenderer();
+    else
+        return false;
+    m_graphicsType = type;
+    return true;
 }
 
-QGstElement QGstreamerVideoSink::videoSink()
+QGstElement QGstreamerVideoSink::gstSink()
 {
-    return m_videoOverlay.videoSink();
+    if (m_fullScreen || m_graphicsType == QVideoSink::NativeWindow)
+        return m_videoOverlay->videoSink();
+    return m_videoRenderer->videoSink();
 }
 
 WId QGstreamerVideoSink::winId() const
@@ -77,17 +120,17 @@ void QGstreamerVideoSink::setWinId(WId id)
         return;
 
     m_windowId = id;
-    m_videoOverlay.setWindowHandle(m_windowId);
+    m_videoOverlay->setWindowHandle(m_windowId);
 }
 
 bool QGstreamerVideoSink::processSyncMessage(const QGstreamerMessage &message)
 {
-    return m_videoOverlay.processSyncMessage(message);
+    return m_videoOverlay->processSyncMessage(message);
 }
 
 bool QGstreamerVideoSink::processBusMessage(const QGstreamerMessage &message)
 {
-    return m_videoOverlay.processBusMessage(message);
+    return m_videoOverlay->processBusMessage(message);
 }
 
 QRect QGstreamerVideoSink::displayRect() const
@@ -97,63 +140,63 @@ QRect QGstreamerVideoSink::displayRect() const
 
 void QGstreamerVideoSink::setDisplayRect(const QRect &rect)
 {
-    m_videoOverlay.setRenderRectangle(m_displayRect = rect);
+    m_videoOverlay->setRenderRectangle(m_displayRect = rect);
     repaint();
 }
 
 Qt::AspectRatioMode QGstreamerVideoSink::aspectRatioMode() const
 {
-    return m_videoOverlay.aspectRatioMode();
+    return m_videoOverlay->aspectRatioMode();
 }
 
 void QGstreamerVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
-    m_videoOverlay.setAspectRatioMode(mode);
+    m_videoOverlay->setAspectRatioMode(mode);
 }
 
 void QGstreamerVideoSink::repaint()
 {
-    m_videoOverlay.expose();
+    m_videoOverlay->expose();
 }
 
 int QGstreamerVideoSink::brightness() const
 {
-    return m_videoOverlay.brightness();
+    return m_videoOverlay->brightness();
 }
 
 void QGstreamerVideoSink::setBrightness(int brightness)
 {
-    m_videoOverlay.setBrightness(brightness);
+    m_videoOverlay->setBrightness(brightness);
 }
 
 int QGstreamerVideoSink::contrast() const
 {
-    return m_videoOverlay.contrast();
+    return m_videoOverlay->contrast();
 }
 
 void QGstreamerVideoSink::setContrast(int contrast)
 {
-    m_videoOverlay.setContrast(contrast);
+    m_videoOverlay->setContrast(contrast);
 }
 
 int QGstreamerVideoSink::hue() const
 {
-    return m_videoOverlay.hue();
+    return m_videoOverlay->hue();
 }
 
 void QGstreamerVideoSink::setHue(int hue)
 {
-    m_videoOverlay.setHue(hue);
+    m_videoOverlay->setHue(hue);
 }
 
 int QGstreamerVideoSink::saturation() const
 {
-    return m_videoOverlay.saturation();
+    return m_videoOverlay->saturation();
 }
 
 void QGstreamerVideoSink::setSaturation(int saturation)
 {
-    m_videoOverlay.setSaturation(saturation);
+    m_videoOverlay->setSaturation(saturation);
 }
 
 bool QGstreamerVideoSink::isFullScreen() const
@@ -163,10 +206,33 @@ bool QGstreamerVideoSink::isFullScreen() const
 
 void QGstreamerVideoSink::setFullScreen(bool fullScreen)
 {
+    if (fullScreen == m_fullScreen)
+        return;
     m_fullScreen = fullScreen;
+    if (m_graphicsType != QVideoSink::NativeWindow)
+        emit sinkChanged();
 }
 
 QSize QGstreamerVideoSink::nativeSize() const
 {
-    return m_videoOverlay.nativeVideoSize();
+    return m_videoOverlay->nativeVideoSize();
+}
+
+void QGstreamerVideoSink::createOverlay()
+{
+    if (m_videoOverlay)
+        return;
+    m_videoOverlay = new QGstreamerVideoOverlay(this, qgetenv("QT_GSTREAMER_WINDOW_VIDEOSINK"));
+    connect(m_videoOverlay, &QGstreamerVideoOverlay::nativeVideoSizeChanged,
+            this, &QGstreamerVideoSink::nativeSizeChanged);
+}
+
+void QGstreamerVideoSink::createRenderer()
+{
+    m_videoRenderer = new QGstreamerVideoRenderer(this);
+    m_videoSurface = new QGstreamerVideoSurface(this);
+    m_videoRenderer->setSurface(m_videoSurface);
+
+    qCDebug(qLcMediaVideoSink) << Q_FUNC_INFO;
+    connect(m_videoRenderer, SIGNAL(sinkChanged()), this, SLOT(updateVideoRenderer()));
 }

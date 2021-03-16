@@ -67,8 +67,9 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a new video window control with the given \a parent.
 */
-QPlatformVideoSink::QPlatformVideoSink(QObject *parent)
-    : QObject(parent)
+QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
+    : QObject(parent),
+    sink(parent)
 {
 }
 

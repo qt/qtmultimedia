@@ -88,9 +88,9 @@ QPlatformMediaPlayer *QGstreamerIntegration::createPlayer(QMediaPlayer *player)
     return new QGstreamerMediaPlayer(player);
 }
 
-QPlatformVideoSink *QGstreamerIntegration::createVideoSink()
+QPlatformVideoSink *QGstreamerIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new QGstreamerVideoSink();
+    return new QGstreamerVideoSink(sink);
 }
 
 QT_END_NAMESPACE

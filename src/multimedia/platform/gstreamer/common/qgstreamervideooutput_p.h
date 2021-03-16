@@ -54,6 +54,8 @@
 #include <QtCore/qobject.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qgst_p.h>
+#include <qwaitcondition.h>
+#include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -79,9 +81,13 @@ public:
 
     void setIsPreview();
 
+    void updateVideoSink(const QGstElement &sink);
+public slots:
+    void sinkChanged();
+    void changeVideoOutput();
+
 private:
     void prepareVideoOutputChange(const QGstPad &pad);
-    void changeVideoOutput();
 
     QAbstractVideoSurface *m_videoSurface = nullptr;
     QVideoSink *m_videoSink = nullptr;

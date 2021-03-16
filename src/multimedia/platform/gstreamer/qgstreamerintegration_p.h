@@ -73,7 +73,7 @@ public:
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
 
-    QPlatformVideoSink *createVideoSink() override;
+    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
     QGstreamerDeviceManager *m_manager = nullptr;
     QGstreamerFormatInfo *m_formatsInfo = nullptr;

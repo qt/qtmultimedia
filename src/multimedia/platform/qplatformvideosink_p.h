@@ -89,11 +89,14 @@ public:
     virtual int saturation() const = 0;
     virtual void setSaturation(int saturation) = 0;
 
+    QVideoSink *videoSink() { return sink; }
+
 Q_SIGNALS:
     void nativeSizeChanged();
 
 protected:
-    explicit QPlatformVideoSink(QObject *parent = nullptr);
+    explicit QPlatformVideoSink(QVideoSink *parent);
+    QVideoSink *sink = nullptr;
 };
 
 QT_END_NAMESPACE

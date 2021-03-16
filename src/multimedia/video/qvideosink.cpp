@@ -53,14 +53,16 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSinkPrivate {
 public:
-    QVideoSinkPrivate()
+    QVideoSinkPrivate(QVideoSink *q)
+        : q_ptr(q)
     {
-        videoSink = QPlatformMediaIntegration::instance()->createVideoSink();
+        videoSink = QPlatformMediaIntegration::instance()->createVideoSink(q);
     }
     ~QVideoSinkPrivate()
     {
         delete videoSink;
     }
+    QVideoSink *q_ptr = nullptr;
     QPlatformVideoSink *videoSink = nullptr;
     QVideoSink::GraphicsType type = QVideoSink::Memory;
     QVideoSurfaceFormat surfaceFormat;
@@ -79,7 +81,7 @@ public:
 
 QVideoSink::QVideoSink(QObject *parent)
     : QObject(parent),
-    d(new QVideoSinkPrivate)
+    d(new QVideoSinkPrivate(this))
 {
 }
 
@@ -227,17 +229,49 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
     QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;//format.scanLineDirection();
     bool mirrored = false;//format.isMirrored();
 
-    QRectF source = d->targetRect; // ####
+    QSizeF size = frame.size();
+    QRectF source = QRectF(0, 0, size.width(), size.height());
+    QRectF targetRect = d->targetRect;
+    if (d->aspectRatioMode == Qt::KeepAspectRatio) {
+        size.scale(targetRect.size(), Qt::KeepAspectRatio);
+        targetRect = QRect(0, 0, size.width(), size.height());
+        targetRect.moveCenter(d->targetRect.center());
+        // we might not be drawing every pixel, fill the leftover black
+        if (d->targetRect != targetRect) {
+            if (targetRect.top() > d->targetRect.top()) {
+                QRectF top(d->targetRect.left(), d->targetRect.top(), d->targetRect.width(), targetRect.top() - d->targetRect.top());
+                painter->fillRect(top, Qt::black);
+            }
+            if (targetRect.left() > d->targetRect.left()) {
+                QRectF top(d->targetRect.left(), targetRect.top(), targetRect.left() - d->targetRect.left(), targetRect.height());
+                painter->fillRect(top, Qt::black);
+            }
+            if (targetRect.right() < d->targetRect.right()) {
+                QRectF top(targetRect.right(), targetRect.top(), d->targetRect.right() - targetRect.right(), targetRect.height());
+                painter->fillRect(top, Qt::black);
+            }
+            if (targetRect.bottom() < d->targetRect.bottom()) {
+                QRectF top(d->targetRect.left(), targetRect.bottom(), d->targetRect.width(), d->targetRect.bottom() - targetRect.bottom());
+                painter->fillRect(top, Qt::black);
+            }
+        }
+    } else if (d->aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
+        QSizeF targetSize = targetRect.size();
+        targetSize.scale(size, Qt::KeepAspectRatio);
+
+        QRectF s(0, 0, targetSize.width(), targetSize.height());
+        s.moveCenter(source.center());
+        source = s;
+    }
 
     if (frame.handleType() == QVideoFrame::QPixmapHandle) {
-        painter->drawPixmap(d->targetRect, frame.handle().value<QPixmap>(), source);
+        painter->drawPixmap(targetRect, frame.handle().value<QPixmap>(), source);
     } else if (frame.map(QVideoFrame::ReadOnly)) {
         QImage image = frame.image();
 
         auto oldOpacity = painter->opacity();
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;
-        QRectF targetRect = d->targetRect;
         if (scanLineDirection == QVideoSurfaceFormat::BottomToTop) {
             transform.scale(1, -1);
             transform.translate(0, -targetRect.bottom());
@@ -259,7 +293,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
     } else if (frame.isValid()) {
         // #### error handling
     } else {
-        painter->fillRect(targetRect(), Qt::black);
+        painter->fillRect(d->targetRect, Qt::black);
     }
 }
 

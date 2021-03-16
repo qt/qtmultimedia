@@ -57,6 +57,9 @@ private:
 class QtTestWindowControl : public QPlatformVideoSink
 {
 public:
+    QtTestWindowControl(QVideoSink *parent = nullptr)
+        : QPlatformVideoSink(parent)
+    {}
     [[nodiscard]] WId winId() const override { return m_winId; }
     void setWinId(WId id) override { m_winId = id; }
 

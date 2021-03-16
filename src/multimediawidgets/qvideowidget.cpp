@@ -108,8 +108,11 @@ QVideoWidget::QVideoWidget(QWidget *parent)
 {
     d_ptr->q_ptr = this;
     d_ptr->videoSink = new QVideoSink(this);
-    d_ptr->videoSink->setGraphicsType(QVideoSink::NativeWindow);
+    d_ptr->videoSink->setGraphicsType(QVideoSink::Memory);
+    d_ptr->videoSink->setTargetRect(rect());
+
     d_ptr->videoSink->setNativeWindowId(winId());
+    connect(d_ptr->videoSink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_newFrame(const QVideoFrame &)));
 }
 
 /*!
@@ -383,6 +386,7 @@ void QVideoWidget::hideEvent(QHideEvent *event)
  */
 void QVideoWidget::resizeEvent(QResizeEvent *event)
 {
+    d_ptr->videoSink->setTargetRect(QRectF(0, 0, event->size().width(), event->size().height()));
     QWidget::resizeEvent(event);
 }
 
