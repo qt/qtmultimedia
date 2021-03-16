@@ -60,6 +60,7 @@ class QPlatformMediaEncoder;
 class QAudioDeviceInfo;
 class QCameraInfo;
 class QAbstractVideoSurface;
+class QVideoSink;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
@@ -81,6 +82,7 @@ public:
     virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
 
     virtual void setVideoPreview(QAbstractVideoSurface *surface) = 0;
+    virtual void setVideoPreview(QVideoSink */*sink*/) {}
     virtual QAudioDeviceInfo audioPreview() const;
     virtual bool setAudioPreview(const QAudioDeviceInfo &) { return true; }
 

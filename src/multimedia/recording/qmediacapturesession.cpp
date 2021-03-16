@@ -209,12 +209,22 @@ void QMediaCaptureSession::setEncoder(QMediaEncoder *recorder)
 void QMediaCaptureSession::setVideoPreview(QObject *preview)
 {
     auto *mo = preview->metaObject();
+    QVideoSink *sink = nullptr;
+    if (!preview || mo->invokeMethod(preview, "videoSink", Q_RETURN_ARG(QVideoSink *, sink))) {
+        setVideoPreview(sink);
+        return;
+    }
     QAbstractVideoSurface *surface = nullptr;
     if (preview && !mo->invokeMethod(preview, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
         qWarning() << "QCamera::setViewFinder: Object" << preview->metaObject()->className() << "does not have a videoSurface()";
         return;
     }
     setVideoPreview(surface);
+}
+
+void QMediaCaptureSession::setVideoPreview(QVideoSink *preview)
+{
+    d_ptr->captureSession->setVideoPreview(preview);
 }
 
 /*!

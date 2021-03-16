@@ -234,5 +234,5 @@ void QGstreamerVideoSink::createRenderer()
     m_videoRenderer->setSurface(m_videoSurface);
 
     qCDebug(qLcMediaVideoSink) << Q_FUNC_INFO;
-    connect(m_videoRenderer, SIGNAL(sinkChanged()), this, SLOT(updateVideoRenderer()));
+    connect(m_videoRenderer, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
 }

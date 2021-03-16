@@ -149,6 +149,11 @@ void QGstreamerMediaCapture::setVideoPreview(QAbstractVideoSurface *surface)
     gstVideoOutput->setVideoSurface(surface);
 }
 
+void QGstreamerMediaCapture::setVideoPreview(QVideoSink *sink)
+{
+    gstVideoOutput->setVideoSink(sink);
+}
+
 QAudioDeviceInfo QGstreamerMediaCapture::audioPreview() const
 {
     return gstAudioOutput->audioOutput();
