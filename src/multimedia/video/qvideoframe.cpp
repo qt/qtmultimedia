@@ -1071,7 +1071,7 @@ QImage QVideoFrame::image() const
         if (!convert) {
             qWarning() << Q_FUNC_INFO << ": unsupported pixel format" << frame.pixelFormat();
         } else {
-            result = QImage(frame.width(), frame.height(), QImage::Format_ARGB32);
+            result = QImage(frame.width(), frame.height(), QImage::Format_ARGB32_Premultiplied);
             convert(frame, result.bits());
         }
     }
