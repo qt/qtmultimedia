@@ -92,12 +92,12 @@ QVideoSink::~QVideoSink()
 
 QVideoSink::GraphicsType QVideoSink::graphicsType() const
 {
-    return d->type;
+    return d->videoSink->graphicsType();
 }
 
 void QVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
 {
-    d->type = type;
+    d->videoSink->setGraphicsType(type);
 }
 
 bool QVideoSink::isGraphicsTypeSupported(QVideoSink::GraphicsType type)

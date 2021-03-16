@@ -108,7 +108,7 @@ QVideoWidget::QVideoWidget(QWidget *parent)
 {
     d_ptr->q_ptr = this;
     d_ptr->videoSink = new QVideoSink(this);
-    d_ptr->videoSink->setGraphicsType(QVideoSink::Memory);
+    d_ptr->videoSink->setGraphicsType(QVideoSink::NativeWindow);
     d_ptr->videoSink->setTargetRect(rect());
 
     d_ptr->videoSink->setNativeWindowId(winId());

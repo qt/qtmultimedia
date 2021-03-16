@@ -99,6 +99,7 @@ bool QGstreamerVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
     else
         return false;
     m_graphicsType = type;
+    emit sinkChanged();
     return true;
 }
 
