@@ -94,7 +94,6 @@ public:
 
         Format_P010LE,
         Format_P010BE,
-
         Format_P016LE,
         Format_P016BE,
 

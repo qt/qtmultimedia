@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qvideoframeconversionhelper_p.h"
+#include "qrgb.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -94,9 +95,41 @@ static inline void planarYUV420_to_ARGB32(const uchar *y, int yStride,
     }
 }
 
+static inline void planarYUV422_to_ARGB32(const uchar *y, int yStride,
+                                          const uchar *u, int uStride,
+                                          const uchar *v, int vStride,
+                                          int uvPixelStride,
+                                          quint32 *rgb,
+                                          int width, int height)
+{
+    quint32 *rgb0 = rgb;
+    quint32 *rgb1 = rgb + width;
+
+    for (int j = 0; j < height; ++j) {
+        const uchar *lineY0 = y;
+        const uchar *lineU = u;
+        const uchar *lineV = v;
+
+        for (int i = 0; i < width; i += 2) {
+            EXPAND_UV(*lineU, *lineV);
+            lineU += uvPixelStride;
+            lineV += uvPixelStride;
+
+            *rgb0++ = qYUVToARGB32(*lineY0++, rv, guv, bu);
+            *rgb0++ = qYUVToARGB32(*lineY0++, rv, guv, bu);
+        }
+
+        y += yStride << 1; // stride * 2
+        u += uStride;
+        v += vStride;
+        rgb0 += width;
+        rgb1 += width;
+    }
+}
 
 
-void QT_FASTCALL qt_convert_YUV420P_to_ARGB32(const QVideoFrame &frame, uchar *output)
+
+static void QT_FASTCALL qt_convert_YUV420P_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_TRIPLANAR(frame)
     planarYUV420_to_ARGB32(plane1, plane1Stride,
@@ -107,7 +140,19 @@ void QT_FASTCALL qt_convert_YUV420P_to_ARGB32(const QVideoFrame &frame, uchar *o
                            width, height);
 }
 
-void QT_FASTCALL qt_convert_YV12_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_YUV422P_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_TRIPLANAR(frame)
+    planarYUV422_to_ARGB32(plane1, plane1Stride,
+                           plane2, plane2Stride,
+                           plane3, plane3Stride,
+                           1,
+                           reinterpret_cast<quint32*>(output),
+                           width, height);
+}
+
+
+static void QT_FASTCALL qt_convert_YV12_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_TRIPLANAR(frame)
     planarYUV420_to_ARGB32(plane1, plane1Stride,
@@ -118,7 +163,32 @@ void QT_FASTCALL qt_convert_YV12_to_ARGB32(const QVideoFrame &frame, uchar *outp
                            width, height);
 }
 
-void QT_FASTCALL qt_convert_AYUV444_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_AYUV444_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_PACKED(frame)
+    MERGE_LOOPS(width, height, stride, 4)
+
+    quint32 *rgb = reinterpret_cast<quint32*>(output);
+
+    for (int i = 0; i < height; ++i) {
+        const uchar *lineSrc = src;
+
+        for (int j = 0; j < width; ++j) {
+            int a = *lineSrc++;
+            int y = *lineSrc++;
+            int u = *lineSrc++;
+            int v = *lineSrc++;
+
+            EXPAND_UV(u, v);
+
+            *rgb++ = qPremultiply(qYUVToARGB32(y, rv, guv, bu, a));
+        }
+
+        src += stride;
+    }
+}
+
+static void QT_FASTCALL qt_convert_AYUV444_Premultiplied_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 4)
@@ -143,7 +213,7 @@ void QT_FASTCALL qt_convert_AYUV444_to_ARGB32(const QVideoFrame &frame, uchar *o
     }
 }
 
-void QT_FASTCALL qt_convert_YUV444_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_YUV444_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 3)
@@ -167,7 +237,7 @@ void QT_FASTCALL qt_convert_YUV444_to_ARGB32(const QVideoFrame &frame, uchar *ou
     }
 }
 
-void QT_FASTCALL qt_convert_UYVY_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_UYVY_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 2)
@@ -193,7 +263,7 @@ void QT_FASTCALL qt_convert_UYVY_to_ARGB32(const QVideoFrame &frame, uchar *outp
     }
 }
 
-void QT_FASTCALL qt_convert_YUYV_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_YUYV_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 2)
@@ -219,7 +289,7 @@ void QT_FASTCALL qt_convert_YUYV_to_ARGB32(const QVideoFrame &frame, uchar *outp
     }
 }
 
-void QT_FASTCALL qt_convert_NV12_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_NV12_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_BIPLANAR(frame)
     planarYUV420_to_ARGB32(plane1, plane1Stride,
@@ -230,7 +300,7 @@ void QT_FASTCALL qt_convert_NV12_to_ARGB32(const QVideoFrame &frame, uchar *outp
                            width, height);
 }
 
-void QT_FASTCALL qt_convert_NV21_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_NV21_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_BIPLANAR(frame)
     planarYUV420_to_ARGB32(plane1, plane1Stride,
@@ -241,7 +311,88 @@ void QT_FASTCALL qt_convert_NV21_to_ARGB32(const QVideoFrame &frame, uchar *outp
                            width, height);
 }
 
-void QT_FASTCALL qt_convert_BGRA32_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_IMC1_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_TRIPLANAR(frame)
+    Q_ASSERT(plane1Stride == plane2Stride);
+    Q_ASSERT(plane1Stride == plane3Stride);
+
+    planarYUV420_to_ARGB32(plane1, plane1Stride,
+                           plane3, plane3Stride,
+                           plane2, plane2Stride,
+                           1,
+                           reinterpret_cast<quint32*>(output),
+                           width, height);
+}
+
+static void QT_FASTCALL qt_convert_IMC2_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_BIPLANAR(frame)
+    Q_ASSERT(plane1Stride == plane2Stride);
+
+    planarYUV420_to_ARGB32(plane1, plane1Stride,
+                           plane2 + (plane1Stride >> 1), plane1Stride,
+                           plane2, plane1Stride,
+                           1,
+                           reinterpret_cast<quint32*>(output),
+                           width, height);
+}
+
+static void QT_FASTCALL qt_convert_IMC3_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_TRIPLANAR(frame)
+    Q_ASSERT(plane1Stride == plane2Stride);
+    Q_ASSERT(plane1Stride == plane3Stride);
+
+    planarYUV420_to_ARGB32(plane1, plane1Stride,
+                           plane2, plane2Stride,
+                           plane3, plane3Stride,
+                           1,
+                           reinterpret_cast<quint32*>(output),
+                           width, height);
+}
+
+static void QT_FASTCALL qt_convert_IMC4_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_BIPLANAR(frame)
+    Q_ASSERT(plane1Stride == plane2Stride);
+
+    planarYUV420_to_ARGB32(plane1, plane1Stride,
+                           plane2, plane1Stride,
+                           plane2 + (plane1Stride >> 1), plane1Stride,
+                           1,
+                           reinterpret_cast<quint32*>(output),
+                           width, height);
+}
+
+
+static void QT_FASTCALL qt_convert_BGRA32_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_PACKED(frame)
+    MERGE_LOOPS(width, height, stride, 4)
+
+    quint32 *argb = reinterpret_cast<quint32*>(output);
+
+    for (int y = 0; y < height; ++y) {
+        const quint32 *bgra = reinterpret_cast<const quint32*>(src);
+
+        int x = 0;
+        for (; x < width - 3; x += 4) {
+            *argb++ = qPremultiply(qConvertBGRA32ToARGB32(*bgra++));
+            *argb++ = qPremultiply(qConvertBGRA32ToARGB32(*bgra++));
+            *argb++ = qPremultiply(qConvertBGRA32ToARGB32(*bgra++));
+            *argb++ = qPremultiply(qConvertBGRA32ToARGB32(*bgra++));
+        }
+
+        // leftovers
+        for (; x < width; ++x)
+            *argb++ = qPremultiply(qConvertBGRA32ToARGB32(*bgra++));
+
+        src += stride;
+    }
+}
+
+static void QT_FASTCALL qt_convert_BGRA32_Premultiplied_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 4)
@@ -267,7 +418,33 @@ void QT_FASTCALL qt_convert_BGRA32_to_ARGB32(const QVideoFrame &frame, uchar *ou
     }
 }
 
-void QT_FASTCALL qt_convert_BGR24_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_ABGR32_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_PACKED(frame)
+    MERGE_LOOPS(width, height, stride, 4)
+
+    quint32 *argb = reinterpret_cast<quint32*>(output);
+
+    for (int y = 0; y < height; ++y) {
+        const quint32 *abgr = reinterpret_cast<const quint32*>(src);
+
+        int x = 0;
+        for (; x < width - 3; x += 4) {
+            *argb++ = qConvertABGR32ToARGB32(*abgr++);
+            *argb++ = qConvertABGR32ToARGB32(*abgr++);
+            *argb++ = qConvertABGR32ToARGB32(*abgr++);
+            *argb++ = qConvertABGR32ToARGB32(*abgr++);
+        }
+
+        // leftovers
+        for (; x < width; ++x)
+            *argb++ = qConvertABGR32ToARGB32(*abgr++);
+
+        src += stride;
+    }
+}
+
+static void QT_FASTCALL qt_convert_BGR24_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 3)
@@ -299,7 +476,7 @@ void QT_FASTCALL qt_convert_BGR24_to_ARGB32(const QVideoFrame &frame, uchar *out
     }
 }
 
-void QT_FASTCALL qt_convert_BGR565_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_BGR565_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 2)
@@ -325,7 +502,7 @@ void QT_FASTCALL qt_convert_BGR565_to_ARGB32(const QVideoFrame &frame, uchar *ou
     }
 }
 
-void QT_FASTCALL qt_convert_BGR555_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_BGR555_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_PACKED(frame)
     MERGE_LOOPS(width, height, stride, 2)
@@ -350,6 +527,39 @@ void QT_FASTCALL qt_convert_BGR555_to_ARGB32(const QVideoFrame &frame, uchar *ou
         src += stride;
     }
 }
+
+static void QT_FASTCALL qt_convert_BGRA5658_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_PACKED(frame)
+    MERGE_LOOPS(width, height, stride, 3)
+
+    quint32 *argb = reinterpret_cast<quint32*>(output);
+
+    for (int y = 0; y < height; ++y) {
+        const uchar *bgr = src;
+
+        int x = 0;
+        for (; x < width - 3; x += 4) {
+            *argb++ = qConvertBGRA5658ToARGB32(bgr);
+            bgr += 3;
+            *argb++ = qConvertBGRA5658ToARGB32(bgr);
+            bgr += 3;
+            *argb++ = qConvertBGRA5658ToARGB32(bgr);
+            bgr += 3;
+            *argb++ = qConvertBGRA5658ToARGB32(bgr);
+            bgr += 3;
+        }
+
+        // leftovers
+        for (; x < width; ++x) {
+            *argb++ = qConvertBGRA5658ToARGB32(bgr);
+            bgr += 3;
+        }
+
+        src += stride;
+    }
+}
+
 
 static inline void planarYUV420_16bit_to_ARGB32(const uchar *y, int yStride,
                                                   const uchar *u, int uStride,
@@ -390,7 +600,7 @@ static inline void planarYUV420_16bit_to_ARGB32(const uchar *y, int yStride,
     }
 }
 
-void QT_FASTCALL qt_convert_P016LE_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_P016LE_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_BIPLANAR(frame)
     planarYUV420_16bit_to_ARGB32(plane1 + 1, plane1Stride,
@@ -402,7 +612,7 @@ void QT_FASTCALL qt_convert_P016LE_to_ARGB32(const QVideoFrame &frame, uchar *ou
 
 }
 
-void QT_FASTCALL qt_convert_P016BE_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_P016BE_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_BIPLANAR(frame)
     planarYUV420_16bit_to_ARGB32(plane1, plane1Stride,
@@ -413,5 +623,85 @@ void QT_FASTCALL qt_convert_P016BE_to_ARGB32(const QVideoFrame &frame, uchar *ou
                                  width, height);
 
 }
+
+static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
+    /* Format_Invalid */                nullptr, // Not needed
+    /* Format_ARGB32 */                 nullptr, // Not needed
+    /* Format_ARGB32_Premultiplied */   nullptr, // Not needed
+    /* Format_RGB32 */                  nullptr, // Not needed
+    /* Format_RGB24 */                  nullptr, // Not needed
+    /* Format_RGB565 */                 nullptr, // Not needed
+    /* Format_RGB555 */                 nullptr, // Not needed
+    /* Format_ARGB8565_Premultiplied */ nullptr, // Not needed
+    /* Format_BGRA32 */                 qt_convert_BGRA32_to_ARGB32,
+    /* Format_BGRA32_Premultiplied */   qt_convert_BGRA32_Premultiplied_to_ARGB32,
+    /* Format_ABGR32 */                 qt_convert_ABGR32_to_ARGB32,
+    /* Format_BGR32 */                  qt_convert_BGRA32_Premultiplied_to_ARGB32,
+    /* Format_BGR24 */                  qt_convert_BGR24_to_ARGB32,
+    /* Format_BGR565 */                 qt_convert_BGR565_to_ARGB32,
+    /* Format_BGR555 */                 qt_convert_BGR555_to_ARGB32,
+    /* Format_BGRA5658_Premultiplied */ qt_convert_BGRA5658_to_ARGB32,
+    /* Format_AYUV444 */                qt_convert_AYUV444_to_ARGB32,
+    /* Format_AYUV444_Premultiplied */  qt_convert_AYUV444_Premultiplied_to_ARGB32,
+    /* Format_YUV444 */                 qt_convert_YUV444_to_ARGB32,
+    /* Format_YUV420P */                qt_convert_YUV420P_to_ARGB32,
+    /* Format_YUV422P */                qt_convert_YUV422P_to_ARGB32,
+    /* Format_YV12 */                   qt_convert_YV12_to_ARGB32,
+    /* Format_UYVY */                   qt_convert_UYVY_to_ARGB32,
+    /* Format_YUYV */                   qt_convert_YUYV_to_ARGB32,
+    /* Format_NV12 */                   qt_convert_NV12_to_ARGB32,
+    /* Format_NV21 */                   qt_convert_NV21_to_ARGB32,
+    /* Format_IMC1 */                   qt_convert_IMC1_to_ARGB32,
+    /* Format_IMC2 */                   qt_convert_IMC2_to_ARGB32,
+    /* Format_IMC3 */                   qt_convert_IMC3_to_ARGB32,
+    /* Format_IMC4 */                   qt_convert_IMC4_to_ARGB32,
+    /* Format_Y8 */                     nullptr, // Not needed
+    /* Format_Y16 */                    nullptr, // Not needed
+    /* Format_P010LE */                 qt_convert_P016LE_to_ARGB32,
+    /* Format_P010BE */                 qt_convert_P016BE_to_ARGB32,
+    /* Format_P016LE */                 qt_convert_P016LE_to_ARGB32,
+    /* Format_P016BE */                 qt_convert_P016BE_to_ARGB32,
+    /* Format_Jpeg */                   nullptr, // Not needed
+};
+
+static void qInitConvertFuncsAsm()
+{
+#ifdef QT_COMPILER_SUPPORTS_SSE2
+    extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_sse2(const QVideoFrame&, uchar*);
+    if (qCpuHasFeature(SSE2)){
+        qConvertFuncs[QVideoFrame::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrame::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrame::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_sse2;
+    }
+#endif
+#ifdef QT_COMPILER_SUPPORTS_SSSE3
+    extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_ssse3(const QVideoFrame&, uchar*);
+    if (qCpuHasFeature(SSSE3)){
+        qConvertFuncs[QVideoFrame::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrame::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrame::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_ssse3;
+    }
+#endif
+#ifdef QT_COMPILER_SUPPORTS_AVX2
+    extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_avx2(const QVideoFrame&, uchar*);
+    if (qCpuHasFeature(AVX2)){
+        qConvertFuncs[QVideoFrame::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrame::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrame::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_avx2;
+    }
+#endif
+}
+
+VideoFrameConvertFunc qConverterForFormat(QVideoFrame::PixelFormat format)
+{
+    static bool initAsmFuncsDone = false;
+    if (!initAsmFuncsDone) {
+        qInitConvertFuncsAsm();
+        initAsmFuncsDone = true;
+    }
+    VideoFrameConvertFunc convert = qConvertFuncs[format];
+    return convert;
+}
+
 
 QT_END_NAMESPACE

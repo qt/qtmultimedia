@@ -54,7 +54,10 @@
 #include <qvideoframe.h>
 #include <private/qsimd_p.h>
 
+// Converts to RGB32 or ARGB32_Premultiplied
 typedef void (QT_FASTCALL *VideoFrameConvertFunc)(const QVideoFrame &frame, uchar *output);
+
+VideoFrameConvertFunc qConverterForFormat(QVideoFrame::PixelFormat format);
 
 inline quint32 qConvertBGRA32ToARGB32(quint32 bgra)
 {
@@ -64,9 +67,24 @@ inline quint32 qConvertBGRA32ToARGB32(quint32 bgra)
             | ((bgra & 0x000000FF) << 24));
 }
 
+inline quint32 qConvertABGR32ToARGB32(quint32 abgr)
+{
+    return ((abgr & 0xFF000000)
+            | ((abgr & 0x00FF0000) >> 16)
+            | (abgr & 0x0000FF00)
+            | ((abgr & 0x000000FF) << 16));
+}
+
 inline quint32 qConvertBGR24ToARGB32(const uchar *bgr)
 {
     return 0xFF000000 | bgr[0] | bgr[1] << 8 | bgr[2] << 16;
+}
+
+inline quint32 qConvertBGRA5658ToARGB32(const uchar *bgr)
+{
+    return (bgr[0] & 0xf8) | (quint32(bgr[0] & 7) << 13) |
+           (quint32(bgr[1] & 0xe0) << 5) | (quint32(bgr[1] & 0x1f) << 3) |
+           bgr[2] << 24;
 }
 
 inline quint32 qConvertBGR565ToARGB32(quint16 bgr)
