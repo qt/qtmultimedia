@@ -247,12 +247,6 @@ private:
     \value Format_Jpeg
     The frame is stored in compressed Jpeg format.
 
-    \value Format_CameraRaw
-    The frame is stored using a device specific camera raw format.
-
-    \value Format_AdobeDng
-    The frame is stored using raw Adobe Digital Negative (DNG) format.
-
     \value Format_User
     Start value for user defined pixel formats.
 */
@@ -568,8 +562,6 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case Format_Y8:
         case Format_Y16:
         case Format_Jpeg:
-        case Format_CameraRaw:
-        case Format_AdobeDng:
             // Single plane or opaque format.
             break;
         case Format_YUV420P:
@@ -948,8 +940,6 @@ QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
     case Format_Y8:
     case Format_Y16:
     case Format_Jpeg:
-    case Format_CameraRaw:
-    case Format_AdobeDng:
         return QImage::Format_Invalid;
     default:
         return QImage::Format_Invalid;
@@ -1011,8 +1001,6 @@ static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
     /* Format_P016LE */                 qt_convert_P016LE_to_ARGB32,
     /* Format_P016BE */                 qt_convert_P016BE_to_ARGB32,
     /* Format_Jpeg */                   nullptr, // Not needed
-    /* Format_CameraRaw */              nullptr,
-    /* Format_AdobeDng */               nullptr,
 };
 
 static void qInitConvertFuncsAsm()
@@ -1168,10 +1156,6 @@ QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
             return dbg << "Format_P016BE";
         case QVideoFrame::Format_Jpeg:
             return dbg << "Format_Jpeg";
-        case QVideoFrame::Format_AdobeDng:
-            return dbg << "Format_AdobeDng";
-        case QVideoFrame::Format_CameraRaw:
-            return dbg << "Format_CameraRaw";
 
         default:
             return dbg << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toLatin1().constData();

@@ -99,12 +99,9 @@ public:
         Format_P016BE,
 
         Format_Jpeg,
-
-        Format_CameraRaw,
-        Format_AdobeDng
     };
 #ifndef Q_QDOC
-    static constexpr int NPixelFormats = Format_AdobeDng + 1;
+    static constexpr int NPixelFormats = Format_Jpeg + 1;
 #endif
 
     enum HandleType

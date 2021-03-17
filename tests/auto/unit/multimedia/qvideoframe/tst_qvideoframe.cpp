@@ -960,12 +960,6 @@ void tst_QVideoFrame::formatConversion_data()
     QTest::newRow("QVideoFrame::Format_Jpeg")
             << QImage::Format_Invalid
             << QVideoFrame::Format_Jpeg;
-    QTest::newRow("QVideoFrame::Format_CameraRaw")
-            << QImage::Format_Invalid
-            << QVideoFrame::Format_CameraRaw;
-    QTest::newRow("QVideoFrame::Format_AdobeDng")
-            << QImage::Format_Invalid
-            << QVideoFrame::Format_AdobeDng;
 }
 
 void tst_QVideoFrame::formatConversion()
