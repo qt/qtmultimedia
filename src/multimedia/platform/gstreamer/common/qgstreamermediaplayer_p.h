@@ -164,9 +164,10 @@ private:
     QGstElement src;
     QGstElement decoder;
     QGstElement inputSelector[3];
+    bool selectorIsConnected[3] = { false, false, false };
 
-    QGstreamerAudioOutput *gstAudioOutput;
-    QGstreamerVideoOutput *gstVideoOutput;
+    QGstreamerAudioOutput *gstAudioOutput = nullptr;
+    QGstreamerVideoOutput *gstVideoOutput = nullptr;
 
     //    QGstElement streamSynchronizer;
 

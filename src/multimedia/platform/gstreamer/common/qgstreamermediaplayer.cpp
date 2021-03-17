@@ -74,22 +74,16 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
     connect(gstAudioOutput, &QGstreamerAudioOutput::mutedChanged, this, &QGstreamerMediaPlayer::mutedChangedHandler);
     connect(gstAudioOutput, &QGstreamerAudioOutput::volumeChanged, this, &QGstreamerMediaPlayer::volumeChangedHandler);
 
-    inputSelector[AudioStream] = QGstElement("input-selector", "audioInputSelector");
-    playerPipeline.add(inputSelector[AudioStream], gstAudioOutput->gstElement());
-    inputSelector[AudioStream].link(gstAudioOutput->gstElement());
-
     gstVideoOutput = new QGstreamerVideoOutput(this);
     gstVideoOutput->setPipeline(playerPipeline);
 
+    inputSelector[AudioStream] = QGstElement("input-selector", "audioInputSelector");
     inputSelector[VideoStream] = QGstElement("input-selector", "videoInputSelector");
-    playerPipeline.add(inputSelector[VideoStream], gstVideoOutput->gstElement());
-    inputSelector[VideoStream].link(gstVideoOutput->gstElement());
-
     inputSelector[SubtitleStream] = QGstElement("input-selector", "subTitleInputSelector");
-    playerPipeline.add(inputSelector[SubtitleStream]);
+
+    playerPipeline.add(inputSelector[AudioStream], inputSelector[VideoStream], inputSelector[SubtitleStream]);
 
     playerPipeline.setState(GST_STATE_NULL);
-
     playerPipeline.installMessageFilter(this);
 
     /* Taken from gstdicoverer.c:
@@ -472,16 +466,26 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
     qCDebug(qLcMediaPlayer) << "    " << caps.toString();
 
     TrackType streamType = NTrackTypes;
+    QGstElement output;
     if (type.startsWith("video/x-raw")) {
         streamType = VideoStream;
+        output = gstVideoOutput->gstElement();
     } else if (type.startsWith("audio/x-raw")) {
         streamType = AudioStream;
+        output = gstAudioOutput->gstElement();
     } else if (type.startsWith("text/")) {
         streamType = SubtitleStream;
     } else {
         qCWarning(qLcMediaPlayer) << "Ignoring unknown media stream:" << pad.name() << type;
         return;
     }
+    if (!selectorIsConnected[streamType] && !output.isNull()) {
+        playerPipeline.add(output);
+        inputSelector[streamType].link(output);
+        output.setState(GST_STATE_PAUSED);
+        selectorIsConnected[streamType] = true;
+    }
+
     QGstPad sinkPad = inputSelector[streamType].getRequestPad("sink_%u");
     if (!pad.link(sinkPad))
           qCWarning(qLcMediaPlayer) << "Failed to link video pads.";
@@ -522,10 +526,19 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
     m_streams[streamType].removeAll(peer);
 
     if (m_streams[streamType].size() == 0) {
-        if (streamType == VideoStream)
+        QGstElement outputToRemove;
+        if (streamType == VideoStream) {
             emit videoAvailableChanged(false);
-        else if (streamType == AudioStream)
+            outputToRemove = gstVideoOutput->gstElement();
+        } else if (streamType == AudioStream) {
             emit audioAvailableChanged(false);
+            outputToRemove = gstAudioOutput->gstElement();
+        }
+        if (!outputToRemove.isNull()) {
+            outputToRemove.setState(GST_STATE_NULL);
+            playerPipeline.remove(outputToRemove);
+            selectorIsConnected[streamType] = false;
+        }
     }
 
 
@@ -734,7 +747,8 @@ QMediaMetaData QGstreamerMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackT
 int QGstreamerMediaPlayer::activeTrack(QPlatformMediaPlayer::TrackType type)
 {
     auto &selector = inputSelector[type];
-    Q_ASSERT(!selector.isNull());
+    if (selector.isNull())
+        return -1;
     QGstPad activePad = selector.getObject("active-pad");
     if (activePad.isNull())
         return -1;
@@ -748,7 +762,8 @@ void QGstreamerMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type,
     if (index < 0 || index >= streams.count())
         return;
     auto &selector = inputSelector[type];
-    Q_ASSERT(!selector.isNull());
+    if (selector.isNull())
+        return;
     selector.set("active-pad", streams.at(index));
 }
 
