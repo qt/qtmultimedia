@@ -252,6 +252,8 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoFrame::Format_NV12   , GST_VIDEO_FORMAT_NV12 },
     { QVideoFrame::Format_NV21   , GST_VIDEO_FORMAT_NV21 },
     { QVideoFrame::Format_AYUV444, GST_VIDEO_FORMAT_AYUV },
+    { QVideoFrame::Format_P010LE , GST_VIDEO_FORMAT_P010_10LE },
+    { QVideoFrame::Format_P010BE , GST_VIDEO_FORMAT_P010_10BE },
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
     { QVideoFrame::Format_RGB32 ,  GST_VIDEO_FORMAT_BGRx },
     { QVideoFrame::Format_BGR32 ,  GST_VIDEO_FORMAT_RGBx },

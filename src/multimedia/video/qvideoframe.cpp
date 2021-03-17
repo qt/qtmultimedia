@@ -970,6 +970,8 @@ extern void QT_FASTCALL qt_convert_UYVY_to_ARGB32(const QVideoFrame&, uchar*);
 extern void QT_FASTCALL qt_convert_YUYV_to_ARGB32(const QVideoFrame&, uchar*);
 extern void QT_FASTCALL qt_convert_NV12_to_ARGB32(const QVideoFrame&, uchar*);
 extern void QT_FASTCALL qt_convert_NV21_to_ARGB32(const QVideoFrame&, uchar*);
+extern void QT_FASTCALL qt_convert_P016LE_to_ARGB32(const QVideoFrame &, uchar*);
+extern void QT_FASTCALL qt_convert_P016BE_to_ARGB32(const QVideoFrame &, uchar*);
 
 static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
     /* Format_Invalid */                nullptr, // Not needed
@@ -1004,6 +1006,10 @@ static VideoFrameConvertFunc qConvertFuncs[QVideoFrame::NPixelFormats] = {
     /* Format_IMC4 */                   nullptr,
     /* Format_Y8 */                     nullptr,
     /* Format_Y16 */                    nullptr,
+    /* Format_P010LE */                 qt_convert_P016LE_to_ARGB32,
+    /* Format_P010BE */                 qt_convert_P016BE_to_ARGB32,
+    /* Format_P016LE */                 qt_convert_P016LE_to_ARGB32,
+    /* Format_P016BE */                 qt_convert_P016BE_to_ARGB32,
     /* Format_Jpeg */                   nullptr, // Not needed
     /* Format_CameraRaw */              nullptr,
     /* Format_AdobeDng */               nullptr,
@@ -1049,6 +1055,7 @@ QImage QVideoFrame::image() const
     if (!frame.isValid() || !frame.map(QVideoFrame::ReadOnly))
         return result;
 
+    qDebug() << "converting video frame:" << frame.pixelFormat();
     // Formats supported by QImage don't need conversion
     QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
     if (imageFormat != QImage::Format_Invalid) {
@@ -1151,6 +1158,14 @@ QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
             return dbg << "Format_Y8";
         case QVideoFrame::Format_Y16:
             return dbg << "Format_Y16";
+        case QVideoFrame::Format_P010LE:
+            return dbg << "Format_P010LE";
+        case QVideoFrame::Format_P010BE:
+            return dbg << "Format_P010BE";
+        case QVideoFrame::Format_P016LE:
+            return dbg << "Format_P016LE";
+        case QVideoFrame::Format_P016BE:
+            return dbg << "Format_P016BE";
         case QVideoFrame::Format_Jpeg:
             return dbg << "Format_Jpeg";
         case QVideoFrame::Format_AdobeDng:

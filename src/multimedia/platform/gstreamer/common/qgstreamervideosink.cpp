@@ -61,7 +61,17 @@ public:
     QList<QVideoFrame::PixelFormat> supportedPixelFormats(
         QVideoFrame::HandleType /*type*/) const override
     {
-        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_ABGR32 << QVideoFrame::Format_RGB32;
+        return QList<QVideoFrame::PixelFormat>()
+               << QVideoFrame::Format_ABGR32
+               << QVideoFrame::Format_RGB32
+               << QVideoFrame::Format_YUV420P
+               << QVideoFrame::Format_YUV422P
+               << QVideoFrame::Format_YV12
+               << QVideoFrame::Format_UYVY
+               << QVideoFrame::Format_YUYV
+               << QVideoFrame::Format_NV12
+               << QVideoFrame::Format_P010LE
+               << QVideoFrame::Format_P010BE;
     }
     bool present(const QVideoFrame &frame) override
     {

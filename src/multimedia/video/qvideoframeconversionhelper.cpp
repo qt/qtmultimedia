@@ -351,4 +351,67 @@ void QT_FASTCALL qt_convert_BGR555_to_ARGB32(const QVideoFrame &frame, uchar *ou
     }
 }
 
+static inline void planarYUV420_16bit_to_ARGB32(const uchar *y, int yStride,
+                                                  const uchar *u, int uStride,
+                                                  const uchar *v, int vStride,
+                                                  int uvPixelStride,
+                                          quint32 *rgb,
+                                          int width, int height)
+{
+    quint32 *rgb0 = rgb;
+    quint32 *rgb1 = rgb + width;
+
+    for (int j = 0; j < height; j += 2) {
+        const uchar *lineY0 = y;
+        const uchar *lineY1 = y + yStride;
+        const uchar *lineU = u;
+        const uchar *lineV = v;
+
+        for (int i = 0; i < width; i += 2) {
+            EXPAND_UV(*lineU, *lineV);
+            lineU += uvPixelStride;
+            lineV += uvPixelStride;
+
+            *rgb0++ = qYUVToARGB32(*lineY0, rv, guv, bu);
+            lineY0 += 2;
+            *rgb0++ = qYUVToARGB32(*lineY0, rv, guv, bu);
+            lineY0 += 2;
+            *rgb1++ = qYUVToARGB32(*lineY1, rv, guv, bu);
+            lineY1 += 2;
+            *rgb1++ = qYUVToARGB32(*lineY1, rv, guv, bu);
+            lineY1 += 2;
+        }
+
+        y += yStride << 1; // stride * 2
+        u += uStride;
+        v += vStride;
+        rgb0 += width;
+        rgb1 += width;
+    }
+}
+
+void QT_FASTCALL qt_convert_P016LE_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_BIPLANAR(frame)
+    planarYUV420_16bit_to_ARGB32(plane1 + 1, plane1Stride,
+                           plane2 + 1, plane2Stride,
+                           plane2 + 3, plane2Stride,
+                           4,
+                           reinterpret_cast<quint32*>(output),
+                           width, height);
+
+}
+
+void QT_FASTCALL qt_convert_P016BE_to_ARGB32(const QVideoFrame &frame, uchar *output)
+{
+    FETCH_INFO_BIPLANAR(frame)
+    planarYUV420_16bit_to_ARGB32(plane1, plane1Stride,
+                                 plane2, plane2Stride,
+                                 plane2 + 2, plane2Stride,
+                                 4,
+                                 reinterpret_cast<quint32*>(output),
+                                 width, height);
+
+}
+
 QT_END_NAMESPACE
