@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgraphicsvideoitem.h"
-#include <private/qpaintervideosurface_p.h>
+#include "qvideosink.h"
 
 #include <qobject.h>
 #include <qvideosurfaceformat.h>
@@ -62,68 +62,49 @@ public:
 
     QGraphicsVideoItem *q_ptr = nullptr;
 
-    QPainterVideoSurface *surface = nullptr;
+    QVideoSink *sink = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     QRectF rect;
     QRectF boundingRect;
     QRectF sourceRect;
     QSizeF nativeSize;
+    QVideoFrame m_frame;
 
     void updateRects();
 
-    void _q_present();
-    void _q_updateNativeSize();
+    void _q_present(const QVideoFrame &);
 };
 
 void QGraphicsVideoItemPrivate::updateRects()
 {
     q_ptr->prepareGeometryChange();
 
-    if (nativeSize.isEmpty()) {
-        //this is necessary for item to receive the
-        //first paint event and configure video surface.
-        boundingRect = rect;
-    } else if (aspectRatioMode == Qt::IgnoreAspectRatio) {
-        boundingRect = rect;
-        sourceRect = QRectF(0, 0, 1, 1);
-    } else if (aspectRatioMode == Qt::KeepAspectRatio) {
+    boundingRect = rect;
+    if (aspectRatioMode == Qt::KeepAspectRatio && !nativeSize.isEmpty()) {
         QSizeF size = nativeSize;
         size.scale(rect.size(), Qt::KeepAspectRatio);
 
         boundingRect = QRectF(0, 0, size.width(), size.height());
         boundingRect.moveCenter(rect.center());
-
-        sourceRect = QRectF(0, 0, 1, 1);
-    } else if (aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
-        boundingRect = rect;
-
-        QSizeF size = rect.size();
-        size.scale(nativeSize, Qt::KeepAspectRatio);
-
-        sourceRect = QRectF(
-                0, 0, size.width() / nativeSize.width(), size.height() / nativeSize.height());
-        sourceRect.moveCenter(QPointF(0.5, 0.5));
     }
 }
 
-void QGraphicsVideoItemPrivate::_q_present()
+void QGraphicsVideoItemPrivate::_q_present(const QVideoFrame &frame)
 {
+    m_frame = frame;
     if (q_ptr->isObscured()) {
         q_ptr->update(boundingRect);
-        surface->setReady(true);
     } else {
         q_ptr->update(boundingRect);
     }
-}
+    if (frame.isValid()) {
+        const QSize &size = frame.size();
+        if (nativeSize != size) {
+            nativeSize = size;
 
-void QGraphicsVideoItemPrivate::_q_updateNativeSize()
-{
-    const QSize &size = surface->surfaceFormat().sizeHint();
-    if (nativeSize != size) {
-        nativeSize = size;
-
-        updateRects();
-        emit q_ptr->nativeSizeChanged(nativeSize);
+            updateRects();
+            emit q_ptr->nativeSizeChanged(nativeSize);
+        }
     }
 }
 
@@ -156,11 +137,10 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
     , d_ptr(new QGraphicsVideoItemPrivate)
 {
     d_ptr->q_ptr = this;
-    d_ptr->surface = new QPainterVideoSurface;
+    d_ptr->sink = new QVideoSink(this);
+    d_ptr->sink->setBackgroundMode(Qt::TransparentMode);
 
-    connect(d_ptr->surface, SIGNAL(frameChanged()), this, SLOT(_q_present()));
-    connect(d_ptr->surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
-            this, SLOT(_q_updateNativeSize()), Qt::QueuedConnection);
+    connect(d_ptr->sink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_present(const QVideoFrame &)));
 }
 
 /*!
@@ -168,14 +148,13 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
 */
 QGraphicsVideoItem::~QGraphicsVideoItem()
 {
-    delete d_ptr->surface;
     delete d_ptr;
 }
 
 /*!
-    \since 5.15
-    \property QGraphicsVideoItem::videoSurface
-    \brief Returns the underlying video surface that can render video frames
+    \since 6.0
+    \property QGraphicsVideoItem::videoSink
+    \brief Returns the underlying video sink that can render video frames
     to the current item.
     This property is never \c nullptr.
     Example of how to render video frames to QGraphicsVideoItem:
@@ -183,9 +162,9 @@ QGraphicsVideoItem::~QGraphicsVideoItem()
     \sa QMediaPlayer::setVideoOutput
 */
 
-QAbstractVideoSurface *QGraphicsVideoItem::videoSurface() const
+QVideoSink *QGraphicsVideoItem::videoSink() const
 {
-    return d_func()->surface;
+    return d_func()->sink;
 }
 
 /*!
@@ -195,15 +174,15 @@ QAbstractVideoSurface *QGraphicsVideoItem::videoSurface() const
 
 Qt::AspectRatioMode QGraphicsVideoItem::aspectRatioMode() const
 {
-    return d_func()->aspectRatioMode;
+    return d_func()->sink->aspectRatioMode();
 }
 
 void QGraphicsVideoItem::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     Q_D(QGraphicsVideoItem);
 
-    d->aspectRatioMode = mode;
     d->updateRects();
+    d->sink->setAspectRatioMode(mode);
 }
 
 /*!
@@ -225,6 +204,7 @@ void QGraphicsVideoItem::setOffset(const QPointF &offset)
 
     d->rect.moveTo(offset);
     d->updateRects();
+    d->sink->setTargetRect(d->rect);
 }
 
 /*!
@@ -246,6 +226,7 @@ void QGraphicsVideoItem::setSize(const QSizeF &size)
 
     d->rect.setSize(size.isValid() ? size : QSizeF(0, 0));
     d->updateRects();
+    d->sink->setTargetRect(d->rect);
 }
 
 /*!
@@ -283,28 +264,7 @@ void QGraphicsVideoItem::paint(
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    if (d->surface) {
-#if QT_CONFIG(opengl)
-        if (widget)
-            connect(widget, SIGNAL(destroyed()), d->surface, SLOT(viewportDestroyed()));
-
-        if (painter->paintEngine()->type() == QPaintEngine::OpenGL
-            || painter->paintEngine()->type() == QPaintEngine::OpenGL2)
-        {
-            d->surface->updateGLContext();
-            if (d->surface->supportedShaderTypes() & QPainterVideoSurface::GlslShader) {
-                d->surface->setShaderType(QPainterVideoSurface::GlslShader);
-            } else {
-                d->surface->setShaderType(QPainterVideoSurface::FragmentProgramShader);
-            }
-        }
-#endif
-    }
-
-    if (d->surface && d->surface->isActive()) {
-        d->surface->paint(painter, d->boundingRect, d->sourceRect);
-        d->surface->setReady(true);
-    }
+    d->sink->paint(painter, d->m_frame);
 }
 
 /*!

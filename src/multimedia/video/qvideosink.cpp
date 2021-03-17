@@ -75,6 +75,7 @@ public:
     int contrast = 0;
     int saturation = 0;
     int hue = 0;
+    Qt::BGMode backgroundMode = Qt::OpaqueMode;
     QMatrix4x4 transform;
     float opacity = 1.;
 };
@@ -206,6 +207,16 @@ void QVideoSink::setOpacity(float opacity)
     d->opacity = opacity;
 }
 
+Qt::BGMode QVideoSink::backgroundMode() const
+{
+    return d->backgroundMode;
+}
+
+void QVideoSink::setBackgroundMode(Qt::BGMode mode)
+{
+    d->backgroundMode = mode;
+}
+
 void QVideoSink::render(const QVideoFrame &frame)
 {
     Q_UNUSED(frame);
@@ -237,7 +248,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
         targetRect = QRect(0, 0, size.width(), size.height());
         targetRect.moveCenter(d->targetRect.center());
         // we might not be drawing every pixel, fill the leftover black
-        if (d->targetRect != targetRect) {
+        if (d->backgroundMode == Qt::OpaqueMode && d->targetRect != targetRect) {
             if (targetRect.top() > d->targetRect.top()) {
                 QRectF top(d->targetRect.left(), d->targetRect.top(), d->targetRect.width(), targetRect.top() - d->targetRect.top());
                 painter->fillRect(top, Qt::black);

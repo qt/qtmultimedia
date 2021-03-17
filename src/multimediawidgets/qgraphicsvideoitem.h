@@ -57,12 +57,12 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject
     Q_PROPERTY(QPointF offset READ offset WRITE setOffset)
     Q_PROPERTY(QSizeF size READ size WRITE setSize)
     Q_PROPERTY(QSizeF nativeSize READ nativeSize NOTIFY nativeSizeChanged)
-    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface CONSTANT)
+    Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT)
 public:
     explicit QGraphicsVideoItem(QGraphicsItem *parent = nullptr);
     ~QGraphicsVideoItem();
 
-    Q_INVOKABLE QAbstractVideoSurface *videoSurface() const;
+    Q_INVOKABLE QVideoSink *videoSink() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
@@ -97,8 +97,7 @@ protected:
 
 private:
     Q_DECLARE_PRIVATE(QGraphicsVideoItem)
-    Q_PRIVATE_SLOT(d_func(), void _q_present())
-    Q_PRIVATE_SLOT(d_func(), void _q_updateNativeSize())
+    Q_PRIVATE_SLOT(d_func(), void _q_present(const QVideoFrame &))
 };
 
 QT_END_NAMESPACE

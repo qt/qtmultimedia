@@ -109,6 +109,9 @@ public:
     float opacity() const;
     void setOpacity(float opacity);
 
+    Qt::BGMode backgroundMode() const;
+    void setBackgroundMode(Qt::BGMode mode);
+
     // Thread safe
     void render(const QVideoFrame &frame);
 
