@@ -39,8 +39,9 @@
 
 #include "qgstreamercameraimagecapture_p.h"
 #include "qplatformcamera_p.h"
-
+#include <private/qgstvideobuffer_p.h>
 #include <private/qgstutils_p.h>
+#include <qvideosurfaceformat.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
@@ -199,7 +200,10 @@ bool QGstreamerCameraImageCapture::probeBuffer(GstBuffer *buffer)
     GstVideoInfo previewInfo;
     gst_video_info_from_caps(&previewInfo, caps);
 
-    QImage img = QGstUtils::bufferToImage(buffer, previewInfo);
+    auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo);
+    auto fmt = QGstUtils::formatForCaps(caps, &previewInfo, QVideoFrame::NoHandle);
+    QVideoFrame frame(gstBuffer, fmt.frameSize(), fmt.pixelFormat());
+    QImage img = frame.image();
     if (img.isNull())
         return true;
 

@@ -74,7 +74,6 @@ namespace QGstUtils {
     Q_MULTIMEDIA_EXPORT QAudioFormat audioFormatForSample(GstSample *sample);
     Q_MULTIMEDIA_EXPORT GstCaps *capsForAudioFormat(const QAudioFormat &format);
 
-    Q_MULTIMEDIA_EXPORT QImage bufferToImage(GstBuffer *buffer, const GstVideoInfo &info);
     Q_MULTIMEDIA_EXPORT QVideoSurfaceFormat formatForCaps(
             GstCaps *caps,
             GstVideoInfo *info = 0,
