@@ -43,6 +43,7 @@
 #include <private/qplatformmediaplayer_p.h>
 
 #include <private/qdeclarativevideooutput_p.h>
+#include <qvideosink.h>
 
 #include "qdeclarativemediametadata_p.h"
 
@@ -140,17 +141,18 @@ void QDeclarativeAudio::setVideoOutput(const QVariant &v)
     if (m_videoOutput == v)
         return;
 
-    QAbstractVideoSurface *surface = nullptr;
+    QVideoSink *sink = nullptr;
     auto vo = v.value<QDeclarativeVideoOutput *>();
     if (vo)
-        surface = vo->videoSurface();
+        sink = vo->videoSink();
     else
-        surface = v.value<QAbstractVideoSurface *>();
+        sink = v.value<QVideoSink *>();
 
     // If only one object has been passed.
-    if (surface) {
-        m_player->setVideoOutput(surface);
+    if (sink) {
+        m_player->setVideoOutput(sink);
     } else {
+#if 0
         QList<QAbstractVideoSurface *> surfaces;
         // Check if it is an array.
         auto arr = v.value<QJSValue>();
@@ -161,7 +163,7 @@ void QDeclarativeAudio::setVideoOutput(const QVariant &v)
                 if (v.isQObject()) {
                     auto obj = v.toQObject();
                     vo = qobject_cast<QDeclarativeVideoOutput *>(obj);
-                    surface = vo ? vo->videoSurface() : qobject_cast<QAbstractVideoSurface *>(obj);
+                    surface = vo ? vo->videoSink() : qobject_cast<QAbstractVideoSurface *>(obj);
                     if (surface)
                         surfaces.append(surface);
                 }
@@ -169,6 +171,7 @@ void QDeclarativeAudio::setVideoOutput(const QVariant &v)
         }
 
         m_player->setVideoOutput(surfaces);
+#endif
     }
 
     m_videoOutput = v;

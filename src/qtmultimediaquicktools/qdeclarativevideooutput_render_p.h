@@ -63,7 +63,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QSGVideoItemSurface;
+class QVideoSink;
 class QObject;
 class QAbstractVideoFilter;
 class QVideoFilterRunnable;
@@ -79,7 +79,7 @@ public:
     QSize nativeSize() const;
     void updateGeometry();
     QSGNode *updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *data);
-    QAbstractVideoSurface *videoSurface() const;
+    QVideoSink *videoSink() const;
     QRectF adjustedViewport() const;
 
     friend class QSGVideoItemSurface;
@@ -96,7 +96,7 @@ private:
     QDeclarativeVideoOutput *q;
 
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
-    QSGVideoItemSurface *m_surface;
+    QVideoSink *m_sink;
     QVideoSurfaceFormat m_surfaceFormat;
 
     QVideoFrame m_frame;
@@ -117,22 +117,6 @@ private:
     };
     QList<Filter> m_filters;
 };
-
-class QSGVideoItemSurface : public QAbstractVideoSurface
-{
-    Q_OBJECT
-public:
-    explicit QSGVideoItemSurface(QDeclarativeVideoBackend *backend, QObject *parent = 0);
-    ~QSGVideoItemSurface();
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override;
-    bool start(const QVideoSurfaceFormat &format) override;
-    void stop() override;
-    bool present(const QVideoFrame &frame) override;
-
-private:
-    QDeclarativeVideoBackend *m_backend;
-};
-
 
 namespace {
 

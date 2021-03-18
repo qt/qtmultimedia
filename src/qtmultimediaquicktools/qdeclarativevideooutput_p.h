@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
 
 class QDeclarativeVideoBackend;
 class QVideoOutputOrientationHandler;
-class QAbstractVideoSurface;
+class QVideoSink;
 
 class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
 {
@@ -80,9 +80,10 @@ class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
     Q_PROPERTY(QQmlListProperty<QAbstractVideoFilter> filters READ filters);
     Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged REVISION 13)
-    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface CONSTANT REVISION 15)
+    Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT REVISION 15)
     Q_ENUMS(FlushMode)
     Q_ENUMS(FillMode)
+    Q_MOC_INCLUDE(qvideosink.h)
 
 public:
 
@@ -106,7 +107,7 @@ public:
     QObject *source() const { return m_source.data(); }
     void setSource(QObject *source);
 
-    Q_INVOKABLE QAbstractVideoSurface *videoSurface() const;
+    Q_INVOKABLE QVideoSink *videoSink() const;
 
     FillMode fillMode() const;
     void setFillMode(FillMode mode);
@@ -157,7 +158,7 @@ protected:
     void releaseResources() override;
 
 private Q_SLOTS:
-    void _q_updateNativeSize();
+    void _q_newFrame(const QVideoFrame &);
     void _q_updateGeometry();
     void _q_screenOrientationChanged(int);
     void _q_invalidateSceneGraph();

@@ -46,6 +46,8 @@
 #include <QtMultimedia/qmediacapturesession.h>
 #include <private/qfactoryloader_p.h>
 #include <QtCore/qloggingcategory.h>
+#include <qvideosink.h>
+
 
 static void initResource() {
     Q_INIT_RESOURCE(qtmultimediaquicktools);
@@ -157,9 +159,9 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
     \sa source
 */
 
-QAbstractVideoSurface *QDeclarativeVideoOutput::videoSurface() const
+QVideoSink *QDeclarativeVideoOutput::videoSink() const
 {
-    return m_backend ? m_backend->videoSurface() : nullptr;
+    return m_backend ? m_backend->videoSink() : nullptr;
 }
 
 /*!
@@ -186,9 +188,9 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     }
 
     if (QMediaCaptureSession *s = qobject_cast<QMediaCaptureSession *>(source)) {
-        s->setVideoPreview(videoSurface());
+        s->setVideoPreview(videoSink());
     } else if (QMediaPlayer *p = qobject_cast<QMediaPlayer *>(source)) {
-        p->setVideoOutput(videoSurface());
+        p->setVideoOutput(videoSink());
     }
     emit sourceChanged();
 }
@@ -238,12 +240,13 @@ void QDeclarativeVideoOutput::setFillMode(FillMode mode)
     emit fillModeChanged(mode);
 }
 
-void QDeclarativeVideoOutput::_q_updateNativeSize()
+void QDeclarativeVideoOutput::_q_newFrame(const QVideoFrame &frame)
 {
     if (!m_backend)
         return;
 
-    QSize size = m_backend->nativeSize();
+    m_backend->present(frame);
+    QSize size = frame.size();
     if (!qIsDefaultAspect(m_orientation)) {
         size.transpose();
     }
@@ -289,12 +292,8 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
         m_contentRect.moveCenter(rect.center());
     }
 
-    if (m_backend) {
-        if (!m_backend->videoSurface() || m_backend->videoSurface()->isActive())
-            m_backend->updateGeometry();
-        else
-            m_geometryDirty = true;
-    }
+    if (m_backend)
+        m_backend->updateGeometry();
 
 
     if (m_contentRect != oldContentRect)

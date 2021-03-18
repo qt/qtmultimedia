@@ -84,6 +84,7 @@ QVideoSink::QVideoSink(QObject *parent)
     : QObject(parent),
     d(new QVideoSinkPrivate(this))
 {
+    qRegisterMetaType<QVideoFrame>();
 }
 
 QVideoSink::~QVideoSink()

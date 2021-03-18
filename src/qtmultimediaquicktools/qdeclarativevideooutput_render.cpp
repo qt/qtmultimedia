@@ -45,6 +45,7 @@
 #include <QtCore/qloggingcategory.h>
 #include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>
+#include <qvideosink.h>
 
 #include <QtQuick/QQuickWindow>
 #include <QtCore/QRunnable>
@@ -60,9 +61,10 @@ QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *pare
     : q(parent),
       m_frameChanged(false)
 {
-    m_surface = new QSGVideoItemSurface(this);
-    QObject::connect(m_surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
-                     q, SLOT(_q_updateNativeSize()), Qt::QueuedConnection);
+    m_sink = new QVideoSink(q);
+    qRegisterMetaType<QVideoSurfaceFormat>();
+    QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
+                     q, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);
 
     // Prioritize the plugin requested by the environment
     QString requestedVideoNode = QString::fromLatin1(qgetenv("QT_VIDEONODE"));
@@ -88,7 +90,7 @@ QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *pare
 
 QDeclarativeVideoBackend::~QDeclarativeVideoBackend()
 {
-    delete m_surface;
+    delete m_sink;
 }
 
 void QDeclarativeVideoBackend::appendFilter(QAbstractVideoFilter *filter)
@@ -286,6 +288,7 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
                 nodeFormat.setFrameRate(m_surfaceFormat.frameRate());
                 // Update current surface format if something has changed.
                 m_surfaceFormat = nodeFormat;
+                updateGeometry();
                 videoNode = factory->createNode(nodeFormat);
                 if (videoNode) {
                     qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType()
@@ -326,9 +329,9 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
     return videoNode;
 }
 
-QAbstractVideoSurface *QDeclarativeVideoBackend::videoSurface() const
+QVideoSink *QDeclarativeVideoBackend::videoSink() const
 {
-    return m_surface;
+    return m_sink;
 }
 
 QRectF QDeclarativeVideoBackend::adjustedViewport() const
@@ -339,6 +342,7 @@ QRectF QDeclarativeVideoBackend::adjustedViewport() const
 void QDeclarativeVideoBackend::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
+    m_surfaceFormat = QVideoSurfaceFormat(frame.size(), frame.pixelFormat(), QVideoFrame::NoHandle);
     m_frame = frame.isValid() ? frame : m_frameOnFlush;
     m_frameChanged = true;
     m_frameMutex.unlock();
@@ -349,60 +353,6 @@ void QDeclarativeVideoBackend::present(const QVideoFrame &frame)
 void QDeclarativeVideoBackend::stop()
 {
     present(QVideoFrame());
-}
-
-QSGVideoItemSurface::QSGVideoItemSurface(QDeclarativeVideoBackend *backend, QObject *parent)
-    : QAbstractVideoSurface(parent),
-      m_backend(backend)
-{
-}
-
-QSGVideoItemSurface::~QSGVideoItemSurface() = default;
-
-QList<QVideoFrame::PixelFormat> QSGVideoItemSurface::supportedPixelFormats(
-        QVideoFrame::HandleType handleType) const
-{
-    QList<QVideoFrame::PixelFormat> formats;
-
-    static bool noGLTextures = false;
-    static bool noGLTexturesChecked = false;
-    if (handleType == QVideoFrame::GLTextureHandle) {
-        if (!noGLTexturesChecked) {
-            noGLTexturesChecked = true;
-            noGLTextures = qEnvironmentVariableIsSet("QT_QUICK_NO_TEXTURE_VIDEOFRAMES");
-        }
-        if (noGLTextures)
-            return formats;
-    }
-
-    for (QSGVideoNodeFactoryInterface* factory : qAsConst(m_backend->m_videoNodeFactories))
-        formats.append(factory->supportedPixelFormats(handleType));
-
-    return formats;
-}
-
-bool QSGVideoItemSurface::start(const QVideoSurfaceFormat &format)
-{
-    qCDebug(qLcVideo) << "Video surface format:" << format << "all supported formats:" << supportedPixelFormats(format.handleType());
-    m_backend->m_frameOnFlush = QVideoFrame();
-
-    if (!supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
-        return false;
-
-    m_backend->m_surfaceFormat = format;
-    return QAbstractVideoSurface::start(format);
-}
-
-void QSGVideoItemSurface::stop()
-{
-    m_backend->stop();
-    QAbstractVideoSurface::stop();
-}
-
-bool QSGVideoItemSurface::present(const QVideoFrame &frame)
-{
-    m_backend->present(frame);
-    return true;
 }
 
 QT_END_NAMESPACE
