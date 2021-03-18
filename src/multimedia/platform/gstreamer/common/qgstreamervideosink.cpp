@@ -40,7 +40,6 @@
 #include "qgstreamervideosink_p.h"
 #include "qgstreamervideorenderer_p.h"
 #include <private/qgstutils_p.h>
-#include <private/qpaintervideosurface_p.h>
 
 #include <QtCore/qdebug.h>
 

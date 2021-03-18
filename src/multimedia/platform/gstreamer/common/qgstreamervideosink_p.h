@@ -62,7 +62,6 @@
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 class QGstreamerVideoRenderer;
-class QPainterVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink :
         public QPlatformVideoSink,

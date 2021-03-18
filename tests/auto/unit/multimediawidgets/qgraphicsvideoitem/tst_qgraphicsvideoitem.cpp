@@ -32,7 +32,6 @@
 #include "qgraphicsvideoitem.h"
 #include <QtTest/QtTest>
 #include "qmediaservice.h"
-#include <private/qpaintervideosurface_p.h>
 #include "qvideorenderercontrol.h"
 
 #include <qabstractvideosurface.h>
