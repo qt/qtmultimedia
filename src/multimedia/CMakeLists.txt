@@ -212,7 +212,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstreamervideosink.cpp platform/gstreamer/common/qgstreamervideosink_p.h
         platform/gstreamer/common/qgstutils.cpp platform/gstreamer/common/qgstutils_p.h
         platform/gstreamer/common/qgstvideobuffer.cpp platform/gstreamer/common/qgstvideobuffer_p.h
-        platform/gstreamer/common/qgstvideorendererplugin.cpp platform/gstreamer/common/qgstvideorendererplugin_p.h
         platform/gstreamer/common/qgstvideorenderersink.cpp platform/gstreamer/common/qgstvideorenderersink_p.h
         platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
         platform/gstreamer/qgstreamerformatinfo.cpp platform/gstreamer/qgstreamerformatinfo_p.h

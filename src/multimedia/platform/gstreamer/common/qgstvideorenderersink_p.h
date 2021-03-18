@@ -63,9 +63,7 @@
 #include <qvideosurfaceformat.h>
 #include <qvideoframe.h>
 
-#include "qgstvideorendererplugin_p.h"
-
-#include "qgstvideorendererplugin_p.h"
+#include <private/qgst_p.h>
 
 #if QT_CONFIG(gstreamer_gl)
 #ifndef GST_USE_UNSTABLE_API
@@ -77,20 +75,20 @@
 QT_BEGIN_NAMESPACE
 class QAbstractVideoSurface;
 
-class QGstDefaultVideoRenderer : public QGstVideoRenderer
+class QGstVideoRenderer
 {
 public:
-    QGstDefaultVideoRenderer();
-    ~QGstDefaultVideoRenderer();
+    QGstVideoRenderer();
+    ~QGstVideoRenderer();
 
-    GstCaps *getCaps(QAbstractVideoSurface *surface) override;
-    bool start(QAbstractVideoSurface *surface, GstCaps *caps) override;
-    void stop(QAbstractVideoSurface *surface) override;
+    QGstMutableCaps getCaps(QAbstractVideoSurface *surface);
+    bool start(QAbstractVideoSurface *surface, GstCaps *caps);
+    void stop(QAbstractVideoSurface *surface);
 
-    bool proposeAllocation(GstQuery *query) override;
+    bool proposeAllocation(GstQuery *query);
 
-    bool present(QAbstractVideoSurface *surface, GstBuffer *buffer) override;
-    void flush(QAbstractVideoSurface *surface) override;
+    bool present(QAbstractVideoSurface *surface, GstBuffer *buffer);
+    void flush(QAbstractVideoSurface *surface);
 
 private:
     QVideoSurfaceFormat m_format;
@@ -106,7 +104,7 @@ public:
     QVideoSurfaceGstDelegate(QAbstractVideoSurface *surface);
     ~QVideoSurfaceGstDelegate();
 
-    GstCaps *caps();
+    QGstMutableCaps caps();
 
     bool start(GstCaps *caps);
     void stop();
@@ -134,12 +132,11 @@ private:
     QWaitCondition m_setupCondition;
     QWaitCondition m_renderCondition;
     GstFlowReturn m_renderReturn = GST_FLOW_OK;
-    QList<QGstVideoRenderer *> m_renderers;
     QGstVideoRenderer *m_renderer = nullptr;
     QGstVideoRenderer *m_activeRenderer = nullptr;
 
-    GstCaps *m_surfaceCaps = nullptr;
-    GstCaps *m_startCaps = nullptr;
+    QGstMutableCaps m_surfaceCaps;
+    QGstMutableCaps m_startCaps;
     GstBuffer *m_renderBuffer = nullptr;
 #if QT_CONFIG(gstreamer_gl)
     GstGLContext *m_gstGLDisplayContext = nullptr;

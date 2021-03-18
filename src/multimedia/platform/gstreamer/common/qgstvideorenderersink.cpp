@@ -77,11 +77,11 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstDefaultVideoRenderer::QGstDefaultVideoRenderer() = default;
+QGstVideoRenderer::QGstVideoRenderer() = default;
 
-QGstDefaultVideoRenderer::~QGstDefaultVideoRenderer() = default;
+QGstVideoRenderer::~QGstVideoRenderer() = default;
 
-GstCaps *QGstDefaultVideoRenderer::getCaps(QAbstractVideoSurface *surface)
+QGstMutableCaps QGstVideoRenderer::getCaps(QAbstractVideoSurface *surface)
 {
 #if QT_CONFIG(gstreamer_gl)
     if (QGstUtils::useOpenGL()) {
@@ -96,9 +96,9 @@ GstCaps *QGstDefaultVideoRenderer::getCaps(QAbstractVideoSurface *surface)
             formats = surface->supportedPixelFormats(m_handleType);
         }
 
-        GstCaps *caps = QGstUtils::capsForFormats(formats);
-        for (guint i = 0; i < gst_caps_get_size(caps); ++i)
-            gst_caps_set_features(caps, i, gst_caps_features_from_string("memory:GLMemory"));
+        QGstMutableCaps caps = QGstUtils::capsForFormats(formats);
+        for (int i = 0; i < caps.size(); ++i)
+            gst_caps_set_features(caps.get(), i, gst_caps_features_from_string("memory:GLMemory"));
 
         return caps;
     }
@@ -106,7 +106,7 @@ GstCaps *QGstDefaultVideoRenderer::getCaps(QAbstractVideoSurface *surface)
     return QGstUtils::capsForFormats(surface->supportedPixelFormats(QVideoFrame::NoHandle));
 }
 
-bool QGstDefaultVideoRenderer::start(QAbstractVideoSurface *surface, GstCaps *caps)
+bool QGstVideoRenderer::start(QAbstractVideoSurface *surface, GstCaps *caps)
 {
     m_flushed = true;
     m_format = QGstUtils::formatForCaps(caps, &m_videoInfo, m_handleType);
@@ -114,14 +114,14 @@ bool QGstDefaultVideoRenderer::start(QAbstractVideoSurface *surface, GstCaps *ca
     return m_format.isValid() && surface->start(m_format);
 }
 
-void QGstDefaultVideoRenderer::stop(QAbstractVideoSurface *surface)
+void QGstVideoRenderer::stop(QAbstractVideoSurface *surface)
 {
     m_flushed = true;
     if (surface)
         surface->stop();
 }
 
-bool QGstDefaultVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer *buffer)
+bool QGstVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer *buffer)
 {
     m_flushed = false;
 
@@ -159,56 +159,39 @@ bool QGstDefaultVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer
     return surface->present(frame);
 }
 
-void QGstDefaultVideoRenderer::flush(QAbstractVideoSurface *surface)
+void QGstVideoRenderer::flush(QAbstractVideoSurface *surface)
 {
     if (surface && !m_flushed)
         surface->present(QVideoFrame());
     m_flushed = true;
 }
 
-bool QGstDefaultVideoRenderer::proposeAllocation(GstQuery *)
+bool QGstVideoRenderer::proposeAllocation(GstQuery *)
 {
     return true;
 }
 
-Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, rendererLoader,
-        (QGstVideoRendererInterface_iid, QLatin1String("video/gstvideorenderer"), Qt::CaseInsensitive))
-
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surface)
     : m_surface(surface)
 {
-    int i = 0;
-    while (QObject *instance = rendererLoader->instance(i)) {
-        auto plugin = qobject_cast<QGstVideoRendererInterface*>(instance);
-        if (QGstVideoRenderer *renderer = plugin ? plugin->createRenderer() : nullptr)
-            m_renderers.append(renderer);
-        ++i;
-    }
-
-    m_renderers.append(new QGstDefaultVideoRenderer);
+    m_renderer = new QGstVideoRenderer;
     updateSupportedFormats();
     connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(updateSupportedFormats()));
 }
 
 QVideoSurfaceGstDelegate::~QVideoSurfaceGstDelegate()
 {
-    qDeleteAll(m_renderers);
+    delete m_renderer;
 
-    if (m_surfaceCaps)
-        gst_caps_unref(m_surfaceCaps);
-    if (m_startCaps)
-        gst_caps_unref(m_startCaps);
 #if QT_CONFIG(gstreamer_gl)
     if (m_gstGLDisplayContext)
         gst_object_unref(m_gstGLDisplayContext);
 #endif
 }
 
-GstCaps *QVideoSurfaceGstDelegate::caps()
+QGstMutableCaps QVideoSurfaceGstDelegate::caps()
 {
     QMutexLocker locker(&m_mutex);
-
-    gst_caps_ref(m_surfaceCaps);
 
     return m_surfaceCaps;
 }
@@ -222,10 +205,7 @@ bool QVideoSurfaceGstDelegate::start(GstCaps *caps)
         m_stop = true;
     }
 
-    if (m_startCaps)
-        gst_caps_unref(m_startCaps);
     m_startCaps = caps;
-    gst_caps_ref(m_startCaps);
 
     /*
     Waiting for start() to be invoked in the main thread may block
@@ -238,10 +218,9 @@ bool QVideoSurfaceGstDelegate::start(GstCaps *caps)
 
     Currently start() fails if wait() timed out.
     */
-    if (!waitForAsyncEvent(&locker, &m_setupCondition, 1000) && m_startCaps) {
+    if (!waitForAsyncEvent(&locker, &m_setupCondition, 1000) && !m_startCaps.isNull()) {
         qWarning() << "Failed to start video surface due to main thread blocked.";
-        gst_caps_unref(m_startCaps);
-        m_startCaps = nullptr;
+        m_startCaps = {};
     }
 
     return m_activeRenderer != nullptr;
@@ -257,10 +236,7 @@ void QVideoSurfaceGstDelegate::stop()
     m_flush = true;
     m_stop = true;
 
-    if (m_startCaps) {
-        gst_caps_unref(m_startCaps);
-        m_startCaps = nullptr;
-    }
+    m_startCaps = {};
 
     waitForAsyncEvent(&locker, &m_setupCondition, 500);
 }
@@ -452,16 +428,16 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
 
             locker->relock();
         }
-    } else if (m_startCaps) {
+    } else if (!m_startCaps.isNull()) {
         Q_ASSERT(!m_activeRenderer);
 
-        GstCaps * const startCaps = m_startCaps;
+        auto startCaps = m_startCaps;
         m_startCaps = nullptr;
 
         if (m_renderer && m_surface) {
             locker->unlock();
 
-            const bool started = m_renderer->start(m_surface, startCaps);
+            const bool started = m_renderer->start(m_surface, startCaps.get());
 
             locker->relock();
 
@@ -477,7 +453,6 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
             locker->relock();
         }
 
-        gst_caps_unref(startCaps);
     } else if (m_renderBuffer) {
         GstBuffer *buffer = m_renderBuffer;
         m_renderBuffer = nullptr;
@@ -532,26 +507,7 @@ bool QVideoSurfaceGstDelegate::waitForAsyncEvent(
 
 void QVideoSurfaceGstDelegate::updateSupportedFormats()
 {
-    if (m_surfaceCaps) {
-        gst_caps_unref(m_surfaceCaps);
-        m_surfaceCaps = nullptr;
-    }
-
-    for (QGstVideoRenderer *pool : qAsConst(m_renderers)) {
-        if (GstCaps *caps = pool->getCaps(m_surface)) {
-            if (gst_caps_is_empty(caps)) {
-                gst_caps_unref(caps);
-                continue;
-            }
-
-            if (m_surfaceCaps)
-                gst_caps_unref(m_surfaceCaps);
-
-            m_renderer = pool;
-            m_surfaceCaps = caps;
-            break;
-        }
-    }
+    m_surfaceCaps = m_renderer->getCaps(m_surface);
 }
 
 static GstVideoSinkClass *sink_parent_class;
@@ -731,14 +687,12 @@ GstCaps *QGstVideoRendererSink::get_caps(GstBaseSink *base, GstCaps *filter)
 {
     VO_SINK(base);
 
-    GstCaps *caps = sink->delegate->caps();
-    GstCaps *unfiltered = caps;
-    if (filter) {
-        caps = gst_caps_intersect(unfiltered, filter);
-        gst_caps_unref(unfiltered);
-    }
+    QGstMutableCaps caps = sink->delegate->caps();
+    if (filter)
+        caps = gst_caps_intersect(caps.get(), filter);
 
-    return caps;
+    gst_caps_ref(caps.get());
+    return caps.get();
 }
 
 gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *caps)

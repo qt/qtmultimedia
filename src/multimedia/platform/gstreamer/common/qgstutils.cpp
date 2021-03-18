@@ -251,7 +251,7 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
     return QVideoSurfaceFormat();
 }
 
-GstCaps *QGstUtils::capsForFormats(const QList<QVideoFrame::PixelFormat> &formats)
+QGstMutableCaps QGstUtils::capsForFormats(const QList<QVideoFrame::PixelFormat> &formats)
 {
     GstCaps *caps = gst_caps_new_empty();
 

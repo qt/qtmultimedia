@@ -79,7 +79,7 @@ namespace QGstUtils {
             GstVideoInfo *info = 0,
             QVideoFrame::HandleType handleType = QVideoFrame::NoHandle);
 
-    Q_MULTIMEDIA_EXPORT GstCaps *capsForFormats(const QList<QVideoFrame::PixelFormat> &formats);
+    Q_MULTIMEDIA_EXPORT QGstMutableCaps capsForFormats(const QList<QVideoFrame::PixelFormat> &formats);
     void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
 
     Q_MULTIMEDIA_EXPORT bool useOpenGL();

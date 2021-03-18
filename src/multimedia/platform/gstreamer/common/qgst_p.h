@@ -203,9 +203,10 @@ public:
 };
 
 class QGstMutableCaps {
-    GstCaps *caps;
+    GstCaps *caps = nullptr;
 public:
     enum RefMode { HasRef, NeedsRef };
+    QGstMutableCaps() = default;
     QGstMutableCaps(GstCaps *c, RefMode mode = HasRef)
         : caps(c)
     {
