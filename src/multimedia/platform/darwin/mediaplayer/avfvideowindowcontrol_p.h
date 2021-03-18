@@ -53,14 +53,15 @@
 
 #include "private/qplatformvideosink_p.h"
 
-@class AVPlayerLayer;
+Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerLayer);
 #if defined(Q_OS_OSX)
-@class NSView;
+Q_FORWARD_DECLARE_OBJC_CLASS(NSView);
 typedef NSView NativeView;
 #else
-@class UIView;
+Q_FORWARD_DECLARE_OBJC_CLASS(UIView);
 typedef UIView NativeView;
 #endif
+
 
 #include "avfvideooutput_p.h"
 
@@ -110,17 +111,17 @@ private:
     void updateAspectRatio();
     void updatePlayerLayerBounds();
 
-    WId m_winId;
+    WId m_winId = 0;
     QRect m_displayRect;
-    bool m_fullscreen;
-    int m_brightness;
-    int m_contrast;
-    int m_hue;
-    int m_saturation;
-    Qt::AspectRatioMode m_aspectRatioMode;
+    bool m_fullscreen = false;
+    int m_brightness = 0;
+    int m_contrast = 0;
+    int m_hue = 0;
+    int m_saturation = 0;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
     QSize m_nativeSize;
-    AVPlayerLayer *m_playerLayer;
-    NativeView *m_nativeView;
+    AVPlayerLayer *m_playerLayer = nullptr;
+    NativeView *m_nativeView = nullptr;
 };
 
 QT_END_NAMESPACE

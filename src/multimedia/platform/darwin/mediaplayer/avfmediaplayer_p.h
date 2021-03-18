@@ -69,6 +69,7 @@ QT_BEGIN_NAMESPACE
 class AVFMediaPlayer;
 class AVFVideoOutput;
 class AVFVideoRendererControl;
+class AVFVideoWindowControl;
 
 class AVFMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
@@ -78,6 +79,7 @@ public:
     virtual ~AVFMediaPlayer();
 
     void setVideoSurface(QAbstractVideoSurface *surface) override;
+    void setVideoSink(QVideoSink *sink) override;
     void setVideoOutput(AVFVideoRendererControl *output);
     AVAsset *currentAssetHandle();
 
@@ -150,7 +152,8 @@ private:
     void setSeekable(bool seekable);
     void resetStream(QIODevice *stream = nullptr);
 
-    AVFVideoRendererControl *m_videoOutput;
+    AVFVideoRendererControl *m_videoOutput = nullptr;
+    AVFVideoWindowControl *m_videoSink = nullptr;
 
     QMediaPlayer::State m_state;
     QMediaPlayer::MediaStatus m_mediaStatus;

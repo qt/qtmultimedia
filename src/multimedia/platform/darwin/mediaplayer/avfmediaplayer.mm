@@ -40,6 +40,7 @@
 #include "avfmediaplayer_p.h"
 #include "avfmediaplayer_p.h"
 #include "avfvideorenderercontrol_p.h"
+#include "avfvideowindowcontrol_p.h"
 #include "avfvideooutput_p.h"
 #include "avfmetadata_p.h"
 
@@ -479,7 +480,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 AVFMediaPlayer::AVFMediaPlayer(QMediaPlayer *player)
     : QObject(player)
     , QPlatformMediaPlayer(player)
-    , m_videoOutput(nullptr)
     , m_state(QMediaPlayer::StoppedState)
     , m_mediaStatus(QMediaPlayer::NoMedia)
     , m_mediaStream(nullptr)
@@ -511,6 +511,12 @@ AVFMediaPlayer::~AVFMediaPlayer()
 void AVFMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_videoOutput->setSurface(surface);
+}
+
+void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
+{
+    setVideoOutput(nullptr);
+    m_videoSink = static_cast<AVFVideoWindowControl *>(sink->platformVideoSink());
 }
 
 void AVFMediaPlayer::setVideoOutput(AVFVideoRendererControl *output)
@@ -822,7 +828,9 @@ void AVFMediaPlayer::play()
     if (m_state == QMediaPlayer::PlayingState)
         return;
 
-    if (m_videoOutput) {
+    if (m_videoSink) {
+        m_videoSink->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
+    } else if (m_videoOutput) {
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
     }
 
@@ -855,7 +863,9 @@ void AVFMediaPlayer::pause()
 
     m_state = QMediaPlayer::PausedState;
 
-    if (m_videoOutput) {
+    if (m_videoSink) {
+        m_videoSink->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
+    } else if (m_videoOutput) {
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
     }
 
@@ -882,7 +892,9 @@ void AVFMediaPlayer::stop()
     [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
     setPosition(0);
 
-    if (m_videoOutput) {
+    if (m_videoSink) {
+        m_videoSink->setLayer(nullptr);
+    } else if (m_videoOutput) {
         m_videoOutput->setLayer(nullptr);
     }
 
@@ -941,8 +953,11 @@ void AVFMediaPlayer::processEOS()
 
     // At this point, frames should not be rendered anymore.
     // Clear the output layer to make sure of that.
-    if (m_videoOutput)
+    if (m_videoSink) {
+        m_videoSink->setLayer(nullptr);
+    } else if (m_videoOutput) {
         m_videoOutput->setLayer(nullptr);
+    }
 
     Q_EMIT mediaStatusChanged(m_mediaStatus);
     Q_EMIT stateChanged(m_state);
@@ -982,8 +997,12 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::State newState)
                                                     m_observer.videoTrack.assetTrack.naturalSize.height);
                 }
 
-                if (m_videoOutput && newState != QMediaPlayer::StoppedState) {
-                    m_videoOutput->setLayer(playerLayer);
+                if (newState != QMediaPlayer::StoppedState) {
+                    if (m_videoSink) {
+                        m_videoSink->setLayer(playerLayer);
+                    } else if (m_videoOutput) {
+                        m_videoOutput->setLayer(playerLayer);
+                    }
                 }
             }
 

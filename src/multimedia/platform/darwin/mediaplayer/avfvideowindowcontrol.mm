@@ -54,15 +54,6 @@ QT_USE_NAMESPACE
 
 AVFVideoWindowControl::AVFVideoWindowControl(QVideoSink *parent)
     : QPlatformVideoSink(parent)
-    , m_winId(0)
-    , m_fullscreen(false)
-    , m_brightness(0)
-    , m_contrast(0)
-    , m_hue(0)
-    , m_saturation(0)
-    , m_aspectRatioMode(Qt::IgnoreAspectRatio)
-    , m_playerLayer(nullptr)
-    , m_nativeView(nullptr)
 {
 }
 
@@ -226,6 +217,7 @@ void AVFVideoWindowControl::updateAspectRatio()
         }
     }
 }
+#include <qdebug.h>
 
 void AVFVideoWindowControl::updatePlayerLayerBounds()
 {

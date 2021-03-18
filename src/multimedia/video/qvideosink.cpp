@@ -145,6 +145,7 @@ QRectF QVideoSink::targetRect() const
 
 void QVideoSink::setTargetRect(const QRectF &rect)
 {
+    d->videoSink->setDisplayRect(rect.toRect());
     d->targetRect = rect;
 }
 
