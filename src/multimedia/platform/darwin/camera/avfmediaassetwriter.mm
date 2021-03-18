@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "avfmediarecordercontrol_p.h"
+#include "avfmediaencoder_p.h"
 #include "avfcamerarenderercontrol_p.h"
 #include "avfmediaassetwriter_p.h"
 #include "avfcameraservice_p.h"
@@ -111,7 +111,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     AVFScopedPointer<AVAssetWriter> m_assetWriter;
 
-    AVFMediaRecorderControl *m_delegate;
+    AVFMediaEncoder *m_delegate;
 
     bool m_setStartTime;
 
@@ -126,7 +126,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     AVFAtomicInt64 m_durationInMs;
 }
 
-- (id)initWithDelegate:(AVFMediaRecorderControl *)delegate
+- (id)initWithDelegate:(AVFMediaEncoder *)delegate
 {
     Q_ASSERT(delegate);
 

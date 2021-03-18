@@ -59,14 +59,14 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFMediaRecorderControl;
+class AVFMediaEncoder;
 class AVFCameraService;
 
 QT_END_NAMESPACE
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) : NSObject<AVCaptureVideoDataOutputSampleBufferDelegate,
                                                                AVCaptureAudioDataOutputSampleBufferDelegate>
-- (id)initWithDelegate:(QT_PREPEND_NAMESPACE(AVFMediaRecorderControl) *)delegate;
+- (id)initWithDelegate:(QT_PREPEND_NAMESPACE(AVFMediaEncoder) *)delegate;
 
 - (bool)setupWithFileURL:(NSURL *)fileURL
         cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service

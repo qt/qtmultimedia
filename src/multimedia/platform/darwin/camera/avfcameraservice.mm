@@ -50,7 +50,7 @@
 #include "avfcameraexposurecontrol_p.h"
 #include "avfcameraimageprocessingcontrol_p.h"
 #include "avfcamerawindowcontrol_p.h"
-#include "avfmediarecordercontrol_p.h"
+#include "avfmediaencoder_p.h"
 #include <qmediadevicemanager.h>
 
 QT_USE_NAMESPACE
@@ -60,7 +60,7 @@ AVFCameraService::AVFCameraService()
     m_session = new AVFCameraSession(this);
     m_cameraControl = new AVFCameraControl(this);
 
-    m_recorderControl = new AVFMediaRecorderControl(this);
+    m_recorderControl = new AVFMediaEncoder(this);
 
     m_imageCaptureControl = new AVFImageCaptureControl(this);
     m_cameraFocusControl = new AVFCameraFocusControl(this);

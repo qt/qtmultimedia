@@ -65,8 +65,7 @@ class AVFCameraSession;
 class AVFCameraFocusControl;
 class AVFCameraExposureControl;
 class AVFCameraImageProcessingControl;
-class AVFMediaRecorderControl;
-class AVFMediaRecorderControl;
+class AVFMediaEncoder;
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 
@@ -92,7 +91,7 @@ public:
 
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
-    AVFMediaRecorderControl *recorderControl() const { return m_recorderControl; }
+    AVFMediaEncoder *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *avfImageCaptureControl() const { return m_imageCaptureControl; }
     AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
     AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
@@ -105,7 +104,7 @@ private:
 
     AVFCameraSession *m_session;
     AVFCameraControl *m_cameraControl;
-    AVFMediaRecorderControl *m_recorderControl;
+    AVFMediaEncoder *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;
     AVFCameraFocusControl *m_cameraFocusControl;
     AVFCameraExposureControl *m_cameraExposureControl;

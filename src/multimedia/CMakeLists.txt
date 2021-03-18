@@ -404,7 +404,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
     SOURCES
         platform/darwin/camera/avfmediaassetwriter.mm platform/darwin/camera/avfmediaassetwriter_p.h
-        platform/darwin/camera/avfmediarecordercontrol.mm platform/darwin/camera/avfmediarecordercontrol_p.h
+        platform/darwin/camera/avfmediaencoder.mm platform/darwin/camera/avfmediaencoder_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS AND (IOS OR TVOS)

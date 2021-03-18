@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 
-#include "avfmediarecordercontrol_p.h"
+#include "avfmediaencoder_p.h"
 #include "avfcamerarenderercontrol_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameracontrol_p.h"
@@ -85,7 +85,7 @@ bool qt_file_exists(NSURL *fileURL)
 
 }
 
-AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObject *parent)
+AVFMediaEncoder::AVFMediaEncoder(AVFCameraService *service, QObject *parent)
     : QPlatformMediaEncoder(parent)
     , m_service(service)
     , m_state(QMediaEncoder::StoppedState)
@@ -112,7 +112,7 @@ AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObj
                            SLOT(cameraStatusChanged(QCamera::Status)));
 }
 
-AVFMediaRecorderControl::~AVFMediaRecorderControl()
+AVFMediaEncoder::~AVFMediaEncoder()
 {
     [m_writer abort];
 
@@ -122,28 +122,28 @@ AVFMediaRecorderControl::~AVFMediaRecorderControl()
         [m_videoSettings release];
 }
 
-QUrl AVFMediaRecorderControl::outputLocation() const
+QUrl AVFMediaEncoder::outputLocation() const
 {
     return m_outputLocation;
 }
 
-bool AVFMediaRecorderControl::setOutputLocation(const QUrl &location)
+bool AVFMediaEncoder::setOutputLocation(const QUrl &location)
 {
     m_outputLocation = location;
     return location.scheme() == QLatin1String("file") || location.scheme().isEmpty();
 }
 
-QMediaEncoder::State AVFMediaRecorderControl::state() const
+QMediaEncoder::State AVFMediaEncoder::state() const
 {
     return m_state;
 }
 
-QMediaEncoder::Status AVFMediaRecorderControl::status() const
+QMediaEncoder::Status AVFMediaEncoder::status() const
 {
     return m_lastStatus;
 }
 
-qint64 AVFMediaRecorderControl::duration() const
+qint64 AVFMediaEncoder::duration() const
 {
     return m_writer.data().durationInMs;
 }
@@ -373,7 +373,7 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
     return videoSettings;
 }
 
-void AVFMediaRecorderControl::applySettings()
+void AVFMediaEncoder::applySettings()
 {
     AVFCameraSession *session = m_service->session();
     if (!session)
@@ -400,7 +400,7 @@ void AVFMediaRecorderControl::applySettings()
         [m_videoSettings retain];
 }
 
-void AVFMediaRecorderControl::unapplySettings()
+void AVFMediaEncoder::unapplySettings()
 {
 //    m_service->audioEncoderSettingsControl()->unapplySettings();
 
@@ -417,12 +417,12 @@ void AVFMediaRecorderControl::unapplySettings()
     }
 }
 
-void AVFMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &settings)
+void AVFMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     m_settings = settings;
 }
 
-void AVFMediaRecorderControl::setState(QMediaEncoder::State state)
+void AVFMediaEncoder::setState(QMediaEncoder::State state)
 {
     Q_ASSERT(m_service->session()
              && m_service->session()->captureSession());
@@ -535,13 +535,13 @@ void AVFMediaRecorderControl::setState(QMediaEncoder::State state)
     }
 }
 
-void AVFMediaRecorderControl::assetWriterStarted()
+void AVFMediaEncoder::assetWriterStarted()
 {
     m_lastStatus = QMediaEncoder::RecordingStatus;
     Q_EMIT statusChanged(QMediaEncoder::RecordingStatus);
 }
 
-void AVFMediaRecorderControl::assetWriterFinished()
+void AVFMediaEncoder::assetWriterFinished()
 {
     AVFCameraControl *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
@@ -560,7 +560,7 @@ void AVFMediaRecorderControl::assetWriterFinished()
         Q_EMIT stateChanged(m_state);
 }
 
-void AVFMediaRecorderControl::cameraStatusChanged(QCamera::Status newStatus)
+void AVFMediaEncoder::cameraStatusChanged(QCamera::Status newStatus)
 {
     AVFCameraControl *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
@@ -578,7 +578,7 @@ void AVFMediaRecorderControl::cameraStatusChanged(QCamera::Status newStatus)
         Q_EMIT statusChanged(m_lastStatus);
 }
 
-void AVFMediaRecorderControl::stopWriter()
+void AVFMediaEncoder::stopWriter()
 {
     if (m_lastStatus == QMediaEncoder::RecordingStatus) {
         m_lastStatus = QMediaEncoder::FinalizingStatus;
@@ -589,4 +589,4 @@ void AVFMediaRecorderControl::stopWriter()
     }
 }
 
-#include "moc_avfmediarecordercontrol_p.cpp"
+#include "moc_avfmediaencoder_p.cpp"

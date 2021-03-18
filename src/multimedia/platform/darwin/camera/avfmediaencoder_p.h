@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFMEDIARECORDERCONTROL_IOS_H
-#define AVFMEDIARECORDERCONTROL_IOS_H
+#ifndef AVFMEDIAENCODER_H
+#define AVFMEDIAENCODER_H
 
 //
 //  W A R N I N G
@@ -70,12 +70,12 @@ class AVFCameraService;
 class QString;
 class QUrl;
 
-class AVFMediaRecorderControl : public QPlatformMediaEncoder
+class AVFMediaEncoder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:
-    AVFMediaRecorderControl(AVFCameraService *service, QObject *parent = nullptr);
-    ~AVFMediaRecorderControl() override;
+    AVFMediaEncoder(AVFCameraService *service, QObject *parent = nullptr);
+    ~AVFMediaEncoder() override;
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
@@ -128,4 +128,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // AVFMEDIARECORDERCONTROL_IOS_H
+#endif // AVFMEDIAENCODER_H
