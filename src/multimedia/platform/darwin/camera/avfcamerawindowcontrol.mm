@@ -52,7 +52,7 @@
 
 QT_USE_NAMESPACE
 
-AVFCameraWindowControl::AVFCameraWindowControl(QObject *parent)
+AVFCameraWindowControl::AVFCameraWindowControl(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
     setObjectName(QStringLiteral("AVFCameraWindowControl"));
@@ -100,10 +100,7 @@ bool AVFCameraWindowControl::isFullScreen() const
 
 void AVFCameraWindowControl::setFullScreen(bool fullscreen)
 {
-    if (m_fullscreen != fullscreen) {
-        m_fullscreen = fullscreen;
-        Q_EMIT fullScreenChanged(fullscreen);
-    }
+    m_fullscreen = fullscreen;
 }
 
 void AVFCameraWindowControl::repaint()

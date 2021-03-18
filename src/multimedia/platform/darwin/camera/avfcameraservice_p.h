@@ -55,8 +55,6 @@
 #include <QtCore/qset.h>
 #include <private/qplatformmediacapture_p.h>
 
-#include <AVFoundation/AVFoundation.h>
-
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformMediaEncoder;
@@ -69,6 +67,8 @@ class AVFCameraExposureControl;
 class AVFCameraImageProcessingControl;
 class AVFMediaRecorderControl;
 class AVFMediaRecorderControl;
+
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 
 class AVFCameraService : public QPlatformMediaCaptureSession
 {

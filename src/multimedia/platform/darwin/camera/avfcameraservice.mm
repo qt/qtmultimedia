@@ -51,6 +51,7 @@
 #include "avfcameraimageprocessingcontrol_p.h"
 #include "avfcamerawindowcontrol_p.h"
 #include "avfmediarecordercontrol_p.h"
+#include <qmediadevicemanager.h>
 
 QT_USE_NAMESPACE
 

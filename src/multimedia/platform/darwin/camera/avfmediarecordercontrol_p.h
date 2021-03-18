@@ -80,8 +80,8 @@ public:
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
 
-    QMediaRecorder::State state() const override;
-    QMediaRecorder::Status status() const override;
+    QMediaEncoder::State state() const override;
+    QMediaEncoder::Status status() const override;
 
     qint64 duration() const override;
 
@@ -95,8 +95,10 @@ public:
         return s;
     }
 
+    AVFCameraService *cameraService() const { return m_service; }
+
 public Q_SLOTS:
-    void setState(QMediaRecorder::State state) override;
+    void setState(QMediaEncoder::State state) override;
 
 private:
 
@@ -115,8 +117,8 @@ private:
     QUrl m_outputLocation;
     AVFStorageLocation m_storageLocation;
 
-    QMediaRecorder::State m_state;
-    QMediaRecorder::Status m_lastStatus;
+    QMediaEncoder::State m_state;
+    QMediaEncoder::Status m_lastStatus;
     QMediaEncoderSettings m_settings;
 
     NSDictionary *m_audioSettings;

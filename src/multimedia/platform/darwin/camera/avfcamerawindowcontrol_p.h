@@ -68,7 +68,7 @@ class AVFCameraWindowControl : public QPlatformVideoSink
 {
     Q_OBJECT
 public:
-    AVFCameraWindowControl(QObject *parent = nullptr);
+    AVFCameraWindowControl(QVideoSink *parent = nullptr);
     virtual ~AVFCameraWindowControl() override;
 
     // QPlatformVideoSink interface

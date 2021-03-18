@@ -393,7 +393,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     AVCaptureSession *captureSession = m_service->session()->captureSession();
 
     // #####
-    const auto audioDeviceInfo = m_delegate->audioInput();
+    const auto audioDeviceInfo = m_delegate->cameraService()->audioInput();
     m_audioCaptureDevice = [AVCaptureDevice deviceWithUniqueID:
                             [NSString stringWithUTF8String:audioDeviceInfo.id().constData()]];
 

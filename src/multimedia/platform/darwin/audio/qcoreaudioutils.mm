@@ -129,6 +129,7 @@ AudioStreamBasicDescription CoreAudioUtils::toAudioStreamBasicDescription(QAudio
     case QAudioFormat::UInt8:
         /* default */
     case QAudioFormat::Unknown:
+    case QAudioFormat::NSampleFormats:
         break;
     }
 

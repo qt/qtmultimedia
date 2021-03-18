@@ -52,7 +52,7 @@
 
 QT_USE_NAMESPACE
 
-AVFVideoWindowControl::AVFVideoWindowControl(QObject *parent)
+AVFVideoWindowControl::AVFVideoWindowControl(QVideoSink *parent)
     : QPlatformVideoSink(parent)
     , m_winId(0)
     , m_fullscreen(false)
@@ -105,10 +105,7 @@ bool AVFVideoWindowControl::isFullScreen() const
 
 void AVFVideoWindowControl::setFullScreen(bool fullScreen)
 {
-    if (m_fullscreen != fullScreen) {
-        m_fullscreen = fullScreen;
-        Q_EMIT QPlatformVideoSink::fullScreenChanged(fullScreen);
-    }
+    m_fullscreen = fullScreen;
 }
 
 void AVFVideoWindowControl::repaint()
@@ -142,10 +139,7 @@ int AVFVideoWindowControl::brightness() const
 
 void AVFVideoWindowControl::setBrightness(int brightness)
 {
-    if (m_brightness != brightness) {
-        m_brightness = brightness;
-        Q_EMIT QPlatformVideoSink::brightnessChanged(brightness);
-    }
+    m_brightness = brightness;
 }
 
 int AVFVideoWindowControl::contrast() const
@@ -155,10 +149,7 @@ int AVFVideoWindowControl::contrast() const
 
 void AVFVideoWindowControl::setContrast(int contrast)
 {
-    if (m_contrast != contrast) {
-        m_contrast = contrast;
-        Q_EMIT QPlatformVideoSink::contrastChanged(contrast);
-    }
+    m_contrast = contrast;
 }
 
 int AVFVideoWindowControl::hue() const
@@ -168,10 +159,7 @@ int AVFVideoWindowControl::hue() const
 
 void AVFVideoWindowControl::setHue(int hue)
 {
-    if (m_hue != hue) {
-        m_hue = hue;
-        Q_EMIT QPlatformVideoSink::hueChanged(hue);
-    }
+    m_hue = hue;
 }
 
 int AVFVideoWindowControl::saturation() const
@@ -181,10 +169,7 @@ int AVFVideoWindowControl::saturation() const
 
 void AVFVideoWindowControl::setSaturation(int saturation)
 {
-    if (m_saturation != saturation) {
-        m_saturation = saturation;
-        Q_EMIT QPlatformVideoSink::saturationChanged(saturation);
-    }
+    m_saturation = saturation;
 }
 
 void AVFVideoWindowControl::setLayer(CALayer *playerLayer)

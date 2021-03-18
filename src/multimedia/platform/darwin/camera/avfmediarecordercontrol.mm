@@ -88,8 +88,8 @@ bool qt_file_exists(NSURL *fileURL)
 AVFMediaRecorderControl::AVFMediaRecorderControl(AVFCameraService *service, QObject *parent)
     : QPlatformMediaEncoder(parent)
     , m_service(service)
-    , m_state(QMediaRecorder::StoppedState)
-    , m_lastStatus(QMediaRecorder::StoppedStatus)
+    , m_state(QMediaEncoder::StoppedState)
+    , m_lastStatus(QMediaEncoder::StoppedStatus)
     , m_audioSettings(nil)
     , m_videoSettings(nil)
     //, m_restoreFPS(-1, -1)
@@ -133,12 +133,12 @@ bool AVFMediaRecorderControl::setOutputLocation(const QUrl &location)
     return location.scheme() == QLatin1String("file") || location.scheme().isEmpty();
 }
 
-QMediaRecorder::State AVFMediaRecorderControl::state() const
+QMediaEncoder::State AVFMediaRecorderControl::state() const
 {
     return m_state;
 }
 
-QMediaRecorder::Status AVFMediaRecorderControl::status() const
+QMediaEncoder::Status AVFMediaRecorderControl::status() const
 {
     return m_lastStatus;
 }
@@ -379,7 +379,7 @@ void AVFMediaRecorderControl::applySettings()
     if (!session)
         return;
 
-    if (m_state != QMediaRecorder::StoppedState)
+    if (m_state != QMediaEncoder::StoppedState)
         return;
 
     auto encoderSettings = m_settings;
@@ -422,7 +422,7 @@ void AVFMediaRecorderControl::setEncoderSettings(const QMediaEncoderSettings &se
     m_settings = settings;
 }
 
-void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
+void AVFMediaRecorderControl::setState(QMediaEncoder::State state)
 {
     Q_ASSERT(m_service->session()
              && m_service->session()->captureSession());
@@ -436,14 +436,14 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
         return;
 
     switch (state) {
-    case QMediaRecorder::RecordingState:
+    case QMediaEncoder::RecordingState:
     {
         AVFCameraControl *cameraControl = m_service->avfCameraControl();
         Q_ASSERT(cameraControl);
 
         if (cameraControl->status() != QCamera::ActiveStatus) {
             qDebugCamera() << Q_FUNC_INFO << "can not start record while camera is not active";
-            Q_EMIT error(QMediaRecorder::ResourceError, tr("Failed to start recording"));
+            Q_EMIT error(QMediaEncoder::ResourceError, tr("Failed to start recording"));
             return;
         }
 
@@ -458,13 +458,13 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
         NSURL *nsFileURL = fileURL.toNSURL();
         if (!nsFileURL) {
             qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL;
-            Q_EMIT error(QMediaRecorder::ResourceError, tr("Invalid output file URL"));
+            Q_EMIT error(QMediaEncoder::ResourceError, tr("Invalid output file URL"));
             return;
         }
         if (!qt_is_writable_file_URL(nsFileURL)) {
             qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
                        << "(the location is not writable)";
-            Q_EMIT error(QMediaRecorder::ResourceError, tr("Non-writeable file location"));
+            Q_EMIT error(QMediaEncoder::ResourceError, tr("Non-writeable file location"));
             return;
         }
         if (qt_file_exists(nsFileURL)) {
@@ -472,7 +472,7 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
             // Objective-C exception, which is not good at all.
             qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
                        << "(file already exists)";
-            Q_EMIT error(QMediaRecorder::ResourceError, tr("File already exists"));
+            Q_EMIT error(QMediaEncoder::ResourceError, tr("File already exists"));
             return;
         }
 
@@ -501,8 +501,8 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
                       videoSettings:m_videoSettings
                       transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
 
-            m_state = QMediaRecorder::RecordingState;
-            m_lastStatus = QMediaRecorder::StartingStatus;
+            m_state = QMediaEncoder::RecordingState;
+            m_lastStatus = QMediaEncoder::StartingStatus;
 
             Q_EMIT actualLocationChanged(fileURL);
             Q_EMIT stateChanged(m_state);
@@ -519,15 +519,15 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
             [m_writer start];
         } else {
             [session startRunning];
-            Q_EMIT error(QMediaRecorder::FormatError, tr("Failed to start recording"));
+            Q_EMIT error(QMediaEncoder::FormatError, tr("Failed to start recording"));
         }
     } break;
-    case QMediaRecorder::PausedState:
+    case QMediaEncoder::PausedState:
     {
-        Q_EMIT error(QMediaRecorder::FormatError, tr("Recording pause not supported"));
+        Q_EMIT error(QMediaEncoder::FormatError, tr("Recording pause not supported"));
         return;
     } break;
-    case QMediaRecorder::StoppedState:
+    case QMediaEncoder::StoppedState:
     {
         // Do not check the camera status, we can stop if we started.
         stopWriter();
@@ -537,8 +537,8 @@ void AVFMediaRecorderControl::setState(QMediaRecorder::State state)
 
 void AVFMediaRecorderControl::assetWriterStarted()
 {
-    m_lastStatus = QMediaRecorder::RecordingStatus;
-    Q_EMIT statusChanged(QMediaRecorder::RecordingStatus);
+    m_lastStatus = QMediaEncoder::RecordingStatus;
+    Q_EMIT statusChanged(QMediaEncoder::RecordingStatus);
 }
 
 void AVFMediaRecorderControl::assetWriterFinished()
@@ -546,14 +546,14 @@ void AVFMediaRecorderControl::assetWriterFinished()
     AVFCameraControl *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 
-    const QMediaRecorder::Status lastStatus = m_lastStatus;
-    const QMediaRecorder::State lastState = m_state;
+    const QMediaEncoder::Status lastStatus = m_lastStatus;
+    const QMediaEncoder::State lastState = m_state;
 
     unapplySettings();
 
     m_service->session()->videoOutput()->resetCaptureDelegate();
     [m_service->session()->captureSession() startRunning];
-    m_state = QMediaRecorder::StoppedState;
+    m_state = QMediaEncoder::StoppedState;
     if (m_lastStatus != lastStatus)
         Q_EMIT statusChanged(m_lastStatus);
     if (m_state != lastState)
@@ -565,13 +565,13 @@ void AVFMediaRecorderControl::cameraStatusChanged(QCamera::Status newStatus)
     AVFCameraControl *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 
-    const QMediaRecorder::Status lastStatus = m_lastStatus;
+    const QMediaEncoder::Status lastStatus = m_lastStatus;
     if (newStatus != QCamera::StartingStatus
         && newStatus != QCamera::ActiveStatus) {
-        if (m_lastStatus == QMediaRecorder::RecordingStatus)
+        if (m_lastStatus == QMediaEncoder::RecordingStatus)
             return stopWriter();
         if (newStatus == QCamera::InactiveStatus)
-            m_lastStatus = QMediaRecorder::StoppedStatus;
+            m_lastStatus = QMediaEncoder::StoppedStatus;
     }
 
     if (lastStatus != m_lastStatus)
@@ -580,8 +580,8 @@ void AVFMediaRecorderControl::cameraStatusChanged(QCamera::Status newStatus)
 
 void AVFMediaRecorderControl::stopWriter()
 {
-    if (m_lastStatus == QMediaRecorder::RecordingStatus) {
-        m_lastStatus = QMediaRecorder::FinalizingStatus;
+    if (m_lastStatus == QMediaEncoder::RecordingStatus) {
+        m_lastStatus = QMediaEncoder::FinalizingStatus;
 
         Q_EMIT statusChanged(m_lastStatus);
 

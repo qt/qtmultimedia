@@ -71,7 +71,7 @@ class AVFVideoWindowControl : public QPlatformVideoSink, public AVFVideoOutput
     Q_OBJECT
 
 public:
-    AVFVideoWindowControl(QObject *parent = nullptr);
+    AVFVideoWindowControl(QVideoSink *parent = nullptr);
     virtual ~AVFVideoWindowControl();
 
     // QPlatformVideoSink interface
