@@ -81,7 +81,6 @@ QT_BEGIN_NAMESPACE
     \value NoHandle The buffer has no handle, its data can only be accessed by mapping the buffer.
     \value GLTextureHandle The handle of the buffer is an OpenGL texture ID.
     \value MTLTextureHandle The handle of the buffer is an Metal texture ID.
-    \value QPixmapHandle The handle of the buffer is a QPixmap.
 
     \sa handleType()
 */

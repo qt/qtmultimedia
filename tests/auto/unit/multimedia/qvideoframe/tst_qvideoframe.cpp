@@ -258,10 +258,6 @@ void tst_QVideoFrame::createFromBuffer_data()
             << QVideoFrame::GLTextureHandle
             << QSize(64, 64)
             << QVideoFrame::Format_ARGB32;
-    QTest::newRow("64x64 ARGB32 pixmap handle")
-            << QVideoFrame::QPixmapHandle
-            << QSize(64, 64)
-            << QVideoFrame::Format_ARGB32;
 }
 
 void tst_QVideoFrame::createFromBuffer()

@@ -277,9 +277,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
         source = s;
     }
 
-    if (frame.handleType() == QVideoFrame::QPixmapHandle) {
-        painter->drawPixmap(targetRect, frame.handle().value<QPixmap>(), source);
-    } else if (frame.map(QVideoFrame::ReadOnly)) {
+    if (frame.map(QVideoFrame::ReadOnly)) {
         QImage image = frame.image();
 
         auto oldOpacity = painter->opacity();
