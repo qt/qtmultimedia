@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "avfvideowindowcontrol_p.h"
+#include "avfvideosink_p.h"
 
 #include <AVFoundation/AVFoundation.h>
 #import <QuartzCore/CATransaction.h>
@@ -52,12 +52,12 @@
 
 QT_USE_NAMESPACE
 
-AVFVideoWindowControl::AVFVideoWindowControl(QVideoSink *parent)
+AVFVideoSink::AVFVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
 }
 
-AVFVideoWindowControl::~AVFVideoWindowControl()
+AVFVideoSink::~AVFVideoSink()
 {
     if (m_layer) {
         [m_layer removeFromSuperlayer];
@@ -65,23 +65,23 @@ AVFVideoWindowControl::~AVFVideoWindowControl()
     }
 }
 
-WId AVFVideoWindowControl::winId() const
+WId AVFVideoSink::winId() const
 {
     return m_winId;
 }
 
-void AVFVideoWindowControl::setWinId(WId id)
+void AVFVideoSink::setWinId(WId id)
 {
     m_winId = id;
     m_nativeView = (NativeView*)m_winId;
 }
 
-QRect AVFVideoWindowControl::displayRect() const
+QRect AVFVideoSink::displayRect() const
 {
     return m_displayRect;
 }
 
-void AVFVideoWindowControl::setDisplayRect(const QRect &rect)
+void AVFVideoSink::setDisplayRect(const QRect &rect)
 {
     if (m_displayRect != rect) {
         m_displayRect = rect;
@@ -89,33 +89,33 @@ void AVFVideoWindowControl::setDisplayRect(const QRect &rect)
     }
 }
 
-bool AVFVideoWindowControl::isFullScreen() const
+bool AVFVideoSink::isFullScreen() const
 {
     return m_fullscreen;
 }
 
-void AVFVideoWindowControl::setFullScreen(bool fullScreen)
+void AVFVideoSink::setFullScreen(bool fullScreen)
 {
     m_fullscreen = fullScreen;
 }
 
-void AVFVideoWindowControl::repaint()
+void AVFVideoSink::repaint()
 {
     if (m_layer)
         [m_layer setNeedsDisplay];
 }
 
-QSize AVFVideoWindowControl::nativeSize() const
+QSize AVFVideoSink::nativeSize() const
 {
     return m_nativeSize;
 }
 
-Qt::AspectRatioMode AVFVideoWindowControl::aspectRatioMode() const
+Qt::AspectRatioMode AVFVideoSink::aspectRatioMode() const
 {
     return m_aspectRatioMode;
 }
 
-void AVFVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
+void AVFVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     if (m_aspectRatioMode != mode) {
         m_aspectRatioMode = mode;
@@ -123,42 +123,42 @@ void AVFVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
     }
 }
 
-int AVFVideoWindowControl::brightness() const
+int AVFVideoSink::brightness() const
 {
     return m_brightness;
 }
 
-void AVFVideoWindowControl::setBrightness(int brightness)
+void AVFVideoSink::setBrightness(int brightness)
 {
     m_brightness = brightness;
 }
 
-int AVFVideoWindowControl::contrast() const
+int AVFVideoSink::contrast() const
 {
     return m_contrast;
 }
 
-void AVFVideoWindowControl::setContrast(int contrast)
+void AVFVideoSink::setContrast(int contrast)
 {
     m_contrast = contrast;
 }
 
-int AVFVideoWindowControl::hue() const
+int AVFVideoSink::hue() const
 {
     return m_hue;
 }
 
-void AVFVideoWindowControl::setHue(int hue)
+void AVFVideoSink::setHue(int hue)
 {
     m_hue = hue;
 }
 
-int AVFVideoWindowControl::saturation() const
+int AVFVideoSink::saturation() const
 {
     return m_saturation;
 }
 
-void AVFVideoWindowControl::setSaturation(int saturation)
+void AVFVideoSink::setSaturation(int saturation)
 {
     m_saturation = saturation;
 }
@@ -170,7 +170,7 @@ template<typename T> inline T* objc_cast(id from) {
     return nil;
 }
 
-void AVFVideoWindowControl::setLayer(CALayer *layer)
+void AVFVideoSink::setLayer(CALayer *layer)
 {
     m_playerLayer = objc_cast<AVPlayerLayer>(layer);
     m_previewLayer = objc_cast<AVCaptureVideoPreviewLayer>(layer);
@@ -178,7 +178,7 @@ void AVFVideoWindowControl::setLayer(CALayer *layer)
         return;
 
     if (!m_winId) {
-        qDebug("AVFVideoWindowControl: No video window");
+        qDebug("AVFVideoSink: No video window");
         return;
     }
 
@@ -207,7 +207,7 @@ void AVFVideoWindowControl::setLayer(CALayer *layer)
     }
 }
 
-void AVFVideoWindowControl::updateAspectRatio()
+void AVFVideoSink::updateAspectRatio()
 {
     AVLayerVideoGravity gravity = AVLayerVideoGravityResizeAspect;
 
@@ -231,7 +231,7 @@ void AVFVideoWindowControl::updateAspectRatio()
 }
 #include <qdebug.h>
 
-void AVFVideoWindowControl::updatePlayerLayerBounds()
+void AVFVideoSink::updatePlayerLayerBounds()
 {
     if (m_layer) {
         [CATransaction begin];
@@ -241,4 +241,4 @@ void AVFVideoWindowControl::updatePlayerLayerBounds()
     }
 }
 
-#include "moc_avfvideowindowcontrol_p.cpp"
+#include "moc_avfvideosink_p.cpp"

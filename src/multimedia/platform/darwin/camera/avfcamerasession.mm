@@ -44,7 +44,7 @@
 #include "avfcamerarenderercontrol_p.h"
 #include "avfimagecapturecontrol_p.h"
 #include "avfcamerautility_p.h"
-#include <private/avfvideowindowcontrol_p.h>
+#include <private/avfvideosink_p.h>
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
@@ -339,7 +339,7 @@ void AVFCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
 
 void AVFCameraSession::setVideoSink(QVideoSink *sink)
 {
-    auto *videoSink = static_cast<AVFVideoWindowControl *>(sink->platformVideoSink());
+    auto *videoSink = static_cast<AVFVideoSink *>(sink->platformVideoSink());
 
     if (m_videoSink == videoSink)
         return;

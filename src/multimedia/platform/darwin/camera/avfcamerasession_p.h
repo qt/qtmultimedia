@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 class AVFCameraControl;
 class AVFCameraService;
 class AVFCameraRendererControl;
-class AVFVideoWindowControl;
+class AVFVideoSink;
 class QVideoSink;
 
 class AVFCameraSession : public QObject
@@ -115,7 +115,7 @@ private:
 
     AVFCameraService *m_service;
     AVFCameraRendererControl *m_videoOutput;
-    AVFVideoWindowControl *m_videoSink;
+    AVFVideoSink *m_videoSink;
 
     bool m_active = false;
 

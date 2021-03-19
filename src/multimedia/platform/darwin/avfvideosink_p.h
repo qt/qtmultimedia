@@ -64,17 +64,17 @@ typedef UIView NativeView;
 #endif
 
 
-#include "avfvideooutput_p.h"
+#include <private/avfvideooutput_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class AVFVideoWindowControl : public QPlatformVideoSink, public AVFVideoOutput
+class AVFVideoSink : public QPlatformVideoSink, public AVFVideoOutput
 {
     Q_OBJECT
 
 public:
-    AVFVideoWindowControl(QVideoSink *parent = nullptr);
-    virtual ~AVFVideoWindowControl();
+    AVFVideoSink(QVideoSink *parent = nullptr);
+    virtual ~AVFVideoSink();
 
     // QPlatformVideoSink interface
 public:

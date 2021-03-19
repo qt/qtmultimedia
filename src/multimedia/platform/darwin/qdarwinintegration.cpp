@@ -42,7 +42,7 @@
 #include <private/avfmediaplayer_p.h>
 #include <private/avfcameraservice_p.h>
 #include <private/qdarwinformatsinfo_p.h>
-#include <private/avfvideowindowcontrol_p.h>
+#include <private/avfvideosink_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -83,7 +83,7 @@ QPlatformMediaPlayer *QDarwinIntegration::createPlayer(QMediaPlayer *player)
 
 QPlatformVideoSink *QDarwinIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new AVFVideoWindowControl(sink);
+    return new AVFVideoSink(sink);
 }
 
 QT_END_NAMESPACE

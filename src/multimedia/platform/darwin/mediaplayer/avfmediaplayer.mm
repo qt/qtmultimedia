@@ -40,7 +40,7 @@
 #include "avfmediaplayer_p.h"
 #include "avfmediaplayer_p.h"
 #include "avfvideorenderercontrol_p.h"
-#include "avfvideowindowcontrol_p.h"
+#include <private/avfvideosink_p.h>
 #include "avfvideooutput_p.h"
 #include "avfmetadata_p.h"
 
@@ -516,7 +516,7 @@ void AVFMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
 void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     setVideoOutput(nullptr);
-    m_videoSink = static_cast<AVFVideoWindowControl *>(sink->platformVideoSink());
+    m_videoSink = static_cast<AVFVideoSink *>(sink->platformVideoSink());
 }
 
 void AVFMediaPlayer::setVideoOutput(AVFVideoRendererControl *output)
