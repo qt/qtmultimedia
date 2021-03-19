@@ -55,9 +55,10 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qmutex.h>
 
-#import <AVFoundation/AVFoundation.h>
+#include <dispatch/dispatch.h>
 
-@class AVFCaptureFramesDelegate;
+Q_FORWARD_DECLARE_OBJC_CLASS(AVFCaptureFramesDelegate);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
 
 QT_BEGIN_NAMESPACE
 
@@ -65,6 +66,7 @@ class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraRendererControl;
 class QAbstractVideoSurface;
+class AVFVideoSink;
 
 class AVFCameraRendererControl : public QObject
 {
@@ -73,8 +75,7 @@ public:
     AVFCameraRendererControl(QObject *parent = nullptr);
     ~AVFCameraRendererControl();
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    void setVideoSink(AVFVideoSink *sink);
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);
@@ -94,16 +95,16 @@ private Q_SLOTS:
     void updateCaptureConnection();
 
 private:
-    QAbstractVideoSurface *m_surface;
-    AVFCaptureFramesDelegate *m_viewfinderFramesDelegate;
-    AVFCameraSession *m_cameraSession;
-    AVCaptureVideoDataOutput *m_videoDataOutput;
+    AVFVideoSink *m_sink = nullptr;
+    AVFCaptureFramesDelegate *m_viewfinderFramesDelegate = nullptr;
+    AVFCameraSession *m_cameraSession = nullptr;
+    AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
 
-    bool m_supportsTextures;
-    bool m_needsHorizontalMirroring;
+    bool m_supportsTextures = false;
+    bool m_needsHorizontalMirroring = false;
 
 #ifdef Q_OS_IOS
-    CVOpenGLESTextureCacheRef m_textureCache;
+    CVOpenGLESTextureCacheRef m_textureCache = nullptr;
 #endif
 
     QVideoFrame m_lastViewfinderFrame;

@@ -43,6 +43,10 @@
 #include "avfcameraservice_p.h"
 #include "avfcameradebug_p.h"
 #include "avfcameracontrol_p.h"
+#include <private/avfvideosink_p.h>
+#include "qvideosink.h"
+
+#import <AVFoundation/AVFoundation.h>
 
 #ifdef Q_OS_IOS
 #include <QtGui/qopengl.h>
@@ -264,12 +268,6 @@ private:
 
 AVFCameraRendererControl::AVFCameraRendererControl(QObject *parent)
    : QObject(parent)
-   , m_surface(nullptr)
-   , m_supportsTextures(false)
-   , m_needsHorizontalMirroring(false)
-#ifdef Q_OS_IOS
-   , m_textureCache(nullptr)
-#endif
 {
     m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
 }
@@ -286,20 +284,12 @@ AVFCameraRendererControl::~AVFCameraRendererControl()
 #endif
 }
 
-QAbstractVideoSurface *AVFCameraRendererControl::surface() const
+void AVFCameraRendererControl::setVideoSink(AVFVideoSink *sink)
 {
-    return m_surface;
-}
+    if (m_sink == sink)
+        return;
 
-void AVFCameraRendererControl::setSurface(QAbstractVideoSurface *surface)
-{
-    if (m_surface != surface) {
-        m_surface = surface;
-        m_supportsTextures = m_surface
-                ? !m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle).isEmpty()
-                : false;
-        Q_EMIT surfaceChanged(surface);
-    }
+    m_sink = sink;
 }
 
 void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *cameraSession)
@@ -375,26 +365,13 @@ void AVFCameraRendererControl::handleViewfinderFrame()
         m_lastViewfinderFrame = QVideoFrame();
     }
 
-    if (m_surface && frame.isValid()) {
-        if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
-                                      || m_surface->surfaceFormat().frameSize() != frame.size())) {
-            m_surface->stop();
-        }
+    if (m_sink && frame.isValid()) {
+        // ### pass format to surface
+        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), frame.handleType());
+        if (m_needsHorizontalMirroring)
+            format.setMirrored(true);
 
-        if (!m_surface->isActive()) {
-            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), frame.handleType());
-            if (m_needsHorizontalMirroring)
-                format.setMirrored(true);
-
-            if (!m_surface->start(format)) {
-                qWarning() << "Failed to start viewfinder m_surface, format:" << format;
-            } else {
-                qDebugCamera() << "Viewfinder started: " << format;
-            }
-        }
-
-        if (m_surface->isActive())
-            m_surface->present(frame);
+        m_sink->videoSink()->newVideoFrame(frame);
     }
 }
 

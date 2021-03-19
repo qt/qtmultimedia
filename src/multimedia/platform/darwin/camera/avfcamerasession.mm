@@ -334,7 +334,7 @@ FourCharCode AVFCameraSession::defaultCodec()
 
 void AVFCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
 {
-    m_videoOutput->setSurface(surface);
+    //m_videoOutput->setSurface(surface);
 }
 
 void AVFCameraSession::setVideoSink(QVideoSink *sink)
@@ -350,6 +350,7 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
     m_videoSink = videoSink;
 
     if (m_videoSink) {
+        m_videoOutput->setVideoSink(videoSink);
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
         m_videoSink->setLayer(previewLayer);
 //        if (auto *camera = m_service->cameraControl()) {
