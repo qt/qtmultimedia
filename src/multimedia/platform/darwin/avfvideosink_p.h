@@ -53,6 +53,7 @@
 
 #include "private/qplatformvideosink_p.h"
 
+Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerLayer);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoPreviewLayer);
 #if defined(Q_OS_OSX)
@@ -63,12 +64,9 @@ Q_FORWARD_DECLARE_OBJC_CLASS(UIView);
 typedef UIView NativeView;
 #endif
 
-
-#include <private/avfvideooutput_p.h>
-
 QT_BEGIN_NAMESPACE
 
-class AVFVideoSink : public QPlatformVideoSink, public AVFVideoOutput
+class AVFVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
 
@@ -105,8 +103,7 @@ public:
     int saturation() const override;
     void setSaturation(int saturation) override;
 
-    // AVFVideoOutput interface
-    void setLayer(CALayer *playerLayer) override;
+    void setLayer(CALayer *playerLayer);
 
 private:
     void updateAspectRatio();

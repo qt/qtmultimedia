@@ -67,7 +67,6 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaPlayerObserver);
 QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayer;
-class AVFVideoOutput;
 class AVFVideoRendererControl;
 class AVFVideoSink;
 

@@ -55,9 +55,9 @@
 #include <QtCore/QMutex>
 #include <QtCore/QSize>
 
-#include "avfvideooutput_p.h"
+#include <CoreVideo/CVBase.h>
 
-#import <CoreVideo/CVBase.h>
+Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
 
 QT_BEGIN_NAMESPACE
 
@@ -65,7 +65,7 @@ class AVFDisplayLink;
 class AVFVideoFrameRenderer;
 class QAbstractVideoSurface;
 
-class AVFVideoRendererControl : public QObject, public AVFVideoOutput
+class AVFVideoRendererControl : public QObject
 {
     Q_OBJECT
 public:
@@ -75,7 +75,7 @@ public:
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
-    void setLayer(CALayer *playerLayer) override;
+    void setLayer(CALayer *playerLayer);
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);

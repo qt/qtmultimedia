@@ -41,7 +41,6 @@
 #include "avfmediaplayer_p.h"
 #include "avfvideorenderercontrol_p.h"
 #include <private/avfvideosink_p.h>
-#include "avfvideooutput_p.h"
 #include "avfmetadata_p.h"
 
 #include <qpointer.h>
