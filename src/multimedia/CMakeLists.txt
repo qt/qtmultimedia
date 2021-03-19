@@ -396,7 +396,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h
         platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
         platform/darwin/camera/avfcamerautility.mm platform/darwin/camera/avfcamerautility_p.h
-        platform/darwin/camera/avfcamerawindowcontrol.mm platform/darwin/camera/avfcamerawindowcontrol_p.h
         platform/darwin/camera/avfimagecapturecontrol.mm platform/darwin/camera/avfimagecapturecontrol_p.h
         platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
 )

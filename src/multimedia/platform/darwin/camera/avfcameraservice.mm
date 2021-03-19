@@ -49,7 +49,6 @@
 #include "avfcamerafocuscontrol_p.h"
 #include "avfcameraexposurecontrol_p.h"
 #include "avfcameraimageprocessingcontrol_p.h"
-#include "avfcamerawindowcontrol_p.h"
 #include "avfmediaencoder_p.h"
 #include <qmediadevicemanager.h>
 
