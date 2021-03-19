@@ -55,6 +55,8 @@
 #include <QtCore/QMutex>
 #include <QtCore/QSize>
 
+#include <private/avfvideosink_p.h>
+
 #include <CoreVideo/CVBase.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
@@ -65,17 +67,17 @@ class AVFDisplayLink;
 class AVFVideoFrameRenderer;
 class QAbstractVideoSurface;
 
-class AVFVideoRendererControl : public QObject
+class AVFVideoRendererControl : public QObject, public AVFVideoSinkInterface
 {
     Q_OBJECT
 public:
     explicit AVFVideoRendererControl(QObject *parent = nullptr);
     virtual ~AVFVideoRendererControl();
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
-
-    void setLayer(CALayer *playerLayer);
+    // AVFVideoSinkInterface
+    void reconfigure() override;
+    void updateAspectRatio() override;
+    void setLayer(CALayer *layer) override;
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
@@ -84,18 +86,12 @@ Q_SIGNALS:
     void surfaceChanged(QAbstractVideoSurface *surface);
 
 private:
-    void setupVideoOutput();
+    AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }
 
     QMutex m_mutex;
-    QAbstractVideoSurface *m_surface;
 
-    CALayer *m_playerLayer;
-
-    AVFVideoFrameRenderer *m_frameRenderer;
-    AVFDisplayLink *m_displayLink;
-    QSize m_nativeSize;
-    bool m_enableOpenGL;
-    bool m_enableMetal;
+    AVFVideoFrameRenderer *m_frameRenderer = nullptr;
+    AVFDisplayLink *m_displayLink = nullptr;
 };
 
 QT_END_NAMESPACE

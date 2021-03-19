@@ -65,6 +65,7 @@ static NSString* const AVF_CURRENT_ITEM_DURATION_KEY    = @"currentItem.duration
 
 static void *AVFMediaPlayerObserverRateObservationContext = &AVFMediaPlayerObserverRateObservationContext;
 static void *AVFMediaPlayerObserverStatusObservationContext = &AVFMediaPlayerObserverStatusObservationContext;
+static void *AVFMediaPlayerObserverPresentationSizeContext = &AVFMediaPlayerObserverPresentationSizeContext;
 static void *AVFMediaPlayerObserverBufferLikelyToKeepUpContext = &AVFMediaPlayerObserverBufferLikelyToKeepUpContext;
 static void *AVFMediaPlayerObserverTracksContext = &AVFMediaPlayerObserverTracksContext;
 static void *AVFMediaPlayerObserverCurrentItemObservationContext = &AVFMediaPlayerObserverCurrentItemObservationContext;
@@ -112,8 +113,13 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     if (!(self = [super init]))
         return nil;
 
-    self->m_session = session;
-    self->m_bufferIsLikelyToKeepUp = FALSE;
+    m_session = session;
+    m_bufferIsLikelyToKeepUp = FALSE;
+
+    m_playerLayer = [AVPlayerLayer playerLayerWithPlayer:nil];
+    [m_playerLayer retain];
+    m_playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    m_playerLayer.anchorPoint = CGPointMake(0.0f, 0.0f);
     return self;
 }
 
@@ -157,6 +163,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (void) unloadMedia
 {
     if (m_playerItem) {
+        [m_playerItem removeObserver:self forKeyPath:@"presentationSize"];
         [m_playerItem removeObserver:self forKeyPath:AVF_STATUS_KEY];
         [m_playerItem removeObserver:self forKeyPath:AVF_BUFFER_LIKELY_KEEP_UP_KEY];
         [m_playerItem removeObserver:self forKeyPath:AVF_TRACKS_KEY];
@@ -176,10 +183,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
         [m_player removeObserver:self forKeyPath:AVF_RATE_KEY];
         [m_player release];
         m_player = 0;
-    }
-    if (m_playerLayer) {
-        [m_playerLayer release];
-        m_playerLayer = 0;
     }
 #if defined(Q_OS_IOS)
     [[AVAudioSession sharedInstance] setActive:NO error:nil];
@@ -242,6 +245,11 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
                       context:AVFMediaPlayerObserverStatusObservationContext];
 
     [m_playerItem addObserver:self
+                   forKeyPath:@"presentationSize"
+                      options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
+                      context:AVFMediaPlayerObserverPresentationSizeContext];
+
+    [m_playerItem addObserver:self
                    forKeyPath:AVF_BUFFER_LIKELY_KEEP_UP_KEY
                       options:NSKeyValueObservingOptionInitial | NSKeyValueObservingOptionNew
                       context:AVFMediaPlayerObserverBufferLikelyToKeepUpContext];
@@ -273,14 +281,8 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
         [m_player setMuted:m_session->isMuted()];
     }
 
-    //Create a new player layer if we don't have one already
-    if (!m_playerLayer)
-    {
-        m_playerLayer = [AVPlayerLayer playerLayerWithPlayer:m_player];
-        [m_playerLayer retain];
-        m_playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-        m_playerLayer.anchorPoint = CGPointMake(0.0f, 0.0f);
-    }
+    //Assign the output layer to the new player
+    m_playerLayer.player = m_player;
 
     //Observe the AVPlayer "currentItem" property to find out when any
     //AVPlayer replaceCurrentItemWithPlayerItem: replacement will/did
@@ -372,8 +374,10 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
             }
             break;
         }
-    }
-    else if (context == AVFMediaPlayerObserverBufferLikelyToKeepUpContext)
+    } else if (context == AVFMediaPlayerObserverPresentationSizeContext) {
+        QSize size(m_playerItem.presentationSize.width, m_playerItem.presentationSize.height);
+        QMetaObject::invokeMethod(m_session, "nativeSizeChanged", Qt::AutoConnection, Q_ARG(QSize, size));
+    } else if (context == AVFMediaPlayerObserverBufferLikelyToKeepUpContext)
     {
         const bool isPlaybackLikelyToKeepUp = [m_playerItem isPlaybackLikelyToKeepUp];
         if (isPlaybackLikelyToKeepUp != m_bufferIsLikelyToKeepUp) {
@@ -433,6 +437,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     }
 
     [m_mimeType release];
+    [m_playerLayer release];
     [super dealloc];
 }
 
@@ -507,15 +512,14 @@ AVFMediaPlayer::~AVFMediaPlayer()
     [static_cast<AVFMediaPlayerObserver*>(m_observer) release];
 }
 
-void AVFMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
+void AVFMediaPlayer::setVideoSurface(QAbstractVideoSurface *)
 {
-    m_videoOutput->setSurface(surface);
 }
 
 void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
 {
-    setVideoOutput(nullptr);
     m_videoSink = static_cast<AVFVideoSink *>(sink->platformVideoSink());
+    m_videoOutput->setVideoSink(m_videoSink);
 }
 
 void AVFMediaPlayer::setVideoOutput(AVFVideoRendererControl *output)
@@ -827,11 +831,8 @@ void AVFMediaPlayer::play()
     if (m_state == QMediaPlayer::PlayingState)
         return;
 
-    if (m_videoSink) {
-        m_videoSink->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
-    } else if (m_videoOutput) {
+    if (m_videoOutput)
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
-    }
 
     // Reset media status if the current status is EndOfMedia
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
@@ -862,11 +863,8 @@ void AVFMediaPlayer::pause()
 
     m_state = QMediaPlayer::PausedState;
 
-    if (m_videoSink) {
-        m_videoSink->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
-    } else if (m_videoOutput) {
+    if (m_videoOutput)
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
-    }
 
     [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
 
@@ -891,11 +889,8 @@ void AVFMediaPlayer::stop()
     [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
     setPosition(0);
 
-    if (m_videoSink) {
+    if (m_videoSink)
         m_videoSink->setLayer(nullptr);
-    } else if (m_videoOutput) {
-        m_videoOutput->setLayer(nullptr);
-    }
 
     if (m_mediaStatus == QMediaPlayer::BufferedMedia)
         Q_EMIT mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
@@ -952,11 +947,8 @@ void AVFMediaPlayer::processEOS()
 
     // At this point, frames should not be rendered anymore.
     // Clear the output layer to make sure of that.
-    if (m_videoSink) {
+    if (m_videoSink)
         m_videoSink->setLayer(nullptr);
-    } else if (m_videoOutput) {
-        m_videoOutput->setLayer(nullptr);
-    }
 
     Q_EMIT mediaStatusChanged(m_mediaStatus);
     Q_EMIT stateChanged(m_state);
@@ -997,11 +989,8 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::State newState)
                 }
 
                 if (newState != QMediaPlayer::StoppedState) {
-                    if (m_videoSink) {
+                    if (m_videoSink)
                         m_videoSink->setLayer(playerLayer);
-                    } else if (m_videoOutput) {
-                        m_videoOutput->setLayer(playerLayer);
-                    }
                 }
             }
 
@@ -1181,4 +1170,10 @@ void AVFMediaPlayer::resetStream(QIODevice *stream)
         connect(m_mediaStream, &QIODevice::readyRead, this, &AVFMediaPlayer::streamReady);
         connect(m_mediaStream, &QIODevice::destroyed, this, &AVFMediaPlayer::streamDestroyed);
     }
+}
+
+void AVFMediaPlayer::nativeSizeChanged(QSize size)
+{
+    qDebug() << "presentation size" << size;
+    m_videoSink->setNativeSize(size);
 }

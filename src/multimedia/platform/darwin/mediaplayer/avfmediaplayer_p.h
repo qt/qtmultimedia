@@ -111,6 +111,7 @@ public:
 
 public Q_SLOTS:
     void setPlaybackRate(qreal rate) override;
+    void nativeSizeChanged(QSize size);
 
     void setPosition(qint64 pos) override;
 

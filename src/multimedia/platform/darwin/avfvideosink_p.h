@@ -66,6 +66,8 @@ typedef UIView NativeView;
 
 QT_BEGIN_NAMESPACE
 
+class AVFVideoSinkInterface;
+
 class AVFVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
@@ -76,6 +78,9 @@ public:
 
     // QPlatformVideoSink interface
 public:
+    QVideoSink::GraphicsType graphicsType() const override { return m_graphicsType; }
+    bool setGraphicsType(QVideoSink::GraphicsType type) override;
+
     WId winId() const override;
     void setWinId(WId id) override;
 
@@ -87,6 +92,7 @@ public:
 
     void repaint() override;
     QSize nativeSize() const override;
+    void setNativeSize(QSize size);
 
     Qt::AspectRatioMode aspectRatioMode() const override;
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
@@ -105,11 +111,16 @@ public:
 
     void setLayer(CALayer *playerLayer);
 
-private:
-    void updateAspectRatio();
-    void updatePlayerLayerBounds();
+    void setVideoSinkInterface(AVFVideoSinkInterface *interface);
+    NativeView *nativeView() const { return m_nativeView; }
 
+private:
+    AVFVideoSinkInterface *m_interface = nullptr;
+    QVideoSink::GraphicsType m_graphicsType = QVideoSink::Memory;
     WId m_winId = 0;
+    NativeView *m_nativeView = nullptr;
+
+    QSize m_nativeSize;
     QRect m_displayRect;
     bool m_fullscreen = false;
     int m_brightness = 0;
@@ -117,12 +128,45 @@ private:
     int m_hue = 0;
     int m_saturation = 0;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
-    QSize m_nativeSize;
-    AVCaptureVideoPreviewLayer *m_previewLayer = nullptr;
-    AVPlayerLayer *m_playerLayer = nullptr;
-    CALayer *m_layer = nullptr;
-    NativeView *m_nativeView = nullptr;
 };
+
+class AVFVideoSinkInterface
+{
+public:
+    ~AVFVideoSinkInterface();
+
+    void setVideoSink(AVFVideoSink *sink);
+
+
+    virtual void reconfigure() = 0;
+    virtual void updateAspectRatio() = 0;
+    virtual void setLayer(CALayer *layer);
+
+    void renderToNativeView(bool enable);
+
+    bool shouldRenderToWindow()
+    {
+        return m_layer && nativeView() && (graphicsType() == QVideoSink::NativeWindow || isFullScreen());
+    }
+    bool rendersToWindow() const { return m_rendersToWindow; }
+
+    void updateLayerBounds();
+    void updateNativeSize() { updateLayerBounds(); }
+
+protected:
+    NativeView *nativeView() const { return m_sink->nativeView(); }
+    QRect displayRect() { return m_sink->displayRect(); }
+    Qt::AspectRatioMode aspectRatioMode() const { return m_sink->aspectRatioMode(); }
+    QVideoSink::GraphicsType graphicsType() const { return m_sink->graphicsType(); }
+    bool isFullScreen() const { return m_sink->isFullScreen(); }
+    QSize nativeSize() const { return m_sink->nativeSize(); }
+
+    AVFVideoSink *m_sink = nullptr;
+    CALayer *m_layer = nullptr;
+    QSize m_nativeSize;
+    bool m_rendersToWindow = false;
+};
+
 
 QT_END_NAMESPACE
 

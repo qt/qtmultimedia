@@ -73,7 +73,7 @@ class QAbstractVideoSurface;
 class AVFVideoFrameRenderer : public QObject
 {
 public:
-    AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QObject *parent = nullptr);
+    AVFVideoFrameRenderer(QObject *parent = nullptr);
 
     virtual ~AVFVideoFrameRenderer();
 

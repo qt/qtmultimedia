@@ -53,10 +53,10 @@
 
 QT_USE_NAMESPACE
 
-AVFVideoFrameRenderer::AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QObject *parent)
+AVFVideoFrameRenderer::AVFVideoFrameRenderer(QObject *parent)
     : QObject(parent)
     , m_videoLayerRenderer(nullptr)
-    , m_surface(surface)
+    , m_surface(nullptr)
     , m_offscreenSurface(nullptr)
     , m_glContext(nullptr)
     , m_currentBuffer(1)

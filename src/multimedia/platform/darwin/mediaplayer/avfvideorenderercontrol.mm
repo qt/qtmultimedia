@@ -51,6 +51,7 @@
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 #include <private/qimagevideobuffer_p.h>
+#include <private/avfvideosink_p.h>
 
 #include <QtCore/qdebug.h>
 
@@ -85,12 +86,6 @@ private:
 
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     : QObject(parent)
-    , m_surface(nullptr)
-    , m_playerLayer(nullptr)
-    , m_frameRenderer(nullptr)
-    , m_enableOpenGL(false)
-    , m_enableMetal(false)
-
 {
     m_displayLink = new AVFDisplayLink(this);
     connect(m_displayLink, SIGNAL(tick(CVTimeStamp)), SLOT(updateVideoFrame(CVTimeStamp)));
@@ -102,201 +97,144 @@ AVFVideoRendererControl::~AVFVideoRendererControl()
     qDebug() << Q_FUNC_INFO;
 #endif
     m_displayLink->stop();
-    [static_cast<AVPlayerLayer*>(m_playerLayer) release];
 }
 
-QAbstractVideoSurface *AVFVideoRendererControl::surface() const
-{
-    return m_surface;
-}
-
-void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+void AVFVideoRendererControl::reconfigure()
 {
 #ifdef QT_DEBUG_AVF
-    qDebug() << "Set video surface" << surface;
+    qDebug() << "reconfigure";
 #endif
-
-    //When we have a valid surface, we can setup a frame renderer
-    //and schedule surface updates with the display link.
-    if (surface == m_surface)
+    if (!m_layer) {
+        m_displayLink->stop();
         return;
+    }
 
     QMutexLocker locker(&m_mutex);
 
-    if (m_surface && m_surface->isActive())
-        m_surface->stop();
+    renderToNativeView(shouldRenderToWindow());
 
-    m_surface = surface;
-
-    //If the surface changed, then the current frame renderer is no longer valid
-    delete m_frameRenderer;
-    m_frameRenderer = nullptr;
-
-    //If there is now no surface to render too
-    if (m_surface == nullptr) {
+    if (rendersToWindow()) {
+        if (m_frameRenderer) {
+            delete m_frameRenderer;
+            m_frameRenderer = nullptr;
+        }
         m_displayLink->stop();
-        return;
-    }
-
-    //Surface changed, so we need a new frame renderer
-    m_frameRenderer = new AVFVideoFrameRenderer(m_surface, this);
+    } else {
+        if (!m_frameRenderer)
+            m_frameRenderer = new AVFVideoFrameRenderer(this);
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-    if (m_playerLayer) {
-        m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(m_playerLayer));
-    }
+        if (m_layer)
+            m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(m_layer));
 #endif
-
-    auto checkHandleType = [this] {
-        m_enableOpenGL = m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
-        m_enableMetal = m_surface->supportedPixelFormats(QVideoFrame::MTLTextureHandle).contains(QVideoFrame::Format_BGR32);
-    };
-    checkHandleType();
-    connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged, this, checkHandleType);
-
-    //If we already have a layer, but changed surfaces start rendering again
-    if (m_playerLayer && !m_displayLink->isActive()) {
         m_displayLink->start();
     }
 
+    updateAspectRatio();
+    //updateLayerBounds();
+    updateNativeSize();
 }
 
-void AVFVideoRendererControl::setLayer(CALayer *playerLayer)
+void AVFVideoRendererControl::setLayer(CALayer *layer)
 {
-    if (m_playerLayer == playerLayer)
+    if (m_layer == layer)
         return;
+    AVFVideoSinkInterface::setLayer(layer);
 
-    m_playerLayer = [static_cast<AVPlayerLayer*>(playerLayer) retain];
-
-    //If there is an active surface, make sure it has been stopped so that
-    //we can update it's state with the new content.
-    if (m_surface && m_surface->isActive())
-        m_surface->stop();
-
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-    if (m_frameRenderer) {
-        m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(playerLayer));
-    }
-#endif
-
-    //If there is no layer to render, stop scheduling updates
-    if (m_playerLayer == nullptr) {
-        m_displayLink->stop();
-        return;
-    }
-
-    setupVideoOutput();
-
-    //If we now have both a valid surface and layer, start scheduling updates
-    if (m_surface && !m_displayLink->isActive()) {
-        m_displayLink->start();
-    }
+    reconfigure();
 }
 
 void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 {
     Q_UNUSED(ts);
 
-    AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(m_playerLayer);
+    auto type = graphicsType();
+    Q_ASSERT(type != QVideoSink::NativeWindow);
 
-    if (!playerLayer) {
+    if (!m_sink)
+        return;
+
+    if (!m_layer) {
         qWarning("updateVideoFrame called without AVPlayerLayer (which shouldn't happen");
         return;
     }
 
-    if (!playerLayer.readyForDisplay || !m_surface)
+    auto *layer = playerLayer();
+    if (!layer.readyForDisplay || !m_frameRenderer)
         return;
+    updateNativeSize();
 
-    if (m_enableMetal) {
-        quint64 tex = m_frameRenderer->renderLayerToMTLTexture(playerLayer);
+    QVideoFrame frame;
+    if (type == QVideoSink::Metal || type == QVideoSink::NativeTexture) {
+        quint64 tex = m_frameRenderer->renderLayerToMTLTexture(layer);
         if (tex == 0)
             return;
 
         auto buffer = new TextureVideoBuffer(QVideoFrame::MTLTextureHandle, tex);
-        QVideoFrame frame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
-        if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
-            m_surface->stop();
+        frame = QVideoFrame(buffer, nativeSize(), QVideoFrame::Format_BGR32);
+        if (!frame.isValid())
+            return;
 
-        if (!m_surface->isActive()) {
-            QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::MTLTextureHandle);
+        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::MTLTextureHandle);
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-            format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
+        format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
 #else
-            format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+        format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
 #endif
-            if (!m_surface->start(format))
-                qWarning("Failed to activate video surface");
-        }
-
-        if (m_surface->isActive())
-            m_surface->present(frame);
-
-        return;
-    }
-
-    if (m_enableOpenGL) {
-        quint64 tex = m_frameRenderer->renderLayerToTexture(playerLayer);
+        // #### QVideoFrame needs the surfaceformat!
+    } else if (type == QVideoSink::OpenGL) {
+        quint64 tex = m_frameRenderer->renderLayerToTexture(layer);
         //Make sure we got a valid texture
         if (tex == 0)
             return;
 
         QAbstractVideoBuffer *buffer = new TextureVideoBuffer(QVideoFrame::GLTextureHandle, tex);
-        QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
-
-        if (m_surface && frame.isValid()) {
-            if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
-                m_surface->stop();
-
-            if (!m_surface->isActive()) {
-                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::GLTextureHandle);
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-                format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
-#else
-                format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
-#endif
-                if (!m_surface->start(format)) {
-                    //Surface doesn't support GLTextureHandle
-                    qWarning("Failed to activate video surface");
-                }
-            }
-
-            if (m_surface->isActive())
-                m_surface->present(frame);
-        }
-    } else {
-        //fallback to rendering frames to QImages
-        QImage frameData = m_frameRenderer->renderLayerToImage(playerLayer);
-
-        if (frameData.isNull()) {
+        frame = QVideoFrame(buffer, nativeSize(), QVideoFrame::Format_BGR32);
+        if (!frame.isValid())
             return;
-        }
+
+        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::GLTextureHandle);
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
+        format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
+#else
+        format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+#endif
+    } else {
+        Q_ASSERT(type == QVideoSink::Memory);
+        //fallback to rendering frames to QImages
+        QImage frameData = m_frameRenderer->renderLayerToImage(layer);
+
+        if (frameData.isNull())
+            return;
 
         QAbstractVideoBuffer *buffer = new QImageVideoBuffer(frameData);
-        QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_ARGB32);
-        if (m_surface && frame.isValid()) {
-            if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
-                m_surface->stop();
-
-            if (!m_surface->isActive()) {
-                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::NoHandle);
-
-                if (!m_surface->start(format)) {
-                    qWarning("Failed to activate video surface");
-                }
-            }
-
-            if (m_surface->isActive())
-                m_surface->present(frame);
-        }
-
+        frame = QVideoFrame(buffer, nativeSize(), QVideoFrame::Format_ARGB32_Premultiplied);
+        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::NoHandle);
     }
+
+    m_sink->videoSink()->newVideoFrame(frame);
 }
 
-void AVFVideoRendererControl::setupVideoOutput()
+void AVFVideoRendererControl::updateAspectRatio()
 {
-    AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(m_playerLayer);
-    if (playerLayer)
-        m_nativeSize = QSize(playerLayer.bounds.size.width, playerLayer.bounds.size.height);
-}
+    if (!m_layer)
+        return;
 
+    AVLayerVideoGravity gravity = AVLayerVideoGravityResizeAspect;
+
+    switch (aspectRatioMode()) {
+    case Qt::IgnoreAspectRatio:
+        gravity = AVLayerVideoGravityResize;
+        break;
+    case Qt::KeepAspectRatio:
+        gravity = AVLayerVideoGravityResizeAspect;
+        break;
+    case Qt::KeepAspectRatioByExpanding:
+        gravity = AVLayerVideoGravityResizeAspectFill;
+        break;
+    default:
+        break;
+    }
+    playerLayer().videoGravity = gravity;
+}
 
 #include "moc_avfvideorenderercontrol_p.cpp"
