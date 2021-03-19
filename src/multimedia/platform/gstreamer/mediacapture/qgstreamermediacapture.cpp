@@ -99,13 +99,15 @@ QGstreamerMediaCapture::~QGstreamerMediaCapture()
     delete m_mediaEncoder;
 }
 
-QPlatformCamera *QGstreamerMediaCapture::cameraControl()
+QPlatformCamera *QGstreamerMediaCapture::addCamera()
 {
+    // ###
     return gstCamera;
 }
 
-QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCaptureControl()
+QPlatformCameraImageCapture *QGstreamerMediaCapture::addImageCapture()
 {
+    // ###
     return m_imageCapture;
 }
 

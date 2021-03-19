@@ -90,7 +90,7 @@ void QCameraPrivate::init()
     Q_Q(QCamera);
     control = nullptr;
     if (captureInterface && !cameraInfo.isNull()) {
-        control = captureInterface->cameraControl();
+        control = captureInterface->addCamera();
         control->setCamera(cameraInfo);
     } else {
         clear();
@@ -190,8 +190,10 @@ QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
 QCamera::~QCamera()
 {
     Q_D(QCamera);
-    if (d->captureSession)
+    if (d->captureSession) {
+        d->captureInterface->releaseCamera(d->control);
         d->captureSession->setCamera(nullptr);
+    }
     Q_ASSERT(!d->captureSession);
 }
 

@@ -77,13 +77,15 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraSession;
 }
 
-QPlatformCamera *QAndroidCaptureService::cameraControl()
+QPlatformCamera *QAndroidCaptureService::addCamera()
 {
+    // ###
     return m_cameraControl;
 }
 
-QPlatformCameraImageCapture *QAndroidCaptureService::imageCaptureControl()
+QPlatformCameraImageCapture *QAndroidCaptureService::addImageCapture()
 {
+    // ###
     return m_imageCaptureControl;
 }
 

@@ -75,7 +75,7 @@ QDeclarativeTorch::QDeclarativeTorch(QCamera *camera)
     if (!camera)
         return;
     auto *service = m_camera->captureSession()->platformSession();
-    m_exposure = service->cameraControl()->exposureControl();
+    m_exposure = service->addCamera()->exposureControl();
 
     if (m_exposure)
         connect(m_exposure, SIGNAL(actualValueChanged(int)), SLOT(parameterChanged(int)));

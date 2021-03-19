@@ -273,7 +273,7 @@ QImageEncoderSettings AVFImageCaptureControl::imageSettings() const
 
     QSize res(qt_device_format_resolution(captureDevice.activeFormat));
 #ifdef Q_OS_IOS
-    if (!m_service->imageCaptureControl() || !m_service->avfImageCaptureControl()->stillImageOutput()) {
+    if (!m_service->addImageCapture() || !m_service->addImageCapture()->stillImageOutput()) {
         qDebugCamera() << Q_FUNC_INFO << "no still image output";
         return settings;
     }
@@ -311,7 +311,7 @@ bool AVFImageCaptureControl::applySettings()
     if (!session)
         return false;
 
-    if (!m_service->imageCaptureControl()
+    if (!m_service->addImageCapture()
         || !m_service->avfImageCaptureControl()->stillImageOutput()) {
         qDebugCamera() << Q_FUNC_INFO << "no still image output";
         return false;

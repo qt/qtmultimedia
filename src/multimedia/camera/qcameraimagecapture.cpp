@@ -126,7 +126,7 @@ void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
         return;
     }
 
-    d->control = session->platformSession()->imageCaptureControl();
+    d->control = session->platformSession()->addImageCapture();
 
     if (!d->control)
         return;
@@ -153,8 +153,10 @@ void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
 
 QCameraImageCapture::~QCameraImageCapture()
 {
-    if (d_ptr->captureSession)
+    if (d_ptr->captureSession) {
+        d_ptr->captureSession->platformSession()->releaseImageCapture(d_ptr->control);
         d_ptr->captureSession->setImageCapture(nullptr);
+    }
     delete d_ptr;
 }
 

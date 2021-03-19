@@ -57,11 +57,7 @@ QT_USE_NAMESPACE
 AVFCameraService::AVFCameraService()
 {
     m_session = new AVFCameraSession(this);
-    m_cameraControl = new AVFCameraControl(this);
-
     m_recorderControl = new AVFMediaEncoder(this);
-
-    m_imageCaptureControl = new AVFImageCaptureControl(this);
 
     m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 }
@@ -74,21 +70,54 @@ AVFCameraService::~AVFCameraService()
 
     //delete controls before session,
     //so they have a chance to do deinitialization
-    delete m_imageCaptureControl;
+    if (m_imageCaptureControl)
+        delete m_imageCaptureControl;
     //delete m_recorderControl;
-    delete m_cameraControl;
+    if (m_cameraControl)
+        delete m_cameraControl;
 
     delete m_session;
 }
 
-QPlatformCamera *AVFCameraService::cameraControl()
+QPlatformCamera *AVFCameraService::addCamera()
 {
+    if (!m_cameraControl) {
+        m_cameraControl = new AVFCameraControl(this);
+    }
     return m_cameraControl;
 }
 
-QPlatformCameraImageCapture *AVFCameraService::imageCaptureControl()
+void AVFCameraService::releaseCamera(QPlatformCamera *camera)
 {
+    if (camera) {
+        if (camera == m_cameraControl) {
+            // is this correct?
+            if (m_imageCaptureControl)
+                releaseImageCapture(m_imageCaptureControl);
+            m_session->setActiveCamera(QCameraInfo());
+            delete m_cameraControl;
+            m_cameraControl = nullptr;
+        }
+    }
+}
+
+QPlatformCameraImageCapture *AVFCameraService::addImageCapture()
+{
+    if (!m_imageCaptureControl) {
+        if (m_cameraControl)
+            m_imageCaptureControl = new AVFImageCaptureControl(this);
+    }
     return m_imageCaptureControl;
+}
+
+void AVFCameraService::releaseImageCapture(QPlatformCameraImageCapture *imageCapture)
+{
+    if (imageCapture) {
+        if (imageCapture == m_imageCaptureControl) {
+            delete m_imageCaptureControl;
+            m_imageCaptureControl = nullptr;
+        }
+    }
 }
 
 QPlatformMediaEncoder *AVFCameraService::mediaEncoder()

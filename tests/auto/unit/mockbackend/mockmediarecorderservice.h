@@ -45,18 +45,39 @@ public:
         : hasControls(true)
     {
         mockControl = new MockMediaEncoderControl(this);
-        mockCameraControl = new MockCameraControl(this);
         mockExposureControl = new MockCameraExposureControl(this);
         mockFocusControl = new MockCameraFocusControl(this);
-        mockCaptureControl = new MockCaptureControl(mockCameraControl, this);
         mockImageProcessingControl = new MockImageProcessingControl(this);
     }
     ~MockMediaRecorderService()
     {
     }
 
-    QPlatformCamera *cameraControl() override { return hasControls ? mockCameraControl : nullptr; }
-    QPlatformCameraImageCapture *imageCaptureControl() override { return hasControls ? mockCaptureControl : nullptr; }
+    QPlatformCamera *addCamera() override
+    {
+        if (hasControls) {
+            if (!mockCameraControl)
+                mockCameraControl = new MockCameraControl(this);
+            return mockCameraControl;
+        }
+        return nullptr;
+    }
+
+    void releaseCamera(QPlatformCamera *) override {}
+
+    QPlatformCameraImageCapture *addImageCapture() override
+    {
+        if (hasControls) {
+            if (!mockCaptureControl)
+                if (mockCameraControl)
+                    mockCaptureControl = new MockCaptureControl(mockCameraControl, this);
+            return mockCaptureControl;
+        }
+        return nullptr;
+    }
+
+    void releaseImageCapture(QPlatformCameraImageCapture *) override {}
+
     QPlatformMediaEncoder *mediaEncoder() override { return hasControls ? mockControl : nullptr; }
 
     void setVideoPreview(QVideoSink *) override {}

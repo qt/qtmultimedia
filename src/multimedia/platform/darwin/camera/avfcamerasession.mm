@@ -173,7 +173,10 @@ void AVFCameraSession::setActiveCamera(const QCameraInfo &info)
 {
     if (m_activeCameraInfo != info) {
         m_activeCameraInfo = info;
-        attachVideoInputDevice();
+        if (info.isNull())
+            removeVideoInputDevice();
+        else
+            attachVideoInputDevice();
     }
 }
 
@@ -282,14 +285,18 @@ AVCaptureDevice *AVFCameraSession::createCaptureDevice()
     return device;
 }
 
-void AVFCameraSession::attachVideoInputDevice()
+void AVFCameraSession::removeVideoInputDevice()
 {
-    //Attach video input device:
     if (m_videoInput) {
         [m_captureSession removeInput:m_videoInput];
         [m_videoInput release];
         m_videoInput = nullptr;
     }
+}
+void AVFCameraSession::attachVideoInputDevice()
+{
+    //Attach video input device:
+    removeVideoInputDevice();
 
     AVCaptureDevice *videoDevice = createCaptureDevice();
 

@@ -107,6 +107,7 @@ Q_SIGNALS:
 private:
     AVCaptureDevice *createCaptureDevice();
     void attachVideoInputDevice();
+    void removeVideoInputDevice();
     bool applyImageEncoderSettings();
 
     static int m_defaultCameraIndex;

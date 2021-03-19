@@ -75,7 +75,7 @@ public:
     explicit BbCameraService(QObject *parent = 0);
     ~BbCameraService();
 
-    QPlatformCamera *cameraControl() override;
+    QPlatformCamera *addCamera() override;
     QPlatformCameraImageCapture *imageCaptureControl() override;
     QPlatformMediaEncoder *mediaEncoder() override;
 

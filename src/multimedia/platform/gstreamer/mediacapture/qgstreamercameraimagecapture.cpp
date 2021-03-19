@@ -83,8 +83,8 @@ QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QGstreamerMediaCaptur
     sink.set("signal-handoffs", true);
     g_signal_connect(sink.object(), "handoff", G_CALLBACK(&QGstreamerCameraImageCapture::saveImageFilter), this);
 
-    connect(m_session->cameraControl(), &QPlatformCamera::activeChanged, this, &QGstreamerCameraImageCapture::cameraActiveChanged);
-    cameraActive = m_session->cameraControl()->isActive();
+    connect(m_session->addCamera(), &QPlatformCamera::activeChanged, this, &QGstreamerCameraImageCapture::cameraActiveChanged);
+    cameraActive = m_session->addCamera()->isActive();
 }
 
 QGstreamerCameraImageCapture::~QGstreamerCameraImageCapture()
@@ -153,7 +153,7 @@ int QGstreamerCameraImageCapture::captureToBuffer()
 
 int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
 {
-    if (!m_session->cameraControl()) {
+    if (!m_session->addCamera()) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
@@ -293,7 +293,7 @@ void QGstreamerCameraImageCapture::unlink()
 
 void QGstreamerCameraImageCapture::link()
 {
-    Q_ASSERT(m_session->cameraControl());
+    Q_ASSERT(m_session->addCamera());
 
     if (!bin.staticPad("sink").peer().isNull())
         return;
