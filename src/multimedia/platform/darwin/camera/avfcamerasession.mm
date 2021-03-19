@@ -44,7 +44,7 @@
 #include "avfcamerarenderercontrol_p.h"
 #include "avfimagecapturecontrol_p.h"
 #include "avfcamerautility_p.h"
-#include "avfcamerawindowcontrol_p.h"
+#include <private/avfvideowindowcontrol_p.h>
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
@@ -142,7 +142,7 @@ int AVFCameraSession::m_defaultCameraIndex;
 AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
    : QObject(parent)
    , m_service(service)
-   , m_capturePreviewWindowOutput(nullptr)
+   , m_videoSink(nullptr)
    , m_videoInput(nil)
    , m_defaultCodec(0)
 {
@@ -156,8 +156,8 @@ AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
 
 AVFCameraSession::~AVFCameraSession()
 {
-    if (m_capturePreviewWindowOutput) {
-        m_capturePreviewWindowOutput->setLayer(nil);
+    if (m_videoSink) {
+        m_videoSink->setLayer(nil);
     }
 
     if (m_videoInput) {
@@ -182,29 +182,6 @@ void AVFCameraSession::setVideoOutput(AVFCameraRendererControl *output)
     m_videoOutput = output;
     if (output)
         output->configureAVCaptureSession(this);
-}
-
-void AVFCameraSession::setCapturePreviewOutput(AVFCameraWindowControl *output)
-{
-#ifdef QT_DEBUG_AVF
-    qDebug() << Q_FUNC_INFO << output;
-#endif
-
-    if (m_capturePreviewWindowOutput == output)
-        return;
-
-    if (m_capturePreviewWindowOutput)
-        m_capturePreviewWindowOutput->setLayer(nil);
-
-    m_capturePreviewWindowOutput = output;
-
-    if (m_capturePreviewWindowOutput) {
-        AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
-        m_capturePreviewWindowOutput->setLayer(previewLayer);
-//        if (auto *camera = m_service->cameraControl()) {
-//            m_capturePreviewWindowOutput->setNativeSize(camera->viewfinderSettings().resolution());
-//        }
-    }
 }
 
 AVCaptureDevice *AVFCameraSession::videoCaptureDevice() const
@@ -358,6 +335,27 @@ FourCharCode AVFCameraSession::defaultCodec()
 void AVFCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
 {
     m_videoOutput->setSurface(surface);
+}
+
+void AVFCameraSession::setVideoSink(QVideoSink *sink)
+{
+    auto *videoSink = static_cast<AVFVideoWindowControl *>(sink->platformVideoSink());
+
+    if (m_videoSink == videoSink)
+        return;
+
+    if (m_videoSink)
+        m_videoSink->setLayer(nil);
+
+    m_videoSink = videoSink;
+
+    if (m_videoSink) {
+        AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
+        m_videoSink->setLayer(previewLayer);
+//        if (auto *camera = m_service->cameraControl()) {
+//            m_videoSink->setNativeSize(camera->viewfinderSettings().resolution());
+//        }
+    }
 }
 
 #include "moc_avfcamerasession_p.cpp"

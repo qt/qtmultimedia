@@ -169,4 +169,9 @@ void AVFCameraService::setVideoPreview(QAbstractVideoSurface *surface)
     m_session->setVideoSurface(surface);
 }
 
+void AVFCameraService::setVideoPreview(QVideoSink *sink)
+{
+    m_session->setVideoSink(sink);
+}
+
 #include "moc_avfcameraservice_p.cpp"

@@ -88,6 +88,7 @@ public:
     bool setAudioInput(const QAudioDeviceInfo &) override;
 
     void setVideoPreview(QAbstractVideoSurface *surface) override;
+    void setVideoPreview(QVideoSink *sink) override;
 
     AVFCameraSession *session() const { return m_session; }
     AVFCameraControl *avfCameraControl() const { return m_cameraControl; }

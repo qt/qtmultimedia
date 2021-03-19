@@ -65,7 +65,8 @@ QT_BEGIN_NAMESPACE
 class AVFCameraControl;
 class AVFCameraService;
 class AVFCameraRendererControl;
-class AVFCameraWindowControl;
+class AVFVideoWindowControl;
+class QVideoSink;
 
 class AVFCameraSession : public QObject
 {
@@ -79,7 +80,6 @@ public:
 
     void setVideoOutput(AVFCameraRendererControl *output);
     AVFCameraRendererControl *videoOutput() const { return m_videoOutput; }
-    void setCapturePreviewOutput(AVFCameraWindowControl *output);
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
 
@@ -90,6 +90,7 @@ public:
     AVCaptureDeviceInput *videoInput() const {return m_videoInput;}
 
     void setVideoSurface(QAbstractVideoSurface *surface);
+    void setVideoSink(QVideoSink *sink);
 
 public Q_SLOTS:
     void setActive(bool active);
@@ -114,7 +115,7 @@ private:
 
     AVFCameraService *m_service;
     AVFCameraRendererControl *m_videoOutput;
-    AVFCameraWindowControl *m_capturePreviewWindowOutput;
+    AVFVideoWindowControl *m_videoSink;
 
     bool m_active = false;
 

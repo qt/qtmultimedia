@@ -54,6 +54,7 @@
 #include "private/qplatformvideosink_p.h"
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerLayer);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoPreviewLayer);
 #if defined(Q_OS_OSX)
 Q_FORWARD_DECLARE_OBJC_CLASS(NSView);
 typedef NSView NativeView;
@@ -120,7 +121,9 @@ private:
     int m_saturation = 0;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
     QSize m_nativeSize;
+    AVCaptureVideoPreviewLayer *m_previewLayer = nullptr;
     AVPlayerLayer *m_playerLayer = nullptr;
+    CALayer *m_layer = nullptr;
     NativeView *m_nativeView = nullptr;
 };
 
