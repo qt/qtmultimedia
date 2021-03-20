@@ -62,6 +62,7 @@ QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *pare
       m_frameChanged(false)
 {
     m_sink = new QVideoSink(q);
+//    m_sink->setGraphicsType(QVideoSink::Metal);
     qRegisterMetaType<QVideoSurfaceFormat>();
     QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
                      q, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);

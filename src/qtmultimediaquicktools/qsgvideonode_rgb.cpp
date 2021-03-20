@@ -51,6 +51,7 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_RGB::supportedPixelFormats(
     if (handleType == QVideoFrame::NoHandle) {
         pixelFormats.append(QVideoFrame::Format_RGB32);
         pixelFormats.append(QVideoFrame::Format_ARGB32);
+        pixelFormats.append(QVideoFrame::Format_ARGB32_Premultiplied);
         pixelFormats.append(QVideoFrame::Format_BGR32);
         pixelFormats.append(QVideoFrame::Format_BGRA32);
         pixelFormats.append(QVideoFrame::Format_RGB565);
@@ -169,7 +170,8 @@ void QSGVideoMaterialRhiShader_RGB::updateSampledImage(RenderState &state, int b
 
     auto format = QRhiTexture::RGBA8;
     if (frame.pixelFormat() == QVideoFrame::Format_RGB32
-        || frame.pixelFormat() == QVideoFrame::Format_ARGB32)
+        || frame.pixelFormat() == QVideoFrame::Format_ARGB32
+        || frame.pixelFormat() == QVideoFrame::Format_ARGB32_Premultiplied)
     {
         format = QRhiTexture::BGRA8;
     }
