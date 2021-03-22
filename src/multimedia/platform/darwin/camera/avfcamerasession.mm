@@ -332,11 +332,6 @@ FourCharCode AVFCameraSession::defaultCodec()
     return m_defaultCodec;
 }
 
-void AVFCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
-{
-    //m_videoOutput->setSurface(surface);
-}
-
 void AVFCameraSession::setVideoSink(QVideoSink *sink)
 {
     auto *videoSink = static_cast<AVFVideoSink *>(sink->platformVideoSink());

@@ -68,7 +68,6 @@ class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
 class QWindow;
 class QOpenGLContext;
-class QAbstractVideoSurface;
 
 class AVFVideoFrameRenderer : public QObject
 {
@@ -98,7 +97,6 @@ private:
     void renderLayerToFBOCoreOpenGL(AVPlayerLayer *layer, QOpenGLFramebufferObject *fbo);
 
     CARenderer *m_videoLayerRenderer;
-    QAbstractVideoSurface *m_surface;
     QOpenGLFramebufferObject *m_fbo[2];
     QOpenGLShaderProgram *m_shader = nullptr;
     QWindow *m_offscreenSurface;

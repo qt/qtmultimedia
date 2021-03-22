@@ -65,7 +65,6 @@ QT_BEGIN_NAMESPACE
 
 class AVFDisplayLink;
 class AVFVideoFrameRenderer;
-class QAbstractVideoSurface;
 
 class AVFVideoRendererControl : public QObject, public AVFVideoSinkInterface
 {
@@ -80,9 +79,6 @@ public:
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
-
-Q_SIGNALS:
-    void surfaceChanged(QAbstractVideoSurface *surface);
 
 private:
     AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }

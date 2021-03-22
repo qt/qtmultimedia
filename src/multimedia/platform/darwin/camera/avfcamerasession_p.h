@@ -89,7 +89,6 @@ public:
 
     AVCaptureDeviceInput *videoInput() const {return m_videoInput;}
 
-    void setVideoSurface(QAbstractVideoSurface *surface);
     void setVideoSink(QVideoSink *sink);
 
 public Q_SLOTS:

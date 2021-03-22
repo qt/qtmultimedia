@@ -56,7 +56,6 @@ QT_USE_NAMESPACE
 AVFVideoFrameRenderer::AVFVideoFrameRenderer(QObject *parent)
     : QObject(parent)
     , m_videoLayerRenderer(nullptr)
-    , m_surface(nullptr)
     , m_offscreenSurface(nullptr)
     , m_glContext(nullptr)
     , m_currentBuffer(1)
@@ -172,9 +171,10 @@ QOpenGLFramebufferObject *AVFVideoFrameRenderer::initRenderer(AVPlayerLayer *lay
     //Get size from AVPlayerLayer
     m_targetSize = QSize(layer.bounds.size.width, layer.bounds.size.height);
 
-    QOpenGLContext *shareContext = !m_glContext && m_surface
-        ? qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>())
-        : nullptr;
+    QOpenGLContext *shareContext = nullptr;
+//            !m_glContext && m_surface
+//        ? qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>())
+//        : nullptr;
 
     //Make sure we have an OpenGL context to make current
     if (shareContext || (!QOpenGLContext::currentContext() && !m_glContext)) {

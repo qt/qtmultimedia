@@ -114,7 +114,7 @@ public:
 
     virtual QMediaMetaData metaData() const { return {}; }
 
-    virtual void setVideoSurface(QAbstractVideoSurface *surface) = 0;
+    virtual void setVideoSurface(QAbstractVideoSurface *) {}
     virtual void setVideoSink(QVideoSink */*sink*/) {}
 
     // media streams

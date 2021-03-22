@@ -66,7 +66,6 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraRendererControl;
-class QAbstractVideoSurface;
 class AVFVideoSink;
 
 class AVFCameraRendererControl : public QObject, public AVFVideoSinkInterface
@@ -88,9 +87,6 @@ public:
 
     AVFCaptureFramesDelegate *captureDelegate() const;
     void resetCaptureDelegate() const;
-
-Q_SIGNALS:
-    void surfaceChanged(QAbstractVideoSurface *surface);
 
 private Q_SLOTS:
     void handleViewfinderFrame();

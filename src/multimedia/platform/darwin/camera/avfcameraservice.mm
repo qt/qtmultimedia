@@ -163,11 +163,6 @@ bool AVFCameraService::setAudioInput(const QAudioDeviceInfo &id)
     return false;
 }
 
-void AVFCameraService::setVideoPreview(QAbstractVideoSurface *surface)
-{
-    m_session->setVideoSurface(surface);
-}
-
 void AVFCameraService::setVideoPreview(QVideoSink *sink)
 {
     m_session->setVideoSink(sink);

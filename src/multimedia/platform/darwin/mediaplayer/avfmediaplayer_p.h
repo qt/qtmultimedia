@@ -77,7 +77,6 @@ public:
     AVFMediaPlayer(QMediaPlayer *parent);
     virtual ~AVFMediaPlayer();
 
-    void setVideoSurface(QAbstractVideoSurface *surface) override;
     void setVideoSink(QVideoSink *sink) override;
     void setVideoOutput(AVFVideoRendererControl *output);
     AVAsset *currentAssetHandle();

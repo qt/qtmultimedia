@@ -512,10 +512,6 @@ AVFMediaPlayer::~AVFMediaPlayer()
     [static_cast<AVFMediaPlayerObserver*>(m_observer) release];
 }
 
-void AVFMediaPlayer::setVideoSurface(QAbstractVideoSurface *)
-{
-}
-
 void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     m_videoSink = static_cast<AVFVideoSink *>(sink->platformVideoSink());
