@@ -62,12 +62,6 @@ AVFCameraService::AVFCameraService()
     m_recorderControl = new AVFMediaEncoder(this);
 
     m_imageCaptureControl = new AVFImageCaptureControl(this);
-    m_cameraFocusControl = new AVFCameraFocusControl(this);
-    m_cameraImageProcessingControl = new AVFCameraImageProcessingControl(this);
-    m_cameraExposureControl = nullptr;
-#ifdef Q_OS_IOS
-    m_cameraExposureControl = new AVFCameraExposureControl(this);
-#endif
 
     m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 }
@@ -83,9 +77,6 @@ AVFCameraService::~AVFCameraService()
     delete m_imageCaptureControl;
     //delete m_recorderControl;
     delete m_cameraControl;
-    delete m_cameraFocusControl;
-    delete m_cameraExposureControl;
-    delete m_cameraImageProcessingControl;
 
     delete m_session;
 }
@@ -103,11 +94,6 @@ QPlatformCameraImageCapture *AVFCameraService::imageCaptureControl()
 QPlatformMediaEncoder *AVFCameraService::mediaEncoder()
 {
     return m_recorderControl;
-}
-
-QPlatformCameraImageProcessing *AVFCameraService::cameraImageProcessingControl() const
-{
-    return m_cameraImageProcessingControl;
 }
 
 bool AVFCameraService::isMuted() const

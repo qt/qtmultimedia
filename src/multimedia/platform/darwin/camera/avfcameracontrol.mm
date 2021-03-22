@@ -45,6 +45,7 @@
 #include "avfcamerarenderercontrol_p.h"
 #include "avfcameraexposurecontrol_p.h"
 #include "avfcamerafocuscontrol_p.h"
+#include "avfcameraimageprocessingcontrol_p.h"
 #include "qabstractvideosurface.h"
 
 QT_USE_NAMESPACE
@@ -56,12 +57,20 @@ AVFCameraControl::AVFCameraControl(AVFCameraService *service, QObject *parent)
    , m_active(false)
    , m_lastStatus(QCamera::InactiveStatus)
 {
-    Q_UNUSED(service);
+    m_cameraFocusControl = new AVFCameraFocusControl(m_service);
+    m_cameraImageProcessingControl = new AVFCameraImageProcessingControl(m_service);
+    m_cameraExposureControl = nullptr;
+#ifdef Q_OS_IOS
+    m_cameraExposureControl = new AVFCameraExposureControl(m_service);
+#endif
     connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 }
 
 AVFCameraControl::~AVFCameraControl()
 {
+    delete m_cameraFocusControl;
+    delete m_cameraExposureControl;
+    delete m_cameraImageProcessingControl;
 }
 
 bool AVFCameraControl::isActive() const
@@ -185,17 +194,17 @@ AVCaptureConnection *AVFCameraControl::videoConnection() const
 
 QPlatformCameraFocus *AVFCameraControl::focusControl()
 {
-    return m_service->cameraFocusControl();
+    return m_cameraFocusControl;
 }
 
 QPlatformCameraExposure *AVFCameraControl::exposureControl()
 {
-    return m_service->cameraExposureControl();
+    return m_cameraExposureControl;
 }
 
 QPlatformCameraImageProcessing *AVFCameraControl::imageProcessingControl()
 {
-    return m_service->cameraImageProcessingControl();
+    return m_cameraImageProcessingControl;
 }
 
 #include "moc_avfcameracontrol_p.cpp"

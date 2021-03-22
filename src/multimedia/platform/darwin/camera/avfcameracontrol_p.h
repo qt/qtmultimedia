@@ -59,6 +59,10 @@ QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
+class AVFCameraSession;
+class AVFCameraFocusControl;
+class AVFCameraExposureControl;
+class AVFCameraImageProcessingControl;
 @class AVCaptureDeviceFormat;
 @class AVCaptureConnection;
 
@@ -93,6 +97,10 @@ private:
     friend class AVFCameraSession;
     AVFCameraSession *m_session;
     AVFCameraService *m_service;
+
+    AVFCameraFocusControl *m_cameraFocusControl;
+    AVFCameraImageProcessingControl *m_cameraImageProcessingControl;
+    AVFCameraExposureControl *m_cameraExposureControl;
 
     bool m_active;
     QCamera::Status m_lastStatus;

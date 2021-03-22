@@ -62,9 +62,6 @@ class QPlatformCameraImageProcessing;
 class AVFCameraControl;
 class AVFImageCaptureControl;
 class AVFCameraSession;
-class AVFCameraFocusControl;
-class AVFCameraExposureControl;
-class AVFCameraImageProcessingControl;
 class AVFMediaEncoder;
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
@@ -93,9 +90,6 @@ public:
     AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
     AVFMediaEncoder *recorderControl() const { return m_recorderControl; }
     AVFImageCaptureControl *avfImageCaptureControl() const { return m_imageCaptureControl; }
-    AVFCameraFocusControl *cameraFocusControl() const { return m_cameraFocusControl; }
-    AVFCameraExposureControl *cameraExposureControl() const { return m_cameraExposureControl; }
-    QPlatformCameraImageProcessing *cameraImageProcessingControl() const;
 
 private:
     bool m_muted = false;
@@ -106,9 +100,6 @@ private:
     AVFCameraControl *m_cameraControl;
     AVFMediaEncoder *m_recorderControl;
     AVFImageCaptureControl *m_imageCaptureControl;
-    AVFCameraFocusControl *m_cameraFocusControl;
-    AVFCameraExposureControl *m_cameraExposureControl;
-    AVFCameraImageProcessingControl *m_cameraImageProcessingControl;
 };
 
 QT_END_NAMESPACE
