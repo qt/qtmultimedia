@@ -77,7 +77,6 @@ public:
     // AVFVideoSinkInterface
     void reconfigure() override;
     void updateAspectRatio() override;
-    void setLayer(CALayer *layer) override;
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);

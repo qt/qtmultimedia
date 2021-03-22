@@ -130,17 +130,7 @@ void AVFVideoRendererControl::reconfigure()
     }
 
     updateAspectRatio();
-    //updateLayerBounds();
-    updateNativeSize();
-}
-
-void AVFVideoRendererControl::setLayer(CALayer *layer)
-{
-    if (m_layer == layer)
-        return;
-    AVFVideoSinkInterface::setLayer(layer);
-
-    reconfigure();
+    nativeSizeChanged();
 }
 
 void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
@@ -161,7 +151,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     auto *layer = playerLayer();
     if (!layer.readyForDisplay || !m_frameRenderer)
         return;
-    updateNativeSize();
+    nativeSizeChanged();
 
     QVideoFrame frame;
     if (type == QVideoSink::Metal || type == QVideoSink::NativeTexture) {

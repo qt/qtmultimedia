@@ -131,7 +131,7 @@ void AVFVideoSink::setNativeSize(QSize size)
         return;
     m_nativeSize = size;
     if (m_interface)
-        m_interface->updateNativeSize();
+        m_interface->nativeSizeChanged();
 }
 
 Qt::AspectRatioMode AVFVideoSink::aspectRatioMode() const
@@ -217,12 +217,17 @@ void AVFVideoSinkInterface::setVideoSink(AVFVideoSink *sink)
 
 void AVFVideoSinkInterface::setLayer(CALayer *layer)
 {
+    if (layer == m_layer)
+        return;
+
     if (m_layer) {
         renderToNativeView(false);
         [m_layer release];
     }
     m_layer = layer;
     [m_layer retain];
+
+    reconfigure();
 }
 
 void AVFVideoSinkInterface::renderToNativeView(bool enable)

@@ -352,10 +352,7 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
     if (m_videoSink) {
         m_videoOutput->setVideoSink(videoSink);
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
-        m_videoSink->setLayer(previewLayer);
-//        if (auto *camera = m_service->cameraControl()) {
-//            m_videoSink->setNativeSize(camera->viewfinderSettings().resolution());
-//        }
+        m_videoOutput->setLayer(previewLayer);
     }
 }
 

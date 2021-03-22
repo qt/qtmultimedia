@@ -54,6 +54,7 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qmutex.h>
+#include <private/avfvideosink_p.h>
 
 #include <dispatch/dispatch.h>
 
@@ -68,14 +69,15 @@ class AVFCameraRendererControl;
 class QAbstractVideoSurface;
 class AVFVideoSink;
 
-class AVFCameraRendererControl : public QObject
+class AVFCameraRendererControl : public QObject, public AVFVideoSinkInterface
 {
 Q_OBJECT
 public:
     AVFCameraRendererControl(QObject *parent = nullptr);
     ~AVFCameraRendererControl();
 
-    void setVideoSink(AVFVideoSink *sink);
+    void reconfigure() override;
+    void updateAspectRatio() override;
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);
@@ -95,7 +97,6 @@ private Q_SLOTS:
     void updateCaptureConnection();
 
 private:
-    AVFVideoSink *m_sink = nullptr;
     AVFCaptureFramesDelegate *m_viewfinderFramesDelegate = nullptr;
     AVFCameraSession *m_cameraSession = nullptr;
     AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
@@ -109,6 +110,7 @@ private:
 
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;
+    bool m_rendersToWindow = false;
     dispatch_queue_t m_delegateQueue;
 
     friend class CVImageVideoBuffer;

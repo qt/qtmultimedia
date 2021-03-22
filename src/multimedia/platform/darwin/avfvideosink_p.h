@@ -140,7 +140,8 @@ public:
 
     virtual void reconfigure() = 0;
     virtual void updateAspectRatio() = 0;
-    virtual void setLayer(CALayer *layer);
+
+    void setLayer(CALayer *layer);
 
     void renderToNativeView(bool enable);
 
@@ -151,7 +152,7 @@ public:
     bool rendersToWindow() const { return m_rendersToWindow; }
 
     void updateLayerBounds();
-    void updateNativeSize() { updateLayerBounds(); }
+    void nativeSizeChanged() { updateLayerBounds(); }
 
 protected:
     NativeView *nativeView() const { return m_sink->nativeView(); }
@@ -163,7 +164,6 @@ protected:
 
     AVFVideoSink *m_sink = nullptr;
     CALayer *m_layer = nullptr;
-    QSize m_nativeSize;
     bool m_rendersToWindow = false;
 };
 
