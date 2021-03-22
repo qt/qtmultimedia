@@ -130,7 +130,7 @@ QGstElement QGstreamerVideoSink::gstSink()
 {
     if (m_fullScreen || m_graphicsType == QVideoSink::NativeWindow)
         return m_videoOverlay->videoSink();
-    return m_videoRenderer->videoSink();
+    return m_videoRenderer->gstVideoSink();
 }
 
 WId QGstreamerVideoSink::winId() const

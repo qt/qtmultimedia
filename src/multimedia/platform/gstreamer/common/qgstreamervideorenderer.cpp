@@ -54,7 +54,7 @@ QGstreamerVideoRenderer::~QGstreamerVideoRenderer()
 {
 }
 
-QGstElement QGstreamerVideoRenderer::videoSink()
+QGstElement QGstreamerVideoRenderer::gstVideoSink()
 {
     if (m_videoSink.isNull() && m_surface)
         m_videoSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(m_surface)));

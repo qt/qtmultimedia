@@ -68,7 +68,7 @@ public:
     QAbstractVideoSurface *surface() const;
     void setSurface(QAbstractVideoSurface *surface);
 
-    QGstElement videoSink();
+    QGstElement gstVideoSink();
 
     void stopRenderer();
     bool isReady() const { return m_surface != 0; }

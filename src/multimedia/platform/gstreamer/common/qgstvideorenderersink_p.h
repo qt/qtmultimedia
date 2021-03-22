@@ -81,9 +81,9 @@ public:
     QGstVideoRenderer();
     ~QGstVideoRenderer();
 
-    QGstMutableCaps getCaps(QAbstractVideoSurface *surface);
-    bool start(QAbstractVideoSurface *surface, GstCaps *caps);
-    void stop(QAbstractVideoSurface *surface);
+    QGstMutableCaps getCaps();
+    bool start(GstCaps *caps);
+    void stop();
 
     bool proposeAllocation(GstQuery *query);
 
