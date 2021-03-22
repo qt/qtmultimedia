@@ -1,7 +1,6 @@
 # Generated from multimedia.pro.
 
 add_subdirectory(qabstractvideobuffer)
-add_subdirectory(qabstractvideosurface)
 add_subdirectory(qaudiorecorder)
 add_subdirectory(qaudioformat)
 add_subdirectory(qaudionamespace)

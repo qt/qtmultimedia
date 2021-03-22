@@ -68,7 +68,7 @@ public:
         Vulkan
     };
 
-    QVideoSink(QObject *parent);
+    QVideoSink(QObject *parent = nullptr);
     ~QVideoSink();
 
     GraphicsType graphicsType() const;

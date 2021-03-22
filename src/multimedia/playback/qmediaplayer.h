@@ -48,7 +48,6 @@
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
-class QAbstractVideoSurface;
 class QAudioDeviceInfo;
 class QMediaMetaData;
 
@@ -136,8 +135,7 @@ public:
     void setActiveSubtitleTrack(int index);
 
     void setVideoOutput(QObject *);
-    void setVideoOutput(QAbstractVideoSurface *surface);
-    void setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces);
+    void setVideoOutput(const QList<QVideoSink *> &sinks);
     void setVideoOutput(QVideoSink *sink);
 
     QUrl media() const;

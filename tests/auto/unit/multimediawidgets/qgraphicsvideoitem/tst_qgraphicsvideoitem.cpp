@@ -34,7 +34,7 @@
 #include "qmediaservice.h"
 #include "qvideorenderercontrol.h"
 
-#include <qabstractvideosurface.h>
+#include <qvideosink.h>
 #include <qvideosurfaceformat.h>
 
 #include <QtWidgets/qapplication.h>
@@ -72,11 +72,11 @@ private slots:
 class QtTestRendererControl : public QVideoRendererControl
 {
 public:
-    [[nodiscard]] QAbstractVideoSurface *surface() const override { return m_surface; }
-    void setSurface(QAbstractVideoSurface *surface) override { m_surface = surface; }
+    [[nodiscard]] QVideoSink *surface() const override { return m_surface; }
+    void setSurface(QVideoSink *surface) override { m_surface = surface; }
 
 private:
-    QAbstractVideoSurface *m_surface = nullptr;
+    QVideoSink *m_surface = nullptr;
 };
 
 class QtTestVideoService : public QMediaService

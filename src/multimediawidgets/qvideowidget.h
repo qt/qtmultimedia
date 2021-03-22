@@ -46,7 +46,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAbstractVideoSurface;
 class QVideoSink;
 
 class QVideoWidgetPrivate;

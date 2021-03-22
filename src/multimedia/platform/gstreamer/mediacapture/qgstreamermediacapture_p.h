@@ -85,7 +85,6 @@ public:
     QAudioDeviceInfo audioInput() const override;
     bool setAudioInput(const QAudioDeviceInfo &id) override;
 
-    void setVideoPreview(QAbstractVideoSurface *surface) override;
     void setVideoPreview(QVideoSink *sink) override;
     QAudioDeviceInfo audioPreview() const override;
     bool setAudioPreview(const QAudioDeviceInfo &info) override;

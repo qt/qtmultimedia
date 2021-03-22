@@ -43,8 +43,8 @@
 #include <qgraphicsvideoitem.h>
 #include <qobject.h>
 #include <qvideowidget.h>
+#include <qvideosink.h>
 
-#include "mockvideosurface.h"
 #include "mockmediarecorderservice.h"
 #include "qmockintegration_p.h"
 
@@ -113,7 +113,7 @@ void tst_QCameraWidgets::testSetVideoOutput()
 {
     QVideoWidget widget;
     QGraphicsVideoItem item;
-    MockVideoSurface surface;
+    QVideoSink surface;
     QMediaCaptureSession session;
 
     session.setVideoPreview(&widget);
@@ -136,7 +136,7 @@ void tst_QCameraWidgets::testSetVideoOutput()
     session.setVideoPreview(&surface);
 //    QVERIFY(mocksessionService->rendererControl->surface() == &surface);
 
-    session.setVideoPreview(reinterpret_cast<QAbstractVideoSurface *>(0));
+    session.setVideoPreview(reinterpret_cast<QVideoSink *>(0));
 //    QVERIFY(mocksessionService->rendererControl->surface() == nullptr);
 
     session.setVideoPreview(&surface);

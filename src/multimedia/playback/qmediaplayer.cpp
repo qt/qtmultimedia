@@ -586,27 +586,6 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     It does not wait for the media to finish loading and does not check for errors. Listen for
     the mediaStatusChanged() and error() signals to be notified when the media is loaded and
     when an error occurs during loading.
-
-    Since Qt 5.12.2, the url scheme \c gst-pipeline provides custom pipelines
-    for the GStreamer backend.
-
-    \snippet multimedia-snippets/media.cpp Pipeline
-
-    If QAbstractVideoSurface is used as the video output,
-    \c qtvideosink can be used as a video sink element directly in the pipeline.
-    After that the surface will receive the video frames in QAbstractVideoSurface::present().
-
-    \snippet multimedia-snippets/media.cpp Pipeline Surface
-
-    If QVideoWidget is used as the video output
-    and the pipeline contains a video sink element named \c qtvideosink,
-    current QVideoWidget will be used to render the video.
-
-    \snippet multimedia-snippets/media.cpp Pipeline Widget
-
-    If the pipeline contains appsrc element, it will be used to push data from \a stream.
-
-    \snippet multimedia-snippets/media.cpp Pipeline appsrc
 */
 
 void QMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
@@ -715,32 +694,9 @@ void QMediaPlayer::setVideoOutput(QObject *output)
 {
     auto *mo = output->metaObject();
     QVideoSink *sink = nullptr;
-    if (!output || mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink))) {
-        setVideoOutput(sink);
-        return;
-    }
-    QAbstractVideoSurface *surface = nullptr;
-    if (output && !mo->invokeMethod(output, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
-        qWarning() << "QMediaPlayer::setVideoOutput: Object" << output->metaObject()->className() << "does not have a videoSurface()";
-        return;
-    }
-    setVideoOutput(surface);
-}
-
-/*!
-    Sets a video \a surface as the video output of a media player.
-
-    If a video output has already been set on the media player the new surface
-    will replace it.
-*/
-void QMediaPlayer::setVideoOutput(QAbstractVideoSurface *surface)
-{
-    Q_D(QMediaPlayer);
-
-    if (!d->control)
-        return;
-
-    d->control->setVideoSurface(surface);
+    if (output)
+        mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
+    setVideoOutput(sink);
 }
 
 void QMediaPlayer::setVideoOutput(QVideoSink *sink)
@@ -755,19 +711,17 @@ void QMediaPlayer::setVideoOutput(QVideoSink *sink)
 
 /*!
     \since 5.15
-    Sets multiple video surfaces as the video output of a media player.
-    This allows the media player to render video frames on different surfaces.
-
-    All video surfaces must support at least one shared \c QVideoFrame::PixelFormat.
+    Sets multiple video sinks as the video output of a media player.
+    This allows the media player to render video frames on several outputs.
 
     If a video output has already been set on the media player the new surfaces
     will replace it.
-
-    \sa QAbstractVideoSurface::supportedPixelFormats
 */
-void QMediaPlayer::setVideoOutput(const QList<QAbstractVideoSurface *> &surfaces)
+void QMediaPlayer::setVideoOutput(const QList<QVideoSink *> &sinks)
 {
-    setVideoOutput(!surfaces.empty() ? new QVideoSurfaces(surfaces, this) : nullptr);
+    // ### IMPLEMENT ME
+    Q_UNUSED(sinks);
+//    setVideoOutput(!surfaces.empty() ? new QVideoSurfaces(surfaces, this) : nullptr);
 }
 
 /*! \reimp */

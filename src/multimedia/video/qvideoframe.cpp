@@ -150,8 +150,7 @@ private:
     texture handle).
 
     A video frame can also have timestamp information associated with it.  These timestamps can be
-    used by an implementation of \l QAbstractVideoSurface to determine when to start and stop
-    displaying the frame, but not all surfaces might respect this setting.
+    used to determine when to start and stop displaying the frame.
 
     The video pixel data in a QVideoFrame is encapsulated in a QAbstractVideoBuffer.  A QVideoFrame
     may be constructed from any buffer type by subclassing the QAbstractVideoBuffer class.

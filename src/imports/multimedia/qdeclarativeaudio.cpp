@@ -47,7 +47,6 @@
 
 #include "qdeclarativemediametadata_p.h"
 
-#include <QAbstractVideoSurface>
 #include <QTimerEvent>
 #include <QtQml/qqmlengine.h>
 
@@ -124,7 +123,7 @@ QDeclarativeAudio::~QDeclarativeAudio()
     \qmlproperty url QtMultimedia::MediaPlayer::videoOutput
 
     This property holds the target video output.
-    Accepts one or an array of QAbstractVideoSurface or VideoOutput elements.
+    Accepts one or an array of VideoOutput elements.
 
     \snippet multimedia-snippets/multiple-videooutputs.qml complete
 
@@ -152,8 +151,7 @@ void QDeclarativeAudio::setVideoOutput(const QVariant &v)
     if (sink) {
         m_player->setVideoOutput(sink);
     } else {
-#if 0
-        QList<QAbstractVideoSurface *> surfaces;
+        QList<QVideoSink *> sinks;
         // Check if it is an array.
         auto arr = v.value<QJSValue>();
         if (!arr.isNull()) {
@@ -163,15 +161,14 @@ void QDeclarativeAudio::setVideoOutput(const QVariant &v)
                 if (v.isQObject()) {
                     auto obj = v.toQObject();
                     vo = qobject_cast<QDeclarativeVideoOutput *>(obj);
-                    surface = vo ? vo->videoSink() : qobject_cast<QAbstractVideoSurface *>(obj);
-                    if (surface)
-                        surfaces.append(surface);
+                    sink = vo ? vo->videoSink() : qobject_cast<QVideoSink *>(obj);
+                    if (sink)
+                        sinks.append(sink);
                 }
             }
         }
 
-        m_player->setVideoOutput(surfaces);
-#endif
+        m_player->setVideoOutput(sinks);
     }
 
     m_videoOutput = v;

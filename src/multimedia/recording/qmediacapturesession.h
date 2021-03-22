@@ -51,7 +51,6 @@ class QCameraInfo;
 class QCameraImageCapture; // ### rename to QMediaImageCapture
 class QMediaEncoder;
 class QPlatformMediaCaptureSession;
-class QAbstractVideoSurface;
 class QVideoSink;
 
 class QMediaCaptureSessionPrivate;
@@ -89,7 +88,6 @@ public:
 
     void setVideoPreview(QObject *preview);
     void setVideoPreview(QVideoSink *preview);
-    void setVideoPreview(QAbstractVideoSurface *preview);
 
     QPlatformMediaCaptureSession *platformSession() const;
 

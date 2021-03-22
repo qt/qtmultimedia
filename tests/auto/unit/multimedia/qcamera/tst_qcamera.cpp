@@ -31,7 +31,7 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 
-#include <qabstractvideosurface.h>
+#include <qvideosink.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraexposure_p.h>
 #include <private/qplatformcamerafocus_p.h>
@@ -44,7 +44,6 @@
 #include <qobject.h>
 #include <qmediadevicemanager.h>
 
-#include "mockvideosurface.h"
 #include "qmockintegration_p.h"
 #include "mockmediarecorderservice.h"
 
@@ -642,10 +641,10 @@ void tst_QCamera::testCameraEncodingProperyChange()
 
 void tst_QCamera::testSetVideoOutput()
 {
-    MockVideoSurface surface;
+    QVideoSink surface;
     QCamera camera;
 
-//    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
+//    camera.setViewfinder(static_cast<QVideoSink *>(nullptr));
 
 //    QCOMPARE(mockCameraService->rendererRef, 0);
 
@@ -653,7 +652,7 @@ void tst_QCamera::testSetVideoOutput()
 //    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 //    QCOMPARE(mockCameraService->rendererRef, 1);
 
-//    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
+//    camera.setViewfinder(static_cast<QVideoSink *>(nullptr));
 //    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
 
 //    //rendererControl is released
@@ -663,7 +662,7 @@ void tst_QCamera::testSetVideoOutput()
 //    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 //    QCOMPARE(mockCameraService->rendererRef, 1);
 
-//    camera.setViewfinder(static_cast<QAbstractVideoSurface *>(nullptr));
+//    camera.setViewfinder(static_cast<QVideoSink *>(nullptr));
 //    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
 //    //rendererControl is released
 //    QCOMPARE(mockCameraService->rendererRef, 0);
@@ -676,7 +675,7 @@ void tst_QCamera::testSetVideoOutput()
 
 void tst_QCamera::testSetVideoOutputNoService()
 {
-    MockVideoSurface surface;
+    QVideoSink surface;
 
     integration->setFlags(QMockIntegration::NoCaptureInterface);
     QCamera camera;
@@ -687,7 +686,7 @@ void tst_QCamera::testSetVideoOutputNoService()
 
 void tst_QCamera::testSetVideoOutputDestruction()
 {
-    MockVideoSurface surface;
+    QVideoSink surface;
 
     {
         QCamera camera;

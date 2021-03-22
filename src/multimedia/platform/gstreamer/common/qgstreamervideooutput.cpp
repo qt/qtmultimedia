@@ -66,32 +66,6 @@ QGstreamerVideoOutput::~QGstreamerVideoOutput()
 {
 }
 
-static QGstElement getSink(QGstreamerVideoRenderer *output)
-{
-    QGstElement newSink;
-    if (output && output->isReady())
-        newSink = output->videoSink();
-
-    if (newSink.isNull())
-        newSink = QGstElement("fakesink", "fakevideosink");
-
-    return newSink;
-}
-
-void QGstreamerVideoOutput::setVideoSurface(QAbstractVideoSurface *surface)
-{
-    if (!m_videoOutput) {
-        m_videoOutput = new QGstreamerVideoRenderer;
-        qCDebug(qLcMediaVideoOutput) << Q_FUNC_INFO;
-        connect(m_videoOutput, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
-    }
-
-    m_videoOutput->setSurface(surface);
-
-    QGstElement gstSink = getSink(m_videoOutput);
-    updateVideoSink(gstSink);
-}
-
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
     auto *videoSink = static_cast<QGstreamerVideoSink *>(sink->platformVideoSink());

@@ -60,7 +60,6 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoRenderer;
-class QAbstractVideoSurface;
 class QVideoSink;
 class QGstreamerVideoSink;
 
@@ -72,7 +71,6 @@ public:
     QGstreamerVideoOutput(QObject *parent = 0);
     ~QGstreamerVideoOutput();
 
-    void setVideoSurface(QAbstractVideoSurface *surface);
     void setVideoSink(QVideoSink *sink);
 
     void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
@@ -89,9 +87,7 @@ public slots:
 private:
     void prepareVideoOutputChange(const QGstPad &pad);
 
-    QAbstractVideoSurface *m_videoSurface = nullptr;
     QVideoSink *m_videoSink = nullptr;
-    QGstreamerVideoRenderer *m_videoOutput = nullptr;
     QGstreamerVideoSink *m_videoWindow = nullptr;
 
     // Gst elements

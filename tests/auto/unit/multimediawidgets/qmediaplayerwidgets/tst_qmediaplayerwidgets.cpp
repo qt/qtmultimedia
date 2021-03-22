@@ -33,11 +33,11 @@
 #include <QtCore/qbuffer.h>
 
 #include <qgraphicsvideoitem.h>
-#include <qabstractvideosurface.h>
+#include <qvideosink.h>
 #include <qmediaplayer.h>
 #include <private/qplatformmediaplayer_p.h>
 
-#include "mockvideosurface.h"
+#include "qvideosink.h"
 #include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
@@ -83,7 +83,7 @@ void tst_QMediaPlayerWidgets::testSetVideoOutput()
 {
     QVideoWidget widget;
     QGraphicsVideoItem item;
-    MockVideoSurface surface;
+    QVideoSink surface;
 
     QMediaPlayer player;
 
@@ -106,7 +106,7 @@ void tst_QMediaPlayerWidgets::testSetVideoOutput()
     player.setVideoOutput(&surface);
 //    QVERIFY(mockService->rendererControl->surface() == &surface);
 
-    player.setVideoOutput(reinterpret_cast<QAbstractVideoSurface *>(0));
+    player.setVideoOutput(reinterpret_cast<QVideoSink *>(0));
 //    QVERIFY(mockService->rendererControl->surface() == nullptr);
 
     player.setVideoOutput(&surface);
@@ -126,7 +126,7 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoService()
 {
     QVideoWidget widget;
     QGraphicsVideoItem item;
-    MockVideoSurface surface;
+    QVideoSink surface;
 
     mockIntegration->setFlags(QMockIntegration::NoPlayerInterface);
     QMediaPlayer player;
@@ -144,7 +144,7 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoControl()
 {
     QVideoWidget widget;
     QGraphicsVideoItem item;
-    MockVideoSurface surface;
+    QVideoSink surface;
 
     QMediaPlayer player;
 

@@ -721,11 +721,6 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     emit metaDataChanged();
 }
 
-void QGstreamerMediaPlayer::setVideoSurface(QAbstractVideoSurface *surface)
-{
-    gstVideoOutput->setVideoSurface(surface);
-}
-
 int QGstreamerMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)
 {
     return m_streams[type].count();

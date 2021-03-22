@@ -33,7 +33,7 @@
 #include "qdeclarativevideo_p.h"
 
 
-#include <qabstractvideosurface.h>
+#include <qvideosink.h>
 #include <qgraphicsvideoitem.h>
 #include <private/qplatformmediaplayer_p.h>
 #include <qmediaservice.h>
@@ -174,11 +174,11 @@ class QtTestRendererControl : public QVideoRendererControl
 public:
     QtTestRendererControl(QObject *parent ) : QVideoRendererControl(parent), m_surface(0) {}
 
-    QAbstractVideoSurface *surface() const { return m_surface; }
-    void setSurface(QAbstractVideoSurface *surface) { m_surface = surface; }
+    QVideoSink *surface() const { return m_surface; }
+    void setSurface(QVideoSink *surface) { m_surface = surface; }
 
 private:
-    QAbstractVideoSurface *m_surface;
+    QVideoSink *m_surface;
 };
 
 class QtTestWindowControl : public QPlatformVideoSink
@@ -952,9 +952,9 @@ void tst_QDeclarativeVideo::geometry()
         videoItem->paint(&painter, 0);
     }
 
-    QAbstractVideoSurface *surface = provider.rendererControl()->surface();
+    QVideoSink *surface = provider.rendererControl()->surface();
 
-    //video item can use overlay, QAbstractVideoSurface is not used than.
+    //video item can use overlay, QVideoSink is not used than.
     if (surface) {
         QVideoSurfaceFormat format(QSize(640, 480), QVideoFrame::Format_RGB32);
 

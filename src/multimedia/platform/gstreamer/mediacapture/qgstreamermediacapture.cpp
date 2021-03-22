@@ -144,11 +144,6 @@ void QGstreamerMediaCapture::setVolume(qreal volume)
     gstAudioOutput->setVolume(volume);
 }
 
-void QGstreamerMediaCapture::setVideoPreview(QAbstractVideoSurface *surface)
-{
-    gstVideoOutput->setVideoSurface(surface);
-}
-
 void QGstreamerMediaCapture::setVideoPreview(QVideoSink *sink)
 {
     gstVideoOutput->setVideoSink(sink);

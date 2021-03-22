@@ -201,8 +201,8 @@ void QMediaCaptureSession::setEncoder(QMediaEncoder *recorder)
 /*!
     Sets a QObject based video preview for the capture session.
 
-    A QObject based preview is expected to have an invokable videoSurface()
-    method that returns a QAbstractVideoSurface.
+    A QObject based preview is expected to have an invokable videoSink()
+    method that returns a QVideoSink.
 
     The previously set preview is detached.
 */
@@ -210,30 +210,12 @@ void QMediaCaptureSession::setVideoPreview(QObject *preview)
 {
     auto *mo = preview->metaObject();
     QVideoSink *sink = nullptr;
-    if (!preview || mo->invokeMethod(preview, "videoSink", Q_RETURN_ARG(QVideoSink *, sink))) {
-        setVideoPreview(sink);
-        return;
-    }
-    QAbstractVideoSurface *surface = nullptr;
-    if (preview && !mo->invokeMethod(preview, "videoSurface", Q_RETURN_ARG(QAbstractVideoSurface *, surface))) {
-        qWarning() << "QCamera::setViewFinder: Object" << preview->metaObject()->className() << "does not have a videoSurface()";
-        return;
-    }
-    setVideoPreview(surface);
+    if (preview)
+        mo->invokeMethod(preview, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
+    setVideoPreview(sink);
 }
 
 void QMediaCaptureSession::setVideoPreview(QVideoSink *preview)
-{
-    d_ptr->captureSession->setVideoPreview(preview);
-}
-
-/*!
-    Sets a video \a surface as the preview for the capture session.
-
-    If a preview has already been set on the session, the new surface
-    will replace it.
-*/
-void QMediaCaptureSession::setVideoPreview(QAbstractVideoSurface *preview)
 {
     d_ptr->captureSession->setVideoPreview(preview);
 }

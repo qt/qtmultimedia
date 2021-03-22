@@ -32,6 +32,7 @@
 
 #include "qdeclarativeaudio_p.h"
 #include "qdeclarativemediametadata_p.h"
+#include <qvideosink.h>
 
 #include "mockmediaplayer.h"
 #include "qmockintegration_p.h"
@@ -39,7 +40,6 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <private/qplatformmediaplayer_p.h>
 #include <private/qdeclarativevideooutput_p.h>
-#include <QAbstractVideoSurface>
 
 #include <QtGui/qguiapplication.h>
 #include <QtQml/qqmlengine.h>
@@ -913,17 +913,6 @@ int tst_QDeclarativeAudio::keyToValue(const QMetaEnum &enumeration, const char *
     return result;
 }
 
-struct Surface : QAbstractVideoSurface
-{
-    Surface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
-    [[nodiscard]] QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType) const override
-    {
-        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB32;
-    }
-
-    bool present(const QVideoFrame &) override { return true; }
-};
-
 void tst_QDeclarativeAudio::videoOutput()
 {
     QDeclarativeAudio audio;
@@ -935,15 +924,15 @@ void tst_QDeclarativeAudio::videoOutput()
     QVERIFY(audio.videoOutput().isNull());
 
     QVariant surface;
-    surface.setValue(new Surface(this));
+    surface.setValue(new QVideoSink(this));
     audio.setVideoOutput(surface);
     QCOMPARE(audio.videoOutput(), surface);
     QCOMPARE(spy.count(), 1);
 
     QQmlEngine engine;
     QJSValue jsArray = engine.newArray(5);
-    jsArray.setProperty(0, engine.newQObject(new Surface(this)));
-    jsArray.setProperty(1, engine.newQObject(new Surface(this)));
+    jsArray.setProperty(0, engine.newQObject(new QVideoSink(this)));
+    jsArray.setProperty(1, engine.newQObject(new QVideoSink(this)));
     QDeclarativeVideoOutput output;
     jsArray.setProperty(2, engine.newQObject(&output));
     jsArray.setProperty(3, 123);

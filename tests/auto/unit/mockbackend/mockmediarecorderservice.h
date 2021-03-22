@@ -59,7 +59,7 @@ public:
     QPlatformCameraImageCapture *imageCaptureControl() override { return hasControls ? mockCaptureControl : nullptr; }
     QPlatformMediaEncoder *mediaEncoder() override { return hasControls ? mockControl : nullptr; }
 
-    void setVideoPreview(QAbstractVideoSurface *) override {}
+    void setVideoPreview(QVideoSink *) override {}
 
     bool isMuted() const override
     {

@@ -61,6 +61,7 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaStreamsControl;
+class QAbstractVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer
 {
