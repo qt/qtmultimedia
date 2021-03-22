@@ -59,6 +59,7 @@
 #include <QMutex>
 #include <QObject>
 #include <QPointer>
+#include <qvideosink.h>
 
 #include <camera/camera_api.h>
 
@@ -93,8 +94,7 @@ public:
     QByteArray device() const;
 
     // video renderer control
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    void setSurface(QVideoSink *surface);
 
     // image capture control
     bool isReadyForCapture() const;
@@ -184,7 +184,7 @@ private:
     QByteArray m_device;
     bool m_previewIsVideo;
 
-    QPointer<QAbstractVideoSurface> m_surface;
+    QPointer<QVideoSink> m_surface;
     QMutex m_surfaceMutex;
 
     int m_lastImageCaptureId;

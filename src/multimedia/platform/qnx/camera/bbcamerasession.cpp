@@ -41,7 +41,6 @@
 #include "bbcameraorientationhandler_p.h"
 #include "windowgrabber_p.h"
 
-#include <QAbstractVideoSurface>
 #include <QBuffer>
 #include <QDebug>
 #include <QImage>
@@ -266,12 +265,7 @@ QByteArray BbCameraSession::device() const
     return m_device;
 }
 
-QAbstractVideoSurface* BbCameraSession::surface() const
-{
-    return m_surface;
-}
-
-void BbCameraSession::setSurface(QAbstractVideoSurface *surface)
+void BbCameraSession::setSurface(QVideoSink *surface)
 {
     QMutexLocker locker(&m_surfaceMutex);
 

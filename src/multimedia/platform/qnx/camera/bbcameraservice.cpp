@@ -90,7 +90,7 @@ QPlatformMediaEncoder *BbCameraService::mediaEncoder()
     return m_cameraMediaRecorderControl;
 }
 
-void BbCameraService::setVideoPreview(QAbstractVideoSurface *surface)
+void BbCameraService::setVideoPreview(QVideoSink *surface)
 {
     // ####
 }
