@@ -37,16 +37,17 @@
 **
 ****************************************************************************/
 
+#include <qvideosink.h>
 #include "qgstreamervideorenderer_p.h"
 #include <private/qgstvideorenderersink_p.h>
 #include <private/qgstutils_p.h>
-#include <qabstractvideosurface.h>
 #include <QtCore/qdebug.h>
 
 #include <gst/gst.h>
 
-QGstreamerVideoRenderer::QGstreamerVideoRenderer(QObject *parent)
-    : QObject(parent)
+QGstreamerVideoRenderer::QGstreamerVideoRenderer(QVideoSink *parent)
+    : QObject(parent),
+      m_sink(parent)
 {
 }
 
@@ -56,51 +57,8 @@ QGstreamerVideoRenderer::~QGstreamerVideoRenderer()
 
 QGstElement QGstreamerVideoRenderer::gstVideoSink()
 {
-    if (m_videoSink.isNull() && m_surface)
-        m_videoSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(m_surface)));
+    if (gstSink.isNull() && m_sink)
+        gstSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(m_sink)));
 
-    return m_videoSink;
-}
-
-void QGstreamerVideoRenderer::stopRenderer()
-{
-    if (m_surface)
-        m_surface->stop();
-}
-
-QAbstractVideoSurface *QGstreamerVideoRenderer::surface() const
-{
-    return m_surface;
-}
-
-void QGstreamerVideoRenderer::setSurface(QAbstractVideoSurface *surface)
-{
-    if (m_surface != surface) {
-        m_videoSink = {};
-
-        if (m_surface) {
-            disconnect(m_surface.data(), SIGNAL(supportedFormatsChanged()),
-                       this, SLOT(handleFormatChange()));
-        }
-
-        bool wasReady = isReady();
-
-        m_surface = surface;
-
-        if (m_surface) {
-            connect(m_surface.data(), SIGNAL(supportedFormatsChanged()),
-                    this, SLOT(handleFormatChange()));
-        }
-
-        if (wasReady != isReady())
-            emit readyChanged(isReady());
-
-        emit sinkChanged();
-    }
-}
-
-void QGstreamerVideoRenderer::handleFormatChange()
-{
-    m_videoSink = {};
-    emit sinkChanged();
+    return gstSink;
 }

@@ -47,55 +47,6 @@
 
 Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
 
-class QGstreamerVideoSurface : public QAbstractVideoSurface
-{
-public:
-    explicit QGstreamerVideoSurface(QGstreamerVideoSink *parent = nullptr)
-        : QAbstractVideoSurface(parent)
-    {
-        m_sink = parent;
-    }
-    ~QGstreamerVideoSurface();
-
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-        QVideoFrame::HandleType /*type*/) const override
-    {
-        // All the formats that both we and gstreamer support
-        return QList<QVideoFrame::PixelFormat>()
-               << QVideoFrame::Format_YUV420P
-               << QVideoFrame::Format_YUV422P
-               << QVideoFrame::Format_YV12
-               << QVideoFrame::Format_UYVY
-               << QVideoFrame::Format_YUYV
-               << QVideoFrame::Format_NV12
-               << QVideoFrame::Format_NV21
-               << QVideoFrame::Format_AYUV444
-               << QVideoFrame::Format_YUV444
-               << QVideoFrame::Format_P010LE
-               << QVideoFrame::Format_P010BE
-               << QVideoFrame::Format_Y8
-               << QVideoFrame::Format_RGB32
-               << QVideoFrame::Format_BGR32
-               << QVideoFrame::Format_ARGB32
-               << QVideoFrame::Format_ABGR32
-               << QVideoFrame::Format_BGRA32
-               << QVideoFrame::Format_RGB555
-               << QVideoFrame::Format_BGR555
-               << QVideoFrame::Format_Y16
-               << QVideoFrame::Format_RGB24
-               << QVideoFrame::Format_BGR24
-               << QVideoFrame::Format_RGB565;
-    }
-    bool present(const QVideoFrame &frame) override
-    {
-        m_sink->videoSink()->newVideoFrame(frame);
-        return true;
-    }
-    QGstreamerVideoSink *m_sink;
-};
-
-QGstreamerVideoSurface::~QGstreamerVideoSurface() = default;
-
 QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
@@ -253,9 +204,7 @@ void QGstreamerVideoSink::createOverlay()
 
 void QGstreamerVideoSink::createRenderer()
 {
-    m_videoRenderer = new QGstreamerVideoRenderer(this);
-    m_videoSurface = new QGstreamerVideoSurface(this);
-    m_videoRenderer->setSurface(m_videoSurface);
+    m_videoRenderer = new QGstreamerVideoRenderer(sink);
 
     qCDebug(qLcMediaVideoSink) << Q_FUNC_INFO;
     connect(m_videoRenderer, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));

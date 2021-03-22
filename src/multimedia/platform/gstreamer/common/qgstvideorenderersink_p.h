@@ -73,7 +73,7 @@
 #endif
 
 QT_BEGIN_NAMESPACE
-class QAbstractVideoSurface;
+class QVideoSink;
 
 class QGstVideoRenderer
 {
@@ -87,8 +87,8 @@ public:
 
     bool proposeAllocation(GstQuery *query);
 
-    bool present(QAbstractVideoSurface *surface, GstBuffer *buffer);
-    void flush(QAbstractVideoSurface *surface);
+    bool present(QVideoSink *surface, GstBuffer *buffer);
+    void flush(QVideoSink *surface);
 
 private:
     QVideoSurfaceFormat m_format;
@@ -101,7 +101,7 @@ class QVideoSurfaceGstDelegate : public QObject
 {
     Q_OBJECT
 public:
-    QVideoSurfaceGstDelegate(QAbstractVideoSurface *surface);
+    QVideoSurfaceGstDelegate(QVideoSink *sink);
     ~QVideoSurfaceGstDelegate();
 
     QGstMutableCaps caps();
@@ -126,7 +126,7 @@ private:
     void notify();
     bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
 
-    QPointer<QAbstractVideoSurface> m_surface;
+    QPointer<QVideoSink> m_sink;
 
     QMutex m_mutex;
     QWaitCondition m_setupCondition;
@@ -152,8 +152,8 @@ class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink
 public:
     GstVideoSink parent;
 
-    static QGstVideoRendererSink *createSink(QAbstractVideoSurface *surface);
-    static void setSurface(QAbstractVideoSurface *surface);
+    static QGstVideoRendererSink *createSink(QVideoSink *surface);
+    static void setSink(QVideoSink *surface);
 
 private:
     static GType get_type();

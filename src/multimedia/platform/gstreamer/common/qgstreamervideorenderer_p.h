@@ -52,8 +52,8 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <qvideosink.h>
 #include <private/qgstvideorenderersink_p.h>
-#include <qabstractvideosurface.h>
 #include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -62,27 +62,19 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QObject
 {
     Q_OBJECT
 public:
-    QGstreamerVideoRenderer(QObject *parent = 0);
+    QGstreamerVideoRenderer(QVideoSink *parent = nullptr);
     virtual ~QGstreamerVideoRenderer();
-
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
 
     QGstElement gstVideoSink();
 
-    void stopRenderer();
-    bool isReady() const { return m_surface != 0; }
+    bool isReady() const { return m_sink != 0; }
 
 signals:
-    void sinkChanged();
     void readyChanged(bool);
 
-private slots:
-    void handleFormatChange();
-
 private:
-    QGstElement m_videoSink;
-    QPointer<QAbstractVideoSurface> m_surface;
+    QGstElement gstSink;
+    QPointer<QVideoSink> m_sink;
 };
 
 QT_END_NAMESPACE

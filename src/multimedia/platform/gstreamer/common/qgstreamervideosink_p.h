@@ -60,7 +60,6 @@
 #include <qvideosink.h>
 
 QT_BEGIN_NAMESPACE
-class QAbstractVideoSurface;
 class QGstreamerVideoRenderer;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink :
@@ -104,8 +103,6 @@ public:
     int saturation() const override;
     void setSaturation(int saturation) override;
 
-    QAbstractVideoSurface *surface() const;
-
     QGstElement gstSink();
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
@@ -120,7 +117,6 @@ private:
     void createRenderer();
     QGstreamerVideoOverlay *m_videoOverlay = nullptr;
     QGstreamerVideoRenderer *m_videoRenderer = nullptr;
-    QAbstractVideoSurface *m_videoSurface = nullptr;
     QVideoSink::GraphicsType m_graphicsType = QVideoSink::Memory;
     WId m_windowId = 0;
     QRect m_displayRect;

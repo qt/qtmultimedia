@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include <qabstractvideosurface.h>
 #include <qvideoframe.h>
+#include <qvideosink.h>
 #include <QDebug>
 #include <QMap>
 #include <QThread>
@@ -166,7 +166,7 @@ void QGstVideoRenderer::stop()
     m_flushed = true;
 }
 
-bool QGstVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer *buffer)
+bool QGstVideoRenderer::present(QVideoSink *sink, GstBuffer *buffer)
 {
     m_flushed = false;
 
@@ -191,7 +191,6 @@ bool QGstVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer *buffe
 #endif
             //Update viewport if data is not the same
             m_format.setViewport(vp);
-            surface->start(m_format);
         }
     }
 
@@ -201,13 +200,14 @@ bool QGstVideoRenderer::present(QAbstractVideoSurface *surface, GstBuffer *buffe
                 m_format.pixelFormat());
     QGstUtils::setFrameTimeStamps(&frame, buffer);
 
-    return surface->present(frame);
+    sink->newVideoFrame(frame);
+    return true;
 }
 
-void QGstVideoRenderer::flush(QAbstractVideoSurface *surface)
+void QGstVideoRenderer::flush(QVideoSink *surface)
 {
     if (surface && !m_flushed)
-        surface->present(QVideoFrame());
+        surface->newVideoFrame(QVideoFrame());
     m_flushed = true;
 }
 
@@ -216,12 +216,12 @@ bool QGstVideoRenderer::proposeAllocation(GstQuery *)
     return true;
 }
 
-QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QAbstractVideoSurface *surface)
-    : m_surface(surface)
+QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QVideoSink *sink)
+    : m_sink(sink)
 {
     m_renderer = new QGstVideoRenderer;
     updateSupportedFormats();
-    connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(updateSupportedFormats()));
+    connect(m_sink, SIGNAL(supportedFormatsChanged()), this, SLOT(updateSupportedFormats()));
 }
 
 QVideoSurfaceGstDelegate::~QVideoSurfaceGstDelegate()
@@ -333,9 +333,9 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 }
 
 #if QT_CONFIG(gstreamer_gl)
-static GstGLContext *gstGLDisplayContext(QAbstractVideoSurface *surface)
+static GstGLContext *gstGLDisplayContext(QVideoSink *sink)
 {
-    auto glContext = qobject_cast<QOpenGLContext*>(surface->property("GLContext").value<QObject*>());
+    auto glContext = qobject_cast<QOpenGLContext*>(sink->property("GLContext").value<QObject*>());
     // Context is not ready yet.
     if (!glContext)
         return nullptr;
@@ -416,7 +416,7 @@ bool QVideoSurfaceGstDelegate::query(GstQuery *query)
             return false;
 
         if (!m_gstGLDisplayContext)
-            m_gstGLDisplayContext = gstGLDisplayContext(m_surface);
+            m_gstGLDisplayContext = gstGLDisplayContext(m_sink);
 
         // No context yet.
         if (!m_gstGLDisplayContext)
@@ -460,7 +460,7 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
         if (m_activeRenderer) {
             locker->unlock();
 
-            m_activeRenderer->flush(m_surface);
+            m_activeRenderer->flush(m_sink);
         }
     } else if (m_stop) {
         m_stop = false;
@@ -479,7 +479,7 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
         auto startCaps = m_startCaps;
         m_startCaps = nullptr;
 
-        if (m_renderer && m_surface) {
+        if (m_renderer && m_sink) {
             locker->unlock();
 
             const bool started = m_renderer->start(startCaps.get());
@@ -503,12 +503,12 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
         m_renderBuffer = nullptr;
         m_renderReturn = GST_FLOW_ERROR;
 
-        if (m_activeRenderer && m_surface) {
+        if (m_activeRenderer && m_sink) {
             gst_buffer_ref(buffer);
 
             locker->unlock();
 
-            const bool rendered = m_activeRenderer->present(m_surface, buffer);
+            const bool rendered = m_activeRenderer->present(m_sink, buffer);
 
             gst_buffer_unref(buffer);
 
@@ -556,24 +556,24 @@ void QVideoSurfaceGstDelegate::updateSupportedFormats()
 }
 
 static GstVideoSinkClass *sink_parent_class;
-static thread_local QAbstractVideoSurface *current_surface;
+static thread_local QVideoSink *current_sink;
 
 #define VO_SINK(s) QGstVideoRendererSink *sink(reinterpret_cast<QGstVideoRendererSink *>(s))
 
-QGstVideoRendererSink *QGstVideoRendererSink::createSink(QAbstractVideoSurface *surface)
+QGstVideoRendererSink *QGstVideoRendererSink::createSink(QVideoSink *sink)
 {
-    setSurface(surface);
-    QGstVideoRendererSink *sink = reinterpret_cast<QGstVideoRendererSink *>(
+    setSink(sink);
+    QGstVideoRendererSink *gstSink = reinterpret_cast<QGstVideoRendererSink *>(
             g_object_new(QGstVideoRendererSink::get_type(), nullptr));
 
     g_signal_connect(G_OBJECT(sink), "notify::show-preroll-frame", G_CALLBACK(handleShowPrerollChange), sink);
 
-    return sink;
+    return gstSink;
 }
 
-void QGstVideoRendererSink::setSurface(QAbstractVideoSurface *surface)
+void QGstVideoRendererSink::setSink(QVideoSink *sink)
 {
-    current_surface = surface;
+    current_sink = sink;
     get_type();
 }
 
@@ -654,11 +654,11 @@ void QGstVideoRendererSink::instance_init(GTypeInstance *instance, gpointer g_cl
     Q_UNUSED(g_class);
     VO_SINK(instance);
 
-    Q_ASSERT(current_surface);
+    Q_ASSERT(current_sink);
 
-    sink->delegate = new QVideoSurfaceGstDelegate(current_surface);
-    sink->delegate->moveToThread(current_surface->thread());
-    current_surface = nullptr;
+    sink->delegate = new QVideoSurfaceGstDelegate(current_sink);
+    sink->delegate->moveToThread(current_sink->thread());
+    current_sink = nullptr;
 }
 
 void QGstVideoRendererSink::finalize(GObject *object)
