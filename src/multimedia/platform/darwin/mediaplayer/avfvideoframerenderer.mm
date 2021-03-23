@@ -39,7 +39,6 @@
 
 #include "avfvideoframerenderer_p.h"
 
-#include <QtMultimedia/qabstractvideosurface.h>
 #include <QtOpenGL/QOpenGLFramebufferObject>
 #include <QtGui/QWindow>
 #include <QOpenGLShaderProgram>

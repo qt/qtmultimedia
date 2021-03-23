@@ -33,17 +33,17 @@
 #include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlcomponent.h>
 #include <QQuickView>
+#include <QVideoSink>
 
 #include "private/qdeclarativevideooutput_p.h"
 
-#include <qabstractvideosurface.h>
 #include <qobject.h>
 #include <qvideosurfaceformat.h>
 
 class SurfaceHolder : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QAbstractVideoSurface *videoSurface READ videoSurface WRITE setVideoSurface)
+    Q_PROPERTY(QVideoSink *videoSurface READ videoSurface WRITE setVideoSurface)
 public:
     SurfaceHolder(QObject *parent)
         : QObject(parent)
@@ -51,36 +51,30 @@ public:
     {
     }
 
-    [[nodiscard]] QAbstractVideoSurface *videoSurface() const
+    [[nodiscard]] QVideoSink *videoSurface() const
     {
         return m_surface;
     }
-    void setVideoSurface(QAbstractVideoSurface *surface)
+    void setVideoSurface(QVideoSink *surface)
     {
-        if (m_surface != surface && m_surface && m_surface->isActive()) {
-            m_surface->stop();
-        }
         m_surface = surface;
     }
 
     void presentDummyFrame(const QSize &size);
 
 private:
-    QAbstractVideoSurface *m_surface;
+    QVideoSink *m_surface;
 
 };
 
 // Starts the surface and puts a frame
 void SurfaceHolder::presentDummyFrame(const QSize &size)
 {
-    if (m_surface && m_surface->supportedPixelFormats().count() > 0) {
-        QVideoSurfaceFormat::PixelFormat pixelFormat = m_surface->supportedPixelFormats().value(0);
-        QVideoSurfaceFormat format(size, pixelFormat);
-        QVideoFrame frame(size.width() * size.height() * 4, size.width() * 4, QVideoSurfaceFormat(size, pixelFormat));
+    if (m_surface) {
+        QVideoSurfaceFormat format(size, QVideoSurfaceFormat::Format_ARGB32_Premultiplied);
+        QVideoFrame frame(size.width() * size.height() * 4, size.width() * 4, format);
 
-        if (!m_surface->isActive())
-            m_surface->start(format);
-        m_surface->present(frame);
+        m_surface->newVideoFrame(frame);
 
         // Have to spin an event loop or two for the surfaceFormatChanged() signal
         qApp->processEvents();
@@ -266,41 +260,23 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
 
     SurfaceHolder holder(this);
 
-    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(nullptr));
+    QCOMPARE(holder.videoSurface(), static_cast<QVideoSink *>(nullptr));
 
     videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
 
     QVERIFY(holder.videoSurface() != nullptr);
 
-    // Now we could do things with the surface..
-    const QList<QVideoSurfaceFormat::PixelFormat> formats = holder.videoSurface()->supportedPixelFormats();
-    QVERIFY(formats.count() > 0);
-
-    // See if we can start and stop each pixel format (..)
-    for (QVideoSurfaceFormat::PixelFormat format : formats) {
-        QVideoSurfaceFormat surfaceFormat(QSize(200,100), format);
-        QVERIFY(holder.videoSurface()->isFormatSupported(surfaceFormat)); // This does kind of depend on node factories
-
-        QVERIFY(holder.videoSurface()->start(surfaceFormat));
-        QVERIFY(holder.videoSurface()->surfaceFormat() == surfaceFormat);
-        QVERIFY(holder.videoSurface()->isActive());
-
-        holder.videoSurface()->stop();
-
-        QVERIFY(!holder.videoSurface()->isActive());
-    }
-
     delete videoOutput;
 
     // This should clear the surface
-    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(nullptr));
+    QCOMPARE(holder.videoSurface(), static_cast<QVideoSink *>(nullptr));
 
     // Also, creating two sources, setting them in order, and destroying the first
     // should not zero holder.videoSurface()
     videoOutput = component.create();
     videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
 
-    QAbstractVideoSurface *surface = holder.videoSurface();
+    QVideoSink *surface = holder.videoSurface();
     QVERIFY(holder.videoSurface());
 
     QObject *videoOutput2 = component.create();
@@ -320,7 +296,7 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     SurfaceHolder holder2(this);
     videoOutput2->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder2)));
 
-    QCOMPARE(holder.videoSurface(), static_cast<QAbstractVideoSurface*>(nullptr));
+    QCOMPARE(holder.videoSurface(), static_cast<QVideoSink*>(nullptr));
     QVERIFY(holder2.videoSurface() != nullptr);
 
     // Finally a combination - set the same source to two things, then assign a new source
@@ -358,17 +334,12 @@ void tst_QDeclarativeVideoOutput::paintSurface()
     auto videoOutput = qobject_cast<QDeclarativeVideoOutput *>(window.rootObject());
     QVERIFY(videoOutput);
 
-    auto surface = videoOutput->property("videoSurface").value<QAbstractVideoSurface *>();
+    auto surface = videoOutput->property("videoSurface").value<QVideoSink *>();
     QVERIFY(surface);
-    QVERIFY(!surface->isActive());
     videoOutput->setSize(QSize(2, 2));
-    QVideoSurfaceFormat format(QSize(2, 2), QVideoSurfaceFormat::Format_RGB32);
-    QVERIFY(surface->isFormatSupported(format));
-    QVERIFY(surface->start(format));
-    QVERIFY(surface->isActive());
 
     QImage img(rgb32ImageData, 2, 2, 8, QImage::Format_RGB32);
-    QVERIFY(surface->present(img));
+    surface->newVideoFrame(img);
 }
 
 void tst_QDeclarativeVideoOutput::sourceRect()

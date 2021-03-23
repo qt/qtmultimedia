@@ -52,7 +52,6 @@
 #include <QtGui/qopengl.h>
 #endif
 
-#include <QtMultimedia/qabstractvideosurface.h>
 #include <private/qabstractvideobuffer_p.h>
 
 #include <QtMultimedia/qvideosurfaceformat.h>

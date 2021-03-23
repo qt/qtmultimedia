@@ -840,7 +840,7 @@ namespace
                         mediaType->Release();
                         continue;
                 }
-                // QAbstractVideoSurface::supportedPixelFormats() returns formats in descending
+                // #### QAbstractVideoSurface::supportedPixelFormats() returns formats in descending
                 // order of preference, while IMFMediaTypeHandler is supposed to return supported
                 // formats in ascending order of preference. We need to reverse the list.
                 m_pixelFormats.prepend(format);

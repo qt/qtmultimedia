@@ -51,7 +51,7 @@
 #include "qcamera.h"
 #include "qcameraviewfinder.h"
 #include "qaudiorecorder.h"
-#include <QAbstractVideoSurface>
+#include <QVideoSink>
 
 class MediaExample : public QObject {
     Q_OBJECT
@@ -170,22 +170,8 @@ void MediaExample::MediaPlayer()
     //! [Pipeline]
 
     //! [Pipeline Surface]
-    class Surface : public QAbstractVideoSurface
-    {
-    public:
-        Surface(QObject *p) : QAbstractVideoSurface(p) { }
-        QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType) const override
-        {
-            // Make sure that the driver supports this pixel format.
-            return QList<QVideoSurfaceFormat::PixelFormat>() << QVideoSurfaceFormat::Format_YUYV;
-        }
-
-        // Video frames are handled here.
-        bool present(const QVideoFrame &) override { return true; }
-    };
-
     player = new QMediaPlayer;
-    player->setVideoOutput(new Surface(player));
+    player->setVideoOutput(new QVideoSink(player));
     player->setMedia(QUrl("gst-pipeline: videotestsrc ! qtvideosink"));
     player->play();
     //! [Pipeline Surface]

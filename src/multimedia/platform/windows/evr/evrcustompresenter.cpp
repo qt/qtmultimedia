@@ -45,7 +45,6 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtCore/qrect.h>
-#include <qabstractvideosurface.h>
 #include <qthread.h>
 #include <qcoreapplication.h>
 #include <qmath.h>

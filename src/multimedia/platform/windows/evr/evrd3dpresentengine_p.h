@@ -71,8 +71,6 @@ static const GUID MFSamplePresenter_SampleCounter =
 
 QT_BEGIN_NAMESPACE
 
-class QAbstractVideoSurface;
-
 #ifdef MAYBE_ANGLE
 
 class OpenGLResources;

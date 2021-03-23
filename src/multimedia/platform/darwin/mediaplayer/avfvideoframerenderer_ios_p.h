@@ -68,7 +68,6 @@ class QOpenGLContext;
 class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
 class QOffscreenSurface;
-class QAbstractVideoSurface;
 
 typedef struct __CVBuffer *CVBufferRef;
 typedef CVBufferRef CVImageBufferRef;
@@ -100,7 +99,7 @@ typedef CVOpenGLTextureRef CVOGLTextureRef;
 class AVFVideoFrameRenderer : public QObject
 {
 public:
-    AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QObject *parent = nullptr);
+    AVFVideoFrameRenderer(QObject *parent = nullptr);
 
     virtual ~AVFVideoFrameRenderer();
 
@@ -115,12 +114,11 @@ private:
     CVPixelBufferRef copyPixelBufferFromLayer(AVPlayerLayer *layer, size_t& width, size_t& height);
     CVOGLTextureRef createCacheTextureFromLayer(AVPlayerLayer *layer, size_t& width, size_t& height);
 
-    QOpenGLContext *m_glContext;
-    QOffscreenSurface *m_offscreenSurface;
-    QAbstractVideoSurface *m_surface;
-    CVOGLTextureCacheRef m_textureCache;
-    AVPlayerItemVideoOutput* m_videoOutput;
-    bool m_isContextShared;
+    QOpenGLContext *m_glContext = nullptr;
+    QOffscreenSurface *m_offscreenSurface = nullptr;
+    CVOGLTextureCacheRef m_textureCache = nullptr;
+    AVPlayerItemVideoOutput* m_videoOutput = nil;
+    bool m_isContextShared = true;
 
     id<MTLDevice> m_metalDevice = nil;
     CVMetalTextureCacheRef m_metalTextureCache = nil;

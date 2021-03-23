@@ -51,7 +51,6 @@
 //
 
 #include <QPointer>
-#include <qabstractvideosurface.h>
 #include <qobject.h>
 
 typedef struct mmr_context mmr_context_t;
@@ -59,6 +58,7 @@ typedef struct mmr_context mmr_context_t;
 QT_BEGIN_NAMESPACE
 
 class WindowGrabber;
+class QVideoSink;
 
 class MmRendererPlayerVideoRendererControl : public QObject
 {
@@ -67,8 +67,8 @@ public:
     explicit MmRendererPlayerVideoRendererControl(QObject *parent = 0);
     ~MmRendererPlayerVideoRendererControl();
 
-    QAbstractVideoSurface *surface() const override;
-    void setSurface(QAbstractVideoSurface *surface) override;
+    QVideoSink *sink() const;
+    void setSink(QVideoSink *sink);
 
     // Called by media control
     void attachDisplay(mmr_context_t *context);
@@ -82,7 +82,7 @@ private Q_SLOTS:
     void updateScene(const QSize &size);
 
 private:
-    QPointer<QAbstractVideoSurface> m_surface;
+    QPointer<QVideoSink> m_sink;
 
     WindowGrabber* m_windowGrabber;
     mmr_context_t *m_context;

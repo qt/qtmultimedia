@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qmediaplayer_p.h"
-#include "qvideosurfaces_p.h"
 
 #include <private/qplatformmediaintegration_p.h>
 

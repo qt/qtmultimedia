@@ -32,7 +32,7 @@
     \brief Implementing a video player widget.
 
     \e{Video Widget} demonstrates how to implement a video widget using
-    QAbstractVideoSurface.
+    QVideoSink.
 
     \image video-videowidget.png
 

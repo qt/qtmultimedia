@@ -356,9 +356,8 @@ int QCameraImageCapture::captureToBuffer()
 /*!
     \fn QCameraImageCapture::imageCaptured(int id, const QImage &preview);
 
-    Signal emitted when QAbstractVideoSurface is used as a viewfinder and
-    the frame with request \a id was captured, but not processed and saved yet.
-    Frame \a preview can be displayed to user.
+    Signal emitted when the frame with request \a id was captured, but not
+    processed and saved yet. Frame \a preview can be displayed to user.
 */
 
 /*!

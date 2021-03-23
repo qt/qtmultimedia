@@ -65,8 +65,6 @@ QT_BEGIN_NAMESPACE
 class EVRCustomPresenter;
 class D3DPresentEngine;
 
-class QAbstractVideoSurface;
-
 template<class T>
 class AsyncCallback : public IMFAsyncCallback
 {

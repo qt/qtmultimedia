@@ -28,12 +28,12 @@
 
 #include <QtTest/QtTest>
 #include <QDebug>
-#include <qabstractvideosurface.h>
 #include "qmediaplayer.h"
 #include <qmediaplaylist.h>
 #include <qmediametadata.h>
 #include <qaudiobuffer.h>
 #include <qvideosink.h>
+#include <qvideoframe.h>
 
 #include "../shared/mediafileselector.h"
 //TESTED_COMPONENT=src/multimedia
@@ -120,7 +120,6 @@ public:
 
 private:
     bool m_storeFrames;
-    QList<QVideoSurfaceFormat::PixelFormat> m_supported;
 };
 
 void tst_QMediaPlayerBackend::init()

@@ -32,7 +32,7 @@
 \brief Streaming video on a graphics scene.
 
     \e{Video Graphics Item} demonstrates how to implement a QGraphicsItem that
-    displays video on a graphics scene using QAbstractVideoSurface.
+    displays video on a graphics scene using QVideoSink.
 
     \image video-videographicsitem.png
 

@@ -288,24 +288,6 @@ Module {
         Property { name: "active"; type: "bool" }
     }
     Component {
-        name: "QAbstractVideoSurface"
-        prototype: "QObject"
-        Property { name: "nativeResolution"; type: "QSize"; isReadonly: true }
-        Signal {
-            name: "activeChanged"
-            Parameter { name: "active"; type: "bool" }
-        }
-        Signal {
-            name: "surfaceFormatChanged"
-            Parameter { name: "format"; type: "QVideoSurfaceFormat" }
-        }
-        Signal { name: "supportedFormatsChanged" }
-        Signal {
-            name: "nativeResolutionChanged"
-            Parameter { name: "resolution"; type: "QSize" }
-        }
-    }
-    Component {
         name: "QCamera"
         prototype: "QObject"
         Enum {

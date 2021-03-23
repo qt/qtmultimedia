@@ -61,7 +61,6 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaStreamsControl;
-class QAbstractVideoSurface;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer
 {
@@ -115,8 +114,7 @@ public:
 
     virtual QMediaMetaData metaData() const { return {}; }
 
-    virtual void setVideoSurface(QAbstractVideoSurface *) {}
-    virtual void setVideoSink(QVideoSink */*sink*/) {}
+    virtual void setVideoSink(QVideoSink */*sink*/) = 0;
 
     // media streams
     enum TrackType { VideoStream, AudioStream, SubtitleStream, NTrackTypes };

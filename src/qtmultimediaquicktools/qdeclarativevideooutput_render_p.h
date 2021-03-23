@@ -59,7 +59,6 @@
 #include <private/qsgvideonode_texture_p.h>
 
 #include <QtCore/qmutex.h>
-#include <QtMultimedia/qabstractvideosurface.h>
 
 QT_BEGIN_NAMESPACE
 

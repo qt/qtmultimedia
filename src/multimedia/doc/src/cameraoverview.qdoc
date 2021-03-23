@@ -177,9 +177,9 @@ is useful for QGraphicsView.
     \snippet multimedia-snippets/camera.cpp Camera overview viewfinder
 
 For advanced usage (like processing viewfinder frames as they come, to detect
-objects or patterns), you can also derive from \l QAbstractVideoSurface and
-set that as the viewfinder for the QCamera object.  In this case you will
-need to render the viewfinder image yourself.
+objects or patterns), you can also use your own QVideoSink and set that as the viewfinder
+for the QCamera object.  In this case you will need to render the viewfinder image yourself
+by processing the data received from the newVideoFrame() signal.
 
     \snippet multimedia-snippets/camera.cpp Camera overview surface
 

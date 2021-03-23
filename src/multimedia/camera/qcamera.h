@@ -58,7 +58,6 @@
 QT_BEGIN_NAMESPACE
 
 
-class QAbstractVideoSurface;
 class QCameraInfo;
 class QPlatformMediaCaptureSession;
 class QMediaCaptureSession;

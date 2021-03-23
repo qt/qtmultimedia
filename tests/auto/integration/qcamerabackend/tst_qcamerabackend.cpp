@@ -32,7 +32,6 @@
 #include <QtGui/QImageReader>
 #include <QDebug>
 
-#include <qabstractvideosurface.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraexposure_p.h>
 #include <private/qplatformcamerafocus_p.h>

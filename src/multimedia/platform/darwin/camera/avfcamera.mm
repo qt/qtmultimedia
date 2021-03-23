@@ -46,7 +46,6 @@
 #include "avfcameraexposure_p.h"
 #include "avfcamerafocus_p.h"
 #include "avfcameraimageprocessing_p.h"
-#include "qabstractvideosurface.h"
 
 QT_USE_NAMESPACE
 

@@ -44,7 +44,7 @@
 #include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
 #include "qcameraimageprocessing.h"
-#include "qabstractvideosurface.h"
+#include "qvideosink.h"
 #include <QtGui/qscreen.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qimage.h>
@@ -85,30 +85,16 @@ void overview_camera_by_position()
 }
 
 // -.-
-class MyVideoSurface : public QAbstractVideoSurface
-{
-    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const
-    {
-        Q_UNUSED(handleType);
-        return QList<QVideoSurfaceFormat::PixelFormat>();
-    }
-    bool present(const QVideoFrame &frame)
-    {
-        Q_UNUSED(frame);
-        return true;
-    }
-};
-
 void overview_surface()
 {
-    MyVideoSurface *mySurface;
+    QVideoSink *mySink;
     //! [Camera overview surface]
     camera = new QCamera;
-    mySurface = new MyVideoSurface;
-    camera->setViewfinder(mySurface);
+    mySink = new QVideoSink;
+    camera->setViewfinder(mySink);
 
     camera->start();
-    // MyVideoSurface::present(..) will be called with viewfinder frames
+    // MyVideoSurface::newVideoFrame(..) will be called with video frames
     //! [Camera overview surface]
 }
 

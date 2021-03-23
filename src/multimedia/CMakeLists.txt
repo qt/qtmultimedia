@@ -61,7 +61,6 @@ qt_internal_add_module(Multimedia
         recording/qmediarecorder.cpp recording/qmediarecorder.h recording/qmediarecorder_p.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer_p.h
         video/qabstractvideofilter.cpp video/qabstractvideofilter.h
-        video/qabstractvideosurface.cpp video/qabstractvideosurface.h
         video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qvideoframe.cpp video/qvideoframe.h
@@ -69,7 +68,6 @@ qt_internal_add_module(Multimedia
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
         video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
         video/qvideosurfaceformat.cpp video/qvideosurfaceformat.h
-        video/qvideosurfaces.cpp video/qvideosurfaces_p.h
     INCLUDE_DIRECTORIES
         audio
         camera

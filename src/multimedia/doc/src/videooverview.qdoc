@@ -73,7 +73,7 @@ to display video in a special way that is otherwise unsupported.
 
 The \l QVideoFrame class encapsulates a video frame and allows the
 contents to be mapped into system memory for manipulation or
-processing, while deriving a class from \l QAbstractVideoSurface
+processing. Using your own QVideoSink
 allows you to receive these frames from \l QMediaPlayer and
 \l QCamera.
 

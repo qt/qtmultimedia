@@ -115,7 +115,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li Video Processing
         \li \l {QML Video Example}{qmlvideofx}
         \li \l {MediaPlayer}, \l VideoOutput
-        \li QMediaPlayer, QAbstractVideoSurface, QVideoFrame
+        \li QMediaPlayer, QVideoFrame
     \row
         \li Accessing camera viewfinder
         \li \l {Camera Example}{camera},
@@ -126,7 +126,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li Viewfinder processing
         \li
         \li \l Camera, \l VideoOutput
-        \li QCamera, QAbstractVideoSurface, QVideoFrame
+        \li QCamera, QVideoFrame
     \row
         \li Capturing photos
         \li \l {Camera Example}{camera},

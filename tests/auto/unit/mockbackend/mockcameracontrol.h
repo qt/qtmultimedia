@@ -77,8 +77,6 @@ public:
         m_camera = camera;
     }
 
-    void setVideoSurface(QAbstractVideoSurface *) {}
-
     bool m_active = false;
     QCamera::Status m_status;
     QCameraInfo m_camera;

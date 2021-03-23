@@ -148,6 +148,8 @@ public:
                              << QStringLiteral("customRole2");
     }
 
+    void setVideoSink(QVideoSink *) {}
+
     void emitError(QMediaPlayer::Error err, const QString &errorString)
     {
         emit error(err, errorString);

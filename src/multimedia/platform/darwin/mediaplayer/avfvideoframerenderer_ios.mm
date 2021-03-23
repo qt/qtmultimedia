@@ -39,7 +39,6 @@
 
 #include "private/avfvideoframerenderer_ios_p.h"
 
-#include <QtMultimedia/qabstractvideosurface.h>
 #include <QtOpenGL/QOpenGLFramebufferObject>
 #include <QtOpenGL/QOpenGLShaderProgram>
 #include <QtGui/QOffscreenSurface>
@@ -52,14 +51,8 @@
 #import <AVFoundation/AVFoundation.h>
 QT_USE_NAMESPACE
 
-AVFVideoFrameRenderer::AVFVideoFrameRenderer(QAbstractVideoSurface *surface, QObject *parent)
+AVFVideoFrameRenderer::AVFVideoFrameRenderer(QObject *parent)
     : QObject(parent)
-    , m_glContext(nullptr)
-    , m_offscreenSurface(nullptr)
-    , m_surface(surface)
-    , m_textureCache(nullptr)
-    , m_videoOutput(nullptr)
-    , m_isContextShared(true)
 {
 }
 
@@ -261,9 +254,9 @@ void AVFVideoFrameRenderer::initRenderer()
     if (!m_glContext) {
         //Create OpenGL context and set share context from surface
         QOpenGLContext *shareContext = nullptr;
-        if (m_surface) {
-            shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
-        }
+//        if (m_surface) {
+//            shareContext = qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>());
+//        }
 
         m_glContext = new QOpenGLContext();
         if (shareContext) {

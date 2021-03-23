@@ -37,7 +37,6 @@
 #include "qmediaservice.h"
 #include <private/qpaintervideosurface_p.h>
 
-#include <qabstractvideosurface.h>
 #include <qvideosurfaceformat.h>
 
 #include <QtWidgets/qapplication.h>
