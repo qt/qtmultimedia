@@ -82,8 +82,6 @@ private slots:
     void formatConversion_data();
     void formatConversion();
 
-    void metadata();
-
     void isMapped();
     void isReadable();
     void isWritable();
@@ -968,35 +966,6 @@ void tst_QVideoFrame::formatConversion()
 
     QCOMPARE(QVideoFrame::imageFormatFromPixelFormat(pixelFormat) == imageFormat,
              pixelFormat != QVideoFrame::Format_Invalid);
-}
-
-void tst_QVideoFrame::metadata()
-{
-    // Simple metadata test
-    QVideoFrame f;
-
-    QCOMPARE(f.availableMetaData(), QVariantMap());
-    f.setMetaData("frob", QVariant("string"));
-    f.setMetaData("bar", QVariant(42));
-    QCOMPARE(f.metaData("frob"), QVariant("string"));
-    QCOMPARE(f.metaData("bar"), QVariant(42));
-
-    QVariantMap map;
-    map.insert("frob", QVariant("string"));
-    map.insert("bar", QVariant(42));
-
-    QCOMPARE(f.availableMetaData(), map);
-
-    f.setMetaData("frob", QVariant(56));
-    QCOMPARE(f.metaData("frob"), QVariant(56));
-
-    f.setMetaData("frob", QVariant());
-    QCOMPARE(f.metaData("frob"), QVariant());
-
-    QCOMPARE(f.availableMetaData().count(), 1);
-
-    f.setMetaData("frob", QVariant("")); // empty but not null
-    QCOMPARE(f.availableMetaData().count(), 2);
 }
 
 #define TEST_MAPPED(frame, mode) \

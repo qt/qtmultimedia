@@ -863,45 +863,6 @@ void QVideoFrame::setEndTime(qint64 time)
 }
 
 /*!
-    Returns any extra metadata associated with this frame.
- */
-QVariantMap QVideoFrame::availableMetaData() const
-{
-    return d->metadata;
-}
-
-/*!
-    Returns any metadata for this frame for the given \a key.
-
-    This might include frame specific information from
-    a camera, or subtitles from a decoded video stream.
-
-    See the documentation for the relevant video frame
-    producer for further information about available metadata.
- */
-QVariant QVideoFrame::metaData(const QString &key) const
-{
-    return d->metadata.value(key);
-}
-
-/*!
-    Sets the metadata for the given \a key to \a value.
-
-    If \a value is a null variant, any metadata for this key will be removed.
-
-    The producer of the video frame might use this to associate
-    certain data with this frame, or for an intermediate processor
-    to add information for a consumer of this frame.
- */
-void QVideoFrame::setMetaData(const QString &key, const QVariant &value)
-{
-    if (!value.isNull())
-        d->metadata.insert(key, value);
-    else
-        d->metadata.remove(key);
-}
-
-/*!
     Returns a video pixel format equivalent to an image \a format.  If there is no equivalent
     format QVideoFrame::InvalidType is returned instead.
 
@@ -1217,8 +1178,6 @@ QDebug operator<<(QDebug dbg, const QVideoFrame& f)
                << f.handleType() << ", "
                << f.mapMode() << ", "
                << qFormatTimeStamps(f.startTime(), f.endTime()).toLatin1().constData();
-    if (f.availableMetaData().count())
-        dbg << ", metaData: " << f.availableMetaData();
     dbg << ')';
     return dbg;
 }

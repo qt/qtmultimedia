@@ -167,10 +167,6 @@ public:
     qint64 endTime() const;
     void setEndTime(qint64 time);
 
-    QVariantMap availableMetaData() const;
-    QVariant metaData(const QString &key) const;
-    void setMetaData(const QString &key, const QVariant &value);
-
     QImage image() const;
 
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
