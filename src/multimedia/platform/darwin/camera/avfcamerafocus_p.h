@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERARENDERERCONTROL_H
-#define AVFCAMERARENDERERCONTROL_H
+#ifndef AVFCAMERAFOCUS_H
+#define AVFCAMERAFOCUS_H
 
 //
 //  W A R N I N G
@@ -51,67 +51,54 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
-#include <QtMultimedia/qvideoframe.h>
-#include <QtCore/qmutex.h>
-#include <private/avfvideosink_p.h>
+#include <QtCore/qscopedpointer.h>
+#include <QtCore/qglobal.h>
 
-#include <dispatch/dispatch.h>
+#include <private/qplatformcamerafocus_p.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVFCaptureFramesDelegate);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
+#include <AVFoundation/AVFoundation.h>
+
+@class AVCaptureDevice;
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraSession;
 class AVFCameraService;
-class AVFCameraRendererControl;
-class AVFVideoSink;
+class AVFCameraSession;
 
-class AVFCameraRendererControl : public QObject, public AVFVideoSinkInterface
+class AVFCameraFocus : public QPlatformCameraFocus
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    AVFCameraRendererControl(QObject *parent = nullptr);
-    ~AVFCameraRendererControl();
+    explicit AVFCameraFocus(AVFCameraService *service);
 
-    void reconfigure() override;
-    void updateAspectRatio() override;
+    QCameraFocus::FocusMode focusMode() const override;
+    void setFocusMode(QCameraFocus::FocusMode mode) override;
+    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
 
-    void configureAVCaptureSession(AVFCameraSession *cameraSession);
-    void syncHandleViewfinderFrame(const QVideoFrame &frame);
+    QPointF focusPoint() const override;
+    void setCustomFocusPoint(const QPointF &point) override;
+    bool isCustomFocusPointSupported() const override;
 
-    AVCaptureVideoDataOutput *videoDataOutput() const;
+    void setFocusDistance(float) override;
+    float focusDistance() const override;
 
-    bool supportsTextures() const { return m_supportsTextures; }
-
-    AVFCaptureFramesDelegate *captureDelegate() const;
-    void resetCaptureDelegate() const;
+    ZoomRange zoomFactorRange() const override;
+    void zoomTo(float newZoomFactor, float rate = -1.) override;
 
 private Q_SLOTS:
-    void handleViewfinderFrame();
-    void updateCaptureConnection();
+    void cameraStateChanged();
 
 private:
-    AVFCaptureFramesDelegate *m_viewfinderFramesDelegate = nullptr;
-    AVFCameraSession *m_cameraSession = nullptr;
-    AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
+    AVFCameraSession *m_session;
+    QCameraFocus::FocusMode m_focusMode;
+    QPointF m_customFocusPoint;
+    QPointF m_actualFocusPoint;
 
-    bool m_supportsTextures = false;
-    bool m_needsHorizontalMirroring = false;
-
-#ifdef Q_OS_IOS
-    CVOpenGLESTextureCacheRef m_textureCache = nullptr;
-#endif
-
-    QVideoFrame m_lastViewfinderFrame;
-    QMutex m_vfMutex;
-    bool m_rendersToWindow = false;
-    dispatch_queue_t m_delegateQueue;
-
-    friend class CVImageVideoBuffer;
+    CGFloat m_maxZoomFactor;
+    CGFloat m_zoomFactor;
 };
+
 
 QT_END_NAMESPACE
 
-#endif
+#endif // AVFCAMERAFOCUS_H

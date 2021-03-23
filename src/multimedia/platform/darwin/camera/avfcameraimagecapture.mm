@@ -38,10 +38,10 @@
 ****************************************************************************/
 
 #include "avfcameradebug_p.h"
-#include "avfimagecapturecontrol_p.h"
+#include "avfcameraimagecapture_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcamerautility_p.h"
-#include "avfcameracontrol_p.h"
+#include "avfcamera_p.h"
 #include <private/qmemoryvideobuffer_p.h>
 
 #include <QtCore/qurl.h>
@@ -52,7 +52,7 @@
 
 QT_USE_NAMESPACE
 
-AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObject *parent)
+AVFCameraImageCapture::AVFCameraImageCapture(AVFCameraService *service, QObject *parent)
    : QPlatformCameraImageCapture(parent)
    , m_service(service)
    , m_session(service->session())
@@ -74,20 +74,20 @@ AVFImageCaptureControl::AVFImageCaptureControl(AVFCameraService *service, QObjec
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
 
     connect(m_session, &AVFCameraSession::newViewfinderFrame,
-            this, &AVFImageCaptureControl::onNewViewfinderFrame,
+            this, &AVFCameraImageCapture::onNewViewfinderFrame,
             Qt::DirectConnection);
 }
 
-AVFImageCaptureControl::~AVFImageCaptureControl()
+AVFCameraImageCapture::~AVFCameraImageCapture()
 {
 }
 
-bool AVFImageCaptureControl::isReadyForCapture() const
+bool AVFCameraImageCapture::isReadyForCapture() const
 {
     return m_videoConnection && m_cameraControl->status() == QCamera::ActiveStatus;
 }
 
-void AVFImageCaptureControl::updateReadyStatus()
+void AVFCameraImageCapture::updateReadyStatus()
 {
     if (m_ready != isReadyForCapture()) {
         m_ready = !m_ready;
@@ -96,7 +96,7 @@ void AVFImageCaptureControl::updateReadyStatus()
     }
 }
 
-int AVFImageCaptureControl::doCapture(const QString &actualFileName)
+int AVFCameraImageCapture::doCapture(const QString &actualFileName)
 {
 
     if (!isReadyForCapture()) {
@@ -135,7 +135,7 @@ int AVFImageCaptureControl::doCapture(const QString &actualFileName)
         }
 
         // Wait for the preview to be generated before saving the JPEG (but only
-        // if we have AVFCameraRendererControl attached).
+        // if we have AVFCameraRenderer attached).
         // It is possible to stop camera immediately after trying to capture an
         // image; this can result in a blocked callback's thread, waiting for a
         // new viewfinder's frame to arrive/semaphore to be released. It is also
@@ -192,7 +192,7 @@ int AVFImageCaptureControl::doCapture(const QString &actualFileName)
     return request.captureId;
 }
 
-int AVFImageCaptureControl::capture(const QString &fileName)
+int AVFCameraImageCapture::capture(const QString &fileName)
 {
     QString actualFileName;
     actualFileName = m_storageLocation.generateFileName(fileName,
@@ -204,12 +204,12 @@ int AVFImageCaptureControl::capture(const QString &fileName)
     return doCapture(actualFileName);
 }
 
-int AVFImageCaptureControl::captureToBuffer()
+int AVFCameraImageCapture::captureToBuffer()
 {
     return doCapture(QString());
 }
 
-void AVFImageCaptureControl::onNewViewfinderFrame(const QVideoFrame &frame)
+void AVFCameraImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 {
     QMutexLocker locker(&m_requestsMutex);
 
@@ -219,13 +219,13 @@ void AVFImageCaptureControl::onNewViewfinderFrame(const QVideoFrame &frame)
     CaptureRequest request = m_captureRequests.dequeue();
     Q_EMIT imageExposed(request.captureId);
 
-    (void) QtConcurrent::run(&AVFImageCaptureControl::makeCapturePreview, this,
+    (void) QtConcurrent::run(&AVFCameraImageCapture::makeCapturePreview, this,
                       request,
                       frame,
                       0 /* rotation */);
 }
 
-void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
+void AVFCameraImageCapture::makeCapturePreview(CaptureRequest request,
                                                 const QVideoFrame &frame,
                                                 int rotation)
 {
@@ -237,7 +237,7 @@ void AVFImageCaptureControl::makeCapturePreview(CaptureRequest request,
     request.previewReady->release();
 }
 
-void AVFImageCaptureControl::updateCaptureConnection()
+void AVFCameraImageCapture::updateCaptureConnection()
 {
     if (m_session->videoCaptureDevice()) {
         qDebugCamera() << Q_FUNC_INFO;
@@ -258,7 +258,7 @@ void AVFImageCaptureControl::updateCaptureConnection()
 }
 
 
-QImageEncoderSettings AVFImageCaptureControl::imageSettings() const
+QImageEncoderSettings AVFCameraImageCapture::imageSettings() const
 {
     QImageEncoderSettings settings;
 
@@ -293,7 +293,7 @@ QImageEncoderSettings AVFImageCaptureControl::imageSettings() const
     return settings;
 }
 
-void AVFImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+void AVFCameraImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
     if (m_settings == settings)
         return;
@@ -302,7 +302,7 @@ void AVFImageCaptureControl::setImageSettings(const QImageEncoderSettings &setti
     applySettings();
 }
 
-bool AVFImageCaptureControl::applySettings()
+bool AVFCameraImageCapture::applySettings()
 {
     if (!videoCaptureDeviceIsValid())
         return false;
@@ -360,7 +360,7 @@ bool AVFImageCaptureControl::applySettings()
     return activeFormatChanged;
 }
 
-bool AVFImageCaptureControl::videoCaptureDeviceIsValid() const
+bool AVFCameraImageCapture::videoCaptureDeviceIsValid() const
 {
     if (!m_service->session() || !m_service->session()->videoCaptureDevice())
         return false;
@@ -372,4 +372,4 @@ bool AVFImageCaptureControl::videoCaptureDeviceIsValid() const
     return true;
 }
 
-#include "moc_avfimagecapturecontrol_p.cpp"
+#include "moc_avfcameraimagecapture_p.cpp"

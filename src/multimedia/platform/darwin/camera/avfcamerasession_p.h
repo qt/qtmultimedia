@@ -62,9 +62,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraControl;
+class AVFCamera;
 class AVFCameraService;
-class AVFCameraRendererControl;
+class AVFCameraRenderer;
 class AVFVideoSink;
 class QVideoSink;
 
@@ -78,8 +78,8 @@ public:
     QCameraInfo activeCameraInfo() const { return m_activeCameraInfo; }
     void setActiveCamera(const QCameraInfo &info);
 
-    void setVideoOutput(AVFCameraRendererControl *output);
-    AVFCameraRendererControl *videoOutput() const { return m_videoOutput; }
+    void setVideoOutput(AVFCameraRenderer *output);
+    AVFCameraRenderer *videoOutput() const { return m_videoOutput; }
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
 
@@ -114,7 +114,7 @@ private:
     QCameraInfo m_activeCameraInfo;
 
     AVFCameraService *m_service;
-    AVFCameraRendererControl *m_videoOutput;
+    AVFCameraRenderer *m_videoOutput;
     AVFVideoSink *m_videoSink;
 
     bool m_active = false;

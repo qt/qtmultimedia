@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFIMAGECAPTURECONTROL_H
-#define AVFIMAGECAPTURECONTROL_H
+#ifndef AVFCAMERAIMAGECAPTURE_H
+#define AVFCAMERAIMAGECAPTURE_H
 
 //
 //  W A R N I N G
@@ -62,7 +62,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFImageCaptureControl : public QPlatformCameraImageCapture
+class AVFCameraImageCapture : public QPlatformCameraImageCapture
 {
 Q_OBJECT
 public:
@@ -71,8 +71,8 @@ public:
         QSharedPointer<QSemaphore> previewReady;
     };
 
-    AVFImageCaptureControl(AVFCameraService *service, QObject *parent = nullptr);
-    ~AVFImageCaptureControl();
+    AVFCameraImageCapture(AVFCameraService *service, QObject *parent = nullptr);
+    ~AVFCameraImageCapture();
 
     bool isReadyForCapture() const override;
 
@@ -97,7 +97,7 @@ private:
 
     AVFCameraService *m_service;
     AVFCameraSession *m_session;
-    AVFCameraControl *m_cameraControl;
+    AVFCamera *m_cameraControl;
     bool m_ready;
     int m_lastCaptureId;
     AVCaptureStillImageOutput *m_stillImageOutput;
@@ -109,7 +109,7 @@ private:
     QImageEncoderSettings m_settings;
 };
 
-Q_DECLARE_TYPEINFO(AVFImageCaptureControl::CaptureRequest, Q_PRIMITIVE_TYPE);
+Q_DECLARE_TYPEINFO(AVFCameraImageCapture::CaptureRequest, Q_PRIMITIVE_TYPE);
 
 QT_END_NAMESPACE
 

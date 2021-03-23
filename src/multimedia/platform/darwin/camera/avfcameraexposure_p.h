@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERAFOCUSCONTROL_H
-#define AVFCAMERAFOCUSCONTROL_H
+#ifndef AVFCAMERAEXPOSURE_H
+#define AVFCAMERAEXPOSURE_H
 
 //
 //  W A R N I N G
@@ -51,54 +51,69 @@
 // We mean it.
 //
 
-#include <QtCore/qscopedpointer.h>
+#include <private/qplatformcameraexposure_p.h>
+#include <QtMultimedia/qcameraexposure.h>
+
 #include <QtCore/qglobal.h>
-
-#include <private/qplatformcamerafocus_p.h>
-
-#include <AVFoundation/AVFoundation.h>
-
-@class AVCaptureDevice;
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraService;
 class AVFCameraSession;
+class AVFCameraService;
 
-class AVFCameraFocusControl : public QPlatformCameraFocus
+class AVFCameraExposure : public QPlatformCameraExposure
 {
     Q_OBJECT
+
 public:
-    explicit AVFCameraFocusControl(AVFCameraService *service);
+    AVFCameraExposure(AVFCameraService *service);
 
-    QCameraFocus::FocusMode focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusMode mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
+    bool isParameterSupported(ExposureParameter parameter) const override;
+    QVariantList supportedParameterRange(ExposureParameter parameter,
+                                         bool *continuous) const override;
 
-    QPointF focusPoint() const override;
-    void setCustomFocusPoint(const QPointF &point) override;
-    bool isCustomFocusPointSupported() const override;
+    QVariant requestedValue(ExposureParameter parameter) const override;
+    QVariant actualValue(ExposureParameter parameter) const override;
+    bool setValue(ExposureParameter parameter, const QVariant &value) override;
 
-    void setFocusDistance(float) override;
-    float focusDistance() const override;
+    QCameraExposure::FlashMode flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashMode mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
+    bool isFlashReady() const override;
 
-    ZoomRange zoomFactorRange() const override;
-    void zoomTo(float newZoomFactor, float rate = -1.) override;
+    QCameraExposure::TorchMode torchMode() const override;
+    void setTorchMode(QCameraExposure::TorchMode mode) override;
+    bool isTorchModeSupported(QCameraExposure::TorchMode mode) const override;
 
 private Q_SLOTS:
-    void cameraStateChanged();
+    void cameraActiveChanged(bool active);
 
 private:
+    void applyFlashSettings();
+
+    AVFCameraService *m_service;
     AVFCameraSession *m_session;
-    QCameraFocus::FocusMode m_focusMode;
-    QPointF m_customFocusPoint;
-    QPointF m_actualFocusPoint;
 
-    CGFloat m_maxZoomFactor;
-    CGFloat m_zoomFactor;
+    QVariant m_requestedMode;
+    QVariant m_requestedCompensation;
+    QVariant m_requestedShutterSpeed;
+    QVariant m_requestedISO;
+
+    // Aux. setters:
+    bool setExposureMode(const QVariant &value);
+    bool setExposureCompensation(const QVariant &value);
+    bool setShutterSpeed(const QVariant &value);
+    bool setISO(const QVariant &value);
+
+    // Set of bits:
+    bool isFlashSupported = false;
+    bool isFlashAutoSupported = false;
+    bool isTorchSupported = false;
+    bool isTorchAutoSupported = false;
+    QCameraExposure::FlashMode m_flashMode = QCameraExposure::FlashOff;
+    QCameraExposure::TorchMode m_torchMode = QCameraExposure::TorchOff;
 };
-
 
 QT_END_NAMESPACE
 
-#endif // AVFCAMERAFOCUSCONTROL_H
+#endif

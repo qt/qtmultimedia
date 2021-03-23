@@ -59,8 +59,8 @@ QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformMediaEncoder;
 class QPlatformCameraImageProcessing;
-class AVFCameraControl;
-class AVFImageCaptureControl;
+class AVFCamera;
+class AVFCameraImageCapture;
 class AVFCameraSession;
 class AVFMediaEncoder;
 
@@ -91,9 +91,9 @@ public:
     void setVideoPreview(QVideoSink *sink) override;
 
     AVFCameraSession *session() const { return m_session; }
-    AVFCameraControl *avfCameraControl() const { return m_cameraControl; }
+    AVFCamera *avfCameraControl() const { return m_cameraControl; }
     AVFMediaEncoder *recorderControl() const { return m_recorderControl; }
-    AVFImageCaptureControl *avfImageCaptureControl() const { return m_imageCaptureControl; }
+    AVFCameraImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
 
 private:
     bool m_muted = false;
@@ -101,9 +101,9 @@ private:
     AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
     AVFCameraSession *m_session;
-    AVFCameraControl *m_cameraControl = nullptr;
+    AVFCamera *m_cameraControl = nullptr;
     AVFMediaEncoder *m_recorderControl;
-    AVFImageCaptureControl *m_imageCaptureControl = nullptr;
+    AVFCameraImageCapture *m_imageCaptureControl = nullptr;
 };
 
 QT_END_NAMESPACE

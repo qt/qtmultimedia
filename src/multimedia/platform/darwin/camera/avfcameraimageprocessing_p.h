@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERAIMAGEPROCESSINGCONTROL_H
-#define AVFCAMERAIMAGEPROCESSINGCONTROL_H
+#ifndef AVFCAMERAIMAGEPROCESSING_H
+#define AVFCAMERAIMAGEPROCESSING_H
 
 //
 //  W A R N I N G
@@ -60,13 +60,13 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 
-class AVFCameraImageProcessingControl : public QPlatformCameraImageProcessing
+class AVFCameraImageProcessing : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 
 public:
-    AVFCameraImageProcessingControl(AVFCameraService *service);
-    virtual ~AVFCameraImageProcessingControl();
+    AVFCameraImageProcessing(AVFCameraService *service);
+    virtual ~AVFCameraImageProcessing();
 
     bool isParameterSupported(ProcessingParameter) const override;
     bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
@@ -98,4 +98,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // AVFCAMERAIMAGEPROCESSINGCONTROL_H
+#endif // AVFCAMERAIMAGEPROCESSING_H

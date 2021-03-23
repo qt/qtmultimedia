@@ -41,14 +41,14 @@
 #include <QtCore/qdebug.h>
 
 #include "avfcameraservice_p.h"
-#include "avfcameracontrol_p.h"
+#include "avfcamera_p.h"
 #include "avfcamerasession_p.h"
-#include "avfimagecapturecontrol_p.h"
-#include "avfcamerarenderercontrol_p.h"
-#include "avfimagecapturecontrol_p.h"
-#include "avfcamerafocuscontrol_p.h"
-#include "avfcameraexposurecontrol_p.h"
-#include "avfcameraimageprocessingcontrol_p.h"
+#include "avfcameraimagecapture_p.h"
+#include "avfcamerarenderer_p.h"
+#include "avfcameraimagecapture_p.h"
+#include "avfcamerafocus_p.h"
+#include "avfcameraexposure_p.h"
+#include "avfcameraimageprocessing_p.h"
 #include "avfmediaencoder_p.h"
 #include <qmediadevicemanager.h>
 
@@ -82,7 +82,7 @@ AVFCameraService::~AVFCameraService()
 QPlatformCamera *AVFCameraService::addCamera()
 {
     if (!m_cameraControl) {
-        m_cameraControl = new AVFCameraControl(this);
+        m_cameraControl = new AVFCamera(this);
     }
     return m_cameraControl;
 }
@@ -105,7 +105,7 @@ QPlatformCameraImageCapture *AVFCameraService::addImageCapture()
 {
     if (!m_imageCaptureControl) {
         if (m_cameraControl)
-            m_imageCaptureControl = new AVFImageCaptureControl(this);
+            m_imageCaptureControl = new AVFCameraImageCapture(this);
     }
     return m_imageCaptureControl;
 }

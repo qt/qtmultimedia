@@ -39,9 +39,9 @@
 
 
 #include "avfmediaencoder_p.h"
-#include "avfcamerarenderercontrol_p.h"
+#include "avfcamerarenderer_p.h"
 #include "avfcamerasession_p.h"
-#include "avfcameracontrol_p.h"
+#include "avfcamera_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcameradebug_p.h"
 #include "avfcamerautility_p.h"
@@ -102,7 +102,7 @@ AVFMediaEncoder::AVFMediaEncoder(AVFCameraService *service, QObject *parent)
         return;
     }
 
-    AVFCameraControl *cameraControl = m_service->avfCameraControl();
+    AVFCamera *cameraControl = m_service->avfCameraControl();
     if (!cameraControl) {
         qDebugCamera() << Q_FUNC_INFO << "camera control is nil";
         return;
@@ -438,7 +438,7 @@ void AVFMediaEncoder::setState(QMediaEncoder::State state)
     switch (state) {
     case QMediaEncoder::RecordingState:
     {
-        AVFCameraControl *cameraControl = m_service->avfCameraControl();
+        AVFCamera *cameraControl = m_service->avfCameraControl();
         Q_ASSERT(cameraControl);
 
         if (cameraControl->status() != QCamera::ActiveStatus) {
@@ -543,7 +543,7 @@ void AVFMediaEncoder::assetWriterStarted()
 
 void AVFMediaEncoder::assetWriterFinished()
 {
-    AVFCameraControl *cameraControl = m_service->avfCameraControl();
+    AVFCamera *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 
     const QMediaEncoder::Status lastStatus = m_lastStatus;
@@ -562,7 +562,7 @@ void AVFMediaEncoder::assetWriterFinished()
 
 void AVFMediaEncoder::cameraStatusChanged(QCamera::Status newStatus)
 {
-    AVFCameraControl *cameraControl = m_service->avfCameraControl();
+    AVFCamera *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 
     const QMediaEncoder::Status lastStatus = m_lastStatus;

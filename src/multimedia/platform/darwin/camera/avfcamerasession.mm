@@ -40,9 +40,9 @@
 #include "avfcameradebug_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
-#include "avfcameracontrol_p.h"
-#include "avfcamerarenderercontrol_p.h"
-#include "avfimagecapturecontrol_p.h"
+#include "avfcamera_p.h"
+#include "avfcamerarenderer_p.h"
+#include "avfcameraimagecapture_p.h"
 #include "avfcamerautility_p.h"
 #include <private/avfvideosink_p.h>
 
@@ -151,7 +151,7 @@ AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
 
     //configuration is commited during transition to Active state
     [m_captureSession beginConfiguration];
-    setVideoOutput(new AVFCameraRendererControl(this));
+    setVideoOutput(new AVFCameraRenderer(this));
 }
 
 AVFCameraSession::~AVFCameraSession()
@@ -180,7 +180,7 @@ void AVFCameraSession::setActiveCamera(const QCameraInfo &info)
     }
 }
 
-void AVFCameraSession::setVideoOutput(AVFCameraRendererControl *output)
+void AVFCameraSession::setVideoOutput(AVFCameraRenderer *output)
 {
     m_videoOutput = output;
     if (output)
@@ -320,7 +320,7 @@ void AVFCameraSession::attachVideoInputDevice()
 
 bool AVFCameraSession::applyImageEncoderSettings()
 {
-    if (AVFImageCaptureControl *control = m_service->avfImageCaptureControl())
+    if (AVFCameraImageCapture *control = m_service->avfImageCaptureControl())
         return control->applySettings();
 
     return false;

@@ -40,7 +40,7 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/qdebug.h>
 
-#include "avfcameraimageprocessingcontrol_p.h"
+#include "avfcameraimageprocessing_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcamerasession_p.h"
 
@@ -113,7 +113,7 @@ bool avf_set_white_balance_gains(AVCaptureDevice *captureDevice,
 
 }
 
-AVFCameraImageProcessingControl::AVFCameraImageProcessingControl(AVFCameraService *service)
+AVFCameraImageProcessing::AVFCameraImageProcessing(AVFCameraService *service)
     : m_session(service->session()),
       m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
 {
@@ -144,11 +144,11 @@ AVFCameraImageProcessingControl::AVFCameraImageProcessingControl(AVFCameraServic
     connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(cameraStateChanged()));
 }
 
-AVFCameraImageProcessingControl::~AVFCameraImageProcessingControl()
+AVFCameraImageProcessing::~AVFCameraImageProcessing()
 {
 }
 
-bool AVFCameraImageProcessingControl::isParameterSupported(
+bool AVFCameraImageProcessing::isParameterSupported(
         QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
 #ifdef Q_OS_IOS
@@ -161,7 +161,7 @@ bool AVFCameraImageProcessingControl::isParameterSupported(
 #endif
 }
 
-bool AVFCameraImageProcessingControl::isParameterValueSupported(
+bool AVFCameraImageProcessing::isParameterValueSupported(
         QPlatformCameraImageProcessing::ProcessingParameter parameter,
         const QVariant &value) const
 {
@@ -182,7 +182,7 @@ bool AVFCameraImageProcessingControl::isParameterValueSupported(
     return false;
 }
 
-QVariant AVFCameraImageProcessingControl::parameter(
+QVariant AVFCameraImageProcessing::parameter(
         QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
     if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
@@ -196,7 +196,7 @@ QVariant AVFCameraImageProcessingControl::parameter(
     return QVariant();
 }
 
-void AVFCameraImageProcessingControl::setParameter(
+void AVFCameraImageProcessing::setParameter(
         QPlatformCameraImageProcessing::ProcessingParameter parameter,
         const QVariant &value)
 {
@@ -217,12 +217,12 @@ void AVFCameraImageProcessingControl::setParameter(
 }
 
 QCameraImageProcessing::WhiteBalanceMode
-        AVFCameraImageProcessingControl::whiteBalanceMode() const
+        AVFCameraImageProcessing::whiteBalanceMode() const
 {
     return m_whiteBalanceMode;
 }
 
-bool AVFCameraImageProcessingControl::setWhiteBalanceMode(
+bool AVFCameraImageProcessing::setWhiteBalanceMode(
         QCameraImageProcessing::WhiteBalanceMode mode)
 {
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
@@ -259,7 +259,7 @@ bool AVFCameraImageProcessingControl::setWhiteBalanceMode(
     return false;
 }
 
-bool AVFCameraImageProcessingControl::isWhiteBalanceModeSupported(
+bool AVFCameraImageProcessing::isWhiteBalanceModeSupported(
         QCameraImageProcessing::WhiteBalanceMode qtMode) const
 {
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
@@ -297,12 +297,12 @@ bool AVFCameraImageProcessingControl::isWhiteBalanceModeSupported(
 }
 
 #ifdef Q_OS_IOS
-float AVFCameraImageProcessingControl::colorTemperature() const
+float AVFCameraImageProcessing::colorTemperature() const
 {
     return m_colorTemperature;
 }
 
-bool AVFCameraImageProcessingControl::setColorTemperature(float temperature)
+bool AVFCameraImageProcessing::setColorTemperature(float temperature)
 {
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
     Q_ASSERT(captureDevice);
@@ -318,7 +318,7 @@ bool AVFCameraImageProcessingControl::setColorTemperature(float temperature)
 }
 #endif
 
-void AVFCameraImageProcessingControl::cameraStateChanged()
+void AVFCameraImageProcessing::cameraStateChanged()
 {
     if (!m_session->isActive())
         return;

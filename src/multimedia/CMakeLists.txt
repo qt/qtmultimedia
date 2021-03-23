@@ -386,16 +386,16 @@ qt_internal_extend_target(Multimedia CONDITION IOS AND NOT WATCHOS
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
     SOURCES
-        platform/darwin/camera/avfcameracontrol.mm platform/darwin/camera/avfcameracontrol_p.h
+        platform/darwin/camera/avfcamera.mm platform/darwin/camera/avfcamera_p.h
         platform/darwin/camera/avfcameradebug_p.h
-        platform/darwin/camera/avfcameraexposurecontrol.mm platform/darwin/camera/avfcameraexposurecontrol_p.h
-        platform/darwin/camera/avfcamerafocuscontrol.mm platform/darwin/camera/avfcamerafocuscontrol_p.h
-        platform/darwin/camera/avfcameraimageprocessingcontrol.mm platform/darwin/camera/avfcameraimageprocessingcontrol_p.h
-        platform/darwin/camera/avfcamerarenderercontrol.mm platform/darwin/camera/avfcamerarenderercontrol_p.h
+        platform/darwin/camera/avfcameraexposure.mm platform/darwin/camera/avfcameraexposure_p.h
+        platform/darwin/camera/avfcamerafocus.mm platform/darwin/camera/avfcamerafocus_p.h
+        platform/darwin/camera/avfcameraimageprocessing.mm platform/darwin/camera/avfcameraimageprocessing_p.h
+        platform/darwin/camera/avfcamerarenderer.mm platform/darwin/camera/avfcamerarenderer_p.h
         platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h
         platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
         platform/darwin/camera/avfcamerautility.mm platform/darwin/camera/avfcamerautility_p.h
-        platform/darwin/camera/avfimagecapturecontrol.mm platform/darwin/camera/avfimagecapturecontrol_p.h
+        platform/darwin/camera/avfcameraimagecapture.mm platform/darwin/camera/avfcameraimagecapture_p.h
         platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
 )
 

@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "avfcameraexposurecontrol_p.h"
+#include "avfcameraexposure_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
@@ -160,7 +160,7 @@ bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCameraExposure::E
 // to avoid dangling pointers (thus QPointer for QObjects) and not to create
 // a reference loop (in case we have ARC).
 
-void qt_set_exposure_bias(QPointer<AVFCameraService> service, QPointer<AVFCameraExposureControl> control,
+void qt_set_exposure_bias(QPointer<AVFCameraService> service, QPointer<AVFCameraExposure> control,
                           AVCaptureDevice *captureDevice, float bias)
 {
     Q_ASSERT(captureDevice);
@@ -182,7 +182,7 @@ void qt_set_exposure_bias(QPointer<AVFCameraService> service, QPointer<AVFCamera
     [captureDevice setExposureTargetBias:bias completionHandler:completionHandler];
 }
 
-void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraExposureControl> control,
+void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraExposure> control,
                          AVCaptureDevice *captureDevice, CMTime duration, float iso)
 {
     Q_ASSERT(captureDevice);
@@ -216,7 +216,7 @@ void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraE
 
 } // Unnamed namespace.
 
-AVFCameraExposureControl::AVFCameraExposureControl(AVFCameraService *service)
+AVFCameraExposure::AVFCameraExposure(AVFCameraService *service)
     : m_service(service),
       m_session(nullptr)
 {
@@ -227,7 +227,7 @@ AVFCameraExposureControl::AVFCameraExposureControl(AVFCameraService *service)
     connect(m_session, SIGNAL(activeChanged(bool)), SLOT(cameraActiveChanged(bool)));
 }
 
-bool AVFCameraExposureControl::isParameterSupported(ExposureParameter parameter) const
+bool AVFCameraExposure::isParameterSupported(ExposureParameter parameter) const
 {
 #ifdef Q_OS_IOS
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
@@ -245,7 +245,7 @@ bool AVFCameraExposureControl::isParameterSupported(ExposureParameter parameter)
 #endif
 }
 
-QVariantList AVFCameraExposureControl::supportedParameterRange(ExposureParameter parameter,
+QVariantList AVFCameraExposure::supportedParameterRange(ExposureParameter parameter,
                                                                bool *continuous) const
 {
     QVariantList parameterRange;
@@ -308,7 +308,7 @@ QVariantList AVFCameraExposureControl::supportedParameterRange(ExposureParameter
     return parameterRange;
 }
 
-QVariant AVFCameraExposureControl::requestedValue(ExposureParameter parameter) const
+QVariant AVFCameraExposure::requestedValue(ExposureParameter parameter) const
 {
     if (!isParameterSupported(parameter)) {
         qDebugCamera() << Q_FUNC_INFO << "parameter not supported";
@@ -330,7 +330,7 @@ QVariant AVFCameraExposureControl::requestedValue(ExposureParameter parameter) c
     return QVariant();
 }
 
-QVariant AVFCameraExposureControl::actualValue(ExposureParameter parameter) const
+QVariant AVFCameraExposure::actualValue(ExposureParameter parameter) const
 {
 #ifdef Q_OS_IOS
     AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
@@ -369,7 +369,7 @@ QVariant AVFCameraExposureControl::actualValue(ExposureParameter parameter) cons
     return QVariant();
 }
 
-bool AVFCameraExposureControl::setValue(ExposureParameter parameter, const QVariant &value)
+bool AVFCameraExposure::setValue(ExposureParameter parameter, const QVariant &value)
 {
     if (parameter == QPlatformCameraExposure::ExposureMode)
         return setExposureMode(value);
@@ -383,7 +383,7 @@ bool AVFCameraExposureControl::setValue(ExposureParameter parameter, const QVari
     return false;
 }
 
-bool AVFCameraExposureControl::setExposureMode(const QVariant &value)
+bool AVFCameraExposure::setExposureMode(const QVariant &value)
 {
 #ifdef Q_OS_IOS
     if (!value.canConvert<QCameraExposure::ExposureMode>()) {
@@ -430,7 +430,7 @@ bool AVFCameraExposureControl::setExposureMode(const QVariant &value)
 #endif
 }
 
-bool AVFCameraExposureControl::setExposureCompensation(const QVariant &value)
+bool AVFCameraExposure::setExposureCompensation(const QVariant &value)
 {
 #ifdef Q_OS_IOS
     if (!value.canConvert<qreal>()) {
@@ -471,7 +471,7 @@ bool AVFCameraExposureControl::setExposureCompensation(const QVariant &value)
 #endif
 }
 
-bool AVFCameraExposureControl::setShutterSpeed(const QVariant &value)
+bool AVFCameraExposure::setShutterSpeed(const QVariant &value)
 {
 #ifdef Q_OS_IOS
     if (value.isNull())
@@ -518,7 +518,7 @@ bool AVFCameraExposureControl::setShutterSpeed(const QVariant &value)
 #endif
 }
 
-bool AVFCameraExposureControl::setISO(const QVariant &value)
+bool AVFCameraExposure::setISO(const QVariant &value)
 {
 #ifdef Q_OS_IOS
     if (value.isNull())
@@ -562,7 +562,7 @@ bool AVFCameraExposureControl::setISO(const QVariant &value)
 #endif
 }
 
-void AVFCameraExposureControl::cameraActiveChanged(bool active)
+void AVFCameraExposure::cameraActiveChanged(bool active)
 {
 #ifdef Q_OS_IOS
     if (!m_session->isActive())
@@ -688,12 +688,12 @@ void AVFCameraExposureControl::cameraActiveChanged(bool active)
 
 
 
-QCameraExposure::FlashMode AVFCameraExposureControl::flashMode() const
+QCameraExposure::FlashMode AVFCameraExposure::flashMode() const
 {
     return m_flashMode;
 }
 
-void AVFCameraExposureControl::setFlashMode(QCameraExposure::FlashMode mode)
+void AVFCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
 {
     if (m_flashMode == mode)
         return;
@@ -711,7 +711,7 @@ void AVFCameraExposureControl::setFlashMode(QCameraExposure::FlashMode mode)
     applyFlashSettings();
 }
 
-bool AVFCameraExposureControl::isFlashModeSupported(QCameraExposure::FlashMode mode) const
+bool AVFCameraExposure::isFlashModeSupported(QCameraExposure::FlashMode mode) const
 {
     if (mode == QCameraExposure::FlashOff)
         return true;
@@ -721,7 +721,7 @@ bool AVFCameraExposureControl::isFlashModeSupported(QCameraExposure::FlashMode m
         return isFlashAutoSupported;
 }
 
-bool AVFCameraExposureControl::isFlashReady() const
+bool AVFCameraExposure::isFlashReady() const
 {
     if (!m_session->isActive())
         return false;
@@ -746,12 +746,12 @@ bool AVFCameraExposureControl::isFlashReady() const
     return true;
 }
 
-QCameraExposure::TorchMode AVFCameraExposureControl::torchMode() const
+QCameraExposure::TorchMode AVFCameraExposure::torchMode() const
 {
     return m_torchMode;
 }
 
-void AVFCameraExposureControl::setTorchMode(QCameraExposure::TorchMode mode)
+void AVFCameraExposure::setTorchMode(QCameraExposure::TorchMode mode)
 {
     if (m_torchMode == mode)
         return;
@@ -769,7 +769,7 @@ void AVFCameraExposureControl::setTorchMode(QCameraExposure::TorchMode mode)
     applyFlashSettings();
 }
 
-bool AVFCameraExposureControl::isTorchModeSupported(QCameraExposure::TorchMode mode) const
+bool AVFCameraExposure::isTorchModeSupported(QCameraExposure::TorchMode mode) const
 {
     if (mode == QCameraExposure::TorchOff)
         return true;
@@ -779,7 +779,7 @@ bool AVFCameraExposureControl::isTorchModeSupported(QCameraExposure::TorchMode m
         return isTorchAutoSupported;
 }
 
-void AVFCameraExposureControl::applyFlashSettings()
+void AVFCameraExposure::applyFlashSettings()
 {
     Q_ASSERT(m_session->isActive());
 
@@ -833,4 +833,4 @@ void AVFCameraExposureControl::applyFlashSettings()
 
 QT_END_NAMESPACE
 
-#include "moc_avfcameraexposurecontrol_p.cpp"
+#include "moc_avfcameraexposure_p.cpp"

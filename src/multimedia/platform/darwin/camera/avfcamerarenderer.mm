@@ -38,11 +38,11 @@
 ****************************************************************************/
 
 #include "private/qabstractvideobuffer_p.h"
-#include "avfcamerarenderercontrol_p.h"
+#include "avfcamerarenderer_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcameradebug_p.h"
-#include "avfcameracontrol_p.h"
+#include "avfcamera_p.h"
 #include <private/avfvideosink_p.h>
 #include "qvideosink.h"
 
@@ -62,7 +62,7 @@ QT_USE_NAMESPACE
 class CVImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    CVImageVideoBuffer(CVImageBufferRef buffer, AVFCameraRendererControl *renderer)
+    CVImageVideoBuffer(CVImageBufferRef buffer, AVFCameraRenderer *renderer)
 #ifndef Q_OS_IOS
         : QAbstractVideoBuffer(QVideoFrame::NoHandle)
 #else
@@ -205,7 +205,7 @@ public:
 private:
 #ifdef Q_OS_IOS
     mutable CVOpenGLESTextureRef m_texture;
-    AVFCameraRendererControl *m_renderer;
+    AVFCameraRenderer *m_renderer;
 #endif
     CVImageBufferRef m_buffer;
     QVideoFrame::MapMode m_mode;
@@ -214,7 +214,7 @@ private:
 
 @interface AVFCaptureFramesDelegate : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 
-- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRendererControl*)renderer;
+- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRenderer*)renderer;
 
 - (void) captureOutput:(AVCaptureOutput *)captureOutput
          didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
@@ -225,10 +225,10 @@ private:
 @implementation AVFCaptureFramesDelegate
 {
 @private
-    AVFCameraRendererControl *m_renderer;
+    AVFCameraRenderer *m_renderer;
 }
 
-- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRendererControl*)renderer
+- (AVFCaptureFramesDelegate *) initWithRenderer:(AVFCameraRenderer*)renderer
 {
     if (!(self = [super init]))
         return nil;
@@ -252,7 +252,7 @@ private:
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
     QVideoFrame::PixelFormat format =
-            AVFCameraControl::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
+            AVFCamera::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
     if (format == QVideoFrame::Format_Invalid)
         return;
 
@@ -266,13 +266,13 @@ private:
 @end
 
 
-AVFCameraRendererControl::AVFCameraRendererControl(QObject *parent)
+AVFCameraRenderer::AVFCameraRenderer(QObject *parent)
    : QObject(parent)
 {
     m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
 }
 
-AVFCameraRendererControl::~AVFCameraRendererControl()
+AVFCameraRenderer::~AVFCameraRenderer()
 {
     [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
     [m_viewfinderFramesDelegate release];
@@ -284,7 +284,7 @@ AVFCameraRendererControl::~AVFCameraRendererControl()
 #endif
 }
 
-void AVFCameraRendererControl::reconfigure()
+void AVFCameraRenderer::reconfigure()
 {
     QMutexLocker lock(&m_vfMutex);
 
@@ -299,7 +299,7 @@ void AVFCameraRendererControl::reconfigure()
     nativeSizeChanged();
 }
 
-void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *cameraSession)
+void AVFCameraRenderer::configureAVCaptureSession(AVFCameraSession *cameraSession)
 {
     m_cameraSession = cameraSession;
     connect(m_cameraSession, SIGNAL(readyToConfigureConnections()),
@@ -318,7 +318,7 @@ void AVFCameraRendererControl::configureAVCaptureSession(AVFCameraSession *camer
     [m_cameraSession->captureSession() addOutput:m_videoDataOutput];
 }
 
-void AVFCameraRendererControl::updateCaptureConnection()
+void AVFCameraRenderer::updateCaptureConnection()
 {
     AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
     if (connection == nil || !m_cameraSession->videoCaptureDevice())
@@ -335,7 +335,7 @@ void AVFCameraRendererControl::updateCaptureConnection()
 }
 
 //can be called from non main thread
-void AVFCameraRendererControl::syncHandleViewfinderFrame(const QVideoFrame &frame)
+void AVFCameraRenderer::syncHandleViewfinderFrame(const QVideoFrame &frame)
 {
     QMutexLocker lock(&m_vfMutex);
     if (m_rendersToWindow)
@@ -351,22 +351,22 @@ void AVFCameraRendererControl::syncHandleViewfinderFrame(const QVideoFrame &fram
     m_lastViewfinderFrame = frame;
 }
 
-AVCaptureVideoDataOutput *AVFCameraRendererControl::videoDataOutput() const
+AVCaptureVideoDataOutput *AVFCameraRenderer::videoDataOutput() const
 {
     return m_videoDataOutput;
 }
 
-AVFCaptureFramesDelegate *AVFCameraRendererControl::captureDelegate() const
+AVFCaptureFramesDelegate *AVFCameraRenderer::captureDelegate() const
 {
     return m_viewfinderFramesDelegate;
 }
 
-void AVFCameraRendererControl::resetCaptureDelegate() const
+void AVFCameraRenderer::resetCaptureDelegate() const
 {
     [m_videoDataOutput setSampleBufferDelegate:m_viewfinderFramesDelegate queue:m_delegateQueue];
 }
 
-void AVFCameraRendererControl::handleViewfinderFrame()
+void AVFCameraRenderer::handleViewfinderFrame()
 {
     QVideoFrame frame;
     {
@@ -386,7 +386,7 @@ void AVFCameraRendererControl::handleViewfinderFrame()
 }
 
 
-void AVFCameraRendererControl::updateAspectRatio()
+void AVFCameraRenderer::updateAspectRatio()
 {
     if (!m_layer)
         return;
@@ -410,4 +410,4 @@ void AVFCameraRendererControl::updateAspectRatio()
     layer.videoGravity = gravity;
 }
 
-#include "moc_avfcamerarenderercontrol_p.cpp"
+#include "moc_avfcamerarenderer_p.cpp"

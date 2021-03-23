@@ -44,7 +44,7 @@
 #include "private/qcoreaudiodeviceinfo_p.h"
 #include "private/qcoreaudioinput_p.h"
 #include "private/qcoreaudiooutput_p.h"
-#include "private/avfcameracontrol_p.h"
+#include "private/avfcamera_p.h"
 #include "private/avfcamerautility_p.h"
 
 #include <CoreVideo/CoreVideo.h>
@@ -264,7 +264,7 @@ void QDarwinDeviceManager::updateCameraDevices()
             float minFrameRate = 1.e6;
 
             auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
-            auto pixelFormat = AVFCameraControl::QtPixelFormatFromCVFormat(encoding);
+            auto pixelFormat = AVFCamera::QtPixelFormatFromCVFormat(encoding);
             // Ignore pixel formats we can't handle
             if (pixelFormat == QVideoFrame::Format_Invalid)
                 continue;

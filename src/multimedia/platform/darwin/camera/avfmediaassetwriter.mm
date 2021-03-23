@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "avfmediaencoder_p.h"
-#include "avfcamerarenderercontrol_p.h"
+#include "avfcamerarenderer_p.h"
 #include "avfmediaassetwriter_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcamerasession_p.h"

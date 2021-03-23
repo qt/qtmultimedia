@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERAEXPOSURECONTROL_H
-#define AVFCAMERAEXPOSURECONTROL_H
+#ifndef AVFCAMERA_H
+#define AVFCAMERA_H
 
 //
 //  W A R N I N G
@@ -51,67 +51,59 @@
 // We mean it.
 //
 
-#include <private/qplatformcameraexposure_p.h>
-#include <QtMultimedia/qcameraexposure.h>
+#include <QtCore/qobject.h>
 
-#include <QtCore/qglobal.h>
+#include <private/qplatformcamera_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
+class AVFCameraSession;
+class AVFCameraFocus;
+class AVFCameraExposure;
+class AVFCameraImageProcessing;
+@class AVCaptureDeviceFormat;
+@class AVCaptureConnection;
 
-class AVFCameraExposureControl : public QPlatformCameraExposure
+class AVFCamera : public QPlatformCamera
 {
-    Q_OBJECT
-
+Q_OBJECT
 public:
-    AVFCameraExposureControl(AVFCameraService *service);
+    AVFCamera(AVFCameraService *service, QObject *parent = nullptr);
+    ~AVFCamera();
 
-    bool isParameterSupported(ExposureParameter parameter) const override;
-    QVariantList supportedParameterRange(ExposureParameter parameter,
-                                         bool *continuous) const override;
+    bool isActive() const override;
+    void setActive(bool activce) override;
 
-    QVariant requestedValue(ExposureParameter parameter) const override;
-    QVariant actualValue(ExposureParameter parameter) const override;
-    bool setValue(ExposureParameter parameter, const QVariant &value) override;
+    QCamera::Status status() const override;
 
-    QCameraExposure::FlashMode flashMode() const override;
-    void setFlashMode(QCameraExposure::FlashMode mode) override;
-    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
-    bool isFlashReady() const override;
+    void setCamera(const QCameraInfo &camera) override;
 
-    QCameraExposure::TorchMode torchMode() const override;
-    void setTorchMode(QCameraExposure::TorchMode mode) override;
-    bool isTorchModeSupported(QCameraExposure::TorchMode mode) const override;
+    QPlatformCameraFocus *focusControl() override;
+    QPlatformCameraExposure *exposureControl() override;
+    QPlatformCameraImageProcessing *imageProcessingControl() override;
+
+    // "Converters":
+    static QVideoFrame::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);
+    static bool CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv);
+
+    AVCaptureConnection *videoConnection() const;
 
 private Q_SLOTS:
-    void cameraActiveChanged(bool active);
+    void updateStatus();
 
 private:
-    void applyFlashSettings();
-
-    AVFCameraService *m_service;
+    friend class AVFCameraSession;
     AVFCameraSession *m_session;
+    AVFCameraService *m_service;
 
-    QVariant m_requestedMode;
-    QVariant m_requestedCompensation;
-    QVariant m_requestedShutterSpeed;
-    QVariant m_requestedISO;
+    AVFCameraFocus *m_cameraFocusControl;
+    AVFCameraImageProcessing *m_cameraImageProcessingControl;
+    AVFCameraExposure *m_cameraExposureControl;
 
-    // Aux. setters:
-    bool setExposureMode(const QVariant &value);
-    bool setExposureCompensation(const QVariant &value);
-    bool setShutterSpeed(const QVariant &value);
-    bool setISO(const QVariant &value);
-
-    // Set of bits:
-    bool isFlashSupported = false;
-    bool isFlashAutoSupported = false;
-    bool isTorchSupported = false;
-    bool isTorchAutoSupported = false;
-    QCameraExposure::FlashMode m_flashMode = QCameraExposure::FlashOff;
-    QCameraExposure::TorchMode m_torchMode = QCameraExposure::TorchOff;
+    bool m_active;
+    QCamera::Status m_lastStatus;
 };
 
 QT_END_NAMESPACE

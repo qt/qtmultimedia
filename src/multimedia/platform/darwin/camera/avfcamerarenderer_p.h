@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERACONTROL_H
-#define AVFCAMERACONTROL_H
+#ifndef AVFCAMERARENDERER_H
+#define AVFCAMERARENDERER_H
 
 //
 //  W A R N I N G
@@ -52,58 +52,64 @@
 //
 
 #include <QtCore/qobject.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtCore/qmutex.h>
+#include <private/avfvideosink_p.h>
 
-#include <private/qplatformcamera_p.h>
+#include <dispatch/dispatch.h>
+
+Q_FORWARD_DECLARE_OBJC_CLASS(AVFCaptureFramesDelegate);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
 
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
-class AVFCameraSession;
-class AVFCameraFocusControl;
-class AVFCameraExposureControl;
-class AVFCameraImageProcessingControl;
-@class AVCaptureDeviceFormat;
-@class AVCaptureConnection;
+class AVFCameraRenderer;
+class AVFVideoSink;
 
-class AVFCameraControl : public QPlatformCamera
+class AVFCameraRenderer : public QObject, public AVFVideoSinkInterface
 {
 Q_OBJECT
 public:
-    AVFCameraControl(AVFCameraService *service, QObject *parent = nullptr);
-    ~AVFCameraControl();
+    AVFCameraRenderer(QObject *parent = nullptr);
+    ~AVFCameraRenderer();
 
-    bool isActive() const override;
-    void setActive(bool activce) override;
+    void reconfigure() override;
+    void updateAspectRatio() override;
 
-    QCamera::Status status() const override;
+    void configureAVCaptureSession(AVFCameraSession *cameraSession);
+    void syncHandleViewfinderFrame(const QVideoFrame &frame);
 
-    void setCamera(const QCameraInfo &camera) override;
+    AVCaptureVideoDataOutput *videoDataOutput() const;
 
-    QPlatformCameraFocus *focusControl() override;
-    QPlatformCameraExposure *exposureControl() override;
-    QPlatformCameraImageProcessing *imageProcessingControl() override;
+    bool supportsTextures() const { return m_supportsTextures; }
 
-    // "Converters":
-    static QVideoFrame::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);
-    static bool CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv);
-
-    AVCaptureConnection *videoConnection() const;
+    AVFCaptureFramesDelegate *captureDelegate() const;
+    void resetCaptureDelegate() const;
 
 private Q_SLOTS:
-    void updateStatus();
+    void handleViewfinderFrame();
+    void updateCaptureConnection();
 
 private:
-    friend class AVFCameraSession;
-    AVFCameraSession *m_session;
-    AVFCameraService *m_service;
+    AVFCaptureFramesDelegate *m_viewfinderFramesDelegate = nullptr;
+    AVFCameraSession *m_cameraSession = nullptr;
+    AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
 
-    AVFCameraFocusControl *m_cameraFocusControl;
-    AVFCameraImageProcessingControl *m_cameraImageProcessingControl;
-    AVFCameraExposureControl *m_cameraExposureControl;
+    bool m_supportsTextures = false;
+    bool m_needsHorizontalMirroring = false;
 
-    bool m_active;
-    QCamera::Status m_lastStatus;
+#ifdef Q_OS_IOS
+    CVOpenGLESTextureCacheRef m_textureCache = nullptr;
+#endif
+
+    QVideoFrame m_lastViewfinderFrame;
+    QMutex m_vfMutex;
+    bool m_rendersToWindow = false;
+    dispatch_queue_t m_delegateQueue;
+
+    friend class CVImageVideoBuffer;
 };
 
 QT_END_NAMESPACE

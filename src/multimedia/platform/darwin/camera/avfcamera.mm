@@ -38,47 +38,47 @@
 ****************************************************************************/
 
 #include "avfcameradebug_p.h"
-#include "avfcameracontrol_p.h"
+#include "avfcamera_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcamerautility_p.h"
-#include "avfcamerarenderercontrol_p.h"
-#include "avfcameraexposurecontrol_p.h"
-#include "avfcamerafocuscontrol_p.h"
-#include "avfcameraimageprocessingcontrol_p.h"
+#include "avfcamerarenderer_p.h"
+#include "avfcameraexposure_p.h"
+#include "avfcamerafocus_p.h"
+#include "avfcameraimageprocessing_p.h"
 #include "qabstractvideosurface.h"
 
 QT_USE_NAMESPACE
 
-AVFCameraControl::AVFCameraControl(AVFCameraService *service, QObject *parent)
+AVFCamera::AVFCamera(AVFCameraService *service, QObject *parent)
    : QPlatformCamera(parent)
    , m_session(service->session())
    , m_service(service)
    , m_active(false)
    , m_lastStatus(QCamera::InactiveStatus)
 {
-    m_cameraFocusControl = new AVFCameraFocusControl(m_service);
-    m_cameraImageProcessingControl = new AVFCameraImageProcessingControl(m_service);
+    m_cameraFocusControl = new AVFCameraFocus(m_service);
+    m_cameraImageProcessingControl = new AVFCameraImageProcessing(m_service);
     m_cameraExposureControl = nullptr;
 #ifdef Q_OS_IOS
-    m_cameraExposureControl = new AVFCameraExposureControl(m_service);
+    m_cameraExposureControl = new AVFCameraExposure(m_service);
 #endif
     connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 }
 
-AVFCameraControl::~AVFCameraControl()
+AVFCamera::~AVFCamera()
 {
     delete m_cameraFocusControl;
     delete m_cameraExposureControl;
     delete m_cameraImageProcessingControl;
 }
 
-bool AVFCameraControl::isActive() const
+bool AVFCamera::isActive() const
 {
     return m_active;
 }
 
-void AVFCameraControl::setActive(bool active)
+void AVFCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
@@ -89,7 +89,7 @@ void AVFCameraControl::setActive(bool active)
     updateStatus();
 }
 
-QCamera::Status AVFCameraControl::status() const
+QCamera::Status AVFCamera::status() const
 {
     static QCamera::Status statusTable[2][2] = {
         { QCamera::InactiveStatus,    QCamera::StoppingStatus }, //Inactive state
@@ -99,12 +99,12 @@ QCamera::Status AVFCameraControl::status() const
     return statusTable[m_active ? 1 : 0][m_session->isActive() ? 1 : 0];
 }
 
-void AVFCameraControl::setCamera(const QCameraInfo &camera)
+void AVFCamera::setCamera(const QCameraInfo &camera)
 {
     m_session->setActiveCamera(camera);
 }
 
-void AVFCameraControl::updateStatus()
+void AVFCamera::updateStatus()
 {
     QCamera::Status newStatus = status();
 
@@ -115,7 +115,7 @@ void AVFCameraControl::updateStatus()
     }
 }
 
-QVideoFrame::PixelFormat AVFCameraControl::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
+QVideoFrame::PixelFormat AVFCamera::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
 {
     // BGRA <-> ARGB "swap" is intentional:
     // to work correctly with GL_RGBA, color swap shaders
@@ -144,7 +144,7 @@ QVideoFrame::PixelFormat AVFCameraControl::QtPixelFormatFromCVFormat(unsigned av
     }
 }
 
-bool AVFCameraControl::CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv)
+bool AVFCamera::CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv)
 {
     // BGRA <-> ARGB "swap" is intentional:
     // to work correctly with GL_RGBA, color swap shaders
@@ -183,7 +183,7 @@ bool AVFCameraControl::CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtForm
     return true;
 }
 
-AVCaptureConnection *AVFCameraControl::videoConnection() const
+AVCaptureConnection *AVFCamera::videoConnection() const
 {
     if (!m_session->videoOutput() || !m_session->videoOutput()->videoDataOutput())
         return nil;
@@ -192,19 +192,19 @@ AVCaptureConnection *AVFCameraControl::videoConnection() const
 }
 
 
-QPlatformCameraFocus *AVFCameraControl::focusControl()
+QPlatformCameraFocus *AVFCamera::focusControl()
 {
     return m_cameraFocusControl;
 }
 
-QPlatformCameraExposure *AVFCameraControl::exposureControl()
+QPlatformCameraExposure *AVFCamera::exposureControl()
 {
     return m_cameraExposureControl;
 }
 
-QPlatformCameraImageProcessing *AVFCameraControl::imageProcessingControl()
+QPlatformCameraImageProcessing *AVFCamera::imageProcessingControl()
 {
     return m_cameraImageProcessingControl;
 }
 
-#include "moc_avfcameracontrol_p.cpp"
+#include "moc_avfcamera_p.cpp"
