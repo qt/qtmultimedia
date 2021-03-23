@@ -50,7 +50,10 @@ QList<QVideoSurfaceFormat::PixelFormat> QSGVideoNodeFactory_YUV::supportedPixelF
 
     formats << QVideoSurfaceFormat::Format_YUV420P << QVideoSurfaceFormat::Format_YV12 << QVideoSurfaceFormat::Format_YUV422P
             << QVideoSurfaceFormat::Format_NV12 << QVideoSurfaceFormat::Format_NV21
-            << QVideoSurfaceFormat::Format_UYVY << QVideoSurfaceFormat::Format_YUYV;
+            << QVideoSurfaceFormat::Format_UYVY << QVideoSurfaceFormat::Format_YUYV
+            << QVideoSurfaceFormat::Format_P010BE << QVideoSurfaceFormat::Format_P010LE
+            << QVideoSurfaceFormat::Format_P016BE << QVideoSurfaceFormat::Format_P016LE
+        ;
 
     return formats;
 }
@@ -135,6 +138,33 @@ public:
     }
 };
 
+class QSGVideoMaterialRhiShader_P010 : public QSGVideoMaterialRhiShader_YUV
+{
+public:
+    QSGVideoMaterialRhiShader_P010() = default;
+
+    void mapFrame(QSGVideoMaterial_YUV *m) override;
+};
+
+
+class QSGVideoMaterialRhiShader_P010LE : public QSGVideoMaterialRhiShader_P010
+{
+public:
+    QSGVideoMaterialRhiShader_P010LE()
+    {
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/p010le.frag.qsb"));
+    }
+};
+
+class QSGVideoMaterialRhiShader_P010BE : public QSGVideoMaterialRhiShader_P010
+{
+public:
+    QSGVideoMaterialRhiShader_P010BE()
+    {
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/p010be.frag.qsb"));
+    }
+};
+
 class QSGVideoMaterial_YUV : public QSGMaterial
 {
 public:
@@ -145,6 +175,10 @@ public:
 
         switch (m_format.pixelFormat()) {
         case QVideoSurfaceFormat::Format_NV12:
+        case QVideoSurfaceFormat::Format_P010BE:
+        case QVideoSurfaceFormat::Format_P010LE:
+        case QVideoSurfaceFormat::Format_P016LE:
+        case QVideoSurfaceFormat::Format_P016BE:
             return &biPlanarType;
         case QVideoSurfaceFormat::Format_NV21:
             return &biPlanarSwizzleType;
@@ -167,6 +201,12 @@ public:
             return new QSGVideoMaterialRhiShader_UYVY;
         case QVideoSurfaceFormat::Format_YUYV:
             return new QSGVideoMaterialRhiShader_YUYV;
+        case QVideoSurfaceFormat::Format_P010LE:
+        case QVideoSurfaceFormat::Format_P016LE:
+            return new QSGVideoMaterialRhiShader_P010LE;
+        case QVideoSurfaceFormat::Format_P010BE:
+        case QVideoSurfaceFormat::Format_P016BE:
+            return new QSGVideoMaterialRhiShader_P010BE;
         default: // Currently: YUV420P, YUV422P and YV12
             return new QSGVideoMaterialRhiShader_YUV_YV;
         }
@@ -341,6 +381,48 @@ void QSGVideoMaterialRhiShader_NV12::mapFrame(QSGVideoMaterial_YUV *m)
         m->m_frame.bits(y), m->m_frame.bytesPerLine(y) * fh);
     m->m_textures[1]->setData(QRhiTexture::RG8, QSize(m->m_frame.bytesPerLine(uv) / 2 , fh / 2),
         m->m_frame.bits(uv), m->m_frame.bytesPerLine(uv) * fh / 2);
+
+    m->m_frame.unmap();
+}
+
+void QSGVideoMaterialRhiShader_P010::mapFrame(QSGVideoMaterial_YUV *m)
+{
+    if (!m->m_frame.isValid())
+        return;
+
+#if 0
+    if (m->m_frame.handleType() == QVideoFrame::GLTextureHandle || m->m_frame.handleType() == QVideoFrame::MTLTextureHandle) {
+        m->m_planeWidth[0] = m->m_planeWidth[1] = 1;
+        auto textures = m->m_frame.handle().toList();
+        if (!textures.isEmpty()) {
+            auto w = m->m_frame.size().width();
+            auto h = m->m_frame.size().height();
+            m->m_textures[0]->setNativeObject(textures[0].toULongLong(), {w, h});
+            m->m_textures[1]->setNativeObject(textures[1].toULongLong(), {w / 2, h / 2});
+        } else {
+            qWarning() << "P010/P016 requires 2 textures";
+        }
+
+        return;
+    }
+#endif
+
+    if (!m->m_frame.map(QVideoFrame::ReadOnly))
+        return;
+
+    int y = 0;
+    int uv = 1;
+    int fw = m->m_frame.width();
+    int fh = m->m_frame.height();
+
+    m->m_planeWidth[0] = m->m_planeWidth[1] = qreal(fw) / m->m_frame.bytesPerLine(y);
+
+    // Use RG8 and BGRA8 textures for Y and UV. This allows us to pick up the 8 most significant
+    // bits of the values easily. Since our target surface is not HDR capable this will do for now.
+    m->m_textures[0]->setData(QRhiTexture::RG8, m->m_frame.size(),
+                              m->m_frame.bits(y), m->m_frame.bytesPerLine(y) * fh);
+    m->m_textures[1]->setData(QRhiTexture::BGRA8, QSize(m->m_frame.bytesPerLine(uv) / 4 , fh / 2),
+                              m->m_frame.bits(uv), m->m_frame.bytesPerLine(uv) * fh / 2);
 
     m->m_frame.unmap();
 }
