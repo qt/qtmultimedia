@@ -42,6 +42,7 @@
 #include "qimagevideobuffer_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconversionhelper_p.h"
+#include "qvideosurfaceformat.h"
 
 #include <qimage.h>
 #include <qmutex.h>
@@ -102,9 +103,8 @@ class QVideoFramePrivate : public QSharedData
 {
 public:
     QVideoFramePrivate() = default;
-    QVideoFramePrivate(const QSize &size, QVideoFrame::PixelFormat format)
-        : size(size)
-        , pixelFormat(format)
+    QVideoFramePrivate(const QVideoSurfaceFormat &format)
+        : format(format)
     {
     }
 
@@ -113,11 +113,10 @@ public:
         delete buffer;
     }
 
-    QSize size;
     qint64 startTime = -1;
     qint64 endTime = -1;
     QAbstractVideoBuffer::MapData mapData;
-    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+    QVideoSurfaceFormat format;
     QAbstractVideoBuffer *buffer = nullptr;
     int mappedCount = 0;
     QMutex mapMutex;
@@ -308,8 +307,8 @@ QVideoFrame::QVideoFrame()
 
     \note This doesn't increment the reference count of the video buffer.
 */
-QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QSize &size, PixelFormat format)
-    : d(new QVideoFramePrivate(size, format))
+QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoSurfaceFormat &format)
+    : d(new QVideoFramePrivate(format))
 {
     d->buffer = buffer;
 }
@@ -320,8 +319,8 @@ QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QSize &size, PixelF
     The \a bytesPerLine (stride) is the length of each scan line in bytes, and \a bytes is the total
     number of bytes that must be allocated for the frame.
 */
-QVideoFrame::QVideoFrame(int bytes, const QSize &size, int bytesPerLine, PixelFormat format)
-    : d(new QVideoFramePrivate(size, format))
+QVideoFrame::QVideoFrame(int bytes, int bytesPerLine, const QVideoSurfaceFormat &format)
+    : d(new QVideoFramePrivate(format))
 {
     if (bytes > 0) {
         QByteArray data;
@@ -342,11 +341,9 @@ QVideoFrame::QVideoFrame(int bytes, const QSize &size, int bytesPerLine, PixelFo
     \sa pixelFormatFromImageFormat()
 */
 QVideoFrame::QVideoFrame(const QImage &image)
-    : d(new QVideoFramePrivate(
-            image.size(), pixelFormatFromImageFormat(image.format())))
+    : d(new QVideoFramePrivate(QVideoSurfaceFormat(image.size(), pixelFormatFromImageFormat(image.format()))))
 {
-    if (d->pixelFormat != Format_Invalid)
-        d->buffer = new QImageVideoBuffer(image);
+    d->buffer = new QImageVideoBuffer(image);
 }
 
 /*!
@@ -417,11 +414,19 @@ bool QVideoFrame::isValid() const
 }
 
 /*!
-    Returns the color format of a video frame.
+    Returns the pixel format of this video frame.
 */
 QVideoFrame::PixelFormat QVideoFrame::pixelFormat() const
 {
-    return d->pixelFormat;
+    return d->format.pixelFormat();
+}
+
+/*!
+    Returns the surface format of this video frame.
+*/
+QVideoSurfaceFormat QVideoFrame::surfaceFormat() const
+{
+    return d->format;
 }
 
 /*!
@@ -438,7 +443,7 @@ QVideoFrame::HandleType QVideoFrame::handleType() const
 */
 QSize QVideoFrame::size() const
 {
-    return d->size;
+    return d->format.frameSize();
 }
 
 /*!
@@ -446,7 +451,7 @@ QSize QVideoFrame::size() const
 */
 int QVideoFrame::width() const
 {
-    return d->size.width();
+    return size().width();
 }
 
 /*!
@@ -454,7 +459,7 @@ int QVideoFrame::width() const
 */
 int QVideoFrame::height() const
 {
-    return d->size.height();
+    return size().height();
 }
 
 /*!
@@ -580,8 +585,9 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         return false;
 
     if (d->mapData.nPlanes == 1) {
+        auto pixelFmt = d->format.pixelFormat();
         // If the plane count is 1 derive the additional planes for planar formats.
-        switch (d->pixelFormat) {
+        switch (pixelFmt) {
         case Format_Invalid:
         case Format_ARGB32:
         case Format_ARGB32_Premultiplied:
@@ -616,9 +622,9 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             // UV planes are sometimes not aligned.
             // We calculate the stride using the UV byte count to always
             // have a correct stride.
-            const int height = d->size.height();
+            const int height = this->height();
             const int yStride = d->mapData.bytesPerLine[0];
-            const int uvHeight = d->pixelFormat == Format_YUV422P ? height : height / 2;
+            const int uvHeight = pixelFmt == Format_YUV422P ? height : height / 2;
             const int uvStride = (d->mapData.nBytes - (yStride * height)) / uvHeight / 2;
 
             // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
@@ -635,7 +641,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
             d->mapData.nPlanes = 2;
             d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
-            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * d->size.height());
+            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * height());
             break;
         }
         case Format_IMC1:
@@ -644,8 +650,8 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             // but with lines padded to the width of the first plane.
             d->mapData.nPlanes = 3;
             d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
-            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * d->size.height());
-            d->mapData.data[2] = d->mapData.data[1] + (d->mapData.bytesPerLine[1] * d->size.height() / 2);
+            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * height());
+            d->mapData.data[2] = d->mapData.data[1] + (d->mapData.bytesPerLine[1] * height() / 2);
             break;
         }
         default:

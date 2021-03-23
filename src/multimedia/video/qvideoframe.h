@@ -52,6 +52,7 @@ QT_BEGIN_NAMESPACE
 class QSize;
 class QVideoFramePrivate;
 class QAbstractVideoBuffer;
+class QVideoSurfaceFormat;
 
 class Q_MULTIMEDIA_EXPORT QVideoFrame
 {
@@ -119,8 +120,8 @@ public:
     };
 
     QVideoFrame();
-    QVideoFrame(QAbstractVideoBuffer *buffer, const QSize &size, PixelFormat format);
-    QVideoFrame(int bytes, const QSize &size, int bytesPerLine, PixelFormat format);
+    QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoSurfaceFormat &format);
+    QVideoFrame(int bytes, int bytesPerLine, const QVideoSurfaceFormat &format);
     QVideoFrame(const QImage &image);
     QVideoFrame(const QVideoFrame &other);
     ~QVideoFrame();
@@ -134,6 +135,7 @@ public:
 
     PixelFormat pixelFormat() const;
 
+    QVideoSurfaceFormat surfaceFormat() const;
     QVideoFrame::HandleType handleType() const;
 
     QSize size() const;

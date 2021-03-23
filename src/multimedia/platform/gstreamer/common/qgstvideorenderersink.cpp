@@ -194,10 +194,7 @@ bool QGstVideoRenderer::present(QVideoSink *sink, GstBuffer *buffer)
         }
     }
 
-    QVideoFrame frame(
-                videoBuffer,
-                m_format.frameSize(),
-                m_format.pixelFormat());
+    QVideoFrame frame(videoBuffer, m_format);
     QGstUtils::setFrameTimeStamps(&frame, buffer);
 
     sink->newVideoFrame(frame);

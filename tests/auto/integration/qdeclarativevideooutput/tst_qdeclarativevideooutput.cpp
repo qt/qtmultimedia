@@ -76,7 +76,7 @@ void SurfaceHolder::presentDummyFrame(const QSize &size)
     if (m_surface && m_surface->supportedPixelFormats().count() > 0) {
         QVideoFrame::PixelFormat pixelFormat = m_surface->supportedPixelFormats().value(0);
         QVideoSurfaceFormat format(size, pixelFormat);
-        QVideoFrame frame(size.width() * size.height() * 4, size, size.width() * 4, pixelFormat);
+        QVideoFrame frame(size.width() * size.height() * 4, size.width() * 4, QVideoSurfaceFormat(size, pixelFormat));
 
         if (!m_surface->isActive())
             m_surface->start(format);
