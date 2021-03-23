@@ -228,7 +228,7 @@ static int indexOfVideoFormat(GstVideoFormat format)
 }
 
 QVideoSurfaceFormat QGstUtils::formatForCaps(
-        GstCaps *caps, GstVideoInfo *info, QVideoFrame::HandleType handleType)
+        GstCaps *caps, GstVideoInfo *info)
 {
     GstVideoInfo vidInfo;
     GstVideoInfo *infoPtr = info ? info : &vidInfo;
@@ -239,8 +239,7 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
         if (index != -1) {
             QVideoSurfaceFormat format(
                         QSize(infoPtr->width, infoPtr->height),
-                        qt_videoFormatLookup[index].pixelFormat,
-                        handleType);
+                        qt_videoFormatLookup[index].pixelFormat);
 
             if (infoPtr->fps_d > 0)
                 format.setFrameRate(qreal(infoPtr->fps_n) / infoPtr->fps_d);

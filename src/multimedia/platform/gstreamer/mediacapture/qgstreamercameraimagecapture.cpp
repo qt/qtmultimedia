@@ -201,7 +201,7 @@ bool QGstreamerCameraImageCapture::probeBuffer(GstBuffer *buffer)
     gst_video_info_from_caps(&previewInfo, caps);
 
     auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo);
-    auto fmt = QGstUtils::formatForCaps(caps, &previewInfo, QVideoFrame::NoHandle);
+    auto fmt = QGstUtils::formatForCaps(caps, &previewInfo);
     QVideoFrame frame(gstBuffer, fmt.frameSize(), fmt.pixelFormat());
     QImage img = frame.image();
     if (img.isNull())

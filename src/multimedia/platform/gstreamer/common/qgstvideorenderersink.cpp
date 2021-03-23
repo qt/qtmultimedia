@@ -156,7 +156,7 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
 bool QGstVideoRenderer::start(GstCaps *caps)
 {
     m_flushed = true;
-    m_format = QGstUtils::formatForCaps(caps, &m_videoInfo, m_handleType);
+    m_format = QGstUtils::formatForCaps(caps, &m_videoInfo);
 
     return m_format.isValid();
 }
@@ -172,10 +172,10 @@ bool QGstVideoRenderer::present(QVideoSink *sink, GstBuffer *buffer)
 
     QGstVideoBuffer *videoBuffer = nullptr;
 #if QT_CONFIG(gstreamer_gl)
-    if (m_format.handleType() == QVideoFrame::GLTextureHandle) {
+    if (m_handleType == QVideoFrame::GLTextureHandle) {
         GstGLMemory *glmem = GST_GL_MEMORY_CAST(gst_buffer_peek_memory(buffer, 0));
         guint textureId = gst_gl_memory_get_texture_id(glmem);
-        videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_format.handleType(), textureId);
+        videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_handleType, textureId);
     }
 #endif
 

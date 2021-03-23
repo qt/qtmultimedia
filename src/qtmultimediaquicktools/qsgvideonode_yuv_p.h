@@ -66,9 +66,6 @@ public:
     QVideoFrame::PixelFormat pixelFormat() const override {
         return m_format.pixelFormat();
     }
-    QVideoFrame::HandleType handleType() const override {
-        return QVideoFrame::NoHandle;
-    }
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) override;
 
 private:

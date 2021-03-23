@@ -46,38 +46,25 @@
 QT_BEGIN_NAMESPACE
 
 QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelFormats(
-                                        QVideoFrame::HandleType handleType) const
+                                        QVideoFrame::HandleType) const
 {
     QList<QVideoFrame::PixelFormat> pixelFormats;
 
-    QList<QVideoFrame::HandleType> types;
-
-    auto rhi = QSGRhiSupport::instance();
-    auto metalEnabled = rhi->isRhiEnabled() && rhi->rhiBackend() == QRhi::Metal;
-    if (metalEnabled)
-        types.append(QVideoFrame::MTLTextureHandle);
-
-#if QT_CONFIG(opengl)
-    types.append(QVideoFrame::GLTextureHandle);
-#endif
-
-    if (types.contains(handleType)) {
-        pixelFormats.append(QVideoFrame::Format_RGB565);
-        pixelFormats.append(QVideoFrame::Format_RGB32);
-        pixelFormats.append(QVideoFrame::Format_ARGB32);
-        pixelFormats.append(QVideoFrame::Format_BGR32);
-        pixelFormats.append(QVideoFrame::Format_BGRA32);
+    pixelFormats.append(QVideoFrame::Format_RGB565);
+    pixelFormats.append(QVideoFrame::Format_RGB32);
+    pixelFormats.append(QVideoFrame::Format_ARGB32);
+    pixelFormats.append(QVideoFrame::Format_BGR32);
+    pixelFormats.append(QVideoFrame::Format_BGRA32);
 #if !QT_CONFIG(gpu_vivante)
-        pixelFormats.append(QVideoFrame::Format_ABGR32);
+    pixelFormats.append(QVideoFrame::Format_ABGR32);
 #endif
-    }
 
     return pixelFormats;
 }
 
 QSGVideoNode *QSGVideoNodeFactory_Texture::createNode(const QVideoSurfaceFormat &format)
 {
-    if (supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
+    if (supportedPixelFormats(QVideoFrame::NoHandle).contains(format.pixelFormat()))
         return new QSGVideoNode_Texture(format);
 
     return nullptr;

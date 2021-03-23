@@ -54,10 +54,8 @@ public:
 
     QVideoSurfaceFormatPrivate(
             const QSize &size,
-            QVideoFrame::PixelFormat format,
-            QVideoFrame::HandleType type)
+            QVideoFrame::PixelFormat format)
         : pixelFormat(format)
-        , handleType(type)
         , frameSize(size)
         , viewport(QPoint(0, 0), size)
     {
@@ -66,7 +64,6 @@ public:
     bool operator ==(const QVideoSurfaceFormatPrivate &other) const
     {
         if (pixelFormat == other.pixelFormat
-            && handleType == other.handleType
             && scanLineDirection == other.scanLineDirection
             && frameSize == other.frameSize
             && viewport == other.viewport
@@ -84,7 +81,6 @@ public:
     }
 
     QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
-    QVideoFrame::HandleType handleType = QVideoFrame::NoHandle;
     QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;
     QSize frameSize;
     QVideoSurfaceFormat::YCbCrColorSpace ycbcrColorSpace = QVideoSurfaceFormat::YCbCr_Undefined;
@@ -173,8 +169,8 @@ QVideoSurfaceFormat::QVideoSurfaceFormat()
     \a size and pixel \a format.
 */
 QVideoSurfaceFormat::QVideoSurfaceFormat(
-        const QSize& size, QVideoFrame::PixelFormat format, QVideoFrame::HandleType type)
-    : d(new QVideoSurfaceFormatPrivate(size, format, type))
+        const QSize& size, QVideoFrame::PixelFormat format)
+    : d(new QVideoSurfaceFormatPrivate(size, format))
 {
 }
 
@@ -225,19 +221,6 @@ bool QVideoSurfaceFormat::operator !=(const QVideoSurfaceFormat &other) const
 QVideoFrame::PixelFormat QVideoSurfaceFormat::pixelFormat() const
 {
     return d->pixelFormat;
-}
-
-/*!
-    Returns the type of handle the surface uses to present the frame data.
-
-    If the handle type is \c QVideoFrame::NoHandle, buffers with any handle type are valid
-    provided they can be \l {QVideoFrame::map()}{mapped} with the
-    QVideoFrame::ReadOnly flag.  If the handleType() is not QVideoFrame::NoHandle
-    then the handle type of the buffer must be the same as that of the surface format.
-*/
-QVideoFrame::HandleType QVideoSurfaceFormat::handleType() const
-{
-    return d->handleType;
 }
 
 /*!
@@ -449,7 +432,7 @@ QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)
     dbg.nospace();
     dbg << "QVideoSurfaceFormat(" << f.pixelFormat() << ", " << f.frameSize()
         << ", viewport=" << f.viewport()
-        << ", handleType=" << f.handleType() <<  ", yCbCrColorSpace=" << f.yCbCrColorSpace()
+        <<  ", yCbCrColorSpace=" << f.yCbCrColorSpace()
         << ')'
         << "\n    pixel format=" << f.pixelFormat()
         << "\n    frame size=" << f.frameSize()

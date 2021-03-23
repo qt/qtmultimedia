@@ -266,7 +266,7 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
             }
         }
 
-        if (videoNode && (videoNode->pixelFormat() != m_frame.pixelFormat() || videoNode->handleType() != m_frame.handleType())) {
+        if (videoNode && videoNode->pixelFormat() != m_frame.pixelFormat()) {
             qCDebug(qLcVideo) << "updatePaintNode: deleting old video node because frame format changed";
             delete videoNode;
             videoNode = nullptr;
@@ -282,7 +282,7 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
             for (QSGVideoNodeFactoryInterface* factory : qAsConst(m_videoNodeFactories)) {
                 // Get a node that supports our frame. The surface is irrelevant, our
                 // QSGVideoItemSurface supports (logically) anything.
-                QVideoSurfaceFormat nodeFormat(m_frame.size(), m_frame.pixelFormat(), m_frame.handleType());
+                QVideoSurfaceFormat nodeFormat(m_frame.size(), m_frame.pixelFormat());
                 nodeFormat.setYCbCrColorSpace(m_surfaceFormat.yCbCrColorSpace());
                 nodeFormat.setScanLineDirection(m_surfaceFormat.scanLineDirection());
                 nodeFormat.setViewport(m_surfaceFormat.viewport());
@@ -318,9 +318,7 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
 
         if ((q->flushMode() == QDeclarativeVideoOutput::FirstFrame && !m_frameOnFlush.isValid())
             || q->flushMode() == QDeclarativeVideoOutput::LastFrame) {
-            m_frameOnFlush = m_surfaceFormat.handleType() == QVideoFrame::NoHandle
-                ? m_frame
-                : m_frame.image();
+            m_frameOnFlush = m_frame;
         }
 
         //don't keep the frame for more than really necessary
@@ -343,7 +341,7 @@ QRectF QDeclarativeVideoBackend::adjustedViewport() const
 void QDeclarativeVideoBackend::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
-    m_surfaceFormat = QVideoSurfaceFormat(frame.size(), frame.pixelFormat(), QVideoFrame::NoHandle);
+    m_surfaceFormat = QVideoSurfaceFormat(frame.size(), frame.pixelFormat());
     m_frame = frame.isValid() ? frame : m_frameOnFlush;
     m_frameChanged = true;
     m_frameMutex.unlock();

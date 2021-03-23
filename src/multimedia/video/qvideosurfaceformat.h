@@ -76,8 +76,7 @@ public:
     QVideoSurfaceFormat();
     QVideoSurfaceFormat(
             const QSize &size,
-            QVideoFrame::PixelFormat pixelFormat,
-            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle);
+            QVideoFrame::PixelFormat pixelFormat);
     QVideoSurfaceFormat(const QVideoSurfaceFormat &format);
     ~QVideoSurfaceFormat();
 
@@ -89,7 +88,6 @@ public:
     bool isValid() const;
 
     QVideoFrame::PixelFormat pixelFormat() const;
-    QVideoFrame::HandleType handleType() const;
 
     QSize frameSize() const;
     void setFrameSize(const QSize &size);

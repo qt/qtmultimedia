@@ -72,7 +72,6 @@ public:
 
     virtual void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) = 0;
     virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
-    virtual QVideoFrame::HandleType handleType() const = 0;
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 

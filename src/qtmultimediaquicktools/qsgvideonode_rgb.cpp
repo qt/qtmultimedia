@@ -62,7 +62,7 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_RGB::supportedPixelFormats(
 
 QSGVideoNode *QSGVideoNodeFactory_RGB::createNode(const QVideoSurfaceFormat &format)
 {
-    if (supportedPixelFormats(format.handleType()).contains(format.pixelFormat()))
+    if (supportedPixelFormats(QVideoFrame::NoHandle).contains(format.pixelFormat()))
         return new QSGVideoNode_RGB(format);
 
     return nullptr;

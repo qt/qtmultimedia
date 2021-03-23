@@ -147,7 +147,7 @@ QAbstractVideoSurface::~QAbstractVideoSurface() = default;
 */
 bool QAbstractVideoSurface::isFormatSupported(const QVideoSurfaceFormat &format) const
 {
-    return supportedPixelFormats(format.handleType()).contains(format.pixelFormat());
+    return supportedPixelFormats(QVideoFrame::NoHandle).contains(format.pixelFormat());
 }
 
 /*!

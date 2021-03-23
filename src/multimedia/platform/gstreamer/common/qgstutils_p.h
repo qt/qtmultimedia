@@ -76,8 +76,7 @@ namespace QGstUtils {
 
     Q_MULTIMEDIA_EXPORT QVideoSurfaceFormat formatForCaps(
             GstCaps *caps,
-            GstVideoInfo *info = 0,
-            QVideoFrame::HandleType handleType = QVideoFrame::NoHandle);
+            GstVideoInfo *info = 0);
 
     Q_MULTIMEDIA_EXPORT QGstMutableCaps capsForFormats(const QList<QVideoFrame::PixelFormat> &formats);
     void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
