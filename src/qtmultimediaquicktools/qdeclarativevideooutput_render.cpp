@@ -279,18 +279,11 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
         }
 
         if (!videoNode) {
+            // Get a node that supports our frame. The surface is irrelevant, our
+            // QSGVideoItemSurface supports (logically) anything.
+            updateGeometry();
             for (QSGVideoNodeFactoryInterface* factory : qAsConst(m_videoNodeFactories)) {
-                // Get a node that supports our frame. The surface is irrelevant, our
-                // QSGVideoItemSurface supports (logically) anything.
-                QVideoSurfaceFormat nodeFormat(m_frame.size(), m_frame.pixelFormat());
-                nodeFormat.setYCbCrColorSpace(m_surfaceFormat.yCbCrColorSpace());
-                nodeFormat.setScanLineDirection(m_surfaceFormat.scanLineDirection());
-                nodeFormat.setViewport(m_surfaceFormat.viewport());
-                nodeFormat.setFrameRate(m_surfaceFormat.frameRate());
-                // Update current surface format if something has changed.
-                m_surfaceFormat = nodeFormat;
-                updateGeometry();
-                videoNode = factory->createNode(nodeFormat);
+                videoNode = factory->createNode(m_surfaceFormat);
                 if (videoNode) {
                     qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType()
                                      << " Supported formats for the handle by this node:"
@@ -341,7 +334,7 @@ QRectF QDeclarativeVideoBackend::adjustedViewport() const
 void QDeclarativeVideoBackend::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
-    m_surfaceFormat = QVideoSurfaceFormat(frame.size(), frame.pixelFormat());
+    m_surfaceFormat = frame.surfaceFormat();
     m_frame = frame.isValid() ? frame : m_frameOnFlush;
     m_frameChanged = true;
     m_frameMutex.unlock();
