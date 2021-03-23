@@ -50,7 +50,7 @@ public:
     Q_PLUGIN_METADATA(IID QSGVideoNodeFactoryInterface_iid FILE "imx6.json")
     Q_INTERFACES(QSGVideoNodeFactoryInterface)
 
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const;
+    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format);
 };
 #endif // QSGVIDEONODEFACTORY_VIVANTE_H

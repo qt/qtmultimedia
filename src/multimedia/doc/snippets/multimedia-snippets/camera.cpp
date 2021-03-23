@@ -87,10 +87,10 @@ void overview_camera_by_position()
 // -.-
 class MyVideoSurface : public QAbstractVideoSurface
 {
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const
+    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const
     {
         Q_UNUSED(handleType);
-        return QList<QVideoFrame::PixelFormat>();
+        return QList<QVideoSurfaceFormat::PixelFormat>();
     }
     bool present(const QVideoFrame &frame)
     {

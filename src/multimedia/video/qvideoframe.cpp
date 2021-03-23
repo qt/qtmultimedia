@@ -53,7 +53,7 @@
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
-static bool pixelFormatHasAlpha[QVideoFrame::NPixelFormats] =
+static bool pixelFormatHasAlpha[QVideoSurfaceFormat::NPixelFormats] =
 {
     false, //Format_Invalid,
     true, //Format_ARGB32,
@@ -159,7 +159,7 @@ private:
 */
 
 /*!
-    \enum QVideoFrame::PixelFormat
+    \enum QVideoSurfaceFormat::PixelFormat
 
     Enumerates video data types.
 
@@ -341,7 +341,8 @@ QVideoFrame::QVideoFrame(int bytes, int bytesPerLine, const QVideoSurfaceFormat 
     \sa pixelFormatFromImageFormat()
 */
 QVideoFrame::QVideoFrame(const QImage &image)
-    : d(new QVideoFramePrivate(QVideoSurfaceFormat(image.size(), pixelFormatFromImageFormat(image.format()))))
+    : d(new QVideoFramePrivate(QVideoSurfaceFormat(image.size(),
+                                                   QVideoSurfaceFormat::pixelFormatFromImageFormat(image.format()))))
 {
     d->buffer = new QImageVideoBuffer(image);
 }
@@ -416,7 +417,7 @@ bool QVideoFrame::isValid() const
 /*!
     Returns the pixel format of this video frame.
 */
-QVideoFrame::PixelFormat QVideoFrame::pixelFormat() const
+QVideoSurfaceFormat::PixelFormat QVideoFrame::pixelFormat() const
 {
     return d->format.pixelFormat();
 }
@@ -588,35 +589,35 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         auto pixelFmt = d->format.pixelFormat();
         // If the plane count is 1 derive the additional planes for planar formats.
         switch (pixelFmt) {
-        case Format_Invalid:
-        case Format_ARGB32:
-        case Format_ARGB32_Premultiplied:
-        case Format_RGB32:
-        case Format_RGB24:
-        case Format_RGB565:
-        case Format_RGB555:
-        case Format_ARGB8565_Premultiplied:
-        case Format_BGRA32:
-        case Format_BGRA32_Premultiplied:
-        case Format_ABGR32:
-        case Format_BGR32:
-        case Format_BGR24:
-        case Format_BGR565:
-        case Format_BGR555:
-        case Format_BGRA5658_Premultiplied:
-        case Format_AYUV444:
-        case Format_AYUV444_Premultiplied:
-        case Format_YUV444:
-        case Format_UYVY:
-        case Format_YUYV:
-        case Format_Y8:
-        case Format_Y16:
-        case Format_Jpeg:
+        case QVideoSurfaceFormat::Format_Invalid:
+        case QVideoSurfaceFormat::Format_ARGB32:
+        case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
+        case QVideoSurfaceFormat::Format_RGB32:
+        case QVideoSurfaceFormat::Format_RGB24:
+        case QVideoSurfaceFormat::Format_RGB565:
+        case QVideoSurfaceFormat::Format_RGB555:
+        case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
+        case QVideoSurfaceFormat::Format_BGRA32:
+        case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
+        case QVideoSurfaceFormat::Format_ABGR32:
+        case QVideoSurfaceFormat::Format_BGR32:
+        case QVideoSurfaceFormat::Format_BGR24:
+        case QVideoSurfaceFormat::Format_BGR565:
+        case QVideoSurfaceFormat::Format_BGR555:
+        case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
+        case QVideoSurfaceFormat::Format_AYUV444:
+        case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
+        case QVideoSurfaceFormat::Format_YUV444:
+        case QVideoSurfaceFormat::Format_UYVY:
+        case QVideoSurfaceFormat::Format_YUYV:
+        case QVideoSurfaceFormat::Format_Y8:
+        case QVideoSurfaceFormat::Format_Y16:
+        case QVideoSurfaceFormat::Format_Jpeg:
             // Single plane or opaque format.
             break;
-        case Format_YUV420P:
-        case Format_YUV422P:
-        case Format_YV12: {
+        case QVideoSurfaceFormat::Format_YUV420P:
+        case QVideoSurfaceFormat::Format_YUV422P:
+        case QVideoSurfaceFormat::Format_YV12: {
             // The UV stride is usually half the Y stride and is 32-bit aligned.
             // However it's not always the case, at least on Windows where the
             // UV planes are sometimes not aligned.
@@ -624,7 +625,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             // have a correct stride.
             const int height = this->height();
             const int yStride = d->mapData.bytesPerLine[0];
-            const int uvHeight = pixelFmt == Format_YUV422P ? height : height / 2;
+            const int uvHeight = pixelFmt == QVideoSurfaceFormat::Format_YUV422P ? height : height / 2;
             const int uvStride = (d->mapData.nBytes - (yStride * height)) / uvHeight / 2;
 
             // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
@@ -634,18 +635,18 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             d->mapData.data[2] = d->mapData.data[1] + (uvStride * uvHeight);
             break;
         }
-        case Format_NV12:
-        case Format_NV21:
-        case Format_IMC2:
-        case Format_IMC4: {
+        case QVideoSurfaceFormat::Format_NV12:
+        case QVideoSurfaceFormat::Format_NV21:
+        case QVideoSurfaceFormat::Format_IMC2:
+        case QVideoSurfaceFormat::Format_IMC4: {
             // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
             d->mapData.nPlanes = 2;
             d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
             d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * height());
             break;
         }
-        case Format_IMC1:
-        case Format_IMC3: {
+        case QVideoSurfaceFormat::Format_IMC1:
+        case QVideoSurfaceFormat::Format_IMC3: {
             // Three planes, the second and third vertically and horizontally subsumpled,
             // but with lines padded to the width of the first plane.
             d->mapData.nPlanes = 3;
@@ -697,7 +698,7 @@ void QVideoFrame::unmap()
     Returns the number of bytes in a scan line.
 
     \note For planar formats this is the bytes per line of the first plane only.  The bytes per line of subsequent
-    planes should be calculated as per the frame \l{QVideoFrame::PixelFormat}{pixel format}.
+    planes should be calculated as per the frame \l{QVideoSurfaceFormat::PixelFormat}{pixel format}.
 
     This value is only valid while the frame data is \l {map()}{mapped}.
 
@@ -868,103 +869,6 @@ void QVideoFrame::setEndTime(qint64 time)
     d->endTime = time;
 }
 
-/*!
-    Returns a video pixel format equivalent to an image \a format.  If there is no equivalent
-    format QVideoFrame::InvalidType is returned instead.
-
-    \note In general \l QImage does not handle YUV formats.
-
-*/
-QVideoFrame::PixelFormat QVideoFrame::pixelFormatFromImageFormat(QImage::Format format)
-{
-    switch (format) {
-    case QImage::Format_RGB32:
-    case QImage::Format_RGBX8888:
-        return Format_RGB32;
-    case QImage::Format_ARGB32:
-    case QImage::Format_RGBA8888:
-        return Format_ARGB32;
-    case QImage::Format_ARGB32_Premultiplied:
-    case QImage::Format_RGBA8888_Premultiplied:
-        return Format_ARGB32_Premultiplied;
-    case QImage::Format_RGB16:
-        return Format_RGB565;
-    case QImage::Format_ARGB8565_Premultiplied:
-        return Format_ARGB8565_Premultiplied;
-    case QImage::Format_RGB555:
-        return Format_RGB555;
-    case QImage::Format_RGB888:
-        return Format_RGB24;
-    case QImage::Format_Grayscale8:
-        return Format_Y8;
-    case QImage::Format_Grayscale16:
-        return Format_Y16;
-    default:
-        return Format_Invalid;
-    }
-}
-
-/*!
-    Returns an image format equivalent to a video frame pixel \a format.  If there is no equivalent
-    format QImage::Format_Invalid is returned instead.
-
-    \note In general \l QImage does not handle YUV formats.
-
-*/
-QImage::Format QVideoFrame::imageFormatFromPixelFormat(PixelFormat format)
-{
-    switch (format) {
-    case Format_ARGB32:
-        return QImage::Format_ARGB32;
-    case Format_ARGB32_Premultiplied:
-        return QImage::Format_ARGB32_Premultiplied;
-    case Format_RGB32:
-        return QImage::Format_RGB32;
-    case Format_RGB24:
-        return QImage::Format_RGB888;
-    case Format_RGB565:
-        return QImage::Format_RGB16;
-    case Format_RGB555:
-        return QImage::Format_RGB555;
-    case Format_ARGB8565_Premultiplied:
-        return QImage::Format_ARGB8565_Premultiplied;
-    case Format_Y8:
-        return QImage::Format_Grayscale8;
-    case Format_Y16:
-        return QImage::Format_Grayscale16;
-    case Format_ABGR32:
-    case Format_BGRA32:
-    case Format_BGRA32_Premultiplied:
-    case Format_BGR32:
-    case Format_BGR24:
-    case Format_BGR565:
-    case Format_BGR555:
-    case Format_BGRA5658_Premultiplied:
-    case Format_AYUV444:
-    case Format_AYUV444_Premultiplied:
-    case Format_YUV444:
-    case Format_YUV420P:
-    case Format_YUV422P:
-    case Format_YV12:
-    case Format_UYVY:
-    case Format_YUYV:
-    case Format_NV12:
-    case Format_NV21:
-    case Format_IMC1:
-    case Format_IMC2:
-    case Format_IMC3:
-    case Format_IMC4:
-    case Format_P010LE:
-    case Format_P010BE:
-    case Format_P016LE:
-    case Format_P016BE:
-    case Format_Jpeg:
-    case Format_Invalid:
-        return QImage::Format_Invalid;
-    }
-    return QImage::Format_Invalid;
-}
-
 
 /*!
     Based on the pixel format converts current video frame to image.
@@ -979,13 +883,13 @@ QImage QVideoFrame::image() const
         return result;
 
     // Formats supported by QImage don't need conversion
-    QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
+    QImage::Format imageFormat = QVideoSurfaceFormat::imageFormatFromPixelFormat(frame.pixelFormat());
     if (imageFormat != QImage::Format_Invalid) {
         result = QImage(frame.bits(), frame.width(), frame.height(), frame.bytesPerLine(), imageFormat).copy();
     }
 
     // Load from JPG
-    else if (frame.pixelFormat() == QVideoFrame::Format_Jpeg) {
+    else if (frame.pixelFormat() == QVideoSurfaceFormat::Format_Jpeg) {
         result.loadFromData(frame.bits(), frame.mappedBytes(), "JPG");
     }
 
@@ -1007,91 +911,6 @@ QImage QVideoFrame::image() const
 }
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug dbg, QVideoFrame::PixelFormat pf)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace();
-    switch (pf) {
-        case QVideoFrame::Format_Invalid:
-            return dbg << "Format_Invalid";
-        case QVideoFrame::Format_ARGB32:
-            return dbg << "Format_ARGB32";
-        case QVideoFrame::Format_ARGB32_Premultiplied:
-            return dbg << "Format_ARGB32_Premultiplied";
-        case QVideoFrame::Format_RGB32:
-            return dbg << "Format_RGB32";
-        case QVideoFrame::Format_RGB24:
-            return dbg << "Format_RGB24";
-        case QVideoFrame::Format_RGB565:
-            return dbg << "Format_RGB565";
-        case QVideoFrame::Format_RGB555:
-            return dbg << "Format_RGB555";
-        case QVideoFrame::Format_ARGB8565_Premultiplied:
-            return dbg << "Format_ARGB8565_Premultiplied";
-        case QVideoFrame::Format_BGRA32:
-            return dbg << "Format_BGRA32";
-        case QVideoFrame::Format_BGRA32_Premultiplied:
-            return dbg << "Format_BGRA32_Premultiplied";
-        case QVideoFrame::Format_ABGR32:
-            return dbg << "Format_ABGR32";
-        case QVideoFrame::Format_BGR32:
-            return dbg << "Format_BGR32";
-        case QVideoFrame::Format_BGR24:
-            return dbg << "Format_BGR24";
-        case QVideoFrame::Format_BGR565:
-            return dbg << "Format_BGR565";
-        case QVideoFrame::Format_BGR555:
-            return dbg << "Format_BGR555";
-        case QVideoFrame::Format_BGRA5658_Premultiplied:
-            return dbg << "Format_BGRA5658_Premultiplied";
-        case QVideoFrame::Format_AYUV444:
-            return dbg << "Format_AYUV444";
-        case QVideoFrame::Format_AYUV444_Premultiplied:
-            return dbg << "Format_AYUV444_Premultiplied";
-        case QVideoFrame::Format_YUV444:
-            return dbg << "Format_YUV444";
-        case QVideoFrame::Format_YUV420P:
-            return dbg << "Format_YUV420P";
-        case QVideoFrame::Format_YUV422P:
-            return dbg << "Format_YUV422P";
-        case QVideoFrame::Format_YV12:
-            return dbg << "Format_YV12";
-        case QVideoFrame::Format_UYVY:
-            return dbg << "Format_UYVY";
-        case QVideoFrame::Format_YUYV:
-            return dbg << "Format_YUYV";
-        case QVideoFrame::Format_NV12:
-            return dbg << "Format_NV12";
-        case QVideoFrame::Format_NV21:
-            return dbg << "Format_NV21";
-        case QVideoFrame::Format_IMC1:
-            return dbg << "Format_IMC1";
-        case QVideoFrame::Format_IMC2:
-            return dbg << "Format_IMC2";
-        case QVideoFrame::Format_IMC3:
-            return dbg << "Format_IMC3";
-        case QVideoFrame::Format_IMC4:
-            return dbg << "Format_IMC4";
-        case QVideoFrame::Format_Y8:
-            return dbg << "Format_Y8";
-        case QVideoFrame::Format_Y16:
-            return dbg << "Format_Y16";
-        case QVideoFrame::Format_P010LE:
-            return dbg << "Format_P010LE";
-        case QVideoFrame::Format_P010BE:
-            return dbg << "Format_P010BE";
-        case QVideoFrame::Format_P016LE:
-            return dbg << "Format_P016LE";
-        case QVideoFrame::Format_P016BE:
-            return dbg << "Format_P016BE";
-        case QVideoFrame::Format_Jpeg:
-            return dbg << "Format_Jpeg";
-
-        default:
-            return dbg << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toLatin1().constData();
-    }
-}
-
 static QString qFormatTimeStamps(qint64 start, qint64 end)
 {
     // Early out for invalid.

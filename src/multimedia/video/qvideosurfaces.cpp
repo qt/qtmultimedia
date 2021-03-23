@@ -57,10 +57,10 @@ QVideoSurfaces::QVideoSurfaces(const QList<QAbstractVideoSurface *> &s, QObject 
 
 QVideoSurfaces::~QVideoSurfaces() = default;
 
-QList<QVideoFrame::PixelFormat> QVideoSurfaces::supportedPixelFormats(QVideoFrame::HandleType type) const
+QList<QVideoSurfaceFormat::PixelFormat> QVideoSurfaces::supportedPixelFormats(QVideoFrame::HandleType type) const
 {
-    QList<QVideoFrame::PixelFormat> result;
-    QMap<QVideoFrame::PixelFormat, int> formats;
+    QList<QVideoSurfaceFormat::PixelFormat> result;
+    QMap<QVideoSurfaceFormat::PixelFormat, int> formats;
     for (auto &s : m_surfaces) {
         for (auto &p : s->supportedPixelFormats(type)) {
             if (++formats[p] == m_surfaces.size())

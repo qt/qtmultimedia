@@ -43,18 +43,18 @@
 
 QT_BEGIN_NAMESPACE
 
-QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_RGB::supportedPixelFormats(
+QList<QVideoSurfaceFormat::PixelFormat> QSGVideoNodeFactory_RGB::supportedPixelFormats(
                                         QVideoFrame::HandleType handleType) const
 {
-    QList<QVideoFrame::PixelFormat> pixelFormats;
+    QList<QVideoSurfaceFormat::PixelFormat> pixelFormats;
 
     if (handleType == QVideoFrame::NoHandle) {
-        pixelFormats.append(QVideoFrame::Format_RGB32);
-        pixelFormats.append(QVideoFrame::Format_ARGB32);
-        pixelFormats.append(QVideoFrame::Format_ARGB32_Premultiplied);
-        pixelFormats.append(QVideoFrame::Format_BGR32);
-        pixelFormats.append(QVideoFrame::Format_BGRA32);
-        pixelFormats.append(QVideoFrame::Format_RGB565);
+        pixelFormats.append(QVideoSurfaceFormat::Format_RGB32);
+        pixelFormats.append(QVideoSurfaceFormat::Format_ARGB32);
+        pixelFormats.append(QVideoSurfaceFormat::Format_ARGB32_Premultiplied);
+        pixelFormats.append(QVideoSurfaceFormat::Format_BGR32);
+        pixelFormats.append(QVideoSurfaceFormat::Format_BGRA32);
+        pixelFormats.append(QVideoSurfaceFormat::Format_RGB565);
     }
 
     return pixelFormats;
@@ -165,13 +165,13 @@ void QSGVideoMaterialRhiShader_RGB::updateSampledImage(RenderState &state, int b
     m->m_frameMutex.lock();
     auto frame = m->m_frame;
 
-    if (frame.pixelFormat() == QVideoFrame::Format_RGB565) // Format_RGB565 requires GL_UNSIGNED_SHORT_5_6_5
+    if (frame.pixelFormat() == QVideoSurfaceFormat::Format_RGB565) // Format_RGB565 requires GL_UNSIGNED_SHORT_5_6_5
         frame = frame.image().convertToFormat(QImage::Format_RGBA8888_Premultiplied);
 
     auto format = QRhiTexture::RGBA8;
-    if (frame.pixelFormat() == QVideoFrame::Format_RGB32
-        || frame.pixelFormat() == QVideoFrame::Format_ARGB32
-        || frame.pixelFormat() == QVideoFrame::Format_ARGB32_Premultiplied)
+    if (frame.pixelFormat() == QVideoSurfaceFormat::Format_RGB32
+        || frame.pixelFormat() == QVideoSurfaceFormat::Format_ARGB32
+        || frame.pixelFormat() == QVideoSurfaceFormat::Format_ARGB32_Premultiplied)
     {
         format = QRhiTexture::BGRA8;
     }

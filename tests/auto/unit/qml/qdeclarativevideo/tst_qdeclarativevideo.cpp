@@ -956,7 +956,7 @@ void tst_QDeclarativeVideo::geometry()
 
     //video item can use overlay, QVideoSink is not used than.
     if (surface) {
-        QVideoSurfaceFormat format(QSize(640, 480), QVideoFrame::Format_RGB32);
+        QVideoSurfaceFormat format(QSize(640, 480), QVideoSurfaceFormat::Format_RGB32);
 
         QVERIFY(surface->start(format));
         QCoreApplication::processEvents();

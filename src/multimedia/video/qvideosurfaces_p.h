@@ -62,7 +62,7 @@ public:
     QVideoSurfaces(const QList<QAbstractVideoSurface *> &surfaces, QObject *parent = nullptr);
     ~QVideoSurfaces();
 
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType type) const override;
+    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType type) const override;
     bool start(const QVideoSurfaceFormat &format) override;
     void stop() override;
     bool present(const QVideoFrame &frame) override;

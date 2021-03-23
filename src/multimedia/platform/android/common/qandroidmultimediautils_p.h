@@ -63,8 +63,8 @@ int qt_findClosestValue(const QList<int> &list, int value);
 
 bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
 
-QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
-AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f);
+QVideoSurfaceFormat::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
+AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoSurfaceFormat::PixelFormat f);
 
 bool qt_androidRequestCameraPermission();
 bool qt_androidRequestRecordingPermission();

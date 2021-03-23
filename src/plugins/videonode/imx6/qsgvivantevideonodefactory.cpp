@@ -41,14 +41,14 @@
 #include "qsgvivantevideonode.h"
 #include <QtGui/QGuiApplication>
 
-QList<QVideoFrame::PixelFormat> QSGVivanteVideoNodeFactory::supportedPixelFormats(
+QList<QVideoSurfaceFormat::PixelFormat> QSGVivanteVideoNodeFactory::supportedPixelFormats(
         QVideoFrame::HandleType handleType) const
 {
     const bool isWebGl = QGuiApplication::platformName() == QLatin1String("webgl");
     if (!isWebGl && handleType == QVideoFrame::NoHandle)
         return QSGVivanteVideoNode::getVideoFormat2GLFormatMap().keys();
     else
-        return QList<QVideoFrame::PixelFormat>();
+        return QList<QVideoSurfaceFormat::PixelFormat>();
 }
 
 QSGVideoNode *QSGVivanteVideoNodeFactory::createNode(const QVideoSurfaceFormat &format)

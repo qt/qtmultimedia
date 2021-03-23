@@ -115,64 +115,64 @@ void AVFCamera::updateStatus()
     }
 }
 
-QVideoFrame::PixelFormat AVFCamera::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
+QVideoSurfaceFormat::PixelFormat AVFCamera::QtPixelFormatFromCVFormat(unsigned avPixelFormat)
 {
     // BGRA <-> ARGB "swap" is intentional:
     // to work correctly with GL_RGBA, color swap shaders
     // (in QSG node renderer etc.).
     switch (avPixelFormat) {
     case kCVPixelFormatType_32ARGB:
-        return QVideoFrame::Format_BGRA32;
+        return QVideoSurfaceFormat::Format_BGRA32;
     case kCVPixelFormatType_32BGRA:
-        return QVideoFrame::Format_ARGB32;
+        return QVideoSurfaceFormat::Format_ARGB32;
     case kCVPixelFormatType_24RGB:
-        return QVideoFrame::Format_RGB24;
+        return QVideoSurfaceFormat::Format_RGB24;
     case kCVPixelFormatType_24BGR:
-        return QVideoFrame::Format_BGR24;
+        return QVideoSurfaceFormat::Format_BGR24;
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
     case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
-        return QVideoFrame::Format_NV12;
+        return QVideoSurfaceFormat::Format_NV12;
     case kCVPixelFormatType_422YpCbCr8:
-        return QVideoFrame::Format_UYVY;
+        return QVideoSurfaceFormat::Format_UYVY;
     case kCVPixelFormatType_422YpCbCr8_yuvs:
-        return QVideoFrame::Format_YUYV;
+        return QVideoSurfaceFormat::Format_YUYV;
     case kCMVideoCodecType_JPEG:
     case kCMVideoCodecType_JPEG_OpenDML:
-        return QVideoFrame::Format_Jpeg;
+        return QVideoSurfaceFormat::Format_Jpeg;
     default:
-        return QVideoFrame::Format_Invalid;
+        return QVideoSurfaceFormat::Format_Invalid;
     }
 }
 
-bool AVFCamera::CVPixelFormatFromQtFormat(QVideoFrame::PixelFormat qtFormat, unsigned &conv)
+bool AVFCamera::CVPixelFormatFromQtFormat(QVideoSurfaceFormat::PixelFormat qtFormat, unsigned &conv)
 {
     // BGRA <-> ARGB "swap" is intentional:
     // to work correctly with GL_RGBA, color swap shaders
     // (in QSG node renderer etc.).
     switch (qtFormat) {
-    case QVideoFrame::Format_ARGB32:
+    case QVideoSurfaceFormat::Format_ARGB32:
         conv = kCVPixelFormatType_32BGRA;
         break;
-    case QVideoFrame::Format_BGRA32:
+    case QVideoSurfaceFormat::Format_BGRA32:
         conv = kCVPixelFormatType_32ARGB;
         break;
-    case QVideoFrame::Format_NV12:
+    case QVideoSurfaceFormat::Format_NV12:
         conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
         break;
-    case QVideoFrame::Format_UYVY:
+    case QVideoSurfaceFormat::Format_UYVY:
         conv = kCVPixelFormatType_422YpCbCr8;
         break;
-    case QVideoFrame::Format_YUYV:
+    case QVideoSurfaceFormat::Format_YUYV:
         conv = kCVPixelFormatType_422YpCbCr8_yuvs;
         break;
     // These two formats below are not supported
     // by QSGVideoNodeFactory_RGB, so for now I have to
     // disable them.
     /*
-    case QVideoFrame::Format_RGB24:
+    case QVideoSurfaceFormat::Format_RGB24:
         conv = kCVPixelFormatType_24RGB;
         break;
-    case QVideoFrame::Format_BGR24:
+    case QVideoSurfaceFormat::Format_BGR24:
         conv = kCVPixelFormatType_24BGR;
         break;
     */

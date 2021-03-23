@@ -52,13 +52,13 @@
 //! [Derived Surface]
 class MyVideoSurface : public QAbstractVideoSurface
 {
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
+    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(
             QVideoFrame::HandleType handleType = QVideoFrame::NoHandle) const
     {
         Q_UNUSED(handleType);
 
         // Return the formats you will support
-        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB565;
+        return QList<QVideoSurfaceFormat::PixelFormat>() << QVideoSurfaceFormat::Format_RGB565;
     }
 
     bool present(const QVideoFrame &frame)
@@ -156,7 +156,7 @@ void VideoExample::VideoSurface()
 {
     //! [Widget Surface]
     QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
-    QVideoSurfaceFormat format(img.size(), QVideoFrame::Format_ARGB32);
+    QVideoSurfaceFormat format(img.size(), QVideoSurfaceFormat::Format_ARGB32);
     videoWidget = new QVideoWidget;
     videoWidget->videoSurface()->start(format);
     videoWidget->videoSurface()->present(img);
@@ -168,7 +168,7 @@ void VideoExample::VideoSurface()
     graphicsView->scene()->addItem(item);
     graphicsView->show();
     QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
-    QVideoSurfaceFormat format(img.size(), QVideoFrame::Format_ARGB32);
+    QVideoSurfaceFormat format(img.size(), QVideoSurfaceFormat::Format_ARGB32);
     item->videoSurface()->start(format);
     item->videoSurface()->present(img);
     //! [GraphicsVideoItem Surface]

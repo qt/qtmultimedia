@@ -255,7 +255,7 @@ void tst_QVideoWidget::sizeHintWindowControl()
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
-    QVideoSurfaceFormat format(frameSize, QVideoFrame::Format_ARGB32);
+    QVideoSurfaceFormat format(frameSize, QVideoSurfaceFormat::Format_ARGB32);
     format.setViewport(viewport);
 
     QVERIFY(object.testService->rendererControl->surface()->start(format));
@@ -651,7 +651,7 @@ void tst_QVideoWidget::paintRendererControl()
     QPainterVideoSurface *surface = qobject_cast<QPainterVideoSurface *>(
             object.testService->rendererControl->surface());
 
-    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoSurfaceFormat::Format_RGB32);
 
     QVERIFY(surface->start(format));
     QCOMPARE(surface->isActive(), true);
@@ -662,7 +662,7 @@ void tst_QVideoWidget::paintRendererControl()
     QCOMPARE(surface->isActive(), true);
     QCOMPARE(surface->isReady(), true);
 
-    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
+    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoSurfaceFormat::Format_RGB32);
 
     frame.map(QVideoFrame::WriteOnly);
     memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
@@ -689,11 +689,11 @@ void tst_QVideoWidget::paintSurface()
             widget.videoSurface());
     QVERIFY(surface);
 
-    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoSurfaceFormat::Format_RGB32);
     QVERIFY(surface->start(format));
     QCOMPARE(surface->isActive(), true);
 
-    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
+    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoSurfaceFormat::Format_RGB32);
     frame.map(QVideoFrame::WriteOnly);
     memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
     frame.unmap();

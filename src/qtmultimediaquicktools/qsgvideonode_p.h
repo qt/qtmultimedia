@@ -71,7 +71,7 @@ public:
     QSGVideoNode();
 
     virtual void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) = 0;
-    virtual QVideoFrame::PixelFormat pixelFormat() const = 0;
+    virtual QVideoSurfaceFormat::PixelFormat pixelFormat() const = 0;
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
@@ -88,7 +88,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryInterface
 public:
     virtual ~QSGVideoNodeFactoryInterface();
 
-    virtual QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const = 0;
+    virtual QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const = 0;
     virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
 };
 
@@ -100,7 +100,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryPlugin : public QObject, publi
     Q_OBJECT
     Q_INTERFACES(QSGVideoNodeFactoryInterface)
 public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override = 0;
+    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override = 0;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override = 0;
 };
 

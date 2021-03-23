@@ -120,7 +120,7 @@ public:
 
 private:
     bool m_storeFrames;
-    QList<QVideoFrame::PixelFormat> m_supported;
+    QList<QVideoSurfaceFormat::PixelFormat> m_supported;
 };
 
 void tst_QMediaPlayerBackend::init()
@@ -780,7 +780,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
         // create QImage for QVideoFrame to verify RGB pixel colors
         QVERIFY(frame.map(QVideoFrame::ReadOnly));
-        QImage image(frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
+        QImage image(frame.bits(), frame.width(), frame.height(), QVideoSurfaceFormat::imageFormatFromPixelFormat(frame.pixelFormat()));
         QVERIFY(!image.isNull());
         QVERIFY(qRed(image.pixel(0, 0)) >= 230); // conversion from YUV => RGB, that's why it's not 255
         QVERIFY(qGreen(image.pixel(0, 0)) < 20);
@@ -804,7 +804,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QCOMPARE(frame.height(), 120);
 
         QVERIFY(frame.map(QVideoFrame::ReadOnly));
-        QImage image(frame.bits(), frame.width(), frame.height(), QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat()));
+        QImage image(frame.bits(), frame.width(), frame.height(), QVideoSurfaceFormat::imageFormatFromPixelFormat(frame.pixelFormat()));
         QVERIFY(!image.isNull());
         QVERIFY(qRed(image.pixel(0, 0)) < 20);
         QVERIFY(qGreen(image.pixel(0, 0)) >= 230);
@@ -974,22 +974,22 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 
 void tst_QMediaPlayerBackend::surfaceTest_data()
 {
-    QTest::addColumn< QList<QVideoFrame::PixelFormat> >("formatsList");
+    QTest::addColumn< QList<QVideoSurfaceFormat::PixelFormat> >("formatsList");
 
-    QList<QVideoFrame::PixelFormat> formatsRGB;
-    formatsRGB << QVideoFrame::Format_RGB32
-               << QVideoFrame::Format_ARGB32
-               << QVideoFrame::Format_RGB565
-               << QVideoFrame::Format_BGRA32;
+    QList<QVideoSurfaceFormat::PixelFormat> formatsRGB;
+    formatsRGB << QVideoSurfaceFormat::Format_RGB32
+               << QVideoSurfaceFormat::Format_ARGB32
+               << QVideoSurfaceFormat::Format_RGB565
+               << QVideoSurfaceFormat::Format_BGRA32;
 
-    QList<QVideoFrame::PixelFormat> formatsYUV;
-    formatsYUV << QVideoFrame::Format_YUV420P
-               << QVideoFrame::Format_YUV422P
-               << QVideoFrame::Format_YV12
-               << QVideoFrame::Format_UYVY
-               << QVideoFrame::Format_YUYV
-               << QVideoFrame::Format_NV12
-               << QVideoFrame::Format_NV21;
+    QList<QVideoSurfaceFormat::PixelFormat> formatsYUV;
+    formatsYUV << QVideoSurfaceFormat::Format_YUV420P
+               << QVideoSurfaceFormat::Format_YUV422P
+               << QVideoSurfaceFormat::Format_YV12
+               << QVideoSurfaceFormat::Format_UYVY
+               << QVideoSurfaceFormat::Format_YUYV
+               << QVideoSurfaceFormat::Format_NV12
+               << QVideoSurfaceFormat::Format_NV21;
 
     QTest::newRow("RGB formats")
             << formatsRGB;
@@ -1007,7 +1007,7 @@ void tst_QMediaPlayerBackend::surfaceTest()
     if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
-    QFETCH(QList<QVideoFrame::PixelFormat>, formatsList);
+    QFETCH(QList<QVideoSurfaceFormat::PixelFormat>, formatsList);
 
     TestVideoSink surface(false);
     QMediaPlayer player;

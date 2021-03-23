@@ -323,8 +323,8 @@ QVideoFrame CLFilterRunnable::run(QVideoFrame *input, const QVideoSurfaceFormat 
         return *input;
     }
 
-    if (input->pixelFormat() == QVideoFrame::Format_YUV420P
-            || input->pixelFormat() == QVideoFrame::Format_YV12) {
+    if (input->pixelFormat() == QVideoSurfaceFormat::Format_YUV420P
+            || input->pixelFormat() == QVideoSurfaceFormat::Format_YV12) {
         qWarning("YUV data is not supported");
         return *input;
     }

@@ -233,7 +233,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
         return;
     }
 
-    auto imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
+    auto imageFormat = QVideoSurfaceFormat::imageFormatFromPixelFormat(frame.pixelFormat());
     // Do not render into ARGB32 images using QPainter.
     // Using QImage::Format_ARGB32_Premultiplied is significantly faster.
     if (imageFormat == QImage::Format_ARGB32)

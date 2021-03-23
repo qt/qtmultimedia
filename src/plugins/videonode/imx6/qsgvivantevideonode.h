@@ -50,18 +50,18 @@ public:
     QSGVivanteVideoNode(const QVideoSurfaceFormat &format);
     ~QSGVivanteVideoNode();
 
-    QVideoFrame::PixelFormat pixelFormat() const { return mFormat.pixelFormat(); }
+    QVideoSurfaceFormat::PixelFormat pixelFormat() const { return mFormat.pixelFormat(); }
     QVideoFrame::HandleType handleType() const { return QVideoFrame::NoHandle; }
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
-    static const QMap<QVideoFrame::PixelFormat, GLenum>& getVideoFormat2GLFormatMap();
-    static int getBytesForPixelFormat(QVideoFrame::PixelFormat pixelformat);
+    static const QMap<QVideoSurfaceFormat::PixelFormat, GLenum>& getVideoFormat2GLFormatMap();
+    static int getBytesForPixelFormat(QVideoSurfaceFormat::PixelFormat pixelformat);
 
 private:
     QVideoSurfaceFormat mFormat;
     QSGVivanteVideoMaterial *mMaterial;
 
-    static QMap<QVideoFrame::PixelFormat, GLenum> static_VideoFormat2GLFormatMap;
+    static QMap<QVideoSurfaceFormat::PixelFormat, GLenum> static_VideoFormat2GLFormatMap;
 };
 
 #endif // QSGVIDEONODE_VIVANTE_H

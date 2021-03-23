@@ -791,8 +791,8 @@ namespace
             clearMediaTypes();
             if (!m_surface)
                 return;
-            const QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats();
-            for (QVideoFrame::PixelFormat format : formats) {
+            const QList<QVideoSurfaceFormat::PixelFormat> formats = m_surface->supportedPixelFormats();
+            for (QVideoSurfaceFormat::PixelFormat format : formats) {
                 IMFMediaType *mediaType;
                 if (FAILED(MFCreateMediaType(&mediaType))) {
                     qWarning("Failed to create mf media type!");
@@ -803,36 +803,36 @@ namespace
                 mediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
                 mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
                 switch (format) {
-                    case QVideoFrame::Format_ARGB32:
-                    case QVideoFrame::Format_ARGB32_Premultiplied:
+                    case QVideoSurfaceFormat::Format_ARGB32:
+                    case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32);
                         break;
-                    case QVideoFrame::Format_RGB32:
+                    case QVideoSurfaceFormat::Format_RGB32:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
                         break;
-                    case QVideoFrame::Format_BGR24: // MFVideoFormat_RGB24 has a BGR layout
+                    case QVideoSurfaceFormat::Format_BGR24: // MFVideoFormat_RGB24 has a BGR layout
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB24);
                         break;
-                    case QVideoFrame::Format_RGB565:
+                    case QVideoSurfaceFormat::Format_RGB565:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB565);
                         break;
-                    case QVideoFrame::Format_RGB555:
+                    case QVideoSurfaceFormat::Format_RGB555:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB555);
                         break;
-                    case QVideoFrame::Format_AYUV444:
-                    case QVideoFrame::Format_AYUV444_Premultiplied:
+                    case QVideoSurfaceFormat::Format_AYUV444:
+                    case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_AYUV);
                         break;
-                    case QVideoFrame::Format_YUV420P:
+                    case QVideoSurfaceFormat::Format_YUV420P:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_I420);
                         break;
-                    case QVideoFrame::Format_UYVY:
+                    case QVideoSurfaceFormat::Format_UYVY:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_UYVY);
                         break;
-                    case QVideoFrame::Format_YV12:
+                    case QVideoSurfaceFormat::Format_YV12:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_YV12);
                         break;
-                    case QVideoFrame::Format_NV12:
+                    case QVideoSurfaceFormat::Format_NV12:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
                         break;
                     default:
@@ -1038,7 +1038,7 @@ namespace
 
         bool m_shutdown;
         QList<IMFMediaType*> m_mediaTypes;
-        QList<QVideoFrame::PixelFormat> m_pixelFormats;
+        QList<QVideoSurfaceFormat::PixelFormat> m_pixelFormats;
         int m_currentFormatIndex;
         int m_bytesPerLine;
         QVideoSurfaceFormat m_surfaceFormat;
@@ -1077,27 +1077,27 @@ namespace
         {
             switch (format.pixelFormat()) {
             // 32 bpp packed formats.
-            case QVideoFrame::Format_RGB32:
-            case QVideoFrame::Format_AYUV444:
+            case QVideoSurfaceFormat::Format_RGB32:
+            case QVideoSurfaceFormat::Format_AYUV444:
                 return format.frameWidth() * 4;
             // 24 bpp packed formats.
-            case QVideoFrame::Format_RGB24:
-            case QVideoFrame::Format_BGR24:
+            case QVideoSurfaceFormat::Format_RGB24:
+            case QVideoSurfaceFormat::Format_BGR24:
                 return PAD_TO_DWORD(format.frameWidth() * 3);
             // 16 bpp packed formats.
-            case QVideoFrame::Format_RGB565:
-            case QVideoFrame::Format_RGB555:
-            case QVideoFrame::Format_YUYV:
-            case QVideoFrame::Format_UYVY:
+            case QVideoSurfaceFormat::Format_RGB565:
+            case QVideoSurfaceFormat::Format_RGB555:
+            case QVideoSurfaceFormat::Format_YUYV:
+            case QVideoSurfaceFormat::Format_UYVY:
                 return PAD_TO_DWORD(format.frameWidth() * 2);
             // Planar formats.
-            case QVideoFrame::Format_IMC1:
-            case QVideoFrame::Format_IMC2:
-            case QVideoFrame::Format_IMC3:
-            case QVideoFrame::Format_IMC4:
-            case QVideoFrame::Format_YV12:
-            case QVideoFrame::Format_NV12:
-            case QVideoFrame::Format_YUV420P:
+            case QVideoSurfaceFormat::Format_IMC1:
+            case QVideoSurfaceFormat::Format_IMC2:
+            case QVideoSurfaceFormat::Format_IMC3:
+            case QVideoSurfaceFormat::Format_IMC4:
+            case QVideoSurfaceFormat::Format_YV12:
+            case QVideoSurfaceFormat::Format_NV12:
+            case QVideoSurfaceFormat::Format_YUV420P:
                 return PAD_TO_DWORD(format.frameWidth());
             default:
                 return 0;

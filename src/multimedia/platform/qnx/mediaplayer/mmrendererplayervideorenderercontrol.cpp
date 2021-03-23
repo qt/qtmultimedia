@@ -172,19 +172,19 @@ void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
     if (m_surface) {
         if (!m_surface->isActive()) {
             if (m_windowGrabber->eglImageSupported()) {
-                m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_BGR32,
+                m_surface->start(QVideoSurfaceFormat(size, QVideoSurfaceFormat::Format_BGR32,
                                                      QVideoFrame::GLTextureHandle));
             } else {
-                m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_ARGB32));
+                m_surface->start(QVideoSurfaceFormat(size, QVideoSurfaceFormat::Format_ARGB32));
             }
         } else {
             if (m_surface->surfaceFormat().frameSize() != size) {
                 m_surface->stop();
                 if (m_windowGrabber->eglImageSupported()) {
-                    m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_BGR32,
+                    m_surface->start(QVideoSurfaceFormat(size, QVideoSurfaceFormat::Format_BGR32,
                                                          QVideoFrame::GLTextureHandle));
                 } else {
-                    m_surface->start(QVideoSurfaceFormat(size, QVideoFrame::Format_ARGB32));
+                    m_surface->start(QVideoSurfaceFormat(size, QVideoSurfaceFormat::Format_ARGB32));
                 }
             }
         }
@@ -193,7 +193,7 @@ void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
         // handle or a copy of the image data
         if (m_windowGrabber->eglImageSupported()) {
             QnxTextureBuffer *textBuffer = new QnxTextureBuffer(m_windowGrabber);
-            QVideoFrame actualFrame(textBuffer, size, QVideoFrame::Format_BGR32);
+            QVideoFrame actualFrame(textBuffer, size, QVideoSurfaceFormat::Format_BGR32);
             m_surface->present(actualFrame);
         } else {
             m_surface->present(m_windowGrabber->getNextImage().copy());

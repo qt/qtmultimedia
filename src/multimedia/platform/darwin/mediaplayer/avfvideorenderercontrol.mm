@@ -160,7 +160,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
             return;
 
         auto buffer = new TextureVideoBuffer(QVideoFrame::MTLTextureHandle, tex);
-        frame = QVideoFrame(buffer, nativeSize(), QVideoFrame::Format_BGR32);
+        frame = QVideoFrame(buffer, nativeSize(), QVideoSurfaceFormat::Format_BGR32);
         if (!frame.isValid())
             return;
 
@@ -178,7 +178,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
             return;
 
         QAbstractVideoBuffer *buffer = new TextureVideoBuffer(QVideoFrame::GLTextureHandle, tex);
-        frame = QVideoFrame(buffer, nativeSize(), QVideoFrame::Format_BGR32);
+        frame = QVideoFrame(buffer, nativeSize(), QVideoSurfaceFormat::Format_BGR32);
         if (!frame.isValid())
             return;
 
@@ -197,7 +197,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
             return;
 
         QAbstractVideoBuffer *buffer = new QImageVideoBuffer(frameData);
-        frame = QVideoFrame(buffer, nativeSize(), QVideoFrame::Format_ARGB32_Premultiplied);
+        frame = QVideoFrame(buffer, nativeSize(), QVideoSurfaceFormat::Format_ARGB32_Premultiplied);
         QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::NoHandle);
     }
 

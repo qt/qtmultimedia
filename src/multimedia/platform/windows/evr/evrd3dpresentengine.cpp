@@ -369,7 +369,7 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
 done:
     if (SUCCEEDED(hr)) {
         m_surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
-                                              m_useTextureRendering ? QVideoFrame::Format_RGB32
+                                              m_useTextureRendering ? QVideoSurfaceFormat::Format_RGB32
                                                                     : qt_evr_pixelFormatFromD3DFormat(d3dFormat),
                                               m_useTextureRendering ? QVideoFrame::GLTextureHandle
                                                                     : QVideoFrame::NoHandle);

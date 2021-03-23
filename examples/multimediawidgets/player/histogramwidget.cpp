@@ -211,8 +211,8 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
         if (!frame.map(QVideoFrame::ReadOnly))
             break;
 
-        if (frame.pixelFormat() == QVideoFrame::Format_YUV420P ||
-            frame.pixelFormat() == QVideoFrame::Format_NV12) {
+        if (frame.pixelFormat() == QVideoSurfaceFormat::Format_YUV420P ||
+            frame.pixelFormat() == QVideoSurfaceFormat::Format_NV12) {
             // Process YUV data
             uchar *b = frame.bits();
             for (int y = 0; y < frame.height(); ++y) {
@@ -222,7 +222,7 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
                 b += frame.bytesPerLine();
             }
         } else {
-            QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
+            QImage::Format imageFormat = QVideoSurfaceFormat::imageFormatFromPixelFormat(frame.pixelFormat());
             if (imageFormat != QImage::Format_Invalid) {
                 // Process RGB data
                 QImage image(frame.bits(), frame.width(), frame.height(), imageFormat);

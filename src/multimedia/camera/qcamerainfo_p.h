@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 class QCameraFormatPrivate : public QSharedData
 {
 public:
-    QVideoFrame::PixelFormat pixelFormat;
+    QVideoSurfaceFormat::PixelFormat pixelFormat;
     QSize resolution;
     float minFrameRate = 0;
     float maxFrameRate = 0;

@@ -251,9 +251,10 @@ private:
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
-    QVideoFrame::PixelFormat format =
+    QVideoSurfaceFormat::PixelFormat format =
             AVFCamera::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
-    if (format == QVideoFrame::Format_Invalid)
+    if (format == QVideoSurfaceFormat::Format_Invalid)
+avfcamerarenderercontrol.mm
         return;
 
     QVideoFrame frame(new CVImageVideoBuffer(imageBuffer, m_renderer),

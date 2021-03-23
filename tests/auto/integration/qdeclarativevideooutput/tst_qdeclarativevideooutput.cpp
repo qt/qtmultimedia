@@ -74,7 +74,7 @@ private:
 void SurfaceHolder::presentDummyFrame(const QSize &size)
 {
     if (m_surface && m_surface->supportedPixelFormats().count() > 0) {
-        QVideoFrame::PixelFormat pixelFormat = m_surface->supportedPixelFormats().value(0);
+        QVideoSurfaceFormat::PixelFormat pixelFormat = m_surface->supportedPixelFormats().value(0);
         QVideoSurfaceFormat format(size, pixelFormat);
         QVideoFrame frame(size.width() * size.height() * 4, size.width() * 4, QVideoSurfaceFormat(size, pixelFormat));
 
@@ -273,11 +273,11 @@ void tst_QDeclarativeVideoOutput::surfaceSource()
     QVERIFY(holder.videoSurface() != nullptr);
 
     // Now we could do things with the surface..
-    const QList<QVideoFrame::PixelFormat> formats = holder.videoSurface()->supportedPixelFormats();
+    const QList<QVideoSurfaceFormat::PixelFormat> formats = holder.videoSurface()->supportedPixelFormats();
     QVERIFY(formats.count() > 0);
 
     // See if we can start and stop each pixel format (..)
-    for (QVideoFrame::PixelFormat format : formats) {
+    for (QVideoSurfaceFormat::PixelFormat format : formats) {
         QVideoSurfaceFormat surfaceFormat(QSize(200,100), format);
         QVERIFY(holder.videoSurface()->isFormatSupported(surfaceFormat)); // This does kind of depend on node factories
 
@@ -362,7 +362,7 @@ void tst_QDeclarativeVideoOutput::paintSurface()
     QVERIFY(surface);
     QVERIFY(!surface->isActive());
     videoOutput->setSize(QSize(2, 2));
-    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoSurfaceFormat::Format_RGB32);
     QVERIFY(surface->isFormatSupported(format));
     QVERIFY(surface->start(format));
     QVERIFY(surface->isActive());

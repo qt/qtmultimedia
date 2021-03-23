@@ -323,7 +323,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
         return;
 
     QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(this, m_nativeSize);
-    QVideoFrame frame(buffer, m_nativeSize, QVideoFrame::Format_ABGR32);
+    QVideoFrame frame(buffer, m_nativeSize, QVideoSurfaceFormat::Format_ABGR32);
 
     if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
                                   || m_surface->surfaceFormat().frameSize() != frame.size())) {

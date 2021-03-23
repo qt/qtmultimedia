@@ -76,14 +76,14 @@ private:
     QAndroidCameraVideoRendererControl *m_control;
     AndroidSurfaceView *m_surfaceView;
     QMutex m_mutex;
-    QVideoFrame::PixelFormat m_pixelFormat;
+    QVideoSurfaceFormat::PixelFormat m_pixelFormat;
     QVideoFrame m_lastFrame;
 };
 
 QAndroidCameraDataVideoOutput::QAndroidCameraDataVideoOutput(QAndroidCameraVideoRendererControl *control)
     : QAndroidVideoOutput(control)
     , m_control(control)
-    , m_pixelFormat(QVideoFrame::Format_Invalid)
+    , m_pixelFormat(QVideoSurfaceFormat::Format_Invalid)
 {
     // The camera preview cannot be started unless we set a SurfaceTexture or a
     // SurfaceHolder. In this case we don't actually care about either of these, but since
@@ -129,15 +129,15 @@ void QAndroidCameraDataVideoOutput::onSurfaceCreated()
 
 void QAndroidCameraDataVideoOutput::configureFormat()
 {
-    m_pixelFormat = QVideoFrame::Format_Invalid;
+    m_pixelFormat = QVideoSurfaceFormat::Format_Invalid;
 
     if (!m_control->cameraSession()->camera())
         return;
 
-    QList<QVideoFrame::PixelFormat> surfaceFormats = m_control->surface()->supportedPixelFormats();
+    QList<QVideoSurfaceFormat::PixelFormat> surfaceFormats = m_control->surface()->supportedPixelFormats();
     QList<AndroidCamera::ImageFormat> previewFormats = m_control->cameraSession()->camera()->getSupportedPreviewFormats();
     for (int i = 0; i < surfaceFormats.size(); ++i) {
-        QVideoFrame::PixelFormat pixFormat = surfaceFormats.at(i);
+        QVideoSurfaceFormat::PixelFormat pixFormat = surfaceFormats.at(i);
         AndroidCamera::ImageFormat f = qt_androidImageFormatFromPixelFormat(pixFormat);
         if (previewFormats.contains(f)) {
             m_pixelFormat = pixFormat;
@@ -145,7 +145,7 @@ void QAndroidCameraDataVideoOutput::configureFormat()
         }
     }
 
-    if (m_pixelFormat == QVideoFrame::Format_Invalid) {
+    if (m_pixelFormat == QVideoSurfaceFormat::Format_Invalid) {
         m_control->cameraSession()->setPreviewCallback(nullptr);
         qWarning("The video surface is not compatible with any format supported by the camera");
     } else {

@@ -45,18 +45,18 @@
 
 QT_BEGIN_NAMESPACE
 
-QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelFormats(
+QList<QVideoSurfaceFormat::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelFormats(
                                         QVideoFrame::HandleType) const
 {
-    QList<QVideoFrame::PixelFormat> pixelFormats;
+    QList<QVideoSurfaceFormat::PixelFormat> pixelFormats;
 
-    pixelFormats.append(QVideoFrame::Format_RGB565);
-    pixelFormats.append(QVideoFrame::Format_RGB32);
-    pixelFormats.append(QVideoFrame::Format_ARGB32);
-    pixelFormats.append(QVideoFrame::Format_BGR32);
-    pixelFormats.append(QVideoFrame::Format_BGRA32);
+    pixelFormats.append(QVideoSurfaceFormat::Format_RGB565);
+    pixelFormats.append(QVideoSurfaceFormat::Format_RGB32);
+    pixelFormats.append(QVideoSurfaceFormat::Format_ARGB32);
+    pixelFormats.append(QVideoSurfaceFormat::Format_BGR32);
+    pixelFormats.append(QVideoSurfaceFormat::Format_BGRA32);
 #if !QT_CONFIG(gpu_vivante)
-    pixelFormats.append(QVideoFrame::Format_ABGR32);
+    pixelFormats.append(QVideoSurfaceFormat::Format_ABGR32);
 #endif
 
     return pixelFormats;
@@ -143,8 +143,8 @@ public:
 
 private:
     [[nodiscard]] bool needsSwizzling() const {
-        return m_format.pixelFormat() == QVideoFrame::Format_RGB32
-                || m_format.pixelFormat() == QVideoFrame::Format_ARGB32;
+        return m_format.pixelFormat() == QVideoSurfaceFormat::Format_RGB32
+                || m_format.pixelFormat() == QVideoSurfaceFormat::Format_ARGB32;
     }
 };
 

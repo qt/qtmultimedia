@@ -227,7 +227,7 @@ QList<QCameraInfo> QWindowsDeviceManager::videoInputs() const
                             if (mediaFormatResult == MF_E_NO_MORE_TYPES)
                                 break;
                             else if (SUCCEEDED(mediaFormatResult)) {
-                                QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+                                QVideoSurfaceFormat::PixelFormat pixelFormat = QVideoSurfaceFormat::Format_Invalid;
                                 QSize resolution;
                                 float minFr = .0;
                                 float maxFr = .0;

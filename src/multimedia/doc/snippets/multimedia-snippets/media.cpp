@@ -174,10 +174,10 @@ void MediaExample::MediaPlayer()
     {
     public:
         Surface(QObject *p) : QAbstractVideoSurface(p) { }
-        QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType) const override
+        QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType) const override
         {
             // Make sure that the driver supports this pixel format.
-            return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_YUYV;
+            return QList<QVideoSurfaceFormat::PixelFormat>() << QVideoSurfaceFormat::Format_YUYV;
         }
 
         // Video frames are handled here.

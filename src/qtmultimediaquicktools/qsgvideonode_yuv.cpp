@@ -43,14 +43,14 @@
 
 QT_BEGIN_NAMESPACE
 
-QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_YUV::supportedPixelFormats(
+QList<QVideoSurfaceFormat::PixelFormat> QSGVideoNodeFactory_YUV::supportedPixelFormats(
                                         QVideoFrame::HandleType) const
 {
-    QList<QVideoFrame::PixelFormat> formats;
+    QList<QVideoSurfaceFormat::PixelFormat> formats;
 
-    formats << QVideoFrame::Format_YUV420P << QVideoFrame::Format_YV12 << QVideoFrame::Format_YUV422P
-            << QVideoFrame::Format_NV12 << QVideoFrame::Format_NV21
-            << QVideoFrame::Format_UYVY << QVideoFrame::Format_YUYV;
+    formats << QVideoSurfaceFormat::Format_YUV420P << QVideoSurfaceFormat::Format_YV12 << QVideoSurfaceFormat::Format_YUV422P
+            << QVideoSurfaceFormat::Format_NV12 << QVideoSurfaceFormat::Format_NV21
+            << QVideoSurfaceFormat::Format_UYVY << QVideoSurfaceFormat::Format_YUYV;
 
     return formats;
 }
@@ -144,13 +144,13 @@ public:
         static QSGMaterialType biPlanarType, biPlanarSwizzleType, triPlanarType, uyvyType, yuyvType;
 
         switch (m_format.pixelFormat()) {
-        case QVideoFrame::Format_NV12:
+        case QVideoSurfaceFormat::Format_NV12:
             return &biPlanarType;
-        case QVideoFrame::Format_NV21:
+        case QVideoSurfaceFormat::Format_NV21:
             return &biPlanarSwizzleType;
-        case QVideoFrame::Format_UYVY:
+        case QVideoSurfaceFormat::Format_UYVY:
             return &uyvyType;
-        case QVideoFrame::Format_YUYV:
+        case QVideoSurfaceFormat::Format_YUYV:
             return &yuyvType;
         default: // Currently: YUV420P, YUV422P and YV12
             return &triPlanarType;
@@ -159,13 +159,13 @@ public:
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         switch (m_format.pixelFormat()) {
-        case QVideoFrame::Format_NV12:
+        case QVideoSurfaceFormat::Format_NV12:
             return new QSGVideoMaterialRhiShader_NV12;
-        case QVideoFrame::Format_NV21:
+        case QVideoSurfaceFormat::Format_NV21:
             return new QSGVideoMaterialRhiShader_NV21;
-        case QVideoFrame::Format_UYVY:
+        case QVideoSurfaceFormat::Format_UYVY:
             return new QSGVideoMaterialRhiShader_UYVY;
-        case QVideoFrame::Format_YUYV:
+        case QVideoSurfaceFormat::Format_YUYV:
             return new QSGVideoMaterialRhiShader_YUYV;
         default: // Currently: YUV420P, YUV422P and YV12
             return new QSGVideoMaterialRhiShader_YUV_YV;
@@ -288,11 +288,11 @@ void QSGVideoMaterialRhiShader_YUV_YV::mapFrame(QSGVideoMaterial_YUV *m)
         return;
 
     int y = 0;
-    int u = m->m_frame.pixelFormat() == QVideoFrame::Format_YV12 ? 2 : 1;
-    int v = m->m_frame.pixelFormat() == QVideoFrame::Format_YV12 ? 1 : 2;
+    int u = m->m_frame.pixelFormat() == QVideoSurfaceFormat::Format_YV12 ? 2 : 1;
+    int v = m->m_frame.pixelFormat() == QVideoSurfaceFormat::Format_YV12 ? 1 : 2;
     int fw = m->m_frame.width();
     int fh = m->m_frame.height();
-    int uvHeight = m->m_frame.pixelFormat() == QVideoFrame::Format_YUV422P ? fh : fh / 2;
+    int uvHeight = m->m_frame.pixelFormat() == QVideoSurfaceFormat::Format_YUV422P ? fh : fh / 2;
 
     m->m_planeWidth[0] = float(fw) / m->m_frame.bytesPerLine(y);
     m->m_planeWidth[1] = m->m_planeWidth[2] = float(fw) / (2 * m->m_frame.bytesPerLine(u));

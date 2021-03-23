@@ -67,7 +67,7 @@ static const LONG   ONE_MSEC = 1000;
 static HRESULT setDesiredSampleTime(IMFSample *sample, const LONGLONG& hnsSampleTime, const LONGLONG& hnsDuration);
 static HRESULT clearDesiredSampleTime(IMFSample *sample);
 static HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect& nrcSource);
-static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type);
+static QVideoSurfaceFormat::PixelFormat pixelFormatFromMediaType(IMFMediaType *type);
 
 static inline LONG MFTimeToMsec(const LONGLONG& time)
 {
@@ -1026,13 +1026,13 @@ void EVRCustomPresenter::supportedFormatsChanged()
 
     // check if we can render to the surface (compatible formats)
     if (m_surface) {
-        QList<QVideoFrame::PixelFormat> formats = m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle);
-        if (m_presentEngine->supportsTextureRendering() && formats.contains(QVideoFrame::Format_RGB32)) {
+        QList<QVideoSurfaceFormat::PixelFormat> formats = m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle);
+        if (m_presentEngine->supportsTextureRendering() && formats.contains(QVideoSurfaceFormat::Format_RGB32)) {
             m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, true);
             m_canRenderToSurface = true;
         } else {
             formats = m_surface->supportedPixelFormats(QVideoFrame::NoHandle);
-            for (QVideoFrame::PixelFormat format : qAsConst(formats)) {
+            for (QVideoSurfaceFormat::PixelFormat format : qAsConst(formats)) {
                 if (SUCCEEDED(m_presentEngine->checkFormat(qt_evr_D3DFormatFromPixelFormat(format)))) {
                     m_canRenderToSurface = true;
                     break;
@@ -1479,8 +1479,8 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     if (FAILED(hr))
         return hr;
 
-    QVideoFrame::PixelFormat pixelFormat = pixelFormatFromMediaType(proposed);
-    if (pixelFormat == QVideoFrame::Format_Invalid)
+    QVideoSurfaceFormat::PixelFormat pixelFormat = pixelFormatFromMediaType(proposed);
+    if (pixelFormat == QVideoSurfaceFormat::Format_Invalid)
         return MF_E_INVALIDMEDIATYPE;
 
     // When not rendering to texture, only accept pixel formats supported by the video surface
@@ -2023,40 +2023,40 @@ HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect &sou
     return hr;
 }
 
-static QVideoFrame::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
+static QVideoSurfaceFormat::PixelFormat pixelFormatFromMediaType(IMFMediaType *type)
 {
     GUID majorType;
     if (FAILED(type->GetMajorType(&majorType)))
-        return QVideoFrame::Format_Invalid;
+        return QVideoSurfaceFormat::Format_Invalid;
     if (majorType != MFMediaType_Video)
-        return QVideoFrame::Format_Invalid;
+        return QVideoSurfaceFormat::Format_Invalid;
 
     GUID subtype;
     if (FAILED(type->GetGUID(MF_MT_SUBTYPE, &subtype)))
-        return QVideoFrame::Format_Invalid;
+        return QVideoSurfaceFormat::Format_Invalid;
 
     if (subtype == MFVideoFormat_RGB32)
-        return QVideoFrame::Format_RGB32;
+        return QVideoSurfaceFormat::Format_RGB32;
     if (subtype == MFVideoFormat_ARGB32)
-        return QVideoFrame::Format_ARGB32;
+        return QVideoSurfaceFormat::Format_ARGB32;
     if (subtype == MFVideoFormat_RGB24)
-        return QVideoFrame::Format_RGB24;
+        return QVideoSurfaceFormat::Format_RGB24;
     if (subtype == MFVideoFormat_RGB565)
-        return QVideoFrame::Format_RGB565;
+        return QVideoSurfaceFormat::Format_RGB565;
     if (subtype == MFVideoFormat_RGB555)
-        return QVideoFrame::Format_RGB555;
+        return QVideoSurfaceFormat::Format_RGB555;
     if (subtype == MFVideoFormat_AYUV)
-        return QVideoFrame::Format_AYUV444;
+        return QVideoSurfaceFormat::Format_AYUV444;
     if (subtype == MFVideoFormat_I420)
-        return QVideoFrame::Format_YUV420P;
+        return QVideoSurfaceFormat::Format_YUV420P;
     if (subtype == MFVideoFormat_UYVY)
-        return QVideoFrame::Format_UYVY;
+        return QVideoSurfaceFormat::Format_UYVY;
     if (subtype == MFVideoFormat_YV12)
-        return QVideoFrame::Format_YV12;
+        return QVideoSurfaceFormat::Format_YV12;
     if (subtype == MFVideoFormat_NV12)
-        return QVideoFrame::Format_NV12;
+        return QVideoSurfaceFormat::Format_NV12;
 
-    return QVideoFrame::Format_Invalid;
+    return QVideoSurfaceFormat::Format_Invalid;
 }
 
 QT_END_NAMESPACE

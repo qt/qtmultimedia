@@ -64,7 +64,7 @@ public:
     QSGVideoNode_RGB(const QVideoSurfaceFormat &format);
     ~QSGVideoNode_RGB();
 
-    QVideoFrame::PixelFormat pixelFormat() const override {
+    QVideoSurfaceFormat::PixelFormat pixelFormat() const override {
         return m_format.pixelFormat();
     }
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) override;
@@ -77,7 +77,7 @@ private:
 
 class QSGVideoNodeFactory_RGB : public QSGVideoNodeFactoryInterface {
 public:
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override;
+    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override;
     QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override;
 };
 

@@ -54,7 +54,7 @@ public:
 
     QVideoSurfaceFormatPrivate(
             const QSize &size,
-            QVideoFrame::PixelFormat format)
+            QVideoSurfaceFormat::PixelFormat format)
         : pixelFormat(format)
         , frameSize(size)
         , viewport(QPoint(0, 0), size)
@@ -80,7 +80,7 @@ public:
         return qAbs(r1 - r2) <= 0.00001 * qMin(qAbs(r1), qAbs(r2));
     }
 
-    QVideoFrame::PixelFormat pixelFormat = QVideoFrame::Format_Invalid;
+    QVideoSurfaceFormat::PixelFormat pixelFormat = QVideoSurfaceFormat::Format_Invalid;
     QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;
     QSize frameSize;
     QVideoSurfaceFormat::YCbCrColorSpace ycbcrColorSpace = QVideoSurfaceFormat::YCbCr_Undefined;
@@ -169,7 +169,7 @@ QVideoSurfaceFormat::QVideoSurfaceFormat()
     \a size and pixel \a format.
 */
 QVideoSurfaceFormat::QVideoSurfaceFormat(
-        const QSize& size, QVideoFrame::PixelFormat format)
+        const QSize& size, QVideoSurfaceFormat::PixelFormat format)
     : d(new QVideoSurfaceFormatPrivate(size, format))
 {
 }
@@ -196,7 +196,7 @@ QVideoSurfaceFormat::~QVideoSurfaceFormat() = default;
 */
 bool QVideoSurfaceFormat::isValid() const
 {
-    return d->pixelFormat != QVideoFrame::Format_Invalid && d->frameSize.isValid();
+    return d->pixelFormat != Format_Invalid && d->frameSize.isValid();
 }
 
 /*!
@@ -218,7 +218,7 @@ bool QVideoSurfaceFormat::operator !=(const QVideoSurfaceFormat &other) const
 /*!
     Returns the pixel format of frames in a video stream.
 */
-QVideoFrame::PixelFormat QVideoSurfaceFormat::pixelFormat() const
+QVideoSurfaceFormat::PixelFormat QVideoSurfaceFormat::pixelFormat() const
 {
     return d->pixelFormat;
 }
@@ -383,6 +383,104 @@ QSize QVideoSurfaceFormat::sizeHint() const
     return d->viewport.size();
 }
 
+
+/*!
+    Returns a video pixel format equivalent to an image \a format.  If there is no equivalent
+    format QVideoFrame::InvalidType is returned instead.
+
+    \note In general \l QImage does not handle YUV formats.
+
+*/
+QVideoSurfaceFormat::PixelFormat QVideoSurfaceFormat::pixelFormatFromImageFormat(QImage::Format format)
+{
+    switch (format) {
+    case QImage::Format_RGB32:
+    case QImage::Format_RGBX8888:
+        return QVideoSurfaceFormat::Format_RGB32;
+    case QImage::Format_ARGB32:
+    case QImage::Format_RGBA8888:
+        return QVideoSurfaceFormat::Format_ARGB32;
+    case QImage::Format_ARGB32_Premultiplied:
+    case QImage::Format_RGBA8888_Premultiplied:
+        return QVideoSurfaceFormat::Format_ARGB32_Premultiplied;
+    case QImage::Format_RGB16:
+        return QVideoSurfaceFormat::Format_RGB565;
+    case QImage::Format_ARGB8565_Premultiplied:
+        return QVideoSurfaceFormat::Format_ARGB8565_Premultiplied;
+    case QImage::Format_RGB555:
+        return QVideoSurfaceFormat::Format_RGB555;
+    case QImage::Format_RGB888:
+        return QVideoSurfaceFormat::Format_RGB24;
+    case QImage::Format_Grayscale8:
+        return QVideoSurfaceFormat::Format_Y8;
+    case QImage::Format_Grayscale16:
+        return QVideoSurfaceFormat::Format_Y16;
+    default:
+        return QVideoSurfaceFormat::Format_Invalid;
+    }
+}
+
+/*!
+    Returns an image format equivalent to a video frame pixel \a format.  If there is no equivalent
+    format QImage::Format_Invalid is returned instead.
+
+    \note In general \l QImage does not handle YUV formats.
+
+*/
+QImage::Format QVideoSurfaceFormat::imageFormatFromPixelFormat(QVideoSurfaceFormat::PixelFormat format)
+{
+    switch (format) {
+    case QVideoSurfaceFormat::Format_ARGB32:
+        return QImage::Format_ARGB32;
+    case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
+        return QImage::Format_ARGB32_Premultiplied;
+    case QVideoSurfaceFormat::Format_RGB32:
+        return QImage::Format_RGB32;
+    case QVideoSurfaceFormat::Format_RGB24:
+        return QImage::Format_RGB888;
+    case QVideoSurfaceFormat::Format_RGB565:
+        return QImage::Format_RGB16;
+    case QVideoSurfaceFormat::Format_RGB555:
+        return QImage::Format_RGB555;
+    case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
+        return QImage::Format_ARGB8565_Premultiplied;
+    case QVideoSurfaceFormat::Format_Y8:
+        return QImage::Format_Grayscale8;
+    case QVideoSurfaceFormat::Format_Y16:
+        return QImage::Format_Grayscale16;
+    case QVideoSurfaceFormat::Format_ABGR32:
+    case QVideoSurfaceFormat::Format_BGRA32:
+    case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
+    case QVideoSurfaceFormat::Format_BGR32:
+    case QVideoSurfaceFormat::Format_BGR24:
+    case QVideoSurfaceFormat::Format_BGR565:
+    case QVideoSurfaceFormat::Format_BGR555:
+    case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
+    case QVideoSurfaceFormat::Format_AYUV444:
+    case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
+    case QVideoSurfaceFormat::Format_YUV444:
+    case QVideoSurfaceFormat::Format_YUV420P:
+    case QVideoSurfaceFormat::Format_YUV422P:
+    case QVideoSurfaceFormat::Format_YV12:
+    case QVideoSurfaceFormat::Format_UYVY:
+    case QVideoSurfaceFormat::Format_YUYV:
+    case QVideoSurfaceFormat::Format_NV12:
+    case QVideoSurfaceFormat::Format_NV21:
+    case QVideoSurfaceFormat::Format_IMC1:
+    case QVideoSurfaceFormat::Format_IMC2:
+    case QVideoSurfaceFormat::Format_IMC3:
+    case QVideoSurfaceFormat::Format_IMC4:
+    case QVideoSurfaceFormat::Format_P010LE:
+    case QVideoSurfaceFormat::Format_P010BE:
+    case QVideoSurfaceFormat::Format_P016LE:
+    case QVideoSurfaceFormat::Format_P016BE:
+    case QVideoSurfaceFormat::Format_Jpeg:
+    case QVideoSurfaceFormat::Format_Invalid:
+        return QImage::Format_Invalid;
+    }
+    return QImage::Format_Invalid;
+}
+
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::YCbCrColorSpace cs)
 {
@@ -442,6 +540,91 @@ QDebug operator<<(QDebug dbg, const QVideoSurfaceFormat &f)
         << "\n    mirrored=" << f.isMirrored();
 
     return dbg;
+}
+
+QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::PixelFormat pf)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    switch (pf) {
+    case QVideoSurfaceFormat::Format_Invalid:
+        return dbg << "Format_Invalid";
+    case QVideoSurfaceFormat::Format_ARGB32:
+        return dbg << "Format_ARGB32";
+    case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
+        return dbg << "Format_ARGB32_Premultiplied";
+    case QVideoSurfaceFormat::Format_RGB32:
+        return dbg << "Format_RGB32";
+    case QVideoSurfaceFormat::Format_RGB24:
+        return dbg << "Format_RGB24";
+    case QVideoSurfaceFormat::Format_RGB565:
+        return dbg << "Format_RGB565";
+    case QVideoSurfaceFormat::Format_RGB555:
+        return dbg << "Format_RGB555";
+    case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
+        return dbg << "Format_ARGB8565_Premultiplied";
+    case QVideoSurfaceFormat::Format_BGRA32:
+        return dbg << "Format_BGRA32";
+    case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
+        return dbg << "Format_BGRA32_Premultiplied";
+    case QVideoSurfaceFormat::Format_ABGR32:
+        return dbg << "Format_ABGR32";
+    case QVideoSurfaceFormat::Format_BGR32:
+        return dbg << "Format_BGR32";
+    case QVideoSurfaceFormat::Format_BGR24:
+        return dbg << "Format_BGR24";
+    case QVideoSurfaceFormat::Format_BGR565:
+        return dbg << "Format_BGR565";
+    case QVideoSurfaceFormat::Format_BGR555:
+        return dbg << "Format_BGR555";
+    case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
+        return dbg << "Format_BGRA5658_Premultiplied";
+    case QVideoSurfaceFormat::Format_AYUV444:
+        return dbg << "Format_AYUV444";
+    case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
+        return dbg << "Format_AYUV444_Premultiplied";
+    case QVideoSurfaceFormat::Format_YUV444:
+        return dbg << "Format_YUV444";
+    case QVideoSurfaceFormat::Format_YUV420P:
+        return dbg << "Format_YUV420P";
+    case QVideoSurfaceFormat::Format_YUV422P:
+        return dbg << "Format_YUV422P";
+    case QVideoSurfaceFormat::Format_YV12:
+        return dbg << "Format_YV12";
+    case QVideoSurfaceFormat::Format_UYVY:
+        return dbg << "Format_UYVY";
+    case QVideoSurfaceFormat::Format_YUYV:
+        return dbg << "Format_YUYV";
+    case QVideoSurfaceFormat::Format_NV12:
+        return dbg << "Format_NV12";
+    case QVideoSurfaceFormat::Format_NV21:
+        return dbg << "Format_NV21";
+    case QVideoSurfaceFormat::Format_IMC1:
+        return dbg << "Format_IMC1";
+    case QVideoSurfaceFormat::Format_IMC2:
+        return dbg << "Format_IMC2";
+    case QVideoSurfaceFormat::Format_IMC3:
+        return dbg << "Format_IMC3";
+    case QVideoSurfaceFormat::Format_IMC4:
+        return dbg << "Format_IMC4";
+    case QVideoSurfaceFormat::Format_Y8:
+        return dbg << "Format_Y8";
+    case QVideoSurfaceFormat::Format_Y16:
+        return dbg << "Format_Y16";
+    case QVideoSurfaceFormat::Format_P010LE:
+        return dbg << "Format_P010LE";
+    case QVideoSurfaceFormat::Format_P010BE:
+        return dbg << "Format_P010BE";
+    case QVideoSurfaceFormat::Format_P016LE:
+        return dbg << "Format_P016LE";
+    case QVideoSurfaceFormat::Format_P016BE:
+        return dbg << "Format_P016BE";
+    case QVideoSurfaceFormat::Format_Jpeg:
+        return dbg << "Format_Jpeg";
+
+    default:
+        return dbg << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toLatin1().constData();
+    }
 }
 #endif
 

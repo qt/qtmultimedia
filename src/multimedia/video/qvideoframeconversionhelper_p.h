@@ -57,7 +57,7 @@
 // Converts to RGB32 or ARGB32_Premultiplied
 typedef void (QT_FASTCALL *VideoFrameConvertFunc)(const QVideoFrame &frame, uchar *output);
 
-VideoFrameConvertFunc qConverterForFormat(QVideoFrame::PixelFormat format);
+VideoFrameConvertFunc qConverterForFormat(QVideoSurfaceFormat::PixelFormat format);
 
 inline quint32 qConvertBGRA32ToARGB32(quint32 bgra)
 {

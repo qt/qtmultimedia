@@ -20,7 +20,7 @@ information about a particular change.
 ****************************************************************************
 
  - [QTBUG-73878] Removed the Mir client code as it is no longer used.
- - Added QVideoFrame::Format_YUV422P.
+ - Added QVideoSurfaceFormat::Format_YUV422P.
  - Deprecated canonicalUrl and canonicalRequest in QMediaContent.
  - [QTBUG-74422] Moved dtors of QCameraExposure, QCameraFocus,
    QCameraImageProcessing from private to protected.

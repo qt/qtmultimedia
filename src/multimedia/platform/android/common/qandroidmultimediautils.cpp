@@ -77,36 +77,36 @@ bool qt_sizeLessThan(const QSize &s1, const QSize &s2)
     return s1.width() * s1.height() < s2.width() * s2.height();
 }
 
-QVideoFrame::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f)
+QVideoSurfaceFormat::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f)
 {
     switch (f) {
     case AndroidCamera::NV21:
-        return QVideoFrame::Format_NV21;
+        return QVideoSurfaceFormat::Format_NV21;
     case AndroidCamera::YV12:
-        return QVideoFrame::Format_YV12;
+        return QVideoSurfaceFormat::Format_YV12;
     case AndroidCamera::RGB565:
-        return QVideoFrame::Format_RGB565;
+        return QVideoSurfaceFormat::Format_RGB565;
     case AndroidCamera::YUY2:
-        return QVideoFrame::Format_YUYV;
+        return QVideoSurfaceFormat::Format_YUYV;
     case AndroidCamera::JPEG:
-        return QVideoFrame::Format_Jpeg;
+        return QVideoSurfaceFormat::Format_Jpeg;
     default:
-        return QVideoFrame::Format_Invalid;
+        return QVideoSurfaceFormat::Format_Invalid;
     }
 }
 
-AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrame::PixelFormat f)
+AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoSurfaceFormat::PixelFormat f)
 {
     switch (f) {
-    case QVideoFrame::Format_NV21:
+    case QVideoSurfaceFormat::Format_NV21:
         return AndroidCamera::NV21;
-    case QVideoFrame::Format_YV12:
+    case QVideoSurfaceFormat::Format_YV12:
         return AndroidCamera::YV12;
-    case QVideoFrame::Format_RGB565:
+    case QVideoSurfaceFormat::Format_RGB565:
         return AndroidCamera::RGB565;
-    case QVideoFrame::Format_YUYV:
+    case QVideoSurfaceFormat::Format_YUYV:
         return AndroidCamera::YUY2;
-    case QVideoFrame::Format_Jpeg:
+    case QVideoSurfaceFormat::Format_Jpeg:
         return AndroidCamera::JPEG;
     default:
         return AndroidCamera::UnknownImageFormat;

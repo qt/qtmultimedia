@@ -72,7 +72,7 @@ public:
 
     void setVideoSink(IUnknown *videoSink);
 
-    static QVideoFrame::PixelFormat formatFromSubtype(const GUID& subtype);
+    static QVideoSurfaceFormat::PixelFormat formatFromSubtype(const GUID& subtype);
 
     // IUnknown methods
     STDMETHODIMP QueryInterface(REFIID iid, void** ppv);

@@ -290,7 +290,7 @@ void tst_QGraphicsVideoItem::show()
 
     QVERIFY(item->boundingRect().isEmpty());
 
-    QVideoSurfaceFormat format(QSize(320,240),QVideoFrame::Format_RGB32);
+    QVideoSurfaceFormat format(QSize(320,240),QVideoSurfaceFormat::Format_RGB32);
     QVERIFY(object.testService->rendererControl->surface()->start(format));
 
     QCoreApplication::processEvents();
@@ -385,7 +385,7 @@ void tst_QGraphicsVideoItem::nativeSize()
 
     QSignalSpy spy(&item, SIGNAL(nativeSizeChanged(QSizeF)));
 
-    QVideoSurfaceFormat format(frameSize, QVideoFrame::Format_ARGB32);
+    QVideoSurfaceFormat format(frameSize, QVideoSurfaceFormat::Format_ARGB32);
     format.setViewport(viewport);
 
     {   // Surface setup is deferred until after the first paint.
@@ -527,7 +527,7 @@ void tst_QGraphicsVideoItem::boundingRect()
     item.setSize(size);
     item.setAspectRatioMode(aspectRatioMode);
 
-    QVideoSurfaceFormat format(frameSize, QVideoFrame::Format_ARGB32);
+    QVideoSurfaceFormat format(frameSize, QVideoSurfaceFormat::Format_ARGB32);
 
     {   // Surface setup is deferred until after the first paint.
         QImage image(320, 240, QImage::Format_RGB32);
@@ -565,7 +565,7 @@ void tst_QGraphicsVideoItem::paint()
     if (!surface)
         QSKIP("QGraphicsVideoItem is not QPainterVideoSurface based");
 
-    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoSurfaceFormat::Format_RGB32);
 
     QVERIFY(surface->start(format));
     QCOMPARE(surface->isActive(), true);
@@ -576,7 +576,7 @@ void tst_QGraphicsVideoItem::paint()
     QCOMPARE(surface->isActive(), true);
     QCOMPARE(surface->isReady(), true);
 
-    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
+    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoSurfaceFormat::Format_RGB32);
 
     frame.map(QVideoFrame::WriteOnly);
     memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
@@ -608,7 +608,7 @@ void tst_QGraphicsVideoItem::paintSurface()
     if (!surface)
         QSKIP("QGraphicsVideoItem is not QPainterVideoSurface based");
 
-    QVideoSurfaceFormat format(QSize(2, 2), QVideoFrame::Format_RGB32);
+    QVideoSurfaceFormat format(QSize(2, 2), QVideoSurfaceFormat::Format_RGB32);
 
     QVERIFY(surface->start(format));
     QCOMPARE(surface->isActive(), true);
@@ -619,7 +619,7 @@ void tst_QGraphicsVideoItem::paintSurface()
     QCOMPARE(surface->isActive(), true);
     QCOMPARE(surface->isReady(), true);
 
-    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoFrame::Format_RGB32);
+    QVideoFrame frame(sizeof(rgb32ImageData), QSize(2, 2), 8, QVideoSurfaceFormat::Format_RGB32);
 
     frame.map(QVideoFrame::WriteOnly);
     memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());

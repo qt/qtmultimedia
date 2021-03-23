@@ -129,7 +129,7 @@ private:
   QVideoFrame::imageFormatFromPixelFormat() to get a suitable format. Ownership is not
   altered, the new QVideoFrame will not destroy the texture.
 */
-QVideoFrame frameFromTexture(uint textureId, const QSize &size, QVideoFrame::PixelFormat format)
+QVideoFrame frameFromTexture(uint textureId, const QSize &size, QVideoSurfaceFormat::PixelFormat format)
 {
 #ifndef QT_NO_OPENGL
     return QVideoFrame(new TextureBuffer(textureId), size, format);
