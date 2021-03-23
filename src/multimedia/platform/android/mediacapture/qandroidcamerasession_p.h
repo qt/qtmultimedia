@@ -67,6 +67,7 @@ class QAndroidCameraExposureControl;
 class QAndroidCameraFocusControl;
 class QAndroidCameraImageProcessingControl;
 class QAndroidCameraVideoRendererControl;
+class QVideoSink;
 
 class QAndroidCameraSession : public QObject
 {
@@ -116,7 +117,7 @@ public:
     QAndroidCameraExposureControl *exposureControl() { return m_cameraExposureControl; }
     QAndroidCameraImageProcessingControl *imageProcessingControl() { return m_cameraImageProcessingControl; }
 
-    void setVideoSurface(QAbstractVideoSurface *surface);
+    void setVideoSink(QVideoSink *surface);
 
 Q_SIGNALS:
     void statusChanged(QCamera::Status status);

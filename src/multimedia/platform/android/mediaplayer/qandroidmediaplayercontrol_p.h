@@ -94,7 +94,7 @@ public:
     QMediaMetaData metaData() const override;
 
     void setVideoOutput(QAndroidVideoOutput *videoOutput);
-    void setVideoSurface(QAbstractVideoSurface *surface) override;
+    void setVideoSink(QVideoSink *surface) override;
 
     void setPosition(qint64 position) override;
     void play() override;

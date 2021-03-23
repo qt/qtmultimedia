@@ -149,8 +149,8 @@ static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
     env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
 
     QVideoFrame frame(new QMemoryVideoBuffer(bytes, bpl),
-                      QSize(width, height),
-                      qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format)));
+                      QVideoSurfaceFormat(QSize(width, height),
+                                          qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format))));
 
     Q_EMIT (*it)->newPreviewFrame(frame);
 }
@@ -1642,8 +1642,8 @@ void AndroidCameraPrivate::fetchLastPreviewFrame()
     const int bpl = m_cameraListener.callMethod<jint>("previewBytesPerLine");
 
     QVideoFrame frame(new QMemoryVideoBuffer(bytes, bpl),
-                      QSize(width, height),
-                      qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format)));
+                      QVideoSurfaceFormat(QSize(width, height),
+                                          qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat(format))));
 
     emit lastPreviewFrameFetched(frame);
 }

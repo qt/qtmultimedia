@@ -43,7 +43,7 @@
 #include "qandroidvideooutput_p.h"
 #include "androidsurfaceview_p.h"
 #include "qandroidmultimediautils_p.h"
-#include <qabstractvideosurface.h>
+#include <qvideosink.h>
 #include <qvideosurfaceformat.h>
 #include <qcoreapplication.h>
 #include <qthread.h>
@@ -101,8 +101,6 @@ QAndroidCameraDataVideoOutput::QAndroidCameraDataVideoOutput(QAndroidCameraVideo
 
     connect(m_control->cameraSession(), &QAndroidCameraSession::opened,
             this, &QAndroidCameraDataVideoOutput::configureFormat);
-    connect(m_control->surface(), &QAbstractVideoSurface::supportedFormatsChanged,
-            this, &QAndroidCameraDataVideoOutput::configureFormat);
     configureFormat();
 }
 
@@ -134,12 +132,10 @@ void QAndroidCameraDataVideoOutput::configureFormat()
     if (!m_control->cameraSession()->camera())
         return;
 
-    QList<QVideoSurfaceFormat::PixelFormat> surfaceFormats = m_control->surface()->supportedPixelFormats();
     QList<AndroidCamera::ImageFormat> previewFormats = m_control->cameraSession()->camera()->getSupportedPreviewFormats();
-    for (int i = 0; i < surfaceFormats.size(); ++i) {
-        QVideoSurfaceFormat::PixelFormat pixFormat = surfaceFormats.at(i);
-        AndroidCamera::ImageFormat f = qt_androidImageFormatFromPixelFormat(pixFormat);
-        if (previewFormats.contains(f)) {
+    for (int i = 0; i < previewFormats.size(); ++i) {
+        QVideoSurfaceFormat::PixelFormat pixFormat = qt_pixelFormatFromAndroidImageFormat(previewFormats.at(i));
+        if (pixFormat != QVideoSurfaceFormat::Format_Invalid) {
             m_pixelFormat = pixFormat;
             break;
         }
@@ -166,9 +162,6 @@ void QAndroidCameraDataVideoOutput::stop()
     m_mutex.lock();
     m_lastFrame = QVideoFrame();
     m_mutex.unlock();
-
-    if (m_control->surface() && m_control->surface()->isActive())
-        m_control->surface()->stop();
 }
 
 void QAndroidCameraDataVideoOutput::onFrameAvailable(const QVideoFrame &frame)
@@ -201,24 +194,16 @@ void QAndroidCameraDataVideoOutput::presentFrame()
 
     if (m_control->surface() && m_lastFrame.isValid() && m_lastFrame.pixelFormat() == m_pixelFormat) {
 
-        if (m_control->surface()->isActive() && (m_control->surface()->surfaceFormat().pixelFormat() != m_lastFrame.pixelFormat()
-                                                 || m_control->surface()->surfaceFormat().frameSize() != m_lastFrame.size())) {
-            m_control->surface()->stop();
-        }
+        QVideoSurfaceFormat format(m_lastFrame.surfaceFormat());
+        // Front camera frames are automatically mirrored when using SurfaceTexture or SurfaceView,
+        // but the buffers we get from the data callback are not. Tell the QAbstractVideoSurface
+        // that it needs to mirror the frames.
+        if (m_control->cameraSession()->camera()->getFacing() == AndroidCamera::CameraFacingFront)
+            format.setMirrored(true);
 
-        if (!m_control->surface()->isActive()) {
-            QVideoSurfaceFormat format(m_lastFrame.size(), m_lastFrame.pixelFormat(), m_lastFrame.handleType());
-            // Front camera frames are automatically mirrored when using SurfaceTexture or SurfaceView,
-            // but the buffers we get from the data callback are not. Tell the QAbstractVideoSurface
-            // that it needs to mirror the frames.
-            if (m_control->cameraSession()->camera()->getFacing() == AndroidCamera::CameraFacingFront)
-                format.setMirrored(true);
+        // #### set mirrored on frame
 
-            m_control->surface()->start(format);
-        }
-
-        if (m_control->surface()->isActive())
-            m_control->surface()->present(m_lastFrame);
+        m_control->surface()->newVideoFrame(m_lastFrame);
     }
 
     m_lastFrame = QVideoFrame();
@@ -239,12 +224,12 @@ QAndroidCameraVideoRendererControl::~QAndroidCameraVideoRendererControl()
     m_cameraSession->setVideoOutput(0);
 }
 
-QAbstractVideoSurface *QAndroidCameraVideoRendererControl::surface() const
+QVideoSink *QAndroidCameraVideoRendererControl::surface() const
 {
     return m_surface;
 }
 
-void QAndroidCameraVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+void QAndroidCameraVideoRendererControl::setSurface(QVideoSink *surface)
 {
     if (m_surface == surface)
         return;
@@ -255,7 +240,7 @@ void QAndroidCameraVideoRendererControl::setSurface(QAbstractVideoSurface *surfa
     QAndroidVideoOutput *newOutput = 0;
 
     if (m_surface) {
-        if (!m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle).isEmpty()) {
+        if (m_surface->graphicsType() == QVideoSink::OpenGL) {
             if (!m_textureOutput) {
                 m_dataOutput = 0;
                 newOutput = m_textureOutput = new QAndroidTextureVideoOutput(this);

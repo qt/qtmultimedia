@@ -59,12 +59,12 @@ QAndroidMediaPlayerVideoRendererControl::~QAndroidMediaPlayerVideoRendererContro
     m_mediaPlayerControl->setVideoOutput(0);
 }
 
-QAbstractVideoSurface *QAndroidMediaPlayerVideoRendererControl::surface() const
+QVideoSink *QAndroidMediaPlayerVideoRendererControl::surface() const
 {
     return m_surface;
 }
 
-void QAndroidMediaPlayerVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+void QAndroidMediaPlayerVideoRendererControl::setSurface(QVideoSink *surface)
 {
     if (m_surface == surface)
         return;

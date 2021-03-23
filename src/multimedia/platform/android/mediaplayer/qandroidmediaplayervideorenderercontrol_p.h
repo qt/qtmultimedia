@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidMediaPlayerControl;
 class QAndroidTextureVideoOutput;
-class QAbstractVideoSurface;
+class QVideoSink;
 
 class QAndroidMediaPlayerVideoRendererControl : public QObject
 {
@@ -66,12 +66,12 @@ public:
     QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent = 0);
     ~QAndroidMediaPlayerVideoRendererControl() override;
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    QVideoSink *surface() const;
+    void setSurface(QVideoSink *surface);
 
 private:
     QAndroidMediaPlayerControl *m_mediaPlayerControl;
-    QAbstractVideoSurface *m_surface;
+    QVideoSink *m_surface;
     QAndroidTextureVideoOutput *m_textureOutput;
 };
 

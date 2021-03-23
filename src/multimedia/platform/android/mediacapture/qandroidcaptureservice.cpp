@@ -140,9 +140,9 @@ bool QAndroidCaptureService::setAudioInput(const QAudioDeviceInfo &info)
     return true;
 }
 
-void QAndroidCaptureService::setVideoPreview(QAbstractVideoSurface *surface)
+void QAndroidCaptureService::setVideoPreview(QVideoSink *sink)
 {
-    m_cameraSession->setVideoSurface(surface);
+    m_cameraSession->setVideoSink(sink);
 }
 
 QT_END_NAMESPACE

@@ -48,7 +48,7 @@
 #include "qandroidcameraexposurecontrol_p.h"
 #include "qandroidcamerafocuscontrol_p.h"
 #include "qandroidcameraimageprocessingcontrol_p.h"
-#include <qabstractvideosurface.h>
+#include <qvideosink.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>
 #include <qguiapplication.h>
@@ -361,21 +361,6 @@ QList<AndroidCamera::FpsRange> QAndroidCameraSession::getSupportedPreviewFpsRang
     return m_camera ? m_camera->getSupportedPreviewFpsRange() : QList<AndroidCamera::FpsRange>();
 }
 
-struct NullSurface : QAbstractVideoSurface
-{
-    NullSurface(QObject *parent = nullptr) : QAbstractVideoSurface(parent) { }
-    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(
-        QVideoFrame::HandleType type = QVideoFrame::NoHandle) const override
-    {
-        QList<QVideoSurfaceFormat::PixelFormat> result;
-        if (type == QVideoFrame::NoHandle)
-            result << QVideoSurfaceFormat::Format_NV21;
-
-        return result;
-    }
-
-    bool present(const QVideoFrame &) override { return false; }
-};
 
 bool QAndroidCameraSession::startPreview()
 {
@@ -385,22 +370,16 @@ bool QAndroidCameraSession::startPreview()
     if (m_previewStarted)
         return true;
 
-    if (m_videoOutput) {
-        if (!m_videoOutput->isReady())
-            return true; // delay starting until the video output is ready
+    Q_ASSERT(m_videoOutput);
 
-        Q_ASSERT(m_videoOutput->surfaceTexture() || m_videoOutput->surfaceHolder());
+    if (!m_videoOutput->isReady())
+        return true; // delay starting until the video output is ready
 
-        if ((m_videoOutput->surfaceTexture() && !m_camera->setPreviewTexture(m_videoOutput->surfaceTexture()))
-                || (m_videoOutput->surfaceHolder() && !m_camera->setPreviewDisplay(m_videoOutput->surfaceHolder())))
-            return false;
-    } else {
-        auto control = new QAndroidCameraVideoRendererControl(this, this);
-        control->setSurface(new NullSurface(this));
-        qWarning() << "Starting camera without viewfinder available";
+    Q_ASSERT(m_videoOutput->surfaceTexture() || m_videoOutput->surfaceHolder());
 
-        return true;
-    }
+    if ((m_videoOutput->surfaceTexture() && !m_camera->setPreviewTexture(m_videoOutput->surfaceTexture()))
+            || (m_videoOutput->surfaceHolder() && !m_camera->setPreviewDisplay(m_videoOutput->surfaceHolder())))
+        return false;
 
     m_status = QCamera::StartingStatus;
     emit statusChanged(m_status);
@@ -720,7 +699,7 @@ void QAndroidCameraSession::processCapturedImage(int id,
             emit imageCaptureError(id, QCameraImageCapture::ResourceError, errorMessage);
         }
     } else {
-        QVideoFrame frame(new QMemoryVideoBuffer(data, -1), resolution, QVideoSurfaceFormat::Format_Jpeg);
+        QVideoFrame frame(new QMemoryVideoBuffer(data, -1), QVideoSurfaceFormat(resolution, QVideoSurfaceFormat::Format_Jpeg));
         emit imageAvailable(id, frame);
     }
 }
@@ -797,7 +776,7 @@ bool QAndroidCameraSession::requestRecordingPermission()
     return result;
 }
 
-void QAndroidCameraSession::setVideoSurface(QAbstractVideoSurface *surface)
+void QAndroidCameraSession::setVideoSink(QVideoSink *surface)
 {
     if (!m_renderer)
         m_renderer = new QAndroidCameraVideoRendererControl(this);

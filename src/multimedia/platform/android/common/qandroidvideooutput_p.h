@@ -61,9 +61,9 @@ class AndroidSurfaceTexture;
 class AndroidSurfaceHolder;
 class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
-class QAbstractVideoSurface;
 class QWindow;
 class QOpenGLContext;
+class QVideoSink;
 
 class QAndroidVideoOutput : public QObject
 {
@@ -110,8 +110,8 @@ public:
     explicit QAndroidTextureVideoOutput(QObject *parent = 0);
     ~QAndroidTextureVideoOutput() override;
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    QVideoSink *surface() const;
+    void setSurface(QVideoSink *surface);
 
     AndroidSurfaceTexture *surfaceTexture() override;
 
@@ -133,7 +133,7 @@ private:
     QMutex m_mutex;
     void clearSurfaceTexture();
 
-    QAbstractVideoSurface *m_surface;
+    QVideoSink *m_sink;
     QSize m_nativeSize;
 
     AndroidSurfaceTexture *m_surfaceTexture;

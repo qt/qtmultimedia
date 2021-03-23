@@ -40,9 +40,11 @@
 #include "qandroidvideooutput_p.h"
 
 #include "androidsurfacetexture_p.h"
-#include <QAbstractVideoSurface>
+#include <qvideosink.h>
 #include "private/qabstractvideobuffer_p.h"
 #include <QVideoSurfaceFormat>
+#include <qvideosink.h>
+
 #include <qevent.h>
 #include <qcoreapplication.h>
 #include <qopenglcontext.h>
@@ -170,7 +172,7 @@ private:
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
     : QAndroidVideoOutput(parent)
-    , m_surface(0)
+    , m_sink(0)
     , m_surfaceTexture(0)
     , m_externalTex(0)
     , m_fbo(0)
@@ -195,28 +197,25 @@ QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
     }
 }
 
-QAbstractVideoSurface *QAndroidTextureVideoOutput::surface() const
+QVideoSink *QAndroidTextureVideoOutput::surface() const
 {
-    return m_surface;
+    return m_sink;
 }
 
-void QAndroidTextureVideoOutput::setSurface(QAbstractVideoSurface *surface)
+void QAndroidTextureVideoOutput::setSurface(QVideoSink *surface)
 {
-    if (surface == m_surface)
+    if (surface == m_sink)
         return;
 
-    if (m_surface) {
-        if (m_surface->isActive())
-            m_surface->stop();
-
+    if (m_sink) {
         if (!m_surfaceTextureCanAttachToContext)
-            m_surface->setProperty("_q_GLThreadCallback", QVariant());
+            m_sink->setProperty("_q_GLThreadCallback", QVariant());
     }
 
-    m_surface = surface;
+    m_sink = surface;
 
-    if (m_surface && !m_surfaceTextureCanAttachToContext) {
-        m_surface->setProperty("_q_GLThreadCallback",
+    if (m_sink && !m_surfaceTextureCanAttachToContext) {
+        m_sink->setProperty("_q_GLThreadCallback",
                                QVariant::fromValue<QObject*>(this));
     }
 }
@@ -231,7 +230,7 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
     if (m_surfaceTexture)
         return true;
 
-    if (!m_surface)
+    if (!m_sink)
         return false;
 
     if (!m_surfaceTextureCanAttachToContext) {
@@ -303,42 +302,27 @@ void QAndroidTextureVideoOutput::setVideoSize(const QSize &size)
 
 void QAndroidTextureVideoOutput::stop()
 {
-    if (m_surface && m_surface->isActive())
-        m_surface->stop();
     m_nativeSize = QSize();
 }
 
 void QAndroidTextureVideoOutput::reset()
 {
     // flush pending frame
-    if (m_surface)
-        m_surface->present(QVideoFrame());
+    if (m_sink)
+        m_sink->newVideoFrame(QVideoFrame());
 
     clearSurfaceTexture();
 }
 
 void QAndroidTextureVideoOutput::onFrameAvailable()
 {
-    if (!m_nativeSize.isValid() || !m_surface)
+    if (!m_nativeSize.isValid() || !m_sink)
         return;
 
     QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(this, m_nativeSize);
-    QVideoFrame frame(buffer, m_nativeSize, QVideoSurfaceFormat::Format_ABGR32);
+    QVideoFrame frame(buffer, QVideoSurfaceFormat(m_nativeSize, QVideoSurfaceFormat::Format_ABGR32));
 
-    if (m_surface->isActive() && (m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat()
-                                  || m_surface->surfaceFormat().frameSize() != frame.size())) {
-        m_surface->stop();
-    }
-
-    if (!m_surface->isActive()) {
-        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(),
-                                   QVideoFrame::GLTextureHandle);
-
-        m_surface->start(format);
-    }
-
-    if (m_surface->isActive())
-        m_surface->present(frame);
+    m_sink->newVideoFrame(frame);
 }
 
 bool QAndroidTextureVideoOutput::renderFrameToFbo()
@@ -348,8 +332,8 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
         return false;
 
-    QOpenGLContext *shareContext = !m_glContext && m_surface
-        ? qobject_cast<QOpenGLContext*>(m_surface->property("GLContext").value<QObject*>())
+    QOpenGLContext *shareContext = !m_glContext && m_sink
+        ? qobject_cast<QOpenGLContext*>(m_sink->property("GLContext").value<QObject*>())
         : nullptr;
 
     // Make sure we have an OpenGL context to make current.
@@ -360,15 +344,12 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
         // Needs geometry to be a valid surface, but size is not important.
         m_offscreenSurface->setGeometry(0, 0, 1, 1);
         m_offscreenSurface->create();
-        m_offscreenSurface->moveToThread(m_surface->thread());
+        m_offscreenSurface->moveToThread(m_sink->thread());
 
         // Create OpenGL context and set share context from surface.
         m_glContext = new QOpenGLContext();
         m_glContext->setFormat(m_offscreenSurface->requestedFormat());
 
-        auto surface = qobject_cast<QAbstractVideoSurface *>(m_surface->property("videoSurface").value<QObject *>());
-        if (!surface)
-            surface = m_surface;
         if (shareContext)
             m_glContext->setShareContext(shareContext);
 
