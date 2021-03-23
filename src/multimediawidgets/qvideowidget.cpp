@@ -347,6 +347,7 @@ bool QVideoWidget::event(QEvent *event)
     if (event->type() == QEvent::WindowStateChange) {
         if (windowState() & Qt::WindowFullScreen) {
             d->videoSink->setFullScreen(true);
+            d->videoSink->setTargetRect(QRectF(0, 0, window()->width(), window()->height()));
 
             if (!d->wasFullScreen)
                 emit fullScreenChanged(d->wasFullScreen = true);
