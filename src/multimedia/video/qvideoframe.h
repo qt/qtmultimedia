@@ -84,7 +84,6 @@ public:
     bool operator==(const QVideoFrame &other) const;
     bool operator!=(const QVideoFrame &other) const;
 
-    QAbstractVideoBuffer *buffer() const;
     bool isValid() const;
 
     QVideoSurfaceFormat::PixelFormat pixelFormat() const;
@@ -123,7 +122,7 @@ public:
     qint64 endTime() const;
     void setEndTime(qint64 time);
 
-    QImage image() const;
+    QImage toImage() const;
 
 private:
     QExplicitlySharedDataPointer<QVideoFramePrivate> d;

@@ -615,7 +615,7 @@ void QAndroidCameraSession::processPreviewImage(int id, const QVideoFrame &frame
         transform.scale(-1, 1);
     transform.rotate(rotation);
 
-    emit imageCaptured(id, frame.image().transformed(transform));
+    emit imageCaptured(id, frame.toImage().transformed(transform));
 }
 
 void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)

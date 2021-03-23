@@ -232,7 +232,7 @@ void AVFCameraImageCapture::makeCapturePreview(CaptureRequest request,
     QTransform transform;
     transform.rotate(rotation);
 
-    Q_EMIT imageCaptured(request.captureId, frame.image().transformed(transform));
+    Q_EMIT imageCaptured(request.captureId, frame.toImage().transformed(transform));
 
     request.previewReady->release();
 }

@@ -295,7 +295,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QCOMPARE(imageAvailableSignal.first().first().toInt(), id);
 
     QVideoFrame frame = imageAvailableSignal.first().last().value<QVideoFrame>();
-    QVERIFY(!frame.image().isNull());
+    QVERIFY(!frame.toImage().isNull());
 
     frame = QVideoFrame();
     capturedSignal.clear();

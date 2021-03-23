@@ -166,7 +166,7 @@ void QSGVideoMaterialRhiShader_RGB::updateSampledImage(RenderState &state, int b
     auto frame = m->m_frame;
 
     if (frame.pixelFormat() == QVideoSurfaceFormat::Format_RGB565) // Format_RGB565 requires GL_UNSIGNED_SHORT_5_6_5
-        frame = frame.image().convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+        frame = frame.toImage().convertToFormat(QImage::Format_RGBA8888_Premultiplied);
 
     auto format = QRhiTexture::RGBA8;
     if (frame.pixelFormat() == QVideoSurfaceFormat::Format_RGB32

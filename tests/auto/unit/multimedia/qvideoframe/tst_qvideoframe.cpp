@@ -1220,7 +1220,7 @@ void tst_QVideoFrame::image()
     QFETCH(QImage::Format, imageFormat);
 
     QVideoFrame frame(bytes, bytesPerLine, QVideoSurfaceFormat(size, pixelFormat));
-    QImage img = frame.image();
+    QImage img = frame.toImage();
 
     QVERIFY(!img.isNull());
     QCOMPARE(img.format(), imageFormat);

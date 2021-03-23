@@ -278,7 +278,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
     }
 
     if (frame.map(QVideoFrame::ReadOnly)) {
-        QImage image = frame.image();
+        QImage image = frame.toImage();
 
         auto oldOpacity = painter->opacity();
         const QTransform oldTransform = painter->transform();
