@@ -41,7 +41,7 @@
 
 #include <qdebug.h>
 
-MFEvrVideoWindowControl::MFEvrVideoWindowControl(QObject *parent)
+MFEvrVideoWindowControl::MFEvrVideoWindowControl(QVideoSink *parent)
     : EvrVideoWindowControl(parent)
     , m_currentActivate(NULL)
     , m_evrSink(NULL)

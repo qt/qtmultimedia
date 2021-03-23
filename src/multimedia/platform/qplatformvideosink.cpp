@@ -110,12 +110,6 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 */
 
 /*!
-    \fn QPlatformVideoSink::fullScreenChanged(bool fullScreen)
-
-    Signals that the \a fullScreen state of a video overlay has changed.
-*/
-
-/*!
     \fn QPlatformVideoSink::repaint()
 
     Repaints the last frame.

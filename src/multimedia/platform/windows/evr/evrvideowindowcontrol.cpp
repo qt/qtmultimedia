@@ -39,7 +39,7 @@
 
 #include "evrvideowindowcontrol_p.h"
 
-EvrVideoWindowControl::EvrVideoWindowControl(QObject *parent)
+EvrVideoWindowControl::EvrVideoWindowControl(QVideoSink *parent)
     : QPlatformVideoSink(parent)
     , m_windowId(0)
     , m_windowColor(RGB(0, 0, 0))
@@ -161,7 +161,6 @@ void EvrVideoWindowControl::setFullScreen(bool fullScreen)
 {
     if (m_fullScreen == fullScreen)
         return;
-    emit fullScreenChanged(m_fullScreen = fullScreen);
 }
 
 void EvrVideoWindowControl::repaint()
@@ -249,8 +248,6 @@ void EvrVideoWindowControl::setBrightness(int brightness)
     m_dirtyValues |= DXVA2_ProcAmp_Brightness;
 
     applyImageControls();
-
-    emit brightnessChanged(brightness);
 }
 
 int EvrVideoWindowControl::contrast() const
@@ -268,8 +265,6 @@ void EvrVideoWindowControl::setContrast(int contrast)
     m_dirtyValues |= DXVA2_ProcAmp_Contrast;
 
     applyImageControls();
-
-    emit contrastChanged(contrast);
 }
 
 int EvrVideoWindowControl::hue() const
@@ -287,8 +282,6 @@ void EvrVideoWindowControl::setHue(int hue)
     m_dirtyValues |= DXVA2_ProcAmp_Hue;
 
     applyImageControls();
-
-    emit hueChanged(hue);
 }
 
 int EvrVideoWindowControl::saturation() const
@@ -306,8 +299,6 @@ void EvrVideoWindowControl::setSaturation(int saturation)
     m_dirtyValues |= DXVA2_ProcAmp_Saturation;
 
     applyImageControls();
-
-    emit saturationChanged(saturation);
 }
 
 void EvrVideoWindowControl::applyImageControls()

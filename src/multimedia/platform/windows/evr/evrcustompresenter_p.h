@@ -56,6 +56,7 @@
 #include <qqueue.h>
 #include <qevent.h>
 #include <qvideosurfaceformat.h>
+#include <qvideosink.h>
 
 #include "evrdefs_p.h"
 
@@ -230,7 +231,7 @@ public:
         PresentSample = QEvent::User + 2
     };
 
-    EVRCustomPresenter(QAbstractVideoSurface *surface = 0);
+    EVRCustomPresenter(QVideoSink *sink = 0);
     ~EVRCustomPresenter() override;
 
     bool isValid() const;
@@ -267,7 +268,7 @@ public:
     STDMETHODIMP ReleaseServicePointers() override;
 
     void supportedFormatsChanged();
-    void setSurface(QAbstractVideoSurface *surface);
+    void setSink(QVideoSink *sink);
 
     void startSurface();
     void stopSurface();
@@ -376,7 +377,7 @@ private:
     IMediaEventSink *m_mediaEventSink; // The EVR's event-sink interface.
     IMFMediaType *m_mediaType; // Output media type
 
-    QAbstractVideoSurface *m_surface;
+    QVideoSink *m_videoSink;
     bool m_canRenderToSurface;
     qint64 m_positionOffset; // Seek position in microseconds.
 };

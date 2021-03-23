@@ -60,6 +60,7 @@
 QT_USE_NAMESPACE
 
 class MFVideoProbeControl;
+class QVideoFrame;
 
 class MFTransform: public IMFTransform
 {

@@ -654,6 +654,7 @@ QVideoSurfaceFormat MFTransform::videoFormatForMFMediaType(IMFMediaType *mediaTy
     QVideoSurfaceFormat::PixelFormat pixelFormat = formatFromSubtype(subtype);
     QVideoSurfaceFormat format(size, pixelFormat);
 
+    quint32 num, den;
     if (SUCCEEDED(MFGetAttributeRatio(mediaType, MF_MT_FRAME_RATE, &num, &den))) {
         format.setFrameRate(qreal(num)/den);
     }
@@ -682,7 +683,7 @@ QVideoFrame MFTransform::makeVideoFrame()
         // IMFSample for a "long" time without affecting the rest of the topology.
         // If IMFSample is held for more than 5 frames decoder starts to reuse it even though it hasn't been released it yet.
         // That is why we copy data from IMFMediaBuffer here.
-        frame = QVideoFrame(new QMemoryVideoBuffer(array, m_bytesPerLine), m_format.frameSize(), m_format.pixelFormat());
+        frame = QVideoFrame(new QMemoryVideoBuffer(array, m_bytesPerLine), m_format);
 
         // WMF uses 100-nanosecond units, Qt uses microseconds
         LONGLONG startTime = -1;

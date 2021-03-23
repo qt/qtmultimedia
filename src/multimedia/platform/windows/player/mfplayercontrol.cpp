@@ -136,9 +136,9 @@ QAudioDeviceInfo MFPlayerControl::audioOutput() const
     return m_session->audioOutput();
 }
 
-void MFPlayerControl::setVideoSurface(QAbstractVideoSurface *surface)
+void MFPlayerControl::setVideoSink(QVideoSink *sink)
 {
-    m_session->setVideoSurface(surface);
+    m_session->setVideoSink(sink);
 }
 
 void MFPlayerControl::changeState(QMediaPlayer::State state)

@@ -370,9 +370,7 @@ done:
     if (SUCCEEDED(hr)) {
         m_surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
                                               m_useTextureRendering ? QVideoSurfaceFormat::Format_RGB32
-                                                                    : qt_evr_pixelFormatFromD3DFormat(d3dFormat),
-                                              m_useTextureRendering ? QVideoFrame::GLTextureHandle
-                                                                    : QVideoFrame::NoHandle);
+                                                                    : qt_evr_pixelFormatFromD3DFormat(d3dFormat));
     } else {
         releaseResources();
     }
@@ -387,9 +385,8 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
     if (!sample)
         return QVideoFrame();
 
-    QVideoFrame frame(new IMFSampleVideoBuffer(this, sample, m_surfaceFormat.handleType()),
-                      m_surfaceFormat.frameSize(),
-                      m_surfaceFormat.pixelFormat());
+    QVideoFrame frame(new IMFSampleVideoBuffer(this, sample, (m_useTextureRendering ? QVideoFrame::GLTextureHandle : QVideoFrame::NoHandle)),
+                      m_surfaceFormat);
 
     // WMF uses 100-nanosecond units, Qt uses microseconds
     LONGLONG startTime = 0;

@@ -61,7 +61,7 @@ class EvrVideoWindowControl : public QPlatformVideoSink
 {
     Q_OBJECT
 public:
-    EvrVideoWindowControl(QObject *parent = 0);
+    EvrVideoWindowControl(QVideoSink *parent = 0);
     ~EvrVideoWindowControl() override;
 
     bool setEvr(IUnknown *evr);

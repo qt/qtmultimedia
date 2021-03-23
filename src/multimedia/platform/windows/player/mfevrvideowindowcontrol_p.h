@@ -58,7 +58,7 @@ QT_USE_NAMESPACE
 class MFEvrVideoWindowControl : public EvrVideoWindowControl
 {
 public:
-    MFEvrVideoWindowControl(QObject *parent = 0);
+    MFEvrVideoWindowControl(QVideoSink *parent = 0);
     ~MFEvrVideoWindowControl();
 
     IMFActivate* createActivate();

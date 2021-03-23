@@ -43,6 +43,7 @@
 #include "evrcustompresenter_p.h"
 
 #include <private/qabstractvideobuffer_p.h>
+#include <qvideosink.h>
 #include <qvideosurfaceformat.h>
 #include <qtcore/qtimer.h>
 #include <qtcore/qmutex.h>
@@ -242,7 +243,7 @@ namespace
             : m_cRef(1)
             , m_eventQueue(0)
             , m_shutdown(false)
-            , m_surface(0)
+            , m_videoSink(0)
             , m_state(State_TypeNotSet)
             , m_currentFormatIndex(-1)
             , m_bytesPerLine(0)
@@ -622,10 +623,10 @@ namespace
         }
 
         //
-        void setSurface(QAbstractVideoSurface *surface)
+        void setSink(QVideoSink *sink)
         {
             m_mutex.lock();
-            m_surface = surface;
+            m_videoSink = sink;
             m_mutex.unlock();
             supportedFormatsChanged();
         }
@@ -789,10 +790,10 @@ namespace
             QMutexLocker locker(&m_mutex);
             m_pixelFormats.clear();
             clearMediaTypes();
-            if (!m_surface)
+            if (!m_videoSink)
                 return;
-            const QList<QVideoSurfaceFormat::PixelFormat> formats = m_surface->supportedPixelFormats();
-            for (QVideoSurfaceFormat::PixelFormat format : formats) {
+            for (int f = 0; f < QVideoSurfaceFormat::NPixelFormats; ++f) {
+                QVideoSurfaceFormat::PixelFormat format = QVideoSurfaceFormat::PixelFormat(f);
                 IMFMediaType *mediaType;
                 if (FAILED(MFCreateMediaType(&mediaType))) {
                     qWarning("Failed to create mf media type!");
@@ -853,12 +854,10 @@ namespace
             if (!m_scheduledBuffer)
                 return;
             QVideoFrame frame = QVideoFrame(
-                        new MediaSampleVideoBuffer(m_scheduledBuffer, m_bytesPerLine),
-                        m_surfaceFormat.frameSize(),
-                        m_surfaceFormat.pixelFormat());
+                        new MediaSampleVideoBuffer(m_scheduledBuffer, m_bytesPerLine), m_surfaceFormat);
             frame.setStartTime(m_bufferStartTime * 0.1);
             frame.setEndTime((m_bufferStartTime + m_bufferDuration) * 0.1);
-            m_surface->present(frame);
+            m_videoSink->newVideoFrame(frame);
             m_scheduledBuffer->Release();
             m_scheduledBuffer = NULL;
             if (m_rate != 0)
@@ -877,9 +876,6 @@ namespace
 
         enum
         {
-            StartSurface = QEvent::User,
-            StopSurface,
-            FlushSurface,
             PresentSurface
         };
 
@@ -902,37 +898,9 @@ namespace
         };
 
     protected:
-        void customEvent(QEvent *event)
-        {
-            QMutexLocker locker(&m_mutex);
-            if (event->type() == StartSurface) {
-                if (m_state == State_WaitForSurfaceStart) {
-                    m_startResult = startSurface();
-                    queueAsyncOperation(OpStart);
-                }
-            } else if (event->type() == StopSurface) {
-                stopSurface();
-            } else {
-               QObject::customEvent(event);
-            }
-        }
         HRESULT m_startResult;
 
     private:
-        HRESULT startSurface()
-        {
-            if (!m_surface->isFormatSupported(m_surfaceFormat))
-                return S_FALSE;
-            if (!m_surface->start(m_surfaceFormat))
-                return S_FALSE;
-            return S_OK;
-        }
-
-        void stopSurface()
-        {
-            m_surface->stop();
-        }
-
         enum FlushState
         {
             DropSamples = 0,
@@ -1042,7 +1010,7 @@ namespace
         int m_currentFormatIndex;
         int m_bytesPerLine;
         QVideoSurfaceFormat m_surfaceFormat;
-        QAbstractVideoSurface* m_surface;
+        QVideoSink *m_videoSink;
         MFVideoRendererControl *m_rendererControl;
 
         void clearMediaTypes()
@@ -1121,22 +1089,7 @@ namespace
                 switch (op)    {
                 case OpStart:
                     endPreroll(S_FALSE);
-                    if (m_state == State_WaitForSurfaceStart) {
-                        hr = m_startResult;
-                        m_state = State_Started;
-                    } else if (!m_surface->isActive()) {
-                        if (thread() == QThread::currentThread()) {
-                            hr = startSurface();
-                        }
-                        else {
-                            m_state = State_WaitForSurfaceStart;
-                            QCoreApplication::postEvent(m_rendererControl, new QChildEvent(QEvent::Type(StartSurface), this));
-                            break;
-                        }
-                    }
-
-                    if (m_state == State_Started)
-                        schedulePresentation(true);
+                    schedulePresentation(true);
                 case OpRestart:
                     endPreroll(S_FALSE);
                     if (SUCCEEDED(hr)) {
@@ -1158,14 +1111,6 @@ namespace
                     clearBufferCache();
                     // Send the event even if the previous call failed.
                     hr = queueEvent(MEStreamSinkStopped, GUID_NULL, hr, NULL);
-                    if (m_surface->isActive()) {
-                        if (thread() == QThread::currentThread()) {
-                            stopSurface();
-                        }
-                        else {
-                            QCoreApplication::postEvent(m_rendererControl, new QChildEvent(QEvent::Type(StopSurface), this));
-                        }
-                    }
                     break;
                 case OpPause:
                     hr = queueEvent(MEStreamSinkPaused, GUID_NULL, hr, NULL);
@@ -1494,20 +1439,12 @@ namespace
             Q_ASSERT(m_shutdown);
         }
 
-        void setSurface(QAbstractVideoSurface *surface)
+        void setSurface(QVideoSink *surface)
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
                 return;
-            m_stream->setSurface(surface);
-        }
-
-        void supportedFormatsChanged()
-        {
-            QMutexLocker locker(&m_mutex);
-            if (m_shutdown)
-                return;
-            m_stream->supportedFormatsChanged();
+            m_stream->setSink(surface);
         }
 
         void present()
@@ -1867,7 +1804,7 @@ namespace
             , m_sink(0)
             , m_rendererControl(rendererControl)
             , m_attributes(0)
-            , m_surface(0)
+            , m_videoSink(0)
         {
             MFCreateAttributes(&m_attributes, 0);
             m_sink = new MediaSink(rendererControl);
@@ -1919,8 +1856,8 @@ namespace
             QMutexLocker locker(&m_mutex);
             if (!m_sink) {
                 m_sink = new MediaSink(m_rendererControl);
-                if (m_surface)
-                    m_sink->setSurface(m_surface);
+                if (m_videoSink)
+                    m_sink->setSurface(m_videoSink);
             }
             return m_sink->QueryInterface(riid, ppv);
         }
@@ -2161,25 +2098,17 @@ namespace
         }
 
         /////////////////////////////////
-        void setSurface(QAbstractVideoSurface *surface)
+        void setSink(QVideoSink *sink)
         {
             QMutexLocker locker(&m_mutex);
-            if (m_surface == surface)
+            if (m_videoSink == sink)
                 return;
 
-            m_surface = surface;
+            m_videoSink = sink;
 
             if (!m_sink)
                 return;
-            m_sink->setSurface(m_surface);
-        }
-
-        void supportedFormatsChanged()
-        {
-            QMutexLocker locker(&m_mutex);
-            if (!m_sink)
-                return;
-            m_sink->supportedFormatsChanged();
+            m_sink->setSurface(m_videoSink);
         }
 
         void present()
@@ -2218,7 +2147,7 @@ namespace
         MediaSink *m_sink;
         MFVideoRendererControl *m_rendererControl;
         IMFAttributes *m_attributes;
-        QAbstractVideoSurface *m_surface;
+        QVideoSink *m_videoSink;
         QMutex m_mutex;
     };
 }
@@ -2235,21 +2164,17 @@ public:
     STDMETHODIMP ShutdownObject();
     STDMETHODIMP DetachObject();
 
-    void setSurface(QAbstractVideoSurface *surface);
+    void setSink(QVideoSink *sink);
 
 private:
     EVRCustomPresenter *m_presenter;
-    QAbstractVideoSurface *m_surface;
+    QVideoSink *m_videoSink;
     QMutex m_mutex;
 };
 
 
 MFVideoRendererControl::MFVideoRendererControl(QObject *parent)
     : QObject(parent)
-    , m_surface(0)
-    , m_currentActivate(0)
-    , m_callback(0)
-    , m_presenterActivate(0)
 {
 }
 
@@ -2260,8 +2185,8 @@ MFVideoRendererControl::~MFVideoRendererControl()
 
 void MFVideoRendererControl::clear()
 {
-    if (m_surface)
-        m_surface->stop();
+    if (m_sink)
+        m_sink->newVideoFrame(QVideoFrame());
 
     if (m_presenterActivate) {
         m_presenterActivate->ShutdownObject();
@@ -2281,25 +2206,19 @@ void MFVideoRendererControl::releaseActivate()
     clear();
 }
 
-QAbstractVideoSurface *MFVideoRendererControl::surface() const
+QVideoSink *MFVideoRendererControl::sink() const
 {
-    return m_surface;
+    return m_sink;
 }
 
-void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
+void MFVideoRendererControl::setSink(QVideoSink *sink)
 {
-    if (m_surface)
-        disconnect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
-    m_surface = surface;
-
-    if (m_surface) {
-        connect(m_surface, SIGNAL(supportedFormatsChanged()), this, SLOT(supportedFormatsChanged()));
-    }
+    m_sink = sink;
 
     if (m_presenterActivate)
-        m_presenterActivate->setSurface(m_surface);
+        m_presenterActivate->setSink(m_sink);
     else if (m_currentActivate)
-        static_cast<VideoRendererActivate*>(m_currentActivate)->setSurface(m_surface);
+        static_cast<VideoRendererActivate*>(m_currentActivate)->setSink(m_sink);
 }
 
 void MFVideoRendererControl::customEvent(QEvent *event)
@@ -2326,21 +2245,7 @@ void MFVideoRendererControl::customEvent(QEvent *event)
         }
         return;
     }
-    if (event->type() >= MediaStream::StartSurface) {
-        QChildEvent *childEvent = static_cast<QChildEvent*>(event);
-        static_cast<MediaStream*>(childEvent->child())->customEvent(event);
-    } else {
-        QObject::customEvent(event);
-    }
-}
-
-void MFVideoRendererControl::supportedFormatsChanged()
-{
-    if (m_presenterActivate)
-        return;
-
-    if (m_currentActivate)
-        static_cast<VideoRendererActivate*>(m_currentActivate)->supportedFormatsChanged();
+    QObject::customEvent(event);
 }
 
 void MFVideoRendererControl::present()
@@ -2354,7 +2259,7 @@ void MFVideoRendererControl::present()
 
 IMFActivate* MFVideoRendererControl::createActivate()
 {
-    Q_ASSERT(m_surface);
+    Q_ASSERT(m_sink);
 
     clear();
 
@@ -2366,7 +2271,7 @@ IMFActivate* MFVideoRendererControl::createActivate()
         m_currentActivate = new VideoRendererActivate(this);
     }
 
-    setSurface(m_surface);
+    setSink(m_sink);
 
     return m_currentActivate;
 }
@@ -2375,7 +2280,7 @@ IMFActivate* MFVideoRendererControl::createActivate()
 EVRCustomPresenterActivate::EVRCustomPresenterActivate()
     : MFAbstractActivate()
     , m_presenter(0)
-    , m_surface(0)
+    , m_videoSink(0)
 { }
 
 HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
@@ -2385,8 +2290,8 @@ HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
     QMutexLocker locker(&m_mutex);
     if (!m_presenter) {
         m_presenter = new EVRCustomPresenter;
-        if (m_surface)
-            m_presenter->setSurface(m_surface);
+        if (m_videoSink)
+            m_presenter->setSink(m_videoSink);
     }
     return m_presenter->QueryInterface(riid, ppv);
 }
@@ -2408,16 +2313,16 @@ HRESULT EVRCustomPresenterActivate::DetachObject()
     return S_OK;
 }
 
-void EVRCustomPresenterActivate::setSurface(QAbstractVideoSurface *surface)
+void EVRCustomPresenterActivate::setSink(QVideoSink *sink)
 {
     QMutexLocker locker(&m_mutex);
-    if (m_surface == surface)
+    if (m_videoSink == sink)
         return;
 
-    m_surface = surface;
+    m_videoSink = sink;
 
     if (m_presenter)
-        m_presenter->setSurface(surface);
+        m_presenter->setSink(sink);
 }
 
 #include "moc_mfvideorenderercontrol_p.cpp"

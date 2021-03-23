@@ -73,6 +73,8 @@ public:
     QPlatformAudioDecoder *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 
+    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+
     QWindowsDeviceManager *m_manager = nullptr;
     QWindowsFormatInfo *m_formatInfo = nullptr;
 };

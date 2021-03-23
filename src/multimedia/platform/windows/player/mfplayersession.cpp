@@ -1829,7 +1829,7 @@ bool MFPlayerSession::setAudioOutput(const QAudioDeviceInfo &device)
     return true;
 }
 
-void MFPlayerSession::setVideoSurface(QAbstractVideoSurface *surface)
+void MFPlayerSession::setVideoSink(QVideoSink *sink)
 {
-    m_videoRendererControl->setSurface(surface);
+    m_videoRendererControl->setSink(sink);
 }

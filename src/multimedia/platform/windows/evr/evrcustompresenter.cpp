@@ -540,7 +540,7 @@ HRESULT SamplePool::clear()
 }
 
 
-EVRCustomPresenter::EVRCustomPresenter(QAbstractVideoSurface *surface)
+EVRCustomPresenter::EVRCustomPresenter(QVideoSink *sink)
     : QObject()
     , m_sampleFreeCB(this, &EVRCustomPresenter::onSampleFree)
     , m_refCount(1)
@@ -557,7 +557,7 @@ EVRCustomPresenter::EVRCustomPresenter(QAbstractVideoSurface *surface)
     , m_mixer(0)
     , m_mediaEventSink(0)
     , m_mediaType(0)
-    , m_surface(0)
+    , m_videoSink(0)
     , m_canRenderToSurface(false)
     , m_positionOffset(0)
 {
@@ -567,7 +567,7 @@ EVRCustomPresenter::EVRCustomPresenter(QAbstractVideoSurface *surface)
     m_sourceRect.bottom = 1;
     m_sourceRect.right = 1;
 
-    setSurface(surface);
+    setSink(sink);
 }
 
 EVRCustomPresenter::~EVRCustomPresenter()
@@ -1025,14 +1025,14 @@ void EVRCustomPresenter::supportedFormatsChanged()
     m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, false);
 
     // check if we can render to the surface (compatible formats)
-    if (m_surface) {
-        QList<QVideoSurfaceFormat::PixelFormat> formats = m_surface->supportedPixelFormats(QVideoFrame::GLTextureHandle);
-        if (m_presentEngine->supportsTextureRendering() && formats.contains(QVideoSurfaceFormat::Format_RGB32)) {
+    if (m_videoSink) {
+        if (m_presentEngine->supportsTextureRendering() && m_videoSink->graphicsType() == QVideoSink::OpenGL) {
             m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, true);
             m_canRenderToSurface = true;
         } else {
-            formats = m_surface->supportedPixelFormats(QVideoFrame::NoHandle);
-            for (QVideoSurfaceFormat::PixelFormat format : qAsConst(formats)) {
+            for (int f = 0; f < QVideoSurfaceFormat::NPixelFormats; ++f) {
+                // ### set a better preference order
+                QVideoSurfaceFormat::PixelFormat format = QVideoSurfaceFormat::PixelFormat(f);
                 if (SUCCEEDED(m_presentEngine->checkFormat(qt_evr_D3DFormatFromPixelFormat(format)))) {
                     m_canRenderToSurface = true;
                     break;
@@ -1044,22 +1044,10 @@ void EVRCustomPresenter::supportedFormatsChanged()
     // TODO: if media type already set, renegotiate?
 }
 
-void EVRCustomPresenter::setSurface(QAbstractVideoSurface *surface)
+void EVRCustomPresenter::setSink(QVideoSink *sink)
 {
     m_mutex.lock();
-
-    if (m_surface) {
-        disconnect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged,
-                   this, &EVRCustomPresenter::supportedFormatsChanged);
-    }
-
-    m_surface = surface;
-
-    if (m_surface) {
-        connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged,
-                this, &EVRCustomPresenter::supportedFormatsChanged);
-    }
-
+    m_videoSink = sink;
     m_mutex.unlock();
 
     supportedFormatsChanged();
@@ -1146,7 +1134,7 @@ HRESULT EVRCustomPresenter::flush()
         sample->Release();
     m_frameStep.samples.clear();
 
-    if (m_renderState == RenderStopped && m_surface && m_surface->isActive()) {
+    if (m_renderState == RenderStopped && m_videoSink) {
         // Repaint with black.
         presentSample(NULL);
     }
@@ -1482,13 +1470,6 @@ HRESULT EVRCustomPresenter::isMediaTypeSupported(IMFMediaType *proposed)
     QVideoSurfaceFormat::PixelFormat pixelFormat = pixelFormatFromMediaType(proposed);
     if (pixelFormat == QVideoSurfaceFormat::Format_Invalid)
         return MF_E_INVALIDMEDIATYPE;
-
-    // When not rendering to texture, only accept pixel formats supported by the video surface
-    if (!m_presentEngine->isTextureRenderingEnabled()
-            && m_surface
-            && !m_surface->supportedPixelFormats().contains(pixelFormat)) {
-        return MF_E_INVALIDMEDIATYPE;
-    }
 
     // Reject compressed media types.
     hr = proposed->IsCompressedFormat(&compressed);
@@ -1899,15 +1880,6 @@ void EVRCustomPresenter::startSurface()
         QCoreApplication::postEvent(this, new QEvent(QEvent::Type(StartSurface)));
         return;
     }
-
-    if (!m_surface || m_surface->isActive())
-        return;
-
-    QVideoSurfaceFormat format = m_presentEngine->videoSurfaceFormat();
-    if (!format.isValid())
-        return;
-
-    m_surface->start(format);
 }
 
 void EVRCustomPresenter::stopSurface()
@@ -1916,11 +1888,6 @@ void EVRCustomPresenter::stopSurface()
         QCoreApplication::postEvent(this, new QEvent(QEvent::Type(StopSurface)));
         return;
     }
-
-    if (!m_surface || !m_surface->isActive())
-        return;
-
-    m_surface->stop();
 }
 
 void EVRCustomPresenter::presentSample(IMFSample *sample)
@@ -1930,7 +1897,7 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
         return;
     }
 
-    if (!m_surface || !m_presentEngine->videoSurfaceFormat().isValid())
+    if (!m_videoSink || !m_presentEngine->videoSurfaceFormat().isValid())
         return;
 
     QVideoFrame frame = m_presentEngine->makeVideoFrame(sample);
@@ -1944,13 +1911,7 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
             frame.setEndTime(frame.endTime() + m_positionOffset);
     }
 
-    if (!m_surface->isActive() || m_surface->surfaceFormat() != m_presentEngine->videoSurfaceFormat()) {
-        m_surface->stop();
-        if (!m_surface->start(m_presentEngine->videoSurfaceFormat()))
-            return;
-    }
-
-    m_surface->present(frame);
+    m_videoSink->newVideoFrame(frame);
 }
 
 void EVRCustomPresenter::positionChanged(qint64 position)

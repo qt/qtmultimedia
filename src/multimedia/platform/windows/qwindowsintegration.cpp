@@ -42,6 +42,7 @@
 #include "qwindowsformatinfo_p.h"
 #include <private/mfplayercontrol_p.h>
 #include <private/mfaudiodecodercontrol_p.h>
+#include <private/mfevrvideowindowcontrol_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -91,6 +92,11 @@ QPlatformAudioDecoder *QWindowsIntegration::createAudioDecoder()
 QPlatformMediaPlayer *QWindowsIntegration::createPlayer(QMediaPlayer *parent)
 {
     return new MFPlayerControl(parent);
+}
+
+QPlatformVideoSink *QWindowsIntegration::createVideoSink(QVideoSink *sink)
+{
+    return new MFEvrVideoWindowControl(sink);
 }
 
 QT_END_NAMESPACE

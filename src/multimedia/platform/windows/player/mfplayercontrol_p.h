@@ -108,7 +108,7 @@ public:
     bool setAudioOutput(const QAudioDeviceInfo &) override;
     QAudioDeviceInfo audioOutput() const override;
 
-    void setVideoSurface(QAbstractVideoSurface *surface) override;
+    void setVideoSink(QVideoSink *sink) override;
 
     void handleStatusChanged();
     void handleVideoAvailable();

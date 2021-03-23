@@ -128,7 +128,7 @@ public:
 
     QMediaMetaData metaData() const { return m_metaData; }
 
-    void setVideoSurface(QAbstractVideoSurface *surface);
+    void setVideoSink(QVideoSink *sink);
 
     void statusChanged() { m_playerControl->handleStatusChanged(); }
     void audioAvailable() { m_playerControl->handleAudioAvailable(); }

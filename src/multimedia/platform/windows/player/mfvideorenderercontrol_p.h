@@ -58,7 +58,7 @@
 QT_USE_NAMESPACE
 
 class EVRCustomPresenterActivate;
-class QAbstractVideoSurface;
+class QVideoSink;
 
 class MFVideoRendererControl : public QObject
 {
@@ -67,8 +67,8 @@ public:
     MFVideoRendererControl(QObject *parent = 0);
     ~MFVideoRendererControl();
 
-    QAbstractVideoSurface *surface() const;
-    void setSurface(QAbstractVideoSurface *surface);
+    QVideoSink *sink() const;
+    void setSink(QVideoSink *surface);
 
     IMFActivate* createActivate();
     void releaseActivate();
@@ -77,17 +77,16 @@ protected:
     void customEvent(QEvent *event);
 
 private Q_SLOTS:
-    void supportedFormatsChanged();
     void present();
 
 private:
     void clear();
 
-    QAbstractVideoSurface *m_surface;
-    IMFActivate *m_currentActivate;
-    IMFSampleGrabberSinkCallback *m_callback;
+    QVideoSink *m_sink = nullptr;
+    IMFActivate *m_currentActivate = nullptr;
+    IMFSampleGrabberSinkCallback *m_callback = nullptr;
 
-    EVRCustomPresenterActivate *m_presenterActivate;
+    EVRCustomPresenterActivate *m_presenterActivate = nullptr;
 };
 
 #endif
