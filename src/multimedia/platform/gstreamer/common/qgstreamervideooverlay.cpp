@@ -59,9 +59,6 @@ struct ElementMap
 // Ordered by descending priority
 static constexpr ElementMap elementMap[] =
 {
-#if QT_CONFIG(gstreamer_gl)
-    { "xcb", "glimagesink" },
-#endif
     { "xcb", "vaapisink" },
     { "xcb", "xvimagesink" },
     { "xcb", "ximagesink" },
@@ -334,10 +331,6 @@ static QGstElement findBestVideoSink()
 
     // First, try some known video sinks, depending on the Qt platform plugin in use.
     for (auto i : elementMap) {
-#if QT_CONFIG(gstreamer_gl)
-        if (!QGstUtils::useOpenGL() && qstrcmp(i.gstreamerElement, "glimagesink") == 0)
-            continue;
-#endif
         if (platform != QLatin1String(i.qtPlatform))
             continue;
         QGstElement choice(i.gstreamerElement, i.gstreamerElement);

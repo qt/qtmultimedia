@@ -121,7 +121,7 @@ void tst_QAbstractVideoBuffer::handle()
 {
     QtTestVideoBuffer buffer(QVideoFrame::NoHandle);
 
-    QVERIFY(buffer.handle().isNull());
+    QVERIFY(buffer.textureHandle(0) == 0);
 }
 
 void tst_QAbstractVideoBuffer::mapMode()

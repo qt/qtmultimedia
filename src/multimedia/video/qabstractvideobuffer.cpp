@@ -104,8 +104,9 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs an abstract video buffer of the given \a type.
 */
-QAbstractVideoBuffer::QAbstractVideoBuffer(QVideoFrame::HandleType type)
-    : m_type(type)
+QAbstractVideoBuffer::QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi)
+    : m_type(type),
+      rhi(rhi)
 {
 }
 
@@ -173,17 +174,12 @@ QVideoFrame::HandleType QAbstractVideoBuffer::handleType() const
     \sa map()
 */
 
-/*!
-    Returns a type specific handle to the data buffer.
+/*! \fn quint64 QAbstractVideoBuffer::textureHandle(QRhi *rhi, int plane) const
 
-    The type of the handle is given by handleType() function.
+    Returns a texture handle to the data buffer.
 
     \sa handleType()
 */
-QVariant QAbstractVideoBuffer::handle() const
-{
-    return QVariant();
-}
 
 /*!
     \fn int QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])

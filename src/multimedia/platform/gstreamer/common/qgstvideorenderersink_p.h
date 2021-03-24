@@ -62,7 +62,7 @@
 #include <QtCore/qwaitcondition.h>
 #include <qvideosurfaceformat.h>
 #include <qvideoframe.h>
-
+#include <private/qgstvideobuffer_p.h>
 #include <private/qgst_p.h>
 
 #if QT_CONFIG(gstreamer_gl)
@@ -78,7 +78,7 @@ class QVideoSink;
 class QGstVideoRenderer
 {
 public:
-    QGstVideoRenderer();
+    QGstVideoRenderer(QVideoSink *sink);
     ~QGstVideoRenderer();
 
     QGstMutableCaps getCaps();
@@ -91,10 +91,11 @@ public:
     void flush(QVideoSink *surface);
 
 private:
+    QVideoSink *m_sink = nullptr;
     QVideoSurfaceFormat m_format;
     GstVideoInfo m_videoInfo;
     bool m_flushed = true;
-    QVideoFrame::HandleType m_handleType = QVideoFrame::NoHandle;
+    QGstVideoBuffer::BufferFormat bufferFormat = QGstVideoBuffer::Memory;
 };
 
 class QVideoSurfaceGstDelegate : public QObject

@@ -64,6 +64,8 @@ public:
     virtual WId winId() const = 0;
     virtual void setWinId(WId id) = 0;
 
+    virtual void setRhi(QRhi */*rhi*/) {}
+
     virtual QRect displayRect() const = 0;
     virtual void setDisplayRect(const QRect &rect) = 0;
 

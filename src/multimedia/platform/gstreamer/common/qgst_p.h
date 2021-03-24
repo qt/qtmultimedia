@@ -233,6 +233,12 @@ public:
             gst_caps_unref(caps);
     }
 
+    void create() {
+        caps = gst_caps_new_empty();
+    }
+
+    void addPixelFormats(const QList<QVideoSurfaceFormat::PixelFormat> &formats, const char *modifier = nullptr);
+
     bool isNull() const { return !caps; }
 
     int size() const { return gst_caps_get_size(caps); }

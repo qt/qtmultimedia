@@ -126,7 +126,10 @@ QRhi *QVideoSink::rhi() const
 
 void QVideoSink::setRhi(QRhi *rhi)
 {
+    if (d->rhi == rhi)
+        return;
     d->rhi = rhi;
+    d->videoSink->setRhi(rhi);
 }
 
 void QVideoSink::setFullScreen(bool fullscreen)

@@ -195,7 +195,7 @@ void tst_QVideoFrame::create()
 
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
-    QCOMPARE(frame.handle(), QVariant());
+    QCOMPARE(frame.textureHandle(0), 0);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
@@ -234,7 +234,7 @@ void tst_QVideoFrame::createInvalid()
 
     QVERIFY(!frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
-    QCOMPARE(frame.handle(), QVariant());
+    QCOMPARE(frame.textureHandle(0), 0);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());

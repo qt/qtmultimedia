@@ -63,10 +63,17 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIA_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info);
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
-                    QVideoFrame::HandleType handleType, const QVariant &handle);
+    enum BufferFormat {
+        Memory,
+        GLTexture,
+        VideoGLTextureUploadMeta,
+        DMABuf
+    };
 
+    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, BufferFormat format);
+    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
+        : QGstVideoBuffer(buffer, info, nullptr, Memory)
+    {}
     ~QGstVideoBuffer();
 
     GstBuffer *buffer() const { return m_buffer; }
@@ -75,8 +82,9 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    QVariant handle() const override { return m_handle; }
+    quint64 textureHandle(int plane) const override;
 private:
+    BufferFormat bufferFormat = Memory;
     GstVideoInfo m_videoInfo;
     GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;

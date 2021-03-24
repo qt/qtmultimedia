@@ -78,6 +78,9 @@ public:
     WId winId() const override;
     void setWinId(WId id) override;
 
+    QRhi *rhi() const { return m_rhi; }
+    void setRhi(QRhi *rhi) override;
+
     QRect displayRect() const override;
     void setDisplayRect(const QRect &rect) override;
 
@@ -119,6 +122,7 @@ private:
     QGstreamerVideoRenderer *m_videoRenderer = nullptr;
     QVideoSink::GraphicsType m_graphicsType = QVideoSink::Memory;
     WId m_windowId = 0;
+    QRhi *m_rhi = nullptr;
     QRect m_displayRect;
     bool m_fullScreen = false;
     mutable QColor m_colorKey = QColor::Invalid;

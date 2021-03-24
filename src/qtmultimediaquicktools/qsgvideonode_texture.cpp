@@ -185,7 +185,7 @@ void QSGVideoMaterialRhiShader_Texture::updateSampledImage(RenderState &state, i
     m->m_frameMutex.lock();
     auto size = m->m_frame.size();
     if (m->m_frame.isValid())
-        m->m_textureId = m->m_frame.handle().toULongLong();
+        m->m_textureId = m->m_frame.textureHandle(0);
     m->m_frameMutex.unlock();
 
     m->m_texture->setNativeObject(m->m_textureId, size);

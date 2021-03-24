@@ -62,12 +62,6 @@ QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *pare
     : q(parent),
       m_frameChanged(false)
 {
-    m_sink = new QVideoSink(q);
-    m_sink->setRhi(QQuickWindowPrivate::get(q->window())->rhi);
-    qRegisterMetaType<QVideoSurfaceFormat>();
-    QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
-                     q, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);
-
     // Prioritize the plugin requested by the environment
     QString requestedVideoNode = QString::fromLatin1(qgetenv("QT_VIDEONODE"));
 
@@ -324,6 +318,13 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
 
 QVideoSink *QDeclarativeVideoBackend::videoSink() const
 {
+    if (!m_sink) {
+        m_sink = new QVideoSink(q);
+        m_sink->setRhi(QQuickWindowPrivate::get(q->window())->rhi);
+        qRegisterMetaType<QVideoSurfaceFormat>();
+        QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
+                         q, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);
+    }
     return m_sink;
 }
 

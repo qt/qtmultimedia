@@ -51,12 +51,15 @@
 #include "qgstvideorenderersink_p.h"
 
 #include <gst/video/video.h>
+#include <gst/video/gstvideometa.h>
 
 #include "qgstutils_p.h"
 
 #if QT_CONFIG(gstreamer_gl)
-#include <QOpenGLContext>
+#include <QtGui/private/qrhi_p.h>
+#include <QtGui/private/qrhigles2_p.h>
 #include <QGuiApplication>
+#include <QtGui/qopenglcontext.h>
 #include <QWindow>
 #include <qpa/qplatformnativeinterface.h>
 
@@ -77,24 +80,30 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstVideoRenderer::QGstVideoRenderer() = default;
+QGstVideoRenderer::QGstVideoRenderer(QVideoSink *sink)
+    : m_sink(sink)
+{
+}
 
 QGstVideoRenderer::~QGstVideoRenderer() = default;
 
 QGstMutableCaps QGstVideoRenderer::getCaps()
 {
+    QGstMutableCaps caps;
+    caps.create();
+
     // All the formats that both we and gstreamer support
 #if QT_CONFIG(gstreamer_gl)
-    if (QGstUtils::useOpenGL()) {
-        m_handleType = QVideoFrame::RhiTextureHandle;
+    QRhi *rhi = m_sink->rhi();
+    if (rhi->backend() == QRhi::OpenGLES2) {
         auto formats = QList<QVideoSurfaceFormat::PixelFormat>()
-                       << QVideoSurfaceFormat::Format_YUV420P
-                       << QVideoSurfaceFormat::Format_YUV422P
-                       << QVideoSurfaceFormat::Format_YV12
+//                       << QVideoSurfaceFormat::Format_YUV420P
+//                       << QVideoSurfaceFormat::Format_YUV422P
+//                       << QVideoSurfaceFormat::Format_YV12
                        << QVideoSurfaceFormat::Format_UYVY
                        << QVideoSurfaceFormat::Format_YUYV
-                       << QVideoSurfaceFormat::Format_NV12
-                       << QVideoSurfaceFormat::Format_NV21
+//                       << QVideoSurfaceFormat::Format_NV12
+//                       << QVideoSurfaceFormat::Format_NV21
                        << QVideoSurfaceFormat::Format_AYUV444
                        << QVideoSurfaceFormat::Format_YUV444
 //                       << QVideoSurfaceFormat::Format_P010LE
@@ -105,8 +114,8 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                        << QVideoSurfaceFormat::Format_ARGB32
                        << QVideoSurfaceFormat::Format_ABGR32
                        << QVideoSurfaceFormat::Format_BGRA32
-                       << QVideoSurfaceFormat::Format_RGB555
-                       << QVideoSurfaceFormat::Format_BGR555
+//                       << QVideoSurfaceFormat::Format_RGB555
+//                       << QVideoSurfaceFormat::Format_BGR555
 //                       << QVideoSurfaceFormat::Format_Y16
 //                       << QVideoSurfaceFormat::Format_RGB24
 //                       << QVideoSurfaceFormat::Format_BGR24
@@ -116,14 +125,10 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
         // glupload will be added to the pipeline and GLMemory will be requested.
         // This will lead to upload data to gl textures
         // and download it when the buffer will be used within rendering.
-        if (!formats.isEmpty()) {
-            QGstMutableCaps caps = QGstUtils::capsForFormats(formats);
-            for (int i = 0; i < caps.size(); ++i)
-                gst_caps_set_features(caps.get(), i, gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_GL_MEMORY));
-
-            return caps;
-        }
-        m_handleType = QVideoFrame::NoHandle;
+        caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
+        // ### needs more work, somehow casting the GstBuffer to texture upload meta
+        // fails. In addition, the texture upload seems to be broken for VAAPI decoders
+//        caps.addPixelFormats(formats, GST_CAPS_FEATURE_META_GST_VIDEO_GL_TEXTURE_UPLOAD_META);
     }
 #endif
     auto formats = QList<QVideoSurfaceFormat::PixelFormat>()
@@ -150,13 +155,25 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoSurfaceFormat::Format_RGB24
                    << QVideoSurfaceFormat::Format_BGR24
                    << QVideoSurfaceFormat::Format_RGB565;
-    return QGstUtils::capsForFormats(formats);
+    caps.addPixelFormats(formats);
+    qDebug() << "CAPS:" << caps.toString();
+    return caps;
 }
 
 bool QGstVideoRenderer::start(GstCaps *caps)
 {
     m_flushed = true;
     m_format = QGstUtils::formatForCaps(caps, &m_videoInfo);
+//    qDebug() << "START:" << QGstCaps(caps).toString();
+//    qDebug() << m_format;
+
+    auto *features = gst_caps_get_features(caps, 0);
+    if (gst_caps_features_contains(features, GST_CAPS_FEATURE_MEMORY_GL_MEMORY))
+        bufferFormat = QGstVideoBuffer::GLTexture;
+    else if (gst_caps_features_contains(features, GST_CAPS_FEATURE_META_GST_VIDEO_GL_TEXTURE_UPLOAD_META))
+        bufferFormat = QGstVideoBuffer::VideoGLTextureUploadMeta;
+    else if (gst_caps_features_contains(features, "memory:DMABuf"))
+        bufferFormat = QGstVideoBuffer::DMABuf;
 
     return m_format.isValid();
 }
@@ -170,17 +187,7 @@ bool QGstVideoRenderer::present(QVideoSink *sink, GstBuffer *buffer)
 {
     m_flushed = false;
 
-    QGstVideoBuffer *videoBuffer = nullptr;
-#if QT_CONFIG(gstreamer_gl)
-    if (m_handleType == QVideoFrame::RhiTextureHandle) {
-        GstGLMemory *glmem = GST_GL_MEMORY_CAST(gst_buffer_peek_memory(buffer, 0));
-        guint textureId = gst_gl_memory_get_texture_id(glmem);
-        videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_handleType, textureId);
-    }
-#endif
-
-    if (!videoBuffer)
-        videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo);
+    QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink->rhi(), bufferFormat);
 
     auto meta = gst_buffer_get_video_crop_meta (buffer);
     if (meta) {
@@ -216,7 +223,7 @@ bool QGstVideoRenderer::proposeAllocation(GstQuery *)
 QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QVideoSink *sink)
     : m_sink(sink)
 {
-    m_renderer = new QGstVideoRenderer;
+    m_renderer = new QGstVideoRenderer(sink);
     updateSupportedFormats();
     connect(m_sink, SIGNAL(supportedFormatsChanged()), this, SLOT(updateSupportedFormats()));
 }
@@ -240,6 +247,7 @@ QGstMutableCaps QVideoSurfaceGstDelegate::caps()
 
 bool QVideoSurfaceGstDelegate::start(GstCaps *caps)
 {
+//    qDebug() << "QVideoSurfaceGstDelegate::start" << QGstCaps(caps).toString();
     QMutexLocker locker(&m_mutex);
 
     if (m_activeRenderer) {
@@ -332,8 +340,12 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
 #if QT_CONFIG(gstreamer_gl)
 static GstGLContext *gstGLDisplayContext(QVideoSink *sink)
 {
-    auto glContext = qobject_cast<QOpenGLContext*>(sink->property("GLContext").value<QObject*>());
-    // Context is not ready yet.
+    QRhi *rhi = sink->rhi();
+    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+        return nullptr;
+
+    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    auto glContext = nativeHandles->context;
     if (!glContext)
         return nullptr;
 
@@ -427,7 +439,7 @@ bool QVideoSurfaceGstDelegate::query(GstQuery *query)
         gst_query_set_context(query, context);
         gst_context_unref(context);
 
-        return m_gstGLDisplayContext;
+        return true;
     }
 #else
     Q_UNUSED(query);
@@ -563,7 +575,7 @@ QGstVideoRendererSink *QGstVideoRendererSink::createSink(QVideoSink *sink)
     QGstVideoRendererSink *gstSink = reinterpret_cast<QGstVideoRendererSink *>(
             g_object_new(QGstVideoRendererSink::get_type(), nullptr));
 
-    g_signal_connect(G_OBJECT(sink), "notify::show-preroll-frame", G_CALLBACK(handleShowPrerollChange), sink);
+    g_signal_connect(G_OBJECT(gstSink), "notify::show-preroll-frame", G_CALLBACK(handleShowPrerollChange), gstSink);
 
     return gstSink;
 }

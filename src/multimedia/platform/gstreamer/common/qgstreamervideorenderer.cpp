@@ -46,8 +46,7 @@
 #include <gst/gst.h>
 
 QGstreamerVideoRenderer::QGstreamerVideoRenderer(QVideoSink *parent)
-    : QObject(parent),
-      m_sink(parent)
+    : m_sink(parent)
 {
 }
 

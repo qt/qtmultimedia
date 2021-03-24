@@ -40,6 +40,7 @@
 #include "qgstreamervideosink_p.h"
 #include "qgstreamervideorenderer_p.h"
 #include <private/qgstutils_p.h>
+#include <QtGui/private/qrhi_p.h>
 
 #include <QtCore/qdebug.h>
 
@@ -57,6 +58,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
 QGstreamerVideoSink::~QGstreamerVideoSink()
 {
     delete m_videoOverlay;
+    delete m_videoRenderer;
 }
 
 QVideoSink::GraphicsType QGstreamerVideoSink::graphicsType() const
@@ -96,6 +98,16 @@ void QGstreamerVideoSink::setWinId(WId id)
 
     m_windowId = id;
     m_videoOverlay->setWindowHandle(m_windowId);
+}
+
+void QGstreamerVideoSink::setRhi(QRhi *rhi)
+{
+    if (rhi && rhi->backend() != QRhi::OpenGLES2)
+        rhi = nullptr;
+    if (m_rhi == rhi)
+        return;
+
+    m_rhi = rhi;
 }
 
 bool QGstreamerVideoSink::processSyncMessage(const QGstreamerMessage &message)
@@ -205,7 +217,4 @@ void QGstreamerVideoSink::createOverlay()
 void QGstreamerVideoSink::createRenderer()
 {
     m_videoRenderer = new QGstreamerVideoRenderer(sink);
-
-    qCDebug(qLcMediaVideoSink) << Q_FUNC_INFO;
-    connect(m_videoRenderer, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
 }

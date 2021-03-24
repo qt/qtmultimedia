@@ -250,29 +250,34 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
     return QVideoSurfaceFormat();
 }
 
-QGstMutableCaps QGstUtils::capsForFormats(const QList<QVideoSurfaceFormat::PixelFormat> &formats)
+void QGstMutableCaps::addPixelFormats(const QList<QVideoSurfaceFormat::PixelFormat> &formats, const char *modifier)
 {
-    GstCaps *caps = gst_caps_new_empty();
+    GValue list = {};
+    g_value_init(&list, GST_TYPE_LIST);
 
     for (QVideoSurfaceFormat::PixelFormat format : formats) {
         int index = indexOfVideoFormat(format);
+        if (index == -1)
+            continue;
+        GValue item = {};
 
-        if (index != -1) {
-            gst_caps_append_structure(caps, gst_structure_new(
-                    "video/x-raw",
-                    "format"   , G_TYPE_STRING, gst_video_format_to_string(qt_videoFormatLookup[index].gstFormat),
-                    nullptr));
-        }
+        g_value_init(&item, G_TYPE_STRING);
+        g_value_set_string(&item, gst_video_format_to_string(qt_videoFormatLookup[index].gstFormat));
+        gst_value_list_append_value(&list, &item);
+        g_value_unset(&item);
     }
+    QGValue v(&list);
+    auto *structure = gst_structure_new("video/x-raw",
+                                        "framerate", GST_TYPE_FRACTION_RANGE, 0, 1, INT_MAX, 1,
+                                        "width"    , GST_TYPE_INT_RANGE, 1, INT_MAX,
+                                        "height"   , GST_TYPE_INT_RANGE, 1, INT_MAX,
+                                        nullptr);
+    gst_structure_set_value(structure, "format", &list);
+    gst_caps_append_structure(caps, structure);
+    g_value_unset(&list);
 
-    gst_caps_set_simple(
-                caps,
-                "framerate", GST_TYPE_FRACTION_RANGE, 0, 1, INT_MAX, 1,
-                "width"    , GST_TYPE_INT_RANGE, 1, INT_MAX,
-                "height"   , GST_TYPE_INT_RANGE, 1, INT_MAX,
-                nullptr);
-
-    return caps;
+    if (modifier)
+        gst_caps_set_features(caps, size() - 1, gst_caps_features_from_string(modifier));
 }
 
 void QGstUtils::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
@@ -373,12 +378,6 @@ QGRange<float> QGstStructure::frameRateRange() const
     }
 
     return {minRate, maxRate};
-}
-
-bool QGstUtils::useOpenGL()
-{
-    static bool result = qEnvironmentVariableIntValue("QT_GSTREAMER_USE_OPENGL_PLUGIN");
-    return result;
 }
 
 GList *qt_gst_video_sinks()

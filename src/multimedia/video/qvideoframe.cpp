@@ -808,21 +808,13 @@ int QVideoFrame::planeCount() const
     return d->format.nPlanes();
 }
 
+/*!
+    \internal
+    Returns a texture id to the video frame's buffers.
+*/
 quint64 QVideoFrame::textureHandle(int plane)
 {
     return d->buffer->textureHandle(plane);
-}
-
-/*!
-    Returns a type specific handle to a video frame's buffer.
-
-    For an OpenGL texture this would be the texture ID.
-
-    \sa QAbstractVideoBuffer::handle()
-*/
-QVariant QVideoFrame::handle() const
-{
-    return d->buffer != nullptr ? d->buffer->handle() : QVariant();
 }
 
 /*!

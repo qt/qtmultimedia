@@ -115,8 +115,6 @@ public:
 
     quint64 textureHandle(int plane);
 
-    QVariant handle() const;
-
     qint64 startTime() const;
     void setStartTime(qint64 time);
 

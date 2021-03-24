@@ -95,7 +95,7 @@ private:
     QDeclarativeVideoOutput *q;
 
     QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
-    QVideoSink *m_sink;
+    mutable QVideoSink *m_sink = nullptr;
     QVideoSurfaceFormat m_surfaceFormat;
 
     QVideoFrame m_frame;

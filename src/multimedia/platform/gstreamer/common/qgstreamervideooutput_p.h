@@ -59,7 +59,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerVideoRenderer;
 class QVideoSink;
 class QGstreamerVideoSink;
 

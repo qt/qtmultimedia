@@ -60,11 +60,12 @@ QT_BEGIN_NAMESPACE
 
 
 class QVariant;
+class QRhi;
 
 class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 {
 public:
-    QAbstractVideoBuffer(QVideoFrame::HandleType type);
+    QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
     virtual ~QAbstractVideoBuffer();
 
     QVideoFrame::HandleType handleType() const;
@@ -81,11 +82,11 @@ public:
     virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap() = 0;
 
-    virtual QVariant handle() const;
     virtual quint64 textureHandle(int /*plane*/) const { return 0; }
 
 protected:
     QVideoFrame::HandleType m_type;
+    QRhi *rhi = nullptr;
 
 private:
     Q_DISABLE_COPY(QAbstractVideoBuffer)

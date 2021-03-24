@@ -39,23 +39,27 @@
 
 #include "qgstvideobuffer_p.h"
 
+#include <gst/video/video.h>
+#include <gst/video/gstvideometa.h>
+
+#include "qgstutils_p.h"
+
+#if QT_CONFIG(gstreamer_gl)
+#include <QtGui/private/qrhi_p.h>
+#include <QtGui/private/qrhigles2_p.h>
+
+#include <gst/gl/gstglconfig.h>
+#include <gst/gl/gstglmemory.h>
+#endif
+
+
 QT_BEGIN_NAMESPACE
 
-QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle)
+QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, BufferFormat format)
+    : QAbstractVideoBuffer(QVideoFrame::NoHandle, rhi)
+    , bufferFormat(format)
     , m_videoInfo(info)
     , m_buffer(buffer)
-{
-    gst_buffer_ref(m_buffer);
-}
-
-QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info,
-                QVideoFrame::HandleType handleType,
-                const QVariant &handle)
-    : QAbstractVideoBuffer(handleType)
-    , m_videoInfo(info)
-    , m_buffer(buffer)
-    , m_handle(handle)
 {
     gst_buffer_ref(m_buffer);
 }
@@ -114,6 +118,36 @@ void QGstVideoBuffer::unmap()
             gst_video_frame_unmap(&m_frame);
     }
     m_mode = QVideoFrame::NotMapped;
+}
+
+quint64 QGstVideoBuffer::textureHandle(int plane) const
+{
+    if (plane != 0)
+        return 0;
+#if QT_CONFIG(gstreamer_gl)
+    if (bufferFormat == GLTexture) {
+        auto *memory = gst_buffer_peek_memory(m_buffer, 0);
+        if (gst_is_gl_memory(memory)) {
+            GstGLMemory *glmem = GST_GL_MEMORY_CAST(memory);
+            // ### Handle multiple planes
+            return gst_gl_memory_get_texture_id(glmem);
+        }
+    } else if (bufferFormat == VideoGLTextureUploadMeta) {
+        Q_ASSERT(rhi && rhi->backend() == QRhi::OpenGLES2);
+
+        auto *upload = gst_buffer_get_video_gl_texture_upload_meta(m_buffer);
+        if (upload) {
+            rhi->makeThreadLocalNativeContextCurrent();
+            // ### Handle multiple planes
+            guint textures[4];
+            gst_video_gl_texture_upload_meta_upload(upload, textures);
+            return textures[0];
+        } else {
+            qWarning() << "Could not use GstVideoGLTextureUploadMeta";
+        }
+    }
+#endif
+    return 0;
 }
 
 QT_END_NAMESPACE

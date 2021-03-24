@@ -58,19 +58,13 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer : public QObject
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoRenderer
 {
-    Q_OBJECT
 public:
     QGstreamerVideoRenderer(QVideoSink *parent = nullptr);
     virtual ~QGstreamerVideoRenderer();
 
     QGstElement gstVideoSink();
-
-    bool isReady() const { return m_sink != 0; }
-
-signals:
-    void readyChanged(bool);
 
 private:
     QGstElement gstSink;
