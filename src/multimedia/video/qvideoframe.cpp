@@ -633,7 +633,11 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case QVideoSurfaceFormat::Format_NV12:
         case QVideoSurfaceFormat::Format_NV21:
         case QVideoSurfaceFormat::Format_IMC2:
-        case QVideoSurfaceFormat::Format_IMC4: {
+        case QVideoSurfaceFormat::Format_IMC4:
+        case QVideoSurfaceFormat::Format_P010BE:
+        case QVideoSurfaceFormat::Format_P010LE:
+        case QVideoSurfaceFormat::Format_P016BE:
+        case QVideoSurfaceFormat::Format_P016LE: {
             // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
             d->mapData.nPlanes = 2;
             d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
@@ -650,8 +654,6 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             d->mapData.data[2] = d->mapData.data[1] + (d->mapData.bytesPerLine[1] * height() / 2);
             break;
         }
-        default:
-            break;
         }
     }
 
@@ -797,15 +799,18 @@ int QVideoFrame::mappedBytes() const
 /*!
     Returns the number of planes in the video frame.
 
-    This value is only valid while the frame data is \l {map()}{mapped}.
-
-    \sa map()
+    \sa map(), textureHandle()
     \since 5.4
 */
 
 int QVideoFrame::planeCount() const
 {
-    return d->mapData.nPlanes;
+    return d->format.nPlanes();
+}
+
+quint64 QVideoFrame::textureHandle(int plane)
+{
+    return d->buffer->textureHandle(plane);
 }
 
 /*!
@@ -982,10 +987,8 @@ QDebug operator<<(QDebug dbg, QVideoFrame::HandleType type)
     switch (type) {
     case QVideoFrame::NoHandle:
         return dbg << "NoHandle";
-    case QVideoFrame::GLTextureHandle:
-        return dbg << "GLTextureHandle";
-    case QVideoFrame::MTLTextureHandle:
-        return dbg << "MTLTextureHandle";
+    case QVideoFrame::RhiTextureHandle:
+        return dbg << "RhiTextureHandle";
     }
 }
 

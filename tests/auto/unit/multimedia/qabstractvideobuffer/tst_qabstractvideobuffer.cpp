@@ -101,8 +101,7 @@ void tst_QAbstractVideoBuffer::handleType_data()
     QTest::addColumn<QString>("stringized");
 
     ADD_ENUM_TEST(NoHandle);
-    ADD_ENUM_TEST(GLTextureHandle);
-    ADD_ENUM_TEST(MTLTextureHandle);
+    ADD_ENUM_TEST(RhiTextureHandle);
 }
 
 void tst_QAbstractVideoBuffer::handleType()

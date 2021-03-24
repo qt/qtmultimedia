@@ -254,7 +254,7 @@ void tst_QVideoFrame::createFromBuffer_data()
             << QSize(64, 64)
             << QVideoSurfaceFormat::Format_ARGB32;
     QTest::newRow("64x64 ARGB32 gl handle")
-            << QVideoFrame::GLTextureHandle
+            << QVideoFrame::RhiTextureHandle
             << QSize(64, 64)
             << QVideoSurfaceFormat::Format_ARGB32;
 }
@@ -399,13 +399,13 @@ void tst_QVideoFrame::copy_data()
     QTest::addColumn<qint64>("endTime");
 
     QTest::newRow("64x64 ARGB32")
-            << QVideoFrame::GLTextureHandle
+            << QVideoFrame::RhiTextureHandle
             << QSize(64, 64)
             << QVideoSurfaceFormat::Format_ARGB32
             << qint64(63641740)
             << qint64(63641954);
     QTest::newRow("64x64 ARGB32")
-            << QVideoFrame::GLTextureHandle
+            << QVideoFrame::RhiTextureHandle
             << QSize(64, 64)
             << QVideoSurfaceFormat::Format_ARGB32
             << qint64(63641740)
@@ -506,7 +506,7 @@ void tst_QVideoFrame::assign_data()
     QTest::addColumn<qint64>("endTime");
 
     QTest::newRow("64x64 ARGB32")
-            << QVideoFrame::GLTextureHandle
+            << QVideoFrame::RhiTextureHandle
             << QSize(64, 64)
             << QVideoSurfaceFormat::Format_ARGB32
             << qint64(63641740)

@@ -61,8 +61,7 @@ public:
     enum HandleType
     {
         NoHandle,
-        GLTextureHandle,
-        MTLTextureHandle,
+        RhiTextureHandle
     };
 
     enum MapMode
@@ -113,6 +112,8 @@ public:
     const uchar *bits(int plane) const;
     int mappedBytes() const;
     int planeCount() const;
+
+    quint64 textureHandle(int plane);
 
     QVariant handle() const;
 

@@ -86,7 +86,7 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
     // All the formats that both we and gstreamer support
 #if QT_CONFIG(gstreamer_gl)
     if (QGstUtils::useOpenGL()) {
-        m_handleType = QVideoFrame::GLTextureHandle;
+        m_handleType = QVideoFrame::RhiTextureHandle;
         auto formats = QList<QVideoSurfaceFormat::PixelFormat>()
                        << QVideoSurfaceFormat::Format_YUV420P
                        << QVideoSurfaceFormat::Format_YUV422P
@@ -119,7 +119,7 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
         if (!formats.isEmpty()) {
             QGstMutableCaps caps = QGstUtils::capsForFormats(formats);
             for (int i = 0; i < caps.size(); ++i)
-                gst_caps_set_features(caps.get(), i, gst_caps_features_from_string("memory:GLMemory"));
+                gst_caps_set_features(caps.get(), i, gst_caps_features_from_string(GST_CAPS_FEATURE_MEMORY_GL_MEMORY));
 
             return caps;
         }
@@ -172,7 +172,7 @@ bool QGstVideoRenderer::present(QVideoSink *sink, GstBuffer *buffer)
 
     QGstVideoBuffer *videoBuffer = nullptr;
 #if QT_CONFIG(gstreamer_gl)
-    if (m_handleType == QVideoFrame::GLTextureHandle) {
+    if (m_handleType == QVideoFrame::RhiTextureHandle) {
         GstGLMemory *glmem = GST_GL_MEMORY_CAST(gst_buffer_peek_memory(buffer, 0));
         guint textureId = gst_gl_memory_get_texture_id(glmem);
         videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_handleType, textureId);

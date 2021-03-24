@@ -144,6 +144,8 @@ public:
     int frameWidth() const;
     int frameHeight() const;
 
+    int nPlanes() const;
+
     QRect viewport() const;
     void setViewport(const QRect &viewport);
 

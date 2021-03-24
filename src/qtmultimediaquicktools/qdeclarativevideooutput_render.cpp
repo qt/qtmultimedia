@@ -48,6 +48,7 @@
 #include <qvideosink.h>
 
 #include <QtQuick/QQuickWindow>
+#include <private/qquickwindow_p.h>
 #include <QtCore/QRunnable>
 
 QT_BEGIN_NAMESPACE
@@ -62,7 +63,7 @@ QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *pare
       m_frameChanged(false)
 {
     m_sink = new QVideoSink(q);
-//    m_sink->setGraphicsType(QVideoSink::Metal);
+    m_sink->setRhi(QQuickWindowPrivate::get(q->window())->rhi);
     qRegisterMetaType<QVideoSurfaceFormat>();
     QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
                      q, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);

@@ -251,6 +251,52 @@ int QVideoSurfaceFormat::frameHeight() const
     return d->frameSize.height();
 }
 
+int QVideoSurfaceFormat::nPlanes() const
+{
+    switch (d->pixelFormat) {
+    case Format_Invalid:
+    case Format_ARGB32:
+    case Format_ARGB32_Premultiplied:
+    case Format_RGB32:
+    case Format_RGB24:
+    case Format_RGB565:
+    case Format_RGB555:
+    case Format_ARGB8565_Premultiplied:
+    case Format_BGRA32:
+    case Format_BGRA32_Premultiplied:
+    case Format_ABGR32:
+    case Format_BGR32:
+    case Format_BGR24:
+    case Format_BGR565:
+    case Format_BGR555:
+    case Format_BGRA5658_Premultiplied:
+    case Format_AYUV444:
+    case Format_AYUV444_Premultiplied:
+    case Format_YUV444:
+    case Format_UYVY:
+    case Format_YUYV:
+    case Format_Y8:
+    case Format_Y16:
+    case Format_Jpeg:
+        return 1;
+    case Format_NV12:
+    case Format_NV21:
+    case Format_IMC2:
+    case Format_IMC4:
+    case Format_P010LE:
+    case Format_P010BE:
+    case Format_P016LE:
+    case Format_P016BE:
+        return 2;
+    case Format_YUV420P:
+    case Format_YUV422P:
+    case Format_YV12:
+    case Format_IMC1:
+    case Format_IMC3:
+        return 3;
+    }
+}
+
 /*!
     Sets the size of frames in a video stream to \a size.
 

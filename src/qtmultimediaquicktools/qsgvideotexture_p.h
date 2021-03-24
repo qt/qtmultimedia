@@ -73,7 +73,7 @@ public:
     bool hasMipmaps() const override;
     void commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates) override;
     void setData(QRhiTexture::Format f, const QSize &s, const uchar *data, int bytes);
-    void setNativeObject(quint64 obj, const QSize &s);
+    void setNativeObject(quint64 obj, const QSize &s, QRhiTexture::Format f = QRhiTexture::RGBA8);
 
 protected:
     QScopedPointer<QSGVideoTexturePrivate> d_ptr;

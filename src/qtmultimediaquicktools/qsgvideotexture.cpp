@@ -109,10 +109,10 @@ void QSGVideoTexture::setData(QRhiTexture::Format f, const QSize &s, const uchar
     d->m_data = {reinterpret_cast<const char *>(data), bytes};
 }
 
-void QSGVideoTexture::setNativeObject(quint64 obj, const QSize &s)
+void QSGVideoTexture::setNativeObject(quint64 obj, const QSize &s, QRhiTexture::Format f)
 {
     Q_D(QSGVideoTexture);
-    setData(QRhiTexture::RGBA8, s, nullptr, 0);
+    setData(f, s, nullptr, 0);
     if (d->m_nativeObject != obj) {
         d->m_nativeObject = obj;
         d->m_texture.reset();

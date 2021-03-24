@@ -352,14 +352,14 @@ void QSGVideoMaterialRhiShader_NV12::mapFrame(QSGVideoMaterial_YUV *m)
     if (!m->m_frame.isValid())
         return;
 
-    if (m->m_frame.handleType() == QVideoFrame::GLTextureHandle || m->m_frame.handleType() == QVideoFrame::MTLTextureHandle) {
+    if (m->m_frame.handleType() == QVideoFrame::RhiTextureHandle) {
         m->m_planeWidth[0] = m->m_planeWidth[1] = 1;
         auto textures = m->m_frame.handle().toList();
         if (!textures.isEmpty()) {
             auto w = m->m_frame.size().width();
             auto h = m->m_frame.size().height();
-            m->m_textures[0]->setNativeObject(textures[0].toULongLong(), {w, h});
-            m->m_textures[1]->setNativeObject(textures[1].toULongLong(), {w / 2, h / 2});
+            m->m_textures[0]->setNativeObject(textures[0].toULongLong(), {w, h}, QRhiTexture::R8);
+            m->m_textures[1]->setNativeObject(textures[1].toULongLong(), {w / 2, h / 2}, QRhiTexture::RG8);
         } else {
             qWarning() << "NV12/NV21 requires 2 textures";
         }
@@ -390,22 +390,20 @@ void QSGVideoMaterialRhiShader_P010::mapFrame(QSGVideoMaterial_YUV *m)
     if (!m->m_frame.isValid())
         return;
 
-#if 0
-    if (m->m_frame.handleType() == QVideoFrame::GLTextureHandle || m->m_frame.handleType() == QVideoFrame::MTLTextureHandle) {
+    if (m->m_frame.handleType() == QVideoFrame::RhiTextureHandle) {
         m->m_planeWidth[0] = m->m_planeWidth[1] = 1;
         auto textures = m->m_frame.handle().toList();
         if (!textures.isEmpty()) {
             auto w = m->m_frame.size().width();
             auto h = m->m_frame.size().height();
-            m->m_textures[0]->setNativeObject(textures[0].toULongLong(), {w, h});
-            m->m_textures[1]->setNativeObject(textures[1].toULongLong(), {w / 2, h / 2});
+            m->m_textures[0]->setNativeObject(textures[0].toULongLong(), {w, h}, QRhiTexture::RG8);
+            m->m_textures[1]->setNativeObject(textures[1].toULongLong(), {w / 2, h / 2}, QRhiTexture::BGRA8);
         } else {
             qWarning() << "P010/P016 requires 2 textures";
         }
 
         return;
     }
-#endif
 
     if (!m->m_frame.map(QVideoFrame::ReadOnly))
         return;

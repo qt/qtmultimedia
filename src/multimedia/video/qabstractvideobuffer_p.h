@@ -82,6 +82,7 @@ public:
     virtual void unmap() = 0;
 
     virtual QVariant handle() const;
+    virtual quint64 textureHandle(int /*plane*/) const { return 0; }
 
 protected:
     QVideoFrame::HandleType m_type;

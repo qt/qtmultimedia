@@ -52,6 +52,7 @@ class QVideoFrame;
 
 class QVideoSinkPrivate;
 class QPlatformVideoSink;
+class QRhi;
 
 class Q_MULTIMEDIA_EXPORT QVideoSink : public QObject
 {
@@ -61,11 +62,7 @@ public:
     {
         Memory,
         NativeWindow,
-        NativeTexture,
-        OpenGL,
-        Metal,
-        Direct3D11,
-        Vulkan
+        RhiTexture
     };
 
     QVideoSink(QObject *parent = nullptr);
@@ -79,6 +76,9 @@ public:
     // setter sets graphics type to NativeWindow
     WId nativeWindowId() const;
     void setNativeWindowId(WId id);
+
+    QRhi *rhi() const;
+    void setRhi(QRhi *rhi);
 
     void setFullScreen(bool fullscreen);
     bool isFullscreen() const;

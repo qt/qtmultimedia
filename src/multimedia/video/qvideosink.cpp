@@ -69,6 +69,7 @@ public:
     QSize nativeResolution;
     bool active = false;
     WId window = 0;
+    QRhi *rhi = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     QRectF targetRect;
     int brightness = 0;
@@ -116,6 +117,16 @@ WId QVideoSink::nativeWindowId() const
 void QVideoSink::setNativeWindowId(WId id)
 {
     d->videoSink->setWinId(id);
+}
+
+QRhi *QVideoSink::rhi() const
+{
+    return d->rhi;
+}
+
+void QVideoSink::setRhi(QRhi *rhi)
+{
+    d->rhi = rhi;
 }
 
 void QVideoSink::setFullScreen(bool fullscreen)
