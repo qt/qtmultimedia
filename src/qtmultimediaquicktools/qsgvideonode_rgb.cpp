@@ -73,8 +73,8 @@ class QSGVideoMaterialRhiShader_RGB : public QSGMaterialShader
 public:
     QSGVideoMaterialRhiShader_RGB()
     {
-        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimediaquicktools/shaders/rgba.vert.qsb"));
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/rgba.frag.qsb"));
+        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimedia/shaders/rgba.vert.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/rgba.frag.qsb"));
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,

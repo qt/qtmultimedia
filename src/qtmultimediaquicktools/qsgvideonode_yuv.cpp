@@ -71,7 +71,7 @@ class QSGVideoMaterialRhiShader_YUV : public QSGMaterialShader
 public:
     QSGVideoMaterialRhiShader_YUV()
     {
-        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimediaquicktools/shaders/yuv.vert.qsb"));
+        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimedia/shaders/yuv.vert.qsb"));
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
@@ -92,7 +92,7 @@ class QSGVideoMaterialRhiShader_UYVY : public QSGVideoMaterialRhiShader_YUV
 public:
     QSGVideoMaterialRhiShader_UYVY()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/uyvy.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/uyvy.frag.qsb"));
     }
 
     void mapFrame(QSGVideoMaterial_YUV *m) override;
@@ -103,7 +103,7 @@ class QSGVideoMaterialRhiShader_YUYV : public QSGVideoMaterialRhiShader_UYVY
 public:
     QSGVideoMaterialRhiShader_YUYV()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/yuyv.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/yuyv.frag.qsb"));
     }
 };
 
@@ -112,7 +112,7 @@ class QSGVideoMaterialRhiShader_YUV_YV : public QSGVideoMaterialRhiShader_YUV
 public:
     QSGVideoMaterialRhiShader_YUV_YV()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/yuv_yv.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/yuv_yv.frag.qsb"));
     }
 
     void mapFrame(QSGVideoMaterial_YUV *m) override;
@@ -123,7 +123,7 @@ class QSGVideoMaterialRhiShader_NV12 : public QSGVideoMaterialRhiShader_YUV
 public:
     QSGVideoMaterialRhiShader_NV12()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/nv12.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/nv12.frag.qsb"));
     }
 
     void mapFrame(QSGVideoMaterial_YUV *m) override;
@@ -134,7 +134,7 @@ class QSGVideoMaterialRhiShader_NV21 : public QSGVideoMaterialRhiShader_NV12
 public:
     QSGVideoMaterialRhiShader_NV21()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/nv21.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/nv21.frag.qsb"));
     }
 };
 
@@ -152,7 +152,7 @@ class QSGVideoMaterialRhiShader_P010LE : public QSGVideoMaterialRhiShader_P010
 public:
     QSGVideoMaterialRhiShader_P010LE()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/p010le.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/p010le.frag.qsb"));
     }
 };
 
@@ -161,7 +161,7 @@ class QSGVideoMaterialRhiShader_P010BE : public QSGVideoMaterialRhiShader_P010
 public:
     QSGVideoMaterialRhiShader_P010BE()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/p010be.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/p010be.frag.qsb"));
     }
 };
 

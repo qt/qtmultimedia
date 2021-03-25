@@ -54,6 +54,7 @@ QT_BEGIN_NAMESPACE
 class QDebug;
 
 class QVideoSurfaceFormatPrivate;
+class QMatrix4x4;
 
 class Q_MULTIMEDIA_EXPORT QVideoSurfaceFormat
 {
@@ -162,6 +163,10 @@ public:
     void setMirrored(bool mirrored);
 
     QSize sizeHint() const;
+
+    QString vertexShaderFileName() const;
+    QString pixelShaderFileName() const;
+    QByteArray uniformData(const QMatrix4x4 &transform, float opacity) const;
 
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);

@@ -75,8 +75,8 @@ class QSGVideoMaterialRhiShader_Texture : public QSGMaterialShader
 public:
     QSGVideoMaterialRhiShader_Texture()
     {
-        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimediaquicktools/shaders/rgba.vert.qsb"));
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/rgba.frag.qsb"));
+        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimedia/shaders/rgba.vert.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/rgba.frag.qsb"));
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
@@ -91,7 +91,7 @@ class QSGVideoMaterialRhiShader_Texture_swizzle : public QSGVideoMaterialRhiShad
 public:
     QSGVideoMaterialRhiShader_Texture_swizzle()
     {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimediaquicktools/shaders/bgra.frag.qsb"));
+        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/bgra.frag.qsb"));
     }
 };
 

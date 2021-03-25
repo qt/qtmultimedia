@@ -48,11 +48,6 @@
 #include <QtCore/qloggingcategory.h>
 #include <qvideosink.h>
 
-
-static void initResource() {
-    Q_INIT_RESOURCE(qtmultimediaquicktools);
-}
-
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
@@ -137,7 +132,6 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     m_autoOrientation(false),
     m_screenOrientationHandler(nullptr)
 {
-    initResource();
     setFlag(ItemHasContents, true);
     createBackend();
 }

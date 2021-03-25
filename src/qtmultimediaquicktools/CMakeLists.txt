@@ -22,26 +22,3 @@ qt_add_module(MultimediaQuick
         Qt::Quick
         Qt::QuickPrivate
 )
-
-# Resources:
-set(qtmultimediaquicktools_resource_files
-    "shaders/bgra.frag.qsb"
-    "shaders/nv12.frag.qsb"
-    "shaders/nv21.frag.qsb"
-    "shaders/rgba.frag.qsb"
-    "shaders/rgba.vert.qsb"
-    "shaders/uyvy.frag.qsb"
-    "shaders/yuv.vert.qsb"
-    "shaders/yuv_yv.frag.qsb"
-    "shaders/yuyv.frag.qsb"
-    "shaders/p010le.frag.qsb"
-    "shaders/p010be.frag.qsb"
-)
-
-qt_add_resource(MultimediaQuick "qtmultimediaquicktools"
-    PREFIX
-        "/qtmultimediaquicktools"
-    FILES
-        ${qtmultimediaquicktools_resource_files}
-)
-
