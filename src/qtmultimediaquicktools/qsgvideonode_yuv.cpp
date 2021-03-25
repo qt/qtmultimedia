@@ -69,9 +69,11 @@ QSGVideoNode *QSGVideoNodeFactory_YUV::createNode(const QVideoSurfaceFormat &for
 class QSGVideoMaterialRhiShader_YUV : public QSGMaterialShader
 {
 public:
-    QSGVideoMaterialRhiShader_YUV()
+    QSGVideoMaterialRhiShader_YUV(const QVideoSurfaceFormat &format)
+        : m_format(format)
     {
-        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimedia/shaders/yuv.vert.qsb"));
+        setShaderFileName(VertexStage, m_format.vertexShaderFileName());
+        setShaderFileName(FragmentStage, m_format.fragmentShaderFileName());
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
@@ -83,6 +85,7 @@ public:
     virtual void mapFrame(QSGVideoMaterial_YUV *) = 0;
 
 protected:
+    QVideoSurfaceFormat m_format;
     float m_planeWidth[3] = {0, 0, 0};
     QMatrix4x4 m_colorMatrix;
 };
@@ -90,79 +93,37 @@ protected:
 class QSGVideoMaterialRhiShader_UYVY : public QSGVideoMaterialRhiShader_YUV
 {
 public:
-    QSGVideoMaterialRhiShader_UYVY()
-    {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/uyvy.frag.qsb"));
-    }
-
+    QSGVideoMaterialRhiShader_UYVY(const QVideoSurfaceFormat &format)
+        : QSGVideoMaterialRhiShader_YUV(format)
+    {}
     void mapFrame(QSGVideoMaterial_YUV *m) override;
-};
-
-class QSGVideoMaterialRhiShader_YUYV : public QSGVideoMaterialRhiShader_UYVY
-{
-public:
-    QSGVideoMaterialRhiShader_YUYV()
-    {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/yuyv.frag.qsb"));
-    }
 };
 
 class QSGVideoMaterialRhiShader_YUV_YV : public QSGVideoMaterialRhiShader_YUV
 {
 public:
-    QSGVideoMaterialRhiShader_YUV_YV()
-    {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/yuv_yv.frag.qsb"));
-    }
-
+    QSGVideoMaterialRhiShader_YUV_YV(const QVideoSurfaceFormat &format)
+        : QSGVideoMaterialRhiShader_YUV(format)
+    {}
     void mapFrame(QSGVideoMaterial_YUV *m) override;
 };
 
 class QSGVideoMaterialRhiShader_NV12 : public QSGVideoMaterialRhiShader_YUV
 {
 public:
-    QSGVideoMaterialRhiShader_NV12()
-    {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/nv12.frag.qsb"));
-    }
-
+    QSGVideoMaterialRhiShader_NV12(const QVideoSurfaceFormat &format)
+        : QSGVideoMaterialRhiShader_YUV(format)
+    {}
     void mapFrame(QSGVideoMaterial_YUV *m) override;
-};
-
-class QSGVideoMaterialRhiShader_NV21 : public QSGVideoMaterialRhiShader_NV12
-{
-public:
-    QSGVideoMaterialRhiShader_NV21()
-    {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/nv21.frag.qsb"));
-    }
 };
 
 class QSGVideoMaterialRhiShader_P010 : public QSGVideoMaterialRhiShader_YUV
 {
 public:
-    QSGVideoMaterialRhiShader_P010() = default;
-
+    QSGVideoMaterialRhiShader_P010(const QVideoSurfaceFormat &format)
+        : QSGVideoMaterialRhiShader_YUV(format)
+    {}
     void mapFrame(QSGVideoMaterial_YUV *m) override;
-};
-
-
-class QSGVideoMaterialRhiShader_P010LE : public QSGVideoMaterialRhiShader_P010
-{
-public:
-    QSGVideoMaterialRhiShader_P010LE()
-    {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/p010le.frag.qsb"));
-    }
-};
-
-class QSGVideoMaterialRhiShader_P010BE : public QSGVideoMaterialRhiShader_P010
-{
-public:
-    QSGVideoMaterialRhiShader_P010BE()
-    {
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/p010be.frag.qsb"));
-    }
 };
 
 class QSGVideoMaterial_YUV : public QSGMaterial
@@ -194,21 +155,18 @@ public:
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
         switch (m_format.pixelFormat()) {
         case QVideoSurfaceFormat::Format_NV12:
-            return new QSGVideoMaterialRhiShader_NV12;
         case QVideoSurfaceFormat::Format_NV21:
-            return new QSGVideoMaterialRhiShader_NV21;
+            return new QSGVideoMaterialRhiShader_NV12(m_format);
         case QVideoSurfaceFormat::Format_UYVY:
-            return new QSGVideoMaterialRhiShader_UYVY;
         case QVideoSurfaceFormat::Format_YUYV:
-            return new QSGVideoMaterialRhiShader_YUYV;
+            return new QSGVideoMaterialRhiShader_UYVY(m_format);
         case QVideoSurfaceFormat::Format_P010LE:
         case QVideoSurfaceFormat::Format_P016LE:
-            return new QSGVideoMaterialRhiShader_P010LE;
         case QVideoSurfaceFormat::Format_P010BE:
         case QVideoSurfaceFormat::Format_P016BE:
-            return new QSGVideoMaterialRhiShader_P010BE;
+            return new QSGVideoMaterialRhiShader_P010(m_format);
         default: // Currently: YUV420P, YUV422P and YV12
-            return new QSGVideoMaterialRhiShader_YUV_YV;
+            return new QSGVideoMaterialRhiShader_YUV_YV(m_format);
         }
     }
 
@@ -248,45 +206,24 @@ bool QSGVideoMaterialRhiShader_YUV::updateUniformData(RenderState &state, QSGMat
     Q_UNUSED(oldMaterial);
 
     auto m = static_cast<QSGVideoMaterial_YUV *>(newMaterial);
-    bool changed = false;
-    QByteArray *buf = state.uniformData();
-
-    if (state.isMatrixDirty()) {
-        memcpy(buf->data(), state.combinedMatrix().constData(), 64);
-        changed = true;
-    }
-
-    if (m->m_colorMatrix != m_colorMatrix) {
-        memcpy(buf->data() + 64, m->m_colorMatrix.constData(), 64);
-        changed = true;
-    }
-    m_colorMatrix = m->m_colorMatrix;
-
-    if (state.isOpacityDirty()) {
-        m->m_opacity = state.opacity();
-        m->updateBlending();
-        memcpy(buf->data() + 64 + 64, &m->m_opacity, 4);
-        changed = true;
-    }
-
     m->m_frameMutex.lock();
     mapFrame(m);
     m->m_frameMutex.unlock();
 
-    if (!qFuzzyCompare(m->m_planeWidth[0], m_planeWidth[0])
-        || !qFuzzyCompare(m->m_planeWidth[1], m_planeWidth[1])
-        || !qFuzzyCompare(m->m_planeWidth[2], m_planeWidth[2]))
-    {
-        memcpy(buf->data() + 64 + 64 + 4, &m->m_planeWidth[0], 4);
-        memcpy(buf->data() + 64 + 64 + 4 + 4, &m->m_planeWidth[1], 4);
-        memcpy(buf->data() + 64 + 64 + 4 + 4 + 4, &m->m_planeWidth[2], 4);
-        changed = true;
-    }
-    m_planeWidth[0] = m->m_planeWidth[0];
-    m_planeWidth[1] = m->m_planeWidth[1];
-    m_planeWidth[2] = m->m_planeWidth[2];
+    if (!state.isMatrixDirty() && !state.isOpacityDirty() && m->m_colorMatrix == m_colorMatrix)
+        return false;
 
-    return changed;
+    if (state.isOpacityDirty()) {
+        m->m_opacity = state.opacity();
+        m->updateBlending();
+    }
+
+    m_colorMatrix = m->m_colorMatrix;
+
+    QByteArray *buf = state.uniformData();
+    *buf = m_format.uniformData(state.combinedMatrix(), state.opacity());
+
+    return true;
 }
 
 void QSGVideoMaterialRhiShader_YUV::updateSampledImage(RenderState &state, int binding, QSGTexture **texture,

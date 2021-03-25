@@ -165,7 +165,7 @@ public:
     QSize sizeHint() const;
 
     QString vertexShaderFileName() const;
-    QString pixelShaderFileName() const;
+    QString fragmentShaderFileName() const;
     QByteArray uniformData(const QMatrix4x4 &transform, float opacity) const;
 
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);

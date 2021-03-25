@@ -486,7 +486,7 @@ QString QVideoSurfaceFormat::vertexShaderFileName() const
     }
 }
 
-QString QVideoSurfaceFormat::pixelShaderFileName() const
+QString QVideoSurfaceFormat::fragmentShaderFileName() const
 {
     switch (d->pixelFormat) {
     case Format_Invalid:
@@ -608,17 +608,13 @@ QByteArray QVideoSurfaceFormat::uniformData(const QMatrix4x4 &transform, float o
         QByteArray buf(16*4 + 4, Qt::Uninitialized);
         char *data = buf.data();
         memcpy(data, transform.constData(), 64);
-        memcpy(data + 64, colorMatrix(d->ycbcrColorSpace).constData(), 64);
-        memcpy(data + 64 + 64, &opacity, 4);
-        memcpy(data + 64 + 64, &opacity, 4);
-        memcpy(data + 64 + 64, &opacity, 4);
-        memcpy(data + 64 + 64, &opacity, 4);
+        memcpy(data + 64, &opacity, 4);
         return buf;
     }
     case Format_YUV420P:
     case Format_YUV422P:
     case Format_YV12: {
-        static constexpr float pw[] = { 1, 1, 0 };
+        static constexpr float pw[] = { 1, 1, 1 };
         planeWidth = pw;
         break;
     }
@@ -643,8 +639,9 @@ QByteArray QVideoSurfaceFormat::uniformData(const QMatrix4x4 &transform, float o
     QByteArray buf(64*2 + 4 + 3*4, Qt::Uninitialized);
     char *data = buf.data();
     memcpy(data, transform.constData(), 64);
-    memcpy(data + 64, &opacity, 4);
-    memcpy(data + 64 + 4, planeWidth, 3*4);
+    memcpy(data + 64, colorMatrix(d->ycbcrColorSpace).constData(), 64);
+    memcpy(data + 64 + 64, &opacity, 4);
+    memcpy(data + 64 + 64 + 4, planeWidth, 3*4);
     return buf;
 }
 

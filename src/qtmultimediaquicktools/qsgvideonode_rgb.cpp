@@ -71,10 +71,11 @@ QSGVideoNode *QSGVideoNodeFactory_RGB::createNode(const QVideoSurfaceFormat &for
 class QSGVideoMaterialRhiShader_RGB : public QSGMaterialShader
 {
 public:
-    QSGVideoMaterialRhiShader_RGB()
+    QSGVideoMaterialRhiShader_RGB(const QVideoSurfaceFormat &format)
+        : m_format(format)
     {
-        setShaderFileName(VertexStage, QStringLiteral(":/qtmultimedia/shaders/rgba.vert.qsb"));
-        setShaderFileName(FragmentStage, QStringLiteral(":/qtmultimedia/shaders/rgba.frag.qsb"));
+        setShaderFileName(VertexStage, format.vertexShaderFileName());
+        setShaderFileName(FragmentStage, format.fragmentShaderFileName());
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
@@ -82,6 +83,7 @@ public:
 
     void updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
                             QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
+    QVideoSurfaceFormat m_format;
 };
 
 class QSGVideoMaterial_RGB : public QSGMaterial
@@ -101,7 +103,7 @@ public:
     }
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
-        return new QSGVideoMaterialRhiShader_RGB;
+        return new QSGVideoMaterialRhiShader_RGB(m_format);
     }
 
     int compare(const QSGMaterial *other) const override {
@@ -133,23 +135,19 @@ bool QSGVideoMaterialRhiShader_RGB::updateUniformData(RenderState &state, QSGMat
 {
     Q_UNUSED(oldMaterial);
 
-    bool changed = false;
-    QByteArray *buf = state.uniformData();
-
-    if (state.isMatrixDirty()) {
-        memcpy(buf->data(), state.combinedMatrix().constData(), 64);
-        changed = true;
-    }
+    if (!state.isMatrixDirty() && !state.isOpacityDirty())
+        return false;
 
     if (state.isOpacityDirty()) {
         auto m = static_cast<QSGVideoMaterial_RGB *>(newMaterial);
         m->m_opacity = state.opacity();
         m->updateBlending();
-        memcpy(buf->data() + 64, &m->m_opacity, 4);
-        changed = true;
     }
 
-    return changed;
+    QByteArray *buf = state.uniformData();
+    *buf = m_format.uniformData(state.combinedMatrix(), state.opacity());
+
+    return true;
 }
 
 void QSGVideoMaterialRhiShader_RGB::updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
