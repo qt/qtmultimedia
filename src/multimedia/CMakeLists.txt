@@ -4,6 +4,8 @@
 ## Multimedia Module:
 #####################################################################
 
+find_package(Qt6 COMPONENTS ShaderTools)
+
 qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
 qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
 qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
@@ -477,26 +479,24 @@ qt_internal_add_docs(Multimedia
     doc/qtmultimedia.qdocconf
 )
 
-# Resources:
-set(qtmultimedia_resource_files
-    "shaders/bgra.frag.qsb"
-    "shaders/nv12.frag.qsb"
-    "shaders/nv21.frag.qsb"
-    "shaders/rgba.frag.qsb"
-    "shaders/rgba.vert.qsb"
-    "shaders/uyvy.frag.qsb"
-    "shaders/yuv.vert.qsb"
-    "shaders/yuv_yv.frag.qsb"
-    "shaders/yuyv.frag.qsb"
-    "shaders/ayuv.frag.qsb"
-    "shaders/p010le.frag.qsb"
-    "shaders/p010be.frag.qsb"
-)
-
-qt_add_resource(Multimedia "qtmultimedia"
+qt_internal_add_shaders(Multimedia "shaders"
+    SILENT
+    BATCHABLE
+    PRECOMPILE
+    OPTIMIZED
     PREFIX
-        "/qtmultimedia"
+        "/qt-project.org/multimedia/shaders"
     FILES
-        ${qtmultimedia_resource_files}
+        "shaders/bgra.frag"
+        "shaders/nv12.frag"
+        "shaders/nv21.frag"
+        "shaders/rgba.frag"
+        "shaders/rgba.vert"
+        "shaders/uyvy.frag"
+        "shaders/yuv.vert"
+        "shaders/yuv_yv.frag"
+        "shaders/yuyv.frag"
+        "shaders/ayuv.frag"
+        "shaders/p010le.frag"
+        "shaders/p010be.frag"
 )
-

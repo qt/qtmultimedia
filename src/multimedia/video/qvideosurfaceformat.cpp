@@ -50,7 +50,7 @@
 QT_BEGIN_NAMESPACE
 
 static void initResource() {
-    Q_INIT_RESOURCE(qtmultimedia);
+    Q_INIT_RESOURCE(shaders);
 }
 
 class QVideoSurfaceFormatPrivate : public QSharedData
