@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,50 +37,42 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_YUV_H
-#define QSGVIDEONODE_YUV_H
+#ifndef QVIDEOTEXTUREHELPER_H
+#define QVIDEOTEXTUREHELPER_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qsgvideonode_p.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <qvideosurfaceformat.h>
+#include <private/qrhi_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSGVideoMaterial_YUV;
-class QSGVideoNode_YUV : public QSGVideoNode
+class QVideoFrame;
+
+namespace QVideoTextureHelper
 {
-public:
-    QSGVideoNode_YUV(const QVideoSurfaceFormat &format);
-    ~QSGVideoNode_YUV();
 
-    QVideoSurfaceFormat::PixelFormat pixelFormat() const override {
-        return m_format.pixelFormat();
-    }
-    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) override;
+struct TextureDescription
+{
+    static constexpr int maxPlanes = 3;
+    struct SizeScale {
+        int x;
+        int y;
+    };
 
-private:
-    void bindTexture(int id, int unit, int w, int h, const uchar *bits);
-
-    QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_YUV *m_material;
+    int nplanes;
+    QRhiTexture::Format textureFormat[maxPlanes];
+    SizeScale sizeScale[maxPlanes];
 };
 
-class QSGVideoNodeFactory_YUV : public QSGVideoNodeFactoryInterface {
-public:
-    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override;
-};
+Q_MULTIMEDIA_EXPORT const TextureDescription *textureDescription(QVideoSurfaceFormat::PixelFormat format);
+
+Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat format);
+Q_MULTIMEDIA_EXPORT QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format);
+Q_MULTIMEDIA_EXPORT QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &transform, float opacity);
+Q_MULTIMEDIA_EXPORT int updateRhiTextures(QVideoFrame frame, QRhi *rhi,
+                                           QRhiResourceUpdateBatch *resourceUpdates, QRhiTexture **textures);
+
+}
 
 QT_END_NAMESPACE
 
-#endif // QSGVIDEONODE_YUV_H
+#endif

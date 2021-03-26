@@ -161,4 +161,9 @@ void QSGVideoTexture::commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch
     d_func()->updateRhiTexture(rhi, resourceUpdates);
 }
 
+void QSGVideoTexture::setRhiTexture(QRhiTexture *texture)
+{
+    d_func()->m_texture.reset(texture);
+}
+
 QT_END_NAMESPACE

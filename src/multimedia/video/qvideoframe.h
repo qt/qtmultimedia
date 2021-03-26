@@ -53,6 +53,9 @@ QT_BEGIN_NAMESPACE
 class QSize;
 class QVideoFramePrivate;
 class QAbstractVideoBuffer;
+class QRhi;
+class QRhiResourceUpdateBatch;
+class QRhiTexture;
 
 class Q_MULTIMEDIA_EXPORT QVideoFrame
 {
@@ -113,7 +116,7 @@ public:
     int mappedBytes() const;
     int planeCount() const;
 
-    quint64 textureHandle(int plane);
+    quint64 textureHandle(int plane) const;
 
     qint64 startTime() const;
     void setStartTime(qint64 time);

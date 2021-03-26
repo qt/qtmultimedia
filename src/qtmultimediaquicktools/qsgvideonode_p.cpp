@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -38,14 +38,12 @@
 ****************************************************************************/
 
 #include "qsgvideonode_p.h"
+#include <QtQuick/qsgmaterial.h>
+#include "qsgvideotexture_p.h"
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
-
-QSGVideoNode::QSGVideoNode()
-    : m_orientation(-1)
-{
-    setFlag(QSGNode::OwnsGeometry);
-}
 
 /* Helpers */
 static inline void qSetGeom(QSGGeometry::TexturedPoint2D *v, const QPointF &p)
@@ -124,6 +122,161 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
     markDirty(DirtyGeometry);
 }
 
-QSGVideoNodeFactoryInterface::~QSGVideoNodeFactoryInterface() = default;
+class QSGVideoMaterialRhiShader : public QSGMaterialShader
+{
+public:
+    QSGVideoMaterialRhiShader(const QVideoSurfaceFormat &format)
+        : m_format(format)
+    {
+        setShaderFileName(VertexStage, m_format.vertexShaderFileName());
+        setShaderFileName(FragmentStage, m_format.fragmentShaderFileName());
+    }
+
+    bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
+                           QSGMaterial *oldMaterial) override;
+
+    void updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
+                            QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
+
+protected:
+    QVideoSurfaceFormat m_format;
+    float m_planeWidth[3] = {0, 0, 0};
+    QMatrix4x4 m_colorMatrix;
+};
+
+class QSGVideoMaterial : public QSGMaterial
+{
+public:
+    QSGVideoMaterial(const QVideoSurfaceFormat &format);
+
+    [[nodiscard]] QSGMaterialType *type() const override {
+        static QSGMaterialType type[QVideoSurfaceFormat::NPixelFormats];
+        return &type[m_format.pixelFormat()];
+    }
+
+    [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
+        return new QSGVideoMaterialRhiShader(m_format);
+    }
+
+    int compare(const QSGMaterial *other) const override {
+        const QSGVideoMaterial *m = static_cast<const QSGVideoMaterial *>(other);
+
+        qint64 diff = m_textures[0]->comparisonKey() - m->m_textures[0]->comparisonKey();
+        if (!diff)
+            diff = m_textures[1]->comparisonKey() - m->m_textures[1]->comparisonKey();
+        if (!diff)
+            diff = m_textures[2]->comparisonKey() - m->m_textures[2]->comparisonKey();
+
+        return diff < 0 ? -1 : (diff > 0 ? 1 : 0);
+    }
+
+    void updateBlending() {
+        // ### respect video formats with Alpha
+        setFlag(Blending, !qFuzzyCompare(m_opacity, float(1.0)));
+    }
+
+    void setCurrentFrame(const QVideoFrame &frame) {
+        QMutexLocker lock(&m_frameMutex);
+        m_frame = frame;
+        m_texturesDirty = true;
+    }
+
+    void updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates);
+
+    QVideoSurfaceFormat m_format;
+    float m_planeWidth[3];
+    float m_opacity;
+
+    QMutex m_frameMutex;
+    bool m_texturesDirty = false;
+    QVideoFrame m_frame;
+
+    QScopedPointer<QSGVideoTexture> m_textures[3];
+};
+
+void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
+{
+    QMutexLocker locker(&m_frameMutex);
+    if (!m_texturesDirty)
+        return;
+
+    // update and upload all textures
+    QRhiTexture *textures[3] = {};
+    for (int i = 0; i < 3; ++i) {
+        if (m_textures[i].data())
+            textures[i] = m_textures[i].data()->rhiTexture();
+        else
+            textures[i] = nullptr;
+    }
+
+    QVideoTextureHelper::updateRhiTextures(m_frame, rhi, resourceUpdates, textures);
+
+    for (int i = 0; i < 3; ++i) {
+        if (m_textures[i].data())
+            m_textures[i].data()->setRhiTexture(textures[i]);
+    }
+}
+
+
+bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMaterial *newMaterial,
+                                                      QSGMaterial *oldMaterial)
+{
+    Q_UNUSED(oldMaterial);
+
+    auto m = static_cast<QSGVideoMaterial *>(newMaterial);
+
+    if (!state.isMatrixDirty() && !state.isOpacityDirty())
+        return false;
+
+    if (state.isOpacityDirty()) {
+        m->m_opacity = state.opacity();
+        m->updateBlending();
+    }
+
+    QByteArray *buf = state.uniformData();
+    *buf = m_format.uniformData(state.combinedMatrix(), state.opacity());
+
+    return true;
+}
+
+void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
+                                                       QSGMaterial *newMaterial, QSGMaterial *oldMaterial)
+{
+    Q_UNUSED(oldMaterial);
+    if (binding < 1 || binding > 3)
+        return;
+
+    auto m = static_cast<QSGVideoMaterial *>(newMaterial);
+
+    m->updateTextures(state.rhi(), state.resourceUpdateBatch());
+
+    *texture = m->m_textures[binding - 1].data();
+}
+
+QSGVideoMaterial::QSGVideoMaterial(const QVideoSurfaceFormat &format) :
+    m_format(format),
+    m_opacity(1.0)
+{
+    m_textures[0].reset(new QSGVideoTexture);
+    m_textures[1].reset(new QSGVideoTexture);
+    m_textures[2].reset(new QSGVideoTexture);
+
+    setFlag(Blending, false);
+}
+
+QSGVideoNode::QSGVideoNode(const QVideoSurfaceFormat &format)
+    : m_orientation(-1),
+    m_format(format)
+{
+    setFlag(QSGNode::OwnsMaterial);
+    m_material = new QSGVideoMaterial(format);
+    setMaterial(m_material);
+}
+
+void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
+{
+    m_material->setCurrentFrame(frame);
+    markDirty(DirtyMaterial);
+}
 
 QT_END_NAMESPACE

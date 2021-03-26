@@ -49,6 +49,7 @@
 #include <qpair.h>
 #include <qsize.h>
 #include <qvariant.h>
+#include <private/qrhi_p.h>
 
 #include <QDebug>
 
@@ -812,7 +813,7 @@ int QVideoFrame::planeCount() const
     \internal
     Returns a texture id to the video frame's buffers.
 */
-quint64 QVideoFrame::textureHandle(int plane)
+quint64 QVideoFrame::textureHandle(int plane) const
 {
     return d->buffer->textureHandle(plane);
 }

@@ -54,9 +54,7 @@
 
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qsgnode.h>
-#include <private/qsgvideonode_yuv_p.h>
-#include <private/qsgvideonode_rgb_p.h>
-#include <private/qsgvideonode_texture_p.h>
+#include <private/qsgvideonode_p.h>
 
 #include <QtCore/qmutex.h>
 
@@ -94,16 +92,12 @@ private:
     void scheduleDeleteFilterResources();
     QDeclarativeVideoOutput *q;
 
-    QList<QSGVideoNodeFactoryInterface*> m_videoNodeFactories;
     mutable QVideoSink *m_sink = nullptr;
     QVideoSurfaceFormat m_surfaceFormat;
 
     QVideoFrame m_frame;
     QVideoFrame m_frameOnFlush;
     bool m_frameChanged;
-    QSGVideoNodeFactory_YUV m_i420Factory;
-    QSGVideoNodeFactory_RGB m_rgbFactory;
-    QSGVideoNodeFactory_Texture m_textureFactory;
     QMutex m_frameMutex;
     QRectF m_renderedRect;         // Destination pixel coordinates, clipped
     QRectF m_sourceTextureRect;    // Source texture coordinates

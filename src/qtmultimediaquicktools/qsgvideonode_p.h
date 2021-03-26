@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -60,7 +60,9 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNode : public QSGGeometryNode
+class QSGVideoMaterial;
+
+class QSGVideoNode : public QSGGeometryNode
 {
 public:
     enum FrameFlag {
@@ -68,10 +70,12 @@ public:
     };
     Q_DECLARE_FLAGS(FrameFlags, FrameFlag)
 
-    QSGVideoNode();
+    QSGVideoNode(const QVideoSurfaceFormat &format);
 
-    virtual void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags) = 0;
-    virtual QVideoSurfaceFormat::PixelFormat pixelFormat() const = 0;
+    QVideoSurfaceFormat::PixelFormat pixelFormat() const {
+        return m_format.pixelFormat();
+    }
+    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
@@ -79,30 +83,12 @@ private:
     QRectF m_rect;
     QRectF m_textureRect;
     int m_orientation;
+
+    QVideoSurfaceFormat m_format;
+    QSGVideoMaterial *m_material;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSGVideoNode::FrameFlags)
-
-class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryInterface
-{
-public:
-    virtual ~QSGVideoNodeFactoryInterface();
-
-    virtual QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const = 0;
-    virtual QSGVideoNode *createNode(const QVideoSurfaceFormat &format) = 0;
-};
-
-#define QSGVideoNodeFactoryInterface_iid "org.qt-project.qt.sgvideonodefactory/5.2"
-Q_DECLARE_INTERFACE(QSGVideoNodeFactoryInterface, QSGVideoNodeFactoryInterface_iid)
-
-class Q_MULTIMEDIAQUICK_EXPORT QSGVideoNodeFactoryPlugin : public QObject, public QSGVideoNodeFactoryInterface
-{
-    Q_OBJECT
-    Q_INTERFACES(QSGVideoNodeFactoryInterface)
-public:
-    QList<QVideoSurfaceFormat::PixelFormat> supportedPixelFormats(QVideoFrame::HandleType handleType) const override = 0;
-    QSGVideoNode *createNode(const QVideoSurfaceFormat &format) override = 0;
-};
 
 QT_END_NAMESPACE
 

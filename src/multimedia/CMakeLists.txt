@@ -65,6 +65,7 @@ qt_internal_add_module(Multimedia
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qvideoframe.cpp video/qvideoframe.h
         video/qvideosink.cpp video/qvideosink.h
+        video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
         video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
         video/qvideosurfaceformat.cpp video/qvideosurfaceformat.h

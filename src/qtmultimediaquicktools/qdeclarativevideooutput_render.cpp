@@ -55,33 +55,10 @@ QT_BEGIN_NAMESPACE
 
 Q_DECLARE_LOGGING_CATEGORY(qLcVideo)
 
-Q_GLOBAL_STATIC_WITH_ARGS(QMediaPluginLoader, videoNodeFactoryLoader,
-        (QSGVideoNodeFactoryInterface_iid, QLatin1String("video/videonode"), Qt::CaseInsensitive))
-
 QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *parent)
     : q(parent),
       m_frameChanged(false)
 {
-    // Prioritize the plugin requested by the environment
-    QString requestedVideoNode = QString::fromLatin1(qgetenv("QT_VIDEONODE"));
-
-    const auto keys = videoNodeFactoryLoader()->keys();
-    for (const QString &key : keys) {
-        QObject *instance = videoNodeFactoryLoader()->instance(key);
-        QSGVideoNodeFactoryInterface* plugin = qobject_cast<QSGVideoNodeFactoryInterface*>(instance);
-        if (plugin) {
-            if (key == requestedVideoNode)
-                m_videoNodeFactories.prepend(plugin);
-            else
-                m_videoNodeFactories.append(plugin);
-            qCDebug(qLcVideo) << "found videonode plugin" << key << plugin;
-        }
-    }
-
-    // Append existing node factories as fallback if we have no plugins
-    m_videoNodeFactories.append(&m_i420Factory);
-    m_videoNodeFactories.append(&m_rgbFactory);
-    m_videoNodeFactories.append(&m_textureFactory);
 }
 
 QDeclarativeVideoBackend::~QDeclarativeVideoBackend()
@@ -277,15 +254,8 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
             // Get a node that supports our frame. The surface is irrelevant, our
             // QSGVideoItemSurface supports (logically) anything.
             updateGeometry();
-            for (QSGVideoNodeFactoryInterface* factory : qAsConst(m_videoNodeFactories)) {
-                videoNode = factory->createNode(m_surfaceFormat);
-                if (videoNode) {
-                    qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType()
-                                     << " Supported formats for the handle by this node:"
-                                     << factory->supportedPixelFormats(m_frame.handleType());
-                    break;
-                }
-            }
+            videoNode = new QSGVideoNode(m_surfaceFormat);
+            qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType();
         }
     }
 
