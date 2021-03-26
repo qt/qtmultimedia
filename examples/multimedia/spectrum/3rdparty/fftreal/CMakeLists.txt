@@ -56,3 +56,17 @@ qt_extend_target(fftreal CONDITION WIN32
 
 #### Keys ignored in scope 11:.:../..:../../spectrum.pri:CONFIG(debug,release OR debug):
 # spectrum_build_dir = "/debug"
+
+# special case begin
+if(NOT DEFINED INSTALL_EXAMPLESDIR)
+  set(INSTALL_EXAMPLESDIR "examples")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/spectrum")
+
+install(TARGETS spectrum
+    RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
+    BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
+    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
+)
+# special case end
