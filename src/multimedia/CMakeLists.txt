@@ -488,6 +488,7 @@ set(qtmultimedia_resource_files
     "shaders/yuv.vert.qsb"
     "shaders/yuv_yv.frag.qsb"
     "shaders/yuyv.frag.qsb"
+    "shaders/ayuv.frag.qsb"
     "shaders/p010le.frag.qsb"
     "shaders/p010be.frag.qsb"
 )
