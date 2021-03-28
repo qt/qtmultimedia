@@ -39,49 +39,22 @@
 
 #include "avfvideorenderercontrol_p.h"
 #include "avfdisplaylink_p.h"
-
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-#include "avfvideoframerenderer_ios_p.h"
-#else
-#include "avfvideoframerenderer_p.h"
-#endif
+#include <private/avfvideobuffer_p.h>
 
 #include <private/qabstractvideobuffer_p.h>
 #include <QtMultimedia/qvideosurfaceformat.h>
 
 #include <private/qimagevideobuffer_p.h>
 #include <private/avfvideosink_p.h>
+#include <QtGui/private/qrhi_p.h>
 
 #include <QtCore/qdebug.h>
 
 #import <AVFoundation/AVFoundation.h>
+#include <CoreVideo/CVPixelBuffer.h>
+#include <CoreVideo/CVImageBuffer.h>
 
 QT_USE_NAMESPACE
-
-class TextureVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    TextureVideoBuffer(QVideoFrame::HandleType type, quint64 tex)
-        : QAbstractVideoBuffer(type)
-        , m_texture(tex)
-    {}
-
-    virtual ~TextureVideoBuffer()
-    {
-    }
-
-    QVideoFrame::MapMode mapMode() const override { return QVideoFrame::NotMapped; }
-    MapData map(QVideoFrame::MapMode /*mode*/) override { return {}; }
-    void unmap() override {}
-
-    QVariant handle() const override
-    {
-        return QVariant::fromValue<unsigned long long>(m_texture);
-    }
-
-private:
-    quint64 m_texture;
-};
 
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     : QObject(parent)
@@ -113,14 +86,8 @@ void AVFVideoRendererControl::reconfigure()
     renderToNativeView(shouldRenderToWindow());
 
     if (rendersToWindow()) {
-        if (m_frameRenderer) {
-            delete m_frameRenderer;
-            m_frameRenderer = nullptr;
-        }
         m_displayLink->stop();
     } else {
-        if (!m_frameRenderer)
-            m_frameRenderer = new AVFVideoFrameRenderer(this);
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
         if (m_layer)
             m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(m_layer));
@@ -148,60 +115,74 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     }
 
     auto *layer = playerLayer();
-    if (!layer.readyForDisplay || !m_frameRenderer)
+    if (!layer.readyForDisplay)
         return;
     nativeSizeChanged();
 
     QVideoFrame frame;
-    if (type == QVideoSink::Metal || type == QVideoSink::NativeTexture) {
-        quint64 tex = m_frameRenderer->renderLayerToMTLTexture(layer);
-        if (tex == 0)
-            return;
+    size_t width, height;
+    CVPixelBufferRef pixelBuffer = copyPixelBufferFromLayer(width, height);
+    if (!pixelBuffer)
+        return;
+    AVFVideoBuffer *buffer = new AVFVideoBuffer(m_rhi, pixelBuffer);
+    CVPixelBufferRelease(pixelBuffer);
 
-        auto buffer = new TextureVideoBuffer(QVideoFrame::MTLTextureHandle, tex);
-        frame = QVideoFrame(buffer, nativeSize(), QVideoSurfaceFormat::Format_BGR32);
-        if (!frame.isValid())
-            return;
+    QVideoSurfaceFormat format(QSize(width, height), QVideoSurfaceFormat::Format_ARGB32);
 
-        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::MTLTextureHandle);
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-        format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
-#else
-        format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
-#endif
-        // #### QVideoFrame needs the surfaceformat!
-    } else if (type == QVideoSink::OpenGL) {
-        quint64 tex = m_frameRenderer->renderLayerToTexture(layer);
-        //Make sure we got a valid texture
-        if (tex == 0)
-            return;
-
-        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(QVideoFrame::GLTextureHandle, tex);
-        frame = QVideoFrame(buffer, nativeSize(), QVideoSurfaceFormat::Format_BGR32);
-        if (!frame.isValid())
-            return;
-
-        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::GLTextureHandle);
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-        format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
-#else
-        format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
-#endif
-    } else {
-        Q_ASSERT(type == QVideoSink::Memory);
-        //fallback to rendering frames to QImages
-        QImage frameData = m_frameRenderer->renderLayerToImage(layer);
-
-        if (frameData.isNull())
-            return;
-
-        QAbstractVideoBuffer *buffer = new QImageVideoBuffer(frameData);
-        frame = QVideoFrame(buffer, nativeSize(), QVideoSurfaceFormat::Format_ARGB32_Premultiplied);
-        QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QVideoFrame::NoHandle);
-    }
-
+    frame = QVideoFrame(buffer, format);
     m_sink->videoSink()->newVideoFrame(frame);
 }
+
+// ### Should probably ask for a YUV format instead
+static NSString* const AVF_PIXEL_FORMAT_KEY = (NSString*)kCVPixelBufferPixelFormatTypeKey;
+static NSNumber* const AVF_PIXEL_FORMAT_VALUE = [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA];
+static NSDictionary* const AVF_OUTPUT_SETTINGS = [NSDictionary dictionaryWithObject:AVF_PIXEL_FORMAT_VALUE forKey:AVF_PIXEL_FORMAT_KEY];
+
+CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width, size_t& height)
+{
+    AVPlayerLayer *layer = playerLayer();
+    //Is layer valid
+    if (!layer) {
+#ifdef QT_DEBUG_AVF
+        qWarning("copyPixelBufferFromLayer: invalid layer");
+#endif
+        return nullptr;
+    }
+
+    if (!m_videoOutput) {
+        m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:AVF_OUTPUT_SETTINGS];
+        [m_videoOutput setDelegate:nil queue:nil];
+        AVPlayerItem * item = [[layer player] currentItem];
+        [item addOutput:m_videoOutput];
+    }
+
+    CFTimeInterval currentCAFrameTime =  CACurrentMediaTime();
+    CMTime currentCMFrameTime =  [m_videoOutput itemTimeForHostTime:currentCAFrameTime];
+    // happens when buffering / loading
+    if (CMTimeCompare(currentCMFrameTime, kCMTimeZero) < 0) {
+        return nullptr;
+    }
+
+    CVPixelBufferRef pixelBuffer = [m_videoOutput copyPixelBufferForItemTime:currentCMFrameTime
+                                                   itemTimeForDisplay:nil];
+    if (!pixelBuffer) {
+#ifdef QT_DEBUG_AVF
+        qWarning("copyPixelBufferForItemTime returned nil");
+        CMTimeShow(currentCMFrameTime);
+#endif
+        return nullptr;
+    }
+
+    width = CVPixelBufferGetWidth(pixelBuffer);
+    height = CVPixelBufferGetHeight(pixelBuffer);
+//    auto f = CVPixelBufferGetPixelFormatType(pixelBuffer);
+//    char fmt[5];
+//    memcpy(fmt, &f, 4);
+//    fmt[4] = 0;
+//    qDebug() << "copyPixelBuffer" << f << fmt << width << height;
+    return pixelBuffer;
+}
+
 
 void AVFVideoRendererControl::updateAspectRatio()
 {
@@ -224,6 +205,11 @@ void AVFVideoRendererControl::updateAspectRatio()
         break;
     }
     playerLayer().videoGravity = gravity;
+}
+
+void AVFVideoRendererControl::setRhi(QRhi *rhi)
+{
+    m_rhi = rhi;
 }
 
 #include "moc_avfvideorenderercontrol_p.cpp"

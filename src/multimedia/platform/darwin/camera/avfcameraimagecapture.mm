@@ -153,7 +153,8 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
                 QBuffer data(&jpgData);
                 QImageReader reader(&data, "JPEG");
                 QSize size = reader.size();
-                QVideoFrame frame(new QMemoryVideoBuffer(QByteArray(jpgData.constData(), jpgData.size()), -1), size, QVideoSurfaceFormat::Format_Jpeg);
+                QVideoFrame frame(new QMemoryVideoBuffer(QByteArray(jpgData.constData(), jpgData.size()), -1),
+                                  QVideoSurfaceFormat(size, QVideoSurfaceFormat::Format_Jpeg));
                 QMetaObject::invokeMethod(this, "imageAvailable", Qt::QueuedConnection,
                                           Q_ARG(int, request.captureId),
                                           Q_ARG(QVideoFrame, frame));

@@ -353,9 +353,12 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/audio/qcoreaudioinput.mm platform/darwin/audio/qcoreaudioinput_p.h
         platform/darwin/audio/qcoreaudiooutput.mm platform/darwin/audio/qcoreaudiooutput_p.h
         platform/darwin/audio/qcoreaudioutils.mm platform/darwin/audio/qcoreaudioutils_p.h
+        platform/darwin/mediaplayer/avfdisplaylink.mm platform/darwin/mediaplayer/avfdisplaylink_p.h
         platform/darwin/mediaplayer/avfmediaplayer.mm platform/darwin/mediaplayer/avfmediaplayer_p.h
         platform/darwin/mediaplayer/avfmetadata.mm platform/darwin/mediaplayer/avfmetadata_p.h
+        platform/darwin/mediaplayer/avfvideorenderercontrol.mm platform/darwin/mediaplayer/avfvideorenderercontrol_p.h
         platform/darwin/avfvideosink.mm platform/darwin/avfvideosink_p.h
+        platform/darwin/avfvideobuffer.mm platform/darwin/avfvideobuffer_p.h
         platform/darwin/qdarwindevicemanager.mm platform/darwin/qdarwindevicemanager_p.h
         platform/darwin/qdarwinformatsinfo.mm platform/darwin/qdarwinformatsinfo_p.h
         platform/darwin/qdarwinintegration.cpp platform/darwin/qdarwinintegration_p.h
@@ -419,20 +422,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT IOS AND NOT TVOS AN
         ${FWAppKit}
         ${FWApplicationServices}
         ${FWAudioUnit}
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND QT_FEATURE_opengl AND NOT WATCHOS AND (IOS OR TVOS)
-    SOURCES
-        platform/darwin/mediaplayer/avfdisplaylink.mm platform/darwin/mediaplayer/avfdisplaylink_p.h
-        platform/darwin/mediaplayer/avfvideoframerenderer_ios.mm platform/darwin/mediaplayer/avfvideoframerenderer_ios_p.h
-        platform/darwin/mediaplayer/avfvideorenderercontrol.mm platform/darwin/mediaplayer/avfvideorenderercontrol_p.h
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND QT_FEATURE_opengl AND NOT IOS AND NOT TVOS AND NOT WATCHOS
-    SOURCES
-        platform/darwin/mediaplayer/avfdisplaylink.mm platform/darwin/mediaplayer/avfdisplaylink_p.h
-        platform/darwin/mediaplayer/avfvideoframerenderer.mm platform/darwin/mediaplayer/avfvideoframerenderer_p.h
-        platform/darwin/mediaplayer/avfvideorenderercontrol.mm platform/darwin/mediaplayer/avfvideorenderercontrol_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION QNX

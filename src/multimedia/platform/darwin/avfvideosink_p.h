@@ -84,6 +84,8 @@ public:
     WId winId() const override;
     void setWinId(WId id) override;
 
+    void setRhi(QRhi *rhi) override;
+
     QRect displayRect() const override;
     void setDisplayRect(const QRect &rect) override;
 
@@ -118,6 +120,7 @@ private:
     AVFVideoSinkInterface *m_interface = nullptr;
     QVideoSink::GraphicsType m_graphicsType = QVideoSink::Memory;
     WId m_winId = 0;
+    QRhi *m_rhi = nullptr;
     NativeView *m_nativeView = nullptr;
 
     QSize m_nativeSize;
@@ -140,6 +143,7 @@ public:
 
     virtual void reconfigure() = 0;
     virtual void updateAspectRatio() = 0;
+    virtual void setRhi(QRhi *) { Q_ASSERT(false); }
 
     void setLayer(CALayer *layer);
 

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFVIDEORENDERERCONTROL_H
-#define AVFVIDEORENDERERCONTROL_H
+#ifndef AVFVIDEOBUFFER_H
+#define AVFVIDEOBUFFER_H
 
 //
 //  W A R N I N G
@@ -51,47 +51,49 @@
 // We mean it.
 //
 
-#include <QtCore/QObject>
-#include <QtCore/QMutex>
-#include <QtCore/QSize>
+#include <QtMultimedia/qvideoframe.h>
+#include <private/qabstractvideobuffer_p.h>
 
+#include <QtCore/qobject.h>
+#include <QtCore/qmutex.h>
 #include <private/avfvideosink_p.h>
 
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
+#include <CoreVideo/CVImageBuffer.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemVideoOutput);
+#import "Metal/Metal.h"
+#import "MetalKit/MetalKit.h"
 
 QT_BEGIN_NAMESPACE
 
-class AVFDisplayLink;
-
-class AVFVideoRendererControl : public QObject, public AVFVideoSinkInterface
+struct AVFMetalTexture;
+class AVFVideoBuffer : public QAbstractVideoBuffer
 {
-    Q_OBJECT
 public:
-    explicit AVFVideoRendererControl(QObject *parent = nullptr);
-    virtual ~AVFVideoRendererControl();
+    AVFVideoBuffer(QRhi *rhi, CVImageBufferRef buffer);
+    ~AVFVideoBuffer();
 
-    // AVFVideoSinkInterface
-    void reconfigure() override;
-    void updateAspectRatio() override;
-    void setRhi(QRhi *rhi) override;
+    QVideoFrame::MapMode mapMode() const { return m_mode; }
+    MapData map(QVideoFrame::MapMode mode);
+    void unmap();
 
-private Q_SLOTS:
-    void updateVideoFrame(const CVTimeStamp &ts);
+    virtual quint64 textureHandle(int /*plane*/) const;
 
 private:
-    AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }
-    CVPixelBufferRef copyPixelBufferFromLayer(size_t& width, size_t& height);
+    QRhi *rhi = nullptr;
 
-    QMutex m_mutex;
-    QRhi *m_rhi = nullptr;
-    AVFDisplayLink *m_displayLink = nullptr;
-    AVPlayerItemVideoOutput *m_videoOutput = nullptr;
+    mutable CVMetalTextureRef cvMetalTexture = nullptr;
+    mutable CVMetalTextureCacheRef cvMetalTextureCache = nullptr;
+    mutable id<MTLTexture> metalTexture = nil;
+
+    mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
+    mutable CVOpenGLTextureCacheRef cvOpenGLTextureCache = nullptr;
+
+    CVImageBufferRef m_buffer = nullptr;
+    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
 };
 
 QT_END_NAMESPACE
 
-#endif // AVFVIDEORENDERERCONTROL_H
+#endif

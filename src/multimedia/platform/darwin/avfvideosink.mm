@@ -65,8 +65,6 @@ bool AVFVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
 {
     if (type == m_graphicsType)
         return true;
-    if (type == QVideoSink::Direct3D11 || type == QVideoSink::Vulkan)
-        return false;
     m_graphicsType = type;
     if (m_interface)
         m_interface->reconfigure();
@@ -86,6 +84,13 @@ void AVFVideoSink::setWinId(WId id)
     m_nativeView = (NativeView*)m_winId;
     if (m_interface)
         m_interface->reconfigure();
+}
+
+void AVFVideoSink::setRhi(QRhi *rhi)
+{
+    m_rhi = rhi;
+    if (m_interface)
+        m_interface->setRhi(rhi);
 }
 
 QRect AVFVideoSink::displayRect() const
@@ -195,6 +200,8 @@ void AVFVideoSink::setLayer(CALayer *)
 void AVFVideoSink::setVideoSinkInterface(AVFVideoSinkInterface *interface)
 {
     m_interface = interface;
+    if (m_interface)
+        m_interface->setRhi(m_rhi);
 }
 
 AVFVideoSinkInterface::~AVFVideoSinkInterface()
