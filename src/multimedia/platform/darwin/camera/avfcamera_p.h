@@ -84,9 +84,6 @@ public:
     QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 
-    // "Converters":
-    static QVideoSurfaceFormat::PixelFormat QtPixelFormatFromCVFormat(unsigned avPixelFormat);
-    static bool CVPixelFormatFromQtFormat(QVideoSurfaceFormat::PixelFormat qtFormat, unsigned &conv);
 
     AVCaptureConnection *videoConnection() const;
 

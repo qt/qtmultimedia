@@ -99,7 +99,7 @@ QT_USE_NAMESPACE
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
     QVideoSurfaceFormat::PixelFormat format =
-            AVFCamera::QtPixelFormatFromCVFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
+            AVFVideoBuffer::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
     if (format == QVideoSurfaceFormat::Format_Invalid)
         return;
 

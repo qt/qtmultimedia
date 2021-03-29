@@ -74,18 +74,21 @@ public:
     AVFVideoBuffer(QRhi *rhi, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
+    static QVideoSurfaceFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
+    static bool toCVPixelFormat(QVideoSurfaceFormat::PixelFormat qtFormat, unsigned &conv);
+
+
     QVideoFrame::MapMode mapMode() const { return m_mode; }
     MapData map(QVideoFrame::MapMode mode);
     void unmap();
 
-    virtual quint64 textureHandle(int /*plane*/) const;
+    virtual quint64 textureHandle(int plane) const;
 
 private:
     QRhi *rhi = nullptr;
 
-    mutable CVMetalTextureRef cvMetalTexture = nullptr;
+    mutable CVMetalTextureRef cvMetalTexture[3] = {};
     mutable CVMetalTextureCacheRef cvMetalTextureCache = nullptr;
-    mutable id<MTLTexture> metalTexture = nil;
 
     mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
     mutable CVOpenGLTextureCacheRef cvOpenGLTextureCache = nullptr;

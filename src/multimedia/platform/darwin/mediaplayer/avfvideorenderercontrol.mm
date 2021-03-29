@@ -125,18 +125,30 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     if (!pixelBuffer)
         return;
     AVFVideoBuffer *buffer = new AVFVideoBuffer(m_rhi, pixelBuffer);
+    auto fmt = AVFVideoBuffer::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(pixelBuffer));
+//    qDebug() << "Got pixelbuffer with format" << fmt;
     CVPixelBufferRelease(pixelBuffer);
 
-    QVideoSurfaceFormat format(QSize(width, height), QVideoSurfaceFormat::Format_ARGB32);
+    QVideoSurfaceFormat format(QSize(width, height), fmt);
 
     frame = QVideoFrame(buffer, format);
     m_sink->videoSink()->newVideoFrame(frame);
 }
 
-// ### Should probably ask for a YUV format instead
-static NSString* const AVF_PIXEL_FORMAT_KEY = (NSString*)kCVPixelBufferPixelFormatTypeKey;
-static NSNumber* const AVF_PIXEL_FORMAT_VALUE = [NSNumber numberWithUnsignedInt:kCVPixelFormatType_32BGRA];
-static NSDictionary* const AVF_OUTPUT_SETTINGS = [NSDictionary dictionaryWithObject:AVF_PIXEL_FORMAT_VALUE forKey:AVF_PIXEL_FORMAT_KEY];
+static NSDictionary* const AVF_OUTPUT_SETTINGS = @{
+        (NSString *)kCVPixelBufferPixelFormatTypeKey: @[
+            @(kCVPixelFormatType_32BGRA),
+// ### Add supported YUV formats
+// This has problems when trying to get the textures from the pixel buffer in AVFVideoBuffer::textureHandle.
+// Somehow this doesn't work correctly for at least the HDR format (even though it works when mapping the buffers
+// and downloading to a metal texture through RHI). Needs more investigation.
+//            @(kCVPixelFormatType_420YpCbCr8Planar),
+//            @(kCVPixelFormatType_420YpCbCr8PlanarFullRange),
+//            @(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange),
+//            @(kCVPixelFormatType_420YpCbCr10BiPlanarFullRange)
+        ],
+        (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+};
 
 CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width, size_t& height)
 {

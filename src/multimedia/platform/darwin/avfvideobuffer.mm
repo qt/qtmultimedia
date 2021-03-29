@@ -63,14 +63,15 @@ AVFVideoBuffer::AVFVideoBuffer(QRhi *rhi, CVImageBufferRef buffer)
 AVFVideoBuffer::~AVFVideoBuffer()
 {
     AVFVideoBuffer::unmap();
-    if (cvMetalTexture)
-        CFRelease(cvMetalTexture);
+    for (int i = 0; i < 3; ++i)
+        if (cvMetalTexture[i])
+            CFRelease(cvMetalTexture[i]);
     if (cvMetalTextureCache)
         CFRelease(cvMetalTextureCache);
     if (cvOpenGLTexture)
-        CFRelease(cvOpenGLTexture);
+        CVOpenGLTextureRelease(cvOpenGLTexture);
     if (cvOpenGLTextureCache)
-        CFRelease(cvOpenGLTextureCache);
+        CVOpenGLTextureCacheRelease(cvOpenGLTextureCache);
     CVPixelBufferRelease(m_buffer);
 }
 
@@ -118,41 +119,57 @@ void AVFVideoBuffer::unmap()
 
 quint64 AVFVideoBuffer::textureHandle(int plane) const
 {
-//    qDebug() << "texture handle" << plane << rhi << (rhi->backend() == QRhi::Metal);
-    if (plane != 0)
+    int bufferPlanes = CVPixelBufferGetPlaneCount(m_buffer);
+    qDebug() << "texture handle" << plane << rhi << (rhi->backend() == QRhi::Metal) << bufferPlanes;
+    if (plane > 0 && plane >= bufferPlanes)
         return 0;
     if (!rhi)
         return 0;
     if (rhi->backend() == QRhi::Metal) {
-        if (metalTexture == nil) {
+        if (!cvMetalTexture[plane]) {
             const auto *metal = static_cast<const QRhiMetalNativeHandles *>(rhi->nativeHandles());
 
             // Create a Metal Core Video texture cache from the pixel buffer.
-            if (CVMetalTextureCacheCreate(
-                            kCFAllocatorDefault,
-                            nil,
-                            (id<MTLDevice>)metal->dev,
-                            nil,
-                            &cvMetalTextureCache) != kCVReturnSuccess)
-                qWarning() << "texture cache creation failed";
+            if (!cvMetalTextureCache) {
+                if (CVMetalTextureCacheCreate(
+                                kCFAllocatorDefault,
+                                nil,
+                                (id<MTLDevice>)metal->dev,
+                                nil,
+                                &cvMetalTextureCache) != kCVReturnSuccess)
+                    qWarning() << "texture cache creation failed";
+            }
+
+            size_t width, height;
+            if (bufferPlanes) {
+                width = CVPixelBufferGetWidthOfPlane(m_buffer, plane);
+                height = CVPixelBufferGetHeightOfPlane(m_buffer, plane);
+            } else {
+                width = CVPixelBufferGetWidth(m_buffer);
+                height = CVPixelBufferGetHeight(m_buffer);
+            }
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
                             kCFAllocatorDefault,
                             cvMetalTextureCache,
                             m_buffer, nil,
+                            // ### This needs proper handling when enabling other pixel formats than BRGA8
                             MTLPixelFormatBGRA8Unorm,
-                            CVPixelBufferGetWidth(m_buffer), CVPixelBufferGetHeight(m_buffer),
-                            0,
-                            &cvMetalTexture);
+                            width, height,
+                            plane,
+                            &cvMetalTexture[plane]);
+
             if (ret != kCVReturnSuccess)
                 qWarning() << "texture creation failed" << ret;
-            metalTexture = CVMetalTextureGetTexture(cvMetalTexture);
+            auto t = CVMetalTextureGetTexture(cvMetalTexture[plane]);
+//            qDebug() << "    metal texture is" << quint64(cvMetalTexture[plane]) << width << height;
+            qDebug() << t.iosurfacePlane << t.pixelFormat << t.width << t.height;
         }
-//        qDebug() << "    -> " << quint64(metalTexture);
 
         // Get a Metal texture using the CoreVideo Metal texture reference.
-        return quint64(metalTexture);
+//        qDebug() << "    -> " << quint64(CVMetalTextureGetTexture(cvMetalTexture[plane]));
+        return cvMetalTexture[plane] ? quint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;
     } else if (rhi->backend() == QRhi::OpenGLES2) {
         const auto *gl = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
 
@@ -220,4 +237,64 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
     else
         return 0;
 #endif
+}
+
+
+QVideoSurfaceFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPixelFormat)
+{
+    // BGRA <-> ARGB "swap" is intentional:
+    // to work correctly with GL_RGBA, color swap shaders
+    // (in QSG node renderer etc.).
+    switch (avPixelFormat) {
+    case kCVPixelFormatType_32ARGB:
+        return QVideoSurfaceFormat::Format_BGRA32;
+    case kCVPixelFormatType_32BGRA:
+        return QVideoSurfaceFormat::Format_ARGB32;
+    case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+    case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+        return QVideoSurfaceFormat::Format_NV12;
+    case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange:
+    case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
+        return QVideoSurfaceFormat::Format_P010LE;
+    case kCVPixelFormatType_422YpCbCr8:
+        return QVideoSurfaceFormat::Format_UYVY;
+    case kCVPixelFormatType_422YpCbCr8_yuvs:
+        return QVideoSurfaceFormat::Format_YUYV;
+    case kCMVideoCodecType_JPEG:
+    case kCMVideoCodecType_JPEG_OpenDML:
+        return QVideoSurfaceFormat::Format_Jpeg;
+    default:
+        return QVideoSurfaceFormat::Format_Invalid;
+    }
+}
+
+bool AVFVideoBuffer::toCVPixelFormat(QVideoSurfaceFormat::PixelFormat qtFormat, unsigned &conv)
+{
+    // BGRA <-> ARGB "swap" is intentional:
+    // to work correctly with GL_RGBA, color swap shaders
+    // (in QSG node renderer etc.).
+    switch (qtFormat) {
+    case QVideoSurfaceFormat::Format_ARGB32:
+        conv = kCVPixelFormatType_32BGRA;
+        break;
+    case QVideoSurfaceFormat::Format_BGRA32:
+        conv = kCVPixelFormatType_32ARGB;
+        break;
+    case QVideoSurfaceFormat::Format_NV12:
+        conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
+        break;
+    case QVideoSurfaceFormat::Format_P010LE:
+        conv = kCVPixelFormatType_420YpCbCr10BiPlanarFullRange;
+        break;
+    case QVideoSurfaceFormat::Format_UYVY:
+        conv = kCVPixelFormatType_422YpCbCr8;
+        break;
+    case QVideoSurfaceFormat::Format_YUYV:
+        conv = kCVPixelFormatType_422YpCbCr8_yuvs;
+        break;
+    default:
+        return false;
+    }
+
+    return true;
 }
