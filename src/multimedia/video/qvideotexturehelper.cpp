@@ -324,9 +324,6 @@ static QMatrix4x4 colorMatrix(QVideoSurfaceFormat::YCbCrColorSpace colorSpace)
 
 QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &transform, float opacity)
 {
-    static constexpr float pw[3] = {};
-    const float *planeWidth = pw;
-
     switch (format.pixelFormat()) {
     case QVideoSurfaceFormat::Format_Invalid:
     case QVideoSurfaceFormat::Format_Jpeg:
@@ -359,40 +356,24 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
         return buf;
     }
     case QVideoSurfaceFormat::Format_AYUV444:
-    case QVideoSurfaceFormat::Format_AYUV444_Premultiplied: {
-        static constexpr float pw[] = { 1, 0, 0 };
-        planeWidth = pw;
-        break;
-    }
+    case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
     case QVideoSurfaceFormat::Format_YUV420P:
     case QVideoSurfaceFormat::Format_YUV422P:
-    case QVideoSurfaceFormat::Format_YV12: {
-        static constexpr float pw[] = { 1, 1, 1 };
-        planeWidth = pw;
-        break;
-    }
+    case QVideoSurfaceFormat::Format_YV12:
     case QVideoSurfaceFormat::Format_UYVY:
-    case QVideoSurfaceFormat::Format_YUYV: {
-        static constexpr float pw[] = { 1, 1, 0 };
-        planeWidth = pw;
-        break;
-    }
+    case QVideoSurfaceFormat::Format_YUYV:
     case QVideoSurfaceFormat::Format_NV12:
     case QVideoSurfaceFormat::Format_NV21:
     case QVideoSurfaceFormat::Format_P010:
-    case QVideoSurfaceFormat::Format_P016: {
-        static constexpr float pw[] = { 1, 1, 0 };
-        planeWidth = pw;
+    case QVideoSurfaceFormat::Format_P016:
         break;
     }
-    }
     // { matrix4x4, colorMatrix, opacity, planeWidth[3] }
-    QByteArray buf(64*2 + 4 + 3*4, Qt::Uninitialized);
+    QByteArray buf(64*2 + 4, Qt::Uninitialized);
     char *data = buf.data();
     memcpy(data, transform.constData(), 64);
     memcpy(data + 64, colorMatrix(format.yCbCrColorSpace()).constData(), 64);
     memcpy(data + 64 + 64, &opacity, 4);
-    memcpy(data + 64 + 64 + 4, planeWidth, 3*4);
     return buf;
 }
 
