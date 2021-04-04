@@ -13,5 +13,5 @@ layout(binding = 1) uniform sampler2D rgbTexture;
 
 void main()
 {
-    fragColor = texture(rgbTexture, qt_TexCoord).grab * ubuf.colorMatrix * ubuf.opacity;
+    fragColor = texture(rgbTexture, qt_TexCoord).bgra * ubuf.colorMatrix * ubuf.opacity;
 }

@@ -234,7 +234,7 @@ QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
     case QVideoSurfaceFormat::Format_ABGR32:
     case QVideoSurfaceFormat::Format_BGR32:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/rgba.vert.qsb");
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/rgb.vert.qsb");
     case QVideoSurfaceFormat::Format_YUV420P:
     case QVideoSurfaceFormat::Format_YUV422P:
     case QVideoSurfaceFormat::Format_YV12:
@@ -273,11 +273,13 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_ARGB32:
     case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
     case QVideoSurfaceFormat::Format_RGB32:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/argb.frag.qsb");
     case QVideoSurfaceFormat::Format_BGRA32:
     case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/bgra.frag.qsb");
     case QVideoSurfaceFormat::Format_ABGR32:
     case QVideoSurfaceFormat::Format_BGR32:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/rgba.frag.qsb");
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/abgr.frag.qsb");
     case QVideoSurfaceFormat::Format_YUV420P:
     case QVideoSurfaceFormat::Format_YUV422P:
     case QVideoSurfaceFormat::Format_YV12:
@@ -324,6 +326,7 @@ static QMatrix4x4 colorMatrix(QVideoSurfaceFormat::YCbCrColorSpace colorSpace)
 
 QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &transform, float opacity)
 {
+    QMatrix4x4 cmat;
     switch (format.pixelFormat()) {
     case QVideoSurfaceFormat::Format_Invalid:
     case QVideoSurfaceFormat::Format_Jpeg:
@@ -347,14 +350,8 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     case QVideoSurfaceFormat::Format_BGRA32:
     case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
     case QVideoSurfaceFormat::Format_ABGR32:
-    case QVideoSurfaceFormat::Format_BGR32: {
-        // { matrix4x4, opacity }
-        QByteArray buf(16*4 + 4, Qt::Uninitialized);
-        char *data = buf.data();
-        memcpy(data, transform.constData(), 64);
-        memcpy(data + 64, &opacity, 4);
-        return buf;
-    }
+    case QVideoSurfaceFormat::Format_BGR32:
+        break;
     case QVideoSurfaceFormat::Format_AYUV444:
     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
     case QVideoSurfaceFormat::Format_YUV420P:
@@ -366,13 +363,14 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     case QVideoSurfaceFormat::Format_NV21:
     case QVideoSurfaceFormat::Format_P010:
     case QVideoSurfaceFormat::Format_P016:
+        cmat = colorMatrix(format.yCbCrColorSpace());
         break;
     }
     // { matrix4x4, colorMatrix, opacity, planeWidth[3] }
     QByteArray buf(64*2 + 4, Qt::Uninitialized);
     char *data = buf.data();
     memcpy(data, transform.constData(), 64);
-    memcpy(data + 64, colorMatrix(format.yCbCrColorSpace()).constData(), 64);
+    memcpy(data + 64, cmat.constData(), 64);
     memcpy(data + 64 + 64, &opacity, 4);
     return buf;
 }

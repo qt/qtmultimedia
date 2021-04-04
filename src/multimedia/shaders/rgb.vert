@@ -7,6 +7,7 @@ layout(location = 0) out vec2 qt_TexCoord;
 
 layout(std140, binding = 0) uniform buf {
     mat4 matrix;
+    mat4 colorMatrix;
     float opacity;
 } ubuf;
 
