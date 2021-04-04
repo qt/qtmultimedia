@@ -60,22 +60,17 @@ static bool pixelFormatHasAlpha[QVideoSurfaceFormat::NPixelFormats] =
     true, //Format_ARGB32,
     true, //Format_ARGB32_Premultiplied,
     false, //Format_RGB32,
-    false, //Format_RGB24,
     false, //Format_RGB565,
     false, //Format_RGB555,
-    true, //Format_ARGB8565_Premultiplied,
     true, //Format_BGRA32,
     true, //Format_BGRA32_Premultiplied,
     true, //Format_ABGR32,
     false, //Format_BGR32,
-    false, //Format_BGR24,
     false, //Format_BGR565,
     false, //Format_BGR555,
-    true, //Format_BGRA5658_Premultiplied,
 
     true, //Format_AYUV444,
     true, //Format_AYUV444_Premultiplied,
-    false, //Format_YUV444,
     false, //Format_YUV420P,
     false, //Format_YUV422P,
     false, //Format_YV12,
@@ -179,10 +174,6 @@ private:
     The frame stored using a 32-bit RGB format (0xffRRGGBB).  This is equivalent to
     QImage::Format_RGB32
 
-    \value Format_RGB24
-    The frame is stored using a 24-bit RGB format (8-8-8).  This is equivalent to
-    QImage::Format_RGB888
-
     \value Format_RGB565
     The frame is stored using a 16-bit RGB format (5-6-5).  This is equivalent to
     QImage::Format_RGB16.
@@ -190,9 +181,6 @@ private:
     \value Format_RGB555
     The frame is stored using a 16-bit RGB format (5-5-5).  This is equivalent to
     QImage::Format_RGB555.
-
-    \value Format_ARGB8565_Premultiplied
-    The frame is stored using a 24-bit premultiplied ARGB format (8-5-6-5).
 
     \value Format_BGRA32
     The frame is stored using a 32-bit BGRA format (0xBBGGRRAA).
@@ -206,26 +194,17 @@ private:
     \value Format_BGR32
     The frame is stored using a 32-bit BGR format (0xBBGGRRff).
 
-    \value Format_BGR24
-    The frame is stored using a 24-bit BGR format (0xBBGGRR).
-
     \value Format_BGR565
     The frame is stored using a 16-bit BGR format (5-6-5).
 
     \value Format_BGR555
     The frame is stored using a 16-bit BGR format (5-5-5).
 
-    \value Format_BGRA5658_Premultiplied
-    The frame is stored using a 24-bit premultiplied BGRA format (5-6-5-8).
-
     \value Format_AYUV444
     The frame is stored using a packed 32-bit AYUV format (0xAAYYUUVV).
 
     \value Format_AYUV444_Premultiplied
     The frame is stored using a packed premultiplied 32-bit AYUV format (0xAAYYUUVV).
-
-    \value Format_YUV444
-    The frame is stored using a 24-bit packed YUV format (8-8-8).
 
     \value Format_YUV420P
     The frame is stored using an 8-bit per component planar YUV format with the U and V planes
@@ -589,21 +568,16 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case QVideoSurfaceFormat::Format_ARGB32:
         case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
         case QVideoSurfaceFormat::Format_RGB32:
-        case QVideoSurfaceFormat::Format_RGB24:
         case QVideoSurfaceFormat::Format_RGB565:
         case QVideoSurfaceFormat::Format_RGB555:
-        case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
         case QVideoSurfaceFormat::Format_BGRA32:
         case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
         case QVideoSurfaceFormat::Format_ABGR32:
         case QVideoSurfaceFormat::Format_BGR32:
-        case QVideoSurfaceFormat::Format_BGR24:
         case QVideoSurfaceFormat::Format_BGR565:
         case QVideoSurfaceFormat::Format_BGR555:
-        case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
         case QVideoSurfaceFormat::Format_AYUV444:
         case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
-        case QVideoSurfaceFormat::Format_YUV444:
         case QVideoSurfaceFormat::Format_UYVY:
         case QVideoSurfaceFormat::Format_YUYV:
         case QVideoSurfaceFormat::Format_Y8:

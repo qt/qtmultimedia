@@ -1999,8 +1999,6 @@ static QVideoSurfaceFormat::PixelFormat pixelFormatFromMediaType(IMFMediaType *t
         return QVideoSurfaceFormat::Format_RGB32;
     if (subtype == MFVideoFormat_ARGB32)
         return QVideoSurfaceFormat::Format_ARGB32;
-    if (subtype == MFVideoFormat_RGB24)
-        return QVideoSurfaceFormat::Format_RGB24;
     if (subtype == MFVideoFormat_RGB565)
         return QVideoSurfaceFormat::Format_RGB565;
     if (subtype == MFVideoFormat_RGB555)

@@ -126,11 +126,6 @@ void tst_QVideoSurfaceFormat::construct_data()
             << QVideoSurfaceFormat::Format_RGB32
             << true;
 
-    QTest::newRow("1024x768 YUV444 GL texture")
-            << QSize(32, 32)
-            << QVideoSurfaceFormat::Format_YUV444
-            << true;
-
     QTest::newRow("32x32 invalid no handle")
             << QSize(32, 32)
             << QVideoSurfaceFormat::Format_Invalid
@@ -355,7 +350,7 @@ void tst_QVideoSurfaceFormat::compare()
     QVideoSurfaceFormat format2(
             QSize(16, 16), QVideoSurfaceFormat::Format_RGB32);
     QVideoSurfaceFormat format3(
-            QSize(32, 32), QVideoSurfaceFormat::Format_YUV444);
+            QSize(32, 32), QVideoSurfaceFormat::Format_AYUV444);
     QVideoSurfaceFormat format4(
             QSize(16, 16), QVideoSurfaceFormat::Format_RGB32);
 

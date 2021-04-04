@@ -5,3 +5,4 @@ typeinfo plugins.qmltypes
 prefer :/qt-project.org/imports/QtMultimedia/
 typeinfo plugins.qmltypes
 Video 5.0 Video.qml
+

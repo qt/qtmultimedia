@@ -64,22 +64,12 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
-     // Format_RGB24
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
     // Format_RGB565
     { 1,
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
      // Format_RGB555
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_ARGB8565_Premultiplied
     { 1,
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
@@ -104,22 +94,12 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
-     // Format_BGR24
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
      // Format_BGR565
     { 1,
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
      // Format_BGR555
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-     // Format_BGRA5658_Premultiplied
     { 1,
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
@@ -131,11 +111,6 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_AYUV444_Premultiplied
-    { 1,
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_YUV444
     { 1,
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
@@ -246,19 +221,13 @@ QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_Invalid:
     case QVideoSurfaceFormat::Format_Jpeg:
 
-    case QVideoSurfaceFormat::Format_RGB24:
     case QVideoSurfaceFormat::Format_RGB565:
     case QVideoSurfaceFormat::Format_RGB555:
-    case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
-    case QVideoSurfaceFormat::Format_BGR24:
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
-    case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
 
     case QVideoSurfaceFormat::Format_Y8:
     case QVideoSurfaceFormat::Format_Y16:
-
-    case QVideoSurfaceFormat::Format_YUV444:
 
     case QVideoSurfaceFormat::Format_IMC1:
     case QVideoSurfaceFormat::Format_IMC2:
@@ -297,19 +266,13 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_Invalid:
     case QVideoSurfaceFormat::Format_Jpeg:
 
-    case QVideoSurfaceFormat::Format_RGB24:
     case QVideoSurfaceFormat::Format_RGB565:
     case QVideoSurfaceFormat::Format_RGB555:
-    case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
-    case QVideoSurfaceFormat::Format_BGR24:
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
-    case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
 
     case QVideoSurfaceFormat::Format_Y8:
     case QVideoSurfaceFormat::Format_Y16:
-
-    case QVideoSurfaceFormat::Format_YUV444:
 
     case QVideoSurfaceFormat::Format_IMC1:
     case QVideoSurfaceFormat::Format_IMC2:
@@ -383,19 +346,13 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     case QVideoSurfaceFormat::Format_Invalid:
     case QVideoSurfaceFormat::Format_Jpeg:
 
-    case QVideoSurfaceFormat::Format_RGB24:
     case QVideoSurfaceFormat::Format_RGB565:
     case QVideoSurfaceFormat::Format_RGB555:
-    case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
-    case QVideoSurfaceFormat::Format_BGR24:
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
-    case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
 
     case QVideoSurfaceFormat::Format_Y8:
     case QVideoSurfaceFormat::Format_Y16:
-
-    case QVideoSurfaceFormat::Format_YUV444:
 
     case QVideoSurfaceFormat::Format_IMC1:
     case QVideoSurfaceFormat::Format_IMC2:

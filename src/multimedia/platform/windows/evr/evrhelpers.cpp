@@ -120,8 +120,6 @@ bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample)
 QVideoSurfaceFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
 {
     switch (format) {
-    case D3DFMT_R8G8B8:
-        return QVideoSurfaceFormat::Format_RGB24;
     case D3DFMT_A8R8G8B8:
         return QVideoSurfaceFormat::Format_ARGB32;
     case D3DFMT_X8R8G8B8:
@@ -153,8 +151,6 @@ QVideoSurfaceFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
 D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoSurfaceFormat::PixelFormat format)
 {
     switch (format) {
-    case QVideoSurfaceFormat::Format_RGB24:
-        return D3DFMT_R8G8B8;
     case QVideoSurfaceFormat::Format_ARGB32:
         return D3DFMT_A8R8G8B8;
     case QVideoSurfaceFormat::Format_RGB32:

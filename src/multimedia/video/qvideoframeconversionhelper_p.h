@@ -80,13 +80,6 @@ inline quint32 qConvertBGR24ToARGB32(const uchar *bgr)
     return 0xFF000000 | bgr[0] | bgr[1] << 8 | bgr[2] << 16;
 }
 
-inline quint32 qConvertBGRA5658ToARGB32(const uchar *bgr)
-{
-    return (bgr[0] & 0xf8) | (quint32(bgr[0] & 7) << 13) |
-           (quint32(bgr[1] & 0xe0) << 5) | (quint32(bgr[1] & 0x1f) << 3) |
-           bgr[2] << 24;
-}
-
 inline quint32 qConvertBGR565ToARGB32(quint16 bgr)
 {
     return 0xff000000

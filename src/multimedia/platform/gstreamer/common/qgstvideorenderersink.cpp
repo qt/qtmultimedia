@@ -105,7 +105,6 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
 //                       << QVideoSurfaceFormat::Format_NV12
 //                       << QVideoSurfaceFormat::Format_NV21
                        << QVideoSurfaceFormat::Format_AYUV444
-                       << QVideoSurfaceFormat::Format_YUV444
 //                       << QVideoSurfaceFormat::Format_P010LE
 //                       << QVideoSurfaceFormat::Format_P010BE
 //                       << QVideoSurfaceFormat::Format_Y8
@@ -117,8 +116,6 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
 //                       << QVideoSurfaceFormat::Format_RGB555
 //                       << QVideoSurfaceFormat::Format_BGR555
 //                       << QVideoSurfaceFormat::Format_Y16
-//                       << QVideoSurfaceFormat::Format_RGB24
-//                       << QVideoSurfaceFormat::Format_BGR24
 //                       << QVideoSurfaceFormat::Format_RGB565
             ;
         // Even if the surface does not support gl textures,
@@ -140,7 +137,6 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoSurfaceFormat::Format_NV12
                    << QVideoSurfaceFormat::Format_NV21
                    << QVideoSurfaceFormat::Format_AYUV444
-                   << QVideoSurfaceFormat::Format_YUV444
                    << QVideoSurfaceFormat::Format_P010LE
                    << QVideoSurfaceFormat::Format_P010BE
                    << QVideoSurfaceFormat::Format_Y8
@@ -152,8 +148,6 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoSurfaceFormat::Format_RGB555
                    << QVideoSurfaceFormat::Format_BGR555
                    << QVideoSurfaceFormat::Format_Y16
-                   << QVideoSurfaceFormat::Format_RGB24
-                   << QVideoSurfaceFormat::Format_BGR24
                    << QVideoSurfaceFormat::Format_RGB565;
     caps.addPixelFormats(formats);
     qDebug() << "CAPS:" << caps.toString();

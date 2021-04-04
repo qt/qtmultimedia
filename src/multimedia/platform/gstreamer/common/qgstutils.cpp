@@ -179,7 +179,6 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoSurfaceFormat::Format_NV12   , GST_VIDEO_FORMAT_NV12 },
     { QVideoSurfaceFormat::Format_NV21   , GST_VIDEO_FORMAT_NV21 },
     { QVideoSurfaceFormat::Format_AYUV444, GST_VIDEO_FORMAT_AYUV },
-    { QVideoSurfaceFormat::Format_YUV444, GST_VIDEO_FORMAT_Y444 },
     { QVideoSurfaceFormat::Format_P010LE , GST_VIDEO_FORMAT_P010_10LE },
     { QVideoSurfaceFormat::Format_P010BE , GST_VIDEO_FORMAT_P010_10BE },
     { QVideoSurfaceFormat::Format_Y8 , GST_VIDEO_FORMAT_GRAY8 },
@@ -202,8 +201,6 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoSurfaceFormat::Format_BGR555 ,  GST_VIDEO_FORMAT_BGR15 },
     { QVideoSurfaceFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_BE },
 #endif
-    { QVideoSurfaceFormat::Format_RGB24 ,  GST_VIDEO_FORMAT_RGB },
-    { QVideoSurfaceFormat::Format_BGR24 ,  GST_VIDEO_FORMAT_BGR },
     { QVideoSurfaceFormat::Format_RGB565,  GST_VIDEO_FORMAT_RGB16 }
 };
 

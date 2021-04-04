@@ -432,12 +432,8 @@ QVideoSurfaceFormat::PixelFormat QVideoSurfaceFormat::pixelFormatFromImageFormat
         return QVideoSurfaceFormat::Format_ARGB32_Premultiplied;
     case QImage::Format_RGB16:
         return QVideoSurfaceFormat::Format_RGB565;
-    case QImage::Format_ARGB8565_Premultiplied:
-        return QVideoSurfaceFormat::Format_ARGB8565_Premultiplied;
     case QImage::Format_RGB555:
         return QVideoSurfaceFormat::Format_RGB555;
-    case QImage::Format_RGB888:
-        return QVideoSurfaceFormat::Format_RGB24;
     case QImage::Format_Grayscale8:
         return QVideoSurfaceFormat::Format_Y8;
     case QImage::Format_Grayscale16:
@@ -463,14 +459,10 @@ QImage::Format QVideoSurfaceFormat::imageFormatFromPixelFormat(QVideoSurfaceForm
         return QImage::Format_ARGB32_Premultiplied;
     case QVideoSurfaceFormat::Format_RGB32:
         return QImage::Format_RGB32;
-    case QVideoSurfaceFormat::Format_RGB24:
-        return QImage::Format_RGB888;
     case QVideoSurfaceFormat::Format_RGB565:
         return QImage::Format_RGB16;
     case QVideoSurfaceFormat::Format_RGB555:
         return QImage::Format_RGB555;
-    case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
-        return QImage::Format_ARGB8565_Premultiplied;
     case QVideoSurfaceFormat::Format_Y8:
         return QImage::Format_Grayscale8;
     case QVideoSurfaceFormat::Format_Y16:
@@ -479,13 +471,10 @@ QImage::Format QVideoSurfaceFormat::imageFormatFromPixelFormat(QVideoSurfaceForm
     case QVideoSurfaceFormat::Format_BGRA32:
     case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
     case QVideoSurfaceFormat::Format_BGR32:
-    case QVideoSurfaceFormat::Format_BGR24:
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
-    case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
     case QVideoSurfaceFormat::Format_AYUV444:
     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
-    case QVideoSurfaceFormat::Format_YUV444:
     case QVideoSurfaceFormat::Format_YUV420P:
     case QVideoSurfaceFormat::Format_YUV422P:
     case QVideoSurfaceFormat::Format_YV12:
@@ -582,14 +571,10 @@ QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::PixelFormat pf)
         return dbg << "Format_ARGB32_Premultiplied";
     case QVideoSurfaceFormat::Format_RGB32:
         return dbg << "Format_RGB32";
-    case QVideoSurfaceFormat::Format_RGB24:
-        return dbg << "Format_RGB24";
     case QVideoSurfaceFormat::Format_RGB565:
         return dbg << "Format_RGB565";
     case QVideoSurfaceFormat::Format_RGB555:
         return dbg << "Format_RGB555";
-    case QVideoSurfaceFormat::Format_ARGB8565_Premultiplied:
-        return dbg << "Format_ARGB8565_Premultiplied";
     case QVideoSurfaceFormat::Format_BGRA32:
         return dbg << "Format_BGRA32";
     case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
@@ -598,20 +583,14 @@ QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::PixelFormat pf)
         return dbg << "Format_ABGR32";
     case QVideoSurfaceFormat::Format_BGR32:
         return dbg << "Format_BGR32";
-    case QVideoSurfaceFormat::Format_BGR24:
-        return dbg << "Format_BGR24";
     case QVideoSurfaceFormat::Format_BGR565:
         return dbg << "Format_BGR565";
     case QVideoSurfaceFormat::Format_BGR555:
         return dbg << "Format_BGR555";
-    case QVideoSurfaceFormat::Format_BGRA5658_Premultiplied:
-        return dbg << "Format_BGRA5658_Premultiplied";
     case QVideoSurfaceFormat::Format_AYUV444:
         return dbg << "Format_AYUV444";
     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
         return dbg << "Format_AYUV444_Premultiplied";
-    case QVideoSurfaceFormat::Format_YUV444:
-        return dbg << "Format_YUV444";
     case QVideoSurfaceFormat::Format_YUV420P:
         return dbg << "Format_YUV420P";
     case QVideoSurfaceFormat::Format_YUV422P:
