@@ -183,7 +183,7 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
 
     // Format_P010LE
     { 2,
-     { QRhiTexture::RG8, QRhiTexture::BGRA8, QRhiTexture::UnknownFormat },
+     { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_P010BE
@@ -193,7 +193,7 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
     },
     // Format_P016LE
     { 2,
-     { QRhiTexture::RG8, QRhiTexture::BGRA8, QRhiTexture::UnknownFormat },
+     { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_P016BE
