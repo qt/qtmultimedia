@@ -1,6 +1,6 @@
 #version 440
 
-layout(location = 0) in vec2 qt_TexCoord;
+layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragColor;
 
 layout(std140, binding = 0) uniform buf {
@@ -13,5 +13,5 @@ layout(binding = 1) uniform sampler2D rgbTexture;
 
 void main()
 {
-    fragColor = texture(rgbTexture, qt_TexCoord) * ubuf.colorMatrix * ubuf.opacity;
+    fragColor = ubuf.colorMatrix * texture(rgbTexture, texCoord) * ubuf.opacity;
 }

@@ -476,11 +476,10 @@ qt_internal_add_shaders(Multimedia "shaders"
     PREFIX
         "/qt-project.org/multimedia/shaders"
     FILES
-        "shaders/rgb.vert"
+        "shaders/vertex.vert"
         "shaders/abgr.frag"
         "shaders/argb.frag"
         "shaders/bgra.frag"
-        "shaders/yuv.vert"
         "shaders/y.frag"
         "shaders/nv12.frag"
         "shaders/nv21.frag"
@@ -488,5 +487,4 @@ qt_internal_add_shaders(Multimedia "shaders"
         "shaders/yuv_yv.frag"
         "shaders/yuyv.frag"
         "shaders/ayuv.frag"
-        "shaders/p010.frag"
 )

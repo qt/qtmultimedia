@@ -205,48 +205,9 @@ const TextureDescription *textureDescription(QVideoSurfaceFormat::PixelFormat fo
     return descriptions + format;
 }
 
-QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat format)
+QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat /*format*/)
 {
-    switch (format) {
-    case QVideoSurfaceFormat::Format_Invalid:
-    case QVideoSurfaceFormat::Format_Jpeg:
-
-    case QVideoSurfaceFormat::Format_RGB565:
-    case QVideoSurfaceFormat::Format_RGB555:
-    case QVideoSurfaceFormat::Format_BGR565:
-    case QVideoSurfaceFormat::Format_BGR555:
-
-    case QVideoSurfaceFormat::Format_IMC1:
-    case QVideoSurfaceFormat::Format_IMC2:
-    case QVideoSurfaceFormat::Format_IMC3:
-    case QVideoSurfaceFormat::Format_IMC4:
-        return QString();
-
-    case QVideoSurfaceFormat::Format_Y8:
-    case QVideoSurfaceFormat::Format_Y16:
-
-    case QVideoSurfaceFormat::Format_AYUV444:
-    case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv.vert.qsb");
-    case QVideoSurfaceFormat::Format_ARGB32:
-    case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
-    case QVideoSurfaceFormat::Format_RGB32:
-    case QVideoSurfaceFormat::Format_BGRA32:
-    case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
-    case QVideoSurfaceFormat::Format_ABGR32:
-    case QVideoSurfaceFormat::Format_BGR32:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/rgb.vert.qsb");
-    case QVideoSurfaceFormat::Format_YUV420P:
-    case QVideoSurfaceFormat::Format_YUV422P:
-    case QVideoSurfaceFormat::Format_YV12:
-    case QVideoSurfaceFormat::Format_UYVY:
-    case QVideoSurfaceFormat::Format_YUYV:
-    case QVideoSurfaceFormat::Format_NV12:
-    case QVideoSurfaceFormat::Format_NV21:
-    case QVideoSurfaceFormat::Format_P010:
-    case QVideoSurfaceFormat::Format_P016:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv.vert.qsb");
-    }
+    return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
 QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
@@ -291,12 +252,12 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_YUYV:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/yuyv.frag.qsb");
     case QVideoSurfaceFormat::Format_NV12:
+    case QVideoSurfaceFormat::Format_P010:
+    case QVideoSurfaceFormat::Format_P016:
+        // P010/P016 have the same layout as NV12, just 16 instead of 8 bits per pixel
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12.frag.qsb");
     case QVideoSurfaceFormat::Format_NV21:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv21.frag.qsb");
-    case QVideoSurfaceFormat::Format_P010:
-    case QVideoSurfaceFormat::Format_P016:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/p010.frag.qsb");
     }
 }
 
