@@ -179,8 +179,6 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoSurfaceFormat::Format_NV12   , GST_VIDEO_FORMAT_NV12 },
     { QVideoSurfaceFormat::Format_NV21   , GST_VIDEO_FORMAT_NV21 },
     { QVideoSurfaceFormat::Format_AYUV444, GST_VIDEO_FORMAT_AYUV },
-    { QVideoSurfaceFormat::Format_P010LE , GST_VIDEO_FORMAT_P010_10LE },
-    { QVideoSurfaceFormat::Format_P010BE , GST_VIDEO_FORMAT_P010_10BE },
     { QVideoSurfaceFormat::Format_Y8 , GST_VIDEO_FORMAT_GRAY8 },
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
     { QVideoSurfaceFormat::Format_RGB32 ,  GST_VIDEO_FORMAT_BGRx },
@@ -191,6 +189,7 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoSurfaceFormat::Format_RGB555 ,  GST_VIDEO_FORMAT_BGR15 },
     { QVideoSurfaceFormat::Format_BGR555 ,  GST_VIDEO_FORMAT_RGB15 },
     { QVideoSurfaceFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_LE },
+    { QVideoSurfaceFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10LE },
 #else
     { QVideoSurfaceFormat::Format_RGB32 ,  GST_VIDEO_FORMAT_xRGB },
     { QVideoSurfaceFormat::Format_BGR32 ,  GST_VIDEO_FORMAT_xBGR },
@@ -200,6 +199,7 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoSurfaceFormat::Format_RGB555 ,  GST_VIDEO_FORMAT_RGB15 },
     { QVideoSurfaceFormat::Format_BGR555 ,  GST_VIDEO_FORMAT_BGR15 },
     { QVideoSurfaceFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_BE },
+    { QVideoSurfaceFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10BE },
 #endif
     { QVideoSurfaceFormat::Format_RGB565,  GST_VIDEO_FORMAT_RGB16 }
 };

@@ -486,6 +486,5 @@ qt_internal_add_shaders(Multimedia "shaders"
         "shaders/yuv_yv.frag"
         "shaders/yuyv.frag"
         "shaders/ayuv.frag"
-        "shaders/p010le.frag"
-        "shaders/p010be.frag"
+        "shaders/p010.frag"
 )

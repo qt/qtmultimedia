@@ -255,7 +255,7 @@ QVideoSurfaceFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPi
         return QVideoSurfaceFormat::Format_NV12;
     case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange:
     case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
-        return QVideoSurfaceFormat::Format_P010LE;
+        return QVideoSurfaceFormat::Format_P010;
     case kCVPixelFormatType_422YpCbCr8:
         return QVideoSurfaceFormat::Format_UYVY;
     case kCVPixelFormatType_422YpCbCr8_yuvs:
@@ -283,7 +283,7 @@ bool AVFVideoBuffer::toCVPixelFormat(QVideoSurfaceFormat::PixelFormat qtFormat, 
     case QVideoSurfaceFormat::Format_NV12:
         conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
         break;
-    case QVideoSurfaceFormat::Format_P010LE:
+    case QVideoSurfaceFormat::Format_P010:
         conv = kCVPixelFormatType_420YpCbCr10BiPlanarFullRange;
         break;
     case QVideoSurfaceFormat::Format_UYVY:

@@ -90,10 +90,8 @@ public:
         Format_Y8,
         Format_Y16,
 
-        Format_P010LE,
-        Format_P010BE,
-        Format_P016LE,
-        Format_P016BE,
+        Format_P010,
+        Format_P016,
 
         Format_Jpeg,
     };

@@ -105,8 +105,7 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
 //                       << QVideoSurfaceFormat::Format_NV12
 //                       << QVideoSurfaceFormat::Format_NV21
                        << QVideoSurfaceFormat::Format_AYUV444
-//                       << QVideoSurfaceFormat::Format_P010LE
-//                       << QVideoSurfaceFormat::Format_P010BE
+//                       << QVideoSurfaceFormat::Format_P010
 //                       << QVideoSurfaceFormat::Format_Y8
                        << QVideoSurfaceFormat::Format_RGB32
                        << QVideoSurfaceFormat::Format_BGR32
@@ -137,8 +136,7 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoSurfaceFormat::Format_NV12
                    << QVideoSurfaceFormat::Format_NV21
                    << QVideoSurfaceFormat::Format_AYUV444
-                   << QVideoSurfaceFormat::Format_P010LE
-                   << QVideoSurfaceFormat::Format_P010BE
+                   << QVideoSurfaceFormat::Format_P010
                    << QVideoSurfaceFormat::Format_Y8
                    << QVideoSurfaceFormat::Format_RGB32
                    << QVideoSurfaceFormat::Format_BGR32

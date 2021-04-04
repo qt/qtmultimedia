@@ -181,24 +181,14 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
 
-    // Format_P010LE
+    // Format_P010
     { 2,
      { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
-    // Format_P010BE
-    { 2,
-     { QRhiTexture::RG8, QRhiTexture::BGRA8, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 2, 2 }, { 1, 1 } }
-    },
-    // Format_P016LE
+    // Format_P016
     { 2,
      { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 2, 2 }, { 1, 1 } }
-    },
-    // Format_P016BE
-    { 2,
-     { QRhiTexture::RG8, QRhiTexture::BGRA8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
 
@@ -252,10 +242,8 @@ QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_YUYV:
     case QVideoSurfaceFormat::Format_NV12:
     case QVideoSurfaceFormat::Format_NV21:
-    case QVideoSurfaceFormat::Format_P010LE:
-    case QVideoSurfaceFormat::Format_P010BE:
-    case QVideoSurfaceFormat::Format_P016LE:
-    case QVideoSurfaceFormat::Format_P016BE:
+    case QVideoSurfaceFormat::Format_P010:
+    case QVideoSurfaceFormat::Format_P016:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv.vert.qsb");
     }
 }
@@ -302,12 +290,9 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12.frag.qsb");
     case QVideoSurfaceFormat::Format_NV21:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv21.frag.qsb");
-    case QVideoSurfaceFormat::Format_P010LE:
-    case QVideoSurfaceFormat::Format_P016LE:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/p010le.frag.qsb");
-    case QVideoSurfaceFormat::Format_P010BE:
-    case QVideoSurfaceFormat::Format_P016BE:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/p010be.frag.qsb");
+    case QVideoSurfaceFormat::Format_P010:
+    case QVideoSurfaceFormat::Format_P016:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/p010.frag.qsb");
     }
 }
 
@@ -394,10 +379,8 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     }
     case QVideoSurfaceFormat::Format_NV12:
     case QVideoSurfaceFormat::Format_NV21:
-    case QVideoSurfaceFormat::Format_P010LE:
-    case QVideoSurfaceFormat::Format_P010BE:
-    case QVideoSurfaceFormat::Format_P016LE:
-    case QVideoSurfaceFormat::Format_P016BE: {
+    case QVideoSurfaceFormat::Format_P010:
+    case QVideoSurfaceFormat::Format_P016: {
         static constexpr float pw[] = { 1, 1, 0 };
         planeWidth = pw;
         break;

@@ -486,10 +486,8 @@ QImage::Format QVideoSurfaceFormat::imageFormatFromPixelFormat(QVideoSurfaceForm
     case QVideoSurfaceFormat::Format_IMC2:
     case QVideoSurfaceFormat::Format_IMC3:
     case QVideoSurfaceFormat::Format_IMC4:
-    case QVideoSurfaceFormat::Format_P010LE:
-    case QVideoSurfaceFormat::Format_P010BE:
-    case QVideoSurfaceFormat::Format_P016LE:
-    case QVideoSurfaceFormat::Format_P016BE:
+    case QVideoSurfaceFormat::Format_P010:
+    case QVideoSurfaceFormat::Format_P016:
     case QVideoSurfaceFormat::Format_Jpeg:
     case QVideoSurfaceFormat::Format_Invalid:
         return QImage::Format_Invalid;
@@ -617,14 +615,10 @@ QDebug operator<<(QDebug dbg, QVideoSurfaceFormat::PixelFormat pf)
         return dbg << "Format_Y8";
     case QVideoSurfaceFormat::Format_Y16:
         return dbg << "Format_Y16";
-    case QVideoSurfaceFormat::Format_P010LE:
-        return dbg << "Format_P010LE";
-    case QVideoSurfaceFormat::Format_P010BE:
-        return dbg << "Format_P010BE";
-    case QVideoSurfaceFormat::Format_P016LE:
-        return dbg << "Format_P016LE";
-    case QVideoSurfaceFormat::Format_P016BE:
-        return dbg << "Format_P016BE";
+    case QVideoSurfaceFormat::Format_P010:
+        return dbg << "Format_P010";
+    case QVideoSurfaceFormat::Format_P016:
+        return dbg << "Format_P016";
     case QVideoSurfaceFormat::Format_Jpeg:
         return dbg << "Format_Jpeg";
 

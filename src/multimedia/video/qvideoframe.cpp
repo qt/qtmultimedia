@@ -85,10 +85,8 @@ static bool pixelFormatHasAlpha[QVideoSurfaceFormat::NPixelFormats] =
     false, //Format_Y8,
     false, //Format_Y16,
 
-    false, //Format_P010LE,
-    false, //Format_P010BE,
-    false, //Format_P016LE,
-    false, //Format_P016BE,
+    false, //Format_P010,
+    false, //Format_P016,
 
     false, //Format_Jpeg,
 
@@ -609,10 +607,8 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case QVideoSurfaceFormat::Format_NV21:
         case QVideoSurfaceFormat::Format_IMC2:
         case QVideoSurfaceFormat::Format_IMC4:
-        case QVideoSurfaceFormat::Format_P010BE:
-        case QVideoSurfaceFormat::Format_P010LE:
-        case QVideoSurfaceFormat::Format_P016BE:
-        case QVideoSurfaceFormat::Format_P016LE: {
+        case QVideoSurfaceFormat::Format_P010:
+        case QVideoSurfaceFormat::Format_P016: {
             // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
             d->mapData.nPlanes = 2;
             d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];

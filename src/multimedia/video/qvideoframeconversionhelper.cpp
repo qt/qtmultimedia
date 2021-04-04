@@ -511,7 +511,7 @@ static inline void planarYUV420_16bit_to_ARGB32(const uchar *y, int yStride,
     }
 }
 
-static void QT_FASTCALL qt_convert_P016LE_to_ARGB32(const QVideoFrame &frame, uchar *output)
+static void QT_FASTCALL qt_convert_P016_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
     FETCH_INFO_BIPLANAR(frame)
     planarYUV420_16bit_to_ARGB32(plane1 + 1, plane1Stride,
@@ -520,18 +520,6 @@ static void QT_FASTCALL qt_convert_P016LE_to_ARGB32(const QVideoFrame &frame, uc
                            4,
                            reinterpret_cast<quint32*>(output),
                            width, height);
-
-}
-
-static void QT_FASTCALL qt_convert_P016BE_to_ARGB32(const QVideoFrame &frame, uchar *output)
-{
-    FETCH_INFO_BIPLANAR(frame)
-    planarYUV420_16bit_to_ARGB32(plane1, plane1Stride,
-                                 plane2, plane2Stride,
-                                 plane2 + 2, plane2Stride,
-                                 4,
-                                 reinterpret_cast<quint32*>(output),
-                                 width, height);
 
 }
 
@@ -563,10 +551,8 @@ static VideoFrameConvertFunc qConvertFuncs[QVideoSurfaceFormat::NPixelFormats] =
     /* Format_IMC4 */                   qt_convert_IMC4_to_ARGB32,
     /* Format_Y8 */                     nullptr, // Not needed
     /* Format_Y16 */                    nullptr, // Not needed
-    /* Format_P010LE */                 qt_convert_P016LE_to_ARGB32,
-    /* Format_P010BE */                 qt_convert_P016BE_to_ARGB32,
-    /* Format_P016LE */                 qt_convert_P016LE_to_ARGB32,
-    /* Format_P016BE */                 qt_convert_P016BE_to_ARGB32,
+    /* Format_P010 */                   qt_convert_P016_to_ARGB32,
+    /* Format_P016 */                   qt_convert_P016_to_ARGB32,
     /* Format_Jpeg */                   nullptr, // Not needed
 };
 
