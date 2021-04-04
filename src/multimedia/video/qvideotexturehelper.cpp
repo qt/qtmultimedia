@@ -216,14 +216,15 @@ QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
 
-    case QVideoSurfaceFormat::Format_Y8:
-    case QVideoSurfaceFormat::Format_Y16:
-
     case QVideoSurfaceFormat::Format_IMC1:
     case QVideoSurfaceFormat::Format_IMC2:
     case QVideoSurfaceFormat::Format_IMC3:
     case QVideoSurfaceFormat::Format_IMC4:
         return QString();
+
+    case QVideoSurfaceFormat::Format_Y8:
+    case QVideoSurfaceFormat::Format_Y16:
+
     case QVideoSurfaceFormat::Format_AYUV444:
     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv.vert.qsb");
@@ -259,14 +260,15 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
 
-    case QVideoSurfaceFormat::Format_Y8:
-    case QVideoSurfaceFormat::Format_Y16:
-
     case QVideoSurfaceFormat::Format_IMC1:
     case QVideoSurfaceFormat::Format_IMC2:
     case QVideoSurfaceFormat::Format_IMC3:
     case QVideoSurfaceFormat::Format_IMC4:
         return QString();
+
+    case QVideoSurfaceFormat::Format_Y8:
+    case QVideoSurfaceFormat::Format_Y16:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/y.frag.qsb");
     case QVideoSurfaceFormat::Format_AYUV444:
     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/ayuv.frag.qsb");
@@ -336,9 +338,6 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
 
-    case QVideoSurfaceFormat::Format_Y8:
-    case QVideoSurfaceFormat::Format_Y16:
-
     case QVideoSurfaceFormat::Format_IMC1:
     case QVideoSurfaceFormat::Format_IMC2:
     case QVideoSurfaceFormat::Format_IMC3:
@@ -351,6 +350,9 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
     case QVideoSurfaceFormat::Format_ABGR32:
     case QVideoSurfaceFormat::Format_BGR32:
+
+    case QVideoSurfaceFormat::Format_Y8:
+    case QVideoSurfaceFormat::Format_Y16:
         break;
     case QVideoSurfaceFormat::Format_AYUV444:
     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
