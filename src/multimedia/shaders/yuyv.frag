@@ -7,13 +7,16 @@ layout(std140, binding = 0) uniform buf {
     mat4 matrix;
     mat4 colorMatrix;
     float opacity;
+    float width;
 } ubuf;
 
 layout(binding = 1) uniform sampler2D plane1Texture;
-layout(binding = 2) uniform sampler2D plane2Texture;
 
 void main()
 {
-    vec3 YUV = vec3(texture(plane1Texture, texCoord).r, texture(plane2Texture, texCoord).ga);
-    fragColor = ubuf.colorMatrix * vec4(YUV, 1.0) * ubuf.opacity;
+    float x = texCoord.x * ubuf.width;
+    bool rightSubPixel = bool(int(x) & 1);
+    float Y = rightSubPixel ? texture(plane1Texture, texCoord).r : texture(plane1Texture, texCoord).b;
+    vec2 UV = texture(plane1Texture, texCoord).ga;
+    fragColor = ubuf.colorMatrix * vec4(Y, UV, 1.0) * ubuf.opacity;
 }

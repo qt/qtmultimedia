@@ -106,16 +106,13 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
 //                       << QVideoSurfaceFormat::Format_NV21
                        << QVideoSurfaceFormat::Format_AYUV444
 //                       << QVideoSurfaceFormat::Format_P010
-//                       << QVideoSurfaceFormat::Format_Y8
                        << QVideoSurfaceFormat::Format_RGB32
                        << QVideoSurfaceFormat::Format_BGR32
                        << QVideoSurfaceFormat::Format_ARGB32
                        << QVideoSurfaceFormat::Format_ABGR32
                        << QVideoSurfaceFormat::Format_BGRA32
-//                       << QVideoSurfaceFormat::Format_RGB555
-//                       << QVideoSurfaceFormat::Format_BGR555
+//                       << QVideoSurfaceFormat::Format_Y8
 //                       << QVideoSurfaceFormat::Format_Y16
-//                       << QVideoSurfaceFormat::Format_RGB565
             ;
         // Even if the surface does not support gl textures,
         // glupload will be added to the pipeline and GLMemory will be requested.
@@ -137,16 +134,17 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoSurfaceFormat::Format_NV21
                    << QVideoSurfaceFormat::Format_AYUV444
                    << QVideoSurfaceFormat::Format_P010
-                   << QVideoSurfaceFormat::Format_Y8
                    << QVideoSurfaceFormat::Format_RGB32
                    << QVideoSurfaceFormat::Format_BGR32
                    << QVideoSurfaceFormat::Format_ARGB32
                    << QVideoSurfaceFormat::Format_ABGR32
                    << QVideoSurfaceFormat::Format_BGRA32
-                   << QVideoSurfaceFormat::Format_RGB555
-                   << QVideoSurfaceFormat::Format_BGR555
+                   << QVideoSurfaceFormat::Format_Y8
                    << QVideoSurfaceFormat::Format_Y16
-                   << QVideoSurfaceFormat::Format_RGB565;
+//                   << QVideoSurfaceFormat::Format_RGB555
+//                   << QVideoSurfaceFormat::Format_BGR555
+//                   << QVideoSurfaceFormat::Format_RGB565
+        ;
     caps.addPixelFormats(formats);
     qDebug() << "CAPS:" << caps.toString();
     return caps;

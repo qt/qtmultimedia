@@ -9,6 +9,7 @@ layout(std140, binding = 0) uniform buf {
     mat4 matrix;
     mat4 colorMatrix;
     float opacity;
+    float width;
 } ubuf;
 
 out gl_PerVertex { vec4 gl_Position; };

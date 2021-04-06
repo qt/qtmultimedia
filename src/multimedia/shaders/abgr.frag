@@ -7,6 +7,7 @@ layout(std140, binding = 0) uniform buf {
     mat4 matrix;
     mat4 colorMatrix;
     float opacity;
+    float width;
 } ubuf;
 
 layout(binding = 1) uniform sampler2D rgbTexture;

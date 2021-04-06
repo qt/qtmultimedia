@@ -133,42 +133,42 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
     // Format_UYVY
     { 1,
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+     { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUYV
     { 1,
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+     { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_NV12
     { 2,
-     { QRhiTexture::RG8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
+     { QRhiTexture::R8, QRhiTexture::RG8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_NV21
     { 2,
-     { QRhiTexture::RG8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
+     { QRhiTexture::R8, QRhiTexture::RG8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_IMC1
     { 3,
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+     { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC2
     { 2,
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+     { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_IMC3
     { 3,
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+     { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC4
     { 2,
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+     { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_Y8
     { 1,
@@ -221,10 +221,6 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
 
-    case QVideoSurfaceFormat::Format_IMC1:
-    case QVideoSurfaceFormat::Format_IMC2:
-    case QVideoSurfaceFormat::Format_IMC3:
-    case QVideoSurfaceFormat::Format_IMC4:
         return QString();
 
     case QVideoSurfaceFormat::Format_Y8:
@@ -245,8 +241,15 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/abgr.frag.qsb");
     case QVideoSurfaceFormat::Format_YUV420P:
     case QVideoSurfaceFormat::Format_YUV422P:
+    case QVideoSurfaceFormat::Format_IMC3:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv_triplanar.frag.qsb");
     case QVideoSurfaceFormat::Format_YV12:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv_yv.frag.qsb");
+    case QVideoSurfaceFormat::Format_IMC1:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/yvu_triplanar.frag.qsb");
+    case QVideoSurfaceFormat::Format_IMC2:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/imc2.frag.qsb");
+    case QVideoSurfaceFormat::Format_IMC4:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/imc4.frag.qsb");
     case QVideoSurfaceFormat::Format_UYVY:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/uyvy.frag.qsb");
     case QVideoSurfaceFormat::Format_YUYV:
@@ -298,12 +301,8 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     case QVideoSurfaceFormat::Format_RGB555:
     case QVideoSurfaceFormat::Format_BGR565:
     case QVideoSurfaceFormat::Format_BGR555:
-
-    case QVideoSurfaceFormat::Format_IMC1:
-    case QVideoSurfaceFormat::Format_IMC2:
-    case QVideoSurfaceFormat::Format_IMC3:
-    case QVideoSurfaceFormat::Format_IMC4:
         return QByteArray();
+
     case QVideoSurfaceFormat::Format_ARGB32:
     case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
     case QVideoSurfaceFormat::Format_RGB32:
@@ -315,6 +314,10 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     case QVideoSurfaceFormat::Format_Y8:
     case QVideoSurfaceFormat::Format_Y16:
         break;
+    case QVideoSurfaceFormat::Format_IMC1:
+    case QVideoSurfaceFormat::Format_IMC2:
+    case QVideoSurfaceFormat::Format_IMC3:
+    case QVideoSurfaceFormat::Format_IMC4:
     case QVideoSurfaceFormat::Format_AYUV444:
     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
     case QVideoSurfaceFormat::Format_YUV420P:
@@ -330,11 +333,13 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
         break;
     }
     // { matrix4x4, colorMatrix, opacity, planeWidth[3] }
-    QByteArray buf(64*2 + 4, Qt::Uninitialized);
+    QByteArray buf(64*2 + 4 + 4, Qt::Uninitialized);
     char *data = buf.data();
     memcpy(data, transform.constData(), 64);
     memcpy(data + 64, cmat.constData(), 64);
     memcpy(data + 64 + 64, &opacity, 4);
+    float width = format.frameWidth();
+    memcpy(data + 64 + 64 + 4, &width, 4);
     return buf;
 }
 
