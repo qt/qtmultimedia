@@ -271,35 +271,6 @@ QList<QAudio::Role> QAndroidMediaPlayerControl::supportedAudioRoles() const
         << QAudio::GameRole;
 }
 
-void QAndroidMediaPlayerControl::setCustomAudioRole(const QString &role)
-{
-    mMediaPlayer->setCustomAudioRole(role);
-}
-
-QStringList QAndroidMediaPlayerControl::supportedCustomAudioRoles() const
-{
-    return QStringList()
-        << QLatin1String("CONTENT_TYPE_MOVIE")
-        << QLatin1String("CONTENT_TYPE_MUSIC")
-        << QLatin1String("CONTENT_TYPE_SONIFICATION")
-        << QLatin1String("CONTENT_TYPE_SPEECH")
-        << QLatin1String("USAGE_ALARM")
-        << QLatin1String("USAGE_ASSISTANCE_ACCESSIBILITY")
-        << QLatin1String("USAGE_ASSISTANCE_NAVIGATION_GUIDANCE")
-        << QLatin1String("USAGE_ASSISTANCE_SONIFICATION")
-        << QLatin1String("USAGE_ASSISTANT")
-        << QLatin1String("USAGE_GAME")
-        << QLatin1String("USAGE_MEDIA")
-        << QLatin1String("USAGE_NOTIFICATION")
-        << QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_DELAYED")
-        << QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_INSTANT")
-        << QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_REQUEST")
-        << QLatin1String("USAGE_NOTIFICATION_EVENT")
-        << QLatin1String("USAGE_NOTIFICATION_RINGTONE")
-        << QLatin1String("USAGE_VOICE_COMMUNICATION")
-        << QLatin1String("USAGE_VOICE_COMMUNICATION_SIGNALLING");
-}
-
 QMediaMetaData QAndroidMediaPlayerControl::metaData() const
 {
     return QAndroidMetaData::extractMetadata(mMediaContent);

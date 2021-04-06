@@ -124,7 +124,6 @@ private slots:
     void testQrc_data();
     void testQrc();
     void testAudioRole();
-    void testCustomAudioRole();
 
 private:
     void setupNotifyTests();
@@ -1119,94 +1118,6 @@ void tst_QMediaPlayer::testAudioRole()
         QCOMPARE(qvariant_cast<QAudio::Role>(player.property("audioRole")), QAudio::AlarmRole);
         QCOMPARE(spy.count(), 1);
         QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::AlarmRole);
-    }
-}
-
-void tst_QMediaPlayer::testCustomAudioRole()
-{
-    {
-        mockPlayer->hasCustomAudioRole = false;
-        QMediaPlayer player;
-
-        QVERIFY(player.customAudioRole().isEmpty());
-        QVERIFY(player.supportedCustomAudioRoles().isEmpty());
-
-        QSignalSpy spyRole(&player, SIGNAL(audioRoleChanged(QAudio::Role)));
-        QSignalSpy spyCustomRole(&player, SIGNAL(customAudioRoleChanged(const QString &)));
-        player.setCustomAudioRole(QStringLiteral("customRole"));
-        QCOMPARE(player.audioRole(), QAudio::CustomRole);
-        QCOMPARE(player.customAudioRole(), QStringLiteral("customRole"));
-        QCOMPARE(spyRole.count(), 1);
-        QCOMPARE(spyCustomRole.count(), 1);
-    }
-
-    {
-        mockPlayer->reset();
-        mockPlayer->hasAudioRole = false;
-        QMediaPlayer player;
-
-        QVERIFY(player.customAudioRole().isEmpty());
-        QVERIFY(!player.supportedCustomAudioRoles().isEmpty());
-
-        QSignalSpy spyRole(&player, SIGNAL(audioRoleChanged(QAudio::Role)));
-        QSignalSpy spyCustomRole(&player, SIGNAL(customAudioRoleChanged(const QString &)));
-        player.setCustomAudioRole(QStringLiteral("customRole"));
-        QCOMPARE(player.audioRole(), QAudio::CustomRole);
-        QCOMPARE(player.customAudioRole(), QStringLiteral("customRole"));
-        QCOMPARE(spyRole.count(), 1);
-        QCOMPARE(spyCustomRole.count(), 1);
-    }
-
-    {
-        mockPlayer->reset();
-        QMediaPlayer player;
-        QSignalSpy spyRole(&player, SIGNAL(audioRoleChanged(QAudio::Role)));
-        QSignalSpy spyCustomRole(&player, SIGNAL(customAudioRoleChanged(const QString &)));
-
-        QCOMPARE(player.audioRole(), QAudio::UnknownRole);
-        QVERIFY(player.customAudioRole().isEmpty());
-        QVERIFY(!player.supportedCustomAudioRoles().isEmpty());
-
-        QString customRole(QStringLiteral("customRole"));
-        player.setCustomAudioRole(customRole);
-        QCOMPARE(player.audioRole(), QAudio::CustomRole);
-        QCOMPARE(player.customAudioRole(), customRole);
-        QCOMPARE(spyRole.count(), 1);
-        QCOMPARE(qvariant_cast<QAudio::Role>(spyRole.last().value(0)), QAudio::CustomRole);
-        QCOMPARE(spyCustomRole.count(), 1);
-        QCOMPARE(qvariant_cast<QString>(spyCustomRole.last().value(0)), customRole);
-
-        spyRole.clear();
-        spyCustomRole.clear();
-
-        QString customRole2(QStringLiteral("customRole2"));
-        player.setProperty("customAudioRole", QVariant::fromValue(customRole2));
-        QCOMPARE(qvariant_cast<QString>(player.property("customAudioRole")), customRole2);
-        QCOMPARE(player.customAudioRole(), customRole2);
-        QCOMPARE(spyRole.count(), 0);
-        QCOMPARE(spyCustomRole.count(), 1);
-        QCOMPARE(qvariant_cast<QString>(spyCustomRole.last().value(0)), customRole2);
-
-        spyRole.clear();
-        spyCustomRole.clear();
-
-        player.setAudioRole(QAudio::MusicRole);
-        QCOMPARE(player.audioRole(), QAudio::MusicRole);
-        QVERIFY(player.customAudioRole().isEmpty());
-        QCOMPARE(spyRole.count(), 1);
-        QCOMPARE(qvariant_cast<QAudio::Role>(spyRole.last().value(0)), QAudio::MusicRole);
-        QCOMPARE(spyCustomRole.count(), 1);
-        QVERIFY(qvariant_cast<QString>(spyCustomRole.last().value(0)).isEmpty());
-
-        spyRole.clear();
-        spyCustomRole.clear();
-
-        player.setAudioRole(QAudio::CustomRole);
-        QCOMPARE(player.audioRole(), QAudio::CustomRole);
-        QVERIFY(player.customAudioRole().isEmpty());
-        QCOMPARE(spyRole.count(), 1);
-        QCOMPARE(qvariant_cast<QAudio::Role>(spyRole.last().value(0)), QAudio::CustomRole);
-        QCOMPARE(spyCustomRole.count(), 0);
     }
 }
 

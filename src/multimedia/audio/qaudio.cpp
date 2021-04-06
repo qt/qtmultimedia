@@ -104,7 +104,6 @@ QT_BEGIN_NAMESPACE
     \value AccessibilityRole        For accessibility, such as with a screen reader
     \value SonificationRole         Sonification, such as with user interface sounds
     \value GameRole                 Game audio
-    \value CustomRole               The role is specified by QMediaPlayer::customAudioRole()
 
     \since 5.6
     \sa QMediaPlayer::setAudioRole()
@@ -336,9 +335,6 @@ QDebug operator<<(QDebug dbg, QAudio::Role role)
         break;
     case QAudio::VoiceCommunicationRole:
         dbg << "VoiceCommunicationRole";
-        break;
-    case QAudio::CustomRole:
-        dbg << "CustomRole";
         break;
     }
     return dbg;

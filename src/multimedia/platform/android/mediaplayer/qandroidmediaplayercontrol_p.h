@@ -88,8 +88,6 @@ public:
 
     void setAudioRole(QAudio::Role role) override;
     QList<QAudio::Role> supportedAudioRoles() const override;
-    void setCustomAudioRole(const QString &role) override;
-    QStringList supportedCustomAudioRoles() const override;
 
     QMediaMetaData metaData() const override;
 

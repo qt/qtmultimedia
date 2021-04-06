@@ -754,10 +754,6 @@ void QMediaPlayer::setAudioRole(QAudio::Role audioRole)
 
     d->audioRole = audioRole;
     d->control->setAudioRole(audioRole);
-    if (!d->customAudioRole.isEmpty()) {
-        d->customAudioRole.clear();
-        emit customAudioRoleChanged(QString());
-    }
     emit audioRoleChanged(audioRole);
 
 }
@@ -775,42 +771,6 @@ QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
     Q_D(const QMediaPlayer);
 
     return d->control->supportedAudioRoles();
-}
-
-QString QMediaPlayer::customAudioRole() const
-{
-    Q_D(const QMediaPlayer);
-
-    return d->customAudioRole;
-}
-
-void QMediaPlayer::setCustomAudioRole(const QString &audioRole)
-{
-    Q_D(QMediaPlayer);
-    if (d->audioRole == QAudio::CustomRole && d->customAudioRole == audioRole)
-        return;
-
-    d->customAudioRole = audioRole;
-    d->control->setCustomAudioRole(audioRole);
-    if (d->audioRole != QAudio::CustomRole) {
-        d->audioRole = QAudio::CustomRole;
-        emit audioRoleChanged(QAudio::CustomRole);
-    }
-    emit customAudioRoleChanged(audioRole);
-}
-
-/*!
-    Returns a list of supported custom audio roles. An empty list may
-    indicate that the supported custom audio roles aren't known. The
-    list may not be complete.
-
-    \since 5.11
-    \sa customAudioRole
-*/
-QStringList QMediaPlayer::supportedCustomAudioRoles() const
-{
-    Q_D(const QMediaPlayer);
-    return d->control->supportedCustomAudioRoles();
 }
 
 // Enums
@@ -917,14 +877,6 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
     Signals that the audio \a role of the media player has changed.
 
     \since 5.6
-*/
-
-/*!
-    \fn void QMediaPlayer::customAudioRoleChanged(const QString &role)
-
-    Signals that the audio \a role of the media player has changed.
-
-    \since 5.11
 */
 
 // Properties
@@ -1081,27 +1033,8 @@ QStringList QMediaPlayer::supportedCustomAudioRoles() const
 
     The audio role must be set before calling setMedia().
 
-    customAudioRole is cleared when this property is set to anything other than
-    QAudio::CustomRole.
-
     \since 5.6
     \sa supportedAudioRoles()
-*/
-
-/*!
-    \property QMediaPlayer::customAudioRole
-    \brief the role of the audio stream played by the media player.
-
-    It can be set to specify the type of audio being played when the backend supports
-    audio roles unknown to Qt. Specifying a role allows the system to make appropriate
-    decisions when it comes to volume, routing or post-processing.
-
-    The audio role must be set before calling setMedia().
-
-    audioRole is set to QAudio::CustomRole when this property is set.
-
-    \since 5.11
-    \sa supportedCustomAudioRoles()
 */
 
 /*!

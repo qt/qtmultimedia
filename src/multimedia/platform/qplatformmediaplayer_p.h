@@ -104,9 +104,6 @@ public:
     virtual void setAudioRole(QAudio::Role /*role*/) {}
     virtual QList<QAudio::Role> supportedAudioRoles() const { return {}; }
 
-    virtual void setCustomAudioRole(const QString &/*role*/) {}
-    virtual QStringList supportedCustomAudioRoles() const { return {}; }
-
     virtual bool streamPlaybackSupported() const { return false; }
 
     virtual bool setAudioOutput(const QAudioDeviceInfo &) { return false; }

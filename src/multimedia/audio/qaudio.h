@@ -68,7 +68,6 @@ namespace QAudio
         AccessibilityRole,
         SonificationRole,
         GameRole,
-        CustomRole
     };
 
     enum VolumeScale {

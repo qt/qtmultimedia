@@ -370,26 +370,6 @@ void QPlatformMediaPlayer::error(int error, const QString &errorString)
 */
 
 /*!
-    \fn QAudio::Role QPlatformMediaPlayer::customAudioRole() const
-
-    Returns the audio role of the media played by the media service.
-*/
-
-/*!
-    \fn void QPlatformMediaPlayer::setCustomAudioRole(const QString &role)
-
-    Sets the audio \a role of the media played by the media service.
-*/
-
-/*!
-    \fn QStringList QPlatformMediaPlayer::supportedCustomAudioRoles() const
-
-    Returns a list of custom audio roles that the media service supports. An
-    empty list may indicate that the supported custom audio roles aren't known.
-    The list may not be complete.
-*/
-
-/*!
     \fn QPlatformMediaPlayer::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString provides a more detailed explanation.

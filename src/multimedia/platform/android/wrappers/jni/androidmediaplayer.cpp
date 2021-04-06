@@ -233,89 +233,80 @@ void AndroidMediaPlayer::setDisplay(AndroidSurfaceTexture *surfaceTexture)
 
 void AndroidMediaPlayer::setAudioRole(QAudio::Role role)
 {
-    QString str;
+    QString r;
     switch (role) {
     case QAudio::MusicRole:
-        str = QLatin1String("CONTENT_TYPE_MUSIC");
+        r = QLatin1String("CONTENT_TYPE_MUSIC");
         break;
     case QAudio::VideoRole:
-        str = QLatin1String("CONTENT_TYPE_MOVIE");
+        r = QLatin1String("CONTENT_TYPE_MOVIE");
         break;
     case QAudio::VoiceCommunicationRole:
-        str = QLatin1String("USAGE_VOICE_COMMUNICATION");
+        r = QLatin1String("USAGE_VOICE_COMMUNICATION");
         break;
     case QAudio::AlarmRole:
-        str = QLatin1String("USAGE_ALARM");
+        r = QLatin1String("USAGE_ALARM");
         break;
     case QAudio::NotificationRole:
-        str = QLatin1String("USAGE_NOTIFICATION");
+        r = QLatin1String("USAGE_NOTIFICATION");
         break;
     case QAudio::RingtoneRole:
-        str = QLatin1String("USAGE_NOTIFICATION_RINGTONE");
+        r = QLatin1String("USAGE_NOTIFICATION_RINGTONE");
         break;
     case QAudio::AccessibilityRole:
-        str = QLatin1String("USAGE_ASSISTANCE_ACCESSIBILITY");
+        r = QLatin1String("USAGE_ASSISTANCE_ACCESSIBILITY");
         break;
     case QAudio::SonificationRole:
-        str = QLatin1String("CONTENT_TYPE_SONIFICATION");
+        r = QLatin1String("CONTENT_TYPE_SONIFICATION");
         break;
     case QAudio::GameRole:
-        str = QLatin1String("USAGE_GAME");
+        r = QLatin1String("USAGE_GAME");
         break;
     default:
-        break;
+        return;
     }
-
-    setCustomAudioRole(str);
-}
-
-void AndroidMediaPlayer::setCustomAudioRole(const QString &role)
-{
-    QStringList roles = role.split(",", Qt::SkipEmptyParts);
 
     int type = 0; // CONTENT_TYPE_UNKNOWN
     int usage = 0; // USAGE_UNKNOWN
-    for (int i = 0; i < qMin(2, roles.size()); ++i) {
-        auto r = roles[i];
-        if (r == QLatin1String("CONTENT_TYPE_MOVIE"))
-            type = 3;
-        else if (r == QLatin1String("CONTENT_TYPE_MUSIC"))
-            type = 2;
-        else if (r == QLatin1String("CONTENT_TYPE_SONIFICATION"))
-            type = 4;
-        else if (r == QLatin1String("CONTENT_TYPE_SPEECH"))
-            type = 1;
-        else if (r == QLatin1String("USAGE_ALARM"))
-            usage = 4;
-        else if (r == QLatin1String("USAGE_ASSISTANCE_ACCESSIBILITY"))
-            usage = 11;
-        else if (r == QLatin1String("USAGE_ASSISTANCE_NAVIGATION_GUIDANCE"))
-            usage = 12;
-        else if (r == QLatin1String("USAGE_ASSISTANCE_SONIFICATION"))
-            usage = 13;
-        else if (r == QLatin1String("USAGE_ASSISTANT"))
-            usage = 16;
-        else if (r == QLatin1String("USAGE_GAME"))
-            usage = 14;
-        else if (r == QLatin1String("USAGE_MEDIA"))
-            usage = 1;
-        else if (r == QLatin1String("USAGE_NOTIFICATION"))
-            usage = 5;
-        else if (r == QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_DELAYED"))
-            usage = 9;
-        else if (r == QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_INSTANT"))
-            usage = 8;
-        else if (r == QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_REQUEST"))
-            usage = 7;
-        else if (r == QLatin1String("USAGE_NOTIFICATION_EVENT"))
-            usage = 10;
-        else if (r == QLatin1String("USAGE_NOTIFICATION_RINGTONE"))
-            usage = 6;
-        else if (r == QLatin1String("USAGE_VOICE_COMMUNICATION"))
-            usage = 2;
-        else if (r == QLatin1String("USAGE_VOICE_COMMUNICATION_SIGNALLING"))
-            usage = 3;
-    }
+
+    if (r == QLatin1String("CONTENT_TYPE_MOVIE"))
+        type = 3;
+    else if (r == QLatin1String("CONTENT_TYPE_MUSIC"))
+        type = 2;
+    else if (r == QLatin1String("CONTENT_TYPE_SONIFICATION"))
+        type = 4;
+    else if (r == QLatin1String("CONTENT_TYPE_SPEECH"))
+        type = 1;
+    else if (r == QLatin1String("USAGE_ALARM"))
+        usage = 4;
+    else if (r == QLatin1String("USAGE_ASSISTANCE_ACCESSIBILITY"))
+        usage = 11;
+    else if (r == QLatin1String("USAGE_ASSISTANCE_NAVIGATION_GUIDANCE"))
+        usage = 12;
+    else if (r == QLatin1String("USAGE_ASSISTANCE_SONIFICATION"))
+        usage = 13;
+    else if (r == QLatin1String("USAGE_ASSISTANT"))
+        usage = 16;
+    else if (r == QLatin1String("USAGE_GAME"))
+        usage = 14;
+    else if (r == QLatin1String("USAGE_MEDIA"))
+        usage = 1;
+    else if (r == QLatin1String("USAGE_NOTIFICATION"))
+        usage = 5;
+    else if (r == QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_DELAYED"))
+        usage = 9;
+    else if (r == QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_INSTANT"))
+        usage = 8;
+    else if (r == QLatin1String("USAGE_NOTIFICATION_COMMUNICATION_REQUEST"))
+        usage = 7;
+    else if (r == QLatin1String("USAGE_NOTIFICATION_EVENT"))
+        usage = 10;
+    else if (r == QLatin1String("USAGE_NOTIFICATION_RINGTONE"))
+        usage = 6;
+    else if (r == QLatin1String("USAGE_VOICE_COMMUNICATION"))
+        usage = 2;
+    else if (r == QLatin1String("USAGE_VOICE_COMMUNICATION_SIGNALLING"))
+        usage = 3;
 
     mMediaPlayer.callMethod<void>("setAudioAttributes", "(II)V", jint(type), jint(usage));
 }

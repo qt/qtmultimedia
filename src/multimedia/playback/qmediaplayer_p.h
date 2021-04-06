@@ -88,7 +88,6 @@ public:
     bool hasStreamPlaybackFeature = false;
 
     QAudio::Role audioRole = QAudio::UnknownRole;
-    QString customAudioRole;
 
     void setMedia(const QUrl &media, QIODevice *stream = nullptr);
 

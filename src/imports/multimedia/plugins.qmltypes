@@ -427,7 +427,6 @@ Module {
                 "UnknownRole": 0,
                 "AccessibilityRole": 7,
                 "AlarmRole": 4,
-                "CustomRole": 10,
                 "GameRole": 9,
                 "MusicRole": 1,
                 "NotificationRole": 5,
@@ -463,7 +462,6 @@ Module {
         }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
         Property { name: "audioRole"; revision: 1; type: "AudioRole" }
-        Property { name: "customAudioRole"; revision: 3; type: "string" }
         Property { name: "notifyInterval"; revision: 2; type: "int" }
         Property { name: "videoOutput"; revision: 15; type: "QVariant" }
         Signal { name: "playlistChanged"; revision: 1 }
@@ -472,7 +470,6 @@ Module {
         Signal { name: "stopped" }
         Signal { name: "playing" }
         Signal { name: "audioRoleChanged"; revision: 1 }
-        Signal { name: "customAudioRoleChanged"; revision: 3 }
         Signal {
             name: "error"
             Parameter { name: "error"; type: "QDeclarativeAudio::Error" }

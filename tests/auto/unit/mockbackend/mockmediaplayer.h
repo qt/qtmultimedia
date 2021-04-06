@@ -134,20 +134,6 @@ public:
                                      << QAudio::NotificationRole;
     }
 
-    void setCustomAudioRole(const QString &role)
-    {
-        m_customAudioRole = role;
-        m_audioRole = QAudio::CustomRole;
-    }
-
-    QStringList supportedCustomAudioRoles() const
-    {
-        if (!hasCustomAudioRole)
-            return {};
-        return QStringList() << QStringLiteral("customRole")
-                             << QStringLiteral("customRole2");
-    }
-
     void setVideoSink(QVideoSink *) {}
 
     void emitError(QMediaPlayer::Error err, const QString &errorString)
@@ -187,14 +173,11 @@ public:
         _isValid = false;
         _errorString = QString();
         hasAudioRole = true;
-        hasCustomAudioRole = true;
     }
 
 
     bool hasAudioRole = true;
-    bool hasCustomAudioRole = true;
     QAudio::Role m_audioRole = QAudio::UnknownRole;
-    QString m_customAudioRole;
 
     QMediaPlayer::State _state;
     QMediaPlayer::MediaStatus _mediaStatus;

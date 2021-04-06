@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 #include "mmrendereraudiorolecontrol_p.h"
-#include "mmrenderercustomaudiorolecontrol_p.h"
 #include "mmrenderermediaplayercontrol_p.h"
 #include "mmrendererplayervideorenderercontrol_p.h"
 #include "mmrendererutil_p.h"
@@ -216,9 +215,7 @@ void MmRendererMediaPlayerControl::attach()
     }
 
     if (m_audioId != -1) {
-        QString audioType = m_role == QAudio::CustomRole
-                          ? m_customRole
-                          : qnxAudioType(m_role);
+        QString audioType = qnxAudioType(m_role);
         QByteArray latin1AudioType = audioType.toLatin1();
         if (!audioType.isEmpty() && latin1AudioType == audioType) {
             strm_dict_t *dict = strm_dict_new();
@@ -564,23 +561,11 @@ void MmRendererMediaPlayerControl::stop()
 void MmRendererMediaPlayerControl::setAudioRole(QAudio::Role role)
 {
     m_role = role;
-    m_customRole.clear();
 }
 
 QList<QAudio::Role> MmRendererMediaPlayerControl::supportedAudioRoles() const
 {
     return qnxSupportedAudioRoles();
-}
-
-void MmRendererMediaPlayerControl::setCustomAudioRole(const QString &role)
-{
-    m_role = QAudio::CustomRole;
-    m_customRole = role;
-}
-
-QStringList MmRendererMediaPlayerControl::supportedCustomAudioRoles() const
-{
-    return QStringList();
 }
 
 MmRendererPlayerVideoRendererControl *MmRendererMediaPlayerControl::videoRendererControl() const

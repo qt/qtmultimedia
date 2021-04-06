@@ -64,7 +64,6 @@ typedef struct strm_dict strm_dict_t;
 QT_BEGIN_NAMESPACE
 
 class MmRendererAudioRoleControl;
-class MmRendererCustomAudioRoleControl;
 class MmRendererPlayerVideoRendererControl;
 class MmRendererVideoWindowControl;
 
@@ -111,9 +110,6 @@ public:
 
     void setAudioRole(QAudio::Role role) override;
     QList<QAudio::Role> supportedAudioRoles() const override;
-
-    void setCustomAudioRole(const QString &role) override;
-    QStringList supportedCustomAudioRoles() const override;
 
     MmRendererPlayerVideoRendererControl *videoRendererControl() const;
     void setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl);

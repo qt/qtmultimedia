@@ -130,7 +130,6 @@ public:
     bool setPlaybackRate(qreal rate);
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
     void setAudioRole(QAudio::Role role);
-    void setCustomAudioRole(const QString &role);
 
     static bool initJNI(JNIEnv *env);
 

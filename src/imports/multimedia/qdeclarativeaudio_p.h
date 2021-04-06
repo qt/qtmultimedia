@@ -87,7 +87,6 @@ class QDeclarativeAudio : public QObject, public QQmlParserStatus
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
     Q_PROPERTY(AudioRole audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged REVISION 1)
-    Q_PROPERTY(QString customAudioRole READ customAudioRole WRITE setCustomAudioRole NOTIFY customAudioRoleChanged REVISION 3)
     Q_PROPERTY(int notifyInterval READ notifyInterval WRITE setNotifyInterval NOTIFY notifyIntervalChanged REVISION 2)
     Q_PROPERTY(QVariant videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged REVISION 15)
     Q_ENUMS(Status)
@@ -136,7 +135,6 @@ public:
         UnknownRole = QAudio::UnknownRole,
         AccessibilityRole = QAudio::AccessibilityRole,
         AlarmRole = QAudio::AlarmRole,
-        CustomRole = QAudio::CustomRole,
         GameRole = QAudio::GameRole,
         MusicRole = QAudio::MusicRole,
         NotificationRole = QAudio::NotificationRole,
@@ -167,8 +165,6 @@ public:
 
     AudioRole audioRole() const;
     void setAudioRole(AudioRole audioRole);
-    QString customAudioRole() const;
-    void setCustomAudioRole(const QString &audioRole);
 
     QUrl source() const;
     void setSource(const QUrl &url);
@@ -241,7 +237,6 @@ Q_SIGNALS:
     void playbackRateChanged();
 
     Q_REVISION(1) void audioRoleChanged();
-    Q_REVISION(3) void customAudioRoleChanged();
 
     void errorChanged();
     void error(QDeclarativeAudio::Error error, const QString &errorString);
@@ -268,7 +263,6 @@ private:
     qreal m_vol;
     qreal m_playbackRate;
     AudioRole m_audioRole;
-    QString m_customAudioRole;
 
     QMediaPlayer::State m_playbackState;
     QMediaPlayer::MediaStatus m_status;
