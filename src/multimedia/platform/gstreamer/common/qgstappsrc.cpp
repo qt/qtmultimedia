@@ -158,7 +158,7 @@ void QGstAppSrc::pushDataToAppSrc()
     if ((!isStreamValid() && !m_buffer) || !m_appSrc)
         return;
 
-    if (m_stream->atEnd() && (!m_networkReply || !m_networkReply->isRunning())) {
+    if ((!m_stream || m_stream->atEnd()) && (!m_networkReply || !m_networkReply->isRunning())) {
         sendEOS();
         return;
     }

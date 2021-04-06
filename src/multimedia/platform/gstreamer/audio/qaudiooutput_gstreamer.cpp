@@ -236,6 +236,7 @@ void QGStreamerAudioOutput::close()
     if (!m_opened)
         return;
 
+    gstPipeline.setStateSync(GST_STATE_NULL);
     gstPipeline = {};
     gstVolume = {};
     gstAppSrc = {};
