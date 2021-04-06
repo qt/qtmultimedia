@@ -186,8 +186,6 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoSurfaceFormat::Format_ARGB32,  GST_VIDEO_FORMAT_BGRA },
     { QVideoSurfaceFormat::Format_ABGR32,  GST_VIDEO_FORMAT_RGBA },
     { QVideoSurfaceFormat::Format_BGRA32,  GST_VIDEO_FORMAT_ARGB },
-    { QVideoSurfaceFormat::Format_RGB555 ,  GST_VIDEO_FORMAT_BGR15 },
-    { QVideoSurfaceFormat::Format_BGR555 ,  GST_VIDEO_FORMAT_RGB15 },
     { QVideoSurfaceFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_LE },
     { QVideoSurfaceFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10LE },
 #else
@@ -196,12 +194,9 @@ static const VideoFormat qt_videoFormatLookup[] =
     { QVideoSurfaceFormat::Format_ARGB32,  GST_VIDEO_FORMAT_ARGB },
     { QVideoSurfaceFormat::Format_ABGR32,  GST_VIDEO_FORMAT_ABGR },
     { QVideoSurfaceFormat::Format_BGRA32,  GST_VIDEO_FORMAT_BGRA },
-    { QVideoSurfaceFormat::Format_RGB555 ,  GST_VIDEO_FORMAT_RGB15 },
-    { QVideoSurfaceFormat::Format_BGR555 ,  GST_VIDEO_FORMAT_BGR15 },
     { QVideoSurfaceFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_BE },
     { QVideoSurfaceFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10BE },
 #endif
-    { QVideoSurfaceFormat::Format_RGB565,  GST_VIDEO_FORMAT_RGB16 }
 };
 
 static int indexOfVideoFormat(QVideoSurfaceFormat::PixelFormat format)

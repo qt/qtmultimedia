@@ -811,12 +811,6 @@ namespace
                     case QVideoSurfaceFormat::Format_RGB32:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
                         break;
-                    case QVideoSurfaceFormat::Format_RGB565:
-                        mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB565);
-                        break;
-                    case QVideoSurfaceFormat::Format_RGB555:
-                        mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB555);
-                        break;
                     case QVideoSurfaceFormat::Format_AYUV444:
                     case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_AYUV);
@@ -1046,8 +1040,6 @@ namespace
             case QVideoSurfaceFormat::Format_AYUV444:
                 return format.frameWidth() * 4;
             // 16 bpp packed formats.
-            case QVideoSurfaceFormat::Format_RGB565:
-            case QVideoSurfaceFormat::Format_RGB555:
             case QVideoSurfaceFormat::Format_YUYV:
             case QVideoSurfaceFormat::Format_UYVY:
                 return PAD_TO_DWORD(format.frameWidth() * 2);

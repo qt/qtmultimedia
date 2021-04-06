@@ -141,9 +141,6 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoSurfaceFormat::Format_BGRA32
                    << QVideoSurfaceFormat::Format_Y8
                    << QVideoSurfaceFormat::Format_Y16
-//                   << QVideoSurfaceFormat::Format_RGB555
-//                   << QVideoSurfaceFormat::Format_BGR555
-//                   << QVideoSurfaceFormat::Format_RGB565
         ;
     caps.addPixelFormats(formats);
     qDebug() << "CAPS:" << caps.toString();

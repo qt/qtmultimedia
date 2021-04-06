@@ -64,16 +64,6 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
-    // Format_RGB565
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-     // Format_RGB555
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
     // Format_BGRA32
     { 1,
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
@@ -92,16 +82,6 @@ static const TextureDescription descriptions[QVideoSurfaceFormat::NPixelFormats]
     // Format_BGR32
     { 1,
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-     // Format_BGR565
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-     // Format_BGR555
-    { 1,
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
 
@@ -215,12 +195,6 @@ QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format)
     switch (format) {
     case QVideoSurfaceFormat::Format_Invalid:
     case QVideoSurfaceFormat::Format_Jpeg:
-
-    case QVideoSurfaceFormat::Format_RGB565:
-    case QVideoSurfaceFormat::Format_RGB555:
-    case QVideoSurfaceFormat::Format_BGR565:
-    case QVideoSurfaceFormat::Format_BGR555:
-
         return QString();
 
     case QVideoSurfaceFormat::Format_Y8:
@@ -296,11 +270,6 @@ QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &tran
     switch (format.pixelFormat()) {
     case QVideoSurfaceFormat::Format_Invalid:
     case QVideoSurfaceFormat::Format_Jpeg:
-
-    case QVideoSurfaceFormat::Format_RGB565:
-    case QVideoSurfaceFormat::Format_RGB555:
-    case QVideoSurfaceFormat::Format_BGR565:
-    case QVideoSurfaceFormat::Format_BGR555:
         return QByteArray();
 
     case QVideoSurfaceFormat::Format_ARGB32:

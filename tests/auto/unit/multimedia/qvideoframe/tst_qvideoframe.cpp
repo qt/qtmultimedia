@@ -287,10 +287,6 @@ void tst_QVideoFrame::createFromImage_data()
             << QSize(64, 64)
             << QImage::Format_RGB32
             << QVideoSurfaceFormat::Format_RGB32;
-    QTest::newRow("12x45 RGB16")
-            << QSize(12, 45)
-            << QImage::Format_RGB16
-            << QVideoSurfaceFormat::Format_RGB565;
     QTest::newRow("19x46 ARGB32_Premultiplied")
             << QSize(19, 46)
             << QImage::Format_ARGB32_Premultiplied
@@ -851,12 +847,6 @@ void tst_QVideoFrame::formatConversion_data()
     QTest::newRow("QImage::Format_ARGB32_Premultiplied | QVideoSurfaceFormat::Format_ARGB32_Premultiplied")
             << QImage::Format_ARGB32_Premultiplied
             << QVideoSurfaceFormat::Format_ARGB32_Premultiplied;
-    QTest::newRow("QImage::Format_RGB16 | QVideoSurfaceFormat::Format_RGB565")
-            << QImage::Format_RGB16
-            << QVideoSurfaceFormat::Format_RGB565;
-    QTest::newRow("QImage::Format_RGB555 | QVideoSurfaceFormat::Format_RGB555")
-            << QImage::Format_RGB555
-            << QVideoSurfaceFormat::Format_RGB555;
 
     QTest::newRow("QImage::Format_MonoLSB")
             << QImage::Format_MonoLSB
@@ -889,12 +879,6 @@ void tst_QVideoFrame::formatConversion_data()
     QTest::newRow("QVideoSurfaceFormat::Format_BGR32")
             << QImage::Format_Invalid
             << QVideoSurfaceFormat::Format_BGR32;
-    QTest::newRow("QVideoSurfaceFormat::Format_BGR565")
-            << QImage::Format_Invalid
-            << QVideoSurfaceFormat::Format_BGR565;
-    QTest::newRow("QVideoSurfaceFormat::Format_BGR555")
-            << QImage::Format_Invalid
-            << QVideoSurfaceFormat::Format_BGR555;
     QTest::newRow("QVideoSurfaceFormat::Format_AYUV444")
             << QImage::Format_Invalid
             << QVideoSurfaceFormat::Format_AYUV444;
@@ -1077,20 +1061,6 @@ void tst_QVideoFrame::image_data()
             << 256
             << QImage::Format_RGB32;
 
-    QTest::newRow("64x64 RGB565")
-            << QSize(64, 64)
-            << QVideoSurfaceFormat::Format_RGB565
-            << 16384
-            << 128
-            << QImage::Format_RGB16;
-
-    QTest::newRow("64x64 RGB555")
-            << QSize(64, 64)
-            << QVideoSurfaceFormat::Format_RGB555
-            << 16384
-            << 128
-            << QImage::Format_RGB555;
-
     QTest::newRow("64x64 BGRA32")
             << QSize(64, 64)
             << QVideoSurfaceFormat::Format_BGRA32
@@ -1112,19 +1082,6 @@ void tst_QVideoFrame::image_data()
             << 256
             << QImage::Format_ARGB32;
 
-    QTest::newRow("64x64 BGR565")
-            << QSize(64, 64)
-            << QVideoSurfaceFormat::Format_BGR565
-            << 16384
-            << 256
-            << QImage::Format_ARGB32;
-
-    QTest::newRow("64x64 BGR555")
-            << QSize(64, 64)
-            << QVideoSurfaceFormat::Format_BGR555
-            << 16384
-            << 256
-            << QImage::Format_ARGB32;
     QTest::newRow("64x64 AYUV444")
             << QSize(64, 64)
             << QVideoSurfaceFormat::Format_AYUV444

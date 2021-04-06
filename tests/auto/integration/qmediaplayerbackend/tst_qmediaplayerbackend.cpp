@@ -978,7 +978,7 @@ void tst_QMediaPlayerBackend::surfaceTest_data()
     QList<QVideoSurfaceFormat::PixelFormat> formatsRGB;
     formatsRGB << QVideoSurfaceFormat::Format_RGB32
                << QVideoSurfaceFormat::Format_ARGB32
-               << QVideoSurfaceFormat::Format_RGB565
+               << QVideoSurfaceFormat::Format_BGR32
                << QVideoSurfaceFormat::Format_BGRA32;
 
     QList<QVideoSurfaceFormat::PixelFormat> formatsYUV;

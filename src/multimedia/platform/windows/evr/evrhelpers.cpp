@@ -124,10 +124,6 @@ QVideoSurfaceFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
         return QVideoSurfaceFormat::Format_ARGB32;
     case D3DFMT_X8R8G8B8:
         return QVideoSurfaceFormat::Format_RGB32;
-    case D3DFMT_R5G6B5:
-        return QVideoSurfaceFormat::Format_RGB565;
-    case D3DFMT_X1R5G5B5:
-        return QVideoSurfaceFormat::Format_RGB555;
     case D3DFMT_A8:
         return QVideoSurfaceFormat::Format_Y8;
     case D3DFMT_A8B8G8R8:
@@ -155,10 +151,6 @@ D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoSurfaceFormat::PixelFormat forma
         return D3DFMT_A8R8G8B8;
     case QVideoSurfaceFormat::Format_RGB32:
         return D3DFMT_X8R8G8B8;
-    case QVideoSurfaceFormat::Format_RGB565:
-        return D3DFMT_R5G6B5;
-    case QVideoSurfaceFormat::Format_RGB555:
-        return D3DFMT_X1R5G5B5;
     case QVideoSurfaceFormat::Format_Y8:
         return D3DFMT_A8;
     case QVideoSurfaceFormat::Format_BGRA32:

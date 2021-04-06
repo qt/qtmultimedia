@@ -77,7 +77,6 @@ const QMap<QVideoSurfaceFormat::PixelFormat, GLenum>& QSGVivanteVideoNode::getVi
         static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_ARGB32,   GL_BGRA_EXT);
         static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_BGR32,    GL_RGBA);
         static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_BGRA32,   GL_RGBA);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_RGB565,   GL_RGB565);
     }
 
     return static_VideoFormat2GLFormatMap;
@@ -97,7 +96,6 @@ int QSGVivanteVideoNode::getBytesForPixelFormat(QVideoSurfaceFormat::PixelFormat
     case QVideoSurfaceFormat::Format_ARGB32: return 4;
     case QVideoSurfaceFormat::Format_BGR32: return 4;
     case QVideoSurfaceFormat::Format_BGRA32: return 4;
-    case QVideoSurfaceFormat::Format_RGB565: return 2;
     default: return 1;
     }
 }

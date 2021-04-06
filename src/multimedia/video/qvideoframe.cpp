@@ -60,14 +60,10 @@ static bool pixelFormatHasAlpha[QVideoSurfaceFormat::NPixelFormats] =
     true, //Format_ARGB32,
     true, //Format_ARGB32_Premultiplied,
     false, //Format_RGB32,
-    false, //Format_RGB565,
-    false, //Format_RGB555,
     true, //Format_BGRA32,
     true, //Format_BGRA32_Premultiplied,
     true, //Format_ABGR32,
     false, //Format_BGR32,
-    false, //Format_BGR565,
-    false, //Format_BGR555,
 
     true, //Format_AYUV444,
     true, //Format_AYUV444_Premultiplied,
@@ -172,14 +168,6 @@ private:
     The frame stored using a 32-bit RGB format (0xffRRGGBB).  This is equivalent to
     QImage::Format_RGB32
 
-    \value Format_RGB565
-    The frame is stored using a 16-bit RGB format (5-6-5).  This is equivalent to
-    QImage::Format_RGB16.
-
-    \value Format_RGB555
-    The frame is stored using a 16-bit RGB format (5-5-5).  This is equivalent to
-    QImage::Format_RGB555.
-
     \value Format_BGRA32
     The frame is stored using a 32-bit BGRA format (0xBBGGRRAA).
 
@@ -191,12 +179,6 @@ private:
 
     \value Format_BGR32
     The frame is stored using a 32-bit BGR format (0xBBGGRRff).
-
-    \value Format_BGR565
-    The frame is stored using a 16-bit BGR format (5-6-5).
-
-    \value Format_BGR555
-    The frame is stored using a 16-bit BGR format (5-5-5).
 
     \value Format_AYUV444
     The frame is stored using a packed 32-bit AYUV format (0xAAYYUUVV).
@@ -566,14 +548,10 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case QVideoSurfaceFormat::Format_ARGB32:
         case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
         case QVideoSurfaceFormat::Format_RGB32:
-        case QVideoSurfaceFormat::Format_RGB565:
-        case QVideoSurfaceFormat::Format_RGB555:
         case QVideoSurfaceFormat::Format_BGRA32:
         case QVideoSurfaceFormat::Format_BGRA32_Premultiplied:
         case QVideoSurfaceFormat::Format_ABGR32:
         case QVideoSurfaceFormat::Format_BGR32:
-        case QVideoSurfaceFormat::Format_BGR565:
-        case QVideoSurfaceFormat::Format_BGR555:
         case QVideoSurfaceFormat::Format_AYUV444:
         case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
         case QVideoSurfaceFormat::Format_UYVY:

@@ -609,10 +609,6 @@ QVideoSurfaceFormat::PixelFormat MFTransform::formatFromSubtype(const GUID& subt
         return QVideoSurfaceFormat::Format_ARGB32;
     else if (subtype == MFVideoFormat_RGB32)
         return QVideoSurfaceFormat::Format_RGB32;
-    else if (subtype == MFVideoFormat_RGB565)
-        return QVideoSurfaceFormat::Format_RGB565;
-    else if (subtype == MFVideoFormat_RGB555)
-        return QVideoSurfaceFormat::Format_RGB555;
     else if (subtype == MFVideoFormat_AYUV)
         return QVideoSurfaceFormat::Format_AYUV444;
     else if (subtype == MFVideoFormat_I420)

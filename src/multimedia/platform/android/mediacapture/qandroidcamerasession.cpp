@@ -707,8 +707,6 @@ void QAndroidCameraSession::processCapturedImage(int id,
 QVideoSurfaceFormat::PixelFormat QAndroidCameraSession::QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat format)
 {
     switch (format) {
-    case AndroidCamera::RGB565:
-        return QVideoSurfaceFormat::Format_RGB565;
     case AndroidCamera::NV21:
         return QVideoSurfaceFormat::Format_NV21;
     case AndroidCamera::YUY2:
@@ -725,8 +723,6 @@ QVideoSurfaceFormat::PixelFormat QAndroidCameraSession::QtPixelFormatFromAndroid
 AndroidCamera::ImageFormat QAndroidCameraSession::AndroidImageFormatFromQtPixelFormat(QVideoSurfaceFormat::PixelFormat format)
 {
     switch (format) {
-    case QVideoSurfaceFormat::Format_RGB565:
-        return AndroidCamera::RGB565;
     case QVideoSurfaceFormat::Format_NV21:
         return AndroidCamera::NV21;
     case QVideoSurfaceFormat::Format_YUYV:

@@ -84,8 +84,6 @@ QVideoSurfaceFormat::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCam
         return QVideoSurfaceFormat::Format_NV21;
     case AndroidCamera::YV12:
         return QVideoSurfaceFormat::Format_YV12;
-    case AndroidCamera::RGB565:
-        return QVideoSurfaceFormat::Format_RGB565;
     case AndroidCamera::YUY2:
         return QVideoSurfaceFormat::Format_YUYV;
     case AndroidCamera::JPEG:
@@ -102,8 +100,6 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoSurfaceFor
         return AndroidCamera::NV21;
     case QVideoSurfaceFormat::Format_YV12:
         return AndroidCamera::YV12;
-    case QVideoSurfaceFormat::Format_RGB565:
-        return AndroidCamera::RGB565;
     case QVideoSurfaceFormat::Format_YUYV:
         return AndroidCamera::YUY2;
     case QVideoSurfaceFormat::Format_Jpeg:
