@@ -990,6 +990,7 @@ QDebug operator<<(QDebug dbg, QVideoFrame::HandleType type)
     case QVideoFrame::RhiTextureHandle:
         return dbg << "RhiTextureHandle";
     }
+    return dbg;
 }
 
 QDebug operator<<(QDebug dbg, const QVideoFrame& f)

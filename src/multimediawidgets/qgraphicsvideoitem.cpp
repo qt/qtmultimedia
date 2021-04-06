@@ -41,6 +41,7 @@
 #include "qvideosink.h"
 
 #include <qobject.h>
+#include <qvideoframe.h>
 #include <qvideosurfaceformat.h>
 
 #include <QtCore/qcoreevent.h>

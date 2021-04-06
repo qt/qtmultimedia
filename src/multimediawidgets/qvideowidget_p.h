@@ -52,6 +52,7 @@
 //
 
 #include <qtmultimediawidgetdefs.h>
+#include <qvideoframe.h>
 #include "qvideowidget.h"
 
 QT_BEGIN_NAMESPACE

@@ -246,6 +246,8 @@ bool QGstreamerImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilt
             return true;
         }
     }
+#else
+    Q_UNUSED(filter);
 #endif
     return false;
 }
@@ -295,7 +297,7 @@ bool QGstreamerImageProcessing::isParameterValueSupported(QPlatformCameraImagePr
     case ContrastAdjustment:
     case BrightnessAdjustment:
     case SaturationAdjustment:
-        if (qAbs(value.toReal() > 1))
+        if (qAbs(value.toReal()) > 1)
             return false;
         return isParameterSupported(parameter);
     case ColorTemperature: {

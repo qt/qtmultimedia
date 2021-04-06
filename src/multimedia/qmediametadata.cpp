@@ -281,8 +281,9 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key k) const
     }
     case ThumbnailImage:
     case CoverArtImage:
-        return QString();
+        break;
     }
+    return QString();
 }
 
 QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
@@ -345,6 +346,7 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
         case QMediaMetaData::LeadPerformer:
             return (QObject::tr("Lead performer"));
     }
+    return QString();
 }
 
 

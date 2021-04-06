@@ -295,6 +295,7 @@ int QVideoSurfaceFormat::nPlanes() const
     case Format_IMC3:
         return 3;
     }
+    return 0;
 }
 
 /*!

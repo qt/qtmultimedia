@@ -71,6 +71,8 @@ bool QGstreamerCameraExposure::isParameterSupported(ExposureParameter parameter)
             break;
         }
     }
+#else
+    Q_UNUSED(parameter);
 #endif
     return false;
 }
@@ -101,6 +103,9 @@ QVariantList QGstreamerCameraExposure::supportedParameterRange(ExposureParameter
             break;
         }
     }
+#else
+    Q_UNUSED(parameter);
+    Q_UNUSED(continuous);
 #endif
 
     return res;
@@ -186,6 +191,8 @@ QVariant QGstreamerCameraExposure::actualValue(ExposureParameter parameter) cons
             break;
         }
     }
+#else
+    Q_UNUSED(parameter);
 #endif
     return QVariant();
 }
@@ -291,6 +298,9 @@ bool QGstreamerCameraExposure::setValue(ExposureParameter parameter, const QVari
 
         return true;
     }
+#else
+    Q_UNUSED(parameter);
+    Q_UNUSED(value);
 #endif
 
     return false;
