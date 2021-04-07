@@ -57,7 +57,6 @@ QT_USE_NAMESPACE
 AVFCameraService::AVFCameraService()
 {
     m_session = new AVFCameraSession(this);
-
     m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 }
 

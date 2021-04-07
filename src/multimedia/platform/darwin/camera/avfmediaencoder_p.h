@@ -112,6 +112,7 @@ private Q_SLOTS:
     void cameraStatusChanged(QCamera::Status newStatus);
 
 private:
+    void record();
     void stopWriter();
 
     AVFCameraService *m_service = nullptr;

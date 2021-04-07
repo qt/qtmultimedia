@@ -389,11 +389,6 @@ void AVFMediaEncoder::applySettings()
 
 void AVFMediaEncoder::unapplySettings()
 {
-//    m_service->audioEncoderSettingsControl()->unapplySettings();
-
-//    AVCaptureConnection *conn = [m_service->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
-//    m_service->videoEncoderSettingsControl()->unapplySettings(conn);
-
     if (m_audioSettings) {
         [m_audioSettings release];
         m_audioSettings = nil;
@@ -442,101 +437,105 @@ void AVFMediaEncoder::setState(QMediaEncoder::State state)
         return;
 
     switch (state) {
-    case QMediaEncoder::RecordingState:
-    {
-        AVFCamera *cameraControl = m_service->avfCameraControl();
+        case QMediaEncoder::RecordingState:
+            m_service->session()->setActive(true);
+            record();
+            break;
+        case QMediaEncoder::PausedState:
+            Q_EMIT error(QMediaEncoder::FormatError, tr("Recording pause not supported"));
+            return;
+        case QMediaEncoder::StoppedState:
+            // Do not check the camera status, we can stop if we started.
+            stopWriter();
+    }
+}
 
+void AVFMediaEncoder::record()
+{
+    const bool audioOnly = m_settings.mode() == QMediaFormat::AudioOnly;
+    AVCaptureSession *session = m_service->session()->captureSession();
+    float rotation = 0;
+
+    if (!audioOnly) {
+        AVFCamera *cameraControl = m_service->avfCameraControl();
         if (!cameraControl || cameraControl->status() != QCamera::ActiveStatus) {
             qDebugCamera() << Q_FUNC_INFO << "can not start record while camera is not active";
             Q_EMIT error(QMediaEncoder::ResourceError, tr("Failed to start recording"));
             return;
         }
 
-        const QString path(m_outputLocation.scheme() == QLatin1String("file") ?
-                           m_outputLocation.path() : m_outputLocation.toString());
-        auto encoderSettings = m_settings;
-        encoderSettings.resolveFormat();
-        const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path, AVFStorageLocation::Video,
-                           QLatin1String("clip_"),
-                           encoderSettings.mimeType().preferredSuffix())));
-
-        NSURL *nsFileURL = fileURL.toNSURL();
-        if (!nsFileURL) {
-            qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL;
-            Q_EMIT error(QMediaEncoder::ResourceError, tr("Invalid output file URL"));
-            return;
-        }
-        if (!qt_is_writable_file_URL(nsFileURL)) {
-            qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
-                       << "(the location is not writable)";
-            Q_EMIT error(QMediaEncoder::ResourceError, tr("Non-writeable file location"));
-            return;
-        }
-        if (qt_file_exists(nsFileURL)) {
-            // We test for/handle this error here since AWAssetWriter will raise an
-            // Objective-C exception, which is not good at all.
-            qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
-                       << "(file already exists)";
-            Q_EMIT error(QMediaEncoder::ResourceError, tr("File already exists"));
-            return;
-        }
-
-        AVCaptureSession *session = m_service->session()->captureSession();
-        // We stop session now so that no more frames for renderer's queue
-        // generated, will restart in assetWriterStarted.
-        [session stopRunning];
-
-        applySettings();
-
         // Make sure the video is recorded in device orientation.
         // The top of the video will match the side of the device which is on top
         // when recording starts (regardless of the UI orientation).
-        QCameraInfo cameraInfo = m_service->session()->activeCameraInfo();
-        int screenOrientation = 360 - m_orientationHandler.currentOrientation();
-        float rotation = 0;
-        // ###
-//        if (cameraInfo.position() == QCameraInfo::FrontFace)
-//            rotation = (screenOrientation + cameraInfo.orientation()) % 360;
-//        else
-//            rotation = (screenOrientation + (360 - cameraInfo.orientation())) % 360;
+        // QCameraInfo cameraInfo = m_service->session()->activeCameraInfo();
+        // int screenOrientation = 360 - m_orientationHandler.currentOrientation();
 
-        if ([m_writer setupWithFileURL:nsFileURL
-                      cameraService:m_service
-                      audioSettings:m_audioSettings
-                      videoSettings:m_videoSettings
-                      transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
-
-            m_state = QMediaEncoder::RecordingState;
-            m_lastStatus = QMediaEncoder::StartingStatus;
-
-            Q_EMIT actualLocationChanged(fileURL);
-            Q_EMIT stateChanged(m_state);
-            Q_EMIT statusChanged(m_lastStatus);
-
-            // Apple recommends to call startRunning and do all
-            // setup on a special queue, and that's what we had
-            // initially (dispatch_async to writerQueue). Unfortunately,
-            // writer's queue is not the only queue/thread that can
-            // access/modify the session, and as a result we have
-            // all possible data/race-conditions with Obj-C exceptions
-            // at best and something worse in general.
-            // Now we try to only modify session on the same thread.
-            [m_writer start];
-        } else {
-            [session startRunning];
-            Q_EMIT error(QMediaEncoder::FormatError, tr("Failed to start recording"));
-        }
-    } break;
-    case QMediaEncoder::PausedState:
-    {
-        Q_EMIT error(QMediaEncoder::FormatError, tr("Recording pause not supported"));
-        return;
-    } break;
-    case QMediaEncoder::StoppedState:
-    {
-        // Do not check the camera status, we can stop if we started.
-        stopWriter();
+            // ###
+    //        if (cameraInfo.position() == QCameraInfo::FrontFace)
+    //            rotation = (screenOrientation + cameraInfo.orientation()) % 360;
+    //        else
+    //            rotation = (screenOrientation + (360 - cameraInfo.orientation())) % 360;
     }
+
+    const QString path(m_outputLocation.scheme() == QLatin1String("file") ?
+                           m_outputLocation.path() : m_outputLocation.toString());
+    const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path,
+                    audioOnly ? AVFStorageLocation::Audio : AVFStorageLocation::Video,
+                    QLatin1String("clip_"),
+                    encoderSettings().mimeType().preferredSuffix())));
+
+    NSURL *nsFileURL = fileURL.toNSURL();
+    if (!nsFileURL) {
+        qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL;
+        Q_EMIT error(QMediaEncoder::ResourceError, tr("Invalid output file URL"));
+        return;
+    }
+    if (!qt_is_writable_file_URL(nsFileURL)) {
+        qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
+                    << "(the location is not writable)";
+        Q_EMIT error(QMediaEncoder::ResourceError, tr("Non-writeable file location"));
+        return;
+    }
+    if (qt_file_exists(nsFileURL)) {
+        // We test for/handle this error here since AWAssetWriter will raise an
+        // Objective-C exception, which is not good at all.
+        qWarning() << Q_FUNC_INFO << "invalid output URL:" << fileURL
+                    << "(file already exists)";
+        Q_EMIT error(QMediaEncoder::ResourceError, tr("File already exists"));
+        return;
+    }
+
+    applySettings();
+
+    // We stop session now so that no more frames for renderer's queue
+    // generated, will restart in assetWriterStarted.
+    [session stopRunning];
+
+    if ([m_writer setupWithFileURL:nsFileURL
+                    cameraService:m_service
+                    audioSettings:m_audioSettings
+                    videoSettings:m_videoSettings
+                    transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
+
+        m_state = QMediaEncoder::RecordingState;
+        m_lastStatus = QMediaEncoder::StartingStatus;
+
+        Q_EMIT actualLocationChanged(fileURL);
+        Q_EMIT stateChanged(m_state);
+        Q_EMIT statusChanged(m_lastStatus);
+
+        // Apple recommends to call startRunning and do all
+        // setup on a special queue, and that's what we had
+        // initially (dispatch_async to writerQueue). Unfortunately,
+        // writer's queue is not the only queue/thread that can
+        // access/modify the session, and as a result we have
+        // all possible data/race-conditions with Obj-C exceptions
+        // at best and something worse in general.
+        // Now we try to only modify session on the same thread.
+        [m_writer start];
+    } else {
+        [session startRunning];
+        Q_EMIT error(QMediaEncoder::FormatError, tr("Failed to start recording"));
     }
 }
 
@@ -548,17 +547,18 @@ void AVFMediaEncoder::assetWriterStarted()
 
 void AVFMediaEncoder::assetWriterFinished()
 {
-    Q_ASSERT(m_service);
-    AVFCamera *cameraControl = m_service->avfCameraControl();
-    Q_ASSERT(cameraControl);
+    Q_ASSERT(m_service && m_service->session());
+    AVFCameraSession *session = m_service->session();
 
     const QMediaEncoder::Status lastStatus = m_lastStatus;
     const QMediaEncoder::State lastState = m_state;
 
     unapplySettings();
 
-    m_service->session()->videoOutput()->resetCaptureDelegate();
-    [m_service->session()->captureSession() startRunning];
+    if (session->videoOutput()) {
+        session->videoOutput()->resetCaptureDelegate();
+    }
+    [session->captureSession() startRunning];
     m_state = QMediaEncoder::StoppedState;
     if (m_lastStatus != lastStatus)
         Q_EMIT statusChanged(m_lastStatus);

@@ -130,8 +130,6 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_session->setActiveCamera(QCameraInfo());
     m_session->setActive(m_active);
     m_session->setActiveCamera(m_cameraInfo);
-
-    captureSessionChanged();
 }
 
 void AVFCamera::updateStatus()
@@ -178,11 +176,6 @@ QPlatformCameraExposure *AVFCamera::exposureControl()
 QPlatformCameraImageProcessing *AVFCamera::imageProcessingControl()
 {
     return m_cameraImageProcessingControl;
-}
-
-void AVFCamera::captureSessionChanged()
-{
-
 }
 
 #include "moc_avfcamera_p.cpp"

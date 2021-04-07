@@ -95,7 +95,6 @@ public:
 
 private Q_SLOTS:
     void updateStatus();
-    void captureSessionChanged();
 
 private:
     friend class AVFCameraSession;

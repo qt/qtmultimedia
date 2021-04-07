@@ -95,6 +95,7 @@ public:
     AVFCamera *avfCameraControl() const { return m_cameraControl; }
     AVFMediaEncoder *recorderControl() const { return m_encoder; }
     AVFCameraImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
+    AVCaptureDevice *audioCaptureDevice() const { return m_audioCaptureDevice; }
 
 private:
     bool m_muted = false;

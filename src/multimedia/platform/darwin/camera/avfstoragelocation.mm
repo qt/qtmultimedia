@@ -78,8 +78,10 @@ QDir AVFStorageLocation::defaultDir(Mode mode) const
 
     if (mode == Video) {
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
-    } else {
+    } else if (mode == Image) {
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+    } else {
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     }
 
     dirCandidates << QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);

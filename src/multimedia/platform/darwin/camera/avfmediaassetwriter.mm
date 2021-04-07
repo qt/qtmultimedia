@@ -52,7 +52,7 @@ QT_USE_NAMESPACE
 
 namespace {
 
-bool qt_camera_service_isValid(AVFCameraService *service)
+bool qt_capture_session_isValid(AVFCameraService *service)
 {
     if (!service || !service->session())
         return false;
@@ -60,14 +60,6 @@ bool qt_camera_service_isValid(AVFCameraService *service)
     AVFCameraSession *session = service->session();
     if (!session->captureSession())
         return false;
-
-    if (!session->videoInput())
-        return false;
-
-    if (!session->videoOutput()
-        || !session->videoOutput()->videoDataOutput()) {
-        return false;
-    }
 
     return true;
 }
@@ -84,7 +76,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 } // unnamed namespace
 
 @interface QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) (PrivateAPI)
-- (bool)addAudioCapture;
 - (bool)addWriterInputs;
 - (void)setQueues;
 - (void)updateDuration:(CMTime)newTimeStamp;
@@ -96,11 +87,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     AVFCameraService *m_service;
 
     AVFScopedPointer<AVAssetWriterInput> m_cameraWriterInput;
-    AVFScopedPointer<AVCaptureDeviceInput> m_audioInput;
-    AVFScopedPointer<AVCaptureAudioDataOutput> m_audioOutput;
     AVFScopedPointer<AVAssetWriterInput> m_audioWriterInput;
-
-    AVCaptureDevice *m_audioCaptureDevice;
 
     // Queue to write sample buffers:
     AVFScopedPointer<dispatch_queue_t> m_writerQueue;
@@ -152,8 +139,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 {
     Q_ASSERT(fileURL);
 
-    if (!qt_camera_service_isValid(service)) {
-        qDebugCamera() << Q_FUNC_INFO << "invalid camera service";
+    if (!qt_capture_session_isValid(service)) {
+        qDebugCamera() << Q_FUNC_INFO << "invalid capture session";
         return false;
     }
 
@@ -161,21 +148,28 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     m_audioSettings = audioSettings;
     m_videoSettings = videoSettings;
 
+    AVFCameraSession *session = m_service->session();
+
     m_writerQueue.reset(dispatch_queue_create("asset-writer-queue", DISPATCH_QUEUE_SERIAL));
     if (!m_writerQueue) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer's queue";
         return false;
     }
 
-    m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
-    if (!m_videoQueue) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to create video queue";
-        return false;
+    if (session->videoOutput() && session->videoOutput()->videoDataOutput()) {
+        m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
+        if (!m_videoQueue) {
+            qDebugCamera() << Q_FUNC_INFO << "failed to create video queue";
+            return false;
+        }
+        dispatch_set_target_queue(m_videoQueue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0));
     }
-    dispatch_set_target_queue(m_videoQueue, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0));
+
     m_audioQueue.reset(dispatch_queue_create("audio-output-queue", DISPATCH_QUEUE_SERIAL));
     if (!m_audioQueue) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create audio queue";
+        if (!m_videoQueue)
+            return false;
         // But we still can write video!
     }
 
@@ -190,24 +184,16 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     }
 
     bool audioCaptureOn = false;
-
     if (m_audioQueue)
-        audioCaptureOn = [self addAudioCapture];
+        audioCaptureOn = session->audioOutput() != nil;
 
     if (![self addWriterInputs]) {
-        if (audioCaptureOn) {
-            AVCaptureSession *session = m_service->session()->captureSession();
-            [session removeOutput:m_audioOutput];
-            [session removeInput:m_audioInput];
-            m_audioOutput.reset();
-            m_audioInput.reset();
-            m_audioCaptureDevice = 0;
-        }
         m_assetWriter.reset();
         return false;
     }
 
-    m_cameraWriterInput.data().transform = transform;
+    if (m_cameraWriterInput)
+        m_cameraWriterInput.data().transform = transform;
 
     // Ready to start ...
     return true;
@@ -247,7 +233,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     dispatch_sync(m_writerQueue, ^{});
     // Done, but now we also want to prevent video queue
     // from updating our viewfinder:
-    dispatch_sync(m_videoQueue, ^{});
+    if (m_videoQueue)
+        dispatch_sync(m_videoQueue, ^{});
 
     // Now we're safe to stop:
     [m_assetWriter finishWritingWithCompletionHandler:^{
@@ -259,8 +246,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         AVCaptureSession *session = m_service->session()->captureSession();
         if (session.running)
             [session stopRunning];
-        [session removeOutput:m_audioOutput];
-        [session removeInput:m_audioInput];
         QMetaObject::invokeMethod(m_delegate, "assetWriterFinished", Qt::QueuedConnection);
     }];
 }
@@ -284,7 +269,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     dispatch_sync(m_writerQueue, ^{});
     // At this point next block (if any) on the writer's queue
     // will see m_state preventing it from any further processing.
-    dispatch_sync(m_videoQueue, ^{});
+    if (m_videoQueue)
+        dispatch_sync(m_videoQueue, ^{});
     // After this point video queue will not try to modify our
     // viewfider, so we're safe to delete now.
 
@@ -351,25 +337,26 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         fromConnection:(AVCaptureConnection *)connection
 {
     Q_UNUSED(connection);
+    Q_ASSERT(m_service && m_service->session());
 
     if (m_state.loadAcquire() != WriterStateActive)
         return;
 
     if (!CMSampleBufferDataIsReady(sampleBuffer)) {
-        qDebugCamera() << Q_FUNC_INFO << "sample buffer is not ready, skipping.";
+        qWarning() << Q_FUNC_INFO << "sample buffer is not ready, skipping.";
         return;
     }
 
     CFRetain(sampleBuffer);
 
-    if (captureOutput != m_audioOutput.data()) {
+    if (captureOutput != m_service->session()->audioOutput()) {
         if (m_state.loadRelaxed() != WriterStateActive) {
             CFRelease(sampleBuffer);
             return;
         }
         // Find renderercontrol's delegate and invoke its method to
         // show updated viewfinder's frame.
-        if (m_service && m_service->session() && m_service->session()->videoOutput()) {
+        if (m_service->session()->videoOutput()) {
             NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *vfDelegate =
                 (NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *)m_service->session()->videoOutput()->captureDelegate();
             if (vfDelegate)
@@ -386,93 +373,55 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     }
 }
 
-- (bool)addAudioCapture
-{
-    Q_ASSERT(m_service && m_service->session() && m_service->session()->captureSession());
-
-    AVCaptureSession *captureSession = m_service->session()->captureSession();
-
-    // #####
-    const auto audioDeviceInfo = m_delegate->cameraService()->audioInput();
-    m_audioCaptureDevice = [AVCaptureDevice deviceWithUniqueID:
-                            [NSString stringWithUTF8String:audioDeviceInfo.id().constData()]];
-
-    if (!m_audioCaptureDevice) {
-        qWarning() << Q_FUNC_INFO << "no audio input device available";
-        return false;
-    } else {
-        NSError *error = nil;
-        m_audioInput.reset([[AVCaptureDeviceInput deviceInputWithDevice:m_audioCaptureDevice error:&error] retain]);
-
-        if (!m_audioInput || error) {
-            qWarning() << Q_FUNC_INFO << "failed to create audio device input";
-            m_audioCaptureDevice = 0;
-            m_audioInput.reset();
-            return false;
-        } else if (![captureSession canAddInput:m_audioInput]) {
-            qWarning() << Q_FUNC_INFO << "could not connect the audio input";
-            m_audioCaptureDevice = 0;
-            m_audioInput.reset();
-            return false;
-        } else {
-            [captureSession addInput:m_audioInput];
-        }
-    }
-
-
-    m_audioOutput.reset([[AVCaptureAudioDataOutput alloc] init]);
-    if (m_audioOutput.data() && [captureSession canAddOutput:m_audioOutput]) {
-        [captureSession addOutput:m_audioOutput];
-    } else {
-        qDebugCamera() << Q_FUNC_INFO << "failed to add audio output";
-        [captureSession removeInput:m_audioInput];
-        m_audioCaptureDevice = 0;
-        m_audioInput.reset();
-        m_audioOutput.reset();
-        return false;
-    }
-
-    return true;
-}
-
 - (bool)addWriterInputs
 {
-    Q_ASSERT(m_service && m_service->session() && m_service->session()->videoOutput()
-             && m_service->session()->videoOutput()->videoDataOutput());
+    Q_ASSERT(m_service && m_service->session());
     Q_ASSERT(m_assetWriter.data());
 
-    m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo
+    AVFCameraSession *session = m_service->session();
+
+    if (m_videoQueue)
+    {
+        Q_ASSERT(session->videoOutput() && session->videoOutput()->videoDataOutput());
+        m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo
                                                           outputSettings:m_videoSettings
-                                                          sourceFormatHint:m_service->session()->videoCaptureDevice().activeFormat.formatDescription]);
-    if (!m_cameraWriterInput) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to create camera writer input";
-        return false;
+                                                          sourceFormatHint:session->videoCaptureDevice().activeFormat.formatDescription]);
+
+        if (!m_cameraWriterInput) {
+            qDebugCamera() << Q_FUNC_INFO << "failed to create camera writer input";
+            return false;
+        }
+        if ([m_assetWriter canAddInput:m_cameraWriterInput]) {
+            [m_assetWriter addInput:m_cameraWriterInput];
+        } else {
+            qDebugCamera() << Q_FUNC_INFO << "failed to add camera writer input";
+            m_cameraWriterInput.reset();
+            return false;
+        }
+
+        m_cameraWriterInput.data().expectsMediaDataInRealTime = YES;
     }
 
-    if ([m_assetWriter canAddInput:m_cameraWriterInput]) {
-        [m_assetWriter addInput:m_cameraWriterInput];
-    } else {
-        qDebugCamera() << Q_FUNC_INFO << "failed to add camera writer input";
-        m_cameraWriterInput.reset();
-        return false;
-    }
-
-    m_cameraWriterInput.data().expectsMediaDataInRealTime = YES;
-
-    if (m_audioOutput.data()) {
-        CMFormatDescriptionRef sourceFormat = m_audioCaptureDevice ? m_audioCaptureDevice.activeFormat.formatDescription : 0;
+    if (session->audioOutput()) {
+        CMFormatDescriptionRef sourceFormat = session->audioCaptureDevice()
+                                            ? session->audioCaptureDevice().activeFormat.formatDescription
+                                            : 0;
         m_audioWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio
                                                              outputSettings:m_audioSettings
                                                              sourceFormatHint:sourceFormat]);
         if (!m_audioWriterInput) {
-            qDebugCamera() << Q_FUNC_INFO << "failed to create audio writer input";
+            qWarning() << Q_FUNC_INFO << "failed to create audio writer input";
             // But we still can record video.
+            if (!m_cameraWriterInput)
+                return false;
         } else if ([m_assetWriter canAddInput:m_audioWriterInput]) {
             [m_assetWriter addInput:m_audioWriterInput];
             m_audioWriterInput.data().expectsMediaDataInRealTime = YES;
         } else {
-            qDebugCamera() << Q_FUNC_INFO << "failed to add audio writer input";
+            qWarning() << Q_FUNC_INFO << "failed to add audio writer input";
             m_audioWriterInput.reset();
+            if (!m_cameraWriterInput)
+                return false;
             // We can (still) write video though ...
         }
     }
@@ -482,15 +431,16 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
 - (void)setQueues
 {
-    Q_ASSERT(m_service && m_service->session() && m_service->session()->videoOutput()
-                       && m_service->session()->videoOutput()->videoDataOutput());
-    Q_ASSERT(m_videoQueue);
+    Q_ASSERT(m_service && m_service->session());
+    if (m_videoQueue) {
+        Q_ASSERT(m_service->session()->videoOutput()
+                    && m_service->session()->videoOutput()->videoDataOutput());
+        [m_service->session()->videoOutput()->videoDataOutput() setSampleBufferDelegate:self queue:m_videoQueue];
+    }
 
-    [m_service->session()->videoOutput()->videoDataOutput() setSampleBufferDelegate:self queue:m_videoQueue];
-
-    if (m_audioOutput.data()) {
+    if (m_service->session()->audioOutput()) {
         Q_ASSERT(m_audioQueue);
-        [m_audioOutput setSampleBufferDelegate:self queue:m_audioQueue];
+        [m_service->session()->audioOutput() setSampleBufferDelegate:self queue:m_audioQueue];
     }
 }
 

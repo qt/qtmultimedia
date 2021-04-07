@@ -78,16 +78,19 @@ public:
     QCameraInfo activeCameraInfo() const { return m_activeCameraInfo; }
     void setActiveCamera(const QCameraInfo &info);
 
-    void setVideoOutput(AVFCameraRenderer *output);
     AVFCameraRenderer *videoOutput() const { return m_videoOutput; }
+    AVCaptureAudioDataOutput *audioOutput() const { return m_audioOutput; }
+
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
+    AVCaptureDevice *audioCaptureDevice() const;
 
     bool isActive() const;
 
     FourCharCode defaultCodec();
 
     AVCaptureDeviceInput *videoInput() const {return m_videoInput;}
+    AVCaptureDeviceInput *audioInput() const {return m_audioInput;}
 
     void setVideoSink(QVideoSink *sink);
 
@@ -104,23 +107,28 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 private:
-    AVCaptureDevice *createCaptureDevice();
+    void setVideoOutput(AVFCameraRenderer *output);
+    void setAudioOutput();
+    AVCaptureDevice *createVideoCaptureDevice();
     void attachVideoInputDevice();
-    void removeVideoInputDevice();
+    void attachAudioInputDevice();
     bool applyImageEncoderSettings();
+    bool applyEncoderSettings();
 
-    static int m_defaultCameraIndex;
     QCameraInfo m_activeCameraInfo;
 
     AVFCameraService *m_service;
-    AVFCameraRenderer *m_videoOutput;
-    AVFVideoSink *m_videoSink;
+    AVCaptureSession *m_captureSession;
+    AVFCameraSessionObserver *m_observer;
+
+    AVFCameraRenderer *m_videoOutput = nullptr;
+    AVFVideoSink *m_videoSink = nullptr;
+
+    AVCaptureDeviceInput *m_videoInput = nullptr;
+    AVCaptureDeviceInput *m_audioInput = nullptr;
+    AVCaptureAudioDataOutput *m_audioOutput = nullptr;
 
     bool m_active = false;
-
-    AVCaptureSession *m_captureSession;
-    AVCaptureDeviceInput *m_videoInput;
-    AVFCameraSessionObserver *m_observer;
 
     FourCharCode m_defaultCodec;
 };

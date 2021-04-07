@@ -103,13 +103,11 @@ QDarwinFormatInfo::QDarwinFormatInfo()
 
             QList<QMediaFormat::VideoCodec> video;
             QList<QMediaFormat::AudioCodec> audio;
-//            qDebug() << "Media container" << m->name << "supported";
 
             auto *v = videoCodecMap;
             while (v->name) {
                 QByteArray extendedMimetype = m->name;
                 extendedMimetype += v->name;
-//                qDebug() << "video" << extendedMimetype << [AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]];
                 if ([AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]])
                     video << v->value;
                 ++v;
@@ -135,10 +133,10 @@ QDarwinFormatInfo::QDarwinFormatInfo()
         }
     }
 
-#if 1
-    // ### Verify that this is correct
-    encoders = decoders;
-#else
+// #if 1
+//     // ### Verify that this is correct
+//     encoders = decoders;
+// #else
     // ### Haven't seen a good way to figure this out.
     // seems AVFoundation only supports those for encoding
     encoders = {
@@ -148,20 +146,21 @@ QDarwinFormatInfo::QDarwinFormatInfo()
         { QMediaFormat::QuickTime,
           { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC, QMediaFormat::AudioCodec::AC3, QMediaFormat::AudioCodec::EAC3, },
           { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265, QMediaFormat::VideoCodec::MotionJPEG } },
-        { QMediaFormat::AAC,
-          { QMediaFormat::AudioCodec::AAC },
-          {} },
-        { QMediaFormat::MP3,
-          { QMediaFormat::AudioCodec::MP3 },
-          {} },
-        { QMediaFormat::FLAC,
-          { QMediaFormat::AudioCodec::FLAC },
-          {} },
+        // seems AVFoundation does not support directly encoding to an AAC and MP3 file
+        // { QMediaFormat::AAC,
+        //   { QMediaFormat::AudioCodec::AAC },
+        //   {} },
+        // { QMediaFormat::MP3,
+        //   { QMediaFormat::AudioCodec::MP3 },
+        //   {} },
+        // { QMediaFormat::FLAC,
+        //   { QMediaFormat::AudioCodec::FLAC },
+        //   {} },
         { QMediaFormat::Mpeg4Audio,
           { QMediaFormat::AudioCodec::AAC },
-          {} }
+          {} },
     };
-#endif
+// #endif
 
     // ###
     imageFormats << QImageEncoderSettings::JPEG;
