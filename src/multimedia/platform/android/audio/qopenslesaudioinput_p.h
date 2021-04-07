@@ -89,8 +89,6 @@ public:
     int periodSize() const;
     void setBufferSize(int value);
     int bufferSize() const;
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
     QAudio::Error error() const;
@@ -134,7 +132,6 @@ private:
     qreal m_volume;
     int m_bufferSize;
     int m_periodSize;
-    int m_intervalTime;
     QByteArray *m_buffers;
     int m_currentBuffer;
 };

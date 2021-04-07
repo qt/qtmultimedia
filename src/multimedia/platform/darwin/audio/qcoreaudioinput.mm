@@ -470,10 +470,6 @@ CoreAudioInput::CoreAudioInput(const QAudioDeviceInfo &device)
     m_audioDeviceId = info->deviceID();
 #endif
     m_device = di.id();
-
-    m_intervalTimer = new QTimer(this);
-    m_intervalTimer->setInterval(1000);
-    connect(m_intervalTimer, SIGNAL(timeout()), this, SIGNAL(notify()));
 }
 
 
@@ -828,25 +824,6 @@ int CoreAudioInput::bufferSize() const
     return m_internalBufferSize;
 }
 
-
-void CoreAudioInput::setNotifyInterval(int milliSeconds)
-{
-    if (m_intervalTimer->interval() == milliSeconds)
-        return;
-
-    if (milliSeconds <= 0)
-        milliSeconds = 0;
-
-    m_intervalTimer->setInterval(milliSeconds);
-}
-
-
-int CoreAudioInput::notifyInterval() const
-{
-    return m_intervalTimer->interval();
-}
-
-
 qint64 CoreAudioInput::processedUSecs() const
 {
     return m_totalFrames * 1000000 / m_audioFormat.sampleRate();
@@ -961,14 +938,11 @@ void CoreAudioInput::audioDeviceError()
 void CoreAudioInput::startTimers()
 {
     m_audioBuffer->startFlushTimer();
-    if (m_intervalTimer->interval() > 0)
-        m_intervalTimer->start();
 }
 
 void CoreAudioInput::stopTimers()
 {
     m_audioBuffer->stopFlushTimer();
-    m_intervalTimer->stop();
 }
 
 OSStatus CoreAudioInput::inputCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)

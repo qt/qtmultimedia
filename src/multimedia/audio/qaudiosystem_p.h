@@ -76,8 +76,6 @@ public:
     virtual int periodSize() const = 0;
     virtual void setBufferSize(int value) = 0;
     virtual int bufferSize() const = 0;
-    virtual void setNotifyInterval(int milliSeconds) = 0;
-    virtual int notifyInterval() const = 0;
     virtual qint64 processedUSecs() const = 0;
     virtual qint64 elapsedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
@@ -92,7 +90,6 @@ public:
 Q_SIGNALS:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
-    void notify();
 };
 
 class QAbstractAudioInput : public QObject
@@ -110,8 +107,6 @@ public:
     virtual int periodSize() const = 0;
     virtual void setBufferSize(int value) = 0;
     virtual int bufferSize() const = 0;
-    virtual void setNotifyInterval(int milliSeconds) = 0;
-    virtual int notifyInterval() const = 0;
     virtual qint64 processedUSecs() const = 0;
     virtual qint64 elapsedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
@@ -124,7 +119,6 @@ public:
 Q_SIGNALS:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
-    void notify();
 };
 
 QT_END_NAMESPACE

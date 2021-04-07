@@ -83,9 +83,6 @@ public:
     int bytesReady() const;
     int periodSize() const;
 
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
-
     void setVolume(qreal volume);
     qreal volume() const;
 
@@ -97,7 +94,6 @@ public:
 
 Q_SIGNALS:
     void stateChanged(QAudio::State state);
-    void notify();
 
 private:
     Q_DISABLE_COPY(QAudioInput)

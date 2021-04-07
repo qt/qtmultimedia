@@ -99,8 +99,6 @@ public:
     int periodSize() const;
     void setBufferSize(int value);
     int bufferSize() const;
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
     QAudio::Error error() const;
@@ -119,8 +117,6 @@ private:
     qint32 header;
     int m_deviceId;
     int bytesAvailable;
-    int intervalTime;
-    QElapsedTimer timeStamp;
     qint64 elapsedTimeOffset;
     QElapsedTimer timeStampOpened;
     qint64 totalTimeValue;

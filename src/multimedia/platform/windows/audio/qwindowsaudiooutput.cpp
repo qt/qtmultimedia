@@ -67,7 +67,6 @@ QWindowsAudioOutput::QWindowsAudioOutput(int deviceId)
     period_size = 0;
     m_deviceId = deviceId;
     totalTimeValue = 0;
-    intervalTime = 1000;
     audioBuffer = 0;
     errorState = QAudio::NoError;
     deviceState = QAudio::StoppedState;
@@ -272,7 +271,6 @@ bool QWindowsAudioOutput::open()
     if(audioBuffer == 0)
         audioBuffer = new char[blocks_count * period_size];
 
-    timeStamp.restart();
     elapsedTimeOffset = 0;
 
     if (waveOutOpen(&hWaveOut, UINT_PTR(m_deviceId), &wfx.Format,
@@ -349,16 +347,6 @@ void QWindowsAudioOutput::setBufferSize(int value)
 int QWindowsAudioOutput::bufferSize() const
 {
     return buffer_size;
-}
-
-void QWindowsAudioOutput::setNotifyInterval(int ms)
-{
-    intervalTime = qMax(0, ms);
-}
-
-int QWindowsAudioOutput::notifyInterval() const
-{
-    return intervalTime;
 }
 
 qint64 QWindowsAudioOutput::processedUSecs() const
@@ -492,11 +480,6 @@ bool QWindowsAudioOutput::deviceReady()
 #ifdef DEBUG_AUDIO
             qDebug() << "Skipping data as unable to write";
 #endif
-            if ((timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
-                emit notify();
-                elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
-                timeStamp.restart();
-            }
             return true;
         }
 
@@ -554,14 +537,6 @@ bool QWindowsAudioOutput::deviceReady()
                 emit stateChanged(deviceState);
             }
         }
-    }
-    if(deviceState != QAudio::ActiveState && deviceState != QAudio::IdleState)
-        return true;
-
-    if(intervalTime && (timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
-        emit notify();
-        elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
-        timeStamp.restart();
     }
 
     return true;

@@ -138,8 +138,6 @@ public:
     int periodSize() const;
     void setBufferSize(int value);
     int bufferSize() const;
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
     QAudio::Error error() const;
@@ -203,7 +201,6 @@ private:
     QAtomicInt m_audioThreadState;
     QWaitCondition m_threadFinished;
     QMutex m_mutex;
-    QTimer *m_intervalTimer;
     qreal m_cachedVolume;
     qreal m_volume;
     bool m_pullMode;

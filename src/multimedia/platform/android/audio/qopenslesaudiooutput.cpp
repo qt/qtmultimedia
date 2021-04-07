@@ -81,7 +81,6 @@ QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
       m_pullMode(false),
       m_nextBuffer(0),
       m_bufferSize(0),
-      m_notifyInterval(1000),
       m_periodSize(0),
       m_elapsedTime(0),
       m_processedBytes(0),
@@ -207,42 +206,6 @@ void QOpenSLESAudioOutput::setBufferSize(int value)
 int QOpenSLESAudioOutput::bufferSize() const
 {
     return m_bufferSize;
-}
-
-void QOpenSLESAudioOutput::setNotifyInterval(int ms)
-{
-    const int newInterval = ms > 0 ? ms : 0;
-
-    if (newInterval == m_notifyInterval)
-        return;
-
-    const SLuint32 newEvenMask = newInterval == 0 ? m_eventMask & ~SL_PLAYEVENT_HEADATNEWPOS
-                                                  : m_eventMask & SL_PLAYEVENT_HEADATNEWPOS;
-
-    if (m_state == QAudio::StoppedState) {
-        m_eventMask = newEvenMask;
-        m_notifyInterval = newInterval;
-        return;
-    }
-
-    if (newEvenMask != m_eventMask
-        && SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, newEvenMask)) {
-        return;
-    }
-
-    m_eventMask = newEvenMask;
-
-    if (newInterval && SL_RESULT_SUCCESS != (*m_playItf)->SetPositionUpdatePeriod(m_playItf,
-                                                                                  newInterval)) {
-        return;
-    }
-
-    m_notifyInterval = newInterval;
-}
-
-int QOpenSLESAudioOutput::notifyInterval() const
-{
-    return m_notifyInterval;
 }
 
 qint64 QOpenSLESAudioOutput::processedUSecs() const
@@ -545,11 +508,6 @@ bool QOpenSLESAudioOutput::preparePlayer()
     if (SL_RESULT_SUCCESS != (*m_playItf)->RegisterCallback(m_playItf, playCallback, this)) {
         setError(QAudio::FatalError);
         return false;
-    }
-
-    if (m_notifyInterval && SL_RESULT_SUCCESS == (*m_playItf)->SetPositionUpdatePeriod(m_playItf,
-                                                                                       m_notifyInterval)) {
-        m_eventMask |= SL_PLAYEVENT_HEADATNEWPOS;
     }
 
     if (SL_RESULT_SUCCESS != (*m_playItf)->SetCallbackEventsMask(m_playItf, m_eventMask)) {

@@ -77,11 +77,6 @@ public slots:
     void cleanup();
 
 private slots:
-    void propertyWatch();
-    void notifySignals_data();
-    void notifySignals();
-    void notifyInterval_data();
-    void notifyInterval();
     void testNullService_data();
     void testNullService();
     void testValid();
@@ -126,7 +121,6 @@ private slots:
     void testAudioRole();
 
 private:
-    void setupNotifyTests();
     void setupCommonTestData();
 
     QMockIntegration *mockIntegration;
@@ -143,9 +137,6 @@ class QtTestMediaPlayer : public QMediaPlayer
     Q_PROPERTY(int d READ d WRITE setD)
 public:
     QtTestMediaPlayer() : QMediaPlayer() {}
-
-    using QMediaPlayer::addPropertyWatch;
-    using QMediaPlayer::removePropertyWatch;
 
     [[nodiscard]] int a() const { return m_a; }
     void setA(int a) { m_a = a; }
@@ -170,190 +161,6 @@ private:
     int m_c = 0;
     int m_d = 0;
 };
-
-void tst_QMediaPlayer::propertyWatch()
-{
-    QtTestMediaPlayer object;
-    object.setNotifyInterval(0);
-
-    QEventLoop loop;
-    connect(&object, SIGNAL(aChanged(int)), &QTestEventLoop::instance(), SLOT(exitLoop()));
-    connect(&object, SIGNAL(bChanged(int)), &QTestEventLoop::instance(), SLOT(exitLoop()));
-    connect(&object, SIGNAL(cChanged(int)), &QTestEventLoop::instance(), SLOT(exitLoop()));
-
-    QSignalSpy aSpy(&object, SIGNAL(aChanged(int)));
-    QSignalSpy bSpy(&object, SIGNAL(bChanged(int)));
-    QSignalSpy cSpy(&object, SIGNAL(cChanged(int)));
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QCOMPARE(aSpy.count(), 0);
-    QCOMPARE(bSpy.count(), 0);
-    QCOMPARE(cSpy.count(), 0);
-
-    int aCount = 0;
-    int bCount = 0;
-    int cCount = 0;
-
-    object.addPropertyWatch("a");
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QVERIFY(aSpy.count() > aCount);
-    QCOMPARE(bSpy.count(), 0);
-    QCOMPARE(cSpy.count(), 0);
-    QCOMPARE(aSpy.last().value(0).toInt(), 0);
-
-    aCount = aSpy.count();
-
-    object.setA(54);
-    object.setB(342);
-    object.setC(233);
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QVERIFY(aSpy.count() > aCount);
-    QCOMPARE(bSpy.count(), 0);
-    QCOMPARE(cSpy.count(), 0);
-    QCOMPARE(aSpy.last().value(0).toInt(), 54);
-
-    aCount = aSpy.count();
-
-    object.addPropertyWatch("b");
-    object.addPropertyWatch("d");
-    object.removePropertyWatch("e");
-    object.setA(43);
-    object.setB(235);
-    object.setC(90);
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QVERIFY(aSpy.count() > aCount);
-    QVERIFY(bSpy.count() > bCount);
-    QCOMPARE(cSpy.count(), 0);
-    QCOMPARE(aSpy.last().value(0).toInt(), 43);
-    QCOMPARE(bSpy.last().value(0).toInt(), 235);
-
-    aCount = aSpy.count();
-    bCount = bSpy.count();
-
-    object.removePropertyWatch("a");
-    object.addPropertyWatch("c");
-    object.addPropertyWatch("e");
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QCOMPARE(aSpy.count(), aCount);
-    QVERIFY(bSpy.count() > bCount);
-    QVERIFY(cSpy.count() > cCount);
-    QCOMPARE(bSpy.last().value(0).toInt(), 235);
-    QCOMPARE(cSpy.last().value(0).toInt(), 90);
-
-    bCount = bSpy.count();
-    cCount = cSpy.count();
-
-    object.setA(435);
-    object.setC(9845);
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QCOMPARE(aSpy.count(), aCount);
-    QVERIFY(bSpy.count() > bCount);
-    QVERIFY(cSpy.count() > cCount);
-    QCOMPARE(bSpy.last().value(0).toInt(), 235);
-    QCOMPARE(cSpy.last().value(0).toInt(), 9845);
-
-    bCount = bSpy.count();
-    cCount = cSpy.count();
-
-    object.setA(8432);
-    object.setB(324);
-    object.setC(443);
-    object.removePropertyWatch("c");
-    object.removePropertyWatch("d");
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QCOMPARE(aSpy.count(), aCount);
-    QVERIFY(bSpy.count() > bCount);
-    QCOMPARE(cSpy.count(), cCount);
-    QCOMPARE(bSpy.last().value(0).toInt(), 324);
-    QCOMPARE(cSpy.last().value(0).toInt(), 9845);
-
-    bCount = bSpy.count();
-
-    object.removePropertyWatch("b");
-
-    QTestEventLoop::instance().enterLoop(1);
-
-    QCOMPARE(aSpy.count(), aCount);
-    QCOMPARE(bSpy.count(), bCount);
-    QCOMPARE(cSpy.count(), cCount);
-}
-
-void tst_QMediaPlayer::setupNotifyTests()
-{
-    QTest::addColumn<int>("interval");
-    QTest::addColumn<int>("count");
-
-    QTest::newRow("single 750ms")
-            << 750
-            << 1;
-    QTest::newRow("single 600ms")
-            << 600
-            << 1;
-    QTest::newRow("x3 300ms")
-            << 300
-            << 3;
-    QTest::newRow("x5 180ms")
-            << 180
-            << 5;
-}
-
-void tst_QMediaPlayer::notifySignals_data()
-{
-    setupNotifyTests();
-}
-
-void tst_QMediaPlayer::notifySignals()
-{
-    QFETCH(int, interval);
-    QFETCH(int, count);
-
-    QtTestMediaPlayer object;
-    QSignalSpy spy(&object, SIGNAL(aChanged(int)));
-
-    object.setNotifyInterval(interval);
-    object.addPropertyWatch("a");
-
-    QElapsedTimer timer;
-    timer.start();
-
-    QTRY_COMPARE(spy.count(), count);
-}
-
-void tst_QMediaPlayer::notifyInterval_data()
-{
-    setupNotifyTests();
-}
-
-void tst_QMediaPlayer::notifyInterval()
-{
-    QFETCH(int, interval);
-
-    QtTestMediaPlayer object;
-    QSignalSpy spy(&object, SIGNAL(notifyIntervalChanged(int)));
-
-    object.setNotifyInterval(interval);
-    QCOMPARE(object.notifyInterval(), interval);
-    QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.last().value(0).toInt(), interval);
-
-    object.setNotifyInterval(interval);
-    QCOMPARE(object.notifyInterval(), interval);
-    QCOMPARE(spy.count(), 1);
-}
-
 
 void tst_QMediaPlayer::setupCommonTestData()
 {
@@ -872,8 +679,6 @@ void tst_QMediaPlayer::testMediaStatus()
 {
     QFETCH(int, bufferStatus);
     int bufferSignals = 0;
-
-    player->setNotifyInterval(10);
 
     mockPlayer->setMediaStatus(QMediaPlayer::NoMedia);
     mockPlayer->setBufferStatus(bufferStatus);

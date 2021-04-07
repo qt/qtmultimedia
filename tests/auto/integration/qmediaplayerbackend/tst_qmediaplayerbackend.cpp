@@ -238,7 +238,6 @@ void tst_QMediaPlayerBackend::unloadMedia()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
-    player.setNotifyInterval(50);
 
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -302,7 +301,6 @@ void tst_QMediaPlayerBackend::playPauseStop()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
-    player.setNotifyInterval(50);
 
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -457,7 +455,6 @@ void tst_QMediaPlayerBackend::processEOS()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
-    player.setNotifyInterval(50);
 
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -818,7 +815,6 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
         QSKIP("No supported video file");
 
     QMediaPlayer player;
-    player.setNotifyInterval(500);
 
     QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));

@@ -388,19 +388,6 @@ Item {
     property alias autoPlay:        player.autoPlay
 
     /*!
-        \qmlproperty int Video::notifyInterval
-
-        The interval at which notifiable properties will update.
-
-        The notifiable properties are \l position and \l bufferProgress.
-
-        The interval is expressed in milliseconds, the default value is 1000.
-
-        \since 5.9
-    */
-    property alias notifyInterval:  player.notifyInterval
-
-    /*!
         \qmlproperty int Video::loops
 
         This property holds the number of times the media is played. A value of \c 0 or \c 1 means

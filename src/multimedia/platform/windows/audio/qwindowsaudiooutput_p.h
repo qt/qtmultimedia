@@ -97,8 +97,6 @@ public:
     int periodSize() const;
     void setBufferSize(int value);
     int bufferSize() const;
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
     QAudio::Error error() const;
@@ -119,7 +117,6 @@ private:
     void pauseAndSleep();
     int m_deviceId;
     int bytesAvailable;
-    QElapsedTimer timeStamp;
     qint64 elapsedTimeOffset;
     QElapsedTimer timeStampOpened;
     qint32 buffer_size;
@@ -127,7 +124,6 @@ private:
     qint32 blocks_count;
     qint64 totalTimeValue;
     bool pullMode;
-    int intervalTime;
     qreal volumeCache;
     static void QT_WIN_CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
             DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );

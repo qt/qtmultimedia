@@ -83,9 +83,6 @@ public:
     int bytesFree() const;
     int periodSize() const;
 
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
-
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
 
@@ -100,7 +97,6 @@ public:
 
 Q_SIGNALS:
     void stateChanged(QAudio::State state);
-    void notify();
 
 private:
     Q_DISABLE_COPY(QAudioOutput)

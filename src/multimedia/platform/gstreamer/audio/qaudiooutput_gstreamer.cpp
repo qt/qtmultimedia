@@ -293,16 +293,6 @@ int QGStreamerAudioOutput::bufferSize() const
     return m_bufferSize;
 }
 
-void QGStreamerAudioOutput::setNotifyInterval(int ms)
-{
-    m_notifyInterval = qMax(0, ms);
-}
-
-int QGStreamerAudioOutput::notifyInterval() const
-{
-    return m_notifyInterval;
-}
-
 qint64 QGStreamerAudioOutput::processedUSecs() const
 {
     qint64 result = qint64(1000000) * m_totalTimeValue /

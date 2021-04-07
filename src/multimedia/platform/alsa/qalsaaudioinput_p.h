@@ -113,8 +113,6 @@ public:
     int periodSize() const override;
     void setBufferSize(int value) override;
     int bufferSize() const override;
-    void setNotifyInterval(int milliSeconds) override;
-    int notifyInterval() const override;
     qint64 processedUSecs() const override;
     qint64 elapsedUSecs() const override;
     QAudio::Error error() const override;
@@ -144,10 +142,8 @@ private:
     void drain();
 
     QTimer* timer;
-    QElapsedTimer timeStamp;
     QElapsedTimer clockStamp;
     qint64 elapsedTimeOffset;
-    int intervalTime;
     RingBuffer ringBuffer;
     int bytesAvailable;
     QByteArray m_device;

@@ -133,6 +133,11 @@ Engine::Engine(QObject *parent)
 #ifdef DUMP_SPECTRUM
     m_spectrumAnalyser.setOutputPath(outputPath());
 #endif
+
+    m_notifyTimer = new QTimer(this);
+    m_notifyTimer->setInterval(1000);
+    connect(m_notifyTimer, &QTimer::timeout, this, &Engine::audioNotify);
+
 }
 
 Engine::~Engine() = default;
@@ -243,8 +248,6 @@ void Engine::startRecording()
             m_mode = QAudio::AudioInput;
             connect(m_audioInput, &QAudioInput::stateChanged,
                     this, &Engine::audioStateChanged);
-            connect(m_audioInput, &QAudioInput::notify,
-                    this, &Engine::audioNotify);
 
             m_count = 0;
             m_dataLength = 0;
@@ -253,6 +256,7 @@ void Engine::startRecording()
             connect(m_audioInputIODevice, &QIODevice::readyRead,
                     this, &Engine::audioDataReady);
         }
+        m_notifyTimer->start();
     }
 }
 
@@ -276,8 +280,6 @@ void Engine::startPlayback()
             m_mode = QAudio::AudioOutput;
             connect(m_audioOutput, &QAudioOutput::stateChanged,
                     this, &Engine::audioStateChanged);
-            connect(m_audioOutput, &QAudioOutput::notify,
-                    this, &Engine::audioNotify);
 
             m_count = 0;
             if (m_file) {
@@ -292,6 +294,7 @@ void Engine::startPlayback()
                 m_audioOutput->start(&m_audioOutputIODevice);
             }
         }
+        m_notifyTimer->start();
     }
 }
 
@@ -307,6 +310,7 @@ void Engine::suspend()
             m_audioOutput->suspend();
             break;
         }
+        m_notifyTimer->stop();
     }
 }
 
@@ -515,12 +519,10 @@ bool Engine::initialize()
                 } else {
                     emit bufferChanged(0, 0, m_buffer);
                     m_audioInput = new QAudioInput(m_audioInputDevice, m_format, this);
-                    m_audioInput->setNotifyInterval(NotifyIntervalMs);
                     result = true;
                 }
             }
             m_audioOutput = new QAudioOutput(m_audioOutputDevice, m_format, this);
-            m_audioOutput->setNotifyInterval(NotifyIntervalMs);
             m_audioOutput->setCategory(m_audioOutputCategory);
         }
     } else {

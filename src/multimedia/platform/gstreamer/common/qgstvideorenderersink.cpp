@@ -95,7 +95,7 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
     // All the formats that both we and gstreamer support
 #if QT_CONFIG(gstreamer_gl)
     QRhi *rhi = m_sink->rhi();
-    if (rhi->backend() == QRhi::OpenGLES2) {
+    if (rhi && rhi->backend() == QRhi::OpenGLES2) {
         auto formats = QList<QVideoSurfaceFormat::PixelFormat>()
 //                       << QVideoSurfaceFormat::Format_YUV420P
 //                       << QVideoSurfaceFormat::Format_YUV422P

@@ -50,14 +50,12 @@ QT_BEGIN_NAMESPACE
 QnxAudioOutput::QnxAudioOutput()
     : m_source(0)
     , m_pushSource(false)
-    , m_notifyInterval(1000)
     , m_error(QAudio::NoError)
     , m_state(QAudio::StoppedState)
     , m_volume(1.0)
     , m_periodSize(0)
     , m_pcmHandle(0)
     , m_bytesWritten(0)
-    , m_intervalOffset(0)
 #if _NTO_VERSION >= 700
     , m_pcmNotifier(0)
 #endif
@@ -166,16 +164,6 @@ int QnxAudioOutput::periodSize() const
      return m_periodSize;
 }
 
-void QnxAudioOutput::setNotifyInterval(int ms)
-{
-    m_notifyInterval = ms;
-}
-
-int QnxAudioOutput::notifyInterval() const
-{
-    return m_notifyInterval;
-}
-
 qint64 QnxAudioOutput::processedUSecs() const
 {
     return qint64(1000000) * m_format.framesForBytes(m_bytesWritten) / m_format.sampleRate();
@@ -274,12 +262,6 @@ void QnxAudioOutput::pullData()
 
     if (m_state != QAudio::ActiveState)
         return;
-
-    if (m_notifyInterval > 0 && (m_intervalTimeStamp.elapsed() + m_intervalOffset) > m_notifyInterval) {
-        emit notify();
-        m_intervalOffset = m_intervalTimeStamp.elapsed() + m_intervalOffset - m_notifyInterval;
-        m_intervalTimeStamp.restart();
-    }
 }
 
 bool QnxAudioOutput::open()
@@ -348,8 +330,6 @@ bool QnxAudioOutput::open()
 
     m_periodSize = qMin(2048, setup.buf.block.frag_size);
     m_startTimeStamp.restart();
-    m_intervalTimeStamp.restart();
-    m_intervalOffset = 0;
     m_bytesWritten = 0;
 
     createPcmNotifiers();

@@ -72,7 +72,7 @@ class QMediaPlayerPrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QMediaPlayer)
 
 public:
-    QMediaPlayerPrivate() : notifyTimer(nullptr) {}
+    QMediaPlayerPrivate() = default;
     QPlatformMediaPlayer* control = nullptr;
     QString errorString;
 
@@ -96,10 +96,6 @@ public:
     void setState(QMediaPlayer::State state);
     void setStatus(QMediaPlayer::MediaStatus status);
     void setError(int error, const QString &errorString);
-    void _q_notify();
-
-    QTimer *notifyTimer;
-    QSet<int> notifyProperties;
 };
 
 QT_END_NAMESPACE

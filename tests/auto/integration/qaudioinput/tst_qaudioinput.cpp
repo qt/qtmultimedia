@@ -79,8 +79,6 @@ private slots:
     void invalidFormat();
 
     void bufferSize();
-    void notifyInterval();
-    void disableNotifyInterval();
 
     void stopWhileStopped();
     void suspendWhileStopped();
@@ -295,70 +293,6 @@ void tst_QAudioInput::bufferSize()
             QString("bufferSize: requested=8192, actual=%2").arg(audioInput.bufferSize()).toLocal8Bit().constData());
 }
 
-void tst_QAudioInput::notifyInterval()
-{
-    QAudioInput audioInput(audioDevice.preferredFormat(), this);
-
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() was not set to QAudio::NoError on creation");
-
-    audioInput.setNotifyInterval(50);
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(50)");
-    QVERIFY2((audioInput.notifyInterval() == 50),
-            QString("notifyInterval: requested=50, actual=%2").arg(audioInput.notifyInterval()).toLocal8Bit().constData());
-
-    audioInput.setNotifyInterval(100);
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(100)");
-    QVERIFY2((audioInput.notifyInterval() == 100),
-            QString("notifyInterval: requested=100, actual=%2").arg(audioInput.notifyInterval()).toLocal8Bit().constData());
-
-    audioInput.setNotifyInterval(250);
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(250)");
-    QVERIFY2((audioInput.notifyInterval() == 250),
-            QString("notifyInterval: requested=250, actual=%2").arg(audioInput.notifyInterval()).toLocal8Bit().constData());
-
-    audioInput.setNotifyInterval(1000);
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(1000)");
-    QVERIFY2((audioInput.notifyInterval() == 1000),
-            QString("notifyInterval: requested=1000, actual=%2").arg(audioInput.notifyInterval()).toLocal8Bit().constData());
-}
-
-void tst_QAudioInput::disableNotifyInterval()
-{
-    // Sets an invalid notification interval (QAudioInput::setNotifyInterval(0))
-    // Checks that
-    //  - No error is raised (QAudioInput::error() returns QAudio::NoError)
-    //  - if <= 0, set to zero and disable notify signal
-
-    QAudioInput audioInput(audioDevice.preferredFormat(), this);
-
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() was not set to QAudio::NoError on creation");
-
-    audioInput.setNotifyInterval(0);
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(0)");
-    QVERIFY2((audioInput.notifyInterval() == 0),
-            "notifyInterval() is not zero after setNotifyInterval(0)");
-
-    audioInput.setNotifyInterval(-1);
-    QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(-1)");
-    QVERIFY2((audioInput.notifyInterval() == 0),
-            "notifyInterval() is not zero after setNotifyInterval(-1)");
-
-    //start and run to check if notify() is emitted
-    if (audioFiles.size() > 0) {
-        QAudioInput audioInputCheck(testFormats.at(0), this);
-        audioInputCheck.setNotifyInterval(0);
-        QSignalSpy notifySignal(&audioInputCheck, SIGNAL(notify()));
-        QFile *audioFile = audioFiles.at(0).data();
-        audioFile->open(QIODevice::WriteOnly);
-        audioInputCheck.start(audioFile);
-        QTest::qWait(3000); // 3 seconds should be plenty
-        audioInputCheck.stop();
-        QVERIFY2((notifySignal.count() == 0),
-                QString("didn't disable notify interval: shouldn't have got any but got %1").arg(notifySignal.count()).toLocal8Bit().constData());
-        audioFile->close();
-    }
-}
-
 void tst_QAudioInput::stopWhileStopped()
 {
     // Calls QAudioInput::stop() when object is already in StoppedState
@@ -426,8 +360,6 @@ void tst_QAudioInput::pull()
 
     QAudioInput audioInput(audioFormat, this);
 
-    audioInput.setNotifyInterval(100);
-
     QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
@@ -492,8 +424,6 @@ void tst_QAudioInput::pullSuspendResume()
     QFETCH(QAudioFormat, audioFormat);
 
     QAudioInput audioInput(audioFormat, this);
-
-    audioInput.setNotifyInterval(100);
 
     QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
@@ -589,8 +519,6 @@ void tst_QAudioInput::push()
 
     QAudioInput audioInput(audioFormat, this);
 
-    audioInput.setNotifyInterval(100);
-
     QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
@@ -675,7 +603,6 @@ void tst_QAudioInput::pushSuspendResume()
     QFETCH(QAudioFormat, audioFormat);
     QAudioInput audioInput(audioFormat, this);
 
-    audioInput.setNotifyInterval(100);
     audioInput.setBufferSize(audioFormat.bytesForDuration(1000000));
 
     QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
@@ -799,8 +726,6 @@ void tst_QAudioInput::reset()
     {
         QAudioInput audioInput(audioFormat, this);
 
-        audioInput.setNotifyInterval(100);
-
         QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
@@ -831,8 +756,6 @@ void tst_QAudioInput::reset()
     {
         QAudioInput audioInput(audioFormat, this);
         QBuffer buffer;
-
-        audioInput.setNotifyInterval(100);
 
         QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));

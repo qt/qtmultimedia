@@ -160,7 +160,6 @@ QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
     , m_audioSource(nullptr)
     , m_periodTime(0)
     , m_stream(nullptr)
-    , m_notifyInterval(1000)
     , m_periodSize(0)
     , m_bufferSize(0)
     , m_maxBufferSize(0)
@@ -407,7 +406,6 @@ bool QPulseAudioOutput::open()
     m_tickTimer->start(m_periodTime);
 
     m_elapsedTimeOffset = 0;
-    m_timeStamp.restart();
     m_clockStamp.restart();
 
     return true;
@@ -493,11 +491,6 @@ void QPulseAudioOutput::userFeed()
 
     if (m_deviceState != QAudio::ActiveState)
         return;
-
-    if (m_notifyInterval && (m_timeStamp.elapsed() + m_elapsedTimeOffset) > m_notifyInterval) {
-        emit notify();
-        m_elapsedTimeOffset = m_timeStamp.restart() + m_elapsedTimeOffset - m_notifyInterval;
-    }
 }
 
 qint64 QPulseAudioOutput::write(const char *data, qint64 len)
@@ -577,16 +570,6 @@ void QPulseAudioOutput::setBufferSize(int value)
 int QPulseAudioOutput::bufferSize() const
 {
     return m_bufferSize;
-}
-
-void QPulseAudioOutput::setNotifyInterval(int ms)
-{
-    m_notifyInterval = qMax(0, ms);
-}
-
-int QPulseAudioOutput::notifyInterval() const
-{
-    return m_notifyInterval;
 }
 
 qint64 QPulseAudioOutput::processedUSecs() const

@@ -297,16 +297,6 @@ int QGStreamerAudioInput::periodSize() const
     return m_periodSize;
 }
 
-void QGStreamerAudioInput::setNotifyInterval(int ms)
-{
-    m_intervalTime = qMax(0, ms);
-}
-
-int QGStreamerAudioInput::notifyInterval() const
-{
-    return m_intervalTime;
-}
-
 qint64 QGStreamerAudioInput::processedUSecs() const
 {
     return 0;

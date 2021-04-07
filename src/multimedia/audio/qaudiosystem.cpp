@@ -174,18 +174,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::setNotifyInterval(int ms)
-    Sets the interval for notify() signal to be emitted. This is based on the \a ms
-    of audio data processed not on actual real-time. The resolution of the timer
-    is platform specific.
-*/
-
-/*!
-    \fn virtual int QAbstractAudioOutput::notifyInterval() const
-    Returns the notify interval in milliseconds.
-*/
-
-/*!
     \fn virtual qint64 QAbstractAudioOutput::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
 */
@@ -236,13 +224,6 @@ QT_BEGIN_NAMESPACE
     \fn QAbstractAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
 */
-
-/*!
-    \fn QAbstractAudioOutput::notify()
-    This signal is emitted when x ms of audio data has been processed
-    the interval set by setNotifyInterval(x).
-*/
-
 
 /*!
     \class QAbstractAudioInput
@@ -313,18 +294,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::setNotifyInterval(int ms)
-    Sets the interval for notify() signal to be emitted. This is based
-    on the \a ms of audio data processed not on actual real-time.
-    The resolution of the timer is platform specific.
-*/
-
-/*!
-    \fn virtual int QAbstractAudioInput::notifyInterval() const
-    Returns the notify interval in milliseconds.
-*/
-
-/*!
     \fn virtual qint64 QAbstractAudioInput::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
 */
@@ -363,12 +332,6 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QAbstractAudioInput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
-*/
-
-/*!
-    \fn QAbstractAudioInput::notify()
-    This signal is emitted when x ms of audio data has been processed
-    the interval set by setNotifyInterval(x).
 */
 
 QT_END_NAMESPACE

@@ -91,16 +91,6 @@ QT_BEGIN_NAMESPACE
     a \c { play/pause } button. You request a state change directly
     with suspend(), stop(), reset(), resume(), and start().
 
-    While the stream is playing, you can set a notify interval in
-    milliseconds with setNotifyInterval(). This interval specifies the
-    time between two emissions of the notify() signal. This is
-    relative to the position in the stream, i.e., if the QAudioOutput
-    is in the SuspendedState or the IdleState, the notify() signal is
-    not emitted. A typical use-case would be to update a
-    \l{QSlider}{slider} that allows seeking in the stream.
-    If you want the time since playback started regardless of which
-    states the audio output has been in, elapsedUSecs() is the function for you.
-
     If an error occurs, you can fetch the \l{QAudio::Error}{error
     type} with the error() function. Please see the QAudio::Error enum
     for a description of the possible errors that are reported.  When
@@ -293,27 +283,6 @@ int QAudioOutput::bufferSize() const
 }
 
 /*!
-    Sets the interval for notify() signal to be emitted.
-    This is based on the \a ms of audio data processed,
-    not on wall clock time.
-    The minimum resolution of the timer is platform specific and values
-    should be checked with notifyInterval() to confirm the actual value
-    being used.
-*/
-void QAudioOutput::setNotifyInterval(int ms)
-{
-    d->setNotifyInterval(ms);
-}
-
-/*!
-    Returns the notify interval in milliseconds.
-*/
-int QAudioOutput::notifyInterval() const
-{
-    return d->notifyInterval();
-}
-
-/*!
     Returns the amount of audio data processed since start()
     was called (in microseconds).
 */
@@ -414,13 +383,6 @@ void QAudioOutput::setCategory(const QString &category)
     \fn QAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
     This is the current state of the audio output.
-*/
-
-/*!
-    \fn QAudioOutput::notify()
-    This signal is emitted when a certain interval of milliseconds
-    of audio data has been processed.  The interval is set by
-    setNotifyInterval().
 */
 
 QT_END_NAMESPACE

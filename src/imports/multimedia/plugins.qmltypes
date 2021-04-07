@@ -462,7 +462,6 @@ Module {
         }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
         Property { name: "audioRole"; revision: 1; type: "AudioRole" }
-        Property { name: "notifyInterval"; revision: 2; type: "int" }
         Property { name: "videoOutput"; revision: 15; type: "QVariant" }
         Signal { name: "playlistChanged"; revision: 1 }
         Signal { name: "loopCountChanged" }
@@ -475,7 +474,6 @@ Module {
             Parameter { name: "error"; type: "QDeclarativeAudio::Error" }
             Parameter { name: "errorString"; type: "string" }
         }
-        Signal { name: "notifyIntervalChanged"; revision: 2 }
         Signal { name: "videoOutputChanged"; revision: 15 }
         Method { name: "play" }
         Method { name: "pause" }

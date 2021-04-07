@@ -264,6 +264,40 @@ static QMatrix4x4 colorMatrix(QVideoSurfaceFormat::YCbCrColorSpace colorSpace)
     }
 }
 
+#if 0
+static QMatrix4x4 yuvColorCorrectionMatrix(float brightness, float contrast, float hue, float saturation)
+{
+    // Color correction in YUV space is done as follows:
+
+    // The formulas assumes values in range 0-255, and a blackpoint of Y=16, whitepoint of Y=235
+    //
+    // Bightness: b
+    // Contrast: c
+    // Hue: h
+    // Saturation: s
+    //
+    // Y' = (Y - 16)*c + b + 16
+    // U' = ((U - 128)*cos(h) + (V - 128)*sin(h))*c*s + 128
+    // V' = ((V - 128)*cos(h) - (U - 128)*sin(h))*c*s + 128
+    //
+    // For normalized YUV values (0-1 range) as we have them in the pixel shader, this translates to:
+    //
+    // Y' = (Y - .0625)*c + b + .0625
+    // U' = ((U - .5)*cos(h) + (V - .5)*sin(h))*c*s + .5
+    // V' = ((V - .5)*cos(h) - (U - .5)*sin(h))*c*s + .5
+    //
+    // The values need to be clamped to 0-1 after the correction and before converting to RGB
+    // The transformation can be encoded in a 4x4 matrix assuming we have an A component of 1
+
+    float chcs = cos(hue)*contrast*saturation;
+    float shcs = sin(hue)*contrast*saturation;
+    return QMatrix4x4(contrast,     0,    0, .0625*(1 - contrast) + brightness,
+                      0,         chcs, shcs,              .5*(1 - chcs - shcs),
+                      0,        -shcs, chcs,              .5*(1 + shcs - chcs),
+                      0,            0,    0,                                1);
+}
+#endif
+
 QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &transform, float opacity)
 {
     QMatrix4x4 cmat;

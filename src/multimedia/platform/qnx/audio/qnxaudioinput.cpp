@@ -60,7 +60,6 @@ QnxAudioInput::QnxAudioInput()
     , m_bytesAvailable(0)
     , m_bufferSize(0)
     , m_periodSize(0)
-    , m_intervalTime(1000)
     , m_pullMode(true)
 {
 }
@@ -176,16 +175,6 @@ int QnxAudioInput::bufferSize() const
     return m_bufferSize;
 }
 
-void QnxAudioInput::setNotifyInterval(int milliSeconds)
-{
-    m_intervalTime = qMax(0, milliSeconds);
-}
-
-int QnxAudioInput::notifyInterval() const
-{
-    return m_intervalTime;
-}
-
 qint64 QnxAudioInput::processedUSecs() const
 {
     return qint64(1000000) * m_format.framesForBytes(m_bytesRead) / m_format.sampleRate();
@@ -256,12 +245,6 @@ bool QnxAudioInput::deviceReady()
     if (m_state != QAudio::ActiveState)
         return true;
 
-    if (m_intervalTime && (m_timeStamp.elapsed() + m_elapsedTimeOffset) > m_intervalTime) {
-        emit notify();
-        m_elapsedTimeOffset = m_timeStamp.elapsed() + m_elapsedTimeOffset - m_intervalTime;
-        m_timeStamp.restart();
-    }
-
     return true;
 }
 
@@ -324,7 +307,6 @@ bool QnxAudioInput::open()
     m_periodSize = qMin(2048, setup.buf.block.frag_size);
 
     m_clockStamp.restart();
-    m_timeStamp.restart();
     m_elapsedTimeOffset = 0;
     m_totalTimeValue = 0;
     m_bytesRead = 0;

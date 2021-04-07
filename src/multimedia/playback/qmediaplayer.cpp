@@ -72,37 +72,12 @@ QT_BEGIN_NAMESPACE
     \sa QVideoWidget
 */
 
-void QMediaPlayerPrivate::_q_notify()
-{
-    Q_Q(QMediaPlayer);
-
-    const QMetaObject* m = q->metaObject();
-
-    // QTBUG-57045
-    // we create a copy of notifyProperties container to ensure that if a property is removed
-    // from the original container as a result of invoking propertyChanged signal, the iterator
-    // won't become invalidated
-    QSet<int> properties = notifyProperties;
-
-    for (int pi : qAsConst(properties)) {
-        QMetaProperty p = m->property(pi);
-        p.notifySignal().invoke(
-            q, QGenericArgument(p.metaType().name(), p.read(q).data()));
-    }
-}
-
 void QMediaPlayerPrivate::setState(QMediaPlayer::State ps)
 {
     Q_Q(QMediaPlayer);
 
     if (ps != state) {
         state = ps;
-
-        if (ps == QMediaPlayer::PlayingState)
-            q->addPropertyWatch("position");
-        else
-            q->removePropertyWatch("position");
-
         emit q->stateChanged(ps);
     }
 }
@@ -118,17 +93,6 @@ void QMediaPlayerPrivate::setStatus(QMediaPlayer::MediaStatus s)
 
     if (s != status) {
         status = s;
-
-        switch (s) {
-        case QMediaPlayer::StalledMedia:
-        case QMediaPlayer::BufferingMedia:
-            q->addPropertyWatch("bufferStatus");
-            break;
-        default:
-            q->removePropertyWatch("bufferStatus");
-            break;
-        }
-
         emit q->mediaStatusChanged(s);
     }
 }
@@ -235,10 +199,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent)
 {
     Q_D(QMediaPlayer);
 
-    d->notifyTimer = new QTimer(this);
-    d->notifyTimer->setInterval(1000);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-
     d->control = QPlatformMediaIntegration::instance()->createPlayer(this);
     if (!d->control) { // ### Should this be an assertion?
         d->setError(QMediaPlayer::ResourceError, QMediaPlayer::tr("Platform does not support media playback."));
@@ -248,12 +208,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent)
 
     d->state = d->control->state();
     d->status = d->control->mediaStatus();
-
-    if (d->state == PlayingState)
-        addPropertyWatch("position");
-
-    if (d->status == StalledMedia || d->status == BufferingMedia)
-        addPropertyWatch("bufferStatus");
 
     d->hasStreamPlaybackFeature = d->control->streamPlaybackSupported();
 }
@@ -272,66 +226,6 @@ QMediaPlayer::~QMediaPlayer()
     disconnect();
 
     delete d->control;
-}
-
-int QMediaPlayer::notifyInterval() const
-{
-    return d_func()->notifyTimer->interval();
-}
-
-void QMediaPlayer::setNotifyInterval(int milliSeconds)
-{
-    Q_D(QMediaPlayer);
-
-    if (d->notifyTimer->interval() != milliSeconds) {
-        d->notifyTimer->setInterval(milliSeconds);
-
-        emit notifyIntervalChanged(milliSeconds);
-    }
-}
-
-/*!
-    Watch the property \a name. The property's notify signal will be emitted
-    once every \c notifyInterval milliseconds.
-
-    \sa notifyInterval
-*/
-
-void QMediaPlayer::addPropertyWatch(QByteArray const &name)
-{
-    Q_D(QMediaPlayer);
-
-    const QMetaObject* m = metaObject();
-
-    int index = m->indexOfProperty(name.constData());
-
-    if (index != -1 && m->property(index).hasNotifySignal()) {
-        d->notifyProperties.insert(index);
-
-        if (!d->notifyTimer->isActive())
-            d->notifyTimer->start();
-    }
-}
-
-/*!
-    Remove property \a name from the list of properties whose changes are
-    regularly signaled.
-
-    \sa notifyInterval
-*/
-
-void QMediaPlayer::removePropertyWatch(QByteArray const &name)
-{
-    Q_D(QMediaPlayer);
-
-    int index = metaObject()->indexOfProperty(name.constData());
-
-    if (index != -1) {
-        d->notifyProperties.remove(index);
-
-        if (d->notifyProperties.isEmpty())
-            d->notifyTimer->stop();
-    }
 }
 
 QUrl QMediaPlayer::media() const
@@ -940,8 +834,7 @@ QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
 
     The value is the current playback position, expressed in milliseconds since
     the beginning of the media. Periodically changes in the position will be
-    indicated with the signal positionChanged(), the interval between updates
-    can be set with setNotifyInterval().
+    indicated with the signal positionChanged().
 */
 
 /*!

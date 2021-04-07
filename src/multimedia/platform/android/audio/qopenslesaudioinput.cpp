@@ -108,7 +108,6 @@ QOpenSLESAudioInput::QOpenSLESAudioInput(const QByteArray &device)
     , m_volume(1.0)
     , m_bufferSize(0)
     , m_periodSize(0)
-    , m_intervalTime(1000)
     , m_buffers(new QByteArray[NUM_BUFFERS])
     , m_currentBuffer(0)
 {
@@ -460,13 +459,6 @@ void QOpenSLESAudioInput::writeDataToDevice(const char *data, int size)
             Q_EMIT m_bufferIODevice->readyRead();
         }
     }
-
-    // Send notify signal if needed
-    qint64 processedMsecs = processedUSecs() / 1000;
-    if (m_intervalTime && (processedMsecs - m_lastNotifyTime) >= m_intervalTime) {
-        Q_EMIT notify();
-        m_lastNotifyTime = processedMsecs;
-    }
 }
 
 void QOpenSLESAudioInput::flushBuffers()
@@ -505,16 +497,6 @@ int QOpenSLESAudioInput::bufferSize() const
 int QOpenSLESAudioInput::periodSize() const
 {
     return m_periodSize;
-}
-
-void QOpenSLESAudioInput::setNotifyInterval(int ms)
-{
-    m_intervalTime = qMax(0, ms);
-}
-
-int QOpenSLESAudioInput::notifyInterval() const
-{
-    return m_intervalTime;
 }
 
 qint64 QOpenSLESAudioInput::processedUSecs() const

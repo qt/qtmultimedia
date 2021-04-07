@@ -305,29 +305,6 @@ int QAudioInput::periodSize() const
 }
 
 /*!
-    Sets the interval for notify() signal to be emitted.
-    This is based on the \a ms of audio data processed
-    not on actual real-time.
-    The minimum resolution of the timer is platform specific and values
-    should be checked with notifyInterval() to confirm actual value
-    being used.
-*/
-
-void QAudioInput::setNotifyInterval(int ms)
-{
-    d->setNotifyInterval(ms);
-}
-
-/*!
-    Returns the notify interval in milliseconds.
-*/
-
-int QAudioInput::notifyInterval() const
-{
-    return d->notifyInterval();
-}
-
-/*!
     Sets the input volume to \a volume.
 
     The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
@@ -399,12 +376,6 @@ QAudio::State QAudioInput::state() const
 /*!
     \fn QAudioInput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
-*/
-
-/*!
-    \fn QAudioInput::notify()
-    This signal is emitted when x ms of audio data has been processed
-    the interval set by setNotifyInterval(x).
 */
 
 QT_END_NAMESPACE

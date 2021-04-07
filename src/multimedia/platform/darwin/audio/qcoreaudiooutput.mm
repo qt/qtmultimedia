@@ -248,10 +248,6 @@ QCoreAudioOutput::QCoreAudioOutput(const QAudioDeviceInfo &device)
 
     m_clockFrequency = CoreAudioUtils::frequency() / 1000;
     m_audioThreadState.storeRelaxed(Stopped);
-
-    m_intervalTimer = new QTimer(this);
-    m_intervalTimer->setInterval(1000);
-    connect(m_intervalTimer, SIGNAL(timeout()), this, SIGNAL(notify()));
 }
 
 QCoreAudioOutput::~QCoreAudioOutput()
@@ -386,22 +382,6 @@ int QCoreAudioOutput::bufferSize() const
     return m_internalBufferSize;
 }
 
-void QCoreAudioOutput::setNotifyInterval(int milliSeconds)
-{
-    if (m_intervalTimer->interval() == milliSeconds)
-        return;
-
-    if (milliSeconds <= 0)
-        milliSeconds = 0;
-
-    m_intervalTimer->setInterval(milliSeconds);
-}
-
-int QCoreAudioOutput::notifyInterval() const
-{
-    return m_intervalTimer->interval();
-}
-
 qint64 QCoreAudioOutput::processedUSecs() const
 {
     return m_totalFrames * 1000000 / m_audioFormat.sampleRate();
@@ -471,7 +451,6 @@ QString QCoreAudioOutput::category() const
 
 void QCoreAudioOutput::deviceStopped()
 {
-    m_intervalTimer->stop();
     emit stateChanged(m_stateCode);
 }
 
@@ -739,14 +718,11 @@ void QCoreAudioOutput::audioDeviceError()
 void QCoreAudioOutput::startTimers()
 {
     m_audioBuffer->startFillTimer();
-    if (m_intervalTimer->interval() > 0)
-        m_intervalTimer->start();
 }
 
 void QCoreAudioOutput::stopTimers()
 {
     m_audioBuffer->stopFillTimer();
-    m_intervalTimer->stop();
 }
 
 QT_END_NAMESPACE

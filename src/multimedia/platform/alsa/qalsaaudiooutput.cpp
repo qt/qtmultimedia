@@ -73,7 +73,6 @@ QAlsaAudioOutput::QAlsaAudioOutput(const QByteArray &device)
     buffer_time = 100000;
     period_time = 20000;
     totalTimeValue = 0;
-    intervalTime = 1000;
     audioBuffer = 0;
     errorState = QAudio::NoError;
     deviceState = QAudio::StoppedState;
@@ -572,16 +571,6 @@ int QAlsaAudioOutput::bufferSize() const
     return buffer_size;
 }
 
-void QAlsaAudioOutput::setNotifyInterval(int ms)
-{
-    intervalTime = qMax(0, ms);
-}
-
-int QAlsaAudioOutput::notifyInterval() const
-{
-    return intervalTime;
-}
-
 qint64 QAlsaAudioOutput::processedUSecs() const
 {
     return qint64(1000000) * totalTimeValue / settings.sampleRate();
@@ -716,11 +705,6 @@ bool QAlsaAudioOutput::deviceReady()
     if(deviceState != QAudio::ActiveState)
         return true;
 
-    if(intervalTime && (timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
-        emit notify();
-        elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
-        timeStamp.restart();
-    }
     return true;
 }
 

@@ -65,7 +65,6 @@ QWindowsAudioInput::QWindowsAudioInput(int deviceId)
     period_size = 0;
     m_deviceId = deviceId;
     totalTimeValue = 0;
-    intervalTime = 1000;
     errorState = QAudio::NoError;
     deviceState = QAudio::StoppedState;
     audioSource = 0;
@@ -323,7 +322,6 @@ bool QWindowsAudioInput::open()
         return false;
     }
 
-    timeStamp.restart();
     elapsedTimeOffset = 0;
 
     if (waveInOpen(&hWaveIn, UINT_PTR(m_deviceId), &wfx.Format,
@@ -610,16 +608,6 @@ int QWindowsAudioInput::periodSize() const
     return period_size;
 }
 
-void QWindowsAudioInput::setNotifyInterval(int ms)
-{
-    intervalTime = qMax(0, ms);
-}
-
-int QWindowsAudioInput::notifyInterval() const
-{
-    return intervalTime;
-}
-
 qint64 QWindowsAudioInput::processedUSecs() const
 {
     if (deviceState == QAudio::StoppedState)
@@ -668,11 +656,6 @@ bool QWindowsAudioInput::deviceReady()
         a->trigger();
     }
 
-    if(intervalTime && (timeStamp.elapsed() + elapsedTimeOffset) > intervalTime) {
-        emit notify();
-        elapsedTimeOffset = timeStamp.elapsed() + elapsedTimeOffset - intervalTime;
-        timeStamp.restart();
-    }
     return true;
 }
 

@@ -63,6 +63,7 @@
 #include <QObject>
 #include <QMediaDeviceManager>
 #include <QWaveDecoder>
+#include <QTimer>
 
 #ifdef DUMP_CAPTURED_AUDIO
 #define DUMP_DATA
@@ -318,6 +319,7 @@ private:
     qint64              m_spectrumPosition;
 
     int                 m_count;
+    QTimer *m_notifyTimer = nullptr;
 
 #ifdef DUMP_DATA
     QDir                m_outputDir;

@@ -89,8 +89,6 @@ public:
     int periodSize() const override;
     void setBufferSize(int value) override;
     int bufferSize() const override;
-    void setNotifyInterval(int milliSeconds) override;
-    int notifyInterval() const override;
     qint64 processedUSecs() const override;
     qint64 elapsedUSecs() const override;
     QAudio::Error error() const override;
@@ -127,7 +125,6 @@ private:
     int m_bytesAvailable = 0;
     int m_bufferSize = 0;
     int m_periodSize = 0;
-    int m_intervalTime = 1000;
     qint64 m_elapsedTimeOffset = 0;
     QElapsedTimer m_timeStamp;
     QElapsedTimer m_clockStamp;

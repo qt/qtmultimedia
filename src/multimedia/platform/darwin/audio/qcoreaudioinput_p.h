@@ -205,8 +205,6 @@ public:
     int periodSize() const;
     void setBufferSize(int value);
     int bufferSize() const;
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
     QAudio::Error error() const;
@@ -268,7 +266,6 @@ private:
     QMutex m_mutex;
     QWaitCondition m_threadFinished;
     QAtomicInt m_audioThreadState;
-    QTimer *m_intervalTimer;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;
     qreal m_volume;

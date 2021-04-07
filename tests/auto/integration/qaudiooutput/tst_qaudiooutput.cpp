@@ -74,11 +74,6 @@ private slots:
     void bufferSize_data();
     void bufferSize();
 
-    void notifyInterval_data();
-    void notifyInterval();
-
-    void disableNotifyInterval();
-
     void stopWhileStopped();
     void suspendWhileStopped();
     void resumeWhileStopped();
@@ -342,67 +337,6 @@ void tst_QAudioOutput::bufferSize()
              QString("bufferSize: requested=%1, actual=%2").arg(bufferSize).arg(audioOutput.bufferSize()).toLocal8Bit().constData());
 }
 
-void tst_QAudioOutput::notifyInterval_data()
-{
-    QTest::addColumn<int>("interval");
-    QTest::newRow("Notify interval 50") << 50;
-    QTest::newRow("Notify interval 100") << 100;
-    QTest::newRow("Notify interval 250") << 250;
-    QTest::newRow("Notify interval 1000") << 1000;
-}
-
-void tst_QAudioOutput::notifyInterval()
-{
-    QFETCH(int, interval);
-    QAudioOutput audioOutput(audioDevice.preferredFormat(), this);
-
-    QVERIFY2((audioOutput.error() == QAudio::NoError), "error() was not set to QAudio::NoError on creation");
-
-    audioOutput.setNotifyInterval(interval);
-    QVERIFY2((audioOutput.error() == QAudio::NoError), QString("error() is not QAudio::NoError after setNotifyInterval(%1)").arg(interval).toLocal8Bit().constData());
-    QVERIFY2((audioOutput.notifyInterval() == interval),
-             QString("notifyInterval: requested=%1, actual=%2").arg(interval).arg(audioOutput.notifyInterval()).toLocal8Bit().constData());
-}
-
-void tst_QAudioOutput::disableNotifyInterval()
-{
-    // Sets an invalid notification interval (QAudioOutput::setNotifyInterval(0))
-    // Checks that
-    //  - No error is raised (QAudioOutput::error() returns QAudio::NoError)
-    //  - if <= 0, set to zero and disable notify signal
-
-    QAudioOutput audioOutput(audioDevice.preferredFormat(), this);
-
-    QVERIFY2((audioOutput.error() == QAudio::NoError), "error() was not set to QAudio::NoError on creation");
-
-    audioOutput.setNotifyInterval(0);
-    QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(0)");
-    QVERIFY2((audioOutput.notifyInterval() == 0),
-            "notifyInterval() is not zero after setNotifyInterval(0)");
-
-    audioOutput.setNotifyInterval(-1);
-    QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after setNotifyInterval(-1)");
-    QVERIFY2((audioOutput.notifyInterval() == 0),
-            "notifyInterval() is not zero after setNotifyInterval(-1)");
-
-    //start and run to check if notify() is emitted
-    if (audioFiles.size() > 0) {
-        QAudioOutput audioOutputCheck(testFormats.at(0), this);
-        audioOutputCheck.setNotifyInterval(0);
-        audioOutputCheck.setVolume(0.1f);
-
-        QSignalSpy notifySignal(&audioOutputCheck, SIGNAL(notify()));
-        QFile *audioFile = audioFiles.at(0).data();
-        audioFile->open(QIODevice::ReadOnly);
-        audioOutputCheck.start(audioFile);
-        QTest::qWait(3000); // 3 seconds should be plenty
-        audioOutputCheck.stop();
-        QVERIFY2((notifySignal.count() == 0),
-                QString("didn't disable notify interval: shouldn't have got any but got %1").arg(notifySignal.count()).toLocal8Bit().constData());
-        audioFile->close();
-    }
-}
-
 void tst_QAudioOutput::stopWhileStopped()
 {
     // Calls QAudioOutput::stop() when object is already in StoppedState
@@ -470,7 +404,6 @@ void tst_QAudioOutput::pull()
 
     QAudioOutput audioOutput(audioFormat, this);
 
-    audioOutput.setNotifyInterval(100);
     audioOutput.setVolume(0.1f);
 
     QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
@@ -529,7 +462,6 @@ void tst_QAudioOutput::pullSuspendResume()
     QFETCH(QAudioFormat, audioFormat);
     QAudioOutput audioOutput(audioFormat, this);
 
-    audioOutput.setNotifyInterval(100);
     audioOutput.setVolume(0.1f);
 
     QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
@@ -616,7 +548,6 @@ void tst_QAudioOutput::push()
 
     QAudioOutput audioOutput(audioFormat, this);
 
-    audioOutput.setNotifyInterval(100);
     audioOutput.setVolume(0.1f);
 
     QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
@@ -703,7 +634,6 @@ void tst_QAudioOutput::pushSuspendResume()
 
     QAudioOutput audioOutput(audioFormat, this);
 
-    audioOutput.setNotifyInterval(100);
     audioOutput.setVolume(0.1f);
 
     QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));
@@ -833,7 +763,6 @@ void tst_QAudioOutput::pushUnderrun()
 
     QAudioOutput audioOutput(audioFormat, this);
 
-    audioOutput.setNotifyInterval(100);
     audioOutput.setVolume(0.1f);
 
     QSignalSpy notifySignal(&audioOutput, SIGNAL(notify()));

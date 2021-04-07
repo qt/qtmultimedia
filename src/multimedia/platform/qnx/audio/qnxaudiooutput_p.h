@@ -83,8 +83,6 @@ public:
     int periodSize() const override;
     void setBufferSize(int) override {}
     int bufferSize() const override { return 0; }
-    void setNotifyInterval(int ms) override;
-    int notifyInterval() const override;
     qint64 processedUSecs() const override;
     qint64 elapsedUSecs() const override;
     QAudio::Error error() const override;
@@ -120,7 +118,6 @@ private:
     bool m_pushSource;
     QTimer m_timer;
 
-    int m_notifyInterval;
     QAudio::Error m_error;
     QAudio::State m_state;
     QAudioFormat m_format;
@@ -131,8 +128,6 @@ private:
     snd_pcm_t *m_pcmHandle;
     qint64 m_bytesWritten;
     QElapsedTimer m_startTimeStamp;
-    QElapsedTimer m_intervalTimeStamp;
-    qint64 m_intervalOffset;
 
 #if _NTO_VERSION >= 700
     QSocketNotifier *m_pcmNotifier;

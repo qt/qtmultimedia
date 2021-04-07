@@ -136,7 +136,6 @@ QPulseAudioInput::QPulseAudioInput(const QByteArray &device)
     , m_bytesAvailable(0)
     , m_bufferSize(0)
     , m_periodSize(0)
-    , m_intervalTime(1000)
     , m_periodTime(PeriodTimeMs)
     , m_stream(nullptr)
     , m_device(device)
@@ -344,7 +343,6 @@ bool QPulseAudioInput::open()
     m_timer->start(m_periodTime);
 
     m_clockStamp.restart();
-    m_timeStamp.restart();
     m_elapsedTimeOffset = 0;
     m_totalTimeValue = 0;
 
@@ -486,12 +484,6 @@ qint64 QPulseAudioInput::read(char *data, qint64 len)
 
         if (!m_pullMode && readBytes >= len)
             break;
-
-        if (m_intervalTime && (m_timeStamp.elapsed() + m_elapsedTimeOffset) > m_intervalTime) {
-            emit notify();
-            m_elapsedTimeOffset = m_timeStamp.elapsed() + m_elapsedTimeOffset - m_intervalTime;
-            m_timeStamp.restart();
-        }
     }
 
 #ifdef DEBUG_PULSE
@@ -558,16 +550,6 @@ int QPulseAudioInput::periodSize() const
     return m_periodSize;
 }
 
-void QPulseAudioInput::setNotifyInterval(int ms)
-{
-    m_intervalTime = qMax(0, ms);
-}
-
-int QPulseAudioInput::notifyInterval() const
-{
-    return m_intervalTime;
-}
-
 qint64 QPulseAudioInput::processedUSecs() const
 {
     pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);
@@ -624,12 +606,6 @@ bool QPulseAudioInput::deviceReady()
 
     if (m_deviceState != QAudio::ActiveState)
         return true;
-
-    if (m_intervalTime && (m_timeStamp.elapsed() + m_elapsedTimeOffset) > m_intervalTime) {
-        emit notify();
-        m_elapsedTimeOffset = m_timeStamp.elapsed() + m_elapsedTimeOffset - m_intervalTime;
-        m_timeStamp.restart();
-    }
 
     return true;
 }
