@@ -39,8 +39,7 @@
 
 #include "avfcameraexposure_p.h"
 #include "avfcamerautility_p.h"
-#include "avfcamerasession_p.h"
-#include "avfcameraservice_p.h"
+#include "avfcamera_p.h"
 #include "avfcameradebug_p.h"
 
 #include <QtCore/qvariant.h>
@@ -160,7 +159,7 @@ bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCameraExposure::E
 // to avoid dangling pointers (thus QPointer for QObjects) and not to create
 // a reference loop (in case we have ARC).
 
-void qt_set_exposure_bias(QPointer<AVFCameraService> service, QPointer<AVFCameraExposure> control,
+void qt_set_exposure_bias(QPointer<AVFCamera> camera, QPointer<AVFCameraExposure> control,
                           AVCaptureDevice *captureDevice, float bias)
 {
     Q_ASSERT(captureDevice);
@@ -168,11 +167,11 @@ void qt_set_exposure_bias(QPointer<AVFCameraService> service, QPointer<AVFCamera
     __block AVCaptureDevice *device = captureDevice; //For ARC.
 
     void (^completionHandler)(CMTime syncTime) = ^(CMTime) {
-        // Test that service control is still alive and that
+        // Test that camera control is still alive and that
         // capture device is our device, if yes - emit actual value changed.
-        if (service) {
+        if (camera) {
             if (control) {
-                if (service->session() && service->session()->videoCaptureDevice() == device)
+                if (camera->device() == device)
                     Q_EMIT control->actualValueChanged(int(QPlatformCameraExposure::ExposureCompensation));
             }
         }
@@ -182,7 +181,7 @@ void qt_set_exposure_bias(QPointer<AVFCameraService> service, QPointer<AVFCamera
     [captureDevice setExposureTargetBias:bias completionHandler:completionHandler];
 }
 
-void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraExposure> control,
+void qt_set_duration_iso(QPointer<AVFCamera> camera, QPointer<AVFCameraExposure> control,
                          AVCaptureDevice *captureDevice, CMTime duration, float iso)
 {
     Q_ASSERT(captureDevice);
@@ -192,11 +191,11 @@ void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraE
     const bool setISO = !qFuzzyCompare(iso, AVCaptureISOCurrent);
 
     void (^completionHandler)(CMTime syncTime) = ^(CMTime) {
-        // Test that service control is still alive and that
+        // Test that camera control is still alive and that
         // capture device is our device, if yes - emit actual value changed.
-        if (service) {
+        if (camera) {
             if (control) {
-                if (service->session() && service->session()->videoCaptureDevice() == device) {
+                if (camera->device() == device) {
                     if (setDuration)
                         Q_EMIT control->actualValueChanged(int(QPlatformCameraExposure::ShutterSpeed));
                     if (setISO)
@@ -216,21 +215,19 @@ void qt_set_duration_iso(QPointer<AVFCameraService> service, QPointer<AVFCameraE
 
 } // Unnamed namespace.
 
-AVFCameraExposure::AVFCameraExposure(AVFCameraService *service)
-    : m_service(service),
-      m_session(nullptr)
+AVFCameraExposure::AVFCameraExposure(AVFCamera *camera)
+    : QPlatformCameraExposure(camera),
+      m_camera(camera)
 {
-    Q_ASSERT(service);
-    m_session = m_service->session();
-    Q_ASSERT(m_session);
+    Q_ASSERT(m_camera);
 
-    connect(m_session, SIGNAL(activeChanged(bool)), SLOT(cameraActiveChanged(bool)));
+    connect(m_camera, SIGNAL(activeChanged(bool)), SLOT(cameraActiveChanged(bool)));
 }
 
 bool AVFCameraExposure::isParameterSupported(ExposureParameter parameter) const
 {
 #ifdef Q_OS_IOS
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice)
         return false;
 
@@ -251,7 +248,7 @@ QVariantList AVFCameraExposure::supportedParameterRange(ExposureParameter parame
     QVariantList parameterRange;
 #ifdef Q_OS_IOS
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->videoCaptureDevice();
     if (!captureDevice || !isParameterSupported(parameter)) {
         qDebugCamera() << Q_FUNC_INFO << "parameter not supported";
         return parameterRange;
@@ -333,7 +330,7 @@ QVariant AVFCameraExposure::requestedValue(ExposureParameter parameter) const
 QVariant AVFCameraExposure::actualValue(ExposureParameter parameter) const
 {
 #ifdef Q_OS_IOS
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice || !isParameterSupported(parameter)) {
         // Actually, at the moment !captiredevice => !isParameterSupported.
         qDebugCamera() << Q_FUNC_INFO << "parameter not supported";
@@ -398,7 +395,7 @@ bool AVFCameraExposure::setExposureMode(const QVariant &value)
         return false;
     }
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
         m_requestedMode = value;
         Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ExposureMode));
@@ -440,7 +437,7 @@ bool AVFCameraExposure::setExposureCompensation(const QVariant &value)
     }
 
     const qreal bias = value.toReal();
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
         m_requestedCompensation = value;
         Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ExposureCompensation));
@@ -460,7 +457,7 @@ bool AVFCameraExposure::setExposureCompensation(const QVariant &value)
         return false;
     }
 
-    qt_set_exposure_bias(m_service, this, captureDevice, bias);
+    qt_set_exposure_bias(m_camera, this, captureDevice, bias);
     m_requestedCompensation = value;
     Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ExposureCompensation));
 
@@ -483,7 +480,7 @@ bool AVFCameraExposure::setShutterSpeed(const QVariant &value)
         return false;
     }
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
         m_requestedShutterSpeed = value;
         Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ShutterSpeed));
@@ -506,7 +503,7 @@ bool AVFCameraExposure::setShutterSpeed(const QVariant &value)
     // Setting the shutter speed (exposure duration in Apple's terms,
     // since there is no shutter actually) will also reset
     // exposure mode into custom mode.
-    qt_set_duration_iso(m_service, this, captureDevice, newDuration, AVCaptureISOCurrent);
+    qt_set_duration_iso(m_camera, this, captureDevice, newDuration, AVCaptureISOCurrent);
 
     m_requestedShutterSpeed = value;
     Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ShutterSpeed));
@@ -529,7 +526,7 @@ bool AVFCameraExposure::setISO(const QVariant &value)
         return false;
     }
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
         m_requestedISO = value;
         Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ISO));
@@ -550,7 +547,7 @@ bool AVFCameraExposure::setISO(const QVariant &value)
 
     // Setting the ISO will also reset
     // exposure mode to the custom mode.
-    qt_set_duration_iso(m_service, this, captureDevice, AVCaptureExposureDurationCurrent, value.toInt());
+    qt_set_duration_iso(m_camera, this, captureDevice, AVCaptureExposureDurationCurrent, value.toInt());
 
     m_requestedISO = value;
     Q_EMIT requestedValueChanged(int(QPlatformCameraExposure::ISO));
@@ -565,13 +562,13 @@ bool AVFCameraExposure::setISO(const QVariant &value)
 void AVFCameraExposure::cameraActiveChanged(bool active)
 {
 #ifdef Q_OS_IOS
-    if (!m_session->isActive())
+    if (!m_camera->isActive())
         return;
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
-        qDebugCamera() << Q_FUNC_INFO << "capture device is nil, but the session"
-                       << "state is 'active'";
+        qDebugCamera() << Q_FUNC_INFO << "capture device is nil, but the camera"
+                       << "is 'active'";
         return;
     }
 
@@ -619,7 +616,7 @@ void AVFCameraExposure::cameraActiveChanged(bool active)
             qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
             return;
         }
-        qt_set_exposure_bias(m_service, this, captureDevice, bias);
+        qt_set_exposure_bias(m_camera, this, captureDevice, bias);
     }
 
     // Setting shutter speed (exposure duration) or ISO values
@@ -630,7 +627,7 @@ void AVFCameraExposure::cameraActiveChanged(bool active)
         if (!lock)
             qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
         else
-            qt_set_duration_iso(m_service, this, captureDevice, newDuration, newISO);
+            qt_set_duration_iso(m_camera, this, captureDevice, newDuration, newISO);
         return;
     }
 
@@ -660,7 +657,7 @@ void AVFCameraExposure::cameraActiveChanged(bool active)
     if (!active) {
         Q_EMIT flashReady(false);
     } else {
-        AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+        AVCaptureDevice *captureDevice = m_camera->device();
         if (!captureDevice) {
             qDebugCamera() << Q_FUNC_INFO << "no capture device in 'Active' state";
             Q_EMIT flashReady(false);
@@ -698,14 +695,14 @@ void AVFCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
     if (m_flashMode == mode)
         return;
 
-    if (m_session->isActive() && !isFlashModeSupported(mode)) {
+    if (m_camera->isActive() && !isFlashModeSupported(mode)) {
         qDebugCamera() << Q_FUNC_INFO << "unsupported mode" << mode;
         return;
     }
 
     m_flashMode = mode;
 
-    if (!m_session->isActive())
+    if (!m_camera->isActive())
         return;
 
     applyFlashSettings();
@@ -723,10 +720,10 @@ bool AVFCameraExposure::isFlashModeSupported(QCameraExposure::FlashMode mode) co
 
 bool AVFCameraExposure::isFlashReady() const
 {
-    if (!m_session->isActive())
+    if (!m_camera->isActive())
         return false;
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice)
         return false;
 
@@ -756,14 +753,14 @@ void AVFCameraExposure::setTorchMode(QCameraExposure::TorchMode mode)
     if (m_torchMode == mode)
         return;
 
-    if (m_session->isActive() && !isTorchModeSupported(mode)) {
+    if (m_camera->isActive() && !isTorchModeSupported(mode)) {
         qDebugCamera() << Q_FUNC_INFO << "unsupported torch mode" << mode;
         return;
     }
 
     m_torchMode = mode;
 
-    if (!m_session->isActive())
+    if (!m_camera->isActive())
         return;
 
     applyFlashSettings();
@@ -781,9 +778,9 @@ bool AVFCameraExposure::isTorchModeSupported(QCameraExposure::TorchMode mode) co
 
 void AVFCameraExposure::applyFlashSettings()
 {
-    Q_ASSERT(m_session->isActive());
+    Q_ASSERT(m_camera->isActive());
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
         qDebugCamera() << Q_FUNC_INFO << "no capture device found";
         return;

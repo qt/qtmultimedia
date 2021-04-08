@@ -39,8 +39,7 @@
 
 #include "avfcamerafocus_p.h"
 #include "avfcamerautility_p.h"
-#include "avfcameraservice_p.h"
-#include "avfcamerasession_p.h"
+#include "avfcamera_p.h"
 #include "avfcameradebug_p.h"
 
 #include <QtCore/qdebug.h>
@@ -77,14 +76,15 @@ AVCaptureFocusMode avf_focus_mode(QCameraFocus::FocusMode requestedMode)
 
 }
 
-AVFCameraFocus::AVFCameraFocus(AVFCameraService *service)
-    : m_session(service->session()),
+AVFCameraFocus::AVFCameraFocus(AVFCamera *camera)
+      : QPlatformCameraFocus(camera),
+      m_camera(camera),
       m_focusMode(QCameraFocus::ContinuousFocus),
       m_customFocusPoint(0.5f, 0.5f),
       m_actualFocusPoint(m_customFocusPoint)
 {
-    Q_ASSERT(m_session);
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), SLOT(cameraStateChanged()));
+    Q_ASSERT(m_camera);
+    connect(m_camera, SIGNAL(activeChanged(bool)), SLOT(cameraActiveChanged(bool)));
 }
 
 QCameraFocus::FocusMode AVFCameraFocus::focusMode() const
@@ -97,7 +97,7 @@ void AVFCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
     if (m_focusMode == mode)
         return;
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
         if (qt_focus_mode_supported(mode)) {
             m_focusMode = mode;
@@ -129,7 +129,7 @@ void AVFCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
 
 bool AVFCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
 {
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice)
         return false;
 
@@ -171,7 +171,7 @@ void AVFCameraFocus::setCustomFocusPoint(const QPointF &point)
     m_customFocusPoint = point;
     Q_EMIT customFocusPointChanged(m_customFocusPoint);
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice)
         return;
 
@@ -201,7 +201,7 @@ bool AVFCameraFocus::isCustomFocusPointSupported() const
 void AVFCameraFocus::setFocusDistance(float d)
 {
 #ifdef Q_OS_IOS
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice)
         return;
 
@@ -225,7 +225,7 @@ void AVFCameraFocus::setFocusDistance(float d)
 float AVFCameraFocus::focusDistance() const
 {
 #ifdef Q_OS_IOS
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice)
         return 1.;
     return captureDevice.lensPosition;
@@ -234,12 +234,12 @@ float AVFCameraFocus::focusDistance() const
 #endif
 }
 
-void AVFCameraFocus::cameraStateChanged()
+void AVFCameraFocus::cameraActiveChanged(bool active)
 {
-    if (m_session->isActive())
+    if (!active)
         return;
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice) {
         qDebugCamera() << Q_FUNC_INFO << "capture device is nil in 'active' state";
         return;
@@ -281,9 +281,9 @@ void AVFCameraFocus::cameraStateChanged()
     }
 
 #ifdef Q_OS_IOS
-    const QCamera::State state = m_session->state();
-    if (state != QCamera::ActiveState) {
-        if (state == QCamera::UnloadedState && m_maxZoomFactor > 1.) {
+    const bool isActive = m_camera->isActive();
+    if (!isActive) {
+        if (m_maxZoomFactor > 1.) {
             m_maxZoomFactor = 1.;
             Q_EMIT maximumDigitalZoomChanged(1.);
         }
@@ -328,7 +328,7 @@ void AVFCameraFocus::zoomTo(float factor, float rate)
     m_requestedZoomFactor = factor;
     Q_EMIT requestedDigitalZoomChanged(digital);
 
-    AVCaptureDevice *captureDevice = m_session->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice || !captureDevice.activeFormat)
         return;
 

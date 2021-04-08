@@ -56,11 +56,11 @@ AVFCamera::AVFCamera(AVFCameraService *service, QObject *parent)
    , m_active(false)
    , m_lastStatus(QCamera::InactiveStatus)
 {
-    m_cameraFocusControl = new AVFCameraFocus(m_service);
-    m_cameraImageProcessingControl = new AVFCameraImageProcessing(m_service);
+    m_cameraFocusControl = new AVFCameraFocus(this);
+    m_cameraImageProcessingControl = new AVFCameraImageProcessing(this);
     m_cameraExposureControl = nullptr;
 #ifdef Q_OS_IOS
-    m_cameraExposureControl = new AVFCameraExposure(m_service);
+    m_cameraExposureControl = new AVFCameraExposure(this);
 #endif
     connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 }
@@ -122,6 +122,17 @@ AVCaptureConnection *AVFCamera::videoConnection() const
     return [m_session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
 }
 
+AVCaptureDevice *AVFCamera::device() const
+{
+    AVCaptureDevice *device = nullptr;
+    QByteArray deviceId = m_cameraInfo.id();
+    if (!deviceId.isEmpty()) {
+        device = [AVCaptureDevice deviceWithUniqueID:
+                    [NSString stringWithUTF8String:
+                        deviceId.constData()]];
+    }
+    return device;
+}
 
 QPlatformCameraFocus *AVFCamera::focusControl()
 {

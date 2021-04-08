@@ -63,8 +63,11 @@ class AVFCameraSession;
 class AVFCameraFocus;
 class AVFCameraExposure;
 class AVFCameraImageProcessing;
-@class AVCaptureDeviceFormat;
-@class AVCaptureConnection;
+
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
+
 
 class AVFCamera : public QPlatformCamera
 {
@@ -86,6 +89,7 @@ public:
 
 
     AVCaptureConnection *videoConnection() const;
+    AVCaptureDevice *device() const;
 
 private Q_SLOTS:
     void updateStatus();
@@ -98,6 +102,8 @@ private:
     AVFCameraFocus *m_cameraFocusControl;
     AVFCameraImageProcessing *m_cameraImageProcessingControl;
     AVFCameraExposure *m_cameraExposureControl;
+
+    QCameraInfo m_cameraInfo;
 
     bool m_active;
     QCamera::Status m_lastStatus;

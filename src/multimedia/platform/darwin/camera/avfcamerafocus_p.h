@@ -58,18 +58,17 @@
 
 #include <AVFoundation/AVFoundation.h>
 
+class AVFCamera;
+
 @class AVCaptureDevice;
 
 QT_BEGIN_NAMESPACE
-
-class AVFCameraService;
-class AVFCameraSession;
 
 class AVFCameraFocus : public QPlatformCameraFocus
 {
     Q_OBJECT
 public:
-    explicit AVFCameraFocus(AVFCameraService *service);
+    explicit AVFCameraFocus(AVFCamera *camera);
 
     QCameraFocus::FocusMode focusMode() const override;
     void setFocusMode(QCameraFocus::FocusMode mode) override;
@@ -86,10 +85,10 @@ public:
     void zoomTo(float newZoomFactor, float rate = -1.) override;
 
 private Q_SLOTS:
-    void cameraStateChanged();
+    void cameraActiveChanged(bool active);
 
 private:
-    AVFCameraSession *m_session;
+    AVFCamera *m_camera;
     QCameraFocus::FocusMode m_focusMode;
     QPointF m_customFocusPoint;
     QPointF m_actualFocusPoint;

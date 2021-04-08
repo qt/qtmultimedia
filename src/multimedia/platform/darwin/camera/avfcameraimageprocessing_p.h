@@ -57,15 +57,14 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraSession;
-class AVFCameraService;
+class AVFCamera;
 
 class AVFCameraImageProcessing : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 
 public:
-    AVFCameraImageProcessing(AVFCameraService *service);
+    AVFCameraImageProcessing(AVFCamera *camera);
     virtual ~AVFCameraImageProcessing();
 
     bool isParameterSupported(ProcessingParameter) const override;
@@ -80,12 +79,12 @@ public:
 #endif
 
 private Q_SLOTS:
-    void cameraStateChanged();
+    void cameraActiveChanged(bool active);
 
 private:
     bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
 
-    AVFCameraSession *m_session;
+    AVFCamera *m_camera;
     QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
 
 #ifdef Q_OS_IOS

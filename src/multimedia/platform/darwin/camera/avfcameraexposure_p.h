@@ -58,15 +58,14 @@
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraSession;
-class AVFCameraService;
+class AVFCamera;
 
 class AVFCameraExposure : public QPlatformCameraExposure
 {
     Q_OBJECT
 
 public:
-    AVFCameraExposure(AVFCameraService *service);
+    AVFCameraExposure(AVFCamera *camera);
 
     bool isParameterSupported(ExposureParameter parameter) const override;
     QVariantList supportedParameterRange(ExposureParameter parameter,
@@ -91,8 +90,7 @@ private Q_SLOTS:
 private:
     void applyFlashSettings();
 
-    AVFCameraService *m_service;
-    AVFCameraSession *m_session;
+    AVFCamera *m_camera;
 
     QVariant m_requestedMode;
     QVariant m_requestedCompensation;
