@@ -128,7 +128,6 @@ QRect QGstreamerVideoSink::displayRect() const
 void QGstreamerVideoSink::setDisplayRect(const QRect &rect)
 {
     m_videoOverlay->setRenderRectangle(m_displayRect = rect);
-    repaint();
 }
 
 Qt::AspectRatioMode QGstreamerVideoSink::aspectRatioMode() const
@@ -139,11 +138,6 @@ Qt::AspectRatioMode QGstreamerVideoSink::aspectRatioMode() const
 void QGstreamerVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     m_videoOverlay->setAspectRatioMode(mode);
-}
-
-void QGstreamerVideoSink::repaint()
-{
-    m_videoOverlay->expose();
 }
 
 int QGstreamerVideoSink::brightness() const

@@ -75,7 +75,6 @@ public:
     QSize nativeVideoSize() const;
 
     void setWindowHandle(WId id);
-    void expose();
     void setRenderRectangle(const QRect &rect);
 
     bool isActive() const;

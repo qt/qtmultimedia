@@ -92,7 +92,6 @@ public:
     bool isFullScreen() const override;
     void setFullScreen(bool fullScreen) override;
 
-    void repaint() override;
     QSize nativeSize() const override;
     void setNativeSize(QSize size);
 

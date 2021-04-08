@@ -440,15 +440,6 @@ void QGstreamerVideoOverlay::setWindowHandle_helper(WId id)
     }
 }
 
-void QGstreamerVideoOverlay::expose()
-{
-    if (!isActive())
-        return;
-
-    if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object()))
-        gst_video_overlay_expose(GST_VIDEO_OVERLAY(m_videoSink.object()));
-}
-
 void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
 {
     int x = -1;

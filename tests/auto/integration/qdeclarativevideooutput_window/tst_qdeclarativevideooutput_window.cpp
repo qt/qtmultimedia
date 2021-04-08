@@ -69,10 +69,6 @@ public:
     [[nodiscard]] bool isFullScreen() const override { return m_fullScreen; }
     void setFullScreen(bool fullScreen) override { m_fullScreen = fullScreen; }
 
-    [[nodiscard]] int repaintCount() const { return m_repaintCount; }
-    void setRepaintCount(int count) { m_repaintCount = count; }
-    void repaint() override { ++m_repaintCount; }
-
     [[nodiscard]] QSize nativeSize() const override { return m_nativeSize; }
     void setNativeSize(const QSize &size) { m_nativeSize = size; emit nativeSizeChanged(); }
 
@@ -93,7 +89,6 @@ public:
 
 private:
     WId m_winId = 0;
-    int m_repaintCount = 0;
     int m_brightness = 0;
     int m_contrast = 0;
     int m_hue = 0;
@@ -186,23 +181,17 @@ void tst_QDeclarativeVideoOutputWindow::nativeSize()
 void tst_QDeclarativeVideoOutputWindow::aspectRatio()
 {
     const QRect expectedDisplayRect(25, 50, 150, 100);
-    int oldRepaintCount = m_windowControl.repaintCount();
     m_videoItem->setProperty("fillMode", QDeclarativeVideoOutput::Stretch);
     QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::IgnoreAspectRatio);
     QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
-    QVERIFY(m_windowControl.repaintCount() > oldRepaintCount);
 
-    oldRepaintCount = m_windowControl.repaintCount();
     m_videoItem->setProperty("fillMode", QDeclarativeVideoOutput::PreserveAspectFit);
     QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::KeepAspectRatio);
     QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
-    QVERIFY(m_windowControl.repaintCount() > oldRepaintCount);
 
-    oldRepaintCount = m_windowControl.repaintCount();
     m_videoItem->setProperty("fillMode", QDeclarativeVideoOutput::PreserveAspectCrop);
     QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::KeepAspectRatioByExpanding);
     QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
-    QVERIFY(m_windowControl.repaintCount() > oldRepaintCount);
 }
 
 void tst_QDeclarativeVideoOutputWindow::geometryChange()

@@ -72,8 +72,6 @@ public:
     virtual bool isFullScreen() const = 0;
     virtual void setFullScreen(bool fullScreen) = 0;
 
-    virtual void repaint() = 0;
-
     virtual QSize nativeSize() const = 0;
 
     virtual Qt::AspectRatioMode aspectRatioMode() const = 0;

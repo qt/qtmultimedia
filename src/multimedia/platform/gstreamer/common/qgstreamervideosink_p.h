@@ -92,8 +92,6 @@ public:
     Qt::AspectRatioMode aspectRatioMode() const override;
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    void repaint() override;
-
     int brightness() const override;
     void setBrightness(int brightness) override;
 
