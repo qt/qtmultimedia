@@ -101,19 +101,8 @@ public:
     int saturation() const;
     void setSaturation(int saturation);
 
-    // ignored in windowed mode (GraphicsType == NativeWindow)
-    QMatrix4x4 transform() const;
-    void setTransform(const QMatrix4x4 &transform);
-
-    // ignored in windowed mode?
-    float opacity() const;
-    void setOpacity(float opacity);
-
     Qt::BGMode backgroundMode() const;
     void setBackgroundMode(Qt::BGMode mode);
-
-    // Thread safe
-    void render(const QVideoFrame &frame);
 
     void paint(QPainter *painter, const QVideoFrame &frame);
 

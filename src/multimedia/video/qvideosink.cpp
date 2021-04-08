@@ -77,8 +77,6 @@ public:
     int saturation = 0;
     int hue = 0;
     Qt::BGMode backgroundMode = Qt::OpaqueMode;
-    QMatrix4x4 transform;
-    float opacity = 1.;
 };
 
 QVideoSink::QVideoSink(QObject *parent)
@@ -203,26 +201,6 @@ void QVideoSink::setSaturation(int saturation)
     d->videoSink->setSaturation(saturation);
 }
 
-QMatrix4x4 QVideoSink::transform() const
-{
-    return d->transform;
-}
-
-void QVideoSink::setTransform(const QMatrix4x4 &transform)
-{
-    d->transform = transform;
-}
-
-float QVideoSink::opacity() const
-{
-    return d->opacity;
-}
-
-void QVideoSink::setOpacity(float opacity)
-{
-    d->opacity = opacity;
-}
-
 Qt::BGMode QVideoSink::backgroundMode() const
 {
     return d->backgroundMode;
@@ -233,17 +211,11 @@ void QVideoSink::setBackgroundMode(Qt::BGMode mode)
     d->backgroundMode = mode;
 }
 
-void QVideoSink::render(const QVideoFrame &frame)
-{
-    Q_UNUSED(frame);
-
-}
-
 void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
 {
     QVideoFrame frame(f);
     if (!frame.isValid()) {
-        painter->fillRect(d->targetRect, Qt::black);
+        painter->fillRect(d->targetRect, painter->background());
         return;
     }
 
@@ -294,7 +266,6 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
     if (frame.map(QVideoFrame::ReadOnly)) {
         QImage image = frame.toImage();
 
-        auto oldOpacity = painter->opacity();
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;
         if (scanLineDirection == QVideoSurfaceFormat::BottomToTop) {
@@ -309,10 +280,8 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
             targetRect = QRectF(0, targetRect.y(), targetRect.width(), targetRect.height());
         }
         painter->setTransform(transform);
-        painter->setOpacity(d->opacity);
         painter->drawImage(targetRect, image, source);
         painter->setTransform(oldTransform);
-        painter->setOpacity(oldOpacity);
 
         frame.unmap();
     } else if (frame.isValid()) {
