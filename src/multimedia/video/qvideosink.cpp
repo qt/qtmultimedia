@@ -79,6 +79,35 @@ public:
     Qt::BGMode backgroundMode = Qt::OpaqueMode;
 };
 
+/*!
+    \class QVideoSink
+
+    \brief The QVideoSink class represents a generic sink for video data.
+    \inmodule QtMultimedia
+    \ingroup multimedia
+
+    The QVideoSink class can be used to retrieve video data on a frame by frame
+    basis from Qt Multimedia.
+
+    QVideoSink can operate in two modes. In the first mode, it can render the video
+    stream to a native window of the underlying windowing system. In the other mode,
+    it will provide individual video frames to the application developer through the
+    newVideoFrame() signal.
+
+    The video frame can then be used to read out the data of those frames and handle them
+    further. When using QPainter, the QVideoFrame can be drawing using the paint() method
+    in QVideoSink.
+
+    QVideoFrame objects can consume a significant amount of memory or system resources and
+    should thus not be held for longer than required by the application.
+
+    \sa QMediaPlayer, QMediaCaptureSession
+
+*/
+
+/*!
+    Constructs a new QVideoSink object with \a parent.
+ */
 QVideoSink::QVideoSink(QObject *parent)
     : QObject(parent),
     d(new QVideoSinkPrivate(this))
@@ -86,6 +115,9 @@ QVideoSink::QVideoSink(QObject *parent)
     qRegisterMetaType<QVideoFrame>();
 }
 
+/*!
+    Destroys the object.
+ */
 QVideoSink::~QVideoSink()
 {
     delete d;
@@ -107,21 +139,40 @@ bool QVideoSink::isGraphicsTypeSupported(QVideoSink::GraphicsType type)
     return type == NativeWindow;
 }
 
+/*!
+    Returns the native window id that the sink is currently rendering to.
+ */
 WId QVideoSink::nativeWindowId() const
 {
     return d->videoSink->winId();
 }
 
+/*!
+    Tells QVideoSink to render directly to the native window \a id. This is usually more
+    resource efficient than rendering individual video frames.
+
+    The newVideoFrame() signal will never get emitted in this mode.
+
+    Setting \a id to 0 will stop rendering to a native window.
+ */
 void QVideoSink::setNativeWindowId(WId id)
 {
     d->videoSink->setWinId(id);
 }
 
+/*!
+    \internal
+    The QRhi instance being used to create texture data in the video frames.
+ */
 QRhi *QVideoSink::rhi() const
 {
     return d->rhi;
 }
 
+/*!
+    \internal
+    Sets the QRhi instance being used to create texture data in the video frames to \a rhi.
+ */
 void QVideoSink::setRhi(QRhi *rhi)
 {
     if (d->rhi == rhi)
@@ -130,11 +181,20 @@ void QVideoSink::setRhi(QRhi *rhi)
     d->videoSink->setRhi(rhi);
 }
 
+/*!
+    Render the video full screen. This is often more resource efficient than rendering to
+    only parts of the screen.
+
+    The newVideoFrame() signal will never get emitted when rendering full screen.
+ */
 void QVideoSink::setFullScreen(bool fullscreen)
 {
     d->videoSink->setFullScreen(fullscreen);
 }
 
+/*!
+    Returns true when rendering full screen.
+ */
 bool QVideoSink::isFullscreen() const
 {
     return d->videoSink->isFullScreen();
@@ -211,6 +271,10 @@ void QVideoSink::setBackgroundMode(Qt::BGMode mode)
     d->backgroundMode = mode;
 }
 
+/*!
+    Use a QPainter to render the QVideoFrame \a f. Rendering will usually happen in without hardware
+    acceleration when using this method.
+*/
 void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
 {
     QVideoFrame frame(f);
