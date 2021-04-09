@@ -31,6 +31,9 @@
 
 #include "private/qplatformcamera_p.h"
 #include "qcamerainfo.h"
+#include "mockcamerafocuscontrol.h"
+#include "mockcameraimageprocessingcontrol.h"
+#include "mockcameraexposurecontrol.h"
 #include <qtimer.h>
 
 class MockCameraControl : public QPlatformCamera
@@ -38,11 +41,14 @@ class MockCameraControl : public QPlatformCamera
     friend class MockCaptureControl;
     Q_OBJECT
 public:
-    MockCameraControl(QObject *parent = 0):
+    MockCameraControl(QCamera *parent = 0):
             QPlatformCamera(parent),
             m_status(QCamera::InactiveStatus),
             m_propertyChangesSupported(false)
     {
+        mockExposureControl = new MockCameraExposureControl(this);
+        mockFocusControl = new MockCameraFocusControl(this);
+        mockImageProcessingControl = new MockImageProcessingControl(this);
     }
 
     ~MockCameraControl() {}
@@ -81,6 +87,10 @@ public:
     QCamera::Status m_status;
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;
+
+    MockCameraExposureControl *mockExposureControl;
+    MockCameraFocusControl *mockFocusControl;
+    MockImageProcessingControl *mockImageProcessingControl;
 };
 
 

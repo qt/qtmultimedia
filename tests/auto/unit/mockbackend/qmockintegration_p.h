@@ -58,6 +58,7 @@ QT_BEGIN_NAMESPACE
 class QMockDeviceManager;
 class MockMediaPlayer;
 class MockAudioDecoderControl;
+class MockCameraControl;
 class MockMediaRecorderService;
 
 class QMockIntegration : public QPlatformMediaIntegration
@@ -71,6 +72,9 @@ public:
 
     QPlatformAudioDecoder *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *) override;
+    QPlatformCamera *createCamera(QCamera *) override;
+    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override { return nullptr; }
+    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override { return nullptr; }
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
 
     enum Flag {
@@ -85,6 +89,7 @@ public:
 
     MockMediaPlayer *lastPlayer() const { return m_lastPlayer; }
     MockAudioDecoderControl *lastAudioDecoder() const { return m_lastAudioDecoderControl; }
+    MockCameraControl *lastCamera() const { return m_lastCamera; }
     MockMediaRecorderService *lastCaptureService() const { return m_lastCaptureService; }
 
 private:
@@ -92,6 +97,7 @@ private:
     QMockDeviceManager *m_manager = nullptr;
     MockMediaPlayer *m_lastPlayer = nullptr;
     MockAudioDecoderControl *m_lastAudioDecoderControl = nullptr;
+    MockCameraControl *m_lastCamera = nullptr;
     MockMediaRecorderService *m_lastCaptureService = nullptr;
 };
 

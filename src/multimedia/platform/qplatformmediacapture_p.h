@@ -68,13 +68,14 @@ public:
     QPlatformMediaCaptureSession() = default;
     virtual ~QPlatformMediaCaptureSession();
 
-    virtual QPlatformCamera *addCamera() = 0;
-    virtual void releaseCamera(QPlatformCamera *) {}
+    virtual QPlatformCamera *camera() = 0;
+    virtual void setCamera(QPlatformCamera *) {}
 
-    virtual QPlatformCameraImageCapture *addImageCapture() = 0;
-    virtual void releaseImageCapture(QPlatformCameraImageCapture *) {};
+    virtual QPlatformCameraImageCapture *imageCapture() = 0;
+    virtual void setImageCapture(QPlatformCameraImageCapture *) {}
 
     virtual QPlatformMediaEncoder *mediaEncoder() = 0;
+    virtual void setMediaEncoder(QPlatformMediaEncoder *) {}
 
     virtual bool isMuted() const = 0;
     virtual void setMuted(bool muted) = 0;

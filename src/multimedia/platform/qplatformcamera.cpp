@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
     Constructs a camera control object with \a parent.
 */
 
-QPlatformCamera::QPlatformCamera(QObject *parent)
+QPlatformCamera::QPlatformCamera(QCamera *parent)
     : QObject(parent)
 {
 }

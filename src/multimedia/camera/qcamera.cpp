@@ -91,8 +91,9 @@ void QCameraPrivate::init()
     Q_Q(QCamera);
     control = nullptr;
     if (captureInterface && !cameraInfo.isNull()) {
-        control = captureInterface->addCamera();
+        control = QPlatformMediaIntegration::instance()->createCamera(q);
         control->setCamera(cameraInfo);
+        captureInterface->setCamera(control);
     } else {
         clear();
         _q_error(QCamera::CameraError, QCamera::tr("The camera is not connected to a capture session"));
@@ -190,7 +191,7 @@ QCamera::~QCamera()
 {
     Q_D(QCamera);
     if (d->captureSession) {
-        d->captureInterface->releaseCamera(d->control);
+        d->captureInterface->setCamera(nullptr);
         d->captureSession->setCamera(nullptr);
     }
     Q_ASSERT(!d->captureSession);

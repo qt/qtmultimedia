@@ -42,6 +42,9 @@
 #include "private/qgstreamermediaplayer_p.h"
 #include "private/qgstreamermediacapture_p.h"
 #include "private/qgstreameraudiodecoder_p.h"
+#include "private/qgstreamercamera_p.h"
+#include "private/qgstreamermediaencoder_p.h"
+#include "private/qgstreamercameraimagecapture_p.h"
 #include "private/qgstreamerformatinfo_p.h"
 #include "private/qgstreamervideorenderer_p.h"
 #include "private/qgstreamervideosink_p.h"
@@ -86,6 +89,21 @@ QPlatformMediaCaptureSession *QGstreamerIntegration::createCaptureSession(QMedia
 QPlatformMediaPlayer *QGstreamerIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QGstreamerMediaPlayer(player);
+}
+
+QPlatformCamera *QGstreamerIntegration::createCamera(QCamera *camera)
+{
+    return new QGstreamerCamera(camera);
+}
+
+QPlatformMediaEncoder *QGstreamerIntegration::createEncoder(QMediaEncoder*)
+{
+    return nullptr;
+}
+
+QPlatformImageCapture *QGstreamerIntegration::createImageCapture(QCameraImageCapture*)
+{
+    return nullptr;
 }
 
 QPlatformVideoSink *QGstreamerIntegration::createVideoSink(QVideoSink *sink)

@@ -57,7 +57,7 @@ QT_USE_NAMESPACE
 AVFCameraService::AVFCameraService()
 {
     m_session = new AVFCameraSession(this);
-    m_recorderControl = new AVFMediaEncoder(this);
+    m_recorderControl = new AVFMediaEncoder(this); // ### get rid of this
 
     m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 }
@@ -73,51 +73,32 @@ AVFCameraService::~AVFCameraService()
     if (m_imageCaptureControl)
         delete m_imageCaptureControl;
     //delete m_recorderControl;
-    if (m_cameraControl)
-        delete m_cameraControl;
-
-    delete m_session;
+    if (m_session)
+        delete m_session;
 }
 
-QPlatformCamera *AVFCameraService::addCamera()
+QPlatformCamera *AVFCameraService::camera()
 {
-    if (!m_cameraControl) {
-        m_cameraControl = new AVFCamera(this);
-    }
     return m_cameraControl;
 }
 
-void AVFCameraService::releaseCamera(QPlatformCamera *camera)
+void AVFCameraService::setCamera(QPlatformCamera *camera)
 {
-    if (camera) {
-        if (camera == m_cameraControl) {
-            // is this correct?
-            if (m_imageCaptureControl)
-                releaseImageCapture(m_imageCaptureControl);
-            m_session->setActiveCamera(QCameraInfo());
-            delete m_cameraControl;
-            m_cameraControl = nullptr;
-        }
-    }
+    AVFCamera *control = static_cast<AVFCamera*>(camera);
+    if (m_cameraControl == control)
+        return;
+
+    if (m_cameraControl)
+        m_cameraControl->setCaptureSession(nullptr);
+
+    m_cameraControl = control;
+    if (m_cameraControl)
+        m_cameraControl->setCaptureSession(this);
 }
 
-QPlatformCameraImageCapture *AVFCameraService::addImageCapture()
+QPlatformCameraImageCapture *AVFCameraService::imageCapture()
 {
-    if (!m_imageCaptureControl) {
-        if (m_cameraControl)
-            m_imageCaptureControl = new AVFCameraImageCapture(this);
-    }
     return m_imageCaptureControl;
-}
-
-void AVFCameraService::releaseImageCapture(QPlatformCameraImageCapture *imageCapture)
-{
-    if (imageCapture) {
-        if (imageCapture == m_imageCaptureControl) {
-            delete m_imageCaptureControl;
-            m_imageCaptureControl = nullptr;
-        }
-    }
 }
 
 QPlatformMediaEncoder *AVFCameraService::mediaEncoder()
@@ -181,6 +162,10 @@ bool AVFCameraService::setAudioInput(const QAudioDeviceInfo &id)
 void AVFCameraService::setVideoPreview(QVideoSink *sink)
 {
     m_session->setVideoSink(sink);
+}
+
+void AVFCameraService::cameraChanged()
+{
 }
 
 #include "moc_avfcameraservice_p.cpp"

@@ -46,14 +46,16 @@
 #include <private/qgstreamercameraexposure_p.h>
 #include <private/qgstreamercamerafocus_p.h>
 #include <private/qgstreamercameraimageprocessing_p.h>
+#include <qmediacapturesession.h>
 
 #include <QtCore/qdebug.h>
 
-QGstreamerCamera::QGstreamerCamera(QGstreamerMediaCapture *session)
-    : QPlatformCamera(session),
-      m_session(session),
+QGstreamerCamera::QGstreamerCamera(QCamera *camera)
+    : QPlatformCamera(camera),
       gstCameraBin("camerabin")
 {
+    m_session = static_cast<QGstreamerMediaCapture *>(camera->captureSession()->platformSession());
+
     gstCamera = QGstElement("videotestsrc");
     gstVideoConvert = QGstElement("videoconvert", "videoConvert");
     gstVideoScale = QGstElement("videoscale", "videoScale");
@@ -63,6 +65,9 @@ QGstreamerCamera::QGstreamerCamera(QGstreamerMediaCapture *session)
     gstCameraBin.addGhostPad(gstVideoScale, "src");
 
     imageProcessing = new QGstreamerImageProcessing(this);
+
+    // ### should this be called in constructor?
+    // setCamera(camera->cameraInfo());
 }
 
 QGstreamerCamera::~QGstreamerCamera() = default;
@@ -86,6 +91,8 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 {
     if (m_cameraInfo == camera)
         return;
+
+    m_cameraInfo = camera;
 
     auto state = gstPipeline.state();
     gstPipeline.setStateSync(GST_STATE_NULL); // ### Can we do it pausing only????
@@ -113,8 +120,18 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 
     gstPipeline.setStateSync(state);
 
-    m_session->cameraChanged();
+    //m_session->cameraChanged();
     imageProcessing->update();
+}
+
+void QGstreamerCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
+    if (m_session == captureSession)
+        return;
+
+    m_session = captureSession;
+    // is this enough?
 }
 
 QPlatformCameraImageProcessing *QGstreamerCamera::imageProcessingControl()

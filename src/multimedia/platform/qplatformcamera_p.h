@@ -76,6 +76,8 @@ public:
 
     virtual void setCamera(const QCameraInfo &camera) = 0;
 
+    virtual void setCaptureSession(QPlatformMediaCaptureSession *) {}
+
     virtual QPlatformCameraFocus *focusControl() { return nullptr; }
     virtual QPlatformCameraExposure *exposureControl() { return nullptr; }
     virtual QPlatformCameraImageProcessing *imageProcessingControl() { return nullptr; }
@@ -86,7 +88,7 @@ Q_SIGNALS:
     void error(int error, const QString &errorString);
 
 protected:
-    explicit QPlatformCamera(QObject *parent = nullptr);
+    explicit QPlatformCamera(QCamera *parent);
 };
 
 QT_END_NAMESPACE

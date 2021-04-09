@@ -46,16 +46,26 @@
 #include "avfcameraexposure_p.h"
 #include "avfcamerafocus_p.h"
 #include "avfcameraimageprocessing_p.h"
+#include <qmediacapturesession.h>
 
 QT_USE_NAMESPACE
 
-AVFCamera::AVFCamera(AVFCameraService *service, QObject *parent)
-   : QPlatformCamera(parent)
-   , m_session(service->session())
-   , m_service(service)
+AVFCamera::AVFCamera(QCamera *camera)
+   : QPlatformCamera(camera)
    , m_active(false)
    , m_lastStatus(QCamera::InactiveStatus)
 {
+    Q_ASSERT(camera);
+    Q_ASSERT(camera->captureSession());
+
+    m_service = static_cast<AVFCameraService *>(camera->captureSession()->platformSession());
+    Q_ASSERT(m_service);
+
+    m_session = m_service->session();
+    Q_ASSERT(m_session);
+
+    setCamera(camera->cameraInfo());
+
     m_cameraFocusControl = new AVFCameraFocus(this);
     m_cameraImageProcessingControl = new AVFCameraImageProcessing(this);
     m_cameraExposureControl = nullptr;
@@ -100,7 +110,29 @@ QCamera::Status AVFCamera::status() const
 
 void AVFCamera::setCamera(const QCameraInfo &camera)
 {
+    if (m_cameraInfo == camera)
+        return;
+    m_cameraInfo = camera;
     m_session->setActiveCamera(camera);
+}
+
+void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    AVFCameraService *captureSession = static_cast<AVFCameraService *>(session);
+    if (m_service == captureSession)
+        return;
+
+    if (m_session) {
+        m_session->setActiveCamera(QCameraInfo());
+        m_session = nullptr;
+    }
+
+    m_service = captureSession;
+    if (m_service) {
+        m_session = m_service->session();
+        m_session->setActiveCamera(m_cameraInfo);
+    }
+    captureSessionChanged();
 }
 
 void AVFCamera::updateStatus()
@@ -147,6 +179,11 @@ QPlatformCameraExposure *AVFCamera::exposureControl()
 QPlatformCameraImageProcessing *AVFCamera::imageProcessingControl()
 {
     return m_cameraImageProcessingControl;
+}
+
+void AVFCamera::captureSessionChanged()
+{
+
 }
 
 #include "moc_avfcamera_p.cpp"

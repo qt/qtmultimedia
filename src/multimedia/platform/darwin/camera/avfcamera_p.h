@@ -73,7 +73,7 @@ class AVFCamera : public QPlatformCamera
 {
 Q_OBJECT
 public:
-    AVFCamera(AVFCameraService *service, QObject *parent = nullptr);
+    AVFCamera(QCamera *camera);
     ~AVFCamera();
 
     bool isActive() const override;
@@ -82,6 +82,8 @@ public:
     QCamera::Status status() const override;
 
     void setCamera(const QCameraInfo &camera) override;
+
+    void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
     QPlatformCameraFocus *focusControl() override;
     QPlatformCameraExposure *exposureControl() override;
@@ -93,11 +95,12 @@ public:
 
 private Q_SLOTS:
     void updateStatus();
+    void captureSessionChanged();
 
 private:
     friend class AVFCameraSession;
-    AVFCameraSession *m_session;
-    AVFCameraService *m_service;
+    AVFCameraService *m_service = nullptr;
+    AVFCameraSession *m_session = nullptr;
 
     AVFCameraFocus *m_cameraFocusControl;
     AVFCameraImageProcessing *m_cameraImageProcessingControl;

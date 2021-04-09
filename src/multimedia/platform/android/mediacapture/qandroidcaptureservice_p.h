@@ -71,11 +71,9 @@ public:
     explicit QAndroidCaptureService(QMediaRecorder::CaptureMode mode);
     virtual ~QAndroidCaptureService();
 
-    QPlatformCamera *addCamera() override;
-    // void releaseCamera(QPlatformCamera *) override;
+    QPlatformCamera *camera() override;
 
-    QPlatformCameraImageCapture *addImageCapture() override;
-    // void releaseImageCapture(QPlatformCameraImageCapture *) override;
+    QPlatformCameraImageCapture *imageCapture() override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
 

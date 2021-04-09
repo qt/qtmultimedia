@@ -67,7 +67,7 @@ class QGstreamerCamera : public QPlatformCamera
 {
     Q_OBJECT
 public:
-    QGstreamerCamera(QGstreamerMediaCapture *session);
+    QGstreamerCamera(QCamera *camera);
     virtual ~QGstreamerCamera();
 
     bool isActive() const override;
@@ -76,6 +76,8 @@ public:
     QCamera::Status status() const override { return m_status; }
 
     void setCamera(const QCameraInfo &camera) override;
+
+    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
     QGstElement gstElement() const { return gstCameraBin.element(); }
     void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
@@ -93,7 +95,7 @@ public:
     GstColorBalance *colorBalance() const;
 
 private:
-    QGstreamerMediaCapture *m_session;
+    QGstreamerMediaCapture *m_session = nullptr;
 
     QGstreamerCameraFocus *focus = nullptr;
     QGstreamerCameraExposure *exposure = nullptr;

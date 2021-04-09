@@ -73,11 +73,10 @@ public:
     AVFCameraService();
     ~AVFCameraService();
 
-    QPlatformCamera *addCamera() override;
-    void releaseCamera(QPlatformCamera *) override;
+    QPlatformCamera *camera() override;
+    void setCamera(QPlatformCamera *) override;
 
-    QPlatformCameraImageCapture *addImageCapture() override;
-    void releaseImageCapture(QPlatformCameraImageCapture *) override;
+    QPlatformCameraImageCapture *imageCapture() override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
 
@@ -95,14 +94,16 @@ public:
     AVFMediaEncoder *recorderControl() const { return m_recorderControl; }
     AVFCameraImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
 
+    void cameraChanged();
+
 private:
     bool m_muted = false;
     qreal m_volume = 1.0;
     AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
-    AVFCameraSession *m_session;
+    AVFCameraSession *m_session = nullptr;
     AVFCamera *m_cameraControl = nullptr;
-    AVFMediaEncoder *m_recorderControl;
+    AVFMediaEncoder *m_recorderControl = nullptr;
     AVFCameraImageCapture *m_imageCaptureControl = nullptr;
 };
 

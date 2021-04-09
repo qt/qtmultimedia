@@ -329,10 +329,11 @@ void tst_QCamera::testCameraWhiteBalance()
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceTungsten;
 
     QCamera camera;
-    auto *service = integration->lastCaptureService();
-    service->mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
-    service->mockImageProcessingControl->setSupportedWhiteBalanceModes(whiteBalanceModes);
-    service->mockImageProcessingControl->setParameter(
+    MockCameraControl *mockCameraControl = new MockCameraControl(&camera);
+    //auto *service = integration->lastCaptureService();
+    mockCameraControl->mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
+    mockCameraControl->mockImageProcessingControl->setSupportedWhiteBalanceModes(whiteBalanceModes);
+    mockCameraControl->mockImageProcessingControl->setParameter(
                 QPlatformCameraImageProcessing::ColorTemperature,
                 QVariant(34));
 
@@ -706,7 +707,8 @@ void tst_QCamera::testEnumDebug()
 
 void tst_QCamera::testCameraControl()
 {
-    MockCameraControl *m_cameraControl=new MockCameraControl(this);
+    QCamera camera;
+    MockCameraControl *m_cameraControl = new MockCameraControl(&camera);
     QVERIFY(m_cameraControl != nullptr);
 }
 

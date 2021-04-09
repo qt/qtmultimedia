@@ -73,13 +73,14 @@ public:
     QGstreamerMediaCapture(QMediaRecorder::CaptureMode mode);
     virtual ~QGstreamerMediaCapture();
 
-    QPlatformCamera *addCamera() override;
-    // void releaseCamera(QPlatformCamera *) override;
+    QPlatformCamera *camera() override;
+    void setCamera(QPlatformCamera *camera) override;
 
-    QPlatformCameraImageCapture *addImageCapture() override;
-    // void releaseImageCapture(QPlatformCameraImageCapture *) override;
+    QPlatformCameraImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
+    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
     bool isMuted() const override;
     void setMuted(bool) override;

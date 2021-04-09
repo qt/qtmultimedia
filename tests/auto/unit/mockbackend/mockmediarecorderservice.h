@@ -30,10 +30,7 @@
 #define MOCKSERVICE_H
 
 #include "mockmediarecordercontrol.h"
-#include "mockcamerafocuscontrol.h"
-#include "mockcameraimageprocessingcontrol.h"
 #include "mockcameraimagecapturecontrol.h"
-#include "mockcameraexposurecontrol.h"
 #include "mockcameracontrol.h"
 #include <private/qplatformmediacapture_p.h>
 
@@ -45,39 +42,23 @@ public:
         : hasControls(true)
     {
         mockControl = new MockMediaEncoderControl(this);
-        mockExposureControl = new MockCameraExposureControl(this);
-        mockFocusControl = new MockCameraFocusControl(this);
-        mockImageProcessingControl = new MockImageProcessingControl(this);
     }
     ~MockMediaRecorderService()
     {
     }
 
-    QPlatformCamera *addCamera() override
+    QPlatformCamera *camera() override { return hasControls ? mockCameraControl : nullptr; }
+
+    void setCamera(QPlatformCamera *camera) override
     {
-        if (hasControls) {
-            if (!mockCameraControl)
-                mockCameraControl = new MockCameraControl(this);
-            return mockCameraControl;
-        }
-        return nullptr;
+        MockCameraControl *control = static_cast<MockCameraControl *>(camera);
+        if (mockCameraControl == control)
+            return;
+
+        mockCameraControl = control;
     }
 
-    void releaseCamera(QPlatformCamera *) override {}
-
-    QPlatformCameraImageCapture *addImageCapture() override
-    {
-        if (hasControls) {
-            if (!mockCaptureControl)
-                if (mockCameraControl)
-                    mockCaptureControl = new MockCaptureControl(mockCameraControl, this);
-            return mockCaptureControl;
-        }
-        return nullptr;
-    }
-
-    void releaseImageCapture(QPlatformCameraImageCapture *) override {}
-
+    QPlatformCameraImageCapture *imageCapture() override { return hasControls ? mockCaptureControl : nullptr; }
     QPlatformMediaEncoder *mediaEncoder() override { return hasControls ? mockControl : nullptr; }
 
     void setVideoPreview(QVideoSink *) override {}
@@ -116,12 +97,9 @@ public:
 
     static bool simpleCamera;
 
-    MockCameraControl *mockCameraControl;
-    MockCaptureControl *mockCaptureControl;
-    MockCameraExposureControl *mockExposureControl;
-    MockCameraFocusControl *mockFocusControl;
-    MockImageProcessingControl *mockImageProcessingControl;
-    MockMediaEncoderControl *mockControl;
+    MockCameraControl *mockCameraControl = nullptr;
+    MockCaptureControl *mockCaptureControl = nullptr;
+    MockMediaEncoderControl *mockControl = nullptr;
 
     QAudioDeviceInfo m_audioInput;
     bool m_muted = false;
