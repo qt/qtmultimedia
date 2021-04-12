@@ -64,7 +64,6 @@ public:
     }
     QVideoSink *q_ptr = nullptr;
     QPlatformVideoSink *videoSink = nullptr;
-    QVideoSink::GraphicsType type = QVideoSink::Memory;
     bool fullScreen = false;
     WId window = 0;
     QRhi *rhi = nullptr;
@@ -119,16 +118,6 @@ QVideoSink::QVideoSink(QObject *parent)
 QVideoSink::~QVideoSink()
 {
     delete d;
-}
-
-QVideoSink::GraphicsType QVideoSink::graphicsType() const
-{
-    return d->videoSink->graphicsType();
-}
-
-void QVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
-{
-    d->videoSink->setGraphicsType(type);
 }
 
 /*!

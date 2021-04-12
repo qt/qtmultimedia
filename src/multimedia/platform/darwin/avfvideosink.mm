@@ -61,16 +61,6 @@ AVFVideoSink::~AVFVideoSink()
 {
 }
 
-bool AVFVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
-{
-    if (type == m_graphicsType)
-        return true;
-    m_graphicsType = type;
-    if (m_interface)
-        m_interface->reconfigure();
-    return true;
-}
-
 WId AVFVideoSink::winId() const
 {
     return m_winId;

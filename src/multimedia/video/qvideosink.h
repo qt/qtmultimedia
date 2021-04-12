@@ -58,18 +58,8 @@ class Q_MULTIMEDIA_EXPORT QVideoSink : public QObject
 {
     Q_OBJECT
 public:
-    enum GraphicsType
-    {
-        Memory,
-        NativeWindow,
-        RhiTexture
-    };
-
     QVideoSink(QObject *parent = nullptr);
     ~QVideoSink();
-
-    GraphicsType graphicsType() const;
-    void setGraphicsType(GraphicsType type);
 
     // setter sets graphics type to NativeWindow
     WId nativeWindowId() const;

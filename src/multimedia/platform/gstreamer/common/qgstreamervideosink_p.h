@@ -72,9 +72,6 @@ public:
     explicit QGstreamerVideoSink(QVideoSink *parent = 0);
     ~QGstreamerVideoSink();
 
-    QVideoSink::GraphicsType graphicsType() const override;
-    bool setGraphicsType(QVideoSink::GraphicsType type) override;
-
     void setWinId(WId id) override;
 
     void setRhi(QRhi *rhi) override;
@@ -106,7 +103,6 @@ private:
     void createRenderer();
     QGstreamerVideoOverlay *m_videoOverlay = nullptr;
     QGstreamerVideoRenderer *m_videoRenderer = nullptr;
-    QVideoSink::GraphicsType m_graphicsType = QVideoSink::Memory;
     WId m_windowId = 0;
     QRhi *m_rhi = nullptr;
     QRect m_displayRect;

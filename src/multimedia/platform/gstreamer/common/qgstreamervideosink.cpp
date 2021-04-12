@@ -61,27 +61,9 @@ QGstreamerVideoSink::~QGstreamerVideoSink()
     delete m_videoRenderer;
 }
 
-QVideoSink::GraphicsType QGstreamerVideoSink::graphicsType() const
-{
-    return m_graphicsType;
-}
-
-bool QGstreamerVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
-{
-    if (type == QVideoSink::NativeWindow)
-        createOverlay();
-    else if (type == QVideoSink::Memory)
-        createRenderer();
-    else
-        return false;
-    m_graphicsType = type;
-    emit sinkChanged();
-    return true;
-}
-
 QGstElement QGstreamerVideoSink::gstSink()
 {
-    if (m_fullScreen || m_graphicsType == QVideoSink::NativeWindow)
+    if (m_fullScreen || m_windowId)
         return m_videoOverlay->videoSink();
     return m_videoRenderer->gstVideoSink();
 }
@@ -150,7 +132,7 @@ void QGstreamerVideoSink::setFullScreen(bool fullScreen)
     if (fullScreen == m_fullScreen)
         return;
     m_fullScreen = fullScreen;
-    if (m_graphicsType != QVideoSink::NativeWindow)
+    if (!m_windowId)
         emit sinkChanged();
 }
 

@@ -103,9 +103,6 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 {
     Q_UNUSED(ts);
 
-    auto type = graphicsType();
-    Q_ASSERT(type != QVideoSink::NativeWindow);
-
     if (!m_sink)
         return;
 

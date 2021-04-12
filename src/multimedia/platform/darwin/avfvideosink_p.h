@@ -78,9 +78,6 @@ public:
 
     // QPlatformVideoSink interface
 public:
-    QVideoSink::GraphicsType graphicsType() const override { return m_graphicsType; }
-    bool setGraphicsType(QVideoSink::GraphicsType type) override;
-
     WId winId() const;
     void setWinId(WId id) override;
 
@@ -110,7 +107,6 @@ public:
 
 private:
     AVFVideoSinkInterface *m_interface = nullptr;
-    QVideoSink::GraphicsType m_graphicsType = QVideoSink::Memory;
     WId m_winId = 0;
     QRhi *m_rhi = nullptr;
     NativeView *m_nativeView = nullptr;
@@ -143,7 +139,7 @@ public:
 
     bool shouldRenderToWindow()
     {
-        return m_layer && nativeView() && (graphicsType() == QVideoSink::NativeWindow || isFullScreen());
+        return m_layer && nativeView(); // ### || isFullScreen());
     }
     bool rendersToWindow() const { return m_rendersToWindow; }
 
@@ -154,7 +150,6 @@ protected:
     NativeView *nativeView() const { return m_sink->nativeView(); }
     QRect displayRect() { return m_sink->displayRect(); }
     Qt::AspectRatioMode aspectRatioMode() const { return m_sink->aspectRatioMode(); }
-    QVideoSink::GraphicsType graphicsType() const { return m_sink->graphicsType(); }
     bool isFullScreen() const { return m_sink->isFullScreen(); }
     QSize nativeSize() const { return m_sink->nativeSize(); }
 

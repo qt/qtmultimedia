@@ -57,10 +57,6 @@ class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
     Q_OBJECT
 
 public:
-
-    virtual QVideoSink::GraphicsType graphicsType() const { return QVideoSink::NativeWindow; }
-    virtual bool setGraphicsType(QVideoSink::GraphicsType /*type*/) { return false; }
-
     virtual void setWinId(WId id) = 0;
 
     virtual void setRhi(QRhi */*rhi*/) {}
