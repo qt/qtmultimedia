@@ -107,7 +107,7 @@ void QSGVivanteVideoMaterial::setCurrentFrame(const QVideoFrame &frame, QSGVideo
 {
     QMutexLocker lock(&mFrameMutex);
     mCurrentFrame = frame;
-    mMappable = mMapError == GL_NO_ERROR && !flags.testFlag(QSGVideoNode::FrameFiltered);
+    mMappable = mMapError == GL_NO_ERROR;
 
 #ifdef QT_VIVANTE_VIDEO_DEBUG
     qDebug() << Q_FUNC_INFO << " new frame: " << frame;

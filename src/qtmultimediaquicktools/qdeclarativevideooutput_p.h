@@ -56,7 +56,6 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
-#include <QtMultimedia/qabstractvideofilter.h>
 
 #include <private/qtmultimediaquickdefs_p.h>
 
@@ -65,6 +64,7 @@ QT_BEGIN_NAMESPACE
 class QDeclarativeVideoBackend;
 class QVideoOutputOrientationHandler;
 class QVideoSink;
+class QVideoFrame;
 
 class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
 {
@@ -76,7 +76,6 @@ class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
     Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged REVISION 2)
     Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
-    Q_PROPERTY(QQmlListProperty<QAbstractVideoFilter> filters READ filters);
     Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged REVISION 13)
     Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT REVISION 15)
     Q_ENUMS(FlushMode)
@@ -135,8 +134,6 @@ public:
     };
     SourceType sourceType() const;
 
-    QQmlListProperty<QAbstractVideoFilter> filters();
-
     FlushMode flushMode() const { return m_flushMode; }
     void setFlushMode(FlushMode mode);
 
@@ -164,11 +161,6 @@ private Q_SLOTS:
 private:
     bool createBackend();
 
-    static void filter_append(QQmlListProperty<QAbstractVideoFilter> *property, QAbstractVideoFilter *value);
-    static qsizetype filter_count(QQmlListProperty<QAbstractVideoFilter> *property);
-    static QAbstractVideoFilter *filter_at(QQmlListProperty<QAbstractVideoFilter> *property, qsizetype index);
-    static void filter_clear(QQmlListProperty<QAbstractVideoFilter> *property);
-
     QPointer<QObject> m_source;
 
     FillMode m_fillMode;
@@ -183,7 +175,6 @@ private:
 
     QScopedPointer<QDeclarativeVideoBackend> m_backend;
 
-    QList<QAbstractVideoFilter *> m_filters;
     FlushMode m_flushMode = EmptyFrame;
 };
 

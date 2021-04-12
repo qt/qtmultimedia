@@ -5,7 +5,6 @@ PUBLIC_HEADERS += \
     video/qabstractvideosurface.h \
     video/qvideoframe.h \
     video/qvideosurfaceformat.h \
-    video/qabstractvideofilter.h
 
 PRIVATE_HEADERS += \
     video/qabstractvideobuffer_p.h \
@@ -23,7 +22,6 @@ SOURCES += \
     video/qvideoframe.cpp \
     video/qvideooutputorientationhandler.cpp \
     video/qvideosurfaceformat.cpp \
-    video/qabstractvideofilter.cpp \
     video/qvideoframeconversionhelper.cpp \
     video/qvideosurfaces.cpp
 

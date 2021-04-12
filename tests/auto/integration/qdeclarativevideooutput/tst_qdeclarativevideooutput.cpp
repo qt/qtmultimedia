@@ -39,6 +39,7 @@
 
 #include <qobject.h>
 #include <qvideosurfaceformat.h>
+#include <qvideoframe.h>
 
 class SurfaceHolder : public QObject
 {

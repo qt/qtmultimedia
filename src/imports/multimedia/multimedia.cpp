@@ -44,7 +44,6 @@
 #include "qsoundeffect.h"
 
 #include <private/qdeclarativevideooutput_p.h>
-#include "qabstractvideofilter.h"
 
 #include "qdeclarativemultimediaglobal_p.h"
 #include "qdeclarativemediametadata_p.h"
@@ -149,7 +148,6 @@ public:
                                 tr("CameraImageProcessing is provided by Camera"));
 
         qmlRegisterAnonymousType<QDeclarativeMediaMetaData>(uri, 5);
-        qmlRegisterAnonymousType<QAbstractVideoFilter>(uri, 5);
 
         // 5.13 types
         qmlRegisterType<QDeclarativeVideoOutput, 13>(uri, 5, 13, "VideoOutput");

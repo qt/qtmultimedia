@@ -62,8 +62,6 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 class QObject;
-class QAbstractVideoFilter;
-class QVideoFilterRunnable;
 class QDeclarativeVideoOutput;
 
 class QDeclarativeVideoBackend
@@ -83,13 +81,10 @@ public:
     void present(const QVideoFrame &frame);
     void stop();
 
-    void appendFilter(QAbstractVideoFilter *filter);
-    void clearFilters();
     void releaseResources();
     void invalidateSceneGraph();
 
 private:
-    void scheduleDeleteFilterResources();
     QDeclarativeVideoOutput *q;
 
     mutable QVideoSink *m_sink = nullptr;
@@ -101,14 +96,6 @@ private:
     QMutex m_frameMutex;
     QRectF m_renderedRect;         // Destination pixel coordinates, clipped
     QRectF m_sourceTextureRect;    // Source texture coordinates
-
-    struct Filter {
-        Filter() : filter(0), runnable(0) { }
-        Filter(QAbstractVideoFilter *filter) : filter(filter), runnable(0) { }
-        QAbstractVideoFilter *filter;
-        QVideoFilterRunnable *runnable;
-    };
-    QList<Filter> m_filters;
 };
 
 namespace {

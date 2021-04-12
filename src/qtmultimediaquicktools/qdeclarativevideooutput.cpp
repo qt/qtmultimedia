@@ -196,10 +196,6 @@ bool QDeclarativeVideoOutput::createBackend()
     // Since new backend has been created needs to update its geometry.
     m_geometryDirty = true;
 
-    m_backend->clearFilters();
-    for (int i = 0; i < m_filters.count(); ++i)
-        m_backend->appendFilter(m_filters[i]);
-
     return true;
 }
 
@@ -682,50 +678,6 @@ void QDeclarativeVideoOutput::geometryChange(const QRectF &newGeometry, const QR
     // We need to react to position changes though, as the window backened's display rect gets
     // changed in that situation.
     _q_updateGeometry();
-}
-
-/*!
-    \qmlproperty list<object> QtMultimedia::VideoOutput::filters
-
-    This property holds the list of video filters that are run on the video
-    frames. The order of the filters in the list matches the order in which
-    they will be invoked on the video frames. The objects in the list must be
-    instances of a subclass of QAbstractVideoFilter.
-
-    \sa QAbstractVideoFilter
-*/
-
-QQmlListProperty<QAbstractVideoFilter> QDeclarativeVideoOutput::filters()
-{
-    return QQmlListProperty<QAbstractVideoFilter>(this, nullptr, filter_append, filter_count, filter_at, filter_clear);
-}
-
-void QDeclarativeVideoOutput::filter_append(QQmlListProperty<QAbstractVideoFilter> *property, QAbstractVideoFilter *value)
-{
-    QDeclarativeVideoOutput *self = static_cast<QDeclarativeVideoOutput *>(property->object);
-    self->m_filters.append(value);
-    if (self->m_backend)
-        self->m_backend->appendFilter(value);
-}
-
-qsizetype QDeclarativeVideoOutput::filter_count(QQmlListProperty<QAbstractVideoFilter> *property)
-{
-    QDeclarativeVideoOutput *self = static_cast<QDeclarativeVideoOutput *>(property->object);
-    return self->m_filters.count();
-}
-
-QAbstractVideoFilter *QDeclarativeVideoOutput::filter_at(QQmlListProperty<QAbstractVideoFilter> *property, qsizetype index)
-{
-    QDeclarativeVideoOutput *self = static_cast<QDeclarativeVideoOutput *>(property->object);
-    return self->m_filters.at(index);
-}
-
-void QDeclarativeVideoOutput::filter_clear(QQmlListProperty<QAbstractVideoFilter> *property)
-{
-    QDeclarativeVideoOutput *self = static_cast<QDeclarativeVideoOutput *>(property->object);
-    self->m_filters.clear();
-    if (self->m_backend)
-        self->m_backend->clearFilters();
 }
 
 void QDeclarativeVideoOutput::_q_invalidateSceneGraph()

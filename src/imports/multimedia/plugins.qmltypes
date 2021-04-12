@@ -283,11 +283,6 @@ Module {
     }
     Component { name: "QAbstractListModel"; prototype: "QAbstractItemModel" }
     Component {
-        name: "QAbstractVideoFilter"
-        prototype: "QObject"
-        Property { name: "active"; type: "bool" }
-    }
-    Component {
         name: "QCamera"
         prototype: "QObject"
         Enum {
@@ -1577,7 +1572,6 @@ Module {
         Property { name: "autoOrientation"; revision: 2; type: "bool" }
         Property { name: "sourceRect"; type: "QRectF"; isReadonly: true }
         Property { name: "contentRect"; type: "QRectF"; isReadonly: true }
-        Property { name: "filters"; type: "QAbstractVideoFilter"; isList: true; isReadonly: true }
         Property { name: "flushMode"; revision: 13; type: "FlushMode" }
         Property {
             name: "videoSurface"

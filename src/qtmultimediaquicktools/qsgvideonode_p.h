@@ -65,17 +65,12 @@ class QSGVideoMaterial;
 class QSGVideoNode : public QSGGeometryNode
 {
 public:
-    enum FrameFlag {
-        FrameFiltered = 0x01
-    };
-    Q_DECLARE_FLAGS(FrameFlags, FrameFlag)
-
     QSGVideoNode(const QVideoSurfaceFormat &format);
 
     QVideoSurfaceFormat::PixelFormat pixelFormat() const {
         return m_format.pixelFormat();
     }
-    void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
+    void setCurrentFrame(const QVideoFrame &frame);
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
@@ -87,8 +82,6 @@ private:
     QVideoSurfaceFormat m_format;
     QSGVideoMaterial *m_material;
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(QSGVideoNode::FrameFlags)
 
 QT_END_NAMESPACE
 

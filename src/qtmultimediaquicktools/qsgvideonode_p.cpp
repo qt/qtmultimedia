@@ -273,7 +273,7 @@ QSGVideoNode::QSGVideoNode(const QVideoSurfaceFormat &format)
     setMaterial(m_material);
 }
 
-void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame, FrameFlags)
+void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
 {
     m_material->setCurrentFrame(frame);
     markDirty(DirtyMaterial);
