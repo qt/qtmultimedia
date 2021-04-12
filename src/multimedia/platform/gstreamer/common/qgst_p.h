@@ -320,7 +320,7 @@ public:
     void connect(const char *name, GCallback callback, gpointer userData) { g_signal_connect(m_object, name, callback, userData); }
 
     GstObject *object() const { return m_object; }
-    const char *name() const { return GST_OBJECT_NAME(m_object); }
+    const char *name() const { return m_object ? GST_OBJECT_NAME(m_object) : "(null)"; }
 };
 
 class QGstElement;

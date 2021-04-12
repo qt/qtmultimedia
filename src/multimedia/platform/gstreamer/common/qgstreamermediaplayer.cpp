@@ -663,6 +663,8 @@ static QGstStructure endOfChain(const QGstStructure &s)
 void QGstreamerMediaPlayer::parseStreamsAndMetadata()
 {
     qCDebug(qLcMediaPlayer) << "============== parse topology ============";
+    if (topology.isNull())
+        return;
     auto caps = topology["caps"].toCaps();
     auto structure = caps.at(0);
     auto fileFormat = QGstreamerFormatInfo::fileFormatForCaps(structure);
@@ -709,7 +711,8 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     }
 
     QGstPad sinkPad = inputSelector[VideoStream].getObject("active-pad");
-    Q_ASSERT(!sinkPad.isNull());
+    if (sinkPad.isNull())
+        return;
     bool hasTags = g_object_class_find_property (G_OBJECT_GET_CLASS (sinkPad.object()), "tags") != NULL;
 
     GstTagList *tl = nullptr;
