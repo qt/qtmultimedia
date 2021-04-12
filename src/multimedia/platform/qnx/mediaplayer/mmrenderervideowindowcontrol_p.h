@@ -68,10 +68,8 @@ public:
     WId winId() const override;
     void setWinId(WId id) override;
 
-    QRect displayRect() const override;
     void setDisplayRect(const QRect &rect) override;
 
-    bool isFullScreen() const override;
     void setFullScreen(bool fullScreen) override;
 
     void repaint() override;
@@ -81,17 +79,10 @@ public:
     Qt::AspectRatioMode aspectRatioMode() const override;
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    int brightness() const override;
-    void setBrightness(int brightness) override;
-
-    int contrast() const override;
-    void setContrast(int contrast) override;
-
-    int hue() const override;
-    void setHue(int hue) override;
-
-    int saturation() const override;
-    void setSaturation(int saturation) override;
+    void setBrightness(float brightness) override;
+    void setContrast(float contrast) override;
+    void setHue(float hue) override;
+    void setSaturation(float saturation) override;
 
     //
     // Called by media control
@@ -118,10 +109,10 @@ private:
     Qt::AspectRatioMode m_aspectRatioMode;
     QString m_windowName;
     screen_window_t m_window;
-    int m_hue;
-    int m_brightness;
-    int m_contrast;
-    int m_saturation;
+    float m_hue;
+    float m_brightness;
+    float m_contrast;
+    float m_saturation;
 };
 
 QT_END_NAMESPACE

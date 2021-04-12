@@ -61,33 +61,22 @@ public:
     virtual QVideoSink::GraphicsType graphicsType() const { return QVideoSink::NativeWindow; }
     virtual bool setGraphicsType(QVideoSink::GraphicsType /*type*/) { return false; }
 
-    virtual WId winId() const = 0;
     virtual void setWinId(WId id) = 0;
 
     virtual void setRhi(QRhi */*rhi*/) {}
 
-    virtual QRect displayRect() const = 0;
     virtual void setDisplayRect(const QRect &rect) = 0;
 
-    virtual bool isFullScreen() const = 0;
     virtual void setFullScreen(bool fullScreen) = 0;
 
     virtual QSize nativeSize() const = 0;
 
-    virtual Qt::AspectRatioMode aspectRatioMode() const = 0;
     virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
 
-    virtual int brightness() const = 0;
-    virtual void setBrightness(int brightness) = 0;
-
-    virtual int contrast() const = 0;
-    virtual void setContrast(int contrast) = 0;
-
-    virtual int hue() const = 0;
-    virtual void setHue(int hue) = 0;
-
-    virtual int saturation() const = 0;
-    virtual void setSaturation(int saturation) = 0;
+    virtual void setBrightness(float brightness) = 0;
+    virtual void setContrast(float contrast) = 0;
+    virtual void setHue(float hue) = 0;
+    virtual void setSaturation(float saturation) = 0;
 
     QVideoSink *videoSink() { return sink; }
 

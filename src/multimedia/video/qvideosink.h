@@ -71,8 +71,6 @@ public:
     GraphicsType graphicsType() const;
     void setGraphicsType(GraphicsType type);
 
-    static bool isGraphicsTypeSupported(GraphicsType type);
-
     // setter sets graphics type to NativeWindow
     WId nativeWindowId() const;
     void setNativeWindowId(WId id);
@@ -89,17 +87,17 @@ public:
     QRectF targetRect() const;
     void setTargetRect(const QRectF &rect);
 
-    int brightness() const;
-    void setBrightness(int brightness);
+    float brightness() const;
+    void setBrightness(float brightness);
 
-    int contrast() const;
-    void setContrast(int contrast);
+    float contrast() const;
+    void setContrast(float contrast);
 
-    int hue() const;
-    void setHue(int hue);
+    float hue() const;
+    void setHue(float hue);
 
-    int saturation() const;
-    void setSaturation(int saturation);
+    float saturation() const;
+    void setSaturation(float saturation);
 
     Qt::BGMode backgroundMode() const;
     void setBackgroundMode(Qt::BGMode mode);

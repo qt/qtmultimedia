@@ -82,17 +82,10 @@ public:
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
 
-    int brightness() const;
-    void setBrightness(int brightness);
-
-    int contrast() const;
-    void setContrast(int contrast);
-
-    int hue() const;
-    void setHue(int hue);
-
-    int saturation() const;
-    void setSaturation(int saturation);
+    void setBrightness(float brightness);
+    void setContrast(float contrast);
+    void setHue(float hue);
+    void setSaturation(float saturation);
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
     bool processBusMessage(const QGstreamerMessage &message) override;

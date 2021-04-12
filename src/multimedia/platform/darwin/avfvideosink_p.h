@@ -81,34 +81,27 @@ public:
     QVideoSink::GraphicsType graphicsType() const override { return m_graphicsType; }
     bool setGraphicsType(QVideoSink::GraphicsType type) override;
 
-    WId winId() const override;
+    WId winId() const;
     void setWinId(WId id) override;
 
     void setRhi(QRhi *rhi) override;
 
-    QRect displayRect() const override;
+    QRect displayRect() const;
     void setDisplayRect(const QRect &rect) override;
 
-    bool isFullScreen() const override;
+    bool isFullScreen() const;
     void setFullScreen(bool fullScreen) override;
 
     QSize nativeSize() const override;
     void setNativeSize(QSize size);
 
-    Qt::AspectRatioMode aspectRatioMode() const override;
+    Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    int brightness() const override;
-    void setBrightness(int brightness) override;
-
-    int contrast() const override;
-    void setContrast(int contrast) override;
-
-    int hue() const override;
-    void setHue(int hue) override;
-
-    int saturation() const override;
-    void setSaturation(int saturation) override;
+    void setBrightness(float brightness) override;
+    void setContrast(float contrast) override;
+    void setHue(float hue) override;
+    void setSaturation(float saturation) override;
 
     void setLayer(CALayer *playerLayer);
 
@@ -125,10 +118,10 @@ private:
     QSize m_nativeSize;
     QRect m_displayRect;
     bool m_fullscreen = false;
-    int m_brightness = 0;
-    int m_contrast = 0;
-    int m_hue = 0;
-    int m_saturation = 0;
+    float m_brightness = 0;
+    float m_contrast = 0;
+    float m_hue = 0;
+    float m_saturation = 0;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
 };
 

@@ -60,39 +60,41 @@ public:
     QtTestWindowControl(QVideoSink *parent = nullptr)
         : QPlatformVideoSink(parent)
     {}
-    [[nodiscard]] WId winId() const override { return m_winId; }
     void setWinId(WId id) override { m_winId = id; }
 
-    [[nodiscard]] QRect displayRect() const override { return m_displayRect; }
     void setDisplayRect(const QRect &rect) override { m_displayRect = rect; }
 
-    [[nodiscard]] bool isFullScreen() const override { return m_fullScreen; }
     void setFullScreen(bool fullScreen) override { m_fullScreen = fullScreen; }
 
     [[nodiscard]] QSize nativeSize() const override { return m_nativeSize; }
     void setNativeSize(const QSize &size) { m_nativeSize = size; emit nativeSizeChanged(); }
 
-    [[nodiscard]] Qt::AspectRatioMode aspectRatioMode() const override { return m_aspectRatioMode; }
     void setAspectRatioMode(Qt::AspectRatioMode mode) override { m_aspectRatioMode = mode; }
 
-    [[nodiscard]] int brightness() const override { return m_brightness; }
-    void setBrightness(int brightness) override { m_brightness = brightness; }
+    void setBrightness(float brightness) override { m_brightness = brightness; }
+    void setContrast(float contrast) override { m_contrast = contrast; }
+    void setHue(float hue) override { m_hue = hue; }
+    void setSaturation(float saturation) override { m_saturation = saturation; }
 
-    [[nodiscard]] int contrast() const override { return m_contrast; }
-    void setContrast(int contrast) override { m_contrast = contrast; }
+    [[nodiscard]] WId winId() const { return m_winId; }
 
-    [[nodiscard]] int hue() const override { return m_hue; }
-    void setHue(int hue) override { m_hue = hue; }
+    [[nodiscard]] QRect displayRect() const { return m_displayRect; }
 
-    [[nodiscard]] int saturation() const override { return m_saturation; }
-    void setSaturation(int saturation) override { m_saturation = saturation; }
+    [[nodiscard]] bool isFullScreen() const { return m_fullScreen; }
+
+    [[nodiscard]] Qt::AspectRatioMode aspectRatioMode() const { return m_aspectRatioMode; }
+
+    [[nodiscard]] float brightness() const { return m_brightness; }
+    [[nodiscard]] float contrast() const { return m_contrast; }
+    [[nodiscard]] float hue() const { return m_hue; }
+    [[nodiscard]] float saturation() const { return m_saturation; }
 
 private:
     WId m_winId = 0;
-    int m_brightness = 0;
-    int m_contrast = 0;
-    int m_hue = 0;
-    int m_saturation = 0;
+    float m_brightness = 0;
+    float m_contrast = 0;
+    float m_hue = 0;
+    float m_saturation = 0;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
     QRect m_displayRect;
     QSize m_nativeSize;

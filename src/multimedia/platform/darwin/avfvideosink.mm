@@ -100,8 +100,8 @@ QRect AVFVideoSink::displayRect() const
 
 void AVFVideoSink::setDisplayRect(const QRect &rect)
 {
-    if (m_displayRect == rect)
-        return;
+    Q_ASSERT(m_displayRect != rect);
+
     m_displayRect = rect;
     if (m_interface)
         m_interface->updateLayerBounds();
@@ -114,8 +114,8 @@ bool AVFVideoSink::isFullScreen() const
 
 void AVFVideoSink::setFullScreen(bool fullScreen)
 {
-    if (fullScreen == m_fullscreen)
-        return;
+    Q_ASSERT(fullScreen != m_fullscreen);
+
     m_fullscreen = fullScreen;
     if (m_interface)
         m_interface->reconfigure();
@@ -142,49 +142,29 @@ Qt::AspectRatioMode AVFVideoSink::aspectRatioMode() const
 
 void AVFVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
-    if (m_aspectRatioMode == mode)
-        return;
+    Q_ASSERT(m_aspectRatioMode != mode);
+
     m_aspectRatioMode = mode;
     if (m_interface)
         m_interface->updateAspectRatio();
 }
 
-int AVFVideoSink::brightness() const
-{
-    return m_brightness;
-}
-
-void AVFVideoSink::setBrightness(int brightness)
+void AVFVideoSink::setBrightness(float brightness)
 {
     m_brightness = brightness;
 }
 
-int AVFVideoSink::contrast() const
-{
-    return m_contrast;
-}
-
-void AVFVideoSink::setContrast(int contrast)
+void AVFVideoSink::setContrast(float contrast)
 {
     m_contrast = contrast;
 }
 
-int AVFVideoSink::hue() const
-{
-    return m_hue;
-}
-
-void AVFVideoSink::setHue(int hue)
+void AVFVideoSink::setHue(float hue)
 {
     m_hue = hue;
 }
 
-int AVFVideoSink::saturation() const
-{
-    return m_saturation;
-}
-
-void AVFVideoSink::setSaturation(int saturation)
+void AVFVideoSink::setSaturation(float saturation)
 {
     m_saturation = saturation;
 }

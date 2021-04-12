@@ -86,11 +86,6 @@ QGstElement QGstreamerVideoSink::gstSink()
     return m_videoRenderer->gstVideoSink();
 }
 
-WId QGstreamerVideoSink::winId() const
-{
-    return m_windowId;
-}
-
 void QGstreamerVideoSink::setWinId(WId id)
 {
     if (m_windowId == id)
@@ -120,19 +115,9 @@ bool QGstreamerVideoSink::processBusMessage(const QGstreamerMessage &message)
     return m_videoOverlay->processBusMessage(message);
 }
 
-QRect QGstreamerVideoSink::displayRect() const
-{
-    return m_displayRect;
-}
-
 void QGstreamerVideoSink::setDisplayRect(const QRect &rect)
 {
     m_videoOverlay->setRenderRectangle(m_displayRect = rect);
-}
-
-Qt::AspectRatioMode QGstreamerVideoSink::aspectRatioMode() const
-{
-    return m_videoOverlay->aspectRatioMode();
 }
 
 void QGstreamerVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
@@ -140,49 +125,24 @@ void QGstreamerVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
     m_videoOverlay->setAspectRatioMode(mode);
 }
 
-int QGstreamerVideoSink::brightness() const
-{
-    return m_videoOverlay->brightness();
-}
-
-void QGstreamerVideoSink::setBrightness(int brightness)
+void QGstreamerVideoSink::setBrightness(float brightness)
 {
     m_videoOverlay->setBrightness(brightness);
 }
 
-int QGstreamerVideoSink::contrast() const
-{
-    return m_videoOverlay->contrast();
-}
-
-void QGstreamerVideoSink::setContrast(int contrast)
+void QGstreamerVideoSink::setContrast(float contrast)
 {
     m_videoOverlay->setContrast(contrast);
 }
 
-int QGstreamerVideoSink::hue() const
-{
-    return m_videoOverlay->hue();
-}
-
-void QGstreamerVideoSink::setHue(int hue)
+void QGstreamerVideoSink::setHue(float hue)
 {
     m_videoOverlay->setHue(hue);
 }
 
-int QGstreamerVideoSink::saturation() const
-{
-    return m_videoOverlay->saturation();
-}
-
-void QGstreamerVideoSink::setSaturation(int saturation)
+void QGstreamerVideoSink::setSaturation(float saturation)
 {
     m_videoOverlay->setSaturation(saturation);
-}
-
-bool QGstreamerVideoSink::isFullScreen() const
-{
-    return m_fullScreen;
 }
 
 void QGstreamerVideoSink::setFullScreen(bool fullScreen)

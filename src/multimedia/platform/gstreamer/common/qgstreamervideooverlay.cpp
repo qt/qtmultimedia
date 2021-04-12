@@ -74,15 +74,10 @@ public:
 
     virtual bool hasShowPrerollFrame() const = 0;
     virtual void reset() = 0;
-    virtual int brightness() const = 0;
-    virtual bool setBrightness(int brightness) = 0;
-    virtual int contrast() const = 0;
-    virtual bool setContrast(int contrast) = 0;
-    virtual int hue() const = 0;
-    virtual bool setHue(int hue) = 0;
-    virtual int saturation() const = 0;
-    virtual bool setSaturation(int saturation) = 0;
-    virtual Qt::AspectRatioMode aspectRatioMode() const = 0;
+    virtual bool setBrightness(float brightness) = 0;
+    virtual bool setContrast(float contrast) = 0;
+    virtual bool setHue(float hue) = 0;
+    virtual bool setSaturation(float saturation) = 0;
     virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
 };
 
@@ -115,88 +110,40 @@ public:
         setSaturation(m_saturation);
     }
 
-    int brightness() const override
-    {
-        int brightness = 0;
-        if (m_hasBrightness)
-            brightness = m_videoSink.getInt("brightness");
-
-        return brightness / 10;
-    }
-
-    bool setBrightness(int brightness) override
+    bool setBrightness(float brightness) override
     {
         m_brightness = brightness;
         if (m_hasBrightness)
-            m_videoSink.set("brightness", brightness * 10);
+            m_videoSink.set("brightness", brightness * 1000);
 
         return m_hasBrightness;
     }
 
-    int contrast() const override
-    {
-        int contrast = 0;
-        if (m_hasContrast)
-            contrast = m_videoSink.getInt("contrast");
-
-        return contrast / 10;
-    }
-
-    bool setContrast(int contrast) override
+    bool setContrast(float contrast) override
     {
         m_contrast = contrast;
         if (m_hasContrast)
-            m_videoSink.set("contrast", contrast * 10);
+            m_videoSink.set("contrast", contrast * 1000);
 
         return m_hasContrast;
     }
 
-    int hue() const override
-    {
-        int hue = 0;
-        if (m_hasHue)
-            hue = m_videoSink.getInt("hue");
-
-        return hue / 10;
-    }
-
-    bool setHue(int hue) override
+    bool setHue(float hue) override
     {
         m_hue = hue;
         if (m_hasHue)
-            m_videoSink.set("hue", hue * 10);
+            m_videoSink.set("hue", hue * 1000);
 
         return m_hasHue;
     }
 
-    int saturation() const override
-    {
-        int saturation = 0;
-        if (m_hasSaturation)
-            saturation = m_videoSink.getInt("saturation");
-
-        return saturation / 10;
-    }
-
-    bool setSaturation(int saturation) override
+    bool setSaturation(float saturation) override
     {
         m_saturation = saturation;
         if (m_hasSaturation)
-            m_videoSink.set("saturation", saturation * 10);
+            m_videoSink.set("saturation", saturation * 1000);
 
         return m_hasSaturation;
-    }
-
-    Qt::AspectRatioMode aspectRatioMode() const override
-    {
-        Qt::AspectRatioMode mode = Qt::KeepAspectRatio;
-        if (m_hasForceAspectRatio) {
-            gboolean forceAR = m_videoSink.getBool("force-aspect-ratio");
-            if (!forceAR)
-                mode = Qt::IgnoreAspectRatio;
-        }
-
-        return mode;
     }
 
     void setAspectRatioMode(Qt::AspectRatioMode mode) override
@@ -216,10 +163,10 @@ protected:
     bool m_hasSaturation = false;
     bool m_hasShowPrerollFrame = false;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
-    int m_brightness = 0;
-    int m_contrast = 0;
-    int m_hue = 0;
-    int m_saturation = 0;
+    float m_brightness = 0;
+    float m_contrast = 0;
+    float m_hue = 0;
+    float m_saturation = 0;
 };
 
 class QVaapiSinkProperties : public QXVImageSinkProperties
@@ -233,80 +180,44 @@ public:
         m_saturation = 1;
     }
 
-    int brightness() const override
-    {
-        gfloat brightness = 0;
-        if (m_hasBrightness)
-            brightness = m_videoSink.getFloat("brightness");
-
-        return brightness * 100; // [-1,1] -> [-100,100]
-    }
-
-    bool setBrightness(int brightness) override
+    bool setBrightness(float brightness) override
     {
         m_brightness = brightness;
         if (m_hasBrightness) {
-            gfloat v = brightness / 100.0; // [-100,100] -> [-1,1]
+            gfloat v = brightness;
             m_videoSink.set("brightness", v);
         }
 
         return m_hasBrightness;
     }
 
-    int contrast() const override
-    {
-        gfloat contrast = 1;
-        if (m_hasContrast)
-            contrast = m_videoSink.getFloat("contrast");
-
-        return (contrast - 1) * 100; // [0,2] -> [-100,100]
-    }
-
-    bool setContrast(int contrast) override
+    bool setContrast(float contrast) override
     {
         m_contrast = contrast;
         if (m_hasContrast) {
-            gfloat v = (contrast / 100.0) + 1; // [-100,100] -> [0,2]
+            gfloat v = contrast + 1; // [-1, 1] -> [0,2]
             m_videoSink.set("contrast", v);
         }
 
         return m_hasContrast;
     }
 
-    int hue() const override
-    {
-        gfloat hue = 0;
-        if (m_hasHue)
-            hue = m_videoSink.getFloat("hue");
-
-        return hue / 180 * 100; // [-180,180] -> [-100,100]
-    }
-
-    bool setHue(int hue) override
+    bool setHue(float hue) override
     {
         m_hue = hue;
         if (m_hasHue) {
-            gfloat v = hue / 100.0 * 180; // [-100,100] -> [-180,180]
+            gfloat v = hue * 180; // [-1,1] -> [-180,180]
             m_videoSink.set("hue", v);
         }
 
         return m_hasHue;
     }
 
-    int saturation() const override
-    {
-        gfloat saturation = 1;
-        if (m_hasSaturation)
-            saturation = m_videoSink.getFloat("saturation");
-
-        return (saturation - 1) * 100; // [0,2] -> [-100,100]
-    }
-
-    bool setSaturation(int saturation) override
+    bool setSaturation(float saturation) override
     {
         m_saturation = saturation;
         if (m_hasSaturation) {
-            gfloat v = (saturation / 100.0) + 1; // [-100,100] -> [0,2]
+            gfloat v = saturation + 1; // [-100,100] -> [0,2]
             m_videoSink.set("saturation", v);
         }
 
@@ -519,52 +430,27 @@ void QGstreamerVideoOverlay::showPrerollFrameChanged(GObject *, GParamSpec *, QG
     overlay->updateIsActive();
 }
 
-Qt::AspectRatioMode QGstreamerVideoOverlay::aspectRatioMode() const
-{
-    return m_sinkProperties->aspectRatioMode();
-}
-
 void QGstreamerVideoOverlay::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     m_sinkProperties->setAspectRatioMode(mode);
 }
 
-int QGstreamerVideoOverlay::brightness() const
-{
-    return m_sinkProperties->brightness();
-}
-
-void QGstreamerVideoOverlay::setBrightness(int brightness)
+void QGstreamerVideoOverlay::setBrightness(float brightness)
 {
     m_sinkProperties->setBrightness(brightness);
 }
 
-int QGstreamerVideoOverlay::contrast() const
-{
-    return m_sinkProperties->contrast();
-}
-
-void QGstreamerVideoOverlay::setContrast(int contrast)
+void QGstreamerVideoOverlay::setContrast(float contrast)
 {
     m_sinkProperties->setContrast(contrast);
 }
 
-int QGstreamerVideoOverlay::hue() const
-{
-    return m_sinkProperties->hue();
-}
-
-void QGstreamerVideoOverlay::setHue(int hue)
+void QGstreamerVideoOverlay::setHue(float hue)
 {
     m_sinkProperties->setHue(hue);
 }
 
-int QGstreamerVideoOverlay::saturation() const
-{
-    return m_sinkProperties->saturation();
-}
-
-void QGstreamerVideoOverlay::setSaturation(int saturation)
+void QGstreamerVideoOverlay::setSaturation(float saturation)
 {
     m_sinkProperties->setSaturation(saturation);
 }

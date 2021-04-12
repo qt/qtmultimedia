@@ -78,22 +78,12 @@ void MmRendererVideoWindowControl::setWinId(WId id)
     m_winId = id;
 }
 
-QRect MmRendererVideoWindowControl::displayRect() const
-{
-    return m_displayRect ;
-}
-
 void MmRendererVideoWindowControl::setDisplayRect(const QRect &rect)
 {
     if (m_displayRect != rect) {
         m_displayRect = rect;
         updateVideoPosition();
     }
-}
-
-bool MmRendererVideoWindowControl::isFullScreen() const
-{
-    return m_fullscreen;
 }
 
 void MmRendererVideoWindowControl::setFullScreen(bool fullScreen)
@@ -125,12 +115,7 @@ void MmRendererVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
     m_aspectRatioMode = mode;
 }
 
-int MmRendererVideoWindowControl::brightness() const
-{
-    return m_brightness;
-}
-
-void MmRendererVideoWindowControl::setBrightness(int brightness)
+void MmRendererVideoWindowControl::setBrightness(float brightness)
 {
     if (m_brightness != brightness) {
         m_brightness = brightness;
@@ -139,12 +124,7 @@ void MmRendererVideoWindowControl::setBrightness(int brightness)
     }
 }
 
-int MmRendererVideoWindowControl::contrast() const
-{
-    return m_contrast;
-}
-
-void MmRendererVideoWindowControl::setContrast(int contrast)
+void MmRendererVideoWindowControl::setContrast(float contrast)
 {
     if (m_contrast != contrast) {
         m_contrast = contrast;
@@ -153,12 +133,7 @@ void MmRendererVideoWindowControl::setContrast(int contrast)
     }
 }
 
-int MmRendererVideoWindowControl::hue() const
-{
-    return m_hue;
-}
-
-void MmRendererVideoWindowControl::setHue(int hue)
+void MmRendererVideoWindowControl::setHue(float hue)
 {
     if (m_hue != hue) {
         m_hue = hue;
@@ -167,12 +142,7 @@ void MmRendererVideoWindowControl::setHue(int hue)
     }
 }
 
-int MmRendererVideoWindowControl::saturation() const
-{
-    return m_saturation;
-}
-
-void MmRendererVideoWindowControl::setSaturation(int saturation)
+void MmRendererVideoWindowControl::setSaturation(float saturation)
 {
     if (m_saturation != saturation) {
         m_saturation = saturation;
@@ -307,7 +277,7 @@ void MmRendererVideoWindowControl::updateVideoPosition()
 void MmRendererVideoWindowControl::updateBrightness()
 {
     if (m_window != 0) {
-        const int backendValue = m_brightness * 2.55f;
+        const int backendValue = m_brightness * 255f;
         if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_BRIGHTNESS, &backendValue) != 0)
             perror("Setting brightness failed");
     }
@@ -316,7 +286,7 @@ void MmRendererVideoWindowControl::updateBrightness()
 void MmRendererVideoWindowControl::updateContrast()
 {
     if (m_window != 0) {
-        const int backendValue = m_contrast * 1.27f;
+        const int backendValue = m_contrast * 127f;
         if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_CONTRAST, &backendValue) != 0)
             perror("Setting contrast failed");
     }
@@ -325,7 +295,7 @@ void MmRendererVideoWindowControl::updateContrast()
 void MmRendererVideoWindowControl::updateHue()
 {
     if (m_window != 0) {
-        const int backendValue = m_hue * 1.27f;
+        const int backendValue = m_hue * 127f;
         if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_HUE, &backendValue) != 0)
             perror("Setting hue failed");
     }
@@ -334,7 +304,7 @@ void MmRendererVideoWindowControl::updateHue()
 void MmRendererVideoWindowControl::updateSaturation()
 {
     if (m_window != 0) {
-        const int backendValue = m_saturation * 1.27f;
+        const int backendValue = m_saturation * 127f;
         if (screen_set_window_property_iv(m_window, SCREEN_PROPERTY_SATURATION, &backendValue) != 0)
             perror("Setting saturation failed");
     }

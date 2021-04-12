@@ -143,15 +143,7 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 */
 
 /*!
-    \fn QPlatformVideoSink::brightness() const
-
-    Returns the brightness adjustment applied to a video overlay.
-
-    Valid brightness values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::setBrightness(int brightness)
+    \fn QPlatformVideoSink::setBrightness(float brightness)
 
     Sets a \a brightness adjustment for a video overlay.
 
@@ -159,21 +151,7 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 */
 
 /*!
-    \fn QPlatformVideoSink::brightnessChanged(int brightness)
-
-    Signals that a video overlay's \a brightness adjustment has changed.
-*/
-
-/*!
-    \fn QPlatformVideoSink::contrast() const
-
-    Returns the contrast adjustment applied to a video overlay.
-
-    Valid contrast values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::setContrast(int contrast)
+    \fn QPlatformVideoSink::setContrast(float contrast)
 
     Sets the \a contrast adjustment for a video overlay.
 
@@ -181,21 +159,7 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 */
 
 /*!
-    \fn QPlatformVideoSink::contrastChanged(int contrast)
-
-    Signals that a video overlay's \a contrast adjustment has changed.
-*/
-
-/*!
-    \fn QPlatformVideoSink::hue() const
-
-    Returns the hue adjustment applied to a video overlay.
-
-    Value hue values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::setHue(int hue)
+    \fn QPlatformVideoSink::setHue(float hue)
 
     Sets a \a hue adjustment for a video overlay.
 
@@ -203,30 +167,10 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 */
 
 /*!
-    \fn QPlatformVideoSink::hueChanged(int hue)
-
-    Signals that a video overlay's \a hue adjustment has changed.
-*/
-
-/*!
-    \fn QPlatformVideoSink::saturation() const
-
-    Returns the saturation adjustment applied to a video overlay.
-
-    Value saturation values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::setSaturation(int saturation)
+    \fn QPlatformVideoSink::setSaturation(float saturation)
     Sets a \a saturation adjustment for a video overlay.
 
     Valid saturation values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::saturationChanged(int saturation)
-
-    Signals that a video overlay's \a saturation adjustment has changed.
 */
 
 QT_END_NAMESPACE

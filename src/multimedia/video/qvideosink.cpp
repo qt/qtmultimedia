@@ -65,17 +65,15 @@ public:
     QVideoSink *q_ptr = nullptr;
     QPlatformVideoSink *videoSink = nullptr;
     QVideoSink::GraphicsType type = QVideoSink::Memory;
-    QVideoFrameFormat surfaceFormat;
-    QSize nativeResolution;
-    bool active = false;
+    bool fullScreen = false;
     WId window = 0;
     QRhi *rhi = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     QRectF targetRect;
-    int brightness = 0;
-    int contrast = 0;
-    int saturation = 0;
-    int hue = 0;
+    float brightness = 0;
+    float contrast = 0;
+    float saturation = 0;
+    float hue = 0;
     Qt::BGMode backgroundMode = Qt::OpaqueMode;
 };
 
@@ -133,18 +131,12 @@ void QVideoSink::setGraphicsType(QVideoSink::GraphicsType type)
     d->videoSink->setGraphicsType(type);
 }
 
-bool QVideoSink::isGraphicsTypeSupported(QVideoSink::GraphicsType type)
-{
-    // ####
-    return type == NativeWindow;
-}
-
 /*!
     Returns the native window id that the sink is currently rendering to.
  */
 WId QVideoSink::nativeWindowId() const
 {
-    return d->videoSink->winId();
+    return d->window;
 }
 
 /*!
@@ -157,6 +149,9 @@ WId QVideoSink::nativeWindowId() const
  */
 void QVideoSink::setNativeWindowId(WId id)
 {
+    if (d->window == id)
+        return;
+    d->window = id;
     d->videoSink->setWinId(id);
 }
 
@@ -189,6 +184,9 @@ void QVideoSink::setRhi(QRhi *rhi)
  */
 void QVideoSink::setFullScreen(bool fullscreen)
 {
+    if (d->fullScreen == fullscreen)
+        return;
+    d->fullScreen = fullscreen;
     d->videoSink->setFullScreen(fullscreen);
 }
 
@@ -197,16 +195,18 @@ void QVideoSink::setFullScreen(bool fullscreen)
  */
 bool QVideoSink::isFullscreen() const
 {
-    return d->videoSink->isFullScreen();
+    return d->fullScreen;
 }
 
 Qt::AspectRatioMode QVideoSink::aspectRatioMode() const
 {
-    return d->videoSink->aspectRatioMode();
+    return d->aspectRatioMode;
 }
 
 void QVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
+    if (d->aspectRatioMode == mode)
+        return;
     d->videoSink->setAspectRatioMode(mode);
 }
 
@@ -217,47 +217,61 @@ QRectF QVideoSink::targetRect() const
 
 void QVideoSink::setTargetRect(const QRectF &rect)
 {
-    d->videoSink->setDisplayRect(rect.toRect());
+    if (d->targetRect == rect)
+        return;
     d->targetRect = rect;
+    d->videoSink->setDisplayRect(rect.toRect());
 }
 
-int QVideoSink::brightness() const
+float QVideoSink::brightness() const
 {
-    return d->videoSink->brightness();
+    return d->brightness;
 }
 
-void QVideoSink::setBrightness(int brightness)
+void QVideoSink::setBrightness(float brightness)
 {
+    if (d->brightness == brightness)
+        return;
+    d->brightness = brightness;
     d->videoSink->setBrightness(brightness);
 }
 
-int QVideoSink::contrast() const
+float QVideoSink::contrast() const
 {
-    return d->videoSink->contrast();
+    return d->contrast;
 }
 
-void QVideoSink::setContrast(int contrast)
+void QVideoSink::setContrast(float contrast)
 {
+    if (d->contrast == contrast)
+        return;
+    d->contrast = contrast;
     d->videoSink->setContrast(contrast);
 }
 
-int QVideoSink::hue() const
+float QVideoSink::hue() const
 {
-    return d->videoSink->hue();
+    return d->hue;
 }
 
-void QVideoSink::setHue(int hue)
+void QVideoSink::setHue(float hue)
 {
+    if (d->hue == hue)
+        return;
+    d->hue = hue;
     d->videoSink->setHue(hue);
 }
 
-int QVideoSink::saturation() const
+float QVideoSink::saturation() const
 {
-    return d->videoSink->saturation();
+    return d->saturation;
 }
 
-void QVideoSink::setSaturation(int saturation)
+void QVideoSink::setSaturation(float saturation)
 {
+    if (d->saturation == saturation)
+        return;
+    d->saturation = saturation;
     d->videoSink->setSaturation(saturation);
 }
 

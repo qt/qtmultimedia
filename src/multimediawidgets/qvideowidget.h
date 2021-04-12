@@ -54,10 +54,10 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget
     Q_OBJECT
     Q_PROPERTY(bool fullScreen READ isFullScreen WRITE setFullScreen NOTIFY fullScreenChanged)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode NOTIFY aspectRatioModeChanged)
-    Q_PROPERTY(int brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
-    Q_PROPERTY(int contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
-    Q_PROPERTY(int hue READ hue WRITE setHue NOTIFY hueChanged)
-    Q_PROPERTY(int saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
+    Q_PROPERTY(float brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
+    Q_PROPERTY(float contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
+    Q_PROPERTY(float hue READ hue WRITE setHue NOTIFY hueChanged)
+    Q_PROPERTY(float saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
 
 public:
     explicit QVideoWidget(QWidget *parent = nullptr);
@@ -71,10 +71,10 @@ public:
 
     Qt::AspectRatioMode aspectRatioMode() const;
 
-    int brightness() const;
-    int contrast() const;
-    int hue() const;
-    int saturation() const;
+    float brightness() const;
+    float contrast() const;
+    float hue() const;
+    float saturation() const;
 
     QSize sizeHint() const override;
 #if defined(Q_OS_WIN)
@@ -84,17 +84,17 @@ public:
 public Q_SLOTS:
     void setFullScreen(bool fullScreen);
     void setAspectRatioMode(Qt::AspectRatioMode mode);
-    void setBrightness(int brightness);
-    void setContrast(int contrast);
-    void setHue(int hue);
-    void setSaturation(int saturation);
+    void setBrightness(float brightness);
+    void setContrast(float contrast);
+    void setHue(float hue);
+    void setSaturation(float saturation);
 
 Q_SIGNALS:
     void fullScreenChanged(bool fullScreen);
-    void brightnessChanged(int brightness);
-    void contrastChanged(int contrast);
-    void hueChanged(int hue);
-    void saturationChanged(int saturation);
+    void brightnessChanged(float brightness);
+    void contrastChanged(float contrast);
+    void hueChanged(float hue);
+    void saturationChanged(float saturation);
     void aspectRatioModeChanged(Qt::AspectRatioMode mode);
 
 protected:

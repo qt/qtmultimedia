@@ -191,19 +191,19 @@ void QVideoWidget::setFullScreen(bool fullScreen)
     \property QVideoWidget::brightness
     \brief an adjustment to the brightness of displayed video.
 
-    Valid brightness values range between -100 and 100, the default is 0.
+    Valid brightness values range between -1. and 1., the default is 0.
 */
 
-int QVideoWidget::brightness() const
+float QVideoWidget::brightness() const
 {
     return d_func()->videoSink->brightness();
 }
 
-void QVideoWidget::setBrightness(int brightness)
+void QVideoWidget::setBrightness(float brightness)
 {
     Q_D(QVideoWidget);
 
-    int boundedBrightness = qBound(-100, brightness, 100);
+    float boundedBrightness = qBound(-1., brightness, 1.);
 
     if (boundedBrightness == d->videoSink->brightness())
         return;
@@ -213,7 +213,7 @@ void QVideoWidget::setBrightness(int brightness)
 }
 
 /*!
-    \fn QVideoWidget::brightnessChanged(int brightness)
+    \fn QVideoWidget::brightnessChanged(float brightness)
 
     Signals that a video widgets's \a brightness adjustment has changed.
 
@@ -224,20 +224,20 @@ void QVideoWidget::setBrightness(int brightness)
     \property QVideoWidget::contrast
     \brief an adjustment to the contrast of displayed video.
 
-    Valid contrast values range between -100 and 100, the default is 0.
+    Valid contrast values range between -1. and 1., the default is 0.
 
 */
 
-int QVideoWidget::contrast() const
+float QVideoWidget::contrast() const
 {
     return d_func()->videoSink->contrast();
 }
 
-void QVideoWidget::setContrast(int contrast)
+void QVideoWidget::setContrast(float contrast)
 {
     Q_D(QVideoWidget);
 
-    int boundedContrast = qBound(-100, contrast, 100);
+    float boundedContrast = qBound(-1., contrast, 1.);
 
     if (boundedContrast == d->videoSink->contrast())
         return;
@@ -247,7 +247,7 @@ void QVideoWidget::setContrast(int contrast)
 }
 
 /*!
-    \fn QVideoWidget::contrastChanged(int contrast)
+    \fn QVideoWidget::contrastChanged(float contrast)
 
     Signals that a video widgets's \a contrast adjustment has changed.
 
@@ -258,19 +258,19 @@ void QVideoWidget::setContrast(int contrast)
     \property QVideoWidget::hue
     \brief an adjustment to the hue of displayed video.
 
-    Valid hue values range between -100 and 100, the default is 0.
+    Valid hue values range between -1. and 1., the default is 0.
 */
 
-int QVideoWidget::hue() const
+float QVideoWidget::hue() const
 {
     return d_func()->videoSink->hue();
 }
 
-void QVideoWidget::setHue(int hue)
+void QVideoWidget::setHue(float hue)
 {
     Q_D(QVideoWidget);
 
-    int boundedHue = qBound(-100, hue, 100);
+    float boundedHue = qBound(-1., hue, 1.);
 
     if (boundedHue == d->videoSink->hue())
         return;
@@ -280,7 +280,7 @@ void QVideoWidget::setHue(int hue)
 }
 
 /*!
-    \fn QVideoWidget::hueChanged(int hue)
+    \fn QVideoWidget::hueChanged(float hue)
 
     Signals that a video widgets's \a hue has changed.
 
@@ -291,19 +291,19 @@ void QVideoWidget::setHue(int hue)
     \property QVideoWidget::saturation
     \brief an adjustment to the saturation of displayed video.
 
-    Valid saturation values range between -100 and 100, the default is 0.
+    Valid saturation values range between -1. and 1., the default is 0.
 */
 
-int QVideoWidget::saturation() const
+float QVideoWidget::saturation() const
 {
     return d_func()->videoSink->saturation();
 }
 
-void QVideoWidget::setSaturation(int saturation)
+void QVideoWidget::setSaturation(float saturation)
 {
     Q_D(QVideoWidget);
 
-    int boundedSaturation = qBound(-100, saturation, 100);
+    float boundedSaturation = qBound(-1., saturation, 1.);
 
     if (boundedSaturation == d->videoSink->saturation())
         return;
@@ -313,7 +313,7 @@ void QVideoWidget::setSaturation(int saturation)
 }
 
 /*!
-    \fn QVideoWidget::saturationChanged(int saturation)
+    \fn QVideoWidget::saturationChanged(float saturation)
 
     Signals that a video widgets's \a saturation has changed.
 

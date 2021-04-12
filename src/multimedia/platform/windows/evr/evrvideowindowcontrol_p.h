@@ -66,49 +66,36 @@ public:
 
     bool setEvr(IUnknown *evr);
 
-    WId winId() const override;
     void setWinId(WId id) override;
 
-    QRect displayRect() const override;
     void setDisplayRect(const QRect &rect) override;
 
-    bool isFullScreen() const override;
     void setFullScreen(bool fullScreen) override;
-
-    void repaint() override;
 
     QSize nativeSize() const override;
 
-    Qt::AspectRatioMode aspectRatioMode() const override;
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    int brightness() const override;
-    void setBrightness(int brightness) override;
-
-    int contrast() const override;
-    void setContrast(int contrast) override;
-
-    int hue() const override;
-    void setHue(int hue) override;
-
-    int saturation() const override;
-    void setSaturation(int saturation) override;
+    void setBrightness(float brightness) override;
+    void setContrast(float contrast) override;
+    void setHue(float hue) override;
+    void setSaturation(float saturation) override;
 
     void applyImageControls();
 
 private:
     void clear();
-    DXVA2_Fixed32 scaleProcAmpValue(DWORD prop, int value) const;
+    DXVA2_Fixed32 scaleProcAmpValue(DWORD prop, float value) const;
 
     WId m_windowId;
     COLORREF m_windowColor;
     DWORD m_dirtyValues;
     Qt::AspectRatioMode m_aspectRatioMode;
     QRect m_displayRect;
-    int m_brightness;
-    int m_contrast;
-    int m_hue;
-    int m_saturation;
+    float m_brightness;
+    float m_contrast;
+    float m_hue;
+    float m_saturation;
     bool m_fullScreen;
 
     IMFVideoDisplayControl *m_displayControl;

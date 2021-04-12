@@ -537,25 +537,25 @@ void Player::showColorDialog()
         QSlider *brightnessSlider = new QSlider(Qt::Horizontal);
         brightnessSlider->setRange(-100, 100);
         brightnessSlider->setValue(m_videoWidget->brightness());
-        connect(brightnessSlider, &QSlider::sliderMoved, m_videoWidget, &QVideoWidget::setBrightness);
+        connect(brightnessSlider, &QSlider::sliderMoved, [this](int b) { m_videoWidget->setBrightness(b/100.); });
         connect(m_videoWidget, &QVideoWidget::brightnessChanged, brightnessSlider, &QSlider::setValue);
 
         QSlider *contrastSlider = new QSlider(Qt::Horizontal);
         contrastSlider->setRange(-100, 100);
         contrastSlider->setValue(m_videoWidget->contrast());
-        connect(contrastSlider, &QSlider::sliderMoved, m_videoWidget, &QVideoWidget::setContrast);
+        connect(contrastSlider, &QSlider::sliderMoved, [this](int c) { m_videoWidget->setContrast(c/100.); });
         connect(m_videoWidget, &QVideoWidget::contrastChanged, contrastSlider, &QSlider::setValue);
 
         QSlider *hueSlider = new QSlider(Qt::Horizontal);
         hueSlider->setRange(-100, 100);
         hueSlider->setValue(m_videoWidget->hue());
-        connect(hueSlider, &QSlider::sliderMoved, m_videoWidget, &QVideoWidget::setHue);
+        connect(hueSlider, &QSlider::sliderMoved, [this](int h) { m_videoWidget->setHue(h/100.); });
         connect(m_videoWidget, &QVideoWidget::hueChanged, hueSlider, &QSlider::setValue);
 
         QSlider *saturationSlider = new QSlider(Qt::Horizontal);
         saturationSlider->setRange(-100, 100);
         saturationSlider->setValue(m_videoWidget->saturation());
-        connect(saturationSlider, &QSlider::sliderMoved, m_videoWidget, &QVideoWidget::setSaturation);
+        connect(saturationSlider, &QSlider::sliderMoved, [this](int s) { m_videoWidget->setSaturation(s/100.); });
         connect(m_videoWidget, &QVideoWidget::saturationChanged, saturationSlider, &QSlider::setValue);
 
         QFormLayout *layout = new QFormLayout;

@@ -98,22 +98,12 @@ void EvrVideoWindowControl::clear()
     m_processor = NULL;
 }
 
-WId EvrVideoWindowControl::winId() const
-{
-    return m_windowId;
-}
-
 void EvrVideoWindowControl::setWinId(WId id)
 {
     m_windowId = id;
 
     if (m_displayControl)
         m_displayControl->SetVideoWindow(HWND(m_windowId));
-}
-
-QRect EvrVideoWindowControl::displayRect() const
-{
-    return m_displayRect;
 }
 
 void EvrVideoWindowControl::setDisplayRect(const QRect &rect)
@@ -152,44 +142,10 @@ void EvrVideoWindowControl::setDisplayRect(const QRect &rect)
     }
 }
 
-bool EvrVideoWindowControl::isFullScreen() const
-{
-    return m_fullScreen;
-}
-
 void EvrVideoWindowControl::setFullScreen(bool fullScreen)
 {
     if (m_fullScreen == fullScreen)
         return;
-}
-
-void EvrVideoWindowControl::repaint()
-{
-    QSize size = nativeSize();
-    if (size.width() > 0 && size.height() > 0
-        && m_displayControl
-        && SUCCEEDED(m_displayControl->RepaintVideo())) {
-        return;
-    }
-
-    PAINTSTRUCT paint;
-    if (HDC dc = ::BeginPaint(HWND(m_windowId), &paint)) {
-        HPEN pen = ::CreatePen(PS_SOLID, 1, m_windowColor);
-        HBRUSH brush = ::CreateSolidBrush(m_windowColor);
-        ::SelectObject(dc, pen);
-        ::SelectObject(dc, brush);
-
-        ::Rectangle(
-                dc,
-                m_displayRect.left(),
-                m_displayRect.top(),
-                m_displayRect.right() + 1,
-                m_displayRect.bottom() + 1);
-
-        ::DeleteObject(pen);
-        ::DeleteObject(brush);
-        ::EndPaint(HWND(m_windowId), &paint);
-    }
 }
 
 QSize EvrVideoWindowControl::nativeSize() const
@@ -201,11 +157,6 @@ QSize EvrVideoWindowControl::nativeSize() const
             size = QSize(sourceSize.cx, sourceSize.cy);
     }
     return size;
-}
-
-Qt::AspectRatioMode EvrVideoWindowControl::aspectRatioMode() const
-{
-    return m_aspectRatioMode;
 }
 
 void EvrVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
@@ -233,12 +184,7 @@ void EvrVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
     }
 }
 
-int EvrVideoWindowControl::brightness() const
-{
-    return m_brightness;
-}
-
-void EvrVideoWindowControl::setBrightness(int brightness)
+void EvrVideoWindowControl::setBrightness(float brightness)
 {
     if (m_brightness == brightness)
         return;
@@ -250,12 +196,7 @@ void EvrVideoWindowControl::setBrightness(int brightness)
     applyImageControls();
 }
 
-int EvrVideoWindowControl::contrast() const
-{
-    return m_contrast;
-}
-
-void EvrVideoWindowControl::setContrast(int contrast)
+void EvrVideoWindowControl::setContrast(float contrast)
 {
     if (m_contrast == contrast)
         return;
@@ -267,12 +208,7 @@ void EvrVideoWindowControl::setContrast(int contrast)
     applyImageControls();
 }
 
-int EvrVideoWindowControl::hue() const
-{
-    return m_hue;
-}
-
-void EvrVideoWindowControl::setHue(int hue)
+void EvrVideoWindowControl::setHue(float hue)
 {
     if (m_hue == hue)
         return;
@@ -284,12 +220,7 @@ void EvrVideoWindowControl::setHue(int hue)
     applyImageControls();
 }
 
-int EvrVideoWindowControl::saturation() const
-{
-    return m_saturation;
-}
-
-void EvrVideoWindowControl::setSaturation(int saturation)
+void EvrVideoWindowControl::setSaturation(float saturation)
 {
     if (m_saturation == saturation)
         return;
@@ -324,7 +255,7 @@ void EvrVideoWindowControl::applyImageControls()
     }
 }
 
-DXVA2_Fixed32 EvrVideoWindowControl::scaleProcAmpValue(DWORD prop, int value) const
+DXVA2_Fixed32 EvrVideoWindowControl::scaleProcAmpValue(DWORD prop, float value) const
 {
     float scaledValue = 0.0;
 
@@ -332,9 +263,9 @@ DXVA2_Fixed32 EvrVideoWindowControl::scaleProcAmpValue(DWORD prop, int value) co
     if (SUCCEEDED(m_processor->GetProcAmpRange(prop, &range))) {
         scaledValue = DXVA2FixedToFloat(range.DefaultValue);
         if (value > 0)
-            scaledValue += float(value) * (DXVA2FixedToFloat(range.MaxValue) - DXVA2FixedToFloat(range.DefaultValue)) / 100;
+            scaledValue += float(value) * (DXVA2FixedToFloat(range.MaxValue) - DXVA2FixedToFloat(range.DefaultValue));
         else if (value < 0)
-            scaledValue -= float(value) * (DXVA2FixedToFloat(range.MinValue) - DXVA2FixedToFloat(range.DefaultValue)) / 100;
+            scaledValue -= float(value) * (DXVA2FixedToFloat(range.MinValue) - DXVA2FixedToFloat(range.DefaultValue));
     }
 
     return DXVA2FloatToFixed(scaledValue);
