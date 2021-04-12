@@ -38,7 +38,7 @@
 #include "private/qdeclarativevideooutput_p.h"
 
 #include <qobject.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 #include <qvideoframe.h>
 
 class SurfaceHolder : public QObject
@@ -72,7 +72,7 @@ private:
 void SurfaceHolder::presentDummyFrame(const QSize &size)
 {
     if (m_surface) {
-        QVideoSurfaceFormat format(size, QVideoSurfaceFormat::Format_ARGB32_Premultiplied);
+        QVideoFrameFormat format(size, QVideoFrameFormat::Format_ARGB32_Premultiplied);
         QVideoFrame frame(size.width() * size.height() * 4, size.width() * 4, format);
 
         m_surface->newVideoFrame(frame);

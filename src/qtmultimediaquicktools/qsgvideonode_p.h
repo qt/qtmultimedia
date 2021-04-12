@@ -55,7 +55,7 @@
 #include <private/qtmultimediaquickdefs_p.h>
 
 #include <QtMultimedia/qvideoframe.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 #include <QtGui/qopenglfunctions.h>
 
 QT_BEGIN_NAMESPACE
@@ -65,9 +65,9 @@ class QSGVideoMaterial;
 class QSGVideoNode : public QSGGeometryNode
 {
 public:
-    QSGVideoNode(const QVideoSurfaceFormat &format);
+    QSGVideoNode(const QVideoFrameFormat &format);
 
-    QVideoSurfaceFormat::PixelFormat pixelFormat() const {
+    QVideoFrameFormat::PixelFormat pixelFormat() const {
         return m_format.pixelFormat();
     }
     void setCurrentFrame(const QVideoFrame &frame);
@@ -79,7 +79,7 @@ private:
     QRectF m_textureRect;
     int m_orientation;
 
-    QVideoSurfaceFormat m_format;
+    QVideoFrameFormat m_format;
     QSGVideoMaterial *m_material;
 };
 

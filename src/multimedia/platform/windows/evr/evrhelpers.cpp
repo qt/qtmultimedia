@@ -117,55 +117,55 @@ bool qt_evr_isSampleTimePassed(IMFClock *clock, IMFSample *sample)
     return false;
 }
 
-QVideoSurfaceFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
+QVideoFrameFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
 {
     switch (format) {
     case D3DFMT_A8R8G8B8:
-        return QVideoSurfaceFormat::Format_ARGB32;
+        return QVideoFrameFormat::Format_ARGB32;
     case D3DFMT_X8R8G8B8:
-        return QVideoSurfaceFormat::Format_RGB32;
+        return QVideoFrameFormat::Format_RGB32;
     case D3DFMT_A8:
-        return QVideoSurfaceFormat::Format_Y8;
+        return QVideoFrameFormat::Format_Y8;
     case D3DFMT_A8B8G8R8:
-        return QVideoSurfaceFormat::Format_BGRA32;
+        return QVideoFrameFormat::Format_BGRA32;
     case D3DFMT_X8B8G8R8:
-        return QVideoSurfaceFormat::Format_BGR32;
+        return QVideoFrameFormat::Format_BGR32;
     case D3DFMT_UYVY:
-        return QVideoSurfaceFormat::Format_UYVY;
+        return QVideoFrameFormat::Format_UYVY;
     case D3DFMT_YUY2:
-        return QVideoSurfaceFormat::Format_YUYV;
+        return QVideoFrameFormat::Format_YUYV;
     case D3DFMT_NV12:
-        return QVideoSurfaceFormat::Format_NV12;
+        return QVideoFrameFormat::Format_NV12;
     case D3DFMT_YV12:
-        return QVideoSurfaceFormat::Format_YV12;
+        return QVideoFrameFormat::Format_YV12;
     case D3DFMT_UNKNOWN:
     default:
-        return QVideoSurfaceFormat::Format_Invalid;
+        return QVideoFrameFormat::Format_Invalid;
     }
 }
 
-D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoSurfaceFormat::PixelFormat format)
+D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format)
 {
     switch (format) {
-    case QVideoSurfaceFormat::Format_ARGB32:
+    case QVideoFrameFormat::Format_ARGB32:
         return D3DFMT_A8R8G8B8;
-    case QVideoSurfaceFormat::Format_RGB32:
+    case QVideoFrameFormat::Format_RGB32:
         return D3DFMT_X8R8G8B8;
-    case QVideoSurfaceFormat::Format_Y8:
+    case QVideoFrameFormat::Format_Y8:
         return D3DFMT_A8;
-    case QVideoSurfaceFormat::Format_BGRA32:
+    case QVideoFrameFormat::Format_BGRA32:
         return D3DFMT_A8B8G8R8;
-    case QVideoSurfaceFormat::Format_BGR32:
+    case QVideoFrameFormat::Format_BGR32:
         return D3DFMT_X8B8G8R8;
-    case QVideoSurfaceFormat::Format_UYVY:
+    case QVideoFrameFormat::Format_UYVY:
         return D3DFMT_UYVY;
-    case QVideoSurfaceFormat::Format_YUYV:
+    case QVideoFrameFormat::Format_YUYV:
         return D3DFMT_YUY2;
-    case QVideoSurfaceFormat::Format_NV12:
+    case QVideoFrameFormat::Format_NV12:
         return D3DFMT_NV12;
-    case QVideoSurfaceFormat::Format_YV12:
+    case QVideoFrameFormat::Format_YV12:
         return D3DFMT_YV12;
-    case QVideoSurfaceFormat::Format_Invalid:
+    case QVideoFrameFormat::Format_Invalid:
     default:
         return D3DFMT_UNKNOWN;
     }

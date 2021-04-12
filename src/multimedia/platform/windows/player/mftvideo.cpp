@@ -603,32 +603,32 @@ HRESULT MFTransform::OnFlush()
     return S_OK;
 }
 
-QVideoSurfaceFormat::PixelFormat MFTransform::formatFromSubtype(const GUID& subtype)
+QVideoFrameFormat::PixelFormat MFTransform::formatFromSubtype(const GUID& subtype)
 {
     if (subtype == MFVideoFormat_ARGB32)
-        return QVideoSurfaceFormat::Format_ARGB32;
+        return QVideoFrameFormat::Format_ARGB32;
     else if (subtype == MFVideoFormat_RGB32)
-        return QVideoSurfaceFormat::Format_RGB32;
+        return QVideoFrameFormat::Format_RGB32;
     else if (subtype == MFVideoFormat_AYUV)
-        return QVideoSurfaceFormat::Format_AYUV444;
+        return QVideoFrameFormat::Format_AYUV444;
     else if (subtype == MFVideoFormat_I420)
-        return QVideoSurfaceFormat::Format_YUV420P;
+        return QVideoFrameFormat::Format_YUV420P;
     else if (subtype == MFVideoFormat_UYVY)
-        return QVideoSurfaceFormat::Format_UYVY;
+        return QVideoFrameFormat::Format_UYVY;
     else if (subtype == MFVideoFormat_YV12)
-        return QVideoSurfaceFormat::Format_YV12;
+        return QVideoFrameFormat::Format_YV12;
     else if (subtype == MFVideoFormat_NV12)
-        return QVideoSurfaceFormat::Format_NV12;
+        return QVideoFrameFormat::Format_NV12;
 
-    return QVideoSurfaceFormat::Format_Invalid;
+    return QVideoFrameFormat::Format_Invalid;
 }
 
-QVideoSurfaceFormat MFTransform::videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine)
+QVideoFrameFormat MFTransform::videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine)
 {
     UINT32 stride;
     if (FAILED(mediaType->GetUINT32(MF_MT_DEFAULT_STRIDE, &stride))) {
         *bytesPerLine = 0;
-        return QVideoSurfaceFormat();
+        return QVideoFrameFormat();
     }
 
     *bytesPerLine = (int)stride;
@@ -636,17 +636,17 @@ QVideoSurfaceFormat MFTransform::videoFormatForMFMediaType(IMFMediaType *mediaTy
     QSize size;
     UINT32 width, height;
     if (FAILED(MFGetAttributeSize(mediaType, MF_MT_FRAME_SIZE, &width, &height)))
-        return QVideoSurfaceFormat();
+        return QVideoFrameFormat();
 
     size.setWidth(width);
     size.setHeight(height);
 
     GUID subtype = GUID_NULL;
     if (FAILED(mediaType->GetGUID(MF_MT_SUBTYPE, &subtype)))
-        return QVideoSurfaceFormat();
+        return QVideoFrameFormat();
 
-    QVideoSurfaceFormat::PixelFormat pixelFormat = formatFromSubtype(subtype);
-    QVideoSurfaceFormat format(size, pixelFormat);
+    QVideoFrameFormat::PixelFormat pixelFormat = formatFromSubtype(subtype);
+    QVideoFrameFormat format(size, pixelFormat);
 
     quint32 num, den;
     if (SUCCEEDED(MFGetAttributeRatio(mediaType, MF_MT_FRAME_RATE, &num, &den))) {

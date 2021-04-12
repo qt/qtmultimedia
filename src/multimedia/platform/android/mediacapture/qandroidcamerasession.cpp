@@ -336,9 +336,9 @@ QList<QSize> QAndroidCameraSession::getSupportedPreviewSizes() const
     return m_camera ? m_camera->getSupportedPreviewSizes() : QList<QSize>();
 }
 
-QList<QVideoSurfaceFormat::PixelFormat> QAndroidCameraSession::getSupportedPixelFormats() const
+QList<QVideoFrameFormat::PixelFormat> QAndroidCameraSession::getSupportedPixelFormats() const
 {
-    QList<QVideoSurfaceFormat::PixelFormat> formats;
+    QList<QVideoFrameFormat::PixelFormat> formats;
 
     if (!m_camera)
         return formats;
@@ -348,8 +348,8 @@ QList<QVideoSurfaceFormat::PixelFormat> QAndroidCameraSession::getSupportedPixel
     formats.reserve(nativeFormats.size());
 
     for (AndroidCamera::ImageFormat nativeFormat : nativeFormats) {
-        QVideoSurfaceFormat::PixelFormat format = QtPixelFormatFromAndroidImageFormat(nativeFormat);
-        if (format != QVideoSurfaceFormat::Format_Invalid)
+        QVideoFrameFormat::PixelFormat format = QtPixelFormatFromAndroidImageFormat(nativeFormat);
+        if (format != QVideoFrameFormat::Format_Invalid)
             formats.append(format);
     }
 
@@ -699,37 +699,37 @@ void QAndroidCameraSession::processCapturedImage(int id,
             emit imageCaptureError(id, QCameraImageCapture::ResourceError, errorMessage);
         }
     } else {
-        QVideoFrame frame(new QMemoryVideoBuffer(data, -1), QVideoSurfaceFormat(resolution, QVideoSurfaceFormat::Format_Jpeg));
+        QVideoFrame frame(new QMemoryVideoBuffer(data, -1), QVideoFrameFormat(resolution, QVideoFrameFormat::Format_Jpeg));
         emit imageAvailable(id, frame);
     }
 }
 
-QVideoSurfaceFormat::PixelFormat QAndroidCameraSession::QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat format)
+QVideoFrameFormat::PixelFormat QAndroidCameraSession::QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat format)
 {
     switch (format) {
     case AndroidCamera::NV21:
-        return QVideoSurfaceFormat::Format_NV21;
+        return QVideoFrameFormat::Format_NV21;
     case AndroidCamera::YUY2:
-        return QVideoSurfaceFormat::Format_YUYV;
+        return QVideoFrameFormat::Format_YUYV;
     case AndroidCamera::JPEG:
-        return QVideoSurfaceFormat::Format_Jpeg;
+        return QVideoFrameFormat::Format_Jpeg;
     case AndroidCamera::YV12:
-        return QVideoSurfaceFormat::Format_YV12;
+        return QVideoFrameFormat::Format_YV12;
     default:
-        return QVideoSurfaceFormat::Format_Invalid;
+        return QVideoFrameFormat::Format_Invalid;
     }
 }
 
-AndroidCamera::ImageFormat QAndroidCameraSession::AndroidImageFormatFromQtPixelFormat(QVideoSurfaceFormat::PixelFormat format)
+AndroidCamera::ImageFormat QAndroidCameraSession::AndroidImageFormatFromQtPixelFormat(QVideoFrameFormat::PixelFormat format)
 {
     switch (format) {
-    case QVideoSurfaceFormat::Format_NV21:
+    case QVideoFrameFormat::Format_NV21:
         return AndroidCamera::NV21;
-    case QVideoSurfaceFormat::Format_YUYV:
+    case QVideoFrameFormat::Format_YUYV:
         return AndroidCamera::YUY2;
-    case QVideoSurfaceFormat::Format_Jpeg:
+    case QVideoFrameFormat::Format_Jpeg:
         return AndroidCamera::JPEG;
-    case QVideoSurfaceFormat::Format_YV12:
+    case QVideoFrameFormat::Format_YV12:
         return AndroidCamera::YV12;
     default:
         return AndroidCamera::UnknownImageFormat;

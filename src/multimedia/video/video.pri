@@ -4,7 +4,7 @@ INCLUDEPATH += video
 PUBLIC_HEADERS += \
     video/qabstractvideosurface.h \
     video/qvideoframe.h \
-    video/qvideosurfaceformat.h \
+    video/qvideoframeformat.h \
 
 PRIVATE_HEADERS += \
     video/qabstractvideobuffer_p.h \
@@ -21,7 +21,7 @@ SOURCES += \
     video/qmemoryvideobuffer.cpp \
     video/qvideoframe.cpp \
     video/qvideooutputorientationhandler.cpp \
-    video/qvideosurfaceformat.cpp \
+    video/qvideoframeformat.cpp \
     video/qvideoframeconversionhelper.cpp \
     video/qvideosurfaces.cpp
 

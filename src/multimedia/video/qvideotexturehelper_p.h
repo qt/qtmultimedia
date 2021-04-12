@@ -40,7 +40,7 @@
 #ifndef QVIDEOTEXTUREHELPER_H
 #define QVIDEOTEXTUREHELPER_H
 
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 #include <private/qrhi_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -63,11 +63,11 @@ struct TextureDescription
     SizeScale sizeScale[maxPlanes];
 };
 
-Q_MULTIMEDIA_EXPORT const TextureDescription *textureDescription(QVideoSurfaceFormat::PixelFormat format);
+Q_MULTIMEDIA_EXPORT const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat format);
 
-Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(QVideoSurfaceFormat::PixelFormat format);
-Q_MULTIMEDIA_EXPORT QString fragmentShaderFileName(QVideoSurfaceFormat::PixelFormat format);
-Q_MULTIMEDIA_EXPORT QByteArray uniformData(const QVideoSurfaceFormat &format, const QMatrix4x4 &transform, float opacity);
+Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(QVideoFrameFormat::PixelFormat format);
+Q_MULTIMEDIA_EXPORT QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format);
+Q_MULTIMEDIA_EXPORT QByteArray uniformData(const QVideoFrameFormat &format, const QMatrix4x4 &transform, float opacity);
 Q_MULTIMEDIA_EXPORT int updateRhiTextures(QVideoFrame frame, QRhi *rhi,
                                            QRhiResourceUpdateBatch *resourceUpdates, QRhiTexture **textures);
 

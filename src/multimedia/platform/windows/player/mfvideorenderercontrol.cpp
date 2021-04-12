@@ -44,7 +44,7 @@
 
 #include <private/qabstractvideobuffer_p.h>
 #include <qvideosink.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 #include <qtcore/qtimer.h>
 #include <qtcore/qmutex.h>
 #include <qtcore/qcoreevent.h>
@@ -566,7 +566,7 @@ namespace
                         m_currentFormatIndex = index;
                         int width = int(HI32(size));
                         int height = int(LO32(size));
-                        QVideoSurfaceFormat format(QSize(width, height), m_pixelFormats[index]);
+                        QVideoFrameFormat format(QSize(width, height), m_pixelFormats[index]);
                         m_surfaceFormat = format;
 
                         MFVideoArea viewport;
@@ -792,8 +792,8 @@ namespace
             clearMediaTypes();
             if (!m_videoSink)
                 return;
-            for (int f = 0; f < QVideoSurfaceFormat::NPixelFormats; ++f) {
-                QVideoSurfaceFormat::PixelFormat format = QVideoSurfaceFormat::PixelFormat(f);
+            for (int f = 0; f < QVideoFrameFormat::NPixelFormats; ++f) {
+                QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::PixelFormat(f);
                 IMFMediaType *mediaType;
                 if (FAILED(MFCreateMediaType(&mediaType))) {
                     qWarning("Failed to create mf media type!");
@@ -804,27 +804,27 @@ namespace
                 mediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
                 mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
                 switch (format) {
-                    case QVideoSurfaceFormat::Format_ARGB32:
-                    case QVideoSurfaceFormat::Format_ARGB32_Premultiplied:
+                    case QVideoFrameFormat::Format_ARGB32:
+                    case QVideoFrameFormat::Format_ARGB32_Premultiplied:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32);
                         break;
-                    case QVideoSurfaceFormat::Format_RGB32:
+                    case QVideoFrameFormat::Format_RGB32:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
                         break;
-                    case QVideoSurfaceFormat::Format_AYUV444:
-                    case QVideoSurfaceFormat::Format_AYUV444_Premultiplied:
+                    case QVideoFrameFormat::Format_AYUV444:
+                    case QVideoFrameFormat::Format_AYUV444_Premultiplied:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_AYUV);
                         break;
-                    case QVideoSurfaceFormat::Format_YUV420P:
+                    case QVideoFrameFormat::Format_YUV420P:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_I420);
                         break;
-                    case QVideoSurfaceFormat::Format_UYVY:
+                    case QVideoFrameFormat::Format_UYVY:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_UYVY);
                         break;
-                    case QVideoSurfaceFormat::Format_YV12:
+                    case QVideoFrameFormat::Format_YV12:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_YV12);
                         break;
-                    case QVideoSurfaceFormat::Format_NV12:
+                    case QVideoFrameFormat::Format_NV12:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
                         break;
                     default:
@@ -997,10 +997,10 @@ namespace
 
         bool m_shutdown;
         QList<IMFMediaType*> m_mediaTypes;
-        QList<QVideoSurfaceFormat::PixelFormat> m_pixelFormats;
+        QList<QVideoFrameFormat::PixelFormat> m_pixelFormats;
         int m_currentFormatIndex;
         int m_bytesPerLine;
-        QVideoSurfaceFormat m_surfaceFormat;
+        QVideoFrameFormat m_surfaceFormat;
         QVideoSink *m_videoSink;
         MFVideoRendererControl *m_rendererControl;
 
@@ -1032,25 +1032,25 @@ namespace
             return -1;
         }
 
-        int getBytesPerLine(const QVideoSurfaceFormat &format)
+        int getBytesPerLine(const QVideoFrameFormat &format)
         {
             switch (format.pixelFormat()) {
             // 32 bpp packed formats.
-            case QVideoSurfaceFormat::Format_RGB32:
-            case QVideoSurfaceFormat::Format_AYUV444:
+            case QVideoFrameFormat::Format_RGB32:
+            case QVideoFrameFormat::Format_AYUV444:
                 return format.frameWidth() * 4;
             // 16 bpp packed formats.
-            case QVideoSurfaceFormat::Format_YUYV:
-            case QVideoSurfaceFormat::Format_UYVY:
+            case QVideoFrameFormat::Format_YUYV:
+            case QVideoFrameFormat::Format_UYVY:
                 return PAD_TO_DWORD(format.frameWidth() * 2);
             // Planar formats.
-            case QVideoSurfaceFormat::Format_IMC1:
-            case QVideoSurfaceFormat::Format_IMC2:
-            case QVideoSurfaceFormat::Format_IMC3:
-            case QVideoSurfaceFormat::Format_IMC4:
-            case QVideoSurfaceFormat::Format_YV12:
-            case QVideoSurfaceFormat::Format_NV12:
-            case QVideoSurfaceFormat::Format_YUV420P:
+            case QVideoFrameFormat::Format_IMC1:
+            case QVideoFrameFormat::Format_IMC2:
+            case QVideoFrameFormat::Format_IMC3:
+            case QVideoFrameFormat::Format_IMC4:
+            case QVideoFrameFormat::Format_YV12:
+            case QVideoFrameFormat::Format_NV12:
+            case QVideoFrameFormat::Format_YUV420P:
                 return PAD_TO_DWORD(format.frameWidth());
             default:
                 return 0;

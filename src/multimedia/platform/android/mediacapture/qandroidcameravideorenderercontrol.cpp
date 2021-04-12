@@ -44,7 +44,7 @@
 #include "androidsurfaceview_p.h"
 #include "qandroidmultimediautils_p.h"
 #include <qvideosink.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 #include <qcoreapplication.h>
 #include <qthread.h>
 
@@ -76,14 +76,14 @@ private:
     QAndroidCameraVideoRendererControl *m_control;
     AndroidSurfaceView *m_surfaceView;
     QMutex m_mutex;
-    QVideoSurfaceFormat::PixelFormat m_pixelFormat;
+    QVideoFrameFormat::PixelFormat m_pixelFormat;
     QVideoFrame m_lastFrame;
 };
 
 QAndroidCameraDataVideoOutput::QAndroidCameraDataVideoOutput(QAndroidCameraVideoRendererControl *control)
     : QAndroidVideoOutput(control)
     , m_control(control)
-    , m_pixelFormat(QVideoSurfaceFormat::Format_Invalid)
+    , m_pixelFormat(QVideoFrameFormat::Format_Invalid)
 {
     // The camera preview cannot be started unless we set a SurfaceTexture or a
     // SurfaceHolder. In this case we don't actually care about either of these, but since
@@ -127,21 +127,21 @@ void QAndroidCameraDataVideoOutput::onSurfaceCreated()
 
 void QAndroidCameraDataVideoOutput::configureFormat()
 {
-    m_pixelFormat = QVideoSurfaceFormat::Format_Invalid;
+    m_pixelFormat = QVideoFrameFormat::Format_Invalid;
 
     if (!m_control->cameraSession()->camera())
         return;
 
     QList<AndroidCamera::ImageFormat> previewFormats = m_control->cameraSession()->camera()->getSupportedPreviewFormats();
     for (int i = 0; i < previewFormats.size(); ++i) {
-        QVideoSurfaceFormat::PixelFormat pixFormat = qt_pixelFormatFromAndroidImageFormat(previewFormats.at(i));
-        if (pixFormat != QVideoSurfaceFormat::Format_Invalid) {
+        QVideoFrameFormat::PixelFormat pixFormat = qt_pixelFormatFromAndroidImageFormat(previewFormats.at(i));
+        if (pixFormat != QVideoFrameFormat::Format_Invalid) {
             m_pixelFormat = pixFormat;
             break;
         }
     }
 
-    if (m_pixelFormat == QVideoSurfaceFormat::Format_Invalid) {
+    if (m_pixelFormat == QVideoFrameFormat::Format_Invalid) {
         m_control->cameraSession()->setPreviewCallback(nullptr);
         qWarning("The video surface is not compatible with any format supported by the camera");
     } else {
@@ -194,7 +194,7 @@ void QAndroidCameraDataVideoOutput::presentFrame()
 
     if (m_control->surface() && m_lastFrame.isValid() && m_lastFrame.pixelFormat() == m_pixelFormat) {
 
-        QVideoSurfaceFormat format(m_lastFrame.surfaceFormat());
+        QVideoFrameFormat format(m_lastFrame.surfaceFormat());
         // Front camera frames are automatically mirrored when using SurfaceTexture or SurfaceView,
         // but the buffers we get from the data callback are not. Tell the QAbstractVideoSurface
         // that it needs to mirror the frames.

@@ -52,7 +52,7 @@
 //
 
 #include <QMutex>
-#include <QVideoSurfaceFormat>
+#include <QVideoFrameFormat>
 
 #include <d3d9.h>
 
@@ -126,7 +126,7 @@ public:
     bool isTextureRenderingEnabled() const { return m_useTextureRendering; }
 
     HRESULT createVideoSamples(IMFMediaType *format, QList<IMFSample*>& videoSampleQueue);
-    QVideoSurfaceFormat videoSurfaceFormat() const { return m_surfaceFormat; }
+    QVideoFrameFormat videoSurfaceFormat() const { return m_surfaceFormat; }
     QVideoFrame makeVideoFrame(IMFSample* sample);
 
     void releaseResources();
@@ -143,7 +143,7 @@ private:
     IDirect3DDevice9Ex *m_device;
     IDirect3DDeviceManager9 *m_deviceManager;
 
-    QVideoSurfaceFormat m_surfaceFormat;
+    QVideoFrameFormat m_surfaceFormat;
 
     bool m_useTextureRendering;
 

@@ -254,7 +254,7 @@ bool D3DPresentEngine::isValid() const
 
 void D3DPresentEngine::releaseResources()
 {
-    m_surfaceFormat = QVideoSurfaceFormat();
+    m_surfaceFormat = QVideoFrameFormat();
 }
 
 HRESULT D3DPresentEngine::getService(REFGUID, REFIID riid, void** ppv)
@@ -367,8 +367,8 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
 
 done:
     if (SUCCEEDED(hr)) {
-        m_surfaceFormat = QVideoSurfaceFormat(QSize(width, height),
-                                              m_useTextureRendering ? QVideoSurfaceFormat::Format_RGB32
+        m_surfaceFormat = QVideoFrameFormat(QSize(width, height),
+                                              m_useTextureRendering ? QVideoFrameFormat::Format_RGB32
                                                                     : qt_evr_pixelFormatFromD3DFormat(d3dFormat));
     } else {
         releaseResources();

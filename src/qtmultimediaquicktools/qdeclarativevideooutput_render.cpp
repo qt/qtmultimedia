@@ -136,7 +136,7 @@ void QDeclarativeVideoBackend::updateGeometry()
         }
     }
 
-    if (m_surfaceFormat.scanLineDirection() == QVideoSurfaceFormat::BottomToTop) {
+    if (m_surfaceFormat.scanLineDirection() == QVideoFrameFormat::BottomToTop) {
         qreal top = m_sourceTextureRect.top();
         m_sourceTextureRect.setTop(m_sourceTextureRect.bottom());
         m_sourceTextureRect.setBottom(top);
@@ -208,7 +208,7 @@ QVideoSink *QDeclarativeVideoBackend::videoSink() const
     if (!m_sink) {
         m_sink = new QVideoSink(q);
         m_sink->setRhi(QQuickWindowPrivate::get(q->window())->rhi);
-        qRegisterMetaType<QVideoSurfaceFormat>();
+        qRegisterMetaType<QVideoFrameFormat>();
         QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
                          q, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);
     }

@@ -92,7 +92,7 @@ public:
     void setVideoOutput(QAndroidVideoOutput *output);
 
     QList<QSize> getSupportedPreviewSizes() const;
-    QList<QVideoSurfaceFormat::PixelFormat> getSupportedPixelFormats() const;
+    QList<QVideoFrameFormat::PixelFormat> getSupportedPixelFormats() const;
     QList<AndroidCamera::FpsRange> getSupportedPreviewFpsRange() const;
 
     QImageEncoderSettings imageSettings() const { return m_actualImageSettings; }
@@ -165,8 +165,8 @@ private:
                               bool captureToBuffer,
                               const QString &fileName);
 
-    static QVideoSurfaceFormat::PixelFormat QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat);
-    static AndroidCamera::ImageFormat AndroidImageFormatFromQtPixelFormat(QVideoSurfaceFormat::PixelFormat);
+    static QVideoFrameFormat::PixelFormat QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat);
+    static AndroidCamera::ImageFormat AndroidImageFormatFromQtPixelFormat(QVideoFrameFormat::PixelFormat);
 
     void setActiveHelper(bool active);
 

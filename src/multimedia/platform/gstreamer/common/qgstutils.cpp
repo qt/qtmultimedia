@@ -51,7 +51,7 @@
 #include <QtGui/qimage.h>
 #include <qaudioformat.h>
 #include <QtCore/qelapsedtimer.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 #include <private/qmultimediautils_p.h>
 
 #include <gst/audio/audio.h>
@@ -165,41 +165,41 @@ namespace {
 
 struct VideoFormat
 {
-    QVideoSurfaceFormat::PixelFormat pixelFormat;
+    QVideoFrameFormat::PixelFormat pixelFormat;
     GstVideoFormat gstFormat;
 };
 
 static const VideoFormat qt_videoFormatLookup[] =
 {
-    { QVideoSurfaceFormat::Format_YUV420P, GST_VIDEO_FORMAT_I420 },
-    { QVideoSurfaceFormat::Format_YUV422P, GST_VIDEO_FORMAT_Y42B },
-    { QVideoSurfaceFormat::Format_YV12   , GST_VIDEO_FORMAT_YV12 },
-    { QVideoSurfaceFormat::Format_UYVY   , GST_VIDEO_FORMAT_UYVY },
-    { QVideoSurfaceFormat::Format_YUYV   , GST_VIDEO_FORMAT_YUY2 },
-    { QVideoSurfaceFormat::Format_NV12   , GST_VIDEO_FORMAT_NV12 },
-    { QVideoSurfaceFormat::Format_NV21   , GST_VIDEO_FORMAT_NV21 },
-    { QVideoSurfaceFormat::Format_AYUV444, GST_VIDEO_FORMAT_AYUV },
-    { QVideoSurfaceFormat::Format_Y8 , GST_VIDEO_FORMAT_GRAY8 },
+    { QVideoFrameFormat::Format_YUV420P, GST_VIDEO_FORMAT_I420 },
+    { QVideoFrameFormat::Format_YUV422P, GST_VIDEO_FORMAT_Y42B },
+    { QVideoFrameFormat::Format_YV12   , GST_VIDEO_FORMAT_YV12 },
+    { QVideoFrameFormat::Format_UYVY   , GST_VIDEO_FORMAT_UYVY },
+    { QVideoFrameFormat::Format_YUYV   , GST_VIDEO_FORMAT_YUY2 },
+    { QVideoFrameFormat::Format_NV12   , GST_VIDEO_FORMAT_NV12 },
+    { QVideoFrameFormat::Format_NV21   , GST_VIDEO_FORMAT_NV21 },
+    { QVideoFrameFormat::Format_AYUV444, GST_VIDEO_FORMAT_AYUV },
+    { QVideoFrameFormat::Format_Y8 , GST_VIDEO_FORMAT_GRAY8 },
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
-    { QVideoSurfaceFormat::Format_RGB32 ,  GST_VIDEO_FORMAT_BGRx },
-    { QVideoSurfaceFormat::Format_BGR32 ,  GST_VIDEO_FORMAT_RGBx },
-    { QVideoSurfaceFormat::Format_ARGB32,  GST_VIDEO_FORMAT_BGRA },
-    { QVideoSurfaceFormat::Format_ABGR32,  GST_VIDEO_FORMAT_RGBA },
-    { QVideoSurfaceFormat::Format_BGRA32,  GST_VIDEO_FORMAT_ARGB },
-    { QVideoSurfaceFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_LE },
-    { QVideoSurfaceFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10LE },
+    { QVideoFrameFormat::Format_RGB32 ,  GST_VIDEO_FORMAT_BGRx },
+    { QVideoFrameFormat::Format_BGR32 ,  GST_VIDEO_FORMAT_RGBx },
+    { QVideoFrameFormat::Format_ARGB32,  GST_VIDEO_FORMAT_BGRA },
+    { QVideoFrameFormat::Format_ABGR32,  GST_VIDEO_FORMAT_RGBA },
+    { QVideoFrameFormat::Format_BGRA32,  GST_VIDEO_FORMAT_ARGB },
+    { QVideoFrameFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_LE },
+    { QVideoFrameFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10LE },
 #else
-    { QVideoSurfaceFormat::Format_RGB32 ,  GST_VIDEO_FORMAT_xRGB },
-    { QVideoSurfaceFormat::Format_BGR32 ,  GST_VIDEO_FORMAT_xBGR },
-    { QVideoSurfaceFormat::Format_ARGB32,  GST_VIDEO_FORMAT_ARGB },
-    { QVideoSurfaceFormat::Format_ABGR32,  GST_VIDEO_FORMAT_ABGR },
-    { QVideoSurfaceFormat::Format_BGRA32,  GST_VIDEO_FORMAT_BGRA },
-    { QVideoSurfaceFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_BE },
-    { QVideoSurfaceFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10BE },
+    { QVideoFrameFormat::Format_RGB32 ,  GST_VIDEO_FORMAT_xRGB },
+    { QVideoFrameFormat::Format_BGR32 ,  GST_VIDEO_FORMAT_xBGR },
+    { QVideoFrameFormat::Format_ARGB32,  GST_VIDEO_FORMAT_ARGB },
+    { QVideoFrameFormat::Format_ABGR32,  GST_VIDEO_FORMAT_ABGR },
+    { QVideoFrameFormat::Format_BGRA32,  GST_VIDEO_FORMAT_BGRA },
+    { QVideoFrameFormat::Format_Y16 , GST_VIDEO_FORMAT_GRAY16_BE },
+    { QVideoFrameFormat::Format_P010 , GST_VIDEO_FORMAT_P010_10BE },
 #endif
 };
 
-static int indexOfVideoFormat(QVideoSurfaceFormat::PixelFormat format)
+static int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
 {
     for (int i = 0; i < lengthOf(qt_videoFormatLookup); ++i)
         if (qt_videoFormatLookup[i].pixelFormat == format)
@@ -219,7 +219,7 @@ static int indexOfVideoFormat(GstVideoFormat format)
 
 }
 
-QVideoSurfaceFormat QGstUtils::formatForCaps(
+QVideoFrameFormat QGstUtils::formatForCaps(
         GstCaps *caps, GstVideoInfo *info)
 {
     GstVideoInfo vidInfo;
@@ -229,7 +229,7 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
         int index = indexOfVideoFormat(infoPtr->finfo->format);
 
         if (index != -1) {
-            QVideoSurfaceFormat format(
+            QVideoFrameFormat format(
                         QSize(infoPtr->width, infoPtr->height),
                         qt_videoFormatLookup[index].pixelFormat);
 
@@ -239,15 +239,15 @@ QVideoSurfaceFormat QGstUtils::formatForCaps(
             return format;
         }
     }
-    return QVideoSurfaceFormat();
+    return QVideoFrameFormat();
 }
 
-void QGstMutableCaps::addPixelFormats(const QList<QVideoSurfaceFormat::PixelFormat> &formats, const char *modifier)
+void QGstMutableCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier)
 {
     GValue list = {};
     g_value_init(&list, GST_TYPE_LIST);
 
-    for (QVideoSurfaceFormat::PixelFormat format : formats) {
+    for (QVideoFrameFormat::PixelFormat format : formats) {
         int index = indexOfVideoFormat(format);
         if (index == -1)
             continue;
@@ -300,9 +300,9 @@ QSize QGstStructure::resolution() const
     return size;
 }
 
-QVideoSurfaceFormat::PixelFormat QGstStructure::pixelFormat() const
+QVideoFrameFormat::PixelFormat QGstStructure::pixelFormat() const
 {
-    QVideoSurfaceFormat::PixelFormat pixelFormat = QVideoSurfaceFormat::Format_Invalid;
+    QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
 
     if (!structure)
         return pixelFormat;

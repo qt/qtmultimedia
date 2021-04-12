@@ -74,8 +74,8 @@ public:
     AVFVideoBuffer(QRhi *rhi, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
-    static QVideoSurfaceFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
-    static bool toCVPixelFormat(QVideoSurfaceFormat::PixelFormat qtFormat, unsigned &conv);
+    static QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
+    static bool toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv);
 
 
     QVideoFrame::MapMode mapMode() const { return m_mode; }

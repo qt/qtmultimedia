@@ -30,20 +30,20 @@
 
 #include <QtTest/QtTest>
 
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \
     QTest::newRow(#x) \
-        << QVideoSurfaceFormat::x \
+        << QVideoFrameFormat::x \
     << QString(QLatin1String(#x));
 
-class tst_QVideoSurfaceFormat : public QObject
+class tst_QVideoFrameFormat : public QObject
 {
     Q_OBJECT
 public:
-    tst_QVideoSurfaceFormat();
-    ~tst_QVideoSurfaceFormat() override;
+    tst_QVideoFrameFormat();
+    ~tst_QVideoFrameFormat() override;
 
 public slots:
     void initTestCase();
@@ -76,81 +76,81 @@ private slots:
     void assignAllParameters ();
 };
 
-tst_QVideoSurfaceFormat::tst_QVideoSurfaceFormat()
+tst_QVideoFrameFormat::tst_QVideoFrameFormat()
 {
 }
 
-tst_QVideoSurfaceFormat::~tst_QVideoSurfaceFormat()
+tst_QVideoFrameFormat::~tst_QVideoFrameFormat()
 {
 }
 
-void tst_QVideoSurfaceFormat::initTestCase()
+void tst_QVideoFrameFormat::initTestCase()
 {
 }
 
-void tst_QVideoSurfaceFormat::cleanupTestCase()
+void tst_QVideoFrameFormat::cleanupTestCase()
 {
 }
 
-void tst_QVideoSurfaceFormat::init()
+void tst_QVideoFrameFormat::init()
 {
 }
 
-void tst_QVideoSurfaceFormat::cleanup()
+void tst_QVideoFrameFormat::cleanup()
 {
 }
 
-void tst_QVideoSurfaceFormat::constructNull()
+void tst_QVideoFrameFormat::constructNull()
 {
-    QVideoSurfaceFormat format;
+    QVideoFrameFormat format;
 
     QVERIFY(!format.isValid());
-    QCOMPARE(format.pixelFormat(), QVideoSurfaceFormat::Format_Invalid);
+    QCOMPARE(format.pixelFormat(), QVideoFrameFormat::Format_Invalid);
     QCOMPARE(format.frameSize(), QSize());
     QCOMPARE(format.frameWidth(), -1);
     QCOMPARE(format.frameHeight(), -1);
     QCOMPARE(format.viewport(), QRect());
-    QCOMPARE(format.scanLineDirection(), QVideoSurfaceFormat::TopToBottom);
+    QCOMPARE(format.scanLineDirection(), QVideoFrameFormat::TopToBottom);
     QCOMPARE(format.frameRate(), 0.0);
-    QCOMPARE(format.yCbCrColorSpace(), QVideoSurfaceFormat::YCbCr_Undefined);
+    QCOMPARE(format.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_Undefined);
 }
 
-void tst_QVideoSurfaceFormat::construct_data()
+void tst_QVideoFrameFormat::construct_data()
 {
     QTest::addColumn<QSize>("frameSize");
-    QTest::addColumn<QVideoSurfaceFormat::PixelFormat>("pixelFormat");
+    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
     QTest::addColumn<bool>("valid");
 
     QTest::newRow("32x32 rgb32 no handle")
             << QSize(32, 32)
-            << QVideoSurfaceFormat::Format_RGB32
+            << QVideoFrameFormat::Format_RGB32
             << true;
 
     QTest::newRow("32x32 invalid no handle")
             << QSize(32, 32)
-            << QVideoSurfaceFormat::Format_Invalid
+            << QVideoFrameFormat::Format_Invalid
             << false;
 
     QTest::newRow("invalid size, rgb32 no handle")
             << QSize()
-            << QVideoSurfaceFormat::Format_RGB32
+            << QVideoFrameFormat::Format_RGB32
             << false;
 
     QTest::newRow("0x0 rgb32 no handle")
             << QSize(0,0)
-            << QVideoSurfaceFormat::Format_RGB32
+            << QVideoFrameFormat::Format_RGB32
             << true;
 }
 
-void tst_QVideoSurfaceFormat::construct()
+void tst_QVideoFrameFormat::construct()
 {
     QFETCH(QSize, frameSize);
-    QFETCH(QVideoSurfaceFormat::PixelFormat, pixelFormat);
+    QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
     QFETCH(bool, valid);
 
     QRect viewport(QPoint(0, 0), frameSize);
 
-    QVideoSurfaceFormat format(frameSize, pixelFormat);
+    QVideoFrameFormat format(frameSize, pixelFormat);
 
     QCOMPARE(format.pixelFormat(), pixelFormat);
     QCOMPARE(format.frameSize(), frameSize);
@@ -158,12 +158,12 @@ void tst_QVideoSurfaceFormat::construct()
     QCOMPARE(format.frameHeight(), frameSize.height());
     QCOMPARE(format.isValid(), valid);
     QCOMPARE(format.viewport(), viewport);
-    QCOMPARE(format.scanLineDirection(), QVideoSurfaceFormat::TopToBottom);
+    QCOMPARE(format.scanLineDirection(), QVideoFrameFormat::TopToBottom);
     QCOMPARE(format.frameRate(), 0.0);
-    QCOMPARE(format.yCbCrColorSpace(), QVideoSurfaceFormat::YCbCr_Undefined);
+    QCOMPARE(format.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_Undefined);
 }
 
-void tst_QVideoSurfaceFormat::frameSize_data()
+void tst_QVideoFrameFormat::frameSize_data()
 {
     QTest::addColumn<QSize>("initialSize");
     QTest::addColumn<QSize>("newSize");
@@ -179,12 +179,12 @@ void tst_QVideoSurfaceFormat::frameSize_data()
             << QSize(512, 512);
 }
 
-void tst_QVideoSurfaceFormat::frameSize()
+void tst_QVideoFrameFormat::frameSize()
 {
     QFETCH(QSize, initialSize);
     QFETCH(QSize, newSize);
 
-    QVideoSurfaceFormat format(initialSize, QVideoSurfaceFormat::Format_RGB32);
+    QVideoFrameFormat format(initialSize, QVideoFrameFormat::Format_RGB32);
 
     format.setFrameSize(newSize);
 
@@ -193,7 +193,7 @@ void tst_QVideoSurfaceFormat::frameSize()
     QCOMPARE(format.frameHeight(), newSize.height());
 }
 
-void tst_QVideoSurfaceFormat::viewport_data()
+void tst_QVideoFrameFormat::viewport_data()
 {
     QTest::addColumn<QSize>("initialSize");
     QTest::addColumn<QRect>("viewport");
@@ -217,7 +217,7 @@ void tst_QVideoSurfaceFormat::viewport_data()
             << QRect(0, 0, 512, 512);
 }
 
-void tst_QVideoSurfaceFormat::viewport()
+void tst_QVideoFrameFormat::viewport()
 {
     QFETCH(QSize, initialSize);
     QFETCH(QRect, viewport);
@@ -226,7 +226,7 @@ void tst_QVideoSurfaceFormat::viewport()
 
     QRect initialViewport(QPoint(0, 0), initialSize);
 
-    QVideoSurfaceFormat format(initialSize, QVideoSurfaceFormat::Format_RGB32);
+    QVideoFrameFormat format(initialSize, QVideoFrameFormat::Format_RGB32);
 
     format.setViewport(viewport);
 
@@ -237,21 +237,21 @@ void tst_QVideoSurfaceFormat::viewport()
     QCOMPARE(format.viewport(), expectedViewport);
 }
 
-void tst_QVideoSurfaceFormat::scanLineDirection_data()
+void tst_QVideoFrameFormat::scanLineDirection_data()
 {
-    QTest::addColumn<QVideoSurfaceFormat::Direction>("direction");
+    QTest::addColumn<QVideoFrameFormat::Direction>("direction");
     QTest::addColumn<QString>("stringized");
 
     ADD_ENUM_TEST(TopToBottom);
     ADD_ENUM_TEST(BottomToTop);
 }
 
-void tst_QVideoSurfaceFormat::scanLineDirection()
+void tst_QVideoFrameFormat::scanLineDirection()
 {
-    QFETCH(QVideoSurfaceFormat::Direction, direction);
+    QFETCH(QVideoFrameFormat::Direction, direction);
     QFETCH(QString, stringized);
 
-    QVideoSurfaceFormat format(QSize(16, 16), QVideoSurfaceFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(16, 16), QVideoFrameFormat::Format_RGB32);
 
     format.setScanLineDirection(direction);
 
@@ -261,9 +261,9 @@ void tst_QVideoSurfaceFormat::scanLineDirection()
     qDebug() << direction;
 }
 
-void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum_data()
+void tst_QVideoFrameFormat::yCbCrColorSpaceEnum_data()
 {
-    QTest::addColumn<QVideoSurfaceFormat::YCbCrColorSpace>("colorspace");
+    QTest::addColumn<QVideoFrameFormat::YCbCrColorSpace>("colorspace");
     QTest::addColumn<QString>("stringized");
 
     ADD_ENUM_TEST(YCbCr_BT601);
@@ -275,12 +275,12 @@ void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum_data()
 }
 
 /* Test case for Enum YCbCr_BT601, YCbCr_xvYCC709 */
-void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum()
+void tst_QVideoFrameFormat::yCbCrColorSpaceEnum()
 {
-    QFETCH(QVideoSurfaceFormat::YCbCrColorSpace, colorspace);
+    QFETCH(QVideoFrameFormat::YCbCrColorSpace, colorspace);
     QFETCH(QString, stringized);
 
-    QVideoSurfaceFormat format(QSize(64, 64), QVideoSurfaceFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_RGB32);
     format.setYCbCrColorSpace(colorspace);
 
     QCOMPARE(format.yCbCrColorSpace(), colorspace);
@@ -290,7 +290,7 @@ void tst_QVideoSurfaceFormat::yCbCrColorSpaceEnum()
 }
 
 
-void tst_QVideoSurfaceFormat::frameRate_data()
+void tst_QVideoFrameFormat::frameRate_data()
 {
     QTest::addColumn<qreal>("frameRate");
 
@@ -304,18 +304,18 @@ void tst_QVideoSurfaceFormat::frameRate_data()
             << qreal(7.5);
 }
 
-void tst_QVideoSurfaceFormat::frameRate()
+void tst_QVideoFrameFormat::frameRate()
 {
     QFETCH(qreal, frameRate);
 
-    QVideoSurfaceFormat format(QSize(64, 64), QVideoSurfaceFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_RGB32);
 
     format.setFrameRate(frameRate);
 
     QCOMPARE(format.frameRate(), frameRate);
 }
 
-void tst_QVideoSurfaceFormat::sizeHint_data()
+void tst_QVideoFrameFormat::sizeHint_data()
 {
     QTest::addColumn<QSize>("frameSize");
     QTest::addColumn<QRect>("viewport");
@@ -331,28 +331,28 @@ void tst_QVideoSurfaceFormat::sizeHint_data()
         << QSize(800, 600);
 }
 
-void tst_QVideoSurfaceFormat::sizeHint()
+void tst_QVideoFrameFormat::sizeHint()
 {
     QFETCH(QSize, frameSize);
     QFETCH(QRect, viewport);
     QFETCH(QSize, sizeHint);
 
-    QVideoSurfaceFormat format(frameSize, QVideoSurfaceFormat::Format_RGB32);
+    QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_RGB32);
     format.setViewport(viewport);
 
     QCOMPARE(format.sizeHint(), sizeHint);
 }
 
-void tst_QVideoSurfaceFormat::compare()
+void tst_QVideoFrameFormat::compare()
 {
-    QVideoSurfaceFormat format1(
-            QSize(16, 16), QVideoSurfaceFormat::Format_RGB32);
-    QVideoSurfaceFormat format2(
-            QSize(16, 16), QVideoSurfaceFormat::Format_RGB32);
-    QVideoSurfaceFormat format3(
-            QSize(32, 32), QVideoSurfaceFormat::Format_AYUV444);
-    QVideoSurfaceFormat format4(
-            QSize(16, 16), QVideoSurfaceFormat::Format_RGB32);
+    QVideoFrameFormat format1(
+            QSize(16, 16), QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format2(
+            QSize(16, 16), QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format3(
+            QSize(32, 32), QVideoFrameFormat::Format_AYUV444);
+    QVideoFrameFormat format4(
+            QSize(16, 16), QVideoFrameFormat::Format_RGB32);
 
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
@@ -386,13 +386,13 @@ void tst_QVideoSurfaceFormat::compare()
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
 
-    format2.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    format2.setScanLineDirection(QVideoFrameFormat::BottomToTop);
 
     // Not equal scan line direction differs.
     QCOMPARE(format1 == format2, false);
     QCOMPARE(format1 != format2, true);
 
-    format1.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    format1.setScanLineDirection(QVideoFrameFormat::BottomToTop);
 
     // Equal.
     QCOMPARE(format1 == format2, true);
@@ -410,13 +410,13 @@ void tst_QVideoSurfaceFormat::compare()
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
 
-    format2.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_xvYCC601);
+    format2.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_xvYCC601);
 
     // Not equal yuv color space differs.
     QCOMPARE(format1 == format2, false);
     QCOMPARE(format1 != format2, true);
 
-    format1.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_xvYCC601);
+    format1.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_xvYCC601);
 
     // Equal.
     QCOMPARE(format1 == format2, true);
@@ -424,64 +424,64 @@ void tst_QVideoSurfaceFormat::compare()
 }
 
 
-void tst_QVideoSurfaceFormat::copy()
+void tst_QVideoFrameFormat::copy()
 {
-    QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoSurfaceFormat::Format_ARGB32);
-    original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    QVideoFrameFormat original(
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
+    original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
 
-    QVideoSurfaceFormat copy(original);
+    QVideoFrameFormat copy(original);
 
-    QCOMPARE(copy.pixelFormat(), QVideoSurfaceFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
-    QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
+    QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
 
     QCOMPARE(original == copy, true);
     QCOMPARE(original != copy, false);
 
-    copy.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
+    copy.setScanLineDirection(QVideoFrameFormat::TopToBottom);
 
-    QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::TopToBottom);
+    QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::TopToBottom);
 
-    QCOMPARE(original.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
+    QCOMPARE(original.scanLineDirection(), QVideoFrameFormat::BottomToTop);
 
     QCOMPARE(original == copy, false);
     QCOMPARE(original != copy, true);
 }
 
-void tst_QVideoSurfaceFormat::assign()
+void tst_QVideoFrameFormat::assign()
 {
-    QVideoSurfaceFormat copy(
-            QSize(64, 64), QVideoSurfaceFormat::Format_AYUV444);
+    QVideoFrameFormat copy(
+            QSize(64, 64), QVideoFrameFormat::Format_AYUV444);
 
-    QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoSurfaceFormat::Format_ARGB32);
-    original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    QVideoFrameFormat original(
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
+    original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
 
     copy = original;
 
-    QCOMPARE(copy.pixelFormat(), QVideoSurfaceFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
-    QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
+    QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
 
     QCOMPARE(original == copy, true);
     QCOMPARE(original != copy, false);
 
-    copy.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
+    copy.setScanLineDirection(QVideoFrameFormat::TopToBottom);
 
-    QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::TopToBottom);
+    QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::TopToBottom);
 
-    QCOMPARE(original.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
+    QCOMPARE(original.scanLineDirection(), QVideoFrameFormat::BottomToTop);
 
     QCOMPARE(original == copy, false);
     QCOMPARE(original != copy, true);
 }
 
 /* Test case for api isValid */
-void tst_QVideoSurfaceFormat::isValid()
+void tst_QVideoFrameFormat::isValid()
 {
     /* When both pixel format and framesize is not valid */
-    QVideoSurfaceFormat format;
+    QVideoFrameFormat format;
     QVERIFY(!format.isValid());
 
     /* When framesize is valid and pixel format is not valid */
@@ -491,7 +491,7 @@ void tst_QVideoSurfaceFormat::isValid()
     QVERIFY(!format.isValid());
 
     /* When both the pixel format and framesize is valid. */
-    QVideoSurfaceFormat format1(QSize(32, 32), QVideoSurfaceFormat::Format_AYUV444);
+    QVideoFrameFormat format1(QSize(32, 32), QVideoFrameFormat::Format_AYUV444);
     QVERIFY(format1.isValid());
 
     /* When pixel format is valid and frame size is not valid */
@@ -501,27 +501,27 @@ void tst_QVideoSurfaceFormat::isValid()
 }
 
 /* Test case for copy constructor with all the parameters. */
-void tst_QVideoSurfaceFormat::copyAllParameters()
+void tst_QVideoFrameFormat::copyAllParameters()
 {
     /* Create the instance and set all the parameters. */
-    QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoSurfaceFormat::Format_ARGB32);
+    QVideoFrameFormat original(
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
 
-    original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
     original.setFrameRate(qreal(15.0));
-    original.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_BT709);
+    original.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_BT709);
 
     /* Copy the original instance to copy and verify if both the instances
       have the same parameters. */
-    QVideoSurfaceFormat copy(original);
+    QVideoFrameFormat copy(original);
 
-    QCOMPARE(copy.pixelFormat(), QVideoSurfaceFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
-    QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
+    QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));
     QCOMPARE(copy.frameRate(), qreal(15.0));
-    QCOMPARE(copy.yCbCrColorSpace(), QVideoSurfaceFormat::YCbCr_BT709);
+    QCOMPARE(copy.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_BT709);
 
     /* Verify if both the instances are eqaul */
     QCOMPARE(original == copy, true);
@@ -529,42 +529,42 @@ void tst_QVideoSurfaceFormat::copyAllParameters()
 }
 
 /* Test case for copy constructor with all the parameters. */
-void tst_QVideoSurfaceFormat::assignAllParameters()
+void tst_QVideoFrameFormat::assignAllParameters()
 {
     /* Create the instance and set all the parameters. */
-    QVideoSurfaceFormat copy(
-            QSize(64, 64), QVideoSurfaceFormat::Format_AYUV444);
-    copy.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
+    QVideoFrameFormat copy(
+            QSize(64, 64), QVideoFrameFormat::Format_AYUV444);
+    copy.setScanLineDirection(QVideoFrameFormat::TopToBottom);
     copy.setViewport(QRect(0, 0, 640, 320));
     copy.setFrameRate(qreal(7.5));
-    copy.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_BT601);
+    copy.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_BT601);
 
     /* Create the instance and set all the parameters. */
-    QVideoSurfaceFormat original(
-            QSize(1024, 768), QVideoSurfaceFormat::Format_ARGB32);
-    original.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
+    QVideoFrameFormat original(
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
+    original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
     original.setFrameRate(qreal(15.0));
-    original.setYCbCrColorSpace(QVideoSurfaceFormat::YCbCr_BT709);
+    original.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_BT709);
 
     /* Assign the original instance to copy and verify if both the instancess
       have the same parameters. */
     copy = original;
 
-    QCOMPARE(copy.pixelFormat(), QVideoSurfaceFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
-    QCOMPARE(copy.scanLineDirection(), QVideoSurfaceFormat::BottomToTop);
+    QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));
     QCOMPARE(copy.frameRate(), qreal(15.0));
-    QCOMPARE(copy.yCbCrColorSpace(), QVideoSurfaceFormat::YCbCr_BT709);
+    QCOMPARE(copy.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_BT709);
 
      /* Verify if both the instances are eqaul */
     QCOMPARE(original == copy, true);
     QCOMPARE(original != copy, false);
 }
 
-QTEST_MAIN(tst_QVideoSurfaceFormat)
+QTEST_MAIN(tst_QVideoFrameFormat)
 
 
 
-#include "tst_qvideosurfaceformat.moc"
+#include "tst_qvideoframeformat.moc"

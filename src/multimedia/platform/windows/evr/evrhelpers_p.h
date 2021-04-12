@@ -103,8 +103,8 @@ inline HRESULT qt_evr_getFrameRate(IMFMediaType *pType, MFRatio *pRatio)
                                reinterpret_cast<UINT32*>(&pRatio->Denominator));
 }
 
-QVideoSurfaceFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format);
-D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoSurfaceFormat::PixelFormat format);
+QVideoFrameFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format);
+D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format);
 
 QT_END_NAMESPACE
 

@@ -175,7 +175,7 @@ public:
     }
 
     Q_MULTIMEDIA_EXPORT QSize resolution() const;
-    Q_MULTIMEDIA_EXPORT QVideoSurfaceFormat::PixelFormat pixelFormat() const;
+    Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormat() const;
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
 
     QByteArray toString() const { return gst_structure_to_string(structure); }
@@ -237,7 +237,7 @@ public:
         caps = gst_caps_new_empty();
     }
 
-    void addPixelFormats(const QList<QVideoSurfaceFormat::PixelFormat> &formats, const char *modifier = nullptr);
+    void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier = nullptr);
 
     bool isNull() const { return !caps; }
 

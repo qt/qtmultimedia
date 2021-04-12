@@ -69,7 +69,7 @@ qt_internal_add_module(Multimedia
         video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
         video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
-        video/qvideosurfaceformat.cpp video/qvideosurfaceformat.h
+        video/qvideoframeformat.cpp video/qvideoframeformat.h
     INCLUDE_DIRECTORIES
         audio
         camera

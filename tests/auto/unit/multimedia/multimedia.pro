@@ -15,7 +15,7 @@ SUBDIRS += \
     qmediarecorder \
     qmediatimerange \
     qvideoframe \
-    qvideosurfaceformat \
+    qvideoframeformat \
 #    qwavedecoder \
     qaudiobuffer \
     qaudiodecoder \

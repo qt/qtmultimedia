@@ -41,7 +41,7 @@
 #include "qplatformcamera_p.h"
 #include <private/qgstvideobuffer_p.h>
 #include <private/qgstutils_p.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QDir>

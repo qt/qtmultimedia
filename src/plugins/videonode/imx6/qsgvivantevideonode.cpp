@@ -44,9 +44,9 @@
 #include "qsgvivantevideomaterialshader.h"
 #include "qsgvivantevideomaterial.h"
 
-QMap<QVideoSurfaceFormat::PixelFormat, GLenum> QSGVivanteVideoNode::static_VideoFormat2GLFormatMap = QMap<QVideoSurfaceFormat::PixelFormat, GLenum>();
+QMap<QVideoFrameFormat::PixelFormat, GLenum> QSGVivanteVideoNode::static_VideoFormat2GLFormatMap = QMap<QVideoFrameFormat::PixelFormat, GLenum>();
 
-QSGVivanteVideoNode::QSGVivanteVideoNode(const QVideoSurfaceFormat &format) :
+QSGVivanteVideoNode::QSGVivanteVideoNode(const QVideoFrameFormat &format) :
     mFormat(format)
 {
     setFlag(QSGNode::OwnsMaterial, true);
@@ -64,38 +64,38 @@ void QSGVivanteVideoNode::setCurrentFrame(const QVideoFrame &frame, FrameFlags f
     markDirty(DirtyMaterial);
 }
 
-const QMap<QVideoSurfaceFormat::PixelFormat, GLenum>& QSGVivanteVideoNode::getVideoFormat2GLFormatMap()
+const QMap<QVideoFrameFormat::PixelFormat, GLenum>& QSGVivanteVideoNode::getVideoFormat2GLFormatMap()
 {
     if (static_VideoFormat2GLFormatMap.isEmpty()) {
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_YUV420P,  GL_VIV_I420);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_YV12,     GL_VIV_YV12);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_NV12,     GL_VIV_NV12);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_NV21,     GL_VIV_NV21);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_UYVY,     GL_VIV_UYVY);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_YUYV,     GL_VIV_YUY2);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_RGB32,    GL_BGRA_EXT);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_ARGB32,   GL_BGRA_EXT);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_BGR32,    GL_RGBA);
-        static_VideoFormat2GLFormatMap.insert(QVideoSurfaceFormat::Format_BGRA32,   GL_RGBA);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_YUV420P,  GL_VIV_I420);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_YV12,     GL_VIV_YV12);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_NV12,     GL_VIV_NV12);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_NV21,     GL_VIV_NV21);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_UYVY,     GL_VIV_UYVY);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_YUYV,     GL_VIV_YUY2);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_RGB32,    GL_BGRA_EXT);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_ARGB32,   GL_BGRA_EXT);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_BGR32,    GL_RGBA);
+        static_VideoFormat2GLFormatMap.insert(QVideoFrameFormat::Format_BGRA32,   GL_RGBA);
     }
 
     return static_VideoFormat2GLFormatMap;
 }
 
 
-int QSGVivanteVideoNode::getBytesForPixelFormat(QVideoSurfaceFormat::PixelFormat pixelformat)
+int QSGVivanteVideoNode::getBytesForPixelFormat(QVideoFrameFormat::PixelFormat pixelformat)
 {
     switch (pixelformat) {
-    case QVideoSurfaceFormat::Format_YUV420P: return 1;
-    case QVideoSurfaceFormat::Format_YV12: return 1;
-    case QVideoSurfaceFormat::Format_NV12: return 1;
-    case QVideoSurfaceFormat::Format_NV21: return 1;
-    case QVideoSurfaceFormat::Format_UYVY: return 2;
-    case QVideoSurfaceFormat::Format_YUYV: return 2;
-    case QVideoSurfaceFormat::Format_RGB32: return 4;
-    case QVideoSurfaceFormat::Format_ARGB32: return 4;
-    case QVideoSurfaceFormat::Format_BGR32: return 4;
-    case QVideoSurfaceFormat::Format_BGRA32: return 4;
+    case QVideoFrameFormat::Format_YUV420P: return 1;
+    case QVideoFrameFormat::Format_YV12: return 1;
+    case QVideoFrameFormat::Format_NV12: return 1;
+    case QVideoFrameFormat::Format_NV21: return 1;
+    case QVideoFrameFormat::Format_UYVY: return 2;
+    case QVideoFrameFormat::Format_YUYV: return 2;
+    case QVideoFrameFormat::Format_RGB32: return 4;
+    case QVideoFrameFormat::Format_ARGB32: return 4;
+    case QVideoFrameFormat::Format_BGR32: return 4;
+    case QVideoFrameFormat::Format_BGRA32: return 4;
     default: return 1;
     }
 }

@@ -125,7 +125,7 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
 class QSGVideoMaterialRhiShader : public QSGMaterialShader
 {
 public:
-    QSGVideoMaterialRhiShader(const QVideoSurfaceFormat &format)
+    QSGVideoMaterialRhiShader(const QVideoFrameFormat &format)
         : m_format(format)
     {
         setShaderFileName(VertexStage, m_format.vertexShaderFileName());
@@ -139,7 +139,7 @@ public:
                             QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
 protected:
-    QVideoSurfaceFormat m_format;
+    QVideoFrameFormat m_format;
     float m_planeWidth[3] = {0, 0, 0};
     QMatrix4x4 m_colorMatrix;
 };
@@ -147,10 +147,10 @@ protected:
 class QSGVideoMaterial : public QSGMaterial
 {
 public:
-    QSGVideoMaterial(const QVideoSurfaceFormat &format);
+    QSGVideoMaterial(const QVideoFrameFormat &format);
 
     [[nodiscard]] QSGMaterialType *type() const override {
-        static QSGMaterialType type[QVideoSurfaceFormat::NPixelFormats];
+        static QSGMaterialType type[QVideoFrameFormat::NPixelFormats];
         return &type[m_format.pixelFormat()];
     }
 
@@ -183,7 +183,7 @@ public:
 
     void updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates);
 
-    QVideoSurfaceFormat m_format;
+    QVideoFrameFormat m_format;
     float m_planeWidth[3];
     float m_opacity;
 
@@ -253,7 +253,7 @@ void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int bindi
     *texture = m->m_textures[binding - 1].data();
 }
 
-QSGVideoMaterial::QSGVideoMaterial(const QVideoSurfaceFormat &format) :
+QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format) :
     m_format(format),
     m_opacity(1.0)
 {
@@ -264,7 +264,7 @@ QSGVideoMaterial::QSGVideoMaterial(const QVideoSurfaceFormat &format) :
     setFlag(Blending, false);
 }
 
-QSGVideoNode::QSGVideoNode(const QVideoSurfaceFormat &format)
+QSGVideoNode::QSGVideoNode(const QVideoFrameFormat &format)
     : m_orientation(-1),
     m_format(format)
 {

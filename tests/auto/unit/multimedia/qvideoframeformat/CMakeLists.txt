@@ -1,12 +1,12 @@
-# Generated from qvideosurfaceformat.pro.
+# Generated from qvideoframeformat.pro.
 
 #####################################################################
-## tst_qvideosurfaceformat Test:
+## tst_qvideoframeformat Test:
 #####################################################################
 
-qt_add_test(tst_qvideosurfaceformat
+qt_add_test(tst_qvideoframeformat
     SOURCES
-        tst_qvideosurfaceformat.cpp
+        tst_qvideoframeformat.cpp
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

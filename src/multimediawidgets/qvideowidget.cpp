@@ -45,7 +45,7 @@
 #include <qvideosink.h>
 
 #include <qobject.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 #include <qpainter.h>
 
 #include <qapplication.h>

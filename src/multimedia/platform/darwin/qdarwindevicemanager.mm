@@ -267,7 +267,7 @@ void QDarwinDeviceManager::updateCameraDevices()
             auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
             auto pixelFormat = AVFVideoBuffer::fromCVPixelFormat(encoding);
             // Ignore pixel formats we can't handle
-            if (pixelFormat == QVideoSurfaceFormat::Format_Invalid)
+            if (pixelFormat == QVideoFrameFormat::Format_Invalid)
                 continue;
 
             for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {

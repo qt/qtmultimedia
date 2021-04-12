@@ -45,7 +45,7 @@
 #include <QDebug>
 #include <QImage>
 #include <QUrl>
-#include <QVideoSurfaceFormat>
+#include <QVideoFrameFormat>
 #include <qmath.h>
 
 #include <algorithm>
@@ -732,7 +732,7 @@ void BbCameraSession::viewfinderFrameGrabbed(const QImage &image)
     if (m_surface) {
         if (frame.size() != m_surface->surfaceFormat().frameSize()) {
             m_surface->stop();
-            m_surface->start(QVideoSurfaceFormat(frame.size(), QVideoSurfaceFormat::Format_ARGB32));
+            m_surface->start(QVideoFrameFormat(frame.size(), QVideoFrameFormat::Format_ARGB32));
         }
 
         QVideoFrame videoFrame(frame);
@@ -850,7 +850,7 @@ bool BbCameraSession::startViewFinder()
 
     m_surfaceMutex.lock();
     if (m_surface) {
-        const bool ok = m_surface->start(QVideoSurfaceFormat(rotatedSize, QVideoSurfaceFormat::Format_ARGB32));
+        const bool ok = m_surface->start(QVideoFrameFormat(rotatedSize, QVideoFrameFormat::Format_ARGB32));
         if (!ok)
             qWarning() << "Unable to start camera viewfinder surface";
     }

@@ -49,7 +49,7 @@ QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other) = default;
 
 QCameraFormat::~QCameraFormat() = default;
 
-QVideoSurfaceFormat::PixelFormat QCameraFormat::pixelFormat() const
+QVideoFrameFormat::PixelFormat QCameraFormat::pixelFormat() const
 {
     return d->pixelFormat;
 }

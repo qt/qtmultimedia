@@ -88,7 +88,7 @@ private:
     QDeclarativeVideoOutput *q;
 
     mutable QVideoSink *m_sink = nullptr;
-    QVideoSurfaceFormat m_surfaceFormat;
+    QVideoFrameFormat m_surfaceFormat;
 
     QVideoFrame m_frame;
     QVideoFrame m_frameOnFlush;

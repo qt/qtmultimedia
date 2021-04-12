@@ -434,7 +434,7 @@ QRectF QDeclarativeVideoOutput::contentRect() const
 
     The orientation setting does not affect this rectangle.
 
-    \sa QVideoSurfaceFormat::viewport()
+    \sa QVideoFrameFormat::viewport()
 */
 QRectF QDeclarativeVideoOutput::sourceRect() const
 {
@@ -451,7 +451,7 @@ QRectF QDeclarativeVideoOutput::sourceRect() const
 
     // Take the viewport into account for the top left position.
     // m_nativeSize is already adjusted to the viewport, as it originats
-    // from QVideoSurfaceFormat::sizeHint(), which includes pixel aspect
+    // from QVideoFrameFormat::sizeHint(), which includes pixel aspect
     // ratio and viewport.
     const QRectF viewport = m_backend->adjustedViewport();
     Q_ASSERT(viewport.size() == size);

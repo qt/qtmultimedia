@@ -53,10 +53,10 @@ QT_BEGIN_NAMESPACE
 
 class QDebug;
 
-class QVideoSurfaceFormatPrivate;
+class QVideoFrameFormatPrivate;
 class QMatrix4x4;
 
-class Q_MULTIMEDIA_EXPORT QVideoSurfaceFormat
+class Q_MULTIMEDIA_EXPORT QVideoFrameFormat
 {
 public:
     enum PixelFormat
@@ -111,21 +111,21 @@ public:
         YCbCr_JPEG,
     };
 
-    QVideoSurfaceFormat();
-    QVideoSurfaceFormat(
+    QVideoFrameFormat();
+    QVideoFrameFormat(
             const QSize &size,
-            QVideoSurfaceFormat::PixelFormat pixelFormat);
-    QVideoSurfaceFormat(const QVideoSurfaceFormat &format);
-    ~QVideoSurfaceFormat();
+            QVideoFrameFormat::PixelFormat pixelFormat);
+    QVideoFrameFormat(const QVideoFrameFormat &format);
+    ~QVideoFrameFormat();
 
-    QVideoSurfaceFormat &operator =(const QVideoSurfaceFormat &format);
+    QVideoFrameFormat &operator =(const QVideoFrameFormat &format);
 
-    bool operator ==(const QVideoSurfaceFormat &format) const;
-    bool operator !=(const QVideoSurfaceFormat &format) const;
+    bool operator ==(const QVideoFrameFormat &format) const;
+    bool operator !=(const QVideoFrameFormat &format) const;
 
     bool isValid() const;
 
-    QVideoSurfaceFormat::PixelFormat pixelFormat() const;
+    QVideoFrameFormat::PixelFormat pixelFormat() const;
 
     QSize frameSize() const;
     void setFrameSize(const QSize &size);
@@ -161,14 +161,14 @@ public:
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);
 
 private:
-    QSharedDataPointer<QVideoSurfaceFormatPrivate> d;
+    QSharedDataPointer<QVideoFrameFormatPrivate> d;
 };
 
 #ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoSurfaceFormat &);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoSurfaceFormat::Direction);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoSurfaceFormat::YCbCrColorSpace);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoSurfaceFormat::PixelFormat);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrameFormat &);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::Direction);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::YCbCrColorSpace);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::PixelFormat);
 #endif
 
 QT_END_NAMESPACE

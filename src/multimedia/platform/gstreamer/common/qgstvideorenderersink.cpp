@@ -96,23 +96,23 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
 #if QT_CONFIG(gstreamer_gl)
     QRhi *rhi = m_sink->rhi();
     if (rhi && rhi->backend() == QRhi::OpenGLES2) {
-        auto formats = QList<QVideoSurfaceFormat::PixelFormat>()
-//                       << QVideoSurfaceFormat::Format_YUV420P
-//                       << QVideoSurfaceFormat::Format_YUV422P
-//                       << QVideoSurfaceFormat::Format_YV12
-                       << QVideoSurfaceFormat::Format_UYVY
-                       << QVideoSurfaceFormat::Format_YUYV
-//                       << QVideoSurfaceFormat::Format_NV12
-//                       << QVideoSurfaceFormat::Format_NV21
-                       << QVideoSurfaceFormat::Format_AYUV444
-//                       << QVideoSurfaceFormat::Format_P010
-                       << QVideoSurfaceFormat::Format_RGB32
-                       << QVideoSurfaceFormat::Format_BGR32
-                       << QVideoSurfaceFormat::Format_ARGB32
-                       << QVideoSurfaceFormat::Format_ABGR32
-                       << QVideoSurfaceFormat::Format_BGRA32
-//                       << QVideoSurfaceFormat::Format_Y8
-//                       << QVideoSurfaceFormat::Format_Y16
+        auto formats = QList<QVideoFrameFormat::PixelFormat>()
+//                       << QVideoFrameFormat::Format_YUV420P
+//                       << QVideoFrameFormat::Format_YUV422P
+//                       << QVideoFrameFormat::Format_YV12
+                       << QVideoFrameFormat::Format_UYVY
+                       << QVideoFrameFormat::Format_YUYV
+//                       << QVideoFrameFormat::Format_NV12
+//                       << QVideoFrameFormat::Format_NV21
+                       << QVideoFrameFormat::Format_AYUV444
+//                       << QVideoFrameFormat::Format_P010
+                       << QVideoFrameFormat::Format_RGB32
+                       << QVideoFrameFormat::Format_BGR32
+                       << QVideoFrameFormat::Format_ARGB32
+                       << QVideoFrameFormat::Format_ABGR32
+                       << QVideoFrameFormat::Format_BGRA32
+//                       << QVideoFrameFormat::Format_Y8
+//                       << QVideoFrameFormat::Format_Y16
             ;
         // Even if the surface does not support gl textures,
         // glupload will be added to the pipeline and GLMemory will be requested.
@@ -124,23 +124,23 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
 //        caps.addPixelFormats(formats, GST_CAPS_FEATURE_META_GST_VIDEO_GL_TEXTURE_UPLOAD_META);
     }
 #endif
-    auto formats = QList<QVideoSurfaceFormat::PixelFormat>()
-                   << QVideoSurfaceFormat::Format_YUV420P
-                   << QVideoSurfaceFormat::Format_YUV422P
-                   << QVideoSurfaceFormat::Format_YV12
-                   << QVideoSurfaceFormat::Format_UYVY
-                   << QVideoSurfaceFormat::Format_YUYV
-                   << QVideoSurfaceFormat::Format_NV12
-                   << QVideoSurfaceFormat::Format_NV21
-                   << QVideoSurfaceFormat::Format_AYUV444
-                   << QVideoSurfaceFormat::Format_P010
-                   << QVideoSurfaceFormat::Format_RGB32
-                   << QVideoSurfaceFormat::Format_BGR32
-                   << QVideoSurfaceFormat::Format_ARGB32
-                   << QVideoSurfaceFormat::Format_ABGR32
-                   << QVideoSurfaceFormat::Format_BGRA32
-                   << QVideoSurfaceFormat::Format_Y8
-                   << QVideoSurfaceFormat::Format_Y16
+    auto formats = QList<QVideoFrameFormat::PixelFormat>()
+                   << QVideoFrameFormat::Format_YUV420P
+                   << QVideoFrameFormat::Format_YUV422P
+                   << QVideoFrameFormat::Format_YV12
+                   << QVideoFrameFormat::Format_UYVY
+                   << QVideoFrameFormat::Format_YUYV
+                   << QVideoFrameFormat::Format_NV12
+                   << QVideoFrameFormat::Format_NV21
+                   << QVideoFrameFormat::Format_AYUV444
+                   << QVideoFrameFormat::Format_P010
+                   << QVideoFrameFormat::Format_RGB32
+                   << QVideoFrameFormat::Format_BGR32
+                   << QVideoFrameFormat::Format_ARGB32
+                   << QVideoFrameFormat::Format_ABGR32
+                   << QVideoFrameFormat::Format_BGRA32
+                   << QVideoFrameFormat::Format_Y8
+                   << QVideoFrameFormat::Format_Y16
         ;
     caps.addPixelFormats(formats);
     qDebug() << "CAPS:" << caps.toString();

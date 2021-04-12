@@ -54,7 +54,7 @@ public:
     QCameraFormat &operator=(const QCameraFormat &other);
     ~QCameraFormat();
 
-    QVideoSurfaceFormat::PixelFormat pixelFormat() const;
+    QVideoFrameFormat::PixelFormat pixelFormat() const;
     QSize resolution() const;
     float minFrameRate() const;
     float maxFrameRate() const;

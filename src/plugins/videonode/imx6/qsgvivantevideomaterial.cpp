@@ -60,7 +60,7 @@ QSGVivanteVideoMaterial::QSGVivanteVideoMaterial() :
     mOpacity(1.0),
     mWidth(0),
     mHeight(0),
-    mFormat(QVideoSurfaceFormat::Format_Invalid),
+    mFormat(QVideoFrameFormat::Format_Invalid),
     mCurrentTexture(0),
     mMappable(true),
     mTexDirectTexture(0)
@@ -273,14 +273,14 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
             glBindTexture(GL_TEXTURE_2D, mTexDirectTexture);
         }
         switch (mCurrentFrame.pixelFormat()) {
-        case QVideoSurfaceFormat::Format_YUV420P:
-        case QVideoSurfaceFormat::Format_YV12:
+        case QVideoFrameFormat::Format_YUV420P:
+        case QVideoFrameFormat::Format_YV12:
             memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
             memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(1));
             memcpy(mTexDirectPlanes[2], mCurrentFrame.bits(2), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(2));
             break;
-        case QVideoSurfaceFormat::Format_NV12:
-        case QVideoSurfaceFormat::Format_NV21:
+        case QVideoFrameFormat::Format_NV12:
+        case QVideoFrameFormat::Format_NV21:
             memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
             memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(1));
             break;

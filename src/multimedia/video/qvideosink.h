@@ -47,7 +47,7 @@
 QT_BEGIN_NAMESPACE
 
 class QRectF;
-class QVideoSurfaceFormat;
+class QVideoFrameFormat;
 class QVideoFrame;
 
 class QVideoSinkPrivate;

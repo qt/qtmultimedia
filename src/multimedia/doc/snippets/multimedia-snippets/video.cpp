@@ -44,7 +44,7 @@
 #include "qvideowindowcontrol.h"
 #include "qgraphicsvideoitem.h"
 #include "qmediaplaylist.h"
-#include "qvideosurfaceformat.h"
+#include "qvideoframeformat.h"
 
 #include <QFormLayout>
 #include <QGraphicsView>
@@ -128,7 +128,7 @@ void VideoExample::VideoSurface()
 {
     //! [Widget Surface]
     QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
-    QVideoSurfaceFormat format(img.size(), QVideoSurfaceFormat::Format_ARGB32);
+    QVideoFrameFormat format(img.size(), QVideoFrameFormat::Format_ARGB32);
     videoWidget = new QVideoWidget;
     videoWidget->videoSurface()->start(format);
     videoWidget->videoSurface()->present(img);

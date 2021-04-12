@@ -42,7 +42,7 @@
 #include <private/avfvideobuffer_p.h>
 
 #include <private/qabstractvideobuffer_p.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 #include <private/qimagevideobuffer_p.h>
 #include <private/avfvideosink_p.h>
@@ -129,7 +129,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 //    qDebug() << "Got pixelbuffer with format" << fmt;
     CVPixelBufferRelease(pixelBuffer);
 
-    QVideoSurfaceFormat format(QSize(width, height), fmt);
+    QVideoFrameFormat format(QSize(width, height), fmt);
 
     frame = QVideoFrame(buffer, format);
     m_sink->videoSink()->newVideoFrame(frame);

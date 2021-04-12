@@ -55,7 +55,7 @@
 #include <mfidl.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qmutex.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 QT_USE_NAMESPACE
 
@@ -73,7 +73,7 @@ public:
 
     void setVideoSink(IUnknown *videoSink);
 
-    static QVideoSurfaceFormat::PixelFormat formatFromSubtype(const GUID& subtype);
+    static QVideoFrameFormat::PixelFormat formatFromSubtype(const GUID& subtype);
 
     // IUnknown methods
     STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
@@ -107,7 +107,7 @@ public:
 
 private:
     HRESULT OnFlush();
-    static QVideoSurfaceFormat videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine);
+    static QVideoFrameFormat videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine);
     QVideoFrame makeVideoFrame();
     QByteArray dataFromBuffer(IMFMediaBuffer *buffer, int height, int *bytesPerLine);
     bool isMediaTypeSupported(IMFMediaType *type);
@@ -123,7 +123,7 @@ private:
 //    QList<MFVideoProbeControl*> m_videoProbes;
     QMutex m_videoProbeMutex;
 
-    QVideoSurfaceFormat m_format;
+    QVideoFrameFormat m_format;
     int m_bytesPerLine;
 };
 

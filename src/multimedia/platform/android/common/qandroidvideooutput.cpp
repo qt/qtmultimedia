@@ -42,7 +42,7 @@
 #include "androidsurfacetexture_p.h"
 #include <qvideosink.h>
 #include "private/qabstractvideobuffer_p.h"
-#include <QVideoSurfaceFormat>
+#include <QVideoFrameFormat>
 #include <qvideosink.h>
 
 #include <qevent.h>
@@ -320,7 +320,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
         return;
 
     QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(this, m_nativeSize);
-    QVideoFrame frame(buffer, QVideoSurfaceFormat(m_nativeSize, QVideoSurfaceFormat::Format_ABGR32));
+    QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, QVideoFrameFormat::Format_ABGR32));
 
     m_sink->newVideoFrame(frame);
 }

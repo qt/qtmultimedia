@@ -471,7 +471,7 @@ static void QT_FASTCALL qt_convert_P016_to_ARGB32(const QVideoFrame &frame, ucha
 
 }
 
-static VideoFrameConvertFunc qConvertFuncs[QVideoSurfaceFormat::NPixelFormats] = {
+static VideoFrameConvertFunc qConvertFuncs[QVideoFrameFormat::NPixelFormats] = {
     /* Format_Invalid */                nullptr, // Not needed
     /* Format_ARGB32 */                 nullptr, // Not needed
     /* Format_ARGB32_Premultiplied */   nullptr, // Not needed
@@ -505,30 +505,30 @@ static void qInitConvertFuncsAsm()
 #ifdef QT_COMPILER_SUPPORTS_SSE2
     extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_sse2(const QVideoFrame&, uchar*);
     if (qCpuHasFeature(SSE2)){
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_sse2;
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_sse2;
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_sse2;
     }
 #endif
 #ifdef QT_COMPILER_SUPPORTS_SSSE3
     extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_ssse3(const QVideoFrame&, uchar*);
     if (qCpuHasFeature(SSSE3)){
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_ssse3;
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_ssse3;
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrameFormat::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_ssse3;
     }
 #endif
 #ifdef QT_COMPILER_SUPPORTS_AVX2
     extern void QT_FASTCALL qt_convert_BGRA32_to_ARGB32_avx2(const QVideoFrame&, uchar*);
     if (qCpuHasFeature(AVX2)){
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_avx2;
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_avx2;
-        qConvertFuncs[QVideoSurfaceFormat::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRA32] = qt_convert_BGRA32_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRA32_Premultiplied] = qt_convert_BGRA32_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGR32] = qt_convert_BGRA32_to_ARGB32_avx2;
     }
 #endif
 }
 
-VideoFrameConvertFunc qConverterForFormat(QVideoSurfaceFormat::PixelFormat format)
+VideoFrameConvertFunc qConverterForFormat(QVideoFrameFormat::PixelFormat format)
 {
     static bool initAsmFuncsDone = false;
     if (!initAsmFuncsDone) {

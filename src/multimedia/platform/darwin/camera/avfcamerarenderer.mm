@@ -55,7 +55,7 @@
 
 #include <private/qabstractvideobuffer_p.h>
 
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 QT_USE_NAMESPACE
 
@@ -98,13 +98,13 @@ QT_USE_NAMESPACE
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
-    QVideoSurfaceFormat::PixelFormat format =
+    QVideoFrameFormat::PixelFormat format =
             AVFVideoBuffer::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
-    if (format == QVideoSurfaceFormat::Format_Invalid)
+    if (format == QVideoFrameFormat::Format_Invalid)
         return;
 
     QVideoFrame frame(new AVFVideoBuffer(nullptr, imageBuffer),
-                      QVideoSurfaceFormat(QSize(width, height), format));
+                      QVideoFrameFormat(QSize(width, height), format));
 
     m_renderer->syncHandleViewfinderFrame(frame);
 }
@@ -223,7 +223,7 @@ void AVFCameraRenderer::handleViewfinderFrame()
 
     if (m_sink && frame.isValid()) {
         // ### pass format to surface
-        QVideoSurfaceFormat format = frame.surfaceFormat();
+        QVideoFrameFormat format = frame.surfaceFormat();
         if (m_needsHorizontalMirroring)
             format.setMirrored(true);
 

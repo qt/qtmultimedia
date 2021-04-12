@@ -60,7 +60,7 @@
 #include <QtCore/qqueue.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qwaitcondition.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 #include <qvideoframe.h>
 #include <private/qgstvideobuffer_p.h>
 #include <private/qgst_p.h>
@@ -92,7 +92,7 @@ public:
 
 private:
     QVideoSink *m_sink = nullptr;
-    QVideoSurfaceFormat m_format;
+    QVideoFrameFormat m_format;
     GstVideoInfo m_videoInfo;
     bool m_flushed = true;
     QGstVideoBuffer::BufferFormat bufferFormat = QGstVideoBuffer::Memory;

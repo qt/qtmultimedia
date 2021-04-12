@@ -39,7 +39,7 @@
 
 #include "qvideosink.h"
 
-#include "qvideosurfaceformat.h"
+#include "qvideoframeformat.h"
 #include "qvideoframe.h"
 
 #include <qvariant.h>
@@ -65,7 +65,7 @@ public:
     QVideoSink *q_ptr = nullptr;
     QPlatformVideoSink *videoSink = nullptr;
     QVideoSink::GraphicsType type = QVideoSink::Memory;
-    QVideoSurfaceFormat surfaceFormat;
+    QVideoFrameFormat surfaceFormat;
     QSize nativeResolution;
     bool active = false;
     WId window = 0;
@@ -283,13 +283,13 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
         return;
     }
 
-    auto imageFormat = QVideoSurfaceFormat::imageFormatFromPixelFormat(frame.pixelFormat());
+    auto imageFormat = QVideoFrameFormat::imageFormatFromPixelFormat(frame.pixelFormat());
     // Do not render into ARGB32 images using QPainter.
     // Using QImage::Format_ARGB32_Premultiplied is significantly faster.
     if (imageFormat == QImage::Format_ARGB32)
         imageFormat = QImage::Format_ARGB32_Premultiplied;
 
-    QVideoSurfaceFormat::Direction scanLineDirection = QVideoSurfaceFormat::TopToBottom;//format.scanLineDirection();
+    QVideoFrameFormat::Direction scanLineDirection = QVideoFrameFormat::TopToBottom;//format.scanLineDirection();
     bool mirrored = false;//format.isMirrored();
 
     QSizeF size = frame.size();
@@ -332,7 +332,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
 
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;
-        if (scanLineDirection == QVideoSurfaceFormat::BottomToTop) {
+        if (scanLineDirection == QVideoFrameFormat::BottomToTop) {
             transform.scale(1, -1);
             transform.translate(0, -targetRect.bottom());
             targetRect = QRectF(targetRect.x(), 0, targetRect.width(), targetRect.height());

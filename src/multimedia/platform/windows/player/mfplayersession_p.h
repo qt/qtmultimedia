@@ -62,7 +62,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qwaitcondition.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 #include <qaudiodeviceinfo.h>
 #include "mfplayercontrol_p.h"
 

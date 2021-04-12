@@ -342,7 +342,7 @@ int QCameraImageCapture::captureToBuffer()
 */
 
 /*!
-    \fn QCameraImageCapture::bufferFormatChanged(QVideoSurfaceFormat::PixelFormat format)
+    \fn QCameraImageCapture::bufferFormatChanged(QVideoFrameFormat::PixelFormat format)
 
     Signal emitted when the buffer \a format for the buffer image capture has changed.
 */

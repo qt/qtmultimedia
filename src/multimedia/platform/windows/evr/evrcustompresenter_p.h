@@ -55,7 +55,7 @@
 #include <qmutex.h>
 #include <qqueue.h>
 #include <qevent.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 #include <qvideosink.h>
 
 #include "evrdefs_p.h"

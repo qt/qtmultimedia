@@ -43,7 +43,7 @@
 
 #include <QCoreApplication>
 #include <QDebug>
-#include <QVideoSurfaceFormat>
+#include <QVideoFrameFormat>
 #include <QOpenGLContext>
 
 #include <mm/renderer.h>
@@ -174,7 +174,7 @@ void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
         // handle or a copy of the image data
         if (m_windowGrabber->eglImageSupported()) {
             QnxTextureBuffer *textBuffer = new QnxTextureBuffer(m_windowGrabber);
-            QVideoFrame actualFrame(textBuffer, QVideoSurfaceFormat(size, QVideoSurfaceFormat::Format_BGR32));
+            QVideoFrame actualFrame(textBuffer, QVideoFrameFormat(size, QVideoFrameFormat::Format_BGR32));
             m_sink->newVideoFrame(actualFrame);
         } else {
             m_sink->newVideoFrame(m_windowGrabber->getNextImage().copy());

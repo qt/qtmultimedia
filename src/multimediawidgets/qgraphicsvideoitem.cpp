@@ -42,7 +42,7 @@
 
 #include <qobject.h>
 #include <qvideoframe.h>
-#include <qvideosurfaceformat.h>
+#include <qvideoframeformat.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qpointer.h>

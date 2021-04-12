@@ -41,7 +41,7 @@
 #define QVIDEOFRAME_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qvideosurfaceformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
@@ -76,8 +76,8 @@ public:
     };
 
     QVideoFrame();
-    QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoSurfaceFormat &format);
-    QVideoFrame(int bytes, int bytesPerLine, const QVideoSurfaceFormat &format);
+    QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format);
+    QVideoFrame(int bytes, int bytesPerLine, const QVideoFrameFormat &format);
     QVideoFrame(const QImage &image);
     QVideoFrame(const QVideoFrame &other);
     ~QVideoFrame();
@@ -88,9 +88,9 @@ public:
 
     bool isValid() const;
 
-    QVideoSurfaceFormat::PixelFormat pixelFormat() const;
+    QVideoFrameFormat::PixelFormat pixelFormat() const;
 
-    QVideoSurfaceFormat surfaceFormat() const;
+    QVideoFrameFormat surfaceFormat() const;
     QVideoFrame::HandleType handleType() const;
 
     QSize size() const;
