@@ -39,7 +39,7 @@
 
 #include "qvideoframe.h"
 
-#include "qimagevideobuffer_p.h"
+#include "qvideotexturehelper_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconversionhelper_p.h"
 #include "qvideoframeformat.h"
@@ -263,6 +263,7 @@ QVideoFrame::QVideoFrame()
 }
 
 /*!
+    \internal
     Constructs a video frame from a \a buffer with the given pixel \a format and \a size in pixels.
 
     \note This doesn't increment the reference count of the video buffer.
@@ -279,32 +280,19 @@ QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &
     The \a bytesPerLine (stride) is the length of each scan line in bytes, and \a bytes is the total
     number of bytes that must be allocated for the frame.
 */
-QVideoFrame::QVideoFrame(int bytes, int bytesPerLine, const QVideoFrameFormat &format)
+QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
     : d(new QVideoFramePrivate(format))
 {
+    auto *textureDescription = QVideoTextureHelper::textureDescription(format.pixelFormat());
+    qsizetype bytes = textureDescription->bytesForSize(format.frameSize());
     if (bytes > 0) {
         QByteArray data;
         data.resize(bytes);
 
         // Check the memory was successfully allocated.
         if (!data.isEmpty())
-            d->buffer = new QMemoryVideoBuffer(data, bytesPerLine);
+            d->buffer = new QMemoryVideoBuffer(data, textureDescription->stride*format.frameWidth());
     }
-}
-
-/*!
-    Constructs a video frame from an \a image.
-
-    \note This will construct an invalid video frame if there is no frame type equivalent to the
-    image format.
-
-    \sa pixelFormatFromImageFormat()
-*/
-QVideoFrame::QVideoFrame(const QImage &image)
-    : d(new QVideoFramePrivate(QVideoFrameFormat(image.size(),
-                                                   QVideoFrameFormat::pixelFormatFromImageFormat(image.format()))))
-{
-    d->buffer = new QImageVideoBuffer(image);
 }
 
 /*!

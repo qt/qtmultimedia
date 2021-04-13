@@ -57,8 +57,11 @@ struct TextureDescription
         int x;
         int y;
     };
+    using BytesForSize = int(*)(QSize s);
 
     int nplanes;
+    int stride;
+    BytesForSize bytesForSize;
     QRhiTexture::Format textureFormat[maxPlanes];
     SizeScale sizeScale[maxPlanes];
 };

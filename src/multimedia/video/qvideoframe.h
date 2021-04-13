@@ -76,9 +76,7 @@ public:
     };
 
     QVideoFrame();
-    QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format);
-    QVideoFrame(int bytes, int bytesPerLine, const QVideoFrameFormat &format);
-    QVideoFrame(const QImage &image);
+    QVideoFrame(const QVideoFrameFormat &format);
     QVideoFrame(const QVideoFrame &other);
     ~QVideoFrame();
 
@@ -126,6 +124,7 @@ public:
 
     QImage toImage() const;
 
+    QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format);
 private:
     QExplicitlySharedDataPointer<QVideoFramePrivate> d;
 };

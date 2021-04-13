@@ -65,8 +65,6 @@ private slots:
     void createFromBuffer_data();
     void createFromBuffer();
     void createFromImage_data();
-    void createFromImage();
-    void createFromIncompatibleImage();
     void createNull();
     void destructor();
     void copy_data();
@@ -75,11 +73,8 @@ private slots:
     void assign();
     void map_data();
     void map();
-    void mapImage_data();
-    void mapImage();
     void mapPlanes_data();
     void mapPlanes();
-    void imageDetach();
     void formatConversion_data();
     void formatConversion();
 
@@ -174,24 +169,18 @@ void tst_QVideoFrame::create_data()
 
     QTest::newRow("64x64 ARGB32")
             << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB32
-            << 16384
-            << 256;
+            << QVideoFrameFormat::Format_ARGB32;
     QTest::newRow("32x256 YUV420P")
             << QSize(32, 256)
-            << QVideoFrameFormat::Format_YUV420P
-            << 13288
-            << 32;
+            << QVideoFrameFormat::Format_YUV420P;
 }
 
 void tst_QVideoFrame::create()
 {
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
-    QFETCH(int, bytes);
-    QFETCH(int, bytesPerLine);
 
-    QVideoFrame frame(bytes, bytesPerLine, QVideoFrameFormat(size, pixelFormat));
+    QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
@@ -208,29 +197,21 @@ void tst_QVideoFrame::createInvalid_data()
 {
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
-    QTest::addColumn<int>("bytes");
-    QTest::addColumn<int>("bytesPerLine");
 
     QTest::newRow("64x64 ARGB32 0 size")
-            << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB32
-            << 0
-            << 45;
-    QTest::newRow("32x256 YUV420P negative size")
-            << QSize(32, 256)
-            << QVideoFrameFormat::Format_YUV420P
-            << -13288
-            << 32;
+            << QSize(0, 64)
+            << QVideoFrameFormat::Format_ARGB32;
+    QTest::newRow("32x256 YUV420P 0 size")
+            << QSize(32, 0)
+            << QVideoFrameFormat::Format_YUV420P;
 }
 
 void tst_QVideoFrame::createInvalid()
 {
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
-    QFETCH(int, bytes);
-    QFETCH(int, bytesPerLine);
 
-    QVideoFrame frame(bytes, bytesPerLine, QVideoFrameFormat(size, pixelFormat));
+    QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(!frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
@@ -291,42 +272,6 @@ void tst_QVideoFrame::createFromImage_data()
             << QSize(19, 46)
             << QImage::Format_ARGB32_Premultiplied
             << QVideoFrameFormat::Format_ARGB32_Premultiplied;
-}
-
-void tst_QVideoFrame::createFromImage()
-{
-    QFETCH(QSize, size);
-    QFETCH(QImage::Format, imageFormat);
-    QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
-
-    const QImage image(size.width(), size.height(), imageFormat);
-
-    QVideoFrame frame(image);
-
-    QVERIFY(frame.isValid());
-    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
-    QCOMPARE(frame.pixelFormat(), pixelFormat);
-    QCOMPARE(frame.size(), size);
-    QCOMPARE(frame.width(), size.width());
-    QCOMPARE(frame.height(), size.height());
-    QCOMPARE(frame.startTime(), qint64(-1));
-    QCOMPARE(frame.endTime(), qint64(-1));
-}
-
-void tst_QVideoFrame::createFromIncompatibleImage()
-{
-    const QImage image(64, 64, QImage::Format_Mono);
-
-    QVideoFrame frame(image);
-
-    QVERIFY(!frame.isValid());
-    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
-    QCOMPARE(frame.pixelFormat(), QVideoFrameFormat::Format_Invalid);
-    QCOMPARE(frame.size(), QSize(64, 64));
-    QCOMPARE(frame.width(), 64);
-    QCOMPARE(frame.height(), 64);
-    QCOMPARE(frame.startTime(), qint64(-1));
-    QCOMPARE(frame.endTime(), qint64(-1));
 }
 
 void tst_QVideoFrame::createNull()
@@ -586,29 +531,21 @@ void tst_QVideoFrame::assign()
 void tst_QVideoFrame::map_data()
 {
     QTest::addColumn<QSize>("size");
-    QTest::addColumn<int>("mappedBytes");
-    QTest::addColumn<int>("bytesPerLine");
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
     QTest::addColumn<QVideoFrame::MapMode>("mode");
 
     QTest::newRow("read-only")
             << QSize(64, 64)
-            << 16384
-            << 256
             << QVideoFrameFormat::Format_ARGB32
             << QVideoFrame::ReadOnly;
 
     QTest::newRow("write-only")
             << QSize(64, 64)
-            << 16384
-            << 256
             << QVideoFrameFormat::Format_ARGB32
             << QVideoFrame::WriteOnly;
 
     QTest::newRow("read-write")
             << QSize(64, 64)
-            << 16384
-            << 256
             << QVideoFrameFormat::Format_ARGB32
             << QVideoFrame::ReadWrite;
 }
@@ -616,12 +553,10 @@ void tst_QVideoFrame::map_data()
 void tst_QVideoFrame::map()
 {
     QFETCH(QSize, size);
-    QFETCH(int, mappedBytes);
-    QFETCH(int, bytesPerLine);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
     QFETCH(QVideoFrame::MapMode, mode);
 
-    QVideoFrame frame(mappedBytes, bytesPerLine, QVideoFrameFormat(size, pixelFormat));
+    QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(!frame.bits());
     QCOMPARE(frame.mappedBytes(), 0);
@@ -653,60 +588,6 @@ void tst_QVideoFrame::map()
     }
 
     QVERIFY(frame.bits());
-    QCOMPARE(frame.mappedBytes(), mappedBytes);
-    QCOMPARE(frame.bytesPerLine(), bytesPerLine);
-    QCOMPARE(frame.mapMode(), mode);
-
-    frame.unmap();
-
-    QVERIFY(!frame.bits());
-    QCOMPARE(frame.mappedBytes(), 0);
-    QCOMPARE(frame.bytesPerLine(), 0);
-    QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
-}
-
-void tst_QVideoFrame::mapImage_data()
-{
-    QTest::addColumn<QSize>("size");
-    QTest::addColumn<QImage::Format>("format");
-    QTest::addColumn<QVideoFrame::MapMode>("mode");
-
-    QTest::newRow("read-only")
-            << QSize(64, 64)
-            << QImage::Format_ARGB32
-            << QVideoFrame::ReadOnly;
-
-    QTest::newRow("write-only")
-            << QSize(15, 106)
-            << QImage::Format_RGB32
-            << QVideoFrame::WriteOnly;
-
-    QTest::newRow("read-write")
-            << QSize(23, 111)
-            << QImage::Format_RGB16
-            << QVideoFrame::ReadWrite;
-}
-
-void tst_QVideoFrame::mapImage()
-{
-    QFETCH(QSize, size);
-    QFETCH(QImage::Format, format);
-    QFETCH(QVideoFrame::MapMode, mode);
-
-    QImage image(size.width(), size.height(), format);
-
-    QVideoFrame frame(image);
-
-    QVERIFY(!frame.bits());
-    QCOMPARE(frame.mappedBytes(), 0);
-    QCOMPARE(frame.bytesPerLine(), 0);
-    QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
-
-    QVERIFY(frame.map(mode));
-
-    QVERIFY(frame.bits());
-    QCOMPARE(qsizetype(frame.mappedBytes()), image.sizeInBytes());
-    QCOMPARE(frame.bytesPerLine(), image.bytesPerLine());
     QCOMPARE(frame.mapMode(), mode);
 
     frame.unmap();
@@ -740,39 +621,39 @@ void tst_QVideoFrame::mapPlanes_data()
         << (QList<int>() << 64 << 36 << 36)
         << (QList<int>() << 512 << 765);
     QTest::newRow("Format_YUV420P")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YUV420P))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YUV420P))
         << (QList<int>() << 64 << 62 << 62)
         << (QList<int>() << 4096 << 6080);
     QTest::newRow("Format_YV12")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YV12))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YV12))
         << (QList<int>() << 64 << 62 << 62)
         << (QList<int>() << 4096 << 6080);
     QTest::newRow("Format_NV12")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_NV12))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_NV12))
         << (QList<int>() << 64 << 64)
         << (QList<int>() << 4096);
     QTest::newRow("Format_NV21")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_NV21))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_NV21))
         << (QList<int>() << 64 << 64)
         << (QList<int>() << 4096);
     QTest::newRow("Format_IMC2")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC2))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC2))
         << (QList<int>() << 64 << 64)
         << (QList<int>() << 4096);
     QTest::newRow("Format_IMC4")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC4))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC4))
         << (QList<int>() << 64 << 64)
         << (QList<int>() << 4096);
     QTest::newRow("Format_IMC1")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC1))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC1))
         << (QList<int>() << 64 << 64 << 64)
         << (QList<int>() << 4096 << 6144);
     QTest::newRow("Format_IMC3")
-        << QVideoFrame(8096, 64, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC3))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_IMC3))
         << (QList<int>() << 64 << 64 << 64)
         << (QList<int>() << 4096 << 6144);
     QTest::newRow("Format_ARGB32")
-        << QVideoFrame(8096, 256, QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_ARGB32))
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_ARGB32))
         << (QList<int>() << 256)
         << (QList<int>());
 }
@@ -806,31 +687,6 @@ void tst_QVideoFrame::mapPlanes()
     }
 
     frame.unmap();
-}
-
-void tst_QVideoFrame::imageDetach()
-{
-    const uint red = qRgb(255, 0, 0);
-    const uint blue = qRgb(0, 0, 255);
-
-    QImage image(8, 8, QImage::Format_RGB32);
-
-    image.fill(red);
-    QCOMPARE(image.pixel(4, 4), red);
-
-    QVideoFrame frame(image);
-
-    QVERIFY(frame.map(QVideoFrame::ReadWrite));
-
-    QImage frameImage(frame.bits(), 8, 8, frame.bytesPerLine(), QImage::Format_RGB32);
-
-    QCOMPARE(frameImage.pixel(4, 4), red);
-
-    frameImage.fill(blue);
-    QCOMPARE(frameImage.pixel(4, 4), blue);
-
-    // Original image has detached and is therefore unchanged.
-    QCOMPARE(image.pixel(4, 4), red);
 }
 
 void tst_QVideoFrame::formatConversion_data()
@@ -958,7 +814,7 @@ do { \
 
 void tst_QVideoFrame::isMapped()
 {
-    QVideoFrame frame(16384, 256, QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_ARGB32));
+    QVideoFrame frame(QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_ARGB32));
     const QVideoFrame& constFrame(frame);
 
     TEST_UNMAPPED(frame);
@@ -988,7 +844,7 @@ void tst_QVideoFrame::isMapped()
 
 void tst_QVideoFrame::isReadable()
 {
-    QVideoFrame frame(16384, 256, QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_ARGB32));
+    QVideoFrame frame(QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_ARGB32));
 
     QVERIFY(!frame.isMapped());
     QVERIFY(!frame.isReadable());
@@ -1011,7 +867,7 @@ void tst_QVideoFrame::isReadable()
 
 void tst_QVideoFrame::isWritable()
 {
-    QVideoFrame frame(16384, 256, QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_ARGB32));
+    QVideoFrame frame(QVideoFrameFormat(QSize(64, 64), QVideoFrameFormat::Format_ARGB32));
 
     QVERIFY(!frame.isMapped());
     QVERIFY(!frame.isWritable());
@@ -1036,99 +892,71 @@ void tst_QVideoFrame::image_data()
 {
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
-    QTest::addColumn<int>("bytes");
-    QTest::addColumn<int>("bytesPerLine");
     QTest::addColumn<QImage::Format>("imageFormat");
 
     QTest::newRow("64x64 ARGB32")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_ARGB32
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 ARGB32_Premultiplied")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_ARGB32_Premultiplied
-            << 16384
-            << 256
             << QImage::Format_ARGB32_Premultiplied;
 
     QTest::newRow("64x64 RGB32")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_RGB32
-            << 16384
-            << 256
             << QImage::Format_RGB32;
 
     QTest::newRow("64x64 BGRA32")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_BGRA32
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 BGRA32_Premultiplied")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_BGRA32_Premultiplied
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 BGR32")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_BGR32
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 AYUV444")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_AYUV444
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 YUV420P")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_YUV420P
-            << 13288
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 YV12")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_YV12
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 UYVY")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_UYVY
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 YUYV")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_YUYV
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 NV12")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_NV12
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 
     QTest::newRow("64x64 NV21")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_NV21
-            << 16384
-            << 256
             << QImage::Format_ARGB32;
 }
 
@@ -1136,17 +964,14 @@ void tst_QVideoFrame::image()
 {
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
-    QFETCH(int, bytes);
-    QFETCH(int, bytesPerLine);
     QFETCH(QImage::Format, imageFormat);
 
-    QVideoFrame frame(bytes, bytesPerLine, QVideoFrameFormat(size, pixelFormat));
+    QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
     QImage img = frame.toImage();
 
     QVERIFY(!img.isNull());
     QCOMPARE(img.format(), imageFormat);
     QCOMPARE(img.size(), size);
-    QCOMPARE(img.bytesPerLine(), bytesPerLine);
 }
 
 void tst_QVideoFrame::emptyData()

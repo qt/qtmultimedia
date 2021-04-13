@@ -73,7 +73,7 @@ void SurfaceHolder::presentDummyFrame(const QSize &size)
 {
     if (m_surface) {
         QVideoFrameFormat format(size, QVideoFrameFormat::Format_ARGB32_Premultiplied);
-        QVideoFrame frame(size.width() * size.height() * 4, size.width() * 4, format);
+        QVideoFrame frame(format);
 
         m_surface->newVideoFrame(frame);
 
@@ -339,8 +339,12 @@ void tst_QDeclarativeVideoOutput::paintSurface()
     QVERIFY(surface);
     videoOutput->setSize(QSize(2, 2));
 
-    QImage img(rgb32ImageData, 2, 2, 8, QImage::Format_RGB32);
-    surface->newVideoFrame(img);
+    QVideoFrame frame(QVideoFrameFormat(QSize(2, 2), QVideoFrameFormat::Format_ARGB32));
+    frame.map(QVideoFrame::ReadWrite);
+    QCOMPARE(frame.mappedBytes(), 16);
+    memcpy(frame.bits(), rgb32ImageData, 16);
+    frame.unmap();
+    surface->newVideoFrame(frame);
 }
 
 void tst_QDeclarativeVideoOutput::sourceRect()
