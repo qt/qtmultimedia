@@ -64,6 +64,7 @@ class Q_MULTIMEDIA_EXPORT QCameraExposure : public QObject
     Q_PROPERTY(QCameraExposure::ExposureMode exposureMode READ exposureMode WRITE setExposureMode)
 
     Q_ENUMS(FlashMode)
+    Q_ENUMS(TorchMode)
     Q_ENUMS(ExposureMode)
 public:
     enum FlashMode {
