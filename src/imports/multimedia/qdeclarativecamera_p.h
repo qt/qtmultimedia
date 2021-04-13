@@ -69,7 +69,6 @@
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCameraExposure;
-class QDeclarativeCameraFocus;
 class QDeclarativeCameraFlash;
 class QDeclarativeTorch;
 class QDeclarativeCamera : public QObject, public QQmlParserStatus
@@ -86,16 +85,12 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
-    Q_PROPERTY(qreal minimumZoomFactor READ minimumZoomFactor)
-    Q_PROPERTY(qreal maximumZoomFactor READ maximumZoomFactor)
-    Q_PROPERTY(qreal zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
-
     Q_PROPERTY(QDeclarativeCameraCapture* imageCapture READ imageCapture CONSTANT)
     Q_PROPERTY(QDeclarativeCameraRecorder* videoRecorder READ videoRecorder CONSTANT)
     Q_PROPERTY(QDeclarativeCameraExposure* exposure READ exposure CONSTANT)
     Q_PROPERTY(QDeclarativeCameraFlash* flash READ flash CONSTANT)
     Q_PROPERTY(QDeclarativeTorch* torch READ torch CONSTANT)
-    Q_PROPERTY(QDeclarativeCameraFocus* focus READ focus CONSTANT)
+    Q_PROPERTY(QCameraFocus* focus READ focus CONSTANT)
     Q_PROPERTY(QCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
 
     Q_ENUMS(Position)
@@ -181,7 +176,7 @@ public:
     QDeclarativeCameraExposure *exposure() { return m_exposure; }
     QDeclarativeCameraFlash *flash() { return m_flash; }
     QDeclarativeTorch *torch() { return m_torch; }
-    QDeclarativeCameraFocus *focus() { return m_focus; }
+    QCameraFocus *focus() { return m_camera->focus(); }
     QCameraImageProcessing *imageProcessing() { return m_camera->imageProcessing(); }
 
     QString deviceId() const;
@@ -198,11 +193,6 @@ public:
     Error errorCode() const;
     QString errorString() const;
 
-    qreal minimumZoomFactor() const;
-    qreal maximumZoomFactor() const;
-
-    qreal zoomFactor() const;
-
     bool isAvailable() const;
 
 public Q_SLOTS:
@@ -210,8 +200,6 @@ public Q_SLOTS:
     void stop() { setActive(false); }
 
     void setActive(bool active);
-
-    void setZoomFactor(qreal);
 
     Q_REVISION(2) QJSValue supportedResolutions(qreal minimumFrameRate = 0.0,
                                                           qreal maximumFrameRate = 0.0);
@@ -228,8 +216,6 @@ Q_SIGNALS:
 
     void activeChanged();
     void cameraStatusChanged();
-
-    void zoomFactorChanged(qreal);
 
 private Q_SLOTS:
     void _q_errorOccurred(QCamera::Error);
@@ -251,7 +237,6 @@ private:
     QDeclarativeCameraExposure *m_exposure;
     QDeclarativeCameraFlash *m_flash;
     QDeclarativeTorch *m_torch;
-    QDeclarativeCameraFocus *m_focus;
 
     bool m_componentComplete;
     bool pendingActive = false;

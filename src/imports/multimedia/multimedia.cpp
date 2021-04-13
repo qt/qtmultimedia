@@ -53,7 +53,6 @@
 #include "qdeclarativecamerapreviewprovider_p.h"
 #include "qdeclarativecameraexposure_p.h"
 #include "qdeclarativecameraflash_p.h"
-#include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativetorch_p.h"
 
 QML_DECLARE_TYPE(QSoundEffect)
@@ -91,7 +90,7 @@ public:
                                 tr("CameraRecorder is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 6, 0, "CameraExposure",
                                 tr("CameraExposure is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraFocus>(uri, 6, 0, "CameraFocus",
+        qmlRegisterUncreatableType<QCameraFocus>(uri, 6, 0, "CameraFocus",
                                 tr("CameraFocus is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 6, 0, "CameraFlash",
                                 tr("CameraFlash is provided by Camera"));

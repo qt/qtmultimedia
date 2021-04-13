@@ -43,7 +43,6 @@
 #include "qdeclarativecameraexposure_p.h"
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativetorch_p.h"
-#include "qdeclarativecamerafocus_p.h"
 
 #include <private/qplatformmediaplayer_p.h>
 #include <qobject.h>
@@ -172,14 +171,10 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_exposure = new QDeclarativeCameraExposure(m_camera);
     m_flash = new QDeclarativeCameraFlash(m_camera);
     m_torch = new QDeclarativeTorch(m_camera);
-    m_focus = new QDeclarativeCameraFocus(m_camera);
 
     connect(m_camera, &QCamera::activeChanged, this, &QDeclarativeCamera::activeChanged);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
     connect(m_camera, SIGNAL(errorOccurred(QCamera::Error)), this, SLOT(_q_errorOccurred(QCamera::Error)));
-
-    connect(m_camera->focus(), &QCameraFocus::zoomFactorChanged,
-            this, &QDeclarativeCamera::zoomFactorChanged);
 }
 
 /*! Destructor, clean up memory */
@@ -190,7 +185,6 @@ QDeclarativeCamera::~QDeclarativeCamera()
     delete m_videoRecorder;
     delete m_exposure;
     delete m_flash;
-    delete m_focus;
 
     delete m_camera;
 }
@@ -213,7 +207,7 @@ void QDeclarativeCamera::componentComplete()
     You can get all available device IDs from \l{QtMultimedia::QtMultimedia::availableCameras}{QtMultimedia.availableCameras}.
     If no value is provided or if set to an empty string, the system's default camera will be used.
 
-    If possible, \l cameraState, \l zoomFactor and other camera parameters are
+    If possible, \l cameraState and other camera parameters are
     preserved when changing the camera device.
 
     \sa displayName, position
@@ -243,7 +237,7 @@ void QDeclarativeCamera::setDeviceId(const QString &name)
     front-facing and back-facing cameras. If this property is set to
     \c Camera.UnspecifiedPosition, the system's default camera is used.
 
-    If possible, \l cameraState, \l zoomFactor and other camera
+    If possible, \l cameraState and other camera
     parameters are preserved when changing the camera device.
 
     \value  Camera.UnspecifiedPosition
@@ -447,40 +441,6 @@ void QDeclarativeCamera::setActive(bool active)
 
     In this state, the camera still consumes power.
 */
-
-/*!
-    \qmlproperty real QtMultimedia::Camera::minimumZoomFactor
-
-    This property holds the minimum zoom factor supported.
-*/
-qreal QDeclarativeCamera::minimumZoomFactor() const
-{
-    return m_camera->focus()->minimumZoomFactor();
-}
-
-/*!
-    \qmlproperty real QtMultimedia::Camera::maximumZoomFactor
-
-    This property holds the maximum zoom factor supported, or 1.0 if zooming is not supported.
-*/
-qreal QDeclarativeCamera::maximumZoomFactor() const
-{
-    return m_camera->focus()->maximumZoomFactor();
-}
-/*!
-    \property QDeclarativeCamera::zoomFactor
-
-    This property holds the current zoom factor.
-*/
-qreal QDeclarativeCamera::zoomFactor() const
-{
-    return m_camera->focus()->zoomFactor();
-}
-
-void QDeclarativeCamera::setZoomFactor(qreal value)
-{
-    m_camera->focus()->setZoomFactor(value);
-}
 
 /*!
     \qmlproperty variant QtMultimedia::Camera::mediaSource

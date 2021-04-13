@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -36,9 +36,6 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#include "qdeclarativecamera_p.h"
-#include "qdeclarativecamerafocus_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -88,24 +85,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    Construct a declarative camera focus object using \a parent object.
- */
-
-QDeclarativeCameraFocus::QDeclarativeCameraFocus(QCamera *camera, QObject *parent) :
-    QObject(parent)
-{
-    m_focus = camera->focus();
-
-    connect(camera, &QCamera::statusChanged, [this](QCamera::Status status) {
-        if (status != QCamera::InactiveStatus && status != QCamera::ActiveStatus)
-            return;
-
-        emit supportedFocusModeChanged();
-    });
-}
-
-QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
-/*!
     \property QDeclarativeCameraFocus::focusMode
 
     This property holds the current camera focus mode.
@@ -148,10 +127,6 @@ QDeclarativeCameraFocus::~QDeclarativeCameraFocus() = default;
     provides information and control
     over the area of the image that is being focused.
 */
-QDeclarativeCameraFocus::FocusMode QDeclarativeCameraFocus::focusMode() const
-{
-    return QDeclarativeCameraFocus::FocusMode(int(m_focus->focusMode()));
-}
 
 /*!
     \qmlproperty list<FocusMode> CameraFocus::supportedFocusMode
@@ -161,25 +136,6 @@ QDeclarativeCameraFocus::FocusMode QDeclarativeCameraFocus::focusMode() const
     \since 5.11
     \sa focusMode
 */
-QVariantList QDeclarativeCameraFocus::supportedFocusMode() const
-{
-    QVariantList supportedModes;
-
-    for (int i = int(FocusManual); i <= int(FocusMacro); ++i) {
-        if (m_focus->isFocusModeSupported((QCameraFocus::FocusMode) i))
-            supportedModes.append(i);
-    }
-
-    return supportedModes;
-}
-
-void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCameraFocus::FocusMode mode)
-{
-    if (mode != focusMode()) {
-        m_focus->setFocusMode(QCameraFocus::FocusMode(int(mode)));
-        emit focusModeChanged(focusMode());
-    }
-}
 
 /*!
   \property QDeclarativeCameraFocus::customFocusPoint
@@ -201,19 +157,20 @@ void QDeclarativeCameraFocus::setFocusMode(QDeclarativeCameraFocus::FocusMode mo
   Custom focus point is used only in FocusPointCustom focus mode.
 */
 
-QPointF QDeclarativeCameraFocus::customFocusPoint() const
-{
-    return m_focus->customFocusPoint();
-}
+/*!
+    \qmlproperty real QtMultimedia::CameraFocus::minimumZoomFactor
 
-void QDeclarativeCameraFocus::setCustomFocusPoint(const QPointF &point)
-{
-    if (point != customFocusPoint()) {
-        m_focus->setCustomFocusPoint(point);
-        emit customFocusPointChanged(customFocusPoint());
-    }
-}
+    This property holds the minimum zoom factor supported.
+*/
 
-QT_END_NAMESPACE
+/*!
+    \qmlproperty real QtMultimedia::CameraFocus::maximumZoomFactor
 
-#include "moc_qdeclarativecamerafocus_p.cpp"
+    This property holds the maximum zoom factor supported, or 1.0 if zooming is not supported.
+*/
+
+/*!
+    \property QDeclarativeCameraFocus::zoomFactor
+
+    This property holds the current zoom factor.
+*/
