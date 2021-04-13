@@ -100,7 +100,6 @@ public:
     QCamera *camera;
 
     QPlatformCameraFocus *focusControl;
-    bool available;
     float zoomFactor = 1.;
     QPointF customFocusPoint{-1, -1};
 };
@@ -112,7 +111,6 @@ void QCameraFocusPrivate::init(QPlatformCamera *cameraControl)
     Q_Q(QCameraFocus);
 
     focusControl = cameraControl->focusControl();
-    available = focusControl != nullptr;
 
     if (!focusControl)
         return;
@@ -148,7 +146,7 @@ QCameraFocus::~QCameraFocus() = default;
 */
 bool QCameraFocus::isAvailable() const
 {
-    return d_func()->available;
+    return d_func()->focusControl != nullptr;
 }
 
 /*!
@@ -171,8 +169,10 @@ QCameraFocus::FocusMode QCameraFocus::focusMode() const
 void QCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
 {
     Q_D(QCameraFocus);
-    if (d->focusControl)
-        d->focusControl->setFocusMode(mode);
+    if (!d->focusControl || d->focusControl->focusMode() == mode)
+        return;
+    d->focusControl->setFocusMode(mode);
+    emit focusModeChanged();
 }
 
 /*!
