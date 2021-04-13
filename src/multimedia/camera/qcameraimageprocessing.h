@@ -60,7 +60,15 @@ class QCameraImageProcessingPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraImageProcessing : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(WhiteBalanceMode ColorFilter)
+    Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
+    Q_PROPERTY(qreal manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
+    Q_PROPERTY(ColorFilter colorFilter READ colorFilter WRITE setColorFilter NOTIFY colorFilterChanged)
+    Q_PROPERTY(qreal brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
+    Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
+    Q_PROPERTY(qreal hue READ hue WRITE setHue NOTIFY hueChanged)
+    Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
+    Q_ENUMS(WhiteBalanceMode)
+    Q_ENUMS(ColorFilter)
 public:
     enum WhiteBalanceMode {
         WhiteBalanceAuto = 0,
@@ -90,7 +98,7 @@ public:
 
     WhiteBalanceMode whiteBalanceMode() const;
     void setWhiteBalanceMode(WhiteBalanceMode mode);
-    bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
+    Q_INVOKABLE bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
 
     qreal manualWhiteBalance() const;
     void setManualWhiteBalance(qreal colorTemperature);
@@ -109,7 +117,18 @@ public:
 
     ColorFilter colorFilter() const;
     void setColorFilter(ColorFilter filter);
-    bool isColorFilterSupported(ColorFilter filter) const;
+    Q_INVOKABLE bool isColorFilterSupported(ColorFilter filter) const;
+
+Q_SIGNALS:
+    void whiteBalanceModeChanged() const;
+    void manualWhiteBalanceChanged() const;
+
+    void brightnessChanged();
+    void contrastChanged();
+    void saturationChanged();
+    void hueChanged();
+
+    void colorFilterChanged();
 
 protected:
     ~QCameraImageProcessing();

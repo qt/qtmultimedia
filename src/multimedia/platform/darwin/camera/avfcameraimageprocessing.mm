@@ -182,20 +182,6 @@ bool AVFCameraImageProcessing::isParameterValueSupported(
     return false;
 }
 
-QVariant AVFCameraImageProcessing::parameter(
-        QPlatformCameraImageProcessing::ProcessingParameter parameter) const
-{
-    if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
-        return QVariant::fromValue(m_whiteBalanceMode);
-
-#ifdef Q_OS_IOS
-    if (parameter == QPlatformCameraImageProcessing::ColorTemperature)
-        return QVariant::fromValue(m_colorTemperature);
-#endif
-
-    return QVariant();
-}
-
 void AVFCameraImageProcessing::setParameter(
         QPlatformCameraImageProcessing::ProcessingParameter parameter,
         const QVariant &value)
@@ -214,12 +200,6 @@ void AVFCameraImageProcessing::setParameter(
 
     if (!result)
         qDebug() << "Could not set parameter\n";
-}
-
-QCameraImageProcessing::WhiteBalanceMode
-        AVFCameraImageProcessing::whiteBalanceMode() const
-{
-    return m_whiteBalanceMode;
 }
 
 bool AVFCameraImageProcessing::setWhiteBalanceMode(

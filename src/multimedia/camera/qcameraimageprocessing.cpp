@@ -84,6 +84,14 @@ public:
 
     QCamera *camera;
     QPlatformCameraImageProcessing *imageControl;
+
+    QCameraImageProcessing::WhiteBalanceMode whiteBalance = QCameraImageProcessing::WhiteBalanceAuto;
+    QCameraImageProcessing::ColorFilter colorFilter = QCameraImageProcessing::ColorFilterNone;
+    qreal colorTemperature = 0;
+    qreal brightness = 0;
+    qreal contrast = 0;
+    qreal saturation = 0;
+    qreal hue = 0;
 };
 
 
@@ -128,10 +136,7 @@ bool QCameraImageProcessing::isAvailable() const
 QCameraImageProcessing::WhiteBalanceMode QCameraImageProcessing::whiteBalanceMode() const
 {
     Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return WhiteBalanceAuto;
-    return d->imageControl->parameter(QPlatformCameraImageProcessing::WhiteBalancePreset)
-            .value<QCameraImageProcessing::WhiteBalanceMode>();
+    return d->whiteBalance;
 }
 
 /*!
@@ -141,10 +146,14 @@ QCameraImageProcessing::WhiteBalanceMode QCameraImageProcessing::whiteBalanceMod
 void QCameraImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
 {
     Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(
-                QPlatformCameraImageProcessing::WhiteBalancePreset,
-                QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode));
+    if (d->whiteBalance == mode || !isWhiteBalanceModeSupported(mode))
+        return;
+
+    d->imageControl->setParameter(
+            QPlatformCameraImageProcessing::WhiteBalancePreset,
+            QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(mode));
+    d->whiteBalance = mode;
+    emit whiteBalanceModeChanged();
 }
 
 /*!
@@ -171,10 +180,7 @@ bool QCameraImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing:
 qreal QCameraImageProcessing::manualWhiteBalance() const
 {
     Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return 0.;
-
-    return d->imageControl->parameter(QPlatformCameraImageProcessing::ColorTemperature).toReal();
+    return d->colorTemperature;
 }
 
 /*!
@@ -185,10 +191,22 @@ qreal QCameraImageProcessing::manualWhiteBalance() const
 void QCameraImageProcessing::setManualWhiteBalance(qreal colorTemperature)
 {
     Q_D(QCameraImageProcessing);
-    if (d->imageControl)
+    if (!d->imageControl)
+        return;
+    if (d->colorTemperature == colorTemperature)
+        return;
+    if (colorTemperature == 0) {
+        setWhiteBalanceMode(WhiteBalanceAuto);
+    } else if (!isWhiteBalanceModeSupported(WhiteBalanceManual)) {
+        return;
+    } else {
+        setWhiteBalanceMode(WhiteBalanceManual);
         d->imageControl->setParameter(
                 QPlatformCameraImageProcessing::ColorTemperature,
                 QVariant(colorTemperature));
+    }
+    d->colorTemperature = colorTemperature;
+    emit manualWhiteBalanceChanged();
 }
 
 /*!
@@ -197,9 +215,7 @@ void QCameraImageProcessing::setManualWhiteBalance(qreal colorTemperature)
 qreal QCameraImageProcessing::brightness() const
 {
     Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return 0.;
-    return d->imageControl->parameter(QPlatformCameraImageProcessing::BrightnessAdjustment).toReal();
+    return d->brightness;
 }
 
 /*!
@@ -210,9 +226,12 @@ qreal QCameraImageProcessing::brightness() const
 void QCameraImageProcessing::setBrightness(qreal value)
 {
     Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(QPlatformCameraImageProcessing::BrightnessAdjustment,
-                                         QVariant(value));
+    if (!d->imageControl || d->brightness == value)
+        return;
+    d->brightness = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::BrightnessAdjustment,
+                                     QVariant(value));
+    emit brightnessChanged();
 }
 
 /*!
@@ -221,9 +240,7 @@ void QCameraImageProcessing::setBrightness(qreal value)
 qreal QCameraImageProcessing::contrast() const
 {
     Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return 0.;
-    return d->imageControl->parameter(QPlatformCameraImageProcessing::ContrastAdjustment).toReal();
+    return d->contrast;
 }
 
 /*!
@@ -234,9 +251,12 @@ qreal QCameraImageProcessing::contrast() const
 void QCameraImageProcessing::setContrast(qreal value)
 {
     Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(QPlatformCameraImageProcessing::ContrastAdjustment,
-                                         QVariant(value));
+    if (!d->imageControl || d->contrast == value)
+        return;
+    d->contrast = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::ContrastAdjustment,
+                                     QVariant(value));
+    emit contrastChanged();
 }
 
 /*!
@@ -245,9 +265,7 @@ void QCameraImageProcessing::setContrast(qreal value)
 qreal QCameraImageProcessing::saturation() const
 {
     Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return 0.;
-    return d->imageControl->parameter(QPlatformCameraImageProcessing::SaturationAdjustment).toReal();
+    return d->saturation;
 }
 
 /*!
@@ -259,17 +277,18 @@ qreal QCameraImageProcessing::saturation() const
 void QCameraImageProcessing::setSaturation(qreal value)
 {
     Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(QPlatformCameraImageProcessing::SaturationAdjustment,
-                                      QVariant(value));
+    if (!d->imageControl || d->saturation == value)
+        return;
+    d->saturation = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::SaturationAdjustment,
+                                  QVariant(value));
+    emit saturationChanged();
 }
 
 qreal QCameraImageProcessing::hue() const
 {
     Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return 0.;
-    return d->imageControl->parameter(QPlatformCameraImageProcessing::HueAdjustment).toReal();
+    return d->hue;
 }
 
 /*!
@@ -280,9 +299,12 @@ qreal QCameraImageProcessing::hue() const
 void QCameraImageProcessing::setHue(qreal value)
 {
     Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(QPlatformCameraImageProcessing::HueAdjustment,
-                                      QVariant(value));
+    if (!d->imageControl || d->hue == value)
+        return;
+    d->hue = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::HueAdjustment,
+                                  QVariant(value));
+    emit hueChanged();
 }
 
 /*!
@@ -325,10 +347,7 @@ void QCameraImageProcessing::setHue(qreal value)
 QCameraImageProcessing::ColorFilter QCameraImageProcessing::colorFilter() const
 {
     Q_D(const QCameraImageProcessing);
-    if (!d->imageControl)
-        return ColorFilterNone;
-    return d->imageControl->parameter(QPlatformCameraImageProcessing::ColorFilter)
-            .value<QCameraImageProcessing::ColorFilter>();
+    return d->colorFilter;
 }
 
 
@@ -341,10 +360,13 @@ QCameraImageProcessing::ColorFilter QCameraImageProcessing::colorFilter() const
 void QCameraImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilter filter)
 {
     Q_D(QCameraImageProcessing);
-    if (d->imageControl)
-        d->imageControl->setParameter(
-                    QPlatformCameraImageProcessing::ColorFilter,
-                    QVariant::fromValue<QCameraImageProcessing::ColorFilter>(filter));
+    if (d->colorFilter == filter || !isColorFilterSupported(filter))
+        return;
+    d->colorFilter = filter;
+    d->imageControl->setParameter(
+                QPlatformCameraImageProcessing::ColorFilter,
+                QVariant::fromValue<QCameraImageProcessing::ColorFilter>(filter));
+    emit colorFilterChanged();
 }
 
 /*!

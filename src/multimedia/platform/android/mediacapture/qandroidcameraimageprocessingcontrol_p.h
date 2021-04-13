@@ -65,7 +65,6 @@ public:
 
     bool isParameterSupported(ProcessingParameter) const override;
     bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
-    QVariant parameter(ProcessingParameter parameter) const override;
     void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
 private Q_SLOTS:

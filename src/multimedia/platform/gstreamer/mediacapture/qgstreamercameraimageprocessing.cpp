@@ -122,11 +122,6 @@ bool QGstreamerImageProcessing::setColorBalanceValue(ProcessingParameter paramet
     return true;
 }
 
-QCameraImageProcessing::WhiteBalanceMode QGstreamerImageProcessing::whiteBalanceMode() const
-{
-    return m_whiteBalanceMode;
-}
-
 bool QGstreamerImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
 {
     if (!isWhiteBalanceModeSupported(mode))
@@ -200,11 +195,6 @@ bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessi
 #endif
 
     return mode == QCameraImageProcessing::WhiteBalanceAuto;
-}
-
-QCameraImageProcessing::ColorFilter QGstreamerImageProcessing::colorFilter() const
-{
-    return m_colorFilter;
 }
 
 bool QGstreamerImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilter filter)
@@ -318,28 +308,6 @@ bool QGstreamerImageProcessing::isParameterValueSupported(QPlatformCameraImagePr
     }
 
     return false;
-}
-
-QVariant QGstreamerImageProcessing::parameter(QPlatformCameraImageProcessing::ProcessingParameter parameter) const
-{
-    if (isColorBalanceParameter(parameter))
-        return colorBalanceParameters[parameter].scaledValue();
-
-    switch (parameter) {
-    case QPlatformCameraImageProcessing::WhiteBalancePreset:
-        return whiteBalanceMode();
-    case QPlatformCameraImageProcessing::ColorFilter:
-        return QVariant::fromValue(colorFilter());
-    case QPlatformCameraImageProcessing::ColorTemperature:
-#if QT_CONFIG(linux_v4l)
-        if (m_camera->isV4L2Camera() && v4l2ColorTemperatureSupported)
-            return v4l2CurrentColorTemp;
-#endif
-        break;
-    default:
-        break;
-    }
-    return QVariant();
 }
 
 void QGstreamerImageProcessing::setParameter(QPlatformCameraImageProcessing::ProcessingParameter parameter, const QVariant &value)

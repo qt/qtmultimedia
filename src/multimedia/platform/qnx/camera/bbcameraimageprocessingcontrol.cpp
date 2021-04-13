@@ -89,32 +89,6 @@ bool BbCameraImageProcessingControl::isParameterValueSupported(ProcessingParamet
     return supportedModes.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
 }
 
-QVariant BbCameraImageProcessingControl::parameter(ProcessingParameter parameter) const
-{
-    if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
-        return QVariant();
-
-    if (m_session->handle() == CAMERA_HANDLE_INVALID)
-        return QVariant();
-
-    camera_whitebalancemode_t mode;
-    const camera_error_t result = camera_get_whitebalance_mode(m_session->handle(), &mode);
-
-    if (result != CAMERA_EOK) {
-        qWarning() << "Unable to retrieve current whitebalance mode:" << result;
-        return QVariant();
-    }
-
-    switch (mode) {
-    case CAMERA_WHITEBALANCEMODE_AUTO:
-        return QVariant::fromValue(QCameraImageProcessing::WhiteBalanceAuto);
-    case CAMERA_WHITEBALANCEMODE_MANUAL:
-        return QVariant::fromValue(QCameraImageProcessing::WhiteBalanceManual);
-    default:
-        return QVariant();
-    }
-}
-
 void BbCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
 {
     if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)

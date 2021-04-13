@@ -80,7 +80,6 @@ public:
 
     virtual bool isParameterSupported(ProcessingParameter) const = 0;
     virtual bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const = 0;
-    virtual QVariant parameter(ProcessingParameter parameter) const = 0;
     virtual void setParameter(ProcessingParameter parameter, const QVariant &value) = 0;
 
 protected:

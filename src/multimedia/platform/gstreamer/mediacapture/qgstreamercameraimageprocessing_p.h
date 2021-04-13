@@ -78,17 +78,14 @@ public:
     QGstreamerImageProcessing(QGstreamerCamera *camera);
     virtual ~QGstreamerImageProcessing();
 
-    QCameraImageProcessing::WhiteBalanceMode whiteBalanceMode() const;
     bool setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
     bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
 
-    QCameraImageProcessing::ColorFilter colorFilter() const;
     bool setColorFilter(QCameraImageProcessing::ColorFilter filter);
     bool isColorFilterSupported(QCameraImageProcessing::ColorFilter mode) const;
 
     bool isParameterSupported(ProcessingParameter) const override;
     bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
-    QVariant parameter(ProcessingParameter parameter) const override;
     void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
     void update();

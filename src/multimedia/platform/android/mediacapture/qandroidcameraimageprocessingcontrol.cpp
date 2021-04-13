@@ -68,14 +68,6 @@ bool QAndroidCameraImageProcessingControl::isParameterValueSupported(ProcessingP
             && m_supportedWhiteBalanceModes.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
 }
 
-QVariant QAndroidCameraImageProcessingControl::parameter(ProcessingParameter parameter) const
-{
-    if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
-        return QVariant();
-
-    return QVariant::fromValue(m_whiteBalanceMode);
-}
-
 void QAndroidCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
 {
     if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)

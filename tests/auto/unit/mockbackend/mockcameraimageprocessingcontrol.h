@@ -83,23 +83,6 @@ public:
         return m_supportedWhiteBalance.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
     }
 
-    QVariant parameter(ProcessingParameter parameter) const
-    {
-        switch (parameter) {
-        case ContrastAdjustment:
-            return m_contrast;
-        case SaturationAdjustment:
-            return m_saturation;
-        case BrightnessAdjustment:
-            return m_brightness;
-        case ColorTemperature:
-            return m_manualWhiteBalance;
-        case WhiteBalancePreset:
-            return QVariant::fromValue<QCameraImageProcessing::WhiteBalanceMode>(m_whiteBalanceMode);
-        default:
-            return QVariant();
-        }
-    }
     void setParameter(ProcessingParameter parameter, const QVariant &value)
     {
         switch (parameter) {
