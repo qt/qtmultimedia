@@ -43,11 +43,11 @@
 #include <QtQml/qqmlcomponent.h>
 #include "qsoundeffect.h"
 #include "qmediaplayer.h"
+#include "qmediametadata.h"
 
 #include <private/qdeclarativevideooutput_p.h>
 
 #include "qdeclarativemultimediaglobal_p.h"
-#include "qdeclarativemediametadata_p.h"
 #include "qdeclarativeplaylist_p.h"
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
@@ -66,6 +66,8 @@ static QObject *multimedia_global_object(QQmlEngine *qmlEngine, QJSEngine *jsEng
     Q_UNUSED(qmlEngine);
     return new QDeclarativeMultimediaGlobal(jsEngine);
 }
+
+Q_DECLARE_METATYPE(QMediaMetaData)
 
 class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 {
@@ -146,8 +148,6 @@ public:
                                 tr("CameraExposure is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraImageProcessing, 3>(uri, 5, 11, "CameraImageProcessing",
                                 tr("CameraImageProcessing is provided by Camera"));
-
-        qmlRegisterAnonymousType<QDeclarativeMediaMetaData>(uri, 5);
 
         // 5.13 types
         qmlRegisterType<QDeclarativeVideoOutput, 13>(uri, 5, 13, "VideoOutput");

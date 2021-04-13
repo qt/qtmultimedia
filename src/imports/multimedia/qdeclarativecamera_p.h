@@ -73,7 +73,6 @@ class QDeclarativeCameraFocus;
 class QDeclarativeCameraFlash;
 class QDeclarativeTorch;
 class QDeclarativeCameraImageProcessing;
-class QDeclarativeMediaMetaData;
 class QDeclarativeCamera : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
@@ -99,7 +98,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeTorch* torch READ torch CONSTANT)
     Q_PROPERTY(QDeclarativeCameraFocus* focus READ focus CONSTANT)
     Q_PROPERTY(QDeclarativeCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
-    Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT REVISION 1)
 
     Q_ENUMS(Position)
     Q_ENUMS(State)
@@ -187,8 +185,6 @@ public:
     QDeclarativeCameraFocus *focus() { return m_focus; }
     QDeclarativeCameraImageProcessing *imageProcessing() { return m_imageProcessing; }
 
-    QDeclarativeMediaMetaData *metaData();
-
     QString deviceId() const;
     void setDeviceId(const QString &name);
 
@@ -258,7 +254,6 @@ private:
     QDeclarativeTorch *m_torch;
     QDeclarativeCameraFocus *m_focus;
     QDeclarativeCameraImageProcessing *m_imageProcessing;
-    QDeclarativeMediaMetaData *m_metaData;
 
     bool m_componentComplete;
     bool pendingActive = false;

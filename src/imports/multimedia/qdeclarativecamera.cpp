@@ -46,8 +46,6 @@
 #include "qdeclarativecamerafocus_p.h"
 #include "qdeclarativecameraimageprocessing_p.h"
 
-#include "qdeclarativemediametadata_p.h"
-
 #include <private/qplatformmediaplayer_p.h>
 #include <qobject.h>
 #include <QMediaDeviceManager>
@@ -165,7 +163,6 @@ void QDeclarativeCamera::_q_errorOccurred(QCamera::Error errorCode)
 QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     QObject(parent),
     m_camera(nullptr),
-    m_metaData(nullptr),
     m_componentComplete(false)
 {
     m_currentCameraInfo = QMediaDeviceManager::defaultVideoInput();
@@ -197,7 +194,6 @@ QDeclarativeCamera::~QDeclarativeCamera()
     delete m_flash;
     delete m_focus;
     delete m_imageProcessing;
-    delete m_metaData;
 
     delete m_camera;
 }
@@ -581,55 +577,6 @@ void QDeclarativeCamera::setZoomFactor(qreal value)
 
     The corresponding handler is \c onMaximumDigitalZoomChanged.
 */
-
-/*!
-    \qmlpropertygroup QtMultimedia::Camera::metaData
-    \qmlproperty variant QtMultimedia::Camera::metaData.cameraManufacturer
-    \qmlproperty variant QtMultimedia::Camera::metaData.cameraModel
-    \qmlproperty variant QtMultimedia::Camera::metaData.event
-    \qmlproperty variant QtMultimedia::Camera::metaData.subject
-    \qmlproperty variant QtMultimedia::Camera::metaData.orientation
-    \qmlproperty variant QtMultimedia::Camera::metaData.dateTimeOriginal
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsLatitude
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsLongitude
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsAltitude
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsTimestamp
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsTrack
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsSpeed
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsImgDirection
-    \qmlproperty variant QtMultimedia::Camera::metaData.gpsProcessingMethod
-
-    These properties hold the meta data for the camera captures.
-
-    \list
-    \li \c metaData.cameraManufacturer holds the name of the manufacturer of the camera.
-    \li \c metaData.cameraModel holds the name of the model of the camera.
-    \li \c metaData.event holds the event during which the photo or video is to be captured.
-    \li \c metaData.subject holds the name of the subject of the capture or recording.
-    \li \c metaData.orientation holds the clockwise rotation of the camera at time of capture.
-    \li \c metaData.dateTimeOriginal holds the initial time at which the photo or video is captured.
-    \li \c metaData.gpsLatitude holds the latitude of the camera in decimal degrees at time of capture.
-    \li \c metaData.gpsLongitude holds the longitude of the camera in decimal degrees at time of capture.
-    \li \c metaData.gpsAltitude holds the altitude of the camera in meters at time of capture.
-    \li \c metaData.gpsTimestamp holds the timestamp of the GPS position data.
-    \li \c metaData.gpsTrack holds direction of movement of the camera at the time of
-           capture. It is measured in degrees clockwise from north.
-    \li \c metaData.gpsSpeed holds the velocity in kilometers per hour of the camera at time of capture.
-    \li \c metaData.gpsImgDirection holds direction the camera is facing at the time of capture.
-           It is measured in degrees clockwise from north.
-    \li \c metaData.gpsProcessingMethod holds the name of the method for determining the GPS position.
-    \endlist
-
-    \sa {QMediaMetaData}
-    \since 5.4
-*/
-
-QDeclarativeMediaMetaData *QDeclarativeCamera::metaData()
-{
-    if (!m_metaData)
-        m_metaData = new QDeclarativeMediaMetaData(m_camera);
-    return m_metaData;
-}
 
 /*!
     \qmlmethod list<size> QtMultimedia::Camera::supportedViewfinderResolutions(real minimumFrameRate, real maximumFrameRate)

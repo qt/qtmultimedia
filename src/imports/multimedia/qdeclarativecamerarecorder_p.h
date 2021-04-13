@@ -59,7 +59,6 @@
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;
-class QDeclarativeMediaMetaData;
 
 class QDeclarativeCameraRecorder : public QObject
 {
@@ -92,7 +91,7 @@ class QDeclarativeCameraRecorder : public QObject
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY error)
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY error)
-    Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
+//    Q_PROPERTY(QDeclarativeMediaMetaData *metaData READ metaData CONSTANT)
 public:
     enum RecorderState
     {
@@ -176,8 +175,6 @@ public Q_SLOTS:
     void setVideoEncodingMode(EncodingMode encodingMode);
     void setAudioEncodingMode(EncodingMode encodingMode);
 
-    QDeclarativeMediaMetaData *metaData();
-
 Q_SIGNALS:
     void recorderStateChanged(QDeclarativeCameraRecorder::RecorderState state);
     void recorderStatusChanged();
@@ -213,7 +210,6 @@ private:
 
     QMediaCaptureSession *m_captureSession = nullptr;
     QMediaEncoder *m_encoder = nullptr;
-    QDeclarativeMediaMetaData *m_metaData = nullptr;
 
     QMediaEncoderSettings m_encoderSettings;
 };

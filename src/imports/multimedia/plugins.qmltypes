@@ -449,12 +449,6 @@ Module {
         Property { name: "playbackRate"; type: "double" }
         Property { name: "error"; type: "Error"; isReadonly: true }
         Property { name: "errorString"; type: "string"; isReadonly: true }
-        Property {
-            name: "metaData"
-            type: "QDeclarativeMediaMetaData"
-            isReadonly: true
-            isPointer: true
-        }
         Property { name: "availability"; type: "Availability"; isReadonly: true }
         Property { name: "audioRole"; revision: 1; type: "AudioRole" }
         Property { name: "videoOutput"; revision: 15; type: "QVariant" }
@@ -621,13 +615,6 @@ Module {
         Property {
             name: "imageProcessing"
             type: "QDeclarativeCameraImageProcessing"
-            isReadonly: true
-            isPointer: true
-        }
-        Property {
-            name: "metaData"
-            revision: 1
-            type: "QDeclarativeMediaMetaData"
             isReadonly: true
             isPointer: true
         }
@@ -1255,97 +1242,6 @@ Module {
         Property { name: "resolution"; type: "QSize" }
         Property { name: "minimumFrameRate"; type: "double" }
         Property { name: "maximumFrameRate"; type: "double" }
-    }
-    Component {
-        name: "QDeclarativeMediaMetaData"
-        prototype: "QObject"
-        Property { name: "title"; type: "QVariant" }
-        Property { name: "subTitle"; type: "QVariant" }
-        Property { name: "author"; type: "QVariant" }
-        Property { name: "comment"; type: "QVariant" }
-        Property { name: "description"; type: "QVariant" }
-        Property { name: "category"; type: "QVariant" }
-        Property { name: "genre"; type: "QVariant" }
-        Property { name: "year"; type: "QVariant" }
-        Property { name: "date"; type: "QVariant" }
-        Property { name: "userRating"; type: "QVariant" }
-        Property { name: "keywords"; type: "QVariant" }
-        Property { name: "language"; type: "QVariant" }
-        Property { name: "publisher"; type: "QVariant" }
-        Property { name: "copyright"; type: "QVariant" }
-        Property { name: "parentalRating"; type: "QVariant" }
-        Property { name: "ratingOrganization"; type: "QVariant" }
-        Property { name: "size"; type: "QVariant" }
-        Property { name: "mediaType"; type: "QVariant" }
-        Property { name: "duration"; type: "QVariant" }
-        Property { name: "audioBitRate"; type: "QVariant" }
-        Property { name: "audioCodec"; type: "QVariant" }
-        Property { name: "averageLevel"; type: "QVariant" }
-        Property { name: "channelCount"; type: "QVariant" }
-        Property { name: "peakValue"; type: "QVariant" }
-        Property { name: "sampleRate"; type: "QVariant" }
-        Property { name: "albumTitle"; type: "QVariant" }
-        Property { name: "albumArtist"; type: "QVariant" }
-        Property { name: "contributingArtist"; type: "QVariant" }
-        Property { name: "composer"; type: "QVariant" }
-        Property { name: "conductor"; type: "QVariant" }
-        Property { name: "lyrics"; type: "QVariant" }
-        Property { name: "mood"; type: "QVariant" }
-        Property { name: "trackNumber"; type: "QVariant" }
-        Property { name: "trackCount"; type: "QVariant" }
-        Property { name: "coverArtUrlSmall"; type: "QVariant" }
-        Property { name: "coverArtUrlLarge"; type: "QVariant" }
-        Property { name: "resolution"; type: "QVariant" }
-        Property { name: "videoFrameRate"; type: "QVariant" }
-        Property { name: "videoBitRate"; type: "QVariant" }
-        Property { name: "videoCodec"; type: "QVariant" }
-        Property { name: "posterUrl"; type: "QVariant" }
-        Property { name: "chapterNumber"; type: "QVariant" }
-        Property { name: "director"; type: "QVariant" }
-        Property { name: "leadPerformer"; type: "QVariant" }
-        Property { name: "writer"; type: "QVariant" }
-        Property { name: "cameraManufacturer"; type: "QVariant" }
-        Property { name: "cameraModel"; type: "QVariant" }
-        Property { name: "event"; type: "QVariant" }
-        Property { name: "subject"; type: "QVariant" }
-        Property { name: "orientation"; type: "QVariant" }
-        Property { name: "exposureTime"; type: "QVariant" }
-        Property { name: "fNumber"; type: "QVariant" }
-        Property { name: "exposureProgram"; type: "QVariant" }
-        Property { name: "isoSpeedRatings"; type: "QVariant" }
-        Property { name: "exposureBiasValue"; type: "QVariant" }
-        Property { name: "dateTimeOriginal"; type: "QVariant" }
-        Property { name: "dateTimeDigitized"; type: "QVariant" }
-        Property { name: "subjectDistance"; type: "QVariant" }
-        Property { name: "lightSource"; type: "QVariant" }
-        Property { name: "flash"; type: "QVariant" }
-        Property { name: "focalLength"; type: "QVariant" }
-        Property { name: "exposureMode"; type: "QVariant" }
-        Property { name: "whiteBalance"; type: "QVariant" }
-        Property { name: "digitalZoomRatio"; type: "QVariant" }
-        Property { name: "focalLengthIn35mmFilm"; type: "QVariant" }
-        Property { name: "sceneCaptureType"; type: "QVariant" }
-        Property { name: "gainControl"; type: "QVariant" }
-        Property { name: "contrast"; type: "QVariant" }
-        Property { name: "saturation"; type: "QVariant" }
-        Property { name: "sharpness"; type: "QVariant" }
-        Property { name: "deviceSettingDescription"; type: "QVariant" }
-        Property { name: "gpsLatitude"; type: "QVariant" }
-        Property { name: "gpsLongitude"; type: "QVariant" }
-        Property { name: "gpsAltitude"; type: "QVariant" }
-        Property { name: "gpsTimeStamp"; type: "QVariant" }
-        Property { name: "gpsSatellites"; type: "QVariant" }
-        Property { name: "gpsStatus"; type: "QVariant" }
-        Property { name: "gpsDOP"; type: "QVariant" }
-        Property { name: "gpsSpeed"; type: "QVariant" }
-        Property { name: "gpsTrack"; type: "QVariant" }
-        Property { name: "gpsTrackRef"; type: "QVariant" }
-        Property { name: "gpsImgDirection"; type: "QVariant" }
-        Property { name: "gpsImgDirectionRef"; type: "QVariant" }
-        Property { name: "gpsMapDatum"; type: "QVariant" }
-        Property { name: "gpsProcessingMethod"; type: "QVariant" }
-        Property { name: "gpsAreaInformation"; type: "QVariant" }
-        Signal { name: "metaDataChanged" }
     }
     Component {
         name: "QDeclarativeMultimediaGlobal"

@@ -39,7 +39,6 @@
 
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerarecorder_p.h"
-#include "qdeclarativemediametadata_p.h"
 
 #include <QtCore/qurl.h>
 
@@ -95,7 +94,6 @@ QDeclarativeCameraRecorder::QDeclarativeCameraRecorder(QMediaCaptureSession *ses
 
 QDeclarativeCameraRecorder::~QDeclarativeCameraRecorder()
 {
-    delete m_metaData;
 }
 
 /*!
@@ -558,21 +556,6 @@ bool QDeclarativeCameraRecorder::isMuted() const
 void QDeclarativeCameraRecorder::setMuted(bool muted)
 {
     m_captureSession->setMuted(muted);
-}
-
-/*!
-    \qmlmethod QtMultimedia::CameraRecorder::setMetadata(key, value)
-
-    Sets metadata for the next video to be recorder, with
-    the given \a key being associated with \a value.
-*/
-
-QDeclarativeMediaMetaData *QDeclarativeCameraRecorder::metaData()
-{
-    // ### Doesn't quite work as QDeclarativeMediaMetaData expects a QMediaSource
-//    if (!m_metaData)
-//        m_metaData = new QDeclarativeMediaMetaData(m_recorder);
-    return m_metaData;
 }
 
 void QDeclarativeCameraRecorder::updateRecorderState(QMediaEncoder::State state)

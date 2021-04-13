@@ -18,7 +18,6 @@ qt_internal_add_qml_module(declarative_multimedia
         qdeclarativecameraimageprocessing.cpp qdeclarativecameraimageprocessing_p.h
         qdeclarativecamerapreviewprovider.cpp qdeclarativecamerapreviewprovider_p.h
         qdeclarativecamerarecorder.cpp qdeclarativecamerarecorder_p.h
-        qdeclarativemediametadata_p.h
         qdeclarativemultimediaglobal.cpp qdeclarativemultimediaglobal_p.h
         qdeclarativeplaylist.cpp qdeclarativeplaylist_p.h
         qdeclarativetorch.cpp qdeclarativetorch_p.h
