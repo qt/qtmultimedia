@@ -72,7 +72,6 @@ class QDeclarativeCameraExposure;
 class QDeclarativeCameraFocus;
 class QDeclarativeCameraFlash;
 class QDeclarativeTorch;
-class QDeclarativeCameraImageProcessing;
 class QDeclarativeCamera : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
@@ -97,7 +96,7 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(QDeclarativeCameraFlash* flash READ flash CONSTANT)
     Q_PROPERTY(QDeclarativeTorch* torch READ torch CONSTANT)
     Q_PROPERTY(QDeclarativeCameraFocus* focus READ focus CONSTANT)
-    Q_PROPERTY(QDeclarativeCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
+    Q_PROPERTY(QCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
 
     Q_ENUMS(Position)
     Q_ENUMS(State)
@@ -183,7 +182,7 @@ public:
     QDeclarativeCameraFlash *flash() { return m_flash; }
     QDeclarativeTorch *torch() { return m_torch; }
     QDeclarativeCameraFocus *focus() { return m_focus; }
-    QDeclarativeCameraImageProcessing *imageProcessing() { return m_imageProcessing; }
+    QCameraImageProcessing *imageProcessing() { return m_camera->imageProcessing(); }
 
     QString deviceId() const;
     void setDeviceId(const QString &name);
@@ -253,7 +252,6 @@ private:
     QDeclarativeCameraFlash *m_flash;
     QDeclarativeTorch *m_torch;
     QDeclarativeCameraFocus *m_focus;
-    QDeclarativeCameraImageProcessing *m_imageProcessing;
 
     bool m_componentComplete;
     bool pendingActive = false;

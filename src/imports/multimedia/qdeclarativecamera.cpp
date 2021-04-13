@@ -44,7 +44,6 @@
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativetorch_p.h"
 #include "qdeclarativecamerafocus_p.h"
-#include "qdeclarativecameraimageprocessing_p.h"
 
 #include <private/qplatformmediaplayer_p.h>
 #include <qobject.h>
@@ -174,7 +173,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_flash = new QDeclarativeCameraFlash(m_camera);
     m_torch = new QDeclarativeTorch(m_camera);
     m_focus = new QDeclarativeCameraFocus(m_camera);
-    m_imageProcessing = new QDeclarativeCameraImageProcessing(m_camera);
 
     connect(m_camera, &QCamera::activeChanged, this, &QDeclarativeCamera::activeChanged);
     connect(m_camera, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(cameraStatusChanged()));
@@ -193,7 +191,6 @@ QDeclarativeCamera::~QDeclarativeCamera()
     delete m_exposure;
     delete m_flash;
     delete m_focus;
-    delete m_imageProcessing;
 
     delete m_camera;
 }
