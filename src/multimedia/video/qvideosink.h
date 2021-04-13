@@ -98,7 +98,7 @@ public:
 
 Q_SIGNALS:
     // would never get called in windowed mode
-    QVideoFrame newVideoFrame(const QVideoFrame &frame) const;
+    void newVideoFrame(const QVideoFrame &frame) const;
 
 private:
     QVideoSinkPrivate *d = nullptr;
