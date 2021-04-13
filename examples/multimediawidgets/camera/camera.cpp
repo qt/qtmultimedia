@@ -122,7 +122,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
 
     connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
 
-    m_captureSession.setVideoPreview(ui->viewfinder);
+    m_captureSession.setVideoOutput(ui->viewfinder);
 
     updateCameraActive(m_camera->isActive());
     updateRecorderState(m_mediaEncoder->state());

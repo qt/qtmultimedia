@@ -42,6 +42,7 @@
 #include "qcamera.h"
 #include "qmediaencoder.h"
 #include "qcameraimagecapture.h"
+#include "qvideosink.h"
 
 #include "qplatformmediaintegration_p.h"
 #include "qplatformmediacapture_p.h"
@@ -56,6 +57,7 @@ public:
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
     QMediaEncoder *encoder = nullptr;
+    QVariant videoOutput;
 };
 
 
@@ -199,6 +201,32 @@ void QMediaCaptureSession::setEncoder(QMediaEncoder *recorder)
 }
 
 /*!
+    Attach a video \a output to the media player.
+
+    If the media player has already video output attached,
+    it will be replaced with a new one.
+*/
+void QMediaCaptureSession::setVideoOutput(const QVariant &output)
+{
+    QVideoSink *s = output.value<QVideoSink *>();
+    if (s) {
+        setVideoOutput(s);
+        return;
+    }
+    QObject *o = output.value<QObject *>();
+    if (o) {
+        setVideoOutput(o);
+        return;
+    }
+}
+
+QVariant QMediaCaptureSession::videoOutput() const
+{
+    Q_D(const QMediaCaptureSession);
+    return d->videoOutput;
+}
+
+/*!
     Sets a QObject based video preview for the capture session.
 
     A QObject based preview is expected to have an invokable videoSink()
@@ -206,18 +234,24 @@ void QMediaCaptureSession::setEncoder(QMediaEncoder *recorder)
 
     The previously set preview is detached.
 */
-void QMediaCaptureSession::setVideoPreview(QObject *preview)
+void QMediaCaptureSession::setVideoOutput(QObject *preview)
 {
     auto *mo = preview->metaObject();
     QVideoSink *sink = nullptr;
     if (preview)
         mo->invokeMethod(preview, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
-    setVideoPreview(sink);
+    setVideoOutput(sink);
 }
 
-void QMediaCaptureSession::setVideoPreview(QVideoSink *preview)
+void QMediaCaptureSession::setVideoOutput(QVideoSink *sink)
 {
-    d_ptr->captureSession->setVideoPreview(preview);
+    Q_D(QMediaCaptureSession);
+    QVariant out = QVariant::fromValue(sink);
+    if (d->videoOutput == out)
+        return;
+    d->videoOutput = out;
+    d->captureSession->setVideoPreview(sink);
+    emit videoOutputChanged();
 }
 
 QPlatformMediaCaptureSession *QMediaCaptureSession::platformSession() const

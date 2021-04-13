@@ -115,37 +115,37 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QVideoSink surface;
     QMediaCaptureSession session;
 
-    session.setVideoPreview(&widget);
+    session.setVideoOutput(&widget);
 //    qDebug() << widget.mediaSource();
 //    QVERIFY(widget.mediaSource() == &session);
 
-    session.setVideoPreview(&item);
+    session.setVideoOutput(&item);
 //    QVERIFY(widget.mediaSource() == nullptr);
 //    QVERIFY(item.mediaSource() == &session);
 
-    session.setVideoPreview(reinterpret_cast<QVideoWidget *>(0));
+    session.setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
 //    QVERIFY(item.mediaSource() == nullptr);
 
-    session.setVideoPreview(&widget);
+    session.setVideoOutput(&widget);
 //    QVERIFY(widget.mediaSource() == &session);
 
-    session.setVideoPreview(reinterpret_cast<QGraphicsVideoItem *>(0));
+    session.setVideoOutput(reinterpret_cast<QGraphicsVideoItem *>(0));
 //    QVERIFY(widget.mediaSource() == nullptr);
 
-    session.setVideoPreview(&surface);
+    session.setVideoOutput(&surface);
 //    QVERIFY(mocksessionService->rendererControl->surface() == &surface);
 
-    session.setVideoPreview(reinterpret_cast<QVideoSink *>(0));
+    session.setVideoOutput(reinterpret_cast<QVideoSink *>(0));
 //    QVERIFY(mocksessionService->rendererControl->surface() == nullptr);
 
-    session.setVideoPreview(&surface);
+    session.setVideoOutput(&surface);
 //    QVERIFY(mocksessionService->rendererControl->surface() == &surface);
 
-    session.setVideoPreview(&widget);
+    session.setVideoOutput(&widget);
 //    QVERIFY(mocksessionService->rendererControl->surface() == nullptr);
 //    QVERIFY(widget.mediaSource() == &session);
 
-    session.setVideoPreview(&surface);
+    session.setVideoOutput(&surface);
 //    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
 //    QVERIFY(widget.mediaSource() == nullptr);
 }

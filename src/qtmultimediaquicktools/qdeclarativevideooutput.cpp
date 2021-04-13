@@ -182,7 +182,7 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     }
 
     if (QMediaCaptureSession *s = qobject_cast<QMediaCaptureSession *>(source)) {
-        s->setVideoPreview(videoSink());
+        s->setVideoOutput(videoSink());
     } else if (QMediaPlayer *p = qobject_cast<QMediaPlayer *>(source)) {
         p->setVideoOutput(videoSink());
     }
