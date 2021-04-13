@@ -69,8 +69,6 @@ VideoOutput {
 
     MediaPlayer {
         id: mediaPlayer
-        autoLoad: false
-        loops: Audio.Infinite
         videoOutput: root;
 
         onError: {

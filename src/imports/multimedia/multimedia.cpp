@@ -42,12 +42,12 @@
 #include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlcomponent.h>
 #include "qsoundeffect.h"
+#include "qmediaplayer.h"
 
 #include <private/qdeclarativevideooutput_p.h>
 
 #include "qdeclarativemultimediaglobal_p.h"
 #include "qdeclarativemediametadata_p.h"
-#include "qdeclarativeaudio_p.h"
 #include "qdeclarativeplaylist_p.h"
 #include "qdeclarativecamera_p.h"
 #include "qdeclarativecamerapreviewprovider_p.h"
@@ -80,8 +80,8 @@ public:
 
         // 5.0 types
         qmlRegisterType<QSoundEffect>(uri, 5, 0, "SoundEffect");
-        qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "Audio");
-        qmlRegisterType<QDeclarativeAudio>(uri, 5, 0, "MediaPlayer");
+        qmlRegisterType<QMediaPlayer>(uri, 5, 0, "Audio");
+        qmlRegisterType<QMediaPlayer>(uri, 5, 0, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput>(uri, 5, 0, "VideoOutput");
         qmlRegisterType<QDeclarativeCamera>(uri, 5, 0, "Camera");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 5, 0, "CameraCapture",
@@ -116,8 +116,8 @@ public:
         qmlRegisterType<QDeclarativeCamera, 2>(uri, 5, 5, "Camera");
 
         // 5.6 types
-        qmlRegisterType<QDeclarativeAudio, 1>(uri, 5, 6, "Audio");
-        qmlRegisterType<QDeclarativeAudio, 1>(uri, 5, 6, "MediaPlayer");
+        qmlRegisterType<QMediaPlayer, 1>(uri, 5, 6, "Audio");
+        qmlRegisterType<QMediaPlayer, 1>(uri, 5, 6, "MediaPlayer");
         qmlRegisterType<QDeclarativePlaylist>(uri, 5, 6, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 5, 6, "PlaylistItem");
 
@@ -130,16 +130,16 @@ public:
         qmlRegisterType<QSoundEffect>(uri, 5, 8, "SoundEffect");
 
         // 5.9 types
-        qmlRegisterType<QDeclarativeAudio, 2>(uri, 5, 9, "Audio");
-        qmlRegisterType<QDeclarativeAudio, 2>(uri, 5, 9, "MediaPlayer");
+        qmlRegisterType<QMediaPlayer, 2>(uri, 5, 9, "Audio");
+        qmlRegisterType<QMediaPlayer, 2>(uri, 5, 9, "MediaPlayer");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture, 1>(uri, 5, 9, "CameraCapture",
                                 tr("CameraCapture is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFlash, 1>(uri, 5, 9, "CameraFlash",
                                 tr("CameraFlash is provided by Camera"));
 
         // 5.11 types
-        qmlRegisterType<QDeclarativeAudio, 3>(uri, 5, 11, "Audio");
-        qmlRegisterType<QDeclarativeAudio, 3>(uri, 5, 11, "MediaPlayer");
+        qmlRegisterType<QMediaPlayer, 3>(uri, 5, 11, "Audio");
+        qmlRegisterType<QMediaPlayer, 3>(uri, 5, 11, "MediaPlayer");
         qmlRegisterUncreatableType<QDeclarativeCameraFocus, 1>(uri, 5, 11, "CameraFocus",
                                 tr("CameraFocus is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraExposure, 1>(uri, 5, 11, "CameraExposure",
@@ -153,7 +153,7 @@ public:
         qmlRegisterType<QDeclarativeVideoOutput, 13>(uri, 5, 13, "VideoOutput");
 
         // 5.15 types
-        qmlRegisterType<QDeclarativeAudio, 15>(uri, 5, 15, "MediaPlayer");
+        qmlRegisterType<QMediaPlayer, 15>(uri, 5, 15, "MediaPlayer");
         qmlRegisterType<QDeclarativeVideoOutput, 15>(uri, 5, 15, "VideoOutput");
 
         // The minor version used to be the current Qt 5 minor. For compatibility it is the last
