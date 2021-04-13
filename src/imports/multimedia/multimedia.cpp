@@ -44,6 +44,9 @@
 #include "qsoundeffect.h"
 #include "qmediaplayer.h"
 #include "qmediametadata.h"
+#include "qcamera.h"
+#include "qmediacapturesession.h"
+#include "qmediaencoder.h"
 
 #include <private/qdeclarativevideooutput_p.h>
 
@@ -103,6 +106,12 @@ public:
 
         qmlRegisterType<QDeclarativePlaylist>(uri, 6, 0, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 6, 0, "PlaylistItem");
+
+        // ### new replacement types
+        qmlRegisterType<QMediaCaptureSession>(uri, 6, 0, "CaptureSession");
+        qmlRegisterType<QMediaEncoder>(uri, 6, 0, "MediaEncoder");
+        qmlRegisterType<QCamera>(uri, 6, 0, "NCamera");
+        qmlRegisterUncreatableType<QCameraExposure>(uri, 6, 0, "NCameraExposure", tr("CameraExposure is provided by Camera"));
 
         // The minor version used to be the current Qt 5 minor. For compatibility it is the last
         // Qt 5 release.
