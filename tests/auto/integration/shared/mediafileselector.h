@@ -50,7 +50,7 @@ static QUrl selectMediaFile(const QStringList& mediaCandidates)
         if (!mediaFile.exists())
             continue;
         QUrl media = QUrl(QUrl::fromLocalFile(mediaFile.absoluteFilePath()));
-        player.setMedia(media);
+        player.setSource(media);
         player.play();
 
         for (int i = 0; i < 2000 && player.mediaStatus() != QMediaPlayer::BufferedMedia && errorSpy.isEmpty(); i+=50) {

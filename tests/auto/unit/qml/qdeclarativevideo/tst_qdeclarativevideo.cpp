@@ -80,7 +80,7 @@ public:
         , m_position(0)
         , m_playbackRate(1.0)
         , m_volume(50)
-        , m_bufferStatus(0)
+        , m_bufferProgress(0)
         , m_muted(false)
         , m_audioAvailable(false)
         , m_videoAvailable(false)
@@ -115,8 +115,8 @@ public:
     bool isMuted() const { return m_muted; }
     void setMuted(bool muted) { emit mutedChanged(m_muted = muted); }
 
-    int bufferStatus() const { return m_bufferStatus; }
-    void setBufferStatus(int status) { emit bufferStatusChanged(m_bufferStatus = status); }
+    float bufferProgress() const { return m_bufferProgress/100.; }
+    void setBufferStatus(int status) { emit bufferProgressChanged(m_bufferProgress = status); }
 
     bool isAudioAvailable() const { return m_audioAvailable; }
     void setAudioAvailable(bool available) {
@@ -160,7 +160,7 @@ private:
     qint64 m_position;
     qreal m_playbackRate;
     int m_volume;
-    int m_bufferStatus;
+    int m_bufferProgress;
     bool m_muted;
     bool m_audioAvailable;
     bool m_videoAvailable;

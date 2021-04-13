@@ -66,7 +66,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer
 {
 public:
     virtual ~QPlatformMediaPlayer();
-    virtual QMediaPlayer::State state() const = 0;
+    virtual QMediaPlayer::PlaybackState state() const = 0;
 
     virtual QMediaPlayer::MediaStatus mediaStatus() const = 0;
 
@@ -81,7 +81,7 @@ public:
     virtual bool isMuted() const = 0;
     virtual void setMuted(bool mute) = 0;
 
-    virtual int bufferStatus() const = 0;
+    virtual float bufferProgress() const = 0;
 
     virtual bool isAudioAvailable() const = 0;
     virtual bool isVideoAvailable() const = 0;
@@ -123,18 +123,18 @@ public:
 
     void durationChanged(qint64 duration) { player->durationChanged(duration); }
     void positionChanged(qint64 position) { player->positionChanged(position); }
-    void audioAvailableChanged(bool audioAvailable) { player->audioAvailableChanged(audioAvailable); }
-    void videoAvailableChanged(bool videoAvailable) { player->videoAvailableChanged(videoAvailable); }
+    void audioAvailableChanged(bool audioAvailable) { player->hasAudioChanged(audioAvailable); }
+    void videoAvailableChanged(bool videoAvailable) { player->hasVideoChanged(videoAvailable); }
     void volumeChanged(int volume) { player->volumeChanged(volume); }
     void mutedChanged(bool mute) { player->mutedChanged(mute); }
     void seekableChanged(bool seekable) { player->seekableChanged(seekable); }
     void playbackRateChanged(qreal rate) { player->playbackRateChanged(rate); }
-    void bufferStatusChanged(int percentFilled) { player->bufferStatusChanged(percentFilled); }
+    void bufferProgressChanged(float progress) { player->bufferProgressChanged(progress); }
     void metaDataChanged() { player->metaDataChanged(); }
     void tracksChanged() { player->tracksChanged(); }
     void activeTracksChanged() { player->activeTracksChanged(); }
 
-    void stateChanged(QMediaPlayer::State newState);
+    void stateChanged(QMediaPlayer::PlaybackState newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
     void error(int error, const QString &errorString);
 

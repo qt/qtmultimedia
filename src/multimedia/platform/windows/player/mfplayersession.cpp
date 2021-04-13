@@ -1375,7 +1375,7 @@ void MFPlayerSession::setVolumeInternal(int volume)
     }
 }
 
-int MFPlayerSession::bufferStatus()
+float MFPlayerSession::bufferProgress()
 {
     if (!m_netsourceStatistics)
         return 0;
@@ -1393,10 +1393,10 @@ int MFPlayerSession::bufferStatus()
     }
 
 #ifdef DEBUG_MEDIAFOUNDATION
-    qDebug() << "bufferStatus: progress = " << progress;
+    qDebug() << "bufferProgress: progress = " << progress;
 #endif
 
-    return progress;
+    return progress/100.;
 }
 
 QMediaTimeRange MFPlayerSession::availablePlaybackRanges()
@@ -1630,11 +1630,11 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
     switch (meType) {
     case MEBufferingStarted:
         changeStatus(QMediaPlayer::StalledMedia);
-        emit bufferStatusChanged(bufferStatus());
+        emit bufferProgressChanged(bufferProgress());
         break;
     case MEBufferingStopped:
         changeStatus(QMediaPlayer::BufferedMedia);
-        emit bufferStatusChanged(bufferStatus());
+        emit bufferProgressChanged(bufferProgress());
         break;
     case MESessionEnded:
         m_pendingState = NoPending;

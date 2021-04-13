@@ -117,7 +117,7 @@ qint64 QGstreamerMediaPlayer::duration() const
     return m_duration;
 }
 
-QMediaPlayer::State QGstreamerMediaPlayer::state() const
+QMediaPlayer::PlaybackState QGstreamerMediaPlayer::state() const
 {
     return m_state;
 }
@@ -127,9 +127,9 @@ QMediaPlayer::MediaStatus QGstreamerMediaPlayer::mediaStatus() const
     return m_mediaStatus;
 }
 
-int QGstreamerMediaPlayer::bufferStatus() const
+float QGstreamerMediaPlayer::bufferProgress() const
 {
-    return m_bufferProgress;
+    return m_bufferProgress/100.;
 }
 
 int QGstreamerMediaPlayer::volume() const
@@ -248,7 +248,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         int progress = 0;
         gst_message_parse_buffering(gm, &progress);
         m_bufferProgress = progress;
-        emit bufferStatusChanged(progress);
+        emit bufferProgressChanged(m_bufferProgress/100.);
         break;
     }
     case GST_MESSAGE_STATE_CHANGED: {
@@ -284,7 +284,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             break;
         case GST_STATE_PAUSED:
         {
-            QMediaPlayer::State prevState = m_state;
+            QMediaPlayer::PlaybackState prevState = m_state;
             m_state = QMediaPlayer::PausedState;
 
             if (prerolling) {
@@ -597,9 +597,9 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         decoder.connect("element-added", GCallback(QGstreamerMediaPlayer::uridecodebinElementAddedCallback), this);
 
         decoder.set("uri", content.toEncoded().constData());
-        if (m_bufferProgress != -1) {
-            m_bufferProgress = -1;
-            emit bufferStatusChanged(0);
+        if (m_bufferProgress != 0) {
+            m_bufferProgress = 0;
+            emit bufferProgressChanged(0.);
         }
     }
     decoder.onPadAdded<&QGstreamerMediaPlayer::decoderPadAdded>(this);

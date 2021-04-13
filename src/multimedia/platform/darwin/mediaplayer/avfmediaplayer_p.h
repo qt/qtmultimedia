@@ -91,7 +91,7 @@ public:
     qint64 position() const override;
     qint64 duration() const override;
 
-    int bufferStatus() const override;
+    float bufferProgress() const override;
 
     int volume() const override;
     bool isMuted() const override;
@@ -129,7 +129,7 @@ public Q_SLOTS:
     void processLoadStateChange();
     void processLoadStateFailure();
 
-    void processBufferStateChange(int bufferStatus);
+    void processBufferStateChange(int bufferProgress);
 
     void processDurationChange(qint64 duration);
 
@@ -167,7 +167,7 @@ private:
     qint64 m_requestedPosition;
 
     qint64 m_duration;
-    int m_bufferStatus;
+    int m_bufferProgress;
     bool m_videoAvailable;
     bool m_audioAvailable;
     bool m_seekable;

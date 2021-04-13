@@ -493,7 +493,7 @@ AVFMediaPlayer::AVFMediaPlayer(QMediaPlayer *player)
     , m_rate(1.0)
     , m_requestedPosition(-1)
     , m_duration(0)
-    , m_bufferStatus(0)
+    , m_bufferProgress(0)
     , m_videoAvailable(false)
     , m_audioAvailable(false)
     , m_seekable(false)
@@ -650,12 +650,12 @@ qint64 AVFMediaPlayer::duration() const
     return m_duration;
 }
 
-int AVFMediaPlayer::bufferStatus() const
+float AVFMediaPlayer::bufferProgress() const
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;
 #endif
-    return m_bufferStatus;
+    return m_bufferProgress/100.;
 }
 
 int AVFMediaPlayer::volume() const
@@ -1022,14 +1022,14 @@ void AVFMediaPlayer::processLoadStateFailure()
     Q_EMIT stateChanged((m_state = QMediaPlayer::StoppedState));
 }
 
-void AVFMediaPlayer::processBufferStateChange(int bufferStatus)
+void AVFMediaPlayer::processBufferStateChange(int bufferProgress)
 {
-    if (bufferStatus == m_bufferStatus)
+    if (bufferProgress == m_bufferProgress)
         return;
 
     auto status = m_mediaStatus;
     // Buffered -> unbuffered.
-    if (!bufferStatus) {
+    if (!bufferProgress) {
         status = QMediaPlayer::StalledMedia;
     } else if (status == QMediaPlayer::StalledMedia) {
         status = QMediaPlayer::BufferedMedia;
@@ -1041,8 +1041,8 @@ void AVFMediaPlayer::processBufferStateChange(int bufferStatus)
     if (m_mediaStatus != status)
         Q_EMIT mediaStatusChanged(m_mediaStatus = status);
 
-    m_bufferStatus = bufferStatus;
-    Q_EMIT bufferStatusChanged(bufferStatus);
+    m_bufferProgress = bufferProgress;
+    Q_EMIT bufferProgressChanged(bufferProgress/100.);
 }
 
 void AVFMediaPlayer::processDurationChange(qint64 duration)

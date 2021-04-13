@@ -293,7 +293,7 @@ void QDeclarativeAudio::setSource(const QUrl &url)
             emit errorChanged();
         }
 
-        m_player->setMedia(m_source, nullptr);
+        m_player->setSource(m_source, nullptr);
         m_loaded = true;
     }
     else
@@ -337,7 +337,7 @@ void QDeclarativeAudio::setLoopCount(int loopCount)
     emit loopCountChanged();
 }
 
-void QDeclarativeAudio::setPlaybackState(QMediaPlayer::State playbackState)
+void QDeclarativeAudio::setPlaybackState(QMediaPlayer::PlaybackState playbackState)
 {
     if (m_playbackState == playbackState)
         return;
@@ -346,7 +346,7 @@ void QDeclarativeAudio::setPlaybackState(QMediaPlayer::State playbackState)
         switch (playbackState){
         case (QMediaPlayer::PlayingState):
             if (!m_loaded) {
-                m_player->setMedia(m_source, nullptr);
+                m_player->setSource(m_source, nullptr);
                 m_player->setPosition(m_position);
                 m_loaded = true;
             }
@@ -355,7 +355,7 @@ void QDeclarativeAudio::setPlaybackState(QMediaPlayer::State playbackState)
 
         case (QMediaPlayer::PausedState):
             if (!m_loaded) {
-                m_player->setMedia(m_source, nullptr);
+                m_player->setSource(m_source, nullptr);
                 m_player->setPosition(m_position);
                 m_loaded = true;
             }
@@ -421,7 +421,7 @@ void QDeclarativeAudio::setMuted(bool muted)
 
 qreal QDeclarativeAudio::bufferProgress() const
 {
-    return !m_complete ? 0 : qreal(m_player->bufferStatus()) / 100;
+    return !m_complete ? 0 : qreal(m_player->bufferProgress()) / 100;
 }
 
 bool QDeclarativeAudio::isSeekable() const
@@ -692,7 +692,7 @@ QDeclarativeAudio::PlaybackState QDeclarativeAudio::playbackState() const
 
 bool QDeclarativeAudio::hasAudio() const
 {
-    return !m_complete ? false : m_player->isAudioAvailable();
+    return !m_complete ? false : m_player->hasAudio();
 }
 
 /*!
@@ -703,7 +703,7 @@ bool QDeclarativeAudio::hasAudio() const
 
 bool QDeclarativeAudio::hasVideo() const
 {
-    return !m_complete ? false : m_player->isVideoAvailable();
+    return !m_complete ? false : m_player->hasVideo();
 }
 
 /*!
@@ -781,7 +781,7 @@ void QDeclarativeAudio::classBegin()
             this, SIGNAL(volumeChanged()));
     connect(m_player, SIGNAL(mutedChanged(bool)),
             this, SIGNAL(mutedChanged()));
-    connect(m_player, SIGNAL(bufferStatusChanged(int)),
+    connect(m_player, SIGNAL(bufferProgressChanged(float)),
             this, SIGNAL(bufferProgressChanged()));
     connect(m_player, SIGNAL(seekableChanged(bool)),
             this, SIGNAL(seekableChanged()));
@@ -816,7 +816,7 @@ void QDeclarativeAudio::componentComplete()
         m_player->setAudioRole(QAudio::Role(m_audioRole));
 
     if (!m_source.isEmpty() && (m_autoLoad || m_autoPlay)) {
-        m_player->setMedia(m_source, nullptr);
+        m_player->setSource(m_source, nullptr);
         m_loaded = true;
         if (m_position > 0)
             m_player->setPosition(m_position);
@@ -840,9 +840,9 @@ void QDeclarativeAudio::_q_statusChanged()
         m_player->play();
     }
     const QMediaPlayer::MediaStatus oldStatus = m_status;
-    const QMediaPlayer::State lastPlaybackState = m_playbackState;
+    const QMediaPlayer::PlaybackState lastPlaybackState = m_playbackState;
 
-    const QMediaPlayer::State state = m_player->state();
+    const QMediaPlayer::PlaybackState state = m_player->playbackState();
 
     m_playbackState = state;
 

@@ -55,7 +55,7 @@ QT_BEGIN_NAMESPACE
     \l {play()}{start}, \l {pause()} {pause} and \l {stop()}{stop} playback,
     \l {setPosition()}{seek}, and control the \l {setVolume()}{volume}.
     It also provides feedback on the \l {duration()}{duration} of the media,
-    the current \l {position()}{position}, and \l {bufferStatus()}{buffering}
+    the current \l {position()}{position}, and \l {bufferProgress()}{buffering}
     progress.
 
     The functionality provided by this control is exposed to application
@@ -87,7 +87,7 @@ QPlatformMediaPlayer::~QPlatformMediaPlayer()
     \sa state()
 */
 
-void QPlatformMediaPlayer::stateChanged(QMediaPlayer::State newState)
+void QPlatformMediaPlayer::stateChanged(QMediaPlayer::PlaybackState newState)
 {
     player->d_func()->setState(newState);
 }
@@ -197,18 +197,18 @@ void QPlatformMediaPlayer::error(int error, const QString &errorString)
 */
 
 /*!
-    \fn QPlatformMediaPlayer::bufferStatus() const
+    \fn QPlatformMediaPlayer::bufferProgress() const
 
-    Returns the buffering progress of the current media.  Progress is measured in the percentage
-    of the buffer filled.
+    Returns the buffering progress of the current media.  Progress is measured as a number between
+    0 and 1.
 */
 
 /*!
-    \fn QPlatformMediaPlayer::bufferStatusChanged(int percentFilled)
+    \fn QPlatformMediaPlayer::bufferProgressChanged(float filled)
 
-    Signal the amount of the local buffer filled as a percentage by \a percentFilled.
+    Signal the amount of the local buffer filled as a relative number between 0 and 1.
 
-    \sa bufferStatus()
+    \sa bufferProgress()
 */
 
 /*!

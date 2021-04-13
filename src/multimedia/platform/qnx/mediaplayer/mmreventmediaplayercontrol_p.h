@@ -78,7 +78,7 @@ private:
     MmrEventThread *m_eventThread;
 
     // status properties.
-    QByteArray m_bufferStatus;
+    QByteArray m_bufferProgress;
     int m_bufferLevel;
     int m_bufferCapacity;
     qint64 m_position;

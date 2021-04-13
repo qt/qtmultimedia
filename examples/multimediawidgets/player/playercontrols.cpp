@@ -111,12 +111,12 @@ PlayerControls::PlayerControls(QWidget *parent)
     setLayout(layout);
 }
 
-QMediaPlayer::State PlayerControls::state() const
+QMediaPlayer::PlaybackState PlayerControls::state() const
 {
     return m_playerState;
 }
 
-void PlayerControls::setState(QMediaPlayer::State state)
+void PlayerControls::setState(QMediaPlayer::PlaybackState state)
 {
     if (state != m_playerState) {
         m_playerState = state;

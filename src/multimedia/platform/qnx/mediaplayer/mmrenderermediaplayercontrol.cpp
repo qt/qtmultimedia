@@ -128,12 +128,12 @@ void MmRendererMediaPlayerControl::handleMmSuspend(const QString &reason)
     setMediaStatus(QMediaPlayer::StalledMedia);
 }
 
-void MmRendererMediaPlayerControl::handleMmSuspendRemoval(const QString &bufferStatus)
+void MmRendererMediaPlayerControl::handleMmSuspendRemoval(const QString &bufferProgress)
 {
     if (m_state == QMediaPlayer::StoppedState)
         return;
 
-    if (bufferStatus == QLatin1String("buffering"))
+    if (bufferProgress == QLatin1String("buffering"))
         setMediaStatus(QMediaPlayer::BufferingMedia);
     else
         setMediaStatus(QMediaPlayer::BufferedMedia);
@@ -244,7 +244,7 @@ void MmRendererMediaPlayerControl::attach()
     // mm-renderer has buffer properties "status" and "level"
     // QMediaPlayer's buffer status maps to mm-renderer's buffer level
     m_bufferLevel = 0;
-    emit bufferStatusChanged(m_bufferLevel);
+    emit bufferProgressChanged(m_bufferLevel/100.);
 }
 
 void MmRendererMediaPlayerControl::detach()
@@ -407,11 +407,11 @@ void MmRendererMediaPlayerControl::setMuted(bool muted)
     }
 }
 
-int MmRendererMediaPlayerControl::bufferStatus() const
+float MmRendererMediaPlayerControl::bufferProgress() const
 {
     // mm-renderer has buffer properties "status" and "level"
     // QMediaPlayer's buffer status maps to mm-renderer's buffer level
-    return m_bufferLevel;
+    return m_bufferLevel/100.;
 }
 
 bool MmRendererMediaPlayerControl::isAudioAvailable() const
@@ -591,11 +591,11 @@ void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)
     }
 }
 
-void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferStatus)
+void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferProgress)
 {
-    if (bufferStatus == QLatin1String("buffering"))
+    if (bufferProgress == QLatin1String("buffering"))
         setMediaStatus(QMediaPlayer::BufferingMedia);
-    else if (bufferStatus == QLatin1String("playing"))
+    else if (bufferProgress == QLatin1String("playing"))
         setMediaStatus(QMediaPlayer::BufferedMedia);
     // ignore "idle" buffer status
 }
@@ -604,7 +604,7 @@ void MmRendererMediaPlayerControl::setMmBufferLevel(int level, int capacity)
 {
     m_bufferLevel = capacity == 0 ? 0 : level / static_cast<float>(capacity) * 100.0f;
     m_bufferLevel = qBound(0, m_bufferLevel, 100);
-    emit bufferStatusChanged(m_bufferLevel);
+    emit bufferProgressChanged(m_bufferLevel/100.);
 }
 
 void MmRendererMediaPlayerControl::updateMetaData(const strm_dict *dict)

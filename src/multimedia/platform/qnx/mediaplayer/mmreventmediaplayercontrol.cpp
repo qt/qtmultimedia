@@ -67,7 +67,7 @@ static std::tuple<int, int, bool> parseBufferLevel(const QByteArray &value)
 MmrEventMediaPlayerControl::MmrEventMediaPlayerControl(QObject *parent)
     : MmRendererMediaPlayerControl(parent)
     , m_eventThread(nullptr)
-    , m_bufferStatus("")
+    , m_bufferProgress("")
     , m_bufferLevel(0)
     , m_bufferCapacity(0)
     , m_position(0)
@@ -103,7 +103,7 @@ void MmrEventMediaPlayerControl::stopMonitoring()
 
 void MmrEventMediaPlayerControl::resetMonitoring()
 {
-    m_bufferStatus = "";
+    m_bufferProgress = "";
     m_bufferLevel = 0;
     m_bufferCapacity = 0;
     m_position = 0;
@@ -139,9 +139,9 @@ void MmrEventMediaPlayerControl::readEvents()
                 const strm_string_t *value;
                 value = strm_dict_find_rstr(event->data, "bufferstatus");
                 if (value) {
-                    m_bufferStatus = QByteArray(strm_string_get(value));
+                    m_bufferProgress = QByteArray(strm_string_get(value));
                     if (!m_suspended)
-                        setMmBufferStatus(m_bufferStatus);
+                        setMmBufferStatus(m_bufferProgress);
                 }
 
                 value = strm_dict_find_rstr(event->data, "bufferlevel");
@@ -169,7 +169,7 @@ void MmrEventMediaPlayerControl::readEvents()
                     }
                 } else if (m_suspended) {
                     m_suspended = false;
-                    handleMmSuspendRemoval(m_bufferStatus);
+                    handleMmSuspendRemoval(m_bufferProgress);
                 }
             }
 

@@ -40,6 +40,7 @@
 #include "qmediaplayer_p.h"
 
 #include <private/qplatformmediaintegration_p.h>
+#include <qvideosink.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -72,13 +73,13 @@ QT_BEGIN_NAMESPACE
     \sa QVideoWidget
 */
 
-void QMediaPlayerPrivate::setState(QMediaPlayer::State ps)
+void QMediaPlayerPrivate::setState(QMediaPlayer::PlaybackState ps)
 {
     Q_Q(QMediaPlayer);
 
     if (ps != state) {
         state = ps;
-        emit q->stateChanged(ps);
+        emit q->playbackStateChanged(ps);
     }
 }
 
@@ -103,7 +104,7 @@ void QMediaPlayerPrivate::setError(int error, const QString &errorString)
 
     this->error = QMediaPlayer::Error(error);
     this->errorString = errorString;
-    emit q->error(this->error);
+    emit q->errorChanged(this->error);
 }
 
 void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
@@ -175,6 +176,9 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
     }
 
     qrcFile.swap(file); // Cleans up any previous file
+
+    if (autoPlay)
+        q->play();
 }
 
 QList<QMediaMetaData> QMediaPlayerPrivate::trackMetaData(QPlatformMediaPlayer::TrackType s) const
@@ -228,7 +232,7 @@ QMediaPlayer::~QMediaPlayer()
     delete d->control;
 }
 
-QUrl QMediaPlayer::media() const
+QUrl QMediaPlayer::source() const
 {
     Q_D(const QMediaPlayer);
 
@@ -243,7 +247,7 @@ QUrl QMediaPlayer::media() const
     \sa setMedia()
 */
 
-const QIODevice *QMediaPlayer::mediaStream() const
+const QIODevice *QMediaPlayer::sourceStream() const
 {
     Q_D(const QMediaPlayer);
 
@@ -255,7 +259,7 @@ const QIODevice *QMediaPlayer::mediaStream() const
     return nullptr;
 }
 
-QMediaPlayer::State QMediaPlayer::state() const
+QMediaPlayer::PlaybackState QMediaPlayer::playbackState() const
 {
     Q_D(const QMediaPlayer);
 
@@ -315,17 +319,17 @@ bool QMediaPlayer::isMuted() const
     return false;
 }
 
-int QMediaPlayer::bufferStatus() const
+float QMediaPlayer::bufferProgress() const
 {
     Q_D(const QMediaPlayer);
 
     if (d->control != nullptr)
-        return d->control->bufferStatus();
+        return d->control->bufferProgress();
 
-    return 0;
+    return 0.;
 }
 
-bool QMediaPlayer::isAudioAvailable() const
+bool QMediaPlayer::hasAudio() const
 {
     Q_D(const QMediaPlayer);
 
@@ -335,7 +339,7 @@ bool QMediaPlayer::isAudioAvailable() const
     return false;
 }
 
-bool QMediaPlayer::isVideoAvailable() const
+bool QMediaPlayer::hasVideo() const
 {
     Q_D(const QMediaPlayer);
 
@@ -455,6 +459,16 @@ void QMediaPlayer::setMuted(bool muted)
     d->control->setMuted(muted);
 }
 
+void QMediaPlayer::setAutoPlay(bool autoPlay)
+{
+    Q_D(QMediaPlayer);
+    if (d->autoPlay == autoPlay)
+        return;
+
+    d->autoPlay = autoPlay;
+    emit autoPlayChanged(autoPlay);
+}
+
 void QMediaPlayer::setPlaybackRate(qreal rate)
 {
     Q_D(QMediaPlayer);
@@ -464,7 +478,7 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
 }
 
 /*!
-    Sets the current \a media source.
+    Sets the current \a source.
 
     If a \a stream is supplied; media data will be read from it instead of resolving the media
     source. In this case the url should be provided to resolve additional information
@@ -481,17 +495,17 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     when an error occurs during loading.
 */
 
-void QMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
+void QMediaPlayer::setSource(const QUrl &source, QIODevice *stream)
 {
     Q_D(QMediaPlayer);
     stop();
 
     QUrl oldMedia = d->rootMedia;
-    d->rootMedia = media;
+    d->rootMedia = source;
 
-    if (oldMedia != media) {
-        d->setMedia(media, stream);
-        emit mediaChanged(d->rootMedia);
+    if (oldMedia != source) {
+        d->setMedia(source, stream);
+        emit sourceChanged(d->rootMedia);
     }
 }
 
@@ -583,23 +597,64 @@ void QMediaPlayer::setActiveSubtitleTrack(int index)
     If the media player has already video output attached,
     it will be replaced with a new one.
 */
+void QMediaPlayer::setVideoOutput(const QVariant &output)
+{
+    QVideoSink *s = output.value<QVideoSink *>();
+    if (s) {
+        setVideoOutput(s);
+        return;
+    }
+    QObject *o = output.value<QObject *>();
+    if (o) {
+        setVideoOutput(o);
+        return;
+    }
+}
+
+QVariant QMediaPlayer::videoOutput() const
+{
+    Q_D(const QMediaPlayer);
+    return d->videoOutput;
+}
+
+/*!
+    Attach a video \a output to the media player.
+
+    If the media player has already video output attached,
+    it will be replaced with a new one.
+*/
 void QMediaPlayer::setVideoOutput(QObject *output)
 {
-    auto *mo = output->metaObject();
+    Q_D(QMediaPlayer);
+    if (!d->control)
+        return;
+
     QVideoSink *sink = nullptr;
-    if (output)
-        mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
-    setVideoOutput(sink);
+    if (output) {
+        auto *mo = output->metaObject();
+        if (output)
+            mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
+    }
+    QVariant out = QVariant::fromValue(output);
+    if (d->videoOutput == out)
+        return;
+    d->videoOutput = out;
+    d->control->setVideoSink(sink);
+    emit videoOutputChanged();
 }
 
 void QMediaPlayer::setVideoOutput(QVideoSink *sink)
 {
     Q_D(QMediaPlayer);
-
     if (!d->control)
         return;
 
+    QVariant out = QVariant::fromValue(sink);
+    if (d->videoOutput == out)
+        return;
+    d->videoOutput = out;
     d->control->setVideoSink(sink);
+    emit videoOutputChanged();
 }
 
 /*!
@@ -665,6 +720,12 @@ QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
     Q_D(const QMediaPlayer);
 
     return d->control->supportedAudioRoles();
+}
+
+bool QMediaPlayer::autoPlay() const
+{
+    Q_D(const QMediaPlayer);
+    return d->autoPlay;
 }
 
 // Enums
@@ -859,7 +920,7 @@ QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
 */
 
 /*!
-    \property QMediaPlayer::bufferStatus
+    \property QMediaPlayer::bufferProgress
     \brief the percentage of the temporary buffer filled before playback begins or resumes, from
     \c 0 (empty) to \c 100 (full).
 
@@ -968,9 +1029,9 @@ QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
 */
 
 /*!
-    \fn void QMediaPlayer::bufferStatusChanged(int percentFilled)
+    \fn void QMediaPlayer::bufferProgressChanged(float filled)
 
-    Signal the amount of the local buffer filled as a percentage by \a percentFilled.
+    Signal the amount of the local buffer filled as a number between 0 and 1.
 */
 
 QT_END_NAMESPACE

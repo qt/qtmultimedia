@@ -87,10 +87,10 @@ Player::Player(QWidget *parent)
     connect(m_player, QOverload<>::of(&QMediaPlayer::metaDataChanged), this, &Player::metaDataChanged);
     connect(m_playlist, &QMediaPlaylist::currentIndexChanged, this, &Player::playlistPositionChanged);
     connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &Player::statusChanged);
-    connect(m_player, &QMediaPlayer::bufferStatusChanged, this, &Player::bufferingProgress);
-    connect(m_player, &QMediaPlayer::videoAvailableChanged, this, &Player::videoAvailableChanged);
-    connect(m_player, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), this, &Player::displayErrorMessage);
-    connect(m_player, &QMediaPlayer::stateChanged, this, &Player::stateChanged);
+    connect(m_player, &QMediaPlayer::bufferProgressChanged, this, &Player::bufferingProgress);
+    connect(m_player, &QMediaPlayer::hasVideoChanged, this, &Player::videoAvailableChanged);
+    connect(m_player, &QMediaPlayer::errorChanged, this, &Player::displayErrorMessage);
+    connect(m_player, &QMediaPlayer::playbackStateChanged, this, &Player::stateChanged);
     connect(m_player, &QMediaPlayer::tracksChanged, this, &Player::tracksChanged);
 
     m_playlistView = new QListView(this);
@@ -164,7 +164,7 @@ Player::Player(QWidget *parent)
     connect(openButton, &QPushButton::clicked, this, &Player::open);
 
     PlayerControls *controls = new PlayerControls(this);
-    controls->setState(m_player->state());
+    controls->setState(m_player->playbackState());
     controls->setVolume(m_player->volume());
     controls->setMuted(controls->isMuted());
 
@@ -178,7 +178,7 @@ Player::Player(QWidget *parent)
     connect(controls, &PlayerControls::changeRate, m_player, &QMediaPlayer::setPlaybackRate);
     connect(controls, &PlayerControls::stop, m_videoWidget, QOverload<>::of(&QVideoWidget::update));
 
-    connect(m_player, &QMediaPlayer::stateChanged, controls, &PlayerControls::setState);
+    connect(m_player, &QMediaPlayer::playbackStateChanged, controls, &PlayerControls::setState);
     connect(m_player, &QMediaPlayer::volumeChanged, controls, &PlayerControls::setVolume);
     connect(m_player, &QMediaPlayer::mutedChanged, controls, &PlayerControls::setMuted);
 
@@ -381,7 +381,7 @@ void Player::playlistPositionChanged(int currentItem)
 {
     clearHistogram();
     m_playlistView->setCurrentIndex(m_playlistModel->index(currentItem, 0));
-    m_player->setMedia(m_playlist->currentMedia());
+    m_player->setSource(m_playlist->currentMedia());
 }
 
 void Player::seek(int seconds)
@@ -405,10 +405,10 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
         break;
     case QMediaPlayer::BufferingMedia:
     case QMediaPlayer::BufferedMedia:
-        setStatusInfo(tr("Buffering %1%").arg(m_player->bufferStatus()));
+        setStatusInfo(tr("Buffering %1%").arg(m_player->bufferProgress()));
         break;
     case QMediaPlayer::StalledMedia:
-        setStatusInfo(tr("Stalled %1%").arg(m_player->bufferStatus()));
+        setStatusInfo(tr("Stalled %1%").arg(m_player->bufferProgress()));
         break;
     case QMediaPlayer::EndOfMedia:
         QApplication::alert(this);
@@ -420,7 +420,7 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
     }
 }
 
-void Player::stateChanged(QMediaPlayer::State state)
+void Player::stateChanged(QMediaPlayer::PlaybackState state)
 {
     if (state == QMediaPlayer::StoppedState)
         clearHistogram();
@@ -512,6 +512,8 @@ void Player::setStatusInfo(const QString &info)
 
 void Player::displayErrorMessage()
 {
+    if (m_player->error() == QMediaPlayer::NoError)
+        return;
     setStatusInfo(m_player->errorString());
 }
 

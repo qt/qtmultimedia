@@ -165,7 +165,7 @@ private:
 void tst_QMediaPlayer::setupCommonTestData()
 {
     QTest::addColumn<bool>("valid");
-    QTest::addColumn<QMediaPlayer::State>("state");
+    QTest::addColumn<QMediaPlayer::PlaybackState>("state");
     QTest::addColumn<QMediaPlayer::MediaStatus>("status");
     QTest::addColumn<QUrl>("mediaContent");
     QTest::addColumn<qint64>("duration");
@@ -174,7 +174,7 @@ void tst_QMediaPlayer::setupCommonTestData()
     QTest::addColumn<int>("volume");
     QTest::addColumn<bool>("muted");
     QTest::addColumn<bool>("videoAvailable");
-    QTest::addColumn<int>("bufferStatus");
+    QTest::addColumn<int>("bufferProgress");
     QTest::addColumn<qreal>("playbackRate");
     QTest::addColumn<QMediaPlayer::Error>("error");
     QTest::addColumn<QString>("errorString");
@@ -237,16 +237,16 @@ void tst_QMediaPlayer::testNullService()
 
     const QIODevice *nullDevice = nullptr;
 
-    QCOMPARE(player.media(), QUrl());
-    QCOMPARE(player.mediaStream(), nullDevice);
-    QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.source(), QUrl());
+    QCOMPARE(player.sourceStream(), nullDevice);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::UnknownMediaStatus);
     QCOMPARE(player.duration(), qint64(-1));
     QCOMPARE(player.position(), qint64(0));
     QCOMPARE(player.volume(), 0);
     QCOMPARE(player.isMuted(), false);
-    QCOMPARE(player.isVideoAvailable(), false);
-    QCOMPARE(player.bufferStatus(), 0);
+    QCOMPARE(player.hasVideo(), false);
+    QCOMPARE(player.bufferProgress(), 0);
     QCOMPARE(player.isSeekable(), false);
     QCOMPARE(player.playbackRate(), qreal(0));
     QCOMPARE(player.error(), QMediaPlayer::ServiceMissingError);
@@ -259,28 +259,28 @@ void tst_QMediaPlayer::testNullService()
         QFile file;
 
         bool changed = !mediaContent.isEmpty();
-        player.setMedia(mediaContent, &file);
-        QCOMPARE(player.media(), mediaContent);
-        QCOMPARE(player.mediaStream(), nullDevice);
+        player.setSource(mediaContent, &file);
+        QCOMPARE(player.source(), mediaContent);
+        QCOMPARE(player.sourceStream(), nullDevice);
         QCOMPARE(spy.count(), changed ? 1 : 0);
     } {
         QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
         QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
 
         player.play();
-        QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+        QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
         QCOMPARE(player.mediaStatus(), QMediaPlayer::UnknownMediaStatus);
         QCOMPARE(stateSpy.count(), 0);
         QCOMPARE(statusSpy.count(), 0);
 
         player.pause();
-        QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+        QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
         QCOMPARE(player.mediaStatus(), QMediaPlayer::UnknownMediaStatus);
         QCOMPARE(stateSpy.count(), 0);
         QCOMPARE(statusSpy.count(), 0);
 
         player.stop();
-        QCOMPARE(player.state(), QMediaPlayer::StoppedState);
+        QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
         QCOMPARE(player.mediaStatus(), QMediaPlayer::UnknownMediaStatus);
         QCOMPARE(stateSpy.count(), 0);
         QCOMPARE(statusSpy.count(), 0);
@@ -339,12 +339,12 @@ void tst_QMediaPlayer::testMedia()
     QFETCH(QUrl, mediaContent);
 
     mockPlayer->setMedia(mediaContent);
-    QCOMPARE(player->media(), mediaContent);
+    QCOMPARE(player->source(), mediaContent);
 
     QBuffer stream;
-    player->setMedia(mediaContent, &stream);
-    QCOMPARE(player->media(), mediaContent);
-    QCOMPARE((QBuffer*)player->mediaStream(), &stream);
+    player->setSource(mediaContent, &stream);
+    QCOMPARE(player->source(), mediaContent);
+    QCOMPARE((QBuffer*)player->sourceStream(), &stream);
 }
 
 void tst_QMediaPlayer::testDuration_data()
@@ -484,7 +484,7 @@ void tst_QMediaPlayer::testVideoAvailable()
     QFETCH(bool, videoAvailable);
 
     mockPlayer->setVideoAvailable(videoAvailable);
-    QVERIFY(player->isVideoAvailable() == videoAvailable);
+    QVERIFY(player->hasVideo() == videoAvailable);
 }
 
 void tst_QMediaPlayer::testBufferStatus_data()
@@ -494,10 +494,10 @@ void tst_QMediaPlayer::testBufferStatus_data()
 
 void tst_QMediaPlayer::testBufferStatus()
 {
-    QFETCH(int, bufferStatus);
+    QFETCH(int, bufferProgress);
 
-    mockPlayer->setBufferStatus(bufferStatus);
-    QVERIFY(player->bufferStatus() == bufferStatus);
+    mockPlayer->setBufferStatus(bufferProgress);
+    QVERIFY(player->bufferProgress() == bufferProgress);
 }
 
 void tst_QMediaPlayer::testSeekable_data()
@@ -588,24 +588,24 @@ void tst_QMediaPlayer::testPlay()
 {
     QFETCH(bool, valid);
     QFETCH(QUrl, mediaContent);
-    QFETCH(QMediaPlayer::State, state);
+    QFETCH(QMediaPlayer::PlaybackState, state);
 
     mockPlayer->setIsValid(valid);
     mockPlayer->setState(state);
-    player->setMedia(mediaContent);
-    QVERIFY(player->state() == state);
-    QVERIFY(player->media() == mediaContent);
+    player->setSource(mediaContent);
+    QVERIFY(player->playbackState() == state);
+    QVERIFY(player->source() == mediaContent);
 
     QSignalSpy spy(player, SIGNAL(stateChanged(QMediaPlayer::State)));
 
     player->play();
 
     if (!valid || mediaContent.isEmpty())  {
-        QCOMPARE(player->state(), QMediaPlayer::StoppedState);
+        QCOMPARE(player->playbackState(), QMediaPlayer::StoppedState);
         QCOMPARE(spy.count(), 0);
     }
     else {
-        QCOMPARE(player->state(), QMediaPlayer::PlayingState);
+        QCOMPARE(player->playbackState(), QMediaPlayer::PlayingState);
         QCOMPARE(spy.count(), state == QMediaPlayer::PlayingState ? 0 : 1);
     }
 }
@@ -619,24 +619,24 @@ void tst_QMediaPlayer::testPause()
 {
     QFETCH(bool, valid);
     QFETCH(QUrl, mediaContent);
-    QFETCH(QMediaPlayer::State, state);
+    QFETCH(QMediaPlayer::PlaybackState, state);
 
     mockPlayer->setIsValid(valid);
     mockPlayer->setState(state);
     mockPlayer->setMedia(mediaContent);
-    QVERIFY(player->state() == state);
-    QVERIFY(player->media() == mediaContent);
+    QVERIFY(player->playbackState() == state);
+    QVERIFY(player->source() == mediaContent);
 
     QSignalSpy spy(player, SIGNAL(stateChanged(QMediaPlayer::State)));
 
     player->pause();
 
     if (!valid || mediaContent.isEmpty()) {
-        QCOMPARE(player->state(), QMediaPlayer::StoppedState);
+        QCOMPARE(player->playbackState(), QMediaPlayer::StoppedState);
         QCOMPARE(spy.count(), 0);
     }
     else {
-        QCOMPARE(player->state(), QMediaPlayer::PausedState);
+        QCOMPARE(player->playbackState(), QMediaPlayer::PausedState);
         QCOMPARE(spy.count(), state == QMediaPlayer::PausedState ? 0 : 1);
     }
 }
@@ -649,23 +649,23 @@ void tst_QMediaPlayer::testStop_data()
 void tst_QMediaPlayer::testStop()
 {
     QFETCH(QUrl, mediaContent);
-    QFETCH(QMediaPlayer::State, state);
+    QFETCH(QMediaPlayer::PlaybackState, state);
 
     mockPlayer->setState(state);
     mockPlayer->setMedia(mediaContent);
-    QVERIFY(player->state() == state);
-    QVERIFY(player->media() == mediaContent);
+    QVERIFY(player->playbackState() == state);
+    QVERIFY(player->source() == mediaContent);
 
     QSignalSpy spy(player, SIGNAL(stateChanged(QMediaPlayer::State)));
 
     player->stop();
 
     if (mediaContent.isEmpty() || state == QMediaPlayer::StoppedState) {
-        QCOMPARE(player->state(), QMediaPlayer::StoppedState);
+        QCOMPARE(player->playbackState(), QMediaPlayer::StoppedState);
         QCOMPARE(spy.count(), 0);
     }
     else {
-        QCOMPARE(player->state(), QMediaPlayer::StoppedState);
+        QCOMPARE(player->playbackState(), QMediaPlayer::StoppedState);
         QCOMPARE(spy.count(), 1);
     }
 }
@@ -677,18 +677,18 @@ void tst_QMediaPlayer::testMediaStatus_data()
 
 void tst_QMediaPlayer::testMediaStatus()
 {
-    QFETCH(int, bufferStatus);
+    QFETCH(int, bufferProgress);
     int bufferSignals = 0;
 
     mockPlayer->setMediaStatus(QMediaPlayer::NoMedia);
-    mockPlayer->setBufferStatus(bufferStatus);
+    mockPlayer->setBufferStatus(bufferProgress);
 
     AutoConnection connection(
-            player, SIGNAL(bufferStatusChanged(int)),
+            player, SIGNAL(bufferProgressChanged(float)),
             &QTestEventLoop::instance(), SLOT(exitLoop()));
 
     QSignalSpy statusSpy(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy bufferSpy(player, SIGNAL(bufferStatusChanged(int)));
+    QSignalSpy bufferSpy(player, SIGNAL(bufferProgressChanged(float)));
 
     QCOMPARE(player->mediaStatus(), QMediaPlayer::NoMedia);
 
@@ -706,7 +706,7 @@ void tst_QMediaPlayer::testMediaStatus()
     QCOMPARE(qvariant_cast<QMediaPlayer::MediaStatus>(statusSpy.last().value(0)),
              QMediaPlayer::LoadedMedia);
 
-    // Verify the bufferStatusChanged() signal isn't being emitted.
+    // Verify the bufferProgressChanged() signal isn't being emitted.
     QTestEventLoop::instance().enterLoop(1);
     QCOMPARE(bufferSpy.count(), 0);
 
@@ -717,10 +717,10 @@ void tst_QMediaPlayer::testMediaStatus()
     QCOMPARE(qvariant_cast<QMediaPlayer::MediaStatus>(statusSpy.last().value(0)),
              QMediaPlayer::StalledMedia);
 
-    // Verify the bufferStatusChanged() signal is being emitted.
+    // Verify the bufferProgressChanged() signal is being emitted.
     QTestEventLoop::instance().enterLoop(1);
     QVERIFY(bufferSpy.count() > bufferSignals);
-    QCOMPARE(bufferSpy.last().value(0).toInt(), bufferStatus);
+    QCOMPARE(bufferSpy.last().value(0).toInt(), bufferProgress);
     bufferSignals = bufferSpy.count();
 
     mockPlayer->setMediaStatus(QMediaPlayer::BufferingMedia);
@@ -730,10 +730,10 @@ void tst_QMediaPlayer::testMediaStatus()
     QCOMPARE(qvariant_cast<QMediaPlayer::MediaStatus>(statusSpy.last().value(0)),
              QMediaPlayer::BufferingMedia);
 
-    // Verify the bufferStatusChanged() signal is being emitted.
+    // Verify the bufferProgressChanged() signal is being emitted.
     QTestEventLoop::instance().enterLoop(1);
     QVERIFY(bufferSpy.count() > bufferSignals);
-    QCOMPARE(bufferSpy.last().value(0).toInt(), bufferStatus);
+    QCOMPARE(bufferSpy.last().value(0).toInt(), bufferProgress);
     bufferSignals = bufferSpy.count();
 
     mockPlayer->setMediaStatus(QMediaPlayer::BufferedMedia);
@@ -743,7 +743,7 @@ void tst_QMediaPlayer::testMediaStatus()
     QCOMPARE(qvariant_cast<QMediaPlayer::MediaStatus>(statusSpy.last().value(0)),
              QMediaPlayer::BufferedMedia);
 
-    // Verify the bufferStatusChanged() signal isn't being emitted.
+    // Verify the bufferProgressChanged() signal isn't being emitted.
     QTestEventLoop::instance().enterLoop(1);
     QCOMPARE(bufferSpy.count(), bufferSignals);
 
@@ -866,13 +866,13 @@ void tst_QMediaPlayer::testQrc()
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
     QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
 
-    player.setMedia(mediaContent);
+    player.setSource(mediaContent);
 
     QTRY_COMPARE(player.mediaStatus(), status);
     QCOMPARE(statusSpy.count(), 1);
     QCOMPARE(qvariant_cast<QMediaPlayer::MediaStatus>(statusSpy.last().value(0)), status);
 
-    QCOMPARE(player.media(), mediaContent);
+    QCOMPARE(player.source(), mediaContent);
     QCOMPARE(mediaSpy.count(), 1);
     QCOMPARE(qvariant_cast<QUrl>(mediaSpy.last().value(0)), mediaContent);
 

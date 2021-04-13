@@ -274,9 +274,9 @@ void MFPlayerControl::setMuted(bool muted)
     m_session->setMuted(muted);
 }
 
-int MFPlayerControl::bufferStatus() const
+float MFPlayerControl::bufferProgress() const
 {
-    return m_session->bufferStatus();
+    return m_session->bufferProgress() / 100.;
 }
 
 bool MFPlayerControl::isAudioAvailable() const

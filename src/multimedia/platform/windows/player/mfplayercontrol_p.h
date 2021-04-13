@@ -81,7 +81,7 @@ public:
     bool isMuted() const override;
     void setMuted(bool muted) override;
 
-    int bufferStatus() const override;
+    float bufferProgress() const override;
 
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;

@@ -75,7 +75,7 @@ public:
     qint64 position() const override;
     int volume() const override;
     bool isMuted() const override;
-    int bufferStatus() const override;
+    float bufferProgress() const override;
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;
     bool isSeekable() const override;

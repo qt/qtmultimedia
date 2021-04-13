@@ -46,7 +46,7 @@ public:
         , _position(0)
         , _volume(100)
         , _muted(false)
-        , _bufferStatus(0)
+        , _bufferProgress(0)
         , _audioAvailable(false)
         , _videoAvailable(false)
         , _isSeekable(true)
@@ -59,14 +59,14 @@ public:
     {
     }
 
-    QMediaPlayer::State state() const { return _state; }
-    void updateState(QMediaPlayer::State state) { emit stateChanged(_state = state); }
+    QMediaPlayer::PlaybackState state() const { return _state; }
+    void updateState(QMediaPlayer::PlaybackState state) { emit stateChanged(_state = state); }
     QMediaPlayer::MediaStatus mediaStatus() const { return _mediaStatus; }
     void updateMediaStatus(QMediaPlayer::MediaStatus status)
     {
         emit mediaStatusChanged(_mediaStatus = status);
     }
-    void updateMediaStatus(QMediaPlayer::MediaStatus status, QMediaPlayer::State state)
+    void updateMediaStatus(QMediaPlayer::MediaStatus status, QMediaPlayer::PlaybackState state)
     {
         _mediaStatus = status;
         _state = state;
@@ -88,8 +88,8 @@ public:
     bool isMuted() const { return _muted; }
     void setMuted(bool muted) { if (muted != _muted) emit mutedChanged(_muted = muted); }
 
-    int bufferStatus() const { return _bufferStatus; }
-    void setBufferStatus(int status) { emit bufferStatusChanged(_bufferStatus = status); }
+    float bufferProgress() const { return _bufferProgress; }
+    void setBufferStatus(float status) { _bufferProgress = status; emit bufferProgressChanged(status); }
 
     bool isAudioAvailable() const { return _audioAvailable; }
     bool isVideoAvailable() const { return _videoAvailable; }
@@ -141,8 +141,8 @@ public:
         emit error(err, errorString);
     }
 
-    void setState(QMediaPlayer::State state) { emit stateChanged(_state = state); }
-    void setState(QMediaPlayer::State state, QMediaPlayer::MediaStatus status) {
+    void setState(QMediaPlayer::PlaybackState state) { emit stateChanged(_state = state); }
+    void setState(QMediaPlayer::PlaybackState state, QMediaPlayer::MediaStatus status) {
         _state = state;
         _mediaStatus = status;
         emit mediaStatusChanged(status);
@@ -164,7 +164,7 @@ public:
         _position = 0;
         _volume = 0;
         _muted = false;
-        _bufferStatus = 0;
+        _bufferProgress = 0;
         _videoAvailable = false;
         _isSeekable = false;
         _playbackRate = 0.0;
@@ -179,14 +179,14 @@ public:
     bool hasAudioRole = true;
     QAudio::Role m_audioRole = QAudio::UnknownRole;
 
-    QMediaPlayer::State _state;
+    QMediaPlayer::PlaybackState _state;
     QMediaPlayer::MediaStatus _mediaStatus;
     QMediaPlayer::Error _error;
     qint64 _duration;
     qint64 _position;
     int _volume;
     bool _muted;
-    int _bufferStatus;
+    float _bufferProgress;
     bool _audioAvailable;
     bool _videoAvailable;
     bool _isSeekable;

@@ -100,7 +100,7 @@ private slots:
     void playlistPositionChanged(int);
 
     void statusChanged(QMediaPlayer::MediaStatus status);
-    void stateChanged(QMediaPlayer::State state);
+    void stateChanged(QMediaPlayer::PlaybackState state);
     void bufferingProgress(int progress);
     void videoAvailableChanged(bool available);
 

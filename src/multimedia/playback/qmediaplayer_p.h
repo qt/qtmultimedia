@@ -76,16 +76,17 @@ public:
     QPlatformMediaPlayer* control = nullptr;
     QString errorString;
 
-    QPointer<QObject> videoOutput;
+    QVariant videoOutput;
     QUrl qrcMedia;
     QScopedPointer<QFile> qrcFile;
     QUrl rootMedia;
 
-    QMediaPlayer::State state = QMediaPlayer::StoppedState;
+    QMediaPlayer::PlaybackState state = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
     QMediaPlayer::Error error = QMediaPlayer::NoError;
     int ignoreNextStatusChange = -1;
     bool hasStreamPlaybackFeature = false;
+    bool autoPlay = false;
 
     QAudio::Role audioRole = QAudio::UnknownRole;
 
@@ -93,7 +94,7 @@ public:
 
     QList<QMediaMetaData> trackMetaData(QPlatformMediaPlayer::TrackType s) const;
 
-    void setState(QMediaPlayer::State state);
+    void setState(QMediaPlayer::PlaybackState state);
     void setStatus(QMediaPlayer::MediaStatus status);
     void setError(int error, const QString &errorString);
 };

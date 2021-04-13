@@ -88,7 +88,7 @@ public:
     bool isMuted() const override;
     void setMuted(bool muted) override;
 
-    int bufferStatus() const override;
+    float bufferProgress() const override;
 
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;
@@ -126,11 +126,11 @@ protected:
     void emitMmError(const QString &msg);
     void emitPError(const QString &msg);
     void setMmPosition(qint64 newPosition);
-    void setMmBufferStatus(const QString &bufferStatus);
+    void setMmBufferStatus(const QString &bufferProgress);
     void setMmBufferLevel(int level, int capacity);
     void handleMmStopped();
     void handleMmSuspend(const QString &reason);
-    void handleMmSuspendRemoval(const QString &bufferStatus);
+    void handleMmSuspendRemoval(const QString &bufferProgress);
     void handleMmPause();
     void handleMmPlay();
     void updateMetaData(const strm_dict_t *dict);

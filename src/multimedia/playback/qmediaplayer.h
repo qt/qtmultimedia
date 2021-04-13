@@ -55,27 +55,30 @@ class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl media READ media WRITE setMedia NOTIFY mediaChanged)
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
-    Q_PROPERTY(int bufferStatus READ bufferStatus NOTIFY bufferStatusChanged)
-    Q_PROPERTY(bool audioAvailable READ isAudioAvailable NOTIFY audioAvailableChanged)
-    Q_PROPERTY(bool videoAvailable READ isVideoAvailable NOTIFY videoAvailableChanged)
+    Q_PROPERTY(float bufferProgress READ bufferProgress NOTIFY bufferProgressChanged)
+    Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged)
+    Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged)
     Q_PROPERTY(bool seekable READ isSeekable NOTIFY seekableChanged)
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
-    Q_PROPERTY(State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
     Q_PROPERTY(MediaStatus mediaStatus READ mediaStatus NOTIFY mediaStatusChanged)
     Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData NOTIFY metaDataChanged)
-    Q_PROPERTY(QString error READ errorString)
-    Q_ENUMS(State)
+    Q_PROPERTY(Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(QVariant videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
+    Q_ENUMS(PlaybackState)
     Q_ENUMS(MediaStatus)
     Q_ENUMS(Error)
 
 public:
-    enum State
+    enum PlaybackState
     {
         StoppedState,
         PlayingState,
@@ -127,14 +130,17 @@ public:
     void setActiveVideoTrack(int index);
     void setActiveSubtitleTrack(int index);
 
+    void setVideoOutput(const QVariant &output);
+    QVariant videoOutput() const;
+
     void setVideoOutput(QObject *);
     void setVideoOutput(const QList<QVideoSink *> &sinks);
     void setVideoOutput(QVideoSink *sink);
 
-    QUrl media() const;
-    const QIODevice *mediaStream() const;
+    QUrl source() const;
+    const QIODevice *sourceStream() const;
 
-    State state() const;
+    PlaybackState playbackState() const;
     MediaStatus mediaStatus() const;
 
     qint64 duration() const;
@@ -142,10 +148,10 @@ public:
 
     int volume() const;
     bool isMuted() const;
-    bool isAudioAvailable() const;
-    bool isVideoAvailable() const;
+    bool hasAudio() const;
+    bool hasVideo() const;
 
-    int bufferStatus() const;
+    float bufferProgress() const;
 
     bool isSeekable() const;
     qreal playbackRate() const;
@@ -160,6 +166,8 @@ public:
     void setAudioRole(QAudio::Role audioRole);
     QList<QAudio::Role> supportedAudioRoles() const;
 
+    bool autoPlay() const;
+
 public Q_SLOTS:
     void play();
     void pause();
@@ -168,14 +176,15 @@ public Q_SLOTS:
     void setPosition(qint64 position);
     void setVolume(int volume);
     void setMuted(bool muted);
+    void setAutoPlay(bool autoPlay);
 
     void setPlaybackRate(qreal rate);
 
-    void setMedia(const QUrl &media, QIODevice *stream = nullptr);
+    void setSource(const QUrl &media, QIODevice *stream = nullptr);
 
 Q_SIGNALS:
-    void mediaChanged(const QUrl &media);
-    void stateChanged(QMediaPlayer::State newState);
+    void sourceChanged(const QUrl &media);
+    void playbackStateChanged(QMediaPlayer::PlaybackState newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
 
     void durationChanged(qint64 duration);
@@ -183,10 +192,11 @@ Q_SIGNALS:
 
     void volumeChanged(int volume);
     void mutedChanged(bool muted);
-    void audioAvailableChanged(bool available);
-    void videoAvailableChanged(bool videoAvailable);
+    void autoPlayChanged(bool autoPlay);
+    void hasAudioChanged(bool available);
+    void hasVideoChanged(bool videoAvailable);
 
-    void bufferStatusChanged(int percentFilled);
+    void bufferProgressChanged(float progress);
 
     void seekableChanged(bool seekable);
     void playbackRateChanged(qreal rate);
@@ -194,11 +204,12 @@ Q_SIGNALS:
     void audioRoleChanged(QAudio::Role role);
 
     void metaDataChanged();
+    void videoOutputChanged();
 
     void tracksChanged();
     void activeTracksChanged();
 
-    void error(QMediaPlayer::Error error);
+    void errorChanged(QMediaPlayer::Error error);
 
 private:
     Q_DISABLE_COPY(QMediaPlayer)
@@ -208,7 +219,7 @@ private:
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QMediaPlayer, State)
+Q_MEDIA_ENUM_DEBUG(QMediaPlayer, PlaybackState)
 Q_MEDIA_ENUM_DEBUG(QMediaPlayer, MediaStatus)
 Q_MEDIA_ENUM_DEBUG(QMediaPlayer, Error)
 

@@ -276,9 +276,9 @@ QMediaMetaData QAndroidMediaPlayerControl::metaData() const
     return QAndroidMetaData::extractMetadata(mMediaContent);
 }
 
-int QAndroidMediaPlayerControl::bufferStatus() const
+float QAndroidMediaPlayerControl::bufferProgress() const
 {
-    return mBufferFilled ? 100 : 0;
+    return mBufferFilled ? 1. : 0;
 }
 
 bool QAndroidMediaPlayerControl::isAudioAvailable() const
@@ -810,7 +810,7 @@ void QAndroidMediaPlayerControl::updateBufferStatus()
 
     if (mBufferFilled != bufferFilled) {
         mBufferFilled = bufferFilled;
-        Q_EMIT bufferStatusChanged(bufferStatus());
+        Q_EMIT bufferProgresChanged();
     }
 }
 

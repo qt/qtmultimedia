@@ -76,13 +76,13 @@ public:
     QGstreamerMediaPlayer(QMediaPlayer *parent = 0);
     ~QGstreamerMediaPlayer();
 
-    QMediaPlayer::State state() const override;
+    QMediaPlayer::PlaybackState state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;
 
     qint64 position() const override;
     qint64 duration() const override;
 
-    int bufferStatus() const override;
+    float bufferProgress() const override;
 
     int volume() const override;
     bool isMuted() const override;
@@ -139,7 +139,7 @@ private:
     QMediaMetaData m_metaData;
     QList<QGstPad> m_streams[3];
 
-    QMediaPlayer::State m_state = QMediaPlayer::StoppedState;
+    QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
 
     int m_bufferProgress = -1;

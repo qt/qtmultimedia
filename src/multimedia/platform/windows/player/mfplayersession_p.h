@@ -116,7 +116,7 @@ public:
     void setVolume(int volume);
     bool isMuted() const;
     void setMuted(bool muted);
-    int bufferStatus();
+    float bufferProgress();
     QMediaTimeRange availablePlaybackRanges();
 
     void changeStatus(QMediaPlayer::MediaStatus newStatus);
@@ -139,7 +139,7 @@ public:
     void playbackRateChanged(qreal rate) { m_playerControl->playbackRateChanged(rate); }
     void volumeChanged(int volume) { m_playerControl->volumeChanged(volume); }
     void mutedChanged(bool muted) { m_playerControl->mutedChanged(muted); }
-    void bufferStatusChanged(int percentFilled) { m_playerControl->bufferStatusChanged(percentFilled); }
+    void bufferProgressChanged(float percentFilled) { m_playerControl->bufferProgressChanged(percentFilled); }
     void metaDataChanged() { m_playerControl->metaDataChanged(); }
     void positionChanged(qint64 position) { m_playerControl->positionChanged(position); }
 
