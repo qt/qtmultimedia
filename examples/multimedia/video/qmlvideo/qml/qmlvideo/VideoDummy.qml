@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick
 
 // Item which is loaded by VideoItem if Qt Multimedia is not available
 Rectangle {

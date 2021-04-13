@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.5
+import QtQuick
+import QtMultimedia
 
 //! [complete snippet]
 Text {

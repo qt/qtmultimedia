@@ -26,9 +26,9 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick
 import QtTest 1.0
-import QtMultimedia 5.4
+import QtMultimedia
 
 TestCase {
 

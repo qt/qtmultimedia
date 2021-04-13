@@ -37,9 +37,9 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtQuick.Window 2.2
-import QtMultimedia 5.15
+import QtQuick
+import QtQuick.Window
+import QtMultimedia
 
 //! [complete]
 Item {

@@ -48,8 +48,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.4
+import QtQuick
+import QtMultimedia
 
 Rectangle {
     id : cameraUI

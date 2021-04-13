@@ -48,8 +48,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.0
+import QtQuick
+import QtMultimedia
 
 Item {
     property alias source : preview.source
