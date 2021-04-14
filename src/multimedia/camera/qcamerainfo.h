@@ -68,6 +68,12 @@ private:
 class QCameraInfoPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraInfo
 {
+    Q_GADGET
+    Q_PROPERTY(QByteArray id READ id CONSTANT)
+    Q_PROPERTY(QString description READ description CONSTANT)
+    Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
+    Q_PROPERTY(Position position READ position CONSTANT)
+    Q_ENUMS(Position)
 public:
     QCameraInfo();
     QCameraInfo(const QCameraInfo& other);

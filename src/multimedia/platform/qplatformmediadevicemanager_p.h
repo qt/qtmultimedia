@@ -52,6 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <qlist.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -81,15 +82,22 @@ public:
     QAbstractAudioInput *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
     QAbstractAudioOutput *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
 
-    QMediaDeviceManager *deviceManager() const { return m_manager; }
-    void setDeviceManager(QMediaDeviceManager *m)
+    void addDeviceManager(QMediaDeviceManager *m)
     {
-        Q_ASSERT(!m_manager);
-        m_manager = m;
+        m_deviceManagers.append(m);
+    }
+    void removeDeviceManager(QMediaDeviceManager *m)
+    {
+        m_deviceManagers.removeAll(m);
     }
 
+protected:
+    void audioInputsChanged() const;
+    void audioOutputsChanged() const;
+    void videoInputsChanged() const;
+
 private:
-    QMediaDeviceManager *m_manager = nullptr;
+    QList<QMediaDeviceManager *> m_deviceManagers;
 };
 
 QT_END_NAMESPACE

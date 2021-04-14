@@ -199,22 +199,18 @@ QAbstractAudioOutput *QGstreamerDeviceManager::createAudioOutputDevice(const QAu
 
 void QGstreamerDeviceManager::addDevice(GstDevice *device)
 {
-    auto *m = deviceManager();
     gchar *type = gst_device_get_device_class(device);
 //    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device) << gst_structure_to_string(gst_device_get_properties(device));
     gst_object_ref(device);
     if (!strcmp(type, "Video/Source")) {
         m_videoSources.insert(device);
-        if (m)
-            emit m->videoInputsChanged();
+        videoInputsChanged();
     } else if (!strcmp(type, "Audio/Source")) {
         m_audioSources.insert(device);
-        if (m)
-            emit m->audioInputsChanged();
+        audioInputsChanged();
     } else if (!strcmp(type, "Audio/Sink")) {
         m_audioSinks.insert(device);
-        if (m)
-            emit m->audioOutputsChanged();
+        audioOutputsChanged();
     } else {
         gst_object_unref(device);
     }
@@ -223,17 +219,13 @@ void QGstreamerDeviceManager::addDevice(GstDevice *device)
 
 void QGstreamerDeviceManager::removeDevice(GstDevice *device)
 {
-    auto *m = deviceManager();
 //    qDebug() << "removing device:" << device << gst_device_get_display_name(device);
     if (m_videoSources.remove(device)) {
-        if (m)
-            emit m->videoInputsChanged();
+        videoInputsChanged();
     } else if (m_audioSources.remove(device)) {
-        if (m)
-            emit m->audioInputsChanged();
+        audioInputsChanged();
     } else if (m_audioSinks.remove(device)) {
-        if (m)
-            emit m->audioOutputsChanged();
+        audioOutputsChanged();
     }
 
     gst_object_unref(device);

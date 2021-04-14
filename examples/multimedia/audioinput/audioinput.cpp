@@ -147,7 +147,7 @@ void RenderArea::setLevel(qreal value)
 
 
 InputTest::InputTest()
-    : m_deviceManager(QMediaDeviceManager::instance())
+    : m_deviceManager(new QMediaDeviceManager(this))
 {
     initializeWindow();
     initializeAudio(m_deviceManager->defaultAudioInput());

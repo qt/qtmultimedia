@@ -52,6 +52,7 @@
 #define AUDIODEVICES_H
 
 #include <QAudioDeviceInfo>
+#include <QMediaDeviceManager>
 #include <QMainWindow>
 #include <QObject>
 
@@ -75,6 +76,7 @@ private:
     QAudioDeviceInfo m_deviceInfo;
     QAudioFormat m_settings;
     QAudio::Mode m_mode = QAudio::AudioInput;
+    QMediaDeviceManager *m_manager = nullptr;
 
 private slots:
     void updateAudioDevices();

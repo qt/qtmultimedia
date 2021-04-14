@@ -127,10 +127,30 @@ struct QMediaMetaDataForeign
 {
     Q_GADGET
     QML_FOREIGN(QMediaMetaData)
-    QML_NAMED_ELEMENT(MediaMetaData)
+    QML_NAMED_ELEMENT(mediaMetaData)
 };
 
+struct QMediaDeviceManagerForeign
+{
+    Q_GADGET
+    QML_SINGLETON
+    QML_FOREIGN(QMediaDeviceManager)
+    QML_NAMED_ELEMENT(MediaDeviceManager)
+};
 
+struct QAudioDeviceInfoForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QAudioDeviceInfo)
+    QML_NAMED_ELEMENT(audioDeviceInfo)
+};
+
+struct QCameraInfoForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCameraInfo)
+    QML_NAMED_ELEMENT(cameraInfo)
+};
 
 QT_END_NAMESPACE
 

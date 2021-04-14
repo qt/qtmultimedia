@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qplatformmediadevicemanager_p.h"
+#include "qmediadevicemanager.h"
 #include "qaudiodeviceinfo.h"
 #include "qcamerainfo.h"
 #include "qaudiosystem_p.h"
@@ -100,6 +101,24 @@ QAbstractAudioOutput* QPlatformMediaDeviceManager::audioOutputDevice(const QAudi
     if (p)
         p->setFormat(format);
     return p;
+}
+
+void QPlatformMediaDeviceManager::audioInputsChanged() const
+{
+    for (auto m : m_deviceManagers)
+        emit m->audioInputsChanged();
+}
+
+void QPlatformMediaDeviceManager::audioOutputsChanged() const
+{
+    for (auto m : m_deviceManagers)
+        emit m->audioOutputsChanged();
+}
+
+void QPlatformMediaDeviceManager::videoInputsChanged() const
+{
+    for (auto m : m_deviceManagers)
+        emit m->videoInputsChanged();
 }
 
 

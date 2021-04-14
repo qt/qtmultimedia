@@ -306,9 +306,7 @@ void QDarwinDeviceManager::updateCameraDevices()
 
     if (cameras != m_cameraDevices) {
         m_cameraDevices = cameras;
-        auto *m = deviceManager();
-        if (m)
-            m->videoInputsChanged();
+        videoInputsChanged();
     }
 }
 
@@ -316,20 +314,16 @@ void QDarwinDeviceManager::updateCameraDevices()
 void QDarwinDeviceManager::updateAudioDevices()
 {
 #ifdef Q_OS_MACOS
-    auto *m = deviceManager();
-
     QList<QAudioDeviceInfo> inputs = availableAudioDevices(QAudio::AudioInput);
     if (m_audioInputs != inputs) {
         m_audioInputs = inputs;
-        if (m)
-            m->audioInputsChanged();
+        audioInputsChanged();
     }
 
     QList<QAudioDeviceInfo> outputs = availableAudioDevices(QAudio::AudioOutput);
     if (m_audioOutputs!= outputs) {
         m_audioOutputs = outputs;
-        if (m)
-            m->audioOutputsChanged();
+        audioOutputsChanged();
     }
 #endif
 }

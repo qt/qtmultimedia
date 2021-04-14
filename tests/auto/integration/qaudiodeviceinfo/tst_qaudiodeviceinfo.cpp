@@ -74,21 +74,19 @@ void tst_QAudioDeviceInfo::initTestCase()
 
 void tst_QAudioDeviceInfo::checkAvailableDefaultInput()
 {
-    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
     // Only perform tests if audio input device exists!
-    QList<QAudioDeviceInfo> devices = manager->audioInputs();
+    QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioInputs();
     if (devices.size() > 0) {
-        QVERIFY(!manager->defaultAudioInput().isNull());
+        QVERIFY(!QMediaDeviceManager::defaultAudioInput().isNull());
     }
 }
 
 void tst_QAudioDeviceInfo::checkAvailableDefaultOutput()
 {
-    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
     // Only perform tests if audio input device exists!
-    QList<QAudioDeviceInfo> devices = manager->audioOutputs();
+    QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
     if (devices.size() > 0) {
-        QVERIFY(!manager->defaultAudioOutput().isNull());
+        QVERIFY(!QMediaDeviceManager::defaultAudioOutput().isNull());
     }
 }
 

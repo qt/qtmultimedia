@@ -50,18 +50,13 @@ class QMediaDeviceManagerPrivate
 {
 public:
     QMediaDeviceManagerPrivate()
-        : manager(new QMediaDeviceManager)
     {
         pmanager = QPlatformMediaIntegration::instance()->deviceManager();
-        pmanager->setDeviceManager(manager);
     }
     ~QMediaDeviceManagerPrivate()
     {
-        delete manager;
-        manager = nullptr;
     }
 
-    QMediaDeviceManager *manager = nullptr;
     QPlatformMediaDeviceManager *pmanager = nullptr;
 
 } priv;
@@ -91,14 +86,6 @@ public:
     QMediaDeviceManager is a singleton object and all getters are thread-safe.
 */
 
-/*!
-    Returns the device manager instance.
-*/
-QMediaDeviceManager *QMediaDeviceManager::instance()
-{
-    return priv.manager;
-}
-
 QList<QAudioDeviceInfo> QMediaDeviceManager::audioInputs()
 {
     return priv.pmanager->audioInputs();
@@ -123,7 +110,7 @@ QList<QCameraInfo> QMediaDeviceManager::videoInputs()
 QAudioDeviceInfo QMediaDeviceManager::defaultAudioInput()
 {
     const auto inputs = audioInputs();
-    for (auto info : inputs)
+    for (const auto &info : inputs)
         if (info.isDefault())
             return info;
     return inputs.value(0);
@@ -132,7 +119,7 @@ QAudioDeviceInfo QMediaDeviceManager::defaultAudioInput()
 QAudioDeviceInfo QMediaDeviceManager::defaultAudioOutput()
 {
     const auto outputs = audioOutputs();
-    for (auto info : outputs)
+    for (const auto &info : outputs)
         if (info.isDefault())
             return info;
     return outputs.value(0);
@@ -149,7 +136,7 @@ QAudioDeviceInfo QMediaDeviceManager::defaultAudioOutput()
 QCameraInfo QMediaDeviceManager::defaultVideoInput()
 {
     const auto inputs = videoInputs();
-    for (auto info : inputs)
+    for (const auto &info : inputs)
         if (info.isDefault())
             return info;
     return inputs.value(0);
@@ -158,12 +145,19 @@ QCameraInfo QMediaDeviceManager::defaultVideoInput()
 /*!
     \internal
 */
-QMediaDeviceManager::QMediaDeviceManager() = default;
+QMediaDeviceManager::QMediaDeviceManager(QObject *parent)
+    : QObject(parent)
+{
+    priv.pmanager->addDeviceManager(this);
+}
 
 /*!
     \internal
 */
-QMediaDeviceManager::~QMediaDeviceManager() = default;
+QMediaDeviceManager::~QMediaDeviceManager()
+{
+    priv.pmanager->removeDeviceManager(this);
+}
 
 
 QT_END_NAMESPACE

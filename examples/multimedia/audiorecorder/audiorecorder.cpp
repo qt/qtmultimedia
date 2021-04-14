@@ -77,11 +77,9 @@ AudioRecorder::AudioRecorder()
 //            this, &AudioRecorder::processBuffer);
 //    m_probe->setSource(m_audioRecorder);
 
-    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
-
     //audio devices
     ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto device: manager->audioInputs()) {
+    for (auto device: QMediaDeviceManager::audioInputs()) {
         auto name = device.description();
         ui->audioDeviceBox->addItem(name, QVariant::fromValue(device));
     }

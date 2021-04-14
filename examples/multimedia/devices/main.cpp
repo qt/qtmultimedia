@@ -161,10 +161,9 @@ int main()
 {
     QTextStream out(stdout);
 
-    auto *deviceManager = QMediaDeviceManager::instance();
-    const auto audioInputDevices = deviceManager->audioInputs();
-    const auto audioOutputDevices = deviceManager->audioOutputs();
-    const auto videoInputDevices = deviceManager->videoInputs();
+    const auto audioInputDevices = QMediaDeviceManager::audioInputs();
+    const auto audioOutputDevices = QMediaDeviceManager::audioOutputs();
+    const auto videoInputDevices = QMediaDeviceManager::videoInputs();
 
     out << "Audio devices detected: " << Qt::endl;
     out << Qt::endl << "Input" << Qt::endl;

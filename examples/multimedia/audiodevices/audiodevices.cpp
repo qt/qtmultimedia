@@ -80,7 +80,8 @@ AudioDevicesBase::~AudioDevicesBase() = default;
 
 
 AudioTest::AudioTest(QWidget *parent)
-    : AudioDevicesBase(parent)
+    : AudioDevicesBase(parent),
+      m_manager(new QMediaDeviceManager(this))
 {
     connect(testButton, &QPushButton::clicked, this, &AudioTest::test);
     connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::modeChanged);
@@ -89,8 +90,8 @@ AudioTest::AudioTest(QWidget *parent)
     connect(channelsSpinBox, &QSpinBox::valueChanged, this, &AudioTest::channelChanged);
     connect(sampleFormatBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleFormatChanged);
     connect(populateTableButton, &QPushButton::clicked, this, &AudioTest::populateTable);
-    connect(QMediaDeviceManager::instance(), &QMediaDeviceManager::audioInputsChanged, this, &AudioTest::updateAudioDevices);
-    connect(QMediaDeviceManager::instance(), &QMediaDeviceManager::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
+    connect(m_manager, &QMediaDeviceManager::audioInputsChanged, this, &AudioTest::updateAudioDevices);
+    connect(m_manager, &QMediaDeviceManager::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
 
     modeBox->setCurrentIndex(0);
     modeChanged(0);
@@ -124,8 +125,7 @@ void AudioTest::test()
 void AudioTest::updateAudioDevices()
 {
     deviceBox->clear();
-    auto *deviceManager = QMediaDeviceManager::instance();
-    const auto devices = m_mode == QAudio::AudioInput ? deviceManager->audioInputs() : deviceManager->audioOutputs();
+    const auto devices = m_mode == QAudio::AudioInput ? m_manager->audioInputs() : m_manager->audioOutputs();
     for (auto &deviceInfo: devices)
         deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
 }

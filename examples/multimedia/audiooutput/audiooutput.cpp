@@ -141,7 +141,7 @@ qint64 Generator::bytesAvailable() const
 }
 
 AudioTest::AudioTest()
-    : m_deviceManager(QMediaDeviceManager::instance()),
+    : m_deviceManager(new QMediaDeviceManager(this)),
       m_pushTimer(new QTimer(this))
 {
     initializeWindow();

@@ -57,6 +57,11 @@ QT_BEGIN_NAMESPACE
 class QAudioDeviceInfoPrivate;
 class Q_MULTIMEDIA_EXPORT QAudioDeviceInfo
 {
+    Q_GADGET
+    Q_PROPERTY(QByteArray id READ id CONSTANT)
+    Q_PROPERTY(QString description READ description CONSTANT)
+    Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
+    // Q_PROPERTY(QAudio::Mode isDefault READ isDefault CONSTANT) ### Move enum into this class?
 public:
     QAudioDeviceInfo();
     QAudioDeviceInfo(const QAudioDeviceInfo& other);
@@ -86,7 +91,6 @@ public:
     Range supportedSampleRates() const;
     Range supportedChannelCounts() const;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats() const;
-
 
     const QAudioDeviceInfoPrivate *handle() const { return d.get(); }
 private:

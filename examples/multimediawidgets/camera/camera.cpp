@@ -67,7 +67,8 @@
 #include <QMediaDeviceManager>
 #include <QMediaFormat>
 
-Camera::Camera() : ui(new Ui::Camera)
+Camera::Camera()
+    : ui(new Ui::Camera)
 {
     ui->setupUi(this);
 
@@ -76,7 +77,7 @@ Camera::Camera() : ui(new Ui::Camera)
     videoDevicesGroup = new QActionGroup(this);
     videoDevicesGroup->setExclusive(true);
     updateCameras();
-    connect(QMediaDeviceManager::instance(), &QMediaDeviceManager::videoInputsChanged, this, &Camera::updateCameras);
+    connect(&m_manager, &QMediaDeviceManager::videoInputsChanged, this, &Camera::updateCameras);
 
     connect(videoDevicesGroup, &QActionGroup::triggered, this, &Camera::updateCameraDevice);
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);

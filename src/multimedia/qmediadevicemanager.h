@@ -53,9 +53,16 @@ class QMediaDeviceManagerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaDeviceManager : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QList<QAudioDeviceInfo> audioInputs READ audioInputs NOTIFY audioInputsChanged)
+    Q_PROPERTY(QList<QAudioDeviceInfo> audioOutputs READ audioOutputs NOTIFY audioOutputsChanged)
+    Q_PROPERTY(QList<QCameraInfo> videoInputs READ videoInputs NOTIFY videoInputsChanged)
+    Q_PROPERTY(QAudioDeviceInfo defaultAudioInput READ defaultAudioInput NOTIFY audioInputsChanged)
+    Q_PROPERTY(QAudioDeviceInfo defaultAudioOutput READ defaultAudioOutput NOTIFY audioOutputsChanged)
+    Q_PROPERTY(QCameraInfo defaultVideoInput READ defaultVideoInput NOTIFY videoInputsChanged)
 
 public:
-    static QMediaDeviceManager *instance();
+    QMediaDeviceManager(QObject *parent = nullptr);
+    ~QMediaDeviceManager();
 
     static QList<QAudioDeviceInfo> audioInputs();
     static QList<QAudioDeviceInfo> audioOutputs();
@@ -71,8 +78,6 @@ signals:
     void videoInputsChanged();
 
 private:
-    QMediaDeviceManager();
-    ~QMediaDeviceManager();
     friend class QMediaDeviceManagerPrivate;
 };
 
