@@ -61,16 +61,20 @@ VideoOutput {
 
     onHeightChanged: root.sizeChanged()
 
-    Camera {
-        id: camera
+    CaptureSession {
+        camera: NCamera {
+            id: camera
 
-        onError: {
-            if (Camera.NoError != error) {
-                console.log("[qmlvideo] CameraItem.onError error " + error + " errorString " + errorString)
-                root.fatalError()
-            }
+//            onError: {
+//                if (Camera.NoError != error) {
+//                    console.log("[qmlvideo] CameraItem.onError error " + error + " errorString " + errorString)
+//                    root.fatalError()
+//                }
+//            }
         }
+        videoOutput: root
     }
+
 
     function start() { camera.start() }
     function stop() { camera.stop() }
