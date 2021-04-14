@@ -68,6 +68,9 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QCameraExposure* exposure READ exposure CONSTANT)
+    Q_PROPERTY(QCameraFocus* focus READ focus CONSTANT)
+    Q_PROPERTY(QCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
 
     Q_ENUMS(Status)
     Q_ENUMS(Error)

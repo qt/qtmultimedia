@@ -64,6 +64,7 @@ class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
     Q_OBJECT
     Q_ENUMS(Error)
     Q_PROPERTY(bool readyForCapture READ isReadyForCapture NOTIFY readyForCaptureChanged)
+    Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData)
 public:
     enum Error
     {

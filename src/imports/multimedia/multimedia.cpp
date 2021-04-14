@@ -111,6 +111,7 @@ public:
         qmlRegisterType<QMediaCaptureSession>(uri, 6, 0, "CaptureSession");
         qmlRegisterType<QMediaEncoder>(uri, 6, 0, "MediaEncoder");
         qmlRegisterType<QCamera>(uri, 6, 0, "NCamera");
+        qmlRegisterType<QCameraImageCapture>(uri, 6, 0, "ImageCapture");
         qmlRegisterUncreatableType<QCameraExposure>(uri, 6, 0, "NCameraExposure", tr("CameraExposure is provided by Camera"));
 
         // The minor version used to be the current Qt 5 minor. For compatibility it is the last
