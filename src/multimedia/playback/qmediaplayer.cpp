@@ -105,7 +105,7 @@ void QMediaPlayerPrivate::setError(int error, const QString &errorString)
     this->error = QMediaPlayer::Error(error);
     this->errorString = errorString;
     emit q->errorChanged();
-    emit q->error(this->error, errorString);
+    emit q->errorOccurred(this->error, errorString);
 }
 
 void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)

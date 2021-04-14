@@ -71,8 +71,8 @@ VideoOutput {
         id: mediaPlayer
         videoOutput: root;
 
-        onError: {
-            if (MediaPlayer.NoError != error) {
+        onErrorOccurred: function(error, errorString) {
+            if (MediaPlayer.NoError !== error) {
                 console.log("[qmlvideo] VideoItem.onError error " + error + " errorString " + errorString)
                 root.fatalError()
             }

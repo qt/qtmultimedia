@@ -82,7 +82,8 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
     this->error = QCamera::Error(error);
     this->errorString = errorString;
 
-    emit q->errorOccurred(this->error);
+    emit q->errorChanged();
+    emit q->errorOccurred(this->error, errorString);
 }
 
 void QCameraPrivate::init()
@@ -94,15 +95,13 @@ void QCameraPrivate::init()
         control->setCamera(cameraInfo);
     } else {
         clear();
-        error = QCamera::CameraError;
-        errorString = QCamera::tr("The camera is not connected to a capture session");
+        _q_error(QCamera::CameraError, QCamera::tr("The camera is not connected to a capture session"));
         return;
     }
 
     if (!control) {
         clear();
-        error = QCamera::CameraError;
-        errorString = QCamera::tr("The capture session doesn't support cameras.");
+        _q_error(QCamera::CameraError, QCamera::tr("The capture session doesn't support cameras."));
         return;
     }
 
@@ -316,9 +315,12 @@ QCameraInfo QCamera::cameraInfo() const
 void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
 {
     Q_D(QCamera);
+    if (d->cameraInfo == cameraInfo)
+        return;
     d->cameraInfo = cameraInfo;
     if (d->control)
         d->control->setCamera(d->cameraInfo);
+    emit cameraInfoChanged();
 }
 
 /*!

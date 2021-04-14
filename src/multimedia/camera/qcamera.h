@@ -71,6 +71,9 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(QCameraExposure* exposure READ exposure CONSTANT)
     Q_PROPERTY(QCameraFocus* focus READ focus CONSTANT)
     Q_PROPERTY(QCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
+    Q_PROPERTY(QCameraInfo cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
+    Q_PROPERTY(Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
     Q_ENUMS(Status)
     Q_ENUMS(Error)
@@ -119,7 +122,9 @@ public Q_SLOTS:
 Q_SIGNALS:
     void activeChanged(bool);
     void statusChanged(QCamera::Status status);
-    void errorOccurred(QCamera::Error);
+    void errorChanged();
+    void errorOccurred(QCamera::Error error, const QString &errorString);
+    void cameraInfoChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *session);

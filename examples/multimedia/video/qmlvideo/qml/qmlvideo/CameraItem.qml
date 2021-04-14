@@ -65,12 +65,12 @@ VideoOutput {
         camera: NCamera {
             id: camera
 
-//            onError: {
-//                if (Camera.NoError != error) {
-//                    console.log("[qmlvideo] CameraItem.onError error " + error + " errorString " + errorString)
-//                    root.fatalError()
-//                }
-//            }
+            onErrorOccurred: function(error, errorString) {
+                if (Camera.NoError !== error) {
+                    console.log("[qmlvideo] CameraItem.onError error " + error + " errorString " + errorString)
+                    root.fatalError()
+                }
+            }
         }
         videoOutput: root
     }

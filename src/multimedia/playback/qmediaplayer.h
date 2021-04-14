@@ -210,7 +210,7 @@ Q_SIGNALS:
     void activeTracksChanged();
 
     void errorChanged();
-    void error(Error error, const QString &errorString);
+    void errorOccurred(Error error, const QString &errorString);
 
 private:
     Q_DISABLE_COPY(QMediaPlayer)

@@ -4,3 +4,4 @@ classname QMultimediaDeclarativeModule
 typeinfo plugins.qmltypes
 prefer :/qt-project.org/imports/QtMultimedia/
 Video 5.0 Video.qml
+
