@@ -76,16 +76,16 @@ class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 
 public:
-    QMultimediaDeclarativeModule(QObject *parent = nullptr) : QQmlExtensionPlugin(parent) { }
+    QMultimediaDeclarativeModule(QObject *parent = nullptr) : QQmlExtensionPlugin(parent)
+    {
+        volatile auto registration = qml_register_types_QtMultimedia;
+        Q_UNUSED(registration);
+    }
     void registerTypes(const char *uri) override
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia"));
 
         // 6.0 types
-        qmlRegisterType<QSoundEffect>(uri, 6, 0, "SoundEffect");
-        qmlRegisterType<QMediaPlayer>(uri, 6, 0, "Audio");
-        qmlRegisterType<QMediaPlayer>(uri, 6, 0, "MediaPlayer");
-        qmlRegisterType<QDeclarativeVideoOutput>(uri, 6, 0, "VideoOutput");
         qmlRegisterType<QDeclarativeCamera>(uri, 6, 0, "Camera");
         qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 6, 0, "CameraCapture",
                                 tr("CameraCapture is provided by Camera"));
@@ -93,26 +93,15 @@ public:
                                 tr("CameraRecorder is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 6, 0, "CameraExposure",
                                 tr("CameraExposure is provided by Camera"));
-        qmlRegisterUncreatableType<QCameraFocus>(uri, 6, 0, "CameraFocus",
-                                tr("CameraFocus is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 6, 0, "CameraFlash",
                                 tr("CameraFlash is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeTorch>(uri, 6, 0, "CameraTorch",
                                 tr("CameraTorch is provided by Camera"));
-        qmlRegisterUncreatableType<QCameraImageProcessing>(uri, 6, 0, "CameraImageProcessing",
-                                tr("CameraImageProcessing is provided by Camera"));
 
         qmlRegisterSingletonType<QDeclarativeMultimediaGlobal>(uri, 6, 0, "QtMultimedia", multimedia_global_object);
 
         qmlRegisterType<QDeclarativePlaylist>(uri, 6, 0, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 6, 0, "PlaylistItem");
-
-        // ### new replacement types
-        qmlRegisterType<QMediaCaptureSession>(uri, 6, 0, "CaptureSession");
-        qmlRegisterType<QMediaEncoder>(uri, 6, 0, "MediaEncoder");
-        qmlRegisterType<QCamera>(uri, 6, 0, "NCamera");
-        qmlRegisterType<QCameraImageCapture>(uri, 6, 0, "ImageCapture");
-        qmlRegisterUncreatableType<QCameraExposure>(uri, 6, 0, "NCameraExposure", tr("CameraExposure is provided by Camera"));
 
         // The minor version used to be the current Qt 5 minor. For compatibility it is the last
         // Qt 5 release.

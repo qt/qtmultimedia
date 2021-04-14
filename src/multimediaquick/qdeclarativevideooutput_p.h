@@ -57,7 +57,7 @@
 #include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
 
-#include <private/qtmultimediaquickdefs_p.h>
+#include <private/qtmultimediaquickglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -81,6 +81,8 @@ class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
     Q_ENUMS(FlushMode)
     Q_ENUMS(FillMode)
     Q_MOC_INCLUDE(qvideosink.h)
+    Q_MOC_INCLUDE(qvideoframe.h)
+    QML_NAMED_ELEMENT(VideoOutput)
 
 public:
 

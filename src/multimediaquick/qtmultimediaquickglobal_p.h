@@ -54,7 +54,7 @@
 #include <QtCore/qglobal.h>
 
 #ifndef QT_STATIC
-#    if defined(QT_BUILD_QTMULTIMEDIAQUICKTOOLS_LIB)
+#    if defined(QT_BUILD_MULTIMEDIAQUICK_LIB)
 #        define Q_MULTIMEDIAQUICK_EXPORT Q_DECL_EXPORT
 #    else
 #        define Q_MULTIMEDIAQUICK_EXPORT Q_DECL_IMPORT
@@ -63,6 +63,7 @@
 #    define Q_MULTIMEDIAQUICK_EXPORT
 #endif
 
+void Q_MULTIMEDIAQUICK_EXPORT qml_register_types_QtMultimedia();
 
 #endif // QMULTIMEDIAQUICKDEFS_P_H
 

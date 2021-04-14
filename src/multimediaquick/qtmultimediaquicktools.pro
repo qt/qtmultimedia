@@ -7,7 +7,7 @@ PRIVATE_HEADERS += \
     qdeclarativevideooutput_p.h \
     qsgvideonode_p.h \
     qsgvideotexture_p.h \
-    qtmultimediaquickdefs_p.h
+    qtmultimediaquickglobal_p.h
 
 HEADERS += \
     $$PRIVATE_HEADERS \

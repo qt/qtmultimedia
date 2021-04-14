@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the QtQml module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QSGVIDEONODE_P_H
-#define QSGVIDEONODE_P_H
+#ifndef QTMULTIMEDIAQUICKTYPES_H
+#define QTMULTIMEDIAQUICKTYPES_H
 
 //
 //  W A R N I N G
@@ -51,38 +51,87 @@
 // We mean it.
 //
 
-#include <QtQuick/qsgnode.h>
-#include <private/qtmultimediaquickglobal_p.h>
-
-#include <QtMultimedia/qvideoframe.h>
-#include <QtMultimedia/qvideoframeformat.h>
-#include <QtGui/qopenglfunctions.h>
+#include <QtQml/qqml.h>
+#include <QtMultimedia/QtMultimedia>
+#include <qtmultimediaquickglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSGVideoMaterial;
-
-class QSGVideoNode : public QSGGeometryNode
+struct QSoundEffectForeign
 {
-public:
-    QSGVideoNode(const QVideoFrameFormat &format);
-
-    QVideoFrameFormat::PixelFormat pixelFormat() const {
-        return m_format.pixelFormat();
-    }
-    void setCurrentFrame(const QVideoFrame &frame);
-
-    void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
-
-private:
-    QRectF m_rect;
-    QRectF m_textureRect;
-    int m_orientation;
-
-    QVideoFrameFormat m_format;
-    QSGVideoMaterial *m_material;
+    Q_GADGET
+    QML_FOREIGN(QSoundEffect)
+    QML_NAMED_ELEMENT(SoundEffect)
 };
+
+struct QMediaPlayerForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QMediaPlayer)
+    QML_NAMED_ELEMENT(MediaPlayer)
+};
+
+struct QMediaCaptureSessionForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QMediaCaptureSession)
+    QML_NAMED_ELEMENT(CaptureSession) // ### MediaCaptureSession?
+};
+
+struct QCameraForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCamera)
+    QML_NAMED_ELEMENT(NCamera)
+};
+
+struct QCameraFocusForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCameraFocus)
+    QML_UNCREATABLE("CameraFocus is provided by Camera")
+    QML_NAMED_ELEMENT(CameraFocus)
+};
+
+struct QCameraImageProcessingForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCameraImageProcessing)
+    QML_UNCREATABLE("CameraImageProcessing is provided by Camera")
+    QML_NAMED_ELEMENT(CameraImageProcessing)
+};
+
+struct QCameraExposureForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCameraExposure)
+    QML_UNCREATABLE("CameraImageProcessing is provided by Camera")
+    QML_NAMED_ELEMENT(NCameraExposure)
+};
+
+struct QCameraImageCaptureForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCameraImageCapture)
+    QML_NAMED_ELEMENT(ImageCapture)
+};
+
+struct QMediaEncoderForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QMediaEncoder)
+    QML_NAMED_ELEMENT(MediaEncoder)
+};
+
+struct QMediaMetaDataForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QMediaMetaData)
+    QML_NAMED_ELEMENT(MediaMetaData)
+};
+
+
 
 QT_END_NAMESPACE
 
-#endif // QSGVIDEONODE_H
+#endif

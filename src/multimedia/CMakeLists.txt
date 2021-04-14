@@ -13,6 +13,7 @@ qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special c
 
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES video/gstvideorenderer video/videonode
+    GENERATE_METATYPES
     SOURCES
         audio/qaudio.cpp audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h audio/qaudiobuffer_p.h
