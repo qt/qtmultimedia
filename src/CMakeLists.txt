@@ -7,7 +7,7 @@ endif()
 
 # special case begin
 if(TARGET Qt::Quick)
-    add_subdirectory(qtmultimediaquicktools)
+    add_subdirectory(multimediaquick)
     add_subdirectory(imports)
 endif()
 

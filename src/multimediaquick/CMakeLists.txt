@@ -5,7 +5,7 @@
 #####################################################################
 
 qt_add_module(MultimediaQuick
-    CONFIG_MODULE_NAME qtmultimediaquicktools
+    CONFIG_MODULE_NAME multimediaquick
     INTERNAL_MODULE
     SOURCES
         qdeclarativevideooutput.cpp qdeclarativevideooutput_p.h
