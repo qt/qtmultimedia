@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Copyright (C) 2016 Research In Motion
 ** Contact: https://www.qt.io/licensing/
 **
@@ -37,10 +37,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qdeclarativevideooutput_p.h"
+#include "qquickvideooutput_p.h"
 
-#include "qdeclarativevideooutput_render_p.h"
-#include "qdeclarativevideooutput_p.h"
+#include "qquickvideooutput_render_p.h"
 #include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediacapturesession.h>
@@ -54,7 +53,7 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 /*!
     \qmltype VideoOutput
-    //! \instantiates QDeclarativeVideoOutput
+    //! \instantiates QQuickVideoOutput
     \brief Render video or camera viewfinder.
 
     \ingroup multimedia_qml
@@ -120,11 +119,11 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 /*!
     \internal
-    \class QDeclarativeVideoOutput
-    \brief The QDeclarativeVideoOutput class provides a video output item.
+    \class QQuickVideoOutput
+    \brief The QQuickVideoOutput class provides a video output item.
 */
 
-QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
+QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
     QQuickItem(parent),
     m_fillMode(PreserveAspectFit),
     m_geometryDirty(true),
@@ -136,7 +135,7 @@ QDeclarativeVideoOutput::QDeclarativeVideoOutput(QQuickItem *parent) :
     createBackend();
 }
 
-QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
+QQuickVideoOutput::~QQuickVideoOutput()
 {
     m_backend.reset();
 }
@@ -153,7 +152,7 @@ QDeclarativeVideoOutput::~QDeclarativeVideoOutput()
     \sa source
 */
 
-QVideoSink *QDeclarativeVideoOutput::videoSink() const
+QVideoSink *QQuickVideoOutput::videoSink() const
 {
     return m_backend ? m_backend->videoSink() : nullptr;
 }
@@ -164,7 +163,7 @@ QVideoSink *QDeclarativeVideoOutput::videoSink() const
     This property holds the source item providing the video frames like MediaPlayer or Camera.
 */
 
-void QDeclarativeVideoOutput::setSource(QObject *source)
+void QQuickVideoOutput::setSource(QObject *source)
 {
     qCDebug(qLcVideo) << "source is" << source;
 
@@ -189,9 +188,9 @@ void QDeclarativeVideoOutput::setSource(QObject *source)
     emit sourceChanged();
 }
 
-bool QDeclarativeVideoOutput::createBackend()
+bool QQuickVideoOutput::createBackend()
 {
-    m_backend.reset(new QDeclarativeVideoBackend(this));
+    m_backend.reset(new QQuickVideoBackend(this));
 
     // Since new backend has been created needs to update its geometry.
     m_geometryDirty = true;
@@ -213,12 +212,12 @@ bool QDeclarativeVideoOutput::createBackend()
     The default fill mode is PreserveAspectFit.
 */
 
-QDeclarativeVideoOutput::FillMode QDeclarativeVideoOutput::fillMode() const
+QQuickVideoOutput::FillMode QQuickVideoOutput::fillMode() const
 {
     return m_fillMode;
 }
 
-void QDeclarativeVideoOutput::setFillMode(FillMode mode)
+void QQuickVideoOutput::setFillMode(FillMode mode)
 {
     if (mode == m_fillMode)
         return;
@@ -230,7 +229,7 @@ void QDeclarativeVideoOutput::setFillMode(FillMode mode)
     emit fillModeChanged(mode);
 }
 
-void QDeclarativeVideoOutput::_q_newFrame(const QVideoFrame &frame)
+void QQuickVideoOutput::_q_newFrame(const QVideoFrame &frame)
 {
     if (!m_backend)
         return;
@@ -254,7 +253,7 @@ void QDeclarativeVideoOutput::_q_newFrame(const QVideoFrame &frame)
 }
 
 /* Based on fill mode and our size, figure out the source/dest rects */
-void QDeclarativeVideoOutput::_q_updateGeometry()
+void QQuickVideoOutput::_q_updateGeometry()
 {
     const QRectF rect(0, 0, width(), height());
     const QRectF absoluteRect(x(), y(), width(), height());
@@ -290,7 +289,7 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
         emit contentRectChanged();
 }
 
-void QDeclarativeVideoOutput::_q_screenOrientationChanged(int orientation)
+void QQuickVideoOutput::_q_screenOrientationChanged(int orientation)
 {
     setOrientation(orientation % 360);
 }
@@ -313,12 +312,12 @@ void QDeclarativeVideoOutput::_q_screenOrientationChanged(int orientation)
 
     \sa autoOrientation
 */
-int QDeclarativeVideoOutput::orientation() const
+int QQuickVideoOutput::orientation() const
 {
     return m_orientation;
 }
 
-void QDeclarativeVideoOutput::setOrientation(int orientation)
+void QQuickVideoOutput::setOrientation(int orientation)
 {
     // Make sure it's a multiple of 90.
     if (orientation % 90)
@@ -371,12 +370,12 @@ void QDeclarativeVideoOutput::setOrientation(int orientation)
     \sa orientation
     \since 5.2
 */
-bool QDeclarativeVideoOutput::autoOrientation() const
+bool QQuickVideoOutput::autoOrientation() const
 {
     return m_autoOrientation;
 }
 
-void QDeclarativeVideoOutput::setAutoOrientation(bool autoOrientation)
+void QQuickVideoOutput::setAutoOrientation(bool autoOrientation)
 {
     if (autoOrientation == m_autoOrientation)
         return;
@@ -414,7 +413,7 @@ void QDeclarativeVideoOutput::setAutoOrientation(bool autoOrientation)
 
     Areas outside this will be transparent.
 */
-QRectF QDeclarativeVideoOutput::contentRect() const
+QRectF QQuickVideoOutput::contentRect() const
 {
     return m_contentRect;
 }
@@ -436,7 +435,7 @@ QRectF QDeclarativeVideoOutput::contentRect() const
 
     \sa QVideoFrameFormat::viewport()
 */
-QRectF QDeclarativeVideoOutput::sourceRect() const
+QRectF QQuickVideoOutput::sourceRect() const
 {
     // We might have to transpose back
     QSizeF size = m_nativeSize;
@@ -469,7 +468,7 @@ QRectF QDeclarativeVideoOutput::sourceRect() const
     Depending on the fill mode, this point may lie outside the rendered
     rectangle.
  */
-QPointF QDeclarativeVideoOutput::mapNormalizedPointToItem(const QPointF &point) const
+QPointF QQuickVideoOutput::mapNormalizedPointToItem(const QPointF &point) const
 {
     qreal dx = point.x();
     qreal dy = point.y();
@@ -506,7 +505,7 @@ QPointF QDeclarativeVideoOutput::mapNormalizedPointToItem(const QPointF &point) 
     Depending on the fill mode, this rectangle may extend outside the rendered
     rectangle.
  */
-QRectF QDeclarativeVideoOutput::mapNormalizedRectToItem(const QRectF &rectangle) const
+QRectF QQuickVideoOutput::mapNormalizedRectToItem(const QRectF &rectangle) const
 {
     return QRectF(mapNormalizedPointToItem(rectangle.topLeft()),
                   mapNormalizedPointToItem(rectangle.bottomRight())).normalized();
@@ -522,7 +521,7 @@ QRectF QDeclarativeVideoOutput::mapNormalizedRectToItem(const QRectF &rectangle)
     If the supplied point lies outside the rendered area, the returned
     point will be outside the source rectangle.
  */
-QPointF QDeclarativeVideoOutput::mapPointToSource(const QPointF &point) const
+QPointF QQuickVideoOutput::mapPointToSource(const QPointF &point) const
 {
     QPointF norm = mapPointToSourceNormalized(point);
 
@@ -544,7 +543,7 @@ QPointF QDeclarativeVideoOutput::mapPointToSource(const QPointF &point) const
     If the supplied point lies outside the rendered area, the returned
     point will be outside the source rectangle.
  */
-QRectF QDeclarativeVideoOutput::mapRectToSource(const QRectF &rectangle) const
+QRectF QQuickVideoOutput::mapRectToSource(const QRectF &rectangle) const
 {
     return QRectF(mapPointToSource(rectangle.topLeft()),
                   mapPointToSource(rectangle.bottomRight())).normalized();
@@ -560,7 +559,7 @@ QRectF QDeclarativeVideoOutput::mapRectToSource(const QRectF &rectangle) const
     If the supplied point lies outside the rendered area, the returned
     point will be outside the source rectangle.  No clamping is performed.
  */
-QPointF QDeclarativeVideoOutput::mapPointToSourceNormalized(const QPointF &point) const
+QPointF QQuickVideoOutput::mapPointToSourceNormalized(const QPointF &point) const
 {
     if (m_contentRect.isEmpty())
         return QPointF();
@@ -597,7 +596,7 @@ QPointF QDeclarativeVideoOutput::mapPointToSourceNormalized(const QPointF &point
     If the supplied point lies outside the rendered area, the returned
     point will be outside the source rectangle.  No clamping is performed.
  */
-QRectF QDeclarativeVideoOutput::mapRectToSourceNormalized(const QRectF &rectangle) const
+QRectF QQuickVideoOutput::mapRectToSourceNormalized(const QRectF &rectangle) const
 {
     return QRectF(mapPointToSourceNormalized(rectangle.topLeft()),
                   mapPointToSourceNormalized(rectangle.bottomRight())).normalized();
@@ -613,7 +612,7 @@ QRectF QDeclarativeVideoOutput::mapRectToSourceNormalized(const QRectF &rectangl
     Depending on the fill mode, this point may lie outside the rendered
     rectangle.
  */
-QPointF QDeclarativeVideoOutput::mapPointToItem(const QPointF &point) const
+QPointF QQuickVideoOutput::mapPointToItem(const QPointF &point) const
 {
     if (m_nativeSize.isEmpty())
         return QPointF();
@@ -637,13 +636,13 @@ QPointF QDeclarativeVideoOutput::mapPointToItem(const QPointF &point) const
     rectangle.
 
  */
-QRectF QDeclarativeVideoOutput::mapRectToItem(const QRectF &rectangle) const
+QRectF QQuickVideoOutput::mapRectToItem(const QRectF &rectangle) const
 {
     return QRectF(mapPointToItem(rectangle.topLeft()),
                   mapPointToItem(rectangle.bottomRight())).normalized();
 }
 
-QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
+QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 {
     _q_updateGeometry();
 
@@ -653,20 +652,20 @@ QSGNode *QDeclarativeVideoOutput::updatePaintNode(QSGNode *oldNode, UpdatePaintN
     return m_backend->updatePaintNode(oldNode, data);
 }
 
-void QDeclarativeVideoOutput::itemChange(QQuickItem::ItemChange change,
+void QQuickVideoOutput::itemChange(QQuickItem::ItemChange change,
                                          const QQuickItem::ItemChangeData &changeData)
 {
     if (m_backend)
         m_backend->itemChange(change, changeData);
 }
 
-void QDeclarativeVideoOutput::releaseResources()
+void QQuickVideoOutput::releaseResources()
 {
     if (m_backend)
         m_backend->releaseResources();
 }
 
-void QDeclarativeVideoOutput::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+void QQuickVideoOutput::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     Q_UNUSED(newGeometry);
     Q_UNUSED(oldGeometry);
@@ -680,7 +679,7 @@ void QDeclarativeVideoOutput::geometryChange(const QRectF &newGeometry, const QR
     _q_updateGeometry();
 }
 
-void QDeclarativeVideoOutput::_q_invalidateSceneGraph()
+void QQuickVideoOutput::_q_invalidateSceneGraph()
 {
     if (m_backend)
         m_backend->invalidateSceneGraph();
@@ -702,7 +701,7 @@ void QDeclarativeVideoOutput::_q_invalidateSceneGraph()
     The default flush mode is EmptyFrame.
 */
 
-void QDeclarativeVideoOutput::setFlushMode(FlushMode mode)
+void QQuickVideoOutput::setFlushMode(FlushMode mode)
 {
     if (m_flushMode == mode)
         return;

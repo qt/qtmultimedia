@@ -48,34 +48,21 @@
 #include "qmediacapturesession.h"
 #include "qmediaencoder.h"
 
-#include <private/qdeclarativevideooutput_p.h>
 #include <private/qquickimagepreviewprovider_p.h>
-
-#include "qdeclarativeplaylist_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
+class QMultimediaDeclarativeModule : public QQmlEngineExtensionPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
+    Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
 
 public:
-    QMultimediaDeclarativeModule(QObject *parent = nullptr) : QQmlExtensionPlugin(parent)
+    QMultimediaDeclarativeModule(QObject *parent = nullptr)
+        : QQmlEngineExtensionPlugin(parent)
     {
         volatile auto registration = qml_register_types_QtMultimedia;
         Q_UNUSED(registration);
-    }
-    void registerTypes(const char *uri) override
-    {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia"));
-
-        qmlRegisterType<QDeclarativePlaylist>(uri, 6, 0, "Playlist");
-        qmlRegisterType<QDeclarativePlaylistItem>(uri, 6, 0, "PlaylistItem");
-
-        // The minor version used to be the current Qt 5 minor. For compatibility it is the last
-        // Qt 5 release.
-        qmlRegisterModule(uri, 6, 0);
     }
 
     void initializeEngine(QQmlEngine *engine, const char *uri) override

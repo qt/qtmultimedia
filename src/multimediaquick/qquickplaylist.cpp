@@ -37,13 +37,13 @@
 **
 ****************************************************************************/
 
-#include "qdeclarativeplaylist_p.h"
+#include "qquickplaylist_p.h"
 
 QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype PlaylistItem
-    \instantiates QDeclarativePlaylistItem
+    \instantiates QQuickPlaylistItem
     \since 5.6
 
     \inqmlmodule QtMultimedia
@@ -62,24 +62,24 @@ QT_BEGIN_NAMESPACE
 
     \sa Playlist
 */
-QDeclarativePlaylistItem::QDeclarativePlaylistItem(QObject *parent)
+QQuickPlaylistItem::QQuickPlaylistItem(QObject *parent)
     : QObject(parent)
 {
 }
 
-QUrl QDeclarativePlaylistItem::source() const
+QUrl QQuickPlaylistItem::source() const
 {
     return m_source;
 }
 
-void QDeclarativePlaylistItem::setSource(const QUrl &source)
+void QQuickPlaylistItem::setSource(const QUrl &source)
 {
     m_source = source;
 }
 
 /*!
     \qmltype Playlist
-    \instantiates QDeclarativePlaylist
+    \instantiates QQuickPlaylist
     \since 5.6
     \brief For specifying a list of media to be played.
 
@@ -132,14 +132,14 @@ void QDeclarativePlaylistItem::setSource(const QUrl &source)
     \sa MediaPlayer, Audio, Video
 */
 
-void QDeclarativePlaylist::_q_mediaAboutToBeInserted(int start, int end)
+void QQuickPlaylist::_q_mediaAboutToBeInserted(int start, int end)
 {
     emit itemAboutToBeInserted(start, end);
 
     beginInsertRows(QModelIndex(), start, end);
 }
 
-void QDeclarativePlaylist::_q_mediaInserted(int start, int end)
+void QQuickPlaylist::_q_mediaInserted(int start, int end)
 {
     endInsertRows();
 
@@ -147,14 +147,14 @@ void QDeclarativePlaylist::_q_mediaInserted(int start, int end)
     emit itemInserted(start, end);
 }
 
-void QDeclarativePlaylist::_q_mediaAboutToBeRemoved(int start, int end)
+void QQuickPlaylist::_q_mediaAboutToBeRemoved(int start, int end)
 {
     emit itemAboutToBeRemoved(start, end);
 
     beginRemoveRows(QModelIndex(), start, end);
 }
 
-void QDeclarativePlaylist::_q_mediaRemoved(int start, int end)
+void QQuickPlaylist::_q_mediaRemoved(int start, int end)
 {
     endRemoveRows();
 
@@ -162,13 +162,13 @@ void QDeclarativePlaylist::_q_mediaRemoved(int start, int end)
     emit itemRemoved(start, end);
 }
 
-void QDeclarativePlaylist::_q_mediaChanged(int start, int end)
+void QQuickPlaylist::_q_mediaChanged(int start, int end)
 {
     emit dataChanged(createIndex(start, 0), createIndex(end, 0));
     emit itemChanged(start, end);
 }
 
-void QDeclarativePlaylist::_q_loadFailed()
+void QQuickPlaylist::_q_loadFailed()
 {
     m_error = m_playlist->error();
     m_errorString = m_playlist->errorString();
@@ -178,14 +178,14 @@ void QDeclarativePlaylist::_q_loadFailed()
     emit loadFailed();
 }
 
-QDeclarativePlaylist::QDeclarativePlaylist(QObject *parent)
+QQuickPlaylist::QQuickPlaylist(QObject *parent)
     : QAbstractListModel(parent)
     , m_playlist(nullptr)
     , m_error(QMediaPlaylist::NoError)
 {
 }
 
-QDeclarativePlaylist::~QDeclarativePlaylist()
+QQuickPlaylist::~QQuickPlaylist()
 {
     delete m_playlist;
 }
@@ -211,12 +211,12 @@ QDeclarativePlaylist::~QDeclarativePlaylist()
         \li Play items in random order.
     \endtable
  */
-QDeclarativePlaylist::PlaybackMode QDeclarativePlaylist::playbackMode() const
+QQuickPlaylist::PlaybackMode QQuickPlaylist::playbackMode() const
 {
     return PlaybackMode(m_playlist->playbackMode());
 }
 
-void QDeclarativePlaylist::setPlaybackMode(PlaybackMode mode)
+void QQuickPlaylist::setPlaybackMode(PlaybackMode mode)
 {
     if (playbackMode() == mode)
         return;
@@ -229,7 +229,7 @@ void QDeclarativePlaylist::setPlaybackMode(PlaybackMode mode)
 
     This property holds the source URL of the current item in the playlist.
  */
-QUrl QDeclarativePlaylist::currentItemSource() const
+QUrl QQuickPlaylist::currentItemSource() const
 {
     return m_playlist->currentMedia();
 }
@@ -239,12 +239,12 @@ QUrl QDeclarativePlaylist::currentItemSource() const
 
     This property holds the position of the current item in the playlist.
  */
-int QDeclarativePlaylist::currentIndex() const
+int QQuickPlaylist::currentIndex() const
 {
     return m_playlist->currentIndex();
 }
 
-void QDeclarativePlaylist::setCurrentIndex(int index)
+void QQuickPlaylist::setCurrentIndex(int index)
 {
     if (currentIndex() == index)
         return;
@@ -257,7 +257,7 @@ void QDeclarativePlaylist::setCurrentIndex(int index)
 
     This property holds the number of items in the playlist.
  */
-int QDeclarativePlaylist::itemCount() const
+int QQuickPlaylist::itemCount() const
 {
     return m_playlist->mediaCount();
 }
@@ -281,7 +281,7 @@ int QDeclarativePlaylist::itemCount() const
         \li Access denied error.
     \endtable
  */
-QDeclarativePlaylist::Error QDeclarativePlaylist::error() const
+QQuickPlaylist::Error QQuickPlaylist::error() const
 {
     return Error(m_error);
 }
@@ -291,7 +291,7 @@ QDeclarativePlaylist::Error QDeclarativePlaylist::error() const
 
     This property holds a string describing the current error condition of the playlist.
 */
-QString QDeclarativePlaylist::errorString() const
+QString QQuickPlaylist::errorString() const
 {
     return m_errorString;
 }
@@ -301,7 +301,7 @@ QString QDeclarativePlaylist::errorString() const
 
     Returns the source URL of the item at the given \a index in the playlist.
 */
-QUrl QDeclarativePlaylist::itemSource(int index)
+QUrl QQuickPlaylist::itemSource(int index)
 {
     return m_playlist->media(index);
 }
@@ -316,7 +316,7 @@ QUrl QDeclarativePlaylist::itemSource(int index)
 
     \sa playbackMode, previousIndex()
 */
-int QDeclarativePlaylist::nextIndex(int steps)
+int QQuickPlaylist::nextIndex(int steps)
 {
     return m_playlist->nextIndex(steps);
 }
@@ -331,7 +331,7 @@ int QDeclarativePlaylist::nextIndex(int steps)
 
     \sa playbackMode, nextIndex()
 */
-int QDeclarativePlaylist::previousIndex(int steps)
+int QQuickPlaylist::previousIndex(int steps)
 {
     return m_playlist->previousIndex(steps);
 }
@@ -341,7 +341,7 @@ int QDeclarativePlaylist::previousIndex(int steps)
 
     Advances to the next item in the playlist.
 */
-void QDeclarativePlaylist::next()
+void QQuickPlaylist::next()
 {
     m_playlist->next();
 }
@@ -351,7 +351,7 @@ void QDeclarativePlaylist::next()
 
     Returns to the previous item in the playlist.
 */
-void QDeclarativePlaylist::previous()
+void QQuickPlaylist::previous()
 {
     m_playlist->previous();
 }
@@ -361,7 +361,7 @@ void QDeclarativePlaylist::previous()
 
     Shuffles items in the playlist.
 */
-void QDeclarativePlaylist::shuffle()
+void QQuickPlaylist::shuffle()
 {
     m_playlist->shuffle();
 }
@@ -377,7 +377,7 @@ void QDeclarativePlaylist::shuffle()
     \c onloaded() is emitted if the playlist loads successfully, otherwise \c onLoadFailed() is
     emitted with \l error and \l errorString defined accordingly.
 */
-void QDeclarativePlaylist::load(const QUrl &location, const QString &format)
+void QQuickPlaylist::load(const QUrl &location, const QString &format)
 {
     m_error = QMediaPlaylist::NoError;
     m_errorString = QString();
@@ -393,7 +393,7 @@ void QDeclarativePlaylist::load(const QUrl &location, const QString &format)
 
     Returns true if the playlist is saved successfully.
 */
-bool QDeclarativePlaylist::save(const QUrl &location, const QString &format)
+bool QQuickPlaylist::save(const QUrl &location, const QString &format)
 {
     return m_playlist->save(location, format.toLatin1().constData());
 }
@@ -405,7 +405,7 @@ bool QDeclarativePlaylist::save(const QUrl &location, const QString &format)
 
     Returns true if the \a source is added successfully.
 */
-void QDeclarativePlaylist::addItem(const QUrl &source)
+void QQuickPlaylist::addItem(const QUrl &source)
 {
     m_playlist->addMedia(QUrl(source));
 }
@@ -419,7 +419,7 @@ void QDeclarativePlaylist::addItem(const QUrl &source)
 
     \since 5.7
 */
-void QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
+void QQuickPlaylist::addItems(const QList<QUrl> &sources)
 {
     if (sources.isEmpty())
         return;
@@ -440,7 +440,7 @@ void QDeclarativePlaylist::addItems(const QList<QUrl> &sources)
 
     Returns true if the \a source is added successfully.
 */
-bool QDeclarativePlaylist::insertItem(int index, const QUrl &source)
+bool QQuickPlaylist::insertItem(int index, const QUrl &source)
 {
     return m_playlist->insertMedia(index, QUrl(source));
 }
@@ -454,7 +454,7 @@ bool QDeclarativePlaylist::insertItem(int index, const QUrl &source)
 
     \since 5.7
 */
-bool QDeclarativePlaylist::insertItems(int index, const QList<QUrl> &sources)
+bool QQuickPlaylist::insertItems(int index, const QList<QUrl> &sources)
 {
     if (sources.empty())
         return false;
@@ -477,7 +477,7 @@ bool QDeclarativePlaylist::insertItems(int index, const QList<QUrl> &sources)
 
     \since 5.7
 */
-bool QDeclarativePlaylist::moveItem(int from, int to)
+bool QQuickPlaylist::moveItem(int from, int to)
 {
     return m_playlist->moveMedia(from, to);
 }
@@ -489,7 +489,7 @@ bool QDeclarativePlaylist::moveItem(int from, int to)
 
     Returns \c true if the item is removed successfully.
 */
-bool QDeclarativePlaylist::removeItem(int index)
+bool QQuickPlaylist::removeItem(int index)
 {
     return m_playlist->removeMedia(index);
 }
@@ -503,7 +503,7 @@ bool QDeclarativePlaylist::removeItem(int index)
 
     \since 5.7
 */
-bool QDeclarativePlaylist::removeItems(int start, int end)
+bool QQuickPlaylist::removeItems(int start, int end)
 {
     return m_playlist->removeMedia(start, end);
 }
@@ -515,12 +515,12 @@ bool QDeclarativePlaylist::removeItems(int start, int end)
 
     Returns \c true if the operation is successful.
 */
-void QDeclarativePlaylist::clear()
+void QQuickPlaylist::clear()
 {
     m_playlist->clear();
 }
 
-int QDeclarativePlaylist::rowCount(const QModelIndex &parent) const
+int QQuickPlaylist::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
@@ -528,7 +528,7 @@ int QDeclarativePlaylist::rowCount(const QModelIndex &parent) const
     return m_playlist->mediaCount();
 }
 
-QVariant QDeclarativePlaylist::data(const QModelIndex &index, int role) const
+QVariant QQuickPlaylist::data(const QModelIndex &index, int role) const
 {
     Q_UNUSED(role);
 
@@ -538,14 +538,14 @@ QVariant QDeclarativePlaylist::data(const QModelIndex &index, int role) const
     return m_playlist->media(index.row());
 }
 
-QHash<int, QByteArray> QDeclarativePlaylist::roleNames() const
+QHash<int, QByteArray> QQuickPlaylist::roleNames() const
 {
     QHash<int, QByteArray> roleNames;
     roleNames[SourceRole] = "source";
     return roleNames;
 }
 
-void QDeclarativePlaylist::classBegin()
+void QQuickPlaylist::classBegin()
 {
     m_playlist = new QMediaPlaylist(this);
 
@@ -571,7 +571,7 @@ void QDeclarativePlaylist::classBegin()
             this, SLOT(_q_loadFailed()));
 }
 
-void QDeclarativePlaylist::componentComplete()
+void QQuickPlaylist::componentComplete()
 {
 }
 
@@ -639,4 +639,4 @@ void QDeclarativePlaylist::componentComplete()
 
 QT_END_NAMESPACE
 
-#include "moc_qdeclarativeplaylist_p.cpp"
+#include "moc_qquickplaylist_p.cpp"

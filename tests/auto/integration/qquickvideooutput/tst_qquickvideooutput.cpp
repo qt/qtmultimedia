@@ -35,7 +35,7 @@
 #include <QQuickView>
 #include <QVideoSink>
 
-#include "private/qdeclarativevideooutput_p.h"
+#include "private/qquickvideooutput_p.h"
 
 #include <qobject.h>
 #include <qvideoframeformat.h>
@@ -82,13 +82,13 @@ void SurfaceHolder::presentDummyFrame(const QSize &size)
     }
 }
 
-class tst_QDeclarativeVideoOutput : public QObject
+class tst_QQuickVideoOutput : public QObject
 {
     Q_OBJECT
 public:
-    tst_QDeclarativeVideoOutput();
+    tst_QQuickVideoOutput();
 
-    ~tst_QDeclarativeVideoOutput() override
+    ~tst_QQuickVideoOutput() override
     {
         delete m_mappingOutput;
         delete m_mappingSurface;
@@ -131,7 +131,7 @@ private:
     QPointF invokeP2P(QObject *object, const char *signature, const QPointF &point);
 };
 
-void tst_QDeclarativeVideoOutput::initTestCase()
+void tst_QQuickVideoOutput::initTestCase()
 {
     // We initialize the mapping vars here
     m_mappingComponent = new QQmlComponent(&m_engine);
@@ -147,11 +147,11 @@ void tst_QDeclarativeVideoOutput::initTestCase()
     updateOutputGeometry(m_mappingOutput);
 }
 
-tst_QDeclarativeVideoOutput::tst_QDeclarativeVideoOutput()
+tst_QQuickVideoOutput::tst_QQuickVideoOutput()
 {
 }
 
-void tst_QDeclarativeVideoOutput::fillMode()
+void tst_QQuickVideoOutput::fillMode()
 {
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
@@ -159,28 +159,28 @@ void tst_QDeclarativeVideoOutput::fillMode()
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != nullptr);
 
-    QSignalSpy propSpy(videoOutput, SIGNAL(fillModeChanged(QDeclarativeVideoOutput::FillMode)));
+    QSignalSpy propSpy(videoOutput, SIGNAL(fillModeChanged(QQuickVideoOutput::FillMode)));
 
     // Default is preserveaspectfit
-    QCOMPARE(videoOutput->property("fillMode").value<QDeclarativeVideoOutput::FillMode>(), QDeclarativeVideoOutput::PreserveAspectFit);
+    QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::PreserveAspectFit);
     QCOMPARE(propSpy.count(), 0);
 
-    videoOutput->setProperty("fillMode", QVariant(int(QDeclarativeVideoOutput::PreserveAspectCrop)));
-    QCOMPARE(videoOutput->property("fillMode").value<QDeclarativeVideoOutput::FillMode>(), QDeclarativeVideoOutput::PreserveAspectCrop);
+    videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::PreserveAspectCrop)));
+    QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::PreserveAspectCrop);
     QCOMPARE(propSpy.count(), 1);
 
-    videoOutput->setProperty("fillMode", QVariant(int(QDeclarativeVideoOutput::Stretch)));
-    QCOMPARE(videoOutput->property("fillMode").value<QDeclarativeVideoOutput::FillMode>(), QDeclarativeVideoOutput::Stretch);
+    videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::Stretch)));
+    QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::Stretch);
     QCOMPARE(propSpy.count(), 2);
 
-    videoOutput->setProperty("fillMode", QVariant(int(QDeclarativeVideoOutput::Stretch)));
-    QCOMPARE(videoOutput->property("fillMode").value<QDeclarativeVideoOutput::FillMode>(), QDeclarativeVideoOutput::Stretch);
+    videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::Stretch)));
+    QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::Stretch);
     QCOMPARE(propSpy.count(), 2);
 
     delete videoOutput;
 }
 
-void tst_QDeclarativeVideoOutput::flushMode()
+void tst_QQuickVideoOutput::flushMode()
 {
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
@@ -190,15 +190,15 @@ void tst_QDeclarativeVideoOutput::flushMode()
 
     QSignalSpy propSpy(videoOutput, SIGNAL(flushModeChanged()));
 
-    QCOMPARE(videoOutput->property("flushMode").value<QDeclarativeVideoOutput::FlushMode>(), QDeclarativeVideoOutput::EmptyFrame);
+    QCOMPARE(videoOutput->property("flushMode").value<QQuickVideoOutput::FlushMode>(), QQuickVideoOutput::EmptyFrame);
     QCOMPARE(propSpy.count(), 0);
 
-    videoOutput->setProperty("flushMode", QVariant(int(QDeclarativeVideoOutput::FirstFrame)));
-    QCOMPARE(videoOutput->property("fillMode").value<QDeclarativeVideoOutput::FlushMode>(), QDeclarativeVideoOutput::FirstFrame);
+    videoOutput->setProperty("flushMode", QVariant(int(QQuickVideoOutput::FirstFrame)));
+    QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FlushMode>(), QQuickVideoOutput::FirstFrame);
     QCOMPARE(propSpy.count(), 1);
 }
 
-void tst_QDeclarativeVideoOutput::orientation()
+void tst_QQuickVideoOutput::orientation()
 {
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
@@ -251,7 +251,7 @@ void tst_QDeclarativeVideoOutput::orientation()
     delete videoOutput;
 }
 
-void tst_QDeclarativeVideoOutput::surfaceSource()
+void tst_QQuickVideoOutput::surfaceSource()
 {
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
@@ -325,14 +325,14 @@ static const uchar rgb32ImageData[] =
     0x06, 0x07, 0x08, 0xff, 0x09, 0x0a, 0x0b, 0xff
 };
 
-void tst_QDeclarativeVideoOutput::paintSurface()
+void tst_QQuickVideoOutput::paintSurface()
 {
     QQuickView window;
     window.setSource(QUrl("qrc:/main.qml"));
     window.show();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
 
-    auto videoOutput = qobject_cast<QDeclarativeVideoOutput *>(window.rootObject());
+    auto videoOutput = qobject_cast<QQuickVideoOutput *>(window.rootObject());
     QVERIFY(videoOutput);
 
     auto surface = videoOutput->property("videoSurface").value<QVideoSink *>();
@@ -347,7 +347,7 @@ void tst_QDeclarativeVideoOutput::paintSurface()
     surface->newVideoFrame(frame);
 }
 
-void tst_QDeclarativeVideoOutput::sourceRect()
+void tst_QQuickVideoOutput::sourceRect()
 {
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
@@ -392,26 +392,26 @@ void tst_QDeclarativeVideoOutput::sourceRect()
     updateOutputGeometry(videoOutput);
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
 
-    videoOutput->setProperty("fillMode", QVariant(int(QDeclarativeVideoOutput::PreserveAspectCrop)));
+    videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::PreserveAspectCrop)));
     updateOutputGeometry(videoOutput);
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
 
-    videoOutput->setProperty("fillMode", QVariant(int(QDeclarativeVideoOutput::Stretch)));
+    videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::Stretch)));
     updateOutputGeometry(videoOutput);
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
 
-    videoOutput->setProperty("fillMode", QVariant(int(QDeclarativeVideoOutput::Stretch)));
+    videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::Stretch)));
     updateOutputGeometry(videoOutput);
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
 
     delete videoOutput;
 }
 
-void tst_QDeclarativeVideoOutput::mappingPoint()
+void tst_QQuickVideoOutput::mappingPoint()
 {
     QFETCH(QPointF, point);
     QFETCH(int, orientation);
-    QFETCH(QDeclarativeVideoOutput::FillMode, fillMode);
+    QFETCH(QQuickVideoOutput::FillMode, fillMode);
     QFETCH(QPointF, expected);
 
     QVERIFY(m_mappingOutput);
@@ -437,16 +437,16 @@ void tst_QDeclarativeVideoOutput::mappingPoint()
     QCOMPARE(reverse, normal);
 }
 
-void tst_QDeclarativeVideoOutput::mappingPoint_data()
+void tst_QQuickVideoOutput::mappingPoint_data()
 {
     QTest::addColumn<QPointF>("point");
     QTest::addColumn<int>("orientation");
-    QTest::addColumn<QDeclarativeVideoOutput::FillMode>("fillMode");
+    QTest::addColumn<QQuickVideoOutput::FillMode>("fillMode");
     QTest::addColumn<QPointF>("expected");
 
-    QDeclarativeVideoOutput::FillMode stretch = QDeclarativeVideoOutput::Stretch;
-    QDeclarativeVideoOutput::FillMode fit = QDeclarativeVideoOutput::PreserveAspectFit;
-    QDeclarativeVideoOutput::FillMode crop = QDeclarativeVideoOutput::PreserveAspectCrop;
+    QQuickVideoOutput::FillMode stretch = QQuickVideoOutput::Stretch;
+    QQuickVideoOutput::FillMode fit = QQuickVideoOutput::PreserveAspectFit;
+    QQuickVideoOutput::FillMode crop = QQuickVideoOutput::PreserveAspectCrop;
 
     // First make sure the component has processed the frame
     QCOMPARE(m_mappingOutput->property("sourceRect").toRectF(), QRectF(0,0,200,100));
@@ -543,11 +543,11 @@ void tst_QDeclarativeVideoOutput::mappingPoint_data()
 }
 
 /* Test all rectangle mapping */
-void tst_QDeclarativeVideoOutput::mappingRect()
+void tst_QQuickVideoOutput::mappingRect()
 {
     QFETCH(QRectF, rect);
     QFETCH(int, orientation);
-    QFETCH(QDeclarativeVideoOutput::FillMode, fillMode);
+    QFETCH(QQuickVideoOutput::FillMode, fillMode);
     QFETCH(QRectF, expected);
 
     QVERIFY(m_mappingOutput);
@@ -573,19 +573,19 @@ void tst_QDeclarativeVideoOutput::mappingRect()
     QCOMPARE(reverse, normal);
 }
 
-void tst_QDeclarativeVideoOutput::mappingRect_data()
+void tst_QQuickVideoOutput::mappingRect_data()
 {
     QTest::addColumn<QRectF>("rect");
     QTest::addColumn<int>("orientation");
-    QTest::addColumn<QDeclarativeVideoOutput::FillMode>("fillMode");
+    QTest::addColumn<QQuickVideoOutput::FillMode>("fillMode");
     QTest::addColumn<QRectF>("expected");
 
     // First make sure the component has processed the frame
     QCOMPARE(m_mappingOutput->property("sourceRect").toRectF(), QRectF(0,0,200,100));
 
-    QDeclarativeVideoOutput::FillMode stretch = QDeclarativeVideoOutput::Stretch;
-    QDeclarativeVideoOutput::FillMode fit = QDeclarativeVideoOutput::PreserveAspectFit;
-    QDeclarativeVideoOutput::FillMode crop = QDeclarativeVideoOutput::PreserveAspectCrop;
+    QQuickVideoOutput::FillMode stretch = QQuickVideoOutput::Stretch;
+    QQuickVideoOutput::FillMode fit = QQuickVideoOutput::PreserveAspectFit;
+    QQuickVideoOutput::FillMode crop = QQuickVideoOutput::PreserveAspectCrop;
 
     // Full rectangle mapping
     // Stretch
@@ -627,17 +627,17 @@ void tst_QDeclarativeVideoOutput::mappingRect_data()
     QTest::newRow("p-c270") << QRectF(50, 25, 80, 25) << 270 << crop << QRectF(75,-25,37.5f,120);
 }
 
-void tst_QDeclarativeVideoOutput::updateOutputGeometry(QObject *output)
+void tst_QQuickVideoOutput::updateOutputGeometry(QObject *output)
 {
     // Since the object isn't visible, update() doesn't do anything
     // so we manually force this
     QMetaObject::invokeMethod(output, "_q_updateGeometry");
 }
 
-void tst_QDeclarativeVideoOutput::contentRect()
+void tst_QQuickVideoOutput::contentRect()
 {
     QFETCH(int, orientation);
-    QFETCH(QDeclarativeVideoOutput::FillMode, fillMode);
+    QFETCH(QQuickVideoOutput::FillMode, fillMode);
     QFETCH(QRectF, expected);
 
     QVERIFY(m_mappingOutput);
@@ -650,18 +650,18 @@ void tst_QDeclarativeVideoOutput::contentRect()
     QCOMPARE(output, expected);
 }
 
-void tst_QDeclarativeVideoOutput::contentRect_data()
+void tst_QQuickVideoOutput::contentRect_data()
 {
     QTest::addColumn<int>("orientation");
-    QTest::addColumn<QDeclarativeVideoOutput::FillMode>("fillMode");
+    QTest::addColumn<QQuickVideoOutput::FillMode>("fillMode");
     QTest::addColumn<QRectF>("expected");
 
     // First make sure the component has processed the frame
     QCOMPARE(m_mappingOutput->property("sourceRect").toRectF(), QRectF(0,0,200,100));
 
-    QDeclarativeVideoOutput::FillMode stretch = QDeclarativeVideoOutput::Stretch;
-    QDeclarativeVideoOutput::FillMode fit = QDeclarativeVideoOutput::PreserveAspectFit;
-    QDeclarativeVideoOutput::FillMode crop = QDeclarativeVideoOutput::PreserveAspectCrop;
+    QQuickVideoOutput::FillMode stretch = QQuickVideoOutput::Stretch;
+    QQuickVideoOutput::FillMode fit = QQuickVideoOutput::PreserveAspectFit;
+    QQuickVideoOutput::FillMode crop = QQuickVideoOutput::PreserveAspectCrop;
 
     // Stretch just keeps the full render rect regardless of orientation
     QTest::newRow("s0") << 0 << stretch << QRectF(0,0,150,100);
@@ -687,14 +687,14 @@ void tst_QDeclarativeVideoOutput::contentRect_data()
 }
 
 
-QRectF tst_QDeclarativeVideoOutput::invokeR2R(QObject *object, const char *signature, const QRectF &rect)
+QRectF tst_QQuickVideoOutput::invokeR2R(QObject *object, const char *signature, const QRectF &rect)
 {
     QRectF r;
     QMetaObject::invokeMethod(object, signature, Q_RETURN_ARG(QRectF, r), Q_ARG(QRectF, rect));
     return r;
 }
 
-QPointF tst_QDeclarativeVideoOutput::invokeP2P(QObject *object, const char *signature, const QPointF &point)
+QPointF tst_QQuickVideoOutput::invokeP2P(QObject *object, const char *signature, const QPointF &point)
 {
     QPointF p;
     QMetaObject::invokeMethod(object, signature, Q_RETURN_ARG(QPointF, p), Q_ARG(QPointF, point));
@@ -702,6 +702,6 @@ QPointF tst_QDeclarativeVideoOutput::invokeP2P(QObject *object, const char *sign
 }
 
 
-QTEST_MAIN(tst_QDeclarativeVideoOutput)
+QTEST_MAIN(tst_QQuickVideoOutput)
 
-#include "tst_qdeclarativevideooutput.moc"
+#include "tst_qquickvideooutput.moc"

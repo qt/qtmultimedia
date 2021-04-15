@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Copyright (C) 2016 Research In Motion
 ** Contact: https://www.qt.io/licensing/
 **
@@ -38,8 +38,8 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVEVIDEOOUTPUT_P_H
-#define QDECLARATIVEVIDEOOUTPUT_P_H
+#ifndef QQUICKVIDEOOUTPUT_P_H
+#define QQUICKVIDEOOUTPUT_P_H
 
 //
 //  W A R N I N G
@@ -61,15 +61,15 @@
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeVideoBackend;
+class QQuickVideoBackend;
 class QVideoOutputOrientationHandler;
 class QVideoSink;
 class QVideoFrame;
 
-class Q_MULTIMEDIAQUICK_EXPORT QDeclarativeVideoOutput : public QQuickItem
+class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
 {
     Q_OBJECT
-    Q_DISABLE_COPY(QDeclarativeVideoOutput)
+    Q_DISABLE_COPY(QQuickVideoOutput)
     Q_PROPERTY(QObject* source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(int orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
@@ -100,8 +100,8 @@ public:
         PreserveAspectCrop = Qt::KeepAspectRatioByExpanding
     };
 
-    QDeclarativeVideoOutput(QQuickItem *parent = 0);
-    ~QDeclarativeVideoOutput();
+    QQuickVideoOutput(QQuickItem *parent = 0);
+    ~QQuickVideoOutput();
 
     QObject *source() const { return m_source.data(); }
     void setSource(QObject *source);
@@ -141,7 +141,7 @@ public:
 
 Q_SIGNALS:
     void sourceChanged();
-    void fillModeChanged(QDeclarativeVideoOutput::FillMode);
+    void fillModeChanged(QQuickVideoOutput::FillMode);
     void orientationChanged();
     void autoOrientationChanged();
     void sourceRectChanged();
@@ -175,11 +175,11 @@ private:
     bool m_autoOrientation;
     QVideoOutputOrientationHandler *m_screenOrientationHandler;
 
-    QScopedPointer<QDeclarativeVideoBackend> m_backend;
+    QScopedPointer<QQuickVideoBackend> m_backend;
 
     FlushMode m_flushMode = EmptyFrame;
 };
 
 QT_END_NAMESPACE
 
-#endif // QDECLARATIVEVIDEOOUTPUT_H
+#endif // QQUICKVIDEOOUTPUT_P_H

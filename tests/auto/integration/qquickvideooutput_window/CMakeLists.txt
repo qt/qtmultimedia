@@ -6,7 +6,7 @@
 
 qt_add_test(tst_qdeclarativevideooutput_window
     SOURCES
-        tst_qdeclarativevideooutput_window.cpp
+        tst_qquickvideooutput_window.cpp
     INCLUDE_DIRECTORIES
         ../../../../src/imports/multimedia
     PUBLIC_LIBRARIES

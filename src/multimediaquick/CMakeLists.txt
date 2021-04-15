@@ -8,10 +8,11 @@ qt_add_module(MultimediaQuick
     CONFIG_MODULE_NAME multimediaquick
     INTERNAL_MODULE
     SOURCES
-        qdeclarativevideooutput.cpp qdeclarativevideooutput_p.h
-        qdeclarativevideooutput_render.cpp qdeclarativevideooutput_render_p.h
         qquickimagecapture.cpp qquickimagecapture_p.h
         qquickimagepreviewprovider.cpp qquickimagepreviewprovider_p.h
+        qquickplaylist.cpp qquickplaylist_p.h
+        qquickvideooutput.cpp qquickvideooutput_p.h
+        qquickvideooutput_render.cpp qquickvideooutput_render_p.h
         qsgvideonode_p.cpp qsgvideonode_p.h
         qsgvideotexture.cpp qsgvideotexture_p.h
         qtmultimediaquickglobal_p.h

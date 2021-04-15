@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVEPLAYLIST_P_H
-#define QDECLARATIVEPLAYLIST_P_H
+#ifndef QQUICKPLAYLIST_P_H
+#define QQUICKPLAYLIST_P_H
 
 //
 //  W A R N I N G
@@ -59,13 +59,14 @@
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativePlaylistItem : public QObject
+class QQuickPlaylistItem : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource)
+    QML_NAMED_ELEMENT(PlaylistItem)
 
 public:
-    QDeclarativePlaylistItem(QObject *parent = 0);
+    QQuickPlaylistItem(QObject *parent = 0);
 
     QUrl source() const;
     void setSource(const QUrl &source);
@@ -74,7 +75,7 @@ private:
     QUrl m_source;
 };
 
-class QDeclarativePlaylist : public QAbstractListModel, public QQmlParserStatus
+class QQuickPlaylist : public QAbstractListModel, public QQmlParserStatus
 {
     Q_OBJECT
     Q_PROPERTY(PlaybackMode playbackMode READ playbackMode WRITE setPlaybackMode NOTIFY playbackModeChanged)
@@ -83,11 +84,12 @@ class QDeclarativePlaylist : public QAbstractListModel, public QQmlParserStatus
     Q_PROPERTY(int itemCount READ itemCount NOTIFY itemCountChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(QQmlListProperty<QDeclarativePlaylistItem> items READ items DESIGNABLE false)
+    Q_PROPERTY(QQmlListProperty<QQuickPlaylistItem> items READ items DESIGNABLE false)
     Q_ENUMS(PlaybackMode)
     Q_ENUMS(Error)
     Q_INTERFACES(QQmlParserStatus)
     Q_CLASSINFO("DefaultProperty", "items")
+    QML_NAMED_ELEMENT(Playlist)
 
 public:
     enum PlaybackMode
@@ -111,8 +113,8 @@ public:
         SourceRole = Qt::UserRole + 1
     };
 
-    QDeclarativePlaylist(QObject *parent = 0);
-    ~QDeclarativePlaylist();
+    QQuickPlaylist(QObject *parent = 0);
+    ~QQuickPlaylist();
 
     PlaybackMode playbackMode() const;
     void setPlaybackMode(PlaybackMode playbackMode);
@@ -131,19 +133,19 @@ public:
     void classBegin() override;
     void componentComplete() override;
 
-    QQmlListProperty<QDeclarativePlaylistItem> items() {
-        return QQmlListProperty<QDeclarativePlaylistItem>(
+    QQmlListProperty<QQuickPlaylistItem> items() {
+        return QQmlListProperty<QQuickPlaylistItem>(
             this, 0, item_append, item_count, 0, item_clear);
     }
-    static void item_append(QQmlListProperty<QDeclarativePlaylistItem> *list,
-                            QDeclarativePlaylistItem* item) {
-        static_cast<QDeclarativePlaylist*>(list->object)->addItem(item->source());
+    static void item_append(QQmlListProperty<QQuickPlaylistItem> *list,
+                            QQuickPlaylistItem* item) {
+        static_cast<QQuickPlaylist*>(list->object)->addItem(item->source());
     }
-    static qsizetype item_count(QQmlListProperty<QDeclarativePlaylistItem> *list) {
-        return static_cast<QDeclarativePlaylist*>(list->object)->itemCount();
+    static qsizetype item_count(QQmlListProperty<QQuickPlaylistItem> *list) {
+        return static_cast<QQuickPlaylist*>(list->object)->itemCount();
     }
-    static void item_clear(QQmlListProperty<QDeclarativePlaylistItem> *list) {
-        static_cast<QDeclarativePlaylist*>(list->object)->clear();
+    static void item_clear(QQmlListProperty<QQuickPlaylistItem> *list) {
+        static_cast<QQuickPlaylist*>(list->object)->clear();
     }
 
 public Q_SLOTS:
@@ -179,7 +181,7 @@ Q_SIGNALS:
     void loaded();
     void loadFailed();
 
-    void error(QDeclarativePlaylist::Error error, const QString &errorString);
+    void error(QQuickPlaylist::Error error, const QString &errorString);
 
 private Q_SLOTS:
     void _q_mediaAboutToBeInserted(int start, int end);
@@ -190,7 +192,7 @@ private Q_SLOTS:
     void _q_loadFailed();
 
 private:
-    Q_DISABLE_COPY(QDeclarativePlaylist)
+    Q_DISABLE_COPY(QQuickPlaylist)
 
     QMediaPlaylist *m_playlist;
     QString m_errorString;
@@ -198,8 +200,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativePlaylistItem))
-QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativePlaylist))
 
 #endif

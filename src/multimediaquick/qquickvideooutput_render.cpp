@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Copyright (C) 2016 Research In Motion
 ** Contact: https://www.qt.io/licensing/
 **
@@ -38,8 +38,8 @@
 **
 ****************************************************************************/
 
-#include "qdeclarativevideooutput_render_p.h"
-#include "qdeclarativevideooutput_p.h"
+#include "qquickvideooutput_render_p.h"
+#include "qquickvideooutput_p.h"
 #include <QtCore/qobject.h>
 #include <QtCore/qloggingcategory.h>
 #include <private/qmediapluginloader_p.h>
@@ -54,30 +54,30 @@ QT_BEGIN_NAMESPACE
 
 Q_DECLARE_LOGGING_CATEGORY(qLcVideo)
 
-QDeclarativeVideoBackend::QDeclarativeVideoBackend(QDeclarativeVideoOutput *parent)
+QQuickVideoBackend::QQuickVideoBackend(QQuickVideoOutput *parent)
     : q(parent),
       m_frameChanged(false)
 {
 }
 
-QDeclarativeVideoBackend::~QDeclarativeVideoBackend()
+QQuickVideoBackend::~QQuickVideoBackend()
 {
     delete m_sink;
 }
 
-void QDeclarativeVideoBackend::releaseResources()
+void QQuickVideoBackend::releaseResources()
 {
     // Called on the gui thread when the window is closed or changed.
     invalidateSceneGraph();
 }
 
-void QDeclarativeVideoBackend::invalidateSceneGraph()
+void QQuickVideoBackend::invalidateSceneGraph()
 {
     // Called on the render thread, e.g. when the context is lost.
 //    QMutexLocker lock(&m_frameMutex);
 }
 
-void QDeclarativeVideoBackend::itemChange(QQuickItem::ItemChange change,
+void QQuickVideoBackend::itemChange(QQuickItem::ItemChange change,
                                       const QQuickItem::ItemChangeData &changeData)
 {
     if (change == QQuickItem::ItemSceneChange) {
@@ -87,12 +87,12 @@ void QDeclarativeVideoBackend::itemChange(QQuickItem::ItemChange change,
     }
 }
 
-QSize QDeclarativeVideoBackend::nativeSize() const
+QSize QQuickVideoBackend::nativeSize() const
 {
     return m_surfaceFormat.sizeHint();
 }
 
-void QDeclarativeVideoBackend::updateGeometry()
+void QQuickVideoBackend::updateGeometry()
 {
     const QRectF viewport = m_surfaceFormat.viewport();
     const QSizeF frameSize = m_surfaceFormat.frameSize();
@@ -104,13 +104,13 @@ void QDeclarativeVideoBackend::updateGeometry()
     if (nativeSize().isEmpty()) {
         m_renderedRect = rect;
         m_sourceTextureRect = normalizedViewport;
-    } else if (q->fillMode() == QDeclarativeVideoOutput::Stretch) {
+    } else if (q->fillMode() == QQuickVideoOutput::Stretch) {
         m_renderedRect = rect;
         m_sourceTextureRect = normalizedViewport;
-    } else if (q->fillMode() == QDeclarativeVideoOutput::PreserveAspectFit) {
+    } else if (q->fillMode() == QQuickVideoOutput::PreserveAspectFit) {
         m_sourceTextureRect = normalizedViewport;
         m_renderedRect = q->contentRect();
-    } else if (q->fillMode() == QDeclarativeVideoOutput::PreserveAspectCrop) {
+    } else if (q->fillMode() == QQuickVideoOutput::PreserveAspectCrop) {
         m_renderedRect = rect;
         const qreal contentHeight = q->contentRect().height();
         const qreal contentWidth = q->contentRect().width();
@@ -149,7 +149,7 @@ void QDeclarativeVideoBackend::updateGeometry()
     }
 }
 
-QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
+QSGNode *QQuickVideoBackend::updatePaintNode(QSGNode *oldNode,
                                                            QQuickItem::UpdatePaintNodeData *data)
 {
     Q_UNUSED(data);
@@ -191,8 +191,8 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
     if (m_frameChanged) {
         videoNode->setCurrentFrame(m_frame);
 
-        if ((q->flushMode() == QDeclarativeVideoOutput::FirstFrame && !m_frameOnFlush.isValid())
-            || q->flushMode() == QDeclarativeVideoOutput::LastFrame) {
+        if ((q->flushMode() == QQuickVideoOutput::FirstFrame && !m_frameOnFlush.isValid())
+            || q->flushMode() == QQuickVideoOutput::LastFrame) {
             m_frameOnFlush = m_frame;
         }
 
@@ -203,7 +203,7 @@ QSGNode *QDeclarativeVideoBackend::updatePaintNode(QSGNode *oldNode,
     return videoNode;
 }
 
-QVideoSink *QDeclarativeVideoBackend::videoSink() const
+QVideoSink *QQuickVideoBackend::videoSink() const
 {
     if (!m_sink) {
         m_sink = new QVideoSink(q);
@@ -216,12 +216,12 @@ QVideoSink *QDeclarativeVideoBackend::videoSink() const
     return m_sink;
 }
 
-QRectF QDeclarativeVideoBackend::adjustedViewport() const
+QRectF QQuickVideoBackend::adjustedViewport() const
 {
     return m_surfaceFormat.viewport();
 }
 
-void QDeclarativeVideoBackend::present(const QVideoFrame &frame)
+void QQuickVideoBackend::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
     m_surfaceFormat = frame.surfaceFormat();
@@ -232,7 +232,7 @@ void QDeclarativeVideoBackend::present(const QVideoFrame &frame)
     q->update();
 }
 
-void QDeclarativeVideoBackend::stop()
+void QQuickVideoBackend::stop()
 {
     present(QVideoFrame());
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Copyright (C) 2016 Research In Motion
 ** Contact: https://www.qt.io/licensing/
 **
@@ -38,8 +38,8 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVEVIDEOOUTPUT_RENDER_P_H
-#define QDECLARATIVEVIDEOOUTPUT_RENDER_P_H
+#ifndef QQUICKVIDEOOUTPUT_RENDER_P_H
+#define QQUICKVIDEOOUTPUT_RENDER_P_H
 
 //
 //  W A R N I N G
@@ -62,13 +62,13 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 class QObject;
-class QDeclarativeVideoOutput;
+class QQuickVideoOutput;
 
-class QDeclarativeVideoBackend
+class QQuickVideoBackend
 {
 public:
-    QDeclarativeVideoBackend(QDeclarativeVideoOutput *parent);
-    ~QDeclarativeVideoBackend();
+    QQuickVideoBackend(QQuickVideoOutput *parent);
+    ~QQuickVideoBackend();
 
     void itemChange(QQuickItem::ItemChange change, const QQuickItem::ItemChangeData &changeData);
     QSize nativeSize() const;
@@ -85,7 +85,7 @@ public:
     void invalidateSceneGraph();
 
 private:
-    QDeclarativeVideoOutput *q;
+    QQuickVideoOutput *q;
 
     mutable QVideoSink *m_sink = nullptr;
     QVideoFrameFormat m_surfaceFormat;

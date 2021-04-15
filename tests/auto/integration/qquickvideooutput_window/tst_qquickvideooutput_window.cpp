@@ -29,7 +29,7 @@
 
 //TESTED_COMPONENT=plugins/declarative/multimedia
 
-#include "private/qdeclarativevideooutput_p.h"
+#include "private/qquickvideooutput_p.h"
 #include <QtCore/qobject.h>
 #include <QtTest/qtest.h>
 #include <QtQml/qqmlengine.h>
@@ -111,17 +111,17 @@ public:
     }
 };
 
-class tst_QDeclarativeVideoOutputWindow : public QObject
+class tst_QQuickVideoOutputWindow : public QObject
 {
     Q_OBJECT
 public:
-    tst_QDeclarativeVideoOutputWindow()
+    tst_QQuickVideoOutputWindow()
         : QObject(nullptr)
         , m_sourceObject(&m_videoObject)
     {
     }
 
-    ~tst_QDeclarativeVideoOutputWindow() override
+    ~tst_QQuickVideoOutputWindow() override
     = default;
 
 public slots:
@@ -145,7 +145,7 @@ private:
     QQuickView m_view;
 };
 
-void tst_QDeclarativeVideoOutputWindow::initTestCase()
+void tst_QQuickVideoOutputWindow::initTestCase()
 {
     QQmlComponent component(&m_engine);
     component.loadUrl(QUrl("qrc:/main.qml"));
@@ -161,42 +161,42 @@ void tst_QDeclarativeVideoOutputWindow::initTestCase()
     m_view.show();
 }
 
-void tst_QDeclarativeVideoOutputWindow::cleanupTestCase()
+void tst_QQuickVideoOutputWindow::cleanupTestCase()
 {
-    // Make sure that QDeclarativeVideoOutput doesn't segfault when it is being destroyed after
+    // Make sure that QQuickVideoOutput doesn't segfault when it is being destroyed after
     // the service is already gone
     m_view.setSource(QUrl());
     m_rootItem.reset();
 }
 
-void tst_QDeclarativeVideoOutputWindow::winId()
+void tst_QQuickVideoOutputWindow::winId()
 {
     QCOMPARE(m_windowControl.winId(), m_view.winId());
 }
 
-void tst_QDeclarativeVideoOutputWindow::nativeSize()
+void tst_QQuickVideoOutputWindow::nativeSize()
 {
     QCOMPARE(m_videoItem->implicitWidth(), qreal(400.0f));
     QCOMPARE(m_videoItem->implicitHeight(), qreal(200.0f));
 }
 
-void tst_QDeclarativeVideoOutputWindow::aspectRatio()
+void tst_QQuickVideoOutputWindow::aspectRatio()
 {
     const QRect expectedDisplayRect(25, 50, 150, 100);
-    m_videoItem->setProperty("fillMode", QDeclarativeVideoOutput::Stretch);
+    m_videoItem->setProperty("fillMode", QQuickVideoOutput::Stretch);
     QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::IgnoreAspectRatio);
     QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
 
-    m_videoItem->setProperty("fillMode", QDeclarativeVideoOutput::PreserveAspectFit);
+    m_videoItem->setProperty("fillMode", QQuickVideoOutput::PreserveAspectFit);
     QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::KeepAspectRatio);
     QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
 
-    m_videoItem->setProperty("fillMode", QDeclarativeVideoOutput::PreserveAspectCrop);
+    m_videoItem->setProperty("fillMode", QQuickVideoOutput::PreserveAspectCrop);
     QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::KeepAspectRatioByExpanding);
     QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
 }
 
-void tst_QDeclarativeVideoOutputWindow::geometryChange()
+void tst_QQuickVideoOutputWindow::geometryChange()
 {
     m_videoItem->setWidth(50);
     QTRY_COMPARE(m_windowControl.displayRect(), QRect(25, 50, 50, 100));
@@ -205,13 +205,13 @@ void tst_QDeclarativeVideoOutputWindow::geometryChange()
     QTRY_COMPARE(m_windowControl.displayRect(), QRect(30, 50, 50, 100));
 }
 
-void tst_QDeclarativeVideoOutputWindow::resetCanvas()
+void tst_QQuickVideoOutputWindow::resetCanvas()
 {
     m_rootItem->setParentItem(nullptr);
     QCOMPARE((int)m_windowControl.winId(), 0);
 }
 
 
-QTEST_MAIN(tst_QDeclarativeVideoOutputWindow)
+QTEST_MAIN(tst_QQuickVideoOutputWindow)
 
-#include "tst_qdeclarativevideooutput_window.moc"
+#include "tst_qquickvideooutput_window.moc"

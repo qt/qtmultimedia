@@ -10,7 +10,6 @@ qt_internal_add_qml_module(declarative_multimedia
     CLASSNAME QMultimediaDeclarativeModule
     SOURCES
         multimedia.cpp
-        qdeclarativeplaylist.cpp qdeclarativeplaylist_p.h
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui
