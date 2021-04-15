@@ -62,7 +62,7 @@ VideoOutput {
     onHeightChanged: root.sizeChanged()
 
     CaptureSession {
-        camera: NCamera {
+        camera: Camera {
             id: camera
 
             onErrorOccurred: function(error, errorString) {

@@ -10,13 +10,7 @@ qt_internal_add_qml_module(declarative_multimedia
     CLASSNAME QMultimediaDeclarativeModule
     SOURCES
         multimedia.cpp
-        qdeclarativecamera.cpp qdeclarativecamera_p.h
-        qdeclarativecameraexposure.cpp qdeclarativecameraexposure_p.h
-        qdeclarativecameraflash.cpp qdeclarativecameraflash_p.h
-        qdeclarativecamerarecorder.cpp qdeclarativecamerarecorder_p.h
-        qdeclarativemultimediaglobal.cpp qdeclarativemultimediaglobal_p.h
         qdeclarativeplaylist.cpp qdeclarativeplaylist_p.h
-        qdeclarativetorch.cpp qdeclarativetorch_p.h
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Gui

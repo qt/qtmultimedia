@@ -69,7 +69,7 @@ class QQuickImageCapture : public QCameraImageCapture
     QML_NAMED_ELEMENT(ImageCapture)
 
 public:
-    QQuickImageCapture(QObject *parent);
+    QQuickImageCapture(QObject *parent = nullptr);
     ~QQuickImageCapture();
 
     QString preview() const;

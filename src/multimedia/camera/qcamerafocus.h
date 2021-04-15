@@ -109,6 +109,7 @@ public:
     float zoomFactor() const;
     void setZoomFactor(float factor);
 
+public Q_SLOTS:
     void zoomTo(float zoom, float rate);
 
 Q_SIGNALS:

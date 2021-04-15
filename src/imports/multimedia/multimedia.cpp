@@ -49,27 +49,11 @@
 #include "qmediaencoder.h"
 
 #include <private/qdeclarativevideooutput_p.h>
+#include <private/qquickimagepreviewprovider_p.h>
 
-#include "qdeclarativemultimediaglobal_p.h"
 #include "qdeclarativeplaylist_p.h"
-#include "qdeclarativecamera_p.h"
-#include "qdeclarativecameraexposure_p.h"
-#include "qdeclarativecameraflash_p.h"
-#include "qdeclarativetorch_p.h"
-
-#include "qquickimagepreviewprovider_p.h"
-
-QML_DECLARE_TYPE(QSoundEffect)
 
 QT_BEGIN_NAMESPACE
-
-static QObject *multimedia_global_object(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
-{
-    Q_UNUSED(qmlEngine);
-    return new QDeclarativeMultimediaGlobal(jsEngine);
-}
-
-Q_DECLARE_METATYPE(QMediaMetaData)
 
 class QMultimediaDeclarativeModule : public QQmlExtensionPlugin
 {
@@ -85,19 +69,6 @@ public:
     void registerTypes(const char *uri) override
     {
         Q_ASSERT(QLatin1String(uri) == QLatin1String("QtMultimedia"));
-
-        // 6.0 types
-        qmlRegisterType<QDeclarativeCamera>(uri, 6, 0, "Camera");
-        qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 6, 0, "CameraRecorder",
-                                tr("CameraRecorder is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 6, 0, "CameraExposure",
-                                tr("CameraExposure is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeCameraFlash>(uri, 6, 0, "CameraFlash",
-                                tr("CameraFlash is provided by Camera"));
-        qmlRegisterUncreatableType<QDeclarativeTorch>(uri, 6, 0, "CameraTorch",
-                                tr("CameraTorch is provided by Camera"));
-
-        qmlRegisterSingletonType<QDeclarativeMultimediaGlobal>(uri, 6, 0, "QtMultimedia", multimedia_global_object);
 
         qmlRegisterType<QDeclarativePlaylist>(uri, 6, 0, "Playlist");
         qmlRegisterType<QDeclarativePlaylistItem>(uri, 6, 0, "PlaylistItem");

@@ -52,6 +52,15 @@ QT_BEGIN_NAMESPACE
 class QMediaEncoderSettingsPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaEncoderSettings : public QMediaFormat
 {
+    Q_GADGET
+    Q_PROPERTY(FileFormat fileFormat READ format WRITE setFormat)
+    Q_PROPERTY(AudioCodec audioCodec READ audioCodec WRITE setAudioCodec)
+    Q_PROPERTY(VideoCodec videoCodec READ videoCodec WRITE setVideoCodec)
+    Q_PROPERTY(Quality quality READ quality WRITE setQuality)
+    Q_ENUMS(FileFormat)
+    Q_ENUMS(AudioCodec)
+    Q_ENUMS(VideoCodec)
+    Q_ENUMS(Quality)
 public:
     enum Quality
     {

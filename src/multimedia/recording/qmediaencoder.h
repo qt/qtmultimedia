@@ -100,9 +100,6 @@ class QMediaEncoderPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
 {
     Q_OBJECT
-    Q_ENUMS(State)
-    Q_ENUMS(Status)
-    Q_ENUMS(Error)
     Q_PROPERTY(QMediaEncoder::State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QMediaEncoder::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)

@@ -82,7 +82,7 @@ struct QCameraForeign
 {
     Q_GADGET
     QML_FOREIGN(QCamera)
-    QML_NAMED_ELEMENT(NCamera)
+    QML_NAMED_ELEMENT(Camera)
 };
 
 struct QCameraFocusForeign
@@ -106,7 +106,7 @@ struct QCameraExposureForeign
     Q_GADGET
     QML_FOREIGN(QCameraExposure)
     QML_UNCREATABLE("CameraImageProcessing is provided by Camera")
-    QML_NAMED_ELEMENT(NCameraExposure)
+    QML_NAMED_ELEMENT(CameraExposure)
 };
 
 struct QCameraImageCaptureForeign
@@ -150,6 +150,13 @@ struct QCameraInfoForeign
     Q_GADGET
     QML_FOREIGN(QCameraInfo)
     QML_NAMED_ELEMENT(cameraInfo)
+};
+
+struct QMediaEncoderSettingsForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QMediaEncoderSettings)
+    QML_NAMED_ELEMENT(encoderSettings)
 };
 
 QT_END_NAMESPACE
