@@ -207,7 +207,8 @@ QVideoSink *QDeclarativeVideoBackend::videoSink() const
 {
     if (!m_sink) {
         m_sink = new QVideoSink(q);
-        m_sink->setRhi(QQuickWindowPrivate::get(q->window())->rhi);
+        if (q->window())
+            m_sink->setRhi(QQuickWindowPrivate::get(q->window())->rhi);
         qRegisterMetaType<QVideoFrameFormat>();
         QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
                          q, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);
