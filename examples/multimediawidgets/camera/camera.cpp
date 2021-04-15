@@ -131,8 +131,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
     connect(m_imageCapture, &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
     connect(m_imageCapture, &QCameraImageCapture::imageSaved, this, &Camera::imageSaved);
-    connect(m_imageCapture, QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error),
-            this, &Camera::displayCaptureError);
+    connect(m_imageCapture, &QCameraImageCapture::errorOccurred, this, &Camera::displayCaptureError);
     readyForCapture(m_imageCapture->isReadyForCapture());
 
     QCameraImageProcessing *imageProcessing = m_camera->imageProcessing();
@@ -271,7 +270,7 @@ void Camera::setMuted(bool muted)
 void Camera::takeImage()
 {
     m_isCapturingImage = true;
-    m_imageCapture->capture();
+    m_imageCapture->captureToFile();
 }
 
 void Camera::displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString)

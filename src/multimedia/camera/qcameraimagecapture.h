@@ -64,7 +64,9 @@ class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
     Q_OBJECT
     Q_ENUMS(Error)
     Q_PROPERTY(bool readyForCapture READ isReadyForCapture NOTIFY readyForCaptureChanged)
-    Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData)
+    Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
+    Q_PROPERTY(Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 public:
     enum Error
     {
@@ -96,13 +98,15 @@ public:
     void addMetaData(const QMediaMetaData &metaData);
 
 public Q_SLOTS:
-    int capture(const QString &location = QString());
-    int captureToBuffer();
+    int captureToFile(const QString &location = QString());
+    int capture();
 
 Q_SIGNALS:
-    void error(int id, QCameraImageCapture::Error error, const QString &errorString);
+    void errorChanged();
+    void errorOccurred(int id, QCameraImageCapture::Error error, const QString &errorString);
 
     void readyForCaptureChanged(bool ready);
+    void metaDataChanged();
 
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);

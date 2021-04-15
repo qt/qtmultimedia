@@ -56,6 +56,8 @@
 #include <qmediaencodersettings.h>
 #include <qmediaformat.h>
 
+#include <QtQml/qqml.h>
+
 QT_BEGIN_NAMESPACE
 
 class QDeclarativeCamera;

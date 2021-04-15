@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -37,37 +37,37 @@
 **
 ****************************************************************************/
 
-#include "qdeclarativecamerapreviewprovider_p.h"
+#include "qquickimagepreviewprovider_p.h"
 #include <QtCore/qmutex.h>
 #include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
-struct QDeclarativeCameraPreviewProviderPrivate
+struct QQuickImagePreviewProviderPrivate
 {
     QString id;
     QImage image;
     QMutex mutex;
 };
 
-Q_GLOBAL_STATIC(QDeclarativeCameraPreviewProviderPrivate, qDeclarativeCameraPreviewProviderPrivate)
+Q_GLOBAL_STATIC(QQuickImagePreviewProviderPrivate, priv)
 
-QDeclarativeCameraPreviewProvider::QDeclarativeCameraPreviewProvider()
+QQuickImagePreviewProvider::QQuickImagePreviewProvider()
 : QQuickImageProvider(QQuickImageProvider::Image)
 {
 }
 
-QDeclarativeCameraPreviewProvider::~QDeclarativeCameraPreviewProvider()
+QQuickImagePreviewProvider::~QQuickImagePreviewProvider()
 {
-    QDeclarativeCameraPreviewProviderPrivate *d = qDeclarativeCameraPreviewProviderPrivate();
+    QQuickImagePreviewProviderPrivate *d = priv();
     QMutexLocker lock(&d->mutex);
     d->id.clear();
     d->image = QImage();
 }
 
-QImage QDeclarativeCameraPreviewProvider::requestImage(const QString &id, QSize *size, const QSize& requestedSize)
+QImage QQuickImagePreviewProvider::requestImage(const QString &id, QSize *size, const QSize& requestedSize)
 {
-    QDeclarativeCameraPreviewProviderPrivate *d = qDeclarativeCameraPreviewProviderPrivate();
+    QQuickImagePreviewProviderPrivate *d = priv();
     QMutexLocker lock(&d->mutex);
 
     if (d->id != id)
@@ -83,10 +83,10 @@ QImage QDeclarativeCameraPreviewProvider::requestImage(const QString &id, QSize 
     return res;
 }
 
-void QDeclarativeCameraPreviewProvider::registerPreview(const QString &id, const QImage &preview)
+void QQuickImagePreviewProvider::registerPreview(const QString &id, const QImage &preview)
 {
     //only the last preview is kept
-    QDeclarativeCameraPreviewProviderPrivate *d = qDeclarativeCameraPreviewProviderPrivate();
+    QQuickImagePreviewProviderPrivate *d = priv();
     QMutexLocker lock(&d->mutex);
     d->id = id;
     d->image = preview;

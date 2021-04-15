@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVECAMERACAPTURE_H
-#define QDECLARATIVECAMERACAPTURE_H
+#ifndef QQUICKIMAGEPREVIEWPROVIDER_H
+#define QQUICKIMAGEPREVIEWPROVIDER_H
 
 //
 //  W A R N I N G
@@ -51,64 +51,21 @@
 // We mean it.
 //
 
-#include <qcamera.h>
-#include <qcameraimagecapture.h>
-#include <qmediaencodersettings.h>
-#include <qmediametadata.h>
-
-#include <QtQml/qqml.h>
+#include <qtmultimediaquickglobal_p.h>
+#include <QtQuick/qquickimageprovider.h>
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeCamera;
-
-class QDeclarativeCameraCapture : public QObject
+class Q_MULTIMEDIAQUICK_EXPORT QQuickImagePreviewProvider : public QQuickImageProvider
 {
-    Q_OBJECT
-    Q_PROPERTY(bool ready READ isReadyForCapture NOTIFY readyForCaptureChanged)
-    Q_PROPERTY(QString capturedImagePath READ capturedImagePath NOTIFY imageSaved)
-    Q_PROPERTY(QString errorString READ errorString NOTIFY captureFailed)
-
 public:
-    ~QDeclarativeCameraCapture();
+    QQuickImagePreviewProvider();
+    ~QQuickImagePreviewProvider();
 
-    bool isReadyForCapture() const;
-
-    QString capturedImagePath() const;
-    QCameraImageCapture::Error error() const;
-    QString errorString() const;
-
-public Q_SLOTS:
-    int capture();
-    int captureToLocation(const QString &location);
-
-    void setMetadata(QMediaMetaData::Key key, const QVariant &value);
-
-Q_SIGNALS:
-    void readyForCaptureChanged(bool);
-
-    void imageExposed(int requestId);
-    void imageCaptured(int requestId, const QString &preview);
-    void imageMetadataAvailable(int requestId, const QMediaMetaData &);
-    void imageSaved(int requestId, const QString &path);
-    void captureFailed(int requestId, const QString &message);
-
-private slots:
-    void _q_imageCaptured(int, const QImage&);
-    void _q_imageSaved(int, const QString&);
-    void _q_captureFailed(int, QCameraImageCapture::Error, const QString&);
-
-private:
-    friend class QDeclarativeCamera;
-    QDeclarativeCameraCapture(QMediaCaptureSession *captureSession);
-
-    QCameraImageCapture *m_capture;
-    QImageEncoderSettings m_imageSettings;
-    QString m_capturedImagePath;
+    QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) override;
+    static void registerPreview(const QString &id, const QImage &preview);
 };
 
 QT_END_NAMESPACE
-
-QML_DECLARE_TYPE(QT_PREPEND_NAMESPACE(QDeclarativeCameraCapture))
 
 #endif

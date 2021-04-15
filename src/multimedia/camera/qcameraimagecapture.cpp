@@ -100,7 +100,8 @@ void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &erro
     this->error = QCameraImageCapture::Error(error);
     this->errorString = errorString;
 
-    emit q->error(id, this->error, errorString);
+    emit q->errorChanged();
+    emit q->errorOccurred(id, this->error, errorString);
 }
 
 /*!
@@ -235,6 +236,7 @@ void QCameraImageCapture::setMetaData(const QMediaMetaData &metaData)
     Q_D(QCameraImageCapture);
     d->metaData = metaData;
     d->control->setMetaData(d->metaData);
+    emit metaDataChanged();
 }
 
 void QCameraImageCapture::addMetaData(const QMediaMetaData &metaData)
@@ -289,7 +291,7 @@ bool QCameraImageCapture::isReadyForCapture() const
 
     \sa isReadyForCapture()
 */
-int QCameraImageCapture::capture(const QString &file)
+int QCameraImageCapture::captureToFile(const QString &file)
 {
     Q_D(QCameraImageCapture);
 
@@ -301,12 +303,24 @@ int QCameraImageCapture::capture(const QString &file)
     d->error = NotSupportedFeatureError;
     d->errorString = tr("Device does not support images capture.");
 
-    emit error(-1, d->error, d->errorString);
+    d->_q_error(-1, d->error, d->errorString);
 
     return -1;
 }
 
-int QCameraImageCapture::captureToBuffer()
+/*!
+    Capture the image and make it available as a QImage.
+    This operation is asynchronous in majority of cases,
+    followed by signals QCameraImageCapture::imageExposed(),
+    QCameraImageCapture::imageCaptured()
+    or QCameraImageCapture::error().
+
+    QCameraImageCapture::capture returns the capture Id parameter, used with
+    imageExposed(), imageCaptured() and imageSaved() signals.
+
+    \sa isReadyForCapture()
+*/
+int QCameraImageCapture::capture()
 {
     Q_D(QCameraImageCapture);
 
@@ -318,7 +332,7 @@ int QCameraImageCapture::captureToBuffer()
     d->error = NotSupportedFeatureError;
     d->errorString = tr("Device does not support images capture.");
 
-    emit error(-1, d->error, d->errorString);
+    d->_q_error(-1, d->error, d->errorString);
 
     return -1;
 }

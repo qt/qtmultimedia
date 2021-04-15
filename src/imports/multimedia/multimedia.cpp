@@ -53,10 +53,11 @@
 #include "qdeclarativemultimediaglobal_p.h"
 #include "qdeclarativeplaylist_p.h"
 #include "qdeclarativecamera_p.h"
-#include "qdeclarativecamerapreviewprovider_p.h"
 #include "qdeclarativecameraexposure_p.h"
 #include "qdeclarativecameraflash_p.h"
 #include "qdeclarativetorch_p.h"
+
+#include "qquickimagepreviewprovider_p.h"
 
 QML_DECLARE_TYPE(QSoundEffect)
 
@@ -87,8 +88,6 @@ public:
 
         // 6.0 types
         qmlRegisterType<QDeclarativeCamera>(uri, 6, 0, "Camera");
-        qmlRegisterUncreatableType<QDeclarativeCameraCapture>(uri, 6, 0, "CameraCapture",
-                                tr("CameraCapture is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraRecorder>(uri, 6, 0, "CameraRecorder",
                                 tr("CameraRecorder is provided by Camera"));
         qmlRegisterUncreatableType<QDeclarativeCameraExposure>(uri, 6, 0, "CameraExposure",
@@ -111,7 +110,7 @@ public:
     void initializeEngine(QQmlEngine *engine, const char *uri) override
     {
         Q_UNUSED(uri);
-        engine->addImageProvider("camera", new QDeclarativeCameraPreviewProvider);
+        engine->addImageProvider("camera", new QQuickImagePreviewProvider);
     }
 };
 

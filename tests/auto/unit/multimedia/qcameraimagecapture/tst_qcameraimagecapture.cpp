@@ -152,7 +152,7 @@ void tst_QCameraImageCapture::deleteMediaSource()
     QVERIFY(session.camera() == nullptr);
     QVERIFY(!capture->isAvailable());
 
-    capture->capture();
+    capture->captureToFile();
     delete capture;
 }
 
@@ -168,7 +168,7 @@ void tst_QCameraImageCapture::isReadyForCapture()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
-    imageCapture.capture();
+    imageCapture.captureToFile();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
     camera.stop();
 }
@@ -184,11 +184,11 @@ void tst_QCameraImageCapture::capture()
 
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
-    QVERIFY(imageCapture.capture() == -1);
+    QVERIFY(imageCapture.captureToFile() == -1);
     camera.start();
     QVERIFY(imageCapture.isReadyForCapture() == true);
     QTest::qWait(300);
-    QVERIFY(imageCapture.capture() != -1);
+    QVERIFY(imageCapture.captureToFile() != -1);
     camera.stop();
 }
 
@@ -226,7 +226,7 @@ void tst_QCameraImageCapture::errors()
 
         session.setImageCapture(&imageCapture);
         QVERIFY(imageCapture.isAvailable() == false);
-        imageCapture.capture(QString::fromLatin1("/dev/null"));
+        imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
         QVERIFY(imageCapture.error() == QCameraImageCapture::NotSupportedFeatureError);
         QVERIFY2(!imageCapture.errorString().isEmpty(), "Device does not support images capture");
     }
@@ -241,7 +241,7 @@ void tst_QCameraImageCapture::errors()
     QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
-    imageCapture.capture();
+    imageCapture.captureToFile();
     QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
     QVERIFY2(!imageCapture.errorString().isEmpty(), "Could not capture in stopped state");
 
@@ -258,7 +258,7 @@ void tst_QCameraImageCapture::error()
     session.setImageCapture(&imageCapture);
 
     QSignalSpy spy(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
-    imageCapture.capture();
+    imageCapture.captureToFile();
     QTest::qWait(30);
     QVERIFY(spy.count() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) == -1);
@@ -280,7 +280,7 @@ void tst_QCameraImageCapture::imageCaptured()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
-    imageCapture.capture();
+    imageCapture.captureToFile();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     QVERIFY(spy.count() == 1);
@@ -304,7 +304,7 @@ void tst_QCameraImageCapture::imageExposed()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
-    imageCapture.capture();
+    imageCapture.captureToFile();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     QVERIFY(spy.count() == 1);
@@ -326,7 +326,7 @@ void tst_QCameraImageCapture::imageSaved()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
-    imageCapture.capture(QString::fromLatin1("/usr/share"));
+    imageCapture.captureToFile(QString::fromLatin1("/usr/share"));
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     QVERIFY(spy.count() == 1);
@@ -347,13 +347,13 @@ void tst_QCameraImageCapture::readyForCaptureChanged()
 
     QSignalSpy spy(&imageCapture, SIGNAL(readyForCaptureChanged(bool)));
     QVERIFY(imageCapture.isReadyForCapture() == false);
-    imageCapture.capture();
+    imageCapture.captureToFile();
     QTest::qWait(100);
     QVERIFY(spy.count() == 0);
     QVERIFY2(!imageCapture.errorString().isEmpty(),"Could not capture in stopped state" );
     camera.start();
     QTest::qWait(100);
-    imageCapture.capture();
+    imageCapture.captureToFile();
     QTest::qWait(100);
     QVERIFY(spy.count() == 2);
     QVERIFY(spy.at(0).at(0).toBool() == false);

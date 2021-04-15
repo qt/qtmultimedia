@@ -257,7 +257,7 @@ void tst_QCamera::testSimpleCameraCapture()
     QVERIFY(imageCapture.errorString().isEmpty());
 
     QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
-    imageCapture.capture(QString::fromLatin1("/dev/null"));
+    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NotSupportedFeatureError);
     QVERIFY(!imageCapture.errorString().isEmpty());
@@ -276,7 +276,7 @@ void tst_QCamera::testCameraCapture()
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
 
-    imageCapture.capture(QString::fromLatin1("/dev/null"));
+    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
     QCOMPARE(capturedSignal.size(), 0);
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
@@ -287,7 +287,7 @@ void tst_QCamera::testCameraCapture()
     QVERIFY(imageCapture.isReadyForCapture());
     QCOMPARE(errorSignal.size(), 0);
 
-    imageCapture.capture(QString::fromLatin1("/dev/null"));
+    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
 
     QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(errorSignal.size(), 0);
@@ -306,7 +306,7 @@ void tst_QCamera::testCameraCaptureMetadata()
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
 
     camera.start();
-    int id = imageCapture.capture(QString::fromLatin1("/dev/null"));
+    int id = imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
 
     QTRY_COMPARE(savedSignal.size(), 1);
 

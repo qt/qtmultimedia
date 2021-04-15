@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QDECLARATIVECAMERAPREVIEWPROVIDER_H
-#define QDECLARATIVECAMERAPREVIEWPROVIDER_H
+#ifndef QQUICKIMAGECAPTURE_H
+#define QQUICKIMAGECAPTURE_H
 
 //
 //  W A R N I N G
@@ -51,18 +51,41 @@
 // We mean it.
 //
 
-#include <QtQuick/qquickimageprovider.h>
+#include <qcamera.h>
+#include <qcameraimagecapture.h>
+#include <qmediaencodersettings.h>
+#include <qmediametadata.h>
+
+#include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
-class QDeclarativeCameraPreviewProvider : public QQuickImageProvider
-{
-public:
-    QDeclarativeCameraPreviewProvider();
-    ~QDeclarativeCameraPreviewProvider();
+class QUrl;
 
-    QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) override;
-    static void registerPreview(const QString &id, const QImage &preview);
+class QQuickImageCapture : public QCameraImageCapture
+{
+    Q_OBJECT
+    Q_PROPERTY(QString preview READ preview NOTIFY previewChanged)
+    QML_NAMED_ELEMENT(ImageCapture)
+
+public:
+    QQuickImageCapture(QObject *parent);
+    ~QQuickImageCapture();
+
+    QString preview() const;
+
+public Q_SLOTS:
+    void saveToFile(const QUrl &location) const;
+
+Q_SIGNALS:
+    void previewChanged();
+
+private Q_SLOTS:
+    void _q_imageCaptured(int, const QImage&);
+
+private:
+    QImage m_lastImage;
+    QString m_capturedImagePath;
 };
 
 QT_END_NAMESPACE

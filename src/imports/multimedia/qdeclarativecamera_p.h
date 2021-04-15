@@ -51,13 +51,11 @@
 // We mean it.
 //
 
-#include "qdeclarativecameracapture_p.h"
 #include "qdeclarativecamerarecorder_p.h"
 
 #include <qcamera.h>
 #include <qcamerainfo.h>
 #include <qcameraimageprocessing.h>
-#include <qcameraimagecapture.h>
 #include <qmediacapturesession.h>
 
 #include <QtCore/qbasictimer.h>
@@ -85,7 +83,6 @@ class QDeclarativeCamera : public QObject, public QQmlParserStatus
     Q_PROPERTY(Error errorCode READ errorCode NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
-    Q_PROPERTY(QDeclarativeCameraCapture* imageCapture READ imageCapture CONSTANT)
     Q_PROPERTY(QDeclarativeCameraRecorder* videoRecorder READ videoRecorder CONSTANT)
     Q_PROPERTY(QDeclarativeCameraExposure* exposure READ exposure CONSTANT)
     Q_PROPERTY(QDeclarativeCameraFlash* flash READ flash CONSTANT)
@@ -171,7 +168,6 @@ public:
     QDeclarativeCamera(QObject *parent = 0);
     ~QDeclarativeCamera();
 
-    QDeclarativeCameraCapture *imageCapture() { return m_imageCapture; }
     QDeclarativeCameraRecorder *videoRecorder() { return m_videoRecorder; }
     QDeclarativeCameraExposure *exposure() { return m_exposure; }
     QDeclarativeCameraFlash *flash() { return m_flash; }
@@ -232,7 +228,6 @@ private:
     QCamera *m_camera;
     QCameraInfo m_currentCameraInfo;
 
-    QDeclarativeCameraCapture *m_imageCapture;
     QDeclarativeCameraRecorder *m_videoRecorder;
     QDeclarativeCameraExposure *m_exposure;
     QDeclarativeCameraFlash *m_flash;

@@ -10,6 +10,8 @@ qt_add_module(MultimediaQuick
     SOURCES
         qdeclarativevideooutput.cpp qdeclarativevideooutput_p.h
         qdeclarativevideooutput_render.cpp qdeclarativevideooutput_render_p.h
+        qquickimagecapture.cpp qquickimagecapture_p.h
+        qquickimagepreviewprovider.cpp qquickimagepreviewprovider_p.h
         qsgvideonode_p.cpp qsgvideonode_p.h
         qsgvideotexture.cpp qsgvideotexture_p.h
         qtmultimediaquickglobal_p.h

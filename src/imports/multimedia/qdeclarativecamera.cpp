@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qdeclarativecamera_p.h"
-#include "qdeclarativecamerapreviewprovider_p.h"
 
 #include "qdeclarativecameraexposure_p.h"
 #include "qdeclarativecameraflash_p.h"
@@ -48,6 +47,7 @@
 #include <qobject.h>
 #include <QMediaDeviceManager>
 #include <QtQml/qqmlinfo.h>
+#include <QtQml/qqmlengine.h>
 
 #include <QtCore/QTimer>
 #include <QtGui/qevent.h>
@@ -166,7 +166,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
     m_currentCameraInfo = QMediaDeviceManager::defaultVideoInput();
     m_camera = new QCamera(m_currentCameraInfo);
 
-    m_imageCapture = new QDeclarativeCameraCapture(&captureSession);
     m_videoRecorder = new QDeclarativeCameraRecorder(&captureSession);
     m_exposure = new QDeclarativeCameraExposure(m_camera);
     m_flash = new QDeclarativeCameraFlash(m_camera);
@@ -181,7 +180,6 @@ QDeclarativeCamera::QDeclarativeCamera(QObject *parent) :
 QDeclarativeCamera::~QDeclarativeCamera()
 {
     // These must be deleted before QCamera
-    delete m_imageCapture;
     delete m_videoRecorder;
     delete m_exposure;
     delete m_flash;
