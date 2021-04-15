@@ -72,6 +72,7 @@ public:
 
     void init();
 
+    void clearControls();
     void clear();
 
     QMediaCaptureSession *captureSession = nullptr;

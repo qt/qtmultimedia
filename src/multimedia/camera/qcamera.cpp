@@ -89,20 +89,21 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
 void QCameraPrivate::init()
 {
     Q_Q(QCamera);
-    control = nullptr;
     if (captureInterface && !cameraInfo.isNull()) {
+        clearControls();
         control = QPlatformMediaIntegration::instance()->createCamera(q);
-        control->setCamera(cameraInfo);
-        captureInterface->setCamera(control);
+        if (control) {
+            control->setCamera(cameraInfo);
+            captureInterface->setCamera(control);
+        } else {
+            captureInterface = nullptr;
+            error = QCamera::CameraError;
+            errorString = QCamera::tr("The capture session doesn't support cameras.");
+            return;
+        }
     } else {
         clear();
         _q_error(QCamera::CameraError, QCamera::tr("The camera is not connected to a capture session"));
-        return;
-    }
-
-    if (!control) {
-        clear();
-        _q_error(QCamera::CameraError, QCamera::tr("The capture session doesn't support cameras."));
         return;
     }
 
@@ -116,6 +117,12 @@ void QCameraPrivate::init()
 
 void QCameraPrivate::clear()
 {
+    clearControls();
+    captureInterface = nullptr;
+}
+
+void QCameraPrivate::clearControls()
+{
     delete cameraExposure;
     delete cameraFocus;
     delete imageProcessing;
@@ -125,7 +132,6 @@ void QCameraPrivate::clear()
     cameraFocus = nullptr;
     imageProcessing = nullptr;
     control = nullptr;
-    captureInterface = nullptr;
 }
 
 /*!
