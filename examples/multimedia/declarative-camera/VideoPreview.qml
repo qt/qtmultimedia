@@ -61,14 +61,16 @@ Item {
         autoPlay: true
 
         //switch back to viewfinder after playback finished
-        onStatusChanged: {
+        onMediaStatusChanged: {
             if (status == MediaPlayer.EndOfMedia)
                 videoPreview.closed();
         }
+
+        videoOutput: output
     }
 
     VideoOutput {
-        source: player
+        id: output
         anchors.fill : parent
     }
 

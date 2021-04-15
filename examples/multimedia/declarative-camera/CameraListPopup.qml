@@ -79,7 +79,7 @@ Popup {
             height: cameraListPopup.itemHeight
 
             Text {
-                text: modelData.displayName
+                text: modelData.description
 
                 anchors.fill: parent
                 anchors.margins: 5

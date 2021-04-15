@@ -52,7 +52,7 @@ import QtQuick
 import QtMultimedia
 
 FocusScope {
-    property Camera camera
+    property CaptureSession captureSession
     property bool previewAvailable : false
 
     property int buttonsPanelWidth: buttonPaneShadow.width
@@ -81,8 +81,8 @@ FocusScope {
 
             CameraButton {
                 text: "Capture"
-                visible: camera.imageCapture.ready
-                onClicked: camera.imageCapture.capture()
+                visible: captureSession.imageCapture.readyForCapture
+                onClicked: captureSession.imageCapture.capture()
             }
 
             CameraPropertyButton {
@@ -115,7 +115,7 @@ FocusScope {
                         text: "Fluorescent"
                     }
                 }
-                onValueChanged: captureControls.camera.imageProcessing.whiteBalanceMode = wbModesButton.value
+                onValueChanged: captureControls.captureSession.camera.imageProcessing.whiteBalanceMode = wbModesButton.value
             }
 
             CameraButton {
@@ -136,8 +136,8 @@ FocusScope {
             spacing: 8
 
             CameraListButton {
-                model: QtMultimedia.availableCameras
-                onValueChanged: captureControls.camera.deviceId = value
+                model: MediaDeviceManager.videoInputs
+                onValueChanged: captureSession.camera.cameraInfo = value
             }
 
             CameraButton {

@@ -52,7 +52,7 @@ import QtQuick
 import QtMultimedia
 
 FocusScope {
-    property Camera camera
+    property CaptureSession captureSession
     property bool previewAvailable : false
 
     property int buttonsPanelWidth: buttonPaneShadow.width
@@ -81,22 +81,22 @@ FocusScope {
 
             CameraButton {
                 text: "Record"
-                visible: camera.videoRecorder.recorderStatus == CameraRecorder.LoadedStatus
-                onClicked: camera.videoRecorder.record()
+                visible: captureSession.encoder.status !== MediaEncoder.RecordingStatus
+                onClicked: captureSession.encoder.record()
             }
 
             CameraButton {
                 id: stopButton
                 text: "Stop"
-                visible: camera.videoRecorder.recorderStatus == CameraRecorder.RecordingStatus
-                onClicked: camera.videoRecorder.stop()
+                visible: captureSession.encoder.status === MediaEncoder.RecordingStatus
+                onClicked: captureSession.encoder.stop()
             }
 
             CameraButton {
                 text: "View"
                 onClicked: captureControls.previewSelected()
                 //don't show View button during recording
-                visible: camera.videoRecorder.actualLocation && !stopButton.visible
+                visible: captureSession.encoder.actualLocation && !stopButton.visible
             }
         }
 
@@ -111,8 +111,8 @@ FocusScope {
             spacing: 8
 
             CameraListButton {
-                model: QtMultimedia.availableCameras
-                onValueChanged: captureControls.camera.deviceId = value
+                model: MediaDeviceManager.videoInputs
+                onValueChanged: captureSession.camera.cameraInfo = value
             }
 
             CameraButton {
@@ -135,8 +135,8 @@ FocusScope {
         width : 100
         height: parent.height
 
-        currentZoom: camera.digitalZoom
-        maximumZoom: Math.min(4.0, camera.maximumDigitalZoom)
-        onZoomTo: camera.setDigitalZoom(value)
+        currentZoom: captureSession.camera.focus.zoomFactor
+        maximumZoom: captureSession.camera.focus.maximumZoomFactor
+        onZoomTo: captureSession.camera.focus.zoomFactor = value
     }
 }
