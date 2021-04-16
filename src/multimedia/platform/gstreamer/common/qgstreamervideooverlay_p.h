@@ -89,12 +89,14 @@ Q_SIGNALS:
 
 private:
     void probeCaps(GstCaps *caps) override;
+    void applyRenderRect();
 
     QGstElement m_videoSink;
     QSize m_nativeVideoSize;
 
     QGstreamerSinkProperties *m_sinkProperties = nullptr;
     WId m_windowId = 0;
+    QRect renderRect;
 };
 
 QT_END_NAMESPACE

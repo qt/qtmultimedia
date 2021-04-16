@@ -92,9 +92,6 @@ public:
         m_hasContrast = g_object_class_find_property(klass, "contrast");
         m_hasHue = g_object_class_find_property(klass, "hue");
         m_hasSaturation = g_object_class_find_property(klass, "saturation");
-        bool hasShowPrerollFrame = g_object_class_find_property(klass, "show-preroll-frame");
-        if (hasShowPrerollFrame)
-            m_videoSink.set("show-preroll-frame", true);
     }
 
     void reset() override
@@ -334,6 +331,7 @@ void QGstreamerVideoOverlay::setWindowHandle(WId id)
 
     if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object())) {
         gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink.object()), id);
+        applyRenderRect();
 
         // Properties need to be reset when changing the winId.
         m_sinkProperties->reset();
@@ -342,16 +340,25 @@ void QGstreamerVideoOverlay::setWindowHandle(WId id)
 
 void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
 {
+    renderRect = rect;
+    applyRenderRect();
+}
+
+void QGstreamerVideoOverlay::applyRenderRect()
+{
+    if (!m_windowId)
+        return;
+
     int x = -1;
     int y = -1;
     int w = -1;
     int h = -1;
 
-    if (!rect.isEmpty()) {
-        x = rect.x();
-        y = rect.y();
-        w = rect.width();
-        h = rect.height();
+    if (!renderRect.isEmpty()) {
+        x = renderRect.x();
+        y = renderRect.y();
+        w = renderRect.width();
+        h = renderRect.height();
     }
 
     if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object()))
