@@ -114,7 +114,7 @@ public:
     {
         m_brightness = brightness;
         if (m_hasBrightness)
-            m_videoSink.set("brightness", brightness * 1000);
+            m_videoSink.set("brightness", (int)brightness * 1000);
 
         return m_hasBrightness;
     }
@@ -123,7 +123,7 @@ public:
     {
         m_contrast = contrast;
         if (m_hasContrast)
-            m_videoSink.set("contrast", contrast * 1000);
+            m_videoSink.set("contrast", (int)contrast * 1000);
 
         return m_hasContrast;
     }
@@ -132,7 +132,7 @@ public:
     {
         m_hue = hue;
         if (m_hasHue)
-            m_videoSink.set("hue", hue * 1000);
+            m_videoSink.set("hue", (int)hue * 1000);
 
         return m_hasHue;
     }
@@ -141,7 +141,7 @@ public:
     {
         m_saturation = saturation;
         if (m_hasSaturation)
-            m_videoSink.set("saturation", saturation * 1000);
+            m_videoSink.set("saturation", (int)saturation * 1000);
 
         return m_hasSaturation;
     }
