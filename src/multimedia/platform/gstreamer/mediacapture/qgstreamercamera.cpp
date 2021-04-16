@@ -54,8 +54,6 @@ QGstreamerCamera::QGstreamerCamera(QCamera *camera)
     : QPlatformCamera(camera),
       gstCameraBin("camerabin")
 {
-    m_session = static_cast<QGstreamerMediaCapture *>(camera->captureSession()->platformSession());
-
     gstCamera = QGstElement("videotestsrc");
     gstVideoConvert = QGstElement("videoconvert", "videoConvert");
     gstVideoScale = QGstElement("videoscale", "videoScale");
@@ -65,9 +63,6 @@ QGstreamerCamera::QGstreamerCamera(QCamera *camera)
     gstCameraBin.addGhostPad(gstVideoScale, "src");
 
     imageProcessing = new QGstreamerImageProcessing(this);
-
-    // ### should this be called in constructor?
-    // setCamera(camera->cameraInfo());
 }
 
 QGstreamerCamera::~QGstreamerCamera() = default;
@@ -94,12 +89,14 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 
     m_cameraInfo = camera;
 
-    auto state = gstPipeline.state();
-    gstPipeline.setStateSync(GST_STATE_NULL); // ### Can we do it pausing only????
+    bool havePipeline = !gstPipeline.isNull();
+
+    auto state = havePipeline ? gstPipeline.state() : GST_STATE_NULL;
+    if (havePipeline)
+        gstPipeline.setStateSync(GST_STATE_PAUSED);
 
     Q_ASSERT(!gstCamera.isNull());
 
-    gstCamera.setStateSync(GST_STATE_NULL);
     gstCameraBin.remove(gstCamera);
 
     if (camera.isNull()) {
@@ -116,9 +113,10 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
     gstCameraBin.add(gstCamera);
     gstCamera.link(gstVideoConvert);
 
-    gstCamera.setStateSync(GST_STATE_PAUSED);
+    gstCamera.setStateSync(state == GST_STATE_PLAYING ? GST_STATE_PAUSED : state);
 
-    gstPipeline.setStateSync(state);
+    if (havePipeline)
+        gstPipeline.setStateSync(state);
 
     //m_session->cameraChanged();
     imageProcessing->update();

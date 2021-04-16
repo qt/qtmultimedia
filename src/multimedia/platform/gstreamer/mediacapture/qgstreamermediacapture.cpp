@@ -66,28 +66,21 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
 
     gstAudioOutput = new QGstreamerAudioOutput(this);
     gstAudioOutput->setPipeline(gstPipeline);
+    gstAudioTee = QGstElement("tee", "audiotee");
+
+    gstPipeline.add(gstAudioInput->gstElement(), gstAudioTee, gstAudioOutput->gstElement());
+    gstAudioInput->gstElement().link(gstAudioTee);
+    auto pad = gstAudioTee.getRequestPad("src_%u");
+    pad.link(gstAudioOutput->gstElement().staticPad("sink"));
 
     gstVideoOutput = new QGstreamerVideoOutput(this);
     gstVideoOutput->setIsPreview();
     gstVideoOutput->setPipeline(gstPipeline);
 
-    gstAudioTee = QGstElement("tee", "audiotee");
-    gstVideoTee = QGstElement("tee", "videotee");
-
-    gstPipeline.add(gstVideoTee, gstVideoOutput->gstElement());
-    // gstCamera->gstElement().link(gstVideoTee);
-    auto pad = gstVideoTee.getRequestPad("src_%u");
-    pad.link(gstVideoOutput->gstElement().staticPad("sink"));
-
-    gstPipeline.add(gstAudioInput->gstElement(), gstAudioTee, gstAudioOutput->gstElement());
-    gstAudioInput->gstElement().link(gstAudioTee);
-    pad = gstAudioTee.getRequestPad("src_%u");
-    pad.link(gstAudioOutput->gstElement().staticPad("sink"));
-
     //m_imageCapture = new QGstreamerCameraImageCapture(this, gstPipeline);
     m_mediaEncoder = new QGstreamerMediaEncoder(this, gstPipeline);
 
-    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    gstPipeline.setState(GST_STATE_PLAYING);
 
     dumpGraph(QLatin1String("initial"));
 }
@@ -110,6 +103,18 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     if (gstCamera == control)
         return;
 
+    //auto state = gstPipeline.state();
+    gstPipeline.setStateSync(GST_STATE_PAUSED);
+
+    if (gstVideoTee.isNull()) {
+        gstVideoTee = QGstElement("tee", "videotee");
+
+        gstPipeline.add(gstVideoTee, gstVideoOutput->gstElement());
+        auto pad = gstVideoTee.getRequestPad("src_%u");
+        pad.link(gstVideoOutput->gstElement().staticPad("sink"));
+    }
+
+
     if (gstCamera) {
         gstCamera->setCaptureSession(nullptr);
         gstPipeline.remove(gstCamera->gstElement());
@@ -123,8 +128,10 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
         gstCamera->setCaptureSession(this);
         //gstCamera->setPipeline(gstPipeline); // needed?
     }
+    gstPipeline.setStateSync(GST_STATE_PLAYING);
 
     cameraChanged();
+    dumpGraph(QLatin1String("camera"));
 }
 
 QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCapture()
@@ -134,10 +141,12 @@ QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCapture()
 
 void QGstreamerMediaCapture::setImageCapture(QPlatformCameraImageCapture *imageCapture)
 {
+    Q_UNUSED(imageCapture);
 }
 
 void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
 {
+    Q_UNUSED(encoder);
 }
 
 QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()
@@ -213,7 +222,7 @@ QGstPad QGstreamerMediaCapture::getAudioPad() const
 
 QGstPad QGstreamerMediaCapture::getVideoPad() const
 {
-    return gstVideoTee.getRequestPad("src_%u");
+    return gstVideoTee.isNull() ? QGstPad() : gstVideoTee.getRequestPad("src_%u");
 }
 
 void QGstreamerMediaCapture::releaseAudioPad(const QGstPad &pad) const

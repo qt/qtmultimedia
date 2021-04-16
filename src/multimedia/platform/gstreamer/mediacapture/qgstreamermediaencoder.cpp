@@ -348,8 +348,10 @@ void QGstreamerMediaEncoder::record()
 
     if (m_settings.mode() == QMediaFormat::AudioAndVideo) {
         videoSrcPad = m_session->getVideoPad();
-        QGstPad videoPad = gstEncoder.getRequestPad("video_%u");
-        videoSrcPad.link(videoPad);
+        if (!videoSrcPad.isNull()) {
+            QGstPad videoPad = gstEncoder.getRequestPad("video_%u");
+            videoSrcPad.link(videoPad);
+        }
     }
 
     gstEncoder.setStateSync(GST_STATE_PAUSED);
