@@ -72,7 +72,6 @@ class QGstreamerSinkProperties
 public:
     virtual ~QGstreamerSinkProperties() = default;
 
-    virtual bool hasShowPrerollFrame() const = 0;
     virtual void reset() = 0;
     virtual bool setBrightness(float brightness) = 0;
     virtual bool setContrast(float contrast) = 0;
@@ -93,12 +92,9 @@ public:
         m_hasContrast = g_object_class_find_property(klass, "contrast");
         m_hasHue = g_object_class_find_property(klass, "hue");
         m_hasSaturation = g_object_class_find_property(klass, "saturation");
-        m_hasShowPrerollFrame = g_object_class_find_property(klass, "show-preroll-frame");
-    }
-
-    bool hasShowPrerollFrame() const override
-    {
-        return m_hasShowPrerollFrame;
+        bool hasShowPrerollFrame = g_object_class_find_property(klass, "show-preroll-frame");
+        if (hasShowPrerollFrame)
+            m_videoSink.set("show-preroll-frame", true);
     }
 
     void reset() override
@@ -161,7 +157,6 @@ protected:
     bool m_hasContrast = false;
     bool m_hasHue = false;
     bool m_hasSaturation = false;
-    bool m_hasShowPrerollFrame = false;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
     float m_brightness = 0;
     float m_contrast = 0;
@@ -326,10 +321,6 @@ void QGstreamerVideoOverlay::setVideoSink(QGstElement sink)
     bool isVaapi = sinkName.startsWith("vaapisink");
     delete m_sinkProperties;
     m_sinkProperties = isVaapi ? new QVaapiSinkProperties(sink) : new QXVImageSinkProperties(sink);
-
-    if (m_sinkProperties->hasShowPrerollFrame())
-        g_signal_connect(m_videoSink.object(), "notify::show-preroll-frame",
-                         G_CALLBACK(showPrerollFrameChanged), this);
 }
 
 QSize QGstreamerVideoOverlay::nativeVideoSize() const
@@ -341,12 +332,6 @@ void QGstreamerVideoOverlay::setWindowHandle(WId id)
 {
     m_windowId = id;
 
-    if (isActive())
-        setWindowHandle_helper(id);
-}
-
-void QGstreamerVideoOverlay::setWindowHandle_helper(WId id)
-{
     if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object())) {
         gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink.object()), id);
 
@@ -373,29 +358,6 @@ void QGstreamerVideoOverlay::setRenderRectangle(const QRect &rect)
         gst_video_overlay_set_render_rectangle(GST_VIDEO_OVERLAY(m_videoSink.object()), x, y, w, h);
 }
 
-bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message)
-{
-    GstMessage* gm = message.rawMessage();
-
-    if (gm && (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ELEMENT) &&
-        gst_structure_has_name(gst_message_get_structure(gm), "prepare-window-handle")) {
-        setWindowHandle_helper(m_windowId);
-        return true;
-    }
-
-    return false;
-}
-
-bool QGstreamerVideoOverlay::processBusMessage(const QGstreamerMessage &message)
-{
-    GstMessage* gm = message.rawMessage();
-
-    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_STATE_CHANGED && GST_MESSAGE_SRC(gm) == m_videoSink.object())
-        updateIsActive();
-
-    return false;
-}
-
 void QGstreamerVideoOverlay::probeCaps(GstCaps *caps)
 {
     QSize size = QGstCaps(caps).at(0).resolution();
@@ -403,35 +365,6 @@ void QGstreamerVideoOverlay::probeCaps(GstCaps *caps)
         m_nativeVideoSize = size;
         emit nativeVideoSizeChanged();
     }
-}
-
-bool QGstreamerVideoOverlay::isActive() const
-{
-    return m_isActive;
-}
-
-void QGstreamerVideoOverlay::updateIsActive()
-{
-    if (m_videoSink.isNull())
-        return;
-
-    GstState state = m_videoSink.state();
-    gboolean showPreroll = true;
-
-    if (m_sinkProperties->hasShowPrerollFrame())
-        showPreroll = m_videoSink.getBool("show-preroll-frame");
-
-    bool newIsActive = (state == GST_STATE_PLAYING || (state == GST_STATE_PAUSED && showPreroll));
-
-    if (newIsActive != m_isActive) {
-        m_isActive = newIsActive;
-        emit activeChanged();
-    }
-}
-
-void QGstreamerVideoOverlay::showPrerollFrameChanged(GObject *, GParamSpec *, QGstreamerVideoOverlay *overlay)
-{
-    overlay->updateIsActive();
 }
 
 void QGstreamerVideoOverlay::setAspectRatioMode(Qt::AspectRatioMode mode)

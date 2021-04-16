@@ -108,6 +108,7 @@ private:
     QMediaCaptureSessionPrivate *d_ptr;
     Q_DISABLE_COPY(QMediaCaptureSession)
     Q_DECLARE_PRIVATE(QMediaCaptureSession)
+    Q_PRIVATE_SLOT(d_func(), void _q_sinkDestroyed(QObject *))
 };
 
 QT_END_NAMESPACE

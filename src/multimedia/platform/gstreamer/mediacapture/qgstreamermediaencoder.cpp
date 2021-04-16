@@ -85,6 +85,7 @@ QGstreamerMediaEncoder::QGstreamerMediaEncoder(QGstreamerMediaCapture *session, 
 
 QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
 {
+    gstPipeline.removeMessageFilter(this);
     gstPipeline.setStateSync(GST_STATE_NULL);
 }
 

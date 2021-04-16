@@ -61,8 +61,6 @@ QT_BEGIN_NAMESPACE
 class QGstreamerSinkProperties;
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
         : public QObject
-        , public QGstreamerSyncMessageFilter
-        , public QGstreamerBusMessageFilter
         , private QGstreamerBufferProbe
 {
     Q_OBJECT
@@ -77,8 +75,6 @@ public:
     void setWindowHandle(WId id);
     void setRenderRectangle(const QRect &rect);
 
-    bool isActive() const;
-
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
 
@@ -87,22 +83,15 @@ public:
     void setHue(float hue);
     void setSaturation(float saturation);
 
-    bool processSyncMessage(const QGstreamerMessage &message) override;
-    bool processBusMessage(const QGstreamerMessage &message) override;
-
 Q_SIGNALS:
     void nativeVideoSizeChanged();
     void activeChanged();
 
 private:
-    void setWindowHandle_helper(WId id);
-    void updateIsActive();
     void probeCaps(GstCaps *caps) override;
-    static void showPrerollFrameChanged(GObject *, GParamSpec *, QGstreamerVideoOverlay *);
 
     QGstElement m_videoSink;
     QSize m_nativeVideoSize;
-    bool m_isActive = false;
 
     QGstreamerSinkProperties *m_sinkProperties = nullptr;
     WId m_windowId = 0;

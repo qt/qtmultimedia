@@ -62,10 +62,8 @@
 QT_BEGIN_NAMESPACE
 class QGstreamerVideoRenderer;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink :
-        public QPlatformVideoSink,
-        public QGstreamerSyncMessageFilter,
-        public QGstreamerBusMessageFilter
+class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink
+    : public QPlatformVideoSink
 {
     Q_OBJECT
 public:
@@ -91,8 +89,6 @@ public:
 
     QGstElement gstSink();
 
-    bool processSyncMessage(const QGstreamerMessage &message) override;
-    bool processBusMessage(const QGstreamerMessage &message) override;
     bool isReady() const { return m_windowId != 0; }
 
 signals:

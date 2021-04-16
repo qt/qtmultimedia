@@ -68,20 +68,16 @@ QGstreamerVideoOutput::~QGstreamerVideoOutput()
 
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
-    auto *videoSink = static_cast<QGstreamerVideoSink *>(sink->platformVideoSink());
+    auto *videoSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
     if (videoSink == m_videoWindow)
         return;
 
     if (m_videoWindow) {
-        gstPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(m_videoWindow));
-        gstPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(m_videoWindow));
         disconnect(m_videoWindow, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
     }
 
     m_videoWindow = videoSink;
     if (m_videoWindow) {
-        gstPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(m_videoWindow));
-        gstPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(m_videoWindow));
         connect(m_videoWindow, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
     }
     sinkChanged();

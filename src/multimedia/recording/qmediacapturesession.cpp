@@ -58,6 +58,15 @@ public:
     QCameraImageCapture *imageCapture = nullptr;
     QMediaEncoder *encoder = nullptr;
     QVariant videoOutput;
+    QVideoSink *videoSink = nullptr;
+
+    void _q_sinkDestroyed(QObject *sink) {
+        if (sink == videoSink) {
+            captureSession->setVideoPreview(nullptr);
+            videoOutput = {};
+            videoSink = nullptr;
+        }
+    }
 };
 
 
@@ -79,6 +88,8 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
  */
 QMediaCaptureSession::~QMediaCaptureSession()
 {
+    if (d_ptr->camera)
+        d_ptr->camera->setCaptureSession(nullptr);
     delete d_ptr;
 }
 
@@ -249,7 +260,12 @@ void QMediaCaptureSession::setVideoOutput(QVideoSink *sink)
     QVariant out = QVariant::fromValue(sink);
     if (d->videoOutput == out)
         return;
+    if (d->videoSink)
+        disconnect(d->videoSink, SIGNAL(destroyed(QObject *)), this, SLOT(_q_sinkDestroyed(QObject *)));
     d->videoOutput = out;
+    d->videoSink = sink;
+    connect(d->videoSink, SIGNAL(destroyed(QObject *)), this, SLOT(_q_sinkDestroyed(QObject *)));
+
     d->captureSession->setVideoPreview(sink);
     emit videoOutputChanged();
 }

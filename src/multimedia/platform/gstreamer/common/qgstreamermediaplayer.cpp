@@ -96,6 +96,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
 
 QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
 {
+    playerPipeline.removeMessageFilter(this);
     playerPipeline.setStateSync(GST_STATE_NULL);
     if (ownStream)
         delete m_stream;

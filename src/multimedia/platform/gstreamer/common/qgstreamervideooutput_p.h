@@ -56,6 +56,7 @@
 #include <private/qgst_p.h>
 #include <qwaitcondition.h>
 #include <qmutex.h>
+#include <qpointer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -87,7 +88,7 @@ private:
     void prepareVideoOutputChange(const QGstPad &pad);
 
     QVideoSink *m_videoSink = nullptr;
-    QGstreamerVideoSink *m_videoWindow = nullptr;
+    QPointer<QGstreamerVideoSink> m_videoWindow;
 
     // Gst elements
     QGstPipeline gstPipeline;

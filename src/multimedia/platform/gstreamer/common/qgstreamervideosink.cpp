@@ -87,16 +87,6 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
     m_rhi = rhi;
 }
 
-bool QGstreamerVideoSink::processSyncMessage(const QGstreamerMessage &message)
-{
-    return m_videoOverlay->processSyncMessage(message);
-}
-
-bool QGstreamerVideoSink::processBusMessage(const QGstreamerMessage &message)
-{
-    return m_videoOverlay->processBusMessage(message);
-}
-
 void QGstreamerVideoSink::setDisplayRect(const QRect &rect)
 {
     m_videoOverlay->setRenderRectangle(m_displayRect = rect);
