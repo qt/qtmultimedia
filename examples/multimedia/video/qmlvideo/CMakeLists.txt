@@ -32,6 +32,7 @@ qt_add_executable(qmlvideo
 set_target_properties(qmlvideo PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 target_include_directories(qmlvideo PUBLIC
     ../snippets/frequencymonitor
