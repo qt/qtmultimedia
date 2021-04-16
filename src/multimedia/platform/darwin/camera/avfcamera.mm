@@ -56,15 +56,6 @@ AVFCamera::AVFCamera(QCamera *camera)
    , m_lastStatus(QCamera::InactiveStatus)
 {
     Q_ASSERT(camera);
-    Q_ASSERT(camera->captureSession());
-
-    m_service = static_cast<AVFCameraService *>(camera->captureSession()->platformSession());
-    Q_ASSERT(m_service);
-
-    m_session = m_service->session();
-    Q_ASSERT(m_session);
-
-    setCamera(camera->cameraInfo());
 
     m_cameraFocusControl = new AVFCameraFocus(this);
     m_cameraImageProcessingControl = new AVFCameraImageProcessing(this);
@@ -72,7 +63,6 @@ AVFCamera::AVFCamera(QCamera *camera)
 #ifdef Q_OS_IOS
     m_cameraExposureControl = new AVFCameraExposure(this);
 #endif
-    connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 }
 
 AVFCamera::~AVFCamera()
@@ -92,7 +82,8 @@ void AVFCamera::setActive(bool active)
     if (m_active == active)
         return;
     m_active = active;
-    m_session->setActive(active);
+    if (m_session)
+        m_session->setActive(active);
 
     Q_EMIT activeChanged(m_active);
     updateStatus();
@@ -100,10 +91,13 @@ void AVFCamera::setActive(bool active)
 
 QCamera::Status AVFCamera::status() const
 {
-    static QCamera::Status statusTable[2][2] = {
+    static const QCamera::Status statusTable[2][2] = {
         { QCamera::InactiveStatus,    QCamera::StoppingStatus }, //Inactive state
         { QCamera::StartingStatus,  QCamera::ActiveStatus } //ActiveState
     };
+
+    if (!m_session)
+        return QCamera::InactiveStatus;
 
     return statusTable[m_active ? 1 : 0][m_session->isActive() ? 1 : 0];
 }
@@ -113,7 +107,8 @@ void AVFCamera::setCamera(const QCameraInfo &camera)
     if (m_cameraInfo == camera)
         return;
     m_cameraInfo = camera;
-    m_session->setActiveCamera(camera);
+    if (m_session)
+        m_session->setActiveCamera(camera);
 }
 
 void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -122,16 +117,20 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     if (m_service == captureSession)
         return;
 
-    if (m_session) {
-        m_session->setActiveCamera(QCameraInfo());
+    m_service = captureSession;
+    if (!m_service) {
         m_session = nullptr;
+        return;
     }
 
-    m_service = captureSession;
-    if (m_service) {
-        m_session = m_service->session();
-        m_session->setActiveCamera(m_cameraInfo);
-    }
+    m_session = m_service->session();
+    Q_ASSERT(m_session);
+    connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
+
+    m_session->setActiveCamera(QCameraInfo());
+    m_session->setActive(m_active);
+    m_session->setActiveCamera(m_cameraInfo);
+
     captureSessionChanged();
 }
 
@@ -148,7 +147,7 @@ void AVFCamera::updateStatus()
 
 AVCaptureConnection *AVFCamera::videoConnection() const
 {
-    if (!m_session->videoOutput() || !m_session->videoOutput()->videoDataOutput())
+    if (!m_session || !m_session->videoOutput() || !m_session->videoOutput()->videoDataOutput())
         return nil;
 
     return [m_session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];

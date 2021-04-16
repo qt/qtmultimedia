@@ -131,7 +131,7 @@ public:
 
     virtual void reconfigure() = 0;
     virtual void updateAspectRatio() = 0;
-    virtual void setRhi(QRhi *) { Q_ASSERT(false); }
+    virtual void setRhi(QRhi *) = 0;
 
     void setLayer(CALayer *layer);
 

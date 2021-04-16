@@ -77,6 +77,7 @@ public:
 
     void reconfigure() override;
     void updateAspectRatio() override;
+    void setRhi(QRhi *rhi) override;
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);
@@ -87,6 +88,8 @@ public:
 
     AVFCaptureFramesDelegate *captureDelegate() const;
     void resetCaptureDelegate() const;
+
+    QRhi *rhi() const { return m_rhi; }
 
 private Q_SLOTS:
     void handleViewfinderFrame();
@@ -108,6 +111,7 @@ private:
     QMutex m_vfMutex;
     bool m_rendersToWindow = false;
     dispatch_queue_t m_delegateQueue;
+    QRhi *m_rhi = nullptr;
 
     friend class CVImageVideoBuffer;
 };

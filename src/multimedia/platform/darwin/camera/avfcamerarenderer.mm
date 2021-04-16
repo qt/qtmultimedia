@@ -103,7 +103,7 @@ QT_USE_NAMESPACE
     if (format == QVideoFrameFormat::Format_Invalid)
         return;
 
-    QVideoFrame frame(new AVFVideoBuffer(nullptr, imageBuffer),
+    QVideoFrame frame(new AVFVideoBuffer(m_renderer->rhi(), imageBuffer),
                       QVideoFrameFormat(QSize(width, height), format));
 
     m_renderer->syncHandleViewfinderFrame(frame);
@@ -256,4 +256,10 @@ void AVFCameraRenderer::updateAspectRatio()
     layer.videoGravity = gravity;
 }
 
+void AVFCameraRenderer::setRhi(QRhi *rhi)
+{
+    m_rhi = rhi;
+}
+
 #include "moc_avfcamerarenderer_p.cpp"
+

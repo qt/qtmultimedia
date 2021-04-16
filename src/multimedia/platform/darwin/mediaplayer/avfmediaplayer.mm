@@ -547,7 +547,7 @@ AVAsset *AVFMediaPlayer::currentAssetHandle()
     return currentAsset;
 }
 
-QMediaPlayer::State AVFMediaPlayer::state() const
+QMediaPlayer::PlaybackState AVFMediaPlayer::state() const
 {
     return m_state;
 }
@@ -597,7 +597,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     Q_EMIT positionChanged(position());
 
     const QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatus;
-    const QMediaPlayer::State oldState = m_state;
+    const QMediaPlayer::PlaybackState oldState = m_state;
 
     if (!m_mediaStream && content.isEmpty()) {
         m_mediaStatus = QMediaPlayer::NoMedia;
@@ -950,7 +950,7 @@ void AVFMediaPlayer::processEOS()
     Q_EMIT stateChanged(m_state);
 }
 
-void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::State newState)
+void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState)
 {
     AVPlayerStatus currentStatus = [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] status];
 

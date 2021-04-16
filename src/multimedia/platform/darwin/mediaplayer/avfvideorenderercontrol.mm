@@ -44,7 +44,6 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
-#include <private/qimagevideobuffer_p.h>
 #include <private/avfvideosink_p.h>
 #include <QtGui/private/qrhi_p.h>
 

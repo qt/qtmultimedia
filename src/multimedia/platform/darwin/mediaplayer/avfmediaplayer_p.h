@@ -81,7 +81,7 @@ public:
     void setVideoOutput(AVFVideoRendererControl *output);
     AVAsset *currentAssetHandle();
 
-    QMediaPlayer::State state() const override;
+    QMediaPlayer::PlaybackState state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;
 
     QUrl media() const override;
@@ -122,7 +122,7 @@ public Q_SLOTS:
     void setMuted(bool muted) override;
 
     void processEOS();
-    void processLoadStateChange(QMediaPlayer::State newState);
+    void processLoadStateChange(QMediaPlayer::PlaybackState newState);
     void processPositionChange();
     void processMediaLoadError();
 
@@ -154,7 +154,7 @@ private:
     AVFVideoRendererControl *m_videoOutput = nullptr;
     AVFVideoSink *m_videoSink = nullptr;
 
-    QMediaPlayer::State m_state;
+    QMediaPlayer::PlaybackState m_state;
     QMediaPlayer::MediaStatus m_mediaStatus;
     QIODevice *m_mediaStream;
     QUrl m_resources;
