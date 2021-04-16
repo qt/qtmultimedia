@@ -90,6 +90,10 @@ QMediaCaptureSession::~QMediaCaptureSession()
 {
     if (d_ptr->camera)
         d_ptr->camera->setCaptureSession(nullptr);
+    if (d_ptr->encoder)
+        d_ptr->encoder->setCaptureSession(nullptr);
+    if (d_ptr->imageCapture)
+        d_ptr->imageCapture->setCaptureSession(nullptr);
     delete d_ptr;
 }
 
