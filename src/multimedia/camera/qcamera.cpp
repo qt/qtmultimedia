@@ -89,49 +89,17 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
 void QCameraPrivate::init()
 {
     Q_Q(QCamera);
-    if (captureInterface && !cameraInfo.isNull()) {
-        clearControls();
-        control = QPlatformMediaIntegration::instance()->createCamera(q);
-        if (control) {
-            control->setCamera(cameraInfo);
-            captureInterface->setCamera(control);
-        } else {
-            captureInterface = nullptr;
-            error = QCamera::CameraError;
-            errorString = QCamera::tr("The capture session doesn't support cameras.");
-            return;
-        }
-    } else {
-        clear();
-        _q_error(QCamera::CameraError, QCamera::tr("The camera is not connected to a capture session"));
-        return;
-    }
 
+    control = QPlatformMediaIntegration::instance()->createCamera(q);
+    if (!control)
+        return;
+    control->setCamera(cameraInfo);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
     cameraExposure = new QCameraExposure(q, control);
     cameraFocus = new QCameraFocus(q, control);
     imageProcessing = new QCameraImageProcessing(q, control);
-}
-
-void QCameraPrivate::clear()
-{
-    clearControls();
-    captureInterface = nullptr;
-}
-
-void QCameraPrivate::clearControls()
-{
-    delete cameraExposure;
-    delete cameraFocus;
-    delete imageProcessing;
-    delete control;
-
-    cameraExposure = nullptr;
-    cameraFocus = nullptr;
-    imageProcessing = nullptr;
-    control = nullptr;
 }
 
 /*!
@@ -305,9 +273,11 @@ QMediaCaptureSession *QCamera::captureSession() const
 void QCamera::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QCamera);
+
     d->captureSession = session;
     d->captureInterface = session ? session->platformSession() : nullptr;
-    d->init();
+    if (d->captureInterface && d->control)
+        d->captureInterface->setCamera(d->control);
 }
 
 /*!

@@ -72,9 +72,6 @@ public:
 
     void init();
 
-    void clearControls();
-    void clear();
-
     QMediaCaptureSession *captureSession = nullptr;
     QPlatformMediaCaptureSession *captureInterface = nullptr;
     QPlatformCamera *control = nullptr;
