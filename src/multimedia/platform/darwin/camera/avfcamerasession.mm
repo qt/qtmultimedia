@@ -341,7 +341,7 @@ FourCharCode AVFCameraSession::defaultCodec()
 
 void AVFCameraSession::setVideoSink(QVideoSink *sink)
 {
-    auto *videoSink = static_cast<AVFVideoSink *>(sink->platformVideoSink());
+    auto *videoSink = sink ? static_cast<AVFVideoSink *>(sink->platformVideoSink()) : nullptr;
 
     if (m_videoSink == videoSink)
         return;
