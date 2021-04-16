@@ -66,8 +66,8 @@ class Q_MULTIMEDIA_EXPORT QCameraFocus : public QObject
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
     Q_PROPERTY(float focusDistance READ focusDistance WRITE setFocusDistance NOTIFY focusDistanceChanged)
 
-    Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor)
-    Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor)
+    Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor CONSTANT) // ### Should notify on camerainfo change
+    Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor CONSTANT) // ### ditto
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
 
     Q_ENUMS(FocusMode)

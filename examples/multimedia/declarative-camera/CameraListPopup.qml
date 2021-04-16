@@ -96,8 +96,7 @@ Popup {
                 anchors.fill: parent
                 onClicked: {
                     view.currentIndex = index
-                    cameraListPopup.currentValue = modelData.deviceId
-                    cameraListPopup.selected(modelData.deviceId)
+                    cameraListPopup.currentValue = modelData
                 }
             }
         }

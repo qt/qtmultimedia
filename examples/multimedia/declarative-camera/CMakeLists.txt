@@ -27,6 +27,7 @@ qt_add_executable(declarative-camera
 set_target_properties(declarative-camera PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
 # special case begin
 target_include_directories(declarative-camera PUBLIC
@@ -40,7 +41,6 @@ target_link_libraries(declarative-camera PUBLIC
     Qt::Qml
     Qt::Quick
 )
-
 
 # Resources:
 set(declarative-camera_resource_files
