@@ -59,7 +59,6 @@ private:
 
 void tst_QCameraInfo::initTestCase()
 {
-    QMockMediaCaptureSession::simpleCamera = false;
 }
 
 void tst_QCameraInfo::init()

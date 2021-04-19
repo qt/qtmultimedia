@@ -163,11 +163,6 @@ public:
     Quality quality() const;
     void setQuality(Quality quality);
 
-    QVariant encodingOption(const QString &option) const;
-    QVariantMap encodingOptions() const;
-    void setEncodingOption(const QString &option, const QVariant &value);
-    void setEncodingOptions(const QVariantMap &options);
-
 private:
     QSharedDataPointer<QImageEncoderSettingsPrivate> d;
 };

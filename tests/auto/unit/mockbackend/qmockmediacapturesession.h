@@ -32,6 +32,7 @@
 #include "qmockmediaencoder.h"
 #include "qmockimagecapture.h"
 #include "qmockcamera.h"
+#include "qmockimagecapture.h"
 #include <private/qplatformmediacapture_p.h>
 
 class QMockMediaCaptureSession : public QPlatformMediaCaptureSession
@@ -42,6 +43,7 @@ public:
         : hasControls(true)
     {
         mockControl = new QMockMediaEncoder(this);
+        mockCaptureControl = new QMockImageCapture(this);
     }
     ~QMockMediaCaptureSession()
     {
@@ -94,8 +96,6 @@ public:
         m_audioInput = id;
         return true;
     }
-
-    static bool simpleCamera;
 
     QMockCamera *mockCameraControl = nullptr;
     QMockImageCapture *mockCaptureControl = nullptr;

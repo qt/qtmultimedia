@@ -115,8 +115,6 @@ void QCameraFocusPrivate::init(QPlatformCamera *cameraControl)
     if (!focusControl)
         return;
 
-    q->connect(focusControl, SIGNAL(zoomFactorChanged(qreal)),
-               q, SIGNAL(zoomFactorChanged(qreal)));
     q->connect(focusControl, SIGNAL(minimumZoomFactorChanged(float)),
                q, SIGNAL(minimumZoomFactorChanged(float)));
     q->connect(focusControl, SIGNAL(maximumZoomFactorChanged(float)),
@@ -217,11 +215,10 @@ QPointF QCameraFocus::customFocusPoint() const
 void QCameraFocus::setCustomFocusPoint(const QPointF &point)
 {
     Q_D(QCameraFocus);
-    if (d->customFocusPoint == point)
+    if (!d->focusControl || d->customFocusPoint == point)
         return;
     d->customFocusPoint = point;
-    if (d->focusControl)
-        d->focusControl->setCustomFocusPoint(point);
+    d->focusControl->setCustomFocusPoint(point);
     Q_EMIT customFocusPointChanged();
 }
 
@@ -241,10 +238,9 @@ bool QCameraFocus::isCustomFocusPointSupported() const
  */
 void QCameraFocus::setFocusDistance(float d)
 {
-    if (focusMode() != FocusModeManual)
+    if (!d_func()->focusControl || focusMode() != FocusModeManual)
         return;
-    if (d_func()->focusControl)
-        d_func()->focusControl->setFocusDistance(d);
+    d_func()->focusControl->setFocusDistance(d);
 }
 
 float QCameraFocus::focusDistance() const
@@ -289,10 +285,7 @@ float QCameraFocus::zoomFactor() const
 
 void QCameraFocus::setZoomFactor(float factor)
 {
-    Q_D(QCameraFocus);
-    factor = qBound(minimumZoomFactor(), factor, maximumZoomFactor());
-    d->zoomFactor = factor;
-    d->focusControl->zoomTo(factor, -1);
+    zoomTo(factor, 0.);
 }
 
 /*!
@@ -303,12 +296,17 @@ void QCameraFocus::setZoomFactor(float factor)
  */
 void QCameraFocus::zoomTo(float factor, float rate)
 {
-    Q_ASSERT(rate > 0);
+    Q_ASSERT(rate >= 0.);
+    if (rate < 0.)
+        rate = 0.;
 
     Q_D(QCameraFocus);
+    if (!d->focusControl)
+        return;
     factor = qBound(minimumZoomFactor(), factor, maximumZoomFactor());
     d->zoomFactor = factor;
     d->focusControl->zoomTo(factor, rate);
+    emit zoomFactorChanged(factor);
 }
 
 /*!

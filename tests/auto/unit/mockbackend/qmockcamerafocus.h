@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -78,6 +78,11 @@ public:
     void zoomTo(float zoom, float /*rate*/)
     {
         m_zoom = zoom;
+    }
+
+    void setMaxZoomFactor(float factor) {
+        m_maxZoom = factor;
+        emit maximumZoomFactorChanged(m_maxZoom);
     }
 
 private:

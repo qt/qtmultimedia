@@ -45,6 +45,24 @@ QT_BEGIN_NAMESPACE
 QMockDeviceManager::QMockDeviceManager()
     : QPlatformMediaDeviceManager()
 {
+    QCameraInfoPrivate *info = new QCameraInfoPrivate;
+    info->description = QString::fromUtf8("defaultCamera");
+    info->id = "default";
+    info->isDefault = true;
+    m_cameraDevices.append(info->create());
+    info = new QCameraInfoPrivate;
+    info->description = QString::fromUtf8("frontCamera");
+    info->id = "front";
+    info->isDefault = false;
+    info->position = QCameraInfo::FrontFace;
+    m_cameraDevices.append(info->create());
+    info = new QCameraInfoPrivate;
+    info->description = QString::fromUtf8("backCamera");
+    info->id = "back";
+    info->isDefault = false;
+    info->position = QCameraInfo::BackFace;
+    m_cameraDevices.append(info->create());
+
 }
 
 QMockDeviceManager::~QMockDeviceManager() = default;

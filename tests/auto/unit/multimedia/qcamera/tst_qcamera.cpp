@@ -46,6 +46,7 @@
 
 #include "qmockintegration_p.h"
 #include "qmockmediacapturesession.h"
+#include "qmockcamerafocus.h"
 
 QT_USE_NAMESPACE
 
@@ -76,7 +77,6 @@ private slots:
 
     void testConstructor();
     void testQCameraIsAvailable();
-    void testQCameraIsNotAvailable();
     void testErrorSignal();
     void testError();
     void testErrorString();
@@ -86,9 +86,8 @@ private slots:
     // Test cases to for QCameraFocus
     void testCameraFocusIsAvailable();
     void testFocusMode();
-    void testOpticalAndDigitalZoomChanged();
-    void testMaxOpticalZoomChangedSignal();
-    void testMaxDigitalZoomChangedSignal();
+    void testZoomChanged();
+    void testMaxZoomChangedSignal();
 
     // Test cases for QPlatformCamera class.
     void testCameraControl();
@@ -99,13 +98,9 @@ private slots:
     void testSaturation();
 
     void testSetVideoOutput();
-    void testSetVideoOutputNoService();
     void testSetVideoOutputDestruction();
 
     void testEnumDebug();
-
-    // constructor for QCameraImageProceesing
-    void testImageProcessingControl();
 
     // Signals test cases for QCameraExposure
     void testSignalApertureChanged();
@@ -114,31 +109,25 @@ private slots:
     void testSignalShutterSpeedChanged();
     void testSignalFlashReady();
 
-    // test constructor
-    void testExposureControlConstructor();
-
 private:
-    QMockIntegration *integration;
+    QMockIntegration integration;
 };
 
 void tst_QCamera::initTestCase()
 {
-    QMockMediaCaptureSession::simpleCamera = false;
 }
 
 void tst_QCamera::init()
 {
-    integration = new QMockIntegration;
 }
 
 void tst_QCamera::cleanup()
 {
-    delete integration;
 }
 
 void tst_QCamera::testSimpleCamera()
 {
-    QMockMediaCaptureSession::simpleCamera = true;
+    QMockCamera::Simple simple;
     QCamera camera;
 
     QCOMPARE(camera.isActive(), false);
@@ -150,7 +139,7 @@ void tst_QCamera::testSimpleCamera()
 
 void tst_QCamera::testSimpleCameraWhiteBalance()
 {
-    QMockMediaCaptureSession::simpleCamera = true;
+    QMockCamera::Simple simple;
     QCamera camera;
 
     //only WhiteBalanceAuto is supported
@@ -166,7 +155,7 @@ void tst_QCamera::testSimpleCameraWhiteBalance()
 
 void tst_QCamera::testSimpleCameraExposure()
 {
-    QMockMediaCaptureSession::simpleCamera = true;
+    QMockCamera::Simple simple;
 
     QCamera camera;
     QCameraExposure *cameraExposure = camera.exposure();
@@ -177,7 +166,7 @@ void tst_QCamera::testSimpleCameraExposure()
     cameraExposure->setExposureMode(QCameraExposure::ExposureManual);//should be ignored
     QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureAuto);
 
-    QVERIFY(!cameraExposure->isFlashModeSupported(QCameraExposure::FlashOff));
+    QVERIFY(!cameraExposure->isFlashModeSupported(QCameraExposure::FlashOn));
     QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashOff);
     QCOMPARE(cameraExposure->isFlashReady(), false);
     cameraExposure->setFlashMode(QCameraExposure::FlashOn);
@@ -211,7 +200,7 @@ void tst_QCamera::testSimpleCameraExposure()
 
 void tst_QCamera::testSimpleCameraFocus()
 {
-    QMockMediaCaptureSession::simpleCamera = true;
+    QMockCamera::Simple simple;
 
     QCamera camera;
 
@@ -222,7 +211,6 @@ void tst_QCamera::testSimpleCameraFocus()
     QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::FocusModeInfinity));
 
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    QTest::ignoreMessage(QtWarningMsg, "Focus mode selection is not supported");
     cameraFocus->setFocusMode(QCameraFocus::FocusModeAuto);
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
 
@@ -230,19 +218,17 @@ void tst_QCamera::testSimpleCameraFocus()
     QCOMPARE(cameraFocus->minimumZoomFactor(), 1.0);
     QCOMPARE(cameraFocus->zoomFactor(), 1.0);
 
-    QTest::ignoreMessage(QtWarningMsg, "The camera doesn't support zooming.");
     cameraFocus->zoomTo(100.0, 100.0);
     QCOMPARE(cameraFocus->zoomFactor(), 1.0);
 
-    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(0.5, 0.5));
-    QTest::ignoreMessage(QtWarningMsg, "Focus points selection is not supported");
+    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(-1., -1.));
     cameraFocus->setCustomFocusPoint(QPointF(1.0, 1.0));
-    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(0.5, 0.5));
+    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(-1, -1));
 }
 
 void tst_QCamera::testSimpleCameraCapture()
 {
-    QMockMediaCaptureSession::simpleCamera = true;
+    QMockCamera::Simple simple;
 
     QMediaCaptureSession session;
     QCamera camera;
@@ -251,16 +237,22 @@ void tst_QCamera::testSimpleCameraCapture()
     session.setImageCapture(&imageCapture);
 
     QVERIFY(!imageCapture.isReadyForCapture());
-    QVERIFY(!imageCapture.isAvailable());
+    QVERIFY(imageCapture.isAvailable());
 
     QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,QString)));
     imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NotSupportedFeatureError);
+    QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
     QVERIFY(!imageCapture.errorString().isEmpty());
+
+    camera.start();
+    imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+    QCOMPARE(errorSignal.size(), 1);
+    QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
+    QVERIFY(imageCapture.errorString().isEmpty());
 }
 
 void tst_QCamera::testCameraCapture()
@@ -274,7 +266,7 @@ void tst_QCamera::testCameraCapture()
     QVERIFY(!imageCapture.isReadyForCapture());
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,QString)));
 
     imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
     QCOMPARE(capturedSignal.size(), 0);
@@ -327,33 +319,32 @@ void tst_QCamera::testCameraWhiteBalance()
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceAuto;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceFlash;
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceTungsten;
+    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceManual;
 
     QCamera camera;
-    QMockCamera *mockCameraControl = new QMockCamera(&camera);
-    //auto *service = integration->lastCaptureService();
-    mockCameraControl->mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
-    mockCameraControl->mockImageProcessingControl->setSupportedWhiteBalanceModes(whiteBalanceModes);
-    mockCameraControl->mockImageProcessingControl->setParameter(
-                QPlatformCameraImageProcessing::ColorTemperature,
-                QVariant(34));
+    QMockCamera *mockCamera = integration.lastCamera();
+    mockCamera->mockImageProcessing->setSupportedWhiteBalanceModes(whiteBalanceModes);
 
-    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
+    QCameraImageProcessing *imageProcessing = camera.imageProcessing();
 
-    QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceFlash);
-    QVERIFY(camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceAuto));
-    QVERIFY(camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFlash));
-    QVERIFY(camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceTungsten));
-    QVERIFY(!camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceCloudy));
+    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceAuto);
+    imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
+    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceFlash);
+    QVERIFY(imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceAuto));
+    QVERIFY(imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFlash));
+    QVERIFY(imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceTungsten));
+    QVERIFY(!imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceCloudy));
 
-    cameraImageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceTungsten);
-    QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceTungsten);
+    imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceTungsten);
+    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceTungsten);
 
-    cameraImageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceManual);
-    QCOMPARE(cameraImageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceManual);
-    QCOMPARE(cameraImageProcessing->manualWhiteBalance(), 34.0);
+    imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceManual);
+    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceManual);
+    imageProcessing->setManualWhiteBalance(34);
+    QCOMPARE(imageProcessing->manualWhiteBalance(), 34.0);
 
-    cameraImageProcessing->setManualWhiteBalance(432.0);
-    QCOMPARE(cameraImageProcessing->manualWhiteBalance(), 432.0);
+    imageProcessing->setManualWhiteBalance(432.0);
+    QCOMPARE(imageProcessing->manualWhiteBalance(), 432.0);
 }
 
 void tst_QCamera::testCameraExposure()
@@ -487,19 +478,19 @@ void tst_QCamera::testCameraFocus()
     cameraFocus->setFocusMode(QCameraFocus::FocusModeAuto);
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::FocusModeAuto);
 
-    QVERIFY(cameraFocus->maximumZoomFactor() >= 1.0);
+    QVERIFY(cameraFocus->maximumZoomFactor() == 4.0);
     QVERIFY(cameraFocus->minimumZoomFactor() == 1.0);
     QCOMPARE(cameraFocus->zoomFactor(), 1.0);
     cameraFocus->zoomTo(0.5, 1.0);
     QCOMPARE(cameraFocus->zoomFactor(), 1.0);
     cameraFocus->zoomTo(2.0, 0.5);
-    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
-    cameraFocus->zoomTo(2.0, 2.5);
+    QCOMPARE(cameraFocus->zoomFactor(), 2.0);
+    cameraFocus->zoomTo(2.5, 1);
     QCOMPARE(cameraFocus->zoomFactor(), 2.5);
-    cameraFocus->zoomTo(2000000.0, -1);
-    QVERIFY(qFuzzyCompare(cameraFocus->zoomFactor(), cameraFocus->maximumZoomFactor()));
+    cameraFocus->zoomTo(2000000.0, 0);
+    QCOMPARE(cameraFocus->zoomFactor(), cameraFocus->maximumZoomFactor());
 
-    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(0.5, 0.5));
+    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(-1, -1));
     cameraFocus->setCustomFocusPoint(QPointF(1.0, 1.0));
     QCOMPARE(cameraFocus->customFocusPoint(), QPointF(1.0, 1.0));
 }
@@ -531,25 +522,10 @@ void tst_QCamera::testImageSettings()
     QVERIFY(!settings.isNull());
 
     settings = QImageEncoderSettings();
-    settings.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
-    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption")), QVariant(1));
-    QVariantMap options;
-    options.insert(QLatin1String("encoderOption"), QVariant(1));
-    QCOMPARE(settings.encodingOptions(), options);
-    options.insert(QLatin1String("encoderOption2"), QVariant(2));
-    options.remove(QLatin1String("encoderOption"));
-    settings.setEncodingOptions(options);
-    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption")), QVariant());
-    QCOMPARE(settings.encodingOption(QLatin1String("encoderOption2")), QVariant(2));
-    QVERIFY(!settings.isNull());
-    QVERIFY(settings != QImageEncoderSettings());
-
-    settings = QImageEncoderSettings();
     QVERIFY(settings.isNull());
     QCOMPARE(settings.format(), QImageEncoderSettings::UnspecifiedFormat);
     QCOMPARE(settings.quality(), QImageEncoderSettings::NormalQuality);
     QCOMPARE(settings.resolution(), QSize());
-    QVERIFY(settings.encodingOptions().isEmpty());
 
     {
         QImageEncoderSettings settings1;
@@ -609,14 +585,6 @@ void tst_QCamera::testImageSettings()
     QVERIFY(settings1 == settings2);
     settings2.setQuality(QImageEncoderSettings::LowQuality);
     QVERIFY(settings1 != settings2);
-
-    settings1 = QImageEncoderSettings();
-    settings1.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
-    settings2 = QImageEncoderSettings();
-    settings2.setEncodingOption(QLatin1String("encoderOption"), QVariant(1));
-    QVERIFY(settings1 == settings2);
-    settings2.setEncodingOption(QLatin1String("encoderOption"), QVariant(2));
-    QVERIFY(settings1 != settings2);
 }
 
 void tst_QCamera::testCameraEncodingProperyChange()
@@ -627,71 +595,79 @@ void tst_QCamera::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
     QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
     QCOMPARE(camera.status(), QCamera::ActiveStatus);
 
-    QCOMPARE(stateChangedSignal.count(), 1);
     QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
     statusChangedSignal.clear();
 }
 
 void tst_QCamera::testSetVideoOutput()
 {
+    QMediaCaptureSession session;
     QVideoSink surface;
     QCamera camera;
+    session.setCamera(&camera);
 
-//    camera.setViewfinder(static_cast<QVideoSink *>(nullptr));
+    QVERIFY(session.videoOutput().isNull());
+    session.setVideoOutput(&surface);
 
-//    QCOMPARE(mockCameraService->rendererRef, 0);
+    QVERIFY(session.videoOutput().value<QVideoSink *>() == &surface);
 
-//    camera.setViewfinder(&surface);
-//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-//    QCOMPARE(mockCameraService->rendererRef, 1);
-
-//    camera.setViewfinder(static_cast<QVideoSink *>(nullptr));
-//    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
-
-//    //rendererControl is released
-//    QCOMPARE(mockCameraService->rendererRef, 0);
-
-//    camera.setViewfinder(&surface);
-//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-//    QCOMPARE(mockCameraService->rendererRef, 1);
-
-//    camera.setViewfinder(static_cast<QVideoSink *>(nullptr));
-//    QVERIFY(mockCameraService->rendererControl->surface() == nullptr);
-//    //rendererControl is released
-//    QCOMPARE(mockCameraService->rendererRef, 0);
-
-//    camera.setViewfinder(&surface);
-//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-//    QCOMPARE(mockCameraService->rendererRef, 1);
-}
-
-
-void tst_QCamera::testSetVideoOutputNoService()
-{
-    QVideoSink surface;
-
-    integration->setFlags(QMockIntegration::NoCaptureInterface);
-    QCamera camera;
-
-//    camera.setViewfinder(&surface);
-    // Nothing we can verify here other than it doesn't assert.
+    session.setVideoOutput(static_cast<QVideoSink *>(nullptr));
+    QVERIFY(session.videoOutput().isNull());
 }
 
 void tst_QCamera::testSetVideoOutputDestruction()
 {
-    QVideoSink surface;
+    {
+        QVideoSink surface;
+        {
+            QMediaCaptureSession session;
+            QCamera camera;
+            session.setCamera(&camera);
+
+            QVERIFY(session.videoOutput().isNull());
+            session.setVideoOutput(&surface);
+        }
+    }
+
+    {
+        QMediaCaptureSession session;
+        {
+            QVideoSink surface;
+            QCamera camera;
+            session.setCamera(&camera);
+
+            QVERIFY(session.videoOutput().isNull());
+            session.setVideoOutput(&surface);
+        }
+    }
 
     {
         QCamera camera;
-//        camera.setViewfinder(&surface);
+        {
+            QMediaCaptureSession session;
+            QVideoSink surface;
+            session.setCamera(&camera);
+
+            QVERIFY(session.videoOutput().isNull());
+            session.setVideoOutput(&surface);
+        }
+    }
+    {
+        QMediaCaptureSession session;
+        {
+            QVideoSink surface;
+            QCamera camera;
+            session.setCamera(&camera);
+
+            QVERIFY(session.videoOutput().isNull());
+            session.setVideoOutput(&surface);
+        }
     }
 }
 
@@ -701,8 +677,8 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::ActiveStatus;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::CameraError");
     qDebug() << QCamera::CameraError;
-    QTest::ignoreMessage(QtDebugMsg, "QCameraInfo::FrontFace ");
-    qDebug() << QCameraInfo::FrontFace;
+//    QTest::ignoreMessage(QtDebugMsg, "QCameraInfo::FrontFace");
+//    qDebug() << QCameraInfo::FrontFace;
 }
 
 void tst_QCamera::testCameraControl()
@@ -779,23 +755,17 @@ void tst_QCamera::testQCameraIsAvailable()
     QVERIFY(camera.isAvailable());
 }
 
-void tst_QCamera::testQCameraIsNotAvailable()
-{
-    integration->setFlags(QMockIntegration::NoCaptureInterface);
-    QCamera camera;
-
-    QCOMPARE(camera.error(), QCamera::CameraError);
-    QVERIFY(!camera.isAvailable());
-    integration->setFlags({});
-}
-
 /* Test case for verifying if error signal generated correctly */
 void tst_QCamera::testErrorSignal()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    auto *service = integration->lastCaptureService();
+    session.setCamera(&camera);
+    auto *service = integration.lastCaptureService();
+    Q_ASSERT(service);
+    Q_ASSERT(service->mockCameraControl);
 
-    QSignalSpy spyError(&camera, SIGNAL(errorOccurred(QCamera::Error)));
+    QSignalSpy spyError(&camera, SIGNAL(errorOccurred(QCamera::Error,const QString&)));
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
@@ -825,8 +795,10 @@ void tst_QCamera::testErrorSignal()
 /* Test case for verifying the QCamera error */
 void tst_QCamera::testError()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    auto *service = integration->lastCaptureService();
+    session.setCamera(&camera);
+    auto *service = integration.lastCaptureService();
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
@@ -845,8 +817,10 @@ void tst_QCamera::testError()
 /* Test the error strings for QCamera class */
 void tst_QCamera::testErrorString()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    auto *service = integration->lastCaptureService();
+    session.setCamera(&camera);
+    auto *service = integration.lastCaptureService();
 
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
@@ -864,8 +838,10 @@ void tst_QCamera::testErrorString()
 /* Test case for verifying Status of QCamera. */
 void tst_QCamera::testStatus()
 {
+    QMediaCaptureSession session;
     QCamera camera;
-    auto *service = integration->lastCaptureService();
+    session.setCamera(&camera);
+    auto *service = integration.lastCaptureService();
 
     /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::StartingStatus);
@@ -883,7 +859,9 @@ void tst_QCamera::testStatus()
 // Test case for QCameraImageProcessing class
 void tst_QCamera::testContrast()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QVERIFY(cameraImageProcessing->contrast() ==0);
 
@@ -896,14 +874,18 @@ void tst_QCamera::testContrast()
 
 void tst_QCamera::testIsAvailable()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QVERIFY(cameraImageProcessing->isAvailable() == true);
 }
 
 void tst_QCamera::testSaturation()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
     QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
     QCOMPARE(cameraImageProcessing->saturation()+1.0, 1.0);
 
@@ -917,7 +899,9 @@ void tst_QCamera::testSaturation()
 //Added test cases for QCameraFocus
 void tst_QCamera::testCameraFocusIsAvailable()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != nullptr);
@@ -928,7 +912,9 @@ void tst_QCamera::testCameraFocusIsAvailable()
 //As the HyperfocalFocus and MacroFocus are not supported we can not set the focus mode to these Focus Modes
 void tst_QCamera::testFocusMode()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != nullptr);
@@ -943,55 +929,47 @@ void tst_QCamera::testFocusMode()
     QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
 }
 
-void tst_QCamera::testOpticalAndDigitalZoomChanged()
+void tst_QCamera::testZoomChanged()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != nullptr);
-    QSignalSpy spy1(cameraFocus,SIGNAL(digitalZoomChanged(qreal)));
-    QSignalSpy spy2(cameraFocus,SIGNAL(opticalZoomChanged(qreal)));
-    QVERIFY(spy1.count() == 0);
-    QVERIFY(spy2.count() == 0);
-    cameraFocus->zoomTo(2.0,3.0);
-    QVERIFY(spy1.count() == 1);
-    QVERIFY(spy2.count() == 1);
-}
-
-void tst_QCamera::testMaxDigitalZoomChangedSignal()
-{
-    QCamera camera;
-
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
-    QSignalSpy spy(cameraFocus,SIGNAL(maximumDigitalZoomChanged(qreal)));
+    QSignalSpy spy(cameraFocus,SIGNAL(zoomFactorChanged(float)));
     QVERIFY(spy.count() == 0);
-    cameraFocus->zoomTo(5.0,6.0);
+    cameraFocus->setZoomFactor(2.0);
     QVERIFY(spy.count() == 1);
+    cameraFocus->zoomTo(3.0, 1);
+    QVERIFY(spy.count() == 2);
+    cameraFocus->zoomTo(1.0, 0);
+    QVERIFY(spy.count() == 3);
 }
 
-void tst_QCamera::testMaxOpticalZoomChangedSignal()
+void tst_QCamera::testMaxZoomChangedSignal()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
+    QMockCamera *mock = integration.lastCamera();
+    QMockCameraFocus *mockFocus = mock->mockFocus;
 
     QCameraFocus *cameraFocus = camera.focus();
     QVERIFY(cameraFocus != nullptr);
-    QSignalSpy spy(cameraFocus,SIGNAL(maximumOpticalZoomChanged(qreal)));
-    QVERIFY(spy.count() == 0);
-    cameraFocus->zoomTo(5.0,6.0);
-    QVERIFY(spy.count() == 1);
-}
 
-// test constructor for abstract class of ImageProcessingControl
-void tst_QCamera :: testImageProcessingControl()
-{
-    QObject parent;
-    QMockCameraImageProcessing processCtrl(&parent);
+    // ### change max zoom factor on backend, e.g. by changing camera
+    QSignalSpy spy(cameraFocus,SIGNAL(maximumZoomFactorChanged(float)));
+    mockFocus->setMaxZoomFactor(55);
+    QVERIFY(spy.count() == 1);
+    QCOMPARE(camera.focus()->maximumZoomFactor(), 55);
 }
 
 void tst_QCamera::testSignalApertureChanged()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != nullptr);
@@ -1010,7 +988,9 @@ void tst_QCamera::testSignalApertureChanged()
 
 void tst_QCamera::testSignalExposureCompensationChanged()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != nullptr);
@@ -1038,7 +1018,9 @@ void tst_QCamera::testSignalExposureCompensationChanged()
 
 void tst_QCamera::testSignalIsoSensitivityChanged()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != nullptr);
@@ -1054,7 +1036,9 @@ void tst_QCamera::testSignalIsoSensitivityChanged()
 }
 void tst_QCamera::testSignalShutterSpeedChanged()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != nullptr);
@@ -1073,7 +1057,9 @@ void tst_QCamera::testSignalShutterSpeedChanged()
 
 void tst_QCamera::testSignalFlashReady()
 {
+    QMediaCaptureSession session;
     QCamera camera;
+    session.setCamera(&camera);
 
     QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
     QVERIFY(cameraExposure != nullptr);
@@ -1090,13 +1076,6 @@ void tst_QCamera::testSignalFlashReady()
     QVERIFY(cameraExposure->flashMode() ==QCameraExposure::FlashOff);
 
     QVERIFY(spyflashReady.count() ==1);
-}
-
-// test constructor
-void tst_QCamera::testExposureControlConstructor()
-{
-    // To check changes in abstract classes's pure virtual functions
-    QMockCameraExposure obj;
 }
 
 QTEST_MAIN(tst_QCamera)

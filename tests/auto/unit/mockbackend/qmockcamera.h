@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -40,30 +40,39 @@ class QMockCamera : public QPlatformCamera
 {
     friend class MockCaptureControl;
     Q_OBJECT
+
+    static bool simpleCamera;
 public:
-    QMockCamera(QCamera *parent = 0):
-            QPlatformCamera(parent),
-            m_status(QCamera::InactiveStatus),
-            m_propertyChangesSupported(false)
+
+    struct Simple {
+        Simple() { simpleCamera = true; }
+        ~Simple() { simpleCamera = false; }
+    };
+
+    QMockCamera(QCamera *parent)
+        : QPlatformCamera(parent),
+          m_status(QCamera::InactiveStatus),
+          m_propertyChangesSupported(false)
     {
-        mockExposureControl = new QMockCameraExposure(this);
-        mockFocusControl = new QMockCameraFocus(this);
-        mockImageProcessingControl = new QMockCameraImageProcessing(this);
+        if (!simpleCamera) {
+            mockExposure = new QMockCameraExposure(this);
+            mockFocus = new QMockCameraFocus(this);
+            mockImageProcessing = new QMockCameraImageProcessing(this);
+        }
     }
 
     ~QMockCamera() {}
 
-    void start() { setActive(true); }
-    void stop() { setActive(false); }
-    bool isActive() const { return m_active; }
-    void setActive(bool active) {
+    bool isActive() const override { return m_active; }
+    void setActive(bool active) override {
         if (m_active == active)
             return;
         m_active = active;
+        setStatus(active ? QCamera::ActiveStatus : QCamera::InactiveStatus);
         emit activeChanged(active);
     }
 
-    QCamera::Status status() const { return m_status; }
+    QCamera::Status status() const override { return m_status; }
 
     /* helper method to emit the signal error */
     void setError(QCamera::Error err, QString errorString)
@@ -78,19 +87,23 @@ public:
         emit statusChanged(newStatus);
     }
 
-    void setCamera(const QCameraInfo &camera)
+    void setCamera(const QCameraInfo &camera) override
     {
         m_camera = camera;
     }
+
+    QPlatformCameraFocus *focusControl() override{ return mockFocus; }
+    QPlatformCameraExposure *exposureControl() override { return mockExposure; }
+    QPlatformCameraImageProcessing *imageProcessingControl() override { return mockImageProcessing; }
 
     bool m_active = false;
     QCamera::Status m_status;
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;
 
-    QMockCameraExposure *mockExposureControl;
-    QMockCameraFocus *mockFocusControl;
-    QMockCameraImageProcessing *mockImageProcessingControl;
+    QMockCameraExposure *mockExposure = nullptr;
+    QMockCameraFocus *mockFocus = nullptr;
+    QMockCameraImageProcessing *mockImageProcessing = nullptr;
 };
 
 

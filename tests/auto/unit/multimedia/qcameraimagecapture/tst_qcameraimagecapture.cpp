@@ -76,7 +76,6 @@ private slots:
     void imageExposed();
     void imageSaved();
     void readyForCaptureChanged();
-    void cameraImageCaptureControl();
 
 private:
     QMockIntegration *mockIntegration;
@@ -216,7 +215,7 @@ void tst_QCameraImageCapture::encodingSettings()
 //MaemoAPI-1830:test errors
 void tst_QCameraImageCapture::errors()
 {
-    QMockMediaCaptureSession::simpleCamera = true;
+    QMockCamera::Simple simple;
 
     {
         QMediaCaptureSession session;
@@ -244,8 +243,6 @@ void tst_QCameraImageCapture::errors()
     imageCapture.captureToFile();
     QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
     QVERIFY2(!imageCapture.errorString().isEmpty(), "Could not capture in stopped state");
-
-    QMockMediaCaptureSession::simpleCamera = false;
 }
 
 //MaemoAPI-1831:test error
@@ -360,13 +357,6 @@ void tst_QCameraImageCapture::readyForCaptureChanged()
     QVERIFY(spy.at(1).at(0).toBool() == true);
     camera.stop();
     spy.clear();
-}
-
-//MaemoAPI-1853:test cameraImageCapture control constructor
-void tst_QCameraImageCapture::cameraImageCaptureControl()
-{
-    QMockCamera ctrl;
-    QMockImageCapture capctrl(&ctrl);
 }
 
 QTEST_MAIN(tst_QCameraImageCapture)

@@ -442,10 +442,9 @@ class QImageEncoderSettingsPrivate  : public QSharedData
 {
 public:
     bool isNull = true;
-    QImageEncoderSettings::FileFormat format;
+    QImageEncoderSettings::FileFormat format = QImageEncoderSettings::UnspecifiedFormat;
     QSize resolution;
     QImageEncoderSettings::Quality quality = QImageEncoderSettings::NormalQuality;
-    QVariantMap encodingOptions;
 };
 
 /*!
@@ -509,8 +508,7 @@ bool QImageEncoderSettings::operator==(const QImageEncoderSettings &other) const
            (d->isNull == other.d->isNull &&
             d->quality == other.d->quality &&
             d->format == other.d->format &&
-            d->resolution == other.d->resolution &&
-            d->encodingOptions == other.d->encodingOptions);
+            d->resolution == other.d->resolution);
 
 }
 
@@ -667,57 +665,5 @@ void QImageEncoderSettings::setQuality(Quality quality)
     d->isNull = false;
     d->quality = quality;
 }
-
-/*!
-    Returns the value of encoding \a option.
-
-    \sa setEncodingOption(), encodingOptions()
-*/
-QVariant QImageEncoderSettings::encodingOption(const QString &option) const
-{
-    return d->encodingOptions.value(option);
-}
-
-/*!
-    Returns the all the encoding options as QVariantMap.
-
-    \sa encodingOption(), setEncodingOptions()
-*/
-QVariantMap QImageEncoderSettings::encodingOptions() const
-{
-    return d->encodingOptions;
-}
-
-/*!
-    Set the encoding \a option \a value.
-
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOptions()
-*/
-void QImageEncoderSettings::setEncodingOption(const QString &option, const QVariant &value)
-{
-    d->isNull = false;
-    if (value.isNull())
-        d->encodingOptions.remove(option);
-    else
-        d->encodingOptions.insert(option, value);
-}
-
-/*!
-    Replace all the encoding options with \a options.
-
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOption()
-*/
-void QImageEncoderSettings::setEncodingOptions(const QVariantMap &options)
-{
-    d->isNull = false;
-    d->encodingOptions = options;
-}
-
 
 QT_END_NAMESPACE

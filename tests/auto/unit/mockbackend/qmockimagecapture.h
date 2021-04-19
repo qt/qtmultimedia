@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -35,68 +35,35 @@
 
 #include "private/qplatformcameraimagecapture_p.h"
 #include "private/qplatformcamera_p.h"
-#include "qmockcamera.h"
+
+class QMockMediaCaptureSession;
 
 class QMockImageCapture : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:
-    QMockImageCapture(QMockCamera *cameraControl, QObject *parent = 0)
-        : QPlatformCameraImageCapture(parent), m_cameraControl(cameraControl), m_captureRequest(0), m_ready(true)
-    {
-    }
+    QMockImageCapture(QMockMediaCaptureSession *captureSession);
 
     ~QMockImageCapture()
     {
     }
 
-    bool isReadyForCapture() const { return m_ready && m_cameraControl->isActive(); }
+    bool isReadyForCapture() const;
 
-    int capture(const QString &fileName)
-    {
-        if (isReadyForCapture()) {
-            m_fileName = fileName;
-            m_captureRequest++;
-            emit readyForCaptureChanged(m_ready = false);
-            QTimer::singleShot(5, this, SLOT(captured()));
-            return m_captureRequest;
-        } else {
-            emit error(-1, QCameraImageCapture::NotReadyError,
-                       QLatin1String("Could not capture in stopped state"));
-        }
-
-        return -1;
-    }
+    int capture(const QString &fileName);
     int captureToBuffer() { return -1; }
 
     QImageEncoderSettings imageSettings() const { return m_settings; }
     void setImageSettings(const QImageEncoderSettings &settings) { m_settings = settings; }
 
 private Q_SLOTS:
-    void captured()
-    {
-        emit imageCaptured(m_captureRequest, QImage());
-
-        QMediaMetaData metaData;
-        metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
-        metaData.insert(QMediaMetaData::Date, QDateTime(QDate(2021, 1, 1), QTime()));
-
-        emit imageMetadataAvailable(m_captureRequest, metaData);
-
-        if (!m_ready)
-        {
-            emit readyForCaptureChanged(m_ready = true);
-            emit imageExposed(m_captureRequest);
-        }
-
-        emit imageSaved(m_captureRequest, m_fileName);
-    }
+    void captured();
 
 private:
-    QMockCamera *m_cameraControl;
+    QMockMediaCaptureSession *m_captureSession = nullptr;
     QString m_fileName;
-    int m_captureRequest;
-    bool m_ready;
+    int m_captureRequest = 0;
+    bool m_ready = true;
     QImageEncoderSettings m_settings;
 };
 

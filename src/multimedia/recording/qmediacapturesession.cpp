@@ -94,6 +94,7 @@ QMediaCaptureSession::~QMediaCaptureSession()
         d_ptr->encoder->setCaptureSession(nullptr);
     if (d_ptr->imageCapture)
         d_ptr->imageCapture->setCaptureSession(nullptr);
+    delete d_ptr->captureSession;
     delete d_ptr;
 }
 
@@ -268,7 +269,8 @@ void QMediaCaptureSession::setVideoOutput(QVideoSink *sink)
         disconnect(d->videoSink, SIGNAL(destroyed(QObject *)), this, SLOT(_q_sinkDestroyed(QObject *)));
     d->videoOutput = out;
     d->videoSink = sink;
-    connect(d->videoSink, SIGNAL(destroyed(QObject *)), this, SLOT(_q_sinkDestroyed(QObject *)));
+    if (d->videoSink)
+        connect(d->videoSink, SIGNAL(destroyed(QObject *)), this, SLOT(_q_sinkDestroyed(QObject *)));
 
     d->captureSession->setVideoPreview(sink);
     emit videoOutputChanged();

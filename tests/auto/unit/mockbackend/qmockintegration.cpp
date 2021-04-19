@@ -101,6 +101,6 @@ QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession(QMediaRecor
     return m_lastCaptureService;
 }
 
-bool QMockMediaCaptureSession::simpleCamera = false;
+bool QMockCamera::simpleCamera = false;
 
 QT_END_NAMESPACE
