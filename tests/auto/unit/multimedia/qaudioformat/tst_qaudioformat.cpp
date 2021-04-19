@@ -141,7 +141,7 @@ void tst_QAudioFormat::checkAssignment()
 void tst_QAudioFormat::checkSampleRate()
 {
     QAudioFormat audioFormat;
-    QVERIFY(audioFormat.sampleRate() == -1);
+    QVERIFY(audioFormat.sampleRate() == 0);
 
     audioFormat.setSampleRate(123);
     QVERIFY(audioFormat.sampleRate() == 123);
@@ -153,15 +153,12 @@ void tst_QAudioFormat::checkChannelCount()
     // channels is the old name for channelCount, so
     // they should always be equal
     QAudioFormat audioFormat;
-    QVERIFY(audioFormat.channelCount() == -1);
-    QVERIFY(audioFormat.channelCount() == -1);
+    QVERIFY(audioFormat.channelCount() == 0);
 
     audioFormat.setChannelCount(123);
     QVERIFY(audioFormat.channelCount() == 123);
-    QVERIFY(audioFormat.channelCount() == 123);
 
     audioFormat.setChannelCount(5);
-    QVERIFY(audioFormat.channelCount() == 5);
     QVERIFY(audioFormat.channelCount() == 5);
 }
 
