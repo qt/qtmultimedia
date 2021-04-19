@@ -81,7 +81,7 @@ Rectangle {
     Connections {
         id: videoFrameRateActiveConnections
         ignoreUnknownSignals: true
-        onActiveChanged: root.videoActive = videoFrameRateActiveConnections.target.active
+        function onActiveChanged() { root.videoActive = videoFrameRateActiveConnections.target.active }
     }
 
     states: [
