@@ -53,41 +53,29 @@ public slots:
     void cleanup();
 
 private slots:
-    void testNullService();
     void testNullControl();
     void testAudioSource();
     void testDevices();
     void testAvailability();
 
 private:
-    QMediaEncoder *audiosource = nullptr;
+    QMediaEncoder *encoder = nullptr;
     QMockIntegration *mockIntegration;
 };
 
 void tst_QAudioRecorder::init()
 {
     mockIntegration = new QMockIntegration;
-    audiosource = nullptr;
+    encoder = nullptr;
 }
 
 void tst_QAudioRecorder::cleanup()
 {
+    delete encoder;
     delete mockIntegration;
-    delete audiosource;
     mockIntegration = nullptr;
-    audiosource = nullptr;
+    encoder = nullptr;
 }
-
-void tst_QAudioRecorder::testNullService()
-{
-    mockIntegration->setFlags(QMockIntegration::NoCaptureInterface);
-    QMediaRecorder source;
-
-    QVERIFY(!source.isAvailable());
-
-    QCOMPARE(source.audioInput(), QAudioDeviceInfo());
-}
-
 
 void tst_QAudioRecorder::testNullControl()
 {
@@ -95,21 +83,21 @@ void tst_QAudioRecorder::testNullControl()
     auto *service = mockIntegration->lastCaptureService();
     service->hasControls = false;
 
-    QVERIFY(!source.isAvailable());
+    QVERIFY(source.isAvailable());
 
     QCOMPARE(source.audioInput(), QAudioDeviceInfo());
 
-    QSignalSpy deviceNameSpy(&source, SIGNAL(audioInputChanged(QString)));
+    QSignalSpy deviceNameSpy(&source, SIGNAL(audioInputChanged()));
 
     source.setAudioInput(QAudioDeviceInfo());
-    QCOMPARE(deviceNameSpy.count(), 0);
+    QCOMPARE(deviceNameSpy.count(), 1);
 }
 
 void tst_QAudioRecorder::testAudioSource()
 {
     QMediaCaptureSession session;
-    audiosource = new QMediaEncoder;
-    session.setEncoder(audiosource);
+    encoder = new QMediaEncoder;
+    session.setEncoder(encoder);
 
     QCOMPARE(session.camera(), nullptr);
 }

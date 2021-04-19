@@ -91,6 +91,7 @@ QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
 
     d->captureSession = new QMediaCaptureSession(this);
     d->encoder = new QMediaEncoder(this);
+    d->captureSession->setEncoder(d->encoder);
     setCaptureMode(mode);
 
     connect(d->encoder, &QMediaEncoder::stateChanged, this, &QMediaRecorder::stateChanged);
