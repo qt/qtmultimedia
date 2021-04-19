@@ -93,7 +93,7 @@ void tst_QAudioDecoderBackend::fileTest()
         QSKIP("Sound format is not supported");
 
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
     quint64 duration = 0;
@@ -273,7 +273,7 @@ void tst_QAudioDecoderBackend::fileTest()
 void tst_QAudioDecoderBackend::unsupportedFileTest()
 {
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
 
@@ -351,7 +351,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
 void tst_QAudioDecoderBackend::corruptedFileTest()
 {
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
 
@@ -428,7 +428,7 @@ void tst_QAudioDecoderBackend::deviceTest()
         QSKIP("Sound format is not supported");
 
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
     quint64 duration = 0;

@@ -134,7 +134,7 @@ QAudioDecoder::QAudioDecoder(QObject *parent)
         connect(d->control ,SIGNAL(positionChanged(qint64)), this, SIGNAL(positionChanged(qint64)));
         connect(d->control ,SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
     } else {
-       d->error = ServiceMissingError;
+       d->error = NotSupportedError;
        d->errorString = tr("The QAudioDecoder object does not have a valid service");
     }
 }
@@ -193,7 +193,7 @@ void QAudioDecoder::start()
 
     if (d->control == nullptr) {
         QMetaObject::invokeMethod(this, "_q_error", Qt::QueuedConnection,
-                                    Q_ARG(int, QAudioDecoder::ServiceMissingError),
+                                    Q_ARG(int, QAudioDecoder::NotSupportedError),
                                     Q_ARG(QString, tr("The QAudioDecoder object does not have a valid service")));
         return;
     }
@@ -397,7 +397,7 @@ QAudioBuffer QAudioDecoder::read() const
     \value ResourceError A media resource couldn't be resolved.
     \value FormatError The format of a media resource isn't supported.
     \value AccessDeniedError There are not the appropriate permissions to play a media resource.
-    \value ServiceMissingError A valid playback service was not found, playback cannot proceed.
+    \value NotSupportedError QAudioDecoder is not supported on this platform
 */
 
 // Signals

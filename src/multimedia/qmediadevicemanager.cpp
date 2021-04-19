@@ -49,14 +49,16 @@ QT_BEGIN_NAMESPACE
 class QMediaDeviceManagerPrivate
 {
 public:
-    QMediaDeviceManagerPrivate()
-    {
-        pmanager = QPlatformMediaIntegration::instance()->deviceManager();
-    }
     ~QMediaDeviceManagerPrivate()
     {
     }
+    QPlatformMediaDeviceManager *manager() {
+        if (!pmanager)
+            pmanager = QPlatformMediaIntegration::instance()->deviceManager();
+        return pmanager;
+    }
 
+private:
     QPlatformMediaDeviceManager *pmanager = nullptr;
 
 } priv;
@@ -88,12 +90,12 @@ public:
 
 QList<QAudioDeviceInfo> QMediaDeviceManager::audioInputs()
 {
-    return priv.pmanager->audioInputs();
+    return priv.manager()->audioInputs();
 }
 
 QList<QAudioDeviceInfo> QMediaDeviceManager::audioOutputs()
 {
-    return priv.pmanager->audioOutputs();
+    return priv.manager()->audioOutputs();
 }
 
 /*!
@@ -104,7 +106,7 @@ QList<QAudioDeviceInfo> QMediaDeviceManager::audioOutputs()
 */
 QList<QCameraInfo> QMediaDeviceManager::videoInputs()
 {
-    return priv.pmanager->videoInputs();
+    return priv.manager()->videoInputs();
 }
 
 QAudioDeviceInfo QMediaDeviceManager::defaultAudioInput()
@@ -148,7 +150,7 @@ QCameraInfo QMediaDeviceManager::defaultVideoInput()
 QMediaDeviceManager::QMediaDeviceManager(QObject *parent)
     : QObject(parent)
 {
-    priv.pmanager->addDeviceManager(this);
+    priv.manager()->addDeviceManager(this);
 }
 
 /*!
@@ -156,7 +158,7 @@ QMediaDeviceManager::QMediaDeviceManager(QObject *parent)
 */
 QMediaDeviceManager::~QMediaDeviceManager()
 {
-    priv.pmanager->removeDeviceManager(this);
+    priv.manager()->removeDeviceManager(this);
 }
 
 

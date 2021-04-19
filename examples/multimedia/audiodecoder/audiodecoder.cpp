@@ -146,7 +146,7 @@ void AudioDecoder::error(QAudioDecoder::Error error)
     case QAudioDecoder::AccessDeniedError:
         m_cout << "Access denied error\n";
         break;
-    case QAudioDecoder::ServiceMissingError:
+    case QAudioDecoder::NotSupportedError:
         m_cout << "Service missing error\n";
         break;
     }

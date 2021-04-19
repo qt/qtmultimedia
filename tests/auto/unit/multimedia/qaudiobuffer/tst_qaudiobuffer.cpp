@@ -172,8 +172,7 @@ void tst_QAudioBuffer::constData() const
     QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<const unsigned int *>(data);
-    QEXPECT_FAIL("", "Unsigned 16bits are cleared to 0x8080 currently", Continue);
-    QCOMPARE(*idata, 0x80008000);
+    QCOMPARE(*idata, 0x80808080);
 
     sdata = mFromArray->constData<QAudioBuffer::S8U>();
     QCOMPARE(sdata->left, (unsigned char)0x80);
@@ -198,8 +197,7 @@ void tst_QAudioBuffer::data_const() const
     QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<const unsigned int *>(data);
-    QEXPECT_FAIL("", "Unsigned 16bits are cleared to 0x8080 currently", Continue);
-    QCOMPARE(*idata, 0x80008000);
+    QCOMPARE(*idata, 0x80808080);
 
     sdata = ((const QAudioBuffer*)mFromArray)->constData<QAudioBuffer::S8U>();
     QCOMPARE(sdata->left, (unsigned char)0x80);
@@ -224,8 +222,7 @@ void tst_QAudioBuffer::data()
     QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<unsigned int *>(data);
-    QEXPECT_FAIL("", "Unsigned 16bits are cleared to 0x8080 currently", Continue);
-    QCOMPARE(*idata, 0x80008000);
+    QCOMPARE(*idata, 0x80808080);
 
     sdata = mFromArray->data<QAudioBuffer::S8U>();
     QCOMPARE(sdata->left, (unsigned char)0x80);
@@ -259,7 +256,7 @@ void tst_QAudioBuffer::durations_data()
 {
     QTest::addColumn<int>("channelCount");
     QTest::addColumn<int>("frameCount");
-    QTest::addColumn<QAudioFormat::SampleFormat>("sampleType");
+    QTest::addColumn<QAudioFormat::SampleFormat>("sampleFormat");
     QTest::addColumn<int>("sampleRate");
     QTest::addColumn<qint64>("duration");
     QTest::addColumn<int>("byteCount");
@@ -271,7 +268,7 @@ void tst_QAudioBuffer::durations_data()
 
     QTest::newRow("SF_1000_8K") << 2 << 500 << QAudioFormat::Float << 8000 << 62500LL << 4000;
 
-    QTest::newRow("S32_1000_16K") << 4 << 250 << QAudioFormat::Int32 << 16000 << 15625LL << 16000;
+    QTest::newRow("S32_1000_16K") << 4 << 250 << QAudioFormat::Int32 << 16000 << 15625LL << 4000;
 }
 
 void tst_QAudioBuffer::stereoSample()

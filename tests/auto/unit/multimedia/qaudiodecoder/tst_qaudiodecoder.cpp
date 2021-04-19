@@ -42,7 +42,6 @@ public:
     tst_QAudioDecoder();
 
 private Q_SLOTS:
-    void init();
     void ctors();
     void read();
     void stop();
@@ -52,16 +51,11 @@ private Q_SLOTS:
     void nullControl();
 
 private:
-    QMockIntegration *mockIntegration;
+    QMockIntegration mockIntegration;
 };
 
 tst_QAudioDecoder::tst_QAudioDecoder()
 {
-}
-
-void tst_QAudioDecoder::init()
-{
-    mockIntegration = new QMockIntegration;
 }
 
 void tst_QAudioDecoder::ctors()
@@ -324,10 +318,10 @@ void tst_QAudioDecoder::readAll()
 
 void tst_QAudioDecoder::nullControl()
 {
-    mockIntegration->setFlags(QMockIntegration::NoAudioDecoderInterface);
+    mockIntegration.setFlags(QMockIntegration::NoAudioDecoderInterface);
     QAudioDecoder d;
 
-    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
+    QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
     QVERIFY(!d.errorString().isEmpty());
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
@@ -354,7 +348,7 @@ void tst_QAudioDecoder::nullControl()
     QVERIFY(d.duration() == -1);
 
     d.start();
-    QVERIFY(d.error() == QAudioDecoder::ServiceMissingError);
+    QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
     QVERIFY(!d.errorString().isEmpty());
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     d.stop();

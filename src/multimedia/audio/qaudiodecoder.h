@@ -72,7 +72,7 @@ public:
         ResourceError,
         FormatError,
         AccessDeniedError,
-        ServiceMissingError
+        NotSupportedError
     };
 
     explicit QAudioDecoder(QObject *parent = nullptr);
