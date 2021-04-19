@@ -42,7 +42,6 @@
         <string>Qt Multimedia Example</string>
         <key>NSMicrophoneUsageDescription</key>
         <string>Qt Multimedia Example</string>
-
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
 </dict>

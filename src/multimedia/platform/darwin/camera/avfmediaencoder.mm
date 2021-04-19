@@ -385,8 +385,6 @@ void AVFMediaEncoder::applySettings()
     auto encoderSettings = m_settings;
     encoderSettings.resolveFormat();
 
-    const AVFConfigurationLock lock(session->videoCaptureDevice()); // prevents activeFormat from being overridden
-
     // audio settings
     m_audioSettings = avfAudioSettings(encoderSettings);
     if (m_audioSettings)
@@ -394,7 +392,10 @@ void AVFMediaEncoder::applySettings()
 
     // video settings
     AVCaptureDevice *device = m_service->session()->videoCaptureDevice();
-    AVCaptureConnection *conn = [m_service->session()->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+    if (!device)
+        return;
+    const AVFConfigurationLock lock(device); // prevents activeFormat from being overridden
+   AVCaptureConnection *conn = [m_service->session()->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
     m_videoSettings = avfVideoSettings(encoderSettings, device, conn);
     if (m_videoSettings)
         [m_videoSettings retain];

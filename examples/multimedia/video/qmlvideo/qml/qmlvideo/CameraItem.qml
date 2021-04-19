@@ -72,6 +72,15 @@ VideoOutput {
                 }
             }
         }
+        imageCapture: ImageCapture {
+            id: imageCapture
+        }
+
+        encoder: MediaEncoder {
+            id: encoder
+//             resolution: "640x480"
+//             frameRate: 30
+        }
         videoOutput: root
     }
 
