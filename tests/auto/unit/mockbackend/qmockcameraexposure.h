@@ -31,11 +31,11 @@
 
 #include "private/qplatformcameraexposure_p.h"
 
-class MockCameraExposureControl : public QPlatformCameraExposure
+class QMockCameraExposure : public QPlatformCameraExposure
 {
     Q_OBJECT
 public:
-    MockCameraExposureControl(QObject *parent = 0):
+    QMockCameraExposure(QObject *parent = 0):
         QPlatformCameraExposure(parent),
         m_aperture(2.8),
         m_shutterSpeed(0.01),
@@ -63,7 +63,7 @@ public:
             m_exposureModes << QVariant::fromValue<QCameraExposure::ExposureMode>(mode);
     }
 
-    ~MockCameraExposureControl() {}
+    ~QMockCameraExposure() {}
 
     bool isParameterSupported(ExposureParameter parameter) const
     {

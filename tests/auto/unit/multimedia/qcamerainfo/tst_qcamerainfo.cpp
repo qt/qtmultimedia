@@ -34,7 +34,7 @@
 #include <qmediadevicemanager.h>
 
 #include "qmockintegration_p.h"
-#include "mockmediarecorderservice.h"
+#include "qmockmediacapturesession.h"
 
 QT_USE_NAMESPACE
 
@@ -59,7 +59,7 @@ private:
 
 void tst_QCameraInfo::initTestCase()
 {
-    MockMediaRecorderService::simpleCamera = false;
+    QMockMediaCaptureSession::simpleCamera = false;
 }
 
 void tst_QCameraInfo::init()

@@ -41,12 +41,12 @@
 
 QT_BEGIN_NAMESPACE
 
-class MockAudioDecoderControl : public QPlatformAudioDecoder
+class QMockAudioDecoder : public QPlatformAudioDecoder
 {
     Q_OBJECT
 
 public:
-    MockAudioDecoderControl(QObject *parent = 0)
+    QMockAudioDecoder(QObject *parent = 0)
         : QPlatformAudioDecoder(parent)
         , mState(QAudioDecoder::StoppedState)
         , mDevice(0)

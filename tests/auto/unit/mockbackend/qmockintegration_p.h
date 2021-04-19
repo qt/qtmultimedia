@@ -56,10 +56,10 @@
 QT_BEGIN_NAMESPACE
 
 class QMockDeviceManager;
-class MockMediaPlayer;
-class MockAudioDecoderControl;
-class MockCameraControl;
-class MockMediaRecorderService;
+class QMockMediaPlayer;
+class QMockAudioDecoder;
+class QMockCamera;
+class QMockMediaCaptureSession;
 
 class QMockIntegration : public QPlatformMediaIntegration
 {
@@ -87,18 +87,18 @@ public:
     void setFlags(Flags f) { m_flags = f; }
     Flags flags() const { return m_flags; }
 
-    MockMediaPlayer *lastPlayer() const { return m_lastPlayer; }
-    MockAudioDecoderControl *lastAudioDecoder() const { return m_lastAudioDecoderControl; }
-    MockCameraControl *lastCamera() const { return m_lastCamera; }
-    MockMediaRecorderService *lastCaptureService() const { return m_lastCaptureService; }
+    QMockMediaPlayer *lastPlayer() const { return m_lastPlayer; }
+    QMockAudioDecoder *lastAudioDecoder() const { return m_lastAudioDecoderControl; }
+    QMockCamera *lastCamera() const { return m_lastCamera; }
+    QMockMediaCaptureSession *lastCaptureService() const { return m_lastCaptureService; }
 
 private:
     Flags m_flags = {};
     QMockDeviceManager *m_manager = nullptr;
-    MockMediaPlayer *m_lastPlayer = nullptr;
-    MockAudioDecoderControl *m_lastAudioDecoderControl = nullptr;
-    MockCameraControl *m_lastCamera = nullptr;
-    MockMediaRecorderService *m_lastCaptureService = nullptr;
+    QMockMediaPlayer *m_lastPlayer = nullptr;
+    QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
+    QMockCamera *m_lastCamera = nullptr;
+    QMockMediaCaptureSession *m_lastCaptureService = nullptr;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);

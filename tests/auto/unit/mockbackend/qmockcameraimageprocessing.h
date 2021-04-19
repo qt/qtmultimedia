@@ -31,11 +31,11 @@
 
 #include "private/qplatformcameraimageprocessing_p.h"
 
-class MockImageProcessingControl : public QPlatformCameraImageProcessing
+class QMockCameraImageProcessing : public QPlatformCameraImageProcessing
 {
     Q_OBJECT
 public:
-    MockImageProcessingControl(QObject *parent = 0)
+    QMockCameraImageProcessing(QObject *parent = 0)
         : QPlatformCameraImageProcessing(parent)
     {
         m_supportedWhiteBalance.insert(QCameraImageProcessing::WhiteBalanceAuto);

@@ -1,5 +1,5 @@
 INCLUDEPATH += $$PWD
 HEADERS += \
-    $$PWD/mockmediaplayercontrol.h \
+    $$PWD/mockmediaplayer.h \
     $$PWD/mockmediaplayerservice.h \
     

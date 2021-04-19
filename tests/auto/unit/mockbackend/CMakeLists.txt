@@ -13,15 +13,15 @@ target_link_libraries(QtMultimediaMockBackend INTERFACE
     Qt::MultimediaPrivate
 )
 target_sources(QtMultimediaMockBackend INTERFACE
-    mockaudiodecodercontrol.h
-    mockcameracontrol.h
-    mockcameraexposurecontrol.h
-    mockcamerafocuscontrol.h
-    mockcameraimagecapturecontrol.h
-    mockcameraimageprocessingcontrol.h
-    mockmediaplayer.h
-    mockmediarecordercontrol.h
-    mockmediarecorderservice.h
+    qmockaudiodecoder.h
+    qmockcamera.h
+    qmockcameraexposure.h
+    qmockcamerafocus.h
+    qmockcameraimageprocessing.h
+    qmockimagecapture.h
+    qmockmediaplayer.h
+    qmockmediaencoder.h
+    qmockmediacapturesession.h
     qmockdevicemanager.cpp
     qmockdevicemanager_p.h
     qmockintegration.cpp

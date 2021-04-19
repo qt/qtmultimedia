@@ -37,8 +37,8 @@
 #include <qmockintegration_p.h>
 #include <qmediacapturesession.h>
 
-#include "mockmediarecorderservice.h"
-#include "mockmediarecordercontrol.h"
+#include "qmockmediacapturesession.h"
+#include "qmockmediaencoder.h"
 
 QT_USE_NAMESPACE
 
@@ -86,8 +86,8 @@ private:
     QMockIntegration *mockIntegration = nullptr;
     QMediaCaptureSession *captureSession;
     QCamera *object = nullptr;
-    MockMediaRecorderService *service = nullptr;
-    MockMediaEncoderControl *mock;
+    QMockMediaCaptureSession *service = nullptr;
+    QMockMediaEncoder *mock;
     QMediaEncoder *capture;
 };
 

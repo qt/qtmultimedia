@@ -1,9 +1,9 @@
 HEADERS *= \
-    $$PWD/mockcameracontrol.h \
-    $$PWD/mockcameraexposurecontrol.h \
-    $$PWD/mockcamerafocuscontrol.h \
-    $$PWD/mockcameraimagecapturecontrol.h \
-    $$PWD/mockcameraimageprocessingcontrol.h \
-    $$PWD/mockmediarecordercontrol.h \
+    $$PWD/mockcamera.h \
+    $$PWD/mockcameraexposure.h \
+    $$PWD/mockcamerafocus.h \
+    $$PWD/mockcameraimagecapture.h \
+    $$PWD/mockcameraimageprocessing.h \
+    $$PWD/mockmediarecorder.h \
     $$PWD/mockmediarecorderservice.h \
-    $$PWD/mockvideodeviceselectorcontrol.h \
+    $$PWD/mockvideodeviceselector.h \

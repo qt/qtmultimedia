@@ -48,7 +48,7 @@ Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
 #include <qcameraimagecapture.h>
 #include <qmediacapturesession.h>
 
-#include "mockmediarecorderservice.h"
+#include "qmockmediacapturesession.h"
 #include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE
@@ -216,7 +216,7 @@ void tst_QCameraImageCapture::encodingSettings()
 //MaemoAPI-1830:test errors
 void tst_QCameraImageCapture::errors()
 {
-    MockMediaRecorderService::simpleCamera = true;
+    QMockMediaCaptureSession::simpleCamera = true;
 
     {
         QMediaCaptureSession session;
@@ -245,7 +245,7 @@ void tst_QCameraImageCapture::errors()
     QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
     QVERIFY2(!imageCapture.errorString().isEmpty(), "Could not capture in stopped state");
 
-    MockMediaRecorderService::simpleCamera = false;
+    QMockMediaCaptureSession::simpleCamera = false;
 }
 
 //MaemoAPI-1831:test error
@@ -365,8 +365,8 @@ void tst_QCameraImageCapture::readyForCaptureChanged()
 //MaemoAPI-1853:test cameraImageCapture control constructor
 void tst_QCameraImageCapture::cameraImageCaptureControl()
 {
-    MockCameraControl ctrl;
-    MockCaptureControl capctrl(&ctrl);
+    QMockCamera ctrl;
+    QMockImageCapture capctrl(&ctrl);
 }
 
 QTEST_MAIN(tst_QCameraImageCapture)

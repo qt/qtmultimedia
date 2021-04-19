@@ -32,12 +32,12 @@
 #include "private/qplatformmediaplayer_p.h"
 #include <qurl.h>
 
-class MockMediaPlayer : public QPlatformMediaPlayer
+class QMockMediaPlayer : public QPlatformMediaPlayer
 {
-    friend class MockMediaPlayerService;
+    friend class QMockMediaPlayerService;
 
 public:
-    MockMediaPlayer(QMediaPlayer *parent)
+    QMockMediaPlayer(QMediaPlayer *parent)
         : QPlatformMediaPlayer(parent)
         , _state(QMediaPlayer::StoppedState)
         , _mediaStatus(QMediaPlayer::NoMedia)
@@ -55,7 +55,7 @@ public:
         , _isValid(false)
     {
     }
-    ~MockMediaPlayer()
+    ~QMockMediaPlayer()
     {
     }
 

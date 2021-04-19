@@ -39,7 +39,7 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#include "mockmediarecorderservice.h"
+#include "qmockmediacapturesession.h"
 #include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE

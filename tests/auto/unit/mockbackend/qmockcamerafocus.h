@@ -32,18 +32,18 @@
 #include "private/qplatformcamerafocus_p.h"
 #include "qcamerafocus.h"
 
-class MockCameraFocusControl : public QPlatformCameraFocus
+class QMockCameraFocus : public QPlatformCameraFocus
 {
     Q_OBJECT
 public:
-    MockCameraFocusControl(QObject *parent = 0):
+    QMockCameraFocus(QObject *parent = 0):
         QPlatformCameraFocus(parent),
         m_focusMode(QCameraFocus::AutoFocus),
         m_focusPoint(0.5, 0.5)
     {
     }
 
-    ~MockCameraFocusControl() {}
+    ~QMockCameraFocus() {}
 
     QCameraFocus::FocusMode focusMode() const
     {

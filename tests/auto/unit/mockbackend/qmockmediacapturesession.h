@@ -29,21 +29,21 @@
 #ifndef MOCKSERVICE_H
 #define MOCKSERVICE_H
 
-#include "mockmediarecordercontrol.h"
-#include "mockcameraimagecapturecontrol.h"
-#include "mockcameracontrol.h"
+#include "qmockmediaencoder.h"
+#include "qmockimagecapture.h"
+#include "qmockcamera.h"
 #include <private/qplatformmediacapture_p.h>
 
-class MockMediaRecorderService : public QPlatformMediaCaptureSession
+class QMockMediaCaptureSession : public QPlatformMediaCaptureSession
 {
     Q_OBJECT
 public:
-    MockMediaRecorderService()
+    QMockMediaCaptureSession()
         : hasControls(true)
     {
-        mockControl = new MockMediaEncoderControl(this);
+        mockControl = new QMockMediaEncoder(this);
     }
-    ~MockMediaRecorderService()
+    ~QMockMediaCaptureSession()
     {
     }
 
@@ -51,7 +51,7 @@ public:
 
     void setCamera(QPlatformCamera *camera) override
     {
-        MockCameraControl *control = static_cast<MockCameraControl *>(camera);
+        QMockCamera *control = static_cast<QMockCamera *>(camera);
         if (mockCameraControl == control)
             return;
 
@@ -97,9 +97,9 @@ public:
 
     static bool simpleCamera;
 
-    MockCameraControl *mockCameraControl = nullptr;
-    MockCaptureControl *mockCaptureControl = nullptr;
-    MockMediaEncoderControl *mockControl = nullptr;
+    QMockCamera *mockCameraControl = nullptr;
+    QMockImageCapture *mockCaptureControl = nullptr;
+    QMockMediaEncoder *mockControl = nullptr;
 
     QAudioDeviceInfo m_audioInput;
     bool m_muted = false;

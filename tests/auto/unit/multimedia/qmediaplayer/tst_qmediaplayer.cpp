@@ -40,7 +40,7 @@
 #include <qobject.h>
 
 #include "qmockintegration_p.h"
-#include "mockmediaplayer.h"
+#include "qmockmediaplayer.h"
 #include "qvideosink.h"
 
 QT_USE_NAMESPACE
@@ -124,7 +124,7 @@ private:
     void setupCommonTestData();
 
     QMockIntegration *mockIntegration;
-    MockMediaPlayer *mockPlayer;
+    QMockMediaPlayer *mockPlayer;
     QMediaPlayer *player;
 };
 

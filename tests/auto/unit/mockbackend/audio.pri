@@ -1,3 +1,3 @@
 INCLUDEPATH += $$PWD
 HEADERS *= \
-    $$PWD/mockaudiodecodercontrol.h
+    $$PWD/mockaudiodecoder.h

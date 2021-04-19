@@ -31,27 +31,27 @@
 
 #include "private/qplatformcamera_p.h"
 #include "qcamerainfo.h"
-#include "mockcamerafocuscontrol.h"
-#include "mockcameraimageprocessingcontrol.h"
-#include "mockcameraexposurecontrol.h"
+#include "qmockcamerafocus.h"
+#include "qmockcameraimageprocessing.h"
+#include "qmockcameraexposure.h"
 #include <qtimer.h>
 
-class MockCameraControl : public QPlatformCamera
+class QMockCamera : public QPlatformCamera
 {
     friend class MockCaptureControl;
     Q_OBJECT
 public:
-    MockCameraControl(QCamera *parent = 0):
+    QMockCamera(QCamera *parent = 0):
             QPlatformCamera(parent),
             m_status(QCamera::InactiveStatus),
             m_propertyChangesSupported(false)
     {
-        mockExposureControl = new MockCameraExposureControl(this);
-        mockFocusControl = new MockCameraFocusControl(this);
-        mockImageProcessingControl = new MockImageProcessingControl(this);
+        mockExposureControl = new QMockCameraExposure(this);
+        mockFocusControl = new QMockCameraFocus(this);
+        mockImageProcessingControl = new QMockCameraImageProcessing(this);
     }
 
-    ~MockCameraControl() {}
+    ~QMockCamera() {}
 
     void start() { setActive(true); }
     void stop() { setActive(false); }
@@ -88,9 +88,9 @@ public:
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;
 
-    MockCameraExposureControl *mockExposureControl;
-    MockCameraFocusControl *mockFocusControl;
-    MockImageProcessingControl *mockImageProcessingControl;
+    QMockCameraExposure *mockExposureControl;
+    QMockCameraFocus *mockFocusControl;
+    QMockCameraImageProcessing *mockImageProcessingControl;
 };
 
 

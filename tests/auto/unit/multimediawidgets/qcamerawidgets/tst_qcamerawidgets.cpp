@@ -44,7 +44,7 @@
 #include <qvideowidget.h>
 #include <qvideosink.h>
 
-#include "mockmediarecorderservice.h"
+#include "qmockmediacapturesession.h"
 #include "qmockintegration_p.h"
 
 QT_USE_NAMESPACE

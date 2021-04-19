@@ -45,7 +45,7 @@
 #include <qmediadevicemanager.h>
 
 #include "qmockintegration_p.h"
-#include "mockmediarecorderservice.h"
+#include "qmockmediacapturesession.h"
 
 QT_USE_NAMESPACE
 
@@ -123,7 +123,7 @@ private:
 
 void tst_QCamera::initTestCase()
 {
-    MockMediaRecorderService::simpleCamera = false;
+    QMockMediaCaptureSession::simpleCamera = false;
 }
 
 void tst_QCamera::init()
@@ -138,7 +138,7 @@ void tst_QCamera::cleanup()
 
 void tst_QCamera::testSimpleCamera()
 {
-    MockMediaRecorderService::simpleCamera = true;
+    QMockMediaCaptureSession::simpleCamera = true;
     QCamera camera;
 
     QCOMPARE(camera.isActive(), false);
@@ -150,7 +150,7 @@ void tst_QCamera::testSimpleCamera()
 
 void tst_QCamera::testSimpleCameraWhiteBalance()
 {
-    MockMediaRecorderService::simpleCamera = true;
+    QMockMediaCaptureSession::simpleCamera = true;
     QCamera camera;
 
     //only WhiteBalanceAuto is supported
@@ -166,7 +166,7 @@ void tst_QCamera::testSimpleCameraWhiteBalance()
 
 void tst_QCamera::testSimpleCameraExposure()
 {
-    MockMediaRecorderService::simpleCamera = true;
+    QMockMediaCaptureSession::simpleCamera = true;
 
     QCamera camera;
     QCameraExposure *cameraExposure = camera.exposure();
@@ -211,7 +211,7 @@ void tst_QCamera::testSimpleCameraExposure()
 
 void tst_QCamera::testSimpleCameraFocus()
 {
-    MockMediaRecorderService::simpleCamera = true;
+    QMockMediaCaptureSession::simpleCamera = true;
 
     QCamera camera;
 
@@ -242,7 +242,7 @@ void tst_QCamera::testSimpleCameraFocus()
 
 void tst_QCamera::testSimpleCameraCapture()
 {
-    MockMediaRecorderService::simpleCamera = true;
+    QMockMediaCaptureSession::simpleCamera = true;
 
     QMediaCaptureSession session;
     QCamera camera;
@@ -329,7 +329,7 @@ void tst_QCamera::testCameraWhiteBalance()
     whiteBalanceModes << QCameraImageProcessing::WhiteBalanceTungsten;
 
     QCamera camera;
-    MockCameraControl *mockCameraControl = new MockCameraControl(&camera);
+    QMockCamera *mockCameraControl = new QMockCamera(&camera);
     //auto *service = integration->lastCaptureService();
     mockCameraControl->mockImageProcessingControl->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
     mockCameraControl->mockImageProcessingControl->setSupportedWhiteBalanceModes(whiteBalanceModes);
@@ -708,7 +708,7 @@ void tst_QCamera::testEnumDebug()
 void tst_QCamera::testCameraControl()
 {
     QCamera camera;
-    MockCameraControl *m_cameraControl = new MockCameraControl(&camera);
+    QMockCamera *m_cameraControl = new QMockCamera(&camera);
     QVERIFY(m_cameraControl != nullptr);
 }
 
@@ -986,7 +986,7 @@ void tst_QCamera::testMaxOpticalZoomChangedSignal()
 void tst_QCamera :: testImageProcessingControl()
 {
     QObject parent;
-    MockImageProcessingControl processCtrl(&parent);
+    QMockCameraImageProcessing processCtrl(&parent);
 }
 
 void tst_QCamera::testSignalApertureChanged()
@@ -1096,7 +1096,7 @@ void tst_QCamera::testSignalFlashReady()
 void tst_QCamera::testExposureControlConstructor()
 {
     // To check changes in abstract classes's pure virtual functions
-    MockCameraExposureControl obj;
+    QMockCameraExposure obj;
 }
 
 QTEST_MAIN(tst_QCamera)

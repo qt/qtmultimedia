@@ -39,10 +39,10 @@
 
 #include "qmockintegration_p.h"
 #include "qmockdevicemanager_p.h"
-#include "mockmediaplayer.h"
-#include "mockaudiodecodercontrol.h"
-#include "mockcameracontrol.h"
-#include "mockmediarecorderservice.h"
+#include "qmockmediaplayer.h"
+#include "qmockaudiodecoder.h"
+#include "qmockcamera.h"
+#include "qmockmediacapturesession.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -69,7 +69,7 @@ QPlatformAudioDecoder *QMockIntegration::createAudioDecoder()
     if (m_flags & NoAudioDecoderInterface)
         m_lastAudioDecoderControl = nullptr;
     else
-        m_lastAudioDecoderControl = new MockAudioDecoderControl;
+        m_lastAudioDecoderControl = new QMockAudioDecoder;
     return m_lastAudioDecoderControl;
 }
 
@@ -78,7 +78,7 @@ QPlatformMediaPlayer *QMockIntegration::createPlayer(QMediaPlayer *parent)
     if (m_flags & NoPlayerInterface)
         m_lastPlayer = nullptr;
     else
-        m_lastPlayer = new MockMediaPlayer(parent);
+        m_lastPlayer = new QMockMediaPlayer(parent);
     return m_lastPlayer;
 }
 
@@ -87,7 +87,7 @@ QPlatformCamera *QMockIntegration::createCamera(QCamera *parent)
     if (m_flags & NoCaptureInterface)
         m_lastCamera = nullptr;
     else
-        m_lastCamera = new MockCameraControl(parent);
+        m_lastCamera = new QMockCamera(parent);
     return m_lastCamera;
 }
 
@@ -97,10 +97,10 @@ QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession(QMediaRecor
     if (m_flags & NoCaptureInterface)
         m_lastCaptureService = nullptr;
     else
-        m_lastCaptureService = new MockMediaRecorderService();
+        m_lastCaptureService = new QMockMediaCaptureSession();
     return m_lastCaptureService;
 }
 
-bool MockMediaRecorderService::simpleCamera = false;
+bool QMockMediaCaptureSession::simpleCamera = false;
 
 QT_END_NAMESPACE

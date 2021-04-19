@@ -35,18 +35,18 @@
 
 #include "private/qplatformcameraimagecapture_p.h"
 #include "private/qplatformcamera_p.h"
-#include "mockcameracontrol.h"
+#include "qmockcamera.h"
 
-class MockCaptureControl : public QPlatformCameraImageCapture
+class QMockImageCapture : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:
-    MockCaptureControl(MockCameraControl *cameraControl, QObject *parent = 0)
+    QMockImageCapture(QMockCamera *cameraControl, QObject *parent = 0)
         : QPlatformCameraImageCapture(parent), m_cameraControl(cameraControl), m_captureRequest(0), m_ready(true)
     {
     }
 
-    ~MockCaptureControl()
+    ~QMockImageCapture()
     {
     }
 
@@ -93,7 +93,7 @@ private Q_SLOTS:
     }
 
 private:
-    MockCameraControl *m_cameraControl;
+    QMockCamera *m_cameraControl;
     QString m_fileName;
     int m_captureRequest;
     bool m_ready;

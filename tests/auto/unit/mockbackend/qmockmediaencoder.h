@@ -34,12 +34,12 @@
 
 #include "private/qplatformmediaencoder_p.h"
 
-class MockMediaEncoderControl : public QPlatformMediaEncoder
+class QMockMediaEncoder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 
 public:
-    MockMediaEncoderControl(QObject *parent = 0):
+    QMockMediaEncoder(QObject *parent = 0):
         QPlatformMediaEncoder(parent),
         m_state(QMediaEncoder::StoppedState),
         m_status(QMediaEncoder::StoppedStatus),
