@@ -44,6 +44,7 @@
 #include "qmockcamera.h"
 #include "qmockmediacapturesession.h"
 #include "qmockvideosink.h"
+#include "qmockimagecapture.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -90,6 +91,11 @@ QPlatformCamera *QMockIntegration::createCamera(QCamera *parent)
     else
         m_lastCamera = new QMockCamera(parent);
     return m_lastCamera;
+}
+
+QPlatformCameraImageCapture *QMockIntegration::createImageCapture(QCameraImageCapture *capture)
+{
+    return new QMockImageCapture(capture);
 }
 
 QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession(QMediaRecorder::CaptureMode mode)

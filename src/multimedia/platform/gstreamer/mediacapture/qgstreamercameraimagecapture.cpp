@@ -53,11 +53,9 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcImageCapture, "qt.multimedia.imageCapture")
 
-QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QGstreamerMediaCapture *session, const QGstPipeline &pipeline)
-  : QPlatformCameraImageCapture(session),
-    QGstreamerBufferProbe(ProbeBuffers),
-    m_session(session),
-    gstPipeline(pipeline)
+QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QCameraImageCapture *parent)
+  : QPlatformCameraImageCapture(parent),
+    QGstreamerBufferProbe(ProbeBuffers)
 {
     bin = QGstBin("imageCaptureBin");
 
@@ -76,25 +74,22 @@ QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QGstreamerMediaCaptur
     queue.link(videoConvert, encoder, sink);
     bin.addGhostPad(queue, "sink");
     bin.lockState(true);
-    gstPipeline.add(bin);
 
     addProbeToPad(queue.staticPad("src").pad(), false);
 
     sink.set("signal-handoffs", true);
     g_signal_connect(sink.object(), "handoff", G_CALLBACK(&QGstreamerCameraImageCapture::saveImageFilter), this);
-
-    connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QGstreamerCameraImageCapture::cameraActiveChanged);
-    cameraActive = m_session->camera()->isActive();
 }
 
 QGstreamerCameraImageCapture::~QGstreamerCameraImageCapture()
 {
-    m_session->releaseVideoPad(videoSrcPad);
+    if (m_session)
+        m_session->releaseVideoPad(videoSrcPad);
 }
 
 bool QGstreamerCameraImageCapture::isReadyForCapture() const
 {
-    return !passImage && cameraActive;
+    return m_session && !passImage && cameraActive;
 }
 
 
@@ -153,6 +148,16 @@ int QGstreamerCameraImageCapture::captureToBuffer()
 
 int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
 {
+    if (!m_session) {
+        //emit error in the next event loop,
+        //so application can associate it with returned request id.
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                                  Q_ARG(int, m_lastId),
+                                  Q_ARG(int, QCameraImageCapture::ResourceError),
+                                  Q_ARG(QString,tr("Image capture not set to a session.")));
+
+        return -1;
+    }
     if (!m_session->camera()) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
@@ -225,6 +230,29 @@ bool QGstreamerCameraImageCapture::probeBuffer(GstBuffer *buffer)
     return true;
 }
 
+void QGstreamerCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
+    if (m_session == captureSession)
+        return;
+
+    if (m_session) {
+        disconnect(m_session, nullptr, this, nullptr);
+        m_lastId = 0;
+        pendingImages.clear();
+        passImage = false;
+        cameraActive = false;
+        bin.setStateSync(GST_STATE_NULL);
+    }
+
+    m_session = captureSession;
+    if (!m_session)
+        return;
+
+    connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QGstreamerCameraImageCapture::onCameraChanged);
+    onCameraChanged();
+}
+
 void QGstreamerCameraImageCapture::cameraActiveChanged(bool active)
 {
     qCDebug(qLcImageCapture) << "cameraActiveChanged" << cameraActive << active;
@@ -233,6 +261,15 @@ void QGstreamerCameraImageCapture::cameraActiveChanged(bool active)
     cameraActive = active;
     qCDebug(qLcImageCapture) << "isReady" << isReadyForCapture();
     emit readyForCaptureChanged(isReadyForCapture());
+}
+
+void QGstreamerCameraImageCapture::onCameraChanged()
+{
+    if (m_session->camera()) {
+        cameraActiveChanged(m_session->camera()->isActive());
+        connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QGstreamerCameraImageCapture::cameraActiveChanged);
+    }
+
 }
 
 gboolean QGstreamerCameraImageCapture::saveImageFilter(GstElement *element,
@@ -281,7 +318,8 @@ void QGstreamerCameraImageCapture::unlink()
     return;
     if (passImage)
         return;
-
+    if (gstPipeline.isNull())
+        return;
     gstPipeline.setStateSync(GST_STATE_PAUSED);
     videoSrcPad.unlinkPeer();
     m_session->releaseVideoPad(videoSrcPad);
@@ -293,11 +331,10 @@ void QGstreamerCameraImageCapture::unlink()
 
 void QGstreamerCameraImageCapture::link()
 {
-    Q_ASSERT(m_session->camera());
-
-    if (!bin.staticPad("sink").peer().isNull())
+    if (!(m_session && m_session->camera()))
         return;
-
+    if (!bin.staticPad("sink").peer().isNull() || gstPipeline.isNull())
+        return;
     gstPipeline.setStateSync(GST_STATE_PAUSED);
     videoSrcPad = m_session->getVideoPad();
     videoSrcPad.link(bin.staticPad("sink"));

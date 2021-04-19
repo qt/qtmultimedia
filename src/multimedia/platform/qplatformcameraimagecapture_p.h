@@ -56,6 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 class QImage;
+class QPlatformMediaCaptureSession;
 
 class Q_MULTIMEDIA_EXPORT QPlatformCameraImageCapture : public QObject
 {
@@ -71,6 +72,9 @@ public:
     virtual void setImageSettings(const QImageEncoderSettings &settings) = 0;
 
     virtual void setMetaData(const QMediaMetaData &) {}
+
+    QCameraImageCapture *imageCapture() { return m_imageCapture; }
+
 Q_SIGNALS:
     void readyForCaptureChanged(bool ready);
 
@@ -83,7 +87,9 @@ Q_SIGNALS:
     void error(int id, int error, const QString &errorString);
 
 protected:
-    explicit QPlatformCameraImageCapture(QObject *parent = nullptr);
+    explicit QPlatformCameraImageCapture(QCameraImageCapture *parent = nullptr);
+private:
+    QCameraImageCapture *m_imageCapture = nullptr;
 };
 
 QT_END_NAMESPACE

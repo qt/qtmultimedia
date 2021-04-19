@@ -92,6 +92,9 @@ public:
 Q_SIGNALS:
     void mutedChanged(bool muted);
     void volumeChanged(qreal volume);
+    void cameraChanged();
+    void imageCaptureChanged();
+    void encoderChanged();
 
 };
 

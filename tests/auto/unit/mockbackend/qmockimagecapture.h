@@ -42,25 +42,24 @@ class QMockImageCapture : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:
-    QMockImageCapture(QMockMediaCaptureSession *captureSession);
+    QMockImageCapture(QCameraImageCapture *parent);
 
     ~QMockImageCapture()
     {
     }
 
-    bool isReadyForCapture() const;
+    bool isReadyForCapture() const override;
 
-    int capture(const QString &fileName);
-    int captureToBuffer() { return -1; }
+    int capture(const QString &fileName) override;
+    int captureToBuffer() override { return -1; }
 
-    QImageEncoderSettings imageSettings() const { return m_settings; }
-    void setImageSettings(const QImageEncoderSettings &settings) { m_settings = settings; }
+    QImageEncoderSettings imageSettings() const override { return m_settings; }
+    void setImageSettings(const QImageEncoderSettings &settings) override { m_settings = settings; }
 
 private Q_SLOTS:
     void captured();
 
 private:
-    QMockMediaCaptureSession *m_captureSession = nullptr;
     QString m_fileName;
     int m_captureRequest = 0;
     bool m_ready = true;

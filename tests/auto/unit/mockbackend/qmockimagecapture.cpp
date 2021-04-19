@@ -29,16 +29,17 @@
 #include <qmockimagecapture.h>
 #include <qmockcamera.h>
 #include <qmockmediacapturesession.h>
+#include <qcameraimagecapture.h>
+#include <qcamera.h>
 
-QMockImageCapture::QMockImageCapture(QMockMediaCaptureSession *captureSession)
-    : QPlatformCameraImageCapture(captureSession),
-      m_captureSession(captureSession)
+QMockImageCapture::QMockImageCapture(QCameraImageCapture *parent)
+    : QPlatformCameraImageCapture(parent)
 {
 }
 
 bool QMockImageCapture::isReadyForCapture() const
 {
-    return m_ready && m_captureSession->camera() && m_captureSession->camera()->isActive();
+    return m_ready;
 }
 
 int QMockImageCapture::capture(const QString &fileName)

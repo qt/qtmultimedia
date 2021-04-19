@@ -57,8 +57,9 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a new image capture control object with the given \a parent
 */
-QPlatformCameraImageCapture::QPlatformCameraImageCapture(QObject *parent)
-    :QObject(parent)
+QPlatformCameraImageCapture::QPlatformCameraImageCapture(QCameraImageCapture *parent)
+    : QObject(parent),
+    m_imageCapture(parent)
 {
 }
 

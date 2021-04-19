@@ -88,7 +88,6 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
 QGstreamerMediaCapture::~QGstreamerMediaCapture()
 {
     gstPipeline.setStateSync(GST_STATE_NULL);
-    delete m_imageCapture;
     delete m_mediaEncoder;
 }
 
@@ -130,7 +129,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     }
     gstPipeline.setStateSync(GST_STATE_PLAYING);
 
-    cameraChanged();
+    emit cameraChanged();
     dumpGraph(QLatin1String("camera"));
 }
 
@@ -141,7 +140,29 @@ QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCapture()
 
 void QGstreamerMediaCapture::setImageCapture(QPlatformCameraImageCapture *imageCapture)
 {
-    Q_UNUSED(imageCapture);
+    QGstreamerCameraImageCapture *control = static_cast<QGstreamerCameraImageCapture *>(imageCapture);
+    if (m_imageCapture == control)
+        return;
+
+    gstPipeline.setStateSync(GST_STATE_PAUSED);
+
+    if (m_imageCapture) {
+        m_imageCapture->setCaptureSession(nullptr);
+        if (m_imageCapture->gstElement().state() != GST_STATE_NULL)
+            m_imageCapture->gstElement().setStateSync(GST_STATE_NULL);
+        gstPipeline.remove(m_imageCapture->gstElement());
+    }
+
+    m_imageCapture = control;
+    if (m_imageCapture) {
+        m_imageCapture->setCaptureSession(this);
+        m_imageCapture->setPipeline(gstPipeline);
+        gstPipeline.add(m_imageCapture->gstElement());
+        // m_imageCapture->gstElement().lockState(false);
+        // m_imageCapture->gstElement().setState(gstPipeline.state());
+    }
+    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    emit imageCaptureChanged();
 }
 
 void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
@@ -200,9 +221,9 @@ bool QGstreamerMediaCapture::setAudioPreview(const QAudioDeviceInfo &info)
     return true;
 }
 
-void QGstreamerMediaCapture::cameraChanged()
-{
-}
+// void QGstreamerMediaCapture::cameraChanged()
+// {
+// }
 
 void QGstreamerMediaCapture::dumpGraph(const QString &fileName)
 {

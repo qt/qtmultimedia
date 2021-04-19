@@ -41,6 +41,7 @@
 #include <qmediaencodersettings.h>
 #include <qmediametadata.h>
 #include <private/qplatformmediacapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
 #include <qmediacapturesession.h>
 
 #include "private/qobject_p.h"
@@ -115,6 +116,7 @@ QCameraImageCapture::QCameraImageCapture(QObject *parent)
 {
     Q_D(QCameraImageCapture);
     d->q_ptr = this;
+    d->control = QPlatformMediaIntegration::instance()->createImageCapture(this);
 }
 
 void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
@@ -122,15 +124,13 @@ void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
     Q_D(QCameraImageCapture);
     d->captureSession = session;
 
-    if (!session) {
-        d->control = nullptr;
+    QPlatformMediaCaptureSession *platformSession = session ? session->platformSession() : nullptr;
+
+    if (platformSession && d->control) {
+        platformSession->setImageCapture(d->control);
+    } else {
         return;
     }
-
-    d->control = session->platformSession()->imageCapture();
-
-    if (!d->control)
-        return;
 
     connect(d->control, SIGNAL(imageExposed(int)),
             this, SIGNAL(imageExposed(int)));
@@ -155,7 +155,7 @@ void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
 QCameraImageCapture::~QCameraImageCapture()
 {
     if (d_ptr->captureSession) {
-        //d_ptr->captureSession->platformSession()->releaseImageCapture(d_ptr->control);
+        d_ptr->captureSession->platformSession()->setImageCapture(nullptr);
         d_ptr->captureSession->setImageCapture(nullptr);
     }
     delete d_ptr;
@@ -258,9 +258,13 @@ void QCameraImageCapture::addMetaData(const QMediaMetaData &metaData)
 
 bool QCameraImageCapture::isReadyForCapture() const
 {
-    if (d_func()->control)
-        return d_func()->control->isReadyForCapture();
-    return false;
+    Q_D(const QCameraImageCapture);
+    if (!d->control || !d->captureSession || !d->control->isReadyForCapture())
+        return false;
+    auto *camera = d->captureSession->camera();
+    if (!camera || !camera->isActive())
+        return false;
+    return true;
 }
 
 /*!
@@ -297,15 +301,17 @@ int QCameraImageCapture::captureToFile(const QString &file)
 
     d->unsetError();
 
-    if (d->control)
-        return d->control->capture(file);
+    if (!d->control) {
+        d->_q_error(-1, NotSupportedFeatureError, tr("Camera is not ready."));
+        return -1;
+    }
 
-    d->error = NotSupportedFeatureError;
-    d->errorString = tr("Device does not support images capture.");
+    if (!isReadyForCapture()) {
+        d->_q_error(-1, NotReadyError, tr("Could not capture in stopped state"));
+        return -1;
+    }
 
-    d->_q_error(-1, d->error, d->errorString);
-
-    return -1;
+    return d->control->capture(file);
 }
 
 /*!

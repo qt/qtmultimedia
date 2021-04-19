@@ -101,7 +101,6 @@ public Q_SLOTS:
 Q_SIGNALS:
     void readyToConfigureConnections();
     void activeChanged(bool);
-    void newViewfinderFrame(const QVideoFrame &frame);
     void error(int error, const QString &errorString);
 
 private:

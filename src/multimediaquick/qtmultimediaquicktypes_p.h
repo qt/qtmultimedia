@@ -53,7 +53,7 @@
 
 #include <QtQml/qqml.h>
 #include <QtMultimedia/QtMultimedia>
-#include <qtmultimediaquickglobal_p.h>
+#include <private/qtmultimediaquickglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

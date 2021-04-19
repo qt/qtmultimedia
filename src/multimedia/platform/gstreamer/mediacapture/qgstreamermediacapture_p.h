@@ -94,7 +94,7 @@ public:
     QAudioDeviceInfo audioPreview() const override;
     bool setAudioPreview(const QAudioDeviceInfo &info) override;
 
-    void cameraChanged();
+    // void cameraChanged();
 
     void dumpGraph(const QString &fileName);
 

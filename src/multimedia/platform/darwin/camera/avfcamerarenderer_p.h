@@ -99,6 +99,9 @@ public:
 
     QRhi *rhi() const { return m_rhi; }
 
+Q_SIGNALS:
+    void newViewfinderFrame(const QVideoFrame &frame);
+
 private Q_SLOTS:
     void handleViewfinderFrame();
     void updateCaptureConnection();

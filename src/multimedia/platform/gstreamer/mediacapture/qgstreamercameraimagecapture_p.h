@@ -68,7 +68,7 @@ class QGstreamerCameraImageCapture : public QPlatformCameraImageCapture, private
 {
     Q_OBJECT
 public:
-    QGstreamerCameraImageCapture(QGstreamerMediaCapture *session, const QGstPipeline &pipeline);
+    QGstreamerCameraImageCapture(QCameraImageCapture *parent/*, const QGstPipeline &pipeline*/);
     virtual ~QGstreamerCameraImageCapture();
 
     bool isReadyForCapture() const override;
@@ -80,8 +80,14 @@ public:
 
     bool probeBuffer(GstBuffer *buffer) override;
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
+
+    QGstElement gstElement() const { return bin.element(); }
+    void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
+
 public Q_SLOTS:
     void cameraActiveChanged(bool active);
+    void onCameraChanged();
 
 private:
     int doCapture(const QString &fileName);

@@ -183,6 +183,7 @@ void AVFCameraRenderer::updateCaptureConnection()
 //can be called from non main thread
 void AVFCameraRenderer::syncHandleViewfinderFrame(const QVideoFrame &frame)
 {
+    Q_EMIT newViewfinderFrame(frame);
     QMutexLocker lock(&m_vfMutex);
     if (m_rendersToWindow)
         return;

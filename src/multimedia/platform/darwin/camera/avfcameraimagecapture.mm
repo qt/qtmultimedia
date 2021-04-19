@@ -42,6 +42,8 @@
 #include "avfcameraservice_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamera_p.h"
+#include "avfcamerasession_p.h"
+#include "avfcamerarenderer_p.h"
 #include <private/qmemoryvideobuffer_p.h>
 
 #include <QtCore/qurl.h>
@@ -50,18 +52,16 @@
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QtGui/qimagereader.h>
 
+#import <AVFoundation/AVFoundation.h>
+
 QT_USE_NAMESPACE
 
-AVFCameraImageCapture::AVFCameraImageCapture(AVFCameraService *service, QObject *parent)
+AVFCameraImageCapture::AVFCameraImageCapture(QCameraImageCapture *parent)
    : QPlatformCameraImageCapture(parent)
-   , m_service(service)
-   , m_session(service->session())
-   , m_cameraControl(service->avfCameraControl())
    , m_ready(false)
    , m_lastCaptureId(0)
    , m_videoConnection(nil)
 {
-    Q_UNUSED(service);
     m_stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
 
     NSDictionary *outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys:
@@ -69,13 +69,6 @@ AVFCameraImageCapture::AVFCameraImageCapture(AVFCameraService *service, QObject 
 
     [m_stillImageOutput setOutputSettings:outputSettings];
     [outputSettings release];
-    connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateReadyStatus()));
-
-    connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
-
-    connect(m_session, &AVFCameraSession::newViewfinderFrame,
-            this, &AVFCameraImageCapture::onNewViewfinderFrame,
-            Qt::DirectConnection);
 }
 
 AVFCameraImageCapture::~AVFCameraImageCapture()
@@ -84,7 +77,7 @@ AVFCameraImageCapture::~AVFCameraImageCapture()
 
 bool AVFCameraImageCapture::isReadyForCapture() const
 {
-    return m_videoConnection && m_cameraControl->status() == QCamera::ActiveStatus;
+    return m_cameraControl && m_videoConnection && m_cameraControl->status() == QCamera::ActiveStatus;
 }
 
 void AVFCameraImageCapture::updateReadyStatus()
@@ -98,7 +91,13 @@ void AVFCameraImageCapture::updateReadyStatus()
 
 int AVFCameraImageCapture::doCapture(const QString &actualFileName)
 {
-
+    if (!m_session) {
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
+                                Q_ARG(int, m_lastCaptureId),
+                                Q_ARG(int, QCameraImageCapture::ResourceError),
+                                Q_ARG(QString, tr("Image capture not set to capture session")));
+        return m_lastCaptureId;
+    }
     if (!isReadyForCapture()) {
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                   Q_ARG(int, m_lastCaptureId),
@@ -114,6 +113,8 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
     m_requestsMutex.lock();
     m_captureRequests.enqueue(request);
     m_requestsMutex.unlock();
+
+    QString fileName(actualFileName);
 
     [m_stillImageOutput captureStillImageAsynchronouslyFromConnection:m_videoConnection
                         completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
@@ -159,12 +160,12 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
                                           Q_ARG(int, request.captureId),
                                           Q_ARG(QVideoFrame, frame));
             } else {
-                QFile f(actualFileName);
+                QFile f(fileName);
                 if (f.open(QFile::WriteOnly)) {
                     if (f.write(jpgData) != -1) {
                         QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
                                                   Q_ARG(int, request.captureId),
-                                                  Q_ARG(QString, actualFileName));
+                                                  Q_ARG(QString, fileName));
                     } else {
                         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                                   Q_ARG(int, request.captureId),
@@ -172,7 +173,7 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
                                                   Q_ARG(QString, f.errorString()));
                     }
                 } else {
-                    QString errorMessage = tr("Could not open destination file:\n%1").arg(actualFileName);
+                    QString errorMessage = tr("Could not open destination file:\n%1").arg(fileName);
                     QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                               Q_ARG(int, request.captureId),
                                               Q_ARG(int, QCameraImageCapture::ResourceError),
@@ -226,6 +227,15 @@ void AVFCameraImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
                       0 /* rotation */);
 }
 
+void AVFCameraImageCapture::onCameraChanged()
+{
+    Q_ASSERT(m_service);
+    if (m_service->camera()) {
+        m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
+        connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(updateReadyStatus()));
+    }
+}
+
 void AVFCameraImageCapture::makeCapturePreview(CaptureRequest request,
                                                 const QVideoFrame &frame,
                                                 int rotation)
@@ -240,7 +250,7 @@ void AVFCameraImageCapture::makeCapturePreview(CaptureRequest request,
 
 void AVFCameraImageCapture::updateCaptureConnection()
 {
-    if (m_session->videoCaptureDevice()) {
+    if (m_session && m_session->videoCaptureDevice()) {
         qDebugCamera() << Q_FUNC_INFO;
         AVCaptureSession *captureSession = m_session->captureSession();
 
@@ -361,9 +371,44 @@ bool AVFCameraImageCapture::applySettings()
     return activeFormatChanged;
 }
 
+void AVFCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    AVFCameraService *captureSession = static_cast<AVFCameraService *>(session);
+    if (m_service == captureSession)
+        return;
+
+    m_service = captureSession;
+    if (!m_service) {
+        disconnect(m_session, nullptr, this, nullptr);
+        disconnect(m_session->videoOutput(), nullptr, this, nullptr);
+        disconnect(m_cameraControl, nullptr, this, nullptr);
+        m_session = nullptr;
+        m_cameraControl = nullptr;
+        m_videoConnection = nil;
+        return;
+    }
+
+    m_session = m_service->session();
+    Q_ASSERT(m_session);
+    m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
+
+    connect(m_service, &AVFCameraService::cameraChanged, this, &AVFCameraImageCapture::onCameraChanged);
+    connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
+    connect(m_session->videoOutput(), &AVFCameraRenderer::newViewfinderFrame,
+            this, &AVFCameraImageCapture::onNewViewfinderFrame,
+            Qt::DirectConnection);
+
+    if (m_session->isActive())
+        updateCaptureConnection();
+    if (m_cameraControl) {
+        updateReadyStatus();
+        connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(updateReadyStatus()));
+    }
+}
+
 bool AVFCameraImageCapture::videoCaptureDeviceIsValid() const
 {
-    if (!m_service->session() || !m_service->session()->videoCaptureDevice())
+    if (!m_service || !m_service->session() || !m_service->session()->videoCaptureDevice())
         return false;
 
     AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();

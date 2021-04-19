@@ -55,7 +55,7 @@ public slots:
 
 private slots:
     void constructor();
-    void noBackend();
+    void isAvailable();
     void deleteMediaSource();
     void isReadyForCapture();
     void capture();
@@ -100,14 +100,11 @@ void tst_QCameraImageCapture::constructor()
     QVERIFY(imageCapture.isAvailable() == true);
 }
 
-void tst_QCameraImageCapture::noBackend()
+void tst_QCameraImageCapture::isAvailable()
 {
     {
         QMediaCaptureSession session;
-        QCamera camera;
-        mockIntegration->lastCaptureService()->hasControls = false;
         QCameraImageCapture imageCapture;
-        session.setCamera(&camera);
         session.setImageCapture(&imageCapture);
 
         QVERIFY(!imageCapture.isAvailable());
@@ -154,6 +151,7 @@ void tst_QCameraImageCapture::isReadyForCapture()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
+    QVERIFY(imageCapture.isReadyForCapture() == true);
     imageCapture.captureToFile();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
     camera.stop();
@@ -209,7 +207,7 @@ void tst_QCameraImageCapture::errors()
 
         QVERIFY(imageCapture.isAvailable() == true);
         imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
-        QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
+        QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
         QVERIFY(!imageCapture.errorString().isEmpty());
     }
 

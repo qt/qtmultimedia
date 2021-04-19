@@ -67,12 +67,6 @@ AVFCameraService::~AVFCameraService()
 #ifdef Q_OS_IOS
     delete m_recorderControl;
 #endif
-
-    //delete controls before session,
-    //so they have a chance to do deinitialization
-    if (m_imageCaptureControl)
-        delete m_imageCaptureControl;
-    //delete m_recorderControl;
     if (m_session)
         delete m_session;
 }
@@ -84,7 +78,7 @@ QPlatformCamera *AVFCameraService::camera()
 
 void AVFCameraService::setCamera(QPlatformCamera *camera)
 {
-    AVFCamera *control = static_cast<AVFCamera*>(camera);
+    AVFCamera *control = static_cast<AVFCamera *>(camera);
     if (m_cameraControl == control)
         return;
 
@@ -94,11 +88,26 @@ void AVFCameraService::setCamera(QPlatformCamera *camera)
     m_cameraControl = control;
     if (m_cameraControl)
         m_cameraControl->setCaptureSession(this);
+    emit cameraChanged();
 }
 
 QPlatformCameraImageCapture *AVFCameraService::imageCapture()
 {
     return m_imageCaptureControl;
+}
+
+void AVFCameraService::setImageCapture(QPlatformCameraImageCapture *imageCapture)
+{
+    AVFCameraImageCapture *control = static_cast<AVFCameraImageCapture *>(imageCapture);
+    if (m_imageCaptureControl == control)
+        return;
+
+    if (m_imageCaptureControl)
+        m_imageCaptureControl->setCaptureSession(nullptr);
+
+    m_imageCaptureControl = control;
+    if (m_imageCaptureControl)
+        m_imageCaptureControl->setCaptureSession(this);
 }
 
 QPlatformMediaEncoder *AVFCameraService::mediaEncoder()
@@ -162,10 +171,6 @@ bool AVFCameraService::setAudioInput(const QAudioDeviceInfo &id)
 void AVFCameraService::setVideoPreview(QVideoSink *sink)
 {
     m_session->setVideoSink(sink);
-}
-
-void AVFCameraService::cameraChanged()
-{
 }
 
 #include "moc_avfcameraservice_p.cpp"

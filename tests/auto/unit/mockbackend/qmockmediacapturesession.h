@@ -43,7 +43,6 @@ public:
         : hasControls(true)
     {
         mockControl = new QMockMediaEncoder(this);
-        mockCaptureControl = new QMockImageCapture(this);
     }
     ~QMockMediaCaptureSession()
     {
@@ -60,7 +59,11 @@ public:
         mockCameraControl = control;
     }
 
-    QPlatformCameraImageCapture *imageCapture() override { return hasControls ? mockCaptureControl : nullptr; }
+    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override
+    {
+        mockImageCapture = imageCapture;
+    }
+    QPlatformCameraImageCapture *imageCapture() override { return hasControls ? mockImageCapture : nullptr; }
     QPlatformMediaEncoder *mediaEncoder() override { return hasControls ? mockControl : nullptr; }
 
     void setVideoPreview(QVideoSink *) override {}
@@ -98,7 +101,7 @@ public:
     }
 
     QMockCamera *mockCameraControl = nullptr;
-    QMockImageCapture *mockCaptureControl = nullptr;
+    QPlatformCameraImageCapture *mockImageCapture = nullptr;
     QMockMediaEncoder *mockControl = nullptr;
 
     QAudioDeviceInfo m_audioInput;

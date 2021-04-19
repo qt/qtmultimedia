@@ -51,16 +51,23 @@
 // We mean it.
 //
 
-#import <AVFoundation/AVFoundation.h>
+// #import <AVFoundation/AVFoundation.h>
 
 #include <QtCore/qqueue.h>
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qsharedpointer.h>
 #include <private/qplatformcameraimagecapture_p.h>
-#include "avfcamerasession_p.h"
 #include "avfstoragelocation_p.h"
 
 QT_BEGIN_NAMESPACE
+
+class AVFCameraService;
+class AVFCameraSession;
+class AVFCamera;
+
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureStillImageOutput);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
+
 
 class AVFCameraImageCapture : public QPlatformCameraImageCapture
 {
@@ -71,7 +78,7 @@ public:
         QSharedPointer<QSemaphore> previewReady;
     };
 
-    AVFCameraImageCapture(AVFCameraService *service, QObject *parent = nullptr);
+    AVFCameraImageCapture(QCameraImageCapture *parent = nullptr);
     ~AVFCameraImageCapture();
 
     bool isReadyForCapture() const override;
@@ -86,10 +93,13 @@ public:
     void setImageSettings(const QImageEncoderSettings &settings) override;
     bool applySettings();
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
+
 private Q_SLOTS:
     void updateCaptureConnection();
     void updateReadyStatus();
     void onNewViewfinderFrame(const QVideoFrame &frame);
+    void onCameraChanged();
 
 private:
     void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);

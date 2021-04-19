@@ -42,6 +42,7 @@
 #include <private/avfmediaplayer_p.h>
 #include <private/avfcameraservice_p.h>
 #include <private/avfcamera_p.h>
+#include <private/avfcameraimagecapture_p.h>
 #include <private/qdarwinformatsinfo_p.h>
 #include <private/avfvideosink_p.h>
 
@@ -92,9 +93,9 @@ QPlatformMediaEncoder *QDarwinIntegration::createEncoder(QMediaEncoder*)
     return nullptr;
 }
 
-QPlatformImageCapture *QDarwinIntegration::createImageCapture(QCameraImageCapture*)
+QPlatformCameraImageCapture *QDarwinIntegration::createImageCapture(QCameraImageCapture *imageCapture)
 {
-    return nullptr;
+    return new AVFCameraImageCapture(imageCapture);
 }
 
 QPlatformVideoSink *QDarwinIntegration::createVideoSink(QVideoSink *sink)
