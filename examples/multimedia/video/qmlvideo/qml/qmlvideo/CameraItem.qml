@@ -51,7 +51,7 @@
 import QtQuick
 import QtMultimedia
 
-VideoOutput {
+Item {
     id: root
     height: width
 
@@ -80,7 +80,12 @@ VideoOutput {
 //             resolution: "640x480"
 //             frameRate: 30
         }
-        videoOutput: root
+        videoOutput: videoOutput
+    }
+
+    VideoOutput {
+        id: videoOutput
+        anchors.fill: parent
     }
 
 

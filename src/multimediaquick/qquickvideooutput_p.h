@@ -116,22 +116,6 @@ public:
     QRectF sourceRect() const;
     QRectF contentRect() const;
 
-    Q_INVOKABLE QPointF mapPointToItem(const QPointF &point) const;
-    Q_INVOKABLE QRectF mapRectToItem(const QRectF &rectangle) const;
-    Q_INVOKABLE QPointF mapNormalizedPointToItem(const QPointF &point) const;
-    Q_INVOKABLE QRectF mapNormalizedRectToItem(const QRectF &rectangle) const;
-    Q_INVOKABLE QPointF mapPointToSource(const QPointF &point) const;
-    Q_INVOKABLE QRectF mapRectToSource(const QRectF &rectangle) const;
-    Q_INVOKABLE QPointF mapPointToSourceNormalized(const QPointF &point) const;
-    Q_INVOKABLE QRectF mapRectToSourceNormalized(const QRectF &rectangle) const;
-
-    enum SourceType {
-        NoSource,
-        MediaSourceSource,
-        VideoSurfaceSource
-    };
-    SourceType sourceType() const;
-
     FlushMode flushMode() const { return m_flushMode; }
     void setFlushMode(FlushMode mode);
 
