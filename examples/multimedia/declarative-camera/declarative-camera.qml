@@ -135,8 +135,6 @@ Rectangle {
         y: 0
         width: parent.width - stillControls.buttonsPanelWidth
         height: parent.height
-
-        source: camera
 //        autoOrientation: true
     }
 

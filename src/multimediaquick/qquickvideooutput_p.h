@@ -70,7 +70,6 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY(QQuickVideoOutput)
-    Q_PROPERTY(QObject* source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(int orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
     Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged REVISION 2)
@@ -102,9 +101,6 @@ public:
 
     QQuickVideoOutput(QQuickItem *parent = 0);
     ~QQuickVideoOutput();
-
-    QObject *source() const { return m_source.data(); }
-    void setSource(QObject *source);
 
     Q_INVOKABLE QVideoSink *videoSink() const;
 
@@ -162,8 +158,6 @@ private Q_SLOTS:
 
 private:
     bool createBackend();
-
-    QPointer<QObject> m_source;
 
     FillMode m_fillMode;
     QSize m_nativeSize;

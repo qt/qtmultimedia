@@ -54,7 +54,6 @@ import QtMultimedia
 VideoOutput {
     id: root
     height: width
-    source: camera
 
     signal fatalError
     signal sizeChanged

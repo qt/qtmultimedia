@@ -157,37 +157,6 @@ QVideoSink *QQuickVideoOutput::videoSink() const
     return m_backend ? m_backend->videoSink() : nullptr;
 }
 
-/*!
-    \qmlproperty variant QtMultimedia::VideoOutput::source
-
-    This property holds the source item providing the video frames like MediaPlayer or Camera.
-*/
-
-void QQuickVideoOutput::setSource(QObject *source)
-{
-    qCDebug(qLcVideo) << "source is" << source;
-
-    if (source == m_source.data())
-        return;
-    m_source = source;
-
-    if (source) {
-        const QMetaObject *metaObject = m_source.data()->metaObject();
-        int mediaSourcePropertyIndex = metaObject->indexOfProperty("mediaSource");
-        if (mediaSourcePropertyIndex != -1) {
-            const QMetaProperty mediaSourceProperty = metaObject->property(mediaSourcePropertyIndex);
-            source = mediaSourceProperty.read(source).value<QObject *>();
-        }
-    }
-
-    if (QMediaCaptureSession *s = qobject_cast<QMediaCaptureSession *>(source)) {
-        s->setVideoOutput(videoSink());
-    } else if (QMediaPlayer *p = qobject_cast<QMediaPlayer *>(source)) {
-        p->setVideoOutput(videoSink());
-    }
-    emit sourceChanged();
-}
-
 bool QQuickVideoOutput::createBackend()
 {
     m_backend.reset(new QQuickVideoBackend(this));
