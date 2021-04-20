@@ -104,8 +104,7 @@ public:
         ResourceError,
         FormatError,
         NetworkError,
-        AccessDeniedError,
-        ServiceMissingError
+        AccessDeniedError
     };
 
     explicit QMediaPlayer(QObject *parent = nullptr);
@@ -210,7 +209,7 @@ Q_SIGNALS:
     void activeTracksChanged();
 
     void errorChanged();
-    void errorOccurred(Error error, const QString &errorString);
+    void errorOccurred(QMediaPlayer::Error error, const QString &errorString);
 
 private:
     Q_DISABLE_COPY(QMediaPlayer)

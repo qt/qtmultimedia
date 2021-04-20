@@ -60,7 +60,7 @@ public:
     }
 
     QMediaPlayer::PlaybackState state() const { return _state; }
-    void updateState(QMediaPlayer::PlaybackState state) { emit stateChanged(_state = state); }
+    void updateState(QMediaPlayer::PlaybackState state) { setState(state); }
     QMediaPlayer::MediaStatus mediaStatus() const { return _mediaStatus; }
     void updateMediaStatus(QMediaPlayer::MediaStatus status)
     {
@@ -72,7 +72,7 @@ public:
         _state = state;
 
         emit mediaStatusChanged(_mediaStatus);
-        emit stateChanged(_state);
+        stateChanged(_state);
     }
 
     qint64 duration() const { return _duration; }
@@ -89,7 +89,13 @@ public:
     void setMuted(bool muted) { if (muted != _muted) emit mutedChanged(_muted = muted); }
 
     float bufferProgress() const { return _bufferProgress; }
-    void setBufferStatus(float status) { _bufferProgress = status; emit bufferProgressChanged(status); }
+    void setBufferStatus(float status)
+    {
+        if (_bufferProgress == status)
+            return;
+        _bufferProgress = status;
+        bufferProgressChanged(status);
+    }
 
     bool isAudioAvailable() const { return _audioAvailable; }
     bool isVideoAvailable() const { return _videoAvailable; }
@@ -109,15 +115,14 @@ public:
         _stream = stream;
         _media = content;
         _mediaStatus = _media.isEmpty() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia;
-        if (_state != QMediaPlayer::StoppedState)
-            emit stateChanged(_state = QMediaPlayer::StoppedState);
+        setState(QMediaPlayer::StoppedState);
         emit mediaStatusChanged(_mediaStatus);
     }
     QIODevice *mediaStream() const { return _stream; }
 
-    void play() { if (_isValid && !_media.isEmpty() && _state != QMediaPlayer::PlayingState) emit stateChanged(_state = QMediaPlayer::PlayingState); }
-    void pause() { if (_isValid && !_media.isEmpty() && _state != QMediaPlayer::PausedState) emit stateChanged(_state = QMediaPlayer::PausedState); }
-    void stop() { if (_state != QMediaPlayer::StoppedState) emit stateChanged(_state = QMediaPlayer::StoppedState); }
+    void play() { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PlayingState); }
+    void pause() { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PausedState); }
+    void stop() { if (_state != QMediaPlayer::StoppedState) setState(QMediaPlayer::StoppedState); }
 
     void setAudioRole(QAudio::Role role)
     {
@@ -141,14 +146,29 @@ public:
         emit error(err, errorString);
     }
 
-    void setState(QMediaPlayer::PlaybackState state) { emit stateChanged(_state = state); }
-    void setState(QMediaPlayer::PlaybackState state, QMediaPlayer::MediaStatus status) {
+    void setState(QMediaPlayer::PlaybackState state)
+    {
+        if (_state == state)
+            return;
+        _state = state;
+        stateChanged(state);
+    }
+    void setState(QMediaPlayer::PlaybackState state, QMediaPlayer::MediaStatus status)
+    {
         _state = state;
         _mediaStatus = status;
         emit mediaStatusChanged(status);
-        emit stateChanged(state);
+        stateChanged(state);
     }
-    void setMediaStatus(QMediaPlayer::MediaStatus status) { emit mediaStatusChanged(_mediaStatus = status); }
+    void setMediaStatus(QMediaPlayer::MediaStatus status)
+    {
+        if (_mediaStatus == status)
+            return;
+        _mediaStatus = status;
+        if (status == QMediaPlayer::StalledMedia || status == QMediaPlayer::BufferingMedia)
+            bufferProgressChanged(_bufferProgress);
+        mediaStatusChanged(status);
+    }
     void setIsValid(bool isValid) { _isValid = isValid; }
     void setMedia(QUrl media) { _media = media; }
     void setVideoAvailable(bool videoAvailable) { _videoAvailable = videoAvailable; }

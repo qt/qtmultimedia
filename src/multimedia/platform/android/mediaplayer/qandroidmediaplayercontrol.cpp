@@ -539,11 +539,11 @@ void QAndroidMediaPlayerControl::onError(qint32 what, qint32 extra)
         break;
     case AndroidMediaPlayer::MEDIA_ERROR_SERVER_DIED:
         errorString = QLatin1String("Error: Server died");
-        error = QMediaPlayer::ServiceMissingError;
+        error = QMediaPlayer::ResourceError;
         break;
     case AndroidMediaPlayer::MEDIA_ERROR_INVALID_STATE:
         errorString = QLatin1String("Error: Invalid state");
-        error = QMediaPlayer::ServiceMissingError;
+        error = QMediaPlayer::ResourceError;
         break;
     }
 
@@ -573,7 +573,7 @@ void QAndroidMediaPlayerControl::onError(qint32 what, qint32 extra)
         break;
     case AndroidMediaPlayer::MEDIA_ERROR_BAD_THINGS_ARE_GOING_TO_HAPPEN:
         errorString += QLatin1String(" (Unknown error/Insufficient resources)");
-        error = QMediaPlayer::ServiceMissingError;
+        error = QMediaPlayer::ResourceError;
         break;
     }
 

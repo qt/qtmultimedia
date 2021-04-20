@@ -126,8 +126,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         file.reset(new QFile(QLatin1Char(':') + media.path()));
         if (!file->open(QFile::ReadOnly)) {
             setError(QMediaPlayer::ResourceError, QMediaPlayer::tr("Attempting to play invalid Qt resource"));
-            QMetaObject::invokeMethod(q, "_q_mediaStatusChanged", Qt::QueuedConnection,
-                                      Q_ARG(QMediaPlayer::MediaStatus, QMediaPlayer::InvalidMedia));
+            setStatus(QMediaPlayer::InvalidMedia);
             file.reset();
             // Ignore the next NoMedia status change, we just want to clear the current media
             // on the backend side since we can't load the new one and we want to be in the
@@ -773,7 +772,6 @@ bool QMediaPlayer::autoPlay() const
     be possible, but without an audio or video component.
     \value NetworkError A network error occurred.
     \value AccessDeniedError There are not the appropriate permissions to play a media resource.
-    \value ServiceMissingError A valid playback service was not found, playback cannot proceed.
 */
 
 // Signals
