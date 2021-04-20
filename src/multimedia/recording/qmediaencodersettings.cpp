@@ -122,7 +122,6 @@ constexpr QMediaFormat::VideoCodec videoPriorityList[] =
 class QMediaEncoderSettingsPrivate  : public QSharedData
 {
 public:
-    bool isNull = true;
     QMediaEncoderSettings::EncodingMode encodingMode = QMediaEncoderSettings::ConstantQualityEncoding;
     QMediaEncoderSettings::Quality quality = QMediaEncoderSettings::NormalQuality;
 
@@ -435,6 +434,21 @@ int QMediaEncoderSettings::audioSampleRate() const
 void QMediaEncoderSettings::setAudioSampleRate(int rate)
 {
     d->audioSampleRate = rate;
+}
+
+bool QMediaEncoderSettings::operator==(const QMediaEncoderSettings &other) const
+{
+    if (d == other.d)
+        return true;
+    return QMediaFormat::operator==(other) &&
+        d->encodingMode == other.d->encodingMode &&
+        d->quality == other.d->quality &&
+        d->audioBitrate == other.d->audioBitrate &&
+        d->audioSampleRate == other.d->audioSampleRate &&
+        d->audioChannels == other.d->audioChannels &&
+        d->videoResolution == other.d->videoResolution &&
+        d->videoFrameRate == other.d->videoFrameRate &&
+        d->videoBitRate == other.d->videoBitRate;
 }
 
 

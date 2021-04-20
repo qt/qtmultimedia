@@ -112,6 +112,10 @@ public:
     int audioSampleRate() const;
     void setAudioSampleRate(int rate);
 
+    bool operator==(const QMediaEncoderSettings &other) const;
+    bool operator!=(const QMediaEncoderSettings &other) const
+    { return !operator==(other); }
+
 private:
     QSharedDataPointer<QMediaEncoderSettingsPrivate> d;
 };

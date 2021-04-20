@@ -147,6 +147,10 @@ public:
     static QString audioCodecDescription(QMediaFormat::AudioCodec c);
     static QString videoCodecDescription(QMediaFormat::VideoCodec c);
 
+    bool operator==(const QMediaFormat &other) const;
+    bool operator!=(const QMediaFormat &other) const
+    { return !operator==(other); }
+
 protected:
     friend class QMediaFormatPrivate;
     Mode fmtMode;

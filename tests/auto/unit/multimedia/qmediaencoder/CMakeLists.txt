@@ -4,7 +4,7 @@
 ## tst_qmediarecorder Test:
 #####################################################################
 
-qt_add_test(tst_qmediarecorder
+qt_add_test(tst_qmediaencoder
     SOURCES
         tst_qmediaencoder.cpp
     INCLUDE_DIRECTORIES

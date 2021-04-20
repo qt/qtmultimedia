@@ -203,14 +203,14 @@ QMediaEncoder *QMediaCaptureSession::encoder()
     return d_ptr->encoder;
 }
 
-void QMediaCaptureSession::setEncoder(QMediaEncoder *recorder)
+void QMediaCaptureSession::setEncoder(QMediaEncoder *encoder)
 {
-    if (d_ptr->encoder == recorder)
+    if (d_ptr->encoder == encoder)
         return;
     if (d_ptr->encoder)
         d_ptr->encoder->setCaptureSession(nullptr);
 
-    d_ptr->encoder = recorder;
+    d_ptr->encoder = encoder;
     if (d_ptr->encoder)
         d_ptr->encoder->setCaptureSession(this);
     emit encoderChanged();

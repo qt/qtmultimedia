@@ -335,4 +335,13 @@ QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec c)
     return QString::fromUtf8(descriptions[int(c) + 1]);
 }
 
+bool QMediaFormat::operator==(const QMediaFormat &other) const
+{
+    Q_ASSERT(!d);
+    return fmtMode == other.fmtMode &&
+            fmt == other.fmt &&
+            audio == other.audio &&
+            video == other.video;
+}
+
 QT_END_NAMESPACE

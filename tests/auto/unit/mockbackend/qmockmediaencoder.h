@@ -79,7 +79,7 @@ public:
         m_settingAppliedCount++;
     }
 
-    void setEncoderSettings(const QMediaEncoderSettings &) {}
+    void setEncoderSettings(const QMediaEncoderSettings &settings) { m_settings = settings; }
 
     virtual void setMetaData(const QMediaMetaData &m)
     {
@@ -141,6 +141,7 @@ public:
     QUrl       m_sink;
     QMediaEncoder::State m_state;
     QMediaEncoder::Status m_status;
+    QMediaEncoderSettings m_settings;
     qint64     m_position;
     int m_settingAppliedCount;
 };

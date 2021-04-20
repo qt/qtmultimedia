@@ -165,7 +165,8 @@ void QMediaEncoder::setCaptureSession(QMediaCaptureSession *session)
     }
 
     d->control = d->captureSession->platformSession()->mediaEncoder();
-    Q_ASSERT(d->control);
+    if (!d->control)
+        return;
 
     connect(d->control, SIGNAL(stateChanged(QMediaEncoder::State)),
             this, SLOT(_q_stateChanged(QMediaEncoder::State)));
@@ -303,7 +304,8 @@ void QMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
     Q_D(QMediaEncoder);
 
     d->encoderSettings = settings;
-    d->control->setEncoderSettings(settings);
+    if (d->control)
+        d->control->setEncoderSettings(settings);
     d->applySettingsLater();
 }
 
