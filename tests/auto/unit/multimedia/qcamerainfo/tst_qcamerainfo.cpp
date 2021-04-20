@@ -54,7 +54,7 @@ private slots:
     void equality_operators();
 
 private:
-    QMockIntegration *integration;
+    QMockIntegration integration;
 };
 
 void tst_QCameraInfo::initTestCase()
@@ -63,12 +63,10 @@ void tst_QCameraInfo::initTestCase()
 
 void tst_QCameraInfo::init()
 {
-    integration = new QMockIntegration;
 }
 
 void tst_QCameraInfo::cleanup()
 {
-    delete integration;
 }
 
 void tst_QCameraInfo::constructor()
@@ -78,8 +76,8 @@ void tst_QCameraInfo::constructor()
         QCamera camera;
         QCameraInfo info(camera.cameraInfo());
         QVERIFY(!info.isNull());
-        QCOMPARE(info.id(), QStringLiteral("othercamera"));
-        QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
+        QCOMPARE(info.id(), QStringLiteral("default"));
+        QCOMPARE(info.description(), QStringLiteral("defaultCamera"));
         QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
     }
 
@@ -94,14 +92,14 @@ void tst_QCameraInfo::constructor()
     QCamera camera(info);
     QCOMPARE(info, camera.cameraInfo());
     QVERIFY(!info.isNull());
-    QCOMPARE(info.id(), QStringLiteral("backcamera"));
-    QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
+    QCOMPARE(info.id(), QStringLiteral("back"));
+    QCOMPARE(info.description(), QStringLiteral("backCamera"));
     QCOMPARE(info.position(), QCameraInfo::BackFace);
 
     QCameraInfo info2(info);
     QVERIFY(!info2.isNull());
-    QCOMPARE(info2.id(), QStringLiteral("backcamera"));
-    QCOMPARE(info2.description(), QStringLiteral("backcamera desc"));
+    QCOMPARE(info2.id(), QStringLiteral("back"));
+    QCOMPARE(info2.description(), QStringLiteral("backCamera"));
     QCOMPARE(info2.position(), QCameraInfo::BackFace);
 }
 
@@ -110,8 +108,8 @@ void tst_QCameraInfo::defaultCamera()
     QCameraInfo info = QMediaDeviceManager::defaultVideoInput();
 
     QVERIFY(!info.isNull());
-    QCOMPARE(info.id(), QStringLiteral("othercamera"));
-    QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
+    QCOMPARE(info.id(), QStringLiteral("default"));
+    QCOMPARE(info.description(), QStringLiteral("defaultCamera"));
     QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
 
     QCamera camera(info);
@@ -121,31 +119,26 @@ void tst_QCameraInfo::defaultCamera()
 void tst_QCameraInfo::availableCameras()
 {
     QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
-    QCOMPARE(cameras.count(), 2);
+    QCOMPARE(cameras.count(), 3);
 
     QCameraInfo info = cameras.at(0);
     QVERIFY(!info.isNull());
-    QCOMPARE(info.id(), QStringLiteral("backcamera"));
-    QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
-    QCOMPARE(info.position(), QCameraInfo::BackFace);
+    QCOMPARE(info.id(), QStringLiteral("default"));
+    QCOMPARE(info.description(), QStringLiteral("defaultCamera"));
+    QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
 
     info = cameras.at(1);
     QVERIFY(!info.isNull());
-    QCOMPARE(info.id(), QStringLiteral("othercamera"));
-    QCOMPARE(info.description(), QStringLiteral("othercamera desc"));
-    QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
+    QCOMPARE(info.id(), QStringLiteral("front"));
+    QCOMPARE(info.description(), QStringLiteral("frontCamera"));
+    QCOMPARE(info.position(), QCameraInfo::FrontFace);
 
-//    cameras = QMediaDeviceManager::videoInputs(QCameraInfo::BackFace);
-//    QCOMPARE(cameras.count(), 1);
-//    info = cameras.at(0);
-//    QVERIFY(!info.isNull());
-//    QCOMPARE(info.id(), QStringLiteral("backcamera"));
-//    QCOMPARE(info.description(), QStringLiteral("backcamera desc"));
-//    QCOMPARE(info.position(), QCameraInfo::BackFace);
-//    QCOMPARE(info.orientation(), 90);
-
-//    cameras = QMediaDeviceManager::videoInputs(QCameraInfo::FrontFace);
-//    QCOMPARE(cameras.count(), 0);
+    QCOMPARE(cameras.count(), 3);
+    info = cameras.at(2);
+    QVERIFY(!info.isNull());
+    QCOMPARE(info.id(), QStringLiteral("back"));
+    QCOMPARE(info.description(), QStringLiteral("backCamera"));
+    QCOMPARE(info.position(), QCameraInfo::BackFace);
 }
 
 void tst_QCameraInfo::equality_operators()
@@ -153,19 +146,19 @@ void tst_QCameraInfo::equality_operators()
     QCameraInfo defaultCamera = QMediaDeviceManager::defaultVideoInput();
     QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
 
-    QVERIFY(defaultCamera == cameras.at(1));
-    QVERIFY(defaultCamera != cameras.at(0));
+    QVERIFY(defaultCamera == cameras.at(0));
+    QVERIFY(defaultCamera != cameras.at(1));
     QVERIFY(cameras.at(0) != cameras.at(1));
 
     {
         QCamera camera(defaultCamera);
         QVERIFY(camera.cameraInfo() == defaultCamera);
-        QVERIFY(camera.cameraInfo() == cameras.at(1));
+        QVERIFY(camera.cameraInfo() == cameras.at(0));
     }
 
     {
-        QCamera camera(cameras.at(0));
-        QVERIFY(camera.cameraInfo() == cameras.at(0));
+        QCamera camera(cameras.at(1));
+        QVERIFY(camera.cameraInfo() == cameras.at(1));
     }
 }
 
