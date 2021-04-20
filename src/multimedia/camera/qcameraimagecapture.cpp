@@ -166,7 +166,7 @@ QCameraImageCapture::~QCameraImageCapture()
 */
 bool QCameraImageCapture::isAvailable() const
 {
-    return d_func()->control != nullptr;
+    return d_func()->control != nullptr && d_func()->captureSession->camera();
 }
 
 QMediaCaptureSession *QCameraImageCapture::captureSession() const

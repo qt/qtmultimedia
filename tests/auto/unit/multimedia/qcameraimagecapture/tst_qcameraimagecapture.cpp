@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -25,16 +25,6 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-/****************************************************************************
-Author : Vijay/Avinash
-
-Reviewer Name       Date                Coverage ( Full / Test Case IDs ).
----------------------------------------------------------------------------
-                                        Initial review of test cases.
-****************************************************************************/
-
-//TESTED_COMPONENT=src/multimedia
 
 #include <QtTest/QtTest>
 #include <QDebug>
@@ -65,7 +55,7 @@ public slots:
 
 private slots:
     void constructor();
-    void mediaSource();
+    void noBackend();
     void deleteMediaSource();
     void isReadyForCapture();
     void capture();
@@ -99,7 +89,6 @@ void tst_QCameraImageCapture::cleanupTestCase()
     delete mockIntegration;
 }
 
-//MaemoAPI-1823:test QCameraImageCapture Constructor
 void tst_QCameraImageCapture::constructor()
 {
     QMediaCaptureSession session;
@@ -111,8 +100,7 @@ void tst_QCameraImageCapture::constructor()
     QVERIFY(imageCapture.isAvailable() == true);
 }
 
-//MaemoAPI-1824:test mediaSource
-void tst_QCameraImageCapture::mediaSource()
+void tst_QCameraImageCapture::noBackend()
 {
     {
         QMediaCaptureSession session;
@@ -155,7 +143,6 @@ void tst_QCameraImageCapture::deleteMediaSource()
     delete capture;
 }
 
-//MaemoAPI-1825:test isReadyForCapture
 void tst_QCameraImageCapture::isReadyForCapture()
 {
     QMediaCaptureSession session;
@@ -172,7 +159,6 @@ void tst_QCameraImageCapture::isReadyForCapture()
     camera.stop();
 }
 
-//MaemoAPI-1826:test capture
 void tst_QCameraImageCapture::capture()
 {
     QMediaCaptureSession session;
@@ -191,8 +177,6 @@ void tst_QCameraImageCapture::capture()
     camera.stop();
 }
 
-//MaemoAPI-1828:test encodingSettings
-//MaemoAPI-1829:test set encodingSettings
 void tst_QCameraImageCapture::encodingSettings()
 {
     QMediaCaptureSession session;
@@ -212,7 +196,6 @@ void tst_QCameraImageCapture::encodingSettings()
     QVERIFY(imageCapture.encodingSettings().quality() == QImageEncoderSettings::NormalQuality);
 }
 
-//MaemoAPI-1830:test errors
 void tst_QCameraImageCapture::errors()
 {
     QMockCamera::Simple simple;
@@ -222,12 +205,12 @@ void tst_QCameraImageCapture::errors()
         QCamera camera;
         QCameraImageCapture imageCapture;
         session.setCamera(&camera);
-
         session.setImageCapture(&imageCapture);
-        QVERIFY(imageCapture.isAvailable() == false);
+
+        QVERIFY(imageCapture.isAvailable() == true);
         imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
-        QVERIFY(imageCapture.error() == QCameraImageCapture::NotSupportedFeatureError);
-        QVERIFY2(!imageCapture.errorString().isEmpty(), "Device does not support images capture");
+        QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
+        QVERIFY(!imageCapture.errorString().isEmpty());
     }
 
     QMediaCaptureSession session;
@@ -235,17 +218,17 @@ void tst_QCameraImageCapture::errors()
     QCameraImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
+    camera.start();
 
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
     imageCapture.captureToFile();
-    QVERIFY(imageCapture.error() == QCameraImageCapture::NotReadyError);
-    QVERIFY2(!imageCapture.errorString().isEmpty(), "Could not capture in stopped state");
+    QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
+    QVERIFY(imageCapture.errorString().isEmpty());
 }
 
-//MaemoAPI-1831:test error
 void tst_QCameraImageCapture::error()
 {
     QMediaCaptureSession session;
@@ -254,7 +237,7 @@ void tst_QCameraImageCapture::error()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy spy(&imageCapture, SIGNAL(error(int,QCameraImageCapture::Error,QString)));
+    QSignalSpy spy(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,QString)));
     imageCapture.captureToFile();
     QTest::qWait(30);
     QVERIFY(spy.count() == 1);
@@ -264,7 +247,6 @@ void tst_QCameraImageCapture::error()
     spy.clear();
 }
 
-//MaemoAPI-1832:test imageCaptured
 void tst_QCameraImageCapture::imageCaptured()
 {
     QMediaCaptureSession session;
@@ -288,7 +270,6 @@ void tst_QCameraImageCapture::imageCaptured()
     camera.stop();
 }
 
-//MaemoAPI-1833:test imageExposed
 void tst_QCameraImageCapture::imageExposed()
 {
     QMediaCaptureSession session;
@@ -310,7 +291,6 @@ void tst_QCameraImageCapture::imageExposed()
     camera.stop();
 }
 
-//MaemoAPI-1834:test imageSaved
 void tst_QCameraImageCapture::imageSaved()
 {
     QMediaCaptureSession session;
@@ -333,7 +313,6 @@ void tst_QCameraImageCapture::imageSaved()
     camera.stop();
 }
 
-//MaemoAPI-1835:test readyForCaptureChanged
 void tst_QCameraImageCapture::readyForCaptureChanged()
 {
     QMediaCaptureSession session;
