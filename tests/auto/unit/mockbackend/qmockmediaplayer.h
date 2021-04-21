@@ -120,6 +120,9 @@ public:
     }
     QIODevice *mediaStream() const { return _stream; }
 
+    bool streamPlaybackSupported() const { return m_supportsStreamPlayback; }
+    void setStreamPlaybackSupported(bool b) { m_supportsStreamPlayback = b; }
+
     void play() { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PlayingState); }
     void pause() { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PausedState); }
     void stop() { if (_state != QMediaPlayer::StoppedState) setState(QMediaPlayer::StoppedState); }
@@ -216,6 +219,7 @@ public:
     QIODevice *_stream;
     bool _isValid;
     QString _errorString;
+    bool m_supportsStreamPlayback = false;
 };
 
 #endif // MOCKMEDIAPLAYERCONTROL_H

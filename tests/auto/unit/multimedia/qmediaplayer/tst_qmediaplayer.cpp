@@ -753,29 +753,28 @@ void tst_QMediaPlayer::testQrc()
     QFETCH(QString, backendMediaContentScheme);
     QFETCH(bool, backendHasStream);
 
-    QMediaPlayer player;
-
     mockPlayer->setState(QMediaPlayer::PlayingState, QMediaPlayer::NoMedia);
+    mockPlayer->setStreamPlaybackSupported(backendHasStream);
 
-    QSignalSpy mediaSpy(&player, SIGNAL(sourceChanged(QUrl)));
-    QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy errorSpy(&player, SIGNAL(errorOccurred(QMediaPlayer::Error,const QString&)));
+    QSignalSpy mediaSpy(player, SIGNAL(sourceChanged(QUrl)));
+    QSignalSpy statusSpy(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
+    QSignalSpy errorSpy(player, SIGNAL(errorOccurred(QMediaPlayer::Error,const QString&)));
 
-    player.setSource(mediaContent);
+    player->setSource(mediaContent);
 
-    QTRY_COMPARE(player.mediaStatus(), status);
+    QTRY_COMPARE(player->mediaStatus(), status);
     QCOMPARE(statusSpy.count(), 1);
     QCOMPARE(qvariant_cast<QMediaPlayer::MediaStatus>(statusSpy.last().value(0)), status);
 
-    QCOMPARE(player.source(), mediaContent);
+    QCOMPARE(player->source(), mediaContent);
     QCOMPARE(mediaSpy.count(), 1);
     QCOMPARE(qvariant_cast<QUrl>(mediaSpy.last().value(0)), mediaContent);
 
-    QCOMPARE(player.error(), error);
+    QCOMPARE(player->error(), error);
     QCOMPARE(errorSpy.count(), errorCount);
     if (errorCount > 0) {
         QCOMPARE(qvariant_cast<QMediaPlayer::Error>(errorSpy.last().value(0)), error);
-        QVERIFY(!player.errorString().isEmpty());
+        QVERIFY(!player->errorString().isEmpty());
     }
 
     // Check the media actually passed to the backend
@@ -787,35 +786,34 @@ void tst_QMediaPlayer::testAudioRole()
 {
     {
         mockPlayer->hasAudioRole = false;
-        QMediaPlayer player;
 
-        QCOMPARE(player.audioRole(), QAudio::UnknownRole);
-        QVERIFY(player.supportedAudioRoles().isEmpty());
+        QCOMPARE(player->audioRole(), QAudio::UnknownRole);
+        QVERIFY(player->supportedAudioRoles().isEmpty());
 
-        QSignalSpy spy(&player, SIGNAL(audioRoleChanged(QAudio::Role)));
-        player.setAudioRole(QAudio::MusicRole);
-        QCOMPARE(player.audioRole(), QAudio::MusicRole);
+        QSignalSpy spy(player, SIGNAL(audioRoleChanged(QAudio::Role)));
+        player->setAudioRole(QAudio::MusicRole);
+        QCOMPARE(player->audioRole(), QAudio::MusicRole);
         QCOMPARE(spy.count(), 1);
+        player->setAudioRole(QAudio::UnknownRole);
     }
 
     {
         mockPlayer->reset();
         mockPlayer->hasAudioRole = true;
-        QMediaPlayer player;
-        QSignalSpy spy(&player, SIGNAL(audioRoleChanged(QAudio::Role)));
+        QSignalSpy spy(player, SIGNAL(audioRoleChanged(QAudio::Role)));
 
-        QCOMPARE(player.audioRole(), QAudio::UnknownRole);
-        QVERIFY(!player.supportedAudioRoles().isEmpty());
+        QCOMPARE(player->audioRole(), QAudio::UnknownRole);
+        QVERIFY(!player->supportedAudioRoles().isEmpty());
 
-        player.setAudioRole(QAudio::MusicRole);
-        QCOMPARE(player.audioRole(), QAudio::MusicRole);
+        player->setAudioRole(QAudio::MusicRole);
+        QCOMPARE(player->audioRole(), QAudio::MusicRole);
         QCOMPARE(spy.count(), 1);
         QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::MusicRole);
 
         spy.clear();
 
-        player.setProperty("audioRole", QVariant::fromValue(QAudio::AlarmRole));
-        QCOMPARE(qvariant_cast<QAudio::Role>(player.property("audioRole")), QAudio::AlarmRole);
+        player->setProperty("audioRole", QVariant::fromValue(QAudio::AlarmRole));
+        QCOMPARE(qvariant_cast<QAudio::Role>(player->property("audioRole")), QAudio::AlarmRole);
         QCOMPARE(spy.count(), 1);
         QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::AlarmRole);
     }

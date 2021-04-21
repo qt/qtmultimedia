@@ -134,7 +134,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
             ignoreNextStatusChange = QMediaPlayer::NoMedia;
             control->setMedia(QUrl(), nullptr);
 
-        } else if (hasStreamPlaybackFeature) {
+        } else if (control->streamPlaybackSupported()) {
             control->setMedia(media, file.data());
         } else {
 #if QT_CONFIG(temporaryfile)
@@ -212,8 +212,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent)
 
     d->state = d->control->state();
     d->status = d->control->mediaStatus();
-
-    d->hasStreamPlaybackFeature = d->control->streamPlaybackSupported();
 }
 
 
@@ -236,7 +234,7 @@ QUrl QMediaPlayer::source() const
 {
     Q_D(const QMediaPlayer);
 
-    return d->rootMedia;
+    return d->source;
 }
 
 /*!
@@ -251,12 +249,7 @@ const QIODevice *QMediaPlayer::sourceStream() const
 {
     Q_D(const QMediaPlayer);
 
-    // When playing a resource file, we might have passed a QFile to the backend. Hide it from
-    // the user.
-    if (d->control && d->qrcMedia.isEmpty())
-        return d->control->mediaStream();
-
-    return nullptr;
+    return d->stream;
 }
 
 QMediaPlayer::PlaybackState QMediaPlayer::playbackState() const
@@ -500,13 +493,14 @@ void QMediaPlayer::setSource(const QUrl &source, QIODevice *stream)
     Q_D(QMediaPlayer);
     stop();
 
-    QUrl oldMedia = d->rootMedia;
-    d->rootMedia = source;
+    if (d->source == source && d->stream == stream)
+        return;
 
-    if (oldMedia != source) {
-        d->setMedia(source, stream);
-        emit sourceChanged(d->rootMedia);
-    }
+    d->source = source;
+    d->stream = stream;
+
+    d->setMedia(source, stream);
+    emit sourceChanged(d->source);
 }
 
 /*!

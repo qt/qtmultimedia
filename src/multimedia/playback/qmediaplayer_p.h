@@ -79,13 +79,13 @@ public:
     QVariant videoOutput;
     QUrl qrcMedia;
     QScopedPointer<QFile> qrcFile;
-    QUrl rootMedia;
+    QUrl source;
+    QIODevice *stream = nullptr;
 
     QMediaPlayer::PlaybackState state = QMediaPlayer::StoppedState;
     QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
     QMediaPlayer::Error error = QMediaPlayer::NoError;
     int ignoreNextStatusChange = -1;
-    bool hasStreamPlaybackFeature = false;
     bool autoPlay = false;
 
     QAudio::Role audioRole = QAudio::UnknownRole;
