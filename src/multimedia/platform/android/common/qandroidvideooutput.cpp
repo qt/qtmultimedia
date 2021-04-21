@@ -96,7 +96,7 @@ class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output, const QSize &size)
-        : QAbstractVideoBuffer(QVideoFrame::GLTextureHandle)
+        : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle)
         , m_mapMode(QVideoFrame::NotMapped)
         , m_output(output)
         , m_size(size)
