@@ -69,7 +69,7 @@ public:
     explicit QAndroidMediaPlayerControl(QMediaPlayer *parent = 0);
     ~QAndroidMediaPlayerControl() override;
 
-    QMediaPlayer::State state() const override;
+    QMediaPlayer::PlaybackState state() const override;
     QMediaPlayer::MediaStatus mediaStatus() const override;
     qint64 duration() const override;
     qint64 position() const override;
@@ -112,7 +112,7 @@ private Q_SLOTS:
 private:
     AndroidMediaPlayer *mMediaPlayer;
     QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
-    QMediaPlayer::State mCurrentState;
+    QMediaPlayer::PlaybackState mCurrentState;
     QMediaPlayer::MediaStatus mCurrentMediaStatus;
     QUrl mMediaContent;
     QIODevice *mMediaStream;
@@ -136,7 +136,7 @@ private:
     qreal mPendingPlaybackRate;
     bool mHasPendingPlaybackRate; // we need this because the rate can theoretically be negative
 
-    void setState(QMediaPlayer::State state);
+    void setState(QMediaPlayer::PlaybackState state);
     void setMediaStatus(QMediaPlayer::MediaStatus status);
     void setSeekable(bool seekable);
     void setAudioAvailable(bool available);

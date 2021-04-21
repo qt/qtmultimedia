@@ -70,7 +70,7 @@ public:
 
 private:
     QAndroidMediaPlayerControl *mControl;
-    QMediaPlayer::State mPreviousState;
+    QMediaPlayer::PlaybackState mPreviousState;
     QMediaPlayer::MediaStatus mPreviousMediaStatus;
 };
 
@@ -121,7 +121,7 @@ QAndroidMediaPlayerControl::~QAndroidMediaPlayerControl()
     delete mMediaPlayer;
 }
 
-QMediaPlayer::State QAndroidMediaPlayerControl::state() const
+QMediaPlayer::PlaybackState QAndroidMediaPlayerControl::state() const
 {
     return mCurrentState;
 }
@@ -704,7 +704,7 @@ void QAndroidMediaPlayerControl::onVideoOutputReady(bool ready)
     flushPendingStates();
 }
 
-void QAndroidMediaPlayerControl::setState(QMediaPlayer::State state)
+void QAndroidMediaPlayerControl::setState(QMediaPlayer::PlaybackState state)
 {
     if (mCurrentState == state)
         return;
