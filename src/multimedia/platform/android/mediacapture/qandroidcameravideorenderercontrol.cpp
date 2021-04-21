@@ -43,6 +43,7 @@
 #include "qandroidvideooutput_p.h"
 #include "androidsurfaceview_p.h"
 #include "qandroidmultimediautils_p.h"
+#include <private/qrhi_p.h>
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
 #include <qcoreapplication.h>
@@ -240,7 +241,7 @@ void QAndroidCameraVideoRendererControl::setSurface(QVideoSink *surface)
     QAndroidVideoOutput *newOutput = 0;
 
     if (m_surface) {
-        if (m_surface->graphicsType() == QVideoSink::OpenGL) {
+        if (m_surface->rhi() && m_surface->rhi()->backend() == QRhi::OpenGLES2) {
             if (!m_textureOutput) {
                 m_dataOutput = 0;
                 newOutput = m_textureOutput = new QAndroidTextureVideoOutput(this);
