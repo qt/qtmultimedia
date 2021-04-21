@@ -112,6 +112,10 @@ QVideoWidget::QVideoWidget(QWidget *parent)
 
     d_ptr->videoSink->setNativeWindowId(winId());
     connect(d_ptr->videoSink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_newFrame(const QVideoFrame &)));
+    connect(d_ptr->videoSink, &QVideoSink::brightnessChanged, this, &QVideoWidget::brightnessChanged);
+    connect(d_ptr->videoSink, &QVideoSink::contrastChanged, this, &QVideoWidget::contrastChanged);
+    connect(d_ptr->videoSink, &QVideoSink::hueChanged, this, &QVideoWidget::hueChanged);
+    connect(d_ptr->videoSink, &QVideoSink::saturationChanged, this, &QVideoWidget::saturationChanged);
 }
 
 /*!
@@ -201,7 +205,7 @@ float QVideoWidget::brightness() const
 void QVideoWidget::setBrightness(float brightness)
 {
     Q_D(QVideoWidget);
-
+    d->videoSink->setBrightness(brightness);
     float boundedBrightness = qBound(-1., brightness, 1.);
 
     if (boundedBrightness == d->videoSink->brightness())
@@ -235,14 +239,7 @@ float QVideoWidget::contrast() const
 void QVideoWidget::setContrast(float contrast)
 {
     Q_D(QVideoWidget);
-
-    float boundedContrast = qBound(-1., contrast, 1.);
-
-    if (boundedContrast == d->videoSink->contrast())
-        return;
-
-    d->videoSink->setContrast(boundedContrast);
-    emit contrastChanged(boundedContrast);
+    d->videoSink->setContrast(contrast);
 }
 
 /*!
@@ -268,14 +265,7 @@ float QVideoWidget::hue() const
 void QVideoWidget::setHue(float hue)
 {
     Q_D(QVideoWidget);
-
-    float boundedHue = qBound(-1., hue, 1.);
-
-    if (boundedHue == d->videoSink->hue())
-        return;
-
-    d->videoSink->setHue(boundedHue);
-    emit hueChanged(boundedHue);
+    d->videoSink->setHue(hue);
 }
 
 /*!
@@ -301,14 +291,7 @@ float QVideoWidget::saturation() const
 void QVideoWidget::setSaturation(float saturation)
 {
     Q_D(QVideoWidget);
-
-    float boundedSaturation = qBound(-1., saturation, 1.);
-
-    if (boundedSaturation == d->videoSink->saturation())
-        return;
-
-    d->videoSink->setSaturation(boundedSaturation);
-    emit saturationChanged(boundedSaturation);
+    d->videoSink->setSaturation(saturation);
 }
 
 /*!

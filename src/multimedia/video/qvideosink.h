@@ -69,7 +69,7 @@ public:
     void setRhi(QRhi *rhi);
 
     void setFullScreen(bool fullscreen);
-    bool isFullscreen() const;
+    bool isFullScreen() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
@@ -99,6 +99,13 @@ public:
 Q_SIGNALS:
     // would never get called in windowed mode
     void newVideoFrame(const QVideoFrame &frame) const;
+
+    void fullScreenChanged(bool fullScreen);
+    void brightnessChanged(float brightness);
+    void contrastChanged(float contrast);
+    void hueChanged(float hue);
+    void saturationChanged(float saturation);
+    void aspectRatioModeChanged(Qt::AspectRatioMode mode);
 
 private:
     QVideoSinkPrivate *d = nullptr;

@@ -177,12 +177,13 @@ void QVideoSink::setFullScreen(bool fullscreen)
         return;
     d->fullScreen = fullscreen;
     d->videoSink->setFullScreen(fullscreen);
+    emit fullScreenChanged(d->fullScreen);
 }
 
 /*!
     Returns true when rendering full screen.
  */
-bool QVideoSink::isFullscreen() const
+bool QVideoSink::isFullScreen() const
 {
     return d->fullScreen;
 }
@@ -196,7 +197,9 @@ void QVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     if (d->aspectRatioMode == mode)
         return;
+    d->aspectRatioMode = mode;
     d->videoSink->setAspectRatioMode(mode);
+    emit aspectRatioModeChanged(mode);
 }
 
 QRectF QVideoSink::targetRect() const
@@ -219,10 +222,12 @@ float QVideoSink::brightness() const
 
 void QVideoSink::setBrightness(float brightness)
 {
+    brightness = qBound(-1., brightness, 1.);
     if (d->brightness == brightness)
         return;
     d->brightness = brightness;
     d->videoSink->setBrightness(brightness);
+    emit brightnessChanged(brightness);
 }
 
 float QVideoSink::contrast() const
@@ -232,10 +237,12 @@ float QVideoSink::contrast() const
 
 void QVideoSink::setContrast(float contrast)
 {
+    contrast = qBound(-1., contrast, 1.);
     if (d->contrast == contrast)
         return;
     d->contrast = contrast;
     d->videoSink->setContrast(contrast);
+    emit contrastChanged(contrast);
 }
 
 float QVideoSink::hue() const
@@ -245,10 +252,12 @@ float QVideoSink::hue() const
 
 void QVideoSink::setHue(float hue)
 {
+    hue = qBound(-1., hue, 1.);
     if (d->hue == hue)
         return;
     d->hue = hue;
     d->videoSink->setHue(hue);
+    emit hueChanged(hue);
 }
 
 float QVideoSink::saturation() const
@@ -258,10 +267,12 @@ float QVideoSink::saturation() const
 
 void QVideoSink::setSaturation(float saturation)
 {
+    saturation = qBound(-1., saturation, 1.);
     if (d->saturation == saturation)
         return;
     d->saturation = saturation;
     d->videoSink->setSaturation(saturation);
+    emit saturationChanged(saturation);
 }
 
 Qt::BGMode QVideoSink::backgroundMode() const

@@ -64,10 +64,6 @@ class QVideoWidgetPrivate
     Q_DECLARE_PUBLIC(QVideoWidget)
 public:
     QVideoWidget *q_ptr = nullptr;
-    int brightness = 0;
-    int contrast = 0;
-    int hue = 0;
-    int saturation = 0;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     Qt::WindowFlags nonFullScreenFlags;
     bool wasFullScreen = false;
