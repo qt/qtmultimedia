@@ -810,7 +810,7 @@ void QAndroidMediaPlayerControl::updateBufferStatus()
 
     if (mBufferFilled != bufferFilled) {
         mBufferFilled = bufferFilled;
-        Q_EMIT bufferProgresChanged();
+        Q_EMIT bufferProgressChanged(bufferProgress());
     }
 }
 
