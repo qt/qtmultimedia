@@ -121,15 +121,14 @@ void QAndroidCaptureService::setVolume(qreal volume)
 
 QAudioDeviceInfo QAndroidCaptureService::audioInput() const
 {
-    QMediaDeviceManager *manager = QMediaDeviceManager::instance();
-    const auto devices = manager->audioInputs();
+    const auto devices = QMediaDeviceManager::audioInputs();
     QByteArray id = m_captureSession->audioInput().toLatin1();
 
     for (auto c : devices) {
         if (c.id() == id)
             return c;
     }
-    return manager->defaultAudioInput();
+    return QMediaDeviceManager::defaultAudioInput();
 }
 
 bool QAndroidCaptureService::setAudioInput(const QAudioDeviceInfo &info)
