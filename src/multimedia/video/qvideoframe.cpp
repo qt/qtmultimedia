@@ -291,7 +291,7 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
 
         // Check the memory was successfully allocated.
         if (!data.isEmpty())
-            d->buffer = new QMemoryVideoBuffer(data, textureDescription->stride*format.frameWidth());
+            d->buffer = new QMemoryVideoBuffer(data, textureDescription->strideForWidth(format.frameWidth()));
     }
 }
 
@@ -751,6 +751,8 @@ int QVideoFrame::planeCount() const
 */
 quint64 QVideoFrame::textureHandle(int plane) const
 {
+    if (!d->buffer)
+        return 0;
     return d->buffer->textureHandle(plane);
 }
 

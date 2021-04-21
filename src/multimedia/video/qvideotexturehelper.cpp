@@ -46,166 +46,170 @@ namespace QVideoTextureHelper
 static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] = {
     //  Format_Invalid
     { 0, 0,
-      [](QSize) { return 0; },
+      [](int, int) { return 0; },
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat},
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_ARGB32
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
      // Format_ARGB32_Premultiplied
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_RGB32
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGRA32
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGRA32_Premultiplied
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_ABGR32
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGR32
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
 
     // Format_AYUV444
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_AYUV444_Premultiplied
     { 1, 4,
-      [](QSize s) { return 4*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUV420P
     { 3, 1,
-      [](QSize s) { return 3*s.width()*s.height() / 2; },
+      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
      // Format_YUV422P
     { 3, 1,
-      [](QSize s) { return 2*s.width()*s.height(); },
+      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
      { { 1, 1 }, { 2, 1 }, { 2, 1 } }
     },
      // Format_YV12
     { 3, 1,
-      [](QSize s) { return 2*s.width()*s.height(); },
+      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_UYVY
     { 1, 2,
-      [](QSize s) { return 2*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUYV
     { 1, 2,
-      [](QSize s) { return 2*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_NV12
     { 2, 1,
-      [](QSize s) { return 3*s.width()*s.height() / 2; },
+      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
      { QRhiTexture::R8, QRhiTexture::RG8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_NV21
     { 2, 1,
-      [](QSize s) { return 3*s.width()*s.height() / 2; },
+      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
      { QRhiTexture::R8, QRhiTexture::RG8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_IMC1
     { 3, 1,
-      [](QSize s) {
+      [](int stride, int height) {
           // IMC1 requires that U and V components are aligned on a multiple of 16 lines
-          return s.width()*((s.height()*3/2 + 15) & ~15 + s.height()/2);
+          int h = (height + 15) & ~15;
+          h += 2*((h/2) + 15 & ~15);
+          return stride * h;
       },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC2
     { 2, 1,
-      [](QSize s) { return 2*s.width()*s.height(); },
+      [](int stride, int height) { return 2*stride*height; },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_IMC3
     { 3, 1,
-      [](QSize s) {
+      [](int stride, int height) {
           // IMC3 requires that U and V components are aligned on a multiple of 16 lines
-          return s.width()*((s.height()*3/2 + 15) & ~15 + s.height()/2);
+          int h = (height + 15) & ~15;
+          h += 2*((h/2) + 15 & ~15);
+          return stride * h;
       },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
      { { 1, 1 }, { 2, 2 }, { 2, 2 } }
     },
     // Format_IMC4
     { 2, 1,
-      [](QSize s) { return 2*s.width()*s.height(); },
+      [](int stride, int height) { return 2*stride*height; },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 2 }, { 1, 1 } }
     },
     // Format_Y8
     { 1, 1,
-      [](QSize s) { return s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::R8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_Y16
     { 1, 2,
-      [](QSize s) { return 2*s.width()*s.height(); },
+      [](int stride, int height) { return stride*height; },
      { QRhiTexture::R16, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
 
     // Format_P010
     { 2, 2,
-      [](QSize s) { return 3*s.width()*s.height(); },
+      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
      { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
     // Format_P016
     { 2, 2,
-      [](QSize s) { return 3*s.width()*s.height(); },
+      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
      { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
 
     // Format_Jpeg
     { 1, 0,
-      [](QSize) { return 0; },
+      [](int, int) { return 0; },
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     }

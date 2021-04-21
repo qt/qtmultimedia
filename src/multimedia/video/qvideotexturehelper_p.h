@@ -57,11 +57,14 @@ struct TextureDescription
         int x;
         int y;
     };
-    using BytesForSize = int(*)(QSize s);
+    using BytesRequired = int(*)(int stride, int height);
+
+    inline int strideForWidth(int width) const { return (width*strideFactor + 15) & ~15; }
+    inline int bytesForSize(QSize s) const { return bytesRequired(strideForWidth(s.width()), s.height()); }
 
     int nplanes;
-    int stride;
-    BytesForSize bytesForSize;
+    int strideFactor;
+    BytesRequired bytesRequired;
     QRhiTexture::Format textureFormat[maxPlanes];
     SizeScale sizeScale[maxPlanes];
 };
