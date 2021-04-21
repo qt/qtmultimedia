@@ -386,9 +386,6 @@ void QOpenSLESAudioOutput::playCallback(SLPlayItf player, void *ctx, SLuint32 ev
     QOpenSLESAudioOutput *audioOutput = reinterpret_cast<QOpenSLESAudioOutput *>(ctx);
     if (event & SL_PLAYEVENT_HEADATEND)
         QMetaObject::invokeMethod(audioOutput, "onEOSEvent", Qt::QueuedConnection);
-    if (event & SL_PLAYEVENT_HEADATNEWPOS)
-        Q_EMIT audioOutput->notify();
-
 }
 
 void QOpenSLESAudioOutput::bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx)
