@@ -352,7 +352,7 @@ void tst_QVideoFrameFormat::compare()
     QVideoFrameFormat format3(
             QSize(32, 32), QVideoFrameFormat::Format_AYUV444);
     QVideoFrameFormat format4(
-            QSize(16, 16), QVideoFrameFormat::Format_RGB32);
+            QSize(16, 16), QVideoFrameFormat::Format_BGR32);
 
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
