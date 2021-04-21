@@ -130,11 +130,11 @@ public:
         m_mapMode = QVideoFrame::NotMapped;
     }
 
-    QVariant handle() const override
+    quint64 textureHandle(int /*plane*/) const override
     {
         AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
         if (!that->updateFrame())
-            return QVariant();
+            return 0;
 
         return m_output->m_fbo->texture();
     }
