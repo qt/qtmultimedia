@@ -136,9 +136,6 @@ public:
     bool isLoading() const;
     bool isCached(const QUrl& url) const;
 
-Q_SIGNALS:
-    void isLoadingChanged();
-
 private:
     QMap<QUrl, QSample*> m_samples;
     QSet<QSample*> m_staleSamples;

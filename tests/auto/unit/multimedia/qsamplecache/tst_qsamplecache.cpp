@@ -52,19 +52,15 @@ private:
 void tst_QSampleCache::testCachedSample()
 {
     QSampleCache cache;
-    QSignalSpy loadingSpy(&cache, SIGNAL(isLoadingChanged()));
 
     QSample* sample = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QVERIFY(sample);
-    QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
 
-    loadingSpy.clear();
     QSample* sampleCached = cache.requestSample(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav")));
     QCOMPARE(sample, sampleCached); // sample is cached
     QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
     // loading thread still starts, but does nothing in this case
-    QTRY_COMPARE(loadingSpy.count(), 2);
     QTRY_VERIFY(!cache.isLoading());
 
     sample->release();

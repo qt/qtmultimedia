@@ -52,6 +52,7 @@ QT_BEGIN_NAMESPACE
 class QMediaCaptureSessionPrivate
 {
 public:
+    QMediaCaptureSession *q = nullptr;
     QPlatformMediaCaptureSession *captureSession;
     QAudioDeviceInfo audioInput;
     QCamera *camera = nullptr;
@@ -60,12 +61,27 @@ public:
     QVariant videoOutput;
     QVideoSink *videoSink = nullptr;
 
-    void _q_sinkDestroyed(QObject *sink) {
+    void _q_sinkDestroyed(QObject *sink)
+    {
         if (sink == videoSink) {
             captureSession->setVideoPreview(nullptr);
             videoOutput = {};
             videoSink = nullptr;
         }
+    }
+
+    void setVideoSink(QVideoSink *sink)
+    {
+        if (videoSink)
+            QObject::disconnect(videoSink, SIGNAL(destroyed(QObject *)), q, SLOT(_q_sinkDestroyed(QObject *)));
+        videoSink = sink;
+        if (videoSink)
+            QObject::connect(videoSink, SIGNAL(destroyed(QObject *)), q, SLOT(_q_sinkDestroyed(QObject *)));
+        else
+            videoOutput = {};
+
+        captureSession->setVideoPreview(sink);
+        emit q->videoOutputChanged();
     }
 };
 
@@ -77,6 +93,7 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
     : QObject(parent),
     d_ptr(new QMediaCaptureSessionPrivate)
 {
+    d_ptr->q = this;
     d_ptr->captureSession = QPlatformMediaIntegration::instance()->createCaptureSession(QMediaRecorder::AudioAndVideo);
 
     connect(d_ptr->captureSession, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
@@ -250,13 +267,19 @@ QVariant QMediaCaptureSession::videoOutput() const
 
     The previously set preview is detached.
 */
-void QMediaCaptureSession::setVideoOutput(QObject *preview)
+void QMediaCaptureSession::setVideoOutput(QObject *output)
 {
-    auto *mo = preview->metaObject();
+    Q_D(QMediaCaptureSession);
+    QVariant out = QVariant::fromValue(output);
+    if (d->videoOutput == out)
+        return;
+    d->videoOutput = out;
     QVideoSink *sink = nullptr;
-    if (preview)
-        mo->invokeMethod(preview, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
-    setVideoOutput(sink);
+    if (output) {
+        auto *mo = output->metaObject();
+        mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
+    }
+    d->setVideoSink(sink);
 }
 
 void QMediaCaptureSession::setVideoOutput(QVideoSink *sink)
@@ -265,15 +288,8 @@ void QMediaCaptureSession::setVideoOutput(QVideoSink *sink)
     QVariant out = QVariant::fromValue(sink);
     if (d->videoOutput == out)
         return;
-    if (d->videoSink)
-        disconnect(d->videoSink, SIGNAL(destroyed(QObject *)), this, SLOT(_q_sinkDestroyed(QObject *)));
     d->videoOutput = out;
-    d->videoSink = sink;
-    if (d->videoSink)
-        connect(d->videoSink, SIGNAL(destroyed(QObject *)), this, SLOT(_q_sinkDestroyed(QObject *)));
-
-    d->captureSession->setVideoPreview(sink);
-    emit videoOutputChanged();
+    d->setVideoSink(sink);
 }
 
 QPlatformMediaCaptureSession *QMediaCaptureSession::platformSession() const

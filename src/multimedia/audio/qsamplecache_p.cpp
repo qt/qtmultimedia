@@ -105,8 +105,6 @@ QSampleCache::QSampleCache(QObject *parent)
     , m_loadingRefCount(0)
 {
     m_loadingThread.setObjectName(QLatin1String("QSampleCache::LoadingThread"));
-    connect(&m_loadingThread, SIGNAL(finished()), this, SIGNAL(isLoadingChanged()));
-    connect(&m_loadingThread, SIGNAL(started()), this, SIGNAL(isLoadingChanged()));
 }
 
 QNetworkAccessManager& QSampleCache::networkAccessManager()

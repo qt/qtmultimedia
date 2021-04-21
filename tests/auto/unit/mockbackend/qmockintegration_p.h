@@ -76,6 +76,7 @@ public:
     QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override { return nullptr; }
     QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override { return nullptr; }
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
+    QPlatformVideoSink *createVideoSink(QVideoSink *) override;
 
     enum Flag {
         NoPlayerInterface = 0x1,

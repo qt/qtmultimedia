@@ -37,76 +37,46 @@
 **
 ****************************************************************************/
 
-#include "qmockintegration_p.h"
-#include "qmockdevicemanager_p.h"
-#include "qmockmediaplayer.h"
-#include "qmockaudiodecoder.h"
-#include "qmockcamera.h"
-#include "qmockmediacapturesession.h"
-#include "qmockvideosink.h"
+#ifndef QMOCKVIDEOSINK_H
+#define QMOCKVIDEOSINK_H
 
-QT_BEGIN_NAMESPACE
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-QMockIntegration::QMockIntegration()
+#include <private/qplatformvideosink_p.h>
+
+class Q_MULTIMEDIA_EXPORT QMockVideoSink : public QPlatformVideoSink
 {
-    setIntegration(this);
-}
+    Q_OBJECT
 
-QMockIntegration::~QMockIntegration()
-{
-    setIntegration(nullptr);
-    delete m_manager;
-}
+public:
+    explicit QMockVideoSink(QVideoSink *parent)
+        : QPlatformVideoSink(parent)
+    {}
+    void setWinId(WId) override {}
 
-QPlatformMediaDeviceManager *QMockIntegration::deviceManager()
-{
-    if (!m_manager)
-        m_manager = new QMockDeviceManager();
-    return m_manager;
-}
+    void setRhi(QRhi */*rhi*/) override {}
 
-QPlatformAudioDecoder *QMockIntegration::createAudioDecoder()
-{
-    if (m_flags & NoAudioDecoderInterface)
-        m_lastAudioDecoderControl = nullptr;
-    else
-        m_lastAudioDecoderControl = new QMockAudioDecoder;
-    return m_lastAudioDecoderControl;
-}
+    void setDisplayRect(const QRect &) override {}
 
-QPlatformMediaPlayer *QMockIntegration::createPlayer(QMediaPlayer *parent)
-{
-    if (m_flags & NoPlayerInterface)
-        m_lastPlayer = nullptr;
-    else
-        m_lastPlayer = new QMockMediaPlayer(parent);
-    return m_lastPlayer;
-}
+    void setFullScreen(bool) override {}
 
-QPlatformCamera *QMockIntegration::createCamera(QCamera *parent)
-{
-    if (m_flags & NoCaptureInterface)
-        m_lastCamera = nullptr;
-    else
-        m_lastCamera = new QMockCamera(parent);
-    return m_lastCamera;
-}
+    QSize nativeSize() const override { return QSize(640, 480); }
 
-QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession(QMediaRecorder::CaptureMode mode)
-{
-    Q_UNUSED(mode);
-    if (m_flags & NoCaptureInterface)
-        m_lastCaptureService = nullptr;
-    else
-        m_lastCaptureService = new QMockMediaCaptureSession();
-    return m_lastCaptureService;
-}
+    void setAspectRatioMode(Qt::AspectRatioMode) override {}
 
-QPlatformVideoSink *QMockIntegration::createVideoSink(QVideoSink *sink)
-{
-    return new QMockVideoSink(sink);
-}
+    void setBrightness(float) override {}
+    void setContrast(float) override {}
+    void setHue(float) override {}
+    void setSaturation(float) override {}
+};
 
-bool QMockCamera::simpleCamera = false;
-
-QT_END_NAMESPACE
+#endif

@@ -56,8 +56,6 @@ class tst_QCameraWidgets: public QObject
 
 public slots:
     void initTestCase();
-    void init();
-    void cleanup();
     void cleanupTestCase();
 
 private slots:
@@ -65,21 +63,11 @@ private slots:
     void testSetVideoOutput();
 
 private:
-    QMockIntegration *mockIntegration;
+    QMockIntegration mockIntegration;
 };
 
 void tst_QCameraWidgets::initTestCase()
 {
-}
-
-void tst_QCameraWidgets::init()
-{
-    mockIntegration = new QMockIntegration;
-}
-
-void tst_QCameraWidgets::cleanup()
-{
-    delete mockIntegration;
 }
 
 
@@ -95,17 +83,13 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy stateChangedSignal(&camera, SIGNAL(stateChanged(QCamera::State)));
     QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
     QCOMPARE(camera.status(), QCamera::ActiveStatus);
 
-    QCOMPARE(stateChangedSignal.count(), 1);
     QCOMPARE(statusChangedSignal.count(), 1);
-    stateChangedSignal.clear();
-    statusChangedSignal.clear();
 }
 
 void tst_QCameraWidgets::testSetVideoOutput()
@@ -116,38 +100,34 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QMediaCaptureSession session;
 
     session.setVideoOutput(&widget);
-//    qDebug() << widget.mediaSource();
-//    QVERIFY(widget.mediaSource() == &session);
+    QVERIFY(session.videoOutput() == QVariant::fromValue(&widget));
 
     session.setVideoOutput(&item);
-//    QVERIFY(widget.mediaSource() == nullptr);
-//    QVERIFY(item.mediaSource() == &session);
+    QVERIFY(session.videoOutput() == QVariant::fromValue(&item));
 
-    session.setVideoOutput(reinterpret_cast<QVideoWidget *>(0));
-//    QVERIFY(item.mediaSource() == nullptr);
-
-    session.setVideoOutput(&widget);
-//    QVERIFY(widget.mediaSource() == &session);
-
-    session.setVideoOutput(reinterpret_cast<QGraphicsVideoItem *>(0));
-//    QVERIFY(widget.mediaSource() == nullptr);
-
-    session.setVideoOutput(&surface);
-//    QVERIFY(mocksessionService->rendererControl->surface() == &surface);
-
-    session.setVideoOutput(reinterpret_cast<QVideoSink *>(0));
-//    QVERIFY(mocksessionService->rendererControl->surface() == nullptr);
-
-    session.setVideoOutput(&surface);
-//    QVERIFY(mocksessionService->rendererControl->surface() == &surface);
+    session.setVideoOutput(static_cast<QVideoWidget *>(nullptr));
+    QVERIFY(session.videoOutput() == QVariant());
 
     session.setVideoOutput(&widget);
-//    QVERIFY(mocksessionService->rendererControl->surface() == nullptr);
-//    QVERIFY(widget.mediaSource() == &session);
+    QVERIFY(session.videoOutput() == QVariant::fromValue(&widget));
+
+    session.setVideoOutput(static_cast<QGraphicsVideoItem *>(nullptr));
+    QVERIFY(session.videoOutput() == QVariant());
 
     session.setVideoOutput(&surface);
-//    QVERIFY(mockCameraService->rendererControl->surface() == &surface);
-//    QVERIFY(widget.mediaSource() == nullptr);
+    QVERIFY(session.videoOutput() == QVariant::fromValue(&surface));
+
+    session.setVideoOutput(static_cast<QVideoSink *>(nullptr));
+    QVERIFY(session.videoOutput() == QVariant());
+
+    session.setVideoOutput(&surface);
+    QVERIFY(session.videoOutput() == QVariant::fromValue(&surface));
+
+    session.setVideoOutput(&widget);
+    QVERIFY(session.videoOutput() == QVariant::fromValue(&widget));
+
+    session.setVideoOutput(&surface);
+    QVERIFY(session.videoOutput() == QVariant::fromValue(&surface));
 }
 
 QTEST_MAIN(tst_QCameraWidgets)
