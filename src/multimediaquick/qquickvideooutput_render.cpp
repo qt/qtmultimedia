@@ -42,7 +42,6 @@
 #include "qquickvideooutput_p.h"
 #include <QtCore/qobject.h>
 #include <QtCore/qloggingcategory.h>
-#include <private/qmediapluginloader_p.h>
 #include <private/qsgvideonode_p.h>
 #include <qvideosink.h>
 

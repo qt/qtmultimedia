@@ -53,7 +53,6 @@ qt_internal_add_module(Multimedia
         qmediaenumdebug.h
         qmediaformat.cpp  qmediaformat.h
         qmediametadata.cpp qmediametadata.h
-        qmediapluginloader.cpp qmediapluginloader_p.h
         qmediastoragelocation.cpp qmediastoragelocation_p.h
         qmediatimerange.cpp qmediatimerange.h
         qmultimediautils.cpp qmultimediautils_p.h
