@@ -124,11 +124,11 @@ if(ANDROID)
         jar/QtAndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtMultimediaUtils
     )
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
-        lib/libQt5MultimediaQuick.so:Qt5Quick
+        lib/libQt6MultimediaQuick.so:Qt6Quick
         plugins/mediaservice/libplugins_mediaservice_qtmedia_android.so
     )
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_FILES
-        lib/libQt5MultimediaQuick.so
+        lib/libQt6MultimediaQuick.so
     )
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_PERMISSIONS
         android.permission.CAMERA android.permission.RECORD_AUDIO

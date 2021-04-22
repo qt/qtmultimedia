@@ -48,9 +48,9 @@ ANDROID_BUNDLED_JAR_DEPENDENCIES = \
     jar/Qt$${QT_MAJOR_VERSION}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtMultimediaUtils
 ANDROID_LIB_DEPENDENCIES = \
     plugins/mediaservice/libplugins_mediaservice_qtmedia_android.so \
-    lib/libQt5MultimediaQuick.so:Qt5Quick
+    lib/libQt6MultimediaQuick.so:Qt6Quick
 ANDROID_BUNDLED_FILES += \
-    lib/libQt5MultimediaQuick.so
+    lib/libQt6MultimediaQuick.so
 ANDROID_PERMISSIONS += \
     android.permission.CAMERA \
     android.permission.RECORD_AUDIO
