@@ -248,7 +248,7 @@ QVariantList AVFCameraExposure::supportedParameterRange(ExposureParameter parame
     QVariantList parameterRange;
 #ifdef Q_OS_IOS
 
-    AVCaptureDevice *captureDevice = m_camera->videoCaptureDevice();
+    AVCaptureDevice *captureDevice = m_camera->device();
     if (!captureDevice || !isParameterSupported(parameter)) {
         qDebugCamera() << Q_FUNC_INFO << "parameter not supported";
         return parameterRange;

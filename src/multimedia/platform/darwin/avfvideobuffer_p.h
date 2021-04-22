@@ -90,8 +90,13 @@ private:
     mutable CVMetalTextureRef cvMetalTexture[3] = {};
     mutable CVMetalTextureCacheRef cvMetalTextureCache = nullptr;
 
+#if defined(Q_OS_MACOS)
     mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
     mutable CVOpenGLTextureCacheRef cvOpenGLTextureCache = nullptr;
+#elif defined(Q_OS_IOS)
+    mutable CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
+    mutable CVOpenGLESTextureCacheRef cvOpenGLESTextureCache = nullptr;
+#endif
 
     CVImageBufferRef m_buffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;

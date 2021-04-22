@@ -285,7 +285,7 @@ void AVFCameraFocus::cameraActiveChanged(bool active)
     if (!isActive) {
         if (m_maxZoomFactor > 1.) {
             m_maxZoomFactor = 1.;
-            Q_EMIT maximumDigitalZoomChanged(1.);
+            emit maximumZoomFactorChanged(1.);
         }
         return;
     }
@@ -299,12 +299,12 @@ void AVFCameraFocus::cameraActiveChanged(bool active)
     if (captureDevice.activeFormat.videoMaxZoomFactor > 1.) {
         if (!qFuzzyCompare(m_maxZoomFactor, captureDevice.activeFormat.videoMaxZoomFactor)) {
             m_maxZoomFactor = captureDevice.activeFormat.videoMaxZoomFactor;
-            Q_EMIT maximumDigitalZoomChanged(m_maxZoomFactor);
+            emit maximumZoomFactorChanged(m_maxZoomFactor);
         }
     } else if (!qFuzzyCompare(m_maxZoomFactor, CGFloat(1.))) {
         m_maxZoomFactor = 1.;
 
-        Q_EMIT maximumDigitalZoomChanged(1.);
+        emit maximumZoomFactorChanged(1.);
     }
 
     captureDevice.videoZoomFactor = m_zoomFactor;

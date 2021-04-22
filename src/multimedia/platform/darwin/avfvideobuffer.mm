@@ -68,10 +68,17 @@ AVFVideoBuffer::~AVFVideoBuffer()
             CFRelease(cvMetalTexture[i]);
     if (cvMetalTextureCache)
         CFRelease(cvMetalTextureCache);
+#if defined(Q_OS_MACOS)
     if (cvOpenGLTexture)
-        CVOpenGLTextureRelease(cvOpenGLTexture);
+        CFRelease(cvOpenGLTexture);
     if (cvOpenGLTextureCache)
-        CVOpenGLTextureCacheRelease(cvOpenGLTextureCache);
+        CFRelease(cvOpenGLTextureCache);
+#elif defined(Q_OS_IOS)
+    if (cvOpenGLESTexture)
+        CFRelease(cvOpenGLESTexture);
+    if (cvOpenGLESTextureCache)
+        CFRelease(cvOpenGLESTextureCache);
+#endif
     CVPixelBufferRelease(m_buffer);
 }
 
@@ -171,6 +178,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 //        qDebug() << "    -> " << quint64(CVMetalTextureGetTexture(cvMetalTexture[plane]));
         return cvMetalTexture[plane] ? quint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;
     } else if (rhi->backend() == QRhi::OpenGLES2) {
+#ifdef Q_OS_MACOS
         const auto *gl = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
 
         auto nsGLContext = gl->context->nativeInterface<QNativeInterface::QCocoaGLContext>()->nativeContext();
@@ -196,47 +204,37 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 
         // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
         return CVOpenGLTextureGetName(cvOpenGLTexture);
+#endif
+#ifdef Q_OS_IOS
+        CVReturn cvret;
+        // Create an OpenGL CoreVideo texture cache from the pixel buffer.
+        cvret  = CVOpenGLESTextureCacheCreate(
+                        kCFAllocatorDefault,
+                        nullptr,
+                        [EAGLContext currentContext],
+                        nullptr,
+                        &cvOpenGLESTextureCache);
 
+            // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
+            cvret = CVOpenGLESTextureCacheCreateTextureFromImage(
+                            kCFAllocatorDefault,
+                            cvOpenGLESTextureCache,
+                            m_buffer,
+                            nil,
+                            GL_TEXTURE_2D,
+                            GL_RGBA,
+                            CVPixelBufferGetWidth(m_buffer),
+                            CVPixelBufferGetHeight(m_buffer),
+                            GL_RGBA,
+                            GL_UNSIGNED_BYTE,
+                            0,
+                            &cvOpenGLESTexture);
+
+            // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
+            return CVOpenGLESTextureGetName(cvOpenGLESTexture);
+#endif
     }
     return 0;
-#ifdef Q_OS_IOS
-    // Called from the render thread, so there is a current OpenGL context
-
-    if (!m_renderer->m_textureCache) {
-        CVReturn err = CVOpenGLESTextureCacheCreate(kCFAllocatorDefault,
-                                                    nullptr,
-                                                    [EAGLContext currentContext],
-                                                    nullptr,
-                                                    &m_renderer->m_textureCache);
-
-        if (err != kCVReturnSuccess)
-            qWarning("Error creating texture cache");
-    }
-
-    if (m_renderer->m_textureCache && !m_texture) {
-        CVOpenGLESTextureCacheFlush(m_renderer->m_textureCache, 0);
-
-        CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
-                                                                    m_renderer->m_textureCache,
-                                                                    m_buffer,
-                                                                    nullptr,
-                                                                    GL_TEXTURE_2D,
-                                                                    GL_RGBA,
-                                                                    CVPixelBufferGetWidth(m_buffer),
-                                                                    CVPixelBufferGetHeight(m_buffer),
-                                                                    GL_RGBA,
-                                                                    GL_UNSIGNED_BYTE,
-                                                                    0,
-                                                                    &m_texture);
-        if (err != kCVReturnSuccess)
-            qWarning("Error creating texture from buffer");
-    }
-
-    if (m_texture)
-        return CVOpenGLESTextureGetName(m_texture);
-    else
-        return 0;
-#endif
 }
 
 

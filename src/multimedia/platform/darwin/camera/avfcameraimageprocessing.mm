@@ -173,7 +173,8 @@ bool AVFCameraImageProcessing::isParameterValueSupported(
             value.value<QCameraImageProcessing::WhiteBalanceMode>());
 
 #ifdef Q_OS_IOS
-    if (parameter == QPlatformCameraImageProcessing::ColorTemperature)
+    if (parameter == QPlatformCameraImageProcessing::ColorTemperature) {
+        AVCaptureWhiteBalanceGains gains;
         return avf_convert_temp_and_tint_to_wb_gains(
             captureDevice, value.value<float>(), .0, gains);
     }

@@ -87,10 +87,6 @@ void AVFVideoRendererControl::reconfigure()
     if (rendersToWindow()) {
         m_displayLink->stop();
     } else {
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-        if (m_layer)
-            m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(m_layer));
-#endif
         m_displayLink->start();
     }
 

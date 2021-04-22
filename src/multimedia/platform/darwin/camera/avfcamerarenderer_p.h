@@ -56,6 +56,14 @@
 #include <QtCore/qmutex.h>
 #include <private/avfvideosink_p.h>
 
+#include <CoreVideo/CVBase.h>
+#include <CoreVideo/CVPixelBuffer.h>
+#include <CoreVideo/CVImageBuffer.h>
+#ifdef Q_OS_IOS
+#include <CoreVideo/CVOpenGLESTexture.h>
+#include <CoreVideo/CVOpenGLESTextureCache.h>
+#endif
+
 #include <dispatch/dispatch.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVFCaptureFramesDelegate);
