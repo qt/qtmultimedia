@@ -86,8 +86,6 @@ public:
             m_sample->Release();
     }
 
-    QVariant handle() const override;
-
     QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
@@ -131,12 +129,6 @@ void IMFSampleVideoBuffer::unmap()
     m_mapMode = QVideoFrame::NotMapped;
     m_surface->UnlockRect();
 }
-
-QVariant IMFSampleVideoBuffer::handle() const
-{
-    return m_textureId;
-}
-
 
 D3DPresentEngine::D3DPresentEngine()
     : m_deviceResetToken(0)
@@ -384,7 +376,7 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
     if (!sample)
         return QVideoFrame();
 
-    QVideoFrame frame(new IMFSampleVideoBuffer(this, sample, (m_useTextureRendering ? QVideoFrame::GLTextureHandle : QVideoFrame::NoHandle)),
+    QVideoFrame frame(new IMFSampleVideoBuffer(this, sample, (m_useTextureRendering ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle)),
                       m_surfaceFormat);
 
     // WMF uses 100-nanosecond units, Qt uses microseconds

@@ -141,7 +141,7 @@ void MFPlayerControl::setVideoSink(QVideoSink *sink)
     m_session->setVideoSink(sink);
 }
 
-void MFPlayerControl::changeState(QMediaPlayer::State state)
+void MFPlayerControl::changeState(QMediaPlayer::PlaybackState state)
 {
     if (m_state == state)
         return;
@@ -227,7 +227,7 @@ void MFPlayerControl::handleSeekableUpdate(bool seekable)
     emit seekableChanged(m_seekable);
 }
 
-QMediaPlayer::State MFPlayerControl::state() const
+QMediaPlayer::PlaybackState MFPlayerControl::state() const
 {
     return m_state;
 }

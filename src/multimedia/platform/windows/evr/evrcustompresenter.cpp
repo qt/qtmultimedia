@@ -42,6 +42,8 @@
 #include "evrd3dpresentengine_p.h"
 #include "evrhelpers_p.h"
 
+#include <QtGui/private/qrhi_p.h>
+
 #include <QtCore/qmutex.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtCore/qrect.h>
@@ -1025,7 +1027,7 @@ void EVRCustomPresenter::supportedFormatsChanged()
 
     // check if we can render to the surface (compatible formats)
     if (m_videoSink) {
-        if (m_presentEngine->supportsTextureRendering() && m_videoSink->graphicsType() == QVideoSink::OpenGL) {
+        if (m_presentEngine->supportsTextureRendering() && m_videoSink->rhi() && m_videoSink->rhi()->backend() == QRhi::OpenGLES2) {
             m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, true);
             m_canRenderToSurface = true;
         } else {

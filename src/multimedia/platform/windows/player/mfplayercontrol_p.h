@@ -66,7 +66,7 @@ public:
     MFPlayerControl(QMediaPlayer *player);
     ~MFPlayerControl();
 
-    QMediaPlayer::State state() const override;
+    QMediaPlayer::PlaybackState state() const override;
 
     QMediaPlayer::MediaStatus mediaStatus() const override;
 
@@ -118,11 +118,11 @@ public:
     void handleError(QMediaPlayer::Error errorCode, const QString& errorString, bool isFatal);
 
 private:
-    void changeState(QMediaPlayer::State state);
+    void changeState(QMediaPlayer::PlaybackState state);
     void resetAudioVideoAvailable();
     void refreshState();
 
-    QMediaPlayer::State m_state;
+    QMediaPlayer::PlaybackState m_state;
     bool m_stateDirty;
     QMediaPlayer::MediaStatus m_status;
     QMediaPlayer::Error m_error;
