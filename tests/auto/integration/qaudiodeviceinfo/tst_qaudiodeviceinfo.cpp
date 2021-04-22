@@ -45,6 +45,7 @@ public:
 
 private slots:
     void initTestCase();
+    void cleanupTestCase();
     void checkAvailableDefaultInput();
     void checkAvailableDefaultOutput();
     void channels();
@@ -70,6 +71,11 @@ void tst_QAudioDeviceInfo::initTestCase()
     } else {
         device = new QAudioDeviceInfo(devices.at(0));
     }
+}
+
+void tst_QAudioDeviceInfo::cleanupTestCase()
+{
+    delete device;
 }
 
 void tst_QAudioDeviceInfo::checkAvailableDefaultInput()
