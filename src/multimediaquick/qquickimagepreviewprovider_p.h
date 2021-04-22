@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qtmultimediaquickglobal_p.h>
+#include <private/qtmultimediaquickglobal_p.h>
 #include <QtQuick/qquickimageprovider.h>
 
 QT_BEGIN_NAMESPACE
