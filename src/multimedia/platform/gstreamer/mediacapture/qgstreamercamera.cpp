@@ -55,10 +55,11 @@ QGstreamerCamera::QGstreamerCamera(QCamera *camera)
       gstCameraBin("camerabin")
 {
     gstCamera = QGstElement("videotestsrc");
+    gstDecode = QGstElement("identity");
     gstVideoConvert = QGstElement("videoconvert", "videoConvert");
     gstVideoScale = QGstElement("videoscale", "videoScale");
-    gstCameraBin.add(gstCamera, gstVideoConvert, gstVideoScale);
-    gstCamera.link(gstVideoConvert, gstVideoScale);
+    gstCameraBin.add(gstCamera, gstDecode, gstVideoConvert, gstVideoScale);
+    gstCamera.link(gstDecode, gstVideoConvert, gstVideoScale);
 
     gstCameraBin.addGhostPad(gstVideoScale, "src");
 
@@ -98,6 +99,9 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
     Q_ASSERT(!gstCamera.isNull());
 
     gstCameraBin.remove(gstCamera);
+    gstCameraBin.remove(gstDecode);
+
+    bool needsJpegDecoder = false;
 
     if (camera.isNull()) {
         gstCamera = QGstElement("videotestsrc");
@@ -108,10 +112,33 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
         QGstStructure properties = gst_device_get_properties(device);
         if (properties.name() == "v4l2deviceprovider")
             m_v4l2Device = QString::fromUtf8(properties["device.path"].toString());
+        QGstCaps cameraCaps = gst_device_get_caps(device);
+        needsJpegDecoder = true;
+        bool hasJpeg = false;
+        for (int i = 0; i < cameraCaps.size(); ++i) {
+            auto structure = cameraCaps.at(i);
+            if (structure.name() == "video/x-raw") {
+                needsJpegDecoder = false;
+                break;
+            } else if (structure.name() == "image/jpeg") {
+                hasJpeg = true;
+            }
+        }
+        if (needsJpegDecoder && !hasJpeg) {
+            // Can't handle camera, fall back to videotestsrc
+            qWarning() << "Camera does support neither video/x-raw nor image/jpeg, giving up.";
+            gstCamera = QGstElement("videotestsrc");
+            needsJpegDecoder = false;
+        }
     }
 
-    gstCameraBin.add(gstCamera);
-    gstCamera.link(gstVideoConvert);
+    if (needsJpegDecoder) {
+        gstDecode = QGstElement("jpegdec");
+    } else {
+        gstDecode = QGstElement("identity");
+    }
+    gstCameraBin.add(gstCamera, gstDecode);
+    gstCamera.link(gstDecode, gstVideoConvert);
 
     gstCamera.setStateSync(state == GST_STATE_PLAYING ? GST_STATE_PAUSED : state);
 

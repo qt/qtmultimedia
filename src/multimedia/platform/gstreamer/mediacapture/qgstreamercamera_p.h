@@ -107,6 +107,7 @@ private:
 
     QGstBin gstCameraBin;
     QGstElement gstCamera;
+    QGstElement gstDecode;
     QGstElement gstVideoConvert;
     QGstElement gstVideoScale;
 

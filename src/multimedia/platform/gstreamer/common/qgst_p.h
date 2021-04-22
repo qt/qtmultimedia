@@ -338,6 +338,8 @@ public:
 
     QGstMutableCaps currentCaps() const
     { return QGstMutableCaps(gst_pad_get_current_caps(pad())); }
+    QGstCaps queryCaps() const
+    { return QGstCaps(gst_pad_query_caps(pad(), nullptr)); }
 
     bool isLinked() const { return gst_pad_is_linked(pad()); }
     bool link(const QGstPad &sink) const { return gst_pad_link(pad(), sink.pad()) == GST_PAD_LINK_OK; }
