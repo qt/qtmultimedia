@@ -41,6 +41,7 @@
 
 #include "evrd3dpresentengine_p.h"
 #include "evrhelpers_p.h"
+#include <private/qwindowsmultimediautils_p.h>
 
 #include <QtGui/private/qrhi_p.h>
 
@@ -1997,22 +1998,7 @@ static QVideoFrameFormat::PixelFormat pixelFormatFromMediaType(IMFMediaType *typ
     if (FAILED(type->GetGUID(MF_MT_SUBTYPE, &subtype)))
         return QVideoFrameFormat::Format_Invalid;
 
-    if (subtype == MFVideoFormat_RGB32)
-        return QVideoFrameFormat::Format_RGB32;
-    if (subtype == MFVideoFormat_ARGB32)
-        return QVideoFrameFormat::Format_ARGB32;
-    if (subtype == MFVideoFormat_AYUV)
-        return QVideoFrameFormat::Format_AYUV444;
-    if (subtype == MFVideoFormat_I420)
-        return QVideoFrameFormat::Format_YUV420P;
-    if (subtype == MFVideoFormat_UYVY)
-        return QVideoFrameFormat::Format_UYVY;
-    if (subtype == MFVideoFormat_YV12)
-        return QVideoFrameFormat::Format_YV12;
-    if (subtype == MFVideoFormat_NV12)
-        return QVideoFrameFormat::Format_NV12;
-
-    return QVideoFrameFormat::Format_Invalid;
+    return QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
 }
 
 QT_END_NAMESPACE

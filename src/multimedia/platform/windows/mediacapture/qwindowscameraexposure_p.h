@@ -37,53 +37,52 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QWINDOWSCAMERAEXPOSURE_H
+#define QWINDOWSCAMERAEXPOSURE_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformcameraexposure_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+class QWindowsCameraSession;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QWindowsCameraExposure : public QPlatformCameraExposure
 {
+    Q_OBJECT
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    explicit QWindowsCameraExposure(QWindowsCameraSession *session);
 
-    void addRefCount();
-    void releaseRefCount();
+    bool isParameterSupported(ExposureParameter parameter) const override;
+    QVariantList supportedParameterRange(ExposureParameter parameter, bool *continuous) const override;
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    QVariant requestedValue(ExposureParameter parameter) const override;
+    QVariant actualValue(ExposureParameter parameter) const override;
+    bool setValue(ExposureParameter parameter, const QVariant& value) override;
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+    QCameraExposure::FlashMode flashMode() const override;
+    void setFlashMode(QCameraExposure::FlashMode mode) override;
+    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
+    bool isFlashReady() const override;
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+    QCameraExposure::TorchMode torchMode() const override;
+    void setTorchMode(QCameraExposure::TorchMode mode) override;
+    bool isTorchModeSupported(QCameraExposure::TorchMode mode) const override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+private:
+    QWindowsCameraSession *m_session;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif  // QWINDOWSCAMERAEXPOSURE_H

@@ -37,53 +37,47 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QWINDOWSCAMERAFOCUS_H
+#define QWINDOWSCAMERAFOCUS_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformcamerafocus_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+class QWindowsCameraSession;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QWindowsCameraFocus : public QPlatformCameraFocus
 {
+    Q_OBJECT
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    explicit QWindowsCameraFocus(QWindowsCameraSession *session);
 
-    void addRefCount();
-    void releaseRefCount();
+    QCameraFocus::FocusMode focusMode() const override;
+    void setFocusMode(QCameraFocus::FocusMode mode) override;
+    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    bool isCustomFocusPointSupported() const override;
+    QPointF focusPoint() const override;
+    void setCustomFocusPoint(const QPointF &point) override;
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+    ZoomRange zoomFactorRange() const override;
+    void zoomTo(float newZoomFactor, float rate) override;
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+private:
+    QWindowsCameraSession *m_session;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif  // QWINDOWSCAMERAFOCUS_H

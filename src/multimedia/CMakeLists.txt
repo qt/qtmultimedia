@@ -141,6 +141,7 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/audio/qwindowsaudioinput.cpp platform/windows/audio/qwindowsaudioinput_p.h
         platform/windows/audio/qwindowsaudiooutput.cpp platform/windows/audio/qwindowsaudiooutput_p.h
         platform/windows/audio/qwindowsaudioutils.cpp platform/windows/audio/qwindowsaudioutils_p.h
+        platform/windows/common/qwindowsmultimediautils.cpp platform/windows/common/qwindowsmultimediautils_p.h
         platform/windows/decoder/mfaudiodecodercontrol.cpp platform/windows/decoder/mfaudiodecodercontrol_p.h
         platform/windows/decoder/mfdecodersourcereader.cpp platform/windows/decoder/mfdecodersourcereader_p.h
         platform/windows/evr/evrcustompresenter.cpp platform/windows/evr/evrcustompresenter_p.h
@@ -157,14 +158,34 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/player/mftvideo.cpp platform/windows/player/mftvideo_p.h
         platform/windows/player/mfvideorenderercontrol.cpp platform/windows/player/mfvideorenderercontrol_p.h
         platform/windows/player/samplegrabber.cpp platform/windows/player/samplegrabber_p.h
+        platform/windows/mediacapture/qwindowscamera.cpp
+        platform/windows/mediacapture/qwindowscameraexposure.cpp
+        platform/windows/mediacapture/qwindowscameraexposure_p.h
+        platform/windows/mediacapture/qwindowscamerafocus.cpp
+        platform/windows/mediacapture/qwindowscamerafocus_p.h
+        platform/windows/mediacapture/qwindowscameraimagecapture.cpp
+        platform/windows/mediacapture/qwindowscameraimagecapture_p.h
+        platform/windows/mediacapture/qwindowscameraimageprocessing.cpp
+        platform/windows/mediacapture/qwindowscameraimageprocessing_p.h
+        platform/windows/mediacapture/qwindowscamerareader.cpp
+        platform/windows/mediacapture/qwindowscamerareader_p.h
+        platform/windows/mediacapture/qwindowscamerasession.cpp
+        platform/windows/mediacapture/qwindowscamerasession_p.h
+        platform/windows/mediacapture/qwindowscamera_p.h
+        platform/windows/mediacapture/qwindowsmediacapture.cpp
+        platform/windows/mediacapture/qwindowsmediacapture_p.h
+        platform/windows/mediacapture/qwindowsmediaencoder.cpp
+        platform/windows/mediacapture/qwindowsmediaencoder_p.h
         platform/windows/qwindowsdevicemanager.cpp platform/windows/qwindowsdevicemanager_p.h
         platform/windows/qwindowsformatinfo.cpp platform/windows/qwindowsformatinfo_p.h
         platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
         platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h
     INCLUDE_DIRECTORIES
+        platform/windows/common
         platform/windows/decoder
         platform/windows/evr
         platform/windows/player
+        platform/windows/mediacapture
     LIBRARIES
         Qt::GuiPrivate
         uuid

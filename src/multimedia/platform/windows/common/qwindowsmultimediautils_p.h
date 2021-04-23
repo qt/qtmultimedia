@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QWINDOWSMULTIMEDIATUTILS_P_H
+#define QWINDOWSMULTIMEDIATUTILS_P_H
 
 //
 //  W A R N I N G
@@ -51,38 +51,17 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <qvideoframe.h>
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+namespace QWindowsMultimediaUtils {
 
-class QWindowsIntegration : public QPlatformMediaIntegration
-{
-public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    QVideoFrameFormat::PixelFormat pixelFormatFromMediaSubtype(const GUID &subtype);
 
-    void addRefCount();
-    void releaseRefCount();
-
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
-
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
-
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
-};
+}
 
 QT_END_NAMESPACE
 

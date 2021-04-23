@@ -39,6 +39,7 @@
 
 #include "mftvideo_p.h"
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qwindowsmultimediautils_p.h>
 #include <mferror.h>
 #include <strmif.h>
 #include <uuids.h>
@@ -603,26 +604,6 @@ HRESULT MFTransform::OnFlush()
     return S_OK;
 }
 
-QVideoFrameFormat::PixelFormat MFTransform::formatFromSubtype(const GUID& subtype)
-{
-    if (subtype == MFVideoFormat_ARGB32)
-        return QVideoFrameFormat::Format_ARGB32;
-    else if (subtype == MFVideoFormat_RGB32)
-        return QVideoFrameFormat::Format_RGB32;
-    else if (subtype == MFVideoFormat_AYUV)
-        return QVideoFrameFormat::Format_AYUV444;
-    else if (subtype == MFVideoFormat_I420)
-        return QVideoFrameFormat::Format_YUV420P;
-    else if (subtype == MFVideoFormat_UYVY)
-        return QVideoFrameFormat::Format_UYVY;
-    else if (subtype == MFVideoFormat_YV12)
-        return QVideoFrameFormat::Format_YV12;
-    else if (subtype == MFVideoFormat_NV12)
-        return QVideoFrameFormat::Format_NV12;
-
-    return QVideoFrameFormat::Format_Invalid;
-}
-
 QVideoFrameFormat MFTransform::videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine)
 {
     UINT32 stride;
@@ -645,7 +626,8 @@ QVideoFrameFormat MFTransform::videoFormatForMFMediaType(IMFMediaType *mediaType
     if (FAILED(mediaType->GetGUID(MF_MT_SUBTYPE, &subtype)))
         return QVideoFrameFormat();
 
-    QVideoFrameFormat::PixelFormat pixelFormat = formatFromSubtype(subtype);
+    QVideoFrameFormat::PixelFormat pixelFormat =
+            QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
     QVideoFrameFormat format(size, pixelFormat);
 
     quint32 num, den;

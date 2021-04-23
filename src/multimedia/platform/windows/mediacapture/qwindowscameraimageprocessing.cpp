@@ -37,53 +37,29 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediaintegration_p.h>
+#include "qwindowscameraimageprocessing_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
-
-class QWindowsIntegration : public QPlatformMediaIntegration
+QWindowsCameraImageProcessing::QWindowsCameraImageProcessing(QWindowsCameraSession *session)
+    : m_session(session)
 {
-public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    Q_ASSERT(m_session);
+}
 
-    void addRefCount();
-    void releaseRefCount();
+bool QWindowsCameraImageProcessing::isParameterSupported(ProcessingParameter parameter) const
+{
+    return false;
+}
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+bool QWindowsCameraImageProcessing::isParameterValueSupported(ProcessingParameter parameter,
+                                                              const QVariant &value) const
+{
+    return false;
+}
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
-
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
-};
+void QWindowsCameraImageProcessing::setParameter(ProcessingParameter parameter, const QVariant &value)
+{
+}
 
 QT_END_NAMESPACE
-
-#endif

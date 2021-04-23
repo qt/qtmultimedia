@@ -37,53 +37,40 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#include "qwindowsmultimediautils_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediaintegration_p.h>
+#include <mfapi.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
-
-class QWindowsIntegration : public QPlatformMediaIntegration
+QVideoFrameFormat::PixelFormat QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(const GUID &subtype)
 {
-public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    if (subtype == MFVideoFormat_ARGB32)
+        return QVideoFrameFormat::Format_ARGB32;
+    if (subtype == MFVideoFormat_RGB32)
+        return QVideoFrameFormat::Format_RGB32;
+    if (subtype == MFVideoFormat_AYUV)
+        return QVideoFrameFormat::Format_AYUV444;
+    if (subtype == MFVideoFormat_I420)
+        return QVideoFrameFormat::Format_YUV420P;
+    if (subtype == MFVideoFormat_UYVY)
+        return QVideoFrameFormat::Format_UYVY;
+    if (subtype == MFVideoFormat_YV12)
+        return QVideoFrameFormat::Format_YV12;
+    if (subtype == MFVideoFormat_NV12)
+        return QVideoFrameFormat::Format_NV12;
+    if (subtype == MFVideoFormat_YUY2)
+        return QVideoFrameFormat::Format_YUYV;
+    if (subtype == MFVideoFormat_P010)
+        return QVideoFrameFormat::Format_P010;
+    if (subtype == MFVideoFormat_P016)
+        return QVideoFrameFormat::Format_P016;
+    if (subtype == MFVideoFormat_L8)
+        return QVideoFrameFormat::Format_Y8;
+    if (subtype == MFVideoFormat_L16)
+        return QVideoFrameFormat::Format_Y16;
 
-    void addRefCount();
-    void releaseRefCount();
-
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
-
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
-
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
-};
+    return QVideoFrameFormat::Format_Invalid;
+}
 
 QT_END_NAMESPACE
-
-#endif

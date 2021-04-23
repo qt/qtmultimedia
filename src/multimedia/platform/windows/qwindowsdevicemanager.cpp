@@ -45,6 +45,7 @@
 #include "private/qwindowsaudioinput_p.h"
 #include "private/qwindowsaudiooutput_p.h"
 #include "private/qwindowsaudiodeviceinfo_p.h"
+#include "private/qwindowsmultimediautils_p.h"
 
 #include <private/mftvideo_p.h>
 
@@ -233,7 +234,7 @@ QList<QCameraInfo> QWindowsDeviceManager::videoInputs() const
                                 float maxFr = .0;
 
                                 if (SUCCEEDED(mediaFormat->GetGUID(MF_MT_SUBTYPE, &subtype)))
-                                    pixelFormat = MFTransform::formatFromSubtype(subtype);
+                                    pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
 
                                 if (SUCCEEDED(MFGetAttributeSize(mediaFormat, MF_MT_FRAME_SIZE, &width,
                                                         &height))) {

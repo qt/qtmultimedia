@@ -37,51 +37,46 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
-
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#ifndef QWINDOWSMEDIAENCODER_H
+#define QWINDOWSMEDIAENCODER_H
+
+#include <private/qplatformmediaencoder_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+class QWindowsCameraSession;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QWindowsMediaEncoder : public QPlatformMediaEncoder
 {
+    Q_OBJECT
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    QWindowsMediaEncoder(QWindowsCameraSession *session, QObject *parent = nullptr);
 
-    void addRefCount();
-    void releaseRefCount();
+    QUrl outputLocation() const override;
+    bool setOutputLocation(const QUrl &location) override;
+    QMediaEncoder::State state() const override;
+    QMediaEncoder::Status status() const override;
+    qint64 duration() const override;
+    void applySettings() override;
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+public Q_SLOTS:
+    void setState(QMediaEncoder::State state) override;
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+private:
+    QWindowsCameraSession *m_session;
 };
 
 QT_END_NAMESPACE

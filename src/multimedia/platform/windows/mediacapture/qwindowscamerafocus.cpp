@@ -37,53 +37,54 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#include "qwindowscamerafocus_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediaintegration_p.h>
+#include "qwindowscamerasession_p.h"
+#include "qwindowscamera_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
-
-class QWindowsIntegration : public QPlatformMediaIntegration
+QWindowsCameraFocus::QWindowsCameraFocus(QWindowsCameraSession *session)
+    : m_session(session)
 {
-public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    Q_ASSERT(m_session);
+}
 
-    void addRefCount();
-    void releaseRefCount();
+QCameraFocus::FocusMode QWindowsCameraFocus::focusMode() const
+{
+    return QCameraFocus::AutoFocus;
+}
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+void QWindowsCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
+{
+}
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+bool QWindowsCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
+{
+    return false;
+}
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+bool QWindowsCameraFocus::isCustomFocusPointSupported() const
+{
+    return false;
+}
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+QPointF QWindowsCameraFocus::focusPoint() const
+{
+    return QPointF(0.5, 0.5);
+}
 
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
-};
+void QWindowsCameraFocus::setCustomFocusPoint(const QPointF &point)
+{
+}
+
+QWindowsCameraFocus::ZoomRange QWindowsCameraFocus::zoomFactorRange() const
+{
+    return { 1.0, 1.0 };
+}
+
+void QWindowsCameraFocus::zoomTo(float factor, float rate)
+{
+}
 
 QT_END_NAMESPACE
-
-#endif

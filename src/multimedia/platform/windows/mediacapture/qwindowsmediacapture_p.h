@@ -36,54 +36,63 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QWINDOWSMEDIACAPTURE_H
+#define QWINDOWSMEDIACAPTURE_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
+#include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+class QWindowsMediaEncoder;
+class QWindowsCamera;
+class QWindowsCameraSession;
+class QWindowsCameraImageCapture;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QWindowsMediaCaptureService : public QPlatformMediaCaptureSession
 {
+    Q_OBJECT
+
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    QWindowsMediaCaptureService();
+    virtual ~QWindowsMediaCaptureService();
 
-    void addRefCount();
-    void releaseRefCount();
+    QPlatformCamera *camera() override;
+    void setCamera(QPlatformCamera *) override;
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    QPlatformCameraImageCapture *imageCapture() override;
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+    QPlatformMediaEncoder *mediaEncoder() override;
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+    bool isMuted() const override;
+    void setMuted(bool muted) override;
+    qreal volume() const override;
+    void setVolume(qreal volume) override;
+    QAudioDeviceInfo audioInput() const override;
+    bool setAudioInput(const QAudioDeviceInfo &) override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+    void setVideoPreview(QVideoSink *sink) override;
 
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+    QWindowsCameraSession *session() const;
+
+private:
+    QWindowsCamera              *m_camera = nullptr;
+    QWindowsCameraSession       *m_cameraSession = nullptr;
+    QWindowsCameraImageCapture  *m_imageCapture = nullptr;
+    QWindowsMediaEncoder        *m_recorder = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QWINDOWSMEDIAINTERFACE_H

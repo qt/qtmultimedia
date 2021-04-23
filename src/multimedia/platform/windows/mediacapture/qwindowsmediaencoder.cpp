@@ -37,53 +37,54 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#include "qwindowsmediaencoder_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediaintegration_p.h>
+#include "qwindowscamerasession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
-
-class QWindowsIntegration : public QPlatformMediaIntegration
+QWindowsMediaEncoder::QWindowsMediaEncoder(QWindowsCameraSession *session, QObject *parent)
+    : QPlatformMediaEncoder(parent)
+    , m_session(session)
 {
-public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    Q_ASSERT(m_session);
+}
 
-    void addRefCount();
-    void releaseRefCount();
+QUrl QWindowsMediaEncoder::outputLocation() const
+{
+    return QUrl();
+}
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+bool QWindowsMediaEncoder::setOutputLocation(const QUrl &location)
+{
+    return false;
+}
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+QMediaEncoder::State QWindowsMediaEncoder::state() const
+{
+    return QMediaEncoder::StoppedState;
+}
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+QMediaEncoder::Status QWindowsMediaEncoder::status() const
+{
+    return QMediaEncoder::UnavailableStatus;
+}
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+qint64 QWindowsMediaEncoder::duration() const
+{
+    return 1;
+}
 
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
-};
+void QWindowsMediaEncoder::applySettings()
+{
+}
+
+void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
+{
+}
+
+void QWindowsMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+}
 
 QT_END_NAMESPACE
-
-#endif

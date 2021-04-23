@@ -3,7 +3,7 @@
 ** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the Qt Mobility Components.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,53 +37,71 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QWINDOWSCAMERAREADER_H
+#define QWINDOWSCAMERAREADER_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <mfapi.h>
+#include <mfidl.h>
+#include <Mfreadwrite.h>
+
+#include <QtCore/qobject.h>
+#include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+class QVideoSink;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QWindowsCameraReader : public QObject, public IMFSourceReaderCallback
 {
+    Q_OBJECT
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    explicit QWindowsCameraReader(QObject *parent = 0);
+    ~QWindowsCameraReader();
 
-    void addRefCount();
-    void releaseRefCount();
+    QVideoSink *surface() const;
+    void setSurface(QVideoSink *surface);
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    //from IUnknown
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
+    STDMETHODIMP_(ULONG) AddRef(void);
+    STDMETHODIMP_(ULONG) Release(void);
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+    //from IMFSourceReaderCallback
+    STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
+                              DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample);
+    STDMETHODIMP OnFlush(DWORD dwStreamIndex);
+    STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent *pEvent);
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+    HRESULT     start(const QString &cameraId);
+    HRESULT     stop();
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+Q_SIGNALS:
+    void streamStarted();
+    void streamStopped();
 
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+private:
+    long               m_cRef = 1;
+    IMFSourceReader    *m_sourceReader = nullptr;
+    IMFMediaSource     *m_source = nullptr;
+    QVideoSink         *m_surface = nullptr;
+    UINT32             m_frameWidth = 0;
+    UINT32             m_frameHeight = 0;
+    LONG               m_stride = 0;
+    bool               m_started = false;
+    QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif//QWINDOWSCAMERAREADER_H

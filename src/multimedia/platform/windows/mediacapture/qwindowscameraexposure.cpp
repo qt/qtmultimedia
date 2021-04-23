@@ -37,53 +37,78 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#include "qwindowscameraexposure_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediaintegration_p.h>
+#include "qwindowscamerasession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
-
-class QWindowsIntegration : public QPlatformMediaIntegration
+QWindowsCameraExposure::QWindowsCameraExposure(QWindowsCameraSession *session)
+    : QPlatformCameraExposure()
+    , m_session(session)
 {
-public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    Q_ASSERT(m_session);
+}
 
-    void addRefCount();
-    void releaseRefCount();
+bool QWindowsCameraExposure::isParameterSupported(ExposureParameter parameter) const
+{
+    return false;
+}
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+QVariantList QWindowsCameraExposure::supportedParameterRange(ExposureParameter parameter, bool *continuous) const
+{
+    return QVariantList();
+}
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+QVariant QWindowsCameraExposure::requestedValue(ExposureParameter parameter) const
+{
+    return QVariant();
+}
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+QVariant QWindowsCameraExposure::actualValue(ExposureParameter parameter) const
+{
+    return QVariant();
+}
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+bool QWindowsCameraExposure::setValue(ExposureParameter parameter, const QVariant& value)
+{
+    if (!value.isValid())
+        return false;
 
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
-};
+    return false;
+}
+
+QCameraExposure::FlashMode QWindowsCameraExposure::flashMode() const
+{
+    return QCameraExposure::FlashOff;
+}
+
+void QWindowsCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
+{
+}
+
+bool QWindowsCameraExposure::isFlashModeSupported(QCameraExposure::FlashMode mode) const
+{
+    return false;
+}
+
+bool QWindowsCameraExposure::isFlashReady() const
+{
+    return false;
+}
+
+QCameraExposure::TorchMode QWindowsCameraExposure::torchMode() const
+{
+    return QCameraExposure::TorchOff;
+}
+
+void QWindowsCameraExposure::setTorchMode(QCameraExposure::TorchMode mode)
+{
+}
+
+bool QWindowsCameraExposure::isTorchModeSupported(QCameraExposure::TorchMode mode) const
+{
+    return false;
+}
 
 QT_END_NAMESPACE
-
-#endif

@@ -37,53 +37,58 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QWINDOWSCAMERA_H
+#define QWINDOWSCAMERA_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformcamera_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
-class QWindowsFormatInfo;
+class QWindowsMediaCaptureService;
+class QWindowsCameraSession;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QWindowsCamera : public QPlatformCamera
 {
+    Q_OBJECT
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    explicit QWindowsCamera(QCamera *camera);
+    virtual ~QWindowsCamera();
 
-    void addRefCount();
-    void releaseRefCount();
+    bool isActive() const override;
+    void setActive(bool active) override;
 
-    QPlatformMediaDeviceManager *deviceManager() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    QCamera::Status status() const override;
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+    void setCamera(const QCameraInfo &camera) override;
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+    void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+    QPlatformCameraFocus *focusControl() override;
+    QPlatformCameraExposure *exposureControl() override;
+    QPlatformCameraImageProcessing *imageProcessingControl() override;
 
-    QWindowsDeviceManager *m_manager = nullptr;
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+private Q_SLOTS:
+    void updateStatus();
+
+private:
+    QWindowsMediaCaptureService *m_captureService = nullptr;
+    QWindowsCameraSession  *m_cameraSession = nullptr;
+    QCameraInfo m_cameraInfo;
+    QCamera::Status m_lastStatus = QCamera::InactiveStatus;
+    bool m_active = false;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif  // QWINDOWSCAMERA_H

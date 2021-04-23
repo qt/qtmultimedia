@@ -37,88 +37,96 @@
 **
 ****************************************************************************/
 
-#include "qwindowsintegration_p.h"
-#include <private/qwindowsdevicemanager_p.h>
-#include <private/qwindowsformatinfo_p.h>
-#include <private/qwindowsmediacapture_p.h>
-#include <private/qwindowscamera_p.h>
-#include <private/mfplayercontrol_p.h>
-#include <private/mfaudiodecodercontrol_p.h>
-#include <private/mfevrvideowindowcontrol_p.h>
+#include "qwindowsmediacapture_p.h"
+
+#include "qwindowsmediaencoder_p.h"
+#include "qwindowscamera_p.h"
+#include "qwindowscamerasession_p.h"
+#include "qwindowscameraimagecapture_p.h"
+#include "qmediadevicemanager.h"
+#include "qaudiodeviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 
-static int g_refCount = 0;
-
-QWindowsIntegration::QWindowsIntegration()
+QWindowsMediaCaptureService::QWindowsMediaCaptureService()
 {
-    g_refCount++;
-    if (g_refCount == 1) {
-        CoInitialize(NULL);
-        MFStartup(MF_VERSION);
-    }
+    m_cameraSession = new QWindowsCameraSession(this);
+    m_imageCapture = new QWindowsCameraImageCapture(m_cameraSession, this);
+    m_recorder = new QWindowsMediaEncoder(m_cameraSession, this);
 }
 
-QWindowsIntegration::~QWindowsIntegration()
+QWindowsMediaCaptureService::~QWindowsMediaCaptureService()
 {
-    delete m_manager;
-    delete m_formatInfo;
-
-    g_refCount--;
-    if (g_refCount == 0) {
-        // ### This currently crashes on exit
-//        MFShutdown();
-//        CoUninitialize();
-    }
+    delete m_recorder;
+    delete m_imageCapture;
+    delete m_cameraSession;
 }
 
-QPlatformMediaDeviceManager *QWindowsIntegration::deviceManager()
+QPlatformCamera *QWindowsMediaCaptureService::camera()
 {
-    if (!m_manager)
-        m_manager = new QWindowsDeviceManager();
-    return m_manager;
+    return m_camera;
 }
 
-QPlatformMediaFormatInfo *QWindowsIntegration::formatInfo()
+void QWindowsMediaCaptureService::setCamera(QPlatformCamera *camera)
 {
-    if (!m_formatInfo)
-        m_formatInfo = new QWindowsFormatInfo();
-    return m_formatInfo;
+    QWindowsCamera *control = static_cast<QWindowsCamera*>(camera);
+    if (m_camera == control)
+        return;
+
+    if (m_camera)
+        m_camera->setCaptureSession(nullptr);
+
+    m_camera = control;
+    if (m_camera)
+        m_camera->setCaptureSession(this);
 }
 
-QPlatformMediaCaptureSession *QWindowsIntegration::createCaptureSession(QMediaRecorder::CaptureMode)
+QPlatformCameraImageCapture *QWindowsMediaCaptureService::imageCapture()
 {
-    return new QWindowsMediaCaptureService();
+    return m_imageCapture;
 }
 
-QPlatformAudioDecoder *QWindowsIntegration::createAudioDecoder()
+QPlatformMediaEncoder *QWindowsMediaCaptureService::mediaEncoder()
 {
-    return new MFAudioDecoderControl;
+    return m_recorder;
 }
 
-QPlatformMediaPlayer *QWindowsIntegration::createPlayer(QMediaPlayer *parent)
+bool QWindowsMediaCaptureService::isMuted() const
 {
-    return new MFPlayerControl(parent);
+    return false;
 }
 
-QPlatformCamera *QWindowsIntegration::createCamera(QCamera *camera)
+void QWindowsMediaCaptureService::setMuted(bool muted)
 {
-    return new QWindowsCamera(camera);
 }
 
-QPlatformMediaEncoder *QWindowsIntegration::createEncoder(QMediaEncoder*)
+qreal QWindowsMediaCaptureService::volume() const
 {
-    return nullptr;
+    return 1.0;
 }
 
-QPlatformImageCapture *QWindowsIntegration::createImageCapture(QCameraImageCapture*)
+void QWindowsMediaCaptureService::setVolume(qreal volume)
 {
-    return nullptr;
 }
 
-QPlatformVideoSink *QWindowsIntegration::createVideoSink(QVideoSink *sink)
+QAudioDeviceInfo QWindowsMediaCaptureService::audioInput() const
 {
-    return new MFEvrVideoWindowControl(sink);
+    return QMediaDeviceManager::defaultAudioInput();
+}
+
+bool QWindowsMediaCaptureService::setAudioInput(const QAudioDeviceInfo &info)
+{
+    return false;
+}
+
+void QWindowsMediaCaptureService::setVideoPreview(QVideoSink *sink)
+{
+    m_cameraSession->setVideoSink(sink);
+}
+
+QWindowsCameraSession *QWindowsMediaCaptureService::session() const
+{
+    return m_cameraSession;
 }
 
 QT_END_NAMESPACE
