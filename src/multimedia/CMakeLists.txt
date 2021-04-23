@@ -118,7 +118,6 @@ if(ANDROID)
     )
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
         lib/libQt6MultimediaQuick.so:Qt6Quick
-        plugins/mediaservice/libplugins_mediaservice_qtmedia_android.so
     )
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_FILES
         lib/libQt6MultimediaQuick.so
