@@ -95,6 +95,7 @@ public:
     void paint(QPainter *painter, const QVideoFrame &frame);
 
     QPlatformVideoSink *platformVideoSink();
+    QSize videoSize() const;
 
 Q_SIGNALS:
     // would never get called in windowed mode

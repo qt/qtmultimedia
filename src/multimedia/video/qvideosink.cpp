@@ -374,6 +374,15 @@ QPlatformVideoSink *QVideoSink::platformVideoSink()
     return d->videoSink;
 }
 
+/*!
+    Returns the size of the video currently being played back. If no video is being played,
+    this method returns an invalid size.
+ */
+QSize QVideoSink::videoSize() const
+{
+    return d->videoSink->nativeSize();
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qvideosink.cpp"

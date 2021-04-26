@@ -308,11 +308,13 @@ void QVideoWidget::setSaturation(float saturation)
  */
 QSize QVideoWidget::sizeHint() const
 {
-//    Q_D(const QVideoWidget);
+    Q_D(const QVideoWidget);
 
-// #####
-//    if (d->video)
-//        return d->backend->sizeHint();
+    if (d->videoSink) {
+        auto size = d->videoSink->videoSize();
+        if (size.isValid())
+            return size;
+    }
 
     return QWidget::sizeHint();
 }
