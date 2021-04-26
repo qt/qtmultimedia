@@ -162,6 +162,12 @@ QT_BEGIN_NAMESPACE
     \fn virtual int QAbstractAudioOutput::periodSize() const
     Returns the period size in bytes.
 */
+int QAbstractAudioOutput::periodSize() const
+{
+    auto f = format();
+    Q_ASSERT(!f.isValid() || f.bytesForDuration(5000) > 0);
+    return f.bytesForDuration(5000);
+}
 
 /*!
     \fn virtual void QAbstractAudioOutput::setBufferSize(int value)
@@ -282,6 +288,12 @@ QT_BEGIN_NAMESPACE
     \fn virtual int QAbstractAudioInput::periodSize() const
     Returns the period size in bytes.
 */
+int QAbstractAudioInput::periodSize() const
+{
+    auto f = format();
+    Q_ASSERT(!f.isValid() || f.bytesForDuration(5000) > 0);
+    return f.bytesForDuration(5000);
+}
 
 /*!
     \fn virtual void QAbstractAudioInput::setBufferSize(int value)

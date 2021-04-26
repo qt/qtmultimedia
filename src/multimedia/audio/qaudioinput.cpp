@@ -133,9 +133,8 @@ QAudioInput::QAudioInput(const QAudioDeviceInfo &audioDevice, const QAudioFormat
     QObject(parent)
 {
     d = QPlatformMediaIntegration::instance()->deviceManager()->audioInputDevice(format, audioDevice);
-    if (d) {
+    if (d)
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
-    }
 }
 
 /*!
@@ -351,7 +350,7 @@ qint64 QAudioInput::processedUSecs() const
 
 qint64 QAudioInput::elapsedUSecs() const
 {
-    return d->elapsedUSecs();
+    return d->elapsedTime.elapsed()/1000;
 }
 
 /*!

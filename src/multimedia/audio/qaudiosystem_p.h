@@ -57,6 +57,8 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
 
+#include <QtCore/qelapsedtimer.h>
+
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
@@ -73,7 +75,7 @@ public:
     virtual void suspend() = 0;
     virtual void resume() = 0;
     virtual int bytesFree() const = 0;
-    virtual int periodSize() const = 0;
+    virtual int periodSize() const;
     virtual void setBufferSize(int value) = 0;
     virtual int bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
@@ -104,7 +106,7 @@ public:
     virtual void suspend()  = 0;
     virtual void resume() = 0;
     virtual int bytesReady() const = 0;
-    virtual int periodSize() const = 0;
+    virtual int periodSize() const;
     virtual void setBufferSize(int value) = 0;
     virtual int bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
@@ -119,6 +121,8 @@ public:
 Q_SIGNALS:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
+
+    QElapsedTimer elapsedTime;
 };
 
 QT_END_NAMESPACE

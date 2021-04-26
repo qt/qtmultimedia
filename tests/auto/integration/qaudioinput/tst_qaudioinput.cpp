@@ -360,7 +360,6 @@ void tst_QAudioInput::pull()
 
     QAudioInput audioInput(audioFormat, this);
 
-    QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
     // Check that we are in the default state before calling start
@@ -405,7 +404,6 @@ void tst_QAudioInput::pull()
              QString("processedUSecs() doesn't fall in acceptable range, should be 3040000 (%1)").arg(processedUs).toLocal8Bit().constData());
     QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
-    QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
     //QWaveHeader::writeDataLength(*audioFile, audioFile->pos() - WavHeader::headerLength());
     //waveDecoder.writeDataLength();
@@ -425,7 +423,6 @@ void tst_QAudioInput::pullSuspendResume()
 
     QAudioInput audioInput(audioFormat, this);
 
-    QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
     // Check that we are in the default state before calling start
@@ -504,7 +501,6 @@ void tst_QAudioInput::pullSuspendResume()
              QString("processedUSecs() doesn't fall in acceptable range, should be 3040000 (%1)").arg(processedUs).toLocal8Bit().constData());
     QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
-    QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
     //WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
     //waveDecoder.writeDataLength();
@@ -519,7 +515,6 @@ void tst_QAudioInput::push()
 
     QAudioInput audioInput(audioFormat, this);
 
-    QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
     // Check that we are in the default state before calling start
@@ -585,7 +580,6 @@ void tst_QAudioInput::push()
              QString("processedUSecs() doesn't fall in acceptable range, should be 2040000 (%1)").arg(processedUs).toLocal8Bit().constData());
     QVERIFY2((audioInput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
-    QVERIFY2(notifySignal.count() > 0, "not emitting notify() signal");
 
     //WavHeader::writeDataLength(*audioFile,audioFile->pos()-WavHeader::headerLength());
     //waveDecoder.writeDataLength();
@@ -605,7 +599,6 @@ void tst_QAudioInput::pushSuspendResume()
 
     audioInput.setBufferSize(audioFormat.bytesForDuration(1000000));
 
-    QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
     // Check that we are in the default state before calling start
@@ -726,7 +719,6 @@ void tst_QAudioInput::reset()
     {
         QAudioInput audioInput(audioFormat, this);
 
-        QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
         // Check that we are in the default state before calling start
@@ -757,7 +749,6 @@ void tst_QAudioInput::reset()
         QAudioInput audioInput(audioFormat, this);
         QBuffer buffer;
 
-        QSignalSpy notifySignal(&audioInput, SIGNAL(notify()));
         QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
         // Check that we are in the default state before calling start

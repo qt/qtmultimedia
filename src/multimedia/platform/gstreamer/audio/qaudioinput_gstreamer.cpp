@@ -292,11 +292,6 @@ int QGStreamerAudioInput::bufferSize() const
     return m_bufferSize;
 }
 
-int QGStreamerAudioInput::periodSize() const
-{
-    return m_periodSize;
-}
-
 qint64 QGStreamerAudioInput::processedUSecs() const
 {
     return 0;

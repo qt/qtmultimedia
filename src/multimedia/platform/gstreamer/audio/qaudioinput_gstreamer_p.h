@@ -86,7 +86,6 @@ public:
     void suspend() override;
     void resume() override;
     int bytesReady() const override;
-    int periodSize() const override;
     void setBufferSize(int value) override;
     int bufferSize() const override;
     qint64 processedUSecs() const override;
@@ -124,7 +123,6 @@ private:
     bool m_opened = false;
     int m_bytesAvailable = 0;
     int m_bufferSize = 0;
-    int m_periodSize = 0;
     qint64 m_elapsedTimeOffset = 0;
     QElapsedTimer m_timeStamp;
     QElapsedTimer m_clockStamp;

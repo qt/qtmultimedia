@@ -47,10 +47,6 @@
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qpointer.h>
 
-#if QT_CONFIG(opengl)
-#include <QOpenGLContext>
-#endif
-
 QT_BEGIN_NAMESPACE
 
 class QGraphicsVideoItemPrivate
