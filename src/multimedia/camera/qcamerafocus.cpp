@@ -117,6 +117,10 @@ void QCameraFocusPrivate::init(QPlatformCamera *cameraControl)
 
     q->connect(focusControl, SIGNAL(zoomFactorChanged(qreal)),
                q, SIGNAL(zoomFactorChanged(qreal)));
+    q->connect(focusControl, SIGNAL(minimumZoomFactorChanged(float)),
+               q, SIGNAL(minimumZoomFactorChanged(float)));
+    q->connect(focusControl, SIGNAL(maximumZoomFactorChanged(float)),
+               q, SIGNAL(maximumZoomFactorChanged(float)));
 }
 
 /*!

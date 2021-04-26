@@ -89,6 +89,8 @@ public:
 Q_SIGNALS:
     void focusModeChanged(QCameraFocus::FocusMode mode);
     void customFocusPointChanged(const QPointF &point);
+    void minimumZoomFactorChanged(float);
+    void maximumZoomFactorChanged(float);
 
 protected:
     explicit QPlatformCameraFocus(QObject *parent = nullptr);
