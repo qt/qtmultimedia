@@ -93,7 +93,7 @@ public:
     void setImageSettings(const QImageEncoderSettings &settings) override;
     bool applySettings();
 
-    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
 
 private Q_SLOTS:
     void updateCaptureConnection();

@@ -39,7 +39,7 @@ class QMockMediaEncoder : public QPlatformMediaEncoder
     Q_OBJECT
 
 public:
-    QMockMediaEncoder(QObject *parent = 0):
+    QMockMediaEncoder(QMediaEncoder *parent):
         QPlatformMediaEncoder(parent),
         m_state(QMediaEncoder::StoppedState),
         m_status(QMediaEncoder::StoppedStatus),

@@ -80,6 +80,7 @@ public:
     void setImageCapture(QPlatformCameraImageCapture *imageCapture) override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
+    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
     bool isMuted() const override;
     void setMuted(bool muted) override;
@@ -92,7 +93,7 @@ public:
 
     AVFCameraSession *session() const { return m_session; }
     AVFCamera *avfCameraControl() const { return m_cameraControl; }
-    AVFMediaEncoder *recorderControl() const { return m_recorderControl; }
+    AVFMediaEncoder *recorderControl() const { return m_encoder; }
     AVFCameraImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
 
 private:
@@ -102,7 +103,7 @@ private:
 
     AVFCameraSession *m_session = nullptr;
     AVFCamera *m_cameraControl = nullptr;
-    AVFMediaEncoder *m_recorderControl = nullptr;
+    AVFMediaEncoder *m_encoder = nullptr;
     AVFCameraImageCapture *m_imageCaptureControl = nullptr;
 };
 

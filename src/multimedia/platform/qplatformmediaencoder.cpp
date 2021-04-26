@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
     Constructs a media recorder control with the given \a parent.
 */
 
-QPlatformMediaEncoder::QPlatformMediaEncoder(QObject* parent)
+QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
     : QObject(parent)
 {
 }

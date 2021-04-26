@@ -430,7 +430,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/mediaplayer/avfvideooutput.mm platform/darwin/mediaplayer/avfvideooutput_p.h
         platform/darwin/mediaplayer/avfvideowindowcontrol.mm platform/darwin/mediaplayer/avfvideowindowcontrol_p.h
         platform/darwin/qdarwindevicemanager.mm platform/darwin/qdarwindevicemanager_p.h
-        platform/darwin/qdarwinintegration.cpp platform/darwin/qdarwinintegration_p.h
+        platform/darwin/qdarwinintegration.mm platform/darwin/qdarwinintegration_p.h
     PUBLIC_LIBRARIES
         ${FWAudioToolbox}
         ${FWCoreAudio}

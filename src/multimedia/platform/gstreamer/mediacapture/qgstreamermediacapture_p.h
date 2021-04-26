@@ -104,6 +104,7 @@ public:
     void releaseVideoPad(const QGstPad &pad) const;
 
 private:
+    friend QGstreamerMediaEncoder;
     // Gst elements
     QGstPipeline gstPipeline;
 

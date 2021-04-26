@@ -57,16 +57,12 @@ QT_USE_NAMESPACE
 AVFCameraService::AVFCameraService()
 {
     m_session = new AVFCameraSession(this);
-    m_recorderControl = new AVFMediaEncoder(this); // ### get rid of this
 
     m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 }
 
 AVFCameraService::~AVFCameraService()
 {
-#ifdef Q_OS_IOS
-    delete m_recorderControl;
-#endif
     if (m_session)
         delete m_session;
 }
@@ -112,7 +108,22 @@ void AVFCameraService::setImageCapture(QPlatformCameraImageCapture *imageCapture
 
 QPlatformMediaEncoder *AVFCameraService::mediaEncoder()
 {
-    return m_recorderControl;
+    return m_encoder;
+}
+
+void AVFCameraService::setMediaEncoder(QPlatformMediaEncoder *encoder)
+{
+    AVFMediaEncoder *control = static_cast<AVFMediaEncoder *>(encoder);
+    if (m_encoder == control)
+        return;
+
+    if (m_encoder)
+        m_encoder->setCaptureSession(nullptr);
+
+    m_encoder = control;
+    if (m_encoder)
+        m_encoder->setCaptureSession(this);
+    emit encoderChanged();
 }
 
 bool AVFCameraService::isMuted() const
@@ -170,7 +181,8 @@ bool AVFCameraService::setAudioInput(const QAudioDeviceInfo &id)
 
 void AVFCameraService::setVideoPreview(QVideoSink *sink)
 {
-    m_session->setVideoSink(sink);
+    if (m_session)
+        m_session->setVideoSink(sink);
 }
 
 #include "moc_avfcameraservice_p.cpp"

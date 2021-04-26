@@ -74,7 +74,7 @@ public:
     QPlatformAudioDecoder *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *) override;
     QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override { return nullptr; }
+    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
     QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) override;
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;
@@ -92,6 +92,7 @@ public:
     QMockMediaPlayer *lastPlayer() const { return m_lastPlayer; }
     QMockAudioDecoder *lastAudioDecoder() const { return m_lastAudioDecoderControl; }
     QMockCamera *lastCamera() const { return m_lastCamera; }
+    // QMockMediaEncoder *lastEncoder const { return m_lastEncoder; }
     QMockMediaCaptureSession *lastCaptureService() const { return m_lastCaptureService; }
     QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
 
@@ -101,6 +102,7 @@ private:
     QMockMediaPlayer *m_lastPlayer = nullptr;
     QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
     QMockCamera *m_lastCamera = nullptr;
+    // QMockMediaEncoder *m_lastEncoder = nullptr;
     QMockMediaCaptureSession *m_lastCaptureService = nullptr;
     QMockVideoSink *m_lastVideoSink;
 };

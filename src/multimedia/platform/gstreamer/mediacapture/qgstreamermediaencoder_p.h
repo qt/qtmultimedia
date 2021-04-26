@@ -71,7 +71,7 @@ class QGstreamerMediaEncoder : public QPlatformMediaEncoder, QGstreamerBusMessag
     Q_OBJECT
 
 public:
-    QGstreamerMediaEncoder(QGstreamerMediaCapture *session, const QGstPipeline &pipeline);
+    QGstreamerMediaEncoder(QMediaEncoder *parent);
     virtual ~QGstreamerMediaEncoder();
 
     QUrl outputLocation() const override;
@@ -89,6 +89,8 @@ public:
 
     void setMetaData(const QMediaMetaData &) override;
     QMediaMetaData metaData() const override;
+
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
 
 private:
     bool processBusMessage(const QGstreamerMessage& message) override;
@@ -111,7 +113,7 @@ private:
     QUrl m_requestedOutputLocation;
     QUrl m_outputLocation;
     QMediaEncoderSettings m_settings;
-    QGstreamerMediaCapture *m_session;
+    QGstreamerMediaCapture *m_session = nullptr;
     QGstreamerMetaData m_metaData;
     QMediaEncoder::State m_state = QMediaEncoder::StoppedState;
     QMediaEncoder::Status m_status = QMediaEncoder::StoppedStatus;

@@ -85,31 +85,19 @@ bool qt_file_exists(NSURL *fileURL)
 
 }
 
-AVFMediaEncoder::AVFMediaEncoder(AVFCameraService *service, QObject *parent)
+AVFMediaEncoder::AVFMediaEncoder(QMediaEncoder *parent)
     : QPlatformMediaEncoder(parent)
-    , m_service(service)
     , m_state(QMediaEncoder::StoppedState)
     , m_lastStatus(QMediaEncoder::StoppedStatus)
     , m_audioSettings(nil)
     , m_videoSettings(nil)
     //, m_restoreFPS(-1, -1)
 {
-    Q_ASSERT(service);
-
     m_writer.reset([[QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) alloc] initWithDelegate:this]);
     if (!m_writer) {
         qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer";
         return;
     }
-
-    AVFCamera *cameraControl = m_service->avfCameraControl();
-    if (!cameraControl) {
-        qDebugCamera() << Q_FUNC_INFO << "camera control is nil";
-        return;
-    }
-
-    connect(cameraControl, SIGNAL(statusChanged(QCamera::Status)),
-                           SLOT(cameraStatusChanged(QCamera::Status)));
 }
 
 AVFMediaEncoder::~AVFMediaEncoder()
@@ -375,9 +363,9 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
 
 void AVFMediaEncoder::applySettings()
 {
-    AVFCameraSession *session = m_service->session();
-    if (!session)
+    if (!m_service || !m_service->session())
         return;
+    AVFCameraSession *session = m_service->session();
 
     if (m_state != QMediaEncoder::StoppedState)
         return;
@@ -391,11 +379,11 @@ void AVFMediaEncoder::applySettings()
         [m_audioSettings retain];
 
     // video settings
-    AVCaptureDevice *device = m_service->session()->videoCaptureDevice();
+    AVCaptureDevice *device = session->videoCaptureDevice();
     if (!device)
         return;
     const AVFConfigurationLock lock(device); // prevents activeFormat from being overridden
-   AVCaptureConnection *conn = [m_service->session()->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
+    AVCaptureConnection *conn = [session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
     m_videoSettings = avfVideoSettings(encoderSettings, device, conn);
     if (m_videoSettings)
         [m_videoSettings retain];
@@ -423,10 +411,29 @@ void AVFMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
     m_settings = settings;
 }
 
+void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    AVFCameraService *captureSession = static_cast<AVFCameraService *>(session);
+    if (m_service == captureSession)
+        return;
+
+    if (m_service)
+        setState(QMediaEncoder::StoppedState);
+
+    m_service = captureSession;
+    if (!m_service)
+        return;
+
+    connect(m_service, &AVFCameraService::cameraChanged, this, &AVFMediaEncoder::onCameraChanged);
+    onCameraChanged();
+}
+
 void AVFMediaEncoder::setState(QMediaEncoder::State state)
 {
-    Q_ASSERT(m_service->session()
-             && m_service->session()->captureSession());
+    if (!m_service || !m_service->session()) {
+        qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";
+        return;
+    }
 
     if (!m_writer) {
         qDebugCamera() << Q_FUNC_INFO << "Invalid recorder";
@@ -440,9 +447,8 @@ void AVFMediaEncoder::setState(QMediaEncoder::State state)
     case QMediaEncoder::RecordingState:
     {
         AVFCamera *cameraControl = m_service->avfCameraControl();
-        Q_ASSERT(cameraControl);
 
-        if (cameraControl->status() != QCamera::ActiveStatus) {
+        if (!cameraControl || cameraControl->status() != QCamera::ActiveStatus) {
             qDebugCamera() << Q_FUNC_INFO << "can not start record while camera is not active";
             Q_EMIT error(QMediaEncoder::ResourceError, tr("Failed to start recording"));
             return;
@@ -544,6 +550,7 @@ void AVFMediaEncoder::assetWriterStarted()
 
 void AVFMediaEncoder::assetWriterFinished()
 {
+    Q_ASSERT(m_service);
     AVFCamera *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 
@@ -561,8 +568,18 @@ void AVFMediaEncoder::assetWriterFinished()
         Q_EMIT stateChanged(m_state);
 }
 
+void AVFMediaEncoder::onCameraChanged()
+{
+    if (m_service && m_service->avfCameraControl()) {
+        AVFCamera *cameraControl = m_service->avfCameraControl();
+        connect(cameraControl, SIGNAL(statusChanged(QCamera::Status)),
+                            SLOT(cameraStatusChanged(QCamera::Status)));
+    }
+}
+
 void AVFMediaEncoder::cameraStatusChanged(QCamera::Status newStatus)
 {
+    Q_ASSERT(m_service);
     AVFCamera *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 

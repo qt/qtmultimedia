@@ -132,6 +132,7 @@ QMediaEncoder::QMediaEncoder(QObject *parent)
 {
     Q_D(QMediaEncoder);
     d->q_ptr = this;
+    d->control = QPlatformMediaIntegration::instance()->createEncoder(this);
 }
 
 /*!
@@ -140,8 +141,11 @@ QMediaEncoder::QMediaEncoder(QObject *parent)
 
 QMediaEncoder::~QMediaEncoder()
 {
-    if (d_ptr->captureSession)
+    if (d_ptr->captureSession) {
+        if (d_ptr->captureSession->platformSession())
+            d_ptr->captureSession->platformSession()->setMediaEncoder(nullptr);
         d_ptr->captureSession->setEncoder(nullptr);
+    }
     delete d_ptr;
 }
 
@@ -154,18 +158,15 @@ void QMediaEncoder::setCaptureSession(QMediaCaptureSession *session)
     if (d->captureSession == session)
         return;
 
-    if (d->control)
-        d->control->disconnect(this);
-
     d->captureSession = session;
 
-    if (!d->captureSession) {
-        d->control = nullptr;
+    if (!d->captureSession)
         return;
-    }
 
-    d->control = d->captureSession->platformSession()->mediaEncoder();
-    if (!d->control)
+    QPlatformMediaCaptureSession *platformSession = session->platformSession();
+    if (platformSession && d->control)
+        platformSession->setMediaEncoder(d->control);
+    else
         return;
 
     connect(d->control, SIGNAL(stateChanged(QMediaEncoder::State)),
@@ -219,7 +220,7 @@ void QMediaEncoder::setCaptureSession(QMediaCaptureSession *session)
 */
 bool QMediaEncoder::isAvailable() const
 {
-    return d_func()->control != nullptr;
+    return d_func()->control != nullptr && d_func()->captureSession;
 }
 
 QUrl QMediaEncoder::outputLocation() const
@@ -231,7 +232,9 @@ bool QMediaEncoder::setOutputLocation(const QUrl &location)
 {
     Q_D(QMediaEncoder);
     d->actualLocation.clear();
-    return d->control ? d->control->setOutputLocation(location) : false;
+    if (d->control && d->captureSession)
+        return d->control->setOutputLocation(location);
+    return false;
 }
 
 QUrl QMediaEncoder::actualLocation() const
@@ -304,7 +307,7 @@ void QMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
     Q_D(QMediaEncoder);
 
     d->encoderSettings = settings;
-    if (d->control)
+    if (d->control && d->captureSession)
         d->control->setEncoderSettings(settings);
     d->applySettingsLater();
 }
@@ -343,7 +346,7 @@ void QMediaEncoder::record()
     d->error = NoError;
     d->errorString = QString();
 
-    if (d->control)
+    if (d->control && d->captureSession)
         d->control->setState(QMediaRecorder::RecordingState);
 }
 
@@ -359,7 +362,7 @@ void QMediaEncoder::record()
 void QMediaEncoder::pause()
 {
     Q_D(QMediaEncoder);
-    if (d->control)
+    if (d->control && d->captureSession)
         d->control->setState(QMediaRecorder::PausedState);
 }
 
@@ -372,7 +375,7 @@ void QMediaEncoder::pause()
 void QMediaEncoder::stop()
 {
     Q_D(QMediaEncoder);
-    if (d->control)
+    if (d->control && d->captureSession)
         d->control->setState(QMediaRecorder::StoppedState);
 }
 
@@ -492,7 +495,7 @@ void QMediaEncoder::setMetaData(const QMediaMetaData &metaData)
 {
     Q_D(QMediaEncoder);
 
-    if (d->control)
+    if (d->control && d->captureSession)
         d->control->setMetaData(metaData);
 }
 

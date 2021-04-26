@@ -74,7 +74,7 @@ class AVFMediaEncoder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:
-    AVFMediaEncoder(AVFCameraService *service, QObject *parent = nullptr);
+    AVFMediaEncoder(QMediaEncoder *parent);
     ~AVFMediaEncoder() override;
 
     QUrl outputLocation() const override;
@@ -97,6 +97,8 @@ public:
 
     AVFCameraService *cameraService() const { return m_service; }
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
+
 public Q_SLOTS:
     void setState(QMediaEncoder::State state) override;
 
@@ -106,6 +108,7 @@ private:
     Q_INVOKABLE void assetWriterFinished();
 
 private Q_SLOTS:
+    void onCameraChanged();
     void cameraStatusChanged(QCamera::Status newStatus);
 
 private:

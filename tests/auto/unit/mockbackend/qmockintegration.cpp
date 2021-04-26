@@ -98,6 +98,11 @@ QPlatformCameraImageCapture *QMockIntegration::createImageCapture(QCameraImageCa
     return new QMockImageCapture(capture);
 }
 
+QPlatformMediaEncoder *QMockIntegration::createEncoder(QMediaEncoder *encoder)
+{
+    return new QMockMediaEncoder(encoder);
+}
+
 QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession(QMediaRecorder::CaptureMode mode)
 {
     Q_UNUSED(mode);

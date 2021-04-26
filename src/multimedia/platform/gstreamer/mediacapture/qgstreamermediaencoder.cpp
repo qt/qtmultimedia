@@ -56,31 +56,14 @@
 
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
-QGstreamerMediaEncoder::QGstreamerMediaEncoder(QGstreamerMediaCapture *session, const QGstPipeline &pipeline)
-  : QPlatformMediaEncoder(session),
-    m_session(session),
+QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaEncoder *parent)
+  : QPlatformMediaEncoder(parent),
     m_state(QMediaEncoder::StoppedState),
-    m_status(QMediaEncoder::StoppedStatus),
-    gstPipeline(pipeline)
+    m_status(QMediaEncoder::StoppedStatus)
 {
-    gstPipeline = pipeline;
-    gstPipeline.set("message-forward", true);
-    gstPipeline.installMessageFilter(this);
-
-    // used to update duration every second
-    heartbeat.setInterval(1000);
-    connect(&heartbeat, &QTimer::timeout, this, &QGstreamerMediaEncoder::updateDuration);
-
     gstEncoder = QGstElement("encodebin", "encodebin");
     gstFileSink = QGstElement("filesink", "filesink");
     gstFileSink.set("location", "dummy");
-    gstPipeline.add(gstEncoder, gstFileSink);
-    gstEncoder.link(gstFileSink);
-    gstPipeline.lockState(true);
-    gstFileSink.lockState(true); // ### enough with the encoder?
-
-    // ensure we have a usable format
-    setEncoderSettings(QMediaEncoderSettings());
 }
 
 QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
@@ -320,6 +303,8 @@ void QGstreamerMediaEncoder::setState(QMediaEncoder::State state)
 
 void QGstreamerMediaEncoder::record()
 {
+    if (!m_session)
+        return;
     if (m_state == QMediaEncoder::PausedState) {
         // coming from paused state
         gstEncoder.setState(GST_STATE_PLAYING);
@@ -366,6 +351,8 @@ void QGstreamerMediaEncoder::record()
 
 void QGstreamerMediaEncoder::pause()
 {
+    if (!m_session)
+        return;
     heartbeat.stop();
     m_session->dumpGraph(QLatin1String("before-pause"));
     gstEncoder.setState(GST_STATE_PAUSED);
@@ -376,6 +363,8 @@ void QGstreamerMediaEncoder::pause()
 
 void QGstreamerMediaEncoder::stop()
 {
+    if (!m_session)
+        return;
     qCDebug(qLcMediaEncoder) << "stop";
     heartbeat.stop();
 
@@ -396,6 +385,8 @@ void QGstreamerMediaEncoder::stop()
 
 void QGstreamerMediaEncoder::finalize()
 {
+    if (!m_session)
+        return;
     qCDebug(qLcMediaEncoder) << "finalize";
 
     // The filesink can only be used once, replace it with a new one
@@ -415,6 +406,8 @@ void QGstreamerMediaEncoder::applySettings()
 
 void QGstreamerMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
+    if (!m_session)
+        return;
     m_settings = settings;
     m_settings.resolveFormat();
 
@@ -425,6 +418,8 @@ void QGstreamerMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &set
 
 void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
 {
+    if (!m_session)
+        return;
     m_metaData = static_cast<const QGstreamerMetaData &>(metaData);
     m_metaData.setMetaData(gstEncoder.bin());
 
@@ -433,6 +428,41 @@ void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
 QMediaMetaData QGstreamerMediaEncoder::metaData() const
 {
     return m_metaData;
+}
+
+void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
+    if (m_session == captureSession)
+        return;
+
+    if (m_session) {
+        gstEncoder.setStateSync(GST_STATE_NULL);
+        gstFileSink.setStateSync(GST_STATE_NULL);
+        gstPipeline.remove(gstEncoder);
+        gstPipeline.remove(gstFileSink);
+        disconnect(&heartbeat, nullptr, this, nullptr);
+    }
+
+    m_session = captureSession;
+    if (!m_session)
+        return;
+
+    gstPipeline = captureSession->gstPipeline;
+    gstPipeline.set("message-forward", true);
+    gstPipeline.installMessageFilter(this);
+
+    // used to update duration every second
+    heartbeat.setInterval(1000);
+    connect(&heartbeat, &QTimer::timeout, this, &QGstreamerMediaEncoder::updateDuration);
+
+    gstPipeline.add(gstEncoder, gstFileSink);
+    gstEncoder.link(gstFileSink);
+    gstPipeline.lockState(true);
+    gstFileSink.lockState(true); // ### enough with the encoder?
+
+    // ensure we have a usable format
+    setEncoderSettings(QMediaEncoderSettings());
 }
 
 QDir QGstreamerMediaEncoder::defaultDir() const

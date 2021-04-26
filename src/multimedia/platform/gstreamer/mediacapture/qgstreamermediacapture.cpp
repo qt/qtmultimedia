@@ -57,8 +57,6 @@ Q_LOGGING_CATEGORY(qLcMediaCapture, "qt.multimedia.capture")
 QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
     : gstPipeline("pipeline")
 {
-    // gstCamera = new QGstreamerCamera(this);
-
     gstAudioInput = new QGstreamerAudioInput(this);
     gstAudioInput->setPipeline(gstPipeline);
     connect(gstAudioInput, &QGstreamerAudioInput::mutedChanged, this, &QGstreamerMediaCapture::mutedChanged);
@@ -77,9 +75,6 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
     gstVideoOutput->setIsPreview();
     gstVideoOutput->setPipeline(gstPipeline);
 
-    //m_imageCapture = new QGstreamerCameraImageCapture(this, gstPipeline);
-    m_mediaEncoder = new QGstreamerMediaEncoder(this, gstPipeline);
-
     gstPipeline.setState(GST_STATE_PLAYING);
 
     dumpGraph(QLatin1String("initial"));
@@ -88,7 +83,6 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
 QGstreamerMediaCapture::~QGstreamerMediaCapture()
 {
     gstPipeline.setStateSync(GST_STATE_NULL);
-    delete m_mediaEncoder;
 }
 
 QPlatformCamera *QGstreamerMediaCapture::camera()
@@ -167,7 +161,25 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformCameraImageCapture *imageC
 
 void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
 {
-    Q_UNUSED(encoder);
+    QGstreamerMediaEncoder *control = static_cast<QGstreamerMediaEncoder *>(encoder);
+    if (m_mediaEncoder == control)
+        return;
+
+    auto state = gstPipeline.state();
+    if (state == GST_STATE_PLAYING)
+        gstPipeline.setStateSync(GST_STATE_PAUSED);
+
+    if (m_mediaEncoder)
+        m_mediaEncoder->setCaptureSession(nullptr);
+
+    m_mediaEncoder = control;
+    if (m_mediaEncoder)
+        m_mediaEncoder->setCaptureSession(this);
+    if (state == GST_STATE_PLAYING)
+        gstPipeline.setStateSync(state);
+
+    emit encoderChanged();
+    dumpGraph(QLatin1String("encoder"));
 }
 
 QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()

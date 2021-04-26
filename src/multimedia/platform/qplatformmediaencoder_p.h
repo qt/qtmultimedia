@@ -95,7 +95,7 @@ public Q_SLOTS:
     virtual void setState(QMediaEncoder::State state) = 0;
 
 protected:
-    explicit QPlatformMediaEncoder(QObject *parent = nullptr);
+    explicit QPlatformMediaEncoder(QMediaEncoder *parent);
 };
 
 QT_END_NAMESPACE
