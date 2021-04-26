@@ -134,7 +134,6 @@ QAudioInput::QAudioInput(const QAudioDeviceInfo &audioDevice, const QAudioFormat
 {
     d = QPlatformMediaIntegration::instance()->deviceManager()->audioInputDevice(format, audioDevice);
     if (d) {
-        connect(d, SIGNAL(notify()), SIGNAL(notify()));
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
     }
 }

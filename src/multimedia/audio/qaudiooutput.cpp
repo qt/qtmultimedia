@@ -123,7 +123,6 @@ QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioForm
 {
     d = QPlatformMediaIntegration::instance()->deviceManager()->audioOutputDevice(format, audioDevice);
     if (d) {
-        connect(d, SIGNAL(notify()), SIGNAL(notify()));
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
     }
 }
