@@ -60,6 +60,7 @@ class QMockMediaPlayer;
 class QMockAudioDecoder;
 class QMockCamera;
 class QMockMediaCaptureSession;
+class QMockVideoSink;
 
 class QMockIntegration : public QPlatformMediaIntegration
 {
@@ -92,6 +93,7 @@ public:
     QMockAudioDecoder *lastAudioDecoder() const { return m_lastAudioDecoderControl; }
     QMockCamera *lastCamera() const { return m_lastCamera; }
     QMockMediaCaptureSession *lastCaptureService() const { return m_lastCaptureService; }
+    QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
 
 private:
     Flags m_flags = {};
@@ -100,6 +102,7 @@ private:
     QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
     QMockCamera *m_lastCamera = nullptr;
     QMockMediaCaptureSession *m_lastCaptureService = nullptr;
+    QMockVideoSink *m_lastVideoSink;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);

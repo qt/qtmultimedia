@@ -245,24 +245,13 @@ void tst_QGraphicsVideoItem::nativeSize()
 
     QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB32);
     format.setViewport(viewport);
-
-    {   // Surface setup is deferred until after the first paint.
-        QImage image(320, 240, QImage::Format_RGB32);
-        QPainter painter(&image);
-
-        item.paint(&painter, nullptr);
-    }
+    QVideoFrame frame(format);
+    item.videoSink()->newVideoFrame(frame);
 
     QCoreApplication::processEvents();
     QCOMPARE(item.nativeSize(), nativeSize);
     QCOMPARE(spy.count(), 1);
     QCOMPARE(spy.last().first().toSizeF(), nativeSize);
-
-
-    QCoreApplication::processEvents();
-    QVERIFY(item.nativeSize().isEmpty());
-    QCOMPARE(spy.count(), 2);
-    QVERIFY(spy.last().first().toSizeF().isEmpty());
 }
 
 void tst_QGraphicsVideoItem::boundingRect_data()
@@ -383,13 +372,8 @@ void tst_QGraphicsVideoItem::boundingRect()
     item.setAspectRatioMode(aspectRatioMode);
 
     QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB32);
-
-    {   // Surface setup is deferred until after the first paint.
-        QImage image(320, 240, QImage::Format_RGB32);
-        QPainter painter(&image);
-
-        item.paint(&painter, nullptr);
-    }
+    QVideoFrame frame(format);
+    item.videoSink()->newVideoFrame(frame);
 
     QCoreApplication::processEvents();
     QCOMPARE(item.boundingRect(), expectedRect);

@@ -69,7 +69,7 @@ public:
 
     void setFullScreen(bool) override {}
 
-    QSize nativeSize() const override { return QSize(640, 480); }
+    QSize nativeSize() const override { return videoSize; }
 
     void setAspectRatioMode(Qt::AspectRatioMode) override {}
 
@@ -77,6 +77,10 @@ public:
     void setContrast(float) override {}
     void setHue(float) override {}
     void setSaturation(float) override {}
+
+    void setVideoSize(QSize s) { videoSize = s; }
+protected:
+    QSize videoSize = QSize(640, 480);
 };
 
 #endif

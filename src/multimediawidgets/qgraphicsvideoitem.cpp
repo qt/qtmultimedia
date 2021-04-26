@@ -64,10 +64,8 @@ public:
     QGraphicsVideoItem *q_ptr = nullptr;
 
     QVideoSink *sink = nullptr;
-    Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
     QRectF rect;
     QRectF boundingRect;
-    QRectF sourceRect;
     QSizeF nativeSize;
     QVideoFrame m_frame;
 
@@ -81,7 +79,10 @@ void QGraphicsVideoItemPrivate::updateRects()
     q_ptr->prepareGeometryChange();
 
     boundingRect = rect;
-    if (aspectRatioMode == Qt::KeepAspectRatio && !nativeSize.isEmpty()) {
+    if (nativeSize.isEmpty())
+        return;
+
+    if (sink->aspectRatioMode() == Qt::KeepAspectRatio) {
         QSizeF size = nativeSize;
         size.scale(rect.size(), Qt::KeepAspectRatio);
 
@@ -93,13 +94,10 @@ void QGraphicsVideoItemPrivate::updateRects()
 void QGraphicsVideoItemPrivate::_q_present(const QVideoFrame &frame)
 {
     m_frame = frame;
-    if (q_ptr->isObscured()) {
-        q_ptr->update(boundingRect);
-    } else {
-        q_ptr->update(boundingRect);
-    }
+    q_ptr->update(boundingRect);
+
     if (frame.isValid()) {
-        const QSize &size = frame.size();
+        const QSize &size = frame.surfaceFormat().viewport().size();
         if (nativeSize != size) {
             nativeSize = size;
 

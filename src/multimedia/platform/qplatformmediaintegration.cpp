@@ -66,19 +66,22 @@ namespace {
 struct Holder {
     ~Holder()
     {
-        delete instance;
+        delete nativeInstance;
+        nativeInstance = nullptr;
         instance = nullptr;
     }
     QPlatformMediaIntegration *instance = nullptr;
+    QPlatformMediaIntegration *nativeInstance = nullptr;
 } holder;
 
 }
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    if (!holder.instance) {
-        holder.instance = new PlatformIntegration;
-    }
+    if (!holder.nativeInstance)
+        holder.nativeInstance = new PlatformIntegration;
+    if (!holder.instance)
+        holder.instance = holder.nativeInstance;
     return holder.instance;
 }
 

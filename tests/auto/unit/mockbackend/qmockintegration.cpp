@@ -110,7 +110,8 @@ QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession(QMediaRecor
 
 QPlatformVideoSink *QMockIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new QMockVideoSink(sink);
+    m_lastVideoSink = new QMockVideoSink(sink);
+    return m_lastVideoSink;
 }
 
 bool QMockCamera::simpleCamera = false;

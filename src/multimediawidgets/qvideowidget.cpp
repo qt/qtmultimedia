@@ -179,7 +179,6 @@ void QVideoWidget::setFullScreen(bool fullScreen)
     }
     d->wasFullScreen = fullScreen;
     d->videoSink->setFullScreen(fullScreen);
-    emit fullScreenChanged(fullScreen);
 }
 
 /*!

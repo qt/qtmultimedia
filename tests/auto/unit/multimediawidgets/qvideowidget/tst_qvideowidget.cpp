@@ -40,6 +40,9 @@
 
 #include <QtWidgets/qapplication.h>
 
+#include <qmockintegration_p.h>
+#include <qmockvideosink.h>
+
 QT_USE_NAMESPACE
 class tst_QVideoWidget : public QObject
 {
@@ -222,10 +225,10 @@ void tst_QVideoWidget::sizeHint_data()
             << QRect(0, 0, 640, 480)
             << QSize(640, 480);
 
-    QTest::newRow("800x600, (80,60, 640x480) viewport")
-            << QSize(800, 600)
-            << QRect(80, 60, 640, 480)
-            << QSize(640, 480);
+//    QTest::newRow("800x600, (80,60, 640x480) viewport")
+//            << QSize(800, 600)
+//            << QRect(80, 60, 640, 480)
+//            << QSize(640, 480);
 }
 
 void tst_QVideoWidget::sizeHint()
@@ -235,22 +238,18 @@ void tst_QVideoWidget::sizeHint()
 #endif
 
     QFETCH(QSize, frameSize);
-    QFETCH(QRect, viewport);
+//    QFETCH(QRect, viewport);
     QFETCH(QSize, expectedSize);
 
+    QMockIntegration mock;
     QMediaPlayer player;
     QtTestVideoWidget widget;
     player.setVideoOutput(&widget);
+    auto mockSink = mock.lastVideoSink();
 
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-
-    QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB32);
-    format.setViewport(viewport);
-    QVideoFrame frame(format);
-
-    auto *sink = widget.videoSink();
-    emit sink->newVideoFrame(frame);
+    mockSink->setVideoSize(frameSize);
 
     QCOMPARE(widget.sizeHint(), expectedSize);
 }
@@ -324,17 +323,6 @@ void tst_QVideoWidget::fullScreen()
     QCOMPARE(widget.videoSink()->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 5);
-
-    // Test if the window control exits full screen mode, the widget follows suit.
-    widget.videoSink()->setFullScreen(false);
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 6);
-    QCOMPARE(spy.value(5).value(0).toBool(), false);
-
-    // Test if the window control enters full screen mode, the widget does nothing.
-    widget.videoSink()->setFullScreen(false);
-    QCOMPARE(widget.isFullScreen(), false);
-    QCOMPARE(spy.count(), 6);
 }
 
 void tst_QVideoWidget::color_data()
