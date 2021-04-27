@@ -406,7 +406,6 @@ bool QPulseAudioOutput::open()
     m_tickTimer->start(m_periodTime);
 
     m_elapsedTimeOffset = 0;
-    m_clockStamp.restart();
 
     return true;
 }
@@ -634,14 +633,6 @@ void QPulseAudioOutput::suspend()
 
         pulseEngine->unlock();
     }
-}
-
-qint64 QPulseAudioOutput::elapsedUSecs() const
-{
-    if (m_deviceState == QAudio::StoppedState)
-        return 0;
-
-    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QPulseAudioOutput::reset()

@@ -98,7 +98,6 @@ public:
     void setBufferSize(int value);
     int bufferSize() const;
     qint64 processedUSecs() const;
-    qint64 elapsedUSecs() const;
     QAudio::Error error() const;
     QAudio::State state() const;
     void setVolume(qreal);
@@ -118,7 +117,6 @@ private:
     int m_deviceId;
     int bytesAvailable;
     qint64 elapsedTimeOffset;
-    QElapsedTimer timeStampOpened;
     qint32 buffer_size;
     qint32 period_size;
     qint32 blocks_count;

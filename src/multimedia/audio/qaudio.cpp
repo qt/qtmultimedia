@@ -77,9 +77,6 @@ QT_BEGIN_NAMESPACE
     \value StoppedState      The audio device is closed, and is not processing any audio data
     \value IdleState         The QIODevice passed in has no data and audio system's buffer is empty, this state
                              is set after start() is called and while no audio data is available to be processed.
-    \value InterruptedState  This stream is in a suspended state because another higher priority stream currently
-                             has control of the audio device.  Playback cannot resume until the higher priority
-                             stream relinquishes control of the audio device.
 */
 
 /*!
@@ -278,9 +275,6 @@ QDebug operator<<(QDebug dbg, QAudio::State state)
             break;
         case QAudio::IdleState:
             dbg << "IdleState";
-            break;
-        case QAudio::InterruptedState:
-            dbg << "InterruptedState";
             break;
     }
     return dbg;

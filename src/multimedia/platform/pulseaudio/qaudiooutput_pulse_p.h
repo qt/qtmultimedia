@@ -86,7 +86,6 @@ public:
     void setBufferSize(int value) override;
     int bufferSize() const override;
     qint64 processedUSecs() const override;
-    qint64 elapsedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &format) override;
@@ -128,7 +127,6 @@ private:
     int m_periodSize;
     int m_bufferSize;
     int m_maxBufferSize;
-    QElapsedTimer m_clockStamp;
     qint64 m_totalTimeValue;
     QTimer *m_tickTimer;
     char *m_audioBuffer;

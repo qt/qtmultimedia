@@ -162,6 +162,7 @@ QAudioFormat QAudioOutput::format() const
 */
 void QAudioOutput::start(QIODevice* device)
 {
+    d->elapsedTime.restart();
     d->start(device);
 }
 
@@ -184,6 +185,7 @@ void QAudioOutput::start(QIODevice* device)
 */
 QIODevice* QAudioOutput::start()
 {
+    d->elapsedTime.restart();
     return d->start();
 }
 
@@ -296,7 +298,7 @@ qint64 QAudioOutput::processedUSecs() const
 */
 qint64 QAudioOutput::elapsedUSecs() const
 {
-    return d->elapsedUSecs();
+    return d->state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
 }
 
 /*!

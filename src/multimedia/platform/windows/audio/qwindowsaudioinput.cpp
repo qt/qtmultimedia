@@ -367,7 +367,6 @@ bool QWindowsAudioInput::open()
         emit stateChanged(deviceState);
         return false;
     }
-    timeStampOpened.restart();
     elapsedTimeOffset = 0;
     totalTimeValue = 0;
     errorState  = QAudio::NoError;
@@ -657,14 +656,6 @@ bool QWindowsAudioInput::deviceReady()
     }
 
     return true;
-}
-
-qint64 QWindowsAudioInput::elapsedUSecs() const
-{
-    if (deviceState == QAudio::StoppedState)
-        return 0;
-
-    return timeStampOpened.elapsed() * qint64(1000);
 }
 
 void QWindowsAudioInput::reset()

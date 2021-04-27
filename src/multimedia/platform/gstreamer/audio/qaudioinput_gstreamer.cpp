@@ -200,7 +200,6 @@ bool QGStreamerAudioInput::open()
 
     m_opened = true;
 
-    m_clockStamp.restart();
     m_timeStamp.restart();
     m_elapsedTimeOffset = 0;
     m_totalTimeValue = 0;
@@ -307,14 +306,6 @@ void QGStreamerAudioInput::suspend()
     }
 }
 
-qint64 QGStreamerAudioInput::elapsedUSecs() const
-{
-    if (m_deviceState == QAudio::StoppedState)
-        return 0;
-
-    return m_clockStamp.elapsed() * qint64(1000);
-}
-
 void QGStreamerAudioInput::reset()
 {
     stop();
@@ -378,6 +369,7 @@ GStreamerInputPrivate::GStreamerInputPrivate(QGStreamerAudioInput *audio)
 
 qint64 GStreamerInputPrivate::readData(char *data, qint64 len)
 {
+    m_audioDevice->setState(QAudio::ActiveState);
     return m_audioDevice->m_buffer.read(data, len);
 }
 

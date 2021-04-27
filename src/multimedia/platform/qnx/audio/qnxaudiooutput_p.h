@@ -84,7 +84,6 @@ public:
     void setBufferSize(int) override {}
     int bufferSize() const override { return 0; }
     qint64 processedUSecs() const override;
-    qint64 elapsedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &format) override;
@@ -127,7 +126,6 @@ private:
 
     snd_pcm_t *m_pcmHandle;
     qint64 m_bytesWritten;
-    QElapsedTimer m_startTimeStamp;
 
 #if _NTO_VERSION >= 700
     QSocketNotifier *m_pcmNotifier;

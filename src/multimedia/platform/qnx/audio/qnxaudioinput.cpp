@@ -180,14 +180,6 @@ qint64 QnxAudioInput::processedUSecs() const
     return qint64(1000000) * m_format.framesForBytes(m_bytesRead) / m_format.sampleRate();
 }
 
-qint64 QnxAudioInput::elapsedUSecs() const
-{
-    if (m_state == QAudio::StoppedState)
-        return 0;
-
-    return m_clockStamp.elapsed() * qint64(1000);
-}
-
 QAudio::Error QnxAudioInput::error() const
 {
     return m_error;
@@ -306,7 +298,6 @@ bool QnxAudioInput::open()
 
     m_periodSize = qMin(2048, setup.buf.block.frag_size);
 
-    m_clockStamp.restart();
     m_elapsedTimeOffset = 0;
     m_totalTimeValue = 0;
     m_bytesRead = 0;

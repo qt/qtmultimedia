@@ -132,15 +132,13 @@ void QnxAudioOutput::reset()
 void QnxAudioOutput::suspend()
 {
     snd_pcm_playback_pause(m_pcmHandle);
-    if (state() != QAudio::InterruptedState)
-        suspendInternal(QAudio::SuspendedState);
+    suspendInternal(QAudio::SuspendedState);
 }
 
 void QnxAudioOutput::resume()
 {
     snd_pcm_playback_resume(m_pcmHandle);
-    if (state() != QAudio::InterruptedState)
-        resumeInternal();
+    resumeInternal();
 }
 
 int QnxAudioOutput::bytesFree() const
@@ -167,14 +165,6 @@ int QnxAudioOutput::periodSize() const
 qint64 QnxAudioOutput::processedUSecs() const
 {
     return qint64(1000000) * m_format.framesForBytes(m_bytesWritten) / m_format.sampleRate();
-}
-
-qint64 QnxAudioOutput::elapsedUSecs() const
-{
-    if (m_state == QAudio::StoppedState)
-        return 0;
-    else
-        return m_startTimeStamp.elapsed() * qint64(1000);
 }
 
 QAudio::Error QnxAudioOutput::error() const
@@ -221,8 +211,7 @@ QString QnxAudioOutput::category() const
 void QnxAudioOutput::pullData()
 {
     if (m_state == QAudio::StoppedState
-            || m_state == QAudio::SuspendedState
-            || m_state == QAudio::InterruptedState)
+            || m_state == QAudio::SuspendedState)
         return;
 
     const int bytesAvailable = bytesFree();
@@ -329,7 +318,6 @@ bool QnxAudioOutput::open()
     }
 
     m_periodSize = qMin(2048, setup.buf.block.frag_size);
-    m_startTimeStamp.restart();
     m_bytesWritten = 0;
 
     createPcmNotifiers();
@@ -431,8 +419,7 @@ QAudio::State suspendState(const snd_pcm_event_t &event)
 {
     Q_ASSERT(event.type == SND_PCM_EVENT_AUDIOMGMT_STATUS);
     Q_ASSERT(event.data.audiomgmt_status.new_status == SND_PCM_STATUS_SUSPENDED);
-    return event.data.audiomgmt_status.flags & SND_PCM_STATUS_EVENT_HARD_SUSPEND
-            ? QAudio::InterruptedState : QAudio::SuspendedState;
+    return QAudio::SuspendedState;
 }
 
 void QnxAudioOutput::addPcmEventFilter()

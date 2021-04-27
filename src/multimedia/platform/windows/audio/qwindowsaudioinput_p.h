@@ -100,7 +100,6 @@ public:
     void setBufferSize(int value);
     int bufferSize() const;
     qint64 processedUSecs() const;
-    qint64 elapsedUSecs() const;
     QAudio::Error error() const;
     QAudio::State state() const;
     void setVolume(qreal volume);
@@ -118,7 +117,6 @@ private:
     int m_deviceId;
     int bytesAvailable;
     qint64 elapsedTimeOffset;
-    QElapsedTimer timeStampOpened;
     qint64 totalTimeValue;
     bool pullMode;
     bool resuming;

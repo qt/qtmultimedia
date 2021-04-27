@@ -455,7 +455,6 @@ CoreAudioInput::CoreAudioInput(const QAudioDeviceInfo &device)
     , m_totalFrames(0)
     , m_audioUnit(0)
     , m_clockFrequency(CoreAudioUtils::frequency() / 1000)
-    , m_startTime(0)
     , m_errorCode(QAudio::NoError)
     , m_stateCode(QAudio::StoppedState)
     , m_audioBuffer(0)
@@ -703,7 +702,6 @@ void CoreAudioInput::start(QIODevice *device)
         op = m_audioIO;
 
     // Start
-    m_startTime = CoreAudioUtils::currentTime();
     m_totalFrames = 0;
 
     m_stateCode = QAudio::IdleState;
@@ -732,7 +730,6 @@ QIODevice *CoreAudioInput::start()
         op = m_audioIO;
 
     // Start
-    m_startTime = CoreAudioUtils::currentTime();
     m_totalFrames = 0;
 
     m_stateCode = QAudio::IdleState;
@@ -828,16 +825,6 @@ qint64 CoreAudioInput::processedUSecs() const
 {
     return m_totalFrames * 1000000 / m_audioFormat.sampleRate();
 }
-
-
-qint64 CoreAudioInput::elapsedUSecs() const
-{
-    if (m_stateCode == QAudio::StoppedState)
-        return 0;
-
-    return (CoreAudioUtils::currentTime() - m_startTime) / (m_clockFrequency / 1000);
-}
-
 
 QAudio::Error CoreAudioInput::error() const
 {

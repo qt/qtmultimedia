@@ -226,7 +226,6 @@ bool QGStreamerAudioOutput::open()
 
     m_elapsedTimeOffset = 0;
     m_timeStamp.restart();
-    m_clockStamp.restart();
 
     return true;
 }
@@ -331,14 +330,6 @@ void QGStreamerAudioOutput::suspend()
         gstPipeline.setState(GST_STATE_PAUSED);
         // ### elapsed time
     }
-}
-
-qint64 QGStreamerAudioOutput::elapsedUSecs() const
-{
-    if (m_deviceState == QAudio::StoppedState)
-        return 0;
-
-    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QGStreamerAudioOutput::reset()

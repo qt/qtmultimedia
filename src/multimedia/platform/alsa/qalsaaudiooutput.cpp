@@ -451,7 +451,6 @@ bool QAlsaAudioOutput::open()
     // Step 6: Start audio processing
     timer->start(period_time/1000);
 
-    clockStamp.restart();
     timeStamp.restart();
     elapsedTimeOffset = 0;
     errorState  = QAudio::NoError;
@@ -706,14 +705,6 @@ bool QAlsaAudioOutput::deviceReady()
         return true;
 
     return true;
-}
-
-qint64 QAlsaAudioOutput::elapsedUSecs() const
-{
-    if (deviceState == QAudio::StoppedState)
-        return 0;
-
-    return clockStamp.elapsed() * qint64(1000);
 }
 
 void QAlsaAudioOutput::reset()

@@ -342,7 +342,6 @@ bool QPulseAudioInput::open()
     m_opened = true;
     m_timer->start(m_periodTime);
 
-    m_clockStamp.restart();
     m_elapsedTimeOffset = 0;
     m_totalTimeValue = 0;
 
@@ -608,14 +607,6 @@ bool QPulseAudioInput::deviceReady()
         return true;
 
     return true;
-}
-
-qint64 QPulseAudioInput::elapsedUSecs() const
-{
-    if (m_deviceState == QAudio::StoppedState)
-        return 0;
-
-    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QPulseAudioInput::reset()

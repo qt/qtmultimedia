@@ -79,7 +79,6 @@ public:
     virtual void setBufferSize(int value) = 0;
     virtual int bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
-    virtual qint64 elapsedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
     virtual QAudio::State state() const = 0;
     virtual void setFormat(const QAudioFormat& fmt) = 0;
@@ -88,6 +87,8 @@ public:
     virtual qreal volume() const { return 1.0; }
     virtual QString category() const { return QString(); }
     virtual void setCategory(const QString &) { }
+
+    QElapsedTimer elapsedTime;
 
 Q_SIGNALS:
     void errorChanged(QAudio::Error error);
@@ -110,7 +111,6 @@ public:
     virtual void setBufferSize(int value) = 0;
     virtual int bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
-    virtual qint64 elapsedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
     virtual QAudio::State state() const = 0;
     virtual void setFormat(const QAudioFormat& fmt) = 0;
@@ -118,11 +118,11 @@ public:
     virtual void setVolume(qreal) = 0;
     virtual qreal volume() const = 0;
 
+    QElapsedTimer elapsedTime;
+
 Q_SIGNALS:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
-
-    QElapsedTimer elapsedTime;
 };
 
 QT_END_NAMESPACE

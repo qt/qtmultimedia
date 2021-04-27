@@ -212,7 +212,6 @@ bool QOpenSLESAudioInput::startRecording()
         return false;
 
     m_processedBytes = 0;
-    m_clockStamp.restart();
     m_lastNotifyTime = 0;
 
     SLresult result;
@@ -502,14 +501,6 @@ int QOpenSLESAudioInput::periodSize() const
 qint64 QOpenSLESAudioInput::processedUSecs() const
 {
     return m_format.durationForBytes(m_processedBytes);
-}
-
-qint64 QOpenSLESAudioInput::elapsedUSecs() const
-{
-    if (m_deviceState == QAudio::StoppedState)
-        return 0;
-
-    return m_clockStamp.elapsed() * qint64(1000);
 }
 
 void QOpenSLESAudioInput::setVolume(qreal vol)

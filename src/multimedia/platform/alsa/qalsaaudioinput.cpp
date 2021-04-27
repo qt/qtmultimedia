@@ -260,7 +260,6 @@ bool QAlsaAudioInput::open()
     QTime now(QTime::currentTime());
     qDebug()<<now.second()<<"s "<<now.msec()<<"ms :open()";
 #endif
-    clockStamp.restart();
     elapsedTimeOffset = 0;
 
     int dir;
@@ -699,14 +698,6 @@ bool QAlsaAudioInput::deviceReady()
     }
 
     return true;
-}
-
-qint64 QAlsaAudioInput::elapsedUSecs() const
-{
-    if (deviceState == QAudio::StoppedState)
-        return 0;
-
-    return clockStamp.elapsed() * qint64(1000);
 }
 
 void QAlsaAudioInput::reset()

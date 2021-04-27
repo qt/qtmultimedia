@@ -261,14 +261,6 @@ void QOpenSLESAudioOutput::suspend()
     setError(QAudio::NoError);
 }
 
-qint64 QOpenSLESAudioOutput::elapsedUSecs() const
-{
-    if (m_state == QAudio::StoppedState)
-        return 0;
-
-    return m_clockStamp.elapsed() * qint64(1000);
-}
-
 void QOpenSLESAudioOutput::reset()
 {
     destroyPlayer();
@@ -546,7 +538,6 @@ bool QOpenSLESAudioOutput::preparePlayer()
     if (!m_buffers)
         m_buffers = new char[BUFFER_COUNT * m_bufferSize];
 
-    m_clockStamp.restart();
     setError(QAudio::NoError);
     m_startRequiresInit = false;
 

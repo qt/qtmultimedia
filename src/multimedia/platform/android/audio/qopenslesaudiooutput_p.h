@@ -79,7 +79,6 @@ public:
     void setBufferSize(int value) override;
     int bufferSize() const override;
     qint64 processedUSecs() const override;
-    qint64 elapsedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &format) override;
@@ -134,7 +133,6 @@ private:
     bool m_startRequiresInit;
 
     qint32 m_streamType;
-    QElapsedTimer m_clockStamp;
     QAudioFormat m_format;
     QString m_category;
     static QMap<QString, qint32> m_categories;

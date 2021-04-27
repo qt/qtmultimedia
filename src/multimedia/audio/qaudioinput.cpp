@@ -163,6 +163,7 @@ QAudioInput::~QAudioInput()
 
 void QAudioInput::start(QIODevice* device)
 {
+    d->elapsedTime.start();
     d->start(device);
 }
 
@@ -186,6 +187,7 @@ void QAudioInput::start(QIODevice* device)
 
 QIODevice* QAudioInput::start()
 {
+    d->elapsedTime.start();
     return d->start();
 }
 
@@ -348,9 +350,11 @@ qint64 QAudioInput::processedUSecs() const
     Suspend states.
 */
 
+#include <qdebug.h>
+
 qint64 QAudioInput::elapsedUSecs() const
 {
-    return d->elapsedTime.elapsed()/1000;
+    return d->state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
 }
 
 /*!

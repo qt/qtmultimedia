@@ -139,7 +139,6 @@ public:
     void setBufferSize(int value);
     int bufferSize() const;
     qint64 processedUSecs() const;
-    qint64 elapsedUSecs() const;
     QAudio::Error error() const;
     QAudio::State state() const;
     void setFormat(const QAudioFormat &format);
@@ -195,7 +194,6 @@ private:
 #endif
     AudioUnit m_audioUnit;
     Float64 m_clockFrequency;
-    UInt64 m_startTime;
     AudioStreamBasicDescription m_streamFormat;
     QCoreAudioOutputBuffer *m_audioBuffer;
     QAtomicInt m_audioThreadState;
