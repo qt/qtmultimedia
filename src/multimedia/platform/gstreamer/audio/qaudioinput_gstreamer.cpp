@@ -165,9 +165,9 @@ bool QGStreamerAudioInput::open()
         return false;
     }
 
-    auto *gstCaps = QGstUtils::capsForAudioFormat(m_format);
+    auto gstCaps = QGstUtils::capsForAudioFormat(m_format);
 
-    if (!gstCaps) {
+    if (gstCaps.isNull()) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
         return false;
@@ -186,7 +186,7 @@ bool QGStreamerAudioInput::open()
     gst_object_unref (gstBus);
 
     gstAppSink = createAppSink();
-    g_object_set(gstAppSink.object(), "caps", gstCaps, nullptr);
+    gstAppSink.set("caps", gstCaps);
 
     QGstElement conv("audioconvert", "conv");
     gstVolume = QGstElement("volume", "volume");

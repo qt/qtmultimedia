@@ -129,8 +129,9 @@ void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *or
     GstElement *appsrc;
     g_object_get(orig, "source", &appsrc, NULL);
 
-    if (!self->appsrc()->setup(appsrc))
-        qWarning()<<"Could not setup appsrc element";
+    auto *qAppSrc = self->appsrc();
+    qAppSrc->setExternalAppSrc(appsrc);
+    qAppSrc->setup(self->mDevice);
 
     g_object_unref(G_OBJECT(appsrc));
 }
@@ -285,11 +286,8 @@ void QGstreamerAudioDecoder::setSourceFilename(const QString &fileName)
 {
     stop();
     mDevice = nullptr;
-#if QT_CONFIG(gstreamer_app)
-    if (m_appSrc)
-        m_appSrc->deleteLater();
+    delete m_appSrc;
     m_appSrc = nullptr;
-#endif
 
     bool isSignalRequired = (mSource != fileName);
     mSource = fileName;
@@ -324,7 +322,6 @@ void QGstreamerAudioDecoder::start()
     if (!mSource.isEmpty()) {
         m_playbin.set("uri", QUrl::fromLocalFile(mSource).toEncoded().constData());
     } else if (mDevice) {
-#if QT_CONFIG(gstreamer_app)
         // make sure we can read from device
         if (!mDevice->isOpen() || !mDevice->isReadable()) {
             processInvalidMedia(QAudioDecoder::AccessDeniedError, QLatin1String("Unable to read from specified device"));
@@ -333,10 +330,8 @@ void QGstreamerAudioDecoder::start()
 
         if (!m_appSrc)
             m_appSrc = new QGstAppSrc(this);
-        m_appSrc->setStream(mDevice);
 
         m_playbin.set("uri", "appsrc://");
-#endif
     } else {
         return;
     }
@@ -345,9 +340,8 @@ void QGstreamerAudioDecoder::start()
     if (m_appSink) {
         if (mFormat.isValid()) {
             setAudioFlags(false);
-            GstCaps *caps = QGstUtils::capsForAudioFormat(mFormat);
-            gst_app_sink_set_caps(m_appSink, caps);
-            gst_caps_unref(caps);
+            QGstMutableCaps caps = QGstUtils::capsForAudioFormat(mFormat);
+            gst_app_sink_set_caps(m_appSink, caps.get());
         } else {
             // We want whatever the native audio format is
             setAudioFlags(true);

@@ -128,10 +128,10 @@ QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
   Caller must unref GstCaps.
 */
 
-GstCaps *QGstUtils::capsForAudioFormat(const QAudioFormat &format)
+QGstMutableCaps QGstUtils::capsForAudioFormat(const QAudioFormat &format)
 {
     if (!format.isValid())
-        return nullptr;
+        return {};
 
     auto sampleFormat = format.sampleFormat();
     return gst_caps_new_simple(

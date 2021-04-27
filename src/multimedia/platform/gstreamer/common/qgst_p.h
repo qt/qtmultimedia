@@ -243,7 +243,7 @@ public:
 
     int size() const { return gst_caps_get_size(caps); }
     QGstStructure at(int index) { return gst_caps_get_structure(caps, index); }
-    GstCaps *get() { return caps; }
+    GstCaps *get() const { return caps; }
     QByteArray toString() const
     {
         gchar *c = gst_caps_to_string(caps);
@@ -303,6 +303,7 @@ public:
     void set(const char *property, quint64 i) { g_object_set(m_object, property, guint64(i), nullptr); }
     void set(const char *property, double d) { g_object_set(m_object, property, gdouble(d), nullptr); }
     void set(const char *property, const QGstObject &o) { g_object_set(m_object, property, o.object(), nullptr); }
+    void set(const char *property, const QGstMutableCaps &c) { g_object_set(m_object, property, c.get(), nullptr); }
 
     QGString getString(const char *property) const
     { char *s = nullptr; g_object_get(m_object, property, &s, nullptr); return s; }

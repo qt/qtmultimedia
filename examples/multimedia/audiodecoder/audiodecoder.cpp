@@ -66,7 +66,7 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, const QString &target
     format.setSampleRate(48000);
     m_decoder.setAudioFormat(format);
 
-    QIODevice* target = new QFile(targetFileName);
+    QIODevice* target = new QFile(targetFileName, this);
     if (target->open(QIODevice::WriteOnly))
         m_waveDecoder = new QWaveDecoder(target, format);
 

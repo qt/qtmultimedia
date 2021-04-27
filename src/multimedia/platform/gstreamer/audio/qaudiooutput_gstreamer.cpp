@@ -56,8 +56,11 @@
 QT_BEGIN_NAMESPACE
 
 QGStreamerAudioOutput::QGStreamerAudioOutput(const QByteArray &device)
-    : m_device(device)
+    : m_device(device),
+    gstPipeline("pipeline")
 {
+    gstPipeline.installMessageFilter(this);
+
     QGStreamerAudioDeviceInfo audioInfo(device, QAudio::AudioOutput);
     gstOutput = gst_device_create_element(audioInfo.gstDevice, nullptr);
 }
@@ -199,24 +202,14 @@ bool QGStreamerAudioOutput::open()
         return false;
     }
 
-    gstPipeline = QGstPipeline("pipeline");
-    gstPipeline.installMessageFilter(this);
-
-    gstAppSrc = gst_element_factory_make("appsrc", "appsrc");
-
-    m_bufferSize = gst_app_src_get_max_bytes(GST_APP_SRC(gstAppSrc.element()));
-
 //    qDebug() << "GST caps:" << gst_caps_to_string(caps);
     m_appSrc = new QGstAppSrc;
+    m_appSrc->setup(m_audioSource, QGstAppSrc::ForceSequential);
+    m_appSrc->setAudioFormat(m_format);
+
     connect(m_appSrc, &QGstAppSrc::bytesProcessed, this, &QGStreamerAudioOutput::bytesProcessedByAppSrc);
     connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioOutput::needData);
-    if (m_audioSource) {
-        m_appSrc->setStream(m_audioSource);
-    } else {
-        m_appSrc->setBuffer(&m_buffer);
-    }
-    m_appSrc->setAudioFormat(m_format);
-    m_appSrc->setup(gstAppSrc.element());
+    gstAppSrc = m_appSrc->element();
 
 //    gstDecodeBin = gst_element_factory_make ("decodebin", "dec");
     QGstElement conv("audioconvert", "conv");
@@ -256,13 +249,11 @@ void QGStreamerAudioOutput::close()
         m_audioSource = nullptr;
     }
     m_opened = false;
-    m_buffer.clear();
 }
 
 qint64 QGStreamerAudioOutput::write(const char *data, qint64 len)
 {
-    m_buffer.append(data, len);
-    m_appSrc->newDataAvailable();
+    m_appSrc->write(data, len);
     return len;
 }
 
@@ -282,7 +273,7 @@ int QGStreamerAudioOutput::bytesFree() const
     if (m_deviceState != QAudio::ActiveState && m_deviceState != QAudio::IdleState)
         return 0;
 
-    return qMax(0, 4096*4 - m_buffer.size());
+    return m_appSrc->canAcceptMoreData() ? 4096*4 : 0;
 }
 
 int QGStreamerAudioOutput::periodSize() const

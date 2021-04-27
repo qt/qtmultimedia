@@ -424,8 +424,7 @@ void tst_QAudioOutput::pull()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QVERIFY2((processedUs == 1000000),
-             QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toUtf8().constData());
+    QCOMPARE(processedUs, 1000000);
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 

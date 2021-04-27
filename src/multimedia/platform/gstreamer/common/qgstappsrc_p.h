@@ -58,7 +58,7 @@
 #include <QtCore/qiodevice.h>
 #include <QtCore/private/qringbuffer_p.h>
 
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 #include <gst/app/gstappsrc.h>
 
 QT_BEGIN_NAMESPACE
@@ -72,84 +72,57 @@ public:
     QGstAppSrc(QObject *parent = 0);
     ~QGstAppSrc();
 
-    bool setup(GstElement *);
+    enum Flags {
+        NoFlags = 0,
+        ForceSequential = 1
+    };
 
-    void setStream(QIODevice *);
-    QIODevice *stream() const;
+    bool setup(QIODevice *stream = nullptr, Flags = NoFlags);
+    void setAudioFormat(const QAudioFormat &f);
 
-    void setBuffer(QRingBuffer *buffer)
-    {
-        Q_ASSERT(!m_stream);
-        m_buffer = buffer;
-        m_sequential = true;
-    }
-    QRingBuffer *buffer() const
-    {
-        return m_buffer;
-    }
+    void setExternalAppSrc(const QGstElement &appsrc);
+    QGstElement element();
 
-    GstAppSrc *element();
+    void write(const char *data, qsizetype size);
 
-    qint64 queueSize() const { return m_maxBytes; }
-
-    bool isStreamValid() const
-    {
-        return m_stream != nullptr && m_stream->isOpen();
-    }
-
-    void setAudioFormat(const QAudioFormat &f)
-    {
-        m_format = f;
-    }
-    QAudioFormat audioFormat() const
-    {
-        return m_format;
-    }
-
-    void newDataAvailable()
-    {
-        if (m_noMoreData) {
-            m_noMoreData = false;
-            pushDataToAppSrc();
-        }
-    }
+    bool canAcceptMoreData() { return !m_noMoreData; }
 
 Q_SIGNALS:
     void bytesProcessed(int bytes);
     void noMoreData();
 
 private Q_SLOTS:
-    void pushDataToAppSrc();
+    void pushData();
     bool doSeek(qint64);
     void onDataReady();
 
     void streamDestroyed();
 private:
+    bool setStream(QIODevice *, Flags flags);
+    bool isStreamValid() const
+    {
+        return m_stream != nullptr && m_stream->isOpen();
+    }
+
     static gboolean on_seek_data(GstAppSrc *element, guint64 arg0, gpointer userdata);
     static void on_enough_data(GstAppSrc *element, gpointer userdata);
     static void on_need_data(GstAppSrc *element, uint arg0, gpointer userdata);
-    static void destroy_notify(gpointer data);
 
     void sendEOS();
     void eosOrIdle();
 
     QIODevice *m_stream = nullptr;
     QNetworkReply *m_networkReply = nullptr;
-    QRingBuffer *m_buffer = nullptr;
+    QRingBuffer m_buffer;
     QAudioFormat m_format;
 
-    GstAppSrc *m_appSrc = nullptr;
-    bool m_sequential = false;
+    QGstElement m_appSrc;
+    bool m_sequential = true;
     bool m_noMoreData = false;
     GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
-    GstAppSrcCallbacks m_callbacks;
-    qint64 initialPosition = 0;
     qint64 m_maxBytes = 0;
     qint64 bytesReadSoFar = 0;
-    unsigned int m_dataRequestSize = ~0;
-    bool m_dataRequested = false;
-    bool m_enoughData = false;
-    bool m_forceData = false;
+    unsigned int m_dataRequestSize = 0;
     int streamedSamples = 0;
 };
 

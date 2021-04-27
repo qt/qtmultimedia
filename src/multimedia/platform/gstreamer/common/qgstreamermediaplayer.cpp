@@ -582,14 +582,13 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     if (m_stream) {
         if (!m_appSrc)
             m_appSrc = new QGstAppSrc(this);
-        src = QGstElement("appsrc", "appsrc");
+        src = m_appSrc->element();
         decoder = QGstElement("decodebin", "decoder");
         decoder.set("post-stream-topology", true);
         playerPipeline.add(src, decoder);
         src.link(decoder);
 
-        m_appSrc->setStream(m_stream);
-        m_appSrc->setup(src.element());
+        m_appSrc->setup(m_stream);
     } else {
         // use uridecodebin
         decoder = QGstElement("uridecodebin", "uridecoder");

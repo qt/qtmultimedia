@@ -125,7 +125,6 @@ private:
     bool m_pullMode = true;
     bool m_opened = false;
     QIODevice *m_audioSource = nullptr;
-    QRingBuffer m_buffer;
     QTimer m_periodTimer;
     int m_bufferSize = 0;
     qint64 m_bytesProcessed = 0;

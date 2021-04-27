@@ -72,7 +72,7 @@ class QVideoFrameFormat;
 
 namespace QGstUtils {
     Q_MULTIMEDIA_EXPORT QAudioFormat audioFormatForSample(GstSample *sample);
-    Q_MULTIMEDIA_EXPORT GstCaps *capsForAudioFormat(const QAudioFormat &format);
+    Q_MULTIMEDIA_EXPORT QGstMutableCaps capsForAudioFormat(const QAudioFormat &format);
 
     Q_MULTIMEDIA_EXPORT QVideoFrameFormat formatForCaps(
             GstCaps *caps,
