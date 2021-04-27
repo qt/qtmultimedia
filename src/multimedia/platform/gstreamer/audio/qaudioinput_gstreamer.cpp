@@ -202,7 +202,7 @@ bool QGStreamerAudioInput::open()
 
     m_timeStamp.restart();
     m_elapsedTimeOffset = 0;
-    m_totalTimeValue = 0;
+    m_bytesWritten = 0;
 
     return true;
 }
@@ -293,7 +293,7 @@ int QGStreamerAudioInput::bufferSize() const
 
 qint64 QGStreamerAudioInput::processedUSecs() const
 {
-    return 0;
+    return m_format.durationForBytes(m_bytesWritten);
 }
 
 void QGStreamerAudioInput::suspend()
@@ -347,6 +347,7 @@ GstFlowReturn QGStreamerAudioInput::new_sample(GstAppSink *sink, gpointer user_d
         control->m_buffer.append(bufferData, bufferSize);
         control->m_audioSink->readyRead();
     } else {
+        control->m_bytesWritten += bufferSize;
         control->m_audioSink->write(bufferData, bufferSize);
     }
 
@@ -370,7 +371,9 @@ GStreamerInputPrivate::GStreamerInputPrivate(QGStreamerAudioInput *audio)
 qint64 GStreamerInputPrivate::readData(char *data, qint64 len)
 {
     m_audioDevice->setState(QAudio::ActiveState);
-    return m_audioDevice->m_buffer.read(data, len);
+    qint64 bytes = m_audioDevice->m_buffer.read(data, len);
+    m_audioDevice->m_bytesWritten += bytes;
+    return bytes;
 }
 
 qint64 GStreamerInputPrivate::writeData(const char *data, qint64 len)

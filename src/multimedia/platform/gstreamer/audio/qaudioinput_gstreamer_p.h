@@ -110,7 +110,7 @@ private:
 
     static gboolean busMessage(GstBus *bus, GstMessage *msg, gpointer user_data);
 
-    qint64 m_totalTimeValue = 0;
+    qint64 m_bytesWritten = 0;
     QIODevice *m_audioSink = nullptr;
     QAudioFormat m_format;
     QAudio::Error m_errorState = QAudio::NoError;
