@@ -120,7 +120,6 @@ private:
     QRingBuffer m_buffer;
     bool m_pullMode = true;
     bool m_opened = false;
-    int m_bytesAvailable = 0;
     int m_bufferSize = 0;
     qint64 m_elapsedTimeOffset = 0;
     QElapsedTimer m_timeStamp;

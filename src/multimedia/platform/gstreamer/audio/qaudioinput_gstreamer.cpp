@@ -260,7 +260,6 @@ void QGStreamerAudioInput::resume()
 {
     if (m_deviceState == QAudio::SuspendedState || m_deviceState == QAudio::IdleState) {
         gstPipeline.setState(GST_STATE_PLAYING);
-
         setState(QAudio::ActiveState);
         setError(QAudio::NoError);
     }
@@ -302,14 +301,14 @@ void QGStreamerAudioInput::suspend()
         setError(QAudio::NoError);
         setState(QAudio::SuspendedState);
 
-        gstPipeline.setState(GST_STATE_PLAYING);
+        gstPipeline.setState(GST_STATE_PAUSED);
     }
 }
 
 void QGStreamerAudioInput::reset()
 {
     stop();
-    m_bytesAvailable = 0;
+    m_buffer.clear();
 }
 
 //#define MAX_BUFFERS_IN_QUEUE 4
@@ -370,7 +369,8 @@ GStreamerInputPrivate::GStreamerInputPrivate(QGStreamerAudioInput *audio)
 
 qint64 GStreamerInputPrivate::readData(char *data, qint64 len)
 {
-    m_audioDevice->setState(QAudio::ActiveState);
+    if (m_audioDevice->state() == QAudio::IdleState)
+        m_audioDevice->setState(QAudio::ActiveState);
     qint64 bytes = m_audioDevice->m_buffer.read(data, len);
     m_audioDevice->m_bytesWritten += bytes;
     return bytes;
