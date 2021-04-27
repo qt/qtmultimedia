@@ -81,7 +81,7 @@ bool QGstAppSrc::setup(GstElement* appsrc)
     else
         m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     gst_app_src_set_stream_type(m_appSrc, m_streamType);
-    gst_app_src_set_size(m_appSrc, (m_sequential) ? -1 : m_stream->size());
+    gst_app_src_set_size(m_appSrc, (m_sequential) ? -1 : (m_stream->bytesAvailable()));
     if (m_format.isValid()) {
         GstCaps *caps = QGstUtils::capsForAudioFormat(m_format);
         if (caps) {
@@ -123,6 +123,7 @@ void QGstAppSrc::setStream(QIODevice *stream)
         connect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
         m_sequential = m_stream->isSequential();
     }
+    initialPosition = m_stream->pos();
 }
 
 QIODevice *QGstAppSrc::stream() const
@@ -154,21 +155,29 @@ void QGstAppSrc::streamDestroyed()
 
 void QGstAppSrc::pushDataToAppSrc()
 {
-    qCDebug(qLcAppSrc) << "pushData" << m_stream->bytesAvailable();
+    qCDebug(qLcAppSrc) << "pushData" << m_stream << m_buffer;
     if ((!isStreamValid() && !m_buffer) || !m_appSrc)
         return;
 
-    if ((!m_stream || m_stream->atEnd()) && (!m_networkReply || !m_networkReply->isRunning())) {
-        sendEOS();
+    if ((m_stream && m_stream->atEnd() && (!m_networkReply || !m_networkReply->isRunning())) ||
+        (m_buffer && !m_buffer->size())) {
+        eosOrIdle();
         return;
     }
+    m_noMoreData = false;
+    Q_ASSERT(m_stream || m_buffer);
 
     if (m_dataRequested && !m_enoughData) {
         qint64 size;
-        if (m_dataRequestSize == ~0u)
-            size = qMin(m_stream->bytesAvailable(), queueSize());
+        if (m_stream)
+            size = m_stream->bytesAvailable();
         else
-            size = qMin(m_stream->bytesAvailable(), (qint64)m_dataRequestSize);
+            size = m_buffer->size();
+
+        if (m_dataRequestSize == ~0u)
+            size = qMin(size, queueSize());
+        else
+            size = qMin(size, (qint64)m_dataRequestSize);
 
         GstBuffer* buffer = gst_buffer_new_and_alloc(size);
 
@@ -197,7 +206,8 @@ void QGstAppSrc::pushDataToAppSrc()
         bytesReadSoFar += bytesRead;
 
         gst_buffer_unmap(buffer, &mapInfo);
-        qCDebug(qLcAppSrc) << "pushing bytes into gstreamer" << m_stream->pos() << buffer->offset << bytesRead;
+        qCDebug(qLcAppSrc) << "pushing bytes into gstreamer" << buffer->offset << bytesRead;
+        emit bytesProcessed(bytesRead);
 
         if (bytesRead > 0) {
             m_dataRequested = false;
@@ -210,15 +220,12 @@ void QGstAppSrc::pushDataToAppSrc()
             }
         }
     }
-
-    if (m_stream->atEnd() && (!m_networkReply || !m_networkReply->isRunning()))
-        sendEOS();
 }
 
 bool QGstAppSrc::doSeek(qint64 value)
 {
     if (isStreamValid())
-        return stream()->seek(value);
+        return stream()->seek(value + initialPosition);
     return false;
 }
 
@@ -274,6 +281,21 @@ void QGstAppSrc::sendEOS()
         return;
 
     gst_app_src_end_of_stream(GST_APP_SRC(m_appSrc));
-    if (isStreamValid() && !stream()->isSequential())
-        stream()->reset();
+}
+
+void QGstAppSrc::eosOrIdle()
+{
+    qCDebug(qLcAppSrc) << "eosOrIdle";
+    if (!m_appSrc)
+        return;
+
+    if (!m_sequential) {
+        sendEOS();
+        return;
+    }
+    if (m_noMoreData)
+        return;
+    qCDebug(qLcAppSrc) << "    idle!";
+    m_noMoreData = true;
+    emit noMoreData();
 }

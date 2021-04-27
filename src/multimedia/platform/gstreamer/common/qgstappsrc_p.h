@@ -94,7 +94,7 @@ public:
 
     bool isStreamValid() const
     {
-        return m_stream != 0 && m_stream->isOpen();
+        return m_stream != nullptr && m_stream->isOpen();
     }
 
     void setAudioFormat(const QAudioFormat &f)
@@ -106,7 +106,19 @@ public:
         return m_format;
     }
 
-private slots:
+    void newDataAvailable()
+    {
+        if (m_noMoreData) {
+            m_noMoreData = false;
+            pushDataToAppSrc();
+        }
+    }
+
+Q_SIGNALS:
+    void bytesProcessed(int bytes);
+    void noMoreData();
+
+private Q_SLOTS:
     void pushDataToAppSrc();
     bool doSeek(qint64);
     void onDataReady();
@@ -119,6 +131,7 @@ private:
     static void destroy_notify(gpointer data);
 
     void sendEOS();
+    void eosOrIdle();
 
     QIODevice *m_stream = nullptr;
     QNetworkReply *m_networkReply = nullptr;
@@ -127,8 +140,10 @@ private:
 
     GstAppSrc *m_appSrc = nullptr;
     bool m_sequential = false;
+    bool m_noMoreData = false;
     GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     GstAppSrcCallbacks m_callbacks;
+    qint64 initialPosition = 0;
     qint64 m_maxBytes = 0;
     qint64 bytesReadSoFar = 0;
     unsigned int m_dataRequestSize = ~0;

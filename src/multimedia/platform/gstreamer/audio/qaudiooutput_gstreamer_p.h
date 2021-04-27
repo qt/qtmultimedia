@@ -64,13 +64,15 @@
 #include <private/qaudiosystem_p.h>
 
 #include <private/qgst_p.h>
+#include <private/qgstreamerbushelper_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QGstAppSrc;
 
 class QGStreamerAudioOutput
-    : public QAbstractAudioOutput
+    : public QAbstractAudioOutput,
+      public QGstreamerBusMessageFilter
 {
     friend class GStreamerOutputPrivate;
     Q_OBJECT
@@ -101,11 +103,15 @@ public:
     void setCategory(const QString &category) override;
     QString category() const override;
 
+private Q_SLOTS:
+    void bytesProcessedByAppSrc(int bytes);
+    void needData();
+
 private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
 
-    static gboolean busMessage(GstBus *bus, GstMessage *msg, gpointer user_data);
+    bool processBusMessage(const QGstreamerMessage &message) override;
 
     bool open();
     void close();
@@ -122,9 +128,8 @@ private:
     QRingBuffer m_buffer;
     QTimer m_periodTimer;
     int m_bufferSize = 0;
-    qint64 m_totalTimeValue = 0;
+    qint64 m_bytesProcessed = 0;
     QElapsedTimer m_timeStamp;
-    qint64 m_elapsedTimeOffset = 0;
     QString m_category;
     qreal m_volume = 1.;
     QByteArray pushData;

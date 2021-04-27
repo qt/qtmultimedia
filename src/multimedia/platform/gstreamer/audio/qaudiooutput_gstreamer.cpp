@@ -51,6 +51,7 @@
 #include <private/qgstappsrc_p.h>
 
 #include <private/qgstutils_p.h>
+#include <private/qgstreamermessage_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -102,11 +103,17 @@ void QGStreamerAudioOutput::start(QIODevice *device)
 
     close();
 
+    if (!m_format.isValid()) {
+        setError(QAudio::OpenError);
+        return;
+    }
+
     m_pullMode = true;
     m_audioSource = device;
 
     if (!open()) {
         m_audioSource = nullptr;
+        setError(QAudio::OpenError);
         return;
     }
 
@@ -119,6 +126,11 @@ QIODevice *QGStreamerAudioOutput::start()
     setError(QAudio::NoError);
 
     close();
+
+    if (!m_format.isValid()) {
+        setError(QAudio::OpenError);
+        return nullptr;
+    }
 
     m_pullMode = false;
 
@@ -149,15 +161,15 @@ static void padAdded(GstElement *element, GstPad *pad, gpointer data)
 }
 #endif
 
-gboolean QGStreamerAudioOutput::busMessage(GstBus *, GstMessage *msg, gpointer user_data)
+bool QGStreamerAudioOutput::processBusMessage(const QGstreamerMessage &message)
 {
-    QGStreamerAudioOutput *output = static_cast<QGStreamerAudioOutput *>(user_data);
+    auto *msg = message.rawMessage();
     switch (GST_MESSAGE_TYPE (msg)) {
     case GST_MESSAGE_EOS:
-        output->stop();
+        setState(QAudio::IdleState);
         break;
     case GST_MESSAGE_ERROR: {
-        output->setError(QAudio::IOError);
+        setError(QAudio::IOError);
         gchar  *debug;
         GError *error;
 
@@ -188,10 +200,7 @@ bool QGStreamerAudioOutput::open()
     }
 
     gstPipeline = QGstPipeline("pipeline");
-
-    auto *gstBus = gst_pipeline_get_bus(gstPipeline.pipeline());
-    gst_bus_add_watch(gstBus, &QGStreamerAudioOutput::busMessage, this);
-    gst_object_unref (gstBus);
+    gstPipeline.installMessageFilter(this);
 
     gstAppSrc = gst_element_factory_make("appsrc", "appsrc");
 
@@ -199,6 +208,8 @@ bool QGStreamerAudioOutput::open()
 
 //    qDebug() << "GST caps:" << gst_caps_to_string(caps);
     m_appSrc = new QGstAppSrc;
+    connect(m_appSrc, &QGstAppSrc::bytesProcessed, this, &QGStreamerAudioOutput::bytesProcessedByAppSrc);
+    connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioOutput::needData);
     if (m_audioSource) {
         m_appSrc->setStream(m_audioSource);
     } else {
@@ -224,8 +235,8 @@ bool QGStreamerAudioOutput::open()
 
     m_opened = true;
 
-    m_elapsedTimeOffset = 0;
     m_timeStamp.restart();
+    m_bytesProcessed = 0;
 
     return true;
 }
@@ -251,7 +262,7 @@ void QGStreamerAudioOutput::close()
 qint64 QGStreamerAudioOutput::write(const char *data, qint64 len)
 {
     m_buffer.append(data, len);
-    m_totalTimeValue += len;
+    m_appSrc->newDataAvailable();
     return len;
 }
 
@@ -271,7 +282,7 @@ int QGStreamerAudioOutput::bytesFree() const
     if (m_deviceState != QAudio::ActiveState && m_deviceState != QAudio::IdleState)
         return 0;
 
-    return m_bufferSize; // ### correct????
+    return qMax(0, 4096*4 - m_buffer.size());
 }
 
 int QGStreamerAudioOutput::periodSize() const
@@ -294,7 +305,7 @@ int QGStreamerAudioOutput::bufferSize() const
 
 qint64 QGStreamerAudioOutput::processedUSecs() const
 {
-    qint64 result = qint64(1000000) * m_totalTimeValue /
+    qint64 result = qint64(1000000) * m_bytesProcessed /
         m_format.bytesPerFrame() /
         m_format.sampleRate();
 
@@ -352,6 +363,8 @@ qint64 GStreamerOutputPrivate::readData(char *data, qint64 len)
 
 qint64 GStreamerOutputPrivate::writeData(const char *data, qint64 len)
 {
+    if (m_audioDevice->state() == QAudio::IdleState)
+        m_audioDevice->setState(QAudio::ActiveState);
     return m_audioDevice->write(data, len);
 }
 
@@ -380,6 +393,16 @@ void QGStreamerAudioOutput::setCategory(const QString &category)
 QString QGStreamerAudioOutput::category() const
 {
     return m_category;
+}
+
+void QGStreamerAudioOutput::bytesProcessedByAppSrc(int bytes)
+{
+    m_bytesProcessed += bytes;
+}
+
+void QGStreamerAudioOutput::needData()
+{
+    setState(QAudio::IdleState);
 }
 
 QT_END_NAMESPACE
