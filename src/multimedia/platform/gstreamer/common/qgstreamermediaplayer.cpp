@@ -345,10 +345,12 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         break;
     }
     case GST_MESSAGE_SEGMENT_START: {
-        const GstStructure *structure = gst_message_get_structure(gm);
-        qint64 position = g_value_get_int64(gst_structure_get_value(structure, "position"));
-        position /= 1000000;
-        emit positionChanged(position);
+        QGstStructure structure(gst_message_get_structure(gm));
+        auto p = structure["position"].toInt64();
+        if (p) {
+            qint64 position = (*p)/1000000;
+            emit positionChanged(position);
+        }
     }
     case GST_MESSAGE_ELEMENT: {
         QGstStructure structure(gst_message_get_structure(gm));

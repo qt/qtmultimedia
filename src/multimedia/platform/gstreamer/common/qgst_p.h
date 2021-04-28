@@ -111,6 +111,12 @@ public:
             return std::nullopt;
         return g_value_get_int(value);
     }
+    std::optional<int> toInt64() const
+    {
+        if (!G_VALUE_HOLDS_INT64(value))
+            return std::nullopt;
+        return g_value_get_int64(value);
+    }
     template<typename T>
     T *getPointer() const
     {
