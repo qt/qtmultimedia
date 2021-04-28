@@ -40,7 +40,6 @@ public:
     QMockMediaPlayer(QMediaPlayer *parent)
         : QPlatformMediaPlayer(parent)
         , _state(QMediaPlayer::StoppedState)
-        , _mediaStatus(QMediaPlayer::NoMedia)
         , _error(QMediaPlayer::NoError)
         , _duration(0)
         , _position(0)
@@ -61,17 +60,11 @@ public:
 
     QMediaPlayer::PlaybackState state() const { return _state; }
     void updateState(QMediaPlayer::PlaybackState state) { setState(state); }
-    QMediaPlayer::MediaStatus mediaStatus() const { return _mediaStatus; }
-    void updateMediaStatus(QMediaPlayer::MediaStatus status)
-    {
-        emit mediaStatusChanged(_mediaStatus = status);
-    }
     void updateMediaStatus(QMediaPlayer::MediaStatus status, QMediaPlayer::PlaybackState state)
     {
-        _mediaStatus = status;
         _state = state;
 
-        emit mediaStatusChanged(_mediaStatus);
+        mediaStatusChanged(status);
         stateChanged(_state);
     }
 
@@ -114,9 +107,8 @@ public:
     {
         _stream = stream;
         _media = content;
-        _mediaStatus = _media.isEmpty() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia;
         setState(QMediaPlayer::StoppedState);
-        emit mediaStatusChanged(_mediaStatus);
+        mediaStatusChanged(_media.isEmpty() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia);
     }
     QIODevice *mediaStream() const { return _stream; }
 
@@ -159,15 +151,11 @@ public:
     void setState(QMediaPlayer::PlaybackState state, QMediaPlayer::MediaStatus status)
     {
         _state = state;
-        _mediaStatus = status;
-        emit mediaStatusChanged(status);
+        mediaStatusChanged(status);
         stateChanged(state);
     }
     void setMediaStatus(QMediaPlayer::MediaStatus status)
     {
-        if (_mediaStatus == status)
-            return;
-        _mediaStatus = status;
         if (status == QMediaPlayer::StalledMedia || status == QMediaPlayer::BufferingMedia)
             bufferProgressChanged(_bufferProgress);
         mediaStatusChanged(status);
@@ -181,7 +169,6 @@ public:
     void reset()
     {
         _state = QMediaPlayer::StoppedState;
-        _mediaStatus = QMediaPlayer::UnknownMediaStatus;
         _error = QMediaPlayer::NoError;
         _duration = 0;
         _position = 0;
@@ -203,7 +190,6 @@ public:
     QAudio::Role m_audioRole = QAudio::UnknownRole;
 
     QMediaPlayer::PlaybackState _state;
-    QMediaPlayer::MediaStatus _mediaStatus;
     QMediaPlayer::Error _error;
     qint64 _duration;
     qint64 _position;

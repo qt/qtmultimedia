@@ -113,7 +113,6 @@ private:
     AndroidMediaPlayer *mMediaPlayer;
     QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
     QMediaPlayer::PlaybackState mCurrentState;
-    QMediaPlayer::MediaStatus mCurrentMediaStatus;
     QUrl mMediaContent;
     QIODevice *mMediaStream;
     QAndroidVideoOutput *mVideoOutput;

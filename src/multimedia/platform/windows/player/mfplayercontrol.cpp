@@ -85,7 +85,6 @@ void MFPlayerControl::play()
         m_session->load(m_media, m_stream);
 
     switch (m_session->status()) {
-    case QMediaPlayer::UnknownMediaStatus:
     case QMediaPlayer::NoMedia:
     case QMediaPlayer::InvalidMedia:
         return;

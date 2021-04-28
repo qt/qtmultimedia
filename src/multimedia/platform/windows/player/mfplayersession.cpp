@@ -276,7 +276,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
     DWORD cSourceStreams = 0;
     hr = sourcePD->GetStreamDescriptorCount(&cSourceStreams);
     if (FAILED(hr)) {
-        changeStatus(QMediaPlayer::UnknownMediaStatus);
+        changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Failed to get stream count."), true);
         return;
     }
@@ -284,7 +284,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
     IMFTopology *topology;
     hr = MFCreateTopology(&topology);
     if (FAILED(hr)) {
-        changeStatus(QMediaPlayer::UnknownMediaStatus);
+        changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Failed to create topology."), true);
         return;
     }
@@ -363,7 +363,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
 
         hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
         if (FAILED(hr)) {
-            changeStatus(QMediaPlayer::UnknownMediaStatus);
+            changeStatus(QMediaPlayer::InvalidMedia);
             emit error(QMediaPlayer::ResourceError, tr("Failed to set topology."), true);
         }
     }
@@ -1048,14 +1048,14 @@ void MFPlayerSession::createSession()
     Q_ASSERT(m_session == NULL);
     HRESULT hr = MFCreateMediaSession(NULL, &m_session);
     if (FAILED(hr)) {
-        changeStatus(QMediaPlayer::UnknownMediaStatus);
+        changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Unable to create mediasession."), true);
     }
 
     hr = m_session->BeginGetEvent(this, m_session);
 
     if (FAILED(hr)) {
-        changeStatus(QMediaPlayer::UnknownMediaStatus);
+        changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
     }
 
@@ -1528,7 +1528,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         changeStatus(QMediaPlayer::InvalidMedia);
         break;
     case MEError:
-        changeStatus(QMediaPlayer::UnknownMediaStatus);
+        changeStatus(QMediaPlayer::InvalidMedia);
         qWarning() << "handleSessionEvent: serious error = " << hrStatus;
         emit error(QMediaPlayer::ResourceError, tr("Media session serious error."), true);
         break;

@@ -87,15 +87,7 @@ void QMediaPlayerPrivate::setStatus(QMediaPlayer::MediaStatus s)
 {
     Q_Q(QMediaPlayer);
 
-    if (int(s) == ignoreNextStatusChange) {
-        ignoreNextStatusChange = -1;
-        return;
-    }
-
-    if (s != status) {
-        status = s;
-        emit q->mediaStatusChanged(s);
-    }
+    emit q->mediaStatusChanged(s);
 }
 
 void QMediaPlayerPrivate::setError(int error, const QString &errorString)
@@ -125,14 +117,10 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 
         file.reset(new QFile(QLatin1Char(':') + media.path()));
         if (!file->open(QFile::ReadOnly)) {
-            setError(QMediaPlayer::ResourceError, QMediaPlayer::tr("Attempting to play invalid Qt resource"));
-            setStatus(QMediaPlayer::InvalidMedia);
             file.reset();
-            // Ignore the next NoMedia status change, we just want to clear the current media
-            // on the backend side since we can't load the new one and we want to be in the
-            // InvalidMedia status.
-            ignoreNextStatusChange = QMediaPlayer::NoMedia;
             control->setMedia(QUrl(), nullptr);
+            control->mediaStatusChanged(QMediaPlayer::InvalidMedia);
+            control->error(QMediaPlayer::ResourceError, QMediaPlayer::tr("Attempting to play invalid Qt resource"));
 
         } else if (control->streamPlaybackSupported()) {
             control->setMedia(media, file.data());
@@ -211,7 +199,6 @@ QMediaPlayer::QMediaPlayer(QObject *parent)
     Q_ASSERT(d->control);
 
     d->state = d->control->state();
-    d->status = d->control->mediaStatus();
 }
 
 
@@ -259,7 +246,7 @@ QMediaPlayer::PlaybackState QMediaPlayer::playbackState() const
     // In case if EndOfMedia status is already received
     // but state is not.
     if (d->control != nullptr
-        && d->status == QMediaPlayer::EndOfMedia
+        && d->control->mediaStatus() == QMediaPlayer::EndOfMedia
         && d->state != d->control->state()) {
         return d->control->state();
     }
@@ -269,7 +256,8 @@ QMediaPlayer::PlaybackState QMediaPlayer::playbackState() const
 
 QMediaPlayer::MediaStatus QMediaPlayer::mediaStatus() const
 {
-    return d_func()->status;
+    Q_D(const QMediaPlayer);
+    return d->control ? d->control->mediaStatus() : NoMedia;
 }
 
 qint64 QMediaPlayer::duration() const
@@ -740,7 +728,6 @@ bool QMediaPlayer::autoPlay() const
 
     Defines the status of a media player's current media.
 
-    \value UnknownMediaStatus The status of the media cannot be determined.
     \value NoMedia The is no current media.  The player is in the StoppedState.
     \value LoadingMedia The current media is being loaded. The player may be in any state.
     \value LoadedMedia The current media has been loaded. The player is in the StoppedState.

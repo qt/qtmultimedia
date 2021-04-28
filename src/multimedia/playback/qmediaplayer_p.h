@@ -83,9 +83,7 @@ public:
     QIODevice *stream = nullptr;
 
     QMediaPlayer::PlaybackState state = QMediaPlayer::StoppedState;
-    QMediaPlayer::MediaStatus status = QMediaPlayer::UnknownMediaStatus;
     QMediaPlayer::Error error = QMediaPlayer::NoError;
-    int ignoreNextStatusChange = -1;
     bool autoPlay = false;
 
     QAudio::Role audioRole = QAudio::UnknownRole;

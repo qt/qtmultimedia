@@ -68,7 +68,7 @@ public:
     virtual ~QPlatformMediaPlayer();
     virtual QMediaPlayer::PlaybackState state() const = 0;
 
-    virtual QMediaPlayer::MediaStatus mediaStatus() const = 0;
+    virtual QMediaPlayer::MediaStatus mediaStatus() const { return m_status; };
 
     virtual qint64 duration() const = 0;
 
@@ -144,6 +144,7 @@ protected:
     {}
 private:
     QMediaPlayer *player = nullptr;
+    QMediaPlayer::MediaStatus m_status = QMediaPlayer::NoMedia;
 };
 
 QT_END_NAMESPACE

@@ -87,7 +87,6 @@ public:
 
     enum MediaStatus
     {
-        UnknownMediaStatus,
         NoMedia,
         LoadingMedia,
         LoadedMedia,

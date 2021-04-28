@@ -177,13 +177,13 @@ void tst_QMediaPlayer::setupCommonTestData()
     QTest::addColumn<QMediaPlayer::Error>("error");
     QTest::addColumn<QString>("errorString");
 
-    QTest::newRow("invalid") << false << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
+    QTest::newRow("invalid") << false << QMediaPlayer::StoppedState << QMediaPlayer::InvalidMedia <<
                                 QUrl() << qint64(0) << qint64(0) << false << 0 << false << false << 0 <<
                                 qreal(0) << QMediaPlayer::NoError << QString();
-    QTest::newRow("valid+null") << true << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
+    QTest::newRow("valid+null") << true << QMediaPlayer::StoppedState << QMediaPlayer::InvalidMedia <<
                                 QUrl() << qint64(0) << qint64(0) << false << 0 << false << false << 50 <<
                                 qreal(0) << QMediaPlayer::NoError << QString();
-    QTest::newRow("valid+content+stopped") << true << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
+    QTest::newRow("valid+content+stopped") << true << QMediaPlayer::StoppedState << QMediaPlayer::InvalidMedia <<
                                 QUrl(QUrl("file:///some.mp3")) << qint64(0) << qint64(0) << false << 50 << false << false << 0 <<
                                 qreal(1) << QMediaPlayer::NoError << QString();
     QTest::newRow("valid+content+playing") << true << QMediaPlayer::PlayingState << QMediaPlayer::LoadedMedia <<
@@ -195,7 +195,7 @@ void tst_QMediaPlayer::setupCommonTestData()
     QTest::newRow("valud+streaming") << true << QMediaPlayer::PlayingState << QMediaPlayer::LoadedMedia <<
                                 QUrl(QUrl("http://example.com/stream")) << qint64(10000) << qint64(10000) << false << 50 << false << true << 0 <<
                                 qreal(1)  << QMediaPlayer::NoError << QString();
-    QTest::newRow("valid+error") << true << QMediaPlayer::StoppedState << QMediaPlayer::UnknownMediaStatus <<
+    QTest::newRow("valid+error") << true << QMediaPlayer::StoppedState << QMediaPlayer::InvalidMedia <<
                                 QUrl(QUrl("http://example.com/stream")) << qint64(0) << qint64(0) << false << 50 << false << false << 0 <<
                                 qreal(0) << QMediaPlayer::ResourceError << QString("Resource unavailable");
 }

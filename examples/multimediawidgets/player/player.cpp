@@ -395,7 +395,6 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
 
     // handle status message
     switch (status) {
-    case QMediaPlayer::UnknownMediaStatus:
     case QMediaPlayer::NoMedia:
     case QMediaPlayer::LoadedMedia:
         setStatusInfo(QString());

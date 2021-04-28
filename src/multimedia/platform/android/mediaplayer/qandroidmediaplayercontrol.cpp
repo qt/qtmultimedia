@@ -79,7 +79,6 @@ QAndroidMediaPlayerControl::QAndroidMediaPlayerControl(QMediaPlayer *parent)
     : QPlatformMediaPlayer(parent),
       mMediaPlayer(new AndroidMediaPlayer),
       mCurrentState(QMediaPlayer::StoppedState),
-      mCurrentMediaStatus(QMediaPlayer::NoMedia),
       mMediaStream(0),
       mVideoOutput(0),
       mSeekable(true),
@@ -126,11 +125,6 @@ QMediaPlayer::PlaybackState QAndroidMediaPlayerControl::state() const
     return mCurrentState;
 }
 
-QMediaPlayer::MediaStatus QAndroidMediaPlayerControl::mediaStatus() const
-{
-    return mCurrentMediaStatus;
-}
-
 qint64 QAndroidMediaPlayerControl::duration() const
 {
     if ((mState & (AndroidMediaPlayer::Prepared
@@ -146,7 +140,7 @@ qint64 QAndroidMediaPlayerControl::duration() const
 
 qint64 QAndroidMediaPlayerControl::position() const
 {
-    if (mCurrentMediaStatus == QMediaPlayer::EndOfMedia)
+    if (mediaStatus() == QMediaPlayer::EndOfMedia)
         return duration();
 
     if ((mState & (AndroidMediaPlayer::Prepared
@@ -171,7 +165,7 @@ void QAndroidMediaPlayerControl::setPosition(qint64 position)
 
     StateChangeNotifier notifier(this);
 
-    if (mCurrentMediaStatus == QMediaPlayer::EndOfMedia)
+    if (mediaStatus() == QMediaPlayer::EndOfMedia)
         setMediaStatus(QMediaPlayer::LoadedMedia);
 
     if ((mState & (AndroidMediaPlayer::Prepared
@@ -654,7 +648,7 @@ void QAndroidMediaPlayerControl::onStateChanged(qint32 state)
         break;
     case AndroidMediaPlayer::Error:
         setState(QMediaPlayer::StoppedState);
-        setMediaStatus(QMediaPlayer::UnknownMediaStatus);
+        setMediaStatus(QMediaPlayer::InvalidMedia);
         mMediaPlayer->release();
         Q_EMIT positionChanged(0);
         break;
@@ -717,10 +711,7 @@ void QAndroidMediaPlayerControl::setState(QMediaPlayer::PlaybackState state)
 
 void QAndroidMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status)
 {
-    if (mCurrentMediaStatus == status)
-        return;
-
-    mCurrentMediaStatus = status;
+    mediaStatusChanged(status);
 
     if (status == QMediaPlayer::NoMedia || status == QMediaPlayer::InvalidMedia)
         Q_EMIT durationChanged(0);
@@ -805,8 +796,8 @@ void QAndroidMediaPlayerControl::flushPendingStates()
 
 void QAndroidMediaPlayerControl::updateBufferStatus()
 {
-    bool bufferFilled = (mCurrentMediaStatus == QMediaPlayer::BufferedMedia
-                         || mCurrentMediaStatus == QMediaPlayer::BufferingMedia);
+    auto status = mediaStatus();
+    bool bufferFilled = (status == QMediaPlayer::BufferedMedia || status == QMediaPlayer::BufferingMedia);
 
     if (mBufferFilled != bufferFilled) {
         mBufferFilled = bufferFilled;

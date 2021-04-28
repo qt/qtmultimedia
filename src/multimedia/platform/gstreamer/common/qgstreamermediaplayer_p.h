@@ -77,7 +77,6 @@ public:
     ~QGstreamerMediaPlayer();
 
     QMediaPlayer::PlaybackState state() const override;
-    QMediaPlayer::MediaStatus mediaStatus() const override;
 
     qint64 position() const override;
     qint64 duration() const override;
@@ -140,7 +139,6 @@ private:
     QList<QGstPad> m_streams[3];
 
     QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
-    QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
 
     int m_bufferProgress = -1;
     QUrl m_url;

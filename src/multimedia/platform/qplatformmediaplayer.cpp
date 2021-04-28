@@ -108,6 +108,9 @@ void QPlatformMediaPlayer::stateChanged(QMediaPlayer::PlaybackState newState)
 */
 void QPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
+    if (m_status == status)
+        return;
+    m_status = status;
     player->d_func()->setStatus(status);
 }
 
