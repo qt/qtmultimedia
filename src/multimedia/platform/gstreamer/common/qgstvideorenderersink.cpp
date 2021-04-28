@@ -240,7 +240,7 @@ bool QVideoSurfaceGstDelegate::start(GstCaps *caps)
         m_stop = true;
     }
 
-    m_startCaps = caps;
+    m_startCaps = QGstMutableCaps(caps, QGstMutableCaps::NeedsRef);
 
     /*
     Waiting for start() to be invoked in the main thread may block
