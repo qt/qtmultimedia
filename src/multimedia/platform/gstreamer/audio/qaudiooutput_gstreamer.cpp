@@ -204,7 +204,7 @@ bool QGStreamerAudioOutput::open()
 
 //    qDebug() << "GST caps:" << gst_caps_to_string(caps);
     m_appSrc = new QGstAppSrc;
-    m_appSrc->setup(m_audioSource, QGstAppSrc::ForceSequential);
+    m_appSrc->setup(m_audioSource, m_audioSource ? m_audioSource->pos() : 0);
     m_appSrc->setAudioFormat(m_format);
 
     connect(m_appSrc, &QGstAppSrc::bytesProcessed, this, &QGStreamerAudioOutput::bytesProcessedByAppSrc);
@@ -253,6 +253,10 @@ void QGStreamerAudioOutput::close()
 
 qint64 QGStreamerAudioOutput::write(const char *data, qint64 len)
 {
+    if (!len)
+        return 0;
+    if (m_errorState == QAudio::UnderrunError)
+        m_errorState = QAudio::NoError;
     m_appSrc->write(data, len);
     return len;
 }
@@ -279,7 +283,7 @@ int QGStreamerAudioOutput::bytesFree() const
 int QGStreamerAudioOutput::periodSize() const
 {
     // max 5ms periods. Gstreamer itself will ask for 4k data at a time
-    return qMin(4096, 5*m_format.sampleRate()*m_format.bytesPerFrame()/1000);
+    return qMin(4096, 5*m_format.sampleRate()/1000*m_format.bytesPerFrame());
 }
 
 void QGStreamerAudioOutput::setBufferSize(int value)
@@ -393,7 +397,10 @@ void QGStreamerAudioOutput::bytesProcessedByAppSrc(int bytes)
 
 void QGStreamerAudioOutput::needData()
 {
-    setState(QAudio::IdleState);
+    if (state() != QAudio::StoppedState && state() != QAudio::IdleState) {
+        setState(QAudio::IdleState);
+        setError(QAudio::UnderrunError);
+    }
 }
 
 QT_END_NAMESPACE

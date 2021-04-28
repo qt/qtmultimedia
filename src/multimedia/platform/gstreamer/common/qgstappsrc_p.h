@@ -72,12 +72,7 @@ public:
     QGstAppSrc(QObject *parent = 0);
     ~QGstAppSrc();
 
-    enum Flags {
-        NoFlags = 0,
-        ForceSequential = 1
-    };
-
-    bool setup(QIODevice *stream = nullptr, Flags = NoFlags);
+    bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
     void setAudioFormat(const QAudioFormat &f);
 
     void setExternalAppSrc(const QGstElement &appsrc);
@@ -85,7 +80,7 @@ public:
 
     void write(const char *data, qsizetype size);
 
-    bool canAcceptMoreData() { return !m_noMoreData; }
+    bool canAcceptMoreData() { return m_noMoreData || m_dataRequestSize != 0; }
 
 Q_SIGNALS:
     void bytesProcessed(int bytes);
@@ -98,7 +93,7 @@ private Q_SLOTS:
 
     void streamDestroyed();
 private:
-    bool setStream(QIODevice *, Flags flags);
+    bool setStream(QIODevice *, qint64 offset);
     bool isStreamValid() const
     {
         return m_stream != nullptr && m_stream->isOpen();
@@ -120,6 +115,7 @@ private:
     bool m_sequential = true;
     bool m_noMoreData = false;
     GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
+    qint64 m_offset = 0;
     qint64 m_maxBytes = 0;
     qint64 bytesReadSoFar = 0;
     unsigned int m_dataRequestSize = 0;

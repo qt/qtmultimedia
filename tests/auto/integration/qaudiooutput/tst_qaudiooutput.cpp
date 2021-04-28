@@ -656,10 +656,7 @@ void tst_QAudioOutput::pushSuspendResume()
 
     audioOutput.suspend();
 
-    // Give backends running in separate threads a chance to suspend.
-    QTest::qWait(100);
-
-    QVERIFY2((stateSignal.count() == 1),
+    QTRY_VERIFY2((stateSignal.count() == 1),
              QString("didn't emit SuspendedState signal after suspend(), got %1 signals instead")
              .arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::SuspendedState), "didn't transition to SuspendedState after suspend()");
@@ -669,7 +666,7 @@ void tst_QAudioOutput::pushSuspendResume()
     // Check that only 'elapsed', and not 'processed' increases while suspended
     qint64 elapsedUs = audioOutput.elapsedUSecs();
     qint64 processedUs = audioOutput.processedUSecs();
-    QTest::qWait(1000);
+    QTest::qWait(100);
     QVERIFY(audioOutput.elapsedUSecs() > elapsedUs);
     QVERIFY(audioOutput.processedUSecs() == processedUs);
 
@@ -695,13 +692,11 @@ void tst_QAudioOutput::pushSuspendResume()
         } else
             QTest::qWait(20);
     }
+    QVERIFY(audioOutput.state() != QAudio::IdleState);
     stateSignal.clear();
 
-    // Wait until playback finishes
-    QTest::qWait(1000); // 1 seconds should be plenty
-
     QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
-    QVERIFY(stateSignal.count() > 0);
+    QTRY_VERIFY(stateSignal.count() > 0);
     QCOMPARE(qvariant_cast<QAudio::State>(stateSignal.last().at(0)), QAudio::IdleState);
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
@@ -783,7 +778,7 @@ void tst_QAudioOutput::pushUnderrun()
     stateSignal.clear();
 
     // Wait for data to be played
-    QTest::qWait(1000);
+    QTest::qWait(700);
 
     QVERIFY2((stateSignal.count() == 1),
              QString("didn't emit IdleState signal after suspend(), got %1 signals instead")
@@ -813,10 +808,8 @@ void tst_QAudioOutput::pushUnderrun()
     stateSignal.clear();
 
     // Wait until playback finishes
-    QTest::qWait(1000); // 1 seconds should be plenty
-
     QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
-    QVERIFY2((stateSignal.count() == 1),
+    QTRY_VERIFY2((stateSignal.count() == 1),
              QString("didn't emit IdleState signal when at EOF, got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
@@ -829,7 +822,7 @@ void tst_QAudioOutput::pushUnderrun()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QVERIFY2((processedUs == 2000000),
+    QVERIFY2((processedUs == 1000000),
              QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toUtf8().constData());
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");

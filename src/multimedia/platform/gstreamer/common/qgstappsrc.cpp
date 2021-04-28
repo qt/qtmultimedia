@@ -58,12 +58,12 @@ QGstAppSrc::~QGstAppSrc()
 {
 }
 
-bool QGstAppSrc::setup(QIODevice *stream, Flags flags)
+bool QGstAppSrc::setup(QIODevice *stream, qint64 offset)
 {
     if (m_appSrc.isNull())
         return false;
 
-    if (!setStream(stream, flags))
+    if (!setStream(stream, offset))
         return false;
 
     auto *appSrc = GST_APP_SRC(m_appSrc.element());
@@ -80,7 +80,7 @@ bool QGstAppSrc::setup(QIODevice *stream, Flags flags)
     else
         m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     gst_app_src_set_stream_type(appSrc, m_streamType);
-    gst_app_src_set_size(appSrc, m_sequential ? -1 : m_stream->size());
+    gst_app_src_set_size(appSrc, m_sequential ? -1 : m_stream->size() - m_offset);
 
     m_networkReply = qobject_cast<QNetworkReply *>(m_stream);
 
@@ -104,7 +104,7 @@ void QGstAppSrc::setExternalAppSrc(const QGstElement &appsrc)
     m_appSrc = appsrc;
 }
 
-bool QGstAppSrc::setStream(QIODevice *stream, Flags flags)
+bool QGstAppSrc::setStream(QIODevice *stream, qint64 offset)
 {
     if (m_stream) {
         disconnect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
@@ -122,7 +122,8 @@ bool QGstAppSrc::setStream(QIODevice *stream, Flags flags)
         m_stream = stream;
         connect(m_stream, SIGNAL(destroyed()), SLOT(streamDestroyed()));
         connect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
-        m_sequential = (flags == ForceSequential) || m_stream->isSequential();
+        m_sequential = m_stream->isSequential();
+        m_offset = offset;
     }
     return true;
 }
@@ -167,7 +168,6 @@ void QGstAppSrc::pushData()
         eosOrIdle();
         return;
     }
-    m_noMoreData = false;
 
     qint64 size;
     if (m_stream)
@@ -175,6 +175,8 @@ void QGstAppSrc::pushData()
     else
         size = m_buffer.size();
 
+    if (!m_dataRequestSize)
+        m_dataRequestSize = m_maxBytes;
     size = qMin(size, (qint64)m_dataRequestSize);
 
     GstBuffer* buffer = gst_buffer_new_and_alloc(size);
@@ -212,6 +214,7 @@ void QGstAppSrc::pushData()
         eosOrIdle();
         return;
     }
+    m_noMoreData = false;
     emit bytesProcessed(bytesRead);
 
     GstFlowReturn ret = gst_app_src_push_buffer(GST_APP_SRC(m_appSrc.element()), buffer);
@@ -225,7 +228,7 @@ void QGstAppSrc::pushData()
 bool QGstAppSrc::doSeek(qint64 value)
 {
     if (isStreamValid())
-        return m_stream->seek(value);
+        return m_stream->seek(value + m_offset);
     return false;
 }
 
