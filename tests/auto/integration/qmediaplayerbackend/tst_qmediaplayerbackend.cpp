@@ -278,13 +278,18 @@ void tst_QMediaPlayerBackend::loadMediaInLoadingState()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
-    player.setSource(localWavFile);
-    player.play();
+    player.setSource(localWavFile2);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::LoadingMedia);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     // Sets new media while old has not been finished.
     player.setSource(localWavFile);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::LoadingMedia);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    player.play();
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    player.setSource(localWavFile2);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::LoadingMedia);
 }
 
 void tst_QMediaPlayerBackend::playPauseStop()
@@ -358,7 +363,7 @@ void tst_QMediaPlayerBackend::playPauseStop()
     QCOMPARE(stateSpy.count(), 1);
     QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PausedState);
 
-    QTest::qWait(2000);
+    QTest::qWait(500);
 
     QVERIFY(qAbs(player.position() - positionBeforePause) < 150);
     QCOMPARE(positionSpy.count(), 1);

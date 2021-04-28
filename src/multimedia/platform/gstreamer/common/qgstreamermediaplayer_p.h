@@ -57,6 +57,8 @@
 #include <qurl.h>
 #include <private/qgst_p.h>
 
+#include <QtCore/qtimer.h>
+
 QT_BEGIN_NAMESPACE
 
 class QNetworkAccessManager;
@@ -75,8 +77,6 @@ class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer
 public:
     QGstreamerMediaPlayer(QMediaPlayer *parent = 0);
     ~QGstreamerMediaPlayer();
-
-    QMediaPlayer::PlaybackState state() const override;
 
     qint64 position() const override;
     qint64 duration() const override;
@@ -126,6 +126,7 @@ public:
 public Q_SLOTS:
     void volumeChangedHandler(int volume) { volumeChanged(volume); }
     void mutedChangedHandler(bool mute) { mutedChanged(mute); }
+    void updatePosition() { positionChanged(position()); }
 
 private:
     friend class QGstreamerStreamsControl;
@@ -134,22 +135,23 @@ private:
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
     void setSeekable(bool seekable);
     void parseStreamsAndMetadata();
+    void removeOutput(TrackType t);
+    void removeAllOutputs();
+
+    void stopOrEOS(bool eos);
 
     QMediaMetaData m_metaData;
     QList<QGstPad> m_streams[3];
 
-    QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
-
     int m_bufferProgress = -1;
     QUrl m_url;
-    QNetworkAccessManager *networkManager = nullptr;
     QIODevice *m_stream = nullptr;
-    bool ownStream = false;
 
     bool prerolling = false;
     double m_playbackRate = 1.;
     bool m_seekable = false;
     qint64 m_duration = 0;
+    QTimer positionUpdateTimer;
 
     QGstAppSrc *m_appSrc = nullptr;
 
