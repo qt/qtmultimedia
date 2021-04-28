@@ -143,7 +143,6 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoFrameFormat::Format_Y16
         ;
     caps.addPixelFormats(formats);
-    qDebug() << "CAPS:" << caps.toString();
     return caps;
 }
 
@@ -212,7 +211,6 @@ QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QVideoSink *sink)
 {
     m_renderer = new QGstVideoRenderer(sink);
     updateSupportedFormats();
-    connect(m_sink, SIGNAL(supportedFormatsChanged()), this, SLOT(updateSupportedFormats()));
 }
 
 QVideoSurfaceGstDelegate::~QVideoSurfaceGstDelegate()
