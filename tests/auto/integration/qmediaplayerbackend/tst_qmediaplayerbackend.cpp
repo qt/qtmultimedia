@@ -72,7 +72,6 @@ private slots:
     void seekPauseSeek();
     void seekInStoppedState();
     void subsequentPlayback();
-    void surfaceTest_data();
     void surfaceTest();
     void multipleSurfaces();
     void metadata();
@@ -172,9 +171,7 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     QStringList mediaCandidates;
     mediaCandidates << QFINDTESTDATA("testdata/colors.mp4");
-#ifndef SKIP_OGV_TEST
     mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
-#endif
     localVideoFile = MediaFileSelector::selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
@@ -207,10 +204,9 @@ void tst_QMediaPlayerBackend::loadMedia()
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
 
-    QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
+    QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QUrl)));
-    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QUrl)));
+    QSignalSpy mediaSpy(&player, SIGNAL(sourceChanged(QUrl)));
 
     player.setSource(localWavFile);
 
@@ -224,7 +220,6 @@ void tst_QMediaPlayerBackend::loadMedia()
     QVERIFY(statusSpy.count() > 0);
     QCOMPARE(mediaSpy.count(), 1);
     QCOMPARE(mediaSpy.last()[0].value<QUrl>(), localWavFile);
-    QCOMPARE(currentMediaSpy.last()[0].value<QUrl>(), localWavFile);
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
@@ -239,12 +234,11 @@ void tst_QMediaPlayerBackend::unloadMedia()
 
     QMediaPlayer player;
 
-    QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
+    QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy mediaSpy(&player, SIGNAL(mediaChanged(QUrl)));
-    QSignalSpy currentMediaSpy(&player, SIGNAL(currentMediaChanged(QUrl)));
+    QSignalSpy mediaSpy(&player, SIGNAL(sourceChanged(QUrl)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
-    QSignalSpy durationSpy(&player, SIGNAL(positionChanged(qint64)));
+    QSignalSpy durationSpy(&player, SIGNAL(durationChanged(qint64)));
 
     player.setSource(localWavFile);
 
@@ -261,7 +255,6 @@ void tst_QMediaPlayerBackend::unloadMedia()
     stateSpy.clear();
     statusSpy.clear();
     mediaSpy.clear();
-    currentMediaSpy.clear();
     positionSpy.clear();
     durationSpy.clear();
 
@@ -276,7 +269,6 @@ void tst_QMediaPlayerBackend::unloadMedia()
     QVERIFY(!stateSpy.isEmpty());
     QVERIFY(!statusSpy.isEmpty());
     QVERIFY(!mediaSpy.isEmpty());
-    QVERIFY(!currentMediaSpy.isEmpty());
     QVERIFY(!positionSpy.isEmpty());
 }
 
@@ -302,10 +294,10 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     QMediaPlayer player;
 
-    QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
+    QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
-    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+    QSignalSpy errorSpy(&player, SIGNAL(errorOccurred(QMediaPlayer::Error, const QString&)));
 
     // Check play() without a media
     player.play();
@@ -456,7 +448,7 @@ void tst_QMediaPlayerBackend::processEOS()
 
     QMediaPlayer player;
 
-    QSignalSpy stateSpy(&player, SIGNAL(stateChanged(QMediaPlayer::State)));
+    QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
 
@@ -667,11 +659,6 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles_data()
 
 void tst_QMediaPlayerBackend::volumeAcrossFiles()
 {
-#ifdef Q_OS_LINUX
-    if (m_inCISystem)
-        QSKIP("QTBUG-26577 Fails with gstreamer backend on ubuntu 10.4");
-#endif
-
     QFETCH(int, volume);
     QFETCH(bool, muted);
 
@@ -929,11 +916,6 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
 
 void tst_QMediaPlayerBackend::subsequentPlayback()
 {
-#ifdef Q_OS_LINUX
-    if (m_inCISystem)
-        QSKIP("QTBUG-26769 Fails with gstreamer backend on ubuntu 10.4, setPosition(0)");
-#endif
-
     if (localCompressedSoundFile.isEmpty())
         QSKIP("Sound format is not supported");
 
@@ -967,42 +949,11 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
     QVERIFY(player.position() > 2000 && player.position() < 5000);
 }
 
-void tst_QMediaPlayerBackend::surfaceTest_data()
-{
-    QTest::addColumn< QList<QVideoFrameFormat::PixelFormat> >("formatsList");
-
-    QList<QVideoFrameFormat::PixelFormat> formatsRGB;
-    formatsRGB << QVideoFrameFormat::Format_RGB32
-               << QVideoFrameFormat::Format_ARGB32
-               << QVideoFrameFormat::Format_BGR32
-               << QVideoFrameFormat::Format_BGRA32;
-
-    QList<QVideoFrameFormat::PixelFormat> formatsYUV;
-    formatsYUV << QVideoFrameFormat::Format_YUV420P
-               << QVideoFrameFormat::Format_YUV422P
-               << QVideoFrameFormat::Format_YV12
-               << QVideoFrameFormat::Format_UYVY
-               << QVideoFrameFormat::Format_YUYV
-               << QVideoFrameFormat::Format_NV12
-               << QVideoFrameFormat::Format_NV21;
-
-    QTest::newRow("RGB formats")
-            << formatsRGB;
-
-    QTest::newRow("YVU formats")
-            << formatsYUV;
-
-    QTest::newRow("RGB & YUV formats")
-            << formatsRGB + formatsYUV;
-}
-
 void tst_QMediaPlayerBackend::surfaceTest()
 {
     // 25 fps video file
     if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
-
-    QFETCH(QList<QVideoFrameFormat::PixelFormat>, formatsList);
 
     TestVideoSink surface(false);
     QMediaPlayer player;

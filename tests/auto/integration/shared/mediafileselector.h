@@ -43,13 +43,13 @@ static QUrl selectMediaFile(const QStringList& mediaCandidates)
 {
     QMediaPlayer player;
 
-    QSignalSpy errorSpy(&player, SIGNAL(error(QMediaPlayer::Error)));
+    QSignalSpy errorSpy(&player, SIGNAL(errorOccurred(QMediaPlayer::Error, const QString&)));
 
     for (const QString &s : mediaCandidates) {
         QFileInfo mediaFile(s);
         if (!mediaFile.exists())
             continue;
-        QUrl media = QUrl(QUrl::fromLocalFile(mediaFile.absoluteFilePath()));
+        QUrl media = QUrl::fromLocalFile(mediaFile.absoluteFilePath());
         player.setSource(media);
         player.play();
 
