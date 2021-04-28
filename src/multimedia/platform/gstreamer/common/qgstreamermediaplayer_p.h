@@ -151,7 +151,7 @@ private:
     bool m_seekable = false;
     qint64 m_duration = 0;
 
-    QGstAppSrc *m_appSrc;
+    QGstAppSrc *m_appSrc = nullptr;
 
     GType decodebinType;
     QGstStructure topology;
