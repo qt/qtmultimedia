@@ -55,7 +55,7 @@
 #include <QObject>
 #include <QtCore/qmutex.h>
 #include "private/qplatformaudiodecoder_p.h"
-#include <private/qgstreamerbushelper_p.h>
+#include <private/qgstpipeline_p.h>
 #include "qaudiodecoder.h"
 
 #if QT_CONFIG(gstreamer_app)

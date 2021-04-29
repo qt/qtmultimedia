@@ -56,6 +56,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qurl.h>
 #include <private/qgst_p.h>
+#include <private/qgstpipeline_p.h>
 
 #include <QtCore/qtimer.h>
 

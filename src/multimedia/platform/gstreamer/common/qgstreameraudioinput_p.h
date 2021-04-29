@@ -57,6 +57,7 @@
 #include <QtCore/qobject.h>
 
 #include <private/qgst_p.h>
+#include <private/qgstpipeline_p.h>
 
 QT_BEGIN_NAMESPACE
 

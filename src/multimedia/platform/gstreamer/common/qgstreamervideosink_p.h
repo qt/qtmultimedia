@@ -54,7 +54,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qplatformvideosink_p.h>
 
-#include <private/qgstreamerbushelper_p.h>
+#include <private/qgstpipeline_p.h>
 #include <private/qgstreamervideooverlay_p.h>
 #include <QtGui/qcolor.h>
 #include <qvideosink.h>

@@ -47,7 +47,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <private/qgstreamerbushelper_p.h>
+#include <private/qgstpipeline_p.h>
 #include <private/qgstappsrc_p.h>
 
 #include <private/qgstutils_p.h>

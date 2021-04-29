@@ -58,8 +58,6 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideoframe.h>
 
-#include <private/qgstreamerbushelper_p.h>
-
 #include <gst/gst.h>
 
 #if QT_CONFIG(gstreamer_photography)
@@ -73,7 +71,7 @@ QT_BEGIN_NAMESPACE
 class QSize;
 class QGstStructure;
 class QGstCaps;
-class QGstreamerBusHelper;
+class QGstPipelinePrivate;
 
 template <typename T> struct QGRange
 {
@@ -564,64 +562,6 @@ public:
     {
         gst_element_add_pad(element(), gst_ghost_pad_new(name, pad.pad()));
     }
-};
-
-class QGstPipeline : public QGstBin
-{
-    QGstreamerBusHelper *busHelper = nullptr;
-public:
-    QGstPipeline(const QGstPipeline &o)
-        : QGstBin(o.bin(), NeedsRef),
-          busHelper(o.busHelper)
-    {
-        if (busHelper)
-            busHelper->ref();
-    }
-    QGstPipeline &operator=(const QGstPipeline &o)
-    {
-        if (o.busHelper)
-            o.busHelper->ref();
-        if (busHelper)
-            busHelper->deref();
-        QGstBin::operator=(o);
-        busHelper = o.busHelper;
-        return *this;
-    }
-    QGstPipeline(const char *name = nullptr)
-        : QGstBin(GST_BIN(gst_pipeline_new(name)), NeedsRef)
-    {
-        busHelper = new QGstreamerBusHelper(gst_pipeline_get_bus(pipeline()));
-        busHelper->ref();
-    }
-    QGstPipeline(GstPipeline *p)
-        : QGstBin(&p->bin, NeedsRef)
-    {
-        busHelper = new QGstreamerBusHelper(gst_pipeline_get_bus(pipeline()));
-        busHelper->ref();
-    }
-    ~QGstPipeline()
-    {
-        busHelper->deref();
-    }
-
-    void installMessageFilter(QGstreamerSyncMessageFilter *filter)
-    {
-        busHelper->installMessageFilter(filter);
-    }
-    void removeMessageFilter(QGstreamerSyncMessageFilter *filter)
-    {
-        busHelper->removeMessageFilter(filter);
-    }
-    void installMessageFilter(QGstreamerBusMessageFilter *filter)
-    {
-        busHelper->installMessageFilter(filter);
-    }
-    void removeMessageFilter(QGstreamerBusMessageFilter *filter)
-    {
-        busHelper->removeMessageFilter(filter);
-    }
-
-    GstPipeline *pipeline() const { return GST_PIPELINE_CAST(m_object); }
 };
 
 inline QGstStructure QGValue::toStructure() const

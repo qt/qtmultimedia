@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERBUSHELPER_P_H
-#define QGSTREAMERBUSHELPER_P_H
+#ifndef qgstpipeline_p_H
+#define qgstpipeline_p_H
 
 //
 //  W A R N I N G
@@ -54,7 +54,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <QObject>
 
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -73,33 +73,24 @@ public:
     virtual bool processBusMessage(const QGstreamerMessage &message) = 0;
 };
 
+class QGstPipelinePrivate;
 
-class QGstreamerBusHelperPrivate;
-
-class Q_MULTIMEDIA_EXPORT QGstreamerBusHelper : public QObject
+class QGstPipeline : public QGstBin
 {
-    Q_OBJECT
-    friend class QGstreamerBusHelperPrivate;
-
-    int m_ref = 0;
-
+    QGstPipelinePrivate *d = nullptr;
 public:
-    QGstreamerBusHelper(GstBus* bus, QObject* parent = 0);
-    ~QGstreamerBusHelper();
-
-    void ref() { ++ m_ref; }
-    void deref() { if (!--m_ref) delete this; }
+    QGstPipeline(const QGstPipeline &o);
+    QGstPipeline &operator=(const QGstPipeline &o);
+    QGstPipeline(const char *name = nullptr);
+    QGstPipeline(GstPipeline *p);
+    ~QGstPipeline();
 
     void installMessageFilter(QGstreamerSyncMessageFilter *filter);
     void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
     void installMessageFilter(QGstreamerBusMessageFilter *filter);
     void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 
-signals:
-    void message(const QGstreamerMessage &message);
-
-private:
-    QGstreamerBusHelperPrivate *d = nullptr;
+    GstPipeline *pipeline() const { return GST_PIPELINE_CAST(m_object); }
 };
 
 QT_END_NAMESPACE

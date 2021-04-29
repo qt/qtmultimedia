@@ -41,7 +41,7 @@
 #include "qgstreamermediaencoder_p.h"
 #include "qgstreamercameraimagecapture_p.h"
 #include "qgstreamercamera_p.h"
-#include <private/qgstreamerbushelper_p.h>
+#include <private/qgstpipeline_p.h>
 
 #include "qgstreamercameraimagecapture_p.h"
 #include "private/qgstreameraudioinput_p.h"

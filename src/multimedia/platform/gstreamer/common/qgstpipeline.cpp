@@ -1,0 +1,253 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include <QtCore/qmap.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qabstracteventdispatcher.h>
+#include <QtCore/qcoreapplication.h>
+
+#include "qgstpipeline_p.h"
+#include "qgstreamermessage_p.h"
+
+QT_BEGIN_NAMESPACE
+
+class QGstPipelinePrivate : public QObject
+{
+    Q_OBJECT
+    friend class QGstreamerBusHelperPrivate;
+
+    int m_ref = 0;
+    guint m_tag = 0;
+    GstBus *m_bus = nullptr;
+    QTimer *m_intervalTimer = nullptr;
+    QMutex filterMutex;
+    QList<QGstreamerSyncMessageFilter*> syncFilters;
+    QList<QGstreamerBusMessageFilter*> busFilters;
+
+public:
+    QGstPipelinePrivate(GstBus* bus, QObject* parent = 0);
+    ~QGstPipelinePrivate();
+
+    void ref() { ++ m_ref; }
+    void deref() { if (!--m_ref) delete this; }
+
+    void installMessageFilter(QGstreamerSyncMessageFilter *filter);
+    void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
+    void installMessageFilter(QGstreamerBusMessageFilter *filter);
+    void removeMessageFilter(QGstreamerBusMessageFilter *filter);
+
+    static GstBusSyncReply syncGstBusFilter(GstBus* bus, GstMessage* message, QGstPipelinePrivate *d)
+    {
+        Q_UNUSED(bus);
+        QMutexLocker lock(&d->filterMutex);
+
+        for (QGstreamerSyncMessageFilter *filter : qAsConst(d->syncFilters)) {
+            if (filter->processSyncMessage(QGstreamerMessage(message))) {
+                gst_message_unref(message);
+                return GST_BUS_DROP;
+            }
+        }
+
+        return GST_BUS_PASS;
+    }
+
+private Q_SLOTS:
+    void interval()
+    {
+        GstMessage* message;
+        while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != nullptr) {
+            processMessage(message);
+            gst_message_unref(message);
+        }
+    }
+    void doProcessMessage(const QGstreamerMessage& msg)
+    {
+        for (QGstreamerBusMessageFilter *filter : qAsConst(busFilters)) {
+            if (filter->processBusMessage(msg))
+                break;
+        }
+    }
+
+private:
+    void processMessage(GstMessage* message)
+    {
+        QGstreamerMessage msg(message);
+        doProcessMessage(msg);
+    }
+
+    void queueMessage(GstMessage* message)
+    {
+        QGstreamerMessage msg(message);
+        QMetaObject::invokeMethod(this, "doProcessMessage", Qt::QueuedConnection,
+                                  Q_ARG(QGstreamerMessage, msg));
+    }
+
+    static gboolean busCallback(GstBus *bus, GstMessage *message, gpointer data)
+    {
+        Q_UNUSED(bus);
+        static_cast<QGstPipelinePrivate *>(data)->queueMessage(message);
+        return TRUE;
+    }
+};
+
+QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
+  : QObject(parent),
+    m_bus(bus)
+{
+    gst_object_ref(GST_OBJECT(bus));
+
+    // glib event loop can be disabled either by env variable or QT_NO_GLIB define, so check the dispacher
+    QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
+    const bool hasGlib = dispatcher && dispatcher->inherits("QEventDispatcherGlib");
+    if (!hasGlib) {
+        m_intervalTimer = new QTimer(this);
+        m_intervalTimer->setInterval(250);
+        connect(m_intervalTimer, SIGNAL(timeout()), SLOT(interval()));
+        m_intervalTimer->start();
+    } else {
+        m_tag = gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, nullptr);
+    }
+
+    gst_bus_set_sync_handler(bus, (GstBusSyncHandler)syncGstBusFilter, this, nullptr);
+}
+
+QGstPipelinePrivate::~QGstPipelinePrivate()
+{
+    delete m_intervalTimer;
+
+    if (m_tag)
+        gst_bus_remove_watch(m_bus);
+
+    gst_bus_set_sync_handler(m_bus, nullptr, nullptr, nullptr);
+    gst_object_unref(GST_OBJECT(m_bus));
+}
+
+void QGstPipelinePrivate::installMessageFilter(QGstreamerSyncMessageFilter *filter)
+{
+    if (filter) {
+        QMutexLocker lock(&filterMutex);
+        if (!syncFilters.contains(filter))
+            syncFilters.append(filter);
+    }
+}
+
+void QGstPipelinePrivate::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
+{
+    if (filter) {
+        QMutexLocker lock(&filterMutex);
+        syncFilters.removeAll(filter);
+    }
+}
+
+void QGstPipelinePrivate::installMessageFilter(QGstreamerBusMessageFilter *filter)
+{
+    if (filter && !busFilters.contains(filter))
+        busFilters.append(filter);
+}
+
+void QGstPipelinePrivate::removeMessageFilter(QGstreamerBusMessageFilter *filter)
+{
+    if (filter)
+        busFilters.removeAll(filter);
+}
+
+QGstPipeline::QGstPipeline(const QGstPipeline &o)
+    : QGstBin(o.bin(), NeedsRef),
+    d(o.d)
+{
+    if (d)
+        d->ref();
+}
+
+QGstPipeline &QGstPipeline::operator=(const QGstPipeline &o)
+{
+    if (o.d)
+        o.d->ref();
+    if (d)
+        d->deref();
+    QGstBin::operator=(o);
+    d = o.d;
+    return *this;
+}
+
+QGstPipeline::QGstPipeline(const char *name)
+    : QGstBin(GST_BIN(gst_pipeline_new(name)), NeedsRef)
+{
+    d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline()));
+    d->ref();
+}
+
+QGstPipeline::QGstPipeline(GstPipeline *p)
+    : QGstBin(&p->bin, NeedsRef)
+{
+    d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline()));
+    d->ref();
+}
+
+QGstPipeline::~QGstPipeline()
+{
+    d->deref();
+}
+
+void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
+{
+    d->installMessageFilter(filter);
+}
+
+void QGstPipeline::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
+{
+    d->removeMessageFilter(filter);
+}
+
+void QGstPipeline::installMessageFilter(QGstreamerBusMessageFilter *filter)
+{
+    d->installMessageFilter(filter);
+}
+
+void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
+{
+    d->removeMessageFilter(filter);
+}
+
+QT_END_NAMESPACE
+
+#include "qgstpipeline.moc"
+

@@ -40,7 +40,7 @@
 #include "qgstreamermediaencoder_p.h"
 #include "private/qgstreamerintegration_p.h"
 #include "private/qgstreamerformatinfo_p.h"
-#include "private/qgstreamerbushelper_p.h"
+#include "private/qgstpipeline_p.h"
 #include "private/qgstreamermessage_p.h"
 #include "qaudiodeviceinfo.h"
 

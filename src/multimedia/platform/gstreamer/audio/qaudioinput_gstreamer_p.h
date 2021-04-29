@@ -64,6 +64,7 @@
 #include <private/qaudiosystem_p.h>
 
 #include <private/qgstutils_p.h>
+#include <private/qgstpipeline_p.h>
 #include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE

@@ -54,6 +54,7 @@
 #include <QtCore/qobject.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qgst_p.h>
+#include <private/qgstpipeline_p.h>
 #include <qwaitcondition.h>
 #include <qmutex.h>
 #include <qpointer.h>

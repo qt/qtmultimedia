@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qgstreamerbushelper_p.h>
+#include <private/qgstpipeline_p.h>
 #include <private/qgstreamerbufferprobe_p.h>
 #include <private/qgst_p.h>
 #include <QtGui/qwindowdefs.h>
