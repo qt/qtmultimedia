@@ -114,7 +114,7 @@ private Q_SLOTS:
 private:
     void stopWriter();
 
-    AVFCameraService *m_service;
+    AVFCameraService *m_service = nullptr;
     AVFScopedPointer<QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)> m_writer;
 
     QUrl m_outputLocation;
