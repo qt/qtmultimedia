@@ -179,8 +179,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         // But we still can write video!
     }
 
-//    auto settings = m_service->recorderControl()->encoderSettings();
-    auto fileType = AVFileTypeQuickTimeMovie;//QDarwinFormatInfo::videoFormatForCodec(settings.format())
+    auto settings = m_service->recorderControl()->encoderSettings();
+    auto fileType = QDarwinFormatInfo::avFileTypeForContainerFormat(settings.format());
     m_assetWriter.reset([[AVAssetWriter alloc] initWithURL:fileURL
                                                fileType:fileType
                                                error:nil]);

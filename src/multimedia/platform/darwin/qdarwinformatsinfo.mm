@@ -234,4 +234,23 @@ NSString *QDarwinFormatInfo::videoFormatForCodec(QMediaFormat::VideoCodec codec)
     }
     return [NSString stringWithUTF8String:c];
 }
+
+NSString *QDarwinFormatInfo::avFileTypeForContainerFormat(QMediaFormat::FileFormat container)
+{
+    switch (container) {
+        case QMediaFormat::MPEG4:
+            return AVFileTypeMPEG4;
+        case QMediaFormat::QuickTime:
+            return AVFileTypeQuickTimeMovie;
+        case QMediaFormat::MP3:
+            return AVFileTypeMPEGLayer3;
+        case QMediaFormat::Mpeg4Audio:
+            return AVFileTypeAppleM4A;
+        case QMediaFormat::Wave:
+            return AVFileTypeWAVE;
+        default:
+            return AVFileTypeQuickTimeMovie;
+    }
+}
+
 QT_END_NAMESPACE

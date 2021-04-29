@@ -214,8 +214,6 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
     if (!device)
         return nil;
 
-    // ### How to set file type????
-    // Maybe need to use AVCaptureVideoDataOutput on macOS as well?
 
     // ### re-add needFpsChange
 //    AVFPSRange currentFps = qt_current_framerates(device, connection);

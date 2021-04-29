@@ -66,6 +66,7 @@ public:
 
     static int audioFormatForCodec(QMediaFormat::AudioCodec codec);
     static NSString *videoFormatForCodec(QMediaFormat::VideoCodec codec);
+    static NSString *avFileTypeForContainerFormat(QMediaFormat::FileFormat fileType);
 };
 
 QT_END_NAMESPACE
