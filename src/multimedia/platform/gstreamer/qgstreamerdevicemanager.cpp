@@ -106,7 +106,7 @@ static QList<QAudioDeviceInfo> devicesFromSet(const QSet<GstDevice *> &deviceSet
         auto *properties = gst_device_get_properties(d);
         if (properties) {
             auto *klass = gst_structure_get_string(properties, "device.class");
-            if (strcmp(klass, "monitor")) {
+            if (qstrcmp(klass, "monitor")) {
                 auto *name = gst_structure_get_string(properties, "sysfs.path");
                 gboolean def;
                 auto *info = new QGStreamerAudioDeviceInfo(name, mode);
