@@ -400,6 +400,8 @@ void QSample::load()
     connect(m_waveDecoder, SIGNAL(formatKnown()), SLOT(decoderReady()));
     connect(m_waveDecoder, SIGNAL(parsingError()), SLOT(decoderError()));
     connect(m_waveDecoder, SIGNAL(readyRead()), SLOT(readSample()));
+
+    m_waveDecoder->open(QIODevice::ReadOnly);
 }
 
 // Called in loading thread
