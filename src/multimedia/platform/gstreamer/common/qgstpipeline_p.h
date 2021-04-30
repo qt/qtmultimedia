@@ -85,6 +85,13 @@ public:
     QGstPipeline(GstPipeline *p);
     ~QGstPipeline();
 
+    // This is needed to help us avoid sending QVideoFrames or audio buffers to the
+    // application while we're prerolling the pipeline.
+    // QMediaPlayer is still in a stopped state, while we put the gstreamer pipeline into a
+    // Paused state so that we can get the required metadata of the stream and also have a fast
+    // transition to play.
+    QProperty<bool> *inStoppedState();
+
     void installMessageFilter(QGstreamerSyncMessageFilter *filter);
     void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
     void installMessageFilter(QGstreamerBusMessageFilter *filter);

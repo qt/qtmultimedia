@@ -83,6 +83,12 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     sinkChanged();
 }
 
+void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
+{
+    gstPipeline = pipeline;
+    stoppedStateHandler = gstPipeline.inStoppedState()->onValueChanged(std::function([this]() {updatePrerollFrame();}));
+}
+
 void QGstreamerVideoOutput::setIsPreview()
 {
     // configures the queue to be fast and lightweight for camera preview
@@ -116,13 +122,24 @@ void QGstreamerVideoOutput::updateVideoSink(const QGstElement &sink)
     pad.addProbe<&QGstreamerVideoOutput::prepareVideoOutputChange>(this, GstPadProbeType(GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BLOCKING));
 }
 
+void QGstreamerVideoOutput::updatePrerollFrame()
+{
+    bool stopped = true;
+    if (!gstPipeline.isNull() && !*gstPipeline.inStoppedState())
+        stopped = false;
+    if (!isFakeSink)
+        videoSink.set("show-preroll-frame", !stopped);
+}
+
 void QGstreamerVideoOutput::sinkChanged()
 {
     QGstElement gstSink;
     if (m_videoWindow) {
         gstSink = m_videoWindow->gstSink();
+        isFakeSink = false;
     } else {
         gstSink = QGstElement("fakesink", "fakevideosink");
+        isFakeSink = true;
     }
     qDebug() << "sinkChanged" << gstSink.name();
     updateVideoSink(gstSink);
@@ -140,6 +157,7 @@ void QGstreamerVideoOutput::changeVideoOutput()
     videoSink.setState(GST_STATE_NULL);
     gstVideoOutput.remove(videoSink);
     videoSink = newVideoSink;
+    updatePrerollFrame();
     videoConvert.link(videoSink);
     GstEvent *event = gst_event_new_reconfigure();
     gst_element_send_event(videoSink.element(), event);

@@ -451,6 +451,15 @@ public:
 #endif
         return change == GST_STATE_CHANGE_SUCCESS;
     }
+    bool finishStateChange()
+    {
+        auto change = gst_element_get_state(element(), nullptr, nullptr, 10000*1e6 /*nano seconds*/);
+#ifndef QT_NO_DEBUG
+        if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL)
+            qWarning() << "Could finish change state of" << name();
+#endif
+        return change == GST_STATE_CHANGE_SUCCESS;
+    }
 
     void lockState(bool locked) { gst_element_set_locked_state(element(), locked); }
     bool isStateLocked() const { return gst_element_is_locked_state(element()); }

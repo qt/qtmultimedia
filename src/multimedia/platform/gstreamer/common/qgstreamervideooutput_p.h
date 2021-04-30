@@ -74,13 +74,14 @@ public:
 
     void setVideoSink(QVideoSink *sink);
 
-    void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
+    void setPipeline(const QGstPipeline &pipeline);
 
     QGstElement gstElement() const { return gstVideoOutput; }
 
     void setIsPreview();
 
     void updateVideoSink(const QGstElement &sink);
+    void updatePrerollFrame();
 public slots:
     void sinkChanged();
     void changeVideoOutput();
@@ -90,6 +91,8 @@ private:
 
     QVideoSink *m_videoSink = nullptr;
     QPointer<QGstreamerVideoSink> m_videoWindow;
+    std::optional<QPropertyChangeHandler<std::function<void()>>> stoppedStateHandler;
+    bool isFakeSink = true;
 
     // Gst elements
     QGstPipeline gstPipeline;

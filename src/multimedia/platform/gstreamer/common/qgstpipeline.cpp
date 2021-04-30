@@ -43,6 +43,7 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qproperty.h>
 
 #include "qgstpipeline_p.h"
 #include "qgstreamermessage_p.h"
@@ -52,7 +53,7 @@ QT_BEGIN_NAMESPACE
 class QGstPipelinePrivate : public QObject
 {
     Q_OBJECT
-    friend class QGstreamerBusHelperPrivate;
+public:
 
     int m_ref = 0;
     guint m_tag = 0;
@@ -61,8 +62,8 @@ class QGstPipelinePrivate : public QObject
     QMutex filterMutex;
     QList<QGstreamerSyncMessageFilter*> syncFilters;
     QList<QGstreamerBusMessageFilter*> busFilters;
+    QProperty<bool> inStoppedState;
 
-public:
     QGstPipelinePrivate(GstBus* bus, QObject* parent = 0);
     ~QGstPipelinePrivate();
 
@@ -130,7 +131,8 @@ private:
 
 QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
   : QObject(parent),
-    m_bus(bus)
+    m_bus(bus),
+    inStoppedState(true)
 {
     gst_object_ref(GST_OBJECT(bus));
 
@@ -225,6 +227,11 @@ QGstPipeline::QGstPipeline(GstPipeline *p)
 QGstPipeline::~QGstPipeline()
 {
     d->deref();
+}
+
+QProperty<bool> *QGstPipeline::inStoppedState()
+{
+    return &d->inStoppedState;
 }
 
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
