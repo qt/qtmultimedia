@@ -41,7 +41,9 @@
 #include <private/qwindowsdevicemanager_p.h>
 #include <private/qwindowsformatinfo_p.h>
 #include <private/qwindowsmediacapture_p.h>
+#include <private/qwindowscameraimagecapture_p.h>
 #include <private/qwindowscamera_p.h>
+#include <private/qwindowsmediaencoder_p.h>
 #include <private/mfplayercontrol_p.h>
 #include <private/mfaudiodecodercontrol_p.h>
 #include <private/mfevrvideowindowcontrol_p.h>
@@ -106,14 +108,14 @@ QPlatformCamera *QWindowsIntegration::createCamera(QCamera *camera)
     return new QWindowsCamera(camera);
 }
 
-QPlatformMediaEncoder *QWindowsIntegration::createEncoder(QMediaEncoder*)
+QPlatformMediaEncoder *QWindowsIntegration::createEncoder(QMediaEncoder *encoder)
 {
-    return nullptr;
+    return new QWindowsMediaEncoder(encoder);
 }
 
-QPlatformImageCapture *QWindowsIntegration::createImageCapture(QCameraImageCapture*)
+QPlatformCameraImageCapture *QWindowsIntegration::createImageCapture(QCameraImageCapture *imageCapture)
 {
-    return nullptr;
+    return new QWindowsCameraImageCapture(imageCapture);
 }
 
 QPlatformVideoSink *QWindowsIntegration::createVideoSink(QVideoSink *sink)

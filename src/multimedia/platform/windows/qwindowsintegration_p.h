@@ -70,13 +70,13 @@ public:
     QPlatformMediaDeviceManager *deviceManager() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
+    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode) override;
 
     QPlatformAudioDecoder *createAudioDecoder() override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
     QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
-    QPlatformImageCapture *createImageCapture(QCameraImageCapture *) override;
+    QPlatformMediaEncoder *createEncoder(QMediaEncoder *encoder) override;
+    QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *imageCapture) override;
 
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 

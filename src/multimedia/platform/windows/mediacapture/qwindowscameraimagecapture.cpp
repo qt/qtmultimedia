@@ -40,27 +40,29 @@
 #include "qwindowscameraimagecapture_p.h"
 
 #include "qwindowscamerasession_p.h"
+#include "qwindowsmediacapture_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QWindowsCameraImageCapture::QWindowsCameraImageCapture(QWindowsCameraSession *session, QObject *parent)
+QWindowsCameraImageCapture::QWindowsCameraImageCapture(QCameraImageCapture *parent)
     : QPlatformCameraImageCapture(parent)
-    , m_session(session)
 {
-    Q_ASSERT(m_session);
-    connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
 }
 
 QWindowsCameraImageCapture::~QWindowsCameraImageCapture() = default;
 
 bool QWindowsCameraImageCapture::isReadyForCapture() const
 {
-    return m_session->isReadyForCapture();
+    if (!m_cameraSession)
+        return false;
+    return m_cameraSession->isReadyForCapture();
 }
 
 int QWindowsCameraImageCapture::capture(const QString &fileName)
 {
-    return m_session->capture(fileName);
+    if (!m_cameraSession)
+        return -1;
+    return m_cameraSession->capture(fileName);
 }
 
 int QWindowsCameraImageCapture::captureToBuffer()
@@ -70,12 +72,32 @@ int QWindowsCameraImageCapture::captureToBuffer()
 
 QImageEncoderSettings QWindowsCameraImageCapture::imageSettings() const
 {
-    return m_session->imageSettings();
+    if (!m_cameraSession)
+        return QImageEncoderSettings();
+    return m_cameraSession->imageSettings();
 }
 
 void QWindowsCameraImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
-    m_session->setImageSettings(settings);
+    if (!m_cameraSession)
+        return;
+    m_cameraSession->setImageSettings(settings);
+}
+
+void QWindowsCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QWindowsMediaCaptureService *captureService = static_cast<QWindowsMediaCaptureService *>(session);
+    if (m_captureService == captureService)
+        return;
+
+    m_captureService = captureService;
+    if (!m_captureService) {
+        m_cameraSession = nullptr;
+        return;
+    }
+
+    m_cameraSession = m_captureService->session();
+    Q_ASSERT(m_cameraSession);
 }
 
 QT_END_NAMESPACE

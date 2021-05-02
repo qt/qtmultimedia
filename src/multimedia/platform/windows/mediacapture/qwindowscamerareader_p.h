@@ -66,7 +66,7 @@ class QWindowsCameraReader : public QObject, public IMFSourceReaderCallback
 {
     Q_OBJECT
 public:
-    explicit QWindowsCameraReader(QObject *parent = 0);
+    explicit QWindowsCameraReader(QObject *parent = nullptr);
     ~QWindowsCameraReader();
 
     QVideoSink *surface() const;

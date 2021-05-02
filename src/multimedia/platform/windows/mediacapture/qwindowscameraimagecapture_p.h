@@ -56,12 +56,13 @@
 QT_BEGIN_NAMESPACE
 
 class QWindowsCameraSession;
+class QWindowsMediaCaptureService;
 
 class QWindowsCameraImageCapture : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:
-    QWindowsCameraImageCapture(QWindowsCameraSession *session, QObject *parent = nullptr);
+    explicit QWindowsCameraImageCapture(QCameraImageCapture *parent);
     virtual ~QWindowsCameraImageCapture();
 
     bool isReadyForCapture() const override;
@@ -72,8 +73,11 @@ public:
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
+
 private:
-    QWindowsCameraSession *m_session;
+    QWindowsMediaCaptureService  *m_captureService = nullptr;
+    QWindowsCameraSession        *m_cameraSession = nullptr;
 };
 
 QT_END_NAMESPACE

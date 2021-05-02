@@ -56,12 +56,14 @@
 QT_BEGIN_NAMESPACE
 
 class QWindowsCameraSession;
+class QPlatformMediaCaptureSession;
+class QWindowsMediaCaptureService;
 
 class QWindowsMediaEncoder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:
-    QWindowsMediaEncoder(QWindowsCameraSession *session, QObject *parent = nullptr);
+    explicit QWindowsMediaEncoder(QMediaEncoder *parent);
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
@@ -72,11 +74,17 @@ public:
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
+
 public Q_SLOTS:
     void setState(QMediaEncoder::State state) override;
 
+private Q_SLOTS:
+    void onCameraChanged();
+
 private:
-    QWindowsCameraSession *m_session;
+    QWindowsMediaCaptureService  *m_captureService = nullptr;
+    QWindowsCameraSession        *m_cameraSession = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -40,14 +40,13 @@
 #include "qwindowsmediaencoder_p.h"
 
 #include "qwindowscamerasession_p.h"
+#include "qwindowsmediacapture_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QWindowsMediaEncoder::QWindowsMediaEncoder(QWindowsCameraSession *session, QObject *parent)
+QWindowsMediaEncoder::QWindowsMediaEncoder(QMediaEncoder *parent)
     : QPlatformMediaEncoder(parent)
-    , m_session(session)
 {
-    Q_ASSERT(m_session);
 }
 
 QUrl QWindowsMediaEncoder::outputLocation() const
@@ -84,6 +83,27 @@ void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
 }
 
 void QWindowsMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+}
+
+void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QWindowsMediaCaptureService *captureSession = static_cast<QWindowsMediaCaptureService *>(session);
+    if (m_captureService == captureSession)
+        return;
+
+    if (m_captureService)
+        setState(QMediaEncoder::StoppedState);
+
+    m_captureService = captureSession;
+    if (!m_captureService)
+        return;
+
+    connect(m_captureService, &QWindowsMediaCaptureService::cameraChanged, this, &QWindowsMediaEncoder::onCameraChanged);
+    onCameraChanged();
+}
+
+void QWindowsMediaEncoder::onCameraChanged()
 {
 }
 

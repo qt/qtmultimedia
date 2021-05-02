@@ -69,11 +69,13 @@ public:
     virtual ~QWindowsMediaCaptureService();
 
     QPlatformCamera *camera() override;
-    void setCamera(QPlatformCamera *) override;
+    void setCamera(QPlatformCamera *camera) override;
 
     QPlatformCameraImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
+    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
     bool isMuted() const override;
     void setMuted(bool muted) override;
@@ -90,7 +92,7 @@ private:
     QWindowsCamera              *m_camera = nullptr;
     QWindowsCameraSession       *m_cameraSession = nullptr;
     QWindowsCameraImageCapture  *m_imageCapture = nullptr;
-    QWindowsMediaEncoder        *m_recorder = nullptr;
+    QWindowsMediaEncoder        *m_encoder = nullptr;
 };
 
 QT_END_NAMESPACE

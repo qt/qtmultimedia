@@ -66,7 +66,7 @@ class QWindowsCameraSession : public QObject
 {
     Q_OBJECT
 public:
-    explicit QWindowsCameraSession(QObject *parent = 0);
+    explicit QWindowsCameraSession(QObject *parent = nullptr);
     ~QWindowsCameraSession();
 
     bool isActive() const;

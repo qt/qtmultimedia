@@ -51,14 +51,10 @@ QT_BEGIN_NAMESPACE
 QWindowsMediaCaptureService::QWindowsMediaCaptureService()
 {
     m_cameraSession = new QWindowsCameraSession(this);
-    m_imageCapture = new QWindowsCameraImageCapture(m_cameraSession, this);
-    m_recorder = new QWindowsMediaEncoder(m_cameraSession, this);
 }
 
 QWindowsMediaCaptureService::~QWindowsMediaCaptureService()
 {
-    delete m_recorder;
-    delete m_imageCapture;
     delete m_cameraSession;
 }
 
@@ -79,6 +75,7 @@ void QWindowsMediaCaptureService::setCamera(QPlatformCamera *camera)
     m_camera = control;
     if (m_camera)
         m_camera->setCaptureSession(this);
+    emit cameraChanged();
 }
 
 QPlatformCameraImageCapture *QWindowsMediaCaptureService::imageCapture()
@@ -86,9 +83,39 @@ QPlatformCameraImageCapture *QWindowsMediaCaptureService::imageCapture()
     return m_imageCapture;
 }
 
+void QWindowsMediaCaptureService::setImageCapture(QPlatformCameraImageCapture *imageCapture)
+{
+    QWindowsCameraImageCapture *control = static_cast<QWindowsCameraImageCapture *>(imageCapture);
+    if (m_imageCapture == control)
+        return;
+
+    if (m_imageCapture)
+        m_imageCapture->setCaptureSession(nullptr);
+
+    m_imageCapture = control;
+    if (m_imageCapture)
+        m_imageCapture->setCaptureSession(this);
+    emit imageCaptureChanged();
+}
+
 QPlatformMediaEncoder *QWindowsMediaCaptureService::mediaEncoder()
 {
-    return m_recorder;
+    return m_encoder;
+}
+
+void QWindowsMediaCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder)
+{
+    QWindowsMediaEncoder *control = static_cast<QWindowsMediaEncoder *>(encoder);
+    if (m_encoder == control)
+        return;
+
+    if (m_encoder)
+        m_encoder->setCaptureSession(nullptr);
+
+    m_encoder = control;
+    if (m_encoder)
+        m_encoder->setCaptureSession(this);
+    emit encoderChanged();
 }
 
 bool QWindowsMediaCaptureService::isMuted() const
