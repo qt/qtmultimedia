@@ -77,9 +77,12 @@ void QGstreamerCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
+    if (m_cameraInfo.isNull() && active)
+        return;
 
     m_active = active;
 
+    statusChanged(m_active ? QCamera::ActiveStatus : QCamera::InactiveStatus);
     emit activeChanged(active);
 }
 
@@ -98,6 +101,8 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 
     Q_ASSERT(!gstCamera.isNull());
 
+    gstCamera.setStateSync(GST_STATE_NULL);
+    gstDecode.setStateSync(GST_STATE_NULL);
     gstCameraBin.remove(gstCamera);
     gstCameraBin.remove(gstDecode);
 

@@ -73,8 +73,6 @@ public:
     bool isActive() const override;
     void setActive(bool active) override;
 
-    QCamera::Status status() const override { return m_status; }
-
     void setCamera(const QCameraInfo &camera) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
@@ -112,7 +110,6 @@ private:
     QGstElement gstVideoScale;
 
     bool m_active = false;
-    QCamera::Status m_status = QCamera::InactiveStatus;
     QString m_v4l2Device;
 };
 

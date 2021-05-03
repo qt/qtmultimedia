@@ -76,7 +76,6 @@ public:
     QPlatformMediaCaptureSession *captureInterface = nullptr;
     QPlatformCamera *control = nullptr;
 
-    QCameraInfo cameraDevice;
     QCameraExposure *cameraExposure = nullptr;
     QCameraFocus *cameraFocus = nullptr;
     QCameraImageProcessing *imageProcessing = nullptr;

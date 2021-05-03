@@ -104,6 +104,8 @@ public:
     void releaseAudioPad(const QGstPad &pad) const;
     void releaseVideoPad(const QGstPad &pad) const;
 
+    QGstPipeline pipeline() const { return gstPipeline; }
+
 private:
     friend QGstreamerMediaEncoder;
     // Gst elements

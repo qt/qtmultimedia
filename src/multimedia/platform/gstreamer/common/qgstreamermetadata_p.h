@@ -64,8 +64,8 @@ public:
     static QGstreamerMetaData fromGstTagList(const GstTagList *tags);
     GstTagList *toGstTagList() const;
 
-    void setMetaData(GstBin *bin);
-    void setMetaData(GstElement *element);
+    void setMetaData(GstBin *bin) const;
+    void setMetaData(GstElement *element) const;
 };
 
 QT_END_NAMESPACE

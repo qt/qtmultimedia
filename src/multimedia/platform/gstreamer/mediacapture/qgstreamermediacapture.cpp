@@ -82,6 +82,9 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
 
 QGstreamerMediaCapture::~QGstreamerMediaCapture()
 {
+    setMediaEncoder(nullptr);
+    setImageCapture(nullptr);
+    setCamera(nullptr);
     gstPipeline.setStateSync(GST_STATE_NULL);
 }
 
@@ -110,7 +113,9 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
 
     if (gstCamera) {
         gstCamera->setCaptureSession(nullptr);
-        gstPipeline.remove(gstCamera->gstElement());
+        auto camera = gstCamera->gstElement();
+        camera.setStateSync(GST_STATE_NULL);
+        gstPipeline.remove(camera);
     }
 
     gstCamera = control;
@@ -140,21 +145,13 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformCameraImageCapture *imageC
 
     gstPipeline.setStateSync(GST_STATE_PAUSED);
 
-    if (m_imageCapture) {
+    if (m_imageCapture)
         m_imageCapture->setCaptureSession(nullptr);
-        if (m_imageCapture->gstElement().state() != GST_STATE_NULL)
-            m_imageCapture->gstElement().setStateSync(GST_STATE_NULL);
-        gstPipeline.remove(m_imageCapture->gstElement());
-    }
 
     m_imageCapture = control;
-    if (m_imageCapture) {
+    if (m_imageCapture)
         m_imageCapture->setCaptureSession(this);
-        m_imageCapture->setPipeline(gstPipeline);
-        gstPipeline.add(m_imageCapture->gstElement());
-        // m_imageCapture->gstElement().lockState(false);
-        // m_imageCapture->gstElement().setState(gstPipeline.state());
-    }
+
     gstPipeline.setStateSync(GST_STATE_PLAYING);
     emit imageCaptureChanged();
 }

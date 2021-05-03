@@ -52,6 +52,7 @@
 //
 
 #include <QtMultimedia/qcameraimagecapture.h>
+#include <QtMultimedia/qmediametadata.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -71,7 +72,8 @@ public:
     virtual QImageEncoderSettings imageSettings() const = 0;
     virtual void setImageSettings(const QImageEncoderSettings &settings) = 0;
 
-    virtual void setMetaData(const QMediaMetaData &) {}
+    virtual void setMetaData(const QMediaMetaData &m) { m_metaData = m; }
+    QMediaMetaData metaData() const { return m_metaData; }
 
     QCameraImageCapture *imageCapture() { return m_imageCapture; }
 
@@ -90,6 +92,7 @@ protected:
     explicit QPlatformCameraImageCapture(QCameraImageCapture *parent = nullptr);
 private:
     QCameraImageCapture *m_imageCapture = nullptr;
+    QMediaMetaData m_metaData;
 };
 
 QT_END_NAMESPACE

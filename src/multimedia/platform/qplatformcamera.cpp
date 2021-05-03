@@ -60,7 +60,8 @@ QT_BEGIN_NAMESPACE
 */
 
 QPlatformCamera::QPlatformCamera(QCamera *parent)
-    : QObject(parent)
+  : QObject(parent),
+    m_camera(parent)
 {
 }
 
@@ -138,6 +139,16 @@ QPlatformCamera::QPlatformCamera(QCamera *parent)
 
     Sets the camera viewfinder \a settings.
 */
+
+
+void QPlatformCamera::statusChanged(QCamera::Status s)
+{
+    if (s == m_status)
+        return;
+    m_status = s;
+    emit m_camera->statusChanged(s);
+}
+
 
 QT_END_NAMESPACE
 

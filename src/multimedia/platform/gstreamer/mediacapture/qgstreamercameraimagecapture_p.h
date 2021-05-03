@@ -83,7 +83,6 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
     QGstElement gstElement() const { return bin.element(); }
-    void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
 
 public Q_SLOTS:
     void cameraActiveChanged(bool active);
@@ -95,13 +94,14 @@ private:
     void link();
     void unlink();
 
-    QGstreamerMediaCapture *m_session;
+    QGstreamerMediaCapture *m_session = nullptr;
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
 
     struct PendingImage {
         int id;
         QString filename;
+        QMediaMetaData metaData;
     };
 
     QQueue<PendingImage> pendingImages;
@@ -111,6 +111,7 @@ private:
     QGstElement queue;
     QGstElement videoConvert;
     QGstElement encoder;
+    QGstElement muxer;
     QGstElement sink;
     QGstPad videoSrcPad;
 

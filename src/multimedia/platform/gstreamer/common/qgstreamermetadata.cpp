@@ -224,7 +224,7 @@ QGstreamerMetaData QGstreamerMetaData::fromGstTagList(const GstTagList *tags)
 }
 
 
-void QGstreamerMetaData::setMetaData(GstElement *element)
+void QGstreamerMetaData::setMetaData(GstElement *element) const
 {
     if (!GST_IS_TAG_SETTER(element))
         return;
@@ -236,7 +236,6 @@ void QGstreamerMetaData::setMetaData(GstElement *element)
         if (!tagName)
             continue;
         const QVariant &tagValue = it.value();
-        qDebug() << tagName << tagValue;
 
         switch (tagValue.typeId()) {
             case QMetaType::QString:
@@ -263,7 +262,6 @@ void QGstreamerMetaData::setMetaData(GstElement *element)
                 break;
             case QMetaType::QDateTime: {
                 QDateTime date = tagValue.toDateTime();
-                qDebug() << "XXXXX" << date;
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
                     GST_TAG_MERGE_REPLACE,
                     tagName,
@@ -279,7 +277,7 @@ void QGstreamerMetaData::setMetaData(GstElement *element)
     }
 }
 
-void QGstreamerMetaData::setMetaData(GstBin *bin)
+void QGstreamerMetaData::setMetaData(GstBin *bin) const
 {
     GstIterator *elements = gst_bin_iterate_all_by_interface(bin, GST_TYPE_TAG_SETTER);
     GValue item = G_VALUE_INIT;

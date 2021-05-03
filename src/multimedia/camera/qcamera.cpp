@@ -91,11 +91,15 @@ void QCameraPrivate::init()
     Q_Q(QCamera);
 
     control = QPlatformMediaIntegration::instance()->createCamera(q);
-    if (!control)
+    if (!control) {
+        _q_error(QCamera::CameraError, QString::fromUtf8("Camera not supported"));
         return;
+    }
+
+    if (cameraInfo.isNull())
+        _q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
     control->setCamera(cameraInfo);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
-    q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
     cameraExposure = new QCameraExposure(q, control);
     cameraFocus = new QCameraFocus(q, control);
@@ -124,6 +128,7 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
 {
     Q_D(QCamera);
 
+    d->cameraInfo = cameraInfo;
     d->init();
     setCameraInfo(cameraInfo);
 }
@@ -145,7 +150,6 @@ QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
 {
     Q_D(QCamera);
 
-    d->init();
     QCameraInfo info;
     auto cameras = QMediaDevices::videoInputs();
     for (const auto &c : cameras) {
@@ -154,7 +158,10 @@ QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
             break;
         }
     }
-    setCameraInfo(info);
+    if (info.isNull())
+        info = QMediaDevices::defaultVideoInput();
+    d->cameraInfo = info;
+    d->init();
 }
 
 /*!
@@ -177,7 +184,7 @@ QCamera::~QCamera()
 bool QCamera::isAvailable() const
 {
     Q_D(const QCamera);
-    return (d->control != nullptr);
+    return d->control && !d->cameraInfo.isNull();
 }
 
 bool QCamera::isActive() const
@@ -295,6 +302,10 @@ void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
     if (d->cameraInfo == cameraInfo)
         return;
     d->cameraInfo = cameraInfo;
+    if (d->cameraInfo.isNull())
+        d->_q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
+    else
+        d->_q_error(QCamera::NoError, QString());
     if (d->control)
         d->control->setCamera(d->cameraInfo);
     emit cameraInfoChanged();

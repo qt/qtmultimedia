@@ -72,7 +72,7 @@ public:
     virtual bool isActive() const = 0;
     virtual void setActive(bool active) = 0;
 
-    virtual QCamera::Status status() const = 0;
+    virtual QCamera::Status status() const { return m_status; }
 
     virtual void setCamera(const QCameraInfo &camera) = 0;
 
@@ -82,13 +82,16 @@ public:
     virtual QPlatformCameraExposure *exposureControl() { return nullptr; }
     virtual QPlatformCameraImageProcessing *imageProcessingControl() { return nullptr; }
 
+    void statusChanged(QCamera::Status);
 Q_SIGNALS:
     void activeChanged(bool);
-    void statusChanged(QCamera::Status);
     void error(int error, const QString &errorString);
 
 protected:
     explicit QPlatformCamera(QCamera *parent);
+private:
+    QCamera *m_camera = nullptr;
+    QCamera::Status m_status = QCamera::InactiveStatus;
 };
 
 QT_END_NAMESPACE
