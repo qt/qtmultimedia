@@ -53,7 +53,8 @@
 #include <stdio.h>
 
 AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, const QString &targetFileName)
-    : m_cout(stdout, QIODevice::WriteOnly)
+    : m_cout(stdout, QIODevice::WriteOnly),
+    m_targetFilename(targetFileName)
 {
     m_isPlayback = isPlayback;
     m_isDelete = isDelete;
@@ -168,6 +169,7 @@ void AudioDecoder::stateChanged(QAudioDecoder::State newState)
 
 void AudioDecoder::finished()
 {
+    m_waveDecoder->close();
     m_cout << "Decoding finished\n";
 
     if (m_isPlayback) {

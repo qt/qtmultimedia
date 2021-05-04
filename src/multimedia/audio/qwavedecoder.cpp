@@ -120,10 +120,8 @@ void QWaveDecoder::close()
 {
     if (isOpen() && (openMode() & QIODevice::WriteOnly)) {
         Q_ASSERT(dataSize < INT_MAX);
-        if (device->isOpen())
-            Q_ASSERT(writeDataLength());
-        else
-            qWarning() << "Failed to finalize output because output device was closed";
+        if (!device->isOpen() || !writeDataLength())
+            qWarning() << "Failed to finalize wav file";
     }
     QIODevice::close();
 }
@@ -265,13 +263,16 @@ bool QWaveDecoder::writeDataLength()
     // only implemented for LITTLE ENDIAN
     return false;
 #endif
+    qDebug() << "writeDataLength" << dataSize << device->isSequential();
 
     if (isSequential())
         return false;
 
     // seek to RIFF header size, see header.riff.descriptor.size above
-    if (!device->seek(4))
+    if (!device->seek(4)) {
+        qDebug() << "can't seek";
         return false;
+    }
 
     quint32 length = dataSize + HeaderLength - 8;
     if (device->write(reinterpret_cast<const char *>(&length), 4) != 4)
@@ -410,6 +411,9 @@ void QWaveDecoder::handleData()
                 descriptor.size = qFromLittleEndian<quint32>(descriptor.size);
 
             dataSize = descriptor.size; //means the data size from the data header, not the actual file size
+            if (!dataSize)
+                dataSize = device->size() - headerLength();
+            qDebug() << "dataSize" << dataSize << device->size() << headerLength() << device->isSequential();
 
             haveFormat = true;
             connect(device, SIGNAL(readyRead()), SIGNAL(readyRead()));
