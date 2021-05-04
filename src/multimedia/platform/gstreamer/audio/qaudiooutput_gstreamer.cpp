@@ -244,10 +244,9 @@ void QGStreamerAudioOutput::close()
     gstVolume = {};
     gstAppSrc = {};
 
-    if (!m_pullMode && m_audioSource) {
+    if (!m_pullMode && m_audioSource)
         delete m_audioSource;
-        m_audioSource = nullptr;
-    }
+    m_audioSource = nullptr;
     m_opened = false;
 }
 
