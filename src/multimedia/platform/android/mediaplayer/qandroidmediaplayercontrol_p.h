@@ -70,7 +70,6 @@ public:
     ~QAndroidMediaPlayerControl() override;
 
     QMediaPlayer::PlaybackState state() const override;
-    QMediaPlayer::MediaStatus mediaStatus() const override;
     qint64 duration() const override;
     qint64 position() const override;
     int volume() const override;
