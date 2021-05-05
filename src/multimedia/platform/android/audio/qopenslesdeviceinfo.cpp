@@ -43,10 +43,12 @@
 
 QT_BEGIN_NAMESPACE
 
-QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudio::Mode mode)
     : QAudioDeviceInfoPrivate(device, mode),
       m_engine(QOpenSLESEngine::instance())
 {
+    description = desc;
+
     auto channels = m_engine->supportedChannelCounts(mode);
     if (channels.size()) {
         minimumChannelCount = channels.first();

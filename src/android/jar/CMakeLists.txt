@@ -3,6 +3,7 @@
 set(java_sources
     src/org/qtproject/qt/android/multimedia/QtAndroidMediaPlayer.java
     src/org/qtproject/qt/android/multimedia/QtCameraListener.java
+    src/org/qtproject/qt/android/multimedia/QtAudioDeviceManager.java
     src/org/qtproject/qt/android/multimedia/QtMediaRecorderListener.java
     src/org/qtproject/qt/android/multimedia/QtMultimediaUtils.java
     src/org/qtproject/qt/android/multimedia/QtSurfaceHolderCallback.java

@@ -48,6 +48,7 @@
 #include <SLES/OpenSLES_Android.h>
 #include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/private/qjni_p.h>
+#include <QtCore/QJniObject>
 #endif
 
 #define MINIMUM_PERIOD_TIME_MS 5
@@ -106,16 +107,29 @@ SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &f
 QList<QAudioDeviceInfo> QOpenSLESEngine::availableDevices(QAudio::Mode mode)
 {
     QList<QAudioDeviceInfo> devices;
-#ifdef ANDROID
+    QJniObject devs;
     if (mode == QAudio::AudioInput) {
-        devices << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_MIC, mode))->create()
-                << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_CAMCORDER, mode))->create()
-                << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_RECOGNITION, mode))->create()
-                << (new QOpenSLESDeviceInfo(QT_ANDROID_PRESET_VOICE_COMMUNICATION, mode))->create();
-        return devices;
+        devs = QJniObject::callStaticObjectMethod(
+                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                    "getAudioInputDevices",
+                    "()[Ljava/lang/String;");
+    } else if (mode == QAudio::AudioOutput) {
+        devs = QJniObject::callStaticObjectMethod(
+                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                    "getAudioOutputDevices",
+                    "()[Ljava/lang/String;");
     }
-#endif
-    devices << (new QOpenSLESDeviceInfo("default", mode))->create();
+    if (devs.isValid()) {
+          QJniEnvironment env;
+          jobjectArray devsArray = static_cast<jobjectArray>(devs.object());
+          const jint size = env->GetArrayLength(devsArray);
+          for (int i = 0; i < size; ++i) {
+              QString val = QJniObject(env->GetObjectArrayElement(devsArray, i)).toString();
+              int pos = val.indexOf(QStringLiteral(":"));
+              devices << (new QOpenSLESDeviceInfo(
+                              val.left(pos).toUtf8(), val.mid(pos+1), mode))->create();
+          }
+    }
     return devices;
 }
 
