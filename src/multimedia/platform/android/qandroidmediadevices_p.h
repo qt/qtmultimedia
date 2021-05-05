@@ -54,6 +54,8 @@
 #include <private/qplatformmediadevices_p.h>
 #include <qaudio.h>
 
+#include <QtCore/private/qjni_p.h>
+
 QT_BEGIN_NAMESPACE
 
 class QAndroidMediaDevices : public QPlatformMediaDevices
@@ -66,6 +68,10 @@ public:
     QList<QCameraInfo> videoInputs() const override;
     QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
     QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
+
+    void forwardAudioOutputsChanged();
+    void forwardAudioInputsChanged();
+    static bool initJNI(JNIEnv *env);
 };
 
 QT_END_NAMESPACE

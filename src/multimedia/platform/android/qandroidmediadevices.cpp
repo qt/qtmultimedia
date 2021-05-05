@@ -45,10 +45,14 @@
 #include "private/qopenslesaudiooutput_p.h"
 #include "private/qopenslesdeviceinfo_p.h"
 #include "private/qopenslesengine_p.h"
-
+#include "private/qplatformmediaintegration_p.h"
 #include "private/qandroidcamerasession_p.h"
 
+#include <QtCore/private/qjnihelpers_p.h>
+
 QT_BEGIN_NAMESPACE
+
+static char const *const QtAudioDeviceManagerClassName = "org/qtproject/qt/android/multimedia/QtAudioDeviceManager";
 
 QAndroidMediaDevices::QAndroidMediaDevices()
     : QPlatformMediaDevices()
@@ -78,6 +82,43 @@ QAbstractAudioInput *QAndroidMediaDevices::createAudioInputDevice(const QAudioDe
 QAbstractAudioOutput *QAndroidMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QOpenSLESAudioOutput(deviceInfo.id());
+}
+
+void QAndroidMediaDevices::forwardAudioOutputsChanged()
+{
+    audioOutputsChanged();
+}
+
+void QAndroidMediaDevices::forwardAudioInputsChanged()
+{
+    audioInputsChanged();
+}
+
+static void onAudioInputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
+{
+    static_cast<QAndroidMediaDevices*>(
+                QPlatformMediaIntegration::instance()->devices())->forwardAudioInputsChanged();
+}
+
+static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
+{
+    static_cast<QAndroidMediaDevices*>(
+                QPlatformMediaIntegration::instance()->devices())->forwardAudioOutputsChanged();
+}
+
+bool QAndroidMediaDevices::initJNI(JNIEnv *env)
+{
+    jclass clazz = QJNIEnvironmentPrivate::findClass(QtAudioDeviceManagerClassName, env);
+
+    static const JNINativeMethod methods[] = {
+        {"onAudioInputDevicesUpdated","()V",(void*)onAudioInputDevicesUpdated},
+        {"onAudioOutputDevicesUpdated", "()V",(void*)onAudioOutputDevicesUpdated}
+    };
+
+    if (clazz && env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
+            return false;
+    }
+    return true;
 }
 
 QT_END_NAMESPACE

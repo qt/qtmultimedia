@@ -132,7 +132,8 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (!AndroidMediaPlayer::initJNI(jniEnv) ||
         !AndroidCamera::initJNI(jniEnv) ||
         !AndroidMediaRecorder::initJNI(jniEnv) ||
-        !AndroidSurfaceHolder::initJNI(jniEnv)) {
+        !AndroidSurfaceHolder::initJNI(jniEnv) ||
+        !QAndroidMediaDevices::initJNI(jniEnv)) {
         return JNI_ERR;
     }
 

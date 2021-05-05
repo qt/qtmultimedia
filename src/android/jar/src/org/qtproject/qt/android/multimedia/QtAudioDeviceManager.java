@@ -41,17 +41,42 @@ package org.qtproject.qt.android.multimedia;
 
 import java.util.ArrayList;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 
 public class QtAudioDeviceManager
 {
     static private AudioManager m_audioManager = null;
+    static private AudioHeadsetStateReceiver m_audioHeadsetStateReceiver = null;
+
+    public static native void onAudioInputDevicesUpdated();
+    public static native void onAudioOutputDevicesUpdated();
+
+    static private class AudioHeadsetStateReceiver extends BroadcastReceiver
+    {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            onAudioOutputDevicesUpdated();
+            onAudioInputDevicesUpdated();
+        }
+    }
+
+    private static void registerAudioHeadsetStateReceiver(Context context) {
+        if (m_audioHeadsetStateReceiver == null) {
+            m_audioHeadsetStateReceiver = new AudioHeadsetStateReceiver();
+        }
+        context.registerReceiver(m_audioHeadsetStateReceiver,
+                                 new IntentFilter(AudioManager.ACTION_HEADSET_PLUG));
+    }
 
     static public void setContext(Context context)
     {
         m_audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+        registerAudioHeadsetStateReceiver(context);
     }
 
     private static String[] getAudioOutputDevices()
