@@ -52,16 +52,18 @@
 //
 
 #include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediacapture_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCaptureSession;
+class QAndroidCaptureService;
 
 class QAndroidMediaEncoder : public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:
-    explicit QAndroidMediaEncoder(QAndroidCaptureSession *session);
+    explicit QAndroidMediaEncoder(QMediaEncoder *parent);
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
@@ -72,11 +74,14 @@ public:
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
+
 public Q_SLOTS:
     void setState(QMediaEncoder::State state) override;
 
 private:
-    QAndroidCaptureSession *m_session;
+    QAndroidCaptureSession *m_session = nullptr;
+    QAndroidCaptureService *m_service = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -72,10 +72,13 @@ public:
     virtual ~QAndroidCaptureService();
 
     QPlatformCamera *camera() override;
+    void setCamera(QPlatformCamera *camera) override;
 
     QPlatformCameraImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
+    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
     bool isMuted() const override;
     void setMuted(bool muted) override;
@@ -86,12 +89,16 @@ public:
 
     void setVideoPreview(QVideoSink *sink) override;
 
+    QAndroidCaptureSession *captureSession() const { return m_captureSession; }
+    QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
+
+private:
     bool m_videoEnabled = false;
 
-    QAndroidMediaEncoder *m_recorderControl;
-    QAndroidCaptureSession *m_captureSession;
-    QAndroidCameraControl *m_cameraControl;
-    QAndroidCameraSession *m_cameraSession;
+    QAndroidMediaEncoder *m_encoder = nullptr;
+    QAndroidCaptureSession *m_captureSession = nullptr;
+    QAndroidCameraControl *m_cameraControl = nullptr;
+    QAndroidCameraSession *m_cameraSession = nullptr;
     QAndroidCameraImageCaptureControl *m_imageCaptureControl;
 };
 

@@ -56,12 +56,13 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
+class QAndroidCaptureService;
 
 class QAndroidCameraImageCaptureControl : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:
-    explicit QAndroidCameraImageCaptureControl(QAndroidCameraSession *session);
+    explicit QAndroidCameraImageCaptureControl(QCameraImageCapture *parent = nullptr);
 
     bool isReadyForCapture() const override;
 
@@ -71,8 +72,11 @@ public:
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
+
 private:
     QAndroidCameraSession *m_session;
+    QAndroidCaptureService *m_service;
 };
 
 QT_END_NAMESPACE

@@ -58,12 +58,13 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 class QAndroidCameraVideoRendererControl;
+class QAndroidCaptureService;
 
 class QAndroidCameraControl : public QPlatformCamera
 {
     Q_OBJECT
 public:
-    explicit QAndroidCameraControl(QAndroidCameraSession *session);
+    explicit QAndroidCameraControl(QCamera *camera);
     virtual ~QAndroidCameraControl();
 
     bool isActive() const override;
@@ -73,13 +74,15 @@ public:
 
     void setCamera(const QCameraInfo &camera) override;
 
+    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
+
     QPlatformCameraFocus *focusControl() override;
     QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 
 private:
-    QAndroidCameraSession *m_cameraSession;
-
+    QAndroidCameraSession *m_cameraSession = nullptr;
+    QAndroidCaptureService *m_service = nullptr;
     QTimer *m_recalculateTimer;
 };
 

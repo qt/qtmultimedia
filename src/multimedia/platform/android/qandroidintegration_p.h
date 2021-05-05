@@ -68,6 +68,9 @@ public:
 
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
+    QPlatformCamera *createCamera(QCamera *camera) override;
+    QPlatformMediaEncoder *createEncoder(QMediaEncoder *encoder) override;
+    QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *imageCapture) override;
 
     QAndroidDeviceManager *m_manager = nullptr;
     QPlatformMediaFormatInfo  *m_formatInfo = nullptr;

@@ -46,6 +46,9 @@
 #include "private/androidsurfacetexture_p.h"
 #include "private/androidsurfaceview_p.h"
 #include "private/androidcamera_p.h"
+#include "private/qandroidcameracontrol_p.h"
+#include "private/qandroidcameraimagecapturecontrol_p.h"
+#include "private/qandroidmediaencoder_p.h"
 #include "private/androidmediarecorder_p.h"
 #include "private/qandroidformatsinfo_p.h"
 #include "private/qandroidmediaplayercontrol_p.h"
@@ -88,6 +91,21 @@ QPlatformMediaCaptureSession *QAndroidIntegration::createCaptureSession(QMediaRe
 QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QAndroidMediaPlayerControl(player);
+}
+
+QPlatformCamera *QAndroidIntegration::createCamera(QCamera *camera)
+{
+    return new QAndroidCameraControl(camera);
+}
+
+QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaEncoder *encoder)
+{
+    return new QAndroidMediaEncoder(encoder);
+}
+
+QPlatformCameraImageCapture *QAndroidIntegration::createImageCapture(QCameraImageCapture *imageCapture)
+{
+    return new QAndroidCameraImageCaptureControl(imageCapture);
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)

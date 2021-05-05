@@ -40,18 +40,13 @@
 #include "qandroidmediaencoder_p.h"
 
 #include "qandroidcapturesession_p.h"
+#include "qandroidcaptureservice_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaEncoder::QAndroidMediaEncoder(QAndroidCaptureSession *session)
-    : QPlatformMediaEncoder()
-    , m_session(session)
+QAndroidMediaEncoder::QAndroidMediaEncoder(QMediaEncoder *parent)
+    : QPlatformMediaEncoder(parent)
 {
-    connect(m_session, SIGNAL(stateChanged(QMediaEncoder::State)), this, SIGNAL(stateChanged(QMediaEncoder::State)));
-    connect(m_session, SIGNAL(statusChanged(QMediaEncoder::Status)), this, SIGNAL(statusChanged(QMediaEncoder::Status)));
-    connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
-    connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
-    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
 }
 
 QUrl QAndroidMediaEncoder::outputLocation() const
@@ -94,5 +89,28 @@ void QAndroidMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &setti
     m_session->setEncoderSettings(settings);
 }
 
+void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    if (m_service == captureSession)
+        return;
+
+    if (m_service)
+        setState(QMediaEncoder::StoppedState);
+
+    m_service = captureSession;
+    if (!m_service) {
+        disconnect(m_session, nullptr, this, nullptr);
+        return;
+    }
+    m_session = m_service->captureSession();
+    Q_ASSERT(m_session);
+
+    connect(m_session, SIGNAL(stateChanged(QMediaEncoder::State)), this, SIGNAL(stateChanged(QMediaEncoder::State)));
+    connect(m_session, SIGNAL(statusChanged(QMediaEncoder::Status)), this, SIGNAL(statusChanged(QMediaEncoder::Status)));
+    connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
+    connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
+    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+}
 
 QT_END_NAMESPACE

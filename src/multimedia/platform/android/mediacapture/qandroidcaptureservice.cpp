@@ -56,21 +56,17 @@ QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
 {
     if (m_videoEnabled) {
         m_cameraSession = new QAndroidCameraSession;
-        m_cameraControl = new QAndroidCameraControl(m_cameraSession);
-        m_imageCaptureControl = new QAndroidCameraImageCaptureControl(m_cameraSession);
     } else {
         m_cameraSession = 0;
-        m_cameraControl = 0;
         m_imageCaptureControl = 0;
     }
 
     m_captureSession = new QAndroidCaptureSession(m_cameraSession);
-    m_recorderControl = new QAndroidMediaEncoder(m_captureSession);
 }
 
 QAndroidCaptureService::~QAndroidCaptureService()
 {
-    delete m_recorderControl;
+    delete m_encoder;
     delete m_captureSession;
     delete m_cameraControl;
     delete m_imageCaptureControl;
@@ -82,16 +78,63 @@ QPlatformCamera *QAndroidCaptureService::camera()
     return m_cameraControl;
 }
 
+void QAndroidCaptureService::setCamera(QPlatformCamera *camera)
+{
+        QAndroidCameraControl *control = static_cast<QAndroidCameraControl *>(camera);
+        if (m_cameraControl == control)
+            return;
+
+        if (m_cameraControl)
+            m_cameraControl->setCaptureSession(nullptr);
+
+        m_cameraControl = control;
+        if (m_cameraControl)
+            m_cameraControl->setCaptureSession(this);
+
+        emit cameraChanged();
+}
+
 QPlatformCameraImageCapture *QAndroidCaptureService::imageCapture()
 {
     return m_imageCaptureControl;
 }
 
-QPlatformMediaEncoder *QAndroidCaptureService::mediaEncoder()
+void QAndroidCaptureService::setImageCapture(QPlatformCameraImageCapture *imageCapture)
 {
-    return m_recorderControl;
+    QAndroidCameraImageCaptureControl *control = static_cast<QAndroidCameraImageCaptureControl *>(imageCapture);
+    if (m_imageCaptureControl == control)
+        return;
+
+    if (m_imageCaptureControl)
+        m_imageCaptureControl->setCaptureSession(nullptr);
+
+    m_imageCaptureControl = control;
+    if (m_imageCaptureControl)
+        m_imageCaptureControl->setCaptureSession(this);
 }
 
+QPlatformMediaEncoder *QAndroidCaptureService::mediaEncoder()
+{
+    return m_encoder;
+}
+
+void QAndroidCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder)
+{
+    QAndroidMediaEncoder *control = static_cast<QAndroidMediaEncoder *>(encoder);
+
+    if (m_encoder == control)
+        return;
+
+    if (m_encoder)
+        m_encoder->setCaptureSession(nullptr);
+
+    m_encoder = control;
+    if (m_encoder)
+        m_encoder->setCaptureSession(this);
+
+    emit encoderChanged();
+
+}
 
 bool QAndroidCaptureService::isMuted() const
 {

@@ -43,24 +43,17 @@
 #include "qandroidcamerafocuscontrol_p.h"
 #include "qandroidcameraimageprocessingcontrol_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
+#include "qandroidcaptureservice_p.h"
 #include <qmediadevicemanager.h>
 #include <qcamerainfo.h>
 #include <qtimer.h>
 
 QT_BEGIN_NAMESPACE
 
-QAndroidCameraControl::QAndroidCameraControl(QAndroidCameraSession *session)
-    : QPlatformCamera(0)
-    , m_cameraSession(session)
-
+QAndroidCameraControl::QAndroidCameraControl(QCamera *camera)
+    : QPlatformCamera(camera)
 {
-    connect(m_cameraSession, SIGNAL(statusChanged(QCamera::Status)),
-            this, SIGNAL(statusChanged(QCamera::Status)));
-
-    connect(m_cameraSession, SIGNAL(stateChanged(QCamera::State)),
-            this, SIGNAL(stateChanged(QCamera::State)));
-
-    connect(m_cameraSession, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+    Q_ASSERT(camera);
 
     m_recalculateTimer = new QTimer(this);
     m_recalculateTimer->setInterval(1000);
@@ -98,6 +91,32 @@ void QAndroidCameraControl::setCamera(const QCameraInfo &camera)
         }
     }
     m_cameraSession->setSelectedCamera(id);
+}
+
+void QAndroidCameraControl::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    if (m_service == captureSession)
+        return;
+
+    m_service = captureSession;
+    if (!m_service) {
+        m_cameraSession = nullptr;
+        disconnect(m_cameraSession,nullptr,this,nullptr);
+        return;
+    }
+
+    m_cameraSession = m_service->cameraSession();
+    Q_ASSERT(m_cameraSession);
+
+    connect(m_cameraSession, SIGNAL(statusChanged(QCamera::Status)),
+            this, SIGNAL(statusChanged(QCamera::Status)));
+
+    connect(m_cameraSession, SIGNAL(stateChanged(QCamera::State)),
+            this, SIGNAL(stateChanged(QCamera::State)));
+
+    connect(m_cameraSession, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+
 }
 
 QPlatformCameraFocus *QAndroidCameraControl::focusControl()

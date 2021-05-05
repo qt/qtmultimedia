@@ -40,20 +40,13 @@
 #include "qandroidcameraimagecapturecontrol_p.h"
 
 #include "qandroidcamerasession_p.h"
+#include "qandroidcaptureservice_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QAndroidCameraImageCaptureControl::QAndroidCameraImageCaptureControl(QAndroidCameraSession *session)
-    : QPlatformCameraImageCapture()
-    , m_session(session)
+QAndroidCameraImageCaptureControl::QAndroidCameraImageCaptureControl(QCameraImageCapture *parent)
+    : QPlatformCameraImageCapture(parent)
 {
-    connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
-    connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
-    connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
-    connect(m_session, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
-    connect(m_session, SIGNAL(imageAvailable(int,QVideoFrame)), this, SIGNAL(imageAvailable(int,QVideoFrame)));
-    connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
-    connect(m_session, SIGNAL(imageCaptureError(int,int,QString)), this, SIGNAL(error(int,int,QString)));
 }
 
 bool QAndroidCameraImageCaptureControl::isReadyForCapture() const
@@ -87,4 +80,27 @@ void QAndroidCameraImageCaptureControl::setImageSettings(const QImageEncoderSett
     m_session->setImageSettings(settings);
 }
 
+void QAndroidCameraImageCaptureControl::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    if (m_service == captureSession)
+        return;
+
+    m_service = captureSession;
+    if (!m_service) {
+        disconnect(m_session, nullptr, this, nullptr);
+        return;
+    }
+
+    m_session = m_service->cameraSession();
+    Q_ASSERT(m_session);
+
+    connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
+    connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
+    connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
+    connect(m_session, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+    connect(m_session, SIGNAL(imageAvailable(int,QVideoFrame)), this, SIGNAL(imageAvailable(int,QVideoFrame)));
+    connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
+    connect(m_session, SIGNAL(imageCaptureError(int,int,QString)), this, SIGNAL(error(int,int,QString)));
+}
 QT_END_NAMESPACE
