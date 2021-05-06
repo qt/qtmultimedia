@@ -151,6 +151,8 @@ void QSoundEffectPrivate::stateChanged(QAudio::State state)
 qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
 {
     qCDebug(qLcSoundEffect) << this << "readData" << len << m_runningCount;
+    if (!len)
+        return 0;
     if (m_sample->state() != QSample::Ready)
         return 0;
     if (m_runningCount == 0 || !m_playing)

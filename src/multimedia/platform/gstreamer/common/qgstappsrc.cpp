@@ -163,7 +163,7 @@ void QGstAppSrc::pushData()
     if (m_appSrc.isNull() || !m_dataRequestSize)
         return;
 
-    qCDebug(qLcAppSrc) << "pushData" << m_stream << m_buffer.size();
+    qCDebug(qLcAppSrc) << "pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
     if ((m_stream && m_stream->atEnd())) {
         eosOrIdle();
         return;
@@ -178,6 +178,7 @@ void QGstAppSrc::pushData()
     if (!m_dataRequestSize)
         m_dataRequestSize = m_maxBytes;
     size = qMin(size, (qint64)m_dataRequestSize);
+    qCDebug(qLcAppSrc) << "    reading" << size << "bytes" << m_stream->bytesAvailable() << m_dataRequestSize;
 
     GstBuffer* buffer = gst_buffer_new_and_alloc(size);
 
@@ -188,7 +189,7 @@ void QGstAppSrc::pushData()
 
     if (m_format.isValid()) {
         // timestamp raw audio data
-        uint nSamples = size/m_format.bytesPerSample();
+        uint nSamples = size/m_format.bytesPerFrame();
 
         GST_BUFFER_TIMESTAMP(buffer) = gst_util_uint64_scale(streamedSamples, GST_SECOND, m_format.sampleRate());
         GST_BUFFER_DURATION(buffer) = gst_util_uint64_scale(nSamples, GST_SECOND, m_format.sampleRate());
