@@ -324,7 +324,7 @@ void QWindowsAudioOutput::close()
     buffer_size = 0;
 }
 
-int QWindowsAudioOutput::bytesFree() const
+qsizetype QWindowsAudioOutput::bytesFree() const
 {
     int buf;
     buf = waveFreeBlockCount*period_size;
@@ -337,13 +337,13 @@ int QWindowsAudioOutput::periodSize() const
     return period_size;
 }
 
-void QWindowsAudioOutput::setBufferSize(int value)
+void QWindowsAudioOutput::setBufferSize(qsizetype value)
 {
     if(deviceState == QAudio::StoppedState)
         buffer_size = value;
 }
 
-int QWindowsAudioOutput::bufferSize() const
+qsizetype QWindowsAudioOutput::bufferSize() const
 {
     return buffer_size;
 }

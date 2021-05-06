@@ -181,7 +181,7 @@ void QOpenSLESAudioOutput::stop()
     setError(QAudio::NoError);
 }
 
-int QOpenSLESAudioOutput::bytesFree() const
+qsizetype QOpenSLESAudioOutput::bytesFree() const
 {
     if (m_state != QAudio::ActiveState && m_state != QAudio::IdleState)
         return 0;
@@ -194,7 +194,7 @@ int QOpenSLESAudioOutput::periodSize() const
     return m_periodSize;
 }
 
-void QOpenSLESAudioOutput::setBufferSize(int value)
+void QOpenSLESAudioOutput::setBufferSize(qsizetype value)
 {
     if (m_state != QAudio::StoppedState)
         return;
@@ -203,7 +203,7 @@ void QOpenSLESAudioOutput::setBufferSize(int value)
     m_bufferSize = value;
 }
 
-int QOpenSLESAudioOutput::bufferSize() const
+qsizetype QOpenSLESAudioOutput::bufferSize() const
 {
     return m_bufferSize;
 }

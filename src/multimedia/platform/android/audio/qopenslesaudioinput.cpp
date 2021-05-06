@@ -475,7 +475,7 @@ void QOpenSLESAudioInput::flushBuffers()
     }
 }
 
-int QOpenSLESAudioInput::bytesReady() const
+qsizetype QOpenSLESAudioInput::bytesReady() const
 {
     if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::SuspendedState)
         return m_bufferIODevice ? m_bufferIODevice->bytesAvailable() : m_periodSize;
@@ -483,12 +483,12 @@ int QOpenSLESAudioInput::bytesReady() const
     return 0;
 }
 
-void QOpenSLESAudioInput::setBufferSize(int value)
+void QOpenSLESAudioInput::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
 }
 
-int QOpenSLESAudioInput::bufferSize() const
+qsizetype QOpenSLESAudioInput::bufferSize() const
 {
     return m_bufferSize;
 }

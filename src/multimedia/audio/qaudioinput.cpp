@@ -257,7 +257,7 @@ void QAudioInput::resume()
 
 */
 
-void QAudioInput::setBufferSize(int value)
+void QAudioInput::setBufferSize(qsizetype value)
 {
     d->setBufferSize(value);
 }
@@ -272,7 +272,7 @@ void QAudioInput::setBufferSize(int value)
 
 */
 
-int QAudioInput::bufferSize() const
+qsizetype QAudioInput::bufferSize() const
 {
     return d->bufferSize();
 }
@@ -284,7 +284,7 @@ int QAudioInput::bufferSize() const
     state, otherwise returns zero.
 */
 
-int QAudioInput::bytesReady() const
+qsizetype QAudioInput::bytesAvailable() const
 {
     /*
     -If not ActiveState|IdleState, return 0

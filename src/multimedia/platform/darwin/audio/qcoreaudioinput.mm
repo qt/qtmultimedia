@@ -796,7 +796,7 @@ void CoreAudioInput::resume()
 }
 
 
-int CoreAudioInput::bytesReady() const
+qsizetype CoreAudioInput::bytesReady() const
 {
     if (!m_audioBuffer)
         return 0;
@@ -810,13 +810,13 @@ int CoreAudioInput::periodSize() const
 }
 
 
-void CoreAudioInput::setBufferSize(int value)
+void CoreAudioInput::setBufferSize(qsizetype value)
 {
     m_internalBufferSize = value;
 }
 
 
-int CoreAudioInput::bufferSize() const
+qsizetype CoreAudioInput::bufferSize() const
 {
     return m_internalBufferSize;
 }

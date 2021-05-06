@@ -272,7 +272,7 @@ void QGStreamerAudioOutput::stop()
     setState(QAudio::StoppedState);
 }
 
-int QGStreamerAudioOutput::bytesFree() const
+qsizetype QGStreamerAudioOutput::bytesFree() const
 {
     if (m_deviceState != QAudio::ActiveState && m_deviceState != QAudio::IdleState)
         return 0;
@@ -286,14 +286,14 @@ int QGStreamerAudioOutput::periodSize() const
     return qMin(4096, 5*m_format.sampleRate()/1000*m_format.bytesPerFrame());
 }
 
-void QGStreamerAudioOutput::setBufferSize(int value)
+void QGStreamerAudioOutput::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
     if (!gstAppSrc.isNull())
         gst_app_src_set_max_bytes(GST_APP_SRC(gstAppSrc.element()), value);
 }
 
-int QGStreamerAudioOutput::bufferSize() const
+qsizetype QGStreamerAudioOutput::bufferSize() const
 {
     return m_bufferSize;
 }

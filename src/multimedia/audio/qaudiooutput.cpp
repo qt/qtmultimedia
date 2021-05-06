@@ -239,7 +239,7 @@ void QAudioOutput::resume()
     \note The returned value is only valid while in QAudio::ActiveState or QAudio::IdleState
     state, otherwise returns zero.
 */
-int QAudioOutput::bytesFree() const
+qsizetype QAudioOutput::bytesFree() const
 {
     return d->bytesFree();
 }
@@ -264,7 +264,7 @@ int QAudioOutput::periodSize() const
     set is the actual buffer size used - call bufferSize() anytime after start()
     to return the actual buffer size being used.
 */
-void QAudioOutput::setBufferSize(int value)
+void QAudioOutput::setBufferSize(qsizetype value)
 {
     d->setBufferSize(value);
 }
@@ -278,7 +278,7 @@ void QAudioOutput::setBufferSize(int value)
     by setBufferSize().
 
 */
-int QAudioOutput::bufferSize() const
+qsizetype QAudioOutput::bufferSize() const
 {
     return d->bufferSize();
 }

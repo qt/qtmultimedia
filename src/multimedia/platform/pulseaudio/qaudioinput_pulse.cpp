@@ -392,7 +392,7 @@ int QPulseAudioInput::checkBytesReady()
     return m_bytesAvailable;
 }
 
-int QPulseAudioInput::bytesReady() const
+qsizetype QPulseAudioInput::bytesReady() const
 {
     return qMax(m_bytesAvailable, 0);
 }
@@ -534,12 +534,12 @@ qreal QPulseAudioInput::volume() const
     return m_volume;
 }
 
-void QPulseAudioInput::setBufferSize(int value)
+void QPulseAudioInput::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
 }
 
-int QPulseAudioInput::bufferSize() const
+qsizetype QPulseAudioInput::bufferSize() const
 {
     return m_bufferSize;
 }

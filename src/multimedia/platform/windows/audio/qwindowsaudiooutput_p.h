@@ -93,10 +93,10 @@ public:
     void reset();
     void suspend();
     void resume();
-    int bytesFree() const;
+    qsizetype bytesFree() const;
     int periodSize() const;
-    void setBufferSize(int value);
-    int bufferSize() const;
+    void setBufferSize(qsizetype value);
+    qsizetype bufferSize() const;
     qint64 processedUSecs() const;
     QAudio::Error error() const;
     QAudio::State state() const;

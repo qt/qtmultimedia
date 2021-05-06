@@ -251,7 +251,7 @@ gboolean QGStreamerAudioInput::busMessage(GstBus *, GstMessage *msg, gpointer us
     return false;
 }
 
-int QGStreamerAudioInput::bytesReady() const
+qsizetype QGStreamerAudioInput::bytesReady() const
 {
     return m_buffer.size();
 }
@@ -280,12 +280,12 @@ qreal QGStreamerAudioInput::volume() const
     return m_volume;
 }
 
-void QGStreamerAudioInput::setBufferSize(int value)
+void QGStreamerAudioInput::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
 }
 
-int QGStreamerAudioInput::bufferSize() const
+qsizetype QGStreamerAudioInput::bufferSize() const
 {
     return m_bufferSize;
 }

@@ -77,10 +77,10 @@ public:
     void suspend();
     void resume();
 
-    void setBufferSize(int bytes);
-    int bufferSize() const;
+    void setBufferSize(qsizetype bytes);
+    qsizetype bufferSize() const;
 
-    int bytesReady() const;
+    qsizetype bytesAvailable() const;
     int periodSize() const;
 
     void setVolume(qreal volume);

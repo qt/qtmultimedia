@@ -74,10 +74,10 @@ public:
     virtual void reset() = 0;
     virtual void suspend() = 0;
     virtual void resume() = 0;
-    virtual int bytesFree() const = 0;
+    virtual qsizetype bytesFree() const = 0;
     virtual int periodSize() const;
-    virtual void setBufferSize(int value) = 0;
-    virtual int bufferSize() const = 0;
+    virtual void setBufferSize(qsizetype value) = 0;
+    virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
     virtual QAudio::State state() const = 0;
@@ -106,10 +106,10 @@ public:
     virtual void reset() = 0;
     virtual void suspend()  = 0;
     virtual void resume() = 0;
-    virtual int bytesReady() const = 0;
+    virtual qsizetype bytesReady() const = 0;
     virtual int periodSize() const;
-    virtual void setBufferSize(int value) = 0;
-    virtual int bufferSize() const = 0;
+    virtual void setBufferSize(qsizetype value) = 0;
+    virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
     virtual QAudio::Error error() const = 0;
     virtual QAudio::State state() const = 0;

@@ -544,7 +544,7 @@ void QPulseAudioOutput::stop()
     setState(QAudio::StoppedState);
 }
 
-int QPulseAudioOutput::bytesFree() const
+qsizetype QPulseAudioOutput::bytesFree() const
 {
     if (m_deviceState != QAudio::ActiveState && m_deviceState != QAudio::IdleState)
         return 0;
@@ -561,12 +561,12 @@ int QPulseAudioOutput::periodSize() const
     return m_periodSize;
 }
 
-void QPulseAudioOutput::setBufferSize(int value)
+void QPulseAudioOutput::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
 }
 
-int QPulseAudioOutput::bufferSize() const
+qsizetype QPulseAudioOutput::bufferSize() const
 {
     return m_bufferSize;
 }

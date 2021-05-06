@@ -434,7 +434,7 @@ void QWindowsAudioInput::closeMixer()
     memset(&mixerLineControls, 0, sizeof(mixerLineControls));
 }
 
-int QWindowsAudioInput::bytesReady() const
+qsizetype QWindowsAudioInput::bytesReady() const
 {
     if(period_size == 0 || buffer_size == 0)
         return 0;
@@ -592,12 +592,12 @@ void QWindowsAudioInput::resume()
     }
 }
 
-void QWindowsAudioInput::setBufferSize(int value)
+void QWindowsAudioInput::setBufferSize(qsizetype value)
 {
     buffer_size = value;
 }
 
-int QWindowsAudioInput::bufferSize() const
+qsizetype QWindowsAudioInput::bufferSize() const
 {
     return buffer_size;
 }

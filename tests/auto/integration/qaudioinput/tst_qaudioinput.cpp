@@ -518,7 +518,7 @@ void tst_QAudioInput::push()
     QByteArray buffer(AUDIO_BUFFER, 0);
     qint64 len = audioFormat.sampleRate()*audioFormat.bytesPerFrame()/2; // .5 seconds
     while (totalBytesRead < len) {
-        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 1000);
+        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesAvailable() >= audioInput.periodSize(), 1000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
         audioFile->write(buffer.constData(),bytesRead);
         totalBytesRead+=bytesRead;
@@ -595,7 +595,7 @@ void tst_QAudioInput::pushSuspendResume()
     QByteArray buffer(AUDIO_BUFFER, 0);
     qint64 len = audioFormat.sampleRate() * audioFormat.bytesPerFrame() / 10; // 100 msecond
     while (totalBytesRead < len) {
-        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 1000);
+        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesAvailable() >= audioInput.periodSize(), 1000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
         audioFile->write(buffer.constData(),bytesRead);
         totalBytesRead+=bytesRead;
@@ -627,7 +627,7 @@ void tst_QAudioInput::pushSuspendResume()
     // Drain any data, in case we run out of space when resuming
     while (feed->read(buffer.data(), audioInput.periodSize()) > 0)
         ;
-    QCOMPARE(audioInput.bytesReady(), 0);
+    QCOMPARE(audioInput.bytesAvailable(), 0);
 
     audioInput.resume();
 
@@ -644,7 +644,7 @@ void tst_QAudioInput::pushSuspendResume()
     totalBytesRead = 0;
     firstBuffer = true;
     while (totalBytesRead < len && audioInput.state() != QAudio::StoppedState) {
-        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesReady() >= audioInput.periodSize(), 1000);
+        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesAvailable() >= audioInput.periodSize(), 1000);
         qint64 bytesRead = feed->read(buffer.data(), audioInput.periodSize());
         audioFile->write(buffer.constData(),bytesRead);
         totalBytesRead+=bytesRead;
@@ -689,7 +689,7 @@ void tst_QAudioInput::reset()
         QVERIFY2((audioInput.state() == QAudio::IdleState), "didn't transition to IdleState after start()");
         QVERIFY2((audioInput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
         QVERIFY(audioInput.periodSize() > 0);
-        QTRY_VERIFY2_WITH_TIMEOUT((audioInput.bytesReady() > audioInput.periodSize()), "no bytes available after starting", 10000);
+        QTRY_VERIFY2_WITH_TIMEOUT((audioInput.bytesAvailable() > audioInput.periodSize()), "no bytes available after starting", 10000);
 
         // Trigger a read
         QByteArray data = device->read(audioInput.periodSize());
@@ -699,7 +699,7 @@ void tst_QAudioInput::reset()
         audioInput.reset();
         QTRY_VERIFY2((stateSignal.count() == 1),"didn't emit StoppedState signal after reset()");
         QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after reset()");
-        QVERIFY2((audioInput.bytesReady() == 0), "buffer not cleared after reset()");
+        QVERIFY2((audioInput.bytesAvailable() == 0), "buffer not cleared after reset()");
     }
 
     {
@@ -725,7 +725,7 @@ void tst_QAudioInput::reset()
         audioInput.reset();
         QTRY_VERIFY2((stateSignal.count() >= 1),"didn't emit StoppedState signal after reset()");
         QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after reset()");
-        QVERIFY2((audioInput.bytesReady() == 0), "buffer not cleared after reset()");
+        QVERIFY2((audioInput.bytesAvailable() == 0), "buffer not cleared after reset()");
     }
 }
 

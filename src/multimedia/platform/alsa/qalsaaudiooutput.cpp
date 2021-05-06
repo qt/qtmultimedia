@@ -478,7 +478,7 @@ void QAlsaAudioOutput::close()
     opened = false;
 }
 
-int QAlsaAudioOutput::bytesFree() const
+qsizetype QAlsaAudioOutput::bytesFree() const
 {
     if(resuming)
         return period_size;
@@ -559,13 +559,13 @@ int QAlsaAudioOutput::periodSize() const
     return period_size;
 }
 
-void QAlsaAudioOutput::setBufferSize(int value)
+void QAlsaAudioOutput::setBufferSize(qsizetype value)
 {
     if(deviceState == QAudio::StoppedState)
         buffer_size = value;
 }
 
-int QAlsaAudioOutput::bufferSize() const
+qsizetype QAlsaAudioOutput::bufferSize() const
 {
     return buffer_size;
 }

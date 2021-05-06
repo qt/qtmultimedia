@@ -154,7 +154,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn virtual int QAbstractAudioOutput::bytesFree() const
+    \fn virtual qsizetype QAbstractAudioOutput::bytesFree() const
     Returns the free space available in bytes in the audio buffer.
 */
 
@@ -170,12 +170,12 @@ int QAbstractAudioOutput::periodSize() const
 }
 
 /*!
-    \fn virtual void QAbstractAudioOutput::setBufferSize(int value)
+    \fn virtual void QAbstractAudioOutput::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in bytes.
 */
 
 /*!
-    \fn virtual int QAbstractAudioOutput::bufferSize() const
+    \fn virtual qsizetype QAbstractAudioOutput::bufferSize() const
     Returns the audio buffer size in bytes.
 */
 
@@ -275,7 +275,7 @@ int QAbstractAudioOutput::periodSize() const
 */
 
 /*!
-    \fn virtual int QAbstractAudioInput::bytesReady() const
+    \fn virtual qsizetype QAbstractAudioInput::bytesReady() const
     Returns the amount of audio data available to read in bytes.
 */
 
@@ -291,12 +291,12 @@ int QAbstractAudioInput::periodSize() const
 }
 
 /*!
-    \fn virtual void QAbstractAudioInput::setBufferSize(int value)
+    \fn virtual void QAbstractAudioInput::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in milliseconds.
 */
 
 /*!
-    \fn virtual int QAbstractAudioInput::bufferSize() const
+    \fn virtual qsizetype QAbstractAudioInput::bufferSize() const
     Returns the audio buffer size in milliseconds.
 */
 

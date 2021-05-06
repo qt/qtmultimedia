@@ -155,7 +155,7 @@ void QnxAudioInput::resume()
     }
 }
 
-int QnxAudioInput::bytesReady() const
+qsizetype QnxAudioInput::bytesReady() const
 {
     return qMax(m_bytesAvailable, 0);
 }
@@ -165,12 +165,12 @@ int QnxAudioInput::periodSize() const
     return m_periodSize;
 }
 
-void QnxAudioInput::setBufferSize(int bufferSize)
+void QnxAudioInput::setBufferSize(qsizetype bufferSize)
 {
     m_bufferSize = bufferSize;
 }
 
-int QnxAudioInput::bufferSize() const
+qsizetype QnxAudioInput::bufferSize() const
 {
     return m_bufferSize;
 }

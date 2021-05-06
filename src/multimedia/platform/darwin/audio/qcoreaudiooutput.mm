@@ -358,7 +358,7 @@ void QCoreAudioOutput::resume()
     }
 }
 
-int QCoreAudioOutput::bytesFree() const
+qsizetype QCoreAudioOutput::bytesFree() const
 {
     return m_audioBuffer->available();
 }
@@ -368,13 +368,13 @@ int QCoreAudioOutput::periodSize() const
     return m_periodSizeBytes;
 }
 
-void QCoreAudioOutput::setBufferSize(int value)
+void QCoreAudioOutput::setBufferSize(qsizetype value)
 {
     if (m_stateCode == QAudio::StoppedState)
         m_internalBufferSize = value;
 }
 
-int QCoreAudioOutput::bufferSize() const
+qsizetype QCoreAudioOutput::bufferSize() const
 {
     return m_internalBufferSize;
 }

@@ -141,7 +141,7 @@ void QnxAudioOutput::resume()
     resumeInternal();
 }
 
-int QnxAudioOutput::bytesFree() const
+qsizetype QnxAudioOutput::bytesFree() const
 {
     if (m_state != QAudio::ActiveState && m_state != QAudio::IdleState)
         return 0;

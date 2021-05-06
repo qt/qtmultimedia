@@ -77,10 +77,10 @@ public:
     void suspend();
     void resume();
 
-    void setBufferSize(int bytes);
-    int bufferSize() const;
+    void setBufferSize(qsizetype bytes);
+    qsizetype bufferSize() const;
 
-    int bytesFree() const;
+    qsizetype bytesFree() const;
     int periodSize() const;
 
     qint64 processedUSecs() const;
