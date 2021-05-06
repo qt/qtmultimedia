@@ -346,38 +346,23 @@ qreal QAudioOutput::volume() const
 }
 
 /*!
-    Returns the audio category of this audio stream.
+    \property QMediaPlayer::audioRole
+    \brief the role of the audio stream played by the media player.
 
-    Some platforms can group audio streams into categories
-    and manage their volumes independently, or display them
-    in a system mixer control.  You can set this property to
-    allow the platform to distinguish the purpose of your streams.
+    It can be set to specify the type of audio being played, allowing the system to make
+    appropriate decisions when it comes to volume, routing or post-processing.
 
-    \sa setCategory()
+    The audio role must be set before calling setMedia().
 */
-QString QAudioOutput::category() const
+
+QAudio::Role QAudioOutput::audioRole() const
 {
-    return d->category();
+    return d->role();
 }
 
-/*!
-    Sets the audio category of this audio stream to \a category.
-
-    Some platforms can group audio streams into categories
-    and manage their volumes independently, or display them
-    in a system mixer control.  You can set this property to
-    allow the platform to distinguish the purpose of your streams.
-
-    Not all platforms support audio stream categorization.  In this
-    case, the function call will be ignored.
-
-    Changing an audio output stream's category while it is opened
-    will not take effect until it is reopened.
-    \sa category()
-*/
-void QAudioOutput::setCategory(const QString &category)
+void QAudioOutput::setAudioRole(QAudio::Role role)
 {
-    d->setCategory(category);
+    d->setRole(role);
 }
 
 /*!

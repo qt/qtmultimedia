@@ -100,9 +100,6 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-    void setCategory(const QString &category) override;
-    QString category() const override;
-
 private Q_SLOTS:
     void bytesProcessedByAppSrc(int bytes);
     void needData();

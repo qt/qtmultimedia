@@ -92,8 +92,8 @@ public:
     void setVolume(qreal);
     qreal volume() const;
 
-    QString category() const;
-    void setCategory(const QString &category);
+    QAudio::Role audioRole() const;
+    void setAudioRole(QAudio::Role role);
 
 Q_SIGNALS:
     void stateChanged(QAudio::State state);

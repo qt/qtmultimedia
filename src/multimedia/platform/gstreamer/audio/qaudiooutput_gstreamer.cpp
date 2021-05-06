@@ -377,18 +377,6 @@ qreal QGStreamerAudioOutput::volume() const
     return m_volume;
 }
 
-void QGStreamerAudioOutput::setCategory(const QString &category)
-{
-    if (m_category != category) {
-        m_category = category;
-    }
-}
-
-QString QGStreamerAudioOutput::category() const
-{
-    return m_category;
-}
-
 void QGStreamerAudioOutput::bytesProcessedByAppSrc(int bytes)
 {
     m_bytesProcessed += bytes;

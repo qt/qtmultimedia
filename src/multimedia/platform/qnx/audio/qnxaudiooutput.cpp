@@ -198,16 +198,6 @@ qreal QnxAudioOutput::volume() const
     return m_volume;
 }
 
-void QnxAudioOutput::setCategory(const QString &category)
-{
-    m_category = category;
-}
-
-QString QnxAudioOutput::category() const
-{
-    return m_category;
-}
-
 void QnxAudioOutput::pullData()
 {
     if (m_state == QAudio::StoppedState
@@ -454,6 +444,8 @@ void QnxAudioOutput::destroyPcmNotifiers()
 
 void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
 {
+#if 0
+// Use some mapping from QAudio::Role
     if (m_category.isEmpty())
         return;
 
@@ -470,6 +462,7 @@ void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
     }
 
     strcpy(params->audio_type_name, latin1Category.constData());
+#endif
 }
 
 void QnxAudioOutput::pcmNotifierActivated(int socket)

@@ -68,7 +68,6 @@
 //-----------------------------------------------------------------------------
 
 const qint64 BufferDurationUs       = 10 * 1000000;
-const int    NotifyIntervalMs       = 100;
 
 // Size of the level calculation window in microseconds
 const int    LevelWindowUs          = 0.1 * 1000000;
@@ -113,15 +112,6 @@ Engine::Engine(QObject *parent)
     for (int i = 0; i < arguments.count(); ++i) {
         if (arguments.at(i) == QStringLiteral("--"))
             break;
-
-        if (arguments.at(i) == QStringLiteral("-category")
-                || arguments.at(i) == QStringLiteral("--category")) {
-            ++i;
-            if (i < arguments.count())
-                m_audioOutputCategory = arguments.at(i);
-            else
-                --i;
-        }
     }
 
     initialize();
@@ -523,7 +513,6 @@ bool Engine::initialize()
                 }
             }
             m_audioOutput = new QAudioOutput(m_audioOutputDevice, m_format, this);
-            m_audioOutput->setCategory(m_audioOutputCategory);
         }
     } else {
         if (m_file)
@@ -538,7 +527,6 @@ bool Engine::initialize()
     ENGINE_DEBUG << "Engine::initialize" << "m_bufferLength" << m_bufferLength;
     ENGINE_DEBUG << "Engine::initialize" << "m_dataLength" << m_dataLength;
     ENGINE_DEBUG << "Engine::initialize" << "format" << m_format;
-    ENGINE_DEBUG << "Engine::initialize" << "m_audioOutputCategory" << m_audioOutputCategory;
 
     return result;
 }

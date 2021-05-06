@@ -92,7 +92,6 @@ QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
       m_streamType = -1;
 #else
       m_streamType = SL_ANDROID_STREAM_MEDIA;
-      m_category = QLatin1String("media");
 #endif // ANDROID
 }
 
@@ -279,37 +278,42 @@ qreal QOpenSLESAudioOutput::volume() const
     return m_volume;
 }
 
-void QOpenSLESAudioOutput::setCategory(const QString &category)
+void QOpenSLESAudioOutput::setCategory(QAudio::Role role)
 {
-#ifndef ANDROID
-    Q_UNUSED(category);
-#else
-    if (m_categories.isEmpty()) {
-        m_categories.insert(QLatin1String("voice"), SL_ANDROID_STREAM_VOICE);
-        m_categories.insert(QLatin1String("system"), SL_ANDROID_STREAM_SYSTEM);
-        m_categories.insert(QLatin1String("ring"), SL_ANDROID_STREAM_RING);
-        m_categories.insert(QLatin1String("media"), SL_ANDROID_STREAM_MEDIA);
-        m_categories.insert(QLatin1String("alarm"), SL_ANDROID_STREAM_ALARM);
-        m_categories.insert(QLatin1String("notification"), SL_ANDROID_STREAM_NOTIFICATION);
-    }
-
-    const SLint32 streamType = m_categories.value(category, -1);
-    if (streamType == -1) {
-        qWarning() << "Unknown category" << category
-                   << ", available categories are:" << m_categories.keys()
-                   << ". Defaulting to category \"media\"";
-        return;
+    QAbstractAudioOutput::setRole(role);
+#ifdef ANDROID
+    switch (role) {
+    case MusicRole:
+        Q_FALLTHROUGH();
+    case VideoRole:
+        m_streamType = SL_ANDROID_STREAM_MEDIA;
+        break;
+    case VoiceCommunicationRole:
+        streamType = SL_ANDROID_STREAM_VOICE;
+    case NotificationRole:
+        m_streamType = SL_ANDROID_STREAM_NOTIFICATION;
+        break;
+    case AlarmRole:
+        m_streamType = SL_ANDROID_STREAM_ALARM;
+        break;
+    case RingtoneRole:
+        m_streamType = SL_ANDROID_STREAM_RING;
+        break;
+    case AccessibilityRole:
+#define STREAM_ACCESSIBILITY 0xa // AudioManager.STREAM_ACCESSIBILITY
+        m_streamType = STREAM_ACCESSIBILITY
+    case SonificationRole:
+        Q_FALLTHROUGH();
+    case GameRole:
+        Q_FALLTHROUGH();
+    case UnknownRole:
+        m_streamType  = -1;
+        break;
     }
 
     m_startRequiresInit = true;
-    m_streamType = streamType;
     m_category = category;
 #endif // ANDROID
-}
-
-QString QOpenSLESAudioOutput::category() const
-{
-    return m_category;
 }
 
 void QOpenSLESAudioOutput::onEOSEvent()

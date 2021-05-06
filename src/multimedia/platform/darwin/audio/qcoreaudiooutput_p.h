@@ -147,9 +147,6 @@ public:
     void setVolume(qreal volume);
     qreal volume() const;
 
-    void setCategory(const QString &category);
-    QString category() const;
-
 private slots:
     void deviceStopped();
     void inputReady();

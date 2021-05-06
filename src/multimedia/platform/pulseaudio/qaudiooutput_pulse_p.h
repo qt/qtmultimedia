@@ -94,9 +94,6 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-    void setCategory(const QString &category) override;
-    QString category() const override;
-
 public:
     void streamUnderflowCallback();
 
@@ -132,7 +129,6 @@ private:
     char *m_audioBuffer;
     qint64 m_elapsedTimeOffset;
     bool m_resuming;
-    QString m_category;
 
     qreal m_volume;
     pa_sample_spec m_spec;

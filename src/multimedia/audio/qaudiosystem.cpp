@@ -216,6 +216,11 @@ int QAbstractAudioOutput::periodSize() const
     Returns the volume in the range 0.0 and 1.0.
 */
 
+void QAbstractAudioOutput::setRole(QAudio::Role role)
+{
+    m_role = role;
+}
+
 /*!
     \fn QAbstractAudioOutput::errorChanged(QAudio::Error error)
     This signal is emitted when the \a error state has changed.

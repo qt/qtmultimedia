@@ -428,16 +428,6 @@ qreal QCoreAudioOutput::volume() const
     return m_cachedVolume;
 }
 
-void QCoreAudioOutput::setCategory(const QString &category)
-{
-    Q_UNUSED(category);
-}
-
-QString QCoreAudioOutput::category() const
-{
-    return QString();
-}
-
 void QCoreAudioOutput::deviceStopped()
 {
     emit stateChanged(m_stateCode);

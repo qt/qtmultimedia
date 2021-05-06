@@ -90,8 +90,6 @@ public:
     QAudioFormat format() const override;
     void setVolume(qreal volume) override;
     qreal volume() const override;
-    void setCategory(const QString &category) override;
-    QString category() const override;
 
 private slots:
     void pullData();
@@ -121,7 +119,6 @@ private:
     QAudio::State m_state;
     QAudioFormat m_format;
     qreal m_volume;
-    QString m_category;
     int m_periodSize;
 
     snd_pcm_t *m_pcmHandle;

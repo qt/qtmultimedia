@@ -87,8 +87,7 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-    void setCategory(const QString &category) override;
-    QString category() const override;
+    void setRole(QAudio::Role role) override;
 
 private:
     friend class SLIODevicePrivate;
@@ -134,8 +133,6 @@ private:
 
     qint32 m_streamType;
     QAudioFormat m_format;
-    QString m_category;
-    static QMap<QString, qint32> m_categories;
 };
 
 class SLIODevicePrivate : public QIODevice
