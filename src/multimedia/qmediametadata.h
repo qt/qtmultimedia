@@ -96,8 +96,8 @@ public:
     static constexpr int NumMetaData = LeadPerformer + 1;
 
 //    QMetaType typeForKey(Key k);
-    Q_INVOKABLE QVariant value(Key k) const;
-    Q_INVOKABLE void insert(Key k, const QVariant &value);
+    Q_INVOKABLE QVariant value(Key k) const { return data.value(k); }
+    Q_INVOKABLE void insert(Key k, const QVariant &value) { data.insert(k, value); }
     Q_INVOKABLE void remove(Key k) { data.remove(k); }
     QList<Key> keys() const { return data.keys(); }
 
@@ -119,5 +119,7 @@ protected:
 };
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QMediaMetaData)
 
 #endif // QMEDIAMETADATA_H

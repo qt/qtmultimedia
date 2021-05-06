@@ -225,15 +225,13 @@ QT_BEGIN_NAMESPACE
 
 //}
 
-QVariant QMediaMetaData::value(QMediaMetaData::Key k) const
-{
-    return data.value(k);
-}
+/*!
+    \fn QVariant QMediaMetaData::value(QMediaMetaData::Key k) const
+*/
 
-void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
-{
-    data.insert(k, value);
-}
+/*!
+    \fn void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
+*/
 
 QString QMediaMetaData::stringValue(QMediaMetaData::Key k) const
 {
