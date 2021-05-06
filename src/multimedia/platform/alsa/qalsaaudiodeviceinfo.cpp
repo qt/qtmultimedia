@@ -61,17 +61,17 @@ QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString 
 
     checkSurround();
 
-    supportedChannelCounts.minimum = 1;
-    supportedChannelCounts.maximum = 2;
+    minimumChannelCount = 1;
+    maximumChannelCount = 2;
     if (surround71)
-        supportedChannelCounts.maximum = 8;
+        maximumChannelCount = 8;
     else if (surround40)
-        supportedChannelCounts.maximum = 4;
+        maximumChannelCount = 4;
     else if (surround51)
-        supportedChannelCounts.maximum = 6;
+        maximumChannelCount = 6;
 
-    supportedSampleRates.minimum = 8000;
-    supportedSampleRates.maximum = 48000;
+    minimumSampleRate = 8000;
+    maximumSampleRate = 48000;
 
     supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
 }

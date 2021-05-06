@@ -83,13 +83,10 @@ public:
     bool isFormatSupported(const QAudioFormat &format) const;
     QAudioFormat preferredFormat() const;
 
-    struct Range {
-        int minimum = 0;
-        int maximum = 0;
-    };
-
-    Range supportedSampleRates() const;
-    Range supportedChannelCounts() const;
+    int minimumSampleRate() const;
+    int maximumSampleRate() const;
+    int minimumChannelCount() const;
+    int maximumChannelCount() const;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats() const;
 
     const QAudioDeviceInfoPrivate *handle() const { return d.get(); }

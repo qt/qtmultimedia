@@ -91,8 +91,6 @@ void printAudioDeviceInfo(QTextStream &out, const QAudioDeviceInfo &deviceInfo)
 {
     const auto isDefault = deviceInfo.isDefault() ? "Yes" : "No";
     const auto preferredFormat = deviceInfo.preferredFormat();
-    const auto ratesRange = deviceInfo.supportedSampleRates();
-    const auto channelsRange = deviceInfo.supportedChannelCounts();
     const auto supportedFormats = deviceInfo.supportedSampleFormats();
     out.setFieldWidth(30);
     out.setFieldAlignment(QTextStream::AlignLeft);
@@ -113,9 +111,11 @@ void printAudioDeviceInfo(QTextStream &out, const QAudioDeviceInfo &deviceInfo)
         out << qSetFieldWidth(0) << formatToString(format) << " ";
     out << Qt::endl;
     out.setFieldWidth(30);
-    out << "Supported Rates: " << qSetFieldWidth(0) << ratesRange.minimum << " - " << ratesRange.maximum << Qt::endl;
+    out << "Supported Rates: " << qSetFieldWidth(0) << deviceInfo.minimumSampleRate() << " - "
+                                                    << deviceInfo.maximumSampleRate() << Qt::endl;
     out.setFieldWidth(30);
-    out << "Supported Channels: " << qSetFieldWidth(0) << channelsRange.minimum << " - " << channelsRange.maximum << Qt::endl;
+    out << "Supported Channels: " << qSetFieldWidth(0) << deviceInfo.minimumChannelCount() << " - "
+                                                       << deviceInfo.maximumChannelCount() << Qt::endl;
 
     out << Qt::endl;
 }

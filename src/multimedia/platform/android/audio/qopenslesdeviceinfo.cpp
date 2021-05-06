@@ -48,12 +48,16 @@ QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, QAudio::Mode 
       m_engine(QOpenSLESEngine::instance())
 {
     auto channels = m_engine->supportedChannelCounts(mode);
-    if (channels.size())
-        supportedChannelCounts = { channels.first(), channels.last() };
+    if (channels.size()) {
+        minimumChannelCount = channels.first();
+        maximumChannelCount = channels.first();
+    }
 
     auto sampleRates = m_engine->supportedSampleRates(mode);
-    if (sampleRates.size())
-        supportedSampleRates = { sampleRates.first(), sampleRates.last() };
+    if (sampleRates.size()) {
+        minimumSampleRate = sampleRates.first();
+        maximumSampleRate = sampleRates.last();
+    }
     if (mode == QAudio::AudioInput)
         supportedSampleFormats.append(QAudioFormat::UInt8);
     supportedSampleFormats.append(QAudioFormat::Int16);

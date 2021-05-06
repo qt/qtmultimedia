@@ -77,8 +77,8 @@ VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
     }
 
     //sample rate:
-    const auto sampleRates = mediaRecorder->captureSession()->audioInput().supportedSampleRates();
-    ui->audioSampleRateBox->setRange(sampleRates.minimum, sampleRates.maximum);
+    ui->audioSampleRateBox->setRange(mediaRecorder->captureSession()->audioInput().minimumSampleRate(),
+                                     mediaRecorder->captureSession()->audioInput().maximumSampleRate());
 
     //video codecs
     ui->videoCodecBox->addItem(tr("Default video codec"), QVariant::fromValue(QMediaFormat::VideoCodec::Unspecified));

@@ -98,9 +98,8 @@ void tst_QAudioDeviceInfo::checkAvailableDefaultOutput()
 
 void tst_QAudioDeviceInfo::channels()
 {
-    auto range = device->supportedChannelCounts();
-    QVERIFY(range.minimum > 0);
-    QVERIFY(range.maximum > range.minimum);
+    QVERIFY(device->minimumChannelCount() > 0);
+    QVERIFY(device->maximumChannelCount() > device->minimumChannelCount());
 }
 
 void tst_QAudioDeviceInfo::sampleFormat()
@@ -111,9 +110,8 @@ void tst_QAudioDeviceInfo::sampleFormat()
 
 void tst_QAudioDeviceInfo::sampleRates()
 {
-    auto range = device->supportedSampleRates();
-    QVERIFY(range.minimum > 0);
-    QVERIFY(range.maximum > range.minimum);
+    QVERIFY(device->minimumSampleRate() > 0);
+    QVERIFY(device->maximumSampleRate() > device->minimumSampleRate());
 }
 
 void tst_QAudioDeviceInfo::isFormatSupported()

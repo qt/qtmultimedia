@@ -49,8 +49,10 @@ QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *des
     description = QString::fromUtf8(desc);
     isDefault = isDef;
 
-    supportedChannelCounts = { 1, PA_CHANNELS_MAX };
-    supportedSampleRates = { 1, PA_RATE_MAX };
+    minimumChannelCount = 1;
+    maximumChannelCount = PA_CHANNELS_MAX;
+    minimumSampleRate = 1;
+    maximumSampleRate = PA_RATE_MAX;
 
     constexpr bool isBigEndian = QSysInfo::ByteOrder == QSysInfo::BigEndian;
 

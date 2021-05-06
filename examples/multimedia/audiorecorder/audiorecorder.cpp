@@ -98,9 +98,10 @@ AudioRecorder::AudioRecorder()
     }
 
     //sample rate
-    auto sampleRates = m_captureSession.audioInput().supportedSampleRates();
-    ui->sampleRateBox->setRange(sampleRates.minimum, sampleRates.maximum);
-    ui->sampleRateBox->setValue(qBound(sampleRates.minimum, 44100, sampleRates.maximum));
+    ui->sampleRateBox->setRange(m_captureSession.audioInput().minimumSampleRate(),
+                                m_captureSession.audioInput().maximumSampleRate());
+    ui->sampleRateBox->setValue(qBound(m_captureSession.audioInput().minimumSampleRate(), 44100,
+                                m_captureSession.audioInput().maximumSampleRate());
 
     //channels
     ui->channelsBox->addItem(tr("Default"), QVariant(-1));

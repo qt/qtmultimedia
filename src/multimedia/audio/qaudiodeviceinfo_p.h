@@ -70,8 +70,10 @@ public:
 
     QAudioFormat preferredFormat;
     QString description;
-    QAudioDeviceInfo::Range supportedSampleRates;
-    QAudioDeviceInfo::Range supportedChannelCounts;
+    int minimumSampleRate;
+    int maximumSampleRate;
+    int minimumChannelCount;
+    int maximumChannelCount;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats;
 
     QAudioDeviceInfo create() { return QAudioDeviceInfo(this); }

@@ -559,24 +559,19 @@ bool Engine::selectFormat()
         }
     } else {
 
-        QAudioDeviceInfo::Range sampleRange = m_audioInputDevice.supportedSampleRates();
-        QAudioDeviceInfo::Range outputSampleRange = m_audioOutputDevice.supportedSampleRates();
-        if (sampleRange.minimum < outputSampleRange.minimum)
-            sampleRange.minimum = outputSampleRange.minimum;
-        if (sampleRange.maximum > outputSampleRange.maximum)
-            sampleRange.maximum = outputSampleRange.maximum;
-
-        QAudioDeviceInfo::Range channelRange = m_audioInputDevice.supportedChannelCounts();
-        QAudioDeviceInfo::Range outputChannelRange = m_audioOutputDevice.supportedChannelCounts();
-        if (channelRange.minimum < outputChannelRange.minimum)
-            channelRange.minimum = outputChannelRange.minimum;
-        if (channelRange.maximum > outputChannelRange.maximum)
-            channelRange.maximum = outputChannelRange.maximum;
+        int minSampleRate = qMin(m_audioInputDevice.minimumSampleRate(),
+                                 m_audioOutputDevice.minimumSampleRate());
+        int maxSampleRate = qMin(m_audioInputDevice.maximumSampleRate(),
+                                 m_audioOutputDevice.maximumSampleRate());
+        int minChannelCount = qMin(m_audioInputDevice.minimumChannelCount(),
+                                   m_audioOutputDevice.minimumChannelCount());
+        int maxChannelCount = qMin(m_audioInputDevice.maximumChannelCount(),
+                                   m_audioOutputDevice.maximumChannelCount());
 
         QAudioFormat format;
         format.setSampleFormat(QAudioFormat::Int16);
-        format.setSampleRate(qBound(sampleRange.minimum, 48000, sampleRange.maximum));
-        format.setChannelCount(qBound(channelRange.minimum, 2, channelRange.maximum));
+        format.setSampleRate(qBound(minSampleRate, 48000, maxSampleRate));
+        format.setChannelCount(qBound(minChannelCount, 2, maxChannelCount));
 
         setFormat(format);
     }

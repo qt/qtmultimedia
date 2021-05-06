@@ -62,17 +62,21 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(const QByteArray &device, Q
             auto c = caps.at(i);
             if (c.name() == "audio/x-raw") {
                 auto rate = c["rate"].toIntRange();
-                if (rate)
-                    supportedSampleRates = { rate->min, rate->max };
+                if (rate) {
+                    minimumSampleRate = rate->min;
+                    minimumSampleRate = rate->max;
+                }
                 auto channels = c["channels"].toIntRange();
-                if (channels)
-                    supportedChannelCounts = { channels->min, channels->max };
+                if (channels) {
+                    minimumChannelCount = channels->min;
+                    maximumChannelCount = channels->max;
+                }
                 supportedSampleFormats = c["format"].getSampleFormats();
             }
         }
 
-        preferredFormat.setChannelCount(qBound(supportedChannelCounts.minimum, 2, supportedChannelCounts.maximum));
-        preferredFormat.setSampleRate(qBound(supportedSampleRates.minimum, 48000, supportedSampleRates.maximum));
+        preferredFormat.setChannelCount(qBound(minimumChannelCount, 2, maximumChannelCount));
+        preferredFormat.setSampleRate(qBound(minimumSampleRate, 48000, maximumSampleRate));
         QAudioFormat::SampleFormat f = QAudioFormat::Int16;
         if (!supportedSampleFormats.contains(f))
             f = supportedSampleFormats.value(0, QAudioFormat::Unknown);

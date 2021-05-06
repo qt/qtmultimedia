@@ -70,8 +70,8 @@ QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate() = default;
 
     The values supported by the device for each of these
     parameters can be fetched with
-    supportedByteOrders(), supportedChannelCounts(), supportedCodecs(),
-    supportedSampleRates(), supportedSampleSizes(), and
+    supportedByteOrders(), minimumChannelCount(), maximumChannelCount(), supportedCodecs(),
+    minimumSampleRate(), maximumSampleRate(), supportedSampleSizes(), and
     supportedSampleTypes(). The combinations supported are dependent on the platform,
     audio plugins installed and the audio device capabilities. If you need a
     specific format, you can check if
@@ -194,9 +194,9 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 {
     if (isNull())
         return false;
-    if (settings.sampleRate() < d->supportedSampleRates.minimum || settings.sampleRate() > d->supportedSampleRates.maximum)
+    if (settings.sampleRate() < d->minimumSampleRate || settings.sampleRate() > d->maximumSampleRate)
         return false;
-    if (settings.channelCount() < d->supportedChannelCounts.minimum || settings.channelCount() > d->supportedChannelCounts.maximum)
+    if (settings.channelCount() < d->minimumChannelCount || settings.channelCount() > d->maximumChannelCount)
         return false;
     if (!d->supportedSampleFormats.contains(settings.sampleFormat()))
         return false;
@@ -222,23 +222,39 @@ QAudioFormat QAudioDeviceInfo::preferredFormat() const
 }
 
 /*!
-    Returns a list of supported sample rates (in Hertz).
-
+    Returns the minimum supported sample rate (in Hertz).
 */
-QAudioDeviceInfo::Range QAudioDeviceInfo::supportedSampleRates() const
+int QAudioDeviceInfo::minimumSampleRate() const
 {
-    return isNull() ? Range{0, 0} : d->supportedSampleRates;
+    return isNull() ? 0 : d->minimumSampleRate;
 }
 
 /*!
-    Returns a list of supported channel counts.
+    Returns the maximum supported sample rate (in Hertz).
+*/
+int QAudioDeviceInfo::maximumSampleRate() const
+{
+    return isNull() ? 0 : d->maximumSampleRate;
+}
+
+/*!
+    Returns the minimum number of supported channel counts.
 
     This is typically 1 for mono sound, or 2 for stereo sound.
-
 */
-QAudioDeviceInfo::Range QAudioDeviceInfo::supportedChannelCounts() const
+int QAudioDeviceInfo::minimumChannelCount() const
 {
-    return isNull() ? Range{0, 0} : d->supportedChannelCounts;
+    return isNull() ? 0 : d->minimumChannelCount;
+}
+
+/*!
+    Returns the maximum number of supported channel counts.
+
+    This is typically 1 for mono sound, or 2 for stereo sound.
+*/
+int QAudioDeviceInfo::maximumChannelCount() const
+{
+    return isNull() ? 0 : d->maximumChannelCount;
 }
 
 /*!

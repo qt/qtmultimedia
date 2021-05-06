@@ -113,36 +113,36 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
        || (fmt & WAVE_FORMAT_1S08)
        || (fmt & WAVE_FORMAT_1M16)
        || (fmt & WAVE_FORMAT_1S16)) {
-        supportedSampleRates.minimum = qMin(supportedSampleRates.minimum, 11025);
-        supportedSampleRates.maximum = qMin(supportedSampleRates.maximum, 11025);
+        minimumSampleRate = qMin(minimumSampleRate, 11025);
+        maximumSampleRate = qMin(maximumSampleRate, 11025);
     }
     if ((fmt & WAVE_FORMAT_2M08)
        || (fmt & WAVE_FORMAT_2S08)
        || (fmt & WAVE_FORMAT_2M16)
        || (fmt & WAVE_FORMAT_2S16)) {
-        supportedSampleRates.minimum = qMin(supportedSampleRates.minimum, 22050);
-        supportedSampleRates.maximum = qMin(supportedSampleRates.maximum, 22050);
+        minimumSampleRate = qMin(minimumSampleRate, 22050);
+        maximumSampleRate = qMin(maximumSampleRate, 22050);
     }
     if ((fmt & WAVE_FORMAT_4M08)
        || (fmt & WAVE_FORMAT_4S08)
        || (fmt & WAVE_FORMAT_4M16)
        || (fmt & WAVE_FORMAT_4S16)) {
-        supportedSampleRates.minimum = qMin(supportedSampleRates.minimum, 44100);
-        supportedSampleRates.maximum = qMin(supportedSampleRates.maximum, 44100);
+        minimumSampleRate = qMin(minimumSampleRate, 44100);
+        maximumSampleRate = qMin(maximumSampleRate, 44100);
     }
     if ((fmt & WAVE_FORMAT_48M08)
         || (fmt & WAVE_FORMAT_48S08)
         || (fmt & WAVE_FORMAT_48M16)
         || (fmt & WAVE_FORMAT_48S16)) {
-        supportedSampleRates.minimum = qMin(supportedSampleRates.minimum, 48000);
-        supportedSampleRates.maximum = qMin(supportedSampleRates.maximum, 48000);
+        minimumSampleRate = qMin(minimumSampleRate, 48000);
+        maximumSampleRate = qMin(maximumSampleRate, 48000);
     }
     if ((fmt & WAVE_FORMAT_96M08)
        || (fmt & WAVE_FORMAT_96S08)
        || (fmt & WAVE_FORMAT_96M16)
        || (fmt & WAVE_FORMAT_96S16)) {
-        supportedSampleRates.minimum = qMin(supportedSampleRates.minimum, 96000);
-        supportedSampleRates.maximum = qMin(supportedSampleRates.maximum, 96000);
+        minimumSampleRate = qMin(minimumSampleRate, 96000);
+        maximumSampleRate = qMin(maximumSampleRate, 96000);
     }
 
     // Check channel count
@@ -156,8 +156,8 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
             || fmt & WAVE_FORMAT_48M16
             || fmt & WAVE_FORMAT_96M08
             || fmt & WAVE_FORMAT_96M16) {
-        supportedChannelCounts.minimum = 1;
-        supportedChannelCounts.maximum = 1;
+        minimumChannelCount = 1;
+        maximumChannelCount = 1;
     }
     if (fmt & WAVE_FORMAT_1S08
             || fmt & WAVE_FORMAT_1S16
@@ -169,16 +169,16 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
             || fmt & WAVE_FORMAT_48S16
             || fmt & WAVE_FORMAT_96S08
             || fmt & WAVE_FORMAT_96S16) {
-        supportedChannelCounts.minimum = qMin(supportedChannelCounts.minimum, 96000);
-        supportedChannelCounts.maximum = qMin(supportedChannelCounts.maximum, 96000);
+        minimumChannelCount = qMin(minimumChannelCount, 96000);
+        maximumChannelCount = qMin(maximumChannelCount, 96000);
     }
 
     // WAVEOUTCAPS and WAVEINCAPS contains information only for the previously tested parameters.
     // WaveOut and WaveInt might actually support more formats, the only way to know is to try
     // opening the device with it.
     QAudioFormat testFormat;
-    testFormat.setChannelCount(supportedChannelCounts.maximum);
-    testFormat.setSampleRate(supportedSampleRates.maximum);
+    testFormat.setChannelCount(maximumChannelCount);
+    testFormat.setSampleRate(maximumSampleRate);
     const QAudioFormat defaultTestFormat(testFormat);
 
     // Check if float samples are supported
@@ -191,7 +191,7 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
     for (int i = 18; i > 2; --i) { // <mmreg.h> defines 18 different channels
         testFormat.setChannelCount(i);
         if (testSettings(testFormat)) {
-            supportedChannelCounts.maximum = i;
+            maximumChannelCount = i;
             break;
         }
     }

@@ -56,24 +56,19 @@ QT_BEGIN_NAMESPACE
     QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode)
         : QAudioDeviceInfoPrivate(device, mode),
         m_deviceId(id)
-    {
-        preferredFormat = determinePreferredFormat();
-        description = getDescription();
-        supportedSampleRates = { 1, 96000 };
-        supportedChannelCounts = { 1, 16 };
-        supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
-    }
 #else
     QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
         : QAudioDeviceInfoPrivate(device, mode)
+#endif
     {
         preferredFormat = determinePreferredFormat();
         description = getDescription();
-        supportedSampleRates = { 1, 96000 };
-        supportedChannelCounts = { 1, 16 };
+        minimumSampleRate = 1;
+        maximumSampleRate = 96000;
+        minimumChannelCount = 1;
+        maximumChannelCount = 16;
         supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
     }
-#endif
 
 
 QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const

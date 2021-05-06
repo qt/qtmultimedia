@@ -151,18 +151,18 @@ void AudioTest::deviceChanged(int idx)
     m_deviceInfo = deviceBox->itemData(idx).value<QAudioDeviceInfo>();
 
     sampleRateSpinBox->clear();
-    auto sampleRates = m_deviceInfo.supportedSampleRates();
-    sampleRateSpinBox->setMinimum(sampleRates.minimum);
-    sampleRateSpinBox->setMaximum(sampleRates.maximum);
-    int sampleValue = qBound(sampleRates.minimum, 48000, sampleRates.maximum);
+    sampleRateSpinBox->setMinimum(m_deviceInfo.minimumSampleRate());
+    sampleRateSpinBox->setMaximum(m_deviceInfo.maximumSampleRate());
+    int sampleValue = qBound(m_deviceInfo.minimumSampleRate(), 48000,
+                             m_deviceInfo.maximumSampleRate());
     sampleRateSpinBox->setValue(sampleValue);
     m_settings.setSampleRate(sampleValue);
 
     channelsSpinBox->clear();
-    auto channelRates = m_deviceInfo.supportedChannelCounts();
-    channelsSpinBox->setMinimum(channelRates.minimum);
-    channelsSpinBox->setMaximum(channelRates.maximum);
-    int channelValue = qBound(channelRates.minimum, 2, channelRates.maximum);
+    channelsSpinBox->setMinimum(m_deviceInfo.minimumChannelCount());
+    channelsSpinBox->setMaximum(m_deviceInfo.maximumChannelCount());
+    int channelValue = qBound(m_deviceInfo.minimumChannelCount(), 2,
+                              m_deviceInfo.maximumChannelCount());
     channelsSpinBox->setValue(channelValue);
 
     sampleFormatBox->clear();
@@ -185,12 +185,12 @@ void AudioTest::populateTable()
         QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(sampleFormat));
         allFormatsTable->setItem(row, 2, sampleTypeItem);
 
-        auto sampleRates = m_deviceInfo.supportedSampleRates();
-        QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1 - %2").arg(sampleRates.minimum).arg(sampleRates.maximum));
+        QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1 - %2")
+            .arg(m_deviceInfo.minimumSampleRate()).arg(m_deviceInfo.maximumSampleRates()));
         allFormatsTable->setItem(row, 0, sampleRateItem);
 
-        auto channels = m_deviceInfo.supportedChannelCounts();
-        QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1 - %2").arg(channels.minimum).arg(channels.maximum));
+        QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1 - %2")
+            .arg(m_deviceInfo.minimumChannelCount()).arg(m_deviceInfo.maximumChannelCount()));
         allFormatsTable->setItem(row, 1, channelsItem);
 
         ++row;
