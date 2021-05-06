@@ -369,7 +369,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
     }
 }
 
-QPlatformVideoSink *QVideoSink::platformVideoSink()
+QPlatformVideoSink *QVideoSink::platformVideoSink() const
 {
     return d->videoSink;
 }

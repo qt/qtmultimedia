@@ -94,7 +94,7 @@ public:
 
     void paint(QPainter *painter, const QVideoFrame &frame);
 
-    QPlatformVideoSink *platformVideoSink();
+    QPlatformVideoSink *platformVideoSink() const;
     QSize videoSize() const;
 
 Q_SIGNALS:
