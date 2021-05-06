@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 class QAudioFormatPrivate;
 
-class Q_MULTIMEDIA_EXPORT QAudioFormat
+class QAudioFormat
 {
 public:
     enum SampleFormat {
@@ -62,37 +62,40 @@ public:
         NSampleFormats
     };
 
-    bool isValid() const;
+    constexpr bool isValid() const noexcept
+    {
+        return m_sampleRate > 0 && m_channelCount > 0 && m_sampleFormat != Unknown;
+    }
 
-    void setSampleRate(int sampleRate) { m_sampleRate = sampleRate; }
-    int sampleRate() const { return m_sampleRate; }
+    constexpr void setSampleRate(int sampleRate) noexcept { m_sampleRate = sampleRate; }
+    constexpr int sampleRate() const noexcept { return m_sampleRate; }
 
-    void setChannelCount(int channelCount) { m_channelCount = channelCount; }
-    int channelCount() const { return m_channelCount; }
+    constexpr void setChannelCount(int channelCount) noexcept { m_channelCount = channelCount; }
+    constexpr int channelCount() const noexcept { return m_channelCount; }
 
-    void setSampleFormat(SampleFormat f) { m_sampleFormat = f; }
-    SampleFormat sampleFormat() const { return m_sampleFormat; }
+    constexpr void setSampleFormat(SampleFormat f) noexcept { m_sampleFormat = f; }
+    constexpr SampleFormat sampleFormat() const noexcept { return m_sampleFormat; }
 
     // Helper functions
-    qint32 bytesForDuration(qint64 duration) const;
-    qint64 durationForBytes(qint32 byteCount) const;
+    Q_MULTIMEDIA_EXPORT qint32 bytesForDuration(qint64 duration) const;
+    Q_MULTIMEDIA_EXPORT qint64 durationForBytes(qint32 byteCount) const;
 
-    qint32 bytesForFrames(qint32 frameCount) const;
-    qint32 framesForBytes(qint32 byteCount) const;
+    Q_MULTIMEDIA_EXPORT qint32 bytesForFrames(qint32 frameCount) const;
+    Q_MULTIMEDIA_EXPORT qint32 framesForBytes(qint32 byteCount) const;
 
-    qint32 framesForDuration(qint64 duration) const;
-    qint64 durationForFrames(qint32 frameCount) const;
+    Q_MULTIMEDIA_EXPORT qint32 framesForDuration(qint64 duration) const;
+    Q_MULTIMEDIA_EXPORT qint64 durationForFrames(qint32 frameCount) const;
 
-    int bytesPerFrame() const { return bytesPerSample()*channelCount(); }
-    int bytesPerSample() const;
+    constexpr int bytesPerFrame() const { return bytesPerSample()*channelCount(); }
+    Q_MULTIMEDIA_EXPORT int bytesPerSample() const;
 
-    float normalizedSampleValue(const void *sample) const;
+    Q_MULTIMEDIA_EXPORT float normalizedSampleValue(const void *sample) const;
 
     friend bool operator==(const QAudioFormat &a, const QAudioFormat &b)
     {
         return a.m_sampleRate == b.m_sampleRate &&
-                a.m_channelCount == b.m_channelCount &&
-                a.m_sampleFormat == b.m_sampleFormat;
+               a.m_channelCount == b.m_channelCount &&
+               a.m_sampleFormat == b.m_sampleFormat;
     }
     friend bool operator!=(const QAudioFormat &a, const QAudioFormat &b)
     {
@@ -100,15 +103,19 @@ public:
     }
 
 private:
+    SampleFormat m_sampleFormat = SampleFormat::Unknown;
     int m_sampleRate = 0;
     short m_channelCount = 0;
-    SampleFormat m_sampleFormat = SampleFormat::Unknown;
+    [[maybe_unused]]short bitfields = 0;
+    [[maybe_unused]]quint64 reserved = 0;
 };
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QAudioFormat &);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAudioFormat::SampleFormat);
 #endif
+
+Q_DECLARE_METATYPE(QAudioFormat);
 
 QT_END_NAMESPACE
 

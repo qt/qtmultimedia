@@ -39,7 +39,6 @@
 #include <QDebug>
 #include <qaudioformat.h>
 
-
 QT_BEGIN_NAMESPACE
 
 /*!
@@ -124,12 +123,10 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \fn bool QAudioFormat::isValid() const
+
     Returns true if all of the parameters are valid.
 */
-bool QAudioFormat::isValid() const
-{
-    return m_sampleRate > 0 && m_channelCount > 0 && m_sampleFormat != Unknown;
-}
 
 /*!
     \fn void QAudioFormat::setSampleRate(int samplerate)
