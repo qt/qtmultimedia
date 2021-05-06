@@ -418,9 +418,8 @@ QRectF QQuickVideoOutput::sourceRect() const
     }
 
     // Take the viewport into account for the top left position.
-    // m_nativeSize is already adjusted to the viewport, as it originats
-    // from QVideoFrameFormat::sizeHint(), which includes pixel aspect
-    // ratio and viewport.
+    // m_nativeSize is already adjusted to the viewport, as it originates
+    // from QVideoFrameFormat::viewport(), which includes pixel aspect ratio
     const QRectF viewport = m_backend->adjustedViewport();
     Q_ASSERT(viewport.size() == size);
     return QRectF(viewport.topLeft(), size);

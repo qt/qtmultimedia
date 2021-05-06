@@ -88,7 +88,7 @@ void QQuickVideoBackend::itemChange(QQuickItem::ItemChange change,
 
 QSize QQuickVideoBackend::nativeSize() const
 {
-    return m_surfaceFormat.sizeHint();
+    return m_surfaceFormat.viewport().size();
 }
 
 void QQuickVideoBackend::updateGeometry()

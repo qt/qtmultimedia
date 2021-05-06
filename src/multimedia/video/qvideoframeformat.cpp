@@ -52,7 +52,6 @@ QT_BEGIN_NAMESPACE
 static void initResource() {
     Q_INIT_RESOURCE(shaders);
 }
-
 class QVideoFrameFormatPrivate : public QSharedData
 {
 public:
@@ -94,6 +93,8 @@ public:
     qreal frameRate = 0.0;
     bool mirrored = false;
 };
+
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 
 /*!
     \class QVideoFrameFormat
@@ -187,9 +188,21 @@ QVideoFrameFormat::QVideoFrameFormat(
 QVideoFrameFormat::QVideoFrameFormat(const QVideoFrameFormat &other) = default;
 
 /*!
+    \fn QVideoFrameFormat::QVideoFrameFormat(QVideoFrameFormat &&other)
+
+    Constructs a QVideoFrameFormat by moving from \a other.
+*/
+
+/*!
     Assigns the values of \a other to this object.
 */
 QVideoFrameFormat &QVideoFrameFormat::operator =(const QVideoFrameFormat &other) = default;
+
+/*!
+    \fn QVideoFrameFormat &QVideoFrameFormat::operator =(QVideoFrameFormat &&other)
+
+    Moves \a other into this QVideoFrameFormat.
+*/
 
 /*!
     Destroys a video stream description.
@@ -220,6 +233,14 @@ bool QVideoFrameFormat::operator ==(const QVideoFrameFormat &other) const
 bool QVideoFrameFormat::operator !=(const QVideoFrameFormat &other) const
 {
     return d != other.d && !(*d == *other.d);
+}
+
+/*!
+    \internal
+*/
+void QVideoFrameFormat::detach()
+{
+    d.detach();
 }
 
 /*!
@@ -258,7 +279,7 @@ int QVideoFrameFormat::frameHeight() const
     return d->frameSize.height();
 }
 
-int QVideoFrameFormat::nPlanes() const
+int QVideoFrameFormat::planeCount() const
 {
     return QVideoTextureHelper::textureDescription(d->pixelFormat)->nplanes;
 }
@@ -270,6 +291,7 @@ int QVideoFrameFormat::nPlanes() const
 */
 void QVideoFrameFormat::setFrameSize(const QSize &size)
 {
+    detach();
     d->frameSize = size;
     d->viewport = QRect(QPoint(0, 0), size);
 }
@@ -283,6 +305,7 @@ void QVideoFrameFormat::setFrameSize(const QSize &size)
 */
 void QVideoFrameFormat::setFrameSize(int width, int height)
 {
+    detach();
     d->frameSize = QSize(width, height);
     d->viewport = QRect(0, 0, width, height);
 }
@@ -304,6 +327,7 @@ QRect QVideoFrameFormat::viewport() const
 */
 void QVideoFrameFormat::setViewport(const QRect &viewport)
 {
+    detach();
     d->viewport = viewport;
 }
 
@@ -320,6 +344,7 @@ QVideoFrameFormat::Direction QVideoFrameFormat::scanLineDirection() const
 */
 void QVideoFrameFormat::setScanLineDirection(Direction direction)
 {
+    detach();
     d->scanLineDirection = direction;
 }
 
@@ -336,6 +361,7 @@ qreal QVideoFrameFormat::frameRate() const
 */
 void QVideoFrameFormat::setFrameRate(qreal rate)
 {
+    detach();
     d->frameRate = rate;
 }
 
@@ -353,6 +379,7 @@ QVideoFrameFormat::YCbCrColorSpace QVideoFrameFormat::yCbCrColorSpace() const
 */
 void QVideoFrameFormat::setYCbCrColorSpace(QVideoFrameFormat::YCbCrColorSpace space)
 {
+    detach();
     d->ycbcrColorSpace = space;
 }
 
@@ -382,17 +409,8 @@ bool QVideoFrameFormat::isMirrored() const
  */
 void QVideoFrameFormat::setMirrored(bool mirrored)
 {
+    detach();
     d->mirrored = mirrored;
-}
-
-/*!
-    Returns a suggested size in pixels for the video stream.
-
-    This is the same as the size of the viewport.
-*/
-QSize QVideoFrameFormat::sizeHint() const
-{
-    return d->viewport.size();
 }
 
 QString QVideoFrameFormat::vertexShaderFileName() const

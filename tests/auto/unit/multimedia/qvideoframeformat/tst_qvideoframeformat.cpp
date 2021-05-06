@@ -63,8 +63,6 @@ private slots:
     void scanLineDirection();
     void frameRate_data();
     void frameRate();
-    void sizeHint_data();
-    void sizeHint();
     void yCbCrColorSpaceEnum_data();
     void yCbCrColorSpaceEnum ();
     void compare();
@@ -313,34 +311,6 @@ void tst_QVideoFrameFormat::frameRate()
     format.setFrameRate(frameRate);
 
     QCOMPARE(format.frameRate(), frameRate);
-}
-
-void tst_QVideoFrameFormat::sizeHint_data()
-{
-    QTest::addColumn<QSize>("frameSize");
-    QTest::addColumn<QRect>("viewport");
-    QTest::addColumn<QSize>("sizeHint");
-
-    QTest::newRow("(0, 0, 1024x768), 1:1")
-            << QSize(1024, 768)
-            << QRect(0, 0, 1024, 768)
-            << QSize(1024, 768);
-    QTest::newRow("(168, 84, 800x600), 1:1")
-        << QSize(1024, 768)
-        << QRect(168, 84, 800, 600)
-        << QSize(800, 600);
-}
-
-void tst_QVideoFrameFormat::sizeHint()
-{
-    QFETCH(QSize, frameSize);
-    QFETCH(QRect, viewport);
-    QFETCH(QSize, sizeHint);
-
-    QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_RGB32);
-    format.setViewport(viewport);
-
-    QCOMPARE(format.sizeHint(), sizeHint);
 }
 
 void tst_QVideoFrameFormat::compare()

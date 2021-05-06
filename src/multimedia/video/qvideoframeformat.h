@@ -43,7 +43,7 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <QtCore/qlist.h>
-#include <QtCore/qpair.h>
+#include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
 #include <QtCore/qsize.h>
 #include <QtGui/qimage.h>
@@ -55,6 +55,8 @@ class QDebug;
 
 class QVideoFrameFormatPrivate;
 class QMatrix4x4;
+
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QVideoFrameFormatPrivate, Q_MULTIMEDIA_EXPORT)
 
 class Q_MULTIMEDIA_EXPORT QVideoFrameFormat
 {
@@ -112,16 +114,21 @@ public:
     };
 
     QVideoFrameFormat();
-    QVideoFrameFormat(
-            const QSize &size,
-            QVideoFrameFormat::PixelFormat pixelFormat);
+    QVideoFrameFormat(const QSize &size, PixelFormat pixelFormat);
     QVideoFrameFormat(const QVideoFrameFormat &format);
     ~QVideoFrameFormat();
 
-    QVideoFrameFormat &operator =(const QVideoFrameFormat &format);
+    QVideoFrameFormat(QVideoFrameFormat &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QVideoFrameFormat);
+    void swap(QVideoFrameFormat &other) noexcept
+    { qSwap(d, other.d); }
 
-    bool operator ==(const QVideoFrameFormat &format) const;
-    bool operator !=(const QVideoFrameFormat &format) const;
+    void detach();
+
+    QVideoFrameFormat &operator=(const QVideoFrameFormat &format);
+
+    bool operator==(const QVideoFrameFormat &format) const;
+    bool operator!=(const QVideoFrameFormat &format) const;
 
     bool isValid() const;
 
@@ -134,7 +141,7 @@ public:
     int frameWidth() const;
     int frameHeight() const;
 
-    int nPlanes() const;
+    int planeCount() const;
 
     QRect viewport() const;
     void setViewport(const QRect &viewport);
@@ -151,8 +158,6 @@ public:
     bool isMirrored() const;
     void setMirrored(bool mirrored);
 
-    QSize sizeHint() const;
-
     QString vertexShaderFileName() const;
     QString fragmentShaderFileName() const;
     QByteArray uniformData(const QMatrix4x4 &transform, float opacity) const;
@@ -161,8 +166,12 @@ public:
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);
 
 private:
-    QSharedDataPointer<QVideoFrameFormatPrivate> d;
+    QExplicitlySharedDataPointer<QVideoFrameFormatPrivate> d;
 };
+
+Q_DECLARE_SHARED(QVideoFrameFormat)
+Q_DECLARE_METATYPE(QVideoFrameFormat)
+
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrameFormat &);

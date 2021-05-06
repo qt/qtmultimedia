@@ -45,7 +45,6 @@
 
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
-#include <QtCore/qvariant.h>
 #include <QtGui/qimage.h>
 
 QT_BEGIN_NAMESPACE
@@ -56,6 +55,8 @@ class QAbstractVideoBuffer;
 class QRhi;
 class QRhiResourceUpdateBatch;
 class QRhiTexture;
+
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QVideoFramePrivate, Q_MULTIMEDIA_EXPORT)
 
 class Q_MULTIMEDIA_EXPORT QVideoFrame
 {
@@ -79,6 +80,12 @@ public:
     QVideoFrame(const QVideoFrameFormat &format);
     QVideoFrame(const QVideoFrame &other);
     ~QVideoFrame();
+
+    QVideoFrame(QVideoFrame &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QVideoFrame)
+    void swap(QVideoFrame &other) noexcept
+    { qSwap(d, other.d); }
+
 
     QVideoFrame &operator =(const QVideoFrame &other);
     bool operator==(const QVideoFrame &other) const;
@@ -129,7 +136,8 @@ private:
     QExplicitlySharedDataPointer<QVideoFramePrivate> d;
 };
 
-Q_DECLARE_METATYPE(QVideoFrame);
+Q_DECLARE_SHARED(QVideoFrame)
+Q_DECLARE_METATYPE(QVideoFrame)
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrame&);

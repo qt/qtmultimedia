@@ -116,6 +116,8 @@ private:
     Q_DISABLE_COPY(QVideoFramePrivate)
 };
 
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
+
 /*!
     \class QVideoFrame
     \brief The QVideoFrame class represents a frame of video data.
@@ -300,22 +302,26 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
     explicitly shared, these two instances will reflect the same frame.
 
 */
-QVideoFrame::QVideoFrame(const QVideoFrame &other)
-    : d(other.d)
-{
-}
+QVideoFrame::QVideoFrame(const QVideoFrame &other) = default;
+
+/*!
+    \fn  QVideoFrame::QVideoFrame(QVideoFrame &&other)
+
+    Constructs a QVideoFrame by moving from \a other.
+*/
+
+/*!
+    \fn  QVideoFrame &QVideoFrame::operator=(QVideoFrame &&other)
+
+    Moves \a other into this QVideoFrame.
+*/
 
 /*!
     Assigns the contents of \a other to this video frame.  Since QVideoFrame is
     explicitly shared, these two instances will reflect the same frame.
 
 */
-QVideoFrame &QVideoFrame::operator =(const QVideoFrame &other)
-{
-    d = other.d;
-
-    return *this;
-}
+QVideoFrame &QVideoFrame::operator =(const QVideoFrame &other) = default;
 
 /*!
   \return \c true if this QVideoFrame and \a other reflect the same frame.
@@ -337,9 +343,7 @@ bool QVideoFrame::operator!=(const QVideoFrame &other) const
 /*!
     Destroys a video frame.
 */
-QVideoFrame::~QVideoFrame()
-{
-}
+QVideoFrame::~QVideoFrame() = default;
 
 /*!
     \return underlying video buffer or \c null if there is none.
@@ -742,7 +746,7 @@ int QVideoFrame::mappedBytes() const
 
 int QVideoFrame::planeCount() const
 {
-    return d->format.nPlanes();
+    return d->format.planeCount();
 }
 
 /*!
