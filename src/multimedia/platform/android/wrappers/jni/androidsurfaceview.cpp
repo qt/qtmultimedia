@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -53,7 +53,7 @@ typedef QList<AndroidSurfaceHolder *> SurfaceHolders;
 Q_GLOBAL_STATIC(SurfaceHolders, surfaceHolders)
 Q_GLOBAL_STATIC(QMutex, shLock)
 
-AndroidSurfaceHolder::AndroidSurfaceHolder(QJNIObjectPrivate object)
+AndroidSurfaceHolder::AndroidSurfaceHolder(QJniObject object)
     : m_surfaceHolder(object)
     , m_surfaceCreated(false)
 {
@@ -65,7 +65,7 @@ AndroidSurfaceHolder::AndroidSurfaceHolder(QJNIObjectPrivate object)
         surfaceHolders->append(this);
     }
 
-    QJNIObjectPrivate callback(QtSurfaceHolderCallbackClassName, "(J)V", reinterpret_cast<jlong>(this));
+    QJniObject callback(QtSurfaceHolderCallbackClassName, "(J)V", reinterpret_cast<jlong>(this));
     m_surfaceHolder.callMethod<void>("addCallback",
                                      "(Landroid/view/SurfaceHolder$Callback;)V",
                                      callback.object());
@@ -113,23 +113,15 @@ void AndroidSurfaceHolder::handleSurfaceDestroyed(JNIEnv*, jobject, jlong id)
     (*surfaceHolders)[i]->m_surfaceCreated = false;
 }
 
-bool AndroidSurfaceHolder::initJNI(JNIEnv *env)
+bool AndroidSurfaceHolder::registerNativeMethods()
 {
-    jclass clazz = QJNIEnvironmentPrivate::findClass(QtSurfaceHolderCallbackClassName,
-                                                     env);
-
-    static const JNINativeMethod methods[] = {
+    static JNINativeMethod methods[] = {
         {"notifySurfaceCreated", "(J)V", (void *)AndroidSurfaceHolder::handleSurfaceCreated},
         {"notifySurfaceDestroyed", "(J)V", (void *)AndroidSurfaceHolder::handleSurfaceDestroyed}
     };
 
-    if (clazz && env->RegisterNatives(clazz,
-                                      methods,
-                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
-            return false;
-    }
-
-    return true;
+    const int size = sizeof(methods) / sizeof(methods[0]);
+    return QJniEnvironment().registerNativeMethods(QtSurfaceHolderCallbackClassName, methods, size);
 }
 
 AndroidSurfaceView::AndroidSurfaceView()
@@ -138,17 +130,17 @@ AndroidSurfaceView::AndroidSurfaceView()
     , m_pendingVisible(-1)
 {
     QtAndroidPrivate::runOnAndroidThreadSync([this] {
-        m_surfaceView = QJNIObjectPrivate("android/view/SurfaceView",
+        m_surfaceView = QJniObject("android/view/SurfaceView",
                                           "(Landroid/content/Context;)V",
-                                          QtAndroidPrivate::activity());
-    }, QJNIEnvironmentPrivate());
+                                          QNativeInterface::QAndroidApplication::context());
+    }, QJniEnvironment().jniEnv());
 
     Q_ASSERT(m_surfaceView.isValid());
 
-    QJNIObjectPrivate holder = m_surfaceView.callObjectMethod("getHolder",
-                                                                "()Landroid/view/SurfaceHolder;");
+    QJniObject holder = m_surfaceView.callObjectMethod("getHolder",
+                                                       "()Landroid/view/SurfaceHolder;");
     if (!holder.isValid()) {
-        m_surfaceView = QJNIObjectPrivate();
+        m_surfaceView = QJniObject();
     } else {
         m_surfaceHolder = new AndroidSurfaceHolder(holder);
         connect(m_surfaceHolder, &AndroidSurfaceHolder::surfaceCreated,

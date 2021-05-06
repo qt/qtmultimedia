@@ -48,11 +48,7 @@
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qandroidcamerasession_p.h"
 
-#include <QtCore/private/qjnihelpers_p.h>
-
 QT_BEGIN_NAMESPACE
-
-static char const *const QtAudioDeviceManagerClassName = "org/qtproject/qt/android/multimedia/QtAudioDeviceManager";
 
 QAndroidMediaDevices::QAndroidMediaDevices()
     : QPlatformMediaDevices()
@@ -106,19 +102,15 @@ static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
                 QPlatformMediaIntegration::instance()->devices())->forwardAudioOutputsChanged();
 }
 
-bool QAndroidMediaDevices::initJNI(JNIEnv *env)
+bool QAndroidMediaDevices::registerNativeMethods()
 {
-    jclass clazz = QJNIEnvironmentPrivate::findClass(QtAudioDeviceManagerClassName, env);
-
-    static const JNINativeMethod methods[] = {
+    static JNINativeMethod methods[] = {
         {"onAudioInputDevicesUpdated","()V",(void*)onAudioInputDevicesUpdated},
         {"onAudioOutputDevicesUpdated", "()V",(void*)onAudioOutputDevicesUpdated}
     };
-
-    if (clazz && env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
-            return false;
-    }
-    return true;
+    const int size = sizeof(methods) / sizeof(methods[0]);
+    return QJniEnvironment().registerNativeMethods(
+                "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", methods, size);
 }
 
 QT_END_NAMESPACE

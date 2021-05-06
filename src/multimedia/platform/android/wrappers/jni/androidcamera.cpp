@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Copyright (C) 2016 Ruslan Baratov
 ** Contact: https://www.qt.io/licensing/
 **
@@ -46,11 +46,11 @@
 
 #include <qstringlist.h>
 #include <qdebug.h>
-#include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qreadwritelock.h>
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtCore/qcoreapplication.h>
 
 #include <mutex>
 
@@ -62,23 +62,19 @@ typedef QHash<int, AndroidCamera *> CameraMap;
 Q_GLOBAL_STATIC(CameraMap, cameras)
 Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
-static inline bool exceptionCheckAndClear(JNIEnv *env)
+static inline bool exceptionCheckAndClear()
 {
-    if (Q_UNLIKELY(env->ExceptionCheck())) {
 #ifdef QT_DEBUG
-        env->ExceptionDescribe();
+    return QJniEnvironment().checkAndClearExceptions(QJniEnvironment::OutputMode::Verbose);
+#else
+    return QJniEnvironment().checkAndClearExceptions();
 #endif // QT_DEBUG
-        env->ExceptionClear();
-        return true;
-    }
-
-    return false;
 }
 
 static QRect areaToRect(jobject areaObj)
 {
-    QJNIObjectPrivate area(areaObj);
-    QJNIObjectPrivate rect = area.getObjectField("rect", "Landroid/graphics/Rect;");
+    QJniObject area(areaObj);
+    QJniObject rect = area.getObjectField("rect", "Landroid/graphics/Rect;");
 
     return QRect(rect.getField<jint>("left"),
                  rect.getField<jint>("top"),
@@ -86,13 +82,13 @@ static QRect areaToRect(jobject areaObj)
                  rect.callMethod<jint>("height"));
 }
 
-static QJNIObjectPrivate rectToArea(const QRect &rect)
+static QJniObject rectToArea(const QRect &rect)
 {
-    QJNIObjectPrivate jrect("android/graphics/Rect",
+    QJniObject jrect("android/graphics/Rect",
                      "(IIII)V",
                      rect.left(), rect.top(), rect.right(), rect.bottom());
 
-    QJNIObjectPrivate area("android/hardware/Camera$Area",
+    QJniObject area("android/hardware/Camera$Area",
                     "(Landroid/graphics/Rect;I)V",
                     jrect.object(), 500);
 
@@ -263,10 +259,10 @@ public:
     QRecursiveMutex m_parametersMutex;
     QSize m_previewSize;
     int m_rotation;
-    QJNIObjectPrivate m_info;
-    QJNIObjectPrivate m_parameters;
-    QJNIObjectPrivate m_camera;
-    QJNIObjectPrivate m_cameraListener;
+    QJniObject m_info;
+    QJniObject m_parameters;
+    QJniObject m_camera;
+    QJniObject m_cameraListener;
 
 Q_SIGNALS:
     void previewSizeChanged();
@@ -749,7 +745,7 @@ void AndroidCamera::fetchLastPreviewFrame()
     QMetaObject::invokeMethod(d, "fetchLastPreviewFrame");
 }
 
-QJNIObjectPrivate AndroidCamera::getCameraObject()
+QJniObject AndroidCamera::getCameraObject()
 {
     Q_D(AndroidCamera);
     return d->m_camera;
@@ -760,7 +756,7 @@ int AndroidCamera::getNumberOfCameras()
     if (!qt_androidRequestCameraPermission())
         return 0;
 
-    return QJNIObjectPrivate::callStaticMethod<jint>("android/hardware/Camera",
+    return QJniObject::callStaticMethod<jint>("android/hardware/Camera",
                                                      "getNumberOfCameras");
 }
 
@@ -768,8 +764,8 @@ void AndroidCamera::getCameraInfo(int id, QCameraInfoPrivate *info)
 {
     Q_ASSERT(info);
 
-    QJNIObjectPrivate cameraInfo("android/hardware/Camera$CameraInfo");
-    QJNIObjectPrivate::callStaticMethod<void>("android/hardware/Camera",
+    QJniObject cameraInfo("android/hardware/Camera$CameraInfo");
+    QJniObject::callStaticMethod<void>("android/hardware/Camera",
                                               "getCameraInfo",
                                               "(ILandroid/hardware/Camera$CameraInfo;)V",
                                               id, cameraInfo.object());
@@ -827,30 +823,30 @@ static qint32 s_activeCameras = 0;
 bool AndroidCameraPrivate::init(int cameraId)
 {
     m_cameraId = cameraId;
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
 
     const bool opened = s_activeCameras & (1 << cameraId);
     if (opened)
         return false;
 
-    m_camera = QJNIObjectPrivate::callStaticObjectMethod("android/hardware/Camera",
-                                                         "open",
-                                                         "(I)Landroid/hardware/Camera;",
-                                                         cameraId);
-    if (exceptionCheckAndClear(env) || !m_camera.isValid())
+    m_camera = QJniObject::callStaticObjectMethod("android/hardware/Camera",
+                                                  "open",
+                                                  "(I)Landroid/hardware/Camera;",
+                                                  cameraId);
+    if (!m_camera.isValid())
         return false;
 
-    m_cameraListener = QJNIObjectPrivate(QtCameraListenerClassName, "(I)V", m_cameraId);
-    m_info = QJNIObjectPrivate("android/hardware/Camera$CameraInfo");
+    m_cameraListener = QJniObject(QtCameraListenerClassName, "(I)V", m_cameraId);
+    m_info = QJniObject("android/hardware/Camera$CameraInfo");
     m_camera.callStaticMethod<void>("android/hardware/Camera",
                                     "getCameraInfo",
                                     "(ILandroid/hardware/Camera$CameraInfo;)V",
                                     cameraId,
                                     m_info.object());
 
-    QJNIObjectPrivate params = m_camera.callObjectMethod("getParameters",
+    QJniObject params = m_camera.callObjectMethod("getParameters",
                                                          "()Landroid/hardware/Camera$Parameters;");
-    m_parameters = QJNIObjectPrivate(params);
+    m_parameters = QJniObject(params);
     s_activeCameras |= 1 << cameraId;
 
     return true;
@@ -860,7 +856,7 @@ void AndroidCameraPrivate::release()
 {
     m_previewSize = QSize();
     m_parametersMutex.lock();
-    m_parameters = QJNIObjectPrivate();
+    m_parameters = QJniObject();
     m_parametersMutex.unlock();
     if (m_camera.isValid()) {
         m_camera.callMethod<void>("release");
@@ -870,23 +866,35 @@ void AndroidCameraPrivate::release()
 
 bool AndroidCameraPrivate::lock()
 {
-    QJNIEnvironmentPrivate env;
-    m_camera.callMethod<void>("lock");
-    return !exceptionCheckAndClear(env);
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "lock", "()V");
+    env->CallVoidMethod(m_camera.object(), methodId);
+
+    if (exceptionCheckAndClear())
+        return false;
+    return true;
 }
 
 bool AndroidCameraPrivate::unlock()
 {
-    QJNIEnvironmentPrivate env;
-    m_camera.callMethod<void>("unlock");
-    return !exceptionCheckAndClear(env);
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "unlock", "()V");
+    env->CallVoidMethod(m_camera.object(), methodId);
+
+    if (exceptionCheckAndClear())
+        return false;
+    return true;
 }
 
 bool AndroidCameraPrivate::reconnect()
 {
-    QJNIEnvironmentPrivate env;
-    m_camera.callMethod<void>("reconnect");
-    return !exceptionCheckAndClear(env);
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "reconnect", "()V");
+    env->CallVoidMethod(m_camera.object(), methodId);
+
+    if (exceptionCheckAndClear())
+        return false;
+    return true;
 }
 
 AndroidCamera::CameraFacing AndroidCameraPrivate::getFacing()
@@ -906,8 +914,8 @@ QSize AndroidCameraPrivate::getPreferredPreviewSizeForVideo()
     if (!m_parameters.isValid())
         return QSize();
 
-    QJNIObjectPrivate size = m_parameters.callObjectMethod("getPreferredPreviewSizeForVideo",
-                                                           "()Landroid/hardware/Camera$Size;");
+    QJniObject size = m_parameters.callObjectMethod("getPreferredPreviewSizeForVideo",
+                                                    "()Landroid/hardware/Camera$Size;");
 
     if (!size.isValid())
         return QSize();
@@ -922,13 +930,13 @@ QList<QSize> AndroidCameraPrivate::getSupportedPreviewSizes()
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate sizeList = m_parameters.callObjectMethod("getSupportedPreviewSizes",
-                                                                   "()Ljava/util/List;");
+        QJniObject sizeList = m_parameters.callObjectMethod("getSupportedPreviewSizes",
+                                                            "()Ljava/util/List;");
         int count = sizeList.callMethod<jint>("size");
         for (int i = 0; i < count; ++i) {
-            QJNIObjectPrivate size = sizeList.callObjectMethod("get",
-                                                               "(I)Ljava/lang/Object;",
-                                                               i);
+            QJniObject size = sizeList.callObjectMethod("get",
+                                                        "(I)Ljava/lang/Object;",
+                                                        i);
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
@@ -942,21 +950,21 @@ QList<AndroidCamera::FpsRange> AndroidCameraPrivate::getSupportedPreviewFpsRange
 {
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
 
     QList<AndroidCamera::FpsRange> rangeList;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate rangeListNative = m_parameters.callObjectMethod("getSupportedPreviewFpsRange",
-                                                                          "()Ljava/util/List;");
+        QJniObject rangeListNative = m_parameters.callObjectMethod("getSupportedPreviewFpsRange",
+                                                                   "()Ljava/util/List;");
         int count = rangeListNative.callMethod<jint>("size");
 
         rangeList.reserve(count);
 
         for (int i = 0; i < count; ++i) {
-            QJNIObjectPrivate range = rangeListNative.callObjectMethod("get",
-                                                                       "(I)Ljava/lang/Object;",
-                                                                       i);
+            QJniObject range = rangeListNative.callObjectMethod("get",
+                                                                "(I)Ljava/lang/Object;",
+                                                                i);
 
             jintArray jRange = static_cast<jintArray>(range.object());
             jint* rangeArray = env->GetIntArrayElements(jRange, 0);
@@ -979,7 +987,7 @@ AndroidCamera::FpsRange AndroidCameraPrivate::getPreviewFpsRange()
 {
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
 
     AndroidCamera::FpsRange range;
 
@@ -1007,9 +1015,8 @@ void AndroidCameraPrivate::setPreviewFpsRange(int min, int max)
     if (!m_parameters.isValid())
         return;
 
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
     m_parameters.callMethod<void>("setPreviewFpsRange", "(II)V", min, max);
-    exceptionCheckAndClear(env);
 }
 
 AndroidCamera::ImageFormat AndroidCameraPrivate::getPreviewFormat()
@@ -1040,13 +1047,13 @@ QList<AndroidCamera::ImageFormat> AndroidCameraPrivate::getSupportedPreviewForma
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate formatList = m_parameters.callObjectMethod("getSupportedPreviewFormats",
-                                                                     "()Ljava/util/List;");
+        QJniObject formatList = m_parameters.callObjectMethod("getSupportedPreviewFormats",
+                                                              "()Ljava/util/List;");
         int count = formatList.callMethod<jint>("size");
         for (int i = 0; i < count; ++i) {
-            QJNIObjectPrivate format = formatList.callObjectMethod("get",
-                                                                   "(I)Ljava/lang/Object;",
-                                                                   i);
+            QJniObject format = formatList.callObjectMethod("get",
+                                                            "(I)Ljava/lang/Object;",
+                                                            i);
             list.append(AndroidCamera::ImageFormat(format.callMethod<jint>("intValue")));
         }
     }
@@ -1061,7 +1068,7 @@ QSize AndroidCameraPrivate::getPreviewSize()
     if (!m_parameters.isValid())
         return QSize();
 
-    QJNIObjectPrivate size = m_parameters.callObjectMethod("getPreviewSize",
+    QJniObject size = m_parameters.callObjectMethod("getPreviewSize",
                                                            "()Landroid/hardware/Camera$Size;");
 
     if (!size.isValid())
@@ -1084,20 +1091,26 @@ void AndroidCameraPrivate::updatePreviewSize()
 
 bool AndroidCameraPrivate::setPreviewTexture(void *surfaceTexture)
 {
-    QJNIEnvironmentPrivate env;
-    m_camera.callMethod<void>("setPreviewTexture",
-                              "(Landroid/graphics/SurfaceTexture;)V",
-                              static_cast<jobject>(surfaceTexture));
-    return !exceptionCheckAndClear(env);
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "setPreviewTexture",
+                                     "(Landroid/graphics/SurfaceTexture;)V");
+    env->CallVoidMethod(m_camera.object(), methodId, static_cast<jobject>(surfaceTexture));
+
+    if (exceptionCheckAndClear())
+        return false;
+    return true;
 }
 
 bool AndroidCameraPrivate::setPreviewDisplay(void *surfaceHolder)
 {
-    QJNIEnvironmentPrivate env;
-    m_camera.callMethod<void>("setPreviewDisplay",
-                              "(Landroid/view/SurfaceHolder;)V",
-                              static_cast<jobject>(surfaceHolder));
-    return !exceptionCheckAndClear(env);
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "setPreviewDisplay",
+                                     "(Landroid/view/SurfaceHolder;)V");
+    env->CallVoidMethod(m_camera.object(), methodId, static_cast<jobject>(surfaceHolder));
+
+    if (exceptionCheckAndClear())
+        return false;
+    return true;
 }
 
 void AndroidCameraPrivate::setDisplayOrientation(int degrees)
@@ -1132,11 +1145,11 @@ QList<int> AndroidCameraPrivate::getZoomRatios()
     QList<int> ratios;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate ratioList = m_parameters.callObjectMethod("getZoomRatios",
+        QJniObject ratioList = m_parameters.callObjectMethod("getZoomRatios",
                                                                     "()Ljava/util/List;");
         int count = ratioList.callMethod<jint>("size");
         for (int i = 0; i < count; ++i) {
-            QJNIObjectPrivate zoomRatio = ratioList.callObjectMethod("get",
+            QJniObject zoomRatio = ratioList.callObjectMethod("get",
                                                                      "(I)Ljava/lang/Object;",
                                                                      i);
 
@@ -1175,8 +1188,8 @@ QString AndroidCameraPrivate::getFlashMode()
     QString value;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate flashMode = m_parameters.callObjectMethod("getFlashMode",
-                                                                    "()Ljava/lang/String;");
+        QJniObject flashMode = m_parameters.callObjectMethod("getFlashMode",
+                                                             "()Ljava/lang/String;");
         if (flashMode.isValid())
             value = flashMode.toString();
     }
@@ -1193,7 +1206,7 @@ void AndroidCameraPrivate::setFlashMode(const QString &value)
 
     m_parameters.callMethod<void>("setFlashMode",
                                   "(Ljava/lang/String;)V",
-                                  QJNIObjectPrivate::fromString(value).object());
+                                  QJniObject::fromString(value).object());
     applyParameters();
 }
 
@@ -1204,8 +1217,8 @@ QString AndroidCameraPrivate::getFocusMode()
     QString value;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate focusMode = m_parameters.callObjectMethod("getFocusMode",
-                                                                    "()Ljava/lang/String;");
+        QJniObject focusMode = m_parameters.callObjectMethod("getFocusMode",
+                                                             "()Ljava/lang/String;");
         if (focusMode.isValid())
             value = focusMode.toString();
     }
@@ -1222,13 +1235,14 @@ void AndroidCameraPrivate::setFocusMode(const QString &value)
 
     m_parameters.callMethod<void>("setFocusMode",
                                   "(Ljava/lang/String;)V",
-                                  QJNIObjectPrivate::fromString(value).object());
+                                  QJniObject::fromString(value).object());
     applyParameters();
 }
 
 int AndroidCameraPrivate::getMaxNumFocusAreas()
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    // FIXME qt 6 support api > 23, should this be removed then?
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return 0;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1243,21 +1257,21 @@ QList<QRect> AndroidCameraPrivate::getFocusAreas()
 {
     QList<QRect> areas;
 
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return areas;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate list = m_parameters.callObjectMethod("getFocusAreas",
-                                                               "()Ljava/util/List;");
+        QJniObject list = m_parameters.callObjectMethod("getFocusAreas",
+                                                        "()Ljava/util/List;");
 
         if (list.isValid()) {
             int count = list.callMethod<jint>("size");
             for (int i = 0; i < count; ++i) {
-                QJNIObjectPrivate area = list.callObjectMethod("get",
-                                                               "(I)Ljava/lang/Object;",
-                                                               i);
+                QJniObject area = list.callObjectMethod("get",
+                                                        "(I)Ljava/lang/Object;",
+                                                        i);
 
                 areas.append(areaToRect(area.object()));
             }
@@ -1269,7 +1283,7 @@ QList<QRect> AndroidCameraPrivate::getFocusAreas()
 
 void AndroidCameraPrivate::setFocusAreas(const QList<QRect> &areas)
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1277,16 +1291,15 @@ void AndroidCameraPrivate::setFocusAreas(const QList<QRect> &areas)
     if (!m_parameters.isValid())
         return;
 
-    QJNIObjectPrivate list;
+    QJniObject list;
 
     if (!areas.isEmpty()) {
-        QJNIEnvironmentPrivate env;
-        QJNIObjectPrivate arrayList("java/util/ArrayList", "(I)V", areas.size());
+        QJniEnvironment env;
+        QJniObject arrayList("java/util/ArrayList", "(I)V", areas.size());
         for (int i = 0; i < areas.size(); ++i) {
             arrayList.callMethod<jboolean>("add",
                                            "(Ljava/lang/Object;)Z",
                                            rectToArea(areas.at(i)).object());
-            exceptionCheckAndClear(env);
         }
         list = arrayList;
     }
@@ -1298,26 +1311,24 @@ void AndroidCameraPrivate::setFocusAreas(const QList<QRect> &areas)
 
 void AndroidCameraPrivate::autoFocus()
 {
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "autoFocus",
+                                     "(Landroid/hardware/Camera$AutoFocusCallback;)V");
+    env->CallVoidMethod(m_camera.object(), methodId, m_cameraListener.object());
 
-    m_camera.callMethod<void>("autoFocus",
-                              "(Landroid/hardware/Camera$AutoFocusCallback;)V",
-                              m_cameraListener.object());
-
-    if (!exceptionCheckAndClear(env))
+    if (!exceptionCheckAndClear())
         emit autoFocusStarted();
 }
 
 void AndroidCameraPrivate::cancelAutoFocus()
 {
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
     m_camera.callMethod<void>("cancelAutoFocus");
-    exceptionCheckAndClear(env);
 }
 
 bool AndroidCameraPrivate::isAutoExposureLockSupported()
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return false;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1330,7 +1341,7 @@ bool AndroidCameraPrivate::isAutoExposureLockSupported()
 
 bool AndroidCameraPrivate::getAutoExposureLock()
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return false;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1343,7 +1354,7 @@ bool AndroidCameraPrivate::getAutoExposureLock()
 
 void AndroidCameraPrivate::setAutoExposureLock(bool toggle)
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1357,7 +1368,7 @@ void AndroidCameraPrivate::setAutoExposureLock(bool toggle)
 
 bool AndroidCameraPrivate::isAutoWhiteBalanceLockSupported()
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return false;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1370,7 +1381,7 @@ bool AndroidCameraPrivate::isAutoWhiteBalanceLockSupported()
 
 bool AndroidCameraPrivate::getAutoWhiteBalanceLock()
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return false;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1383,7 +1394,7 @@ bool AndroidCameraPrivate::getAutoWhiteBalanceLock()
 
 void AndroidCameraPrivate::setAutoWhiteBalanceLock(bool toggle)
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return;
 
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
@@ -1453,8 +1464,8 @@ QString AndroidCameraPrivate::getSceneMode()
     QString value;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate sceneMode = m_parameters.callObjectMethod("getSceneMode",
-                                                                    "()Ljava/lang/String;");
+        QJniObject sceneMode = m_parameters.callObjectMethod("getSceneMode",
+                                                             "()Ljava/lang/String;");
         if (sceneMode.isValid())
             value = sceneMode.toString();
     }
@@ -1471,7 +1482,7 @@ void AndroidCameraPrivate::setSceneMode(const QString &value)
 
     m_parameters.callMethod<void>("setSceneMode",
                                   "(Ljava/lang/String;)V",
-                                  QJNIObjectPrivate::fromString(value).object());
+                                  QJniObject::fromString(value).object());
     applyParameters();
 }
 
@@ -1482,8 +1493,8 @@ QString AndroidCameraPrivate::getWhiteBalance()
     QString value;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate wb = m_parameters.callObjectMethod("getWhiteBalance",
-                                                             "()Ljava/lang/String;");
+        QJniObject wb = m_parameters.callObjectMethod("getWhiteBalance",
+                                                      "()Ljava/lang/String;");
         if (wb.isValid())
             value = wb.toString();
     }
@@ -1500,7 +1511,7 @@ void AndroidCameraPrivate::setWhiteBalance(const QString &value)
 
     m_parameters.callMethod<void>("setWhiteBalance",
                                   "(Ljava/lang/String;)V",
-                                  QJNIObjectPrivate::fromString(value).object());
+                                  QJniObject::fromString(value).object());
     applyParameters();
 
     emit whiteBalanceChanged();
@@ -1521,13 +1532,13 @@ QList<QSize> AndroidCameraPrivate::getSupportedPictureSizes()
     QList<QSize> list;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate sizeList = m_parameters.callObjectMethod("getSupportedPictureSizes",
-                                                                   "()Ljava/util/List;");
+        QJniObject sizeList = m_parameters.callObjectMethod("getSupportedPictureSizes",
+                                                            "()Ljava/util/List;");
         int count = sizeList.callMethod<jint>("size");
         for (int i = 0; i < count; ++i) {
-            QJNIObjectPrivate size = sizeList.callObjectMethod("get",
-                                                               "(I)Ljava/lang/Object;",
-                                                               i);
+            QJniObject size = sizeList.callObjectMethod("get",
+                                                        "(I)Ljava/lang/Object;",
+                                                        i);
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
@@ -1561,12 +1572,13 @@ void AndroidCameraPrivate::setJpegQuality(int quality)
 
 void AndroidCameraPrivate::startPreview()
 {
-    QJNIEnvironmentPrivate env;
-
     setupPreviewFrameCallback();
-    m_camera.callMethod<void>("startPreview");
 
-    if (exceptionCheckAndClear(env))
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "startPreview", "()V");
+    env->CallVoidMethod(m_camera.object(), methodId);
+
+    if (exceptionCheckAndClear())
         emit previewFailedToStart();
     else
         emit previewStarted();
@@ -1574,34 +1586,28 @@ void AndroidCameraPrivate::startPreview()
 
 void AndroidCameraPrivate::stopPreview()
 {
-    QJNIEnvironmentPrivate env;
-
     // cancel any pending new frame notification
     m_cameraListener.callMethod<void>("notifyWhenFrameAvailable", "(Z)V", false);
-
     m_camera.callMethod<void>("stopPreview");
-
-    exceptionCheckAndClear(env);
     emit previewStopped();
 }
 
 void AndroidCameraPrivate::takePicture()
 {
-    QJNIEnvironmentPrivate env;
-
     // We must clear the preview callback before calling takePicture(), otherwise the call will
     // block and the camera server will be frozen until the next device restart...
     // That problem only happens on some devices and on the emulator
     m_cameraListener.callMethod<void>("clearPreviewCallback", "(Landroid/hardware/Camera;)V", m_camera.object());
 
-    m_camera.callMethod<void>("takePicture", "(Landroid/hardware/Camera$ShutterCallback;"
-                                             "Landroid/hardware/Camera$PictureCallback;"
-                                             "Landroid/hardware/Camera$PictureCallback;)V",
-                                              m_cameraListener.object(),
-                                              jobject(0),
-                                              m_cameraListener.object());
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_camera.objectClass(), "takePicture",
+                                     "(Landroid/hardware/Camera$ShutterCallback;"
+                                     "Landroid/hardware/Camera$PictureCallback;"
+                                     "Landroid/hardware/Camera$PictureCallback;)V");
+    env->CallVoidMethod(m_camera.object(), methodId, m_cameraListener.object(),
+                        jobject(0), m_cameraListener.object());
 
-    if (exceptionCheckAndClear(env))
+    if (exceptionCheckAndClear())
         emit takePictureFailed();
 }
 
@@ -1617,8 +1623,8 @@ void AndroidCameraPrivate::notifyNewFrames(bool notify)
 
 void AndroidCameraPrivate::fetchLastPreviewFrame()
 {
-    QJNIEnvironmentPrivate env;
-    QJNIObjectPrivate data = m_cameraListener.callObjectMethod("lastPreviewBuffer", "()[B");
+    QJniEnvironment env;
+    QJniObject data = m_cameraListener.callObjectMethod("lastPreviewBuffer", "()[B");
 
     if (!data.isValid()) {
         // If there's no buffer received yet, retry when the next one arrives
@@ -1650,11 +1656,10 @@ void AndroidCameraPrivate::fetchLastPreviewFrame()
 
 void AndroidCameraPrivate::applyParameters()
 {
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
     m_camera.callMethod<void>("setParameters",
                               "(Landroid/hardware/Camera$Parameters;)V",
                               m_parameters.object());
-    exceptionCheckAndClear(env);
 }
 
 QStringList AndroidCameraPrivate::callParametersStringListMethod(const QByteArray &methodName)
@@ -1664,15 +1669,15 @@ QStringList AndroidCameraPrivate::callParametersStringListMethod(const QByteArra
     QStringList stringList;
 
     if (m_parameters.isValid()) {
-        QJNIObjectPrivate list = m_parameters.callObjectMethod(methodName.constData(),
-                                                               "()Ljava/util/List;");
+        QJniObject list = m_parameters.callObjectMethod(methodName.constData(),
+                                                        "()Ljava/util/List;");
 
         if (list.isValid()) {
             int count = list.callMethod<jint>("size");
             for (int i = 0; i < count; ++i) {
-                QJNIObjectPrivate string = list.callObjectMethod("get",
-                                                                 "(I)Ljava/lang/Object;",
-                                                                 i);
+                QJniObject string = list.callObjectMethod("get",
+                                                          "(I)Ljava/lang/Object;",
+                                                          i);
                 stringList.append(string.toString());
             }
         }
@@ -1681,12 +1686,9 @@ QStringList AndroidCameraPrivate::callParametersStringListMethod(const QByteArra
     return stringList;
 }
 
-bool AndroidCamera::initJNI(JNIEnv *env)
+bool AndroidCamera::registerNativeMethods()
 {
-    jclass clazz = QJNIEnvironmentPrivate::findClass(QtCameraListenerClassName,
-                                                     env);
-
-    static const JNINativeMethod methods[] = {
+    static JNINativeMethod methods[] = {
         {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
         {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
         {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
@@ -1694,13 +1696,8 @@ bool AndroidCamera::initJNI(JNIEnv *env)
         {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
     };
 
-    if (clazz && env->RegisterNatives(clazz,
-                                      methods,
-                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
-        return false;
-    }
-
-    return true;
+    const int size = sizeof(methods) / sizeof(methods[0]);
+    return QJniEnvironment().registerNativeMethods(QtCameraListenerClassName, methods, size);
 }
 
 QT_END_NAMESPACE

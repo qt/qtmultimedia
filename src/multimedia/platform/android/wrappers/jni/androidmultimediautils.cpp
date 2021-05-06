@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -39,40 +39,41 @@
 
 #include "androidmultimediautils_p.h"
 
-#include <QtCore/private/qjni_p.h>
+#include <QtCore/qjniobject.h>
 
 QT_BEGIN_NAMESPACE
 
 
 void AndroidMultimediaUtils::enableOrientationListener(bool enable)
 {
-    QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
-                                              "enableOrientationListener",
-                                              "(Z)V",
-                                              enable);
+    QJniObject::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
+                                       "enableOrientationListener",
+                                       "(Z)V",
+                                       enable);
 }
 
 int AndroidMultimediaUtils::getDeviceOrientation()
 {
-    return QJNIObjectPrivate::callStaticMethod<jint>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
-                                                     "getDeviceOrientation");
+    return QJniObject::callStaticMethod<jint>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
+                                              "getDeviceOrientation");
 }
 
 QString AndroidMultimediaUtils::getDefaultMediaDirectory(MediaType type)
 {
-    QJNIObjectPrivate path = QJNIObjectPrivate::callStaticObjectMethod("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
-                                                                       "getDefaultMediaDirectory",
-                                                                       "(I)Ljava/lang/String;",
-                                                                       jint(type));
+    QJniObject path = QJniObject::callStaticObjectMethod(
+                                   "org/qtproject/qt/android/multimedia/QtMultimediaUtils",
+                                   "getDefaultMediaDirectory",
+                                   "(I)Ljava/lang/String;",
+                                   jint(type));
     return path.toString();
 }
 
 void AndroidMultimediaUtils::registerMediaFile(const QString &file)
 {
-    QJNIObjectPrivate::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
-                                              "registerMediaFile",
-                                              "(Ljava/lang/String;)V",
-                                              QJNIObjectPrivate::fromString(file).object());
+    QJniObject::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtMultimediaUtils",
+                                       "registerMediaFile",
+                                       "(Ljava/lang/String;)V",
+                                       QJniObject::fromString(file).object());
 }
 
 QT_END_NAMESPACE

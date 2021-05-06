@@ -358,7 +358,7 @@ qint64 QAndroidCaptureSession::duration() const
 
 void QAndroidCaptureSession::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
-    const auto flag = (m_cameraSession ? QMediaEncoderSettings::ResolveFlags::RequiresVideo
+    const auto flag = m_cameraSession ? QMediaEncoderSettings::ResolveFlags::RequiresVideo
                                        : QMediaEncoderSettings::ResolveFlags::NoFlags;
     m_encoderSettings = settings;
     m_encoderSettings.resolveFormat(flag);

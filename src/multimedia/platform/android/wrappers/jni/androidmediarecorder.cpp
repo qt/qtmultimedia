@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -44,13 +44,21 @@
 #include "androidsurfaceview_p.h"
 #include "qandroidglobal_p.h"
 #include "qandroidmultimediautils_p.h"
-#include <QtCore/private/qjni_p.h>
 #include <qmap.h>
 
 QT_BEGIN_NAMESPACE
 
-typedef QMap<QString, QJNIObjectPrivate> CamcorderProfiles;
+typedef QMap<QString, QJniObject> CamcorderProfiles;
 Q_GLOBAL_STATIC(CamcorderProfiles, g_camcorderProfiles)
+
+static inline bool exceptionCheckAndClear()
+{
+#ifdef QT_DEBUG
+    return QJniEnvironment().checkAndClearExceptions(QJniEnvironment::OutputMode::Verbose);
+#else
+    return QJniEnvironment().checkAndClearExceptions();
+#endif // QT_DEBUG
+}
 
 static QString profileKey()
 {
@@ -62,7 +70,7 @@ bool AndroidCamcorderProfile::hasProfile(jint cameraId, Quality quality)
     if (g_camcorderProfiles->contains(profileKey().arg(cameraId).arg(quality)))
         return true;
 
-    return QJNIObjectPrivate::callStaticMethod<jboolean>("android/media/CamcorderProfile",
+    return QJniObject::callStaticMethod<jboolean>("android/media/CamcorderProfile",
                                                          "hasProfile",
                                                          "(II)Z",
                                                          cameraId,
@@ -72,12 +80,12 @@ bool AndroidCamcorderProfile::hasProfile(jint cameraId, Quality quality)
 AndroidCamcorderProfile AndroidCamcorderProfile::get(jint cameraId, Quality quality)
 {
     const QString key = profileKey().arg(cameraId).arg(quality);
-    QMap<QString, QJNIObjectPrivate>::const_iterator it = g_camcorderProfiles->constFind(key);
+    QMap<QString, QJniObject>::const_iterator it = g_camcorderProfiles->constFind(key);
 
     if (it != g_camcorderProfiles->constEnd())
         return AndroidCamcorderProfile(*it);
 
-    QJNIObjectPrivate camProfile = QJNIObjectPrivate::callStaticObjectMethod("android/media/CamcorderProfile",
+    QJniObject camProfile = QJniObject::callStaticObjectMethod("android/media/CamcorderProfile",
                                                                              "get",
                                                                              "(II)Landroid/media/CamcorderProfile;",
                                                                              cameraId,
@@ -118,7 +126,7 @@ int AndroidCamcorderProfile::getValue(AndroidCamcorderProfile::Field field) cons
     return 0;
 }
 
-AndroidCamcorderProfile::AndroidCamcorderProfile(const QJNIObjectPrivate &camcorderProfile)
+AndroidCamcorderProfile::AndroidCamcorderProfile(const QJniObject &camcorderProfile)
 {
     m_camcorderProfile = camcorderProfile;
 }
@@ -145,9 +153,9 @@ AndroidMediaRecorder::AndroidMediaRecorder()
     : QObject()
     , m_id(reinterpret_cast<jlong>(this))
 {
-    m_mediaRecorder = QJNIObjectPrivate("android/media/MediaRecorder");
+    m_mediaRecorder = QJniObject("android/media/MediaRecorder");
     if (m_mediaRecorder.isValid()) {
-        QJNIObjectPrivate listener(QtMediaRecorderListenerClassName, "(J)V", m_id);
+        QJniObject listener(QtMediaRecorderListenerClassName, "(J)V", m_id);
         m_mediaRecorder.callMethod<void>("setOnErrorListener",
                                          "(Landroid/media/MediaRecorder$OnErrorListener;)V",
                                          listener.object());
@@ -170,15 +178,12 @@ void AndroidMediaRecorder::release()
 
 bool AndroidMediaRecorder::prepare()
 {
-    QJNIEnvironmentPrivate env;
-    m_mediaRecorder.callMethod<void>("prepare");
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_mediaRecorder.objectClass(), "prepare", "()V");
+    env->CallVoidMethod(m_mediaRecorder.object(), methodId);
+
+    if (exceptionCheckAndClear())
         return false;
-    }
     return true;
 }
 
@@ -189,28 +194,18 @@ void AndroidMediaRecorder::reset()
 
 bool AndroidMediaRecorder::start()
 {
-    QJNIEnvironmentPrivate env;
-    m_mediaRecorder.callMethod<void>("start");
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_mediaRecorder.objectClass(), "start", "()V");
+    env->CallVoidMethod(m_mediaRecorder.object(), methodId);
+
+    if (exceptionCheckAndClear())
         return false;
-    }
     return true;
 }
 
 void AndroidMediaRecorder::stop()
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("stop");
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setAudioChannels(int numChannels)
@@ -220,14 +215,8 @@ void AndroidMediaRecorder::setAudioChannels(int numChannels)
 
 void AndroidMediaRecorder::setAudioEncoder(AudioEncoder encoder)
 {
-    QJNIEnvironmentPrivate env;
+    QJniEnvironment env;
     m_mediaRecorder.callMethod<void>("setAudioEncoder", "(I)V", int(encoder));
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setAudioEncodingBitRate(int bitRate)
@@ -242,32 +231,18 @@ void AndroidMediaRecorder::setAudioSamplingRate(int samplingRate)
 
 void AndroidMediaRecorder::setAudioSource(AudioSource source)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setAudioSource", "(I)V", int(source));
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setCamera(AndroidCamera *camera)
 {
-    QJNIObjectPrivate cam = camera->getCameraObject();
+    QJniObject cam = camera->getCameraObject();
     m_mediaRecorder.callMethod<void>("setCamera", "(Landroid/hardware/Camera;)V", cam.object());
 }
 
 void AndroidMediaRecorder::setVideoEncoder(VideoEncoder encoder)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoEncoder", "(I)V", int(encoder));
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setVideoEncodingBitRate(int bitRate)
@@ -277,97 +252,47 @@ void AndroidMediaRecorder::setVideoEncodingBitRate(int bitRate)
 
 void AndroidMediaRecorder::setVideoFrameRate(int rate)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoFrameRate", "(I)V", rate);
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setVideoSize(const QSize &size)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoSize", "(II)V", size.width(), size.height());
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setVideoSource(VideoSource source)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setVideoSource", "(I)V", int(source));
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setOrientationHint(int degrees)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setOrientationHint", "(I)V", degrees);
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setOutputFormat(OutputFormat format)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setOutputFormat", "(I)V", int(format));
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setOutputFile(const QString &path)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setOutputFile",
                                      "(Ljava/lang/String;)V",
-                                     QJNIObjectPrivate::fromString(path).object());
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
+                                     QJniObject::fromString(path).object());
 }
 
 void AndroidMediaRecorder::setSurfaceTexture(AndroidSurfaceTexture *texture)
 {
-    QJNIEnvironmentPrivate env;
     m_mediaRecorder.callMethod<void>("setPreviewDisplay",
                                      "(Landroid/view/Surface;)V",
                                      texture->surface());
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
 void AndroidMediaRecorder::setSurfaceHolder(AndroidSurfaceHolder *holder)
 {
-    QJNIEnvironmentPrivate env;
-    QJNIObjectPrivate surfaceHolder(holder->surfaceHolder());
-    QJNIObjectPrivate surface = surfaceHolder.callObjectMethod("getSurface",
+    QJniObject surfaceHolder(holder->surfaceHolder());
+    QJniObject surface = surfaceHolder.callObjectMethod("getSurface",
                                                                "()Landroid/view/Surface;");
     if (!surface.isValid())
         return;
@@ -375,31 +300,17 @@ void AndroidMediaRecorder::setSurfaceHolder(AndroidSurfaceHolder *holder)
     m_mediaRecorder.callMethod<void>("setPreviewDisplay",
                                      "(Landroid/view/Surface;)V",
                                      surface.object());
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif
-        env->ExceptionClear();
-    }
 }
 
-bool AndroidMediaRecorder::initJNI(JNIEnv *env)
+bool AndroidMediaRecorder::registerNativeMethods()
 {
-    jclass clazz = QJNIEnvironmentPrivate::findClass(QtMediaRecorderListenerClassName,
-                                                     env);
-
-    static const JNINativeMethod methods[] = {
+    static JNINativeMethod methods[] = {
         {"notifyError", "(JII)V", (void *)notifyError},
         {"notifyInfo", "(JII)V", (void *)notifyInfo}
     };
 
-    if (clazz && env->RegisterNatives(clazz,
-                                      methods,
-                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
-            return false;
-    }
-
-    return true;
+    const int size = sizeof(methods) / sizeof(methods[0]);
+    return QJniEnvironment().registerNativeMethods(QtMediaRecorderListenerClassName, methods, size);
 }
 
 QT_END_NAMESPACE

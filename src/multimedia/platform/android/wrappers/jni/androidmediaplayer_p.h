@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -53,7 +53,7 @@
 
 #include <QObject>
 #include <QNetworkRequest>
-#include <QtCore/private/qjni_p.h>
+#include <QtCore/qjniobject.h>
 #include <QAudio>
 
 QT_BEGIN_NAMESPACE
@@ -131,7 +131,7 @@ public:
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
     void setAudioRole(QAudio::Role role);
 
-    static bool initJNI(JNIEnv *env);
+    static bool registerNativeMethods();
 
 Q_SIGNALS:
     void error(qint32 what, qint32 extra);
@@ -143,7 +143,7 @@ Q_SIGNALS:
     void videoSizeChanged(qint32 width, qint32 height);
 
 private:
-    QJNIObjectPrivate mMediaPlayer;
+    QJniObject mMediaPlayer;
 };
 
 QT_END_NAMESPACE

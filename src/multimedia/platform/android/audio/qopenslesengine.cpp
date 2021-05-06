@@ -44,11 +44,10 @@
 
 #include <qdebug.h>
 
-#ifdef ANDROID
+#ifdef Q_OS_ANDROID
 #include <SLES/OpenSLES_Android.h>
-#include <QtCore/private/qjnihelpers_p.h>
-#include <QtCore/private/qjni_p.h>
-#include <QtCore/QJniObject>
+#include <QtCore/qjniobject.h>
+#include <QtCore/qcoreapplication.h>
 #endif
 
 #define MINIMUM_PERIOD_TIME_MS 5
@@ -161,7 +160,7 @@ int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defau
 #if defined(Q_OS_ANDROID)
     static int sampleRate = 0;
     static int framesPerBuffer = 0;
-    static const int sdkVersion = QtAndroidPrivate::androidSdkVersion();
+    static const int sdkVersion = QNativeInterface::QAndroidApplication::sdkVersion();
 
     if (sdkVersion < 17) // getProperty() was added in API level 17...
         return defaultValue;
@@ -172,33 +171,34 @@ int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defau
     if (type == SampleRate && sampleRate != 0)
         return sampleRate;
 
-    QJNIObjectPrivate ctx(QtAndroidPrivate::activity());
+    QJniObject ctx(QNativeInterface::QAndroidApplication::context());
     if (!ctx.isValid())
         return defaultValue;
 
 
-    QJNIObjectPrivate audioServiceString = ctx.getStaticObjectField("android/content/Context",
-                                                                    "AUDIO_SERVICE",
-                                                                    "Ljava/lang/String;");
-    QJNIObjectPrivate am = ctx.callObjectMethod("getSystemService",
-                                                "(Ljava/lang/String;)Ljava/lang/Object;",
-                                                audioServiceString.object());
+    QJniObject audioServiceString = ctx.getStaticObjectField("android/content/Context",
+                                                             "AUDIO_SERVICE",
+                                                             "Ljava/lang/String;");
+    QJniObject am = ctx.callObjectMethod("getSystemService",
+                                         "(Ljava/lang/String;)Ljava/lang/Object;",
+                                         audioServiceString.object());
     if (!am.isValid())
         return defaultValue;
 
-    QJNIObjectPrivate sampleRateField = QJNIObjectPrivate::getStaticObjectField("android/media/AudioManager",
-                                                                                "PROPERTY_OUTPUT_SAMPLE_RATE",
-                                                                                "Ljava/lang/String;");
-    QJNIObjectPrivate framesPerBufferField = QJNIObjectPrivate::getStaticObjectField("android/media/AudioManager",
-                                                                                     "PROPERTY_OUTPUT_FRAMES_PER_BUFFER",
-                                                                                     "Ljava/lang/String;");
+    auto sampleRateField = QJniObject::getStaticObjectField("android/media/AudioManager",
+                                                                  "PROPERTY_OUTPUT_SAMPLE_RATE",
+                                                                  "Ljava/lang/String;");
+    auto framesPerBufferField = QJniObject::getStaticObjectField(
+                                                            "android/media/AudioManager",
+                                                            "PROPERTY_OUTPUT_FRAMES_PER_BUFFER",
+                                                            "Ljava/lang/String;");
 
-    QJNIObjectPrivate sampleRateString = am.callObjectMethod("getProperty",
-                                                             "(Ljava/lang/String;)Ljava/lang/String;",
-                                                             sampleRateField.object());
-    QJNIObjectPrivate framesPerBufferString = am.callObjectMethod("getProperty",
-                                                                  "(Ljava/lang/String;)Ljava/lang/String;",
-                                                                  framesPerBufferField.object());
+    auto sampleRateString = am.callObjectMethod("getProperty",
+                                                "(Ljava/lang/String;)Ljava/lang/String;",
+                                                sampleRateField.object());
+    auto framesPerBufferString = am.callObjectMethod("getProperty",
+                                                     "(Ljava/lang/String;)Ljava/lang/String;",
+                                                     framesPerBufferField.object());
 
     if (!sampleRateString.isValid() || !framesPerBufferString.isValid())
         return defaultValue;
@@ -237,7 +237,8 @@ int QOpenSLESEngine::getDefaultBufferSize(const QAudioFormat &format)
 
     const int audioFormat = [&format]() -> int
     {
-        if (format.sampleFormat() == QAudioFormat::Float && QtAndroidPrivate::androidSdkVersion() >= 21)
+        const int sdkVersion = QNativeInterface::QAndroidApplication::sdkVersion();
+        if (format.sampleFormat() == QAudioFormat::Float && sdkVersion >= 21)
             return 4; /* PCM_FLOAT */
         else if (format.sampleFormat() == QAudioFormat::UInt8)
             return 3; /* PCM_8BIT */
@@ -248,12 +249,12 @@ int QOpenSLESEngine::getDefaultBufferSize(const QAudioFormat &format)
     }();
 
     const int sampleRate = format.sampleRate();
-    const int minBufferSize = QJNIObjectPrivate::callStaticMethod<jint>("android/media/AudioTrack",
-                                                                        "getMinBufferSize",
-                                                                        "(III)I",
-                                                                        sampleRate,
-                                                                        channelConfig,
-                                                                        audioFormat);
+    const int minBufferSize = QJniObject::callStaticMethod<jint>("android/media/AudioTrack",
+                                                                 "getMinBufferSize",
+                                                                 "(III)I",
+                                                                 sampleRate,
+                                                                 channelConfig,
+                                                                 audioFormat);
     return minBufferSize > 0 ? minBufferSize : format.bytesForDuration(DEFAULT_PERIOD_TIME_MS);
 #else
     return format.bytesForDuration(DEFAULT_PERIOD_TIME_MS);
@@ -274,17 +275,18 @@ bool QOpenSLESEngine::supportsLowLatency()
     if (isSupported != -1)
         return (isSupported == 1);
 
-    QJNIObjectPrivate ctx(QtAndroidPrivate::activity());
+    QJniObject ctx(QNativeInterface::QAndroidApplication::context());
     if (!ctx.isValid())
         return false;
 
-    QJNIObjectPrivate pm = ctx.callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
+    QJniObject pm = ctx.callObjectMethod("getPackageManager", "()Landroid/content/pm/PackageManager;");
     if (!pm.isValid())
         return false;
 
-    QJNIObjectPrivate audioFeatureField = QJNIObjectPrivate::getStaticObjectField("android/content/pm/PackageManager",
-                                                                                  "FEATURE_AUDIO_LOW_LATENCY",
-                                                                                  "Ljava/lang/String;");
+    QJniObject audioFeatureField = QJniObject::getStaticObjectField(
+                                                            "android/content/pm/PackageManager",
+                                                            "FEATURE_AUDIO_LOW_LATENCY",
+                                                            "Ljava/lang/String;");
     if (!audioFeatureField.isValid())
         return false;
 
@@ -357,7 +359,7 @@ bool QOpenSLESEngine::inputFormatIsSupported(SLDataFormat_PCM format)
                                        SL_DEFAULTDEVICEID_AUDIOINPUT, NULL };
     SLDataSource audioSrc = { &loc_dev, NULL };
 
-#ifdef ANDROID
+#ifdef Q_OS_ANDROID
     SLDataLocator_AndroidSimpleBufferQueue loc_bq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 1 };
 #else
     SLDataLocator_BufferQueue loc_bq = { SL_DATALOCATOR_BUFFERQUEUE, 1 };

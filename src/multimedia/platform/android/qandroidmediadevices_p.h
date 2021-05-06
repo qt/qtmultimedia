@@ -71,7 +71,7 @@ public:
 
     void forwardAudioOutputsChanged();
     void forwardAudioInputsChanged();
-    static bool initJNI(JNIEnv *env);
+    static bool registerNativeMethods();
 };
 
 QT_END_NAMESPACE

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -51,7 +51,9 @@
 // We mean it.
 //
 
-#include <QtCore/private/qjni_p.h>
+#include <QtCore/private/qglobal_p.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qjniobject.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -92,7 +94,7 @@ public:
 
 private:
     void release();
-    QJNIObjectPrivate m_metadataRetriever;
+    QJniObject m_metadataRetriever;
 };
 
 QT_END_NAMESPACE

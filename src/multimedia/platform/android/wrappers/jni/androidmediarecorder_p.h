@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -52,7 +52,7 @@
 //
 
 #include <qobject.h>
-#include <QtCore/private/qjni_p.h>
+#include <QtCore/qjniobject.h>
 #include <qsize.h>
 
 QT_BEGIN_NAMESPACE
@@ -95,8 +95,8 @@ public:
     int getValue(Field field) const;
 
 private:
-    AndroidCamcorderProfile(const QJNIObjectPrivate &camcorderProfile);
-    QJNIObjectPrivate m_camcorderProfile;
+    AndroidCamcorderProfile(const QJniObject &camcorderProfile);
+    QJniObject m_camcorderProfile;
 };
 
 class AndroidMediaRecorder : public QObject
@@ -177,7 +177,7 @@ public:
     void setSurfaceTexture(AndroidSurfaceTexture *texture);
     void setSurfaceHolder(AndroidSurfaceHolder *holder);
 
-    static bool initJNI(JNIEnv *env);
+    static bool registerNativeMethods();
 
 Q_SIGNALS:
     void error(int what, int extra);
@@ -185,7 +185,7 @@ Q_SIGNALS:
 
 private:
     jlong m_id;
-    QJNIObjectPrivate m_mediaRecorder;
+    QJniObject m_mediaRecorder;
 };
 
 QT_END_NAMESPACE

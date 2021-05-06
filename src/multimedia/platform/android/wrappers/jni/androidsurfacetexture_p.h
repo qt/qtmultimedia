@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -52,7 +52,7 @@
 //
 
 #include <qobject.h>
-#include <QtCore/private/qjni_p.h>
+#include <QtCore/qjniobject.h>
 
 #include <QMatrix4x4>
 
@@ -77,17 +77,17 @@ public:
     void attachToGLContext(quint32 texName); // API level 16
     void detachFromGLContext(); // API level 16
 
-    static bool initJNI(JNIEnv *env);
+    static bool registerNativeMethods();
 
 Q_SIGNALS:
     void frameAvailable();
 
 private:
-    void setOnFrameAvailableListener(const QJNIObjectPrivate &listener);
+    void setOnFrameAvailableListener(const QJniObject &listener);
 
-    QJNIObjectPrivate m_surfaceTexture;
-    QJNIObjectPrivate m_surface;
-    QJNIObjectPrivate m_surfaceHolder;
+    QJniObject m_surfaceTexture;
+    QJniObject m_surface;
+    QJniObject m_surfaceHolder;
 };
 
 QT_END_NAMESPACE

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QtCore/private/qjni_p.h>
+#include <QtCore/qjniobject.h>
 #include <qrect.h>
 #include <QtCore/qrunnable.h>
 
@@ -68,18 +68,18 @@ public:
     jobject surfaceHolder() const;
     bool isSurfaceCreated() const;
 
-    static bool initJNI(JNIEnv *env);
+    static bool registerNativeMethods();
 
 Q_SIGNALS:
     void surfaceCreated();
 
 private:
-    AndroidSurfaceHolder(QJNIObjectPrivate object);
+    AndroidSurfaceHolder(QJniObject object);
 
     static void handleSurfaceCreated(JNIEnv*, jobject, jlong id);
     static void handleSurfaceDestroyed(JNIEnv*, jobject, jlong id);
 
-    QJNIObjectPrivate m_surfaceHolder;
+    QJniObject m_surfaceHolder;
     bool m_surfaceCreated;
 
     friend class AndroidSurfaceView;
@@ -101,7 +101,7 @@ Q_SIGNALS:
     void surfaceCreated();
 
 private:
-    QJNIObjectPrivate m_surfaceView;
+    QJniObject m_surfaceView;
     QWindow *m_window;
     AndroidSurfaceHolder *m_surfaceHolder;
     int m_pendingVisible;

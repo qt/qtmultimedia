@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -40,14 +40,13 @@
 #include "qopenslesaudioinput_p.h"
 
 #include "qopenslesengine_p.h"
-#include <qbuffer.h>
 #include <private/qaudiohelpers_p.h>
+#include <qbuffer.h>
 #include <qdebug.h>
 
 #ifdef ANDROID
 #include <SLES/OpenSLES_AndroidConfiguration.h>
-#include <QtCore/private/qjnihelpers_p.h>
-#include <QtCore/private/qjni_p.h>
+#include <QtCore/qcoreapplication.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -59,24 +58,16 @@ QT_BEGIN_NAMESPACE
 #ifdef ANDROID
 static bool hasRecordingPermission()
 {
-    using namespace QtAndroidPrivate;
-    if (androidSdkVersion() < 23)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
 
-    const QString key(QLatin1String("android.permission.RECORD_AUDIO"));
-    PermissionsResult res = checkPermission(key);
-    if (res == PermissionsResult::Granted) // Permission already granted?
+    const QPermission::PermisionType key(QPermission::Microphone);
+    // Permission already granted?
+    if (QCoreApplication::checkPermission(key).result() == QPermission::Authorized)
         return true;
 
-    QJNIEnvironmentPrivate env;
-    const auto &results = requestPermissionsSync(env, QStringList() << key);
-    if (!results.contains(key)) {
-        qWarning("No permission found for key: %s", qPrintable(key));
-        return false;
-    }
-
-    if (results[key] == PermissionsResult::Denied) {
-        qDebug("%s - Permission denied by user!", qPrintable(key));
+    if (QCoreApplication::requestPermission(key).result() != QPermission::Authorized) {
+        qDebug("Microphone permission denied by user!");
         return false;
     }
 

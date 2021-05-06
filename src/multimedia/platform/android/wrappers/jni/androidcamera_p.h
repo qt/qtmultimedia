@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Copyright (C) 2016 Ruslan Baratov
 ** Contact: https://www.qt.io/licensing/
 **
@@ -53,10 +53,10 @@
 //
 
 #include <qobject.h>
-#include <QtCore/private/qjni_p.h>
 #include <qsize.h>
 #include <qrect.h>
 #include <QtMultimedia/qcamera.h>
+#include <QtCore/qjniobject.h>
 #include <private/qcamerainfo_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -200,13 +200,13 @@ public:
     void setupPreviewFrameCallback();
     void notifyNewFrames(bool notify);
     void fetchLastPreviewFrame();
-    QJNIObjectPrivate getCameraObject();
+    QJniObject getCameraObject();
 
     static int getNumberOfCameras();
     static void getCameraInfo(int id, QCameraInfoPrivate *info);
     static bool requestCameraPermission();
 
-    static bool initJNI(JNIEnv *env);
+    static bool registerNativeMethods();
 
 Q_SIGNALS:
     void previewSizeChanged();

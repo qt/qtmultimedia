@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -38,9 +38,8 @@
 ****************************************************************************/
 
 #include "androidsurfacetexture_p.h"
-#include <QtCore/private/qjni_p.h>
-#include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qcoreapplication.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -67,32 +66,25 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(quint32 texName)
 {
     Q_STATIC_ASSERT(sizeof (jlong) >= sizeof (void *));
     // API level 11 or higher is required
-    if (QtAndroidPrivate::androidSdkVersion() < 11) {
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 11) {
         qWarning("Camera preview and video playback require Android 3.0 (API level 11) or later.");
         return;
     }
 
-    QJNIEnvironmentPrivate env;
-    m_surfaceTexture = QJNIObjectPrivate("android/graphics/SurfaceTexture", "(I)V", jint(texName));
-    if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-        env->ExceptionDescribe();
-#endif // QT_DEBUG
-        env->ExceptionClear();
-    }
+    m_surfaceTexture = QJniObject("android/graphics/SurfaceTexture", "(I)V", jint(texName));
 
     if (!m_surfaceTexture.isValid())
         return;
 
     const QMutexLocker lock(g_textureMutex());
     g_surfaceTextures->append(jlong(this));
-    QJNIObjectPrivate listener(QtSurfaceTextureListenerClassName, "(J)V", jlong(this));
+    QJniObject listener(QtSurfaceTextureListenerClassName, "(J)V", jlong(this));
     setOnFrameAvailableListener(listener);
 }
 
 AndroidSurfaceTexture::~AndroidSurfaceTexture()
 {
-    if (QtAndroidPrivate::androidSdkVersion() > 13 && m_surface.isValid())
+    if (QNativeInterface::QAndroidApplication::sdkVersion() > 13 && m_surface.isValid())
         m_surface.callMethod<void>("release");
 
     if (m_surfaceTexture.isValid()) {
@@ -110,8 +102,7 @@ QMatrix4x4 AndroidSurfaceTexture::getTransformMatrix()
     if (!m_surfaceTexture.isValid())
         return matrix;
 
-    QJNIEnvironmentPrivate env;
-
+    QJniEnvironment env;
     jfloatArray array = env->NewFloatArray(16);
     m_surfaceTexture.callMethod<void>("getTransformMatrix", "([F)V", array);
     env->GetFloatArrayRegion(array, 0, 16, matrix.data());
@@ -122,7 +113,7 @@ QMatrix4x4 AndroidSurfaceTexture::getTransformMatrix()
 
 void AndroidSurfaceTexture::release()
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 14)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
         return;
 
     m_surfaceTexture.callMethod<void>("release");
@@ -144,9 +135,9 @@ jobject AndroidSurfaceTexture::surfaceTexture()
 jobject AndroidSurfaceTexture::surface()
 {
     if (!m_surface.isValid()) {
-        m_surface = QJNIObjectPrivate("android/view/Surface",
-                                      "(Landroid/graphics/SurfaceTexture;)V",
-                                      m_surfaceTexture.object());
+        m_surface = QJniObject("android/view/Surface",
+                               "(Landroid/graphics/SurfaceTexture;)V",
+                               m_surfaceTexture.object());
     }
 
     return m_surface.object();
@@ -155,9 +146,9 @@ jobject AndroidSurfaceTexture::surface()
 jobject AndroidSurfaceTexture::surfaceHolder()
 {
     if (!m_surfaceHolder.isValid()) {
-        m_surfaceHolder = QJNIObjectPrivate("org/qtproject/qt/android/multimedia/QtSurfaceTextureHolder",
-                                            "(Landroid/view/Surface;)V",
-                                            surface());
+        m_surfaceHolder = QJniObject("org/qtproject/qt/android/multimedia/QtSurfaceTextureHolder",
+                                     "(Landroid/view/Surface;)V",
+                                     surface());
     }
 
     return m_surfaceHolder.object();
@@ -165,7 +156,7 @@ jobject AndroidSurfaceTexture::surfaceHolder()
 
 void AndroidSurfaceTexture::attachToGLContext(quint32 texName)
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 16 || !m_surfaceTexture.isValid())
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 16 || !m_surfaceTexture.isValid())
         return;
 
     m_surfaceTexture.callMethod<void>("attachToGLContext", "(I)V", texName);
@@ -173,35 +164,29 @@ void AndroidSurfaceTexture::attachToGLContext(quint32 texName)
 
 void AndroidSurfaceTexture::detachFromGLContext()
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 16 || !m_surfaceTexture.isValid())
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 16 || !m_surfaceTexture.isValid())
         return;
 
     m_surfaceTexture.callMethod<void>("detachFromGLContext");
 }
 
-bool AndroidSurfaceTexture::initJNI(JNIEnv *env)
+bool AndroidSurfaceTexture::registerNativeMethods()
 {
     // SurfaceTexture is available since API 11.
-    if (QtAndroidPrivate::androidSdkVersion() < 11)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 11)
         return false;
 
-    jclass clazz = QJNIEnvironmentPrivate::findClass(QtSurfaceTextureListenerClassName,
-                                                     env);
-
-    static const JNINativeMethod methods[] = {
+    static JNINativeMethod methods[] = {
         {"notifyFrameAvailable", "(J)V", (void *)notifyFrameAvailable}
     };
-
-    if (clazz && env->RegisterNatives(clazz,
-                                      methods,
-                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
+    const int size = sizeof(methods) / sizeof(methods[0]);
+    if (QJniEnvironment().registerNativeMethods(QtSurfaceTextureListenerClassName, methods, size))
         return false;
-    }
 
     return true;
 }
 
-void AndroidSurfaceTexture::setOnFrameAvailableListener(const QJNIObjectPrivate &listener)
+void AndroidSurfaceTexture::setOnFrameAvailableListener(const QJniObject &listener)
 {
     m_surfaceTexture.callMethod<void>("setOnFrameAvailableListener",
                                       "(Landroid/graphics/SurfaceTexture$OnFrameAvailableListener;)V",

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -38,13 +38,12 @@
 ****************************************************************************/
 
 #include "androidmediaplayer_p.h"
-
-#include <QString>
-#include <QtCore/private/qjni_p.h>
-#include <QtCore/private/qjnihelpers_p.h>
 #include "androidsurfacetexture_p.h"
+
 #include <QList>
 #include <QReadWriteLock>
+#include <QString>
+#include <QtCore/qcoreapplication.h>
 
 static const char QtAndroidMediaPlayerClassName[] = "org/qtproject/qt/android/multimedia/QtAndroidMediaPlayer";
 typedef QList<AndroidMediaPlayer *> MediaPlayerList;
@@ -53,16 +52,25 @@ Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 QT_BEGIN_NAMESPACE
 
+static bool exceptionCheckAndClear()
+{
+#ifdef QT_DEBUG
+    return QJniEnvironment().checkAndClearExceptions(QJniEnvironment::OutputMode::Verbose);
+#else
+    return QJniEnvironment().checkAndClearExceptions();
+#endif // QT_DEBUG
+}
+
 AndroidMediaPlayer::AndroidMediaPlayer()
     : QObject()
 {
     QWriteLocker locker(rwLock);
-    auto context = QtAndroidPrivate::activity() ? QtAndroidPrivate::activity() : QtAndroidPrivate::service();
+    auto context = QNativeInterface::QAndroidApplication::context();
     const jlong id = reinterpret_cast<jlong>(this);
-    mMediaPlayer = QJNIObjectPrivate(QtAndroidMediaPlayerClassName,
-                                     "(Landroid/content/Context;J)V",
-                                     context,
-                                     id);
+    mMediaPlayer = QJniObject(QtAndroidMediaPlayerClassName,
+                              "(Landroid/content/Context;J)V",
+                              context,
+                              id);
     mediaPlayers->append(this);
 }
 
@@ -113,23 +121,20 @@ qreal AndroidMediaPlayer::playbackRate()
 {
     qreal rate(1.0);
 
-    if (QtAndroidPrivate::androidSdkVersion() < 23)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return rate;
 
-    QJNIObjectPrivate player = mMediaPlayer.callObjectMethod("getMediaPlayerHandle", "()Landroid/media/MediaPlayer;");
+    QJniObject player = mMediaPlayer.callObjectMethod("getMediaPlayerHandle",
+                                                      "()Landroid/media/MediaPlayer;");
     if (player.isValid()) {
-        QJNIObjectPrivate playbackParams = player.callObjectMethod("getPlaybackParams", "()Landroid/media/PlaybackParams;");
+        QJniObject playbackParams = player.callObjectMethod("getPlaybackParams",
+                                                            "()Landroid/media/PlaybackParams;");
         if (playbackParams.isValid()) {
-            const qreal speed = playbackParams.callMethod<jfloat>("getSpeed", "()F");
-            QJNIEnvironmentPrivate env;
-            if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-                env->ExceptionDescribe();
-#endif // QT_DEBUG
-                env->ExceptionClear();
-            } else {
+            QJniEnvironment env;
+            auto methodId = env->GetMethodID(playbackParams.objectClass(), "getSpeed", "()F");
+            const qreal speed = env->CallFloatMethod(playbackParams.object(), methodId);
+            if (!exceptionCheckAndClear())
                 rate = speed;
-            }
         }
     }
 
@@ -168,13 +173,14 @@ void AndroidMediaPlayer::setMuted(bool mute)
 
 void AndroidMediaPlayer::setDataSource(const QNetworkRequest &request)
 {
-    QJNIObjectPrivate string = QJNIObjectPrivate::fromString(request.url().toString(QUrl::FullyEncoded));
+    QJniObject string = QJniObject::fromString(request.url().toString(QUrl::FullyEncoded));
 
     mMediaPlayer.callMethod<void>("initHeaders", "()V");
     for (auto &header : request.rawHeaderList()) {
         auto value = request.rawHeader(header);
         mMediaPlayer.callMethod<void>("setHeader", "(Ljava/lang/String;Ljava/lang/String;)V",
-            QJNIObjectPrivate::fromString(header).object(),  QJNIObjectPrivate::fromString(value).object());
+            QJniObject::fromString(QLatin1String(header)).object(),
+                                      QJniObject::fromString(QLatin1String(value)).object());
     }
 
     mMediaPlayer.callMethod<void>("setDataSource", "(Ljava/lang/String;)V", string.object());
@@ -192,27 +198,31 @@ void AndroidMediaPlayer::setVolume(int volume)
 
 bool AndroidMediaPlayer::setPlaybackRate(qreal rate)
 {
-    if (QtAndroidPrivate::androidSdkVersion() < 23) {
-        qWarning("Setting the playback rate on a media player requires Android 6.0 (API level 23) or later");
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 23) {
+        qWarning() << "Setting the playback rate on a media player requires"
+                   << "Android 6.0 (API level 23) or later";
         return false;
     }
 
-    QJNIEnvironmentPrivate env;
-
-    QJNIObjectPrivate player = mMediaPlayer.callObjectMethod("getMediaPlayerHandle", "()Landroid/media/MediaPlayer;");
+    QJniObject player = mMediaPlayer.callObjectMethod("getMediaPlayerHandle",
+                                                      "()Landroid/media/MediaPlayer;");
     if (player.isValid()) {
-        QJNIObjectPrivate playbackParams = player.callObjectMethod("getPlaybackParams", "()Landroid/media/PlaybackParams;");
+        QJniObject playbackParams = player.callObjectMethod("getPlaybackParams",
+                                                            "()Landroid/media/PlaybackParams;");
         if (playbackParams.isValid()) {
-            playbackParams.callObjectMethod("setSpeed", "(F)Landroid/media/PlaybackParams;", jfloat(rate));
+            playbackParams.callObjectMethod("setSpeed", "(F)Landroid/media/PlaybackParams;",
+                                            jfloat(rate));
             // pitch can only be > 0
             if (!qFuzzyIsNull(rate))
-                playbackParams.callObjectMethod("setPitch", "(F)Landroid/media/PlaybackParams;", jfloat(qAbs(rate)));
-            player.callMethod<void>("setPlaybackParams", "(Landroid/media/PlaybackParams;)V", playbackParams.object());
-            if (Q_UNLIKELY(env->ExceptionCheck())) {
-#ifdef QT_DEBUG
-                env->ExceptionDescribe();
-#endif // QT_DEBUG
-                env->ExceptionClear();
+                playbackParams.callObjectMethod("setPitch", "(F)Landroid/media/PlaybackParams;",
+                                                jfloat(qAbs(rate)));
+
+            QJniEnvironment env;
+            auto methodId = env->GetMethodID(player.objectClass(), "setPlaybackParams",
+                                             "(Landroid/media/PlaybackParams;)V");
+            env->CallVoidMethod(player.object(), methodId, playbackParams.object());
+
+            if (exceptionCheckAndClear()) {
                 qWarning() << "Invalid playback rate" << rate;
                 return false;
             } else {
@@ -399,12 +409,9 @@ static void onVideoSizeChangedNative(JNIEnv *env,
     Q_EMIT (*mediaPlayers)[i]->videoSizeChanged(width, height);
 }
 
-bool AndroidMediaPlayer::initJNI(JNIEnv *env)
+bool AndroidMediaPlayer::registerNativeMethods()
 {
-    jclass clazz = QJNIEnvironmentPrivate::findClass(QtAndroidMediaPlayerClassName,
-                                                     env);
-
-    static const JNINativeMethod methods[] = {
+    static JNINativeMethod methods[] = {
         {"onErrorNative", "(IIJ)V", reinterpret_cast<void *>(onErrorNative)},
         {"onBufferingUpdateNative", "(IJ)V", reinterpret_cast<void *>(onBufferingUpdateNative)},
         {"onProgressUpdateNative", "(IJ)V", reinterpret_cast<void *>(onProgressUpdateNative)},
@@ -414,13 +421,8 @@ bool AndroidMediaPlayer::initJNI(JNIEnv *env)
         {"onStateChangedNative", "(IJ)V", reinterpret_cast<void *>(onStateChangedNative)}
     };
 
-    if (clazz && env->RegisterNatives(clazz,
-                                      methods,
-                                      sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
-            return false;
-    }
-
-    return true;
+    const int size = sizeof(methods) / sizeof(methods[0]);
+    return QJniEnvironment().registerNativeMethods(QtAndroidMediaPlayerClassName, methods, size);
 }
 
 QT_END_NAMESPACE

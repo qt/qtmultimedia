@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -44,6 +44,7 @@
 #include "private/qabstractvideobuffer_p.h"
 #include <QVideoFrameFormat>
 #include <qvideosink.h>
+#include <QtCore/qcoreapplication.h>
 
 #include <qevent.h>
 #include <qcoreapplication.h>
@@ -51,7 +52,6 @@
 #include <qopenglfunctions.h>
 #include <qopenglshaderprogram.h>
 #include <qopenglframebufferobject.h>
-#include <QtCore/private/qjnihelpers_p.h>
 #include <QtGui/QWindow>
 #include <QtGui/QOffscreenSurface>
 
@@ -178,7 +178,7 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
     , m_fbo(0)
     , m_program(0)
     , m_glDeleter(0)
-    , m_surfaceTextureCanAttachToContext(QtAndroidPrivate::androidSdkVersion() >= 16)
+    , m_surfaceTextureCanAttachToContext(QNativeInterface::QAndroidApplication::sdkVersion() >= 16)
 {
 
 }

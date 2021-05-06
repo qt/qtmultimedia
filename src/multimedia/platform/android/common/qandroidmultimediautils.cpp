@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -41,8 +41,7 @@
 #include "qandroidglobal_p.h"
 
 #include <qlist.h>
-#include <QtCore/private/qjni_p.h>
-#include <QtCore/private/qjnihelpers_p.h>
+#include <QtCore/qcoreapplication.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -109,40 +108,39 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrameForma
     }
 }
 
-static bool androidRequestPermission(const QString &key)
+static bool androidRequestPermission(QPermission::PermisionType key)
 {
-    using namespace QtAndroidPrivate;
-
-    if (androidSdkVersion() < 23)
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
 
-    PermissionsResult res = checkPermission(key);
-    if (res == PermissionsResult::Granted) // Permission already granted?
+    // Permission already granted?
+    if (QCoreApplication::checkPermission(key).result() == QPermission::Authorized)
         return true;
 
-    QJNIEnvironmentPrivate env;
-    const auto &results = requestPermissionsSync(env, QStringList() << key);
-    if (!results.contains(key)) {
-        qCWarning(qtAndroidMediaPlugin, "No permission found for key: %s", qPrintable(key));
+    if (QCoreApplication::requestPermission(key).result() != QPermission::Authorized)
         return false;
-    }
-
-    if (results[key] == PermissionsResult::Denied) {
-        qCDebug(qtAndroidMediaPlugin, "%s - Permission denied by user!", qPrintable(key));
-        return false;
-    }
 
     return true;
 }
 
 bool qt_androidRequestCameraPermission()
 {
-    return androidRequestPermission(QLatin1String("android.permission.CAMERA"));
+    if (!androidRequestPermission(QPermission::Camera)) {
+        qCDebug(qtAndroidMediaPlugin, "Camera permission denied by user!");
+        return false;
+    }
+
+    return true;
 }
 
 bool qt_androidRequestRecordingPermission()
 {
-    return androidRequestPermission(QLatin1String("android.permission.RECORD_AUDIO"));
+    if (!androidRequestPermission(QPermission::Microphone)) {
+        qCDebug(qtAndroidMediaPlugin, "Microphone permission denied by user!");
+        return false;
+    }
+
+    return true;
 }
 
 QT_END_NAMESPACE

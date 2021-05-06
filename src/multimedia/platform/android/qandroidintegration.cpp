@@ -127,17 +127,15 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
         return JNI_ERR;
 
-    JNIEnv *jniEnv = uenv.nativeEnvironment;
-
-    if (!AndroidMediaPlayer::initJNI(jniEnv) ||
-        !AndroidCamera::initJNI(jniEnv) ||
-        !AndroidMediaRecorder::initJNI(jniEnv) ||
-        !AndroidSurfaceHolder::initJNI(jniEnv) ||
-        !QAndroidMediaDevices::initJNI(jniEnv)) {
+    if (!AndroidMediaPlayer::registerNativeMethods()
+            || !AndroidCamera::registerNativeMethods()
+            || !AndroidMediaRecorder::registerNativeMethods()
+            || !AndroidSurfaceHolder::registerNativeMethods()
+            || !QAndroidMediaDevices::registerNativeMethods()) {
         return JNI_ERR;
     }
 
-    AndroidSurfaceTexture::initJNI(jniEnv);
+    AndroidSurfaceTexture::registerNativeMethods();
 
     return JNI_VERSION_1_6;
 }
