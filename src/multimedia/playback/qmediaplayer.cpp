@@ -310,6 +310,16 @@ float QMediaPlayer::bufferProgress() const
     return 0.;
 }
 
+QMediaTimeRange QMediaPlayer::bufferedTimeRange() const
+{
+    Q_D(const QMediaPlayer);
+
+    if (d->control)
+        return d->control->availablePlaybackRanges();
+
+    return {};
+}
+
 bool QMediaPlayer::hasAudio() const
 {
     Q_D(const QMediaPlayer);

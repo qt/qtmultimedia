@@ -50,6 +50,7 @@ QT_BEGIN_NAMESPACE
 class QVideoSink;
 class QAudioDeviceInfo;
 class QMediaMetaData;
+class QMediaTimeRange;
 
 class QMediaPlayerPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
@@ -150,6 +151,7 @@ public:
     bool hasVideo() const;
 
     float bufferProgress() const;
+    QMediaTimeRange bufferedTimeRange() const;
 
     bool isSeekable() const;
     qreal playbackRate() const;
