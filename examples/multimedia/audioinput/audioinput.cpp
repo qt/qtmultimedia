@@ -228,7 +228,7 @@ void InputTest::toggleMode()
         auto io = m_audioInput->start();
         connect(io, &QIODevice::readyRead,
             [&, io]() {
-                qint64 len = m_audioInput->bytesReady();
+                qint64 len = m_audioInput->bytesAvailable();
                 const int BufferSize = 4096;
                 if (len > BufferSize)
                     len = BufferSize;

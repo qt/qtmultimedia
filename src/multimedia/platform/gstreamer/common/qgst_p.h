@@ -65,6 +65,9 @@
 #include <gst/interfaces/photography.h>
 #undef GST_USE_UNSTABLE_API
 #endif
+#ifndef QT_NO_DEBUG
+#include <qdebug.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 

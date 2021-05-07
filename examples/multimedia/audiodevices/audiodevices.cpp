@@ -186,7 +186,7 @@ void AudioTest::populateTable()
         allFormatsTable->setItem(row, 2, sampleTypeItem);
 
         QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1 - %2")
-            .arg(m_deviceInfo.minimumSampleRate()).arg(m_deviceInfo.maximumSampleRates()));
+            .arg(m_deviceInfo.minimumSampleRate()).arg(m_deviceInfo.maximumSampleRate()));
         allFormatsTable->setItem(row, 0, sampleRateItem);
 
         QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1 - %2")

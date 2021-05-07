@@ -424,7 +424,7 @@ void Engine::audioStateChanged(QAudio::State state)
 void Engine::audioDataReady()
 {
     Q_ASSERT(0 == m_bufferPosition);
-    const qint64 bytesReady = m_audioInput->bytesReady();
+    const qint64 bytesReady = m_audioInput->bytesAvailable();
     const qint64 bytesSpace = m_buffer.size() - m_dataLength;
     const qint64 bytesToRead = qMin(bytesReady, bytesSpace);
 
