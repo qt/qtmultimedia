@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qaudiobuffer.h"
-#include "qaudiobuffer_p.h"
 
 #include <QObject>
 #include <QDebug>
@@ -48,133 +47,19 @@ QT_BEGIN_NAMESPACE
 class QAudioBufferPrivate : public QSharedData
 {
 public:
-    QAudioBufferPrivate(QAbstractAudioBuffer *provider)
-        : mProvider(provider)
-        , mCount(1)
+    QAudioBufferPrivate(const QAudioFormat &f, const QByteArray &d, qint64 start)
+        : format(f),
+        data(d),
+        startTime(start)
     {
     }
 
-    ~QAudioBufferPrivate()
-    {
-        if (mProvider)
-            mProvider->release();
-    }
-
-    void ref()
-    {
-        mCount.ref();
-    }
-
-    void deref()
-    {
-        if (!mCount.deref())
-            delete this;
-    }
-
-    QAudioBufferPrivate *clone();
-
-    static QAudioBufferPrivate *acquire(QAudioBufferPrivate *other)
-    {
-        if (!other)
-            return nullptr;
-
-        // Ref the other (if there are extant data() pointers, they will
-        // also point here - it's a feature, not a bug, like QByteArray)
-        other->ref();
-        return other;
-    }
-
-    QAbstractAudioBuffer *mProvider;
-    QAtomicInt mCount;
+    QAudioFormat format;
+    QByteArray data;
+    qint64 startTime;
 };
 
-// Private class to go in .cpp file
-class QMemoryAudioBufferProvider : public QAbstractAudioBuffer {
-public:
-    QMemoryAudioBufferProvider(const void *data, int frameCount, const QAudioFormat &format, qint64 startTime)
-        : mStartTime(startTime)
-        , mFrameCount(frameCount)
-        , mFormat(format)
-    {
-        int numBytes = format.bytesForFrames(frameCount);
-        if (numBytes > 0) {
-            mBuffer = malloc(numBytes);
-            if (!mBuffer) {
-                // OOM, if that's likely
-                mStartTime = -1;
-                mFrameCount = 0;
-                mFormat = QAudioFormat();
-            } else {
-                // Allocated, see if we have data to copy
-                if (data) {
-                    memcpy(mBuffer, data, numBytes);
-                } else {
-                    // We have to fill with the zero value
-                    switch (format.sampleFormat()) {
-                    case QAudioFormat::Unknown:
-                    case QAudioFormat::NSampleFormats:
-                        return;
-                    case QAudioFormat::UInt8:
-                        memset(mBuffer, 0x80, numBytes);
-                        break;
-                    case QAudioFormat::Int16:
-                    case QAudioFormat::Int32:
-                    case QAudioFormat::Float:
-                        memset(mBuffer, 0x0, numBytes);
-                        break;
-                    }
-                }
-            }
-        } else
-            mBuffer = nullptr;
-    }
-
-    ~QMemoryAudioBufferProvider() override
-    {
-        if (mBuffer)
-            free(mBuffer);
-    }
-
-    void release() override {delete this;}
-    [[nodiscard]] QAudioFormat format() const override {return mFormat;}
-    [[nodiscard]] qint64 startTime() const override {return mStartTime;}
-    [[nodiscard]] int frameCount() const override {return mFrameCount;}
-
-    [[nodiscard]] void *constData() const override {return mBuffer;}
-
-    void *writableData() override {return mBuffer;}
-    [[nodiscard]] QAbstractAudioBuffer *clone() const override
-    {
-        return new QMemoryAudioBufferProvider(mBuffer, mFrameCount, mFormat, mStartTime);
-    }
-
-    void *mBuffer;
-    qint64 mStartTime;
-    int mFrameCount;
-    QAudioFormat mFormat;
-};
-
-QAudioBufferPrivate *QAudioBufferPrivate::clone()
-{
-    // We want to create a single bufferprivate with a
-    // single qaab
-    // This should only be called when the count is > 1
-    Q_ASSERT(mCount.loadRelaxed() > 1);
-
-    if (mProvider) {
-        QAbstractAudioBuffer *abuf = mProvider->clone();
-
-        if (!abuf) {
-            abuf = new QMemoryAudioBufferProvider(mProvider->constData(), mProvider->frameCount(), mProvider->format(), mProvider->startTime());
-        }
-
-        if (abuf) {
-            return new QAudioBufferPrivate(abuf);
-        }
-    }
-
-    return nullptr;
-}
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioBufferPrivate);
 
 /*!
     \class QAbstractAudioBuffer
@@ -193,36 +78,21 @@ QAudioBufferPrivate *QAudioBufferPrivate::clone()
     information.
 
     To access the data stored inside the buffer, use the data() or constData() methods.
+
+    Audio buffers are explicitly shared, in most cases, you should call detach() before
+    modifying the data.
 */
 
 /*!
     Create a new, empty, invalid buffer.
  */
-QAudioBuffer::QAudioBuffer()
-    : d(nullptr)
-{
-}
+QAudioBuffer::QAudioBuffer() noexcept = default;
 
 /*!
-    \internal
-    Create a new audio buffer from the supplied \a provider.  This
-    constructor is typically only used when handling certain hardware
-    or media framework specific buffers, and generally isn't useful
-    in application code.
+    Creates a new audio buffer from \a other. Audio buffers are explicitly shared,
+    you should call detach() on the buffer to make a copy that can then be modified.
  */
-QAudioBuffer::QAudioBuffer(QAbstractAudioBuffer *provider)
-    : d(new QAudioBufferPrivate(provider))
-{
-}
-/*!
-    Creates a new audio buffer from \a other.  Generally
-    this will have copy-on-write semantics - a copy will
-    only be made when it has to be.
- */
-QAudioBuffer::QAudioBuffer(const QAudioBuffer &other)
-{
-    d = QAudioBufferPrivate::acquire(other.d);
-}
+QAudioBuffer::QAudioBuffer(const QAudioBuffer &other) noexcept = default;
 
 /*!
     Creates a new audio buffer from the supplied \a data, in the
@@ -240,11 +110,9 @@ QAudioBuffer::QAudioBuffer(const QAudioBuffer &other)
  */
 QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format, qint64 startTime)
 {
-    if (format.isValid()) {
-        int frameCount = format.framesForBytes(data.size());
-        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(data.constData(), frameCount, format, startTime));
-    } else
-        d = nullptr;
+    if (!format.isValid())
+        return;
+    d = new QAudioBufferPrivate(format, data, startTime);
 }
 
 /*!
@@ -258,43 +126,49 @@ QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format, q
  */
 QAudioBuffer::QAudioBuffer(int numFrames, const QAudioFormat &format, qint64 startTime)
 {
-    if (format.isValid())
-        d = new QAudioBufferPrivate(new QMemoryAudioBufferProvider(nullptr, numFrames, format, startTime));
-    else
-        d = nullptr;
+    if (!format.isValid())
+        return;
+
+    QByteArray data(format.bytesForFrames(numFrames), '\0');
+    d = new QAudioBufferPrivate(format, data, startTime);
 }
+
+/*!
+    \fn QAudioBuffer::QAudioBuffer(QAudioBuffer &&other)
+
+    Constructs a QAudioBuffer by moving from \a other.
+*/
+
+/*!
+    \fn QAudioBuffer &QAudioBuffer::operator=(QAudioBuffer &&other)
+
+    Moves \a other into this QAudioBuffer.
+*/
 
 /*!
     Assigns the \a other buffer to this.
  */
-QAudioBuffer &QAudioBuffer::operator =(const QAudioBuffer &other)
-{
-    if (this->d != other.d) {
-        if (d)
-            d->deref();
-        d = QAudioBufferPrivate::acquire(other.d);
-    }
-    return *this;
-}
+QAudioBuffer &QAudioBuffer::operator =(const QAudioBuffer &other) = default;
 
 /*!
     Destroys this audio buffer.
  */
-QAudioBuffer::~QAudioBuffer()
-{
-    if (d)
-        d->deref();
-}
+QAudioBuffer::~QAudioBuffer() = default;
 
-/*!
+/*! \fn bool QAudioBuffer::isValid() const noexcept
+
     Returns true if this is a valid buffer.  A valid buffer
     has more than zero frames in it and a valid format.
  */
-bool QAudioBuffer::isValid() const
+
+/*!
+    Detaches this audio buffers from other copies that might share data with it.
+*/
+void QAudioBuffer::detach()
 {
-    if (!d || !d->mProvider)
-        return false;
-    return d->mProvider->format().isValid() && (d->mProvider->frameCount() > 0);
+    if (!d)
+        return;
+    d = new QAudioBufferPrivate(*d);
 }
 
 /*!
@@ -304,11 +178,11 @@ bool QAudioBuffer::isValid() const
     the \l duration() or \l byteCount() are calculated
     from the \l frameCount().
  */
-QAudioFormat QAudioBuffer::format() const
+QAudioFormat QAudioBuffer::format() const noexcept
 {
-    if (!isValid())
+    if (!d)
         return QAudioFormat();
-    return d->mProvider->format();
+    return d->format;
 }
 
 /*!
@@ -317,11 +191,11 @@ QAudioFormat QAudioBuffer::format() const
     An audio frame is an interleaved set of one sample per channel
     for the same instant in time.
 */
-int QAudioBuffer::frameCount() const
+qsizetype QAudioBuffer::frameCount() const noexcept
 {
-    if (!isValid())
+    if (!d)
         return 0;
-    return d->mProvider->frameCount();
+    return d->format.framesForBytes(d->data.size());
 }
 
 /*!
@@ -335,20 +209,17 @@ int QAudioBuffer::frameCount() const
 
     \sa frameCount()
 */
-int QAudioBuffer::sampleCount() const
+qsizetype QAudioBuffer::sampleCount() const noexcept
 {
-    if (!isValid())
-        return 0;
-
     return frameCount() * format().channelCount();
 }
 
 /*!
     Returns the size of this buffer, in bytes.
  */
-int QAudioBuffer::byteCount() const
+qsizetype QAudioBuffer::byteCount() const noexcept
 {
-    return format().bytesForFrames(frameCount());
+    return d ? d->data.size() : 0;
 }
 
 /*!
@@ -356,7 +227,7 @@ int QAudioBuffer::byteCount() const
 
     This depends on the \l format(), and the \l frameCount().
 */
-qint64 QAudioBuffer::duration() const
+qint64 QAudioBuffer::duration() const noexcept
 {
     return format().durationForFrames(frameCount());
 }
@@ -366,11 +237,11 @@ qint64 QAudioBuffer::duration() const
 
     If this buffer is not part of a stream, this will return -1.
  */
-qint64 QAudioBuffer::startTime() const
+qint64 QAudioBuffer::startTime() const noexcept
 {
-    if (!isValid())
+    if (!d)
         return -1;
-    return d->mProvider->startTime();
+    return d->startTime;
 }
 
 /*!
@@ -390,11 +261,11 @@ qint64 QAudioBuffer::startTime() const
     \endcode
 
 */
-const void* QAudioBuffer::constData() const
+const void* QAudioBuffer::constData() const noexcept
 {
-    if (!isValid())
+    if (!d)
         return nullptr;
-    return d->mProvider->constData();
+    return d->data.constData();
 }
 
 /*!
@@ -413,11 +284,11 @@ const void* QAudioBuffer::constData() const
     const quint16 *data = buffer->data<quint16>();
     \endcode
 */
-const void* QAudioBuffer::data() const
+const void* QAudioBuffer::data() const noexcept
 {
-    if (!isValid())
+    if (!d)
         return nullptr;
-    return d->mProvider->constData();
+    return d->data.constData();
 }
 
 
@@ -430,17 +301,8 @@ const void* QAudioBuffer::data() const
     Returns a pointer to this buffer's data.  You can modify the
     data through the returned pointer.
 
-    Since QAudioBuffers can share the actual sample data, calling
-    this function will result in a deep copy being made if there
-    are any other buffers using the sample.  You should avoid calling
-    this unless you really need to modify the data.
-
-    This pointer will remain valid until the underlying storage is
-    detached.  In particular, if you obtain a pointer, and then
-    copy this audio buffer, changing data through this pointer may
-    change both buffer instances.  Calling \l data() on either instance
-    will again cause a deep copy to be made, which may invalidate
-    the pointers returned from this function previously.
+    Since QAudioBuffer objects are explicitly shared, you should usually
+    call detach() before modifying the data through this function.
 
     There is also a templatized version of data() allows you to retrieve
     a specific type of pointer to the data.  Note that there is no
@@ -454,41 +316,9 @@ const void* QAudioBuffer::data() const
 */
 void *QAudioBuffer::data()
 {
-    if (!isValid())
+    if (!d)
         return nullptr;
-
-    if (d->mCount.loadRelaxed() != 1) {
-        // Can't share a writable buffer
-        // so we need to detach
-        QAudioBufferPrivate *newd = d->clone();
-
-        // This shouldn't happen
-        if (!newd)
-            return nullptr;
-
-        d->deref();
-        d = newd;
-    }
-
-    // We're (now) the only user of this qaab, so
-    // see if it's writable directly
-    void *buffer = d->mProvider->writableData();
-    if (buffer) {
-        return buffer;
-    }
-
-    // Wasn't writable, so turn it into a memory provider
-    QAbstractAudioBuffer *memBuffer = new QMemoryAudioBufferProvider(constData(), frameCount(), format(), startTime());
-
-    if (memBuffer) {
-        d->mProvider->release();
-        d->mCount.storeRelaxed(1);
-        d->mProvider = memBuffer;
-
-        return memBuffer->writableData();
-    }
-
-    return nullptr;
+    return d->data.data();
 }
 
 // Template helper classes worth documenting

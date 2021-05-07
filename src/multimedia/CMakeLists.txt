@@ -15,7 +15,7 @@ qt_internal_add_module(Multimedia
     PLUGIN_TYPES video/gstvideorenderer video/videonode
     SOURCES
         audio/qaudio.cpp audio/qaudio.h
-        audio/qaudiobuffer.cpp audio/qaudiobuffer.h audio/qaudiobuffer_p.h
+        audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiodecoder.cpp audio/qaudiodecoder.h
         audio/qaudiodeviceinfo.cpp audio/qaudiodeviceinfo.h audio/qaudiodeviceinfo_p.h
         audio/qaudioformat.cpp audio/qaudioformat.h
