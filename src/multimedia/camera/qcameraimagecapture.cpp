@@ -106,9 +106,9 @@ void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &erro
 }
 
 /*!
-    Constructs a media recorder which records the media produced by \a camera.
+    Constructs a image capture object that can capture individual still images produced by a camera.
 
-    The \a camera is also used as the parent of this object.
+    Connect both an image capture object and a QCamera to a capture session to capture images.
 */
 
 QCameraImageCapture::QCameraImageCapture(QObject *parent)
@@ -169,6 +169,13 @@ bool QCameraImageCapture::isAvailable() const
     return d_func()->control != nullptr && d_func()->captureSession->camera();
 }
 
+/*!
+    Returns the capture session this camera is connected to, or
+    a nullptr if the camera is not connected to a capture session.
+
+    Use QMediaCaptureSession::setImageCapture() to connect the image capture to
+    a session.
+*/
 QMediaCaptureSession *QCameraImageCapture::captureSession() const
 {
     return d_ptr->captureSession;
@@ -216,7 +223,6 @@ QImageEncoderSettings QCameraImageCapture::encodingSettings() const
 
     \sa encodingSettings()
 */
-
 void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &settings)
 {
     Q_D(QCameraImageCapture);
@@ -225,12 +231,19 @@ void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &setti
         d->control->setImageSettings(settings);
 }
 
+/*!
+    Returns the meta data that will get embedded into the image. A couple of additional fields
+    such as a time stamp or location might get added by the camera backend.
+*/
 QMediaMetaData QCameraImageCapture::metaData() const
 {
     Q_D(const QCameraImageCapture);
     return d->metaData;
 }
 
+/*!
+    Defines a set of meta data that will get embedded into the captured image.
+*/
 void QCameraImageCapture::setMetaData(const QMediaMetaData &metaData)
 {
     Q_D(QCameraImageCapture);
@@ -239,6 +252,9 @@ void QCameraImageCapture::setMetaData(const QMediaMetaData &metaData)
     emit metaDataChanged();
 }
 
+/*!
+    Adds additional meta data to be embedded into the captured image.
+*/
 void QCameraImageCapture::addMetaData(const QMediaMetaData &metaData)
 {
     Q_D(QCameraImageCapture);
