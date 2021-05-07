@@ -134,7 +134,7 @@ D3DPresentEngine::D3DPresentEngine()
     : m_deviceResetToken(0)
     , m_D3D9(0)
     , m_device(0)
-    , m_deviceManager(0)
+    , m_devices(0)
     , m_useTextureRendering(false)
 {
     ZeroMemory(&m_displayMode, sizeof(m_displayMode));
@@ -155,7 +155,7 @@ D3DPresentEngine::~D3DPresentEngine()
     releaseResources();
 
     qt_evr_safe_release(&m_device);
-    qt_evr_safe_release(&m_deviceManager);
+    qt_evr_safe_release(&m_devices);
     qt_evr_safe_release(&m_D3D9);
 }
 
@@ -164,7 +164,7 @@ HRESULT D3DPresentEngine::initializeD3D()
     HRESULT hr = Direct3DCreate9Ex(D3D_SDK_VERSION, &m_D3D9);
 
     if (SUCCEEDED(hr))
-        hr = DXVA2CreateDirect3DDeviceManager9(&m_deviceResetToken, &m_deviceManager);
+        hr = DXVA2CreateDirect3DMediaDevices9(&m_deviceResetToken, &m_devices);
 
     return hr;
 }
@@ -181,7 +181,7 @@ HRESULT D3DPresentEngine::createD3DDevice()
 
     IDirect3DDevice9Ex* device = NULL;
 
-    if (!m_D3D9 || !m_deviceManager)
+    if (!m_D3D9 || !m_devices)
         return MF_E_NOT_INITIALIZED;
 
     hwnd = ::GetShellWindow();
@@ -225,7 +225,7 @@ HRESULT D3DPresentEngine::createD3DDevice()
     if (FAILED(hr))
         goto done;
 
-    hr = m_deviceManager->ResetDevice(device, m_deviceResetToken);
+    hr = m_devices->ResetDevice(device, m_deviceResetToken);
     if (FAILED(hr))
         goto done;
 
@@ -253,12 +253,12 @@ HRESULT D3DPresentEngine::getService(REFGUID, REFIID riid, void** ppv)
 {
     HRESULT hr = S_OK;
 
-    if (riid == __uuidof(IDirect3DDeviceManager9)) {
-        if (m_deviceManager == NULL) {
+    if (riid == __uuidof(IDirect3DMediaDevices9)) {
+        if (m_devices == NULL) {
             hr = MF_E_UNSUPPORTED_SERVICE;
         } else {
-            *ppv = m_deviceManager;
-            m_deviceManager->AddRef();
+            *ppv = m_devices;
+            m_devices->AddRef();
         }
     } else {
         hr = MF_E_UNSUPPORTED_SERVICE;

@@ -39,7 +39,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformcameraimagecapture.cpp platform/qplatformcameraimagecapture_p.h
         platform/qplatformcameraimageprocessing.cpp platform/qplatformcameraimageprocessing_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
-        platform/qplatformmediadevicemanager.cpp platform/qplatformmediadevicemanager_p.h
+        platform/qplatformmediadevices.cpp platform/qplatformmediadevices_p.h
         platform/qplatformmediaencoder.cpp platform/qplatformmediaencoder_p.h
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
@@ -48,7 +48,7 @@ qt_internal_add_module(Multimedia
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         playback/qmediaplaylist.cpp playback/qmediaplaylist.h playback/qmediaplaylist_p.h
         playback/qplaylistfileparser.cpp playback/qplaylistfileparser_p.h
-        qmediadevicemanager.cpp qmediadevicemanager.h
+        qmediadevices.cpp qmediadevices.h
         qmediaenumdebug.h
         qmediaformat.cpp  qmediaformat.h
         qmediametadata.cpp qmediametadata.h
@@ -173,7 +173,7 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/mediacapture/qwindowsmediacapture_p.h
         platform/windows/mediacapture/qwindowsmediaencoder.cpp
         platform/windows/mediacapture/qwindowsmediaencoder_p.h
-        platform/windows/qwindowsdevicemanager.cpp platform/windows/qwindowsdevicemanager_p.h
+        platform/windows/qwindowsmediadevices.cpp platform/windows/qwindowsmediadevices_p.h
         platform/windows/qwindowsformatinfo.cpp platform/windows/qwindowsformatinfo_p.h
         platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
         platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h
@@ -230,7 +230,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstutils.cpp platform/gstreamer/common/qgstutils_p.h
         platform/gstreamer/common/qgstvideobuffer.cpp platform/gstreamer/common/qgstvideobuffer_p.h
         platform/gstreamer/common/qgstvideorenderersink.cpp platform/gstreamer/common/qgstvideorenderersink_p.h
-        platform/gstreamer/qgstreamerdevicemanager.cpp platform/gstreamer/qgstreamerdevicemanager_p.h
+        platform/gstreamer/qgstreamermediadevices.cpp platform/gstreamer/qgstreamermediadevices_p.h
         platform/gstreamer/qgstreamerformatinfo.cpp platform/gstreamer/qgstreamerformatinfo_p.h
         platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
         platform/gstreamer/mediacapture/qgstreamercamera.cpp platform/gstreamer/mediacapture/qgstreamercamera_p.h
@@ -287,7 +287,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         platform/pulseaudio/qaudioengine_pulse.cpp platform/pulseaudio/qaudioengine_pulse_p.h
         platform/pulseaudio/qaudioinput_pulse.cpp platform/pulseaudio/qaudioinput_pulse_p.h
         platform/pulseaudio/qaudiooutput_pulse.cpp platform/pulseaudio/qaudiooutput_pulse_p.h
-        platform/pulseaudio/qpulseaudiodevicemanager.cpp platform/pulseaudio/qpulseaudiodevicemanager_p.h
+        platform/pulseaudio/qpulseaudiomediadevices.cpp platform/pulseaudio/qpulseaudiomediadevices_p.h
         platform/pulseaudio/qpulseaudiointegration.cpp platform/pulseaudio/qpulseaudiointegration_p.h
         platform/pulseaudio/qpulsehelpers.cpp platform/pulseaudio/qpulsehelpers_p.h
     LIBRARIES
@@ -299,7 +299,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
         platform/alsa/qalsaaudiodeviceinfo.cpp platform/alsa/qalsaaudiodeviceinfo_p.h
         platform/alsa/qalsaaudioinput.cpp platform/alsa/qalsaaudioinput_p.h
         platform/alsa/qalsaaudiooutput.cpp platform/alsa/qalsaaudiooutput_p.h
-        platform/alsa/qalsadevicemanager.cpp platform/alsa/qalsadevicemanager_p.h
+        platform/alsa/qalsamediadevices.cpp platform/alsa/qalsamediadevices_p.h
         platform/alsa/qalsaintegration.cpp platform/alsa/qalsaintegration_p.h
     LIBRARIES
         ALSA::ALSA
@@ -327,7 +327,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
         platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
         platform/android/mediaplayer/qandroidmetadata.cpp platform/android/mediaplayer/qandroidmetadata_p.h
-        platform/android/qandroiddevicemanager.cpp platform/android/qandroiddevicemanager_p.h
+        platform/android/qandroidmediadevices.cpp platform/android/qandroidmediadevices_p.h
         platform/android/qandroidformatsinfo.cpp  platform/android/qandroidformatsinfo_p.h
         platform/android/qandroidintegration.cpp platform/android/qandroidintegration_p.h
         platform/android/wrappers/jni/androidcamera.cpp platform/android/wrappers/jni/androidcamera_p.h
@@ -376,7 +376,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/mediaplayer/avfvideorenderercontrol.mm platform/darwin/mediaplayer/avfvideorenderercontrol_p.h
         platform/darwin/avfvideosink.mm platform/darwin/avfvideosink_p.h
         platform/darwin/avfvideobuffer.mm platform/darwin/avfvideobuffer_p.h
-        platform/darwin/qdarwindevicemanager.mm platform/darwin/qdarwindevicemanager_p.h
+        platform/darwin/qdarwinmediadevices.mm platform/darwin/qdarwinmediadevices_p.h
         platform/darwin/qdarwinformatsinfo.mm platform/darwin/qdarwinformatsinfo_p.h
         platform/darwin/qdarwinintegration.mm platform/darwin/qdarwinintegration_p.h
     PUBLIC_LIBRARIES
@@ -469,7 +469,7 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
         platform/qnx/mediaplayer/mmrevent_p.hread.cpp platform/qnx/mediaplayer/mmrevent_p.hread.h
         platform/qnx/mediaplayer/mmreventmediaplayercontrol.cpp platform/qnx/mediaplayer/mmreventmediaplayercontrol_p.h
-        platform/qnx/qqnxdevicemanager.cpp platform/qnx/qqnxdevicemanager_p.h
+        platform/qnx/qqnxmediadevices.cpp platform/qnx/qqnxmediadevices_p.h
         platform/qnx/qqnxintegration.cpp platform/qnx/qqnxintegration_p.h
     INCLUDE_DIRECTORIES
         platform/qnx/camera

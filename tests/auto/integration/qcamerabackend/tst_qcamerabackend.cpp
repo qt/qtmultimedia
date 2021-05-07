@@ -42,7 +42,7 @@
 #include <qcameraimagecapture.h>
 #include <qmediacapturesession.h>
 #include <qobject.h>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 #include <qmediaencoder.h>
 
 QT_USE_NAMESPACE
@@ -93,11 +93,11 @@ void tst_QCameraBackend::cleanupTestCase()
 
 void tst_QCameraBackend::testCameraInfo()
 {
-    int deviceCount = QMediaDeviceManager::videoInputs().count();
-    const QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
+    int deviceCount = QMediaDevices::videoInputs().count();
+    const QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
     QCOMPARE(cameras.count(), deviceCount);
     if (cameras.isEmpty()) {
-        QVERIFY(QMediaDeviceManager::defaultVideoInput().isNull());
+        QVERIFY(QMediaDevices::defaultVideoInput().isNull());
         QSKIP("Camera selection is not supported");
     }
 
@@ -109,17 +109,17 @@ void tst_QCameraBackend::testCameraInfo()
 
 void tst_QCameraBackend::testCtorWithCameraInfo()
 {
-    if (QMediaDeviceManager::videoInputs().isEmpty())
+    if (QMediaDevices::videoInputs().isEmpty())
         QSKIP("Camera selection not supported");
 
     {
-        QCameraInfo info = QMediaDeviceManager::defaultVideoInput();
+        QCameraInfo info = QMediaDevices::defaultVideoInput();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), info);
     }
     {
-        QCameraInfo info = QMediaDeviceManager::videoInputs().first();
+        QCameraInfo info = QMediaDevices::videoInputs().first();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), info);
@@ -188,8 +188,8 @@ void tst_QCameraBackend::testCameraStartError()
 {
     QMediaCaptureSession session1;
     QMediaCaptureSession session2;
-    QCamera camera1(QMediaDeviceManager::defaultVideoInput());
-    QCamera camera2(QMediaDeviceManager::defaultVideoInput());
+    QCamera camera1(QMediaDevices::defaultVideoInput());
+    QCamera camera2(QMediaDevices::defaultVideoInput());
     session1.setCamera(&camera1);
     session2.setCamera(&camera2);
     QSignalSpy errorSpy1(&camera1, &QCamera::errorOccurred);
@@ -394,7 +394,7 @@ void tst_QCameraBackend::testVideoRecording_data()
 {
     QTest::addColumn<QCameraInfo>("device");
 
-    const auto devices = QMediaDeviceManager::videoInputs();
+    const auto devices = QMediaDevices::videoInputs();
 
     for (const auto &device : devices) {
         QTest::newRow(device.description().toUtf8())

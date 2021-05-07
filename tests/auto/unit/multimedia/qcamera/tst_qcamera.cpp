@@ -42,7 +42,7 @@
 #include <qcameraimagecapture.h>
 #include <qmediacapturesession.h>
 #include <qobject.h>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 
 #include "qmockintegration_p.h"
 #include "qmockmediacapturesession.h"
@@ -690,8 +690,8 @@ void tst_QCamera::testCameraControl()
 
 void tst_QCamera::testConstructor()
 {
-    auto cameras = QMediaDeviceManager::videoInputs();
-    QCameraInfo defaultCamera = QMediaDeviceManager::defaultVideoInput();
+    auto cameras = QMediaDevices::videoInputs();
+    QCameraInfo defaultCamera = QMediaDevices::defaultVideoInput();
     QCameraInfo frontCamera, backCamera;
     for (const auto &c : cameras) {
         if (frontCamera.isNull() && c.position() == QCameraInfo::FrontFace)
@@ -718,14 +718,14 @@ void tst_QCamera::testConstructor()
     }
 
     {
-        QCamera camera(QMediaDeviceManager::defaultVideoInput());
+        QCamera camera(QMediaDevices::defaultVideoInput());
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), defaultCamera);
     }
 
     {
-        QCameraInfo cameraInfo = QMediaDeviceManager::videoInputs().at(0);
+        QCameraInfo cameraInfo = QMediaDevices::videoInputs().at(0);
         QCamera camera(cameraInfo);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);

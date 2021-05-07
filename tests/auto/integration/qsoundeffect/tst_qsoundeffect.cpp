@@ -34,7 +34,7 @@
 #include <qaudiodeviceinfo.h>
 #include <qaudio.h>
 #include "qsoundeffect.h"
-#include "qmediadevicemanager.h"
+#include "qmediadevices.h"
 
 class tst_QSoundEffect : public QObject
 {
@@ -394,7 +394,7 @@ void tst_QSoundEffect::testSupportedMimeTypes_data()
     // Verify also passing of audio device info as parameter
     QTest::addColumn<QSoundEffect*>("instance");
     QTest::newRow("without QAudioDeviceInfo") << sound;
-    QAudioDeviceInfo deviceInfo(QMediaDeviceManager::defaultAudioOutput());
+    QAudioDeviceInfo deviceInfo(QMediaDevices::defaultAudioOutput());
     QTest::newRow("with QAudioDeviceInfo")    << new QSoundEffect(deviceInfo, this);
 }
 

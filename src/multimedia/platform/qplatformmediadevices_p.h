@@ -37,57 +37,70 @@
 **
 ****************************************************************************/
 
-#ifndef QDARWINDEVICEMANAGER_H
-#define QDARWINDEVICEMANAGER_H
+#ifndef QPLATFORMMEDIADEVICES_H
+#define QPLATFORMMEDIADEVICES_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediadevicemanager_p.h>
-#include <qelapsedtimer.h>
-#include <qcamerainfo.h>
-
-Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
+#include <private/qtmultimediaglobal_p.h>
+#include <qlist.h>
 
 QT_BEGIN_NAMESPACE
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
-
+class QMediaDevices;
+class QAudioDeviceInfo;
 class QCameraInfo;
+class QAbstractAudioInput;
+class QAbstractAudioOutput;
+class QAudioFormat;
 
-class QDarwinDeviceManager : public QPlatformMediaDeviceManager
+class Q_AUTOTEST_EXPORT QPlatformMediaDevices
 {
 public:
-    QDarwinDeviceManager();
-    ~QDarwinDeviceManager();
+    QPlatformMediaDevices();
+    virtual ~QPlatformMediaDevices();
 
-    QList<QAudioDeviceInfo> audioInputs() const override;
-    QList<QAudioDeviceInfo> audioOutputs() const override;
-    QList<QCameraInfo> videoInputs() const override;
-    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
-    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
+    virtual QList<QAudioDeviceInfo> audioInputs() const = 0;
+    virtual QList<QAudioDeviceInfo> audioOutputs() const = 0;
+    virtual QList<QCameraInfo> videoInputs() const = 0;
+    virtual QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
+    virtual QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
 
-    void updateCameraDevices();
-    void updateAudioDevices();
+    QAudioDeviceInfo audioInput(const QByteArray &id) const;
+    QAudioDeviceInfo audioOutput(const QByteArray &id) const;
+    QCameraInfo videoInput(const QByteArray &id) const;
+
+    QAbstractAudioInput *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+    QAbstractAudioOutput *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+
+    void addDevices(QMediaDevices *m)
+    {
+        m_devices.append(m);
+    }
+    void removeDevices(QMediaDevices *m)
+    {
+        m_devices.removeAll(m);
+    }
+
+protected:
+    void audioInputsChanged() const;
+    void audioOutputsChanged() const;
+    void videoInputsChanged() const;
 
 private:
-    QList<QCameraInfo> m_cameraDevices;
-    QList<QAudioDeviceInfo> m_audioInputs;
-    QList<QAudioDeviceInfo> m_audioOutputs;
-
-    NSObject *m_deviceConnectedObserver;
-    NSObject *m_deviceDisconnectedObserver;
-    void *m_audioDevicesProperty;
+    QList<QMediaDevices *> m_devices;
 };
 
 QT_END_NAMESPACE
 
-#endif
+
+#endif // QPLATFORMMEDIADEVICES_H

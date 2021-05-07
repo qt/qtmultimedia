@@ -43,7 +43,7 @@
 #include "qwindowscamera_p.h"
 #include "qwindowscamerasession_p.h"
 #include "qwindowscameraimagecapture_p.h"
-#include "qmediadevicemanager.h"
+#include "qmediadevices.h"
 #include "qaudiodeviceinfo.h"
 
 QT_BEGIN_NAMESPACE
@@ -138,7 +138,7 @@ void QWindowsMediaCaptureService::setVolume(qreal volume)
 
 QAudioDeviceInfo QWindowsMediaCaptureService::audioInput() const
 {
-    return QMediaDeviceManager::defaultAudioInput();
+    return QMediaDevices::defaultAudioInput();
 }
 
 bool QWindowsMediaCaptureService::setAudioInput(const QAudioDeviceInfo &info)

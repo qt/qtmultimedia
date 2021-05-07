@@ -50,7 +50,7 @@
 #include "avfcameraexposure_p.h"
 #include "avfcameraimageprocessing_p.h"
 #include "avfmediaencoder_p.h"
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 
 QT_USE_NAMESPACE
 
@@ -155,11 +155,11 @@ void AVFCameraService::setVolume(qreal volume)
 QAudioDeviceInfo AVFCameraService::audioInput() const
 {
     QByteArray id = [[m_audioCaptureDevice uniqueID] UTF8String];
-    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioInputs();
+    const QList<QAudioDeviceInfo> devices = QMediaDevices::audioInputs();
     for (auto d : devices)
         if (d.id() == id)
             return d;
-    return QMediaDeviceManager::defaultAudioInput();
+    return QMediaDevices::defaultAudioInput();
 }
 
 bool AVFCameraService::setAudioInput(const QAudioDeviceInfo &id)

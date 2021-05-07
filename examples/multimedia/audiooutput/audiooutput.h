@@ -64,7 +64,7 @@
 #include <QSlider>
 #include <QTimer>
 #include <QScopedPointer>
-#include <QMediaDeviceManager>
+#include <QMediaDevices>
 
 class Generator : public QIODevice
 {
@@ -102,7 +102,7 @@ private:
     void initializeAudio(const QAudioDeviceInfo &deviceInfo);
 
 private:
-    QMediaDeviceManager *m_deviceManager = nullptr;
+    QMediaDevices *m_devices = nullptr;
     QTimer *m_pushTimer = nullptr;
 
     // Owned by layout

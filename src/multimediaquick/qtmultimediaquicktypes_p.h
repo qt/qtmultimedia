@@ -130,12 +130,12 @@ struct QMediaMetaDataForeign
     QML_NAMED_ELEMENT(mediaMetaData)
 };
 
-struct QMediaDeviceManagerForeign
+struct QMediaDevicesForeign
 {
     Q_GADGET
     QML_SINGLETON
-    QML_FOREIGN(QMediaDeviceManager)
-    QML_NAMED_ELEMENT(MediaDeviceManager)
+    QML_FOREIGN(QMediaDevices)
+    QML_NAMED_ELEMENT(MediaDevices)
 };
 
 struct QAudioDeviceInfoForeign

@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QDarwinDeviceManager;
+class QDarwinMediaDevices;
 
 class QDarwinIntegration : public QPlatformMediaIntegration
 {
@@ -63,7 +63,7 @@ public:
     QDarwinIntegration();
     ~QDarwinIntegration();
 
-    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/) override;
@@ -74,7 +74,7 @@ public:
 
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;
 
-    QDarwinDeviceManager *m_manager = nullptr;
+    QDarwinMediaDevices *m_devices = nullptr;
     QPlatformMediaFormatInfo *m_formatInfo = nullptr;
 };
 

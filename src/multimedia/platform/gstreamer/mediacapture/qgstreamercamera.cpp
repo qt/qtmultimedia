@@ -41,7 +41,7 @@
 
 #include "qgstreamercamera_p.h"
 #include "qgstreamercameraimagecapture_p.h"
-#include <private/qgstreamerdevicemanager_p.h>
+#include <private/qgstreamermediadevices_p.h>
 #include <private/qgstreamerintegration_p.h>
 #include <private/qgstreamercameraexposure_p.h>
 #include <private/qgstreamercamerafocus_p.h>
@@ -106,8 +106,8 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
     if (camera.isNull()) {
         gstCamera = QGstElement("videotestsrc");
     } else {
-        auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QGstreamerIntegration::instance()->deviceManager());
-        auto *device = deviceManager->videoDevice(camera.id());
+        auto *devices = static_cast<QGstreamerMediaDevices *>(QGstreamerIntegration::instance()->devices());
+        auto *device = devices->videoDevice(camera.id());
         gstCamera = gst_device_create_element(device, "camerasrc");
         QGstStructure properties = gst_device_get_properties(device);
         if (properties.name() == "v4l2deviceprovider")

@@ -38,7 +38,7 @@
 #include <qaudiodeviceinfo.h>
 #include <qaudioformat.h>
 #include <qaudio.h>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 #include <qwavedecoder.h>
 
 #define AUDIO_BUFFER 192000
@@ -166,12 +166,12 @@ void tst_QAudioOutput::generate_audiofile_testrows()
 void tst_QAudioOutput::initTestCase()
 {
     // Only perform tests if audio output device exists
-    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
+    const QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
 
     if (devices.size() <= 0)
         QSKIP("No audio backend");
 
-    audioDevice = QMediaDeviceManager::defaultAudioOutput();
+    audioDevice = QMediaDevices::defaultAudioOutput();
 
 
     QAudioFormat format;

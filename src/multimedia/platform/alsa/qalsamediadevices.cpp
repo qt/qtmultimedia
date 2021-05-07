@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qalsadevicemanager_p.h"
-#include "qmediadevicemanager.h"
+#include "qalsamediadevices_p.h"
+#include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
 #include "private/qalsaaudioinput_p.h"
@@ -49,8 +49,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaDeviceManager::QAlsaDeviceManager()
-    : QPlatformMediaDeviceManager()
+QAlsaMediaDevices::QAlsaMediaDevices()
+    : QPlatformMediaDevices()
 {
 }
 
@@ -100,27 +100,27 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QList<QAudioDeviceInfo> QAlsaDeviceManager::audioInputs() const
+QList<QAudioDeviceInfo> QAlsaMediaDevices::audioInputs() const
 {
     return availableDevices(QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QAlsaDeviceManager::audioOutputs() const
+QList<QAudioDeviceInfo> QAlsaMediaDevices::audioOutputs() const
 {
     return availableDevices(QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QAlsaDeviceManager::videoInputs() const
+QList<QCameraInfo> QAlsaMediaDevices::videoInputs() const
 {
     return {};
 }
 
-QAbstractAudioInput *QAlsaDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioInput *QAlsaMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QAlsaAudioInput(deviceInfo.id());
 }
 
-QAbstractAudioOutput *QAlsaDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioOutput *QAlsaMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QAlsaAudioOutput(deviceInfo.id());
 }

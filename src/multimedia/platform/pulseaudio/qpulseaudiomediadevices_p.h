@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QALSADEVICEMANAGER_H
-#define QALSADEVICEMANAGER_H
+#ifndef QPULSEAUDIOMEDIADEVICES_H
+#define QPULSEAUDIOMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -51,24 +51,27 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediadevices_p.h>
 #include <qset.h>
 #include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAlsaEngine;
+class QPulseAudioEngine;
 
-class QAlsaDeviceManager : public QPlatformMediaDeviceManager
+class QPulseAudioMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QAlsaDeviceManager();
+    QPulseAudioMediaDevices(QPulseAudioEngine *engine);
 
     QList<QAudioDeviceInfo> audioInputs() const override;
     QList<QAudioDeviceInfo> audioOutputs() const override;
     QList<QCameraInfo> videoInputs() const override;
     QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
     QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
+
+private:
+    QPulseAudioEngine *pulseEngine;
 };
 
 QT_END_NAMESPACE

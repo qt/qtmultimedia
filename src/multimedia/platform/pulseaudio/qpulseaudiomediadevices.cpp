@@ -37,70 +37,46 @@
 **
 ****************************************************************************/
 
-#ifndef QPLATFORMMEDIADEVICEMANAGER_H
-#define QPLATFORMMEDIADEVICEMANAGER_H
+#include "qpulseaudiomediadevices_p.h"
+#include "qmediadevices.h"
+#include "qcamerainfo_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qtmultimediaglobal_p.h>
-#include <qlist.h>
+#include "private/qaudioinput_pulse_p.h"
+#include "private/qaudiooutput_pulse_p.h"
+#include "private/qaudiodeviceinfo_pulse_p.h"
+#include "private/qaudioengine_pulse_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDeviceManager;
-class QAudioDeviceInfo;
-class QCameraInfo;
-class QAbstractAudioInput;
-class QAbstractAudioOutput;
-class QAudioFormat;
-
-class Q_AUTOTEST_EXPORT QPlatformMediaDeviceManager
+QPulseAudioMediaDevices::QPulseAudioMediaDevices(QPulseAudioEngine *engine)
+    : QPlatformMediaDevices(),
+      pulseEngine(engine)
 {
-public:
-    QPlatformMediaDeviceManager();
-    virtual ~QPlatformMediaDeviceManager();
+}
 
-    virtual QList<QAudioDeviceInfo> audioInputs() const = 0;
-    virtual QList<QAudioDeviceInfo> audioOutputs() const = 0;
-    virtual QList<QCameraInfo> videoInputs() const = 0;
-    virtual QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
-    virtual QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
+QList<QAudioDeviceInfo> QPulseAudioMediaDevices::audioInputs() const
+{
+    return pulseEngine->availableDevices(QAudio::AudioInput);
+}
 
-    QAudioDeviceInfo audioInput(const QByteArray &id) const;
-    QAudioDeviceInfo audioOutput(const QByteArray &id) const;
-    QCameraInfo videoInput(const QByteArray &id) const;
+QList<QAudioDeviceInfo> QPulseAudioMediaDevices::audioOutputs() const
+{
+    return pulseEngine->availableDevices(QAudio::AudioOutput);
+}
 
-    QAbstractAudioInput *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
-    QAbstractAudioOutput *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+QList<QCameraInfo> QPulseAudioMediaDevices::videoInputs() const
+{
+    return {};
+}
 
-    void addDeviceManager(QMediaDeviceManager *m)
-    {
-        m_deviceManagers.append(m);
-    }
-    void removeDeviceManager(QMediaDeviceManager *m)
-    {
-        m_deviceManagers.removeAll(m);
-    }
+QAbstractAudioInput *QPulseAudioMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+{
+    return new QPulseAudioInput(deviceInfo.id());
+}
 
-protected:
-    void audioInputsChanged() const;
-    void audioOutputsChanged() const;
-    void videoInputsChanged() const;
-
-private:
-    QList<QMediaDeviceManager *> m_deviceManagers;
-};
+QAbstractAudioOutput *QPulseAudioMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+{
+    return new QPulseAudioOutput(deviceInfo.id());
+}
 
 QT_END_NAMESPACE
-
-
-#endif // QPLATFORMMEDIADEVICEMANAGER_H

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qgstreamerdevicemanager_p.h"
-#include "qmediadevicemanager.h"
+#include "qgstreamermediadevices_p.h"
+#include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
 #include "private/qaudioinput_gstreamer_p.h"
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
 {
-    QGstreamerDeviceManager *manager = static_cast<QGstreamerDeviceManager *>(m);
+    QGstreamerMediaDevices *manager = static_cast<QGstreamerMediaDevices *>(m);
     GstDevice *device = nullptr;
 
     switch (GST_MESSAGE_TYPE (message)) {
@@ -71,8 +71,8 @@ static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
     return G_SOURCE_CONTINUE;
 }
 
-QGstreamerDeviceManager::QGstreamerDeviceManager()
-    : QPlatformMediaDeviceManager()
+QGstreamerMediaDevices::QGstreamerMediaDevices()
+    : QPlatformMediaDevices()
 {
     GstDeviceMonitor *monitor;
     GstBus *bus;
@@ -122,17 +122,17 @@ static QList<QAudioDeviceInfo> devicesFromSet(const QSet<GstDevice *> &deviceSet
     return devices;
 };
 
-QList<QAudioDeviceInfo> QGstreamerDeviceManager::audioInputs() const
+QList<QAudioDeviceInfo> QGstreamerMediaDevices::audioInputs() const
 {
     return devicesFromSet(m_audioSources, QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QGstreamerDeviceManager::audioOutputs() const
+QList<QAudioDeviceInfo> QGstreamerMediaDevices::audioOutputs() const
 {
     return devicesFromSet(m_audioSinks, QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
+QList<QCameraInfo> QGstreamerMediaDevices::videoInputs() const
 {
     QList<QCameraInfo> devices;
 
@@ -187,17 +187,17 @@ QList<QCameraInfo> QGstreamerDeviceManager::videoInputs() const
     return devices;
 }
 
-QAbstractAudioInput *QGstreamerDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioInput *QGstreamerMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QGStreamerAudioInput(deviceInfo.id());
 }
 
-QAbstractAudioOutput *QGstreamerDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioOutput *QGstreamerMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QGStreamerAudioOutput(deviceInfo.id());
 }
 
-void QGstreamerDeviceManager::addDevice(GstDevice *device)
+void QGstreamerMediaDevices::addDevice(GstDevice *device)
 {
     gchar *type = gst_device_get_device_class(device);
 //    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device) << gst_structure_to_string(gst_device_get_properties(device));
@@ -217,7 +217,7 @@ void QGstreamerDeviceManager::addDevice(GstDevice *device)
     g_free(type);
 }
 
-void QGstreamerDeviceManager::removeDevice(GstDevice *device)
+void QGstreamerMediaDevices::removeDevice(GstDevice *device)
 {
 //    qDebug() << "removing device:" << device << gst_device_get_display_name(device);
     if (m_videoSources.remove(device)) {
@@ -250,14 +250,14 @@ static GstDevice *getDevice(const QSet<GstDevice *> &devices, const char *key, c
 
 }
 
-GstDevice *QGstreamerDeviceManager::audioDevice(const QByteArray &id, QAudio::Mode mode) const
+GstDevice *QGstreamerMediaDevices::audioDevice(const QByteArray &id, QAudio::Mode mode) const
 {
     const auto devices = (mode == QAudio::AudioOutput) ? m_audioSinks : m_audioSources;
 
     return getDevice(devices, "sysfs.path", id);
 }
 
-GstDevice *QGstreamerDeviceManager::videoDevice(const QByteArray &id) const
+GstDevice *QGstreamerMediaDevices::videoDevice(const QByteArray &id) const
 {
     return getDevice(m_videoSources, "device.path", id);
 }

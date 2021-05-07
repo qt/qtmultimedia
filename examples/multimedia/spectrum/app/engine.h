@@ -61,7 +61,7 @@
 #include <QDir>
 #include <QList>
 #include <QObject>
-#include <QMediaDeviceManager>
+#include <QMediaDevices>
 #include <QWaveDecoder>
 #include <QTimer>
 
@@ -279,7 +279,7 @@ private:
 private:
     QAudio::Mode        m_mode;
     QAudio::State       m_state;
-    QMediaDeviceManager *m_deviceManager;
+    QMediaDevices      *m_devices;
 
     bool                m_generateTone;
     SweptTone           m_tone;

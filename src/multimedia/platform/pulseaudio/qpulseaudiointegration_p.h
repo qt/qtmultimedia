@@ -56,7 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioDeviceManager;
+class QPulseAudioMediaDevices;
 
 class QPulseAudioIntegration : public QPlatformMediaIntegration
 {
@@ -64,9 +64,9 @@ public:
     QPulseAudioIntegration();
     ~QPulseAudioIntegration();
 
-    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaDevices *devices() override;
 
-    QPulseAudioDeviceManager *m_manager = nullptr;
+    QPulseAudioMediaDevices *m_devices = nullptr;
     QPulseAudioEngine *pulseEngine = nullptr;
 };
 

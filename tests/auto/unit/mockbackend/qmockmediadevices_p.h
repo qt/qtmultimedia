@@ -37,62 +37,49 @@
 **
 ****************************************************************************/
 
-#include "qmockdevicemanager_p.h"
-#include "private/qcamerainfo_p.h"
+#ifndef QMOCKMEDIADEVICES_H
+#define QMOCKMEDIADEVICES_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformmediadevices_p.h>
+#include <qelapsedtimer.h>
+#include <qaudiodeviceinfo.h>
+#include <qcamerainfo.h>
 
 QT_BEGIN_NAMESPACE
 
-QMockDeviceManager::QMockDeviceManager()
-    : QPlatformMediaDeviceManager()
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
+
+class QCameraInfo;
+
+class QMockMediaDevices : public QPlatformMediaDevices
 {
-    QCameraInfoPrivate *info = new QCameraInfoPrivate;
-    info->description = QString::fromUtf8("defaultCamera");
-    info->id = "default";
-    info->isDefault = true;
-    m_cameraDevices.append(info->create());
-    info = new QCameraInfoPrivate;
-    info->description = QString::fromUtf8("frontCamera");
-    info->id = "front";
-    info->isDefault = false;
-    info->position = QCameraInfo::FrontFace;
-    m_cameraDevices.append(info->create());
-    info = new QCameraInfoPrivate;
-    info->description = QString::fromUtf8("backCamera");
-    info->id = "back";
-    info->isDefault = false;
-    info->position = QCameraInfo::BackFace;
-    m_cameraDevices.append(info->create());
+public:
+    QMockMediaDevices();
+    ~QMockMediaDevices();
 
-}
+    QList<QAudioDeviceInfo> audioInputs() const override;
+    QList<QAudioDeviceInfo> audioOutputs() const override;
+    QList<QCameraInfo> videoInputs() const override;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
 
-QMockDeviceManager::~QMockDeviceManager() = default;
-
-QList<QAudioDeviceInfo> QMockDeviceManager::audioInputs() const
-{
-    return m_inputDevices;
-}
-
-QList<QAudioDeviceInfo> QMockDeviceManager::audioOutputs() const
-{
-    return m_outputDevices;
-}
-
-QList<QCameraInfo> QMockDeviceManager::videoInputs() const
-{
-    return m_cameraDevices;
-}
-
-QAbstractAudioInput *QMockDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &info)
-{
-    Q_UNUSED(info);
-    return nullptr;// ###
-}
-
-QAbstractAudioOutput *QMockDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &info)
-{
-    Q_UNUSED(info);
-    return nullptr; //###
-}
-
+private:
+    QList<QAudioDeviceInfo> m_inputDevices;
+    QList<QAudioDeviceInfo> m_outputDevices;
+    QList<QCameraInfo> m_cameraDevices;
+};
 
 QT_END_NAMESPACE
+
+#endif

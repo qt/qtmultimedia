@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QQNXDEVICEMANAGER_H
-#define QQNXDEVICEMANAGER_H
+#ifndef QQNXMEDIADEVICES_H
+#define QQNXMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -51,15 +51,15 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediadevices_p.h>
 #include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QQnxDeviceManager : public QPlatformMediaDeviceManager
+class QQnxMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QQnxDeviceManager();
+    QQnxMediaDevices();
 
     QList<QAudioDeviceInfo> audioInputs() const override;
     QList<QAudioDeviceInfo> audioOutputs() const override;

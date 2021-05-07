@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMOCKDEVICEMANAGER_H
-#define QMOCKDEVICEMANAGER_H
+#ifndef QALSAMEDIADEVICES_H
+#define QALSAMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -51,33 +51,24 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevicemanager_p.h>
-#include <qelapsedtimer.h>
-#include <qaudiodeviceinfo.h>
-#include <qcamerainfo.h>
+#include <private/qplatformmediadevices_p.h>
+#include <qset.h>
+#include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
+class QAlsaEngine;
 
-class QCameraInfo;
-
-class QMockDeviceManager : public QPlatformMediaDeviceManager
+class QAlsaMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QMockDeviceManager();
-    ~QMockDeviceManager();
+    QAlsaMediaDevices();
 
     QList<QAudioDeviceInfo> audioInputs() const override;
     QList<QAudioDeviceInfo> audioOutputs() const override;
     QList<QCameraInfo> videoInputs() const override;
-    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
-    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
-
-private:
-    QList<QAudioDeviceInfo> m_inputDevices;
-    QList<QAudioDeviceInfo> m_outputDevices;
-    QList<QCameraInfo> m_cameraDevices;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
 };
 
 QT_END_NAMESPACE

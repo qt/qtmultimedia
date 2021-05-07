@@ -40,8 +40,8 @@
 #include "qcoreaudiosessionmanager_p.h"
 #include "qcoreaudiodeviceinfo_p.h"
 #include "qcoreaudioutils_p.h"
-#include "private/qdarwindevicemanager_p.h"
-#include <qmediadevicemanager.h>
+#include "private/qdarwinmediadevices_p.h"
+#include <qmediadevices.h>
 
 #if defined(Q_OS_OSX)
 # include <AudioUnit/AudioComponent.h>
@@ -462,7 +462,7 @@ CoreAudioInput::CoreAudioInput(const QAudioDeviceInfo &device)
 {
     QAudioDeviceInfo di = device;
     if (di.isNull())
-        di = QMediaDeviceManager::defaultAudioInput();
+        di = QMediaDevices::defaultAudioInput();
 #if defined(Q_OS_MACOS)
     const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(di.handle());
     Q_ASSERT(info);

@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamerintegration_p.h"
-#include "qgstreamerdevicemanager_p.h"
+#include "qgstreamermediadevices_p.h"
 #include "private/qgstreamermediaplayer_p.h"
 #include "private/qgstreamermediacapture_p.h"
 #include "private/qgstreameraudiodecoder_p.h"
@@ -58,15 +58,15 @@ QGstreamerIntegration::QGstreamerIntegration()
 
 QGstreamerIntegration::~QGstreamerIntegration()
 {
-    delete m_manager;
+    delete m_devices;
     delete m_formatsInfo;
 }
 
-QPlatformMediaDeviceManager *QGstreamerIntegration::deviceManager()
+QPlatformMediaDevices *QGstreamerIntegration::devices()
 {
-    if (!m_manager)
-        m_manager = new QGstreamerDeviceManager();
-    return m_manager;
+    if (!m_devices)
+        m_devices = new QGstreamerMediaDevices();
+    return m_devices;
 }
 
 QPlatformMediaFormatInfo *QGstreamerIntegration::formatInfo()

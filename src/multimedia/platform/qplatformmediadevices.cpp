@@ -37,19 +37,19 @@
 **
 ****************************************************************************/
 
-#include "qplatformmediadevicemanager_p.h"
-#include "qmediadevicemanager.h"
+#include "qplatformmediadevices_p.h"
+#include "qmediadevices.h"
 #include "qaudiodeviceinfo.h"
 #include "qcamerainfo.h"
 #include "qaudiosystem_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QPlatformMediaDeviceManager::QPlatformMediaDeviceManager() = default;
+QPlatformMediaDevices::QPlatformMediaDevices() = default;
 
-QPlatformMediaDeviceManager::~QPlatformMediaDeviceManager() = default;
+QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
-QAudioDeviceInfo QPlatformMediaDeviceManager::audioInput(const QByteArray &id) const
+QAudioDeviceInfo QPlatformMediaDevices::audioInput(const QByteArray &id) const
 {
     const auto inputs = audioInputs();
     for (auto i : inputs) {
@@ -59,7 +59,7 @@ QAudioDeviceInfo QPlatformMediaDeviceManager::audioInput(const QByteArray &id) c
     return {};
 }
 
-QAudioDeviceInfo QPlatformMediaDeviceManager::audioOutput(const QByteArray &id) const
+QAudioDeviceInfo QPlatformMediaDevices::audioOutput(const QByteArray &id) const
 {
     const auto outputs = audioOutputs();
     for (auto o : outputs) {
@@ -69,7 +69,7 @@ QAudioDeviceInfo QPlatformMediaDeviceManager::audioOutput(const QByteArray &id) 
     return {};
 }
 
-QCameraInfo QPlatformMediaDeviceManager::videoInput(const QByteArray &id) const
+QCameraInfo QPlatformMediaDevices::videoInput(const QByteArray &id) const
 {
     const auto inputs = videoInputs();
     for (auto i : inputs) {
@@ -79,7 +79,7 @@ QCameraInfo QPlatformMediaDeviceManager::videoInput(const QByteArray &id) const
     return QCameraInfo();
 }
 
-QAbstractAudioInput* QPlatformMediaDeviceManager::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioInput* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
 {
     QAudioDeviceInfo info = deviceInfo;
     if (info.isNull())
@@ -91,7 +91,7 @@ QAbstractAudioInput* QPlatformMediaDeviceManager::audioInputDevice(const QAudioF
     return p;
 }
 
-QAbstractAudioOutput* QPlatformMediaDeviceManager::audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioOutput* QPlatformMediaDevices::audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
 {
     QAudioDeviceInfo info = deviceInfo;
     if (info.isNull())
@@ -103,21 +103,21 @@ QAbstractAudioOutput* QPlatformMediaDeviceManager::audioOutputDevice(const QAudi
     return p;
 }
 
-void QPlatformMediaDeviceManager::audioInputsChanged() const
+void QPlatformMediaDevices::audioInputsChanged() const
 {
-    for (auto m : m_deviceManagers)
+    for (auto m : m_devices)
         emit m->audioInputsChanged();
 }
 
-void QPlatformMediaDeviceManager::audioOutputsChanged() const
+void QPlatformMediaDevices::audioOutputsChanged() const
 {
-    for (auto m : m_deviceManagers)
+    for (auto m : m_devices)
         emit m->audioOutputsChanged();
 }
 
-void QPlatformMediaDeviceManager::videoInputsChanged() const
+void QPlatformMediaDevices::videoInputsChanged() const
 {
-    for (auto m : m_deviceManagers)
+    for (auto m : m_devices)
         emit m->videoInputsChanged();
 }
 

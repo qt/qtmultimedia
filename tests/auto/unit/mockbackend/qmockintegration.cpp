@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qmockintegration_p.h"
-#include "qmockdevicemanager_p.h"
+#include "qmockmediadevices_p.h"
 #include "qmockmediaplayer.h"
 #include "qmockaudiodecoder.h"
 #include "qmockcamera.h"
@@ -56,14 +56,14 @@ QMockIntegration::QMockIntegration()
 QMockIntegration::~QMockIntegration()
 {
     setIntegration(nullptr);
-    delete m_manager;
+    delete m_devices;
 }
 
-QPlatformMediaDeviceManager *QMockIntegration::deviceManager()
+QPlatformMediaDevices *QMockIntegration::devices()
 {
-    if (!m_manager)
-        m_manager = new QMockDeviceManager();
-    return m_manager;
+    if (!m_devices)
+        m_devices = new QMockMediaDevices();
+    return m_devices;
 }
 
 QPlatformAudioDecoder *QMockIntegration::createAudioDecoder()

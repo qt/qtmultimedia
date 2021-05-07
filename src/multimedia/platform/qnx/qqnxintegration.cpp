@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qqnxintegration_p.h"
-#include "qqnxdevicemanager_p.h"
+#include "qqnxmediadevices_p.h"
 #include "private/mmrenderermediaplayercontrol_p.h"
 #include "private/mmrendererutil_p.h"
 
@@ -51,14 +51,14 @@ QQnxIntegration::QQnxIntegration()
 
 QQnxIntegration::~QQnxIntegration()
 {
-    delete m_manager;
+    delete m_devices;
 }
 
-QMediaPlatformDeviceManager *QQnxIntegration::deviceManager()
+QMediaPlatformMediaDevices *QQnxIntegration::devices()
 {
-    if (!m_manager)
-        m_manager = new QQnxDeviceManager();
-    return m_manager;
+    if (!m_devices)
+        m_devices = new QQnxMediaDevices();
+    return m_devices;
 }
 
 QPlatformMediaPlayer *QQnxIntegration::createPlayer(QMediaPlayer *parent)

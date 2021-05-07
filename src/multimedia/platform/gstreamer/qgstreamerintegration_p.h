@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerDeviceManager;
+class QGstreamerMediaDevices;
 class QGstreamerPlayerInterface;
 class QGstreamerFormatInfo;
 
@@ -66,7 +66,7 @@ public:
     ~QGstreamerIntegration();
 
     static QGstreamerIntegration *instance() { return static_cast<QGstreamerIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformAudioDecoder *createAudioDecoder() override;
@@ -78,7 +78,7 @@ public:
 
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
-    QGstreamerDeviceManager *m_manager = nullptr;
+    QGstreamerMediaDevices *m_devices = nullptr;
     QGstreamerFormatInfo *m_formatsInfo = nullptr;
 };
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,43 +37,53 @@
 **
 ****************************************************************************/
 
-#ifndef QPULSEAUDIODEVICEMANAGER_H
-#define QPULSEAUDIODEVICEMANAGER_H
+#ifndef QMEDIADEVICES_H
+#define QMEDIADEVICES_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediadevicemanager_p.h>
-#include <qset.h>
-#include <qaudio.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qstringlist.h>
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioEngine;
+class QAudioDeviceInfo;
+class QCameraInfo;
 
-class QPulseAudioDeviceManager : public QPlatformMediaDeviceManager
+class QMediaDevicesPrivate;
+
+class Q_MULTIMEDIA_EXPORT QMediaDevices : public QObject
 {
-public:
-    QPulseAudioDeviceManager(QPulseAudioEngine *engine);
+    Q_OBJECT
+    Q_PROPERTY(QList<QAudioDeviceInfo> audioInputs READ audioInputs NOTIFY audioInputsChanged)
+    Q_PROPERTY(QList<QAudioDeviceInfo> audioOutputs READ audioOutputs NOTIFY audioOutputsChanged)
+    Q_PROPERTY(QList<QCameraInfo> videoInputs READ videoInputs NOTIFY videoInputsChanged)
+    Q_PROPERTY(QAudioDeviceInfo defaultAudioInput READ defaultAudioInput NOTIFY audioInputsChanged)
+    Q_PROPERTY(QAudioDeviceInfo defaultAudioOutput READ defaultAudioOutput NOTIFY audioOutputsChanged)
+    Q_PROPERTY(QCameraInfo defaultVideoInput READ defaultVideoInput NOTIFY videoInputsChanged)
 
-    QList<QAudioDeviceInfo> audioInputs() const override;
-    QList<QAudioDeviceInfo> audioOutputs() const override;
-    QList<QCameraInfo> videoInputs() const override;
-    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
-    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
+public:
+    QMediaDevices(QObject *parent = nullptr);
+    ~QMediaDevices();
+
+    static QList<QAudioDeviceInfo> audioInputs();
+    static QList<QAudioDeviceInfo> audioOutputs();
+    static QList<QCameraInfo> videoInputs();
+
+    static QAudioDeviceInfo defaultAudioInput();
+    static QAudioDeviceInfo defaultAudioOutput();
+    static QCameraInfo defaultVideoInput();
+
+signals:
+    void audioInputsChanged();
+    void audioOutputsChanged();
+    void videoInputsChanged();
 
 private:
-    QPulseAudioEngine *pulseEngine;
+    friend class QMediaDevicesPrivate;
 };
 
 QT_END_NAMESPACE
 
-#endif
+
+#endif  // QABSTRACTMEDIASERVICE_H
+

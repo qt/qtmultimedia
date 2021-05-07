@@ -48,7 +48,7 @@
 #include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 #include <qmediacapturesession.h>
 
 #include <QDebug>
@@ -109,7 +109,7 @@ void QCameraPrivate::init()
 */
 
 QCamera::QCamera(QObject *parent)
-    : QCamera(QMediaDeviceManager::defaultVideoInput(), parent)
+    : QCamera(QMediaDevices::defaultVideoInput(), parent)
 {
 }
 
@@ -147,7 +147,7 @@ QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
 
     d->init();
     QCameraInfo info;
-    auto cameras = QMediaDeviceManager::videoInputs();
+    auto cameras = QMediaDevices::videoInputs();
     for (const auto &c : cameras) {
         if (c.position() == position) {
             info = c;

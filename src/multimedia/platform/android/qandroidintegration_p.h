@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidDeviceManager;
+class QAndroidMediaDevices;
 
 class QAndroidIntegration : public QPlatformMediaIntegration
 {
@@ -63,7 +63,7 @@ public:
     QAndroidIntegration();
     ~QAndroidIntegration();
 
-    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
@@ -72,7 +72,7 @@ public:
     QPlatformMediaEncoder *createEncoder(QMediaEncoder *encoder) override;
     QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *imageCapture) override;
 
-    QAndroidDeviceManager *m_manager = nullptr;
+    QAndroidMediaDevices *m_devices = nullptr;
     QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
 };
 

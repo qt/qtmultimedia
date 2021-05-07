@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qalsaintegration_p.h"
-#include "qalsadevicemanager_p.h"
+#include "qalsamediadevices_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -48,14 +48,14 @@ QAlsaIntegration::QAlsaIntegration()
 
 QAlsaIntegration::~QAlsaIntegration()
 {
-    delete m_manager;
+    delete m_devices;
 }
 
-QPlatformMediaDeviceManager *QAlsaIntegration::deviceManager()
+QPlatformMediaDevices *QAlsaIntegration::devices()
 {
-    if (!m_manager)
-        m_manager = new QAlsaDeviceManager();
-    return m_manager;
+    if (!m_devices)
+        m_devices = new QAlsaMediaDevices();
+    return m_devices;
 }
 
 QT_END_NAMESPACE

@@ -46,7 +46,7 @@
 #include "qandroidcamerasession_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcameraimagecapturecontrol_p.h"
-#include "qmediadevicemanager.h"
+#include "qmediadevices.h"
 #include "qaudiodeviceinfo.h"
 
 QT_BEGIN_NAMESPACE
@@ -164,14 +164,14 @@ void QAndroidCaptureService::setVolume(qreal volume)
 
 QAudioDeviceInfo QAndroidCaptureService::audioInput() const
 {
-    const auto devices = QMediaDeviceManager::audioInputs();
+    const auto devices = QMediaDevices::audioInputs();
     QByteArray id = m_captureSession->audioInput().toLatin1();
 
     for (auto c : devices) {
         if (c.id() == id)
             return c;
     }
-    return QMediaDeviceManager::defaultAudioInput();
+    return QMediaDevices::defaultAudioInput();
 }
 
 bool QAndroidCaptureService::setAudioInput(const QAudioDeviceInfo &info)

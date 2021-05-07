@@ -59,8 +59,8 @@ class QMediaPlayer;
 class QCamera;
 class QMediaEncoder;
 class QCameraImageCapture;
-class QMediaDeviceManager;
-class QPlatformMediaDeviceManager;
+class QMediaDevices;
+class QPlatformMediaDevices;
 class QPlatformMediaCaptureSession;
 class QPlatformMediaPlayer;
 class QPlatformAudioDecoder;
@@ -81,7 +81,7 @@ public:
     static void setIntegration(QPlatformMediaIntegration *);
 
     virtual ~QPlatformMediaIntegration();
-    virtual QPlatformMediaDeviceManager *deviceManager() = 0;
+    virtual QPlatformMediaDevices *devices() = 0;
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
     virtual QPlatformAudioDecoder *createAudioDecoder() { return nullptr; }

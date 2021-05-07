@@ -41,7 +41,7 @@
 #include "qopenslesengine_p.h"
 #include <QDebug>
 #include <qmath.h>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 
 #ifdef ANDROID
 #include <SLES/OpenSLES_Android.h>
@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 
 static inline void openSlDebugInfo()
 {
-    const QAudioFormat &format = QMediaDeviceManager::defaultAudioOutput().preferredFormat();
+    const QAudioFormat &format = QMediaDevices::defaultAudioOutput().preferredFormat();
     qDebug() << "======= OpenSL ES Device info ======="
              << "\nSupports low-latency playback: " << (QOpenSLESEngine::supportsLowLatency() ? "YES" : "NO")
              << "\nPreferred sample rate: " << QOpenSLESEngine::getOutputValue(QOpenSLESEngine::SampleRate, -1)

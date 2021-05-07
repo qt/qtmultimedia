@@ -42,7 +42,7 @@
 #include "qsamplecache_p.h"
 #include "qaudiodeviceinfo.h"
 #include "qaudiooutput.h"
-#include "qmediadevicemanager.h"
+#include "qmediadevices.h"
 #include <QtCore/qloggingcategory.h>
 
 Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
@@ -319,7 +319,7 @@ QSoundEffect::~QSoundEffect()
 QStringList QSoundEffect::supportedMimeTypes()
 {
     // Only return supported mime types if we have a audio device available
-    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
+    const QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
     if (devices.isEmpty())
         return QStringList();
 

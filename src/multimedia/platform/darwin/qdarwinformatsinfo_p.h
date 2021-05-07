@@ -56,7 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QDarwinDeviceManager;
+class QDarwinMediaDevices;
 
 class QDarwinFormatInfo : public QPlatformMediaFormatInfo
 {

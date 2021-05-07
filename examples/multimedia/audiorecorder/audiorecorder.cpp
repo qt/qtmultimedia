@@ -58,7 +58,7 @@
 #include <QFileDialog>
 #include <QMediaEncoder>
 #include <QStandardPaths>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudiobuffer.h>
 
@@ -79,7 +79,7 @@ AudioRecorder::AudioRecorder()
 
     //audio devices
     ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto device: QMediaDeviceManager::audioInputs()) {
+    for (auto device: QMediaDevices::audioInputs()) {
         auto name = device.description();
         ui->audioDeviceBox->addItem(name, QVariant::fromValue(device));
     }

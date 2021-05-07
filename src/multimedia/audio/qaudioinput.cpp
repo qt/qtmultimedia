@@ -43,7 +43,7 @@
 #include "qaudiosystem_p.h"
 #include "qaudioinput.h"
 
-#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediadevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -132,7 +132,7 @@ QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent)
 QAudioInput::QAudioInput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QPlatformMediaIntegration::instance()->deviceManager()->audioInputDevice(format, audioDevice);
+    d = QPlatformMediaIntegration::instance()->devices()->audioInputDevice(format, audioDevice);
     if (d)
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }

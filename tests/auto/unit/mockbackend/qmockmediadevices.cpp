@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,52 +37,62 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIADEVICEMANAGER_H
-#define QMEDIADEVICEMANAGER_H
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/qobject.h>
-#include <QtCore/qstringlist.h>
+#include "qmockmediadevices_p.h"
+#include "private/qcamerainfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDeviceInfo;
-class QCameraInfo;
-
-class QMediaDeviceManagerPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaDeviceManager : public QObject
+QMockMediaDevices::QMockMediaDevices()
+    : QPlatformMediaDevices()
 {
-    Q_OBJECT
-    Q_PROPERTY(QList<QAudioDeviceInfo> audioInputs READ audioInputs NOTIFY audioInputsChanged)
-    Q_PROPERTY(QList<QAudioDeviceInfo> audioOutputs READ audioOutputs NOTIFY audioOutputsChanged)
-    Q_PROPERTY(QList<QCameraInfo> videoInputs READ videoInputs NOTIFY videoInputsChanged)
-    Q_PROPERTY(QAudioDeviceInfo defaultAudioInput READ defaultAudioInput NOTIFY audioInputsChanged)
-    Q_PROPERTY(QAudioDeviceInfo defaultAudioOutput READ defaultAudioOutput NOTIFY audioOutputsChanged)
-    Q_PROPERTY(QCameraInfo defaultVideoInput READ defaultVideoInput NOTIFY videoInputsChanged)
+    QCameraInfoPrivate *info = new QCameraInfoPrivate;
+    info->description = QString::fromUtf8("defaultCamera");
+    info->id = "default";
+    info->isDefault = true;
+    m_cameraDevices.append(info->create());
+    info = new QCameraInfoPrivate;
+    info->description = QString::fromUtf8("frontCamera");
+    info->id = "front";
+    info->isDefault = false;
+    info->position = QCameraInfo::FrontFace;
+    m_cameraDevices.append(info->create());
+    info = new QCameraInfoPrivate;
+    info->description = QString::fromUtf8("backCamera");
+    info->id = "back";
+    info->isDefault = false;
+    info->position = QCameraInfo::BackFace;
+    m_cameraDevices.append(info->create());
 
-public:
-    QMediaDeviceManager(QObject *parent = nullptr);
-    ~QMediaDeviceManager();
+}
 
-    static QList<QAudioDeviceInfo> audioInputs();
-    static QList<QAudioDeviceInfo> audioOutputs();
-    static QList<QCameraInfo> videoInputs();
+QMockMediaDevices::~QMockMediaDevices() = default;
 
-    static QAudioDeviceInfo defaultAudioInput();
-    static QAudioDeviceInfo defaultAudioOutput();
-    static QCameraInfo defaultVideoInput();
+QList<QAudioDeviceInfo> QMockMediaDevices::audioInputs() const
+{
+    return m_inputDevices;
+}
 
-signals:
-    void audioInputsChanged();
-    void audioOutputsChanged();
-    void videoInputsChanged();
+QList<QAudioDeviceInfo> QMockMediaDevices::audioOutputs() const
+{
+    return m_outputDevices;
+}
 
-private:
-    friend class QMediaDeviceManagerPrivate;
-};
+QList<QCameraInfo> QMockMediaDevices::videoInputs() const
+{
+    return m_cameraDevices;
+}
+
+QAbstractAudioInput *QMockMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &info)
+{
+    Q_UNUSED(info);
+    return nullptr;// ###
+}
+
+QAbstractAudioOutput *QMockMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &info)
+{
+    Q_UNUSED(info);
+    return nullptr; //###
+}
+
 
 QT_END_NAMESPACE
-
-
-#endif  // QABSTRACTMEDIASERVICE_H
-

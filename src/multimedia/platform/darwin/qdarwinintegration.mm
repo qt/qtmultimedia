@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qdarwinintegration_p.h"
-#include "qdarwindevicemanager_p.h"
+#include "qdarwinmediadevices_p.h"
 #include <private/avfmediaplayer_p.h>
 #include <private/avfcameraservice_p.h>
 #include <private/avfcamera_p.h>
@@ -56,15 +56,15 @@ QDarwinIntegration::QDarwinIntegration()
 
 QDarwinIntegration::~QDarwinIntegration()
 {
-    delete m_manager;
+    delete m_devices;
     delete m_formatInfo;
 }
 
-QPlatformMediaDeviceManager *QDarwinIntegration::deviceManager()
+QPlatformMediaDevices *QDarwinIntegration::devices()
 {
-    if (!m_manager)
-        m_manager = new QDarwinDeviceManager();
-    return m_manager;
+    if (!m_devices)
+        m_devices = new QDarwinMediaDevices();
+    return m_devices;
 }
 
 QPlatformMediaFormatInfo *QDarwinIntegration::formatInfo()

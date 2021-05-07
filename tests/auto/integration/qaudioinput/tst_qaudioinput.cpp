@@ -36,7 +36,7 @@
 #include <qaudiodeviceinfo.h>
 #include <qaudioformat.h>
 #include <qaudio.h>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 
 #include <qwavedecoder.h>
 
@@ -131,12 +131,12 @@ QString tst_QAudioInput::formatToFileName(const QAudioFormat &format)
 void tst_QAudioInput::initTestCase()
 {
     // Only perform tests if audio output device exists
-    const QList<QAudioDeviceInfo> devices = QMediaDeviceManager::audioOutputs();
+    const QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
 
     if (devices.size() <= 0)
         QSKIP("No audio backend");
 
-    audioDevice = QMediaDeviceManager::defaultAudioInput();
+    audioDevice = QMediaDevices::defaultAudioInput();
 
 
     QAudioFormat format;

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qqnxdevicemanager_p.h"
-#include "qmediadevicemanager.h"
+#include "qqnxmediadevices_p.h"
+#include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
 #include "private/qnxaudioinput_p.h"
@@ -89,32 +89,32 @@ static QList<QCameraInfo> enumerateCameras()
     return cameras;
 }
 
-QQnxDeviceManager::QQnxDeviceManager()
-    : QMediaPlatformDeviceManager()
+QQnxMediaDevices::QQnxMediaDevices()
+    : QMediaPlatformMediaDevices()
 {
 }
 
-QList<QAudioDeviceInfo> QQnxDeviceManager::audioInputs() const
+QList<QAudioDeviceInfo> QQnxMediaDevices::audioInputs() const
 {
     return { QAudioDeviceInfo(new QnxAudioDeviceInfo("default", QAudio::AudioInput)) };
 }
 
-QList<QAudioDeviceInfo> QQnxDeviceManager::audioOutputs() const
+QList<QAudioDeviceInfo> QQnxMediaDevices::audioOutputs() const
 {
     return { QAudioDeviceInfo(new QnxAudioDeviceInfo("default", QAudio::AudioOutput)) };
 }
 
-QList<QCameraInfo> QQnxDeviceManager::videoInputs() const
+QList<QCameraInfo> QQnxMediaDevices::videoInputs() const
 {
     return enumerateCameras();
 }
 
-QAbstractAudioInput *QQnxDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioInput *QQnxMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QnxAudioInput();
 }
 
-QAbstractAudioOutput *QQnxDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioOutput *QQnxMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QNxAudioOutput();
 }

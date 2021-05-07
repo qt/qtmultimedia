@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qandroiddevicemanager_p.h"
-#include "qmediadevicemanager.h"
+#include "qandroidmediadevices_p.h"
+#include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
 #include "private/qopenslesaudioinput_p.h"
@@ -50,32 +50,32 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidDeviceManager::QAndroidDeviceManager()
-    : QPlatformMediaDeviceManager()
+QAndroidMediaDevices::QAndroidMediaDevices()
+    : QPlatformMediaDevices()
 {
 }
 
-QList<QAudioDeviceInfo> QAndroidDeviceManager::audioInputs() const
+QList<QAudioDeviceInfo> QAndroidMediaDevices::audioInputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QAndroidDeviceManager::audioOutputs() const
+QList<QAudioDeviceInfo> QAndroidMediaDevices::audioOutputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QAndroidDeviceManager::videoInputs() const
+QList<QCameraInfo> QAndroidMediaDevices::videoInputs() const
 {
     return QAndroidCameraSession::availableCameras();
 }
 
-QAbstractAudioInput *QAndroidDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioInput *QAndroidMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QOpenSLESAudioInput(deviceInfo.id());
 }
 
-QAbstractAudioOutput *QAndroidDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioOutput *QAndroidMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     return new QOpenSLESAudioOutput(deviceInfo.id());
 }

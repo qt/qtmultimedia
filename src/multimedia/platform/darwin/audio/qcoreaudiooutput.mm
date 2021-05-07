@@ -40,8 +40,8 @@
 #include "qcoreaudiosessionmanager_p.h"
 #include "qcoreaudiodeviceinfo_p.h"
 #include "qcoreaudioutils_p.h"
-#include <private/qdarwindevicemanager_p.h>
-#include <qmediadevicemanager.h>
+#include <private/qdarwinmediadevices_p.h>
+#include <qmediadevices.h>
 
 #include <QtCore/QDataStream>
 #include <QtCore/QTimer>
@@ -237,7 +237,7 @@ QCoreAudioOutput::QCoreAudioOutput(const QAudioDeviceInfo &device)
 {
     QAudioDeviceInfo di = device;
     if (di.isNull())
-        di = QMediaDeviceManager::defaultAudioOutput();
+        di = QMediaDevices::defaultAudioOutput();
 #if defined(Q_OS_MACOS)
     const QCoreAudioDeviceInfo *info = static_cast<const QCoreAudioDeviceInfo *>(di.handle());
     Q_ASSERT(info);

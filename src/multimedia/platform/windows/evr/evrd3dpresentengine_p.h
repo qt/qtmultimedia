@@ -58,7 +58,7 @@
 
 struct IDirect3D9Ex;
 struct IDirect3DDevice9Ex;
-struct IDirect3DDeviceManager9;
+struct IDirect3DMediaDevices9;
 struct IDirect3DSurface9;
 struct IDirect3DTexture9;
 struct IMFSample;
@@ -141,7 +141,7 @@ private:
 
     IDirect3D9Ex *m_D3D9;
     IDirect3DDevice9Ex *m_device;
-    IDirect3DDeviceManager9 *m_deviceManager;
+    IDirect3DMediaDevices9 *m_devices;
 
     QVideoFrameFormat m_surfaceFormat;
 

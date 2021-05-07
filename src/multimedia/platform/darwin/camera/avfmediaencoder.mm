@@ -47,7 +47,7 @@
 #include "avfcamerautility_p.h"
 
 #include "qaudiodeviceinfo.h"
-#include "qmediadevicemanager.h"
+#include "qmediadevices.h"
 #include "private/qdarwinformatsinfo_p.h"
 
 #include <QtCore/qmath.h>

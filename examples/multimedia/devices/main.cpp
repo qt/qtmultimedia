@@ -54,7 +54,7 @@
 
 #include <QAudioDeviceInfo>
 #include <QCameraInfo>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 
 #include <stdio.h>
 
@@ -161,9 +161,9 @@ int main()
 {
     QTextStream out(stdout);
 
-    const auto audioInputDevices = QMediaDeviceManager::audioInputs();
-    const auto audioOutputDevices = QMediaDeviceManager::audioOutputs();
-    const auto videoInputDevices = QMediaDeviceManager::videoInputs();
+    const auto audioInputDevices = QMediaDevices::audioInputs();
+    const auto audioOutputDevices = QMediaDevices::audioOutputs();
+    const auto videoInputDevices = QMediaDevices::videoInputs();
 
     out << "Audio devices detected: " << Qt::endl;
     out << Qt::endl << "Input" << Qt::endl;

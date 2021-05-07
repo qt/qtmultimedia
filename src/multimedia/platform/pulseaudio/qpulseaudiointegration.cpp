@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qpulseaudiointegration_p.h"
-#include "qpulseaudiodevicemanager_p.h"
+#include "qpulseaudiomediadevices_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -49,14 +49,14 @@ QPulseAudioIntegration::QPulseAudioIntegration()
 
 QPulseAudioIntegration::~QPulseAudioIntegration()
 {
-    delete m_manager;
+    delete m_devices;
 }
 
-QPlatformMediaDeviceManager *QPulseAudioIntegration::deviceManager()
+QPlatformMediaDevices *QPulseAudioIntegration::devices()
 {
-    if (!m_manager)
-        m_manager = new QPulseAudioDeviceManager(pulseEngine);
-    return m_manager;
+    if (!m_devices)
+        m_devices = new QPulseAudioMediaDevices(pulseEngine);
+    return m_devices;
 }
 
 QT_END_NAMESPACE

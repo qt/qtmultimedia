@@ -37,46 +37,57 @@
 **
 ****************************************************************************/
 
-#include "qpulseaudiodevicemanager_p.h"
-#include "qmediadevicemanager.h"
-#include "qcamerainfo_p.h"
+#ifndef QDARWINMEDIADEVICES_H
+#define QDARWINMEDIADEVICES_H
 
-#include "private/qaudioinput_pulse_p.h"
-#include "private/qaudiooutput_pulse_p.h"
-#include "private/qaudiodeviceinfo_pulse_p.h"
-#include "private/qaudioengine_pulse_p.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformmediadevices_p.h>
+#include <qelapsedtimer.h>
+#include <qcamerainfo.h>
+
+Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioDeviceManager::QPulseAudioDeviceManager(QPulseAudioEngine *engine)
-    : QPlatformMediaDeviceManager(),
-      pulseEngine(engine)
-{
-}
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
 
-QList<QAudioDeviceInfo> QPulseAudioDeviceManager::audioInputs() const
-{
-    return pulseEngine->availableDevices(QAudio::AudioInput);
-}
+class QCameraInfo;
 
-QList<QAudioDeviceInfo> QPulseAudioDeviceManager::audioOutputs() const
+class QDarwinMediaDevices : public QPlatformMediaDevices
 {
-    return pulseEngine->availableDevices(QAudio::AudioOutput);
-}
+public:
+    QDarwinMediaDevices();
+    ~QDarwinMediaDevices();
 
-QList<QCameraInfo> QPulseAudioDeviceManager::videoInputs() const
-{
-    return {};
-}
+    QList<QAudioDeviceInfo> audioInputs() const override;
+    QList<QAudioDeviceInfo> audioOutputs() const override;
+    QList<QCameraInfo> videoInputs() const override;
+    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
+    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
 
-QAbstractAudioInput *QPulseAudioDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
-{
-    return new QPulseAudioInput(deviceInfo.id());
-}
+    void updateCameraDevices();
+    void updateAudioDevices();
 
-QAbstractAudioOutput *QPulseAudioDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
-{
-    return new QPulseAudioOutput(deviceInfo.id());
-}
+private:
+    QList<QCameraInfo> m_cameraDevices;
+    QList<QAudioDeviceInfo> m_audioInputs;
+    QList<QAudioDeviceInfo> m_audioOutputs;
+
+    NSObject *m_deviceConnectedObserver;
+    NSObject *m_deviceDisconnectedObserver;
+    void *m_audioDevicesProperty;
+};
 
 QT_END_NAMESPACE
+
+#endif

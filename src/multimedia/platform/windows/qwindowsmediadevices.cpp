@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qwindowsdevicemanager_p.h"
-#include "qmediadevicemanager.h"
+#include "qwindowsmediadevices_p.h"
+#include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 #include "qvarlengtharray.h"
 
@@ -60,8 +60,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QWindowsDeviceManager::QWindowsDeviceManager()
-    : QPlatformMediaDeviceManager()
+QWindowsMediaDevices::QWindowsMediaDevices()
+    : QPlatformMediaDevices()
 {
 }
 
@@ -144,17 +144,17 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QList<QAudioDeviceInfo> QWindowsDeviceManager::audioInputs() const
+QList<QAudioDeviceInfo> QWindowsMediaDevices::audioInputs() const
 {
     return availableDevices(QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QWindowsDeviceManager::audioOutputs() const
+QList<QAudioDeviceInfo> QWindowsMediaDevices::audioOutputs() const
 {
     return availableDevices(QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QWindowsDeviceManager::videoInputs() const
+QList<QCameraInfo> QWindowsMediaDevices::videoInputs() const
 {
     QList<QCameraInfo> cameras;
     auto hrCoInit = CoInitialize(nullptr);
@@ -282,13 +282,13 @@ QList<QCameraInfo> QWindowsDeviceManager::videoInputs() const
     return cameras;
 }
 
-QAbstractAudioInput *QWindowsDeviceManager::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioInput *QWindowsMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
     return new QWindowsAudioInput(devInfo->waveId());
 }
 
-QAbstractAudioOutput *QWindowsDeviceManager::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QAbstractAudioOutput *QWindowsMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
     return new QWindowsAudioOutput(devInfo->waveId());

@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsDeviceManager;
+class QWindowsMediaDevices;
 class QWindowsFormatInfo;
 
 class QWindowsIntegration : public QPlatformMediaIntegration
@@ -67,7 +67,7 @@ public:
     void addRefCount();
     void releaseRefCount();
 
-    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode) override;
@@ -80,7 +80,7 @@ public:
 
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
-    QWindowsDeviceManager *m_manager = nullptr;
+    QWindowsMediaDevices *m_devices = nullptr;
     QWindowsFormatInfo *m_formatInfo = nullptr;
 };
 

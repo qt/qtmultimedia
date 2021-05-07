@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSDEVICEMANAGER_H
-#define QWINDOWSDEVICEMANAGER_H
+#ifndef QWINDOWSMEDIADEVICES_H
+#define QWINDOWSMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediadevices_p.h>
 #include <qset.h>
 #include <qaudio.h>
 
@@ -59,10 +59,10 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsEngine;
 
-class QWindowsDeviceManager : public QPlatformMediaDeviceManager
+class QWindowsMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QWindowsDeviceManager();
+    QWindowsMediaDevices();
 
     QList<QAudioDeviceInfo> audioInputs() const override;
     QList<QAudioDeviceInfo> audioOutputs() const override;

@@ -64,7 +64,7 @@
 #include <QImage>
 
 #include <QtWidgets>
-#include <QMediaDeviceManager>
+#include <QMediaDevices>
 #include <QMediaFormat>
 
 Camera::Camera()
@@ -77,14 +77,14 @@ Camera::Camera()
     videoDevicesGroup = new QActionGroup(this);
     videoDevicesGroup->setExclusive(true);
     updateCameras();
-    connect(&m_manager, &QMediaDeviceManager::videoInputsChanged, this, &Camera::updateCameras);
+    connect(&m_devices, &QMediaDevices::videoInputsChanged, this, &Camera::updateCameras);
 
     connect(videoDevicesGroup, &QActionGroup::triggered, this, &Camera::updateCameraDevice);
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
 
     connect(ui->metaDataButton, &QPushButton::clicked, this, &Camera::showMetaDataDialog);
 
-    setCamera(QMediaDeviceManager::defaultVideoInput());
+    setCamera(QMediaDevices::defaultVideoInput());
 
     qDebug() << "Supported Containers:";
     auto containers = QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
@@ -395,12 +395,12 @@ void Camera::closeEvent(QCloseEvent *event)
 void Camera::updateCameras()
 {
     ui->menuDevices->clear();
-    const QList<QCameraInfo> availableCameras = QMediaDeviceManager::videoInputs();
+    const QList<QCameraInfo> availableCameras = QMediaDevices::videoInputs();
     for (const QCameraInfo &cameraInfo : availableCameras) {
         QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
         videoDeviceAction->setCheckable(true);
         videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
-        if (cameraInfo == QMediaDeviceManager::defaultVideoInput())
+        if (cameraInfo == QMediaDevices::defaultVideoInput())
             videoDeviceAction->setChecked(true);
 
         ui->menuDevices->addAction(videoDeviceAction);

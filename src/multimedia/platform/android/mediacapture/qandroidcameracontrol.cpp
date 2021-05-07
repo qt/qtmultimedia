@@ -44,7 +44,7 @@
 #include "qandroidcameraimageprocessingcontrol_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcaptureservice_p.h"
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 #include <qcamerainfo.h>
 #include <qtimer.h>
 
@@ -83,7 +83,7 @@ QCamera::Status QAndroidCameraControl::status() const
 void QAndroidCameraControl::setCamera(const QCameraInfo &camera)
 {
     int id = 0;
-    auto cameras = QMediaDeviceManager::videoInputs();
+    auto cameras = QMediaDevices::videoInputs();
     for (int i = 0; i < cameras.size(); ++i) {
         if (cameras.at(i) == camera) {
             id = i;

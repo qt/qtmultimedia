@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERDEVICEMANAGER_H
-#define QGSTREAMERDEVICEMANAGER_H
+#ifndef QGSTREAMERMEDIADEVICES_H
+#define QGSTREAMERMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -51,17 +51,17 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevicemanager_p.h>
+#include <private/qplatformmediadevices_p.h>
 #include <gst/gst.h>
 #include <qset.h>
 #include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerDeviceManager : public QPlatformMediaDeviceManager
+class QGstreamerMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QGstreamerDeviceManager();
+    QGstreamerMediaDevices();
 
     QList<QAudioDeviceInfo> audioInputs() const override;
     QList<QAudioDeviceInfo> audioOutputs() const override;

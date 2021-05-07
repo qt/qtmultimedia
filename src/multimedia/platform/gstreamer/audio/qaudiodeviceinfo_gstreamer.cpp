@@ -41,15 +41,15 @@
 
 #include <private/qgstutils_p.h>
 #include <private/qplatformmediaintegration_p.h>
-#include <private/qgstreamerdevicemanager_p.h>
+#include <private/qgstreamermediadevices_p.h>
 
 QT_BEGIN_NAMESPACE
 
 QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
     : QAudioDeviceInfoPrivate(device, mode)
 {
-    auto *deviceManager = static_cast<QGstreamerDeviceManager *>(QPlatformMediaIntegration::instance()->deviceManager());
-    gstDevice = deviceManager->audioDevice(device, mode);
+    auto *devices = static_cast<QGstreamerMediaDevices *>(QPlatformMediaIntegration::instance()->devices());
+    gstDevice = devices->audioDevice(device, mode);
     if (gstDevice) {
         gst_object_ref(gstDevice);
         auto *n = gst_device_get_display_name(gstDevice);

@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAlsaDeviceManager;
+class QAlsaMediaDevices;
 
 class QAlsaIntegration : public QPlatformMediaIntegration
 {
@@ -63,9 +63,9 @@ public:
     QAlsaIntegration();
     ~QAlsaIntegration();
 
-    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaDevices *devices() override;
 
-    QAlsaDeviceManager *m_manager = nullptr;
+    QAlsaMediaDevices *m_devices = nullptr;
 };
 
 QT_END_NAMESPACE

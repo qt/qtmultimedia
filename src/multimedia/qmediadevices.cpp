@@ -37,40 +37,40 @@
 **
 ****************************************************************************/
 
-#include "qmediadevicemanager.h"
+#include "qmediadevices.h"
 #include "private/qplatformmediaintegration_p.h"
-#include "private/qplatformmediadevicemanager_p.h"
+#include "private/qplatformmediadevices_p.h"
 
 #include <qaudiodeviceinfo.h>
 #include <qcamerainfo.h>
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDeviceManagerPrivate
+class QMediaDevicesPrivate
 {
 public:
-    ~QMediaDeviceManagerPrivate()
+    ~QMediaDevicesPrivate()
     {
     }
-    QPlatformMediaDeviceManager *manager() {
-        if (!pmanager)
-            pmanager = QPlatformMediaIntegration::instance()->deviceManager();
-        return pmanager;
+    QPlatformMediaDevices *platformDevices() {
+        if (!platform)
+            platform = QPlatformMediaIntegration::instance()->devices();
+        return platform;
     }
 
 private:
-    QPlatformMediaDeviceManager *pmanager = nullptr;
+    QPlatformMediaDevices *platform = nullptr;
 
 } priv;
 
 /*!
-    \class QMediaDeviceManager
-    \brief The QMediaDeviceManager class provides information about available
+    \class QMediaDevices
+    \brief The QMediaDevices class provides information about available
     multimedia input and output devices.
     \ingroup multimedia
     \inmodule QtMultimedia
 
-    The QMediaDeviceManager class helps in managing the available multimedia
+    The QMediaDevices class helps in managing the available multimedia
     input and output devices. It manages three types of devices:
     \list
     \li Audio input devices (Microphones)
@@ -78,24 +78,24 @@ private:
     \li Video input devices (Cameras)
     \endlist
 
-    QMediaDeviceManager allows listing all available devices and will emit
+    QMediaDevices allows listing all available devices and will emit
     signals when the list of available devices has changed.
 
     While using the default input and output devices is often sufficient for
     playing back or recording multimedia, there is often a need to explicitly
     select the device to be used.
 
-    QMediaDeviceManager is a singleton object and all getters are thread-safe.
+    QMediaDevices is a singleton object and all getters are thread-safe.
 */
 
-QList<QAudioDeviceInfo> QMediaDeviceManager::audioInputs()
+QList<QAudioDeviceInfo> QMediaDevices::audioInputs()
 {
-    return priv.manager()->audioInputs();
+    return priv.platformDevices()->audioInputs();
 }
 
-QList<QAudioDeviceInfo> QMediaDeviceManager::audioOutputs()
+QList<QAudioDeviceInfo> QMediaDevices::audioOutputs()
 {
-    return priv.manager()->audioOutputs();
+    return priv.platformDevices()->audioOutputs();
 }
 
 /*!
@@ -104,12 +104,12 @@ QList<QAudioDeviceInfo> QMediaDeviceManager::audioOutputs()
     If \a position is not specified or if the value is QCameraInfo::UnspecifiedPosition, a list of
     all available cameras will be returned.
 */
-QList<QCameraInfo> QMediaDeviceManager::videoInputs()
+QList<QCameraInfo> QMediaDevices::videoInputs()
 {
-    return priv.manager()->videoInputs();
+    return priv.platformDevices()->videoInputs();
 }
 
-QAudioDeviceInfo QMediaDeviceManager::defaultAudioInput()
+QAudioDeviceInfo QMediaDevices::defaultAudioInput()
 {
     const auto inputs = audioInputs();
     for (const auto &info : inputs)
@@ -118,7 +118,7 @@ QAudioDeviceInfo QMediaDeviceManager::defaultAudioInput()
     return inputs.value(0);
 }
 
-QAudioDeviceInfo QMediaDeviceManager::defaultAudioOutput()
+QAudioDeviceInfo QMediaDevices::defaultAudioOutput()
 {
     const auto outputs = audioOutputs();
     for (const auto &info : outputs)
@@ -135,7 +135,7 @@ QAudioDeviceInfo QMediaDeviceManager::defaultAudioOutput()
 
     \sa availableCameras()
 */
-QCameraInfo QMediaDeviceManager::defaultVideoInput()
+QCameraInfo QMediaDevices::defaultVideoInput()
 {
     const auto inputs = videoInputs();
     for (const auto &info : inputs)
@@ -147,21 +147,21 @@ QCameraInfo QMediaDeviceManager::defaultVideoInput()
 /*!
     \internal
 */
-QMediaDeviceManager::QMediaDeviceManager(QObject *parent)
+QMediaDevices::QMediaDevices(QObject *parent)
     : QObject(parent)
 {
-    priv.manager()->addDeviceManager(this);
+    priv.platformDevices()->addDevices(this);
 }
 
 /*!
     \internal
 */
-QMediaDeviceManager::~QMediaDeviceManager()
+QMediaDevices::~QMediaDevices()
 {
-    priv.manager()->removeDeviceManager(this);
+    priv.platformDevices()->removeDevices(this);
 }
 
 
 QT_END_NAMESPACE
 
-#include "moc_qmediadevicemanager.cpp"
+#include "moc_qmediadevices.cpp"

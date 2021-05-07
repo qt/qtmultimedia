@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qandroidintegration_p.h"
-#include "qandroiddevicemanager_p.h"
+#include "qandroidmediadevices_p.h"
 #include "private/qandroidglobal_p.h"
 #include "private/qandroidcaptureservice_p.h"
 #include "private/androidmediaplayer_p.h"
@@ -64,15 +64,15 @@ QAndroidIntegration::QAndroidIntegration()
 
 QAndroidIntegration::~QAndroidIntegration()
 {
-    delete m_manager;
+    delete m_devices;
     delete m_formatInfo;
 }
 
-QPlatformMediaDeviceManager *QAndroidIntegration::deviceManager()
+QPlatformMediaDevices *QAndroidIntegration::devices()
 {
-    if (!m_manager)
-        m_manager = new QAndroidDeviceManager();
-    return m_manager;
+    if (!m_devices)
+        m_devices = new QAndroidMediaDevices();
+    return m_devices;
 }
 
 QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()

@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QQnxDeviceManager;
+class QQnxMediaDevices;
 class QQnxPlayerInterface;
 
 class QQnxIntegration : public QPlatformMediaIntegration
@@ -64,11 +64,11 @@ public:
     QQnxIntegration();
     ~QQnxIntegration();
 
-    QPlatformMediaDeviceManager *deviceManager() override;
+    QPlatformMediaDevices *devices() override;
 
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 
-    QQnxDeviceManager *m_manager = nullptr;
+    QQnxMediaDevices *m_devices = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -31,7 +31,7 @@
 
 #include <qcamera.h>
 #include <qcamerainfo.h>
-#include <qmediadevicemanager.h>
+#include <qmediadevices.h>
 
 #include "qmockintegration_p.h"
 #include "qmockmediacapturesession.h"
@@ -81,7 +81,7 @@ void tst_QCameraInfo::constructor()
         QCOMPARE(info.position(), QCameraInfo::UnspecifiedPosition);
     }
 
-    auto cameras = QMediaDeviceManager::videoInputs();
+    auto cameras = QMediaDevices::videoInputs();
     QCameraInfo info;
     for (const auto &c : cameras) {
         if (c.position() == QCameraInfo::BackFace)
@@ -105,7 +105,7 @@ void tst_QCameraInfo::constructor()
 
 void tst_QCameraInfo::defaultCamera()
 {
-    QCameraInfo info = QMediaDeviceManager::defaultVideoInput();
+    QCameraInfo info = QMediaDevices::defaultVideoInput();
 
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("default"));
@@ -118,7 +118,7 @@ void tst_QCameraInfo::defaultCamera()
 
 void tst_QCameraInfo::availableCameras()
 {
-    QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
+    QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
     QCOMPARE(cameras.count(), 3);
 
     QCameraInfo info = cameras.at(0);
@@ -143,8 +143,8 @@ void tst_QCameraInfo::availableCameras()
 
 void tst_QCameraInfo::equality_operators()
 {
-    QCameraInfo defaultCamera = QMediaDeviceManager::defaultVideoInput();
-    QList<QCameraInfo> cameras = QMediaDeviceManager::videoInputs();
+    QCameraInfo defaultCamera = QMediaDevices::defaultVideoInput();
+    QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
 
     QVERIFY(defaultCamera == cameras.at(0));
     QVERIFY(defaultCamera != cameras.at(1));
