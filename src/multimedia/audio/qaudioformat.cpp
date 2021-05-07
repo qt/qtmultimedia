@@ -267,26 +267,11 @@ qint64 QAudioFormat::durationForFrames(qint32 frameCount) const
 */
 
 /*!
+    \fn int QAudioFormat::bytesPerSample() const
     Returns the number of bytes required to represent one sample in this format.
 
     Returns 0 if this format is invalid.
 */
-int QAudioFormat::bytesPerSample() const
-{
-    switch (m_sampleFormat) {
-    case Unknown:
-    case NSampleFormats:
-        return 0;
-    case UInt8:
-        return 1;
-    case Int16:
-        return 2;
-    case Int32:
-    case Float:
-        return 4;
-    }
-    return 0;
-}
 
 /*!
     Normalizes the sample value to a number between -1 and 1.

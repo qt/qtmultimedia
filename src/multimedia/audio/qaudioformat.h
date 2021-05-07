@@ -87,7 +87,18 @@ public:
     Q_MULTIMEDIA_EXPORT qint64 durationForFrames(qint32 frameCount) const;
 
     constexpr int bytesPerFrame() const { return bytesPerSample()*channelCount(); }
-    Q_MULTIMEDIA_EXPORT int bytesPerSample() const;
+    constexpr int bytesPerSample() const noexcept
+    {
+        switch (m_sampleFormat) {
+        case Unknown:
+        case NSampleFormats: return 0;
+        case UInt8: return 1;
+        case Int16: return 2;
+        case Int32:
+        case Float: return 4;
+        }
+        return 0;
+    }
 
     Q_MULTIMEDIA_EXPORT float normalizedSampleValue(const void *sample) const;
 
