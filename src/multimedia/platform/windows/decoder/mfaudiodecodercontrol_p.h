@@ -66,8 +66,8 @@ public:
 
     QAudioDecoder::State state() const;
 
-    QString sourceFilename() const;
-    void setSourceFilename(const QString &fileName);
+    QUrl source() const;
+    void setSource(const QUrl &fileName);
 
     QIODevice* sourceDevice() const;
     void setSourceDevice(QIODevice *device);
@@ -99,7 +99,7 @@ private:
     SourceResolver         *m_sourceResolver;
     IMFTransform           *m_resampler;
     QAudioDecoder::State    m_state;
-    QString                 m_sourceFilename;
+    QUrl                    m_source;
     QIODevice              *m_device;
     QAudioFormat            m_audioFormat;
     DWORD                   m_mfInputStreamID;

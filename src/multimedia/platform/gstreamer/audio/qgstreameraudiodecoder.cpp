@@ -277,12 +277,12 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
     return false;
 }
 
-QString QGstreamerAudioDecoder::sourceFilename() const
+QUrl QGstreamerAudioDecoder::source() const
 {
     return mSource;
 }
 
-void QGstreamerAudioDecoder::setSourceFilename(const QString &fileName)
+void QGstreamerAudioDecoder::setSource(const QUrl &fileName)
 {
     stop();
     mDevice = nullptr;
@@ -320,7 +320,7 @@ void QGstreamerAudioDecoder::start()
     addAppSink();
 
     if (!mSource.isEmpty()) {
-        m_playbin.set("uri", QUrl::fromLocalFile(mSource).toEncoded().constData());
+        m_playbin.set("uri", mSource.toEncoded().constData());
     } else if (mDevice) {
         // make sure we can read from device
         if (!mDevice->isOpen() || !mDevice->isReadable()) {

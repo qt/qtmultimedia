@@ -32,6 +32,7 @@
 #include "private/qplatformaudiodecoder_p.h"
 
 #include <QtCore/qpair.h>
+#include <QtCore/qurl.h>
 
 #include "qaudiobuffer.h"
 #include <QTimer>
@@ -63,7 +64,7 @@ public:
         return mState;
     }
 
-    QString sourceFilename() const
+    QUrl source() const
     {
         return mSource;
     }
@@ -81,7 +82,7 @@ public:
         }
     }
 
-    void setSourceFilename(const QString &fileName)
+    void setSource(const QUrl &fileName)
     {
         mSource = fileName;
         mDevice = 0;
@@ -189,7 +190,7 @@ private slots:
 
 public:
     QAudioDecoder::State mState;
-    QString mSource;
+    QUrl mSource;
     QIODevice *mDevice;
     QAudioFormat mFormat;
     qint64 mPosition;

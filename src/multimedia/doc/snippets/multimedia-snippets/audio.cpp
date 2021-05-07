@@ -240,7 +240,7 @@ void AudioDecodingExample::decode()
 
     QAudioDecoder *decoder = new QAudioDecoder(this);
     decoder->setAudioFormat(desiredFormat);
-    decoder->setSourceFilename("level1.mp3");
+    decoder->setSource("level1.mp3");
 
     connect(decoder, SIGNAL(bufferReady()), this, SLOT(readBuffer()));
     decoder->start();

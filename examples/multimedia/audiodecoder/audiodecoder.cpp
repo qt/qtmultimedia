@@ -97,9 +97,9 @@ AudioDecoder::~AudioDecoder()
     delete m_waveDecoder;
 }
 
-void AudioDecoder::setSourceFilename(const QString &fileName)
+void AudioDecoder::setSource(const QString &fileName)
 {
-    m_decoder.setSourceFilename(fileName);
+    m_decoder.setSource(fileName);
 }
 
 void AudioDecoder::start()

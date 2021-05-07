@@ -79,13 +79,13 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 */
 
 /*!
-    \fn QPlatformAudioDecoder::sourceFilename() const
+    \fn QPlatformAudioDecoder::source() const
 
     Returns the current media source filename, or a null QString if none (or a device)
 */
 
 /*!
-    \fn QPlatformAudioDecoder::setSourceFilename(const QString &fileName)
+    \fn QPlatformAudioDecoder::setSource(const QString &fileName)
 
     Sets the current source to \a fileName.  Changing the source will
     stop any current decoding and discard any buffers.
@@ -158,7 +158,7 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 
     Signals that the current source of the decoder has changed.
 
-    \sa sourceFilename(), sourceDevice()
+    \sa source(), sourceDevice()
 */
 
 /*!

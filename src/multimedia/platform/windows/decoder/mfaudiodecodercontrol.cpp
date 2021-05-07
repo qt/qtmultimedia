@@ -89,9 +89,9 @@ QAudioDecoder::State MFAudioDecoderControl::state() const
     return m_state;
 }
 
-QString MFAudioDecoderControl::sourceFilename() const
+QUrl MFAudioDecoderControl::source() const
 {
-    return m_sourceFilename;
+    return m_source;
 }
 
 void MFAudioDecoderControl::onSourceCleared()
@@ -112,23 +112,18 @@ void MFAudioDecoderControl::onSourceCleared()
         emit durationChanged(m_duration);
 }
 
-void MFAudioDecoderControl::setSourceFilename(const QString &fileName)
+void MFAudioDecoderControl::setSource(const QUrl &fileName)
 {
-    if (!m_device && m_sourceFilename == fileName)
+    if (!m_device && m_source == fileName)
         return;
     m_sourceReady = false;
     m_sourceResolver->cancel();
     m_decoderSourceReader->setSource(0, m_audioFormat);
     m_device = 0;
-    m_sourceFilename = fileName;
-    if (!m_sourceFilename.isEmpty()) {
+    m_source = fileName;
+    if (!m_source.isEmpty()) {
         m_sourceResolver->shutdown();
-        QUrl url;
-        if (m_sourceFilename.startsWith(':'))
-            url = QUrl(QStringLiteral("qrc%1").arg(m_sourceFilename));
-        else
-            url = QUrl::fromLocalFile(m_sourceFilename);
-        m_sourceResolver->load(url, 0);
+        m_sourceResolver->load(m_source, 0);
         m_loadingSource = true;
     } else {
         onSourceCleared();
@@ -143,12 +138,12 @@ QIODevice* MFAudioDecoderControl::sourceDevice() const
 
 void MFAudioDecoderControl::setSourceDevice(QIODevice *device)
 {
-    if (m_device == device && m_sourceFilename.isEmpty())
+    if (m_device == device && m_source.isEmpty())
         return;
     m_sourceReady = false;
     m_sourceResolver->cancel();
     m_decoderSourceReader->setSource(0, m_audioFormat);
-    m_sourceFilename.clear();
+    m_source.clear();
     m_device = device;
     if (m_device) {
         m_sourceResolver->shutdown();

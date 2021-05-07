@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     AudioDecoder decoder(isPlayback, isDelete, targetFile.absoluteFilePath());
     QObject::connect(&decoder, &AudioDecoder::done,
                      &app, &QCoreApplication::quit);
-    decoder.setSourceFilename(sourceFile.absoluteFilePath());
+    decoder.setSource(sourceFile.absoluteFilePath());
     decoder.start();
 
     return app.exec();

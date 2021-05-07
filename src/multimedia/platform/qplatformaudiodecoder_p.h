@@ -67,8 +67,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioDecoder : public QObject
 public:
     virtual QAudioDecoder::State state() const = 0;
 
-    virtual QString sourceFilename() const = 0;
-    virtual void setSourceFilename(const QString &fileName) = 0;
+    virtual QUrl source() const = 0;
+    virtual void setSource(const QUrl &fileName) = 0;
 
     virtual QIODevice* sourceDevice() const = 0;
     virtual void setSourceDevice(QIODevice *device) = 0;

@@ -65,7 +65,7 @@ public:
     AudioDecoder(bool isPlayback, bool isDelete, const QString &targetFileName);
     ~AudioDecoder();
 
-    void setSourceFilename(const QString &fileName);
+    void setSource(const QString &fileName);
     void start();
     void stop();
 

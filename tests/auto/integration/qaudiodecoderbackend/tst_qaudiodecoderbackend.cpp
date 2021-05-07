@@ -102,15 +102,15 @@ void tst_QAudioDecoderBackend::fileTest()
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
     QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
-    d.setSourceFilename(fileInfo.absoluteFilePath());
+    d.setSource(fileInfo.absoluteFilePath());
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(!d.bufferAvailable());
-    QCOMPARE(d.sourceFilename(), fileInfo.absoluteFilePath());
+    QCOMPARE(d.source(), fileInfo.absoluteFilePath());
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
     QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
@@ -279,15 +279,15 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
     QFileInfo fileInfo(QFINDTESTDATA(TEST_UNSUPPORTED_FILE_NAME));
-    d.setSourceFilename(fileInfo.absoluteFilePath());
+    d.setSource(fileInfo.absoluteFilePath());
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(!d.bufferAvailable());
-    QCOMPARE(d.sourceFilename(), fileInfo.absoluteFilePath());
+    QCOMPARE(d.source(), fileInfo.absoluteFilePath());
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
     QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
@@ -357,15 +357,15 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
     QFileInfo fileInfo(QFINDTESTDATA(TEST_CORRUPTED_FILE_NAME));
-    d.setSourceFilename(fileInfo.absoluteFilePath());
+    d.setSource(fileInfo.absoluteFilePath());
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(!d.bufferAvailable());
-    QCOMPARE(d.sourceFilename(), fileInfo.absoluteFilePath());
+    QCOMPARE(d.source(), fileInfo.absoluteFilePath());
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
     QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
@@ -444,7 +444,7 @@ void tst_QAudioDecoderBackend::deviceTest()
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
@@ -453,7 +453,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     d.setSourceDevice(&file);
 
     QVERIFY(d.sourceDevice() == &file);
-    QVERIFY(d.sourceFilename().isEmpty());
+    QVERIFY(d.source().isEmpty());
 
     // We haven't set the format yet
     QVERIFY(d.audioFormat() == QAudioFormat());

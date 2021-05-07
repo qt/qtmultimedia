@@ -48,6 +48,7 @@
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qtimer.h>
+#include <QtCore/qurl.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qpointer.h>
 
@@ -55,18 +56,17 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAudioDecoder
-    \brief The QAudioDecoder class allows decoding audio.
+    \brief The QAudioDecoder class implements decoding audio.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
     \preliminary
 
-    The QAudioDecoder class is a high level class for decoding local
+    The QAudioDecoder class is a high level class for decoding
     audio media files.  It is similar to the QMediaPlayer class except
     that audio is provided back through this API rather than routed
-    directly to audio hardware. Network and streaming
-    based media are not supported.
+    directly to audio hardware.
 
     \sa QAudioBuffer
 */
@@ -113,8 +113,7 @@ void QAudioDecoderPrivate::_q_error(int error, const QString &errorString)
 }
 
 /*!
-    Construct an QAudioDecoder instance
-    parented to \a parent.
+    Construct an QAudioDecoder instance with \a parent.
 */
 QAudioDecoder::QAudioDecoder(QObject *parent)
     : QObject(*new QAudioDecoderPrivate, parent)
@@ -151,11 +150,17 @@ QAudioDecoder::~QAudioDecoder()
         delete d->control;
 }
 
+/*!
+    Returns true is audio decoding is supported on this platform.
+*/
 bool QAudioDecoder::isAvailable() const
 {
     return d_func()->control != nullptr;
 }
 
+/*!
+    Returns the current state of the audio decoder.
+*/
 QAudioDecoder::State QAudioDecoder::state() const
 {
     return d_func()->state;
@@ -164,12 +169,15 @@ QAudioDecoder::State QAudioDecoder::state() const
 /*!
     Returns the current error state.
 */
-
 QAudioDecoder::Error QAudioDecoder::error() const
 {
     return d_func()->error;
 }
 
+/*!
+    Returns a human readable description of the current error.
+    Returns an empty string is there is no error.
+*/
 QString QAudioDecoder::errorString() const
 {
     return d_func()->errorString;
@@ -221,11 +229,11 @@ void QAudioDecoder::stop()
     If \l setSourceDevice was called, this will
     be empty.
 */
-QString QAudioDecoder::sourceFilename() const
+QUrl QAudioDecoder::source() const
 {
     Q_D(const QAudioDecoder);
     if (d->control)
-        return d->control->sourceFilename();
+        return d->control->source();
     return QString();
 }
 
@@ -238,17 +246,17 @@ QString QAudioDecoder::sourceFilename() const
     You can only specify either a source filename or
     a source QIODevice.  Setting one will unset the other.
 */
-void QAudioDecoder::setSourceFilename(const QString &fileName)
+void QAudioDecoder::setSource(const QUrl &fileName)
 {
     Q_D(QAudioDecoder);
 
     if (d->control != nullptr)
-        d_func()->control->setSourceFilename(fileName);
+        d_func()->control->setSource(fileName);
 }
 
 /*!
     Returns the current source QIODevice, if one was set.
-    If \l setSourceFilename() was called, this will be 0.
+    If \l setSource() was called, this will be a nullptr.
 */
 QIODevice *QAudioDecoder::sourceDevice() const
 {
@@ -420,7 +428,7 @@ QAudioBuffer QAudioDecoder::read() const
 
     Signals that the current source of the decoder has changed.
 
-    \sa sourceFilename(), sourceDevice()
+    \sa source(), sourceDevice()
 */
 
 /*!
@@ -493,7 +501,7 @@ QAudioBuffer QAudioDecoder::read() const
 */
 
 /*!
-    \property QAudioDecoder::sourceFilename
+    \property QAudioDecoder::source
     \brief the active filename being decoded by the decoder object.
 */
 

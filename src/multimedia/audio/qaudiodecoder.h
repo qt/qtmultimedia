@@ -51,7 +51,7 @@ class QAudioDecoderPrivate;
 class Q_MULTIMEDIA_EXPORT QAudioDecoder : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString sourceFilename READ sourceFilename WRITE setSourceFilename NOTIFY sourceChanged)
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QString error READ errorString)
     Q_PROPERTY(bool bufferAvailable READ bufferAvailable NOTIFY bufferAvailableChanged)
@@ -81,8 +81,8 @@ public:
     bool isAvailable() const;
     State state() const;
 
-    QString sourceFilename() const;
-    void setSourceFilename(const QString &fileName);
+    QUrl source() const;
+    void setSource(const QUrl &fileName);
 
     QIODevice* sourceDevice() const;
     void setSourceDevice(QIODevice *device);

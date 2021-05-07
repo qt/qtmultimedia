@@ -54,6 +54,8 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QObject>
 #include <QtCore/qmutex.h>
+#include <QtCore/qurl.h>
+
 #include "private/qplatformaudiodecoder_p.h"
 #include <private/qgstpipeline_p.h>
 #include "qaudiodecoder.h"
@@ -82,8 +84,8 @@ public:
     // QAudioDecoder interface
     QAudioDecoder::State state() const override { return m_state; }
 
-    QString sourceFilename() const override;
-    void setSourceFilename(const QString &fileName) override;
+    QUrl source() const override;
+    void setSource(const QUrl &fileName) override;
 
     QIODevice *sourceDevice() const override;
     void setSourceDevice(QIODevice *device) override;
@@ -131,7 +133,7 @@ private:
     GstAppSink *m_appSink = nullptr;
     QGstAppSrc *m_appSrc = nullptr;
 
-    QString mSource;
+    QUrl mSource;
     QIODevice *mDevice = nullptr;
     QAudioFormat mFormat;
 

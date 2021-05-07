@@ -63,12 +63,12 @@ void tst_QAudioDecoder::ctors()
     QAudioDecoder d;
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
 
-    d.setSourceFilename("");
+    d.setSource(QUrl());
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QUrl());
 }
 
 void tst_QAudioDecoder::read()
@@ -92,8 +92,8 @@ void tst_QAudioDecoder::read()
     QCOMPARE(errorSpy.count(), 1);
 
     // Set the source to something
-    d.setSourceFilename("Blah");
-    QCOMPARE(d.sourceFilename(), QString("Blah"));
+    d.setSource(QUrl::fromLocalFile("Blah"));
+    QCOMPARE(d.source(), QUrl::fromLocalFile("Blah"));
 
     readySpy.clear();
     errorSpy.clear();
@@ -153,8 +153,8 @@ void tst_QAudioDecoder::stop()
     QCOMPARE(errorSpy.count(), 1);
 
     // Set the source to something
-    d.setSourceFilename("Blah");
-    QCOMPARE(d.sourceFilename(), QString("Blah"));
+    d.setSource(QUrl::fromLocalFile("Blah"));
+    QCOMPARE(d.source(), QUrl::fromLocalFile("Blah"));
 
     readySpy.clear();
     errorSpy.clear();
@@ -195,8 +195,8 @@ void tst_QAudioDecoder::format()
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
 
     // Set the source to something
-    d.setSourceFilename("Blah");
-    QCOMPARE(d.sourceFilename(), QString("Blah"));
+    d.setSource(QUrl::fromLocalFile("Blah"));
+    QCOMPARE(d.source(), QUrl::fromLocalFile("Blah"));
 
     readySpy.clear();
     errorSpy.clear();
@@ -246,35 +246,35 @@ void tst_QAudioDecoder::source()
 {
     QAudioDecoder d;
 
-    QVERIFY(d.sourceFilename().isEmpty());
+    QVERIFY(d.source().isEmpty());
     QVERIFY(d.sourceDevice() == nullptr);
 
     QFile f;
     d.setSourceDevice(&f);
-    QVERIFY(d.sourceFilename().isEmpty());
+    QVERIFY(d.source().isEmpty());
     QVERIFY(d.sourceDevice() == &f);
 
-    d.setSourceFilename("Foo");
-    QVERIFY(d.sourceFilename() == QString("Foo"));
+    d.setSource(QUrl::fromLocalFile("Foo"));
+    QVERIFY(d.source() == QUrl::fromLocalFile("Foo"));
     QVERIFY(d.sourceDevice() == nullptr);
 
     d.setSourceDevice(nullptr);
-    QVERIFY(d.sourceFilename().isEmpty());
+    QVERIFY(d.source().isEmpty());
     QVERIFY(d.sourceDevice() == nullptr);
 
-    d.setSourceFilename("Foo");
-    QVERIFY(d.sourceFilename() == QString("Foo"));
+    d.setSource(QUrl::fromLocalFile("Foo"));
+    QVERIFY(d.source() == QUrl::fromLocalFile("Foo"));
     QVERIFY(d.sourceDevice() == nullptr);
 
-    d.setSourceFilename(QString());
-    QVERIFY(d.sourceFilename() == QString());
+    d.setSource(QString());
+    QVERIFY(d.source() == QString());
     QVERIFY(d.sourceDevice() == nullptr);
 }
 
 void tst_QAudioDecoder::readAll()
 {
     QAudioDecoder d;
-    d.setSourceFilename("Foo");
+    d.setSource(QUrl::fromLocalFile("Foo"));
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
 
     QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
@@ -326,9 +326,9 @@ void tst_QAudioDecoder::nullControl()
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
 
-    QVERIFY(d.sourceFilename().isEmpty());
-    d.setSourceFilename("test");
-    QVERIFY(d.sourceFilename().isEmpty());
+    QVERIFY(d.source().isEmpty());
+    d.setSource(QUrl::fromLocalFile("test"));
+    QVERIFY(d.source().isEmpty());
 
     QFile f;
     QVERIFY(d.sourceDevice() == nullptr);
