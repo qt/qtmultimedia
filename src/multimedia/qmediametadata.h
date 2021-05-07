@@ -99,7 +99,7 @@ public:
     Q_INVOKABLE QVariant value(Key k) const { return data.value(k); }
     Q_INVOKABLE void insert(Key k, const QVariant &value) { data.insert(k, value); }
     Q_INVOKABLE void remove(Key k) { data.remove(k); }
-    QList<Key> keys() const { return data.keys(); }
+    Q_INVOKABLE QList<Key> keys() const { return data.keys(); }
 
     QVariant &operator[](Key k) { return data[k]; }
     Q_INVOKABLE void clear() { data.clear(); }
