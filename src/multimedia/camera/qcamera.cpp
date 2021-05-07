@@ -309,6 +309,23 @@ void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
     if (d->control)
         d->control->setCamera(d->cameraInfo);
     emit cameraInfoChanged();
+    setCameraFormat({});
+}
+
+QCameraFormat QCamera::cameraFormat() const
+{
+    Q_D(const QCamera);
+    return d->cameraFormat;
+}
+
+void QCamera::setCameraFormat(const QCameraFormat &format)
+{
+    Q_D(QCamera);
+    if (!d->control || !d->control->setCameraFormat(format))
+        return;
+
+    d->cameraFormat = format;
+    emit cameraFormatChanged();
 }
 
 /*!

@@ -74,6 +74,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(QCameraInfo cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
 
     Q_ENUMS(Status)
     Q_ENUMS(Error)
@@ -107,6 +108,9 @@ public:
     QCameraInfo cameraInfo() const;
     void setCameraInfo(const QCameraInfo &cameraInfo);
 
+    QCameraFormat cameraFormat() const;
+    void setCameraFormat(const QCameraFormat &format);
+
     QCameraExposure *exposure() const;
     QCameraFocus *focus() const;
     QCameraImageProcessing *imageProcessing() const;
@@ -125,6 +129,7 @@ Q_SIGNALS:
     void errorChanged();
     void errorOccurred(QCamera::Error error, const QString &errorString);
     void cameraInfoChanged();
+    void cameraFormatChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *session);

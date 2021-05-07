@@ -43,35 +43,48 @@
 
 QT_BEGIN_NAMESPACE
 
-QCameraFormat::QCameraFormat(const QCameraFormat &other) = default;
+QCameraFormat::QCameraFormat() noexcept = default;
 
-QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other) = default;
+QCameraFormat::QCameraFormat(const QCameraFormat &other) noexcept = default;
+
+QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other) noexcept = default;
 
 QCameraFormat::~QCameraFormat() = default;
 
-QVideoFrameFormat::PixelFormat QCameraFormat::pixelFormat() const
+QVideoFrameFormat::PixelFormat QCameraFormat::pixelFormat() const noexcept
 {
-    return d->pixelFormat;
+    return d ? d->pixelFormat : QVideoFrameFormat::Format_Invalid;
 }
 
-QSize QCameraFormat::resolution() const
+QSize QCameraFormat::resolution() const noexcept
 {
-    return d->resolution;
+    return d ? d->resolution : QSize();
 }
 
-float QCameraFormat::minFrameRate() const
+float QCameraFormat::minFrameRate() const noexcept
 {
-    return d->minFrameRate;
+    return d ? d->minFrameRate : 0;
 }
 
-float QCameraFormat::maxFrameRate() const
+float QCameraFormat::maxFrameRate() const noexcept
 {
-    return d->maxFrameRate;
+    return d ? d->maxFrameRate : 0;
 }
+
 
 QCameraFormat::QCameraFormat(QCameraFormatPrivate *p)
     : d(p)
 {
+}
+
+bool QCameraFormat::operator==(const QCameraFormat &other) const
+{
+    if (d == other.d)
+        return true;
+    return d->pixelFormat == other.d->pixelFormat &&
+           d->minFrameRate == other.d->minFrameRate &&
+           d->maxFrameRate == other.d->maxFrameRate &&
+           d->resolution == other.d->resolution;
 }
 
 /*!

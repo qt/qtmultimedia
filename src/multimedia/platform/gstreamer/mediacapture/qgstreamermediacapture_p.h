@@ -97,8 +97,6 @@ public:
 
     // void cameraChanged();
 
-    void dumpGraph(const QString &fileName);
-
     QGstPad getAudioPad() const;
     QGstPad getVideoPad() const;
     void releaseAudioPad(const QGstPad &pad) const;

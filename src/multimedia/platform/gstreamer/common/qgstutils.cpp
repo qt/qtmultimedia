@@ -272,6 +272,39 @@ void QGstMutableCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat
         gst_caps_set_features(caps, size() - 1, gst_caps_features_from_string(modifier));
 }
 
+QGstMutableCaps QGstMutableCaps::fromCameraFormat(const QCameraFormat &format)
+{
+    QGstMutableCaps caps;
+    caps.create();
+
+    QSize size = format.resolution();
+    GstStructure *structure = nullptr;
+//    int num = 0;
+//    int den = 1;
+//    if (format.maxFrameRate() > 0)
+//        qt_real_to_fraction(1. / format.maxFrameRate(), &num, &den);
+//    qDebug() << "fromCameraFormat" << format.maxFrameRate() << num << den;
+
+    if (format.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+        structure = gst_structure_new("image/jpeg",
+                                      "width"    , G_TYPE_INT, size.width(),
+                                      "height"   , G_TYPE_INT, size.height(),
+//                                      "framerate", GST_TYPE_FRACTION, den, num,
+                                      nullptr);
+    } else {
+        int index = indexOfVideoFormat(format.pixelFormat());
+        auto gstFormat = qt_videoFormatLookup[index].gstFormat;
+        structure = gst_structure_new("video/x-raw",
+                                      "format"   , G_TYPE_STRING, gst_video_format_to_string(gstFormat),
+                                      "width"    , G_TYPE_INT, size.width(),
+                                      "height"   , G_TYPE_INT, size.height(),
+//                                      "framerate", GST_TYPE_FRACTION, den, num,
+                                      nullptr);
+    }
+    gst_caps_append_structure(caps.caps, structure);
+    return caps;
+}
+
 void QGstUtils::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
 {
     // GStreamer uses nanoseconds, Qt uses microseconds
@@ -316,6 +349,8 @@ QVideoFrameFormat::PixelFormat QGstStructure::pixelFormat() const
             if (index != -1)
                 pixelFormat = qt_videoFormatLookup[index].pixelFormat;
         }
+    } else if (gst_structure_has_name(structure, "image/jpeg")) {
+        pixelFormat = QVideoFrameFormat::Format_Jpeg;
     }
 
     return pixelFormat;

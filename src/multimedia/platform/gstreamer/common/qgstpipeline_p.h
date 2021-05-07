@@ -98,6 +98,19 @@ public:
     void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 
     GstPipeline *pipeline() const { return GST_PIPELINE_CAST(m_object); }
+
+    void dumpGraph(const char *fileName)
+    {
+#if 1 //def QT_GST_CAPTURE_DEBUG
+        GST_DEBUG_BIN_TO_DOT_FILE(bin(),
+                                  GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL |
+                                                       GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
+                                  fileName);
+#else
+        Q_UNUSED(fileName);
+#endif
+    }
+
 };
 
 QT_END_NAMESPACE

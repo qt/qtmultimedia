@@ -65,6 +65,22 @@ QPlatformCamera::QPlatformCamera(QCamera *parent)
 {
 }
 
+QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraInfo &camera)
+{
+    QCameraFormat f;
+    const auto formats = camera.videoFormats();
+    for (const auto &fmt : formats) {
+        // check if fmt is better. We try to find the highest resolution that offers
+        // at least 30 FPS
+        if (f.maxFrameRate() < 30 && fmt.maxFrameRate() > f.maxFrameRate())
+            f = fmt;
+        else if (f.maxFrameRate() == fmt.maxFrameRate() &&
+                 f.resolution().width()*f.resolution().height() < fmt.resolution().width()*fmt.resolution().height())
+            f = fmt;
+    }
+    return f;
+}
+
 /*!
     \fn QPlatformCamera::state() const
 

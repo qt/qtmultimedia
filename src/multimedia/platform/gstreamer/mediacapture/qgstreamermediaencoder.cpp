@@ -345,7 +345,7 @@ void QGstreamerMediaEncoder::record()
 
     m_duration.start();
     heartbeat.start();
-    m_session->dumpGraph(QLatin1String("recording"));
+    gstPipeline.dumpGraph("recording");
     emit actualLocationChanged(m_outputLocation);
 }
 
@@ -354,7 +354,7 @@ void QGstreamerMediaEncoder::pause()
     if (!m_session)
         return;
     heartbeat.stop();
-    m_session->dumpGraph(QLatin1String("before-pause"));
+    gstPipeline.dumpGraph("before-pause");
     gstEncoder.setState(GST_STATE_PAUSED);
 
     emit stateChanged(m_state);

@@ -77,7 +77,7 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
 
     gstPipeline.setState(GST_STATE_PLAYING);
 
-    dumpGraph(QLatin1String("initial"));
+    gstPipeline.dumpGraph("initial");
 }
 
 QGstreamerMediaCapture::~QGstreamerMediaCapture()
@@ -129,7 +129,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     gstPipeline.setStateSync(GST_STATE_PLAYING);
 
     emit cameraChanged();
-    dumpGraph(QLatin1String("camera"));
+    gstPipeline.dumpGraph("camera");
 }
 
 QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCapture()
@@ -176,7 +176,7 @@ void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
         gstPipeline.setStateSync(state);
 
     emit encoderChanged();
-    dumpGraph(QLatin1String("encoder"));
+    gstPipeline.dumpGraph("encoder");
 }
 
 QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()
@@ -228,21 +228,6 @@ bool QGstreamerMediaCapture::setAudioPreview(const QAudioDeviceInfo &info)
 {
     gstAudioOutput->setAudioOutput(info);
     return true;
-}
-
-// void QGstreamerMediaCapture::cameraChanged()
-// {
-// }
-
-void QGstreamerMediaCapture::dumpGraph(const QString &fileName)
-{
-#if 1 //def QT_GST_CAPTURE_DEBUG
-    GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
-                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
-                              fileName.toLatin1());
-#else
-    Q_UNUSED(fileName);
-#endif
 }
 
 QGstPad QGstreamerMediaCapture::getAudioPad() const

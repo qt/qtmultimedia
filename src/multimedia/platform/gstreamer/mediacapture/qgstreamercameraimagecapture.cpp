@@ -192,7 +192,7 @@ int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
 
     link();
 
-    m_session->dumpGraph(QLatin1String("captureImage"));
+    gstPipeline.dumpGraph("captureImage");
 
     emit readyForCaptureChanged(false);
     return m_lastId;

@@ -86,6 +86,7 @@ public:
     QString errorString;
 
     QCameraInfo cameraInfo;
+    QCameraFormat cameraFormat;
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }

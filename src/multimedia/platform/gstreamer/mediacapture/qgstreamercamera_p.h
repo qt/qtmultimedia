@@ -74,6 +74,8 @@ public:
     void setActive(bool active) override;
 
     void setCamera(const QCameraInfo &camera) override;
+    bool setCameraFormat(const QCameraFormat &format) override;
+    void setCameraFormatInternal(const QCameraFormat &format);
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 

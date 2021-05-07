@@ -75,6 +75,7 @@ class QSize;
 class QGstStructure;
 class QGstCaps;
 class QGstPipelinePrivate;
+class QCameraFormat;
 
 template <typename T> struct QGRange
 {
@@ -245,6 +246,7 @@ public:
     }
 
     void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier = nullptr);
+    static QGstMutableCaps fromCameraFormat(const QCameraFormat &format);
 
     bool isNull() const { return !caps; }
 
@@ -417,6 +419,8 @@ public:
     {
     }
 
+    bool linkFiltered(const QGstElement &next, const QGstMutableCaps &caps)
+    { return gst_element_link_filtered(element(), next.element(), caps.get()); }
     bool link(const QGstElement &next)
     { return gst_element_link(element(), next.element()); }
     bool link(const QGstElement &n1, const QGstElement &n2)

@@ -90,6 +90,7 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 {
     if (m_cameraInfo == camera)
         return;
+    qDebug() << "setCamera" << camera;
 
     m_cameraInfo = camera;
 
@@ -102,11 +103,7 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
     Q_ASSERT(!gstCamera.isNull());
 
     gstCamera.setStateSync(GST_STATE_NULL);
-    gstDecode.setStateSync(GST_STATE_NULL);
     gstCameraBin.remove(gstCamera);
-    gstCameraBin.remove(gstDecode);
-
-    bool needsJpegDecoder = false;
 
     if (camera.isNull()) {
         gstCamera = QGstElement("videotestsrc");
@@ -117,41 +114,60 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
         QGstStructure properties = gst_device_get_properties(device);
         if (properties.name() == "v4l2deviceprovider")
             m_v4l2Device = QString::fromUtf8(properties["device.path"].toString());
-        QGstCaps cameraCaps = gst_device_get_caps(device);
-        needsJpegDecoder = true;
-        bool hasJpeg = false;
-        for (int i = 0; i < cameraCaps.size(); ++i) {
-            auto structure = cameraCaps.at(i);
-            if (structure.name() == "video/x-raw") {
-                needsJpegDecoder = false;
-                break;
-            } else if (structure.name() == "image/jpeg") {
-                hasJpeg = true;
-            }
-        }
-        if (needsJpegDecoder && !hasJpeg) {
-            // Can't handle camera, fall back to videotestsrc
-            qWarning() << "Camera does support neither video/x-raw nor image/jpeg, giving up.";
-            gstCamera = QGstElement("videotestsrc");
-            needsJpegDecoder = false;
-        }
     }
 
-    if (needsJpegDecoder) {
-        gstDecode = QGstElement("jpegdec");
-    } else {
-        gstDecode = QGstElement("identity");
-    }
-    gstCameraBin.add(gstCamera, gstDecode);
-    gstCamera.link(gstDecode, gstVideoConvert);
+    gstCameraBin.add(gstCamera);
+    // set the camera up with a decent format
+    setCameraFormatInternal({});
 
     gstCamera.setStateSync(state == GST_STATE_PLAYING ? GST_STATE_PAUSED : state);
 
-    if (havePipeline)
+    if (havePipeline) {
+        gstPipeline.dumpGraph("setCamera");
         gstPipeline.setStateSync(state);
+    }
 
     //m_session->cameraChanged();
     imageProcessing->update();
+}
+
+void QGstreamerCamera::setCameraFormatInternal(const QCameraFormat &format)
+{
+    QCameraFormat f = format;
+    if (f.isNull())
+        f = findBestCameraFormat(m_cameraInfo);
+
+    // add jpeg decoder where required
+    gstDecode.setStateSync(GST_STATE_NULL);
+    gstCameraBin.remove(gstDecode);
+
+    if (f.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+        qDebug() << "    enabling jpeg decoder";
+        gstDecode = QGstElement("jpegdec");
+    } else {
+        qDebug() << "    camera delivers raw video";
+        gstDecode = QGstElement("identity");
+    }
+    gstCameraBin.add(gstDecode);
+    gstDecode.link(gstVideoConvert);
+
+    auto caps = QGstMutableCaps::fromCameraFormat(f);
+    if (!gstCamera.linkFiltered(gstDecode, caps))
+        qWarning() << "linking failed";
+}
+
+bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
+{
+    if (!m_cameraInfo.videoFormats().contains(format))
+        return false;
+    bool havePipeline = !gstPipeline.isNull();
+    auto state = havePipeline ? gstPipeline.state() : GST_STATE_NULL;
+    if (havePipeline)
+        gstPipeline.setStateSync(GST_STATE_PAUSED);
+    setCameraFormatInternal(format);
+    if (havePipeline)
+        gstPipeline.setStateSync(state);
+    return true;
 }
 
 void QGstreamerCamera::setCaptureSession(QPlatformMediaCaptureSession *session)

@@ -49,15 +49,21 @@ class QCameraFormatPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraFormat
 {
 public:
-    QCameraFormat() = delete;
-    QCameraFormat(const QCameraFormat &other);
-    QCameraFormat &operator=(const QCameraFormat &other);
+    QCameraFormat() noexcept;
+    QCameraFormat(const QCameraFormat &other) noexcept;
+    QCameraFormat &operator=(const QCameraFormat &other) noexcept;
     ~QCameraFormat();
 
-    QVideoFrameFormat::PixelFormat pixelFormat() const;
-    QSize resolution() const;
-    float minFrameRate() const;
-    float maxFrameRate() const;
+    QVideoFrameFormat::PixelFormat pixelFormat() const noexcept;
+    QSize resolution() const noexcept;
+    float minFrameRate() const noexcept;
+    float maxFrameRate() const noexcept;
+
+    bool isNull() const noexcept { return !d; }
+
+    bool operator==(const QCameraFormat &other) const;
+    inline bool operator!=(const QCameraFormat &other) const
+    { return !operator==(other); }
 
 private:
     friend class QCameraFormatPrivate;
