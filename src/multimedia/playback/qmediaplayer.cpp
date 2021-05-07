@@ -55,16 +55,14 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QMediaPlayer
-    \brief The QMediaPlayer class allows the playing of a media source.
+    \brief The QMediaPlayer class allows the playing of a media files.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_playback
 
     The QMediaPlayer class is a high level media playback class. It can be used
-    to playback such content as songs, movies and internet radio. The content
-    to playback is specified as a QUrl object, which can be thought of as a
-    main or canonical URL with additional information attached. When provided
-    with a QUrl playback may be able to commence.
+    to playback audio of video media files. The content
+    to playback is specified as a QUrl object.
 
     \snippet multimedia-snippets/media.cpp Player
 

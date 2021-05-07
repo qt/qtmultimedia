@@ -89,28 +89,20 @@ void MediaExample::MediaControl()
 
 void MediaExample::EncoderSettings()
 {
-    //! [Audio encoder settings]
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/mpeg");
-    audioSettings.setChannelCount(2);
+    //! [Media encoder settings]
+    QMediaEncoderSettings settings(QMediaEncoderSettings::MPEG4);
+    settings.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
+    settings.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
 
-    recorder->setAudioSettings(audioSettings);
-    //! [Audio encoder settings]
-
-    //! [Video encoder settings]
-    QVideoEncoderSettings videoSettings;
-    videoSettings.setCodec("video/mpeg2");
-    videoSettings.setResolution(640, 480);
-
-    recorder->setVideoSettings(videoSettings);
-    //! [Video encoder settings]
+    recorder->setEncoderSettings(settings);
+    //! [Media encoder settings]
 }
 
 void MediaExample::ImageEncoderSettings()
 {
     //! [Image encoder settings]
     QImageEncoderSettings imageSettings;
-    imageSettings.setCodec("image/jpeg");
+    imageSettings.setFormat(QImageEncoderSettings::JPEG);
     imageSettings.setResolution(1600, 1200);
 
     imageCapture->setEncodingSettings(imageSettings);
@@ -122,7 +114,7 @@ void MediaExample::MediaPlayer()
     //! [Player]
     player = new QMediaPlayer;
     connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
-    player->setMedia(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
+    player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
     player->setVolume(50);
     player->play();
     //! [Player]
@@ -130,84 +122,10 @@ void MediaExample::MediaPlayer()
     //! [Local playback]
     player = new QMediaPlayer;
     // ...
-    player->setMedia(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
+    player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
     player->setVolume(50);
     player->play();
     //! [Local playback]
-
-    //! [Audio playlist]
-    player = new QMediaPlayer;
-
-    playlist = new QMediaPlaylist(player);
-    playlist->addMedia(QUrl("http://example.com/myfile1.mp3"));
-    playlist->addMedia(QUrl("http://example.com/myfile2.mp3"));
-    // ...
-    playlist->setCurrentIndex(1);
-    player->play();
-    //! [Audio playlist]
-
-    //! [Movie playlist]
-    playlist = new QMediaPlaylist;
-    playlist->addMedia(QUrl("http://example.com/movie1.mp4"));
-    playlist->addMedia(QUrl("http://example.com/movie2.mp4"));
-    playlist->addMedia(QUrl("http://example.com/movie3.mp4"));
-    playlist->setCurrentIndex(1);
-
-    player = new QMediaPlayer;
-    player->setPlaylist(playlist);
-
-    videoWidget = new QVideoWidget;
-    player->setVideoOutput(videoWidget);
-    videoWidget->show();
-
-    player->play();
-    //! [Movie playlist]
-
-    //! [Pipeline]
-    player = new QMediaPlayer;
-    player->setMedia(QUrl("gst-pipeline: videotestsrc ! autovideosink"));
-    player->play();
-    //! [Pipeline]
-
-    //! [Pipeline Surface]
-    player = new QMediaPlayer;
-    player->setVideoOutput(new QVideoSink(player));
-    player->setMedia(QUrl("gst-pipeline: videotestsrc ! qtvideosink"));
-    player->play();
-    //! [Pipeline Surface]
-
-    //! [Pipeline Widget]
-    player = new QMediaPlayer;
-    videoWidget = new QVideoWidget;
-    videoWidget->show();
-    player->setVideoOutput(videoWidget);
-    player->setMedia(QUrl("gst-pipeline: videotestsrc ! xvimagesink name=\"qtvideosink\""));
-    player->play();
-    //! [Pipeline Widget]
-
-    //! [Pipeline appsrc]
-    QImage img("images/qt-logo.png");
-    img = img.convertToFormat(QImage::Format_ARGB32);
-    QByteArray ba(reinterpret_cast<const char *>(img.bits()), img.sizeInBytes());
-    QBuffer buffer(&ba);
-    buffer.open(QIODevice::ReadOnly);
-    player = new QMediaPlayer;
-    player->setMedia(QUrl("gst-pipeline: appsrc blocksize=4294967295 ! \
-        video/x-raw,format=BGRx,framerate=30/1,width=200,height=147 ! \
-        coloreffects preset=heat ! videoconvert ! video/x-raw,format=I420 ! jpegenc ! rtpjpegpay ! \
-        udpsink host=127.0.0.1 port=5000"), &buffer);
-    player->play();
-
-    QMediaPlayer *receiver = new QMediaPlayer;
-    videoWidget = new QVideoWidget;
-    receiver->setVideoOutput(videoWidget);
-    receiver->setMedia(QUrl("gst-pipeline: udpsrc port=5000 ! \
-        application/x-rtp,encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! \
-        xvimagesink name=qtvideosink"));
-    receiver->play();
-    // Content will be shown in this widget.
-    videoWidget->show();
-    //! [Pipeline appsrc]
 }
 
 void MediaExample::MediaRecorder()
