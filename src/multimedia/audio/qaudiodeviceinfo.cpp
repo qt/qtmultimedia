@@ -48,45 +48,37 @@ QT_BEGIN_NAMESPACE
 
 QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate() = default;
 
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDeviceInfoPrivate);
+
 /*!
     \class QAudioDeviceInfo
-    \brief The QAudioDeviceInfo class provides an interface to query audio devices and their functionality.
+    \brief The QAudioDeviceInfo class provides an information about audio devices and their functionality.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
-    QAudioDeviceInfo lets you query for audio devices--such as sound
-    cards and USB headsets--that are currently available on the system.
-    The audio devices available are dependent on the platform or audio plugins installed.
+    QAudioDeviceInfo describes an audio device available in the system, either for input or for playback.
 
     A QAudioDeviceInfo is used by Qt to construct
-    classes that communicate with the device--such as
-    QAudioInput, and QAudioOutput.
+    classes that communicate with the device -- such as
+    QAudioInput, and QAudioOutput. It is also used to determine the
+    input or output device to use in a capture session or during media playback.
 
     You can also query each device for the formats it supports. A
-    format in this context is a set consisting of a specific byte
-    order, channel, codec, frequency, sample rate, and sample type.  A
+    format in this context is a set consisting of a channel count, sample rate, and sample type. A
     format is represented by the QAudioFormat class.
 
-    The values supported by the device for each of these
-    parameters can be fetched with
-    supportedByteOrders(), minimumChannelCount(), maximumChannelCount(), supportedCodecs(),
-    minimumSampleRate(), maximumSampleRate(), supportedSampleSizes(), and
-    supportedSampleTypes(). The combinations supported are dependent on the platform,
-    audio plugins installed and the audio device capabilities. If you need a
-    specific format, you can check if
-    the device supports it with isFormatSupported(), or fetch a
-    supported format that is as close as possible to the format with
-    nearestFormat(). For instance:
+    The values supported by the device for each of these parameters can be
+    fetched with minimumChannelCount(), maximumChannelCount(),
+    minimumSampleRate(), maximumSampleRate() and supportedSampleFormats(). The
+    combinations supported are dependent on the audio device capabilities. If
+    you need a specific format, you can check if the device supports it with
+    isFormatSupported(), or fetch a supported format that is as close as
+    possible to the format with nearestFormat(). For instance:
 
     \snippet multimedia-snippets/audio.cpp Setting audio format
 
-    The static
-    functions defaultInputDevice(), defaultOutputDevice(), and
-    availableDevices() let you get a list of all available
-    devices. Devices are fetched according to the value of mode
-    this is specified by the \l {QAudio}::Mode enum.
-    The QAudioDeviceInfo returned are only valid for the \l {QAudio}::Mode.
+    The set of available devices can be retrieved from the QMediaDevices class.
 
     For instance:
 
@@ -102,15 +94,17 @@ QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate() = default;
 /*!
     Constructs an empty QAudioDeviceInfo object.
 */
-QAudioDeviceInfo::QAudioDeviceInfo():
-    d(nullptr)
-{
-}
+QAudioDeviceInfo::QAudioDeviceInfo() = default;
 
 /*!
     Constructs a copy of \a other.
 */
 QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other) = default;
+
+/*!
+    Move constructs from \a other.
+*/
+QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfo &&other) noexcept = default;
 
 /*!
     Destroy this audio device info.
@@ -159,9 +153,7 @@ bool QAudioDeviceInfo::isNull() const
 
     Device names vary depending on the platform/audio plugin being used.
 
-    They are a unique string identifier for the audio device.
-
-    eg. default, Intel, U0x46d0x9a4
+    They are a unique identifier for the audio device.
 */
 QByteArray QAudioDeviceInfo::id() const
 {
@@ -212,8 +204,8 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 
     A typical audio system would provide something like:
     \list
-    \li Input settings: 8000Hz mono 8 bit.
-    \li Output settings: 44100Hz stereo 16 bit little endian.
+    \li Input settings: 48000Hz mono 16 bit.
+    \li Output settings: 48000Hz stereo 16 bit.
     \endlist
 */
 QAudioFormat QAudioDeviceInfo::preferredFormat() const
@@ -265,12 +257,15 @@ QList<QAudioFormat::SampleFormat> QAudioDeviceInfo::supportedSampleFormats() con
     return isNull() ? QList<QAudioFormat::SampleFormat>() : d->supportedSampleFormats;
 }
 
+/*!
+    \internal
+*/
 QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfoPrivate *p)
     : d(p)
 {}
 
 /*!
-    \internal
+    returns whether this device is an input or output device.
 */
 QAudio::Mode QAudioDeviceInfo::mode() const
 {

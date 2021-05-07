@@ -55,17 +55,23 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioDeviceInfoPrivate;
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QAudioDeviceInfoPrivate, Q_MULTIMEDIA_EXPORT)
+
 class Q_MULTIMEDIA_EXPORT QAudioDeviceInfo
 {
     Q_GADGET
     Q_PROPERTY(QByteArray id READ id CONSTANT)
     Q_PROPERTY(QString description READ description CONSTANT)
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
-    // Q_PROPERTY(QAudio::Mode isDefault READ isDefault CONSTANT) ### Move enum into this class?
 public:
     QAudioDeviceInfo();
     QAudioDeviceInfo(const QAudioDeviceInfo& other);
     ~QAudioDeviceInfo();
+
+    QAudioDeviceInfo(QAudioDeviceInfo &&other) noexcept;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QAudioDeviceInfo)
+    void swap(QAudioDeviceInfo &other) noexcept
+    { qSwap(d, other.d); }
 
     QAudioDeviceInfo& operator=(const QAudioDeviceInfo& other);
 
@@ -93,7 +99,7 @@ public:
 private:
     friend class QAudioDeviceInfoPrivate;
     QAudioDeviceInfo(QAudioDeviceInfoPrivate *p);
-    QSharedDataPointer<QAudioDeviceInfoPrivate> d;
+    QExplicitlySharedDataPointer<QAudioDeviceInfoPrivate> d;
 };
 
 QT_END_NAMESPACE
