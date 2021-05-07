@@ -151,23 +151,14 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) = default;
 */
 
 /*!
-    Returns true if Qt Multimedia can decode this format.
+    Returns true if Qt Multimedia can encode or decode this format,
+    depending on \a mode.
 
     \sa QMediaDecoderInfo
  */
-bool QMediaFormat::canDecode() const
+bool QMediaFormat::isSupported(ConversionMode mode) const
 {
-    return QPlatformMediaIntegration::instance()->formatInfo()->isSupported(*this, Decode);
-}
-
-/*!
-    Returns true if Qt Multimedia can encode this format.
-
-    \sa QMediaEncoderInfo
-*/
-bool QMediaFormat::canEncode() const
-{
-    return QPlatformMediaIntegration::instance()->formatInfo()->isSupported(*this, Encode);
+    return QPlatformMediaIntegration::instance()->formatInfo()->isSupported(*this, mode);
 }
 
 /*!

@@ -127,8 +127,7 @@ public:
     void setAudioCodec(AudioCodec codec) { audio = codec; }
     AudioCodec audioCodec() const { return audio; }
 
-    bool canDecode() const;
-    bool canEncode() const;
+    bool isSupported(ConversionMode mode) const;
 
     void setMode(Mode m) { fmtMode = m; }
     Mode mode() const { return fmtMode; }

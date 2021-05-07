@@ -233,7 +233,7 @@ void QMediaEncoderSettings::setQuality(Quality quality)
  */
 void QMediaEncoderSettings::resolveFormat()
 {
-    if (canEncode())
+    if (isSupported(Encode))
         return;
 
     QMediaFormat nullFormat;
