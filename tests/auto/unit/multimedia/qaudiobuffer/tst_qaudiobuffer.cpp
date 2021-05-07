@@ -275,22 +275,12 @@ void tst_QAudioBuffer::stereoSample()
 {
     // Uninitialized (should default to zero level for type)
     QAudioBuffer::S8U s8u;
-    QAudioBuffer::S8S s8s;
-    QAudioBuffer::S16U s16u;
     QAudioBuffer::S16S s16s;
     QAudioBuffer::S32F s32f;
 
     QCOMPARE(s8u.left, (unsigned char) 0x80);
     QCOMPARE(s8u.right, (unsigned char) 0x80);
     QCOMPARE(s8u.average(), (unsigned char) 0x80);
-
-    QCOMPARE(s8s.left, (signed char) 0x00);
-    QCOMPARE(s8s.right, (signed char) 0x00);
-    QCOMPARE(s8s.average(), (signed char) 0x0);
-
-    QCOMPARE(s16u.left, (unsigned short) 0x8000);
-    QCOMPARE(s16u.right, (unsigned short) 0x8000);
-    QCOMPARE(s16u.average(), (unsigned short) 0x8000);
 
     QCOMPARE(s16s.left, (signed short) 0x0);
     QCOMPARE(s16s.right, (signed short) 0x0);
@@ -302,22 +292,12 @@ void tst_QAudioBuffer::stereoSample()
 
     // Initialized
     QAudioBuffer::S8U s8u2(34, 145);
-    QAudioBuffer::S8S s8s2(23, -89);
-    QAudioBuffer::S16U s16u2(500, 45000);
     QAudioBuffer::S16S s16s2(-10000, 346);
     QAudioBuffer::S32F s32f2(500.7f, -123.1f);
 
     QCOMPARE(s8u2.left, (unsigned char) 34);
     QCOMPARE(s8u2.right, (unsigned char) 145);
     QCOMPARE(s8u2.average(), (unsigned char) 89);
-
-    QCOMPARE(s8s2.left, (signed char) 23);
-    QCOMPARE(s8s2.right,(signed char) -89);
-    QCOMPARE(s8s2.average(), (signed char) -33);
-
-    QCOMPARE(s16u2.left, (unsigned short) 500);
-    QCOMPARE(s16u2.right, (unsigned short) 45000);
-    QCOMPARE(s16u2.average(), (unsigned short) 22750);
 
     QCOMPARE(s16s2.left, (signed short) -10000);
     QCOMPARE(s16s2.right, (signed short) 346);
@@ -329,22 +309,12 @@ void tst_QAudioBuffer::stereoSample()
 
     // Assigned
     s8u = s8u2;
-    s8s = s8s2;
-    s16u = s16u2;
     s16s = s16s2;
     s32f = s32f2;
 
     QCOMPARE(s8u.left, (unsigned char) 34);
     QCOMPARE(s8u.right, (unsigned char) 145);
     QCOMPARE(s8u.average(), (unsigned char) 89);
-
-    QCOMPARE(s8s.left, (signed char) 23);
-    QCOMPARE(s8s.right, (signed char) -89);
-    QCOMPARE(s8s.average(), (signed char) -33);
-
-    QCOMPARE(s16u.left, (unsigned short) 500);
-    QCOMPARE(s16u.right, (unsigned short) 45000);
-    QCOMPARE(s16u.average(), (unsigned short) 22750);
 
     QCOMPARE(s16s.left, (signed short) -10000);
     QCOMPARE(s16s.right, (signed short) 346);
@@ -356,22 +326,12 @@ void tst_QAudioBuffer::stereoSample()
 
     // Cleared
     s8u.clear();
-    s8s.clear();
-    s16u.clear();
     s16s.clear();
     s32f.clear();
 
     QCOMPARE(s8u.left, (unsigned char) 0x80);
     QCOMPARE(s8u.right, (unsigned char) 0x80);
     QCOMPARE(s8u.average(), (unsigned char) 0x80);
-
-    QCOMPARE(s8s.left, (signed char) 0x00);
-    QCOMPARE(s8s.right, (signed char) 0x00);
-    QCOMPARE(s8s.average(), (signed char) 0x0);
-
-    QCOMPARE(s16u.left, (unsigned short) 0x8000);
-    QCOMPARE(s16u.right, (unsigned short) 0x8000);
-    QCOMPARE(s16u.average(), (unsigned short) 0x8000);
 
     QCOMPARE(s16s.left, (signed short) 0x0);
     QCOMPARE(s16s.right, (signed short) 0x0);

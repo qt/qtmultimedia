@@ -121,8 +121,6 @@ public:
     };
 
     typedef StereoFrame<unsigned char> S8U;
-    typedef StereoFrame<signed char> S8S;
-    typedef StereoFrame<unsigned short> S16U;
     typedef StereoFrame<signed short> S16S;
     typedef StereoFrame<float> S32F;
 

@@ -187,8 +187,13 @@ QAudioBufferPrivate *QAudioBufferPrivate::clone()
     \ingroup multimedia
     \ingroup multimedia_audio
     \brief The QAudioBuffer class represents a collection of audio samples with a specific format and sample rate.
+
+    QAudioBuffer is used by the QAudioDecoder class to hand decoded audio data over to the application. An audio buffer
+    contains data in a certain QAudioFormat that can be queried using format(). It is also tagged with timing and duration
+    information.
+
+    To access the data stored inside the buffer, use the data() or constData() methods.
 */
-// ^ Mostly useful with probe or decoder
 
 /*!
     Create a new, empty, invalid buffer.
