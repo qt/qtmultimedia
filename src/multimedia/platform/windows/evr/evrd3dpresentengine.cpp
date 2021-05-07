@@ -164,7 +164,7 @@ HRESULT D3DPresentEngine::initializeD3D()
     HRESULT hr = Direct3DCreate9Ex(D3D_SDK_VERSION, &m_D3D9);
 
     if (SUCCEEDED(hr))
-        hr = DXVA2CreateDirect3DMediaDevices9(&m_deviceResetToken, &m_devices);
+        hr = DXVA2CreateDirect3DDeviceManager9(&m_deviceResetToken, &m_devices);
 
     return hr;
 }
@@ -253,7 +253,7 @@ HRESULT D3DPresentEngine::getService(REFGUID, REFIID riid, void** ppv)
 {
     HRESULT hr = S_OK;
 
-    if (riid == __uuidof(IDirect3DMediaDevices9)) {
+    if (riid == __uuidof(IDirect3DDeviceManager9)) {
         if (m_devices == NULL) {
             hr = MF_E_UNSUPPORTED_SERVICE;
         } else {

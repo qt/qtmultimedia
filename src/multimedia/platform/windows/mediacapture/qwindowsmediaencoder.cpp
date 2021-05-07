@@ -41,6 +41,7 @@
 
 #include "qwindowscamerasession_p.h"
 #include "qwindowsmediacapture_p.h"
+#include <QtCore/QUrl>
 
 QT_BEGIN_NAMESPACE
 

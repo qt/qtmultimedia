@@ -107,7 +107,8 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
         supportedSampleFormats.append(QAudioFormat::Int16);
     }
 
-    supportedSampleRates = { INT_MAX, 0 };
+    minimumSampleRate = INT_MAX;
+    maximumSampleRate = 0;
     // Check sample rate
     if ((fmt & WAVE_FORMAT_1M08)
        || (fmt & WAVE_FORMAT_1S08)

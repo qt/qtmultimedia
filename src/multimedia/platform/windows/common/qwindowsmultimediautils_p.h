@@ -52,7 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qvideoframe.h>
+#include <qvideoframeformat.h>
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE

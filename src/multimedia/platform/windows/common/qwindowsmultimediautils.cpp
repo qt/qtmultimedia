@@ -37,9 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qwindowsmultimediautils_p.h"
-
 #include <mfapi.h>
+#include "qwindowsmultimediautils_p.h"
 
 QT_BEGIN_NAMESPACE
 

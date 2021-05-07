@@ -53,7 +53,7 @@
 
 #include <private/qplatformvideosink_p.h>
 
-class Q_MULTIMEDIA_EXPORT QMockVideoSink : public QPlatformVideoSink
+class QMockVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
 
