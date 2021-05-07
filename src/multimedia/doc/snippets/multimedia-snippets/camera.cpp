@@ -41,24 +41,26 @@
 
 #include "qcamera.h"
 #include "qcamerainfo.h"
-#include "qmediarecorder.h"
+#include "qmediaencoder.h"
+#include "qmediadevices.h"
+#include "qmediacapturesession.h"
 #include "qcameraimagecapture.h"
 #include "qcameraimageprocessing.h"
 #include "qvideosink.h"
+#include "QtMultmediaWidgets/qvideowidget.h>
 #include <QtGui/qscreen.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qimage.h>
 
 /* Globals so that everything is consistent. */
 QCamera *camera = 0;
-QCameraViewfinder *viewfinder = 0;
-QMediaRecorder *recorder = 0;
+QMediaEncoder *encoder = 0;
 QCameraImageCapture *imageCapture = 0;
 
 //! [Camera overview check]
 bool checkCameraAvailability()
 {
-    if (QCameraInfo::availableCameras().count() > 0)
+    if (QMediaDevices::videoInputs().count() > 0)
         return true;
     else
         return false;
@@ -68,10 +70,12 @@ bool checkCameraAvailability()
 void overview_viewfinder()
 {
     //! [Camera overview viewfinder]
+    QMediaCaptureSession captureSession;
     camera = new QCamera;
-    viewfinder = new QCameraViewfinder;
-    camera->setViewfinder(viewfinder);
-    viewfinder->show();
+    captureSession.setCamera(camera);
+    QVideoWidget *preview = new QVideoWidget;
+    camera->setVideoOutput(preview);
+    preview->show();
 
     camera->start(); // to start the viewfinder
     //! [Camera overview viewfinder]
@@ -89,9 +93,11 @@ void overview_surface()
 {
     QVideoSink *mySink;
     //! [Camera overview surface]
+    QMediaCaptureSession captureSession;
     camera = new QCamera;
+    captureSession.setCamera(camera);
     mySink = new QVideoSink;
-    camera->setViewfinder(mySink);
+    camera->setVideoOutput(mySink);
 
     camera->start();
     // MyVideoSurface::newVideoFrame(..) will be called with video frames
@@ -127,54 +133,59 @@ void overview_viewfinder_orientation()
 void overview_still()
 {
     //! [Camera overview capture]
+    QMediaCaptureSession captureSession;
+    camera = new QCamera;
+    captureSession.setCamera(camera);
     imageCapture = new QCameraImageCapture(camera);
+    captureSession.setImageCapture(imageCapture);
 
-    camera->setCaptureMode(QCamera::CaptureStillImage);
     camera->start(); // Viewfinder frames start flowing
-
-    //on half pressed shutter button
-    camera->searchAndLock();
 
     //on shutter button pressed
     imageCapture->capture();
-
-    //on shutter button released
-    camera->unlock();
     //! [Camera overview capture]
 }
 
 void overview_movie()
 {
     //! [Camera overview movie]
+    QMediaCaptureSession captureSession;
     camera = new QCamera;
-    recorder = new QMediaRecorder(camera);
+    captureSession.setCamera(camera);
+    encoder = new QMediaEncoder(camera);
+    captureSession.setEncoder(encoder);
 
-    camera->setCaptureMode(QCamera::CaptureVideo);
     camera->start();
 
+    // setup output format for the encoder
+    QMediaEncoderSettings settings(QMediaEncoderSettings::MPEG4);
+    settings.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
+    settings.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
+    encoder->setEncoderSettings(settings);
+
     //on shutter button pressed
-    recorder->record();
+    encoder->record();
 
     // sometime later, or on another press
-    recorder->stop();
+    encoder->stop();
     //! [Camera overview movie]
 }
 
 void camera_listing()
 {
     //! [Camera listing]
-    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    const QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
     for (const QCameraInfo &cameraInfo : cameras)
-        qDebug() << cameraInfo.deviceName();
+        qDebug() << cameraInfo.description();
     //! [Camera listing]
 }
 
 void camera_selection()
 {
     //! [Camera selection]
-    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    const QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
     for (const QCameraInfo &cameraInfo : cameras) {
-        if (cameraInfo.deviceName() == "mycamera")
+        if (cameraInfo.description() == "mycamera")
             camera = new QCamera(cameraInfo);
     }
     //! [Camera selection]
@@ -184,7 +195,7 @@ void camera_info()
 {
     //! [Camera info]
     QCamera myCamera;
-    QCameraInfo cameraInfo(myCamera);
+    QCameraInfo cameraInfo = camera->cameraInfo();
 
     if (cameraInfo.position() == QCameraInfo::FrontFace)
         qDebug() << "The camera is on the front face of the hardware system.";
@@ -198,28 +209,23 @@ void camera_info()
 void camera_blah()
 {
     //! [Camera]
+    QMediaCaptureSession captureSession;
     camera = new QCamera;
+    captureSession.setCamera(camera);
 
-    viewfinder = new QCameraViewfinder();
-    viewfinder->show();
-
-    camera->setViewfinder(viewfinder);
+    QVideoWidget *preview = new QVideoWidget();
+    preview->show();
+    captureSession.setVideoOutput(preview);
 
     imageCapture = new QCameraImageCapture(camera);
+    captureSession.setImageCapture(imageCapture);
 
-    camera->setCaptureMode(QCamera::CaptureStillImage);
     camera->start();
     //! [Camera]
 
     //! [Camera keys]
-    //on half pressed shutter button
-    camera->searchAndLock();
-
     //on shutter button pressed
     imageCapture->capture();
-
-    //on shutter button released
-    camera->unlock();
     //! [Camera keys]
 }
 
@@ -239,11 +245,11 @@ void camerafocus()
 {
     //! [Camera custom zoom]
     QCameraFocus *focus = camera->focus();
-    focus->setFocusPointMode(QCameraFocus::FocusPointCustom);
+    focus->setFocusPointMode(QCameraFocus::FocusModeManual);
     focus->setCustomFocusPoint(QPointF(0.25f, 0.75f)); // A point near the bottom left, 25% away from the corner, near that shiny vase
     //! [Camera custom zoom]
 
     //! [Camera combined zoom]
-    focus->zoomTo(3.0, 4.0); // Super zoom!
+    focus->setZoomFactor(3.0);
     //! [Camera combined zoom]
 }

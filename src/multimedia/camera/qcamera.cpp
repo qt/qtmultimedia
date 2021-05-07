@@ -65,8 +65,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_camera
 
-    QCamera can be used with QCameraViewfinder for viewfinder display,
-    QMediaRecorder for video recording and QCameraImageCapture for image taking.
+    QCamera can be used within a QMediaCaptureSession for video recording and image taking.
 
     You can use QCameraInfo to list available cameras and choose which one to use.
 
@@ -109,7 +108,7 @@ void QCameraPrivate::init()
 /*!
     Construct a QCamera with a \a parent.
 
-    Selects the default camera on the system if more than one camera are available.
+    Selects the default camera on the system if more than one camera is available.
 */
 
 QCamera::QCamera(QObject *parent)
@@ -179,7 +178,7 @@ QCamera::~QCamera()
 }
 
 /*!
-    Returns the availability state of the camera service.
+    Returns true if the camera can be used.
 */
 bool QCamera::isAvailable() const
 {
@@ -187,12 +186,18 @@ bool QCamera::isAvailable() const
     return d->control && !d->cameraInfo.isNull();
 }
 
+/*!
+    Returns true if the camera is currently active.
+*/
 bool QCamera::isActive() const
 {
     Q_D(const QCamera);
     return d->control && d->control->isActive();
 }
 
+/*!
+    Turns the camera on or off.
+*/
 void QCamera::setActive(bool active)
 {
     Q_D(const QCamera);
@@ -234,7 +239,7 @@ QCamera::Error QCamera::error() const
 }
 
 /*!
-    Returns a string describing a camera's error state.
+    Returns a human readable string describing a camera's error state.
 */
 QString QCamera::errorString() const
 {
@@ -245,8 +250,9 @@ QString QCamera::errorString() const
 
     Starts the camera.
 
-    State is changed to QCamera::ActiveState if camera is started
-    successfully, otherwise errorOccurred() signal is emitted.
+    Same as setActive(true).
+
+    If the camera can't be started for some reason, the errorOccurred() signal is emitted.
 
     While the camera state is changed to QCamera::ActiveState,
     starting the camera service can be asynchronous with the actual
@@ -256,13 +262,13 @@ QString QCamera::errorString() const
 /*! \fn void QCamera::stop()
 
     Stops the camera.
-    The camera state is changed from QCamera::ActiveState to QCamera::LoadedState.
 
-    In this state, the camera still consumes power.
-
-    \sa unload(), QCamera::UnloadedState
+    \sa unload(), QCamera::InactiveStatus
 */
 
+/*!
+    Returns the current status of the camers.
+*/
 QCamera::Status QCamera::status() const
 {
     if(d_func()->control)
@@ -271,12 +277,23 @@ QCamera::Status QCamera::status() const
     return QCamera::UnavailableStatus;
 }
 
+
+/*!
+    Returns the capture session this camera is connected to, or
+    a nullptr if the camera is not connected to a capture session.
+
+    use QMediaCaptureSession::setCamera() to connect the camera to
+    a session.
+*/
 QMediaCaptureSession *QCamera::captureSession() const
 {
     Q_D(const QCamera);
     return d->captureSession;
 }
 
+/*!
+    \internal
+*/
 void QCamera::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QCamera);
@@ -296,6 +313,10 @@ QCameraInfo QCamera::cameraInfo() const
     return d->cameraInfo;
 }
 
+/*!
+    Sets the camera object to use the physical camera described by
+    \a cameraInfo.
+*/
 void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
 {
     Q_D(QCamera);
@@ -312,12 +333,19 @@ void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
     setCameraFormat({});
 }
 
+/*!
+    Returns the camera format currently used by the camera.
+*/
 QCameraFormat QCamera::cameraFormat() const
 {
     Q_D(const QCamera);
     return d->cameraFormat;
 }
 
+/*!
+    Tells the camera to use the format described by \a format. This can be used to define
+    as specific resolution and frame rate to be used for recording and image capture.
+*/
 void QCamera::setCameraFormat(const QCameraFormat &format)
 {
     Q_D(QCamera);
@@ -327,36 +355,6 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
     d->cameraFormat = format;
     emit cameraFormatChanged();
 }
-
-/*!
-    \enum QCamera::State
-
-    This enum holds the current state of the camera.
-
-    \value UnloadedState
-           The initial camera state, with camera not loaded.
-           The camera capabilities, except supported capture modes,
-           are unknown.
-           While the supported settings are unknown in this state,
-           it's allowed to set the camera capture settings like codec,
-           resolution, or frame rate.
-    \value LoadedState
-           The camera is loaded and ready to be configured.
-           In this state it's allowed to query camera capabilities,
-           set capture resolution, codecs, etc.
-           The viewfinder is not active in the loaded state.
-           The camera consumes power in the loaded state.
-    \value ActiveState
-           In the active state as soon as camera is started
-           the viewfinder displays video frames and the
-           camera is ready for capture.
-*/
-
-
-/*!
-    \property QCamera::state
-    \brief The current state of the camera object.
-*/
 
 /*!
     \enum QCamera::Status
@@ -376,20 +374,8 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
     \value StoppingStatus
            The camera is stopping in result of state transition from QCamera::ActiveState
            to QCamera::LoadedState or QCamera::UnloadedState.
-    \value LoadedStatus
-           The camera is loaded and ready to be configured.
-           This status indicates the camera device is opened and
-           it's possible to query for supported image and video capture settings,
-           like resolution, framerate and codecs.
-    \value LoadingStatus
-           The camera device loading in result of state transition from
-           QCamera::UnloadedState to QCamera::LoadedState or QCamera::ActiveState.
-    \value UnloadingStatus
-           The camera device is unloading in result of state transition from
-           QCamera::LoadedState or QCamera::ActiveState to QCamera::UnloadedState.
-    \value UnloadedStatus
-           The initial camera status, with camera not loaded.
-           The camera capabilities including supported capture settings may be unknown.
+    \value InactiveStatus
+           The camera is not currently active.
     \value UnavailableStatus
            The camera or camera backend is not available.
 */
