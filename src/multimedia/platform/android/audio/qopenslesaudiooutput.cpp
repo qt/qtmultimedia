@@ -312,7 +312,6 @@ void QOpenSLESAudioOutput::setCategory(QAudio::Role role)
     }
 
     m_startRequiresInit = true;
-    m_category = category;
 #endif // ANDROID
 }
 
