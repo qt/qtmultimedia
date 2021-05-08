@@ -64,8 +64,6 @@ static inline void openSlDebugInfo()
              << "\nDefault buffer size: " << QOpenSLESEngine::getDefaultBufferSize(format);
 }
 
-QMap<QString, qint32> QOpenSLESAudioOutput::m_categories;
-
 QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
     : m_deviceName(device),
       m_state(QAudio::StoppedState),
