@@ -301,7 +301,7 @@ void QOpenSLESAudioOutput::setCategory(QAudio::Role role)
         break;
     case QAudio::AccessibilityRole:
 #define STREAM_ACCESSIBILITY 0xa // AudioManager.STREAM_ACCESSIBILITY
-        m_streamType = STREAM_ACCESSIBILITY
+        m_streamType = STREAM_ACCESSIBILITY;
     case QAudio::SonificationRole:
         Q_FALLTHROUGH();
     case QAudio::GameRole:
