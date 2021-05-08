@@ -278,7 +278,7 @@ qreal QOpenSLESAudioOutput::volume() const
     return m_volume;
 }
 
-void QOpenSLESAudioOutput::setCategory(QAudio::Role role)
+void QOpenSLESAudioOutput::setRole(QAudio::Role role)
 {
     QAbstractAudioOutput::setRole(role);
 #ifdef ANDROID
