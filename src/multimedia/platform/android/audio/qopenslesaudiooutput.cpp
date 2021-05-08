@@ -283,30 +283,30 @@ void QOpenSLESAudioOutput::setCategory(QAudio::Role role)
     QAbstractAudioOutput::setRole(role);
 #ifdef ANDROID
     switch (role) {
-    case MusicRole:
+    case QAudio::MusicRole:
         Q_FALLTHROUGH();
-    case VideoRole:
+    case QAudio::VideoRole:
         m_streamType = SL_ANDROID_STREAM_MEDIA;
         break;
-    case VoiceCommunicationRole:
+    case QAudio::VoiceCommunicationRole:
         streamType = SL_ANDROID_STREAM_VOICE;
-    case NotificationRole:
+    case QAudio::NotificationRole:
         m_streamType = SL_ANDROID_STREAM_NOTIFICATION;
         break;
-    case AlarmRole:
+    case QAudio::AlarmRole:
         m_streamType = SL_ANDROID_STREAM_ALARM;
         break;
-    case RingtoneRole:
+    case QAudio::RingtoneRole:
         m_streamType = SL_ANDROID_STREAM_RING;
         break;
-    case AccessibilityRole:
+    case QAudio::AccessibilityRole:
 #define STREAM_ACCESSIBILITY 0xa // AudioManager.STREAM_ACCESSIBILITY
         m_streamType = STREAM_ACCESSIBILITY
-    case SonificationRole:
+    case QAudio::SonificationRole:
         Q_FALLTHROUGH();
-    case GameRole:
+    case QAudio::GameRole:
         Q_FALLTHROUGH();
-    case UnknownRole:
+    case QAudio::UnknownRole:
         m_streamType  = -1;
         break;
     }
