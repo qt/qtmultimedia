@@ -289,7 +289,7 @@ void QOpenSLESAudioOutput::setCategory(QAudio::Role role)
         m_streamType = SL_ANDROID_STREAM_MEDIA;
         break;
     case QAudio::VoiceCommunicationRole:
-        streamType = SL_ANDROID_STREAM_VOICE;
+        m_streamType = SL_ANDROID_STREAM_VOICE;
     case QAudio::NotificationRole:
         m_streamType = SL_ANDROID_STREAM_NOTIFICATION;
         break;
