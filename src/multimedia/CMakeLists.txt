@@ -326,6 +326,17 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         mediandk
 )
 
+qt_internal_extend_target(Multimedia CONDITION WASM
+    SOURCES
+        platform/wasm/qwasmmediaintegration.cpp platform/wasm/qwasmmediaintegration_p.h
+        platform/wasm/qwasmmediadevices.cpp platform/wasm/qwasmmediadevices_p.h
+        platform/wasm/audio/qwasmaudiosource.cpp platform/wasm/audio/qwasmaudiosource_p.h
+        platform/wasm/audio/qwasmaudiosink.cpp platform/wasm/audio/qwasmaudiosink_p.h
+        platform/wasm/audio/qwasmaudiodevice.cpp platform/wasm/audio/qwasmaudiodevice_p.h
+    PUBLIC_LIBRARIES
+        openal
+)
+
 qt_internal_extend_target(Multimedia CONDITION WIN32
     LIBRARIES
         gdi32

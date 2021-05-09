@@ -1,0 +1,347 @@
+/****************************************************************************
+**
+** Copyright (C) 2021 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include "qwasmaudiosource_p.h"
+
+#include <emscripten.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <QDataStream>
+#include <QDebug>
+#include <QtMath>
+#include <private/qaudiohelpers_p.h>
+#include <QIODevice>
+
+QT_BEGIN_NAMESPACE
+
+#define AL_FORMAT_MONO_FLOAT32                   0x10010
+#define AL_FORMAT_STEREO_FLOAT32                 0x10011
+
+constexpr unsigned int DEFAULT_BUFFER_DURATION = 50'000;
+
+class QWasmAudioSourceDevice : public QIODevice
+{
+    QWasmAudioSource *m_in;
+
+public:
+    explicit QWasmAudioSourceDevice(QWasmAudioSource *in);
+
+protected:
+    qint64 readData(char *data, qint64 maxlen) override;
+    qint64 writeData(const char *data, qint64 len) override;
+};
+
+class ALData {
+public:
+    ALCdevice *device = nullptr;
+    ALCcontext *context = nullptr;
+};
+
+void QWasmAudioSource::setError(const QAudio::Error &error)
+{
+    if (m_error == error)
+        return;
+    m_error = error;
+    emit errorChanged(error);
+}
+
+void QWasmAudioSource::writeBuffer()
+{
+    int samples = 0;
+    alcGetIntegerv(aldata->device, ALC_CAPTURE_SAMPLES, 1, &samples);
+    samples = qMin(samples, m_format.framesForBytes(m_bufferSize));
+    auto bytes = m_format.bytesForFrames(samples);
+    auto err = alcGetError(aldata->device);
+    alcCaptureSamples(aldata->device, m_tmpData, samples);
+    err = alcGetError(aldata->device);
+    if (err) {
+        qWarning() << alcGetString(aldata->device, err);
+        return setError(QAudio::FatalError);
+    }
+    if (m_volume < 1)
+        QAudioHelperInternal::qMultiplySamples(m_volume, m_format, m_tmpData, m_tmpData, bytes);
+    m_processed += bytes;
+    m_device->write(m_tmpData,bytes);
+}
+
+QWasmAudioSource::QWasmAudioSource(const QByteArray &device)
+    : QPlatformAudioSource(), m_name(device)
+{
+    aldata = new ALData();
+    connect(&m_timer, &QTimer::timeout, this, [this](){
+        Q_ASSERT(m_running);
+        if (m_pullMode)
+            writeBuffer();
+        else
+            if (bytesReady() > 0)
+                emit m_device->readyRead();
+    });
+}
+
+void QWasmAudioSource::start(QIODevice *device)
+{
+    m_device = device;
+    start(true);
+}
+
+QIODevice *QWasmAudioSource::start()
+{
+    m_device = new QWasmAudioSourceDevice(this);
+    m_device->open(QIODevice::ReadOnly);
+    start(false);
+    return m_device;
+}
+
+void QWasmAudioSource::start(bool mode)
+{
+    m_pullMode = mode;
+    auto formatError = [this](){
+        qWarning() << "Unsupported audio format " << m_format;
+        setError(QAudio::OpenError);
+    };
+    ALCenum format;
+    switch (m_format.sampleFormat()) {
+    case QAudioFormat::UInt8:
+        switch (m_format.channelCount()) {
+        case 1:
+            format = AL_FORMAT_MONO8;
+            break;
+        case 2:
+            format = AL_FORMAT_STEREO8;
+            break;
+        default:
+            return formatError();
+        }
+        break;
+    case QAudioFormat::Int16:
+        switch (m_format.channelCount()) {
+        case 1:
+            format = AL_FORMAT_MONO16;
+            break;
+        case 2:
+            format = AL_FORMAT_STEREO16;
+            break;
+        default:
+            return formatError();
+        }
+        break;
+    case QAudioFormat::Float:
+        switch (m_format.channelCount()) {
+        case 1:
+            format = AL_FORMAT_MONO_FLOAT32;
+            break;
+        case 2:
+            format = AL_FORMAT_STEREO_FLOAT32;
+            break;
+        default:
+            return formatError();
+        }
+        break;
+    default:
+        return formatError();
+    }
+    if (m_tmpData)
+        delete[] m_tmpData;
+    if (m_pullMode)
+        m_tmpData = new char[m_bufferSize];
+    else
+        m_tmpData = nullptr;
+    m_timer.setInterval(m_format.durationForBytes(m_bufferSize) / 3'000);
+
+    aldata->device = alcCaptureOpenDevice(m_name.data(), m_format.sampleRate(), format,
+                                          m_format.framesForBytes(m_bufferSize));
+
+    auto err = alcGetError(aldata->device);
+    if (err) {
+        qWarning() << "alcCaptureOpenDevice" << alcGetString(aldata->device, err);
+        return setError(QAudio::OpenError);
+    }
+    alcCaptureStart(aldata->device);
+    m_elapsedTimer.start();
+    auto cerr = alcGetError(aldata->device);
+    if (cerr) {
+        qWarning() << "alcCaptureStart" << alcGetString(aldata->device, cerr);
+        return setError(QAudio::OpenError);
+    }
+    m_processed = 0;
+    m_running = true;
+    m_timer.start();
+}
+
+void QWasmAudioSource::stop()
+{
+    if (m_pullMode)
+        writeBuffer();
+    alcCaptureStop(aldata->device);
+    alcCaptureCloseDevice(aldata->device);
+    m_elapsedTimer.invalidate();
+    if (m_tmpData) {
+        delete[] m_tmpData;
+        m_tmpData = nullptr;
+    }
+    if (!m_pullMode)
+        m_device->deleteLater();
+    m_timer.stop();
+    m_running = false;
+}
+
+void QWasmAudioSource::reset()
+{
+    stop();
+    if (m_tmpData) {
+        delete[] m_tmpData;
+        m_tmpData = nullptr;
+    }
+    m_running = false;
+    m_processed = 0;
+    m_error = QAudio::NoError;
+}
+
+void QWasmAudioSource::suspend()
+{
+    if (!m_running)
+        return;
+
+    m_suspended = true;
+    alcCaptureStop(aldata->device);
+}
+
+void QWasmAudioSource::resume()
+{
+    if (!m_running)
+        return;
+
+    m_suspended = false;
+    alcCaptureStart(aldata->device);
+}
+
+int QWasmAudioSource::bytesReady() const
+{
+    if (!m_running)
+        return 0;
+    int samples;
+    alcGetIntegerv(aldata->device, ALC_CAPTURE_SAMPLES, 1, &samples);
+    return m_format.bytesForFrames(samples);
+}
+
+void QWasmAudioSource::setBufferSize(int value)
+{
+    if (!m_running)
+        return;
+    m_bufferSize = value;
+}
+
+int QWasmAudioSource::bufferSize() const
+{
+    return m_bufferSize;
+}
+
+qint64 QWasmAudioSource::processedUSecs() const
+{
+    return m_format.durationForBytes(m_processed);
+}
+
+QAudio::Error QWasmAudioSource::error() const
+{
+    return m_error;
+}
+
+QAudio::State QWasmAudioSource::state() const
+{
+    if (m_running)
+        return QAudio::ActiveState;
+    else
+        return QAudio::StoppedState;
+}
+
+void QWasmAudioSource::setFormat(const QAudioFormat &fmt)
+{
+    m_format = fmt;
+    m_bufferSize = m_format.bytesForDuration(DEFAULT_BUFFER_DURATION);
+}
+
+QAudioFormat QWasmAudioSource::format() const
+{
+    return m_format;
+}
+
+void QWasmAudioSource::setVolume(qreal volume)
+{
+    m_volume = volume;
+}
+
+qreal QWasmAudioSource::volume() const
+{
+    return m_volume;
+}
+
+QWasmAudioSourceDevice::QWasmAudioSourceDevice(QWasmAudioSource *in) : QIODevice(in), m_in(in)
+{
+
+}
+
+qint64 QWasmAudioSourceDevice::readData(char *data, qint64 maxlen)
+{
+    int samples;
+    alcGetIntegerv(m_in->aldata->device, ALC_CAPTURE_SAMPLES, 1, &samples);
+    samples = qMin(samples, m_in->m_format.framesForBytes(maxlen));
+    auto bytes = m_in->m_format.bytesForFrames(samples);
+    alcGetError(m_in->aldata->device);
+    alcCaptureSamples(m_in->aldata->device, data, samples);
+    if (m_in->m_volume < 1)
+        QAudioHelperInternal::qMultiplySamples(m_in->m_volume, m_in->m_format, data, data, bytes);
+    auto err = alcGetError(m_in->aldata->device);
+    if (err) {
+        qWarning() << alcGetString(m_in->aldata->device, err);
+        m_in->setError(QAudio::FatalError);
+        return 0;
+    }
+    m_in->m_processed += bytes;
+    return bytes;
+}
+
+qint64 QWasmAudioSourceDevice::writeData(const char *data, qint64 len)
+{
+    Q_UNREACHABLE();
+    Q_UNUSED(data);
+    Q_UNUSED(len);
+    return 0;
+}
+
+QT_END_NAMESPACE
