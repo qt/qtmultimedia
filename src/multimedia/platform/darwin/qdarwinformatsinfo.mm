@@ -193,8 +193,10 @@ int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
         break;
     case QMediaFormat::AudioCodec::FLAC:
         codecId = kAudioFormatFLAC;
+        break;
     case QMediaFormat::AudioCodec::ALAC:
         codecId = kAudioFormatAppleLossless;
+        break;
     case QMediaFormat::AudioCodec::Opus:
         codecId = kAudioFormatOpus;
         break;
