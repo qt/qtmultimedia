@@ -104,6 +104,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     QAtomicInt m_state;
 
+    bool writeFirstAudioBuffer;
+
     CMTime m_startTime;
     CMTime m_lastTimeStamp;
 
@@ -126,6 +128,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         m_durationInMs.storeRelaxed(0);
         m_audioSettings = nil;
         m_videoSettings = nil;
+        writeFirstAudioBuffer = false;
     }
 
     return self;
@@ -187,6 +190,9 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     if (m_audioQueue)
         audioCaptureOn = session->audioOutput() != nil;
 
+    if (!m_videoQueue)
+        writeFirstAudioBuffer = true;
+
     if (![self addWriterInputs]) {
         m_assetWriter.reset();
         return false;
@@ -217,7 +223,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 {
     if (m_state.loadAcquire() != WriterStateActive)
         return;
-
     if ([m_assetWriter status] != AVAssetWriterStatusWriting)
         return;
 
@@ -354,6 +359,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
             CFRelease(sampleBuffer);
             return;
         }
+
+        writeFirstAudioBuffer = true;
         // Find renderercontrol's delegate and invoke its method to
         // show updated viewfinder's frame.
         if (m_service->session()->videoOutput()) {
@@ -366,7 +373,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         dispatch_async(m_writerQueue, ^{
             [self writeVideoSampleBuffer:sampleBuffer];
         });
-    } else {
+    } else if (writeFirstAudioBuffer) {
         dispatch_async(m_writerQueue, ^{
             [self writeAudioSampleBuffer:sampleBuffer];
         });
