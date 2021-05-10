@@ -111,7 +111,7 @@ void tst_QAudioDeviceInfo::sampleFormat()
 void tst_QAudioDeviceInfo::sampleRates()
 {
     QVERIFY(device->minimumSampleRate() > 0);
-    QVERIFY(device->maximumSampleRate() > device->minimumSampleRate());
+    QVERIFY(device->maximumSampleRate() >= device->minimumSampleRate());
 }
 
 void tst_QAudioDeviceInfo::isFormatSupported()

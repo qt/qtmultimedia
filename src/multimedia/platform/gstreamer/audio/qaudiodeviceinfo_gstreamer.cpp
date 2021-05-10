@@ -64,7 +64,7 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteAr
             auto rate = c["rate"].toIntRange();
             if (rate) {
                 minimumSampleRate = rate->min;
-                minimumSampleRate = rate->max;
+                maximumSampleRate = rate->max;
             }
             auto channels = c["channels"].toIntRange();
             if (channels) {
