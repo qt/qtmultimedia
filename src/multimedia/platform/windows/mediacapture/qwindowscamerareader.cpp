@@ -42,22 +42,29 @@
 #include "qwindowsmultimediautils_p.h"
 #include <qvideosink.h>
 #include <private/qmemoryvideobuffer_p.h>
-#include <QDebug>
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
 QWindowsCameraReader::QWindowsCameraReader(QObject *parent)
-    : QObject(parent)
+    : QObject(parent),
+      m_finalizeSemaphore(1)
 {
 }
 
 QWindowsCameraReader::~QWindowsCameraReader()
 {
-    stop();
+    deactivate();
 }
 
-HRESULT QWindowsCameraReader::start(const QString &cameraId)
+bool QWindowsCameraReader::activate(const QString &cameraId)
 {
+    QMutexLocker locker(&m_mutex);
+
+    if (m_sourceMediaType) {
+        m_sourceMediaType->Release();
+        m_sourceMediaType = nullptr;
+    }
     if (m_sourceReader) {
         m_sourceReader->Release();
         m_sourceReader = nullptr;
@@ -67,41 +74,45 @@ HRESULT QWindowsCameraReader::start(const QString &cameraId)
         m_source = nullptr;
     }
 
-    m_started = false;
+    m_active = false;
+    m_streaming = false;
 
-    IMFAttributes *srcattr = nullptr;
+    IMFAttributes *sourceAttributes = nullptr;
 
-    HRESULT hr = MFCreateAttributes(&srcattr, 2);
+    HRESULT hr = MFCreateAttributes(&sourceAttributes, 2);
     if (SUCCEEDED(hr)) {
 
-        hr = srcattr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-                              MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+        hr = sourceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
         if (SUCCEEDED(hr)) {
 
-            hr = srcattr->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK,
-                                    (LPCWSTR)cameraId.utf16());
+            hr = sourceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK,
+                                             reinterpret_cast<LPCWSTR>(cameraId.utf16()));
             if (SUCCEEDED(hr)) {
 
                 // get the media source associated with the symbolic link
-                hr = MFCreateDeviceSource(srcattr, &m_source);
+                hr = MFCreateDeviceSource(sourceAttributes, &m_source);
                 if (SUCCEEDED(hr)) {
 
-                    IMFAttributes *rdrattr = nullptr;
-                    hr = MFCreateAttributes(&rdrattr, 1);
+                    IMFAttributes *readerAttributes = nullptr;
+
+                    hr = MFCreateAttributes(&readerAttributes, 1);
                     if (SUCCEEDED(hr)) {
 
-                        hr = rdrattr->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this);
+                        // Set callback so OnReadSample() is called for each new video frame.
+                        hr = readerAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK,
+                                                          static_cast<IMFSourceReaderCallback*>(this));
                         if (SUCCEEDED(hr)) {
 
-                            hr = MFCreateSourceReaderFromMediaSource(m_source, rdrattr, &m_sourceReader);
+                            hr = MFCreateSourceReaderFromMediaSource(m_source, readerAttributes, &m_sourceReader);
                             if (SUCCEEDED(hr)) {
 
-                                IMFMediaType *mediaType = NULL;
-                                hr = m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM), &mediaType);
+                                hr = m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
+                                                                         &m_sourceMediaType);
                                 if (SUCCEEDED(hr)) {
 
                                     GUID subtype = GUID_NULL;
-                                    hr = mediaType->GetGUID(MF_MT_SUBTYPE, &subtype);
+                                    hr = m_sourceMediaType->GetGUID(MF_MT_SUBTYPE, &subtype);
                                     if (SUCCEEDED(hr)) {
 
                                         m_pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
@@ -111,40 +122,63 @@ HRESULT QWindowsCameraReader::start(const QString &cameraId)
                                         } else {
 
                                             // get the frame dimensions
-                                            hr = MFGetAttributeSize(mediaType, MF_MT_FRAME_SIZE, &m_frameWidth, &m_frameHeight);
+                                            hr = MFGetAttributeSize(m_sourceMediaType, MF_MT_FRAME_SIZE, &m_frameWidth, &m_frameHeight);
                                             if (SUCCEEDED(hr)) {
 
                                                 // and the stride, which we need to convert the frame later
                                                 hr = MFGetStrideForBitmapInfoHeader(subtype.Data1, m_frameWidth, &m_stride);
                                                 if (SUCCEEDED(hr)) {
 
-                                                    hr = m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM), TRUE);
+                                                    UINT32 frameRateNum, frameRateDen;
+                                                    hr = MFGetAttributeRatio(m_sourceMediaType, MF_MT_FRAME_RATE, &frameRateNum, &frameRateDen);
                                                     if (SUCCEEDED(hr)) {
 
-                                                        // request the first frame
-                                                        hr = m_sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                                                                        0, nullptr, nullptr, nullptr, nullptr);
+                                                        m_frameRate = qreal(frameRateNum) / frameRateDen;
+
+                                                        hr = m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM), TRUE);
+                                                        if (SUCCEEDED(hr)) {
+
+                                                            m_active = true;
+
+                                                            // request the first frame
+                                                            hr = m_sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                                                                            0, nullptr, nullptr, nullptr, nullptr);
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                    mediaType->Release();
                                 }
                             }
                         }
-                        rdrattr->Release();
+                        readerAttributes->Release();
                     }
                 }
             }
         }
-        srcattr->Release();
+        sourceAttributes->Release();
     }
-    return hr;
+
+    return SUCCEEDED(hr);
 }
 
-HRESULT QWindowsCameraReader::stop()
+void QWindowsCameraReader::deactivate()
 {
+    stopRecording();
+    stopStreaming();
+    m_active = false;
+    m_streaming = false;
+}
+
+void QWindowsCameraReader::stopStreaming()
+{
+    QMutexLocker locker(&m_mutex);
+
+    if (m_sourceMediaType) {
+        m_sourceMediaType->Release();
+        m_sourceMediaType = nullptr;
+    }
     if (m_sourceReader) {
         m_sourceReader->Release();
         m_sourceReader = nullptr;
@@ -153,7 +187,125 @@ HRESULT QWindowsCameraReader::stop()
         m_source->Release();
         m_source = nullptr;
     }
-    return S_OK;
+}
+
+bool QWindowsCameraReader::startRecording(const QString &fileName, const GUID &container,
+                                          const GUID &videoFormat, UINT32 bitRate, UINT32 width,
+                                          UINT32 height, qreal frameRate)
+{
+    QMutexLocker locker(&m_mutex);
+
+    if (!m_active || m_recording)
+        return false;
+
+    IMFAttributes *writerAttributes = nullptr;
+
+    HRESULT hr = MFCreateAttributes(&writerAttributes, 2);
+    if (SUCCEEDED(hr)) {
+
+        // Set callback so OnFinalize() is called after video is saved.
+        hr = writerAttributes->SetUnknown(MF_SINK_WRITER_ASYNC_CALLBACK,
+                                          static_cast<IMFSinkWriterCallback*>(this));
+        if (SUCCEEDED(hr)) {
+
+            hr = writerAttributes->SetGUID(MF_TRANSCODE_CONTAINERTYPE, container);
+            if (SUCCEEDED(hr)) {
+
+                hr = MFCreateSinkWriterFromURL(reinterpret_cast<LPCWSTR>(fileName.utf16()),
+                                               nullptr, writerAttributes, &m_sinkWriter);
+                if (SUCCEEDED(hr)) {
+
+                    IMFMediaType *targetMediaType = nullptr;
+
+                    hr = MFCreateMediaType(&targetMediaType);
+                    if (SUCCEEDED(hr)) {
+
+                        hr = targetMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+                        if (SUCCEEDED(hr)) {
+
+                            hr = targetMediaType->SetGUID(MF_MT_SUBTYPE, videoFormat);
+                            if (SUCCEEDED(hr)) {
+
+                                hr = targetMediaType->SetUINT32(MF_MT_AVG_BITRATE, bitRate);
+                                if (SUCCEEDED(hr)) {
+
+                                    hr = MFSetAttributeSize(targetMediaType, MF_MT_FRAME_SIZE, width, height);
+                                    if (SUCCEEDED(hr)) {
+
+                                        hr = MFSetAttributeRatio(targetMediaType, MF_MT_FRAME_RATE, UINT32(frameRate * 1000), 1000);
+                                        if (SUCCEEDED(hr)) {
+
+                                            UINT32 t1, t2;
+                                            MFGetAttributeRatio(m_sourceMediaType, MF_MT_PIXEL_ASPECT_RATIO, &t1, &t2);
+                                            MFSetAttributeRatio(targetMediaType, MF_MT_PIXEL_ASPECT_RATIO, t1, t2);
+
+                                            m_sourceMediaType->GetUINT32(MF_MT_INTERLACE_MODE, &t1);
+                                            targetMediaType->SetUINT32(MF_MT_INTERLACE_MODE, t1);
+
+                                            hr = m_sinkWriter->AddStream(targetMediaType, &m_videoStreamIndex);
+                                            if (SUCCEEDED(hr)) {
+
+                                                hr = m_sinkWriter->SetInputMediaType(m_videoStreamIndex, m_sourceMediaType, nullptr);
+                                                if (SUCCEEDED(hr)) {
+
+                                                    hr = m_sinkWriter->BeginWriting();
+                                                    if (SUCCEEDED(hr)) {
+                                                        m_recording = true;
+                                                        m_firstFrame = true;
+                                                        m_paused = false;
+                                                        m_pauseChanging = false;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        targetMediaType->Release();
+                    }
+                }
+            }
+        }
+        writerAttributes->Release();
+    }
+    return SUCCEEDED(hr);
+}
+
+void QWindowsCameraReader::stopRecording()
+{
+    // The semaphore is used to ensure the video is properly saved
+    // to disk, e.g, before the app exits. Released on OnFinalize.
+    // Acquire it BEFORE locking the mutex, to avoid deadlocks.
+    m_finalizeSemaphore.acquire();
+    QMutexLocker locker(&m_mutex);
+
+    if (m_sinkWriter && m_recording)
+        m_sinkWriter->Finalize();
+    else
+        m_finalizeSemaphore.release();
+
+    m_recording = false;
+    m_paused = false;
+    m_pauseChanging = false;
+}
+
+bool QWindowsCameraReader::pauseRecording()
+{
+    if (!m_recording || m_paused)
+        return false;
+    m_paused = true;
+    m_pauseChanging = true;
+    return true;
+}
+
+bool QWindowsCameraReader::resumeRecording()
+{
+    if (!m_recording || !m_paused)
+        return false;
+    m_paused = false;
+    m_pauseChanging = true;
+    return true;
 }
 
 //from IUnknown
@@ -163,8 +315,10 @@ STDMETHODIMP QWindowsCameraReader::QueryInterface(REFIID riid, LPVOID *ppvObject
         return E_POINTER;
     if (riid == IID_IMFSourceReaderCallback) {
         *ppvObject = static_cast<IMFSourceReaderCallback*>(this);
+    } else if (riid == IID_IMFSinkWriterCallback) {
+        *ppvObject = static_cast<IMFSinkWriterCallback*>(this);
     } else if (riid == IID_IUnknown) {
-        *ppvObject = static_cast<IUnknown*>(this);
+        *ppvObject = static_cast<IUnknown*>(static_cast<IMFSourceReaderCallback*>(this));
     } else {
         *ppvObject =  nullptr;
         return E_NOINTERFACE;
@@ -192,6 +346,21 @@ void QWindowsCameraReader::setSurface(QVideoSink *surface)
     m_surface = surface;
 }
 
+UINT32 QWindowsCameraReader::frameWidth() const
+{
+    return m_frameWidth;
+}
+
+UINT32 QWindowsCameraReader::frameHeight() const
+{
+    return m_frameHeight;
+}
+
+qreal QWindowsCameraReader::frameRate() const
+{
+    return m_frameRate;
+}
+
 //from IMFSourceReaderCallback
 STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
                                                 DWORD dwStreamFlags, LONGLONG llTimestamp,
@@ -199,48 +368,70 @@ STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
 {
     Q_UNUSED(hrStatus);
     Q_UNUSED(dwStreamIndex);
-    Q_UNUSED(llTimestamp);
 
-    if ((dwStreamFlags & MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED) == MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED) {
-        qDebug() << "QWindowsCameraReader::OnReadSample - MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED";
-    }
+    QMutexLocker locker(&m_mutex);
 
     if ((dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) == MF_SOURCE_READERF_ENDOFSTREAM) {
-        emit streamStopped();
-        qDebug() << "QWindowsCameraReader::OnReadSample - MF_SOURCE_READERF_ENDOFSTREAM";
+        m_streaming = false;
+        emit streamingStopped();
     } else {
-        if (!m_started) {
-            m_started = true;
-            emit streamStarted();
+        if (!m_streaming) {
+            m_streaming = true;
+            emit streamingStarted();
         }
-        if (pSample && m_surface) {
+        if (pSample) {
 
-            IMFMediaBuffer *mediaBuffer = nullptr;
-            if (SUCCEEDED(pSample->ConvertToContiguousBuffer(&mediaBuffer))) {
+            if (m_recording) {
 
-                DWORD bufLen = 0;
-                BYTE *buffer = nullptr;
+                if (m_firstFrame) {
+                    m_timeOffset = llTimestamp;
+                    m_firstFrame = false;
+                    emit recordingStarted();
+                }
 
-                if (SUCCEEDED(mediaBuffer->Lock(&buffer, nullptr, &bufLen))) {
-                    auto bytes = QByteArray(reinterpret_cast<char*>(buffer), bufLen);
+                if (m_pauseChanging) {
+                    // Recording time should not pass while paused.
+                    if (m_paused)
+                        m_pauseTime = llTimestamp;
+                    else
+                        m_timeOffset += llTimestamp - m_pauseTime;
+                    m_pauseChanging = false;
+                }
 
-                    QVideoFrame frame(new QMemoryVideoBuffer(bytes, m_stride),
-                                      QVideoFrameFormat(QSize(m_frameWidth, m_frameHeight), m_pixelFormat));
+                // Send the video frame to be encoded.
+                if (m_sinkWriter && !m_paused) {
+                    pSample->SetSampleTime(llTimestamp - m_timeOffset);
+                    m_sinkWriter->WriteSample(m_videoStreamIndex, pSample);
+                    emit durationChanged((llTimestamp - m_timeOffset)/10000);
+                }
+            }
 
-                    // WMF uses 100-nanosecond units, Qt uses microseconds
-                    LONGLONG startTime = 0;
-                    if (SUCCEEDED(pSample->GetSampleTime(&startTime))) {
-                        frame.setStartTime(startTime * 0.1);
+            // Send the video frame as a preview, if we have a surface.
+            if (m_surface) {
+                IMFMediaBuffer *mediaBuffer = nullptr;
+                if (SUCCEEDED(pSample->ConvertToContiguousBuffer(&mediaBuffer))) {
+
+                    DWORD bufLen = 0;
+                    BYTE *buffer = nullptr;
+
+                    if (SUCCEEDED(mediaBuffer->Lock(&buffer, nullptr, &bufLen))) {
+                        auto bytes = QByteArray(reinterpret_cast<char*>(buffer), bufLen);
+
+                        QVideoFrame frame(new QMemoryVideoBuffer(bytes, m_stride),
+                                          QVideoFrameFormat(QSize(m_frameWidth, m_frameHeight), m_pixelFormat));
+
+                        // WMF uses 100-nanosecond units, Qt uses microseconds
+                        frame.setStartTime(llTimestamp * 0.1);
 
                         LONGLONG duration = -1;
                         if (SUCCEEDED(pSample->GetSampleDuration(&duration)))
-                            frame.setEndTime((startTime + duration) * 0.1);
-                    }
+                            frame.setEndTime((llTimestamp + duration) * 0.1);
 
-                    m_surface->newVideoFrame(frame);
-                    mediaBuffer->Unlock();
+                        m_surface->newVideoFrame(frame);
+                        mediaBuffer->Unlock();
+                    }
+                    mediaBuffer->Release();
                 }
-                mediaBuffer->Release();
             }
         }
         // request the next frame
@@ -257,6 +448,25 @@ STDMETHODIMP QWindowsCameraReader::OnFlush(DWORD)
 }
 
 STDMETHODIMP QWindowsCameraReader::OnEvent(DWORD, IMFMediaEvent*)
+{
+    return S_OK;
+}
+
+//from IMFSinkWriterCallback
+STDMETHODIMP QWindowsCameraReader::OnFinalize(HRESULT)
+{
+    QMutexLocker locker(&m_mutex);
+    if (m_sinkWriter) {
+        m_sinkWriter->Release();
+        m_sinkWriter = nullptr;
+    }
+
+    m_finalizeSemaphore.release();
+    emit recordingStopped();
+    return S_OK;
+}
+
+STDMETHODIMP QWindowsCameraReader::OnMarker(DWORD, LPVOID)
 {
     return S_OK;
 }

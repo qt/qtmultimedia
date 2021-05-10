@@ -52,8 +52,8 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 #include <qvideoframeformat.h>
-#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
@@ -61,6 +61,11 @@ namespace QWindowsMultimediaUtils {
 
     QVideoFrameFormat::PixelFormat pixelFormatFromMediaSubtype(const GUID &subtype);
 
+    GUID videoFormatForCodec(QMediaFormat::VideoCodec codec);
+
+    GUID containerForVideoFileFormat(QMediaFormat::FileFormat format);
+
+    GUID containerForAudioFileFormat(QMediaFormat::FileFormat format);
 }
 
 QT_END_NAMESPACE

@@ -56,13 +56,17 @@
 #include <Mfreadwrite.h>
 
 #include <QtCore/qobject.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qsemaphore.h>
 #include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-class QWindowsCameraReader : public QObject, public IMFSourceReaderCallback
+class QWindowsCameraReader : public QObject,
+        public IMFSourceReaderCallback,
+        public IMFSinkWriterCallback
 {
     Q_OBJECT
 public:
@@ -83,23 +87,56 @@ public:
     STDMETHODIMP OnFlush(DWORD dwStreamIndex);
     STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent *pEvent);
 
-    HRESULT     start(const QString &cameraId);
-    HRESULT     stop();
+    //from IMFSinkWriterCallback
+    STDMETHODIMP OnFinalize(HRESULT hrStatus);
+    STDMETHODIMP OnMarker(DWORD dwStreamIndex, LPVOID pvContext);
+
+    bool activate(const QString &cameraId);
+    void deactivate();
+
+    bool startRecording(const QString &fileName, const GUID &container,
+                        const GUID &videoFormat, UINT32 bitRate, UINT32 width,
+                        UINT32 height, qreal frameRate);
+    void stopRecording();
+    bool pauseRecording();
+    bool resumeRecording();
+
+    UINT32 frameWidth() const;
+    UINT32 frameHeight() const;
+    qreal frameRate() const;
 
 Q_SIGNALS:
-    void streamStarted();
-    void streamStopped();
+    void streamingStarted();
+    void streamingStopped();
+    void recordingStarted();
+    void recordingStopped();
+    void durationChanged(qint64 duration);
 
 private:
+    void stopStreaming();
+
     long               m_cRef = 1;
-    IMFSourceReader    *m_sourceReader = nullptr;
+    QMutex             m_mutex;
+    QSemaphore         m_finalizeSemaphore;
     IMFMediaSource     *m_source = nullptr;
+    IMFSourceReader    *m_sourceReader = nullptr;
+    IMFMediaType       *m_sourceMediaType = nullptr;
+    IMFSinkWriter      *m_sinkWriter = nullptr;
+    DWORD              m_videoStreamIndex = 0;
     QVideoSink         *m_surface = nullptr;
     UINT32             m_frameWidth = 0;
     UINT32             m_frameHeight = 0;
+    qreal              m_frameRate = 0.0;
     LONG               m_stride = 0;
-    bool               m_started = false;
+    bool               m_active = false;
+    bool               m_streaming = false;
+    bool               m_recording = false;
+    bool               m_firstFrame = false;
+    bool               m_paused = false;
+    bool               m_pauseChanging = false;
     QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
+    LONGLONG           m_timeOffset = 0;
+    LONGLONG           m_pauseTime = 0;
 };
 
 QT_END_NAMESPACE

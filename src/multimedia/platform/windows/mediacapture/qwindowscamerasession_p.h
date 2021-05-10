@@ -51,6 +51,7 @@
 // We mean it.
 //
 
+#include <private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
 #include <qmediaencodersettings.h>
 
@@ -88,15 +89,28 @@ public:
     QWindowsCameraExposure *exposureControl();
     QWindowsCameraImageProcessing *imageProcessingControl();
 
+    QMediaEncoderSettings videoSettings() const;
+    void setVideoSettings(const QMediaEncoderSettings &settings);
+
+    bool startRecording(const QString &fileName);
+    void stopRecording();
+    bool pauseRecording();
+    bool resumeRecording();
+
 Q_SIGNALS:
     void activeChanged(bool);
     void readyForCaptureChanged(bool);
+    void durationChanged(qint64 duration);
+    void recordingStarted();
+    void recordingStopped();
 
 private Q_SLOTS:
-    void handleStreamStarted();
-    void handleStreamStopped();
+    void handleStreamingStarted();
+    void handleStreamingStopped();
 
 private:
+    UINT32 estimateVideoBitRate(const GUID &videoFormat, UINT32 width, UINT32 height,
+                                qreal frameRate, QMediaEncoderSettings::Quality quality);
     bool m_active = false;
     bool m_readyForCapture = false;
     QCameraInfo m_activeCameraInfo;
@@ -105,6 +119,7 @@ private:
     QWindowsCameraFocus *m_cameraFocus = nullptr;
     QWindowsCameraImageProcessing *m_cameraImageProcessing = nullptr;
     QImageEncoderSettings m_imageEncoderSettings;
+    QMediaEncoderSettings m_mediaEncoderSettings;
 };
 
 QT_END_NAMESPACE

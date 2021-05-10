@@ -43,8 +43,9 @@
 #include "qwindowscamerafocus_p.h"
 #include "qwindowscameraexposure_p.h"
 #include "qwindowscameraimageprocessing_p.h"
+#include "qwindowsmultimediautils_p.h"
 #include <qvideosink.h>
-#include <qdebug.h>
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -55,11 +56,20 @@ QWindowsCameraSession::QWindowsCameraSession(QObject *parent)
     m_cameraExposure = new QWindowsCameraExposure(this);
     m_cameraFocus = new QWindowsCameraFocus(this);
     m_cameraImageProcessing = new QWindowsCameraImageProcessing(this);
-    connect(m_cameraReader, SIGNAL(streamStarted()), this, SLOT(handleStreamStarted()));
-    connect(m_cameraReader, SIGNAL(streamStopped()), this, SLOT(handleStreamStopped()));
+    connect(m_cameraReader, SIGNAL(streamingStarted()), this, SLOT(handleStreamingStarted()));
+    connect(m_cameraReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
+    connect(m_cameraReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
+    connect(m_cameraReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
+    connect(m_cameraReader, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
 }
 
-QWindowsCameraSession::~QWindowsCameraSession() = default;
+QWindowsCameraSession::~QWindowsCameraSession()
+{
+    delete m_cameraImageProcessing;
+    delete m_cameraFocus;
+    delete m_cameraExposure;
+    delete m_cameraReader;
+}
 
 bool QWindowsCameraSession::isActive() const
 {
@@ -72,9 +82,9 @@ void QWindowsCameraSession::setActive(bool active)
         return;
 
     if (active) {
-        m_cameraReader->start(QString::fromUtf8(m_activeCameraInfo.id()));
+        m_cameraReader->activate(QString::fromUtf8(m_activeCameraInfo.id()));
     } else {
-        m_cameraReader->stop();
+        m_cameraReader->deactivate();
         m_active = false;
         emit activeChanged(m_active);
     }
@@ -135,18 +145,107 @@ QWindowsCameraImageProcessing *QWindowsCameraSession::imageProcessingControl()
     return m_cameraImageProcessing;
 }
 
-void QWindowsCameraSession::handleStreamStarted()
+void QWindowsCameraSession::handleStreamingStarted()
 {
     m_active = true;
     emit activeChanged(m_active);
     setReadyForCapture(true);
 }
 
-void QWindowsCameraSession::handleStreamStopped()
+void QWindowsCameraSession::handleStreamingStopped()
 {
     setReadyForCapture(false);
     m_active = false;
     emit activeChanged(m_active);
+}
+
+QMediaEncoderSettings QWindowsCameraSession::videoSettings() const
+{
+    return m_mediaEncoderSettings;
+}
+
+void QWindowsCameraSession::setVideoSettings(const QMediaEncoderSettings &settings)
+{
+    m_mediaEncoderSettings = settings;
+}
+
+bool QWindowsCameraSession::startRecording(const QString &fileName)
+{
+    GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(m_mediaEncoderSettings.format());
+    GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(m_mediaEncoderSettings.videoCodec());
+
+    QSize res = m_mediaEncoderSettings.videoResolution();
+    UINT32 width, height;
+    if (res.width() > 0 && res.height() > 0) {
+        width = UINT32(res.width());
+        height = UINT32(res.height());
+    } else {
+        width = m_cameraReader->frameWidth();
+        height = m_cameraReader->frameHeight();
+    }
+
+    qreal fps = m_mediaEncoderSettings.videoFrameRate();
+    qreal frameRate = (fps > 0) ? fps : m_cameraReader->frameRate();
+
+    auto quality = m_mediaEncoderSettings.quality();
+    int vbrate = m_mediaEncoderSettings.videoBitRate();
+
+    UINT32 videoBitRate;
+    if (vbrate > 0)
+        videoBitRate = UINT32(vbrate);
+    else
+        videoBitRate = estimateVideoBitRate(videoFormat, width, height, frameRate, quality);
+
+    return m_cameraReader->startRecording(fileName, container, videoFormat,
+                                          videoBitRate, width, height, frameRate);
+}
+
+void QWindowsCameraSession::stopRecording()
+{
+    m_cameraReader->stopRecording();
+}
+
+bool QWindowsCameraSession::pauseRecording()
+{
+    return m_cameraReader->pauseRecording();
+}
+
+bool QWindowsCameraSession::resumeRecording()
+{
+    return m_cameraReader->resumeRecording();
+}
+
+// empirical estimate of the required video bitrate (for H.264)
+UINT32 QWindowsCameraSession::estimateVideoBitRate(const GUID &videoFormat, UINT32 width, UINT32 height,
+                                                   qreal frameRate, QMediaEncoderSettings::Quality quality)
+{
+    Q_UNUSED(videoFormat);
+
+    qreal bitsPerPixel;
+    switch (quality) {
+    case QMediaEncoderSettings::Quality::VeryLowQuality:
+        bitsPerPixel = 0.08;
+        break;
+    case QMediaEncoderSettings::Quality::LowQuality:
+        bitsPerPixel = 0.2;
+        break;
+    case QMediaEncoderSettings::Quality::NormalQuality:
+        bitsPerPixel = 0.3;
+        break;
+    case QMediaEncoderSettings::Quality::HighQuality:
+        bitsPerPixel = 0.5;
+        break;
+    case QMediaEncoderSettings::Quality::VeryHighQuality:
+        bitsPerPixel = 0.8;
+        break;
+    default:
+        bitsPerPixel = 0.3;
+    }
+
+    // Required bitrate is not linear on the number of pixels; small resolutions
+    // require more BPP, thus the minimum values, to try to compensate it.
+    UINT32 pixelsPerSec = UINT32(qMax(width, 320u) * qMax(height, 240u) * qMax(frameRate, 6.0));
+    return pixelsPerSec * bitsPerPixel;
 }
 
 QT_END_NAMESPACE

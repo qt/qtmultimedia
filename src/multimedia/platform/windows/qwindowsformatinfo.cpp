@@ -65,7 +65,23 @@ QWindowsFormatInfo::QWindowsFormatInfo()
           {} }
     };
 
-    // ### no encoders yet
+    encoders = {
+        { QMediaFormat::MPEG4,
+          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC },
+          { QMediaFormat::VideoCodec::H264 } },
+        { QMediaFormat::AAC,
+          { QMediaFormat::AudioCodec::AAC },
+          {} },
+        { QMediaFormat::MP3,
+          { QMediaFormat::AudioCodec::MP3 },
+          {} },
+        { QMediaFormat::FLAC,
+          { QMediaFormat::AudioCodec::FLAC },
+          {} },
+        { QMediaFormat::Mpeg4Audio,
+          { QMediaFormat::AudioCodec::AAC },
+          {} }
+    };
 
     // ####
     imageFormats = { QImageEncoderSettings::JPEG, QImageEncoderSettings::PNG };

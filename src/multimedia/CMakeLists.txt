@@ -175,6 +175,8 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/mediacapture/qwindowsmediaencoder.cpp
         platform/windows/mediacapture/qwindowsmediaencoder_p.h
         platform/windows/qwindowsmediadevices.cpp platform/windows/qwindowsmediadevices_p.h
+        platform/windows/mediacapture/qwindowsstoragelocation.cpp
+        platform/windows/mediacapture/qwindowsstoragelocation_p.h
         platform/windows/qwindowsformatinfo.cpp platform/windows/qwindowsformatinfo_p.h
         platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
         platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h

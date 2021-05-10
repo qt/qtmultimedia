@@ -37,8 +37,10 @@
 **
 ****************************************************************************/
 
-#include <mfapi.h>
 #include "qwindowsmultimediautils_p.h"
+
+#include <mfapi.h>
+#include <mfidl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -70,6 +72,64 @@ QVideoFrameFormat::PixelFormat QWindowsMultimediaUtils::pixelFormatFromMediaSubt
         return QVideoFrameFormat::Format_Y16;
 
     return QVideoFrameFormat::Format_Invalid;
+}
+
+GUID QWindowsMultimediaUtils::videoFormatForCodec(QMediaFormat::VideoCodec codec)
+{
+    switch (codec) {
+    case QMediaFormat::VideoCodec::MPEG1:
+        return MFVideoFormat_MPG1;
+    case QMediaFormat::VideoCodec::MPEG2:
+        return MFVideoFormat_MPEG2;
+    case QMediaFormat::VideoCodec::MPEG4:
+        return MFVideoFormat_MP4V;
+    case QMediaFormat::VideoCodec::H264:
+        return MFVideoFormat_H264;
+    case QMediaFormat::VideoCodec::H265:
+        return MFVideoFormat_H265;
+    case QMediaFormat::VideoCodec::VP8:
+        return MFVideoFormat_VP80;
+    case QMediaFormat::VideoCodec::VP9:
+        return MFVideoFormat_VP90;
+    case QMediaFormat::VideoCodec::AV1:
+        return MFVideoFormat_AV1;
+    case QMediaFormat::VideoCodec::MotionJPEG:
+        return MFVideoFormat_MJPG;
+    }
+    // Use H264 as the default video codec
+    return MFVideoFormat_H264;
+}
+
+GUID QWindowsMultimediaUtils::containerForVideoFileFormat(QMediaFormat::FileFormat format)
+{
+    switch (format) {
+    case QMediaFormat::FileFormat::MPEG4:
+        return MFTranscodeContainerType_MPEG4;
+    case QMediaFormat::FileFormat::ASF:
+        return MFTranscodeContainerType_ASF;
+    case QMediaFormat::FileFormat::AVI:
+        return MFTranscodeContainerType_AVI;
+    }
+    return MFTranscodeContainerType_MPEG4;
+}
+
+GUID QWindowsMultimediaUtils::containerForAudioFileFormat(QMediaFormat::FileFormat format)
+{
+    switch (format) {
+    case QMediaFormat::FileFormat::MP3:
+        return MFTranscodeContainerType_MP3;
+    case QMediaFormat::FileFormat::AAC:
+        return MFTranscodeContainerType_ADTS;
+    case QMediaFormat::FileFormat::Mpeg4Audio:
+        return MFTranscodeContainerType_MPEG4;
+    case QMediaFormat::FileFormat::ALAC:
+        return MFTranscodeContainerType_MPEG4;
+    case QMediaFormat::FileFormat::FLAC:
+        return MFTranscodeContainerType_FLAC;
+    case QMediaFormat::FileFormat::Wave:
+        return MFTranscodeContainerType_WAVE;
+    }
+    return MFTranscodeContainerType_MPEG4;
 }
 
 QT_END_NAMESPACE

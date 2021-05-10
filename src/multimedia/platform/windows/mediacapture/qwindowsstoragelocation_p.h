@@ -37,6 +37,9 @@
 **
 ****************************************************************************/
 
+#ifndef QWINDOWSSTORAGELOCATION_H
+#define QWINDOWSSTORAGELOCATION_H
+
 //
 //  W A R N I N G
 //  -------------
@@ -48,57 +51,34 @@
 // We mean it.
 //
 
-#ifndef QWINDOWSMEDIAENCODER_H
-#define QWINDOWSMEDIAENCODER_H
+#include "qtmultimediaglobal.h"
 
-#include "qwindowsstoragelocation_p.h"
-
-#include <private/qplatformmediaencoder_p.h>
-
-#include <QtCore/qglobal.h>
-#include <QtCore/qurl.h>
+#include <QtCore/qdir.h>
+#include <qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsCameraSession;
-class QPlatformMediaCaptureSession;
-class QWindowsMediaCaptureService;
-
-class QWindowsMediaEncoder : public QPlatformMediaEncoder
+// Copy/paste from AVFStorageLocation.
+// Consider moving to platform-independent code.
+class QWindowsStorageLocation
 {
-    Q_OBJECT
 public:
-    explicit QWindowsMediaEncoder(QMediaEncoder *parent);
+    QWindowsStorageLocation();
+    ~QWindowsStorageLocation();
 
-    QUrl outputLocation() const override;
-    bool setOutputLocation(const QUrl &location) override;
-    QMediaEncoder::State state() const override;
-    QMediaEncoder::Status status() const override;
-    qint64 duration() const override;
-    void applySettings() override;
+    enum Mode {
+        Image,
+        Video
+    };
 
-    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
+    QString generateFileName(const QString &requestedName, Mode mode,
+                             const QString &prefix, const QString &ext) const;
 
-    void setCaptureSession(QPlatformMediaCaptureSession *session);
-
-public Q_SLOTS:
-    void setState(QMediaEncoder::State state) override;
-
-private Q_SLOTS:
-    void onCameraChanged();
-    void onRecordingStarted();
-    void onRecordingStopped();
-    void onDurationChanged(qint64 duration);
+    QDir defaultDir(Mode mode) const;
+    QString generateFileName(const QString &prefix, const QDir &dir, const QString &ext) const;
 
 private:
-    QWindowsMediaCaptureService  *m_captureService = nullptr;
-    QWindowsCameraSession        *m_cameraSession = nullptr;
-    QUrl                          m_outputLocation;
-    QMediaEncoder::State          m_state = QMediaEncoder::StoppedState;
-    QMediaEncoder::Status         m_lastStatus = QMediaEncoder::StoppedStatus;
-    QMediaEncoderSettings         m_settings;
-    QWindowsStorageLocation       m_storageLocation;
-    qint64                        m_duration = 0;
+    mutable QMap<QString, int> m_lastUsedIndex;
 };
 
 QT_END_NAMESPACE
