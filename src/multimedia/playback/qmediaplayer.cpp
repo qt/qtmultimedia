@@ -225,9 +225,9 @@ QUrl QMediaPlayer::source() const
 /*!
     Returns the stream source of media data.
 
-    This is only valid if a stream was passed to setMedia().
+    This is only valid if a stream was passed to setSource().
 
-    \sa setMedia()
+    \sa setSource()
 */
 
 const QIODevice *QMediaPlayer::sourceStream() const
@@ -258,6 +258,13 @@ QMediaPlayer::MediaStatus QMediaPlayer::mediaStatus() const
     return d->control ? d->control->mediaStatus() : NoMedia;
 }
 
+/*!
+    Returns the duration of the current media in ms.
+
+    Returns 0 if the media player doesn't have a valid media file or stream.
+    For live streams, the duration usually changes during playback as more
+    data becomes available.
+*/
 qint64 QMediaPlayer::duration() const
 {
     Q_D(const QMediaPlayer);
@@ -265,9 +272,16 @@ qint64 QMediaPlayer::duration() const
     if (d->control != nullptr)
         return d->control->duration();
 
-    return -1;
+    return 0;
 }
 
+/*!
+    Returns the current position inside the media being played back in ms.
+
+    Returns 0 if the media player doesn't have a valid media file or stream.
+    For live streams, the duration usually changes during playback as more
+    data becomes available.
+*/
 qint64 QMediaPlayer::position() const
 {
     Q_D(const QMediaPlayer);
@@ -278,6 +292,9 @@ qint64 QMediaPlayer::position() const
     return 0;
 }
 
+/*!
+    Returns the playback volume. Valid numbers are between 0 and 100.
+*/
 int QMediaPlayer::volume() const
 {
     Q_D(const QMediaPlayer);
@@ -288,6 +305,9 @@ int QMediaPlayer::volume() const
     return 0;
 }
 
+/*!
+    Returns true if playback is currently muted.
+*/
 bool QMediaPlayer::isMuted() const
 {
     Q_D(const QMediaPlayer);
@@ -298,6 +318,15 @@ bool QMediaPlayer::isMuted() const
     return false;
 }
 
+/*!
+    Returns a number betwee 0 and 1 when buffering data.
+
+    0 means that there is no buffered data available, playback is usually
+    stalled in this case. Playback will resume once the buffer reaches 1,
+    meaning enough data has been buffered to be able to resume playback.
+
+    bufferProgress() will always return 1 for local files.
+*/
 float QMediaPlayer::bufferProgress() const
 {
     Q_D(const QMediaPlayer);
@@ -308,6 +337,15 @@ float QMediaPlayer::bufferProgress() const
     return 0.;
 }
 
+/*!
+    Returns a QMediaTimeRange describing the currently buffered data.
+
+    When streaming media from a remote source, different parts of the media
+    file can be available locally. The returned QMediaTimeRange object describes
+    the time ranges that are buffered and available for immediate playback.
+
+    \sa QMediaTimeRange
+*/
 QMediaTimeRange QMediaPlayer::bufferedTimeRange() const
 {
     Q_D(const QMediaPlayer);
@@ -338,6 +376,10 @@ bool QMediaPlayer::hasVideo() const
     return false;
 }
 
+/*!
+    Returns true if the media is seekable. Most file based media files are seekable,
+    but live streams usually are not.
+*/
 bool QMediaPlayer::isSeekable() const
 {
     Q_D(const QMediaPlayer);
@@ -348,6 +390,9 @@ bool QMediaPlayer::isSeekable() const
     return false;
 }
 
+/*!
+    Returns the current playback rate.
+*/
 qreal QMediaPlayer::playbackRate() const
 {
     Q_D(const QMediaPlayer);
@@ -361,7 +406,6 @@ qreal QMediaPlayer::playbackRate() const
 /*!
     Returns the current error state.
 */
-
 QMediaPlayer::Error QMediaPlayer::error() const
 {
     return d_func()->error;
@@ -448,6 +492,13 @@ void QMediaPlayer::setMuted(bool muted)
     d->control->setMuted(muted);
 }
 
+/*!
+    If \a autoPlay is set to true, playback will start immediately after calling
+    setSource() on the media player. Otherwise the media player will enter the
+    Stopped state after loading the file.
+
+    The default is false.
+*/
 void QMediaPlayer::setAutoPlay(bool autoPlay)
 {
     Q_D(QMediaPlayer);
@@ -518,24 +569,47 @@ QAudioDeviceInfo QMediaPlayer::audioOutput() const
     return d->control->audioOutput();
 }
 
+/*!
+    Lists the set of available audio tracks inside the media.
+
+    The QMediaMetaData returned describes the properties of individual
+    tracks.
+
+    Different audio tracks can for example contain audio in different languages.
+*/
 QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 {
     Q_D(const QMediaPlayer);
     return d->trackMetaData(QPlatformMediaPlayer::AudioStream);
 }
 
+/*!
+    Lists the set of available video tracks inside the media.
+
+    The QMediaMetaData returned describes the properties of individual
+    tracks.
+*/
 QList<QMediaMetaData> QMediaPlayer::videoTracks() const
 {
     Q_D(const QMediaPlayer);
     return d->trackMetaData(QPlatformMediaPlayer::VideoStream);
 }
 
+/*!
+    Lists the set of available subtitle tracks inside the media.
+
+    The QMediaMetaData returned describes the properties of individual
+    tracks.
+*/
 QList<QMediaMetaData> QMediaPlayer::subtitleTracks() const
 {
     Q_D(const QMediaPlayer);
     return d->trackMetaData(QPlatformMediaPlayer::SubtitleStream);
 }
 
+/*!
+    Returns the currently active audio track.
+*/
 int QMediaPlayer::activeAudioTrack() const
 {
     Q_D(const QMediaPlayer);
@@ -544,6 +618,9 @@ int QMediaPlayer::activeAudioTrack() const
     return 0;
 }
 
+/*!
+    Returns the currently active video track.
+*/
 int QMediaPlayer::activeVideoTrack() const
 {
     Q_D(const QMediaPlayer);
@@ -552,6 +629,9 @@ int QMediaPlayer::activeVideoTrack() const
     return 0;
 }
 
+/*!
+    Returns the currently active subtitle track.
+*/
 int QMediaPlayer::activeSubtitleTrack() const
 {
     Q_D(const QMediaPlayer);
@@ -560,6 +640,13 @@ int QMediaPlayer::activeSubtitleTrack() const
     return 0;
 }
 
+/*!
+    Sets the currently active audio track.
+
+    By default, the first available audio track will be chosen.
+
+    Set to -1 to disable all audio tracks.
+*/
 void QMediaPlayer::setActiveAudioTrack(int index)
 {
     Q_D(QMediaPlayer);
@@ -567,6 +654,11 @@ void QMediaPlayer::setActiveAudioTrack(int index)
         d->control->setActiveTrack(QPlatformMediaPlayer::AudioStream, index);
 }
 
+/*!
+    Sets the currently active video track.
+
+    By default, the first available video track will be chosen.
+*/
 void QMediaPlayer::setActiveVideoTrack(int index)
 {
     Q_D(QMediaPlayer);
@@ -574,6 +666,13 @@ void QMediaPlayer::setActiveVideoTrack(int index)
         d->control->setActiveTrack(QPlatformMediaPlayer::VideoStream, index);
 }
 
+/*!
+    Sets the currently active subtitle track.
+
+    Setting the property to -1 will disable subtitles.
+
+    Subtitles are disabled by default.
+*/
 void QMediaPlayer::setActiveSubtitleTrack(int index)
 {
     Q_D(QMediaPlayer);
@@ -662,7 +761,9 @@ void QMediaPlayer::setVideoOutput(const QList<QVideoSink *> &sinks)
 //    setVideoOutput(!surfaces.empty() ? new QVideoSurfaces(surfaces, this) : nullptr);
 }
 
-/*! \reimp */
+/*!
+    Returns true if the media player is supported on this platform.
+*/
 bool QMediaPlayer::isAvailable() const
 {
     Q_D(const QMediaPlayer);
@@ -673,12 +774,23 @@ bool QMediaPlayer::isAvailable() const
     return true;
 }
 
+/*!
+    Returns meta data for the current media used by the media player.
+
+    Meta data can contain information such as the title of the video or it's creation date.
+*/
 QMediaMetaData QMediaPlayer::metaData() const
 {
     Q_D(const QMediaPlayer);
     return d->control->metaData();
 }
 
+/*!
+    Returns the currently set audio role.
+
+    Audio roles can be used to tell the system what kind of media is being
+    played back, so that it can be associated with a correct mixer channel.
+*/
 QAudio::Role QMediaPlayer::audioRole() const
 {
     Q_D(const QMediaPlayer);
