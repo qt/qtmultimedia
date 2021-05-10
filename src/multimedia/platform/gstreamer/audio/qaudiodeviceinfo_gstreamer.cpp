@@ -45,43 +45,42 @@
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(device, mode)
+QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteArray &device, QAudio::Mode mode)
+    : QAudioDeviceInfoPrivate(device, mode),
+      gstDevice(d)
 {
-    auto *devices = static_cast<QGstreamerMediaDevices *>(QPlatformMediaIntegration::instance()->devices());
-    gstDevice = devices->audioDevice(device, mode);
-    if (gstDevice) {
-        gst_object_ref(gstDevice);
-        auto *n = gst_device_get_display_name(gstDevice);
-        description = QString::fromUtf8(n);
-        g_free(n);
+    Q_ASSERT(gstDevice);
+    gst_object_ref(gstDevice);
 
-        QGstCaps caps = gst_device_get_caps(gstDevice);
-        int size = caps.size();
-        for (int i = 0; i < size; ++i) {
-            auto c = caps.at(i);
-            if (c.name() == "audio/x-raw") {
-                auto rate = c["rate"].toIntRange();
-                if (rate) {
-                    minimumSampleRate = rate->min;
-                    minimumSampleRate = rate->max;
-                }
-                auto channels = c["channels"].toIntRange();
-                if (channels) {
-                    minimumChannelCount = channels->min;
-                    maximumChannelCount = channels->max;
-                }
-                supportedSampleFormats = c["format"].getSampleFormats();
+    auto *n = gst_device_get_display_name(gstDevice);
+    description = QString::fromUtf8(n);
+    g_free(n);
+
+    QGstCaps caps = gst_device_get_caps(gstDevice);
+    int size = caps.size();
+    for (int i = 0; i < size; ++i) {
+        auto c = caps.at(i);
+        if (c.name() == "audio/x-raw") {
+            auto rate = c["rate"].toIntRange();
+            if (rate) {
+                minimumSampleRate = rate->min;
+                minimumSampleRate = rate->max;
             }
+            auto channels = c["channels"].toIntRange();
+            if (channels) {
+                minimumChannelCount = channels->min;
+                maximumChannelCount = channels->max;
+            }
+            supportedSampleFormats = c["format"].getSampleFormats();
         }
-
-        preferredFormat.setChannelCount(qBound(minimumChannelCount, 2, maximumChannelCount));
-        preferredFormat.setSampleRate(qBound(minimumSampleRate, 48000, maximumSampleRate));
-        QAudioFormat::SampleFormat f = QAudioFormat::Int16;
-        if (!supportedSampleFormats.contains(f))
-            f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
-        preferredFormat.setSampleFormat(f);
     }
+
+    preferredFormat.setChannelCount(qBound(minimumChannelCount, 2, maximumChannelCount));
+    preferredFormat.setSampleRate(qBound(minimumSampleRate, 48000, maximumSampleRate));
+    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
+    if (!supportedSampleFormats.contains(f))
+        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
+    preferredFormat.setSampleFormat(f);
 }
 
 QGStreamerAudioDeviceInfo::~QGStreamerAudioDeviceInfo()

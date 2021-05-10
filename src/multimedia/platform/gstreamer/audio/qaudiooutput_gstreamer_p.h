@@ -78,7 +78,7 @@ class QGStreamerAudioOutput
     Q_OBJECT
 
 public:
-    QGStreamerAudioOutput(const QByteArray &device);
+    QGStreamerAudioOutput(const QAudioDeviceInfo &device);
     ~QGStreamerAudioOutput();
 
     void start(QIODevice *device) override;

@@ -77,7 +77,7 @@ class QGStreamerAudioInput
     Q_OBJECT
     friend class GStreamerInputPrivate;
 public:
-    QGStreamerAudioInput(const QByteArray &device);
+    QGStreamerAudioInput(const QAudioDeviceInfo &device);
     ~QGStreamerAudioInput();
 
     void start(QIODevice *device) override;
@@ -111,6 +111,7 @@ private:
 
     static gboolean busMessage(GstBus *bus, GstMessage *msg, gpointer user_data);
 
+    QAudioDeviceInfo m_info;
     qint64 m_bytesWritten = 0;
     QIODevice *m_audioSink = nullptr;
     QAudioFormat m_format;

@@ -55,14 +55,14 @@
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerAudioOutput::QGStreamerAudioOutput(const QByteArray &device)
-    : m_device(device),
+QGStreamerAudioOutput::QGStreamerAudioOutput(const QAudioDeviceInfo &device)
+    : m_device(device.id()),
     gstPipeline("pipeline")
 {
     gstPipeline.installMessageFilter(this);
 
-    QGStreamerAudioDeviceInfo audioInfo(device, QAudio::AudioOutput);
-    gstOutput = gst_device_create_element(audioInfo.gstDevice, nullptr);
+    const auto *audioInfo = static_cast<const QGStreamerAudioDeviceInfo *>(device.handle());
+    gstOutput = gst_device_create_element(audioInfo->gstDevice, nullptr);
 }
 
 QGStreamerAudioOutput::~QGStreamerAudioOutput()

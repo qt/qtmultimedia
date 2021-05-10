@@ -109,7 +109,7 @@ static QList<QAudioDeviceInfo> devicesFromSet(const QSet<GstDevice *> &deviceSet
             if (qstrcmp(klass, "monitor")) {
                 auto *name = gst_structure_get_string(properties, "sysfs.path");
                 gboolean def;
-                auto *info = new QGStreamerAudioDeviceInfo(name, mode);
+                auto *info = new QGStreamerAudioDeviceInfo(d, name, mode);
                 if (gst_structure_get_boolean(properties, "is-default", &def) && def)
                     devices.prepend(info->create());
                 else
@@ -189,12 +189,12 @@ QList<QCameraInfo> QGstreamerMediaDevices::videoInputs() const
 
 QAbstractAudioInput *QGstreamerMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QGStreamerAudioInput(deviceInfo.id());
+    return new QGStreamerAudioInput(deviceInfo);
 }
 
 QAbstractAudioOutput *QGstreamerMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QGStreamerAudioOutput(deviceInfo.id());
+    return new QGStreamerAudioOutput(deviceInfo);
 }
 
 void QGstreamerMediaDevices::addDevice(GstDevice *device)

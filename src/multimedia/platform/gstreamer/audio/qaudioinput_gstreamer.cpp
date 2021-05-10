@@ -51,8 +51,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerAudioInput::QGStreamerAudioInput(const QByteArray &device)
-    : m_device(device)
+QGStreamerAudioInput::QGStreamerAudioInput(const QAudioDeviceInfo &device)
+    : m_info(device),
+      m_device(device.id())
 {
 }
 
@@ -151,14 +152,14 @@ bool QGStreamerAudioInput::open()
     if (m_opened)
         return true;
 
-    QGStreamerAudioDeviceInfo deviceInfo(m_device, QAudio::AudioInput);
-    if (!deviceInfo.gstDevice) {
+    const auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_info.handle());
+    if (!deviceInfo->gstDevice) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
         return false;
     }
 
-    gstInput = QGstElement(gst_device_create_element(deviceInfo.gstDevice, nullptr));
+    gstInput = QGstElement(gst_device_create_element(deviceInfo->gstDevice, nullptr));
     if (gstInput.isNull()) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
