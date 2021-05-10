@@ -105,24 +105,133 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     \ingroup multimedia
     \ingroup multimedia_video
 
-    A video surface presents a stream of video frames.  The surface's format describes the type of
+    A video sink presents a stream of video frames.  QVideoFrameFormat describes the type of
     the frames and determines how they should be presented.
 
-    The core properties of a video stream required to setup a video surface are the pixel format
+    The core properties of a video stream required to setup a video sink are the pixel format
     given by pixelFormat(), and the frame dimensions given by frameSize().
-
-    If the surface is to present frames using a frame's handle a surface format will also include
-    a handle type which is given by the handleType() function.
 
     The region of a frame that is actually displayed on a video surface is given by the viewport().
     A stream may have a viewport less than the entire region of a frame to allow for videos smaller
     than the nearest optimal size of a video frame.  For example the width of a frame may be
     extended so that the start of each scan line is eight byte aligned.
 
-    Other common properties are the scanLineDirection(), and frameRate().
-    Additionally a stream may have some additional type specific properties which are listed by the
-    dynamicPropertyNames() function and can be accessed using the property(), and setProperty()
-    functions.
+    Other common properties are the scanLineDirection(), frameRate() and the yCrCbColorSpace().
+*/
+
+/*!
+    \enum QVideoFrameFormat::PixelFormat
+
+    Enumerates video data types.
+
+    \value Format_Invalid
+    The frame is invalid.
+
+    \value Format_ARGB32
+    The frame is stored using a 32-bit ARGB format (0xAARRGGBB).  This is equivalent to
+    QImage::Format_ARGB32.
+
+    \value Format_ARGB32_Premultiplied
+    The frame stored using a premultiplied 32-bit ARGB format (0xAARRGGBB).  This is equivalent
+    to QImage::Format_ARGB32_Premultiplied.
+
+    \value Format_RGB32
+    The frame stored using a 32-bit RGB format (0xffRRGGBB).  This is equivalent to
+    QImage::Format_RGB32
+
+    \value Format_BGRA32
+    The frame is stored using a 32-bit BGRA format (0xBBGGRRAA).
+
+    \value Format_BGRA32_Premultiplied
+    The frame is stored using a premultiplied 32bit BGRA format.
+
+    \value Format_ABGR32
+    The frame is stored using a 32-bit ABGR format (0xAABBGGRR).
+
+    \value Format_BGR32
+    The frame is stored using a 32-bit BGR format (0xBBGGRRff).
+
+    \value Format_AYUV444
+    The frame is stored using a packed 32-bit AYUV format (0xAAYYUUVV).
+
+    \value Format_AYUV444_Premultiplied
+    The frame is stored using a packed premultiplied 32-bit AYUV format (0xAAYYUUVV).
+
+    \value Format_YUV420P
+    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
+    horizontally and vertically sub-sampled, i.e. the height and width of the U and V planes are
+    half that of the Y plane.
+
+    \value Format_YUV422P
+    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
+    horizontally sub-sampled, i.e. the width of the U and V planes are
+    half that of the Y plane, and height of U and V planes is the same as Y.
+
+    \value Format_YV12
+    The frame is stored using an 8-bit per component planar YVU format with the V and U planes
+    horizontally and vertically sub-sampled, i.e. the height and width of the V and U planes are
+    half that of the Y plane.
+
+    \value Format_UYVY
+    The frame is stored using an 8-bit per component packed YUV format with the U and V planes
+    horizontally sub-sampled (U-Y-V-Y), i.e. two horizontally adjacent pixels are stored as a 32-bit
+    macropixel which has a Y value for each pixel and common U and V values.
+
+    \value Format_YUYV
+    The frame is stored using an 8-bit per component packed YUV format with the U and V planes
+    horizontally sub-sampled (Y-U-Y-V), i.e. two horizontally adjacent pixels are stored as a 32-bit
+    macropixel which has a Y value for each pixel and common U and V values.
+
+    \value Format_NV12
+    The frame is stored using an 8-bit per component semi-planar YUV format with a Y plane (Y)
+    followed by a horizontally and vertically sub-sampled, packed UV plane (U-V).
+
+    \value Format_NV21
+    The frame is stored using an 8-bit per component semi-planar YUV format with a Y plane (Y)
+    followed by a horizontally and vertically sub-sampled, packed VU plane (V-U).
+
+    \value Format_IMC1
+    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
+    horizontally and vertically sub-sampled.  This is similar to the Format_YUV420P type, except
+    that the bytes per line of the U and V planes are padded out to the same stride as the Y plane.
+
+    \value Format_IMC2
+    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
+    horizontally and vertically sub-sampled.  This is similar to the Format_YUV420P type, except
+    that the lines of the U and V planes are interleaved, i.e. each line of U data is followed by a
+    line of V data creating a single line of the same stride as the Y data.
+
+    \value Format_IMC3
+    The frame is stored using an 8-bit per component planar YVU format with the V and U planes
+    horizontally and vertically sub-sampled.  This is similar to the Format_YV12 type, except that
+    the bytes per line of the V and U planes are padded out to the same stride as the Y plane.
+
+    \value Format_IMC4
+    The frame is stored using an 8-bit per component planar YVU format with the V and U planes
+    horizontally and vertically sub-sampled.  This is similar to the Format_YV12 type, except that
+    the lines of the V and U planes are interleaved, i.e. each line of V data is followed by a line
+    of U data creating a single line of the same stride as the Y data.
+
+    \value Format_P010
+    The frame is stored using a 16bit per component semi-planar YUV format with a Y plane (Y)
+    followed by a horizontally and vertically sub-sampled, packed UV plane (U-V). Only the 10 most
+    significant bits of each component are being used.
+
+    \value Format_P016
+    The frame is stored using a 16bit per component semi-planar YUV format with a Y plane (Y)
+    followed by a horizontally and vertically sub-sampled, packed UV plane (U-V).
+
+    \value Format_Y8
+    The frame is stored using an 8-bit greyscale format.
+
+    \value Format_Y16
+    The frame is stored using a 16-bit linear greyscale format.  Little endian.
+
+    \value Format_Jpeg
+    The frame is stored in compressed Jpeg format.
+
+    \value Format_User
+    Start value for user defined pixel formats.
 */
 
 /*!
@@ -279,6 +388,12 @@ int QVideoFrameFormat::frameHeight() const
     return d->frameSize.height();
 }
 
+/*!
+    Returns the number of planes used.
+    This number is depending on the pixel format and is
+    1 for RGB based formats, and a number between 1 and 3 for
+    YUV based formats.
+*/
 int QVideoFrameFormat::planeCount() const
 {
     return QVideoTextureHelper::textureDescription(d->pixelFormat)->nplanes;
@@ -413,16 +528,25 @@ void QVideoFrameFormat::setMirrored(bool mirrored)
     d->mirrored = mirrored;
 }
 
+/*!
+    \internal
+*/
 QString QVideoFrameFormat::vertexShaderFileName() const
 {
     return QVideoTextureHelper::vertexShaderFileName(d->pixelFormat);
 }
 
+/*!
+    \internal
+*/
 QString QVideoFrameFormat::fragmentShaderFileName() const
 {
     return QVideoTextureHelper::fragmentShaderFileName(d->pixelFormat);
 }
 
+/*!
+    \internal
+*/
 QByteArray QVideoFrameFormat::uniformData(const QMatrix4x4 &transform, float opacity) const
 {
     return QVideoTextureHelper::uniformData(*this, transform, opacity);
@@ -431,7 +555,7 @@ QByteArray QVideoFrameFormat::uniformData(const QMatrix4x4 &transform, float opa
 
 /*!
     Returns a video pixel format equivalent to an image \a format.  If there is no equivalent
-    format QVideoFrame::InvalidType is returned instead.
+    format QVideoFrameFormat::Format_Invalid is returned instead.
 
     \note In general \l QImage does not handle YUV formats.
 

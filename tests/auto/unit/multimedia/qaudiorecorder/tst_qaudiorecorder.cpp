@@ -84,13 +84,6 @@ void tst_QAudioRecorder::testNullControl()
     service->hasControls = false;
 
     QVERIFY(source.isAvailable());
-
-    QCOMPARE(source.audioInput(), QAudioDeviceInfo());
-
-    QSignalSpy deviceNameSpy(&source, SIGNAL(audioInputChanged()));
-
-    source.setAudioInput(QAudioDeviceInfo());
-    QCOMPARE(deviceNameSpy.count(), 1);
 }
 
 void tst_QAudioRecorder::testAudioSource()

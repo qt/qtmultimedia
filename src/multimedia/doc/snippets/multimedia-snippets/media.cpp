@@ -51,6 +51,7 @@
 #include "qcamera.h"
 #include "qcameraviewfinder.h"
 #include "qaudiorecorder.h"
+#include "qurl.h"
 #include <QVideoSink>
 
 class MediaExample : public QObject {
@@ -75,7 +76,6 @@ private:
     QCameraViewfinder *viewfinder;
     QCameraImageCapture *imageCapture;
     QString fileName;
-    QAudioRecorder *audioRecorder;
 
     QMediaContent image1;
     QMediaContent image2;
@@ -147,29 +147,17 @@ void MediaExample::MediaRecorder()
 void MediaExample::AudioRecorder()
 {
     //! [Audio recorder]
-    audioRecorder = new QAudioRecorder;
+    QMediaRecorder recorder;
+    recorder.setCaptureMode(QMediaRecorder::AudioOnly);
 
     QMediaEncoderSettings audioSettings;
     audioSettings.setFormat(QMediaEncoderSettings::MP3);
     audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
 
-    audioRecorder->setEncodingSettings(audioSettings);
+    recorder.setEncoderSettings(audioSettings);
 
-    audioRecorder->setOutputLocation(QUrl::fromLocalFile("test.amr"));
-    audioRecorder->record();
+    recorder.setOutputLocation(QUrl::fromLocalFile("test.amr"));
+    recorder.record();
     //! [Audio recorder]
-
-    //! [Audio recorder inputs]
-    const QStringList inputs = audioRecorder->audioInputs();
-    QString selectedInput = audioRecorder->defaultAudioInput();
-
-    for (const QString &input : inputs) {
-        QString description = audioRecorder->audioInputDescription(input);
-        // show descriptions to user and allow selection
-        selectedInput = input;
-    }
-
-    audioRecorder->setAudioInput(selectedInput);
-    //! [Audio recorder inputs]
 }
 

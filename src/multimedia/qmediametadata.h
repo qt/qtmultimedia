@@ -69,9 +69,9 @@ public:
         Url,
 
         Duration,
-
         MediaType,
         FileFormat,
+
         AudioBitRate,
         AudioCodec,
         VideoBitRate,
@@ -83,13 +83,13 @@ public:
         ContributingArtist,
         TrackNumber,
         Composer,
+        LeadPerformer,
 
         ThumbnailImage,
         CoverArtImage,
         Orientation,
 
-        Resolution,
-        LeadPerformer
+        Resolution
     };
     Q_ENUM(Key)
 

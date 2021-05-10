@@ -143,118 +143,13 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     A video frame can also have timestamp information associated with it.  These timestamps can be
     used to determine when to start and stop displaying the frame.
 
-    The video pixel data in a QVideoFrame is encapsulated in a QAbstractVideoBuffer.  A QVideoFrame
-    may be constructed from any buffer type by subclassing the QAbstractVideoBuffer class.
+    QVideoFrame objects can consume a significant amount of memory or system resources and
+    should thus not be held for longer than required by the application.
 
     \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
     change made to a video frame will also apply to any copies.
 */
 
-/*!
-    \enum QVideoFrameFormat::PixelFormat
-
-    Enumerates video data types.
-
-    \value Format_Invalid
-    The frame is invalid.
-
-    \value Format_ARGB32
-    The frame is stored using a 32-bit ARGB format (0xAARRGGBB).  This is equivalent to
-    QImage::Format_ARGB32.
-
-    \value Format_ARGB32_Premultiplied
-    The frame stored using a premultiplied 32-bit ARGB format (0xAARRGGBB).  This is equivalent
-    to QImage::Format_ARGB32_Premultiplied.
-
-    \value Format_RGB32
-    The frame stored using a 32-bit RGB format (0xffRRGGBB).  This is equivalent to
-    QImage::Format_RGB32
-
-    \value Format_BGRA32
-    The frame is stored using a 32-bit BGRA format (0xBBGGRRAA).
-
-    \value Format_BGRA32_Premultiplied
-    The frame is stored using a premultiplied 32bit BGRA format.
-
-    \value Format_ABGR32
-    The frame is stored using a 32-bit ABGR format (0xAABBGGRR).
-
-    \value Format_BGR32
-    The frame is stored using a 32-bit BGR format (0xBBGGRRff).
-
-    \value Format_AYUV444
-    The frame is stored using a packed 32-bit AYUV format (0xAAYYUUVV).
-
-    \value Format_AYUV444_Premultiplied
-    The frame is stored using a packed premultiplied 32-bit AYUV format (0xAAYYUUVV).
-
-    \value Format_YUV420P
-    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
-    horizontally and vertically sub-sampled, i.e. the height and width of the U and V planes are
-    half that of the Y plane.
-
-    \value Format_YUV422P
-    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
-    horizontally sub-sampled, i.e. the width of the U and V planes are
-    half that of the Y plane, and height of U and V planes is the same as Y.
-
-    \value Format_YV12
-    The frame is stored using an 8-bit per component planar YVU format with the V and U planes
-    horizontally and vertically sub-sampled, i.e. the height and width of the V and U planes are
-    half that of the Y plane.
-
-    \value Format_UYVY
-    The frame is stored using an 8-bit per component packed YUV format with the U and V planes
-    horizontally sub-sampled (U-Y-V-Y), i.e. two horizontally adjacent pixels are stored as a 32-bit
-    macropixel which has a Y value for each pixel and common U and V values.
-
-    \value Format_YUYV
-    The frame is stored using an 8-bit per component packed YUV format with the U and V planes
-    horizontally sub-sampled (Y-U-Y-V), i.e. two horizontally adjacent pixels are stored as a 32-bit
-    macropixel which has a Y value for each pixel and common U and V values.
-
-    \value Format_NV12
-    The frame is stored using an 8-bit per component semi-planar YUV format with a Y plane (Y)
-    followed by a horizontally and vertically sub-sampled, packed UV plane (U-V).
-
-    \value Format_NV21
-    The frame is stored using an 8-bit per component semi-planar YUV format with a Y plane (Y)
-    followed by a horizontally and vertically sub-sampled, packed VU plane (V-U).
-
-    \value Format_IMC1
-    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
-    horizontally and vertically sub-sampled.  This is similar to the Format_YUV420P type, except
-    that the bytes per line of the U and V planes are padded out to the same stride as the Y plane.
-
-    \value Format_IMC2
-    The frame is stored using an 8-bit per component planar YUV format with the U and V planes
-    horizontally and vertically sub-sampled.  This is similar to the Format_YUV420P type, except
-    that the lines of the U and V planes are interleaved, i.e. each line of U data is followed by a
-    line of V data creating a single line of the same stride as the Y data.
-
-    \value Format_IMC3
-    The frame is stored using an 8-bit per component planar YVU format with the V and U planes
-    horizontally and vertically sub-sampled.  This is similar to the Format_YV12 type, except that
-    the bytes per line of the V and U planes are padded out to the same stride as the Y plane.
-
-    \value Format_IMC4
-    The frame is stored using an 8-bit per component planar YVU format with the V and U planes
-    horizontally and vertically sub-sampled.  This is similar to the Format_YV12 type, except that
-    the lines of the V and U planes are interleaved, i.e. each line of V data is followed by a line
-    of U data creating a single line of the same stride as the Y data.
-
-    \value Format_Y8
-    The frame is stored using an 8-bit greyscale format.
-
-    \value Format_Y16
-    The frame is stored using a 16-bit linear greyscale format.  Little endian.
-
-    \value Format_Jpeg
-    The frame is stored in compressed Jpeg format.
-
-    \value Format_User
-    Start value for user defined pixel formats.
-*/
 
 /*!
     Constructs a null video frame.
@@ -346,10 +241,6 @@ bool QVideoFrame::operator!=(const QVideoFrame &other) const
 QVideoFrame::~QVideoFrame() = default;
 
 /*!
-    \return underlying video buffer or \c null if there is none.
-    \since 5.13
-*/
-/*!
     Identifies whether a video frame is valid.
 
     An invalid frame has no video buffer associated with it.
@@ -358,7 +249,7 @@ QVideoFrame::~QVideoFrame() = default;
 */
 bool QVideoFrame::isValid() const
 {
-    return d->buffer != nullptr;
+    return d->buffer != nullptr && d->format.pixelFormat() != QVideoFrameFormat::Format_Invalid;
 }
 
 /*!
@@ -380,6 +271,8 @@ QVideoFrameFormat QVideoFrame::surfaceFormat() const
 /*!
     Returns the type of a video frame's handle.
 
+    The handle type could either be NoHandle, meaning that the frame is memory
+    based, or a RHI texture.
 */
 QVideoFrame::HandleType QVideoFrame::handleType() const
 {

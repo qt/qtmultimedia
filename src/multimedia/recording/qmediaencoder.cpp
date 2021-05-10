@@ -63,11 +63,10 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_recording
 
-    \brief The QMediaEncoder class is used for the recording of media content.
+    \brief The QMediaEncoder class is used for the encoding and recording a capture session.
 
-    The QMediaEncoder class is a high level media recording class.  It's not
-    intended to be used alone but for accessing the media recording functions
-    of other media objects, like QCamera.
+    The QMediaEncoder class is a class for encoding and recording media generated in a
+    QMediaCaptureSession.
 
     \snippet multimedia-snippets/media.cpp Media encoder
 */

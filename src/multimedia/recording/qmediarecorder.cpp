@@ -71,15 +71,23 @@ public:
 
     \brief The QMediaRecorder class is used for the recording of media content.
 
-    The QMediaRecorder class is a high level media recording class.  It's not
-    intended to be used alone but for accessing the media recording functions
-    of other media objects, like QCamera.
+    The QMediaRecorder class is a high level media recording class.  It's
+    intended to be used as a simple standalone class to record from the default
+    camera and microphone.
 
     \snippet multimedia-snippets/media.cpp Media recorder
+
+    If you need a more flexible setup, use QMediaCaptureSession.
+
+    \sa QMediaCaptureSession
 */
 
 /*!
-    Constructs a media recorder which records the media produced by a microphone and camera.
+    Constructs a media recorder with \a parent and \a mode.
+
+    QMediaRecorder will always use the default microphone and camera of the system.
+    The CaptureMode \a mode parameter can be used to determine whether the recorder
+    should only record audio or also use the camera.
 */
 
 QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
@@ -98,7 +106,7 @@ QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
     connect(d->encoder, &QMediaEncoder::statusChanged, this, &QMediaRecorder::statusChanged);
     connect(d->captureSession, &QMediaCaptureSession::mutedChanged, this, &QMediaRecorder::mutedChanged);
     connect(d->captureSession, &QMediaCaptureSession::volumeChanged, this, &QMediaRecorder::volumeChanged);
-    connect(d->captureSession, &QMediaCaptureSession::audioInputChanged, this, &QMediaRecorder::audioInputChanged);
+    connect(d->captureSession, &QMediaCaptureSession::videoOutputChanged, this, &QMediaRecorder::videoOutputChanged);
 }
 
 /*!
@@ -446,34 +454,36 @@ void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
 
 */
 
-/*!
-    Returns the active audio input.
-*/
-
-QAudioDeviceInfo QMediaRecorder::audioInput() const
-{
-    return d_ptr->captureSession->audioInput();
-}
-
 QMediaCaptureSession *QMediaRecorder::captureSession() const
 {
     Q_D(const QMediaRecorder);
     return d->captureSession;
 }
 
-/*!
-    Set the active audio input to \a device.
-*/
-
-void QMediaRecorder::setAudioInput(const QAudioDeviceInfo &device)
+void QMediaRecorder::setVideoOutput(const QVariant &output)
 {
-    d_ptr->captureSession->setAudioInput(device);
+    d_ptr->captureSession->setVideoOutput(output);
+}
+
+QVariant QMediaRecorder::videoOutput() const
+{
+    return d_ptr->captureSession->videoOutput();
+}
+
+void QMediaRecorder::setVideoOutput(QObject *output)
+{
+    d_ptr->captureSession->setVideoOutput(output);
+}
+
+void QMediaRecorder::setVideoOutput(QVideoSink *output)
+{
+    d_ptr->captureSession->setVideoOutput(output);
 }
 
 /*!
-    \fn QMediaRecorder::audioInputChanged(const QString& name)
+    \fn QMediaRecorder::videoOutputChanged()
 
-    Signal emitted when active audio input changes to \a name.
+    This signal is emitted when the active video output changed.
 */
 
 QT_END_NAMESPACE

@@ -100,7 +100,7 @@ void overview_surface()
     camera->setVideoOutput(mySink);
 
     camera->start();
-    // MyVideoSurface::newVideoFrame(..) will be called with video frames
+    // MyVideoSink::newVideoFrame(..) will be called with video frames
     //! [Camera overview surface]
 }
 

@@ -33,19 +33,16 @@
 \section1 Audio Features
 
 Qt Multimedia offers a range of audio classes, covering both low and
-high level approaches to audio input, output and processing.  In
-addition to traditional audio usage, the \l{Qt Audio Engine QML Types}{Qt Audio Engine}
-QML types offer high level 3D positional audio for QML applications.
-See that documentation for more information.
+high level approaches to audio input, output and processing.
 
 \section1 Audio Implementation Details
 
 \section2 Playing Compressed Audio
 For playing media or audio files that are not simple, uncompressed audio, you can
-use the \l QMediaPlayer C++ class, or the \l {Audio} and \l {MediaPlayer} QML types.
+use the \l QMediaPlayer C++ class, or the \l {MediaPlayer} QML type.
 The QMediaPlayer class and associated QML types are also capable of playing
 \l{multimedia-playing-video}{video}, if required.  The compressed audio formats supported does depend
-on the operating system environment, and also what media plugins the user
+on the operating system environment, and also what decoder plugins the user
 may have installed.
 
 Here is how you play a local file using C++:
@@ -56,18 +53,19 @@ You can also put files (even remote URLs) into a playlist:
     \snippet multimedia-snippets/media.cpp Audio playlist
 
 \section2 Recording Audio to a File
-For recording audio to a file, the \l {QAudioRecorder} class allows you
+For recording audio to a file, the \l {QMediaRecorder} class allows you
 to compress audio data from an input device and record it.
 
     \snippet multimedia-snippets/media.cpp Audio recorder
+
+\l {QMediaCaptureSession} provides support for more complex capturing and recording use cases.
 
 \section2 Low Latency Sound Effects
 
 In addition to the raw access to sound devices described above, the QSoundEffect class (and
 \l {SoundEffect} QML type) offers a slightly higher level way to play
-sounds.  These classes allow you to specify a WAV format file which can
-then be played with low latency when necessary.  Both QSoundEffect and
-SoundEffect have essentially the same API.
+sounds.  This class allows you to specify a WAV format file which can
+then be played with low latency when necessary.
 
 You can adjust the number of \l {QSoundEffect::loopCount()}{loops} a sound effect is played, as well as
 the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
@@ -80,9 +78,7 @@ these classes do not do any audio decoding, or other processing, but they
 can support different types of raw audio data.
 
 The QAudioOutput class offers raw audio data output, while QAudioInput
-offers raw audio data input.  Both classes have adjustable buffers and
-latency, so they are suitable for both low latency use cases (like games
-or VOIP) and high latency (like music playback).  The available hardware
+offers raw audio data input. The available hardware
 determines what audio outputs and inputs are available.
 
 \section3 Push and Pull

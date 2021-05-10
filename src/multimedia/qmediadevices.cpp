@@ -88,27 +88,42 @@ private:
     QMediaDevices is a singleton object and all getters are thread-safe.
 */
 
+/*!
+    Returns a list of available audio input devices on the system.
+
+    Those devices are usually microphones, either built-in, or connected to
+    the device through e.g. USB or Bluetooth.
+*/
 QList<QAudioDeviceInfo> QMediaDevices::audioInputs()
 {
     return priv.platformDevices()->audioInputs();
 }
 
+/*!
+    Returns a list of available audio input devices on the system.
+
+    Those devices are usually loudspeakers or head sets, either built-in,
+    or connected to the device through e.g. USB or Bluetooth.
+*/
 QList<QAudioDeviceInfo> QMediaDevices::audioOutputs()
 {
     return priv.platformDevices()->audioOutputs();
 }
 
 /*!
-    Returns a list of available cameras on the system which are located at \a position.
-
-    If \a position is not specified or if the value is QCameraInfo::UnspecifiedPosition, a list of
-    all available cameras will be returned.
+    Returns a list of available cameras on the system.
 */
 QList<QCameraInfo> QMediaDevices::videoInputs()
 {
     return priv.platformDevices()->videoInputs();
 }
 
+/*!
+    Returns the default audio input device.
+
+    The default device can change during the runtime of the application. The audioInputsChanged()
+    signal will get emitted in that case.
+*/
 QAudioDeviceInfo QMediaDevices::defaultAudioInput()
 {
     const auto inputs = audioInputs();
@@ -118,6 +133,12 @@ QAudioDeviceInfo QMediaDevices::defaultAudioInput()
     return inputs.value(0);
 }
 
+/*!
+    Returns the default audio output device.
+
+    The default device can change during the runtime of the application. The audioOutputsChanged()
+    signal will get emitted in that case.
+*/
 QAudioDeviceInfo QMediaDevices::defaultAudioOutput()
 {
     const auto outputs = audioOutputs();
@@ -132,6 +153,9 @@ QAudioDeviceInfo QMediaDevices::defaultAudioOutput()
 
     The returned object should be checked using isNull() before being used, in case there is no
     default camera or no cameras at all.
+
+    The default device can change during the runtime of the application. The videoInputsChanged()
+    signal will get emitted in that case.
 
     \sa availableCameras()
 */

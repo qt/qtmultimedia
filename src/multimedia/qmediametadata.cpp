@@ -59,26 +59,19 @@ QT_BEGIN_NAMESPACE
     Common attributes
     \header \li Value \li Description \li Type
     \row \li Title \li The title of the media.  \li QString
-    \row \li SubTitle \li The sub-title of the media. \li QString
     \row \li Author \li The authors of the media. \li QStringList
     \row \li Comment \li A user comment about the media. \li QString
     \row \li Description \li A description of the media.  \li QString
-    \row \li Category \li The category of the media.  \li QStringList
     \row \li Genre \li The genre of the media.  \li QStringList
     \row \li Date \li The date of the media. \li QDate.
-    \row \li UserRating \li A user rating of the media. \li int [0..100]
-    \row \li Keywords \li A list of keywords describing the media.  \li QStringList
     \row \li Language \li The language of media, as an ISO 639-2 code. \li QString
 
     \row \li Publisher \li The publisher of the media.  \li QString
     \row \li Copyright \li The media's copyright notice.  \li QString
-    \row \li ParentalRating \li The parental rating of the media.  \li QString
-    \row \li RatingOrganization \li The organization responsible for the parental rating of the media.
-    \li QString
+    \row \li Url \li A Url pointing to the origin of the media.  \li QUrl
 
     \header \li {3,1}
     Media attributes
-    \row \li Size \li The size in bytes of the media. \li qint64
     \row \li MediaType \li The type of the media (audio, video, etc).  \li QString
     \row \li FileFormat \li The file format of the media.  \li QMediaFormat::FileFormat
     \row \li Duration \li The duration in millseconds of the media.  \li qint64
@@ -87,31 +80,6 @@ QT_BEGIN_NAMESPACE
     Audio attributes
     \row \li AudioBitRate \li The bit rate of the media's audio stream in bits per second.  \li int
     \row \li AudioCodec \li The codec of the media's audio stream.  \li QMediaForma::AudioCodec
-    \row \li AverageLevel \li The average volume level of the media.  \li int
-    \row \li ChannelCount \li The number of channels in the media's audio stream. \li int
-    \row \li PeakValue \li The peak volume of the media's audio stream. \li int
-    \row \li SampleRate \li The sample rate of the media's audio stream in hertz. \li int
-
-    \header \li {3,1}
-    Music attributes
-    \row \li AlbumTitle \li The title of the album the media belongs to.  \li QString
-    \row \li AlbumArtist \li The principal artist of the album the media belongs to.  \li QString
-    \row \li ContributingArtist \li The artists contributing to the media.  \li QStringList
-    \row \li Composer \li The composer of the media.  \li QStringList
-    \row \li Conductor \li The conductor of the media. \li QString
-    \row \li Lyrics \li The lyrics to the media. \li QString
-    \row \li Mood \li The mood of the media.  \li QString
-    \row \li TrackNumber \li The track number of the media.  \li int
-    \row \li TrackCount \li The number of tracks on the album containing the media.  \li int
-
-    \row \li CoverArtUrlSmall \li The URL of a small cover art image. \li  QUrl
-    \row \li CoverArtUrlLarge \li The URL of a large cover art image. \li  QUrl
-    \row \li CoverArtImage \li An embedded cover art image. \li  QImage
-
-    \header \li {3,1}
-    Image and video attributes
-    \row \li Resolution \li The dimensions of an image or video. \li QSize
-    \row \li Orientation \li Orientation of an image or video. \li int (degrees)
 
     \header \li {3,1}
     Video attributes
@@ -119,15 +87,28 @@ QT_BEGIN_NAMESPACE
     \row \li VideoBitRate \li The bit rate of the media's video stream in bits per second.  \li int
     \row \li VideoCodec \li The codec of the media's video stream.  \li QMediaFormat::VideoCodec
 
-    \row \li PosterUrl \li The URL of a poster image. \li QUrl
-    \row \li PosterImage \li An embedded poster image. \li QImage
+    \header \li {3,1}
+    Music attributes
+    \row \li AlbumTitle \li The title of the album the media belongs to.  \li QString
+    \row \li AlbumArtist \li The principal artist of the album the media belongs to.  \li QString
+    \row \li ContributingArtist \li The artists contributing to the media.  \li QStringList
+    \row \li TrackNumber \li The track number of the media.  \li int
+    \row \li Composer \li The composer of the media.  \li QStringList
+    \row \li LeadPerformer \li The lead performer in the media.  \li QStringList
+
+    \row \li ThumbnailImage \li An embedded thumbnail image.  \li QImage
+    \row \li CoverArtImage \li An embedded cover art image. \li  QImage
 
     \header \li {3,1}
-    Movie attributes
-    \row \li ChapterNumber \li The chapter number of the media.  \li int
-    \row \li Director \li The director of the media.  \li QString
-    \row \li LeadPerformer \li The lead performer in the media.  \li QStringList
-    \row \li Writer \li The writer of the media.  \li QStringList
+    Image and video attributes
+    \row \li Resolution \li The dimensions of an image or video. \li QSize
+
+    \endtable
+*/
+
+/*
+    Some potential attributes to add if we can properly support them.
+    Might require that we add EXIF support to Qt Multimedia
 
     \header \li {3,1}
     Photo attributes.
@@ -216,30 +197,32 @@ QT_BEGIN_NAMESPACE
     \row \li GPSAreaInformation
         \li The name of the GPS area. \li QString
 
-    \row \li ThumbnailImage \li An embedded thumbnail image.  \li QImage
     \endtable
 */
 
-//QMetaType QMediaMetaData::typeForKey(QMediaMetaData::Key k)
-//{
-
-//}
-
 /*!
-    \fn QVariant QMediaMetaData::value(QMediaMetaData::Key k) const
+    \fn QVariant QMediaMetaData::value(QMediaMetaData::Key key) const
+
+    Returns the meta data value for Key \a key, or a null QVariant is not
+    meta data for the key is available.
 */
 
 /*!
     \fn void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
 */
 
-QString QMediaMetaData::stringValue(QMediaMetaData::Key k) const
+/*!
+    Returns the meta data for key \a key as a QString.
+
+    This is mainly meant to simplify presenting the meta data to a user.
+*/
+QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
 {
-    QVariant value = data.value(k);
+    QVariant value = data.value(key);
     if (value.isNull())
         return QString();
 
-    switch (k) {
+    switch (key) {
     // string based or convertible to string
     case Title:
     case Author:
@@ -284,9 +267,12 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key k) const
     return QString();
 }
 
-QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key k)
+/*!
+    returns a string representation of \a key that can be used when presenting meta data to users.
+*/
+QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 {
-    switch (k) {
+    switch (key) {
         case QMediaMetaData::Title:
             return (QObject::tr("Title"));
         case QMediaMetaData::Author:

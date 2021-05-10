@@ -85,6 +85,27 @@ public:
     }
 };
 
+/*!
+    \class QMediaCaptureSession
+
+    \brief The QMediaCaptureSession class allows capturing of audio and video content.
+    \inmodule QtMultimedia
+    \ingroup multimedia
+
+    The QMediaCaptureSession is the central class that manages capturing of media on the local device.
+
+    You can connect a camera and a microphone to QMediaCaptureSession using setCamera() and setAudioInput().
+    A preview of the captured media can be seen by setting a QVideoSink of QVideoWidget using setVideoOutput()
+    and heard by routing the audio to an output device using setAudioOutput().
+
+    You can capture still images from a camera by setting a QCameraImageCapture object on the capture session,
+    and record audio/video using a QMediaEncoder.
+
+    If you need a simple class that records media from the default camera and microphone, you can use QMediaRecorder.
+    That class uses a QMediaCaptureSession behind the scene to support audio and video capture.
+
+    \sa QCamera, QAudioDeviceInfo, QMediaEncoder, QCameraImageCapture, QMediaRecorder
+*/
 
 /*!
     Creates a session for media capture.
@@ -124,13 +145,22 @@ bool QMediaCaptureSession::isAvailable() const
 }
 
 /*!
-    Creates a session for media capture.
- */
+    Returns the device that is being used to capture audio.
+*/
 QAudioDeviceInfo QMediaCaptureSession::audioInput() const
 {
     return d_ptr->audioInput;
 }
 
+/*!
+    Sets the audio input device to \a device. If setting it to an empty
+    QAudioDeviceInfo the capture session will use the default input as
+    defined by the operating system.
+
+    Use setMuted(), if you want to disable audio input.
+
+    \sa muted(), setMuted()
+*/
 void QMediaCaptureSession::setAudioInput(const QAudioDeviceInfo &device)
 {
     d_ptr->audioInput = device;
@@ -178,7 +208,13 @@ void QMediaCaptureSession::setVolume(qreal volume)
     d_ptr->captureSession->setVolume(volume);
 }
 
+/*!
+    \property QMediaCaptureSession::camera
 
+    \brief the camera used to capture video.
+
+    Record the camera or take images by adding a camera t the capture session using this property,
+*/
 QCamera *QMediaCaptureSession::camera() const
 {
     return d_ptr->camera;
@@ -197,6 +233,14 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
     emit cameraChanged();
 }
 
+/*!
+    \property QMediaCaptureSession::imageCapture
+
+    \brief the object used to capture still images.
+
+    Add a QCameraImageCapture object to the capture session to enable
+    capturing of still images from the camera.
+*/
 QCameraImageCapture *QMediaCaptureSession::imageCapture()
 {
     return d_ptr->imageCapture;
@@ -214,6 +258,15 @@ void QMediaCaptureSession::setImageCapture(QCameraImageCapture *imageCapture)
         d_ptr->imageCapture->setCaptureSession(this);
     emit imageCaptureChanged();
 }
+
+/*!
+    \property QMediaCaptureSession::encoder
+
+    \brief the encoder object used to capture audio/video.
+
+    Add a QMediaEncoder object to the capture session to enable
+    recording of audio and/or video from the capture session.
+*/
 
 QMediaEncoder *QMediaCaptureSession::encoder()
 {
@@ -292,6 +345,9 @@ void QMediaCaptureSession::setVideoOutput(QVideoSink *sink)
     d->setVideoSink(sink);
 }
 
+/*!
+    \internal
+*/
 QPlatformMediaCaptureSession *QMediaCaptureSession::platformSession() const
 {
     return d_ptr->captureSession;

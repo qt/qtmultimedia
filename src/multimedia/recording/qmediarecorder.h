@@ -44,6 +44,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QVideoSink;
+
 class QMediaRecorderPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QMediaEncoderBase
 {
@@ -55,8 +57,9 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QMediaEncoderBase
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
-    Q_PROPERTY(QAudioDeviceInfo audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
+    Q_PROPERTY(QVariant videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
+    Q_PROPERTY(QCamera camera READ camera)
 public:
 
     enum CaptureMode {
@@ -72,6 +75,7 @@ public:
     CaptureMode captureMode() const;
     void setCaptureMode(CaptureMode mode);
 
+    // ### Should we expose this, or restrict it to cameraFormat?
     QCamera *camera() const;
 
     QUrl outputLocation() const;
@@ -95,9 +99,13 @@ public:
     void setMetaData(const QMediaMetaData &metaData);
     void addMetaData(const QMediaMetaData &metaData);
 
-    QAudioDeviceInfo audioInput() const;
-
     QMediaCaptureSession *captureSession() const;
+
+    void setVideoOutput(const QVariant &output);
+    QVariant videoOutput() const;
+
+    void setVideoOutput(QObject *output);
+    void setVideoOutput(QVideoSink *output);
 
 public Q_SLOTS:
     void record();
@@ -105,7 +113,6 @@ public Q_SLOTS:
     void stop();
     void setMuted(bool muted);
     void setVolume(qreal volume);
-    void setAudioInput(const QAudioDeviceInfo &device);
 
 Q_SIGNALS:
     void stateChanged(QMediaRecorder::State state);
@@ -113,8 +120,8 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
     void mutedChanged(bool muted);
     void volumeChanged(qreal volume);
-    void audioInputChanged();
     void captureModeChanged();
+    void videoOutputChanged();
 
     void error(QMediaRecorder::Error error);
 
