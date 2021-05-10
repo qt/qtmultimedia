@@ -110,7 +110,7 @@ QAudioBuffer::QAudioBuffer(const QAudioBuffer &other) noexcept = default;
  */
 QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format, qint64 startTime)
 {
-    if (!format.isValid())
+    if (!format.isValid() || !data.size())
         return;
     d = new QAudioBufferPrivate(format, data, startTime);
 }
@@ -126,7 +126,7 @@ QAudioBuffer::QAudioBuffer(const QByteArray &data, const QAudioFormat &format, q
  */
 QAudioBuffer::QAudioBuffer(int numFrames, const QAudioFormat &format, qint64 startTime)
 {
-    if (!format.isValid())
+    if (!format.isValid() || !numFrames)
         return;
 
     QByteArray data(format.bytesForFrames(numFrames), '\0');
