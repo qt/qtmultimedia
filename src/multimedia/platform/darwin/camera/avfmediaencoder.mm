@@ -163,8 +163,8 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
     [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
 
 #ifdef Q_OS_MACOS
-    // Setting AVEncoderQualityKey is not allowed when format ID is 'alac'
-    if (codecId != kAudioFormatAppleLossless
+    // Setting AVEncoderQualityKey is not allowed when format ID is alac or lpcm
+    if (codecId != kAudioFormatAppleLossless && codecId != kAudioFormatLinearPCM
         && encoderSettings.encodingMode() == QMediaEncoderSettings::ConstantQualityEncoding) {
         int quality;
         switch (encoderSettings.quality()) {

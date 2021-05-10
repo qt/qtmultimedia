@@ -62,7 +62,7 @@ const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
     "audio/mpeg",
     "audio/mp4",
     "audio/alac",
-    "audio/wave",
+    "audio/wav",
 };
 
 }

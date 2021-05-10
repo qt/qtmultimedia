@@ -159,6 +159,9 @@ QDarwinFormatInfo::QDarwinFormatInfo()
         { QMediaFormat::Mpeg4Audio,
           { QMediaFormat::AudioCodec::AAC },
           {} },
+        { QMediaFormat::Wave,
+            { QMediaFormat::AudioCodec::Wave },
+            {} },
     };
 // #endif
 
@@ -177,7 +180,6 @@ int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
     case QMediaFormat::AudioCodec::Unspecified:
     case QMediaFormat::AudioCodec::DolbyTrueHD:
     case QMediaFormat::AudioCodec::Vorbis:
-    case QMediaFormat::AudioCodec::Wave:
         // Unsupported, shouldn't happen. Fall back to AAC
     case QMediaFormat::AudioCodec::AAC:
         codecId = kAudioFormatMPEG4AAC;
@@ -200,6 +202,8 @@ int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
     case QMediaFormat::AudioCodec::Opus:
         codecId = kAudioFormatOpus;
         break;
+    case QMediaFormat::AudioCodec::Wave:
+        codecId = kAudioFormatLinearPCM;
     }
     return codecId;
 }
