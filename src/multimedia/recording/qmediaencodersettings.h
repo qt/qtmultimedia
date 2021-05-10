@@ -79,6 +79,12 @@ public:
         TwoPassEncoding
     };
 
+    enum ResolveFlags
+    {
+        NoFlags,
+        RequiresVideo
+    };
+
     QMediaEncoderSettings();
     QMediaEncoderSettings(FileFormat format);
     QMediaEncoderSettings(const QMediaEncoderSettings& other);
@@ -91,7 +97,7 @@ public:
     Quality quality() const;
     void setQuality(Quality quality);
 
-    void resolveFormat();
+    void resolveFormat(ResolveFlags = NoFlags);
 
     QSize videoResolution() const;
     void setVideoResolution(const QSize &);

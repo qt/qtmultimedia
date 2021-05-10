@@ -52,8 +52,6 @@ QList<QMediaFormat::FileFormat> QPlatformMediaFormatInfo::supportedFileFormats(c
 
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
     for (const auto &m : codecMap) {
-        if (constraints.mode() == QMediaFormat::AudioAndVideo && m.video.isEmpty())
-            continue;
         if (constraints.audioCodec() != QMediaFormat::AudioCodec::Unspecified && !m.audio.contains(constraints.audioCodec()))
             continue;
         if (constraints.videoCodec() != QMediaFormat::VideoCodec::Unspecified && !m.video.contains(constraints.videoCodec()))
@@ -81,9 +79,6 @@ QList<QMediaFormat::AudioCodec> QPlatformMediaFormatInfo::supportedAudioCodecs(c
 
 QList<QMediaFormat::VideoCodec> QPlatformMediaFormatInfo::supportedVideoCodecs(const QMediaFormat &constraints, QMediaFormat::ConversionMode m) const
 {
-    if (constraints.mode() == QMediaFormat::AudioOnly)
-        return {};
-
     QSet<QMediaFormat::VideoCodec> codecs;
 
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
@@ -107,7 +102,7 @@ bool QPlatformMediaFormatInfo::isSupported(const QMediaFormat &format, QMediaFor
             continue;
         if (!m.audio.contains(format.audioCodec()))
             continue;
-        if (format.mode() == QMediaFormat::AudioAndVideo && !m.video.contains(format.videoCodec()))
+        if (format.videoCodec() != QMediaFormat::VideoCodec::Unspecified && !m.video.contains(format.videoCodec()))
             continue;
         return true;
     }

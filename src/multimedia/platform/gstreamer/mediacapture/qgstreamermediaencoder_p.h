@@ -105,6 +105,7 @@ private slots:
     void handleSessionError(int code, const QString &description);
     void updateDuration();
     void finalize();
+    void updateSettings();
 
 private:
     QDir defaultDir() const;

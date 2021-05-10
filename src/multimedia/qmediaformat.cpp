@@ -91,9 +91,8 @@ const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
 */
 
 // these are non inline to make a possible future addition of a d pointer binary compatible
-QMediaFormat::QMediaFormat(FileFormat format, Mode mode)
-    : fmtMode(mode),
-      fmt(format)
+QMediaFormat::QMediaFormat(FileFormat format)
+    : fmt(format)
 {
     Q_UNUSED(d);
 }
@@ -329,8 +328,7 @@ QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec c)
 bool QMediaFormat::operator==(const QMediaFormat &other) const
 {
     Q_ASSERT(!d);
-    return fmtMode == other.fmtMode &&
-            fmt == other.fmt &&
+    return fmt == other.fmt &&
             audio == other.audio &&
             video == other.video;
 }

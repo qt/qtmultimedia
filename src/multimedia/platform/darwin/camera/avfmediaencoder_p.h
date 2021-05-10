@@ -89,11 +89,7 @@ public:
     void unapplySettings();
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
-    QMediaEncoderSettings encoderSettings() const {
-        QMediaEncoderSettings s = m_settings;
-        s.resolveFormat();
-        return s;
-    }
+    QMediaEncoderSettings encoderSettings() const;
 
     AVFCameraService *cameraService() const { return m_service; }
 

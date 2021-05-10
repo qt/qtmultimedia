@@ -231,7 +231,7 @@ void QMediaEncoderSettings::setQuality(Quality quality)
     Settings that are not supported by the encoder will be modified to the closest
     match that is supported.
  */
-void QMediaEncoderSettings::resolveFormat()
+void QMediaEncoderSettings::resolveFormat(ResolveFlags flags)
 {
     if (isSupported(Encode))
         return;
@@ -248,7 +248,7 @@ void QMediaEncoderSettings::resolveFormat()
         f.setAudioCodec(audio);
         f.setVideoCodec(video);
         auto supportedFormats = f.supportedFileFormats(QMediaFormat::Encode);
-        auto *list = (fmtMode == AudioOnly) ? audioFormatPriorityList : videoFormatPriorityList;
+        auto *list = (flags == NoFlags) ? audioFormatPriorityList : videoFormatPriorityList;
         while (*list != QMediaFormat::UnspecifiedFormat) {
             if (supportedFormats.contains(*list))
                 break;
@@ -262,10 +262,10 @@ void QMediaEncoderSettings::resolveFormat()
         fmt = QMediaFormat::UnspecifiedFormat;
     if (!supportedAudioCodecs.contains(audio))
         audio = QMediaFormat::AudioCodec::Unspecified;
-    if ((fmtMode == AudioOnly) || !supportedVideoCodecs.contains(video))
+    if ((flags == NoFlags) || !supportedVideoCodecs.contains(video))
         video = QMediaFormat::VideoCodec::Unspecified;
 
-    if (!(fmtMode == AudioOnly)) {
+    if (!(flags == NoFlags)) {
         // try finding a file format that is supported
         if (fmt == QMediaFormat::UnspecifiedFormat)
             fmt = bestSupportedFileFormat(audio, video);
@@ -284,7 +284,7 @@ void QMediaEncoderSettings::resolveFormat()
         return;
 
     // find a working video codec
-    if (!(fmtMode == AudioOnly)) {
+    if (!(flags == NoFlags)) {
         // reset the audio codec, so that we won't throw away the video codec
         // if it is supported (choosing the specified video codec has higher
         // priority than the specified audio codec)

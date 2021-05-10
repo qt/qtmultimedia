@@ -263,7 +263,7 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     auto *containerProfile = createContainerProfile(settings);
     if (containerProfile) {
         GstEncodingProfile *audioProfile = createAudioProfile(settings);
-        GstEncodingProfile *videoProfile = settings.mode() & QMediaFormat::AudioAndVideo ? createVideoProfile(settings) : nullptr;
+        GstEncodingProfile *videoProfile = settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified ? createVideoProfile(settings) : nullptr;
         qDebug() << "audio profile" << gst_caps_to_string(gst_encoding_profile_get_format(audioProfile));
         qDebug() << "video profile" << gst_caps_to_string(gst_encoding_profile_get_format(videoProfile));
         qDebug() << "conta profile" << gst_caps_to_string(gst_encoding_profile_get_format((GstEncodingProfile *)containerProfile));
@@ -331,7 +331,7 @@ void QGstreamerMediaEncoder::record()
     QGstPad audioPad = gstEncoder.getRequestPad("audio_%u");
     audioSrcPad.link(audioPad);
 
-    if (m_settings.mode() == QMediaFormat::AudioAndVideo) {
+    if (m_settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified) {
         videoSrcPad = m_session->getVideoPad();
         if (!videoSrcPad.isNull()) {
             QGstPad videoPad = gstEncoder.getRequestPad("video_%u");
@@ -400,20 +400,27 @@ void QGstreamerMediaEncoder::finalize()
     updateStatus();
 }
 
-void QGstreamerMediaEncoder::applySettings()
+void QGstreamerMediaEncoder::updateSettings()
 {
+    applySettings();
 }
 
-void QGstreamerMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
+void QGstreamerMediaEncoder::applySettings()
 {
     if (!m_session)
         return;
-    m_settings = settings;
-    m_settings.resolveFormat();
+    const auto flag = m_session->camera() ? QMediaEncoderSettings::RequiresVideo
+                                          : QMediaEncoderSettings::NoFlags;
+    m_settings.resolveFormat(flag);
 
     auto *encodingProfile = createEncodingProfile(m_settings);
     g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
     gst_encoding_profile_unref(encodingProfile);
+}
+
+void QGstreamerMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
+{
+    m_settings = settings;
 }
 
 void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
@@ -463,13 +470,15 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
 
     // ensure we have a usable format
     setEncoderSettings(QMediaEncoderSettings());
+    connect(m_session, &QGstreamerMediaCapture::cameraChanged,
+            this, &QGstreamerMediaEncoder::updateSettings);
 }
 
 QDir QGstreamerMediaEncoder::defaultDir() const
 {
     QStringList dirCandidates;
 
-    if (m_settings.mode() == QMediaFormat::AudioAndVideo)
+    if (m_settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified)
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     else
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);

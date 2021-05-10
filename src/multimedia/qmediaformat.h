@@ -108,12 +108,7 @@ public:
         Decode
     };
 
-    enum Mode {
-        AudioOnly,
-        AudioAndVideo
-    };
-
-    QMediaFormat(FileFormat format = UnspecifiedFormat, Mode = AudioAndVideo);
+    QMediaFormat(FileFormat format = UnspecifiedFormat);
     ~QMediaFormat();
     QMediaFormat(const QMediaFormat &other);
     QMediaFormat &operator=(const QMediaFormat &other);
@@ -128,9 +123,6 @@ public:
     AudioCodec audioCodec() const { return audio; }
 
     bool isSupported(ConversionMode mode) const;
-
-    void setMode(Mode m) { fmtMode = m; }
-    Mode mode() const { return fmtMode; }
 
     QMimeType mimeType() const;
 
@@ -152,7 +144,6 @@ public:
 
 protected:
     friend class QMediaFormatPrivate;
-    Mode fmtMode;
     FileFormat fmt;
     AudioCodec audio = AudioCodec::Unspecified;
     VideoCodec video = VideoCodec::Unspecified;

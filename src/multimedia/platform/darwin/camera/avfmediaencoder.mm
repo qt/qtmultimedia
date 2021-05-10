@@ -370,11 +370,14 @@ void AVFMediaEncoder::applySettings()
     if (m_state != QMediaEncoder::StoppedState)
         return;
 
-    auto encoderSettings = m_settings;
-    encoderSettings.resolveFormat();
+    const auto flag = (session->activeCameraInfo().isNull())
+                              ? QMediaEncoderSettings::ResolveFlags::NoFlags
+                              : QMediaEncoderSettings::ResolveFlags::RequiresVideo;
+
+    m_settings.resolveFormat(flag);
 
     // audio settings
-    m_audioSettings = avfAudioSettings(encoderSettings);
+    m_audioSettings = avfAudioSettings(m_settings);
     if (m_audioSettings)
         [m_audioSettings retain];
 
@@ -384,7 +387,7 @@ void AVFMediaEncoder::applySettings()
         return;
     const AVFConfigurationLock lock(device); // prevents activeFormat from being overridden
     AVCaptureConnection *conn = [session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
-    m_videoSettings = avfVideoSettings(encoderSettings, device, conn);
+    m_videoSettings = avfVideoSettings(m_settings, device, conn);
     if (m_videoSettings)
         [m_videoSettings retain];
 }
@@ -404,6 +407,16 @@ void AVFMediaEncoder::unapplySettings()
 void AVFMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     m_settings = settings;
+}
+
+QMediaEncoderSettings AVFMediaEncoder::encoderSettings() const
+{
+    QMediaEncoderSettings s = m_settings;
+    const auto flag = (m_service->session()->activeCameraInfo().isNull())
+                            ? QMediaEncoderSettings::ResolveFlags::NoFlags
+                            : QMediaEncoderSettings::ResolveFlags::RequiresVideo;
+    s.resolveFormat(flag);
+    return s;
 }
 
 void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -454,7 +467,7 @@ void AVFMediaEncoder::setState(QMediaEncoder::State state)
 
 void AVFMediaEncoder::record()
 {
-    const bool audioOnly = m_settings.mode() == QMediaFormat::AudioOnly;
+    const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
     AVCaptureSession *session = m_service->session()->captureSession();
     float rotation = 0;
 
