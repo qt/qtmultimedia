@@ -73,7 +73,7 @@ typedef enum {
 
 
 
-QGstreamerAudioDecoder::QGstreamerAudioDecoder(QObject *parent)
+QGstreamerAudioDecoder::QGstreamerAudioDecoder(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent),
     m_playbin(GST_PIPELINE_CAST(QGstElement("playbin", "playbin").element()))
 {
@@ -352,6 +352,7 @@ void QGstreamerAudioDecoder::start()
     m_pendingState = QAudioDecoder::DecodingState;
     if (m_playbin.setState(GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
         qWarning() << "GStreamer; Unable to start decoding process";
+        m_playbin.dumpGraph("failed");
         m_pendingState = m_state = QAudioDecoder::StoppedState;
 
         emit stateChanged(m_state);
@@ -475,19 +476,19 @@ void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode,
 GstFlowReturn QGstreamerAudioDecoder::new_sample(GstAppSink *, gpointer user_data)
 {
     // "Note that the preroll buffer will also be returned as the first buffer when calling gst_app_sink_pull_buffer()."
-    QGstreamerAudioDecoder *control = reinterpret_cast<QGstreamerAudioDecoder*>(user_data);
+    QGstreamerAudioDecoder *decoder = reinterpret_cast<QGstreamerAudioDecoder*>(user_data);
 
     int buffersAvailable;
     {
-        QMutexLocker locker(&control->m_buffersMutex);
-        buffersAvailable = control->m_buffersAvailable;
-        control->m_buffersAvailable++;
-        Q_ASSERT(control->m_buffersAvailable <= MAX_BUFFERS_IN_QUEUE);
+        QMutexLocker locker(&decoder->m_buffersMutex);
+        buffersAvailable = decoder->m_buffersAvailable;
+        decoder->m_buffersAvailable++;
+        Q_ASSERT(decoder->m_buffersAvailable <= MAX_BUFFERS_IN_QUEUE);
     }
 
     if (!buffersAvailable)
-        QMetaObject::invokeMethod(control, "bufferAvailableChanged", Qt::QueuedConnection, Q_ARG(bool, true));
-    QMetaObject::invokeMethod(control, "bufferReady", Qt::QueuedConnection);
+        decoder->bufferAvailableChanged(true);
+    decoder->bufferReady();
     return GST_FLOW_OK;
 }
 

@@ -66,12 +66,12 @@ QPlatformMediaDevices *QMockIntegration::devices()
     return m_devices;
 }
 
-QPlatformAudioDecoder *QMockIntegration::createAudioDecoder()
+QPlatformAudioDecoder *QMockIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     if (m_flags & NoAudioDecoderInterface)
         m_lastAudioDecoderControl = nullptr;
     else
-        m_lastAudioDecoderControl = new QMockAudioDecoder;
+        m_lastAudioDecoderControl = new QMockAudioDecoder(decoder);
     return m_lastAudioDecoderControl;
 }
 

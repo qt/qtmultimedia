@@ -56,6 +56,7 @@
 #include <QtCore/qpair.h>
 
 #include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodecoder.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -65,7 +66,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioDecoder : public QObject
     Q_OBJECT
 
 public:
-    virtual QAudioDecoder::State state() const = 0;
+    virtual QAudioDecoder::State state() const { return m_state; }
 
     virtual QUrl source() const = 0;
     virtual void setSource(const QUrl &fileName) = 0;
@@ -85,12 +86,12 @@ public:
     virtual qint64 position() const = 0;
     virtual qint64 duration() const = 0;
 
-Q_SIGNALS:
     void stateChanged(QAudioDecoder::State newState);
     void formatChanged(const QAudioFormat &format);
     void sourceChanged();
 
     void error(int error, const QString &errorString);
+    void clearError() { error(QAudioDecoder::NoError, QString()); }
 
     void bufferReady();
     void bufferAvailableChanged(bool available);
@@ -99,8 +100,17 @@ Q_SIGNALS:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
 
+    QAudioDecoder::Error error() const { return m_error; }
+    QString errorString() const { return m_errorString; }
+
 protected:
-    explicit QPlatformAudioDecoder(QObject *parent = nullptr);
+    explicit QPlatformAudioDecoder(QAudioDecoder *parent);
+private:
+    QAudioDecoder *q = nullptr;
+
+    QAudioDecoder::State m_state = QAudioDecoder::StoppedState;
+    QAudioDecoder::Error m_error = QAudioDecoder::NoError;
+    QString m_errorString;
 };
 
 QT_END_NAMESPACE

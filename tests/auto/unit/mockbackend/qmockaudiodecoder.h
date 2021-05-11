@@ -47,7 +47,7 @@ class QMockAudioDecoder : public QPlatformAudioDecoder
     Q_OBJECT
 
 public:
-    QMockAudioDecoder(QObject *parent = 0)
+    QMockAudioDecoder(QAudioDecoder *parent = 0)
         : QPlatformAudioDecoder(parent)
         , mState(QAudioDecoder::StoppedState)
         , mDevice(0)

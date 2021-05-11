@@ -72,7 +72,7 @@ public:
 
     QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode) override;
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
+    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
     QPlatformCamera *createCamera(QCamera *camera) override;
     QPlatformMediaEncoder *createEncoder(QMediaEncoder *encoder) override;

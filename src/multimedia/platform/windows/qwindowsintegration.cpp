@@ -93,9 +93,9 @@ QPlatformMediaCaptureSession *QWindowsIntegration::createCaptureSession(QMediaRe
     return new QWindowsMediaCaptureService();
 }
 
-QPlatformAudioDecoder *QWindowsIntegration::createAudioDecoder()
+QPlatformAudioDecoder *QWindowsIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
-    return new MFAudioDecoderControl;
+    return new MFAudioDecoderControl(decoder);
 }
 
 QPlatformMediaPlayer *QWindowsIntegration::createPlayer(QMediaPlayer *parent)

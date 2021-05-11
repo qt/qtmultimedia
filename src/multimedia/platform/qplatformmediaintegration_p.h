@@ -56,6 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaPlayer;
+class QAudioDecoder;
 class QCamera;
 class QMediaEncoder;
 class QCameraImageCapture;
@@ -84,7 +85,7 @@ public:
     virtual QPlatformMediaDevices *devices() = 0;
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
-    virtual QPlatformAudioDecoder *createAudioDecoder() { return nullptr; }
+    virtual QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *) { return nullptr; }
     // ### get rid of the mode once refactoring is done
     virtual QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/ = QMediaRecorder::AudioAndVideo) { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }

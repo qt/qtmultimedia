@@ -99,7 +99,7 @@ AudioDecoder::~AudioDecoder()
 
 void AudioDecoder::setSource(const QString &fileName)
 {
-    m_decoder.setSource(fileName);
+    m_decoder.setSource(QUrl::fromLocalFile(fileName));
 }
 
 void AudioDecoder::start()

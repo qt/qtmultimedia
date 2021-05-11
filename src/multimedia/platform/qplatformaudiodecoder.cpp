@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qplatformaudiodecoder_p.h"
+#include "qthread.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -59,8 +60,9 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a new audio decoder control with the given \a parent.
 */
-QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
-    : QObject(parent)
+QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent)
+    : QObject(parent),
+    q(parent)
 {
 }
 
@@ -69,6 +71,14 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 
     Returns the state of a player control.
 */
+
+void QPlatformAudioDecoder::stateChanged(QAudioDecoder::State newState)
+{
+    if (m_state == newState)
+        return;
+    m_state = newState;
+    emit q->stateChanged(newState);
+}
 
 /*!
     \fn QPlatformAudioDecoder::stateChanged(QAudioDecoder::State newState)
@@ -134,24 +144,41 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
     Signals that an \a error has occurred.  The \a errorString provides a more detailed explanation.
 */
 
+void QPlatformAudioDecoder::error(int error, const QString &errorString)
+{
+    if (error == m_error && errorString == m_errorString)
+        return;
+    m_error = QAudioDecoder::Error(error);
+    m_errorString = errorString;
+
+    emit q->error(m_error);
+}
+
 /*!
     \fn QPlatformAudioDecoder::bufferAvailableChanged(bool available)
 
     Signals that the bufferAvailable property has changed to \a available.
 */
+void QPlatformAudioDecoder::bufferAvailableChanged(bool available)
+{
+    if (QThread::currentThread() != q->thread())
+        QMetaObject::invokeMethod(q, "bufferAvailableChanged", Qt::QueuedConnection, Q_ARG(bool, available));
+    else
+        emit q->bufferAvailableChanged(available);
+}
 
 /*!
     \fn QPlatformAudioDecoder::bufferReady()
 
     Signals that a new buffer is ready for reading.
 */
-
-/*!
-    \fn QPlatformAudioDecoder::bufferAvailable() const
-
-    Returns true if a buffer is available to be read,
-    and false otherwise.
-*/
+void QPlatformAudioDecoder::bufferReady()
+{
+    if (QThread::currentThread() != q->thread())
+        QMetaObject::invokeMethod(q, "bufferReady", Qt::QueuedConnection);
+    else
+        emit q->bufferReady();
+}
 
 /*!
     \fn QPlatformAudioDecoder::sourceChanged()
@@ -160,6 +187,10 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 
     \sa source(), sourceDevice()
 */
+void QPlatformAudioDecoder::sourceChanged()
+{
+    emit q->sourceChanged();
+}
 
 /*!
     \fn QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
@@ -168,6 +199,10 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 
     \sa audioFormat(), setAudioFormat()
 */
+void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
+{
+    emit q->formatChanged(format);
+}
 
 /*!
     \fn void QPlatformAudioDecoder::finished()
@@ -177,6 +212,10 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 
     \sa start(), stop(), error()
 */
+void QPlatformAudioDecoder::finished()
+{
+    emit q->finished();
+}
 
 /*!
     \fn void QPlatformAudioDecoder::positionChanged(qint64 position)
@@ -185,6 +224,10 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 
     \sa durationChanged()
 */
+void QPlatformAudioDecoder::positionChanged(qint64 position)
+{
+    q->positionChanged(position);
+}
 
 /*!
     \fn void QPlatformAudioDecoder::durationChanged(qint64 duration)
@@ -193,6 +236,10 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 
     \sa positionChanged()
 */
+void QPlatformAudioDecoder::durationChanged(qint64 duration)
+{
+    q->durationChanged(duration);
+}
 
 /*!
     \fn QPlatformAudioDecoder::audioFormat() const
@@ -237,5 +284,3 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QObject *parent)
 */
 
 QT_END_NAMESPACE
-
-#include "moc_qplatformaudiodecoder_p.cpp"

@@ -61,7 +61,7 @@ class MFAudioDecoderControl : public QPlatformAudioDecoder
 {
     Q_OBJECT
 public:
-    MFAudioDecoderControl(QObject *parent = 0);
+    MFAudioDecoderControl(QAudioDecoder *parent);
     ~MFAudioDecoderControl();
 
     QAudioDecoder::State state() const;

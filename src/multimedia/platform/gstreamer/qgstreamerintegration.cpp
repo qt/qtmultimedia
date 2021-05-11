@@ -54,6 +54,8 @@ QT_BEGIN_NAMESPACE
 QGstreamerIntegration::QGstreamerIntegration()
 {
     gst_init(nullptr, nullptr);
+    m_devices = new QGstreamerMediaDevices();
+    m_formatsInfo = new QGstreamerFormatInfo();
 }
 
 QGstreamerIntegration::~QGstreamerIntegration()
@@ -64,21 +66,17 @@ QGstreamerIntegration::~QGstreamerIntegration()
 
 QPlatformMediaDevices *QGstreamerIntegration::devices()
 {
-    if (!m_devices)
-        m_devices = new QGstreamerMediaDevices();
     return m_devices;
 }
 
 QPlatformMediaFormatInfo *QGstreamerIntegration::formatInfo()
 {
-    if (!m_formatsInfo)
-        m_formatsInfo = new QGstreamerFormatInfo();
     return m_formatsInfo;
 }
 
-QPlatformAudioDecoder *QGstreamerIntegration::createAudioDecoder()
+QPlatformAudioDecoder *QGstreamerIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
-    return new QGstreamerAudioDecoder(nullptr);
+    return new QGstreamerAudioDecoder(decoder);
 }
 
 QPlatformMediaCaptureSession *QGstreamerIntegration::createCaptureSession(QMediaRecorder::CaptureMode mode)

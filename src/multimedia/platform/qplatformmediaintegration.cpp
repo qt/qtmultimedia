@@ -39,6 +39,8 @@
 
 #include <qtmultimediaglobal_p.h>
 #include "qplatformmediaintegration_p.h"
+#include <qatomic.h>
+#include <qmutex.h>
 
 #if QT_CONFIG(gstreamer)
 #include <private/qgstreamerintegration_p.h>
@@ -66,22 +68,27 @@ namespace {
 struct Holder {
     ~Holder()
     {
+        QMutexLocker locker(&mutex);
         delete nativeInstance;
         nativeInstance = nullptr;
         instance = nullptr;
     }
+    QBasicMutex mutex;
     QPlatformMediaIntegration *instance = nullptr;
-    QPlatformMediaIntegration *nativeInstance = nullptr;
+    QAtomicPointer<QPlatformMediaIntegration> nativeInstance = nullptr;
 } holder;
 
 }
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    if (!holder.nativeInstance)
-        holder.nativeInstance = new PlatformIntegration;
+    if (!holder.nativeInstance.loadRelaxed()) {
+        QMutexLocker locker(&holder.mutex);
+        if (!holder.nativeInstance.loadAcquire())
+            holder.nativeInstance.storeRelease(new PlatformIntegration);
+    }
     if (!holder.instance)
-        holder.instance = holder.nativeInstance;
+        holder.instance = holder.nativeInstance.loadRelaxed();
     return holder.instance;
 }
 

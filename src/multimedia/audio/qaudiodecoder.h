@@ -47,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDecoderPrivate;
+class QPlatformAudioDecoder;
 class Q_MULTIMEDIA_EXPORT QAudioDecoder : public QObject
 {
     Q_OBJECT
@@ -120,9 +120,7 @@ Q_SIGNALS:
 
 private:
     Q_DISABLE_COPY(QAudioDecoder)
-    Q_DECLARE_PRIVATE(QAudioDecoder)
-    Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QAudioDecoder::State))
-    Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
+    QPlatformAudioDecoder *decoder;
 };
 
 QT_END_NAMESPACE

@@ -78,7 +78,7 @@ class QGstreamerAudioDecoder
     Q_OBJECT
 
 public:
-    QGstreamerAudioDecoder(QObject *parent);
+    QGstreamerAudioDecoder(QAudioDecoder *parent);
     virtual ~QGstreamerAudioDecoder();
 
     // QAudioDecoder interface

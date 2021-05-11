@@ -40,7 +40,7 @@
 #include "Wmcodecdsp.h"
 #include "mfaudiodecodercontrol_p.h"
 
-MFAudioDecoderControl::MFAudioDecoderControl(QObject *parent)
+MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
     , m_decoderSourceReader(new MFDecoderSourceReader)
     , m_sourceResolver(new SourceResolver)

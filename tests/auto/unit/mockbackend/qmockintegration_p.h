@@ -71,7 +71,7 @@ public:
     QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 
-    QPlatformAudioDecoder *createAudioDecoder() override;
+    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *) override;
     QPlatformCamera *createCamera(QCamera *) override;
     QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
