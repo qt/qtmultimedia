@@ -161,16 +161,6 @@ qt6_add_resources(qmlvideofx "performancemonitordeclarative"
         ${performancemonitordeclarative_resource_files}
 )
 
-if(ANDROID AND TARGET Qt::AndroidExtras)
-    target_compile_definitions(qmlvideofx PUBLIC
-        REQUEST_PERMISSIONS_ON_ANDROID
-    )
-
-    target_link_libraries(qmlvideofx PUBLIC
-        Qt::AndroidExtras
-    )
-endif()
-
 install(TARGETS qmlvideofx
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
