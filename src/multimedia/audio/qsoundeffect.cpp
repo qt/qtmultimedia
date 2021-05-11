@@ -181,6 +181,8 @@ qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
             m_offset = 0;
         }
     }
+    if (!m_runningCount)
+        setPlaying(false);
 
     return bytesWritten;
 }
@@ -215,10 +217,17 @@ void QSoundEffectPrivate::setStatus(QSoundEffect::Status status)
 
 void QSoundEffectPrivate::setPlaying(bool playing)
 {
-    qCDebug(qLcSoundEffect) << this << "setPlaying(" << playing << ")";
+    qCDebug(qLcSoundEffect) << this << "setPlaying(" << playing << ")" << m_playing;
     if (m_playing == playing)
         return;
     m_playing = playing;
+    if (m_audioOutput) {
+        if (!m_playing)
+            m_audioOutput->stop();
+        else if (m_audioOutput->state() == QAudio::StoppedState && m_sampleReady)
+            m_audioOutput->start(this);
+    }
+
     emit q_ptr->playingChanged();
 }
 
@@ -628,14 +637,12 @@ void QSoundEffect::play()
 {
     d->m_offset = 0;
     d->setLoopsRemaining(d->m_loopCount);
-    qCDebug(qLcSoundEffect) << this << "play";
+    qCDebug(qLcSoundEffect) << this << "play" << d->m_loopCount << d->m_runningCount;
     if (d->m_status == QSoundEffect::Null || d->m_status == QSoundEffect::Error) {
         d->setStatus(QSoundEffect::Null);
         return;
     }
     d->setPlaying(true);
-    if (d->m_audioOutput && d->m_audioOutput->state() == QAudio::StoppedState && d->m_sampleReady)
-        d->m_audioOutput->start(d);
 }
 
 /*!
@@ -781,9 +788,6 @@ void QSoundEffect::stop()
     d->m_offset = 0;
 
     d->setPlaying(false);
-
-    if (d->m_audioOutput)
-        d->m_audioOutput->stop();
 }
 
 /* Signals */

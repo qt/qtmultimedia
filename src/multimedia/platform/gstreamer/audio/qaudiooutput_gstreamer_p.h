@@ -125,7 +125,6 @@ private:
     int m_bufferSize = 0;
     qint64 m_bytesProcessed = 0;
     QElapsedTimer m_timeStamp;
-    QString m_category;
     qreal m_volume = 1.;
     QByteArray pushData;
 

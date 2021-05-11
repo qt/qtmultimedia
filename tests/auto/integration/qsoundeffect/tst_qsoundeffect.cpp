@@ -64,14 +64,12 @@ private slots:
     void testSupportedMimeTypes_data();
     void testSupportedMimeTypes();
     void testCorruptFile();
-    void testPlaying24Bits();
 
 private:
     QSoundEffect* sound;
     QUrl url; // test.wav: pcm_s16le, 48000 Hz, stereo, s16
     QUrl url2; // test_tone.wav: pcm_s16le, 44100 Hz, mono
     QUrl urlCorrupted; // test_corrupted.wav: corrupted
-    QUrl url24Bits; // test24.wav pcm_s24le, 44100 Hz, mono
 };
 
 void tst_QSoundEffect::init()
@@ -108,11 +106,6 @@ void tst_QSoundEffect::initTestCase()
     fullPath = QFINDTESTDATA(testFileName);
     QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
     urlCorrupted = QUrl::fromLocalFile(fullPath);
-
-    testFileName = QStringLiteral("test24.wav");
-    fullPath = QFINDTESTDATA(testFileName);
-    QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
-    url24Bits = QUrl::fromLocalFile(fullPath);
 
     sound = new QSoundEffect(this);
 
@@ -426,26 +419,6 @@ void tst_QSoundEffect::testCorruptFile()
         sound->play();
         QVERIFY(sound->isPlaying());
     }
-}
-
-void tst_QSoundEffect::testPlaying24Bits()
-{
-    sound->setLoopCount(QSoundEffect::Infinite);
-    sound->setSource(url24Bits);
-    QTestEventLoop::instance().enterLoop(1);
-    sound->play();
-    QTestEventLoop::instance().enterLoop(1);
-    QTRY_COMPARE(sound->isPlaying(), true);
-    sound->stop();
-
-    QSignalSpy readSignal(sound, SIGNAL(volumeChanged()));
-    sound->setVolume(0.5);
-    QCOMPARE(sound->volume(), 0.5);
-    sound->play();
-    QTestEventLoop::instance().enterLoop(1);
-    QTRY_COMPARE(sound->isPlaying(), true);
-    QCOMPARE(readSignal.count(), 1);
-    sound->stop();
 }
 
 QTEST_MAIN(tst_QSoundEffect)

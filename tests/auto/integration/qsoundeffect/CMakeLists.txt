@@ -19,7 +19,6 @@ qt_add_test(tst_qsoundeffect
 # Resources:
 set(resources_resource_files
     "test.wav"
-    "test24.wav"
     "test_corrupted.wav"
     "test_tone.wav"
 )
