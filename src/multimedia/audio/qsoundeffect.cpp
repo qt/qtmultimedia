@@ -60,10 +60,15 @@ public:
     qint64 readData(char *data, qint64 len) override;
     qint64 writeData(const char *data, qint64 len) override;
     qint64 size() const override {
+        if (m_sample->state() != QSample::Ready)
+            return 0;
         return m_loopCount == QSoundEffect::Infinite ? 0 : m_loopCount * m_sample->data().size();
     }
     qint64 bytesAvailable() const override {
-        return m_loopCount == QSoundEffect::Infinite ? 4*4096 : m_runningCount * m_sample->data().size() - m_offset;
+        if (m_sample->state() != QSample::Ready)
+            return 0;
+        return m_loopCount == QSoundEffect::Infinite
+                   ? std::numeric_limits<qint64>::max() : m_runningCount * m_sample->data().size() - m_offset;
     }
     bool isSequential() const override {
         return m_loopCount == QSoundEffect::Infinite;
