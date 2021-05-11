@@ -193,7 +193,21 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
      { QRhiTexture::R16, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
+    // Rendering of those formats pre 6.2 will be wrong, as RHI doesn't yet support the correct texture formats
+    // Format_P010
+    { 2, 2,
+     [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
+     { QRhiTexture::RG8, QRhiTexture::RGBA8, QRhiTexture::UnknownFormat },
+     { { 1, 1 }, { 2, 2 }, { 1, 1 } }
+    },
+    // Format_P016
+    { 2, 2,
+     [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
+     { QRhiTexture::RG8, QRhiTexture::RGBA8, QRhiTexture::UnknownFormat },
+     { { 1, 1 }, { 2, 2 }, { 1, 1 } }
+    },
+#else
     // Format_P010
     { 2, 2,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
@@ -206,7 +220,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
      { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
-
+#endif
     // Format_Jpeg
     { 1, 0,
       [](int, int) { return 0; },

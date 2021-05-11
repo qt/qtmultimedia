@@ -133,7 +133,9 @@ QGstMutableCaps QGstVideoRenderer::getCaps()
                    << QVideoFrameFormat::Format_NV12
                    << QVideoFrameFormat::Format_NV21
                    << QVideoFrameFormat::Format_AYUV444
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
                    << QVideoFrameFormat::Format_P010
+#endif
                    << QVideoFrameFormat::Format_RGB32
                    << QVideoFrameFormat::Format_BGR32
                    << QVideoFrameFormat::Format_ARGB32
