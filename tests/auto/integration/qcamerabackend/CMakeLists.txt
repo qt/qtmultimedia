@@ -12,3 +12,10 @@ qt_add_test(tst_qcamerabackend
         Qt::MultimediaPrivate
         Qt::Widgets
 )
+
+# special case begin
+if (APPLE)
+    set_property(TARGET tst_qcamerabackend PROPERTY MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist")
+    set_property(TARGET tst_qcamerabackend PROPERTY PROPERTY MACOSX_BUNDLE TRUE)
+endif()
+# special case end
