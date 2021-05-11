@@ -363,7 +363,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>Close</string>
    </property>
   </action>
   <action name="actionStartCamera">
@@ -378,7 +378,7 @@
   </action>
   <action name="actionSettings">
    <property name="text">
-    <string>Settings</string>
+    <string>Change Settings</string>
    </property>
   </action>
  </widget>
