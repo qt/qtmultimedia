@@ -94,7 +94,7 @@ public:
     qreal m_volume = 1.0;
     bool m_sampleReady = false;
     qint64 m_offset = 0;
-    QString m_category;
+    QAudio::Role m_role;
     QAudioDeviceInfo m_audioDevice;
 };
 
@@ -103,7 +103,7 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDeviceInfo
     , q_ptr(q)
     , m_audioDevice(audioDevice)
 {
-    m_category = QLatin1String("game");
+    m_role = QAudio::UnknownRole;
     open(QIODevice::ReadOnly);
 }
 
@@ -715,20 +715,20 @@ QSoundEffect::Status QSoundEffect::status() const
     support audio categories.
 */
 /*!
-    Returns the current \e category for this sound effect.
+    Returns the audio role for this sound effect.
 
     Some platforms can perform different audio routing
-    for different categories, or may allow the user to
-    set different volume levels for different categories.
+    for different roles, or may allow the user to
+    set different volume levels for different roles.
 
     This setting will be ignored on platforms that do not
-    support audio categories.
+    support audio roles.
 
-    \sa setCategory()
+    \sa setRole()
 */
-QString QSoundEffect::category() const
+QAudio::Role QSoundEffect::audioRole() const
 {
-    return d->m_category;
+    return d->m_role;
 }
 
 /*!
@@ -747,11 +747,11 @@ QString QSoundEffect::category() const
 
     \sa category()
  */
-void QSoundEffect::setCategory(const QString &category)
+void QSoundEffect::setAudioRole(QAudio::Role role)
 {
-    if (d->m_category != category && !d->m_playing) {
-        d->m_category = category;
-        emit categoryChanged();
+    if (d->m_role != role && !d->m_playing) {
+        d->m_role = role;
+        emit audioRoleChanged();
     }
 }
 
