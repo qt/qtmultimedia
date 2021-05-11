@@ -263,7 +263,6 @@ bool QWaveDecoder::writeDataLength()
     // only implemented for LITTLE ENDIAN
     return false;
 #endif
-    qDebug() << "writeDataLength" << dataSize << device->isSequential();
 
     if (isSequential())
         return false;
@@ -413,7 +412,6 @@ void QWaveDecoder::handleData()
             dataSize = descriptor.size; //means the data size from the data header, not the actual file size
             if (!dataSize)
                 dataSize = device->size() - headerLength();
-            qDebug() << "dataSize" << dataSize << device->size() << headerLength() << device->isSequential();
 
             haveFormat = true;
             connect(device, SIGNAL(readyRead()), SIGNAL(readyRead()));
