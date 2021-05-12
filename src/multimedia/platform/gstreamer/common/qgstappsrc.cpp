@@ -167,10 +167,10 @@ void QGstAppSrc::pushData()
     if (m_appSrc.isNull() || !m_dataRequestSize)
         return;
 
-    qCDebug(qLcAppSrc) << "pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
+    qCDebug(qLcAppSrc) << "pushData" << (m_stream ? m_stream : nullptr) << m_buffer.size();
     if ((m_stream && m_stream->atEnd())) {
         eosOrIdle();
-        qCDebug(qLcAppSrc) << "end pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
+        qCDebug(qLcAppSrc) << "end pushData" << (m_stream ? m_stream : nullptr) << m_buffer.size();
         return;
     }
 
@@ -183,11 +183,11 @@ void QGstAppSrc::pushData()
     if (!m_dataRequestSize)
         m_dataRequestSize = m_maxBytes;
     size = qMin(size, (qint64)m_dataRequestSize);
-    qCDebug(qLcAppSrc) << "    reading" << size << "bytes" << m_stream->bytesAvailable() << m_dataRequestSize;
+    qCDebug(qLcAppSrc) << "    reading" << size << "bytes" << size << m_dataRequestSize;
 
     GstBuffer* buffer = gst_buffer_new_and_alloc(size);
 
-    if (m_sequential && m_stream)
+    if (m_sequential || !m_stream)
         buffer->offset = bytesReadSoFar;
     else
         buffer->offset = m_stream->pos();
@@ -218,7 +218,7 @@ void QGstAppSrc::pushData()
     if (bytesRead == 0) {
         gst_buffer_unref(buffer);
         eosOrIdle();
-        qCDebug(qLcAppSrc) << "end pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
+        qCDebug(qLcAppSrc) << "end pushData" << (m_stream ? m_stream : nullptr) << m_buffer.size();
         return;
     }
     m_noMoreData = false;
@@ -230,7 +230,7 @@ void QGstAppSrc::pushData()
     } else if (ret == GST_FLOW_FLUSHING) {
         qWarning() << "QGstAppSrc: push buffer wrong state";
     }
-    qCDebug(qLcAppSrc) << "end pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
+    qCDebug(qLcAppSrc) << "end pushData" << (m_stream ? m_stream : nullptr) << m_buffer.size();
 
 }
 
