@@ -216,7 +216,7 @@ bool QWindowsCameraSession::resumeRecording()
 }
 
 // empirical estimate of the required video bitrate (for H.264)
-UINT32 QWindowsCameraSession::estimateVideoBitRate(const GUID &videoFormat, UINT32 width, UINT32 height,
+quint32 QWindowsCameraSession::estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
                                                    qreal frameRate, QMediaEncoderSettings::Quality quality)
 {
     Q_UNUSED(videoFormat);
@@ -244,7 +244,7 @@ UINT32 QWindowsCameraSession::estimateVideoBitRate(const GUID &videoFormat, UINT
 
     // Required bitrate is not linear on the number of pixels; small resolutions
     // require more BPP, thus the minimum values, to try to compensate it.
-    UINT32 pixelsPerSec = UINT32(qMax(width, 320u) * qMax(height, 240u) * qMax(frameRate, 6.0));
+    quint32 pixelsPerSec = quint32(qMax(width, 320u) * qMax(height, 240u) * qMax(frameRate, 6.0));
     return pixelsPerSec * bitsPerPixel;
 }
 

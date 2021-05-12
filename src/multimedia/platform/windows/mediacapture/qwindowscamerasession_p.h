@@ -54,6 +54,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
 #include <qmediaencodersettings.h>
+#include <qwindowsmultimediautils_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -109,7 +110,7 @@ private Q_SLOTS:
     void handleStreamingStopped();
 
 private:
-    UINT32 estimateVideoBitRate(const GUID &videoFormat, UINT32 width, UINT32 height,
+    quint32 estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
                                 qreal frameRate, QMediaEncoderSettings::Quality quality);
     bool m_active = false;
     bool m_readyForCapture = false;

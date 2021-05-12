@@ -54,6 +54,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qplatformmediaformatinfo_p.h>
 #include <qvideoframeformat.h>
+#include <guiddef.h>
 
 QT_BEGIN_NAMESPACE
 
