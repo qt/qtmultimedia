@@ -61,14 +61,35 @@ QGStreamerAudioOutput::QGStreamerAudioOutput(const QAudioDeviceInfo &device)
 {
     gstPipeline.installMessageFilter(this);
 
+    m_appSrc = new QGstAppSrc;
+    connect(m_appSrc, &QGstAppSrc::bytesProcessed, this, &QGStreamerAudioOutput::bytesProcessedByAppSrc);
+    connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioOutput::needData);
+    gstAppSrc = m_appSrc->element();
+
+    //    gstDecodeBin = gst_element_factory_make ("decodebin", "dec");
+    QGstElement conv("audioconvert", "conv");
+    gstVolume = QGstElement("volume", "volume");
+    if (m_volume != 1.)
+        gstVolume.set("volume", m_volume);
+
+    // link decodeBin to audioconvert in a callback once we get a pad from the decoder
+    //    g_signal_connect (gstDecodeBin, "pad-added", (GCallback) padAdded, conv);
+
     const auto *audioInfo = static_cast<const QGStreamerAudioDeviceInfo *>(device.handle());
     gstOutput = gst_device_create_element(audioInfo->gstDevice, nullptr);
+
+    gstPipeline.add(gstAppSrc, /*gstDecodeBin, */ conv, gstVolume, gstOutput);
+    gstAppSrc.link(conv, gstVolume, gstOutput);
 }
 
 QGStreamerAudioOutput::~QGStreamerAudioOutput()
 {
     close();
-    QCoreApplication::processEvents();
+    gstPipeline = {};
+    gstVolume = {};
+    gstAppSrc = {};
+    delete m_appSrc;
+    m_appSrc = nullptr;
 }
 
 void QGStreamerAudioOutput::setError(QAudio::Error error)
@@ -203,25 +224,8 @@ bool QGStreamerAudioOutput::open()
     }
 
 //    qDebug() << "GST caps:" << gst_caps_to_string(caps);
-    m_appSrc = new QGstAppSrc;
     m_appSrc->setup(m_audioSource, m_audioSource ? m_audioSource->pos() : 0);
     m_appSrc->setAudioFormat(m_format);
-
-    connect(m_appSrc, &QGstAppSrc::bytesProcessed, this, &QGStreamerAudioOutput::bytesProcessedByAppSrc);
-    connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioOutput::needData);
-    gstAppSrc = m_appSrc->element();
-
-//    gstDecodeBin = gst_element_factory_make ("decodebin", "dec");
-    QGstElement conv("audioconvert", "conv");
-    gstVolume = QGstElement("volume", "volume");
-    if (m_volume != 1.)
-        gstVolume.set("volume", m_volume);
-
-    gstPipeline.add(gstAppSrc, /*gstDecodeBin, */ conv, gstVolume, gstOutput);
-    gstAppSrc.link(conv, gstVolume, gstOutput);
-
-    // link decodeBin to audioconvert in a callback once we get a pad from the decoder
-//    g_signal_connect (gstDecodeBin, "pad-added", (GCallback) padAdded, conv);
 
     /* run */
     gstPipeline.setState(GST_STATE_PLAYING);
@@ -239,10 +243,8 @@ void QGStreamerAudioOutput::close()
     if (!m_opened)
         return;
 
-    gstPipeline.setStateSync(GST_STATE_NULL);
-    gstPipeline = {};
-    gstVolume = {};
-    gstAppSrc = {};
+    if (!gstPipeline.setStateSync(GST_STATE_NULL))
+        qWarning() << "failed to close the audio output stream";
 
     if (!m_pullMode && m_audioSource)
         delete m_audioSource;

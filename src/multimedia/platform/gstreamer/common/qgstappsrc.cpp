@@ -56,6 +56,9 @@ QGstAppSrc::QGstAppSrc(QObject *parent)
 
 QGstAppSrc::~QGstAppSrc()
 {
+    m_appSrc.setStateSync(GST_STATE_NULL);
+    streamDestroyed();
+    qCDebug(qLcAppSrc) << "~QGstAppSrc";
 }
 
 bool QGstAppSrc::setup(QIODevice *stream, qint64 offset)
@@ -68,6 +71,7 @@ bool QGstAppSrc::setup(QIODevice *stream, qint64 offset)
 
     auto *appSrc = GST_APP_SRC(m_appSrc.element());
     GstAppSrcCallbacks m_callbacks;
+    memset(&m_callbacks, 0, sizeof(GstAppSrcCallbacks));
     m_callbacks.need_data   = &QGstAppSrc::on_need_data;
     m_callbacks.enough_data = &QGstAppSrc::on_enough_data;
     m_callbacks.seek_data   = &QGstAppSrc::on_seek_data;
@@ -141,20 +145,20 @@ void QGstAppSrc::write(const char *data, qsizetype size)
     Q_ASSERT(!m_stream);
     m_buffer.append(data, size);
     m_noMoreData = false;
-    if (m_dataRequestSize)
-        pushData();
+    pushData();
 }
 
 void QGstAppSrc::onDataReady()
 {
     qCDebug(qLcAppSrc) << "onDataReady" << m_stream->bytesAvailable() << m_stream->size();
-    if (m_dataRequestSize)
-        pushData();
+    pushData();
 }
 
 void QGstAppSrc::streamDestroyed()
 {
+    qCDebug(qLcAppSrc) << "stream destroyed";
     m_stream = nullptr;
+    m_dataRequestSize = 0;
     sendEOS();
 }
 
@@ -166,6 +170,7 @@ void QGstAppSrc::pushData()
     qCDebug(qLcAppSrc) << "pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
     if ((m_stream && m_stream->atEnd())) {
         eosOrIdle();
+        qCDebug(qLcAppSrc) << "end pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
         return;
     }
 
@@ -213,6 +218,7 @@ void QGstAppSrc::pushData()
     if (bytesRead == 0) {
         gst_buffer_unref(buffer);
         eosOrIdle();
+        qCDebug(qLcAppSrc) << "end pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
         return;
     }
     m_noMoreData = false;
@@ -224,6 +230,8 @@ void QGstAppSrc::pushData()
     } else if (ret == GST_FLOW_FLUSHING) {
         qWarning() << "QGstAppSrc: push buffer wrong state";
     }
+    qCDebug(qLcAppSrc) << "end pushData" << m_stream << m_stream->atEnd() << m_buffer.size();
+
 }
 
 bool QGstAppSrc::doSeek(qint64 value)
@@ -264,6 +272,7 @@ void QGstAppSrc::on_need_data(GstAppSrc *, guint arg0, gpointer userdata)
     Q_ASSERT(self);
     self->m_dataRequestSize = arg0;
     QMetaObject::invokeMethod(self, "pushData", Qt::AutoConnection);
+    qCDebug(qLcAppSrc) << "done on_need_data";
 }
 
 void QGstAppSrc::sendEOS()
