@@ -65,20 +65,20 @@ void tst_QMediaTimeRange::testIntervalCtor()
 {
     //Default Ctor for Time Interval
     /* create an instance for the time interval and verify the default cases */
-    QMediaTimeInterval tInter;
+    QMediaTimeRange::Interval tInter;
     QVERIFY(tInter.isNormal());
     QVERIFY(tInter.start() == 0);
     QVERIFY(tInter.end() == 0);
 
     // (qint, qint) Ctor time interval
-    /* create an instace of QMediaTimeInterval passing start and end times and verify the all possible scenario's*/
-    QMediaTimeInterval time(20,50);
+    /* create an instace of QMediaTimeRange::Interval passing start and end times and verify the all possible scenario's*/
+    QMediaTimeRange::Interval time(20,50);
     QVERIFY(time.isNormal());
     QVERIFY(time.start() == 20);
     QVERIFY(time.end() == 50);
 
     // Copy Ctor Time interval
-    QMediaTimeInterval other(time);
+    QMediaTimeRange::Interval other(time);
     QVERIFY(other.isNormal() == time.isNormal());
     QVERIFY(other.start() == time.start());
     QVERIFY(other.end() == time.end());
@@ -88,7 +88,7 @@ void tst_QMediaTimeRange::testIntervalCtor()
 
 void tst_QMediaTimeRange::testIntervalContains()
 {
-    QMediaTimeInterval time(20,50);
+    QMediaTimeRange::Interval time(20,50);
 
     /* start() <= time <= end(). Returns true if the time interval contains the specified time. */
     QVERIFY(!time.contains(10));
@@ -97,7 +97,7 @@ void tst_QMediaTimeRange::testIntervalContains()
     QVERIFY(time.contains(50));
     QVERIFY(!time.contains(60));
 
-    QMediaTimeInterval x(20, 10); // denormal
+    QMediaTimeRange::Interval x(20, 10); // denormal
 
     // Check denormal ranges
     QVERIFY(!x.contains(5));
@@ -106,7 +106,7 @@ void tst_QMediaTimeRange::testIntervalContains()
     QVERIFY(x.contains(20));
     QVERIFY(!x.contains(25));
 
-    QMediaTimeInterval y = x.normalized();
+    QMediaTimeRange::Interval y = x.normalized();
     QVERIFY(!y.contains(5));
     QVERIFY(y.contains(10));
     QVERIFY(y.contains(15));
@@ -129,7 +129,7 @@ void tst_QMediaTimeRange::testCtor()
     QVERIFY(b.latestTime() == 20);
 
     // Interval Ctor
-    QMediaTimeRange c(QMediaTimeInterval(30, 40));
+    QMediaTimeRange c(QMediaTimeRange::Interval(30, 40));
 
     QVERIFY(!c.isEmpty());
     QVERIFY(c.isContinuous());
@@ -137,7 +137,7 @@ void tst_QMediaTimeRange::testCtor()
     QVERIFY(c.latestTime() == 40);
 
     // Abnormal Interval Ctor
-    QMediaTimeRange d(QMediaTimeInterval(20, 10));
+    QMediaTimeRange d(QMediaTimeRange::Interval(20, 10));
 
     QVERIFY(d.isEmpty());
 
@@ -190,7 +190,7 @@ void tst_QMediaTimeRange::testAssignment()
     QVERIFY(x.latestTime() == 20);
 
     // Interval Assignment
-    x = QMediaTimeInterval(30, 40);
+    x = QMediaTimeRange::Interval(30, 40);
 
     QVERIFY(!x.isEmpty());
     QVERIFY(x.isContinuous());
@@ -211,13 +211,13 @@ void tst_QMediaTimeRange::testAssignment()
 
 void tst_QMediaTimeRange::testIntervalNormalize()
 {
-    QMediaTimeInterval x(20, 10);
+    QMediaTimeRange::Interval x(20, 10);
 
     QVERIFY(!x.isNormal());
     QVERIFY(x.start() == 20);
     QVERIFY(x.end() == 10);
 
-    QMediaTimeInterval y = x.normalized();
+    QMediaTimeRange::Interval y = x.normalized();
 
     QVERIFY(y.isNormal());
     QVERIFY(y.start() == 10);
@@ -227,7 +227,7 @@ void tst_QMediaTimeRange::testIntervalNormalize()
 
 void tst_QMediaTimeRange::testIntervalTranslate()
 {
-    QMediaTimeInterval x(10, 20);
+    QMediaTimeRange::Interval x(10, 20);
     x = x.translated(10);
 
     QVERIFY(x.start() == 20);
@@ -277,7 +277,7 @@ void tst_QMediaTimeRange::testContains()
     QVERIFY(!x.contains(30));
 
     // Test over a concrete interval
-    QMediaTimeInterval y(10, 20);
+    QMediaTimeRange::Interval y(10, 20);
     QVERIFY(y.contains(15));
     QVERIFY(y.contains(10));
     QVERIFY(y.contains(20));
@@ -346,9 +346,9 @@ void tst_QMediaTimeRange::testAddInterval()
 
     // Interval Parameter - All intervals Overlap
     x = QMediaTimeRange();
-    x.addInterval(QMediaTimeInterval(10, 40));
-    x.addInterval(QMediaTimeInterval(30, 50));
-    x.addInterval(QMediaTimeInterval(20, 60));
+    x.addInterval(QMediaTimeRange::Interval(10, 40));
+    x.addInterval(QMediaTimeRange::Interval(30, 50));
+    x.addInterval(QMediaTimeRange::Interval(20, 60));
 
     QVERIFY(!x.isEmpty());
     QVERIFY(x.isContinuous());
@@ -357,7 +357,7 @@ void tst_QMediaTimeRange::testAddInterval()
 
     // Interval Parameter - Abnormal Interval
     x = QMediaTimeRange();
-    x.addInterval(QMediaTimeInterval(20, 10));
+    x.addInterval(QMediaTimeRange::Interval(20, 10));
 
     QVERIFY(x.isEmpty());
 }
@@ -532,7 +532,7 @@ void tst_QMediaTimeRange::testRemoveInterval()
     // Interval Parameter - Removing an interval, causing a split
     x = QMediaTimeRange();
     x.addInterval(10, 50);
-    x.removeInterval(QMediaTimeInterval(20, 40));
+    x.removeInterval(QMediaTimeRange::Interval(20, 40));
 
     QVERIFY(!x.isEmpty());
     QVERIFY(!x.isContinuous());
@@ -545,7 +545,7 @@ void tst_QMediaTimeRange::testRemoveInterval()
     // Interval Parameter - Abnormal Interval
     x = QMediaTimeRange();
     x.addInterval(10, 40);
-    x.removeInterval(QMediaTimeInterval(30, 20));
+    x.removeInterval(QMediaTimeRange::Interval(30, 20));
 
     QVERIFY(!x.isEmpty());
     QVERIFY(x.isContinuous());
@@ -679,10 +679,10 @@ void tst_QMediaTimeRange::testClear()
 void tst_QMediaTimeRange::testComparisons()
 {
     // Interval equality
-    QVERIFY(QMediaTimeInterval(10, 20) == QMediaTimeInterval(10, 20));
-    QVERIFY(QMediaTimeInterval(10, 20) != QMediaTimeInterval(10, 30));
-    QVERIFY(!(QMediaTimeInterval(10, 20) != QMediaTimeInterval(10, 20)));
-    QVERIFY(!(QMediaTimeInterval(10, 20) == QMediaTimeInterval(10, 30)));
+    QVERIFY(QMediaTimeRange::Interval(10, 20) == QMediaTimeRange::Interval(10, 20));
+    QVERIFY(QMediaTimeRange::Interval(10, 20) != QMediaTimeRange::Interval(10, 30));
+    QVERIFY(!(QMediaTimeRange::Interval(10, 20) != QMediaTimeRange::Interval(10, 20)));
+    QVERIFY(!(QMediaTimeRange::Interval(10, 20) == QMediaTimeRange::Interval(10, 30)));
 
     // Time range equality - Single Interval
     QMediaTimeRange a(10, 20), b(20, 30), c(10, 20);
@@ -732,27 +732,27 @@ void tst_QMediaTimeRange::testArithmetic()
     QVERIFY(a.latestTime() == 19);
 
     // Test += and -= on intervals
-    a -= QMediaTimeInterval(10, 20);
-    a += QMediaTimeInterval(40, 50);
+    a -= QMediaTimeRange::Interval(10, 20);
+    a += QMediaTimeRange::Interval(40, 50);
 
     QVERIFY(a.isContinuous());
     QVERIFY(a.earliestTime() == 40);
     QVERIFY(a.latestTime() == 50);
 
     // Test Interval + Interval
-    a = QMediaTimeInterval(10, 20) + QMediaTimeInterval(20, 30);
+    a = QMediaTimeRange::Interval(10, 20) + QMediaTimeRange::Interval(20, 30);
     QVERIFY(a.isContinuous());
     QVERIFY(a.earliestTime() == 10);
     QVERIFY(a.latestTime() == 30);
 
     // Test Range + Interval
-    a = a + QMediaTimeInterval(30, 40);
+    a = a + QMediaTimeRange::Interval(30, 40);
     QVERIFY(a.isContinuous());
     QVERIFY(a.earliestTime() == 10);
     QVERIFY(a.latestTime() == 40);
 
     // Test Interval + Range
-    a = QMediaTimeInterval(40, 50) + a;
+    a = QMediaTimeRange::Interval(40, 50) + a;
     QVERIFY(a.isContinuous());
     QVERIFY(a.earliestTime() == 10);
     QVERIFY(a.latestTime() == 50);
@@ -764,7 +764,7 @@ void tst_QMediaTimeRange::testArithmetic()
     QVERIFY(a.latestTime() == 60);
 
     // Test Range - Interval
-    a = a - QMediaTimeInterval(50, 60);
+    a = a - QMediaTimeRange::Interval(50, 60);
     QVERIFY(a.isContinuous());
     QVERIFY(a.earliestTime() == 10);
     QVERIFY(a.latestTime() == 49);
@@ -776,13 +776,13 @@ void tst_QMediaTimeRange::testArithmetic()
     QVERIFY(a.latestTime() == 39);
 
     // Test Interval - Range
-    b = QMediaTimeInterval(0, 20) - a;
+    b = QMediaTimeRange::Interval(0, 20) - a;
     QVERIFY(b.isContinuous());
     QVERIFY(b.earliestTime() == 0);
     QVERIFY(b.latestTime() == 9);
 
     // Test Interval - Interval
-    a = QMediaTimeInterval(10, 20) - QMediaTimeInterval(15, 30);
+    a = QMediaTimeRange::Interval(10, 20) - QMediaTimeRange::Interval(15, 30);
     QVERIFY(a.isContinuous());
     QVERIFY(a.earliestTime() == 10);
     QVERIFY(a.latestTime() == 14);
