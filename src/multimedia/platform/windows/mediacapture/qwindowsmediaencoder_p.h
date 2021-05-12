@@ -64,7 +64,7 @@ class QWindowsCameraSession;
 class QPlatformMediaCaptureSession;
 class QWindowsMediaCaptureService;
 
-class QWindowsMediaEncoder : public QPlatformMediaEncoder
+class QWindowsMediaEncoder : public QObject, public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:

@@ -81,6 +81,8 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
 {
     if (d == other.d)
         return true;
+    if (!d || !other.d)
+        return false;
     return d->pixelFormat == other.d->pixelFormat &&
            d->minFrameRate == other.d->minFrameRate &&
            d->maxFrameRate == other.d->maxFrameRate &&

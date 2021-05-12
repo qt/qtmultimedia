@@ -36,8 +36,6 @@
 
 class QMockMediaEncoder : public QPlatformMediaEncoder
 {
-    Q_OBJECT
-
 public:
     QMockMediaEncoder(QMediaEncoder *parent):
         QPlatformMediaEncoder(parent),
@@ -90,7 +88,7 @@ public:
 
     using QPlatformMediaEncoder::error;
 
-public slots:
+public:
     void record()
     {
         m_state = QMediaEncoder::RecordingState;

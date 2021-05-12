@@ -47,7 +47,8 @@
 QT_BEGIN_NAMESPACE
 
 QWindowsMediaEncoder::QWindowsMediaEncoder(QMediaEncoder *parent)
-    : QPlatformMediaEncoder(parent)
+    : QObject(parent),
+    QPlatformMediaEncoder(parent)
 {
 }
 

@@ -51,6 +51,8 @@
 #ifndef QPLATFORMMEDIAENCODER_H
 #define QPLATFORMMEDIAENCODER_H
 
+#include <QtCore/qurl.h>
+
 #include <QtMultimedia/qmediaencoder.h>
 #include <QtMultimedia/qmediametadata.h>
 
@@ -64,16 +66,17 @@ QT_BEGIN_NAMESPACE
 // Required for QDoc workaround
 class QString;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaEncoder : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformMediaEncoder
 {
-    Q_OBJECT
-
 public:
+    virtual ~QPlatformMediaEncoder() {}
     virtual QUrl outputLocation() const = 0;
     virtual bool setOutputLocation(const QUrl &location) = 0;
 
-    virtual QMediaEncoder::State state() const = 0;
-    virtual QMediaEncoder::Status status() const = 0;
+    virtual QMediaEncoder::State state() const { return m_state; }
+    virtual void setState(QMediaEncoder::State state) = 0;
+
+    virtual QMediaEncoder::Status status() const { return m_status; }
 
     virtual qint64 duration() const = 0;
 
@@ -83,19 +86,30 @@ public:
     virtual void setMetaData(const QMediaMetaData &) {}
     virtual QMediaMetaData metaData() const { return {}; }
 
-Q_SIGNALS:
+    QMediaEncoder::Error error() const { return m_error;}
+    QString errorString() const { return m_errorString; }
+
+    QUrl actualLocation() const { return m_actualLocation; }
+    void clearActualLocation() { m_actualLocation.clear(); }
+    void clearError() { error(QMediaEncoder::NoError, QString()); }
+
+protected:
+    explicit QPlatformMediaEncoder(QMediaEncoder *parent);
+
     void stateChanged(QMediaEncoder::State state);
     void statusChanged(QMediaEncoder::Status status);
     void durationChanged(qint64 position);
     void actualLocationChanged(const QUrl &location);
-    void error(int error, const QString &errorString);
+    void error(QMediaEncoder::Error error, const QString &errorString);
     void metaDataChanged();
 
-public Q_SLOTS:
-    virtual void setState(QMediaEncoder::State state) = 0;
-
-protected:
-    explicit QPlatformMediaEncoder(QMediaEncoder *parent);
+private:
+    QMediaEncoder *q = nullptr;
+    QMediaEncoder::Error m_error = QMediaEncoder::NoError;
+    QString m_errorString;
+    QUrl m_actualLocation;
+    QMediaEncoder::State m_state = QMediaEncoder::StoppedState;
+    QMediaEncoder::Status m_status = QMediaEncoder::StoppedStatus;
 };
 
 QT_END_NAMESPACE

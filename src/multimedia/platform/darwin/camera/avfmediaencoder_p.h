@@ -70,7 +70,7 @@ class AVFCameraService;
 class QString;
 class QUrl;
 
-class AVFMediaEncoder : public QPlatformMediaEncoder
+class AVFMediaEncoder : public QObject, public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:

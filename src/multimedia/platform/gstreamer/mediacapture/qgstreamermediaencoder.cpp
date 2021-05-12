@@ -57,9 +57,7 @@
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
 QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaEncoder *parent)
-  : QPlatformMediaEncoder(parent),
-    m_state(QMediaEncoder::StoppedState),
-    m_status(QMediaEncoder::StoppedStatus)
+  : QPlatformMediaEncoder(parent)
 {
     gstEncoder = QGstElement("encodebin", "encodebin");
     gstFileSink = QGstElement("filesink", "filesink");
@@ -84,17 +82,6 @@ bool QGstreamerMediaEncoder::setOutputLocation(const QUrl &sink)
     return true;
 }
 
-
-QMediaEncoder::State QGstreamerMediaEncoder::state() const
-{
-    return m_state;
-}
-
-QMediaEncoder::Status QGstreamerMediaEncoder::status() const
-{
-    return m_status;
-}
-
 void QGstreamerMediaEncoder::updateStatus()
 {
     static QMediaEncoder::Status statusTable[3][3] = {
@@ -108,8 +95,8 @@ void QGstreamerMediaEncoder::updateStatus()
 
     QMediaEncoder::State sessionState = QMediaEncoder::StoppedState;
 
-    auto state = gstEncoder.isNull() ? GST_STATE_NULL : gstEncoder.state();
-    switch (state) {
+    auto gstState = gstEncoder.isNull() ? GST_STATE_NULL : gstEncoder.state();
+    switch (gstState) {
     case GST_STATE_PLAYING:
         sessionState = QMediaEncoder::RecordingState;
         break;
@@ -121,18 +108,15 @@ void QGstreamerMediaEncoder::updateStatus()
         break;
     }
 
-    auto newStatus = statusTable[m_state][sessionState];
+    auto newStatus = statusTable[state()][sessionState];
 
-    if (m_status != newStatus) {
-        m_status = newStatus;
-        qCDebug(qLcMediaEncoder) << "updateStatus" << m_status;
-        emit statusChanged(m_status);
-    }
+    qCDebug(qLcMediaEncoder) << "updateStatus" << newStatus;
+    statusChanged(newStatus);
 }
 
-void QGstreamerMediaEncoder::handleSessionError(int code, const QString &description)
+void QGstreamerMediaEncoder::handleSessionError(QMediaEncoder::Error code, const QString &description)
 {
-    emit error(code, description);
+    error(code, description);
     stop();
 }
 
@@ -169,7 +153,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         GError *err;
         gchar *debug;
         gst_message_parse_error(gm, &err, &debug);
-        emit error(int(QMediaEncoder::ResourceError), QString::fromUtf8(err->message));
+        error(QMediaEncoder::ResourceError, QString::fromUtf8(err->message));
         g_error_free(err);
         g_free(debug);
     }
@@ -182,8 +166,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
             GstState    pending;
             gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
 
-            if (newState == GST_STATE_PAUSED &&
-                !m_metaData.isEmpty())
+            if (newState == GST_STATE_PAUSED && !m_metaData.isEmpty())
                 setMetaData(m_metaData);
             updateStatus();
             break;
@@ -197,7 +180,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
 
 void QGstreamerMediaEncoder::updateDuration()
 {
-    emit durationChanged(m_duration.elapsed());
+    durationChanged(m_duration.elapsed());
 }
 
 qint64 QGstreamerMediaEncoder::duration() const
@@ -281,13 +264,12 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
-void QGstreamerMediaEncoder::setState(QMediaEncoder::State state)
+void QGstreamerMediaEncoder::setState(QMediaEncoder::State s)
 {
-    if (state == m_state)
+    if (s == state())
         return;
 
-    m_state = state;
-    switch (state) {
+    switch (s) {
     case QMediaEncoder::StoppedState:
         stop();
         break;
@@ -298,16 +280,17 @@ void QGstreamerMediaEncoder::setState(QMediaEncoder::State state)
         record();
         break;
     }
-    emit stateChanged(m_state);
+    stateChanged(s);
 }
 
 void QGstreamerMediaEncoder::record()
 {
     if (!m_session)
         return;
-    if (m_state == QMediaEncoder::PausedState) {
+    if (state() == QMediaEncoder::PausedState) {
         // coming from paused state
         gstEncoder.setState(GST_STATE_PLAYING);
+        updateStatus();
         return;
     }
 
@@ -346,7 +329,9 @@ void QGstreamerMediaEncoder::record()
     m_duration.start();
     heartbeat.start();
     gstPipeline.dumpGraph("recording");
-    emit actualLocationChanged(m_outputLocation);
+
+    actualLocationChanged(m_outputLocation);
+    updateStatus();
 }
 
 void QGstreamerMediaEncoder::pause()
@@ -357,7 +342,7 @@ void QGstreamerMediaEncoder::pause()
     gstPipeline.dumpGraph("before-pause");
     gstEncoder.setState(GST_STATE_PAUSED);
 
-    emit stateChanged(m_state);
+    stateChanged(QMediaRecorder::PausedState);
     updateStatus();
 }
 
@@ -381,6 +366,8 @@ void QGstreamerMediaEncoder::stop()
     qCDebug(qLcMediaEncoder) << ">>>>>>>>>>>>> sending EOS";
 
     gstEncoder.sendEos();
+    stateChanged(QMediaEncoder::StoppedState);
+    updateStatus();
 }
 
 void QGstreamerMediaEncoder::finalize()
@@ -398,11 +385,6 @@ void QGstreamerMediaEncoder::finalize()
     gstPipeline.setStateSync(GST_STATE_PLAYING);
 
     updateStatus();
-}
-
-void QGstreamerMediaEncoder::updateSettings()
-{
-    applySettings();
 }
 
 void QGstreamerMediaEncoder::applySettings()
@@ -448,7 +430,8 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
         gstFileSink.setStateSync(GST_STATE_NULL);
         gstPipeline.remove(gstEncoder);
         gstPipeline.remove(gstFileSink);
-        disconnect(&heartbeat, nullptr, this, nullptr);
+        heartbeat.disconnect();
+        QObject::disconnect(cameraChanged);
     }
 
     m_session = captureSession;
@@ -461,7 +444,7 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
 
     // used to update duration every second
     heartbeat.setInterval(1000);
-    connect(&heartbeat, &QTimer::timeout, this, &QGstreamerMediaEncoder::updateDuration);
+    QObject::connect(&heartbeat, &QTimer::timeout, [this]() { updateDuration(); });
 
     gstPipeline.add(gstEncoder, gstFileSink);
     gstEncoder.link(gstFileSink);
@@ -470,8 +453,7 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
 
     // ensure we have a usable format
     setEncoderSettings(QMediaEncoderSettings());
-    connect(m_session, &QGstreamerMediaCapture::cameraChanged,
-            this, &QGstreamerMediaEncoder::updateSettings);
+    cameraChanged = QObject::connect(m_session, &QGstreamerMediaCapture::cameraChanged, [this]() { applySettings(); });
 }
 
 QDir QGstreamerMediaEncoder::defaultDir() const

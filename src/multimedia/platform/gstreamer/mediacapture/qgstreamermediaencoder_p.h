@@ -68,17 +68,12 @@ class QGstreamerMessage;
 
 class QGstreamerMediaEncoder : public QPlatformMediaEncoder, QGstreamerBusMessageFilter
 {
-    Q_OBJECT
-
 public:
     QGstreamerMediaEncoder(QMediaEncoder *parent);
     virtual ~QGstreamerMediaEncoder();
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &sink) override;
-
-    QMediaEncoder::State state() const override;
-    QMediaEncoder::Status status() const override;
 
     qint64 duration() const override;
 
@@ -94,20 +89,17 @@ public:
 
 private:
     bool processBusMessage(const QGstreamerMessage& message) override;
-public slots:
+public:
     void setState(QMediaEncoder::State state) override;
     void record();
     void pause();
     void stop();
-
-private slots:
-    void updateStatus();
-    void handleSessionError(int code, const QString &description);
     void updateDuration();
-    void finalize();
-    void updateSettings();
 
 private:
+    void updateStatus();
+    void handleSessionError(QMediaEncoderBase::Error code, const QString &description);
+    void finalize();
     QDir defaultDir() const;
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
@@ -116,8 +108,6 @@ private:
     QMediaEncoderSettings m_settings;
     QGstreamerMediaCapture *m_session = nullptr;
     QGstreamerMetaData m_metaData;
-    QMediaEncoder::State m_state = QMediaEncoder::StoppedState;
-    QMediaEncoder::Status m_status = QMediaEncoder::StoppedStatus;
     QElapsedTimer m_duration;
     QTimer heartbeat;
 
@@ -127,6 +117,8 @@ private:
 
     QGstPad audioSrcPad;
     QGstPad videoSrcPad;
+
+    QMetaObject::Connection cameraChanged;
 };
 
 QT_END_NAMESPACE

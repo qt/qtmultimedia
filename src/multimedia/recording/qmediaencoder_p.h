@@ -74,20 +74,12 @@ public:
     void applySettingsLater();
 
     QMediaCaptureSession *captureSession = nullptr;
-
     QPlatformMediaEncoder *control = nullptr;
 
     bool settingsChanged = false;
 
-    QMediaEncoder::State state = QMediaEncoder::StoppedState;
-    QMediaEncoder::Error error = QMediaEncoder::NoError;
-    QString errorString;
-    QUrl actualLocation;
     QMediaEncoderSettings encoderSettings;
 
-    void _q_stateChanged(QMediaEncoder::State state);
-    void _q_error(int error, const QString &errorString);
-    void _q_updateActualLocation(const QUrl &);
     void _q_applySettings();
 
     QMediaEncoder *q_ptr = nullptr;

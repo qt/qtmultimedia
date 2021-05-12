@@ -89,7 +89,7 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 {
     if (m_cameraInfo == camera)
         return;
-    qDebug() << "setCamera" << camera;
+//    qDebug() << "setCamera" << camera;
 
     m_cameraInfo = camera;
 
@@ -141,18 +141,23 @@ void QGstreamerCamera::setCameraFormatInternal(const QCameraFormat &format)
     gstCameraBin.remove(gstDecode);
 
     if (f.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
-        qDebug() << "    enabling jpeg decoder";
+//        qDebug() << "    enabling jpeg decoder";
         gstDecode = QGstElement("jpegdec");
     } else {
-        qDebug() << "    camera delivers raw video";
+//        qDebug() << "    camera delivers raw video";
         gstDecode = QGstElement("identity");
     }
     gstCameraBin.add(gstDecode);
     gstDecode.link(gstVideoConvert);
 
     auto caps = QGstMutableCaps::fromCameraFormat(f);
-    if (!gstCamera.linkFiltered(gstDecode, caps))
-        qWarning() << "linking failed";
+    if (!caps.isNull()) {
+        if (!gstCamera.linkFiltered(gstDecode, caps))
+            qWarning() << "linking filtered camera to decoder failed" << gstCamera.name() << gstDecode.name() << caps.toString();
+    } else {
+        if (!gstCamera.link(gstDecode))
+            qWarning() << "linking camera to decoder failed" << gstCamera.name() << gstDecode.name();
+    }
 }
 
 bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)

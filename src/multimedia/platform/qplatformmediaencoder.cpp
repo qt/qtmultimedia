@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
 */
 
 QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
-    : QObject(parent)
+    : q(parent)
 {
 }
 
@@ -127,37 +127,30 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::setMuted(bool muted)
-
-    Sets the \a muted state of a media recorder.
-*/
-
-/*!
-    \fn qreal QPlatformMediaEncoder::volume() const
-
-    Returns the audio volume of a media recorder control.
-*/
-
-/*!
-    \fn void QPlatformMediaEncoder::setVolume(qreal volume)
-
-    Sets the audio \a volume of a media recorder control.
-
-    The volume is scaled linearly, ranging from \c 0 (silence) to \c 100 (full volume).
-*/
-
-/*!
     \fn void QPlatformMediaEncoder::stateChanged(QMediaRecorder::State state)
 
     Signals that the \a state of a media recorder has changed.
 */
+void QPlatformMediaEncoder::stateChanged(QMediaEncoder::State state)
+{
+    if (m_state == state)
+        return;
+    m_state = state;
+    emit q->stateChanged(state);
+}
 
 /*!
     \fn void QPlatformMediaEncoder::statusChanged(QMediaRecorder::Status status)
 
     Signals that the \a status of a media recorder has changed.
 */
-
+void QPlatformMediaEncoder::statusChanged(QMediaEncoder::Status status)
+{
+    if (m_status == status)
+        return;
+    m_status = status;
+    emit q->statusChanged(status);
+}
 
 /*!
     \fn void QPlatformMediaEncoder::durationChanged(qint64 duration)
@@ -166,18 +159,10 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 
     This only emitted when there is a discontinuous change in the duration such as being reset to 0.
 */
-
-/*!
-    \fn void QPlatformMediaEncoder::mutedChanged(bool muted)
-
-    Signals that the \a muted state of a media recorder has changed.
-*/
-
-/*!
-    \fn void QPlatformMediaEncoder::volumeChanged(qreal gain)
-
-    Signals that the audio \a gain value has changed.
-*/
+void QPlatformMediaEncoder::durationChanged(qint64 duration)
+{
+    emit q->durationChanged(duration);
+}
 
 /*!
     \fn void QPlatformMediaEncoder::actualLocationChanged(const QUrl &location)
@@ -185,13 +170,33 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
     Signals that the actual media \a location has changed.
     This signal should be emitted at start of recording.
 */
+void QPlatformMediaEncoder::actualLocationChanged(const QUrl &location)
+{
+    if (m_actualLocation == location)
+        return;
+    m_actualLocation = location;
+    emit q->actualLocationChanged(location);
+}
 
 /*!
     \fn void QPlatformMediaEncoder::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString describes the error.
 */
+void QPlatformMediaEncoder::error(QMediaEncoderBase::Error error, const QString &errorString)
+{
+    if (error == m_error && errorString == m_errorString)
+        return;
+    m_error = error;
+    m_errorString = errorString;
+    if (error != QMediaEncoder::NoError)
+        emit q->errorOccurred(error, errorString);
+    emit q->errorChanged();
+}
+
+void QPlatformMediaEncoder::metaDataChanged()
+{
+    emit q->metaDataChanged();
+}
 
 QT_END_NAMESPACE
-
-#include "moc_qplatformmediaencoder_p.cpp"

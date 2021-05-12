@@ -118,8 +118,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     m_captureSession.setImageCapture(m_imageCapture);
 
     connect(m_mediaEncoder.data(), &QMediaEncoder::durationChanged, this, &Camera::updateRecordTime);
-    connect(m_mediaEncoder.data(), QOverload<QMediaEncoder::Error>::of(&QMediaEncoder::error),
-            this, &Camera::displayRecorderError);
+    connect(m_mediaEncoder.data(), &QMediaEncoder::errorChanged, this, &Camera::displayRecorderError);
 
     connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
 

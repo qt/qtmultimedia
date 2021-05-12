@@ -123,8 +123,7 @@ AudioRecorder::AudioRecorder()
     connect(m_audioEncoder, &QMediaEncoder::durationChanged, this, &AudioRecorder::updateProgress);
     connect(m_audioEncoder, &QMediaEncoder::statusChanged, this, &AudioRecorder::updateStatus);
     connect(m_audioEncoder, &QMediaEncoder::stateChanged, this, &AudioRecorder::onStateChanged);
-    connect(m_audioEncoder, QOverload<QMediaEncoder::Error>::of(&QMediaEncoder::error), this,
-            &AudioRecorder::displayErrorMessage);
+    connect(m_audioEncoder, &QMediaEncoder::errorChanged, this, &AudioRecorder::displayErrorMessage);
 }
 
 void AudioRecorder::updateProgress(qint64 duration)

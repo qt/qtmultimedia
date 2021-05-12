@@ -105,12 +105,7 @@ void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
     }
     m_session = m_service->captureSession();
     Q_ASSERT(m_session);
-
-    connect(m_session, SIGNAL(stateChanged(QMediaEncoder::State)), this, SIGNAL(stateChanged(QMediaEncoder::State)));
-    connect(m_session, SIGNAL(statusChanged(QMediaEncoder::Status)), this, SIGNAL(statusChanged(QMediaEncoder::Status)));
-    connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
-    connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
-    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+    m_session->setMediaEncoder(this);
 }
 
 QT_END_NAMESPACE

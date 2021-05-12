@@ -199,7 +199,7 @@ void tst_QMediaEncoder::testError()
 {
     const QString errorString(QLatin1String("format error"));
 
-    QSignalSpy spy(encoder, SIGNAL(error(QMediaEncoder::Error)));
+    QSignalSpy spy(encoder, SIGNAL(errorOccurred(QMediaEncoder::Error, const QString&)));
 
     QCOMPARE(encoder->error(), QMediaEncoder::NoError);
     QCOMPARE(encoder->errorString(), QString());
@@ -562,10 +562,6 @@ void tst_QMediaEncoder::testSettingsApplied()
     QCOMPARE(mock->m_settingAppliedCount, 3);
 
     encoder.stop();
-
-    //applySettings is not called if setting has not changes
-    encoder.record();
-    QCOMPARE(mock->m_settingAppliedCount, 3);
 }
 
 void tst_QMediaEncoder::metaData()
@@ -722,7 +718,7 @@ void tst_QMediaEncoder::testEnum()
 {
     const QString errorString(QLatin1String("resource error"));
 
-    QSignalSpy spy(encoder, SIGNAL(error(QMediaEncoder::Error)));
+    QSignalSpy spy(encoder, SIGNAL(errorOccurred(QMediaEncoder::Error, const QString&)));
 
     QCOMPARE(encoder->error(), QMediaEncoder::NoError);
     QCOMPARE(encoder->errorString(), QString());

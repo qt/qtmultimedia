@@ -71,40 +71,6 @@ QT_BEGIN_NAMESPACE
     \snippet multimedia-snippets/media.cpp Media encoder
 */
 
-
-#define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
-
-void QMediaEncoderPrivate::_q_stateChanged(QMediaEncoder::State ps)
-{
-    Q_Q(QMediaEncoder);
-
-//    qDebug() << "Encoder state changed:" << ENUM_NAME(QMediaEncoder,"State",ps);
-    if (state != ps) {
-        emit q->stateChanged(ps);
-    }
-
-    state = ps;
-}
-
-
-void QMediaEncoderPrivate::_q_error(int error, const QString &errorString)
-{
-    Q_Q(QMediaEncoder);
-
-    this->error = QMediaEncoder::Error(error);
-    this->errorString = errorString;
-
-    emit q->error(this->error);
-}
-
-void QMediaEncoderPrivate::_q_updateActualLocation(const QUrl &location)
-{
-    if (actualLocation != location) {
-        actualLocation = location;
-        emit q_func()->actualLocationChanged(actualLocation);
-    }
-}
-
 void QMediaEncoderPrivate::applySettingsLater()
 {
     if (control && !settingsChanged) {
@@ -145,6 +111,7 @@ QMediaEncoder::~QMediaEncoder()
             d_ptr->captureSession->platformSession()->setMediaEncoder(nullptr);
         d_ptr->captureSession->setEncoder(nullptr);
     }
+    delete d_ptr->control;
     delete d_ptr;
 }
 
@@ -163,29 +130,10 @@ void QMediaEncoder::setCaptureSession(QMediaCaptureSession *session)
         return;
 
     QPlatformMediaCaptureSession *platformSession = session->platformSession();
-    if (platformSession && d->control)
-        platformSession->setMediaEncoder(d->control);
-    else
+    if (!platformSession || !d->control)
         return;
 
-    connect(d->control, SIGNAL(stateChanged(QMediaEncoder::State)),
-            this, SLOT(_q_stateChanged(QMediaEncoder::State)));
-
-    connect(d->control, SIGNAL(statusChanged(QMediaEncoder::Status)),
-            this, SIGNAL(statusChanged(QMediaEncoder::Status)));
-
-    connect(d->control, SIGNAL(durationChanged(qint64)),
-            this, SIGNAL(durationChanged(qint64)));
-
-    connect(d->control, SIGNAL(actualLocationChanged(QUrl)),
-            this, SLOT(_q_updateActualLocation(QUrl)));
-
-    connect(d->control, SIGNAL(error(int,QString)),
-            this, SLOT(_q_error(int,QString)));
-
-    connect(d->control, SIGNAL(metaDataChanged()),
-            this, SIGNAL(metaDataChanged()));
-
+    platformSession->setMediaEncoder(d->control);
     d->applySettingsLater();
 
 }
@@ -230,7 +178,9 @@ QUrl QMediaEncoder::outputLocation() const
 bool QMediaEncoder::setOutputLocation(const QUrl &location)
 {
     Q_D(QMediaEncoder);
-    d->actualLocation.clear();
+    if (!d->control)
+        return false;
+    d->control->clearActualLocation();
     if (d->control && d->captureSession)
         return d->control->setOutputLocation(location);
     return false;
@@ -238,7 +188,8 @@ bool QMediaEncoder::setOutputLocation(const QUrl &location)
 
 QUrl QMediaEncoder::actualLocation() const
 {
-    return d_func()->actualLocation;
+    Q_D(const QMediaEncoder);
+    return d->control ? d->control->actualLocation() : QUrl();
 }
 
 /*!
@@ -260,7 +211,8 @@ QMediaEncoder::State QMediaEncoder::state() const
 
 QMediaEncoderBase::Status QMediaEncoder::status() const
 {
-    return d_func()->control ? QMediaEncoder::Status(d_func()->control->status()) : UnavailableStatus;
+    Q_D(const QMediaEncoder);
+    return d->control ? d->control->status() : UnavailableStatus;
 }
 
 /*!
@@ -271,7 +223,9 @@ QMediaEncoderBase::Status QMediaEncoder::status() const
 
 QMediaEncoderBase::Error QMediaEncoder::error() const
 {
-    return d_func()->error;
+    Q_D(const QMediaEncoder);
+
+    return d->control ? d->control->error() : QMediaEncoder::ResourceError;
 }
 
 /*!
@@ -282,7 +236,9 @@ QMediaEncoderBase::Error QMediaEncoder::error() const
 
 QString QMediaEncoder::errorString() const
 {
-    return d_func()->errorString;
+    Q_D(const QMediaEncoder);
+
+    return d->control ? d->control->errorString() : tr("QMediaEncoder not supported on this platform");
 }
 
 /*!
@@ -336,14 +292,14 @@ void QMediaEncoder::record()
 {
     Q_D(QMediaEncoder);
 
-    d->actualLocation.clear();
+    if (!d->control)
+        return;
+    d->control->clearActualLocation();
 
     if (d->settingsChanged)
-        d->_q_applySettings();
+        d->control->applySettings();
 
-    // reset error
-    d->error = NoError;
-    d->errorString = QString();
+    d->control->clearError();
 
     if (d->control && d->captureSession)
         d->control->setState(QMediaRecorder::RecordingState);

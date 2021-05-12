@@ -61,7 +61,6 @@ class QAndroidCaptureService;
 
 class QAndroidMediaEncoder : public QPlatformMediaEncoder
 {
-    Q_OBJECT
 public:
     explicit QAndroidMediaEncoder(QMediaEncoder *parent);
 
@@ -76,10 +75,11 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-public Q_SLOTS:
     void setState(QMediaEncoder::State state) override;
 
 private:
+    friend class QAndroidCaptureSession;
+
     QAndroidCaptureSession *m_session = nullptr;
     QAndroidCaptureService *m_service = nullptr;
 };

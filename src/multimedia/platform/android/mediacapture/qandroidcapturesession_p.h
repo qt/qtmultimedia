@@ -58,6 +58,7 @@
 #include <qtimer.h>
 #include <private/qmediastoragelocation_p.h>
 #include "androidmediarecorder_p.h"
+#include "qandroidmediaencoder_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -89,15 +90,37 @@ public:
     void setEncoderSettings(const QMediaEncoderSettings &settings);
     QMediaEncoderSettings encoderSettings() { return m_encoderSettings; }
 
+    void setMediaEncoder(QAndroidMediaEncoder *encoder) { m_mediaEncoder = encoder; }
+
     void applySettings();
+
+    void stateChanged(QMediaEncoder::State state) {
+        if (m_mediaEncoder)
+            m_mediaEncoder->stateChanged(state);
+    }
+    void statusChanged(QMediaEncoder::Status status)
+    {
+        if (m_mediaEncoder)
+            m_mediaEncoder->statusChanged(status);
+    }
+    void durationChanged(qint64 position)
+    {
+        if (m_mediaEncoder)
+            m_mediaEncoder->durationChanged(position);
+    }
+    void actualLocationChanged(const QUrl &location)
+    {
+        if (m_mediaEncoder)
+            m_mediaEncoder->actualLocationChanged(location);
+    }
+    void error(int error, const QString &errorString)
+    {
+        if (m_mediaEncoder)
+            m_mediaEncoder->error(QMediaEncoder::Error(error), errorString);
+    }
 
 Q_SIGNALS:
     void audioInputChanged(const QString& name);
-    void stateChanged(QMediaEncoder::State state);
-    void statusChanged(QMediaEncoder::Status status);
-    void durationChanged(qint64 position);
-    void actualLocationChanged(const QUrl &location);
-    void error(int error, const QString &errorString);
 
 private Q_SLOTS:
     void updateDuration();
@@ -148,6 +171,7 @@ private:
     void updateResolution();
     void restartViewfinder();
 
+    QAndroidMediaEncoder *m_mediaEncoder = nullptr;
     AndroidMediaRecorder *m_mediaRecorder;
     QAndroidCameraSession *m_cameraSession;
 

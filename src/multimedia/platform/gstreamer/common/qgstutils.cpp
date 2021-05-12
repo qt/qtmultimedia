@@ -293,6 +293,8 @@ QGstMutableCaps QGstMutableCaps::fromCameraFormat(const QCameraFormat &format)
                                       nullptr);
     } else {
         int index = indexOfVideoFormat(format.pixelFormat());
+        if (index < 0)
+            return QGstMutableCaps();
         auto gstFormat = qt_videoFormatLookup[index].gstFormat;
         structure = gst_structure_new("video/x-raw",
                                       "format"   , G_TYPE_STRING, gst_video_format_to_string(gstFormat),

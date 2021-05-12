@@ -106,6 +106,8 @@ class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
     Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
+    Q_PROPERTY(QMediaEncoder::Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
 public:
     QMediaEncoder(QObject *parent = nullptr);
@@ -146,7 +148,8 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
     void actualLocationChanged(const QUrl &location);
 
-    void error(QMediaEncoder::Error error);
+    void errorOccurred(QMediaEncoder::Error error, const QString &errorString);
+    void errorChanged();
 
     void metaDataChanged();
 
@@ -156,9 +159,6 @@ private:
     void setCaptureSession(QMediaCaptureSession *session);
     Q_DISABLE_COPY(QMediaEncoder)
     Q_DECLARE_PRIVATE(QMediaEncoder)
-    Q_PRIVATE_SLOT(d_func(), void _q_stateChanged(QMediaEncoder::State))
-    Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_updateActualLocation(const QUrl &))
     Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };
 
