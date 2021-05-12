@@ -50,6 +50,8 @@ class QMediaFormat;
 class QMediaEncoderSettings;
 class QMediaFormatPrivate;
 
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QMediaFormatPrivate, Q_MULTIMEDIA_EXPORT)
+
 class Q_MULTIMEDIA_EXPORT QMediaFormat
 {
 public:
@@ -110,8 +112,13 @@ public:
 
     QMediaFormat(FileFormat format = UnspecifiedFormat);
     ~QMediaFormat();
-    QMediaFormat(const QMediaFormat &other);
-    QMediaFormat &operator=(const QMediaFormat &other);
+    QMediaFormat(const QMediaFormat &other) noexcept;
+    QMediaFormat &operator=(const QMediaFormat &other) noexcept;
+
+    QMediaFormat(QMediaFormat &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QMediaFormat)
+    void swap(QMediaFormat &other) noexcept
+    { qSwap(d, other.d); }
 
     FileFormat format() const { return fmt; }
     void setFormat(FileFormat f) { fmt = f; }
@@ -147,7 +154,7 @@ protected:
     FileFormat fmt;
     AudioCodec audio = AudioCodec::Unspecified;
     VideoCodec video = VideoCodec::Unspecified;
-    QMediaFormatPrivate *d = nullptr;
+    QExplicitlySharedDataPointer<QMediaFormatPrivate> d;
 };
 
 QT_END_NAMESPACE

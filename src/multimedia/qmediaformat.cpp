@@ -67,6 +67,11 @@ const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
 
 }
 
+class QMediaFormatPrivate : public QSharedData
+{};
+
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
+
 /*! \enum QMediaFormat::FileFormat
 
     Describes the container format used in a multimedia file or stream.
@@ -91,16 +96,39 @@ const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
 */
 
 // these are non inline to make a possible future addition of a d pointer binary compatible
+
+/*!
+    Constucts a QMediaFormat object for \a format.
+*/
 QMediaFormat::QMediaFormat(FileFormat format)
     : fmt(format)
 {
-    Q_UNUSED(d);
 }
 
+/*!
+    Destroys the QMediaFormat object.
+*/
 QMediaFormat::~QMediaFormat() = default;
-QMediaFormat::QMediaFormat(const QMediaFormat &other) = default;
-QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) = default;
 
+/*!
+    Constructs a QMediaFormat object by copying from \a other.
+*/
+QMediaFormat::QMediaFormat(const QMediaFormat &other) noexcept = default;
+
+/*!
+    Copies \a other into this QMediaFormat object.
+*/
+QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = default;
+
+/*! \fn QMediaFormat::QMediaFormat(QMediaFormat &&other)
+
+    Constructs a QMediaFormat objects by moving from \a other.
+*/
+
+/*! \fn QMediaFormat &QMediaFormat::operator=(QMediaFormat &&other)
+
+    Moves \a other into this QMediaFormat objects.
+*/
 
 /*! \fn void QMediaFormat::setMediaContainer(QMediaFormat::FileFormat container)
 
