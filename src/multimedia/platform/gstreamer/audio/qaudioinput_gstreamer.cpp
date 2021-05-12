@@ -48,13 +48,17 @@
 #include <unistd.h>
 
 #include <gst/gst.h>
+Q_DECLARE_OPAQUE_POINTER(GstSample *);
+Q_DECLARE_METATYPE(GstSample *);
 
 QT_BEGIN_NAMESPACE
+
 
 QGStreamerAudioInput::QGStreamerAudioInput(const QAudioDeviceInfo &device)
     : m_info(device),
       m_device(device.id())
 {
+    qRegisterMetaType<GstSample *>();
 }
 
 QGStreamerAudioInput::~QGStreamerAudioInput()
@@ -330,29 +334,37 @@ QGstElement QGStreamerAudioInput::createAppSink()
     return sink;
 }
 
+void QGStreamerAudioInput::newDataAvailable(GstSample *sample)
+{
+    if (m_audioSink) {
+        GstBuffer *buffer = gst_sample_get_buffer(sample);
+        GstMapInfo mapInfo;
+        gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
+        const char *bufferData = (const char*)mapInfo.data;
+        gsize bufferSize = mapInfo.size;
+
+        if (!m_pullMode) {
+                // need to store that data in the QBuffer
+            m_buffer.append(bufferData, bufferSize);
+            m_audioSink->readyRead();
+        } else {
+            m_bytesWritten += bufferSize;
+            m_audioSink->write(bufferData, bufferSize);
+        }
+
+        gst_buffer_unmap(buffer, &mapInfo);
+    }
+
+    gst_sample_unref(sample);
+}
+
 GstFlowReturn QGStreamerAudioInput::new_sample(GstAppSink *sink, gpointer user_data)
 {
     // "Note that the preroll buffer will also be returned as the first buffer when calling gst_app_sink_pull_buffer()."
     QGStreamerAudioInput *control = static_cast<QGStreamerAudioInput*>(user_data);
 
     GstSample *sample = gst_app_sink_pull_sample(sink);
-    GstBuffer *buffer = gst_sample_get_buffer(sample);
-    GstMapInfo mapInfo;
-    gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
-    const char *bufferData = (const char*)mapInfo.data;
-    gsize bufferSize = mapInfo.size;
-
-    if (!control->m_pullMode) {
-        // need to store that data in the QBuffer
-        control->m_buffer.append(bufferData, bufferSize);
-        control->m_audioSink->readyRead();
-    } else {
-        control->m_bytesWritten += bufferSize;
-        control->m_audioSink->write(bufferData, bufferSize);
-    }
-
-    gst_buffer_unmap(buffer, &mapInfo);
-    gst_sample_unref(sample);
+    QMetaObject::invokeMethod(control, "newDataAvailable", Qt::AutoConnection, Q_ARG(GstSample *, sample));
 
     return GST_FLOW_OK;
 }

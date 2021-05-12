@@ -57,6 +57,8 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qatomic.h>
 #include <QtCore/private/qringbuffer_p.h>
 
 #include "qaudio.h"
@@ -98,6 +100,9 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
+private Q_SLOTS:
+    void newDataAvailable(GstSample *sample);
+
 private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
@@ -120,7 +125,7 @@ private:
     qreal m_volume = 1.;
 
     QRingBuffer m_buffer;
-    bool m_pullMode = true;
+    QAtomicInteger<bool> m_pullMode = true;
     bool m_opened = false;
     int m_bufferSize = 0;
     qint64 m_elapsedTimeOffset = 0;
