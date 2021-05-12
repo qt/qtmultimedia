@@ -228,8 +228,6 @@ private:
 
     QAudioDeviceInfo m_audioOutput;
     QMediaMetaData m_metaData;
-    IMFActivate *m_currentAudioActivate = nullptr;
-
 
     void setVolumeInternal(int volume);
 

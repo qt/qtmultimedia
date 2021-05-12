@@ -158,10 +158,6 @@ void MFPlayerSession::close()
 
 MFPlayerSession::~MFPlayerSession()
 {
-    if (m_currentAudioActivate)
-        m_currentAudioActivate->Release();
-    m_currentAudioActivate = nullptr;
-
     m_audioSampleGrabber->Release();
 }
 
@@ -401,9 +397,34 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
 
     IMFActivate *activate = NULL;
     if (mediaType == Audio) {
-        if (!m_currentAudioActivate)
-            setAudioOutput(QAudioDeviceInfo());
-        activate = m_currentAudioActivate;
+        HRESULT hr = MFCreateAudioRendererActivate(&activate);
+        if (FAILED(hr)) {
+            qWarning() << "Failed to create audio renderer activate";
+            node->Release();
+            return NULL;
+        }
+
+        if (!m_audioOutput.id().isEmpty()) {
+            QString s = QString::fromUtf8(m_audioOutput.id());
+            hr = activate->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID, (LPCWSTR)s.utf16());
+        } else {
+            //This is the default one that has been inserted in updateEndpoints(),
+            //so give the activate a hint that we want to use the device for multimedia playback
+            //then the media foundation will choose an appropriate one.
+
+            //from MSDN:
+            //The ERole enumeration defines constants that indicate the role that the system has assigned to an audio endpoint device.
+            //eMultimedia: Music, movies, narration, and live music recording.
+            hr = activate->SetUINT32(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE, eMultimedia);
+        }
+
+        if (FAILED(hr)) {
+            qWarning() << "Failed to set attribute for audio device" << m_audioOutput.description();
+            activate->Release();
+            node->Release();
+            return NULL;
+        }
+
     } else if (mediaType == Video) {
         activate = m_videoRendererControl->createActivate();
 //        } else if (m_playerService->videoWindowControl()) {
@@ -421,6 +442,9 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
         node->Release();
         node = NULL;
     }
+
+    if (activate && mediaType == Audio)
+        activate->Release();
 
     return node;
 }
@@ -1793,38 +1817,9 @@ bool MFPlayerSession::setAudioOutput(const QAudioDeviceInfo &device)
 {
     // ### This doesn't yet update the output routing during playback
     // ie. it currently only works before the first play().
-    if (m_audioOutput == device && m_currentAudioActivate)
+    if (m_audioOutput == device)
         return true;
 
-    IMFActivate *activate = NULL;
-    HRESULT hr = MFCreateAudioRendererActivate(&activate);
-    if (FAILED(hr)) {
-        qWarning() << "Failed to create audio renderer activate";
-        return false;
-    }
-
-    if (!device.id().isEmpty()) {
-        QString s = QString::fromUtf8(device.id());
-        hr = activate->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID, (LPCWSTR)s.utf16());
-    } else {
-        //This is the default one that has been inserted in updateEndpoints(),
-        //so give the activate a hint that we want to use the device for multimedia playback
-        //then the media foundation will choose an appropriate one.
-
-        //from MSDN:
-        //The ERole enumeration defines constants that indicate the role that the system has assigned to an audio endpoint device.
-        //eMultimedia: Music, movies, narration, and live music recording.
-        hr = activate->SetUINT32(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE, eMultimedia);
-    }
-
-    if (FAILED(hr)) {
-        qWarning() << "Failed to set attribute for audio device" << device.description();
-        return false;
-    }
-
-    if (m_currentAudioActivate)
-        m_currentAudioActivate->Release();
-    m_currentAudioActivate = activate;
     m_audioOutput = device;
     return true;
 }
