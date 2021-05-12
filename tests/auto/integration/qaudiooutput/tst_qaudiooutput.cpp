@@ -402,7 +402,6 @@ void tst_QAudioOutput::pull()
                  QString("didn't emit signal on start(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::ActiveState), "didn't transition to ActiveState after start()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
-    QVERIFY(audioOutput.periodSize() > 0);
     stateSignal.clear();
 
     // Check that 'elapsed' increases
@@ -456,7 +455,6 @@ void tst_QAudioOutput::pullSuspendResume()
                  QString("didn't emit signal on start(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::ActiveState), "didn't transition to ActiveState after start()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
-    QVERIFY(audioOutput.periodSize() > 0);
     stateSignal.clear();
 
     // Wait for half of clip to play
@@ -538,7 +536,6 @@ void tst_QAudioOutput::push()
                  QString("didn't emit signal on start(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transition to IdleState after start()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
-    QVERIFY(audioOutput.periodSize() > 0);
     stateSignal.clear();
 
     // Check that 'elapsed' increases
@@ -548,13 +545,12 @@ void tst_QAudioOutput::push()
 
     qint64 written = 0;
     bool firstBuffer = true;
-    QByteArray buffer(AUDIO_BUFFER, 0);
 
     while (written < audioFile->size() - QWaveDecoder::headerLength()) {
 
-        if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-            qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
-            written += feed->write(buffer.constData(), len);
+        if (audioOutput.bytesFree() > 0) {
+            auto buffer = audioFile->read(audioOutput.bytesFree());
+            written += feed->write(buffer);
 
             if (firstBuffer) {
                 // Check for transition to ActiveState when data is provided
@@ -621,7 +617,6 @@ void tst_QAudioOutput::pushSuspendResume()
                  QString("didn't emit signal on start(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transition to IdleState after start()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
-    QVERIFY(audioOutput.periodSize() > 0);
     stateSignal.clear();
 
     // Check that 'elapsed' increases
@@ -636,9 +631,9 @@ void tst_QAudioOutput::pushSuspendResume()
     // Play half of the clip
     while (written < (audioFile->size() - QWaveDecoder::headerLength()) / 2) {
 
-        if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-            qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
-            written += feed->write(buffer.constData(), len);
+        if (audioOutput.bytesFree() > 0) {
+            auto buffer = audioFile->read(audioOutput.bytesFree());
+            written += feed->write(buffer);
 
             if (firstBuffer) {
                 // Check for transition to ActiveState when data is provided
@@ -685,9 +680,9 @@ void tst_QAudioOutput::pushSuspendResume()
 
     // Play rest of the clip
     while (!audioFile->atEnd()) {
-        if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-            qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
-            written += feed->write(buffer.constData(), len);
+        if (audioOutput.bytesFree() > 0) {
+            auto buffer = audioFile->read(audioOutput.bytesFree());
+            written += feed->write(buffer);
             QVERIFY2((audioOutput.state() == QAudio::ActiveState), "didn't transition to ActiveState after writing audio data");
         } else
             QTest::qWait(20);
@@ -744,7 +739,6 @@ void tst_QAudioOutput::pushUnderrun()
                  QString("didn't emit signal on start(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transition to IdleState after start()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after start()");
-    QVERIFY(audioOutput.periodSize() > 0);
     stateSignal.clear();
 
     // Check that 'elapsed' increases
@@ -759,9 +753,9 @@ void tst_QAudioOutput::pushUnderrun()
     // Play half of the clip
     while (written < (audioFile->size() - QWaveDecoder::headerLength()) / 2) {
 
-        if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-            qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
-            written += feed->write(buffer.constData(), len);
+        if (audioOutput.bytesFree() > 0) {
+            auto buffer = audioFile->read(audioOutput.bytesFree());
+            written += feed->write(buffer);
 
             if (firstBuffer) {
                 // Check for transition to ActiveState when data is provided
@@ -790,9 +784,9 @@ void tst_QAudioOutput::pushUnderrun()
     firstBuffer = true;
     // Play rest of the clip
     while (!audioFile->atEnd()) {
-        if (audioOutput.bytesFree() >= audioOutput.periodSize()) {
-            qint64 len = audioFile->read(buffer.data(),audioOutput.periodSize());
-            written += feed->write(buffer.constData(), len);
+        if (audioOutput.bytesFree() > 0) {
+            auto buffer = audioFile->read(audioOutput.bytesFree());
+            written += feed->write(buffer);
             if (firstBuffer) {
                 // Check for transition to ActiveState when data is provided
                 QVERIFY2((stateSignal.count() == 1),

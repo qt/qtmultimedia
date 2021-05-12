@@ -544,11 +544,6 @@ qsizetype QPulseAudioInput::bufferSize() const
     return m_bufferSize;
 }
 
-int QPulseAudioInput::periodSize() const
-{
-    return m_periodSize;
-}
-
 qint64 QPulseAudioInput::processedUSecs() const
 {
     pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);

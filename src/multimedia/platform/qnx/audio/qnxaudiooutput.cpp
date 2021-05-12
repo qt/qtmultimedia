@@ -157,11 +157,6 @@ qsizetype QnxAudioOutput::bytesFree() const
         return status.free;
 }
 
-int QnxAudioOutput::periodSize() const
-{
-     return m_periodSize;
-}
-
 qint64 QnxAudioOutput::processedUSecs() const
 {
     return qint64(1000000) * m_format.framesForBytes(m_bytesWritten) / m_format.sampleRate();

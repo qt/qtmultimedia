@@ -86,7 +86,6 @@ public:
     void suspend();
     void resume();
     qsizetype bytesReady() const;
-    int periodSize() const;
     void setBufferSize(qsizetype value);
     qsizetype bufferSize() const;
     qint64 processedUSecs() const;
@@ -129,7 +128,6 @@ private:
     qint64 m_lastNotifyTime;
     qreal m_volume;
     int m_bufferSize;
-    int m_periodSize;
     QByteArray *m_buffers;
     int m_currentBuffer;
 };

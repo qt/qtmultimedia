@@ -75,7 +75,6 @@ public:
     virtual void suspend() = 0;
     virtual void resume() = 0;
     virtual qsizetype bytesFree() const = 0;
-    virtual int periodSize() const;
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;
@@ -109,7 +108,6 @@ public:
     virtual void suspend()  = 0;
     virtual void resume() = 0;
     virtual qsizetype bytesReady() const = 0;
-    virtual int periodSize() const;
     virtual void setBufferSize(qsizetype value) = 0;
     virtual qsizetype bufferSize() const = 0;
     virtual qint64 processedUSecs() const = 0;

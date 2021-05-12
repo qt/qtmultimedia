@@ -569,11 +569,6 @@ qsizetype QPulseAudioOutput::bytesFree() const
     return writableSize;
 }
 
-int QPulseAudioOutput::periodSize() const
-{
-    return m_periodSize;
-}
-
 void QPulseAudioOutput::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;

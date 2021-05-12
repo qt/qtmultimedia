@@ -160,11 +160,6 @@ qsizetype QnxAudioInput::bytesReady() const
     return qMax(m_bytesAvailable, 0);
 }
 
-int QnxAudioInput::periodSize() const
-{
-    return m_periodSize;
-}
-
 void QnxAudioInput::setBufferSize(qsizetype bufferSize)
 {
     m_bufferSize = bufferSize;

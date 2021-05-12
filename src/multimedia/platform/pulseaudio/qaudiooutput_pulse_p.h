@@ -82,7 +82,6 @@ public:
     void suspend() override;
     void resume() override;
     qsizetype bytesFree() const override;
-    int periodSize() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;

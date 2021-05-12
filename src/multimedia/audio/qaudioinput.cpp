@@ -294,17 +294,6 @@ qsizetype QAudioInput::bytesAvailable() const
 }
 
 /*!
-    Returns the period size in bytes.
-
-    Note: This is the recommended read size in bytes.
-*/
-
-int QAudioInput::periodSize() const
-{
-    return d->periodSize();
-}
-
-/*!
     Sets the input volume to \a volume.
 
     The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this

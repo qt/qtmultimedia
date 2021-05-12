@@ -75,7 +75,6 @@ public:
     void suspend() override;
     void resume() override;
     qsizetype bytesFree() const override;
-    int periodSize() const override;
     void setBufferSize(qsizetype value) override;
     qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
@@ -124,7 +123,6 @@ private:
     bool m_pullMode;
     int m_nextBuffer;
     int m_bufferSize;
-    int m_periodSize;
     qint64 m_elapsedTime;
     qint64 m_processedBytes;
     QAtomicInt m_availableBuffers;

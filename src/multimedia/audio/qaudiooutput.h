@@ -81,7 +81,6 @@ public:
     qsizetype bufferSize() const;
 
     qsizetype bytesFree() const;
-    int periodSize() const;
 
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;

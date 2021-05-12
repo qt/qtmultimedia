@@ -803,13 +803,6 @@ qsizetype CoreAudioInput::bytesReady() const
     return m_audioBuffer->used();
 }
 
-
-int CoreAudioInput::periodSize() const
-{
-    return m_periodSizeBytes;
-}
-
-
 void CoreAudioInput::setBufferSize(qsizetype value)
 {
     m_internalBufferSize = value;

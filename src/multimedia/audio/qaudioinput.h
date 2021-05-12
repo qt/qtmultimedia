@@ -81,7 +81,6 @@ public:
     qsizetype bufferSize() const;
 
     qsizetype bytesAvailable() const;
-    int periodSize() const;
 
     void setVolume(qreal volume);
     qreal volume() const;

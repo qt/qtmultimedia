@@ -107,7 +107,6 @@ QOpenSLESAudioInput::QOpenSLESAudioInput(const QByteArray &device)
     , m_lastNotifyTime(0)
     , m_volume(1.0)
     , m_bufferSize(0)
-    , m_periodSize(0)
     , m_buffers(new QByteArray[NUM_BUFFERS])
     , m_currentBuffer(0)
 {
@@ -315,13 +314,11 @@ bool QOpenSLESAudioInput::startRecording()
             m_bufferSize = minimumBufSize;
     }
 
-    m_periodSize = m_bufferSize;
-
     // enqueue empty buffers to be filled by the recorder
     for (int i = 0; i < NUM_BUFFERS; ++i) {
-        m_buffers[i].resize(m_periodSize);
+        m_buffers[i].resize(m_bufferSize);
 
-        result = (*m_bufferQueue)->Enqueue(m_bufferQueue, m_buffers[i].data(), m_periodSize);
+        result = (*m_bufferQueue)->Enqueue(m_bufferQueue, m_buffers[i].data(), m_bufferSize);
         if (result != SL_RESULT_SUCCESS) {
             m_errorState = QAudio::FatalError;
             return false;
@@ -478,7 +475,7 @@ void QOpenSLESAudioInput::flushBuffers()
 qsizetype QOpenSLESAudioInput::bytesReady() const
 {
     if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::SuspendedState)
-        return m_bufferIODevice ? m_bufferIODevice->bytesAvailable() : m_periodSize;
+        return m_bufferIODevice ? m_bufferIODevice->bytesAvailable() : m_bufferSize;
 
     return 0;
 }
@@ -491,11 +488,6 @@ void QOpenSLESAudioInput::setBufferSize(qsizetype value)
 qsizetype QOpenSLESAudioInput::bufferSize() const
 {
     return m_bufferSize;
-}
-
-int QOpenSLESAudioInput::periodSize() const
-{
-    return m_periodSize;
 }
 
 qint64 QOpenSLESAudioInput::processedUSecs() const

@@ -633,11 +633,6 @@ int QAlsaAudioInput::bufferSize() const
     return buffer_size;
 }
 
-int QAlsaAudioInput::periodSize() const
-{
-    return period_size;
-}
-
 qint64 QAlsaAudioInput::processedUSecs() const
 {
     qint64 result = qint64(1000000) * totalTimeValue /

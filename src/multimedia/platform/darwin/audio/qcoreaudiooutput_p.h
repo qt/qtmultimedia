@@ -135,7 +135,6 @@ public:
     void suspend();
     void resume();
     qsizetype bytesFree() const;
-    int periodSize() const;
     void setBufferSize(qsizetype value);
     qsizetype bufferSize() const;
     qint64 processedUSecs() const;

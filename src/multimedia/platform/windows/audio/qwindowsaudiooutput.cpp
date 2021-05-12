@@ -332,11 +332,6 @@ qsizetype QWindowsAudioOutput::bytesFree() const
     return buf;
 }
 
-int QWindowsAudioOutput::periodSize() const
-{
-    return period_size;
-}
-
 void QWindowsAudioOutput::setBufferSize(qsizetype value)
 {
     if(deviceState == QAudio::StoppedState)

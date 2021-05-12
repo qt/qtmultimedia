@@ -363,11 +363,6 @@ qsizetype QCoreAudioOutput::bytesFree() const
     return m_audioBuffer->available();
 }
 
-int QCoreAudioOutput::periodSize() const
-{
-    return m_periodSizeBytes;
-}
-
 void QCoreAudioOutput::setBufferSize(qsizetype value)
 {
     if (m_stateCode == QAudio::StoppedState)

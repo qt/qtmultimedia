@@ -79,7 +79,6 @@ QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
       m_pullMode(false),
       m_nextBuffer(0),
       m_bufferSize(0),
-      m_periodSize(0),
       m_elapsedTime(0),
       m_processedBytes(0),
       m_availableBuffers(BUFFER_COUNT),
@@ -184,11 +183,6 @@ qsizetype QOpenSLESAudioOutput::bytesFree() const
         return 0;
 
     return m_availableBuffers.loadAcquire() ? m_bufferSize : 0;
-}
-
-int QOpenSLESAudioOutput::periodSize() const
-{
-    return m_periodSize;
 }
 
 void QOpenSLESAudioOutput::setBufferSize(qsizetype value)
@@ -533,8 +527,6 @@ bool QOpenSLESAudioOutput::preparePlayer()
     } else if (m_bufferSize < defaultBufferSize) {
         m_bufferSize = defaultBufferSize;
     }
-
-    m_periodSize = m_bufferSize;
 
     if (!m_buffers)
         m_buffers = new char[BUFFER_COUNT * m_bufferSize];

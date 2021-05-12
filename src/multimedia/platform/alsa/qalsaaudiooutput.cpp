@@ -554,11 +554,6 @@ qint64 QAlsaAudioOutput::write( const char *data, qint64 len )
     return 0;
 }
 
-int QAlsaAudioOutput::periodSize() const
-{
-    return period_size;
-}
-
 void QAlsaAudioOutput::setBufferSize(qsizetype value)
 {
     if(deviceState == QAudio::StoppedState)

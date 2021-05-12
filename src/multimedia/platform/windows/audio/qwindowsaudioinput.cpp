@@ -602,11 +602,6 @@ qsizetype QWindowsAudioInput::bufferSize() const
     return buffer_size;
 }
 
-int QWindowsAudioInput::periodSize() const
-{
-    return period_size;
-}
-
 qint64 QWindowsAudioInput::processedUSecs() const
 {
     if (deviceState == QAudio::StoppedState)

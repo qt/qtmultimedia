@@ -279,12 +279,6 @@ qsizetype QGStreamerAudioOutput::bytesFree() const
     return m_appSrc->canAcceptMoreData() ? 4096*4 : 0;
 }
 
-int QGStreamerAudioOutput::periodSize() const
-{
-    // max 5ms periods. Gstreamer itself will ask for 4k data at a time
-    return qMin(4096, 5*m_format.sampleRate()/1000*m_format.bytesPerFrame());
-}
-
 void QGStreamerAudioOutput::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
