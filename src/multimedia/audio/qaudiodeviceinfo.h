@@ -68,7 +68,7 @@ public:
     QAudioDeviceInfo(const QAudioDeviceInfo& other);
     ~QAudioDeviceInfo();
 
-    QAudioDeviceInfo(QAudioDeviceInfo &&other) noexcept;
+    QAudioDeviceInfo(QAudioDeviceInfo &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QAudioDeviceInfo)
     void swap(QAudioDeviceInfo &other) noexcept
     { qSwap(d, other.d); }

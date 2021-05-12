@@ -102,9 +102,10 @@ QAudioDeviceInfo::QAudioDeviceInfo() = default;
 QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other) = default;
 
 /*!
+    \fn QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfo &&other)
+
     Move constructs from \a other.
 */
-QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfo &&other) noexcept = default;
 
 /*!
     Destroy this audio device info.
@@ -115,6 +116,12 @@ QAudioDeviceInfo::~QAudioDeviceInfo() = default;
     Sets the QAudioDeviceInfo object to be equal to \a other.
 */
 QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other) = default;
+
+/*!
+    \fn QAudioDeviceInfo& QAudioDeviceInfo::operator=(QAudioDeviceInfo &&other)
+
+    Moves \a other into this QAudioDeviceInfo object.
+*/
 
 /*!
     Returns true if this QAudioDeviceInfo class represents the
