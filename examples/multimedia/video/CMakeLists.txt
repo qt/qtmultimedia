@@ -2,6 +2,9 @@
 
 add_subdirectory(qmlvideo)
 add_subdirectory(qmlvideofx)
+if(TARGET Qt::QuickControls2)
+    add_subdirectory(mediaplayer)
+endif()
 if(ANDROID)
     add_subdirectory(android)
 endif()
