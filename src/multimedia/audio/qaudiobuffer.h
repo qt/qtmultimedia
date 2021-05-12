@@ -140,7 +140,7 @@ private:
 template <> struct QAudioBuffer::StereoFrameDefault<unsigned char> { enum { Default = 128 }; };
 template <> struct QAudioBuffer::StereoFrameDefault<unsigned short> { enum { Default = 32768 }; };
 
-Q_DECLARE_METATYPE(QAudioBuffer);
+Q_DECLARE_METATYPE(QAudioBuffer)
 
 QT_END_NAMESPACE
 

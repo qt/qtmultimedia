@@ -93,7 +93,7 @@ public:
     };
     Q_ENUM(Key)
 
-    static constexpr int NumMetaData = LeadPerformer + 1;
+    static constexpr int NumMetaData = Resolution + 1;
 
 //    QMetaType typeForKey(Key k);
     Q_INVOKABLE QVariant value(Key k) const { return data.value(k); }

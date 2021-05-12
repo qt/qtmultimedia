@@ -56,9 +56,6 @@
 static QString toString(QAudioFormat::SampleFormat sampleFormat)
 {
     switch (sampleFormat) {
-    case QAudioFormat::Unknown:
-    case QAudioFormat::NSampleFormats:
-        return "Unknown";
     case QAudioFormat::UInt8:
         return "Unsigned 8 bit";
     case QAudioFormat::Int16:
@@ -67,6 +64,8 @@ static QString toString(QAudioFormat::SampleFormat sampleFormat)
         return "Signed 32 bit";
     case QAudioFormat::Float:
         return "Float";
+    default:
+        return "Unknown";
     }
 }
 

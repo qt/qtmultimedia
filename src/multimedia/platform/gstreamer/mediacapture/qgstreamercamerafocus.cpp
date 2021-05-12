@@ -82,12 +82,9 @@ void QGstreamerCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
 #if QT_CONFIG(gstreamer_photography)
     auto photography = m_camera->photography();
     if (photography) {
-        GstPhotographyFocusMode photographyMode;
+        GstPhotographyFocusMode photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_CONTINUOUS_NORMAL;
 
         switch (mode) {
-        case QCameraFocus::FocusModeAuto:
-            photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_CONTINUOUS_NORMAL;
-            break;
         case QCameraFocus::FocusModeAutoNear:
             photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_MACRO;
             break;
@@ -102,6 +99,8 @@ void QGstreamerCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
             break;
         case QCameraFocus::FocusModeManual:
             photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_MANUAL;
+            break;
+        default: // QCameraFocus::FocusModeAuto:
             break;
         }
 

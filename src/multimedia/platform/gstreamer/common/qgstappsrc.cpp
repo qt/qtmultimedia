@@ -182,7 +182,7 @@ void QGstAppSrc::pushData()
 
     GstBuffer* buffer = gst_buffer_new_and_alloc(size);
 
-    if (m_sequential)
+    if (m_sequential && m_stream)
         buffer->offset = bytesReadSoFar;
     else
         buffer->offset = m_stream->pos();

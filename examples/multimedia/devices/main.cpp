@@ -61,9 +61,6 @@
 QString formatToString(QAudioFormat::SampleFormat sampleFormat)
 {
     switch (sampleFormat) {
-    case QAudioFormat::Unknown:
-    case QAudioFormat::NSampleFormats:
-        return "Unknown";
     case QAudioFormat::UInt8:
         return "UInt8";
     case QAudioFormat::Int16:
@@ -72,18 +69,20 @@ QString formatToString(QAudioFormat::SampleFormat sampleFormat)
         return "Int32";
     case QAudioFormat::Float:
         return "Float";
+    default:
+        return "Unknown";
     }
 }
 
 QString positionToString(QCameraInfo::Position position)
 {
     switch (position) {
-        case QCameraInfo::UnspecifiedPosition:
-            return "Unspecified";
         case QCameraInfo::BackFace:
             return "BackFace";
         case QCameraInfo::FrontFace:
             return "FrontFace";
+        default:
+            return "Unspecified";
     }
 }
 

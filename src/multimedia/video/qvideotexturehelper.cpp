@@ -152,7 +152,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
       [](int stride, int height) {
           // IMC1 requires that U and V components are aligned on a multiple of 16 lines
           int h = (height + 15) & ~15;
-          h += 2*((h/2) + 15 & ~15);
+          h += 2*(((h/2) + 15) & ~15);
           return stride * h;
       },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
@@ -169,7 +169,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
       [](int stride, int height) {
           // IMC3 requires that U and V components are aligned on a multiple of 16 lines
           int h = (height + 15) & ~15;
-          h += 2*((h/2) + 15 & ~15);
+          h += 2*(((h/2) + 15) & ~15);
           return stride * h;
       },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
@@ -243,10 +243,6 @@ QString vertexShaderFileName(QVideoFrameFormat::PixelFormat /*format*/)
 QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
 {
     switch (format) {
-    case QVideoFrameFormat::Format_Invalid:
-    case QVideoFrameFormat::Format_Jpeg:
-        return QString();
-
     case QVideoFrameFormat::Format_Y8:
     case QVideoFrameFormat::Format_Y16:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/y.frag.qsb");
@@ -285,6 +281,8 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12.frag.qsb");
     case QVideoFrameFormat::Format_NV21:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv21.frag.qsb");
+    default:
+        return QString();
     }
 }
 

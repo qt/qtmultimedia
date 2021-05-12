@@ -375,6 +375,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             qint64 position = (*p)/1000000;
             emit positionChanged(position);
         }
+        break;
     }
     case GST_MESSAGE_ELEMENT: {
         QGstStructure structure(gst_message_get_structure(gm));
@@ -383,6 +384,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             topology.free();
             topology = structure.copy();
         }
+        break;
     }
 
     default:

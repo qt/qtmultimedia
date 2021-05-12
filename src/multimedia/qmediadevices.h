@@ -73,7 +73,7 @@ public:
     static QAudioDeviceInfo defaultAudioOutput();
     static QCameraInfo defaultVideoInput();
 
-signals:
+Q_SIGNALS:
     void audioInputsChanged();
     void audioOutputsChanged();
     void videoInputsChanged();

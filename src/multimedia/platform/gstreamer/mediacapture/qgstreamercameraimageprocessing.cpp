@@ -128,11 +128,8 @@ bool QGstreamerImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::Whit
         return false;
 #if QT_CONFIG(gstreamer_photography)
     if (auto *photography = m_camera->photography()) {
-        GstPhotographyWhiteBalanceMode gstMode;
+        GstPhotographyWhiteBalanceMode gstMode = GST_PHOTOGRAPHY_WB_MODE_AUTO;
         switch (mode) {
-        case QCameraImageProcessing::WhiteBalanceAuto:
-            gstMode = GST_PHOTOGRAPHY_WB_MODE_AUTO;
-            break;
         case QCameraImageProcessing::WhiteBalanceSunlight:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_DAYLIGHT;
             break;
@@ -151,11 +148,11 @@ bool QGstreamerImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::Whit
         case QCameraImageProcessing::WhiteBalanceFluorescent:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_FLUORESCENT;
             break;
+        case QCameraImageProcessing::WhiteBalanceAuto:
         default:
-            Q_ASSERT(false);
             break;
         }
-        if (gst_photography_set_white_balance_mode(m_camera->photography(), gstMode)) {
+        if (gst_photography_set_white_balance_mode(photography, gstMode)) {
             m_whiteBalanceMode = mode;
             return true;
         }
@@ -201,11 +198,8 @@ bool QGstreamerImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilt
 {
 #if QT_CONFIG(gstreamer_photography)
     if (GstPhotography *photography = m_camera->photography()) {
-        GstPhotographyColorToneMode mode;
+        GstPhotographyColorToneMode mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_NORMAL;
         switch (filter) {
-        case QCameraImageProcessing::ColorFilterNone:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_NORMAL;
-            break;
         case QCameraImageProcessing::ColorFilterSepia:
             mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_SEPIA;
             break;
@@ -229,6 +223,9 @@ bool QGstreamerImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilt
             break;
         case QCameraImageProcessing::ColorFilterAqua:
             mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_AQUA;
+            break;
+        case QCameraImageProcessing::ColorFilterNone:
+        default:
             break;
         }
         if (gst_photography_set_color_tone_mode(photography, mode)) {
