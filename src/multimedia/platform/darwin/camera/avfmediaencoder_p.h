@@ -105,7 +105,7 @@ private:
 
 private Q_SLOTS:
     void onCameraChanged();
-    void cameraStatusChanged(QCamera::Status newStatus);
+    void cameraActiveChanged(bool);
 
 private:
     void record();

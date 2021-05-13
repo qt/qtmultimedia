@@ -179,10 +179,13 @@ void AVFCameraSession::setActiveCamera(const QCameraInfo &info)
 {
     if (m_activeCameraInfo != info) {
         m_activeCameraInfo = info;
+
         [m_captureSession beginConfiguration];
+
         attachVideoInputDevice();
-        if (!m_videoOutput)
+        if (!m_activeCameraInfo.isNull() && !m_videoOutput)
             setVideoOutput(new AVFCameraRenderer(this));
+
         [m_captureSession commitConfiguration];
     }
 }
@@ -239,6 +242,8 @@ void AVFCameraSession::setActive(bool active)
 {
     if (m_active == active)
         return;
+
+    m_active = active;
 
     qDebugCamera() << Q_FUNC_INFO << m_active << " -> " << active;
 

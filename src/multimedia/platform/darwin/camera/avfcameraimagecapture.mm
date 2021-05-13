@@ -229,11 +229,13 @@ void AVFCameraImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 
 void AVFCameraImageCapture::onCameraChanged()
 {
-    Q_ASSERT(m_service);
-    if (m_service->camera()) {
-        m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
-        connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(updateReadyStatus()));
-    }
+    Q_ASSERT(m_service && m_session);
+    if (m_service->camera())
+        connect(m_service->camera(), SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
+    if (m_session->videoOutput())
+        connect(m_session->videoOutput(), &AVFCameraRenderer::newViewfinderFrame,
+                this, &AVFCameraImageCapture::onNewViewfinderFrame,
+                Qt::DirectConnection);
 }
 
 void AVFCameraImageCapture::makeCapturePreview(CaptureRequest request,
@@ -380,8 +382,10 @@ void AVFCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sess
     m_service = captureSession;
     if (!m_service) {
         disconnect(m_session, nullptr, this, nullptr);
-        disconnect(m_session->videoOutput(), nullptr, this, nullptr);
-        disconnect(m_cameraControl, nullptr, this, nullptr);
+        if (m_session->videoOutput())
+            disconnect(m_session->videoOutput(), nullptr, this, nullptr);
+        if (m_cameraControl)
+            disconnect(m_cameraControl, nullptr, this, nullptr);
         m_session = nullptr;
         m_cameraControl = nullptr;
         m_videoConnection = nil;
@@ -394,16 +398,10 @@ void AVFCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sess
 
     connect(m_service, &AVFCameraService::cameraChanged, this, &AVFCameraImageCapture::onCameraChanged);
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
-    connect(m_session->videoOutput(), &AVFCameraRenderer::newViewfinderFrame,
-            this, &AVFCameraImageCapture::onNewViewfinderFrame,
-            Qt::DirectConnection);
 
-    if (m_session->isActive())
-        updateCaptureConnection();
-    if (m_cameraControl) {
-        updateReadyStatus();
-        connect(m_cameraControl, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(updateReadyStatus()));
-    }
+    updateCaptureConnection();
+    updateReadyStatus();
+    onCameraChanged();
 }
 
 bool AVFCameraImageCapture::videoCaptureDeviceIsValid() const

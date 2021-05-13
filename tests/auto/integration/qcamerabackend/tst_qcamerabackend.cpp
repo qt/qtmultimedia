@@ -444,7 +444,7 @@ void tst_QCameraBackend::testVideoRecording()
     QMediaEncoder recorder;
     session.setEncoder(&recorder);
 
-    QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error)));
+    QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error, const QString &)));
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(error(QMediaEncoder::Error)));
     QSignalSpy recorderStatusSignal(&recorder, SIGNAL(statusChanged(QMediaEncoder::Status)));
 
@@ -460,12 +460,8 @@ void tst_QCameraBackend::testVideoRecording()
         return;
     }
 
-    QVERIFY(recorder.status() == QMediaEncoder::StartingStatus ||
-            recorder.status() == QMediaEncoder::RecordingStatus);
-    QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
     QTRY_COMPARE(camera->status(), QCamera::ActiveStatus);
     QTRY_COMPARE(recorder.status(), QMediaEncoder::StoppedStatus);
-    QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
 
     //record 5 seconds clip
     recorder.record();
@@ -476,7 +472,7 @@ void tst_QCameraBackend::testVideoRecording()
     recorder.stop();
     bool foundFinalizingStatus = false;
     for (auto &list : recorderStatusSignal) {
-        if (list.contains(QVariant(QMediaEncoder::FinalizingStatus))) {
+        if (qvariant_cast<QMediaEncoder::Status>(list.first()) == QMediaEncoder::FinalizingStatus) {
             foundFinalizingStatus = true;
             break;
         }

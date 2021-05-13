@@ -81,6 +81,9 @@ void AVFCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
+    if (m_cameraInfo.isNull() && active)
+        return;
+
     m_active = active;
     if (m_session)
         m_session->setActive(active);

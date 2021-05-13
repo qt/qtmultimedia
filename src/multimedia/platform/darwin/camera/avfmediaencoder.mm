@@ -574,7 +574,9 @@ void AVFMediaEncoder::assetWriterFinished()
         session->videoOutput()->resetCaptureDelegate();
     }
     [session->captureSession() startRunning];
+
     m_state = QMediaEncoder::StoppedState;
+    m_lastStatus = QMediaEncoder::StoppedStatus;
     if (m_lastStatus != lastStatus)
         Q_EMIT statusChanged(m_lastStatus);
     if (m_state != lastState)
@@ -585,24 +587,23 @@ void AVFMediaEncoder::onCameraChanged()
 {
     if (m_service && m_service->avfCameraControl()) {
         AVFCamera *cameraControl = m_service->avfCameraControl();
-        connect(cameraControl, SIGNAL(statusChanged(QCamera::Status)),
-                            SLOT(cameraStatusChanged(QCamera::Status)));
+        connect(cameraControl, SIGNAL(activeChanged(bool)),
+                            SLOT(cameraActiveChanged(bool)));
     }
 }
 
-void AVFMediaEncoder::cameraStatusChanged(QCamera::Status newStatus)
+void AVFMediaEncoder::cameraActiveChanged(bool active)
 {
     Q_ASSERT(m_service);
     AVFCamera *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 
     const QMediaEncoder::Status lastStatus = m_lastStatus;
-    if (newStatus != QCamera::StartingStatus
-        && newStatus != QCamera::ActiveStatus) {
+    if (!active) {
         if (m_lastStatus == QMediaEncoder::RecordingStatus)
             return stopWriter();
-        if (newStatus == QCamera::InactiveStatus)
-            m_lastStatus = QMediaEncoder::StoppedStatus;
+
+        m_lastStatus = QMediaEncoder::StoppedStatus;
     }
 
     if (lastStatus != m_lastStatus)
