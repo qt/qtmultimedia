@@ -114,7 +114,7 @@ void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
                                       m_outputLocation.path() : m_outputLocation.toString());
 
             auto encoderSettings = m_settings;
-            encoderSettings.resolveFormat();
+            encoderSettings.resolveFormat(QMediaEncoderSettings::ResolveFlags::RequiresVideo);
 
             QString fileName = m_storageLocation.generateFileName(path, QWindowsStorageLocation::Video,
                                QLatin1String("clip_"), encoderSettings.mimeType().preferredSuffix());
