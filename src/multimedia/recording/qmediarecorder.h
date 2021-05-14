@@ -48,11 +48,8 @@ class QMediaRecorderPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QMediaEncoderBase
 {
     Q_OBJECT
-    Q_ENUMS(State)
-    Q_ENUMS(Status)
-    Q_ENUMS(Error)
-    Q_PROPERTY(QMediaRecorder::State state READ state NOTIFY stateChanged)
-    Q_PROPERTY(QMediaRecorder::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QMediaEncoderBase::State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(QMediaEncoderBase::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
@@ -80,10 +77,10 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
-    State state() const;
-    Status status() const;
+    QMediaEncoderBase::State state() const;
+    QMediaEncoderBase::Status status() const;
 
-    Error error() const;
+    QMediaEncoderBase::Error error() const;
     QString errorString() const;
 
     qint64 duration() const;

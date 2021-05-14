@@ -200,7 +200,7 @@ bool QMediaRecorder::setOutputLocation(const QUrl &location)
     \sa QMediaRecorder::State
 */
 
-QMediaRecorder::State QMediaRecorder::state() const
+QMediaEncoderBase::State QMediaRecorder::state() const
 {
     return d_ptr->encoder->state();
 }
@@ -211,7 +211,7 @@ QMediaRecorder::State QMediaRecorder::state() const
     \sa QMediaRecorder::Status
 */
 
-QMediaRecorder::Status QMediaRecorder::status() const
+QMediaEncoderBase::Status QMediaRecorder::status() const
 {
     return d_ptr->encoder->status();
 }
@@ -222,7 +222,7 @@ QMediaRecorder::Status QMediaRecorder::status() const
     \sa errorString()
 */
 
-QMediaRecorder::Error QMediaRecorder::error() const
+QMediaEncoderBase::Error QMediaRecorder::error() const
 {
     return d_ptr->encoder->error();
 }

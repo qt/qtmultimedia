@@ -259,7 +259,7 @@ QMediaEncoder::State QMediaEncoder::state() const
     \sa QMediaEncoder::Status
 */
 
-QMediaEncoder::Status QMediaEncoder::status() const
+QMediaEncoderBase::Status QMediaEncoder::status() const
 {
     return d_func()->control ? QMediaEncoder::Status(d_func()->control->status()) : UnavailableStatus;
 }
@@ -270,7 +270,7 @@ QMediaEncoder::Status QMediaEncoder::status() const
     \sa errorString()
 */
 
-QMediaEncoder::Error QMediaEncoder::error() const
+QMediaEncoderBase::Error QMediaEncoder::error() const
 {
     return d_func()->error;
 }

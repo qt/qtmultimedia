@@ -100,8 +100,8 @@ class QMediaEncoderPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
 {
     Q_OBJECT
-    Q_PROPERTY(QMediaEncoder::State state READ state NOTIFY stateChanged)
-    Q_PROPERTY(QMediaEncoder::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QMediaEncoderBase::State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(QMediaEncoderBase::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
     Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
@@ -118,10 +118,10 @@ public:
 
     QUrl actualLocation() const;
 
-    State state() const;
-    Status status() const;
+    QMediaEncoderBase::State state() const;
+    QMediaEncoderBase::Status status() const;
 
-    Error error() const;
+    QMediaEncoderBase::Error error() const;
     QString errorString() const;
 
     qint64 duration() const;
