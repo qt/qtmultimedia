@@ -827,7 +827,7 @@ void AVFMediaPlayer::play()
     if (m_state == QMediaPlayer::PlayingState)
         return;
 
-    if (m_videoOutput)
+    if (m_videoOutput && m_videoSink)
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
 
     // Reset media status if the current status is EndOfMedia
@@ -859,7 +859,7 @@ void AVFMediaPlayer::pause()
 
     m_state = QMediaPlayer::PausedState;
 
-    if (m_videoOutput)
+    if (m_videoOutput && m_videoSink)
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
 
     [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
@@ -1170,6 +1170,8 @@ void AVFMediaPlayer::resetStream(QIODevice *stream)
 
 void AVFMediaPlayer::nativeSizeChanged(QSize size)
 {
+    if (!m_videoSink)
+        return;
     qDebug() << "presentation size" << size;
     m_videoSink->setNativeSize(size);
 }
