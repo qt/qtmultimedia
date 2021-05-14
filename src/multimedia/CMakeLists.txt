@@ -259,7 +259,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATU
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl
-    PUBLIC_LIBRARIES
+    LIBRARIES
         GStreamer::Gl # special case
 )
 
