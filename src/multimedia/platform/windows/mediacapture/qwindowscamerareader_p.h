@@ -58,6 +58,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qsemaphore.h>
+#include <QtCore/qtimer.h>
 #include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
@@ -112,6 +113,9 @@ Q_SIGNALS:
     void recordingStopped();
     void durationChanged(qint64 duration);
 
+private slots:
+    void updateDuration();
+
 private:
     void stopStreaming();
 
@@ -137,6 +141,9 @@ private:
     QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
     LONGLONG           m_timeOffset = 0;
     LONGLONG           m_pauseTime = 0;
+    QTimer             m_durationTimer;
+    qint64             m_currentDuration = -1;
+    qint64             m_lastDuration = -1;
 };
 
 QT_END_NAMESPACE

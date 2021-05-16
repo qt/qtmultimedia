@@ -50,6 +50,8 @@ QWindowsCameraReader::QWindowsCameraReader(QObject *parent)
     : QObject(parent),
       m_finalizeSemaphore(1)
 {
+    m_durationTimer.setInterval(100);
+    connect(&m_durationTimer, SIGNAL(timeout()), this, SLOT(updateDuration()));
 }
 
 QWindowsCameraReader::~QWindowsCameraReader()
@@ -250,6 +252,10 @@ bool QWindowsCameraReader::startRecording(const QString &fileName, const GUID &c
 
                                                     hr = m_sinkWriter->BeginWriting();
                                                     if (SUCCEEDED(hr)) {
+                                                        m_lastDuration = -1;
+                                                        m_currentDuration = 0;
+                                                        updateDuration();
+                                                        m_durationTimer.start();
                                                         m_recording = true;
                                                         m_firstFrame = true;
                                                         m_paused = false;
@@ -288,6 +294,10 @@ void QWindowsCameraReader::stopRecording()
     m_recording = false;
     m_paused = false;
     m_pauseChanging = false;
+
+    m_durationTimer.stop();
+    m_lastDuration = -1;
+    m_currentDuration = -1;
 }
 
 bool QWindowsCameraReader::pauseRecording()
@@ -361,6 +371,14 @@ qreal QWindowsCameraReader::frameRate() const
     return m_frameRate;
 }
 
+void QWindowsCameraReader::updateDuration()
+{
+    if (m_currentDuration >= 0 && m_lastDuration != m_currentDuration) {
+        m_lastDuration = m_currentDuration;
+        emit durationChanged(m_currentDuration);
+    }
+}
+
 //from IMFSourceReaderCallback
 STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
                                                 DWORD dwStreamFlags, LONGLONG llTimestamp,
@@ -402,7 +420,7 @@ STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
                 if (m_sinkWriter && !m_paused) {
                     pSample->SetSampleTime(llTimestamp - m_timeOffset);
                     m_sinkWriter->WriteSample(m_videoStreamIndex, pSample);
-                    emit durationChanged((llTimestamp - m_timeOffset)/10000);
+                    m_currentDuration = (llTimestamp - m_timeOffset) / 10000;
                 }
             }
 
