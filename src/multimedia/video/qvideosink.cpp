@@ -157,7 +157,8 @@ void QVideoSink::setNativeWindowId(WId id)
     if (d->window == id)
         return;
     d->window = id;
-    d->videoSink->setWinId(id);
+    if (d->videoSink != nullptr)
+        d->videoSink->setWinId(id);
 }
 
 /*!
@@ -228,7 +229,8 @@ void QVideoSink::setTargetRect(const QRectF &rect)
     if (d->targetRect == rect)
         return;
     d->targetRect = rect;
-    d->videoSink->setDisplayRect(rect.toRect());
+    if (d->videoSink != nullptr)
+        d->videoSink->setDisplayRect(rect.toRect());
 }
 
 float QVideoSink::brightness() const
@@ -399,7 +401,7 @@ QPlatformVideoSink *QVideoSink::platformVideoSink() const
  */
 QSize QVideoSink::videoSize() const
 {
-    return d->videoSink->nativeSize();
+    return d->videoSink ? d->videoSink->nativeSize() : QSize{};
 }
 
 void QVideoSink::setSource(QObject *source)

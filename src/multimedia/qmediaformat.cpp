@@ -198,6 +198,14 @@ QMimeType QMediaFormat::mimeType() const
     return QMimeDatabase().mimeTypeForName(QString::fromLatin1(mimeTypeForFormat[fmt + 1]));
 }
 
+static QPlatformMediaFormatInfo *formatInfo()
+{
+    QPlatformMediaFormatInfo *result = nullptr;
+    if (auto *pi = QPlatformMediaIntegration::instance())
+        result = pi->formatInfo();
+    return result;
+}
+
 /*!
     Returns a list of container formats that are supported for \a mode.
 
@@ -208,7 +216,8 @@ QMimeType QMediaFormat::mimeType() const
  */
 QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat::ConversionMode m)
 {
-    return QPlatformMediaIntegration::instance()->formatInfo()->supportedFileFormats(*this, m);
+    auto *fi = formatInfo();
+    return fi != nullptr ? fi->supportedFileFormats(*this, m) : QList<QMediaFormat::FileFormat>{};
 }
 
 /*!
@@ -221,7 +230,8 @@ QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat:
  */
 QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat::ConversionMode m)
 {
-    return QPlatformMediaIntegration::instance()->formatInfo()->supportedVideoCodecs(*this, m);
+    auto *fi = formatInfo();
+    return fi != nullptr ? fi->supportedVideoCodecs(*this, m) : QList<QMediaFormat::VideoCodec>{};
 }
 
 /*!
@@ -234,7 +244,8 @@ QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat:
  */
 QList<QMediaFormat::AudioCodec> QMediaFormat::supportedAudioCodecs(QMediaFormat::ConversionMode m)
 {
-    return QPlatformMediaIntegration::instance()->formatInfo()->supportedAudioCodecs(*this, m);
+    auto *fi = formatInfo();
+    return fi != nullptr ? fi->supportedAudioCodecs(*this, m) : QList<QMediaFormat::AudioCodec>{};
 }
 
 QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
