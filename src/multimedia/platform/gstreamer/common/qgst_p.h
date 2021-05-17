@@ -186,7 +186,13 @@ public:
     Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormat() const;
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
 
-    QByteArray toString() const { return gst_structure_to_string(structure); }
+    QByteArray toString() const
+    {
+        char *s = gst_structure_to_string(structure);
+        QByteArray str(s);
+        g_free(s);
+        return str;
+    }
     QGstStructure copy() const { return gst_structure_copy(structure); }
 };
 
