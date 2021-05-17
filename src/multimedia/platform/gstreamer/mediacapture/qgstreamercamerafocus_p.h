@@ -75,16 +75,16 @@ public:
     QGstreamerCameraFocus(QGstreamerCamera *session);
     virtual ~QGstreamerCameraFocus();
 
-    QCameraFocus::FocusMode focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusMode mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
+    QCamera::FocusMode focusMode() const override;
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
     ZoomRange zoomFactorRange() const override;
     void zoomTo(float newZoomFactor, float rate) override;
 
 private:
     QGstreamerCamera *m_camera;
-    QCameraFocus::FocusMode m_focusMode;
+    QCamera::FocusMode m_focusMode;
     float requestedZoomFactor = 1.;
     float maxZoomFactor = 1.;
 };

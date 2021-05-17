@@ -62,9 +62,9 @@ class BbCameraFocusControl : public QPlatformCameraFocus
 public:
     explicit BbCameraFocusControl(BbCameraSession *session, QObject *parent = 0);
 
-    QCameraFocus::FocusMode focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusMode mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
+    QCamera::FocusMode focusMode() const override;
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
     QPointF focusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
 
@@ -85,7 +85,7 @@ private:
 
     BbCameraSession *m_session;
 
-    QCameraFocus::FocusMode m_focusMode;
+    QCamera::FocusMode m_focusMode;
     QPointF m_customFocusPoint;
 
     qreal m_minimumZoomFactor;

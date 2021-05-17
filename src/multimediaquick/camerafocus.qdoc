@@ -144,7 +144,7 @@ QT_BEGIN_NAMESPACE
   frame coordinates. For example, QPointF(0,0) pointing to the left top corner of the frame, and QPointF(0.5,0.5)
   pointing to the center of the frame.
 
-  Custom focus point is used only in QCameraFocus::FocusPointCustom focus mode.
+  Custom focus point is used only in QCamera::FocusPointCustom focus mode.
 */
 
 /*!

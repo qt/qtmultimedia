@@ -231,24 +231,18 @@ the final images, and you can control them with different classes.
 
 \section3 Focus and Zoom
 
-Focusing (and zoom) is managed primarily by the \l QCameraFocus class.
-QCameraFocus allows the developer to set the general policy by means of the
-enums for the \l {QCameraFocus::FocusMode}{FocusMode} and the
-\l {QCameraFocus::FocusPointMode}{FocusPointMode}. \l {QCameraFocus::FocusMode}{FocusMode}
-deals with settings such as \l {QCameraFocus::FocusModeAuto},
-and \l {QCameraFocus::FocusModeInfinity},
-whereas \l {QCameraFocus::FocusMode}{FocusPointMode} deals with the
-various focus zones within the view that are used for autofocus modes. \l {QCameraFocus::FocusMode}{FocusPointMode}
-has support for face recognition (where the camera supports it), center focus and a custom
-focus where the focus point can be specified.
+QCamera allows the developer to set the general focus policy by means of the
+enums for the \l {QCamera::FocusMode}{FocusMode}. \l {QCamera::FocusMode}{FocusMode}
+deals with settings such as \l {QCamera::FocusModeAuto},
+and \l {QCamera::FocusModeInfinity}.
 
-For camera hardware that supports it, \l {QCameraFocus::FocusMode}{Macro focus} allows
+For camera hardware that supports it, \l QCamera::FocusModeAutoNear} allows
 imaging of things that are close to the sensor.  This is useful in applications like
 barcode recognition, or business card scanning.
 
-In addition to focus, QCameraFocus allows you to control any available optical or
-digital zoom.  In general, optical zoom is higher quality, but more expensive to
-manufacture, so the available zoom range might be limited (or fixed to unity).
+In addition to focus, QCameraFocus allows you to control any available zoom using \l setZoomFactor()
+or \l zoomTo(). The available zoom range might be limited (or fixed to unity), the allowed range can
+be checked with \l minimumZoomFactor() and maximumZoomFactor().
 
 \section3 Exposure, Aperture, Shutter Speed and Flash
 

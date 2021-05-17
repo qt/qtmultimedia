@@ -71,6 +71,20 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/camera.cpp Camera selection
 
+    On hardware that supports it, QCamera lets you adjust the focus
+    and zoom. This also includes things
+    like "Macro" mode for close up work (e.g. reading barcodes, or
+    recognising letters), or "touch to focus" - indicating an
+    interesting area of the viewfinder for the hardware to attempt
+    to focus on.
+
+    \snippet multimedia-snippets/camera.cpp Camera custom focus
+
+    The \l minimumZoomFactor() and \l maximumZoomFactor() methods allows checking the
+    range of allowed zoom factors. The \l zoomTo() method allows changing the zoom factor.
+
+    \snippet multimedia-snippets/camera.cpp Camera zoom
+
     See the \l{Camera Overview}{camera overview} for more information.
 */
 
@@ -101,7 +115,16 @@ void QCameraPrivate::init()
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
     cameraExposure = new QCameraExposure(q, control);
-    cameraFocus = new QCameraFocus(q, control);
+
+    focusControl = control->focusControl();
+
+    if (focusControl) {
+        q->connect(focusControl, SIGNAL(minimumZoomFactorChanged(float)),
+                   q, SIGNAL(minimumZoomFactorChanged(float)));
+        q->connect(focusControl, SIGNAL(maximumZoomFactorChanged(float)),
+                   q, SIGNAL(maximumZoomFactorChanged(float)));
+    }
+
     imageProcessing = new QCameraImageProcessing(q, control);
 }
 
@@ -211,14 +234,6 @@ void QCamera::setActive(bool active)
 QCameraExposure *QCamera::exposure() const
 {
     return d_func()->cameraExposure;
-}
-
-/*!
-    Returns the camera focus control object.
-*/
-QCameraFocus *QCamera::focus() const
-{
-    return d_func()->cameraFocus;
 }
 
 /*!
@@ -443,6 +458,205 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 
   Signals the camera \a status has changed.
 
+*/
+
+
+/*!
+    \property QCamera::focusMode
+    \brief the current camera focus mode.
+
+    Sets up different focus modes for the camera. All auto focus modes will focus continuously.
+    Locking the focus is possible by setting the focus mode to \l FocusModeManual. This will keep
+    the current focus and stop any automatic focusing.
+
+    \sa QCamera::isFocusModeSupported()
+*/
+
+QCamera::FocusMode QCamera::focusMode() const
+{
+    Q_D(const QCamera);
+    return d->focusControl ? d->focusControl->focusMode() : QCamera::FocusModeAuto;
+}
+
+void QCamera::setFocusMode(QCamera::FocusMode mode)
+{
+    Q_D(QCamera);
+    if (!d->focusControl || d->focusControl->focusMode() == mode)
+        return;
+    d->focusControl->setFocusMode(mode);
+    emit focusModeChanged();
+}
+
+/*!
+    Returns true if the focus \a mode is supported by camera.
+*/
+
+bool QCamera::isFocusModeSupported(FocusMode mode) const
+{
+    Q_D(const QCamera);
+    return d->focusControl ? d->focusControl->isFocusModeSupported(mode) : false;
+}
+
+/*!
+    Returns the point currently used by the auto focus system to focus onto.
+ */
+QPointF QCamera::focusPoint() const
+{
+    Q_D(const QCamera);
+    return d->focusControl ? d->focusControl->focusPoint() : QPointF(-1., -1.);
+
+}
+
+/*!
+  \property QCamera::customFocusPoint
+
+  This property represents the position of the custom focus point, in relative frame coordinates:
+  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
+
+  The custom focus point property is used only in \c FocusPointCustom focus mode.
+ */
+
+QPointF QCamera::customFocusPoint() const
+{
+    Q_D(const QCamera);
+    return d->customFocusPoint;
+}
+
+void QCamera::setCustomFocusPoint(const QPointF &point)
+{
+    Q_D(QCamera);
+    if (!d->focusControl || d->customFocusPoint == point)
+        return;
+    d->customFocusPoint = point;
+    d->focusControl->setCustomFocusPoint(point);
+    Q_EMIT customFocusPointChanged();
+}
+
+bool QCamera::isCustomFocusPointSupported() const
+{
+    Q_D(const QCamera);
+    return d->focusControl ? d->focusControl->isCustomFocusPointSupported() : false;
+}
+
+/*!
+    \property QCamera::focusDistance
+
+    This property return an approximate focus distance of the camera. The value reported is between 0 and 1, 0 being the closest
+    possible focus distance, 1 being as far away as possible. Note that 1 is often, but not always infinity.
+
+    Setting the focus distance will be ignored unless the focus mode is set to \l FocusModeManual.
+ */
+void QCamera::setFocusDistance(float d)
+{
+    if (!d_func()->focusControl || focusMode() != FocusModeManual)
+        return;
+    d_func()->focusControl->setFocusDistance(d);
+}
+
+float QCamera::focusDistance() const
+{
+    if (d_func()->focusControl)
+        return d_func()->focusControl->focusDistance();
+    return 0.;
+}
+
+/*!
+    Returns the maximum zoom factor.
+
+    This will be \c 1.0 on cameras that do not support zooming.
+*/
+
+float QCamera::maximumZoomFactor() const
+{
+    Q_D(const QCamera);
+    return d->focusControl ? d->focusControl->zoomFactorRange().max : 1.;
+}
+
+/*!
+    Returns the minimum zoom factor.
+
+    This will be \c 1.0 on cameras that do not support zooming.
+*/
+
+float QCamera::minimumZoomFactor() const
+{
+    Q_D(const QCamera);
+    return d->focusControl ? d->focusControl->zoomFactorRange().min : 1.;
+}
+
+/*!
+  \property QCamera::zoomFactor
+  \brief The current zoom factor.
+*/
+float QCamera::zoomFactor() const
+{
+    return d_func()->zoomFactor;
+}
+
+void QCamera::setZoomFactor(float factor)
+{
+    zoomTo(factor, 0.);
+}
+
+/*!
+    Zooms to a zoom factor \a factor using \a rate.
+
+    The rate is specified in powers of two per second. A rate of 1
+    would take two seconds to zoom from a zoom factor of 1 to a zoom factor of 4.
+ */
+void QCamera::zoomTo(float factor, float rate)
+{
+    Q_ASSERT(rate >= 0.);
+    if (rate < 0.)
+        rate = 0.;
+
+    Q_D(QCamera);
+    if (!d->focusControl)
+        return;
+    factor = qBound(minimumZoomFactor(), factor, maximumZoomFactor());
+    d->zoomFactor = factor;
+    d->focusControl->zoomTo(factor, rate);
+    emit zoomFactorChanged(factor);
+}
+
+/*!
+    \enum QCamera::FocusMode
+
+    \value FocusModeAuto        Continuous auto focus mode.
+    \value FocusModeAutoNear    Continuous auto focus mode on near objects.
+    \value FocusModeAutoFar     Continuous auto focus mode on objects far away.
+    \value FocusModeHyperfocal  Focus to hyperfocal distance, with the maximum depth of field achieved.
+                                All objects at distances from half of this
+                                distance out to infinity will be acceptably sharp.
+    \value FocusModeInfinity    Focus strictly to infinity.
+    \value FocusModeManual      Manual or fixed focus mode.
+*/
+
+/*!
+    \fn void QCamera::opticalZoomChanged(qreal value)
+
+    Signal emitted when optical zoom value changes to new \a value.
+*/
+
+/*!
+    \fn void QCamera::digitalZoomChanged(qreal value)
+
+    Signal emitted when digital zoom value changes to new \a value.
+*/
+
+/*!
+    \fn void QCamera::maximumOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported optical \a zoom value changed.
+*/
+
+/*!
+    \fn void QCamera::maximumDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported digital \a zoom value changed.
+
+    The maximum supported zoom value can depend on other camera settings,
+    like capture mode or resolution.
 */
 
 QT_END_NAMESPACE

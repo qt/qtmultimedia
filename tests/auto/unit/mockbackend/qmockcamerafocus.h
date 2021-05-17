@@ -30,35 +30,33 @@
 #define MOCKCAMERAFOCUSCONTROL_H
 
 #include "private/qplatformcamerafocus_p.h"
-#include "qcamerafocus.h"
+#include "qcamera.h"
 
 class QMockCameraFocus : public QPlatformCameraFocus
 {
     Q_OBJECT
 public:
     QMockCameraFocus(QObject *parent = 0):
-        QPlatformCameraFocus(parent),
-        m_focusMode(QCameraFocus::AutoFocus),
-        m_focusPoint(0.5, 0.5)
+        QPlatformCameraFocus(parent)
     {
     }
 
     ~QMockCameraFocus() {}
 
-    QCameraFocus::FocusMode focusMode() const
+    QCamera::FocusMode focusMode() const
     {
         return m_focusMode;
     }
 
-    void setFocusMode(QCameraFocus::FocusMode mode)
+    void setFocusMode(QCamera::FocusMode mode)
     {
         if (isFocusModeSupported(mode))
             m_focusMode = mode;
     }
 
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const
+    bool isFocusModeSupported(QCamera::FocusMode mode) const
     {
-        return mode == QCameraFocus::FocusModeAuto;
+        return mode == QCamera::FocusModeAuto;
     }
 
     QPointF focusPoint() const
@@ -86,8 +84,8 @@ public:
     }
 
 private:
-    QCameraFocus::FocusMode m_focusMode;
-    QPointF m_focusPoint;
+    QCamera::FocusMode m_focusMode = QCamera::FocusModeAuto;
+    QPointF m_focusPoint{.5, .5};
 
     float m_zoom = 1.;
     float m_maxZoom = 4.;

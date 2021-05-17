@@ -49,7 +49,6 @@
 #include <QtCore/qobject.h>
 
 #include <QtMultimedia/qcameraexposure.h>
-#include <QtMultimedia/qcamerafocus.h>
 #include <QtMultimedia/qcameraimageprocessing.h>
 #include <QtMultimedia/qcamerainfo.h>
 
@@ -69,13 +68,21 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(QCameraExposure* exposure READ exposure CONSTANT)
-    Q_PROPERTY(QCameraFocus* focus READ focus CONSTANT)
     Q_PROPERTY(QCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
     Q_PROPERTY(QCameraInfo cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
 
+    Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode)
+    Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
+    Q_PROPERTY(float focusDistance READ focusDistance WRITE setFocusDistance NOTIFY focusDistanceChanged)
+
+    Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor NOTIFY minimumZoomFactorChanged)
+    Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor NOTIFY maximumZoomFactorChanged)
+    Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
+
+    Q_ENUMS(FocusMode)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
 public:
@@ -91,6 +98,15 @@ public:
     {
         NoError,
         CameraError
+    };
+
+    enum FocusMode {
+        FocusModeAuto,
+        FocusModeAutoNear,
+        FocusModeAutoFar,
+        FocusModeHyperfocal,
+        FocusModeInfinity,
+        FocusModeManual
     };
 
     explicit QCamera(QObject *parent = nullptr);
@@ -112,16 +128,35 @@ public:
     void setCameraFormat(const QCameraFormat &format);
 
     QCameraExposure *exposure() const;
-    QCameraFocus *focus() const;
     QCameraImageProcessing *imageProcessing() const;
 
     Error error() const;
     QString errorString() const;
 
+    FocusMode focusMode() const;
+    void setFocusMode(FocusMode mode);
+    bool isFocusModeSupported(FocusMode mode) const;
+
+    QPointF focusPoint() const;
+
+    QPointF customFocusPoint() const;
+    void setCustomFocusPoint(const QPointF &point);
+    bool isCustomFocusPointSupported() const;
+
+    void setFocusDistance(float d);
+    float focusDistance() const;
+
+    float minimumZoomFactor() const;
+    float maximumZoomFactor() const;
+    float zoomFactor() const;
+    void setZoomFactor(float factor);
+
 public Q_SLOTS:
     void setActive(bool active);
     void start() { setActive(true); }
     void stop() { setActive(false); }
+
+    void zoomTo(float zoom, float rate);
 
 Q_SIGNALS:
     void activeChanged(bool);
@@ -130,6 +165,13 @@ Q_SIGNALS:
     void errorOccurred(QCamera::Error error, const QString &errorString);
     void cameraInfoChanged();
     void cameraFormatChanged();
+
+    void focusModeChanged();
+    void zoomFactorChanged(float);
+    void minimumZoomFactorChanged(float);
+    void maximumZoomFactorChanged(float);
+    void focusDistanceChanged(float);
+    void customFocusPointChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *session);

@@ -70,9 +70,9 @@ class AVFCameraFocus : public QPlatformCameraFocus
 public:
     explicit AVFCameraFocus(AVFCamera *camera);
 
-    QCameraFocus::FocusMode focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusMode mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
+    QCamera::FocusMode focusMode() const override;
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
     QPointF focusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
@@ -89,7 +89,7 @@ private Q_SLOTS:
 
 private:
     AVFCamera *m_camera;
-    QCameraFocus::FocusMode m_focusMode;
+    QCamera::FocusMode m_focusMode;
     QPointF m_customFocusPoint;
     QPointF m_actualFocusPoint;
 

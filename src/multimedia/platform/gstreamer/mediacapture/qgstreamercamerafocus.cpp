@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
 QGstreamerCameraFocus::QGstreamerCameraFocus(QGstreamerCamera *session)
   : QPlatformCameraFocus(session),
     m_camera(session),
-    m_focusMode(QCameraFocus::AutoFocus)
+    m_focusMode(QCamera::FocusModeAuto)
 {
 #if QT_CONFIG(gstreamer_photography)
     auto photography = m_camera->photography();
@@ -69,12 +69,12 @@ QGstreamerCameraFocus::~QGstreamerCameraFocus()
 {
 }
 
-QCameraFocus::FocusMode QGstreamerCameraFocus::focusMode() const
+QCamera::FocusMode QGstreamerCameraFocus::focusMode() const
 {
     return m_focusMode;
 }
 
-void QGstreamerCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
+void QGstreamerCameraFocus::setFocusMode(QCamera::FocusMode mode)
 {
     if (mode == m_focusMode)
         return;
@@ -85,22 +85,22 @@ void QGstreamerCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
         GstPhotographyFocusMode photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_CONTINUOUS_NORMAL;
 
         switch (mode) {
-        case QCameraFocus::FocusModeAutoNear:
+        case QCamera::FocusModeAutoNear:
             photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_MACRO;
             break;
-        case QCameraFocus::FocusModeAutoFar:
+        case QCamera::FocusModeAutoFar:
             // not quite, but hey :)
             Q_FALLTHROUGH();
-        case QCameraFocus::HyperfocalFocus:
+        case QCamera::FocusModeHyperfocal:
             photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_HYPERFOCAL;
             break;
-        case QCameraFocus::FocusModeInfinity:
+        case QCamera::FocusModeInfinity:
             photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_INFINITY;
             break;
-        case QCameraFocus::FocusModeManual:
+        case QCamera::FocusModeManual:
             photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_MANUAL;
             break;
-        default: // QCameraFocus::FocusModeAuto:
+        default: // QCamera::FocusModeAuto:
             break;
         }
 
@@ -112,7 +112,7 @@ void QGstreamerCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
 #endif
 }
 
-bool QGstreamerCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
+bool QGstreamerCameraFocus::isFocusModeSupported(QCamera::FocusMode mode) const
 {
     Q_UNUSED(mode);
 

@@ -83,8 +83,7 @@ private slots:
     void testStatus();
 
 
-    // Test cases to for QCameraFocus
-    void testCameraFocusIsAvailable();
+    // Test cases to for focus handling
     void testFocusMode();
     void testZoomChanged();
     void testMaxZoomChangedSignal();
@@ -204,26 +203,23 @@ void tst_QCamera::testSimpleCameraFocus()
 
     QCamera camera;
 
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
+    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeAuto));
+    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeInfinity));
 
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::FocusModeAuto));
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::FocusModeInfinity));
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
+    camera.setFocusMode(QCamera::FocusModeAuto);
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
 
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    cameraFocus->setFocusMode(QCameraFocus::FocusModeAuto);
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
+    QCOMPARE(camera.maximumZoomFactor(), 1.0);
+    QCOMPARE(camera.minimumZoomFactor(), 1.0);
+    QCOMPARE(camera.zoomFactor(), 1.0);
 
-    QCOMPARE(cameraFocus->maximumZoomFactor(), 1.0);
-    QCOMPARE(cameraFocus->minimumZoomFactor(), 1.0);
-    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
+    camera.zoomTo(100.0, 100.0);
+    QCOMPARE(camera.zoomFactor(), 1.0);
 
-    cameraFocus->zoomTo(100.0, 100.0);
-    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
-
-    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(-1., -1.));
-    cameraFocus->setCustomFocusPoint(QPointF(1.0, 1.0));
-    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(-1, -1));
+    QCOMPARE(camera.customFocusPoint(), QPointF(-1., -1.));
+    camera.setCustomFocusPoint(QPointF(1.0, 1.0));
+    QCOMPARE(camera.customFocusPoint(), QPointF(-1, -1));
 }
 
 void tst_QCamera::testSimpleCameraCapture()
@@ -465,34 +461,31 @@ void tst_QCamera::testCameraFocus()
 {
     QCamera camera;
 
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
+    QVERIFY(camera.isFocusModeSupported(QCamera::FocusModeAuto));
+    QVERIFY(camera.isFocusModeSupported(QCamera::FocusModeAuto));
+    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeInfinity));
 
-    QVERIFY(cameraFocus->isFocusModeSupported(QCameraFocus::AutoFocus));
-    QVERIFY(cameraFocus->isFocusModeSupported(QCameraFocus::FocusModeAuto));
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::InfinityFocus));
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
+    camera.setFocusMode(QCamera::FocusModeManual);
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
+    camera.setFocusMode(QCamera::FocusModeAuto);
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
 
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    cameraFocus->setFocusMode(QCameraFocus::ManualFocus);
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    cameraFocus->setFocusMode(QCameraFocus::FocusModeAuto);
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::FocusModeAuto);
+    QVERIFY(camera.maximumZoomFactor() == 4.0);
+    QVERIFY(camera.minimumZoomFactor() == 1.0);
+    QCOMPARE(camera.zoomFactor(), 1.0);
+    camera.zoomTo(0.5, 1.0);
+    QCOMPARE(camera.zoomFactor(), 1.0);
+    camera.zoomTo(2.0, 0.5);
+    QCOMPARE(camera.zoomFactor(), 2.0);
+    camera.zoomTo(2.5, 1);
+    QCOMPARE(camera.zoomFactor(), 2.5);
+    camera.zoomTo(2000000.0, 0);
+    QCOMPARE(camera.zoomFactor(), camera.maximumZoomFactor());
 
-    QVERIFY(cameraFocus->maximumZoomFactor() == 4.0);
-    QVERIFY(cameraFocus->minimumZoomFactor() == 1.0);
-    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
-    cameraFocus->zoomTo(0.5, 1.0);
-    QCOMPARE(cameraFocus->zoomFactor(), 1.0);
-    cameraFocus->zoomTo(2.0, 0.5);
-    QCOMPARE(cameraFocus->zoomFactor(), 2.0);
-    cameraFocus->zoomTo(2.5, 1);
-    QCOMPARE(cameraFocus->zoomFactor(), 2.5);
-    cameraFocus->zoomTo(2000000.0, 0);
-    QCOMPARE(cameraFocus->zoomFactor(), cameraFocus->maximumZoomFactor());
-
-    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(-1, -1));
-    cameraFocus->setCustomFocusPoint(QPointF(1.0, 1.0));
-    QCOMPARE(cameraFocus->customFocusPoint(), QPointF(1.0, 1.0));
+    QCOMPARE(camera.customFocusPoint(), QPointF(-1, -1));
+    camera.setCustomFocusPoint(QPointF(1.0, 1.0));
+    QCOMPARE(camera.customFocusPoint(), QPointF(1.0, 1.0));
 }
 
 void tst_QCamera::testImageSettings()
@@ -896,37 +889,23 @@ void tst_QCamera::testSaturation()
     QCOMPARE(cameraImageProcessing->saturation(), -0.5);
 }
 
-//Added test cases for QCameraFocus
-void tst_QCamera::testCameraFocusIsAvailable()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    session.setCamera(&camera);
-
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
-    QVERIFY(cameraFocus->isAvailable());
-}
-
-//Added this code to cover QCameraFocus::HyperfocalFocus and QCameraFocus::MacroFocus
-//As the HyperfocalFocus and MacroFocus are not supported we can not set the focus mode to these Focus Modes
+//Added this code to cover QCamera::FocusModeHyperfocal and QCamera::FocusModeAutoNear
+//As the FocusModeHyperfocal and FocusModeAutoNear are not supported we can not set the focus mode to these Focus Modes
 void tst_QCamera::testFocusMode()
 {
     QMediaCaptureSession session;
     QCamera camera;
     session.setCamera(&camera);
 
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::HyperfocalFocus));
-    QVERIFY(!cameraFocus->isFocusModeSupported(QCameraFocus::MacroFocus));
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    cameraFocus->setFocusMode(QCameraFocus::HyperfocalFocus);
-    QVERIFY(cameraFocus->focusMode()!= QCameraFocus::HyperfocalFocus);
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
-    cameraFocus->setFocusMode(QCameraFocus::MacroFocus);
-    QVERIFY(cameraFocus->focusMode()!= QCameraFocus::MacroFocus);
-    QCOMPARE(cameraFocus->focusMode(), QCameraFocus::AutoFocus);
+    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeHyperfocal));
+    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeAutoNear));
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
+    camera.setFocusMode(QCamera::FocusModeHyperfocal);
+    QVERIFY(camera.focusMode()!= QCamera::FocusModeHyperfocal);
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
+    camera.setFocusMode(QCamera::FocusModeAutoNear);
+    QVERIFY(camera.focusMode()!= QCamera::FocusModeAutoNear);
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
 }
 
 void tst_QCamera::testZoomChanged()
@@ -935,15 +914,13 @@ void tst_QCamera::testZoomChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
-    QSignalSpy spy(cameraFocus,SIGNAL(zoomFactorChanged(float)));
+    QSignalSpy spy(&camera, SIGNAL(zoomFactorChanged(float)));
     QVERIFY(spy.count() == 0);
-    cameraFocus->setZoomFactor(2.0);
+    camera.setZoomFactor(2.0);
     QVERIFY(spy.count() == 1);
-    cameraFocus->zoomTo(3.0, 1);
+    camera.zoomTo(3.0, 1);
     QVERIFY(spy.count() == 2);
-    cameraFocus->zoomTo(1.0, 0);
+    camera.zoomTo(1.0, 0);
     QVERIFY(spy.count() == 3);
 }
 
@@ -955,14 +932,11 @@ void tst_QCamera::testMaxZoomChangedSignal()
     QMockCamera *mock = integration.lastCamera();
     QMockCameraFocus *mockFocus = mock->mockFocus;
 
-    QCameraFocus *cameraFocus = camera.focus();
-    QVERIFY(cameraFocus != nullptr);
-
     // ### change max zoom factor on backend, e.g. by changing camera
-    QSignalSpy spy(cameraFocus,SIGNAL(maximumZoomFactorChanged(float)));
+    QSignalSpy spy(&camera, SIGNAL(maximumZoomFactorChanged(float)));
     mockFocus->setMaxZoomFactor(55);
     QVERIFY(spy.count() == 1);
-    QCOMPARE(camera.focus()->maximumZoomFactor(), 55);
+    QCOMPARE(camera.maximumZoomFactor(), 55);
 }
 
 void tst_QCamera::testSignalApertureChanged()

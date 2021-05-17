@@ -54,7 +54,7 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
-#include <QtMultimedia/qcamerafocus.h>
+#include <QtMultimedia/qcamera.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -66,9 +66,9 @@ class Q_MULTIMEDIA_EXPORT QPlatformCameraFocus : public QObject
     Q_OBJECT
 
 public:
-    virtual QCameraFocus::FocusMode focusMode() const = 0;
-    virtual void setFocusMode(QCameraFocus::FocusMode mode) = 0;
-    virtual bool isFocusModeSupported(QCameraFocus::FocusMode mode) const = 0;
+    virtual QCamera::FocusMode focusMode() const = 0;
+    virtual void setFocusMode(QCamera::FocusMode mode) = 0;
+    virtual bool isFocusModeSupported(QCamera::FocusMode mode) const = 0;
 
     virtual bool isCustomFocusPointSupported() const { return false; }
     virtual void setCustomFocusPoint(const QPointF &/*point*/) {}
@@ -87,7 +87,7 @@ public:
     virtual void zoomTo(float newZoomFactor, float rate = -1.) = 0;
 
 Q_SIGNALS:
-    void focusModeChanged(QCameraFocus::FocusMode mode);
+    void focusModeChanged(QCamera::FocusMode mode);
     void customFocusPointChanged(const QPointF &point);
     void minimumZoomFactorChanged(float);
     void maximumZoomFactorChanged(float);

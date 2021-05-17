@@ -63,9 +63,9 @@ class QWindowsCameraFocus : public QPlatformCameraFocus
 public:
     explicit QWindowsCameraFocus(QWindowsCameraSession *session);
 
-    QCameraFocus::FocusMode focusMode() const override;
-    void setFocusMode(QCameraFocus::FocusMode mode) override;
-    bool isFocusModeSupported(QCameraFocus::FocusMode mode) const override;
+    QCamera::FocusMode focusMode() const override;
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
     bool isCustomFocusPointSupported() const override;
     QPointF focusPoint() const override;

@@ -50,16 +50,16 @@ QWindowsCameraFocus::QWindowsCameraFocus(QWindowsCameraSession *session)
     Q_ASSERT(m_session);
 }
 
-QCameraFocus::FocusMode QWindowsCameraFocus::focusMode() const
+QCamera::FocusMode QWindowsCameraFocus::focusMode() const
 {
-    return QCameraFocus::AutoFocus;
+    return QCamera::FocusModeAuto;
 }
 
-void QWindowsCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
+void QWindowsCameraFocus::setFocusMode(QCamera::FocusMode mode)
 {
 }
 
-bool QWindowsCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
+bool QWindowsCameraFocus::isFocusModeSupported(QCamera::FocusMode mode) const
 {
     return false;
 }

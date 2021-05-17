@@ -58,6 +58,7 @@
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
+class QPlatformCameraFocus;
 class QPlatformMediaCaptureSession;
 
 class QCameraPrivate : public QObjectPrivate
@@ -77,7 +78,6 @@ public:
     QPlatformCamera *control = nullptr;
 
     QCameraExposure *cameraExposure = nullptr;
-    QCameraFocus *cameraFocus = nullptr;
     QCameraImageProcessing *imageProcessing = nullptr;
 
     QObject *capture = nullptr;
@@ -87,6 +87,10 @@ public:
 
     QCameraInfo cameraInfo;
     QCameraFormat cameraFormat;
+
+    QPlatformCameraFocus *focusControl = nullptr;
+    float zoomFactor = 1.;
+    QPointF customFocusPoint{-1, -1};
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }

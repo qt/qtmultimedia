@@ -47,40 +47,40 @@ QT_BEGIN_NAMESPACE
 BbCameraFocusControl::BbCameraFocusControl(BbCameraSession *session, QObject *parent)
     : QPlatformCameraFocus(parent)
     , m_session(session)
-    , m_focusMode(QCameraFocus::FocusModeAuto)
+    , m_focusMode(QCamera::FocusModeAuto)
     , m_customFocusPoint(QPointF(0, 0))
 {
     connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(statusChanged(QCamera::Status)));
 }
 
-QCameraFocus::FocusMode BbCameraFocusControl::focusMode() const
+QCamera::FocusMode BbCameraFocusControl::focusMode() const
 {
     camera_focusmode_t focusMode = CAMERA_FOCUSMODE_OFF;
 
     const camera_error_t result = camera_get_focus_mode(m_session->handle(), &focusMode);
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to retrieve focus mode from camera:" << result;
-        return QCameraFocus::FocusModeAuto;
+        return QCamera::FocusModeAuto;
     }
 
     switch (focusMode) {
     case CAMERA_FOCUSMODE_EDOF:
-        return QCameraFocus::FocusModeHyperfocal;
+        return QCamera::FocusModeHyperfocal;
     case CAMERA_FOCUSMODE_MANUAL:
-        return QCameraFocus::FocusModeManual;
+        return QCamera::FocusModeManual;
     case CAMERA_FOCUSMODE_CONTINUOUS_MACRO: // fall through
     case CAMERA_FOCUSMODE_MACRO:
-        return QCameraFocus::MacroFocus;
+        return QCamera::FocusModeAutoNear;
     case CAMERA_FOCUSMODE_AUTO: // fall through
     case CAMERA_FOCUSMODE_CONTINUOUS_AUTO:
-        return QCameraFocus::FocusModeAuto;
+        return QCamera::FocusModeAuto;
     case CAMERA_FOCUSMODE_OFF:
     default:
-        return QCameraFocus::FocusModeAuto;
+        return QCamera::FocusModeAuto;
     }
 }
 
-void BbCameraFocusControl::setFocusMode(QCameraFocus::FocusMode mode)
+void BbCameraFocusControl::setFocusMode(QCamera::FocusMode mode)
 {
     if (m_focusMode == mode)
         return;
@@ -88,18 +88,18 @@ void BbCameraFocusControl::setFocusMode(QCameraFocus::FocusMode mode)
     camera_focusmode_t focusMode = CAMERA_FOCUSMODE_OFF;
 
     switch (mode) {
-    case QCameraFocus::FocusModeHyperfocal:
-    case QCameraFocus::FocusModeInfinity: // not 100%, but close
+    case QCamera::FocusModeHyperfocal:
+    case QCamera::FocusModeInfinity: // not 100%, but close
         focusMode = CAMERA_FOCUSMODE_EDOF;
         break;
-    case QCameraFocus::FocusModeManual:
+    case QCamera::FocusModeManual:
         focusMode = CAMERA_FOCUSMODE_MANUAL;
         break;
-    case QCameraFocus::FocusModeAutoNear:
+    case QCamera::FocusModeAutoNear:
         focusMode = CAMERA_FOCUSMODE_MACRO;
         break;
-    case QCameraFocus::FocusModeAuto:
-    case QCameraFocus::FocusModeAutoFar:
+    case QCamera::FocusModeAuto:
+    case QCamera::FocusModeAutoFar:
         focusMode = CAMERA_FOCUSMODE_CONTINUOUS_AUTO;
         break;
     }
@@ -115,18 +115,18 @@ void BbCameraFocusControl::setFocusMode(QCameraFocus::FocusMode mode)
     emit focusModeChanged(m_focusMode);
 }
 
-bool BbCameraFocusControl::isFocusModeSupported(QCameraFocus::FocusMode mode) const
+bool BbCameraFocusControl::isFocusModeSupported(QCamera::FocusMode mode) const
 {
     if (m_session->state() == QCamera::UnloadedState)
         return false;
 
-    if (mode == QCameraFocus::FocusModeHyperfocal)
+    if (mode == QCamera::FocusModeHyperfocal)
         return false; //TODO how to check?
-    else if (mode == QCameraFocus::FocusModeManual)
+    else if (mode == QCamera::FocusModeManual)
         return camera_has_feature(m_session->handle(), CAMERA_FEATURE_MANUALFOCUS);
-    else if (mode == QCameraFocus::FocusModeAuto)
+    else if (mode == QCamera::FocusModeAuto)
         return camera_has_feature(m_session->handle(), CAMERA_FEATURE_AUTOFOCUS);
-    else if (mode == QCameraFocus::FocusModeAutoNear)
+    else if (mode == QCamera::FocusModeAutoNear)
         return camera_has_feature(m_session->handle(), CAMERA_FEATURE_MACROFOCUS);
 
     return false;

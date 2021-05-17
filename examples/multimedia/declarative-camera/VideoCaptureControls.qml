@@ -135,8 +135,8 @@ FocusScope {
         width : 100
         height: parent.height
 
-        currentZoom: captureSession.camera.focus.zoomFactor
-        maximumZoom: captureSession.camera.focus.maximumZoomFactor
-        onZoomTo: captureSession.camera.focus.zoomFactor = value
+        currentZoom: captureSession.camera.zoomFactor
+        maximumZoom: captureSession.camera.maximumZoomFactor
+        onZoomTo: captureSession.camera.zoomFactor = value
     }
 }

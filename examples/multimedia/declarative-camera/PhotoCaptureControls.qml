@@ -162,8 +162,8 @@ FocusScope {
         width : 100
         height: parent.height
 
-        currentZoom: camera.focus.zoomFactor
-        maximumZoom: camera.focus.maximumZoomFactor
+        currentZoom: camera.zoomFactor
+        maximumZoom: camera.maximumZoomFactor
         onZoomTo: camera.setDigitalZoom(value)
     }
 }

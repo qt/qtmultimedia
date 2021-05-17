@@ -65,21 +65,21 @@ QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
 }
 
 /*!
-  \fn QCameraFocus::FocusMode QPlatformCameraFocus::focusMode() const
+  \fn QCamera::FocusMode QPlatformCameraFocus::focusMode() const
 
   Returns the focus mode being used.
 */
 
 
 /*!
-  \fn void QPlatformCameraFocus::setFocusMode(QCameraFocus::FocusMode mode)
+  \fn void QPlatformCameraFocus::setFocusMode(QCamera::FocusMode mode)
 
   Set the focus mode to \a mode.
 */
 
 
 /*!
-  \fn bool QPlatformCameraFocus::isFocusModeSupported(QCameraFocus::FocusMode mode) const
+  \fn bool QPlatformCameraFocus::isFocusModeSupported(QCamera::FocusMode mode) const
 
   Returns true if focus \a mode is supported.
 */
@@ -91,13 +91,13 @@ QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
 */
 
 /*!
-  \fn QPlatformCameraFocus::setFocusPointMode(QCameraFocus::FocusPointMode mode)
+  \fn QPlatformCameraFocus::setFocusPointMode(QCamera::FocusPointMode mode)
 
   Sets the camera focus point selection \a mode.
 */
 
 /*!
-  \fn QPlatformCameraFocus::isFocusPointModeSupported(QCameraFocus::FocusPointMode mode) const
+  \fn QPlatformCameraFocus::isFocusPointModeSupported(QCamera::FocusPointMode mode) const
 
   Returns true if the camera focus point \a mode is supported.
 */
@@ -120,7 +120,7 @@ QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
 */
 
 /*!
-  \fn void QPlatformCameraFocus::focusModeChanged(QCameraFocus::FocusMode mode)
+  \fn void QPlatformCameraFocus::focusModeChanged(QCamera::FocusMode mode)
 
   Signal is emitted when the focus \a mode is changed,
   usually in result of QPlatformCameraFocus::setFocusMode call or capture mode changes.
@@ -129,7 +129,7 @@ QPlatformCameraFocus::QPlatformCameraFocus(QObject *parent)
 */
 
 /*!
-  \fn void QPlatformCameraFocus::focusPointModeChanged(QCameraFocus::FocusPointMode mode)
+  \fn void QPlatformCameraFocus::focusPointModeChanged(QCamera::FocusPointMode mode)
 
   Signal is emitted when the focus point \a mode is changed,
   usually in result of QPlatformCameraFocus::setFocusPointMode call or capture mode changes.
