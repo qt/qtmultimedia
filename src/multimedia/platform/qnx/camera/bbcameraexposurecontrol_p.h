@@ -69,9 +69,9 @@ public:
     QVariant actualValue(ExposureParameter parameter) const override;
     bool setValue(ExposureParameter parameter, const QVariant& value) override;
 
-    QCameraExposure::FlashMode flashMode() const override;
-    void setFlashMode(QCameraExposure::FlashMode mode) override;
-    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
+    QCamera::FlashMode flashMode() const override;
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
     bool isFlashReady() const override;
 
 private Q_SLOTS:
@@ -79,9 +79,9 @@ private Q_SLOTS:
 
 private:
     BbCameraSession *m_session;
-    QCameraExposure::ExposureMode m_requestedExposureMode;
+    QCamera::ExposureMode m_requestedExposureMode;
 
-    QCameraExposure::FlashMode m_flashMode = QCameraExposure::FlashAuto;
+    QCamera::FlashMode m_flashMode = QCamera::FlashAuto;
 };
 
 QT_END_NAMESPACE

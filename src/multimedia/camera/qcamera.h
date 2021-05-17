@@ -48,7 +48,6 @@
 
 #include <QtCore/qobject.h>
 
-#include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcameraimageprocessing.h>
 #include <QtMultimedia/qcamerainfo.h>
 
@@ -67,7 +66,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QCameraExposure* exposure READ exposure CONSTANT)
     Q_PROPERTY(QCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
     Q_PROPERTY(QCameraInfo cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
@@ -81,10 +79,24 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor NOTIFY minimumZoomFactorChanged)
     Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor NOTIFY maximumZoomFactorChanged)
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
+    Q_PROPERTY(qreal aperture READ aperture NOTIFY apertureChanged)
+    Q_PROPERTY(qreal shutterSpeed READ shutterSpeed NOTIFY shutterSpeedChanged)
+    Q_PROPERTY(int isoSensitivity READ isoSensitivity NOTIFY isoSensitivityChanged)
+    Q_PROPERTY(qreal exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
+    Q_PROPERTY(bool flashReady READ isFlashReady NOTIFY flashReady)
+    Q_PROPERTY(QCamera::FlashMode flashMode READ flashMode WRITE setFlashMode)
+    Q_PROPERTY(QCamera::TorchMode torchMode READ torchMode WRITE setTorchMode)
+    Q_PROPERTY(QCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode)
 
-    Q_ENUMS(FocusMode)
     Q_ENUMS(Status)
     Q_ENUMS(Error)
+
+    Q_ENUMS(FocusMode)
+
+    Q_ENUMS(FlashMode)
+    Q_ENUMS(TorchMode)
+    Q_ENUMS(ExposureMode)
+
 public:
     enum Status {
         UnavailableStatus,
@@ -109,6 +121,38 @@ public:
         FocusModeManual
     };
 
+    enum FlashMode {
+        FlashOff,
+        FlashOn,
+        FlashAuto
+    };
+
+    enum TorchMode {
+        TorchOff,
+        TorchOn,
+        TorchAuto
+    };
+
+    enum ExposureMode {
+        ExposureAuto,
+        ExposureManual,
+        ExposurePortrait,
+        ExposureNight,
+        ExposureSports,
+        ExposureSnow,
+        ExposureBeach,
+        ExposureAction,
+        ExposureLandscape,
+        ExposureNightPortrait,
+        ExposureTheatre,
+        ExposureSunset,
+        ExposureSteadyPhoto,
+        ExposureFireworks,
+        ExposureParty,
+        ExposureCandlelight,
+        ExposureBarcode
+    };
+
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
     explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
@@ -127,7 +171,6 @@ public:
     QCameraFormat cameraFormat() const;
     void setCameraFormat(const QCameraFormat &format);
 
-    QCameraExposure *exposure() const;
     QCameraImageProcessing *imageProcessing() const;
 
     Error error() const;
@@ -151,12 +194,51 @@ public:
     float zoomFactor() const;
     void setZoomFactor(float factor);
 
+    FlashMode flashMode() const;
+    bool isFlashModeSupported(FlashMode mode) const;
+    bool isFlashReady() const;
+
+    TorchMode torchMode() const;
+    bool isTorchModeSupported(TorchMode mode) const;
+
+    ExposureMode exposureMode() const;
+    bool isExposureModeSupported(ExposureMode mode) const;
+
+    qreal exposureCompensation() const;
+
+    int isoSensitivity() const;
+    qreal aperture() const;
+    qreal shutterSpeed() const;
+
+    int requestedIsoSensitivity() const;
+    qreal requestedAperture() const;
+    qreal requestedShutterSpeed() const;
+
+    QList<int> supportedIsoSensitivities(bool *continuous = nullptr) const;
+    QList<qreal> supportedApertures(bool *continuous = nullptr) const;
+    QList<qreal> supportedShutterSpeeds(bool *continuous = nullptr) const;
+
 public Q_SLOTS:
     void setActive(bool active);
     void start() { setActive(true); }
     void stop() { setActive(false); }
 
     void zoomTo(float zoom, float rate);
+
+    void setFlashMode(FlashMode mode);
+    void setTorchMode(TorchMode mode);
+    void setExposureMode(ExposureMode mode);
+
+    void setExposureCompensation(qreal ev);
+
+    void setManualIsoSensitivity(int iso);
+    void setAutoIsoSensitivity();
+
+    void setManualAperture(qreal aperture);
+    void setAutoAperture();
+
+    void setManualShutterSpeed(qreal seconds);
+    void setAutoShutterSpeed();
 
 Q_SIGNALS:
     void activeChanged(bool);
@@ -172,6 +254,15 @@ Q_SIGNALS:
     void maximumZoomFactorChanged(float);
     void focusDistanceChanged(float);
     void customFocusPointChanged();
+
+    void flashReady(bool);
+
+    void apertureChanged(qreal);
+    void apertureRangeChanged();
+    void shutterSpeedChanged(qreal speed);
+    void shutterSpeedRangeChanged();
+    void isoSensitivityChanged(int);
+    void exposureCompensationChanged(qreal);
 
 private:
     void setCaptureSession(QMediaCaptureSession *session);

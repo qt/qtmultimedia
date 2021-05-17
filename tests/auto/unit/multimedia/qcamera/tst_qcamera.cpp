@@ -101,7 +101,7 @@ private slots:
 
     void testEnumDebug();
 
-    // Signals test cases for QCameraExposure
+    // Signals test cases for exposure related properties
     void testSignalApertureChanged();
     void testSignalExposureCompensationChanged();
     void testSignalIsoSensitivityChanged();
@@ -157,44 +157,41 @@ void tst_QCamera::testSimpleCameraExposure()
     QMockCamera::Simple simple;
 
     QCamera camera;
-    QCameraExposure *cameraExposure = camera.exposure();
-    QVERIFY(cameraExposure != nullptr);
+    QVERIFY(!camera.isExposureModeSupported(QCamera::ExposureAuto));
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
+    camera.setExposureMode(QCamera::ExposureManual);//should be ignored
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 
-    QVERIFY(!cameraExposure->isExposureModeSupported(QCameraExposure::ExposureAuto));
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureAuto);
-    cameraExposure->setExposureMode(QCameraExposure::ExposureManual);//should be ignored
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureAuto);
+    QVERIFY(!camera.isFlashModeSupported(QCamera::FlashOn));
+    QCOMPARE(camera.flashMode(), QCamera::FlashOff);
+    QCOMPARE(camera.isFlashReady(), false);
+    camera.setFlashMode(QCamera::FlashOn);
+    QCOMPARE(camera.flashMode(), QCamera::FlashOff);
 
-    QVERIFY(!cameraExposure->isFlashModeSupported(QCameraExposure::FlashOn));
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashOff);
-    QCOMPARE(cameraExposure->isFlashReady(), false);
-    cameraExposure->setFlashMode(QCameraExposure::FlashOn);
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashOff);
+    QCOMPARE(camera.exposureCompensation(), 0.0);
+    camera.setExposureCompensation(2.0);
+    QCOMPARE(camera.exposureCompensation(), 0.0);
 
-    QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
-    cameraExposure->setExposureCompensation(2.0);
-    QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
+    QCOMPARE(camera.isoSensitivity(), -1);
+    QVERIFY(camera.supportedIsoSensitivities().isEmpty());
+    camera.setManualIsoSensitivity(100);
+    QCOMPARE(camera.isoSensitivity(), -1);
+    camera.setAutoIsoSensitivity();
+    QCOMPARE(camera.isoSensitivity(), -1);
 
-    QCOMPARE(cameraExposure->isoSensitivity(), -1);
-    QVERIFY(cameraExposure->supportedIsoSensitivities().isEmpty());
-    cameraExposure->setManualIsoSensitivity(100);
-    QCOMPARE(cameraExposure->isoSensitivity(), -1);
-    cameraExposure->setAutoIsoSensitivity();
-    QCOMPARE(cameraExposure->isoSensitivity(), -1);
+    QVERIFY(camera.aperture() < 0);
+    QVERIFY(camera.supportedApertures().isEmpty());
+    camera.setAutoAperture();
+    QVERIFY(camera.aperture() < 0);
+    camera.setManualAperture(5.6);
+    QVERIFY(camera.aperture() < 0);
 
-    QVERIFY(cameraExposure->aperture() < 0);
-    QVERIFY(cameraExposure->supportedApertures().isEmpty());
-    cameraExposure->setAutoAperture();
-    QVERIFY(cameraExposure->aperture() < 0);
-    cameraExposure->setManualAperture(5.6);
-    QVERIFY(cameraExposure->aperture() < 0);
-
-    QVERIFY(cameraExposure->shutterSpeed() < 0);
-    QVERIFY(cameraExposure->supportedShutterSpeeds().isEmpty());
-    cameraExposure->setAutoShutterSpeed();
-    QVERIFY(cameraExposure->shutterSpeed() < 0);
-    cameraExposure->setManualShutterSpeed(1/128.0);
-    QVERIFY(cameraExposure->shutterSpeed() < 0);
+    QVERIFY(camera.shutterSpeed() < 0);
+    QVERIFY(camera.supportedShutterSpeeds().isEmpty());
+    camera.setAutoShutterSpeed();
+    QVERIFY(camera.shutterSpeed() < 0);
+    camera.setManualShutterSpeed(1/128.0);
+    QVERIFY(camera.shutterSpeed() < 0);
 }
 
 void tst_QCamera::testSimpleCameraFocus()
@@ -347,114 +344,110 @@ void tst_QCamera::testCameraExposure()
 {
     QCamera camera;
 
-    QCameraExposure *cameraExposure = camera.exposure();
-    QVERIFY(cameraExposure != nullptr);
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposureAuto));
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureAuto));
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureAuto);
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposureManual));
+    camera.setExposureMode(QCamera::ExposureManual);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureManual);
 
-    // Test Cases For QCameraExposure
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureManual));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureManual);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureManual);
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposureNight));
+    camera.setExposureMode(QCamera::ExposureNight);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
 
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureNight));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureNight);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureNight);
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposureSports ));
+    camera.setExposureMode(QCamera::ExposureSports);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureSports);
 
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSports ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureSports);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSports);
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposureSnow ));
+    camera.setExposureMode(QCamera::ExposureSnow);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureSnow);
 
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureSnow ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureSnow);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureSnow);
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposureBeach ));
+    camera.setExposureMode(QCamera::ExposureBeach);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureBeach);
 
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposureBeach ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposureBeach);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposureBeach);
-
-    QVERIFY(cameraExposure->isExposureModeSupported(QCameraExposure::ExposurePortrait ));
-    cameraExposure->setExposureMode(QCameraExposure::ExposurePortrait);
-    QCOMPARE(cameraExposure->exposureMode(), QCameraExposure::ExposurePortrait);
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposurePortrait ));
+    camera.setExposureMode(QCamera::ExposurePortrait);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposurePortrait);
 
 
-    cameraExposure->setFlashMode(QCameraExposure::FlashAuto);
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashAuto);
-    QCOMPARE(cameraExposure->isFlashReady(), true);
-    cameraExposure->setFlashMode(QCameraExposure::FlashOn);
-    QCOMPARE(cameraExposure->flashMode(), QCameraExposure::FlashOn);
+    camera.setFlashMode(QCamera::FlashAuto);
+    QCOMPARE(camera.flashMode(), QCamera::FlashAuto);
+    QCOMPARE(camera.isFlashReady(), true);
+    camera.setFlashMode(QCamera::FlashOn);
+    QCOMPARE(camera.flashMode(), QCamera::FlashOn);
 
-    QCOMPARE(cameraExposure->exposureCompensation(), 0.0);
-    cameraExposure->setExposureCompensation(2.0);
-    QCOMPARE(cameraExposure->exposureCompensation(), 2.0);
+    QCOMPARE(camera.exposureCompensation(), 0.0);
+    camera.setExposureCompensation(2.0);
+    QCOMPARE(camera.exposureCompensation(), 2.0);
 
-    int minIso = cameraExposure->supportedIsoSensitivities().first();
-    int maxIso = cameraExposure->supportedIsoSensitivities().last();
-    QVERIFY(cameraExposure->isoSensitivity() > 0);
-    QCOMPARE(cameraExposure->requestedIsoSensitivity(), -1);
+    int minIso = camera.supportedIsoSensitivities().first();
+    int maxIso = camera.supportedIsoSensitivities().last();
+    QVERIFY(camera.isoSensitivity() > 0);
+    QCOMPARE(camera.requestedIsoSensitivity(), -1);
     QVERIFY(minIso > 0);
     QVERIFY(maxIso > 0);
-    cameraExposure->setManualIsoSensitivity(minIso);
-    QCOMPARE(cameraExposure->isoSensitivity(), minIso);
-    cameraExposure->setManualIsoSensitivity(maxIso*10);
-    QCOMPARE(cameraExposure->isoSensitivity(), maxIso);
-    QCOMPARE(cameraExposure->requestedIsoSensitivity(), maxIso*10);
+    camera.setManualIsoSensitivity(minIso);
+    QCOMPARE(camera.isoSensitivity(), minIso);
+    camera.setManualIsoSensitivity(maxIso*10);
+    QCOMPARE(camera.isoSensitivity(), maxIso);
+    QCOMPARE(camera.requestedIsoSensitivity(), maxIso*10);
 
-    cameraExposure->setManualIsoSensitivity(-10);
-    QCOMPARE(cameraExposure->isoSensitivity(), minIso);
-    QCOMPARE(cameraExposure->requestedIsoSensitivity(), -10);
-    cameraExposure->setAutoIsoSensitivity();
-    QCOMPARE(cameraExposure->isoSensitivity(), 100);
-    QCOMPARE(cameraExposure->requestedIsoSensitivity(), -1);
+    camera.setManualIsoSensitivity(-10);
+    QCOMPARE(camera.isoSensitivity(), minIso);
+    QCOMPARE(camera.requestedIsoSensitivity(), -10);
+    camera.setAutoIsoSensitivity();
+    QCOMPARE(camera.isoSensitivity(), 100);
+    QCOMPARE(camera.requestedIsoSensitivity(), -1);
 
-    QCOMPARE(cameraExposure->requestedAperture(), -1.0);
-    qreal minAperture = cameraExposure->supportedApertures().first();
-    qreal maxAperture = cameraExposure->supportedApertures().last();
+    QCOMPARE(camera.requestedAperture(), -1.0);
+    qreal minAperture = camera.supportedApertures().first();
+    qreal maxAperture = camera.supportedApertures().last();
     QVERIFY(minAperture > 0);
     QVERIFY(maxAperture > 0);
-    QVERIFY(cameraExposure->aperture() >= minAperture);
-    QVERIFY(cameraExposure->aperture() <= maxAperture);
+    QVERIFY(camera.aperture() >= minAperture);
+    QVERIFY(camera.aperture() <= maxAperture);
 
-    cameraExposure->setAutoAperture();
-    QVERIFY(cameraExposure->aperture() >= minAperture);
-    QVERIFY(cameraExposure->aperture() <= maxAperture);
-    QCOMPARE(cameraExposure->requestedAperture(), -1.0);
+    camera.setAutoAperture();
+    QVERIFY(camera.aperture() >= minAperture);
+    QVERIFY(camera.aperture() <= maxAperture);
+    QCOMPARE(camera.requestedAperture(), -1.0);
 
-    cameraExposure->setManualAperture(0);
-    QCOMPARE(cameraExposure->aperture(), minAperture);
-    QCOMPARE(cameraExposure->requestedAperture()+1.0, 1.0);
+    camera.setManualAperture(0);
+    QCOMPARE(camera.aperture(), minAperture);
+    QCOMPARE(camera.requestedAperture()+1.0, 1.0);
 
-    cameraExposure->setManualAperture(10000);
-    QCOMPARE(cameraExposure->aperture(), maxAperture);
-    QCOMPARE(cameraExposure->requestedAperture(), 10000.0);
+    camera.setManualAperture(10000);
+    QCOMPARE(camera.aperture(), maxAperture);
+    QCOMPARE(camera.requestedAperture(), 10000.0);
 
-    cameraExposure->setAutoAperture();
-    QCOMPARE(cameraExposure->requestedAperture(), -1.0);
+    camera.setAutoAperture();
+    QCOMPARE(camera.requestedAperture(), -1.0);
 
-    QCOMPARE(cameraExposure->requestedShutterSpeed(), -1.0);
-    qreal minShutterSpeed = cameraExposure->supportedShutterSpeeds().first();
-    qreal maxShutterSpeed = cameraExposure->supportedShutterSpeeds().last();
+    QCOMPARE(camera.requestedShutterSpeed(), -1.0);
+    qreal minShutterSpeed = camera.supportedShutterSpeeds().first();
+    qreal maxShutterSpeed = camera.supportedShutterSpeeds().last();
     QVERIFY(minShutterSpeed > 0);
     QVERIFY(maxShutterSpeed > 0);
-    QVERIFY(cameraExposure->shutterSpeed() >= minShutterSpeed);
-    QVERIFY(cameraExposure->shutterSpeed() <= maxShutterSpeed);
+    QVERIFY(camera.shutterSpeed() >= minShutterSpeed);
+    QVERIFY(camera.shutterSpeed() <= maxShutterSpeed);
 
-    cameraExposure->setAutoShutterSpeed();
-    QVERIFY(cameraExposure->shutterSpeed() >= minShutterSpeed);
-    QVERIFY(cameraExposure->shutterSpeed() <= maxShutterSpeed);
-    QCOMPARE(cameraExposure->requestedShutterSpeed(), -1.0);
+    camera.setAutoShutterSpeed();
+    QVERIFY(camera.shutterSpeed() >= minShutterSpeed);
+    QVERIFY(camera.shutterSpeed() <= maxShutterSpeed);
+    QCOMPARE(camera.requestedShutterSpeed(), -1.0);
 
-    cameraExposure->setManualShutterSpeed(0);
-    QCOMPARE(cameraExposure->shutterSpeed(), minShutterSpeed);
-    QCOMPARE(cameraExposure->requestedShutterSpeed()+1.0, 1.0);
+    camera.setManualShutterSpeed(0);
+    QCOMPARE(camera.shutterSpeed(), minShutterSpeed);
+    QCOMPARE(camera.requestedShutterSpeed()+1.0, 1.0);
 
-    cameraExposure->setManualShutterSpeed(10000);
-    QCOMPARE(cameraExposure->shutterSpeed(), maxShutterSpeed);
-    QCOMPARE(cameraExposure->requestedShutterSpeed(), 10000.0);
+    camera.setManualShutterSpeed(10000);
+    QCOMPARE(camera.shutterSpeed(), maxShutterSpeed);
+    QCOMPARE(camera.requestedShutterSpeed(), 10000.0);
 
-    cameraExposure->setAutoShutterSpeed();
-    QCOMPARE(cameraExposure->requestedShutterSpeed(), -1.0);
+    camera.setAutoShutterSpeed();
+    QCOMPARE(camera.requestedShutterSpeed(), -1.0);
 }
 
 void tst_QCamera::testCameraFocus()
@@ -945,15 +938,12 @@ void tst_QCamera::testSignalApertureChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != nullptr);
-
-    QSignalSpy spyApertureChanged(cameraExposure , SIGNAL(apertureChanged(qreal)));
-    QSignalSpy spyApertureRangeChanged(cameraExposure , SIGNAL(apertureRangeChanged()));
+    QSignalSpy spyApertureChanged(&camera, SIGNAL(apertureChanged(qreal)));
+    QSignalSpy spyApertureRangeChanged(&camera, SIGNAL(apertureRangeChanged()));
 
 
     QVERIFY(spyApertureChanged.count() ==0);
-    cameraExposure->setManualAperture(10.0);//set the ManualAperture to 10.0
+    camera.setManualAperture(10.0);//set the ManualAperture to 10.0
 
     QTest::qWait(100);
     QVERIFY(spyApertureChanged.count() ==1);
@@ -966,27 +956,24 @@ void tst_QCamera::testSignalExposureCompensationChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != nullptr);
-
-    QSignalSpy spyExposureCompensationChanged(cameraExposure , SIGNAL(exposureCompensationChanged(qreal)));
+    QSignalSpy spyExposureCompensationChanged(&camera, SIGNAL(exposureCompensationChanged(qreal)));
 
     QVERIFY(spyExposureCompensationChanged.count() ==0);
 
-    QVERIFY(cameraExposure->exposureCompensation() != 800);
-    cameraExposure->setExposureCompensation(2.0);
+    QVERIFY(camera.exposureCompensation() != 800);
+    camera.setExposureCompensation(2.0);
 
     QTest::qWait(100);
 
-    QVERIFY(cameraExposure->exposureCompensation() == 2.0);
+    QVERIFY(camera.exposureCompensation() == 2.0);
 
     QCOMPARE(spyExposureCompensationChanged.count(),1);
 
     // Setting the same should not result in a signal
-    cameraExposure->setExposureCompensation(2.0);
+    camera.setExposureCompensation(2.0);
     QTest::qWait(100);
 
-    QVERIFY(cameraExposure->exposureCompensation() == 2.0);
+    QVERIFY(camera.exposureCompensation() == 2.0);
     QCOMPARE(spyExposureCompensationChanged.count(),1);
 }
 
@@ -996,14 +983,11 @@ void tst_QCamera::testSignalIsoSensitivityChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != nullptr);
-
-    QSignalSpy spyisoSensitivityChanged(cameraExposure , SIGNAL(isoSensitivityChanged(int)));
+    QSignalSpy spyisoSensitivityChanged(&camera, SIGNAL(isoSensitivityChanged(int)));
 
     QVERIFY(spyisoSensitivityChanged.count() ==0);
 
-    cameraExposure->setManualIsoSensitivity(800); //set the manualiso sentivity to 800
+    camera.setManualIsoSensitivity(800); //set the manualiso sentivity to 800
     QTest::qWait(100);
     QVERIFY(spyisoSensitivityChanged.count() ==1);
 
@@ -1014,15 +998,12 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != nullptr);
-
-    QSignalSpy spySignalShutterSpeedChanged(cameraExposure , SIGNAL(shutterSpeedChanged(qreal)));
-    QSignalSpy spySignalShutterSpeedRangeChanged(cameraExposure , SIGNAL(shutterSpeedRangeChanged()));
+    QSignalSpy spySignalShutterSpeedChanged(&camera, SIGNAL(shutterSpeedChanged(qreal)));
+    QSignalSpy spySignalShutterSpeedRangeChanged(&camera, SIGNAL(shutterSpeedRangeChanged()));
 
     QVERIFY(spySignalShutterSpeedChanged.count() ==0);
 
-    cameraExposure->setManualShutterSpeed(2.0);//set the ManualShutterSpeed to 2.0
+    camera.setManualShutterSpeed(2.0);//set the ManualShutterSpeed to 2.0
     QTest::qWait(100);
 
     QVERIFY(spySignalShutterSpeedChanged.count() ==1);
@@ -1035,19 +1016,15 @@ void tst_QCamera::testSignalFlashReady()
     QCamera camera;
     session.setCamera(&camera);
 
-    QCameraExposure *cameraExposure = camera.exposure(); //create camera expose instance
-    QVERIFY(cameraExposure != nullptr);
-
-
-    QSignalSpy spyflashReady(cameraExposure,SIGNAL(flashReady(bool)));
+    QSignalSpy spyflashReady(&camera,SIGNAL(flashReady(bool)));
 
     QVERIFY(spyflashReady.count() ==0);
 
-    QVERIFY(cameraExposure->flashMode() ==QCameraExposure::FlashAuto);
+    QVERIFY(camera.flashMode() ==QCamera::FlashAuto);
 
-    cameraExposure->setFlashMode(QCameraExposure::FlashOff);//set theFlashMode to QCameraExposure::FlashOff
+    camera.setFlashMode(QCamera::FlashOff);//set theFlashMode to QCamera::FlashOff
 
-    QVERIFY(cameraExposure->flashMode() ==QCameraExposure::FlashOff);
+    QVERIFY(camera.flashMode() ==QCamera::FlashOff);
 
     QVERIFY(spyflashReady.count() ==1);
 }

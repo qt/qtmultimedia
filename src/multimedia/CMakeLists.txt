@@ -27,7 +27,6 @@ qt_internal_add_module(Multimedia
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qwavedecoder.cpp audio/qwavedecoder.h
         camera/qcamera.cpp camera/qcamera.h camera/qcamera_p.h
-        camera/qcameraexposure.cpp camera/qcameraexposure.h
         camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
         camera/qcameraimageprocessing.cpp camera/qcameraimageprocessing.h
         camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h

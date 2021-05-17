@@ -52,7 +52,7 @@
 //
 
 #include <private/qplatformcameraexposure_p.h>
-#include <QtMultimedia/qcameraexposure.h>
+#include <QtMultimedia/qcamera.h>
 
 #include <QtCore/qglobal.h>
 
@@ -75,14 +75,14 @@ public:
     QVariant actualValue(ExposureParameter parameter) const override;
     bool setValue(ExposureParameter parameter, const QVariant &value) override;
 
-    QCameraExposure::FlashMode flashMode() const override;
-    void setFlashMode(QCameraExposure::FlashMode mode) override;
-    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
+    QCamera::FlashMode flashMode() const override;
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
     bool isFlashReady() const override;
 
-    QCameraExposure::TorchMode torchMode() const override;
-    void setTorchMode(QCameraExposure::TorchMode mode) override;
-    bool isTorchModeSupported(QCameraExposure::TorchMode mode) const override;
+    QCamera::TorchMode torchMode() const override;
+    void setTorchMode(QCamera::TorchMode mode) override;
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
 
 private Q_SLOTS:
     void cameraActiveChanged(bool active);
@@ -108,8 +108,8 @@ private:
     bool isFlashAutoSupported = false;
     bool isTorchSupported = false;
     bool isTorchAutoSupported = false;
-    QCameraExposure::FlashMode m_flashMode = QCameraExposure::FlashOff;
-    QCameraExposure::TorchMode m_torchMode = QCameraExposure::TorchOff;
+    QCamera::FlashMode m_flashMode = QCamera::FlashOff;
+    QCamera::TorchMode m_torchMode = QCamera::TorchOff;
 };
 
 QT_END_NAMESPACE

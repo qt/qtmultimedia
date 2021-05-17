@@ -247,26 +247,14 @@ be checked with \l minimumZoomFactor() and maximumZoomFactor().
 \section3 Exposure, Aperture, Shutter Speed and Flash
 
 There are a number of settings that affect the amount of light that hits the
-camera sensor, and hence the quality of the resulting image.  The \l QCameraExposure
-class allows you to adjust these settings.  You can use this class to implement
-some techniques like High Dynamic Range (HDR) photos by locking the exposure
-parameters (with \l {QCamera::searchAndLock()}), or motion blur by setting slow shutter speeds
-with small apertures.
+camera sensor, and hence the quality of the resulting image.
 
-The main settings for automatic image taking are the \l {QCameraExposure::ExposureMode}{exposure mode}
-and \l {QCameraExposure::FlashMode}{flash mode}.  Several other settings (aperture, ISO setting,
+The main settings for automatic image taking are the \l {QCamera::ExposureMode}{exposure mode}
+and \l {QCamera::FlashMode}{flash mode}.  Several other settings (aperture, ISO setting,
  shutter speed) are usually managed automatically but can also be overridden if desired.
 
-You can also adjust the \l {QCameraExposure::meteringMode()} to control which parts
-of the camera frame to measure exposure at.  Some camera implementations also allow
-you to specify a specific point that should be used for exposure metering - this is
-useful if you can let the user touch or click on an interesting part of the viewfinder,
-and then use this point so that the image exposure is best at that point.
-
 Finally, you can control the flash hardware (if present) using this class.  In some cases
-the hardware may also double as a torch (typically when the flash is LED based, rather than
-a xenon or other bulb).  See also \l {Torch} for an easy to use API for
-torch functionality.
+the hardware may also double as a torch.
 
 \target camera_image_processing
 \section3 Image Processing

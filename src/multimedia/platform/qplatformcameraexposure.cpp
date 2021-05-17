@@ -87,7 +87,7 @@ QPlatformCameraExposure::QPlatformCameraExposure(QObject *parent)
          Accepted power range is [0..1.0],
          with 0 value means no light and 1.0 corresponds to full torch power.
 
-         This value is only used in the \l{QCameraExposure::FlashVideolight}{torch flash mode}.
+         This value is only used in the \l{QCamera::FlashVideolight}{torch flash mode}.
   \value ExposureMode
          Camera exposure mode.
 */

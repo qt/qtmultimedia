@@ -70,14 +70,14 @@ public:
     QVariant actualValue(ExposureParameter parameter) const override;
     bool setValue(ExposureParameter parameter, const QVariant& value) override;
 
-    QCameraExposure::FlashMode flashMode() const override;
-    void setFlashMode(QCameraExposure::FlashMode mode) override;
-    bool isFlashModeSupported(QCameraExposure::FlashMode mode) const override;
+    QCamera::FlashMode flashMode() const override;
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
     bool isFlashReady() const override;
 
-    QCameraExposure::TorchMode torchMode() const override;
-    void setTorchMode(QCameraExposure::TorchMode mode) override;
-    bool isTorchModeSupported(QCameraExposure::TorchMode mode) const override;
+    QCamera::TorchMode torchMode() const override;
+    void setTorchMode(QCamera::TorchMode mode) override;
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
 
 private Q_SLOTS:
     void onCameraOpened();
@@ -94,11 +94,11 @@ private:
 
     qreal m_requestedExposureCompensation;
     qreal m_actualExposureCompensation;
-    QCameraExposure::ExposureMode m_requestedExposureMode;
-    QCameraExposure::ExposureMode m_actualExposureMode;
+    QCamera::ExposureMode m_requestedExposureMode;
+    QCamera::ExposureMode m_actualExposureMode;
 
-    QList<QCameraExposure::FlashMode> m_supportedFlashModes;
-    QCameraExposure::FlashMode m_flashMode;
+    QList<QCamera::FlashMode> m_supportedFlashModes;
+    QCamera::FlashMode m_flashMode;
 
     bool torchModeSupported = false;
     bool torchEnabled = false;

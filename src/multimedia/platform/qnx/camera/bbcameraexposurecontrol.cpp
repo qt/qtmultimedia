@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 BbCameraExposureControl::BbCameraExposureControl(BbCameraSession *session, QObject *parent)
     : QPlatformCameraExposure(parent)
     , m_session(session)
-    , m_requestedExposureMode(QCameraExposure::ExposureAuto)
+    , m_requestedExposureMode(QCamera::ExposureAuto)
 {
     connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SLOT(statusChanged(QCamera::Status)));
 }
@@ -101,22 +101,22 @@ QVariantList BbCameraExposureControl::supportedParameterRange(ExposureParameter 
     for (int i = 0; i < supported; ++i) {
         switch (modes[i]) {
         case CAMERA_SCENE_AUTO:
-            exposureModes << QVariant::fromValue(QCameraExposure::ExposureAuto);
+            exposureModes << QVariant::fromValue(QCamera::ExposureAuto);
             break;
         case CAMERA_SCENE_SPORTS:
-            exposureModes << QVariant::fromValue(QCameraExposure::ExposureSports);
+            exposureModes << QVariant::fromValue(QCamera::ExposureSports);
             break;
         case CAMERA_SCENE_CLOSEUP:
-            exposureModes << QVariant::fromValue(QCameraExposure::ExposurePortrait);
+            exposureModes << QVariant::fromValue(QCamera::ExposurePortrait);
             break;
         case CAMERA_SCENE_ACTION:
-            exposureModes << QVariant::fromValue(QCameraExposure::ExposureSports);
+            exposureModes << QVariant::fromValue(QCamera::ExposureSports);
             break;
         case CAMERA_SCENE_BEACHANDSNOW:
-            exposureModes << QVariant::fromValue(QCameraExposure::ExposureBeach) << QVariant::fromValue(QCameraExposure::ExposureSnow);
+            exposureModes << QVariant::fromValue(QCamera::ExposureBeach) << QVariant::fromValue(QCamera::ExposureSnow);
             break;
         case CAMERA_SCENE_NIGHT:
-            exposureModes << QVariant::fromValue(QCameraExposure::ExposureNight);
+            exposureModes << QVariant::fromValue(QCamera::ExposureNight);
             break;
         default: break;
         }
@@ -151,18 +151,18 @@ QVariant BbCameraExposureControl::actualValue(ExposureParameter parameter) const
 
     switch (sceneMode) {
     case CAMERA_SCENE_AUTO:
-        return QVariant::fromValue(QCameraExposure::ExposureAuto);
+        return QVariant::fromValue(QCamera::ExposureAuto);
     case CAMERA_SCENE_SPORTS:
-        return QVariant::fromValue(QCameraExposure::ExposureSports);
+        return QVariant::fromValue(QCamera::ExposureSports);
     case CAMERA_SCENE_CLOSEUP:
-        return QVariant::fromValue(QCameraExposure::ExposurePortrait);
+        return QVariant::fromValue(QCamera::ExposurePortrait);
     case CAMERA_SCENE_ACTION:
-        return QVariant::fromValue(QCameraExposure::ExposureSports);
+        return QVariant::fromValue(QCamera::ExposureSports);
     case CAMERA_SCENE_BEACHANDSNOW:
-        return (m_requestedExposureMode == QCameraExposure::ExposureBeach ? QVariant::fromValue(QCameraExposure::ExposureBeach)
-                                                                          : QVariant::fromValue(QCameraExposure::ExposureSnow));
+        return (m_requestedExposureMode == QCamera::ExposureBeach ? QVariant::fromValue(QCamera::ExposureBeach)
+                                                                          : QVariant::fromValue(QCamera::ExposureSnow));
     case CAMERA_SCENE_NIGHT:
-        return QVariant::fromValue(QCameraExposure::ExposureNight);
+        return QVariant::fromValue(QCamera::ExposureNight);
     default:
         break;
     }
@@ -181,26 +181,26 @@ bool BbCameraExposureControl::setValue(ExposureParameter parameter, const QVaria
     camera_scenemode_t sceneMode = CAMERA_SCENE_DEFAULT;
 
     if (value.isValid()) {
-        m_requestedExposureMode = value.value<QCameraExposure::ExposureMode>();
+        m_requestedExposureMode = value.value<QCamera::ExposureMode>();
         emit requestedValueChanged(QPlatformCameraExposure::ExposureMode);
 
         switch (m_requestedExposureMode) {
-        case QCameraExposure::ExposureAuto:
+        case QCamera::ExposureAuto:
             sceneMode = CAMERA_SCENE_AUTO;
             break;
-        case QCameraExposure::ExposureSports:
+        case QCamera::ExposureSports:
             sceneMode = CAMERA_SCENE_SPORTS;
             break;
-        case QCameraExposure::ExposurePortrait:
+        case QCamera::ExposurePortrait:
             sceneMode = CAMERA_SCENE_CLOSEUP;
             break;
-        case QCameraExposure::ExposureBeach:
+        case QCamera::ExposureBeach:
             sceneMode = CAMERA_SCENE_BEACHANDSNOW;
             break;
-        case QCameraExposure::ExposureSnow:
+        case QCamera::ExposureSnow:
             sceneMode = CAMERA_SCENE_BEACHANDSNOW;
             break;
-        case QCameraExposure::ExposureNight:
+        case QCamera::ExposureNight:
             sceneMode = CAMERA_SCENE_NIGHT;
             break;
         default:
@@ -227,12 +227,12 @@ void BbCameraExposureControl::statusChanged(QCamera::Status status)
         emit parameterRangeChanged(QPlatformCameraExposure::ExposureMode);
 }
 
-QCameraExposure::FlashModes BbCameraExposureControl::flashMode() const
+QCamera::FlashModes BbCameraExposureControl::flashMode() const
 {
     return m_flashMode;
 }
 
-void BbCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
+void BbCameraExposureControl::setFlashMode(QCamera::FlashModes mode)
 {
     if (m_flashMode == mode)
         return;
@@ -240,7 +240,7 @@ void BbCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
     if (m_session->status() != QCamera::ActiveStatus) // can only be changed when viewfinder is active
         return;
 
-//    if (m_flashMode == QCameraExposure::FlashVideoLight) {
+//    if (m_flashMode == QCamera::FlashVideoLight) {
 //        const camera_error_t result = camera_config_videolight(m_session->handle(), CAMERA_VIDEOLIGHT_OFF);
 //        if (result != CAMERA_EOK)
 //            qWarning() << "Unable to switch off video light:" << result;
@@ -248,7 +248,7 @@ void BbCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
 
     m_flashMode = mode;
 
-//    if (m_flashMode == QCameraExposure::FlashVideoLight) {
+//    if (m_flashMode == QCamera::FlashVideoLight) {
 //        const camera_error_t result = camera_config_videolight(m_session->handle(), CAMERA_VIDEOLIGHT_ON);
 //        if (result != CAMERA_EOK)
 //            qWarning() << "Unable to switch on video light:" << result;
@@ -256,11 +256,11 @@ void BbCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
     {
         camera_flashmode_t flashMode = CAMERA_FLASH_AUTO;
 
-        if (m_flashMode == QCameraExposure::FlashAuto)
+        if (m_flashMode == QCamera::FlashAuto)
             flashMode = CAMERA_FLASH_AUTO;
-        else if (mode == QCameraExposure::FlashOff)
+        else if (mode == QCamera::FlashOff)
             flashMode = CAMERA_FLASH_OFF;
-        else if (mode == QCameraExposure::FlashOn)
+        else if (mode == QCamera::FlashOn)
             flashMode = CAMERA_FLASH_ON;
 
         const camera_error_t result = camera_config_flash(m_session->handle(), flashMode);
@@ -269,9 +269,9 @@ void BbCameraExposureControl::setFlashMode(QCameraExposure::FlashModes mode)
     }
 }
 
-bool BbCameraExposureControl::isFlashModeSupported(QCameraExposure::FlashModes mode) const
+bool BbCameraExposureControl::isFlashModeSupported(QCamera::FlashModes mode) const
 {
-    // ### Videolight maps to QCameraExposure::TorchOn.
+    // ### Videolight maps to QCamera::TorchOn.
 //    bool supportsVideoLight = false;
 //    if (m_session->handle() != CAMERA_HANDLE_INVALID) {
 //        supportsVideoLight = camera_has_feature(m_session->handle(), CAMERA_FEATURE_VIDEOLIGHT);

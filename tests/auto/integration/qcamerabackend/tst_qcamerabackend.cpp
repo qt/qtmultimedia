@@ -232,7 +232,7 @@ void tst_QCameraBackend::testCameraCapture()
     session.setImageCapture(&imageCapture);
 
     //prevents camera to flash during the test
-    camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
+    camera.setFlashMode(QCamera::FlashOff);
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
@@ -287,7 +287,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
+    camera.setFlashMode(QCamera::FlashOff);
 
     camera.setActive(true);
 
@@ -336,7 +336,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    camera.exposure()->setFlashMode(QCameraExposure::FlashOff);
+    camera.setFlashMode(QCamera::FlashOff);
 
     QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
@@ -359,21 +359,18 @@ void tst_QCameraBackend::testExposureCompensation()
     QMediaCaptureSession session;
     QCamera camera;
     session.setCamera(&camera);
-    QCameraExposure *exposure = camera.exposure();
-    if (!exposure->isAvailable())
-        QSKIP("Camera doesn't support exposure interface");
 
-    QSignalSpy exposureCompensationSignal(exposure, SIGNAL(exposureCompensationChanged(qreal)));
+    QSignalSpy exposureCompensationSignal(&camera, SIGNAL(exposureCompensationChanged(qreal)));
 
     //it should be possible to set exposure parameters in Unloaded state
-    QCOMPARE(exposure->exposureCompensation()+1.0, 1.0);
-    exposure->setExposureCompensation(1.0);
-    QCOMPARE(exposure->exposureCompensation(), 1.0);
+    QCOMPARE(camera.exposureCompensation()+1.0, 1.0);
+    camera.setExposureCompensation(1.0);
+    QCOMPARE(camera.exposureCompensation(), 1.0);
     QTRY_COMPARE(exposureCompensationSignal.count(), 1);
     QCOMPARE(exposureCompensationSignal.last().first().toReal(), 1.0);
 
     //exposureCompensationChanged should not be emitted when value is not changed
-    exposure->setExposureCompensation(1.0);
+    camera.setExposureCompensation(1.0);
     QTest::qWait(50);
     QCOMPARE(exposureCompensationSignal.count(), 1);
 
@@ -381,11 +378,11 @@ void tst_QCameraBackend::testExposureCompensation()
     camera.start();
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
 
-    QCOMPARE(exposure->exposureCompensation(), -1.0);
+    QCOMPARE(camera.exposureCompensation(), -1.0);
 
     exposureCompensationSignal.clear();
-    exposure->setExposureCompensation(1.0);
-    QCOMPARE(exposure->exposureCompensation(), 1.0);
+    camera.setExposureCompensation(1.0);
+    QCOMPARE(camera.exposureCompensation(), 1.0);
     QTRY_COMPARE(exposureCompensationSignal.count(), 1);
     QCOMPARE(exposureCompensationSignal.last().first().toReal(), 1.0);
 }
@@ -396,28 +393,25 @@ void tst_QCameraBackend::testExposureMode()
         QSKIP("No camera available");
 
     QCamera camera;
-    QCameraExposure *exposure = camera.exposure();
-    if (!exposure->isAvailable())
-        QSKIP("Camera doesn't support exposure interface");
 
-    QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureAuto);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 
     // Night
-    exposure->setExposureMode(QCameraExposure::ExposureNight);
-    QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureNight);
+    camera.setExposureMode(QCamera::ExposureNight);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
     camera.start();
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-    QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureNight);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
 
     camera.stop();
     QTRY_COMPARE(camera.status(), QCamera::InactiveStatus);
 
     // Auto
-    exposure->setExposureMode(QCameraExposure::ExposureAuto);
-    QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureAuto);
+    camera.setExposureMode(QCamera::ExposureAuto);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
     camera.start();
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-    QCOMPARE(exposure->exposureMode(), QCameraExposure::ExposureAuto);
+    QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 }
 
 void tst_QCameraBackend::testVideoRecording_data()

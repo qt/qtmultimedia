@@ -54,11 +54,13 @@
 #include "private/qobject_p.h"
 #include "qcamera.h"
 #include "qcamerainfo.h"
+#include <private/qplatformcameraexposure_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
 class QPlatformCameraFocus;
+class QPlatformCameraExposure;
 class QPlatformMediaCaptureSession;
 
 class QCameraPrivate : public QObjectPrivate
@@ -77,7 +79,6 @@ public:
     QPlatformMediaCaptureSession *captureInterface = nullptr;
     QPlatformCamera *control = nullptr;
 
-    QCameraExposure *cameraExposure = nullptr;
     QCameraImageProcessing *imageProcessing = nullptr;
 
     QObject *capture = nullptr;
@@ -91,6 +92,16 @@ public:
     QPlatformCameraFocus *focusControl = nullptr;
     float zoomFactor = 1.;
     QPointF customFocusPoint{-1, -1};
+
+    QPlatformCameraExposure *exposureControl;
+
+    template<typename T> T actualExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
+    template<typename T> T requestedExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
+    template<typename T> void setExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &value);
+    void resetExposureParameter(QPlatformCameraExposure::ExposureParameter parameter);
+
+    void _q_exposureParameterChanged(int parameter);
+    void _q_exposureParameterRangeChanged(int parameter);
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }

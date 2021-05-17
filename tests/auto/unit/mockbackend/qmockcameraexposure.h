@@ -41,26 +41,26 @@ public:
         m_shutterSpeed(0.01),
         m_isoSensitivity(100),
         m_exposureCompensation(0),
-        m_exposureMode(QCameraExposure::ExposureAuto),
-        m_flashMode(QCameraExposure::FlashAuto)
+        m_exposureMode(QCamera::ExposureAuto),
+        m_flashMode(QCamera::FlashAuto)
     {
         m_isoRanges << 100 << 200 << 400 << 800;
         m_apertureRanges << 2.8 << 4.0 << 5.6 << 8.0 << 11.0 << 16.0;
         m_shutterRanges << 0.001 << 0.01 << 0.1 << 1.0;
         m_exposureRanges << -2.0 << 2.0;
 
-        const QCameraExposure::ExposureMode exposureModes[] = {
-            QCameraExposure::ExposureAuto,
-            QCameraExposure::ExposureManual,
-            QCameraExposure::ExposureNight,
-            QCameraExposure::ExposureSports,
-            QCameraExposure::ExposureSnow,
-            QCameraExposure::ExposurePortrait,
-            QCameraExposure::ExposureBeach
+        const QCamera::ExposureMode exposureModes[] = {
+            QCamera::ExposureAuto,
+            QCamera::ExposureManual,
+            QCamera::ExposureNight,
+            QCamera::ExposureSports,
+            QCamera::ExposureSnow,
+            QCamera::ExposurePortrait,
+            QCamera::ExposureBeach
         };
 
-        for (QCameraExposure::ExposureMode mode : exposureModes)
-            m_exposureModes << QVariant::fromValue<QCameraExposure::ExposureMode>(mode);
+        for (QCamera::ExposureMode mode : exposureModes)
+            m_exposureModes << QVariant::fromValue<QCamera::ExposureMode>(mode);
     }
 
     ~QMockCameraExposure() {}
@@ -88,7 +88,7 @@ public:
     {
         switch (param) {
         case QPlatformCameraExposure::ExposureMode:
-            return QVariant::fromValue<QCameraExposure::ExposureMode>(m_exposureMode);
+            return QVariant::fromValue<QCamera::ExposureMode>(m_exposureMode);
         case QPlatformCameraExposure::ExposureCompensation:
             return QVariant(m_exposureCompensation);
         case QPlatformCameraExposure::ISO:
@@ -142,7 +142,7 @@ public:
         switch (param) {
         case QPlatformCameraExposure::ExposureMode:
         {
-            QCameraExposure::ExposureMode mode = value.value<QCameraExposure::ExposureMode>();
+            QCamera::ExposureMode mode = value.value<QCamera::ExposureMode>();
             if (mode != m_exposureMode && m_exposureModes.contains(value)) {
                 m_exposureMode = mode;
                 emit actualValueChanged(param);
@@ -225,12 +225,12 @@ public:
         return true;
     }
 
-    QCameraExposure::FlashMode flashMode() const
+    QCamera::FlashMode flashMode() const
     {
         return m_flashMode;
     }
 
-    void setFlashMode(QCameraExposure::FlashMode mode)
+    void setFlashMode(QCamera::FlashMode mode)
     {
         if (isFlashModeSupported(mode)) {
             m_flashMode = mode;
@@ -239,7 +239,7 @@ public:
     }
     //Setting the values for Flash mode
 
-    bool isFlashModeSupported(QCameraExposure::FlashMode /*mode*/) const
+    bool isFlashModeSupported(QCamera::FlashMode /*mode*/) const
     {
         return true;
     }
@@ -254,8 +254,8 @@ private:
     qreal m_shutterSpeed;
     int m_isoSensitivity;
     qreal m_exposureCompensation;
-    QCameraExposure::ExposureMode m_exposureMode;
-    QCameraExposure::FlashMode m_flashMode;
+    QCamera::ExposureMode m_exposureMode;
+    QCamera::FlashMode m_flashMode;
     QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes;
 
     QMap<QPlatformCameraExposure::ExposureParameter, QVariant> m_requestedParameters;

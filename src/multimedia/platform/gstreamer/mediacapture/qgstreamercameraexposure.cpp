@@ -149,42 +149,42 @@ QVariant QGstreamerCameraExposure::actualValue(ExposureParameter parameter) cons
 
             switch (sceneMode) {
             case GST_PHOTOGRAPHY_SCENE_MODE_PORTRAIT:
-                return QVariant::fromValue(QCameraExposure::ExposurePortrait);
+                return QVariant::fromValue(QCamera::ExposurePortrait);
             case GST_PHOTOGRAPHY_SCENE_MODE_SPORT:
-                return QVariant::fromValue(QCameraExposure::ExposureSports);
+                return QVariant::fromValue(QCamera::ExposureSports);
             case GST_PHOTOGRAPHY_SCENE_MODE_NIGHT:
-                return QVariant::fromValue(QCameraExposure::ExposureNight);
+                return QVariant::fromValue(QCamera::ExposureNight);
             case GST_PHOTOGRAPHY_SCENE_MODE_MANUAL:
-                return QVariant::fromValue(QCameraExposure::ExposureManual);
+                return QVariant::fromValue(QCamera::ExposureManual);
             case GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE:
-                return QVariant::fromValue(QCameraExposure::ExposureLandscape);
+                return QVariant::fromValue(QCamera::ExposureLandscape);
             case GST_PHOTOGRAPHY_SCENE_MODE_SNOW:
-                return QVariant::fromValue(QCameraExposure::ExposureSnow);
+                return QVariant::fromValue(QCamera::ExposureSnow);
             case GST_PHOTOGRAPHY_SCENE_MODE_BEACH:
-                return QVariant::fromValue(QCameraExposure::ExposureBeach);
+                return QVariant::fromValue(QCamera::ExposureBeach);
             case GST_PHOTOGRAPHY_SCENE_MODE_ACTION:
-                return QVariant::fromValue(QCameraExposure::ExposureAction);
+                return QVariant::fromValue(QCamera::ExposureAction);
             case GST_PHOTOGRAPHY_SCENE_MODE_NIGHT_PORTRAIT:
-                return QVariant::fromValue(QCameraExposure::ExposureNightPortrait);
+                return QVariant::fromValue(QCamera::ExposureNightPortrait);
             case GST_PHOTOGRAPHY_SCENE_MODE_THEATRE:
-                return QVariant::fromValue(QCameraExposure::ExposureTheatre);
+                return QVariant::fromValue(QCamera::ExposureTheatre);
             case GST_PHOTOGRAPHY_SCENE_MODE_SUNSET:
-                return QVariant::fromValue(QCameraExposure::ExposureSunset);
+                return QVariant::fromValue(QCamera::ExposureSunset);
             case GST_PHOTOGRAPHY_SCENE_MODE_STEADY_PHOTO:
-                return QVariant::fromValue(QCameraExposure::ExposureSteadyPhoto);
+                return QVariant::fromValue(QCamera::ExposureSteadyPhoto);
             case GST_PHOTOGRAPHY_SCENE_MODE_FIREWORKS:
-                return QVariant::fromValue(QCameraExposure::ExposureFireworks);
+                return QVariant::fromValue(QCamera::ExposureFireworks);
             case GST_PHOTOGRAPHY_SCENE_MODE_PARTY:
-                return QVariant::fromValue(QCameraExposure::ExposureParty);
+                return QVariant::fromValue(QCamera::ExposureParty);
             case GST_PHOTOGRAPHY_SCENE_MODE_CANDLELIGHT:
-                return QVariant::fromValue(QCameraExposure::ExposureCandlelight);
+                return QVariant::fromValue(QCamera::ExposureCandlelight);
             case GST_PHOTOGRAPHY_SCENE_MODE_BARCODE:
-                return QVariant::fromValue(QCameraExposure::ExposureBarcode);
+                return QVariant::fromValue(QCamera::ExposureBarcode);
             //no direct mapping available so mapping to auto mode
             case GST_PHOTOGRAPHY_SCENE_MODE_CLOSEUP:
             case GST_PHOTOGRAPHY_SCENE_MODE_AUTO:
             default:
-                return QVariant::fromValue(QCameraExposure::ExposureAuto);
+                return QVariant::fromValue(QCamera::ExposureAuto);
             }
         }
         default:
@@ -219,61 +219,61 @@ bool QGstreamerCameraExposure::setValue(ExposureParameter parameter, const QVari
             break;
         case QPlatformCameraExposure::ExposureMode:
         {
-            QCameraExposure::ExposureMode mode = value.value<QCameraExposure::ExposureMode>();
+            QCamera::ExposureMode mode = value.value<QCamera::ExposureMode>();
             GstPhotographySceneMode sceneMode;
 
             gst_photography_get_scene_mode(m_camera->photography(), &sceneMode);
 
             switch (mode) {
-            case QCameraExposure::ExposureManual:
+            case QCamera::ExposureManual:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_MANUAL;
                 break;
-            case QCameraExposure::ExposurePortrait:
+            case QCamera::ExposurePortrait:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_PORTRAIT;
                 break;
-            case QCameraExposure::ExposureSports:
+            case QCamera::ExposureSports:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SPORT;
                 break;
-            case QCameraExposure::ExposureNight:
+            case QCamera::ExposureNight:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_NIGHT;
                 break;
-            case QCameraExposure::ExposureAuto:
+            case QCamera::ExposureAuto:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_AUTO;
                 break;
-            case QCameraExposure::ExposureLandscape:
+            case QCamera::ExposureLandscape:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE;
                 break;
-            case QCameraExposure::ExposureSnow:
+            case QCamera::ExposureSnow:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SNOW;
                 break;
-            case QCameraExposure::ExposureBeach:
+            case QCamera::ExposureBeach:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_BEACH;
                 break;
-            case QCameraExposure::ExposureAction:
+            case QCamera::ExposureAction:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_ACTION;
                 break;
-            case QCameraExposure::ExposureNightPortrait:
+            case QCamera::ExposureNightPortrait:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_NIGHT_PORTRAIT;
                 break;
-            case QCameraExposure::ExposureTheatre:
+            case QCamera::ExposureTheatre:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_THEATRE;
                 break;
-            case QCameraExposure::ExposureSunset:
+            case QCamera::ExposureSunset:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SUNSET;
                 break;
-            case QCameraExposure::ExposureSteadyPhoto:
+            case QCamera::ExposureSteadyPhoto:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_STEADY_PHOTO;
                 break;
-            case QCameraExposure::ExposureFireworks:
+            case QCamera::ExposureFireworks:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_FIREWORKS;
                 break;
-            case QCameraExposure::ExposureParty:
+            case QCamera::ExposureParty:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_PARTY;
                 break;
-            case QCameraExposure::ExposureCandlelight:
+            case QCamera::ExposureCandlelight:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_CANDLELIGHT;
                 break;
-            case QCameraExposure::ExposureBarcode:
+            case QCamera::ExposureBarcode:
                 sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_BARCODE;
                 break;
             default:
@@ -306,33 +306,33 @@ bool QGstreamerCameraExposure::setValue(ExposureParameter parameter, const QVari
     return false;
 }
 
-QCameraExposure::FlashMode QGstreamerCameraExposure::flashMode() const
+QCamera::FlashMode QGstreamerCameraExposure::flashMode() const
 {
 #if QT_CONFIG(gstreamer_photography)
     if (hasPhotography) {
         GstPhotographyFlashMode flashMode;
         gst_photography_get_flash_mode(m_camera->photography(), &flashMode);
 
-        QCameraExposure::FlashMode mode;
+        QCamera::FlashMode mode;
         switch (flashMode) {
         default:
         case GST_PHOTOGRAPHY_FLASH_MODE_AUTO:
-            mode = QCameraExposure::FlashAuto;
+            mode = QCamera::FlashAuto;
             break;
         case GST_PHOTOGRAPHY_FLASH_MODE_OFF:
-            mode = QCameraExposure::FlashOff;
+            mode = QCamera::FlashOff;
             break;
         case GST_PHOTOGRAPHY_FLASH_MODE_ON:
-            mode = QCameraExposure::FlashOn;
+            mode = QCamera::FlashOn;
             break;
         }
         return mode;
     }
 #endif
-    return QCameraExposure::FlashAuto;
+    return QCamera::FlashAuto;
 }
 
-void QGstreamerCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
+void QGstreamerCameraExposure::setFlashMode(QCamera::FlashMode mode)
 {
     Q_UNUSED(mode);
 
@@ -342,13 +342,13 @@ void QGstreamerCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
         gst_photography_get_flash_mode(m_camera->photography(), &flashMode);
 
         switch (mode) {
-            case QCameraExposure::FlashAuto:
+            case QCamera::FlashAuto:
                 flashMode = GST_PHOTOGRAPHY_FLASH_MODE_AUTO;
                 break;
-            case QCameraExposure::FlashOff:
+            case QCamera::FlashOff:
                 flashMode = GST_PHOTOGRAPHY_FLASH_MODE_OFF;
                 break;
-            case QCameraExposure::FlashOn:
+            case QCamera::FlashOn:
                 flashMode = GST_PHOTOGRAPHY_FLASH_MODE_ON;
                 break;
         }
@@ -358,14 +358,14 @@ void QGstreamerCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
 #endif
 }
 
-bool QGstreamerCameraExposure::isFlashModeSupported(QCameraExposure::FlashMode mode) const
+bool QGstreamerCameraExposure::isFlashModeSupported(QCamera::FlashMode mode) const
 {
 #if QT_CONFIG(gstreamer_photography)
     if (hasPhotography)
         return true;
 #endif
 
-    return mode == QCameraExposure::FlashAuto;
+    return mode == QCamera::FlashAuto;
 }
 
 bool QGstreamerCameraExposure::isFlashReady() const

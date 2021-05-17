@@ -132,20 +132,20 @@ bool qt_exposure_bias_equal(AVCaptureDevice *captureDevice, qreal bias)
 
 // Converters:
 
-bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCameraExposure::ExposureMode mode,
+bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCamera::ExposureMode mode,
                               AVCaptureExposureMode &avMode)
 {
     // Test if mode supported and convert.
     Q_ASSERT(captureDevice);
 
-    if (mode == QCameraExposure::ExposureAuto) {
+    if (mode == QCamera::ExposureAuto) {
         if ([captureDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]) {
             avMode = AVCaptureExposureModeContinuousAutoExposure;
             return true;
         }
     }
 
-    if (mode == QCameraExposure::ExposureManual) {
+    if (mode == QCamera::ExposureManual) {
         if ([captureDevice isExposureModeSupported:AVCaptureExposureModeCustom]) {
             avMode = AVCaptureExposureModeCustom;
             return true;
@@ -293,10 +293,10 @@ QVariantList AVFCameraExposure::supportedParameterRange(ExposureParameter parame
             *continuous = true;
     } else if (parameter == QPlatformCameraExposure::ExposureMode) {
         if ([captureDevice isExposureModeSupported:AVCaptureExposureModeCustom])
-            parameterRange << QVariant::fromValue(QCameraExposure::ExposureManual);
+            parameterRange << QVariant::fromValue(QCamera::ExposureManual);
 
         if ([captureDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure])
-            parameterRange << QVariant::fromValue(QCameraExposure::ExposureAuto);
+            parameterRange << QVariant::fromValue(QCamera::ExposureAuto);
     }
 #else
     Q_UNUSED(parameter);
@@ -340,8 +340,8 @@ QVariant AVFCameraExposure::actualValue(ExposureParameter parameter) const
     if (parameter == QPlatformCameraExposure::ExposureMode) {
         // This code expects exposureMode to be continuous by default ...
         if (captureDevice.exposureMode == AVCaptureExposureModeContinuousAutoExposure)
-            return QVariant::fromValue(QCameraExposure::ExposureAuto);
-        return QVariant::fromValue(QCameraExposure::ExposureManual);
+            return QVariant::fromValue(QCamera::ExposureAuto);
+        return QVariant::fromValue(QCamera::ExposureManual);
     }
 
     if (parameter == QPlatformCameraExposure::ExposureCompensation)
@@ -383,14 +383,14 @@ bool AVFCameraExposure::setValue(ExposureParameter parameter, const QVariant &va
 bool AVFCameraExposure::setExposureMode(const QVariant &value)
 {
 #ifdef Q_OS_IOS
-    if (!value.canConvert<QCameraExposure::ExposureMode>()) {
+    if (!value.canConvert<QCamera::ExposureMode>()) {
         qDebugCamera() << Q_FUNC_INFO << "invalid exposure mode value,"
-                       << "QCameraExposure::ExposureMode expected";
+                       << "QCamera::ExposureMode expected";
         return false;
     }
 
-    const QCameraExposure::ExposureMode qtMode = value.value<QCameraExposure::ExposureMode>();
-    if (qtMode != QCameraExposure::ExposureAuto && qtMode != QCameraExposure::ExposureManual) {
+    const QCamera::ExposureMode qtMode = value.value<QCamera::ExposureMode>();
+    if (qtMode != QCamera::ExposureAuto && qtMode != QCamera::ExposureManual) {
         qDebugCamera() << Q_FUNC_INFO << "exposure mode not supported";
         return false;
     }
@@ -472,7 +472,7 @@ bool AVFCameraExposure::setShutterSpeed(const QVariant &value)
 {
 #ifdef Q_OS_IOS
     if (value.isNull())
-        return setExposureMode(QVariant::fromValue(QCameraExposure::ExposureAuto));
+        return setExposureMode(QVariant::fromValue(QCamera::ExposureAuto));
 
     if (!value.canConvert<qreal>()) {
         qDebugCamera() << Q_FUNC_INFO << "invalid shutter speed"
@@ -519,7 +519,7 @@ bool AVFCameraExposure::setISO(const QVariant &value)
 {
 #ifdef Q_OS_IOS
     if (value.isNull())
-        return setExposureMode(QVariant::fromValue(QCameraExposure::ExposureAuto));
+        return setExposureMode(QVariant::fromValue(QCamera::ExposureAuto));
 
     if (!value.canConvert<int>()) {
         qDebugCamera() << Q_FUNC_INFO << "invalid ISO value, int expected";
@@ -632,7 +632,7 @@ void AVFCameraExposure::cameraActiveChanged(bool active)
     }
 
     if (!m_requestedMode.isNull()) {
-        QCameraExposure::ExposureMode qtMode = m_requestedMode.value<QCameraExposure::ExposureMode>();
+        QCamera::ExposureMode qtMode = m_requestedMode.value<QCamera::ExposureMode>();
         AVCaptureExposureMode avMode = AVCaptureExposureModeContinuousAutoExposure;
         if (!qt_convert_exposure_mode(captureDevice, qtMode, avMode)) {
             qDebugCamera() << Q_FUNC_INFO << "requested exposure mode is not supported";
@@ -685,12 +685,12 @@ void AVFCameraExposure::cameraActiveChanged(bool active)
 
 
 
-QCameraExposure::FlashMode AVFCameraExposure::flashMode() const
+QCamera::FlashMode AVFCameraExposure::flashMode() const
 {
     return m_flashMode;
 }
 
-void AVFCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
+void AVFCameraExposure::setFlashMode(QCamera::FlashMode mode)
 {
     if (m_flashMode == mode)
         return;
@@ -708,13 +708,13 @@ void AVFCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
     applyFlashSettings();
 }
 
-bool AVFCameraExposure::isFlashModeSupported(QCameraExposure::FlashMode mode) const
+bool AVFCameraExposure::isFlashModeSupported(QCamera::FlashMode mode) const
 {
-    if (mode == QCameraExposure::FlashOff)
+    if (mode == QCamera::FlashOff)
         return true;
-    else if (mode == QCameraExposure::FlashOn)
+    else if (mode == QCamera::FlashOn)
         return isFlashSupported;
-    else //if (mode == QCameraExposure::FlashAuto)
+    else //if (mode == QCamera::FlashAuto)
         return isFlashAutoSupported;
 }
 
@@ -743,12 +743,12 @@ bool AVFCameraExposure::isFlashReady() const
     return true;
 }
 
-QCameraExposure::TorchMode AVFCameraExposure::torchMode() const
+QCamera::TorchMode AVFCameraExposure::torchMode() const
 {
     return m_torchMode;
 }
 
-void AVFCameraExposure::setTorchMode(QCameraExposure::TorchMode mode)
+void AVFCameraExposure::setTorchMode(QCamera::TorchMode mode)
 {
     if (m_torchMode == mode)
         return;
@@ -766,13 +766,13 @@ void AVFCameraExposure::setTorchMode(QCameraExposure::TorchMode mode)
     applyFlashSettings();
 }
 
-bool AVFCameraExposure::isTorchModeSupported(QCameraExposure::TorchMode mode) const
+bool AVFCameraExposure::isTorchModeSupported(QCamera::TorchMode mode) const
 {
-    if (mode == QCameraExposure::TorchOff)
+    if (mode == QCamera::TorchOff)
         return true;
-    else if (mode == QCameraExposure::TorchOn)
+    else if (mode == QCamera::TorchOn)
         return isTorchSupported;
-    else //if (mode == QCameraExposure::TorchAuto)
+    else //if (mode == QCamera::TorchAuto)
         return isTorchAutoSupported;
 }
 
@@ -794,7 +794,7 @@ void AVFCameraExposure::applyFlashSettings()
     const AVFConfigurationLock lock(captureDevice);
 
     if (captureDevice.hasFlash) {
-        if (m_flashMode == QCameraExposure::FlashOff) {
+        if (m_flashMode == QCamera::FlashOff) {
             captureDevice.flashMode = AVCaptureFlashModeOff;
         } else {
 #ifdef Q_OS_IOS
@@ -803,15 +803,15 @@ void AVFCameraExposure::applyFlashSettings()
                 return;
             }
 #endif
-            if (m_flashMode == QCameraExposure::FlashOn)
+            if (m_flashMode == QCamera::FlashOn)
                 captureDevice.flashMode = AVCaptureFlashModeOn;
-            else if (m_flashMode == QCameraExposure::FlashAuto)
+            else if (m_flashMode == QCamera::FlashAuto)
                 captureDevice.flashMode = AVCaptureFlashModeAuto;
         }
     }
 
     if (captureDevice.hasTorch) {
-        if (m_torchMode == QCameraExposure::TorchOff) {
+        if (m_torchMode == QCamera::TorchOff) {
             captureDevice.torchMode = AVCaptureTorchModeOff;
         } else {
 #ifdef Q_OS_IOS
@@ -820,9 +820,9 @@ void AVFCameraExposure::applyFlashSettings()
                 return;
             }
 #endif
-            if (m_torchMode == QCameraExposure::TorchOn)
+            if (m_torchMode == QCamera::TorchOn)
                 captureDevice.torchMode = AVCaptureTorchModeOn;
-            else if (m_torchMode == QCameraExposure::TorchAuto)
+            else if (m_torchMode == QCamera::TorchAuto)
                 captureDevice.torchMode = AVCaptureTorchModeAuto;
         }
     }

@@ -114,7 +114,6 @@ void QCameraPrivate::init()
     control->setCamera(cameraInfo);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
-    cameraExposure = new QCameraExposure(q, control);
 
     focusControl = control->focusControl();
 
@@ -123,6 +122,15 @@ void QCameraPrivate::init()
                    q, SIGNAL(minimumZoomFactorChanged(float)));
         q->connect(focusControl, SIGNAL(maximumZoomFactorChanged(float)),
                    q, SIGNAL(maximumZoomFactorChanged(float)));
+    }
+
+    exposureControl = control->exposureControl();
+    if (exposureControl) {
+        q->connect(exposureControl, SIGNAL(actualValueChanged(int)),
+                   q, SLOT(_q_exposureParameterChanged(int)));
+        q->connect(exposureControl, SIGNAL(parameterRangeChanged(int)),
+                   q, SLOT(_q_exposureParameterRangeChanged(int)));
+        q->connect(exposureControl, SIGNAL(flashReady(bool)), q, SIGNAL(flashReady(bool)));
     }
 
     imageProcessing = new QCameraImageProcessing(q, control);
@@ -226,14 +234,6 @@ void QCamera::setActive(bool active)
     Q_D(const QCamera);
     if (d->control)
         d->control->setActive(active);
-}
-
-/*!
-    Returns the camera exposure control object.
-*/
-QCameraExposure *QCamera::exposure() const
-{
-    return d_func()->cameraExposure;
 }
 
 /*!
@@ -657,6 +657,500 @@ void QCamera::zoomTo(float factor, float rate)
 
     The maximum supported zoom value can depend on other camera settings,
     like capture mode or resolution.
+*/
+
+
+template<typename T>
+T QCameraPrivate::actualExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const
+{
+    QVariant value = exposureControl ? exposureControl->actualValue(parameter) : QVariant();
+
+    return value.isValid() ? value.value<T>() : defaultValue;
+}
+
+template<typename T>
+T QCameraPrivate::requestedExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const
+{
+    QVariant value = exposureControl ? exposureControl->requestedValue(parameter) : QVariant();
+
+    return value.isValid() ? value.value<T>() : defaultValue;
+}
+
+template<typename T>
+void QCameraPrivate::setExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &value)
+{
+    if (exposureControl)
+        exposureControl->setValue(parameter, QVariant::fromValue<T>(value));
+}
+
+void QCameraPrivate::resetExposureParameter(QPlatformCameraExposure::ExposureParameter parameter)
+{
+    if (exposureControl)
+        exposureControl->setValue(parameter, QVariant());
+}
+
+
+void QCameraPrivate::_q_exposureParameterChanged(int parameter)
+{
+    Q_Q(QCamera);
+
+#if DEBUG_EXPOSURE_CHANGES
+    qDebug() << "Exposure parameter changed:"
+             << QPlatformCameraExposure::ExposureParameter(parameter)
+             << exposureControl->actualValue(QPlatformCameraExposure::ExposureParameter(parameter));
+#endif
+
+    switch (parameter) {
+    case QPlatformCameraExposure::ISO:
+        emit q->isoSensitivityChanged(q->isoSensitivity());
+        break;
+    case QPlatformCameraExposure::Aperture:
+        emit q->apertureChanged(q->aperture());
+        break;
+    case QPlatformCameraExposure::ShutterSpeed:
+        emit q->shutterSpeedChanged(q->shutterSpeed());
+        break;
+    case QPlatformCameraExposure::ExposureCompensation:
+        emit q->exposureCompensationChanged(q->exposureCompensation());
+        break;
+    }
+}
+
+void QCameraPrivate::_q_exposureParameterRangeChanged(int parameter)
+{
+    Q_Q(QCamera);
+
+    switch (parameter) {
+    case QPlatformCameraExposure::Aperture:
+        emit q->apertureRangeChanged();
+        break;
+    case QPlatformCameraExposure::ShutterSpeed:
+        emit q->shutterSpeedRangeChanged();
+        break;
+    }
+}
+
+/*!
+    \property QCamera::flashMode
+    \brief The flash mode being used.
+
+    Enables a certain flash mode if the camera has a flash.
+
+    \sa QCamera::isFlashModeSupported(), QCamera::isFlashReady()
+*/
+QCamera::FlashMode QCamera::flashMode() const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->flashMode() : QCamera::FlashOff;
+}
+
+void QCamera::setFlashMode(QCamera::FlashMode mode)
+{
+    if (d_func()->exposureControl)
+        d_func()->exposureControl->setFlashMode(mode);
+}
+
+/*!
+    Returns true if the flash \a mode is supported.
+*/
+
+bool QCamera::isFlashModeSupported(QCamera::FlashMode mode) const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->isFlashModeSupported(mode) : (mode == FlashOff);
+}
+
+/*!
+    Returns true if flash is charged.
+*/
+
+bool QCamera::isFlashReady() const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->isFlashReady() : false;
+}
+
+/*!
+    \property QCamera::torchMode
+    \brief The torch mode being used.
+
+    A torch is a continuous light source used for low light video recording. Enabling torch mode
+    will usually override any currently set flash mode.
+
+    \sa QCamera::isTorchModeSupported(), QCamera::flashMode
+*/
+QCamera::TorchMode QCamera::torchMode() const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->torchMode() : TorchOff;
+}
+
+void QCamera::setTorchMode(QCamera::TorchMode mode)
+{
+    if (d_func()->exposureControl)
+        d_func()->exposureControl->setTorchMode(mode);
+}
+
+/*!
+    Returns true if the torch \a mode is supported.
+*/
+bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
+{
+    return d_func()->exposureControl ? d_func()->exposureControl->isTorchModeSupported(mode) : (mode == TorchOff);
+}
+
+/*!
+  \property QCamera::exposureMode
+  \brief The exposure mode being used.
+
+  \sa QCamera::isExposureModeSupported()
+*/
+
+QCamera::ExposureMode QCamera::exposureMode() const
+{
+    return d_func()->actualExposureParameter<QCamera::ExposureMode>(QPlatformCameraExposure::ExposureMode, QCamera::ExposureAuto);
+}
+
+void QCamera::setExposureMode(QCamera::ExposureMode mode)
+{
+    d_func()->setExposureParameter<QCamera::ExposureMode>(QPlatformCameraExposure::ExposureMode, mode);
+}
+
+/*!
+    Returns true if the exposure \a mode is supported.
+*/
+
+bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
+{
+    if (!d_func()->exposureControl)
+        return false;
+
+    bool continuous = false;
+    return d_func()->exposureControl->supportedParameterRange(QPlatformCameraExposure::ExposureMode, &continuous)
+            .contains(QVariant::fromValue<QCamera::ExposureMode>(mode));
+}
+
+/*!
+  \property QCamera::exposureCompensation
+  \brief Exposure compensation in EV units.
+
+  Exposure compensation property allows to adjust the automatically calculated exposure.
+*/
+
+qreal QCamera::exposureCompensation() const
+{
+    return d_func()->actualExposureParameter<qreal>(QPlatformCameraExposure::ExposureCompensation, 0.0);
+}
+
+void QCamera::setExposureCompensation(qreal ev)
+{
+    d_func()->setExposureParameter<qreal>(QPlatformCameraExposure::ExposureCompensation, ev);
+}
+
+int QCamera::isoSensitivity() const
+{
+    return d_func()->actualExposureParameter<int>(QPlatformCameraExposure::ISO, -1);
+}
+
+/*!
+    Returns the requested ISO sensitivity
+    or -1 if automatic ISO is turned on.
+*/
+int QCamera::requestedIsoSensitivity() const
+{
+    return d_func()->requestedExposureParameter<int>(QPlatformCameraExposure::ISO, -1);
+}
+
+/*!
+    Returns the list of ISO senitivities camera supports.
+
+    If the camera supports arbitrary ISO sensitivities within the supported range,
+    *\a continuous is set to true, otherwise *\a continuous is set to false.
+*/
+QList<int> QCamera::supportedIsoSensitivities(bool *continuous) const
+{
+    QList<int> res;
+    QPlatformCameraExposure *control = d_func()->exposureControl;
+
+    bool tmp = false;
+    if (!continuous)
+        continuous = &tmp;
+
+    if (!control)
+        return res;
+
+    const auto range = control->supportedParameterRange(QPlatformCameraExposure::ISO, continuous);
+    for (const QVariant &value : range) {
+        bool ok = false;
+        int intValue = value.toInt(&ok);
+        if (ok)
+            res.append(intValue);
+        else
+            qWarning() << "Incompatible ISO value type, int is expected";
+    }
+
+    return res;
+}
+
+/*!
+    \fn QCamera::setManualIsoSensitivity(int iso)
+    Sets the manual sensitivity to \a iso
+*/
+
+void QCamera::setManualIsoSensitivity(int iso)
+{
+    d_func()->setExposureParameter<int>(QPlatformCameraExposure::ISO, iso);
+}
+
+/*!
+     \fn QCamera::setAutoIsoSensitivity()
+     Turn on auto sensitivity
+*/
+
+void QCamera::setAutoIsoSensitivity()
+{
+    d_func()->resetExposureParameter(QPlatformCameraExposure::ISO);
+}
+
+/*!
+    \property QCamera::shutterSpeed
+    \brief Camera's shutter speed in seconds.
+
+    \sa supportedShutterSpeeds(), setAutoShutterSpeed(), setManualShutterSpeed()
+*/
+
+/*!
+    \fn QCamera::shutterSpeedChanged(qreal speed)
+
+    Signals that a camera's shutter \a speed has changed.
+*/
+
+/*!
+    \property QCamera::isoSensitivity
+    \brief The sensor ISO sensitivity.
+
+    \sa supportedIsoSensitivities(), setAutoIsoSensitivity(), setManualIsoSensitivity()
+*/
+
+/*!
+    \property QCamera::aperture
+    \brief Lens aperture is specified as an F number, the ratio of the focal length to effective aperture diameter.
+
+    \sa supportedApertures(), setAutoAperture(), setManualAperture(), requestedAperture()
+*/
+
+
+qreal QCamera::aperture() const
+{
+    return d_func()->actualExposureParameter<qreal>(QPlatformCameraExposure::Aperture, -1.0);
+}
+
+/*!
+    Returns the requested manual aperture
+    or -1.0 if automatic aperture is turned on.
+*/
+qreal QCamera::requestedAperture() const
+{
+    return d_func()->requestedExposureParameter<qreal>(QPlatformCameraExposure::Aperture, -1.0);
+}
+
+
+/*!
+    Returns the list of aperture values camera supports.
+    The apertures list can change depending on the focal length,
+    in such a case the apertureRangeChanged() signal is emitted.
+
+    If the camera supports arbitrary aperture values within the supported range,
+    *\a continuous is set to true, otherwise *\a continuous is set to false.
+*/
+QList<qreal> QCamera::supportedApertures(bool * continuous) const
+{
+    QList<qreal> res;
+    QPlatformCameraExposure *control = d_func()->exposureControl;
+
+    bool tmp = false;
+    if (!continuous)
+        continuous = &tmp;
+
+    if (!control)
+        return res;
+
+    const auto range = control->supportedParameterRange(QPlatformCameraExposure::Aperture, continuous);
+    for (const QVariant &value : range) {
+        bool ok = false;
+        qreal realValue = value.toReal(&ok);
+        if (ok)
+            res.append(realValue);
+        else
+            qWarning() << "Incompatible aperture value type, qreal is expected";
+    }
+
+    return res;
+}
+
+/*!
+    \fn QCamera::setManualAperture(qreal aperture)
+    Sets the manual camera \a aperture value.
+*/
+
+void QCamera::setManualAperture(qreal aperture)
+{
+    d_func()->setExposureParameter<qreal>(QPlatformCameraExposure::Aperture, aperture);
+}
+
+/*!
+    \fn QCamera::setAutoAperture()
+    Turn on auto aperture
+*/
+
+void QCamera::setAutoAperture()
+{
+    d_func()->resetExposureParameter(QPlatformCameraExposure::Aperture);
+}
+
+/*!
+    Returns the current shutter speed in seconds.
+*/
+
+qreal QCamera::shutterSpeed() const
+{
+    return d_func()->actualExposureParameter<qreal>(QPlatformCameraExposure::ShutterSpeed, -1.0);
+}
+
+/*!
+    Returns the requested manual shutter speed in seconds
+    or -1.0 if automatic shutter speed is turned on.
+*/
+qreal QCamera::requestedShutterSpeed() const
+{
+    return d_func()->requestedExposureParameter<qreal>(QPlatformCameraExposure::ShutterSpeed, -1.0);
+}
+
+/*!
+    Returns the list of shutter speed values in seconds camera supports.
+
+    If the camera supports arbitrary shutter speed values within the supported range,
+    *\a continuous is set to true, otherwise *\a continuous is set to false.
+*/
+QList<qreal> QCamera::supportedShutterSpeeds(bool *continuous) const
+{
+    QList<qreal> res;
+    QPlatformCameraExposure *control = d_func()->exposureControl;
+
+    bool tmp = false;
+    if (!continuous)
+        continuous = &tmp;
+
+    if (!control)
+        return res;
+
+    const auto range = control->supportedParameterRange(QPlatformCameraExposure::ShutterSpeed, continuous);
+    for (const QVariant &value : range) {
+        bool ok = false;
+        qreal realValue = value.toReal(&ok);
+        if (ok)
+            res.append(realValue);
+        else
+            qWarning() << "Incompatible shutter speed value type, qreal is expected";
+    }
+
+    return res;
+}
+
+/*!
+    Set the manual shutter speed to \a seconds
+*/
+
+void QCamera::setManualShutterSpeed(qreal seconds)
+{
+    d_func()->setExposureParameter<qreal>(QPlatformCameraExposure::ShutterSpeed, seconds);
+}
+
+/*!
+    Turn on auto shutter speed
+*/
+
+void QCamera::setAutoShutterSpeed()
+{
+    d_func()->resetExposureParameter(QPlatformCameraExposure::ShutterSpeed);
+}
+
+
+/*!
+    \enum QCamera::FlashMode
+
+    \value FlashOff             Flash is Off.
+    \value FlashOn              Flash is On.
+    \value FlashAuto            Automatic flash.
+*/
+
+/*!
+    \enum QCamera::TorchMode
+
+    \value TorchOff             Torch is Off.
+    \value TorchOn              Torch is On.
+    \value TorchAuto            Automatic torch.
+*/
+
+/*!
+    \enum QCamera::ExposureMode
+
+    \value ExposureAuto          Automatic mode.
+    \value ExposureManual        Manual mode.
+    \value ExposurePortrait      Portrait exposure mode.
+    \value ExposureNight         Night mode.
+    \value ExposureSports        Spots exposure mode.
+    \value ExposureSnow          Snow exposure mode.
+    \value ExposureBeach         Beach exposure mode.
+    \value ExposureAction        Action mode. Since 5.5
+    \value ExposureLandscape     Landscape mode. Since 5.5
+    \value ExposureNightPortrait Night portrait mode. Since 5.5
+    \value ExposureTheatre       Theatre mode. Since 5.5
+    \value ExposureSunset        Sunset mode. Since 5.5
+    \value ExposureSteadyPhoto   Steady photo mode. Since 5.5
+    \value ExposureFireworks     Fireworks mode. Since 5.5
+    \value ExposureParty         Party mode. Since 5.5
+    \value ExposureCandlelight   Candlelight mode. Since 5.5
+    \value ExposureBarcode       Barcode mode. Since 5.5
+*/
+
+/*!
+    \property QCamera::flashReady
+    \brief Indicates if the flash is charged and ready to use.
+*/
+
+/*!
+    \fn void QCamera::flashReady(bool ready)
+
+    Signal the flash \a ready status has changed.
+*/
+
+/*!
+    \fn void QCamera::apertureChanged(qreal value)
+
+    Signal emitted when aperature changes to \a value.
+*/
+
+/*!
+    \fn void QCamera::apertureRangeChanged()
+
+    Signal emitted when aperature range has changed.
+*/
+
+
+/*!
+    \fn void QCamera::shutterSpeedRangeChanged()
+
+    Signal emitted when the shutter speed range has changed.
+*/
+
+
+/*!
+    \fn void QCamera::isoSensitivityChanged(int value)
+
+    Signal emitted when sensitivity changes to \a value.
+*/
+
+/*!
+    \fn void QCamera::exposureCompensationChanged(qreal value)
+
+    Signal emitted when the exposure compensation changes to \a value.
 */
 
 QT_END_NAMESPACE

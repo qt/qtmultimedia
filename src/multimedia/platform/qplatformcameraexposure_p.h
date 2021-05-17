@@ -54,7 +54,6 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
-#include <QtMultimedia/qcameraexposure.h>
 #include <QtMultimedia/qcamera.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
@@ -85,13 +84,13 @@ public:
     virtual QVariant actualValue(ExposureParameter parameter) const = 0;
     virtual bool setValue(ExposureParameter parameter, const QVariant& value) = 0;
 
-    virtual QCameraExposure::FlashMode flashMode() const = 0;
-    virtual void setFlashMode(QCameraExposure::FlashMode mode) = 0;
-    virtual bool isFlashModeSupported(QCameraExposure::FlashMode mode) const = 0;
+    virtual QCamera::FlashMode flashMode() const = 0;
+    virtual void setFlashMode(QCamera::FlashMode mode) = 0;
+    virtual bool isFlashModeSupported(QCamera::FlashMode mode) const = 0;
 
-    virtual QCameraExposure::TorchMode torchMode() const { return QCameraExposure::TorchOff; }
-    virtual void setTorchMode(QCameraExposure::TorchMode /*mode*/) {}
-    virtual bool isTorchModeSupported(QCameraExposure::TorchMode mode) const { return mode == QCameraExposure::TorchOff; }
+    virtual QCamera::TorchMode torchMode() const { return QCamera::TorchOff; }
+    virtual void setTorchMode(QCamera::TorchMode /*mode*/) {}
+    virtual bool isTorchModeSupported(QCamera::TorchMode mode) const { return mode == QCamera::TorchOff; }
 
     virtual bool isFlashReady() const = 0;
 

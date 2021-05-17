@@ -338,7 +338,7 @@ void Camera::updateRecorderState(QMediaEncoder::State state)
 
 void Camera::setExposureCompensation(int index)
 {
-    m_camera->exposure()->setExposureCompensation(index*0.5);
+    m_camera->setExposureCompensation(index*0.5);
 }
 
 void Camera::displayRecorderError()

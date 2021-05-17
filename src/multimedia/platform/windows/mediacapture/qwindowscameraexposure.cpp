@@ -78,16 +78,16 @@ bool QWindowsCameraExposure::setValue(ExposureParameter parameter, const QVarian
     return false;
 }
 
-QCameraExposure::FlashMode QWindowsCameraExposure::flashMode() const
+QCamera::FlashMode QWindowsCameraExposure::flashMode() const
 {
-    return QCameraExposure::FlashOff;
+    return QCamera::FlashOff;
 }
 
-void QWindowsCameraExposure::setFlashMode(QCameraExposure::FlashMode mode)
+void QWindowsCameraExposure::setFlashMode(QCamera::FlashMode mode)
 {
 }
 
-bool QWindowsCameraExposure::isFlashModeSupported(QCameraExposure::FlashMode mode) const
+bool QWindowsCameraExposure::isFlashModeSupported(QCamera::FlashMode mode) const
 {
     return false;
 }
@@ -97,16 +97,16 @@ bool QWindowsCameraExposure::isFlashReady() const
     return false;
 }
 
-QCameraExposure::TorchMode QWindowsCameraExposure::torchMode() const
+QCamera::TorchMode QWindowsCameraExposure::torchMode() const
 {
-    return QCameraExposure::TorchOff;
+    return QCamera::TorchOff;
 }
 
-void QWindowsCameraExposure::setTorchMode(QCameraExposure::TorchMode mode)
+void QWindowsCameraExposure::setTorchMode(QCamera::TorchMode mode)
 {
 }
 
-bool QWindowsCameraExposure::isTorchModeSupported(QCameraExposure::TorchMode mode) const
+bool QWindowsCameraExposure::isTorchModeSupported(QCamera::TorchMode mode) const
 {
     return false;
 }

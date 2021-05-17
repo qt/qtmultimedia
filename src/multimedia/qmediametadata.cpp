@@ -131,11 +131,11 @@ QT_BEGIN_NAMESPACE
     \row \li LightSource
         \li The kind of light source. \li QString
     \row \li Flash
-        \li Status of flash when the image was shot. \li QCameraExposure::FlashMode
+        \li Status of flash when the image was shot. \li QCamera::FlashMode
     \row \li FocalLength
         \li The actual focal length of the lens, in mm. \li qreal
     \row \li ExposureMode
-        \li Indicates the exposure mode set when the image was shot. \li QCameraExposure::ExposureMode
+        \li Indicates the exposure mode set when the image was shot. \li QCamera::ExposureMode
     \row \li WhiteBalance
         \li Indicates the white balance mode set when the image was shot. \li QCameraImageProcessing::WhiteBalanceMode
     \row \li DigitalZoomRatio
