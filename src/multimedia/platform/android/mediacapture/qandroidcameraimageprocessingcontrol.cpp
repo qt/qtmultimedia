@@ -47,7 +47,7 @@ QT_BEGIN_NAMESPACE
 QAndroidCameraImageProcessingControl::QAndroidCameraImageProcessingControl(QAndroidCameraSession *session)
     : QPlatformCameraImageProcessing()
     , m_session(session)
-    , m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
+    , m_whiteBalanceMode(QCamera::WhiteBalanceAuto)
 {
     connect(m_session, SIGNAL(opened()),
             this, SLOT(onCameraOpened()));
@@ -65,7 +65,7 @@ bool QAndroidCameraImageProcessingControl::isParameterValueSupported(ProcessingP
 {
     return parameter == QPlatformCameraImageProcessing::WhiteBalancePreset
             && m_session->camera()
-            && m_supportedWhiteBalanceModes.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+            && m_supportedWhiteBalanceModes.contains(value.value<QCamera::WhiteBalanceMode>());
 }
 
 void QAndroidCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
@@ -73,7 +73,7 @@ void QAndroidCameraImageProcessingControl::setParameter(ProcessingParameter para
     if (parameter != QPlatformCameraImageProcessing::WhiteBalancePreset)
         return;
 
-    QCameraImageProcessing::WhiteBalanceMode mode = value.value<QCameraImageProcessing::WhiteBalanceMode>();
+    QCamera::WhiteBalanceMode mode = value.value<QCamera::WhiteBalanceMode>();
 
     if (m_session->camera())
         setWhiteBalanceModeHelper(mode);
@@ -81,7 +81,7 @@ void QAndroidCameraImageProcessingControl::setParameter(ProcessingParameter para
         m_whiteBalanceMode = mode;
 }
 
-void QAndroidCameraImageProcessingControl::setWhiteBalanceModeHelper(QCameraImageProcessing::WhiteBalanceMode mode)
+void QAndroidCameraImageProcessingControl::setWhiteBalanceModeHelper(QCamera::WhiteBalanceMode mode)
 {
     QString wb = m_supportedWhiteBalanceModes.value(mode, QString());
     if (!wb.isEmpty()) {
@@ -97,34 +97,34 @@ void QAndroidCameraImageProcessingControl::onCameraOpened()
     for (int i = 0; i < whiteBalanceModes.size(); ++i) {
         const QString &wb = whiteBalanceModes.at(i);
         if (wb == QLatin1String("auto")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceAuto,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceAuto,
                                                 QStringLiteral("auto"));
         } else if (wb == QLatin1String("cloudy-daylight")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceCloudy,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceCloudy,
                                                 QStringLiteral("cloudy-daylight"));
         } else if (wb == QLatin1String("daylight")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceSunlight,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceSunlight,
                                                 QStringLiteral("daylight"));
         } else if (wb == QLatin1String("fluorescent")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceFluorescent,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceFluorescent,
                                                 QStringLiteral("fluorescent"));
         } else if (wb == QLatin1String("incandescent")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceTungsten,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceTungsten,
                                                 QStringLiteral("incandescent"));
         } else if (wb == QLatin1String("shade")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceShade,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceShade,
                                                 QStringLiteral("shade"));
         } else if (wb == QLatin1String("twilight")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceSunset,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceSunset,
                                                 QStringLiteral("twilight"));
         } else if (wb == QLatin1String("warm-fluorescent")) {
-            m_supportedWhiteBalanceModes.insert(QCameraImageProcessing::WhiteBalanceFlash,
+            m_supportedWhiteBalanceModes.insert(QCamera::WhiteBalanceFlash,
                                                 QStringLiteral("warm-fluorescent"));
         }
     }
 
     if (!m_supportedWhiteBalanceModes.contains(m_whiteBalanceMode))
-        m_whiteBalanceMode = QCameraImageProcessing::WhiteBalanceAuto;
+        m_whiteBalanceMode = QCamera::WhiteBalanceAuto;
 
     setWhiteBalanceModeHelper(m_whiteBalanceMode);
 }

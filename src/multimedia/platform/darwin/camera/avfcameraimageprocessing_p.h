@@ -71,7 +71,7 @@ public:
     bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
     void setParameter(ProcessingParameter parameter, const QVariant &value) override;
 
-    bool setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
+    bool setWhiteBalanceMode(QCamera::WhiteBalanceMode mode);
 
 #ifdef Q_OS_IOS
     float colorTemperature() const;
@@ -82,14 +82,14 @@ private Q_SLOTS:
     void cameraActiveChanged(bool active);
 
 private:
-    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const;
 
     AVFCamera *m_camera;
-    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
+    QCamera::WhiteBalanceMode m_whiteBalanceMode;
 
 #ifdef Q_OS_IOS
     float m_colorTemperature = .0;
-    QMap<QCameraImageProcessing::WhiteBalanceMode, QPair<float, float>> m_mappedWhiteBalancePresets;
+    QMap<QCamera::WhiteBalanceMode, QPair<float, float>> m_mappedWhiteBalancePresets;
 #endif
 };
 

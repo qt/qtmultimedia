@@ -78,11 +78,8 @@ public:
     QGstreamerImageProcessing(QGstreamerCamera *camera);
     virtual ~QGstreamerImageProcessing();
 
-    bool setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode);
-    bool isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const;
-
-    bool setColorFilter(QCameraImageProcessing::ColorFilter filter);
-    bool isColorFilterSupported(QCameraImageProcessing::ColorFilter mode) const;
+    bool setWhiteBalanceMode(QCamera::WhiteBalanceMode mode);
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const;
 
     bool isParameterSupported(ProcessingParameter) const override;
     bool isParameterValueSupported(ProcessingParameter parameter, const QVariant &value) const override;
@@ -117,8 +114,7 @@ private:
     };
     ColorBalanceParameter colorBalanceParameters[BrightnessAdjustment + 1];
 
-    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode = QCameraImageProcessing::WhiteBalanceAuto;
-    QCameraImageProcessing::ColorFilter m_colorFilter = QCameraImageProcessing::ColorFilterNone;
+    QCamera::WhiteBalanceMode m_whiteBalanceMode = QCamera::WhiteBalanceAuto;
 
 #if QT_CONFIG(linux_v4l)
     bool isV4L2Device = false;

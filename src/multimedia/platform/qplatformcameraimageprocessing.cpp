@@ -110,7 +110,7 @@ QPlatformCameraImageProcessing::QPlatformCameraImageProcessing(QObject *parent)
     backend to choose the suitable parameter value.
 
     The valid values range depends on the parameter type.
-    For WhiteBalancePreset the value should be one of QCameraImageProcessing::WhiteBalanceMode values;
+    For WhiteBalancePreset the value should be one of QCamera::WhiteBalanceMode values;
     for Contrast, Saturation and Brightness the value should be in [0..1.0] range with invalid QVariant
     value indicating the default parameter value;
     for ContrastAdjustment, SaturationAdjustment, BrightnessAdjustment, the value should be

@@ -259,10 +259,10 @@ the hardware may also double as a torch.
 \target camera_image_processing
 \section3 Image Processing
 
-The QCameraImageProcessing class lets you adjust the image processing
-part of the pipeline.  This includes the \l {QCameraImageProcessing::WhiteBalanceMode}{white balance}
-(or color temperature), \l {QCameraImageProcessing::contrast()}{contrast}, and
-\l {QCameraImageProcessing::saturation()}{saturation}.
+The QCamera class lets you adjust the image processing
+part of the pipeline.  This includes the \l {QCamera::WhiteBalanceMode}{white balance}
+(or color temperature), \l {QCamera::contrast()}{contrast}, and
+\l {QCamera::saturation()}{saturation}.
 Most cameras support automatic settings for all of these, so you shouldn't need to adjust them unless
 the user wants a specific setting.
 

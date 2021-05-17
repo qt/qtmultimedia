@@ -122,7 +122,7 @@ bool QGstreamerImageProcessing::setColorBalanceValue(ProcessingParameter paramet
     return true;
 }
 
-bool QGstreamerImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceMode mode)
+bool QGstreamerImageProcessing::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
     if (!isWhiteBalanceModeSupported(mode))
         return false;
@@ -130,25 +130,25 @@ bool QGstreamerImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::Whit
     if (auto *photography = m_camera->photography()) {
         GstPhotographyWhiteBalanceMode gstMode = GST_PHOTOGRAPHY_WB_MODE_AUTO;
         switch (mode) {
-        case QCameraImageProcessing::WhiteBalanceSunlight:
+        case QCamera::WhiteBalanceSunlight:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_DAYLIGHT;
             break;
-        case QCameraImageProcessing::WhiteBalanceCloudy:
+        case QCamera::WhiteBalanceCloudy:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_CLOUDY;
             break;
-        case QCameraImageProcessing::WhiteBalanceShade:
+        case QCamera::WhiteBalanceShade:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_SHADE;
             break;
-        case QCameraImageProcessing::WhiteBalanceSunset:
+        case QCamera::WhiteBalanceSunset:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_SUNSET;
             break;
-        case QCameraImageProcessing::WhiteBalanceTungsten:
+        case QCamera::WhiteBalanceTungsten:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_TUNGSTEN;
             break;
-        case QCameraImageProcessing::WhiteBalanceFluorescent:
+        case QCamera::WhiteBalanceFluorescent:
             gstMode = GST_PHOTOGRAPHY_WB_MODE_FLUORESCENT;
             break;
-        case QCameraImageProcessing::WhiteBalanceAuto:
+        case QCamera::WhiteBalanceAuto:
         default:
             break;
         }
@@ -162,13 +162,13 @@ bool QGstreamerImageProcessing::setWhiteBalanceMode(QCameraImageProcessing::Whit
     return false;
 }
 
-bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceMode mode) const
+bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 {
 #if QT_CONFIG(linux_v4l)
     if (m_camera->isV4L2Camera()) {
-        if (mode == QCameraImageProcessing::WhiteBalanceAuto)
+        if (mode == QCamera::WhiteBalanceAuto)
             return true;
-        if (v4l2AutoWhiteBalanceSupported && mode == QCameraImageProcessing::WhiteBalanceManual)
+        if (v4l2AutoWhiteBalanceSupported && mode == QCamera::WhiteBalanceManual)
             return true;
         // ### Could emulate the others through hardcoded color temperatures
         return false;
@@ -177,13 +177,13 @@ bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessi
 #if QT_CONFIG(gstreamer_photography)
     if (m_camera->photography()) {
         switch (mode) {
-        case QCameraImageProcessing::WhiteBalanceAuto:
-        case QCameraImageProcessing::WhiteBalanceSunlight:
-        case QCameraImageProcessing::WhiteBalanceCloudy:
-        case QCameraImageProcessing::WhiteBalanceShade:
-        case QCameraImageProcessing::WhiteBalanceSunset:
-        case QCameraImageProcessing::WhiteBalanceTungsten:
-        case QCameraImageProcessing::WhiteBalanceFluorescent:
+        case QCamera::WhiteBalanceAuto:
+        case QCamera::WhiteBalanceSunlight:
+        case QCamera::WhiteBalanceCloudy:
+        case QCamera::WhiteBalanceShade:
+        case QCamera::WhiteBalanceSunset:
+        case QCamera::WhiteBalanceTungsten:
+        case QCamera::WhiteBalanceFluorescent:
             return true;
         default:
             break;
@@ -191,62 +191,9 @@ bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCameraImageProcessi
     }
 #endif
 
-    return mode == QCameraImageProcessing::WhiteBalanceAuto;
+    return mode == QCamera::WhiteBalanceAuto;
 }
 
-bool QGstreamerImageProcessing::setColorFilter(QCameraImageProcessing::ColorFilter filter)
-{
-#if QT_CONFIG(gstreamer_photography)
-    if (GstPhotography *photography = m_camera->photography()) {
-        GstPhotographyColorToneMode mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_NORMAL;
-        switch (filter) {
-        case QCameraImageProcessing::ColorFilterSepia:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_SEPIA;
-            break;
-        case QCameraImageProcessing::ColorFilterGrayscale:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_GRAYSCALE;
-            break;
-        case QCameraImageProcessing::ColorFilterNegative:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_NEGATIVE;
-            break;
-        case QCameraImageProcessing::ColorFilterSolarize:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_SOLARIZE;
-            break;
-        case QCameraImageProcessing::ColorFilterPosterize:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_POSTERIZE;
-            break;
-        case QCameraImageProcessing::ColorFilterWhiteboard:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_WHITEBOARD;
-            break;
-        case QCameraImageProcessing::ColorFilterBlackboard:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_BLACKBOARD;
-            break;
-        case QCameraImageProcessing::ColorFilterAqua:
-            mode = GST_PHOTOGRAPHY_COLOR_TONE_MODE_AQUA;
-            break;
-        case QCameraImageProcessing::ColorFilterNone:
-        default:
-            break;
-        }
-        if (gst_photography_set_color_tone_mode(photography, mode)) {
-            m_colorFilter = filter;
-            return true;
-        }
-    }
-#else
-    Q_UNUSED(filter);
-#endif
-    return false;
-}
-
-bool QGstreamerImageProcessing::isColorFilterSupported(QCameraImageProcessing::ColorFilter filter) const
-{
-#if QT_CONFIG(gstreamer_photography)
-    if (m_camera->photography())
-        return true;
-#endif
-    return filter == QCameraImageProcessing::ColorFilterNone;
-}
 
 bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
@@ -260,7 +207,6 @@ bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcess
             return v4l2AutoWhiteBalanceSupported;
         case ColorTemperature:
             return v4l2ColorTemperatureSupported;
-        case ColorFilter:
         default:
             // v4l2 doesn't have photography
             return false;
@@ -270,7 +216,7 @@ bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcess
 
 #if QT_CONFIG(gstreamer_photography)
     if (m_camera->photography()) {
-        if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset || parameter == QPlatformCameraImageProcessing::ColorFilter)
+        if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
             return true;
     }
 #endif
@@ -297,9 +243,7 @@ bool QGstreamerImageProcessing::isParameterValueSupported(QPlatformCameraImagePr
         return false;
     }
     case WhiteBalancePreset:
-        return isWhiteBalanceModeSupported(value.value<QCameraImageProcessing::WhiteBalanceMode>());
-    case ColorFilter:
-        return isColorFilterSupported(value.value<QCameraImageProcessing::ColorFilter>());
+        return isWhiteBalanceModeSupported(value.value<QCamera::WhiteBalanceMode>());
     default:
         break;
     }
@@ -321,12 +265,9 @@ void QGstreamerImageProcessing::setParameter(QPlatformCameraImageProcessing::Pro
 
     switch (parameter) {
     case WhiteBalancePreset:
-        setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+        setWhiteBalanceMode(value.value<QCamera::WhiteBalanceMode>());
         break;
     case QPlatformCameraImageProcessing::ColorTemperature:
-        break;
-    case QPlatformCameraImageProcessing::ColorFilter:
-        setColorFilter(value.value<QCameraImageProcessing::ColorFilter>());
         break;
     default:
         break;
@@ -398,11 +339,11 @@ bool QGstreamerImageProcessing::setV4L2Param(ProcessingParameter parameter, cons
     case QPlatformCameraImageProcessing::WhiteBalancePreset: {
         if (!v4l2AutoWhiteBalanceSupported)
             return false;
-        const QCameraImageProcessing::WhiteBalanceMode mode = value.value<QCameraImageProcessing::WhiteBalanceMode>();
-        if (mode != QCameraImageProcessing::WhiteBalanceAuto && mode != QCameraImageProcessing::WhiteBalanceManual)
+        const QCamera::WhiteBalanceMode mode = value.value<QCamera::WhiteBalanceMode>();
+        if (mode != QCamera::WhiteBalanceAuto && mode != QCamera::WhiteBalanceManual)
             return false;
         control.id = V4L2_CID_AUTO_WHITE_BALANCE;
-        control.value = (mode == QCameraImageProcessing::WhiteBalanceAuto);
+        control.value = (mode == QCamera::WhiteBalanceAuto);
         m_whiteBalanceMode = mode;
         break;
     }

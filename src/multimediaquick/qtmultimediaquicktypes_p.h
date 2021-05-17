@@ -85,14 +85,6 @@ struct QCameraForeign
     QML_NAMED_ELEMENT(Camera)
 };
 
-struct QCameraImageProcessingForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QCameraImageProcessing)
-    QML_UNCREATABLE("CameraImageProcessing is provided by Camera")
-    QML_NAMED_ELEMENT(CameraImageProcessing)
-};
-
 struct QCameraImageCaptureForeign
 {
     Q_GADGET

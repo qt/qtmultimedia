@@ -74,8 +74,7 @@ public:
         HueAdjustment,
         BrightnessAdjustment,
         WhiteBalancePreset,
-        ColorTemperature,
-        ColorFilter,
+        ColorTemperature
     };
 
     virtual bool isParameterSupported(ProcessingParameter) const = 0;

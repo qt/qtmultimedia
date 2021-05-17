@@ -91,9 +91,8 @@ private slots:
     // Test cases for QPlatformCamera class.
     void testCameraControl();
 
-    // Test case for QCameraImageProcessing class
+    // Test case for image processing
     void testContrast();
-    void testIsAvailable();
     void testSaturation();
 
     void testSetVideoOutput();
@@ -142,14 +141,14 @@ void tst_QCamera::testSimpleCameraWhiteBalance()
     QCamera camera;
 
     //only WhiteBalanceAuto is supported
-    QVERIFY(!camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceAuto));
-    QVERIFY(!camera.imageProcessing()->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceCloudy));
-    QCOMPARE(camera.imageProcessing()->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceAuto);
-    camera.imageProcessing()->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceCloudy);
-    QCOMPARE(camera.imageProcessing()->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceAuto);
-    QCOMPARE(camera.imageProcessing()->manualWhiteBalance()+1.0, 1.0);
-    camera.imageProcessing()->setManualWhiteBalance(5000);
-    QCOMPARE(camera.imageProcessing()->manualWhiteBalance()+1.0, 1.0);
+    QVERIFY(!camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceAuto));
+    QVERIFY(!camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceCloudy));
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
+    camera.setWhiteBalanceMode(QCamera::WhiteBalanceCloudy);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
+    QCOMPARE(camera.manualWhiteBalance()+1.0, 1.0);
+    camera.setManualWhiteBalance(5000);
+    QCOMPARE(camera.manualWhiteBalance()+1.0, 1.0);
 }
 
 void tst_QCamera::testSimpleCameraExposure()
@@ -308,36 +307,34 @@ void tst_QCamera::testCameraCaptureMetadata()
 
 void tst_QCamera::testCameraWhiteBalance()
 {
-    QSet<QCameraImageProcessing::WhiteBalanceMode> whiteBalanceModes;
-    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceAuto;
-    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceFlash;
-    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceTungsten;
-    whiteBalanceModes << QCameraImageProcessing::WhiteBalanceManual;
+    QSet<QCamera::WhiteBalanceMode> whiteBalanceModes;
+    whiteBalanceModes << QCamera::WhiteBalanceAuto;
+    whiteBalanceModes << QCamera::WhiteBalanceFlash;
+    whiteBalanceModes << QCamera::WhiteBalanceTungsten;
+    whiteBalanceModes << QCamera::WhiteBalanceManual;
 
     QCamera camera;
     QMockCamera *mockCamera = integration.lastCamera();
     mockCamera->mockImageProcessing->setSupportedWhiteBalanceModes(whiteBalanceModes);
 
-    QCameraImageProcessing *imageProcessing = camera.imageProcessing();
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
+    camera.setWhiteBalanceMode(QCamera::WhiteBalanceFlash);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceFlash);
+    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceAuto));
+    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceFlash));
+    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceTungsten));
+    QVERIFY(!camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceCloudy));
 
-    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceAuto);
-    imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFlash);
-    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceFlash);
-    QVERIFY(imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceAuto));
-    QVERIFY(imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceFlash));
-    QVERIFY(imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceTungsten));
-    QVERIFY(!imageProcessing->isWhiteBalanceModeSupported(QCameraImageProcessing::WhiteBalanceCloudy));
+    camera.setWhiteBalanceMode(QCamera::WhiteBalanceTungsten);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceTungsten);
 
-    imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceTungsten);
-    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceTungsten);
+    camera.setWhiteBalanceMode(QCamera::WhiteBalanceManual);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceManual);
+    camera.setManualWhiteBalance(34);
+    QCOMPARE(camera.manualWhiteBalance(), 34.0);
 
-    imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceManual);
-    QCOMPARE(imageProcessing->whiteBalanceMode(), QCameraImageProcessing::WhiteBalanceManual);
-    imageProcessing->setManualWhiteBalance(34);
-    QCOMPARE(imageProcessing->manualWhiteBalance(), 34.0);
-
-    imageProcessing->setManualWhiteBalance(432.0);
-    QCOMPARE(imageProcessing->manualWhiteBalance(), 432.0);
+    camera.setManualWhiteBalance(432.0);
+    QCOMPARE(camera.manualWhiteBalance(), 432.0);
 }
 
 void tst_QCamera::testCameraExposure()
@@ -842,29 +839,19 @@ void tst_QCamera::testStatus()
     QVERIFY(camera.status() == QCamera::UnavailableStatus);
 }
 
-// Test case for QCameraImageProcessing class
 void tst_QCamera::testContrast()
 {
     QMediaCaptureSession session;
     QCamera camera;
     session.setCamera(&camera);
-    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
-    QVERIFY(cameraImageProcessing->contrast() ==0);
 
-    cameraImageProcessing->setContrast(0.123);
-    QCOMPARE(cameraImageProcessing->contrast(), 0.123);
+    QVERIFY(camera.contrast() == 0);
 
-    cameraImageProcessing->setContrast(4.56);
-    QCOMPARE(cameraImageProcessing->contrast(), 4.56);
-}
+    camera.setContrast(0.123);
+    QCOMPARE(camera.contrast(), 0.123);
 
-void tst_QCamera::testIsAvailable()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    session.setCamera(&camera);
-    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
-    QVERIFY(cameraImageProcessing->isAvailable() == true);
+    camera.setContrast(4.56);
+    QCOMPARE(camera.contrast(), 4.56);
 }
 
 void tst_QCamera::testSaturation()
@@ -872,14 +859,14 @@ void tst_QCamera::testSaturation()
     QMediaCaptureSession session;
     QCamera camera;
     session.setCamera(&camera);
-    QCameraImageProcessing *cameraImageProcessing = camera.imageProcessing();
-    QCOMPARE(cameraImageProcessing->saturation()+1.0, 1.0);
 
-    cameraImageProcessing->setSaturation(0.5);
-    QCOMPARE(cameraImageProcessing->saturation(), 0.5);
+    QCOMPARE(camera.saturation()+1.0, 1.0);
 
-    cameraImageProcessing->setSaturation(-0.5);
-    QCOMPARE(cameraImageProcessing->saturation(), -0.5);
+    camera.setSaturation(0.5);
+    QCOMPARE(camera.saturation(), 0.5);
+
+    camera.setSaturation(-0.5);
+    QCOMPARE(camera.saturation(), -0.5);
 }
 
 //Added this code to cover QCamera::FocusModeHyperfocal and QCamera::FocusModeAutoNear

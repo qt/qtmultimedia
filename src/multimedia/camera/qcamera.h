@@ -48,7 +48,6 @@
 
 #include <QtCore/qobject.h>
 
-#include <QtMultimedia/qcameraimageprocessing.h>
 #include <QtMultimedia/qcamerainfo.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>
@@ -66,7 +65,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QCameraImageProcessing* imageProcessing READ imageProcessing CONSTANT)
     Q_PROPERTY(QCameraInfo cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
@@ -88,6 +86,13 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(QCamera::TorchMode torchMode READ torchMode WRITE setTorchMode)
     Q_PROPERTY(QCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode)
 
+    Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
+    Q_PROPERTY(qreal manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
+    Q_PROPERTY(qreal brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
+    Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
+    Q_PROPERTY(qreal hue READ hue WRITE setHue NOTIFY hueChanged)
+    Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
+
     Q_ENUMS(Status)
     Q_ENUMS(Error)
 
@@ -97,6 +102,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_ENUMS(TorchMode)
     Q_ENUMS(ExposureMode)
 
+    Q_ENUMS(WhiteBalanceMode)
 public:
     enum Status {
         UnavailableStatus,
@@ -153,6 +159,18 @@ public:
         ExposureBarcode
     };
 
+    enum WhiteBalanceMode {
+        WhiteBalanceAuto = 0,
+        WhiteBalanceManual = 1,
+        WhiteBalanceSunlight = 2,
+        WhiteBalanceCloudy = 3,
+        WhiteBalanceShade = 4,
+        WhiteBalanceTungsten = 5,
+        WhiteBalanceFluorescent = 6,
+        WhiteBalanceFlash = 7,
+        WhiteBalanceSunset = 8
+    };
+
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
     explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
@@ -170,8 +188,6 @@ public:
 
     QCameraFormat cameraFormat() const;
     void setCameraFormat(const QCameraFormat &format);
-
-    QCameraImageProcessing *imageProcessing() const;
 
     Error error() const;
     QString errorString() const;
@@ -218,6 +234,16 @@ public:
     QList<qreal> supportedApertures(bool *continuous = nullptr) const;
     QList<qreal> supportedShutterSpeeds(bool *continuous = nullptr) const;
 
+    WhiteBalanceMode whiteBalanceMode() const;
+    Q_INVOKABLE bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
+
+    qreal manualWhiteBalance() const;
+
+    qreal brightness() const;
+    qreal contrast() const;
+    qreal saturation() const;
+    qreal hue() const;
+
 public Q_SLOTS:
     void setActive(bool active);
     void start() { setActive(true); }
@@ -239,6 +265,14 @@ public Q_SLOTS:
 
     void setManualShutterSpeed(qreal seconds);
     void setAutoShutterSpeed();
+
+    void setWhiteBalanceMode(WhiteBalanceMode mode);
+    void setManualWhiteBalance(qreal colorTemperature);
+
+    void setBrightness(qreal value);
+    void setContrast(qreal value);
+    void setSaturation(qreal value);
+    void setHue(qreal value);
 
 Q_SIGNALS:
     void activeChanged(bool);
@@ -263,6 +297,14 @@ Q_SIGNALS:
     void shutterSpeedRangeChanged();
     void isoSensitivityChanged(int);
     void exposureCompensationChanged(qreal);
+
+    void whiteBalanceModeChanged() const;
+    void manualWhiteBalanceChanged() const;
+
+    void brightnessChanged();
+    void contrastChanged();
+    void saturationChanged();
+    void hueChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *session);

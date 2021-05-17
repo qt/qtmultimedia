@@ -49,10 +49,10 @@ QT_BEGIN_NAMESPACE
 
 namespace {
 
-void avf_convert_white_balance_mode(QCameraImageProcessing::WhiteBalanceMode qtMode,
+void avf_convert_white_balance_mode(QCamera::WhiteBalanceMode qtMode,
         AVCaptureWhiteBalanceMode &avMode)
 {
-    if (qtMode == QCameraImageProcessing::WhiteBalanceAuto)
+    if (qtMode == QCamera::WhiteBalanceAuto)
         avMode = AVCaptureWhiteBalanceModeContinuousAutoWhiteBalance;
     else
         avMode = AVCaptureWhiteBalanceModeLocked;
@@ -115,26 +115,26 @@ bool avf_set_white_balance_gains(AVCaptureDevice *captureDevice,
 AVFCameraImageProcessing::AVFCameraImageProcessing(AVFCamera *camera)
     : QPlatformCameraImageProcessing(camera),
       m_camera(camera),
-      m_whiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto)
+      m_whiteBalanceMode(QCamera::WhiteBalanceAuto)
 {
     Q_ASSERT(m_camera);
 
     // AVFoundation's API allows adjusting white balance gains values(or temperature and tint)
     // only for iOS
 #ifdef Q_OS_IOS
-    m_mappedWhiteBalancePresets[QCameraImageProcessing::WhiteBalanceSunlight]
+    m_mappedWhiteBalancePresets[QCamera::WhiteBalanceSunlight]
         = qMakePair(5600.0, .0);
-    m_mappedWhiteBalancePresets[QCameraImageProcessing::WhiteBalanceCloudy]
+    m_mappedWhiteBalancePresets[QCamera::WhiteBalanceCloudy]
         = qMakePair(6000.0, .0);
-    m_mappedWhiteBalancePresets[QCameraImageProcessing::WhiteBalanceShade]
+    m_mappedWhiteBalancePresets[QCamera::WhiteBalanceShade]
         = qMakePair(7000.0, .0);
-    m_mappedWhiteBalancePresets[QCameraImageProcessing::WhiteBalanceTungsten]
+    m_mappedWhiteBalancePresets[QCamera::WhiteBalanceTungsten]
         = qMakePair(3200.0, .0);
-    m_mappedWhiteBalancePresets[QCameraImageProcessing::WhiteBalanceFluorescent]
+    m_mappedWhiteBalancePresets[QCamera::WhiteBalanceFluorescent]
         = qMakePair(4000.0, .0);
-    m_mappedWhiteBalancePresets[QCameraImageProcessing::WhiteBalanceFlash]
+    m_mappedWhiteBalancePresets[QCamera::WhiteBalanceFlash]
         = qMakePair(5500.0, .0);
-    m_mappedWhiteBalancePresets[QCameraImageProcessing::WhiteBalanceSunset]
+    m_mappedWhiteBalancePresets[QCamera::WhiteBalanceSunset]
         = qMakePair(3000.0, .0);
 #endif
 
@@ -170,7 +170,7 @@ bool AVFCameraImageProcessing::isParameterValueSupported(
 
     if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
         return isWhiteBalanceModeSupported(
-            value.value<QCameraImageProcessing::WhiteBalanceMode>());
+            value.value<QCamera::WhiteBalanceMode>());
 
 #ifdef Q_OS_IOS
     if (parameter == QPlatformCameraImageProcessing::ColorTemperature) {
@@ -189,7 +189,7 @@ void AVFCameraImageProcessing::setParameter(
 {
     bool result = false;
     if (parameter == QPlatformCameraImageProcessing::WhiteBalancePreset)
-        result = setWhiteBalanceMode(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+        result = setWhiteBalanceMode(value.value<QCamera::WhiteBalanceMode>());
 
 #ifdef Q_OS_IOS
     else if (parameter == QPlatformCameraImageProcessing::ColorTemperature)
@@ -204,7 +204,7 @@ void AVFCameraImageProcessing::setParameter(
 }
 
 bool AVFCameraImageProcessing::setWhiteBalanceMode(
-        QCameraImageProcessing::WhiteBalanceMode mode)
+        QCamera::WhiteBalanceMode mode)
 {
     AVCaptureDevice *captureDevice = m_camera->device();
     Q_ASSERT(captureDevice);
@@ -215,14 +215,14 @@ bool AVFCameraImageProcessing::setWhiteBalanceMode(
     if (!isWhiteBalanceModeSupported(mode))
         return false;
 
-    if (mode == QCameraImageProcessing::WhiteBalanceAuto
+    if (mode == QCamera::WhiteBalanceAuto
         && avf_set_white_balance_mode(captureDevice, avMode)) {
             m_whiteBalanceMode = mode;
             return true;
     }
 
 #ifdef Q_OS_IOS
-    if (mode == QCameraImageProcessing::WhiteBalanceManual
+    if (mode == QCamera::WhiteBalanceManual
         && avf_set_white_balance_mode(captureDevice, avMode)) {
             m_whiteBalanceMode = mode;
             return true;
@@ -241,7 +241,7 @@ bool AVFCameraImageProcessing::setWhiteBalanceMode(
 }
 
 bool AVFCameraImageProcessing::isWhiteBalanceModeSupported(
-        QCameraImageProcessing::WhiteBalanceMode qtMode) const
+        QCamera::WhiteBalanceMode qtMode) const
 {
     AVCaptureDevice *captureDevice = m_camera->device();
     Q_ASSERT(captureDevice);
@@ -251,13 +251,13 @@ bool AVFCameraImageProcessing::isWhiteBalanceModeSupported(
 
     // Since AVFoundation's API does not support setting custom white balance gains
     // on macOS, only WhiteBalanceAuto mode is supported.
-    if (qtMode == QCameraImageProcessing::WhiteBalanceAuto)
+    if (qtMode == QCamera::WhiteBalanceAuto)
         return [captureDevice isWhiteBalanceModeSupported:avMode];
 
 #ifdef Q_OS_IOS
     // Qt's WhiteBalanceManual corresponds to AVFoundations's WhiteBalanceModeLocked
     // + setting custom white balance gains (or color temperature in Qt)
-    if (qtMode == QCameraImageProcessing::WhiteBalanceManual)
+    if (qtMode == QCamera::WhiteBalanceManual)
         return [captureDevice isWhiteBalanceModeSupported:avMode]
             && captureDevice.lockingWhiteBalanceWithCustomDeviceGainsSupported;
 
@@ -291,7 +291,7 @@ bool AVFCameraImageProcessing::setColorTemperature(float temperature)
     AVCaptureWhiteBalanceGains wbGains;
     if (avf_convert_temp_and_tint_to_wb_gains(captureDevice, temperature, .0, wbGains)
         && avf_set_white_balance_gains(captureDevice, wbGains)) {
-            m_whiteBalanceMode = QCameraImageProcessing::WhiteBalanceManual;
+            m_whiteBalanceMode = QCamera::WhiteBalanceManual;
             return true;
     }
 
@@ -303,7 +303,7 @@ void AVFCameraImageProcessing::cameraActiveChanged(bool active)
 {
     if (!active)
         return;
-    setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceAuto);
+    setWhiteBalanceMode(QCamera::WhiteBalanceAuto);
 }
 
 QT_END_NAMESPACE

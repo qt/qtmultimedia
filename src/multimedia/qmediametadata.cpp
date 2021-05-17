@@ -137,7 +137,7 @@ QT_BEGIN_NAMESPACE
     \row \li ExposureMode
         \li Indicates the exposure mode set when the image was shot. \li QCamera::ExposureMode
     \row \li WhiteBalance
-        \li Indicates the white balance mode set when the image was shot. \li QCameraImageProcessing::WhiteBalanceMode
+        \li Indicates the white balance mode set when the image was shot. \li QCamera::WhiteBalanceMode
     \row \li DigitalZoomRatio
         \li Indicates the digital zoom ratio when the image was shot. \li qreal
     \row \li FocalLengthIn35mmFilm

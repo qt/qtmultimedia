@@ -72,21 +72,21 @@ bool BbCameraImageProcessingControl::isParameterValueSupported(ProcessingParamet
         return false;
     }
 
-    QSet<QCameraImageProcessing::WhiteBalanceMode> supportedModes;
+    QSet<QCamera::WhiteBalanceMode> supportedModes;
     for (int i = 0; i < supported; ++i) {
         switch (modes[i]) {
         case CAMERA_WHITEBALANCEMODE_AUTO:
-            supportedModes.insert(QCameraImageProcessing::WhiteBalanceAuto);
+            supportedModes.insert(QCamera::WhiteBalanceAuto);
             break;
         case CAMERA_WHITEBALANCEMODE_MANUAL:
-            supportedModes.insert(QCameraImageProcessing::WhiteBalanceManual);
+            supportedModes.insert(QCamera::WhiteBalanceManual);
             break;
         default:
             break;
         }
     }
 
-    return supportedModes.contains(value.value<QCameraImageProcessing::WhiteBalanceMode>());
+    return supportedModes.contains(value.value<QCamera::WhiteBalanceMode>());
 }
 
 void BbCameraImageProcessingControl::setParameter(ProcessingParameter parameter, const QVariant &value)
@@ -98,11 +98,11 @@ void BbCameraImageProcessingControl::setParameter(ProcessingParameter parameter,
         return;
 
     camera_whitebalancemode_t mode = CAMERA_WHITEBALANCEMODE_DEFAULT;
-    switch (value.value<QCameraImageProcessing::WhiteBalanceMode>()) {
-    case QCameraImageProcessing::WhiteBalanceAuto:
+    switch (value.value<QCamera::WhiteBalanceMode>()) {
+    case QCamera::WhiteBalanceAuto:
         mode = CAMERA_WHITEBALANCEMODE_AUTO;
         break;
-    case QCameraImageProcessing::WhiteBalanceManual:
+    case QCamera::WhiteBalanceManual:
         mode = CAMERA_WHITEBALANCEMODE_MANUAL;
         break;
     default:

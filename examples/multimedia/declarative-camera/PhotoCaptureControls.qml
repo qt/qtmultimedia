@@ -87,35 +87,35 @@ FocusScope {
 
             CameraPropertyButton {
                 id : wbModesButton
-                value: CameraImageProcessing.WhiteBalanceAuto
+                value: Camera.WhiteBalanceAuto
                 model: ListModel {
                     ListElement {
                         icon: "images/camera_auto_mode.png"
-                        value: CameraImageProcessing.WhiteBalanceAuto
+                        value: Camera.WhiteBalanceAuto
                         text: "Auto"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_sunny.png"
-                        value: CameraImageProcessing.WhiteBalanceSunlight
+                        value: Camera.WhiteBalanceSunlight
                         text: "Sunlight"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_cloudy.png"
-                        value: CameraImageProcessing.WhiteBalanceCloudy
+                        value: Camera.WhiteBalanceCloudy
                         text: "Cloudy"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_incandescent.png"
-                        value: CameraImageProcessing.WhiteBalanceTungsten
+                        value: Camera.WhiteBalanceTungsten
                         text: "Tungsten"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_flourescent.png"
-                        value: CameraImageProcessing.WhiteBalanceFluorescent
+                        value: Camera.WhiteBalanceFluorescent
                         text: "Fluorescent"
                     }
                 }
-                onValueChanged: captureControls.captureSession.camera.imageProcessing.whiteBalanceMode = wbModesButton.value
+                onValueChanged: captureControls.captureSession.camera.whiteBalanceMode = wbModesButton.value
             }
 
             CameraButton {

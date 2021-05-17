@@ -71,13 +71,13 @@ private Q_SLOTS:
     void onCameraOpened();
 
 private:
-    void setWhiteBalanceModeHelper(QCameraImageProcessing::WhiteBalanceMode mode);
+    void setWhiteBalanceModeHelper(QCamera::WhiteBalanceMode mode);
 
     QAndroidCameraSession *m_session;
 
-    QCameraImageProcessing::WhiteBalanceMode m_whiteBalanceMode;
+    QCamera::WhiteBalanceMode m_whiteBalanceMode;
 
-    QMap<QCameraImageProcessing::WhiteBalanceMode, QString> m_supportedWhiteBalanceModes;
+    QMap<QCamera::WhiteBalanceMode, QString> m_supportedWhiteBalanceModes;
 };
 
 QT_END_NAMESPACE

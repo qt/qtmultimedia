@@ -85,6 +85,19 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/camera.cpp Camera zoom
 
+
+    After capturing the data for a camera frame, the camera hardware and
+    software performs various image processing tasks to produce a final
+    image.  This includes compensating for ambient light color, reducing
+    noise, as well as making some other adjustments to the image.
+
+    For example, you can set the white balance (or color temperature) used
+    for processing images:
+
+    \snippet multimedia-snippets/camera.cpp Camera image whitebalance
+
+    For more information on image processing of camera frames, see \l {camera_image_processing}{Camera Image Processing}.
+
     See the \l{Camera Overview}{camera overview} for more information.
 */
 
@@ -133,7 +146,7 @@ void QCameraPrivate::init()
         q->connect(exposureControl, SIGNAL(flashReady(bool)), q, SIGNAL(flashReady(bool)));
     }
 
-    imageProcessing = new QCameraImageProcessing(q, control);
+    imageControl = control->imageProcessingControl();
 }
 
 /*!
@@ -234,14 +247,6 @@ void QCamera::setActive(bool active)
     Q_D(const QCamera);
     if (d->control)
         d->control->setActive(active);
-}
-
-/*!
-    Returns the camera image processing control object.
-*/
-QCameraImageProcessing *QCamera::imageProcessing() const
-{
-    return d_func()->imageProcessing;
 }
 
 /*!
@@ -1151,6 +1156,200 @@ void QCamera::setAutoShutterSpeed()
     \fn void QCamera::exposureCompensationChanged(qreal value)
 
     Signal emitted when the exposure compensation changes to \a value.
+*/
+
+
+
+/*!
+    Returns the white balance mode being used.
+*/
+
+QCamera::WhiteBalanceMode QCamera::whiteBalanceMode() const
+{
+    Q_D(const QCamera);
+    return d->whiteBalance;
+}
+
+/*!
+    Sets the white balance to \a mode.
+*/
+
+void QCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
+{
+    Q_D(QCamera);
+    if (d->whiteBalance == mode || !isWhiteBalanceModeSupported(mode))
+        return;
+
+    d->imageControl->setParameter(
+        QPlatformCameraImageProcessing::WhiteBalancePreset,
+        QVariant::fromValue<QCamera::WhiteBalanceMode>(mode));
+    d->whiteBalance = mode;
+    emit whiteBalanceModeChanged();
+}
+
+/*!
+    Returns true if the white balance \a mode is supported.
+*/
+
+bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
+{
+    Q_D(const QCamera);
+    if (!d->imageControl)
+        return false;
+    return d->imageControl->isParameterValueSupported(
+        QPlatformCameraImageProcessing::WhiteBalancePreset,
+        QVariant::fromValue<QCamera::WhiteBalanceMode>(mode));
+
+}
+
+/*!
+    Returns the current color temperature if the
+    current white balance mode is \c WhiteBalanceManual.  For other modes the
+    return value is undefined.
+*/
+
+qreal QCamera::manualWhiteBalance() const
+{
+    Q_D(const QCamera);
+    return d->colorTemperature;
+}
+
+/*!
+    Sets manual white balance to \a colorTemperature.  This is used
+    when whiteBalanceMode() is set to \c WhiteBalanceManual.  The units are Kelvin.
+*/
+
+void QCamera::setManualWhiteBalance(qreal colorTemperature)
+{
+    Q_D(QCamera);
+    if (!d->imageControl)
+        return;
+    if (d->colorTemperature == colorTemperature)
+        return;
+    if (colorTemperature == 0) {
+        setWhiteBalanceMode(WhiteBalanceAuto);
+    } else if (!isWhiteBalanceModeSupported(WhiteBalanceManual)) {
+        return;
+    } else {
+        setWhiteBalanceMode(WhiteBalanceManual);
+        d->imageControl->setParameter(
+            QPlatformCameraImageProcessing::ColorTemperature,
+            QVariant(colorTemperature));
+    }
+    d->colorTemperature = colorTemperature;
+    emit manualWhiteBalanceChanged();
+}
+
+/*!
+    Returns the brightness adjustment setting.
+ */
+qreal QCamera::brightness() const
+{
+    Q_D(const QCamera);
+    return d->brightness;
+}
+
+/*!
+    Set the brightness adjustment to \a value.
+
+    Valid brightness adjustment values range between -1.0 and 1.0, with a default of 0.
+*/
+void QCamera::setBrightness(qreal value)
+{
+    Q_D(QCamera);
+    if (!d->imageControl || d->brightness == value)
+        return;
+    d->brightness = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::BrightnessAdjustment,
+                                  QVariant(value));
+    emit brightnessChanged();
+}
+
+/*!
+    Returns the contrast adjustment setting.
+*/
+qreal QCamera::contrast() const
+{
+    Q_D(const QCamera);
+    return d->contrast;
+}
+
+/*!
+    Set the contrast adjustment to \a value.
+
+    Valid contrast adjustment values range between -1.0 and 1.0, with a default of 0.
+*/
+void QCamera::setContrast(qreal value)
+{
+    Q_D(QCamera);
+    if (!d->imageControl || d->contrast == value)
+        return;
+    d->contrast = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::ContrastAdjustment,
+                                  QVariant(value));
+    emit contrastChanged();
+}
+
+/*!
+    Returns the saturation adjustment value.
+*/
+qreal QCamera::saturation() const
+{
+    Q_D(const QCamera);
+    return d->saturation;
+}
+
+/*!
+    Sets the saturation adjustment value to \a value.
+
+    Valid saturation values range between -1.0 and 1.0, with a default of 0.
+*/
+void QCamera::setSaturation(qreal value)
+{
+    Q_D(QCamera);
+    if (!d->imageControl || d->saturation == value)
+        return;
+    d->saturation = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::SaturationAdjustment,
+                                  QVariant(value));
+    emit saturationChanged();
+}
+
+qreal QCamera::hue() const
+{
+    Q_D(const QCamera);
+    return d->hue;
+}
+
+/*!
+    Sets the hue adjustment value to \a value.
+
+    Valid hue values range between -1.0 and 1.0, with a default of 0.
+*/
+void QCamera::setHue(qreal value)
+{
+    Q_D(QCamera);
+    if (!d->imageControl || d->hue == value)
+        return;
+    d->hue = value;
+    d->imageControl->setParameter(QPlatformCameraImageProcessing::HueAdjustment,
+                                  QVariant(value));
+    emit hueChanged();
+}
+
+/*!
+    \enum QCamera::WhiteBalanceMode
+
+    \value WhiteBalanceAuto         Auto white balance mode.
+    \value WhiteBalanceManual       Manual white balance. In this mode the white balance should be set with
+                                    setManualWhiteBalance()
+    \value WhiteBalanceSunlight     Sunlight white balance mode.
+    \value WhiteBalanceCloudy       Cloudy white balance mode.
+    \value WhiteBalanceShade        Shade white balance mode.
+    \value WhiteBalanceTungsten     Tungsten (incandescent) white balance mode.
+    \value WhiteBalanceFluorescent  Fluorescent white balance mode.
+    \value WhiteBalanceFlash        Flash white balance mode.
+    \value WhiteBalanceSunset       Sunset white balance mode.
 */
 
 QT_END_NAMESPACE

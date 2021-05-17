@@ -45,7 +45,6 @@
 #include "qmediadevices.h"
 #include "qmediacapturesession.h"
 #include "qcameraimagecapture.h"
-#include "qcameraimageprocessing.h"
 #include "qvideosink.h"
 #include "QtMultmediaWidgets/qvideowidget.h>
 #include <QtGui/qscreen.h>
@@ -231,13 +230,9 @@ void camera_blah()
 
 void cameraimageprocessing()
 {
-    //! [Camera image whitebalance]
     camera = new QCamera;
-    QCameraImageProcessing *imageProcessing = camera->imageProcessing();
-
-    if (imageProcessing->isAvailable()) {
-        imageProcessing->setWhiteBalanceMode(QCameraImageProcessing::WhiteBalanceFluorescent);
-    }
+    //! [Camera image whitebalance]
+    camera->setWhiteBalanceMode(QCamera::WhiteBalanceFluorescent);
     //! [Camera image whitebalance]
 }
 

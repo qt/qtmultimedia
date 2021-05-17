@@ -61,6 +61,7 @@ QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformCameraFocus;
 class QPlatformCameraExposure;
+class QPlatformCameraImageProcessing;
 class QPlatformMediaCaptureSession;
 
 class QCameraPrivate : public QObjectPrivate
@@ -79,10 +80,6 @@ public:
     QPlatformMediaCaptureSession *captureInterface = nullptr;
     QPlatformCamera *control = nullptr;
 
-    QCameraImageProcessing *imageProcessing = nullptr;
-
-    QObject *capture = nullptr;
-
     QCamera::Error error;
     QString errorString;
 
@@ -93,7 +90,16 @@ public:
     float zoomFactor = 1.;
     QPointF customFocusPoint{-1, -1};
 
-    QPlatformCameraExposure *exposureControl;
+    QPlatformCameraExposure *exposureControl = nullptr;
+
+    QPlatformCameraImageProcessing *imageControl = nullptr;
+
+    QCamera::WhiteBalanceMode whiteBalance = QCamera::WhiteBalanceAuto;
+    qreal colorTemperature = 0;
+    qreal brightness = 0;
+    qreal contrast = 0;
+    qreal saturation = 0;
+    qreal hue = 0;
 
     template<typename T> T actualExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
     template<typename T> T requestedExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
