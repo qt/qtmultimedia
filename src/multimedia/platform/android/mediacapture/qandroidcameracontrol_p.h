@@ -76,15 +76,32 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
-    QPlatformCameraFocus *focusControl() override;
     QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
+
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
+
+    void zoomTo(float factor, float rate) override;
+
+private Q_SLOTS:
+    void onCameraOpened();
+    void setCameraFocusArea();
 
 private:
     QAndroidCameraSession *m_cameraSession = nullptr;
     QAndroidCaptureService *m_service = nullptr;
-    QTimer *m_recalculateTimer;
+    QTimer *m_recalculateTimer = nullptr;
+
+    QList<QCamera::FocusMode> m_supportedFocusModes;
+    bool m_continuousPictureFocusSupported = false;
+    bool m_continuousVideoFocusSupported = false;
+    bool m_focusPointSupported = false;
+
+    float m_maximumZoom;
+    QList<int> m_zoomRatios;
 };
+
 
 QT_END_NAMESPACE
 

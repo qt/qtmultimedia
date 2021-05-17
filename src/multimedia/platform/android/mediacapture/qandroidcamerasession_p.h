@@ -64,7 +64,6 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidVideoOutput;
 class QAndroidCameraExposureControl;
-class QAndroidCameraFocusControl;
 class QAndroidCameraImageProcessingControl;
 class QAndroidCameraVideoRendererControl;
 class QVideoSink;
@@ -113,7 +112,6 @@ public:
     void setPreviewCallback(PreviewCallback *callback);
     bool requestRecordingPermission();
 
-    QAndroidCameraFocusControl *focusControl() { return m_cameraFocusControl; }
     QAndroidCameraExposureControl *exposureControl() { return m_cameraExposureControl; }
     QAndroidCameraImageProcessingControl *imageProcessingControl() { return m_cameraImageProcessingControl; }
 
@@ -183,7 +181,6 @@ private:
     QAndroidCameraVideoRendererControl *m_renderer = nullptr;
 
     QAndroidCameraExposureControl *m_cameraExposureControl;
-    QAndroidCameraFocusControl *m_cameraFocusControl;
     QAndroidCameraImageProcessingControl *m_cameraImageProcessingControl;
 
     QImageEncoderSettings m_requestedImageSettings;

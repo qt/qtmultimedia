@@ -43,7 +43,6 @@
 #include <qcamerainfo.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraexposure_p.h>
-#include <private/qplatformcamerafocus_p.h>
 #include <private/qplatformcameraimageprocessing_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
@@ -127,15 +126,6 @@ void QCameraPrivate::init()
     control->setCamera(cameraInfo);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
-
-    focusControl = control->focusControl();
-
-    if (focusControl) {
-        q->connect(focusControl, SIGNAL(minimumZoomFactorChanged(float)),
-                   q, SIGNAL(minimumZoomFactorChanged(float)));
-        q->connect(focusControl, SIGNAL(maximumZoomFactorChanged(float)),
-                   q, SIGNAL(maximumZoomFactorChanged(float)));
-    }
 
     exposureControl = control->exposureControl();
     if (exposureControl) {
@@ -480,15 +470,15 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 QCamera::FocusMode QCamera::focusMode() const
 {
     Q_D(const QCamera);
-    return d->focusControl ? d->focusControl->focusMode() : QCamera::FocusModeAuto;
+    return d->control ? d->control->focusMode() : QCamera::FocusModeAuto;
 }
 
 void QCamera::setFocusMode(QCamera::FocusMode mode)
 {
     Q_D(QCamera);
-    if (!d->focusControl || d->focusControl->focusMode() == mode)
+    if (!d->control || d->control->focusMode() == mode)
         return;
-    d->focusControl->setFocusMode(mode);
+    d->control->setFocusMode(mode);
     emit focusModeChanged();
 }
 
@@ -499,7 +489,7 @@ void QCamera::setFocusMode(QCamera::FocusMode mode)
 bool QCamera::isFocusModeSupported(FocusMode mode) const
 {
     Q_D(const QCamera);
-    return d->focusControl ? d->focusControl->isFocusModeSupported(mode) : false;
+    return d->control ? d->control->isFocusModeSupported(mode) : false;
 }
 
 /*!
@@ -508,7 +498,7 @@ bool QCamera::isFocusModeSupported(FocusMode mode) const
 QPointF QCamera::focusPoint() const
 {
     Q_D(const QCamera);
-    return d->focusControl ? d->focusControl->focusPoint() : QPointF(-1., -1.);
+    return d->control ? d->control->focusPoint() : QPointF(-1., -1.);
 
 }
 
@@ -524,23 +514,21 @@ QPointF QCamera::focusPoint() const
 QPointF QCamera::customFocusPoint() const
 {
     Q_D(const QCamera);
-    return d->customFocusPoint;
+    return d->control ? d->control->customFocusPoint() : QPointF{-1., -1.};
 }
 
 void QCamera::setCustomFocusPoint(const QPointF &point)
 {
     Q_D(QCamera);
-    if (!d->focusControl || d->customFocusPoint == point)
+    if (!d->control)
         return;
-    d->customFocusPoint = point;
-    d->focusControl->setCustomFocusPoint(point);
-    Q_EMIT customFocusPointChanged();
+    d->control->setCustomFocusPoint(point);
 }
 
 bool QCamera::isCustomFocusPointSupported() const
 {
     Q_D(const QCamera);
-    return d->focusControl ? d->focusControl->isCustomFocusPointSupported() : false;
+    return d->control ? d->control->isCustomFocusPointSupported() : false;
 }
 
 /*!
@@ -553,15 +541,15 @@ bool QCamera::isCustomFocusPointSupported() const
  */
 void QCamera::setFocusDistance(float d)
 {
-    if (!d_func()->focusControl || focusMode() != FocusModeManual)
+    if (!d_func()->control || focusMode() != FocusModeManual)
         return;
-    d_func()->focusControl->setFocusDistance(d);
+    d_func()->control->setFocusDistance(d);
 }
 
 float QCamera::focusDistance() const
 {
-    if (d_func()->focusControl)
-        return d_func()->focusControl->focusDistance();
+    if (d_func()->control && focusMode() == FocusModeManual)
+        return d_func()->control->focusDistance();
     return 0.;
 }
 
@@ -574,7 +562,7 @@ float QCamera::focusDistance() const
 float QCamera::maximumZoomFactor() const
 {
     Q_D(const QCamera);
-    return d->focusControl ? d->focusControl->zoomFactorRange().max : 1.;
+    return d->control ? d->control->maxZoomFactor() : 1.;
 }
 
 /*!
@@ -586,7 +574,7 @@ float QCamera::maximumZoomFactor() const
 float QCamera::minimumZoomFactor() const
 {
     Q_D(const QCamera);
-    return d->focusControl ? d->focusControl->zoomFactorRange().min : 1.;
+    return d->control ? d->control->minZoomFactor() : 1.;
 }
 
 /*!
@@ -595,7 +583,8 @@ float QCamera::minimumZoomFactor() const
 */
 float QCamera::zoomFactor() const
 {
-    return d_func()->zoomFactor;
+    Q_D(const QCamera);
+    return d->control ? d->control->zoomFactor() : 1.;
 }
 
 void QCamera::setZoomFactor(float factor)
@@ -616,12 +605,10 @@ void QCamera::zoomTo(float factor, float rate)
         rate = 0.;
 
     Q_D(QCamera);
-    if (!d->focusControl)
+    if (!d->control)
         return;
-    factor = qBound(minimumZoomFactor(), factor, maximumZoomFactor());
-    d->zoomFactor = factor;
-    d->focusControl->zoomTo(factor, rate);
-    emit zoomFactorChanged(factor);
+    factor = qBound(d->control->minZoomFactor(), factor, d->control->maxZoomFactor());
+    d->control->zoomTo(factor, rate);
 }
 
 /*!

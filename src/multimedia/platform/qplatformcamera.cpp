@@ -165,6 +165,56 @@ void QPlatformCamera::statusChanged(QCamera::Status s)
     emit m_camera->statusChanged(s);
 }
 
+void QPlatformCamera::minimumZoomFactorChanged(float factor)
+{
+    if (m_minZoom == factor)
+        return;
+    m_minZoom = factor;
+    emit m_camera->minimumZoomFactorChanged(factor);
+}
+
+void QPlatformCamera::maximumZoomFactorChanged(float factor)
+{
+    if (m_maxZoom == factor)
+        return;
+    m_maxZoom = factor;
+    emit m_camera->maximumZoomFactorChanged(factor);
+}
+
+void QPlatformCamera::focusModeChanged(QCamera::FocusMode mode)
+{
+    if (m_focusMode == mode)
+        return;
+    m_focusMode = mode;
+    emit m_camera->focusModeChanged();
+}
+
+void QPlatformCamera::customFocusPointChanged(const QPointF &point)
+{
+    if (m_customFocusPoint == point)
+        return;
+    m_customFocusPoint = point;
+    emit m_camera->customFocusPointChanged();
+}
+
+
+void QPlatformCamera::zoomFactorChanged(float zoom)
+{
+    if (m_zoomFactor == zoom)
+        return;
+    m_zoomFactor = zoom;
+    emit m_camera->zoomFactorChanged(zoom);
+}
+
+
+void QPlatformCamera::focusDistanceChanged(float d)
+{
+    if (m_focusDistance == d)
+        return;
+    m_focusDistance = d;
+    emit m_camera->focusDistanceChanged(m_focusDistance);
+}
+
 
 QT_END_NAMESPACE
 

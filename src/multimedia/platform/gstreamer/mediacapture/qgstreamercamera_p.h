@@ -59,7 +59,6 @@
 #include <gst/video/colorbalance.h>
 
 QT_BEGIN_NAMESPACE
-class QGstreamerCameraFocus;
 class QGstreamerCameraExposure;
 class QGstreamerImageProcessing;
 
@@ -83,11 +82,13 @@ public:
     void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
 
     QPlatformCameraImageProcessing *imageProcessingControl() override;
-    QPlatformCameraFocus *focusControl() override;
     QPlatformCameraExposure *exposureControl() override;
 
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
+
 #if QT_CONFIG(gstreamer_photography)
-    GstPhotography *photography();
+    GstPhotography *photography() const;
 #endif
     QString v4l2Device() const { return m_v4l2Device; }
     bool isV4L2Camera() const { return !m_v4l2Device.isEmpty(); }
@@ -97,7 +98,6 @@ public:
 private:
     QGstreamerMediaCapture *m_session = nullptr;
 
-    QGstreamerCameraFocus *focus = nullptr;
     QGstreamerCameraExposure *exposure = nullptr;
     QGstreamerImageProcessing *imageProcessing = nullptr;
 

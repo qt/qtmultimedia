@@ -32,7 +32,6 @@ qt_internal_add_module(Multimedia
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
         platform/qplatformcameraexposure.cpp platform/qplatformcameraexposure_p.h
-        platform/qplatformcamerafocus.cpp platform/qplatformcamerafocus_p.h
         platform/qplatformcameraimagecapture.cpp platform/qplatformcameraimagecapture_p.h
         platform/qplatformcameraimageprocessing.cpp platform/qplatformcameraimageprocessing_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
@@ -156,8 +155,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         platform/windows/mediacapture/qwindowscamera.cpp
         platform/windows/mediacapture/qwindowscameraexposure.cpp
         platform/windows/mediacapture/qwindowscameraexposure_p.h
-        platform/windows/mediacapture/qwindowscamerafocus.cpp
-        platform/windows/mediacapture/qwindowscamerafocus_p.h
         platform/windows/mediacapture/qwindowscameraimagecapture.cpp
         platform/windows/mediacapture/qwindowscameraimagecapture_p.h
         platform/windows/mediacapture/qwindowscameraimageprocessing.cpp
@@ -236,7 +233,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/mediacapture/qgstreamercamera.cpp platform/gstreamer/mediacapture/qgstreamercamera_p.h
         platform/gstreamer/mediacapture/qgstreamercameraimageprocessing.cpp platform/gstreamer/mediacapture/qgstreamercameraimageprocessing_p.h
         platform/gstreamer/mediacapture/qgstreamercameraexposure.cpp platform/gstreamer/mediacapture/qgstreamercameraexposure_p.h
-        platform/gstreamer/mediacapture/qgstreamercamerafocus.cpp platform/gstreamer/mediacapture/qgstreamercamerafocus_p.h
         platform/gstreamer/mediacapture/qgstreamermediacapture.cpp platform/gstreamer/mediacapture/qgstreamermediacapture_p.h
         platform/gstreamer/mediacapture/qgstreamercameraimagecapture.cpp platform/gstreamer/mediacapture/qgstreamercameraimagecapture_p.h
         platform/gstreamer/mediacapture/qgstreamermediaencoder.cpp platform/gstreamer/mediacapture/qgstreamermediaencoder_p.h
@@ -316,7 +312,6 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
         platform/android/mediacapture/qandroidcameracontrol.cpp platform/android/mediacapture/qandroidcameracontrol_p.h
         platform/android/mediacapture/qandroidcameraexposurecontrol.cpp platform/android/mediacapture/qandroidcameraexposurecontrol_p.h
-        platform/android/mediacapture/qandroidcamerafocuscontrol.cpp platform/android/mediacapture/qandroidcamerafocuscontrol_p.h
         platform/android/mediacapture/qandroidcameraimagecapturecontrol.cpp platform/android/mediacapture/qandroidcameraimagecapturecontrol_p.h
         platform/android/mediacapture/qandroidcameraimageprocessingcontrol.cpp platform/android/mediacapture/qandroidcameraimageprocessingcontrol_p.h
         platform/android/mediacapture/qandroidcamerasession.cpp platform/android/mediacapture/qandroidcamerasession_p.h
@@ -410,7 +405,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfcamera.mm platform/darwin/camera/avfcamera_p.h
         platform/darwin/camera/avfcameradebug_p.h
         platform/darwin/camera/avfcameraexposure.mm platform/darwin/camera/avfcameraexposure_p.h
-        platform/darwin/camera/avfcamerafocus.mm platform/darwin/camera/avfcamerafocus_p.h
         platform/darwin/camera/avfcameraimageprocessing.mm platform/darwin/camera/avfcameraimageprocessing_p.h
         platform/darwin/camera/avfcamerarenderer.mm platform/darwin/camera/avfcamerarenderer_p.h
         platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h

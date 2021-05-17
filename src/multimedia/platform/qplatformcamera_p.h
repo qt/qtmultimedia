@@ -58,9 +58,6 @@
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
-class QPlatformCameraFocus;
 class QPlatformCameraExposure;
 class QPlatformCameraImageProcessing;
 
@@ -79,11 +76,37 @@ public:
 
     virtual void setCaptureSession(QPlatformMediaCaptureSession *) {}
 
-    virtual QPlatformCameraFocus *focusControl() { return nullptr; }
     virtual QPlatformCameraExposure *exposureControl() { return nullptr; }
     virtual QPlatformCameraImageProcessing *imageProcessingControl() { return nullptr; }
 
+    virtual bool isFocusModeSupported(QCamera::FocusMode mode) const { return mode == QCamera::FocusModeAuto; }
+    virtual void setFocusMode(QCamera::FocusMode /*mode*/) {}
+
+    virtual bool isCustomFocusPointSupported() const { return false; }
+    virtual void setCustomFocusPoint(const QPointF &/*point*/) {}
+
+    virtual void setFocusDistance(float) {}
+
+    // smaller 0: zoom instantly, rate in power-of-two/sec
+    virtual void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) {}
+
+    QCamera::FocusMode focusMode() const { return m_focusMode; }
+    QPointF focusPoint() const { return m_customFocusPoint; }
+
+    float minZoomFactor() const { return m_minZoom; }
+    float maxZoomFactor() const { return m_maxZoom; }
+    float zoomFactor() const { return m_zoomFactor; }
+    QPointF customFocusPoint() const { return m_customFocusPoint; }
+    float focusDistance() const { return m_focusDistance; }
+
     void statusChanged(QCamera::Status);
+    void minimumZoomFactorChanged(float factor);
+    void maximumZoomFactorChanged(float);
+    void focusModeChanged(QCamera::FocusMode mode);
+    void customFocusPointChanged(const QPointF &point);
+    void focusDistanceChanged(float d);
+    void zoomFactorChanged(float zoom);
+
 Q_SIGNALS:
     void activeChanged(bool);
     void error(int error, const QString &errorString);
@@ -95,6 +118,12 @@ protected:
 private:
     QCamera *m_camera = nullptr;
     QCamera::Status m_status = QCamera::InactiveStatus;
+    QCamera::FocusMode m_focusMode = QCamera::FocusModeAuto;
+    float m_minZoom = 1.;
+    float m_maxZoom = 1.;
+    float m_zoomFactor = 1.;
+    float m_focusDistance = 1.;
+    QPointF m_customFocusPoint{.5, .5};
 };
 
 QT_END_NAMESPACE

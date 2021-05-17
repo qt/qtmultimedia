@@ -60,7 +60,6 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraSession;
-class AVFCameraFocus;
 class AVFCameraExposure;
 class AVFCameraImageProcessing;
 
@@ -85,10 +84,17 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    QPlatformCameraFocus *focusControl() override;
     QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
+
+    void setCustomFocusPoint(const QPointF &point) override;
+    bool isCustomFocusPointSupported() const override;
+
+    void setFocusDistance(float d) override;
+    void zoomTo(float factor, float rate) override;
 
     AVCaptureConnection *videoConnection() const;
     AVCaptureDevice *device() const;
@@ -97,11 +103,12 @@ private Q_SLOTS:
     void updateStatus();
 
 private:
+    void updateCameraConfiguration();
+
     friend class AVFCameraSession;
     AVFCameraService *m_service = nullptr;
     AVFCameraSession *m_session = nullptr;
 
-    AVFCameraFocus *m_cameraFocusControl;
     AVFCameraImageProcessing *m_cameraImageProcessingControl;
     AVFCameraExposure *m_cameraExposureControl;
 

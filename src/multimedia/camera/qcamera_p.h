@@ -59,7 +59,6 @@
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
-class QPlatformCameraFocus;
 class QPlatformCameraExposure;
 class QPlatformCameraImageProcessing;
 class QPlatformMediaCaptureSession;
@@ -85,10 +84,6 @@ public:
 
     QCameraInfo cameraInfo;
     QCameraFormat cameraFormat;
-
-    QPlatformCameraFocus *focusControl = nullptr;
-    float zoomFactor = 1.;
-    QPointF customFocusPoint{-1, -1};
 
     QPlatformCameraExposure *exposureControl = nullptr;
 

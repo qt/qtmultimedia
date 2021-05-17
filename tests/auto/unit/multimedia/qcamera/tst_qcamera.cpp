@@ -34,7 +34,6 @@
 #include <qvideosink.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraexposure_p.h>
-#include <private/qplatformcamerafocus_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformcameraimageprocessing_p.h>
 #include <qcamera.h>
@@ -46,7 +45,7 @@
 
 #include "qmockintegration_p.h"
 #include "qmockmediacapturesession.h"
-#include "qmockcamerafocus.h"
+#include "qmockcamera.h"
 
 QT_USE_NAMESPACE
 
@@ -878,11 +877,10 @@ void tst_QCamera::testMaxZoomChangedSignal()
     QCamera camera;
     session.setCamera(&camera);
     QMockCamera *mock = integration.lastCamera();
-    QMockCameraFocus *mockFocus = mock->mockFocus;
 
     // ### change max zoom factor on backend, e.g. by changing camera
     QSignalSpy spy(&camera, SIGNAL(maximumZoomFactorChanged(float)));
-    mockFocus->setMaxZoomFactor(55);
+    mock->maximumZoomFactorChanged(55);
     QVERIFY(spy.count() == 1);
     QCOMPARE(camera.maximumZoomFactor(), 55);
 }

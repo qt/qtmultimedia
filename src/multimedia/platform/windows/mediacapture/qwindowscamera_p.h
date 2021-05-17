@@ -74,7 +74,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    QPlatformCameraFocus *focusControl() override;
     QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 

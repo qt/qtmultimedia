@@ -31,7 +31,6 @@
 
 #include "private/qplatformcamera_p.h"
 #include "qcamerainfo.h"
-#include "qmockcamerafocus.h"
 #include "qmockcameraimageprocessing.h"
 #include "qmockcameraexposure.h"
 #include <qtimer.h>
@@ -56,7 +55,6 @@ public:
     {
         if (!simpleCamera) {
             mockExposure = new QMockCameraExposure(this);
-            mockFocus = new QMockCameraFocus(this);
             mockImageProcessing = new QMockCameraImageProcessing(this);
         }
     }
@@ -92,7 +90,16 @@ public:
         m_camera = camera;
     }
 
-    QPlatformCameraFocus *focusControl() override{ return mockFocus; }
+    void setFocusMode(QCamera::FocusMode mode) override { focusModeChanged(mode); }
+    bool isFocusModeSupported(QCamera::FocusMode /*mode*/) const override { return true; }
+
+    bool isCustomFocusPointSupported() const override { return true; }
+    void setCustomFocusPoint(const QPointF &point) override { customFocusPointChanged(point); }
+
+    void setFocusDistance(float d) override { focusDistanceChanged(d); }
+
+    void zoomTo(float newZoomFactor, float /*rate*/) override { zoomFactorChanged(newZoomFactor); }
+
     QPlatformCameraExposure *exposureControl() override { return mockExposure; }
     QPlatformCameraImageProcessing *imageProcessingControl() override { return mockImageProcessing; }
 
@@ -102,7 +109,6 @@ public:
     bool m_propertyChangesSupported;
 
     QMockCameraExposure *mockExposure = nullptr;
-    QMockCameraFocus *mockFocus = nullptr;
     QMockCameraImageProcessing *mockImageProcessing = nullptr;
 };
 

@@ -44,7 +44,6 @@
 #include <private/qgstreamermediadevices_p.h>
 #include <private/qgstreamerintegration_p.h>
 #include <private/qgstreamercameraexposure_p.h>
-#include <private/qgstreamercamerafocus_p.h>
 #include <private/qgstreamercameraimageprocessing_p.h>
 #include <qmediacapturesession.h>
 
@@ -185,14 +184,57 @@ QPlatformCameraImageProcessing *QGstreamerCamera::imageProcessingControl()
     return imageProcessing;
 }
 
-QPlatformCameraFocus *QGstreamerCamera::focusControl()
-{
-    return focus;
-}
-
 QPlatformCameraExposure *QGstreamerCamera::exposureControl()
 {
     return exposure;
+}
+
+void QGstreamerCamera::setFocusMode(QCamera::FocusMode mode)
+{
+    if (mode == focusMode())
+        return;
+
+#if QT_CONFIG(gstreamer_photography)
+    auto p = photography();
+    if (p) {
+        GstPhotographyFocusMode photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_CONTINUOUS_NORMAL;
+
+        switch (mode) {
+        case QCamera::FocusModeAutoNear:
+            photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_MACRO;
+            break;
+        case QCamera::FocusModeAutoFar:
+            // not quite, but hey :)
+            Q_FALLTHROUGH();
+        case QCamera::FocusModeHyperfocal:
+            photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_HYPERFOCAL;
+            break;
+        case QCamera::FocusModeInfinity:
+            photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_INFINITY;
+            break;
+        case QCamera::FocusModeManual:
+            photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_MANUAL;
+            break;
+        default: // QCamera::FocusModeAuto:
+            break;
+        }
+
+        if (gst_photography_set_focus_mode(p, photographyMode))
+            focusModeChanged(mode);
+    }
+#endif
+}
+
+bool QGstreamerCamera::isFocusModeSupported(QCamera::FocusMode mode) const
+{
+    Q_UNUSED(mode);
+
+#if QT_CONFIG(gstreamer_photography)
+    if (photography())
+        return true;
+#endif
+
+    return false;
 }
 
 GstColorBalance *QGstreamerCamera::colorBalance() const
@@ -204,7 +246,7 @@ GstColorBalance *QGstreamerCamera::colorBalance() const
 }
 
 #if QT_CONFIG(gstreamer_photography)
-GstPhotography *QGstreamerCamera::photography()
+GstPhotography *QGstreamerCamera::photography() const
 {
     if (!gstCamera.isNull() && GST_IS_PHOTOGRAPHY(gstCamera.element()))
         return GST_PHOTOGRAPHY(gstCamera.element());
