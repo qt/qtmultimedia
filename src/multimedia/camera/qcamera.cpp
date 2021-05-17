@@ -709,9 +709,6 @@ void QCameraPrivate::_q_exposureParameterChanged(int parameter)
     case QPlatformCameraExposure::ISO:
         emit q->isoSensitivityChanged(q->isoSensitivity());
         break;
-    case QPlatformCameraExposure::Aperture:
-        emit q->apertureChanged(q->aperture());
-        break;
     case QPlatformCameraExposure::ShutterSpeed:
         emit q->shutterSpeedChanged(q->shutterSpeed());
         break;
@@ -726,9 +723,6 @@ void QCameraPrivate::_q_exposureParameterRangeChanged(int parameter)
     Q_Q(QCamera);
 
     switch (parameter) {
-    case QPlatformCameraExposure::Aperture:
-        emit q->apertureRangeChanged();
-        break;
     case QPlatformCameraExposure::ShutterSpeed:
         emit q->shutterSpeedRangeChanged();
         break;
@@ -934,82 +928,6 @@ void QCamera::setAutoIsoSensitivity()
 */
 
 /*!
-    \property QCamera::aperture
-    \brief Lens aperture is specified as an F number, the ratio of the focal length to effective aperture diameter.
-
-    \sa supportedApertures(), setAutoAperture(), setManualAperture(), requestedAperture()
-*/
-
-
-qreal QCamera::aperture() const
-{
-    return d_func()->actualExposureParameter<qreal>(QPlatformCameraExposure::Aperture, -1.0);
-}
-
-/*!
-    Returns the requested manual aperture
-    or -1.0 if automatic aperture is turned on.
-*/
-qreal QCamera::requestedAperture() const
-{
-    return d_func()->requestedExposureParameter<qreal>(QPlatformCameraExposure::Aperture, -1.0);
-}
-
-
-/*!
-    Returns the list of aperture values camera supports.
-    The apertures list can change depending on the focal length,
-    in such a case the apertureRangeChanged() signal is emitted.
-
-    If the camera supports arbitrary aperture values within the supported range,
-    *\a continuous is set to true, otherwise *\a continuous is set to false.
-*/
-QList<qreal> QCamera::supportedApertures(bool * continuous) const
-{
-    QList<qreal> res;
-    QPlatformCameraExposure *control = d_func()->exposureControl;
-
-    bool tmp = false;
-    if (!continuous)
-        continuous = &tmp;
-
-    if (!control)
-        return res;
-
-    const auto range = control->supportedParameterRange(QPlatformCameraExposure::Aperture, continuous);
-    for (const QVariant &value : range) {
-        bool ok = false;
-        qreal realValue = value.toReal(&ok);
-        if (ok)
-            res.append(realValue);
-        else
-            qWarning() << "Incompatible aperture value type, qreal is expected";
-    }
-
-    return res;
-}
-
-/*!
-    \fn QCamera::setManualAperture(qreal aperture)
-    Sets the manual camera \a aperture value.
-*/
-
-void QCamera::setManualAperture(qreal aperture)
-{
-    d_func()->setExposureParameter<qreal>(QPlatformCameraExposure::Aperture, aperture);
-}
-
-/*!
-    \fn QCamera::setAutoAperture()
-    Turn on auto aperture
-*/
-
-void QCamera::setAutoAperture()
-{
-    d_func()->resetExposureParameter(QPlatformCameraExposure::Aperture);
-}
-
-/*!
     Returns the current shutter speed in seconds.
 */
 
@@ -1125,19 +1043,6 @@ void QCamera::setAutoShutterSpeed()
 
     Signal the flash \a ready status has changed.
 */
-
-/*!
-    \fn void QCamera::apertureChanged(qreal value)
-
-    Signal emitted when aperature changes to \a value.
-*/
-
-/*!
-    \fn void QCamera::apertureRangeChanged()
-
-    Signal emitted when aperature range has changed.
-*/
-
 
 /*!
     \fn void QCamera::shutterSpeedRangeChanged()

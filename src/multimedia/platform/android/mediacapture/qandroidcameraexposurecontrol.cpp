@@ -67,8 +67,6 @@ bool QAndroidCameraExposureControl::isParameterSupported(ExposureParameter param
     switch (parameter) {
     case QPlatformCameraExposure::ISO:
         return false;
-    case QPlatformCameraExposure::Aperture:
-        return false;
     case QPlatformCameraExposure::ShutterSpeed:
         return false;
     case QPlatformCameraExposure::ExposureCompensation:

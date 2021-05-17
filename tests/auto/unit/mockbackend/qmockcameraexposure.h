@@ -37,7 +37,6 @@ class QMockCameraExposure : public QPlatformCameraExposure
 public:
     QMockCameraExposure(QObject *parent = 0):
         QPlatformCameraExposure(parent),
-        m_aperture(2.8),
         m_shutterSpeed(0.01),
         m_isoSensitivity(100),
         m_exposureCompensation(0),
@@ -45,7 +44,6 @@ public:
         m_flashMode(QCamera::FlashAuto)
     {
         m_isoRanges << 100 << 200 << 400 << 800;
-        m_apertureRanges << 2.8 << 4.0 << 5.6 << 8.0 << 11.0 << 16.0;
         m_shutterRanges << 0.001 << 0.01 << 0.1 << 1.0;
         m_exposureRanges << -2.0 << 2.0;
 
@@ -71,7 +69,6 @@ public:
         case QPlatformCameraExposure::ExposureMode:
         case QPlatformCameraExposure::ExposureCompensation:
         case QPlatformCameraExposure::ISO:
-        case QPlatformCameraExposure::Aperture:
         case QPlatformCameraExposure::ShutterSpeed:
             return true;
         default:
@@ -93,8 +90,6 @@ public:
             return QVariant(m_exposureCompensation);
         case QPlatformCameraExposure::ISO:
             return QVariant(m_isoSensitivity);
-        case QPlatformCameraExposure::Aperture:
-            return QVariant(m_aperture);
         case QPlatformCameraExposure::ShutterSpeed:
             return QVariant(m_shutterSpeed);
         default:
@@ -113,9 +108,6 @@ public:
             return m_exposureRanges;
         case QPlatformCameraExposure::ISO:
             return m_isoRanges;
-        case QPlatformCameraExposure::Aperture:
-            *continuous = true;
-            return m_apertureRanges;
         case QPlatformCameraExposure::ShutterSpeed:
             *continuous = true;
             return m_shutterRanges;
@@ -183,24 +175,7 @@ public:
             }
         }
             break;
-        case QPlatformCameraExposure::Aperture:
-        {
-            m_res.clear();
-            m_res << 12.0 << 18.0 << 20.0;
-            qreal exposureCompensationlocal = qBound<qreal>(2.8, value.toReal(), 16.0);
-            if (actualValue(param).toReal() !=  exposureCompensationlocal) {
-                m_aperture = exposureCompensationlocal;
-                emit actualValueChanged(param);
-            }
-
-            if (m_apertureRanges.last().toReal() != m_res.last().toReal()) {
-                m_apertureRanges.clear();
-                m_apertureRanges = m_res;
-                emit parameterRangeChanged(param);
-            }
-        }
-            break;
-        case QPlatformCameraExposure::ShutterSpeed:
+       case QPlatformCameraExposure::ShutterSpeed:
         {
             m_res.clear();
             m_res << 0.12 << 1.0 << 2.0;
@@ -250,13 +225,12 @@ public:
     }
 
 private:
-    qreal m_aperture;
     qreal m_shutterSpeed;
     int m_isoSensitivity;
     qreal m_exposureCompensation;
     QCamera::ExposureMode m_exposureMode;
     QCamera::FlashMode m_flashMode;
-    QVariantList m_isoRanges,m_apertureRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes;
+    QVariantList m_isoRanges, m_shutterRanges, m_exposureRanges, m_res, m_exposureModes;
 
     QMap<QPlatformCameraExposure::ExposureParameter, QVariant> m_requestedParameters;
 };

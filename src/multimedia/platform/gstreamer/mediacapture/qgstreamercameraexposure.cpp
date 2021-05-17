@@ -64,7 +64,6 @@ bool QGstreamerCameraExposure::isParameterSupported(ExposureParameter parameter)
         switch (parameter) {
         case QPlatformCameraExposure::ExposureCompensation:
         case QPlatformCameraExposure::ISO:
-        case QPlatformCameraExposure::Aperture:
         case QPlatformCameraExposure::ShutterSpeed:
             return true;
         default:
@@ -95,9 +94,6 @@ QVariantList QGstreamerCameraExposure::supportedParameterRange(ExposureParameter
             break;
         case QPlatformCameraExposure::ISO:
             res << 100 << 200 << 400;
-            break;
-        case QPlatformCameraExposure::Aperture:
-            res << 2.8;
             break;
         default:
             break;
@@ -133,8 +129,6 @@ QVariant QGstreamerCameraExposure::actualValue(ExposureParameter parameter) cons
             gst_photography_get_iso_speed(m_camera->photography(), &isoSpeed);
             return QVariant(isoSpeed);
         }
-        case QPlatformCameraExposure::Aperture:
-            return QVariant(2.8);
         case QPlatformCameraExposure::ShutterSpeed:
         {
             guint32 shutterSpeed = 0;
@@ -210,9 +204,6 @@ bool QGstreamerCameraExposure::setValue(ExposureParameter parameter, const QVari
             break;
         case QPlatformCameraExposure::ISO:
             gst_photography_set_iso_speed(m_camera->photography(), value.toInt());
-            break;
-        case QPlatformCameraExposure::Aperture:
-            gst_photography_set_aperture(m_camera->photography(), guint(value.toReal()*1000000));
             break;
         case QPlatformCameraExposure::ShutterSpeed:
             gst_photography_set_exposure(m_camera->photography(), guint(value.toReal()*1000000));

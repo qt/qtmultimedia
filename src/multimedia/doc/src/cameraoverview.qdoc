@@ -244,13 +244,13 @@ In addition to focus, QCameraFocus allows you to control any available zoom usin
 or \l zoomTo(). The available zoom range might be limited (or fixed to unity), the allowed range can
 be checked with \l minimumZoomFactor() and maximumZoomFactor().
 
-\section3 Exposure, Aperture, Shutter Speed and Flash
+\section3 Exposure, Shutter Speed and Flash
 
 There are a number of settings that affect the amount of light that hits the
 camera sensor, and hence the quality of the resulting image.
 
 The main settings for automatic image taking are the \l {QCamera::ExposureMode}{exposure mode}
-and \l {QCamera::FlashMode}{flash mode}.  Several other settings (aperture, ISO setting,
+and \l {QCamera::FlashMode}{flash mode}.  Several other settings (ISO setting,
  shutter speed) are usually managed automatically but can also be overridden if desired.
 
 Finally, you can control the flash hardware (if present) using this class.  In some cases

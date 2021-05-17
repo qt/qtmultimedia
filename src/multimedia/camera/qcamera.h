@@ -77,7 +77,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor NOTIFY minimumZoomFactorChanged)
     Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor NOTIFY maximumZoomFactorChanged)
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
-    Q_PROPERTY(qreal aperture READ aperture NOTIFY apertureChanged)
     Q_PROPERTY(qreal shutterSpeed READ shutterSpeed NOTIFY shutterSpeedChanged)
     Q_PROPERTY(int isoSensitivity READ isoSensitivity NOTIFY isoSensitivityChanged)
     Q_PROPERTY(qreal exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
@@ -223,15 +222,12 @@ public:
     qreal exposureCompensation() const;
 
     int isoSensitivity() const;
-    qreal aperture() const;
     qreal shutterSpeed() const;
 
     int requestedIsoSensitivity() const;
-    qreal requestedAperture() const;
     qreal requestedShutterSpeed() const;
 
     QList<int> supportedIsoSensitivities(bool *continuous = nullptr) const;
-    QList<qreal> supportedApertures(bool *continuous = nullptr) const;
     QList<qreal> supportedShutterSpeeds(bool *continuous = nullptr) const;
 
     WhiteBalanceMode whiteBalanceMode() const;
@@ -259,9 +255,6 @@ public Q_SLOTS:
 
     void setManualIsoSensitivity(int iso);
     void setAutoIsoSensitivity();
-
-    void setManualAperture(qreal aperture);
-    void setAutoAperture();
 
     void setManualShutterSpeed(qreal seconds);
     void setAutoShutterSpeed();
@@ -291,8 +284,6 @@ Q_SIGNALS:
 
     void flashReady(bool);
 
-    void apertureChanged(qreal);
-    void apertureRangeChanged();
     void shutterSpeedChanged(qreal speed);
     void shutterSpeedRangeChanged();
     void isoSensitivityChanged(int);

@@ -74,10 +74,6 @@ QPlatformCameraExposure::QPlatformCameraExposure(QObject *parent)
   \enum QPlatformCameraExposure::ExposureParameter
   \value ISO
          Camera ISO sensitivity, specified as integer value.
-  \value Aperture
-         Lens aperture is specified as an qreal F number.
-         The supported apertures list can change depending on the focal length,
-         in such a case the exposureParameterRangeChanged() signal is emitted.
   \value ShutterSpeed
          Shutter speed in seconds, specified as qreal.
   \value ExposureCompensation

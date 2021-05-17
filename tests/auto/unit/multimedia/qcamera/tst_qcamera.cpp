@@ -101,7 +101,6 @@ private slots:
     void testEnumDebug();
 
     // Signals test cases for exposure related properties
-    void testSignalApertureChanged();
     void testSignalExposureCompensationChanged();
     void testSignalIsoSensitivityChanged();
     void testSignalShutterSpeedChanged();
@@ -177,13 +176,6 @@ void tst_QCamera::testSimpleCameraExposure()
     QCOMPARE(camera.isoSensitivity(), -1);
     camera.setAutoIsoSensitivity();
     QCOMPARE(camera.isoSensitivity(), -1);
-
-    QVERIFY(camera.aperture() < 0);
-    QVERIFY(camera.supportedApertures().isEmpty());
-    camera.setAutoAperture();
-    QVERIFY(camera.aperture() < 0);
-    camera.setManualAperture(5.6);
-    QVERIFY(camera.aperture() < 0);
 
     QVERIFY(camera.shutterSpeed() < 0);
     QVERIFY(camera.supportedShutterSpeeds().isEmpty());
@@ -397,30 +389,6 @@ void tst_QCamera::testCameraExposure()
     camera.setAutoIsoSensitivity();
     QCOMPARE(camera.isoSensitivity(), 100);
     QCOMPARE(camera.requestedIsoSensitivity(), -1);
-
-    QCOMPARE(camera.requestedAperture(), -1.0);
-    qreal minAperture = camera.supportedApertures().first();
-    qreal maxAperture = camera.supportedApertures().last();
-    QVERIFY(minAperture > 0);
-    QVERIFY(maxAperture > 0);
-    QVERIFY(camera.aperture() >= minAperture);
-    QVERIFY(camera.aperture() <= maxAperture);
-
-    camera.setAutoAperture();
-    QVERIFY(camera.aperture() >= minAperture);
-    QVERIFY(camera.aperture() <= maxAperture);
-    QCOMPARE(camera.requestedAperture(), -1.0);
-
-    camera.setManualAperture(0);
-    QCOMPARE(camera.aperture(), minAperture);
-    QCOMPARE(camera.requestedAperture()+1.0, 1.0);
-
-    camera.setManualAperture(10000);
-    QCOMPARE(camera.aperture(), maxAperture);
-    QCOMPARE(camera.requestedAperture(), 10000.0);
-
-    camera.setAutoAperture();
-    QCOMPARE(camera.requestedAperture(), -1.0);
 
     QCOMPARE(camera.requestedShutterSpeed(), -1.0);
     qreal minShutterSpeed = camera.supportedShutterSpeeds().first();
@@ -917,24 +885,6 @@ void tst_QCamera::testMaxZoomChangedSignal()
     mockFocus->setMaxZoomFactor(55);
     QVERIFY(spy.count() == 1);
     QCOMPARE(camera.maximumZoomFactor(), 55);
-}
-
-void tst_QCamera::testSignalApertureChanged()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    session.setCamera(&camera);
-
-    QSignalSpy spyApertureChanged(&camera, SIGNAL(apertureChanged(qreal)));
-    QSignalSpy spyApertureRangeChanged(&camera, SIGNAL(apertureRangeChanged()));
-
-
-    QVERIFY(spyApertureChanged.count() ==0);
-    camera.setManualAperture(10.0);//set the ManualAperture to 10.0
-
-    QTest::qWait(100);
-    QVERIFY(spyApertureChanged.count() ==1);
-    QVERIFY(spyApertureRangeChanged.count() ==1);
 }
 
 void tst_QCamera::testSignalExposureCompensationChanged()

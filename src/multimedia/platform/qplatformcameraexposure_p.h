@@ -70,7 +70,6 @@ class Q_MULTIMEDIA_EXPORT QPlatformCameraExposure : public QObject
 public:
     enum ExposureParameter {
         ISO,
-        Aperture,
         ShutterSpeed,
         ExposureCompensation,
         TorchPower,
