@@ -156,9 +156,12 @@ bool QGstVideoRenderer::start(GstCaps *caps)
 //    qDebug() << m_format;
 
     auto *features = gst_caps_get_features(caps, 0);
+#if QT_CONFIG(gstreamer_gl)
     if (gst_caps_features_contains(features, GST_CAPS_FEATURE_MEMORY_GL_MEMORY))
         bufferFormat = QGstVideoBuffer::GLTexture;
-    else if (gst_caps_features_contains(features, GST_CAPS_FEATURE_META_GST_VIDEO_GL_TEXTURE_UPLOAD_META))
+    else
+#endif
+    if (gst_caps_features_contains(features, GST_CAPS_FEATURE_META_GST_VIDEO_GL_TEXTURE_UPLOAD_META))
         bufferFormat = QGstVideoBuffer::VideoGLTextureUploadMeta;
     else if (gst_caps_features_contains(features, "memory:DMABuf"))
         bufferFormat = QGstVideoBuffer::DMABuf;
