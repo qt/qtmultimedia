@@ -60,7 +60,6 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 class QWindowsCameraReader;
-class QWindowsCameraExposure;
 class QWindowsCameraImageProcessing;
 
 class QWindowsCameraSession : public QObject
@@ -85,7 +84,6 @@ public:
 
     void setVideoSink(QVideoSink *surface);
 
-    QWindowsCameraExposure *exposureControl();
     QWindowsCameraImageProcessing *imageProcessingControl();
 
     QMediaEncoderSettings videoSettings() const;
@@ -114,7 +112,6 @@ private:
     bool m_readyForCapture = false;
     QCameraInfo m_activeCameraInfo;
     QWindowsCameraReader *m_cameraReader = nullptr;
-    QWindowsCameraExposure *m_cameraExposure = nullptr;
     QWindowsCameraImageProcessing *m_cameraImageProcessing = nullptr;
     QImageEncoderSettings m_imageEncoderSettings;
     QMediaEncoderSettings m_mediaEncoderSettings;

@@ -40,7 +40,6 @@
 #include "qwindowscamera_p.h"
 
 #include "qwindowscamerasession_p.h"
-#include "qwindowscameraexposure_p.h"
 #include "qwindowscameraimageprocessing_p.h"
 #include "qwindowsmediacapture_p.h"
 #include <qcamerainfo.h>
@@ -120,13 +119,6 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_cameraSession->setActiveCamera(QCameraInfo());
     m_cameraSession->setActive(m_active);
     m_cameraSession->setActiveCamera(m_cameraInfo);
-}
-
-QPlatformCameraExposure *QWindowsCamera::exposureControl()
-{
-    if (!m_cameraSession)
-        return nullptr;
-    return m_cameraSession->exposureControl();
 }
 
 QPlatformCameraImageProcessing *QWindowsCamera::imageProcessingControl()

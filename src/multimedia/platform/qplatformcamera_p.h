@@ -90,6 +90,21 @@ public:
     // smaller 0: zoom instantly, rate in power-of-two/sec
     virtual void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) {}
 
+    virtual void setFlashMode(QCamera::FlashMode /*mode*/) {}
+    virtual bool isFlashModeSupported(QCamera::FlashMode mode) const { return mode == QCamera::FlashOff; }
+    virtual bool isFlashReady() const { return false; }
+
+    virtual void setTorchMode(QCamera::TorchMode /*mode*/) {}
+    virtual bool isTorchModeSupported(QCamera::TorchMode mode) const { return mode == QCamera::TorchOff; }
+
+    virtual void setExposureMode(QCamera::ExposureMode) {}
+    virtual bool isExposureModeSupported(QCamera::ExposureMode mode) const { return mode == QCamera::ExposureAuto; }
+    virtual void setExposureCompensation(float) {}
+    virtual int isoSensitivity() const { return 100; }
+    virtual void setManualIsoSensitivity(int) {}
+    virtual void setManualShutterSpeed(float) {}
+    virtual float shutterSpeed() const { return -1.; }
+
     QCamera::FocusMode focusMode() const { return m_focusMode; }
     QPointF focusPoint() const { return m_customFocusPoint; }
 
@@ -99,6 +114,18 @@ public:
     QPointF customFocusPoint() const { return m_customFocusPoint; }
     float focusDistance() const { return m_focusDistance; }
 
+    QCamera::FlashMode flashMode() const { return m_flashMode; }
+    QCamera::TorchMode torchMode() const { return m_torchMode; }
+
+    QCamera::ExposureMode exposureMode() const { return m_exposureMode; }
+    float exposureCompensation() const { return m_exposureCompensation; }
+    int manualIsoSensitivity() const { return m_iso; }
+    int minIso() const { return m_minIso; }
+    int maxIso() const { return m_maxIso; }
+    float manualShutterSpeed() const { return m_shutterSpeed; }
+    float minShutterSpeed() const { return m_minShutterSpeed; }
+    float maxShutterSpeed() const { return m_maxShutterSpeed; }
+
     void statusChanged(QCamera::Status);
     void minimumZoomFactorChanged(float factor);
     void maximumZoomFactorChanged(float);
@@ -106,6 +133,18 @@ public:
     void customFocusPointChanged(const QPointF &point);
     void focusDistanceChanged(float d);
     void zoomFactorChanged(float zoom);
+    void flashReadyChanged(bool);
+    void flashModeChanged(QCamera::FlashMode mode);
+    void torchModeChanged(QCamera::TorchMode mode);
+    void exposureModeChanged(QCamera::ExposureMode mode);
+    void exposureCompensationChanged(float compensation);
+    void exposureCompensationRangeChanged(float min, float max);
+    void isoSensitivityChanged(int iso);
+    void minIsoChanged(int iso) { m_minIso = iso; }
+    void maxIsoChanged(int iso) { m_maxIso = iso; }
+    void shutterSpeedChanged(float speed);
+    void minShutterSpeedChanged(float secs) { m_minShutterSpeed = secs; }
+    void maxShutterSpeedChanged(float secs) { m_maxShutterSpeed = secs; }
 
 Q_SIGNALS:
     void activeChanged(bool);
@@ -123,7 +162,20 @@ private:
     float m_maxZoom = 1.;
     float m_zoomFactor = 1.;
     float m_focusDistance = 1.;
-    QPointF m_customFocusPoint{.5, .5};
+    QPointF m_customFocusPoint{-1, -1};
+    bool m_flashReady = false;
+    QCamera::FlashMode m_flashMode = QCamera::FlashOff;
+    QCamera::TorchMode m_torchMode = QCamera::TorchOff;
+    QCamera::ExposureMode m_exposureMode = QCamera::ExposureAuto;
+    float m_exposureCompensation = 0.;
+    float m_minExposureCompensation = 0.;
+    float m_maxExposureCompensation = 0.;
+    int m_iso = -1;
+    int m_minIso = -1;
+    int m_maxIso = -1;
+    float m_shutterSpeed = -1.;
+    float m_minShutterSpeed = -1.;
+    float m_maxShutterSpeed = -1.;
 };
 
 QT_END_NAMESPACE

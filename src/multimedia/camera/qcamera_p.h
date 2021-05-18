@@ -54,12 +54,10 @@
 #include "private/qobject_p.h"
 #include "qcamera.h"
 #include "qcamerainfo.h"
-#include <private/qplatformcameraexposure_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
-class QPlatformCameraExposure;
 class QPlatformCameraImageProcessing;
 class QPlatformMediaCaptureSession;
 
@@ -85,8 +83,6 @@ public:
     QCameraInfo cameraInfo;
     QCameraFormat cameraFormat;
 
-    QPlatformCameraExposure *exposureControl = nullptr;
-
     QPlatformCameraImageProcessing *imageControl = nullptr;
 
     QCamera::WhiteBalanceMode whiteBalance = QCamera::WhiteBalanceAuto;
@@ -95,14 +91,6 @@ public:
     qreal contrast = 0;
     qreal saturation = 0;
     qreal hue = 0;
-
-    template<typename T> T actualExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
-    template<typename T> T requestedExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &defaultValue) const;
-    template<typename T> void setExposureParameter(QPlatformCameraExposure::ExposureParameter parameter, const T &value);
-    void resetExposureParameter(QPlatformCameraExposure::ExposureParameter parameter);
-
-    void _q_exposureParameterChanged(int parameter);
-    void _q_exposureParameterRangeChanged(int parameter);
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }

@@ -59,7 +59,6 @@
 #include <gst/video/colorbalance.h>
 
 QT_BEGIN_NAMESPACE
-class QGstreamerCameraExposure;
 class QGstreamerImageProcessing;
 
 class QGstreamerCamera : public QPlatformCamera
@@ -82,14 +81,26 @@ public:
     void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
 
     QPlatformCameraImageProcessing *imageProcessingControl() override;
-    QPlatformCameraExposure *exposureControl() override;
+
+#if QT_CONFIG(gstreamer_photography)
+    GstPhotography *photography() const;
 
     void setFocusMode(QCamera::FocusMode mode) override;
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
-#if QT_CONFIG(gstreamer_photography)
-    GstPhotography *photography() const;
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+    bool isFlashReady() const override;
+
+    void setExposureMode(QCamera::ExposureMode) override;
+    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
+    void setExposureCompensation(float) override;
+    void setManualIsoSensitivity(int) override;
+    int isoSensitivity() const override;
+    void setManualShutterSpeed(float) override;
+    float shutterSpeed() const override;
 #endif
+
     QString v4l2Device() const { return m_v4l2Device; }
     bool isV4L2Camera() const { return !m_v4l2Device.isEmpty(); }
 
@@ -98,7 +109,6 @@ public:
 private:
     QGstreamerMediaCapture *m_session = nullptr;
 
-    QGstreamerCameraExposure *exposure = nullptr;
     QGstreamerImageProcessing *imageProcessing = nullptr;
 
     QCameraInfo m_cameraInfo;

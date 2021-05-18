@@ -80,10 +80,10 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(qreal shutterSpeed READ shutterSpeed NOTIFY shutterSpeedChanged)
     Q_PROPERTY(int isoSensitivity READ isoSensitivity NOTIFY isoSensitivityChanged)
     Q_PROPERTY(qreal exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
+    Q_PROPERTY(QCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode NOTIFY exposureModeChanged)
     Q_PROPERTY(bool flashReady READ isFlashReady NOTIFY flashReady)
-    Q_PROPERTY(QCamera::FlashMode flashMode READ flashMode WRITE setFlashMode)
-    Q_PROPERTY(QCamera::TorchMode torchMode READ torchMode WRITE setTorchMode)
-    Q_PROPERTY(QCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode)
+    Q_PROPERTY(QCamera::FlashMode flashMode READ flashMode WRITE setFlashMode NOTIFY flashModeChanged)
+    Q_PROPERTY(QCamera::TorchMode torchMode READ torchMode WRITE setTorchMode NOTIFY torchModeChanged)
 
     Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
     Q_PROPERTY(qreal manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
@@ -222,13 +222,16 @@ public:
     qreal exposureCompensation() const;
 
     int isoSensitivity() const;
-    qreal shutterSpeed() const;
+    int manualIsoSensitivity() const;
 
-    int requestedIsoSensitivity() const;
-    qreal requestedShutterSpeed() const;
+    float shutterSpeed() const;
+    float manualShutterSpeed() const;
 
-    QList<int> supportedIsoSensitivities(bool *continuous = nullptr) const;
-    QList<qreal> supportedShutterSpeeds(bool *continuous = nullptr) const;
+    int minimumIsoSensitivity() const;
+    int maximumIsoSensitivity() const;
+
+    float minimumShutterSpeed() const;
+    float maximumShutterSpeed() const;
 
     WhiteBalanceMode whiteBalanceMode() const;
     Q_INVOKABLE bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
@@ -256,7 +259,7 @@ public Q_SLOTS:
     void setManualIsoSensitivity(int iso);
     void setAutoIsoSensitivity();
 
-    void setManualShutterSpeed(qreal seconds);
+    void setManualShutterSpeed(float seconds);
     void setAutoShutterSpeed();
 
     void setWhiteBalanceMode(WhiteBalanceMode mode);
@@ -283,11 +286,13 @@ Q_SIGNALS:
     void customFocusPointChanged();
 
     void flashReady(bool);
+    void flashModeChanged();
+    void torchModeChanged();
 
     void shutterSpeedChanged(qreal speed);
-    void shutterSpeedRangeChanged();
     void isoSensitivityChanged(int);
     void exposureCompensationChanged(qreal);
+    void exposureModeChanged();
 
     void whiteBalanceModeChanged() const;
     void manualWhiteBalanceChanged() const;

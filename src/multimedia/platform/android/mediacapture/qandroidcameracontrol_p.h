@@ -76,13 +76,24 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
-    QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 
     void setFocusMode(QCamera::FocusMode mode) override;
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
     void zoomTo(float factor, float rate) override;
+
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+    bool isFlashReady() const override;
+
+    void setTorchMode(QCamera::TorchMode mode) override;
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
+
+    void setExposureMode(QCamera::ExposureMode mode) override;
+    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
+
+    void setExposureCompensation(float bias) override;
 
 private Q_SLOTS:
     void onCameraOpened();
@@ -100,6 +111,15 @@ private:
 
     float m_maximumZoom;
     QList<int> m_zoomRatios;
+
+    QList<QCamera::ExposureMode> m_supportedExposureModes;
+    int m_minExposureCompensationIndex;
+    int m_maxExposureCompensationIndex;
+    qreal m_exposureCompensationStep;
+
+    bool isFlashSupported = false;
+    bool isFlashAutoSupported = false;
+    bool isTorchSupported = false;
 };
 
 

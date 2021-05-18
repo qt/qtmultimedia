@@ -43,7 +43,6 @@
 #include "qgstreamercameraimagecapture_p.h"
 #include <private/qgstreamermediadevices_p.h>
 #include <private/qgstreamerintegration_p.h>
-#include <private/qgstreamercameraexposure_p.h>
 #include <private/qgstreamercameraimageprocessing_p.h>
 #include <qmediacapturesession.h>
 
@@ -189,9 +188,20 @@ QPlatformCameraImageProcessing *QGstreamerCamera::imageProcessingControl()
     return imageProcessing;
 }
 
-QPlatformCameraExposure *QGstreamerCamera::exposureControl()
+GstColorBalance *QGstreamerCamera::colorBalance() const
 {
-    return exposure;
+    if (!gstCamera.isNull() && GST_IS_COLOR_BALANCE(gstCamera.element()))
+        return GST_COLOR_BALANCE(gstCamera.element());
+    // ### Add support for manual/SW color balancing using the gstreamer colorbalance element
+    return nullptr;
+}
+
+#if QT_CONFIG(gstreamer_photography)
+GstPhotography *QGstreamerCamera::photography() const
+{
+    if (!gstCamera.isNull() && GST_IS_PHOTOGRAPHY(gstCamera.element()))
+        return GST_PHOTOGRAPHY(gstCamera.element());
+    return nullptr;
 }
 
 void QGstreamerCamera::setFocusMode(QCamera::FocusMode mode)
@@ -199,7 +209,6 @@ void QGstreamerCamera::setFocusMode(QCamera::FocusMode mode)
     if (mode == focusMode())
         return;
 
-#if QT_CONFIG(gstreamer_photography)
     auto p = photography();
     if (p) {
         GstPhotographyFocusMode photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_CONTINUOUS_NORMAL;
@@ -227,34 +236,173 @@ void QGstreamerCamera::setFocusMode(QCamera::FocusMode mode)
         if (gst_photography_set_focus_mode(p, photographyMode))
             focusModeChanged(mode);
     }
-#endif
 }
 
 bool QGstreamerCamera::isFocusModeSupported(QCamera::FocusMode mode) const
 {
-    Q_UNUSED(mode);
-
-#if QT_CONFIG(gstreamer_photography)
     if (photography())
         return true;
-#endif
+    return mode == QCamera::FocusModeAuto;
+}
+
+void QGstreamerCamera::setFlashMode(QCamera::FlashMode mode)
+{
+    Q_UNUSED(mode);
+
+    if (auto *p = photography()) {
+        GstPhotographyFlashMode flashMode;
+        gst_photography_get_flash_mode(p, &flashMode);
+
+        switch (mode) {
+        case QCamera::FlashAuto:
+            flashMode = GST_PHOTOGRAPHY_FLASH_MODE_AUTO;
+            break;
+        case QCamera::FlashOff:
+            flashMode = GST_PHOTOGRAPHY_FLASH_MODE_OFF;
+            break;
+        case QCamera::FlashOn:
+            flashMode = GST_PHOTOGRAPHY_FLASH_MODE_ON;
+            break;
+        }
+
+        if (gst_photography_set_flash_mode(p, flashMode))
+            flashModeChanged(mode);
+    }
+}
+
+bool QGstreamerCamera::isFlashModeSupported(QCamera::FlashMode mode) const
+{
+    if (photography())
+        return true;
+
+    return mode == QCamera::FlashAuto;
+}
+
+bool QGstreamerCamera::isFlashReady() const
+{
+    if (photography())
+        return true;
 
     return false;
 }
 
-GstColorBalance *QGstreamerCamera::colorBalance() const
+void QGstreamerCamera::setExposureMode(QCamera::ExposureMode mode)
 {
-    if (!gstCamera.isNull() && GST_IS_COLOR_BALANCE(gstCamera.element()))
-        return GST_COLOR_BALANCE(gstCamera.element());
-    // ### Add support for manual/SW color balancing using the gstreamer colorbalance element
-    return nullptr;
+    auto *p = photography();
+    if (!p)
+        return;
+
+    GstPhotographySceneMode sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_AUTO;
+
+    switch (mode) {
+    case QCamera::ExposureManual:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_MANUAL;
+        break;
+    case QCamera::ExposurePortrait:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_PORTRAIT;
+        break;
+    case QCamera::ExposureSports:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SPORT;
+        break;
+    case QCamera::ExposureNight:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_NIGHT;
+        break;
+    case QCamera::ExposureAuto:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_AUTO;
+        break;
+    case QCamera::ExposureLandscape:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_LANDSCAPE;
+        break;
+    case QCamera::ExposureSnow:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SNOW;
+        break;
+    case QCamera::ExposureBeach:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_BEACH;
+        break;
+    case QCamera::ExposureAction:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_ACTION;
+        break;
+    case QCamera::ExposureNightPortrait:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_NIGHT_PORTRAIT;
+        break;
+    case QCamera::ExposureTheatre:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_THEATRE;
+        break;
+    case QCamera::ExposureSunset:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_SUNSET;
+        break;
+    case QCamera::ExposureSteadyPhoto:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_STEADY_PHOTO;
+        break;
+    case QCamera::ExposureFireworks:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_FIREWORKS;
+        break;
+    case QCamera::ExposureParty:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_PARTY;
+        break;
+    case QCamera::ExposureCandlelight:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_CANDLELIGHT;
+        break;
+    case QCamera::ExposureBarcode:
+        sceneMode = GST_PHOTOGRAPHY_SCENE_MODE_BARCODE;
+        break;
+    default:
+        return;
+    }
+
+    if (gst_photography_set_scene_mode(p, sceneMode))
+        exposureModeChanged(mode);
 }
 
-#if QT_CONFIG(gstreamer_photography)
-GstPhotography *QGstreamerCamera::photography() const
+bool QGstreamerCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 {
-    if (!gstCamera.isNull() && GST_IS_PHOTOGRAPHY(gstCamera.element()))
-        return GST_PHOTOGRAPHY(gstCamera.element());
-    return nullptr;
+    if (photography())
+        return true;
+
+    return mode == QCamera::ExposureAuto;
+}
+
+void QGstreamerCamera::setExposureCompensation(float compensation)
+{
+    if (auto *p = photography()) {
+        if (gst_photography_set_ev_compensation(p, compensation))
+            exposureCompensationChanged(compensation);
+    }
+}
+
+void QGstreamerCamera::setManualIsoSensitivity(int iso)
+{
+    if (auto *p = photography()) {
+        if (gst_photography_set_iso_speed(p, iso))
+            isoSensitivityChanged(iso);
+    }
+}
+
+int QGstreamerCamera::isoSensitivity() const
+{
+    if (auto *p = photography()) {
+        guint speed = 0;
+        if (gst_photography_get_iso_speed(p, &speed))
+            return speed;
+    }
+    return 100;
+}
+
+void QGstreamerCamera::setManualShutterSpeed(float secs)
+{
+    if (auto *p = photography()) {
+        if (gst_photography_set_exposure(p, guint(secs*1000000)))
+            shutterSpeedChanged(secs);
+    }
+}
+
+float QGstreamerCamera::shutterSpeed() const
+{
+    if (auto *p = photography()) {
+        guint32 exposure = 0;
+        if (gst_photography_get_exposure(p, &exposure))
+            return exposure/1000000.;
+    }
+    return -1;
 }
 #endif

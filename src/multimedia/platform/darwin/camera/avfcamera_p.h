@@ -60,7 +60,6 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraSession;
-class AVFCameraExposure;
 class AVFCameraImageProcessing;
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
@@ -84,7 +83,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 
     void setFocusMode(QCamera::FocusMode mode) override;
@@ -96,6 +94,22 @@ public:
     void setFocusDistance(float d) override;
     void zoomTo(float factor, float rate) override;
 
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+    bool isFlashReady() const override;
+
+    void setTorchMode(QCamera::TorchMode mode) override;
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
+
+    void setExposureMode(QCamera::ExposureMode) override;
+    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
+
+    void setExposureCompensation(float bias) override;
+    void setManualIsoSensitivity(int value) override;
+    virtual int isoSensitivity() const override;
+    void setManualShutterSpeed(float value) override;
+    virtual float shutterSpeed() const override;
+
     AVCaptureConnection *videoConnection() const;
     AVCaptureDevice *device() const;
 
@@ -104,18 +118,23 @@ private Q_SLOTS:
 
 private:
     void updateCameraConfiguration();
+    void applyFlashSettings();
 
     friend class AVFCameraSession;
     AVFCameraService *m_service = nullptr;
     AVFCameraSession *m_session = nullptr;
 
     AVFCameraImageProcessing *m_cameraImageProcessingControl;
-    AVFCameraExposure *m_cameraExposureControl;
 
     QCameraInfo m_cameraInfo;
 
     bool m_active;
     QCamera::Status m_lastStatus;
+
+    bool isFlashSupported = false;
+    bool isFlashAutoSupported = false;
+    bool isTorchSupported = false;
+    bool isTorchAutoSupported = false;
 };
 
 QT_END_NAMESPACE

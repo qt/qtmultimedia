@@ -43,11 +43,118 @@
 #include "avfcameraservice_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamerarenderer_p.h"
-#include "avfcameraexposure_p.h"
 #include "avfcameraimageprocessing_p.h"
 #include <qmediacapturesession.h>
 
 QT_USE_NAMESPACE
+
+
+namespace {
+
+// All these methods to work with exposure/ISO/SS in custom mode do not support macOS.
+
+#ifdef Q_OS_IOS
+
+// Misc. helpers to check values/ranges:
+
+bool qt_check_ISO_conversion(float isoValue)
+{
+    if (isoValue >= std::numeric_limits<int>::max())
+        return false;
+    if (isoValue <= std::numeric_limits<int>::min())
+        return false;
+    return true;
+}
+
+bool qt_check_ISO_range(AVCaptureDeviceFormat *format)
+{
+    // Qt is using int for ISO, AVFoundation - float. It looks like the ISO range
+    // at the moment can be represented by int (it's max - min > 100, etc.).
+    Q_ASSERT(format);
+    if (format.maxISO - format.minISO < 1.) {
+        // ISO is in some strange units?
+        return false;
+    }
+
+    return qt_check_ISO_conversion(format.minISO)
+           && qt_check_ISO_conversion(format.maxISO);
+}
+
+bool qt_check_exposure_duration(AVCaptureDevice *captureDevice, CMTime duration)
+{
+    Q_ASSERT(captureDevice);
+
+    AVCaptureDeviceFormat *activeFormat = captureDevice.activeFormat;
+    if (!activeFormat) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to obtain capture device format";
+        return false;
+    }
+
+    return CMTimeCompare(duration, activeFormat.minExposureDuration) != -1
+           && CMTimeCompare(activeFormat.maxExposureDuration, duration) != -1;
+}
+
+bool qt_check_ISO_value(AVCaptureDevice *captureDevice, int newISO)
+{
+    Q_ASSERT(captureDevice);
+
+    AVCaptureDeviceFormat *activeFormat = captureDevice.activeFormat;
+    if (!activeFormat) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to obtain capture device format";
+        return false;
+    }
+
+    return !(newISO < activeFormat.minISO || newISO > activeFormat.maxISO);
+}
+
+bool qt_exposure_duration_equal(AVCaptureDevice *captureDevice, qreal qDuration)
+{
+    Q_ASSERT(captureDevice);
+    const CMTime avDuration = CMTimeMakeWithSeconds(qDuration, captureDevice.exposureDuration.timescale);
+    return !CMTimeCompare(avDuration, captureDevice.exposureDuration);
+}
+
+bool qt_iso_equal(AVCaptureDevice *captureDevice, int iso)
+{
+    Q_ASSERT(captureDevice);
+    return qFuzzyCompare(float(iso), captureDevice.ISO);
+}
+
+bool qt_exposure_bias_equal(AVCaptureDevice *captureDevice, qreal bias)
+{
+    Q_ASSERT(captureDevice);
+    return qFuzzyCompare(bias, qreal(captureDevice.exposureTargetBias));
+}
+
+// Converters:
+
+bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCamera::ExposureMode mode,
+                              AVCaptureExposureMode &avMode)
+{
+    // Test if mode supported and convert.
+    Q_ASSERT(captureDevice);
+
+    if (mode == QCamera::ExposureAuto) {
+        if ([captureDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]) {
+            avMode = AVCaptureExposureModeContinuousAutoExposure;
+            return true;
+        }
+    }
+
+    if (mode == QCamera::ExposureManual) {
+        if ([captureDevice isExposureModeSupported:AVCaptureExposureModeCustom]) {
+            avMode = AVCaptureExposureModeCustom;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+#endif // defined(Q_OS_IOS)
+
+} // Unnamed namespace.
+
 
 AVFCamera::AVFCamera(QCamera *camera)
    : QPlatformCamera(camera)
@@ -57,15 +164,10 @@ AVFCamera::AVFCamera(QCamera *camera)
     Q_ASSERT(camera);
 
     m_cameraImageProcessingControl = new AVFCameraImageProcessing(this);
-    m_cameraExposureControl = nullptr;
-#ifdef Q_OS_IOS
-    m_cameraExposureControl = new AVFCameraExposure(this);
-#endif
 }
 
 AVFCamera::~AVFCamera()
 {
-    delete m_cameraExposureControl;
     delete m_cameraImageProcessingControl;
 }
 
@@ -163,11 +265,6 @@ AVCaptureDevice *AVFCamera::device() const
                         deviceId.constData()]];
     }
     return device;
-}
-
-QPlatformCameraExposure *AVFCamera::exposureControl()
-{
-    return m_cameraExposureControl;
 }
 
 QPlatformCameraImageProcessing *AVFCamera::imageProcessingControl()
@@ -369,7 +466,84 @@ void AVFCamera::updateCameraConfiguration()
     maximumZoomFactorChanged(captureDevice.maxAvailableVideoZoomFactor);
 
     captureDevice.videoZoomFactor = m_zoomFactor;
+
+    CMTime newDuration = AVCaptureExposureDurationCurrent;
+    bool setCustomMode = false;
+
+    float shutterSpeed = manualShutterSpeed();
+    if (shutterSpeed > 0
+        && !qt_exposure_duration_equal(captureDevice, shutterSpeed)) {
+        newDuration = CMTimeMakeWithSeconds(shutterSpeed, captureDevice.exposureDuration.timescale);
+        if (!qt_check_exposure_duration(captureDevice, newDuration)) {
+            qDebugCamera() << Q_FUNC_INFO << "requested exposure duration is out of range";
+            return;
+        }
+        setCustomMode = true;
+    }
+
+    float newISO = AVCaptureISOCurrent;
+    int iso = manualIsoSensitivity();
+    if (iso > 0 && !qt_iso_equal(captureDevice, iso)) {
+        newISO = iso;
+        if (!qt_check_ISO_value(captureDevice, newISO)) {
+            qDebugCamera() << Q_FUNC_INFO << "requested ISO value is out of range";
+            return;
+        }
+        setCustomMode = true;
+    }
+
+    float bias = exposureCompensation();
+    if (!bias != 0
+        && !qt_exposure_bias_equal(captureDevice, bias)) {
+        // TODO: mixed fpns.
+        if (bias < captureDevice.minExposureTargetBias || bias > captureDevice.maxExposureTargetBias) {
+            qDebugCamera() << Q_FUNC_INFO << "exposure compensation value is"
+                           << "out of range";
+            return;
+        }
+        [captureDevice setExposureTargetBias:bias completionHandler:nil];
+    }
+
+    // Setting shutter speed (exposure duration) or ISO values
+    // also reset exposure mode into Custom. With this settings
+    // we ignore any attempts to set exposure mode.
+
+    if (setCustomMode) {
+        [captureDevice setExposureModeCustomWithDuration:newDuration
+                                                     ISO:newISO
+                                       completionHandler:nil];
+        return;
+    }
+
+    QCamera::ExposureMode qtMode = exposureMode();
+    AVCaptureExposureMode avMode = AVCaptureExposureModeContinuousAutoExposure;
+    if (!qt_convert_exposure_mode(captureDevice, qtMode, avMode)) {
+        qDebugCamera() << Q_FUNC_INFO << "requested exposure mode is not supported";
+        return;
+    }
+
+    captureDevice.exposureMode = avMode;
 #endif
+
+    isFlashSupported = isFlashAutoSupported = false;
+    isTorchSupported = isTorchAutoSupported = false;
+
+    if (captureDevice.hasFlash) {
+        if ([captureDevice isFlashModeSupported:AVCaptureFlashModeOn])
+            isFlashSupported = true;
+        if ([captureDevice isFlashModeSupported:AVCaptureFlashModeAuto])
+            isFlashAutoSupported = true;
+    }
+
+    if (captureDevice.hasTorch) {
+        if ([captureDevice isTorchModeSupported:AVCaptureTorchModeOn])
+            isTorchSupported = true;
+        if ([captureDevice isTorchModeSupported:AVCaptureTorchModeAuto])
+            isTorchAutoSupported = true;
+    }
+
+    applyFlashSettings();
+    flashReadyChanged(isFlashSupported);
 }
 
 void AVFCamera::zoomTo(float factor, float rate)
@@ -399,5 +573,302 @@ void AVFCamera::zoomTo(float factor, float rate)
         [AVCaptureDevice rampToVideoZoomFactor:factor withRate:rate];
 #endif
 }
+
+void AVFCamera::setFlashMode(QCamera::FlashMode mode)
+{
+    if (flashMode() == mode)
+        return;
+
+    if (isActive() && !isFlashModeSupported(mode)) {
+        qDebugCamera() << Q_FUNC_INFO << "unsupported mode" << mode;
+        return;
+    }
+
+    flashModeChanged(mode);
+
+    if (!isActive())
+        return;
+
+    applyFlashSettings();
+}
+
+bool AVFCamera::isFlashModeSupported(QCamera::FlashMode mode) const
+{
+    if (mode == QCamera::FlashOff)
+        return true;
+    else if (mode == QCamera::FlashOn)
+        return isFlashSupported;
+    else //if (mode == QCamera::FlashAuto)
+        return isFlashAutoSupported;
+}
+
+bool AVFCamera::isFlashReady() const
+{
+    if (!isActive())
+        return false;
+
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice)
+        return false;
+
+    if (!captureDevice.hasFlash)
+        return false;
+
+    if (!isFlashModeSupported(flashMode()))
+        return false;
+
+#ifdef Q_OS_IOS
+    // AVCaptureDevice's docs:
+    // "The flash may become unavailable if, for example,
+    //  the device overheats and needs to cool off."
+    return [captureDevice isFlashAvailable];
+#endif
+
+    return true;
+}
+
+void AVFCamera::setTorchMode(QCamera::TorchMode mode)
+{
+    if (torchMode() == mode)
+        return;
+
+    if (isActive() && !isTorchModeSupported(mode)) {
+        qDebugCamera() << Q_FUNC_INFO << "unsupported torch mode" << mode;
+        return;
+    }
+
+    torchModeChanged(mode);
+
+    if (!isActive())
+        return;
+
+    applyFlashSettings();
+}
+
+bool AVFCamera::isTorchModeSupported(QCamera::TorchMode mode) const
+{
+    if (mode == QCamera::TorchOff)
+        return true;
+    else if (mode == QCamera::TorchOn)
+        return isTorchSupported;
+    else //if (mode == QCamera::TorchAuto)
+        return isTorchAutoSupported;
+}
+
+void AVFCamera::setExposureMode(QCamera::ExposureMode qtMode)
+{
+#ifdef Q_OS_IOS
+    if (qtMode != QCamera::ExposureAuto && qtMode != QCamera::ExposureManual) {
+        qDebugCamera() << Q_FUNC_INFO << "exposure mode not supported";
+        return;
+    }
+
+    AVCaptureDevice *captureDevice = m_camera->device();
+    if (!captureDevice) {
+        exposureModeChanged(value);
+        return;
+    }
+
+    AVCaptureExposureMode avMode = AVCaptureExposureModeContinuousAutoExpose;
+    if (!qt_convert_exposure_mode(captureDevice, qtMode, avMode)) {
+        qDebugCamera() << Q_FUNC_INFO << "exposure mode not supported";
+        return false;
+    }
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+                       << "for configuration";
+        return false;
+    }
+
+    [captureDevice setExposureMode:avMode];
+    exposureModeChanged(qtMode);
+#else
+    Q_UNUSED(qtMode);
+#endif
+}
+
+bool AVFCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
+{
+    if (mode == QCamera::ExposureAuto)
+        return true;
+    if (mode != QCamera::ExposureManual)
+        return false;
+    AVCaptureDevice *captureDevice = device();
+    return captureDevice && [captureDevice isExposureModeSupported:AVCaptureExposureModeCustom];
+}
+
+void AVFCamera::applyFlashSettings()
+{
+    Q_ASSERT(isActive());
+
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice) {
+        qDebugCamera() << Q_FUNC_INFO << "no capture device found";
+        return;
+    }
+
+
+    const AVFConfigurationLock lock(captureDevice);
+
+    if (captureDevice.hasFlash) {
+        auto mode = flashMode();
+        if (mode == QCamera::FlashOff) {
+            captureDevice.flashMode = AVCaptureFlashModeOff;
+        } else {
+#ifdef Q_OS_IOS
+            if (![captureDevice isFlashAvailable]) {
+                qDebugCamera() << Q_FUNC_INFO << "flash is not available at the moment";
+                return;
+            }
+#endif
+            if (mode == QCamera::FlashOn)
+                captureDevice.flashMode = AVCaptureFlashModeOn;
+            else if (mode == QCamera::FlashAuto)
+                captureDevice.flashMode = AVCaptureFlashModeAuto;
+        }
+    }
+
+    if (captureDevice.hasTorch) {
+        auto mode = torchMode();
+        if (mode == QCamera::TorchOff) {
+            captureDevice.torchMode = AVCaptureTorchModeOff;
+        } else {
+#ifdef Q_OS_IOS
+            if (![captureDevice isTorchAvailable]) {
+                qDebugCamera() << Q_FUNC_INFO << "torch is not available at the moment";
+                return;
+            }
+#endif
+            if (mode == QCamera::TorchOn)
+                captureDevice.torchMode = AVCaptureTorchModeOn;
+            else if (mode == QCamera::TorchAuto)
+                captureDevice.torchMode = AVCaptureTorchModeAuto;
+        }
+    }
+}
+
+
+void AVFCamera::setExposureCompensation(float bias)
+{
+#ifdef Q_OS_IOS
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice) {
+        exposureCompensationChanged(bias);
+        return;
+    }
+
+    bias = qBound(captureDevice.minExposureTargetBias, bias, captureDevice.maxExposureTargetBias);
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        return false;
+    }
+
+    [captureDevice setExposureTargetBias:bias completionHandler:nil];
+    exposureCompensationChanged(bias);
+#else
+    Q_UNUSED(bias);
+#endif
+}
+
+void AVFCamera::setManualShutterSpeed(float value)
+{
+#ifdef Q_OS_IOS
+    if (value < 0) {
+        setExposureMode(QCamera::ExposureAuto);
+        return;
+    }
+
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice) {
+        manualShutterSpeedChanged(value);
+        return;
+    }
+
+    const CMTime newDuration = CMTimeMakeWithSeconds(value, captureDevice.exposureDuration.timescale);
+    if (!qt_check_exposure_duration(captureDevice, newDuration)) {
+        qDebugCamera() << Q_FUNC_INFO << "shutter speed value is out of range";
+        return;
+    }
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        return;
+    }
+
+    // Setting the shutter speed (exposure duration in Apple's terms,
+    // since there is no shutter actually) will also reset
+    // exposure mode into custom mode.
+    [captureDevice setExposureModeCustomWithDuration:newDuration
+                                                 ISO:AVCaptureISOCurrent
+                                   completionHandler:nil];
+
+    manualShutterSpeedChanged(value);
+
+#else
+    Q_UNUSED(value);
+#endif
+}
+
+float AVFCamera::shutterSpeed() const
+{
+#ifdef Q_OS_IOS
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice)
+        return -1.;
+    auto duration = captureDevice.exposureDuration;
+    return CMTimeGetSeconds(duration);
+#else
+    return -1;
+#endif
+}
+
+void AVFCamera::setManualIsoSensitivity(int value)
+{
+#ifdef Q_OS_IOS
+    if (value < 0) {
+        setExposureMode(QCamera::ExposureAuto);
+        return;
+    }
+
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice) {
+        manualIsoSensitivityChanged(value);
+        return;
+    }
+
+    if (!qt_check_ISO_value(captureDevice, value.toInt())) {
+        qDebugCamera() << Q_FUNC_INFO << "ISO value is out of range";
+        return false;
+    }
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+                       << "for configuration";
+        return false;
+    }
+
+    // Setting the ISO will also reset
+    // exposure mode to the custom mode.
+    [captureDevice setExposureModeCustomWithDuration:AVCaptureExposureDurationCurrent
+                                                 ISO:value
+                                   completionHandler:nil];
+
+    manualIsoSensitivityChanged(value);
+#else
+    Q_UNUSED(value);
+#endif
+}
+
+int AVFCamera::isoSensitivity() const
+{
+    return manualIsoSensitivity();
+}
+
 
 #include "moc_avfcamera_p.cpp"

@@ -39,7 +39,6 @@
 
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
-#include "qandroidcameraexposurecontrol_p.h"
 #include "qandroidcameraimageprocessingcontrol_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcaptureservice_p.h"
@@ -117,11 +116,6 @@ void QAndroidCameraControl::setCaptureSession(QPlatformMediaCaptureSession *sess
 
     connect(m_cameraSession, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
 
-}
-
-QPlatformCameraExposure *QAndroidCameraControl::exposureControl()
-{
-    return m_cameraSession->exposureControl();
 }
 
 QPlatformCameraImageProcessing *QAndroidCameraControl::imageProcessingControl()
@@ -226,20 +220,86 @@ void QAndroidCameraControl::onCameraOpened()
         m_zoomRatios.clear();
         m_maximumZoom = 1.0;
     }
+
+    m_minExposureCompensationIndex = m_cameraSession->camera()->getMinExposureCompensation();
+    m_maxExposureCompensationIndex = m_cameraSession->camera()->getMaxExposureCompensation();
+    m_exposureCompensationStep = m_cameraSession->camera()->getExposureCompensationStep();
+    exposureCompensationRangeChanged(m_minExposureCompensationIndex*m_exposureCompensationStep,
+                                     m_maxExposureCompensationIndex*m_exposureCompensationStep);
+
+    m_supportedExposureModes.clear();
+    QStringList sceneModes = m_cameraSession->camera()->getSupportedSceneModes();
+    if (!sceneModes.isEmpty()) {
+        for (int i = 0; i < sceneModes.size(); ++i) {
+            const QString &sceneMode = sceneModes.at(i);
+            if (sceneMode == QLatin1String("auto"))
+                m_supportedExposureModes << QCamera::ExposureAuto;
+            else if (sceneMode == QLatin1String("beach"))
+                m_supportedExposureModes << QCamera::ExposureBeach;
+            else if (sceneMode == QLatin1String("night"))
+                m_supportedExposureModes << QCamera::ExposureNight;
+            else if (sceneMode == QLatin1String("portrait"))
+                m_supportedExposureModes << QCamera::ExposurePortrait;
+            else if (sceneMode == QLatin1String("snow"))
+                m_supportedExposureModes << QCamera::ExposureSnow;
+            else if (sceneMode == QLatin1String("sports"))
+                m_supportedExposureModes << QCamera::ExposureSports;
+            else if (sceneMode == QLatin1String("action"))
+                m_supportedExposureModes << QCamera::ExposureAction;
+            else if (sceneMode == QLatin1String("landscape"))
+                m_supportedExposureModes << QCamera::ExposureLandscape;
+            else if (sceneMode == QLatin1String("night-portrait"))
+                m_supportedExposureModes << QCamera::ExposureNightPortrait;
+            else if (sceneMode == QLatin1String("theatre"))
+                m_supportedExposureModes << QCamera::ExposureTheatre;
+            else if (sceneMode == QLatin1String("sunset"))
+                m_supportedExposureModes << QCamera::ExposureSunset;
+            else if (sceneMode == QLatin1String("steadyphoto"))
+                m_supportedExposureModes << QCamera::ExposureSteadyPhoto;
+            else if (sceneMode == QLatin1String("fireworks"))
+                m_supportedExposureModes << QCamera::ExposureFireworks;
+            else if (sceneMode == QLatin1String("party"))
+                m_supportedExposureModes << QCamera::ExposureParty;
+            else if (sceneMode == QLatin1String("candlelight"))
+                m_supportedExposureModes << QCamera::ExposureCandlelight;
+            else if (sceneMode == QLatin1String("barcode"))
+                m_supportedExposureModes << QCamera::ExposureBarcode;
+        }
+    }
+
+    setExposureCompensation(exposureCompensation());
+    setExposureMode(exposureMode());
+
+    isFlashSupported = false;
+    isFlashAutoSupported = false;
+    isTorchSupported = false;
+
+    QStringList flashModes = m_cameraSession->camera()->getSupportedFlashModes();
+    for (int i = 0; i < flashModes.size(); ++i) {
+        const QString &flashMode = flashModes.at(i);
+        if (flashMode == QLatin1String("auto"))
+            isFlashAutoSupported = true;
+        else if (flashMode == QLatin1String("on"))
+            isFlashSupported = true;
+        else if (flashMode == QLatin1String("torch"))
+            isTorchSupported = true;
+    }
+
+    setFlashMode(flashMode());
 }
 
 //void QAndroidCameraFocusControl::onCameraCaptureModeChanged()
 //{
-//    if (m_session->camera() && m_focusMode == QCamera::FocusModeAudio) {
+//    if (m_cameraSession->camera() && m_focusMode == QCamera::FocusModeAudio) {
 //        QString focusMode;
-//        if ((m_session->captureMode().testFlag(QCamera::CaptureVideo) && m_continuousVideoFocusSupported)
+//        if ((m_cameraSession->captureMode().testFlag(QCamera::CaptureVideo) && m_continuousVideoFocusSupported)
 //                || !m_continuousPictureFocusSupported) {
 //            focusMode = QLatin1String("continuous-video");
 //        } else {
 //            focusMode = QLatin1String("continuous-picture");
 //        }
-//        m_session->camera()->setFocusMode(focusMode);
-//        m_session->camera()->cancelAutoFocus();
+//        m_cameraSession->camera()->setFocusMode(focusMode);
+//        m_cameraSession->camera()->cancelAutoFocus();
 //    }
 //}
 
@@ -298,6 +358,164 @@ void QAndroidCameraControl::zoomTo(float factor, float rate)
     float newZoom = m_zoomRatios.at(validZoomIndex) / qreal(100);
     m_cameraSession->camera()->setZoom(validZoomIndex);
     zoomFactorChanged(newZoom);
+}
+
+void QAndroidCameraControl::setFlashMode(QCamera::FlashMode mode)
+{
+    if (!m_cameraSession->camera())
+        return;
+
+    if (!isFlashModeSupported(mode))
+        return;
+
+    QString flashMode;
+    if (mode == QCamera::FlashAuto)
+        flashMode = QLatin1String("auto");
+    else if (mode == QCamera::FlashOn)
+        flashMode = QLatin1String("on");
+    else // FlashOff
+        flashMode = QLatin1String("off");
+
+    m_cameraSession->camera()->setFlashMode(flashMode);
+    flashModeChanged(mode);
+}
+
+bool QAndroidCameraControl::isFlashModeSupported(QCamera::FlashMode mode) const
+{
+    if (!m_cameraSession->camera())
+        return false;
+    switch (mode) {
+    case QCamera::FlashOff:
+        return true;
+    case QCamera::FlashOn:
+        return isFlashSupported;
+    case QCamera::FlashAuto:
+        return isFlashAutoSupported;
+    }
+}
+
+bool QAndroidCameraControl::isFlashReady() const
+{
+    // Android doesn't have an API for that
+    return true;
+}
+
+void QAndroidCameraControl::setTorchMode(QCamera::TorchMode mode)
+{
+    auto *camera = m_cameraSession->camera();
+    if (!camera || !isTorchSupported || mode == QCamera::TorchAuto)
+        return;
+
+    if (mode == QCamera::TorchOn) {
+        camera->setFlashMode(QLatin1String("torch"));
+    } else if (mode == QCamera::TorchOff) {
+        // if torch was enabled, it first needs to be turned off before restoring the flash mode
+        camera->setFlashMode(QLatin1String("off"));
+        setFlashMode(flashMode());
+    }
+    torchModeChanged(mode);
+}
+
+bool QAndroidCameraControl::isTorchModeSupported(QCamera::TorchMode mode) const
+{
+    if (!m_cameraSession->camera())
+        return false;
+    switch (mode) {
+    case QCamera::TorchOff:
+        return true;
+    case QCamera::TorchOn:
+        return isTorchSupported;
+    case QCamera::TorchAuto:
+        return false;
+    }
+}
+
+void QAndroidCameraControl::setExposureMode(QCamera::ExposureMode mode)
+{
+    if (exposureMode() == mode)
+        return;
+
+    if (!m_cameraSession->camera())
+        return;
+
+    if (!m_supportedExposureModes.contains(mode))
+        return;
+
+    QString sceneMode;
+    switch (mode) {
+    case QCamera::ExposureAuto:
+        sceneMode = QLatin1String("auto");
+        break;
+    case QCamera::ExposureSports:
+        sceneMode = QLatin1String("sports");
+        break;
+    case QCamera::ExposurePortrait:
+        sceneMode = QLatin1String("portrait");
+        break;
+    case QCamera::ExposureBeach:
+        sceneMode = QLatin1String("beach");
+        break;
+    case QCamera::ExposureSnow:
+        sceneMode = QLatin1String("snow");
+        break;
+    case QCamera::ExposureNight:
+        sceneMode = QLatin1String("night");
+        break;
+    case QCamera::ExposureAction:
+        sceneMode = QLatin1String("action");
+        break;
+    case QCamera::ExposureLandscape:
+        sceneMode = QLatin1String("landscape");
+        break;
+    case QCamera::ExposureNightPortrait:
+        sceneMode = QLatin1String("night-portrait");
+        break;
+    case QCamera::ExposureTheatre:
+        sceneMode = QLatin1String("theatre");
+        break;
+    case QCamera::ExposureSunset:
+        sceneMode = QLatin1String("sunset");
+        break;
+    case QCamera::ExposureSteadyPhoto:
+        sceneMode = QLatin1String("steadyphoto");
+        break;
+    case QCamera::ExposureFireworks:
+        sceneMode = QLatin1String("fireworks");
+        break;
+    case QCamera::ExposureParty:
+        sceneMode = QLatin1String("party");
+        break;
+    case QCamera::ExposureCandlelight:
+        sceneMode = QLatin1String("candlelight");
+        break;
+    case QCamera::ExposureBarcode:
+        sceneMode = QLatin1String("barcode");
+        break;
+    default:
+        sceneMode = QLatin1String("auto");
+        mode = QCamera::ExposureAuto;
+        break;
+    }
+
+    m_cameraSession->camera()->setSceneMode(sceneMode);
+    exposureModeChanged(mode);
+}
+
+bool QAndroidCameraControl::isExposureModeSupported(QCamera::ExposureMode mode) const
+{
+    return m_supportedExposureModes.contains(mode);
+}
+
+void QAndroidCameraControl::setExposureCompensation(float bias)
+{
+    if (exposureCompensation() == bias || !m_cameraSession->camera())
+        return;
+
+    int biasIndex = qRound(bias / m_exposureCompensationStep);
+    biasIndex = qBound(m_minExposureCompensationIndex, biasIndex, m_maxExposureCompensationIndex);
+    float comp = biasIndex * m_exposureCompensationStep;
+    m_cameraSession->camera()->setExposureCompensation(biasIndex);
+    exposureCompensationChanged(comp);
 }
 
 QT_END_NAMESPACE

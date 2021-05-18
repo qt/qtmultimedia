@@ -45,7 +45,6 @@
 #include "qandroidvideooutput_p.h"
 #include "qandroidmultimediautils_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
-#include "qandroidcameraexposurecontrol_p.h"
 #include "qandroidcameraimageprocessingcontrol_p.h"
 #include <qvideosink.h>
 #include <QtConcurrent/qtconcurrentrun.h>
@@ -79,7 +78,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
                 QMediaStorageLocation::Pictures,
                 AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM));
 
-    m_cameraExposureControl = new QAndroidCameraExposureControl(this);
     m_cameraImageProcessingControl = new QAndroidCameraImageProcessingControl(this);
 
     if (qApp) {
@@ -90,7 +88,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
 
 QAndroidCameraSession::~QAndroidCameraSession()
 {
-    delete m_cameraExposureControl;
     delete m_cameraImageProcessingControl;
     delete m_renderer;
 

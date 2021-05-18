@@ -33,7 +33,6 @@
 
 #include <qvideosink.h>
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraexposure_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformcameraimageprocessing_p.h>
 #include <qcamera.h>
@@ -154,7 +153,8 @@ void tst_QCamera::testSimpleCameraExposure()
     QMockCamera::Simple simple;
 
     QCamera camera;
-    QVERIFY(!camera.isExposureModeSupported(QCamera::ExposureAuto));
+    QVERIFY(camera.isExposureModeSupported(QCamera::ExposureAuto));
+    QVERIFY(!camera.isExposureModeSupported(QCamera::ExposureManual));
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
     camera.setExposureMode(QCamera::ExposureManual);//should be ignored
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
@@ -170,14 +170,16 @@ void tst_QCamera::testSimpleCameraExposure()
     QCOMPARE(camera.exposureCompensation(), 0.0);
 
     QCOMPARE(camera.isoSensitivity(), -1);
-    QVERIFY(camera.supportedIsoSensitivities().isEmpty());
+    QCOMPARE(camera.minimumIsoSensitivity(), -1);
+    QCOMPARE(camera.maximumIsoSensitivity(), -1);
     camera.setManualIsoSensitivity(100);
     QCOMPARE(camera.isoSensitivity(), -1);
     camera.setAutoIsoSensitivity();
     QCOMPARE(camera.isoSensitivity(), -1);
 
     QVERIFY(camera.shutterSpeed() < 0);
-    QVERIFY(camera.supportedShutterSpeeds().isEmpty());
+    QCOMPARE(camera.minimumShutterSpeed(), -1.);
+    QCOMPARE(camera.maximumShutterSpeed(), -1.);
     camera.setAutoShutterSpeed();
     QVERIFY(camera.shutterSpeed() < 0);
     camera.setManualShutterSpeed(1/128.0);
@@ -190,11 +192,11 @@ void tst_QCamera::testSimpleCameraFocus()
 
     QCamera camera;
 
-    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeAuto));
+    QVERIFY(camera.isFocusModeSupported(QCamera::FocusModeAuto));
     QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeInfinity));
 
     QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
-    camera.setFocusMode(QCamera::FocusModeAuto);
+    camera.setFocusMode(QCamera::FocusModeInfinity);
     QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
 
     QCOMPARE(camera.maximumZoomFactor(), 1.0);
@@ -206,7 +208,7 @@ void tst_QCamera::testSimpleCameraFocus()
 
     QCOMPARE(camera.customFocusPoint(), QPointF(-1., -1.));
     camera.setCustomFocusPoint(QPointF(1.0, 1.0));
-    QCOMPARE(camera.customFocusPoint(), QPointF(-1, -1));
+    QCOMPARE(camera.customFocusPoint(), QPointF(-1., -1.));
 }
 
 void tst_QCamera::testSimpleCameraCapture()
@@ -370,28 +372,24 @@ void tst_QCamera::testCameraExposure()
     camera.setExposureCompensation(2.0);
     QCOMPARE(camera.exposureCompensation(), 2.0);
 
-    int minIso = camera.supportedIsoSensitivities().first();
-    int maxIso = camera.supportedIsoSensitivities().last();
-    QVERIFY(camera.isoSensitivity() > 0);
-    QCOMPARE(camera.requestedIsoSensitivity(), -1);
+    int minIso = camera.minimumIsoSensitivity();
+    int maxIso = camera.maximumIsoSensitivity();
+    QCOMPARE(camera.isoSensitivity(), 100);
     QVERIFY(minIso > 0);
     QVERIFY(maxIso > 0);
     camera.setManualIsoSensitivity(minIso);
     QCOMPARE(camera.isoSensitivity(), minIso);
     camera.setManualIsoSensitivity(maxIso*10);
     QCOMPARE(camera.isoSensitivity(), maxIso);
-    QCOMPARE(camera.requestedIsoSensitivity(), maxIso*10);
 
     camera.setManualIsoSensitivity(-10);
     QCOMPARE(camera.isoSensitivity(), minIso);
-    QCOMPARE(camera.requestedIsoSensitivity(), -10);
     camera.setAutoIsoSensitivity();
     QCOMPARE(camera.isoSensitivity(), 100);
-    QCOMPARE(camera.requestedIsoSensitivity(), -1);
 
-    QCOMPARE(camera.requestedShutterSpeed(), -1.0);
-    qreal minShutterSpeed = camera.supportedShutterSpeeds().first();
-    qreal maxShutterSpeed = camera.supportedShutterSpeeds().last();
+    qreal minShutterSpeed = camera.minimumShutterSpeed();
+    qreal maxShutterSpeed = camera.maximumShutterSpeed();
+    qDebug() << minShutterSpeed << maxShutterSpeed;
     QVERIFY(minShutterSpeed > 0);
     QVERIFY(maxShutterSpeed > 0);
     QVERIFY(camera.shutterSpeed() >= minShutterSpeed);
@@ -400,18 +398,14 @@ void tst_QCamera::testCameraExposure()
     camera.setAutoShutterSpeed();
     QVERIFY(camera.shutterSpeed() >= minShutterSpeed);
     QVERIFY(camera.shutterSpeed() <= maxShutterSpeed);
-    QCOMPARE(camera.requestedShutterSpeed(), -1.0);
 
     camera.setManualShutterSpeed(0);
     QCOMPARE(camera.shutterSpeed(), minShutterSpeed);
-    QCOMPARE(camera.requestedShutterSpeed()+1.0, 1.0);
 
     camera.setManualShutterSpeed(10000);
     QCOMPARE(camera.shutterSpeed(), maxShutterSpeed);
-    QCOMPARE(camera.requestedShutterSpeed(), 10000.0);
 
     camera.setAutoShutterSpeed();
-    QCOMPARE(camera.requestedShutterSpeed(), -1.0);
 }
 
 void tst_QCamera::testCameraFocus()
@@ -424,7 +418,9 @@ void tst_QCamera::testCameraFocus()
 
     QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
     camera.setFocusMode(QCamera::FocusModeManual);
-    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeManual);
+    camera.setFocusMode(QCamera::FocusModeInfinity);
+    QCOMPARE(camera.focusMode(), QCamera::FocusModeManual);
     camera.setFocusMode(QCamera::FocusModeAuto);
     QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
 
@@ -844,15 +840,14 @@ void tst_QCamera::testFocusMode()
     QCamera camera;
     session.setCamera(&camera);
 
-    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeHyperfocal));
-    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeAutoNear));
+    QVERIFY(!camera.isFocusModeSupported(QCamera::FocusModeInfinity));
+    QVERIFY(camera.isFocusModeSupported(QCamera::FocusModeAutoNear));
     QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
-    camera.setFocusMode(QCamera::FocusModeHyperfocal);
-    QVERIFY(camera.focusMode()!= QCamera::FocusModeHyperfocal);
+    camera.setFocusMode(QCamera::FocusModeInfinity);
+    QVERIFY(camera.focusMode() != QCamera::FocusModeInfinity);
     QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
     camera.setFocusMode(QCamera::FocusModeAutoNear);
-    QVERIFY(camera.focusMode()!= QCamera::FocusModeAutoNear);
-    QCOMPARE(camera.focusMode(), QCamera::FocusModeAuto);
+    QVERIFY(camera.focusMode() == QCamera::FocusModeAutoNear);
 }
 
 void tst_QCamera::testZoomChanged()
@@ -934,7 +929,6 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     session.setCamera(&camera);
 
     QSignalSpy spySignalShutterSpeedChanged(&camera, SIGNAL(shutterSpeedChanged(qreal)));
-    QSignalSpy spySignalShutterSpeedRangeChanged(&camera, SIGNAL(shutterSpeedRangeChanged()));
 
     QVERIFY(spySignalShutterSpeedChanged.count() ==0);
 
@@ -942,7 +936,6 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     QTest::qWait(100);
 
     QVERIFY(spySignalShutterSpeedChanged.count() ==1);
-    QVERIFY(spySignalShutterSpeedRangeChanged.count() ==1);
 }
 
 void tst_QCamera::testSignalFlashReady()
@@ -953,15 +946,15 @@ void tst_QCamera::testSignalFlashReady()
 
     QSignalSpy spyflashReady(&camera,SIGNAL(flashReady(bool)));
 
-    QVERIFY(spyflashReady.count() ==0);
+    QVERIFY(spyflashReady.count() == 0);
 
-    QVERIFY(camera.flashMode() ==QCamera::FlashAuto);
+    QVERIFY(camera.flashMode() == QCamera::FlashAuto);
 
     camera.setFlashMode(QCamera::FlashOff);//set theFlashMode to QCamera::FlashOff
 
-    QVERIFY(camera.flashMode() ==QCamera::FlashOff);
+    QVERIFY(camera.flashMode() == QCamera::FlashOff);
 
-    QVERIFY(spyflashReady.count() ==1);
+    QCOMPARE(spyflashReady.count(), 1);
 }
 
 QTEST_MAIN(tst_QCamera)

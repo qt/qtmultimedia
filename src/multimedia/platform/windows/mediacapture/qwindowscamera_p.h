@@ -74,7 +74,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    QPlatformCameraExposure *exposureControl() override;
     QPlatformCameraImageProcessing *imageProcessingControl() override;
 
 private Q_SLOTS:

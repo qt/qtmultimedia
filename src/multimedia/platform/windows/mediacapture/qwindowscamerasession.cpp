@@ -40,7 +40,6 @@
 #include "qwindowscamerasession_p.h"
 
 #include "qwindowscamerareader_p.h"
-#include "qwindowscameraexposure_p.h"
 #include "qwindowscameraimageprocessing_p.h"
 #include "qwindowsmultimediautils_p.h"
 #include <qvideosink.h>
@@ -52,7 +51,6 @@ QWindowsCameraSession::QWindowsCameraSession(QObject *parent)
     : QObject(parent)
 {
     m_cameraReader = new QWindowsCameraReader(this);
-    m_cameraExposure = new QWindowsCameraExposure(this);
     m_cameraImageProcessing = new QWindowsCameraImageProcessing(this);
     connect(m_cameraReader, SIGNAL(streamingStarted()), this, SLOT(handleStreamingStarted()));
     connect(m_cameraReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
@@ -64,7 +62,6 @@ QWindowsCameraSession::QWindowsCameraSession(QObject *parent)
 QWindowsCameraSession::~QWindowsCameraSession()
 {
     delete m_cameraImageProcessing;
-    delete m_cameraExposure;
     delete m_cameraReader;
 }
 
@@ -125,11 +122,6 @@ int QWindowsCameraSession::capture(const QString &fileName)
 void QWindowsCameraSession::setVideoSink(QVideoSink *surface)
 {
     m_cameraReader->setSurface(surface);
-}
-
-QWindowsCameraExposure *QWindowsCameraSession::exposureControl()
-{
-    return m_cameraExposure;
 }
 
 QWindowsCameraImageProcessing *QWindowsCameraSession::imageProcessingControl()

@@ -32,7 +32,6 @@
 #include "private/qplatformcamera_p.h"
 #include "qcamerainfo.h"
 #include "qmockcameraimageprocessing.h"
-#include "qmockcameraexposure.h"
 #include <qtimer.h>
 
 class QMockCamera : public QPlatformCamera
@@ -54,8 +53,14 @@ public:
           m_propertyChangesSupported(false)
     {
         if (!simpleCamera) {
-            mockExposure = new QMockCameraExposure(this);
             mockImageProcessing = new QMockCameraImageProcessing(this);
+            minIsoChanged(100);
+            maxIsoChanged(800);
+            minShutterSpeedChanged(.001);
+            maxShutterSpeedChanged(1);
+            exposureCompensationRangeChanged(-2, 2);
+            maximumZoomFactorChanged(4.);
+            setFlashMode(QCamera::FlashAuto);
         }
     }
 
@@ -90,17 +95,75 @@ public:
         m_camera = camera;
     }
 
-    void setFocusMode(QCamera::FocusMode mode) override { focusModeChanged(mode); }
-    bool isFocusModeSupported(QCamera::FocusMode /*mode*/) const override { return true; }
+    void setFocusMode(QCamera::FocusMode mode) override
+    {
+        if (isFocusModeSupported(mode))
+            focusModeChanged(mode);
+    }
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override
+    { return simpleCamera ? mode == QCamera::FocusModeAuto : mode != QCamera::FocusModeInfinity; }
 
-    bool isCustomFocusPointSupported() const override { return true; }
-    void setCustomFocusPoint(const QPointF &point) override { customFocusPointChanged(point); }
+    bool isCustomFocusPointSupported() const override { return !simpleCamera; }
+    void setCustomFocusPoint(const QPointF &point) override
+    {
+        if (!simpleCamera)
+            customFocusPointChanged(point);
+    }
 
-    void setFocusDistance(float d) override { focusDistanceChanged(d); }
+    void setFocusDistance(float d) override
+    {
+        if (!simpleCamera)
+            focusDistanceChanged(d);
+    }
 
     void zoomTo(float newZoomFactor, float /*rate*/) override { zoomFactorChanged(newZoomFactor); }
 
-    QPlatformCameraExposure *exposureControl() override { return mockExposure; }
+    void setFlashMode(QCamera::FlashMode mode) override
+    {
+        if (!simpleCamera)
+            flashModeChanged(mode);
+        flashReadyChanged(mode != QCamera::FlashOff);
+    }
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override { return simpleCamera ? mode == QCamera::FlashOff : true; }
+    bool isFlashReady() const override { return flashMode() != QCamera::FlashOff; }
+
+    void setExposureMode(QCamera::ExposureMode mode) override
+    {
+        if (!simpleCamera && isExposureModeSupported(mode))
+            exposureModeChanged(mode);
+    }
+    bool isExposureModeSupported(QCamera::ExposureMode mode) const override
+    {
+        return simpleCamera ? mode == QCamera::ExposureAuto : mode <= QCamera::ExposureBeach;
+    }
+    void setExposureCompensation(float c) override
+    {
+        if (!simpleCamera)
+            exposureCompensationChanged(qBound(-2., c, 2.));
+    }
+    int isoSensitivity() const override
+    {
+        if (simpleCamera)
+            return -1;
+        return manualIsoSensitivity() > 0 ? manualIsoSensitivity() : 100;
+    }
+    void setManualIsoSensitivity(int iso) override
+    {
+        if (!simpleCamera)
+            isoSensitivityChanged(qBound(100, iso, 800));
+    }
+    void setManualShutterSpeed(float secs) override
+    {
+        if (!simpleCamera)
+            shutterSpeedChanged(qBound(0.001, secs, 1.));
+    }
+    float shutterSpeed() const override
+    {
+        if (simpleCamera)
+            return -1.;
+        return manualShutterSpeed() > 0 ? manualShutterSpeed() : .05;
+    }
+
     QPlatformCameraImageProcessing *imageProcessingControl() override { return mockImageProcessing; }
 
     bool m_active = false;
@@ -108,7 +171,6 @@ public:
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;
 
-    QMockCameraExposure *mockExposure = nullptr;
     QMockCameraImageProcessing *mockImageProcessing = nullptr;
 };
 

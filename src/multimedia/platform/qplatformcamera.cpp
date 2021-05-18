@@ -216,6 +216,73 @@ void QPlatformCamera::focusDistanceChanged(float d)
 }
 
 
+void QPlatformCamera::flashReadyChanged(bool ready)
+{
+    if (m_flashReady == ready)
+        return;
+    m_flashReady = ready;
+    emit m_camera->flashReady(m_flashReady);
+}
+
+void QPlatformCamera::flashModeChanged(QCamera::FlashMode mode)
+{
+    if (m_flashMode == mode)
+        return;
+    m_flashMode = mode;
+    emit m_camera->flashModeChanged();
+}
+
+void QPlatformCamera::torchModeChanged(QCamera::TorchMode mode)
+{
+    if (m_torchMode == mode)
+        return;
+    m_torchMode = mode;
+    emit m_camera->torchModeChanged();
+}
+
+void QPlatformCamera::exposureModeChanged(QCamera::ExposureMode mode)
+{
+    if (m_exposureMode == mode)
+        return;
+    m_exposureMode = mode;
+    emit m_camera->exposureModeChanged();
+}
+
+void QPlatformCamera::exposureCompensationChanged(float compensation)
+{
+    if (m_exposureCompensation == compensation)
+        return;
+    m_exposureCompensation = compensation;
+    emit m_camera->exposureCompensationChanged(compensation);
+}
+
+void QPlatformCamera::exposureCompensationRangeChanged(float min, float max)
+{
+    if (m_minExposureCompensation == min && m_maxExposureCompensation == max)
+        return;
+    m_minExposureCompensation = min;
+    m_maxExposureCompensation = max;
+    // tell frontend
+}
+
+void QPlatformCamera::isoSensitivityChanged(int iso)
+{
+    if (m_iso == iso)
+        return;
+    m_iso = iso;
+    emit m_camera->isoSensitivityChanged(iso);
+}
+
+void QPlatformCamera::shutterSpeedChanged(float speed)
+{
+    if (m_shutterSpeed == speed)
+        return;
+    m_shutterSpeed = speed;
+    emit m_camera->shutterSpeedChanged(speed);
+}
+
+
+
 QT_END_NAMESPACE
 
 #include "moc_qplatformcamera_p.cpp"
