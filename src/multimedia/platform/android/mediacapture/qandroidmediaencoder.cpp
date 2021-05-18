@@ -97,12 +97,12 @@ void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
 
     if (m_service)
         setState(QMediaEncoder::StoppedState);
+    if (m_session)
+        m_session->setMediaEncoder(nullptr);
 
     m_service = captureSession;
-    if (!m_service) {
-        disconnect(m_session, nullptr, this, nullptr);
+    if (!m_service)
         return;
-    }
     m_session = m_service->captureSession();
     Q_ASSERT(m_session);
     m_session->setMediaEncoder(this);
