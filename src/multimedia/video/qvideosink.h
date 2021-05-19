@@ -109,6 +109,10 @@ Q_SIGNALS:
     void aspectRatioModeChanged(Qt::AspectRatioMode mode);
 
 private:
+    friend class QMediaPlayerPrivate;
+    friend class QMediaCaptureSessionPrivate;
+    void setSource(QObject *source);
+
     QVideoSinkPrivate *d = nullptr;
 };
 

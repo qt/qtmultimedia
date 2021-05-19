@@ -34,6 +34,7 @@
 #include <QtQml/qqmlcomponent.h>
 #include <QQuickView>
 #include <QVideoSink>
+#include <QMediaPlayer>
 
 #include "private/qquickvideooutput_p.h"
 
@@ -41,41 +42,13 @@
 #include <qvideoframeformat.h>
 #include <qvideoframe.h>
 
-class SurfaceHolder : public QObject
+void presentDummyFrame(QVideoSink *sink, const QSize &size)
 {
-    Q_OBJECT
-    Q_PROPERTY(QVideoSink *videoSurface READ videoSurface WRITE setVideoSurface)
-public:
-    SurfaceHolder(QObject *parent)
-        : QObject(parent)
-        , m_surface(nullptr)
-    {
-    }
-
-    [[nodiscard]] QVideoSink *videoSurface() const
-    {
-        return m_surface;
-    }
-    void setVideoSurface(QVideoSink *surface)
-    {
-        m_surface = surface;
-    }
-
-    void presentDummyFrame(const QSize &size);
-
-private:
-    QVideoSink *m_surface;
-
-};
-
-// Starts the surface and puts a frame
-void SurfaceHolder::presentDummyFrame(const QSize &size)
-{
-    if (m_surface) {
+    if (sink) {
         QVideoFrameFormat format(size, QVideoFrameFormat::Format_ARGB32_Premultiplied);
         QVideoFrame frame(format);
 
-        m_surface->newVideoFrame(frame);
+        sink->newVideoFrame(frame);
 
         // Have to spin an event loop or two for the surfaceFormatChanged() signal
         qApp->processEvents();
@@ -91,7 +64,6 @@ public:
     ~tst_QQuickVideoOutput() override
     {
         delete m_mappingOutput;
-        delete m_mappingSurface;
         delete m_mappingComponent;
     }
 
@@ -109,26 +81,14 @@ private slots:
     void contentRect();
     void contentRect_data();
 
-    void mappingPoint();
-    void mappingPoint_data();
-    void mappingRect();
-    void mappingRect_data();
-
-    // XXX May be worth adding tests that the surface activeChanged signals are sent appropriately
-    // to holder?
-
 private:
     QQmlEngine m_engine;
 
     // Variables used for the mapping test
     QQmlComponent *m_mappingComponent = nullptr;
-    QObject *m_mappingOutput = nullptr;
-    SurfaceHolder *m_mappingSurface = nullptr;
+    QQuickVideoOutput *m_mappingOutput = nullptr;
 
     void updateOutputGeometry(QObject *output);
-
-    QRectF invokeR2R(QObject *object, const char *signature, const QRectF &rect);
-    QPointF invokeP2P(QObject *object, const char *signature, const QPointF &point);
 };
 
 void tst_QQuickVideoOutput::initTestCase()
@@ -136,15 +96,17 @@ void tst_QQuickVideoOutput::initTestCase()
     // We initialize the mapping vars here
     m_mappingComponent = new QQmlComponent(&m_engine);
     m_mappingComponent->loadUrl(QUrl("qrc:/main.qml"));
-    m_mappingSurface = new SurfaceHolder(this);
 
-    m_mappingOutput = m_mappingComponent->create();
-    QVERIFY(m_mappingOutput != nullptr);
+    auto *component = m_mappingComponent->create();
+    QVERIFY(component != nullptr);
 
-    m_mappingOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(m_mappingSurface)));
+    m_mappingOutput = qobject_cast<QQuickVideoOutput *>(component);
+    QVERIFY(m_mappingOutput);
 
-    m_mappingSurface->presentDummyFrame(QSize(200,100)); // this should start m_surface
+    presentDummyFrame(m_mappingOutput->videoSink(), QSize(200,100));
     updateOutputGeometry(m_mappingOutput);
+    // First make sure the component has processed the frame
+    QCOMPARE(m_mappingOutput->sourceRect(), QRectF(0, 0, 200,100));
 }
 
 tst_QQuickVideoOutput::tst_QQuickVideoOutput()
@@ -259,61 +221,63 @@ void tst_QQuickVideoOutput::surfaceSource()
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != nullptr);
 
-    SurfaceHolder holder(this);
+    QMediaPlayer holder(this);
 
-    QCOMPARE(holder.videoSurface(), static_cast<QVideoSink *>(nullptr));
+    QCOMPARE(holder.videoOutput(), nullptr);
 
-    videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
+    holder.setVideoOutput(videoOutput);
 
-    QVERIFY(holder.videoSurface() != nullptr);
+    QVERIFY(holder.videoOutput() != nullptr);
+    QVERIFY(holder.videoSink() != nullptr);
 
     delete videoOutput;
 
     // This should clear the surface
-    QCOMPARE(holder.videoSurface(), static_cast<QVideoSink *>(nullptr));
+    QVERIFY(holder.videoOutput() == nullptr);
+    QVERIFY(holder.videoSink() == nullptr);
 
     // Also, creating two sources, setting them in order, and destroying the first
-    // should not zero holder.videoSurface()
+    // should not zero holder.videoSink()
     videoOutput = component.create();
-    videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
+    holder.setVideoOutput(videoOutput);
 
-    QVideoSink *surface = holder.videoSurface();
-    QVERIFY(holder.videoSurface());
+    QObject *surface = holder.videoOutput();
+    QVERIFY(surface != nullptr);
 
     QObject *videoOutput2 = component.create();
     QVERIFY(videoOutput2);
-    videoOutput2->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
-    QVERIFY(holder.videoSurface());
-    QVERIFY(holder.videoSurface() != surface); // Surface should have changed
-    surface = holder.videoSurface();
+    holder.setVideoOutput(videoOutput2);
+    QVERIFY(holder.videoOutput() != nullptr);
+    QVERIFY(holder.videoOutput() != surface); // Surface should have changed
+    surface = holder.videoOutput();
+    QVERIFY(surface == videoOutput2);
 
     // Now delete first one
     delete videoOutput;
-    QVERIFY(holder.videoSurface());
-    QVERIFY(holder.videoSurface() == surface); // Should not have changed surface
+    QVERIFY(holder.videoOutput() == surface); // Should not have changed surface
 
     // Now create a second surface and assign it as the source
     // The old surface holder should be zeroed
-    SurfaceHolder holder2(this);
-    videoOutput2->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder2)));
+    QMediaPlayer holder2(this);
+    holder2.setVideoOutput(videoOutput2);
 
-    QCOMPARE(holder.videoSurface(), static_cast<QVideoSink*>(nullptr));
-    QVERIFY(holder2.videoSurface() != nullptr);
+    QVERIFY(holder.videoOutput() == nullptr);
+    QVERIFY(holder2.videoOutput() != nullptr);
 
     // Finally a combination - set the same source to two things, then assign a new source
     // to the first output - should not reset the first source
     videoOutput = component.create();
-    videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder2)));
+    holder2.setVideoOutput(videoOutput);
 
     // Both vo and vo2 were pointed to holder2 - setting vo2 should not clear holder2
-    QVERIFY(holder2.videoSurface() != nullptr);
-    QVERIFY(holder.videoSurface() == nullptr);
-    videoOutput2->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
-    QVERIFY(holder2.videoSurface() != nullptr);
-    QVERIFY(holder.videoSurface() != nullptr);
+    QVERIFY(holder2.videoOutput() != nullptr);
+    QVERIFY(holder.videoOutput() == nullptr);
+    holder.setVideoOutput(videoOutput2);
+    QVERIFY(holder2.videoOutput() != nullptr);
+    QVERIFY(holder.videoOutput() != nullptr);
 
     // They should also be independent
-    QVERIFY(holder.videoSurface() != holder2.videoSurface());
+    QVERIFY(holder.videoOutput() != holder2.videoOutput());
 
     delete videoOutput;
     delete videoOutput2;
@@ -321,6 +285,12 @@ void tst_QQuickVideoOutput::surfaceSource()
 
 static const uchar rgb32ImageData[] =
 {//  B     G     R     A
+    0x00, 0x01, 0x02, 0xff, 0x03, 0x04, 0x05, 0xff,
+    0x06, 0x07, 0x08, 0xff, 0x09, 0x0a, 0x0b, 0xff,
+    0x00, 0x01, 0x02, 0xff, 0x03, 0x04, 0x05, 0xff,
+    0x06, 0x07, 0x08, 0xff, 0x09, 0x0a, 0x0b, 0xff,
+    0x00, 0x01, 0x02, 0xff, 0x03, 0x04, 0x05, 0xff,
+    0x06, 0x07, 0x08, 0xff, 0x09, 0x0a, 0x0b, 0xff,
     0x00, 0x01, 0x02, 0xff, 0x03, 0x04, 0x05, 0xff,
     0x06, 0x07, 0x08, 0xff, 0x09, 0x0a, 0x0b, 0xff
 };
@@ -335,14 +305,14 @@ void tst_QQuickVideoOutput::paintSurface()
     auto videoOutput = qobject_cast<QQuickVideoOutput *>(window.rootObject());
     QVERIFY(videoOutput);
 
-    auto surface = videoOutput->property("videoSurface").value<QVideoSink *>();
+    auto surface = videoOutput->videoSink();
     QVERIFY(surface);
     videoOutput->setSize(QSize(2, 2));
 
-    QVideoFrame frame(QVideoFrameFormat(QSize(2, 2), QVideoFrameFormat::Format_ARGB32));
+    QVideoFrame frame(QVideoFrameFormat(QSize(4, 4), QVideoFrameFormat::Format_ARGB32));
     frame.map(QVideoFrame::ReadWrite);
-    QCOMPARE(frame.mappedBytes(), 16);
-    memcpy(frame.bits(), rgb32ImageData, 16);
+    QCOMPARE(frame.mappedBytes(), 64);
+    memcpy(frame.bits(), rgb32ImageData, 64);
     frame.unmap();
     surface->newVideoFrame(frame);
 }
@@ -355,23 +325,23 @@ void tst_QQuickVideoOutput::sourceRect()
     QObject *videoOutput = component.create();
     QVERIFY(videoOutput != nullptr);
 
-    SurfaceHolder holder(this);
+    QMediaPlayer holder(this);
 
     QSignalSpy propSpy(videoOutput, SIGNAL(sourceRectChanged()));
 
-    videoOutput->setProperty("source", QVariant::fromValue(static_cast<QObject*>(&holder)));
+    holder.setVideoOutput(videoOutput);
 
     QRectF invalid(0,0,-1,-1);
 
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), invalid);
 
-    holder.presentDummyFrame(QSize(200,100));
+    presentDummyFrame(holder.videoSink(), QSize(200,100));
 
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
     QCOMPARE(propSpy.count(), 1);
 
     // Another frame shouldn't cause a source rect change
-    holder.presentDummyFrame(QSize(200,100));
+    presentDummyFrame(holder.videoSink(), QSize(200,100));
     QCOMPARE(propSpy.count(), 1);
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
 
@@ -407,226 +377,6 @@ void tst_QQuickVideoOutput::sourceRect()
     delete videoOutput;
 }
 
-void tst_QQuickVideoOutput::mappingPoint()
-{
-    QFETCH(QPointF, point);
-    QFETCH(int, orientation);
-    QFETCH(QQuickVideoOutput::FillMode, fillMode);
-    QFETCH(QPointF, expected);
-
-    QVERIFY(m_mappingOutput);
-    m_mappingOutput->setProperty("orientation", QVariant(orientation));
-    m_mappingOutput->setProperty("fillMode", QVariant::fromValue(fillMode));
-
-    updateOutputGeometry(m_mappingOutput);
-
-    QPointF output = invokeP2P(m_mappingOutput, "mapPointToItem", point);
-    QPointF reverse = invokeP2P(m_mappingOutput, "mapPointToSource", output);
-
-    QCOMPARE(output, expected);
-    QCOMPARE(reverse, point);
-
-    // Now the normalized versions
-    // Source rectangle is 200x100
-    QPointF normal(point.x() / 200, point.y() / 100);
-
-    output = invokeP2P(m_mappingOutput, "mapNormalizedPointToItem", normal);
-    reverse = invokeP2P(m_mappingOutput, "mapPointToSourceNormalized", output);
-
-    QCOMPARE(output, expected);
-    QCOMPARE(reverse, normal);
-}
-
-void tst_QQuickVideoOutput::mappingPoint_data()
-{
-    QTest::addColumn<QPointF>("point");
-    QTest::addColumn<int>("orientation");
-    QTest::addColumn<QQuickVideoOutput::FillMode>("fillMode");
-    QTest::addColumn<QPointF>("expected");
-
-    QQuickVideoOutput::FillMode stretch = QQuickVideoOutput::Stretch;
-    QQuickVideoOutput::FillMode fit = QQuickVideoOutput::PreserveAspectFit;
-    QQuickVideoOutput::FillMode crop = QQuickVideoOutput::PreserveAspectCrop;
-
-    // First make sure the component has processed the frame
-    QCOMPARE(m_mappingOutput->property("sourceRect").toRectF(), QRectF(0,0,200,100));
-
-    // 200x100 -> 150,100 stretch, 150x75 fit @ 12.5f, 200x100 @-25,0 crop
-
-    // Corners, then the center, then a point in the middle somewhere
-    QTest::newRow("s0-0") << QPointF(0,0) << 0 << stretch << QPointF(0,0);
-    QTest::newRow("s1-0") << QPointF(200,0) << 0 << stretch << QPointF(150,0);
-    QTest::newRow("s2-0") << QPointF(0,100) << 0 << stretch << QPointF(0,100);
-    QTest::newRow("s3-0") << QPointF(200,100) << 0 << stretch << QPointF(150,100);
-    QTest::newRow("s4-0") << QPointF(100,50) << 0 << stretch << QPointF(75,50);
-    QTest::newRow("s5-0") << QPointF(40,80) << 0 << stretch << QPointF(30,80);
-
-    QTest::newRow("f0-0") << QPointF(0,0) << 0 << fit << QPointF(0,12.5f);
-    QTest::newRow("f1-0") << QPointF(200,0) << 0 << fit << QPointF(150,12.5f);
-    QTest::newRow("f2-0") << QPointF(0,100) << 0 << fit << QPointF(0,87.5f);
-    QTest::newRow("f3-0") << QPointF(200,100) << 0 << fit << QPointF(150,87.5f);
-    QTest::newRow("f4-0") << QPointF(100,50) << 0 << stretch << QPointF(75,50);
-    QTest::newRow("f5-0") << QPointF(40,80) << 0 << stretch << QPointF(30,80);
-
-    QTest::newRow("c0-0") << QPointF(0,0) << 0 << crop << QPointF(-25,0);
-    QTest::newRow("c1-0") << QPointF(200,0) << 0 << crop << QPointF(175,0);
-    QTest::newRow("c2-0") << QPointF(0,100) << 0 << crop << QPointF(-25,100);
-    QTest::newRow("c3-0") << QPointF(200,100) << 0 << crop << QPointF(175,100);
-    QTest::newRow("c4-0") << QPointF(100,50) << 0 << stretch << QPointF(75,50);
-    QTest::newRow("c5-0") << QPointF(40,80) << 0 << stretch << QPointF(30,80);
-
-    // 90 degrees (anti clockwise)
-    QTest::newRow("s0-90") << QPointF(0,0) << 90 << stretch << QPointF(0,100);
-    QTest::newRow("s1-90") << QPointF(200,0) << 90 << stretch << QPointF(0,0);
-    QTest::newRow("s2-90") << QPointF(0,100) << 90 << stretch << QPointF(150,100);
-    QTest::newRow("s3-90") << QPointF(200,100) << 90 << stretch << QPointF(150,0);
-    QTest::newRow("s4-90") << QPointF(100,50) << 90 << stretch << QPointF(75,50);
-    QTest::newRow("s5-90") << QPointF(40,80) << 90 << stretch << QPointF(120,80);
-
-    QTest::newRow("f0-90") << QPointF(0,0) << 90 << fit << QPointF(50,100);
-    QTest::newRow("f1-90") << QPointF(200,0) << 90 << fit << QPointF(50,0);
-    QTest::newRow("f2-90") << QPointF(0,100) << 90 << fit << QPointF(100,100);
-    QTest::newRow("f3-90") << QPointF(200,100) << 90 << fit << QPointF(100,0);
-    QTest::newRow("f4-90") << QPointF(100,50) << 90 << fit << QPointF(75,50);
-    QTest::newRow("f5-90") << QPointF(40,80) << 90 << fit << QPointF(90,80);
-
-    QTest::newRow("c0-90") << QPointF(0,0) << 90 << crop << QPointF(0,200);
-    QTest::newRow("c1-90") << QPointF(200,0) << 90 << crop << QPointF(0,-100);
-    QTest::newRow("c2-90") << QPointF(0,100) << 90 << crop << QPointF(150,200);
-    QTest::newRow("c3-90") << QPointF(200,100) << 90 << crop << QPointF(150,-100);
-    QTest::newRow("c4-90") << QPointF(100,50) << 90 << crop << QPointF(75,50);
-    QTest::newRow("c5-90") << QPointF(40,80) << 90 << crop << QPointF(120,140);
-
-    // 180
-    QTest::newRow("s0-180") << QPointF(0,0) << 180 << stretch << QPointF(150,100);
-    QTest::newRow("s1-180") << QPointF(200,0) << 180 << stretch << QPointF(0,100);
-    QTest::newRow("s2-180") << QPointF(0,100) << 180 << stretch << QPointF(150,0);
-    QTest::newRow("s3-180") << QPointF(200,100) << 180 << stretch << QPointF(0,0);
-    QTest::newRow("s4-180") << QPointF(100,50) << 180 << stretch << QPointF(75,50);
-    QTest::newRow("s5-180") << QPointF(40,80) << 180 << stretch << QPointF(120,20);
-
-    QTest::newRow("f0-180") << QPointF(0,0) << 180 << fit << QPointF(150,87.5f);
-    QTest::newRow("f1-180") << QPointF(200,0) << 180 << fit << QPointF(0,87.5f);
-    QTest::newRow("f2-180") << QPointF(0,100) << 180 << fit << QPointF(150,12.5f);
-    QTest::newRow("f3-180") << QPointF(200,100) << 180 << fit << QPointF(0,12.5f);
-    QTest::newRow("f4-180") << QPointF(100,50) << 180 << fit << QPointF(75,50);
-    QTest::newRow("f5-180") << QPointF(40,80) << 180 << fit << QPointF(120,27.5f);
-
-    QTest::newRow("c0-180") << QPointF(0,0) << 180 << crop << QPointF(175,100);
-    QTest::newRow("c1-180") << QPointF(200,0) << 180 << crop << QPointF(-25,100);
-    QTest::newRow("c2-180") << QPointF(0,100) << 180 << crop << QPointF(175,0);
-    QTest::newRow("c3-180") << QPointF(200,100) << 180 << crop << QPointF(-25,0);
-    QTest::newRow("c4-180") << QPointF(100,50) << 180 << crop << QPointF(75,50);
-    QTest::newRow("c5-180") << QPointF(40,80) << 180 << crop << QPointF(135,20);
-
-    // 270
-    QTest::newRow("s0-270") << QPointF(0,0) << 270 << stretch << QPointF(150,0);
-    QTest::newRow("s1-270") << QPointF(200,0) << 270 << stretch << QPointF(150,100);
-    QTest::newRow("s2-270") << QPointF(0,100) << 270 << stretch << QPointF(0,0);
-    QTest::newRow("s3-270") << QPointF(200,100) << 270 << stretch << QPointF(0,100);
-    QTest::newRow("s4-270") << QPointF(100,50) << 270 << stretch << QPointF(75,50);
-    QTest::newRow("s5-270") << QPointF(40,80) << 270 << stretch << QPointF(30,20);
-
-    QTest::newRow("f0-270") << QPointF(0,0) << 270 << fit << QPointF(100,0);
-    QTest::newRow("f1-270") << QPointF(200,0) << 270 << fit << QPointF(100,100);
-    QTest::newRow("f2-270") << QPointF(0,100) << 270 << fit << QPointF(50,0);
-    QTest::newRow("f3-270") << QPointF(200,100) << 270 << fit << QPointF(50,100);
-    QTest::newRow("f4-270") << QPointF(100,50) << 270 << fit << QPointF(75,50);
-    QTest::newRow("f5-270") << QPointF(40,80) << 270 << fit << QPointF(60,20);
-
-    QTest::newRow("c0-270") << QPointF(0,0) << 270 << crop << QPointF(150,-100);
-    QTest::newRow("c1-270") << QPointF(200,0) << 270 << crop << QPointF(150,200);
-    QTest::newRow("c2-270") << QPointF(0,100) << 270 << crop << QPointF(0,-100);
-    QTest::newRow("c3-270") << QPointF(200,100) << 270 << crop << QPointF(0,200);
-    QTest::newRow("c4-270") << QPointF(100,50) << 270 << crop << QPointF(75,50);
-    QTest::newRow("c5-270") << QPointF(40,80) << 270 << crop << QPointF(30,-40);
-}
-
-/* Test all rectangle mapping */
-void tst_QQuickVideoOutput::mappingRect()
-{
-    QFETCH(QRectF, rect);
-    QFETCH(int, orientation);
-    QFETCH(QQuickVideoOutput::FillMode, fillMode);
-    QFETCH(QRectF, expected);
-
-    QVERIFY(m_mappingOutput);
-    m_mappingOutput->setProperty("orientation", QVariant(orientation));
-    m_mappingOutput->setProperty("fillMode", QVariant::fromValue(fillMode));
-
-    updateOutputGeometry(m_mappingOutput);
-
-    QRectF output = invokeR2R(m_mappingOutput, "mapRectToItem", rect);
-    QRectF reverse = invokeR2R(m_mappingOutput, "mapRectToSource", output);
-
-    QCOMPARE(output, expected);
-    QCOMPARE(reverse, rect);
-
-    // Now the normalized versions
-    // Source rectangle is 200x100
-    QRectF normal(rect.x() / 200, rect.y() / 100, rect.width() / 200, rect.height() / 100);
-
-    output = invokeR2R(m_mappingOutput, "mapNormalizedRectToItem", normal);
-    reverse = invokeR2R(m_mappingOutput, "mapRectToSourceNormalized", output);
-
-    QCOMPARE(output, expected);
-    QCOMPARE(reverse, normal);
-}
-
-void tst_QQuickVideoOutput::mappingRect_data()
-{
-    QTest::addColumn<QRectF>("rect");
-    QTest::addColumn<int>("orientation");
-    QTest::addColumn<QQuickVideoOutput::FillMode>("fillMode");
-    QTest::addColumn<QRectF>("expected");
-
-    // First make sure the component has processed the frame
-    QCOMPARE(m_mappingOutput->property("sourceRect").toRectF(), QRectF(0,0,200,100));
-
-    QQuickVideoOutput::FillMode stretch = QQuickVideoOutput::Stretch;
-    QQuickVideoOutput::FillMode fit = QQuickVideoOutput::PreserveAspectFit;
-    QQuickVideoOutput::FillMode crop = QQuickVideoOutput::PreserveAspectCrop;
-
-    // Full rectangle mapping
-    // Stretch
-    QTest::newRow("s0")   << QRectF(0,0, 200, 100) << 0 << stretch << QRectF(0,0,150,100);
-    QTest::newRow("s90")  << QRectF(0,0, 200, 100) << 90 << stretch << QRectF(0,0,150,100);
-    QTest::newRow("s180") << QRectF(0,0, 200, 100) << 180 << stretch << QRectF(0,0,150,100);
-    QTest::newRow("s270") << QRectF(0,0, 200, 100) << 270 << stretch << QRectF(0,0,150,100);
-
-    // Fit
-    QTest::newRow("f0")   << QRectF(0,0, 200, 100) << 0 << fit << QRectF(0,12.5f,150,75);
-    QTest::newRow("f90") << QRectF(0,0, 200, 100) << 90 << fit << QRectF(50,0,50,100);
-    QTest::newRow("f180") << QRectF(0,0, 200, 100) << 180 << fit << QRectF(0,12.5f,150,75);
-    QTest::newRow("f270")  << QRectF(0,0, 200, 100) << 270 << fit << QRectF(50,0,50,100);
-
-    // Crop
-    QTest::newRow("c0")   << QRectF(0,0, 200, 100) << 0 << crop << QRectF(-25,0,200,100);
-    QTest::newRow("c90") << QRectF(0,0, 200, 100) << 90 << crop << QRectF(0,-100,150,300);
-    QTest::newRow("c180") << QRectF(0,0, 200, 100) << 180 << crop << QRectF(-25,0,200,100);
-    QTest::newRow("c270")  << QRectF(0,0, 200, 100) << 270 << crop << QRectF(0,-100,150,300);
-
-    // Partial rectangle mapping
-    // Stretch
-    // 50-130 in x (0.25 - 0.65), 25-50 (0.25 - 0.5) in y (out of 200, 100) -> 150x100
-    QTest::newRow("p-s0")   << QRectF(50, 25, 80, 25) << 0 << stretch << QRectF(37.5f,25,60,25);
-    QTest::newRow("p-s90") << QRectF(50, 25, 80, 25) << 90 << stretch << QRectF(37.5f,35,37.5f,40);
-    QTest::newRow("p-s180") << QRectF(50, 25, 80, 25) << 180 << stretch << QRectF(52.5f,50,60,25);
-    QTest::newRow("p-s270")  << QRectF(50, 25, 80, 25) << 270 << stretch << QRectF(75,25,37.5f,40);
-
-    // Fit
-    QTest::newRow("p-f0")   << QRectF(50, 25, 80, 25) << 0 << fit << QRectF(37.5f,31.25f,60,18.75f);
-    QTest::newRow("p-f90")  << QRectF(50, 25, 80, 25) << 90 << fit << QRectF(62.5f,35,12.5f,40);
-    QTest::newRow("p-f180") << QRectF(50, 25, 80, 25) << 180 << fit << QRectF(52.5f,50,60,18.75f);
-    QTest::newRow("p-f270") << QRectF(50, 25, 80, 25) << 270 << fit << QRectF(75,25,12.5f,40);
-
-    // Crop
-    QTest::newRow("p-c0")   << QRectF(50, 25, 80, 25) << 0 << crop << QRectF(25,25,80,25);
-    QTest::newRow("p-c90")  << QRectF(50, 25, 80, 25) << 90 << crop << QRectF(37.5f,5,37.5f,120);
-    QTest::newRow("p-c180") << QRectF(50, 25, 80, 25) << 180 << crop << QRectF(45,50,80,25);
-    QTest::newRow("p-c270") << QRectF(50, 25, 80, 25) << 270 << crop << QRectF(75,-25,37.5f,120);
-}
-
 void tst_QQuickVideoOutput::updateOutputGeometry(QObject *output)
 {
     // Since the object isn't visible, update() doesn't do anything
@@ -656,9 +406,6 @@ void tst_QQuickVideoOutput::contentRect_data()
     QTest::addColumn<QQuickVideoOutput::FillMode>("fillMode");
     QTest::addColumn<QRectF>("expected");
 
-    // First make sure the component has processed the frame
-    QCOMPARE(m_mappingOutput->property("sourceRect").toRectF(), QRectF(0,0,200,100));
-
     QQuickVideoOutput::FillMode stretch = QQuickVideoOutput::Stretch;
     QQuickVideoOutput::FillMode fit = QQuickVideoOutput::PreserveAspectFit;
     QQuickVideoOutput::FillMode crop = QQuickVideoOutput::PreserveAspectCrop;
@@ -685,22 +432,6 @@ void tst_QQuickVideoOutput::contentRect_data()
     QTest::newRow("c180") << 180 << crop << QRectF(-25,0,200,100);
     QTest::newRow("c270") << 270 << crop << QRectF(0,-100,150,300);
 }
-
-
-QRectF tst_QQuickVideoOutput::invokeR2R(QObject *object, const char *signature, const QRectF &rect)
-{
-    QRectF r;
-    QMetaObject::invokeMethod(object, signature, Q_RETURN_ARG(QRectF, r), Q_ARG(QRectF, rect));
-    return r;
-}
-
-QPointF tst_QQuickVideoOutput::invokeP2P(QObject *object, const char *signature, const QPointF &point)
-{
-    QPointF p;
-    QMetaObject::invokeMethod(object, signature, Q_RETURN_ARG(QPointF, p), Q_ARG(QPointF, point));
-    return p;
-}
-
 
 QTEST_MAIN(tst_QQuickVideoOutput)
 

@@ -44,6 +44,8 @@
 #include "qcameraimagecapture.h"
 #include "qvideosink.h"
 
+#include <qpointer.h>
+
 #include "qplatformmediaintegration_p.h"
 #include "qplatformmediacapture_p.h"
 
@@ -58,28 +60,18 @@ public:
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
     QMediaEncoder *encoder = nullptr;
-    QVariant videoOutput;
     QVideoSink *videoSink = nullptr;
-
-    void _q_sinkDestroyed(QObject *sink)
-    {
-        if (sink == videoSink) {
-            captureSession->setVideoPreview(nullptr);
-            videoOutput = {};
-            videoSink = nullptr;
-        }
-    }
+    QPointer<QObject> videoOutput;
 
     void setVideoSink(QVideoSink *sink)
     {
+        if (sink == videoSink)
+            return;
         if (videoSink)
-            QObject::disconnect(videoSink, SIGNAL(destroyed(QObject *)), q, SLOT(_q_sinkDestroyed(QObject *)));
+            videoSink->setSource(nullptr);
         videoSink = sink;
-        if (videoSink)
-            QObject::connect(videoSink, SIGNAL(destroyed(QObject *)), q, SLOT(_q_sinkDestroyed(QObject *)));
-        else
-            videoOutput = {};
-
+        if (sink)
+            sink->setSource(q);
         captureSession->setVideoPreview(sink);
         emit q->videoOutputChanged();
     }
@@ -286,27 +278,7 @@ void QMediaCaptureSession::setEncoder(QMediaEncoder *encoder)
     emit encoderChanged();
 }
 
-/*!
-    Attach a video \a output to the media player.
-
-    If the media player has already video output attached,
-    it will be replaced with a new one.
-*/
-void QMediaCaptureSession::setVideoOutput(const QVariant &output)
-{
-    QVideoSink *s = output.value<QVideoSink *>();
-    if (s) {
-        setVideoOutput(s);
-        return;
-    }
-    QObject *o = output.value<QObject *>();
-    if (o) {
-        setVideoOutput(o);
-        return;
-    }
-}
-
-QVariant QMediaCaptureSession::videoOutput() const
+QObject *QMediaCaptureSession::videoOutput() const
 {
     Q_D(const QMediaCaptureSession);
     return d->videoOutput;
@@ -323,26 +295,28 @@ QVariant QMediaCaptureSession::videoOutput() const
 void QMediaCaptureSession::setVideoOutput(QObject *output)
 {
     Q_D(QMediaCaptureSession);
-    QVariant out = QVariant::fromValue(output);
-    if (d->videoOutput == out)
+    if (d->videoOutput == output)
         return;
-    d->videoOutput = out;
-    QVideoSink *sink = nullptr;
-    if (output) {
+    QVideoSink *sink = qobject_cast<QVideoSink *>(output);
+    if (!sink && output) {
         auto *mo = output->metaObject();
         mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
     }
+    d->videoOutput = output;
     d->setVideoSink(sink);
 }
 
-void QMediaCaptureSession::setVideoOutput(QVideoSink *sink)
+void QMediaCaptureSession::setVideoSink(QVideoSink *sink)
 {
     Q_D(QMediaCaptureSession);
-    QVariant out = QVariant::fromValue(sink);
-    if (d->videoOutput == out)
-        return;
-    d->videoOutput = out;
+    d->videoOutput = nullptr;
     d->setVideoSink(sink);
+}
+
+QVideoSink *QMediaCaptureSession::videoSink() const
+{
+    Q_D(const QMediaCaptureSession);
+    return d->videoSink;
 }
 
 /*!

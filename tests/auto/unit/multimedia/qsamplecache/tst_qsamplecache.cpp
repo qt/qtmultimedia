@@ -116,8 +116,7 @@ void tst_QSampleCache::testEnoughCapacity()
     QCOMPARE(sample, sampleCached); // sample is cached
     QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test.wav"))));
     QVERIFY(cache.isCached(QUrl::fromLocalFile(QFINDTESTDATA("testdata/test2.wav"))));
-    QVERIFY(cache.isLoading());
-    QTRY_VERIFY(!cache.isLoading());
+    QVERIFY(!cache.isLoading());
 
     sampleCached->release();
 }

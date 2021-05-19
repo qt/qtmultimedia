@@ -4,7 +4,7 @@
 ## tst_qdeclarativevideooutput Test:
 #####################################################################
 
-qt_add_test(tst_qdeclarativevideooutput
+qt_add_test(tst_qquickvideooutput
     SOURCES
         tst_qquickvideooutput.cpp
     INCLUDE_DIRECTORIES
@@ -22,7 +22,7 @@ set(qml_resource_files
     "main.qml"
 )
 
-qt_add_resource(tst_qdeclarativevideooutput "qml"
+qt_add_resource(tst_qquickvideooutput "qml"
     PREFIX
         "/"
     FILES

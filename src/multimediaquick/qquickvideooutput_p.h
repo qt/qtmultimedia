@@ -143,7 +143,6 @@ private Q_SLOTS:
 private:
     bool createBackend();
 
-    FillMode m_fillMode;
     QSize m_nativeSize;
 
     bool m_geometryDirty;

@@ -460,12 +460,7 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
     return d->captureSession;
 }
 
-void QMediaRecorder::setVideoOutput(const QVariant &output)
-{
-    d_ptr->captureSession->setVideoOutput(output);
-}
-
-QVariant QMediaRecorder::videoOutput() const
+QObject *QMediaRecorder::videoOutput() const
 {
     return d_ptr->captureSession->videoOutput();
 }
@@ -475,10 +470,16 @@ void QMediaRecorder::setVideoOutput(QObject *output)
     d_ptr->captureSession->setVideoOutput(output);
 }
 
-void QMediaRecorder::setVideoOutput(QVideoSink *output)
+void QMediaRecorder::setVideoSink(QVideoSink *output)
 {
-    d_ptr->captureSession->setVideoOutput(output);
+    d_ptr->captureSession->setVideoSink(output);
 }
+
+QVideoSink *QMediaRecorder::videoSink() const
+{
+    return d_ptr->captureSession->videoSink();
+}
+
 
 /*!
     \fn QMediaRecorder::videoOutputChanged()

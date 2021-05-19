@@ -680,27 +680,7 @@ void QMediaPlayer::setActiveSubtitleTrack(int index)
         d->control->setActiveTrack(QPlatformMediaPlayer::SubtitleStream, index);
 }
 
-/*!
-    Attach a video \a output to the media player.
-
-    If the media player has already video output attached,
-    it will be replaced with a new one.
-*/
-void QMediaPlayer::setVideoOutput(const QVariant &output)
-{
-    QVideoSink *s = output.value<QVideoSink *>();
-    if (s) {
-        setVideoOutput(s);
-        return;
-    }
-    QObject *o = output.value<QObject *>();
-    if (o) {
-        setVideoOutput(o);
-        return;
-    }
-}
-
-QVariant QMediaPlayer::videoOutput() const
+QObject *QMediaPlayer::videoOutput() const
 {
     Q_D(const QMediaPlayer);
     return d->videoOutput;
@@ -717,35 +697,37 @@ void QMediaPlayer::setVideoOutput(QObject *output)
     Q_D(QMediaPlayer);
     if (!d->control)
         return;
+    if (d->videoOutput == output)
+        return;
 
-    QVideoSink *sink = nullptr;
-    if (output) {
+    QVideoSink *sink = qobject_cast<QVideoSink *>(output);
+    if (!sink && output) {
         auto *mo = output->metaObject();
         if (output)
             mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
     }
-    QVariant out = QVariant::fromValue(output);
-    if (d->videoOutput == out)
-        return;
-    d->videoOutput = out;
-    d->control->setVideoSink(sink);
-    emit videoOutputChanged();
+    d->videoOutput = output;
+    d->setVideoSink(sink);
 }
 
-void QMediaPlayer::setVideoOutput(QVideoSink *sink)
+void QMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     Q_D(QMediaPlayer);
     if (!d->control)
         return;
 
-    QVariant out = QVariant::fromValue(sink);
-    if (d->videoOutput == out)
-        return;
-    d->videoOutput = out;
-    d->control->setVideoSink(sink);
-    emit videoOutputChanged();
+    d->videoOutput = nullptr;
+    d->setVideoSink(sink);
 }
 
+QVideoSink *QMediaPlayer::videoSink() const
+{
+    Q_D(const QMediaPlayer);
+    return d->videoSink;
+}
+
+
+#if 0
 /*!
     \since 5.15
     Sets multiple video sinks as the video output of a media player.
@@ -760,6 +742,7 @@ void QMediaPlayer::setVideoOutput(const QList<QVideoSink *> &sinks)
     Q_UNUSED(sinks);
 //    setVideoOutput(!surfaces.empty() ? new QVideoSurfaces(surfaces, this) : nullptr);
 }
+#endif
 
 /*!
     Returns true if the media player is supported on this platform.

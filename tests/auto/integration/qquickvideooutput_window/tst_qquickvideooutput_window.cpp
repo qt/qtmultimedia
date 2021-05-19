@@ -37,69 +37,7 @@
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
 #include <private/qplatformvideosink_p.h>
-
-class SourceObject : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QObject *mediaSource READ mediaSource CONSTANT)
-public:
-    explicit SourceObject(QObject *mediaSource, QObject *parent = nullptr)
-        : QObject(parent), m_mediaSource(mediaSource)
-    {}
-
-    [[nodiscard]] QObject *mediaSource() const
-    { return m_mediaSource; }
-
-private:
-    QObject *m_mediaSource;
-};
-
-class QtTestWindowControl : public QPlatformVideoSink
-{
-public:
-    QtTestWindowControl(QVideoSink *parent = nullptr)
-        : QPlatformVideoSink(parent)
-    {}
-    void setWinId(WId id) override { m_winId = id; }
-
-    void setDisplayRect(const QRect &rect) override { m_displayRect = rect; }
-
-    void setFullScreen(bool fullScreen) override { m_fullScreen = fullScreen; }
-
-    [[nodiscard]] QSize nativeSize() const override { return m_nativeSize; }
-    void setNativeSize(const QSize &size) { m_nativeSize = size; emit nativeSizeChanged(); }
-
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override { m_aspectRatioMode = mode; }
-
-    void setBrightness(float brightness) override { m_brightness = brightness; }
-    void setContrast(float contrast) override { m_contrast = contrast; }
-    void setHue(float hue) override { m_hue = hue; }
-    void setSaturation(float saturation) override { m_saturation = saturation; }
-
-    [[nodiscard]] WId winId() const { return m_winId; }
-
-    [[nodiscard]] QRect displayRect() const { return m_displayRect; }
-
-    [[nodiscard]] bool isFullScreen() const { return m_fullScreen; }
-
-    [[nodiscard]] Qt::AspectRatioMode aspectRatioMode() const { return m_aspectRatioMode; }
-
-    [[nodiscard]] float brightness() const { return m_brightness; }
-    [[nodiscard]] float contrast() const { return m_contrast; }
-    [[nodiscard]] float hue() const { return m_hue; }
-    [[nodiscard]] float saturation() const { return m_saturation; }
-
-private:
-    WId m_winId = 0;
-    float m_brightness = 0;
-    float m_contrast = 0;
-    float m_hue = 0;
-    float m_saturation = 0;
-    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
-    QRect m_displayRect;
-    QSize m_nativeSize;
-    bool m_fullScreen = false;
-};
+#include <qmediaplayer.h>
 
 class QtTestVideoObject : public QObject
 {
@@ -130,19 +68,16 @@ public slots:
 
 private slots:
     void winId();
-    void nativeSize();
     void aspectRatio();
-    void geometryChange();
-    void resetCanvas();
 
 private:
     QQmlEngine m_engine;
-    QQuickItem *m_videoItem;
+    QQuickVideoOutput *m_videoItem;
     QScopedPointer<QQuickItem> m_rootItem;
-    QtTestWindowControl m_windowControl;
     QtTestVideoObject m_videoObject;
-    SourceObject m_sourceObject;
+    QMediaPlayer m_sourceObject;
     QQuickView m_view;
+    QVideoSink *m_sink;
 };
 
 void tst_QQuickVideoOutputWindow::initTestCase()
@@ -151,12 +86,12 @@ void tst_QQuickVideoOutputWindow::initTestCase()
     component.loadUrl(QUrl("qrc:/main.qml"));
 
     m_rootItem.reset(qobject_cast<QQuickItem *>(component.create()));
-    m_videoItem = m_rootItem->findChild<QQuickItem *>("videoOutput");
+    m_videoItem = qobject_cast<QQuickVideoOutput *>(m_rootItem->findChild<QQuickItem *>("videoOutput"));
     QVERIFY(m_videoItem);
+    m_sink = m_videoItem->videoSink();
     m_rootItem->setParentItem(m_view.contentItem());
-    m_videoItem->setProperty("source", QVariant::fromValue<QObject *>(&m_sourceObject));
+    m_sourceObject.setVideoOutput(m_videoItem);
 
-    m_windowControl.setNativeSize(QSize(400, 200));
     m_view.resize(200, 200);
     m_view.show();
 }
@@ -171,46 +106,20 @@ void tst_QQuickVideoOutputWindow::cleanupTestCase()
 
 void tst_QQuickVideoOutputWindow::winId()
 {
-    QCOMPARE(m_windowControl.winId(), m_view.winId());
-}
-
-void tst_QQuickVideoOutputWindow::nativeSize()
-{
-    QCOMPARE(m_videoItem->implicitWidth(), qreal(400.0f));
-    QCOMPARE(m_videoItem->implicitHeight(), qreal(200.0f));
+    QCOMPARE(m_sink->nativeWindowId(), 0);
 }
 
 void tst_QQuickVideoOutputWindow::aspectRatio()
 {
-    const QRect expectedDisplayRect(25, 50, 150, 100);
     m_videoItem->setProperty("fillMode", QQuickVideoOutput::Stretch);
-    QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::IgnoreAspectRatio);
-    QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
+    QTRY_COMPARE(m_sink->aspectRatioMode(), Qt::IgnoreAspectRatio);
 
     m_videoItem->setProperty("fillMode", QQuickVideoOutput::PreserveAspectFit);
-    QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::KeepAspectRatio);
-    QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
+    QTRY_COMPARE(m_sink->aspectRatioMode(), Qt::KeepAspectRatio);
 
     m_videoItem->setProperty("fillMode", QQuickVideoOutput::PreserveAspectCrop);
-    QTRY_COMPARE(m_windowControl.aspectRatioMode(), Qt::KeepAspectRatioByExpanding);
-    QCOMPARE(m_windowControl.displayRect(), expectedDisplayRect);
+    QTRY_COMPARE(m_sink->aspectRatioMode(), Qt::KeepAspectRatioByExpanding);
 }
-
-void tst_QQuickVideoOutputWindow::geometryChange()
-{
-    m_videoItem->setWidth(50);
-    QTRY_COMPARE(m_windowControl.displayRect(), QRect(25, 50, 50, 100));
-
-    m_videoItem->setX(30);
-    QTRY_COMPARE(m_windowControl.displayRect(), QRect(30, 50, 50, 100));
-}
-
-void tst_QQuickVideoOutputWindow::resetCanvas()
-{
-    m_rootItem->setParentItem(nullptr);
-    QCOMPARE((int)m_windowControl.winId(), 0);
-}
-
 
 QTEST_MAIN(tst_QQuickVideoOutputWindow)
 

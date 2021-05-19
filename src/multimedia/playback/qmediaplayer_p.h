@@ -53,6 +53,7 @@
 
 #include "qmediaplayer.h"
 #include "qmediametadata.h"
+#include "qvideosink.h"
 #include <private/qplatformmediaplayer_p.h>
 
 #include "private/qobject_p.h"
@@ -76,7 +77,8 @@ public:
     QPlatformMediaPlayer* control = nullptr;
     QString errorString;
 
-    QVariant videoOutput;
+    QVideoSink *videoSink = nullptr;
+    QPointer<QObject> videoOutput;
     QUrl qrcMedia;
     QScopedPointer<QFile> qrcFile;
     QUrl source;
@@ -95,6 +97,20 @@ public:
     void setState(QMediaPlayer::PlaybackState state);
     void setStatus(QMediaPlayer::MediaStatus status);
     void setError(int error, const QString &errorString);
+
+    void setVideoSink(QVideoSink *sink)
+    {
+        Q_Q(QMediaPlayer);
+        if (sink == videoSink)
+            return;
+        if (videoSink)
+            videoSink->setSource(nullptr);
+        videoSink = sink;
+        if (sink)
+            sink->setSource(q);
+        control->setVideoSink(sink);
+        emit q->videoOutputChanged();
+    }
 };
 
 QT_END_NAMESPACE

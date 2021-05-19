@@ -97,34 +97,46 @@ void tst_QCameraWidgets::testSetVideoOutput()
     QMediaCaptureSession session;
 
     session.setVideoOutput(&widget);
-    QVERIFY(session.videoOutput() == QVariant::fromValue(&widget));
+    QVERIFY(session.videoSink() == widget.videoSink());
+    QVERIFY(session.videoOutput() == &widget);
 
     session.setVideoOutput(&item);
-    QVERIFY(session.videoOutput() == QVariant::fromValue(&item));
+    QVERIFY(session.videoSink() == item.videoSink());
+    QVERIFY(session.videoOutput() == &item);
 
-    session.setVideoOutput(static_cast<QVideoWidget *>(nullptr));
-    QVERIFY(session.videoOutput() == QVariant());
-
-    session.setVideoOutput(&widget);
-    QVERIFY(session.videoOutput() == QVariant::fromValue(&widget));
-
-    session.setVideoOutput(static_cast<QGraphicsVideoItem *>(nullptr));
-    QVERIFY(session.videoOutput() == QVariant());
-
-    session.setVideoOutput(&surface);
-    QVERIFY(session.videoOutput() == QVariant::fromValue(&surface));
-
-    session.setVideoOutput(static_cast<QVideoSink *>(nullptr));
-    QVERIFY(session.videoOutput() == QVariant());
-
-    session.setVideoOutput(&surface);
-    QVERIFY(session.videoOutput() == QVariant::fromValue(&surface));
+    session.setVideoOutput(nullptr);
+    QVERIFY(session.videoSink() == nullptr);
+    QVERIFY(session.videoOutput() == nullptr);
 
     session.setVideoOutput(&widget);
-    QVERIFY(session.videoOutput() == QVariant::fromValue(&widget));
+    QVERIFY(session.videoSink() == widget.videoSink());
+    QVERIFY(session.videoOutput() == &widget);
+
+    session.setVideoOutput(nullptr);
+    QVERIFY(session.videoOutput() == nullptr);
 
     session.setVideoOutput(&surface);
-    QVERIFY(session.videoOutput() == QVariant::fromValue(&surface));
+    QVERIFY(session.videoSink() == &surface);
+    QVERIFY(session.videoOutput() == &surface);
+
+    session.setVideoSink(nullptr);
+    QVERIFY(session.videoSink() == nullptr);
+    QVERIFY(session.videoOutput() == nullptr);
+
+    session.setVideoOutput(&surface);
+    QVERIFY(session.videoSink() == &surface);
+    QVERIFY(session.videoOutput() == &surface);
+
+    session.setVideoSink(&surface);
+    QVERIFY(session.videoSink() == &surface);
+    QVERIFY(session.videoOutput() == nullptr);
+
+    session.setVideoOutput(&widget);
+    QVERIFY(session.videoSink() == widget.videoSink());
+    QVERIFY(session.videoOutput() == &widget);
+
+    session.setVideoOutput(&surface);
+    QVERIFY(session.videoOutput() == &surface);
 }
 
 QTEST_MAIN(tst_QCameraWidgets)

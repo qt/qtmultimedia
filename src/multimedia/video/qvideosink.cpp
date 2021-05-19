@@ -41,6 +41,8 @@
 
 #include "qvideoframeformat.h"
 #include "qvideoframe.h"
+#include "qmediaplayer.h"
+#include "qmediacapturesession.h"
 
 #include <qvariant.h>
 #include <qpainter.h>
@@ -62,8 +64,21 @@ public:
     {
         delete videoSink;
     }
+    void unregisterSource()
+    {
+        if (!source)
+            return;
+        auto *old = source;
+        source = nullptr;
+        if (auto *player = qobject_cast<QMediaPlayer *>(old))
+            player->setVideoSink(nullptr);
+        else if (auto *capture = qobject_cast<QMediaCaptureSession *>(old))
+            capture->setVideoSink(nullptr);
+    }
+
     QVideoSink *q_ptr = nullptr;
     QPlatformVideoSink *videoSink = nullptr;
+    QObject *source = nullptr;
     bool fullScreen = false;
     WId window = 0;
     QRhi *rhi = nullptr;
@@ -117,6 +132,7 @@ QVideoSink::QVideoSink(QObject *parent)
  */
 QVideoSink::~QVideoSink()
 {
+    d->unregisterSource();
     delete d;
 }
 
@@ -384,6 +400,15 @@ QPlatformVideoSink *QVideoSink::platformVideoSink() const
 QSize QVideoSink::videoSize() const
 {
     return d->videoSink->nativeSize();
+}
+
+void QVideoSink::setSource(QObject *source)
+{
+    if (d->source == source)
+        return;
+    if (source)
+        d->unregisterSource();
+    d->source = source;
 }
 
 QT_END_NAMESPACE

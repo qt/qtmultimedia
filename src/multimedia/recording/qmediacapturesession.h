@@ -63,7 +63,7 @@ class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
     Q_PROPERTY(QCamera *camera READ camera WRITE setCamera NOTIFY cameraChanged)
     Q_PROPERTY(QCameraImageCapture *imageCapture READ imageCapture WRITE setImageCapture NOTIFY imageCaptureChanged)
     Q_PROPERTY(QMediaEncoder *encoder READ encoder WRITE setEncoder NOTIFY encoderChanged)
-    Q_PROPERTY(QVariant videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
+    Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
 public:
     explicit QMediaCaptureSession(QObject *parent = nullptr);
     ~QMediaCaptureSession();
@@ -87,11 +87,11 @@ public:
     QMediaEncoder *encoder();
     void setEncoder(QMediaEncoder *recorder);
 
-    void setVideoOutput(const QVariant &output);
-    QVariant videoOutput() const;
-
     void setVideoOutput(QObject *preview);
-    void setVideoOutput(QVideoSink *preview);
+    QObject *videoOutput() const;
+
+    void setVideoSink(QVideoSink *preview);
+    QVideoSink *videoSink() const;
 
     QPlatformMediaCaptureSession *platformSession() const;
 
@@ -108,7 +108,6 @@ private:
     QMediaCaptureSessionPrivate *d_ptr;
     Q_DISABLE_COPY(QMediaCaptureSession)
     Q_DECLARE_PRIVATE(QMediaCaptureSession)
-    Q_PRIVATE_SLOT(d_func(), void _q_sinkDestroyed(QObject *))
 };
 
 QT_END_NAMESPACE

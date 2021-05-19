@@ -73,7 +73,7 @@ private slots:
     void seekInStoppedState();
     void subsequentPlayback();
     void surfaceTest();
-    void multipleSurfaces();
+//    void multipleSurfaces();
     void metadata();
     void playerStateAtEOS();
     void playFromBuffer();
@@ -968,6 +968,7 @@ void tst_QMediaPlayerBackend::surfaceTest()
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
 }
 
+#if 0
 void tst_QMediaPlayerBackend::multipleSurfaces()
 {
     if (localVideoFile.isEmpty())
@@ -985,6 +986,7 @@ void tst_QMediaPlayerBackend::multipleSurfaces()
 //    QVERIFY2(surface2.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface2.m_totalFrames)));
 //    QCOMPARE(surface1.m_totalFrames, surface2.m_totalFrames);
 }
+#endif
 
 void tst_QMediaPlayerBackend::metadata()
 {

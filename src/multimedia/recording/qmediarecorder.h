@@ -58,7 +58,7 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QMediaEncoderBase
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
-    Q_PROPERTY(QVariant videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
+    Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
     Q_PROPERTY(QCamera camera READ camera)
 public:
 
@@ -101,11 +101,11 @@ public:
 
     QMediaCaptureSession *captureSession() const;
 
-    void setVideoOutput(const QVariant &output);
-    QVariant videoOutput() const;
-
     void setVideoOutput(QObject *output);
-    void setVideoOutput(QVideoSink *output);
+    QObject *videoOutput() const;
+
+    void setVideoSink(QVideoSink *output);
+    QVideoSink *videoSink() const;
 
 public Q_SLOTS:
     void record();

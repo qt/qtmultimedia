@@ -73,7 +73,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
     Q_PROPERTY(QMediaMetaData metaData READ metaData NOTIFY metaDataChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(QVariant videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
+    Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
     Q_ENUMS(PlaybackState)
     Q_ENUMS(MediaStatus)
     Q_ENUMS(Error)
@@ -129,12 +129,14 @@ public:
     void setActiveVideoTrack(int index);
     void setActiveSubtitleTrack(int index);
 
-    void setVideoOutput(const QVariant &output);
-    QVariant videoOutput() const;
-
     void setVideoOutput(QObject *);
+    QObject *videoOutput() const;
+#if 0
     void setVideoOutput(const QList<QVideoSink *> &sinks);
-    void setVideoOutput(QVideoSink *sink);
+#endif
+
+    void setVideoSink(QVideoSink *sink);
+    QVideoSink *videoSink() const;
 
     QUrl source() const;
     const QIODevice *sourceStream() const;

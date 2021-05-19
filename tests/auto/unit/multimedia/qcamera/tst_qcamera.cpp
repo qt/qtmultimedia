@@ -555,14 +555,34 @@ void tst_QCamera::testSetVideoOutput()
     QCamera camera;
     session.setCamera(&camera);
 
-    QVERIFY(session.videoOutput().isNull());
-    session.setVideoOutput(&surface);
+    QVERIFY(!session.videoOutput());
 
-    QVERIFY(session.videoOutput().value<QVideoSink *>() == &surface);
+    session.setVideoOutput(&surface);
+    QVERIFY(session.videoOutput() == &surface);
+    QVERIFY(session.videoSink() == &surface);
 
     session.setVideoOutput(static_cast<QVideoSink *>(nullptr));
-    QVERIFY(session.videoOutput().isNull());
+    QVERIFY(session.videoOutput() == nullptr);
+    QVERIFY(session.videoSink() == nullptr);
+
+    session.setVideoOutput(&surface);
+    QVERIFY(session.videoOutput() == &surface);
+    QVERIFY(session.videoSink() == &surface);
+
+    session.setVideoSink(&surface);
+    QVERIFY(session.videoOutput() == nullptr);
+    QVERIFY(session.videoSink() == &surface);
+
+    session.setVideoOutput(&surface);
+    QVERIFY(session.videoOutput() == &surface);
+    QVERIFY(session.videoSink() == &surface);
+
+    session.setVideoSink(nullptr);
+    QVERIFY(session.videoOutput() == nullptr);
+    QVERIFY(session.videoSink() == nullptr);
 }
+
+
 
 void tst_QCamera::testSetVideoOutputDestruction()
 {
@@ -573,7 +593,7 @@ void tst_QCamera::testSetVideoOutputDestruction()
             QCamera camera;
             session.setCamera(&camera);
 
-            QVERIFY(session.videoOutput().isNull());
+            QVERIFY(session.videoOutput() == nullptr);
             session.setVideoOutput(&surface);
         }
     }
@@ -585,7 +605,7 @@ void tst_QCamera::testSetVideoOutputDestruction()
             QCamera camera;
             session.setCamera(&camera);
 
-            QVERIFY(session.videoOutput().isNull());
+            QVERIFY(session.videoOutput() == nullptr);
             session.setVideoOutput(&surface);
         }
     }
@@ -597,7 +617,7 @@ void tst_QCamera::testSetVideoOutputDestruction()
             QVideoSink surface;
             session.setCamera(&camera);
 
-            QVERIFY(session.videoOutput().isNull());
+            QVERIFY(session.videoOutput() == nullptr);
             session.setVideoOutput(&surface);
         }
     }
@@ -608,7 +628,7 @@ void tst_QCamera::testSetVideoOutputDestruction()
             QCamera camera;
             session.setCamera(&camera);
 
-            QVERIFY(session.videoOutput().isNull());
+            QVERIFY(session.videoOutput() == nullptr);
             session.setVideoOutput(&surface);
         }
     }

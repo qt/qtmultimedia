@@ -125,7 +125,6 @@ Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
 QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
     QQuickItem(parent),
-    m_fillMode(PreserveAspectFit),
     m_geometryDirty(true),
     m_orientation(0),
     m_autoOrientation(false),
@@ -183,15 +182,16 @@ bool QQuickVideoOutput::createBackend()
 
 QQuickVideoOutput::FillMode QQuickVideoOutput::fillMode() const
 {
-    return m_fillMode;
+    return FillMode(videoSink()->aspectRatioMode());
 }
 
 void QQuickVideoOutput::setFillMode(FillMode mode)
 {
-    if (mode == m_fillMode)
+    if (mode == fillMode())
         return;
 
-    m_fillMode = mode;
+    videoSink()->setAspectRatioMode(Qt::AspectRatioMode(mode));
+
     m_geometryDirty = true;
     update();
 
@@ -235,15 +235,16 @@ void QQuickVideoOutput::_q_updateGeometry()
     m_geometryDirty = false;
     m_lastRect = absoluteRect;
 
+    const auto fill = fillMode();
     if (m_nativeSize.isEmpty()) {
         //this is necessary for item to receive the
         //first paint event and configure video surface.
         m_contentRect = rect;
-    } else if (m_fillMode == Stretch) {
+    } else if (fill == Stretch) {
         m_contentRect = rect;
-    } else if (m_fillMode == PreserveAspectFit || m_fillMode == PreserveAspectCrop) {
+    } else if (fill == PreserveAspectFit || fill == PreserveAspectCrop) {
         QSizeF scaled = m_nativeSize;
-        scaled.scale(rect.size(), m_fillMode == PreserveAspectFit ?
+        scaled.scale(rect.size(), fill == PreserveAspectFit ?
                          Qt::KeepAspectRatio : Qt::KeepAspectRatioByExpanding);
 
         m_contentRect = QRectF(QPointF(), scaled);
