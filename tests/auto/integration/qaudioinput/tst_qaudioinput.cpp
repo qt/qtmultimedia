@@ -140,6 +140,7 @@ void tst_QAudioInput::initTestCase()
 
 
     QAudioFormat format;
+    format.setChannelCount(1);
 
     if (audioDevice.isFormatSupported(audioDevice.preferredFormat()))
         testFormats.append(audioDevice.preferredFormat());
@@ -348,7 +349,11 @@ void tst_QAudioInput::pull()
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
     QWaveDecoder waveDecoder(audioFile.data(), audioFormat);
-    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    if (!waveDecoder.open(QIODevice::WriteOnly)) {
+        waveDecoder.close();
+        audioFile->close();
+        QSKIP("Audio format not supported for writing to WAV file.");
+    }
     QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     audioInput.start(audioFile.data());
@@ -409,7 +414,11 @@ void tst_QAudioInput::pullSuspendResume()
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
     QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
-    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    if (!waveDecoder.open(QIODevice::WriteOnly)) {
+        waveDecoder.close();
+        audioFile->close();
+        QSKIP("Audio format not supported for writing to WAV file.");
+    }
     QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     audioInput.start(audioFile.data());
@@ -491,7 +500,11 @@ void tst_QAudioInput::push()
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
     QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
-    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    if (!waveDecoder.open(QIODevice::WriteOnly)) {
+        waveDecoder.close();
+        audioFile->close();
+        QSKIP("Audio format not supported for writing to WAV file.");
+    }
     QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     // Set a large buffer to avoid underruns during QTest::qWaits
@@ -571,7 +584,11 @@ void tst_QAudioInput::pushSuspendResume()
     audioFile->close();
     audioFile->open(QIODevice::WriteOnly);
     QWaveDecoder waveDecoder(audioFile.get(), audioFormat);
-    QVERIFY(waveDecoder.open(QIODevice::WriteOnly));
+    if (!waveDecoder.open(QIODevice::WriteOnly)) {
+        waveDecoder.close();
+        audioFile->close();
+        QSKIP("Audio format not supported for writing to WAV file.");
+    }
     QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     QIODevice* feed = audioInput.start();
