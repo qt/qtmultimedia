@@ -43,8 +43,12 @@
 #include "qgstreamercameraimagecapture_p.h"
 #include <private/qgstreamermediadevices_p.h>
 #include <private/qgstreamerintegration_p.h>
-#include <private/qgstreamercameraimageprocessing_p.h>
 #include <qmediacapturesession.h>
+
+#if QT_CONFIG(linux_v4l)
+#include <linux/videodev2.h>
+#include <private/qcore_unix_p.h>
+#endif
 
 #include <QtCore/qdebug.h>
 
@@ -60,8 +64,6 @@ QGstreamerCamera::QGstreamerCamera(QCamera *camera)
     gstCamera.link(gstDecode, gstVideoConvert, gstVideoScale);
 
     gstCameraBin.addGhostPad(gstVideoScale, "src");
-
-    imageProcessing = new QGstreamerImageProcessing(this);
 }
 
 QGstreamerCamera::~QGstreamerCamera() = default;
@@ -125,8 +127,7 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
         gstPipeline.setStateSync(state);
     }
 
-    //m_session->cameraChanged();
-    imageProcessing->update();
+    updateCameraProperties();
 }
 
 void QGstreamerCamera::setCameraFormatInternal(const QCameraFormat &format)
@@ -183,17 +184,17 @@ void QGstreamerCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     // is this enough?
 }
 
-QPlatformCameraImageProcessing *QGstreamerCamera::imageProcessingControl()
+void QGstreamerCamera::updateCameraProperties()
 {
-    return imageProcessing;
-}
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera())
+        initV4L2Controls();
+#endif
+#if QT_CONFIG(gstreamer_photography)
+    if (auto *p = photography())
+        gst_photography_set_white_balance_mode(p, GST_PHOTOGRAPHY_WB_MODE_AUTO);
+#endif
 
-GstColorBalance *QGstreamerCamera::colorBalance() const
-{
-    if (!gstCamera.isNull() && GST_IS_COLOR_BALANCE(gstCamera.element()))
-        return GST_COLOR_BALANCE(gstCamera.element());
-    // ### Add support for manual/SW color balancing using the gstreamer colorbalance element
-    return nullptr;
 }
 
 #if QT_CONFIG(gstreamer_photography)
@@ -405,4 +406,194 @@ float QGstreamerCamera::shutterSpeed() const
     }
     return -1;
 }
+
+bool QGstreamerCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
+{
+    if (mode == QCamera::WhiteBalanceAuto)
+        return true;
+
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera()) {
+        if (v4l2AutoWhiteBalanceSupported && v4l2ColorTemperatureSupported)
+            return true;
+    }
+#endif
+#if QT_CONFIG(gstreamer_photography)
+    if (photography()) {
+        switch (mode) {
+        case QCamera::WhiteBalanceAuto:
+        case QCamera::WhiteBalanceSunlight:
+        case QCamera::WhiteBalanceCloudy:
+        case QCamera::WhiteBalanceShade:
+        case QCamera::WhiteBalanceSunset:
+        case QCamera::WhiteBalanceTungsten:
+        case QCamera::WhiteBalanceFluorescent:
+            return true;
+        case QCamera::WhiteBalanceManual: {
+#if GST_CHECK_VERSION(1, 18, 0)
+            GstPhotographyInterface *iface = GST_PHOTOGRAPHY_GET_INTERFACE(p);
+            if (iface->set_color_temperature && iface->get_color_temperature)
+                return true;
+#endif
+            break;
+        }
+        default:
+            break;
+        }
+    }
+#endif
+
+    return mode == QCamera::WhiteBalanceAuto;
+}
+
+void QGstreamerCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
+{
+    Q_ASSERT(isWhiteBalanceModeSupported(mode));
+
+#if QT_CONFIG(gstreamer_photography)
+    if (auto *p = photography()) {
+        GstPhotographyWhiteBalanceMode gstMode = GST_PHOTOGRAPHY_WB_MODE_AUTO;
+        switch (mode) {
+        case QCamera::WhiteBalanceSunlight:
+            gstMode = GST_PHOTOGRAPHY_WB_MODE_DAYLIGHT;
+            break;
+        case QCamera::WhiteBalanceCloudy:
+            gstMode = GST_PHOTOGRAPHY_WB_MODE_CLOUDY;
+            break;
+        case QCamera::WhiteBalanceShade:
+            gstMode = GST_PHOTOGRAPHY_WB_MODE_SHADE;
+            break;
+        case QCamera::WhiteBalanceSunset:
+            gstMode = GST_PHOTOGRAPHY_WB_MODE_SUNSET;
+            break;
+        case QCamera::WhiteBalanceTungsten:
+            gstMode = GST_PHOTOGRAPHY_WB_MODE_TUNGSTEN;
+            break;
+        case QCamera::WhiteBalanceFluorescent:
+            gstMode = GST_PHOTOGRAPHY_WB_MODE_FLUORESCENT;
+            break;
+        case QCamera::WhiteBalanceAuto:
+        default:
+            break;
+        }
+        if (gst_photography_set_white_balance_mode(p, gstMode)) {
+            whiteBalanceModeChanged(mode);
+            return;
+        }
+    } else
+#endif
+
+    if (isV4L2Camera()) {
+        int temperature = colorTemperatureForWhiteBalance(mode);
+        int t = setV4L2ColorTemperature(temperature);
+        if (t == 0)
+            mode = QCamera::WhiteBalanceAuto;
+        whiteBalanceModeChanged(mode);
+    }
+}
+
+void QGstreamerCamera::setColorTemperature(int temperature)
+{
+    if (temperature == 0) {
+        setWhiteBalanceMode(QCamera::WhiteBalanceAuto);
+        return;
+    }
+
+    Q_ASSERT(isWhiteBalanceModeSupported(QCamera::WhiteBalanceManual));
+
+#if QT_CONFIG(gstreamer_photography) && GST_CHECK_VERSION(1, 18, 0)
+    if (auto *p = photography()) {
+        GstPhotographyInterface *iface = GST_PHOTOGRAPHY_GET_INTERFACE(p);
+        Q_ASSERT(iface->set_color_temperature);
+        iface->set_color_temperature(p, temperature);
+        return;
+    }
+#endif
+
+    if (isV4L2Camera()) {
+        int t = setV4L2ColorTemperature(temperature);
+        if (t)
+            colorTemperatureChanged(t);
+    }
+}
+
+#if QT_CONFIG(linux_v4l)
+void QGstreamerCamera::initV4L2Controls()
+{
+    v4l2AutoWhiteBalanceSupported = false;
+    v4l2ColorTemperatureSupported = false;
+
+    const QString deviceName = v4l2Device();
+    Q_ASSERT(!deviceName.isEmpty());
+
+    const int fd = qt_safe_open(deviceName.toLocal8Bit().constData(), O_RDONLY);
+    if (fd == -1) {
+        qWarning() << "Unable to open the camera" << deviceName
+                   << "for read to query the parameter info:" << qt_error_string(errno);
+        return;
+    }
+
+    struct v4l2_queryctrl queryControl;
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
+
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2AutoWhiteBalanceSupported = true;
+        struct v4l2_control control;
+        control.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+        control.value = true;
+        ::ioctl(fd, VIDIOC_S_CTRL, &control);
+    }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2MinColorTemp = queryControl.minimum;
+        v4l2MaxColorTemp = queryControl.maximum;
+        v4l2ColorTemperatureSupported = true;
+    }
+
+    qt_safe_close(fd);
+
+}
+
+int QGstreamerCamera::setV4L2ColorTemperature(int temperature)
+{
+    struct v4l2_control control;
+    ::memset(&control, 0, sizeof(control));
+
+    const int fd = qt_safe_open(v4l2Device().toLocal8Bit().constData(), O_RDONLY);
+    if (fd == -1) {
+        qWarning() << "Unable to open the camera" << v4l2Device()
+                   << "for read to get the parameter value:" << qt_error_string(errno);
+        return 0;
+    }
+
+    if (v4l2AutoWhiteBalanceSupported) {
+        control.id = V4L2_CID_AUTO_WHITE_BALANCE;
+        control.value = temperature == 0 ? true : false;
+        if (::ioctl(fd, VIDIOC_S_CTRL, &control) != 0) {
+            qWarning() << "Unable to set the V4L2 AUTO_WHITE_BALANCE property" << qt_error_string(errno);
+        }
+    } else if (temperature == 0) {
+        temperature = 5600;
+    }
+
+    if (temperature != 0 && v4l2ColorTemperatureSupported) {
+        temperature = qBound(v4l2MinColorTemp, temperature, v4l2MaxColorTemp);
+        control.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
+        control.value = qBound(v4l2MinColorTemp, temperature, v4l2MaxColorTemp);
+        if (::ioctl(fd, VIDIOC_S_CTRL, &control) != 0) {
+            qWarning() << "Unable to set the V4L2 AUTO_WHITE_BALANCE property" << qt_error_string(errno);
+            temperature = 0;
+        }
+    } else {
+        temperature = 0;
+    }
+
+    qt_safe_close(fd);
+    return temperature;
+}
+#endif
+
 #endif

@@ -74,8 +74,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    QPlatformCameraImageProcessing *imageProcessingControl() override;
-
 private Q_SLOTS:
     void updateStatus();
 

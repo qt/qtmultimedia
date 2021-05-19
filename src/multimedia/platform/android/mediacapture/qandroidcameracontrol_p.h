@@ -76,8 +76,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
-    QPlatformCameraImageProcessing *imageProcessingControl() override;
-
     void setFocusMode(QCamera::FocusMode mode) override;
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
@@ -94,6 +92,9 @@ public:
     bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
 
     void setExposureCompensation(float bias) override;
+
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
 
 private Q_SLOTS:
     void onCameraOpened();
@@ -120,6 +121,8 @@ private:
     bool isFlashSupported = false;
     bool isFlashAutoSupported = false;
     bool isTorchSupported = false;
+
+    QMap<QCamera::WhiteBalanceMode, QString> m_supportedWhiteBalanceModes;
 };
 
 

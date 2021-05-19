@@ -31,7 +31,6 @@
 
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
-#include <private/qplatformcameraimageprocessing_p.h>
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
 #include <qmediacapturesession.h>

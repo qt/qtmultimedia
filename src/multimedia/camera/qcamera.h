@@ -86,7 +86,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(QCamera::TorchMode torchMode READ torchMode WRITE setTorchMode NOTIFY torchModeChanged)
 
     Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
-    Q_PROPERTY(qreal manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
+    Q_PROPERTY(int colorTemperature READ colorTemperature WRITE setColorTemperature NOTIFY colorTemperatureChanged)
 
     Q_ENUMS(Status)
     Q_ENUMS(Error)
@@ -232,7 +232,7 @@ public:
     WhiteBalanceMode whiteBalanceMode() const;
     Q_INVOKABLE bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
 
-    qreal manualWhiteBalance() const;
+    int colorTemperature() const;
 
 public Q_SLOTS:
     void setActive(bool active);
@@ -254,7 +254,7 @@ public Q_SLOTS:
     void setAutoShutterSpeed();
 
     void setWhiteBalanceMode(WhiteBalanceMode mode);
-    void setManualWhiteBalance(qreal colorTemperature);
+    void setColorTemperature(int colorTemperature);
 
 Q_SIGNALS:
     void activeChanged(bool);
@@ -281,7 +281,7 @@ Q_SIGNALS:
     void exposureModeChanged();
 
     void whiteBalanceModeChanged() const;
-    void manualWhiteBalanceChanged() const;
+    void colorTemperatureChanged() const;
 
     void brightnessChanged();
     void contrastChanged();

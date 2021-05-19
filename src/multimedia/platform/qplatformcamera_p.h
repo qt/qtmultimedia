@@ -58,9 +58,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QPlatformCameraExposure;
-class QPlatformCameraImageProcessing;
-
 class Q_MULTIMEDIA_EXPORT QPlatformCamera : public QObject
 {
     Q_OBJECT
@@ -75,9 +72,6 @@ public:
     virtual bool setCameraFormat(const QCameraFormat &/*format*/) { return false; }
 
     virtual void setCaptureSession(QPlatformMediaCaptureSession *) {}
-
-    virtual QPlatformCameraExposure *exposureControl() { return nullptr; }
-    virtual QPlatformCameraImageProcessing *imageProcessingControl() { return nullptr; }
 
     virtual bool isFocusModeSupported(QCamera::FocusMode mode) const { return mode == QCamera::FocusModeAuto; }
     virtual void setFocusMode(QCamera::FocusMode /*mode*/) {}
@@ -105,6 +99,10 @@ public:
     virtual void setManualShutterSpeed(float) {}
     virtual float shutterSpeed() const { return -1.; }
 
+    virtual bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const { return mode == QCamera::WhiteBalanceAuto; }
+    virtual void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) {}
+    virtual void setColorTemperature(int /*temperature*/) {}
+
     QCamera::FocusMode focusMode() const { return m_focusMode; }
     QPointF focusPoint() const { return m_customFocusPoint; }
 
@@ -125,6 +123,8 @@ public:
     float manualShutterSpeed() const { return m_shutterSpeed; }
     float minShutterSpeed() const { return m_minShutterSpeed; }
     float maxShutterSpeed() const { return m_maxShutterSpeed; }
+    QCamera::WhiteBalanceMode whiteBalanceMode() const { return m_whiteBalance; }
+    int colorTemperature() const { return m_colorTemperature; }
 
     void statusChanged(QCamera::Status);
     void minimumZoomFactorChanged(float factor);
@@ -145,6 +145,10 @@ public:
     void shutterSpeedChanged(float speed);
     void minShutterSpeedChanged(float secs) { m_minShutterSpeed = secs; }
     void maxShutterSpeedChanged(float secs) { m_maxShutterSpeed = secs; }
+    void whiteBalanceModeChanged(QCamera::WhiteBalanceMode mode);
+    void colorTemperatureChanged(int temperature);
+
+    static int colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode mode);
 
 Q_SIGNALS:
     void activeChanged(bool);
@@ -176,6 +180,8 @@ private:
     float m_shutterSpeed = -1.;
     float m_minShutterSpeed = -1.;
     float m_maxShutterSpeed = -1.;
+    QCamera::WhiteBalanceMode m_whiteBalance = QCamera::WhiteBalanceAuto;
+    int m_colorTemperature = 0;
 };
 
 QT_END_NAMESPACE

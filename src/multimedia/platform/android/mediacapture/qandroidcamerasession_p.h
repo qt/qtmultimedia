@@ -63,7 +63,6 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidVideoOutput;
-class QAndroidCameraImageProcessingControl;
 class QAndroidCameraVideoRendererControl;
 class QVideoSink;
 
@@ -110,8 +109,6 @@ public:
     };
     void setPreviewCallback(PreviewCallback *callback);
     bool requestRecordingPermission();
-
-    QAndroidCameraImageProcessingControl *imageProcessingControl() { return m_cameraImageProcessingControl; }
 
     void setVideoSink(QVideoSink *surface);
 
@@ -177,8 +174,6 @@ private:
     bool m_previewStarted;
 
     QAndroidCameraVideoRendererControl *m_renderer = nullptr;
-
-    QAndroidCameraImageProcessingControl *m_cameraImageProcessingControl;
 
     QImageEncoderSettings m_requestedImageSettings;
     QImageEncoderSettings m_actualImageSettings;

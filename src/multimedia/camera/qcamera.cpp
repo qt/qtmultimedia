@@ -42,7 +42,6 @@
 
 #include <qcamerainfo.h>
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraimageprocessing_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
@@ -125,8 +124,6 @@ void QCameraPrivate::init()
     control->setCamera(cameraInfo);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
-
-    imageControl = control->imageProcessingControl();
 }
 
 /*!
@@ -964,7 +961,7 @@ void QCamera::setAutoShutterSpeed()
 QCamera::WhiteBalanceMode QCamera::whiteBalanceMode() const
 {
     Q_D(const QCamera);
-    return d->whiteBalance;
+    return d->control ? d->control->whiteBalanceMode() : QCamera::WhiteBalanceAuto;
 }
 
 /*!
@@ -974,14 +971,13 @@ QCamera::WhiteBalanceMode QCamera::whiteBalanceMode() const
 void QCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
     Q_D(QCamera);
-    if (d->whiteBalance == mode || !isWhiteBalanceModeSupported(mode))
+    if (!d->control)
         return;
-
-    d->imageControl->setParameter(
-        QPlatformCameraImageProcessing::WhiteBalancePreset,
-        QVariant::fromValue<QCamera::WhiteBalanceMode>(mode));
-    d->whiteBalance = mode;
-    emit whiteBalanceModeChanged();
+    if (!d->control->isWhiteBalanceModeSupported(mode))
+        return;
+    d->control->setWhiteBalanceMode(mode);
+    if (mode == QCamera::WhiteBalanceManual)
+        d->control->setColorTemperature(5600);
 }
 
 /*!
@@ -991,12 +987,9 @@ void QCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 {
     Q_D(const QCamera);
-    if (!d->imageControl)
+    if (!d->control)
         return false;
-    return d->imageControl->isParameterValueSupported(
-        QPlatformCameraImageProcessing::WhiteBalancePreset,
-        QVariant::fromValue<QCamera::WhiteBalanceMode>(mode));
-
+    return d->control->isWhiteBalanceModeSupported(mode);
 }
 
 /*!
@@ -1005,36 +998,37 @@ bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
     return value is undefined.
 */
 
-qreal QCamera::manualWhiteBalance() const
+int QCamera::colorTemperature() const
 {
     Q_D(const QCamera);
-    return d->colorTemperature;
+    return d->control ? d->control->colorTemperature() : 0;
 }
 
 /*!
     Sets manual white balance to \a colorTemperature.  This is used
     when whiteBalanceMode() is set to \c WhiteBalanceManual.  The units are Kelvin.
+
+    Setting a color temperature will only have an effect if WhiteBalanceManual is
+    supported. In this case, setting a temperature greater 0 will automatically set the
+    white balance mode to WhiteBalanceManual. Setting the temperature to 0 will reset
+    the white balance mode to WhiteBalanceAuto.
 */
 
-void QCamera::setManualWhiteBalance(qreal colorTemperature)
+void QCamera::setColorTemperature(int colorTemperature)
 {
     Q_D(QCamera);
-    if (!d->imageControl)
+    if (!d->control)
         return;
-    if (d->colorTemperature == colorTemperature)
-        return;
+    if (colorTemperature < 0)
+        colorTemperature = 0;
     if (colorTemperature == 0) {
-        setWhiteBalanceMode(WhiteBalanceAuto);
+        d->control->setWhiteBalanceMode(WhiteBalanceAuto);
     } else if (!isWhiteBalanceModeSupported(WhiteBalanceManual)) {
         return;
     } else {
-        setWhiteBalanceMode(WhiteBalanceManual);
-        d->imageControl->setParameter(
-            QPlatformCameraImageProcessing::ColorTemperature,
-            QVariant(colorTemperature));
+        d->control->setWhiteBalanceMode(WhiteBalanceManual);
     }
-    d->colorTemperature = colorTemperature;
-    emit manualWhiteBalanceChanged();
+    d->control->setColorTemperature(colorTemperature);
 }
 
 /*!
@@ -1042,7 +1036,7 @@ void QCamera::setManualWhiteBalance(qreal colorTemperature)
 
     \value WhiteBalanceAuto         Auto white balance mode.
     \value WhiteBalanceManual       Manual white balance. In this mode the white balance should be set with
-                                    setManualWhiteBalance()
+                                    setColorTemperature()
     \value WhiteBalanceSunlight     Sunlight white balance mode.
     \value WhiteBalanceCloudy       Cloudy white balance mode.
     \value WhiteBalanceShade        Shade white balance mode.

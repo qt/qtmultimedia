@@ -31,7 +31,6 @@
 
 #include "private/qplatformcamera_p.h"
 #include "qcamerainfo.h"
-#include "qmockcameraimageprocessing.h"
 #include <qtimer.h>
 
 class QMockCamera : public QPlatformCamera
@@ -53,7 +52,6 @@ public:
           m_propertyChangesSupported(false)
     {
         if (!simpleCamera) {
-            mockImageProcessing = new QMockCameraImageProcessing(this);
             minIsoChanged(100);
             maxIsoChanged(800);
             minShutterSpeedChanged(.001);
@@ -164,14 +162,29 @@ public:
         return manualShutterSpeed() > 0 ? manualShutterSpeed() : .05;
     }
 
-    QPlatformCameraImageProcessing *imageProcessingControl() override { return mockImageProcessing; }
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override
+    {
+        if (simpleCamera)
+            return mode == QCamera::WhiteBalanceAuto;
+        return mode == QCamera::WhiteBalanceAuto ||
+               mode == QCamera::WhiteBalanceManual ||
+               mode == QCamera::WhiteBalanceSunlight;
+    }
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override
+    {
+        if (isWhiteBalanceModeSupported(mode))
+            whiteBalanceModeChanged(mode);
+    }
+    void setColorTemperature(int temperature) override
+    {
+        if (!simpleCamera)
+            colorTemperatureChanged(temperature);
+    }
 
     bool m_active = false;
     QCamera::Status m_status;
     QCameraInfo m_camera;
     bool m_propertyChangesSupported;
-
-    QMockCameraImageProcessing *mockImageProcessing = nullptr;
 };
 
 

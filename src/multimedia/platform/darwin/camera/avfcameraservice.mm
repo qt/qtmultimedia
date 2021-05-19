@@ -46,7 +46,6 @@
 #include "avfcameraimagecapture_p.h"
 #include "avfcamerarenderer_p.h"
 #include "avfcameraimagecapture_p.h"
-#include "avfcameraimageprocessing_p.h"
 #include "avfmediaencoder_p.h"
 #include <qmediadevices.h>
 

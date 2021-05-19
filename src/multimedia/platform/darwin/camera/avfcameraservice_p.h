@@ -58,7 +58,6 @@
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformMediaEncoder;
-class QPlatformCameraImageProcessing;
 class AVFCamera;
 class AVFCameraImageCapture;
 class AVFCameraSession;

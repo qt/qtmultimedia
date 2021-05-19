@@ -60,7 +60,6 @@ QT_BEGIN_NAMESPACE
 class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraSession;
-class AVFCameraImageProcessing;
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
@@ -82,8 +81,6 @@ public:
     void setCamera(const QCameraInfo &camera) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
-
-    QPlatformCameraImageProcessing *imageProcessingControl() override;
 
     void setFocusMode(QCamera::FocusMode mode) override;
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
@@ -110,6 +107,13 @@ public:
     void setManualShutterSpeed(float value) override;
     virtual float shutterSpeed() const override;
 
+#ifdef Q_OS_IOS
+    // not supported on macOS
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
+    void setColorTemperature(int /*temperature*/) override;
+#endif
+
     AVCaptureConnection *videoConnection() const;
     AVCaptureDevice *device() const;
 
@@ -123,8 +127,6 @@ private:
     friend class AVFCameraSession;
     AVFCameraService *m_service = nullptr;
     AVFCameraSession *m_session = nullptr;
-
-    AVFCameraImageProcessing *m_cameraImageProcessingControl;
 
     QCameraInfo m_cameraInfo;
 

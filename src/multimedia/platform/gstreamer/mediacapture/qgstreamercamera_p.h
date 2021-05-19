@@ -56,10 +56,8 @@
 #include <private/qplatformcamera_p.h>
 #include "qgstreamermediacapture_p.h"
 #include <private/qgst_p.h>
-#include <gst/video/colorbalance.h>
 
 QT_BEGIN_NAMESPACE
-class QGstreamerImageProcessing;
 
 class QGstreamerCamera : public QPlatformCamera
 {
@@ -80,8 +78,6 @@ public:
     QGstElement gstElement() const { return gstCameraBin.element(); }
     void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
 
-    QPlatformCameraImageProcessing *imageProcessingControl() override;
-
 #if QT_CONFIG(gstreamer_photography)
     GstPhotography *photography() const;
 
@@ -100,16 +96,26 @@ public:
     void setManualShutterSpeed(float) override;
     float shutterSpeed() const override;
 #endif
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
+    void setColorTemperature(int temperature) override;
 
     QString v4l2Device() const { return m_v4l2Device; }
     bool isV4L2Camera() const { return !m_v4l2Device.isEmpty(); }
 
-    GstColorBalance *colorBalance() const;
-
 private:
-    QGstreamerMediaCapture *m_session = nullptr;
+    void updateCameraProperties();
+#if QT_CONFIG(linux_v4l)
+    void initV4L2Controls();
+    int setV4L2ColorTemperature(int temperature);
 
-    QGstreamerImageProcessing *imageProcessing = nullptr;
+    bool v4l2AutoWhiteBalanceSupported = false;
+    bool v4l2ColorTemperatureSupported = false;
+    qint32 v4l2MinColorTemp = 5600; // Daylight...
+    qint32 v4l2MaxColorTemp = 5600;
+#endif
+
+    QGstreamerMediaCapture *m_session = nullptr;
 
     QCameraInfo m_cameraInfo;
 

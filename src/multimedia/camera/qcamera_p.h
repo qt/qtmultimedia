@@ -58,7 +58,6 @@
 QT_BEGIN_NAMESPACE
 
 class QPlatformCamera;
-class QPlatformCameraImageProcessing;
 class QPlatformMediaCaptureSession;
 
 class QCameraPrivate : public QObjectPrivate
@@ -82,11 +81,6 @@ public:
 
     QCameraInfo cameraInfo;
     QCameraFormat cameraFormat;
-
-    QPlatformCameraImageProcessing *imageControl = nullptr;
-
-    QCamera::WhiteBalanceMode whiteBalance = QCamera::WhiteBalanceAuto;
-    qreal colorTemperature = 0;
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }

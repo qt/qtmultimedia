@@ -281,6 +281,49 @@ void QPlatformCamera::shutterSpeedChanged(float speed)
     emit m_camera->shutterSpeedChanged(speed);
 }
 
+void QPlatformCamera::whiteBalanceModeChanged(QCamera::WhiteBalanceMode mode)
+{
+    if (m_whiteBalance == mode)
+        return;
+    m_whiteBalance = mode;
+    emit m_camera->whiteBalanceModeChanged();
+}
+
+void QPlatformCamera::colorTemperatureChanged(int temperature)
+{
+    Q_ASSERT(temperature >= 0);
+    Q_ASSERT((temperature > 0 && whiteBalanceMode() == QCamera::WhiteBalanceManual) ||
+             (temperature == 0 && whiteBalanceMode() == QCamera::WhiteBalanceAuto));
+    if (m_colorTemperature == temperature)
+        return;
+    m_colorTemperature = temperature;
+    emit m_camera->colorTemperatureChanged();
+}
+
+int QPlatformCamera::colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode mode)
+{
+    switch (mode) {
+    case QCamera::WhiteBalanceAuto:
+        break;
+    case QCamera::WhiteBalanceManual:
+    case QCamera::WhiteBalanceSunlight:
+        return 5600;
+    case QCamera::WhiteBalanceCloudy:
+        return 6000;
+    case QCamera::WhiteBalanceShade:
+        return 7000;
+    case QCamera::WhiteBalanceTungsten:
+        return 3200;
+    case QCamera::WhiteBalanceFluorescent:
+        return 4000;
+    case QCamera::WhiteBalanceFlash:
+        return 5500;
+    case QCamera::WhiteBalanceSunset:
+        return 3000;
+    }
+    return 0;
+}
+
 
 
 QT_END_NAMESPACE

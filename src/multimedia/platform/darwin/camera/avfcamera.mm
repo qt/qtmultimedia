@@ -43,7 +43,6 @@
 #include "avfcameraservice_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamerarenderer_p.h"
-#include "avfcameraimageprocessing_p.h"
 #include <qmediacapturesession.h>
 
 QT_USE_NAMESPACE
@@ -162,13 +161,10 @@ AVFCamera::AVFCamera(QCamera *camera)
    , m_lastStatus(QCamera::InactiveStatus)
 {
     Q_ASSERT(camera);
-
-    m_cameraImageProcessingControl = new AVFCameraImageProcessing(this);
 }
 
 AVFCamera::~AVFCamera()
 {
-    delete m_cameraImageProcessingControl;
 }
 
 bool AVFCamera::isActive() const
@@ -265,11 +261,6 @@ AVCaptureDevice *AVFCamera::device() const
                         deviceId.constData()]];
     }
     return device;
-}
-
-QPlatformCameraImageProcessing *AVFCamera::imageProcessingControl()
-{
-    return m_cameraImageProcessingControl;
 }
 
 #ifdef Q_OS_IOS
@@ -826,6 +817,136 @@ float AVFCamera::shutterSpeed() const
     return -1;
 #endif
 }
+
+#ifdef Q_OS_IOS
+namespace {
+
+void avf_convert_white_balance_mode(QCamera::WhiteBalanceMode qtMode,
+        AVCaptureWhiteBalanceMode &avMode)
+{
+    if (qtMode == QCamera::WhiteBalanceAuto)
+        avMode = AVCaptureWhiteBalanceModeContinuousAutoWhiteBalance;
+    else
+        avMode = AVCaptureWhiteBalanceModeLocked;
+}
+
+bool avf_set_white_balance_mode(AVCaptureDevice *captureDevice,
+        AVCaptureWhiteBalanceMode avMode)
+{
+    Q_ASSERT(captureDevice);
+
+    const bool lock = [captureDevice lockForConfiguration:nil];
+    if (!lock) {
+        qDebug() << "Failed to lock a capture device for configuration\n";
+        return false;
+    }
+
+    captureDevice.whiteBalanceMode = avMode;
+    [captureDevice unlockForConfiguration];
+    return true;
+}
+
+bool avf_convert_temp_and_tint_to_wb_gains(AVCaptureDevice *captureDevice,
+        float temp, float tint, AVCaptureWhiteBalanceGains &wbGains)
+{
+    Q_ASSERT(captureDevice);
+
+    AVCaptureWhiteBalanceTemperatureAndTintValues wbTTValues = {
+        .temperature = temp,
+        .tint = tint
+    };
+    wbGains = [captureDevice deviceWhiteBalanceGainsForTemperatureAndTintValues:wbTTValues];
+
+    if (wbGains.redGain >= 1.0 && wbGains.redGain <= captureDevice.maxWhiteBalanceGain
+        && wbGains.greenGain >= 1.0 && wbGains.greenGain <= captureDevice.maxWhiteBalanceGain
+        && wbGains.blueGain >= 1.0 && wbGains.blueGain <= captureDevice.maxWhiteBalanceGain)
+        return true;
+
+    return false;
+}
+
+bool avf_set_white_balance_gains(AVCaptureDevice *captureDevice,
+        AVCaptureWhiteBalanceGains wbGains)
+{
+    const bool lock = [captureDevice lockForConfiguration:nil];
+    if (!lock) {
+        qDebug() << "Failed to lock a capture device for configuration\n";
+        return false;
+    }
+
+    [captureDevice setWhiteBalanceModeLockedWithDeviceWhiteBalanceGains:wbGains
+        completionHandler:nil];
+    [captureDevice unlockForConfiguration];
+    return true;
+}
+
+}
+
+bool AVFCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
+{
+    if (mode == QCamera::WhiteBalanceAuto)
+        return true;
+    AVCaptureDevice *captureDevice = m_camera->device();
+    if (!device)
+        return false;
+    return [captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked];
+}
+
+void AVFCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode)
+{
+    if (!isWhiteBalanceModeSupported(mode))
+        return false;
+
+    AVCaptureDevice *captureDevice = m_camera->device();
+    Q_ASSERT(captureDevice);
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+                       << "for configuration";
+        return;
+    }
+
+    AVCaptureWhiteBalanceMode avMode;
+    avf_convert_white_balance_mode(mode, avMode);
+    avf_set_white_balance_mode(captureDevice, avMode);
+
+    if (mode == QCamera::WhiteBalanceAuto || mode == QCamera::WhiteBalanceManual) {
+        whiteBalanceModeChanged(mode);
+        return;
+    }
+
+    const int colorTemp = colorTemperatureForWhiteBalance(mode);
+    AVCaptureWhiteBalanceGains wbGains;
+    if (avf_convert_temp_and_tint_to_wb_gains(captureDevice, colorTemp, 0., wbGains)
+        && avf_set_white_balance_gains(captureDevice, wbGains))
+        whiteBalanceModeChanged(mode);
+}
+
+void AVFCamera::setColorTemperature(int colorTemp)
+{
+    if (colorTemp == 0) {
+        colorTemperatureChanged(colorTemp);
+        return;
+    }
+
+    AVCaptureDevice *captureDevice = m_camera->device();
+    if (!device || ![captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked])
+        return false;
+
+    const AVFConfigurationLock lock(captureDevice);
+    if (!lock) {
+        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+                       << "for configuration";
+        return;
+    }
+
+    AVCaptureWhiteBalanceGains wbGains;
+    if (avf_convert_temp_and_tint_to_wb_gains(captureDevice, colorTemp, 0., wbGains)
+        && avf_set_white_balance_gains(captureDevice, wbGains))
+        colorTemperatureChanged(colorTemp);
+}
+#endif
 
 void AVFCamera::setManualIsoSensitivity(int value)
 {

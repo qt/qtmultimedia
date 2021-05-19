@@ -34,7 +34,6 @@
 #include <qvideosink.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
-#include <private/qplatformcameraimageprocessing_p.h>
 #include <qcamera.h>
 #include <qcamerainfo.h>
 #include <qcameraimagecapture.h>
@@ -134,14 +133,15 @@ void tst_QCamera::testSimpleCameraWhiteBalance()
     QCamera camera;
 
     //only WhiteBalanceAuto is supported
-    QVERIFY(!camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceAuto));
+    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceAuto));
+    QVERIFY(!camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceManual));
     QVERIFY(!camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceCloudy));
     QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
     camera.setWhiteBalanceMode(QCamera::WhiteBalanceCloudy);
     QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
-    QCOMPARE(camera.manualWhiteBalance()+1.0, 1.0);
-    camera.setManualWhiteBalance(5000);
-    QCOMPARE(camera.manualWhiteBalance()+1.0, 1.0);
+    QCOMPARE(camera.colorTemperature(), 0);
+    camera.setColorTemperature(5000);
+    QCOMPARE(camera.colorTemperature(), 0);
 }
 
 void tst_QCamera::testSimpleCameraExposure()
@@ -296,34 +296,36 @@ void tst_QCamera::testCameraCaptureMetadata()
 
 void tst_QCamera::testCameraWhiteBalance()
 {
-    QSet<QCamera::WhiteBalanceMode> whiteBalanceModes;
-    whiteBalanceModes << QCamera::WhiteBalanceAuto;
-    whiteBalanceModes << QCamera::WhiteBalanceFlash;
-    whiteBalanceModes << QCamera::WhiteBalanceTungsten;
-    whiteBalanceModes << QCamera::WhiteBalanceManual;
-
     QCamera camera;
-    QMockCamera *mockCamera = integration.lastCamera();
-    mockCamera->mockImageProcessing->setSupportedWhiteBalanceModes(whiteBalanceModes);
 
     QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
     camera.setWhiteBalanceMode(QCamera::WhiteBalanceFlash);
-    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceFlash);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
     QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceAuto));
-    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceFlash));
-    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceTungsten));
+    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceManual));
+    QVERIFY(camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceSunlight));
     QVERIFY(!camera.isWhiteBalanceModeSupported(QCamera::WhiteBalanceCloudy));
 
-    camera.setWhiteBalanceMode(QCamera::WhiteBalanceTungsten);
-    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceTungsten);
+    camera.setWhiteBalanceMode(QCamera::WhiteBalanceSunlight);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceSunlight);
 
     camera.setWhiteBalanceMode(QCamera::WhiteBalanceManual);
     QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceManual);
-    camera.setManualWhiteBalance(34);
-    QCOMPARE(camera.manualWhiteBalance(), 34.0);
+    camera.setColorTemperature(4000);
+    QCOMPARE(camera.colorTemperature(), 4000);
 
-    camera.setManualWhiteBalance(432.0);
-    QCOMPARE(camera.manualWhiteBalance(), 432.0);
+    camera.setColorTemperature(8000);
+    QCOMPARE(camera.colorTemperature(), 8000);
+
+    camera.setWhiteBalanceMode(QCamera::WhiteBalanceAuto);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
+    camera.setColorTemperature(4000);
+    QCOMPARE(camera.colorTemperature(), 4000);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceManual);
+
+    camera.setColorTemperature(0);
+    QCOMPARE(camera.colorTemperature(), 0);
+    QCOMPARE(camera.whiteBalanceMode(), QCamera::WhiteBalanceAuto);
 }
 
 void tst_QCamera::testCameraExposure()
@@ -385,7 +387,6 @@ void tst_QCamera::testCameraExposure()
 
     qreal minShutterSpeed = camera.minimumShutterSpeed();
     qreal maxShutterSpeed = camera.maximumShutterSpeed();
-    qDebug() << minShutterSpeed << maxShutterSpeed;
     QVERIFY(minShutterSpeed > 0);
     QVERIFY(maxShutterSpeed > 0);
     QVERIFY(camera.shutterSpeed() >= minShutterSpeed);
