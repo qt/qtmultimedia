@@ -561,6 +561,11 @@ bool Engine::selectFormat()
         format.setSampleRate(qBound(minSampleRate, 48000, maxSampleRate));
         format.setChannelCount(qBound(minChannelCount, 2, maxChannelCount));
 
+        const bool inputSupport = m_audioInputDevice.isFormatSupported(format);
+        const bool outputSupport = m_audioOutputDevice.isFormatSupported(format);
+        if (inputSupport && outputSupport)
+            foundSupportedFormat = true;
+
         setFormat(format);
     }
 
