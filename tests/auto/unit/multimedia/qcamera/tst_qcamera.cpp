@@ -89,10 +89,6 @@ private slots:
     // Test cases for QPlatformCamera class.
     void testCameraControl();
 
-    // Test case for image processing
-    void testContrast();
-    void testSaturation();
-
     void testSetVideoOutput();
     void testSetVideoOutputDestruction();
 
@@ -800,36 +796,6 @@ void tst_QCamera::testStatus()
     /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
     service->mockCameraControl->setStatus(QCamera::UnavailableStatus);
     QVERIFY(camera.status() == QCamera::UnavailableStatus);
-}
-
-void tst_QCamera::testContrast()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    session.setCamera(&camera);
-
-    QVERIFY(camera.contrast() == 0);
-
-    camera.setContrast(0.123);
-    QCOMPARE(camera.contrast(), 0.123);
-
-    camera.setContrast(4.56);
-    QCOMPARE(camera.contrast(), 4.56);
-}
-
-void tst_QCamera::testSaturation()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    session.setCamera(&camera);
-
-    QCOMPARE(camera.saturation()+1.0, 1.0);
-
-    camera.setSaturation(0.5);
-    QCOMPARE(camera.saturation(), 0.5);
-
-    camera.setSaturation(-0.5);
-    QCOMPARE(camera.saturation(), -0.5);
 }
 
 //Added this code to cover QCamera::FocusModeHyperfocal and QCamera::FocusModeAutoNear

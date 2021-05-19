@@ -64,9 +64,6 @@ public:
     {
         switch (parameter)
         {
-        case ContrastAdjustment:
-        case BrightnessAdjustment:
-        case SaturationAdjustment:
         case ColorTemperature:
         case WhiteBalancePreset:
             return true;
@@ -86,15 +83,6 @@ public:
     void setParameter(ProcessingParameter parameter, const QVariant &value)
     {
         switch (parameter) {
-        case ContrastAdjustment:
-            m_contrast = value;
-            break;
-        case SaturationAdjustment:
-            m_saturation = value;
-            break;
-        case BrightnessAdjustment:
-            m_brightness = value;
-            break;
         case ColorTemperature:
             m_manualWhiteBalance = value;
             break;
@@ -111,9 +99,6 @@ private:
     QCamera::WhiteBalanceMode m_whiteBalanceMode;
     QSet<QCamera::WhiteBalanceMode> m_supportedWhiteBalance;
     QVariant m_manualWhiteBalance;
-    QVariant m_contrast;
-    QVariant m_saturation;
-    QVariant m_brightness;
 };
 
 #endif // MOCKCAMERAIMAGEPROCESSINGCONTROL_H

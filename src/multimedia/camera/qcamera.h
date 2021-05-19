@@ -87,10 +87,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 
     Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
     Q_PROPERTY(qreal manualWhiteBalance READ manualWhiteBalance WRITE setManualWhiteBalance NOTIFY manualWhiteBalanceChanged)
-    Q_PROPERTY(qreal brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
-    Q_PROPERTY(qreal contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
-    Q_PROPERTY(qreal hue READ hue WRITE setHue NOTIFY hueChanged)
-    Q_PROPERTY(qreal saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
 
     Q_ENUMS(Status)
     Q_ENUMS(Error)
@@ -238,11 +234,6 @@ public:
 
     qreal manualWhiteBalance() const;
 
-    qreal brightness() const;
-    qreal contrast() const;
-    qreal saturation() const;
-    qreal hue() const;
-
 public Q_SLOTS:
     void setActive(bool active);
     void start() { setActive(true); }
@@ -264,11 +255,6 @@ public Q_SLOTS:
 
     void setWhiteBalanceMode(WhiteBalanceMode mode);
     void setManualWhiteBalance(qreal colorTemperature);
-
-    void setBrightness(qreal value);
-    void setContrast(qreal value);
-    void setSaturation(qreal value);
-    void setHue(qreal value);
 
 Q_SIGNALS:
     void activeChanged(bool);

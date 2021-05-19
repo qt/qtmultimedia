@@ -88,32 +88,7 @@ public:
     void update();
 
 private:
-    bool setColorBalanceValue(ProcessingParameter param, qreal value);
-    void updateColorBalanceValues();
-
-private:
     QGstreamerCamera *m_camera;
-    struct ColorBalanceParameter {
-        GstColorBalanceChannel *channel = nullptr;
-        int current = 0;
-        int min = 0;
-        int max = 0;
-        double scaledValue() const {
-            // map [min..max] to [-1.0 .. 1.0]
-            if (min == max)
-                return 0;
-            return double(current - min) / double(max - min) * 2 - 1;
-        }
-        void setScaledValue(double value) {
-            // map [-1.0 .. 1.0] to [min..max]
-            if (min == max)
-                current = min;
-            value = qBound(-1., value, 1.);
-            current = min + qRound((value + 1.)/2. * double(max - min));
-        }
-    };
-    ColorBalanceParameter colorBalanceParameters[BrightnessAdjustment + 1];
-
     QCamera::WhiteBalanceMode m_whiteBalanceMode = QCamera::WhiteBalanceAuto;
 
 #if QT_CONFIG(linux_v4l)

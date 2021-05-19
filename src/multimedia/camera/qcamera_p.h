@@ -87,10 +87,6 @@ public:
 
     QCamera::WhiteBalanceMode whiteBalance = QCamera::WhiteBalanceAuto;
     qreal colorTemperature = 0;
-    qreal brightness = 0;
-    qreal contrast = 0;
-    qreal saturation = 0;
-    qreal hue = 0;
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }

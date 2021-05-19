@@ -133,19 +133,6 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(m_imageCapture, &QCameraImageCapture::errorOccurred, this, &Camera::displayCaptureError);
     readyForCapture(m_imageCapture->isReadyForCapture());
 
-    connect(ui->brightnessSlider, &QSlider::valueChanged, [this](int value) {
-        m_camera->setBrightness(value/100.);
-    });
-    connect(ui->contrastSlider, &QSlider::valueChanged, [this](int value) {
-        m_camera->setContrast(value/100.);
-    });
-    connect(ui->saturationSlider, &QSlider::valueChanged, [this](int value) {
-        m_camera->setSaturation(value/100.);
-    });
-    connect(ui->hueSlider, &QSlider::valueChanged, [this](int value) {
-        m_camera->setHue(value/100.);
-    });
-
     updateCaptureMode();
     m_camera->start();
 }

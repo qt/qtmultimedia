@@ -62,64 +62,10 @@ QGstreamerImageProcessing::QGstreamerImageProcessing(QGstreamerCamera *camera)
     if (auto *photography = m_camera->photography())
         gst_photography_set_white_balance_mode(photography, GST_PHOTOGRAPHY_WB_MODE_AUTO);
 #endif
-    updateColorBalanceValues();
 }
 
 QGstreamerImageProcessing::~QGstreamerImageProcessing()
 {
-}
-
-static bool isColorBalanceParameter(QPlatformCameraImageProcessing::ProcessingParameter param)
-{
-    return param >= QPlatformCameraImageProcessing::ContrastAdjustment && param <= QPlatformCameraImageProcessing::BrightnessAdjustment;
-}
-
-void QGstreamerImageProcessing::updateColorBalanceValues()
-{
-    for (int i = ContrastAdjustment; i <= BrightnessAdjustment; ++i)
-        colorBalanceParameters[i] = {};
-
-    GstColorBalance *balance = m_camera->colorBalance();
-    if (!balance)
-        return;
-
-    const GList *controls = gst_color_balance_list_channels(balance);
-
-    for (const GList *item = controls; item; item = g_list_next (item)) {
-        GstColorBalanceChannel *channel = (GstColorBalanceChannel *)item->data;
-        int cur_value = gst_color_balance_get_value (balance, channel);
-
-        int index = -1;
-        if (!g_ascii_strcasecmp (channel->label, "brightness")) {
-            index = BrightnessAdjustment;
-        } else if (!g_ascii_strcasecmp (channel->label, "contrast")) {
-            index = ContrastAdjustment;
-        } else if (!g_ascii_strcasecmp (channel->label, "saturation")) {
-            index = SaturationAdjustment;
-        } else if (!g_ascii_strcasecmp (channel->label, "hue")) {
-            index = HueAdjustment;
-        }
-        if (index < 0)
-            continue;
-        colorBalanceParameters[index] = { channel, cur_value, channel->min_value, channel->max_value };
-    }
-}
-
-bool QGstreamerImageProcessing::setColorBalanceValue(ProcessingParameter parameter, qreal value)
-{
-    Q_ASSERT(isColorBalanceParameter(parameter));
-
-    GstColorBalance *balance = m_camera->colorBalance();
-    if (!balance)
-        return false;
-
-    auto &p = colorBalanceParameters[parameter];
-    if (!p.channel)
-        return false;
-
-    p.setScaledValue(value);
-    gst_color_balance_set_value (balance, p.channel, p.current);
-    return true;
 }
 
 bool QGstreamerImageProcessing::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
@@ -197,9 +143,6 @@ bool QGstreamerImageProcessing::isWhiteBalanceModeSupported(QCamera::WhiteBalanc
 
 bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcessing::ProcessingParameter parameter) const
 {
-    if (isColorBalanceParameter(parameter))
-        return colorBalanceParameters[parameter].channel != nullptr;
-
 #if QT_CONFIG(linux_v4l)
     if (m_camera->isV4L2Camera()) {
         switch (parameter) {
@@ -227,12 +170,6 @@ bool QGstreamerImageProcessing::isParameterSupported(QPlatformCameraImageProcess
 bool QGstreamerImageProcessing::isParameterValueSupported(QPlatformCameraImageProcessing::ProcessingParameter parameter, const QVariant &value) const
 {
     switch (parameter) {
-    case ContrastAdjustment:
-    case BrightnessAdjustment:
-    case SaturationAdjustment:
-        if (qAbs(value.toReal()) > 1)
-            return false;
-        return isParameterSupported(parameter);
     case ColorTemperature: {
 #if QT_CONFIG(linux_v4l)
         if (m_camera->isV4L2Camera()) {
@@ -253,9 +190,6 @@ bool QGstreamerImageProcessing::isParameterValueSupported(QPlatformCameraImagePr
 
 void QGstreamerImageProcessing::setParameter(QPlatformCameraImageProcessing::ProcessingParameter parameter, const QVariant &value)
 {
-    if (isColorBalanceParameter(parameter))
-        setColorBalanceValue(parameter, value.toDouble());
-
 #if QT_CONFIG(linux_v4l)
     if (m_camera->isV4L2Camera()) {
         if (setV4L2Param(parameter, value))
@@ -276,7 +210,6 @@ void QGstreamerImageProcessing::setParameter(QPlatformCameraImageProcessing::Pro
 
 void QGstreamerImageProcessing::update()
 {
-    updateColorBalanceValues();
 #if QT_CONFIG(linux_v4l)
     initV4L2Controls();
 #endif
