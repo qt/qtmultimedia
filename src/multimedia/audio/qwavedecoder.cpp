@@ -182,7 +182,7 @@ qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
         return 0;
 
     qint64 nSamples = maxlen / format.bytesPerSample();
-    maxlen = nSamples * format.bytesPerFrame();
+    maxlen = nSamples * format.bytesPerSample();
     device->read(data, maxlen);
 
     if (!byteSwap || format.bytesPerFrame() == 1)
