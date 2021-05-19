@@ -626,7 +626,6 @@ void tst_QAudioOutput::pushSuspendResume()
 
     qint64 written = 0;
     bool firstBuffer = true;
-    QByteArray buffer(AUDIO_BUFFER, 0);
 
     // Play half of the clip
     while (written < (audioFile->size() - QWaveDecoder::headerLength()) / 2) {

@@ -57,6 +57,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/private/qringbuffer_p.h>
+#include <QtCore/qatomic.h>
 
 #include <private/qgst_p.h>
 #include <gst/app/gstappsrc.h>
@@ -81,6 +82,9 @@ public:
     void write(const char *data, qsizetype size);
 
     bool canAcceptMoreData() { return m_noMoreData || m_dataRequestSize != 0; }
+
+    void suspend() { m_suspended = true; }
+    void resume() { m_suspended = false; m_noMoreData = true; }
 
 Q_SIGNALS:
     void bytesProcessed(int bytes);
@@ -113,12 +117,13 @@ private:
 
     QGstElement m_appSrc;
     bool m_sequential = true;
+    bool m_suspended = false;
     bool m_noMoreData = false;
     GstAppStreamType m_streamType = GST_APP_STREAM_TYPE_RANDOM_ACCESS;
     qint64 m_offset = 0;
     qint64 m_maxBytes = 0;
     qint64 bytesReadSoFar = 0;
-    unsigned int m_dataRequestSize = 0;
+    QAtomicInteger<unsigned int> m_dataRequestSize = 0;
     int streamedSamples = 0;
 };
 

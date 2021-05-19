@@ -78,6 +78,7 @@ bool QGstAppSrc::setup(QIODevice *stream, qint64 offset)
     gst_app_src_set_callbacks(appSrc, (GstAppSrcCallbacks*)&m_callbacks, this, nullptr);
 
     m_maxBytes = gst_app_src_get_max_bytes(appSrc);
+    m_suspended = false;
 
     if (m_sequential)
         m_streamType = GST_APP_STREAM_TYPE_STREAM;
@@ -87,6 +88,7 @@ bool QGstAppSrc::setup(QIODevice *stream, qint64 offset)
     gst_app_src_set_size(appSrc, m_sequential ? -1 : m_stream->size() - m_offset);
 
     m_networkReply = qobject_cast<QNetworkReply *>(m_stream);
+    m_noMoreData = true;
 
     return true;
 }
@@ -164,8 +166,10 @@ void QGstAppSrc::streamDestroyed()
 
 void QGstAppSrc::pushData()
 {
-    if (m_appSrc.isNull() || !m_dataRequestSize)
+    if (m_appSrc.isNull() || !m_dataRequestSize || m_suspended) {
+        qCDebug(qLcAppSrc) << "push data: return immediately" << m_appSrc.isNull() << m_dataRequestSize << m_suspended;
         return;
+    }
 
     qCDebug(qLcAppSrc) << "pushData" << (m_stream ? m_stream : nullptr) << m_buffer.size();
     if ((m_stream && m_stream->atEnd())) {

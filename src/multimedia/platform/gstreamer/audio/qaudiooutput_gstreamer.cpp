@@ -67,6 +67,7 @@ QGStreamerAudioOutput::QGStreamerAudioOutput(const QAudioDeviceInfo &device)
     gstAppSrc = m_appSrc->element();
 
     //    gstDecodeBin = gst_element_factory_make ("decodebin", "dec");
+    QGstElement queue("queue", "queue");
     QGstElement conv("audioconvert", "conv");
     gstVolume = QGstElement("volume", "volume");
     if (m_volume != 1.)
@@ -78,8 +79,8 @@ QGStreamerAudioOutput::QGStreamerAudioOutput(const QAudioDeviceInfo &device)
     const auto *audioInfo = static_cast<const QGStreamerAudioDeviceInfo *>(device.handle());
     gstOutput = gst_device_create_element(audioInfo->gstDevice, nullptr);
 
-    gstPipeline.add(gstAppSrc, /*gstDecodeBin, */ conv, gstVolume, gstOutput);
-    gstAppSrc.link(conv, gstVolume, gstOutput);
+    gstPipeline.add(gstAppSrc, queue, /*gstDecodeBin, */ conv, gstVolume, gstOutput);
+    gstAppSrc.link(queue, conv, gstVolume, gstOutput);
 }
 
 QGStreamerAudioOutput::~QGStreamerAudioOutput()
@@ -258,6 +259,7 @@ qint64 QGStreamerAudioOutput::write(const char *data, qint64 len)
         return 0;
     if (m_errorState == QAudio::UnderrunError)
         m_errorState = QAudio::NoError;
+
     m_appSrc->write(data, len);
     return len;
 }
@@ -305,6 +307,7 @@ qint64 QGStreamerAudioOutput::processedUSecs() const
 void QGStreamerAudioOutput::resume()
 {
     if (m_deviceState == QAudio::SuspendedState) {
+        m_appSrc->resume();
         gstPipeline.setState(GST_STATE_PLAYING);
 
         setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
@@ -329,6 +332,7 @@ void QGStreamerAudioOutput::suspend()
         setState(QAudio::SuspendedState);
 
         gstPipeline.setState(GST_STATE_PAUSED);
+        m_appSrc->suspend();
         // ### elapsed time
     }
 }
