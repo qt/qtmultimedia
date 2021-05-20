@@ -110,7 +110,7 @@ void QGstreamerMediaEncoder::updateStatus()
 
     auto newStatus = statusTable[state()][sessionState];
 
-    qCDebug(qLcMediaEncoder) << "updateStatus" << newStatus;
+    qCDebug(qLcMediaEncoder) << "updateStatus" << state() << sessionState << newStatus;
     statusChanged(newStatus);
 }
 
@@ -287,13 +287,18 @@ void QGstreamerMediaEncoder::record()
 {
     if (!m_session)
         return;
-    if (state() == QMediaEncoder::PausedState) {
+    auto oldState = state();
+    stateChanged(QMediaEncoder::RecordingState);
+
+    if (oldState == QMediaEncoder::PausedState) {
         // coming from paused state
+        stateChanged(QMediaEncoder::RecordingState);
         gstEncoder.setState(GST_STATE_PLAYING);
         updateStatus();
         return;
     }
 
+    updateStatus();
     // create new encoder
     if (m_requestedOutputLocation.isEmpty()) {
         QString container = m_resolvedSettings.mimeType().preferredSuffix();
@@ -322,9 +327,9 @@ void QGstreamerMediaEncoder::record()
         }
     }
 
-    gstEncoder.setStateSync(GST_STATE_PAUSED);
-    gstFileSink.setStateSync(GST_STATE_PAUSED);
-    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    gstEncoder.setState(GST_STATE_PAUSED);
+    gstFileSink.setState(GST_STATE_PAUSED);
+    gstPipeline.setState(GST_STATE_PLAYING);
 
     m_duration.start();
     heartbeat.start();
@@ -360,7 +365,7 @@ void QGstreamerMediaEncoder::stop()
     m_session->releaseVideoPad(videoSrcPad);
     audioSrcPad = videoSrcPad = {};
 
-    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    gstPipeline.setState(GST_STATE_PLAYING);
     //with live sources it's necessary to send EOS even to pipeline
     //before going to STOPPED state
     qCDebug(qLcMediaEncoder) << ">>>>>>>>>>>>> sending EOS";

@@ -99,8 +99,9 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     if (gstCamera == control)
         return;
 
-    //auto state = gstPipeline.state();
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    auto state = gstPipeline.state();
+    if (state != GST_STATE_PAUSED)
+        gstPipeline.setStateSync(GST_STATE_PAUSED);
 
     if (gstVideoTee.isNull()) {
         gstVideoTee = QGstElement("tee", "videotee");
@@ -120,13 +121,14 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
 
     gstCamera = control;
     if (gstCamera) {
-        gstPipeline.add(gstCamera->gstElement());
+        QGstElement camera = gstCamera->gstElement();
+        gstPipeline.add(camera);
         gstCamera->gstElement().link(gstVideoTee);
-        gstCamera->gstElement().setStateSync(gstPipeline.state());
         gstCamera->setCaptureSession(this);
-        //gstCamera->setPipeline(gstPipeline); // needed?
+        camera.setState(GST_STATE_PAUSED);
     }
-    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    if (state != GST_STATE_PAUSED)
+        gstPipeline.setState(state);
 
     emit cameraChanged();
     gstPipeline.dumpGraph("camera");

@@ -360,7 +360,7 @@ void QGstreamerCameraImageCapture::link()
     videoSrcPad = m_session->getVideoPad();
     videoSrcPad.link(bin.staticPad("sink"));
     bin.lockState(false);
-    bin.setStateSync(GST_STATE_PAUSED);
+    bin.setState(GST_STATE_PAUSED);
     gstPipeline.setStateSync(GST_STATE_PLAYING);
 }
 
