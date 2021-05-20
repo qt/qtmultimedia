@@ -514,7 +514,7 @@ AVFMediaPlayer::~AVFMediaPlayer()
 
 void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
 {
-    m_videoSink = static_cast<AVFVideoSink *>(sink->platformVideoSink());
+    m_videoSink = sink ? static_cast<AVFVideoSink *>(sink->platformVideoSink()): nullptr;
     m_videoOutput->setVideoSink(m_videoSink);
 }
 
