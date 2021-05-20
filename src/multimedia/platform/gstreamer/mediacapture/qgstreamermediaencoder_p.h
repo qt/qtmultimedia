@@ -106,6 +106,7 @@ private:
     QUrl m_requestedOutputLocation;
     QUrl m_outputLocation;
     QMediaEncoderSettings m_settings;
+    QMediaEncoderSettings m_resolvedSettings;
     QGstreamerMediaCapture *m_session = nullptr;
     QGstreamerMetaData m_metaData;
     QElapsedTimer m_duration;

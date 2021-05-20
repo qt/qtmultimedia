@@ -296,7 +296,7 @@ void QGstreamerMediaEncoder::record()
 
     // create new encoder
     if (m_requestedOutputLocation.isEmpty()) {
-        QString container = m_settings.mimeType().preferredSuffix();
+        QString container = m_resolvedSettings.mimeType().preferredSuffix();
         m_outputLocation = QUrl(generateFileName(defaultDir(), container));
     }
     QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(m_outputLocation);
@@ -314,7 +314,7 @@ void QGstreamerMediaEncoder::record()
     QGstPad audioPad = gstEncoder.getRequestPad("audio_%u");
     audioSrcPad.link(audioPad);
 
-    if (m_settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified) {
+    if (m_resolvedSettings.videoCodec() != QMediaFormat::VideoCodec::Unspecified) {
         videoSrcPad = m_session->getVideoPad();
         if (!videoSrcPad.isNull()) {
             QGstPad videoPad = gstEncoder.getRequestPad("video_%u");
@@ -393,9 +393,10 @@ void QGstreamerMediaEncoder::applySettings()
         return;
     const auto flag = m_session->camera() ? QMediaEncoderSettings::RequiresVideo
                                           : QMediaEncoderSettings::NoFlags;
-    m_settings.resolveFormat(flag);
+    m_resolvedSettings = m_settings;
+    m_resolvedSettings.resolveFormat(flag);
 
-    auto *encodingProfile = createEncodingProfile(m_settings);
+    auto *encodingProfile = createEncodingProfile(m_resolvedSettings);
     g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
     gst_encoding_profile_unref(encodingProfile);
 }
@@ -403,6 +404,7 @@ void QGstreamerMediaEncoder::applySettings()
 void QGstreamerMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     m_settings = settings;
+    applySettings();
 }
 
 void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
@@ -460,7 +462,7 @@ QDir QGstreamerMediaEncoder::defaultDir() const
 {
     QStringList dirCandidates;
 
-    if (m_settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified)
+    if (m_resolvedSettings.videoCodec() != QMediaFormat::VideoCodec::Unspecified)
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     else
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
