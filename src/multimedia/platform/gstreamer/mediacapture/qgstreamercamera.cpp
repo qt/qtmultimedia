@@ -66,7 +66,14 @@ QGstreamerCamera::QGstreamerCamera(QCamera *camera)
     gstCameraBin.addGhostPad(gstVideoScale, "src");
 }
 
-QGstreamerCamera::~QGstreamerCamera() = default;
+QGstreamerCamera::~QGstreamerCamera()
+{
+#if QT_CONFIG(linux_v4l)
+    if (v4l2FileDescriptor >= 0)
+        qt_safe_close(v4l2FileDescriptor);
+    v4l2FileDescriptor = -1;
+#endif
+}
 
 bool QGstreamerCamera::isActive() const
 {
@@ -289,6 +296,17 @@ bool QGstreamerCamera::isFlashReady() const
 
 void QGstreamerCamera::setExposureMode(QCamera::ExposureMode mode)
 {
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera() && v4l2AutoExposureSupported && v4l2ManualExposureSupported) {
+        if (mode != QCamera::ExposureAuto && mode != QCamera::ExposureManual)
+            return;
+        int value = QCamera::ExposureAuto ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL;
+        setV4L2Parameter(V4L2_CID_EXPOSURE_AUTO, value);
+        exposureModeChanged(mode);
+        return;
+    }
+#endif
+
     auto *p = photography();
     if (!p)
         return;
@@ -357,14 +375,29 @@ void QGstreamerCamera::setExposureMode(QCamera::ExposureMode mode)
 
 bool QGstreamerCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 {
+    if (mode == QCamera::ExposureAuto)
+        return true;
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera() && v4l2ManualExposureSupported && v4l2AutoExposureSupported)
+        return mode == QCamera::ExposureManual;
+#endif
     if (photography())
         return true;
 
-    return mode == QCamera::ExposureAuto;
+    return false;
 }
 
 void QGstreamerCamera::setExposureCompensation(float compensation)
 {
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera() && (v4l2MinExposureAdjustment != 0 || v4l2MaxExposureAdjustment != 0)) {
+        int value = qBound(v4l2MinExposureAdjustment, (int)(compensation*1000), v4l2MaxExposureAdjustment);
+        setV4L2Parameter(V4L2_CID_AUTO_EXPOSURE_BIAS, value);
+        exposureCompensationChanged(value/1000.);
+        return;
+    }
+#endif
+
     if (auto *p = photography()) {
         if (gst_photography_set_ev_compensation(p, compensation))
             exposureCompensationChanged(compensation);
@@ -391,6 +424,15 @@ int QGstreamerCamera::isoSensitivity() const
 
 void QGstreamerCamera::setManualShutterSpeed(float secs)
 {
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera() && v4l2ManualExposureSupported && v4l2AutoExposureSupported) {
+        int exposure = qBound(v4l2MinExposure, qRound(secs*10000.), v4l2MaxExposure);
+        setV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE, exposure);
+        shutterSpeedChanged(exposure/10000.);
+        return;
+    }
+#endif
+
     if (auto *p = photography()) {
         if (gst_photography_set_exposure(p, guint(secs*1000000)))
             shutterSpeedChanged(secs);
@@ -526,8 +568,8 @@ void QGstreamerCamera::initV4L2Controls()
     const QString deviceName = v4l2Device();
     Q_ASSERT(!deviceName.isEmpty());
 
-    const int fd = qt_safe_open(deviceName.toLocal8Bit().constData(), O_RDONLY);
-    if (fd == -1) {
+    v4l2FileDescriptor = qt_safe_open(deviceName.toLocal8Bit().constData(), O_RDONLY);
+    if (v4l2FileDescriptor == -1) {
         qWarning() << "Unable to open the camera" << deviceName
                    << "for read to query the parameter info:" << qt_error_string(errno);
         return;
@@ -537,24 +579,42 @@ void QGstreamerCamera::initV4L2Controls()
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
 
-    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2AutoWhiteBalanceSupported = true;
         struct v4l2_control control;
         control.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
         control.value = true;
-        ::ioctl(fd, VIDIOC_S_CTRL, &control);
+        ::ioctl(v4l2FileDescriptor, VIDIOC_S_CTRL, &control);
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-    if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinColorTemp = queryControl.minimum;
         v4l2MaxColorTemp = queryControl.maximum;
         v4l2ColorTemperatureSupported = true;
     }
 
-    qt_safe_close(fd);
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_EXPOSURE_AUTO;
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2AutoExposureSupported = true;
+    }
 
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2ManualExposureSupported = true;
+        v4l2MinExposure = queryControl.minimum;
+        v4l2MaxExposure = queryControl.maximum;
+    }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_AUTO_EXPOSURE_BIAS;
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2MinExposureAdjustment = queryControl.minimum;
+        v4l2MaxExposureAdjustment = queryControl.maximum;
+    }
 }
 
 int QGstreamerCamera::setV4L2ColorTemperature(int temperature)
@@ -562,38 +622,36 @@ int QGstreamerCamera::setV4L2ColorTemperature(int temperature)
     struct v4l2_control control;
     ::memset(&control, 0, sizeof(control));
 
-    const int fd = qt_safe_open(v4l2Device().toLocal8Bit().constData(), O_RDONLY);
-    if (fd == -1) {
-        qWarning() << "Unable to open the camera" << v4l2Device()
-                   << "for read to get the parameter value:" << qt_error_string(errno);
-        return 0;
-    }
-
     if (v4l2AutoWhiteBalanceSupported) {
-        control.id = V4L2_CID_AUTO_WHITE_BALANCE;
-        control.value = temperature == 0 ? true : false;
-        if (::ioctl(fd, VIDIOC_S_CTRL, &control) != 0) {
-            qWarning() << "Unable to set the V4L2 AUTO_WHITE_BALANCE property" << qt_error_string(errno);
-        }
+        setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, temperature == 0 ? true : false);
     } else if (temperature == 0) {
         temperature = 5600;
     }
 
     if (temperature != 0 && v4l2ColorTemperatureSupported) {
         temperature = qBound(v4l2MinColorTemp, temperature, v4l2MaxColorTemp);
-        control.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-        control.value = qBound(v4l2MinColorTemp, temperature, v4l2MaxColorTemp);
-        if (::ioctl(fd, VIDIOC_S_CTRL, &control) != 0) {
-            qWarning() << "Unable to set the V4L2 AUTO_WHITE_BALANCE property" << qt_error_string(errno);
+        if (!setV4L2Parameter(V4L2_CID_WHITE_BALANCE_TEMPERATURE, qBound(v4l2MinColorTemp, temperature, v4l2MaxColorTemp)))
             temperature = 0;
-        }
     } else {
         temperature = 0;
     }
 
-    qt_safe_close(fd);
     return temperature;
 }
+
+bool QGstreamerCamera::setV4L2Parameter(quint32 id, qint32 value)
+{
+    struct v4l2_control control;
+    ::memset(&control, 0, sizeof(control));
+    control.id = id;
+    control.value = value;
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_S_CTRL, &control) != 0) {
+        qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value << qt_error_string(errno);
+        return false;
+    }
+    return true;
+}
+
 #endif
 
 #endif

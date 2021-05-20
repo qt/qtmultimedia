@@ -108,11 +108,19 @@ private:
 #if QT_CONFIG(linux_v4l)
     void initV4L2Controls();
     int setV4L2ColorTemperature(int temperature);
+    bool setV4L2Parameter(quint32 id, qint32 value);
 
     bool v4l2AutoWhiteBalanceSupported = false;
     bool v4l2ColorTemperatureSupported = false;
+    bool v4l2AutoExposureSupported = false;
+    bool v4l2ManualExposureSupported = false;
     qint32 v4l2MinColorTemp = 5600; // Daylight...
     qint32 v4l2MaxColorTemp = 5600;
+    qint32 v4l2MinExposure = 0;
+    qint32 v4l2MaxExposure = 0;
+    qint32 v4l2MinExposureAdjustment = 0;
+    qint32 v4l2MaxExposureAdjustment = 0;
+    int v4l2FileDescriptor = -1;
 #endif
 
     QGstreamerMediaCapture *m_session = nullptr;

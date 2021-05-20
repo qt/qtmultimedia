@@ -360,7 +360,7 @@ void tst_QCameraBackend::testExposureCompensation()
     QSignalSpy exposureCompensationSignal(&camera, SIGNAL(exposureCompensationChanged(qreal)));
 
     //it should be possible to set exposure parameters in Unloaded state
-    QCOMPARE(camera.exposureCompensation()+1.0, 1.0);
+    QCOMPARE(camera.exposureCompensation(), 0.);
     camera.setExposureCompensation(1.0);
     QCOMPARE(camera.exposureCompensation(), 1.0);
     QTRY_COMPARE(exposureCompensationSignal.count(), 1);
@@ -394,11 +394,13 @@ void tst_QCameraBackend::testExposureMode()
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 
     // Night
-    camera.setExposureMode(QCamera::ExposureNight);
-    QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
-    camera.start();
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-    QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
+    if (camera.isExposureModeSupported(QCamera::ExposureNight)) {
+        camera.setExposureMode(QCamera::ExposureNight);
+        QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
+        camera.start();
+        QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+        QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
+    }
 
     camera.stop();
     QTRY_COMPARE(camera.status(), QCamera::InactiveStatus);
@@ -409,6 +411,20 @@ void tst_QCameraBackend::testExposureMode()
     camera.start();
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
+
+    // Manual
+    if (camera.isExposureModeSupported(QCamera::ExposureManual)) {
+        camera.setExposureMode(QCamera::ExposureManual);
+        QCOMPARE(camera.exposureMode(), QCamera::ExposureManual);
+        camera.start();
+        QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+        QCOMPARE(camera.exposureMode(), QCamera::ExposureManual);
+
+        camera.setManualShutterSpeed(.02); // ~20ms should be supported by most cameras
+        QVERIFY(camera.manualShutterSpeed() > .01 && camera.manualShutterSpeed() < .04);
+    }
+
+    camera.setExposureMode(QCamera::ExposureAuto);
 }
 
 void tst_QCameraBackend::testVideoRecording_data()
