@@ -319,13 +319,12 @@ void AVFCamera::setFocusMode(QCamera::FocusMode mode)
         }
 
         captureDevice.focusMode = avf_focus_mode(mode);
-        m_focusMode = mode;
     } else {
         qDebugCamera() << Q_FUNC_INFO << "focus mode not supported";
         return;
     }
 
-    Q_EMIT focusModeChanged(m_focusMode);
+    Q_EMIT focusModeChanged(mode);
 #else
     Q_UNUSED(mode);
 #endif
@@ -437,8 +436,8 @@ void AVFCamera::updateCameraConfiguration()
     }
 
 #ifdef Q_OS_IOS
-    if (m_focusMode != QCamera::FocusModeAuto) {
-        const AVCaptureFocusMode avMode = avf_focus_mode(m_focusMode);
+    if (focusMode() != QCamera::FocusModeAuto) {
+        const AVCaptureFocusMode avMode = avf_focus_mode(focusMode());
         if (captureDevice.focusMode != avMode) {
             if ([captureDevice isFocusModeSupported:avMode]) {
                 [captureDevice setFocusMode:avMode];
@@ -456,7 +455,7 @@ void AVFCamera::updateCameraConfiguration()
     minimumZoomFactorChanged(captureDevice.minAvailableVideoZoomFactor);
     maximumZoomFactorChanged(captureDevice.maxAvailableVideoZoomFactor);
 
-    captureDevice.videoZoomFactor = m_zoomFactor;
+    captureDevice.videoZoomFactor = zoomFactor();
 
     CMTime newDuration = AVCaptureExposureDurationCurrent;
     bool setCustomMode = false;
@@ -484,8 +483,7 @@ void AVFCamera::updateCameraConfiguration()
     }
 
     float bias = exposureCompensation();
-    if (!bias != 0
-        && !qt_exposure_bias_equal(captureDevice, bias)) {
+    if (bias != 0 && !qt_exposure_bias_equal(captureDevice, bias)) {
         // TODO: mixed fpns.
         if (bias < captureDevice.minExposureTargetBias || bias > captureDevice.maxExposureTargetBias) {
             qDebugCamera() << Q_FUNC_INFO << "exposure compensation value is"
@@ -559,7 +557,7 @@ void AVFCamera::zoomTo(float factor, float rate)
     }
 
     if (rate < 0)
-        captureDevice.videoZoomFactor = foom;
+        captureDevice.videoZoomFactor = factor;
     else
         [AVCaptureDevice rampToVideoZoomFactor:factor withRate:rate];
 #endif
@@ -654,23 +652,23 @@ void AVFCamera::setExposureMode(QCamera::ExposureMode qtMode)
         return;
     }
 
-    AVCaptureDevice *captureDevice = m_camera->device();
+    AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
-        exposureModeChanged(value);
+        exposureModeChanged(qtMode);
         return;
     }
 
-    AVCaptureExposureMode avMode = AVCaptureExposureModeContinuousAutoExpose;
+    AVCaptureExposureMode avMode = AVCaptureExposureModeContinuousAutoExposure;
     if (!qt_convert_exposure_mode(captureDevice, qtMode, avMode)) {
         qDebugCamera() << Q_FUNC_INFO << "exposure mode not supported";
-        return false;
+        return;
     }
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
         qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
                        << "for configuration";
-        return false;
+        return;
     }
 
     [captureDevice setExposureMode:avMode];
@@ -755,7 +753,7 @@ void AVFCamera::setExposureCompensation(float bias)
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
         qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
-        return false;
+        return;
     }
 
     [captureDevice setExposureTargetBias:bias completionHandler:nil];
@@ -775,7 +773,7 @@ void AVFCamera::setManualShutterSpeed(float value)
 
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
-        manualShutterSpeedChanged(value);
+        shutterSpeedChanged(value);
         return;
     }
 
@@ -798,7 +796,7 @@ void AVFCamera::setManualShutterSpeed(float value)
                                                  ISO:AVCaptureISOCurrent
                                    completionHandler:nil];
 
-    manualShutterSpeedChanged(value);
+    shutterSpeedChanged(value);
 
 #else
     Q_UNUSED(value);
@@ -886,18 +884,18 @@ bool AVFCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) cons
 {
     if (mode == QCamera::WhiteBalanceAuto)
         return true;
-    AVCaptureDevice *captureDevice = m_camera->device();
-    if (!device)
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice)
         return false;
     return [captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked];
 }
 
-void AVFCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode)
+void AVFCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
     if (!isWhiteBalanceModeSupported(mode))
-        return false;
+        return;
 
-    AVCaptureDevice *captureDevice = m_camera->device();
+    AVCaptureDevice *captureDevice = device();
     Q_ASSERT(captureDevice);
 
     const AVFConfigurationLock lock(captureDevice);
@@ -930,9 +928,9 @@ void AVFCamera::setColorTemperature(int colorTemp)
         return;
     }
 
-    AVCaptureDevice *captureDevice = m_camera->device();
-    if (!device || ![captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked])
-        return false;
+    AVCaptureDevice *captureDevice = device();
+    if (!captureDevice || ![captureDevice isWhiteBalanceModeSupported:AVCaptureWhiteBalanceModeLocked])
+        return;
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
@@ -958,20 +956,20 @@ void AVFCamera::setManualIsoSensitivity(int value)
 
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
-        manualIsoSensitivityChanged(value);
+        isoSensitivityChanged(value);
         return;
     }
 
-    if (!qt_check_ISO_value(captureDevice, value.toInt())) {
+    if (!qt_check_ISO_value(captureDevice, value)) {
         qDebugCamera() << Q_FUNC_INFO << "ISO value is out of range";
-        return false;
+        return;
     }
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
         qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
                        << "for configuration";
-        return false;
+        return;
     }
 
     // Setting the ISO will also reset
@@ -980,7 +978,7 @@ void AVFCamera::setManualIsoSensitivity(int value)
                                                  ISO:value
                                    completionHandler:nil];
 
-    manualIsoSensitivityChanged(value);
+    isoSensitivityChanged(value);
 #else
     Q_UNUSED(value);
 #endif
