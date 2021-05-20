@@ -169,14 +169,13 @@ QSample* QSampleCache::requestSample(const QUrl& url)
     m_loadingRefCount++;
     m_loadingMutex.unlock();
 
-    if (!m_loadingThread.isRunning())
-        m_loadingThread.start();
-
     qCDebug(qLcSampleCache) << "QSampleCache: request sample [" << url << "]";
     std::unique_lock<QRecursiveMutex> locker(m_mutex);
     QMap<QUrl, QSample*>::iterator it = m_samples.find(url);
     QSample* sample;
     if (it == m_samples.end()) {
+        if (!m_loadingThread.isRunning())
+            m_loadingThread.start();
         sample = new QSample(url, this);
         m_samples.insert(url, sample);
         sample->moveToThread(&m_loadingThread);
