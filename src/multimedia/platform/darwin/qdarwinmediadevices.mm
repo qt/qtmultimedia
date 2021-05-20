@@ -254,7 +254,7 @@ void QDarwinMediaDevices::updateCameraDevices()
         QList<QCameraFormat> videoFormats;
 
         for (AVCaptureDeviceFormat *format in device.formats) {
-            if (![format.mediaType isEqualTo:AVMediaTypeVideo])
+            if (![format.mediaType isEqualToString:AVMediaTypeVideo])
                 continue;
 
             auto dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);

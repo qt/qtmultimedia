@@ -375,13 +375,13 @@ void tst_QCameraBackend::testExposureCompensation()
     camera.start();
     QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
 
-    QCOMPARE(camera.exposureCompensation(), -1.0);
+    QCOMPARE(camera.exposureCompensation(), 1.0);
 
     exposureCompensationSignal.clear();
-    camera.setExposureCompensation(1.0);
-    QCOMPARE(camera.exposureCompensation(), 1.0);
+    camera.setExposureCompensation(-1.0);
+    QCOMPARE(camera.exposureCompensation(), -1.0);
     QTRY_COMPARE(exposureCompensationSignal.count(), 1);
-    QCOMPARE(exposureCompensationSignal.last().first().toReal(), 1.0);
+    QCOMPARE(exposureCompensationSignal.last().first().toReal(), -1.0);
 }
 
 void tst_QCameraBackend::testExposureMode()
@@ -398,7 +398,7 @@ void tst_QCameraBackend::testExposureMode()
         camera.setExposureMode(QCamera::ExposureNight);
         QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
         camera.start();
-        QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+        QVERIFY(camera.isActive());
         QCOMPARE(camera.exposureMode(), QCamera::ExposureNight);
     }
 
@@ -409,7 +409,7 @@ void tst_QCameraBackend::testExposureMode()
     camera.setExposureMode(QCamera::ExposureAuto);
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
     camera.start();
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+    QVERIFY(camera.isActive());
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 
     // Manual
