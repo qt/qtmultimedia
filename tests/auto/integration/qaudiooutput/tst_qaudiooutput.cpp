@@ -176,10 +176,13 @@ void tst_QAudioOutput::initTestCase()
 
     QAudioFormat format;
 
-    if (audioDevice.isFormatSupported(audioDevice.preferredFormat()))
-        testFormats.append(audioDevice.preferredFormat());
+    if (audioDevice.isFormatSupported(audioDevice.preferredFormat())) {
+        if (format.sampleFormat() == QAudioFormat::Int16)
+            testFormats.append(audioDevice.preferredFormat());
+    }
 
     // PCM 11025 mono S16LE
+    format.setChannelCount(1);
     format.setSampleRate(11025);
     format.setSampleFormat(QAudioFormat::Int16);
     if (audioDevice.isFormatSupported(format))
