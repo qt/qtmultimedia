@@ -595,6 +595,14 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     setSeekable(false);
     m_requestedPosition = -1;
     Q_EMIT positionChanged(position());
+    if (m_duration != 0) {
+        m_duration = 0;
+        Q_EMIT durationChanged(0);
+    }
+    if (!m_metaData.isEmpty()) {
+        m_metaData.clear();
+        metaDataChanged();
+    }
 
     const QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatus;
     const QMediaPlayer::PlaybackState oldState = m_state;
@@ -753,6 +761,11 @@ bool AVFMediaPlayer::setAudioOutput(const QAudioDeviceInfo &info)
 QAudioDeviceInfo AVFMediaPlayer::audioOutput() const
 {
     return m_audioOutput;
+}
+
+QMediaMetaData AVFMediaPlayer::metaData() const
+{
+    return m_metaData;
 }
 
 void AVFMediaPlayer::setPlaybackRate(qreal rate)

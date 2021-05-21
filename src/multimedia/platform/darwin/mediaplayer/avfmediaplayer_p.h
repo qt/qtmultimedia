@@ -108,6 +108,8 @@ public:
     QAudioDeviceInfo audioOutput() const override;
     QAudioDeviceInfo m_audioOutput;
 
+    QMediaMetaData metaData() const override;
+
 public Q_SLOTS:
     void setPlaybackRate(qreal rate) override;
     void nativeSizeChanged(QSize size);

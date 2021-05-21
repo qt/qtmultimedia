@@ -61,7 +61,7 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVAssetTrack);
 
 class AVFMediaPlayer;
 
-class AVFMetaData
+class AVFMetaData : public QMediaMetaData
 {
 public:
     static QMediaMetaData fromAsset(AVAsset *asset);
