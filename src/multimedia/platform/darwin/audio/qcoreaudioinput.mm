@@ -457,7 +457,7 @@ CoreAudioInput::CoreAudioInput(const QAudioDeviceInfo &device)
     , m_clockFrequency(CoreAudioUtils::frequency() / 1000)
     , m_errorCode(QAudio::NoError)
     , m_stateCode(QAudio::StoppedState)
-    , m_audioBuffer(0)
+    , m_audioBuffer(nullptr)
     , m_volume(1.0)
 {
     QAudioDeviceInfo di = device;
@@ -652,13 +652,16 @@ bool CoreAudioInput::open()
     // Now allocate a few buffers to be safe.
     m_periodSizeBytes = m_internalBufferSize = numberOfFrames * m_streamFormat.mBytesPerFrame;
 
-    m_audioBuffer = new QCoreAudioInputBuffer(m_internalBufferSize * 4,
-                                        m_periodSizeBytes,
-                                        m_deviceFormat,
-                                        m_streamFormat,
-                                        this);
+    {
+        QMutexLocker lock(m_audioBuffer);
+        m_audioBuffer = new QCoreAudioInputBuffer(m_internalBufferSize * 4,
+                                            m_periodSizeBytes,
+                                            m_deviceFormat,
+                                            m_streamFormat,
+                                            this);
 
-    m_audioBuffer->setVolume(m_volume);
+        m_audioBuffer->setVolume(m_volume);
+    }
     m_audioIO = new QCoreAudioInputDevice(m_audioBuffer, this);
 
     // Init
@@ -675,6 +678,7 @@ bool CoreAudioInput::open()
 
 void CoreAudioInput::close()
 {
+    stop();
     if (m_audioUnit != 0) {
         AudioOutputUnitStop(m_audioUnit);
         AudioUnitUninitialize(m_audioUnit);
@@ -682,6 +686,8 @@ void CoreAudioInput::close()
     }
 
     delete m_audioBuffer;
+    m_audioBuffer = nullptr;
+    m_isOpen = false;
 }
 
 void CoreAudioInput::start(QIODevice *device)
@@ -695,8 +701,11 @@ void CoreAudioInput::start(QIODevice *device)
     }
 
     reset();
-    m_audioBuffer->reset();
-    m_audioBuffer->setFlushDevice(op);
+    {
+        QMutexLocker lock(m_audioBuffer);
+        m_audioBuffer->reset();
+        m_audioBuffer->setFlushDevice(op);
+    }
 
     if (op == 0)
         op = m_audioIO;
@@ -723,8 +732,11 @@ QIODevice *CoreAudioInput::start()
     }
 
     reset();
-    m_audioBuffer->reset();
-    m_audioBuffer->setFlushDevice(op);
+    {
+        QMutexLocker lock(m_audioBuffer);
+        m_audioBuffer->reset();
+        m_audioBuffer->setFlushDevice(op);
+    }
 
     if (op == 0)
         op = m_audioIO;
@@ -744,7 +756,7 @@ QIODevice *CoreAudioInput::start()
 
 void CoreAudioInput::stop()
 {
-    QMutexLocker lock(&m_mutex);
+    QMutexLocker lock(m_audioBuffer);
     if (m_stateCode != QAudio::StoppedState) {
         audioThreadStop();
         m_audioBuffer->flush(true);
@@ -758,7 +770,7 @@ void CoreAudioInput::stop()
 
 void CoreAudioInput::reset()
 {
-    QMutexLocker lock(&m_mutex);
+    QMutexLocker lock(m_audioBuffer);
     if (m_stateCode != QAudio::StoppedState) {
         audioThreadStop();
 
@@ -772,7 +784,7 @@ void CoreAudioInput::reset()
 
 void CoreAudioInput::suspend()
 {
-    QMutexLocker lock(&m_mutex);
+    QMutexLocker lock(m_audioBuffer);
     if (m_stateCode == QAudio::ActiveState || m_stateCode == QAudio::IdleState) {
         audioThreadStop();
 
@@ -785,7 +797,7 @@ void CoreAudioInput::suspend()
 
 void CoreAudioInput::resume()
 {
-    QMutexLocker lock(&m_mutex);
+    QMutexLocker lock(m_audioBuffer);
     if (m_stateCode == QAudio::SuspendedState) {
         audioThreadStart();
 
@@ -798,6 +810,7 @@ void CoreAudioInput::resume()
 
 qsizetype CoreAudioInput::bytesReady() const
 {
+    QMutexLocker lock(m_audioBuffer);
     if (!m_audioBuffer)
         return 0;
     return m_audioBuffer->used();
@@ -846,6 +859,7 @@ QAudioFormat CoreAudioInput::format() const
 
 void CoreAudioInput::setVolume(qreal volume)
 {
+    QMutexLocker lock(m_audioBuffer);
     m_volume = volume;
     if (m_audioBuffer)
         m_audioBuffer->setVolume(m_volume);
@@ -874,20 +888,20 @@ void CoreAudioInput::audioThreadStop()
 {
     stopTimers();
     if (m_audioThreadState.testAndSetAcquire(Running, Stopped))
-        m_threadFinished.wait(&m_mutex);
+        m_audioBuffer->wait();
 }
 
 void CoreAudioInput::audioDeviceStop()
 {
     AudioOutputUnitStop(m_audioUnit);
     m_audioThreadState.storeRelaxed(Stopped);
-    m_threadFinished.wakeOne();
+    m_audioBuffer->wake();
 }
 
 void CoreAudioInput::audioDeviceActive()
 {
     if (m_stateCode == QAudio::IdleState) {
-        QMutexLocker lock(&m_mutex);
+        QMutexLocker lock(m_audioBuffer);
         m_stateCode = QAudio::ActiveState;
         emit stateChanged(m_stateCode);
     }
@@ -896,7 +910,7 @@ void CoreAudioInput::audioDeviceActive()
 void CoreAudioInput::audioDeviceFull()
 {
     if (m_stateCode == QAudio::ActiveState) {
-        QMutexLocker lock(&m_mutex);
+        QMutexLocker lock(m_audioBuffer);
         m_errorCode = QAudio::UnderrunError;
         m_stateCode = QAudio::IdleState;
         emit stateChanged(m_stateCode);
@@ -906,7 +920,7 @@ void CoreAudioInput::audioDeviceFull()
 void CoreAudioInput::audioDeviceError()
 {
     if (m_stateCode == QAudio::ActiveState) {
-        QMutexLocker lock(&m_mutex);
+        QMutexLocker lock(m_audioBuffer);
         audioDeviceStop();
 
         m_errorCode = QAudio::IOError;
@@ -937,11 +951,14 @@ OSStatus CoreAudioInput::inputCallback(void *inRefCon, AudioUnitRenderActionFlag
     else {
         qint64 framesWritten;
 
-        framesWritten = d->m_audioBuffer->renderFromDevice(d->m_audioUnit,
-                                                         ioActionFlags,
-                                                         inTimeStamp,
-                                                         inBusNumber,
-                                                         inNumberFrames);
+        {
+            QMutexLocker locker(d->m_audioBuffer);
+            framesWritten = d->m_audioBuffer->renderFromDevice(d->m_audioUnit,
+                                                             ioActionFlags,
+                                                             inTimeStamp,
+                                                             inBusNumber,
+                                                             inNumberFrames);
+        }
 
         if (framesWritten > 0) {
             d->m_totalFrames += framesWritten;

@@ -141,6 +141,12 @@ public:
     int available() const;
     int used() const;
 
+    void lock() { m_mutex.lock(); }
+    void unlock() { m_mutex.unlock(); }
+
+    void wait() { m_threadFinished.wait(&m_mutex); }
+    void wake() { m_threadFinished.wakeOne(); }
+
 signals:
     void readyRead();
 
@@ -148,6 +154,9 @@ private slots:
     void flushBuffer();
 
 private:
+    QMutex m_mutex;
+    QWaitCondition m_threadFinished;
+
     bool m_deviceError;
     int m_maxPeriodSize;
     int m_periodTime;
@@ -260,8 +269,6 @@ private:
     QAudio::Error m_errorCode;
     QAudio::State m_stateCode;
     QCoreAudioInputBuffer *m_audioBuffer;
-    QMutex m_mutex;
-    QWaitCondition m_threadFinished;
     QAtomicInt m_audioThreadState;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;

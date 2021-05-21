@@ -142,8 +142,10 @@ void tst_QAudioInput::initTestCase()
     QAudioFormat format;
     format.setChannelCount(1);
 
-    if (audioDevice.isFormatSupported(audioDevice.preferredFormat()))
-        testFormats.append(audioDevice.preferredFormat());
+    if (audioDevice.isFormatSupported(audioDevice.preferredFormat())) {
+        if (format.sampleFormat() == QAudioFormat::Int16)
+            testFormats.append(audioDevice.preferredFormat());
+    }
 
     // PCM 11025 mono S16LE
     format.setSampleRate(11025);
@@ -715,6 +717,7 @@ void tst_QAudioInput::reset()
     {
         QAudioInput audioInput(audioFormat, this);
         QBuffer buffer;
+        buffer.open(QIODevice::WriteOnly);
 
         QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
