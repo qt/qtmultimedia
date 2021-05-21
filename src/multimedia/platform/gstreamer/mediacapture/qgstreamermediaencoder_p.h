@@ -104,7 +104,6 @@ private:
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
     QUrl m_requestedOutputLocation;
-    QUrl m_outputLocation;
     QMediaEncoderSettings m_settings;
     QMediaEncoderSettings m_resolvedSettings;
     QGstreamerMediaCapture *m_session = nullptr;

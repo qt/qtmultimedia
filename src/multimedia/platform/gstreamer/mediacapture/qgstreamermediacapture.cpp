@@ -154,7 +154,7 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformCameraImageCapture *imageC
     if (m_imageCapture)
         m_imageCapture->setCaptureSession(this);
 
-    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    gstPipeline.setState(GST_STATE_PLAYING);
     emit imageCaptureChanged();
 }
 
@@ -175,7 +175,7 @@ void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
     if (m_mediaEncoder)
         m_mediaEncoder->setCaptureSession(this);
     if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(state);
+        gstPipeline.setState(state);
 
     emit encoderChanged();
     gstPipeline.dumpGraph("encoder");

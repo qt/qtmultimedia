@@ -471,35 +471,37 @@ void tst_QCameraBackend::testVideoRecording()
     QTRY_COMPARE(camera->status(), QCamera::ActiveStatus);
     QTRY_COMPARE(recorder.status(), QMediaEncoder::StoppedStatus);
 
-    //record 1 seconds clip
-    recorder.record();
-    QTRY_COMPARE(recorder.status(), QMediaEncoder::RecordingStatus);
-    QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
-    QTest::qWait(1000);
-    recorderStatusSignal.clear();
-    recorder.stop();
-    bool foundFinalizingStatus = false;
-    for (auto &list : recorderStatusSignal) {
-        if (qvariant_cast<QMediaEncoder::Status>(list.first()) == QMediaEncoder::FinalizingStatus) {
-            foundFinalizingStatus = true;
-            break;
+    for (int recordings = 0; recordings < 2; ++recordings) {
+        //record 200ms clip
+        recorder.record();
+        QTRY_COMPARE(recorder.status(), QMediaEncoder::RecordingStatus);
+        QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
+        QTest::qWait(200);
+        recorderStatusSignal.clear();
+        recorder.stop();
+        bool foundFinalizingStatus = false;
+        for (auto &list : recorderStatusSignal) {
+            if (qvariant_cast<QMediaEncoder::Status>(list.first()) == QMediaEncoder::FinalizingStatus) {
+                foundFinalizingStatus = true;
+                break;
+            }
         }
+        QVERIFY(foundFinalizingStatus);
+        QTRY_COMPARE(recorder.status(), QMediaEncoder::StoppedStatus);
+        QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
+
+        QVERIFY(errorSignal.isEmpty());
+        QVERIFY(recorderErrorSignal.isEmpty());
+
+        QString fileName = recorder.actualLocation().toLocalFile();
+        QVERIFY(!fileName.isEmpty());
+
+        QVERIFY(QFileInfo(fileName).size() > 0);
+        QFile(fileName).remove();
+
+        QTRY_COMPARE(recorder.status(), QMediaEncoder::StoppedStatus);
+        QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
     }
-    QVERIFY(foundFinalizingStatus);
-    QTRY_COMPARE(recorder.status(), QMediaEncoder::StoppedStatus);
-    QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
-
-    QVERIFY(errorSignal.isEmpty());
-    QVERIFY(recorderErrorSignal.isEmpty());
-
-    QString fileName = recorder.actualLocation().toLocalFile();
-    QVERIFY(!fileName.isEmpty());
-
-    QVERIFY(QFileInfo(fileName).size() > 0);
-    QFile(fileName).remove();
-
-    QTRY_COMPARE(recorder.status(), QMediaEncoder::StoppedStatus);
-    QCOMPARE(recorderStatusSignal.last().first().value<QMediaEncoder::Status>(), recorder.status());
 }
 
 QTEST_MAIN(tst_QCameraBackend)
