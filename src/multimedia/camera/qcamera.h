@@ -77,7 +77,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor NOTIFY minimumZoomFactorChanged)
     Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor NOTIFY maximumZoomFactorChanged)
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
-    Q_PROPERTY(qreal shutterSpeed READ shutterSpeed NOTIFY shutterSpeedChanged)
+    Q_PROPERTY(qreal exposureTime READ exposureTime NOTIFY exposureTimeChanged)
     Q_PROPERTY(int isoSensitivity READ isoSensitivity NOTIFY isoSensitivityChanged)
     Q_PROPERTY(qreal exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
     Q_PROPERTY(QCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode NOTIFY exposureModeChanged)
@@ -87,6 +87,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 
     Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
     Q_PROPERTY(int colorTemperature READ colorTemperature WRITE setColorTemperature NOTIFY colorTemperatureChanged)
+    Q_PROPERTY(Features supportedFeatures READ supportedFeatures NOTIFY supportedFeaturesChanged)
 
     Q_ENUMS(Status)
     Q_ENUMS(Error)
@@ -166,6 +167,14 @@ public:
         WhiteBalanceSunset = 8
     };
 
+    enum class Feature {
+        ColorTemperature = 0x1,
+        ExposureCompensation = 0x2,
+        IsoSensitivity = 0x4,
+        ManualExposureTime = 0x8
+    };
+    Q_DECLARE_FLAGS(Features, Feature);
+
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
     explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
@@ -186,6 +195,8 @@ public:
 
     Error error() const;
     QString errorString() const;
+
+    Features supportedFeatures() const;
 
     FocusMode focusMode() const;
     void setFocusMode(FocusMode mode);
@@ -220,8 +231,8 @@ public:
     int isoSensitivity() const;
     int manualIsoSensitivity() const;
 
-    float shutterSpeed() const;
-    float manualShutterSpeed() const;
+    float exposureTime() const;
+    float manualExposureTime() const;
 
     int minimumIsoSensitivity() const;
     int maximumIsoSensitivity() const;
@@ -250,8 +261,8 @@ public Q_SLOTS:
     void setManualIsoSensitivity(int iso);
     void setAutoIsoSensitivity();
 
-    void setManualShutterSpeed(float seconds);
-    void setAutoShutterSpeed();
+    void setManualExposureTime(float seconds);
+    void setAutoExposureTime();
 
     void setWhiteBalanceMode(WhiteBalanceMode mode);
     void setColorTemperature(int colorTemperature);
@@ -263,6 +274,7 @@ Q_SIGNALS:
     void errorOccurred(QCamera::Error error, const QString &errorString);
     void cameraInfoChanged();
     void cameraFormatChanged();
+    void supportedFeaturesChanged();
 
     void focusModeChanged();
     void zoomFactorChanged(float);
@@ -275,7 +287,7 @@ Q_SIGNALS:
     void flashModeChanged();
     void torchModeChanged();
 
-    void shutterSpeedChanged(qreal speed);
+    void exposureTimeChanged(qreal speed);
     void isoSensitivityChanged(int);
     void exposureCompensationChanged(qreal);
     void exposureModeChanged();
@@ -296,6 +308,8 @@ private:
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
     friend class QCameraInfo;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features);
 
 QT_END_NAMESPACE
 

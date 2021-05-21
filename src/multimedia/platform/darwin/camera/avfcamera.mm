@@ -460,10 +460,10 @@ void AVFCamera::updateCameraConfiguration()
     CMTime newDuration = AVCaptureExposureDurationCurrent;
     bool setCustomMode = false;
 
-    float shutterSpeed = manualShutterSpeed();
-    if (shutterSpeed > 0
-        && !qt_exposure_duration_equal(captureDevice, shutterSpeed)) {
-        newDuration = CMTimeMakeWithSeconds(shutterSpeed, captureDevice.exposureDuration.timescale);
+    float exposureTime = manualExposureTime();
+    if (exposureTime > 0
+        && !qt_exposure_duration_equal(captureDevice, exposureTime)) {
+        newDuration = CMTimeMakeWithSeconds(exposureTime, captureDevice.exposureDuration.timescale);
         if (!qt_check_exposure_duration(captureDevice, newDuration)) {
             qDebugCamera() << Q_FUNC_INFO << "requested exposure duration is out of range";
             return;
@@ -763,7 +763,7 @@ void AVFCamera::setExposureCompensation(float bias)
 #endif
 }
 
-void AVFCamera::setManualShutterSpeed(float value)
+void AVFCamera::setManualExposureTime(float value)
 {
 #ifdef Q_OS_IOS
     if (value < 0) {
@@ -773,7 +773,7 @@ void AVFCamera::setManualShutterSpeed(float value)
 
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
-        shutterSpeedChanged(value);
+        exposureTimeChanged(value);
         return;
     }
 
@@ -796,14 +796,14 @@ void AVFCamera::setManualShutterSpeed(float value)
                                                  ISO:AVCaptureISOCurrent
                                    completionHandler:nil];
 
-    shutterSpeedChanged(value);
+    exposureTimeChanged(value);
 
 #else
     Q_UNUSED(value);
 #endif
 }
 
-float AVFCamera::shutterSpeed() const
+float AVFCamera::exposureTime() const
 {
 #ifdef Q_OS_IOS
     AVCaptureDevice *captureDevice = device();

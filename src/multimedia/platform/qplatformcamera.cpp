@@ -157,6 +157,14 @@ QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraInfo &camera)
 */
 
 
+void QPlatformCamera::supportedFeaturesChanged(QCamera::Features f)
+{
+    if (m_supportedFeatures == f)
+        return;
+    m_supportedFeatures = f;
+    emit m_camera->supportedFeaturesChanged();
+}
+
 void QPlatformCamera::statusChanged(QCamera::Status s)
 {
     if (s == m_status)
@@ -273,12 +281,12 @@ void QPlatformCamera::isoSensitivityChanged(int iso)
     emit m_camera->isoSensitivityChanged(iso);
 }
 
-void QPlatformCamera::shutterSpeedChanged(float speed)
+void QPlatformCamera::exposureTimeChanged(float speed)
 {
-    if (m_shutterSpeed == speed)
+    if (m_exposureTime == speed)
         return;
-    m_shutterSpeed = speed;
-    emit m_camera->shutterSpeedChanged(speed);
+    m_exposureTime = speed;
+    emit m_camera->exposureTimeChanged(speed);
 }
 
 void QPlatformCamera::whiteBalanceModeChanged(QCamera::WhiteBalanceMode mode)

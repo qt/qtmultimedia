@@ -243,6 +243,12 @@ QString QCamera::errorString() const
     return d_func()->errorString;
 }
 
+QCamera::Features QCamera::supportedFeatures() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->supportedFeatures() : QCamera::Features{};
+}
+
 /*! \fn void QCamera::start()
 
     Starts the camera.
@@ -826,14 +832,14 @@ float QCamera::maximumShutterSpeed() const
 }
 
 /*!
-    \property QCamera::shutterSpeed
+    \property QCamera::exposureTime
     \brief Camera's shutter speed in seconds.
 
-    \sa supportedShutterSpeeds(), setAutoShutterSpeed(), setManualShutterSpeed()
+    \sa supportedShutterSpeeds(), setAutoShutterSpeed(), setManualExposureTime()
 */
 
 /*!
-    \fn QCamera::shutterSpeedChanged(qreal speed)
+    \fn QCamera::exposureTimeChanged(qreal speed)
 
     Signals that a camera's shutter \a speed has changed.
 */
@@ -846,41 +852,45 @@ float QCamera::maximumShutterSpeed() const
 */
 
 /*!
-    Returns the current shutter speed in seconds.
+    Returns the current exposure time in seconds.
 */
 
-float QCamera::shutterSpeed() const
+float QCamera::exposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->shutterSpeed() : -1;
+    return d->control ? d->control->exposureTime() : -1;
 }
 
 /*!
-    Set the manual shutter speed to \a seconds
+    Set the manual exposure time to \a seconds
 */
 
-void QCamera::setManualShutterSpeed(float seconds)
+void QCamera::setManualExposureTime(float seconds)
 {
     Q_D(QCamera);
     if (d->control)
-        d->control->setManualShutterSpeed(seconds);
+        d->control->setManualExposureTime(seconds);
 }
 
-float QCamera::manualShutterSpeed() const
+/*!
+    Returns the manual exposure time in \a seconds, or -1
+    if the camera is using automatic exposure times.
+*/
+float QCamera::manualExposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->manualShutterSpeed() : -1;
+    return d->control ? d->control->manualExposureTime() : -1;
 }
 
 /*!
     Turn on auto shutter speed
 */
 
-void QCamera::setAutoShutterSpeed()
+void QCamera::setAutoExposureTime()
 {
     Q_D(QCamera);
     if (d->control)
-        d->control->setManualShutterSpeed(-1);
+        d->control->setManualExposureTime(-1);
 }
 
 
@@ -934,7 +944,7 @@ void QCamera::setAutoShutterSpeed()
 */
 
 /*!
-    \fn void QCamera::shutterSpeedRangeChanged()
+    \fn void QCamera::exposureTimeRangeChanged()
 
     Signal emitted when the shutter speed range has changed.
 */

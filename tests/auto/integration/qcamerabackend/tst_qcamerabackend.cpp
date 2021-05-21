@@ -361,6 +361,9 @@ void tst_QCameraBackend::testExposureCompensation()
 
     //it should be possible to set exposure parameters in Unloaded state
     QCOMPARE(camera.exposureCompensation(), 0.);
+    if (!(camera.supportedFeatures() & QCamera::Feature::ExposureCompensation))
+        return;
+
     camera.setExposureCompensation(1.0);
     QCOMPARE(camera.exposureCompensation(), 1.0);
     QTRY_COMPARE(exposureCompensationSignal.count(), 1);
@@ -420,8 +423,8 @@ void tst_QCameraBackend::testExposureMode()
         QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
         QCOMPARE(camera.exposureMode(), QCamera::ExposureManual);
 
-        camera.setManualShutterSpeed(.02); // ~20ms should be supported by most cameras
-        QVERIFY(camera.manualShutterSpeed() > .01 && camera.manualShutterSpeed() < .04);
+        camera.setManualExposureTime(.02); // ~20ms should be supported by most cameras
+        QVERIFY(camera.manualExposureTime() > .01 && camera.manualExposureTime() < .04);
     }
 
     camera.setExposureMode(QCamera::ExposureAuto);

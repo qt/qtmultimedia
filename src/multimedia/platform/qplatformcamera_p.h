@@ -96,12 +96,14 @@ public:
     virtual void setExposureCompensation(float) {}
     virtual int isoSensitivity() const { return 100; }
     virtual void setManualIsoSensitivity(int) {}
-    virtual void setManualShutterSpeed(float) {}
-    virtual float shutterSpeed() const { return -1.; }
+    virtual void setManualExposureTime(float) {}
+    virtual float exposureTime() const { return -1.; }
 
     virtual bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const { return mode == QCamera::WhiteBalanceAuto; }
     virtual void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) {}
     virtual void setColorTemperature(int /*temperature*/) {}
+
+    QCamera::Features supportedFeatures() const { return m_supportedFeatures; }
 
     QCamera::FocusMode focusMode() const { return m_focusMode; }
     QPointF focusPoint() const { return m_customFocusPoint; }
@@ -120,12 +122,13 @@ public:
     int manualIsoSensitivity() const { return m_iso; }
     int minIso() const { return m_minIso; }
     int maxIso() const { return m_maxIso; }
-    float manualShutterSpeed() const { return m_shutterSpeed; }
+    float manualExposureTime() const { return m_exposureTime; }
     float minShutterSpeed() const { return m_minShutterSpeed; }
     float maxShutterSpeed() const { return m_maxShutterSpeed; }
     QCamera::WhiteBalanceMode whiteBalanceMode() const { return m_whiteBalance; }
     int colorTemperature() const { return m_colorTemperature; }
 
+    void supportedFeaturesChanged(QCamera::Features);
     void statusChanged(QCamera::Status);
     void minimumZoomFactorChanged(float factor);
     void maximumZoomFactorChanged(float);
@@ -142,7 +145,7 @@ public:
     void isoSensitivityChanged(int iso);
     void minIsoChanged(int iso) { m_minIso = iso; }
     void maxIsoChanged(int iso) { m_maxIso = iso; }
-    void shutterSpeedChanged(float speed);
+    void exposureTimeChanged(float speed);
     void minShutterSpeedChanged(float secs) { m_minShutterSpeed = secs; }
     void maxShutterSpeedChanged(float secs) { m_maxShutterSpeed = secs; }
     void whiteBalanceModeChanged(QCamera::WhiteBalanceMode mode);
@@ -160,6 +163,7 @@ protected:
     static QCameraFormat findBestCameraFormat(const QCameraInfo &camera);
 private:
     QCamera *m_camera = nullptr;
+    QCamera::Features m_supportedFeatures = {};
     QCamera::Status m_status = QCamera::InactiveStatus;
     QCamera::FocusMode m_focusMode = QCamera::FocusModeAuto;
     float m_minZoom = 1.;
@@ -177,7 +181,7 @@ private:
     int m_iso = -1;
     int m_minIso = -1;
     int m_maxIso = -1;
-    float m_shutterSpeed = -1.;
+    float m_exposureTime = -1.;
     float m_minShutterSpeed = -1.;
     float m_maxShutterSpeed = -1.;
     QCamera::WhiteBalanceMode m_whiteBalance = QCamera::WhiteBalanceAuto;

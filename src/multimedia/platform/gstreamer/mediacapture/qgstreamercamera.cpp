@@ -194,12 +194,17 @@ void QGstreamerCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 void QGstreamerCamera::updateCameraProperties()
 {
 #if QT_CONFIG(linux_v4l)
-    if (isV4L2Camera())
+    if (isV4L2Camera()) {
         initV4L2Controls();
+        return;
+    }
 #endif
 #if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography())
         gst_photography_set_white_balance_mode(p, GST_PHOTOGRAPHY_WB_MODE_AUTO);
+    QCamera::Features f = QCamera::Feature::ColorTemperature | QCamera::Feature::ExposureCompensation |
+                          QCamera::Feature::IsoSensitivity | QCamera::Feature::ManualExposureTime;
+    supportedFeaturesChanged(f);
 #endif
 
 }
@@ -406,6 +411,18 @@ void QGstreamerCamera::setExposureCompensation(float compensation)
 
 void QGstreamerCamera::setManualIsoSensitivity(int iso)
 {
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera()) {
+        if (!(supportedFeatures() & QCamera::Feature::IsoSensitivity))
+            return;
+        setV4L2Parameter(V4L2_CID_ISO_SENSITIVITY_AUTO, iso <= 0 ? V4L2_ISO_SENSITIVITY_AUTO : V4L2_ISO_SENSITIVITY_MANUAL);
+        if (iso > 0) {
+            iso = qBound(minIso(), iso, maxIso());
+            setV4L2Parameter(V4L2_CID_ISO_SENSITIVITY, iso);
+        }
+        return;
+    }
+#endif
     if (auto *p = photography()) {
         if (gst_photography_set_iso_speed(p, iso))
             isoSensitivityChanged(iso);
@@ -414,6 +431,13 @@ void QGstreamerCamera::setManualIsoSensitivity(int iso)
 
 int QGstreamerCamera::isoSensitivity() const
 {
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera()) {
+        if (!(supportedFeatures() & QCamera::Feature::IsoSensitivity))
+            return -1;
+        return getV4L2Parameter(V4L2_CID_ISO_SENSITIVITY);
+    }
+#endif
     if (auto *p = photography()) {
         guint speed = 0;
         if (gst_photography_get_iso_speed(p, &speed))
@@ -422,25 +446,30 @@ int QGstreamerCamera::isoSensitivity() const
     return 100;
 }
 
-void QGstreamerCamera::setManualShutterSpeed(float secs)
+void QGstreamerCamera::setManualExposureTime(float secs)
 {
 #if QT_CONFIG(linux_v4l)
     if (isV4L2Camera() && v4l2ManualExposureSupported && v4l2AutoExposureSupported) {
         int exposure = qBound(v4l2MinExposure, qRound(secs*10000.), v4l2MaxExposure);
         setV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE, exposure);
-        shutterSpeedChanged(exposure/10000.);
+        exposureTimeChanged(exposure/10000.);
         return;
     }
 #endif
 
     if (auto *p = photography()) {
         if (gst_photography_set_exposure(p, guint(secs*1000000)))
-            shutterSpeedChanged(secs);
+            exposureTimeChanged(secs);
     }
 }
 
-float QGstreamerCamera::shutterSpeed() const
+float QGstreamerCamera::exposureTime() const
 {
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera()) {
+        return getV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE)/10000.;
+    }
+#endif
     if (auto *p = photography()) {
         guint32 exposure = 0;
         if (gst_photography_get_exposure(p, &exposure))
@@ -564,6 +593,8 @@ void QGstreamerCamera::initV4L2Controls()
 {
     v4l2AutoWhiteBalanceSupported = false;
     v4l2ColorTemperatureSupported = false;
+    QCamera::Features features;
+
 
     const QString deviceName = v4l2Device();
     Q_ASSERT(!deviceName.isEmpty());
@@ -581,10 +612,7 @@ void QGstreamerCamera::initV4L2Controls()
 
     if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2AutoWhiteBalanceSupported = true;
-        struct v4l2_control control;
-        control.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-        control.value = true;
-        ::ioctl(v4l2FileDescriptor, VIDIOC_S_CTRL, &control);
+        setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, true);
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
@@ -593,6 +621,7 @@ void QGstreamerCamera::initV4L2Controls()
         v4l2MinColorTemp = queryControl.minimum;
         v4l2MaxColorTemp = queryControl.maximum;
         v4l2ColorTemperatureSupported = true;
+        features |= QCamera::Feature::ColorTemperature;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
@@ -607,6 +636,7 @@ void QGstreamerCamera::initV4L2Controls()
         v4l2ManualExposureSupported = true;
         v4l2MinExposure = queryControl.minimum;
         v4l2MaxExposure = queryControl.maximum;
+        features |= QCamera::Feature::ManualExposureTime;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
@@ -614,7 +644,21 @@ void QGstreamerCamera::initV4L2Controls()
     if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinExposureAdjustment = queryControl.minimum;
         v4l2MaxExposureAdjustment = queryControl.maximum;
+        features |= QCamera::Feature::ExposureCompensation;
     }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_ISO_SENSITIVITY_AUTO;
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        queryControl.id = V4L2_CID_ISO_SENSITIVITY;
+        if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+            features |= QCamera::Feature::IsoSensitivity;
+            minIsoChanged(queryControl.minimum);
+            maxIsoChanged(queryControl.minimum);
+        }
+    }
+
+    supportedFeaturesChanged(features);
 }
 
 int QGstreamerCamera::setV4L2ColorTemperature(int temperature)
@@ -641,15 +685,22 @@ int QGstreamerCamera::setV4L2ColorTemperature(int temperature)
 
 bool QGstreamerCamera::setV4L2Parameter(quint32 id, qint32 value)
 {
-    struct v4l2_control control;
-    ::memset(&control, 0, sizeof(control));
-    control.id = id;
-    control.value = value;
+    struct v4l2_control control{id, value};
     if (::ioctl(v4l2FileDescriptor, VIDIOC_S_CTRL, &control) != 0) {
         qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value << qt_error_string(errno);
         return false;
     }
     return true;
+}
+
+int QGstreamerCamera::getV4L2Parameter(quint32 id) const
+{
+    struct v4l2_control control{id, 0};
+    if (::ioctl(v4l2FileDescriptor, VIDIOC_G_CTRL, &control) != 0) {
+        qWarning() << "Unable to get the V4L2 Parameter" << Qt::hex << id << qt_error_string(errno);
+        return 0;
+    }
+    return control.value;
 }
 
 #endif

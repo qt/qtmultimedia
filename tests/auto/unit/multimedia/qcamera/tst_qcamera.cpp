@@ -173,13 +173,13 @@ void tst_QCamera::testSimpleCameraExposure()
     camera.setAutoIsoSensitivity();
     QCOMPARE(camera.isoSensitivity(), -1);
 
-    QVERIFY(camera.shutterSpeed() < 0);
+    QVERIFY(camera.exposureTime() < 0);
     QCOMPARE(camera.minimumShutterSpeed(), -1.);
     QCOMPARE(camera.maximumShutterSpeed(), -1.);
-    camera.setAutoShutterSpeed();
-    QVERIFY(camera.shutterSpeed() < 0);
-    camera.setManualShutterSpeed(1/128.0);
-    QVERIFY(camera.shutterSpeed() < 0);
+    camera.setAutoExposureTime();
+    QVERIFY(camera.exposureTime() < 0);
+    camera.setManualExposureTime(1/128.0);
+    QVERIFY(camera.exposureTime() < 0);
 }
 
 void tst_QCamera::testSimpleCameraFocus()
@@ -389,20 +389,20 @@ void tst_QCamera::testCameraExposure()
     qreal maxShutterSpeed = camera.maximumShutterSpeed();
     QVERIFY(minShutterSpeed > 0);
     QVERIFY(maxShutterSpeed > 0);
-    QVERIFY(camera.shutterSpeed() >= minShutterSpeed);
-    QVERIFY(camera.shutterSpeed() <= maxShutterSpeed);
+    QVERIFY(camera.exposureTime() >= minShutterSpeed);
+    QVERIFY(camera.exposureTime() <= maxShutterSpeed);
 
-    camera.setAutoShutterSpeed();
-    QVERIFY(camera.shutterSpeed() >= minShutterSpeed);
-    QVERIFY(camera.shutterSpeed() <= maxShutterSpeed);
+    camera.setAutoExposureTime();
+    QVERIFY(camera.exposureTime() >= minShutterSpeed);
+    QVERIFY(camera.exposureTime() <= maxShutterSpeed);
 
-    camera.setManualShutterSpeed(0);
-    QCOMPARE(camera.shutterSpeed(), minShutterSpeed);
+    camera.setManualExposureTime(0);
+    QCOMPARE(camera.exposureTime(), minShutterSpeed);
 
-    camera.setManualShutterSpeed(10000);
-    QCOMPARE(camera.shutterSpeed(), maxShutterSpeed);
+    camera.setManualExposureTime(10000);
+    QCOMPARE(camera.exposureTime(), maxShutterSpeed);
 
-    camera.setAutoShutterSpeed();
+    camera.setAutoExposureTime();
 }
 
 void tst_QCamera::testCameraFocus()
@@ -915,11 +915,11 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spySignalShutterSpeedChanged(&camera, SIGNAL(shutterSpeedChanged(qreal)));
+    QSignalSpy spySignalShutterSpeedChanged(&camera, SIGNAL(exposureTimeChanged(qreal)));
 
     QVERIFY(spySignalShutterSpeedChanged.count() ==0);
 
-    camera.setManualShutterSpeed(2.0);//set the ManualShutterSpeed to 2.0
+    camera.setManualExposureTime(2.0);//set the ManualShutterSpeed to 2.0
     QTest::qWait(100);
 
     QVERIFY(spySignalShutterSpeedChanged.count() ==1);

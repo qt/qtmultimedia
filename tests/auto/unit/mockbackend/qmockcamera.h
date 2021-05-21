@@ -150,16 +150,16 @@ public:
         if (!simpleCamera)
             isoSensitivityChanged(qBound(100, iso, 800));
     }
-    void setManualShutterSpeed(float secs) override
+    void setManualExposureTime(float secs) override
     {
         if (!simpleCamera)
-            shutterSpeedChanged(qBound(0.001, secs, 1.));
+            exposureTimeChanged(qBound(0.001, secs, 1.));
     }
-    float shutterSpeed() const override
+    float exposureTime() const override
     {
         if (simpleCamera)
             return -1.;
-        return manualShutterSpeed() > 0 ? manualShutterSpeed() : .05;
+        return manualExposureTime() > 0 ? manualExposureTime() : .05;
     }
 
     bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override

@@ -104,8 +104,8 @@ public:
     void setExposureCompensation(float bias) override;
     void setManualIsoSensitivity(int value) override;
     virtual int isoSensitivity() const override;
-    void setManualShutterSpeed(float value) override;
-    virtual float shutterSpeed() const override;
+    void setManualExposureTime(float value) override;
+    virtual float exposureTime() const override;
 
 #ifdef Q_OS_IOS
     // not supported on macOS

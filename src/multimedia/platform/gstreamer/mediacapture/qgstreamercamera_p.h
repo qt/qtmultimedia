@@ -93,8 +93,8 @@ public:
     void setExposureCompensation(float) override;
     void setManualIsoSensitivity(int) override;
     int isoSensitivity() const override;
-    void setManualShutterSpeed(float) override;
-    float shutterSpeed() const override;
+    void setManualExposureTime(float) override;
+    float exposureTime() const override;
 #endif
     bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
     void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
@@ -109,6 +109,7 @@ private:
     void initV4L2Controls();
     int setV4L2ColorTemperature(int temperature);
     bool setV4L2Parameter(quint32 id, qint32 value);
+    int getV4L2Parameter(quint32 id) const;
 
     bool v4l2AutoWhiteBalanceSupported = false;
     bool v4l2ColorTemperatureSupported = false;
