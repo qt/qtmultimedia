@@ -124,6 +124,7 @@ QMediaCaptureSession::~QMediaCaptureSession()
         d_ptr->encoder->setCaptureSession(nullptr);
     if (d_ptr->imageCapture)
         d_ptr->imageCapture->setCaptureSession(nullptr);
+    d_ptr->setVideoSink(nullptr);
     delete d_ptr->captureSession;
     delete d_ptr;
 }

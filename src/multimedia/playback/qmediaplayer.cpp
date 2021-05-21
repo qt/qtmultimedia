@@ -212,6 +212,7 @@ QMediaPlayer::~QMediaPlayer()
     // when a receiver is already destroyed.
     disconnect();
 
+    d->setVideoSink(nullptr);
     delete d->control;
 }
 
