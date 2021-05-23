@@ -175,6 +175,8 @@ private:
     bool m_seekable;
 
     AVFMediaPlayerObserver *m_observer;
+
+    QTimer m_playbackTimer;
 };
 
 QT_END_NAMESPACE

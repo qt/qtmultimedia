@@ -85,7 +85,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (void) prepareToPlayAsset:(AVURLAsset *)asset withKeys:(NSArray *)requestedKeys;
 - (void) assetFailedToPrepareForPlayback:(NSError *)error;
 - (void) playerItemDidReachEnd:(NSNotification *)notification;
-- (void) playerItemTimeJumped:(NSNotification *)notification;
 - (void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
                          change:(NSDictionary *)change context:(void *)context;
 - (void) detatchSession;
@@ -170,9 +169,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemDidPlayToEndTimeNotification
-                                                    object:m_playerItem];
-        [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:AVPlayerItemTimeJumpedNotification
                                                     object:m_playerItem];
         m_playerItem = 0;
     }
@@ -266,11 +262,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
                                                  name:AVPlayerItemDidPlayToEndTimeNotification
                                                object:m_playerItem];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(playerItemTimeJumped:)
-                                                 name:AVPlayerItemTimeJumpedNotification
-                                               object:m_playerItem];
-
     //Get a new AVPlayer initialized to play the specified player item.
     m_player = [AVPlayer playerWithPlayerItem:m_playerItem];
     [m_player retain];
@@ -326,13 +317,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     Q_UNUSED(notification);
     if (self.session)
         QMetaObject::invokeMethod(m_session, "processEOS", Qt::AutoConnection);
-}
-
-- (void) playerItemTimeJumped:(NSNotification *)notification
-{
-    Q_UNUSED(notification);
-    if (self.session)
-        QMetaObject::invokeMethod(m_session, "processPositionChange", Qt::AutoConnection);
 }
 
 - (void) observeValueForKeyPath:(NSString*) path
@@ -499,6 +483,7 @@ AVFMediaPlayer::AVFMediaPlayer(QMediaPlayer *player)
     , m_seekable(false)
 {
     m_observer = [[AVFMediaPlayerObserver alloc] initWithMediaPlayerSession:this];
+    connect(&m_playbackTimer, &QTimer::timeout, this, &AVFMediaPlayer::processPositionChange);
     setVideoOutput(new AVFVideoRendererControl(this));
 }
 
@@ -856,6 +841,7 @@ void AVFMediaPlayer::play()
     processLoadStateChange();
 
     Q_EMIT stateChanged(m_state);
+    m_playbackTimer.start(100);
 }
 
 void AVFMediaPlayer::pause()
@@ -881,8 +867,9 @@ void AVFMediaPlayer::pause()
     if (m_mediaStatus == QMediaPlayer::EndOfMedia)
         setPosition(0);
 
-
+    Q_EMIT positionChanged(position());
     Q_EMIT stateChanged(m_state);
+    m_playbackTimer.stop();
 }
 
 void AVFMediaPlayer::stop()
@@ -904,8 +891,8 @@ void AVFMediaPlayer::stop()
     if (m_mediaStatus == QMediaPlayer::BufferedMedia)
         Q_EMIT mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
 
-    Q_EMIT positionChanged(position());
     Q_EMIT stateChanged((m_state = QMediaPlayer::StoppedState));
+    m_playbackTimer.stop();
 }
 
 void AVFMediaPlayer::setVolume(int volume)
@@ -1020,6 +1007,7 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
     if (newState == QMediaPlayer::PlayingState && [static_cast<AVFMediaPlayerObserver*>(m_observer) player]) {
         // Setting the rate is enough to start playback, no need to call play()
         [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
+        m_playbackTimer.start();
     }
 }
 
@@ -1047,8 +1035,10 @@ void AVFMediaPlayer::processBufferStateChange(int bufferProgress)
     } else if (status == QMediaPlayer::StalledMedia) {
         status = QMediaPlayer::BufferedMedia;
         // Resume playback.
-        if (m_state == QMediaPlayer::PlayingState)
+        if (m_state == QMediaPlayer::PlayingState) {
             [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
+            m_playbackTimer.start();
+        }
     }
 
     if (m_mediaStatus != status)

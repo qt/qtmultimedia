@@ -383,7 +383,7 @@ void tst_QMediaPlayerBackend::playPauseStop()
     QCOMPARE(statusSpy.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::LoadedMedia);
 
     //ensure the position is reset to 0 at stop and positionChanged(0) is emitted
-    QCOMPARE(player.position(), qint64(0));
+    QTRY_COMPARE(player.position(), qint64(0));
     QCOMPARE(positionSpy.last()[0].value<qint64>(), qint64(0));
     QVERIFY(player.duration() > 0);
 
@@ -850,7 +850,7 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
     player.stop();
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
-    QCOMPARE(player.position(), 0);
+    QTRY_COMPARE(player.position(), 0);
 
     stateSpy.clear();
     positionSpy.clear();

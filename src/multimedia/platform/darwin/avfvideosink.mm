@@ -182,9 +182,10 @@ void AVFVideoSinkInterface::setVideoSink(AVFVideoSink *sink)
         return;
 
     m_sink = sink;
-    if (m_sink)
+    if (m_sink) {
         m_sink->setVideoSinkInterface(this);
-    reconfigure();
+        reconfigure();
+    }
 }
 #include <qdebug.h>
 
