@@ -99,7 +99,7 @@ void tst_QAudioDeviceInfo::checkAvailableDefaultOutput()
 void tst_QAudioDeviceInfo::channels()
 {
     QVERIFY(device->minimumChannelCount() > 0);
-    QVERIFY(device->maximumChannelCount() > device->minimumChannelCount());
+    QVERIFY(device->maximumChannelCount() >= device->minimumChannelCount());
 }
 
 void tst_QAudioDeviceInfo::sampleFormat()

@@ -107,7 +107,7 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
         supportedSampleFormats.append(QAudioFormat::Int16);
     }
 
-    minimumSampleRate = INT_MAX;
+    minimumSampleRate = std::numeric_limits<int>::max();
     maximumSampleRate = 0;
     // Check sample rate
     if ((fmt & WAVE_FORMAT_1M08)
@@ -115,37 +115,41 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
        || (fmt & WAVE_FORMAT_1M16)
        || (fmt & WAVE_FORMAT_1S16)) {
         minimumSampleRate = qMin(minimumSampleRate, 11025);
-        maximumSampleRate = qMin(maximumSampleRate, 11025);
+        maximumSampleRate = qMax(maximumSampleRate, 11025);
     }
     if ((fmt & WAVE_FORMAT_2M08)
        || (fmt & WAVE_FORMAT_2S08)
        || (fmt & WAVE_FORMAT_2M16)
        || (fmt & WAVE_FORMAT_2S16)) {
         minimumSampleRate = qMin(minimumSampleRate, 22050);
-        maximumSampleRate = qMin(maximumSampleRate, 22050);
+        maximumSampleRate = qMax(maximumSampleRate, 22050);
     }
     if ((fmt & WAVE_FORMAT_4M08)
        || (fmt & WAVE_FORMAT_4S08)
        || (fmt & WAVE_FORMAT_4M16)
        || (fmt & WAVE_FORMAT_4S16)) {
         minimumSampleRate = qMin(minimumSampleRate, 44100);
-        maximumSampleRate = qMin(maximumSampleRate, 44100);
+        maximumSampleRate = qMax(maximumSampleRate, 44100);
     }
     if ((fmt & WAVE_FORMAT_48M08)
         || (fmt & WAVE_FORMAT_48S08)
         || (fmt & WAVE_FORMAT_48M16)
         || (fmt & WAVE_FORMAT_48S16)) {
         minimumSampleRate = qMin(minimumSampleRate, 48000);
-        maximumSampleRate = qMin(maximumSampleRate, 48000);
+        maximumSampleRate = qMax(maximumSampleRate, 48000);
     }
     if ((fmt & WAVE_FORMAT_96M08)
        || (fmt & WAVE_FORMAT_96S08)
        || (fmt & WAVE_FORMAT_96M16)
        || (fmt & WAVE_FORMAT_96S16)) {
         minimumSampleRate = qMin(minimumSampleRate, 96000);
-        maximumSampleRate = qMin(maximumSampleRate, 96000);
+        maximumSampleRate = qMax(maximumSampleRate, 96000);
     }
+    if (minimumSampleRate == std::numeric_limits<int>::max())
+        minimumSampleRate = 0;
 
+    minimumChannelCount = std::numeric_limits<int>::max();
+    maximumChannelCount = 0;
     // Check channel count
     if (fmt & WAVE_FORMAT_1M08
             || fmt & WAVE_FORMAT_1M16
@@ -170,9 +174,12 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
             || fmt & WAVE_FORMAT_48S16
             || fmt & WAVE_FORMAT_96S08
             || fmt & WAVE_FORMAT_96S16) {
-        minimumChannelCount = qMin(minimumChannelCount, 96000);
-        maximumChannelCount = qMin(maximumChannelCount, 96000);
+        minimumChannelCount = qMin(minimumChannelCount, 2);
+        maximumChannelCount = qMax(maximumChannelCount, 2);
     }
+
+    if (minimumChannelCount == std::numeric_limits<int>::max())
+        minimumChannelCount = 0;
 
     // WAVEOUTCAPS and WAVEINCAPS contains information only for the previously tested parameters.
     // WaveOut and WaveInt might actually support more formats, the only way to know is to try
