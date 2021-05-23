@@ -70,7 +70,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
 public:
     virtual void setWinId(WId id) = 0;
 
-    virtual void setRhi(QRhi */*rhi*/) {}
+    virtual void setRhi(QRhi * /*rhi*/) {}
 
     virtual void setDisplayRect(const QRect &rect) = 0;
 

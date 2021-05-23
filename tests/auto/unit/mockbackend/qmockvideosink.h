@@ -63,7 +63,7 @@ public:
     {}
     void setWinId(WId) override {}
 
-    void setRhi(QRhi */*rhi*/) override {}
+    void setRhi(QRhi * /*rhi*/) override {}
 
     void setDisplayRect(const QRect &) override {}
 

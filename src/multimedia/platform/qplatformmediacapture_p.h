@@ -85,7 +85,7 @@ public:
     virtual QAudioDeviceInfo audioInput() const = 0;
     virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
 
-    virtual void setVideoPreview(QVideoSink */*sink*/) {}
+    virtual void setVideoPreview(QVideoSink * /*sink*/) {}
     virtual QAudioDeviceInfo audioPreview() const;
     virtual bool setAudioPreview(const QAudioDeviceInfo &) { return true; }
 

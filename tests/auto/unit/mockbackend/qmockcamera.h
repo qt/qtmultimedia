@@ -54,8 +54,8 @@ public:
         if (!simpleCamera) {
             minIsoChanged(100);
             maxIsoChanged(800);
-            minShutterSpeedChanged(.001);
-            maxShutterSpeedChanged(1);
+            minShutterSpeedChanged(.001f);
+            maxShutterSpeedChanged(1.f);
             exposureCompensationRangeChanged(-2, 2);
             maximumZoomFactorChanged(4.);
             setFlashMode(QCamera::FlashAuto);
