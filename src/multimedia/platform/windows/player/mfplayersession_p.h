@@ -122,6 +122,7 @@ public:
     void changeStatus(QMediaPlayer::MediaStatus newStatus);
 
     void close();
+    void clearPlayer() { m_playerControl = nullptr; }
 
     bool setAudioOutput(const QAudioDeviceInfo &device);
     QAudioDeviceInfo audioOutput() const { return m_audioOutput; }
@@ -130,18 +131,18 @@ public:
 
     void setVideoSink(QVideoSink *sink);
 
-    void statusChanged() { m_playerControl->handleStatusChanged(); }
-    void audioAvailable() { m_playerControl->handleAudioAvailable(); }
-    void videoAvailable() { m_playerControl->handleVideoAvailable(); }
-    void durationUpdate(qint64 duration) { m_playerControl->handleDurationUpdate(duration); }
-    void seekableUpdate(bool seekable) { m_playerControl->handleSeekableUpdate(seekable); }
-    void error(QMediaPlayer::Error error, QString errorString, bool isFatal) { m_playerControl->handleError(error, errorString, isFatal); }
-    void playbackRateChanged(qreal rate) { m_playerControl->playbackRateChanged(rate); }
-    void volumeChanged(int volume) { m_playerControl->volumeChanged(volume); }
-    void mutedChanged(bool muted) { m_playerControl->mutedChanged(muted); }
-    void bufferProgressChanged(float percentFilled) { m_playerControl->bufferProgressChanged(percentFilled); }
-    void metaDataChanged() { m_playerControl->metaDataChanged(); }
-    void positionChanged(qint64 position) { m_playerControl->positionChanged(position); }
+    void statusChanged() { if (m_playerControl) m_playerControl->handleStatusChanged(); }
+    void audioAvailable() { if (m_playerControl) m_playerControl->handleAudioAvailable(); }
+    void videoAvailable() { if (m_playerControl) m_playerControl->handleVideoAvailable(); }
+    void durationUpdate(qint64 duration) { if (m_playerControl) m_playerControl->handleDurationUpdate(duration); }
+    void seekableUpdate(bool seekable) { if (m_playerControl) m_playerControl->handleSeekableUpdate(seekable); }
+    void error(QMediaPlayer::Error error, QString errorString, bool isFatal) { if (m_playerControl) m_playerControl->handleError(error, errorString, isFatal); }
+    void playbackRateChanged(qreal rate) { if (m_playerControl) m_playerControl->playbackRateChanged(rate); }
+    void volumeChanged(int volume) { if (m_playerControl) m_playerControl->volumeChanged(volume); }
+    void mutedChanged(bool muted) { if (m_playerControl) m_playerControl->mutedChanged(muted); }
+    void bufferProgressChanged(float percentFilled) { if (m_playerControl) m_playerControl->bufferProgressChanged(percentFilled); }
+    void metaDataChanged() { if (m_playerControl) m_playerControl->metaDataChanged(); }
+    void positionChanged(qint64 position) { if (m_playerControl) m_playerControl->positionChanged(position); }
 
 Q_SIGNALS:
     void sessionEvent(IMFMediaEvent  *sessionEvent);
@@ -153,7 +154,7 @@ private Q_SLOTS:
 
 private:
     long m_cRef;
-    MFPlayerControl *m_playerControl;
+    MFPlayerControl *m_playerControl = nullptr;
     MFVideoRendererControl *m_videoRendererControl = nullptr;
     IMFMediaSession *m_session;
     IMFPresentationClock *m_presentationClock;

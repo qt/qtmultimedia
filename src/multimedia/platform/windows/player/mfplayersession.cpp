@@ -427,8 +427,6 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
 
     } else if (mediaType == Video) {
         activate = m_videoRendererControl->createActivate();
-//        } else if (m_playerService->videoWindowControl()) {
-//            activate = m_playerService->videoWindowControl()->createActivate();
     } else {
         // Unknown stream type.
         emit error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);

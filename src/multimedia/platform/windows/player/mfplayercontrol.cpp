@@ -58,6 +58,7 @@ MFPlayerControl::MFPlayerControl(QMediaPlayer *player)
 
 MFPlayerControl::~MFPlayerControl()
 {
+    m_session->clearPlayer();
     m_session->Release();
 }
 

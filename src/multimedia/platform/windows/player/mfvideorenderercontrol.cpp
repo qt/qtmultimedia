@@ -2244,16 +2244,16 @@ void MFVideoRendererControl::present()
 
 IMFActivate* MFVideoRendererControl::createActivate()
 {
-    Q_ASSERT(m_sink);
-
     clear();
 
-    // Create the EVR media sink, but replace the presenter with our own
-    if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
-        m_presenterActivate = new EVRCustomPresenterActivate;
-        m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
-    } else {
-        m_currentActivate = new VideoRendererActivate(this);
+    if (m_sink) {
+        // Create the EVR media sink, but replace the presenter with our own
+        if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
+            m_presenterActivate = new EVRCustomPresenterActivate;
+            m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
+        } else {
+            m_currentActivate = new VideoRendererActivate(this);
+        }
     }
 
     setSink(m_sink);
