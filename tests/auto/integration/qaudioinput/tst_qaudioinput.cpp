@@ -111,7 +111,7 @@ void tst_QAudioInput::generate_audiofile_testrows()
     QTest::addColumn<QAudioFormat>("audioFormat");
 
     for (int i=0; i<audioFiles.count(); i++) {
-        QTest::newRow(QString("Audio File %1").arg(i).toUtf8().constData())
+        QTest::newRow(QString("%1").arg(i).toUtf8().constData())
                 << audioFiles.at(i) << testFormats.at(i);
 
         // Only run first format in CI system to reduce test times
@@ -607,7 +607,7 @@ void tst_QAudioInput::pushSuspendResume()
 
     qint64 totalBytesRead = 0;
     bool firstBuffer = true;
-    qint64 len = audioFormat.sampleRate() * audioFormat.bytesPerFrame() / 10; // 100 msecond
+    qint64 len = audioFormat.sampleRate() * audioFormat.bytesPerFrame() / 2; // .5 seconds
     while (totalBytesRead < len) {
         QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesAvailable() > 0, 1000);
         auto buffer = feed->readAll();
@@ -657,7 +657,7 @@ void tst_QAudioInput::pushSuspendResume()
     totalBytesRead = 0;
     firstBuffer = true;
     while (totalBytesRead < len && audioInput.state() != QAudio::StoppedState) {
-        QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesAvailable() > 0, 1000);
+        QTRY_VERIFY(audioInput.bytesAvailable() > 0);
         auto buffer = feed->readAll();
         audioFile->write(buffer);
         totalBytesRead += buffer.size();
@@ -671,7 +671,7 @@ void tst_QAudioInput::pushSuspendResume()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QVERIFY2(qTolerantCompare(processedUs, 240000LL),
+    QVERIFY2(qTolerantCompare(processedUs, 1000000LL),
              QString("processedUSecs() doesn't fall in acceptable range, should be 2040000 (%1)").arg(processedUs).toUtf8().constData());
     QVERIFY2((audioInput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 

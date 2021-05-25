@@ -436,7 +436,9 @@ void QWindowsAudioInput::closeMixer()
 
 qsizetype QWindowsAudioInput::bytesReady() const
 {
-    if(period_size == 0 || buffer_size == 0)
+    if (period_size == 0 || buffer_size == 0)
+        return 0;
+    if (deviceState == QAudio::StoppedState || deviceState == QAudio::SuspendedState)
         return 0;
 
     int buf = ((buffer_size/period_size)-waveFreeBlockCount)*period_size;
@@ -566,7 +568,7 @@ qint64 QWindowsAudioInput::read(char* data, qint64 len)
 
 void QWindowsAudioInput::resume()
 {
-    if(deviceState == QAudio::SuspendedState) {
+    if (deviceState == QAudio::SuspendedState) {
         deviceState = QAudio::ActiveState;
         for(int i=0; i<buffer_size/period_size; i++) {
             result = waveInAddBuffer(hWaveIn, &waveBlocks[i], sizeof(WAVEHDR));
@@ -615,8 +617,8 @@ qint64 QWindowsAudioInput::processedUSecs() const
 void QWindowsAudioInput::suspend()
 {
     if(deviceState == QAudio::ActiveState) {
-        waveInReset(hWaveIn);
         deviceState = QAudio::SuspendedState;
+        waveInReset(hWaveIn);
         emit stateChanged(deviceState);
     }
 }
@@ -627,7 +629,7 @@ void QWindowsAudioInput::feedback()
     QTime now(QTime::currentTime());
     qDebug()<<now.second()<<"s "<<now.msec()<<"ms :feedback() INPUT "<<this;
 #endif
-    if(!(deviceState==QAudio::StoppedState||deviceState==QAudio::SuspendedState))
+    if(deviceState != QAudio::StoppedState && deviceState != QAudio::SuspendedState)
         QMetaObject::invokeMethod(this, "deviceReady", Qt::QueuedConnection);
 }
 
@@ -636,7 +638,7 @@ bool QWindowsAudioInput::deviceReady()
     bytesAvailable = bytesReady();
 #ifdef DEBUG_AUDIO
     QTime now(QTime::currentTime());
-    qDebug()<<now.second()<<"s "<<now.msec()<<"ms :deviceReady() INPUT";
+    qDebug()<<now.second()<<"s "<<now.msec()<<"ms :deviceReady() INPUT" << bytesReady();
 #endif
     if(deviceState != QAudio::ActiveState && deviceState != QAudio::IdleState)
         return true;
