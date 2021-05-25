@@ -86,7 +86,6 @@ public:
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
     void setCustomFocusPoint(const QPointF &point) override;
-    bool isCustomFocusPointSupported() const override;
 
     void setFocusDistance(float d) override;
     void zoomTo(float factor, float rate) override;
@@ -122,6 +121,7 @@ private Q_SLOTS:
 
 private:
     void updateCameraConfiguration();
+    void updateCameraProperties();
     void applyFlashSettings();
 
     friend class AVFCameraSession;

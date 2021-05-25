@@ -384,11 +384,6 @@ void AVFCamera::setCustomFocusPoint(const QPointF &point)
     }
 }
 
-bool AVFCamera::isCustomFocusPointSupported() const
-{
-    return true;
-}
-
 void AVFCamera::setFocusDistance(float d)
 {
 #ifdef Q_OS_IOS
@@ -533,6 +528,25 @@ void AVFCamera::updateCameraConfiguration()
 
     applyFlashSettings();
     flashReadyChanged(isFlashSupported);
+}
+
+void AVFCamera::updateCameraProperties()
+{
+    QCamera::Features features;
+    AVCaptureDevice *captureDevice = device();
+
+#ifdef Q_OS_IOS
+    features = QCamera::Feature::ColorTemperature | QCamera::Feature::ExposureCompensation |
+                          QCamera::Feature::IsoSensitivity | QCamera::Feature::ManualExposureTime;
+
+    if (captureDevice && [captureDevice isLockingFocusWithCustomLensPositionSupported])
+        features |= QCamera::Feature::FocusDistance;
+#endif
+
+    if (captureDevice && [captureDevice isFocusPointOfInterestSupported])
+        features |= QCamera::Feature::CustomFocusPoint;
+
+    supportedFeaturesChanged(features);
 }
 
 void AVFCamera::zoomTo(float factor, float rate)

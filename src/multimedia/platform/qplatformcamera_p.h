@@ -76,7 +76,6 @@ public:
     virtual bool isFocusModeSupported(QCamera::FocusMode mode) const { return mode == QCamera::FocusModeAuto; }
     virtual void setFocusMode(QCamera::FocusMode /*mode*/) {}
 
-    virtual bool isCustomFocusPointSupported() const { return false; }
     virtual void setCustomFocusPoint(const QPointF &/*point*/) {}
 
     virtual void setFocusDistance(float) {}

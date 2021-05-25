@@ -518,12 +518,6 @@ void QCamera::setCustomFocusPoint(const QPointF &point)
     d->control->setCustomFocusPoint(point);
 }
 
-bool QCamera::isCustomFocusPointSupported() const
-{
-    Q_D(const QCamera);
-    return d->control ? d->control->isCustomFocusPointSupported() : false;
-}
-
 /*!
     \property QCamera::focusDistance
 

@@ -101,7 +101,6 @@ public:
     bool isFocusModeSupported(QCamera::FocusMode mode) const override
     { return simpleCamera ? mode == QCamera::FocusModeAuto : mode != QCamera::FocusModeInfinity; }
 
-    bool isCustomFocusPointSupported() const override { return !simpleCamera; }
     void setCustomFocusPoint(const QPointF &point) override
     {
         if (!simpleCamera)

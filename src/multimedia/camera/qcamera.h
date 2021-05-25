@@ -171,7 +171,9 @@ public:
         ColorTemperature = 0x1,
         ExposureCompensation = 0x2,
         IsoSensitivity = 0x4,
-        ManualExposureTime = 0x8
+        ManualExposureTime = 0x8,
+        CustomFocusPoint = 0x10,
+        FocusDistance = 0x20
     };
     Q_DECLARE_FLAGS(Features, Feature);
 
@@ -206,7 +208,6 @@ public:
 
     QPointF customFocusPoint() const;
     void setCustomFocusPoint(const QPointF &point);
-    bool isCustomFocusPointSupported() const;
 
     void setFocusDistance(float d);
     float focusDistance() const;
