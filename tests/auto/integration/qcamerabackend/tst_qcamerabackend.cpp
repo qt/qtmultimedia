@@ -420,7 +420,7 @@ void tst_QCameraBackend::testExposureMode()
         camera.setExposureMode(QCamera::ExposureManual);
         QCOMPARE(camera.exposureMode(), QCamera::ExposureManual);
         camera.start();
-        QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+        QVERIFY(camera.isActive());
         QCOMPARE(camera.exposureMode(), QCamera::ExposureManual);
 
         camera.setManualExposureTime(.02); // ~20ms should be supported by most cameras

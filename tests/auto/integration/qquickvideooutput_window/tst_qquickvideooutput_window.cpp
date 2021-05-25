@@ -86,6 +86,7 @@ void tst_QQuickVideoOutputWindow::initTestCase()
     component.loadUrl(QUrl("qrc:/main.qml"));
 
     m_rootItem.reset(qobject_cast<QQuickItem *>(component.create()));
+    QVERIFY(m_rootItem != nullptr);
     m_videoItem = qobject_cast<QQuickVideoOutput *>(m_rootItem->findChild<QQuickItem *>("videoOutput"));
     QVERIFY(m_videoItem);
     m_sink = m_videoItem->videoSink();
