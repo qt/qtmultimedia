@@ -106,7 +106,7 @@ class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
     Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
-    Q_PROPERTY(QMediaEncoder::Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QMediaEncoderBase::Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
 public:
