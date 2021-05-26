@@ -125,7 +125,7 @@ private:
     static void QT_WIN_CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
             DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
 
-    QMutex mutex;
+    mutable QMutex mutex;
 
     WAVEHDR* allocateBlocks(int size, int count);
     void freeBlocks(WAVEHDR* blockArray);
@@ -135,10 +135,9 @@ private:
     WAVEFORMATEXTENSIBLE wfx;
     HWAVEOUT hWaveOut;
     WAVEHDR* waveBlocks;
-    volatile bool finished;
-    volatile int waveFreeBlockCount;
-    int waveCurrentBlock;
-    char* audioBuffer;
+    int waveFreeBlockCount = 0;
+    int waveCurrentBlock = 0;
+    char *audioBuffer = nullptr;
 };
 
 class OutputPrivate : public QIODevice

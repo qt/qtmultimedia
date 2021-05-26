@@ -56,9 +56,11 @@
 #include <QtCore/qtimer.h>
 #include <private/qaudiohelpers_p.h>
 
-//#define DEBUG_AUDIO 1
+#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput")
 
 QWindowsAudioOutput::QWindowsAudioOutput(int deviceId)
 {
@@ -67,22 +69,16 @@ QWindowsAudioOutput::QWindowsAudioOutput(int deviceId)
     period_size = 0;
     m_deviceId = deviceId;
     totalTimeValue = 0;
-    audioBuffer = 0;
     errorState = QAudio::NoError;
     deviceState = QAudio::StoppedState;
     audioSource = 0;
     pullMode = true;
-    finished = false;
     volumeCache = qreal(1.0);
     blocks_count = 5;
 }
 
 QWindowsAudioOutput::~QWindowsAudioOutput()
 {
-    mutex.lock();
-    finished = true;
-    mutex.unlock();
-
     close();
 }
 
@@ -107,7 +103,7 @@ void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
         case WOM_CLOSE:
             return;
         case WOM_DONE:
-            if(qAudio->finished || qAudio->buffer_size == 0 || qAudio->period_size == 0) {
+            if(qAudio->buffer_size == 0 || qAudio->period_size == 0) {
                 return;
             }
             qAudio->waveFreeBlockCount++;
@@ -166,6 +162,7 @@ void QWindowsAudioOutput::setFormat(const QAudioFormat& fmt)
 
 void QWindowsAudioOutput::start(QIODevice* device)
 {
+    qCDebug(qLcAudioOutput) << "start(ioDevice)";
     if(deviceState != QAudio::StoppedState)
         close();
 
@@ -185,6 +182,7 @@ void QWindowsAudioOutput::start(QIODevice* device)
 
 QIODevice* QWindowsAudioOutput::start()
 {
+    qCDebug(qLcAudioOutput) << "start()";
     if(deviceState != QAudio::StoppedState)
         close();
 
@@ -207,6 +205,7 @@ QIODevice* QWindowsAudioOutput::start()
 
 void QWindowsAudioOutput::stop()
 {
+    qCDebug(qLcAudioOutput) << "stop()";
     if(deviceState == QAudio::StoppedState)
         return;
     close();
@@ -219,10 +218,7 @@ void QWindowsAudioOutput::stop()
 
 bool QWindowsAudioOutput::open()
 {
-#ifdef DEBUG_AUDIO
-    QTime now(QTime::currentTime());
-    qDebug()<<now.second()<<"s "<<now.msec()<<"ms :open()";
-#endif
+    qCDebug(qLcAudioOutput) << "open()";
 
     period_size = 0;
 
@@ -268,7 +264,7 @@ bool QWindowsAudioOutput::open()
 
     waveCurrentBlock = 0;
 
-    if(audioBuffer == 0)
+    if (audioBuffer == nullptr)
         audioBuffer = new char[blocks_count * period_size];
 
     elapsedTimeOffset = 0;
@@ -308,25 +304,31 @@ void QWindowsAudioOutput::pauseAndSleep()
 
 void QWindowsAudioOutput::close()
 {
+    qCDebug(qLcAudioOutput) << "close()";
     if(deviceState == QAudio::StoppedState)
         return;
 
     // Pause playback before reset to avoid uneeded crackling at the end.
     pauseAndSleep();
+    QMutexLocker locker(&mutex);
     deviceState = QAudio::StoppedState;
     errorState = QAudio::NoError;
+    locker.unlock();
     waveOutReset(hWaveOut);
 
     freeBlocks(waveBlocks);
     waveOutClose(hWaveOut);
+    locker.relock();
     delete [] audioBuffer;
-    audioBuffer = 0;
+    audioBuffer = nullptr;
     buffer_size = 0;
+    qCDebug(qLcAudioOutput) << "end close()";
 }
 
 qsizetype QWindowsAudioOutput::bytesFree() const
 {
     int buf;
+    QMutexLocker locker(&mutex);
     buf = waveFreeBlockCount*period_size;
 
     return buf;
@@ -353,19 +355,18 @@ qint64 QWindowsAudioOutput::processedUSecs() const
     return result;
 }
 
-qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
+qint64 QWindowsAudioOutput::write(const char *data, qint64 len)
 {
+    qCDebug(qLcAudioOutput) << "write()" << len << deviceState << period_size;
+
     // Write out some audio data
     if (deviceState != QAudio::ActiveState && deviceState != QAudio::IdleState)
         return 0;
 
-    char* p = (char*)data;
-    int l = (int)len;
-
     WAVEHDR* current;
-    int remain;
+    qint64 written = 0;
     current = &waveBlocks[waveCurrentBlock];
-    while(l > 0) {
+    while(len > 0) {
         mutex.lock();
         if(waveFreeBlockCount==0) {
             mutex.unlock();
@@ -376,28 +377,27 @@ qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
         if(current->dwFlags & WHDR_PREPARED)
             waveOutUnprepareHeader(hWaveOut, current, sizeof(WAVEHDR));
 
-        if(l < period_size)
-            remain = l;
+        qint64 remain;
+        if(len < period_size)
+            remain = len;
         else
             remain = period_size;
 
         if (volumeCache < qreal(1.0))
-            QAudioHelperInternal::qMultiplySamples(volumeCache, settings, p, current->lpData, remain);
+            QAudioHelperInternal::qMultiplySamples(volumeCache, settings, data, current->lpData, remain);
         else
-            memcpy(current->lpData, p, remain);
+            memcpy(current->lpData, data, remain);
 
-        l -= remain;
-        p += remain;
+        len -= remain;
+        data += remain;
         current->dwBufferLength = remain;
+        written += remain;
         waveOutPrepareHeader(hWaveOut, current, sizeof(WAVEHDR));
         waveOutWrite(hWaveOut, current, sizeof(WAVEHDR));
 
         mutex.lock();
         waveFreeBlockCount--;
-#ifdef DEBUG_AUDIO
-        qDebug("write out l=%d, waveFreeBlockCount=%d",
-                current->dwBufferLength,waveFreeBlockCount);
-#endif
+        qCDebug(qLcAudioOutput) << "write out" << current->dwBufferLength << "waveFreeBlockCount" << waveFreeBlockCount;
         mutex.unlock();
 
         totalTimeValue += current->dwBufferLength;
@@ -411,11 +411,12 @@ qint64 QWindowsAudioOutput::write( const char *data, qint64 len )
             emit stateChanged(deviceState);
         }
     }
-    return (len-l);
+    return written;
 }
 
 void QWindowsAudioOutput::resume()
 {
+    qCDebug(qLcAudioOutput) << "resume()";
     if(deviceState == QAudio::SuspendedState) {
         deviceState = pullMode ? QAudio::ActiveState : QAudio::IdleState;
         errorState = QAudio::NoError;
@@ -427,6 +428,7 @@ void QWindowsAudioOutput::resume()
 
 void QWindowsAudioOutput::suspend()
 {
+    qCDebug(qLcAudioOutput) << "suspend()";
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState) {
         pauseAndSleep();
         deviceState = QAudio::SuspendedState;
@@ -437,29 +439,26 @@ void QWindowsAudioOutput::suspend()
 
 void QWindowsAudioOutput::feedback()
 {
-#ifdef DEBUG_AUDIO
-    QTime now(QTime::currentTime());
-    qDebug()<<now.second()<<"s "<<now.msec()<<"ms :feedback()";
-#endif
-    bytesAvailable = bytesFree();
+    qCDebug(qLcAudioOutput) << "feedback()";
+    bytesAvailable = waveFreeBlockCount * period_size;
 
-    if(!(deviceState==QAudio::StoppedState||deviceState==QAudio::SuspendedState)) {
-        if(bytesAvailable >= period_size)
+    if (deviceState != QAudio::StoppedState && deviceState != QAudio::SuspendedState) {
+        if (bytesAvailable >= period_size) {
+            qCDebug(qLcAudioOutput) << "   ->invoke()";
             QMetaObject::invokeMethod(this, "deviceReady", Qt::QueuedConnection);
+        }
     }
 }
 
 bool QWindowsAudioOutput::deviceReady()
 {
+    qCDebug(qLcAudioOutput) << ">>>> deviceReady() state=" << deviceState << pullMode;
+
     if(deviceState == QAudio::StoppedState || deviceState == QAudio::SuspendedState)
         return false;
 
     if(pullMode) {
-        int chunks = bytesAvailable/period_size;
-#ifdef DEBUG_AUDIO
-        qDebug()<<"deviceReady() avail="<<bytesAvailable<<" bytes, period size="<<period_size<<" bytes";
-        qDebug()<<"deviceReady() no. of chunks that can fit ="<<chunks<<", chunks in bytes ="<<chunks*period_size;
-#endif
+        qCDebug(qLcAudioOutput) << "deviceReady() avail="<<bytesAvailable<<" bytes, period size="<<period_size<<" bytes";
         bool startup = false;
         if(totalTimeValue == 0)
             startup = true;
@@ -467,22 +466,21 @@ bool QWindowsAudioOutput::deviceReady()
         bool full=false;
 
         mutex.lock();
-        if (waveFreeBlockCount==0) full = true;
+        if (waveFreeBlockCount == 0)
+            full = true;
         mutex.unlock();
 
         if (full) {
-#ifdef DEBUG_AUDIO
-            qDebug() << "Skipping data as unable to write";
-#endif
+            qCDebug(qLcAudioOutput) << "Skipping data as unable to write";
             return true;
         }
 
         if(startup)
             waveOutPause(hWaveOut);
-        int input = period_size*chunks;
+        int input = bytesAvailable;
         int l = audioSource->read(audioBuffer,input);
         if(l > 0) {
-            int out= write(audioBuffer,l);
+            int out = write(audioBuffer, l);
             if(out > 0) {
                 if (deviceState != QAudio::ActiveState) {
                     deviceState = QAudio::ActiveState;
@@ -493,6 +491,8 @@ bool QWindowsAudioOutput::deviceReady()
                 // Didn't write all data
                 audioSource->seek(audioSource->pos()-(l-out));
             }
+            qCDebug(qLcAudioOutput) << "wrote" << out << "bytes out of" << l << "read";
+
             if (startup)
                 waveOutRestart(hWaveOut);
         } else if(l == 0) {
@@ -532,6 +532,7 @@ bool QWindowsAudioOutput::deviceReady()
             }
         }
     }
+    qCDebug(qLcAudioOutput) << "<<<< end deviceReady() state=" << deviceState;
 
     return true;
 }
