@@ -80,7 +80,12 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     if (m_videoWindow) {
         connect(m_videoWindow, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
     }
+    auto state = gstPipeline.state();
+    if (state == GST_STATE_PLAYING)
+        gstPipeline.setStateSync(GST_STATE_PAUSED);
     sinkChanged();
+    if (state == GST_STATE_PLAYING)
+        gstPipeline.setState(GST_STATE_PLAYING);
 }
 
 void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
