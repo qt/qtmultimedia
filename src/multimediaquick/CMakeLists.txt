@@ -4,7 +4,7 @@
 ## MultimediaQuick Module:
 #####################################################################
 
-qt_add_module(MultimediaQuick
+qt_internal_add_module(MultimediaQuick
     CONFIG_MODULE_NAME multimediaquick
     INTERNAL_MODULE
     SOURCES

@@ -4,7 +4,7 @@
 ## tst_qml Test:
 #####################################################################
 
-qt_add_test(tst_qml
+qt_internal_add_test(tst_qml
     GUI
     QMLTEST
     SOURCES

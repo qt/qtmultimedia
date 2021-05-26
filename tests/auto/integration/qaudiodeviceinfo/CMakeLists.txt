@@ -4,7 +4,7 @@
 ## tst_qaudiodeviceinfo Test:
 #####################################################################
 
-qt_add_test(tst_qaudiodeviceinfo
+qt_internal_add_test(tst_qaudiodeviceinfo
     SOURCES
         tst_qaudiodeviceinfo.cpp
     PUBLIC_LIBRARIES

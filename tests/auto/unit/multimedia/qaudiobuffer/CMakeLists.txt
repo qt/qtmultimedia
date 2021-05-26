@@ -4,7 +4,7 @@
 ## tst_qaudiobuffer Test:
 #####################################################################
 
-qt_add_test(tst_qaudiobuffer
+qt_internal_add_test(tst_qaudiobuffer
     SOURCES
         tst_qaudiobuffer.cpp
     PUBLIC_LIBRARIES

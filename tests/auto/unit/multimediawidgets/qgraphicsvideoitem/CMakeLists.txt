@@ -4,7 +4,7 @@
 ## tst_qgraphicsvideoitem Test:
 #####################################################################
 
-qt_add_test(tst_qgraphicsvideoitem
+qt_internal_add_test(tst_qgraphicsvideoitem
     SOURCES
         tst_qgraphicsvideoitem.cpp
     INCLUDE_DIRECTORIES

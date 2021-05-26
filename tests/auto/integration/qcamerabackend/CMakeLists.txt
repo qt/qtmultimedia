@@ -4,7 +4,7 @@
 ## tst_qcamerabackend Test:
 #####################################################################
 
-qt_add_test(tst_qcamerabackend
+qt_internal_add_test(tst_qcamerabackend
     SOURCES
         tst_qcamerabackend.cpp
     PUBLIC_LIBRARIES

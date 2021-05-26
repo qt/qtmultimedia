@@ -10,7 +10,7 @@ file(GLOB_RECURSE test_data_glob
     testdata/*)
 list(APPEND test_data ${test_data_glob})
 
-qt_add_test(tst_qmediaplaylist
+qt_internal_add_test(tst_qmediaplaylist
     SOURCES
         tst_qmediaplaylist.cpp
     PUBLIC_LIBRARIES

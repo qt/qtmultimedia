@@ -83,7 +83,7 @@ qt_internal_add_module(Multimedia
 )
 
 # ### Get rid of me!
-qt_extend_target(Multimedia CONDITION TARGET Qt::OpenGL
+qt_internal_extend_target(Multimedia CONDITION TARGET Qt::OpenGL
     LIBRARIES
         Qt::OpenGL
 )

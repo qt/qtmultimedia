@@ -4,7 +4,7 @@
 ## tst_qaudioinput Test:
 #####################################################################
 
-qt_add_test(tst_qaudioinput
+qt_internal_add_test(tst_qaudioinput
     SOURCES
         tst_qaudioinput.cpp
     PUBLIC_LIBRARIES

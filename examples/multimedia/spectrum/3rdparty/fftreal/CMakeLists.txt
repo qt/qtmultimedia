@@ -4,7 +4,7 @@
 ## fftreal Generic Library:
 #####################################################################
 
-qt_add_cmake_library(fftreal
+qt_internal_add_cmake_library(fftreal
     INSTALL_DIRECTORY "${INSTALL_EXAMPLESDIR}/multimedia/spectrum"
     SOURCES
         Array.h Array.hpp
@@ -38,7 +38,7 @@ qt_add_cmake_library(fftreal
 ## Scopes:
 #####################################################################
 
-qt_extend_target(fftreal CONDITION static
+qt_internal_extend_target(fftreal CONDITION static
     DEFINES
         DISABLE_FFT
 )
@@ -46,7 +46,7 @@ qt_extend_target(fftreal CONDITION static
 #### Keys ignored in scope 4:.:.:fftreal.pro:else:
 # DESTDIR = "../..$${spectrum_build_dir}"
 
-qt_extend_target(fftreal CONDITION WIN32
+qt_internal_extend_target(fftreal CONDITION WIN32
     DEFINES
         _CRT_SECURE_NO_WARNINGS
 )

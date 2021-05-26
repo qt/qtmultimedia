@@ -4,7 +4,7 @@
 ## tst_qcameraimagecapture Test:
 #####################################################################
 
-qt_add_test(tst_qcameraimagecapture
+qt_internal_add_test(tst_qcameraimagecapture
     SOURCES
         tst_qcameraimagecapture.cpp
     INCLUDE_DIRECTORIES

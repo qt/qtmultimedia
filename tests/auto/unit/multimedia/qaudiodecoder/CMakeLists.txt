@@ -4,7 +4,7 @@
 ## tst_qaudiodecoder Test:
 #####################################################################
 
-qt_add_test(tst_qaudiodecoder
+qt_internal_add_test(tst_qaudiodecoder
     SOURCES
         tst_qaudiodecoder.cpp
     INCLUDE_DIRECTORIES

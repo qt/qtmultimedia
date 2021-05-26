@@ -4,7 +4,7 @@
 ## tst_qvideoframeformat Test:
 #####################################################################
 
-qt_add_test(tst_qvideoframeformat
+qt_internal_add_test(tst_qvideoframeformat
     SOURCES
         tst_qvideoframeformat.cpp
     PUBLIC_LIBRARIES

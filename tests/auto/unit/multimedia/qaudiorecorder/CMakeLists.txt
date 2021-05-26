@@ -4,7 +4,7 @@
 ## tst_qaudiorecorder Test:
 #####################################################################
 
-qt_add_test(tst_qaudiorecorder
+qt_internal_add_test(tst_qaudiorecorder
     SOURCES
         tst_qaudiorecorder.cpp
     INCLUDE_DIRECTORIES

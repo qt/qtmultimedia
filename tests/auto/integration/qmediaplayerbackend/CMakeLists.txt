@@ -10,7 +10,7 @@ file(GLOB_RECURSE test_data_glob
     testdata/*)
 list(APPEND test_data ${test_data_glob})
 
-qt_add_test(tst_qmediaplayerbackend
+qt_internal_add_test(tst_qmediaplayerbackend
     SOURCES
         ../shared/mediafileselector.h
         tst_qmediaplayerbackend.cpp
@@ -23,7 +23,7 @@ qt_add_test(tst_qmediaplayerbackend
 ## Scopes:
 #####################################################################
 
-qt_extend_target(tst_qmediaplayerbackend CONDITION boot2qt
+qt_internal_extend_target(tst_qmediaplayerbackend CONDITION boot2qt
     DEFINES
         SKIP_OGV_TEST
 )

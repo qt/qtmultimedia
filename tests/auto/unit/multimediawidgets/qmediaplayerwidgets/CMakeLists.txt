@@ -4,7 +4,7 @@
 ## tst_qmediaplayerwidgets Test:
 #####################################################################
 
-qt_add_test(tst_qmediaplayerwidgets
+qt_internal_add_test(tst_qmediaplayerwidgets
     SOURCES
         tst_qmediaplayerwidgets.cpp
     INCLUDE_DIRECTORIES

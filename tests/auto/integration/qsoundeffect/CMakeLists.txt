@@ -7,7 +7,7 @@
 # Collect test data
 list(APPEND test_data "test.wav")
 
-qt_add_test(tst_qsoundeffect
+qt_internal_add_test(tst_qsoundeffect
     SOURCES
         tst_qsoundeffect.cpp
     PUBLIC_LIBRARIES
@@ -23,7 +23,7 @@ set(resources_resource_files
     "test_tone.wav"
 )
 
-qt_add_resource(tst_qsoundeffect "resources"
+qt_internal_add_resource(tst_qsoundeffect "resources"
     PREFIX
         "/"
     FILES
@@ -34,7 +34,7 @@ qt_add_resource(tst_qsoundeffect "resources"
 ## Scopes:
 #####################################################################
 
-qt_extend_target(tst_qsoundeffect CONDITION UNIX AND NOT APPLE AND NOT QT_FEATURE_pulseaudio
+qt_internal_extend_target(tst_qsoundeffect CONDITION UNIX AND NOT APPLE AND NOT QT_FEATURE_pulseaudio
     DEFINES
         QT_MULTIMEDIA_QMEDIAPLAYER
 )
