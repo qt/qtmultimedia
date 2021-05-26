@@ -181,8 +181,6 @@ qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
             m_offset = 0;
         }
     }
-    if (!m_runningCount)
-        setPlaying(false);
 
     return bytesWritten;
 }
