@@ -5,8 +5,6 @@ accept_configuration:
   not_contains_value: Disable
 
 instructions:
-  Build:
-    - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
+  Build: []
 
-  Test:
-    - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
+  Test: []
