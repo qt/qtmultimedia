@@ -100,6 +100,32 @@ GUID QWindowsMultimediaUtils::videoFormatForCodec(QMediaFormat::VideoCodec codec
     return MFVideoFormat_H264;
 }
 
+GUID QWindowsMultimediaUtils::audioFormatForCodec(QMediaFormat::AudioCodec codec)
+{
+    switch (codec) {
+    case QMediaFormat::AudioCodec::MP3:
+        return MFAudioFormat_MP3;
+    case QMediaFormat::AudioCodec::AAC:
+        return MFAudioFormat_AAC;
+    case QMediaFormat::AudioCodec::ALAC:
+        return MFAudioFormat_ALAC;
+    case QMediaFormat::AudioCodec::FLAC:
+        return MFAudioFormat_FLAC;
+    case QMediaFormat::AudioCodec::Vorbis:
+        return MFAudioFormat_Vorbis;
+    case QMediaFormat::AudioCodec::Wave:
+        return MFAudioFormat_PCM;
+    case QMediaFormat::AudioCodec::Opus:
+        return MFAudioFormat_Opus;
+    case QMediaFormat::AudioCodec::AC3:
+        return MFAudioFormat_Dolby_AC3;
+    case QMediaFormat::AudioCodec::EAC3:
+        return MFAudioFormat_Dolby_DDPlus;
+    }
+    // Use AAC as the default audio codec
+    return MFAudioFormat_AAC;
+}
+
 GUID QWindowsMultimediaUtils::containerForVideoFileFormat(QMediaFormat::FileFormat format)
 {
     switch (format) {

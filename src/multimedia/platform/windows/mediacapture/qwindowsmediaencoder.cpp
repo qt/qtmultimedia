@@ -43,6 +43,7 @@
 #include "qwindowsmediacapture_p.h"
 #include <QtCore/QUrl>
 #include <QtCore/QMimeType>
+#include <Mferror.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -50,6 +51,9 @@ QWindowsMediaEncoder::QWindowsMediaEncoder(QMediaEncoder *parent)
     : QObject(parent),
     QPlatformMediaEncoder(parent)
 {
+    // Force an early initialization of the mime database
+    // to avoid a delay when recording for the first time.
+    m_settings.mimeType();
 }
 
 QUrl QWindowsMediaEncoder::outputLocation() const
@@ -98,16 +102,16 @@ void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
     case QMediaEncoder::RecordingState:
     {
         if (!m_cameraSession->isActive()) {
-            emit error(QMediaEncoder::ResourceError, tr("Failed to start recording"));
+            error(QMediaEncoder::ResourceError, tr("Failed to start recording"));
             return;
         }
 
         if (m_state == QMediaEncoder::PausedState) {
             if (m_cameraSession->resumeRecording()) {
                 m_state = QMediaEncoder::RecordingState;
-                emit stateChanged(m_state);
+                stateChanged(m_state);
             } else {
-                emit error(QMediaEncoder::FormatError, tr("Failed to resume recording"));
+                error(QMediaEncoder::FormatError, tr("Failed to resume recording"));
             }
         } else {
 
@@ -127,12 +131,12 @@ void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
                 m_state = QMediaEncoder::RecordingState;
                 m_lastStatus = QMediaEncoder::StartingStatus;
 
-                emit actualLocationChanged(QUrl::fromLocalFile(fileName));
-                emit stateChanged(m_state);
-                emit statusChanged(m_lastStatus);
+                actualLocationChanged(QUrl::fromLocalFile(fileName));
+                stateChanged(m_state);
+                statusChanged(m_lastStatus);
 
             } else {
-                emit error(QMediaEncoder::FormatError, tr("Failed to start recording"));
+                error(QMediaEncoder::FormatError, tr("Failed to start recording"));
             }
         }
     } break;
@@ -141,9 +145,9 @@ void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
         if (m_state == QMediaEncoder::RecordingState) {
             if (m_cameraSession->pauseRecording()) {
                 m_state = QMediaEncoder::PausedState;
-                emit stateChanged(m_state);
+                stateChanged(m_state);
             } else {
-                emit error(QMediaEncoder::FormatError, tr("Failed to pause recording"));
+                error(QMediaEncoder::FormatError, tr("Failed to pause recording"));
             }
         }
     } break;
@@ -151,7 +155,7 @@ void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
     {
         m_cameraSession->stopRecording();
         m_lastStatus = QMediaEncoder::FinalizingStatus;
-        emit statusChanged(m_lastStatus);
+        statusChanged(m_lastStatus);
         // state will change in onRecordingStopped()
     } break;
     }
@@ -182,6 +186,7 @@ void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
 
     connect(m_cameraSession, &QWindowsCameraSession::recordingStarted, this, &QWindowsMediaEncoder::onRecordingStarted);
     connect(m_cameraSession, &QWindowsCameraSession::recordingStopped, this, &QWindowsMediaEncoder::onRecordingStopped);
+    connect(m_cameraSession, &QWindowsCameraSession::streamingError, this, &QWindowsMediaEncoder::onStreamingError);
     connect(m_cameraSession, &QWindowsCameraSession::durationChanged, this, &QWindowsMediaEncoder::onDurationChanged);
     connect(m_captureService, &QWindowsMediaCaptureService::cameraChanged, this, &QWindowsMediaEncoder::onCameraChanged);
     onCameraChanged();
@@ -190,7 +195,21 @@ void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
 void QWindowsMediaEncoder::onDurationChanged(qint64 duration)
 {
     m_duration = duration;
-    emit durationChanged(m_duration);
+    durationChanged(m_duration);
+}
+
+void QWindowsMediaEncoder::onStreamingError(int errorCode)
+{
+    if (errorCode == MF_E_VIDEO_RECORDING_DEVICE_INVALIDATED)
+        error(QMediaEncoder::ResourceError, tr("Camera is no longer present"));
+    else
+        error(QMediaEncoder::ResourceError, tr("Streaming error"));
+
+    if (m_state != QMediaEncoder::StoppedState) {
+        m_cameraSession->stopRecording();
+        m_lastStatus = QMediaEncoder::FinalizingStatus;
+        statusChanged(m_lastStatus);
+    }
 }
 
 void QWindowsMediaEncoder::onCameraChanged()
@@ -200,7 +219,7 @@ void QWindowsMediaEncoder::onCameraChanged()
 void QWindowsMediaEncoder::onRecordingStarted()
 {
     m_lastStatus = QMediaEncoder::RecordingStatus;
-    emit statusChanged(m_lastStatus);
+    statusChanged(m_lastStatus);
 }
 
 void QWindowsMediaEncoder::onRecordingStopped()
@@ -210,9 +229,9 @@ void QWindowsMediaEncoder::onRecordingStopped()
     m_state = QMediaEncoder::StoppedState;
     m_lastStatus = QMediaEncoder::StoppedStatus;
     if (m_state != lastState)
-        emit stateChanged(m_state);
+        stateChanged(m_state);
     if (m_lastStatus != lastStatus)
-        emit statusChanged(m_lastStatus);
+        statusChanged(m_lastStatus);
 }
 
 QT_END_NAMESPACE

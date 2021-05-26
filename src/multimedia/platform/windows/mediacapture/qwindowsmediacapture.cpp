@@ -120,30 +120,32 @@ void QWindowsMediaCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder
 
 bool QWindowsMediaCaptureService::isMuted() const
 {
-    return false;
+    return m_cameraSession->isMuted();
 }
 
 void QWindowsMediaCaptureService::setMuted(bool muted)
 {
+    m_cameraSession->setMuted(muted);
 }
 
 qreal QWindowsMediaCaptureService::volume() const
 {
-    return 1.0;
+    return m_cameraSession->volume();
 }
 
 void QWindowsMediaCaptureService::setVolume(qreal volume)
 {
+    m_cameraSession->setVolume(volume);
 }
 
 QAudioDeviceInfo QWindowsMediaCaptureService::audioInput() const
 {
-    return QMediaDevices::defaultAudioInput();
+    return m_cameraSession->audioInput();
 }
 
 bool QWindowsMediaCaptureService::setAudioInput(const QAudioDeviceInfo &info)
 {
-    return false;
+    return m_cameraSession->setAudioInput(info);
 }
 
 void QWindowsMediaCaptureService::setVideoPreview(QVideoSink *sink)

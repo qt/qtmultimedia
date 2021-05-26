@@ -53,6 +53,7 @@
 
 #include <mfapi.h>
 #include <mfidl.h>
+#include <Mferror.h>
 #include <Mfreadwrite.h>
 
 #include <QtCore/qobject.h>
@@ -92,12 +93,13 @@ public:
     STDMETHODIMP OnFinalize(HRESULT hrStatus);
     STDMETHODIMP OnMarker(DWORD dwStreamIndex, LPVOID pvContext);
 
-    bool activate(const QString &cameraId);
+    bool activate(const QString &cameraId, const QString &microphoneId);
     void deactivate();
 
     bool startRecording(const QString &fileName, const GUID &container,
-                        const GUID &videoFormat, UINT32 bitRate, UINT32 width,
-                        UINT32 height, qreal frameRate);
+                        const GUID &videoFormat, UINT32 videoBitRate, UINT32 width,
+                        UINT32 height, qreal frameRate, const GUID &audioFormat,
+                        UINT32 audioBitRate);
     void stopRecording();
     bool pauseRecording();
     bool resumeRecording();
@@ -105,10 +107,15 @@ public:
     UINT32 frameWidth() const;
     UINT32 frameHeight() const;
     qreal frameRate() const;
+    bool isMuted() const;
+    void setMuted(bool muted);
+    qreal volume() const;
+    void setVolume(qreal volume);
 
 Q_SIGNALS:
     void streamingStarted();
     void streamingStopped();
+    void streamingError(int errorCode);
     void recordingStarted();
     void recordingStopped();
     void durationChanged(qint64 duration);
@@ -117,16 +124,32 @@ private slots:
     void updateDuration();
 
 private:
+    HRESULT createSource(const QString &deviceId, bool video, IMFMediaSource **source);
+    HRESULT createAggregateReader(IMFMediaSource *firstSource, IMFMediaSource *secondSource,
+                                  IMFMediaSource **aggregateSource, IMFSourceReader **sourceReader);
+    HRESULT createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width, UINT32 height,
+                                 qreal frameRate, IMFMediaType **mediaType);
+    HRESULT createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType);
+    HRESULT prepareVideoStream();
+    HRESULT prepareAudioStream();
+    HRESULT initSourceIndexes();
+    void releaseResources();
     void stopStreaming();
 
     long               m_cRef = 1;
     QMutex             m_mutex;
     QSemaphore         m_finalizeSemaphore;
-    IMFMediaSource     *m_source = nullptr;
+    IMFMediaSource     *m_videoSource = nullptr;
+    IMFMediaType       *m_videoMediaType = nullptr;
+    IMFMediaSource     *m_audioSource = nullptr;
+    IMFMediaType       *m_audioMediaType = nullptr;
+    IMFMediaSource     *m_aggregateSource = nullptr;
     IMFSourceReader    *m_sourceReader = nullptr;
-    IMFMediaType       *m_sourceMediaType = nullptr;
     IMFSinkWriter      *m_sinkWriter = nullptr;
-    DWORD              m_videoStreamIndex = 0;
+    DWORD              m_sourceVideoStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;
+    DWORD              m_sourceAudioStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;
+    DWORD              m_sinkVideoStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
+    DWORD              m_sinkAudioStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
     QVideoSink         *m_surface = nullptr;
     UINT32             m_frameWidth = 0;
     UINT32             m_frameHeight = 0;
@@ -138,6 +161,8 @@ private:
     bool               m_firstFrame = false;
     bool               m_paused = false;
     bool               m_pauseChanging = false;
+    bool               m_muted = false;
+    qreal              m_volume = 1.0;
     QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
     LONGLONG           m_timeOffset = 0;
     LONGLONG           m_pauseTime = 0;

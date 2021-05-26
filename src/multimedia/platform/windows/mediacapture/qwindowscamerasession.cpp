@@ -54,6 +54,7 @@ QWindowsCameraSession::QWindowsCameraSession(QObject *parent)
     connect(m_cameraReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
     connect(m_cameraReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
     connect(m_cameraReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
+    connect(m_cameraReader, SIGNAL(streamingError(int)), this, SIGNAL(streamingError(int)));
     connect(m_cameraReader, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
 }
 
@@ -73,7 +74,12 @@ void QWindowsCameraSession::setActive(bool active)
         return;
 
     if (active) {
-        m_cameraReader->activate(QString::fromUtf8(m_activeCameraInfo.id()));
+        auto camId = QString::fromUtf8(m_activeCameraInfo.id());
+        auto micId = QString::fromUtf8(m_audioInput.id());
+        if (!camId.isEmpty() || !micId.isEmpty())
+            m_cameraReader->activate(camId, micId);
+        else
+            qWarning() << Q_FUNC_INFO << "Camera ID and Microphone ID both undefined.";
     } else {
         m_cameraReader->deactivate();
         m_active = false;
@@ -145,10 +151,42 @@ void QWindowsCameraSession::setVideoSettings(const QMediaEncoderSettings &settin
     m_mediaEncoderSettings = settings;
 }
 
+bool QWindowsCameraSession::isMuted() const
+{
+    return m_cameraReader->isMuted();
+}
+
+void QWindowsCameraSession::setMuted(bool muted)
+{
+    m_cameraReader->setMuted(muted);
+}
+
+qreal QWindowsCameraSession::volume() const
+{
+    return m_cameraReader->volume();
+}
+
+void QWindowsCameraSession::setVolume(qreal volume)
+{
+    m_cameraReader->setVolume(volume);
+}
+
+QAudioDeviceInfo QWindowsCameraSession::audioInput() const
+{
+    return m_audioInput;
+}
+
+bool QWindowsCameraSession::setAudioInput(const QAudioDeviceInfo &info)
+{
+    m_audioInput = info;
+    return true;
+}
+
 bool QWindowsCameraSession::startRecording(const QString &fileName)
 {
     GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(m_mediaEncoderSettings.format());
     GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(m_mediaEncoderSettings.videoCodec());
+    GUID audioFormat = QWindowsMultimediaUtils::audioFormatForCodec(m_mediaEncoderSettings.audioCodec());
 
     QSize res = m_mediaEncoderSettings.videoResolution();
     UINT32 width, height;
@@ -165,15 +203,17 @@ bool QWindowsCameraSession::startRecording(const QString &fileName)
 
     auto quality = m_mediaEncoderSettings.quality();
     int vbrate = m_mediaEncoderSettings.videoBitRate();
+    int abrate = m_mediaEncoderSettings.audioBitRate();
 
-    UINT32 videoBitRate;
-    if (vbrate > 0)
-        videoBitRate = UINT32(vbrate);
-    else
-        videoBitRate = estimateVideoBitRate(videoFormat, width, height, frameRate, quality);
+    UINT32 videoBitRate = (vbrate > 0) ? UINT32(vbrate)
+                                       : estimateVideoBitRate(videoFormat, width, height, frameRate, quality);
+
+    UINT32 audioBitRate = (abrate > 0) ? UINT32(abrate)
+                                       : estimateAudioBitRate(audioFormat, quality);
 
     return m_cameraReader->startRecording(fileName, container, videoFormat,
-                                          videoBitRate, width, height, frameRate);
+                                          videoBitRate, width, height, frameRate,
+                                          audioFormat, audioBitRate);
 }
 
 void QWindowsCameraSession::stopRecording()
@@ -222,6 +262,43 @@ quint32 QWindowsCameraSession::estimateVideoBitRate(const GUID &videoFormat, qui
     // require more BPP, thus the minimum values, to try to compensate it.
     quint32 pixelsPerSec = quint32(qMax(width, 320u) * qMax(height, 240u) * qMax(frameRate, 6.0));
     return pixelsPerSec * bitsPerPixel;
+}
+
+quint32 QWindowsCameraSession::estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality)
+{
+    if (audioFormat == MFAudioFormat_AAC) {
+        // Bitrates supported by the AAC encoder are 96K, 128K, 160K, 192K.
+        switch (quality) {
+        case QMediaEncoderSettings::Quality::VeryLowQuality:
+            return 96000;
+        case QMediaEncoderSettings::Quality::LowQuality:
+            return 96000;
+        case QMediaEncoderSettings::Quality::NormalQuality:
+            return 128000;
+        case QMediaEncoderSettings::Quality::HighQuality:
+            return 160000;
+        case QMediaEncoderSettings::Quality::VeryHighQuality:
+            return 192000;
+        }
+        return 128000;
+    } else if (audioFormat == MFAudioFormat_MP3) {
+        // Bitrates supported by the MP3 encoder are
+        // 32K, 40K, 48K, 56K, 64K, 80K, 96K, 112K, 128K, 160K, 192K, 224K, 256K, 320K.
+        switch (quality) {
+        case QMediaEncoderSettings::Quality::VeryLowQuality:
+            return 48000;
+        case QMediaEncoderSettings::Quality::LowQuality:
+            return 96000;
+        case QMediaEncoderSettings::Quality::NormalQuality:
+            return 128000;
+        case QMediaEncoderSettings::Quality::HighQuality:
+            return 224000;
+        case QMediaEncoderSettings::Quality::VeryHighQuality:
+            return 320000;
+        }
+        return 128000;
+    }
+    return 0;  // Use default for format
 }
 
 QT_END_NAMESPACE

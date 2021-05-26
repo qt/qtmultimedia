@@ -58,6 +58,8 @@
 #include <QVideoWidget>
 #include <QCameraInfo>
 #include <QMediaMetaData>
+#include <QMediaDevices>
+#include <QAudioDeviceInfo>
 
 #include <QMessageBox>
 #include <QPalette>
@@ -123,6 +125,7 @@ void Camera::setCamera(const QCameraInfo &cameraInfo)
     connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
 
     m_captureSession.setVideoOutput(ui->viewfinder);
+    m_captureSession.setAudioInput(QMediaDevices::defaultAudioInput());
 
     updateCameraActive(m_camera->isActive());
     updateRecorderState(m_mediaEncoder->state());
@@ -320,12 +323,14 @@ void Camera::setExposureCompensation(int index)
 
 void Camera::displayRecorderError()
 {
-    QMessageBox::warning(this, tr("Capture Error"), m_mediaEncoder->errorString());
+    if (m_mediaEncoder->error() != QMediaEncoder::NoError)
+        QMessageBox::warning(this, tr("Capture Error"), m_mediaEncoder->errorString());
 }
 
 void Camera::displayCameraError()
 {
-    QMessageBox::warning(this, tr("Camera Error"), m_camera->errorString());
+    if (m_camera->error() != QCamera::NoError)
+        QMessageBox::warning(this, tr("Camera Error"), m_camera->errorString());
 }
 
 void Camera::updateCameraDevice(QAction *action)

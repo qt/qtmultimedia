@@ -89,6 +89,7 @@ private Q_SLOTS:
     void onRecordingStarted();
     void onRecordingStopped();
     void onDurationChanged(qint64 duration);
+    void onStreamingError(int errorCode);
 
 private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;

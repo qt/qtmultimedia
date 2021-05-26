@@ -157,6 +157,7 @@ QAudioDeviceInfo QMediaCaptureSession::audioInput() const
 void QMediaCaptureSession::setAudioInput(const QAudioDeviceInfo &device)
 {
     d_ptr->audioInput = device;
+    d_ptr->captureSession->setAudioInput(device);
     emit audioInputChanged();
 }
 
