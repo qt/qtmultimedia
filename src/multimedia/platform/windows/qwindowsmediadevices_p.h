@@ -58,17 +58,26 @@
 QT_BEGIN_NAMESPACE
 
 class QWindowsEngine;
+class CMMNotificationClient;
+struct IMMDeviceEnumerator;
 
 class QWindowsMediaDevices : public QPlatformMediaDevices
 {
 public:
     QWindowsMediaDevices();
+    virtual ~QWindowsMediaDevices();
 
     QList<QAudioDeviceInfo> audioInputs() const override;
     QList<QAudioDeviceInfo> audioOutputs() const override;
     QList<QCameraInfo> videoInputs() const override;
     QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
     QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
+
+
+private:
+    IMMDeviceEnumerator *m_deviceEnumerator;
+    CMMNotificationClient *m_notificationClient;
+    friend CMMNotificationClient;
 };
 
 QT_END_NAMESPACE

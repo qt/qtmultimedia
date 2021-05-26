@@ -56,13 +56,192 @@
 #include <mfidl.h>
 #include <mfreadwrite.h>
 #include <Mferror.h>
+#include <mmdeviceapi.h>
 #include "private/qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QWindowsMediaDevices::QWindowsMediaDevices()
-    : QPlatformMediaDevices()
+class CMMNotificationClient : public IMMNotificationClient
 {
+    LONG m_cRef;
+    QWindowsMediaDevices *m_windowsMediaDevices;
+    IMMDeviceEnumerator* m_enumerator;
+    QMap<QString, DWORD> m_deviceState;
+
+public:
+    CMMNotificationClient(QWindowsMediaDevices *windowsMediaDevices,
+                          IMMDeviceEnumerator *enumerator,
+                          QMap<QString, DWORD> &&deviceState) :
+        m_cRef(1),
+        m_windowsMediaDevices(windowsMediaDevices),
+        m_enumerator(enumerator),
+        m_deviceState(deviceState)
+    {}
+
+    virtual ~CMMNotificationClient() {}
+
+    // IUnknown methods -- AddRef, Release, and QueryInterface
+    ULONG STDMETHODCALLTYPE AddRef()
+    {
+        return InterlockedIncrement(&m_cRef);
+    }
+
+    ULONG STDMETHODCALLTYPE Release()
+    {
+        ULONG ulRef = InterlockedDecrement(&m_cRef);
+        if (0 == ulRef) {
+            delete this;
+        }
+        return ulRef;
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, VOID **ppvInterface)
+    {
+        if (IID_IUnknown == riid) {
+            AddRef();
+            *ppvInterface = (IUnknown*)this;
+        } else if (__uuidof(IMMNotificationClient) == riid) {
+            AddRef();
+            *ppvInterface = (IMMNotificationClient*)this;
+        } else {
+            *ppvInterface = NULL;
+            return E_NOINTERFACE;
+        }
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow, ERole, LPCWSTR)
+    {
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR deviceID)
+    {
+        auto it = m_deviceState.find(QString::fromWCharArray(deviceID));
+        if (it == std::end(m_deviceState)) {
+            m_deviceState.insert(QString::fromWCharArray(deviceID), DEVICE_STATE_ACTIVE);
+            emitAudioDevicesChanged(deviceID);
+        }
+
+        return S_OK;
+    };
+
+    HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR deviceID)
+    {
+        auto key = QString::fromWCharArray(deviceID);
+        auto it = m_deviceState.find(key);
+        if (it != std::end(m_deviceState)) {
+            if (it.value() == DEVICE_STATE_ACTIVE)
+                emitAudioDevicesChanged(deviceID);
+            m_deviceState.remove(key);
+        }
+
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE OnDeviceStateChanged(LPCWSTR deviceID, DWORD newState)
+    {
+        if (auto it = m_deviceState.find(QString::fromWCharArray(deviceID)); it != std::end(m_deviceState)) {
+            // If either the old state or the new state is active emit device change
+            if ((it.value() == DEVICE_STATE_ACTIVE) != (newState == DEVICE_STATE_ACTIVE)) {
+                emitAudioDevicesChanged(deviceID);
+            }
+            it.value() = newState;
+        }
+
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE OnPropertyValueChanged(LPCWSTR, const PROPERTYKEY)
+    {
+        return S_OK;
+    }
+
+    void emitAudioDevicesChanged(EDataFlow flow)
+    {
+        // windowsMediaDevice may be deleted as we are executing the callback
+        if (flow == EDataFlow::eCapture) {
+            m_windowsMediaDevices->audioInputsChanged();
+        } else if (flow == EDataFlow::eRender) {
+            m_windowsMediaDevices->audioOutputsChanged();
+        }
+    }
+
+    void emitAudioDevicesChanged(LPCWSTR deviceID)
+    {
+        IMMDevice* device = nullptr;
+        IMMEndpoint* endpoint = nullptr;
+        EDataFlow flow;
+
+        if (SUCCEEDED(m_enumerator->GetDevice(deviceID, &device))) {
+            if (SUCCEEDED(device->QueryInterface(__uuidof(IMMEndpoint), (void**)&endpoint))) {
+                if (SUCCEEDED(endpoint->GetDataFlow(&flow))) {
+                    emitAudioDevicesChanged(flow);
+                }
+                endpoint->Release();
+            }
+            device->Release();
+        }
+    }
+};
+
+
+QWindowsMediaDevices::QWindowsMediaDevices()
+    : QPlatformMediaDevices(),
+      m_deviceEnumerator(nullptr),
+      m_notificationClient(nullptr)
+
+{
+    CoInitialize(nullptr);
+
+    auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL,
+                CLSCTX_INPROC_SERVER,__uuidof(IMMDeviceEnumerator),
+                (void**)&m_deviceEnumerator);
+
+    if (SUCCEEDED(hr)) {
+        QMap<QString, DWORD> devState;
+        IMMDeviceCollection* devColl;
+
+        if (SUCCEEDED(m_deviceEnumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL, &devColl))) {
+            UINT count = 0;
+            devColl->GetCount(&count);
+            for (UINT i = 0; i < count; i++) {
+                IMMDevice* device;
+
+                if (SUCCEEDED(devColl->Item(i, &device))) {
+                    DWORD state = 0;
+                    LPWSTR id = nullptr;
+                    device->GetState(&state);
+                    device->GetId(&id);
+
+                    devState.insert(QString::fromWCharArray(id), state);
+
+                    device->Release();
+                }
+            }
+            devColl->Release();
+        }
+
+        m_notificationClient = new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState));
+        m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient);
+
+    } else {
+        qWarning() << "Audio device change notification disabled";
+    }
+}
+
+QWindowsMediaDevices::~QWindowsMediaDevices()
+{
+    if (m_deviceEnumerator) {
+        m_deviceEnumerator->UnregisterEndpointNotificationCallback(m_notificationClient);
+        m_deviceEnumerator->Release();
+    }
+
+    if (m_notificationClient) {
+        m_notificationClient->Release();
+    }
+
+    CoUninitialize();
 }
 
 static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
@@ -126,7 +305,6 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
                         if (mmr != MMSYSERR_NOERROR)
                             continue;
                         QByteArray strId = QString::fromWCharArray(id.data()).toUtf8();
-
                         devices.append((new QWindowsAudioDeviceInfo(strId, waveID, description, mode))->create());
                     }
                 }
