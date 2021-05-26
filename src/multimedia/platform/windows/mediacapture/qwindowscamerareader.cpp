@@ -453,8 +453,9 @@ STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
             }
         }
         // request the next frame
-        m_sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                   0, nullptr, nullptr, nullptr, nullptr);
+        if (m_sourceReader)
+            m_sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                       0, nullptr, nullptr, nullptr, nullptr);
     }
 
     return S_OK;

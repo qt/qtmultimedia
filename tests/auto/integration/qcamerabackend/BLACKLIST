@@ -1,6 +1,16 @@
+[testCameraStates]
+windows
+
+[testCameraCapture]
+windows
+
+[testCaptureToBuffer]
+windows
+
 [testCameraCaptureMetadata]
 osx
 ios
+windows
 
 [testCameraStartParallel]
 ios

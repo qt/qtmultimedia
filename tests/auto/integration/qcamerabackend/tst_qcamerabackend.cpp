@@ -169,6 +169,7 @@ void tst_QCameraBackend::testCameraStates()
     QCOMPARE(camera.isActive(), false);
     QCOMPARE(camera.status(), QCamera::InactiveStatus);
 
+    // Camera should not startup with a null QCameraInfo as device
     camera.start();
     QCOMPARE(camera.isActive(), false);
 
