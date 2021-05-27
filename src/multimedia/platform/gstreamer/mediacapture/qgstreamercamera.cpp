@@ -216,12 +216,14 @@ GstPhotography *QGstreamerCamera::photography() const
         return GST_PHOTOGRAPHY(gstCamera.element());
     return nullptr;
 }
+#endif
 
 void QGstreamerCamera::setFocusMode(QCamera::FocusMode mode)
 {
     if (mode == focusMode())
         return;
 
+#if QT_CONFIG(gstreamer_photography)
     auto p = photography();
     if (p) {
         GstPhotographyFocusMode photographyMode = GST_PHOTOGRAPHY_FOCUS_MODE_CONTINUOUS_NORMAL;
@@ -249,12 +251,15 @@ void QGstreamerCamera::setFocusMode(QCamera::FocusMode mode)
         if (gst_photography_set_focus_mode(p, photographyMode))
             focusModeChanged(mode);
     }
+#endif
 }
 
 bool QGstreamerCamera::isFocusModeSupported(QCamera::FocusMode mode) const
 {
+#if QT_CONFIG(gstreamer_photography)
     if (photography())
         return true;
+#endif
     return mode == QCamera::FocusModeAuto;
 }
 
@@ -262,6 +267,7 @@ void QGstreamerCamera::setFlashMode(QCamera::FlashMode mode)
 {
     Q_UNUSED(mode);
 
+#if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography()) {
         GstPhotographyFlashMode flashMode;
         gst_photography_get_flash_mode(p, &flashMode);
@@ -281,26 +287,32 @@ void QGstreamerCamera::setFlashMode(QCamera::FlashMode mode)
         if (gst_photography_set_flash_mode(p, flashMode))
             flashModeChanged(mode);
     }
+#endif
 }
 
 bool QGstreamerCamera::isFlashModeSupported(QCamera::FlashMode mode) const
 {
+#if QT_CONFIG(gstreamer_photography)
     if (photography())
         return true;
+#endif
 
     return mode == QCamera::FlashAuto;
 }
 
 bool QGstreamerCamera::isFlashReady() const
 {
+#if QT_CONFIG(gstreamer_photography)
     if (photography())
         return true;
+#endif
 
     return false;
 }
 
 void QGstreamerCamera::setExposureMode(QCamera::ExposureMode mode)
 {
+    Q_UNUSED(mode);
 #if QT_CONFIG(linux_v4l)
     if (isV4L2Camera() && v4l2AutoExposureSupported && v4l2ManualExposureSupported) {
         if (mode != QCamera::ExposureAuto && mode != QCamera::ExposureManual)
@@ -312,6 +324,7 @@ void QGstreamerCamera::setExposureMode(QCamera::ExposureMode mode)
     }
 #endif
 
+#if QT_CONFIG(gstreamer_photography)
     auto *p = photography();
     if (!p)
         return;
@@ -376,6 +389,7 @@ void QGstreamerCamera::setExposureMode(QCamera::ExposureMode mode)
 
     if (gst_photography_set_scene_mode(p, sceneMode))
         exposureModeChanged(mode);
+#endif
 }
 
 bool QGstreamerCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
@@ -386,14 +400,17 @@ bool QGstreamerCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
     if (isV4L2Camera() && v4l2ManualExposureSupported && v4l2AutoExposureSupported)
         return mode == QCamera::ExposureManual;
 #endif
+#if QT_CONFIG(gstreamer_photography)
     if (photography())
         return true;
+#endif
 
     return false;
 }
 
 void QGstreamerCamera::setExposureCompensation(float compensation)
 {
+    Q_UNUSED(compensation);
 #if QT_CONFIG(linux_v4l)
     if (isV4L2Camera() && (v4l2MinExposureAdjustment != 0 || v4l2MaxExposureAdjustment != 0)) {
         int value = qBound(v4l2MinExposureAdjustment, (int)(compensation*1000), v4l2MaxExposureAdjustment);
@@ -403,14 +420,17 @@ void QGstreamerCamera::setExposureCompensation(float compensation)
     }
 #endif
 
+#if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography()) {
         if (gst_photography_set_ev_compensation(p, compensation))
             exposureCompensationChanged(compensation);
     }
+#endif
 }
 
 void QGstreamerCamera::setManualIsoSensitivity(int iso)
 {
+    Q_UNUSED(iso);
 #if QT_CONFIG(linux_v4l)
     if (isV4L2Camera()) {
         if (!(supportedFeatures() & QCamera::Feature::IsoSensitivity))
@@ -423,10 +443,12 @@ void QGstreamerCamera::setManualIsoSensitivity(int iso)
         return;
     }
 #endif
+#if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography()) {
         if (gst_photography_set_iso_speed(p, iso))
             isoSensitivityChanged(iso);
     }
+#endif
 }
 
 int QGstreamerCamera::isoSensitivity() const
@@ -438,16 +460,19 @@ int QGstreamerCamera::isoSensitivity() const
         return getV4L2Parameter(V4L2_CID_ISO_SENSITIVITY);
     }
 #endif
+#if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography()) {
         guint speed = 0;
         if (gst_photography_get_iso_speed(p, &speed))
             return speed;
     }
+#endif
     return 100;
 }
 
 void QGstreamerCamera::setManualExposureTime(float secs)
 {
+    Q_UNUSED(secs);
 #if QT_CONFIG(linux_v4l)
     if (isV4L2Camera() && v4l2ManualExposureSupported && v4l2AutoExposureSupported) {
         int exposure = qBound(v4l2MinExposure, qRound(secs*10000.), v4l2MaxExposure);
@@ -457,10 +482,12 @@ void QGstreamerCamera::setManualExposureTime(float secs)
     }
 #endif
 
+#if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography()) {
         if (gst_photography_set_exposure(p, guint(secs*1000000)))
             exposureTimeChanged(secs);
     }
+#endif
 }
 
 float QGstreamerCamera::exposureTime() const
@@ -470,11 +497,13 @@ float QGstreamerCamera::exposureTime() const
         return getV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE)/10000.;
     }
 #endif
+#if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography()) {
         guint32 exposure = 0;
         if (gst_photography_get_exposure(p, &exposure))
             return exposure/1000000.;
     }
+#endif
     return -1;
 }
 
@@ -521,6 +550,17 @@ void QGstreamerCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
     Q_ASSERT(isWhiteBalanceModeSupported(mode));
 
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera()) {
+        int temperature = colorTemperatureForWhiteBalance(mode);
+        int t = setV4L2ColorTemperature(temperature);
+        if (t == 0)
+            mode = QCamera::WhiteBalanceAuto;
+        whiteBalanceModeChanged(mode);
+        return;
+    }
+#endif
+
 #if QT_CONFIG(gstreamer_photography)
     if (auto *p = photography()) {
         GstPhotographyWhiteBalanceMode gstMode = GST_PHOTOGRAPHY_WB_MODE_AUTO;
@@ -551,16 +591,8 @@ void QGstreamerCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
             whiteBalanceModeChanged(mode);
             return;
         }
-    } else
-#endif
-
-    if (isV4L2Camera()) {
-        int temperature = colorTemperatureForWhiteBalance(mode);
-        int t = setV4L2ColorTemperature(temperature);
-        if (t == 0)
-            mode = QCamera::WhiteBalanceAuto;
-        whiteBalanceModeChanged(mode);
     }
+#endif
 }
 
 void QGstreamerCamera::setColorTemperature(int temperature)
@@ -572,6 +604,15 @@ void QGstreamerCamera::setColorTemperature(int temperature)
 
     Q_ASSERT(isWhiteBalanceModeSupported(QCamera::WhiteBalanceManual));
 
+#if QT_CONFIG(linux_v4l)
+    if (isV4L2Camera()) {
+        int t = setV4L2ColorTemperature(temperature);
+        if (t)
+            colorTemperatureChanged(t);
+        return;
+    }
+#endif
+
 #if QT_CONFIG(gstreamer_photography) && GST_CHECK_VERSION(1, 18, 0)
     if (auto *p = photography()) {
         GstPhotographyInterface *iface = GST_PHOTOGRAPHY_GET_INTERFACE(p);
@@ -580,12 +621,6 @@ void QGstreamerCamera::setColorTemperature(int temperature)
         return;
     }
 #endif
-
-    if (isV4L2Camera()) {
-        int t = setV4L2ColorTemperature(temperature);
-        if (t)
-            colorTemperatureChanged(t);
-    }
 }
 
 #if QT_CONFIG(linux_v4l)
@@ -702,7 +737,5 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
     }
     return control.value;
 }
-
-#endif
 
 #endif

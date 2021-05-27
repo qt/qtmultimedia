@@ -80,6 +80,7 @@ public:
 
 #if QT_CONFIG(gstreamer_photography)
     GstPhotography *photography() const;
+#endif
 
     void setFocusMode(QCamera::FocusMode mode) override;
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
@@ -95,7 +96,7 @@ public:
     int isoSensitivity() const override;
     void setManualExposureTime(float) override;
     float exposureTime() const override;
-#endif
+
     bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
     void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
     void setColorTemperature(int temperature) override;
