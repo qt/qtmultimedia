@@ -285,30 +285,33 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
                         VariantClear(&var);
                         // Find the description
                         hr = pPropBag->Read(L"FriendlyName", &var, 0);
-                        if (!SUCCEEDED(hr))
+                        if (!SUCCEEDED(hr)) {
+                            pPropBag->Release();
                             continue;
+                        }
+
                         QString description = QString::fromWCharArray(var.bstrVal);
 
                         // Get the endpoint ID string for this waveOut device. This is required to be able to
                         // identify the device use the WMF APIs
+                        auto wave = IntToPtr(waveID);
+                        auto waveMessage = [wave, mode](UINT msg, auto p0, auto p1) {
+                            return mode == QAudio::AudioOutput
+                                    ? waveOutMessage((HWAVEOUT)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1)
+                                    : waveInMessage((HWAVEIN)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1);
+                        };
+
                         size_t len = 0;
-                        MMRESULT mmr = waveOutMessage((HWAVEOUT)IntToPtr(waveID),
-                                                     DRV_QUERYFUNCTIONINSTANCEIDSIZE,
-                                                     (DWORD_PTR)&len, 0);
-                        if (mmr != MMSYSERR_NOERROR)
-                            continue;
-                        QVarLengthArray<WCHAR> id(len);
-                        mmr = waveOutMessage((HWAVEOUT)IntToPtr(waveID),
-                                             DRV_QUERYFUNCTIONINSTANCEID,
-                                             (DWORD_PTR)id.data(),
-                                             len);
-                        if (mmr != MMSYSERR_NOERROR)
-                            continue;
-                        QByteArray strId = QString::fromWCharArray(id.data()).toUtf8();
-                        devices.append((new QWindowsAudioDeviceInfo(strId, waveID, description, mode))->create());
+                        if (waveMessage(DRV_QUERYFUNCTIONINSTANCEIDSIZE, &len, 0) == MMSYSERR_NOERROR) {
+                            QVarLengthArray<WCHAR> id(len);
+                            if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, id.data(), len) == MMSYSERR_NOERROR) {
+                                auto strID = QString::fromWCharArray(id.data()).toUtf8();
+
+                                devices.append((new QWindowsAudioDeviceInfo(strID, waveID, description, mode))->create());
+                            }
+                        }
                     }
                 }
-
                 pPropBag->Release();
                 pMoniker->Release();
             }
