@@ -127,7 +127,7 @@ endif()
 ## Scopes:
 #####################################################################
 
-qt_internal_extend_target(Multimedia CONDITION WIN32
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
     SOURCES
         platform/windows/audio/qwindowsaudiodeviceinfo.cpp platform/windows/audio/qwindowsaudiodeviceinfo_p.h
         platform/windows/audio/qwindowsaudioinput.cpp platform/windows/audio/qwindowsaudioinput_p.h
@@ -423,7 +423,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT IOS AND NOT TVOS AN
         ${FWAudioUnit}
 )
 
-qt_internal_extend_target(Multimedia CONDITION QNX
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
     SOURCES
         platform/qnx/audio/neutrinoserviceplugin.cpp platform/qnx/audio/neutrinoserviceplugin_p.h
         platform/qnx/audio/qnxaudiodeviceinfo.cpp platform/qnx/audio/qnxaudiodeviceinfo_p.h

@@ -42,6 +42,8 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qshareddata.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qmetatype.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -94,7 +94,7 @@ qt_feature("linux_v4l" PRIVATE
 )
 qt_feature("mmrenderer" PUBLIC PRIVATE
     LABEL "MMRenderer"
-    CONDITION MMRenderer_FOUND
+    CONDITION MMRenderer_FOUND AND false
     EMIT_IF QNX
 )
 qt_feature_definition("mmrenderer" "QT_NO_MMRENDERER" NEGATE VALUE "1")
@@ -110,7 +110,7 @@ qt_feature("wmsdk" PRIVATE
 )
 qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
-    CONDITION WIN32 AND WMF_FOUND
+    CONDITION WIN32 AND WMF_FOUND AND QT_FEATURE_wmsdk
 )
 qt_configure_add_summary_section(NAME "Qt Multimedia")
 qt_configure_add_summary_entry(ARGS "alsa")

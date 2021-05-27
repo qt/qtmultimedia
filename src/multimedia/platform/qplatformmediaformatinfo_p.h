@@ -56,7 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_AUTOTEST_EXPORT QPlatformMediaFormatInfo
+class Q_MULTIMEDIA_EXPORT QPlatformMediaFormatInfo
 {
 public:
     QPlatformMediaFormatInfo();

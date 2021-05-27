@@ -56,6 +56,7 @@
 #include <QtCore/QSet>
 #include <QtCore/QResource>
 #include <QtCore/QUrl>
+#include <QtCore/QTimer>
 
 #include <private/qplatformmediaplayer_p.h>
 #include <QtMultimedia/QMediaPlayer>

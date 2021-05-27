@@ -54,7 +54,7 @@ using PlatformIntegration = QAlsaIntegration;
 #elif QT_CONFIG(avfoundation)
 #include <private/qdarwinintegration_p.h>
 using PlatformIntegration = QDarwinIntegration;
-#elif defined(Q_OS_WIN)
+#elif QT_CONFIG(wmf)
 #include <private/qwindowsintegration_p.h>
 using PlatformIntegration = QWindowsIntegration;
 #elif defined(Q_OS_ANDROID)

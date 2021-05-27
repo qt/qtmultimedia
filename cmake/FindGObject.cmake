@@ -15,6 +15,7 @@
 
 include(CMakeFindDependencyMacro)
 find_dependency(GLIB2)
+qt_internal_disable_find_package_global_promotion(GLIB2::GLIB2)
 
 if(NOT TARGET GObject::GObject)
     find_package(PkgConfig QUIET)

@@ -196,6 +196,11 @@ qint32 QAudioFormat::bytesForDuration(qint64 duration) const
 */
 qint64 QAudioFormat::durationForBytes(qint32 bytes) const
 {
+    // avoid compiler warnings about unused variables. [[maybe_unused]] in the header
+    // gives compiler errors on older gcc versions
+    Q_UNUSED(bitfields);
+    Q_UNUSED(reserved);
+
     if (!isValid() || bytes <= 0)
         return 0;
 

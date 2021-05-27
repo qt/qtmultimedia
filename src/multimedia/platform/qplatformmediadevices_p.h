@@ -63,7 +63,7 @@ class QAbstractAudioInput;
 class QAbstractAudioOutput;
 class QAudioFormat;
 
-class Q_AUTOTEST_EXPORT QPlatformMediaDevices
+class Q_MULTIMEDIA_EXPORT QPlatformMediaDevices
 {
 public:
     QPlatformMediaDevices();

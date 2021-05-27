@@ -175,7 +175,7 @@ public:
         CustomFocusPoint = 0x10,
         FocusDistance = 0x20
     };
-    Q_DECLARE_FLAGS(Features, Feature);
+    Q_DECLARE_FLAGS(Features, Feature)
 
     explicit QCamera(QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
@@ -310,7 +310,7 @@ private:
     friend class QCameraInfo;
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features);
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features)
 
 QT_END_NAMESPACE
 

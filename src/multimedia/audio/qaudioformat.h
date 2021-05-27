@@ -117,8 +117,8 @@ private:
     SampleFormat m_sampleFormat = SampleFormat::Unknown;
     int m_sampleRate = 0;
     short m_channelCount = 0;
-    [[maybe_unused]]short bitfields = 0;
-    [[maybe_unused]]quint64 reserved = 0;
+    short bitfields = 0;
+    quint64 reserved = 0;
 };
 
 #ifndef QT_NO_DEBUG_STREAM
