@@ -43,30 +43,26 @@
 #include <QtWidgets/qgraphicsitem.h>
 
 #include <QtMultimediaWidgets/qvideowidget.h>
-#include <QtMultimedia/qmediabindableinterface.h>
 
 #if QT_CONFIG(graphicsview)
 
 QT_BEGIN_NAMESPACE
 
-class QVideoSurfaceFormat;
+class QVideoFrameFormat;
 class QGraphicsVideoItemPrivate;
-class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject, public QMediaBindableInterface
+class Q_MULTIMEDIAWIDGETS_EXPORT QGraphicsVideoItem : public QGraphicsObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
-    Q_PROPERTY(QMediaObject* mediaObject READ mediaObject WRITE setMediaObject)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode)
     Q_PROPERTY(QPointF offset READ offset WRITE setOffset)
     Q_PROPERTY(QSizeF size READ size WRITE setSize)
     Q_PROPERTY(QSizeF nativeSize READ nativeSize NOTIFY nativeSizeChanged)
-    Q_PROPERTY(QAbstractVideoSurface* videoSurface READ videoSurface CONSTANT)
+    Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT)
 public:
     explicit QGraphicsVideoItem(QGraphicsItem *parent = nullptr);
     ~QGraphicsVideoItem();
 
-    QMediaObject *mediaObject() const override;
-    QAbstractVideoSurface *videoSurface() const;
+    Q_INVOKABLE QVideoSink *videoSink() const;
 
     Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
@@ -97,15 +93,11 @@ protected:
     void timerEvent(QTimerEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
-    bool setMediaObject(QMediaObject *object) override;
-
     QGraphicsVideoItemPrivate *d_ptr;
 
 private:
     Q_DECLARE_PRIVATE(QGraphicsVideoItem)
-    Q_PRIVATE_SLOT(d_func(), void _q_present())
-    Q_PRIVATE_SLOT(d_func(), void _q_updateNativeSize())
-    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
+    Q_PRIVATE_SLOT(d_func(), void _q_present(const QVideoFrame &))
 };
 
 QT_END_NAMESPACE

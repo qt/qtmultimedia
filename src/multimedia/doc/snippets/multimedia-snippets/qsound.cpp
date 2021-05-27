@@ -49,20 +49,7 @@
 ****************************************************************************/
 
 #include "qpushbutton.h"
-#include "qsound.h"
 #include "qsoundeffect.h"
-
-void qsoundsnippet() {
-    //! [0]
-    QSound::play("mysounds/bells.wav");
-    //! [0]
-
-
-    //! [1]
-    QSound bells("mysounds/bells.wav");
-    bells.play();
-    //! [1]
-}
 
 void qsoundeffectsnippet() {
     //! [2]

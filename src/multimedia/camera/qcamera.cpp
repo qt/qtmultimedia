@@ -39,48 +39,18 @@
 
 
 #include "qcamera_p.h"
-#include "qmediaserviceprovider_p.h"
 
 #include <qcamerainfo.h>
-#include <qcameracontrol.h>
-#include <qcameralockscontrol.h>
-#include <qcameraexposurecontrol.h>
-#include <qcamerafocuscontrol.h>
-#include <qmediarecordercontrol.h>
-#include <qcameraimageprocessingcontrol.h>
-#include <qcameraimagecapturecontrol.h>
-#include <qvideodeviceselectorcontrol.h>
-#include <qcamerainfocontrol.h>
-#include <qcameraviewfindersettingscontrol.h>
+#include <private/qplatformcamera_p.h>
+#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformmediacapture_p.h>
+#include <qmediadevices.h>
+#include <qmediacapturesession.h>
 
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
-
-static void qRegisterCameraMetaTypes()
-{
-    qRegisterMetaType<QCamera::Error>("QCamera::Error");
-    qRegisterMetaType<QCamera::State>("QCamera::State");
-    qRegisterMetaType<QCamera::Status>("QCamera::Status");
-    qRegisterMetaType<QCamera::CaptureModes>("QCamera::CaptureModes");
-    qRegisterMetaType<QCamera::LockType>("QCamera::LockType");
-    qRegisterMetaType<QCamera::LockStatus>("QCamera::LockStatus");
-    qRegisterMetaType<QCamera::LockChangeReason>("QCamera::LockChangeReason");
-    qRegisterMetaType<QCamera::Position>("QCamera::Position");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraMetaTypes)
-
-Q_DECL_CONSTEXPR static bool qt_sizeLessThan(const QSize &s1, const QSize &s2) Q_DECL_NOTHROW
-{
-    return (s1.width() * s1.height()) < (s2.width() * s2.height());
-}
-
-Q_DECL_CONSTEXPR static bool qt_frameRateRangeLessThan(const QCamera::FrameRateRange &s1, const QCamera::FrameRateRange &s2) Q_DECL_NOTHROW
-{
-    return qFuzzyCompare(s1.maximumFrameRate, s2.maximumFrameRate) ? (s1.minimumFrameRate < s2.minimumFrameRate)
-                                                                   : (s1.maximumFrameRate < s2.maximumFrameRate);
-}
 
 /*!
     \class QCamera
@@ -92,12 +62,38 @@ Q_DECL_CONSTEXPR static bool qt_frameRateRangeLessThan(const QCamera::FrameRateR
     \ingroup multimedia
     \ingroup multimedia_camera
 
-    QCamera can be used with QCameraViewfinder for viewfinder display,
-    QMediaRecorder for video recording and QCameraImageCapture for image taking.
+    QCamera can be used within a QMediaCaptureSession for video recording and image taking.
 
     You can use QCameraInfo to list available cameras and choose which one to use.
 
     \snippet multimedia-snippets/camera.cpp Camera selection
+
+    On hardware that supports it, QCamera lets you adjust the focus
+    and zoom. This also includes things
+    like "Macro" mode for close up work (e.g. reading barcodes, or
+    recognising letters), or "touch to focus" - indicating an
+    interesting area of the viewfinder for the hardware to attempt
+    to focus on.
+
+    \snippet multimedia-snippets/camera.cpp Camera custom focus
+
+    The \l minimumZoomFactor() and \l maximumZoomFactor() methods allows checking the
+    range of allowed zoom factors. The \l zoomTo() method allows changing the zoom factor.
+
+    \snippet multimedia-snippets/camera.cpp Camera zoom
+
+
+    After capturing the data for a camera frame, the camera hardware and
+    software performs various image processing tasks to produce a final
+    image.  This includes compensating for ambient light color, reducing
+    noise, as well as making some other adjustments to the image.
+
+    For example, you can set the white balance (or color temperature) used
+    for processing images:
+
+    \snippet multimedia-snippets/camera.cpp Camera image whitebalance
+
+    For more information on image processing of camera frames, see \l {camera_image_processing}{Camera Image Processing}.
 
     See the \l{Camera Overview}{camera overview} for more information.
 */
@@ -109,273 +105,36 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
     this->error = QCamera::Error(error);
     this->errorString = errorString;
 
-    emit q->errorOccurred(this->error);
-}
-
-void QCameraPrivate::setState(QCamera::State newState)
-{
-    unsetError();
-
-    if (!control) {
-        _q_error(QCamera::ServiceMissingError, QCamera::tr("The camera service is missing"));
-        return;
-    }
-
-    restartPending = false;
-    control->setState(newState);
-}
-
-void QCameraPrivate::_q_updateState(QCamera::State newState)
-{
-    Q_Q(QCamera);
-
-    //omit changins state to Loaded when the camera is temporarily
-    //stopped to apply shanges
-    if (restartPending)
-        return;
-
-    if (newState != state) {
-        state = newState;
-        emit q->stateChanged(state);
-    }
-}
-
-void QCameraPrivate::_q_preparePropertyChange(int changeType)
-{
-    if (!control)
-        return;
-
-    QCamera::Status status = control->status();
-
-    //all the changes are allowed until the camera is starting
-    if (control->state() != QCamera::ActiveState)
-        return;
-
-    if (control->canChangeProperty(QCameraControl::PropertyChangeType(changeType), status))
-        return;
-
-    restartPending = true;
-    control->setState(QCamera::LoadedState);
-    QMetaObject::invokeMethod(q_ptr, "_q_restartCamera", Qt::QueuedConnection);
-}
-
-void QCameraPrivate::_q_restartCamera()
-{
-    if (restartPending) {
-        restartPending = false;
-        control->setState(QCamera::ActiveState);
-    }
+    emit q->errorChanged();
+    emit q->errorOccurred(this->error, errorString);
 }
 
 void QCameraPrivate::init()
 {
     Q_Q(QCamera);
-    provider = QMediaServiceProvider::defaultServiceProvider();
-    initControls();
-    cameraExposure = new QCameraExposure(q);
-    cameraFocus = new QCameraFocus(q);
-    imageProcessing = new QCameraImageProcessing(q);
-}
 
-void QCameraPrivate::initControls()
-{
-    Q_Q(QCamera);
-
-    if (service) {
-        control = qobject_cast<QCameraControl *>(service->requestControl(QCameraControl_iid));
-        locksControl = qobject_cast<QCameraLocksControl *>(service->requestControl(QCameraLocksControl_iid));
-        deviceControl = qobject_cast<QVideoDeviceSelectorControl*>(service->requestControl(QVideoDeviceSelectorControl_iid));
-        infoControl = qobject_cast<QCameraInfoControl*>(service->requestControl(QCameraInfoControl_iid));
-        viewfinderSettingsControl2 = qobject_cast<QCameraViewfinderSettingsControl2*>(service->requestControl(QCameraViewfinderSettingsControl2_iid));
-        if (!viewfinderSettingsControl2)
-            viewfinderSettingsControl = qobject_cast<QCameraViewfinderSettingsControl*>(service->requestControl(QCameraViewfinderSettingsControl_iid));
-
-        if (control) {
-            q->connect(control, SIGNAL(stateChanged(QCamera::State)), q, SLOT(_q_updateState(QCamera::State)));
-            q->connect(control, SIGNAL(statusChanged(QCamera::Status)), q, SIGNAL(statusChanged(QCamera::Status)));
-            q->connect(control, SIGNAL(captureModeChanged(QCamera::CaptureModes)),
-                       q, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
-            q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
-
-        }
-
-        if (locksControl) {
-            q->connect(locksControl, SIGNAL(lockStatusChanged(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)),
-                       q, SLOT(_q_updateLockStatus(QCamera::LockType,QCamera::LockStatus,QCamera::LockChangeReason)));
-        }
-
-        error = QCamera::NoError;
-    } else {
-        control = nullptr;
-        locksControl = nullptr;
-        deviceControl = nullptr;
-        infoControl = nullptr;
-        viewfinderSettingsControl = nullptr;
-        viewfinderSettingsControl2 = nullptr;
-
-        error = QCamera::ServiceMissingError;
-        errorString = QCamera::tr("The camera service is missing");
-    }
-}
-
-void QCameraPrivate::clear()
-{
-    delete cameraExposure;
-    delete cameraFocus;
-    delete imageProcessing;
-
-    if (service) {
-        if (control)
-            service->releaseControl(control);
-        if (locksControl)
-            service->releaseControl(locksControl);
-        if (deviceControl)
-            service->releaseControl(deviceControl);
-        if (infoControl)
-            service->releaseControl(infoControl);
-        if (viewfinderSettingsControl)
-            service->releaseControl(viewfinderSettingsControl);
-        if (viewfinderSettingsControl2)
-            service->releaseControl(viewfinderSettingsControl2);
-
-        provider->releaseService(service);
+    control = QPlatformMediaIntegration::instance()->createCamera(q);
+    if (!control) {
+        _q_error(QCamera::CameraError, QString::fromUtf8("Camera not supported"));
+        return;
     }
 
-    cameraExposure = nullptr;
-    cameraFocus = nullptr;
-    imageProcessing = nullptr;
-    control = nullptr;
-    locksControl = nullptr;
-    deviceControl = nullptr;
-    infoControl = nullptr;
-    viewfinderSettingsControl = nullptr;
-    viewfinderSettingsControl2 = nullptr;
-    service = nullptr;
+    if (cameraInfo.isNull())
+        _q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
+    control->setCamera(cameraInfo);
+    q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
+    q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
 }
-
-void QCameraPrivate::updateLockStatus()
-{
-    Q_Q(QCamera);
-
-    QCamera::LockStatus oldStatus = lockStatus;
-
-    QMap<QCamera::LockStatus, int> lockStatusPriority;
-    lockStatusPriority.insert(QCamera::Locked, 1);
-    lockStatusPriority.insert(QCamera::Unlocked, 2);
-    lockStatusPriority.insert(QCamera::Searching, 3);
-
-    lockStatus = requestedLocks ? QCamera::Locked : QCamera::Unlocked;
-    int priority = 0;
-
-    QList<QCamera::LockStatus> lockStatuses;
-
-    if (requestedLocks & QCamera::LockFocus)
-        lockStatuses << q->lockStatus(QCamera::LockFocus);
-
-    if (requestedLocks & QCamera::LockExposure)
-        lockStatuses << q->lockStatus(QCamera::LockExposure);
-
-    if (requestedLocks & QCamera::LockWhiteBalance)
-        lockStatuses << q->lockStatus(QCamera::LockWhiteBalance);
-
-
-    for (QCamera::LockStatus currentStatus : qAsConst(lockStatuses)) {
-        int currentPriority = lockStatusPriority.value(currentStatus, -1);
-        if (currentPriority > priority) {
-            priority = currentPriority;
-            lockStatus = currentStatus;
-        }
-    }
-
-    if (!supressLockChangedSignal && oldStatus != lockStatus) {
-        emit q->lockStatusChanged(lockStatus, lockChangeReason);
-
-        if (lockStatus == QCamera::Locked)
-            emit q->locked();
-        else if (lockStatus == QCamera::Unlocked && lockChangeReason == QCamera::LockFailed)
-            emit q->lockFailed();
-    }
-/*
-    qDebug() << "Requested locks:" << (requestedLocks & QCamera::LockExposure ? 'e' : ' ')
-            << (requestedLocks & QCamera::LockFocus ? 'f' : ' ')
-            << (requestedLocks & QCamera::LockWhiteBalance ? 'w' : ' ');
-    qDebug() << "Lock status: f:" << q->lockStatus(QCamera::LockFocus)
-             << " e:" << q->lockStatus(QCamera::LockExposure)
-             << " w:" << q->lockStatus(QCamera::LockWhiteBalance)
-             << " composite:" << lockStatus;
-*/
-}
-
-void QCameraPrivate::_q_updateLockStatus(QCamera::LockType type, QCamera::LockStatus status, QCamera::LockChangeReason reason)
-{
-    Q_Q(QCamera);
-    lockChangeReason = reason;
-    updateLockStatus();
-    emit q->lockStatusChanged(type, status, reason);
-}
-
 
 /*!
     Construct a QCamera with a \a parent.
+
+    Selects the default camera on the system if more than one camera is available.
 */
 
-QCamera::QCamera(QObject *parent):
-    QMediaObject(*new QCameraPrivate,
-                 parent,
-                 QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA))
+QCamera::QCamera(QObject *parent)
+    : QCamera(QMediaDevices::defaultVideoInput(), parent)
 {
-    Q_D(QCamera);
-    d->init();
-
-    // Select the default camera
-    if (d->service != nullptr && d->deviceControl)
-        d->deviceControl->setSelectedDevice(d->deviceControl->defaultDevice());
-}
-
-/*!
-    Construct a QCamera from \a deviceName and \a parent.
-
-    If no camera with that \a deviceName exists, the camera object will
-    be invalid.
-*/
-
-QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
-    QMediaObject(*new QCameraPrivate, parent,
-                  QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA,
-                                                                                  QMediaServiceProviderHint(deviceName)))
-{
-    Q_D(QCamera);
-    d->init();
-
-    bool found = false;
-    // Pass device name to service.
-    if (d->deviceControl) {
-        const QString name = QString::fromLatin1(deviceName);
-        for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
-            if (d->deviceControl->deviceName(i) == name) {
-                d->deviceControl->setSelectedDevice(i);
-                found = true;
-                break;
-            }
-        }
-    }
-
-    // The camera should not be used if device with requested name does not exist.
-    if (!found) {
-        if (d->service) {
-            if (d->control)
-                d->service->releaseControl(d->control);
-            if (d->deviceControl)
-                d->service->releaseControl(d->deviceControl);
-            if (d->infoControl)
-                d->service->releaseControl(d->infoControl);
-        }
-        d->control = nullptr;
-        d->deviceControl = nullptr;
-        d->infoControl = nullptr;
-        d->error = QCamera::ServiceMissingError;
-        d->errorString = QCamera::tr("The camera service is missing");
-    }
 }
 
 /*!
@@ -385,8 +144,13 @@ QCamera::QCamera(const QByteArray& deviceName, QObject *parent):
 */
 
 QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
-    : QCamera(cameraInfo.deviceName().toLatin1(), parent)
+    : QObject(*new QCameraPrivate, parent)
 {
+    Q_D(QCamera);
+
+    d->cameraInfo = cameraInfo;
+    d->init();
+    setCameraInfo(cameraInfo);
 }
 
 /*!
@@ -398,33 +162,26 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
     back-facing cameras.
 
     If no camera is available at the specified \a position or if \a position is
-    QCamera::UnspecifiedPosition, the default camera is used.
+    QCameraInfo::UnspecifiedPosition, the default camera is used.
 */
 
-QCamera::QCamera(QCamera::Position position, QObject *parent)
-    : QMediaObject(*new QCameraPrivate,
-                   parent,
-                   QMediaServiceProvider::defaultServiceProvider()->requestService(Q_MEDIASERVICE_CAMERA, QMediaServiceProviderHint(position)))
+QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
+    : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
-    d->init();
 
-    if (d->service != nullptr && d->deviceControl) {
-        bool selectDefault = true;
-
-        if (d->infoControl && position != UnspecifiedPosition) {
-            for (int i = 0; i < d->deviceControl->deviceCount(); i++) {
-                if (d->infoControl->cameraPosition(d->deviceControl->deviceName(i)) == position) {
-                    d->deviceControl->setSelectedDevice(i);
-                    selectDefault = false;
-                    break;
-                }
-            }
+    QCameraInfo info;
+    auto cameras = QMediaDevices::videoInputs();
+    for (const auto &c : cameras) {
+        if (c.position() == position) {
+            info = c;
+            break;
         }
-
-        if (selectDefault)
-            d->deviceControl->setSelectedDevice(d->deviceControl->defaultDevice());
     }
+    if (info.isNull())
+        info = QMediaDevices::defaultVideoInput();
+    d->cameraInfo = info;
+    d->init();
 }
 
 /*!
@@ -434,332 +191,39 @@ QCamera::QCamera(QCamera::Position position, QObject *parent)
 QCamera::~QCamera()
 {
     Q_D(QCamera);
-    d->clear();
+    if (d->captureSession) {
+        d->captureInterface->setCamera(nullptr);
+        d->captureSession->setCamera(nullptr);
+    }
+    Q_ASSERT(!d->captureSession);
 }
 
 /*!
-    Returns the availability state of the camera service.
+    Returns true if the camera can be used.
 */
-QMultimedia::AvailabilityStatus QCamera::availability() const
+bool QCamera::isAvailable() const
 {
     Q_D(const QCamera);
-    if (d->control == nullptr)
-        return QMultimedia::ServiceMissing;
-
-    if (d->deviceControl && d->deviceControl->deviceCount() == 0)
-        return QMultimedia::ResourceError;
-
-    if (d->error != QCamera::NoError)
-        return QMultimedia::ResourceError;
-
-    return QMediaObject::availability();
-}
-
-
-/*!
-    Returns the camera exposure control object.
-*/
-QCameraExposure *QCamera::exposure() const
-{
-    return d_func()->cameraExposure;
+    return d->control && !d->cameraInfo.isNull();
 }
 
 /*!
-    Returns the camera focus control object.
+    Returns true if the camera is currently active.
 */
-QCameraFocus *QCamera::focus() const
-{
-    return d_func()->cameraFocus;
-}
-
-/*!
-    Returns the camera image processing control object.
-*/
-QCameraImageProcessing *QCamera::imageProcessing() const
-{
-    return d_func()->imageProcessing;
-}
-
-/*!
-    Sets the QVideoWidget based camera \a viewfinder.
-    The previously set viewfinder is detached.
-
-    //! QVideoWidget is forward declared.
-*/
-void QCamera::setViewfinder(QVideoWidget *viewfinder)
-{
-    Q_D(QCamera);
-    d->_q_preparePropertyChange(QCameraControl::Viewfinder);
-
-    if (d->viewfinder)
-        unbind(d->viewfinder);
-
-    // We don't know (in this library) that QVideoWidget inherits QObject
-    QObject *viewFinderObject = reinterpret_cast<QObject*>(viewfinder);
-
-    d->viewfinder = viewFinderObject && bind(viewFinderObject) ? viewFinderObject : nullptr;
-}
-
-/*!
-    Sets the QGraphicsVideoItem based camera \a viewfinder.
-    The previously set viewfinder is detached.
-
-    //! QGraphicsVideoItem is forward declared.
-*/
-void QCamera::setViewfinder(QGraphicsVideoItem *viewfinder)
-{
-    Q_D(QCamera);
-    d->_q_preparePropertyChange(QCameraControl::Viewfinder);
-
-    if (d->viewfinder)
-        unbind(d->viewfinder);
-
-    // We don't know (in this library) that QGraphicsVideoItem (multiply) inherits QObject
-    // but QObject inheritance depends on QObject coming first, so try this out.
-    QObject *viewFinderObject = reinterpret_cast<QObject*>(viewfinder);
-
-    d->viewfinder = viewFinderObject && bind(viewFinderObject) ? viewFinderObject : nullptr;
-}
-
-/*!
-    Sets a video \a surface as the viewfinder of a camera.
-
-    If a viewfinder has already been set on the camera the new surface
-    will replace it.
-*/
-
-void QCamera::setViewfinder(QAbstractVideoSurface *surface)
-{
-    Q_D(QCamera);
-
-    d->surfaceViewfinder.setVideoSurface(surface);
-
-    if (d->viewfinder != &d->surfaceViewfinder) {
-        if (d->viewfinder)
-            unbind(d->viewfinder);
-
-        d->viewfinder = nullptr;
-
-        if (surface && bind(&d->surfaceViewfinder))
-            d->viewfinder = &d->surfaceViewfinder;
-    } else if (!surface) {
-        //unbind the surfaceViewfinder if null surface is set
-        unbind(&d->surfaceViewfinder);
-        d->viewfinder = nullptr;
-    }
-}
-
-/*!
-    Returns the viewfinder settings being used by the camera.
-
-    Settings may change when the camera is started, for example if the viewfinder settings
-    are undefined or if unsupported values are set.
-
-    If viewfinder settings are not supported by the camera, it always returns a null
-    QCameraViewfinderSettings object.
-
-    \sa setViewfinderSettings()
-
-    \since 5.5
-*/
-QCameraViewfinderSettings QCamera::viewfinderSettings() const
+bool QCamera::isActive() const
 {
     Q_D(const QCamera);
-
-    if (d->viewfinderSettingsControl2)
-        return d->viewfinderSettingsControl2->viewfinderSettings();
-
-    QCameraViewfinderSettings settings;
-    if (d->viewfinderSettingsControl) {
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::Resolution))
-            settings.setResolution(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::Resolution).toSize());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MinimumFrameRate))
-            settings.setMinimumFrameRate(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::MinimumFrameRate).toReal());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MaximumFrameRate))
-            settings.setMaximumFrameRate(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::MaximumFrameRate).toReal());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelAspectRatio))
-            settings.setPixelAspectRatio(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::PixelAspectRatio).toSize());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelFormat))
-            settings.setPixelFormat(qvariant_cast<QVideoFrame::PixelFormat>(d->viewfinderSettingsControl->viewfinderParameter(QCameraViewfinderSettingsControl::PixelFormat)));
-    }
-    return settings;
+    return d->control && d->control->isActive();
 }
 
 /*!
-    Sets the viewfinder \a settings.
-
-    If some parameters are not specified, or null settings are passed, the camera will choose
-    default values.
-
-    If the camera is used to capture videos or images, the viewfinder settings might be
-    ignored if they conflict with the capture settings. You can check the actual viewfinder settings
-    once the camera is in the \c QCamera::ActiveStatus status.
-
-    Changing the viewfinder settings while the camera is in the QCamera::ActiveState state may
-    cause the camera to be restarted.
-
-    \sa viewfinderSettings(), supportedViewfinderResolutions(), supportedViewfinderFrameRateRanges(),
-    supportedViewfinderPixelFormats()
-
-    \since 5.5
+    Turns the camera on or off.
 */
-void QCamera::setViewfinderSettings(const QCameraViewfinderSettings &settings)
-{
-    Q_D(QCamera);
-
-    if (d->viewfinderSettingsControl || d->viewfinderSettingsControl2)
-        d->_q_preparePropertyChange(QCameraControl::ViewfinderSettings);
-
-    if (d->viewfinderSettingsControl2) {
-        d->viewfinderSettingsControl2->setViewfinderSettings(settings);
-
-    } else if (d->viewfinderSettingsControl) {
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::Resolution))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::Resolution, settings.resolution());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MinimumFrameRate))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::MinimumFrameRate, settings.minimumFrameRate());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::MaximumFrameRate))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::MaximumFrameRate, settings.maximumFrameRate());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelAspectRatio))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::PixelAspectRatio, settings.pixelAspectRatio());
-
-        if (d->viewfinderSettingsControl->isViewfinderParameterSupported(QCameraViewfinderSettingsControl::PixelFormat))
-            d->viewfinderSettingsControl->setViewfinderParameter(QCameraViewfinderSettingsControl::PixelFormat, settings.pixelFormat());
-    }
-}
-
-/*!
-    Returns a list of supported viewfinder settings.
-
-    The list is ordered by preference; preferred settings come first.
-
-    The optional \a settings argument can be used to conveniently filter the results.
-    If \a settings is non null, the returned list is reduced to settings matching the given partial
-    \a settings.
-
-    The status of the camera must be LoadedStatus before calling this function, otherwise the returned list
-    is empty.
-
-    \sa setViewfinderSettings(), supportedViewfinderResolutions(), supportedViewfinderFrameRateRanges(),
-    supportedViewfinderPixelFormats()
-
-    \since 5.5
-*/
-QList<QCameraViewfinderSettings> QCamera::supportedViewfinderSettings(const QCameraViewfinderSettings &settings) const
+void QCamera::setActive(bool active)
 {
     Q_D(const QCamera);
-
-    if (!d->viewfinderSettingsControl2)
-        return QList<QCameraViewfinderSettings>();
-
-    if (settings.isNull())
-        return d->viewfinderSettingsControl2->supportedViewfinderSettings();
-
-    QList<QCameraViewfinderSettings> results;
-    const QList<QCameraViewfinderSettings> supported = d->viewfinderSettingsControl2->supportedViewfinderSettings();
-    for (const QCameraViewfinderSettings &s : supported) {
-        if ((settings.resolution().isEmpty() || settings.resolution() == s.resolution())
-                && (qFuzzyIsNull(settings.minimumFrameRate()) || qFuzzyCompare((float)settings.minimumFrameRate(), (float)s.minimumFrameRate()))
-                && (qFuzzyIsNull(settings.maximumFrameRate()) || qFuzzyCompare((float)settings.maximumFrameRate(), (float)s.maximumFrameRate()))
-                && (settings.pixelFormat() == QVideoFrame::Format_Invalid || settings.pixelFormat() == s.pixelFormat())
-                && (settings.pixelAspectRatio().isEmpty() || settings.pixelAspectRatio() == s.pixelAspectRatio())) {
-            results.append(s);
-        }
-    }
-
-    return results;
-}
-
-/*!
-    Returns a list of supported viewfinder resolutions.
-
-    This is a convenience function which retrieves unique resolutions from the supported settings.
-
-    If non null viewfinder \a settings are passed, the returned list is reduced to resolutions
-    supported with partial \a settings applied.
-
-    The camera must be loaded before calling this function, otherwise the returned list
-    is empty.
-
-    \sa QCameraViewfinderSettings::resolution(), setViewfinderSettings()
-
-    \since 5.5
-*/
-QList<QSize> QCamera::supportedViewfinderResolutions(const QCameraViewfinderSettings &settings) const
-{
-    QList<QSize> resolutions;
-    const QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
-    for (const QCameraViewfinderSettings &s : capabilities) {
-        if (!resolutions.contains(s.resolution()))
-            resolutions.append(s.resolution());
-    }
-    std::sort(resolutions.begin(), resolutions.end(), qt_sizeLessThan);
-
-    return resolutions;
-}
-
-/*!
-    Returns a list of supported viewfinder frame rate ranges.
-
-    This is a convenience function which retrieves unique frame rate ranges from the supported settings.
-
-    If non null viewfinder \a settings are passed, the returned list is reduced to frame rate ranges
-    supported with partial \a settings applied.
-
-    The camera must be loaded before calling this function, otherwise the returned list
-    is empty.
-
-    \sa QCameraViewfinderSettings::minimumFrameRate(), QCameraViewfinderSettings::maximumFrameRate(),
-    setViewfinderSettings()
-
-    \since 5.5
-*/
-QList<QCamera::FrameRateRange> QCamera::supportedViewfinderFrameRateRanges(const QCameraViewfinderSettings &settings) const
-{
-    QList<QCamera::FrameRateRange> frameRateRanges;
-    const QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
-    for (const QCameraViewfinderSettings &s : capabilities) {
-        QCamera::FrameRateRange range(s.minimumFrameRate(), s.maximumFrameRate());
-        if (!frameRateRanges.contains(range))
-            frameRateRanges.append(range);
-    }
-    std::sort(frameRateRanges.begin(), frameRateRanges.end(), qt_frameRateRangeLessThan);
-
-    return frameRateRanges;
-}
-
-/*!
-    Returns a list of supported viewfinder pixel formats.
-
-    This is a convenience function which retrieves unique pixel formats from the supported settings.
-
-    If non null viewfinder \a settings are passed, the returned list is reduced to pixel formats
-    supported with partial \a settings applied.
-
-    The camera must be loaded before calling this function, otherwise the returned list
-    is empty.
-
-    \sa QCameraViewfinderSettings::pixelFormat(), setViewfinderSettings()
-
-    \since 5.5
-*/
-QList<QVideoFrame::PixelFormat> QCamera::supportedViewfinderPixelFormats(const QCameraViewfinderSettings &settings) const
-{
-    QList<QVideoFrame::PixelFormat> pixelFormats;
-    const QList<QCameraViewfinderSettings> capabilities = supportedViewfinderSettings(settings);
-    for (const QCameraViewfinderSettings &s : capabilities) {
-        if (!pixelFormats.contains(s.pixelFormat()))
-            pixelFormats.append(s.pixelFormat());
-    }
-
-    return pixelFormats;
+    if (d->control)
+        d->control->setActive(active);
 }
 
 /*!
@@ -772,117 +236,42 @@ QCamera::Error QCamera::error() const
 }
 
 /*!
-    Returns a string describing a camera's error state.
+    Returns a human readable string describing a camera's error state.
 */
 QString QCamera::errorString() const
 {
     return d_func()->errorString;
 }
 
-
-/*!
-    Returns true if the capture \a mode is suported.
-*/
-bool QCamera::isCaptureModeSupported(QCamera::CaptureModes mode) const
+QCamera::Features QCamera::supportedFeatures() const
 {
-    return d_func()->control ? d_func()->control->isCaptureModeSupported(mode) : false;
+    Q_D(const QCamera);
+    return d->control ? d->control->supportedFeatures() : QCamera::Features{};
 }
 
-/*!
-  \property QCamera::captureMode
+/*! \fn void QCamera::start()
 
-  The type of media (video or still images),
-  the camera is configured to capture.
-
-  It's allowed to change capture mode in any camera state,
-  but if the camera is currently active,
-  chaging capture mode is likely to lead to camera status
-  chaged to QCamera::LoadedStatus, QCamera::LoadingStatus,
-  and when the camera is ready to QCamera::ActiveStatus.
-*/
-
-QCamera::CaptureModes QCamera::captureMode() const
-{
-    return d_func()->control ? d_func()->control->captureMode() : QCamera::CaptureStillImage;
-}
-
-void QCamera::setCaptureMode(QCamera::CaptureModes mode)
-{
-    Q_D(QCamera);
-
-    if (mode != captureMode()) {
-        if (d->control) {
-            d->_q_preparePropertyChange(QCameraControl::CaptureMode);
-            d->control->setCaptureMode(mode);
-        }
-    }
-}
-
-
-/*!
     Starts the camera.
 
-    State is changed to QCamera::ActiveState if camera is started
-    successfully, otherwise errorOccurred() signal is emitted.
+    Same as setActive(true).
+
+    If the camera can't be started for some reason, the errorOccurred() signal is emitted.
 
     While the camera state is changed to QCamera::ActiveState,
     starting the camera service can be asynchronous with the actual
     status reported with QCamera::status property.
 */
-void QCamera::start()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::ActiveState);
-}
 
-/*!
+/*! \fn void QCamera::stop()
+
     Stops the camera.
-    The camera state is changed from QCamera::ActiveState to QCamera::LoadedState.
 
-    In this state, the camera still consumes power.
-
-    \sa unload(), QCamera::UnloadedState
+    \sa unload(), QCamera::InactiveStatus
 */
-void QCamera::stop()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::LoadedState);
-}
 
 /*!
-    Opens the camera device.
-    The camera state is changed to QCamera::LoadedState.
-
-    It's not necessary to explicitly load the camera, unless the application
-    needs to read the supported camera settings and change the default values
-    according to the camera capabilities.
-
-    In all the other cases, it's possible to start the camera directly
-    from the unloaded state.
-
-    /sa QCamera::UnloadedState
+    Returns the current status of the camers.
 */
-void QCamera::load()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::LoadedState);
-}
-
-/*!
-    Closes the camera device and deallocates the related resources.
-    The camera state is changed to QCamera::UnloadedState.
-*/
-void QCamera::unload()
-{
-    Q_D(QCamera);
-    d->setState(QCamera::UnloadedState);
-}
-
-QCamera::State QCamera::state() const
-{
-    return d_func()->state;
-}
-
 QCamera::Status QCamera::status() const
 {
     if(d_func()->control)
@@ -893,200 +282,82 @@ QCamera::Status QCamera::status() const
 
 
 /*!
-    Returns the lock types that the camera supports.
+    Returns the capture session this camera is connected to, or
+    a nullptr if the camera is not connected to a capture session.
+
+    use QMediaCaptureSession::setCamera() to connect the camera to
+    a session.
 */
-QCamera::LockTypes QCamera::supportedLocks() const
+QMediaCaptureSession *QCamera::captureSession() const
 {
     Q_D(const QCamera);
-
-    return d->locksControl
-            ? d->locksControl->supportedLocks()
-            : QCamera::LockTypes();
+    return d->captureSession;
 }
 
 /*!
-    Returns the requested lock types.
+    \internal
 */
-QCamera::LockTypes QCamera::requestedLocks() const
-{
-    return d_func()->requestedLocks;
-}
-
-/*!
-    Returns the status of requested camera settings locks.
-*/
-QCamera::LockStatus QCamera::lockStatus() const
-{
-    return d_func()->lockStatus;
-}
-
-/*!
-    Returns the lock status for a given \a lockType.
-*/
-QCamera::LockStatus QCamera::lockStatus(QCamera::LockType lockType) const
-{
-    const QCameraPrivate *d = d_func();
-
-    if (!(lockType & d->requestedLocks))
-        return QCamera::Unlocked;
-
-    if (d->locksControl)
-        return d->locksControl->lockStatus(lockType);
-
-    return QCamera::Locked;
-}
-
-/*!
-    \fn void QCamera::searchAndLock(QCamera::LockTypes locks)
-
-    Locks the camera settings with the requested \a locks, including focusing in the single autofocus mode,
-    exposure and white balance if the exposure and white balance modes are not manual.
-
-    The camera settings are usually locked before taking one or multiple still images,
-    in responce to the shutter button being half pressed.
-
-    The QCamera::locked() signal is emitted when camera settings are successfully locked,
-    otherwise QCamera::lockFailed() is emitted.
-
-    QCamera also emits lockStatusChanged(QCamera::LockType, QCamera::LockStatus)
-    on individual lock status changes and lockStatusChanged(QCamera::LockStatus) signal on composite status changes.
-
-    Locking serves two roles: it initializes calculation of automatic parameter
-    (focusing, calculating the correct exposure and white balance) and allows
-    to keep some or all of those parameters during number of shots.
-
-    If the camera doesn't support keeping one of parameters between shots, the related
-    lock state changes to QCamera::Unlocked.
-
-    It's also acceptable to relock already locked settings,
-    depending on the lock parameter this initiates new focusing, exposure or white balance calculation.
- */
-void QCamera::searchAndLock(QCamera::LockTypes locks)
+void QCamera::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QCamera);
 
-    QCamera::LockStatus oldStatus = d->lockStatus;
-    d->supressLockChangedSignal = true;
-
-    if (d->locksControl) {
-        locks &= d->locksControl->supportedLocks();
-        d->requestedLocks |= locks;
-        d->locksControl->searchAndLock(locks);
-    }
-
-    d->supressLockChangedSignal = false;
-
-    d->lockStatus = oldStatus;
-    d->updateLockStatus();
+    d->captureSession = session;
+    d->captureInterface = session ? session->platformSession() : nullptr;
+    if (d->captureInterface && d->control)
+        d->captureInterface->setCamera(d->control);
 }
 
 /*!
-    Lock all the supported camera settings.
+    Returns the QCameraInfo object associated with this camera.
  */
-void QCamera::searchAndLock()
+QCameraInfo QCamera::cameraInfo() const
 {
-    searchAndLock(LockExposure | LockWhiteBalance | LockFocus);
+    Q_D(const QCamera);
+    return d->cameraInfo;
 }
 
 /*!
-    Unlocks the camera settings specified with \a locks or cancel the current locking if one is active.
- */
-void QCamera::unlock(QCamera::LockTypes locks)
+    Sets the camera object to use the physical camera described by
+    \a cameraInfo.
+*/
+void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
 {
     Q_D(QCamera);
-
-    QCamera::LockStatus oldStatus = d->lockStatus;
-    d->supressLockChangedSignal = true;
-
-    d->requestedLocks &= ~locks;
-
-    if (d->locksControl) {
-        locks &= d->locksControl->supportedLocks();
-        d->locksControl->unlock(locks);
-    }
-
-    d->supressLockChangedSignal = false;
-
-    d->lockStatus = oldStatus;
-    d->updateLockStatus();
+    if (d->cameraInfo == cameraInfo)
+        return;
+    d->cameraInfo = cameraInfo;
+    if (d->cameraInfo.isNull())
+        d->_q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
+    else
+        d->_q_error(QCamera::NoError, QString());
+    if (d->control)
+        d->control->setCamera(d->cameraInfo);
+    emit cameraInfoChanged();
+    setCameraFormat({});
 }
 
 /*!
-    Unlock all the requested camera locks.
- */
-void QCamera::unlock()
+    Returns the camera format currently used by the camera.
+*/
+QCameraFormat QCamera::cameraFormat() const
 {
-    unlock(d_func()->requestedLocks);
+    Q_D(const QCamera);
+    return d->cameraFormat;
 }
 
-
 /*!
-    \class QCamera::FrameRateRange
-    \inmodule QtMultimedia
-    \ingroup multimedia
-    \ingroup multimedia_camera
-    \since 5.5
-
-    \brief A FrameRateRange represents a range of frame rates as minimum and maximum rate.
-
-    If the minimum frame rate is equal to the maximum frame rate, the frame rate is fixed.
-    If not, the actual frame rate fluctuates between the minimum and the maximum.
-
-    \sa QCamera::supportedViewfinderFrameRateRanges(), QCameraViewfinderSettings
+    Tells the camera to use the format described by \a format. This can be used to define
+    as specific resolution and frame rate to be used for recording and image capture.
 */
+void QCamera::setCameraFormat(const QCameraFormat &format)
+{
+    Q_D(QCamera);
+    if (!d->control || !d->control->setCameraFormat(format))
+        return;
 
-/*!
-    \fn QCamera::FrameRateRange::FrameRateRange()
-
-    Constructs a null frame rate range, with both minimumFrameRate and maximumFrameRate
-    equal to \c 0.0.
-*/
-
-/*!
-    \fn QCamera::FrameRateRange::FrameRateRange(qreal minimum, qreal maximum)
-
-    Constructs a frame rate range with the given \a minimum and \a maximum frame rates.
-*/
-
-/*!
-    \variable QCamera::FrameRateRange::minimumFrameRate
-    The minimum frame rate supported by the range, in frames per second.
-*/
-
-/*!
-    \variable QCamera::FrameRateRange::maximumFrameRate
-    The maximum frame rate supported by the range, in frames per second.
-*/
-
-/*!
-    \enum QCamera::State
-
-    This enum holds the current state of the camera.
-
-    \value UnloadedState
-           The initial camera state, with camera not loaded.
-           The camera capabilities, except supported capture modes,
-           are unknown.
-           While the supported settings are unknown in this state,
-           it's allowed to set the camera capture settings like codec,
-           resolution, or frame rate.
-    \value LoadedState
-           The camera is loaded and ready to be configured.
-           In this state it's allowed to query camera capabilities,
-           set capture resolution, codecs, etc.
-           The viewfinder is not active in the loaded state.
-           The camera consumes power in the loaded state.
-    \value ActiveState
-           In the active state as soon as camera is started
-           the viewfinder displays video frames and the
-           camera is ready for capture.
-*/
-
-
-/*!
-    \property QCamera::state
-    \brief The current state of the camera object.
-*/
+    d->cameraFormat = format;
+    emit cameraFormatChanged();
+}
 
 /*!
     \enum QCamera::Status
@@ -1106,24 +377,8 @@ void QCamera::unlock()
     \value StoppingStatus
            The camera is stopping in result of state transition from QCamera::ActiveState
            to QCamera::LoadedState or QCamera::UnloadedState.
-    \value StandbyStatus
-           The camera is in the power saving standby mode.
-           The camera may come to the standby mode after some time of inactivity
-           in the QCamera::LoadedState state.
-    \value LoadedStatus
-           The camera is loaded and ready to be configured.
-           This status indicates the camera device is opened and
-           it's possible to query for supported image and video capture settings,
-           like resolution, framerate and codecs.
-    \value LoadingStatus
-           The camera device loading in result of state transition from
-           QCamera::UnloadedState to QCamera::LoadedState or QCamera::ActiveState.
-    \value UnloadingStatus
-           The camera device is unloading in result of state transition from
-           QCamera::LoadedState or QCamera::ActiveState to QCamera::UnloadedState.
-    \value UnloadedStatus
-           The initial camera status, with camera not loaded.
-           The camera capabilities including supported capture settings may be unknown.
+    \value InactiveStatus
+           The camera is not currently active.
     \value UnavailableStatus
            The camera or camera backend is not available.
 */
@@ -1134,105 +389,6 @@ void QCamera::unlock()
     \brief The current status of the camera object.
 */
 
-
-/*!
-    \enum QCamera::CaptureMode
-
-    This enum holds the capture mode of the camera.
-
-    \value CaptureViewfinder Camera is only configured to display viewfinder.
-    \value CaptureStillImage Camera is configured for still frames capture.
-    \value CaptureVideo  Camera is configured for video capture.
-*/
-
-/*!
-    \enum QCamera::LockType
-
-    This enum holds the camera lock type.
-
-    \value NoLock
-    \value LockExposure
-        Lock camera exposure.
-    \value LockWhiteBalance
-        Lock the white balance.
-    \value LockFocus
-        Lock camera focus.
-*/
-
-
-/*!
-    \property QCamera::lockStatus
-    \brief The overall status for all the requested camera locks.
-*/
-
-/*!
-    \fn void QCamera::locked()
-
-    Signals all the requested camera settings are locked.
-*/
-
-/*!
-    \fn void QCamera::lockFailed()
-
-    Signals locking of at least one requested camera settings failed.
-*/
-
-/*!
-    \fn QCamera::lockStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason)
-
-    Signals the overall \a status for all the requested camera locks was changed with specified \a reason.
-*/
-
-/*!
-    \fn QCamera::lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason)
-    Signals the \a lock \a status was changed with specified \a reason.
-*/
-
-/*!
-  \enum QCamera::LockStatus
-
-    This enum holds the overall status for all the requested camera locks.
-
-    \value Unlocked
-        The application is not interested in camera settings value.
-        The camera may keep this parameter without changes, this is common with camera focus,
-        or adjust exposure and white balance constantly to keep the viewfinder image nice.
-    \value Searching
-        The application has requested the camera focus, exposure or white balance lock with
-        QCamera::searchAndLock(). This state indicates the camera is focusing or
-        calculating exposure and white balance.
-    \value Locked
-        The camera focus, exposure or white balance is locked.
-        The camera is ready to capture, application may check the exposure
-        stays the same, parameters. The \c Locked status usually means the
-        requested parameter except in the cases when the parameter is requested
-        to be constantly updated. For example, in continuous focusing mode,
-        the focus is considered locked as long as the object is in focus, even
-        while the actual focusing distance may be constantly changing.
-*/
-
-/*!
-    \enum QCamera::LockChangeReason
-
-    This enum holds the reason why the camera lock status changed.
-
-    \value UserRequest
-        The lock status changed in result of user request, usually to unlock camera settings.
-    \value LockAcquired
-        The lock status successfuly changed to QCamera::Locked.
-    \value LockFailed
-        The camera failed to acquire the requested lock in result of
-        autofocus failure, exposure out of supported range, etc.
-    \value LockLost
-        The camera is not able to maintain the requested lock any more.
-        Lock status is changed to QCamera::Unlocked.
-    \value LockTemporaryLost
-        The lock is lost, but the camera is working hard to reacquire it.
-        This value may be used in continuous focusing mode,
-        when the camera loses the focus, the focus lock state is changed to Qcamera::Searching
-        with LockTemporaryLost reason.
-*/
-
 /*!
     \enum QCamera::Error
 
@@ -1240,9 +396,6 @@ void QCamera::unlock()
 
     \value  NoError      No errors have occurred.
     \value  CameraError  An error has occurred.
-    \value  InvalidRequestError System resource doesn't support requested functionality.
-    \value  ServiceMissingError No camera service available.
-    \value  NotSupportedFeatureError The feature is not supported.
 */
 
 /*!
@@ -1260,7 +413,7 @@ void QCamera::unlock()
 */
 
 /*!
-    \enum QCamera::Position
+    \enum QCameraInfo::Position
     \since 5.3
 
     This enum specifies the physical position of the camera on the system hardware.
@@ -1279,12 +432,6 @@ void QCamera::unlock()
 */
 
 /*!
-    \fn void QCamera::captureModeChanged(QCamera::CaptureModes mode)
-
-    Signals the capture \a mode has changed.
-*/
-
-/*!
   \fn QCamera::stateChanged(QCamera::State state)
 
   Signals the camera \a state has changed.
@@ -1299,6 +446,608 @@ void QCamera::unlock()
 
   Signals the camera \a status has changed.
 
+*/
+
+
+/*!
+    \property QCamera::focusMode
+    \brief the current camera focus mode.
+
+    Sets up different focus modes for the camera. All auto focus modes will focus continuously.
+    Locking the focus is possible by setting the focus mode to \l FocusModeManual. This will keep
+    the current focus and stop any automatic focusing.
+
+    \sa QCamera::isFocusModeSupported()
+*/
+
+QCamera::FocusMode QCamera::focusMode() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->focusMode() : QCamera::FocusModeAuto;
+}
+
+void QCamera::setFocusMode(QCamera::FocusMode mode)
+{
+    Q_D(QCamera);
+    if (!d->control || d->control->focusMode() == mode)
+        return;
+    d->control->setFocusMode(mode);
+    emit focusModeChanged();
+}
+
+/*!
+    Returns true if the focus \a mode is supported by camera.
+*/
+
+bool QCamera::isFocusModeSupported(FocusMode mode) const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->isFocusModeSupported(mode) : false;
+}
+
+/*!
+    Returns the point currently used by the auto focus system to focus onto.
+ */
+QPointF QCamera::focusPoint() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->focusPoint() : QPointF(-1., -1.);
+
+}
+
+/*!
+  \property QCamera::customFocusPoint
+
+  This property represents the position of the custom focus point, in relative frame coordinates:
+  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
+
+  The custom focus point property is used only in \c FocusPointCustom focus mode.
+ */
+
+QPointF QCamera::customFocusPoint() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->customFocusPoint() : QPointF{-1., -1.};
+}
+
+void QCamera::setCustomFocusPoint(const QPointF &point)
+{
+    Q_D(QCamera);
+    if (!d->control)
+        return;
+    d->control->setCustomFocusPoint(point);
+}
+
+/*!
+    \property QCamera::focusDistance
+
+    This property return an approximate focus distance of the camera. The value reported is between 0 and 1, 0 being the closest
+    possible focus distance, 1 being as far away as possible. Note that 1 is often, but not always infinity.
+
+    Setting the focus distance will be ignored unless the focus mode is set to \l FocusModeManual.
+ */
+void QCamera::setFocusDistance(float d)
+{
+    if (!d_func()->control || focusMode() != FocusModeManual)
+        return;
+    d_func()->control->setFocusDistance(d);
+}
+
+float QCamera::focusDistance() const
+{
+    if (d_func()->control && focusMode() == FocusModeManual)
+        return d_func()->control->focusDistance();
+    return 0.;
+}
+
+/*!
+    Returns the maximum zoom factor.
+
+    This will be \c 1.0 on cameras that do not support zooming.
+*/
+
+float QCamera::maximumZoomFactor() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->maxZoomFactor() : 1.;
+}
+
+/*!
+    Returns the minimum zoom factor.
+
+    This will be \c 1.0 on cameras that do not support zooming.
+*/
+
+float QCamera::minimumZoomFactor() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->minZoomFactor() : 1.;
+}
+
+/*!
+  \property QCamera::zoomFactor
+  \brief The current zoom factor.
+*/
+float QCamera::zoomFactor() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->zoomFactor() : 1.;
+}
+
+void QCamera::setZoomFactor(float factor)
+{
+    zoomTo(factor, 0.);
+}
+
+/*!
+    Zooms to a zoom factor \a factor using \a rate.
+
+    The rate is specified in powers of two per second. A rate of 1
+    would take two seconds to zoom from a zoom factor of 1 to a zoom factor of 4.
+ */
+void QCamera::zoomTo(float factor, float rate)
+{
+    Q_ASSERT(rate >= 0.);
+    if (rate < 0.)
+        rate = 0.;
+
+    Q_D(QCamera);
+    if (!d->control)
+        return;
+    factor = qBound(d->control->minZoomFactor(), factor, d->control->maxZoomFactor());
+    d->control->zoomTo(factor, rate);
+}
+
+/*!
+    \enum QCamera::FocusMode
+
+    \value FocusModeAuto        Continuous auto focus mode.
+    \value FocusModeAutoNear    Continuous auto focus mode on near objects.
+    \value FocusModeAutoFar     Continuous auto focus mode on objects far away.
+    \value FocusModeHyperfocal  Focus to hyperfocal distance, with the maximum depth of field achieved.
+                                All objects at distances from half of this
+                                distance out to infinity will be acceptably sharp.
+    \value FocusModeInfinity    Focus strictly to infinity.
+    \value FocusModeManual      Manual or fixed focus mode.
+*/
+
+/*!
+    \fn void QCamera::opticalZoomChanged(qreal value)
+
+    Signal emitted when optical zoom value changes to new \a value.
+*/
+
+/*!
+    \fn void QCamera::digitalZoomChanged(qreal value)
+
+    Signal emitted when digital zoom value changes to new \a value.
+*/
+
+/*!
+    \fn void QCamera::maximumOpticalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported optical \a zoom value changed.
+*/
+
+/*!
+    \fn void QCamera::maximumDigitalZoomChanged(qreal zoom)
+
+    Signal emitted when the maximum supported digital \a zoom value changed.
+
+    The maximum supported zoom value can depend on other camera settings,
+    like capture mode or resolution.
+*/
+
+/*!
+    \property QCamera::flashMode
+    \brief The flash mode being used.
+
+    Enables a certain flash mode if the camera has a flash.
+
+    \sa QCamera::isFlashModeSupported(), QCamera::isFlashReady()
+*/
+QCamera::FlashMode QCamera::flashMode() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->flashMode() : QCamera::FlashOff;
+}
+
+void QCamera::setFlashMode(QCamera::FlashMode mode)
+{
+    Q_D(QCamera);
+    if (d->control)
+        d->control->setFlashMode(mode);
+}
+
+/*!
+    Returns true if the flash \a mode is supported.
+*/
+
+bool QCamera::isFlashModeSupported(QCamera::FlashMode mode) const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->isFlashModeSupported(mode) : (mode == FlashOff);
+}
+
+/*!
+    Returns true if flash is charged.
+*/
+
+bool QCamera::isFlashReady() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->isFlashReady() : false;
+}
+
+/*!
+    \property QCamera::torchMode
+    \brief The torch mode being used.
+
+    A torch is a continuous light source used for low light video recording. Enabling torch mode
+    will usually override any currently set flash mode.
+
+    \sa QCamera::isTorchModeSupported(), QCamera::flashMode
+*/
+QCamera::TorchMode QCamera::torchMode() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->torchMode() : TorchOff;
+}
+
+void QCamera::setTorchMode(QCamera::TorchMode mode)
+{
+    Q_D(QCamera);
+    if (d->control)
+        d->control->setTorchMode(mode);
+}
+
+/*!
+    Returns true if the torch \a mode is supported.
+*/
+bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->isTorchModeSupported(mode) : (mode == TorchOff);
+}
+
+/*!
+  \property QCamera::exposureMode
+  \brief The exposure mode being used.
+
+  \sa QCamera::isExposureModeSupported()
+*/
+
+QCamera::ExposureMode QCamera::exposureMode() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->exposureMode() : QCamera::ExposureAuto;
+}
+
+void QCamera::setExposureMode(QCamera::ExposureMode mode)
+{
+    Q_D(QCamera);
+    if (d->control)
+        d->control->setExposureMode(mode);
+}
+
+/*!
+    Returns true if the exposure \a mode is supported.
+*/
+
+bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
+{
+    Q_D(const QCamera);
+    if (!d->control)
+        return false;
+
+    return d->control->isExposureModeSupported(mode);
+}
+
+/*!
+  \property QCamera::exposureCompensation
+  \brief Exposure compensation in EV units.
+
+  Exposure compensation property allows to adjust the automatically calculated exposure.
+*/
+
+qreal QCamera::exposureCompensation() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->exposureCompensation() : 0.;
+}
+
+void QCamera::setExposureCompensation(qreal ev)
+{
+    Q_D(QCamera);
+    if (d->control)
+        d->control->setExposureCompensation(ev);
+}
+
+int QCamera::isoSensitivity() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->isoSensitivity() : -1;
+}
+
+/*!
+    \fn QCamera::setManualIsoSensitivity(int iso)
+    Sets the manual sensitivity to \a iso
+*/
+
+void QCamera::setManualIsoSensitivity(int iso)
+{
+    Q_D(QCamera);
+    if (iso <= 0)
+        iso = -1;
+    if (d->control)
+        d->control->setManualIsoSensitivity(iso);
+}
+
+int QCamera::manualIsoSensitivity() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->manualIsoSensitivity() : 100;
+}
+
+/*!
+     \fn QCamera::setAutoIsoSensitivity()
+     Turn on auto sensitivity
+*/
+
+void QCamera::setAutoIsoSensitivity()
+{
+    Q_D(QCamera);
+    if (d->control)
+        d->control->setManualIsoSensitivity(-1);
+}
+
+int QCamera::minimumIsoSensitivity() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->minIso() : -1;
+}
+
+int QCamera::maximumIsoSensitivity() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->maxIso() : -1;
+}
+
+float QCamera::minimumShutterSpeed() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->minShutterSpeed() : -1.;
+}
+
+float QCamera::maximumShutterSpeed() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->maxShutterSpeed() : -1.;
+}
+
+/*!
+    \property QCamera::exposureTime
+    \brief Camera's shutter speed in seconds.
+
+    \sa supportedShutterSpeeds(), setAutoShutterSpeed(), setManualExposureTime()
+*/
+
+/*!
+    \fn QCamera::exposureTimeChanged(qreal speed)
+
+    Signals that a camera's shutter \a speed has changed.
+*/
+
+/*!
+    \property QCamera::isoSensitivity
+    \brief The sensor ISO sensitivity.
+
+    \sa supportedIsoSensitivities(), setAutoIsoSensitivity(), setManualIsoSensitivity()
+*/
+
+/*!
+    Returns the current exposure time in seconds.
+*/
+
+float QCamera::exposureTime() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->exposureTime() : -1;
+}
+
+/*!
+    Set the manual exposure time to \a seconds
+*/
+
+void QCamera::setManualExposureTime(float seconds)
+{
+    Q_D(QCamera);
+    if (d->control)
+        d->control->setManualExposureTime(seconds);
+}
+
+/*!
+    Returns the manual exposure time in \a seconds, or -1
+    if the camera is using automatic exposure times.
+*/
+float QCamera::manualExposureTime() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->manualExposureTime() : -1;
+}
+
+/*!
+    Turn on auto shutter speed
+*/
+
+void QCamera::setAutoExposureTime()
+{
+    Q_D(QCamera);
+    if (d->control)
+        d->control->setManualExposureTime(-1);
+}
+
+
+/*!
+    \enum QCamera::FlashMode
+
+    \value FlashOff             Flash is Off.
+    \value FlashOn              Flash is On.
+    \value FlashAuto            Automatic flash.
+*/
+
+/*!
+    \enum QCamera::TorchMode
+
+    \value TorchOff             Torch is Off.
+    \value TorchOn              Torch is On.
+    \value TorchAuto            Automatic torch.
+*/
+
+/*!
+    \enum QCamera::ExposureMode
+
+    \value ExposureAuto          Automatic mode.
+    \value ExposureManual        Manual mode.
+    \value ExposurePortrait      Portrait exposure mode.
+    \value ExposureNight         Night mode.
+    \value ExposureSports        Spots exposure mode.
+    \value ExposureSnow          Snow exposure mode.
+    \value ExposureBeach         Beach exposure mode.
+    \value ExposureAction        Action mode. Since 5.5
+    \value ExposureLandscape     Landscape mode. Since 5.5
+    \value ExposureNightPortrait Night portrait mode. Since 5.5
+    \value ExposureTheatre       Theatre mode. Since 5.5
+    \value ExposureSunset        Sunset mode. Since 5.5
+    \value ExposureSteadyPhoto   Steady photo mode. Since 5.5
+    \value ExposureFireworks     Fireworks mode. Since 5.5
+    \value ExposureParty         Party mode. Since 5.5
+    \value ExposureCandlelight   Candlelight mode. Since 5.5
+    \value ExposureBarcode       Barcode mode. Since 5.5
+*/
+
+/*!
+    \property QCamera::flashReady
+    \brief Indicates if the flash is charged and ready to use.
+*/
+
+/*!
+    \fn void QCamera::flashReady(bool ready)
+
+    Signal the flash \a ready status has changed.
+*/
+
+/*!
+    \fn void QCamera::exposureTimeRangeChanged()
+
+    Signal emitted when the shutter speed range has changed.
+*/
+
+
+/*!
+    \fn void QCamera::isoSensitivityChanged(int value)
+
+    Signal emitted when sensitivity changes to \a value.
+*/
+
+/*!
+    \fn void QCamera::exposureCompensationChanged(qreal value)
+
+    Signal emitted when the exposure compensation changes to \a value.
+*/
+
+
+
+/*!
+    Returns the white balance mode being used.
+*/
+
+QCamera::WhiteBalanceMode QCamera::whiteBalanceMode() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->whiteBalanceMode() : QCamera::WhiteBalanceAuto;
+}
+
+/*!
+    Sets the white balance to \a mode.
+*/
+
+void QCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
+{
+    Q_D(QCamera);
+    if (!d->control)
+        return;
+    if (!d->control->isWhiteBalanceModeSupported(mode))
+        return;
+    d->control->setWhiteBalanceMode(mode);
+    if (mode == QCamera::WhiteBalanceManual)
+        d->control->setColorTemperature(5600);
+}
+
+/*!
+    Returns true if the white balance \a mode is supported.
+*/
+
+bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
+{
+    Q_D(const QCamera);
+    if (!d->control)
+        return false;
+    return d->control->isWhiteBalanceModeSupported(mode);
+}
+
+/*!
+    Returns the current color temperature if the
+    current white balance mode is \c WhiteBalanceManual.  For other modes the
+    return value is undefined.
+*/
+
+int QCamera::colorTemperature() const
+{
+    Q_D(const QCamera);
+    return d->control ? d->control->colorTemperature() : 0;
+}
+
+/*!
+    Sets manual white balance to \a colorTemperature.  This is used
+    when whiteBalanceMode() is set to \c WhiteBalanceManual.  The units are Kelvin.
+
+    Setting a color temperature will only have an effect if WhiteBalanceManual is
+    supported. In this case, setting a temperature greater 0 will automatically set the
+    white balance mode to WhiteBalanceManual. Setting the temperature to 0 will reset
+    the white balance mode to WhiteBalanceAuto.
+*/
+
+void QCamera::setColorTemperature(int colorTemperature)
+{
+    Q_D(QCamera);
+    if (!d->control)
+        return;
+    if (colorTemperature < 0)
+        colorTemperature = 0;
+    if (colorTemperature == 0) {
+        d->control->setWhiteBalanceMode(WhiteBalanceAuto);
+    } else if (!isWhiteBalanceModeSupported(WhiteBalanceManual)) {
+        return;
+    } else {
+        d->control->setWhiteBalanceMode(WhiteBalanceManual);
+    }
+    d->control->setColorTemperature(colorTemperature);
+}
+
+/*!
+    \enum QCamera::WhiteBalanceMode
+
+    \value WhiteBalanceAuto         Auto white balance mode.
+    \value WhiteBalanceManual       Manual white balance. In this mode the white balance should be set with
+                                    setColorTemperature()
+    \value WhiteBalanceSunlight     Sunlight white balance mode.
+    \value WhiteBalanceCloudy       Cloudy white balance mode.
+    \value WhiteBalanceShade        Shade white balance mode.
+    \value WhiteBalanceTungsten     Tungsten (incandescent) white balance mode.
+    \value WhiteBalanceFluorescent  Fluorescent white balance mode.
+    \value WhiteBalanceFlash        Flash white balance mode.
+    \value WhiteBalanceSunset       Sunset white balance mode.
 */
 
 QT_END_NAMESPACE

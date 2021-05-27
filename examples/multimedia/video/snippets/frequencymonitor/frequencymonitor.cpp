@@ -154,10 +154,7 @@ FrequencyMonitor::FrequencyMonitor(QObject *parent)
     d_ptr = new FrequencyMonitorPrivate(this);
 }
 
-FrequencyMonitor::~FrequencyMonitor()
-{
-
-}
+FrequencyMonitor::~FrequencyMonitor() = default;
 
 QString FrequencyMonitor::label() const
 {

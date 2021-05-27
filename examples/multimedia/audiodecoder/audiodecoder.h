@@ -51,21 +51,21 @@
 #ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
-#include "wavefilewriter.h"
-
 #include <QAudioDecoder>
 #include <QSoundEffect>
 #include <QTextStream>
+#include <QAudioDecoder>
+#include <QWaveDecoder>
 
 class AudioDecoder : public QObject
 {
     Q_OBJECT
 
 public:
-    AudioDecoder(bool isPlayback, bool isDelete);
-    ~AudioDecoder() { }
+    AudioDecoder(bool isPlayback, bool isDelete, const QString &targetFileName);
+    ~AudioDecoder();
 
-    void setSourceFilename(const QString &fileName);
+    void setSource(const QString &fileName);
     void start();
     void stop();
 
@@ -93,7 +93,7 @@ private:
     QTextStream m_cout;
 
     QString m_targetFilename;
-    WaveFileWriter m_fileWriter;
+    QWaveDecoder *m_waveDecoder = nullptr;
     QSoundEffect m_soundEffect;
 
     qreal m_progress;

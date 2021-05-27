@@ -50,7 +50,7 @@
 
 // Mouse area which flashes to indicate its location on the screen
 
-import QtQuick 2.0
+import QtQuick
 
 MouseArea {
     property alias hintColor: hintRect.color

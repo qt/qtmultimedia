@@ -60,7 +60,7 @@ QSGVivanteVideoMaterial::QSGVivanteVideoMaterial() :
     mOpacity(1.0),
     mWidth(0),
     mHeight(0),
-    mFormat(QVideoFrame::Format_Invalid),
+    mFormat(QVideoFrameFormat::Format_Invalid),
     mCurrentTexture(0),
     mMappable(true),
     mTexDirectTexture(0)
@@ -107,7 +107,7 @@ void QSGVivanteVideoMaterial::setCurrentFrame(const QVideoFrame &frame, QSGVideo
 {
     QMutexLocker lock(&mFrameMutex);
     mCurrentFrame = frame;
-    mMappable = mMapError == GL_NO_ERROR && !flags.testFlag(QSGVideoNode::FrameFiltered);
+    mMappable = mMapError == GL_NO_ERROR;
 
 #ifdef QT_VIVANTE_VIDEO_DEBUG
     qDebug() << Q_FUNC_INFO << " new frame: " << frame;
@@ -176,7 +176,7 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
         clearTextures();
     }
 
-    if (vF.map(QAbstractVideoBuffer::ReadOnly)) {
+    if (vF.map(QVideoFrame::ReadOnly)) {
 
         if (mMappable) {
             if (!mBitsToTextureMap.contains(vF.bits())) {
@@ -273,14 +273,14 @@ GLuint QSGVivanteVideoMaterial::vivanteMapping(QVideoFrame vF)
             glBindTexture(GL_TEXTURE_2D, mTexDirectTexture);
         }
         switch (mCurrentFrame.pixelFormat()) {
-        case QVideoFrame::Format_YUV420P:
-        case QVideoFrame::Format_YV12:
+        case QVideoFrameFormat::Format_YUV420P:
+        case QVideoFrameFormat::Format_YV12:
             memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
             memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(1));
             memcpy(mTexDirectPlanes[2], mCurrentFrame.bits(2), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(2));
             break;
-        case QVideoFrame::Format_NV12:
-        case QVideoFrame::Format_NV21:
+        case QVideoFrameFormat::Format_NV12:
+        case QVideoFrameFormat::Format_NV21:
             memcpy(mTexDirectPlanes[0], mCurrentFrame.bits(0), mCurrentFrame.height() * mCurrentFrame.bytesPerLine(0));
             memcpy(mTexDirectPlanes[1], mCurrentFrame.bits(1), mCurrentFrame.height() / 2 * mCurrentFrame.bytesPerLine(1));
             break;

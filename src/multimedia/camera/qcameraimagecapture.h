@@ -40,9 +40,8 @@
 #ifndef QCAMERAIMAGECAPTURE_H
 #define QCAMERAIMAGECAPTURE_H
 
-#include <QtMultimedia/qmediaobject.h>
+#include <QtCore/qobject.h>
 #include <QtMultimedia/qmediaencodersettings.h>
-#include <QtMultimedia/qmediabindableinterface.h>
 #include <QtMultimedia/qvideoframe.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>
@@ -50,20 +49,24 @@
 QT_BEGIN_NAMESPACE
 
 class QSize;
+class QMediaMetaData;
 QT_END_NAMESPACE
 
 QT_BEGIN_NAMESPACE
 
 class QImageEncoderSettings;
+class QCamera;
+class QMediaCaptureSession;
 
 class QCameraImageCapturePrivate;
-class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject, public QMediaBindableInterface
+class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
     Q_ENUMS(Error)
-    Q_ENUMS(CaptureDestination)
     Q_PROPERTY(bool readyForCapture READ isReadyForCapture NOTIFY readyForCaptureChanged)
+    Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
+    Q_PROPERTY(Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 public:
     enum Error
     {
@@ -75,87 +78,57 @@ public:
         FormatError
     };
 
-    enum DriveMode
-    {
-        SingleImageCapture
-    };
-
-    enum CaptureDestination
-    {
-        CaptureToFile = 0x01,
-        CaptureToBuffer = 0x02
-    };
-    Q_DECLARE_FLAGS(CaptureDestinations, CaptureDestination)
-
-    explicit QCameraImageCapture(QMediaObject *mediaObject, QObject *parent = nullptr);
+    explicit QCameraImageCapture(QObject *parent = nullptr);
     ~QCameraImageCapture();
 
     bool isAvailable() const;
-    QMultimedia::AvailabilityStatus availability() const;
 
-    QMediaObject *mediaObject() const override;
+    QMediaCaptureSession *captureSession() const;
 
     Error error() const;
     QString errorString() const;
 
     bool isReadyForCapture() const;
 
-    QStringList supportedImageCodecs() const;
-    QString imageCodecDescription(const QString &codecName) const;
-
-    QList<QSize> supportedResolutions(const QImageEncoderSettings &settings = QImageEncoderSettings(),
-                                      bool *continuous = nullptr) const;
-
     QImageEncoderSettings encodingSettings() const;
     void setEncodingSettings(const QImageEncoderSettings& settings);
 
-    QList<QVideoFrame::PixelFormat> supportedBufferFormats() const;
-    QVideoFrame::PixelFormat bufferFormat() const;
-    void setBufferFormat(const QVideoFrame::PixelFormat format);
-
-    bool isCaptureDestinationSupported(CaptureDestinations destination) const;
-    CaptureDestinations captureDestination() const;
-    void setCaptureDestination(CaptureDestinations destination);
+    QMediaMetaData metaData() const;
+    void setMetaData(const QMediaMetaData &metaData);
+    void addMetaData(const QMediaMetaData &metaData);
 
 public Q_SLOTS:
-    int capture(const QString &location = QString());
-    void cancelCapture();
+    int captureToFile(const QString &location = QString());
+    int capture();
 
 Q_SIGNALS:
-    void error(int id, QCameraImageCapture::Error error, const QString &errorString);
+    void errorChanged();
+    void errorOccurred(int id, QCameraImageCapture::Error error, const QString &errorString);
 
     void readyForCaptureChanged(bool ready);
-    void bufferFormatChanged(QVideoFrame::PixelFormat format);
-    void captureDestinationChanged(QCameraImageCapture::CaptureDestinations destination);
+    void metaDataChanged();
 
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);
-    void imageMetadataAvailable(int id, const QString &key, const QVariant &value);
+    void imageMetadataAvailable(int id, const QMediaMetaData &metaData);
     void imageAvailable(int id, const QVideoFrame &frame);
     void imageSaved(int id, const QString &fileName);
 
-protected:
-    bool setMediaObject(QMediaObject *) override;
-
-    QCameraImageCapturePrivate *d_ptr;
 private:
+    // This is here to flag an incompatibilities with Qt 5
+    QCameraImageCapture(QCamera *) = delete;
+
+    friend class QMediaCaptureSession;
+    void setCaptureSession(QMediaCaptureSession *session);
+    QCameraImageCapturePrivate *d_ptr;
     Q_DISABLE_COPY(QCameraImageCapture)
     Q_DECLARE_PRIVATE(QCameraImageCapture)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_readyChanged(bool))
-    Q_PRIVATE_SLOT(d_func(), void _q_serviceDestroyed())
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCameraImageCapture::CaptureDestinations)
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QCameraImageCapture::Error)
-Q_DECLARE_METATYPE(QCameraImageCapture::CaptureDestination)
-Q_DECLARE_METATYPE(QCameraImageCapture::CaptureDestinations)
-
 Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, Error)
-Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, CaptureDestination)
 
 #endif
 

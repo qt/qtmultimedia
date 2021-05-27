@@ -57,11 +57,15 @@
 PlaylistModel::PlaylistModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
+    m_playlist.reset(new QMediaPlaylist);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeInserted, this, &PlaylistModel::beginInsertItems);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaInserted, this, &PlaylistModel::endInsertItems);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeRemoved, this, &PlaylistModel::beginRemoveItems);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaRemoved, this, &PlaylistModel::endRemoveItems);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaChanged, this, &PlaylistModel::changeItems);
 }
 
-PlaylistModel::~PlaylistModel()
-{
-}
+PlaylistModel::~PlaylistModel() = default;
 
 int PlaylistModel::rowCount(const QModelIndex &parent) const
 {
@@ -94,7 +98,7 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
     if (index.isValid() && role == Qt::DisplayRole) {
         QVariant value = m_data[index];
         if (!value.isValid() && index.column() == Title) {
-            QUrl location = m_playlist->media(index.row()).request().url();
+            QUrl location = m_playlist->media(index.row());
             return QFileInfo(location.path()).fileName();
         }
 
@@ -106,30 +110,6 @@ QVariant PlaylistModel::data(const QModelIndex &index, int role) const
 QMediaPlaylist *PlaylistModel::playlist() const
 {
     return m_playlist.data();
-}
-
-void PlaylistModel::setPlaylist(QMediaPlaylist *playlist)
-{
-    if (m_playlist) {
-        disconnect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeInserted, this, &PlaylistModel::beginInsertItems);
-        disconnect(m_playlist.data(), &QMediaPlaylist::mediaInserted, this, &PlaylistModel::endInsertItems);
-        disconnect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeRemoved, this, &PlaylistModel::beginRemoveItems);
-        disconnect(m_playlist.data(), &QMediaPlaylist::mediaRemoved, this, &PlaylistModel::endRemoveItems);
-        disconnect(m_playlist.data(), &QMediaPlaylist::mediaChanged, this, &PlaylistModel::changeItems);
-    }
-
-    beginResetModel();
-    m_playlist.reset(playlist);
-
-    if (m_playlist) {
-        connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeInserted, this, &PlaylistModel::beginInsertItems);
-        connect(m_playlist.data(), &QMediaPlaylist::mediaInserted, this, &PlaylistModel::endInsertItems);
-        connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeRemoved, this, &PlaylistModel::beginRemoveItems);
-        connect(m_playlist.data(), &QMediaPlaylist::mediaRemoved, this, &PlaylistModel::endRemoveItems);
-        connect(m_playlist.data(), &QMediaPlaylist::mediaChanged, this, &PlaylistModel::changeItems);
-    }
-
-    endResetModel();
 }
 
 bool PlaylistModel::setData(const QModelIndex &index, const QVariant &value, int role)

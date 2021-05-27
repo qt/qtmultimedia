@@ -48,29 +48,46 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.0
+import QtQuick
+import QtMultimedia
 
-VideoOutput {
+Item {
     id: root
     height: width
-    source: camera
 
     signal fatalError
     signal sizeChanged
 
     onHeightChanged: root.sizeChanged()
 
-    Camera {
-        id: camera
+    CaptureSession {
+        camera: Camera {
+            id: camera
 
-        onError: {
-            if (Camera.NoError != error) {
-                console.log("[qmlvideo] CameraItem.onError error " + error + " errorString " + errorString)
-                root.fatalError()
+            onErrorOccurred: function(error, errorString) {
+                if (Camera.NoError !== error) {
+                    console.log("[qmlvideo] CameraItem.onError error " + error + " errorString " + errorString)
+                    root.fatalError()
+                }
             }
         }
+        imageCapture: ImageCapture {
+            id: imageCapture
+        }
+
+        encoder: MediaEncoder {
+            id: encoder
+//             resolution: "640x480"
+//             frameRate: 30
+        }
+        videoOutput: videoOutput
     }
+
+    VideoOutput {
+        id: videoOutput
+        anchors.fill: parent
+    }
+
 
     function start() { camera.start() }
     function stop() { camera.stop() }

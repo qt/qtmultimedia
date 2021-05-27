@@ -54,7 +54,10 @@
 #include <qvideoframe.h>
 #include <private/qsimd_p.h>
 
+// Converts to RGB32 or ARGB32_Premultiplied
 typedef void (QT_FASTCALL *VideoFrameConvertFunc)(const QVideoFrame &frame, uchar *output);
+
+VideoFrameConvertFunc qConverterForFormat(QVideoFrameFormat::PixelFormat format);
 
 inline quint32 qConvertBGRA32ToARGB32(quint32 bgra)
 {
@@ -64,25 +67,17 @@ inline quint32 qConvertBGRA32ToARGB32(quint32 bgra)
             | ((bgra & 0x000000FF) << 24));
 }
 
+inline quint32 qConvertABGR32ToARGB32(quint32 abgr)
+{
+    return ((abgr & 0xFF000000)
+            | ((abgr & 0x00FF0000) >> 16)
+            | (abgr & 0x0000FF00)
+            | ((abgr & 0x000000FF) << 16));
+}
+
 inline quint32 qConvertBGR24ToARGB32(const uchar *bgr)
 {
     return 0xFF000000 | bgr[0] | bgr[1] << 8 | bgr[2] << 16;
-}
-
-inline quint32 qConvertBGR565ToARGB32(quint16 bgr)
-{
-    return 0xff000000
-            | ((((bgr) >> 8) & 0xf8) | (((bgr) >> 13) & 0x7))
-            | ((((bgr) << 5) & 0xfc00) | (((bgr) >> 1) & 0x300))
-            | ((((bgr) << 19) & 0xf80000) | (((bgr) << 14) & 0x70000));
-}
-
-inline quint32 qConvertBGR555ToARGB32(quint16 bgr)
-{
-    return 0xff000000
-            | ((((bgr) >> 7) & 0xf8) | (((bgr) >> 12) & 0x7))
-            | ((((bgr) << 6) & 0xf800) | (((bgr) << 1) & 0x700))
-            | ((((bgr) << 19) & 0xf80000) | (((bgr) << 11) & 0x70000));
 }
 
 #define FETCH_INFO_PACKED(frame) \

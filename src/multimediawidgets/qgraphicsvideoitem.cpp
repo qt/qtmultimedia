@@ -38,19 +38,14 @@
 ****************************************************************************/
 
 #include "qgraphicsvideoitem.h"
-#include "qpaintervideosurface_p.h"
+#include "qvideosink.h"
 
-#include <qmediaobject.h>
-#include <qmediaservice.h>
-#include <qvideorenderercontrol.h>
-#include <qvideosurfaceformat.h>
+#include <qobject.h>
+#include <qvideoframe.h>
+#include <qvideoframeformat.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qpointer.h>
-
-#if QT_CONFIG(opengl)
-#include <QOpenGLContext>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -58,133 +53,73 @@ class QGraphicsVideoItemPrivate
 {
 public:
     QGraphicsVideoItemPrivate()
-        : q_ptr(0)
-        , surface(0)
-        , mediaObject(0)
-        , service(0)
-        , rendererControl(0)
-        , aspectRatioMode(Qt::KeepAspectRatio)
-        , updatePaintDevice(true)
-        , rect(0.0, 0.0, 320, 240)
+        : rect(0.0, 0.0, 320, 240)
     {
     }
 
-    QGraphicsVideoItem *q_ptr;
+    QGraphicsVideoItem *q_ptr = nullptr;
 
-    QPainterVideoSurface *surface;
-    QPointer<QMediaObject> mediaObject;
-    QMediaService *service;
-    QVideoRendererControl *rendererControl;
-    Qt::AspectRatioMode aspectRatioMode;
-    bool updatePaintDevice;
+    QVideoSink *sink = nullptr;
     QRectF rect;
     QRectF boundingRect;
-    QRectF sourceRect;
     QSizeF nativeSize;
+    QVideoFrame m_frame;
 
-    void clearService();
     void updateRects();
 
-    void _q_present();
-    void _q_formatChanged(const QVideoSurfaceFormat &format);
-    void _q_updateNativeSize();
-    void _q_serviceDestroyed();
+    void _q_present(const QVideoFrame &);
 };
-
-void QGraphicsVideoItemPrivate::clearService()
-{
-    if (rendererControl) {
-        surface->stop();
-        rendererControl->setSurface(0);
-        service->releaseControl(rendererControl);
-        rendererControl = 0;
-    }
-    if (service) {
-        QObject::disconnect(service, SIGNAL(destroyed()), q_ptr, SLOT(_q_serviceDestroyed()));
-        service = 0;
-    }
-}
 
 void QGraphicsVideoItemPrivate::updateRects()
 {
     q_ptr->prepareGeometryChange();
 
-    if (nativeSize.isEmpty()) {
-        //this is necessary for item to receive the
-        //first paint event and configure video surface.
-        boundingRect = rect;
-    } else if (aspectRatioMode == Qt::IgnoreAspectRatio) {
-        boundingRect = rect;
-        sourceRect = QRectF(0, 0, 1, 1);
-    } else if (aspectRatioMode == Qt::KeepAspectRatio) {
+    boundingRect = rect;
+    if (nativeSize.isEmpty())
+        return;
+
+    if (sink->aspectRatioMode() == Qt::KeepAspectRatio) {
         QSizeF size = nativeSize;
         size.scale(rect.size(), Qt::KeepAspectRatio);
 
         boundingRect = QRectF(0, 0, size.width(), size.height());
         boundingRect.moveCenter(rect.center());
-
-        sourceRect = QRectF(0, 0, 1, 1);
-    } else if (aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
-        boundingRect = rect;
-
-        QSizeF size = rect.size();
-        size.scale(nativeSize, Qt::KeepAspectRatio);
-
-        sourceRect = QRectF(
-                0, 0, size.width() / nativeSize.width(), size.height() / nativeSize.height());
-        sourceRect.moveCenter(QPointF(0.5, 0.5));
     }
 }
 
-void QGraphicsVideoItemPrivate::_q_present()
+void QGraphicsVideoItemPrivate::_q_present(const QVideoFrame &frame)
 {
-    if (q_ptr->isObscured()) {
-        q_ptr->update(boundingRect);
-        surface->setReady(true);
-    } else {
-        q_ptr->update(boundingRect);
+    m_frame = frame;
+    q_ptr->update(boundingRect);
+
+    if (frame.isValid()) {
+        const QSize &size = frame.surfaceFormat().viewport().size();
+        if (nativeSize != size) {
+            nativeSize = size;
+
+            updateRects();
+            emit q_ptr->nativeSizeChanged(nativeSize);
+        }
     }
 }
-
-void QGraphicsVideoItemPrivate::_q_updateNativeSize()
-{
-    const QSize &size = surface->surfaceFormat().sizeHint();
-    if (nativeSize != size) {
-        nativeSize = size;
-
-        updateRects();
-        emit q_ptr->nativeSizeChanged(nativeSize);
-    }
-}
-
-void QGraphicsVideoItemPrivate::_q_serviceDestroyed()
-{
-    rendererControl = 0;
-    service = 0;
-
-    surface->stop();
-}
-
 
 /*!
     \class QGraphicsVideoItem
 
-    \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaObject.
+    \brief The QGraphicsVideoItem class provides a graphics item which display video produced by a QMediaPlayer or QCamera.
 
     \inmodule QtMultimediaWidgets
     \ingroup multimedia
 
-    Attaching a QGraphicsVideoItem to a QMediaObject allows it to display
-    the video or image output of that media object.  A QGraphicsVideoItem
-    is attached to a media object by passing a pointer to the QMediaObject
-    to the setMediaObject() function.
+    Attaching a QGraphicsVideoItem to a QMediaPlayer or QCamera allows it to display
+    the video or image output of that media object.
 
     \snippet multimedia-snippets/video.cpp Video graphics item
 
     \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
-    \sa QMediaObject, QMediaPlayer, QVideoWidget
+    \sa QMediaPlayer, QVideoWidget, QCamera
 */
 
 /*!
@@ -197,13 +132,10 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
     , d_ptr(new QGraphicsVideoItemPrivate)
 {
     d_ptr->q_ptr = this;
-    d_ptr->surface = new QPainterVideoSurface;
+    d_ptr->sink = new QVideoSink(this);
+    d_ptr->sink->setBackgroundMode(Qt::TransparentMode);
 
-    qRegisterMetaType<QVideoSurfaceFormat>();
-
-    connect(d_ptr->surface, SIGNAL(frameChanged()), this, SLOT(_q_present()));
-    connect(d_ptr->surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
-            this, SLOT(_q_updateNativeSize()), Qt::QueuedConnection);
+    connect(d_ptr->sink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_present(const QVideoFrame &)));
 }
 
 /*!
@@ -211,30 +143,13 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
 */
 QGraphicsVideoItem::~QGraphicsVideoItem()
 {
-    if (d_ptr->rendererControl) {
-        d_ptr->rendererControl->setSurface(0);
-        d_ptr->service->releaseControl(d_ptr->rendererControl);
-    }
-
-    delete d_ptr->surface;
     delete d_ptr;
 }
 
 /*!
-    \property QGraphicsVideoItem::mediaObject
-    \brief the media object which provides the video displayed by a graphics
-    item.
-*/
-
-QMediaObject *QGraphicsVideoItem::mediaObject() const
-{
-    return d_func()->mediaObject;
-}
-
-/*!
-    \since 5.15
-    \property QGraphicsVideoItem::videoSurface
-    \brief Returns the underlying video surface that can render video frames
+    \since 6.0
+    \property QGraphicsVideoItem::videoSink
+    \brief Returns the underlying video sink that can render video frames
     to the current item.
     This property is never \c nullptr.
     Example of how to render video frames to QGraphicsVideoItem:
@@ -242,53 +157,9 @@ QMediaObject *QGraphicsVideoItem::mediaObject() const
     \sa QMediaPlayer::setVideoOutput
 */
 
-QAbstractVideoSurface *QGraphicsVideoItem::videoSurface() const
+QVideoSink *QGraphicsVideoItem::videoSink() const
 {
-    return d_func()->surface;
-}
-
-/*!
-  \internal
-*/
-bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
-{
-    Q_D(QGraphicsVideoItem);
-
-    if (object == d->mediaObject)
-        return true;
-
-    d->clearService();
-
-    d->mediaObject = object;
-
-    if (d->mediaObject) {
-        d->service = d->mediaObject->service();
-
-        if (d->service) {
-            QMediaControl *control = d->service->requestControl(QVideoRendererControl_iid);
-            if (control) {
-                d->rendererControl = qobject_cast<QVideoRendererControl *>(control);
-
-                if (d->rendererControl) {
-                    //don't set the surface until the item is painted
-                    //at least once and the surface is configured
-                    if (!d->updatePaintDevice)
-                        d->rendererControl->setSurface(d->surface);
-                    else
-                        update(boundingRect());
-
-                    connect(d->service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-                    return true;
-                }
-                if (control)
-                    d->service->releaseControl(control);
-            }
-        }
-    }
-
-    d->mediaObject = 0;
-    return false;
+    return d_func()->sink;
 }
 
 /*!
@@ -298,15 +169,15 @@ bool QGraphicsVideoItem::setMediaObject(QMediaObject *object)
 
 Qt::AspectRatioMode QGraphicsVideoItem::aspectRatioMode() const
 {
-    return d_func()->aspectRatioMode;
+    return d_func()->sink->aspectRatioMode();
 }
 
 void QGraphicsVideoItem::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     Q_D(QGraphicsVideoItem);
 
-    d->aspectRatioMode = mode;
     d->updateRects();
+    d->sink->setAspectRatioMode(mode);
 }
 
 /*!
@@ -328,6 +199,7 @@ void QGraphicsVideoItem::setOffset(const QPointF &offset)
 
     d->rect.moveTo(offset);
     d->updateRects();
+    d->sink->setTargetRect(d->rect);
 }
 
 /*!
@@ -349,6 +221,7 @@ void QGraphicsVideoItem::setSize(const QSizeF &size)
 
     d->rect.setSize(size.isValid() ? size : QSizeF(0, 0));
     d->updateRects();
+    d->sink->setTargetRect(d->rect);
 }
 
 /*!
@@ -386,31 +259,7 @@ void QGraphicsVideoItem::paint(
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    if (d->surface && d->updatePaintDevice) {
-        d->updatePaintDevice = false;
-#if QT_CONFIG(opengl)
-        if (widget)
-            connect(widget, SIGNAL(destroyed()), d->surface, SLOT(viewportDestroyed()));
-
-        if (painter->paintEngine()->type() == QPaintEngine::OpenGL
-            || painter->paintEngine()->type() == QPaintEngine::OpenGL2)
-        {
-            d->surface->updateGLContext();
-            if (d->surface->supportedShaderTypes() & QPainterVideoSurface::GlslShader) {
-                d->surface->setShaderType(QPainterVideoSurface::GlslShader);
-            } else {
-                d->surface->setShaderType(QPainterVideoSurface::FragmentProgramShader);
-            }
-        }
-#endif
-        if (d->rendererControl && d->rendererControl->surface() != d->surface)
-            d->rendererControl->setSurface(d->surface);
-    }
-
-    if (d->surface && d->surface->isActive()) {
-        d->surface->paint(painter, d->boundingRect, d->sourceRect);
-        d->surface->setReady(true);
-    }
+    d->sink->paint(painter, d->m_frame);
 }
 
 /*!

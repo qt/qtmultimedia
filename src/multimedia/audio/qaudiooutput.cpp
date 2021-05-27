@@ -40,11 +40,11 @@
 
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
-#include "qaudiosystem.h"
+#include "qaudiosystem_p.h"
 #include "qaudiooutput.h"
 
-#include "qaudiodevicefactory_p.h"
-
+#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -91,16 +91,6 @@ QT_BEGIN_NAMESPACE
     a \c { play/pause } button. You request a state change directly
     with suspend(), stop(), reset(), resume(), and start().
 
-    While the stream is playing, you can set a notify interval in
-    milliseconds with setNotifyInterval(). This interval specifies the
-    time between two emissions of the notify() signal. This is
-    relative to the position in the stream, i.e., if the QAudioOutput
-    is in the SuspendedState or the IdleState, the notify() signal is
-    not emitted. A typical use-case would be to update a
-    \l{QSlider}{slider} that allows seeking in the stream.
-    If you want the time since playback started regardless of which
-    states the audio output has been in, elapsedUSecs() is the function for you.
-
     If an error occurs, you can fetch the \l{QAudio::Error}{error
     type} with the error() function. Please see the QAudio::Error enum
     for a description of the possible errors that are reported.  When
@@ -118,12 +108,9 @@ QT_BEGIN_NAMESPACE
     The default audio output device is used with the output
     \a format parameters.
 */
-QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent):
-    QObject(parent)
+QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent)
+    : QAudioOutput({}, format, parent)
 {
-    d = QAudioDeviceFactory::createDefaultOutputDevice(format);
-    connect(d, SIGNAL(notify()), SIGNAL(notify()));
-    connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }
 
 /*!
@@ -134,9 +121,10 @@ QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent):
 QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QAudioDeviceFactory::createOutputDevice(audioDevice, format);
-    connect(d, SIGNAL(notify()), SIGNAL(notify()));
-    connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
+    d = QPlatformMediaIntegration::instance()->devices()->audioOutputDevice(format, audioDevice);
+    if (d) {
+        connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
+    }
 }
 
 /*!
@@ -174,6 +162,7 @@ QAudioFormat QAudioOutput::format() const
 */
 void QAudioOutput::start(QIODevice* device)
 {
+    d->elapsedTime.restart();
     d->start(device);
 }
 
@@ -196,6 +185,7 @@ void QAudioOutput::start(QIODevice* device)
 */
 QIODevice* QAudioOutput::start()
 {
+    d->elapsedTime.restart();
     return d->start();
 }
 
@@ -249,21 +239,9 @@ void QAudioOutput::resume()
     \note The returned value is only valid while in QAudio::ActiveState or QAudio::IdleState
     state, otherwise returns zero.
 */
-int QAudioOutput::bytesFree() const
+qsizetype QAudioOutput::bytesFree() const
 {
     return d->bytesFree();
-}
-
-/*!
-    Returns the period size in bytes. This is the amount of data required each period
-    to prevent buffer underrun, and to ensure uninterrupted playback.
-
-    \note It is recommended to provide at least enough data for a full period with each
-    write operation.
-*/
-int QAudioOutput::periodSize() const
-{
-    return d->periodSize();
 }
 
 /*!
@@ -274,7 +252,7 @@ int QAudioOutput::periodSize() const
     set is the actual buffer size used - call bufferSize() anytime after start()
     to return the actual buffer size being used.
 */
-void QAudioOutput::setBufferSize(int value)
+void QAudioOutput::setBufferSize(qsizetype value)
 {
     d->setBufferSize(value);
 }
@@ -288,30 +266,9 @@ void QAudioOutput::setBufferSize(int value)
     by setBufferSize().
 
 */
-int QAudioOutput::bufferSize() const
+qsizetype QAudioOutput::bufferSize() const
 {
     return d->bufferSize();
-}
-
-/*!
-    Sets the interval for notify() signal to be emitted.
-    This is based on the \a ms of audio data processed,
-    not on wall clock time.
-    The minimum resolution of the timer is platform specific and values
-    should be checked with notifyInterval() to confirm the actual value
-    being used.
-*/
-void QAudioOutput::setNotifyInterval(int ms)
-{
-    d->setNotifyInterval(ms);
-}
-
-/*!
-    Returns the notify interval in milliseconds.
-*/
-int QAudioOutput::notifyInterval() const
-{
-    return d->notifyInterval();
 }
 
 /*!
@@ -329,7 +286,7 @@ qint64 QAudioOutput::processedUSecs() const
 */
 qint64 QAudioOutput::elapsedUSecs() const
 {
-    return d->elapsedUSecs();
+    return d->state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
 }
 
 /*!
@@ -377,51 +334,29 @@ qreal QAudioOutput::volume() const
 }
 
 /*!
-    Returns the audio category of this audio stream.
+    \property QMediaPlayer::audioRole
+    \brief the role of the audio stream played by the media player.
 
-    Some platforms can group audio streams into categories
-    and manage their volumes independently, or display them
-    in a system mixer control.  You can set this property to
-    allow the platform to distinguish the purpose of your streams.
+    It can be set to specify the type of audio being played, allowing the system to make
+    appropriate decisions when it comes to volume, routing or post-processing.
 
-    \sa setCategory()
+    The audio role must be set before calling setMedia().
 */
-QString QAudioOutput::category() const
+
+QAudio::Role QAudioOutput::audioRole() const
 {
-    return d->category();
+    return d->role();
 }
 
-/*!
-    Sets the audio category of this audio stream to \a category.
-
-    Some platforms can group audio streams into categories
-    and manage their volumes independently, or display them
-    in a system mixer control.  You can set this property to
-    allow the platform to distinguish the purpose of your streams.
-
-    Not all platforms support audio stream categorization.  In this
-    case, the function call will be ignored.
-
-    Changing an audio output stream's category while it is opened
-    will not take effect until it is reopened.
-    \sa category()
-*/
-void QAudioOutput::setCategory(const QString &category)
+void QAudioOutput::setAudioRole(QAudio::Role role)
 {
-    d->setCategory(category);
+    d->setRole(role);
 }
 
 /*!
     \fn QAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
     This is the current state of the audio output.
-*/
-
-/*!
-    \fn QAudioOutput::notify()
-    This signal is emitted when a certain interval of milliseconds
-    of audio data has been processed.  The interval is set by
-    setNotifyInterval().
 */
 
 QT_END_NAMESPACE

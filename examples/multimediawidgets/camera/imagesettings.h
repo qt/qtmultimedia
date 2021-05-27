@@ -52,8 +52,7 @@
 #define IMAGESETTINGS_H
 
 #include <QDialog>
-#include <QAudioEncoderSettings>
-#include <QVideoEncoderSettings>
+#include <QMediaEncoderSettings>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;
@@ -68,9 +67,6 @@ class ImageSettings : public QDialog
 public:
     explicit ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent = nullptr);
     ~ImageSettings();
-
-    QAudioEncoderSettings audioSettings() const;
-    void setAudioSettings(const QAudioEncoderSettings &settings);
 
     QImageEncoderSettings imageSettings() const;
     void setImageSettings(const QImageEncoderSettings &settings);

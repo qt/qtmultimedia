@@ -52,6 +52,7 @@
 #define AUDIODEVICES_H
 
 #include <QAudioDeviceInfo>
+#include <QMediaDevices>
 #include <QMainWindow>
 #include <QObject>
 
@@ -74,16 +75,16 @@ public:
 private:
     QAudioDeviceInfo m_deviceInfo;
     QAudioFormat m_settings;
+    QAudio::Mode m_mode = QAudio::AudioInput;
+    QMediaDevices *m_devices = nullptr;
 
 private slots:
+    void updateAudioDevices();
     void modeChanged(int idx);
     void deviceChanged(int idx);
     void sampleRateChanged(int idx);
     void channelChanged(int idx);
-    void codecChanged(int idx);
-    void sampleSizeChanged(int idx);
-    void sampleTypeChanged(int idx);
-    void endianChanged(int idx);
+    void sampleFormatChanged(int idx);
     void test();
     void populateTable();
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
-    <height>598</height>
+    <width>646</width>
+    <height>528</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,8 +31,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>659</width>
-         <height>558</height>
+         <width>626</width>
+         <height>480</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -79,6 +79,65 @@
               <string>Test format</string>
              </attribute>
              <layout class="QGridLayout" name="gridLayout">
+              <item row="12" column="1">
+               <widget class="QPushButton" name="testButton">
+                <property name="text">
+                 <string>Test</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="2">
+               <widget class="QLabel" name="testResult">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="actualChannelLabel">
+                <property name="text">
+                 <string>Channels</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLineEdit" name="nearestSampleRate">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="2">
+               <widget class="QLineEdit" name="nearestSampleFormat">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="actualSampleTypeLabel">
+                <property name="text">
+                 <string>Sample Format</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="2">
+               <widget class="QLineEdit" name="nearestChannel">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="sampleFormatBox"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="actualFreqLabel">
+                <property name="text">
+                 <string>Frequency (Hz)</string>
+                </property>
+               </widget>
+              </item>
               <item row="0" column="1">
                <widget class="QLabel" name="actualLabel">
                 <property name="sizePolicy">
@@ -133,144 +192,24 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="3" column="1">
-               <widget class="QComboBox" name="sampleRateBox">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
+              <item row="13" column="1">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
                 </property>
-               </widget>
-              </item>
-              <item row="3" column="2">
-               <widget class="QLineEdit" name="nearestSampleRate">
-                <property name="enabled">
-                 <bool>false</bool>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
                 </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QComboBox" name="channelsBox"/>
-              </item>
-              <item row="5" column="2">
-               <widget class="QLineEdit" name="nearestChannel">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <widget class="QComboBox" name="sampleSizesBox"/>
-              </item>
-              <item row="9" column="2">
-               <widget class="QLineEdit" name="nearestSampleSize">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="14" column="1">
-               <widget class="QComboBox" name="endianBox"/>
-              </item>
-              <item row="14" column="2">
-               <widget class="QLineEdit" name="nearestEndian">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="15" column="1">
-               <widget class="QPushButton" name="testButton">
-                <property name="text">
-                 <string>Test</string>
-                </property>
-               </widget>
-              </item>
-              <item row="15" column="2">
-               <widget class="QLabel" name="testResult">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="actualFreqLabel">
-                <property name="text">
-                 <string>Frequency (Hz)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="actualChannelLabel">
-                <property name="text">
-                 <string>Channels</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="actualSampleSizeLabel">
-                <property name="text">
-                 <string>Sample size (bits)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="14" column="0">
-               <widget class="QLabel" name="actualEndianLabel">
-                <property name="text">
-                 <string>Endianness</string>
-                </property>
-               </widget>
-              </item>
-              <item row="16" column="0" colspan="3">
-               <widget class="QLabel" name="label">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Note: an invalid codec 'audio/test' exists in order to allow an invalid format to be constructed, and therefore to trigger a 'nearest format' calculation.</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="actualCodecLabel">
-                <property name="text">
-                 <string>Codec</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QLineEdit" name="nearestCodec">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
+               </spacer>
               </item>
               <item row="2" column="1">
-               <widget class="QComboBox" name="codecsBox"/>
+               <widget class="QSpinBox" name="sampleRateSpinBox"/>
               </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="actualSampleTypeLabel">
-                <property name="text">
-                 <string>SampleType</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QComboBox" name="sampleTypesBox"/>
-              </item>
-              <item row="6" column="2">
-               <widget class="QLineEdit" name="nearestSampleType">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
+              <item row="4" column="1">
+               <widget class="QSpinBox" name="channelsSpinBox"/>
               </item>
              </layout>
             </widget>
@@ -312,8 +251,14 @@ p, li { white-space: pre-wrap; }
                 <property name="cornerButtonEnabled">
                  <bool>false</bool>
                 </property>
+                <property name="columnCount">
+                 <number>3</number>
+                </property>
                 <attribute name="horizontalHeaderHighlightSections">
                  <bool>false</bool>
+                </attribute>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
                 </attribute>
                 <attribute name="verticalHeaderVisible">
                  <bool>false</bool>
@@ -323,10 +268,10 @@ p, li { white-space: pre-wrap; }
                 </attribute>
                 <column>
                  <property name="text">
-                  <string>Codec</string>
+                  <string>Sample Format</string>
                  </property>
                  <property name="textAlignment">
-                  <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                  <set>AlignCenter</set>
                  </property>
                 </column>
                 <column>
@@ -334,7 +279,7 @@ p, li { white-space: pre-wrap; }
                   <string>Frequency (Hz)</string>
                  </property>
                  <property name="textAlignment">
-                  <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                  <set>AlignCenter</set>
                  </property>
                 </column>
                 <column>
@@ -342,31 +287,7 @@ p, li { white-space: pre-wrap; }
                   <string>Channels</string>
                  </property>
                  <property name="textAlignment">
-                  <set>AlignHCenter|AlignVCenter|AlignCenter</set>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Sample type</string>
-                 </property>
-                 <property name="textAlignment">
-                  <set>AlignHCenter|AlignVCenter|AlignCenter</set>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Sample size (bits)</string>
-                 </property>
-                 <property name="textAlignment">
-                  <set>AlignHCenter|AlignVCenter|AlignCenter</set>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Endianness</string>
-                 </property>
-                 <property name="textAlignment">
-                  <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                  <set>AlignCenter</set>
                  </property>
                 </column>
                </widget>

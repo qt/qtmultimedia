@@ -40,108 +40,75 @@
 #ifndef QVIDEOFRAME_H
 #define QVIDEOFRAME_H
 
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qvideoframeformat.h>
+
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
 #include <QtGui/qimage.h>
-#include <QtMultimedia/qabstractvideobuffer.h>
-#include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 
 class QSize;
-
 class QVideoFramePrivate;
+class QAbstractVideoBuffer;
+class QRhi;
+class QRhiResourceUpdateBatch;
+class QRhiTexture;
+
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QVideoFramePrivate, Q_MULTIMEDIA_EXPORT)
 
 class Q_MULTIMEDIA_EXPORT QVideoFrame
 {
 public:
-    enum FieldType
+
+    enum HandleType
     {
-        ProgressiveFrame,
-        TopField,
-        BottomField,
-        InterlacedFrame
+        NoHandle,
+        RhiTextureHandle
     };
 
-    enum PixelFormat
+    enum MapMode
     {
-        Format_Invalid,
-        Format_ARGB32,
-        Format_ARGB32_Premultiplied,
-        Format_RGB32,
-        Format_RGB24,
-        Format_RGB565,
-        Format_RGB555,
-        Format_ARGB8565_Premultiplied,
-        Format_BGRA32,
-        Format_BGRA32_Premultiplied,
-        Format_ABGR32,
-        Format_BGR32,
-        Format_BGR24,
-        Format_BGR565,
-        Format_BGR555,
-        Format_BGRA5658_Premultiplied,
-
-        Format_AYUV444,
-        Format_AYUV444_Premultiplied,
-        Format_YUV444,
-        Format_YUV420P,
-        Format_YUV422P,
-        Format_YV12,
-        Format_UYVY,
-        Format_YUYV,
-        Format_NV12,
-        Format_NV21,
-        Format_IMC1,
-        Format_IMC2,
-        Format_IMC3,
-        Format_IMC4,
-        Format_Y8,
-        Format_Y16,
-
-        Format_Jpeg,
-
-        Format_CameraRaw,
-        Format_AdobeDng,
-
-#ifndef Q_QDOC
-        NPixelFormats,
-#endif
-        Format_User = 1000
+        NotMapped = 0x00,
+        ReadOnly  = 0x01,
+        WriteOnly = 0x02,
+        ReadWrite = ReadOnly | WriteOnly
     };
 
     QVideoFrame();
-    QVideoFrame(QAbstractVideoBuffer *buffer, const QSize &size, PixelFormat format);
-    QVideoFrame(int bytes, const QSize &size, int bytesPerLine, PixelFormat format);
-    QVideoFrame(const QImage &image);
+    QVideoFrame(const QVideoFrameFormat &format);
     QVideoFrame(const QVideoFrame &other);
     ~QVideoFrame();
+
+    QVideoFrame(QVideoFrame &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QVideoFrame)
+    void swap(QVideoFrame &other) noexcept
+    { qSwap(d, other.d); }
+
 
     QVideoFrame &operator =(const QVideoFrame &other);
     bool operator==(const QVideoFrame &other) const;
     bool operator!=(const QVideoFrame &other) const;
 
-    QAbstractVideoBuffer *buffer() const;
     bool isValid() const;
 
-    PixelFormat pixelFormat() const;
+    QVideoFrameFormat::PixelFormat pixelFormat() const;
 
-    QAbstractVideoBuffer::HandleType handleType() const;
+    QVideoFrameFormat surfaceFormat() const;
+    QVideoFrame::HandleType handleType() const;
 
     QSize size() const;
     int width() const;
     int height() const;
 
-    FieldType fieldType() const;
-    void setFieldType(FieldType);
-
     bool isMapped() const;
     bool isReadable() const;
     bool isWritable() const;
 
-    QAbstractVideoBuffer::MapMode mapMode() const;
+    QVideoFrame::MapMode mapMode() const;
 
-    bool map(QAbstractVideoBuffer::MapMode mode);
+    bool map(QVideoFrame::MapMode mode);
     void unmap();
 
     int bytesPerLine() const;
@@ -154,7 +121,7 @@ public:
     int mappedBytes() const;
     int planeCount() const;
 
-    QVariant handle() const;
+    quint64 textureHandle(int plane) const;
 
     qint64 startTime() const;
     void setStartTime(qint64 time);
@@ -162,30 +129,22 @@ public:
     qint64 endTime() const;
     void setEndTime(qint64 time);
 
-    QVariantMap availableMetaData() const;
-    QVariant metaData(const QString &key) const;
-    void setMetaData(const QString &key, const QVariant &value);
+    QImage toImage() const;
 
-    QImage image() const;
-
-    static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
-    static QImage::Format imageFormatFromPixelFormat(PixelFormat format);
-
+    QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format);
 private:
     QExplicitlySharedDataPointer<QVideoFramePrivate> d;
 };
 
+Q_DECLARE_SHARED(QVideoFrame)
+Q_DECLARE_METATYPE(QVideoFrame)
+
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrame&);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::FieldType);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::PixelFormat);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::HandleType);
 #endif
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QVideoFrame)
-Q_DECLARE_METATYPE(QVideoFrame::FieldType)
-Q_DECLARE_METATYPE(QVideoFrame::PixelFormat)
 
 #endif
 

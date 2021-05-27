@@ -48,13 +48,12 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.0
+import QtQuick
+import QtMultimedia
 
 VideoOutput {
     id: root
     height: width
-    source: mediaPlayer
 
     property alias duration: mediaPlayer.duration
     property alias mediaSource: mediaPlayer.source
@@ -70,11 +69,10 @@ VideoOutput {
 
     MediaPlayer {
         id: mediaPlayer
-        autoLoad: false
-        loops: Audio.Infinite
+        videoOutput: root;
 
-        onError: {
-            if (MediaPlayer.NoError != error) {
+        onErrorOccurred: function(error, errorString) {
+            if (MediaPlayer.NoError !== error) {
                 console.log("[qmlvideo] VideoItem.onError error " + error + " errorString " + errorString)
                 root.fatalError()
             }

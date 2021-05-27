@@ -56,7 +56,7 @@
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
 {
-    m_mediaPlayer = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
+    m_mediaPlayer = new QMediaPlayer(this);
     const QSize screenGeometry = screen()->availableSize();
     m_videoItem = new QGraphicsVideoItem;
     m_videoItem->setSize(QSizeF(screenGeometry.width() / 3, screenGeometry.height() / 2));
@@ -101,7 +101,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     layout->addLayout(controlLayout);
 
     m_mediaPlayer->setVideoOutput(m_videoItem);
-    connect(m_mediaPlayer, &QMediaPlayer::stateChanged,
+    connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged,
             this, &VideoPlayer::mediaStateChanged);
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
@@ -126,9 +126,6 @@ void VideoPlayer::openFile()
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Movie"));
-    const QStringList supportedMimeTypes = m_mediaPlayer->supportedMimeTypes();
-    if (!supportedMimeTypes.isEmpty())
-        fileDialog.setMimeTypeFilters(supportedMimeTypes);
     fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
     if (fileDialog.exec() == QDialog::Accepted)
         load(fileDialog.selectedUrls().constFirst());
@@ -136,13 +133,13 @@ void VideoPlayer::openFile()
 
 void VideoPlayer::load(const QUrl &url)
 {
-    m_mediaPlayer->setMedia(url);
+    m_mediaPlayer->setSource(url);
     m_playButton->setEnabled(true);
 }
 
 void VideoPlayer::play()
 {
-    switch (m_mediaPlayer->state()) {
+    switch (m_mediaPlayer->playbackState()) {
     case QMediaPlayer::PlayingState:
         m_mediaPlayer->pause();
         break;
@@ -152,7 +149,7 @@ void VideoPlayer::play()
     }
 }
 
-void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
+void VideoPlayer::mediaStateChanged(QMediaPlayer::PlaybackState state)
 {
     switch(state) {
     case QMediaPlayer::PlayingState:

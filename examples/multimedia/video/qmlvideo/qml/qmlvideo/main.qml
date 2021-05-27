@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick
 
 Rectangle {
     id: root
@@ -74,9 +74,10 @@ Rectangle {
 
         Connections {
             target: inner
-            onVisibleChanged:
+            function onVisibleChanged() {
                 if (performanceLoader.item)
                     performanceLoader.item.enabled = !inner.visible
+            }
             ignoreUnknownSignals: true
         }
 
@@ -229,7 +230,7 @@ Rectangle {
 
     Connections {
         id: videoFramePaintedConnection
-        onVideoFramePainted: {
+        function onVideoFramePainted() {
             if (performanceLoader.item)
                 performanceLoader.item.videoFramePainted()
         }

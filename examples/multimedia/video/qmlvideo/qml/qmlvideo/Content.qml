@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick
 
 Rectangle {
     id: root
@@ -74,7 +74,7 @@ Rectangle {
 
     Connections {
         id: framePaintedConnection
-        onFramePainted: {
+        function onFramePainted() {
             if (frameRateLoader.item)
                 frameRateLoader.item.notify()
             root.videoFramePainted()
@@ -84,7 +84,7 @@ Rectangle {
 
     Connections {
         id: errorConnection
-        onFatalError: {
+        function onFatalError() {
             console.log("[qmlvideo] Content.onFatalError")
             stop()
             root.error()

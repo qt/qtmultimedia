@@ -115,7 +115,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li Video Processing
         \li \l {QML Video Example}{qmlvideofx}
         \li \l {MediaPlayer}, \l VideoOutput
-        \li QMediaPlayer, QAbstractVideoSurface, QVideoFrame
+        \li QMediaPlayer, QVideoFrame
     \row
         \li Accessing camera viewfinder
         \li \l {Camera Example}{camera},
@@ -126,7 +126,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li Viewfinder processing
         \li
         \li \l Camera, \l VideoOutput
-        \li QCamera, QAbstractVideoSurface, QVideoFrame
+        \li QCamera, QVideoFrame
     \row
         \li Capturing photos
         \li \l {Camera Example}{camera},
@@ -153,31 +153,18 @@ The Qt Multimedia APIs build upon the multimedia framework of the underlying
 platform. This can mean that support for various codecs or containers can vary
 between machines, depending on what the end user has installed.
 
-\section1 Advanced Usage
-
-For developers wishing to access some platform specific settings, or to port the
-Qt Multimedia APIs to a new platform or technology, see \l{Multimedia Backend
-Development}.
-
 \section1 Changes from Previous Versions
 
-If you previously used Qt Multimedia in Qt 4, or used Qt Multimedia Kit in
-Qt Mobility, please see \l {Changes in Qt Multimedia} for more information on
-what changed, and what you might need to change when porting code.
+If you previously used Qt Multimedia in Qt 5, please see \l {Changes in Qt Multimedia}
+for more information on what changed, and what you might need to change when porting code.
 
 \section1 Reference Documentation
 
 \section2 QML Types
 The QML types are accessed by using:
 \code
-import QtMultimedia 5.8
+import QtMultimedia
 \endcode
-\annotatedlist multimedia_qml
-The following types are accessed by using \l{Qt Audio Engine QML Types}{Qt Audio Engine}:
-\qml \QtMinorVersion
-import QtAudioEngine 1.\1
-\endqml
-\annotatedlist multimedia_audioengine
 
 \section2 Multimedia Classes
 

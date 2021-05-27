@@ -1,0 +1,18 @@
+# Generated from multimedia.pro.
+
+add_subdirectory(qabstractvideobuffer)
+add_subdirectory(qaudiorecorder)
+add_subdirectory(qaudioformat)
+add_subdirectory(qaudionamespace)
+add_subdirectory(qcamera)
+add_subdirectory(qcamerainfo)
+add_subdirectory(qcameraimagecapture)
+add_subdirectory(qmediaplayer)
+add_subdirectory(qmediaplaylist)
+add_subdirectory(qmediaencoder)
+add_subdirectory(qmediatimerange)
+add_subdirectory(qvideoframe)
+add_subdirectory(qvideoframeformat)
+add_subdirectory(qaudiobuffer)
+add_subdirectory(qaudiodecoder)
+add_subdirectory(qsamplecache)

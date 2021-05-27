@@ -72,8 +72,6 @@ void tst_QAudioDecoderBackend::initTestCase()
     QAudioDecoder d;
     if (!d.isAvailable())
         QSKIP("Audio decoder service is not available");
-
-    qRegisterMetaType<QMediaContent>();
 }
 
 void tst_QAudioDecoderBackend::cleanup()
@@ -95,7 +93,7 @@ void tst_QAudioDecoderBackend::fileTest()
         QSKIP("Sound format is not supported");
 
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
     quint64 duration = 0;
@@ -104,15 +102,16 @@ void tst_QAudioDecoderBackend::fileTest()
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
     QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
-    d.setSourceFilename(fileInfo.absoluteFilePath());
+    QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+    d.setSource(url);
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(!d.bufferAvailable());
-    QCOMPARE(d.sourceFilename(), fileInfo.absoluteFilePath());
+    QCOMPARE(d.source(), url);
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
     QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
@@ -137,9 +136,7 @@ void tst_QAudioDecoderBackend::fileTest()
     // Test file is 44.1K 16bit mono, 44094 samples
     QCOMPARE(buffer.format().channelCount(), 1);
     QCOMPARE(buffer.format().sampleRate(), 44100);
-    QCOMPARE(buffer.format().sampleSize(), 16);
-    QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
-    QCOMPARE(buffer.format().codec(), QString("audio/pcm"));
+    QCOMPARE(buffer.format().sampleFormat(), QAudioFormat::Int16);
     QCOMPARE(buffer.byteCount(), buffer.sampleCount() * 2); // 16bit mono
 
     // The decoder should still have no format set
@@ -195,10 +192,8 @@ void tst_QAudioDecoderBackend::fileTest()
     // change output audio format
     QAudioFormat format;
     format.setChannelCount(2);
-    format.setSampleSize(8);
     format.setSampleRate(11050);
-    format.setCodec("audio/pcm");
-    format.setSampleType(QAudioFormat::SignedInt);
+    format.setSampleFormat(QAudioFormat::UInt8);
 
     d.setAudioFormat(format);
 
@@ -279,21 +274,22 @@ void tst_QAudioDecoderBackend::fileTest()
 void tst_QAudioDecoderBackend::unsupportedFileTest()
 {
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
     QFileInfo fileInfo(QFINDTESTDATA(TEST_UNSUPPORTED_FILE_NAME));
-    d.setSourceFilename(fileInfo.absoluteFilePath());
+    QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+    d.setSource(url);
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(!d.bufferAvailable());
-    QCOMPARE(d.sourceFilename(), fileInfo.absoluteFilePath());
+    QCOMPARE(d.source(), url);
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
     QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
@@ -357,21 +353,22 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
 void tst_QAudioDecoderBackend::corruptedFileTest()
 {
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QUrl());
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
     QFileInfo fileInfo(QFINDTESTDATA(TEST_CORRUPTED_FILE_NAME));
-    d.setSourceFilename(fileInfo.absoluteFilePath());
+    QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+    d.setSource(url);
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(!d.bufferAvailable());
-    QCOMPARE(d.sourceFilename(), fileInfo.absoluteFilePath());
+    QCOMPARE(d.source(), url);
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
     QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
@@ -434,7 +431,7 @@ void tst_QAudioDecoderBackend::deviceTest()
         QSKIP("Sound format is not supported");
 
     QAudioDecoder d;
-    if (d.error() == QAudioDecoder::ServiceMissingError)
+    if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
     QAudioBuffer buffer;
     quint64 duration = 0;
@@ -450,7 +447,7 @@ void tst_QAudioDecoderBackend::deviceTest()
 
     QVERIFY(d.state() == QAudioDecoder::StoppedState);
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.sourceFilename(), QString(""));
+    QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
@@ -459,7 +456,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     d.setSourceDevice(&file);
 
     QVERIFY(d.sourceDevice() == &file);
-    QVERIFY(d.sourceFilename().isEmpty());
+    QVERIFY(d.source().isEmpty());
 
     // We haven't set the format yet
     QVERIFY(d.audioFormat() == QAudioFormat());
@@ -479,9 +476,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     // Test file is 44.1K 16bit mono
     QCOMPARE(buffer.format().channelCount(), 1);
     QCOMPARE(buffer.format().sampleRate(), 44100);
-    QCOMPARE(buffer.format().sampleSize(), 16);
-    QCOMPARE(buffer.format().sampleType(), QAudioFormat::SignedInt);
-    QCOMPARE(buffer.format().codec(), QString("audio/pcm"));
+    QCOMPARE(buffer.format().sampleFormat(), QAudioFormat::Int16);
 
     QVERIFY(errorSpy.isEmpty());
 
@@ -530,10 +525,8 @@ void tst_QAudioDecoderBackend::deviceTest()
     // Now try changing formats
     QAudioFormat format;
     format.setChannelCount(2);
-    format.setSampleSize(8);
     format.setSampleRate(8000);
-    format.setCodec("audio/pcm");
-    format.setSampleType(QAudioFormat::SignedInt);
+    format.setSampleFormat(QAudioFormat::UInt8);
 
     d.setAudioFormat(format);
 

@@ -37,16 +37,15 @@
 **
 ****************************************************************************/
 
+#include <private/qtmultimediaglobal_p.h>
 #include "qvideowidget_p.h"
-#include "qpaintervideosurface_p.h"
 
-#include <qmediaobject.h>
-#include <qmediaservice.h>
-#include <qvideowindowcontrol.h>
-#include <qvideowidgetcontrol.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <qvideosink.h>
 
-#include <qvideorenderercontrol.h>
-#include <qvideosurfaceformat.h>
+#include <qobject.h>
+#include <qvideoframeformat.h>
 #include <qpainter.h>
 
 #include <qapplication.h>
@@ -65,526 +64,17 @@ using namespace Qt;
 
 QT_BEGIN_NAMESPACE
 
-QVideoWidgetControlBackend::QVideoWidgetControlBackend(
-        QMediaService *service, QVideoWidgetControl *control, QWidget *widget)
-    : m_service(service)
-    , m_widgetControl(control)
-{
-    connect(control, SIGNAL(brightnessChanged(int)), widget, SLOT(_q_brightnessChanged(int)));
-    connect(control, SIGNAL(contrastChanged(int)), widget, SLOT(_q_contrastChanged(int)));
-    connect(control, SIGNAL(hueChanged(int)), widget, SLOT(_q_hueChanged(int)));
-    connect(control, SIGNAL(saturationChanged(int)), widget, SLOT(_q_saturationChanged(int)));
-    connect(control, SIGNAL(fullScreenChanged(bool)), widget, SLOT(_q_fullScreenChanged(bool)));
-
-    QBoxLayout *layout = new QVBoxLayout;
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-
-    QWidget *videoWidget = control->videoWidget();
-    videoWidget->setMouseTracking(widget->hasMouseTracking());
-    layout->addWidget(videoWidget);
-
-    widget->setLayout(layout);
-}
-
-void QVideoWidgetControlBackend::releaseControl()
-{
-    m_service->releaseControl(m_widgetControl);
-}
-
-void QVideoWidgetControlBackend::setBrightness(int brightness)
-{
-    m_widgetControl->setBrightness(brightness);
-}
-
-void QVideoWidgetControlBackend::setContrast(int contrast)
-{
-    m_widgetControl->setContrast(contrast);
-}
-
-void QVideoWidgetControlBackend::setHue(int hue)
-{
-    m_widgetControl->setHue(hue);
-}
-
-void QVideoWidgetControlBackend::setSaturation(int saturation)
-{
-    m_widgetControl->setSaturation(saturation);
-}
-
-void QVideoWidgetControlBackend::setFullScreen(bool fullScreen)
-{
-    m_widgetControl->setFullScreen(fullScreen);
-}
-
-
-Qt::AspectRatioMode QVideoWidgetControlBackend::aspectRatioMode() const
-{
-    return m_widgetControl->aspectRatioMode();
-}
-
-void QVideoWidgetControlBackend::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    m_widgetControl->setAspectRatioMode(mode);
-}
-
-QRendererVideoWidgetBackend::QRendererVideoWidgetBackend(
-        QMediaService *service, QVideoRendererControl *control, QWidget *widget)
-    : m_service(service)
-    , m_rendererControl(control)
-    , m_widget(widget)
-    , m_surface(new QPainterVideoSurface)
-    , m_aspectRatioMode(Qt::KeepAspectRatio)
-    , m_updatePaintDevice(true)
-{
-    connect(this, SIGNAL(brightnessChanged(int)), m_widget, SLOT(_q_brightnessChanged(int)));
-    connect(this, SIGNAL(contrastChanged(int)), m_widget, SLOT(_q_contrastChanged(int)));
-    connect(this, SIGNAL(hueChanged(int)), m_widget, SLOT(_q_hueChanged(int)));
-    connect(this, SIGNAL(saturationChanged(int)), m_widget, SLOT(_q_saturationChanged(int)));
-    connect(m_surface, SIGNAL(frameChanged()), this, SLOT(frameChanged()));
-    connect(m_surface, SIGNAL(surfaceFormatChanged(QVideoSurfaceFormat)),
-            this, SLOT(formatChanged(QVideoSurfaceFormat)));
-
-    if (m_rendererControl)
-        m_rendererControl->setSurface(m_surface);
-}
-
-QRendererVideoWidgetBackend::~QRendererVideoWidgetBackend()
-{
-    delete m_surface;
-}
-
-QAbstractVideoSurface *QRendererVideoWidgetBackend::videoSurface() const
-{
-    return m_surface;
-}
-
-void QRendererVideoWidgetBackend::releaseControl()
-{
-    if (m_service && m_rendererControl)
-        m_service->releaseControl(m_rendererControl);
-}
-
-void QRendererVideoWidgetBackend::clearSurface()
-{
-    if (m_rendererControl)
-        m_rendererControl->setSurface(0);
-}
-
-void QRendererVideoWidgetBackend::setBrightness(int brightness)
-{
-    m_surface->setBrightness(brightness);
-
-    emit brightnessChanged(brightness);
-}
-
-void QRendererVideoWidgetBackend::setContrast(int contrast)
-{
-    m_surface->setContrast(contrast);
-
-    emit contrastChanged(contrast);
-}
-
-void QRendererVideoWidgetBackend::setHue(int hue)
-{
-    m_surface->setHue(hue);
-
-    emit hueChanged(hue);
-}
-
-void QRendererVideoWidgetBackend::setSaturation(int saturation)
-{
-    m_surface->setSaturation(saturation);
-
-    emit saturationChanged(saturation);
-}
-
-Qt::AspectRatioMode QRendererVideoWidgetBackend::aspectRatioMode() const
-{
-    return m_aspectRatioMode;
-}
-
-void QRendererVideoWidgetBackend::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    m_aspectRatioMode = mode;
-
-    m_widget->updateGeometry();
-}
-
-void QRendererVideoWidgetBackend::setFullScreen(bool)
-{
-}
-
-QSize QRendererVideoWidgetBackend::sizeHint() const
-{
-    return m_surface->surfaceFormat().sizeHint();
-}
-
-void QRendererVideoWidgetBackend::showEvent()
-{
-}
-
-void QRendererVideoWidgetBackend::hideEvent(QHideEvent *)
-{
-#if QT_CONFIG(opengl)
-    m_updatePaintDevice = true;
-#endif
-}
-
-void QRendererVideoWidgetBackend::resizeEvent(QResizeEvent *)
-{
-    updateRects();
-}
-
-void QRendererVideoWidgetBackend::moveEvent(QMoveEvent *)
-{
-}
-
-void QRendererVideoWidgetBackend::paintEvent(QPaintEvent *event)
-{
-    QPainter painter(m_widget);
-
-    if (m_widget->testAttribute(Qt::WA_OpaquePaintEvent)) {
-        QRegion borderRegion = event->region();
-        borderRegion = borderRegion.subtracted(m_boundingRect);
-
-        QBrush brush = m_widget->palette().window();
-
-        for (const QRect &r : borderRegion)
-            painter.fillRect(r, brush);
-    }
-
-    if (m_surface->isActive() && m_boundingRect.intersects(event->rect())) {
-        m_surface->paint(&painter, m_boundingRect, m_sourceRect);
-
-        m_surface->setReady(true);
-    } else {
-#if QT_CONFIG(opengl)
-        if (m_updatePaintDevice && (painter.paintEngine()->type() == QPaintEngine::OpenGL
-                || painter.paintEngine()->type() == QPaintEngine::OpenGL2)) {
-            m_updatePaintDevice = false;
-
-            m_surface->updateGLContext();
-            if (m_surface->supportedShaderTypes() & QPainterVideoSurface::GlslShader) {
-                m_surface->setShaderType(QPainterVideoSurface::GlslShader);
-            } else {
-                m_surface->setShaderType(QPainterVideoSurface::FragmentProgramShader);
-            }
-        }
-#endif
-    }
-
-}
-
-void QRendererVideoWidgetBackend::formatChanged(const QVideoSurfaceFormat &format)
-{
-    m_nativeSize = format.sizeHint();
-
-    updateRects();
-
-    m_widget->updateGeometry();
-    m_widget->update();
-}
-
-void QRendererVideoWidgetBackend::frameChanged()
-{
-    m_widget->update(m_boundingRect);
-}
-
-void QRendererVideoWidgetBackend::updateRects()
-{
-    QRect rect = m_widget->rect();
-
-    if (m_nativeSize.isEmpty()) {
-        m_boundingRect = QRect();
-    } else if (m_aspectRatioMode == Qt::IgnoreAspectRatio) {
-        m_boundingRect = rect;
-        m_sourceRect = QRectF(0, 0, 1, 1);
-    } else if (m_aspectRatioMode == Qt::KeepAspectRatio) {
-        QSize size = m_nativeSize;
-        size.scale(rect.size(), Qt::KeepAspectRatio);
-
-        m_boundingRect = QRect(0, 0, size.width(), size.height());
-        m_boundingRect.moveCenter(rect.center());
-
-        m_sourceRect = QRectF(0, 0, 1, 1);
-    } else if (m_aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
-        m_boundingRect = rect;
-
-        QSizeF size = rect.size();
-        size.scale(m_nativeSize, Qt::KeepAspectRatio);
-
-        m_sourceRect = QRectF(
-                0, 0, size.width() / m_nativeSize.width(), size.height() / m_nativeSize.height());
-        m_sourceRect.moveCenter(QPointF(0.5, 0.5));
-    }
-}
-
-QWindowVideoWidgetBackend::QWindowVideoWidgetBackend(
-        QMediaService *service, QVideoWindowControl *control, QWidget *widget)
-    : m_service(service)
-    , m_windowControl(control)
-    , m_widget(widget)
-{
-    connect(control, SIGNAL(brightnessChanged(int)), m_widget, SLOT(_q_brightnessChanged(int)));
-    connect(control, SIGNAL(contrastChanged(int)), m_widget, SLOT(_q_contrastChanged(int)));
-    connect(control, SIGNAL(hueChanged(int)), m_widget, SLOT(_q_hueChanged(int)));
-    connect(control, SIGNAL(saturationChanged(int)), m_widget, SLOT(_q_saturationChanged(int)));
-    connect(control, SIGNAL(fullScreenChanged(bool)), m_widget, SLOT(_q_fullScreenChanged(bool)));
-    connect(control, SIGNAL(nativeSizeChanged()), m_widget, SLOT(_q_dimensionsChanged()));
-
-    control->setWinId(widget->winId());
-#if defined(Q_OS_WIN)
-    // Disable updates to avoid flickering while resizing/moving.
-    m_widget->setUpdatesEnabled(false);
-#endif
-}
-
-QWindowVideoWidgetBackend::~QWindowVideoWidgetBackend()
-{
-}
-
-void QWindowVideoWidgetBackend::releaseControl()
-{
-    m_service->releaseControl(m_windowControl);
-}
-
-void QWindowVideoWidgetBackend::setBrightness(int brightness)
-{
-    m_windowControl->setBrightness(brightness);
-}
-
-void QWindowVideoWidgetBackend::setContrast(int contrast)
-{
-    m_windowControl->setContrast(contrast);
-}
-
-void QWindowVideoWidgetBackend::setHue(int hue)
-{
-    m_windowControl->setHue(hue);
-}
-
-void QWindowVideoWidgetBackend::setSaturation(int saturation)
-{
-    m_windowControl->setSaturation(saturation);
-}
-
-void QWindowVideoWidgetBackend::setFullScreen(bool fullScreen)
-{
-    m_windowControl->setFullScreen(fullScreen);
-}
-
-Qt::AspectRatioMode QWindowVideoWidgetBackend::aspectRatioMode() const
-{
-    return m_windowControl->aspectRatioMode();
-}
-
-void QWindowVideoWidgetBackend::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    m_windowControl->setAspectRatioMode(mode);
-}
-
-QSize QWindowVideoWidgetBackend::sizeHint() const
-{
-    return m_windowControl->nativeSize();
-}
-
-void QWindowVideoWidgetBackend::updateDisplayRect()
-{
-    QRect rect = m_widget->rect();
-    if (QHighDpiScaling::isActive()) {
-        const qreal factor = QHighDpiScaling::factor(m_widget->windowHandle());
-        if (!qFuzzyCompare(factor, qreal(1))) {
-            rect = QRectF(QPointF(rect.topLeft()) * factor,
-                          QSizeF(rect.size()) * factor).toRect();
-        }
-    }
-    m_windowControl->setDisplayRect(rect);
-}
-
-void QWindowVideoWidgetBackend::showEvent()
-{
-    m_windowControl->setWinId(m_widget->winId());
-    updateDisplayRect();
-
-#if defined(Q_OS_WIN)
-    m_windowControl->repaint();
-#endif
-}
-
-void QWindowVideoWidgetBackend::hideEvent(QHideEvent *)
-{
-}
-
-void QWindowVideoWidgetBackend::moveEvent(QMoveEvent *)
-{
-    updateDisplayRect();
-}
-
-void QWindowVideoWidgetBackend::resizeEvent(QResizeEvent *)
-{
-    updateDisplayRect();
-}
-
-void QWindowVideoWidgetBackend::paintEvent(QPaintEvent *event)
-{
-    if (m_widget->testAttribute(Qt::WA_OpaquePaintEvent)) {
-        QPainter painter(m_widget);
-
-        painter.fillRect(event->rect(), m_widget->palette().window());
-    }
-
-    m_windowControl->repaint();
-
-    event->accept();
-}
-
-void QVideoWidgetPrivate::setCurrentControl(QVideoWidgetControlInterface *control)
-{
-    if (currentControl != control) {
-        currentControl = control;
-
-        currentControl->setBrightness(brightness);
-        currentControl->setContrast(contrast);
-        currentControl->setHue(hue);
-        currentControl->setSaturation(saturation);
-        currentControl->setAspectRatioMode(aspectRatioMode);
-    }
-}
-
-void QVideoWidgetPrivate::clearService()
-{
-    if (service) {
-        QObject::disconnect(service, SIGNAL(destroyed()), q_func(), SLOT(_q_serviceDestroyed()));
-
-        if (widgetBackend) {
-            QLayout *layout = q_func()->layout();
-
-            for (QLayoutItem *item = layout->takeAt(0); item; item = layout->takeAt(0)) {
-                item->widget()->setParent(0);
-                delete item;
-            }
-            delete layout;
-
-            widgetBackend->releaseControl();
-
-            delete widgetBackend;
-            widgetBackend = 0;
-        } else if (rendererBackend) {
-            rendererBackend->clearSurface();
-            rendererBackend->releaseControl();
-
-            delete rendererBackend;
-            rendererBackend = 0;
-        } else if (windowBackend) {
-            windowBackend->releaseControl();
-
-            delete windowBackend;
-            windowBackend = 0;
-        }
-
-        currentBackend = 0;
-        currentControl = 0;
-        service = 0;
-    }
-}
-
-bool QVideoWidgetPrivate::createWidgetBackend()
-{
-    if (QMediaControl *control = service->requestControl(QVideoWidgetControl_iid)) {
-        if (QVideoWidgetControl *widgetControl = qobject_cast<QVideoWidgetControl *>(control)) {
-            widgetBackend = new QVideoWidgetControlBackend(service, widgetControl, q_func());
-
-            setCurrentControl(widgetBackend);
-
-            return true;
-        }
-        service->releaseControl(control);
-    }
-    return false;
-}
-
-bool QVideoWidgetPrivate::createWindowBackend()
-{
-    if (QMediaControl *control = service->requestControl(QVideoWindowControl_iid)) {
-        if (QVideoWindowControl *windowControl = qobject_cast<QVideoWindowControl *>(control)) {
-            windowBackend = new QWindowVideoWidgetBackend(service, windowControl, q_func());
-            currentBackend = windowBackend;
-
-            setCurrentControl(windowBackend);
-
-            return true;
-        }
-        service->releaseControl(control);
-    }
-    return false;
-}
-
-bool QVideoWidgetPrivate::createRendererBackend()
-{
-    QMediaControl *control = service
-                           ? service->requestControl(QVideoRendererControl_iid)
-                           : nullptr;
-    rendererBackend = new QRendererVideoWidgetBackend(service,
-        qobject_cast<QVideoRendererControl *>(control), q_func());
-    currentBackend = rendererBackend;
-    setCurrentControl(rendererBackend);
-
-    return !service || (service && control);
-}
-
-void QVideoWidgetPrivate::_q_serviceDestroyed()
-{
-    if (widgetBackend)
-        delete q_func()->layout();
-
-    delete widgetBackend;
-    delete windowBackend;
-    delete rendererBackend;
-
-    widgetBackend = 0;
-    windowBackend = 0;
-    rendererBackend = 0;
-    currentControl = 0;
-    currentBackend = 0;
-    service = 0;
-}
-
-void QVideoWidgetPrivate::_q_brightnessChanged(int b)
-{
-    if (b != brightness)
-        emit q_func()->brightnessChanged(brightness = b);
-}
-
-void QVideoWidgetPrivate::_q_contrastChanged(int c)
-{
-    if (c != contrast)
-        emit q_func()->contrastChanged(contrast = c);
-}
-
-void QVideoWidgetPrivate::_q_hueChanged(int h)
-{
-    if (h != hue)
-        emit q_func()->hueChanged(hue = h);
-}
-
-void QVideoWidgetPrivate::_q_saturationChanged(int s)
-{
-    if (s != saturation)
-        emit q_func()->saturationChanged(saturation = s);
-}
-
-
-void QVideoWidgetPrivate::_q_fullScreenChanged(bool fullScreen)
-{
-    if (!fullScreen && q_func()->isFullScreen())
-        q_func()->showNormal();
-}
 
 void QVideoWidgetPrivate::_q_dimensionsChanged()
 {
     q_func()->updateGeometry();
     q_func()->update();
+}
+
+void QVideoWidgetPrivate::_q_newFrame(const QVideoFrame &frame)
+{
+    lastFrame = frame;
+    q_ptr->update();
 }
 
 /*!
@@ -596,17 +86,15 @@ void QVideoWidgetPrivate::_q_dimensionsChanged()
     \ingroup multimedia
     \inmodule QtMultimediaWidgets
 
-    Attaching a QVideoWidget to a QMediaObject allows it to display the
-    video or image output of that media object.  A QVideoWidget is attached
-    to media object by passing a pointer to the QMediaObject in its
-    constructor, and detached by destroying the QVideoWidget.
+    Attaching a QVideoWidget to a QMediaPlayer or QCamera allows it to display the
+    video or image output of that object.
 
     \snippet multimedia-snippets/video.cpp Video widget
 
     \b {Note}: Only a single display output can be attached to a media
     object at one time.
 
-    \sa QMediaObject, QMediaPlayer, QGraphicsVideoItem
+    \sa QCamera, QMediaPlayer, QGraphicsVideoItem
 */
 
 /*!
@@ -619,20 +107,15 @@ QVideoWidget::QVideoWidget(QWidget *parent)
     , d_ptr(new QVideoWidgetPrivate)
 {
     d_ptr->q_ptr = this;
-}
+    d_ptr->videoSink = new QVideoSink(this);
+    d_ptr->videoSink->setTargetRect(rect());
 
-/*!
-  \internal
-*/
-QVideoWidget::QVideoWidget(QVideoWidgetPrivate &dd, QWidget *parent)
-    : QWidget(parent, {})
-    , d_ptr(&dd)
-{
-    d_ptr->q_ptr = this;
-
-    QPalette palette = QWidget::palette();
-    palette.setColor(QPalette::Window, Qt::black);
-    setPalette(palette);
+    d_ptr->videoSink->setNativeWindowId(winId());
+    connect(d_ptr->videoSink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_newFrame(const QVideoFrame &)));
+    connect(d_ptr->videoSink, &QVideoSink::brightnessChanged, this, &QVideoWidget::brightnessChanged);
+    connect(d_ptr->videoSink, &QVideoSink::contrastChanged, this, &QVideoWidget::contrastChanged);
+    connect(d_ptr->videoSink, &QVideoSink::hueChanged, this, &QVideoWidget::hueChanged);
+    connect(d_ptr->videoSink, &QVideoSink::saturationChanged, this, &QVideoWidget::saturationChanged);
 }
 
 /*!
@@ -640,86 +123,12 @@ QVideoWidget::QVideoWidget(QVideoWidgetPrivate &dd, QWidget *parent)
 */
 QVideoWidget::~QVideoWidget()
 {
-    d_ptr->clearService();
-
     delete d_ptr;
 }
 
-/*!
-    \property QVideoWidget::mediaObject
-    \brief the media object which provides the video displayed by a widget.
-*/
-
-QMediaObject *QVideoWidget::mediaObject() const
+QVideoSink *QVideoWidget::videoSink() const
 {
-    return d_func()->mediaObject;
-}
-
-/*!
-    \internal
-*/
-bool QVideoWidget::setMediaObject(QMediaObject *object)
-{
-    Q_D(QVideoWidget);
-
-    if (object == d->mediaObject)
-        return true;
-
-    d->clearService();
-
-    d->mediaObject = object;
-
-    if (d->mediaObject)
-        d->service = d->mediaObject->service();
-
-    if (d->service) {
-        if (d->createWidgetBackend()) {
-            // Nothing to do here.
-        } else if ((!window() || !window()->testAttribute(Qt::WA_DontShowOnScreen))
-                && d->createWindowBackend()) {
-            if (isVisible())
-                d->windowBackend->showEvent();
-        } else if (d->createRendererBackend()) {
-            if (isVisible())
-                d->rendererBackend->showEvent();
-        } else {
-            d->service = 0;
-            d->mediaObject = 0;
-
-            return false;
-        }
-
-        connect(d->service, SIGNAL(destroyed()), SLOT(_q_serviceDestroyed()));
-    } else {
-        d->mediaObject = 0;
-
-        return false;
-    }
-
-    return true;
-}
-
-/*!
-    \since 5.15
-    \property QVideoWidget::videoSurface
-    \brief Returns the underlaying video surface that can render video frames
-    to the current widget.
-    This property is never \c nullptr.
-    Example of how to render video frames to QVideoWidget:
-    \snippet multimedia-snippets/video.cpp Widget Surface
-    \sa QMediaPlayer::setVideoOutput
-*/
-
-QAbstractVideoSurface *QVideoWidget::videoSurface() const
-{
-    auto d = const_cast<QVideoWidgetPrivate *>(d_func());
-
-    if (!d->rendererBackend) {
-        d->clearService();
-        d->createRendererBackend();
-    }
-
-    return d->rendererBackend->videoSurface();
+    return d_ptr->videoSink;
 }
 
 /*!
@@ -736,12 +145,11 @@ void QVideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     Q_D(QVideoWidget);
 
-    if (d->currentControl) {
-        d->currentControl->setAspectRatioMode(mode);
-        d->aspectRatioMode = d->currentControl->aspectRatioMode();
-    } else {
-        d->aspectRatioMode = mode;
-    }
+    if (mode == d->aspectRatioMode)
+        return;
+    d->aspectRatioMode = mode;
+    d->videoSink->setAspectRatioMode(mode);
+    emit aspectRatioModeChanged(mode);
 }
 
 /*!
@@ -769,6 +177,8 @@ void QVideoWidget::setFullScreen(bool fullScreen)
 
         showNormal();
     }
+    d->wasFullScreen = fullScreen;
+    d->videoSink->setFullScreen(fullScreen);
 }
 
 /*!
@@ -783,28 +193,29 @@ void QVideoWidget::setFullScreen(bool fullScreen)
     \property QVideoWidget::brightness
     \brief an adjustment to the brightness of displayed video.
 
-    Valid brightness values range between -100 and 100, the default is 0.
+    Valid brightness values range between -1. and 1., the default is 0.
 */
 
-int QVideoWidget::brightness() const
+float QVideoWidget::brightness() const
 {
-    return d_func()->brightness;
+    return d_func()->videoSink->brightness();
 }
 
-void QVideoWidget::setBrightness(int brightness)
+void QVideoWidget::setBrightness(float brightness)
 {
     Q_D(QVideoWidget);
+    d->videoSink->setBrightness(brightness);
+    float boundedBrightness = qBound(-1., brightness, 1.);
 
-    int boundedBrightness = qBound(-100, brightness, 100);
+    if (boundedBrightness == d->videoSink->brightness())
+        return;
 
-    if (d->currentControl)
-        d->currentControl->setBrightness(boundedBrightness);
-    else if (d->brightness != boundedBrightness)
-        emit brightnessChanged(d->brightness = boundedBrightness);
+    d->videoSink->setBrightness(boundedBrightness);
+    emit brightnessChanged(boundedBrightness);
 }
 
 /*!
-    \fn QVideoWidget::brightnessChanged(int brightness)
+    \fn QVideoWidget::brightnessChanged(float brightness)
 
     Signals that a video widgets's \a brightness adjustment has changed.
 
@@ -815,29 +226,23 @@ void QVideoWidget::setBrightness(int brightness)
     \property QVideoWidget::contrast
     \brief an adjustment to the contrast of displayed video.
 
-    Valid contrast values range between -100 and 100, the default is 0.
+    Valid contrast values range between -1. and 1., the default is 0.
 
 */
 
-int QVideoWidget::contrast() const
+float QVideoWidget::contrast() const
 {
-    return d_func()->contrast;
+    return d_func()->videoSink->contrast();
 }
 
-void QVideoWidget::setContrast(int contrast)
+void QVideoWidget::setContrast(float contrast)
 {
     Q_D(QVideoWidget);
-
-    int boundedContrast = qBound(-100, contrast, 100);
-
-    if (d->currentControl)
-        d->currentControl->setContrast(boundedContrast);
-    else if (d->contrast != boundedContrast)
-        emit contrastChanged(d->contrast = boundedContrast);
+    d->videoSink->setContrast(contrast);
 }
 
 /*!
-    \fn QVideoWidget::contrastChanged(int contrast)
+    \fn QVideoWidget::contrastChanged(float contrast)
 
     Signals that a video widgets's \a contrast adjustment has changed.
 
@@ -848,28 +253,22 @@ void QVideoWidget::setContrast(int contrast)
     \property QVideoWidget::hue
     \brief an adjustment to the hue of displayed video.
 
-    Valid hue values range between -100 and 100, the default is 0.
+    Valid hue values range between -1. and 1., the default is 0.
 */
 
-int QVideoWidget::hue() const
+float QVideoWidget::hue() const
 {
-    return d_func()->hue;
+    return d_func()->videoSink->hue();
 }
 
-void QVideoWidget::setHue(int hue)
+void QVideoWidget::setHue(float hue)
 {
     Q_D(QVideoWidget);
-
-    int boundedHue = qBound(-100, hue, 100);
-
-    if (d->currentControl)
-        d->currentControl->setHue(boundedHue);
-    else if (d->hue != boundedHue)
-        emit hueChanged(d->hue = boundedHue);
+    d->videoSink->setHue(hue);
 }
 
 /*!
-    \fn QVideoWidget::hueChanged(int hue)
+    \fn QVideoWidget::hueChanged(float hue)
 
     Signals that a video widgets's \a hue has changed.
 
@@ -880,29 +279,22 @@ void QVideoWidget::setHue(int hue)
     \property QVideoWidget::saturation
     \brief an adjustment to the saturation of displayed video.
 
-    Valid saturation values range between -100 and 100, the default is 0.
+    Valid saturation values range between -1. and 1., the default is 0.
 */
 
-int QVideoWidget::saturation() const
+float QVideoWidget::saturation() const
 {
-    return d_func()->saturation;
+    return d_func()->videoSink->saturation();
 }
 
-void QVideoWidget::setSaturation(int saturation)
+void QVideoWidget::setSaturation(float saturation)
 {
     Q_D(QVideoWidget);
-
-    int boundedSaturation = qBound(-100, saturation, 100);
-
-    if (d->currentControl)
-        d->currentControl->setSaturation(boundedSaturation);
-    else if (d->saturation != boundedSaturation)
-        emit saturationChanged(d->saturation = boundedSaturation);
-
+    d->videoSink->setSaturation(saturation);
 }
 
 /*!
-    \fn QVideoWidget::saturationChanged(int saturation)
+    \fn QVideoWidget::saturationChanged(float saturation)
 
     Signals that a video widgets's \a saturation has changed.
 
@@ -917,12 +309,13 @@ QSize QVideoWidget::sizeHint() const
 {
     Q_D(const QVideoWidget);
 
-    if (d->currentBackend)
-        return d->currentBackend->sizeHint();
-    else
-        return QWidget::sizeHint();
+    if (d->videoSink) {
+        auto size = d->videoSink->videoSize();
+        if (size.isValid())
+            return size;
+    }
 
-
+    return QWidget::sizeHint();
 }
 
 /*!
@@ -936,19 +329,19 @@ bool QVideoWidget::event(QEvent *event)
 
     if (event->type() == QEvent::WindowStateChange) {
         if (windowState() & Qt::WindowFullScreen) {
-            if (d->currentControl)
-                d->currentControl->setFullScreen(true);
+            d->videoSink->setFullScreen(true);
+            d->videoSink->setTargetRect(QRectF(0, 0, window()->width(), window()->height()));
 
             if (!d->wasFullScreen)
                 emit fullScreenChanged(d->wasFullScreen = true);
         } else {
-            if (d->currentControl)
-                d->currentControl->setFullScreen(false);
+            d->videoSink->setFullScreen(false);
 
             if (d->wasFullScreen)
                 emit fullScreenChanged(d->wasFullScreen = false);
         }
     }
+
     return QWidget::event(event);
 }
 
@@ -958,22 +351,7 @@ bool QVideoWidget::event(QEvent *event)
  */
 void QVideoWidget::showEvent(QShowEvent *event)
 {
-    Q_D(QVideoWidget);
-
     QWidget::showEvent(event);
-
-    // The window backend won't work for re-directed windows so use the renderer backend instead.
-    if (d->windowBackend && window()->testAttribute(Qt::WA_DontShowOnScreen)) {
-        d->windowBackend->releaseControl();
-
-        delete d->windowBackend;
-        d->windowBackend = 0;
-
-        d->createRendererBackend();
-    }
-
-    if (d->currentBackend)
-        d->currentBackend->showEvent();
 }
 
 /*!
@@ -982,11 +360,7 @@ void QVideoWidget::showEvent(QShowEvent *event)
 */
 void QVideoWidget::hideEvent(QHideEvent *event)
 {
-    Q_D(QVideoWidget);
-
-    if (d->currentBackend)
-        d->currentBackend->hideEvent(event);
-
+    // ### maybe suspend video decoding???
     QWidget::hideEvent(event);
 }
 
@@ -996,24 +370,16 @@ void QVideoWidget::hideEvent(QHideEvent *event)
  */
 void QVideoWidget::resizeEvent(QResizeEvent *event)
 {
-    Q_D(QVideoWidget);
-
+    d_ptr->videoSink->setTargetRect(QRectF(0, 0, event->size().width(), event->size().height()));
     QWidget::resizeEvent(event);
-
-    if (d->currentBackend)
-        d->currentBackend->resizeEvent(event);
 }
 
 /*!
   \reimp
   Handles the move \a event.
  */
-void QVideoWidget::moveEvent(QMoveEvent *event)
+void QVideoWidget::moveEvent(QMoveEvent */*event*/)
 {
-    Q_D(QVideoWidget);
-
-    if (d->currentBackend)
-        d->currentBackend->moveEvent(event);
 }
 
 /*!
@@ -1024,12 +390,13 @@ void QVideoWidget::paintEvent(QPaintEvent *event)
 {
     Q_D(QVideoWidget);
 
-    if (d->currentBackend) {
-        d->currentBackend->paintEvent(event);
+    if (d->videoSink && d->lastFrame.isValid()) {
+        QPainter painter(this);
+        d->videoSink->paint(&painter, d->lastFrame);
+        return;
     } else if (testAttribute(Qt::WA_OpaquePaintEvent)) {
         QPainter painter(this);
-
-        painter.fillRect(event->rect(), palette().window());
+        painter.fillRect(event->rect(), Qt::black);
     }
 }
 
@@ -1042,8 +409,8 @@ bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, qintp
 
     MSG *mes = reinterpret_cast<MSG *>(message);
     if (mes->message == WM_PAINT || mes->message == WM_ERASEBKGND) {
-        if (d->windowBackend)
-            d->windowBackend->showEvent();
+//        if (d->windowBackend)
+//            d->windowBackend->showEvent();
     }
 
     return false;
@@ -1053,4 +420,3 @@ bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, qintp
 QT_END_NAMESPACE
 
 #include "moc_qvideowidget.cpp"
-#include "moc_qvideowidget_p.cpp"

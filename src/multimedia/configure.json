@@ -10,9 +10,8 @@
         "options": {
             "alsa": "boolean",
             "evr": { "type": "boolean" },
-            "directshow": { "type": "boolean" },
             "wmf": { "type": "boolean" },
-            "gstreamer": { "type": "optionalString", "values": [ "no", "yes", "0.10", "1.0" ] },
+            "gstreamer": { "type": "optionalString", "values": [ "no", "yes" ] },
             "pulseaudio": "boolean"
         }
     },
@@ -32,22 +31,6 @@
                 { "libs": "-framework AVFoundation -framework Foundation" }
             ]
         },
-        "directshow": {
-            "label": "DirectShow",
-            "test": "directshow",
-            "sources": [
-                { "libs": "-lstrmiids -ldmoguids -luuid -lmsdmo -lole32 -loleaut32" }
-            ]
-        },
-        "gstreamer_0_10": {
-            "label": "GStreamer 0.10",
-            "export": "gstreamer",
-            "test": "gstreamer",
-            "sources": [
-                { "type": "pkgConfig",
-                  "args": "gstreamer-0.10 gstreamer-base-0.10 gstreamer-audio-0.10 gstreamer-video-0.10 gstreamer-pbutils-0.10 gstreamer-interfaces-0.10" }
-            ]
-        },
         "gstreamer_1_0": {
             "label": "GStreamer 1.0",
             "export": "gstreamer",
@@ -60,15 +43,6 @@
                 { "libs": "", "condition": "config.android && input.gstreamer != ''" }
             ]
         },
-        "gstreamer_app_0_10": {
-            "label": "GStreamer App 0.10",
-            "export": "gstreamer_app",
-            "test": "gstreamer_appsrc",
-            "use": "gstreamer_0_10",
-            "sources": [
-                { "type": "pkgConfig", "args": "gstreamer-app-0.10" }
-            ]
-        },
         "gstreamer_app_1_0": {
             "label": "GStreamer App 1.0",
             "export": "gstreamer_app",
@@ -78,15 +52,6 @@
                 { "type": "pkgConfig", "args": "gstreamer-app-1.0" },
                 { "libs": "-lgstapp-1.0", "condition": "config.win32 || config.macos" },
                 { "libs": "", "condition": "config.android && input.gstreamer != ''" }
-            ]
-        },
-        "gstreamer_photography_0_10": {
-            "label": "GStreamer Photography 0.10",
-            "export": "gstreamer_photography",
-            "test": "gstreamer_photography",
-            "use": "gstreamer_0_10",
-            "sources": [
-                { "libs": "-lgstphotography-0.10" }
             ]
         },
         "gstreamer_photography_1_0": {
@@ -107,13 +72,6 @@
             "use": "gstreamer_1_0",
             "sources": [
                 { "type": "pkgConfig", "args": "gstreamer-gl-1.0" }
-            ]
-        },
-        "libresourceqt5": {
-            "label": "libresourceqt5",
-            "test": "resourcepolicy",
-            "sources": [
-                { "type": "pkgConfig", "args": "libresourceqt5" }
             ]
         },
         "mmrenderer": {
@@ -145,12 +103,6 @@
             "type": "compile",
             "test": "evr"
         },
-        "gstreamer_encodingprofiles": {
-            "label": "GStreamer encoding-profile.h",
-            "type": "compile",
-            "use": "gstreamer",
-            "test": "gstreamer_encodingprofiles"
-        },
         "gpu_vivante": {
             "label": "Vivante GPU",
             "type": "compile",
@@ -165,29 +117,18 @@
             "label": "wmsdk.h",
             "type": "compile",
             "test": "wmsdk"
-        },
-        "wshellitem": {
-            "label": "WShellItem",
-            "type": "compile",
-            "test": "wshellitem"
         }
     },
 
     "features": {
         "alsa": {
             "label": "ALSA",
-            "condition": "config.unix && !config.qnx && libs.alsa",
+            "condition": "config.unix && !config.qnx && libs.alsa && !features.gstreamer && !features.pulseaudio",
             "output": [ "feature", "privateFeature" ]
         },
         "avfoundation": {
             "label": "AVFoundation",
-            "emitIf": "config.darwin",
             "condition": "libs.avfoundation",
-            "output": [ "feature", "privateFeature" ]
-        },
-        "directshow": {
-            "label": "DirectShow",
-            "condition": "config.win32 && libs.directshow",
             "output": [ "feature", "privateFeature" ]
         },
         "evr": {
@@ -195,37 +136,25 @@
             "condition": "config.win32 && tests.evr",
             "output": [ "feature", "privateFeature" ]
         },
-        "gstreamer_0_10": {
-            "label": "GStreamer 0.10",
-            "disable": "input.gstreamer == '1.0' || input.gstreamer == 'no'",
-            "enable": "input.gstreamer == '0.10'",
-            "condition": "!features.gstreamer_1_0 && libs.gstreamer_0_10",
-            "output": [ "privateFeature" ]
-        },
         "gstreamer_1_0": {
             "label": "GStreamer 1.0",
-            "disable": "input.gstreamer == '0.10' || input.gstreamer == 'no'",
-            "enable": "input.gstreamer == '1.0'",
+            "disable": "input.gstreamer == 'no'",
+            "enable": "input.gstreamer == 'yes'",
             "condition": "libs.gstreamer_1_0",
             "output": [ "privateFeature" ]
         },
         "gstreamer": {
-            "condition": "features.gstreamer_1_0 || features.gstreamer_0_10",
+            "condition": "features.gstreamer_1_0",
             "output": [ "privateFeature" ]
         },
         "gstreamer_app": {
             "label": "GStreamer App",
-            "condition": "(features.gstreamer_1_0 && libs.gstreamer_app_1_0) || (features.gstreamer_0_10 && libs.gstreamer_app_0_10)",
-            "output": [ "privateFeature" ]
-        },
-        "gstreamer_encodingprofiles": {
-            "label": "GStreamer encoding-profile.h",
-            "condition": "features.gstreamer && tests.gstreamer_encodingprofiles",
+            "condition": "(features.gstreamer_1_0 && libs.gstreamer_app_1_0)",
             "output": [ "privateFeature" ]
         },
         "gstreamer_photography": {
             "label": "GStreamer Photography",
-            "condition": "(features.gstreamer_1_0 && libs.gstreamer_photography_1_0) || (features.gstreamer_0_10 && libs.gstreamer_photography_0_10)",
+            "condition": "(features.gstreamer_1_0 && libs.gstreamer_photography_1_0)",
             "output": [ "privateFeature" ]
         },
         "gstreamer_gl": {
@@ -236,11 +165,6 @@
         "gpu_vivante": {
             "label": "Vivante GPU",
             "condition": "features.gui && features.opengles2 && tests.gpu_vivante",
-            "output": [ "privateFeature" ]
-        },
-        "resourcepolicy": {
-            "label": "Resource Policy (libresourceqt5)",
-            "condition": "libs.libresourceqt5",
             "output": [ "privateFeature" ]
         },
         "linux_v4l": {
@@ -257,18 +181,13 @@
         "pulseaudio": {
             "label": "PulseAudio",
             "autoDetect": "config.unix",
-            "condition": "libs.pulseaudio",
+            "condition": "libs.pulseaudio && !features.gstreamer",
             "output": [ "feature", "privateFeature" ]
         },
         "wmsdk": {
             "label": "wmsdk.h",
             "condition": "config.win32 && tests.wmsdk",
             "output": [ "privateFeature" ]
-        },
-        "wshellitem": {
-            "label": "WShellItem",
-            "condition": "config.win32 && features.directshow && tests.wshellitem",
-            "output": [ "feature", "privateFeature" ]
         },
         "wmf": {
             "label": "Windows Media Foundation",
@@ -286,13 +205,10 @@
             "entries": [
                 "alsa",
                 "gstreamer_1_0",
-                "gstreamer_0_10",
                 "linux_v4l",
                 "pulseaudio",
-                "resourcepolicy",
                 "mmrenderer",
                 "avfoundation",
-                "directshow",
                 "wmf"
             ]
         }

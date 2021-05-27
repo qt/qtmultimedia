@@ -75,7 +75,7 @@ private:
 
     int mWidth;
     int mHeight;
-    QVideoFrame::PixelFormat mFormat;
+    QVideoFrameFormat::PixelFormat mFormat;
 
     QMap<const uchar*, GLuint> mBitsToTextureMap;
     QVideoFrame mCurrentFrame;

@@ -1,7 +1,7 @@
 Qt 5.13.2 is a bug-fix release. It maintains both forward and backward
 source compatibility with Qt 5.13.0 through 5.13.1.
 In Qt 5.13.0, binary compatibility was broken due to the usage of the enum
-QVideoFrame::PixelFormat, the break has been reverted,
+QVideoSurfaceFormat::PixelFormat, the break has been reverted,
 thus introducing a binary compatibility break with earlier Qt 5.13.0 and 5.13.1.
 
 For more details, refer to the online documentation included in this
@@ -25,8 +25,8 @@ information about a particular change.
 ****************************************************************************
 
  - In Qt 5.13.0 binary compatibility was broken
-   for usage of the enum QVideoFrame::PixelFormat by introducing
-   QVideoFrame::Format_ABGR32.
+   for usage of the enum QVideoSurfaceFormat::PixelFormat by introducing
+   QVideoSurfaceFormat::Format_ABGR32.
    To minimize the impact of this, the break has been reverted,
    thus introducing a binary compatibility break with earlier Qt 5.13.x
    versions, but restoring compatibility with all earlier versions of Qt 5.

@@ -74,7 +74,7 @@ SpectrumAnalyserThread::SpectrumAnalyserThread(QObject *parent)
 {
 #ifdef SPECTRUM_ANALYSER_SEPARATE_THREAD
     // moveToThread() cannot be called on a QObject with a parent
-    setParent(0);
+    setParent(nullptr);
     moveToThread(m_thread);
     m_thread->start();
 #endif
@@ -116,10 +116,10 @@ void SpectrumAnalyserThread::calculateWindow()
 
 void SpectrumAnalyserThread::calculateSpectrum(const QByteArray &buffer,
                                                 int inputFrequency,
-                                                int bytesPerSample)
+                                                int bytesPerFrame)
 {
 #ifndef DISABLE_FFT
-    Q_ASSERT(buffer.size() == m_numSamples * bytesPerSample);
+    Q_ASSERT(buffer.size() == m_numSamples * bytesPerFrame);
 
     // Initialize data array
     const char *ptr = buffer.constData();
@@ -129,7 +129,7 @@ void SpectrumAnalyserThread::calculateSpectrum(const QByteArray &buffer,
         const DataType realSample = pcmToReal(pcmSample);
         const DataType windowedSample = realSample * m_window[i];
         m_input[i] = windowedSample;
-        ptr += bytesPerSample;
+        ptr += bytesPerFrame;
     }
 
     // Calculate the FFT
@@ -176,10 +176,7 @@ SpectrumAnalyser::SpectrumAnalyser(QObject *parent)
             this, &SpectrumAnalyser::calculationComplete);
 }
 
-SpectrumAnalyser::~SpectrumAnalyser()
-{
-
-}
+SpectrumAnalyser::~SpectrumAnalyser() = default;
 
 #ifdef DUMP_SPECTRUMANALYSER
 void SpectrumAnalyser::setOutputPath(const QString &outputDir)
@@ -214,16 +211,16 @@ void SpectrumAnalyser::calculate(const QByteArray &buffer,
                            << "state" << m_state;
 
     if (isReady()) {
-        Q_ASSERT(isPCMS16LE(format));
+        Q_ASSERT(format.sampleFormat() == QAudioFormat::Int16);
 
-        const int bytesPerSample = format.sampleSize() * format.channelCount() / 8;
+        const int bytesPerFrame = format.bytesPerFrame();
 
 #ifdef DUMP_SPECTRUMANALYSER
         m_count++;
         const QString pcmFileName = m_outputDir.filePath(QString("spectrum_%1.pcm").arg(m_count, 4, 10, QChar('0')));
         QFile pcmFile(pcmFileName);
         pcmFile.open(QIODevice::WriteOnly);
-        const int bufferLength = m_numSamples * bytesPerSample;
+        const int bufferLength = m_numSamples * bytesPerFrame;
         pcmFile.write(buffer, bufferLength);
 
         m_textStream << "TimeDomain " << m_count << "\n";
@@ -245,7 +242,7 @@ void SpectrumAnalyser::calculate(const QByteArray &buffer,
                                   Qt::AutoConnection,
                                   Q_ARG(QByteArray, buffer),
                                   Q_ARG(int, format.sampleRate()),
-                                  Q_ARG(int, bytesPerSample));
+                                  Q_ARG(int, bytesPerFrame));
         Q_ASSERT(b);
         Q_UNUSED(b); // suppress warnings in release builds
 

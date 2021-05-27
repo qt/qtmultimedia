@@ -37,15 +37,57 @@
 **
 ****************************************************************************/
 
-#include "qcamerainfo.h"
+#include "qcamerainfo_p.h"
 
 #include "qcamera_p.h"
-#include "qmediaserviceprovider_p.h"
-
-#include <qvideodeviceselectorcontrol.h>
-#include <qcamerainfocontrol.h>
 
 QT_BEGIN_NAMESPACE
+
+QCameraFormat::QCameraFormat() noexcept = default;
+
+QCameraFormat::QCameraFormat(const QCameraFormat &other) noexcept = default;
+
+QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other) noexcept = default;
+
+QCameraFormat::~QCameraFormat() = default;
+
+QVideoFrameFormat::PixelFormat QCameraFormat::pixelFormat() const noexcept
+{
+    return d ? d->pixelFormat : QVideoFrameFormat::Format_Invalid;
+}
+
+QSize QCameraFormat::resolution() const noexcept
+{
+    return d ? d->resolution : QSize();
+}
+
+float QCameraFormat::minFrameRate() const noexcept
+{
+    return d ? d->minFrameRate : 0;
+}
+
+float QCameraFormat::maxFrameRate() const noexcept
+{
+    return d ? d->maxFrameRate : 0;
+}
+
+
+QCameraFormat::QCameraFormat(QCameraFormatPrivate *p)
+    : d(p)
+{
+}
+
+bool QCameraFormat::operator==(const QCameraFormat &other) const
+{
+    if (d == other.d)
+        return true;
+    if (!d || !other.d)
+        return false;
+    return d->pixelFormat == other.d->pixelFormat &&
+           d->minFrameRate == other.d->minFrameRate &&
+           d->maxFrameRate == other.d->maxFrameRate &&
+           d->resolution == other.d->resolution;
+}
 
 /*!
     \class QCameraInfo
@@ -77,81 +119,17 @@ QT_BEGIN_NAMESPACE
     \sa QCamera
 */
 
-class QCameraInfoPrivate
-{
-public:
-    QCameraInfoPrivate() : isNull(true), position(QCamera::UnspecifiedPosition), orientation(0)
-    { }
-
-    bool isNull;
-    QString deviceName;
-    QString description;
-    QCamera::Position position;
-    int orientation;
-};
-
-/*!
-    Constructs a camera info object for \a camera.
-
-    You can use it to query information about the \a camera object passed as argument.
-
-    If the \a camera is invalid, for example when no camera device is available on the system,
-    the QCameraInfo object will be invalid and isNull() will return true.
-*/
-QCameraInfo::QCameraInfo(const QCamera &camera)
-    : d(new QCameraInfoPrivate)
-{
-    const QVideoDeviceSelectorControl *deviceControl = camera.d_func()->deviceControl;
-    if (deviceControl && deviceControl->deviceCount() > 0) {
-        const int selectedDevice = deviceControl->selectedDevice();
-        d->deviceName = deviceControl->deviceName(selectedDevice);
-        d->description = deviceControl->deviceDescription(selectedDevice);
-        d->isNull = false;
-    }
-
-    const QCameraInfoControl *infoControl = camera.d_func()->infoControl;
-    if (infoControl) {
-        d->position = infoControl->cameraPosition(d->deviceName);
-        d->orientation = infoControl->cameraOrientation(d->deviceName);
-        d->isNull = false;
-    }
-}
-
-/*!
-    Constructs a camera info object from a camera device \a name.
-
-    If no such device exists, the QCameraInfo object will be invalid and isNull() will return true.
-*/
-QCameraInfo::QCameraInfo(const QByteArray &name)
-    : d(new QCameraInfoPrivate)
-{
-    if (!name.isNull()) {
-        QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
-        const QByteArray service(Q_MEDIASERVICE_CAMERA);
-        if (provider->devices(service).contains(name)) {
-            d->deviceName = QString::fromLatin1(name);
-            d->description = provider->deviceDescription(service, name);
-            d->position = provider->cameraPosition(name);
-            d->orientation = provider->cameraOrientation(name);
-            d->isNull = false;
-        }
-    }
-}
+QCameraInfo::QCameraInfo() = default;
 
 /*!
     Constructs a copy of \a other.
 */
-QCameraInfo::QCameraInfo(const QCameraInfo &other)
-    : d(other.d)
-{
-}
+QCameraInfo::QCameraInfo(const QCameraInfo &other) = default;
 
 /*!
     Destroys the QCameraInfo.
 */
-QCameraInfo::~QCameraInfo()
-{
-}
+QCameraInfo::~QCameraInfo() = default;
 
 /*!
     Returns true if this QCameraInfo is equal to \a other.
@@ -161,10 +139,12 @@ bool QCameraInfo::operator==(const QCameraInfo &other) const
     if (d == other.d)
         return true;
 
-    return (d->deviceName == other.d->deviceName
+    if (!d || ! other.d)
+        return false;
+
+    return (d->id == other.d->id
             && d->description == other.d->description
-            && d->position == other.d->position
-            && d->orientation == other.d->orientation);
+            && d->position == other.d->position);
 }
 
 /*!
@@ -172,17 +152,22 @@ bool QCameraInfo::operator==(const QCameraInfo &other) const
 */
 bool QCameraInfo::isNull() const
 {
-    return d->isNull;
+    return !d;
 }
 
 /*!
-    Returns the device name of the camera
+    Returns the device id of the camera
 
     This is a unique ID to identify the camera and may not be human-readable.
 */
-QString QCameraInfo::deviceName() const
+QByteArray QCameraInfo::id() const
 {
-    return d->deviceName;
+    return d ? d->id : QByteArray();
+}
+
+bool QCameraInfo::isDefault() const
+{
+    return d ? d->isDefault : false;
 }
 
 /*!
@@ -190,81 +175,38 @@ QString QCameraInfo::deviceName() const
 */
 QString QCameraInfo::description() const
 {
-    return d->description;
+    return d ? d->description : QString();
 }
 
 /*!
     Returns the physical position of the camera on the hardware system.
 */
-QCamera::Position QCameraInfo::position() const
+QCameraInfo::Position QCameraInfo::position() const
 {
-    return d->position;
+    return d ? d->position : QCameraInfo::UnspecifiedPosition;
+}
+
+QList<QSize> QCameraInfo::photoResolutions() const
+{
+    return d->photoResolutions;
 }
 
 /*!
-    Returns the physical orientation of the camera sensor.
-
-    The value is the orientation angle (clockwise, in steps of 90 degrees) of the camera sensor
-    in relation to the display in its natural orientation.
-
-    You can show the camera image in the correct orientation by rotating it by this value in the
-    anti-clockwise direction.
-
-    For example, suppose a mobile device which is naturally in portrait orientation. The back-facing
-    camera is mounted in landscape. If the top side of the camera sensor is aligned with the
-    right edge of the screen in natural orientation, the value should be 270. If the top side of a
-    front-facing camera sensor is aligned with the right of the screen, the value should be 90.
+    Returns the video formats supported by the camera.
 */
-int QCameraInfo::orientation() const
+QList<QCameraFormat> QCameraInfo::videoFormats() const
 {
-    return d->orientation;
+    return d ? d->videoFormats : QList<QCameraFormat>{};
 }
 
-/*!
-    Returns the default camera on the system.
-
-    The returned object should be checked using isNull() before being used, in case there is no
-    default camera or no cameras at all.
-
-    \sa availableCameras()
-*/
-QCameraInfo QCameraInfo::defaultCamera()
-{
-    return QCameraInfo(QMediaServiceProvider::defaultServiceProvider()->defaultDevice(Q_MEDIASERVICE_CAMERA));
-}
-
-/*!
-    Returns a list of available cameras on the system which are located at \a position.
-
-    If \a position is not specified or if the value is QCamera::UnspecifiedPosition, a list of
-    all available cameras will be returned.
-*/
-QList<QCameraInfo> QCameraInfo::availableCameras(QCamera::Position position)
-{
-    QList<QCameraInfo> cameras;
-
-    const QMediaServiceProvider *provider = QMediaServiceProvider::defaultServiceProvider();
-    const QByteArray service(Q_MEDIASERVICE_CAMERA);
-    const QList<QByteArray> devices = provider->devices(service);
-    for (int i = 0; i < devices.count(); ++i) {
-        const QByteArray &name = devices.at(i);
-        if (position == QCamera::UnspecifiedPosition
-                || position == provider->cameraPosition(name)) {
-            cameras.append(QCameraInfo(name));
-        }
-    }
-
-    return cameras;
-}
+QCameraInfo::QCameraInfo(QCameraInfoPrivate *p)
+    : d(p)
+{}
 
 /*!
     Sets the QCameraInfo object to be equal to \a other.
 */
-QCameraInfo& QCameraInfo::operator=(const QCameraInfo& other)
-{
-    d = other.d;
-    return *this;
-}
+QCameraInfo& QCameraInfo::operator=(const QCameraInfo& other) = default;
 
 /*!
     \fn QCameraInfo::operator!=(const QCameraInfo &other) const
@@ -275,11 +217,10 @@ QCameraInfo& QCameraInfo::operator=(const QCameraInfo& other)
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug d, const QCameraInfo &camera)
 {
-    d.maybeSpace() << QStringLiteral("QCameraInfo(deviceName=%1, position=%2, orientation=%3)")
-                          .arg(camera.deviceName())
+    d.maybeSpace() << QStringLiteral("QCameraInfo(name=%1, position=%2, orientation=%3)")
+                          .arg(camera.description())
                           .arg(QString::fromLatin1(QCamera::staticMetaObject.enumerator(QCamera::staticMetaObject.indexOfEnumerator("Position"))
-                               .valueToKey(camera.position())))
-                          .arg(camera.orientation());
+                               .valueToKey(camera.position())));
     return d.space();
 }
 #endif

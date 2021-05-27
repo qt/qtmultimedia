@@ -38,28 +38,30 @@
 ****************************************************************************/
 
 #include "qmediarecorder.h"
-#include "qmediarecorder_p.h"
 
-#include <qmediarecordercontrol.h>
-#include "qmediaobject_p.h"
-#include <qmediaservice.h>
-#include <qmediaserviceprovider_p.h>
-#include <qmetadatawritercontrol.h>
-#include <qaudioencodersettingscontrol.h>
-#include <qvideoencodersettingscontrol.h>
-#include <qmediacontainercontrol.h>
-#include <qmediaavailabilitycontrol.h>
+#include <qaudiodeviceinfo.h>
 #include <qcamera.h>
-#include <qcameracontrol.h>
+#include <qmediacapturesession.h>
+#include <qmediaencoder.h>
+#include <qcamera.h>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qmetaobject.h>
-
-#include <qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
+
+class QMediaRecorderPrivate
+{
+    Q_DECLARE_PUBLIC(QMediaRecorder)
+public:
+    QMediaRecorder::CaptureMode mode = QMediaRecorder::AudioOnly;
+    QMediaCaptureSession *captureSession = nullptr;
+    QCamera *camera = nullptr;
+    QMediaEncoder *encoder = nullptr;
+
+    QMediaRecorder *q_ptr = nullptr;
+};
 
 /*!
     \class QMediaRecorder
@@ -69,176 +71,42 @@ QT_BEGIN_NAMESPACE
 
     \brief The QMediaRecorder class is used for the recording of media content.
 
-    The QMediaRecorder class is a high level media recording class.  It's not
-    intended to be used alone but for accessing the media recording functions
-    of other media objects, like QCamera.
+    The QMediaRecorder class is a high level media recording class.  It's
+    intended to be used as a simple standalone class to record from the default
+    camera and microphone.
 
     \snippet multimedia-snippets/media.cpp Media recorder
 
-    \sa QAudioRecorder
+    If you need a more flexible setup, use QMediaCaptureSession.
+
+    \sa QMediaCaptureSession
 */
-
-static void qRegisterMediaRecorderMetaTypes()
-{
-    qRegisterMetaType<QMediaRecorder::State>("QMediaRecorder::State");
-    qRegisterMetaType<QMediaRecorder::Status>("QMediaRecorder::Status");
-    qRegisterMetaType<QMediaRecorder::Error>("QMediaRecorder::Error");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterMediaRecorderMetaTypes)
-
-
-QMediaRecorderPrivate::QMediaRecorderPrivate():
-     mediaObject(nullptr),
-     control(nullptr),
-     formatControl(nullptr),
-     audioControl(nullptr),
-     videoControl(nullptr),
-     metaDataControl(nullptr),
-     availabilityControl(nullptr),
-     settingsChanged(false),
-     notifyTimer(nullptr),
-     state(QMediaRecorder::StoppedState),
-     error(QMediaRecorder::NoError)
-{
-}
-
-#define ENUM_NAME(c,e,v) (c::staticMetaObject.enumerator(c::staticMetaObject.indexOfEnumerator(e)).valueToKey((v)))
-
-void QMediaRecorderPrivate::_q_stateChanged(QMediaRecorder::State ps)
-{
-    Q_Q(QMediaRecorder);
-
-    if (ps == QMediaRecorder::RecordingState)
-        notifyTimer->start();
-    else
-        notifyTimer->stop();
-
-//    qDebug() << "Recorder state changed:" << ENUM_NAME(QMediaRecorder,"State",ps);
-    if (state != ps) {
-        emit q->stateChanged(ps);
-    }
-
-    state = ps;
-}
-
-
-void QMediaRecorderPrivate::_q_error(int error, const QString &errorString)
-{
-    Q_Q(QMediaRecorder);
-
-    this->error = QMediaRecorder::Error(error);
-    this->errorString = errorString;
-
-    emit q->error(this->error);
-}
-
-void QMediaRecorderPrivate::_q_serviceDestroyed()
-{
-    mediaObject = nullptr;
-    control = nullptr;
-    formatControl = nullptr;
-    audioControl = nullptr;
-    videoControl = nullptr;
-    metaDataControl = nullptr;
-    availabilityControl = nullptr;
-    settingsChanged = true;
-}
-
-void QMediaRecorderPrivate::_q_updateActualLocation(const QUrl &location)
-{
-    if (actualLocation != location) {
-        actualLocation = location;
-        emit q_func()->actualLocationChanged(actualLocation);
-    }
-}
-
-void QMediaRecorderPrivate::_q_notify()
-{
-    emit q_func()->durationChanged(q_func()->duration());
-}
-
-void QMediaRecorderPrivate::_q_updateNotifyInterval(int ms)
-{
-    notifyTimer->setInterval(ms);
-}
-
-void QMediaRecorderPrivate::applySettingsLater()
-{
-    if (control && !settingsChanged) {
-        settingsChanged = true;
-        QMetaObject::invokeMethod(q_func(), "_q_applySettings", Qt::QueuedConnection);
-    }
-}
-
-void QMediaRecorderPrivate::_q_applySettings()
-{
-    if (control && settingsChanged) {
-        settingsChanged = false;
-        control->applySettings();
-    }
-}
-
-void QMediaRecorderPrivate::_q_availabilityChanged(QMultimedia::AvailabilityStatus availability)
-{
-    Q_Q(QMediaRecorder);
-    Q_UNUSED(error);
-    Q_UNUSED(availability);
-
-    // Really this should not always emit, but
-    // we can't really tell from here (isAvailable
-    // may not have changed, or the mediaobject's overridden
-    // availability() may not have changed).
-    q->availabilityChanged(q->availability());
-    q->availabilityChanged(q->isAvailable());
-}
-
-void QMediaRecorderPrivate::restartCamera()
-{
-    //restart camera if it can't apply new settings in the Active state
-    QCamera *camera = qobject_cast<QCamera*>(mediaObject);
-    if (camera && camera->captureMode() == QCamera::CaptureVideo) {
-        QMetaObject::invokeMethod(camera,
-                                  "_q_preparePropertyChange",
-                                  Qt::DirectConnection,
-                                  Q_ARG(int, QCameraControl::VideoEncodingSettings));
-    }
-}
-
 
 /*!
-    Constructs a media recorder which records the media produced by \a mediaObject.
+    Constructs a media recorder with \a parent and \a mode.
 
-    The \a parent is passed to QMediaObject.
+    QMediaRecorder will always use the default microphone and camera of the system.
+    The CaptureMode \a mode parameter can be used to determine whether the recorder
+    should only record audio or also use the camera.
 */
 
-QMediaRecorder::QMediaRecorder(QMediaObject *mediaObject, QObject *parent):
-    QObject(parent),
-    d_ptr(new QMediaRecorderPrivate)
+QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
+    : QMediaEncoderBase(parent),
+      d_ptr(new QMediaRecorderPrivate)
 {
     Q_D(QMediaRecorder);
     d->q_ptr = this;
 
-    d->notifyTimer = new QTimer(this);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
+    d->captureSession = new QMediaCaptureSession(this);
+    d->encoder = new QMediaEncoder(this);
+    d->captureSession->setEncoder(d->encoder);
+    setCaptureMode(mode);
 
-    setMediaObject(mediaObject);
-}
-
-/*!
-    \internal
-*/
-QMediaRecorder::QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObject, QObject *parent):
-    QObject(parent),
-    d_ptr(&dd)
-{
-    Q_D(QMediaRecorder);
-    d->q_ptr = this;
-
-    d->notifyTimer = new QTimer(this);
-    connect(d->notifyTimer, SIGNAL(timeout()), SLOT(_q_notify()));
-
-    setMediaObject(mediaObject);
+    connect(d->encoder, &QMediaEncoder::stateChanged, this, &QMediaRecorder::stateChanged);
+    connect(d->encoder, &QMediaEncoder::statusChanged, this, &QMediaRecorder::statusChanged);
+    connect(d->captureSession, &QMediaCaptureSession::mutedChanged, this, &QMediaRecorder::mutedChanged);
+    connect(d->captureSession, &QMediaCaptureSession::volumeChanged, this, &QMediaRecorder::volumeChanged);
+    connect(d->captureSession, &QMediaCaptureSession::videoOutputChanged, this, &QMediaRecorder::videoOutputChanged);
 }
 
 /*!
@@ -248,170 +116,6 @@ QMediaRecorder::QMediaRecorder(QMediaRecorderPrivate &dd, QMediaObject *mediaObj
 QMediaRecorder::~QMediaRecorder()
 {
     delete d_ptr;
-}
-
-/*!
-    Returns the QMediaObject instance that this QMediaRecorder is bound too,
-    or 0 otherwise.
-*/
-QMediaObject *QMediaRecorder::mediaObject() const
-{
-    return d_func()->mediaObject;
-}
-
-/*!
-    \internal
-*/
-bool QMediaRecorder::setMediaObject(QMediaObject *object)
-{
-    Q_D(QMediaRecorder);
-
-    if (object == d->mediaObject)
-        return true;
-
-    if (d->mediaObject) {
-        if (d->control) {
-            disconnect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
-                       this, SLOT(_q_stateChanged(QMediaRecorder::State)));
-
-            disconnect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
-                       this, SIGNAL(statusChanged(QMediaRecorder::Status)));
-
-            disconnect(d->control, SIGNAL(mutedChanged(bool)),
-                       this, SIGNAL(mutedChanged(bool)));
-
-            disconnect(d->control, SIGNAL(volumeChanged(qreal)),
-                       this, SIGNAL(volumeChanged(qreal)));
-
-            disconnect(d->control, SIGNAL(durationChanged(qint64)),
-                       this, SIGNAL(durationChanged(qint64)));
-
-            disconnect(d->control, SIGNAL(actualLocationChanged(QUrl)),
-                       this, SLOT(_q_updateActualLocation(QUrl)));
-
-            disconnect(d->control, SIGNAL(error(int,QString)),
-                       this, SLOT(_q_error(int,QString)));
-        }
-
-        disconnect(d->mediaObject, SIGNAL(notifyIntervalChanged(int)), this, SLOT(_q_updateNotifyInterval(int)));
-
-        QMediaService *service = d->mediaObject->service();
-
-        if (service) {
-            disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-            if (d->control)
-                service->releaseControl(d->control);
-            if (d->formatControl)
-                service->releaseControl(d->formatControl);
-            if (d->audioControl)
-                service->releaseControl(d->audioControl);
-            if (d->videoControl)
-                service->releaseControl(d->videoControl);
-            if (d->metaDataControl) {
-                disconnect(d->metaDataControl, SIGNAL(metaDataChanged()),
-                        this, SIGNAL(metaDataChanged()));
-                disconnect(d->metaDataControl, SIGNAL(metaDataChanged(QString,QVariant)),
-                        this, SIGNAL(metaDataChanged(QString,QVariant)));
-                disconnect(d->metaDataControl, SIGNAL(metaDataAvailableChanged(bool)),
-                        this, SIGNAL(metaDataAvailableChanged(bool)));
-                disconnect(d->metaDataControl, SIGNAL(writableChanged(bool)),
-                        this, SIGNAL(metaDataWritableChanged(bool)));
-
-                service->releaseControl(d->metaDataControl);
-            }
-            if (d->availabilityControl) {
-                disconnect(d->availabilityControl, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
-                           this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
-                service->releaseControl(d->availabilityControl);
-            }
-        }
-    }
-
-    d->control = nullptr;
-    d->formatControl = nullptr;
-    d->audioControl = nullptr;
-    d->videoControl = nullptr;
-    d->metaDataControl = nullptr;
-    d->availabilityControl = nullptr;
-
-    d->mediaObject = object;
-
-    if (d->mediaObject) {
-        QMediaService *service = d->mediaObject->service();
-
-        d->notifyTimer->setInterval(d->mediaObject->notifyInterval());
-        connect(d->mediaObject, SIGNAL(notifyIntervalChanged(int)), SLOT(_q_updateNotifyInterval(int)));
-
-        if (service) {
-            d->control = qobject_cast<QMediaRecorderControl*>(service->requestControl(QMediaRecorderControl_iid));
-
-            if (d->control) {
-                d->formatControl = qobject_cast<QMediaContainerControl *>(service->requestControl(QMediaContainerControl_iid));
-                d->audioControl = qobject_cast<QAudioEncoderSettingsControl *>(service->requestControl(QAudioEncoderSettingsControl_iid));
-                d->videoControl = qobject_cast<QVideoEncoderSettingsControl *>(service->requestControl(QVideoEncoderSettingsControl_iid));
-
-                QMediaControl *control = service->requestControl(QMetaDataWriterControl_iid);
-                if (control) {
-                    d->metaDataControl = qobject_cast<QMetaDataWriterControl *>(control);
-                    if (!d->metaDataControl) {
-                        service->releaseControl(control);
-                    } else {
-                        connect(d->metaDataControl,
-                                SIGNAL(metaDataChanged()),
-                                SIGNAL(metaDataChanged()));
-                        connect(d->metaDataControl, SIGNAL(metaDataChanged(QString,QVariant)),
-                                this, SIGNAL(metaDataChanged(QString,QVariant)));
-                        connect(d->metaDataControl,
-                                SIGNAL(metaDataAvailableChanged(bool)),
-                                SIGNAL(metaDataAvailableChanged(bool)));
-                        connect(d->metaDataControl,
-                                SIGNAL(writableChanged(bool)),
-                                SIGNAL(metaDataWritableChanged(bool)));
-                    }
-                }
-
-                d->availabilityControl = service->requestControl<QMediaAvailabilityControl*>();
-                if (d->availabilityControl) {
-                    connect(d->availabilityControl, SIGNAL(availabilityChanged(QMultimedia::AvailabilityStatus)),
-                            this, SLOT(_q_availabilityChanged(QMultimedia::AvailabilityStatus)));
-                }
-
-                connect(d->control, SIGNAL(stateChanged(QMediaRecorder::State)),
-                        this, SLOT(_q_stateChanged(QMediaRecorder::State)));
-
-                connect(d->control, SIGNAL(statusChanged(QMediaRecorder::Status)),
-                        this, SIGNAL(statusChanged(QMediaRecorder::Status)));
-
-                connect(d->control, SIGNAL(mutedChanged(bool)),
-                        this, SIGNAL(mutedChanged(bool)));
-
-                connect(d->control, SIGNAL(volumeChanged(qreal)),
-                        this, SIGNAL(volumeChanged(qreal)));
-
-                connect(d->control, SIGNAL(durationChanged(qint64)),
-                        this, SIGNAL(durationChanged(qint64)));
-
-                connect(d->control, SIGNAL(actualLocationChanged(QUrl)),
-                        this, SLOT(_q_updateActualLocation(QUrl)));
-
-                connect(d->control, SIGNAL(error(int,QString)),
-                        this, SLOT(_q_error(int,QString)));
-
-                connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-
-                d->applySettingsLater();
-
-                return true;
-            }
-        }
-
-        d->mediaObject = nullptr;
-        return false;
-    }
-
-    return true;
 }
 
 /*!
@@ -443,40 +147,59 @@ bool QMediaRecorder::setMediaObject(QMediaObject *object)
 */
 bool QMediaRecorder::isAvailable() const
 {
-    return availability() == QMultimedia::Available;
+    return d_ptr->encoder->isAvailable();
 }
 
 /*!
-    Returns the availability of this functionality.
+    \property QMediaRecorder::captureMode
+    \brief The current mode the recorder operates in.
 
-    \sa availabilityChanged()
+    The capture mode defines whether QMediaRecorder will record audio and
+    video or audio only.
+
+    The capture mode can only be changed while nothing is being recorded.
 */
-QMultimedia::AvailabilityStatus QMediaRecorder::availability() const
+
+QMediaRecorder::CaptureMode QMediaRecorder::captureMode() const
 {
-    if (d_func()->control == nullptr)
-        return QMultimedia::ServiceMissing;
+    return d_ptr->mode;
+}
 
-    if (d_func()->availabilityControl)
-        return d_func()->availabilityControl->availability();
+void QMediaRecorder::setCaptureMode(QMediaRecorder::CaptureMode mode)
+{
+    if (d_ptr->mode == mode)
+        return;
+    if (mode == AudioAndVideo) {
+        Q_ASSERT(!d_ptr->camera);
+        d_ptr->camera = new QCamera(this);
+        d_ptr->captureSession->setCamera(d_ptr->camera);
+    } else { // AudioOnly
+        Q_ASSERT(d_ptr->camera);
+        d_ptr->captureSession->setCamera(nullptr);
+        delete d_ptr->camera;
+        d_ptr->camera = nullptr;
+    }
+}
 
-    return QMultimedia::Available;
+/*!
+    Returns the camera object associated with this recording session.
+    If the current \l captureMode is \l AudioOnly, a nullptr will be
+    returned.
+ */
+QCamera *QMediaRecorder::camera() const
+{
+    return d_ptr->camera;
 }
 
 QUrl QMediaRecorder::outputLocation() const
 {
-    return d_func()->control ? d_func()->control->outputLocation() : QUrl();
+    return d_ptr->encoder->outputLocation();
 }
 
 bool QMediaRecorder::setOutputLocation(const QUrl &location)
 {
     Q_D(QMediaRecorder);
-    d->actualLocation.clear();
-    return d->control ? d->control->setOutputLocation(location) : false;
-}
-
-QUrl QMediaRecorder::actualLocation() const
-{
-    return d_func()->actualLocation;
+    return d->encoder->setOutputLocation(location);
 }
 
 /*!
@@ -485,9 +208,9 @@ QUrl QMediaRecorder::actualLocation() const
     \sa QMediaRecorder::State
 */
 
-QMediaRecorder::State QMediaRecorder::state() const
+QMediaEncoderBase::State QMediaRecorder::state() const
 {
-    return d_func()->control ? QMediaRecorder::State(d_func()->control->state()) : StoppedState;
+    return d_ptr->encoder->state();
 }
 
 /*!
@@ -496,9 +219,9 @@ QMediaRecorder::State QMediaRecorder::state() const
     \sa QMediaRecorder::Status
 */
 
-QMediaRecorder::Status QMediaRecorder::status() const
+QMediaEncoderBase::Status QMediaRecorder::status() const
 {
-    return d_func()->control ? QMediaRecorder::Status(d_func()->control->status()) : UnavailableStatus;
+    return d_ptr->encoder->status();
 }
 
 /*!
@@ -507,9 +230,9 @@ QMediaRecorder::Status QMediaRecorder::status() const
     \sa errorString()
 */
 
-QMediaRecorder::Error QMediaRecorder::error() const
+QMediaEncoderBase::Error QMediaRecorder::error() const
 {
-    return d_func()->error;
+    return d_ptr->encoder->error();
 }
 
 /*!
@@ -520,7 +243,7 @@ QMediaRecorder::Error QMediaRecorder::error() const
 
 QString QMediaRecorder::errorString() const
 {
-    return d_func()->errorString;
+    return d_ptr->encoder->errorString();
 }
 
 /*!
@@ -531,7 +254,7 @@ QString QMediaRecorder::errorString() const
 
 qint64 QMediaRecorder::duration() const
 {
-    return d_func()->control ? d_func()->control->duration() : 0;
+    return d_ptr->encoder->duration();
 }
 
 /*!
@@ -542,15 +265,12 @@ qint64 QMediaRecorder::duration() const
 
 bool QMediaRecorder::isMuted() const
 {
-    return d_func()->control ? d_func()->control->isMuted() : 0;
+    return d_ptr->captureSession->isMuted();
 }
 
 void QMediaRecorder::setMuted(bool muted)
 {
-    Q_D(QMediaRecorder);
-
-    if (d->control)
-        d->control->setMuted(muted);
+    d_ptr->captureSession->setMuted(muted);
 }
 
 /*!
@@ -570,282 +290,32 @@ void QMediaRecorder::setMuted(bool muted)
 
 qreal QMediaRecorder::volume() const
 {
-    return d_func()->control ? d_func()->control->volume() : 1.0;
+    return d_ptr->captureSession->volume();
 }
-
 
 void QMediaRecorder::setVolume(qreal volume)
 {
-    Q_D(QMediaRecorder);
-
-    if (d->control) {
-        volume = qMax(qreal(0.0), volume);
-        d->control->setVolume(volume);
-    }
+    d_ptr->captureSession->setVolume(volume);
 }
 
 /*!
-    Returns a list of supported container formats.
+    Sets the encoder settings to \a settings.
+
+    \sa QMediaEncoderSettings
 */
-QStringList QMediaRecorder::supportedContainers() const
+void QMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
-    return d_func()->formatControl ?
-           d_func()->formatControl->supportedContainers() : QStringList();
+    d_ptr->encoder->setEncoderSettings(settings);
 }
 
 /*!
-    Returns a description of a container \a format.
+    Returns the current encoder settings.
+
+    \sa QMediaEncoderSettings
 */
-QString QMediaRecorder::containerDescription(const QString &format) const
+QMediaEncoderSettings QMediaRecorder::encoderSettings() const
 {
-    return d_func()->formatControl ?
-           d_func()->formatControl->containerDescription(format) : QString();
-}
-
-/*!
-    Returns the selected container format.
-*/
-
-QString QMediaRecorder::containerFormat() const
-{
-    return d_func()->formatControl ?
-           d_func()->formatControl->containerFormat() : QString();
-}
-
-/*!
-    Returns a list of supported audio codecs.
-*/
-QStringList QMediaRecorder::supportedAudioCodecs() const
-{
-    return d_func()->audioControl ?
-           d_func()->audioControl->supportedAudioCodecs() : QStringList();
-}
-
-/*!
-    Returns a description of an audio \a codec.
-*/
-QString QMediaRecorder::audioCodecDescription(const QString &codec) const
-{
-    return d_func()->audioControl ?
-           d_func()->audioControl->codecDescription(codec) : QString();
-}
-
-/*!
-    Returns a list of supported audio sample rates.
-
-    If non null audio \a settings parameter is passed, the returned list is
-    reduced to sample rates supported with partial settings applied.
-
-    This can be used to query the list of sample rates, supported by specific
-    audio codec.
-
-    If the encoder supports arbitrary sample rates within the supported rates
-    range, *\a continuous is set to true, otherwise *\a continuous is set to
-    false.
-*/
-
-QList<int> QMediaRecorder::supportedAudioSampleRates(const QAudioEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return d_func()->audioControl ?
-           d_func()->audioControl->supportedSampleRates(settings, continuous) : QList<int>();
-}
-
-/*!
-    Returns a list of resolutions video can be encoded at.
-
-    If non null video \a settings parameter is passed, the returned list is
-    reduced to resolution supported with partial settings like video codec or
-    framerate applied.
-
-    If the encoder supports arbitrary resolutions within the supported range,
-    *\a continuous is set to true, otherwise *\a continuous is set to false.
-
-    \sa QVideoEncoderSettings::resolution()
-*/
-QList<QSize> QMediaRecorder::supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return d_func()->videoControl ?
-           d_func()->videoControl->supportedResolutions(settings, continuous) : QList<QSize>();
-}
-
-/*!
-    Returns a list of frame rates video can be encoded at.
-
-    If non null video \a settings parameter is passed, the returned list is
-    reduced to frame rates supported with partial settings like video codec or
-    resolution applied.
-
-    If the encoder supports arbitrary frame rates within the supported range,
-    *\a continuous is set to true, otherwise *\a continuous is set to false.
-
-    \sa QVideoEncoderSettings::frameRate()
-*/
-QList<qreal> QMediaRecorder::supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return d_func()->videoControl ?
-           d_func()->videoControl->supportedFrameRates(settings, continuous) : QList<qreal>();
-}
-
-/*!
-    Returns a list of supported video codecs.
-*/
-QStringList QMediaRecorder::supportedVideoCodecs() const
-{
-    return d_func()->videoControl ?
-           d_func()->videoControl->supportedVideoCodecs() : QStringList();
-}
-
-/*!
-    Returns a description of a video \a codec.
-
-    \sa setEncodingSettings()
-*/
-QString QMediaRecorder::videoCodecDescription(const QString &codec) const
-{
-    return d_func()->videoControl ?
-           d_func()->videoControl->videoCodecDescription(codec) : QString();
-}
-
-/*!
-    Returns the audio encoder settings being used.
-
-    \sa setEncodingSettings()
-*/
-
-QAudioEncoderSettings QMediaRecorder::audioSettings() const
-{
-    return d_func()->audioControl ?
-           d_func()->audioControl->audioSettings() : QAudioEncoderSettings();
-}
-
-/*!
-    Returns the video encoder settings being used.
-
-    \sa setEncodingSettings()
-*/
-
-QVideoEncoderSettings QMediaRecorder::videoSettings() const
-{
-    return d_func()->videoControl ?
-           d_func()->videoControl->videoSettings() : QVideoEncoderSettings();
-}
-
-/*!
-    Sets the audio encoder \a settings.
-
-    If some parameters are not specified, or null settings are passed, the
-    encoder will choose default encoding parameters, depending on media
-    source properties.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setAudioSettings(const QAudioEncoderSettings &settings)
-{
-    Q_D(QMediaRecorder);
-
-    //restart camera if it can't apply new settings in the Active state
-    d->restartCamera();
-
-    if (d->audioControl) {
-        d->audioControl->setAudioSettings(settings);
-        d->applySettingsLater();
-    }
-}
-
-/*!
-    Sets the video encoder \a settings.
-
-    If some parameters are not specified, or null settings are passed, the
-    encoder will choose default encoding parameters, depending on media
-    source properties.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setVideoSettings(const QVideoEncoderSettings &settings)
-{
-    Q_D(QMediaRecorder);
-
-    d->restartCamera();
-
-    if (d->videoControl) {
-        d->videoControl->setVideoSettings(settings);
-        d->applySettingsLater();
-    }
-}
-
-/*!
-    Sets the media \a container format.
-
-    If the container format is not specified, the
-    encoder will choose format, depending on media source properties
-    and encoding settings selected.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setContainerFormat(const QString &container)
-{
-    Q_D(QMediaRecorder);
-
-    d->restartCamera();
-
-    if (d->formatControl) {
-        d->formatControl->setContainerFormat(container);
-        d->applySettingsLater();
-    }
-}
-
-/*!
-    Sets the \a audio and \a video encoder settings and \a container format.
-
-    If some parameters are not specified, or null settings are passed, the
-    encoder will choose default encoding parameters, depending on media
-    source properties.
-
-    It's only possible to change settings when the encoder is in the
-    QMediaEncoder::StoppedState state.
-
-    \sa audioSettings(), videoSettings(), containerFormat()
-*/
-
-void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
-                                         const QVideoEncoderSettings &video,
-                                         const QString &container)
-{
-    Q_D(QMediaRecorder);
-
-    d->restartCamera();
-
-    if (d->audioControl)
-        d->audioControl->setAudioSettings(audio);
-
-    if (d->videoControl)
-        d->videoControl->setVideoSettings(video);
-
-    if (d->formatControl)
-        d->formatControl->setContainerFormat(container);
-
-    d->applySettingsLater();
+    return d_ptr->encoder->encoderSettings();
 }
 
 /*!
@@ -861,19 +331,7 @@ void QMediaRecorder::setEncodingSettings(const QAudioEncoderSettings &audio,
 
 void QMediaRecorder::record()
 {
-    Q_D(QMediaRecorder);
-
-    d->actualLocation.clear();
-
-    if (d->settingsChanged)
-        d->_q_applySettings();
-
-    // reset error
-    d->error = NoError;
-    d->errorString = QString();
-
-    if (d->control)
-        d->control->setState(RecordingState);
+    d_ptr->encoder->record();
 }
 
 /*!
@@ -887,9 +345,7 @@ void QMediaRecorder::record()
 
 void QMediaRecorder::pause()
 {
-    Q_D(QMediaRecorder);
-    if (d->control)
-        d->control->setState(PausedState);
+    d_ptr->encoder->pause();
 }
 
 /*!
@@ -900,52 +356,9 @@ void QMediaRecorder::pause()
 
 void QMediaRecorder::stop()
 {
-    Q_D(QMediaRecorder);
-    if (d->control)
-        d->control->setState(StoppedState);
+    d_ptr->encoder->stop();
 }
 
-/*!
-    \enum QMediaRecorder::State
-
-    \value StoppedState    The recorder is not active.
-        If this is the state after recording then the actual created recording has
-        finished being written to the final location and is ready on all platforms
-        except on Android. On Android, due to platform limitations, there is no way
-        to be certain that the recording has finished writing to the final location.
-    \value RecordingState  The recording is requested.
-    \value PausedState     The recorder is paused.
-*/
-
-/*!
-    \enum QMediaRecorder::Status
-
-    \value UnavailableStatus
-        The recorder is not available or not supported by connected media object.
-    \value UnloadedStatus
-        The recorder is avilable but not loaded.
-    \value LoadingStatus
-        The recorder is initializing.
-    \value LoadedStatus
-        The recorder is initialized and ready to record media.
-    \value StartingStatus
-        Recording is requested but not active yet.
-    \value RecordingStatus
-        Recording is active.
-    \value PausedStatus
-        Recording is paused.
-    \value FinalizingStatus
-        Recording is stopped with media being finalized.
-*/
-
-/*!
-    \enum QMediaRecorder::Error
-
-    \value NoError         No Errors.
-    \value ResourceError   Device is not ready or not available.
-    \value FormatError     Current format is not supported.
-    \value OutOfSpaceError No space left on device.
-*/
 
 /*!
     \property QMediaRecorder::state
@@ -996,97 +409,33 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \fn QMediaRecorder::availabilityChanged(QMultimedia::AvailabilityStatus availability)
-
-    Signals that the service availability has changed to \a availability.
-*/
-
-/*!
     \fn QMediaRecorder::mutedChanged(bool muted)
 
     Signals that the \a muted state has changed. If true the recording is being muted.
 */
 
 /*!
-    \property QMediaRecorder::metaDataAvailable
-    \brief whether access to a media object's meta-data is available.
-
-    If this is true there is meta-data available, otherwise there is no meta-data available.
+    Returns the metaData associated with the recording.
 */
-
-bool QMediaRecorder::isMetaDataAvailable() const
+QMediaMetaData QMediaRecorder::metaData() const
 {
-    Q_D(const QMediaRecorder);
-
-    return d->metaDataControl
-            ? d->metaDataControl->isMetaDataAvailable()
-            : false;
+    return d_ptr->encoder->metaData();
 }
 
 /*!
-    \fn QMediaRecorder::metaDataAvailableChanged(bool available)
-
-    Signals that the \a available state of a media object's meta-data has changed.
-*/
-
-/*!
-    \property QMediaRecorder::metaDataWritable
-    \brief whether a media object's meta-data is writable.
-
-    If this is true the meta-data is writable, otherwise the meta-data is read-only.
-*/
-
-bool QMediaRecorder::isMetaDataWritable() const
-{
-    Q_D(const QMediaRecorder);
-
-    return d->metaDataControl
-            ? d->metaDataControl->isWritable()
-            : false;
-}
-
-/*!
-    \fn QMediaRecorder::metaDataWritableChanged(bool writable)
-
-    Signals that the \a writable state of a media object's meta-data has changed.
-*/
-
-/*!
-    Returns the value associated with a meta-data \a key.
-*/
-QVariant QMediaRecorder::metaData(const QString &key) const
-{
-    Q_D(const QMediaRecorder);
-
-    return d->metaDataControl
-            ? d->metaDataControl->metaData(key)
-            : QVariant();
-}
-
-/*!
-    Sets a \a value for a meta-data \a key.
+    Sets the meta data tp \a metaData.
 
     \note To ensure that meta data is set corretly, it should be set before starting the recording.
     Once the recording is stopped, any meta data set will be attached to the next recording.
 */
-void QMediaRecorder::setMetaData(const QString &key, const QVariant &value)
+void QMediaRecorder::setMetaData(const QMediaMetaData &metaData)
 {
-    Q_D(QMediaRecorder);
-
-    if (d->metaDataControl)
-        d->metaDataControl->setMetaData(key, value);
+    d_ptr->encoder->setMetaData(metaData);
 }
 
-/*!
-    Returns a list of keys there is meta-data available for.
-*/
-QStringList QMediaRecorder::availableMetaData() const
+void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
 {
-    Q_D(const QMediaRecorder);
-
-    return d->metaDataControl
-            ? d->metaDataControl->availableMetaData()
-            : QStringList();
+    d_ptr->encoder->addMetaData(metaData);
 }
 
 /*!
@@ -1100,9 +449,42 @@ QStringList QMediaRecorder::availableMetaData() const
 */
 
 /*!
-    \fn QMediaRecorder::metaDataChanged(const QString &key, const QVariant &value)
+    \property QMediaRecorder::audioInput
+    \brief the active audio input name.
 
-    Signal the changes of one meta-data element \a value with the given \a key.
+*/
+
+QMediaCaptureSession *QMediaRecorder::captureSession() const
+{
+    Q_D(const QMediaRecorder);
+    return d->captureSession;
+}
+
+QObject *QMediaRecorder::videoOutput() const
+{
+    return d_ptr->captureSession->videoOutput();
+}
+
+void QMediaRecorder::setVideoOutput(QObject *output)
+{
+    d_ptr->captureSession->setVideoOutput(output);
+}
+
+void QMediaRecorder::setVideoSink(QVideoSink *output)
+{
+    d_ptr->captureSession->setVideoSink(output);
+}
+
+QVideoSink *QMediaRecorder::videoSink() const
+{
+    return d_ptr->captureSession->videoSink();
+}
+
+
+/*!
+    \fn QMediaRecorder::videoOutputChanged()
+
+    This signal is emitted when the active video output changed.
 */
 
 QT_END_NAMESPACE

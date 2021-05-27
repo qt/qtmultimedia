@@ -39,57 +39,28 @@
 
 /* Video related snippets */
 #include "qvideorenderercontrol.h"
-#include "qmediaservice.h"
 #include "qmediaplayer.h"
-#include "qabstractvideosurface.h"
-#include "qvideowidgetcontrol.h"
+#include "qvideosink.h"
 #include "qvideowindowcontrol.h"
 #include "qgraphicsvideoitem.h"
 #include "qmediaplaylist.h"
-#include "qvideosurfaceformat.h"
+#include "qvideoframeformat.h"
 
 #include <QFormLayout>
 #include <QGraphicsView>
-
-//! [Derived Surface]
-class MyVideoSurface : public QAbstractVideoSurface
-{
-    QList<QVideoFrame::PixelFormat> supportedPixelFormats(
-            QAbstractVideoBuffer::HandleType handleType = QAbstractVideoBuffer::NoHandle) const
-    {
-        Q_UNUSED(handleType);
-
-        // Return the formats you will support
-        return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_RGB565;
-    }
-
-    bool present(const QVideoFrame &frame)
-    {
-        Q_UNUSED(frame);
-        // Handle the frame and do your processing
-
-        return true;
-    }
-};
-//! [Derived Surface]
 
 //! [Video producer]
 class MyVideoProducer : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QAbstractVideoSurface *videoSurface READ videoSurface WRITE setVideoSurface)
+    Q_PROPERTY(QVideoSink *videoSink READ videoSink WRITE setVideoSink)
 
 public:
-    QAbstractVideoSurface* videoSurface() const { return m_surface; }
+    QVideoSink* videoSink() const { return m_sink; }
 
-    void setVideoSurface(QAbstractVideoSurface *surface)
+    void setVideoSink(QVideoSink *sink)
     {
-        if (m_surface != surface && m_surface && m_surface->isActive()) {
-            m_surface->stop();
-        }
-        m_surface = surface;
-        if (m_surface)
-            m_surface->start(m_format);
+        m_sink = sink;
     }
 
     // ...
@@ -97,13 +68,12 @@ public:
 public slots:
     void onNewVideoContentReceived(const QVideoFrame &frame)
     {
-        if (m_surface)
-            m_surface->present(frame);
+        if (m_sink)
+            m_sink->newVideoFrame(frame);
     }
 
 private:
-    QAbstractVideoSurface *m_surface;
-    QVideoSurfaceFormat m_format;
+    QVideoSink *m_sink;
 };
 
 //! [Video producer]
@@ -113,7 +83,6 @@ class VideoExample : public QObject {
     Q_OBJECT
 public:
     void VideoGraphicsItem();
-    void VideoRendererControl();
     void VideoWidget();
     void VideoWindowControl();
     void VideoWidgetControl();
@@ -121,24 +90,15 @@ public:
 
 private:
     // Common naming
-    QMediaService *mediaService;
     QMediaPlaylist *playlist;
     QVideoWidget *videoWidget;
     QWidget *widget;
     QFormLayout *layout;
-    QAbstractVideoSurface *myVideoSurface;
+    QVideoSink *myVideoSink;
     QMediaPlayer *player;
     QMediaContent video;
     QGraphicsView *graphicsView;
 };
-
-void VideoExample::VideoRendererControl()
-{
-    //! [Video renderer control]
-    QVideoRendererControl *rendererControl = mediaService->requestControl<QVideoRendererControl *>();
-    rendererControl->setSurface(myVideoSurface);
-    //! [Video renderer control]
-}
 
 void VideoExample::VideoWidget()
 {
@@ -160,7 +120,7 @@ void VideoExample::VideoWidget()
     player->stop();
 
     //! [Setting surface in player]
-    player->setVideoOutput(myVideoSurface);
+    player->setVideoOutput(myVideoSink);
     //! [Setting surface in player]
 }
 
@@ -168,7 +128,7 @@ void VideoExample::VideoSurface()
 {
     //! [Widget Surface]
     QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
-    QVideoSurfaceFormat format(img.size(), QVideoFrame::Format_ARGB32);
+    QVideoFrameFormat format(img.size(), QVideoFrameFormat::Format_ARGB32);
     videoWidget = new QVideoWidget;
     videoWidget->videoSurface()->start(format);
     videoWidget->videoSurface()->present(img);
@@ -180,28 +140,8 @@ void VideoExample::VideoSurface()
     graphicsView->scene()->addItem(item);
     graphicsView->show();
     QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
-    QVideoSurfaceFormat format(img.size(), QVideoFrame::Format_ARGB32);
-    item->videoSurface()->start(format);
-    item->videoSurface()->present(img);
+    item->videoSink()->newVideoFrame(QVideoFrame(img));
     //! [GraphicsVideoItem Surface]
-}
-
-void VideoExample::VideoWidgetControl()
-{
-    //! [Video widget control]
-    QVideoWidgetControl *widgetControl = mediaService->requestControl<QVideoWidgetControl *>();
-    layout->addWidget(widgetControl->videoWidget());
-    //! [Video widget control]
-}
-
-void VideoExample::VideoWindowControl()
-{
-    //! [Video window control]
-    QVideoWindowControl *windowControl = mediaService->requestControl<QVideoWindowControl *>();
-    windowControl->setWinId(widget->winId());
-    windowControl->setDisplayRect(widget->rect());
-    windowControl->setAspectRatioMode(Qt::KeepAspectRatio);
-    //! [Video window control]
 }
 
 void VideoExample::VideoGraphicsItem()

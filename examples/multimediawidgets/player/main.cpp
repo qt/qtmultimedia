@@ -54,6 +54,7 @@
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QDir>
+#include <QUrl>
 
 int main(int argc, char *argv[])
 {
@@ -63,25 +64,18 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("QtProject");
     QCoreApplication::setApplicationVersion(QT_VERSION_STR);
     QCommandLineParser parser;
-    QCommandLineOption customAudioRoleOption("custom-audio-role",
-                                             "Set a custom audio role for the player.",
-                                             "role");
     parser.setApplicationDescription("Qt MultiMedia Player Example");
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addOption(customAudioRoleOption);
     parser.addPositionalArgument("url", "The URL(s) to open.");
     parser.process(app);
 
     Player player;
 
-    if (parser.isSet(customAudioRoleOption))
-        player.setCustomAudioRole(parser.value(customAudioRoleOption));
-
     if (!parser.positionalArguments().isEmpty() && player.isPlayerAvailable()) {
         QList<QUrl> urls;
         for (auto &a: parser.positionalArguments())
-            urls.append(QUrl::fromUserInput(a, QDir::currentPath(), QUrl::AssumeLocalFile));
+            urls.append(QUrl::fromUserInput(a, QDir::currentPath()));
         player.addToPlaylist(urls);
     }
 

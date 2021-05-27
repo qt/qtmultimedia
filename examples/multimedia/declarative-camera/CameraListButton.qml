@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick
 
 Item {
     id: cameraListButton
@@ -67,7 +67,7 @@ Item {
 
     CameraButton {
         anchors.fill: parent
-        text: popup.currentItem != null ? popup.currentItem.displayName : ""
+        text: popup.currentItem !== null ? popup.currentItem.description : ""
 
         onClicked: popup.toggle()
     }

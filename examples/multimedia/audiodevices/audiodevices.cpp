@@ -49,42 +49,25 @@
 ****************************************************************************/
 
 #include "audiodevices.h"
+#include <qmediadevices.h>
 
 // Utility functions for converting QAudioFormat fields into text
 
-static QString toString(QAudioFormat::SampleType sampleType)
+static QString toString(QAudioFormat::SampleFormat sampleFormat)
 {
-    QString result("Unknown");
-    switch (sampleType) {
-    case QAudioFormat::SignedInt:
-        result = "SignedInt";
-        break;
-    case QAudioFormat::UnSignedInt:
-        result = "UnSignedInt";
-        break;
+    switch (sampleFormat) {
+    case QAudioFormat::UInt8:
+        return "Unsigned 8 bit";
+    case QAudioFormat::Int16:
+        return "Signed 16 bit";
+    case QAudioFormat::Int32:
+        return "Signed 32 bit";
     case QAudioFormat::Float:
-        result = "Float";
-        break;
-    case QAudioFormat::Unknown:
-        result = "Unknown";
+        return "Float";
+    default:
+        return "Unknown";
     }
-    return result;
 }
-
-static QString toString(QAudioFormat::Endian endian)
-{
-    QString result("Unknown");
-    switch (endian) {
-    case QAudioFormat::LittleEndian:
-        result = "LittleEndian";
-        break;
-    case QAudioFormat::BigEndian:
-        result = "BigEndian";
-        break;
-    }
-    return result;
-}
-
 
 AudioDevicesBase::AudioDevicesBase(QWidget *parent)
     : QMainWindow(parent)
@@ -92,22 +75,22 @@ AudioDevicesBase::AudioDevicesBase(QWidget *parent)
     setupUi(this);
 }
 
-AudioDevicesBase::~AudioDevicesBase() {}
+AudioDevicesBase::~AudioDevicesBase() = default;
 
 
 AudioTest::AudioTest(QWidget *parent)
-    : AudioDevicesBase(parent)
+    : AudioDevicesBase(parent),
+      m_devices(new QMediaDevices(this))
 {
     connect(testButton, &QPushButton::clicked, this, &AudioTest::test);
     connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::modeChanged);
     connect(deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
-    connect(sampleRateBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleRateChanged);
-    connect(channelsBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::channelChanged);
-    connect(codecsBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::codecChanged);
-    connect(sampleSizesBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleSizeChanged);
-    connect(sampleTypesBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleTypeChanged);
-    connect(endianBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::endianChanged);
+    connect(sampleRateSpinBox, &QSpinBox::valueChanged, this, &AudioTest::sampleRateChanged);
+    connect(channelsSpinBox, &QSpinBox::valueChanged, this, &AudioTest::channelChanged);
+    connect(sampleFormatBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::sampleFormatChanged);
     connect(populateTableButton, &QPushButton::clicked, this, &AudioTest::populateTable);
+    connect(m_devices, &QMediaDevices::audioInputsChanged, this, &AudioTest::updateAudioDevices);
+    connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
 
     modeBox->setCurrentIndex(0);
     modeChanged(0);
@@ -125,33 +108,33 @@ void AudioTest::test()
             testResult->setText(tr("Success"));
             nearestSampleRate->setText("");
             nearestChannel->setText("");
-            nearestCodec->setText("");
-            nearestSampleSize->setText("");
-            nearestSampleType->setText("");
-            nearestEndian->setText("");
+            nearestSampleFormat->setText("");
         } else {
-            QAudioFormat nearest = m_deviceInfo.nearestFormat(m_settings);
+            QAudioFormat nearest = m_deviceInfo.preferredFormat();
             testResult->setText(tr("Failed"));
             nearestSampleRate->setText(QString("%1").arg(nearest.sampleRate()));
             nearestChannel->setText(QString("%1").arg(nearest.channelCount()));
-            nearestCodec->setText(nearest.codec());
-            nearestSampleSize->setText(QString("%1").arg(nearest.sampleSize()));
-            nearestSampleType->setText(toString(nearest.sampleType()));
-            nearestEndian->setText(toString(nearest.byteOrder()));
+            nearestSampleFormat->setText(toString(nearest.sampleFormat()));
         }
     }
     else
         testResult->setText(tr("No Device"));
 }
 
+void AudioTest::updateAudioDevices()
+{
+    deviceBox->clear();
+    const auto devices = m_mode == QAudio::AudioInput ? m_devices->audioInputs() : m_devices->audioOutputs();
+    for (auto &deviceInfo: devices)
+        deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+}
+
+
 void AudioTest::modeChanged(int idx)
 {
     testResult->clear();
-    deviceBox->clear();
-    const QAudio::Mode mode = idx == 0 ? QAudio::AudioInput : QAudio::AudioOutput;
-    for (auto &deviceInfo: QAudioDeviceInfo::availableDevices(mode))
-        deviceBox->addItem(deviceInfo.deviceName(), QVariant::fromValue(deviceInfo));
-
+    m_mode = idx == 0 ? QAudio::AudioInput : QAudio::AudioOutput;
+    updateAudioDevices();
     deviceBox->setCurrentIndex(0);
     deviceChanged(0);
 }
@@ -166,50 +149,27 @@ void AudioTest::deviceChanged(int idx)
     // device has changed
     m_deviceInfo = deviceBox->itemData(idx).value<QAudioDeviceInfo>();
 
-    sampleRateBox->clear();
-    QList<int> sampleRatez = m_deviceInfo.supportedSampleRates();
-    for (int i = 0; i < sampleRatez.size(); ++i)
-        sampleRateBox->addItem(QString("%1").arg(sampleRatez.at(i)));
-    if (sampleRatez.size())
-        m_settings.setSampleRate(sampleRatez.at(0));
+    sampleRateSpinBox->clear();
+    sampleRateSpinBox->setMinimum(m_deviceInfo.minimumSampleRate());
+    sampleRateSpinBox->setMaximum(m_deviceInfo.maximumSampleRate());
+    int sampleValue = qBound(m_deviceInfo.minimumSampleRate(), 48000,
+                             m_deviceInfo.maximumSampleRate());
+    sampleRateSpinBox->setValue(sampleValue);
+    m_settings.setSampleRate(sampleValue);
 
-    channelsBox->clear();
-    QList<int> chz = m_deviceInfo.supportedChannelCounts();
-    for (int i = 0; i < chz.size(); ++i)
-        channelsBox->addItem(QString("%1").arg(chz.at(i)));
-    if (chz.size())
-        m_settings.setChannelCount(chz.at(0));
+    channelsSpinBox->clear();
+    channelsSpinBox->setMinimum(m_deviceInfo.minimumChannelCount());
+    channelsSpinBox->setMaximum(m_deviceInfo.maximumChannelCount());
+    int channelValue = qBound(m_deviceInfo.minimumChannelCount(), 2,
+                              m_deviceInfo.maximumChannelCount());
+    channelsSpinBox->setValue(channelValue);
 
-    codecsBox->clear();
-    QStringList codecs = m_deviceInfo.supportedCodecs();
-    for (int i = 0; i < codecs.size(); ++i)
-        codecsBox->addItem(QString("%1").arg(codecs.at(i)));
-    if (codecs.size())
-        m_settings.setCodec(codecs.at(0));
-    // Add false to create failed condition!
-    codecsBox->addItem("audio/test");
-
-    sampleSizesBox->clear();
-    QList<int> sampleSizez = m_deviceInfo.supportedSampleSizes();
-    for (int i = 0; i < sampleSizez.size(); ++i)
-        sampleSizesBox->addItem(QString("%1").arg(sampleSizez.at(i)));
-    if (sampleSizez.size())
-        m_settings.setSampleSize(sampleSizez.at(0));
-
-    sampleTypesBox->clear();
-    QList<QAudioFormat::SampleType> sampleTypez = m_deviceInfo.supportedSampleTypes();
-
-    for (int i = 0; i < sampleTypez.size(); ++i)
-        sampleTypesBox->addItem(toString(sampleTypez.at(i)));
-    if (sampleTypez.size())
-        m_settings.setSampleType(sampleTypez.at(0));
-
-    endianBox->clear();
-    QList<QAudioFormat::Endian> endianz = m_deviceInfo.supportedByteOrders();
-    for (int i = 0; i < endianz.size(); ++i)
-        endianBox->addItem(toString(endianz.at(i)));
-    if (endianz.size())
-        m_settings.setByteOrder(endianz.at(0));
+    sampleFormatBox->clear();
+    const QList<QAudioFormat::SampleFormat> sampleFormats = m_deviceInfo.supportedSampleFormats();
+    for (auto sampleFormat : sampleFormats)
+        sampleFormatBox->addItem(toString(sampleFormat));
+    if (sampleFormats.size())
+        m_settings.setSampleFormat(sampleFormats.at(0));
 
     allFormatsTable->clearContents();
 }
@@ -218,92 +178,37 @@ void AudioTest::populateTable()
 {
     int row = 0;
 
-    QAudioFormat format;
-    for (auto codec: m_deviceInfo.supportedCodecs()) {
-        format.setCodec(codec);
-        for (auto sampleRate: m_deviceInfo.supportedSampleRates()) {
-            format.setSampleRate(sampleRate);
-            for (auto channels: m_deviceInfo.supportedChannelCounts()) {
-                format.setChannelCount(channels);
-                for (auto sampleType: m_deviceInfo.supportedSampleTypes()) {
-                    format.setSampleType(sampleType);
-                    for (auto sampleSize: m_deviceInfo.supportedSampleSizes()) {
-                        format.setSampleSize(sampleSize);
-                        for (auto endian: m_deviceInfo.supportedByteOrders()) {
-                            format.setByteOrder(endian);
-                            if (m_deviceInfo.isFormatSupported(format)) {
-                                allFormatsTable->setRowCount(row + 1);
+    for (auto sampleFormat : m_deviceInfo.supportedSampleFormats()) {
+        allFormatsTable->setRowCount(row + 1);
 
-                                QTableWidgetItem *codecItem = new QTableWidgetItem(format.codec());
-                                allFormatsTable->setItem(row, 0, codecItem);
+        QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(sampleFormat));
+        allFormatsTable->setItem(row, 2, sampleTypeItem);
 
-                                QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1").arg(format.sampleRate()));
-                                allFormatsTable->setItem(row, 1, sampleRateItem);
+        QTableWidgetItem *sampleRateItem = new QTableWidgetItem(QString("%1 - %2")
+            .arg(m_deviceInfo.minimumSampleRate()).arg(m_deviceInfo.maximumSampleRate()));
+        allFormatsTable->setItem(row, 0, sampleRateItem);
 
-                                QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1").arg(format.channelCount()));
-                                allFormatsTable->setItem(row, 2, channelsItem);
+        QTableWidgetItem *channelsItem = new QTableWidgetItem(QString("%1 - %2")
+            .arg(m_deviceInfo.minimumChannelCount()).arg(m_deviceInfo.maximumChannelCount()));
+        allFormatsTable->setItem(row, 1, channelsItem);
 
-                                QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(format.sampleType()));
-                                allFormatsTable->setItem(row, 3, sampleTypeItem);
-
-                                QTableWidgetItem *sampleSizeItem = new QTableWidgetItem(QString("%1").arg(format.sampleSize()));
-                                allFormatsTable->setItem(row, 4, sampleSizeItem);
-
-                                QTableWidgetItem *byteOrderItem = new QTableWidgetItem(toString(format.byteOrder()));
-                                allFormatsTable->setItem(row, 5, byteOrderItem);
-
-                                ++row;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        ++row;
     }
 }
 
-void AudioTest::sampleRateChanged(int idx)
+void AudioTest::sampleRateChanged(int value)
 {
     // sample rate has changed
-    m_settings.setSampleRate(sampleRateBox->itemText(idx).toInt());
+    m_settings.setSampleRate(value);
 }
 
-void AudioTest::channelChanged(int idx)
+void AudioTest::channelChanged(int channels)
 {
-    m_settings.setChannelCount(channelsBox->itemText(idx).toInt());
+    m_settings.setChannelCount(channels);
 }
 
-void AudioTest::codecChanged(int idx)
+void AudioTest::sampleFormatChanged(int idx)
 {
-    m_settings.setCodec(codecsBox->itemText(idx));
-}
-
-void AudioTest::sampleSizeChanged(int idx)
-{
-    m_settings.setSampleSize(sampleSizesBox->itemText(idx).toInt());
-}
-
-void AudioTest::sampleTypeChanged(int idx)
-{
-    switch (sampleTypesBox->itemText(idx).toInt()) {
-        case QAudioFormat::SignedInt:
-            m_settings.setSampleType(QAudioFormat::SignedInt);
-            break;
-        case QAudioFormat::UnSignedInt:
-            m_settings.setSampleType(QAudioFormat::UnSignedInt);
-            break;
-        case QAudioFormat::Float:
-            m_settings.setSampleType(QAudioFormat::Float);
-    }
-}
-
-void AudioTest::endianChanged(int idx)
-{
-    switch (endianBox->itemText(idx).toInt()) {
-        case QAudioFormat::LittleEndian:
-            m_settings.setByteOrder(QAudioFormat::LittleEndian);
-            break;
-        case QAudioFormat::BigEndian:
-            m_settings.setByteOrder(QAudioFormat::BigEndian);
-    }
+    auto formats = m_deviceInfo.supportedSampleFormats();
+    m_settings.setSampleFormat(formats.at(idx));
 }

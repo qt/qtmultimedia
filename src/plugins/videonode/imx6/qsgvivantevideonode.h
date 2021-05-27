@@ -41,27 +41,27 @@
 #define QSGVIDEONODE_VIVANTE_H
 
 #include <private/qsgvideonode_p.h>
-#include <QVideoSurfaceFormat>
+#include <QVideoFrameFormat>
 
 class QSGVivanteVideoMaterial;
 class QSGVivanteVideoNode : public QSGVideoNode
 {
 public:
-    QSGVivanteVideoNode(const QVideoSurfaceFormat &format);
+    QSGVivanteVideoNode(const QVideoFrameFormat &format);
     ~QSGVivanteVideoNode();
 
-    QVideoFrame::PixelFormat pixelFormat() const { return mFormat.pixelFormat(); }
-    QAbstractVideoBuffer::HandleType handleType() const { return QAbstractVideoBuffer::NoHandle; }
+    QVideoFrameFormat::PixelFormat pixelFormat() const { return mFormat.pixelFormat(); }
+    QVideoFrame::HandleType handleType() const { return QVideoFrame::NoHandle; }
     void setCurrentFrame(const QVideoFrame &frame, FrameFlags flags);
 
-    static const QMap<QVideoFrame::PixelFormat, GLenum>& getVideoFormat2GLFormatMap();
-    static int getBytesForPixelFormat(QVideoFrame::PixelFormat pixelformat);
+    static const QMap<QVideoFrameFormat::PixelFormat, GLenum>& getVideoFormat2GLFormatMap();
+    static int getBytesForPixelFormat(QVideoFrameFormat::PixelFormat pixelformat);
 
 private:
-    QVideoSurfaceFormat mFormat;
+    QVideoFrameFormat mFormat;
     QSGVivanteVideoMaterial *mMaterial;
 
-    static QMap<QVideoFrame::PixelFormat, GLenum> static_VideoFormat2GLFormatMap;
+    static QMap<QVideoFrameFormat::PixelFormat, GLenum> static_VideoFormat2GLFormatMap;
 };
 
 #endif // QSGVIDEONODE_VIVANTE_H

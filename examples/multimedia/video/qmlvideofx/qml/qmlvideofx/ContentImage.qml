@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.1
+import QtQuick
 
 Image {
     fillMode: Image.PreserveAspectFit

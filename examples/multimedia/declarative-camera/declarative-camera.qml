@@ -48,8 +48,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.4
+import QtQuick
+import QtMultimedia
 
 Rectangle {
     id : cameraUI
@@ -65,7 +65,6 @@ Rectangle {
             name: "PhotoCapture"
             StateChangeScript {
                 script: {
-                    camera.captureMode = Camera.CaptureStillImage
                     camera.start()
                 }
             }
@@ -77,7 +76,6 @@ Rectangle {
             name: "VideoCapture"
             StateChangeScript {
                 script: {
-                    camera.captureMode = Camera.CaptureVideo
                     camera.start()
                 }
             }
@@ -92,22 +90,21 @@ Rectangle {
         }
     ]
 
-    Camera {
-        id: camera
-        captureMode: Camera.CaptureStillImage
-
-        imageCapture {
-            onImageCaptured: {
-                photoPreview.source = preview
-                stillControls.previewAvailable = true
-                cameraUI.state = "PhotoPreview"
-            }
+    CaptureSession {
+        id: captureSession
+        camera: Camera {
+            id: camera
+        }
+        imageCapture: ImageCapture {
+            id: imageCapture
         }
 
-        videoRecorder {
-             resolution: "640x480"
-             frameRate: 30
+        encoder: MediaEncoder {
+            id: encoder
+//             resolution: "640x480"
+//             frameRate: 30
         }
+        videoOutput: viewfinder
     }
 
     PhotoPreview {
@@ -116,6 +113,7 @@ Rectangle {
         onClosed: cameraUI.state = "PhotoCapture"
         visible: cameraUI.state == "PhotoPreview"
         focus: visible
+        source: imageCapture.preview
     }
 
     VideoPreview {
@@ -126,7 +124,7 @@ Rectangle {
         focus: visible
 
         //don't load recorded video if preview is invisible
-        source: visible ? camera.videoRecorder.actualLocation : ""
+        source: visible ? encoder.actualLocation : ""
     }
 
     VideoOutput {
@@ -137,24 +135,23 @@ Rectangle {
         y: 0
         width: parent.width - stillControls.buttonsPanelWidth
         height: parent.height
-
-        source: camera
-        autoOrientation: true
+//        autoOrientation: true
     }
 
     PhotoCaptureControls {
         id: stillControls
         anchors.fill: parent
-        camera: camera
+        captureSession: captureSession
         visible: cameraUI.state == "PhotoCapture"
         onPreviewSelected: cameraUI.state = "PhotoPreview"
         onVideoModeSelected: cameraUI.state = "VideoCapture"
+        previewAvailable: imageCapture.preview.length !== 0
     }
 
     VideoCaptureControls {
         id: videoControls
         anchors.fill: parent
-        camera: camera
+        captureSession: captureSession
         visible: cameraUI.state == "VideoCapture"
         onPreviewSelected: cameraUI.state = "VideoPreview"
         onPhotoModeSelected: cameraUI.state = "PhotoCapture"

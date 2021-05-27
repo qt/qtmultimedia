@@ -40,10 +40,11 @@
 
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
-#include "qaudiosystem.h"
+#include "qaudiosystem_p.h"
 #include "qaudioinput.h"
 
-#include "qaudiodevicefactory_p.h"
+#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -117,12 +118,9 @@ QT_BEGIN_NAMESPACE
     \a format parameters.
 */
 
-QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent):
-    QObject(parent)
+QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent)
+    : QAudioInput({}, format, parent)
 {
-    d = QAudioDeviceFactory::createDefaultInputDevice(format);
-    connect(d, SIGNAL(notify()), SIGNAL(notify()));
-    connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }
 
 /*!
@@ -134,9 +132,9 @@ QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent):
 QAudioInput::QAudioInput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QAudioDeviceFactory::createInputDevice(audioDevice, format);
-    connect(d, SIGNAL(notify()), SIGNAL(notify()));
-    connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
+    d = QPlatformMediaIntegration::instance()->devices()->audioInputDevice(format, audioDevice);
+    if (d)
+        connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
 }
 
 /*!
@@ -165,6 +163,7 @@ QAudioInput::~QAudioInput()
 
 void QAudioInput::start(QIODevice* device)
 {
+    d->elapsedTime.start();
     d->start(device);
 }
 
@@ -188,6 +187,7 @@ void QAudioInput::start(QIODevice* device)
 
 QIODevice* QAudioInput::start()
 {
+    d->elapsedTime.start();
     return d->start();
 }
 
@@ -257,7 +257,7 @@ void QAudioInput::resume()
 
 */
 
-void QAudioInput::setBufferSize(int value)
+void QAudioInput::setBufferSize(qsizetype value)
 {
     d->setBufferSize(value);
 }
@@ -272,7 +272,7 @@ void QAudioInput::setBufferSize(int value)
 
 */
 
-int QAudioInput::bufferSize() const
+qsizetype QAudioInput::bufferSize() const
 {
     return d->bufferSize();
 }
@@ -284,47 +284,13 @@ int QAudioInput::bufferSize() const
     state, otherwise returns zero.
 */
 
-int QAudioInput::bytesReady() const
+qsizetype QAudioInput::bytesAvailable() const
 {
     /*
     -If not ActiveState|IdleState, return 0
     -return amount of audio data available to read
     */
     return d->bytesReady();
-}
-
-/*!
-    Returns the period size in bytes.
-
-    Note: This is the recommended read size in bytes.
-*/
-
-int QAudioInput::periodSize() const
-{
-    return d->periodSize();
-}
-
-/*!
-    Sets the interval for notify() signal to be emitted.
-    This is based on the \a ms of audio data processed
-    not on actual real-time.
-    The minimum resolution of the timer is platform specific and values
-    should be checked with notifyInterval() to confirm actual value
-    being used.
-*/
-
-void QAudioInput::setNotifyInterval(int ms)
-{
-    d->setNotifyInterval(ms);
-}
-
-/*!
-    Returns the notify interval in milliseconds.
-*/
-
-int QAudioInput::notifyInterval() const
-{
-    return d->notifyInterval();
 }
 
 /*!
@@ -373,9 +339,11 @@ qint64 QAudioInput::processedUSecs() const
     Suspend states.
 */
 
+#include <qdebug.h>
+
 qint64 QAudioInput::elapsedUSecs() const
 {
-    return d->elapsedUSecs();
+    return d->state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
 }
 
 /*!
@@ -399,12 +367,6 @@ QAudio::State QAudioInput::state() const
 /*!
     \fn QAudioInput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
-*/
-
-/*!
-    \fn QAudioInput::notify()
-    This signal is emitted when x ms of audio data has been processed
-    the interval set by setNotifyInterval(x).
 */
 
 QT_END_NAMESPACE

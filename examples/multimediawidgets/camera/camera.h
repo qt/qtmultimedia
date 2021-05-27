@@ -53,14 +53,20 @@
 
 #include <QCamera>
 #include <QCameraImageCapture>
-#include <QMediaRecorder>
+#include <QMediaEncoder>
 #include <QScopedPointer>
+#include <QMediaMetaData>
+#include <QMediaCaptureSession>
+#include <QMediaDevices>
 
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Camera; }
+class QActionGroup;
 QT_END_NAMESPACE
+
+class MetaDataDialog;
 
 class Camera : public QMainWindow
 {
@@ -68,6 +74,9 @@ class Camera : public QMainWindow
 
 public:
     Camera();
+
+public slots:
+    void saveMetaData();
 
 private slots:
     void setCamera(const QCameraInfo &cameraInfo);
@@ -80,7 +89,6 @@ private slots:
     void stop();
     void setMuted(bool);
 
-    void toggleLock();
     void takeImage();
     void displayCaptureError(int, QCameraImageCapture::Error, const QString &errorString);
 
@@ -93,21 +101,24 @@ private slots:
 
     void updateCameraDevice(QAction *action);
 
-    void updateCameraState(QCamera::State);
+    void updateCameraActive(bool active);
     void updateCaptureMode();
-    void updateRecorderState(QMediaRecorder::State state);
+    void updateRecorderState(QMediaEncoder::State state);
     void setExposureCompensation(int index);
 
     void updateRecordTime();
 
     void processCapturedImage(int requestId, const QImage &img);
-    void updateLockStatus(QCamera::LockStatus, QCamera::LockChangeReason);
 
     void displayViewfinder();
     void displayCapturedImage();
 
     void readyForCapture(bool ready);
     void imageSaved(int id, const QString &fileName);
+
+    void updateCameras();
+
+    void showMetaDataDialog();
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
@@ -117,16 +128,21 @@ protected:
 private:
     Ui::Camera *ui;
 
+    QActionGroup *videoDevicesGroup  = nullptr;
+
+    QMediaDevices m_devices;
+    QMediaCaptureSession m_captureSession;
     QScopedPointer<QCamera> m_camera;
-    QScopedPointer<QCameraImageCapture> m_imageCapture;
-    QScopedPointer<QMediaRecorder> m_mediaRecorder;
+    QCameraImageCapture *m_imageCapture;
+    QScopedPointer<QMediaEncoder> m_mediaEncoder;
 
     QImageEncoderSettings m_imageSettings;
-    QAudioEncoderSettings m_audioSettings;
-    QVideoEncoderSettings m_videoSettings;
-    QString m_videoContainerFormat;
+    QMediaEncoderSettings m_encoderSettings;
     bool m_isCapturingImage = false;
     bool m_applicationExiting = false;
+    bool m_doImageCapture = true;
+
+    MetaDataDialog *m_metaDataDialog = nullptr;
 };
 
 #endif

@@ -44,7 +44,6 @@
 #include <QtCore/qiodevice.h>
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmultimedia.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudioformat.h>
@@ -66,6 +65,8 @@ public:
     explicit QAudioOutput(const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
     ~QAudioOutput();
 
+    bool isNull() const { return !d; }
+
     QAudioFormat format() const;
 
     void start(QIODevice *device);
@@ -76,14 +77,10 @@ public:
     void suspend();
     void resume();
 
-    void setBufferSize(int bytes);
-    int bufferSize() const;
+    void setBufferSize(qsizetype bytes);
+    qsizetype bufferSize() const;
 
-    int bytesFree() const;
-    int periodSize() const;
-
-    void setNotifyInterval(int milliSeconds);
-    int notifyInterval() const;
+    qsizetype bytesFree() const;
 
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
@@ -94,12 +91,11 @@ public:
     void setVolume(qreal);
     qreal volume() const;
 
-    QString category() const;
-    void setCategory(const QString &category);
+    QAudio::Role audioRole() const;
+    void setAudioRole(QAudio::Role role);
 
 Q_SIGNALS:
     void stateChanged(QAudio::State state);
-    void notify();
 
 private:
     Q_DISABLE_COPY(QAudioOutput)

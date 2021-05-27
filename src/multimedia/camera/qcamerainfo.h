@@ -40,37 +40,84 @@
 #ifndef QCAMERAINFO_H
 #define QCAMERAINFO_H
 
-#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qsharedpointer.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCameraInfoPrivate;
-
-class Q_MULTIMEDIA_EXPORT QCameraInfo
+class QCameraFormatPrivate;
+class Q_MULTIMEDIA_EXPORT QCameraFormat
 {
 public:
-    explicit QCameraInfo(const QByteArray &name = QByteArray());
-    explicit QCameraInfo(const QCamera &camera);
+    QCameraFormat() noexcept;
+    QCameraFormat(const QCameraFormat &other) noexcept;
+    QCameraFormat &operator=(const QCameraFormat &other) noexcept;
+    ~QCameraFormat();
+
+    QVideoFrameFormat::PixelFormat pixelFormat() const noexcept;
+    QSize resolution() const noexcept;
+    float minFrameRate() const noexcept;
+    float maxFrameRate() const noexcept;
+
+    bool isNull() const noexcept { return !d; }
+
+    bool operator==(const QCameraFormat &other) const;
+    inline bool operator!=(const QCameraFormat &other) const
+    { return !operator==(other); }
+
+private:
+    friend class QCameraFormatPrivate;
+    QCameraFormat(QCameraFormatPrivate *p);
+    QExplicitlySharedDataPointer<QCameraFormatPrivate> d;
+};
+
+class QCameraInfoPrivate;
+class Q_MULTIMEDIA_EXPORT QCameraInfo
+{
+    Q_GADGET
+    Q_PROPERTY(QByteArray id READ id CONSTANT)
+    Q_PROPERTY(QString description READ description CONSTANT)
+    Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
+    Q_PROPERTY(Position position READ position CONSTANT)
+    Q_ENUMS(Position)
+public:
+    QCameraInfo();
     QCameraInfo(const QCameraInfo& other);
+    QCameraInfo& operator=(const QCameraInfo& other);
     ~QCameraInfo();
 
-    QCameraInfo& operator=(const QCameraInfo& other);
     bool operator==(const QCameraInfo &other) const;
     inline bool operator!=(const QCameraInfo &other) const;
 
     bool isNull() const;
 
-    QString deviceName() const;
+    QByteArray id() const;
     QString description() const;
-    QCamera::Position position() const;
-    int orientation() const;
 
-    static QCameraInfo defaultCamera();
-    static QList<QCameraInfo> availableCameras(QCamera::Position position = QCamera::UnspecifiedPosition);
+    // ### Add here and to QAudioDeviceInfo
+//    QByteArray groupId() const;
+//    QString groupDescription() const;
+
+    bool isDefault() const;
+
+    enum Position
+    {
+        UnspecifiedPosition,
+        BackFace,
+        FrontFace
+    };
+
+    Position position() const;
+
+    QList<QSize> photoResolutions() const;
+    QList<QCameraFormat> videoFormats() const;
+
+    // ### Add zoom and other camera information
 
 private:
-    QSharedPointer<QCameraInfoPrivate> d;
+    friend class QCameraInfoPrivate;
+    QCameraInfo(QCameraInfoPrivate *p);
+    QExplicitlySharedDataPointer<QCameraInfoPrivate> d;
 };
 
 bool QCameraInfo::operator!=(const QCameraInfo &other) const { return !operator==(other); }

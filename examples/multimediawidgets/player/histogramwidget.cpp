@@ -52,9 +52,6 @@
 #include <QPainter>
 #include <QHBoxLayout>
 
-template<class T>
-static QList<qreal> getBufferLevels(const T *buffer, int frames, int channels);
-
 class QAudioLevel : public QWidget
 {
     Q_OBJECT
@@ -65,7 +62,7 @@ public:
     void setLevel(qreal level);
 
 protected:
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     qreal m_level = 0;
@@ -102,7 +99,6 @@ HistogramWidget::HistogramWidget(QWidget *parent)
     : QWidget(parent)
 {
     m_processor.moveToThread(&m_processorThread);
-    qRegisterMetaType<QList<qreal>>("QList<qreal>");
     connect(&m_processor, &FrameProcessor::histogramReady, this, &HistogramWidget::setHistogram);
     m_processorThread.start(QThread::LowestPriority);
     setLayout(new QHBoxLayout);
@@ -124,44 +120,6 @@ void HistogramWidget::processFrame(const QVideoFrame &frame)
                               Qt::QueuedConnection, Q_ARG(QVideoFrame, frame), Q_ARG(int, m_levels));
 }
 
-// This function returns the maximum possible sample value for a given audio format
-qreal getPeakValue(const QAudioFormat& format)
-{
-    // Note: Only the most common sample formats are supported
-    if (!format.isValid())
-        return qreal(0);
-
-    if (format.codec() != "audio/pcm")
-        return qreal(0);
-
-    switch (format.sampleType()) {
-    case QAudioFormat::Unknown:
-        break;
-    case QAudioFormat::Float:
-        if (format.sampleSize() != 32) // other sample formats are not supported
-            return qreal(0);
-        return qreal(1.00003);
-    case QAudioFormat::SignedInt:
-        if (format.sampleSize() == 32)
-            return qreal(INT_MAX);
-        if (format.sampleSize() == 16)
-            return qreal(SHRT_MAX);
-        if (format.sampleSize() == 8)
-            return qreal(CHAR_MAX);
-        break;
-    case QAudioFormat::UnSignedInt:
-        if (format.sampleSize() == 32)
-            return qreal(UINT_MAX);
-        if (format.sampleSize() == 16)
-            return qreal(USHRT_MAX);
-        if (format.sampleSize() == 8)
-            return qreal(UCHAR_MAX);
-        break;
-    }
-
-    return qreal(0);
-}
-
 // returns the audio level for each channel
 QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
 {
@@ -170,67 +128,27 @@ QList<qreal> getBufferLevels(const QAudioBuffer &buffer)
     if (!buffer.isValid())
         return values;
 
-    if (!buffer.format().isValid() || buffer.format().byteOrder() != QAudioFormat::LittleEndian)
+    if (!buffer.format().isValid())
         return values;
 
-    if (buffer.format().codec() != "audio/pcm")
-        return values;
+    auto format = buffer.format();
+    int channelCount = format.channelCount();
+    int bytesPerSample = format.bytesPerFrame();
+    int frames = buffer.frameCount();
 
-    int channelCount = buffer.format().channelCount();
     values.fill(0, channelCount);
-    qreal peak_value = getPeakValue(buffer.format());
-    if (qFuzzyCompare(peak_value, qreal(0)))
-        return values;
 
-    switch (buffer.format().sampleType()) {
-    case QAudioFormat::Unknown:
-    case QAudioFormat::UnSignedInt:
-        if (buffer.format().sampleSize() == 32)
-            values = getBufferLevels(buffer.constData<quint32>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 16)
-            values = getBufferLevels(buffer.constData<quint16>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 8)
-            values = getBufferLevels(buffer.constData<quint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] = qAbs(values.at(i) - peak_value / 2) / (peak_value / 2);
-        break;
-    case QAudioFormat::Float:
-        if (buffer.format().sampleSize() == 32) {
-            values = getBufferLevels(buffer.constData<float>(), buffer.frameCount(), channelCount);
-            for (int i = 0; i < values.size(); ++i)
-                values[i] /= peak_value;
+    const char *data = buffer.constData<char>();
+    for (int i = 0; i < frames; ++i) {
+        for (int j = 0; j < channelCount; ++j) {
+            qreal value = format.normalizedSampleValue(data);
+            if (value > values.at(j))
+                values[j] = value;
+            data += bytesPerSample;
         }
-        break;
-    case QAudioFormat::SignedInt:
-        if (buffer.format().sampleSize() == 32)
-            values = getBufferLevels(buffer.constData<qint32>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 16)
-            values = getBufferLevels(buffer.constData<qint16>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 8)
-            values = getBufferLevels(buffer.constData<qint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] /= peak_value;
-        break;
     }
 
     return values;
-}
-
-template<class T>
-QList<qreal> getBufferLevels(const T *buffer, int frames, int channels)
-{
-    QList<qreal> max_values;
-    max_values.fill(0, channels);
-
-    for (int i = 0; i < frames; ++i) {
-        for (int j = 0; j < channels; ++j) {
-            qreal value = qAbs(qreal(buffer[i * channels + j]));
-            if (value > max_values.at(j))
-                max_values.replace(j, value);
-        }
-    }
-
-    return max_values;
 }
 
 void HistogramWidget::processBuffer(const QAudioBuffer &buffer)
@@ -290,11 +208,11 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
         if (!levels)
             break;
 
-        if (!frame.map(QAbstractVideoBuffer::ReadOnly))
+        if (!frame.map(QVideoFrame::ReadOnly))
             break;
 
-        if (frame.pixelFormat() == QVideoFrame::Format_YUV420P ||
-            frame.pixelFormat() == QVideoFrame::Format_NV12) {
+        if (frame.pixelFormat() == QVideoFrameFormat::Format_YUV420P ||
+            frame.pixelFormat() == QVideoFrameFormat::Format_NV12) {
             // Process YUV data
             uchar *b = frame.bits();
             for (int y = 0; y < frame.height(); ++y) {
@@ -304,7 +222,7 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
                 b += frame.bytesPerLine();
             }
         } else {
-            QImage::Format imageFormat = QVideoFrame::imageFormatFromPixelFormat(frame.pixelFormat());
+            QImage::Format imageFormat = QVideoFrameFormat::imageFormatFromPixelFormat(frame.pixelFormat());
             if (imageFormat != QImage::Format_Invalid) {
                 // Process RGB data
                 QImage image(frame.bits(), frame.width(), frame.height(), imageFormat);
@@ -322,14 +240,14 @@ void FrameProcessor::processFrame(QVideoFrame frame, int levels)
 
         // find maximum value
         qreal maxValue = 0.0;
-        for (int i = 0; i < histogram.size(); i++) {
-            if (histogram[i] > maxValue)
-                maxValue = histogram[i];
+        for (double i : qAsConst(histogram)) {
+            if (i > maxValue)
+                maxValue = i;
         }
 
         if (maxValue > 0.0) {
-            for (int i = 0; i < histogram.size(); i++)
-                histogram[i] /= maxValue;
+            for (double &i : histogram)
+                i /= maxValue;
         }
 
         frame.unmap();

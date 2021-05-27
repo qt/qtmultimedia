@@ -81,7 +81,6 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     QMediaPlaylist *playlist() const;
-    void setPlaylist(QMediaPlaylist *playlist);
 
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::DisplayRole) override;
 

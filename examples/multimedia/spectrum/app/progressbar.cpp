@@ -67,10 +67,7 @@ ProgressBar::ProgressBar(QWidget *parent)
 #endif
 }
 
-ProgressBar::~ProgressBar()
-{
-
-}
+ProgressBar::~ProgressBar() = default;
 
 void ProgressBar::reset()
 {

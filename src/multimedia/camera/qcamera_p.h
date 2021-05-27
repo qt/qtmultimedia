@@ -51,94 +51,39 @@
 // We mean it.
 //
 
-#include "qmediaobject_p.h"
-#include "qvideosurfaceoutput_p.h"
+#include "private/qobject_p.h"
 #include "qcamera.h"
+#include "qcamerainfo.h"
 
 QT_BEGIN_NAMESPACE
 
-class QMediaServiceProvider;
-class QCameraControl;
-class QVideoDeviceSelectorControl;
-class QCameraLocksControl;
-class QCameraInfoControl;
-class QCameraViewfinderSettingsControl;
-class QCameraViewfinderSettingsControl2;
+class QPlatformCamera;
+class QPlatformMediaCaptureSession;
 
-class QCameraPrivate : public QMediaObjectPrivate
+class QCameraPrivate : public QObjectPrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QCamera)
+    Q_DECLARE_PUBLIC(QCamera)
 public:
-    QCameraPrivate():
-        QMediaObjectPrivate(),
-        provider(nullptr),
-        control(nullptr),
-        deviceControl(nullptr),
-        locksControl(nullptr),
-        infoControl(nullptr),
-        viewfinderSettingsControl(nullptr),
-        viewfinderSettingsControl2(nullptr),
-        cameraExposure(nullptr),
-        cameraFocus(nullptr),
-        imageProcessing(nullptr),
-        viewfinder(nullptr),
-        capture(nullptr),
-        state(QCamera::UnloadedState),
-        error(QCamera::NoError),
-        requestedLocks(QCamera::NoLock),
-        lockStatus(QCamera::Unlocked),
-        lockChangeReason(QCamera::UserRequest),
-        supressLockChangedSignal(false),
-        restartPending(false)
+    QCameraPrivate()
+        : QObjectPrivate(),
+          error(QCamera::NoError)
     {
     }
 
     void init();
-    void initControls();
 
-    void clear();
-
-    QMediaServiceProvider *provider;
-
-    QCameraControl *control;
-    QVideoDeviceSelectorControl *deviceControl;
-    QCameraLocksControl *locksControl;
-    QCameraInfoControl *infoControl;
-    QCameraViewfinderSettingsControl *viewfinderSettingsControl;
-    QCameraViewfinderSettingsControl2 *viewfinderSettingsControl2;
-
-    QCameraExposure *cameraExposure;
-    QCameraFocus *cameraFocus;
-    QCameraImageProcessing *imageProcessing;
-
-    QObject *viewfinder;
-    QObject *capture;
-
-    QCamera::State state;
+    QMediaCaptureSession *captureSession = nullptr;
+    QPlatformMediaCaptureSession *captureInterface = nullptr;
+    QPlatformCamera *control = nullptr;
 
     QCamera::Error error;
     QString errorString;
 
-    QCamera::LockTypes requestedLocks;
-
-    QCamera::LockStatus lockStatus;
-    QCamera::LockChangeReason lockChangeReason;
-    bool supressLockChangedSignal;
-
-    bool restartPending;
-
-    QVideoSurfaceOutput surfaceViewfinder;
+    QCameraInfo cameraInfo;
+    QCameraFormat cameraFormat;
 
     void _q_error(int error, const QString &errorString);
     void unsetError() { error = QCamera::NoError; errorString.clear(); }
-
-    void setState(QCamera::State);
-
-    void _q_updateLockStatus(QCamera::LockType, QCamera::LockStatus, QCamera::LockChangeReason);
-    void _q_updateState(QCamera::State newState);
-    void _q_preparePropertyChange(int changeType);
-    void _q_restartCamera();
-    void updateLockStatus();
 };
 
 QT_END_NAMESPACE

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>297</width>
-    <height>374</height>
+    <height>476</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,9 +51,6 @@
       <item row="2" column="1">
        <widget class="QComboBox" name="containerBox"/>
       </item>
-      <item row="3" column="1">
-       <widget class="QComboBox" name="sampleRateBox"/>
-      </item>
       <item row="1" column="1">
        <widget class="QComboBox" name="audioCodecBox"/>
       </item>
@@ -66,6 +63,9 @@
       </item>
       <item row="4" column="1">
        <widget class="QComboBox" name="channelsBox"/>
+      </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="sampleRateBox"/>
       </item>
      </layout>
     </item>

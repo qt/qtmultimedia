@@ -48,8 +48,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import Qt.labs.folderlistmodel 2.0
+import QtQuick
+import Qt.labs.folderlistmodel
 
 Rectangle {
     id: fileBrowser

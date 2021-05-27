@@ -37,108 +37,48 @@
 **
 ****************************************************************************/
 
-#include "qaudiodevicefactory_p.h"
-#include "qaudiosystem.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiosystem_p.h"
+#include "qaudiodeviceinfo_p.h"
+#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qmap.h>
 
 QT_BEGIN_NAMESPACE
 
-static void qRegisterAudioDeviceInfoMetaTypes()
-{
-    qRegisterMetaType<QAudioDeviceInfo>();
-}
+QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate() = default;
 
-Q_CONSTRUCTOR_FUNCTION(qRegisterAudioDeviceInfoMetaTypes)
-
-class QAudioDeviceInfoPrivate : public QSharedData
-{
-public:
-    QAudioDeviceInfoPrivate()
-        : mode(QAudio::AudioOutput)
-        , info(nullptr)
-    {
-    }
-
-    QAudioDeviceInfoPrivate(const QString &r, const QByteArray &h, QAudio::Mode m):
-        realm(r), handle(h), mode(m)
-    {
-        if (!handle.isEmpty())
-            info = QAudioDeviceFactory::audioDeviceInfo(realm, handle, mode);
-        else
-            info = nullptr;
-    }
-
-    QAudioDeviceInfoPrivate(const QAudioDeviceInfoPrivate &other):
-        QSharedData(other),
-        realm(other.realm), handle(other.handle), mode(other.mode)
-    {
-        info = QAudioDeviceFactory::audioDeviceInfo(realm, handle, mode);
-    }
-
-    QAudioDeviceInfoPrivate& operator=(const QAudioDeviceInfoPrivate &other)
-    {
-        delete info;
-
-        realm = other.realm;
-        handle = other.handle;
-        mode = other.mode;
-        info = QAudioDeviceFactory::audioDeviceInfo(realm, handle, mode);
-        return *this;
-    }
-
-    ~QAudioDeviceInfoPrivate()
-    {
-        delete info;
-    }
-
-    QString     realm;
-    QByteArray  handle;
-    QAudio::Mode mode;
-    QAbstractAudioDeviceInfo*   info;
-};
-
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDeviceInfoPrivate);
 
 /*!
     \class QAudioDeviceInfo
-    \brief The QAudioDeviceInfo class provides an interface to query audio devices and their functionality.
+    \brief The QAudioDeviceInfo class provides an information about audio devices and their functionality.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
-    QAudioDeviceInfo lets you query for audio devices--such as sound
-    cards and USB headsets--that are currently available on the system.
-    The audio devices available are dependent on the platform or audio plugins installed.
+    QAudioDeviceInfo describes an audio device available in the system, either for input or for playback.
 
     A QAudioDeviceInfo is used by Qt to construct
-    classes that communicate with the device--such as
-    QAudioInput, and QAudioOutput.
+    classes that communicate with the device -- such as
+    QAudioInput, and QAudioOutput. It is also used to determine the
+    input or output device to use in a capture session or during media playback.
 
     You can also query each device for the formats it supports. A
-    format in this context is a set consisting of a specific byte
-    order, channel, codec, frequency, sample rate, and sample type.  A
+    format in this context is a set consisting of a channel count, sample rate, and sample type. A
     format is represented by the QAudioFormat class.
 
-    The values supported by the device for each of these
-    parameters can be fetched with
-    supportedByteOrders(), supportedChannelCounts(), supportedCodecs(),
-    supportedSampleRates(), supportedSampleSizes(), and
-    supportedSampleTypes(). The combinations supported are dependent on the platform,
-    audio plugins installed and the audio device capabilities. If you need a
-    specific format, you can check if
-    the device supports it with isFormatSupported(), or fetch a
-    supported format that is as close as possible to the format with
-    nearestFormat(). For instance:
+    The values supported by the device for each of these parameters can be
+    fetched with minimumChannelCount(), maximumChannelCount(),
+    minimumSampleRate(), maximumSampleRate() and supportedSampleFormats(). The
+    combinations supported are dependent on the audio device capabilities. If
+    you need a specific format, you can check if the device supports it with
+    isFormatSupported(), or fetch a supported format that is as close as
+    possible to the format with nearestFormat(). For instance:
 
     \snippet multimedia-snippets/audio.cpp Setting audio format
 
-    The static
-    functions defaultInputDevice(), defaultOutputDevice(), and
-    availableDevices() let you get a list of all available
-    devices. Devices are fetched according to the value of mode
-    this is specified by the \l {QAudio}::Mode enum.
-    The QAudioDeviceInfo returned are only valid for the \l {QAudio}::Mode.
+    The set of available devices can be retrieved from the QMediaDevices class.
 
     For instance:
 
@@ -154,34 +94,34 @@ public:
 /*!
     Constructs an empty QAudioDeviceInfo object.
 */
-QAudioDeviceInfo::QAudioDeviceInfo():
-    d(new QAudioDeviceInfoPrivate)
-{
-}
+QAudioDeviceInfo::QAudioDeviceInfo() = default;
 
 /*!
     Constructs a copy of \a other.
 */
-QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other):
-    d(other.d)
-{
-}
+QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other) = default;
+
+/*!
+    \fn QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfo &&other)
+
+    Move constructs from \a other.
+*/
 
 /*!
     Destroy this audio device info.
 */
-QAudioDeviceInfo::~QAudioDeviceInfo()
-{
-}
+QAudioDeviceInfo::~QAudioDeviceInfo() = default;
 
 /*!
     Sets the QAudioDeviceInfo object to be equal to \a other.
 */
-QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other)
-{
-    d = other.d;
-    return *this;
-}
+QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other) = default;
+
+/*!
+    \fn QAudioDeviceInfo& QAudioDeviceInfo::operator=(QAudioDeviceInfo &&other)
+
+    Moves \a other into this QAudioDeviceInfo object.
+*/
 
 /*!
     Returns true if this QAudioDeviceInfo class represents the
@@ -191,10 +131,9 @@ bool QAudioDeviceInfo::operator ==(const QAudioDeviceInfo &other) const
 {
     if (d == other.d)
         return true;
-    if (d->realm == other.d->realm
-            && d->mode == other.d->mode
-            && d->handle == other.d->handle
-            && deviceName() == other.deviceName())
+    if (!d || !other.d)
+        return false;
+    if (d->mode == other.d->mode && d->id == other.d->id)
         return true;
     return false;
 }
@@ -213,21 +152,37 @@ bool QAudioDeviceInfo::operator !=(const QAudioDeviceInfo &other) const
 */
 bool QAudioDeviceInfo::isNull() const
 {
-    return d->info == nullptr;
+    return d == nullptr;
 }
 
 /*!
-    Returns the human readable name of the audio device.
+    Returns an identifier for the audio device.
 
     Device names vary depending on the platform/audio plugin being used.
 
-    They are a unique string identifier for the audio device.
-
-    eg. default, Intel, U0x46d0x9a4
+    They are a unique identifier for the audio device.
 */
-QString QAudioDeviceInfo::deviceName() const
+QByteArray QAudioDeviceInfo::id() const
 {
-    return isNull() ? QString() : d->info->deviceName();
+    return isNull() ? QByteArray() : d->id;
+}
+
+/*!
+    Returns a human readable name of the audio device.
+
+    Use this string to present the device to the user.
+*/
+QString QAudioDeviceInfo::description() const
+{
+    return isNull() ? QString() : d->description;
+}
+
+/*!
+    Returns true if this is the default audio device for it's mode.
+*/
+bool QAudioDeviceInfo::isDefault() const
+{
+    return d ? d->isDefault : false;
 }
 
 /*!
@@ -236,7 +191,15 @@ QString QAudioDeviceInfo::deviceName() const
 */
 bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 {
-    return isNull() ? false : d->info->isFormatSupported(settings);
+    if (isNull())
+        return false;
+    if (settings.sampleRate() < d->minimumSampleRate || settings.sampleRate() > d->maximumSampleRate)
+        return false;
+    if (settings.channelCount() < d->minimumChannelCount || settings.channelCount() > d->maximumChannelCount)
+        return false;
+    if (!d->supportedSampleFormats.contains(settings.sampleFormat()))
+        return false;
+    return true;
 }
 
 /*!
@@ -248,224 +211,68 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
 
     A typical audio system would provide something like:
     \list
-    \li Input settings: 8000Hz mono 8 bit.
-    \li Output settings: 44100Hz stereo 16 bit little endian.
+    \li Input settings: 48000Hz mono 16 bit.
+    \li Output settings: 48000Hz stereo 16 bit.
     \endlist
 */
 QAudioFormat QAudioDeviceInfo::preferredFormat() const
 {
-    return isNull() ? QAudioFormat() : d->info->preferredFormat();
+    return isNull() ? QAudioFormat() : d->preferredFormat;
 }
 
 /*!
-    Returns the closest QAudioFormat to the supplied \a settings that the system supports.
-
-    These settings are provided by the platform/audio plugin being used.
-
-    They are also dependent on the \l {QAudio}::Mode being used.
+    Returns the minimum supported sample rate (in Hertz).
 */
-QAudioFormat QAudioDeviceInfo::nearestFormat(const QAudioFormat &settings) const
+int QAudioDeviceInfo::minimumSampleRate() const
 {
-    if (isFormatSupported(settings))
-        return settings;
-
-    QAudioFormat nearest = settings;
-
-    QList<QString> testCodecs = supportedCodecs();
-    QList<int> testChannels = supportedChannelCounts();
-    QList<QAudioFormat::Endian> testByteOrders = supportedByteOrders();
-    QList<QAudioFormat::SampleType> testSampleTypes;
-    QList<QAudioFormat::SampleType> sampleTypesAvailable = supportedSampleTypes();
-    QMap<int,int> testSampleRates;
-    QList<int> sampleRatesAvailable = supportedSampleRates();
-    QMap<int,int> testSampleSizes;
-    QList<int> sampleSizesAvailable = supportedSampleSizes();
-
-    // Get sorted lists for checking
-    if (testCodecs.contains(settings.codec())) {
-        testCodecs.removeAll(settings.codec());
-        testCodecs.insert(0, settings.codec());
-    }
-    testChannels.removeAll(settings.channelCount());
-    testChannels.insert(0, settings.channelCount());
-    testByteOrders.removeAll(settings.byteOrder());
-    testByteOrders.insert(0, settings.byteOrder());
-
-    if (sampleTypesAvailable.contains(settings.sampleType()))
-        testSampleTypes.append(settings.sampleType());
-    if (sampleTypesAvailable.contains(QAudioFormat::SignedInt))
-        testSampleTypes.append(QAudioFormat::SignedInt);
-    if (sampleTypesAvailable.contains(QAudioFormat::UnSignedInt))
-        testSampleTypes.append(QAudioFormat::UnSignedInt);
-    if (sampleTypesAvailable.contains(QAudioFormat::Float))
-        testSampleTypes.append(QAudioFormat::Float);
-
-    if (sampleSizesAvailable.contains(settings.sampleSize()))
-        testSampleSizes.insert(0,settings.sampleSize());
-    sampleSizesAvailable.removeAll(settings.sampleSize());
-    for (int size : qAsConst(sampleSizesAvailable)) {
-        int larger  = (size > settings.sampleSize()) ? size : settings.sampleSize();
-        int smaller = (size > settings.sampleSize()) ? settings.sampleSize() : size;
-        bool isMultiple = ( 0 == (larger % smaller));
-        int diff = larger - smaller;
-        testSampleSizes.insert((isMultiple ? diff : diff+100000), size);
-    }
-    if (sampleRatesAvailable.contains(settings.sampleRate()))
-        testSampleRates.insert(0,settings.sampleRate());
-    sampleRatesAvailable.removeAll(settings.sampleRate());
-    for (int sampleRate : qAsConst(sampleRatesAvailable)) {
-        int larger  = (sampleRate > settings.sampleRate()) ? sampleRate : settings.sampleRate();
-        int smaller = (sampleRate > settings.sampleRate()) ? settings.sampleRate() : sampleRate;
-        bool isMultiple = ( 0 == (larger % smaller));
-        int diff = larger - smaller;
-        testSampleRates.insert((isMultiple ? diff : diff+100000), sampleRate);
-    }
-
-    // Try to find nearest
-    for (const QString &codec : qAsConst(testCodecs)) {
-        nearest.setCodec(codec);
-        for (QAudioFormat::Endian order : qAsConst(testByteOrders)) {
-            nearest.setByteOrder(order);
-            for (QAudioFormat::SampleType sample : qAsConst(testSampleTypes)) {
-                nearest.setSampleType(sample);
-                for (int sampleSize : qAsConst(testSampleSizes)) {
-                    nearest.setSampleSize(sampleSize);
-                    for (int channel : qAsConst(testChannels)) {
-                        nearest.setChannelCount(channel);
-                        for (int sampleRate : qAsConst(testSampleRates)) {
-                            nearest.setSampleRate(sampleRate);
-                            if (isFormatSupported(nearest))
-                                return nearest;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    //Fallback
-    return preferredFormat();
+    return isNull() ? 0 : d->minimumSampleRate;
 }
 
 /*!
-    Returns a list of supported codecs.
-
-    All platform and plugin implementations should provide support for:
-
-    "audio/pcm" - Linear PCM
-
-    For writing plugins to support additional codecs refer to:
-
-    http://www.iana.org/assignments/media-types/audio/
+    Returns the maximum supported sample rate (in Hertz).
 */
-QStringList QAudioDeviceInfo::supportedCodecs() const
+int QAudioDeviceInfo::maximumSampleRate() const
 {
-    return isNull() ? QStringList() : d->info->supportedCodecs();
+    return isNull() ? 0 : d->maximumSampleRate;
 }
 
 /*!
-    Returns a list of supported sample rates (in Hertz).
-
-*/
-QList<int> QAudioDeviceInfo::supportedSampleRates() const
-{
-    return isNull() ? QList<int>() : d->info->supportedSampleRates();
-}
-
-/*!
-    Returns a list of supported channel counts.
+    Returns the minimum number of supported channel counts.
 
     This is typically 1 for mono sound, or 2 for stereo sound.
-
 */
-QList<int> QAudioDeviceInfo::supportedChannelCounts() const
+int QAudioDeviceInfo::minimumChannelCount() const
 {
-    return isNull() ? QList<int>() : d->info->supportedChannelCounts();
+    return isNull() ? 0 : d->minimumChannelCount;
 }
 
 /*!
-    Returns a list of supported sample sizes (in bits).
+    Returns the maximum number of supported channel counts.
 
-    Typically this will include 8 and 16 bit sample sizes.
-
+    This is typically 1 for mono sound, or 2 for stereo sound.
 */
-QList<int> QAudioDeviceInfo::supportedSampleSizes() const
+int QAudioDeviceInfo::maximumChannelCount() const
 {
-    return isNull() ? QList<int>() : d->info->supportedSampleSizes();
-}
-
-/*!
-    Returns a list of supported byte orders.
-*/
-QList<QAudioFormat::Endian> QAudioDeviceInfo::supportedByteOrders() const
-{
-    return isNull() ? QList<QAudioFormat::Endian>() : d->info->supportedByteOrders();
+    return isNull() ? 0 : d->maximumChannelCount;
 }
 
 /*!
     Returns a list of supported sample types.
 */
-QList<QAudioFormat::SampleType> QAudioDeviceInfo::supportedSampleTypes() const
+QList<QAudioFormat::SampleFormat> QAudioDeviceInfo::supportedSampleFormats() const
 {
-    return isNull() ? QList<QAudioFormat::SampleType>() : d->info->supportedSampleTypes();
-}
-
-/*!
-    Returns the information for the default input audio device.
-    All platform and audio plugin implementations provide a default audio device to use.
-*/
-QAudioDeviceInfo QAudioDeviceInfo::defaultInputDevice()
-{
-    return QAudioDeviceFactory::defaultDevice(QAudio::AudioInput);
-}
-
-/*!
-    Returns the information for the default output audio device.
-    All platform and audio plugin implementations provide a default audio device to use.
-*/
-QAudioDeviceInfo QAudioDeviceInfo::defaultOutputDevice()
-{
-    return QAudioDeviceFactory::defaultDevice(QAudio::AudioOutput);
-}
-
-/*!
-    Returns a list of audio devices that support \a mode.
-*/
-QList<QAudioDeviceInfo> QAudioDeviceInfo::availableDevices(QAudio::Mode mode)
-{
-    return QAudioDeviceFactory::availableDevices(mode);
-}
-
-
-/*!
-    \internal
-*/
-QAudioDeviceInfo::QAudioDeviceInfo(const QString &realm, const QByteArray &handle, QAudio::Mode mode):
-    d(new QAudioDeviceInfoPrivate(realm, handle, mode))
-{
-}
-
-/*!
-    Returns the key that represents the audio plugin.
-
-    \since 5.14
-    \sa QAudioSystemPlugin
-*/
-QString QAudioDeviceInfo::realm() const
-{
-    return d->realm;
+    return isNull() ? QList<QAudioFormat::SampleFormat>() : d->supportedSampleFormats;
 }
 
 /*!
     \internal
 */
-QByteArray QAudioDeviceInfo::handle() const
-{
-    return d->handle;
-}
-
+QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfoPrivate *p)
+    : d(p)
+{}
 
 /*!
-    \internal
+    returns whether this device is an input or output device.
 */
 QAudio::Mode QAudioDeviceInfo::mode() const
 {
@@ -473,4 +280,3 @@ QAudio::Mode QAudioDeviceInfo::mode() const
 }
 
 QT_END_NAMESPACE
-

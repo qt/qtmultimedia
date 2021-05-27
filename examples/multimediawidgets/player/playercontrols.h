@@ -67,13 +67,13 @@ class PlayerControls : public QWidget
 public:
     explicit PlayerControls(QWidget *parent = nullptr);
 
-    QMediaPlayer::State state() const;
+    QMediaPlayer::PlaybackState state() const;
     int volume() const;
     bool isMuted() const;
     qreal playbackRate() const;
 
 public slots:
-    void setState(QMediaPlayer::State state);
+    void setState(QMediaPlayer::PlaybackState state);
     void setVolume(int volume);
     void setMuted(bool muted);
     void setPlaybackRate(float rate);
@@ -95,7 +95,7 @@ private slots:
     void onVolumeSliderValueChanged();
 
 private:
-    QMediaPlayer::State m_playerState = QMediaPlayer::StoppedState;
+    QMediaPlayer::PlaybackState m_playerState = QMediaPlayer::StoppedState;
     bool m_playerMuted = false;
     QAbstractButton *m_playButton = nullptr;
     QAbstractButton *m_stopButton = nullptr;

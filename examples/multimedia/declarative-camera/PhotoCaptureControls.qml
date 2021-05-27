@@ -48,11 +48,11 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.4
+import QtQuick
+import QtMultimedia
 
 FocusScope {
-    property Camera camera
+    property CaptureSession captureSession
     property bool previewAvailable : false
 
     property int buttonsPanelWidth: buttonPaneShadow.width
@@ -79,48 +79,43 @@ FocusScope {
             id: buttonsColumn
             spacing: 8
 
-            FocusButton {
-                camera: captureControls.camera
-                visible: camera.cameraStatus == Camera.ActiveStatus && camera.focus.isFocusModeSupported(Camera.FocusAuto)
-            }
-
             CameraButton {
                 text: "Capture"
-                visible: camera.imageCapture.ready
-                onClicked: camera.imageCapture.capture()
+                visible: captureSession.imageCapture.readyForCapture
+                onClicked: captureSession.imageCapture.capture()
             }
 
             CameraPropertyButton {
                 id : wbModesButton
-                value: CameraImageProcessing.WhiteBalanceAuto
+                value: Camera.WhiteBalanceAuto
                 model: ListModel {
                     ListElement {
                         icon: "images/camera_auto_mode.png"
-                        value: CameraImageProcessing.WhiteBalanceAuto
+                        value: Camera.WhiteBalanceAuto
                         text: "Auto"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_sunny.png"
-                        value: CameraImageProcessing.WhiteBalanceSunlight
+                        value: Camera.WhiteBalanceSunlight
                         text: "Sunlight"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_cloudy.png"
-                        value: CameraImageProcessing.WhiteBalanceCloudy
+                        value: Camera.WhiteBalanceCloudy
                         text: "Cloudy"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_incandescent.png"
-                        value: CameraImageProcessing.WhiteBalanceTungsten
+                        value: Camera.WhiteBalanceTungsten
                         text: "Tungsten"
                     }
                     ListElement {
                         icon: "images/camera_white_balance_flourescent.png"
-                        value: CameraImageProcessing.WhiteBalanceFluorescent
+                        value: Camera.WhiteBalanceFluorescent
                         text: "Fluorescent"
                     }
                 }
-                onValueChanged: captureControls.camera.imageProcessing.whiteBalanceMode = wbModesButton.value
+                onValueChanged: captureControls.captureSession.camera.whiteBalanceMode = wbModesButton.value
             }
 
             CameraButton {
@@ -141,8 +136,8 @@ FocusScope {
             spacing: 8
 
             CameraListButton {
-                model: QtMultimedia.availableCameras
-                onValueChanged: captureControls.camera.deviceId = value
+                model: MediaDevices.videoInputs
+                onValueChanged: captureSession.camera.cameraInfo = value
             }
 
             CameraButton {
@@ -167,8 +162,8 @@ FocusScope {
         width : 100
         height: parent.height
 
-        currentZoom: camera.digitalZoom
-        maximumZoom: Math.min(4.0, camera.maximumDigitalZoom)
+        currentZoom: camera.zoomFactor
+        maximumZoom: camera.maximumZoomFactor
         onZoomTo: camera.setDigitalZoom(value)
     }
 }

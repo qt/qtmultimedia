@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtMultimedia 5.13
+import QtQuick
+import QtMultimedia
 
 /*!
     \qmltype Video
@@ -319,29 +319,11 @@ Item {
         \li MediaPlayer.AccessibilityRole - for accessibility, such as with a screen reader.
         \li MediaPlayer.SonificationRole - sonification, such as with user interface sounds.
         \li MediaPlayer.GameRole - game audio.
-        \li MediaPlayer.CustomRole - The role is specified by customAudioRole.
         \endlist
-
-        customAudioRole is cleared when this property is set to anything other than CustomRole.
 
         \since 5.6
     */
     property alias audioRole:       player.audioRole
-
-    /*!
-        \qmlproperty string Video::customAudioRole
-
-        This property holds the role of the audio stream when the backend supports audio roles
-        unknown to Qt. It can be set to specify the type of audio being played, allowing the
-        system to make appropriate decisions when it comes to volume, routing or post-processing.
-
-        The audio role must be set before setting the source property.
-
-        audioRole is set to CustomRole when this property is set.
-
-        \since 5.11
-    */
-    property alias customAudioRole: player.customAudioRole
 
     /*!
         \qmlproperty bool Video::seekable
@@ -357,21 +339,8 @@ Item {
         \qmlproperty url Video::source
 
         This property holds the source URL of the media.
-
-        Setting the \l source property clears the current \l playlist, if any.
     */
     property alias source:          player.source
-
-    /*!
-        \qmlproperty Playlist Video::playlist
-
-        This property holds the playlist used by the media player.
-
-        Setting the \l playlist property resets the \l source to an empty string.
-
-        \since 5.6
-    */
-    property alias playlist:        player.playlist
 
     /*!
         \qmlproperty enumeration Video::status
@@ -417,19 +386,6 @@ Item {
         Setting to \c true also sets \l autoLoad to \c true. The default is \c false.
     */
     property alias autoPlay:        player.autoPlay
-
-    /*!
-        \qmlproperty int Video::notifyInterval
-
-        The interval at which notifiable properties will update.
-
-        The notifiable properties are \l position and \l bufferProgress.
-
-        The interval is expressed in milliseconds, the default value is 1000.
-
-        \since 5.9
-    */
-    property alias notifyInterval:  player.notifyInterval
 
     /*!
         \qmlproperty int Video::loops

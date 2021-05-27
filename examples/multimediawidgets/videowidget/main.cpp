@@ -54,6 +54,7 @@
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QCommandLineOption>
 #include <QtCore/QDir>
+#include <QtCore/QUrl>
 #include <QScreen>
 
 int main(int argc, char *argv[])

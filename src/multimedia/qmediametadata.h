@@ -41,9 +41,9 @@
 #define QMEDIAMETADATA_H
 
 #include <QtCore/qpair.h>
-#include <QtCore/qmetatype.h>
+#include <QtCore/qvariant.h>
 #include <QtCore/qstring.h>
-
+#include <QtCore/qhash.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 QT_BEGIN_NAMESPACE
@@ -51,238 +51,75 @@ QT_BEGIN_NAMESPACE
 // Class forward declaration required for QDoc bug
 class QString;
 
-#define Q_DECLARE_METADATA(key) Q_MULTIMEDIA_EXPORT extern const QString key
+class Q_MULTIMEDIA_EXPORT QMediaMetaData
+{
+    Q_GADGET
+public:
+    enum Key {
+        Title,
+        Author,
+        Comment,
+        Description,
+        Genre,
+        Date,
 
-namespace QMediaMetaData {
-#ifdef Q_QDOC
-    // QDoc does not like macros, so try to keep this in sync :)
-    QString Title;
-    QString SubTitle;
-    QString Author;
-    QString Comment;
-    QString Description;
-    QString Category;
-    QString Genre;
-    QString Year;
-    QString Date;
-    QString UserRating;
-    QString Keywords;
-    QString Language;
-    QString Publisher;
-    QString Copyright;
-    QString ParentalRating;
-    QString RatingOrganization;
+        Language,
+        Publisher,
+        Copyright,
+        Url,
 
-    // Media
-    QString Size;
-    QString MediaType;
-    QString Duration;
+        Duration,
+        MediaType,
+        FileFormat,
 
-    // Audio
-    QString AudioBitRate;
-    QString AudioCodec;
-    QString AverageLevel;
-    QString ChannelCount;
-    QString PeakValue;
-    QString SampleRate;
+        AudioBitRate,
+        AudioCodec,
+        VideoBitRate,
+        VideoCodec,
+        VideoFrameRate,
 
-    // Music
-    QString AlbumTitle;
-    QString AlbumArtist;
-    QString ContributingArtist;
-    QString Composer;
-    QString Conductor;
-    QString Lyrics;
-    QString Mood;
-    QString TrackNumber;
-    QString TrackCount;
+        AlbumTitle,
+        AlbumArtist,
+        ContributingArtist,
+        TrackNumber,
+        Composer,
+        LeadPerformer,
 
-    QString CoverArtUrlSmall;
-    QString CoverArtUrlLarge;
+        ThumbnailImage,
+        CoverArtImage,
+        Orientation,
 
-    // Image/Video
-    QString Resolution;
-    QString PixelAspectRatio;
+        Resolution
+    };
+    Q_ENUM(Key)
 
-    // Video
-    QString VideoFrameRate;
-    QString VideoBitRate;
-    QString VideoCodec;
+    static constexpr int NumMetaData = Resolution + 1;
 
-    QString PosterUrl;
+//    QMetaType typeForKey(Key k);
+    Q_INVOKABLE QVariant value(Key k) const { return data.value(k); }
+    Q_INVOKABLE void insert(Key k, const QVariant &value) { data.insert(k, value); }
+    Q_INVOKABLE void remove(Key k) { data.remove(k); }
+    Q_INVOKABLE QList<Key> keys() const { return data.keys(); }
 
-    // Movie
-    QString ChapterNumber;
-    QString Director;
-    QString LeadPerformer;
-    QString Writer;
+    QVariant &operator[](Key k) { return data[k]; }
+    Q_INVOKABLE void clear() { data.clear(); }
 
-    // Photos
-    QString CameraManufacturer;
-    QString CameraModel;
-    QString Event;
-    QString Subject;
-    QString Orientation;
-    QString ExposureTime;
-    QString FNumber;
-    QString ExposureProgram;
-    QString ISOSpeedRatings;
-    QString ExposureBiasValue;
-    QString DateTimeOriginal;
-    QString DateTimeDigitized;
-    QString SubjectDistance;
-    QString MeteringMode;
-    QString LightSource;
-    QString Flash;
-    QString FocalLength;
-    QString ExposureMode;
-    QString WhiteBalance;
-    QString DigitalZoomRatio;
-    QString FocalLengthIn35mmFilm;
-    QString SceneCaptureType;
-    QString GainControl;
-    QString Contrast;
-    QString Saturation;
-    QString Sharpness;
-    QString DeviceSettingDescription;
+    Q_INVOKABLE bool isEmpty() const { return data.isEmpty(); }
+    Q_INVOKABLE QString stringValue(Key k) const;
 
-    // Location
-    QString GPSLatitude;
-    QString GPSLongitude;
-    QString GPSAltitude;
-    QString GPSTimeStamp;
-    QString GPSSatellites;
-    QString GPSStatus;
-    QString GPSDOP;
-    QString GPSSpeed;
-    QString GPSTrack;
-    QString GPSTrackRef;
-    QString GPSImgDirection;
-    QString GPSImgDirectionRef;
-    QString GPSMapDatum;
-    QString GPSProcessingMethod;
-    QString GPSAreaInformation;
+    Q_INVOKABLE static QString metaDataKeyToString(Key k);
 
-    QString PosterImage;
-    QString CoverArtImage;
-    QString ThumbnailImage;
-#else
-    // Common
-    Q_DECLARE_METADATA(Title);
-    Q_DECLARE_METADATA(SubTitle);
-    Q_DECLARE_METADATA(Author);
-    Q_DECLARE_METADATA(Comment);
-    Q_DECLARE_METADATA(Description);
-    Q_DECLARE_METADATA(Category);
-    Q_DECLARE_METADATA(Genre);
-    Q_DECLARE_METADATA(Year);
-    Q_DECLARE_METADATA(Date);
-    Q_DECLARE_METADATA(UserRating);
-    Q_DECLARE_METADATA(Keywords);
-    Q_DECLARE_METADATA(Language);
-    Q_DECLARE_METADATA(Publisher);
-    Q_DECLARE_METADATA(Copyright);
-    Q_DECLARE_METADATA(ParentalRating);
-    Q_DECLARE_METADATA(RatingOrganization);
+protected:
+    friend bool operator==(const QMediaMetaData &a, const QMediaMetaData &b)
+    { return a.data == b.data; }
+    friend bool operator!=(const QMediaMetaData &a, const QMediaMetaData &b)
+    { return a.data != b.data; }
 
-    // Media
-    Q_DECLARE_METADATA(Size);
-    Q_DECLARE_METADATA(MediaType);
-    Q_DECLARE_METADATA(Duration);
-
-    // Audio
-    Q_DECLARE_METADATA(AudioBitRate);
-    Q_DECLARE_METADATA(AudioCodec);
-    Q_DECLARE_METADATA(AverageLevel);
-    Q_DECLARE_METADATA(ChannelCount);
-    Q_DECLARE_METADATA(PeakValue);
-    Q_DECLARE_METADATA(SampleRate);
-
-    // Music
-    Q_DECLARE_METADATA(AlbumTitle);
-    Q_DECLARE_METADATA(AlbumArtist);
-    Q_DECLARE_METADATA(ContributingArtist);
-    Q_DECLARE_METADATA(Composer);
-    Q_DECLARE_METADATA(Conductor);
-    Q_DECLARE_METADATA(Lyrics);
-    Q_DECLARE_METADATA(Mood);
-    Q_DECLARE_METADATA(TrackNumber);
-    Q_DECLARE_METADATA(TrackCount);
-
-    Q_DECLARE_METADATA(CoverArtUrlSmall);
-    Q_DECLARE_METADATA(CoverArtUrlLarge);
-
-    // Image/Video
-    Q_DECLARE_METADATA(Resolution);
-    Q_DECLARE_METADATA(PixelAspectRatio);
-
-    // Video
-    Q_DECLARE_METADATA(VideoFrameRate);
-    Q_DECLARE_METADATA(VideoBitRate);
-    Q_DECLARE_METADATA(VideoCodec);
-
-    Q_DECLARE_METADATA(PosterUrl);
-
-    // Movie
-    Q_DECLARE_METADATA(ChapterNumber);
-    Q_DECLARE_METADATA(Director);
-    Q_DECLARE_METADATA(LeadPerformer);
-    Q_DECLARE_METADATA(Writer);
-
-    // Photos
-    Q_DECLARE_METADATA(CameraManufacturer);
-    Q_DECLARE_METADATA(CameraModel);
-    Q_DECLARE_METADATA(Event);
-    Q_DECLARE_METADATA(Subject);
-    Q_DECLARE_METADATA(Orientation);
-    Q_DECLARE_METADATA(ExposureTime);
-    Q_DECLARE_METADATA(FNumber);
-    Q_DECLARE_METADATA(ExposureProgram);
-    Q_DECLARE_METADATA(ISOSpeedRatings);
-    Q_DECLARE_METADATA(ExposureBiasValue);
-    Q_DECLARE_METADATA(DateTimeOriginal);
-    Q_DECLARE_METADATA(DateTimeDigitized);
-    Q_DECLARE_METADATA(SubjectDistance);
-    Q_DECLARE_METADATA(MeteringMode);
-    Q_DECLARE_METADATA(LightSource);
-    Q_DECLARE_METADATA(Flash);
-    Q_DECLARE_METADATA(FocalLength);
-    Q_DECLARE_METADATA(ExposureMode);
-    Q_DECLARE_METADATA(WhiteBalance);
-    Q_DECLARE_METADATA(DigitalZoomRatio);
-    Q_DECLARE_METADATA(FocalLengthIn35mmFilm);
-    Q_DECLARE_METADATA(SceneCaptureType);
-    Q_DECLARE_METADATA(GainControl);
-    Q_DECLARE_METADATA(Contrast);
-    Q_DECLARE_METADATA(Saturation);
-    Q_DECLARE_METADATA(Sharpness);
-    Q_DECLARE_METADATA(DeviceSettingDescription);
-
-    // Location
-    Q_DECLARE_METADATA(GPSLatitude);
-    Q_DECLARE_METADATA(GPSLongitude);
-    Q_DECLARE_METADATA(GPSAltitude);
-    Q_DECLARE_METADATA(GPSTimeStamp);
-    Q_DECLARE_METADATA(GPSSatellites);
-    Q_DECLARE_METADATA(GPSStatus);
-    Q_DECLARE_METADATA(GPSDOP);
-    Q_DECLARE_METADATA(GPSSpeed);
-    Q_DECLARE_METADATA(GPSTrack);
-    Q_DECLARE_METADATA(GPSTrackRef);
-    Q_DECLARE_METADATA(GPSImgDirection);
-    Q_DECLARE_METADATA(GPSImgDirectionRef);
-    Q_DECLARE_METADATA(GPSMapDatum);
-    Q_DECLARE_METADATA(GPSProcessingMethod);
-    Q_DECLARE_METADATA(GPSAreaInformation);
-
-    Q_DECLARE_METADATA(PosterImage);
-    Q_DECLARE_METADATA(CoverArtImage);
-    Q_DECLARE_METADATA(ThumbnailImage);
-#endif
-}
-
-#undef Q_DECLARE_METADATA
+    QHash<Key, QVariant> data;
+};
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QMediaMetaData)
 
 #endif // QMEDIAMETADATA_H

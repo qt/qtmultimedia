@@ -44,17 +44,15 @@
 
 #include "qmediaplaylist.h"
 #include "qmediarecorder.h"
-#include "qmediaservice.h"
-#include "qmediaplayercontrol.h"
+#include "qplatformmediaplayer_p.h"
 #include "qmediaplayer.h"
 #include "qvideowidget.h"
 #include "qcameraimagecapture.h"
 #include "qcamera.h"
 #include "qcameraviewfinder.h"
-#include "qaudioprobe.h"
 #include "qaudiorecorder.h"
-#include "qvideoprobe.h"
-#include <QAbstractVideoSurface>
+#include "qurl.h"
+#include <QVideoSink>
 
 class MediaExample : public QObject {
     Q_OBJECT
@@ -65,12 +63,9 @@ class MediaExample : public QObject {
     void AudioRecorder();
     void EncoderSettings();
     void ImageEncoderSettings();
-    void AudioProbe();
-    void VideoProbe();
 
 private:
     // Common naming
-    QMediaService *mediaService;
     QVideoWidget *videoWidget;
     QWidget *widget;
     QMediaPlayer *player;
@@ -81,9 +76,6 @@ private:
     QCameraViewfinder *viewfinder;
     QCameraImageCapture *imageCapture;
     QString fileName;
-    QAudioRecorder *audioRecorder;
-    QAudioProbe *audioProbe;
-    QVideoProbe *videoProbe;
 
     QMediaContent image1;
     QMediaContent image2;
@@ -92,47 +84,25 @@ private:
 
 void MediaExample::MediaControl()
 {
-    {
-    //! [Request control]
-    QMediaPlayerControl *control = qobject_cast<QMediaPlayerControl *>(
-            mediaService->requestControl("org.qt-project.qt.mediaplayercontrol/5.0"));
-    //! [Request control]
-    Q_UNUSED(control);
-    }
-
-    {
-    //! [Request control templated]
-    QMediaPlayerControl *control = mediaService->requestControl<QMediaPlayerControl *>();
-    //! [Request control templated]
-    Q_UNUSED(control);
-    }
 }
 
 
 void MediaExample::EncoderSettings()
 {
-    //! [Audio encoder settings]
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/mpeg");
-    audioSettings.setChannelCount(2);
+    //! [Media encoder settings]
+    QMediaEncoderSettings settings(QMediaEncoderSettings::MPEG4);
+    settings.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
+    settings.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
 
-    recorder->setAudioSettings(audioSettings);
-    //! [Audio encoder settings]
-
-    //! [Video encoder settings]
-    QVideoEncoderSettings videoSettings;
-    videoSettings.setCodec("video/mpeg2");
-    videoSettings.setResolution(640, 480);
-
-    recorder->setVideoSettings(videoSettings);
-    //! [Video encoder settings]
+    recorder->setEncoderSettings(settings);
+    //! [Media encoder settings]
 }
 
 void MediaExample::ImageEncoderSettings()
 {
     //! [Image encoder settings]
     QImageEncoderSettings imageSettings;
-    imageSettings.setCodec("image/jpeg");
+    imageSettings.setFormat(QImageEncoderSettings::JPEG);
     imageSettings.setResolution(1600, 1200);
 
     imageCapture->setEncodingSettings(imageSettings);
@@ -144,7 +114,7 @@ void MediaExample::MediaPlayer()
     //! [Player]
     player = new QMediaPlayer;
     connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
-    player->setMedia(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
+    player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
     player->setVolume(50);
     player->play();
     //! [Player]
@@ -152,98 +122,10 @@ void MediaExample::MediaPlayer()
     //! [Local playback]
     player = new QMediaPlayer;
     // ...
-    player->setMedia(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
+    player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
     player->setVolume(50);
     player->play();
     //! [Local playback]
-
-    //! [Audio playlist]
-    player = new QMediaPlayer;
-
-    playlist = new QMediaPlaylist(player);
-    playlist->addMedia(QUrl("http://example.com/myfile1.mp3"));
-    playlist->addMedia(QUrl("http://example.com/myfile2.mp3"));
-    // ...
-    playlist->setCurrentIndex(1);
-    player->play();
-    //! [Audio playlist]
-
-    //! [Movie playlist]
-    playlist = new QMediaPlaylist;
-    playlist->addMedia(QUrl("http://example.com/movie1.mp4"));
-    playlist->addMedia(QUrl("http://example.com/movie2.mp4"));
-    playlist->addMedia(QUrl("http://example.com/movie3.mp4"));
-    playlist->setCurrentIndex(1);
-
-    player = new QMediaPlayer;
-    player->setPlaylist(playlist);
-
-    videoWidget = new QVideoWidget;
-    player->setVideoOutput(videoWidget);
-    videoWidget->show();
-
-    player->play();
-    //! [Movie playlist]
-
-    //! [Pipeline]
-    player = new QMediaPlayer;
-    player->setMedia(QUrl("gst-pipeline: videotestsrc ! autovideosink"));
-    player->play();
-    //! [Pipeline]
-
-    //! [Pipeline Surface]
-    class Surface : public QAbstractVideoSurface
-    {
-    public:
-        Surface(QObject *p) : QAbstractVideoSurface(p) { }
-        QList<QVideoFrame::PixelFormat> supportedPixelFormats(QAbstractVideoBuffer::HandleType) const override
-        {
-            // Make sure that the driver supports this pixel format.
-            return QList<QVideoFrame::PixelFormat>() << QVideoFrame::Format_YUYV;
-        }
-
-        // Video frames are handled here.
-        bool present(const QVideoFrame &) override { return true; }
-    };
-
-    player = new QMediaPlayer;
-    player->setVideoOutput(new Surface(player));
-    player->setMedia(QUrl("gst-pipeline: videotestsrc ! qtvideosink"));
-    player->play();
-    //! [Pipeline Surface]
-
-    //! [Pipeline Widget]
-    player = new QMediaPlayer;
-    videoWidget = new QVideoWidget;
-    videoWidget->show();
-    player->setVideoOutput(videoWidget);
-    player->setMedia(QUrl("gst-pipeline: videotestsrc ! xvimagesink name=\"qtvideosink\""));
-    player->play();
-    //! [Pipeline Widget]
-
-    //! [Pipeline appsrc]
-    QImage img("images/qt-logo.png");
-    img = img.convertToFormat(QImage::Format_ARGB32);
-    QByteArray ba(reinterpret_cast<const char *>(img.bits()), img.sizeInBytes());
-    QBuffer buffer(&ba);
-    buffer.open(QIODevice::ReadOnly);
-    player = new QMediaPlayer;
-    player->setMedia(QUrl("gst-pipeline: appsrc blocksize=4294967295 ! \
-        video/x-raw,format=BGRx,framerate=30/1,width=200,height=147 ! \
-        coloreffects preset=heat ! videoconvert ! video/x-raw,format=I420 ! jpegenc ! rtpjpegpay ! \
-        udpsink host=127.0.0.1 port=5000"), &buffer);
-    player->play();
-
-    QMediaPlayer *receiver = new QMediaPlayer;
-    videoWidget = new QVideoWidget;
-    receiver->setVideoOutput(videoWidget);
-    receiver->setMedia(QUrl("gst-pipeline: udpsrc port=5000 ! \
-        application/x-rtp,encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! \
-        xvimagesink name=qtvideosink"));
-    receiver->play();
-    // Content will be shown in this widget.
-    videoWidget->show();
-    //! [Pipeline appsrc]
 }
 
 void MediaExample::MediaRecorder()
@@ -251,9 +133,9 @@ void MediaExample::MediaRecorder()
     //! [Media recorder]
     recorder = new QMediaRecorder(camera);
 
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QMultimedia::HighQuality);
+    QMediaEncoderSettings audioSettings;
+    audioSettings.setFormat(QMediaEncoderSettings::MP3);
+    audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
 
     recorder->setAudioSettings(audioSettings);
 
@@ -265,85 +147,17 @@ void MediaExample::MediaRecorder()
 void MediaExample::AudioRecorder()
 {
     //! [Audio recorder]
-    audioRecorder = new QAudioRecorder;
+    QMediaRecorder recorder;
+    recorder.setCaptureMode(QMediaRecorder::AudioOnly);
 
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QMultimedia::HighQuality);
+    QMediaEncoderSettings audioSettings;
+    audioSettings.setFormat(QMediaEncoderSettings::MP3);
+    audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
 
-    audioRecorder->setEncodingSettings(audioSettings);
+    recorder.setEncoderSettings(audioSettings);
 
-    audioRecorder->setOutputLocation(QUrl::fromLocalFile("test.amr"));
-    audioRecorder->record();
+    recorder.setOutputLocation(QUrl::fromLocalFile("test.amr"));
+    recorder.record();
     //! [Audio recorder]
-
-    //! [Audio recorder inputs]
-    const QStringList inputs = audioRecorder->audioInputs();
-    QString selectedInput = audioRecorder->defaultAudioInput();
-
-    for (const QString &input : inputs) {
-        QString description = audioRecorder->audioInputDescription(input);
-        // show descriptions to user and allow selection
-        selectedInput = input;
-    }
-
-    audioRecorder->setAudioInput(selectedInput);
-    //! [Audio recorder inputs]
 }
-
-void MediaExample::AudioProbe()
-{
-    //! [Audio probe]
-    audioRecorder = new QAudioRecorder;
-
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QMultimedia::HighQuality);
-
-    audioRecorder->setEncodingSettings(audioSettings);
-
-    audioRecorder->setOutputLocation(QUrl::fromLocalFile("test.amr"));
-
-    audioProbe = new QAudioProbe(this);
-    if (audioProbe->setSource(audioRecorder)) {
-        // Probing succeeded, audioProbe->isValid() should be true.
-        connect(audioProbe, SIGNAL(audioBufferProbed(QAudioBuffer)),
-                this, SLOT(calculateLevel(QAudioBuffer)));
-    }
-
-    audioRecorder->record();
-    // Now audio buffers being recorded should be signaled
-    // by the probe, so we can do things like calculating the
-    // audio power level, or performing a frequency transform
-    //! [Audio probe]
-}
-
-void MediaExample::VideoProbe()
-{
-    //! [Video probe]
-    camera = new QCamera;
-    viewfinder = new QCameraViewfinder();
-    camera->setViewfinder(viewfinder);
-
-    camera->setCaptureMode(QCamera::CaptureVideo);
-
-    videoProbe = new QVideoProbe(this);
-
-    if (videoProbe->setSource(camera)) {
-        // Probing succeeded, videoProbe->isValid() should be true.
-        connect(videoProbe, SIGNAL(videoFrameProbed(QVideoFrame)),
-                this, SLOT(detectBarcodes(QVideoFrame)));
-    }
-
-    camera->start();
-    // Viewfinder frames should now also be emitted by
-    // the video probe, even in still image capture mode.
-    // Another alternative is to install the probe on a
-    // QMediaRecorder connected to the camera to get the
-    // recorded frames, if they are different from the
-    // viewfinder frames.
-
-    //! [Video probe]
-}
-
 

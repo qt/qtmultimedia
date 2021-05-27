@@ -43,49 +43,48 @@
 #include <QtCore/qshareddata.h>
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmultimedia.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudioformat.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAbstractAudioBuffer;
 class QAudioBufferPrivate;
+QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QAudioBufferPrivate, Q_MULTIMEDIA_EXPORT)
+
 class Q_MULTIMEDIA_EXPORT QAudioBuffer
 {
 public:
-    QAudioBuffer();
-    QAudioBuffer(QAbstractAudioBuffer *provider);
-    QAudioBuffer(const QAudioBuffer &other);
+    QAudioBuffer() noexcept;
+    QAudioBuffer(const QAudioBuffer &other) noexcept;
     QAudioBuffer(const QByteArray &data, const QAudioFormat &format, qint64 startTime = -1);
     QAudioBuffer(int numFrames, const QAudioFormat &format, qint64 startTime = -1); // Initialized to empty
+    ~QAudioBuffer();
 
     QAudioBuffer& operator=(const QAudioBuffer &other);
 
-    ~QAudioBuffer();
+    QAudioBuffer(QAudioBuffer &&other) noexcept = default;
+    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QAudioBuffer)
+    void swap(QAudioBuffer &other) noexcept
+    { qSwap(d, other.d); }
 
-    bool isValid() const;
+    bool isValid() const noexcept { return d != nullptr; };
 
-    QAudioFormat format() const;
+    void detach();
 
-    int frameCount() const;
-    int sampleCount() const;
-    int byteCount() const;
+    QAudioFormat format() const noexcept;
 
-    qint64 duration() const;
-    qint64 startTime() const;
+    qsizetype frameCount() const noexcept;
+    qsizetype sampleCount() const noexcept;
+    qsizetype byteCount() const noexcept;
 
-    // Data modification
-    // void clear();
-    // Other ideas
-    // operator *=
-    // operator += (need to be careful about different formats)
+    qint64 duration() const noexcept;
+    qint64 startTime() const noexcept;
 
     // Data access
-    const void* constData() const; // Does not detach, preferred
-    const void* data() const; // Does not detach
-    void *data(); // detaches
+    const void* constData() const noexcept;
+    const void* data() const noexcept;
+    void *data();
 
     // Structures for easier access to stereo data
     template <typename T> struct StereoFrameDefault { enum { Default = 0 }; };
@@ -122,8 +121,6 @@ public:
     };
 
     typedef StereoFrame<unsigned char> S8U;
-    typedef StereoFrame<signed char> S8S;
-    typedef StereoFrame<unsigned short> S16U;
     typedef StereoFrame<signed short> S16S;
     typedef StereoFrame<float> S32F;
 
@@ -137,15 +134,14 @@ public:
         return static_cast<T*>(data());
     }
 private:
-    QAudioBufferPrivate *d;
+    QExplicitlySharedDataPointer<QAudioBufferPrivate> d;
 };
 
 template <> struct QAudioBuffer::StereoFrameDefault<unsigned char> { enum { Default = 128 }; };
 template <> struct QAudioBuffer::StereoFrameDefault<unsigned short> { enum { Default = 32768 }; };
 
+Q_DECLARE_METATYPE(QAudioBuffer)
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QAudioBuffer)
 
 #endif // QAUDIOBUFFER_H

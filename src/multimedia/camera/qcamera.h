@@ -46,248 +46,275 @@
 #include <QtCore/qpoint.h>
 #include <QtCore/qrect.h>
 
-#include <QtMultimedia/qmediacontrol.h>
-#include <QtMultimedia/qmediaobject.h>
-#include <QtMultimedia/qmediaservice.h>
+#include <QtCore/qobject.h>
 
-#include <QtMultimedia/qcameraexposure.h>
-#include <QtMultimedia/qcamerafocus.h>
-#include <QtMultimedia/qcameraimageprocessing.h>
-#include <QtMultimedia/qcameraviewfindersettings.h>
+#include <QtMultimedia/qcamerainfo.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE
 
 
-class QAbstractVideoSurface;
-class QVideoWidget;
-class QGraphicsVideoItem;
 class QCameraInfo;
+class QPlatformMediaCaptureSession;
+class QMediaCaptureSession;
 
 class QCameraPrivate;
-class Q_MULTIMEDIA_EXPORT QCamera : public QMediaObject
+class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QCamera::State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QCamera::CaptureModes captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
-    Q_PROPERTY(QCamera::LockStatus lockStatus READ lockStatus NOTIFY lockStatusChanged)
+    Q_PROPERTY(QCameraInfo cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
+    Q_PROPERTY(Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
+
+    Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode)
+    Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
+    Q_PROPERTY(float focusDistance READ focusDistance WRITE setFocusDistance NOTIFY focusDistanceChanged)
+
+    Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor NOTIFY minimumZoomFactorChanged)
+    Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor NOTIFY maximumZoomFactorChanged)
+    Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
+    Q_PROPERTY(qreal exposureTime READ exposureTime NOTIFY exposureTimeChanged)
+    Q_PROPERTY(int isoSensitivity READ isoSensitivity NOTIFY isoSensitivityChanged)
+    Q_PROPERTY(qreal exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
+    Q_PROPERTY(QCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode NOTIFY exposureModeChanged)
+    Q_PROPERTY(bool flashReady READ isFlashReady NOTIFY flashReady)
+    Q_PROPERTY(QCamera::FlashMode flashMode READ flashMode WRITE setFlashMode NOTIFY flashModeChanged)
+    Q_PROPERTY(QCamera::TorchMode torchMode READ torchMode WRITE setTorchMode NOTIFY torchModeChanged)
+
+    Q_PROPERTY(WhiteBalanceMode whiteBalanceMode READ whiteBalanceMode WRITE setWhiteBalanceMode NOTIFY whiteBalanceModeChanged)
+    Q_PROPERTY(int colorTemperature READ colorTemperature WRITE setColorTemperature NOTIFY colorTemperatureChanged)
+    Q_PROPERTY(Features supportedFeatures READ supportedFeatures NOTIFY supportedFeaturesChanged)
 
     Q_ENUMS(Status)
-    Q_ENUMS(State)
-    Q_ENUMS(CaptureMode)
     Q_ENUMS(Error)
-    Q_ENUMS(LockStatus)
-    Q_ENUMS(LockChangeReason)
-    Q_ENUMS(LockType)
-    Q_ENUMS(Position)
+
+    Q_ENUMS(FocusMode)
+
+    Q_ENUMS(FlashMode)
+    Q_ENUMS(TorchMode)
+    Q_ENUMS(ExposureMode)
+
+    Q_ENUMS(WhiteBalanceMode)
 public:
-    struct FrameRateRange
-    {
-        Q_DECL_CONSTEXPR FrameRateRange() Q_DECL_NOTHROW
-            : minimumFrameRate(0)
-            , maximumFrameRate(0)
-        { }
-
-        Q_DECL_CONSTEXPR FrameRateRange(qreal minimum, qreal maximum) Q_DECL_NOTHROW
-            : minimumFrameRate(minimum)
-            , maximumFrameRate(maximum)
-        { }
-
-        qreal minimumFrameRate;
-        qreal maximumFrameRate;
-    };
-
     enum Status {
         UnavailableStatus,
-        UnloadedStatus,
-        LoadingStatus,
-        UnloadingStatus,
-        LoadedStatus,
-        StandbyStatus,
+        InactiveStatus,
         StartingStatus,
         StoppingStatus,
         ActiveStatus
     };
 
-    enum State {
-        UnloadedState,
-        LoadedState,
-        ActiveState
-    };
-
-    enum CaptureMode
-    {
-        CaptureViewfinder = 0,
-        CaptureStillImage = 0x01,
-        CaptureVideo = 0x02
-    };
-    Q_DECLARE_FLAGS(CaptureModes, CaptureMode)
-
     enum Error
     {
         NoError,
-        CameraError,
-        InvalidRequestError,
-        ServiceMissingError,
-        NotSupportedFeatureError
+        CameraError
     };
 
-    enum LockStatus
-    {
-        Unlocked,
-        Searching,
-        Locked
+    enum FocusMode {
+        FocusModeAuto,
+        FocusModeAutoNear,
+        FocusModeAutoFar,
+        FocusModeHyperfocal,
+        FocusModeInfinity,
+        FocusModeManual
     };
 
-    enum LockChangeReason {
-        UserRequest,
-        LockAcquired,
-        LockFailed,
-        LockLost,
-        LockTemporaryLost
+    enum FlashMode {
+        FlashOff,
+        FlashOn,
+        FlashAuto
     };
 
-    enum LockType
-    {
-        NoLock = 0,
-        LockExposure = 0x01,
-        LockWhiteBalance = 0x02,
-        LockFocus = 0x04
+    enum TorchMode {
+        TorchOff,
+        TorchOn,
+        TorchAuto
     };
-    Q_DECLARE_FLAGS(LockTypes, LockType)
 
-    enum Position
-    {
-        UnspecifiedPosition,
-        BackFace,
-        FrontFace
+    enum ExposureMode {
+        ExposureAuto,
+        ExposureManual,
+        ExposurePortrait,
+        ExposureNight,
+        ExposureSports,
+        ExposureSnow,
+        ExposureBeach,
+        ExposureAction,
+        ExposureLandscape,
+        ExposureNightPortrait,
+        ExposureTheatre,
+        ExposureSunset,
+        ExposureSteadyPhoto,
+        ExposureFireworks,
+        ExposureParty,
+        ExposureCandlelight,
+        ExposureBarcode
     };
+
+    enum WhiteBalanceMode {
+        WhiteBalanceAuto = 0,
+        WhiteBalanceManual = 1,
+        WhiteBalanceSunlight = 2,
+        WhiteBalanceCloudy = 3,
+        WhiteBalanceShade = 4,
+        WhiteBalanceTungsten = 5,
+        WhiteBalanceFluorescent = 6,
+        WhiteBalanceFlash = 7,
+        WhiteBalanceSunset = 8
+    };
+
+    enum class Feature {
+        ColorTemperature = 0x1,
+        ExposureCompensation = 0x2,
+        IsoSensitivity = 0x4,
+        ManualExposureTime = 0x8,
+        CustomFocusPoint = 0x10,
+        FocusDistance = 0x20
+    };
+    Q_DECLARE_FLAGS(Features, Feature);
 
     explicit QCamera(QObject *parent = nullptr);
-    explicit QCamera(const QByteArray& deviceName, QObject *parent = nullptr);
     explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
-    explicit QCamera(QCamera::Position position, QObject *parent = nullptr);
+    explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
     ~QCamera();
 
-    QMultimedia::AvailabilityStatus availability() const override;
+    bool isAvailable() const;
+    bool isActive() const;
 
-    State state() const;
     Status status() const;
 
-    CaptureModes captureMode() const;
-    bool isCaptureModeSupported(CaptureModes mode) const;
+    QMediaCaptureSession *captureSession() const;
 
-    QCameraExposure *exposure() const;
-    QCameraFocus *focus() const;
-    QCameraImageProcessing *imageProcessing() const;
+    QCameraInfo cameraInfo() const;
+    void setCameraInfo(const QCameraInfo &cameraInfo);
 
-    void setViewfinder(QVideoWidget *viewfinder);
-    void setViewfinder(QGraphicsVideoItem *viewfinder);
-    void setViewfinder(QAbstractVideoSurface *surface);
-
-    QCameraViewfinderSettings viewfinderSettings() const;
-    void setViewfinderSettings(const QCameraViewfinderSettings &settings);
-
-    QList<QCameraViewfinderSettings> supportedViewfinderSettings(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
-
-    QList<QSize> supportedViewfinderResolutions(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
-
-    QList<FrameRateRange> supportedViewfinderFrameRateRanges(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
-
-    QList<QVideoFrame::PixelFormat> supportedViewfinderPixelFormats(
-            const QCameraViewfinderSettings &settings = QCameraViewfinderSettings()) const;
+    QCameraFormat cameraFormat() const;
+    void setCameraFormat(const QCameraFormat &format);
 
     Error error() const;
     QString errorString() const;
 
-    QCamera::LockTypes supportedLocks() const;
-    QCamera::LockTypes requestedLocks() const;
+    Features supportedFeatures() const;
 
-    QCamera::LockStatus lockStatus() const;
-    QCamera::LockStatus lockStatus(QCamera::LockType lock) const;
+    FocusMode focusMode() const;
+    void setFocusMode(FocusMode mode);
+    bool isFocusModeSupported(FocusMode mode) const;
+
+    QPointF focusPoint() const;
+
+    QPointF customFocusPoint() const;
+    void setCustomFocusPoint(const QPointF &point);
+
+    void setFocusDistance(float d);
+    float focusDistance() const;
+
+    float minimumZoomFactor() const;
+    float maximumZoomFactor() const;
+    float zoomFactor() const;
+    void setZoomFactor(float factor);
+
+    FlashMode flashMode() const;
+    bool isFlashModeSupported(FlashMode mode) const;
+    bool isFlashReady() const;
+
+    TorchMode torchMode() const;
+    bool isTorchModeSupported(TorchMode mode) const;
+
+    ExposureMode exposureMode() const;
+    bool isExposureModeSupported(ExposureMode mode) const;
+
+    qreal exposureCompensation() const;
+
+    int isoSensitivity() const;
+    int manualIsoSensitivity() const;
+
+    float exposureTime() const;
+    float manualExposureTime() const;
+
+    int minimumIsoSensitivity() const;
+    int maximumIsoSensitivity() const;
+
+    float minimumShutterSpeed() const;
+    float maximumShutterSpeed() const;
+
+    WhiteBalanceMode whiteBalanceMode() const;
+    Q_INVOKABLE bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
+
+    int colorTemperature() const;
 
 public Q_SLOTS:
-    void setCaptureMode(QCamera::CaptureModes mode);
+    void setActive(bool active);
+    void start() { setActive(true); }
+    void stop() { setActive(false); }
 
-    void load();
-    void unload();
+    void zoomTo(float zoom, float rate);
 
-    void start();
-    void stop();
+    void setFlashMode(FlashMode mode);
+    void setTorchMode(TorchMode mode);
+    void setExposureMode(ExposureMode mode);
 
-    void searchAndLock();
-    void unlock();
+    void setExposureCompensation(qreal ev);
 
-    void searchAndLock(QCamera::LockTypes locks);
-    void unlock(QCamera::LockTypes locks);
+    void setManualIsoSensitivity(int iso);
+    void setAutoIsoSensitivity();
+
+    void setManualExposureTime(float seconds);
+    void setAutoExposureTime();
+
+    void setWhiteBalanceMode(WhiteBalanceMode mode);
+    void setColorTemperature(int colorTemperature);
 
 Q_SIGNALS:
-    void stateChanged(QCamera::State state);
-    void captureModeChanged(QCamera::CaptureModes);
+    void activeChanged(bool);
     void statusChanged(QCamera::Status status);
+    void errorChanged();
+    void errorOccurred(QCamera::Error error, const QString &errorString);
+    void cameraInfoChanged();
+    void cameraFormatChanged();
+    void supportedFeaturesChanged();
 
-    void locked();
-    void lockFailed();
+    void focusModeChanged();
+    void zoomFactorChanged(float);
+    void minimumZoomFactorChanged(float);
+    void maximumZoomFactorChanged(float);
+    void focusDistanceChanged(float);
+    void customFocusPointChanged();
 
-    void lockStatusChanged(QCamera::LockStatus status, QCamera::LockChangeReason reason);
-    void lockStatusChanged(QCamera::LockType lock, QCamera::LockStatus status, QCamera::LockChangeReason reason);
+    void flashReady(bool);
+    void flashModeChanged();
+    void torchModeChanged();
 
-    void errorOccurred(QCamera::Error);
+    void exposureTimeChanged(qreal speed);
+    void isoSensitivityChanged(int);
+    void exposureCompensationChanged(qreal);
+    void exposureModeChanged();
+
+    void whiteBalanceModeChanged() const;
+    void colorTemperatureChanged() const;
+
+    void brightnessChanged();
+    void contrastChanged();
+    void saturationChanged();
+    void hueChanged();
 
 private:
+    void setCaptureSession(QMediaCaptureSession *session);
+    friend class QMediaCaptureSession;
     Q_DISABLE_COPY(QCamera)
     Q_DECLARE_PRIVATE(QCamera)
-    Q_PRIVATE_SLOT(d_func(), void _q_preparePropertyChange(int))
-    Q_PRIVATE_SLOT(d_func(), void _q_restartCamera())
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    Q_PRIVATE_SLOT(d_func(), void _q_updateLockStatus(QCamera::LockType, QCamera::LockStatus, QCamera::LockChangeReason))
-    Q_PRIVATE_SLOT(d_func(), void _q_updateState(QCamera::State))
     friend class QCameraInfo;
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::LockTypes)
-
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_CLANG("-Wfloat-equal")
-QT_WARNING_DISABLE_GCC("-Wfloat-equal")
-
-Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator==(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
-{
-    return qFuzzyCompare(r1.minimumFrameRate, r2.minimumFrameRate)
-        && qFuzzyCompare(r1.maximumFrameRate, r2.maximumFrameRate);
-}
-
-QT_WARNING_POP
-
-Q_DECL_CONSTEXPR Q_INLINE_TEMPLATE bool operator!=(const QCamera::FrameRateRange &r1, const QCamera::FrameRateRange &r2) Q_DECL_NOTHROW
-{ return !(r1 == r2); }
-
-Q_DECLARE_TYPEINFO(QCamera::FrameRateRange, Q_PRIMITIVE_TYPE);
+Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features);
 
 QT_END_NAMESPACE
 
-Q_DECLARE_METATYPE(QCamera::State)
-Q_DECLARE_METATYPE(QCamera::Status)
-Q_DECLARE_METATYPE(QCamera::Error)
-Q_DECLARE_METATYPE(QCamera::CaptureMode)
-Q_DECLARE_METATYPE(QCamera::CaptureModes)
-Q_DECLARE_METATYPE(QCamera::LockType)
-Q_DECLARE_METATYPE(QCamera::LockStatus)
-Q_DECLARE_METATYPE(QCamera::LockChangeReason)
-Q_DECLARE_METATYPE(QCamera::Position)
-
-Q_MEDIA_ENUM_DEBUG(QCamera, State)
 Q_MEDIA_ENUM_DEBUG(QCamera, Status)
 Q_MEDIA_ENUM_DEBUG(QCamera, Error)
-Q_MEDIA_ENUM_DEBUG(QCamera, CaptureMode)
-Q_MEDIA_ENUM_DEBUG(QCamera, LockType)
-Q_MEDIA_ENUM_DEBUG(QCamera, LockStatus)
-Q_MEDIA_ENUM_DEBUG(QCamera, LockChangeReason)
-Q_MEDIA_ENUM_DEBUG(QCamera, Position)
 
 #endif  // QCAMERA_H

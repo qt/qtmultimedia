@@ -172,7 +172,7 @@ void Waveform::initialize(const QAudioFormat &format, qint64 audioBufferSize, qi
     m_tileLength = audioBufferSize;
 
     // Calculate window size
-    m_windowLength = audioLength(m_format, windowDurationUs);
+    m_windowLength = m_format.bytesForDuration(windowDurationUs);
 
     // Calculate number of tiles required
     int nTiles;
@@ -189,7 +189,7 @@ void Waveform::initialize(const QAudioFormat &format, qint64 audioBufferSize, qi
                    << "windowLength" << m_windowLength
                    << "nTiles" << nTiles;
 
-    m_pixmaps.fill(0, nTiles);
+    m_pixmaps.fill(nullptr, nTiles);
     m_tiles.resize(nTiles);
 
     createPixmaps(rect().size());
@@ -258,10 +258,9 @@ void Waveform::createPixmaps(const QSize &widgetSize)
     Q_ASSERT(m_tiles.count() == m_pixmaps.count());
 
     // (Re)create pixmaps
-    for (int i=0; i<m_pixmaps.size(); ++i) {
-        delete m_pixmaps[i];
-        m_pixmaps[i] = 0;
-        m_pixmaps[i] = new QPixmap(m_pixmapSize);
+    for (auto & pixmap : m_pixmaps) {
+        delete pixmap;
+        pixmap = new QPixmap(m_pixmapSize);
     }
 
     // Update tile pixmap pointers, and mark for repainting

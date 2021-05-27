@@ -48,8 +48,8 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.1
-import QtQuick.Window 2.1
+import QtQuick
+import QtQuick.Window
 
 Effect {
     parameters: ListModel {

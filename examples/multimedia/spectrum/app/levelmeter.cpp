@@ -82,10 +82,7 @@ LevelMeter::LevelMeter(QWidget *parent)
     m_redrawTimer->start(RedrawInterval);
 }
 
-LevelMeter::~LevelMeter()
-{
-
-}
+LevelMeter::~LevelMeter() = default;
 
 void LevelMeter::reset()
 {

@@ -37,16 +37,16 @@
 **
 ****************************************************************************/
 #include <qcameraimagecapture.h>
-#include <qcameraimagecapturecontrol.h>
+#include <private/qplatformcameraimagecapture_p.h>
 #include <qmediaencodersettings.h>
-#include <qcameracapturedestinationcontrol.h>
-#include <qcameracapturebufferformatcontrol.h>
+#include <qmediametadata.h>
+#include <private/qplatformmediacapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <qmediacapturesession.h>
 
-#include <qimageencodercontrol.h>
-#include "qmediaobject_p.h"
-#include <qmediaservice.h>
+#include "private/qobject_p.h"
 #include <qcamera.h>
-#include <qcameracontrol.h>
+#include <private/qplatformcamera_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>
@@ -74,57 +74,25 @@ QT_BEGIN_NAMESPACE
     \sa QCamera
 */
 
-/*!
-    \enum QCameraImageCapture::CaptureDestination
-
-    \value CaptureToFile  Capture the image to a file.
-    \value CaptureToBuffer  Capture the image to a buffer for further processing.
-*/
-
-static void qRegisterCameraImageCaptureMetaTypes()
-{
-    qRegisterMetaType<QCameraImageCapture::Error>("QCameraImageCapture::Error");
-    qRegisterMetaType<QCameraImageCapture::CaptureDestination>("QCameraImageCapture::CaptureDestination");
-    qRegisterMetaType<QCameraImageCapture::CaptureDestinations>("QCameraImageCapture::CaptureDestinations");
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterCameraImageCaptureMetaTypes)
-
-
 class QCameraImageCapturePrivate
 {
-    Q_DECLARE_NON_CONST_PUBLIC(QCameraImageCapture)
+    Q_DECLARE_PUBLIC(QCameraImageCapture)
 public:
-    QCameraImageCapturePrivate();
+    QCamera *camera = nullptr;
 
-    QMediaObject *mediaObject;
+    QMediaCaptureSession *captureSession = nullptr;
+    QPlatformCameraImageCapture *control = nullptr;
 
-    QCameraImageCaptureControl *control;
-    QImageEncoderControl *encoderControl;
-    QCameraCaptureDestinationControl *captureDestinationControl;
-    QCameraCaptureBufferFormatControl *bufferFormatControl;
-
-    QCameraImageCapture::Error error;
+    QCameraImageCapture::Error error = QCameraImageCapture::NoError;
     QString errorString;
+    QMediaMetaData metaData;
 
     void _q_error(int id, int error, const QString &errorString);
-    void _q_readyChanged(bool);
-    void _q_serviceDestroyed();
 
     void unsetError() { error = QCameraImageCapture::NoError; errorString.clear(); }
 
     QCameraImageCapture *q_ptr;
 };
-
-QCameraImageCapturePrivate::QCameraImageCapturePrivate():
-     mediaObject(nullptr),
-     control(nullptr),
-     encoderControl(nullptr),
-     captureDestinationControl(nullptr),
-     bufferFormatControl(nullptr),
-     error(QCameraImageCapture::NoError)
-{
-}
 
 void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &errorString)
 {
@@ -133,39 +101,51 @@ void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &erro
     this->error = QCameraImageCapture::Error(error);
     this->errorString = errorString;
 
-    emit q->error(id, this->error, errorString);
-}
-
-void QCameraImageCapturePrivate::_q_readyChanged(bool ready)
-{
-    Q_Q(QCameraImageCapture);
-    emit q->readyForCaptureChanged(ready);
-}
-
-void QCameraImageCapturePrivate::_q_serviceDestroyed()
-{
-    mediaObject = nullptr;
-    control = nullptr;
-    encoderControl = nullptr;
-    captureDestinationControl = nullptr;
-    bufferFormatControl = nullptr;
+    emit q->errorChanged();
+    emit q->errorOccurred(id, this->error, errorString);
 }
 
 /*!
-    Constructs a media recorder which records the media produced by \a mediaObject.
+    Constructs a image capture object that can capture individual still images produced by a camera.
 
-    The \a parent is passed to QMediaObject.
+    Connect both an image capture object and a QCamera to a capture session to capture images.
 */
 
-QCameraImageCapture::QCameraImageCapture(QMediaObject *mediaObject, QObject *parent):
-    QObject(parent), d_ptr(new QCameraImageCapturePrivate)
+QCameraImageCapture::QCameraImageCapture(QObject *parent)
+    : QObject(parent), d_ptr(new QCameraImageCapturePrivate)
 {
     Q_D(QCameraImageCapture);
-
     d->q_ptr = this;
+    d->control = QPlatformMediaIntegration::instance()->createImageCapture(this);
+}
 
-    if (mediaObject)
-        mediaObject->bind(this);
+void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
+{
+    Q_D(QCameraImageCapture);
+    d->captureSession = session;
+
+    QPlatformMediaCaptureSession *platformSession = session ? session->platformSession() : nullptr;
+
+    if (platformSession && d->control) {
+        platformSession->setImageCapture(d->control);
+    } else {
+        return;
+    }
+
+    connect(d->control, SIGNAL(imageExposed(int)),
+            this, SIGNAL(imageExposed(int)));
+    connect(d->control, SIGNAL(imageCaptured(int,QImage)),
+            this, SIGNAL(imageCaptured(int,QImage)));
+    connect(d->control, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)),
+            this, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
+    connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
+            this, SIGNAL(imageAvailable(int,QVideoFrame)));
+    connect(d->control, SIGNAL(imageSaved(int,QString)),
+            this, SIGNAL(imageSaved(int,QString)));
+    connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
+            this, SIGNAL(readyForCaptureChanged(bool)));
+    connect(d->control, SIGNAL(error(int,int,QString)),
+            this, SLOT(_q_error(int,int,QString)));
 }
 
 /*!
@@ -174,123 +154,11 @@ QCameraImageCapture::QCameraImageCapture(QMediaObject *mediaObject, QObject *par
 
 QCameraImageCapture::~QCameraImageCapture()
 {
-    Q_D(QCameraImageCapture);
-
-    if (d->mediaObject)
-        d->mediaObject->unbind(this);
-
+    if (d_ptr->captureSession) {
+        d_ptr->captureSession->platformSession()->setImageCapture(nullptr);
+        d_ptr->captureSession->setImageCapture(nullptr);
+    }
     delete d_ptr;
-}
-
-/*!
-  \reimp
-*/
-QMediaObject *QCameraImageCapture::mediaObject() const
-{
-    return d_func()->mediaObject;
-}
-
-/*!
-  \reimp
-*/
-bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
-{
-    Q_D(QCameraImageCapture);
-
-    if (d->mediaObject) {
-        if (d->control) {
-            disconnect(d->control, SIGNAL(imageExposed(int)),
-                       this, SIGNAL(imageExposed(int)));
-            disconnect(d->control, SIGNAL(imageCaptured(int,QImage)),
-                       this, SIGNAL(imageCaptured(int,QImage)));
-            disconnect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
-                       this, SIGNAL(imageAvailable(int,QVideoFrame)));
-            disconnect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
-                       this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
-            disconnect(d->control, SIGNAL(imageSaved(int,QString)),
-                       this, SIGNAL(imageSaved(int,QString)));
-            disconnect(d->control, SIGNAL(readyForCaptureChanged(bool)),
-                       this, SLOT(_q_readyChanged(bool)));
-            disconnect(d->control, SIGNAL(error(int,int,QString)),
-                       this, SLOT(_q_error(int,int,QString)));
-
-            if (d->captureDestinationControl) {
-                disconnect(d->captureDestinationControl, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)),
-                           this, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
-            }
-
-            if (d->bufferFormatControl) {
-                disconnect(d->bufferFormatControl, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)),
-                           this, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
-            }
-
-            QMediaService *service = d->mediaObject->service();
-            service->releaseControl(d->control);
-            if (d->encoderControl)
-                service->releaseControl(d->encoderControl);
-            if (d->captureDestinationControl)
-                service->releaseControl(d->captureDestinationControl);
-            if (d->bufferFormatControl)
-                service->releaseControl(d->bufferFormatControl);
-
-            disconnect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-        }
-    }
-
-    d->mediaObject = mediaObject;
-
-    if (d->mediaObject) {
-        QMediaService *service = mediaObject->service();
-        if (service) {
-            d->control = qobject_cast<QCameraImageCaptureControl*>(service->requestControl(QCameraImageCaptureControl_iid));
-
-            if (d->control) {
-                d->encoderControl = qobject_cast<QImageEncoderControl *>(service->requestControl(QImageEncoderControl_iid));
-                d->captureDestinationControl = qobject_cast<QCameraCaptureDestinationControl *>(
-                    service->requestControl(QCameraCaptureDestinationControl_iid));
-                d->bufferFormatControl = qobject_cast<QCameraCaptureBufferFormatControl *>(
-                    service->requestControl(QCameraCaptureBufferFormatControl_iid));
-
-                connect(d->control, SIGNAL(imageExposed(int)),
-                        this, SIGNAL(imageExposed(int)));
-                connect(d->control, SIGNAL(imageCaptured(int,QImage)),
-                        this, SIGNAL(imageCaptured(int,QImage)));
-                connect(d->control, SIGNAL(imageMetadataAvailable(int,QString,QVariant)),
-                        this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
-                connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
-                        this, SIGNAL(imageAvailable(int,QVideoFrame)));
-                connect(d->control, SIGNAL(imageSaved(int,QString)),
-                        this, SIGNAL(imageSaved(int,QString)));
-                connect(d->control, SIGNAL(readyForCaptureChanged(bool)),
-                        this, SLOT(_q_readyChanged(bool)));
-                connect(d->control, SIGNAL(error(int,int,QString)),
-                        this, SLOT(_q_error(int,int,QString)));
-
-                if (d->captureDestinationControl) {
-                    connect(d->captureDestinationControl, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)),
-                            this, SIGNAL(captureDestinationChanged(QCameraImageCapture::CaptureDestinations)));
-                }
-
-                if (d->bufferFormatControl) {
-                    connect(d->bufferFormatControl, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)),
-                            this, SIGNAL(bufferFormatChanged(QVideoFrame::PixelFormat)));
-                }
-
-                connect(service, SIGNAL(destroyed()), this, SLOT(_q_serviceDestroyed()));
-
-                return true;
-            }
-        }
-    }
-
-    // without QCameraImageCaptureControl discard the media object
-    d->mediaObject = nullptr;
-    d->control = nullptr;
-    d->encoderControl = nullptr;
-    d->captureDestinationControl = nullptr;
-    d->bufferFormatControl = nullptr;
-
-    return false;
 }
 
 /*!
@@ -298,21 +166,19 @@ bool QCameraImageCapture::setMediaObject(QMediaObject *mediaObject)
 */
 bool QCameraImageCapture::isAvailable() const
 {
-    if (d_func()->control != nullptr)
-        return true;
-    else
-        return false;
+    return d_func()->control != nullptr && d_func()->captureSession->camera();
 }
 
 /*!
-    Returns the availability of this functionality.
+    Returns the capture session this camera is connected to, or
+    a nullptr if the camera is not connected to a capture session.
+
+    Use QMediaCaptureSession::setImageCapture() to connect the image capture to
+    a session.
 */
-QMultimedia::AvailabilityStatus QCameraImageCapture::availability() const
+QMediaCaptureSession *QCameraImageCapture::captureSession() const
 {
-    if (d_func()->control != nullptr)
-        return QMultimedia::Available;
-    else
-        return QMultimedia::ServiceMissing;
+    return d_ptr->captureSession;
 }
 
 /*!
@@ -337,45 +203,6 @@ QString QCameraImageCapture::errorString() const
     return d_func()->errorString;
 }
 
-
-/*!
-    Returns a list of supported image codecs.
-*/
-QStringList QCameraImageCapture::supportedImageCodecs() const
-{
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->supportedImageCodecs() : QStringList();
-}
-
-/*!
-    Returns a description of an image \a codec.
-*/
-QString QCameraImageCapture::imageCodecDescription(const QString &codec) const
-{
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->imageCodecDescription(codec) : QString();
-}
-
-/*!
-    Returns a list of resolutions images can be encoded at.
-
-    If non null image \a settings parameter is passed,
-    the returned list is reduced to resolution supported with partial settings like image codec or quality applied.
-
-    If the encoder supports arbitrary resolutions within the supported range,
-    *\a continuous is set to true, otherwise *\a continuous is set to false.
-
-    \sa QImageEncoderSettings::resolution()
-*/
-QList<QSize> QCameraImageCapture::supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const
-{
-    if (continuous)
-        *continuous = false;
-
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->supportedResolutions(settings, continuous) : QList<QSize>();
-}
-
 /*!
     Returns the image encoder settings being used.
 
@@ -384,8 +211,8 @@ QList<QSize> QCameraImageCapture::supportedResolutions(const QImageEncoderSettin
 
 QImageEncoderSettings QCameraImageCapture::encodingSettings() const
 {
-    return d_func()->encoderControl ?
-           d_func()->encoderControl->imageSettings() : QImageEncoderSettings();
+    return d_func()->control ?
+           d_func()->control->imageSettings() : QImageEncoderSettings();
 }
 
 /*!
@@ -396,98 +223,45 @@ QImageEncoderSettings QCameraImageCapture::encodingSettings() const
 
     \sa encodingSettings()
 */
-
 void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &settings)
 {
     Q_D(QCameraImageCapture);
 
-    if (d->encoderControl) {
-        QCamera *camera = qobject_cast<QCamera*>(d->mediaObject);
-        if (camera && camera->captureMode() == QCamera::CaptureStillImage) {
-            QMetaObject::invokeMethod(camera,
-                                      "_q_preparePropertyChange",
-                                      Qt::DirectConnection,
-                                      Q_ARG(int, QCameraControl::ImageEncodingSettings));
-        }
-
-        d->encoderControl->setImageSettings(settings);
-    }
+    if (d->control)
+        d->control->setImageSettings(settings);
 }
 
 /*!
-    Returns the list of supported buffer image capture formats.
-
-    \sa bufferFormat(), setBufferFormat()
+    Returns the meta data that will get embedded into the image. A couple of additional fields
+    such as a time stamp or location might get added by the camera backend.
 */
-QList<QVideoFrame::PixelFormat> QCameraImageCapture::supportedBufferFormats() const
+QMediaMetaData QCameraImageCapture::metaData() const
 {
-    if (d_func()->bufferFormatControl)
-        return d_func()->bufferFormatControl->supportedBufferFormats();
-    else
-        return QList<QVideoFrame::PixelFormat>();
+    Q_D(const QCameraImageCapture);
+    return d->metaData;
 }
 
 /*!
-    Returns the buffer image capture format being used.
-
-    \sa supportedBufferFormats(), setBufferFormat()
+    Defines a set of meta data that will get embedded into the captured image.
 */
-QVideoFrame::PixelFormat QCameraImageCapture::bufferFormat() const
-{
-    if (d_func()->bufferFormatControl)
-        return d_func()->bufferFormatControl->bufferFormat();
-    else
-        return QVideoFrame::Format_Invalid;
-}
-
-/*!
-    Sets the buffer image capture \a format to be used.
-
-    \sa bufferFormat(), supportedBufferFormats(), captureDestination()
-*/
-void QCameraImageCapture::setBufferFormat(const QVideoFrame::PixelFormat format)
-{
-    if (d_func()->bufferFormatControl)
-        d_func()->bufferFormatControl->setBufferFormat(format);
-}
-
-/*!
-    Returns true if the image capture \a destination is supported; otherwise returns false.
-
-    \sa captureDestination(), setCaptureDestination()
-*/
-bool QCameraImageCapture::isCaptureDestinationSupported(QCameraImageCapture::CaptureDestinations destination) const
-{
-    if (d_func()->captureDestinationControl)
-        return d_func()->captureDestinationControl->isCaptureDestinationSupported(destination);
-    else
-        return destination == CaptureToFile;
-}
-
-/*!
-    Returns the image capture destination being used.
-
-    \sa isCaptureDestinationSupported(), setCaptureDestination()
-*/
-QCameraImageCapture::CaptureDestinations QCameraImageCapture::captureDestination() const
-{
-    if (d_func()->captureDestinationControl)
-        return d_func()->captureDestinationControl->captureDestination();
-    else
-        return CaptureToFile;
-}
-
-/*!
-    Sets the capture \a destination to be used.
-
-    \sa isCaptureDestinationSupported(), captureDestination()
-*/
-void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDestinations destination)
+void QCameraImageCapture::setMetaData(const QMediaMetaData &metaData)
 {
     Q_D(QCameraImageCapture);
+    d->metaData = metaData;
+    d->control->setMetaData(d->metaData);
+    emit metaDataChanged();
+}
 
-    if (d->captureDestinationControl)
-        d->captureDestinationControl->setCaptureDestination(destination);
+/*!
+    Adds additional meta data to be embedded into the captured image.
+*/
+void QCameraImageCapture::addMetaData(const QMediaMetaData &metaData)
+{
+    Q_D(QCameraImageCapture);
+    auto data = d->metaData;
+    for (auto k : metaData.keys())
+        data.insert(k, metaData.value(k));
+    setMetaData(data);
 }
 
 /*!
@@ -500,10 +274,13 @@ void QCameraImageCapture::setCaptureDestination(QCameraImageCapture::CaptureDest
 
 bool QCameraImageCapture::isReadyForCapture() const
 {
-    if (d_func()->control)
-        return d_func()->control->isReadyForCapture();
-    else
+    Q_D(const QCameraImageCapture);
+    if (!d->control || !d->captureSession || !d->control->isReadyForCapture())
         return false;
+    auto *camera = d->captureSession->camera();
+    if (!camera || !camera->isActive())
+        return false;
+    return true;
 }
 
 /*!
@@ -534,44 +311,53 @@ bool QCameraImageCapture::isReadyForCapture() const
 
     \sa isReadyForCapture()
 */
-int QCameraImageCapture::capture(const QString &file)
+int QCameraImageCapture::captureToFile(const QString &file)
 {
     Q_D(QCameraImageCapture);
 
     d->unsetError();
 
-    if (d->control) {
-        return d->control->capture(file);
-    } else {
-        d->error = NotSupportedFeatureError;
-        d->errorString = tr("Device does not support images capture.");
-
-        emit error(-1, d->error, d->errorString);
+    if (!d->control) {
+        d->_q_error(-1, NotSupportedFeatureError, tr("Camera is not ready."));
+        return -1;
     }
 
-    return -1;
+    if (!isReadyForCapture()) {
+        d->_q_error(-1, NotReadyError, tr("Could not capture in stopped state"));
+        return -1;
+    }
+
+    return d->control->capture(file);
 }
 
 /*!
-    Cancel incomplete capture requests.
-    Already captured and queused for proicessing images may be discarded.
+    Capture the image and make it available as a QImage.
+    This operation is asynchronous in majority of cases,
+    followed by signals QCameraImageCapture::imageExposed(),
+    QCameraImageCapture::imageCaptured()
+    or QCameraImageCapture::error().
+
+    QCameraImageCapture::capture returns the capture Id parameter, used with
+    imageExposed(), imageCaptured() and imageSaved() signals.
+
+    \sa isReadyForCapture()
 */
-void QCameraImageCapture::cancelCapture()
+int QCameraImageCapture::capture()
 {
     Q_D(QCameraImageCapture);
 
     d->unsetError();
 
-    if (d->control) {
-        d->control->cancelCapture();
-    } else {
-        d->error = NotSupportedFeatureError;
-        d->errorString = tr("Device does not support images capture.");
+    if (d->control)
+        return d->control->captureToBuffer();
 
-        emit error(-1, d->error, d->errorString);
-    }
+    d->error = NotSupportedFeatureError;
+    d->errorString = tr("Device does not support images capture.");
+
+    d->_q_error(-1, d->error, d->errorString);
+
+    return -1;
 }
-
 
 /*!
     \enum QCameraImageCapture::Error
@@ -585,12 +371,6 @@ void QCameraImageCapture::cancelCapture()
 */
 
 /*!
-    \enum QCameraImageCapture::DriveMode
-
-    \value SingleImageCapture Drive mode is capturing a single picture.
-*/
-
-/*!
     \fn QCameraImageCapture::error(int id, QCameraImageCapture::Error error, const QString &errorString)
 
     Signals that the capture request \a id has failed with an \a error
@@ -598,15 +378,9 @@ void QCameraImageCapture::cancelCapture()
 */
 
 /*!
-    \fn QCameraImageCapture::bufferFormatChanged(QVideoFrame::PixelFormat format)
+    \fn QCameraImageCapture::bufferFormatChanged(QVideoFrameFormat::PixelFormat format)
 
     Signal emitted when the buffer \a format for the buffer image capture has changed.
-*/
-
-/*!
-    \fn QCameraImageCapture::captureDestinationChanged(CaptureDestinations destination)
-
-    Signal emitted when the capture \a destination has changed.
 */
 
 /*!
@@ -618,9 +392,8 @@ void QCameraImageCapture::cancelCapture()
 /*!
     \fn QCameraImageCapture::imageCaptured(int id, const QImage &preview);
 
-    Signal emitted when QAbstractVideoSurface is used as a viewfinder and
-    the frame with request \a id was captured, but not processed and saved yet.
-    Frame \a preview can be displayed to user.
+    Signal emitted when the frame with request \a id was captured, but not
+    processed and saved yet. Frame \a preview can be displayed to user.
 */
 
 /*!

@@ -129,8 +129,8 @@
      \li QMediaPlaylist
      \li List of media to be played.
     \row
-     \li QAbstractVideoSurface
-     \li Base class for video presentation.
+     \li QVideoSink
+     \li Class for video presentation.
     \endtable
 
     \section1 Licenses and Attributions
@@ -159,8 +159,7 @@
     following topics provide more platform-specific information.
 
      \list
-      \li \l{Qt Multimedia on Windows}{Windows}
-      \li \l{Qt Multimedia on iOS}{iOS}
+      \li \l{Qt Multimedia on macOS and iOS}{iOS}
      \endlist
 
     \section2 Reference
@@ -169,13 +168,6 @@
     \list
         \li \l{Qt Multimedia QML Types}{QML Types}
         \li \l{Qt Multimedia C++ Classes}{C++ Classes}
-    \endlist
-    \endlist
-
-    \list
-    \li Qt Audio Engine
-    \list
-        \li \l{Qt Audio Engine QML Types}{QML Types}
     \endlist
     \endlist
 

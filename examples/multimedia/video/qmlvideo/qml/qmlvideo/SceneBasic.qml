@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick
 
 Scene {
     id: root
@@ -60,7 +60,7 @@ Scene {
         id: content
         autoStart: parent.autoStart
         started: parent.started
-        anchors.centerIn: parent
+        anchors.fill: parent
         width: parent.contentWidth
         contentType: parent.contentType
         source: parent.source1

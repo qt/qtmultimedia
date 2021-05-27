@@ -38,536 +38,319 @@
 ****************************************************************************/
 
 #include "qmediaencodersettings.h"
+#include "qmediaformat.h"
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
 
-static void qRegisterEncoderSettingsMetaTypes()
+namespace {
+
+
+constexpr QMediaFormat::FileFormat videoFormatPriorityList[] =
 {
-    qRegisterMetaType<QAudioEncoderSettings>();
-    qRegisterMetaType<QVideoEncoderSettings>();
-    qRegisterMetaType<QImageEncoderSettings>();
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterEncoderSettingsMetaTypes)
-
-
-class QAudioEncoderSettingsPrivate  : public QSharedData
-{
-public:
-    QAudioEncoderSettingsPrivate() :
-        isNull(true),
-        encodingMode(QMultimedia::ConstantQualityEncoding),
-        bitrate(-1),
-        sampleRate(-1),
-        channels(-1),
-        quality(QMultimedia::NormalQuality)
-    {
-    }
-
-    QAudioEncoderSettingsPrivate(const QAudioEncoderSettingsPrivate &other):
-        QSharedData(other),
-        isNull(other.isNull),
-        encodingMode(other.encodingMode),
-        codec(other.codec),
-        bitrate(other.bitrate),
-        sampleRate(other.sampleRate),
-        channels(other.channels),
-        quality(other.quality),
-        encodingOptions(other.encodingOptions)
-    {
-    }
-
-    bool isNull;
-    QMultimedia::EncodingMode encodingMode;
-    QString codec;
-    int bitrate;
-    int sampleRate;
-    int channels;
-    QMultimedia::EncodingQuality quality;
-    QVariantMap encodingOptions;
-
-private:
-    QAudioEncoderSettingsPrivate& operator=(const QAudioEncoderSettingsPrivate &other);
+    QMediaFormat::MPEG4,
+    QMediaFormat::QuickTime,
+    QMediaFormat::AVI,
+    QMediaFormat::WebM,
+    QMediaFormat::ASF,
+    QMediaFormat::Matroska,
+    QMediaFormat::Ogg,
+    QMediaFormat::UnspecifiedFormat
 };
 
-/*!
-    \class QAudioEncoderSettings
+constexpr QMediaFormat::FileFormat audioFormatPriorityList[] =
+{
+    QMediaFormat::AAC,
+    QMediaFormat::MP3,
+    QMediaFormat::Mpeg4Audio,
+    QMediaFormat::FLAC,
+    QMediaFormat::ALAC,
+    QMediaFormat::Wave,
+    QMediaFormat::UnspecifiedFormat
+};
 
-    \brief The QAudioEncoderSettings class provides a set of audio encoder settings.
+constexpr QMediaFormat::AudioCodec audioPriorityList[] =
+{
+    QMediaFormat::AudioCodec::AAC,
+    QMediaFormat::AudioCodec::MP3,
+    QMediaFormat::AudioCodec::AC3,
+    QMediaFormat::AudioCodec::Opus,
+    QMediaFormat::AudioCodec::EAC3,
+    QMediaFormat::AudioCodec::DolbyTrueHD,
+    QMediaFormat::AudioCodec::FLAC,
+    QMediaFormat::AudioCodec::Vorbis,
+    QMediaFormat::AudioCodec::Wave,
+    QMediaFormat::AudioCodec::Unspecified
+};
+
+constexpr QMediaFormat::VideoCodec videoPriorityList[] =
+{
+    QMediaFormat::VideoCodec::H265,
+    QMediaFormat::VideoCodec::VP9,
+    QMediaFormat::VideoCodec::H264,
+    QMediaFormat::VideoCodec::AV1,
+    QMediaFormat::VideoCodec::VP8,
+    QMediaFormat::VideoCodec::Theora,
+    QMediaFormat::VideoCodec::MPEG4,
+    QMediaFormat::VideoCodec::MPEG2,
+    QMediaFormat::VideoCodec::MPEG1,
+    QMediaFormat::VideoCodec::MotionJPEG,
+};
+
+}
+/*!
+    \class QMediaEncoderSettings
+
+    \brief The QMediaEncoderSettings class provides a settings to encode a media file.
 
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_recording
 
-    A audio encoder settings object is used to specify the audio encoder
-    settings used by QMediaRecorder.  Audio encoder settings are selected by
-    constructing a QAudioEncoderSettings object, setting the desired properties
-    and then passing it to a QMediaRecorder instance using the
-    QMediaRecorder::setEncodingSettings() function.
+    A media encoder settings object is used to specify the encoder
+    settings used by QMediaRecorder. Settings are selected by
+    constructing a QMediaEncoderSettings object specifying an output file format,
+    setting the desired properties and then passing it to a QMediaRecorder instance
+    using the QMediaRecorder::setEncoderSettings() function.
 
     \snippet multimedia-snippets/media.cpp Audio encoder settings
 
-    \sa QMediaRecorder, QAudioEncoderSettingsControl
+    \sa QMediaRecorder
 */
 
+class QMediaEncoderSettingsPrivate  : public QSharedData
+{
+public:
+    QMediaEncoderSettings::EncodingMode encodingMode = QMediaEncoderSettings::ConstantQualityEncoding;
+    QMediaEncoderSettings::Quality quality = QMediaEncoderSettings::NormalQuality;
+
+    int audioBitrate = -1;
+    int audioSampleRate = -1;
+    int audioChannels = -1;
+
+    QSize videoResolution = QSize(-1, -1);
+    int videoFrameRate = -1;
+    int videoBitRate = -1;
+};
+
 /*!
-    Construct a null audio encoder settings object.
+    Creates andefault media encoder settings object. Qt will automatically try to
+    pick the best possible encoding for the content.
 */
-QAudioEncoderSettings::QAudioEncoderSettings()
-    :d(new QAudioEncoderSettingsPrivate)
+QMediaEncoderSettings::QMediaEncoderSettings()
+    : QMediaEncoderSettings(QMediaFormat::UnspecifiedFormat)
 {
 }
 
-/*!
-    Constructs a copy of the audio encoder settings object \a other.
-*/
 
-QAudioEncoderSettings::QAudioEncoderSettings(const QAudioEncoderSettings& other)
-    :d(other.d)
+/*!
+    Creates an audio encoder settings object with a given \a format.
+*/
+QMediaEncoderSettings::QMediaEncoderSettings(FileFormat format)
+    : QMediaFormat(format),
+      d(new QMediaEncoderSettingsPrivate)
 {
+
 }
 
 /*!
-    Destroys an audio encoder settings object.
+    Creates a copy of the encoder settings object \a other.
 */
+QMediaEncoderSettings::QMediaEncoderSettings(const QMediaEncoderSettings &other) = default;
 
-QAudioEncoderSettings::~QAudioEncoderSettings()
-{
-}
+QMediaEncoderSettings &QMediaEncoderSettings::operator=(const QMediaEncoderSettings &other) = default;
+
+QMediaEncoderSettings::~QMediaEncoderSettings() = default;
+
 
 /*!
-    Assigns the value of \a other to an audio encoder settings object.
-*/
+    \enum QMediaEncoderSettings::EncodingQuality
 
-QAudioEncoderSettings& QAudioEncoderSettings::operator=(const QAudioEncoderSettings &other)
-{
-    d = other.d;
-    return *this;
-}
+    Enumerates quality encoding levels.
+
+    \value VeryLowQuality
+    \value LowQuality
+    \value NormalQuality
+    \value HighQuality
+    \value VeryHighQuality
+*/
 
 /*!
-    Determines if \a other is of equal value to an audio encoder settings
-    object.
+    \enum QMediaEncoderSettings::EncodingMode
 
-    Returns true if the settings objects are of equal value, and false if they
-    are not of equal value.
+    Enumerates encoding modes.
+
+    \value ConstantQualityEncoding Encoding will aim to have a constant quality, adjusting bitrate to fit.
+    \value ConstantBitRateEncoding Encoding will use a constant bit rate, adjust quality to fit.
+    \value AverageBitRateEncoding Encoding will try to keep an average bitrate setting, but will use
+           more or less as needed.
+    \value TwoPassEncoding The media will first be processed to determine the characteristics,
+           and then processed a second time allocating more bits to the areas
+           that need it.
 */
-
-bool QAudioEncoderSettings::operator==(const QAudioEncoderSettings &other) const
-{
-    return (d == other.d) ||
-           (d->isNull == other.d->isNull &&
-            d->encodingMode == other.d->encodingMode &&
-            d->bitrate == other.d->bitrate &&
-            d->sampleRate == other.d->sampleRate &&
-            d->channels == other.d->channels &&
-            d->quality == other.d->quality &&
-            d->codec == other.d->codec &&
-            d->encodingOptions == other.d->encodingOptions);
-}
 
 /*!
-    Determines if \a other is of equal value to an audio encoder settings
-    object.
+    Returns the encoding mode.
 
-    Returns true if the settings objects are not of equal value, and true if
-    they are of equal value.
+    \sa EncodingMode
 */
-
-bool QAudioEncoderSettings::operator!=(const QAudioEncoderSettings &other) const
-{
-    return !(*this == other);
-}
-
-/*!
-    Identifies if an audio settings object is initialized.
-
-    Returns true if the settings object is null, and false if it is not.
-*/
-
-bool QAudioEncoderSettings::isNull() const
-{
-    return d->isNull;
-}
-
-/*!
-    Returns the audio encoding mode.
-
-    \sa QMultimedia::EncodingMode
-*/
-QMultimedia::EncodingMode QAudioEncoderSettings::encodingMode() const
+QMediaEncoderSettings::EncodingMode QMediaEncoderSettings::encodingMode() const
 {
     return d->encodingMode;
 }
 
 /*!
-    Sets the audio encoding \a mode setting.
+    Sets the encoding \a mode setting.
 
-    If QMultimedia::ConstantQualityEncoding is set, the quality
-    encoding parameter is used and bit rate is ignored,
-    otherwise the bitrate is used.
+    If ConstantQualityEncoding is set, the quality
+    encoding parameter is used and bit rates are ignored,
+    otherwise the bitrates are used.
 
-    The audio codec, channels count and sample rate settings are used in all
-    the encoding modes.
-
-    \sa encodingMode(), QMultimedia::EncodingMode
+    \sa encodingMode(), EncodingMode
 */
-void QAudioEncoderSettings::setEncodingMode(QMultimedia::EncodingMode mode)
+void QMediaEncoderSettings::setEncodingMode(EncodingMode mode)
 {
     d->encodingMode = mode;
 }
 
-/*!
-    Returns the audio codec.
-*/
-QString QAudioEncoderSettings::codec() const
-{
-    return d->codec;
-}
-
-/*!
-    Sets the audio \a codec.
-*/
-void QAudioEncoderSettings::setCodec(const QString& codec)
-{
-    d->isNull = false;
-    d->codec = codec;
-}
-
-/*!
-    Returns the bit rate of the compressed audio stream in bits per second.
-*/
-int QAudioEncoderSettings::bitRate() const
-{
-    return d->bitrate;
-}
-
-/*!
-    Returns the number of audio channels.
-*/
-int QAudioEncoderSettings::channelCount() const
-{
-    return d->channels;
-}
-
-/*!
-    Sets the number of audio \a channels.
-
-    A value of -1 indicates the encoder should make an optimal choice based on
-    what is available from the audio source and the limitations of the codec.
-*/
-void QAudioEncoderSettings::setChannelCount(int channels)
-{
-    d->isNull = false;
-    d->channels = channels;
-}
-
-/*!
-    Sets the audio bit \a rate in bits per second.
-*/
-void QAudioEncoderSettings::setBitRate(int rate)
-{
-    d->isNull = false;
-    d->bitrate = rate;
-}
-
-/*!
-    Returns the audio sample rate in Hz.
-*/
-int QAudioEncoderSettings::sampleRate() const
-{
-    return d->sampleRate;
-}
-
-/*!
-    Sets the audio sample \a rate in Hz.
-
-    A value of -1 indicates the encoder should make an optimal choice based on what is avaialbe
-    from the audio source and the limitations of the codec.
-  */
-void QAudioEncoderSettings::setSampleRate(int rate)
-{
-    d->isNull = false;
-    d->sampleRate = rate;
-}
-
-/*!
-    Returns the audio encoding quality.
-*/
-
-QMultimedia::EncodingQuality QAudioEncoderSettings::quality() const
+QMediaEncoderSettings::Quality QMediaEncoderSettings::quality() const
 {
     return d->quality;
 }
 
-/*!
-    Set the audio encoding \a quality.
-
-    Setting the audio quality parameter allows backend to choose the balanced
-    set of encoding parameters to achieve the desired quality level.
-
-    The \a quality settings parameter is only used in the
-    \l {QMultimedia::ConstantQualityEncoding}{constant quality} \l{encodingMode()}{encoding mode}.
-*/
-void QAudioEncoderSettings::setQuality(QMultimedia::EncodingQuality quality)
+void QMediaEncoderSettings::setQuality(Quality quality)
 {
-    d->isNull = false;
     d->quality = quality;
 }
 
 /*!
-    Returns the value of encoding \a option.
+    Resolves the format to a format that is supported by QMediaRecorder.
 
-    \sa setEncodingOption(), encodingOptions()
-*/
-QVariant QAudioEncoderSettings::encodingOption(const QString &option) const
+    This method tries to find the best possible match for unspecified settings.
+    Settings that are not supported by the encoder will be modified to the closest
+    match that is supported.
+ */
+void QMediaEncoderSettings::resolveFormat(ResolveFlags flags)
 {
-    return d->encodingOptions.value(option);
-}
+    if (isSupported(Encode))
+        return;
 
-/*!
-    Returns the all the encoding options as QVariantMap.
+    QMediaFormat nullFormat;
+    auto supportedFormats = nullFormat.supportedFileFormats(QMediaFormat::Encode);
+    auto supportedAudioCodecs = nullFormat.supportedAudioCodecs(QMediaFormat::Encode);
+    auto supportedVideoCodecs = nullFormat.supportedVideoCodecs(QMediaFormat::Encode);
 
-    \sa encodingOption(), setEncodingOptions()
-*/
-QVariantMap QAudioEncoderSettings::encodingOptions() const
-{
-    return d->encodingOptions;
-}
-
-/*!
-    Set the encoding \a option to \a value.
-
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOptions()
-*/
-void QAudioEncoderSettings::setEncodingOption(const QString &option, const QVariant &value)
-{
-    d->isNull = false;
-    if (value.isNull())
-        d->encodingOptions.remove(option);
-    else
-        d->encodingOptions.insert(option, value);
-}
-
-/*!
-    Replace all the encoding options with \a options.
-
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOption()
-*/
-void QAudioEncoderSettings::setEncodingOptions(const QVariantMap &options)
-{
-    d->isNull = false;
-    d->encodingOptions = options;
-}
-
-class QVideoEncoderSettingsPrivate  : public QSharedData
-{
-public:
-    QVideoEncoderSettingsPrivate() :
-        isNull(true),
-        encodingMode(QMultimedia::ConstantQualityEncoding),
-        bitrate(-1),
-        frameRate(0),
-        quality(QMultimedia::NormalQuality)
+    auto bestSupportedFileFormat = [&](QMediaFormat::AudioCodec audio = QMediaFormat::AudioCodec::Unspecified,
+                                       QMediaFormat::VideoCodec video = QMediaFormat::VideoCodec::Unspecified)
     {
+        QMediaFormat f;
+        f.setAudioCodec(audio);
+        f.setVideoCodec(video);
+        auto supportedFormats = f.supportedFileFormats(QMediaFormat::Encode);
+        auto *list = (flags == NoFlags) ? audioFormatPriorityList : videoFormatPriorityList;
+        while (*list != QMediaFormat::UnspecifiedFormat) {
+            if (supportedFormats.contains(*list))
+                break;
+            ++list;
+        }
+        return *list;
+    };
+
+    // reset non supported formats and codecs
+    if (!supportedFormats.contains(fmt))
+        fmt = QMediaFormat::UnspecifiedFormat;
+    if (!supportedAudioCodecs.contains(audio))
+        audio = QMediaFormat::AudioCodec::Unspecified;
+    if ((flags == NoFlags) || !supportedVideoCodecs.contains(video))
+        video = QMediaFormat::VideoCodec::Unspecified;
+
+    if (!(flags == NoFlags)) {
+        // try finding a file format that is supported
+        if (fmt == QMediaFormat::UnspecifiedFormat)
+            fmt = bestSupportedFileFormat(audio, video);
+        // try without the audio codec
+        if (fmt == QMediaFormat::UnspecifiedFormat)
+            fmt = bestSupportedFileFormat(QMediaFormat::AudioCodec::Unspecified, video);
+    }
+    // try without the video codec
+    if (fmt == QMediaFormat::UnspecifiedFormat)
+        fmt = bestSupportedFileFormat(audio);
+    // give me a format that's supported
+    if (fmt == QMediaFormat::UnspecifiedFormat)
+        fmt = bestSupportedFileFormat();
+    // still nothing? Give up
+    if (fmt == QMediaFormat::UnspecifiedFormat)
+        return;
+
+    // find a working video codec
+    if (!(flags == NoFlags)) {
+        // reset the audio codec, so that we won't throw away the video codec
+        // if it is supported (choosing the specified video codec has higher
+        // priority than the specified audio codec)
+        auto a = audio;
+        audio = QMediaFormat::AudioCodec::Unspecified;
+        auto videoCodecs = this->supportedVideoCodecs(QMediaFormat::Encode);
+        if (!videoCodecs.contains(video)) {
+            // not supported, try to find a replacement
+            auto *list = videoPriorityList;
+            while (*list != QMediaFormat::VideoCodec::Unspecified) {
+                if (videoCodecs.contains(*list))
+                    break;
+                ++list;
+            }
+            video = *list;
+        }
+        audio = a;
+    } else {
+        video = QMediaFormat::VideoCodec::Unspecified;
     }
 
-    QVideoEncoderSettingsPrivate(const QVideoEncoderSettingsPrivate &other):
-        QSharedData(other),
-        isNull(other.isNull),
-        encodingMode(other.encodingMode),
-        codec(other.codec),
-        bitrate(other.bitrate),
-        resolution(other.resolution),
-        frameRate(other.frameRate),
-        quality(other.quality),
-        encodingOptions(other.encodingOptions)
-    {
+    // and a working audio codec
+    auto audioCodecs = this->supportedAudioCodecs(QMediaFormat::Encode);
+    if (!audioCodecs.contains(audio)) {
+        auto *list = audioPriorityList;
+        while (*list != QMediaFormat::AudioCodec::Unspecified) {
+            if (audioCodecs.contains(*list))
+                break;
+            ++list;
+        }
+        audio = *list;
     }
-
-    bool isNull;
-    QMultimedia::EncodingMode encodingMode;
-    QString codec;
-    int bitrate;
-    QSize resolution;
-    qreal frameRate;
-    QMultimedia::EncodingQuality quality;
-    QVariantMap encodingOptions;
-
-private:
-    QVideoEncoderSettingsPrivate& operator=(const QVideoEncoderSettingsPrivate &other);
-};
-
-/*!
-    \class QVideoEncoderSettings
-
-    \brief The QVideoEncoderSettings class provides a set of video encoder settings.
-
-    \inmodule QtMultimedia
-    \ingroup multimedia
-    \ingroup multimedia_recording
-
-    A video encoder settings object is used to specify the video encoder
-    settings used by QMediaRecorder.  Video encoder settings are selected by
-    constructing a QVideoEncoderSettings object, setting the desired properties
-    and then passing it to a QMediaRecorder instance using the
-    QMediaRecorder::setEncodingSettings() function.
-
-    \snippet multimedia-snippets/media.cpp Video encoder settings
-
-    \sa QMediaRecorder, QVideoEncoderSettingsControl
-*/
-
-/*!
-    Constructs a null video encoder settings object.
-*/
-
-QVideoEncoderSettings::QVideoEncoderSettings()
-    :d(new QVideoEncoderSettingsPrivate)
-{
 }
 
 /*!
-    Constructs a copy of the video encoder settings object \a other.
+    Returns the resolution of the encoded video.
 */
-
-QVideoEncoderSettings::QVideoEncoderSettings(const QVideoEncoderSettings& other)
-    :d(other.d)
+QSize QMediaEncoderSettings::videoResolution() const
 {
+    return d->videoResolution;
 }
 
 /*!
-    Destroys a video encoder settings object.
-*/
+    Sets the \a resolution of the encoded video.
 
-QVideoEncoderSettings::~QVideoEncoderSettings()
+    An empty QSize indicates the encoder should make an optimal choice based on
+    what is available from the video source and the limitations of the codec.
+*/
+void QMediaEncoderSettings::setVideoResolution(const QSize &size)
 {
+    d->videoResolution = size;
 }
 
-/*!
-    Assigns the value of \a other to a video encoder settings object.
+/*! \fn void QMediaEncoderSettings::setVideoResolution(int width, int height)
+
+    Sets the \a width and \a height of the resolution of the encoded video.
+
+    \overload
 */
-QVideoEncoderSettings &QVideoEncoderSettings::operator=(const QVideoEncoderSettings &other)
-{
-    d = other.d;
-    return *this;
-}
-
-/*!
-    Determines if \a other is of equal value to a video encoder settings object.
-
-    Returns true if the settings objects are of equal value, and false if they
-    are not of equal value.
-*/
-bool QVideoEncoderSettings::operator==(const QVideoEncoderSettings &other) const
-{
-    return (d == other.d) ||
-           (d->isNull == other.d->isNull &&
-            d->encodingMode == other.d->encodingMode &&
-            d->bitrate == other.d->bitrate &&
-            d->quality == other.d->quality &&
-            d->codec == other.d->codec &&
-            d->resolution == other.d->resolution &&
-            qFuzzyCompare(d->frameRate, other.d->frameRate) &&
-            d->encodingOptions == other.d->encodingOptions);
-}
-
-/*!
-    Determines if \a other is of equal value to a video encoder settings object.
-
-    Returns true if the settings objects are not of equal value, and false if
-    they are of equal value.
-*/
-bool QVideoEncoderSettings::operator!=(const QVideoEncoderSettings &other) const
-{
-    return !(*this == other);
-}
-
-/*!
-    Identifies if a video encoder settings object is uninitalized.
-
-    Returns true if the settings are null, and false if they are not.
-*/
-bool QVideoEncoderSettings::isNull() const
-{
-    return d->isNull;
-}
-
-/*!
-    Returns the video encoding mode.
-
-    \sa QMultimedia::EncodingMode
-*/
-QMultimedia::EncodingMode QVideoEncoderSettings::encodingMode() const
-{
-    return d->encodingMode;
-}
-
-/*!
-    Sets the video encoding \a mode.
-
-    If QMultimedia::ConstantQualityEncoding is set,
-    the quality encoding parameter is used and bit rate is ignored,
-    otherwise the bitrate is used.
-
-    The rest of encoding settings are respected regardless of encoding mode.
-
-    \sa QMultimedia::EncodingMode
-*/
-void QVideoEncoderSettings::setEncodingMode(QMultimedia::EncodingMode mode)
-{
-    d->isNull = false;
-    d->encodingMode = mode;
-}
-
-/*!
-    Returns the video codec.
-*/
-
-QString QVideoEncoderSettings::codec() const
-{
-    return d->codec;
-}
-
-/*!
-    Sets the video \a codec.
-*/
-void QVideoEncoderSettings::setCodec(const QString& codec)
-{
-    d->isNull = false;
-    d->codec = codec;
-}
-
-/*!
-    Returns bit rate of the encoded video stream in bits per second.
-*/
-int QVideoEncoderSettings::bitRate() const
-{
-    return d->bitrate;
-}
-
-/*!
-    Sets the bit rate of the encoded video stream to \a value.
-*/
-
-void QVideoEncoderSettings::setBitRate(int value)
-{
-    d->isNull = false;
-    d->bitrate = value;
-}
 
 /*!
     Returns the video frame rate.
 */
-qreal QVideoEncoderSettings::frameRate() const
+qreal QMediaEncoderSettings::videoFrameRate() const
 {
-    return d->frameRate;
+    return d->videoFrameRate;
 }
 
 /*!
@@ -578,154 +361,104 @@ qreal QVideoEncoderSettings::frameRate() const
     A value of 0 indicates the encoder should make an optimal choice based on what is available
     from the video source and the limitations of the codec.
 */
-
-void QVideoEncoderSettings::setFrameRate(qreal rate)
+void QMediaEncoderSettings::setVideoFrameRate(qreal rate)
 {
-    d->isNull = false;
-    d->frameRate = rate;
+    d->videoFrameRate = rate;
 }
 
 /*!
-    Returns the resolution of the encoded video.
+    Returns the bit rate of the compressed video stream in bits per second.
 */
-
-QSize QVideoEncoderSettings::resolution() const
+int QMediaEncoderSettings::videoBitRate() const
 {
-    return d->resolution;
+    return d->videoBitRate;
 }
 
 /*!
-    Sets the \a resolution of the encoded video.
-
-    An empty QSize indicates the encoder should make an optimal choice based on
-    what is available from the video source and the limitations of the codec.
+    Sets the video bit \a rate in bits per second.
 */
-
-void QVideoEncoderSettings::setResolution(const QSize &resolution)
+void QMediaEncoderSettings::setVideoBitRate(int bitrate)
 {
-    d->isNull = false;
-    d->resolution = resolution;
+    d->videoBitRate = bitrate;
 }
 
 /*!
-    Sets the \a width and \a height of the resolution of the encoded video.
-
-    \overload
+    Returns the bit rate of the compressed audio stream in bits per second.
 */
-
-void QVideoEncoderSettings::setResolution(int width, int height)
+int QMediaEncoderSettings::audioBitRate() const
 {
-    d->isNull = false;
-    d->resolution = QSize(width, height);
+    return d->audioBitrate;
 }
 
 /*!
-    Returns the video encoding quality.
+    Sets the audio bit \a rate in bits per second.
 */
-
-QMultimedia::EncodingQuality QVideoEncoderSettings::quality() const
+void QMediaEncoderSettings::setAudioBitRate(int bitrate)
 {
-    return d->quality;
+    d->audioBitrate = bitrate;
 }
 
 /*!
-    Sets the video encoding \a quality.
-
-    Setting the video quality parameter allows backend to choose the balanced
-    set of encoding parameters to achieve the desired quality level.
-
-    The \a quality settings parameter is only used in the
-    \l {QMultimedia::ConstantQualityEncoding}{constant quality} \l{encodingMode()}{encoding mode}.
-    The \a quality settings parameter is only used in the \l
-    {QMultimedia::ConstantQualityEncoding}{constant quality}
-    \l{encodingMode()}{encoding mode}.
+    Returns the number of audio channels.
 */
-
-void QVideoEncoderSettings::setQuality(QMultimedia::EncodingQuality quality)
+int QMediaEncoderSettings::audioChannelCount() const
 {
-    d->isNull = false;
-    d->quality = quality;
+    return d->audioChannels;
 }
 
 /*!
-    Returns the value of encoding \a option.
+    Sets the number of audio \a channels.
 
-    \sa setEncodingOption(), encodingOptions()
+    A value of -1 indicates the encoder should make an optimal choice based on
+    what is available from the audio source and the limitations of the codec.
 */
-QVariant QVideoEncoderSettings::encodingOption(const QString &option) const
+void QMediaEncoderSettings::setAudioChannelCount(int channels)
 {
-    return d->encodingOptions.value(option);
+    d->audioChannels = channels;
 }
 
 /*!
-    Returns the all the encoding options as QVariantMap.
-
-    \sa encodingOption(), setEncodingOptions()
+    Returns the audio sample rate in Hz.
 */
-QVariantMap QVideoEncoderSettings::encodingOptions() const
+int QMediaEncoderSettings::audioSampleRate() const
 {
-    return d->encodingOptions;
+    return d->audioSampleRate;
 }
 
 /*!
-    Set the encoding \a option \a value.
+    Sets the audio sample \a rate in Hz.
 
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOptions()
+    A value of -1 indicates the encoder should make an optimal choice based on what is avaialbe
+    from the audio source and the limitations of the codec.
 */
-void QVideoEncoderSettings::setEncodingOption(const QString &option, const QVariant &value)
+void QMediaEncoderSettings::setAudioSampleRate(int rate)
 {
-    d->isNull = false;
-    if (value.isNull())
-        d->encodingOptions.remove(option);
-    else
-        d->encodingOptions.insert(option, value);
+    d->audioSampleRate = rate;
 }
 
-/*!
-    Replace all the encoding options with \a options.
-
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOption()
-*/
-void QVideoEncoderSettings::setEncodingOptions(const QVariantMap &options)
+bool QMediaEncoderSettings::operator==(const QMediaEncoderSettings &other) const
 {
-    d->isNull = false;
-    d->encodingOptions = options;
+    if (d == other.d)
+        return true;
+    return QMediaFormat::operator==(other) &&
+        d->encodingMode == other.d->encodingMode &&
+        d->quality == other.d->quality &&
+        d->audioBitrate == other.d->audioBitrate &&
+        d->audioSampleRate == other.d->audioSampleRate &&
+        d->audioChannels == other.d->audioChannels &&
+        d->videoResolution == other.d->videoResolution &&
+        d->videoFrameRate == other.d->videoFrameRate &&
+        d->videoBitRate == other.d->videoBitRate;
 }
 
 
 class QImageEncoderSettingsPrivate  : public QSharedData
 {
 public:
-    QImageEncoderSettingsPrivate() :
-        isNull(true),
-        quality(QMultimedia::NormalQuality)
-    {
-    }
-
-    QImageEncoderSettingsPrivate(const QImageEncoderSettingsPrivate &other):
-        QSharedData(other),
-        isNull(other.isNull),
-        codec(other.codec),
-        resolution(other.resolution),
-        quality(other.quality),
-        encodingOptions(other.encodingOptions)
-    {
-    }
-
-    bool isNull;
-    QString codec;
+    bool isNull = true;
+    QImageEncoderSettings::FileFormat format = QImageEncoderSettings::UnspecifiedFormat;
     QSize resolution;
-    QMultimedia::EncodingQuality quality;
-    QVariantMap encodingOptions;
-
-private:
-    QImageEncoderSettingsPrivate& operator=(const QImageEncoderSettingsPrivate &other);
+    QImageEncoderSettings::Quality quality = QImageEncoderSettings::NormalQuality;
 };
 
 /*!
@@ -763,27 +496,18 @@ QImageEncoderSettings::QImageEncoderSettings()
     Constructs a copy of the image encoder settings object \a other.
 */
 
-QImageEncoderSettings::QImageEncoderSettings(const QImageEncoderSettings& other)
-    :d(other.d)
-{
-}
+QImageEncoderSettings::QImageEncoderSettings(const QImageEncoderSettings& other) = default;
 
 /*!
     Destroys a image encoder settings object.
 */
 
-QImageEncoderSettings::~QImageEncoderSettings()
-{
-}
+QImageEncoderSettings::~QImageEncoderSettings() = default;
 
 /*!
     Assigns the value of \a other to a image encoder settings object.
 */
-QImageEncoderSettings &QImageEncoderSettings::operator=(const QImageEncoderSettings &other)
-{
-    d = other.d;
-    return *this;
-}
+QImageEncoderSettings &QImageEncoderSettings::operator=(const QImageEncoderSettings &other) = default;
 
 /*!
     Determines if \a other is of equal value to a image encoder settings
@@ -797,9 +521,8 @@ bool QImageEncoderSettings::operator==(const QImageEncoderSettings &other) const
     return (d == other.d) ||
            (d->isNull == other.d->isNull &&
             d->quality == other.d->quality &&
-            d->codec == other.d->codec &&
-            d->resolution == other.d->resolution &&
-            d->encodingOptions == other.d->encodingOptions);
+            d->format == other.d->format &&
+            d->resolution == other.d->resolution);
 
 }
 
@@ -826,21 +549,72 @@ bool QImageEncoderSettings::isNull() const
 }
 
 /*!
-    Returns the image codec.
+    Returns the image format.
 */
 
-QString QImageEncoderSettings::codec() const
+QImageEncoderSettings::FileFormat QImageEncoderSettings::format() const
 {
-    return d->codec;
+    return d->format;
 }
 
 /*!
-    Sets the image \a codec.
+    Sets the image \a format.
 */
-void QImageEncoderSettings::setCodec(const QString& codec)
+void QImageEncoderSettings::setFormat(QImageEncoderSettings::FileFormat format)
 {
     d->isNull = false;
-    d->codec = codec;
+    d->format = format;
+}
+
+QList<QImageEncoderSettings::FileFormat> QImageEncoderSettings::supportedFormats()
+{
+    return QPlatformMediaIntegration::instance()->formatInfo()->imageFormats;
+}
+
+QString QImageEncoderSettings::fileFormatName(QImageEncoderSettings::FileFormat f)
+{
+    const char *name = nullptr;
+    switch (f) {
+    case UnspecifiedFormat:
+        name = "Unspecified image format";
+        break;
+    case JPEG:
+        name = "JPEG";
+        break;
+    case PNG:
+        name = "PNG";
+        break;
+    case WebP:
+        name = "WebP";
+        break;
+    case Tiff:
+        name = "Tiff";
+        break;
+    }
+    return QString::fromUtf8(name);
+}
+
+QString QImageEncoderSettings::fileFormatDescription(QImageEncoderSettings::FileFormat f)
+{
+    const char *name = nullptr;
+    switch (f) {
+    case UnspecifiedFormat:
+        name = "Unspecified image format";
+        break;
+    case JPEG:
+        name = "JPEG";
+        break;
+    case PNG:
+        name = "PNG";
+        break;
+    case WebP:
+        name = "WebP";
+        break;
+    case Tiff:
+        name = "Tiff";
+        break;
+    }
+    return QString::fromUtf8(name);
 }
 
 /*!
@@ -878,10 +652,21 @@ void QImageEncoderSettings::setResolution(int width, int height)
 }
 
 /*!
-    Returns the image encoding quality.
+    \enum QImageEncoderSettings::EncodingQuality
+
+    Enumerates quality encoding levels.
+
+    \value VeryLowQuality
+    \value LowQuality
+    \value NormalQuality
+    \value HighQuality
+    \value VeryHighQuality
 */
 
-QMultimedia::EncodingQuality QImageEncoderSettings::quality() const
+/*!
+    Returns the image encoding quality.
+*/
+QImageEncoderSettings::Quality QImageEncoderSettings::quality() const
 {
     return d->quality;
 }
@@ -889,64 +674,10 @@ QMultimedia::EncodingQuality QImageEncoderSettings::quality() const
 /*!
     Sets the image encoding \a quality.
 */
-
-void QImageEncoderSettings::setQuality(QMultimedia::EncodingQuality quality)
+void QImageEncoderSettings::setQuality(Quality quality)
 {
     d->isNull = false;
     d->quality = quality;
 }
 
-/*!
-    Returns the value of encoding \a option.
-
-    \sa setEncodingOption(), encodingOptions()
-*/
-QVariant QImageEncoderSettings::encodingOption(const QString &option) const
-{
-    return d->encodingOptions.value(option);
-}
-
-/*!
-    Returns the all the encoding options as QVariantMap.
-
-    \sa encodingOption(), setEncodingOptions()
-*/
-QVariantMap QImageEncoderSettings::encodingOptions() const
-{
-    return d->encodingOptions;
-}
-
-/*!
-    Set the encoding \a option \a value.
-
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOptions()
-*/
-void QImageEncoderSettings::setEncodingOption(const QString &option, const QVariant &value)
-{
-    d->isNull = false;
-    if (value.isNull())
-        d->encodingOptions.remove(option);
-    else
-        d->encodingOptions.insert(option, value);
-}
-
-/*!
-    Replace all the encoding options with \a options.
-
-    The supported set and meaning of encoding options are
-    system and selected codec specific.
-
-    \sa encodingOption(), setEncodingOption()
-*/
-void QImageEncoderSettings::setEncodingOptions(const QVariantMap &options)
-{
-    d->isNull = false;
-    d->encodingOptions = options;
-}
-
-
 QT_END_NAMESPACE
-

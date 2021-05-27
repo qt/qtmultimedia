@@ -54,8 +54,8 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QCameraImageCapture>
-#include <QMediaService>
-
+#include <QCamera>
+#include <QMediaCaptureSession>
 
 ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent) :
     QDialog(parent),
@@ -66,16 +66,16 @@ ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent)
 
     //image codecs
     ui->imageCodecBox->addItem(tr("Default image format"), QVariant(QString()));
-    const QStringList supportedImageCodecs = imagecapture->supportedImageCodecs();
-    for (const QString &codecName : supportedImageCodecs) {
-        QString description = imagecapture->imageCodecDescription(codecName);
-        ui->imageCodecBox->addItem(codecName + ": " + description, QVariant(codecName));
+    const auto supportedImageFormats = QImageEncoderSettings::supportedFormats();
+    for (const auto &f : supportedImageFormats) {
+        QString description = QImageEncoderSettings::fileFormatDescription(f);
+        ui->imageCodecBox->addItem(QImageEncoderSettings::fileFormatName(f) + ": " + description, QVariant::fromValue(f));
     }
 
-    ui->imageQualitySlider->setRange(0, int(QMultimedia::VeryHighQuality));
+    ui->imageQualitySlider->setRange(0, int(QImageEncoderSettings::VeryHighQuality));
 
     ui->imageResolutionBox->addItem(tr("Default Resolution"));
-    const QList<QSize> supportedResolutions = imagecapture->supportedResolutions();
+    const QList<QSize> supportedResolutions = imagecapture->captureSession()->camera()->cameraInfo().photoResolutions();
     for (const QSize &resolution : supportedResolutions) {
         ui->imageResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
                                         QVariant(resolution));
@@ -102,8 +102,8 @@ void ImageSettings::changeEvent(QEvent *e)
 QImageEncoderSettings ImageSettings::imageSettings() const
 {
     QImageEncoderSettings settings = imagecapture->encodingSettings();
-    settings.setCodec(boxValue(ui->imageCodecBox).toString());
-    settings.setQuality(QMultimedia::EncodingQuality(ui->imageQualitySlider->value()));
+    settings.setFormat(boxValue(ui->imageCodecBox).value<QImageEncoderSettings::FileFormat>());
+    settings.setQuality(QImageEncoderSettings::Quality(ui->imageQualitySlider->value()));
     settings.setResolution(boxValue(ui->imageResolutionBox).toSize());
 
     return settings;
@@ -111,7 +111,7 @@ QImageEncoderSettings ImageSettings::imageSettings() const
 
 void ImageSettings::setImageSettings(const QImageEncoderSettings &imageSettings)
 {
-    selectComboBoxItem(ui->imageCodecBox, QVariant(imageSettings.codec()));
+    selectComboBoxItem(ui->imageCodecBox, QVariant::fromValue(imageSettings.format()));
     selectComboBoxItem(ui->imageResolutionBox, QVariant(imageSettings.resolution()));
     ui->imageQualitySlider->setValue(imageSettings.quality());
 }

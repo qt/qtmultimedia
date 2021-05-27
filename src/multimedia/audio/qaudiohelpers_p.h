@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QAudioHelperInternal
 {
-Q_MULTIMEDIA_EXPORT void qMultiplySamples(qreal factor, const QAudioFormat& format, const void *src, void* dest, int len);
+void qMultiplySamples(qreal factor, const QAudioFormat& format, const void *src, void* dest, int len);
 }
 
 QT_END_NAMESPACE

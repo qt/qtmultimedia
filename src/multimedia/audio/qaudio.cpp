@@ -46,17 +46,6 @@ QT_BEGIN_NAMESPACE
 
 #define LOG100 4.60517018599
 
-static void qRegisterAudioMetaTypes()
-{
-    qRegisterMetaType<QAudio::Error>();
-    qRegisterMetaType<QAudio::State>();
-    qRegisterMetaType<QAudio::Mode>();
-    qRegisterMetaType<QAudio::Role>();
-    qRegisterMetaType<QAudio::VolumeScale>();
-}
-
-Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
-
 /*!
     \namespace QAudio
     \ingroup multimedia-namespaces
@@ -88,9 +77,6 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
     \value StoppedState      The audio device is closed, and is not processing any audio data
     \value IdleState         The QIODevice passed in has no data and audio system's buffer is empty, this state
                              is set after start() is called and while no audio data is available to be processed.
-    \value InterruptedState  This stream is in a suspended state because another higher priority stream currently
-                             has control of the audio device.  Playback cannot resume until the higher priority
-                             stream relinquishes control of the audio device.
 */
 
 /*!
@@ -115,7 +101,6 @@ Q_CONSTRUCTOR_FUNCTION(qRegisterAudioMetaTypes)
     \value AccessibilityRole        For accessibility, such as with a screen reader
     \value SonificationRole         Sonification, such as with user interface sounds
     \value GameRole                 Game audio
-    \value CustomRole               The role is specified by QMediaPlayer::customAudioRole()
 
     \since 5.6
     \sa QMediaPlayer::setAudioRole()
@@ -291,9 +276,6 @@ QDebug operator<<(QDebug dbg, QAudio::State state)
         case QAudio::IdleState:
             dbg << "IdleState";
             break;
-        case QAudio::InterruptedState:
-            dbg << "InterruptedState";
-            break;
     }
     return dbg;
 }
@@ -347,9 +329,6 @@ QDebug operator<<(QDebug dbg, QAudio::Role role)
         break;
     case QAudio::VoiceCommunicationRole:
         dbg << "VoiceCommunicationRole";
-        break;
-    case QAudio::CustomRole:
-        dbg << "CustomRole";
         break;
     }
     return dbg;

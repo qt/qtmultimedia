@@ -33,6 +33,7 @@
 
 #include <QStringList>
 #include <QList>
+#include <QMediaDevices>
 
 //TESTED_COMPONENT=src/multimedia
 
@@ -40,25 +41,20 @@ class tst_QAudioDeviceInfo : public QObject
 {
     Q_OBJECT
 public:
-    tst_QAudioDeviceInfo(QObject* parent=0) : QObject(parent) {}
+    tst_QAudioDeviceInfo(QObject* parent=nullptr) : QObject(parent) {}
 
 private slots:
     void initTestCase();
+    void cleanupTestCase();
     void checkAvailableDefaultInput();
     void checkAvailableDefaultOutput();
-    void codecs();
     void channels();
-    void sampleSizes();
-    void byteOrders();
-    void sampleTypes();
+    void sampleFormat();
     void sampleRates();
     void isFormatSupported();
     void preferred();
-    void nearest();
-    void supportedChannelCounts();
-    void supportedSampleRates();
     void assignOperator();
-    void deviceName();
+    void id();
     void defaultConstructor();
     void equalityOperator();
 
@@ -69,7 +65,7 @@ private:
 void tst_QAudioDeviceInfo::initTestCase()
 {
     // Only perform tests if audio output device exists!
-    QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
     if (devices.size() == 0) {
         QSKIP("NOTE: no audio output device found, no tests will be performed");
     } else {
@@ -77,54 +73,45 @@ void tst_QAudioDeviceInfo::initTestCase()
     }
 }
 
+void tst_QAudioDeviceInfo::cleanupTestCase()
+{
+    delete device;
+}
+
 void tst_QAudioDeviceInfo::checkAvailableDefaultInput()
 {
     // Only perform tests if audio input device exists!
-    QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+    QList<QAudioDeviceInfo> devices = QMediaDevices::audioInputs();
     if (devices.size() > 0) {
-        QVERIFY(!QAudioDeviceInfo::defaultInputDevice().isNull());
+        QVERIFY(!QMediaDevices::defaultAudioInput().isNull());
     }
 }
 
 void tst_QAudioDeviceInfo::checkAvailableDefaultOutput()
 {
-    QVERIFY(!QAudioDeviceInfo::defaultOutputDevice().isNull());
-}
-
-void tst_QAudioDeviceInfo::codecs()
-{
-    QStringList avail = device->supportedCodecs();
-    QVERIFY(avail.size() > 0);
+    // Only perform tests if audio input device exists!
+    QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
+    if (devices.size() > 0) {
+        QVERIFY(!QMediaDevices::defaultAudioOutput().isNull());
+    }
 }
 
 void tst_QAudioDeviceInfo::channels()
 {
-    QList<int> avail = device->supportedChannelCounts();
-    QVERIFY(avail.size() > 0);
+    QVERIFY(device->minimumChannelCount() > 0);
+    QVERIFY(device->maximumChannelCount() >= device->minimumChannelCount());
 }
 
-void tst_QAudioDeviceInfo::sampleSizes()
+void tst_QAudioDeviceInfo::sampleFormat()
 {
-    QList<int> avail = device->supportedSampleSizes();
-    QVERIFY(avail.size() > 0);
-}
-
-void tst_QAudioDeviceInfo::byteOrders()
-{
-    QList<QAudioFormat::Endian> avail = device->supportedByteOrders();
-    QVERIFY(avail.size() > 0);
-}
-
-void tst_QAudioDeviceInfo::sampleTypes()
-{
-    QList<QAudioFormat::SampleType> avail = device->supportedSampleTypes();
+    QList<QAudioFormat::SampleFormat> avail = device->supportedSampleFormats();
     QVERIFY(avail.size() > 0);
 }
 
 void tst_QAudioDeviceInfo::sampleRates()
 {
-    QList<int> avail = device->supportedSampleRates();
-    QVERIFY(avail.size() > 0);
+    QVERIFY(device->minimumSampleRate() > 0);
+    QVERIFY(device->maximumSampleRate() >= device->minimumSampleRate());
 }
 
 void tst_QAudioDeviceInfo::isFormatSupported()
@@ -132,10 +119,7 @@ void tst_QAudioDeviceInfo::isFormatSupported()
     QAudioFormat format;
     format.setSampleRate(44100);
     format.setChannelCount(2);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleSize(16);
-    format.setCodec("audio/pcm");
+    format.setSampleFormat(QAudioFormat::Int16);
 
     // Should always be true for these format
     QVERIFY(device->isFormatSupported(format));
@@ -146,66 +130,27 @@ void tst_QAudioDeviceInfo::preferred()
     QAudioFormat format = device->preferredFormat();
     QVERIFY(format.isValid());
     QVERIFY(device->isFormatSupported(format));
-    QVERIFY(device->nearestFormat(format) == format);
-}
-
-// Returns closest QAudioFormat to settings that system audio supports.
-void tst_QAudioDeviceInfo::nearest()
-{
-    /*
-    QAudioFormat format1, format2;
-    format1.setSampleRate(8000);
-    format2 = device->nearestFormat(format1);
-    QVERIFY(format2.sampleRate() == 44100);
-    */
-    QAudioFormat format;
-    format.setSampleRate(44100);
-    format.setChannelCount(2);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleSize(16);
-    format.setCodec("audio/pcm");
-
-    QAudioFormat format2 = device->nearestFormat(format);
-
-    // This is definitely dependent on platform support (but isFormatSupported tests that above)
-    QVERIFY(format2.sampleRate() == 44100);
-}
-
-// Returns a list of supported channel counts.
-void tst_QAudioDeviceInfo::supportedChannelCounts()
-{
-    QList<int> avail = device->supportedChannelCounts();
-    QVERIFY(avail.size() > 0);
-}
-
-// Returns a list of supported sample rates.
-void tst_QAudioDeviceInfo::supportedSampleRates()
-{
-    QList<int> avail = device->supportedSampleRates();
-    QVERIFY(avail.size() > 0);
 }
 
 // QAudioDeviceInfo's assignOperator method
 void tst_QAudioDeviceInfo::assignOperator()
 {
     QAudioDeviceInfo dev;
-    QVERIFY(dev.deviceName().isNull());
+    QVERIFY(dev.id().isNull());
     QVERIFY(dev.isNull() == true);
 
-    QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
     QVERIFY(devices.size() > 0);
     QAudioDeviceInfo dev1(devices.at(0));
     dev = dev1;
     QVERIFY(dev.isNull() == false);
-    QVERIFY(dev.deviceName() == dev1.deviceName());
+    QVERIFY(dev.id() == dev1.id());
 }
 
-// Returns human readable name of audio device
-void tst_QAudioDeviceInfo::deviceName()
+void tst_QAudioDeviceInfo::id()
 {
-    QVERIFY(!device->deviceName().isNull());
-    QVERIFY(device->deviceName() == QAudioDeviceInfo::availableDevices(QAudio::AudioOutput).at(0).deviceName());
+    QVERIFY(!device->id().isNull());
+    QVERIFY(device->id() == QMediaDevices::audioOutputs().at(0).id());
 }
 
 // QAudioDeviceInfo's defaultConstructor method
@@ -213,7 +158,7 @@ void tst_QAudioDeviceInfo::defaultConstructor()
 {
     QAudioDeviceInfo dev;
     QVERIFY(dev.isNull() == true);
-    QVERIFY(dev.deviceName().isNull());
+    QVERIFY(dev.id().isNull());
 }
 
 void tst_QAudioDeviceInfo::equalityOperator()
@@ -226,8 +171,8 @@ void tst_QAudioDeviceInfo::equalityOperator()
     QVERIFY(!(dev1 != dev2));
 
     // Make sure each available device is not equal to null
-    const auto infos = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
-    for (const QAudioDeviceInfo info : infos) {
+    const auto infos = QMediaDevices::audioOutputs();
+    for (const QAudioDeviceInfo &info : infos) {
         QVERIFY(dev1 != info);
         QVERIFY(!(dev1 == info));
 

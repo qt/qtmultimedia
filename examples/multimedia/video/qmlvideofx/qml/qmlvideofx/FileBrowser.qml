@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.1
+import QtQuick
 import Qt.labs.folderlistmodel 2.1
 
 Rectangle {

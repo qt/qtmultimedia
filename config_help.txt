@@ -5,4 +5,4 @@ Multimedia options:
   -no-gstreamer ........ Disable support for GStreamer
   -gstreamer [version] . Enable GStreamer support [auto]
                          With no parameter, 1.0 is tried first, then 0.10.
-  -evr ................. Enables EVR in DirectShow and WMF [auto]
+  -evr ................. Enables EVR in WMF [auto]

@@ -42,66 +42,56 @@
 
 #include <QtCore/qobject.h>
 
-#include <QtMultimedia/qmediacontent.h>
-#include <QtMultimedia/qmediaobject.h>
-#include <QtMultimedia/qmediabindableinterface.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 
 
 QT_BEGIN_NAMESPACE
 
-
-class QMediaPlaylistProvider;
-
 class QMediaPlaylistPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject, public QMediaBindableInterface
+class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QMediaBindableInterface)
     Q_PROPERTY(QMediaPlaylist::PlaybackMode playbackMode READ playbackMode WRITE setPlaybackMode NOTIFY playbackModeChanged)
-    Q_PROPERTY(QMediaContent currentMedia READ currentMedia NOTIFY currentMediaChanged)
+    Q_PROPERTY(QUrl currentMedia READ currentMedia NOTIFY currentMediaChanged)
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
     Q_ENUMS(PlaybackMode Error)
 
 public:
-    enum PlaybackMode { CurrentItemOnce, CurrentItemInLoop, Sequential, Loop, Random };
+    enum PlaybackMode { CurrentItemOnce, CurrentItemInLoop, Sequential, Loop };
     enum Error { NoError, FormatError, FormatNotSupportedError, NetworkError, AccessDeniedError };
 
     explicit QMediaPlaylist(QObject *parent = nullptr);
     virtual ~QMediaPlaylist();
 
-    QMediaObject *mediaObject() const override;
-
     PlaybackMode playbackMode() const;
     void setPlaybackMode(PlaybackMode mode);
 
     int currentIndex() const;
-    QMediaContent currentMedia() const;
+    QUrl currentMedia() const;
 
     int nextIndex(int steps = 1) const;
     int previousIndex(int steps = 1) const;
 
-    QMediaContent media(int index) const;
+    QUrl media(int index) const;
 
     int mediaCount() const;
     bool isEmpty() const;
-    bool isReadOnly() const;
 
-    bool addMedia(const QMediaContent &content);
-    bool addMedia(const QList<QMediaContent> &items);
-    bool insertMedia(int index, const QMediaContent &content);
-    bool insertMedia(int index, const QList<QMediaContent> &items);
+    void addMedia(const QUrl &content);
+    void addMedia(const QList<QUrl> &items);
+    bool insertMedia(int index, const QUrl &content);
+    bool insertMedia(int index, const QList<QUrl> &items);
     bool moveMedia(int from, int to);
     bool removeMedia(int pos);
     bool removeMedia(int start, int end);
-    bool clear();
+    void clear();
 
-    void load(const QNetworkRequest &request, const char *format = nullptr);
     void load(const QUrl &location, const char *format = nullptr);
     void load(QIODevice *device, const char *format = nullptr);
 
-    bool save(const QUrl &location, const char *format = nullptr);
-    bool save(QIODevice * device, const char *format);
+    bool save(const QUrl &location, const char *format = nullptr) const;
+    bool save(QIODevice *device, const char *format) const;
 
     Error error() const;
     QString errorString() const;
@@ -117,7 +107,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void currentIndexChanged(int index);
     void playbackModeChanged(QMediaPlaylist::PlaybackMode mode);
-    void currentMediaChanged(const QMediaContent&);
+    void currentMediaChanged(const QUrl&);
 
     void mediaAboutToBeInserted(int start, int end);
     void mediaInserted(int start, int end);
@@ -128,19 +118,12 @@ Q_SIGNALS:
     void loaded();
     void loadFailed();
 
-protected:
-    bool setMediaObject(QMediaObject *object) override;
-    QMediaPlaylistPrivate *d_ptr;
-
 private:
+    QMediaPlaylistPrivate *d_ptr;
     Q_DECLARE_PRIVATE(QMediaPlaylist)
-    Q_PRIVATE_SLOT(d_func(), void _q_loadFailed(QMediaPlaylist::Error, const QString &))
 };
 
 QT_END_NAMESPACE
-
-Q_DECLARE_METATYPE(QMediaPlaylist::PlaybackMode)
-Q_DECLARE_METATYPE(QMediaPlaylist::Error)
 
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, PlaybackMode)
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, Error)

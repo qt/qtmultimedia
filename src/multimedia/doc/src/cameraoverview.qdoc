@@ -98,12 +98,12 @@ check in C++, use the \l QCameraInfo::availableCameras() function, as shown in t
 
     \snippet multimedia-snippets/camera.cpp Camera overview check
 
-In QML, use the \l{QtMultimedia::QtMultimedia::availableCameras}{QtMultimedia.availableCameras}
+In QML, use the \l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}
 property:
 
 \qml
 Item {
-    property bool isCameraAvailable: QtMultimedia.availableCameras.length > 0
+    property bool isCameraAvailable: MediaDevices.availableCameras.length > 0
 }
 \endqml
 
@@ -116,16 +116,16 @@ In C++:
 
      \snippet multimedia-snippets/camera.cpp Camera selection
 
-In QML, you can set the \c Camera \l{Camera::deviceId}{deviceId} property. All available IDs can
-be retrieved from \l{QtMultimedia::QtMultimedia::availableCameras}{QtMultimedia.availableCameras}:
+In QML, you can set the \c Camera \l{Camera::cameraInfo}{cameraInfo} property. All available cameras can
+be retrieved from \l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}:
 
 \qml
 Camera {
-    deviceId: QtMultimedia.availableCameras[0].deviceId
+    cameraInfo: QtMultimedia.availableCameras[0]
 }
 \endqml
 
-You can also select the camera by its physical position on the system rather than its device ID.
+You can also select the camera by its physical position on the system rather than by camera info.
 This is useful on mobile devices, which often have a front-facing and a back-facing camera.
 
 In C++:
@@ -140,50 +140,51 @@ Camera {
 }
 \endqml
 
-If neither device ID nor position is specified, the default camera will be used. On desktop
+If neither cameraInfo nor position is specified, the default camera will be used. On desktop
 platforms, the default camera is set by the user in the system settings. On a mobile device, the
 back-facing camera is usually the default camera. You can get information about the default camera
 using \l QCameraInfo::defaultCamera() in C++ or
-\l{QtMultimedia::QtMultimedia::defaultCamera}{QtMultimedia.defaultCamera} in QML.
+\l{QtMultimedia::MediaDevices::defaultCamera}{MediaDevices.defaultCamera} in QML.
 
-\section2 Viewfinder
+\section2 Preview
 
 While not strictly necessary, it's often useful to be able to see
-what the camera is pointing at.  Most digital cameras allow an image
-feed from the camera sensor at a lower resolution (usually up to
-the size of the display of the camera) so you can compose
-a photo or video, and then switch to a slower but higher resolution
-mode for capturing the image.
+what the camera is pointing at.
 
 Depending on whether you're using QML or C++, you can do this in multiple ways.
-In QML, you can use \l Camera and \l VideoOutput together to show a
+In QML, you can use \l Camera and \l VideoOutput together in a CaptureSession to show a
 simple viewfinder:
 
 \qml
-VideoOutput {
-    source: camera
+Item {
+    VideoOutput {
+        id: output
+        anchors.fill: parent
+    }
+    CaptureSession {
+        videoOutput: output
 
-    Camera {
-        id: camera
-        // You can adjust various settings in here
+        Camera {
+            // You can adjust various settings in here
+        }
     }
 }
 \endqml
 
 In C++, your choice depends on whether you are using widgets, or QGraphicsView.
-The \l QCameraViewfinder class is used in the widgets case, and \l QGraphicsVideoItem
+The \l QVideoWidget class is used in the widgets case, and \l QGraphicsVideoItem
 is useful for QGraphicsView.
 
     \snippet multimedia-snippets/camera.cpp Camera overview viewfinder
 
-For advanced usage (like processing viewfinder frames as they come, to detect
-objects or patterns), you can also derive from \l QAbstractVideoSurface and
-set that as the viewfinder for the QCamera object.  In this case you will
-need to render the viewfinder image yourself.
+For advanced usage (like processing preview frames as they come, to detect
+objects or patterns), you can also use your own QVideoSink and set that as the videoOutput
+for the QCamera object.  In this case you will need to render the viewfinder image yourself
+by processing the data received from the newVideoFrame() signal.
 
     \snippet multimedia-snippets/camera.cpp Camera overview surface
 
-On mobile devices, the viewfinder image might not always be in the orientation you would expect.
+On mobile devices, the preview image might not always be in the orientation you would expect.
 The camera sensors on these devices are often mounted in landscape while the natural
 orientation of the screen is portrait. This results in the image appearing sideways or inverted
 depending on the device orientation. In order to reflect on screen what the user actually sees, you
@@ -196,31 +197,30 @@ account the camera sensor orientation and the current display orientation.
 
 After setting up a viewfinder and finding something photogenic,
 to capture an image we need to initialize a new QCameraImageCapture
-object. All that is then needed is to start the camera, lock it so
-that things are in focus and the settings are not different from the
-viewfinder while the image capture occurs, capture the image, and
-finally unlock the camera ready for the next photo.
+object. All that is then needed is to start the camera and capture the image.
 
     \snippet multimedia-snippets/camera.cpp Camera overview capture
 
 \section2 Movies
 
 Previously we saw code that allowed the capture of a still image. Recording
-video requires the use of a \l QMediaRecorder object.
+video requires the use of a \l QMediaEncoder object.
 
 To record video we need to create a camera object as before but this time as
 well as creating a viewfinder, we will also initialize a media recorder object.
 
     \snippet multimedia-snippets/camera.cpp Camera overview movie
 
-Signals from the \e mediaRecorder can be connected to slots to react to
-changes in the state of the recorder or error events. Recording itself
-starts with the \l {QMediaRecorder::record()}{record()} function of
-mediaRecorder being called, this causes the signal \l
-{QMediaRecorder::stateChanged()}{stateChanged()} to be emitted. The
-recording process can be changed with the \l {QMediaRecorder::record()}{record()},
-\l {QMediaRecorder::stop()}{stop()} and \l {QMediaRecorder::setMuted()}{setMuted()}
-slots in \l QMediaRecorder.
+Signals from the \e mediaEncoder can be connected to slots to react to
+changes in the state of the encoding process or error events. Recording itself
+starts with the \l {QMediaEncoder::record()}{record()} function of
+mediaEncoder being called, this causes the signal \l
+{QMediaEncoder::stateChanged()}{stateChanged()} to be emitted. The
+recording process can be changed with the \l {QMediaEncoder::record()}{record()},
+\l {QMediaEncoder::stop()}{stop()} slots in \l QMediaEncoder.
+
+On top of the above, QMediaRecorder provides a simple to use, but more limited all-in-one class
+for recording audio and video content.
 
 \section2 Controlling the Imaging Pipeline
 
@@ -231,58 +231,40 @@ the final images, and you can control them with different classes.
 
 \section3 Focus and Zoom
 
-Focusing (and zoom) is managed primarily by the \l QCameraFocus class.
-QCameraFocus allows the developer to set the general policy by means of the
-enums for the \l {QCameraFocus::FocusMode}{FocusMode} and the
-\l {QCameraFocus::FocusPointMode}{FocusPointMode}. \l {QCameraFocus::FocusMode}{FocusMode}
-deals with settings such as \l {QCameraFocus::FocusMode}{AutoFocus},
-\l {QCameraFocus::FocusMode}{ContinuousFocus} and \l {QCameraFocus::FocusMode}{InfinityFocus},
-whereas \l {QCameraFocus::FocusMode}{FocusPointMode} deals with the
-various focus zones within the view that are used for autofocus modes. \l {QCameraFocus::FocusMode}{FocusPointMode}
-has support for face recognition (where the camera supports it), center focus and a custom
-focus where the focus point can be specified.
+QCamera allows the developer to set the general focus policy by means of the
+enums for the \l {QCamera::FocusMode}{FocusMode}. \l {QCamera::FocusMode}{FocusMode}
+deals with settings such as \l {QCamera::FocusModeAuto},
+and \l {QCamera::FocusModeInfinity}.
 
-For camera hardware that supports it, \l {QCameraFocus::FocusMode}{Macro focus} allows
+For camera hardware that supports it, \l QCamera::FocusModeAutoNear} allows
 imaging of things that are close to the sensor.  This is useful in applications like
 barcode recognition, or business card scanning.
 
-In addition to focus, QCameraFocus allows you to control any available optical or
-digital zoom.  In general, optical zoom is higher quality, but more expensive to
-manufacture, so the available zoom range might be limited (or fixed to unity).
+In addition to focus, QCameraFocus allows you to control any available zoom using \l setZoomFactor()
+or \l zoomTo(). The available zoom range might be limited (or fixed to unity), the allowed range can
+be checked with \l minimumZoomFactor() and maximumZoomFactor().
 
-\section3 Exposure, Aperture, Shutter Speed and Flash
+\section3 Exposure, Shutter Speed and Flash
 
 There are a number of settings that affect the amount of light that hits the
-camera sensor, and hence the quality of the resulting image.  The \l QCameraExposure
-class allows you to adjust these settings.  You can use this class to implement
-some techniques like High Dynamic Range (HDR) photos by locking the exposure
-parameters (with \l {QCamera::searchAndLock()}), or motion blur by setting slow shutter speeds
-with small apertures.
+camera sensor, and hence the quality of the resulting image.
 
-The main settings for automatic image taking are the \l {QCameraExposure::ExposureMode}{exposure mode}
-and \l {QCameraExposure::FlashMode}{flash mode}.  Several other settings (aperture, ISO setting,
+The main settings for automatic image taking are the \l {QCamera::ExposureMode}{exposure mode}
+and \l {QCamera::FlashMode}{flash mode}.  Several other settings (ISO setting,
  shutter speed) are usually managed automatically but can also be overridden if desired.
 
-You can also adjust the \l {QCameraExposure::meteringMode()} to control which parts
-of the camera frame to measure exposure at.  Some camera implementations also allow
-you to specify a specific point that should be used for exposure metering - this is
-useful if you can let the user touch or click on an interesting part of the viewfinder,
-and then use this point so that the image exposure is best at that point.
-
 Finally, you can control the flash hardware (if present) using this class.  In some cases
-the hardware may also double as a torch (typically when the flash is LED based, rather than
-a xenon or other bulb).  See also \l {Torch} for an easy to use API for
-torch functionality.
+the hardware may also double as a torch.
 
 \target camera_image_processing
 \section3 Image Processing
 
-The QCameraImageProcessing class lets you adjust the image processing
-part of the pipeline.  This includes the \l {QCameraImageProcessing::WhiteBalanceMode}{white balance}
-(or color temperature), \l {QCameraImageProcessing::contrast()}{contrast},
-\l {QCameraImageProcessing::saturation()}{saturation}, \l {QCameraImageProcessing::setSharpeningLevel()}{sharpening}
-and \l {QCameraImageProcessing::setDenoisingLevel()}{denoising}.  Most cameras support automatic settings
-for all of these, so you shouldn't need to adjust them unless the user wants a specific setting.
+The QCamera class lets you adjust the image processing
+part of the pipeline.  This includes the \l {QCamera::WhiteBalanceMode}{white balance}
+(or color temperature), \l {QCamera::contrast()}{contrast}, and
+\l {QCamera::saturation()}{saturation}.
+Most cameras support automatic settings for all of these, so you shouldn't need to adjust them unless
+the user wants a specific setting.
 
 If you're taking a series of images (for example, to stitch them together for
 a panoramic image), you should lock the image processing settings so that all the

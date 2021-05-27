@@ -56,7 +56,7 @@
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
 {
-    m_mediaPlayer = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
+    m_mediaPlayer = new QMediaPlayer(this);
     QVideoWidget *videoWidget = new QVideoWidget;
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."));
@@ -92,11 +92,11 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     setLayout(layout);
 
     m_mediaPlayer->setVideoOutput(videoWidget);
-    connect(m_mediaPlayer, &QMediaPlayer::stateChanged,
+    connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged,
             this, &VideoPlayer::mediaStateChanged);
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
-    connect(m_mediaPlayer, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error),
+    connect(m_mediaPlayer, &QMediaPlayer::errorChanged,
             this, &VideoPlayer::handleError);
 }
 
@@ -109,9 +109,6 @@ void VideoPlayer::openFile()
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Movie"));
-    QStringList supportedMimeTypes = m_mediaPlayer->supportedMimeTypes();
-    if (!supportedMimeTypes.isEmpty())
-        fileDialog.setMimeTypeFilters(supportedMimeTypes);
     fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
     if (fileDialog.exec() == QDialog::Accepted)
         setUrl(fileDialog.selectedUrls().constFirst());
@@ -121,13 +118,13 @@ void VideoPlayer::setUrl(const QUrl &url)
 {
     m_errorLabel->setText(QString());
     setWindowFilePath(url.isLocalFile() ? url.toLocalFile() : QString());
-    m_mediaPlayer->setMedia(url);
+    m_mediaPlayer->setSource(url);
     m_playButton->setEnabled(true);
 }
 
 void VideoPlayer::play()
 {
-    switch (m_mediaPlayer->state()) {
+    switch (m_mediaPlayer->playbackState()) {
     case QMediaPlayer::PlayingState:
         m_mediaPlayer->pause();
         break;
@@ -137,7 +134,7 @@ void VideoPlayer::play()
     }
 }
 
-void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
+void VideoPlayer::mediaStateChanged(QMediaPlayer::PlaybackState state)
 {
     switch(state) {
     case QMediaPlayer::PlayingState:
@@ -166,6 +163,9 @@ void VideoPlayer::setPosition(int position)
 
 void VideoPlayer::handleError()
 {
+    if (m_mediaPlayer->error() == QMediaPlayer::NoError)
+        return;
+
     m_playButton->setEnabled(false);
     const QString errorString = m_mediaPlayer->errorString();
     QString message = "Error: ";

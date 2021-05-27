@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTVIDEOBUFFER_P_H
-#define QABSTRACTVIDEOBUFFER_P_H
+#ifndef QABSTRACTVIDEOBUFFER_H
+#define QABSTRACTVIDEOBUFFER_H
 
 //
 //  W A R N I N G
@@ -51,47 +51,51 @@
 // We mean it.
 //
 
-#include <QtCore/qshareddata.h>
-#include "qabstractvideobuffer.h"
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qvideoframe.h>
 
-#include <qtmultimediaglobal.h>
-#include <qmultimedia.h>
-
+#include <QtCore/qmetatype.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAbstractVideoBufferPrivate
+
+class QVariant;
+class QRhi;
+
+class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 {
 public:
-    QAbstractVideoBufferPrivate()
-        : q_ptr(nullptr)
-    {}
+    QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
+    virtual ~QAbstractVideoBuffer();
 
-    virtual ~QAbstractVideoBufferPrivate()
-    {}
+    QVideoFrame::HandleType handleType() const;
 
-    virtual int map(
-            QAbstractVideoBuffer::MapMode mode,
-            int *numBytes,
-            int bytesPerLine[4],
-            uchar *data[4]);
+    struct MapData
+    {
+        qsizetype nBytes = 0;
+        int nPlanes = 0;
+        int bytesPerLine[4] = {};
+        uchar *data[4] = {};
+    };
 
-    QAbstractVideoBuffer *q_ptr;
-};
+    virtual QVideoFrame::MapMode mapMode() const = 0;
+    virtual MapData map(QVideoFrame::MapMode mode) = 0;
+    virtual void unmap() = 0;
 
-class QAbstractPlanarVideoBufferPrivate : QAbstractVideoBufferPrivate
-{
-public:
-    QAbstractPlanarVideoBufferPrivate()
-    {}
+    virtual quint64 textureHandle(int /*plane*/) const { return 0; }
 
-    int map(QAbstractVideoBuffer::MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override;
+protected:
+    QVideoFrame::HandleType m_type;
+    QRhi *rhi = nullptr;
 
 private:
-    Q_DECLARE_PUBLIC(QAbstractPlanarVideoBuffer)
+    Q_DISABLE_COPY(QAbstractVideoBuffer)
 };
 
-QT_END_NAMESPACE
+#ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::MapMode);
+#endif
 
+QT_END_NAMESPACE
 
 #endif

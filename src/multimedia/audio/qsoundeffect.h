@@ -41,6 +41,7 @@
 #define QSOUNDEFFECT_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qaudio.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qstringlist.h>
@@ -63,7 +64,7 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QString category READ category WRITE setCategory NOTIFY categoryChanged)
+    Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
     Q_ENUMS(Loop)
     Q_ENUMS(Status)
 
@@ -105,8 +106,8 @@ public:
     bool isPlaying() const;
     Status status() const;
 
-    QString category() const;
-    void setCategory(const QString &category);
+    QAudio::Role audioRole() const;
+    void setAudioRole(QAudio::Role);
 
 Q_SIGNALS:
     void sourceChanged();
@@ -117,7 +118,7 @@ Q_SIGNALS:
     void loadedChanged();
     void playingChanged();
     void statusChanged();
-    void categoryChanged();
+    void audioRoleChanged();
 
 public Q_SLOTS:
     void play();

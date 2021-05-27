@@ -34,12 +34,13 @@
 #include <qaudiodeviceinfo.h>
 #include <qaudio.h>
 #include "qsoundeffect.h"
+#include "qmediadevices.h"
 
 class tst_QSoundEffect : public QObject
 {
     Q_OBJECT
 public:
-    tst_QSoundEffect(QObject* parent=0) : QObject(parent) {}
+    tst_QSoundEffect(QObject* parent=nullptr) : QObject(parent) {}
 
 public slots:
     void init();
@@ -63,14 +64,12 @@ private slots:
     void testSupportedMimeTypes_data();
     void testSupportedMimeTypes();
     void testCorruptFile();
-    void testPlaying24Bits();
 
 private:
     QSoundEffect* sound;
     QUrl url; // test.wav: pcm_s16le, 48000 Hz, stereo, s16
     QUrl url2; // test_tone.wav: pcm_s16le, 44100 Hz, mono
     QUrl urlCorrupted; // test_corrupted.wav: corrupted
-    QUrl url24Bits; // test24.wav pcm_s24le, 44100 Hz, mono
 };
 
 void tst_QSoundEffect::init()
@@ -108,11 +107,6 @@ void tst_QSoundEffect::initTestCase()
     QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
     urlCorrupted = QUrl::fromLocalFile(fullPath);
 
-    testFileName = QStringLiteral("test24.wav");
-    fullPath = QFINDTESTDATA(testFileName);
-    QVERIFY2(!fullPath.isEmpty(), qPrintable(QStringLiteral("Unable to locate ") + testFileName));
-    url24Bits = QUrl::fromLocalFile(fullPath);
-
     sound = new QSoundEffect(this);
 
     QVERIFY(sound->source().isEmpty());
@@ -133,8 +127,8 @@ void tst_QSoundEffect::testSource()
 
     QTestEventLoop::instance().enterLoop(1);
     sound->play();
-
-    QTest::qWait(3000);
+    QTRY_COMPARE(sound->isPlaying(), false);
+    QCOMPARE(sound->loopsRemaining(), 0);
 }
 
 void tst_QSoundEffect::testLooping()
@@ -145,9 +139,9 @@ void tst_QSoundEffect::testLooping()
     QSignalSpy readSignal_Count(sound, SIGNAL(loopCountChanged()));
     QSignalSpy readSignal_Remaining(sound, SIGNAL(loopsRemainingChanged()));
 
-    sound->setLoopCount(5);
+    sound->setLoopCount(3);
     sound->setVolume(0.1f);
-    QCOMPARE(sound->loopCount(), 5);
+    QCOMPARE(sound->loopCount(), 3);
     QCOMPARE(readSignal_Count.count(), 1);
     QCOMPARE(sound->loopsRemaining(), 0);
     QCOMPARE(readSignal_Remaining.count(), 0);
@@ -155,11 +149,11 @@ void tst_QSoundEffect::testLooping()
     sound->play();
     QVERIFY(readSignal_Remaining.count() > 0);
 
-    // test.wav is about 200ms, wait until it has finished playing 5 times
+    // test.wav is about 200ms, wait until it has finished playing 3 times
     QTestEventLoop::instance().enterLoop(3);
 
     QTRY_COMPARE(sound->loopsRemaining(), 0);
-    QVERIFY(readSignal_Remaining.count() >= 6);
+    QVERIFY(readSignal_Remaining.count() == 4);
     QTRY_VERIFY(!sound->isPlaying());
 
     // QTBUG-36643 (setting the loop count while playing should work)
@@ -167,8 +161,8 @@ void tst_QSoundEffect::testLooping()
         readSignal_Count.clear();
         readSignal_Remaining.clear();
 
-        sound->setLoopCount(30);
-        QCOMPARE(sound->loopCount(), 30);
+        sound->setLoopCount(10);
+        QCOMPARE(sound->loopCount(), 10);
         QCOMPARE(readSignal_Count.count(), 1);
         QCOMPARE(sound->loopsRemaining(), 0);
         QCOMPARE(readSignal_Remaining.count(), 0);
@@ -177,21 +171,21 @@ void tst_QSoundEffect::testLooping()
         QVERIFY(readSignal_Remaining.count() > 0);
 
         // wait for the sound to be played several times
-        QTRY_VERIFY(sound->loopsRemaining() <= 20);
-        QVERIFY(readSignal_Remaining.count() >= 10);
+        QTRY_VERIFY(sound->loopsRemaining() <= 7);
+        QVERIFY(readSignal_Remaining.count() >= 3);
         readSignal_Count.clear();
         readSignal_Remaining.clear();
 
         // change the loop count while playing
-        sound->setLoopCount(5);
-        QCOMPARE(sound->loopCount(), 5);
+        sound->setLoopCount(3);
+        QCOMPARE(sound->loopCount(), 3);
         QCOMPARE(readSignal_Count.count(), 1);
-        QCOMPARE(sound->loopsRemaining(), 5);
+        QCOMPARE(sound->loopsRemaining(), 3);
         QCOMPARE(readSignal_Remaining.count(), 1);
 
         // wait for all the loops to be completed
         QTRY_COMPARE(sound->loopsRemaining(), 0);
-        QTRY_VERIFY(readSignal_Remaining.count() >= 6);
+        QTRY_VERIFY(readSignal_Remaining.count() == 4);
         QTRY_VERIFY(!sound->isPlaying());
     }
 
@@ -209,7 +203,7 @@ void tst_QSoundEffect::testLooping()
         QTRY_COMPARE(sound->loopsRemaining(), int(QSoundEffect::Infinite));
         QCOMPARE(readSignal_Remaining.count(), 1);
 
-        QTest::qWait(1500);
+        QTest::qWait(500);
         QVERIFY(sound->isPlaying());
         readSignal_Count.clear();
         readSignal_Remaining.clear();
@@ -234,8 +228,7 @@ void tst_QSoundEffect::testVolume()
     sound->setVolume(0.5);
     QCOMPARE(sound->volume(),0.5);
 
-    QTest::qWait(20);
-    QCOMPARE(readSignal.count(),1);
+    QTRY_COMPARE(readSignal.count(),1);
 }
 
 void tst_QSoundEffect::testMuting()
@@ -245,8 +238,7 @@ void tst_QSoundEffect::testMuting()
     sound->setMuted(true);
     QCOMPARE(sound->isMuted(),true);
 
-    QTest::qWait(20);
-    QCOMPARE(readSignal.count(),1);
+    QTRY_COMPARE(readSignal.count(),1);
 }
 
 void tst_QSoundEffect::testPlaying()
@@ -309,7 +301,7 @@ void tst_QSoundEffect::testDestroyWhilePlaying()
     instance->setVolume(0.1f);
     QTestEventLoop::instance().enterLoop(1);
     instance->play();
-    QTest::qWait(500);
+    QTest::qWait(100);
     delete instance;
     QTestEventLoop::instance().enterLoop(1);
 }
@@ -321,7 +313,7 @@ void tst_QSoundEffect::testDestroyWhileRestartPlaying()
     instance->setVolume(0.1f);
     QTestEventLoop::instance().enterLoop(1);
     instance->play();
-    QTest::qWait(1000);
+    QTRY_COMPARE(instance->isPlaying(), false);
     //restart playing
     instance->play();
     delete instance;
@@ -330,7 +322,7 @@ void tst_QSoundEffect::testDestroyWhileRestartPlaying()
 
 void tst_QSoundEffect::testSetSourceWhileLoading()
 {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 2; i++) {
         sound->setSource(url);
         QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Ready);
         sound->setSource(url); // set same source again
@@ -358,7 +350,7 @@ void tst_QSoundEffect::testSetSourceWhileLoading()
 
 void tst_QSoundEffect::testSetSourceWhilePlaying()
 {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 2; i++) {
         sound->setSource(url);
         QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
         sound->play();
@@ -393,7 +385,7 @@ void tst_QSoundEffect::testSupportedMimeTypes_data()
     // Verify also passing of audio device info as parameter
     QTest::addColumn<QSoundEffect*>("instance");
     QTest::newRow("without QAudioDeviceInfo") << sound;
-    QAudioDeviceInfo deviceInfo(QAudioDeviceInfo::defaultOutputDevice());
+    QAudioDeviceInfo deviceInfo(QMediaDevices::defaultAudioOutput());
     QTest::newRow("with QAudioDeviceInfo")    << new QSoundEffect(deviceInfo, this);
 }
 
@@ -425,26 +417,6 @@ void tst_QSoundEffect::testCorruptFile()
         sound->play();
         QVERIFY(sound->isPlaying());
     }
-}
-
-void tst_QSoundEffect::testPlaying24Bits()
-{
-    sound->setLoopCount(QSoundEffect::Infinite);
-    sound->setSource(url24Bits);
-    QTestEventLoop::instance().enterLoop(1);
-    sound->play();
-    QTestEventLoop::instance().enterLoop(1);
-    QTRY_COMPARE(sound->isPlaying(), true);
-    sound->stop();
-
-    QSignalSpy readSignal(sound, SIGNAL(volumeChanged()));
-    sound->setVolume(0.5);
-    QCOMPARE(sound->volume(), 0.5);
-    sound->play();
-    QTestEventLoop::instance().enterLoop(1);
-    QTRY_COMPARE(sound->isPlaying(), true);
-    QCOMPARE(readSignal.count(), 1);
-    sound->stop();
 }
 
 QTEST_MAIN(tst_QSoundEffect)

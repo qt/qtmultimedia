@@ -37,7 +37,8 @@
 **
 ****************************************************************************/
 
-#include "qaudiosystem.h"
+#include <private/qtmultimediaglobal_p.h>
+#include "qaudiosystem_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -153,45 +154,23 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn virtual int QAbstractAudioOutput::bytesFree() const
+    \fn virtual qsizetype QAbstractAudioOutput::bytesFree() const
     Returns the free space available in bytes in the audio buffer.
 */
 
 /*!
-    \fn virtual int QAbstractAudioOutput::periodSize() const
-    Returns the period size in bytes.
-*/
-
-/*!
-    \fn virtual void QAbstractAudioOutput::setBufferSize(int value)
+    \fn virtual void QAbstractAudioOutput::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in bytes.
 */
 
 /*!
-    \fn virtual int QAbstractAudioOutput::bufferSize() const
+    \fn virtual qsizetype QAbstractAudioOutput::bufferSize() const
     Returns the audio buffer size in bytes.
-*/
-
-/*!
-    \fn virtual void QAbstractAudioOutput::setNotifyInterval(int ms)
-    Sets the interval for notify() signal to be emitted. This is based on the \a ms
-    of audio data processed not on actual real-time. The resolution of the timer
-    is platform specific.
-*/
-
-/*!
-    \fn virtual int QAbstractAudioOutput::notifyInterval() const
-    Returns the notify interval in milliseconds.
 */
 
 /*!
     \fn virtual qint64 QAbstractAudioOutput::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
-*/
-
-/*!
-    \fn virtual qint64 QAbstractAudioOutput::elapsedUSecs() const
-    Returns the milliseconds since start() was called, including time in Idle and suspend states.
 */
 
 /*!
@@ -226,6 +205,11 @@ QT_BEGIN_NAMESPACE
     Returns the volume in the range 0.0 and 1.0.
 */
 
+void QAbstractAudioOutput::setRole(QAudio::Role role)
+{
+    m_role = role;
+}
+
 /*!
     \fn QAbstractAudioOutput::errorChanged(QAudio::Error error)
     This signal is emitted when the \a error state has changed.
@@ -235,13 +219,6 @@ QT_BEGIN_NAMESPACE
     \fn QAbstractAudioOutput::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
 */
-
-/*!
-    \fn QAbstractAudioOutput::notify()
-    This signal is emitted when x ms of audio data has been processed
-    the interval set by setNotifyInterval(x).
-*/
-
 
 /*!
     \class QAbstractAudioInput
@@ -292,45 +269,23 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn virtual int QAbstractAudioInput::bytesReady() const
+    \fn virtual qsizetype QAbstractAudioInput::bytesReady() const
     Returns the amount of audio data available to read in bytes.
 */
 
 /*!
-    \fn virtual int QAbstractAudioInput::periodSize() const
-    Returns the period size in bytes.
-*/
-
-/*!
-    \fn virtual void QAbstractAudioInput::setBufferSize(int value)
+    \fn virtual void QAbstractAudioInput::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in milliseconds.
 */
 
 /*!
-    \fn virtual int QAbstractAudioInput::bufferSize() const
+    \fn virtual qsizetype QAbstractAudioInput::bufferSize() const
     Returns the audio buffer size in milliseconds.
-*/
-
-/*!
-    \fn virtual void QAbstractAudioInput::setNotifyInterval(int ms)
-    Sets the interval for notify() signal to be emitted. This is based
-    on the \a ms of audio data processed not on actual real-time.
-    The resolution of the timer is platform specific.
-*/
-
-/*!
-    \fn virtual int QAbstractAudioInput::notifyInterval() const
-    Returns the notify interval in milliseconds.
 */
 
 /*!
     \fn virtual qint64 QAbstractAudioInput::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
-*/
-
-/*!
-    \fn virtual qint64 QAbstractAudioInput::elapsedUSecs() const
-    Returns the milliseconds since start() was called, including time in Idle and suspend states.
 */
 
 /*!
@@ -364,13 +319,6 @@ QT_BEGIN_NAMESPACE
     This signal is emitted when the device \a state has changed.
 */
 
-/*!
-    \fn QAbstractAudioInput::notify()
-    This signal is emitted when x ms of audio data has been processed
-    the interval set by setNotifyInterval(x).
-*/
-
-
 QT_END_NAMESPACE
 
-#include "moc_qaudiosystem.cpp"
+#include "moc_qaudiosystem_p.cpp"
