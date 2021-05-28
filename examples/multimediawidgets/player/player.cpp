@@ -276,11 +276,17 @@ static bool isPlaylist(const QUrl &url) // Check for ".m3u" playlists.
 
 void Player::addToPlaylist(const QList<QUrl> &urls)
 {
+    const int previousMediaCount = m_playlist->mediaCount();
     for (auto &url: urls) {
         if (isPlaylist(url))
             m_playlist->load(url);
         else
             m_playlist->addMedia(url);
+    }
+    if (m_playlist->mediaCount() > previousMediaCount) {
+        auto index = m_playlistModel->index(previousMediaCount, 0);
+        m_playlistView->setCurrentIndex(index);
+        jump(index);
     }
 }
 
