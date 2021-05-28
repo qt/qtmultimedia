@@ -134,6 +134,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/audio/qwindowsaudiooutput.cpp platform/windows/audio/qwindowsaudiooutput_p.h
         platform/windows/audio/qwindowsaudioutils.cpp platform/windows/audio/qwindowsaudioutils_p.h
         platform/windows/common/qwindowsmultimediautils.cpp platform/windows/common/qwindowsmultimediautils_p.h
+        platform/windows/common/qwindowsiupointer_p.h
         platform/windows/decoder/mfaudiodecodercontrol.cpp platform/windows/decoder/mfaudiodecodercontrol_p.h
         platform/windows/decoder/mfdecodersourcereader.cpp platform/windows/decoder/mfdecodersourcereader_p.h
         platform/windows/evr/evrcustompresenter.cpp platform/windows/evr/evrcustompresenter_p.h

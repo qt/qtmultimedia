@@ -68,17 +68,17 @@ QT_BEGIN_NAMESPACE
 class CMMNotificationClient : public IMMNotificationClient
 {
     LONG m_cRef;
+    QWindowsIUPointer<IMMDeviceEnumerator> m_enumerator;
     QWindowsMediaDevices *m_windowsMediaDevices;
-    IMMDeviceEnumerator* m_enumerator;
     QMap<QString, DWORD> m_deviceState;
 
 public:
     CMMNotificationClient(QWindowsMediaDevices *windowsMediaDevices,
-                          IMMDeviceEnumerator *enumerator,
+                          QWindowsIUPointer<IMMDeviceEnumerator> enumerator,
                           QMap<QString, DWORD> &&deviceState) :
         m_cRef(1),
-        m_windowsMediaDevices(windowsMediaDevices),
         m_enumerator(enumerator),
+        m_windowsMediaDevices(windowsMediaDevices),
         m_deviceState(deviceState)
     {}
 
@@ -173,18 +173,15 @@ public:
 
     void emitAudioDevicesChanged(LPCWSTR deviceID)
     {
-        IMMDevice* device = nullptr;
-        IMMEndpoint* endpoint = nullptr;
+        QWindowsIUPointer<IMMDevice> device;
+        QWindowsIUPointer<IMMEndpoint> endpoint;
         EDataFlow flow;
 
-        if (SUCCEEDED(m_enumerator->GetDevice(deviceID, &device))) {
-            if (SUCCEEDED(device->QueryInterface(__uuidof(IMMEndpoint), (void**)&endpoint))) {
-                if (SUCCEEDED(endpoint->GetDataFlow(&flow))) {
+        if (SUCCEEDED(m_enumerator->GetDevice(deviceID, device.address()))
+            && SUCCEEDED(device->QueryInterface(__uuidof(IMMEndpoint), (void**)endpoint.address()))
+            && SUCCEEDED(endpoint->GetDataFlow(&flow)))
+        {
                     emitAudioDevicesChanged(flow);
-                }
-                endpoint->Release();
-            }
-            device->Release();
         }
     }
 };
@@ -234,10 +231,9 @@ HWND createMessageOnlyWindow()
 
 QWindowsMediaDevices::QWindowsMediaDevices()
     : QPlatformMediaDevices(),
-      m_deviceEnumerator(nullptr),
-      m_notificationClient(nullptr),
       m_videoDeviceMsgWindow(nullptr),
       m_videoDeviceNotification(nullptr)
+
 {
     CoInitialize(nullptr);
 
@@ -247,29 +243,27 @@ QWindowsMediaDevices::QWindowsMediaDevices()
 
     if (SUCCEEDED(hr)) {
         QMap<QString, DWORD> devState;
-        IMMDeviceCollection* devColl;
+        QWindowsIUPointer<IMMDeviceCollection> devColl;
+        UINT count = 0;
 
-        if (SUCCEEDED(m_deviceEnumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL, &devColl))) {
-            UINT count = 0;
-            devColl->GetCount(&count);
+        if (SUCCEEDED(m_deviceEnumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL, devColl.address()))
+            && SUCCEEDED(devColl->GetCount(&count)))
+        {
             for (UINT i = 0; i < count; i++) {
-                IMMDevice* device;
+                QWindowsIUPointer<IMMDevice> device;
+                DWORD state = 0;
+                LPWSTR id = nullptr;
 
-                if (SUCCEEDED(devColl->Item(i, &device))) {
-                    DWORD state = 0;
-                    LPWSTR id = nullptr;
-                    device->GetState(&state);
-                    device->GetId(&id);
-
+                if (SUCCEEDED(devColl->Item(i, device.address()))
+                    && SUCCEEDED(device->GetState(&state))
+                    && SUCCEEDED(device->GetId(&id)))
+                {
                     devState.insert(QString::fromWCharArray(id), state);
-
-                    device->Release();
                 }
             }
-            devColl->Release();
         }
 
-        m_notificationClient = new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState));
+        m_notificationClient.reset(new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState)));
         m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient);
 
     } else {
@@ -304,12 +298,10 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
 {
     if (m_deviceEnumerator) {
         m_deviceEnumerator->UnregisterEndpointNotificationCallback(m_notificationClient);
-        m_deviceEnumerator->Release();
     }
 
-    if (m_notificationClient) {
-        m_notificationClient->Release();
-    }
+    m_deviceEnumerator.reset();
+    m_notificationClient.reset();
 
     CoUninitialize();
 

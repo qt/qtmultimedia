@@ -37,56 +37,43 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSMEDIADEVICES_H
-#define QWINDOWSMEDIADEVICES_H
+#ifndef QWINDOWSIUPOINTER_H
+#define QWINDOWSIUPOINTER_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediadevices_p.h>
-#include <private/qwindowsiupointer_p.h>
-#include <qset.h>
-#include <qaudio.h>
-#include <windows.h>
-
-QT_BEGIN_NAMESPACE
-
-class QWindowsEngine;
-class CMMNotificationClient;
-struct IMMDeviceEnumerator;
-
-LRESULT deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
-
-class QWindowsMediaDevices : public QPlatformMediaDevices
+template <class T>
+class QWindowsIUPointer
 {
 public:
-    QWindowsMediaDevices();
-    virtual ~QWindowsMediaDevices();
+    explicit QWindowsIUPointer(T *ptr = nullptr) : m_ptr(ptr) {}
+    QWindowsIUPointer(const QWindowsIUPointer<T> &uiPtr) : m_ptr(uiPtr.m_ptr) { if (m_ptr) m_ptr->AddRef(); }
+    QWindowsIUPointer(QWindowsIUPointer<T> &&uiPtr) : m_ptr(uiPtr.m_ptr) { uiPtr.m_ptr = nullptr; }
+    ~QWindowsIUPointer() { if (m_ptr) m_ptr->Release(); }
 
-    QList<QAudioDeviceInfo> audioInputs() const override;
-    QList<QAudioDeviceInfo> audioOutputs() const override;
-    QList<QCameraInfo> videoInputs() const override;
-    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) override;
-    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
+    QWindowsIUPointer& operator=(const QWindowsIUPointer<T> &rhs) {
+        if (m_ptr)
+            m_ptr->Release();
+        m_ptr = rhs.m_ptr;
+        m_ptr->AddRef();
+        return *this;
+    }
+
+    QWindowsIUPointer& operator=(QWindowsIUPointer<T> &&rhs) noexcept {
+        if (m_ptr)
+            m_ptr->Release();
+        m_ptr = rhs.m_ptr;
+        rhs.m_ptr = nullptr;
+        return *this;
+    }
+
+    explicit operator bool() const { return m_ptr != nullptr; }
+    operator T*() const { return m_ptr; }
+    T* operator->() const { return m_ptr; }
+
+    T** address() { Q_ASSERT(m_ptr == nullptr); return &m_ptr; }
+    void reset(T* ptr = nullptr) { if (m_ptr) m_ptr->Release(); m_ptr = ptr; }
 
 private:
-    QWindowsIUPointer<IMMDeviceEnumerator> m_deviceEnumerator;
-    QWindowsIUPointer<CMMNotificationClient> m_notificationClient;
-    HWND m_videoDeviceMsgWindow;
-    HDEVNOTIFY m_videoDeviceNotification;
-
-    friend CMMNotificationClient;
-    friend LRESULT deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
+    T* m_ptr;
 };
-
-QT_END_NAMESPACE
 
 #endif
