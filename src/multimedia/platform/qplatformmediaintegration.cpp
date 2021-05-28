@@ -60,6 +60,14 @@ using PlatformIntegration = QWindowsIntegration;
 #elif defined(Q_OS_ANDROID)
 #include <private/qandroidintegration_p.h>
 using PlatformIntegration = QAndroidIntegration;
+#else
+class QDummyIntegration : public QPlatformMediaIntegration
+{
+    QPlatformMediaDevices *devices() override { return nullptr; }
+    QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
+
+};
+using PlatformIntegration = QDummyIntegration;
 #endif
 
 QT_BEGIN_NAMESPACE
