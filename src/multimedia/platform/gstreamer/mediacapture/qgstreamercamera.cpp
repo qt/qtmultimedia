@@ -519,7 +519,8 @@ bool QGstreamerCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mod
     }
 #endif
 #if QT_CONFIG(gstreamer_photography)
-    if (photography()) {
+    if (auto *p = photography()) {
+        Q_UNUSED(p);
         switch (mode) {
         case QCamera::WhiteBalanceAuto:
         case QCamera::WhiteBalanceSunlight:
