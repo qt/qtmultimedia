@@ -24,13 +24,6 @@ qt_internal_add_module(MultimediaWidgets
 ## Scopes:
 #####################################################################
 
-qt_internal_extend_target(MultimediaWidgets CONDITION TARGET Qt::OpenGL
-    LIBRARIES
-        Qt::OpenGL
-    PUBLIC_LIBRARIES
-        Qt::OpenGLWidgets
-)
-
 qt_internal_extend_target(MultimediaWidgets CONDITION QT_FEATURE_graphicsview
     SOURCES
         qgraphicsvideoitem.cpp qgraphicsvideoitem.h
