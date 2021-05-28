@@ -126,8 +126,8 @@ Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QAudioFormat &);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QAudioFormat::SampleFormat);
 #endif
 
-Q_DECLARE_METATYPE(QAudioFormat)
-
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QAudioFormat)
 
 #endif  // QAUDIOFORMAT_H

@@ -56,10 +56,9 @@
 #include <qcamerainfo.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
 
 QT_BEGIN_NAMESPACE
-
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
 
 class QCameraInfo;
 

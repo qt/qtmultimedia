@@ -137,7 +137,6 @@ private:
 };
 
 Q_DECLARE_SHARED(QVideoFrame)
-Q_DECLARE_METATYPE(QVideoFrame)
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrame&);
@@ -145,6 +144,8 @@ Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::HandleType);
 #endif
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QVideoFrame)
 
 #endif
 

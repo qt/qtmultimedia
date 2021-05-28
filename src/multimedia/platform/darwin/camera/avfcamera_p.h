@@ -55,16 +55,15 @@
 
 #include <private/qplatformcamera_p.h>
 
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
+
 QT_BEGIN_NAMESPACE
 
 class AVFCameraSession;
 class AVFCameraService;
 class AVFCameraSession;
-
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
-
 
 class AVFCamera : public QPlatformCamera
 {

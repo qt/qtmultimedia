@@ -54,10 +54,10 @@
 #include <QtMultimedia/QMediaMetaData>
 #include <QtCore/qvariant.h>
 
-QT_BEGIN_NAMESPACE
-
 Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVAssetTrack);
+
+QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayer;
 

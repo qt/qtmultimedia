@@ -26,12 +26,14 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKCAMERACONTROL_H
-#define MOCKCAMERACONTROL_H
+#ifndef QMOCKCAMERA_H
+#define QMOCKCAMERA_H
 
 #include "private/qplatformcamera_p.h"
 #include "qcamerainfo.h"
 #include <qtimer.h>
+
+QT_BEGIN_NAMESPACE
 
 class QMockCamera : public QPlatformCamera
 {
@@ -186,6 +188,6 @@ public:
     bool m_propertyChangesSupported;
 };
 
+QT_END_NAMESPACE
 
-
-#endif // MOCKCAMERACONTROL_H
+#endif // QMOCKCAMERA_H

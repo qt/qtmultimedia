@@ -53,6 +53,8 @@
 
 #include <private/qplatformvideosink_p.h>
 
+QT_BEGIN_NAMESPACE
+
 class QMockVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
@@ -82,5 +84,7 @@ public:
 protected:
     QSize videoSize = QSize(640, 480);
 };
+
+QT_END_NAMESPACE
 
 #endif

@@ -26,14 +26,16 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKSERVICE_H
-#define MOCKSERVICE_H
+#ifndef QMOCKMEDIACAPTURESESSION_H
+#define QMOCKMEDIACAPTURESESSION_H
 
 #include "qmockmediaencoder.h"
 #include "qmockimagecapture.h"
 #include "qmockcamera.h"
 #include "qmockimagecapture.h"
 #include <private/qplatformmediacapture_p.h>
+
+QT_BEGIN_NAMESPACE
 
 class QMockMediaCaptureSession : public QPlatformMediaCaptureSession
 {
@@ -122,4 +124,6 @@ public:
     bool hasControls;
 };
 
-#endif // MOCKSERVICE_H
+QT_END_NAMESPACE
+
+#endif // QMOCKMEDIACAPTURESESSION_H

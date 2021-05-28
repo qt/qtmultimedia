@@ -58,8 +58,6 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
-
 class QCameraInfo;
 
 class QMockMediaDevices : public QPlatformMediaDevices

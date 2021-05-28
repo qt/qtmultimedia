@@ -47,11 +47,12 @@
 #include <qvariant.h>
 #include <qmatrix4x4.h>
 
-QT_BEGIN_NAMESPACE
-
 static void initResource() {
     Q_INIT_RESOURCE(shaders);
 }
+
+QT_BEGIN_NAMESPACE
+
 class QVideoFrameFormatPrivate : public QSharedData
 {
 public:

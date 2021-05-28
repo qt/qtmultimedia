@@ -54,6 +54,8 @@
 #include <qvideoframe.h>
 #include <private/qsimd_p.h>
 
+QT_BEGIN_NAMESPACE
+
 // Converts to RGB32 or ARGB32_Premultiplied
 typedef void (QT_FASTCALL *VideoFrameConvertFunc)(const QVideoFrame &frame, uchar *output);
 
@@ -113,6 +115,8 @@ inline quint32 qConvertBGR24ToARGB32(const uchar *bgr)
 
 #define ALIGN(boundary, ptr, x, length) \
     for (; ((reinterpret_cast<qintptr>(ptr) & (boundary - 1)) != 0) && x < length; ++x)
+
+QT_END_NAMESPACE
 
 #endif // QVIDEOFRAMECONVERSIONHELPER_P_H
 

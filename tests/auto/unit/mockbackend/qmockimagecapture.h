@@ -26,8 +26,8 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKCAMERACAPTURECONTROL_H
-#define MOCKCAMERACAPTURECONTROL_H
+#ifndef QMOCKCAMERAIMAGECAPTURE_H
+#define QMOCKCAMERAIMAGECAPTURE_H
 
 #include <QDateTime>
 #include <QTimer>
@@ -35,6 +35,8 @@
 
 #include "private/qplatformcameraimagecapture_p.h"
 #include "private/qplatformcamera_p.h"
+
+QT_BEGIN_NAMESPACE
 
 class QMockMediaCaptureSession;
 
@@ -66,4 +68,6 @@ private:
     QImageEncoderSettings m_settings;
 };
 
-#endif // MOCKCAMERACAPTURECONTROL_H
+QT_END_NAMESPACE
+
+#endif // QMOCKCAMERAIMAGECAPTURE_H

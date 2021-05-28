@@ -40,6 +40,8 @@
 #include "qvideotexturehelper_p.h"
 #include "qvideoframe.h"
 
+QT_BEGIN_NAMESPACE
+
 namespace QVideoTextureHelper
 {
 
@@ -450,3 +452,5 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
 }
 
 }
+
+QT_END_NAMESPACE

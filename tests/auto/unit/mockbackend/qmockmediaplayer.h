@@ -26,11 +26,13 @@
 **
 ****************************************************************************/
 
-#ifndef MOCKMEDIAPLAYER_H
-#define MOCKMEDIAPLAYER_H
+#ifndef QMOCKMEDIAPLAYER_H
+#define QMOCKMEDIAPLAYER_H
 
 #include "private/qplatformmediaplayer_p.h"
 #include <qurl.h>
+
+QT_BEGIN_NAMESPACE
 
 class QMockMediaPlayer : public QPlatformMediaPlayer
 {
@@ -208,4 +210,6 @@ public:
     bool m_supportsStreamPlayback = false;
 };
 
-#endif // MOCKMEDIAPLAYERCONTROL_H
+QT_END_NAMESPACE
+
+#endif // QMOCKMEDIAPLAYER_H
