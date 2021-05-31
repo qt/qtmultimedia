@@ -105,7 +105,8 @@ QList<QAudioDeviceInfo> availableAudioDevices(QAudio::Mode mode)
     QList<QAudioDeviceInfo> devices;
 
     AudioDeviceID defaultDevice = defaultAudioDevice(mode);
-    devices << (new QCoreAudioDeviceInfo(defaultDevice, uniqueId(defaultDevice, mode), mode))->create();
+    if (defaultDevice != 0)
+        devices << (new QCoreAudioDeviceInfo(defaultDevice, uniqueId(defaultDevice, mode), mode))->create();
 
     UInt32 propSize = 0;
     AudioObjectPropertyAddress audioDevicesPropertyAddress = { kAudioHardwarePropertyDevices,
