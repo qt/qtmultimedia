@@ -586,6 +586,7 @@ STDMETHODIMP_(ULONG) QWindowsCameraReader::Release(void)
 
 void QWindowsCameraReader::setSurface(QVideoSink *surface)
 {
+    QMutexLocker locker(&m_mutex);
     m_surface = surface;
 }
 
