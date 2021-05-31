@@ -56,8 +56,11 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
     videoQueue = QGstElement("queue", "videoQueue");
     videoConvert = QGstElement("videoconvert", "videoConvert");
     videoSink = QGstElement("fakesink", "fakeVideoSink");
-    gstVideoOutput.add(videoQueue, videoConvert, videoSink);
-    videoQueue.link(videoConvert, videoSink);
+    subTitleQueue = QGstElement("queue", "subtitleQueue");
+    subtitleOverlay = QGstElement("subtitleoverlay", "subtitleoverlay");
+    gstVideoOutput.add(videoQueue, subtitleOverlay, videoConvert, videoSink, subTitleQueue);
+    if (!videoQueue.link(subtitleOverlay, videoConvert, videoSink))
+        qCDebug(qLcMediaVideoOutput) << ">>>>>> linking failed";
 
     gstVideoOutput.addGhostPad(videoQueue, "sink");
 }
@@ -92,6 +95,31 @@ void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
 {
     gstPipeline = pipeline;
     stoppedStateHandler = gstPipeline.inStoppedState()->onValueChanged(std::function([this]() {updatePrerollFrame();}));
+}
+
+void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
+{
+    qCDebug(qLcMediaVideoOutput) << "link subtitle stream" << src.isNull();
+    if (src == subtitleSrc)
+        return;
+
+    auto state = gstPipeline.state();
+    if (state == GST_STATE_PLAYING)
+        gstPipeline.setStateSync(GST_STATE_PAUSED);
+
+    if (!subtitleSrc.isNull()) {
+        subtitleSrc.unlink(subTitleQueue);
+        subTitleQueue.unlink(subtitleOverlay);
+    }
+    subtitleSrc = src;
+    if (!subtitleSrc.isNull()) {
+        if (!subtitleSrc.link(subTitleQueue))
+            qCDebug(qLcMediaVideoOutput) << "link subtitle stream 1 failed";
+        if (!subTitleQueue.link(subtitleOverlay))
+            qCDebug(qLcMediaVideoOutput) << "link subtitle stream 1 failed";
+    }
+
+    gstPipeline.setState(state);
 }
 
 void QGstreamerVideoOutput::setIsPreview()
@@ -146,7 +174,7 @@ void QGstreamerVideoOutput::sinkChanged()
         gstSink = QGstElement("fakesink", "fakevideosink");
         isFakeSink = true;
     }
-    qDebug() << "sinkChanged" << gstSink.name();
+    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
     updateVideoSink(gstSink);
 }
 

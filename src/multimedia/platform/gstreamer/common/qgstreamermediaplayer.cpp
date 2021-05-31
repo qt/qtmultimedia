@@ -253,7 +253,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         // #### This isn't ideal. We shouldn't catch stream specific tags here, rather the global ones
         GstTagList *tag_list;
         gst_message_parse_tag(gm, &tag_list);
-        qCDebug(qLcMediaPlayer) << "Got tags: " << message.source().name() << gst_tag_list_to_string(tag_list);
+        //qCDebug(qLcMediaPlayer) << "Got tags: " << message.source().name() << gst_tag_list_to_string(tag_list);
         auto metaData = QGstreamerMetaData::fromGstTagList(tag_list);
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
@@ -744,12 +744,24 @@ int QGstreamerMediaPlayer::activeTrack(QPlatformMediaPlayer::TrackType type)
 void QGstreamerMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
 {
     auto &streams = m_streams[type];
-    if (index < 0 || index >= streams.count())
+    if (index >= streams.count())
         return;
+    if (type == QPlatformMediaPlayer::SubtitleStream) {
+        QGstElement src;
+        if (index >= 0)
+            src = inputSelector[type];
+        gstVideoOutput->linkSubtitleStream(src);
+    }
+    if (index < 0)
+        // ### This should disable the stream for audio/video as well
+        return;
+
     auto &selector = inputSelector[type];
     if (selector.isNull())
         return;
     selector.set("active-pad", streams.at(index));
+    // seek to force an immediate change of the stream
+    playerPipeline.seek(playerPipeline.position(), m_playbackRate);
 }
 
 bool QGstreamerMediaPlayer::isAudioAvailable() const

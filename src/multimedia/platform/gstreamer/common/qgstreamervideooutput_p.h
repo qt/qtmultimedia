@@ -77,6 +77,7 @@ public:
     void setPipeline(const QGstPipeline &pipeline);
 
     QGstElement gstElement() const { return gstVideoOutput; }
+    void linkSubtitleStream(QGstElement subtitleSrc);
 
     void setIsPreview();
 
@@ -98,10 +99,14 @@ private:
     QGstPipeline gstPipeline;
 
     QGstBin gstVideoOutput;
+    QGstElement subTitleQueue;
     QGstElement videoQueue;
     QGstElement videoConvert;
+    QGstElement subtitleOverlay;
     QGstElement videoSink;
     QGstElement newVideoSink;
+
+    QGstElement subtitleSrc;
 };
 
 QT_END_NAMESPACE
