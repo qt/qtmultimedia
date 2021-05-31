@@ -54,12 +54,15 @@
 #include <private/qplatformmediadevices_p.h>
 #include <qset.h>
 #include <qaudio.h>
+#include <windows.h>
 
 QT_BEGIN_NAMESPACE
 
 class QWindowsEngine;
 class CMMNotificationClient;
 struct IMMDeviceEnumerator;
+
+LRESULT deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 
 class QWindowsMediaDevices : public QPlatformMediaDevices
 {
@@ -77,7 +80,11 @@ public:
 private:
     IMMDeviceEnumerator *m_deviceEnumerator;
     CMMNotificationClient *m_notificationClient;
+    HWND m_videoDeviceMsgWindow;
+    HDEVNOTIFY m_videoDeviceNotification;
+
     friend CMMNotificationClient;
+    friend LRESULT deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 };
 
 QT_END_NAMESPACE

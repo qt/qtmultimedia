@@ -49,6 +49,9 @@
 
 #include <private/mftvideo_p.h>
 
+#include <Dbt.h>
+#include <ks.h>
+
 #include <mmsystem.h>
 #include <mmddk.h>
 #include <mfapi.h>
@@ -58,6 +61,7 @@
 #include <Mferror.h>
 #include <mmdeviceapi.h>
 #include "private/qwindowsaudioutils_p.h"
+
 
 QT_BEGIN_NAMESPACE
 
@@ -185,16 +189,59 @@ public:
     }
 };
 
+LRESULT deviceNotificationWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (message == WM_DEVICECHANGE) {
+        auto b = (PDEV_BROADCAST_HDR)lParam;
+        if (b && b->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE) {
+            auto wmd = reinterpret_cast<QWindowsMediaDevices *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+            if (wmd) {
+                if (wParam == DBT_DEVICEARRIVAL) {
+                    wmd->videoInputsChanged();
+                } else if (wParam == DBT_DEVICEREMOVECOMPLETE) {
+                    wmd->videoInputsChanged();
+                }
+            }
+        }
+    }
+
+    return 1;
+}
+
+static const auto windowClassName = TEXT("QWindowsMediaDevicesMessageWindow");
+
+HWND createMessageOnlyWindow()
+{
+    WNDCLASSEX wx = {};
+    wx.cbSize = sizeof(WNDCLASSEX);
+    wx.lpfnWndProc = deviceNotificationWndProc;
+    wx.hInstance = GetModuleHandle(nullptr);
+    wx.lpszClassName = windowClassName;
+
+    if (!RegisterClassEx(&wx))
+        return nullptr;
+
+    auto hwnd = CreateWindowEx(0, windowClassName, TEXT("Message"),
+                               0, 0, 0, 0, 0, HWND_MESSAGE, nullptr, nullptr, nullptr);
+    if (!hwnd) {
+        UnregisterClass(windowClassName, GetModuleHandle(nullptr));
+        return nullptr;
+    }
+
+    return hwnd;
+}
 
 QWindowsMediaDevices::QWindowsMediaDevices()
     : QPlatformMediaDevices(),
       m_deviceEnumerator(nullptr),
-      m_notificationClient(nullptr)
-
+      m_notificationClient(nullptr),
+      m_videoDeviceMsgWindow(nullptr),
+      m_videoDeviceNotification(nullptr)
 {
     CoInitialize(nullptr);
 
-    auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL,
+    auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
                 CLSCTX_INPROC_SERVER,__uuidof(IMMDeviceEnumerator),
                 (void**)&m_deviceEnumerator);
 
@@ -228,6 +275,29 @@ QWindowsMediaDevices::QWindowsMediaDevices()
     } else {
         qWarning() << "Audio device change notification disabled";
     }
+
+    m_videoDeviceMsgWindow = createMessageOnlyWindow();
+    if (m_videoDeviceMsgWindow) {
+        SetWindowLongPtr(m_videoDeviceMsgWindow, GWLP_USERDATA, (LONG_PTR)this);
+
+        DEV_BROADCAST_DEVICEINTERFACE di = { 0 };
+        di.dbcc_size = sizeof(di);
+        di.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+        di.dbcc_classguid = KSCATEGORY_VIDEO_CAMERA;
+
+        m_videoDeviceNotification =
+                RegisterDeviceNotification(m_videoDeviceMsgWindow, &di, DEVICE_NOTIFY_WINDOW_HANDLE);
+        if (!m_videoDeviceNotification) {
+            DestroyWindow(m_videoDeviceMsgWindow);
+            m_videoDeviceMsgWindow = nullptr;
+
+            UnregisterClass(windowClassName, GetModuleHandle(nullptr));
+        }
+    }
+
+    if (!m_videoDeviceNotification) {
+        qWarning() << "Video device change notification disabled";
+    }
 }
 
 QWindowsMediaDevices::~QWindowsMediaDevices()
@@ -242,6 +312,15 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
     }
 
     CoUninitialize();
+
+    if (m_videoDeviceNotification) {
+        UnregisterDeviceNotification(m_videoDeviceNotification);
+    }
+
+    if (m_videoDeviceMsgWindow) {
+        DestroyWindow(m_videoDeviceMsgWindow);
+        UnregisterClass(windowClassName, GetModuleHandle(nullptr));
+    }
 }
 
 static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
