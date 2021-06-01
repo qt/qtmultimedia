@@ -75,9 +75,6 @@ public:
     explicit QWindowsCameraReader(QObject *parent = nullptr);
     ~QWindowsCameraReader();
 
-    QVideoSink *surface() const;
-    void setSurface(QVideoSink *surface);
-
     //from IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
     STDMETHODIMP_(ULONG) AddRef(void);
@@ -119,6 +116,7 @@ Q_SIGNALS:
     void recordingStarted();
     void recordingStopped();
     void durationChanged(qint64 duration);
+    void newVideoFrame(const QVideoFrame &frame);
 
 private slots:
     void updateDuration();
@@ -150,7 +148,6 @@ private:
     DWORD              m_sourceAudioStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;
     DWORD              m_sinkVideoStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
     DWORD              m_sinkAudioStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
-    QVideoSink         *m_surface = nullptr;
     UINT32             m_frameWidth = 0;
     UINT32             m_frameHeight = 0;
     qreal              m_frameRate = 0.0;

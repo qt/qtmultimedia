@@ -51,6 +51,8 @@
 // We mean it.
 //
 
+#include "qwindowsstoragelocation_p.h"
+
 #include <private/qplatformcameraimagecapture_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -75,9 +77,25 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+private Q_SLOTS:
+    void handleNewVideoFrame(const QVideoFrame &frame);
+
 private:
+    int doCapture(const QString &fileName);
+    void saveImage(int captureId, const QString &fileName,
+                   const QImage &image, const QMediaMetaData &metaData,
+                   const QImageEncoderSettings &settings);
+    QString writerFormat(QImageEncoderSettings::FileFormat reqFormat);
+    int writerQuality(const QString &writerFormat,
+                      QImageEncoderSettings::Quality quality);
+
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsCameraSession        *m_cameraSession = nullptr;
+    QImageEncoderSettings         m_settings;
+    QWindowsStorageLocation       m_storageLocation;
+    int m_captureId = 0;
+    bool m_capturing = false;
+    QString m_fileName;
 };
 
 QT_END_NAMESPACE

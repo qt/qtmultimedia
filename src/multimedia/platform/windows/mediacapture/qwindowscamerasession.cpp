@@ -52,9 +52,10 @@ QWindowsCameraSession::QWindowsCameraSession(QObject *parent)
     m_cameraReader = new QWindowsCameraReader(this);
     connect(m_cameraReader, SIGNAL(streamingStarted()), this, SLOT(handleStreamingStarted()));
     connect(m_cameraReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
+    connect(m_cameraReader, SIGNAL(streamingError(int)), this, SLOT(handleStreamingError(int)));
+    connect(m_cameraReader, SIGNAL(newVideoFrame(QVideoFrame)), this, SLOT(handleNewVideoFrame(QVideoFrame)));
     connect(m_cameraReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
     connect(m_cameraReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
-    connect(m_cameraReader, SIGNAL(streamingError(int)), this, SIGNAL(streamingError(int)));
     connect(m_cameraReader, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
 }
 
@@ -84,6 +85,7 @@ void QWindowsCameraSession::setActive(bool active)
         m_cameraReader->deactivate();
         m_active = false;
         emit activeChanged(m_active);
+        emit readyForCaptureChanged(m_active);
     }
 }
 
@@ -92,53 +94,42 @@ void QWindowsCameraSession::setActiveCamera(const QCameraInfo &info)
     m_activeCameraInfo = info;
 }
 
-QImageEncoderSettings QWindowsCameraSession::imageSettings() const
-{
-    return m_imageEncoderSettings;
-}
-
-void QWindowsCameraSession::setImageSettings(const QImageEncoderSettings &settings)
-{
-    m_imageEncoderSettings = settings;
-}
-
 bool QWindowsCameraSession::isReadyForCapture() const
 {
-    return m_active && m_readyForCapture;
-}
-
-void QWindowsCameraSession::setReadyForCapture(bool ready)
-{
-    if (m_readyForCapture == ready)
-        return;
-
-    // Still image capture not yet supported
-    // m_readyForCapture = ready;
-    // emit readyForCaptureChanged(ready);
-}
-
-int QWindowsCameraSession::capture(const QString &fileName)
-{
-    return 0;
+    return m_active;
 }
 
 void QWindowsCameraSession::setVideoSink(QVideoSink *surface)
 {
-    m_cameraReader->setSurface(surface);
+    m_surface = surface;
 }
 
 void QWindowsCameraSession::handleStreamingStarted()
 {
     m_active = true;
     emit activeChanged(m_active);
-    setReadyForCapture(true);
+    emit readyForCaptureChanged(m_active);
 }
 
 void QWindowsCameraSession::handleStreamingStopped()
 {
-    setReadyForCapture(false);
     m_active = false;
     emit activeChanged(m_active);
+    emit readyForCaptureChanged(m_active);
+}
+
+void QWindowsCameraSession::handleStreamingError(int errorCode)
+{
+    if (m_surface)
+        emit m_surface->newVideoFrame(QVideoFrame());
+    emit streamingError(errorCode);
+}
+
+void QWindowsCameraSession::handleNewVideoFrame(const QVideoFrame &frame)
+{
+    if (m_surface)
+        emit m_surface->newVideoFrame(frame);
+    emit newVideoFrame(frame);
 }
 
 QMediaEncoderSettings QWindowsCameraSession::videoSettings() const

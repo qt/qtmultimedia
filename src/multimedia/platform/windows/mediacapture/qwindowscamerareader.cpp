@@ -584,12 +584,6 @@ STDMETHODIMP_(ULONG) QWindowsCameraReader::Release(void)
     return cRef;
 }
 
-void QWindowsCameraReader::setSurface(QVideoSink *surface)
-{
-    QMutexLocker locker(&m_mutex);
-    m_surface = surface;
-}
-
 UINT32 QWindowsCameraReader::frameWidth() const
 {
     return m_frameWidth;
@@ -641,9 +635,6 @@ STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
     QMutexLocker locker(&m_mutex);
 
     if (FAILED(hrStatus)) {
-        if (m_surface && m_videoSource)
-            m_surface->newVideoFrame(QVideoFrame());
-
         emit streamingError(int(hrStatus));
         return hrStatus;
     }
@@ -715,8 +706,8 @@ STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
                 }
             }
 
-            // Send the video frame as a preview, if we have a surface.
-            if (m_surface && dwStreamIndex == m_sourceVideoStreamIndex) {
+            // Generate a new QVideoFrame from IMFSample.
+            if (dwStreamIndex == m_sourceVideoStreamIndex) {
                 IMFMediaBuffer *mediaBuffer = nullptr;
                 if (SUCCEEDED(pSample->ConvertToContiguousBuffer(&mediaBuffer))) {
 
@@ -736,7 +727,8 @@ STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
                         if (SUCCEEDED(pSample->GetSampleDuration(&duration)))
                             frame.setEndTime((llTimestamp + duration) * 0.1);
 
-                        m_surface->newVideoFrame(frame);
+                        emit newVideoFrame(frame);
+
                         mediaBuffer->Unlock();
                     }
                     mediaBuffer->Release();

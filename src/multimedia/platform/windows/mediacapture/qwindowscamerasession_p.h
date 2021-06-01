@@ -72,15 +72,9 @@ public:
     bool isActive() const;
     void setActive(bool active);
 
-    QImageEncoderSettings imageSettings() const;
-    void setImageSettings(const QImageEncoderSettings &settings);
-
     bool isReadyForCapture() const;
-    void setReadyForCapture(bool ready);
 
     void setActiveCamera(const QCameraInfo &info);
-
-    int capture(const QString &fileName);
 
     void setVideoSink(QVideoSink *surface);
 
@@ -106,22 +100,24 @@ Q_SIGNALS:
     void recordingStarted();
     void recordingStopped();
     void streamingError(int errorCode);
+    void newVideoFrame(const QVideoFrame &frame);
 
 private Q_SLOTS:
     void handleStreamingStarted();
     void handleStreamingStopped();
+    void handleStreamingError(int errorCode);
+    void handleNewVideoFrame(const QVideoFrame &frame);
 
 private:
     quint32 estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
                                 qreal frameRate, QMediaEncoderSettings::Quality quality);
     quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality);
     bool m_active = false;
-    bool m_readyForCapture = false;
     QCameraInfo m_activeCameraInfo;
     QWindowsCameraReader *m_cameraReader = nullptr;
-    QImageEncoderSettings m_imageEncoderSettings;
     QMediaEncoderSettings m_mediaEncoderSettings;
     QAudioDeviceInfo m_audioInput;
+    QVideoSink  *m_surface = nullptr;
 };
 
 QT_END_NAMESPACE

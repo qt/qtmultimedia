@@ -88,7 +88,7 @@ void QWindowsCamera::updateStatus()
 
     if (m_lastStatus != newStatus) {
         m_lastStatus = newStatus;
-        emit statusChanged(m_lastStatus);
+        statusChanged(m_lastStatus);
     }
 }
 
