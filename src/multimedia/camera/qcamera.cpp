@@ -301,6 +301,12 @@ void QCamera::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QCamera);
 
+    if (d->captureSession == session)
+        return;
+
+    if (d->captureInterface)
+        d->captureInterface->setCamera(nullptr);
+
     d->captureSession = session;
     d->captureInterface = session ? session->platformSession() : nullptr;
     if (d->captureInterface && d->control)
