@@ -357,6 +357,7 @@ qt_internal_extend_target(Multimedia CONDITION TARGET Qt::Widgets AND WIN32
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
     SOURCES
+        platform/darwin/audio/avfaudiodecoder.mm platform/darwin/audio/avfaudiodecoder_p.h
         platform/darwin/audio/qdarwinaudiodevice.mm platform/darwin/audio/qdarwinaudiodevice_p.h
         platform/darwin/audio/qdarwinaudiosource.mm platform/darwin/audio/qdarwinaudiosource_p.h
         platform/darwin/audio/qdarwinaudiosink.mm platform/darwin/audio/qdarwinaudiosink_p.h

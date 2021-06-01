@@ -46,6 +46,7 @@
 #include <private/avfmediaencoder_p.h>
 #include <private/qdarwinformatsinfo_p.h>
 #include <private/avfvideosink_p.h>
+#include <private/avfaudiodecoder_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -72,6 +73,11 @@ QPlatformMediaFormatInfo *QDarwinIntegration::formatInfo()
     if (!m_formatInfo)
         m_formatInfo = new QDarwinFormatInfo();
     return m_formatInfo;
+}
+
+QPlatformAudioDecoder *QDarwinIntegration::createAudioDecoder(QAudioDecoder *decoder)
+{
+    return new AVFAudioDecoder(decoder);
 }
 
 QPlatformMediaCaptureSession *QDarwinIntegration::createCaptureSession()
