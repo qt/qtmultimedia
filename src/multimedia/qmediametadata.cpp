@@ -64,7 +64,7 @@ QT_BEGIN_NAMESPACE
     \row \li Description \li A description of the media.  \li QString
     \row \li Genre \li The genre of the media.  \li QStringList
     \row \li Date \li The date of the media. \li QDate.
-    \row \li Language \li The language of media, as an ISO 639-2 code. \li QString
+    \row \li Language \li The language of media. \li QLocale::Language
 
     \row \li Publisher \li The publisher of the media.  \li QString
     \row \li Copyright \li The media's copyright notice.  \li QString
@@ -229,7 +229,6 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
     case Comment:
     case Description:
     case Genre:
-    case Language:
     case Publisher:
     case Copyright:
     case Date:
@@ -246,6 +245,10 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
     case Orientation:
     case LeadPerformer:
         return value.toString();
+    case Language: {
+        auto l = value.value<QLocale::Language>();
+        return QLocale::languageToString(l);
+    }
     case Duration: {
         QTime time = QTime::fromMSecsSinceStartOfDay(value.toInt());
         return time.toString();

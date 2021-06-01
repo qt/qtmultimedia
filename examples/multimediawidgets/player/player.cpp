@@ -359,6 +359,7 @@ void Player::tracksChanged()
         m_videoTracks->addItem(videoTracks.at(i).stringValue(QMediaMetaData::Language), i);
     m_videoTracks->setCurrentIndex(m_player->activeVideoTrack());
 
+    m_subtitleTracks->addItem(QString::fromUtf8("No subtitles"), -1);
     const auto subtitleTracks = m_player->subtitleTracks();
     for (int i = 0; i < subtitleTracks.size(); ++i)
         m_subtitleTracks->addItem(subtitleTracks.at(i).stringValue(QMediaMetaData::Language), i);

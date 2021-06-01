@@ -134,6 +134,10 @@ static void addTagToMap(const GstTagList *list,
         case G_TYPE_STRING:
         {
             const gchar *str_value = g_value_get_string(&val);
+            if (key == QMediaMetaData::Language) {
+                map->insert(key, QLocale::codeToLanguage(QString::fromUtf8(str_value)));
+                break;
+            }
             map->insert(key, QString::fromUtf8(str_value));
             break;
         }
@@ -271,6 +275,15 @@ void QGstreamerMetaData::setMetaData(GstElement *element) const
                     nullptr);
                 break;
             }
+            case QMetaType::QLocale: {
+                QString language = QLocale::languageToCode(tagValue.value<QLocale::Language>());
+                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
+                                        GST_TAG_MERGE_REPLACE,
+                                        tagName,
+                                        language.toUtf8().constData(),
+                                        nullptr);
+            }
+
             default:
                 break;
         }
