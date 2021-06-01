@@ -182,9 +182,7 @@ void QGstreamerVideoOutput::changeVideoOutput()
 {
     qCDebug(qLcMediaVideoOutput) << "Changing video output" << QThread::currentThreadId();
 
-    auto pstate = gstPipeline.state();
-    if (pstate == GST_STATE_PLAYING)
-        gstPipeline.setState(GST_STATE_PAUSED);
+    gstPipeline.setState(GST_STATE_PAUSED);
 
     auto state = videoSink.state();
     videoSink.setState(GST_STATE_NULL);
@@ -197,7 +195,7 @@ void QGstreamerVideoOutput::changeVideoOutput()
     videoSink.setState(state);
     newVideoSink = {};
 
-    gstPipeline.setState(pstate);
+    gstPipeline.setState(GST_STATE_PLAYING);
 
     GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
                               GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),

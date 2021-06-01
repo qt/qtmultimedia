@@ -99,9 +99,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     if (gstCamera == control)
         return;
 
-    auto state = gstPipeline.state();
-    if (state != GST_STATE_PAUSED)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.setStateSync(GST_STATE_PAUSED);
 
     if (gstVideoTee.isNull()) {
         gstVideoTee = QGstElement("tee", "videotee");
@@ -127,8 +125,8 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
         gstCamera->setCaptureSession(this);
         camera.setState(GST_STATE_PAUSED);
     }
-    if (state != GST_STATE_PAUSED)
-        gstPipeline.setState(state);
+
+    gstPipeline.setState(GST_STATE_PLAYING);
 
     emit cameraChanged();
     gstPipeline.dumpGraph("camera");
@@ -164,18 +162,13 @@ void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
     if (m_mediaEncoder == control)
         return;
 
-    auto state = gstPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
-
-    if (m_mediaEncoder)
-        m_mediaEncoder->setCaptureSession(nullptr);
+    gstPipeline.setStateSync(GST_STATE_PAUSED);
 
     m_mediaEncoder = control;
     if (m_mediaEncoder)
         m_mediaEncoder->setCaptureSession(this);
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setState(state);
+
+    gstPipeline.setState(GST_STATE_PLAYING);
 
     emit encoderChanged();
     gstPipeline.dumpGraph("encoder");

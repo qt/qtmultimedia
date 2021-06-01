@@ -103,7 +103,6 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
 
     bool havePipeline = !gstPipeline.isNull();
 
-    auto state = havePipeline ? gstPipeline.state() : GST_STATE_NULL;
     if (havePipeline)
         gstPipeline.setStateSync(GST_STATE_PAUSED);
 
@@ -127,11 +126,11 @@ void QGstreamerCamera::setCamera(const QCameraInfo &camera)
     // set the camera up with a decent format
     setCameraFormatInternal({});
 
-    gstCamera.setStateSync(state == GST_STATE_PLAYING ? GST_STATE_PAUSED : state);
+    gstCamera.setState(GST_STATE_PAUSED);
 
     if (havePipeline) {
         gstPipeline.dumpGraph("setCamera");
-        gstPipeline.setStateSync(state);
+        gstPipeline.setState(GST_STATE_PLAYING);
     }
 
     updateCameraProperties();

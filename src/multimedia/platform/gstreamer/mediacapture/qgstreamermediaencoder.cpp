@@ -439,6 +439,7 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
         gstPipeline.remove(gstFileSink);
         heartbeat.disconnect();
         QObject::disconnect(cameraChanged);
+        gstPipeline.removeMessageFilter(this);
     }
 
     m_session = captureSession;
@@ -455,7 +456,7 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
 
     gstPipeline.add(gstEncoder, gstFileSink);
     gstEncoder.link(gstFileSink);
-    gstPipeline.lockState(true);
+    gstEncoder.lockState(true);
     gstFileSink.lockState(true); // ### enough with the encoder?
 
     // ensure we have a usable format
