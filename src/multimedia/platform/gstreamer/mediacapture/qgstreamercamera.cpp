@@ -73,6 +73,7 @@ QGstreamerCamera::~QGstreamerCamera()
         qt_safe_close(v4l2FileDescriptor);
     v4l2FileDescriptor = -1;
 #endif
+    gstCameraBin.setStateSync(GST_STATE_NULL);
 }
 
 bool QGstreamerCamera::isActive() const
@@ -187,7 +188,7 @@ void QGstreamerCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
         return;
 
     m_session = captureSession;
-    // is this enough?
+    gstPipeline = m_session ? m_session->pipeline() : QGstPipeline();
 }
 
 void QGstreamerCamera::updateCameraProperties()

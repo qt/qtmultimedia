@@ -226,31 +226,37 @@ QGstPipeline::QGstPipeline(GstPipeline *p)
 
 QGstPipeline::~QGstPipeline()
 {
-    d->deref();
+    if (d)
+        d->deref();
 }
 
 QProperty<bool> *QGstPipeline::inStoppedState()
 {
+    Q_ASSERT(d);
     return &d->inStoppedState;
 }
 
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
+    Q_ASSERT(d);
     d->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
+    Q_ASSERT(d);
     d->removeMessageFilter(filter);
 }
 
 void QGstPipeline::installMessageFilter(QGstreamerBusMessageFilter *filter)
 {
+    Q_ASSERT(d);
     d->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 {
+    Q_ASSERT(d);
     d->removeMessageFilter(filter);
 }
 

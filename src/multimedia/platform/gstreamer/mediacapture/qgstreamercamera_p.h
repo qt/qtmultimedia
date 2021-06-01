@@ -76,8 +76,6 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
     QGstElement gstElement() const { return gstCameraBin.element(); }
-    void setPipeline(const QGstPipeline &pipeline) { gstPipeline = pipeline; }
-
 #if QT_CONFIG(gstreamer_photography)
     GstPhotography *photography() const;
 #endif

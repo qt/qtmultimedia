@@ -68,6 +68,7 @@ QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
 {
     gstPipeline.removeMessageFilter(this);
     gstPipeline.setStateSync(GST_STATE_NULL);
+    QObject::disconnect(cameraChanged);
 }
 
 QUrl QGstreamerMediaEncoder::outputLocation() const

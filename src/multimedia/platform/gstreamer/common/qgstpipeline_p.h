@@ -79,9 +79,10 @@ class QGstPipeline : public QGstBin
 {
     QGstPipelinePrivate *d = nullptr;
 public:
+    constexpr QGstPipeline() = default;
     QGstPipeline(const QGstPipeline &o);
     QGstPipeline &operator=(const QGstPipeline &o);
-    QGstPipeline(const char *name = nullptr);
+    QGstPipeline(const char *name);
     QGstPipeline(GstPipeline *p);
     ~QGstPipeline();
 

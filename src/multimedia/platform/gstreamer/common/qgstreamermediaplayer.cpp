@@ -67,7 +67,8 @@ QT_BEGIN_NAMESPACE
 
 QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
     : QObject(parent),
-      QPlatformMediaPlayer(parent)
+      QPlatformMediaPlayer(parent),
+      playerPipeline("playerPipeline")
 {
     gstAudioOutput = new QGstreamerAudioOutput(this);
     gstAudioOutput->setPipeline(playerPipeline);
