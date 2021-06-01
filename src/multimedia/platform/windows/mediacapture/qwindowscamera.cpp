@@ -117,9 +117,8 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     Q_ASSERT(m_cameraSession);
     connect(m_cameraSession, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 
-    m_cameraSession->setActiveCamera(QCameraInfo());
-    m_cameraSession->setActive(m_active);
     m_cameraSession->setActiveCamera(m_cameraInfo);
+    m_cameraSession->setActive(m_active);
 }
 
 QT_END_NAMESPACE
