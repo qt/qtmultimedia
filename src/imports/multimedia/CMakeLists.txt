@@ -4,10 +4,10 @@
 ## declarative_multimedia Plugin:
 #####################################################################
 
-qt_internal_add_qml_module(declarative_multimedia
+qt_internal_add_qml_module(quickmultimedia
     URI "QtMultimedia"
     VERSION "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}" # special case
-    CLASSNAME QMultimediaDeclarativeModule
+    CLASSNAME QMultimediaQuickModule
     SOURCES
         multimedia.cpp
     PUBLIC_LIBRARIES
@@ -33,7 +33,7 @@ set_source_files_properties(Video.qml PROPERTIES
     QT_QML_SOURCE_VERSION "5.0"
 )
 
-qt6_target_qml_files(declarative_multimedia
+qt6_target_qml_files(quickmultimedia
     FILES
         ${qml_files}
 )
