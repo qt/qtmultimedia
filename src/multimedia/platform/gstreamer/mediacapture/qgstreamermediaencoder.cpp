@@ -247,9 +247,9 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     if (containerProfile) {
         GstEncodingProfile *audioProfile = createAudioProfile(settings);
         GstEncodingProfile *videoProfile = settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified ? createVideoProfile(settings) : nullptr;
-        qDebug() << "audio profile" << gst_caps_to_string(gst_encoding_profile_get_format(audioProfile));
-        qDebug() << "video profile" << gst_caps_to_string(gst_encoding_profile_get_format(videoProfile));
-        qDebug() << "conta profile" << gst_caps_to_string(gst_encoding_profile_get_format((GstEncodingProfile *)containerProfile));
+//        qDebug() << "audio profile" << gst_caps_to_string(gst_encoding_profile_get_format(audioProfile));
+//        qDebug() << "video profile" << gst_caps_to_string(gst_encoding_profile_get_format(videoProfile));
+//        qDebug() << "conta profile" << gst_caps_to_string(gst_encoding_profile_get_format((GstEncodingProfile *)containerProfile));
 
         if (videoProfile) {
             if (!gst_encoding_container_profile_add_profile(containerProfile, videoProfile))

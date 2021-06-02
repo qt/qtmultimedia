@@ -68,9 +68,6 @@ Player::Player(QWidget *parent)
 //! [create-objs]
     m_player = new QMediaPlayer(this);
     m_player->setAudioRole(QAudio::VideoRole);
-    qInfo() << "Supported audio roles:";
-    for (QAudio::Role role : m_player->supportedAudioRoles())
-        qInfo() << "    " << role;
 //! [create-objs]
 
 //! [2]

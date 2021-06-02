@@ -290,7 +290,7 @@ static QList<QImageEncoderSettings::FileFormat> getImageFormatList()
                     QGstStructure structure = caps.at(i);
                     auto f = QGstreamerFormatInfo::imageFormatForCaps(structure);
                     if (f != QImageEncoderSettings::UnspecifiedFormat) {
-                        qDebug() << structure.toString() << f;
+//                        qDebug() << structure.toString() << f;
                         formats.insert(f);
                     }
                 }
