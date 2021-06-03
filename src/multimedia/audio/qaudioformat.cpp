@@ -74,7 +74,7 @@ QT_BEGIN_NAMESPACE
             \li The format of the audio samples in the stream
     \endtable
 
-    This class is used in conjunction with QAudioInput or
+    This class is used in conjunction with QAudioSource or
     QAudioOutput to allow you to specify the parameters of the audio
     stream being read or written, or with QAudioBuffer when dealing with
     samples in memory.

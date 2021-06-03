@@ -151,7 +151,7 @@ namespace QAudio
 
     \since 5.8
     \sa VolumeScale, QMediaPlayer::setVolume(), QAudioOutput::setVolume(),
-        QAudioInput::setVolume(), QSoundEffect::setVolume(), QMediaRecorder::setVolume()
+        QAudioSource::setVolume(), QSoundEffect::setVolume(), QMediaRecorder::setVolume()
 */
 qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
 {

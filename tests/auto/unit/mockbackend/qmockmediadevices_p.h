@@ -69,7 +69,7 @@ public:
     QList<QAudioDeviceInfo> audioInputs() const override;
     QList<QAudioDeviceInfo> audioOutputs() const override;
     QList<QCameraInfo> videoInputs() const override;
-    QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &info) override;
+    QPlatformAudioSource *createAudioSource(const QAudioDeviceInfo &info) override;
     QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &info) override;
 
 private:

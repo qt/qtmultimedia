@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-#include "audioinput.h"
+#include "audiosource.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -58,7 +58,7 @@
 #include <QPainter>
 #include <QVBoxLayout>
 #include <QAudioDeviceInfo>
-#include <QAudioInput>
+#include <QAudioSource>
 #include <qendian.h>
 
 AudioInfo::AudioInfo(const QAudioFormat &format)
@@ -205,7 +205,7 @@ void InputTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
         m_canvas->setLevel(m_audioInfo->level());
     });
 
-    m_audioInput.reset(new QAudioInput(deviceInfo, format));
+    m_audioInput.reset(new QAudioSource(deviceInfo, format));
     qreal initialVolume = QAudio::convertVolume(m_audioInput->volume(),
                                                 QAudio::LinearVolumeScale,
                                                 QAudio::LogarithmicVolumeScale);

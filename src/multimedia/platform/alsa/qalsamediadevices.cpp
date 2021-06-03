@@ -41,7 +41,7 @@
 #include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
-#include "private/qalsaaudioinput_p.h"
+#include "private/qalsaaudiosource_p.h"
 #include "private/qalsaaudiooutput_p.h"
 #include "private/qalsaaudiodeviceinfo_p.h"
 
@@ -115,9 +115,9 @@ QList<QCameraInfo> QAlsaMediaDevices::videoInputs() const
     return {};
 }
 
-QAbstractAudioInput *QAlsaMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QAlsaMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QAlsaAudioInput(deviceInfo.id());
+    return new QAlsaAudioSource(deviceInfo.id());
 }
 
 QAbstractAudioOutput *QAlsaMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)

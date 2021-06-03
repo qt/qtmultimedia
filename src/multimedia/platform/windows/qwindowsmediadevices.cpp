@@ -42,7 +42,7 @@
 #include "qcamerainfo_p.h"
 #include "qvarlengtharray.h"
 
-#include "private/qwindowsaudioinput_p.h"
+#include "private/qwindowsaudiosource_p.h"
 #include "private/qwindowsaudiooutput_p.h"
 #include "private/qwindowsaudiodeviceinfo_p.h"
 #include "private/qwindowsmultimediautils_p.h"
@@ -534,10 +534,10 @@ QList<QCameraInfo> QWindowsMediaDevices::videoInputs() const
     return cameras;
 }
 
-QAbstractAudioInput *QWindowsMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioInput(devInfo->waveId());
+    return new QWindowsAudioSource(devInfo->waveId());
 }
 
 QAbstractAudioOutput *QWindowsMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)

@@ -20,27 +20,27 @@ find_package(Qt6 COMPONENTS Gui)
 find_package(Qt6 COMPONENTS Multimedia)
 find_package(Qt6 COMPONENTS Widgets)
 
-qt_add_executable(audioinput
-    audioinput.cpp audioinput.h
+qt_add_executable(audiosource
+    audiosource.cpp audiosource.h
     main.cpp
 )
-set_target_properties(audioinput PROPERTIES
+set_target_properties(audiosource PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
 )
 # special case begin
-target_include_directories(audioinput PUBLIC
+target_include_directories(audiosource PUBLIC
     ../shared
 )
 # special case end
-target_link_libraries(audioinput PUBLIC
+target_link_libraries(audiosource PUBLIC
     Qt::Core
     Qt::Gui
     Qt::Multimedia
     Qt::Widgets
 )
 
-install(TARGETS audioinput
+install(TARGETS audiosource
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"

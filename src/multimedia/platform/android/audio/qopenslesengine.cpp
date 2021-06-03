@@ -39,7 +39,7 @@
 
 #include "qopenslesengine_p.h"
 
-#include "qopenslesaudioinput_p.h"
+#include "qandroidaudiosource_p.h"
 #include "qopenslesdeviceinfo_p.h"
 
 #include <qdebug.h>

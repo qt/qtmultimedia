@@ -48,131 +48,123 @@
 // We mean it.
 //
 
+#ifndef QWINDOWSAUDIOINPUT_H
+#define QWINDOWSAUDIOINPUT_H
 
-#ifndef QAUDIOINPUTALSA_H
-#define QAUDIOINPUTALSA_H
-
-#include <alsa/asoundlib.h>
+#include "qwindowsaudioutils_p.h"
 
 #include <QtCore/qfile.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qtimer.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
-#include <QtCore/qelapsedtimer.h>
-#include <QtCore/qiodevice.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qmutex.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
 #include <private/qaudiosystem_p.h>
 
+
 QT_BEGIN_NAMESPACE
 
 
-class AlsaInputPrivate;
+// For compat with 4.6
+#if !defined(QT_WIN_CALLBACK)
+#  if defined(Q_CC_MINGW)
+#    define QT_WIN_CALLBACK CALLBACK __attribute__ ((force_align_arg_pointer))
+#  else
+#    define QT_WIN_CALLBACK CALLBACK
+#  endif
+#endif
 
-class RingBuffer
-{
-public:
-    RingBuffer();
-
-    void resize(int size);
-
-    int bytesOfDataInBuffer() const;
-    int freeBytes() const;
-
-    const char *availableData() const;
-    int availableDataBlockSize() const;
-    void readBytes(int bytes);
-
-    void write(char *data, int len);
-
-private:
-    int m_head;
-    int m_tail;
-
-    QByteArray m_data;
-};
-
-class QAlsaAudioInput : public QAbstractAudioInput
+class QWindowsAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 public:
-    QAlsaAudioInput(const QByteArray &device);
-    ~QAlsaAudioInput();
+    QWindowsAudioSource(int deviceId);
+    ~QWindowsAudioSource();
 
     qint64 read(char* data, qint64 len);
 
-    void start(QIODevice* device) override;
-    QIODevice* start() override;
-    void stop() override;
-    void reset() override;
-    void suspend() override;
-    void resume() override;
-    qsizetype bytesReady() const override;
-    void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
-    qint64 processedUSecs() const override;
-    QAudio::Error error() const override;
-    QAudio::State state() const override;
-    void setFormat(const QAudioFormat& fmt) override;
-    QAudioFormat format() const override;
-    void setVolume(qreal) override;
-    qreal volume() const override;
-    bool resuming;
-    snd_pcm_t* handle;
-    qint64 totalTimeValue;
+    void setFormat(const QAudioFormat& fmt);
+    QAudioFormat format() const;
+    QIODevice* start();
+    void start(QIODevice* device);
+    void stop();
+    void reset();
+    void suspend();
+    void resume();
+    qsizetype bytesReady() const;
+    void setBufferSize(qsizetype value);
+    qsizetype bufferSize() const;
+    qint64 processedUSecs() const;
+    QAudio::Error error() const;
+    QAudio::State state() const;
+    void setVolume(qreal volume);
+    qreal volume() const;
+
     QIODevice* audioSource;
     QAudioFormat settings;
     QAudio::Error errorState;
     QAudio::State deviceState;
 
-private slots:
-    void userFeed();
-    bool deviceReady();
-
 private:
-    int checkBytesReady();
-    int xrun_recovery(int err);
-    int setFormat();
+    qint32 buffer_size;
+    qint32 period_size;
+    qint32 header;
+    int m_deviceId;
+    int bytesAvailable;
+    qint64 elapsedTimeOffset;
+    qint64 totalTimeValue;
+    bool pullMode;
+    bool resuming;
+    WAVEFORMATEXTENSIBLE wfx;
+    HWAVEIN hWaveIn;
+    MMRESULT result;
+    WAVEHDR* waveBlocks;
+    volatile bool finished;
+    volatile int waveFreeBlockCount;
+    int waveBlockOffset;
+
+    QMutex mutex;
+    static void QT_WIN_CALLBACK waveInProc( HWAVEIN hWaveIn, UINT uMsg,
+            DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
+
+    WAVEHDR* allocateBlocks(int size, int count);
+    void freeBlocks(WAVEHDR* blockArray);
     bool open();
     void close();
-    void drain();
 
-    QTimer* timer;
-    qint64 elapsedTimeOffset;
-    RingBuffer ringBuffer;
-    int bytesAvailable;
-    QByteArray m_device;
-    bool pullMode;
-    int buffer_size;
-    int period_size;
-    unsigned int buffer_time;
-    unsigned int period_time;
-    snd_pcm_uframes_t buffer_frames;
-    snd_pcm_uframes_t period_frames;
-    snd_pcm_access_t access;
-    snd_pcm_format_t pcmformat;
-    snd_pcm_hw_params_t *hwparams;
-    qreal m_volume;
+    void initMixer();
+    void closeMixer();
+    HMIXEROBJ mixerID;
+    MIXERLINECONTROLS mixerLineControls;
+    qreal cachedVolume;
+
+private slots:
+    void feedback();
+    bool deviceReady();
+
+signals:
+    void processMore();
 };
 
-class AlsaInputPrivate : public QIODevice
+class InputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    AlsaInputPrivate(QAlsaAudioInput* audio);
-    ~AlsaInputPrivate();
+    InputPrivate(QWindowsAudioSource* audio);
+    ~InputPrivate();
 
-    qint64 readData( char* data, qint64 len) override;
-    qint64 writeData(const char* data, qint64 len) override;
+    qint64 readData( char* data, qint64 len);
+    qint64 writeData(const char* data, qint64 len);
 
     void trigger();
 private:
-    QAlsaAudioInput *audioDevice;
+    QWindowsAudioSource *audioDevice;
 };
 
 QT_END_NAMESPACE
-
 
 #endif

@@ -51,14 +51,14 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
-#include "qalsaaudioinput_p.h"
+#include "qalsaaudiosource_p.h"
 #include "qalsaaudiodeviceinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
 //#define DEBUG_AUDIO 1
 
-QAlsaAudioInput::QAlsaAudioInput(const QByteArray &device)
+QAlsaAudioSource::QAlsaAudioSource(const QByteArray &device)
 {
     bytesAvailable = 0;
     handle = 0;
@@ -83,7 +83,7 @@ QAlsaAudioInput::QAlsaAudioInput(const QByteArray &device)
     connect(timer,SIGNAL(timeout()),SLOT(userFeed()));
 }
 
-QAlsaAudioInput::~QAlsaAudioInput()
+QAlsaAudioSource::~QAlsaAudioSource()
 {
     close();
     disconnect(timer, SIGNAL(timeout()));
@@ -91,38 +91,38 @@ QAlsaAudioInput::~QAlsaAudioInput()
     delete timer;
 }
 
-void QAlsaAudioInput::setVolume(qreal vol)
+void QAlsaAudioSource::setVolume(qreal vol)
 {
     m_volume = vol;
 }
 
-qreal QAlsaAudioInput::volume() const
+qreal QAlsaAudioSource::volume() const
 {
     return m_volume;
 }
 
-QAudio::Error QAlsaAudioInput::error() const
+QAudio::Error QAlsaAudioSource::error() const
 {
     return errorState;
 }
 
-QAudio::State QAlsaAudioInput::state() const
+QAudio::State QAlsaAudioSource::state() const
 {
     return deviceState;
 }
 
-void QAlsaAudioInput::setFormat(const QAudioFormat& fmt)
+void QAlsaAudioSource::setFormat(const QAudioFormat& fmt)
 {
     if (deviceState == QAudio::StoppedState)
         settings = fmt;
 }
 
-QAudioFormat QAlsaAudioInput::format() const
+QAudioFormat QAlsaAudioSource::format() const
 {
     return settings;
 }
 
-int QAlsaAudioInput::xrun_recovery(int err)
+int QAlsaAudioSource::xrun_recovery(int err)
 {
     int  count = 0;
     bool reset = false;
@@ -168,7 +168,7 @@ int QAlsaAudioInput::xrun_recovery(int err)
     return err;
 }
 
-int QAlsaAudioInput::setFormat()
+int QAlsaAudioSource::setFormat()
 {
     snd_pcm_format_t pcmformat = SND_PCM_FORMAT_UNKNOWN;
 
@@ -202,7 +202,7 @@ int QAlsaAudioInput::setFormat()
             : -1;
 }
 
-void QAlsaAudioInput::start(QIODevice* device)
+void QAlsaAudioSource::start(QIODevice* device)
 {
     if(deviceState != QAudio::StoppedState)
         close();
@@ -221,7 +221,7 @@ void QAlsaAudioInput::start(QIODevice* device)
     emit stateChanged(deviceState);
 }
 
-QIODevice* QAlsaAudioInput::start()
+QIODevice* QAlsaAudioSource::start()
 {
     if(deviceState != QAudio::StoppedState)
         close();
@@ -243,7 +243,7 @@ QIODevice* QAlsaAudioInput::start()
     return audioSource;
 }
 
-void QAlsaAudioInput::stop()
+void QAlsaAudioSource::stop()
 {
     if(deviceState == QAudio::StoppedState)
         return;
@@ -254,7 +254,7 @@ void QAlsaAudioInput::stop()
     emit stateChanged(deviceState);
 }
 
-bool QAlsaAudioInput::open()
+bool QAlsaAudioSource::open()
 {
 #ifdef DEBUG_AUDIO
     QTime now(QTime::currentTime());
@@ -268,9 +268,9 @@ bool QAlsaAudioInput::open()
     unsigned int sampleRate=settings.sampleRate();
 
     if (!settings.isValid()) {
-        qWarning("QAudioInput: open error, invalid format.");
+        qWarning("QAudioSource: open error, invalid format.");
     } else if (settings.sampleRate() <= 0) {
-        qWarning("QAudioInput: open error, invalid sample rate (%d).",
+        qWarning("QAudioSource: open error, invalid sample rate (%d).",
                  settings.sampleRate());
     } else {
         err = -1;
@@ -308,69 +308,69 @@ bool QAlsaAudioInput::open()
     err = snd_pcm_hw_params_any( handle, hwparams );
     if ( err < 0 ) {
         fatal = true;
-        errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_any: err = %1").arg(err);
+        errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_any: err = %1").arg(err);
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_rate_resample( handle, hwparams, 1 );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_rate_resample: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_rate_resample: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_access( handle, hwparams, access );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_access: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_access: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = setFormat();
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_format: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_format: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_channels( handle, hwparams, (unsigned int)settings.channelCount() );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_channels: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_channels: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_rate_near( handle, hwparams, &sampleRate, 0 );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_rate_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_rate_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_buffer_time_near(handle, hwparams, &buffer_time, &dir);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_buffer_time_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_buffer_time_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_period_time_near(handle, hwparams, &period_time, &dir);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_period_time_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_period_time_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_periods_near(handle, hwparams, &chunks, &dir);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params_set_periods_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params_set_periods_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params(handle, hwparams);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioInput: snd_pcm_hw_params: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSource: snd_pcm_hw_params: err = %1").arg(err);
         }
     }
     if( err < 0) {
@@ -418,7 +418,7 @@ bool QAlsaAudioInput::open()
     return true;
 }
 
-void QAlsaAudioInput::close()
+void QAlsaAudioSource::close()
 {
     timer->stop();
 
@@ -429,7 +429,7 @@ void QAlsaAudioInput::close()
     }
 }
 
-int QAlsaAudioInput::checkBytesReady()
+int QAlsaAudioSource::checkBytesReady()
 {
     if(resuming)
         bytesAvailable = period_size;
@@ -449,12 +449,12 @@ int QAlsaAudioInput::checkBytesReady()
     return bytesAvailable;
 }
 
-int QAlsaAudioInput::bytesReady() const
+int QAlsaAudioSource::bytesReady() const
 {
     return qMax(bytesAvailable, 0);
 }
 
-qint64 QAlsaAudioInput::read(char* data, qint64 len)
+qint64 QAlsaAudioSource::read(char* data, qint64 len)
 {
     // Read in some audio data and write it to QIODevice, pull mode
     if ( !handle )
@@ -599,7 +599,7 @@ qint64 QAlsaAudioInput::read(char* data, qint64 len)
     return 0;
 }
 
-void QAlsaAudioInput::resume()
+void QAlsaAudioSource::resume()
 {
     if(deviceState == QAudio::SuspendedState) {
         int err = 0;
@@ -623,17 +623,17 @@ void QAlsaAudioInput::resume()
     }
 }
 
-void QAlsaAudioInput::setBufferSize(int value)
+void QAlsaAudioSource::setBufferSize(int value)
 {
     buffer_size = value;
 }
 
-int QAlsaAudioInput::bufferSize() const
+int QAlsaAudioSource::bufferSize() const
 {
     return buffer_size;
 }
 
-qint64 QAlsaAudioInput::processedUSecs() const
+qint64 QAlsaAudioSource::processedUSecs() const
 {
     qint64 result = qint64(1000000) * totalTimeValue /
         settings.bytesPerFrame() /
@@ -642,7 +642,7 @@ qint64 QAlsaAudioInput::processedUSecs() const
     return result;
 }
 
-void QAlsaAudioInput::suspend()
+void QAlsaAudioSource::suspend()
 {
     if(deviceState == QAudio::ActiveState||resuming) {
         snd_pcm_drain(handle);
@@ -652,7 +652,7 @@ void QAlsaAudioInput::suspend()
     }
 }
 
-void QAlsaAudioInput::userFeed()
+void QAlsaAudioSource::userFeed()
 {
     if(deviceState == QAudio::StoppedState || deviceState == QAudio::SuspendedState)
         return;
@@ -663,7 +663,7 @@ void QAlsaAudioInput::userFeed()
     deviceReady();
 }
 
-bool QAlsaAudioInput::deviceReady()
+bool QAlsaAudioSource::deviceReady()
 {
     if(pullMode) {
         // reads some audio data and writes it to QIODevice
@@ -695,7 +695,7 @@ bool QAlsaAudioInput::deviceReady()
     return true;
 }
 
-void QAlsaAudioInput::reset()
+void QAlsaAudioSource::reset()
 {
     if(handle)
         snd_pcm_reset(handle);
@@ -703,15 +703,15 @@ void QAlsaAudioInput::reset()
     bytesAvailable = 0;
 }
 
-void QAlsaAudioInput::drain()
+void QAlsaAudioSource::drain()
 {
     if(handle)
         snd_pcm_drain(handle);
 }
 
-AlsaInputPrivate::AlsaInputPrivate(QAlsaAudioInput* audio)
+AlsaInputPrivate::AlsaInputPrivate(QAlsaAudioSource* audio)
 {
-    audioDevice = qobject_cast<QAlsaAudioInput*>(audio);
+    audioDevice = qobject_cast<QAlsaAudioSource*>(audio);
 }
 
 AlsaInputPrivate::~AlsaInputPrivate()
@@ -802,4 +802,4 @@ void RingBuffer::write(char *data, int len)
 
 QT_END_NAMESPACE
 
-#include "moc_qalsaaudioinput_p.cpp"
+#include "moc_qalsaaudiosource_p.cpp"

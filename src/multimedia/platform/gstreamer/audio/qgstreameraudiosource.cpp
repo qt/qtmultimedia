@@ -42,7 +42,7 @@
 #include <QtCore/qmath.h>
 #include <private/qaudiohelpers_p.h>
 
-#include "qaudioinput_gstreamer_p.h"
+#include "qgstreameraudiosource_p.h"
 #include "qaudiodeviceinfo_gstreamer_p.h"
 #include <sys/types.h>
 #include <unistd.h>
@@ -54,19 +54,19 @@ Q_DECLARE_METATYPE(GstSample *);
 QT_BEGIN_NAMESPACE
 
 
-QGStreamerAudioInput::QGStreamerAudioInput(const QAudioDeviceInfo &device)
+QGStreamerAudioSource::QGStreamerAudioSource(const QAudioDeviceInfo &device)
     : m_info(device),
       m_device(device.id())
 {
     qRegisterMetaType<GstSample *>();
 }
 
-QGStreamerAudioInput::~QGStreamerAudioInput()
+QGStreamerAudioSource::~QGStreamerAudioSource()
 {
     close();
 }
 
-void QGStreamerAudioInput::setError(QAudio::Error error)
+void QGStreamerAudioSource::setError(QAudio::Error error)
 {
     if (m_errorState == error)
         return;
@@ -75,12 +75,12 @@ void QGStreamerAudioInput::setError(QAudio::Error error)
     emit errorChanged(error);
 }
 
-QAudio::Error QGStreamerAudioInput::error() const
+QAudio::Error QGStreamerAudioSource::error() const
 {
     return m_errorState;
 }
 
-void QGStreamerAudioInput::setState(QAudio::State state)
+void QGStreamerAudioSource::setState(QAudio::State state)
 {
     if (m_deviceState == state)
         return;
@@ -89,23 +89,23 @@ void QGStreamerAudioInput::setState(QAudio::State state)
     emit stateChanged(state);
 }
 
-QAudio::State QGStreamerAudioInput::state() const
+QAudio::State QGStreamerAudioSource::state() const
 {
     return m_deviceState;
 }
 
-void QGStreamerAudioInput::setFormat(const QAudioFormat &format)
+void QGStreamerAudioSource::setFormat(const QAudioFormat &format)
 {
     if (m_deviceState == QAudio::StoppedState)
         m_format = format;
 }
 
-QAudioFormat QGStreamerAudioInput::format() const
+QAudioFormat QGStreamerAudioSource::format() const
 {
     return m_format;
 }
 
-void QGStreamerAudioInput::start(QIODevice *device)
+void QGStreamerAudioSource::start(QIODevice *device)
 {
     setState(QAudio::StoppedState);
     setError(QAudio::NoError);
@@ -121,7 +121,7 @@ void QGStreamerAudioInput::start(QIODevice *device)
     setState(QAudio::ActiveState);
 }
 
-QIODevice *QGStreamerAudioInput::start()
+QIODevice *QGStreamerAudioSource::start()
 {
     setState(QAudio::StoppedState);
     setError(QAudio::NoError);
@@ -140,7 +140,7 @@ QIODevice *QGStreamerAudioInput::start()
     return m_audioSink;
 }
 
-void QGStreamerAudioInput::stop()
+void QGStreamerAudioSource::stop()
 {
     if (m_deviceState == QAudio::StoppedState)
         return;
@@ -151,7 +151,7 @@ void QGStreamerAudioInput::stop()
     setState(QAudio::StoppedState);
 }
 
-bool QGStreamerAudioInput::open()
+bool QGStreamerAudioSource::open()
 {
     if (m_opened)
         return true;
@@ -187,7 +187,7 @@ bool QGStreamerAudioInput::open()
     gstPipeline = QGstPipeline("pipeline");
 
     auto *gstBus = gst_pipeline_get_bus(gstPipeline.pipeline());
-    gst_bus_add_watch(gstBus, &QGStreamerAudioInput::busMessage, this);
+    gst_bus_add_watch(gstBus, &QGStreamerAudioSource::busMessage, this);
     gst_object_unref (gstBus);
 
     gstAppSink = createAppSink();
@@ -212,7 +212,7 @@ bool QGStreamerAudioInput::open()
     return true;
 }
 
-void QGStreamerAudioInput::close()
+void QGStreamerAudioSource::close()
 {
     if (!m_opened)
         return;
@@ -230,9 +230,9 @@ void QGStreamerAudioInput::close()
     m_opened = false;
 }
 
-gboolean QGStreamerAudioInput::busMessage(GstBus *, GstMessage *msg, gpointer user_data)
+gboolean QGStreamerAudioSource::busMessage(GstBus *, GstMessage *msg, gpointer user_data)
 {
-    QGStreamerAudioInput *input = static_cast<QGStreamerAudioInput *>(user_data);
+    QGStreamerAudioSource *input = static_cast<QGStreamerAudioSource *>(user_data);
     switch (GST_MESSAGE_TYPE (msg)) {
     case GST_MESSAGE_EOS:
         input->stop();
@@ -256,12 +256,12 @@ gboolean QGStreamerAudioInput::busMessage(GstBus *, GstMessage *msg, gpointer us
     return false;
 }
 
-qsizetype QGStreamerAudioInput::bytesReady() const
+qsizetype QGStreamerAudioSource::bytesReady() const
 {
     return m_buffer.size();
 }
 
-void QGStreamerAudioInput::resume()
+void QGStreamerAudioSource::resume()
 {
     if (m_deviceState == QAudio::SuspendedState || m_deviceState == QAudio::IdleState) {
         gstPipeline.setState(GST_STATE_PLAYING);
@@ -270,7 +270,7 @@ void QGStreamerAudioInput::resume()
     }
 }
 
-void QGStreamerAudioInput::setVolume(qreal vol)
+void QGStreamerAudioSource::setVolume(qreal vol)
 {
     if (m_volume == vol)
         return;
@@ -280,27 +280,27 @@ void QGStreamerAudioInput::setVolume(qreal vol)
         gstVolume.set("volume", vol);
 }
 
-qreal QGStreamerAudioInput::volume() const
+qreal QGStreamerAudioSource::volume() const
 {
     return m_volume;
 }
 
-void QGStreamerAudioInput::setBufferSize(qsizetype value)
+void QGStreamerAudioSource::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
 }
 
-qsizetype QGStreamerAudioInput::bufferSize() const
+qsizetype QGStreamerAudioSource::bufferSize() const
 {
     return m_bufferSize;
 }
 
-qint64 QGStreamerAudioInput::processedUSecs() const
+qint64 QGStreamerAudioSource::processedUSecs() const
 {
     return m_format.durationForBytes(m_bytesWritten);
 }
 
-void QGStreamerAudioInput::suspend()
+void QGStreamerAudioSource::suspend()
 {
     if (m_deviceState == QAudio::ActiveState) {
         setError(QAudio::NoError);
@@ -310,7 +310,7 @@ void QGStreamerAudioInput::suspend()
     }
 }
 
-void QGStreamerAudioInput::reset()
+void QGStreamerAudioSource::reset()
 {
     stop();
     m_buffer.clear();
@@ -318,7 +318,7 @@ void QGStreamerAudioInput::reset()
 
 //#define MAX_BUFFERS_IN_QUEUE 4
 
-QGstElement QGStreamerAudioInput::createAppSink()
+QGstElement QGStreamerAudioSource::createAppSink()
 {
     QGstElement sink("appsink", "appsink");
     GstAppSink *appSink = reinterpret_cast<GstAppSink *>(sink.element());
@@ -334,7 +334,7 @@ QGstElement QGStreamerAudioInput::createAppSink()
     return sink;
 }
 
-void QGStreamerAudioInput::newDataAvailable(GstSample *sample)
+void QGStreamerAudioSource::newDataAvailable(GstSample *sample)
 {
     if (m_audioSink) {
         GstBuffer *buffer = gst_sample_get_buffer(sample);
@@ -358,10 +358,10 @@ void QGStreamerAudioInput::newDataAvailable(GstSample *sample)
     gst_sample_unref(sample);
 }
 
-GstFlowReturn QGStreamerAudioInput::new_sample(GstAppSink *sink, gpointer user_data)
+GstFlowReturn QGStreamerAudioSource::new_sample(GstAppSink *sink, gpointer user_data)
 {
     // "Note that the preroll buffer will also be returned as the first buffer when calling gst_app_sink_pull_buffer()."
-    QGStreamerAudioInput *control = static_cast<QGStreamerAudioInput*>(user_data);
+    QGStreamerAudioSource *control = static_cast<QGStreamerAudioSource*>(user_data);
 
     GstSample *sample = gst_app_sink_pull_sample(sink);
     QMetaObject::invokeMethod(control, "newDataAvailable", Qt::AutoConnection, Q_ARG(GstSample *, sample));
@@ -369,15 +369,15 @@ GstFlowReturn QGStreamerAudioInput::new_sample(GstAppSink *sink, gpointer user_d
     return GST_FLOW_OK;
 }
 
-void QGStreamerAudioInput::eos(GstAppSink *, gpointer user_data)
+void QGStreamerAudioSource::eos(GstAppSink *, gpointer user_data)
 {
-    QGStreamerAudioInput *control = static_cast<QGStreamerAudioInput*>(user_data);
+    QGStreamerAudioSource *control = static_cast<QGStreamerAudioSource*>(user_data);
     control->setState(QAudio::StoppedState);
 }
 
-GStreamerInputPrivate::GStreamerInputPrivate(QGStreamerAudioInput *audio)
+GStreamerInputPrivate::GStreamerInputPrivate(QGStreamerAudioSource *audio)
 {
-    m_audioDevice = qobject_cast<QGStreamerAudioInput*>(audio);
+    m_audioDevice = qobject_cast<QGStreamerAudioSource*>(audio);
 }
 
 qint64 GStreamerInputPrivate::readData(char *data, qint64 len)
@@ -404,4 +404,4 @@ qint64 GStreamerInputPrivate::bytesAvailable() const
 
 QT_END_NAMESPACE
 
-#include "moc_qaudioinput_gstreamer_p.cpp"
+#include "moc_qgstreameraudiosource_p.cpp"

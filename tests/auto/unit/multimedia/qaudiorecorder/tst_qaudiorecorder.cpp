@@ -34,7 +34,7 @@
 #include <qmediaencoder.h>
 #include <private/qplatformmediaencoder_p.h>
 #include <qaudiodeviceinfo.h>
-#include <qaudioinput.h>
+#include <qaudiosource.h>
 #include <qmediacapturesession.h>
 
 //TESTED_COMPONENT=src/multimedia

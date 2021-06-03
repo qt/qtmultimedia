@@ -48,38 +48,63 @@
 // We mean it.
 //
 
-#ifndef QAUDIOINPUTPULSE_H
-#define QAUDIOINPUTPULSE_H
+
+#ifndef QAUDIOINPUTALSA_H
+#define QAUDIOINPUTALSA_H
+
+#include <alsa/asoundlib.h>
 
 #include <QtCore/qfile.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/qtimer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
 
-#include "qaudio.h"
-#include "qaudiodeviceinfo.h"
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
 #include <private/qaudiosystem_p.h>
-
-#include <pulse/pulseaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class PulseInputPrivate;
 
-class QPulseAudioInput : public QAbstractAudioInput
+class AlsaInputPrivate;
+
+class RingBuffer
+{
+public:
+    RingBuffer();
+
+    void resize(int size);
+
+    int bytesOfDataInBuffer() const;
+    int freeBytes() const;
+
+    const char *availableData() const;
+    int availableDataBlockSize() const;
+    void readBytes(int bytes);
+
+    void write(char *data, int len);
+
+private:
+    int m_head;
+    int m_tail;
+
+    QByteArray m_data;
+};
+
+class QAlsaAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
-
 public:
-    QPulseAudioInput(const QByteArray &device);
-    ~QPulseAudioInput();
+    QAlsaAudioSource(const QByteArray &device);
+    ~QAlsaAudioSource();
 
-    qint64 read(char *data, qint64 len);
+    qint64 read(char* data, qint64 len);
 
-    void start(QIODevice *device) override;
-    QIODevice *start() override;
+    void start(QIODevice* device) override;
+    QIODevice* start() override;
     void stop() override;
     void reset() override;
     void suspend() override;
@@ -90,65 +115,64 @@ public:
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format) override;
+    void setFormat(const QAudioFormat& fmt) override;
     QAudioFormat format() const override;
-
-    void setVolume(qreal volume) override;
+    void setVolume(qreal) override;
     qreal volume() const override;
-
-    qint64 m_totalTimeValue;
-    QIODevice *m_audioSource;
-    QAudioFormat m_format;
-    QAudio::Error m_errorState;
-    QAudio::State m_deviceState;
-    qreal m_volume;
+    bool resuming;
+    snd_pcm_t* handle;
+    qint64 totalTimeValue;
+    QIODevice* audioSource;
+    QAudioFormat settings;
+    QAudio::Error errorState;
+    QAudio::State deviceState;
 
 private slots:
     void userFeed();
     bool deviceReady();
-    void onPulseContextFailed();
 
 private:
-    void setState(QAudio::State state);
-    void setError(QAudio::Error error);
-
-    void applyVolume(const void *src, void *dest, int len);
-
     int checkBytesReady();
+    int xrun_recovery(int err);
+    int setFormat();
     bool open();
     void close();
+    void drain();
 
-    bool m_pullMode;
-    bool m_opened;
-    int m_bytesAvailable;
-    int m_bufferSize;
-    int m_periodSize;
-    unsigned int m_periodTime;
-    QTimer *m_timer;
-    qint64 m_elapsedTimeOffset;
-    pa_stream *m_stream;
-    QByteArray m_streamName;
+    QTimer* timer;
+    qint64 elapsedTimeOffset;
+    RingBuffer ringBuffer;
+    int bytesAvailable;
     QByteArray m_device;
-    QByteArray m_tempBuffer;
-    pa_sample_spec m_spec;
+    bool pullMode;
+    int buffer_size;
+    int period_size;
+    unsigned int buffer_time;
+    unsigned int period_time;
+    snd_pcm_uframes_t buffer_frames;
+    snd_pcm_uframes_t period_frames;
+    snd_pcm_access_t access;
+    snd_pcm_format_t pcmformat;
+    snd_pcm_hw_params_t *hwparams;
+    qreal m_volume;
 };
 
-class PulseInputPrivate : public QIODevice
+class AlsaInputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    PulseInputPrivate(QPulseAudioInput *audio);
-    ~PulseInputPrivate() {};
+    AlsaInputPrivate(QAlsaAudioSource* audio);
+    ~AlsaInputPrivate();
 
-    qint64 readData(char *data, qint64 len) override;
-    qint64 writeData(const char *data, qint64 len) override;
+    qint64 readData( char* data, qint64 len) override;
+    qint64 writeData(const char* data, qint64 len) override;
 
     void trigger();
-
 private:
-    QPulseAudioInput *m_audioDevice;
+    QAlsaAudioSource *audioDevice;
 };
 
 QT_END_NAMESPACE
+
 
 #endif

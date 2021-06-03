@@ -45,7 +45,7 @@
 #include <qfile.h>
 
 #include "qaudiodeviceinfo.h"
-#include "qaudioinput.h"
+#include "qaudiosource.h"
 #include "qaudiooutput.h"
 #include "qaudiodecoder.h"
 #include "qmediaplayer.h"
@@ -64,7 +64,7 @@ public Q_SLOTS:
 private:
     //! [Audio input class members]
     QFile destinationFile;   // Class member
-    QAudioInput* audio; // Class member
+    QAudioSource* audio; // Class member
     //! [Audio input class members]
 };
 
@@ -86,7 +86,7 @@ void AudioInputExample::setup()
         qWarning() << "Default format not supported, trying to use the nearest.";
     }
 
-    audio = new QAudioInput(format, this);
+    audio = new QAudioSource(format, this);
     connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
 
     QTimer::singleShot(3000, this, SLOT(stopRecording()));

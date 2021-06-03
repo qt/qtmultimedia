@@ -41,7 +41,7 @@
 #include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
-#include "private/qopenslesaudioinput_p.h"
+#include "private/qandroidaudiosource_p.h"
 #include "private/qopenslesaudiooutput_p.h"
 #include "private/qopenslesdeviceinfo_p.h"
 #include "private/qopenslesengine_p.h"
@@ -70,9 +70,9 @@ QList<QCameraInfo> QAndroidMediaDevices::videoInputs() const
     return QAndroidCameraSession::availableCameras();
 }
 
-QAbstractAudioInput *QAndroidMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QOpenSLESAudioInput(deviceInfo.id());
+    return new QAndroidAudioSource(deviceInfo.id());
 }
 
 QAbstractAudioOutput *QAndroidMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)

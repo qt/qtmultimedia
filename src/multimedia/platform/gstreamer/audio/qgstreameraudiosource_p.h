@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,104 +37,121 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOINPUT_H
-#define QNXAUDIOINPUT_H
-
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API.  It exists for the convenience
+// of other Qt classes.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include "qaudiosystem_p.h"
+#ifndef QAUDIOINPUTPULSE_H
+#define QAUDIOINPUTPULSE_H
 
-#include <QSocketNotifier>
-#include <QIODevice>
-#include <QElapsedTimer>
-#include <QTimer>
+#include <QtCore/qfile.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qatomic.h>
+#include <QtCore/private/qringbuffer_p.h>
 
-#include <sys/asoundlib.h>
+#include "qaudio.h"
+#include "qaudiodeviceinfo.h"
+#include <private/qaudiosystem_p.h>
+
+#include <private/qgstutils_p.h>
+#include <private/qgstpipeline_p.h>
+#include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioInput : public QAbstractAudioInput
+class GStreamerInputPrivate;
+
+class QGStreamerAudioSource
+    : public QPlatformAudioSource
 {
     Q_OBJECT
-
+    friend class GStreamerInputPrivate;
 public:
-    QnxAudioInput();
-    ~QnxAudioInput();
+    QGStreamerAudioSource(const QAudioDeviceInfo &device);
+    ~QGStreamerAudioSource();
 
-    void start(QIODevice*) override;
-    QIODevice* start() override;
+    void start(QIODevice *device) override;
+    QIODevice *start() override;
     void stop() override;
     void reset() override;
     void suspend() override;
     void resume() override;
     qsizetype bytesReady() const override;
-    void setBufferSize(qsizetype ) override;
-    qsizetype bufferSize() const  override;
+    void setBufferSize(qsizetype value) override;
+    qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat&) override;
+    void setFormat(const QAudioFormat &format) override;
     QAudioFormat format() const override;
-    void setVolume(qreal) override;
+
+    void setVolume(qreal volume) override;
     qreal volume() const override;
 
-private slots:
-    void userFeed();
-    bool deviceReady();
+private Q_SLOTS:
+    void newDataAvailable(GstSample *sample);
 
 private:
-    friend class InputPrivate;
+    void setState(QAudio::State state);
+    void setError(QAudio::Error error);
+
+    QGstElement createAppSink();
+    static GstFlowReturn new_sample(GstAppSink *, gpointer user_data);
+    static void eos(GstAppSink *, gpointer user_data);
 
     bool open();
     void close();
-    qint64 read(char *data, qint64 len);
-    void setError(QAudio::Error error);
-    void setState(QAudio::State state);
 
+    static gboolean busMessage(GstBus *bus, GstMessage *msg, gpointer user_data);
+
+    QAudioDeviceInfo m_info;
+    qint64 m_bytesWritten = 0;
+    QIODevice *m_audioSink = nullptr;
     QAudioFormat m_format;
+    QAudio::Error m_errorState = QAudio::NoError;
+    QAudio::State m_deviceState = QAudio::StoppedState;
+    qreal m_volume = 1.;
 
-    QIODevice *m_audioSource;
-    snd_pcm_t *m_pcmHandle;
-    QSocketNotifier *m_pcmNotifier;
+    QRingBuffer m_buffer;
+    QAtomicInteger<bool> m_pullMode = true;
+    bool m_opened = false;
+    int m_bufferSize = 0;
+    qint64 m_elapsedTimeOffset = 0;
+    QElapsedTimer m_timeStamp;
+    QByteArray m_device;
+    QByteArray m_tempBuffer;
 
-    QAudio::Error m_error;
-    QAudio::State m_state;
-
-    qint64 m_bytesRead;
-    qint64 m_elapsedTimeOffset;
-    qint64 m_totalTimeValue;
-
-    qreal m_volume;
-
-    int m_bytesAvailable;
-    int m_bufferSize;
-    int m_periodSize;
-
-    bool m_pullMode;
+    QGstElement gstInput;
+    QGstPipeline gstPipeline;
+    QGstElement gstVolume;
+    QGstElement gstAppSink;
 };
 
-class InputPrivate : public QIODevice
+class GStreamerInputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    InputPrivate(QnxAudioInput *audio);
+    GStreamerInputPrivate(QGStreamerAudioSource *audio);
+    ~GStreamerInputPrivate() {};
 
     qint64 readData(char *data, qint64 len) override;
     qint64 writeData(const char *data, qint64 len) override;
-
-    void trigger();
-
+    qint64 bytesAvailable() const override;
+    bool isSequential() const override { return true; }
 private:
-    QnxAudioInput *m_audioDevice;
+    QGStreamerAudioSource *m_audioDevice;
 };
 
 QT_END_NAMESPACE

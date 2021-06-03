@@ -48,17 +48,92 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
+#ifndef AUDIOINPUT_H
+#define AUDIOINPUT_H
 
-#include "audioinput.h"
+#include <QAudioSource>
+#include <QByteArray>
+#include <QComboBox>
+#include <QMainWindow>
+#include <QObject>
+#include <QPixmap>
+#include <QPushButton>
+#include <QSlider>
+#include <QWidget>
+#include <QScopedPointer>
+#include <QMediaDevices>
 
-int main(int argv, char **args)
+class AudioInfo : public QIODevice
 {
-    QApplication app(argv, args);
-    app.setApplicationName("Audio Input Test");
+    Q_OBJECT
 
-    InputTest input;
-    input.show();
+public:
+    AudioInfo(const QAudioFormat &format);
 
-    return app.exec();
-}
+    void start();
+    void stop();
+
+    qreal level() const { return m_level; }
+
+    qint64 readData(char *data, qint64 maxlen) override;
+    qint64 writeData(const char *data, qint64 len) override;
+
+private:
+    const QAudioFormat m_format;
+    qreal m_level = 0.0; // 0.0 <= m_level <= 1.0
+
+signals:
+    void update();
+};
+
+
+class RenderArea : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit RenderArea(QWidget *parent = nullptr);
+
+    void setLevel(qreal value);
+
+protected:
+    void paintEvent(QPaintEvent *event) override;
+
+private:
+    qreal m_level = 0;
+    QPixmap m_pixmap;
+};
+
+
+class InputTest : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    InputTest();
+
+private:
+    void initializeWindow();
+    void initializeAudio(const QAudioDeviceInfo &deviceInfo);
+
+private slots:
+    void toggleMode();
+    void toggleSuspend();
+    void deviceChanged(int index);
+    void sliderChanged(int value);
+
+private:
+    // Owned by layout
+    RenderArea *m_canvas = nullptr;
+    QPushButton *m_modeButton = nullptr;
+    QPushButton *m_suspendResumeButton = nullptr;
+    QComboBox *m_deviceBox = nullptr;
+    QSlider *m_volumeSlider = nullptr;
+
+    QMediaDevices *m_devices = nullptr;
+    QScopedPointer<AudioInfo> m_audioInfo;
+    QScopedPointer<QAudioSource> m_audioInput;
+    bool m_pullMode = true;
+};
+
+#endif // AUDIOINPUT_H

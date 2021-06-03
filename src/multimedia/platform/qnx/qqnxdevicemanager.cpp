@@ -41,7 +41,7 @@
 #include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
-#include "private/qnxaudioinput_p.h"
+#include "private/qqnxaudiosource_p.h"
 #include "private/qnxaudiooutput_p.h"
 #include "private/qnxaudiodeviceinfo_p.h"
 #include "bbcamerasession_p.h"
@@ -109,9 +109,9 @@ QList<QCameraInfo> QQnxMediaDevices::videoInputs() const
     return enumerateCameras();
 }
 
-QAbstractAudioInput *QQnxMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QnxAudioInput();
+    return new QQnxAudioSource();
 }
 
 QAbstractAudioOutput *QQnxMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)

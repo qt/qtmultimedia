@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
     QAudioDeviceInfo.
 
     \sa QAudioDeviceInfo
-    \sa QAbstractAudioOutput, QAbstractAudioInput
+    \sa QAbstractAudioOutput, QPlatformAudioSource
 */
 
 /*!
@@ -221,101 +221,101 @@ void QAbstractAudioOutput::setRole(QAudio::Role role)
 */
 
 /*!
-    \class QAbstractAudioInput
-    \brief The QAbstractAudioInput class provides access for QAudioInput to access the audio
+    \class QPlatformAudioSource
+    \brief The QPlatformAudioSource class provides access for QAudioSource to access the audio
     device provided by the plugin.
 
     \ingroup multimedia
     \inmodule QtMultimedia
 
-    QAudioDeviceInput keeps an instance of QAbstractAudioInput and
-    routes calls to functions of the same name to QAbstractAudioInput.
-    This means that it is QAbstractAudioInput that implements the
+    QAudioDeviceInput keeps an instance of QPlatformAudioSource and
+    routes calls to functions of the same name to QPlatformAudioSource.
+    This means that it is QPlatformAudioSource that implements the
     audio functionality. For a description of the functionality, see
-    the QAudioInput class description.
+    the QAudioSource class description.
 
-    \sa QAudioInput
+    \sa QAudioSource
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::start(QIODevice* device)
+    \fn virtual void QPlatformAudioSource::start(QIODevice* device)
     Uses the \a device as the QIODevice to transfer data.
 */
 
 /*!
-    \fn virtual QIODevice* QAbstractAudioInput::start()
+    \fn virtual QIODevice* QPlatformAudioSource::start()
     Returns a pointer to the QIODevice being used to handle
     the data transfer. This QIODevice can be used to read() audio data directly.
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::stop()
+    \fn virtual void QPlatformAudioSource::stop()
     Stops the audio input.
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::reset()
+    \fn virtual void QPlatformAudioSource::reset()
     Drops all audio data in the buffers, resets buffers to zero.
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::suspend()
+    \fn virtual void QPlatformAudioSource::suspend()
     Stops processing audio data, preserving buffered audio data.
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::resume()
+    \fn virtual void QPlatformAudioSource::resume()
     Resumes processing audio data after a suspend().
 */
 
 /*!
-    \fn virtual qsizetype QAbstractAudioInput::bytesReady() const
+    \fn virtual qsizetype QPlatformAudioSource::bytesReady() const
     Returns the amount of audio data available to read in bytes.
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::setBufferSize(qsizetype value)
+    \fn virtual void QPlatformAudioSource::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in milliseconds.
 */
 
 /*!
-    \fn virtual qsizetype QAbstractAudioInput::bufferSize() const
+    \fn virtual qsizetype QPlatformAudioSource::bufferSize() const
     Returns the audio buffer size in milliseconds.
 */
 
 /*!
-    \fn virtual qint64 QAbstractAudioInput::processedUSecs() const
+    \fn virtual qint64 QPlatformAudioSource::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
 */
 
 /*!
-    \fn virtual QAudio::Error QAbstractAudioInput::error() const
+    \fn virtual QAudio::Error QPlatformAudioSource::error() const
     Returns the error state.
 */
 
 /*!
-    \fn virtual QAudio::State QAbstractAudioInput::state() const
+    \fn virtual QAudio::State QPlatformAudioSource::state() const
     Returns the state of audio processing.
 */
 
 /*!
-    \fn virtual void QAbstractAudioInput::setFormat(const QAudioFormat& fmt)
+    \fn virtual void QPlatformAudioSource::setFormat(const QAudioFormat& fmt)
     Set the QAudioFormat to use to \a fmt.
     Setting the format is only allowable while in QAudio::StoppedState.
 */
 
 /*!
-    \fn virtual QAudioFormat QAbstractAudioInput::format() const
+    \fn virtual QAudioFormat QPlatformAudioSource::format() const
     Returns the QAudioFormat being used
 */
 
 /*!
-    \fn QAbstractAudioInput::errorChanged(QAudio::Error error)
+    \fn QPlatformAudioSource::errorChanged(QAudio::Error error)
     This signal is emitted when the \a error state has changed.
 */
 
 /*!
-    \fn QAbstractAudioInput::stateChanged(QAudio::State state)
+    \fn QPlatformAudioSource::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
 */
 

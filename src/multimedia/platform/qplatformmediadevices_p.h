@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 class QMediaDevices;
 class QAudioDeviceInfo;
 class QCameraInfo;
-class QAbstractAudioInput;
+class QPlatformAudioSource;
 class QAbstractAudioOutput;
 class QAudioFormat;
 
@@ -72,14 +72,14 @@ public:
     virtual QList<QAudioDeviceInfo> audioInputs() const = 0;
     virtual QList<QAudioDeviceInfo> audioOutputs() const = 0;
     virtual QList<QCameraInfo> videoInputs() const = 0;
-    virtual QAbstractAudioInput *createAudioInputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
+    virtual QPlatformAudioSource *createAudioSource(const QAudioDeviceInfo &deviceInfo) = 0;
     virtual QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) = 0;
 
     QAudioDeviceInfo audioInput(const QByteArray &id) const;
     QAudioDeviceInfo audioOutput(const QByteArray &id) const;
     QCameraInfo videoInput(const QByteArray &id) const;
 
-    QAbstractAudioInput *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+    QPlatformAudioSource *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
     QAbstractAudioOutput *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
 
     void addDevices(QMediaDevices *m)

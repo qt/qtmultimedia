@@ -41,7 +41,7 @@
 #include "qmediadevices.h"
 #include "qcamerainfo_p.h"
 
-#include "private/qaudioinput_pulse_p.h"
+#include "private/qpulseaudiosource_p.h"
 #include "private/qaudiooutput_pulse_p.h"
 #include "private/qaudiodeviceinfo_pulse_p.h"
 #include "private/qaudioengine_pulse_p.h"
@@ -69,9 +69,9 @@ QList<QCameraInfo> QPulseAudioMediaDevices::videoInputs() const
     return {};
 }
 
-QAbstractAudioInput *QPulseAudioMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QPulseAudioInput(deviceInfo.id());
+    return new QPulseAudioSource(deviceInfo.id());
 }
 
 QAbstractAudioOutput *QPulseAudioMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)

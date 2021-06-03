@@ -54,7 +54,7 @@
 
 #include <math.h>
 
-#include <QAudioInput>
+#include <QAudioSource>
 #include <QAudioOutput>
 #include <QCoreApplication>
 #include <QDebug>
@@ -236,7 +236,7 @@ void Engine::startRecording()
             setRecordPosition(0, true);
             stopPlayback();
             m_mode = QAudio::AudioInput;
-            connect(m_audioInput, &QAudioInput::stateChanged,
+            connect(m_audioInput, &QAudioSource::stateChanged,
                     this, &Engine::audioStateChanged);
 
             m_count = 0;
@@ -508,7 +508,7 @@ bool Engine::initialize()
                     result = true;
                 } else {
                     emit bufferChanged(0, 0, m_buffer);
-                    m_audioInput = new QAudioInput(m_audioInputDevice, m_format, this);
+                    m_audioInput = new QAudioSource(m_audioInputDevice, m_format, this);
                     result = true;
                 }
             }

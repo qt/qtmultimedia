@@ -93,7 +93,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li \l{Spectrum Example}{spectrum},
             \l{Audio Input Example}{audioinput}
         \li
-        \li QAudioInput
+        \li QAudioSource
     \row
         \li Recording encoded audio data
         \li \l{Audio Recorder Example}{audiorecorder}

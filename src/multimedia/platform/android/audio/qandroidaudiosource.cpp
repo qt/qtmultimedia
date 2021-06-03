@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qopenslesaudioinput_p.h"
+#include "qandroidaudiosource_p.h"
 
 #include "qopenslesengine_p.h"
 #include <private/qaudiohelpers_p.h>
@@ -80,10 +80,10 @@ static void bufferQueueCallback(SLBufferQueueItf, void *context)
 #endif
 {
     // Process buffer in main thread
-    QMetaObject::invokeMethod(reinterpret_cast<QOpenSLESAudioInput*>(context), "processBuffer");
+    QMetaObject::invokeMethod(reinterpret_cast<QAndroidAudioSource*>(context), "processBuffer");
 }
 
-QOpenSLESAudioInput::QOpenSLESAudioInput(const QByteArray &device)
+QAndroidAudioSource::QAndroidAudioSource(const QByteArray &device)
     : m_device(device)
     , m_engine(QOpenSLESEngine::instance())
     , m_recorderObject(0)
@@ -113,35 +113,35 @@ QOpenSLESAudioInput::QOpenSLESAudioInput(const QByteArray &device)
 #endif
 }
 
-QOpenSLESAudioInput::~QOpenSLESAudioInput()
+QAndroidAudioSource::~QAndroidAudioSource()
 {
     if (m_recorderObject)
         (*m_recorderObject)->Destroy(m_recorderObject);
     delete[] m_buffers;
 }
 
-QAudio::Error QOpenSLESAudioInput::error() const
+QAudio::Error QAndroidAudioSource::error() const
 {
     return m_errorState;
 }
 
-QAudio::State QOpenSLESAudioInput::state() const
+QAudio::State QAndroidAudioSource::state() const
 {
     return m_deviceState;
 }
 
-void QOpenSLESAudioInput::setFormat(const QAudioFormat &format)
+void QAndroidAudioSource::setFormat(const QAudioFormat &format)
 {
     if (m_deviceState == QAudio::StoppedState)
         m_format = format;
 }
 
-QAudioFormat QOpenSLESAudioInput::format() const
+QAudioFormat QAndroidAudioSource::format() const
 {
     return m_format;
 }
 
-void QOpenSLESAudioInput::start(QIODevice *device)
+void QAndroidAudioSource::start(QIODevice *device)
 {
     if (m_deviceState != QAudio::StoppedState)
         stopRecording();
@@ -165,7 +165,7 @@ void QOpenSLESAudioInput::start(QIODevice *device)
     Q_EMIT stateChanged(m_deviceState);
 }
 
-QIODevice *QOpenSLESAudioInput::start()
+QIODevice *QAndroidAudioSource::start()
 {
     if (m_deviceState != QAudio::StoppedState)
         stopRecording();
@@ -196,7 +196,7 @@ QIODevice *QOpenSLESAudioInput::start()
     return m_bufferIODevice;
 }
 
-bool QOpenSLESAudioInput::startRecording()
+bool QAndroidAudioSource::startRecording()
 {
     if (!hasRecordingPermission())
         return false;
@@ -328,7 +328,7 @@ bool QOpenSLESAudioInput::startRecording()
     return true;
 }
 
-void QOpenSLESAudioInput::stop()
+void QAndroidAudioSource::stop()
 {
     if (m_deviceState == QAudio::StoppedState)
         return;
@@ -341,7 +341,7 @@ void QOpenSLESAudioInput::stop()
     Q_EMIT stateChanged(m_deviceState);
 }
 
-void QOpenSLESAudioInput::stopRecording()
+void QAndroidAudioSource::stopRecording()
 {
     flushBuffers();
 
@@ -363,7 +363,7 @@ void QOpenSLESAudioInput::stopRecording()
     }
 }
 
-void QOpenSLESAudioInput::suspend()
+void QAndroidAudioSource::suspend()
 {
     if (m_deviceState == QAudio::ActiveState) {
         m_deviceState = QAudio::SuspendedState;
@@ -373,7 +373,7 @@ void QOpenSLESAudioInput::suspend()
     }
 }
 
-void QOpenSLESAudioInput::resume()
+void QAndroidAudioSource::resume()
 {
     if (m_deviceState == QAudio::SuspendedState || m_deviceState == QAudio::IdleState) {
         (*m_recorder)->SetRecordState(m_recorder, SL_RECORDSTATE_RECORDING);
@@ -383,7 +383,7 @@ void QOpenSLESAudioInput::resume()
     }
 }
 
-void QOpenSLESAudioInput::processBuffer()
+void QAndroidAudioSource::processBuffer()
 {
     if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
         return;
@@ -418,7 +418,7 @@ void QOpenSLESAudioInput::processBuffer()
     }
 }
 
-void QOpenSLESAudioInput::writeDataToDevice(const char *data, int size)
+void QAndroidAudioSource::writeDataToDevice(const char *data, int size)
 {
     m_processedBytes += size;
 
@@ -448,7 +448,7 @@ void QOpenSLESAudioInput::writeDataToDevice(const char *data, int size)
     }
 }
 
-void QOpenSLESAudioInput::flushBuffers()
+void QAndroidAudioSource::flushBuffers()
 {
     SLmillisecond recorderPos;
     (*m_recorder)->GetPosition(m_recorder, &recorderPos);
@@ -463,7 +463,7 @@ void QOpenSLESAudioInput::flushBuffers()
     }
 }
 
-qsizetype QOpenSLESAudioInput::bytesReady() const
+qsizetype QAndroidAudioSource::bytesReady() const
 {
     if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::SuspendedState)
         return m_bufferIODevice ? m_bufferIODevice->bytesAvailable() : m_bufferSize;
@@ -471,32 +471,32 @@ qsizetype QOpenSLESAudioInput::bytesReady() const
     return 0;
 }
 
-void QOpenSLESAudioInput::setBufferSize(qsizetype value)
+void QAndroidAudioSource::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
 }
 
-qsizetype QOpenSLESAudioInput::bufferSize() const
+qsizetype QAndroidAudioSource::bufferSize() const
 {
     return m_bufferSize;
 }
 
-qint64 QOpenSLESAudioInput::processedUSecs() const
+qint64 QAndroidAudioSource::processedUSecs() const
 {
     return m_format.durationForBytes(m_processedBytes);
 }
 
-void QOpenSLESAudioInput::setVolume(qreal vol)
+void QAndroidAudioSource::setVolume(qreal vol)
 {
     m_volume = vol;
 }
 
-qreal QOpenSLESAudioInput::volume() const
+qreal QAndroidAudioSource::volume() const
 {
     return m_volume;
 }
 
-void QOpenSLESAudioInput::reset()
+void QAndroidAudioSource::reset()
 {
     stop();
 }

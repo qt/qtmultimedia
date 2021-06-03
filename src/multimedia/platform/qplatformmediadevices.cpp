@@ -79,13 +79,13 @@ QCameraInfo QPlatformMediaDevices::videoInput(const QByteArray &id) const
     return QCameraInfo();
 }
 
-QAbstractAudioInput* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
 {
     QAudioDeviceInfo info = deviceInfo;
     if (info.isNull())
         info = audioInputs().value(0);
 
-    QAbstractAudioInput* p = createAudioInputDevice(info);
+    QPlatformAudioSource* p = createAudioSource(info);
     if (p)
         p->setFormat(format);
     return p;

@@ -61,7 +61,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDeviceInfoPrivate);
 
     A QAudioDeviceInfo is used by Qt to construct
     classes that communicate with the device -- such as
-    QAudioInput, and QAudioOutput. It is also used to determine the
+    QAudioSource, and QAudioOutput. It is also used to determine the
     input or output device to use in a capture session or during media playback.
 
     You can also query each device for the formats it supports. A
@@ -88,7 +88,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDeviceInfoPrivate);
     sound, i.e., play an audio stream in a supported format. For each device we
     find, we simply print the deviceName().
 
-    \sa QAudioOutput, QAudioInput
+    \sa QAudioOutput, QAudioSource
 */
 
 /*!

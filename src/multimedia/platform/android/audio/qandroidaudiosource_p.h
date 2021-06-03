@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,69 +37,101 @@
 **
 ****************************************************************************/
 
+#ifndef QOPENSLESAUDIOINPUT_H
+#define QOPENSLESAUDIOINPUT_H
 
-#ifndef QAUDIOINPUT_H
-#define QAUDIOINPUT_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtCore/qiodevice.h>
+#include <qaudiosystem_p.h>
+#include <QElapsedTimer>
+#include <SLES/OpenSLES.h>
 
-#include <QtMultimedia/qtmultimediaglobal.h>
+#ifdef ANDROID
+#include <SLES/OpenSLES_Android.h>
 
-#include <QtMultimedia/qaudio.h>
-#include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/qaudiodeviceinfo.h>
+#define QT_ANDROID_PRESET_MIC "mic"
+#define QT_ANDROID_PRESET_CAMCORDER "camcorder"
+#define QT_ANDROID_PRESET_VOICE_RECOGNITION "voicerecognition"
+#define QT_ANDROID_PRESET_VOICE_COMMUNICATION "voicecommunication"
 
+#endif
 
 QT_BEGIN_NAMESPACE
 
+class QOpenSLESEngine;
+class QIODevice;
+class QBuffer;
 
-
-class QAbstractAudioInput;
-
-class Q_MULTIMEDIA_EXPORT QAudioInput : public QObject
+class QAndroidAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 
 public:
-    explicit QAudioInput(const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
-    explicit QAudioInput(const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
-    ~QAudioInput();
-
-    bool isNull() const { return !d; }
-
-    QAudioFormat format() const;
+    QAndroidAudioSource(const QByteArray &device);
+    ~QAndroidAudioSource();
 
     void start(QIODevice *device);
-    QIODevice* start();
-
+    QIODevice *start();
     void stop();
     void reset();
     void suspend();
     void resume();
-
-    void setBufferSize(qsizetype bytes);
+    qsizetype bytesReady() const;
+    void setBufferSize(qsizetype value);
     qsizetype bufferSize() const;
-
-    qsizetype bytesAvailable() const;
+    qint64 processedUSecs() const;
+    QAudio::Error error() const;
+    QAudio::State state() const;
+    void setFormat(const QAudioFormat &format);
+    QAudioFormat format() const;
 
     void setVolume(qreal volume);
     qreal volume() const;
 
-    qint64 processedUSecs() const;
-    qint64 elapsedUSecs() const;
-
-    QAudio::Error error() const;
-    QAudio::State state() const;
-
-Q_SIGNALS:
-    void stateChanged(QAudio::State state);
+public Q_SLOTS:
+    void processBuffer();
 
 private:
-    Q_DISABLE_COPY(QAudioInput)
+    bool startRecording();
+    void stopRecording();
+    void writeDataToDevice(const char *data, int size);
+    void flushBuffers();
 
-    QAbstractAudioInput* d;
+    QByteArray m_device;
+    QOpenSLESEngine *m_engine;
+    SLObjectItf m_recorderObject;
+    SLRecordItf m_recorder;
+#ifdef ANDROID
+    SLuint32 m_recorderPreset;
+    SLAndroidSimpleBufferQueueItf m_bufferQueue;
+#else
+    SLBufferQueueItf m_bufferQueue;
+#endif
+
+    bool m_pullMode;
+    qint64 m_processedBytes;
+    QIODevice *m_audioSource;
+    QBuffer *m_bufferIODevice;
+    QByteArray m_pushBuffer;
+    QAudioFormat m_format;
+    QAudio::Error m_errorState;
+    QAudio::State m_deviceState;
+    qint64 m_lastNotifyTime;
+    qreal m_volume;
+    int m_bufferSize;
+    QByteArray *m_buffers;
+    int m_currentBuffer;
 };
 
 QT_END_NAMESPACE
 
-#endif // QAUDIOINPUT_H
+#endif // QOPENSLESAUDIOINPUT_H

@@ -96,7 +96,7 @@ protected:
     QAudio::Role m_role = QAudio::UnknownRole;
 };
 
-class QAbstractAudioInput : public QObject
+class QPlatformAudioSource : public QObject
 {
     Q_OBJECT
 

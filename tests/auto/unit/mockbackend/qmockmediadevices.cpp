@@ -82,7 +82,7 @@ QList<QCameraInfo> QMockMediaDevices::videoInputs() const
     return m_cameraDevices;
 }
 
-QAbstractAudioInput *QMockMediaDevices::createAudioInputDevice(const QAudioDeviceInfo &info)
+QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDeviceInfo &info)
 {
     Q_UNUSED(info);
     return nullptr;// ###

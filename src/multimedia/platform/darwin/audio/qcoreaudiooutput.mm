@@ -593,7 +593,7 @@ bool QCoreAudioOutput::open()
                              0,
                              &numberOfFrames,
                              &size) != noErr) {
-        qWarning() << "QAudioInput: Failed to get audio period size";
+        qWarning() << "QAudioSource: Failed to get audio period size";
         return false;
     }
 #else //iOS

@@ -100,7 +100,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/audio.cpp Audio output state changed
 
-    \sa QAudioInput, QAudioDeviceInfo
+    \sa QAudioSource, QAudioDeviceInfo
 */
 
 /*!

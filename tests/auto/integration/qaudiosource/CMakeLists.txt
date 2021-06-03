@@ -1,12 +1,10 @@
-# Generated from qaudioinput.pro.
-
 #####################################################################
-## tst_qaudioinput Test:
+## tst_qaudiosource Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudioinput
+qt_internal_add_test(tst_qaudiosource
     SOURCES
-        tst_qaudioinput.cpp
+        tst_qaudiosource.cpp
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

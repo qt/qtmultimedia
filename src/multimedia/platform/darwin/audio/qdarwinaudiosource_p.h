@@ -66,8 +66,8 @@ QT_BEGIN_NAMESPACE
 
 class CoreAudioRingBuffer;
 class QCoreAudioPacketFeeder;
-class QCoreAudioInputBuffer;
-class QCoreAudioInputDevice;
+class QDarwinAudioSourceBuffer;
+class QDarwinAudioSourceDevice;
 
 class QCoreAudioBufferList
 {
@@ -107,18 +107,18 @@ private:
     QCoreAudioBufferList *m_audioBufferList;
 };
 
-class QCoreAudioInputBuffer : public QObject
+class QDarwinAudioSourceBuffer : public QObject
 {
     Q_OBJECT
 
 public:
-    QCoreAudioInputBuffer(int bufferSize,
+    QDarwinAudioSourceBuffer(int bufferSize,
                         int maxPeriodSize,
                         AudioStreamBasicDescription const& inputFormat,
                         AudioStreamBasicDescription const& outputFormat,
                         QObject *parent);
 
-    ~QCoreAudioInputBuffer();
+    ~QDarwinAudioSourceBuffer();
 
     qreal volume() const;
     void setVolume(qreal v);
@@ -180,12 +180,12 @@ private:
                                 void *inUserData);
 };
 
-class QCoreAudioInputDevice : public QIODevice
+class QDarwinAudioSourceDevice : public QIODevice
 {
     Q_OBJECT
 
 public:
-    QCoreAudioInputDevice(QCoreAudioInputBuffer *audioBuffer, QObject *parent);
+    QDarwinAudioSourceDevice(QDarwinAudioSourceBuffer *audioBuffer, QObject *parent);
 
     qint64 readData(char *data, qint64 len);
     qint64 writeData(const char *data, qint64 len);
@@ -193,16 +193,16 @@ public:
     bool isSequential() const { return true; }
 
 private:
-    QCoreAudioInputBuffer *m_audioBuffer;
+    QDarwinAudioSourceBuffer *m_audioBuffer;
 };
 
-class CoreAudioInput : public QAbstractAudioInput
+class QDarwinAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 
 public:
-    CoreAudioInput(const QAudioDeviceInfo &device);
-    ~CoreAudioInput();
+    QDarwinAudioSource(const QAudioDeviceInfo &device);
+    ~QDarwinAudioSource();
 
     void start(QIODevice *device);
     QIODevice *start();
@@ -268,7 +268,7 @@ private:
     Float64 m_clockFrequency;
     QAudio::Error m_errorCode;
     QAudio::State m_stateCode;
-    QCoreAudioInputBuffer *m_audioBuffer;
+    QDarwinAudioSourceBuffer *m_audioBuffer;
     QAtomicInt m_audioThreadState;
     AudioStreamBasicDescription m_streamFormat;
     AudioStreamBasicDescription m_deviceFormat;

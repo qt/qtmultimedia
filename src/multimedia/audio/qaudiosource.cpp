@@ -41,7 +41,7 @@
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
 #include "qaudiosystem_p.h"
-#include "qaudioinput.h"
+#include "qaudiosource.h"
 
 #include <private/qplatformmediadevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
@@ -49,8 +49,8 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QAudioInput
-    \brief The QAudioInput class provides an interface for receiving audio data from an audio input device.
+    \class QAudioSource
+    \brief The QAudioSource class provides an interface for receiving audio data from an audio input device.
 
     \inmodule QtMultimedia
     \ingroup multimedia
@@ -58,20 +58,20 @@ QT_BEGIN_NAMESPACE
 
     You can construct an audio input with the system's
     \l{QAudioDeviceInfo::defaultInputDevice()}{default audio input
-    device}. It is also possible to create QAudioInput with a
+    device}. It is also possible to create QAudioSource with a
     specific QAudioDeviceInfo. When you create the audio input, you
     should also send in the QAudioFormat to be used for the recording
     (see the QAudioFormat class description for details).
 
     To record to a file:
 
-    QAudioInput lets you record audio with an audio input device. The
+    QAudioSource lets you record audio with an audio input device. The
     default constructor of this class will use the systems default
     audio device, but you can also specify a QAudioDeviceInfo for a
     specific device. You also need to pass in the QAudioFormat in
     which you wish to record.
 
-    Starting up the QAudioInput is simply a matter of calling start()
+    Starting up the QAudioSource is simply a matter of calling start()
     with a QIODevice opened for writing. For instance, to record to a
     file, you can:
 
@@ -87,23 +87,23 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/audio.cpp Audio input stop recording
 
-    At any point in time, QAudioInput will be in one of four states:
+    At any point in time, QAudioSource will be in one of four states:
     active, suspended, stopped, or idle. These states are specified by
     the QAudio::State enum. You can request a state change directly through
     suspend(), resume(), stop(), reset(), and start(). The current
     state is reported by state(). QAudioOutput will also signal you
     when the state changes (stateChanged()).
 
-    QAudioInput provides several ways of measuring the time that has
+    QAudioSource provides several ways of measuring the time that has
     passed since the start() of the recording. The \c processedUSecs()
     function returns the length of the stream in microseconds written,
     i.e., it leaves out the times the audio input was suspended or idle.
     The elapsedUSecs() function returns the time elapsed since start() was called regardless of
-    which states the QAudioInput has been in.
+    which states the QAudioSource has been in.
 
     If an error should occur, you can fetch its reason with error().
     The possible error reasons are described by the QAudio::Error
-    enum. The QAudioInput will enter the \l{QAudio::}{StoppedState} when
+    enum. The QAudioSource will enter the \l{QAudio::}{StoppedState} when
     an error is encountered.  Connect to the stateChanged() signal to
     handle the error:
 
@@ -118,8 +118,8 @@ QT_BEGIN_NAMESPACE
     \a format parameters.
 */
 
-QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent)
-    : QAudioInput({}, format, parent)
+QAudioSource::QAudioSource(const QAudioFormat &format, QObject *parent)
+    : QAudioSource({}, format, parent)
 {
 }
 
@@ -129,7 +129,7 @@ QAudioInput::QAudioInput(const QAudioFormat &format, QObject *parent)
     \a format parameters.
 */
 
-QAudioInput::QAudioInput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
+QAudioSource::QAudioSource(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
     d = QPlatformMediaIntegration::instance()->devices()->audioInputDevice(format, audioDevice);
@@ -141,7 +141,7 @@ QAudioInput::QAudioInput(const QAudioDeviceInfo &audioDevice, const QAudioFormat
     Destroy this audio input.
 */
 
-QAudioInput::~QAudioInput()
+QAudioSource::~QAudioSource()
 {
     delete d;
 }
@@ -151,7 +151,7 @@ QAudioInput::~QAudioInput()
     The \a device must have been opened in the \l{QIODevice::WriteOnly}{WriteOnly},
     \l{QIODevice::Append}{Append} or \l{QIODevice::ReadWrite}{ReadWrite} modes.
 
-    If the QAudioInput is able to successfully get audio data, state() returns
+    If the QAudioSource is able to successfully get audio data, state() returns
     either QAudio::ActiveState or QAudio::IdleState, error() returns QAudio::NoError
     and the stateChanged() signal is emitted.
 
@@ -161,7 +161,7 @@ QAudioInput::~QAudioInput()
     \sa QIODevice
 */
 
-void QAudioInput::start(QIODevice* device)
+void QAudioSource::start(QIODevice* device)
 {
     d->elapsedTime.start();
     d->start(device);
@@ -175,7 +175,7 @@ void QAudioInput::start(QIODevice* device)
     \note The pointer will become invalid after the stream is stopped or
     if you start another stream.
 
-    If the QAudioInput is able to access the system's audio device, state() returns
+    If the QAudioSource is able to access the system's audio device, state() returns
     QAudio::IdleState, error() returns QAudio::NoError
     and the stateChanged() signal is emitted.
 
@@ -185,7 +185,7 @@ void QAudioInput::start(QIODevice* device)
     \sa QIODevice
 */
 
-QIODevice* QAudioInput::start()
+QIODevice* QAudioSource::start()
 {
     d->elapsedTime.start();
     return d->start();
@@ -195,7 +195,7 @@ QIODevice* QAudioInput::start()
     Returns the QAudioFormat being used.
 */
 
-QAudioFormat QAudioInput::format() const
+QAudioFormat QAudioSource::format() const
 {
     return d->format();
 }
@@ -207,7 +207,7 @@ QAudioFormat QAudioInput::format() const
     emit stateChanged() signal.
 */
 
-void QAudioInput::stop()
+void QAudioSource::stop()
 {
     d->stop();
 }
@@ -216,7 +216,7 @@ void QAudioInput::stop()
     Drops all audio data in the buffers, resets buffers to zero.
 */
 
-void QAudioInput::reset()
+void QAudioSource::reset()
 {
     d->reset();
 }
@@ -228,7 +228,7 @@ void QAudioInput::reset()
     emit stateChanged() signal.
 */
 
-void QAudioInput::suspend()
+void QAudioSource::suspend()
 {
     d->suspend();
 }
@@ -242,7 +242,7 @@ void QAudioInput::suspend()
     emits stateChanged() signal.
 */
 
-void QAudioInput::resume()
+void QAudioSource::resume()
 {
      d->resume();
 }
@@ -257,7 +257,7 @@ void QAudioInput::resume()
 
 */
 
-void QAudioInput::setBufferSize(qsizetype value)
+void QAudioSource::setBufferSize(qsizetype value)
 {
     d->setBufferSize(value);
 }
@@ -272,7 +272,7 @@ void QAudioInput::setBufferSize(qsizetype value)
 
 */
 
-qsizetype QAudioInput::bufferSize() const
+qsizetype QAudioSource::bufferSize() const
 {
     return d->bufferSize();
 }
@@ -284,7 +284,7 @@ qsizetype QAudioInput::bufferSize() const
     state, otherwise returns zero.
 */
 
-qsizetype QAudioInput::bytesAvailable() const
+qsizetype QAudioSource::bytesAvailable() const
 {
     /*
     -If not ActiveState|IdleState, return 0
@@ -307,7 +307,7 @@ qsizetype QAudioInput::bytesAvailable() const
 
     Note: Adjustments to the volume will change the volume of this audio stream, not the global volume.
 */
-void QAudioInput::setVolume(qreal volume)
+void QAudioSource::setVolume(qreal volume)
 {
     qreal v = qBound(qreal(0.0), volume, qreal(1.0));
     d->setVolume(v);
@@ -319,7 +319,7 @@ void QAudioInput::setVolume(qreal volume)
     If the device does not support adjusting the input volume
     the returned value will be 1.0.
 */
-qreal QAudioInput::volume() const
+qreal QAudioSource::volume() const
 {
     return d->volume();
 }
@@ -329,7 +329,7 @@ qreal QAudioInput::volume() const
     was called in microseconds.
 */
 
-qint64 QAudioInput::processedUSecs() const
+qint64 QAudioSource::processedUSecs() const
 {
     return d->processedUSecs();
 }
@@ -341,7 +341,7 @@ qint64 QAudioInput::processedUSecs() const
 
 #include <qdebug.h>
 
-qint64 QAudioInput::elapsedUSecs() const
+qint64 QAudioSource::elapsedUSecs() const
 {
     return d->state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
 }
@@ -350,7 +350,7 @@ qint64 QAudioInput::elapsedUSecs() const
     Returns the error state.
 */
 
-QAudio::Error QAudioInput::error() const
+QAudio::Error QAudioSource::error() const
 {
     return d->error();
 }
@@ -359,17 +359,17 @@ QAudio::Error QAudioInput::error() const
     Returns the state of audio processing.
 */
 
-QAudio::State QAudioInput::state() const
+QAudio::State QAudioSource::state() const
 {
     return d->state();
 }
 
 /*!
-    \fn QAudioInput::stateChanged(QAudio::State state)
+    \fn QAudioSource::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
 */
 
 QT_END_NAMESPACE
 
-#include "moc_qaudioinput.cpp"
+#include "moc_qaudiosource.cpp"
 
