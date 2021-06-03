@@ -74,5 +74,5 @@ public:
 
 QT_END_NAMESPACE
 
-#include "multimedia.moc"
+#include "multimedia_plugin.moc"
 

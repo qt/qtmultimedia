@@ -1,10 +1,22 @@
-# Generated from qtmultimediaquicktools.pro.
-
 #####################################################################
 ## MultimediaQuick Module:
 #####################################################################
 
-qt_internal_add_module(MultimediaQuick
+set(qml_files
+    "Video.qml"
+)
+set_source_files_properties(Video.qml PROPERTIES
+    QT_QML_SOURCE_VERSION "5.0"
+)
+
+qt_internal_add_qml_module(MultimediaQuick
+    URI "QtMultimedia"
+    VERSION "${PROJECT_VERSION}"
+    PAST_MAJOR_VERSIONS 5
+    CLASS_NAME QMultimediaQuickModule
+    PLUGIN_TARGET quickmultimedia
+    NO_GENERATE_PLUGIN_SOURCE
+    NO_PLUGIN_OPTIONAL
     CONFIG_MODULE_NAME multimediaquick
     INTERNAL_MODULE
     SOURCES
@@ -17,6 +29,8 @@ qt_internal_add_module(MultimediaQuick
         qsgvideotexture.cpp qsgvideotexture_p.h
         qtmultimediaquickglobal_p.h
         qtmultimediaquicktypes_p.h
+    QML_FILES
+        ${qml_files}
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::MultimediaPrivate
@@ -24,12 +38,4 @@ qt_internal_add_module(MultimediaQuick
         Qt::QuickPrivate
 )
 
-set_target_properties(MultimediaQuick PROPERTIES
-    QT_QML_MODULE_INSTALL_QMLTYPES TRUE
-    QT_QML_MODULE_VERSION ${CMAKE_PROJECT_VERSION}
-    QT_QML_MODULE_URI QtMultimedia
-    QT_QMLTYPES_FILENAME plugins.qmltypes
-    QT_QML_MODULE_INSTALL_DIR "${INSTALL_QMLDIR}/QtMultimedia"
-)
-
-qt6_qml_type_registration(MultimediaQuick)
+target_sources(quickmultimedia PRIVATE multimedia_plugin.cpp)
