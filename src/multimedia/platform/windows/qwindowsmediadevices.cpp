@@ -43,7 +43,7 @@
 #include "qvarlengtharray.h"
 
 #include "private/qwindowsaudiosource_p.h"
-#include "private/qwindowsaudiooutput_p.h"
+#include "private/qwindowsaudiosink_p.h"
 #include "private/qwindowsaudiodeviceinfo_p.h"
 #include "private/qwindowsmultimediautils_p.h"
 
@@ -540,10 +540,10 @@ QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDevice
     return new QWindowsAudioSource(devInfo->waveId());
 }
 
-QAbstractAudioOutput *QWindowsMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioOutput(devInfo->waveId());
+    return new QWindowsAudioSink(devInfo->waveId());
 }
 
 QT_END_NAMESPACE

@@ -108,7 +108,7 @@
      \li Class
      \li Description
     \row
-     \li QAudioOutput
+     \li QAudioSink
      \li Sends audio data to an audio output device
     \row
      \li QAudioRecorder

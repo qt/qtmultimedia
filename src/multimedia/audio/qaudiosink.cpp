@@ -41,7 +41,7 @@
 #include "qaudio.h"
 #include "qaudiodeviceinfo.h"
 #include "qaudiosystem_p.h"
-#include "qaudiooutput.h"
+#include "qaudiosink.h"
 
 #include <private/qplatformmediadevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
@@ -49,8 +49,8 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QAudioOutput
-    \brief The QAudioOutput class provides an interface for sending audio data to an audio output device.
+    \class QAudioSink
+    \brief The QAudioSink class provides an interface for sending audio data to an audio output device.
 
     \inmodule QtMultimedia
     \ingroup multimedia
@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 
     You can construct an audio output with the system's
     \l{QAudioDeviceInfo::defaultOutputDevice()}{default audio output
-    device}. It is also possible to create QAudioOutput with a
+    device}. It is also possible to create QAudioSink with a
     specific QAudioDeviceInfo. When you create the audio output, you
     should also send in the QAudioFormat to be used for the playback
     (see the QAudioFormat class description for details).
@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
     To play a file:
 
     Starting to play an audio stream is simply a matter of calling
-    start() with a QIODevice. QAudioOutput will then fetch the data it
+    start() with a QIODevice. QAudioSink will then fetch the data it
     needs from the io device. So playing back an audio file is as
     simple as:
 
@@ -82,7 +82,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/audio.cpp Audio output state changed
 
-    At any given time, the QAudioOutput will be in one of four states:
+    At any given time, the QAudioSink will be in one of four states:
     active, suspended, stopped, or idle. These states are described
     by the QAudio::State enum.
     State changes are reported through the stateChanged() signal. You
@@ -108,8 +108,8 @@ QT_BEGIN_NAMESPACE
     The default audio output device is used with the output
     \a format parameters.
 */
-QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent)
-    : QAudioOutput({}, format, parent)
+QAudioSink::QAudioSink(const QAudioFormat &format, QObject *parent)
+    : QAudioSink({}, format, parent)
 {
 }
 
@@ -118,7 +118,7 @@ QAudioOutput::QAudioOutput(const QAudioFormat &format, QObject *parent)
     The device referenced by \a audioDevice is used with the output
     \a format parameters.
 */
-QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
+QAudioSink::QAudioSink(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
     d = QPlatformMediaIntegration::instance()->devices()->audioOutputDevice(format, audioDevice);
@@ -132,7 +132,7 @@ QAudioOutput::QAudioOutput(const QAudioDeviceInfo &audioDevice, const QAudioForm
 
     This will release any system resources used and free any buffers.
 */
-QAudioOutput::~QAudioOutput()
+QAudioSink::~QAudioSink()
 {
     delete d;
 }
@@ -141,7 +141,7 @@ QAudioOutput::~QAudioOutput()
     Returns the QAudioFormat being used.
 
 */
-QAudioFormat QAudioOutput::format() const
+QAudioFormat QAudioSink::format() const
 {
     return d->format();
 }
@@ -151,7 +151,7 @@ QAudioFormat QAudioOutput::format() const
     The \a device must have been opened in the \l{QIODevice::ReadOnly}{ReadOnly} or
     \l{QIODevice::ReadWrite}{ReadWrite} modes.
 
-    If the QAudioOutput is able to successfully output audio data, state() returns
+    If the QAudioSink is able to successfully output audio data, state() returns
     QAudio::ActiveState, error() returns QAudio::NoError
     and the stateChanged() signal is emitted.
 
@@ -160,7 +160,7 @@ QAudioFormat QAudioOutput::format() const
 
     \sa QIODevice
 */
-void QAudioOutput::start(QIODevice* device)
+void QAudioSink::start(QIODevice* device)
 {
     d->elapsedTime.restart();
     d->start(device);
@@ -174,7 +174,7 @@ void QAudioOutput::start(QIODevice* device)
     \note The pointer will become invalid after the stream is stopped or
     if you start another stream.
 
-    If the QAudioOutput is able to access the system's audio device, state() returns
+    If the QAudioSink is able to access the system's audio device, state() returns
     QAudio::IdleState, error() returns QAudio::NoError
     and the stateChanged() signal is emitted.
 
@@ -183,7 +183,7 @@ void QAudioOutput::start(QIODevice* device)
 
     \sa QIODevice
 */
-QIODevice* QAudioOutput::start()
+QIODevice* QAudioSink::start()
 {
     d->elapsedTime.restart();
     return d->start();
@@ -195,7 +195,7 @@ QIODevice* QAudioOutput::start()
     Sets error() to QAudio::NoError, state() to QAudio::StoppedState and
     emit stateChanged() signal.
 */
-void QAudioOutput::stop()
+void QAudioSink::stop()
 {
     d->stop();
 }
@@ -204,7 +204,7 @@ void QAudioOutput::stop()
     Drops all audio data in the buffers, resets buffers to zero.
 
 */
-void QAudioOutput::reset()
+void QAudioSink::reset()
 {
     d->reset();
 }
@@ -215,7 +215,7 @@ void QAudioOutput::reset()
     Sets error() to QAudio::NoError, state() to QAudio::SuspendedState and
     emits stateChanged() signal.
 */
-void QAudioOutput::suspend()
+void QAudioSink::suspend()
 {
     d->suspend();
 }
@@ -228,7 +228,7 @@ void QAudioOutput::suspend()
     Sets state() to QAudio::IdleState if you previously called start().
     emits stateChanged() signal.
 */
-void QAudioOutput::resume()
+void QAudioSink::resume()
 {
      d->resume();
 }
@@ -239,7 +239,7 @@ void QAudioOutput::resume()
     \note The returned value is only valid while in QAudio::ActiveState or QAudio::IdleState
     state, otherwise returns zero.
 */
-qsizetype QAudioOutput::bytesFree() const
+qsizetype QAudioSink::bytesFree() const
 {
     return d->bytesFree();
 }
@@ -252,7 +252,7 @@ qsizetype QAudioOutput::bytesFree() const
     set is the actual buffer size used - call bufferSize() anytime after start()
     to return the actual buffer size being used.
 */
-void QAudioOutput::setBufferSize(qsizetype value)
+void QAudioSink::setBufferSize(qsizetype value)
 {
     d->setBufferSize(value);
 }
@@ -266,7 +266,7 @@ void QAudioOutput::setBufferSize(qsizetype value)
     by setBufferSize().
 
 */
-qsizetype QAudioOutput::bufferSize() const
+qsizetype QAudioSink::bufferSize() const
 {
     return d->bufferSize();
 }
@@ -275,7 +275,7 @@ qsizetype QAudioOutput::bufferSize() const
     Returns the amount of audio data processed since start()
     was called (in microseconds).
 */
-qint64 QAudioOutput::processedUSecs() const
+qint64 QAudioSink::processedUSecs() const
 {
     return d->processedUSecs();
 }
@@ -284,7 +284,7 @@ qint64 QAudioOutput::processedUSecs() const
     Returns the microseconds since start() was called, including time in Idle and
     Suspend states.
 */
-qint64 QAudioOutput::elapsedUSecs() const
+qint64 QAudioSink::elapsedUSecs() const
 {
     return d->state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
 }
@@ -292,7 +292,7 @@ qint64 QAudioOutput::elapsedUSecs() const
 /*!
     Returns the error state.
 */
-QAudio::Error QAudioOutput::error() const
+QAudio::Error QAudioSink::error() const
 {
     return d->error();
 }
@@ -300,7 +300,7 @@ QAudio::Error QAudioOutput::error() const
 /*!
     Returns the state of audio processing.
 */
-QAudio::State QAudioOutput::state() const
+QAudio::State QAudioSink::state() const
 {
     return d->state();
 }
@@ -319,7 +319,7 @@ QAudio::State QAudioOutput::state() const
     will produce linear changes in perceived loudness, which is what a user would normally expect
     from a volume control. See QAudio::convertVolume() for more details.
 */
-void QAudioOutput::setVolume(qreal volume)
+void QAudioSink::setVolume(qreal volume)
 {
     qreal v = qBound(qreal(0.0), volume, qreal(1.0));
     d->setVolume(v);
@@ -328,7 +328,7 @@ void QAudioOutput::setVolume(qreal volume)
 /*!
     Returns the volume between 0.0 and 1.0 inclusive.
 */
-qreal QAudioOutput::volume() const
+qreal QAudioSink::volume() const
 {
     return d->volume();
 }
@@ -343,22 +343,22 @@ qreal QAudioOutput::volume() const
     The audio role must be set before calling setMedia().
 */
 
-QAudio::Role QAudioOutput::audioRole() const
+QAudio::Role QAudioSink::audioRole() const
 {
     return d->role();
 }
 
-void QAudioOutput::setAudioRole(QAudio::Role role)
+void QAudioSink::setAudioRole(QAudio::Role role)
 {
     d->setRole(role);
 }
 
 /*!
-    \fn QAudioOutput::stateChanged(QAudio::State state)
+    \fn QAudioSink::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
     This is the current state of the audio output.
 */
 
 QT_END_NAMESPACE
 
-#include "moc_qaudiooutput.cpp"
+#include "moc_qaudiosink.cpp"

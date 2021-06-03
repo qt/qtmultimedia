@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qopenslesaudiooutput_p.h"
+#include "qandroidaudiosink_p.h"
 #include "qopenslesengine_p.h"
 #include <QDebug>
 #include <qmath.h>
@@ -64,7 +64,7 @@ static inline void openSlDebugInfo()
              << "\nDefault buffer size: " << QOpenSLESEngine::getDefaultBufferSize(format);
 }
 
-QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
+QAndroidAudioSink::QAndroidAudioSink(const QByteArray &device)
     : m_deviceName(device),
       m_state(QAudio::StoppedState),
       m_error(QAudio::NoError),
@@ -92,22 +92,22 @@ QOpenSLESAudioOutput::QOpenSLESAudioOutput(const QByteArray &device)
 #endif // ANDROID
 }
 
-QOpenSLESAudioOutput::~QOpenSLESAudioOutput()
+QAndroidAudioSink::~QAndroidAudioSink()
 {
     destroyPlayer();
 }
 
-QAudio::Error QOpenSLESAudioOutput::error() const
+QAudio::Error QAndroidAudioSink::error() const
 {
     return m_error;
 }
 
-QAudio::State QOpenSLESAudioOutput::state() const
+QAudio::State QAndroidAudioSink::state() const
 {
     return m_state;
 }
 
-void QOpenSLESAudioOutput::start(QIODevice *device)
+void QAndroidAudioSink::start(QIODevice *device)
 {
     Q_ASSERT(device);
 
@@ -147,7 +147,7 @@ void QOpenSLESAudioOutput::start(QIODevice *device)
     startPlayer();
 }
 
-QIODevice *QOpenSLESAudioOutput::start()
+QIODevice *QAndroidAudioSink::start()
 {
     if (m_state != QAudio::StoppedState)
         stop();
@@ -168,7 +168,7 @@ QIODevice *QOpenSLESAudioOutput::start()
     return m_audioSource;
 }
 
-void QOpenSLESAudioOutput::stop()
+void QAndroidAudioSink::stop()
 {
     if (m_state == QAudio::StoppedState)
         return;
@@ -177,7 +177,7 @@ void QOpenSLESAudioOutput::stop()
     setError(QAudio::NoError);
 }
 
-qsizetype QOpenSLESAudioOutput::bytesFree() const
+qsizetype QAndroidAudioSink::bytesFree() const
 {
     if (m_state != QAudio::ActiveState && m_state != QAudio::IdleState)
         return 0;
@@ -185,7 +185,7 @@ qsizetype QOpenSLESAudioOutput::bytesFree() const
     return m_availableBuffers.loadAcquire() ? m_bufferSize : 0;
 }
 
-void QOpenSLESAudioOutput::setBufferSize(qsizetype value)
+void QAndroidAudioSink::setBufferSize(qsizetype value)
 {
     if (m_state != QAudio::StoppedState)
         return;
@@ -194,12 +194,12 @@ void QOpenSLESAudioOutput::setBufferSize(qsizetype value)
     m_bufferSize = value;
 }
 
-qsizetype QOpenSLESAudioOutput::bufferSize() const
+qsizetype QAndroidAudioSink::bufferSize() const
 {
     return m_bufferSize;
 }
 
-qint64 QOpenSLESAudioOutput::processedUSecs() const
+qint64 QAndroidAudioSink::processedUSecs() const
 {
     if (m_state == QAudio::IdleState || m_state == QAudio::SuspendedState)
         return m_format.durationForBytes(m_processedBytes);
@@ -211,7 +211,7 @@ qint64 QOpenSLESAudioOutput::processedUSecs() const
     return processMSec * 1000;
 }
 
-void QOpenSLESAudioOutput::resume()
+void QAndroidAudioSink::resume()
 {
     if (m_state != QAudio::SuspendedState)
         return;
@@ -226,18 +226,18 @@ void QOpenSLESAudioOutput::resume()
     setError(QAudio::NoError);
 }
 
-void QOpenSLESAudioOutput::setFormat(const QAudioFormat &format)
+void QAndroidAudioSink::setFormat(const QAudioFormat &format)
 {
     m_startRequiresInit = true;
     m_format = format;
 }
 
-QAudioFormat QOpenSLESAudioOutput::format() const
+QAudioFormat QAndroidAudioSink::format() const
 {
     return m_format;
 }
 
-void QOpenSLESAudioOutput::suspend()
+void QAndroidAudioSink::suspend()
 {
     if (m_state != QAudio::ActiveState && m_state != QAudio::IdleState)
         return;
@@ -252,12 +252,12 @@ void QOpenSLESAudioOutput::suspend()
     setError(QAudio::NoError);
 }
 
-void QOpenSLESAudioOutput::reset()
+void QAndroidAudioSink::reset()
 {
     destroyPlayer();
 }
 
-void QOpenSLESAudioOutput::setVolume(qreal vol)
+void QAndroidAudioSink::setVolume(qreal vol)
 {
     m_volume = qBound(qreal(0.0), vol, qreal(1.0));
     const SLmillibel newVolume = adjustVolume(m_volume);
@@ -265,14 +265,14 @@ void QOpenSLESAudioOutput::setVolume(qreal vol)
         qWarning() << "Unable to change volume";
 }
 
-qreal QOpenSLESAudioOutput::volume() const
+qreal QAndroidAudioSink::volume() const
 {
     return m_volume;
 }
 
-void QOpenSLESAudioOutput::setRole(QAudio::Role role)
+void QAndroidAudioSink::setRole(QAudio::Role role)
 {
-    QAbstractAudioOutput::setRole(role);
+    QPlatformAudioSink::setRole(role);
 #ifdef ANDROID
     switch (role) {
     case QAudio::MusicRole:
@@ -307,7 +307,7 @@ void QOpenSLESAudioOutput::setRole(QAudio::Role role)
 #endif // ANDROID
 }
 
-void QOpenSLESAudioOutput::onEOSEvent()
+void QAndroidAudioSink::onEOSEvent()
 {
     if (m_state != QAudio::ActiveState)
         return;
@@ -323,12 +323,12 @@ void QOpenSLESAudioOutput::onEOSEvent()
     setError(QAudio::UnderrunError);
 }
 
-void QOpenSLESAudioOutput::onBytesProcessed(qint64 bytes)
+void QAndroidAudioSink::onBytesProcessed(qint64 bytes)
 {
     m_processedBytes += bytes;
 }
 
-void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
+void QAndroidAudioSink::bufferAvailable(quint32 count, quint32 playIndex)
 {
     Q_UNUSED(count);
     Q_UNUSED(playIndex);
@@ -367,23 +367,23 @@ void QOpenSLESAudioOutput::bufferAvailable(quint32 count, quint32 playIndex)
     QMetaObject::invokeMethod(this, "onBytesProcessed", Qt::QueuedConnection, Q_ARG(qint64, readSize));
 }
 
-void QOpenSLESAudioOutput::playCallback(SLPlayItf player, void *ctx, SLuint32 event)
+void QAndroidAudioSink::playCallback(SLPlayItf player, void *ctx, SLuint32 event)
 {
     Q_UNUSED(player);
-    QOpenSLESAudioOutput *audioOutput = reinterpret_cast<QOpenSLESAudioOutput *>(ctx);
+    QAndroidAudioSink *audioOutput = reinterpret_cast<QAndroidAudioSink *>(ctx);
     if (event & SL_PLAYEVENT_HEADATEND)
         QMetaObject::invokeMethod(audioOutput, "onEOSEvent", Qt::QueuedConnection);
 }
 
-void QOpenSLESAudioOutput::bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx)
+void QAndroidAudioSink::bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx)
 {
     SLBufferQueueState state;
     (*bufferQueue)->GetState(bufferQueue, &state);
-    QOpenSLESAudioOutput *audioOutput = reinterpret_cast<QOpenSLESAudioOutput *>(ctx);
+    QAndroidAudioSink *audioOutput = reinterpret_cast<QAndroidAudioSink *>(ctx);
     audioOutput->bufferAvailable(state.count, state.playIndex);
 }
 
-bool QOpenSLESAudioOutput::preparePlayer()
+bool QAndroidAudioSink::preparePlayer()
 {
     if (m_startRequiresInit)
         destroyPlayer();
@@ -537,7 +537,7 @@ bool QOpenSLESAudioOutput::preparePlayer()
     return true;
 }
 
-void QOpenSLESAudioOutput::destroyPlayer()
+void QAndroidAudioSink::destroyPlayer()
 {
     if (m_state != QAudio::StoppedState)
         stopPlayer();
@@ -569,7 +569,7 @@ void QOpenSLESAudioOutput::destroyPlayer()
     m_startRequiresInit = true;
 }
 
-void QOpenSLESAudioOutput::stopPlayer()
+void QAndroidAudioSink::stopPlayer()
 {
     setState(QAudio::StoppedState);
 
@@ -587,7 +587,7 @@ void QOpenSLESAudioOutput::stopPlayer()
         qWarning() << "Unable to clear buffer";
 }
 
-void QOpenSLESAudioOutput::startPlayer()
+void QAndroidAudioSink::startPlayer()
 {
     if (QOpenSLESEngine::printDebugInfo())
         openSlDebugInfo();
@@ -598,7 +598,7 @@ void QOpenSLESAudioOutput::startPlayer()
     }
 }
 
-qint64 QOpenSLESAudioOutput::writeData(const char *data, qint64 len)
+qint64 QAndroidAudioSink::writeData(const char *data, qint64 len)
 {
     if (!len)
         return 0;
@@ -641,7 +641,7 @@ qint64 QOpenSLESAudioOutput::writeData(const char *data, qint64 len)
     return len;
 }
 
-inline void QOpenSLESAudioOutput::setState(QAudio::State state)
+inline void QAndroidAudioSink::setState(QAudio::State state)
 {
     if (m_state == state)
         return;
@@ -650,7 +650,7 @@ inline void QOpenSLESAudioOutput::setState(QAudio::State state)
     Q_EMIT stateChanged(m_state);
 }
 
-inline void QOpenSLESAudioOutput::setError(QAudio::Error error)
+inline void QAndroidAudioSink::setError(QAudio::Error error)
 {
     if (m_error == error)
         return;
@@ -659,7 +659,7 @@ inline void QOpenSLESAudioOutput::setError(QAudio::Error error)
     Q_EMIT errorChanged(m_error);
 }
 
-inline SLmillibel QOpenSLESAudioOutput::adjustVolume(qreal vol)
+inline SLmillibel QAndroidAudioSink::adjustVolume(qreal vol)
 {
     if (qFuzzyIsNull(vol))
         return SL_MILLIBEL_MIN;

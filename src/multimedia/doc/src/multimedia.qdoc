@@ -82,7 +82,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li \l{Audio Input Example}{audioinput},
             \l{Spectrum Example}{spectrum}
         \li
-        \li QAudioOutput
+        \li QAudioSink
     \row
         \li Playing encoded audio (MP3, AAC etc)
         \li \l{Media Player Example}{player}

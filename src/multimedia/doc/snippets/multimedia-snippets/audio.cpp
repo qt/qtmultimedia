@@ -139,7 +139,7 @@ public Q_SLOTS:
 private:
     //! [Audio output class members]
     QFile sourceFile;   // class member.
-    QAudioOutput* audio; // class member.
+    QAudioSink* audio; // class member.
     //! [Audio output class members]
 };
 
@@ -162,7 +162,7 @@ void AudioOutputExample::setup()
         return;
     }
 
-    audio = new QAudioOutput(format, this);
+    audio = new QAudioSink(format, this);
     connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
     audio->start(&sourceFile);
 }

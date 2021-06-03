@@ -68,7 +68,7 @@ public:
     QList<QAudioDeviceInfo> audioOutputs() const override;
     QList<QCameraInfo> videoInputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDeviceInfo &deviceInfo) override;
-    QAbstractAudioOutput *createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDeviceInfo &deviceInfo) override;
 };
 
 QT_END_NAMESPACE

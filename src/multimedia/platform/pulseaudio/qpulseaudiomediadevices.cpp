@@ -42,7 +42,7 @@
 #include "qcamerainfo_p.h"
 
 #include "private/qpulseaudiosource_p.h"
-#include "private/qaudiooutput_pulse_p.h"
+#include "private/qpulseaudiosink_p.h"
 #include "private/qaudiodeviceinfo_pulse_p.h"
 #include "private/qaudioengine_pulse_p.h"
 
@@ -74,9 +74,9 @@ QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDev
     return new QPulseAudioSource(deviceInfo.id());
 }
 
-QAbstractAudioOutput *QPulseAudioMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QPulseAudioMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QPulseAudioOutput(deviceInfo.id());
+    return new QPulseAudioSink(deviceInfo.id());
 }
 
 QT_END_NAMESPACE

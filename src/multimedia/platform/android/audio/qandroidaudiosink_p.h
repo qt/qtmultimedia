@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIOOUTPUTPULSE_H
-#define QAUDIOOUTPUTPULSE_H
+#ifndef QOPENSLESAUDIOOUTPUT_H
+#define QOPENSLESAUDIOOUTPUT_H
 
 //
 //  W A R N I N G
@@ -51,29 +51,22 @@
 // We mean it.
 //
 
-#include <QtCore/qfile.h>
-#include <QtCore/qtimer.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qelapsedtimer.h>
-#include <QtCore/qiodevice.h>
-
-#include "qaudio.h"
-#include "qaudiodeviceinfo.h"
-#include <private/qaudiosystem_p.h>
-
-#include <pulse/pulseaudio.h>
+#include <qaudiosystem_p.h>
+#include <SLES/OpenSLES.h>
+#include <qbytearray.h>
+#include <qmap.h>
+#include <QElapsedTimer>
+#include <QIODevice>
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioOutput : public QAbstractAudioOutput
+class QAndroidAudioSink : public QPlatformAudioSink
 {
-    friend class PulseOutputPrivate;
     Q_OBJECT
 
 public:
-    QPulseAudioOutput(const QByteArray &device);
-    ~QPulseAudioOutput();
+    QAndroidAudioSink(const QByteArray &device);
+    ~QAndroidAudioSink();
 
     void start(QIODevice *device) override;
     QIODevice *start() override;
@@ -93,63 +86,75 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-public:
-    void streamUnderflowCallback();
+    void setRole(QAudio::Role role) override;
 
 private:
+    friend class SLIODevicePrivate;
+
+    Q_INVOKABLE void onEOSEvent();
+    Q_INVOKABLE void onBytesProcessed(qint64 bytes);
+    void bufferAvailable(quint32 count, quint32 playIndex);
+
+    static void playCallback(SLPlayItf playItf, void *ctx, SLuint32 event);
+    static void bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx);
+
+    bool preparePlayer();
+    void destroyPlayer();
+    void stopPlayer();
+    void startPlayer();
+    qint64 writeData(const char *data, qint64 len);
+
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
 
-    bool open();
-    void close();
-    qint64 write(const char *data, qint64 len);
+    SLmillibel adjustVolume(qreal vol);
 
-private Q_SLOTS:
-    void userFeed();
-    void onPulseContextFailed();
-
-private:
-    QByteArray m_device;
-    QByteArray m_streamName;
-    QAudioFormat m_format;
-    QAudio::Error m_errorState;
-    QAudio::State m_deviceState;
-    bool m_pullMode;
-    bool m_opened;
+    QByteArray m_deviceName;
+    QAudio::State m_state;
+    QAudio::Error m_error;
+    SLObjectItf m_outputMixObject;
+    SLObjectItf m_playerObject;
+    SLPlayItf m_playItf;
+    SLVolumeItf m_volumeItf;
+    SLBufferQueueItf m_bufferQueueItf;
     QIODevice *m_audioSource;
-    QTimer m_periodTimer;
-    int m_periodTime;
-    pa_stream *m_stream;
-    int m_periodSize;
-    int m_bufferSize;
-    int m_maxBufferSize;
-    qint64 m_totalTimeValue;
-    QTimer *m_tickTimer;
-    char *m_audioBuffer;
-    qint64 m_elapsedTimeOffset;
-    bool m_resuming;
-
+    char *m_buffers;
     qreal m_volume;
-    pa_sample_spec m_spec;
+    bool m_pullMode;
+    int m_nextBuffer;
+    int m_bufferSize;
+    qint64 m_elapsedTime;
+    qint64 m_processedBytes;
+    QAtomicInt m_availableBuffers;
+    SLuint32 m_eventMask;
+    bool m_startRequiresInit;
+
+    qint32 m_streamType;
+    QAudioFormat m_format;
 };
 
-class PulseOutputPrivate : public QIODevice
+class SLIODevicePrivate : public QIODevice
 {
-    friend class QPulseAudioOutput;
     Q_OBJECT
 
 public:
-    PulseOutputPrivate(QPulseAudioOutput *audio);
-    virtual ~PulseOutputPrivate() {}
+    inline SLIODevicePrivate(QAndroidAudioSink *audio) : m_audioDevice(audio) {}
+    inline ~SLIODevicePrivate() override {}
 
 protected:
-    qint64 readData(char *data, qint64 len) override;
-    qint64 writeData(const char *data, qint64 len) override;
+    inline qint64 readData(char *, qint64) override { return 0; }
+    inline qint64 writeData(const char *data, qint64 len) override;
 
 private:
-    QPulseAudioOutput *m_audioDevice;
+    QAndroidAudioSink *m_audioDevice;
 };
+
+qint64 SLIODevicePrivate::writeData(const char *data, qint64 len)
+{
+    Q_ASSERT(m_audioDevice);
+    return m_audioDevice->writeData(data, len);
+}
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QOPENSLESAUDIOOUTPUT_H

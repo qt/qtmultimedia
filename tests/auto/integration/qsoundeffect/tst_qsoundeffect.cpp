@@ -30,7 +30,6 @@
 
 #include <QtTest/QtTest>
 #include <QtCore/qlocale.h>
-#include <qaudiooutput.h>
 #include <qaudiodeviceinfo.h>
 #include <qaudio.h>
 #include "qsoundeffect.h"

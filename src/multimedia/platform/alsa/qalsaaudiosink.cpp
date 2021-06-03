@@ -51,7 +51,7 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
-#include "qalsaaudiooutput_p.h"
+#include "qalsaaudiosink_p.h"
 #include "qalsaaudiodeviceinfo_p.h"
 #include <QLoggingCategory>
 
@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(lcAlsaOutput, "qt.multimedia.alsa.output")
 //#define DEBUG_AUDIO 1
 
-QAlsaAudioOutput::QAlsaAudioOutput(const QByteArray &device)
+QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device)
 {
     bytesAvailable = 0;
     handle = 0;
@@ -89,7 +89,7 @@ QAlsaAudioOutput::QAlsaAudioOutput(const QByteArray &device)
     connect(timer,SIGNAL(timeout()),SLOT(userFeed()));
 }
 
-QAlsaAudioOutput::~QAlsaAudioOutput()
+QAlsaAudioSink::~QAlsaAudioSink()
 {
     close();
     disconnect(timer, SIGNAL(timeout()));
@@ -97,27 +97,27 @@ QAlsaAudioOutput::~QAlsaAudioOutput()
     delete timer;
 }
 
-void QAlsaAudioOutput::setVolume(qreal vol)
+void QAlsaAudioSink::setVolume(qreal vol)
 {
     m_volume = vol;
 }
 
-qreal QAlsaAudioOutput::volume() const
+qreal QAlsaAudioSink::volume() const
 {
     return m_volume;
 }
 
-QAudio::Error QAlsaAudioOutput::error() const
+QAudio::Error QAlsaAudioSink::error() const
 {
     return errorState;
 }
 
-QAudio::State QAlsaAudioOutput::state() const
+QAudio::State QAlsaAudioSink::state() const
 {
     return deviceState;
 }
 
-int QAlsaAudioOutput::xrun_recovery(int err)
+int QAlsaAudioSink::xrun_recovery(int err)
 {
     int  count = 0;
     bool reset = false;
@@ -161,7 +161,7 @@ int QAlsaAudioOutput::xrun_recovery(int err)
     return err;
 }
 
-int QAlsaAudioOutput::setFormat()
+int QAlsaAudioSink::setFormat()
 {
     snd_pcm_format_t pcmformat = SND_PCM_FORMAT_UNKNOWN;
 
@@ -195,7 +195,7 @@ int QAlsaAudioOutput::setFormat()
             : -1;
 }
 
-void QAlsaAudioOutput::start(QIODevice* device)
+void QAlsaAudioSink::start(QIODevice* device)
 {
     if(deviceState != QAudio::StoppedState)
         deviceState = QAudio::StoppedState;
@@ -220,7 +220,7 @@ void QAlsaAudioOutput::start(QIODevice* device)
     emit stateChanged(deviceState);
 }
 
-QIODevice* QAlsaAudioOutput::start()
+QIODevice* QAlsaAudioSink::start()
 {
     if(deviceState != QAudio::StoppedState)
         deviceState = QAudio::StoppedState;
@@ -248,7 +248,7 @@ QIODevice* QAlsaAudioOutput::start()
     return audioSource;
 }
 
-void QAlsaAudioOutput::stop()
+void QAlsaAudioSink::stop()
 {
     if(deviceState == QAudio::StoppedState)
         return;
@@ -258,7 +258,7 @@ void QAlsaAudioOutput::stop()
     emit stateChanged(deviceState);
 }
 
-bool QAlsaAudioOutput::open()
+bool QAlsaAudioSink::open()
 {
     if(opened)
         return true;
@@ -276,9 +276,9 @@ bool QAlsaAudioOutput::open()
     unsigned int sampleRate=settings.sampleRate();
 
     if (!settings.isValid()) {
-        qWarning("QAudioOutput: open error, invalid format.");
+        qWarning("QAudioSink: open error, invalid format.");
     } else if (settings.sampleRate() <= 0) {
-        qWarning("QAudioOutput: open error, invalid sample rate (%d).",
+        qWarning("QAudioSink: open error, invalid sample rate (%d).",
                  settings.sampleRate());
     } else {
         err = -1;
@@ -315,41 +315,41 @@ bool QAlsaAudioOutput::open()
     err = snd_pcm_hw_params_any( handle, hwparams );
     if ( err < 0 ) {
         fatal = true;
-        errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_any: err = %1").arg(err);
+        errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_any: err = %1").arg(err);
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_rate_resample( handle, hwparams, 1 );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_rate_resample: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_rate_resample: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_access( handle, hwparams, access );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_access: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_access: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = setFormat();
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_format: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_format: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_channels( handle, hwparams, (unsigned int)settings.channelCount() );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_channels: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_channels: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_rate_near( handle, hwparams, &sampleRate, 0 );
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_rate_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_rate_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
@@ -368,7 +368,7 @@ bool QAlsaAudioOutput::open()
 
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: buffer/period min and max: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: buffer/period min and max: err = %1").arg(err);
         } else {
             static unsigned user_buffer_time = qEnvironmentVariableIntValue("QT_ALSA_OUTPUT_BUFFER_TIME");
             static unsigned user_period_time = qEnvironmentVariableIntValue("QT_ALSA_OUTPUT_PERIOD_TIME");
@@ -392,28 +392,28 @@ bool QAlsaAudioOutput::open()
         err = snd_pcm_hw_params_set_buffer_time_near(handle, hwparams, &buffer_time, &dir);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_buffer_time_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_buffer_time_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_period_time_near(handle, hwparams, &period_time, &dir);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_period_time_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_period_time_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params_set_periods_near(handle, hwparams, &chunks, &dir);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params_set_periods_near: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params_set_periods_near: err = %1").arg(err);
         }
     }
     if ( !fatal ) {
         err = snd_pcm_hw_params(handle, hwparams);
         if ( err < 0 ) {
             fatal = true;
-            errMessage = QString::fromLatin1("QAudioOutput: snd_pcm_hw_params: err = %1").arg(err);
+            errMessage = QString::fromLatin1("QAudioSink: snd_pcm_hw_params: err = %1").arg(err);
         }
     }
     if( err < 0) {
@@ -460,7 +460,7 @@ bool QAlsaAudioOutput::open()
     return true;
 }
 
-void QAlsaAudioOutput::close()
+void QAlsaAudioSink::close()
 {
     timer->stop();
 
@@ -478,7 +478,7 @@ void QAlsaAudioOutput::close()
     opened = false;
 }
 
-qsizetype QAlsaAudioOutput::bytesFree() const
+qsizetype QAlsaAudioSink::bytesFree() const
 {
     if(resuming)
         return period_size;
@@ -504,7 +504,7 @@ qsizetype QAlsaAudioOutput::bytesFree() const
     return snd_pcm_frames_to_bytes(handle, frames);
 }
 
-qint64 QAlsaAudioOutput::write( const char *data, qint64 len )
+qint64 QAlsaAudioSink::write( const char *data, qint64 len )
 {
     // Write out some audio data
     if ( !handle )
@@ -554,23 +554,23 @@ qint64 QAlsaAudioOutput::write( const char *data, qint64 len )
     return 0;
 }
 
-void QAlsaAudioOutput::setBufferSize(qsizetype value)
+void QAlsaAudioSink::setBufferSize(qsizetype value)
 {
     if(deviceState == QAudio::StoppedState)
         buffer_size = value;
 }
 
-qsizetype QAlsaAudioOutput::bufferSize() const
+qsizetype QAlsaAudioSink::bufferSize() const
 {
     return buffer_size;
 }
 
-qint64 QAlsaAudioOutput::processedUSecs() const
+qint64 QAlsaAudioSink::processedUSecs() const
 {
     return qint64(1000000) * totalTimeValue / settings.sampleRate();
 }
 
-void QAlsaAudioOutput::resume()
+void QAlsaAudioSink::resume()
 {
     if(deviceState == QAudio::SuspendedState) {
         int err = 0;
@@ -596,18 +596,18 @@ void QAlsaAudioOutput::resume()
     }
 }
 
-void QAlsaAudioOutput::setFormat(const QAudioFormat& fmt)
+void QAlsaAudioSink::setFormat(const QAudioFormat& fmt)
 {
     if (deviceState == QAudio::StoppedState)
         settings = fmt;
 }
 
-QAudioFormat QAlsaAudioOutput::format() const
+QAudioFormat QAlsaAudioSink::format() const
 {
     return settings;
 }
 
-void QAlsaAudioOutput::suspend()
+void QAlsaAudioSink::suspend()
 {
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState || resuming) {
         snd_pcm_drain(handle);
@@ -618,7 +618,7 @@ void QAlsaAudioOutput::suspend()
     }
 }
 
-void QAlsaAudioOutput::userFeed()
+void QAlsaAudioSink::userFeed()
 {
     if(deviceState == QAudio::StoppedState || deviceState == QAudio::SuspendedState)
         return;
@@ -632,7 +632,7 @@ void QAlsaAudioOutput::userFeed()
     deviceReady();
 }
 
-bool QAlsaAudioOutput::deviceReady()
+bool QAlsaAudioSink::deviceReady()
 {
     if(pullMode) {
         int l = 0;
@@ -702,7 +702,7 @@ bool QAlsaAudioOutput::deviceReady()
     return true;
 }
 
-void QAlsaAudioOutput::reset()
+void QAlsaAudioSink::reset()
 {
     if(handle)
         snd_pcm_reset(handle);
@@ -710,9 +710,9 @@ void QAlsaAudioOutput::reset()
     stop();
 }
 
-AlsaOutputPrivate::AlsaOutputPrivate(QAlsaAudioOutput* audio)
+AlsaOutputPrivate::AlsaOutputPrivate(QAlsaAudioSink* audio)
 {
-    audioDevice = qobject_cast<QAlsaAudioOutput*>(audio);
+    audioDevice = qobject_cast<QAlsaAudioSink*>(audio);
 }
 
 AlsaOutputPrivate::~AlsaOutputPrivate() {}
@@ -746,4 +746,4 @@ qint64 AlsaOutputPrivate::writeData(const char* data, qint64 len)
 
 QT_END_NAMESPACE
 
-#include "moc_qalsaaudiooutput_p.cpp"
+#include "moc_qalsaaudiosink_p.cpp"

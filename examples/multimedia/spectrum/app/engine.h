@@ -76,7 +76,7 @@
 class FrequencySpectrum;
 QT_BEGIN_NAMESPACE
 class QAudioSource;
-class QAudioOutput;
+class QAudioSink;
 QT_END_NAMESPACE
 
 /**
@@ -299,7 +299,7 @@ private:
 
     const QList<QAudioDeviceInfo> m_availableAudioOutputDevices;
     QAudioDeviceInfo    m_audioOutputDevice;
-    QAudioOutput*       m_audioOutput;
+    QAudioSink*       m_audioOutput;
     qint64              m_playPosition;
     QBuffer             m_audioOutputIODevice;
 

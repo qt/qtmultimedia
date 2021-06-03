@@ -42,7 +42,7 @@
 #include "qcamerainfo_p.h"
 
 #include "private/qandroidaudiosource_p.h"
-#include "private/qopenslesaudiooutput_p.h"
+#include "private/qandroidaudiosink_p.h"
 #include "private/qopenslesdeviceinfo_p.h"
 #include "private/qopenslesengine_p.h"
 #include "private/qplatformmediaintegration_p.h"
@@ -75,9 +75,9 @@ QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDevice
     return new QAndroidAudioSource(deviceInfo.id());
 }
 
-QAbstractAudioOutput *QAndroidMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QOpenSLESAudioOutput(deviceInfo.id());
+    return new QAndroidAudioSink(deviceInfo.id());
 }
 
 void QAndroidMediaDevices::forwardAudioOutputsChanged()

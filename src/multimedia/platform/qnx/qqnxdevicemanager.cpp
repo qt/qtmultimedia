@@ -42,7 +42,7 @@
 #include "qcamerainfo_p.h"
 
 #include "private/qqnxaudiosource_p.h"
-#include "private/qnxaudiooutput_p.h"
+#include "private/qqnxaudiosink_p.h"
 #include "private/qnxaudiodeviceinfo_p.h"
 #include "bbcamerasession_p.h"
 
@@ -114,7 +114,7 @@ QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDeviceInfo
     return new QQnxAudioSource();
 }
 
-QAbstractAudioOutput *QQnxMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
 {
     return new QNxAudioOutput();
 }

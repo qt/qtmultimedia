@@ -42,7 +42,6 @@
 #include <qaudiodeviceinfo.h>
 #include "qaudioengine_pulse_p.h"
 #include "qaudiodeviceinfo_pulse_p.h"
-#include "qaudiooutput_pulse_p.h"
 #include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>

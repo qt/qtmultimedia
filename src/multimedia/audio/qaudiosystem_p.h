@@ -63,7 +63,7 @@ QT_BEGIN_NAMESPACE
 
 class QIODevice;
 
-class QAbstractAudioOutput : public QObject
+class QPlatformAudioSink : public QObject
 {
     Q_OBJECT
 

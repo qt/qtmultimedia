@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qnxaudiooutput_p.h"
+#include "qqnxaudiosink_p.h"
 
 #include "qnxaudioutils_p.h"
 
@@ -47,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QnxAudioOutput::QnxAudioOutput()
+QQnxAudioSink::QQnxAudioSink()
     : m_source(0)
     , m_pushSource(false)
     , m_error(QAudio::NoError)
@@ -65,12 +65,12 @@ QnxAudioOutput::QnxAudioOutput()
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(pullData()));
 }
 
-QnxAudioOutput::~QnxAudioOutput()
+QQnxAudioSink::~QQnxAudioSink()
 {
     stop();
 }
 
-void QnxAudioOutput::start(QIODevice *source)
+void QQnxAudioSink::start(QIODevice *source)
 {
     if (m_state != QAudio::StoppedState)
         stop();
@@ -88,7 +88,7 @@ void QnxAudioOutput::start(QIODevice *source)
     }
 }
 
-QIODevice *QnxAudioOutput::start()
+QIODevice *QQnxAudioSink::start()
 {
     if (m_state != QAudio::StoppedState)
         stop();
@@ -108,7 +108,7 @@ QIODevice *QnxAudioOutput::start()
     return m_source;
 }
 
-void QnxAudioOutput::stop()
+void QQnxAudioSink::stop()
 {
     if (m_state == QAudio::StoppedState)
         return;
@@ -118,7 +118,7 @@ void QnxAudioOutput::stop()
     close();
 }
 
-void QnxAudioOutput::reset()
+void QQnxAudioSink::reset()
 {
     if (m_pcmHandle)
 #if SND_PCM_VERSION < SND_PROTOCOL_VERSION('P',3,0,2)
@@ -129,19 +129,19 @@ void QnxAudioOutput::reset()
     stop();
 }
 
-void QnxAudioOutput::suspend()
+void QQnxAudioSink::suspend()
 {
     snd_pcm_playback_pause(m_pcmHandle);
     suspendInternal(QAudio::SuspendedState);
 }
 
-void QnxAudioOutput::resume()
+void QQnxAudioSink::resume()
 {
     snd_pcm_playback_resume(m_pcmHandle);
     resumeInternal();
 }
 
-qsizetype QnxAudioOutput::bytesFree() const
+qsizetype QQnxAudioSink::bytesFree() const
 {
     if (m_state != QAudio::ActiveState && m_state != QAudio::IdleState)
         return 0;
@@ -157,43 +157,43 @@ qsizetype QnxAudioOutput::bytesFree() const
         return status.free;
 }
 
-qint64 QnxAudioOutput::processedUSecs() const
+qint64 QQnxAudioSink::processedUSecs() const
 {
     return qint64(1000000) * m_format.framesForBytes(m_bytesWritten) / m_format.sampleRate();
 }
 
-QAudio::Error QnxAudioOutput::error() const
+QAudio::Error QQnxAudioSink::error() const
 {
     return m_error;
 }
 
-QAudio::State QnxAudioOutput::state() const
+QAudio::State QQnxAudioSink::state() const
 {
     return m_state;
 }
 
-void QnxAudioOutput::setFormat(const QAudioFormat &format)
+void QQnxAudioSink::setFormat(const QAudioFormat &format)
 {
     if (m_state == QAudio::StoppedState)
         m_format = format;
 }
 
-QAudioFormat QnxAudioOutput::format() const
+QAudioFormat QQnxAudioSink::format() const
 {
     return m_format;
 }
 
-void QnxAudioOutput::setVolume(qreal volume)
+void QQnxAudioSink::setVolume(qreal volume)
 {
     m_volume = qBound(qreal(0.0), volume, qreal(1.0));
 }
 
-qreal QnxAudioOutput::volume() const
+qreal QQnxAudioSink::volume() const
 {
     return m_volume;
 }
 
-void QnxAudioOutput::pullData()
+void QQnxAudioSink::pullData()
 {
     if (m_state == QAudio::StoppedState
             || m_state == QAudio::SuspendedState)
@@ -238,13 +238,13 @@ void QnxAudioOutput::pullData()
         return;
 }
 
-bool QnxAudioOutput::open()
+bool QQnxAudioSink::open()
 {
     if (!m_format.isValid() || m_format.sampleRate() <= 0) {
         if (!m_format.isValid())
-            qWarning("QnxAudioOutput: open error, invalid format.");
+            qWarning("QQnxAudioSink: open error, invalid format.");
         else
-            qWarning("QnxAudioOutput: open error, invalid sample rate (%d).", m_format.sampleRate());
+            qWarning("QQnxAudioSink: open error, invalid sample rate (%d).", m_format.sampleRate());
 
         return false;
     }
@@ -254,12 +254,12 @@ bool QnxAudioOutput::open()
     int card = 0;
     int device = 0;
     if ((errorCode = snd_pcm_open_preferred(&m_pcmHandle, &card, &device, SND_PCM_OPEN_PLAYBACK)) < 0) {
-        qWarning("QnxAudioOutput: open error, couldn't open card (0x%x)", -errorCode);
+        qWarning("QQnxAudioSink: open error, couldn't open card (0x%x)", -errorCode);
         return false;
     }
 
     if ((errorCode = snd_pcm_nonblock_mode(m_pcmHandle, 0)) < 0) {
-        qWarning("QnxAudioOutput: open error, couldn't set non block mode (0x%x)", -errorCode);
+        qWarning("QQnxAudioSink: open error, couldn't set non block mode (0x%x)", -errorCode);
         close();
         return false;
     }
@@ -273,7 +273,7 @@ bool QnxAudioOutput::open()
     memset(&info, 0, sizeof(info));
     info.channel = SND_PCM_CHANNEL_PLAYBACK;
     if ((errorCode = snd_pcm_plugin_info(m_pcmHandle, &info)) < 0) {
-        qWarning("QnxAudioOutput: open error, couldn't get channel info (0x%x)", -errorCode);
+        qWarning("QQnxAudioSink: open error, couldn't get channel info (0x%x)", -errorCode);
         close();
         return false;
     }
@@ -282,13 +282,13 @@ bool QnxAudioOutput::open()
     setTypeName(&params);
 
     if ((errorCode = snd_pcm_plugin_params(m_pcmHandle, &params)) < 0) {
-        qWarning("QnxAudioOutput: open error, couldn't set channel params (0x%x)", -errorCode);
+        qWarning("QQnxAudioSink: open error, couldn't set channel params (0x%x)", -errorCode);
         close();
         return false;
     }
 
     if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK)) < 0) {
-        qWarning("QnxAudioOutput: open error, couldn't prepare channel (0x%x)", -errorCode);
+        qWarning("QQnxAudioSink: open error, couldn't prepare channel (0x%x)", -errorCode);
         close();
         return false;
     }
@@ -297,7 +297,7 @@ bool QnxAudioOutput::open()
     memset(&setup, 0, sizeof(setup));
     setup.channel = SND_PCM_CHANNEL_PLAYBACK;
     if ((errorCode = snd_pcm_plugin_setup(m_pcmHandle, &setup)) < 0) {
-        qWarning("QnxAudioOutput: open error, couldn't get channel setup (0x%x)", -errorCode);
+        qWarning("QQnxAudioSink: open error, couldn't get channel setup (0x%x)", -errorCode);
         close();
         return false;
     }
@@ -310,7 +310,7 @@ bool QnxAudioOutput::open()
     return true;
 }
 
-void QnxAudioOutput::close()
+void QQnxAudioSink::close()
 {
     m_timer.stop();
 
@@ -332,7 +332,7 @@ void QnxAudioOutput::close()
     }
 }
 
-void QnxAudioOutput::setError(QAudio::Error error)
+void QQnxAudioSink::setError(QAudio::Error error)
 {
     if (m_error != error) {
         m_error = error;
@@ -340,7 +340,7 @@ void QnxAudioOutput::setError(QAudio::Error error)
     }
 }
 
-void QnxAudioOutput::setState(QAudio::State state)
+void QQnxAudioSink::setState(QAudio::State state)
 {
     if (m_state != state) {
         m_state = state;
@@ -348,7 +348,7 @@ void QnxAudioOutput::setState(QAudio::State state)
     }
 }
 
-qint64 QnxAudioOutput::write(const char *data, qint64 len)
+qint64 QQnxAudioSink::write(const char *data, qint64 len)
 {
     if (!m_pcmHandle)
         return 0;
@@ -382,13 +382,13 @@ qint64 QnxAudioOutput::write(const char *data, qint64 len)
     }
 }
 
-void QnxAudioOutput::suspendInternal(QAudio::State suspendState)
+void QQnxAudioSink::suspendInternal(QAudio::State suspendState)
 {
     m_timer.stop();
     setState(suspendState);
 }
 
-void QnxAudioOutput::resumeInternal()
+void QQnxAudioSink::resumeInternal()
 {
     if (m_pushSource) {
         setState(QAudio::IdleState);
@@ -407,7 +407,7 @@ QAudio::State suspendState(const snd_pcm_event_t &event)
     return QAudio::SuspendedState;
 }
 
-void QnxAudioOutput::addPcmEventFilter()
+void QQnxAudioSink::addPcmEventFilter()
 {
     /* Enable PCM events */
     snd_pcm_filter_t filter;
@@ -418,7 +418,7 @@ void QnxAudioOutput::addPcmEventFilter()
     snd_pcm_set_filter(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK, &filter);
 }
 
-void QnxAudioOutput::createPcmNotifiers()
+void QQnxAudioSink::createPcmNotifiers()
 {
     // QSocketNotifier::Read for poll based event dispatcher.  Exception for
     // select based event dispatcher.
@@ -426,10 +426,10 @@ void QnxAudioOutput::createPcmNotifiers()
                                                                 SND_PCM_CHANNEL_PLAYBACK),
                                         QSocketNotifier::Read, this);
     connect(m_pcmNotifier, &QSocketNotifier::activated,
-            this, &QnxAudioOutput::pcmNotifierActivated);
+            this, &QQnxAudioSink::pcmNotifierActivated);
 }
 
-void QnxAudioOutput::destroyPcmNotifiers()
+void QQnxAudioSink::destroyPcmNotifiers()
 {
     if (m_pcmNotifier) {
         delete m_pcmNotifier;
@@ -437,7 +437,7 @@ void QnxAudioOutput::destroyPcmNotifiers()
     }
 }
 
-void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
+void QQnxAudioSink::setTypeName(snd_pcm_channel_params_t *params)
 {
 #if 0
 // Use some mapping from QAudio::Role
@@ -447,12 +447,12 @@ void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
     QByteArray latin1Category = m_category.toLatin1();
 
     if (QString::fromLatin1(latin1Category) != m_category) {
-        qWarning("QnxAudioOutput: audio category name isn't a Latin1 string.");
+        qWarning("QQnxAudioSink: audio category name isn't a Latin1 string.");
         return;
     }
 
     if (latin1Category.size() >= static_cast<int>(sizeof(params->audio_type_name))) {
-        qWarning("QnxAudioOutput: audio category name too long.");
+        qWarning("QQnxAudioSink: audio category name too long.");
         return;
     }
 
@@ -460,7 +460,7 @@ void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *params)
 #endif
 }
 
-void QnxAudioOutput::pcmNotifierActivated(int socket)
+void QQnxAudioSink::pcmNotifierActivated(int socket)
 {
     Q_UNUSED(socket);
 
@@ -480,14 +480,14 @@ void QnxAudioOutput::pcmNotifierActivated(int socket)
 
 #else
 
-void QnxAudioOutput::addPcmEventFilter() {}
-void QnxAudioOutput::createPcmNotifiers() {}
-void QnxAudioOutput::destroyPcmNotifiers() {}
-void QnxAudioOutput::setTypeName(snd_pcm_channel_params_t *) {}
+void QQnxAudioSink::addPcmEventFilter() {}
+void QQnxAudioSink::createPcmNotifiers() {}
+void QQnxAudioSink::destroyPcmNotifiers() {}
+void QQnxAudioSink::setTypeName(snd_pcm_channel_params_t *) {}
 
 #endif
 
-QnxPushIODevice::QnxPushIODevice(QnxAudioOutput *output)
+QnxPushIODevice::QnxPushIODevice(QQnxAudioSink *output)
     : QIODevice(output),
       m_output(output)
 {

@@ -37,124 +37,72 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
 
-#ifndef QWINDOWSAUDIOOUTPUT_H
-#define QWINDOWSAUDIOOUTPUT_H
+#ifndef QAUDIOOUTPUT_H
+#define QAUDIOOUTPUT_H
 
-#include "qwindowsaudioutils_p.h"
-
-#include <QtCore/qdebug.h>
-#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qdatetime.h>
-#include <QtCore/qmutex.h>
+
+#include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
-#include <private/qaudiosystem_p.h>
 
-// For compat with 4.6
-#if !defined(QT_WIN_CALLBACK)
-#  if defined(Q_CC_MINGW)
-#    define QT_WIN_CALLBACK CALLBACK __attribute__ ((force_align_arg_pointer))
-#  else
-#    define QT_WIN_CALLBACK CALLBACK
-#  endif
-#endif
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsAudioOutput : public QAbstractAudioOutput
+
+
+class QPlatformAudioSink;
+
+class Q_MULTIMEDIA_EXPORT QAudioSink : public QObject
 {
     Q_OBJECT
+
 public:
-    QWindowsAudioOutput(int deviceId);
-    ~QWindowsAudioOutput();
+    explicit QAudioSink(const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
+    explicit QAudioSink(const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
+    ~QAudioSink();
 
-    qint64 write( const char *data, qint64 len );
+    bool isNull() const { return !d; }
 
-    void setFormat(const QAudioFormat& fmt);
     QAudioFormat format() const;
+
+    void start(QIODevice *device);
     QIODevice* start();
-    void start(QIODevice* device);
+
     void stop();
     void reset();
     void suspend();
     void resume();
-    qsizetype bytesFree() const;
-    void setBufferSize(qsizetype value);
+
+    void setBufferSize(qsizetype bytes);
     qsizetype bufferSize() const;
+
+    qsizetype bytesFree() const;
+
     qint64 processedUSecs() const;
+    qint64 elapsedUSecs() const;
+
     QAudio::Error error() const;
     QAudio::State state() const;
+
     void setVolume(qreal);
     qreal volume() const;
 
-    QIODevice* audioSource;
-    QAudioFormat settings;
-    QAudio::Error errorState;
-    QAudio::State deviceState;
+    QAudio::Role audioRole() const;
+    void setAudioRole(QAudio::Role role);
 
-private slots:
-    void feedback();
-    bool deviceReady();
+Q_SIGNALS:
+    void stateChanged(QAudio::State state);
 
 private:
-    void pauseAndSleep();
-    int m_deviceId;
-    int bytesAvailable;
-    qint64 elapsedTimeOffset;
-    qint32 buffer_size;
-    qint32 period_size;
-    qint32 blocks_count;
-    qint64 totalTimeValue;
-    bool pullMode;
-    qreal volumeCache;
-    static void QT_WIN_CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
-            DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
+    Q_DISABLE_COPY(QAudioSink)
 
-    mutable QMutex mutex;
-
-    WAVEHDR* allocateBlocks(int size, int count);
-    void freeBlocks(WAVEHDR* blockArray);
-    bool open();
-    void close();
-
-    WAVEFORMATEXTENSIBLE wfx;
-    HWAVEOUT hWaveOut;
-    WAVEHDR* waveBlocks;
-    int waveFreeBlockCount = 0;
-    int waveCurrentBlock = 0;
-    char *audioBuffer = nullptr;
-};
-
-class OutputPrivate : public QIODevice
-{
-    Q_OBJECT
-public:
-    OutputPrivate(QWindowsAudioOutput* audio);
-    ~OutputPrivate();
-
-    qint64 readData( char* data, qint64 len);
-    qint64 writeData(const char* data, qint64 len);
-
-private:
-    QWindowsAudioOutput *audioDevice;
+    QPlatformAudioSink* d;
 };
 
 QT_END_NAMESPACE
 
-
-#endif // QWINDOWSAUDIOOUTPUT_H
+#endif // QAUDIOOUTPUT_H

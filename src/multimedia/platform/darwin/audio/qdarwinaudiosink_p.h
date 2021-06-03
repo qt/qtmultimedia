@@ -65,18 +65,18 @@
 
 QT_BEGIN_NAMESPACE
 
-class QCoreAudioOutputBuffer;
+class QDarwinAudioSinkBuffer;
 class QTimer;
 class QCoreAudioDeviceInfo;
 class CoreAudioRingBuffer;
 
-class QCoreAudioOutputBuffer : public QObject
+class QDarwinAudioSinkBuffer : public QObject
 {
     Q_OBJECT
 
 public:
-    QCoreAudioOutputBuffer(int bufferSize, int maxPeriodSize, QAudioFormat const& audioFormat);
-    ~QCoreAudioOutputBuffer();
+    QDarwinAudioSinkBuffer(int bufferSize, int maxPeriodSize, QAudioFormat const& audioFormat);
+    ~QDarwinAudioSinkBuffer();
 
     qint64 readFrames(char *data, qint64 maxFrames);
     qint64 writeBytes(const char *data, qint64 maxSize);
@@ -105,10 +105,10 @@ private:
     CoreAudioRingBuffer *m_buffer;
 };
 
-class QCoreAudioOutputDevice : public QIODevice
+class QDarwinAudioSinkDevice : public QIODevice
 {
 public:
-    QCoreAudioOutputDevice(QCoreAudioOutputBuffer *audioBuffer, QObject *parent);
+    QDarwinAudioSinkDevice(QDarwinAudioSinkBuffer *audioBuffer, QObject *parent);
 
     qint64 readData(char *data, qint64 len);
     qint64 writeData(const char *data, qint64 len);
@@ -116,17 +116,17 @@ public:
     bool isSequential() const { return true; }
 
 private:
-    QCoreAudioOutputBuffer *m_audioBuffer;
+    QDarwinAudioSinkBuffer *m_audioBuffer;
 };
 
 
-class QCoreAudioOutput : public QAbstractAudioOutput
+class QDarwinAudioSink : public QPlatformAudioSink
 {
     Q_OBJECT
 
 public:
-    QCoreAudioOutput(const QAudioDeviceInfo &device);
-    ~QCoreAudioOutput();
+    QDarwinAudioSink(const QAudioDeviceInfo &device);
+    ~QDarwinAudioSink();
 
     void start(QIODevice *device);
     QIODevice *start();
@@ -191,7 +191,7 @@ private:
     AudioUnit m_audioUnit;
     Float64 m_clockFrequency;
     AudioStreamBasicDescription m_streamFormat;
-    QCoreAudioOutputBuffer *m_audioBuffer;
+    QDarwinAudioSinkBuffer *m_audioBuffer;
     QAtomicInt m_audioThreadState;
     QWaitCondition m_threadFinished;
     QMutex m_mutex;

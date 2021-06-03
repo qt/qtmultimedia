@@ -42,7 +42,7 @@
 #include "qcamerainfo_p.h"
 
 #include "private/qgstreameraudiosource_p.h"
-#include "private/qaudiooutput_gstreamer_p.h"
+#include "private/qgstreameraudiosink_p.h"
 #include "private/qaudiodeviceinfo_gstreamer_p.h"
 #include "private/qgstutils_p.h"
 
@@ -192,9 +192,9 @@ QPlatformAudioSource *QGstreamerMediaDevices::createAudioSource(const QAudioDevi
     return new QGStreamerAudioSource(deviceInfo);
 }
 
-QAbstractAudioOutput *QGstreamerMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QGstreamerMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QGStreamerAudioOutput(deviceInfo);
+    return new QGStreamerAudioSink(deviceInfo);
 }
 
 void QGstreamerMediaDevices::addDevice(GstDevice *device)

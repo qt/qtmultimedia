@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOOUTPUT_H
-#define QNXAUDIOOUTPUT_H
+#ifndef QAUDIOOUTPUTPULSE_H
+#define QAUDIOOUTPUTPULSE_H
 
 //
 //  W A R N I N G
@@ -51,98 +51,103 @@
 // We mean it.
 //
 
-#include "qaudiosystem_p.h"
+#include <QtCore/qfile.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtCore/qiodevice.h>
 
-#include <QElapsedTimer>
-#include <QTimer>
-#include <QIODevice>
-#include <QSocketNotifier>
+#include "qaudio.h"
+#include "qaudiodeviceinfo.h"
+#include <private/qaudiosystem_p.h>
 
-#include <sys/asoundlib.h>
-#include <sys/neutrino.h>
+#include <pulse/pulseaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QnxPushIODevice;
-
-class QnxAudioOutput : public QAbstractAudioOutput
+class QPulseAudioSink : public QPlatformAudioSink
 {
+    friend class PulseOutputPrivate;
     Q_OBJECT
 
 public:
-    QnxAudioOutput();
-    ~QnxAudioOutput();
+    QPulseAudioSink(const QByteArray &device);
+    ~QPulseAudioSink();
 
-    void start(QIODevice *source) override;
+    void start(QIODevice *device) override;
     QIODevice *start() override;
     void stop() override;
     void reset() override;
     void suspend() override;
     void resume() override;
     qsizetype bytesFree() const override;
-    void setBufferSize(qsizetype) override {}
-    qsizetype bufferSize() const override { return 0; }
+    void setBufferSize(qsizetype value) override;
+    qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
     void setFormat(const QAudioFormat &format) override;
     QAudioFormat format() const override;
+
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-private slots:
-    void pullData();
+public:
+    void streamUnderflowCallback();
 
 private:
+    void setState(QAudio::State state);
+    void setError(QAudio::Error error);
+
     bool open();
     void close();
-    void setError(QAudio::Error error);
-    void setState(QAudio::State state);
-
-    void addPcmEventFilter();
-    void createPcmNotifiers();
-    void destroyPcmNotifiers();
-    void setTypeName(snd_pcm_channel_params_t *params);
-
-    void suspendInternal(QAudio::State suspendState);
-    void resumeInternal();
-
-    friend class QnxPushIODevice;
     qint64 write(const char *data, qint64 len);
 
-    QIODevice *m_source;
-    bool m_pushSource;
-    QTimer m_timer;
-
-    QAudio::Error m_error;
-    QAudio::State m_state;
-    QAudioFormat m_format;
-    qreal m_volume;
-    int m_periodSize;
-
-    snd_pcm_t *m_pcmHandle;
-    qint64 m_bytesWritten;
-
-#if _NTO_VERSION >= 700
-    QSocketNotifier *m_pcmNotifier;
-
-private slots:
-    void pcmNotifierActivated(int socket);
-#endif
-};
-
-class QnxPushIODevice : public QIODevice
-{
-    Q_OBJECT
-public:
-    explicit QnxPushIODevice(QnxAudioOutput *output);
-    ~QnxPushIODevice();
-
-    qint64 readData(char *data, qint64 len);
-    qint64 writeData(const char *data, qint64 len);
+private Q_SLOTS:
+    void userFeed();
+    void onPulseContextFailed();
 
 private:
-    QnxAudioOutput *m_output;
+    QByteArray m_device;
+    QByteArray m_streamName;
+    QAudioFormat m_format;
+    QAudio::Error m_errorState;
+    QAudio::State m_deviceState;
+    bool m_pullMode;
+    bool m_opened;
+    QIODevice *m_audioSource;
+    QTimer m_periodTimer;
+    int m_periodTime;
+    pa_stream *m_stream;
+    int m_periodSize;
+    int m_bufferSize;
+    int m_maxBufferSize;
+    qint64 m_totalTimeValue;
+    QTimer *m_tickTimer;
+    char *m_audioBuffer;
+    qint64 m_elapsedTimeOffset;
+    bool m_resuming;
+
+    qreal m_volume;
+    pa_sample_spec m_spec;
+};
+
+class PulseOutputPrivate : public QIODevice
+{
+    friend class QPulseAudioSink;
+    Q_OBJECT
+
+public:
+    PulseOutputPrivate(QPulseAudioSink *audio);
+    virtual ~PulseOutputPrivate() {}
+
+protected:
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
+
+private:
+    QPulseAudioSink *m_audioDevice;
 };
 
 QT_END_NAMESPACE

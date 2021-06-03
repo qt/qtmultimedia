@@ -43,7 +43,7 @@
 #include "qaudiodeviceinfo_p.h"
 #include "private/qcoreaudiodeviceinfo_p.h"
 #include "private/qdarwinaudiosource_p.h"
-#include "private/qcoreaudiooutput_p.h"
+#include "private/qdarwinaudiosink_p.h"
 #include "private/avfcamera_p.h"
 #include "private/avfcamerautility_p.h"
 #include "private/avfvideobuffer_p.h"
@@ -334,9 +334,9 @@ QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDeviceI
     return new QDarwinAudioSource(info);
 }
 
-QAbstractAudioOutput *QDarwinMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &info)
+QPlatformAudioSink *QDarwinMediaDevices::createAudioSink(const QAudioDeviceInfo &info)
 {
-    return new QCoreAudioOutput(info);
+    return new QDarwinAudioSink(info);
 }
 
 

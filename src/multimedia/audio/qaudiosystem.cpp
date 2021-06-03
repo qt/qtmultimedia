@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
     QAudioDeviceInfo.
 
     \sa QAudioDeviceInfo
-    \sa QAbstractAudioOutput, QPlatformAudioSource
+    \sa QPlatformAudioSink, QPlatformAudioSource
 */
 
 /*!
@@ -107,116 +107,116 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \class QAbstractAudioOutput
-    \brief The QAbstractAudioOutput class is a base class for audio backends.
+    \class QPlatformAudioSink
+    \brief The QPlatformAudioSink class is a base class for audio backends.
 
     \ingroup multimedia
     \inmodule QtMultimedia
 
-    QAbstractAudioOutput implements audio functionality for
-    QAudioOutput, i.e., QAudioOutput routes function calls to
-    QAbstractAudioOutput. For a description of the functionality that
-    is implemented, see the QAudioOutput class and function
+    QPlatformAudioSink implements audio functionality for
+    QAudioSink, i.e., QAudioSink routes function calls to
+    QPlatformAudioSink. For a description of the functionality that
+    is implemented, see the QAudioSink class and function
     descriptions.
 
-    \sa QAudioOutput
+    \sa QAudioSink
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::start(QIODevice* device)
+    \fn virtual void QPlatformAudioSink::start(QIODevice* device)
     Uses the \a device as the QIODevice to transfer data.
 */
 
 /*!
-    \fn virtual QIODevice* QAbstractAudioOutput::start()
+    \fn virtual QIODevice* QPlatformAudioSink::start()
     Returns a pointer to the QIODevice being used to handle
     the data transfer. This QIODevice can be used to write() audio data directly.
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::stop()
+    \fn virtual void QPlatformAudioSink::stop()
     Stops the audio output.
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::reset()
+    \fn virtual void QPlatformAudioSink::reset()
     Drops all audio data in the buffers, resets buffers to zero.
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::suspend()
+    \fn virtual void QPlatformAudioSink::suspend()
     Stops processing audio data, preserving buffered audio data.
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::resume()
+    \fn virtual void QPlatformAudioSink::resume()
     Resumes processing audio data after a suspend()
 */
 
 /*!
-    \fn virtual qsizetype QAbstractAudioOutput::bytesFree() const
+    \fn virtual qsizetype QPlatformAudioSink::bytesFree() const
     Returns the free space available in bytes in the audio buffer.
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::setBufferSize(qsizetype value)
+    \fn virtual void QPlatformAudioSink::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in bytes.
 */
 
 /*!
-    \fn virtual qsizetype QAbstractAudioOutput::bufferSize() const
+    \fn virtual qsizetype QPlatformAudioSink::bufferSize() const
     Returns the audio buffer size in bytes.
 */
 
 /*!
-    \fn virtual qint64 QAbstractAudioOutput::processedUSecs() const
+    \fn virtual qint64 QPlatformAudioSink::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
 */
 
 /*!
-    \fn virtual QAudio::Error QAbstractAudioOutput::error() const
+    \fn virtual QAudio::Error QPlatformAudioSink::error() const
     Returns the error state.
 */
 
 /*!
-    \fn virtual QAudio::State QAbstractAudioOutput::state() const
+    \fn virtual QAudio::State QPlatformAudioSink::state() const
     Returns the state of audio processing.
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::setFormat(const QAudioFormat& fmt)
+    \fn virtual void QPlatformAudioSink::setFormat(const QAudioFormat& fmt)
     Set the QAudioFormat to use to \a fmt.
     Setting the format is only allowable while in QAudio::StoppedState.
 */
 
 /*!
-    \fn virtual QAudioFormat QAbstractAudioOutput::format() const
+    \fn virtual QAudioFormat QPlatformAudioSink::format() const
     Returns the QAudioFormat being used.
 */
 
 /*!
-    \fn virtual void QAbstractAudioOutput::setVolume(qreal volume)
+    \fn virtual void QPlatformAudioSink::setVolume(qreal volume)
     Sets the volume.
     Where \a volume is between 0.0 and 1.0.
 */
 
 /*!
-    \fn virtual qreal QAbstractAudioOutput::volume() const
+    \fn virtual qreal QPlatformAudioSink::volume() const
     Returns the volume in the range 0.0 and 1.0.
 */
 
-void QAbstractAudioOutput::setRole(QAudio::Role role)
+void QPlatformAudioSink::setRole(QAudio::Role role)
 {
     m_role = role;
 }
 
 /*!
-    \fn QAbstractAudioOutput::errorChanged(QAudio::Error error)
+    \fn QPlatformAudioSink::errorChanged(QAudio::Error error)
     This signal is emitted when the \a error state has changed.
 */
 
 /*!
-    \fn QAbstractAudioOutput::stateChanged(QAudio::State state)
+    \fn QPlatformAudioSink::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
 */
 

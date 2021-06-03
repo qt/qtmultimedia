@@ -75,7 +75,7 @@ QT_BEGIN_NAMESPACE
     \endtable
 
     This class is used in conjunction with QAudioSource or
-    QAudioOutput to allow you to specify the parameters of the audio
+    QAudioSink to allow you to specify the parameters of the audio
     stream being read or written, or with QAudioBuffer when dealing with
     samples in memory.
 
@@ -305,7 +305,7 @@ float QAudioFormat::normalizedSampleValue(const void *sample) const
 
     Qt will always expect and use samples in the endianness of the host platform. When processing audio data
     from external sources yourself, ensure you convert them to the correct endianness before writing them to
-    a QAudioOutput or QAudioBuffer
+    a QAudioSink or QAudioBuffer
 
     \value Unknown       Not Set
     \value Int16         Samples are 16 bit signed integers

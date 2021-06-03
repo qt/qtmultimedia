@@ -91,7 +91,7 @@ QT_BEGIN_NAMESPACE
     active, suspended, stopped, or idle. These states are specified by
     the QAudio::State enum. You can request a state change directly through
     suspend(), resume(), stop(), reset(), and start(). The current
-    state is reported by state(). QAudioOutput will also signal you
+    state is reported by state(). QAudioSink will also signal you
     when the state changes (stateChanged()).
 
     QAudioSource provides several ways of measuring the time that has
@@ -109,7 +109,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/audio.cpp Audio input state changed
 
-    \sa QAudioOutput, QAudioDeviceInfo
+    \sa QAudioSink, QAudioDeviceInfo
 */
 
 /*!

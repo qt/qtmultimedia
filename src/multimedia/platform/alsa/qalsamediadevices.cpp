@@ -42,7 +42,7 @@
 #include "qcamerainfo_p.h"
 
 #include "private/qalsaaudiosource_p.h"
-#include "private/qalsaaudiooutput_p.h"
+#include "private/qalsaaudiosink_p.h"
 #include "private/qalsaaudiodeviceinfo_p.h"
 
 #include <alsa/asoundlib.h>
@@ -120,9 +120,9 @@ QPlatformAudioSource *QAlsaMediaDevices::createAudioSource(const QAudioDeviceInf
     return new QAlsaAudioSource(deviceInfo.id());
 }
 
-QAbstractAudioOutput *QAlsaMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QAlsaMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
 {
-    return new QAlsaAudioOutput(deviceInfo.id());
+    return new QAlsaAudioSink(deviceInfo.id());
 }
 
 QT_END_NAMESPACE

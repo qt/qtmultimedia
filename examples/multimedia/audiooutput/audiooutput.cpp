@@ -51,7 +51,7 @@
 #include "audiooutput.h"
 
 #include <QAudioDeviceInfo>
-#include <QAudioOutput>
+#include <QAudioSink>
 #include <QDebug>
 #include <QVBoxLayout>
 #include <qmath.h>
@@ -201,7 +201,7 @@ void AudioTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
     const int durationSeconds = 1;
     const int toneSampleRateHz = 600;
     m_generator.reset(new Generator(format, durationSeconds * 1000000, toneSampleRateHz));
-    m_audioOutput.reset(new QAudioOutput(deviceInfo, format));
+    m_audioOutput.reset(new QAudioSink(deviceInfo, format));
     m_generator->start();
 
     qreal initialVolume = QAudio::convertVolume(m_audioOutput->volume(),
@@ -235,11 +235,11 @@ void AudioTest::toggleMode()
     toggleSuspendResume();
 
     if (m_pullMode) {
-        //switch to pull mode (QAudioOutput pulls from Generator as needed)
+        //switch to pull mode (QAudioSink pulls from Generator as needed)
         m_modeButton->setText(tr("Enable push mode"));
         m_audioOutput->start(m_generator.data());
     } else {
-        //switch to push mode (periodically push to QAudioOutput using a timer)
+        //switch to push mode (periodically push to QAudioSink using a timer)
         m_modeButton->setText(tr("Enable pull mode"));
         auto io = m_audioOutput->start();
         m_pushTimer->disconnect();

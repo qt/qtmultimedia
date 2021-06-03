@@ -41,7 +41,7 @@
 #include "qsoundeffect.h"
 #include "qsamplecache_p.h"
 #include "qaudiodeviceinfo.h"
-#include "qaudiooutput.h"
+#include "qaudiosink.h"
 #include "qmediadevices.h"
 #include <QtCore/qloggingcategory.h>
 
@@ -93,7 +93,7 @@ public:
     int m_runningCount = 0;
     bool m_playing = false;
     QSoundEffect::Status  m_status = QSoundEffect::Null;
-    QAudioOutput *m_audioOutput = nullptr;
+    QAudioSink *m_audioOutput = nullptr;
     QSample *m_sample = nullptr;
     bool m_muted = false;
     qreal m_volume = 1.0;
@@ -121,8 +121,8 @@ void QSoundEffectPrivate::sampleReady()
     disconnect(m_sample, &QSample::error, this, &QSoundEffectPrivate::decoderError);
     disconnect(m_sample, &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
     if (!m_audioOutput) {
-        m_audioOutput = new QAudioOutput(m_audioDevice, m_sample->format());
-        connect(m_audioOutput, &QAudioOutput::stateChanged, this, &QSoundEffectPrivate::stateChanged);
+        m_audioOutput = new QAudioSink(m_audioDevice, m_sample->format());
+        connect(m_audioOutput, &QAudioSink::stateChanged, this, &QSoundEffectPrivate::stateChanged);
         if (!m_muted)
             m_audioOutput->setVolume(m_volume);
         else
@@ -398,7 +398,7 @@ void QSoundEffect::setSource(const QUrl &url)
     }
 
     if (d->m_audioOutput) {
-        QObject::disconnect(d->m_audioOutput, &QAudioOutput::stateChanged, d, &QSoundEffectPrivate::stateChanged);
+        QObject::disconnect(d->m_audioOutput, &QAudioSink::stateChanged, d, &QSoundEffectPrivate::stateChanged);
         d->m_audioOutput->stop();
         d->m_audioOutput->deleteLater();
         d->m_audioOutput = nullptr;

@@ -77,14 +77,14 @@ microphones, and to write raw data to speakers or other devices.  Generally
 these classes do not do any audio decoding, or other processing, but they
 can support different types of raw audio data.
 
-The QAudioOutput class offers raw audio data output, while QAudioSource
+The QAudioSink class offers raw audio data output, while QAudioSource
 offers raw audio data input. The available hardware
 determines what audio outputs and inputs are available.
 
 \section3 Push and Pull
 The low level audio classes can operate in two modes - \c push and \c pull.
 In \c pull mode, the audio device is started by giving it a QIODevice.  For
-an output device, the QAudioOutput class will pull data from the QIODevice
+an output device, the QAudioSink class will pull data from the QIODevice
 (using \l QIODevice::read()) when more audio data is required.  Conversely,
 for \c pull mode with QAudioSource, when audio data is available then the
 data will be written directly to the QIODevice.

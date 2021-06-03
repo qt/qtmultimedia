@@ -37,39 +37,48 @@
 **
 ****************************************************************************/
 
-#ifndef QOPENSLESAUDIOOUTPUT_H
-#define QOPENSLESAUDIOOUTPUT_H
-
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API.  It exists for the convenience
+// of other Qt classes.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
-#include <SLES/OpenSLES.h>
-#include <qbytearray.h>
-#include <qmap.h>
-#include <QElapsedTimer>
-#include <QIODevice>
+#ifndef QAUDIOOUTPUTALSA_H
+#define QAUDIOOUTPUTALSA_H
+
+#include <alsa/asoundlib.h>
+
+#include <QtCore/qfile.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtCore/qiodevice.h>
+
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <private/qaudiosystem_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QOpenSLESAudioOutput : public QAbstractAudioOutput
+class QAlsaAudioSink : public QPlatformAudioSink
 {
+    friend class AlsaOutputPrivate;
     Q_OBJECT
-
 public:
-    QOpenSLESAudioOutput(const QByteArray &device);
-    ~QOpenSLESAudioOutput();
+    QAlsaAudioSink(const QByteArray &device);
+    ~QAlsaAudioSink();
 
-    void start(QIODevice *device) override;
-    QIODevice *start() override;
+    qint64 write( const char *data, qint64 len );
+
+    void start(QIODevice* device) override;
+    QIODevice* start() override;
     void stop() override;
     void reset() override;
     void suspend() override;
@@ -80,81 +89,69 @@ public:
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format) override;
+    void setFormat(const QAudioFormat& fmt) override;
     QAudioFormat format() const override;
-
-    void setVolume(qreal volume) override;
+    void setVolume(qreal) override;
     qreal volume() const override;
 
-    void setRole(QAudio::Role role) override;
+
+    QIODevice* audioSource;
+    QAudioFormat settings;
+    QAudio::Error errorState;
+    QAudio::State deviceState;
+
+private slots:
+    void userFeed();
+    bool deviceReady();
+
+signals:
+    void processMore();
 
 private:
-    friend class SLIODevicePrivate;
+    bool opened;
+    bool pullMode;
+    bool resuming;
+    int buffer_size;
+    int period_size;
+    qint64 totalTimeValue;
+    unsigned int buffer_time;
+    unsigned int period_time;
+    snd_pcm_uframes_t buffer_frames;
+    snd_pcm_uframes_t period_frames;
+    int xrun_recovery(int err);
 
-    Q_INVOKABLE void onEOSEvent();
-    Q_INVOKABLE void onBytesProcessed(qint64 bytes);
-    void bufferAvailable(quint32 count, quint32 playIndex);
+    int setFormat();
+    bool open();
+    void close();
 
-    static void playCallback(SLPlayItf playItf, void *ctx, SLuint32 event);
-    static void bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx);
-
-    bool preparePlayer();
-    void destroyPlayer();
-    void stopPlayer();
-    void startPlayer();
-    qint64 writeData(const char *data, qint64 len);
-
-    void setState(QAudio::State state);
-    void setError(QAudio::Error error);
-
-    SLmillibel adjustVolume(qreal vol);
-
-    QByteArray m_deviceName;
-    QAudio::State m_state;
-    QAudio::Error m_error;
-    SLObjectItf m_outputMixObject;
-    SLObjectItf m_playerObject;
-    SLPlayItf m_playItf;
-    SLVolumeItf m_volumeItf;
-    SLBufferQueueItf m_bufferQueueItf;
-    QIODevice *m_audioSource;
-    char *m_buffers;
+    QTimer* timer;
+    QByteArray m_device;
+    int bytesAvailable;
+    qint64 elapsedTimeOffset;
+    char* audioBuffer;
+    snd_pcm_t* handle;
+    snd_pcm_access_t access;
+    snd_pcm_format_t pcmformat;
+    snd_pcm_hw_params_t *hwparams;
     qreal m_volume;
-    bool m_pullMode;
-    int m_nextBuffer;
-    int m_bufferSize;
-    qint64 m_elapsedTime;
-    qint64 m_processedBytes;
-    QAtomicInt m_availableBuffers;
-    SLuint32 m_eventMask;
-    bool m_startRequiresInit;
-
-    qint32 m_streamType;
-    QAudioFormat m_format;
 };
 
-class SLIODevicePrivate : public QIODevice
+class AlsaOutputPrivate : public QIODevice
 {
+    friend class QAlsaAudioSink;
     Q_OBJECT
-
 public:
-    inline SLIODevicePrivate(QOpenSLESAudioOutput *audio) : m_audioDevice(audio) {}
-    inline ~SLIODevicePrivate() override {}
+    AlsaOutputPrivate(QAlsaAudioSink* audio);
+    ~AlsaOutputPrivate();
 
-protected:
-    inline qint64 readData(char *, qint64) override { return 0; }
-    inline qint64 writeData(const char *data, qint64 len) override;
+    qint64 readData( char* data, qint64 len) override;
+    qint64 writeData(const char* data, qint64 len) override;
 
 private:
-    QOpenSLESAudioOutput *m_audioDevice;
+    QAlsaAudioSink *audioDevice;
 };
-
-qint64 SLIODevicePrivate::writeData(const char *data, qint64 len)
-{
-    Q_ASSERT(m_audioDevice);
-    return m_audioDevice->writeData(data, len);
-}
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESAUDIOOUTPUT_H
+
+#endif

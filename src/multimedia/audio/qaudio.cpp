@@ -150,7 +150,7 @@ namespace QAudio
     \snippet multimedia-snippets/audio.cpp Volume conversion
 
     \since 5.8
-    \sa VolumeScale, QMediaPlayer::setVolume(), QAudioOutput::setVolume(),
+    \sa VolumeScale, QMediaPlayer::setVolume(), QAudioSink::setVolume(),
         QAudioSource::setVolume(), QSoundEffect::setVolume(), QMediaRecorder::setVolume()
 */
 qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)

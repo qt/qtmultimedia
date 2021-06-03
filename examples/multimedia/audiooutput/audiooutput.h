@@ -53,7 +53,7 @@
 
 #include <math.h>
 
-#include <QAudioOutput>
+#include <QAudioSink>
 #include <QByteArray>
 #include <QComboBox>
 #include <QIODevice>
@@ -113,7 +113,7 @@ private:
     QSlider *m_volumeSlider = nullptr;
 
     QScopedPointer<Generator> m_generator;
-    QScopedPointer<QAudioOutput> m_audioOutput;
+    QScopedPointer<QAudioSink> m_audioOutput;
 
     bool m_pullMode = true;
 

@@ -88,7 +88,7 @@ QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDeviceInf
     return nullptr;// ###
 }
 
-QAbstractAudioOutput *QMockMediaDevices::createAudioOutputDevice(const QAudioDeviceInfo &info)
+QPlatformAudioSink *QMockMediaDevices::createAudioSink(const QAudioDeviceInfo &info)
 {
     Q_UNUSED(info);
     return nullptr; //###

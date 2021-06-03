@@ -48,7 +48,7 @@
 // INTERNAL USE ONLY: Do NOT use for any other purpose.
 //
 
-#include "qwindowsaudiooutput_p.h"
+#include "qwindowsaudiosink_p.h"
 #include "qwindowsaudiodeviceinfo_p.h"
 #include "qwindowsaudioutils_p.h"
 #include <QtEndian>
@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput")
 
-QWindowsAudioOutput::QWindowsAudioOutput(int deviceId)
+QWindowsAudioSink::QWindowsAudioSink(int deviceId)
 {
     bytesAvailable = 0;
     buffer_size = 0;
@@ -77,20 +77,20 @@ QWindowsAudioOutput::QWindowsAudioOutput(int deviceId)
     blocks_count = 5;
 }
 
-QWindowsAudioOutput::~QWindowsAudioOutput()
+QWindowsAudioSink::~QWindowsAudioSink()
 {
     close();
 }
 
-void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
+void CALLBACK QWindowsAudioSink::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
         DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 )
 {
     Q_UNUSED(dwParam1);
     Q_UNUSED(dwParam2);
     Q_UNUSED(hWaveOut);
 
-    QWindowsAudioOutput* qAudio;
-    qAudio = (QWindowsAudioOutput*)(dwInstance);
+    QWindowsAudioSink* qAudio;
+    qAudio = (QWindowsAudioSink*)(dwInstance);
     if(!qAudio)
         return;
 
@@ -117,7 +117,7 @@ void CALLBACK QWindowsAudioOutput::waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
     }
 }
 
-WAVEHDR* QWindowsAudioOutput::allocateBlocks(int size, int count)
+WAVEHDR* QWindowsAudioSink::allocateBlocks(int size, int count)
 {
     int i;
     unsigned char* buffer;
@@ -126,7 +126,7 @@ WAVEHDR* QWindowsAudioOutput::allocateBlocks(int size, int count)
 
     if((buffer=(unsigned char*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,
                     totalBufferSize)) == 0) {
-        qWarning("QAudioOutput: Memory allocation error");
+        qWarning("QAudioSink: Memory allocation error");
         return 0;
     }
     blocks = (WAVEHDR*)buffer;
@@ -139,7 +139,7 @@ WAVEHDR* QWindowsAudioOutput::allocateBlocks(int size, int count)
     return blocks;
 }
 
-void QWindowsAudioOutput::freeBlocks(WAVEHDR* blockArray)
+void QWindowsAudioSink::freeBlocks(WAVEHDR* blockArray)
 {
     WAVEHDR* blocks = blockArray;
     for (int i = 0; i < blocks_count; ++i) {
@@ -149,18 +149,18 @@ void QWindowsAudioOutput::freeBlocks(WAVEHDR* blockArray)
     HeapFree(GetProcessHeap(), 0, blockArray);
 }
 
-QAudioFormat QWindowsAudioOutput::format() const
+QAudioFormat QWindowsAudioSink::format() const
 {
     return settings;
 }
 
-void QWindowsAudioOutput::setFormat(const QAudioFormat& fmt)
+void QWindowsAudioSink::setFormat(const QAudioFormat& fmt)
 {
     if (deviceState == QAudio::StoppedState)
         settings = fmt;
 }
 
-void QWindowsAudioOutput::start(QIODevice* device)
+void QWindowsAudioSink::start(QIODevice* device)
 {
     qCDebug(qLcAudioOutput) << "start(ioDevice)";
     if(deviceState != QAudio::StoppedState)
@@ -180,7 +180,7 @@ void QWindowsAudioOutput::start(QIODevice* device)
     emit stateChanged(deviceState);
 }
 
-QIODevice* QWindowsAudioOutput::start()
+QIODevice* QWindowsAudioSink::start()
 {
     qCDebug(qLcAudioOutput) << "start()";
     if(deviceState != QAudio::StoppedState)
@@ -203,7 +203,7 @@ QIODevice* QWindowsAudioOutput::start()
     return audioSource;
 }
 
-void QWindowsAudioOutput::stop()
+void QWindowsAudioSink::stop()
 {
     qCDebug(qLcAudioOutput) << "stop()";
     if(deviceState == QAudio::StoppedState)
@@ -216,14 +216,14 @@ void QWindowsAudioOutput::stop()
     emit stateChanged(deviceState);
 }
 
-bool QWindowsAudioOutput::open()
+bool QWindowsAudioSink::open()
 {
     qCDebug(qLcAudioOutput) << "open()";
 
     period_size = 0;
 
     if (!qt_convertFormat(settings, &wfx)) {
-        qWarning("QAudioOutput: open error, invalid format.");
+        qWarning("QAudioSink: open error, invalid format.");
     } else if (buffer_size == 0) {
         // Default buffer size, 200ms, default period size is 40ms
         buffer_size
@@ -276,7 +276,7 @@ bool QWindowsAudioOutput::open()
         errorState = QAudio::OpenError;
         deviceState = QAudio::StoppedState;
         emit stateChanged(deviceState);
-        qWarning("QAudioOutput: open error");
+        qWarning("QAudioSink: open error");
         return false;
     }
 
@@ -293,7 +293,7 @@ bool QWindowsAudioOutput::open()
     return true;
 }
 
-void QWindowsAudioOutput::pauseAndSleep()
+void QWindowsAudioSink::pauseAndSleep()
 {
     waveOutPause(hWaveOut);
     int bitrate = settings.sampleRate() * settings.bytesPerFrame();
@@ -302,7 +302,7 @@ void QWindowsAudioOutput::pauseAndSleep()
     Sleep(delay + 10);
 }
 
-void QWindowsAudioOutput::close()
+void QWindowsAudioSink::close()
 {
     qCDebug(qLcAudioOutput) << "close()";
     if(deviceState == QAudio::StoppedState)
@@ -325,7 +325,7 @@ void QWindowsAudioOutput::close()
     qCDebug(qLcAudioOutput) << "end close()";
 }
 
-qsizetype QWindowsAudioOutput::bytesFree() const
+qsizetype QWindowsAudioSink::bytesFree() const
 {
     int buf;
     QMutexLocker locker(&mutex);
@@ -334,18 +334,18 @@ qsizetype QWindowsAudioOutput::bytesFree() const
     return buf;
 }
 
-void QWindowsAudioOutput::setBufferSize(qsizetype value)
+void QWindowsAudioSink::setBufferSize(qsizetype value)
 {
     if(deviceState == QAudio::StoppedState)
         buffer_size = value;
 }
 
-qsizetype QWindowsAudioOutput::bufferSize() const
+qsizetype QWindowsAudioSink::bufferSize() const
 {
     return buffer_size;
 }
 
-qint64 QWindowsAudioOutput::processedUSecs() const
+qint64 QWindowsAudioSink::processedUSecs() const
 {
     if (deviceState == QAudio::StoppedState)
         return 0;
@@ -355,7 +355,7 @@ qint64 QWindowsAudioOutput::processedUSecs() const
     return result;
 }
 
-qint64 QWindowsAudioOutput::write(const char *data, qint64 len)
+qint64 QWindowsAudioSink::write(const char *data, qint64 len)
 {
     qCDebug(qLcAudioOutput) << "write()" << len << deviceState << period_size;
 
@@ -414,7 +414,7 @@ qint64 QWindowsAudioOutput::write(const char *data, qint64 len)
     return written;
 }
 
-void QWindowsAudioOutput::resume()
+void QWindowsAudioSink::resume()
 {
     qCDebug(qLcAudioOutput) << "resume()";
     if(deviceState == QAudio::SuspendedState) {
@@ -426,7 +426,7 @@ void QWindowsAudioOutput::resume()
     }
 }
 
-void QWindowsAudioOutput::suspend()
+void QWindowsAudioSink::suspend()
 {
     qCDebug(qLcAudioOutput) << "suspend()";
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState) {
@@ -437,7 +437,7 @@ void QWindowsAudioOutput::suspend()
     }
 }
 
-void QWindowsAudioOutput::feedback()
+void QWindowsAudioSink::feedback()
 {
     qCDebug(qLcAudioOutput) << "feedback()";
     bytesAvailable = waveFreeBlockCount * period_size;
@@ -450,7 +450,7 @@ void QWindowsAudioOutput::feedback()
     }
 }
 
-bool QWindowsAudioOutput::deviceReady()
+bool QWindowsAudioSink::deviceReady()
 {
     qCDebug(qLcAudioOutput) << ">>>> deviceReady() state=" << deviceState << pullMode;
 
@@ -537,17 +537,17 @@ bool QWindowsAudioOutput::deviceReady()
     return true;
 }
 
-QAudio::Error QWindowsAudioOutput::error() const
+QAudio::Error QWindowsAudioSink::error() const
 {
     return errorState;
 }
 
-QAudio::State QWindowsAudioOutput::state() const
+QAudio::State QWindowsAudioSink::state() const
 {
     return deviceState;
 }
 
-void QWindowsAudioOutput::setVolume(qreal v)
+void QWindowsAudioSink::setVolume(qreal v)
 {
     if (qFuzzyCompare(volumeCache, v))
         return;
@@ -555,19 +555,19 @@ void QWindowsAudioOutput::setVolume(qreal v)
     volumeCache = qBound(qreal(0), v, qreal(1));
 }
 
-qreal QWindowsAudioOutput::volume() const
+qreal QWindowsAudioSink::volume() const
 {
     return volumeCache;
 }
 
-void QWindowsAudioOutput::reset()
+void QWindowsAudioSink::reset()
 {
     stop();
 }
 
-OutputPrivate::OutputPrivate(QWindowsAudioOutput* audio)
+OutputPrivate::OutputPrivate(QWindowsAudioSink* audio)
 {
-    audioDevice = qobject_cast<QWindowsAudioOutput*>(audio);
+    audioDevice = qobject_cast<QWindowsAudioSink*>(audio);
 }
 
 OutputPrivate::~OutputPrivate() {}
@@ -605,4 +605,4 @@ qint64 OutputPrivate::writeData(const char* data, qint64 len)
 
 QT_END_NAMESPACE
 
-#include "moc_qwindowsaudiooutput_p.cpp"
+#include "moc_qwindowsaudiosink_p.cpp"

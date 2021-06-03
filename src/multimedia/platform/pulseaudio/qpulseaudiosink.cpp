@@ -42,7 +42,7 @@
 #include <QtCore/qmath.h>
 #include <private/qaudiohelpers_p.h>
 
-#include "qaudiooutput_pulse_p.h"
+#include "qpulseaudiosink_p.h"
 #include "qaudiodeviceinfo_pulse_p.h"
 #include "qaudioengine_pulse_p.h"
 #include "qpulsehelpers_p.h"
@@ -91,7 +91,7 @@ static void outputStreamStateCallback(pa_stream *stream, void *userdata)
 static void outputStreamUnderflowCallback(pa_stream *stream, void *userdata)
 {
     Q_UNUSED(stream);
-    ((QPulseAudioOutput*)userdata)->streamUnderflowCallback();
+    ((QPulseAudioSink*)userdata)->streamUnderflowCallback();
 }
 
 static void outputStreamOverflowCallback(pa_stream *stream, void *userdata)
@@ -151,7 +151,7 @@ static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *
 }
 
 
-QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
+QPulseAudioSink::QPulseAudioSink(const QByteArray &device)
     : m_device(device)
     , m_errorState(QAudio::NoError)
     , m_deviceState(QAudio::StoppedState)
@@ -172,14 +172,14 @@ QPulseAudioOutput::QPulseAudioOutput(const QByteArray &device)
     connect(m_tickTimer, SIGNAL(timeout()), SLOT(userFeed()));
 }
 
-QPulseAudioOutput::~QPulseAudioOutput()
+QPulseAudioSink::~QPulseAudioSink()
 {
     close();
     disconnect(m_tickTimer, SIGNAL(timeout()));
     QCoreApplication::processEvents();
 }
 
-void QPulseAudioOutput::setError(QAudio::Error error)
+void QPulseAudioSink::setError(QAudio::Error error)
 {
     if (m_errorState == error)
         return;
@@ -188,12 +188,12 @@ void QPulseAudioOutput::setError(QAudio::Error error)
     emit errorChanged(error);
 }
 
-QAudio::Error QPulseAudioOutput::error() const
+QAudio::Error QPulseAudioSink::error() const
 {
     return m_errorState;
 }
 
-void QPulseAudioOutput::setState(QAudio::State state)
+void QPulseAudioSink::setState(QAudio::State state)
 {
     if (m_deviceState == state)
         return;
@@ -202,12 +202,12 @@ void QPulseAudioOutput::setState(QAudio::State state)
     emit stateChanged(state);
 }
 
-QAudio::State QPulseAudioOutput::state() const
+QAudio::State QPulseAudioSink::state() const
 {
     return m_deviceState;
 }
 
-void QPulseAudioOutput::streamUnderflowCallback()
+void QPulseAudioSink::streamUnderflowCallback()
 {
     if (m_deviceState != QAudio::IdleState && !m_resuming) {
         setError(QAudio::UnderrunError);
@@ -215,7 +215,7 @@ void QPulseAudioOutput::streamUnderflowCallback()
     }
 }
 
-void QPulseAudioOutput::start(QIODevice *device)
+void QPulseAudioSink::start(QIODevice *device)
 {
     setState(QAudio::StoppedState);
     setError(QAudio::NoError);
@@ -239,7 +239,7 @@ void QPulseAudioOutput::start(QIODevice *device)
     setState(QAudio::ActiveState);
 }
 
-QIODevice *QPulseAudioOutput::start()
+QIODevice *QPulseAudioSink::start()
 {
     setState(QAudio::StoppedState);
     setError(QAudio::NoError);
@@ -265,7 +265,7 @@ QIODevice *QPulseAudioOutput::start()
     return m_audioSource;
 }
 
-bool QPulseAudioOutput::open()
+bool QPulseAudioSink::open()
 {
     if (m_opened)
         return true;
@@ -339,11 +339,11 @@ bool QPulseAudioOutput::open()
     pa_channel_map m;
     auto channelMap = pa_channel_map_init_extend(&m, m_spec.channels, mapDef);
     if (!channelMap)
-        qWarning() << "QAudioOutput: pa_channel_map_init_extend() Could not initialize channel map";
+        qWarning() << "QAudioSink: pa_channel_map_init_extend() Could not initialize channel map";
 
     m_stream = pa_stream_new_with_proplist(pulseEngine->context(), m_streamName.constData(), &m_spec, channelMap, propList);
     if (!m_stream) {
-        qWarning() << "QAudioOutput: pa_stream_new_with_proplist() failed!";
+        qWarning() << "QAudioSink: pa_stream_new_with_proplist() failed!";
         pulseEngine->unlock();
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
@@ -412,7 +412,7 @@ bool QPulseAudioOutput::open()
 
     pulseEngine->unlock();
 
-    connect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioOutput::onPulseContextFailed);
+    connect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioSink::onPulseContextFailed);
 
     m_opened = true;
 
@@ -423,7 +423,7 @@ bool QPulseAudioOutput::open()
     return true;
 }
 
-void QPulseAudioOutput::close()
+void QPulseAudioSink::close()
 {
     if (!m_opened)
         return;
@@ -452,7 +452,7 @@ void QPulseAudioOutput::close()
         pulseEngine->unlock();
     }
 
-    disconnect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioOutput::onPulseContextFailed);
+    disconnect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioSink::onPulseContextFailed);
 
     if (!m_pullMode && m_audioSource) {
         delete m_audioSource;
@@ -465,7 +465,7 @@ void QPulseAudioOutput::close()
     }
 }
 
-void QPulseAudioOutput::userFeed()
+void QPulseAudioSink::userFeed()
 {
     if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
         return;
@@ -486,7 +486,7 @@ void QPulseAudioOutput::userFeed()
         Q_ASSERT(audioBytesPulled <= input);
         if (m_audioBuffer && audioBytesPulled > 0) {
             if (audioBytesPulled > input) {
-                qWarning() << "QPulseAudioOutput::userFeed() - Invalid audio data size provided from user:"
+                qWarning() << "QPulseAudioSink::userFeed() - Invalid audio data size provided from user:"
                            << audioBytesPulled << "should be less than" << input;
                 audioBytesPulled = input;
             }
@@ -505,7 +505,7 @@ void QPulseAudioOutput::userFeed()
         return;
 }
 
-qint64 QPulseAudioOutput::write(const char *data, qint64 len)
+qint64 QPulseAudioSink::write(const char *data, qint64 len)
 {
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
 
@@ -519,7 +519,7 @@ qint64 QPulseAudioOutput::write(const char *data, qint64 len)
         void *dest = nullptr;
         size_t nbytes = len;
         if (pa_stream_begin_write(m_stream, &dest, &nbytes) < 0) {
-            qWarning("QAudioOutput(pulseaudio): pa_stream_begin_write, error = %s",
+            qWarning("QAudioSink(pulseaudio): pa_stream_begin_write, error = %s",
                      pa_strerror(pa_context_errno(pulseEngine->context())));
             setError(QAudio::IOError);
             return 0;
@@ -531,7 +531,7 @@ qint64 QPulseAudioOutput::write(const char *data, qint64 len)
     }
 
     if (pa_stream_write(m_stream, data, len, nullptr, 0, PA_SEEK_RELATIVE) < 0) {
-        qWarning("QAudioOutput(pulseaudio): pa_stream_write, error = %s",
+        qWarning("QAudioSink(pulseaudio): pa_stream_write, error = %s",
                  pa_strerror(pa_context_errno(pulseEngine->context())));
         setError(QAudio::IOError);
         return 0;
@@ -546,7 +546,7 @@ qint64 QPulseAudioOutput::write(const char *data, qint64 len)
     return len;
 }
 
-void QPulseAudioOutput::stop()
+void QPulseAudioSink::stop()
 {
     if (m_deviceState == QAudio::StoppedState)
         return;
@@ -557,7 +557,7 @@ void QPulseAudioOutput::stop()
     setState(QAudio::StoppedState);
 }
 
-qsizetype QPulseAudioOutput::bytesFree() const
+qsizetype QPulseAudioSink::bytesFree() const
 {
     if (m_deviceState != QAudio::ActiveState && m_deviceState != QAudio::IdleState)
         return 0;
@@ -569,24 +569,24 @@ qsizetype QPulseAudioOutput::bytesFree() const
     return writableSize;
 }
 
-void QPulseAudioOutput::setBufferSize(qsizetype value)
+void QPulseAudioSink::setBufferSize(qsizetype value)
 {
     m_bufferSize = value;
 }
 
-qsizetype QPulseAudioOutput::bufferSize() const
+qsizetype QPulseAudioSink::bufferSize() const
 {
     return m_bufferSize;
 }
 
-qint64 QPulseAudioOutput::processedUSecs() const
+qint64 QPulseAudioSink::processedUSecs() const
 {
     qint64 result = qint64(1000000) * m_totalTimeValue / m_format.bytesPerFrame() / m_format.sampleRate();
 
     return result;
 }
 
-void QPulseAudioOutput::resume()
+void QPulseAudioSink::resume()
 {
     if (m_deviceState == QAudio::SuspendedState) {
         m_resuming = true;
@@ -612,17 +612,17 @@ void QPulseAudioOutput::resume()
     }
 }
 
-void QPulseAudioOutput::setFormat(const QAudioFormat &format)
+void QPulseAudioSink::setFormat(const QAudioFormat &format)
 {
     m_format = format;
 }
 
-QAudioFormat QPulseAudioOutput::format() const
+QAudioFormat QPulseAudioSink::format() const
 {
     return m_format;
 }
 
-void QPulseAudioOutput::suspend()
+void QPulseAudioSink::suspend()
 {
     if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::IdleState) {
         setError(QAudio::NoError);
@@ -643,14 +643,14 @@ void QPulseAudioOutput::suspend()
     }
 }
 
-void QPulseAudioOutput::reset()
+void QPulseAudioSink::reset()
 {
     stop();
 }
 
-PulseOutputPrivate::PulseOutputPrivate(QPulseAudioOutput *audio)
+PulseOutputPrivate::PulseOutputPrivate(QPulseAudioSink *audio)
 {
-    m_audioDevice = qobject_cast<QPulseAudioOutput*>(audio);
+    m_audioDevice = qobject_cast<QPulseAudioSink*>(audio);
 }
 
 qint64 PulseOutputPrivate::readData(char *data, qint64 len)
@@ -681,7 +681,7 @@ qint64 PulseOutputPrivate::writeData(const char *data, qint64 len)
     return written;
 }
 
-void QPulseAudioOutput::setVolume(qreal vol)
+void QPulseAudioSink::setVolume(qreal vol)
 {
     if (qFuzzyCompare(m_volume, vol))
         return;
@@ -689,12 +689,12 @@ void QPulseAudioOutput::setVolume(qreal vol)
     m_volume = qBound(qreal(0), vol, qreal(1));
 }
 
-qreal QPulseAudioOutput::volume() const
+qreal QPulseAudioSink::volume() const
 {
     return m_volume;
 }
 
-void QPulseAudioOutput::onPulseContextFailed()
+void QPulseAudioSink::onPulseContextFailed()
 {
     close();
 
@@ -704,4 +704,4 @@ void QPulseAudioOutput::onPulseContextFailed()
 
 QT_END_NAMESPACE
 
-#include "moc_qaudiooutput_pulse_p.cpp"
+#include "moc_qpulseaudiosink_p.cpp"

@@ -48,52 +48,59 @@
 // We mean it.
 //
 
-#ifndef QAUDIOOUTPUTALSA_H
-#define QAUDIOOUTPUTALSA_H
+#ifndef QWINDOWSAUDIOOUTPUT_H
+#define QWINDOWSAUDIOOUTPUT_H
 
-#include <alsa/asoundlib.h>
+#include "qwindowsaudioutils_p.h"
 
-#include <QtCore/qfile.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/qtimer.h>
-#include <QtCore/qstring.h>
-#include <QtCore/qstringlist.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qmutex.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodeviceinfo.h>
 #include <private/qaudiosystem_p.h>
 
+// For compat with 4.6
+#if !defined(QT_WIN_CALLBACK)
+#  if defined(Q_CC_MINGW)
+#    define QT_WIN_CALLBACK CALLBACK __attribute__ ((force_align_arg_pointer))
+#  else
+#    define QT_WIN_CALLBACK CALLBACK
+#  endif
+#endif
+
 QT_BEGIN_NAMESPACE
 
-class QAlsaAudioOutput : public QAbstractAudioOutput
+class QWindowsAudioSink : public QPlatformAudioSink
 {
-    friend class AlsaOutputPrivate;
     Q_OBJECT
 public:
-    QAlsaAudioOutput(const QByteArray &device);
-    ~QAlsaAudioOutput();
+    QWindowsAudioSink(int deviceId);
+    ~QWindowsAudioSink();
 
     qint64 write( const char *data, qint64 len );
 
-    void start(QIODevice* device) override;
-    QIODevice* start() override;
-    void stop() override;
-    void reset() override;
-    void suspend() override;
-    void resume() override;
-    qsizetype bytesFree() const override;
-    void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
-    qint64 processedUSecs() const override;
-    QAudio::Error error() const override;
-    QAudio::State state() const override;
-    void setFormat(const QAudioFormat& fmt) override;
-    QAudioFormat format() const override;
-    void setVolume(qreal) override;
-    qreal volume() const override;
-
+    void setFormat(const QAudioFormat& fmt);
+    QAudioFormat format() const;
+    QIODevice* start();
+    void start(QIODevice* device);
+    void stop();
+    void reset();
+    void suspend();
+    void resume();
+    qsizetype bytesFree() const;
+    void setBufferSize(qsizetype value);
+    qsizetype bufferSize() const;
+    qint64 processedUSecs() const;
+    QAudio::Error error() const;
+    QAudio::State state() const;
+    void setVolume(qreal);
+    qreal volume() const;
 
     QIODevice* audioSource;
     QAudioFormat settings;
@@ -101,57 +108,53 @@ public:
     QAudio::State deviceState;
 
 private slots:
-    void userFeed();
+    void feedback();
     bool deviceReady();
 
-signals:
-    void processMore();
-
 private:
-    bool opened;
-    bool pullMode;
-    bool resuming;
-    int buffer_size;
-    int period_size;
+    void pauseAndSleep();
+    int m_deviceId;
+    int bytesAvailable;
+    qint64 elapsedTimeOffset;
+    qint32 buffer_size;
+    qint32 period_size;
+    qint32 blocks_count;
     qint64 totalTimeValue;
-    unsigned int buffer_time;
-    unsigned int period_time;
-    snd_pcm_uframes_t buffer_frames;
-    snd_pcm_uframes_t period_frames;
-    int xrun_recovery(int err);
+    bool pullMode;
+    qreal volumeCache;
+    static void QT_WIN_CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
+            DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
 
-    int setFormat();
+    mutable QMutex mutex;
+
+    WAVEHDR* allocateBlocks(int size, int count);
+    void freeBlocks(WAVEHDR* blockArray);
     bool open();
     void close();
 
-    QTimer* timer;
-    QByteArray m_device;
-    int bytesAvailable;
-    qint64 elapsedTimeOffset;
-    char* audioBuffer;
-    snd_pcm_t* handle;
-    snd_pcm_access_t access;
-    snd_pcm_format_t pcmformat;
-    snd_pcm_hw_params_t *hwparams;
-    qreal m_volume;
+    WAVEFORMATEXTENSIBLE wfx;
+    HWAVEOUT hWaveOut;
+    WAVEHDR* waveBlocks;
+    int waveFreeBlockCount = 0;
+    int waveCurrentBlock = 0;
+    char *audioBuffer = nullptr;
 };
 
-class AlsaOutputPrivate : public QIODevice
+class OutputPrivate : public QIODevice
 {
-    friend class QAlsaAudioOutput;
     Q_OBJECT
 public:
-    AlsaOutputPrivate(QAlsaAudioOutput* audio);
-    ~AlsaOutputPrivate();
+    OutputPrivate(QWindowsAudioSink* audio);
+    ~OutputPrivate();
 
-    qint64 readData( char* data, qint64 len) override;
-    qint64 writeData(const char* data, qint64 len) override;
+    qint64 readData( char* data, qint64 len);
+    qint64 writeData(const char* data, qint64 len);
 
 private:
-    QAlsaAudioOutput *audioDevice;
+    QWindowsAudioSink *audioDevice;
 };
 
 QT_END_NAMESPACE
 
 
-#endif
+#endif // QWINDOWSAUDIOOUTPUT_H

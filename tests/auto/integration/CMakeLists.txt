@@ -4,7 +4,7 @@
 add_subdirectory(qaudiodecoderbackend)
 add_subdirectory(qaudiodeviceinfo)
 add_subdirectory(qaudiosource)
-add_subdirectory(qaudiooutput)
+add_subdirectory(qaudiosink)
 add_subdirectory(qmediaplayerbackend)
 add_subdirectory(qsoundeffect)
 if(TARGET Qt::Widgets)
