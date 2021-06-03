@@ -50,16 +50,11 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaEncoderSettingsPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaEncoderSettings : public QMediaFormat
+class Q_MULTIMEDIA_EXPORT QMediaEncoderSettings
 {
     Q_GADGET
-    Q_PROPERTY(FileFormat fileFormat READ format WRITE setFormat)
-    Q_PROPERTY(AudioCodec audioCodec READ audioCodec WRITE setAudioCodec)
-    Q_PROPERTY(VideoCodec videoCodec READ videoCodec WRITE setVideoCodec)
+    Q_PROPERTY(QMediaFormat mediaFormat READ mediaFormat WRITE setMediaFormat)
     Q_PROPERTY(Quality quality READ quality WRITE setQuality)
-    Q_ENUMS(FileFormat)
-    Q_ENUMS(AudioCodec)
-    Q_ENUMS(VideoCodec)
     Q_ENUMS(Quality)
 public:
     enum Quality
@@ -79,17 +74,25 @@ public:
         TwoPassEncoding
     };
 
-    enum ResolveFlags
-    {
-        NoFlags,
-        RequiresVideo
-    };
-
     QMediaEncoderSettings();
-    QMediaEncoderSettings(FileFormat format);
+    QMediaEncoderSettings(const QMediaFormat &format);
     QMediaEncoderSettings(const QMediaEncoderSettings& other);
     QMediaEncoderSettings& operator=(const QMediaEncoderSettings &other);
     ~QMediaEncoderSettings();
+
+    QMediaFormat mediaFormat() const;
+    void setMediaFormat(const QMediaFormat &format);
+
+    QMediaFormat::FileFormat fileFormat() const { return mediaFormat().fileFormat(); }
+    void setFileFormat(QMediaFormat::FileFormat f);
+
+    QMediaFormat::VideoCodec videoCodec() const { return mediaFormat().videoCodec(); }
+    void setVideoCodec(QMediaFormat::VideoCodec codec);
+
+    QMediaFormat::AudioCodec audioCodec() const { return mediaFormat().audioCodec(); }
+    void setAudioCodec(QMediaFormat::AudioCodec codec);
+
+    QMimeType mimeType() const;
 
     EncodingMode encodingMode() const;
     void setEncodingMode(EncodingMode);
@@ -97,7 +100,7 @@ public:
     Quality quality() const;
     void setQuality(Quality quality);
 
-    void resolveFormat(ResolveFlags = NoFlags);
+    void resolveFormat(QMediaFormat::ResolveFlags = QMediaFormat::NoFlags);
 
     QSize videoResolution() const;
     void setVideoResolution(const QSize &);

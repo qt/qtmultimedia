@@ -157,9 +157,10 @@ void overview_movie()
     camera->start();
 
     // setup output format for the encoder
-    QMediaEncoderSettings settings(QMediaEncoderSettings::MPEG4);
-    settings.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
-    settings.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
+    QMediaFormat format(QMediaFormat::MPEG4);
+    format.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
+    format.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
+    QMediaEncoderSettings settings(format);
     encoder->setEncoderSettings(settings);
 
     //on shutter button pressed

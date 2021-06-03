@@ -175,7 +175,7 @@ bool QWindowsCameraSession::setAudioInput(const QAudioDeviceInfo &info)
 
 bool QWindowsCameraSession::startRecording(const QString &fileName)
 {
-    GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(m_mediaEncoderSettings.format());
+    GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(m_mediaEncoderSettings.mediaFormat().fileFormat());
     GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(m_mediaEncoderSettings.videoCodec());
     GUID audioFormat = QWindowsMultimediaUtils::audioFormatForCodec(m_mediaEncoderSettings.audioCodec());
 

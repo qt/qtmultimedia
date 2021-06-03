@@ -177,7 +177,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     }
 
     auto settings = m_service->recorderControl()->encoderSettings();
-    auto fileType = QDarwinFormatInfo::avFileTypeForContainerFormat(settings.format());
+    auto fileType = QDarwinFormatInfo::avFileTypeForContainerFormat(settings.fileFormat());
     m_assetWriter.reset([[AVAssetWriter alloc] initWithURL:fileURL
                                                fileType:fileType
                                                error:nil]);

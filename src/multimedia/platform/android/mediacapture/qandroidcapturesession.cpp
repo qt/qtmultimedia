@@ -358,8 +358,8 @@ qint64 QAndroidCaptureSession::duration() const
 
 void QAndroidCaptureSession::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
-    const auto flag = m_cameraSession ? QMediaEncoderSettings::ResolveFlags::RequiresVideo
-                                       : QMediaEncoderSettings::ResolveFlags::NoFlags;
+    const auto flag = m_cameraSession ? QMediaFormat::RequiresVideo
+                                       : QMediaFormat::NoFlags;
     m_encoderSettings = settings;
     m_encoderSettings.resolveFormat(flag);
     m_encoderSettingsDirty = true;
@@ -371,7 +371,7 @@ void QAndroidCaptureSession::applySettings()
         return;
 
     // container settings
-    auto fileFormat = m_encoderSettings.format();
+    auto fileFormat = m_encoderSettings.mediaFormat().fileFormat();
     if (!m_cameraSession && fileFormat == QMediaFormat::AAC) {
         m_outputFormat = AndroidMediaRecorder::AAC_ADTS;
     } else if (fileFormat == QMediaFormat::Ogg) {

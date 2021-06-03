@@ -127,6 +127,13 @@ struct QCameraInfoForeign
     QML_NAMED_ELEMENT(cameraInfo)
 };
 
+struct QMediaFormatForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QMediaFormat)
+    QML_NAMED_ELEMENT(mediaFormat)
+};
+
 struct QMediaEncoderSettingsForeign
 {
     Q_GADGET

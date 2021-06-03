@@ -159,7 +159,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
 {
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
 
-    int codecId = QDarwinFormatInfo::audioFormatForCodec(encoderSettings.audioCodec());
+    int codecId = QDarwinFormatInfo::audioFormatForCodec(encoderSettings.mediaFormat().audioCodec());
 
     [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
 
@@ -226,7 +226,7 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
     // -- Codec
 
     // AVVideoCodecKey is the only mandatory key
-    auto codec = encoderSettings.videoCodec();
+    auto codec = encoderSettings.mediaFormat().videoCodec();
     NSString *c = QDarwinFormatInfo::videoFormatForCodec(codec);
     [videoSettings setObject:c forKey:AVVideoCodecKey];
     [c release];
@@ -372,8 +372,8 @@ void AVFMediaEncoder::applySettings()
         return;
 
     const auto flag = (session->activeCameraInfo().isNull())
-                              ? QMediaEncoderSettings::ResolveFlags::NoFlags
-                              : QMediaEncoderSettings::ResolveFlags::RequiresVideo;
+                              ? QMediaFormat::NoFlags
+                              : QMediaFormat::RequiresVideo;
 
     m_settings.resolveFormat(flag);
 
@@ -414,8 +414,8 @@ QMediaEncoderSettings AVFMediaEncoder::encoderSettings() const
 {
     QMediaEncoderSettings s = m_settings;
     const auto flag = (m_service->session()->activeCameraInfo().isNull())
-                            ? QMediaEncoderSettings::ResolveFlags::NoFlags
-                            : QMediaEncoderSettings::ResolveFlags::RequiresVideo;
+                            ? QMediaFormat::NoFlags
+                            : QMediaFormat::RequiresVideo;
     s.resolveFormat(flag);
     return s;
 }

@@ -54,6 +54,13 @@ QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QMediaFormatPrivate, Q_MULTIMED
 
 class Q_MULTIMEDIA_EXPORT QMediaFormat
 {
+    Q_GADGET
+    Q_PROPERTY(FileFormat fileFormat READ fileFormat WRITE setFileFormat)
+    Q_PROPERTY(AudioCodec audioCodec READ audioCodec WRITE setAudioCodec)
+    Q_PROPERTY(VideoCodec videoCodec READ videoCodec WRITE setVideoCodec)
+    Q_ENUMS(FileFormat)
+    Q_ENUMS(AudioCodec)
+    Q_ENUMS(VideoCodec)
 public:
     enum FileFormat {
         UnspecifiedFormat = -1,
@@ -110,6 +117,12 @@ public:
         Decode
     };
 
+    enum ResolveFlags
+    {
+        NoFlags,
+        RequiresVideo
+    };
+
     QMediaFormat(FileFormat format = UnspecifiedFormat);
     ~QMediaFormat();
     QMediaFormat(const QMediaFormat &other) noexcept;
@@ -120,8 +133,8 @@ public:
     void swap(QMediaFormat &other) noexcept
     { qSwap(d, other.d); }
 
-    FileFormat format() const { return fmt; }
-    void setFormat(FileFormat f) { fmt = f; }
+    FileFormat fileFormat() const { return fmt; }
+    void setFileFormat(FileFormat f) { fmt = f; }
 
     void setVideoCodec(VideoCodec codec) { video = codec; }
     VideoCodec videoCodec() const { return video; }
@@ -148,6 +161,8 @@ public:
     bool operator==(const QMediaFormat &other) const;
     bool operator!=(const QMediaFormat &other) const
     { return !operator==(other); }
+
+    void resolveForEncoding(ResolveFlags flags);
 
 protected:
     friend class QMediaFormatPrivate;

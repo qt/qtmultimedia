@@ -333,7 +333,7 @@ QGstreamerFormatInfo::~QGstreamerFormatInfo() = default;
 
 QGstMutableCaps QGstreamerFormatInfo::formatCaps(const QMediaFormat &f) const
 {
-    auto format = f.format();
+    auto format = f.fileFormat();
     Q_ASSERT(format != QMediaFormat::UnspecifiedFormat);
 
     const char *capsForFormat[QMediaFormat::LastFileFormat + 1] = {

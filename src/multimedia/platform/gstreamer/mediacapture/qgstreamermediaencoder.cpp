@@ -193,7 +193,7 @@ static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSe
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    QGstMutableCaps caps = formatInfo->formatCaps(settings.format());
+    QGstMutableCaps caps = formatInfo->formatCaps(settings.fileFormat());
 
     GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
         "container_profile",
@@ -207,7 +207,7 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    QGstMutableCaps caps = formatInfo->videoCaps(settings);
+    QGstMutableCaps caps = formatInfo->videoCaps(settings.mediaFormat());
     if (caps.isNull())
         return nullptr;
 
@@ -227,7 +227,7 @@ static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
 
-    auto caps = formatInfo->audioCaps(settings);
+    auto caps = formatInfo->audioCaps(settings.mediaFormat());
     if (caps.isNull())
         return nullptr;
 
@@ -397,8 +397,8 @@ void QGstreamerMediaEncoder::applySettings()
 {
     if (!m_session)
         return;
-    const auto flag = m_session->camera() ? QMediaEncoderSettings::RequiresVideo
-                                          : QMediaEncoderSettings::NoFlags;
+    const auto flag = m_session->camera() ? QMediaFormat::RequiresVideo
+                                          : QMediaFormat::NoFlags;
     m_resolvedSettings = m_settings;
     m_resolvedSettings.resolveFormat(flag);
 

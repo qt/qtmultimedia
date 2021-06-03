@@ -67,7 +67,7 @@ QList<QMediaFormat::AudioCodec> QPlatformMediaFormatInfo::supportedAudioCodecs(c
 
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
     for (const auto &m : codecMap) {
-        if (constraints.format() != QMediaFormat::UnspecifiedFormat && m.format != constraints.format())
+        if (constraints.fileFormat() != QMediaFormat::UnspecifiedFormat && m.format != constraints.fileFormat())
             continue;
         if (constraints.videoCodec() != QMediaFormat::VideoCodec::Unspecified && !m.video.contains(constraints.videoCodec()))
             continue;
@@ -83,7 +83,7 @@ QList<QMediaFormat::VideoCodec> QPlatformMediaFormatInfo::supportedVideoCodecs(c
 
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
     for (const auto &m : codecMap) {
-        if (constraints.format() != QMediaFormat::UnspecifiedFormat && m.format != constraints.format())
+        if (constraints.fileFormat() != QMediaFormat::UnspecifiedFormat && m.format != constraints.fileFormat())
             continue;
         if (constraints.audioCodec() != QMediaFormat::AudioCodec::Unspecified && !m.audio.contains(constraints.audioCodec()))
             continue;
@@ -98,7 +98,7 @@ bool QPlatformMediaFormatInfo::isSupported(const QMediaFormat &format, QMediaFor
     const auto &codecMap = (m == QMediaFormat::Encode) ? encoders : decoders;
 
     for (const auto &m : codecMap) {
-        if (m.format != format.format())
+        if (m.format != format.fileFormat())
             continue;
         if (!m.audio.contains(format.audioCodec()))
             continue;

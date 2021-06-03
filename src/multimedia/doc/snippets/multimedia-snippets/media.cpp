@@ -90,9 +90,10 @@ void MediaExample::MediaControl()
 void MediaExample::EncoderSettings()
 {
     //! [Media encoder settings]
-    QMediaEncoderSettings settings(QMediaEncoderSettings::MPEG4);
-    settings.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
-    settings.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
+    QMediaFormat format(QMediaFormat::MPEG4);
+    format.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
+    format.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
+    QMediaEncoderSettings settings(format);
 
     recorder->setEncoderSettings(settings);
     //! [Media encoder settings]
@@ -133,8 +134,7 @@ void MediaExample::MediaRecorder()
     //! [Media recorder]
     recorder = new QMediaRecorder(camera);
 
-    QMediaEncoderSettings audioSettings;
-    audioSettings.setFormat(QMediaEncoderSettings::MP3);
+    QMediaEncoderSettings audioSettings(QMediaFormat::MP3);
     audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
 
     recorder->setAudioSettings(audioSettings);
@@ -150,8 +150,7 @@ void MediaExample::AudioRecorder()
     QMediaRecorder recorder;
     recorder.setCaptureMode(QMediaRecorder::AudioOnly);
 
-    QMediaEncoderSettings audioSettings;
-    audioSettings.setFormat(QMediaEncoderSettings::MP3);
+    QMediaEncoderSettings audioSettings(QMediaFormat::MP3);
     audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
 
     recorder.setEncoderSettings(audioSettings);

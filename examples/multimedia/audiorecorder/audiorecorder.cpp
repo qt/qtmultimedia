@@ -192,7 +192,7 @@ void AudioRecorder::toggleRecord()
         m_captureSession.setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDeviceInfo>());
 
         QMediaEncoderSettings settings;
-        settings.setFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
+        settings.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
         settings.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
         settings.setAudioSampleRate(ui->sampleRateBox->value());
         settings.setAudioBitRate(boxValue(ui->bitrateBox).toInt());

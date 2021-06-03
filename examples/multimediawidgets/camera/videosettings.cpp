@@ -135,7 +135,7 @@ QMediaEncoderSettings VideoSettings::encoderSettings() const
 {
     QMediaEncoderSettings settings = mediaRecorder->encoderSettings();
     settings.setQuality(QMediaEncoderSettings::Quality(ui->qualitySlider->value()));
-    settings.setFormat(boxValue(ui->containerFormatBox).value<QMediaFormat::FileFormat>());
+    settings.setFileFormat(boxValue(ui->containerFormatBox).value<QMediaFormat::FileFormat>());
 
     settings.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
     settings.setAudioSampleRate(ui->audioSampleRateBox->value());
@@ -148,7 +148,7 @@ QMediaEncoderSettings VideoSettings::encoderSettings() const
 
 void VideoSettings::setEncoderSettings(const QMediaEncoderSettings &encoderSettings)
 {
-    selectComboBoxItem(ui->containerFormatBox, QVariant::fromValue(encoderSettings.format()));
+    selectComboBoxItem(ui->containerFormatBox, QVariant::fromValue(encoderSettings.fileFormat()));
     ui->qualitySlider->setValue(encoderSettings.quality());
 
     selectComboBoxItem(ui->audioCodecBox, QVariant::fromValue(encoderSettings.audioCodec()));
