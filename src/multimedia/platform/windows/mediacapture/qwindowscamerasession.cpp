@@ -78,7 +78,7 @@ void QWindowsCameraSession::setActive(bool active)
         auto camId = QString::fromUtf8(m_activeCameraInfo.id());
         auto micId = QString::fromUtf8(m_audioInput.id());
         if (!camId.isEmpty() || !micId.isEmpty())
-            m_cameraReader->activate(camId, micId);
+            m_cameraReader->activate(camId, m_cameraFormat, micId);
         else
             qWarning() << Q_FUNC_INFO << "Camera ID and Microphone ID both undefined.";
     } else {
@@ -92,6 +92,11 @@ void QWindowsCameraSession::setActive(bool active)
 void QWindowsCameraSession::setActiveCamera(const QCameraInfo &info)
 {
     m_activeCameraInfo = info;
+}
+
+void QWindowsCameraSession::setCameraFormat(const QCameraFormat &cameraFormat)
+{
+    m_cameraFormat = cameraFormat;
 }
 
 bool QWindowsCameraSession::isReadyForCapture() const

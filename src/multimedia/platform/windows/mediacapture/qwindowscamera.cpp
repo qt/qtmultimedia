@@ -121,7 +121,20 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     connect(m_cameraSession, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 
     m_cameraSession->setActiveCamera(m_cameraInfo);
+    m_cameraSession->setCameraFormat(m_cameraFormat);
     m_cameraSession->setActive(m_active);
+}
+
+bool QWindowsCamera::setCameraFormat(const QCameraFormat &format)
+{
+    if (!format.isNull() && !m_cameraInfo.videoFormats().contains(format))
+        return false;
+
+    m_cameraFormat = format.isNull() ? findBestCameraFormat(m_cameraInfo) : format;
+
+    if (m_cameraSession)
+        m_cameraSession->setCameraFormat(m_cameraFormat);
+    return true;
 }
 
 QT_END_NAMESPACE

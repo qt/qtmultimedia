@@ -76,6 +76,8 @@ public:
 
     void setActiveCamera(const QCameraInfo &info);
 
+    void setCameraFormat(const QCameraFormat &cameraFormat);
+
     void setVideoSink(QVideoSink *surface);
 
     QMediaEncoderSettings videoSettings() const;
@@ -114,6 +116,7 @@ private:
     quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality);
     bool m_active = false;
     QCameraInfo m_activeCameraInfo;
+    QCameraFormat m_cameraFormat;
     QWindowsCameraReader *m_cameraReader = nullptr;
     QMediaEncoderSettings m_mediaEncoderSettings;
     QAudioDeviceInfo m_audioInput;

@@ -48,6 +48,8 @@
 
 QT_BEGIN_NAMESPACE
 
+enum { MEDIA_TYPE_INDEX_DEFAULT = 0xffffffff };
+
 QWindowsCameraReader::QWindowsCameraReader(QObject *parent)
     : QObject(parent),
       m_finalizeSemaphore(1)
@@ -139,8 +141,68 @@ HRESULT QWindowsCameraReader::createAggregateReader(IMFMediaSource *firstSource,
     return hr;
 }
 
+// Selects the requested resolution/frame rate (if specified),
+// or chooses a high quality configuration otherwise.
+DWORD QWindowsCameraReader::findMediaTypeIndex(const QCameraFormat &reqFormat)
+{
+    DWORD mediaIndex = MEDIA_TYPE_INDEX_DEFAULT;
+
+    if (m_sourceReader && m_videoSource) {
+
+        DWORD index = 0;
+        IMFMediaType *mediaType = nullptr;
+
+        UINT32 currArea = 0;
+        float currFrameRate = 0.0f;
+
+        while (SUCCEEDED(m_sourceReader->GetNativeMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
+                                                            index, &mediaType))) {
+
+            GUID subtype = GUID_NULL;
+            if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subtype))) {
+
+                auto pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
+                if (pixelFormat != QVideoFrameFormat::Format_Invalid) {
+
+                    UINT32 width, height;
+                    if (SUCCEEDED(MFGetAttributeSize(mediaType, MF_MT_FRAME_SIZE, &width, &height))) {
+
+                        UINT32 num, den;
+                        if (SUCCEEDED(MFGetAttributeRatio(mediaType, MF_MT_FRAME_RATE, &num, &den))) {
+
+                            UINT32 area = width * height;
+                            float frameRate = float(num) / den;
+
+                            if (!reqFormat.isNull()
+                                    && reqFormat.resolution().width() == width
+                                    && reqFormat.resolution().height() == height
+                                    && qFuzzyCompare(reqFormat.maxFrameRate(), frameRate)
+                                    && reqFormat.pixelFormat() == pixelFormat) {
+                                mediaType->Release();
+                                return index;
+                            }
+
+                            if ((currFrameRate < 29.9 && currFrameRate < frameRate) ||
+                                    (currFrameRate == frameRate && currArea < area)) {
+                                currArea = area;
+                                currFrameRate = frameRate;
+                                mediaIndex = index;
+                            }
+                        }
+                    }
+                }
+            }
+            mediaType->Release();
+            ++index;
+        }
+    }
+
+    return mediaIndex;
+}
+
+
 // Prepares the source video stream and gets some metadata.
-HRESULT QWindowsCameraReader::prepareVideoStream()
+HRESULT QWindowsCameraReader::prepareVideoStream(DWORD mediaTypeIndex)
 {
     if (!m_sourceReader)
         return E_FAIL;
@@ -148,8 +210,19 @@ HRESULT QWindowsCameraReader::prepareVideoStream()
     if (!m_videoSource)
         return S_OK; // It may be audio-only
 
-    HRESULT hr = m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
-                                                     &m_videoMediaType);
+    HRESULT hr;
+
+    if (mediaTypeIndex == MEDIA_TYPE_INDEX_DEFAULT) {
+        hr = m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
+                                                 &m_videoMediaType);
+    } else {
+        hr = m_sourceReader->GetNativeMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
+                                                mediaTypeIndex, &m_videoMediaType);
+        if (SUCCEEDED(hr))
+            hr = m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
+                                                     nullptr, m_videoMediaType);
+    }
+
     if (SUCCEEDED(hr)) {
 
         GUID subtype = GUID_NULL;
@@ -247,8 +320,10 @@ HRESULT QWindowsCameraReader::initSourceIndexes()
 }
 
 // Activates the requested camera/microphone for streaming.
-// One of the arguments may be empty for video-only/audio-only.
-bool QWindowsCameraReader::activate(const QString &cameraId, const QString &microphoneId)
+// One of the IDs may be empty for video-only/audio-only.
+bool QWindowsCameraReader::activate(const QString &cameraId,
+                                    const QCameraFormat &cameraFormat,
+                                    const QString &microphoneId)
 {
     QMutexLocker locker(&m_mutex);
 
@@ -279,7 +354,9 @@ bool QWindowsCameraReader::activate(const QString &cameraId, const QString &micr
         return false;
     }
 
-    if (!SUCCEEDED(prepareVideoStream())) {
+    DWORD mediaTypeIndex = findMediaTypeIndex(cameraFormat);
+
+    if (!SUCCEEDED(prepareVideoStream(mediaTypeIndex))) {
         releaseResources();
         return false;
     }

@@ -74,6 +74,8 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
+    bool setCameraFormat(const QCameraFormat &format) override;
+
 private Q_SLOTS:
     void updateStatus();
 
@@ -81,6 +83,7 @@ private:
     QWindowsMediaCaptureService *m_captureService = nullptr;
     QWindowsCameraSession  *m_cameraSession = nullptr;
     QCameraInfo m_cameraInfo;
+    QCameraFormat m_cameraFormat;
     QCamera::Status m_lastStatus = QCamera::InactiveStatus;
     bool m_active = false;
 };

@@ -61,6 +61,7 @@
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qtimer.h>
 #include <qvideoframe.h>
+#include <qcamerainfo.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -90,7 +91,9 @@ public:
     STDMETHODIMP OnFinalize(HRESULT hrStatus);
     STDMETHODIMP OnMarker(DWORD dwStreamIndex, LPVOID pvContext);
 
-    bool activate(const QString &cameraId, const QString &microphoneId);
+    bool activate(const QString &cameraId,
+                  const QCameraFormat &cameraFormat,
+                  const QString &microphoneId);
     void deactivate();
 
     bool startRecording(const QString &fileName, const GUID &container,
@@ -128,11 +131,12 @@ private:
     HRESULT createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width, UINT32 height,
                                  qreal frameRate, IMFMediaType **mediaType);
     HRESULT createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType);
-    HRESULT prepareVideoStream();
+    HRESULT prepareVideoStream(DWORD mediaTypeIndex);
     HRESULT prepareAudioStream();
     HRESULT initSourceIndexes();
     void releaseResources();
     void stopStreaming();
+    DWORD findMediaTypeIndex(const QCameraFormat &reqFormat);
 
     long               m_cRef = 1;
     QMutex             m_mutex;
