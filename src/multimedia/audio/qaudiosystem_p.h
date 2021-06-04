@@ -55,7 +55,7 @@
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 #include <QtCore/qelapsedtimer.h>
 

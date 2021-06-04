@@ -54,11 +54,11 @@ class QUrl;
 class QSize;
 class QAudioFormat;
 class QCamera;
-class QCameraInfo;
+class QCameraDevice;
 class QMediaRecorderService;
 class QAudioEncoderSettings;
 class QVideoEncoderSettings;
-class QAudioDeviceInfo;
+class QAudioDevice;
 class QMediaCaptureSession;
 
 class Q_MULTIMEDIA_EXPORT QMediaEncoderBase : public QObject

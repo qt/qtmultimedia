@@ -61,7 +61,7 @@
 #include <QtCore/QIODevice>
 #include <QtCore/QWaitCondition>
 #include <QtCore/QMutex>
-#include <private/qcoreaudiodeviceinfo_p.h>
+#include <private/qdarwinaudiodevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -125,7 +125,7 @@ class QDarwinAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QDarwinAudioSink(const QAudioDeviceInfo &device);
+    QDarwinAudioSink(const QAudioDevice &device);
     ~QDarwinAudioSink();
 
     void start(QIODevice *device);
@@ -176,7 +176,7 @@ private:
     void startTimers();
     void stopTimers();
 
-    QAudioDeviceInfo m_audioDeviceInfo;
+    QAudioDevice m_audioDeviceInfo;
     QByteArray m_device;
 
     bool m_isOpen;

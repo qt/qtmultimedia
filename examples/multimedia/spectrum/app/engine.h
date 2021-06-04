@@ -54,7 +54,7 @@
 #include "spectrum.h"
 #include "spectrumanalyser.h"
 
-#include <QAudioDeviceInfo>
+#include <QAudioDevice>
 #include <QAudioFormat>
 #include <QBuffer>
 #include <QByteArray>
@@ -93,10 +93,10 @@ public:
     explicit Engine(QObject *parent = 0);
     ~Engine();
 
-    const QList<QAudioDeviceInfo> &availableAudioInputDevices() const
+    const QList<QAudioDevice> &availableAudioInputDevices() const
                                     { return m_availableAudioInputDevices; }
 
-    const QList<QAudioDeviceInfo> &availableAudioOutputDevices() const
+    const QList<QAudioDevice> &availableAudioOutputDevices() const
                                     { return m_availableAudioOutputDevices; }
 
     QAudio::Mode mode() const { return m_mode; }
@@ -178,8 +178,8 @@ public slots:
     void startRecording();
     void startPlayback();
     void suspend();
-    void setAudioInputDevice(const QAudioDeviceInfo &device);
-    void setAudioOutputDevice(const QAudioDeviceInfo &device);
+    void setAudioInputDevice(const QAudioDevice &device);
+    void setAudioOutputDevice(const QAudioDevice &device);
 
 signals:
     void stateChanged(QAudio::Mode mode, QAudio::State state);
@@ -291,14 +291,14 @@ private:
 
     QAudioFormat        m_format;
 
-    const QList<QAudioDeviceInfo> m_availableAudioInputDevices;
-    QAudioDeviceInfo    m_audioInputDevice;
+    const QList<QAudioDevice> m_availableAudioInputDevices;
+    QAudioDevice    m_audioInputDevice;
     QAudioSource*        m_audioInput;
     QIODevice*          m_audioInputIODevice;
     qint64              m_recordPosition;
 
-    const QList<QAudioDeviceInfo> m_availableAudioOutputDevices;
-    QAudioDeviceInfo    m_audioOutputDevice;
+    const QList<QAudioDevice> m_availableAudioOutputDevices;
+    QAudioDevice    m_audioOutputDevice;
     QAudioSink*       m_audioOutput;
     qint64              m_playPosition;
     QBuffer             m_audioOutputIODevice;

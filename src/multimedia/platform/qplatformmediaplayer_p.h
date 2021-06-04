@@ -53,7 +53,7 @@
 
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
-#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediametadata.h>
 
 #include <QtCore/qpair.h>
@@ -105,8 +105,8 @@ public:
 
     virtual bool streamPlaybackSupported() const { return false; }
 
-    virtual bool setAudioOutput(const QAudioDeviceInfo &) { return false; }
-    virtual QAudioDeviceInfo audioOutput() const { return QAudioDeviceInfo(); }
+    virtual bool setAudioOutput(const QAudioDevice &) { return false; }
+    virtual QAudioDevice audioOutput() const { return QAudioDevice(); }
 
     virtual QMediaMetaData metaData() const { return {}; }
 

@@ -61,7 +61,7 @@
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qtimer.h>
 #include <qvideoframe.h>
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 

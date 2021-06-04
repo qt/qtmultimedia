@@ -41,7 +41,7 @@
 
 #include "qwindowscamerasession_p.h"
 #include "qwindowsmediacapture_p.h"
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -92,7 +92,7 @@ void QWindowsCamera::updateStatus()
     }
 }
 
-void QWindowsCamera::setCamera(const QCameraInfo &camera)
+void QWindowsCamera::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraInfo == camera)
         return;

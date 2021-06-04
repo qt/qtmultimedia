@@ -39,9 +39,9 @@
 
 #include <QtCore/qdebug.h>
 
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include "qaudioengine_pulse_p.h"
-#include "qaudiodeviceinfo_pulse_p.h"
+#include "qpulseaudiodevice_p.h"
 #include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>
@@ -83,7 +83,7 @@ static void serverInfoCallback(pa_context *context, const pa_server_info *info, 
     pulseEngine->m_serverLock.lockForWrite();
     pulseEngine->m_defaultSink = info->default_sink_name;
     pulseEngine->m_defaultSource = info->default_source_name;
-    // ### ensure the QAudioDeviceInfos are updated if default changes and emit changed signal in the device manager
+    // ### ensure the QAudioDevices are updated if default changes and emit changed signal in the device manager
     pulseEngine->m_serverLock.unlock();
 
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
@@ -448,9 +448,9 @@ QPulseAudioEngine *QPulseAudioEngine::instance()
     return pulseEngine();
 }
 
-QList<QAudioDeviceInfo> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
+QList<QAudioDevice> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
 {
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
     QByteArray defaultDevice;
 
     m_serverLock.lockForRead();

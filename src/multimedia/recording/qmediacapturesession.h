@@ -46,8 +46,8 @@
 QT_BEGIN_NAMESPACE
 
 class QCamera;
-class QAudioDeviceInfo;
-class QCameraInfo;
+class QAudioDevice;
+class QCameraDevice;
 class QCameraImageCapture; // ### rename to QMediaImageCapture
 class QMediaEncoder;
 class QPlatformMediaCaptureSession;
@@ -57,7 +57,7 @@ class QMediaCaptureSessionPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QAudioDeviceInfo audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
+    Q_PROPERTY(QAudioDevice audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QCamera *camera READ camera WRITE setCamera NOTIFY cameraChanged)
@@ -70,8 +70,8 @@ public:
 
     bool isAvailable() const;
 
-    QAudioDeviceInfo audioInput() const; // ### Should use a QAudioDevice *
-    void setAudioInput(const QAudioDeviceInfo &device);
+    QAudioDevice audioInput() const; // ### Should use a QAudioDevice *
+    void setAudioInput(const QAudioDevice &device);
 
     bool isMuted() const; // ### Should move to QAudioDevice
     void setMuted(bool muted);

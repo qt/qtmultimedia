@@ -39,8 +39,8 @@
 
 #include "qplatformmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qaudiodeviceinfo.h"
-#include "qcamerainfo.h"
+#include "qaudiodevice.h"
+#include "qcameradevice.h"
 #include "qaudiosystem_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -49,7 +49,7 @@ QPlatformMediaDevices::QPlatformMediaDevices() = default;
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
-QAudioDeviceInfo QPlatformMediaDevices::audioInput(const QByteArray &id) const
+QAudioDevice QPlatformMediaDevices::audioInput(const QByteArray &id) const
 {
     const auto inputs = audioInputs();
     for (auto i : inputs) {
@@ -59,7 +59,7 @@ QAudioDeviceInfo QPlatformMediaDevices::audioInput(const QByteArray &id) const
     return {};
 }
 
-QAudioDeviceInfo QPlatformMediaDevices::audioOutput(const QByteArray &id) const
+QAudioDevice QPlatformMediaDevices::audioOutput(const QByteArray &id) const
 {
     const auto outputs = audioOutputs();
     for (auto o : outputs) {
@@ -69,19 +69,19 @@ QAudioDeviceInfo QPlatformMediaDevices::audioOutput(const QByteArray &id) const
     return {};
 }
 
-QCameraInfo QPlatformMediaDevices::videoInput(const QByteArray &id) const
+QCameraDevice QPlatformMediaDevices::videoInput(const QByteArray &id) const
 {
     const auto inputs = videoInputs();
     for (auto i : inputs) {
         if (i.id() == id)
             return i;
     }
-    return QCameraInfo();
+    return QCameraDevice();
 }
 
-QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo)
 {
-    QAudioDeviceInfo info = deviceInfo;
+    QAudioDevice info = deviceInfo;
     if (info.isNull())
         info = audioInputs().value(0);
 
@@ -91,9 +91,9 @@ QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat
     return p;
 }
 
-QPlatformAudioSink* QPlatformMediaDevices::audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink* QPlatformMediaDevices::audioOutputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo)
 {
-    QAudioDeviceInfo info = deviceInfo;
+    QAudioDevice info = deviceInfo;
     if (info.isNull())
         info = audioOutputs().value(0);
 

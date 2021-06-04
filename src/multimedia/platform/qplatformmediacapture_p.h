@@ -57,8 +57,8 @@ QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformCameraImageCapture;
 class QPlatformMediaEncoder;
-class QAudioDeviceInfo;
-class QCameraInfo;
+class QAudioDevice;
+class QCameraDevice;
 class QVideoSink;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
@@ -82,12 +82,12 @@ public:
     virtual qreal volume() const = 0;
     virtual void setVolume(qreal volume) = 0;
 
-    virtual QAudioDeviceInfo audioInput() const = 0;
-    virtual bool setAudioInput(const QAudioDeviceInfo &id) = 0;
+    virtual QAudioDevice audioInput() const = 0;
+    virtual bool setAudioInput(const QAudioDevice &id) = 0;
 
     virtual void setVideoPreview(QVideoSink * /*sink*/) {}
-    virtual QAudioDeviceInfo audioPreview() const;
-    virtual bool setAudioPreview(const QAudioDeviceInfo &) { return true; }
+    virtual QAudioDevice audioPreview() const;
+    virtual bool setAudioPreview(const QAudioDevice &) { return true; }
 
 Q_SIGNALS:
     void mutedChanged(bool muted);

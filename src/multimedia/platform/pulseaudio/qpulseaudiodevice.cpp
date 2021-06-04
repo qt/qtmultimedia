@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,41 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIODEVICEINFO_H
-#define QNXAUDIODEVICEINFO_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include "qaudiosystem_p.h"
-#include <private/qaudiodeviceinfo_p.h>
+#include "qpulseaudiodevice_p.h"
+#include "qaudioengine_pulse_p.h"
+#include "qpulsehelpers_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QnxAudioDeviceInfo : public QAudioDeviceInfoPrivate
+QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *desc, bool isDef, QAudio::Mode mode)
+    : QAudioDevicePrivate(device, mode)
 {
-public:
-    QnxAudioDeviceInfo(const QByteArray &deviceName, QAudio::Mode mode);
-    ~QnxAudioDeviceInfo();
+    description = QString::fromUtf8(desc);
+    isDefault = isDef;
 
-    QAudioFormat preferredFormat() const override;
-    bool isFormatSupported(const QAudioFormat &format) const override;
-    QString description() const override { return QString::fromUtf8(id()); }
-    QList<int> supportedSampleRates() const override;
-    QList<int> supportedChannelCounts() const override;
-    QList<int> supportedSampleSizes() const override;
-    QList<QAudioFormat::Endian> supportedByteOrders() const override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
-};
+    minimumChannelCount = 1;
+    maximumChannelCount = PA_CHANNELS_MAX;
+    minimumSampleRate = 1;
+    maximumSampleRate = PA_RATE_MAX;
+
+    constexpr bool isBigEndian = QSysInfo::ByteOrder == QSysInfo::BigEndian;
+
+    const struct {
+        pa_sample_format pa_fmt;
+        QAudioFormat::SampleFormat qt_fmt;
+    } formatMap[] = {
+        { PA_SAMPLE_U8, QAudioFormat::UInt8 },
+        { isBigEndian ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE, QAudioFormat::Int16 },
+        { isBigEndian ? PA_SAMPLE_S32BE : PA_SAMPLE_S32LE, QAudioFormat::Int32 },
+        { isBigEndian ? PA_SAMPLE_FLOAT32BE : PA_SAMPLE_FLOAT32LE, QAudioFormat::Float },
+    };
+
+    pa_sample_spec spec;
+    spec.channels = 1;
+    spec.rate = 48000;
+
+    for (const auto &f : formatMap) {
+        spec.format = f.pa_fmt;
+        if (pa_sample_spec_valid(&spec) != 0)
+            supportedSampleFormats.append(f.qt_fmt);
+    }
+
+    preferredFormat.setChannelCount(2);
+    preferredFormat.setSampleRate(48000);
+    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
+    if (!supportedSampleFormats.contains(f))
+        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
+    preferredFormat.setSampleFormat(f);
+}
 
 QT_END_NAMESPACE
-
-#endif

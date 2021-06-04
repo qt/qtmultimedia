@@ -44,7 +44,7 @@
 
 #include "qpulseaudiosource_p.h"
 #include "qaudioengine_pulse_p.h"
-#include "qaudiodeviceinfo_pulse_p.h"
+#include "qpulseaudiodevice_p.h"
 #include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>

@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qmediacapturesession.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include "qcamera.h"
 #include "qmediaencoder.h"
 #include "qcameraimagecapture.h"
@@ -56,7 +56,7 @@ class QMediaCaptureSessionPrivate
 public:
     QMediaCaptureSession *q = nullptr;
     QPlatformMediaCaptureSession *captureSession;
-    QAudioDeviceInfo audioInput;
+    QAudioDevice audioInput;
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
     QMediaEncoder *encoder = nullptr;
@@ -96,7 +96,7 @@ public:
     If you need a simple class that records media from the default camera and microphone, you can use QMediaRecorder.
     That class uses a QMediaCaptureSession behind the scene to support audio and video capture.
 
-    \sa QCamera, QAudioDeviceInfo, QMediaEncoder, QCameraImageCapture, QMediaRecorder
+    \sa QCamera, QAudioDevice, QMediaEncoder, QCameraImageCapture, QMediaRecorder
 */
 
 /*!
@@ -140,21 +140,21 @@ bool QMediaCaptureSession::isAvailable() const
 /*!
     Returns the device that is being used to capture audio.
 */
-QAudioDeviceInfo QMediaCaptureSession::audioInput() const
+QAudioDevice QMediaCaptureSession::audioInput() const
 {
     return d_ptr->audioInput;
 }
 
 /*!
     Sets the audio input device to \a device. If setting it to an empty
-    QAudioDeviceInfo the capture session will use the default input as
+    QAudioDevice the capture session will use the default input as
     defined by the operating system.
 
     Use setMuted(), if you want to disable audio input.
 
     \sa muted(), setMuted()
 */
-void QMediaCaptureSession::setAudioInput(const QAudioDeviceInfo &device)
+void QMediaCaptureSession::setAudioInput(const QAudioDevice &device)
 {
     d_ptr->audioInput = device;
     d_ptr->captureSession->setAudioInput(device);

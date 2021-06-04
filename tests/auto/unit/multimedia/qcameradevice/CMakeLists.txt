@@ -1,12 +1,12 @@
-# Generated from qcamerainfo.pro.
+# Generated from qcameradevice.pro.
 
 #####################################################################
-## tst_qcamerainfo Test:
+## tst_qcameradevice Test:
 #####################################################################
 
-qt_internal_add_test(tst_qcamerainfo
+qt_internal_add_test(tst_qcameradevice
     SOURCES
-        tst_qcamerainfo.cpp
+        tst_qcameradevice.cpp
     INCLUDE_DIRECTORIES
         ../../mockbackend
     PUBLIC_LIBRARIES

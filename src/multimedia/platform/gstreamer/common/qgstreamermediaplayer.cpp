@@ -45,9 +45,9 @@
 #include <private/qgstreameraudiooutput_p.h>
 #include <private/qgstreamervideooutput_p.h>
 #include "private/qgstreamermessage_p.h"
-#include <private/qaudiodeviceinfo_gstreamer_p.h>
+#include <private/qgstreameraudiodevice_p.h>
 #include <private/qgstappsrc_p.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qsocketnotifier.h>
@@ -601,12 +601,12 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     positionChanged(0);
 }
 
-bool QGstreamerMediaPlayer::setAudioOutput(const QAudioDeviceInfo &info)
+bool QGstreamerMediaPlayer::setAudioOutput(const QAudioDevice &info)
 {
     return gstAudioOutput->setAudioOutput(info);
 }
 
-QAudioDeviceInfo QGstreamerMediaPlayer::audioOutput() const
+QAudioDevice QGstreamerMediaPlayer::audioOutput() const
 {
     return gstAudioOutput->audioOutput();
 }

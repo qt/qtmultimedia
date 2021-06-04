@@ -89,7 +89,7 @@ void QWindowsCameraSession::setActive(bool active)
     }
 }
 
-void QWindowsCameraSession::setActiveCamera(const QCameraInfo &info)
+void QWindowsCameraSession::setActiveCamera(const QCameraDevice &info)
 {
     m_activeCameraInfo = info;
 }
@@ -167,12 +167,12 @@ void QWindowsCameraSession::setVolume(qreal volume)
     m_cameraReader->setVolume(volume);
 }
 
-QAudioDeviceInfo QWindowsCameraSession::audioInput() const
+QAudioDevice QWindowsCameraSession::audioInput() const
 {
     return m_audioInput;
 }
 
-bool QWindowsCameraSession::setAudioInput(const QAudioDeviceInfo &info)
+bool QWindowsCameraSession::setAudioInput(const QAudioDevice &info)
 {
     m_audioInput = info;
     return true;

@@ -54,7 +54,7 @@
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/qcamera.h>
 #include <QVideoFrame>
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -75,8 +75,8 @@ public:
     AVFCameraSession(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFCameraSession();
 
-    QCameraInfo activeCameraInfo() const { return m_activeCameraInfo; }
-    void setActiveCamera(const QCameraInfo &info);
+    QCameraDevice activeCameraInfo() const { return m_activeCameraInfo; }
+    void setActiveCamera(const QCameraDevice &info);
 
     AVFCameraRenderer *videoOutput() const { return m_videoOutput; }
     AVCaptureAudioDataOutput *audioOutput() const { return m_audioOutput; }
@@ -115,7 +115,7 @@ private:
     bool applyImageEncoderSettings();
     bool applyEncoderSettings();
 
-    QCameraInfo m_activeCameraInfo;
+    QCameraDevice m_activeCameraInfo;
 
     AVFCameraService *m_service;
     AVCaptureSession *m_captureSession;

@@ -48,14 +48,14 @@
 
 #include <QtCore/qobject.h>
 
-#include <QtMultimedia/qcamerainfo.h>
+#include <QtMultimedia/qcameradevice.h>
 
 #include <QtMultimedia/qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE
 
 
-class QCameraInfo;
+class QCameraDevice;
 class QPlatformMediaCaptureSession;
 class QMediaCaptureSession;
 
@@ -65,7 +65,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QCameraInfo cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
+    Q_PROPERTY(QCameraDevice cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
@@ -178,8 +178,8 @@ public:
     Q_DECLARE_FLAGS(Features, Feature)
 
     explicit QCamera(QObject *parent = nullptr);
-    explicit QCamera(const QCameraInfo& cameraInfo, QObject *parent = nullptr);
-    explicit QCamera(QCameraInfo::Position position, QObject *parent = nullptr);
+    explicit QCamera(const QCameraDevice& cameraInfo, QObject *parent = nullptr);
+    explicit QCamera(QCameraDevice::Position position, QObject *parent = nullptr);
     ~QCamera();
 
     bool isAvailable() const;
@@ -189,8 +189,8 @@ public:
 
     QMediaCaptureSession *captureSession() const;
 
-    QCameraInfo cameraInfo() const;
-    void setCameraInfo(const QCameraInfo &cameraInfo);
+    QCameraDevice cameraInfo() const;
+    void setCameraInfo(const QCameraDevice &cameraInfo);
 
     QCameraFormat cameraFormat() const;
     void setCameraFormat(const QCameraFormat &format);
@@ -307,7 +307,7 @@ private:
     Q_DISABLE_COPY(QCamera)
     Q_DECLARE_PRIVATE(QCamera)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
-    friend class QCameraInfo;
+    friend class QCameraDevice;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features)

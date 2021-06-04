@@ -39,7 +39,7 @@
 
 #include "qmediarecorder.h"
 
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <qcamera.h>
 #include <qmediacapturesession.h>
 #include <qmediaencoder.h>

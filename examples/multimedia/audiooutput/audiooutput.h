@@ -99,7 +99,7 @@ public:
 
 private:
     void initializeWindow();
-    void initializeAudio(const QAudioDeviceInfo &deviceInfo);
+    void initializeAudio(const QAudioDevice &deviceInfo);
 
 private:
     QMediaDevices *m_devices = nullptr;

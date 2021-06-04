@@ -52,8 +52,8 @@
 #include <QString>
 #include <QAudioFormat>
 
-#include <QAudioDeviceInfo>
-#include <QCameraInfo>
+#include <QAudioDevice>
+#include <QCameraDevice>
 #include <qmediadevices.h>
 
 #include <stdio.h>
@@ -74,19 +74,19 @@ QString formatToString(QAudioFormat::SampleFormat sampleFormat)
     }
 }
 
-QString positionToString(QCameraInfo::Position position)
+QString positionToString(QCameraDevice::Position position)
 {
     switch (position) {
-        case QCameraInfo::BackFace:
+        case QCameraDevice::BackFace:
             return "BackFace";
-        case QCameraInfo::FrontFace:
+        case QCameraDevice::FrontFace:
             return "FrontFace";
         default:
             return "Unspecified";
     }
 }
 
-void printAudioDeviceInfo(QTextStream &out, const QAudioDeviceInfo &deviceInfo)
+void printAudioDeviceInfo(QTextStream &out, const QAudioDevice &deviceInfo)
 {
     const auto isDefault = deviceInfo.isDefault() ? "Yes" : "No";
     const auto preferredFormat = deviceInfo.preferredFormat();
@@ -119,7 +119,7 @@ void printAudioDeviceInfo(QTextStream &out, const QAudioDeviceInfo &deviceInfo)
     out << Qt::endl;
 }
 
-void printVideoDeviceInfo(QTextStream &out, const QCameraInfo &cameraInfo)
+void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraInfo)
 {
     const auto isDefault = cameraInfo.isDefault() ? "Yes" : "No";
     const auto position = cameraInfo.position();

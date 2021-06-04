@@ -102,8 +102,8 @@ public:
 
     bool streamPlaybackSupported() const override { return true; }
 
-    bool setAudioOutput(const QAudioDeviceInfo &) override;
-    QAudioDeviceInfo audioOutput() const override;
+    bool setAudioOutput(const QAudioDevice &) override;
+    QAudioDevice audioOutput() const override;
 
     QMediaMetaData metaData() const override;
 

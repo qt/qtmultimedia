@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qaudiosystem_p.h"
-#include "qaudiodeviceinfo_p.h"
+#include "qaudiodevice_p.h"
 #include <private/qplatformmediadevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
@@ -46,20 +46,20 @@
 
 QT_BEGIN_NAMESPACE
 
-QAudioDeviceInfoPrivate::~QAudioDeviceInfoPrivate() = default;
+QAudioDevicePrivate::~QAudioDevicePrivate() = default;
 
-QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDeviceInfoPrivate);
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
 
 /*!
-    \class QAudioDeviceInfo
-    \brief The QAudioDeviceInfo class provides an information about audio devices and their functionality.
+    \class QAudioDevice
+    \brief The QAudioDevice class provides an information about audio devices and their functionality.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
-    QAudioDeviceInfo describes an audio device available in the system, either for input or for playback.
+    QAudioDevice describes an audio device available in the system, either for input or for playback.
 
-    A QAudioDeviceInfo is used by Qt to construct
+    A QAudioDevice is used by Qt to construct
     classes that communicate with the device -- such as
     QAudioSource, and QAudioSink. It is also used to determine the
     input or output device to use in a capture session or during media playback.
@@ -92,17 +92,17 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDeviceInfoPrivate);
 */
 
 /*!
-    Constructs an empty QAudioDeviceInfo object.
+    Constructs a null QAudioDevice object.
 */
-QAudioDeviceInfo::QAudioDeviceInfo() = default;
+QAudioDevice::QAudioDevice() = default;
 
 /*!
     Constructs a copy of \a other.
 */
-QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other) = default;
+QAudioDevice::QAudioDevice(const QAudioDevice& other) = default;
 
 /*!
-    \fn QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfo &&other)
+    \fn QAudioDevice::QAudioDevice(QAudioDevice &&other)
 
     Move constructs from \a other.
 */
@@ -110,24 +110,24 @@ QAudioDeviceInfo::QAudioDeviceInfo(const QAudioDeviceInfo& other) = default;
 /*!
     Destroy this audio device info.
 */
-QAudioDeviceInfo::~QAudioDeviceInfo() = default;
+QAudioDevice::~QAudioDevice() = default;
 
 /*!
-    Sets the QAudioDeviceInfo object to be equal to \a other.
+    Sets the QAudioDevice object to be equal to \a other.
 */
-QAudioDeviceInfo& QAudioDeviceInfo::operator=(const QAudioDeviceInfo &other) = default;
+QAudioDevice& QAudioDevice::operator=(const QAudioDevice &other) = default;
 
 /*!
-    \fn QAudioDeviceInfo& QAudioDeviceInfo::operator=(QAudioDeviceInfo &&other)
+    \fn QAudioDevice& QAudioDevice::operator=(QAudioDevice &&other)
 
-    Moves \a other into this QAudioDeviceInfo object.
+    Moves \a other into this QAudioDevice object.
 */
 
 /*!
-    Returns true if this QAudioDeviceInfo class represents the
+    Returns true if this QAudioDevice class represents the
     same audio device as \a other.
 */
-bool QAudioDeviceInfo::operator ==(const QAudioDeviceInfo &other) const
+bool QAudioDevice::operator ==(const QAudioDevice &other) const
 {
     if (d == other.d)
         return true;
@@ -139,18 +139,18 @@ bool QAudioDeviceInfo::operator ==(const QAudioDeviceInfo &other) const
 }
 
 /*!
-    Returns true if this QAudioDeviceInfo class represents a
+    Returns true if this QAudioDevice class represents a
     different audio device than \a other
 */
-bool QAudioDeviceInfo::operator !=(const QAudioDeviceInfo &other) const
+bool QAudioDevice::operator !=(const QAudioDevice &other) const
 {
     return !operator==(other);
 }
 
 /*!
-    Returns whether this QAudioDeviceInfo object holds a valid device definition.
+    Returns whether this QAudioDevice object holds a valid device definition.
 */
-bool QAudioDeviceInfo::isNull() const
+bool QAudioDevice::isNull() const
 {
     return d == nullptr;
 }
@@ -162,7 +162,7 @@ bool QAudioDeviceInfo::isNull() const
 
     They are a unique identifier for the audio device.
 */
-QByteArray QAudioDeviceInfo::id() const
+QByteArray QAudioDevice::id() const
 {
     return isNull() ? QByteArray() : d->id;
 }
@@ -172,7 +172,7 @@ QByteArray QAudioDeviceInfo::id() const
 
     Use this string to present the device to the user.
 */
-QString QAudioDeviceInfo::description() const
+QString QAudioDevice::description() const
 {
     return isNull() ? QString() : d->description;
 }
@@ -180,16 +180,16 @@ QString QAudioDeviceInfo::description() const
 /*!
     Returns true if this is the default audio device for it's mode.
 */
-bool QAudioDeviceInfo::isDefault() const
+bool QAudioDevice::isDefault() const
 {
     return d ? d->isDefault : false;
 }
 
 /*!
     Returns true if the supplied \a settings are supported by the audio
-    device described by this QAudioDeviceInfo.
+    device described by this QAudioDevice.
 */
-bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
+bool QAudioDevice::isFormatSupported(const QAudioFormat &settings) const
 {
     if (isNull())
         return false;
@@ -215,7 +215,7 @@ bool QAudioDeviceInfo::isFormatSupported(const QAudioFormat &settings) const
     \li Output settings: 48000Hz stereo 16 bit.
     \endlist
 */
-QAudioFormat QAudioDeviceInfo::preferredFormat() const
+QAudioFormat QAudioDevice::preferredFormat() const
 {
     return isNull() ? QAudioFormat() : d->preferredFormat;
 }
@@ -223,7 +223,7 @@ QAudioFormat QAudioDeviceInfo::preferredFormat() const
 /*!
     Returns the minimum supported sample rate (in Hertz).
 */
-int QAudioDeviceInfo::minimumSampleRate() const
+int QAudioDevice::minimumSampleRate() const
 {
     return isNull() ? 0 : d->minimumSampleRate;
 }
@@ -231,7 +231,7 @@ int QAudioDeviceInfo::minimumSampleRate() const
 /*!
     Returns the maximum supported sample rate (in Hertz).
 */
-int QAudioDeviceInfo::maximumSampleRate() const
+int QAudioDevice::maximumSampleRate() const
 {
     return isNull() ? 0 : d->maximumSampleRate;
 }
@@ -241,7 +241,7 @@ int QAudioDeviceInfo::maximumSampleRate() const
 
     This is typically 1 for mono sound, or 2 for stereo sound.
 */
-int QAudioDeviceInfo::minimumChannelCount() const
+int QAudioDevice::minimumChannelCount() const
 {
     return isNull() ? 0 : d->minimumChannelCount;
 }
@@ -251,7 +251,7 @@ int QAudioDeviceInfo::minimumChannelCount() const
 
     This is typically 1 for mono sound, or 2 for stereo sound.
 */
-int QAudioDeviceInfo::maximumChannelCount() const
+int QAudioDevice::maximumChannelCount() const
 {
     return isNull() ? 0 : d->maximumChannelCount;
 }
@@ -259,7 +259,7 @@ int QAudioDeviceInfo::maximumChannelCount() const
 /*!
     Returns a list of supported sample types.
 */
-QList<QAudioFormat::SampleFormat> QAudioDeviceInfo::supportedSampleFormats() const
+QList<QAudioFormat::SampleFormat> QAudioDevice::supportedSampleFormats() const
 {
     return isNull() ? QList<QAudioFormat::SampleFormat>() : d->supportedSampleFormats;
 }
@@ -267,14 +267,14 @@ QList<QAudioFormat::SampleFormat> QAudioDeviceInfo::supportedSampleFormats() con
 /*!
     \internal
 */
-QAudioDeviceInfo::QAudioDeviceInfo(QAudioDeviceInfoPrivate *p)
+QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)
     : d(p)
 {}
 
 /*!
     returns whether this device is an input or output device.
 */
-QAudio::Mode QAudioDeviceInfo::mode() const
+QAudio::Mode QAudioDevice::mode() const
 {
     return d->mode;
 }

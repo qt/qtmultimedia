@@ -59,8 +59,8 @@
 #include <QVBoxLayout>
 
 SettingsDialog::SettingsDialog(
-            const QList<QAudioDeviceInfo> &availableInputDevices,
-            const QList<QAudioDeviceInfo> &availableOutputDevices,
+            const QList<QAudioDevice> &availableInputDevices,
+            const QList<QAudioDevice> &availableOutputDevices,
             QWidget *parent)
     :   QDialog(parent)
     ,   m_windowFunction(DefaultWindowFunction)
@@ -72,10 +72,10 @@ SettingsDialog::SettingsDialog(
 
     // Populate combo boxes
 
-    for (const QAudioDeviceInfo &device : availableInputDevices)
+    for (const QAudioDevice &device : availableInputDevices)
         m_inputDeviceComboBox->addItem(device.description(),
                                        QVariant::fromValue(device));
-    for (const QAudioDeviceInfo &device : availableOutputDevices)
+    for (const QAudioDevice &device : availableOutputDevices)
         m_outputDeviceComboBox->addItem(device.description(),
                                        QVariant::fromValue(device));
 
@@ -141,11 +141,11 @@ void SettingsDialog::windowFunctionChanged(int index)
 
 void SettingsDialog::inputDeviceChanged(int index)
 {
-    m_inputDevice = m_inputDeviceComboBox->itemData(index).value<QAudioDeviceInfo>();
+    m_inputDevice = m_inputDeviceComboBox->itemData(index).value<QAudioDevice>();
 }
 
 void SettingsDialog::outputDeviceChanged(int index)
 {
-    m_outputDevice = m_outputDeviceComboBox->itemData(index).value<QAudioDeviceInfo>();
+    m_outputDevice = m_outputDeviceComboBox->itemData(index).value<QAudioDevice>();
 }
 

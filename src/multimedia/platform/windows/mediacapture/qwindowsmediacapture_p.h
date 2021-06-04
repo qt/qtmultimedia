@@ -81,8 +81,8 @@ public:
     void setMuted(bool muted) override;
     qreal volume() const override;
     void setVolume(qreal volume) override;
-    QAudioDeviceInfo audioInput() const override;
-    bool setAudioInput(const QAudioDeviceInfo &) override;
+    QAudioDevice audioInput() const override;
+    bool setAudioInput(const QAudioDevice &) override;
 
     void setVideoPreview(QVideoSink *sink) override;
 

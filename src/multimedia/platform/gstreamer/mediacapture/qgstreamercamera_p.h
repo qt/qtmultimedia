@@ -69,7 +69,7 @@ public:
     bool isActive() const override;
     void setActive(bool active) override;
 
-    void setCamera(const QCameraInfo &camera) override;
+    void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
     void setCameraFormatInternal(const QCameraFormat &format);
 
@@ -125,7 +125,7 @@ private:
 
     QGstreamerMediaCapture *m_session = nullptr;
 
-    QCameraInfo m_cameraInfo;
+    QCameraDevice m_cameraInfo;
 
     QGstPipeline gstPipeline;
 

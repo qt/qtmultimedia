@@ -62,7 +62,7 @@
 #include <QtCore/qmutex.h>
 
 #include <QtMultimedia/qaudio.h>
-#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiodevice.h>
 #include <private/qaudiosystem_p.h>
 
 // For compat with 4.6

@@ -52,18 +52,18 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDeviceInfoPrivate : public QSharedData
+class QAudioDevicePrivate : public QSharedData
 {
 public:
-    QAudioDeviceInfoPrivate(const QByteArray &i, QAudio::Mode m)
+    QAudioDevicePrivate(const QByteArray &i, QAudio::Mode m)
         : id(i),
           mode(m)
     {}
-    virtual ~QAudioDeviceInfoPrivate();
+    virtual ~QAudioDevicePrivate();
     QByteArray  id;
     QAudio::Mode mode = QAudio::AudioOutput;
     bool isDefault = false;
@@ -76,7 +76,7 @@ public:
     int maximumChannelCount = 0;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats;
 
-    QAudioDeviceInfo create() { return QAudioDeviceInfo(this); }
+    QAudioDevice create() { return QAudioDevice(this); }
 };
 
 QT_END_NAMESPACE

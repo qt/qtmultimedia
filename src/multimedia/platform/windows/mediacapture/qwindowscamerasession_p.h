@@ -54,7 +54,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
 #include <qmediaencodersettings.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <qwindowsmultimediautils_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -74,7 +74,7 @@ public:
 
     bool isReadyForCapture() const;
 
-    void setActiveCamera(const QCameraInfo &info);
+    void setActiveCamera(const QCameraDevice &info);
 
     void setCameraFormat(const QCameraFormat &cameraFormat);
 
@@ -87,8 +87,8 @@ public:
     void setMuted(bool muted);
     qreal volume() const;
     void setVolume(qreal volume);
-    QAudioDeviceInfo audioInput() const;
-    bool setAudioInput(const QAudioDeviceInfo &info);
+    QAudioDevice audioInput() const;
+    bool setAudioInput(const QAudioDevice &info);
 
     bool startRecording(const QString &fileName);
     void stopRecording();
@@ -115,11 +115,11 @@ private:
                                 qreal frameRate, QMediaEncoderSettings::Quality quality);
     quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality);
     bool m_active = false;
-    QCameraInfo m_activeCameraInfo;
+    QCameraDevice m_activeCameraInfo;
     QCameraFormat m_cameraFormat;
     QWindowsCameraReader *m_cameraReader = nullptr;
     QMediaEncoderSettings m_mediaEncoderSettings;
-    QAudioDeviceInfo m_audioInput;
+    QAudioDevice m_audioInput;
     QVideoSink  *m_surface = nullptr;
 };
 

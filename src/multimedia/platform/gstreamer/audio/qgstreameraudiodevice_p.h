@@ -37,39 +37,42 @@
 **
 ****************************************************************************/
 
-#include "qopenslesdeviceinfo_p.h"
+#ifndef QGSTREAMERAUDIODEVICEINFO_H
+#define QGSTREAMERAUDIODEVICEINFO_H
 
-#include "qopenslesengine_p.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtCore/qbytearray.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qlist.h>
+
+#include "qaudio.h"
+#include "qaudiodevice.h"
+#include <private/qaudiodevice_p.h>
+
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
-QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(device, mode),
-      m_engine(QOpenSLESEngine::instance())
+class QGStreamerAudioDeviceInfo : public QAudioDevicePrivate
 {
-    description = desc;
+public:
+    QGStreamerAudioDeviceInfo(GstDevice *gstDevice, const QByteArray &device, QAudio::Mode mode);
+    ~QGStreamerAudioDeviceInfo();
 
-    auto channels = m_engine->supportedChannelCounts(mode);
-    if (channels.size()) {
-        minimumChannelCount = channels.first();
-        maximumChannelCount = channels.first();
-    }
-
-    auto sampleRates = m_engine->supportedSampleRates(mode);
-    if (sampleRates.size()) {
-        minimumSampleRate = sampleRates.first();
-        maximumSampleRate = sampleRates.last();
-    }
-    if (mode == QAudio::AudioInput)
-        supportedSampleFormats.append(QAudioFormat::UInt8);
-    supportedSampleFormats.append(QAudioFormat::Int16);
-
-    preferredFormat.setChannelCount(2);
-    preferredFormat.setSampleRate(48000);
-    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
-    if (!supportedSampleFormats.contains(f))
-        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
-    preferredFormat.setSampleFormat(f);
-}
+    GstDevice *gstDevice = nullptr;
+};
 
 QT_END_NAMESPACE
+
+#endif
+

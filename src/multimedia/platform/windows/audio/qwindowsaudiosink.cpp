@@ -49,7 +49,7 @@
 //
 
 #include "qwindowsaudiosink_p.h"
-#include "qwindowsaudiodeviceinfo_p.h"
+#include "qwindowsaudiodevice_p.h"
 #include "qwindowsaudioutils_p.h"
 #include <QtEndian>
 #include <QtCore/QDataStream>

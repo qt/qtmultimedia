@@ -40,7 +40,7 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qsoundeffect.h"
 #include "qsamplecache_p.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include "qaudiosink.h"
 #include "qmediadevices.h"
 #include <QtCore/qloggingcategory.h>
@@ -54,7 +54,7 @@ Q_GLOBAL_STATIC(QSampleCache, sampleCache)
 class QSoundEffectPrivate : public QIODevice
 {
 public:
-    QSoundEffectPrivate(QSoundEffect *q, const QAudioDeviceInfo &audioDevice = QAudioDeviceInfo());
+    QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &audioDevice = QAudioDevice());
     ~QSoundEffectPrivate() override = default;
 
     qint64 readData(char *data, qint64 len) override;
@@ -100,10 +100,10 @@ public:
     bool m_sampleReady = false;
     qint64 m_offset = 0;
     QAudio::Role m_role;
-    QAudioDeviceInfo m_audioDevice;
+    QAudioDevice m_audioDevice;
 };
 
-QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDeviceInfo &audioDevice)
+QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &audioDevice)
     : QIODevice(q)
     , q_ptr(q)
     , m_audioDevice(audioDevice)
@@ -296,14 +296,14 @@ void QSoundEffectPrivate::setPlaying(bool playing)
     Creates a QSoundEffect with the given \a parent.
 */
 QSoundEffect::QSoundEffect(QObject *parent)
-    : QSoundEffect(QAudioDeviceInfo(), parent)
+    : QSoundEffect(QAudioDevice(), parent)
 {
 }
 
 /*!
     Creates a QSoundEffect with the given \a audioDevice and \a parent.
 */
-QSoundEffect::QSoundEffect(const QAudioDeviceInfo &audioDevice, QObject *parent)
+QSoundEffect::QSoundEffect(const QAudioDevice &audioDevice, QObject *parent)
     : QObject(parent)
     , d(new QSoundEffectPrivate(this, audioDevice))
 {
@@ -331,7 +331,7 @@ QSoundEffect::~QSoundEffect()
 QStringList QSoundEffect::supportedMimeTypes()
 {
     // Only return supported mime types if we have a audio device available
-    const QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
+    const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     if (devices.isEmpty())
         return QStringList();
 

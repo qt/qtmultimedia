@@ -554,17 +554,17 @@ void QMediaPlayer::setSource(const QUrl &source, QIODevice *stream)
 /*!
     Sets the audio output to \a device.
 
-    Setting a null QAudioDeviceInfo, sets the output to the system default.
+    Setting a null QAudioDevice, sets the output to the system default.
 
     Returns true if the output could be changed, false otherwise.
  */
-bool QMediaPlayer::setAudioOutput(const QAudioDeviceInfo &device)
+bool QMediaPlayer::setAudioOutput(const QAudioDevice &device)
 {
     Q_D(QMediaPlayer);
     return d->control->setAudioOutput(device);
 }
 
-QAudioDeviceInfo QMediaPlayer::audioOutput() const
+QAudioDevice QMediaPlayer::audioOutput() const
 {
     Q_D(const QMediaPlayer);
     return d->control->audioOutput();

@@ -37,37 +37,55 @@
 **
 ****************************************************************************/
 
-#ifndef QOPENSLESDEVICEINFO_H
-#define QOPENSLESDEVICEINFO_H
-
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API.  It exists for the convenience
+// of other Qt classes.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
-#include <private/qaudiodeviceinfo_p.h>
+
+#ifndef QWINDOWSAUDIODEVICEINFO_H
+#define QWINDOWSAUDIODEVICEINFO_H
+
+#include <QtCore/qbytearray.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qdebug.h>
+
+#include <QtMultimedia/qaudiodevice.h>
+#include <private/qaudiosystem_p.h>
+#include <private/qaudiodevice_p.h>
+
 
 QT_BEGIN_NAMESPACE
 
-class QOpenSLESEngine;
+const unsigned int MAX_SAMPLE_RATES = 5;
+const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
 
-class QOpenSLESDeviceInfo : public QAudioDeviceInfoPrivate
+class QWindowsAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudio::Mode mode);
-    ~QOpenSLESDeviceInfo() {}
+    QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode);
+    ~QWindowsAudioDeviceInfo();
 
+    bool open();
+    void close();
+
+    bool testSettings(const QAudioFormat& format) const;
+
+    int waveId() const { return devId; }
 private:
-    QOpenSLESEngine *m_engine;
+    quint32 devId;
 };
+
+
 
 QT_END_NAMESPACE
 
-#endif // QOPENSLESDEVICEINFO_H
+
+#endif // QWINDOWSAUDIODEVICEINFO_H

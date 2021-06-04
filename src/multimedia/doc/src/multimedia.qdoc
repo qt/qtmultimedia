@@ -103,7 +103,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li Discovering raw audio devices
         \li \l{Audio Devices Example}{audiodevices}
         \li
-        \li QAudioDeviceInfo
+        \li QAudioDevice
     \row
         \li Video Playback
         \li \l{Media Player Example}{player},

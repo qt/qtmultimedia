@@ -53,7 +53,7 @@
 
 #include "private/qobject_p.h"
 #include "qcamera.h"
-#include "qcamerainfo.h"
+#include "qcameradevice.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -79,7 +79,7 @@ public:
     QCamera::Error error;
     QString errorString;
 
-    QCameraInfo cameraInfo;
+    QCameraDevice cameraInfo;
     QCameraFormat cameraFormat;
 
     void _q_error(int error, const QString &errorString);

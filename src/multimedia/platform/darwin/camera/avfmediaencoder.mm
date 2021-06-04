@@ -46,7 +46,7 @@
 #include "avfcameradebug_p.h"
 #include "avfcamerautility_p.h"
 
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include "qmediadevices.h"
 #include "private/qdarwinformatsinfo_p.h"
 
@@ -483,11 +483,11 @@ void AVFMediaEncoder::record()
         // Make sure the video is recorded in device orientation.
         // The top of the video will match the side of the device which is on top
         // when recording starts (regardless of the UI orientation).
-        // QCameraInfo cameraInfo = m_service->session()->activeCameraInfo();
+        // QCameraDevice cameraInfo = m_service->session()->activeCameraInfo();
         // int screenOrientation = 360 - m_orientationHandler.currentOrientation();
 
             // ###
-    //        if (cameraInfo.position() == QCameraInfo::FrontFace)
+    //        if (cameraInfo.position() == QCameraDevice::FrontFace)
     //            rotation = (screenOrientation + cameraInfo.orientation()) % 360;
     //        else
     //            rotation = (screenOrientation + (360 - cameraInfo.orientation())) % 360;

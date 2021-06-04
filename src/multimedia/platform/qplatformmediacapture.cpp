@@ -39,15 +39,15 @@
 
 #include <qtmultimediaglobal_p.h>
 #include "qplatformmediacapture_p.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 
 QT_BEGIN_NAMESPACE
 
 QPlatformMediaCaptureSession::~QPlatformMediaCaptureSession() = default;
 
-QAudioDeviceInfo QPlatformMediaCaptureSession::audioPreview() const
+QAudioDevice QPlatformMediaCaptureSession::audioPreview() const
 {
-    return QAudioDeviceInfo();
+    return QAudioDevice();
 }
 
 QT_END_NAMESPACE

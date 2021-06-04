@@ -126,12 +126,12 @@ QMediaMetaData MFPlayerControl::metaData() const
     return m_session->metaData();
 }
 
-bool MFPlayerControl::setAudioOutput(const QAudioDeviceInfo &info)
+bool MFPlayerControl::setAudioOutput(const QAudioDevice &info)
 {
     return m_session->setAudioOutput(info);
 }
 
-QAudioDeviceInfo MFPlayerControl::audioOutput() const
+QAudioDevice MFPlayerControl::audioOutput() const
 {
     return m_session->audioOutput();
 }

@@ -59,7 +59,7 @@
 #include <QMediaEncoder>
 #include <QStandardPaths>
 #include <qmediadevices.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <qaudiobuffer.h>
 
 static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
@@ -189,7 +189,7 @@ static QVariant boxValue(const QComboBox *box)
 void AudioRecorder::toggleRecord()
 {
     if (m_audioEncoder->state() == QMediaEncoder::StoppedState) {
-        m_captureSession.setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDeviceInfo>());
+        m_captureSession.setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDevice>());
 
         QMediaEncoderSettings settings;
         settings.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());

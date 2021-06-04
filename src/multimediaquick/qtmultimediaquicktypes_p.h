@@ -113,18 +113,18 @@ struct QMediaDevicesForeign
     QML_NAMED_ELEMENT(MediaDevices)
 };
 
-struct QAudioDeviceInfoForeign
+struct QAudioDeviceForeign
 {
     Q_GADGET
-    QML_FOREIGN(QAudioDeviceInfo)
-    QML_NAMED_ELEMENT(audioDeviceInfo)
+    QML_FOREIGN(QAudioDevice)
+    QML_NAMED_ELEMENT(audioDevice)
 };
 
-struct QCameraInfoForeign
+struct QCameraDeviceForeign
 {
     Q_GADGET
-    QML_FOREIGN(QCameraInfo)
-    QML_NAMED_ELEMENT(cameraInfo)
+    QML_FOREIGN(QCameraDevice)
+    QML_NAMED_ELEMENT(cameraDevice)
 };
 
 struct QMediaFormatForeign

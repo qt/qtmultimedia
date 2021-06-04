@@ -202,7 +202,7 @@ QCamera::Status AVFCamera::status() const
     return statusTable[m_active ? 1 : 0][m_session->isActive() ? 1 : 0];
 }
 
-void AVFCamera::setCamera(const QCameraInfo &camera)
+void AVFCamera::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraInfo == camera)
         return;
@@ -227,7 +227,7 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     Q_ASSERT(m_session);
     connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 
-    m_session->setActiveCamera(QCameraInfo());
+    m_session->setActiveCamera(QCameraDevice());
     m_session->setActive(m_active);
     m_session->setActiveCamera(m_cameraInfo);
 }

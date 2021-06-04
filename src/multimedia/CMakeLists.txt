@@ -17,7 +17,7 @@ qt_internal_add_module(Multimedia
         audio/qaudio.cpp audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiodecoder.cpp audio/qaudiodecoder.h
-        audio/qaudiodeviceinfo.cpp audio/qaudiodeviceinfo.h audio/qaudiodeviceinfo_p.h
+        audio/qaudiodevice.cpp audio/qaudiodevice.h audio/qaudiodevice_p.h
         audio/qaudioformat.cpp audio/qaudioformat.h
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
         audio/qaudiosource.cpp audio/qaudiosource.h
@@ -27,8 +27,8 @@ qt_internal_add_module(Multimedia
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qwavedecoder.cpp audio/qwavedecoder.h
         camera/qcamera.cpp camera/qcamera.h camera/qcamera_p.h
+        camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
         camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
-        camera/qcamerainfo.cpp camera/qcamerainfo.h camera/qcamerainfo_p.h
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
         platform/qplatformcameraimagecapture.cpp platform/qplatformcameraimagecapture_p.h
@@ -129,7 +129,7 @@ endif()
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
     SOURCES
-        platform/windows/audio/qwindowsaudiodeviceinfo.cpp platform/windows/audio/qwindowsaudiodeviceinfo_p.h
+        platform/windows/audio/qwindowsaudiodevice.cpp platform/windows/audio/qwindowsaudiodevice_p.h
         platform/windows/audio/qwindowsaudiosource.cpp platform/windows/audio/qwindowsaudiosource_p.h
         platform/windows/audio/qwindowsaudiosink.cpp platform/windows/audio/qwindowsaudiosink_p.h
         platform/windows/audio/qwindowsaudioutils.cpp platform/windows/audio/qwindowsaudioutils_p.h
@@ -202,7 +202,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     SOURCES
-        platform/gstreamer/audio/qaudiodeviceinfo_gstreamer.cpp platform/gstreamer/audio/qaudiodeviceinfo_gstreamer_p.h
+        platform/gstreamer/audio/qgstreameraudiodevice.cpp platform/gstreamer/audio/qgstreameraudiodevice_p.h
         platform/gstreamer/audio/qgstreameraudiosource.cpp platform/gstreamer/audio/qgstreameraudiosource_p.h
         platform/gstreamer/audio/qgstreameraudiosink.cpp platform/gstreamer/audio/qgstreameraudiosink_p.h
         platform/gstreamer/audio/qgstreameraudiodecoder.cpp platform/gstreamer/audio/qgstreameraudiodecoder_p.h
@@ -272,7 +272,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID AND QT_FEATURE_gstreamer
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
     SOURCES
-        platform/pulseaudio/qaudiodeviceinfo_pulse.cpp platform/pulseaudio/qaudiodeviceinfo_pulse_p.h
+        platform/pulseaudio/qpulseaudiodevice.cpp platform/pulseaudio/qpulseaudiodevice_p.h
         platform/pulseaudio/qaudioengine_pulse.cpp platform/pulseaudio/qaudioengine_pulse_p.h
         platform/pulseaudio/qpulseaudiosource.cpp platform/pulseaudio/qpulseaudiosource_p.h
         platform/pulseaudio/qpulseaudiosink.cpp platform/pulseaudio/qpulseaudiosink_p.h
@@ -285,7 +285,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
     SOURCES
-        platform/alsa/qalsaaudiodeviceinfo.cpp platform/alsa/qalsaaudiodeviceinfo_p.h
+        platform/alsa/qalsaaudiodevice.cpp platform/alsa/qalsaaudiodevice_p.h
         platform/alsa/qalsaaudiosource.cpp platform/alsa/qalsaaudiosource_p.h
         platform/alsa/qalsaaudiosink.cpp platform/alsa/qalsaaudiosink_p.h
         platform/alsa/qalsamediadevices.cpp platform/alsa/qalsamediadevices_p.h
@@ -298,7 +298,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
     SOURCES
         platform/android/audio/qandroidaudiosource.cpp platform/android/audio/qandroidaudiosource_p.h
         platform/android/audio/qandroidaudiosink.cpp platform/android/audio/qandroidaudiosink_p.h
-        platform/android/audio/qopenslesdeviceinfo.cpp platform/android/audio/qopenslesdeviceinfo_p.h
+        platform/android/audio/qandroidaudiodevice.cpp platform/android/audio/qandroidaudiodevice_p.h
         platform/android/audio/qopenslesengine.cpp platform/android/audio/qopenslesengine_p.h
         platform/android/common/qandroidglobal_p.h
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
@@ -352,7 +352,7 @@ qt_internal_extend_target(Multimedia CONDITION TARGET Qt::Widgets AND WIN32
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
     SOURCES
-        platform/darwin/audio/qcoreaudiodeviceinfo.mm platform/darwin/audio/qcoreaudiodeviceinfo_p.h
+        platform/darwin/audio/qdarwinaudiodevice.mm platform/darwin/audio/qdarwinaudiodevice_p.h
         platform/darwin/audio/qdarwinaudiosource.mm platform/darwin/audio/qdarwinaudiosource_p.h
         platform/darwin/audio/qdarwinaudiosink.mm platform/darwin/audio/qdarwinaudiosink_p.h
         platform/darwin/audio/qcoreaudioutils.mm platform/darwin/audio/qcoreaudioutils_p.h
@@ -427,7 +427,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT IOS AND NOT TVOS AN
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
     SOURCES
         platform/qnx/audio/neutrinoserviceplugin.cpp platform/qnx/audio/neutrinoserviceplugin_p.h
-        platform/qnx/audio/qnxaudiodeviceinfo.cpp platform/qnx/audio/qnxaudiodeviceinfo_p.h
+        platform/qnx/audio/qqnxaudiodevice.cpp platform/qnx/audio/qqnxaudiodevice_p.h
         platform/qnx/audio/qqnxaudiosource.cpp platform/qnx/audio/qqnxaudiosource_p.h
         platform/qnx/audio/qqnxaudiosink.cpp platform/qnx/audio/qqnxaudiosink_p.h
         platform/qnx/audio/qnxaudioutils.cpp platform/qnx/audio/qnxaudioutils_p.h

@@ -46,32 +46,32 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDeviceInfo;
-class QCameraInfo;
+class QAudioDevice;
+class QCameraDevice;
 
 class QMediaDevicesPrivate;
 
 class Q_MULTIMEDIA_EXPORT QMediaDevices : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<QAudioDeviceInfo> audioInputs READ audioInputs NOTIFY audioInputsChanged)
-    Q_PROPERTY(QList<QAudioDeviceInfo> audioOutputs READ audioOutputs NOTIFY audioOutputsChanged)
-    Q_PROPERTY(QList<QCameraInfo> videoInputs READ videoInputs NOTIFY videoInputsChanged)
-    Q_PROPERTY(QAudioDeviceInfo defaultAudioInput READ defaultAudioInput NOTIFY audioInputsChanged)
-    Q_PROPERTY(QAudioDeviceInfo defaultAudioOutput READ defaultAudioOutput NOTIFY audioOutputsChanged)
-    Q_PROPERTY(QCameraInfo defaultVideoInput READ defaultVideoInput NOTIFY videoInputsChanged)
+    Q_PROPERTY(QList<QAudioDevice> audioInputs READ audioInputs NOTIFY audioInputsChanged)
+    Q_PROPERTY(QList<QAudioDevice> audioOutputs READ audioOutputs NOTIFY audioOutputsChanged)
+    Q_PROPERTY(QList<QCameraDevice> videoInputs READ videoInputs NOTIFY videoInputsChanged)
+    Q_PROPERTY(QAudioDevice defaultAudioInput READ defaultAudioInput NOTIFY audioInputsChanged)
+    Q_PROPERTY(QAudioDevice defaultAudioOutput READ defaultAudioOutput NOTIFY audioOutputsChanged)
+    Q_PROPERTY(QCameraDevice defaultVideoInput READ defaultVideoInput NOTIFY videoInputsChanged)
 
 public:
     QMediaDevices(QObject *parent = nullptr);
     ~QMediaDevices();
 
-    static QList<QAudioDeviceInfo> audioInputs();
-    static QList<QAudioDeviceInfo> audioOutputs();
-    static QList<QCameraInfo> videoInputs();
+    static QList<QAudioDevice> audioInputs();
+    static QList<QAudioDevice> audioOutputs();
+    static QList<QCameraDevice> videoInputs();
 
-    static QAudioDeviceInfo defaultAudioInput();
-    static QAudioDeviceInfo defaultAudioOutput();
-    static QCameraInfo defaultVideoInput();
+    static QAudioDevice defaultAudioInput();
+    static QAudioDevice defaultAudioOutput();
+    static QCameraDevice defaultVideoInput();
 
 Q_SIGNALS:
     void audioInputsChanged();

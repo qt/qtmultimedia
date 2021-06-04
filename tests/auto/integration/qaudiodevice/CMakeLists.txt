@@ -1,12 +1,12 @@
-# Generated from qaudiodeviceinfo.pro.
+# Generated from qaudiodevice.pro.
 
 #####################################################################
-## tst_qaudiodeviceinfo Test:
+## tst_qaudiodevice Test:
 #####################################################################
 
-qt_internal_add_test(tst_qaudiodeviceinfo
+qt_internal_add_test(tst_qaudiodevice
     SOURCES
-        tst_qaudiodeviceinfo.cpp
+        tst_qaudiodevice.cpp
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate

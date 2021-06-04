@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,50 +37,56 @@
 **
 ****************************************************************************/
 
-#ifndef QCAMERAINFO_P_H
-#define QCAMERAINFO_P_H
+#include "qgstreameraudiodevice_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <QtMultimedia/qcamerainfo.h>
-#include <QtCore/qsharedpointer.h>
+#include <private/qgstutils_p.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qgstreamermediadevices_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCameraFormatPrivate : public QSharedData
+QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteArray &device, QAudio::Mode mode)
+    : QAudioDevicePrivate(device, mode),
+      gstDevice(d)
 {
-public:
-    QVideoFrameFormat::PixelFormat pixelFormat;
-    QSize resolution;
-    float minFrameRate = 0;
-    float maxFrameRate = 0;
+    Q_ASSERT(gstDevice);
+    gst_object_ref(gstDevice);
 
-    QCameraFormat create() { return QCameraFormat(this); }
-};
+    auto *n = gst_device_get_display_name(gstDevice);
+    description = QString::fromUtf8(n);
+    g_free(n);
 
-class QCameraInfoPrivate : public QSharedData
+    QGstCaps caps = gst_device_get_caps(gstDevice);
+    int size = caps.size();
+    for (int i = 0; i < size; ++i) {
+        auto c = caps.at(i);
+        if (c.name() == "audio/x-raw") {
+            auto rate = c["rate"].toIntRange();
+            if (rate) {
+                minimumSampleRate = rate->min;
+                maximumSampleRate = rate->max;
+            }
+            auto channels = c["channels"].toIntRange();
+            if (channels) {
+                minimumChannelCount = channels->min;
+                maximumChannelCount = channels->max;
+            }
+            supportedSampleFormats = c["format"].getSampleFormats();
+        }
+    }
+
+    preferredFormat.setChannelCount(qBound(minimumChannelCount, 2, maximumChannelCount));
+    preferredFormat.setSampleRate(qBound(minimumSampleRate, 48000, maximumSampleRate));
+    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
+    if (!supportedSampleFormats.contains(f))
+        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
+    preferredFormat.setSampleFormat(f);
+}
+
+QGStreamerAudioDeviceInfo::~QGStreamerAudioDeviceInfo()
 {
-public:
-    QByteArray id;
-    QString description;
-    bool isDefault = false;
-    QCameraInfo::Position position = QCameraInfo::UnspecifiedPosition;
-    int orientation = 0;
-    QList<QSize> photoResolutions;
-    QList<QCameraFormat> videoFormats;
-
-    QCameraInfo create() { return QCameraInfo(this); }
-};
+    if (gstDevice)
+        gst_object_unref(gstDevice);
+}
 
 QT_END_NAMESPACE
-
-#endif // QCAMERAINFO_P_H

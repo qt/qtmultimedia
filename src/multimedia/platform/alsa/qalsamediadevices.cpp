@@ -39,11 +39,11 @@
 
 #include "qalsamediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcamerainfo_p.h"
+#include "qcameradevice_p.h"
 
 #include "private/qalsaaudiosource_p.h"
 #include "private/qalsaaudiosink_p.h"
-#include "private/qalsaaudiodeviceinfo_p.h"
+#include "private/qalsaaudiodevice_p.h"
 
 #include <alsa/asoundlib.h>
 
@@ -54,9 +54,9 @@ QAlsaMediaDevices::QAlsaMediaDevices()
 {
 }
 
-static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
+static QList<QAudioDevice> availableDevices(QAudio::Mode mode)
 {
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
 
     QByteArray filter;
 
@@ -100,27 +100,27 @@ static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QList<QAudioDeviceInfo> QAlsaMediaDevices::audioInputs() const
+QList<QAudioDevice> QAlsaMediaDevices::audioInputs() const
 {
     return availableDevices(QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QAlsaMediaDevices::audioOutputs() const
+QList<QAudioDevice> QAlsaMediaDevices::audioOutputs() const
 {
     return availableDevices(QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QAlsaMediaDevices::videoInputs() const
+QList<QCameraDevice> QAlsaMediaDevices::videoInputs() const
 {
     return {};
 }
 
-QPlatformAudioSource *QAlsaMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QAlsaMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
     return new QAlsaAudioSource(deviceInfo.id());
 }
 
-QPlatformAudioSink *QAlsaMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QAlsaMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
     return new QAlsaAudioSink(deviceInfo.id());
 }

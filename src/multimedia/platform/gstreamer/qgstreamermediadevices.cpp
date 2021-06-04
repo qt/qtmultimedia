@@ -39,11 +39,11 @@
 
 #include "qgstreamermediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcamerainfo_p.h"
+#include "qcameradevice_p.h"
 
 #include "private/qgstreameraudiosource_p.h"
 #include "private/qgstreameraudiosink_p.h"
-#include "private/qaudiodeviceinfo_gstreamer_p.h"
+#include "private/qgstreameraudiodevice_p.h"
 #include "private/qgstutils_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -99,9 +99,9 @@ QGstreamerMediaDevices::QGstreamerMediaDevices()
     }
 }
 
-static QList<QAudioDeviceInfo> devicesFromSet(const QSet<GstDevice *> &deviceSet, QAudio::Mode mode)
+static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QAudio::Mode mode)
 {
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
     for (auto *d : deviceSet) {
         auto *properties = gst_device_get_properties(d);
         if (properties) {
@@ -122,24 +122,24 @@ static QList<QAudioDeviceInfo> devicesFromSet(const QSet<GstDevice *> &deviceSet
     return devices;
 };
 
-QList<QAudioDeviceInfo> QGstreamerMediaDevices::audioInputs() const
+QList<QAudioDevice> QGstreamerMediaDevices::audioInputs() const
 {
     return devicesFromSet(m_audioSources, QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QGstreamerMediaDevices::audioOutputs() const
+QList<QAudioDevice> QGstreamerMediaDevices::audioOutputs() const
 {
     return devicesFromSet(m_audioSinks, QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QGstreamerMediaDevices::videoInputs() const
+QList<QCameraDevice> QGstreamerMediaDevices::videoInputs() const
 {
-    QList<QCameraInfo> devices;
+    QList<QCameraDevice> devices;
 
     for (auto *d : qAsConst(m_videoSources)) {
         QGstStructure properties = gst_device_get_properties(d);
         if (!properties.isNull()) {
-            QCameraInfoPrivate *info = new QCameraInfoPrivate;
+            QCameraDevicePrivate *info = new QCameraDevicePrivate;
             auto *desc = gst_device_get_display_name(d);
             info->description = QString::fromUtf8(desc);
             g_free(desc);
@@ -187,12 +187,12 @@ QList<QCameraInfo> QGstreamerMediaDevices::videoInputs() const
     return devices;
 }
 
-QPlatformAudioSource *QGstreamerMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QGstreamerMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
     return new QGStreamerAudioSource(deviceInfo);
 }
 
-QPlatformAudioSink *QGstreamerMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QGstreamerMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
     return new QGStreamerAudioSink(deviceInfo);
 }

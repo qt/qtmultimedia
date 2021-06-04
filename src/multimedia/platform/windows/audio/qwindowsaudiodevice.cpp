@@ -53,12 +53,12 @@
 #include <QtCore/QDataStream>
 #include <QtCore/QIODevice>
 #include <mmsystem.h>
-#include "qwindowsaudiodeviceinfo_p.h"
+#include "qwindowsaudiodevice_p.h"
 #include "qwindowsaudioutils_p.h"
 
 
 QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(dev, mode),
+    : QAudioDevicePrivate(dev, mode),
       devId(waveID)
 {
     this->description = description;

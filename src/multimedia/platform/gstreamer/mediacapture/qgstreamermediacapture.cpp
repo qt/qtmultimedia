@@ -179,12 +179,12 @@ QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()
     return m_mediaEncoder;
 }
 
-QAudioDeviceInfo QGstreamerMediaCapture::audioInput() const
+QAudioDevice QGstreamerMediaCapture::audioInput() const
 {
     return gstAudioInput->audioInput();
 }
 
-bool QGstreamerMediaCapture::setAudioInput(const QAudioDeviceInfo &info)
+bool QGstreamerMediaCapture::setAudioInput(const QAudioDevice &info)
 {
     return gstAudioInput->setAudioInput(info);
 }
@@ -214,12 +214,12 @@ void QGstreamerMediaCapture::setVideoPreview(QVideoSink *sink)
     gstVideoOutput->setVideoSink(sink);
 }
 
-QAudioDeviceInfo QGstreamerMediaCapture::audioPreview() const
+QAudioDevice QGstreamerMediaCapture::audioPreview() const
 {
     return gstAudioOutput->audioOutput();
 }
 
-bool QGstreamerMediaCapture::setAudioPreview(const QAudioDeviceInfo &info)
+bool QGstreamerMediaCapture::setAudioPreview(const QAudioDevice &info)
 {
     gstAudioOutput->setAudioOutput(info);
     return true;

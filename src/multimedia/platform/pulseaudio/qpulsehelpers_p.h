@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include <qaudioformat.h>
 #include <pulse/pulseaudio.h>
 

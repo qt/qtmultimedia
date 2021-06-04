@@ -33,7 +33,7 @@
 
 #include <qmediaencoder.h>
 #include <private/qplatformmediaencoder_p.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <qaudiosource.h>
 #include <qmediacapturesession.h>
 
@@ -98,7 +98,7 @@ void tst_QAudioRecorder::testAudioSource()
 void tst_QAudioRecorder::testDevices()
 {
 //    audiosource = new QMediaRecorder;
-//    QList<QAudioDeviceInfo> devices = mockIntegration->audioInputs();
+//    QList<QAudioDevice> devices = mockIntegration->audioInputs();
 //    QVERIFY(devices.size() > 0);
 //    QVERIFY(devices.at(0).id() == "device1");
 //    QVERIFY(audiosource->audioInputDescription("device1").compare("dev1 comment") == 0);

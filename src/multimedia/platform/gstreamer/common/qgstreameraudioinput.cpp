@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 #include <private/qgstreameraudioinput_p.h>
-#include <private/qaudiodeviceinfo_gstreamer_p.h>
-#include <qaudiodeviceinfo.h>
+#include <private/qgstreameraudiodevice_p.h>
+#include <qaudiodevice.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
@@ -102,7 +102,7 @@ void QGstreamerAudioInput::setPipeline(const QGstPipeline &pipeline)
     gstPipeline = pipeline;
 }
 
-bool QGstreamerAudioInput::setAudioInput(const QAudioDeviceInfo &info)
+bool QGstreamerAudioInput::setAudioInput(const QAudioDevice &info)
 {
     if (info == m_audioInput)
         return true;
@@ -149,7 +149,7 @@ void QGstreamerAudioInput::prepareAudioInputChange(const QGstPad &/*pad*/)
     gstPipeline.setState(GST_STATE_PLAYING);
 }
 
-QAudioDeviceInfo QGstreamerAudioInput::audioInput() const
+QAudioDevice QGstreamerAudioInput::audioInput() const
 {
     return m_audioInput;
 }

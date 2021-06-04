@@ -57,7 +57,7 @@
 #include <qrect.h>
 #include <QtMultimedia/qcamera.h>
 #include <QtCore/qjniobject.h>
-#include <private/qcamerainfo_p.h>
+#include <private/qcameradevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -203,7 +203,7 @@ public:
     QJniObject getCameraObject();
 
     static int getNumberOfCameras();
-    static void getCameraInfo(int id, QCameraInfoPrivate *info);
+    static void getCameraInfo(int id, QCameraDevicePrivate *info);
     static bool requestCameraPermission();
 
     static bool registerNativeMethods();

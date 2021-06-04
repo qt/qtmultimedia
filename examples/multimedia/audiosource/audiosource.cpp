@@ -57,7 +57,7 @@
 #include <QDebug>
 #include <QPainter>
 #include <QVBoxLayout>
-#include <QAudioDeviceInfo>
+#include <QAudioDevice>
 #include <QAudioSource>
 #include <qendian.h>
 
@@ -163,7 +163,7 @@ void InputTest::initializeWindow()
     layout->addWidget(m_canvas);
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDeviceInfo &defaultDeviceInfo = m_devices->defaultAudioInput();
+    const QAudioDevice &defaultDeviceInfo = m_devices->defaultAudioInput();
     m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
     for (auto &deviceInfo: m_devices->audioInputs()) {
         if (deviceInfo != defaultDeviceInfo)
@@ -193,7 +193,7 @@ void InputTest::initializeWindow()
     window->show();
 }
 
-void InputTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
+void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
 {
     QAudioFormat format;
     format.setSampleRate(8000);
@@ -263,7 +263,7 @@ void InputTest::deviceChanged(int index)
     m_audioInput->stop();
     m_audioInput->disconnect(this);
 
-    initializeAudio(m_deviceBox->itemData(index).value<QAudioDeviceInfo>());
+    initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
 }
 
 void InputTest::sliderChanged(int value)

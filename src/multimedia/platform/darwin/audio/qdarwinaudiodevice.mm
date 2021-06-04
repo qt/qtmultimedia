@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qcoreaudiodeviceinfo_p.h"
+#include "qdarwinaudiodevice_p.h"
 #include "qcoreaudioutils_p.h"
 #include <private/qcore_mac_p.h>
 
@@ -54,11 +54,11 @@ QT_BEGIN_NAMESPACE
 
 #if defined(Q_OS_MACOS)
     QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode)
-        : QAudioDeviceInfoPrivate(device, mode),
+        : QAudioDevicePrivate(device, mode),
         m_deviceId(id)
 #else
     QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
-        : QAudioDeviceInfoPrivate(device, mode)
+        : QAudioDevicePrivate(device, mode)
 #endif
     {
         preferredFormat = determinePreferredFormat();
@@ -103,10 +103,10 @@ QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
                             format = CoreAudioUtils::toQAudioFormat(sf);
                             break;
                         } else {
-                            qWarning() << "QAudioDeviceInfo: Unable to find perferedFormat for stream";
+                            qWarning() << "QAudioDevice: Unable to find perferedFormat for stream";
                         }
                     } else {
-                        qWarning() << "QAudioDeviceInfo: Unable to find size of perferedFormat for stream";
+                        qWarning() << "QAudioDevice: Unable to find size of perferedFormat for stream";
                     }
                 }
             }
@@ -138,7 +138,7 @@ QString QCoreAudioDeviceInfo::getDescription() const
                                                                   kAudioObjectPropertyElementMaster };
 
     if (AudioObjectGetPropertyData(m_deviceId, &audioDeviceNamePropertyAddress, 0, NULL, &size, &name) != noErr) {
-        qWarning() << "QAudioDeviceInfo: Unable to find device description";
+        qWarning() << "QAudioDevice: Unable to find device description";
         return QString();
     }
 

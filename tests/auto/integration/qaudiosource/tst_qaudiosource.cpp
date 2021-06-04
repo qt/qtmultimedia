@@ -33,7 +33,7 @@
 #include <QtCore/QScopedPointer>
 
 #include <qaudiosource.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <qaudioformat.h>
 #include <qaudio.h>
 #include <qmediadevices.h>
@@ -94,7 +94,7 @@ private:
 
     void generate_audiofile_testrows();
 
-    QAudioDeviceInfo audioDevice;
+    QAudioDevice audioDevice;
     QList<QAudioFormat> testFormats;
     QList<FilePtr> audioFiles;
     QScopedPointer<QTemporaryDir> m_temporaryDir;
@@ -131,7 +131,7 @@ QString tst_QAudioSource::formatToFileName(const QAudioFormat &format)
 void tst_QAudioSource::initTestCase()
 {
     // Only perform tests if audio output device exists
-    const QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
+    const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
 
     if (devices.size() <= 0)
         QSKIP("No audio backend");

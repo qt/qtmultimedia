@@ -104,11 +104,11 @@ public:
             emit volumeChanged(m_volume = volume);
     }
 
-    QAudioDeviceInfo audioInput() const override
+    QAudioDevice audioInput() const override
     {
         return m_audioInput;
     }
-    bool setAudioInput(const QAudioDeviceInfo &id) override
+    bool setAudioInput(const QAudioDevice &id) override
     {
         m_audioInput = id;
         return true;
@@ -118,7 +118,7 @@ public:
     QPlatformCameraImageCapture *mockImageCapture = nullptr;
     QMockMediaEncoder *mockControl = nullptr;
 
-    QAudioDeviceInfo m_audioInput;
+    QAudioDevice m_audioInput;
     bool m_muted = false;
     qreal m_volume = 1.0;
     bool hasControls;

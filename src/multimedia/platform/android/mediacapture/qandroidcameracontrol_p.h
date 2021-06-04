@@ -72,7 +72,7 @@ public:
 
     QCamera::Status status() const override;
 
-    void setCamera(const QCameraInfo &camera) override;
+    void setCamera(const QCameraDevice &camera) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 

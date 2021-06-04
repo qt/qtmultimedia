@@ -38,57 +38,57 @@
 ****************************************************************************/
 
 #include "qmockmediadevices_p.h"
-#include "private/qcamerainfo_p.h"
+#include "private/qcameradevice_p.h"
 
 QT_BEGIN_NAMESPACE
 
 QMockMediaDevices::QMockMediaDevices()
     : QPlatformMediaDevices()
 {
-    QCameraInfoPrivate *info = new QCameraInfoPrivate;
+    QCameraDevicePrivate *info = new QCameraDevicePrivate;
     info->description = QString::fromUtf8("defaultCamera");
     info->id = "default";
     info->isDefault = true;
     m_cameraDevices.append(info->create());
-    info = new QCameraInfoPrivate;
+    info = new QCameraDevicePrivate;
     info->description = QString::fromUtf8("frontCamera");
     info->id = "front";
     info->isDefault = false;
-    info->position = QCameraInfo::FrontFace;
+    info->position = QCameraDevice::FrontFace;
     m_cameraDevices.append(info->create());
-    info = new QCameraInfoPrivate;
+    info = new QCameraDevicePrivate;
     info->description = QString::fromUtf8("backCamera");
     info->id = "back";
     info->isDefault = false;
-    info->position = QCameraInfo::BackFace;
+    info->position = QCameraDevice::BackFace;
     m_cameraDevices.append(info->create());
 
 }
 
 QMockMediaDevices::~QMockMediaDevices() = default;
 
-QList<QAudioDeviceInfo> QMockMediaDevices::audioInputs() const
+QList<QAudioDevice> QMockMediaDevices::audioInputs() const
 {
     return m_inputDevices;
 }
 
-QList<QAudioDeviceInfo> QMockMediaDevices::audioOutputs() const
+QList<QAudioDevice> QMockMediaDevices::audioOutputs() const
 {
     return m_outputDevices;
 }
 
-QList<QCameraInfo> QMockMediaDevices::videoInputs() const
+QList<QCameraDevice> QMockMediaDevices::videoInputs() const
 {
     return m_cameraDevices;
 }
 
-QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDeviceInfo &info)
+QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDevice &info)
 {
     Q_UNUSED(info);
     return nullptr;// ###
 }
 
-QPlatformAudioSink *QMockMediaDevices::createAudioSink(const QAudioDeviceInfo &info)
+QPlatformAudioSink *QMockMediaDevices::createAudioSink(const QAudioDevice &info)
 {
     Q_UNUSED(info);
     return nullptr; //###

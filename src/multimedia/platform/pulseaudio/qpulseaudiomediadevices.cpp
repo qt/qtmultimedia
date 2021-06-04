@@ -39,11 +39,11 @@
 
 #include "qpulseaudiomediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcamerainfo_p.h"
+#include "qcameradevice_p.h"
 
 #include "private/qpulseaudiosource_p.h"
 #include "private/qpulseaudiosink_p.h"
-#include "private/qaudiodeviceinfo_pulse_p.h"
+#include "private/qpulseaudiodevice_p.h"
 #include "private/qaudioengine_pulse_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -54,27 +54,27 @@ QPulseAudioMediaDevices::QPulseAudioMediaDevices(QPulseAudioEngine *engine)
 {
 }
 
-QList<QAudioDeviceInfo> QPulseAudioMediaDevices::audioInputs() const
+QList<QAudioDevice> QPulseAudioMediaDevices::audioInputs() const
 {
     return pulseEngine->availableDevices(QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QPulseAudioMediaDevices::audioOutputs() const
+QList<QAudioDevice> QPulseAudioMediaDevices::audioOutputs() const
 {
     return pulseEngine->availableDevices(QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QPulseAudioMediaDevices::videoInputs() const
+QList<QCameraDevice> QPulseAudioMediaDevices::videoInputs() const
 {
     return {};
 }
 
-QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
     return new QPulseAudioSource(deviceInfo.id());
 }
 
-QPlatformAudioSink *QPulseAudioMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QPulseAudioMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
     return new QPulseAudioSink(deviceInfo.id());
 }

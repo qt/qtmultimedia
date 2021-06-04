@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QAUDIODEVICEINFOPULSE_H
-#define QAUDIODEVICEINFOPULSE_H
+#ifndef IOSAUDIODEVICEINFO_H
+#define IOSAUDIODEVICEINFO_H
 
 //
 //  W A R N I N G
@@ -51,25 +50,38 @@
 // We mean it.
 //
 
-#include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
+#include <qaudiosystem_p.h>
+#include <private/qaudiodevice_p.h>
 
-#include "qaudio.h"
-#include "qaudiodeviceinfo.h"
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiodeviceinfo_p.h>
+#if defined(Q_OS_MACOS)
+# include <CoreAudio/CoreAudio.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioDeviceInfo : public QAudioDeviceInfoPrivate
+class QCoreAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QPulseAudioDeviceInfo(const char *device, const char *description, bool isDefault, QAudio::Mode mode);
-    ~QPulseAudioDeviceInfo() {}
+#if defined(Q_OS_MACOS)
+    QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode);
+#else
+    QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+#endif
+    ~QCoreAudioDeviceInfo() {}
+
+    bool isFormatSupported(const QAudioFormat &format) const;
+
+#if defined(Q_OS_MACOS)
+    AudioDeviceID deviceID() const { return m_deviceId; }
+#endif
+private:
+    QAudioFormat determinePreferredFormat() const;
+    QString getDescription() const;
+#if defined(Q_OS_MACOS)
+    AudioDeviceID m_deviceId;
+#endif
 };
 
 QT_END_NAMESPACE
 
 #endif
-

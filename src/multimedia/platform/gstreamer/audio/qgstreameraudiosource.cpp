@@ -43,7 +43,7 @@
 #include <private/qaudiohelpers_p.h>
 
 #include "qgstreameraudiosource_p.h"
-#include "qaudiodeviceinfo_gstreamer_p.h"
+#include "qgstreameraudiodevice_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -54,7 +54,7 @@ Q_DECLARE_METATYPE(GstSample *);
 QT_BEGIN_NAMESPACE
 
 
-QGStreamerAudioSource::QGStreamerAudioSource(const QAudioDeviceInfo &device)
+QGStreamerAudioSource::QGStreamerAudioSource(const QAudioDevice &device)
     : m_info(device),
       m_device(device.id())
 {

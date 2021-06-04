@@ -54,7 +54,7 @@
 #include "avfmediaassetwriter_p.h"
 #include "avfstoragelocation_p.h"
 #include "avfcamerautility_p.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 
 #include <private/qplatformmediaencoder_p.h>
 #include <private/qvideooutputorientationhandler_p.h>

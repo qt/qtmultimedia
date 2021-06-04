@@ -71,8 +71,8 @@ private:
     QExplicitlySharedDataPointer<QCameraFormatPrivate> d;
 };
 
-class QCameraInfoPrivate;
-class Q_MULTIMEDIA_EXPORT QCameraInfo
+class QCameraDevicePrivate;
+class Q_MULTIMEDIA_EXPORT QCameraDevice
 {
     Q_GADGET
     Q_PROPERTY(QByteArray id READ id CONSTANT)
@@ -81,20 +81,20 @@ class Q_MULTIMEDIA_EXPORT QCameraInfo
     Q_PROPERTY(Position position READ position CONSTANT)
     Q_ENUMS(Position)
 public:
-    QCameraInfo();
-    QCameraInfo(const QCameraInfo& other);
-    QCameraInfo& operator=(const QCameraInfo& other);
-    ~QCameraInfo();
+    QCameraDevice();
+    QCameraDevice(const QCameraDevice& other);
+    QCameraDevice& operator=(const QCameraDevice& other);
+    ~QCameraDevice();
 
-    bool operator==(const QCameraInfo &other) const;
-    inline bool operator!=(const QCameraInfo &other) const;
+    bool operator==(const QCameraDevice &other) const;
+    inline bool operator!=(const QCameraDevice &other) const;
 
     bool isNull() const;
 
     QByteArray id() const;
     QString description() const;
 
-    // ### Add here and to QAudioDeviceInfo
+    // ### Add here and to QAudioDevice
 //    QByteArray groupId() const;
 //    QString groupDescription() const;
 
@@ -115,15 +115,15 @@ public:
     // ### Add zoom and other camera information
 
 private:
-    friend class QCameraInfoPrivate;
-    QCameraInfo(QCameraInfoPrivate *p);
-    QExplicitlySharedDataPointer<QCameraInfoPrivate> d;
+    friend class QCameraDevicePrivate;
+    QCameraDevice(QCameraDevicePrivate *p);
+    QExplicitlySharedDataPointer<QCameraDevicePrivate> d;
 };
 
-bool QCameraInfo::operator!=(const QCameraInfo &other) const { return !operator==(other); }
+bool QCameraDevice::operator!=(const QCameraDevice &other) const { return !operator==(other); }
 
 #ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QCameraInfo&);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QCameraDevice&);
 #endif
 
 QT_END_NAMESPACE

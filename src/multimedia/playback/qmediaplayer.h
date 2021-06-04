@@ -48,7 +48,7 @@
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
-class QAudioDeviceInfo;
+class QAudioDevice;
 class QMediaMetaData;
 class QMediaTimeRange;
 
@@ -114,8 +114,8 @@ public:
 //    bool enableLowLatencyPlayback(bool tryEnable);
 //    bool isLowLatencyPlaybackEnabled() const;
 
-    bool setAudioOutput(const QAudioDeviceInfo &device);
-    QAudioDeviceInfo audioOutput() const;
+    bool setAudioOutput(const QAudioDevice &device);
+    QAudioDevice audioOutput() const;
 
     QList<QMediaMetaData> audioTracks() const;
     QList<QMediaMetaData> videoTracks() const;

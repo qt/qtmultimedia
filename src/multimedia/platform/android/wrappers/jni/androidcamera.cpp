@@ -760,7 +760,7 @@ int AndroidCamera::getNumberOfCameras()
                                                      "getNumberOfCameras");
 }
 
-void AndroidCamera::getCameraInfo(int id, QCameraInfoPrivate *info)
+void AndroidCamera::getCameraInfo(int id, QCameraDevicePrivate *info)
 {
     Q_ASSERT(info);
 
@@ -778,13 +778,13 @@ void AndroidCamera::getCameraInfo(int id, QCameraInfoPrivate *info)
     case AndroidCamera::CameraFacingBack:
         info->id = QByteArray("back");
         info->description = QStringLiteral("Rear-facing camera");
-        info->position = QCameraInfo::BackFace;
+        info->position = QCameraDevice::BackFace;
         info->isDefault = true;
         break;
     case AndroidCamera::CameraFacingFront:
         info->id = QByteArray("front");
         info->description = QStringLiteral("Front-facing camera");
-        info->position = QCameraInfo::FrontFace;
+        info->position = QCameraDevice::FrontFace;
         break;
     default:
         break;

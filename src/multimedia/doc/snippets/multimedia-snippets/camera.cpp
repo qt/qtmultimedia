@@ -40,13 +40,13 @@
 /* Camera snippets */
 
 #include "qcamera.h"
-#include "qcamerainfo.h"
+#include "qcameradevice.h"
 #include "qmediaencoder.h"
 #include "qmediadevices.h"
 #include "qmediacapturesession.h"
 #include "qcameraimagecapture.h"
 #include "qvideosink.h"
-#include "QtMultmediaWidgets/qvideowidget.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
 #include <QtGui/qscreen.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qimage.h>
@@ -83,7 +83,7 @@ void overview_viewfinder()
 void overview_camera_by_position()
 {
     //! [Camera overview position]
-    camera = new QCamera(QCameraInfo::FrontFace);
+    camera = new QCamera(QCameraDevice::FrontFace);
     //! [Camera overview position]
 }
 
@@ -110,14 +110,14 @@ void overview_viewfinder_orientation()
     //! [Camera overview viewfinder orientation]
     // Assuming a QImage has been created from the QVideoFrame that needs to be presented
     QImage videoFrame;
-    QCameraInfo cameraInfo(camera); // needed to get the camera sensor position and orientation
+    QCameraDevice cameraInfo(camera); // needed to get the camera sensor position and orientation
 
     // Get the current display orientation
     const QScreen *screen = QGuiApplication::primaryScreen();
     const int screenAngle = screen->angleBetween(screen->nativeOrientation(), screen->orientation());
 
     int rotation;
-    if (cameraInfo.position() == QCameraInfo::BackFace) {
+    if (cameraInfo.position() == QCameraDevice::BackFace) {
         rotation = (cameraInfo.orientation() - screenAngle) % 360;
     } else {
         // Front position, compensate the mirror
@@ -174,8 +174,8 @@ void overview_movie()
 void camera_listing()
 {
     //! [Camera listing]
-    const QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
-    for (const QCameraInfo &cameraInfo : cameras)
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice &cameraInfo : cameras)
         qDebug() << cameraInfo.description();
     //! [Camera listing]
 }
@@ -183,8 +183,8 @@ void camera_listing()
 void camera_selection()
 {
     //! [Camera selection]
-    const QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
-    for (const QCameraInfo &cameraInfo : cameras) {
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice &cameraInfo : cameras) {
         if (cameraInfo.description() == "mycamera")
             camera = new QCamera(cameraInfo);
     }
@@ -195,11 +195,11 @@ void camera_info()
 {
     //! [Camera info]
     QCamera myCamera;
-    QCameraInfo cameraInfo = camera->cameraInfo();
+    QCameraDevice cameraInfo = camera->cameraInfo();
 
-    if (cameraInfo.position() == QCameraInfo::FrontFace)
+    if (cameraInfo.position() == QCameraDevice::FrontFace)
         qDebug() << "The camera is on the front face of the hardware system.";
-    else if (cameraInfo.position() == QCameraInfo::BackFace)
+    else if (cameraInfo.position() == QCameraDevice::BackFace)
         qDebug() << "The camera is on the back face of the hardware system.";
 
     qDebug() << "The camera sensor orientation is " << cameraInfo.orientation() << " degrees.";

@@ -114,7 +114,7 @@ public:
 
 private:
     void initializeWindow();
-    void initializeAudio(const QAudioDeviceInfo &deviceInfo);
+    void initializeAudio(const QAudioDevice &deviceInfo);
 
 private slots:
     void toggleMode();

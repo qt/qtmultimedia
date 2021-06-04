@@ -148,17 +148,17 @@ void AVFCameraService::setVolume(qreal volume)
     }
 }
 
-QAudioDeviceInfo AVFCameraService::audioInput() const
+QAudioDevice AVFCameraService::audioInput() const
 {
     QByteArray id = [[m_audioCaptureDevice uniqueID] UTF8String];
-    const QList<QAudioDeviceInfo> devices = QMediaDevices::audioInputs();
+    const QList<QAudioDevice> devices = QMediaDevices::audioInputs();
     for (auto d : devices)
         if (d.id() == id)
             return d;
     return QMediaDevices::defaultAudioInput();
 }
 
-bool AVFCameraService::setAudioInput(const QAudioDeviceInfo &id)
+bool AVFCameraService::setAudioInput(const QAudioDevice &id)
 {
     AVCaptureDevice *device = nullptr;
 

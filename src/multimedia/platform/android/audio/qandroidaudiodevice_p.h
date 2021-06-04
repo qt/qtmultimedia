@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef IOSAUDIODEVICEINFO_H
-#define IOSAUDIODEVICEINFO_H
+
+#ifndef QOPENSLESDEVICEINFO_H
+#define QOPENSLESDEVICEINFO_H
 
 //
 //  W A R N I N G
@@ -51,37 +52,22 @@
 //
 
 #include <qaudiosystem_p.h>
-#include <private/qaudiodeviceinfo_p.h>
-
-#if defined(Q_OS_MACOS)
-# include <CoreAudio/CoreAudio.h>
-#endif
+#include <private/qaudiodevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCoreAudioDeviceInfo : public QAudioDeviceInfoPrivate
+class QOpenSLESEngine;
+
+class QOpenSLESDeviceInfo : public QAudioDevicePrivate
 {
 public:
-#if defined(Q_OS_MACOS)
-    QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode);
-#else
-    QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
-#endif
-    ~QCoreAudioDeviceInfo() {}
+    QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudio::Mode mode);
+    ~QOpenSLESDeviceInfo() {}
 
-    bool isFormatSupported(const QAudioFormat &format) const;
-
-#if defined(Q_OS_MACOS)
-    AudioDeviceID deviceID() const { return m_deviceId; }
-#endif
 private:
-    QAudioFormat determinePreferredFormat() const;
-    QString getDescription() const;
-#if defined(Q_OS_MACOS)
-    AudioDeviceID m_deviceId;
-#endif
+    QOpenSLESEngine *m_engine;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QOPENSLESDEVICEINFO_H

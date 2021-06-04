@@ -105,9 +105,9 @@ public:
 
     qreal playbackRate() const override;
 
-    bool setAudioOutput(const QAudioDeviceInfo &) override;
-    QAudioDeviceInfo audioOutput() const override;
-    QAudioDeviceInfo m_audioOutput;
+    bool setAudioOutput(const QAudioDevice &) override;
+    QAudioDevice audioOutput() const override;
+    QAudioDevice m_audioOutput;
 
     QMediaMetaData metaData() const override;
 

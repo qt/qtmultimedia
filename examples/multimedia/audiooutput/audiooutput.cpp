@@ -50,7 +50,7 @@
 
 #include "audiooutput.h"
 
-#include <QAudioDeviceInfo>
+#include <QAudioDevice>
 #include <QAudioSink>
 #include <QDebug>
 #include <QVBoxLayout>
@@ -159,7 +159,7 @@ void AudioTest::initializeWindow()
     QVBoxLayout *layout = new QVBoxLayout;
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDeviceInfo &defaultDeviceInfo = m_devices->defaultAudioOutput();
+    const QAudioDevice &defaultDeviceInfo = m_devices->defaultAudioOutput();
     m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
     for (auto &deviceInfo: m_devices->audioOutputs()) {
         if (deviceInfo != defaultDeviceInfo)
@@ -194,7 +194,7 @@ void AudioTest::initializeWindow()
     window->show();
 }
 
-void AudioTest::initializeAudio(const QAudioDeviceInfo &deviceInfo)
+void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
 {
     QAudioFormat format = deviceInfo.preferredFormat();
 
@@ -216,7 +216,7 @@ void AudioTest::deviceChanged(int index)
     m_generator->stop();
     m_audioOutput->stop();
     m_audioOutput->disconnect(this);
-    initializeAudio(m_deviceBox->itemData(index).value<QAudioDeviceInfo>());
+    initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
 }
 
 void AudioTest::volumeChanged(int value)

@@ -52,7 +52,7 @@
 #define TONEGENERATORDIALOG_H
 
 #include "spectrum.h"
-#include <QAudioDeviceInfo>
+#include <QAudioDevice>
 #include <QDialog>
 
 QT_BEGIN_NAMESPACE

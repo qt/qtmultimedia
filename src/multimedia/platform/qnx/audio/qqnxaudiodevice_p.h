@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Research In Motion
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,49 +37,41 @@
 **
 ****************************************************************************/
 
+#ifndef QNXAUDIODEVICEINFO_H
+#define QNXAUDIODEVICEINFO_H
+
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-
-#ifndef QALSAAUDIODEVICEINFO_H
-#define QALSAAUDIODEVICEINFO_H
-
-#include <alsa/asoundlib.h>
-
-#include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qdebug.h>
-
-#include <QtMultimedia/qaudio.h>
-#include <private/qaudiodeviceinfo_p.h>
-#include <private/qaudiosystem_p.h>
+#include "qaudiosystem_p.h"
+#include <private/qaudiodevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
-
-class QAlsaAudioDeviceInfo : public QAudioDeviceInfoPrivate
+class QnxAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudio::Mode mode);
-    ~QAlsaAudioDeviceInfo();
+    QnxAudioDeviceInfo(const QByteArray &deviceName, QAudio::Mode mode);
+    ~QnxAudioDeviceInfo();
 
-private:
-    void checkSurround();
-    bool surround40;
-    bool surround51;
-    bool surround71;
+    QAudioFormat preferredFormat() const override;
+    bool isFormatSupported(const QAudioFormat &format) const override;
+    QString description() const override { return QString::fromUtf8(id()); }
+    QList<int> supportedSampleRates() const override;
+    QList<int> supportedChannelCounts() const override;
+    QList<int> supportedSampleSizes() const override;
+    QList<QAudioFormat::Endian> supportedByteOrders() const override;
+    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
 };
 
 QT_END_NAMESPACE
 
-
-#endif // QALSAAUDIODEVICEINFO_H
+#endif

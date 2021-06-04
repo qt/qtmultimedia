@@ -64,11 +64,11 @@ class QPulseAudioMediaDevices : public QPlatformMediaDevices
 public:
     QPulseAudioMediaDevices(QPulseAudioEngine *engine);
 
-    QList<QAudioDeviceInfo> audioInputs() const override;
-    QList<QAudioDeviceInfo> audioOutputs() const override;
-    QList<QCameraInfo> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDeviceInfo &deviceInfo) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDeviceInfo &deviceInfo) override;
+    QList<QAudioDevice> audioInputs() const override;
+    QList<QAudioDevice> audioOutputs() const override;
+    QList<QCameraDevice> videoInputs() const override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
 private:
     QPulseAudioEngine *pulseEngine;

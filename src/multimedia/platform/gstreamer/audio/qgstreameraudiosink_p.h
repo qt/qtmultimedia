@@ -60,7 +60,7 @@
 #include <QtCore/private/qringbuffer_p.h>
 
 #include "qaudio.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include <private/qaudiosystem_p.h>
 
 #include <private/qgst_p.h>
@@ -78,7 +78,7 @@ class QGStreamerAudioSink
     Q_OBJECT
 
 public:
-    QGStreamerAudioSink(const QAudioDeviceInfo &device);
+    QGStreamerAudioSink(const QAudioDevice &device);
     ~QGStreamerAudioSink();
 
     void start(QIODevice *device) override;

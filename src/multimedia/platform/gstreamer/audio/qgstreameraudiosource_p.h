@@ -62,7 +62,7 @@
 #include <QtCore/private/qringbuffer_p.h>
 
 #include "qaudio.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include <private/qaudiosystem_p.h>
 
 #include <private/qgstutils_p.h>
@@ -79,7 +79,7 @@ class QGStreamerAudioSource
     Q_OBJECT
     friend class GStreamerInputPrivate;
 public:
-    QGStreamerAudioSource(const QAudioDeviceInfo &device);
+    QGStreamerAudioSource(const QAudioDevice &device);
     ~QGStreamerAudioSource();
 
     void start(QIODevice *device) override;
@@ -116,7 +116,7 @@ private:
 
     static gboolean busMessage(GstBus *bus, GstMessage *msg, gpointer user_data);
 
-    QAudioDeviceInfo m_info;
+    QAudioDevice m_info;
     qint64 m_bytesWritten = 0;
     QIODevice *m_audioSink = nullptr;
     QAudioFormat m_format;

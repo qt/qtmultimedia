@@ -40,7 +40,7 @@
 #include "qmediaencoder_p.h"
 
 #include <private/qplatformmediaencoder_p.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <qcamera.h>
 #include <qmediacapturesession.h>
 #include <private/qplatformcamera_p.h>

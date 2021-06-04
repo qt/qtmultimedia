@@ -47,7 +47,7 @@
 #include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcameraimagecapturecontrol_p.h"
 #include "qmediadevices.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -162,7 +162,7 @@ void QAndroidCaptureService::setVolume(qreal volume)
     qWarning("QMediaRecorder::setVolume() is not supported on Android.");
 }
 
-QAudioDeviceInfo QAndroidCaptureService::audioInput() const
+QAudioDevice QAndroidCaptureService::audioInput() const
 {
     const auto devices = QMediaDevices::audioInputs();
     QByteArray id = m_captureSession->audioInput().toLatin1();
@@ -174,7 +174,7 @@ QAudioDeviceInfo QAndroidCaptureService::audioInput() const
     return QMediaDevices::defaultAudioInput();
 }
 
-bool QAndroidCaptureService::setAudioInput(const QAudioDeviceInfo &info)
+bool QAndroidCaptureService::setAudioInput(const QAudioDevice &info)
 {
     m_captureSession->setAudioInput(QString::fromLatin1(info.id()));
     return true;

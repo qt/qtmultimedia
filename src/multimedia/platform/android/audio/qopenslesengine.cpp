@@ -40,7 +40,7 @@
 #include "qopenslesengine_p.h"
 
 #include "qandroidaudiosource_p.h"
-#include "qopenslesdeviceinfo_p.h"
+#include "qandroidaudiodevice_p.h"
 
 #include <qdebug.h>
 
@@ -103,9 +103,9 @@ SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &f
 
 }
 
-QList<QAudioDeviceInfo> QOpenSLESEngine::availableDevices(QAudio::Mode mode)
+QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudio::Mode mode)
 {
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
     QJniObject devs;
     if (mode == QAudio::AudioInput) {
         devs = QJniObject::callStaticObjectMethod(

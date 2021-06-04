@@ -37,42 +37,39 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERAUDIODEVICEINFO_H
-#define QGSTREAMERAUDIODEVICEINFO_H
+#include "qandroidaudiodevice_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-
-#include "qaudio.h"
-#include "qaudiodeviceinfo.h"
-#include <private/qaudiodeviceinfo_p.h>
-
-#include <gst/gst.h>
+#include "qopenslesengine_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QGStreamerAudioDeviceInfo : public QAudioDeviceInfoPrivate
+QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudio::Mode mode)
+    : QAudioDevicePrivate(device, mode),
+      m_engine(QOpenSLESEngine::instance())
 {
-public:
-    QGStreamerAudioDeviceInfo(GstDevice *gstDevice, const QByteArray &device, QAudio::Mode mode);
-    ~QGStreamerAudioDeviceInfo();
+    description = desc;
 
-    GstDevice *gstDevice = nullptr;
-};
+    auto channels = m_engine->supportedChannelCounts(mode);
+    if (channels.size()) {
+        minimumChannelCount = channels.first();
+        maximumChannelCount = channels.first();
+    }
+
+    auto sampleRates = m_engine->supportedSampleRates(mode);
+    if (sampleRates.size()) {
+        minimumSampleRate = sampleRates.first();
+        maximumSampleRate = sampleRates.last();
+    }
+    if (mode == QAudio::AudioInput)
+        supportedSampleFormats.append(QAudioFormat::UInt8);
+    supportedSampleFormats.append(QAudioFormat::Int16);
+
+    preferredFormat.setChannelCount(2);
+    preferredFormat.setSampleRate(48000);
+    QAudioFormat::SampleFormat f = QAudioFormat::Int16;
+    if (!supportedSampleFormats.contains(f))
+        f = supportedSampleFormats.value(0, QAudioFormat::Unknown);
+    preferredFormat.setSampleFormat(f);
+}
 
 QT_END_NAMESPACE
-
-#endif
-

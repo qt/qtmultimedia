@@ -73,7 +73,7 @@ public:
     explicit QAndroidCameraSession(QObject *parent = 0);
     ~QAndroidCameraSession();
 
-    static const QList<QCameraInfo> &availableCameras();
+    static const QList<QCameraDevice> &availableCameras();
 
     void setSelectedCamera(int cameraId) { m_selectedCamera = cameraId; }
     AndroidCamera *camera() const { return m_camera; }

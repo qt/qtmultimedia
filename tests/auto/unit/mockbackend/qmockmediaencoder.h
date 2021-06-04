@@ -30,7 +30,7 @@
 #define MOCKRECORDERCONTROL_H
 
 #include <QUrl>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 
 #include "private/qplatformmediaencoder_p.h"
 

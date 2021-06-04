@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 
 #include "qgstreamercamera_p.h"
 #include "qgstreamercameraimagecapture_p.h"
@@ -94,7 +94,7 @@ void QGstreamerCamera::setActive(bool active)
     emit activeChanged(active);
 }
 
-void QGstreamerCamera::setCamera(const QCameraInfo &camera)
+void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraInfo == camera)
         return;

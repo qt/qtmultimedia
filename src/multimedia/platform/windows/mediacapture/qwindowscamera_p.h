@@ -70,7 +70,7 @@ public:
 
     QCamera::Status status() const override;
 
-    void setCamera(const QCameraInfo &camera) override;
+    void setCamera(const QCameraDevice &camera) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
@@ -82,7 +82,7 @@ private Q_SLOTS:
 private:
     QWindowsMediaCaptureService *m_captureService = nullptr;
     QWindowsCameraSession  *m_cameraSession = nullptr;
-    QCameraInfo m_cameraInfo;
+    QCameraDevice m_cameraInfo;
     QCameraFormat m_cameraFormat;
     QCamera::Status m_lastStatus = QCamera::InactiveStatus;
     bool m_active = false;

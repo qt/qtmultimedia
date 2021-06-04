@@ -45,47 +45,79 @@
 // of other Qt classes.  This header file may change from version to
 // version without notice, or even be removed.
 //
-// We mean it.
+// INTERNAL USE ONLY: Do NOT use for any other purpose.
 //
 
+#include "qalsaaudiodevice_p.h"
 
-#ifndef QWINDOWSAUDIODEVICEINFO_H
-#define QWINDOWSAUDIODEVICEINFO_H
-
-#include <QtCore/qbytearray.h>
-#include <QtCore/qstringlist.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qdebug.h>
-
-#include <QtMultimedia/qaudiodeviceinfo.h>
-#include <private/qaudiosystem_p.h>
-#include <private/qaudiodeviceinfo_p.h>
-
+#include <alsa/version.h>
 
 QT_BEGIN_NAMESPACE
 
-const unsigned int MAX_SAMPLE_RATES = 5;
-const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
-
-class QWindowsAudioDeviceInfo : public QAudioDeviceInfoPrivate
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc, QAudio::Mode mode)
+    : QAudioDevicePrivate(dev, mode)
 {
-public:
-    QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode);
-    ~QWindowsAudioDeviceInfo();
+    description = desc;
 
-    bool open();
-    void close();
+    checkSurround();
 
-    bool testSettings(const QAudioFormat& format) const;
+    minimumChannelCount = 1;
+    maximumChannelCount = 2;
+    if (surround71)
+        maximumChannelCount = 8;
+    else if (surround40)
+        maximumChannelCount = 4;
+    else if (surround51)
+        maximumChannelCount = 6;
 
-    int waveId() const { return devId; }
-private:
-    quint32 devId;
-};
+    minimumSampleRate = 8000;
+    maximumSampleRate = 48000;
 
+    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+}
 
+QAlsaAudioDeviceInfo::~QAlsaAudioDeviceInfo()
+{
+}
+
+void QAlsaAudioDeviceInfo::checkSurround()
+{
+    surround40 = false;
+    surround51 = false;
+    surround71 = false;
+
+    void **hints, **n;
+    char *name, *descr, *io;
+
+    if(snd_device_name_hint(-1, "pcm", &hints) < 0)
+        return;
+
+    n = hints;
+
+    while (*n != NULL) {
+        name = snd_device_name_get_hint(*n, "NAME");
+        descr = snd_device_name_get_hint(*n, "DESC");
+        io = snd_device_name_get_hint(*n, "IOID");
+        if((name != NULL) && (descr != NULL)) {
+            QString deviceName = QLatin1String(name);
+            if (mode == QAudio::AudioOutput) {
+                if(deviceName.contains(QLatin1String("surround40")))
+                    surround40 = true;
+                if(deviceName.contains(QLatin1String("surround51")))
+                    surround51 = true;
+                if(deviceName.contains(QLatin1String("surround71")))
+                    surround71 = true;
+            }
+        }
+        if(name != NULL)
+            free(name);
+        if(descr != NULL)
+            free(descr);
+        if(io != NULL)
+            free(io);
+        ++n;
+    }
+    snd_device_name_free_hint(hints);
+}
 
 QT_END_NAMESPACE
-
-
-#endif // QWINDOWSAUDIODEVICEINFO_H

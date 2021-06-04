@@ -57,8 +57,8 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaDevices;
-class QAudioDeviceInfo;
-class QCameraInfo;
+class QAudioDevice;
+class QCameraDevice;
 class QPlatformAudioSource;
 class QPlatformAudioSink;
 class QAudioFormat;
@@ -69,18 +69,18 @@ public:
     QPlatformMediaDevices();
     virtual ~QPlatformMediaDevices();
 
-    virtual QList<QAudioDeviceInfo> audioInputs() const = 0;
-    virtual QList<QAudioDeviceInfo> audioOutputs() const = 0;
-    virtual QList<QCameraInfo> videoInputs() const = 0;
-    virtual QPlatformAudioSource *createAudioSource(const QAudioDeviceInfo &deviceInfo) = 0;
-    virtual QPlatformAudioSink *createAudioSink(const QAudioDeviceInfo &deviceInfo) = 0;
+    virtual QList<QAudioDevice> audioInputs() const = 0;
+    virtual QList<QAudioDevice> audioOutputs() const = 0;
+    virtual QList<QCameraDevice> videoInputs() const = 0;
+    virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) = 0;
+    virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) = 0;
 
-    QAudioDeviceInfo audioInput(const QByteArray &id) const;
-    QAudioDeviceInfo audioOutput(const QByteArray &id) const;
-    QCameraInfo videoInput(const QByteArray &id) const;
+    QAudioDevice audioInput(const QByteArray &id) const;
+    QAudioDevice audioOutput(const QByteArray &id) const;
+    QCameraDevice videoInput(const QByteArray &id) const;
 
-    QPlatformAudioSource *audioInputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
-    QPlatformAudioSink *audioOutputDevice(const QAudioFormat &format, const QAudioDeviceInfo &deviceInfo);
+    QPlatformAudioSource *audioInputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo);
+    QPlatformAudioSink *audioOutputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo);
 
     void addDevices(QMediaDevices *m)
     {

@@ -39,11 +39,11 @@
 
 #include "qandroidmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcamerainfo_p.h"
+#include "qcameradevice_p.h"
 
 #include "private/qandroidaudiosource_p.h"
 #include "private/qandroidaudiosink_p.h"
-#include "private/qopenslesdeviceinfo_p.h"
+#include "private/qandroidaudiodevice_p.h"
 #include "private/qopenslesengine_p.h"
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qandroidcamerasession_p.h"
@@ -55,27 +55,27 @@ QAndroidMediaDevices::QAndroidMediaDevices()
 {
 }
 
-QList<QAudioDeviceInfo> QAndroidMediaDevices::audioInputs() const
+QList<QAudioDevice> QAndroidMediaDevices::audioInputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QAndroidMediaDevices::audioOutputs() const
+QList<QAudioDevice> QAndroidMediaDevices::audioOutputs() const
 {
     return QOpenSLESEngine::availableDevices(QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QAndroidMediaDevices::videoInputs() const
+QList<QCameraDevice> QAndroidMediaDevices::videoInputs() const
 {
     return QAndroidCameraSession::availableCameras();
 }
 
-QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
     return new QAndroidAudioSource(deviceInfo.id());
 }
 
-QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
     return new QAndroidAudioSink(deviceInfo.id());
 }

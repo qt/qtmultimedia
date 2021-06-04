@@ -39,12 +39,12 @@
 
 #include "qwindowsmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcamerainfo_p.h"
+#include "qcameradevice_p.h"
 #include "qvarlengtharray.h"
 
 #include "private/qwindowsaudiosource_p.h"
 #include "private/qwindowsaudiosink_p.h"
-#include "private/qwindowsaudiodeviceinfo_p.h"
+#include "private/qwindowsaudiodevice_p.h"
 #include "private/qwindowsmultimediautils_p.h"
 
 #include <private/mftvideo_p.h>
@@ -320,7 +320,7 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
     CoUninitialize();
 }
 
-QList<QAudioDeviceInfo> QWindowsMediaDevices::availableDevices(QAudio::Mode mode) const
+QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudio::Mode mode) const
 {
     const auto audioOut = mode == QAudio::AudioOutput;
 
@@ -338,7 +338,7 @@ QList<QAudioDeviceInfo> QWindowsMediaDevices::availableDevices(QAudio::Mode mode
         return sid.toUtf8();
     }();
 
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
 
     auto waveDevices = audioOut ? waveOutGetNumDevs() : waveInGetNumDevs();
 
@@ -382,19 +382,19 @@ QList<QAudioDeviceInfo> QWindowsMediaDevices::availableDevices(QAudio::Mode mode
     return devices;
 }
 
-QList<QAudioDeviceInfo> QWindowsMediaDevices::audioInputs() const
+QList<QAudioDevice> QWindowsMediaDevices::audioInputs() const
 {
     return availableDevices(QAudio::AudioInput);
 }
 
-QList<QAudioDeviceInfo> QWindowsMediaDevices::audioOutputs() const
+QList<QAudioDevice> QWindowsMediaDevices::audioOutputs() const
 {
     return availableDevices(QAudio::AudioOutput);
 }
 
-QList<QCameraInfo> QWindowsMediaDevices::videoInputs() const
+QList<QCameraDevice> QWindowsMediaDevices::videoInputs() const
 {
-    QList<QCameraInfo> cameras;
+    QList<QCameraDevice> cameras;
 
     IMFAttributes *pAttributes = NULL;
     IMFActivate **ppDevices = NULL;
@@ -413,7 +413,7 @@ QList<QCameraInfo> QWindowsMediaDevices::videoInputs() const
             if (SUCCEEDED(hr)) {
                 // Iterate through devices.
                 for (int index = 0; index < int(count); index++) {
-                    QCameraInfoPrivate *info = new QCameraInfoPrivate;
+                    QCameraDevicePrivate *info = new QCameraDevicePrivate;
 
                     IMFMediaSource *pSource = NULL;
                     IMFSourceReader *reader = NULL;
@@ -517,13 +517,13 @@ QList<QCameraInfo> QWindowsMediaDevices::videoInputs() const
     return cameras;
 }
 
-QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
     return new QWindowsAudioSource(devInfo->waveId());
 }
 
-QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
     return new QWindowsAudioSink(devInfo->waveId());

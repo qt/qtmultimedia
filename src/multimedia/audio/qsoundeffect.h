@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QSoundEffectPrivate;
-class QAudioDeviceInfo;
+class QAudioDevice;
 
 class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
 {
@@ -83,7 +83,7 @@ public:
     };
 
     explicit QSoundEffect(QObject *parent = nullptr);
-    explicit QSoundEffect(const QAudioDeviceInfo &audioDevice, QObject *parent = nullptr);
+    explicit QSoundEffect(const QAudioDevice &audioDevice, QObject *parent = nullptr);
     ~QSoundEffect();
 
     static QStringList supportedMimeTypes();

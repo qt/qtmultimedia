@@ -59,7 +59,7 @@
 #include <QtCore/qiodevice.h>
 
 #include "qaudio.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include <private/qaudiosystem_p.h>
 
 #include <pulse/pulseaudio.h>

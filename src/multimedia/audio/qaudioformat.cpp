@@ -80,9 +80,9 @@ QT_BEGIN_NAMESPACE
     samples in memory.
 
     You can obtain audio formats compatible with the audio device used
-    through functions in QAudioDeviceInfo. This class also lets you
+    through functions in QAudioDevice. This class also lets you
     query available parameter values for a device, so that you can set
-    the parameters yourself. See the \l QAudioDeviceInfo class
+    the parameters yourself. See the \l QAudioDevice class
     description for details. You need to know the format of the audio
     streams you wish to play or record.
 

@@ -39,16 +39,16 @@
 
 #include "qqnxmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcamerainfo_p.h"
+#include "qcameradevice_p.h"
 
 #include "private/qqnxaudiosource_p.h"
 #include "private/qqnxaudiosink_p.h"
-#include "private/qnxaudiodeviceinfo_p.h"
+#include "private/qqnxaudiodevice_p.h"
 #include "bbcamerasession_p.h"
 
 QT_BEGIN_NAMESPACE
 
-static QList<QCameraInfo> enumerateCameras()
+static QList<QCameraDevice> enumerateCameras()
 {
 
     camera_unit_t cameras[10];
@@ -60,24 +60,24 @@ static QList<QCameraInfo> enumerateCameras()
         return {};
     }
 
-    QList<QCameraInfo> cameras;
+    QList<QCameraDevice> cameras;
     for (unsigned int i = 0; i < knownCameras; ++i) {
-        QCameraInfoPrivate *p = new QCameraInfoPrivate;
+        QCameraDevicePrivate *p = new QCameraDevicePrivate;
         switch (cameras[i]) {
         case CAMERA_UNIT_FRONT:
             p->id = BbCameraSession::cameraIdentifierFront();
             p->description = tr("Front Camera");
-            p->position = QCameraInfo::FrontFace;
+            p->position = QCameraDevice::FrontFace;
             break;
         case CAMERA_UNIT_REAR:
             p->id = BbCameraSession::cameraIdentifierRear();
             p->description = tr("Rear Camera");
-            p->position = QCameraInfo::BackFace;
+            p->position = QCameraDevice::BackFace;
             break;
         case CAMERA_UNIT_DESKTOP:
             p->id = devices->append(BbCameraSession::cameraIdentifierDesktop();
             p->description = tr("Desktop Camera");
-            p->position = QCameraInfo::UnspecifiedPosition;
+            p->position = QCameraDevice::UnspecifiedPosition;
             break;
         default:
             break;
@@ -94,27 +94,27 @@ QQnxMediaDevices::QQnxMediaDevices()
 {
 }
 
-QList<QAudioDeviceInfo> QQnxMediaDevices::audioInputs() const
+QList<QAudioDevice> QQnxMediaDevices::audioInputs() const
 {
-    return { QAudioDeviceInfo(new QnxAudioDeviceInfo("default", QAudio::AudioInput)) };
+    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudio::AudioInput)) };
 }
 
-QList<QAudioDeviceInfo> QQnxMediaDevices::audioOutputs() const
+QList<QAudioDevice> QQnxMediaDevices::audioOutputs() const
 {
-    return { QAudioDeviceInfo(new QnxAudioDeviceInfo("default", QAudio::AudioOutput)) };
+    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudio::AudioOutput)) };
 }
 
-QList<QCameraInfo> QQnxMediaDevices::videoInputs() const
+QList<QCameraDevice> QQnxMediaDevices::videoInputs() const
 {
     return enumerateCameras();
 }
 
-QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
     return new QQnxAudioSource();
 }
 
-QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDeviceInfo &deviceInfo)
+QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
     return new QNxAudioOutput();
 }

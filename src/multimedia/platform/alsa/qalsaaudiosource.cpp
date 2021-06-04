@@ -52,7 +52,7 @@
 #include <QtCore/qvarlengtharray.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include "qalsaaudiosource_p.h"
-#include "qalsaaudiodeviceinfo_p.h"
+#include "qalsaaudiodevice_p.h"
 
 QT_BEGIN_NAMESPACE
 

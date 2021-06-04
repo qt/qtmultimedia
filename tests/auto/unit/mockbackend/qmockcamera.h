@@ -30,7 +30,7 @@
 #define QMOCKCAMERA_H
 
 #include "private/qplatformcamera_p.h"
-#include "qcamerainfo.h"
+#include "qcameradevice.h"
 #include <qtimer.h>
 
 QT_BEGIN_NAMESPACE
@@ -90,7 +90,7 @@ public:
         emit statusChanged(newStatus);
     }
 
-    void setCamera(const QCameraInfo &camera) override
+    void setCamera(const QCameraDevice &camera) override
     {
         m_camera = camera;
     }
@@ -184,7 +184,7 @@ public:
 
     bool m_active = false;
     QCamera::Status m_status;
-    QCameraInfo m_camera;
+    QCameraDevice m_camera;
     bool m_propertyChangesSupported;
 };
 

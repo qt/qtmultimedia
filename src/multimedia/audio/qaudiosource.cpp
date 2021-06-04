@@ -39,7 +39,7 @@
 
 
 #include "qaudio.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include "qaudiosystem_p.h"
 #include "qaudiosource.h"
 
@@ -57,9 +57,9 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio
 
     You can construct an audio input with the system's
-    \l{QAudioDeviceInfo::defaultInputDevice()}{default audio input
+    \l{QAudioDevice::defaultInputDevice()}{default audio input
     device}. It is also possible to create QAudioSource with a
-    specific QAudioDeviceInfo. When you create the audio input, you
+    specific QAudioDevice. When you create the audio input, you
     should also send in the QAudioFormat to be used for the recording
     (see the QAudioFormat class description for details).
 
@@ -67,7 +67,7 @@ QT_BEGIN_NAMESPACE
 
     QAudioSource lets you record audio with an audio input device. The
     default constructor of this class will use the systems default
-    audio device, but you can also specify a QAudioDeviceInfo for a
+    audio device, but you can also specify a QAudioDevice for a
     specific device. You also need to pass in the QAudioFormat in
     which you wish to record.
 
@@ -81,7 +81,7 @@ QT_BEGIN_NAMESPACE
 
     This will start recording if the format specified is supported by
     the input device (you can check this with
-    QAudioDeviceInfo::isFormatSupported(). In case there are any
+    QAudioDevice::isFormatSupported(). In case there are any
     snags, use the error() function to check what went wrong. We stop
     recording in the \c stopRecording() slot.
 
@@ -109,7 +109,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/audio.cpp Audio input state changed
 
-    \sa QAudioSink, QAudioDeviceInfo
+    \sa QAudioSink, QAudioDevice
 */
 
 /*!
@@ -129,7 +129,7 @@ QAudioSource::QAudioSource(const QAudioFormat &format, QObject *parent)
     \a format parameters.
 */
 
-QAudioSource::QAudioSource(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
+QAudioSource::QAudioSource(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
     d = QPlatformMediaIntegration::instance()->devices()->audioInputDevice(format, audioDevice);

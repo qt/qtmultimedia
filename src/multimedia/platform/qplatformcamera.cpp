@@ -65,7 +65,7 @@ QPlatformCamera::QPlatformCamera(QCamera *parent)
 {
 }
 
-QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraInfo &camera)
+QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)
 {
     QCameraFormat f;
     const auto formats = camera.videoFormats();

@@ -43,7 +43,7 @@
 #include <private/qaudiohelpers_p.h>
 
 #include "qgstreameraudiosink_p.h"
-#include "qaudiodeviceinfo_gstreamer_p.h"
+#include "qgstreameraudiodevice_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDeviceInfo &device)
+QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device)
     : m_device(device.id()),
     gstPipeline("pipeline")
 {

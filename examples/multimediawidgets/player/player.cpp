@@ -58,7 +58,7 @@
 #include <QMediaPlaylist>
 #include <QMediaMetaData>
 #include <QMediaDevices>
-#include <QAudioDeviceInfo>
+#include <QAudioDevice>
 #include <QMediaFormat>
 #include <QtWidgets>
 
@@ -187,7 +187,7 @@ Player::Player(QWidget *parent)
     connect(m_colorButton, &QPushButton::clicked, this, &Player::showColorDialog);
 
     m_audioOutput = new QComboBox(this);
-    m_audioOutput->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDeviceInfo()));
+    m_audioOutput->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
     for (auto &deviceInfo: QMediaDevices::audioOutputs())
         m_audioOutput->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     connect(m_audioOutput, QOverload<int>::of(&QComboBox::activated), this, &Player::audioOutputChanged);
@@ -583,7 +583,7 @@ void Player::showColorDialog()
 
 void Player::audioOutputChanged(int index)
 {
-    auto device = m_audioOutput->itemData(index).value<QAudioDeviceInfo>();
+    auto device = m_audioOutput->itemData(index).value<QAudioDevice>();
     m_player->setAudioOutput(device);
 }
 

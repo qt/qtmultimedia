@@ -53,12 +53,12 @@
 
 #include <private/qplatformmediadevices_p.h>
 #include <qelapsedtimer.h>
-#include <qaudiodeviceinfo.h>
-#include <qcamerainfo.h>
+#include <qaudiodevice.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QCameraInfo;
+class QCameraDevice;
 
 class QMockMediaDevices : public QPlatformMediaDevices
 {
@@ -66,16 +66,16 @@ public:
     QMockMediaDevices();
     ~QMockMediaDevices();
 
-    QList<QAudioDeviceInfo> audioInputs() const override;
-    QList<QAudioDeviceInfo> audioOutputs() const override;
-    QList<QCameraInfo> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDeviceInfo &info) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDeviceInfo &info) override;
+    QList<QAudioDevice> audioInputs() const override;
+    QList<QAudioDevice> audioOutputs() const override;
+    QList<QCameraDevice> videoInputs() const override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &info) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &info) override;
 
 private:
-    QList<QAudioDeviceInfo> m_inputDevices;
-    QList<QAudioDeviceInfo> m_outputDevices;
-    QList<QCameraInfo> m_cameraDevices;
+    QList<QAudioDevice> m_inputDevices;
+    QList<QAudioDevice> m_outputDevices;
+    QList<QCameraDevice> m_cameraDevices;
 };
 
 QT_END_NAMESPACE

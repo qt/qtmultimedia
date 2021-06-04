@@ -29,7 +29,7 @@
 
 #include <QtTest/QtTest>
 #include <QtCore/qlocale.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 
 #include <QStringList>
 #include <QList>
@@ -37,11 +37,11 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-class tst_QAudioDeviceInfo : public QObject
+class tst_QAudioDevice : public QObject
 {
     Q_OBJECT
 public:
-    tst_QAudioDeviceInfo(QObject* parent=nullptr) : QObject(parent) {}
+    tst_QAudioDevice(QObject* parent=nullptr) : QObject(parent) {}
 
 private slots:
     void initTestCase();
@@ -59,62 +59,62 @@ private slots:
     void equalityOperator();
 
 private:
-    QAudioDeviceInfo* device;
+    QAudioDevice* device;
 };
 
-void tst_QAudioDeviceInfo::initTestCase()
+void tst_QAudioDevice::initTestCase()
 {
     // Only perform tests if audio output device exists!
-    QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
+    QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     if (devices.size() == 0) {
         QSKIP("NOTE: no audio output device found, no tests will be performed");
     } else {
-        device = new QAudioDeviceInfo(devices.at(0));
+        device = new QAudioDevice(devices.at(0));
     }
 }
 
-void tst_QAudioDeviceInfo::cleanupTestCase()
+void tst_QAudioDevice::cleanupTestCase()
 {
     delete device;
 }
 
-void tst_QAudioDeviceInfo::checkAvailableDefaultInput()
+void tst_QAudioDevice::checkAvailableDefaultInput()
 {
     // Only perform tests if audio input device exists!
-    QList<QAudioDeviceInfo> devices = QMediaDevices::audioInputs();
+    QList<QAudioDevice> devices = QMediaDevices::audioInputs();
     if (devices.size() > 0) {
         QVERIFY(!QMediaDevices::defaultAudioInput().isNull());
     }
 }
 
-void tst_QAudioDeviceInfo::checkAvailableDefaultOutput()
+void tst_QAudioDevice::checkAvailableDefaultOutput()
 {
     // Only perform tests if audio input device exists!
-    QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
+    QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     if (devices.size() > 0) {
         QVERIFY(!QMediaDevices::defaultAudioOutput().isNull());
     }
 }
 
-void tst_QAudioDeviceInfo::channels()
+void tst_QAudioDevice::channels()
 {
     QVERIFY(device->minimumChannelCount() > 0);
     QVERIFY(device->maximumChannelCount() >= device->minimumChannelCount());
 }
 
-void tst_QAudioDeviceInfo::sampleFormat()
+void tst_QAudioDevice::sampleFormat()
 {
     QList<QAudioFormat::SampleFormat> avail = device->supportedSampleFormats();
     QVERIFY(avail.size() > 0);
 }
 
-void tst_QAudioDeviceInfo::sampleRates()
+void tst_QAudioDevice::sampleRates()
 {
     QVERIFY(device->minimumSampleRate() > 0);
     QVERIFY(device->maximumSampleRate() >= device->minimumSampleRate());
 }
 
-void tst_QAudioDeviceInfo::isFormatSupported()
+void tst_QAudioDevice::isFormatSupported()
 {
     QAudioFormat format;
     format.setSampleRate(44100);
@@ -125,54 +125,54 @@ void tst_QAudioDeviceInfo::isFormatSupported()
     QVERIFY(device->isFormatSupported(format));
 }
 
-void tst_QAudioDeviceInfo::preferred()
+void tst_QAudioDevice::preferred()
 {
     QAudioFormat format = device->preferredFormat();
     QVERIFY(format.isValid());
     QVERIFY(device->isFormatSupported(format));
 }
 
-// QAudioDeviceInfo's assignOperator method
-void tst_QAudioDeviceInfo::assignOperator()
+// QAudioDevice's assignOperator method
+void tst_QAudioDevice::assignOperator()
 {
-    QAudioDeviceInfo dev;
+    QAudioDevice dev;
     QVERIFY(dev.id().isNull());
     QVERIFY(dev.isNull() == true);
 
-    QList<QAudioDeviceInfo> devices = QMediaDevices::audioOutputs();
+    QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     QVERIFY(devices.size() > 0);
-    QAudioDeviceInfo dev1(devices.at(0));
+    QAudioDevice dev1(devices.at(0));
     dev = dev1;
     QVERIFY(dev.isNull() == false);
     QVERIFY(dev.id() == dev1.id());
 }
 
-void tst_QAudioDeviceInfo::id()
+void tst_QAudioDevice::id()
 {
     QVERIFY(!device->id().isNull());
     QVERIFY(device->id() == QMediaDevices::audioOutputs().at(0).id());
 }
 
-// QAudioDeviceInfo's defaultConstructor method
-void tst_QAudioDeviceInfo::defaultConstructor()
+// QAudioDevice's defaultConstructor method
+void tst_QAudioDevice::defaultConstructor()
 {
-    QAudioDeviceInfo dev;
+    QAudioDevice dev;
     QVERIFY(dev.isNull() == true);
     QVERIFY(dev.id().isNull());
 }
 
-void tst_QAudioDeviceInfo::equalityOperator()
+void tst_QAudioDevice::equalityOperator()
 {
     // Get some default device infos
-    QAudioDeviceInfo dev1;
-    QAudioDeviceInfo dev2;
+    QAudioDevice dev1;
+    QAudioDevice dev2;
 
     QVERIFY(dev1 == dev2);
     QVERIFY(!(dev1 != dev2));
 
     // Make sure each available device is not equal to null
     const auto infos = QMediaDevices::audioOutputs();
-    for (const QAudioDeviceInfo &info : infos) {
+    for (const QAudioDevice &info : infos) {
         QVERIFY(dev1 != info);
         QVERIFY(!(dev1 == info));
 
@@ -188,6 +188,6 @@ void tst_QAudioDeviceInfo::equalityOperator()
     // XXX Perhaps each available device should not be equal to any other
 }
 
-QTEST_MAIN(tst_QAudioDeviceInfo)
+QTEST_MAIN(tst_QAudioDevice)
 
-#include "tst_qaudiodeviceinfo.moc"
+#include "tst_qaudiodevice.moc"

@@ -77,7 +77,7 @@ public:
 
     QCamera::Status status() const override;
 
-    void setCamera(const QCameraInfo &camera) override;
+    void setCamera(const QCameraDevice &camera) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
@@ -127,7 +127,7 @@ private:
     AVFCameraService *m_service = nullptr;
     AVFCameraSession *m_session = nullptr;
 
-    QCameraInfo m_cameraInfo;
+    QCameraDevice m_cameraInfo;
 
     bool m_active;
     QCamera::Status m_lastStatus;

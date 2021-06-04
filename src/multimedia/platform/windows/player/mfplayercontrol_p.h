@@ -105,8 +105,8 @@ public:
 
     QMediaMetaData metaData() const override;
 
-    bool setAudioOutput(const QAudioDeviceInfo &) override;
-    QAudioDeviceInfo audioOutput() const override;
+    bool setAudioOutput(const QAudioDevice &) override;
+    QAudioDevice audioOutput() const override;
 
     void setVideoSink(QVideoSink *sink) override;
 

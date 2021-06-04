@@ -35,7 +35,7 @@
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <qcamera.h>
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 #include <qcameraimagecapture.h>
 #include <qmediacapturesession.h>
 #include <qobject.h>
@@ -90,7 +90,7 @@ void tst_QCameraBackend::cleanupTestCase()
 
 void tst_QCameraBackend::testCameraInfo()
 {
-    const QList<QCameraInfo> cameras = QMediaDevices::videoInputs();
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
     if (cameras.isEmpty()) {
         QVERIFY(noCamera);
         QVERIFY(QMediaDevices::defaultVideoInput().isNull());
@@ -98,7 +98,7 @@ void tst_QCameraBackend::testCameraInfo()
     }
     QVERIFY(!noCamera);
 
-    for (const QCameraInfo &info : cameras) {
+    for (const QCameraDevice &info : cameras) {
         QVERIFY(!info.id().isEmpty());
         QVERIFY(!info.description().isEmpty());
     }
@@ -108,7 +108,7 @@ void tst_QCameraBackend::testCtorWithCameraInfo()
 {
     {
         // loading an invalid CameraInfo should fail
-        QCamera camera(QCameraInfo{});
+        QCamera camera(QCameraDevice{});
         QCOMPARE(camera.error(), QCamera::CameraError);
         QVERIFY(camera.cameraInfo().isNull());
     }
@@ -117,13 +117,13 @@ void tst_QCameraBackend::testCtorWithCameraInfo()
         QSKIP("No camera available");
 
     {
-        QCameraInfo info = QMediaDevices::defaultVideoInput();
+        QCameraDevice info = QMediaDevices::defaultVideoInput();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), info);
     }
     {
-        QCameraInfo info = QMediaDevices::videoInputs().first();
+        QCameraDevice info = QMediaDevices::videoInputs().first();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), info);
@@ -136,17 +136,17 @@ void tst_QCameraBackend::testCtorWithPosition()
         QSKIP("No camera available");
 
     {
-        QCamera camera(QCameraInfo::UnspecifiedPosition);
+        QCamera camera(QCameraDevice::UnspecifiedPosition);
         QCOMPARE(camera.error(), QCamera::NoError);
     }
     {
-        QCamera camera(QCameraInfo::FrontFace);
+        QCamera camera(QCameraDevice::FrontFace);
         // even if no camera is available at this position, it should not fail
         // and load the default camera
         QCOMPARE(camera.error(), QCamera::NoError);
     }
     {
-        QCamera camera(QCameraInfo::BackFace);
+        QCamera camera(QCameraDevice::BackFace);
         // even if no camera is available at this position, it should not fail
         // and load the default camera
         QCOMPARE(camera.error(), QCamera::NoError);
@@ -157,7 +157,7 @@ void tst_QCameraBackend::testCameraStates()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    camera.setCameraInfo(QCameraInfo());
+    camera.setCameraInfo(QCameraDevice());
     QCameraImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
@@ -169,7 +169,7 @@ void tst_QCameraBackend::testCameraStates()
     QCOMPARE(camera.isActive(), false);
     QCOMPARE(camera.status(), QCamera::InactiveStatus);
 
-    // Camera should not startup with a null QCameraInfo as device
+    // Camera should not startup with a null QCameraDevice as device
     camera.start();
     QCOMPARE(camera.isActive(), false);
 
@@ -433,7 +433,7 @@ void tst_QCameraBackend::testExposureMode()
 
 void tst_QCameraBackend::testVideoRecording_data()
 {
-    QTest::addColumn<QCameraInfo>("device");
+    QTest::addColumn<QCameraDevice>("device");
 
     const auto devices = QMediaDevices::videoInputs();
 
@@ -441,12 +441,12 @@ void tst_QCameraBackend::testVideoRecording_data()
         QTest::newRow(device.description().toUtf8()) << device;
 
     if (devices.isEmpty())
-        QTest::newRow("Null device") << QCameraInfo();
+        QTest::newRow("Null device") << QCameraDevice();
 }
 
 void tst_QCameraBackend::testVideoRecording()
 {
-    QFETCH(QCameraInfo, device);
+    QFETCH(QCameraDevice, device);
 
     QMediaCaptureSession session;
     QScopedPointer<QCamera> camera(new QCamera(device));

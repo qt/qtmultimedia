@@ -37,71 +37,39 @@
 **
 ****************************************************************************/
 
+#ifndef QAUDIODEVICEINFOPULSE_H
+#define QAUDIODEVICEINFOPULSE_H
 
-#ifndef QAUDIODEVICEINFO_H
-#define QAUDIODEVICEINFO_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtCore/qobject.h>
 #include <QtCore/qbytearray.h>
-#include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qlist.h>
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-
-#include <QtMultimedia/qaudio.h>
-#include <QtMultimedia/qaudioformat.h>
+#include "qaudio.h"
+#include "qaudiodevice.h"
+#include <private/qaudiosystem_p.h>
+#include <private/qaudiodevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDeviceInfoPrivate;
-QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QAudioDeviceInfoPrivate, Q_MULTIMEDIA_EXPORT)
-
-class Q_MULTIMEDIA_EXPORT QAudioDeviceInfo
+class QPulseAudioDeviceInfo : public QAudioDevicePrivate
 {
-    Q_GADGET
-    Q_PROPERTY(QByteArray id READ id CONSTANT)
-    Q_PROPERTY(QString description READ description CONSTANT)
-    Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
 public:
-    QAudioDeviceInfo();
-    QAudioDeviceInfo(const QAudioDeviceInfo& other);
-    ~QAudioDeviceInfo();
-
-    QAudioDeviceInfo(QAudioDeviceInfo &&other) noexcept = default;
-    QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QAudioDeviceInfo)
-    void swap(QAudioDeviceInfo &other) noexcept
-    { qSwap(d, other.d); }
-
-    QAudioDeviceInfo& operator=(const QAudioDeviceInfo& other);
-
-    bool operator==(const QAudioDeviceInfo &other) const;
-    bool operator!=(const QAudioDeviceInfo &other) const;
-
-    bool isNull() const;
-
-    QByteArray id() const;
-    QString description() const;
-
-    bool isDefault() const;
-    QAudio::Mode mode() const;
-
-    bool isFormatSupported(const QAudioFormat &format) const;
-    QAudioFormat preferredFormat() const;
-
-    int minimumSampleRate() const;
-    int maximumSampleRate() const;
-    int minimumChannelCount() const;
-    int maximumChannelCount() const;
-    QList<QAudioFormat::SampleFormat> supportedSampleFormats() const;
-
-    const QAudioDeviceInfoPrivate *handle() const { return d.get(); }
-private:
-    friend class QAudioDeviceInfoPrivate;
-    QAudioDeviceInfo(QAudioDeviceInfoPrivate *p);
-    QExplicitlySharedDataPointer<QAudioDeviceInfoPrivate> d;
+    QPulseAudioDeviceInfo(const char *device, const char *description, bool isDefault, QAudio::Mode mode);
+    ~QPulseAudioDeviceInfo() {}
 };
 
 QT_END_NAMESPACE
 
-#endif // QAUDIODEVICEINFO_H
+#endif
+

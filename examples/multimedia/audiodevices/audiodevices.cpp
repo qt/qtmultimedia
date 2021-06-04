@@ -147,7 +147,7 @@ void AudioTest::deviceChanged(int idx)
         return;
 
     // device has changed
-    m_deviceInfo = deviceBox->itemData(idx).value<QAudioDeviceInfo>();
+    m_deviceInfo = deviceBox->itemData(idx).value<QAudioDevice>();
 
     sampleRateSpinBox->clear();
     sampleRateSpinBox->setMinimum(m_deviceInfo.minimumSampleRate());

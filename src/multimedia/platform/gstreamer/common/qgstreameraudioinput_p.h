@@ -52,7 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 
 #include <QtCore/qobject.h>
 
@@ -62,7 +62,7 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
-class QAudioDeviceInfo;
+class QAudioDevice;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerAudioInput : public QObject
 {
@@ -75,8 +75,8 @@ public:
     int volume() const;
     bool isMuted() const;
 
-    bool setAudioInput(const QAudioDeviceInfo &);
-    QAudioDeviceInfo audioInput() const;
+    bool setAudioInput(const QAudioDevice &);
+    QAudioDevice audioInput() const;
 
     void setVolume(int volume);
     void setMuted(bool muted);
@@ -96,7 +96,7 @@ private:
     int m_volume = 100.;
     bool m_muted = false;
 
-    QAudioDeviceInfo m_audioInput;
+    QAudioDevice m_audioInput;
 
     // Gst elements
     QGstPipeline gstPipeline;

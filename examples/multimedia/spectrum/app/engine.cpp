@@ -304,7 +304,7 @@ void Engine::suspend()
     }
 }
 
-void Engine::setAudioInputDevice(const QAudioDeviceInfo &device)
+void Engine::setAudioInputDevice(const QAudioDevice &device)
 {
     if (device.id() != m_audioInputDevice.id()) {
         m_audioInputDevice = device;
@@ -312,7 +312,7 @@ void Engine::setAudioInputDevice(const QAudioDeviceInfo &device)
     }
 }
 
-void Engine::setAudioOutputDevice(const QAudioDeviceInfo &device)
+void Engine::setAudioOutputDevice(const QAudioDevice &device)
 {
     if (device.id() != m_audioOutputDevice.id()) {
         m_audioOutputDevice = device;

@@ -47,7 +47,7 @@
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudioformat.h>
-#include <QtMultimedia/qaudiodeviceinfo.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 
 QT_BEGIN_NAMESPACE
@@ -60,7 +60,7 @@ class Q_MULTIMEDIA_EXPORT QAudioSource : public QObject
 
 public:
     explicit QAudioSource(const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
-    explicit QAudioSource(const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
+    explicit QAudioSource(const QAudioDevice &audioDeviceInfo, const QAudioFormat &format = QAudioFormat(), QObject *parent = nullptr);
     ~QAudioSource();
 
     bool isNull() const { return !d; }

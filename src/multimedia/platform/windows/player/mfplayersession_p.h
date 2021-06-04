@@ -63,7 +63,7 @@
 #include <QtCore/qwaitcondition.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideoframeformat.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include "mfplayercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -124,8 +124,8 @@ public:
     void close();
     void clearPlayer() { m_playerControl = nullptr; }
 
-    bool setAudioOutput(const QAudioDeviceInfo &device);
-    QAudioDeviceInfo audioOutput() const { return m_audioOutput; }
+    bool setAudioOutput(const QAudioDevice &device);
+    QAudioDevice audioOutput() const { return m_audioOutput; }
 
     QMediaMetaData metaData() const { return m_metaData; }
 
@@ -227,7 +227,7 @@ private:
     int m_volume;
     bool m_muted;
 
-    QAudioDeviceInfo m_audioOutput;
+    QAudioDevice m_audioOutput;
     QMediaMetaData m_metaData;
 
     void setVolumeInternal(int volume);

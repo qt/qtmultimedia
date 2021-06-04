@@ -42,7 +42,7 @@
 #include "qwindowsmultimediautils_p.h"
 #include <qvideosink.h>
 #include <qmediadevices.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <QtCore/qdebug.h>
 

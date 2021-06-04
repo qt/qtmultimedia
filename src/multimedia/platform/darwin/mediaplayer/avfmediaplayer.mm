@@ -727,7 +727,7 @@ qreal AVFMediaPlayer::playbackRate() const
     return m_rate;
 }
 
-bool AVFMediaPlayer::setAudioOutput(const QAudioDeviceInfo &info)
+bool AVFMediaPlayer::setAudioOutput(const QAudioDevice &info)
 {
     m_audioOutput = info;
 
@@ -743,7 +743,7 @@ bool AVFMediaPlayer::setAudioOutput(const QAudioDeviceInfo &info)
     return true;
 }
 
-QAudioDeviceInfo AVFMediaPlayer::audioOutput() const
+QAudioDevice AVFMediaPlayer::audioOutput() const
 {
     return m_audioOutput;
 }

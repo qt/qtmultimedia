@@ -40,7 +40,7 @@
 
 #include "qcamera_p.h"
 
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
@@ -64,7 +64,7 @@ QT_BEGIN_NAMESPACE
 
     QCamera can be used within a QMediaCaptureSession for video recording and image taking.
 
-    You can use QCameraInfo to list available cameras and choose which one to use.
+    You can use QCameraDevice to list available cameras and choose which one to use.
 
     \snippet multimedia-snippets/camera.cpp Camera selection
 
@@ -143,7 +143,7 @@ QCamera::QCamera(QObject *parent)
     Construct a QCamera from a camera description \a cameraInfo and \a parent.
 */
 
-QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
+QCamera::QCamera(const QCameraDevice &cameraInfo, QObject *parent)
     : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
@@ -162,15 +162,15 @@ QCamera::QCamera(const QCameraInfo &cameraInfo, QObject *parent)
     back-facing cameras.
 
     If no camera is available at the specified \a position or if \a position is
-    QCameraInfo::UnspecifiedPosition, the default camera is used.
+    QCameraDevice::UnspecifiedPosition, the default camera is used.
 */
 
-QCamera::QCamera(QCameraInfo::Position position, QObject *parent)
+QCamera::QCamera(QCameraDevice::Position position, QObject *parent)
     : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
 
-    QCameraInfo info;
+    QCameraDevice info;
     auto cameras = QMediaDevices::videoInputs();
     for (const auto &c : cameras) {
         if (c.position() == position) {
@@ -314,9 +314,9 @@ void QCamera::setCaptureSession(QMediaCaptureSession *session)
 }
 
 /*!
-    Returns the QCameraInfo object associated with this camera.
+    Returns the QCameraDevice object associated with this camera.
  */
-QCameraInfo QCamera::cameraInfo() const
+QCameraDevice QCamera::cameraInfo() const
 {
     Q_D(const QCamera);
     return d->cameraInfo;
@@ -326,7 +326,7 @@ QCameraInfo QCamera::cameraInfo() const
     Sets the camera object to use the physical camera described by
     \a cameraInfo.
 */
-void QCamera::setCameraInfo(const QCameraInfo &cameraInfo)
+void QCamera::setCameraInfo(const QCameraDevice &cameraInfo)
 {
     Q_D(QCamera);
     if (d->cameraInfo == cameraInfo)
@@ -419,7 +419,7 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 */
 
 /*!
-    \enum QCameraInfo::Position
+    \enum QCameraDevice::Position
     \since 5.3
 
     This enum specifies the physical position of the camera on the system hardware.
@@ -434,7 +434,7 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
     front-facing cameras are mirrored horizontally, so the users can see themselves as looking
     into a mirror. Captured images or videos are not mirrored.
 
-    \sa QCameraInfo::position()
+    \sa QCameraDevice::position()
 */
 
 /*!

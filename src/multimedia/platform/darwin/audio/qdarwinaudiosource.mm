@@ -38,7 +38,7 @@
 ****************************************************************************/
 #include "qdarwinaudiosource_p.h"
 #include "qcoreaudiosessionmanager_p.h"
-#include "qcoreaudiodeviceinfo_p.h"
+#include "qdarwinaudiodevice_p.h"
 #include "qcoreaudioutils_p.h"
 #include "private/qdarwinmediadevices_p.h"
 #include <qmediadevices.h>
@@ -448,7 +448,7 @@ qint64 QDarwinAudioSourceDevice::writeData(const char *data, qint64 len)
     return 0;
 }
 
-QDarwinAudioSource::QDarwinAudioSource(const QAudioDeviceInfo &device)
+QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device)
     : m_audioDeviceInfo(device)
     , m_isOpen(false)
     , m_internalBufferSize(DEFAULT_BUFFER_SIZE)
@@ -460,7 +460,7 @@ QDarwinAudioSource::QDarwinAudioSource(const QAudioDeviceInfo &device)
     , m_audioBuffer(nullptr)
     , m_volume(1.0)
 {
-    QAudioDeviceInfo di = device;
+    QAudioDevice di = device;
     if (di.isNull())
         di = QMediaDevices::defaultAudioInput();
 #if defined(Q_OS_MACOS)

@@ -94,7 +94,7 @@ Many of these tasks have classes to assist them.
 
 Before using the camera APIs, you should check that a camera is available at runtime. If there
 is none, you could for example disable camera related features in your application. To perform this
-check in C++, use the \l QCameraInfo::availableCameras() function, as shown in the example below:
+check in C++, use the \l QCameraDevice::availableCameras() function, as shown in the example below:
 
     \snippet multimedia-snippets/camera.cpp Camera overview check
 
@@ -143,7 +143,7 @@ Camera {
 If neither cameraInfo nor position is specified, the default camera will be used. On desktop
 platforms, the default camera is set by the user in the system settings. On a mobile device, the
 back-facing camera is usually the default camera. You can get information about the default camera
-using \l QCameraInfo::defaultCamera() in C++ or
+using \l QCameraDevice::defaultCamera() in C++ or
 \l{QtMultimedia::MediaDevices::defaultCamera}{MediaDevices.defaultCamera} in QML.
 
 \section2 Preview

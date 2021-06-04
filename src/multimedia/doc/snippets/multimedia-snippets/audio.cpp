@@ -44,7 +44,7 @@
 #include <qobject.h>
 #include <qfile.h>
 
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include "qaudiosource.h"
 #include "qaudiooutput.h"
 #include "qaudiodecoder.h"
@@ -81,7 +81,7 @@ void AudioInputExample::setup()
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::UInt8);
 
-    QAudioDeviceInfo info = QMediaDevices::defaultAudioInput();
+    QAudioDevice info = QMediaDevices::defaultAudioInput();
     if (!info.isFormatSupported(format)) {
         qWarning() << "Default format not supported, trying to use the nearest.";
     }
@@ -156,7 +156,7 @@ void AudioOutputExample::setup()
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::UInt8);
 
-    QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
+    QAudioDevice info(QAudioDevice::defaultOutputDevice());
     if (!info.isFormatSupported(format)) {
         qWarning() << "Raw audio format not supported by backend, cannot play audio.";
         return;
@@ -204,7 +204,7 @@ void AudioDeviceInfo()
 
     //! [Dumping audio formats]
     const auto deviceInfos = QMediaDevices::availableDevices(QAudio::AudioOutput);
-    for (const QAudioDeviceInfo &deviceInfo : deviceInfos)
+    for (const QAudioDevice &deviceInfo : deviceInfos)
         qDebug() << "Device: " << deviceInfo.description();
     //! [Dumping audio formats]
 }

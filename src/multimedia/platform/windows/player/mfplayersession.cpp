@@ -1811,7 +1811,7 @@ void MFPlayerSession::clear()
     }
 }
 
-bool MFPlayerSession::setAudioOutput(const QAudioDeviceInfo &device)
+bool MFPlayerSession::setAudioOutput(const QAudioDevice &device)
 {
     // ### This doesn't yet update the output routing during playback
     // ie. it currently only works before the first play().

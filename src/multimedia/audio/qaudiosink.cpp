@@ -39,7 +39,7 @@
 
 
 #include "qaudio.h"
-#include "qaudiodeviceinfo.h"
+#include "qaudiodevice.h"
 #include "qaudiosystem_p.h"
 #include "qaudiosink.h"
 
@@ -57,9 +57,9 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio
 
     You can construct an audio output with the system's
-    \l{QAudioDeviceInfo::defaultOutputDevice()}{default audio output
+    \l{QAudioDevice::defaultOutputDevice()}{default audio output
     device}. It is also possible to create QAudioSink with a
-    specific QAudioDeviceInfo. When you create the audio output, you
+    specific QAudioDevice. When you create the audio output, you
     should also send in the QAudioFormat to be used for the playback
     (see the QAudioFormat class description for details).
 
@@ -100,7 +100,7 @@ QT_BEGIN_NAMESPACE
 
     \snippet multimedia-snippets/audio.cpp Audio output state changed
 
-    \sa QAudioSource, QAudioDeviceInfo
+    \sa QAudioSource, QAudioDevice
 */
 
 /*!
@@ -118,7 +118,7 @@ QAudioSink::QAudioSink(const QAudioFormat &format, QObject *parent)
     The device referenced by \a audioDevice is used with the output
     \a format parameters.
 */
-QAudioSink::QAudioSink(const QAudioDeviceInfo &audioDevice, const QAudioFormat &format, QObject *parent):
+QAudioSink::QAudioSink(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
     d = QPlatformMediaIntegration::instance()->devices()->audioOutputDevice(format, audioDevice);

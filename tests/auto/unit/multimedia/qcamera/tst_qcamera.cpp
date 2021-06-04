@@ -35,7 +35,7 @@
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformcameraimagecapture_p.h>
 #include <qcamera.h>
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 #include <qcameraimagecapture.h>
 #include <qmediacapturesession.h>
 #include <qobject.h>
@@ -640,8 +640,8 @@ void tst_QCamera::testEnumDebug()
     qDebug() << QCamera::ActiveStatus;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::CameraError");
     qDebug() << QCamera::CameraError;
-//    QTest::ignoreMessage(QtDebugMsg, "QCameraInfo::FrontFace");
-//    qDebug() << QCameraInfo::FrontFace;
+//    QTest::ignoreMessage(QtDebugMsg, "QCameraDevice::FrontFace");
+//    qDebug() << QCameraDevice::FrontFace;
 }
 
 void tst_QCamera::testCameraControl()
@@ -654,12 +654,12 @@ void tst_QCamera::testCameraControl()
 void tst_QCamera::testConstructor()
 {
     auto cameras = QMediaDevices::videoInputs();
-    QCameraInfo defaultCamera = QMediaDevices::defaultVideoInput();
-    QCameraInfo frontCamera, backCamera;
+    QCameraDevice defaultCamera = QMediaDevices::defaultVideoInput();
+    QCameraDevice frontCamera, backCamera;
     for (const auto &c : cameras) {
-        if (frontCamera.isNull() && c.position() == QCameraInfo::FrontFace)
+        if (frontCamera.isNull() && c.position() == QCameraDevice::FrontFace)
             frontCamera = c;
-        if (backCamera.isNull() && c.position() == QCameraInfo::BackFace)
+        if (backCamera.isNull() && c.position() == QCameraDevice::BackFace)
             backCamera = c;
     }
     QVERIFY(!defaultCamera.isNull());
@@ -674,7 +674,7 @@ void tst_QCamera::testConstructor()
     }
 
     {
-        QCamera camera(QCameraInfo::FrontFace);
+        QCamera camera(QCameraDevice::FrontFace);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), frontCamera);
@@ -688,7 +688,7 @@ void tst_QCamera::testConstructor()
     }
 
     {
-        QCameraInfo cameraInfo = QMediaDevices::videoInputs().at(0);
+        QCameraDevice cameraInfo = QMediaDevices::videoInputs().at(0);
         QCamera camera(cameraInfo);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
@@ -696,7 +696,7 @@ void tst_QCamera::testConstructor()
     }
 
     {
-        QCamera camera(QCameraInfo::BackFace);
+        QCamera camera(QCameraDevice::BackFace);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), backCamera);
@@ -704,7 +704,7 @@ void tst_QCamera::testConstructor()
 
     {
         // Should load the default camera when UnspecifiedPosition is requested
-        QCamera camera(QCameraInfo::UnspecifiedPosition);
+        QCamera camera(QCameraDevice::UnspecifiedPosition);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
         QCOMPARE(camera.cameraInfo(), defaultCamera);

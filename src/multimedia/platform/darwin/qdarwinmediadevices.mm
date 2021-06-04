@@ -39,9 +39,9 @@
 
 #include "qdarwinmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcamerainfo_p.h"
-#include "qaudiodeviceinfo_p.h"
-#include "private/qcoreaudiodeviceinfo_p.h"
+#include "qcameradevice_p.h"
+#include "qaudiodevice_p.h"
+#include "private/qdarwinaudiodevice_p.h"
 #include "private/qdarwinaudiosource_p.h"
 #include "private/qdarwinaudiosink_p.h"
 #include "private/avfcamera_p.h"
@@ -71,7 +71,7 @@ AudioDeviceID defaultAudioDevice(QAudio::Mode mode)
     if (AudioObjectGetPropertyData(kAudioObjectSystemObject,
                                    &defaultDevicePropertyAddress,
                                    0, NULL, &size, &audioDevice) != noErr) {
-        qWarning("QAudioDeviceInfo: Unable to find default %s device",  (mode == QAudio::AudioOutput) ? "output" : "input");
+        qWarning("QAudioDevice: Unable to find default %s device",  (mode == QAudio::AudioOutput) ? "output" : "input");
         return 0;
     }
 
@@ -90,7 +90,7 @@ static QByteArray uniqueId(AudioDeviceID device, QAudio::Mode mode)
                                                                   kAudioObjectPropertyElementMaster };
 
     if (AudioObjectGetPropertyData(device, &audioDeviceNamePropertyAddress, 0, NULL, &size, &name) != noErr) {
-        qWarning() << "QAudioDeviceInfo: Unable to get device UID";
+        qWarning() << "QAudioDevice: Unable to get device UID";
         return QByteArray();
     }
 
@@ -99,10 +99,10 @@ static QByteArray uniqueId(AudioDeviceID device, QAudio::Mode mode)
     return s.toUtf8();
 }
 
-QList<QAudioDeviceInfo> availableAudioDevices(QAudio::Mode mode)
+QList<QAudioDevice> availableAudioDevices(QAudio::Mode mode)
 {
 
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
 
     AudioDeviceID defaultDevice = defaultAudioDevice(mode);
     if (defaultDevice != 0)
@@ -201,10 +201,10 @@ QDarwinMediaDevices::~QDarwinMediaDevices()
 #endif
 }
 
-QList<QAudioDeviceInfo> QDarwinMediaDevices::audioInputs() const
+QList<QAudioDevice> QDarwinMediaDevices::audioInputs() const
 {
 #ifdef Q_OS_IOS
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
     devices.append((new QCoreAudioDeviceInfo("default", QAudio::AudioInput))->create());
     return devices;
 #else
@@ -212,10 +212,10 @@ QList<QAudioDeviceInfo> QDarwinMediaDevices::audioInputs() const
 #endif
 }
 
-QList<QAudioDeviceInfo> QDarwinMediaDevices::audioOutputs() const
+QList<QAudioDevice> QDarwinMediaDevices::audioOutputs() const
 {
 #ifdef Q_OS_IOS
-    QList<QAudioDeviceInfo> devices;
+    QList<QAudioDevice> devices;
     devices.append((new QCoreAudioDeviceInfo("default", QAudio::AudioOutput))->create());
     return devices;
 #else
@@ -223,7 +223,7 @@ QList<QAudioDeviceInfo> QDarwinMediaDevices::audioOutputs() const
 #endif
 }
 
-QList<QCameraInfo> QDarwinMediaDevices::videoInputs() const
+QList<QCameraDevice> QDarwinMediaDevices::videoInputs() const
 {
     return m_cameraDevices;
 }
@@ -236,14 +236,14 @@ void QDarwinMediaDevices::updateCameraDevices()
         return;
 #endif
 
-    QList<QCameraInfo> cameras;
+    QList<QCameraDevice> cameras;
 
     AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
 
     for (AVCaptureDevice *device in videoDevices) {
 
-        QCameraInfoPrivate *info = new QCameraInfoPrivate;
+        QCameraDevicePrivate *info = new QCameraDevicePrivate;
         if (defaultDevice && [defaultDevice.uniqueID isEqualToString:device.uniqueID])
             info->isDefault = true;
         info->id = QByteArray([[device uniqueID] UTF8String]);
@@ -315,13 +315,13 @@ void QDarwinMediaDevices::updateCameraDevices()
 void QDarwinMediaDevices::updateAudioDevices()
 {
 #ifdef Q_OS_MACOS
-    QList<QAudioDeviceInfo> inputs = availableAudioDevices(QAudio::AudioInput);
+    QList<QAudioDevice> inputs = availableAudioDevices(QAudio::AudioInput);
     if (m_audioInputs != inputs) {
         m_audioInputs = inputs;
         audioInputsChanged();
     }
 
-    QList<QAudioDeviceInfo> outputs = availableAudioDevices(QAudio::AudioOutput);
+    QList<QAudioDevice> outputs = availableAudioDevices(QAudio::AudioOutput);
     if (m_audioOutputs!= outputs) {
         m_audioOutputs = outputs;
         audioOutputsChanged();
@@ -329,12 +329,12 @@ void QDarwinMediaDevices::updateAudioDevices()
 #endif
 }
 
-QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDeviceInfo &info)
+QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDevice &info)
 {
     return new QDarwinAudioSource(info);
 }
 
-QPlatformAudioSink *QDarwinMediaDevices::createAudioSink(const QAudioDeviceInfo &info)
+QPlatformAudioSink *QDarwinMediaDevices::createAudioSink(const QAudioDevice &info)
 {
     return new QDarwinAudioSink(info);
 }

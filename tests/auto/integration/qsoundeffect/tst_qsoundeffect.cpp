@@ -30,7 +30,7 @@
 
 #include <QtTest/QtTest>
 #include <QtCore/qlocale.h>
-#include <qaudiodeviceinfo.h>
+#include <qaudiodevice.h>
 #include <qaudio.h>
 #include "qsoundeffect.h"
 #include "qmediadevices.h"
@@ -383,9 +383,9 @@ void tst_QSoundEffect::testSupportedMimeTypes_data()
 {
     // Verify also passing of audio device info as parameter
     QTest::addColumn<QSoundEffect*>("instance");
-    QTest::newRow("without QAudioDeviceInfo") << sound;
-    QAudioDeviceInfo deviceInfo(QMediaDevices::defaultAudioOutput());
-    QTest::newRow("with QAudioDeviceInfo")    << new QSoundEffect(deviceInfo, this);
+    QTest::newRow("without QAudioDevice") << sound;
+    QAudioDevice deviceInfo(QMediaDevices::defaultAudioOutput());
+    QTest::newRow("with QAudioDevice")    << new QSoundEffect(deviceInfo, this);
 }
 
 void tst_QSoundEffect::testSupportedMimeTypes()

@@ -52,11 +52,11 @@
 #include <qdebug.h>
 #include <qvideoframe.h>
 #include <private/qmemoryvideobuffer_p.h>
-#include <private/qcamerainfo_p.h>
+#include <private/qcameradevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
-Q_GLOBAL_STATIC(QList<QCameraInfo>, g_availableCameras)
+Q_GLOBAL_STATIC(QList<QCameraDevice>, g_availableCameras)
 
 QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     : QObject(parent)
@@ -141,7 +141,7 @@ void QAndroidCameraSession::updateAvailableCameras()
 
     const int numCameras = AndroidCamera::getNumberOfCameras();
     for (int i = 0; i < numCameras; ++i) {
-        QCameraInfoPrivate *info = new QCameraInfoPrivate;
+        QCameraDevicePrivate *info = new QCameraDevicePrivate;
         AndroidCamera::getCameraInfo(i, info);
 
         if (!info->id.isEmpty())
@@ -149,7 +149,7 @@ void QAndroidCameraSession::updateAvailableCameras()
     }
 }
 
-const QList<QCameraInfo> &QAndroidCameraSession::availableCameras()
+const QList<QCameraDevice> &QAndroidCameraSession::availableCameras()
 {
     if (g_availableCameras->isEmpty())
         updateAvailableCameras();

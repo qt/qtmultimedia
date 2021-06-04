@@ -56,9 +56,9 @@
 #include <QDebug>
 #include <QMediaEncoder>
 #include <QMediaFormat>
-#include <QAudioDeviceInfo>
+#include <QAudioDevice>
 #include <QMediaCaptureSession>
-#include <QCameraInfo>
+#include <QCameraDevice>
 #include <QCamera>
 
 VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)

@@ -51,7 +51,7 @@
 //
 
 #include <qaudiosystem_p.h>
-#include <private/qcoreaudiodeviceinfo_p.h>
+#include <private/qdarwinaudiodevice_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
@@ -201,7 +201,7 @@ class QDarwinAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QDarwinAudioSource(const QAudioDeviceInfo &device);
+    QDarwinAudioSource(const QAudioDevice &device);
     ~QDarwinAudioSource();
 
     void start(QIODevice *device);
@@ -253,7 +253,7 @@ private:
                                     UInt32 inNumberFrames,
                                     AudioBufferList *ioData);
 
-    QAudioDeviceInfo m_audioDeviceInfo;
+    QAudioDevice m_audioDeviceInfo;
     QByteArray m_device;
     bool m_isOpen;
     int m_periodSizeBytes;

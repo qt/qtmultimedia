@@ -39,7 +39,7 @@
 #include "bbcameracontrol_p.h"
 
 #include "bbcamerasession_p.h"
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -80,7 +80,7 @@ QCamera::Status BbCameraControl::status() const
     return m_session->status();
 }
 
-void BbCameraControl::setCamera(const QCameraInfo &camera)
+void BbCameraControl::setCamera(const QCameraDevice &camera)
 {
     m_session->setDevice(camera.id());
 }

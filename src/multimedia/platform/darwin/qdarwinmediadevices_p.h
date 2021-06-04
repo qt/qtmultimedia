@@ -53,14 +53,14 @@
 
 #include <private/qplatformmediadevices_p.h>
 #include <qelapsedtimer.h>
-#include <qcamerainfo.h>
+#include <qcameradevice.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
 
 QT_BEGIN_NAMESPACE
 
-class QCameraInfo;
+class QCameraDevice;
 
 class QDarwinMediaDevices : public QPlatformMediaDevices
 {
@@ -68,19 +68,19 @@ public:
     QDarwinMediaDevices();
     ~QDarwinMediaDevices();
 
-    QList<QAudioDeviceInfo> audioInputs() const override;
-    QList<QAudioDeviceInfo> audioOutputs() const override;
-    QList<QCameraInfo> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDeviceInfo &info) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDeviceInfo &info) override;
+    QList<QAudioDevice> audioInputs() const override;
+    QList<QAudioDevice> audioOutputs() const override;
+    QList<QCameraDevice> videoInputs() const override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &info) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &info) override;
 
     void updateCameraDevices();
     void updateAudioDevices();
 
 private:
-    QList<QCameraInfo> m_cameraDevices;
-    QList<QAudioDeviceInfo> m_audioInputs;
-    QList<QAudioDeviceInfo> m_audioOutputs;
+    QList<QCameraDevice> m_cameraDevices;
+    QList<QAudioDevice> m_audioInputs;
+    QList<QAudioDevice> m_audioOutputs;
 
     NSObject *m_deviceConnectedObserver;
     NSObject *m_deviceDisconnectedObserver;

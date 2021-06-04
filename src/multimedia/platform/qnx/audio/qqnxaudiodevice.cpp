@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qnxaudiodeviceinfo_p.h"
+#include "qqnxaudiodevice_p.h"
 
 #include "qnxaudioutils_p.h"
 
@@ -46,7 +46,7 @@
 QT_BEGIN_NAMESPACE
 
 QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudio::Mode mode)
-    : QAudioDeviceInfoPrivate(deviceName, mode)
+    : QAudioDevicePrivate(deviceName, mode)
 {
 }
 
@@ -82,7 +82,7 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     info.channel = (mode == QAudio::AudioOutput) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
 
     if (snd_pcm_plugin_info(handle, &info) < 0) {
-        qWarning("QAudioDeviceInfo: couldn't get channel info");
+        qWarning("QAudioDevice: couldn't get channel info");
         snd_pcm_close(handle);
         return false;
     }

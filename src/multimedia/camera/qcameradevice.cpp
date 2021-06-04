@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qcamerainfo_p.h"
+#include "qcameradevice_p.h"
 
 #include "qcamera_p.h"
 
@@ -90,14 +90,14 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
 }
 
 /*!
-    \class QCameraInfo
-    \brief The QCameraInfo class provides general information about camera devices.
+    \class QCameraDevice
+    \brief The QCameraDevice class provides general information about camera devices.
     \since 5.3
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_camera
 
-    QCameraInfo lets you query for camera devices that are currently available on the system.
+    QCameraDevice lets you query for camera devices that are currently available on the system.
 
     The static functions defaultCamera() and availableCameras() provide you a list of all
     available cameras.
@@ -106,12 +106,12 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
 
     \snippet multimedia-snippets/camera.cpp Camera listing
 
-    A QCameraInfo can be used to construct a QCamera. The following example instantiates a QCamera
+    A QCameraDevice can be used to construct a QCamera. The following example instantiates a QCamera
     whose camera device is named 'mycamera':
 
     \snippet multimedia-snippets/camera.cpp Camera selection
 
-    You can also use QCameraInfo to get general information about a camera device such as
+    You can also use QCameraDevice to get general information about a camera device such as
     description, physical position on the system, or camera sensor orientation.
 
     \snippet multimedia-snippets/camera.cpp Camera info
@@ -119,22 +119,25 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     \sa QCamera
 */
 
-QCameraInfo::QCameraInfo() = default;
+/*!
+  Constructs a null camera device
+*/
+QCameraDevice::QCameraDevice() = default;
 
 /*!
     Constructs a copy of \a other.
 */
-QCameraInfo::QCameraInfo(const QCameraInfo &other) = default;
+QCameraDevice::QCameraDevice(const QCameraDevice &other) = default;
 
 /*!
-    Destroys the QCameraInfo.
+    Destroys the QCameraDevice.
 */
-QCameraInfo::~QCameraInfo() = default;
+QCameraDevice::~QCameraDevice() = default;
 
 /*!
-    Returns true if this QCameraInfo is equal to \a other.
+    Returns true if this QCameraDevice is equal to \a other.
 */
-bool QCameraInfo::operator==(const QCameraInfo &other) const
+bool QCameraDevice::operator==(const QCameraDevice &other) const
 {
     if (d == other.d)
         return true;
@@ -148,9 +151,9 @@ bool QCameraInfo::operator==(const QCameraInfo &other) const
 }
 
 /*!
-    Returns true if this QCameraInfo is null or invalid.
+    Returns true if this QCameraDevice is null or invalid.
 */
-bool QCameraInfo::isNull() const
+bool QCameraDevice::isNull() const
 {
     return !d;
 }
@@ -160,12 +163,12 @@ bool QCameraInfo::isNull() const
 
     This is a unique ID to identify the camera and may not be human-readable.
 */
-QByteArray QCameraInfo::id() const
+QByteArray QCameraDevice::id() const
 {
     return d ? d->id : QByteArray();
 }
 
-bool QCameraInfo::isDefault() const
+bool QCameraDevice::isDefault() const
 {
     return d ? d->isDefault : false;
 }
@@ -173,7 +176,7 @@ bool QCameraInfo::isDefault() const
 /*!
     Returns the human-readable description of the camera.
 */
-QString QCameraInfo::description() const
+QString QCameraDevice::description() const
 {
     return d ? d->description : QString();
 }
@@ -181,12 +184,12 @@ QString QCameraInfo::description() const
 /*!
     Returns the physical position of the camera on the hardware system.
 */
-QCameraInfo::Position QCameraInfo::position() const
+QCameraDevice::Position QCameraDevice::position() const
 {
-    return d ? d->position : QCameraInfo::UnspecifiedPosition;
+    return d ? d->position : QCameraDevice::UnspecifiedPosition;
 }
 
-QList<QSize> QCameraInfo::photoResolutions() const
+QList<QSize> QCameraDevice::photoResolutions() const
 {
     return d->photoResolutions;
 }
@@ -194,30 +197,30 @@ QList<QSize> QCameraInfo::photoResolutions() const
 /*!
     Returns the video formats supported by the camera.
 */
-QList<QCameraFormat> QCameraInfo::videoFormats() const
+QList<QCameraFormat> QCameraDevice::videoFormats() const
 {
     return d ? d->videoFormats : QList<QCameraFormat>{};
 }
 
-QCameraInfo::QCameraInfo(QCameraInfoPrivate *p)
+QCameraDevice::QCameraDevice(QCameraDevicePrivate *p)
     : d(p)
 {}
 
 /*!
-    Sets the QCameraInfo object to be equal to \a other.
+    Sets the QCameraDevice object to be equal to \a other.
 */
-QCameraInfo& QCameraInfo::operator=(const QCameraInfo& other) = default;
+QCameraDevice& QCameraDevice::operator=(const QCameraDevice& other) = default;
 
 /*!
-    \fn QCameraInfo::operator!=(const QCameraInfo &other) const
+    \fn QCameraDevice::operator!=(const QCameraDevice &other) const
 
-    Returns true if this QCameraInfo is different from \a other.
+    Returns true if this QCameraDevice is different from \a other.
 */
 
 #ifndef QT_NO_DEBUG_STREAM
-QDebug operator<<(QDebug d, const QCameraInfo &camera)
+QDebug operator<<(QDebug d, const QCameraDevice &camera)
 {
-    d.maybeSpace() << QStringLiteral("QCameraInfo(name=%1, position=%2, orientation=%3)")
+    d.maybeSpace() << QStringLiteral("QCameraDevice(name=%1, position=%2, orientation=%3)")
                           .arg(camera.description())
                           .arg(QString::fromLatin1(QCamera::staticMetaObject.enumerator(QCamera::staticMetaObject.indexOfEnumerator("Position"))
                                .valueToKey(camera.position())));

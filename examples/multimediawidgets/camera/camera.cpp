@@ -56,10 +56,10 @@
 
 #include <QMediaEncoder>
 #include <QVideoWidget>
-#include <QCameraInfo>
+#include <QCameraDevice>
 #include <QMediaMetaData>
 #include <QMediaDevices>
-#include <QAudioDeviceInfo>
+#include <QAudioDevice>
 
 #include <QMessageBox>
 #include <QPalette>
@@ -89,7 +89,7 @@ Camera::Camera()
     setCamera(QMediaDevices::defaultVideoInput());
 }
 
-void Camera::setCamera(const QCameraInfo &cameraInfo)
+void Camera::setCamera(const QCameraDevice &cameraInfo)
 {
     m_camera.reset(new QCamera(cameraInfo));
     m_captureSession.setCamera(m_camera.data());
@@ -320,7 +320,7 @@ void Camera::displayCameraError()
 
 void Camera::updateCameraDevice(QAction *action)
 {
-    setCamera(qvariant_cast<QCameraInfo>(action->data()));
+    setCamera(qvariant_cast<QCameraDevice>(action->data()));
 }
 
 void Camera::displayViewfinder()
@@ -362,8 +362,8 @@ void Camera::closeEvent(QCloseEvent *event)
 void Camera::updateCameras()
 {
     ui->menuDevices->clear();
-    const QList<QCameraInfo> availableCameras = QMediaDevices::videoInputs();
-    for (const QCameraInfo &cameraInfo : availableCameras) {
+    const QList<QCameraDevice> availableCameras = QMediaDevices::videoInputs();
+    for (const QCameraDevice &cameraInfo : availableCameras) {
         QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
         videoDeviceAction->setCheckable(true);
         videoDeviceAction->setData(QVariant::fromValue(cameraInfo));

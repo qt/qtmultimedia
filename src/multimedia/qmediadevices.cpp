@@ -41,8 +41,8 @@
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qplatformmediadevices_p.h"
 
-#include <qaudiodeviceinfo.h>
-#include <qcamerainfo.h>
+#include <qaudiodevice.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -77,7 +77,7 @@ QT_BEGIN_NAMESPACE
     Those devices are usually microphones, either built-in, or connected to
     the device through e.g. USB or Bluetooth.
 */
-QList<QAudioDeviceInfo> QMediaDevices::audioInputs()
+QList<QAudioDevice> QMediaDevices::audioInputs()
 {
     return QPlatformMediaIntegration::instance()->devices()->audioInputs();
 }
@@ -88,7 +88,7 @@ QList<QAudioDeviceInfo> QMediaDevices::audioInputs()
     Those devices are usually loudspeakers or head sets, either built-in,
     or connected to the device through e.g. USB or Bluetooth.
 */
-QList<QAudioDeviceInfo> QMediaDevices::audioOutputs()
+QList<QAudioDevice> QMediaDevices::audioOutputs()
 {
     return QPlatformMediaIntegration::instance()->devices()->audioOutputs();
 }
@@ -96,7 +96,7 @@ QList<QAudioDeviceInfo> QMediaDevices::audioOutputs()
 /*!
     Returns a list of available cameras on the system.
 */
-QList<QCameraInfo> QMediaDevices::videoInputs()
+QList<QCameraDevice> QMediaDevices::videoInputs()
 {
     return QPlatformMediaIntegration::instance()->devices()->videoInputs();
 }
@@ -107,7 +107,7 @@ QList<QCameraInfo> QMediaDevices::videoInputs()
     The default device can change during the runtime of the application. The audioInputsChanged()
     signal will get emitted in that case.
 */
-QAudioDeviceInfo QMediaDevices::defaultAudioInput()
+QAudioDevice QMediaDevices::defaultAudioInput()
 {
     const auto inputs = audioInputs();
     for (const auto &info : inputs)
@@ -122,7 +122,7 @@ QAudioDeviceInfo QMediaDevices::defaultAudioInput()
     The default device can change during the runtime of the application. The audioOutputsChanged()
     signal will get emitted in that case.
 */
-QAudioDeviceInfo QMediaDevices::defaultAudioOutput()
+QAudioDevice QMediaDevices::defaultAudioOutput()
 {
     const auto outputs = audioOutputs();
     for (const auto &info : outputs)
@@ -142,7 +142,7 @@ QAudioDeviceInfo QMediaDevices::defaultAudioOutput()
 
     \sa availableCameras()
 */
-QCameraInfo QMediaDevices::defaultVideoInput()
+QCameraDevice QMediaDevices::defaultVideoInput()
 {
     const auto inputs = videoInputs();
     for (const auto &info : inputs)
