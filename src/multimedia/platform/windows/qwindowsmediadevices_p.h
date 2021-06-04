@@ -78,6 +78,8 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDeviceInfo &deviceInfo) override;
 
 private:
+    QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode) const;
+
     QWindowsIUPointer<IMMDeviceEnumerator> m_deviceEnumerator;
     QWindowsIUPointer<CMMNotificationClient> m_notificationClient;
     HWND m_videoDeviceMsgWindow;

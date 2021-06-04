@@ -60,8 +60,8 @@
 #include <mfreadwrite.h>
 #include <Mferror.h>
 #include <mmdeviceapi.h>
+#include <Functiondiscoverykeys_devpkey.h>
 #include "private/qwindowsaudioutils_p.h"
-
 
 QT_BEGIN_NAMESPACE
 
@@ -114,8 +114,11 @@ public:
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow, ERole, LPCWSTR)
+    HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR)
     {
+        if (role == ERole::eMultimedia)
+            emitAudioDevicesChanged(flow);
+
         return S_OK;
     }
 
@@ -259,9 +262,11 @@ QWindowsMediaDevices::QWindowsMediaDevices()
                     && SUCCEEDED(device->GetId(&id)))
                 {
                     devState.insert(QString::fromWCharArray(id), state);
+                    CoTaskMemFree(id);
                 }
             }
         }
+
 
         m_notificationClient.reset(new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState)));
         m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient);
@@ -303,8 +308,6 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
     m_deviceEnumerator.reset();
     m_notificationClient.reset();
 
-    CoUninitialize();
-
     if (m_videoDeviceNotification) {
         UnregisterDeviceNotification(m_videoDeviceNotification);
     }
@@ -313,85 +316,68 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
         DestroyWindow(m_videoDeviceMsgWindow);
         UnregisterClass(windowClassName, GetModuleHandle(nullptr));
     }
+
+    CoUninitialize();
 }
 
-static QList<QAudioDeviceInfo> availableDevices(QAudio::Mode mode)
+QList<QAudioDeviceInfo> QWindowsMediaDevices::availableDevices(QAudio::Mode mode) const
 {
-    Q_UNUSED(mode);
+    const auto audioOut = mode == QAudio::AudioOutput;
+
+    const auto defaultAudioDeviceID = [this, audioOut]{
+        const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
+        QWindowsIUPointer<IMMDevice> dev;
+        LPWSTR id = nullptr;
+        QString sid;
+
+        if (SUCCEEDED(m_deviceEnumerator->GetDefaultAudioEndpoint(dataFlow, ERole::eMultimedia, dev.address()))
+            && SUCCEEDED(dev->GetId(&id))) {
+            sid = QString::fromWCharArray(id);
+            CoTaskMemFree(id);
+        }
+        return sid.toUtf8();
+    }();
 
     QList<QAudioDeviceInfo> devices;
-    //enumerate device fullnames through directshow api
-    auto hrCoInit = CoInitialize(nullptr);
-    ICreateDevEnum *pDevEnum = NULL;
-    IEnumMoniker *pEnum = NULL;
-    // Create the System device enumerator
-    HRESULT hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
-                 CLSCTX_INPROC_SERVER, IID_ICreateDevEnum,
-                 reinterpret_cast<void **>(&pDevEnum));
 
-    unsigned long iNumDevs = mode == QAudio::AudioOutput ? waveOutGetNumDevs() : waveInGetNumDevs();
-    if (SUCCEEDED(hr)) {
-        // Create the enumerator for the audio input/output category
-        if (pDevEnum->CreateClassEnumerator(
-             mode == QAudio::AudioOutput ? CLSID_AudioRendererCategory : CLSID_AudioInputDeviceCategory,
-             &pEnum, 0) == S_OK) {
-            pEnum->Reset();
-            // go through and find all audio devices
-            IMoniker *pMoniker = NULL;
-            while (pEnum->Next(1, &pMoniker, NULL) == S_OK) {
-                IPropertyBag *pPropBag;
-                hr = pMoniker->BindToStorage(0,0,IID_IPropertyBag,
-                     reinterpret_cast<void **>(&pPropBag));
-                if (FAILED(hr)) {
-                    pMoniker->Release();
-                    continue; // skip this one
-                }
-                // Find if it is a wave device
-                VARIANT var;
-                VariantInit(&var);
-                hr = pPropBag->Read(mode == QAudio::AudioOutput ? L"WaveOutID" : L"WaveInID", &var, 0);
-                if (SUCCEEDED(hr)) {
-                    LONG waveID = var.lVal;
-                    if (waveID >= 0 && waveID < LONG(iNumDevs)) {
-                        VariantClear(&var);
-                        // Find the description
-                        hr = pPropBag->Read(L"FriendlyName", &var, 0);
-                        if (!SUCCEEDED(hr)) {
-                            pPropBag->Release();
-                            continue;
-                        }
+    auto waveDevices = audioOut ? waveOutGetNumDevs() : waveInGetNumDevs();
 
-                        QString description = QString::fromWCharArray(var.bstrVal);
+    for (auto waveID = 0u; waveID < waveDevices; waveID++) {
+        auto wave = IntToPtr(waveID);
+        auto waveMessage = [wave, audioOut](UINT msg, auto p0, auto p1) {
+            return audioOut ? waveOutMessage((HWAVEOUT)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1)
+                            : waveInMessage((HWAVEIN)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1);
+        };
 
-                        // Get the endpoint ID string for this waveOut device. This is required to be able to
-                        // identify the device use the WMF APIs
-                        auto wave = IntToPtr(waveID);
-                        auto waveMessage = [wave, mode](UINT msg, auto p0, auto p1) {
-                            return mode == QAudio::AudioOutput
-                                    ? waveOutMessage((HWAVEOUT)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1)
-                                    : waveInMessage((HWAVEIN)wave, msg, (DWORD_PTR)p0, (DWORD_PTR)p1);
-                        };
+        size_t len = 0;
+        if (waveMessage(DRV_QUERYFUNCTIONINSTANCEIDSIZE, &len, 0) != MMSYSERR_NOERROR)
+            continue;
 
-                        size_t len = 0;
-                        if (waveMessage(DRV_QUERYFUNCTIONINSTANCEIDSIZE, &len, 0) == MMSYSERR_NOERROR) {
-                            QVarLengthArray<WCHAR> id(len);
-                            if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, id.data(), len) == MMSYSERR_NOERROR) {
-                                auto strID = QString::fromWCharArray(id.data()).toUtf8();
+        QVarLengthArray<WCHAR> id(len);
+        if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, id.data(), len) != MMSYSERR_NOERROR)
+            continue;
 
-                                devices.append((new QWindowsAudioDeviceInfo(strID, waveID, description, mode))->create());
-                            }
-                        }
-                    }
-                }
-                pPropBag->Release();
-                pMoniker->Release();
-            }
-            pEnum->Release();
+        QWindowsIUPointer<IMMDevice> device;
+        QWindowsIUPointer<IPropertyStore> props;
+        if (FAILED(m_deviceEnumerator->GetDevice(id.data(), device.address()))
+            || FAILED(device->OpenPropertyStore(STGM_READ, props.address()))) {
+            continue;
         }
-        pDevEnum->Release();
+
+        PROPVARIANT varName;
+        PropVariantInit(&varName);
+
+        if (SUCCEEDED(props->GetValue(PKEY_Device_FriendlyName, &varName))) {
+            auto description = QString::fromWCharArray(varName.pwszVal);
+            auto strID = QString::fromWCharArray(id.data()).toUtf8();
+
+            auto dev = new QWindowsAudioDeviceInfo(strID, waveID, description, mode);
+            dev->isDefault = strID == defaultAudioDeviceID;
+
+            devices.append(dev->create());
+        }
+        PropVariantClear(&varName);
     }
-    if (SUCCEEDED(hrCoInit))
-        CoUninitialize();
 
     return devices;
 }
@@ -409,7 +395,6 @@ QList<QAudioDeviceInfo> QWindowsMediaDevices::audioOutputs() const
 QList<QCameraInfo> QWindowsMediaDevices::videoInputs() const
 {
     QList<QCameraInfo> cameras;
-    auto hrCoInit = CoInitialize(nullptr);
 
     IMFAttributes *pAttributes = NULL;
     IMFActivate **ppDevices = NULL;
@@ -528,8 +513,6 @@ QList<QCameraInfo> QWindowsMediaDevices::videoInputs() const
     }
     if (pAttributes)
         pAttributes->Release();
-    if (SUCCEEDED(hrCoInit))
-        CoUninitialize();
 
     return cameras;
 }
