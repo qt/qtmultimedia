@@ -4,7 +4,7 @@
 ## tst_qcamera Test:
 #####################################################################
 
-qt_internal_add_test(tst_qcamera
+qt_internal_add_test(tst_qmultimediacamera
     SOURCES
         tst_qcamera.cpp
     INCLUDE_DIRECTORIES
