@@ -61,6 +61,7 @@
 #include <qmediadevices.h>
 #include <qaudiodevice.h>
 #include <qaudiobuffer.h>
+#include <qaudioinput.h>
 
 static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
@@ -71,6 +72,7 @@ AudioRecorder::AudioRecorder()
 
     m_audioEncoder = new QMediaEncoder(this);
     m_captureSession.setEncoder(m_audioEncoder);
+    m_captureSession.setAudioInput(new QAudioInput(this));
     // ### replace with a monitoring output once we have it.
 //    m_probe = new QAudioProbe(this);
 //    connect(m_probe, &QAudioProbe::audioBufferProbed,
@@ -98,10 +100,10 @@ AudioRecorder::AudioRecorder()
     }
 
     //sample rate
-    ui->sampleRateBox->setRange(m_captureSession.audioInput().minimumSampleRate(),
-                                m_captureSession.audioInput().maximumSampleRate());
-    ui->sampleRateBox->setValue(qBound(m_captureSession.audioInput().minimumSampleRate(), 44100,
-                                       m_captureSession.audioInput().maximumSampleRate()));
+    ui->sampleRateBox->setRange(m_captureSession.audioInput()->device().minimumSampleRate(),
+                                m_captureSession.audioInput()->device().maximumSampleRate());
+    ui->sampleRateBox->setValue(qBound(m_captureSession.audioInput()->device().minimumSampleRate(), 44100,
+                                       m_captureSession.audioInput()->device().maximumSampleRate()));
 
     //channels
     ui->channelsBox->addItem(tr("Default"), QVariant(-1));
@@ -189,7 +191,7 @@ static QVariant boxValue(const QComboBox *box)
 void AudioRecorder::toggleRecord()
 {
     if (m_audioEncoder->state() == QMediaEncoder::StoppedState) {
-        m_captureSession.setAudioInput(boxValue(ui->audioDeviceBox).value<QAudioDevice>());
+        m_captureSession.audioInput()->setDevice(boxValue(ui->audioDeviceBox).value<QAudioDevice>());
 
         QMediaEncoderSettings settings;
         settings.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());

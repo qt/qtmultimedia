@@ -60,6 +60,7 @@
 #include <QMediaCaptureSession>
 #include <QCameraDevice>
 #include <QCamera>
+#include <QAudioInput>
 
 VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
     : QDialog(parent),
@@ -77,8 +78,9 @@ VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
     }
 
     //sample rate:
-    ui->audioSampleRateBox->setRange(mediaRecorder->captureSession()->audioInput().minimumSampleRate(),
-                                     mediaRecorder->captureSession()->audioInput().maximumSampleRate());
+    auto audioDevice = mediaRecorder->captureSession()->audioInput()->device();
+    ui->audioSampleRateBox->setRange(audioDevice.minimumSampleRate(),
+                                     audioDevice.maximumSampleRate());
 
     //video codecs
     ui->videoCodecBox->addItem(tr("Default video codec"), QVariant::fromValue(QMediaFormat::VideoCodec::Unspecified));

@@ -59,6 +59,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QAudioInput;
 class QVideoSink;
 class QWindowsMediaDeviceReader;
 
@@ -84,12 +85,12 @@ public:
     QMediaEncoderSettings videoSettings() const;
     void setVideoSettings(const QMediaEncoderSettings &settings);
 
-    bool isMuted() const;
-    void setMuted(bool muted);
-    qreal volume() const;
-    void setVolume(qreal volume);
-    QAudioDevice audioInput() const;
-    bool setAudioInput(const QAudioDevice &info);
+public Q_SLOTS:
+    void setAudioInputMuted(bool muted);
+    void setAudioInputVolume(float volume);
+    void audioInputDeviceChanged();
+public:
+    void setAudioInput(QAudioInput *input);
 
     bool startRecording(const QString &fileName, bool audioOnly);
     void stopRecording();
@@ -121,7 +122,7 @@ private:
     QCameraFormat m_cameraFormat;
     QWindowsMediaDeviceReader *m_mediaDeviceReader = nullptr;
     QMediaEncoderSettings m_mediaEncoderSettings;
-    QAudioDevice m_audioInput;
+    QAudioInput *m_audioInput = nullptr;
     QVideoSink  *m_surface = nullptr;
 };
 

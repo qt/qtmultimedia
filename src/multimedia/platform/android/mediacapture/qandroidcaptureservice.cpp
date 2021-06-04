@@ -136,48 +136,9 @@ void QAndroidCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder)
 
 }
 
-bool QAndroidCaptureService::isMuted() const
+void QAndroidCaptureService::setAudioInput(QPlatformAudioInput *input)
 {
-    // No API for this in Android
-    return false;
-}
-
-void QAndroidCaptureService::setMuted(bool muted)
-{
-    // No API for this in Android
-    Q_UNUSED(muted);
-    qWarning("QMediaRecorder::setMuted() is not supported on Android.");
-}
-
-qreal QAndroidCaptureService::volume() const
-{
-    // No API for this in Android
-    return 1.0;
-}
-
-void QAndroidCaptureService::setVolume(qreal volume)
-{
-    // No API for this in Android
-    Q_UNUSED(volume);
-    qWarning("QMediaRecorder::setVolume() is not supported on Android.");
-}
-
-QAudioDevice QAndroidCaptureService::audioInput() const
-{
-    const auto devices = QMediaDevices::audioInputs();
-    QByteArray id = m_captureSession->audioInput().toLatin1();
-
-    for (auto c : devices) {
-        if (c.id() == id)
-            return c;
-    }
-    return QMediaDevices::defaultAudioInput();
-}
-
-bool QAndroidCaptureService::setAudioInput(const QAudioDevice &info)
-{
-    m_captureSession->setAudioInput(QString::fromLatin1(info.id()));
-    return true;
+    m_captureSession->setAudioInput(input);
 }
 
 void QAndroidCaptureService::setVideoPreview(QVideoSink *sink)

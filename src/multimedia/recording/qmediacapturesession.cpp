@@ -48,6 +48,7 @@
 
 #include "qplatformmediaintegration_p.h"
 #include "qplatformmediacapture_p.h"
+#include "qaudioinput.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -56,7 +57,7 @@ class QMediaCaptureSessionPrivate
 public:
     QMediaCaptureSession *q = nullptr;
     QPlatformMediaCaptureSession *captureSession;
-    QAudioDevice audioInput;
+    QAudioInput *audioInput = nullptr;
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
     QMediaEncoder *encoder = nullptr;
@@ -75,6 +76,7 @@ public:
         captureSession->setVideoPreview(sink);
         emit q->videoOutputChanged();
     }
+
 };
 
 /*!
@@ -108,9 +110,6 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
 {
     d_ptr->q = this;
     d_ptr->captureSession = QPlatformMediaIntegration::instance()->createCaptureSession();
-
-    connect(d_ptr->captureSession, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
-    connect(d_ptr->captureSession, SIGNAL(volumeChanged(qreal)), this, SIGNAL(volumeChanged(qreal)));
 }
 
 /*!
@@ -140,7 +139,7 @@ bool QMediaCaptureSession::isAvailable() const
 /*!
     Returns the device that is being used to capture audio.
 */
-QAudioDevice QMediaCaptureSession::audioInput() const
+QAudioInput *QMediaCaptureSession::audioInput() const
 {
     return d_ptr->audioInput;
 }
@@ -154,52 +153,13 @@ QAudioDevice QMediaCaptureSession::audioInput() const
 
     \sa muted(), setMuted()
 */
-void QMediaCaptureSession::setAudioInput(const QAudioDevice &device)
+void QMediaCaptureSession::setAudioInput(QAudioInput *device)
 {
+    if (d_ptr->audioInput == device)
+        return;
     d_ptr->audioInput = device;
-    d_ptr->captureSession->setAudioInput(device);
+    d_ptr->captureSession->setAudioInput(device->handle());
     emit audioInputChanged();
-}
-
-/*!
-    \property QMediaCaptureSession::muted
-
-    \brief whether a recording audio stream is muted.
-*/
-
-bool QMediaCaptureSession::isMuted() const
-{
-    return d_ptr->captureSession->isMuted();
-}
-
-void QMediaCaptureSession::setMuted(bool muted)
-{
-    d_ptr->captureSession->setMuted(muted);
-}
-
-/*!
-    \property QMediaCaptureSession::volume
-
-    \brief the current recording audio volume.
-
-    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
-    range will be clamped.
-
-    The default volume is \c 1.0.
-
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See QAudio::convertVolume() for more details.
-*/
-
-qreal QMediaCaptureSession::volume() const
-{
-    return d_ptr->captureSession->volume();
-}
-
-void QMediaCaptureSession::setVolume(qreal volume)
-{
-    d_ptr->captureSession->setVolume(volume);
 }
 
 /*!

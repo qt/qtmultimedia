@@ -59,6 +59,7 @@ class QWindowsMediaEncoder;
 class QWindowsCamera;
 class QWindowsMediaDeviceSession;
 class QWindowsCameraImageCapture;
+class QPlatformAudioInput;
 
 class QWindowsMediaCaptureService : public QPlatformMediaCaptureSession
 {
@@ -77,12 +78,7 @@ public:
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
-    bool isMuted() const override;
-    void setMuted(bool muted) override;
-    qreal volume() const override;
-    void setVolume(qreal volume) override;
-    QAudioDevice audioInput() const override;
-    bool setAudioInput(const QAudioDevice &) override;
+    void setAudioInput(QPlatformAudioInput *) override;
 
     void setVideoPreview(QVideoSink *sink) override;
 

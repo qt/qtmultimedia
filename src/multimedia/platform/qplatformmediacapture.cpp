@@ -46,19 +46,6 @@ QT_BEGIN_NAMESPACE
 
 QPlatformMediaCaptureSession::~QPlatformMediaCaptureSession()
 {
-    if (m_audioInput)
-        m_audioInput->setPlatformInterface(nullptr);
-}
-
-void QPlatformMediaCaptureSession::setAudioInput(QAudioInput *input)
-{
-    if (m_audioInput == input)
-        return;
-    if (m_audioInput)
-        m_audioInput->setPlatformInterface(nullptr);
-    m_audioInput = input;
-    if (m_audioInput)
-        m_audioInput->setPlatformInterface(this);
 }
 
 QAudioDevice QPlatformMediaCaptureSession::audioPreview() const

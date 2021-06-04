@@ -45,6 +45,7 @@
 #include "qwindowscameraimagecapture_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
+#include "qplatformaudioinput_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -118,34 +119,9 @@ void QWindowsMediaCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder
     emit encoderChanged();
 }
 
-bool QWindowsMediaCaptureService::isMuted() const
+void QWindowsMediaCaptureService::setAudioInput(QPlatformAudioInput *input)
 {
-    return m_mediaDeviceSession->isMuted();
-}
-
-void QWindowsMediaCaptureService::setMuted(bool muted)
-{
-    m_mediaDeviceSession->setMuted(muted);
-}
-
-qreal QWindowsMediaCaptureService::volume() const
-{
-    return m_mediaDeviceSession->volume();
-}
-
-void QWindowsMediaCaptureService::setVolume(qreal volume)
-{
-    m_mediaDeviceSession->setVolume(volume);
-}
-
-QAudioDevice QWindowsMediaCaptureService::audioInput() const
-{
-    return m_mediaDeviceSession->audioInput();
-}
-
-bool QWindowsMediaCaptureService::setAudioInput(const QAudioDevice &info)
-{
-    return m_mediaDeviceSession->setAudioInput(info);
+    m_mediaDeviceSession->setAudioInput(input ? input->q : nullptr);
 }
 
 void QWindowsMediaCaptureService::setVideoPreview(QVideoSink *sink)

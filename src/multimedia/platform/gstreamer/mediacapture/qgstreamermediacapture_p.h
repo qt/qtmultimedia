@@ -83,19 +83,11 @@ public:
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
-    bool isMuted() const override;
-    void setMuted(bool) override;
-    qreal volume() const override;
-    void setVolume(qreal volume) override;
-
-    QAudioDevice audioInput() const override;
-    bool setAudioInput(const QAudioDevice &id) override;
+    void setAudioInput(QPlatformAudioInput *input) override;
 
     void setVideoPreview(QVideoSink *sink) override;
     QAudioDevice audioPreview() const override;
     bool setAudioPreview(const QAudioDevice &info) override;
-
-    // void cameraChanged();
 
     QGstPad getAudioPad() const;
     QGstPad getVideoPad() const;
@@ -103,6 +95,8 @@ public:
     void releaseVideoPad(const QGstPad &pad) const;
 
     QGstPipeline pipeline() const { return gstPipeline; }
+
+    void setupAudioPipeline();
 
 private:
     friend QGstreamerMediaEncoder;

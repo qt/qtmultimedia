@@ -78,6 +78,9 @@ public:
 
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
+    QPlatformAudioInput *createAudioInput(QAudioInput *) override;
+    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
+
     QGstreamerMediaDevices *m_devices = nullptr;
     QGstreamerFormatInfo *m_formatsInfo = nullptr;
 };

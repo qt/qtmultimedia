@@ -58,18 +58,19 @@
 
 #include <private/qgst_p.h>
 #include <private/qgstpipeline_p.h>
+#include <private/qplatformaudioinput_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QAudioDevice;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerAudioInput : public QObject
+class Q_MULTIMEDIA_EXPORT QGstreamerAudioInput : public QObject, public QPlatformAudioInput
 {
     Q_OBJECT
 
 public:
-    QGstreamerAudioInput(QObject *parent = 0);
+    QGstreamerAudioInput(QAudioInput *parent);
     ~QGstreamerAudioInput();
 
     int volume() const;
@@ -78,8 +79,9 @@ public:
     bool setAudioInput(const QAudioDevice &);
     QAudioDevice audioInput() const;
 
-    void setVolume(int volume);
-    void setMuted(bool muted);
+    void setAudioDevice(const QAudioDevice &) override;
+    void setVolume(float volume) override;
+    void setMuted(bool muted) override;
 
     void setPipeline(const QGstPipeline &pipeline);
 
@@ -93,10 +95,10 @@ private:
     void prepareAudioInputChange(const QGstPad &pad);
     bool changeAudioInput();
 
-    int m_volume = 100.;
+    float m_volume = 1.;
     bool m_muted = false;
 
-    QAudioDevice m_audioInput;
+    QAudioDevice m_audioDevice;
 
     // Gst elements
     QGstPipeline gstPipeline;

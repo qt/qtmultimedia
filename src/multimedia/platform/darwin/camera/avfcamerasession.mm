@@ -362,6 +362,8 @@ void AVFCameraSession::attachAudioInputDevice()
     }
 
     AVCaptureDevice *audioDevice = m_service->audioCaptureDevice();
+    if (!audioDevice)
+        return;
 
     NSError *error = nil;
     m_audioInput = [AVCaptureDeviceInput
@@ -427,6 +429,11 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
         AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
         m_videoOutput->setLayer(previewLayer);
     }
+}
+
+void AVFCameraSession::updateAudioInput()
+{
+    attachAudioInputDevice();
 }
 
 #include "moc_avfcamerasession_p.cpp"

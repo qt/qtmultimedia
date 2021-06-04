@@ -67,7 +67,7 @@ class AVFMediaEncoder;
 
 class AVFCameraService : public QPlatformMediaCaptureSession
 {
-Q_OBJECT
+    Q_OBJECT
 public:
     AVFCameraService();
     ~AVFCameraService();
@@ -81,12 +81,7 @@ public:
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
-    bool isMuted() const override;
-    void setMuted(bool muted) override;
-    qreal volume() const override;
-    void setVolume(qreal volume) override;
-    QAudioDevice audioInput() const override;
-    bool setAudioInput(const QAudioDevice &) override;
+    void setAudioInput(QPlatformAudioInput *) override;
 
     void setVideoPreview(QVideoSink *sink) override;
 
@@ -96,9 +91,11 @@ public:
     AVFCameraImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
     AVCaptureDevice *audioCaptureDevice() const { return m_audioCaptureDevice; }
 
+public Q_SLOTS:
+    void audioInputDestroyed() { setAudioInput(nullptr); }
+    void audioInputChanged();
 private:
-    bool m_muted = false;
-    qreal m_volume = 1.0;
+    QPlatformAudioInput *m_audioInput = nullptr;
     AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
     AVFCameraSession *m_session = nullptr;

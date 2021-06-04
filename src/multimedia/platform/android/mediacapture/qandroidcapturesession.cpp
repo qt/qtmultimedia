@@ -45,6 +45,7 @@
 #include "qandroidmultimediautils_p.h"
 #include "qandroidvideooutput_p.h"
 #include "qandroidglobal_p.h"
+#include <private/qplatformaudioinput_p.h>
 #include <QtCore/qmimetype.h>
 
 #include <algorithm>
@@ -109,29 +110,28 @@ QAndroidCaptureSession::~QAndroidCaptureSession()
     delete m_mediaRecorder;
 }
 
-void QAndroidCaptureSession::setAudioInput(const QString &input)
+void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     if (m_audioInput == input)
         return;
 
     m_audioInput = input;
 
-    if (m_audioInput == QLatin1String("default"))
+    QString id = input ? QString::fromLatin1(input->device.id()) : QString();
+    if (id == QLatin1String("default"))
         m_audioSource = AndroidMediaRecorder::DefaultAudioSource;
-    else if (m_audioInput == QLatin1String("mic"))
+    else if (id == QLatin1String("mic"))
         m_audioSource = AndroidMediaRecorder::Mic;
-    else if (m_audioInput == QLatin1String("voice_uplink"))
+    else if (id == QLatin1String("voice_uplink"))
         m_audioSource = AndroidMediaRecorder::VoiceUplink;
-    else if (m_audioInput == QLatin1String("voice_downlink"))
+    else if (id == QLatin1String("voice_downlink"))
         m_audioSource = AndroidMediaRecorder::VoiceDownlink;
-    else if (m_audioInput == QLatin1String("voice_call"))
+    else if (id == QLatin1String("voice_call"))
         m_audioSource = AndroidMediaRecorder::VoiceCall;
-    else if (m_audioInput == QLatin1String("voice_recognition"))
+    else if (id == QLatin1String("voice_recognition"))
         m_audioSource = AndroidMediaRecorder::VoiceRecognition;
     else
         m_audioSource = AndroidMediaRecorder::DefaultAudioSource;
-
-    emit audioInputChanged(m_audioInput);
 }
 
 QUrl QAndroidCaptureSession::outputLocation() const

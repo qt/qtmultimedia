@@ -58,6 +58,7 @@
 #include <QMediaMetaData>
 #include <QMediaCaptureSession>
 #include <QMediaDevices>
+#include <QAudioInput>
 
 #include <QMainWindow>
 
@@ -133,6 +134,7 @@ private:
     QMediaDevices m_devices;
     QMediaCaptureSession m_captureSession;
     QScopedPointer<QCamera> m_camera;
+    QScopedPointer<QAudioInput> m_audioInput;
     QCameraImageCapture *m_imageCapture;
     QScopedPointer<QMediaEncoder> m_mediaEncoder;
 

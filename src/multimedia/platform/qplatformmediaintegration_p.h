@@ -96,8 +96,8 @@ public:
     virtual QPlatformMediaEncoder *createEncoder(QMediaEncoder *) { return nullptr; }
     virtual QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) { return nullptr; }
 
-    virtual QPlatformAudioInput *createAudioInput(QAudioInput *) { return nullptr; }
-    virtual QPlatformAudioOutput *createAudioOutput(QAudioOutput *) { return nullptr; }
+    virtual QPlatformAudioInput *createAudioInput(QAudioInput *);
+    virtual QPlatformAudioOutput *createAudioOutput(QAudioOutput *);
 
     virtual QPlatformVideoSink *createVideoSink(QVideoSink *) { return nullptr; }
 };

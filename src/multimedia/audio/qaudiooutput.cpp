@@ -95,7 +95,7 @@ QAudioOutput::QAudioOutput(const QAudioDevice &device, QObject *parent)
     d(QPlatformMediaIntegration::instance()->createAudioOutput(this))
 {
     d->device = device;
-    if (d->device.mode() != QAudio::AudioOutput)
+    if (!d->device.isNull() && d->device.mode() != QAudio::AudioOutput)
         d->device = QMediaDevices::defaultAudioOutput();
     d->setAudioDevice(d->device);
 }

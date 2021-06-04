@@ -57,20 +57,6 @@ Q_LOGGING_CATEGORY(qLcMediaCapture, "qt.multimedia.capture")
 QGstreamerMediaCapture::QGstreamerMediaCapture()
     : gstPipeline("pipeline")
 {
-    gstAudioInput = new QGstreamerAudioInput(this);
-    gstAudioInput->setPipeline(gstPipeline);
-    connect(gstAudioInput, &QGstreamerAudioInput::mutedChanged, this, &QGstreamerMediaCapture::mutedChanged);
-    connect(gstAudioInput, &QGstreamerAudioInput::volumeChanged, this, &QGstreamerMediaCapture::volumeChanged);
-
-    gstAudioOutput = new QGstreamerAudioOutput(this);
-    gstAudioOutput->setPipeline(gstPipeline);
-    gstAudioTee = QGstElement("tee", "audiotee");
-
-    gstPipeline.add(gstAudioInput->gstElement(), gstAudioTee, gstAudioOutput->gstElement());
-    gstAudioInput->gstElement().link(gstAudioTee);
-    auto pad = gstAudioTee.getRequestPad("src_%u");
-    pad.link(gstAudioOutput->gstElement().staticPad("sink"));
-
     gstVideoOutput = new QGstreamerVideoOutput(this);
     gstVideoOutput->setIsPreview();
     gstVideoOutput->setPipeline(gstPipeline);
@@ -179,34 +165,18 @@ QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()
     return m_mediaEncoder;
 }
 
-QAudioDevice QGstreamerMediaCapture::audioInput() const
+void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
 {
-    return gstAudioInput->audioInput();
-}
-
-bool QGstreamerMediaCapture::setAudioInput(const QAudioDevice &info)
-{
-    return gstAudioInput->setAudioInput(info);
-}
-
-bool QGstreamerMediaCapture::isMuted() const
-{
-    return gstAudioOutput->isMuted();
-}
-
-void QGstreamerMediaCapture::setMuted(bool muted)
-{
-    gstAudioOutput->setMuted(muted);
-}
-
-qreal QGstreamerMediaCapture::volume() const
-{
-    return gstAudioOutput->volume();
-}
-
-void QGstreamerMediaCapture::setVolume(qreal volume)
-{
-    gstAudioOutput->setVolume(volume);
+    if (gstAudioInput == input)
+        return;
+    if (gstAudioInput) {
+        gstAudioInput = nullptr;
+        setupAudioPipeline();
+    }
+    gstAudioInput = static_cast<QGstreamerAudioInput *>(input);
+    if (gstAudioInput)
+        gstAudioInput->setPipeline(gstPipeline);
+    setupAudioPipeline();
 }
 
 void QGstreamerMediaCapture::setVideoPreview(QVideoSink *sink)
@@ -245,6 +215,31 @@ void QGstreamerMediaCapture::releaseVideoPad(const QGstPad &pad) const
 {
     if (!pad.isNull())
         gstVideoTee.releaseRequestPad(pad);
+}
+
+void QGstreamerMediaCapture::setupAudioPipeline()
+{
+    gstPipeline.setStateSync(GST_STATE_PAUSED);
+
+    if (!gstAudioInput) {
+        if (gstAudioOutput)
+            gstPipeline.remove(gstAudioOutput->gstElement());
+        if (!gstAudioTee.isNull())
+            gstPipeline.remove(gstAudioTee);
+        return;
+    }
+    if (!gstAudioOutput) {
+        gstAudioOutput = new QGstreamerAudioOutput(this);
+        gstAudioOutput->setPipeline(gstPipeline);
+    }
+    gstAudioTee = QGstElement("tee", "audiotee");
+
+    gstPipeline.add(gstAudioInput->gstElement(), gstAudioTee, gstAudioOutput->gstElement());
+    gstAudioInput->gstElement().link(gstAudioTee);
+    auto pad = gstAudioTee.getRequestPad("src_%u");
+    pad.link(gstAudioOutput->gstElement().staticPad("sink"));
+
+    gstPipeline.setStateSync(GST_STATE_PLAYING);
 }
 
 

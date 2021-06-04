@@ -46,7 +46,7 @@
 QT_BEGIN_NAMESPACE
 
 class QCamera;
-class QAudioDevice;
+class QAudioInput;
 class QCameraDevice;
 class QCameraImageCapture; // ### rename to QMediaImageCapture
 class QMediaEncoder;
@@ -57,9 +57,7 @@ class QMediaCaptureSessionPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QAudioDevice audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
-    Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
-    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(QAudioInput *audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
     Q_PROPERTY(QCamera *camera READ camera WRITE setCamera NOTIFY cameraChanged)
     Q_PROPERTY(QCameraImageCapture *imageCapture READ imageCapture WRITE setImageCapture NOTIFY imageCaptureChanged)
     Q_PROPERTY(QMediaEncoder *encoder READ encoder WRITE setEncoder NOTIFY encoderChanged)
@@ -70,13 +68,8 @@ public:
 
     bool isAvailable() const;
 
-    QAudioDevice audioInput() const; // ### Should use a QAudioDevice *
-    void setAudioInput(const QAudioDevice &device);
-
-    bool isMuted() const; // ### Should move to QAudioDevice
-    void setMuted(bool muted);
-    qreal volume() const;
-    void setVolume(qreal volume);
+    QAudioInput *audioInput() const;
+    void setAudioInput(QAudioInput *device);
 
     QCamera *camera() const;
     void setCamera(QCamera *camera);
@@ -97,8 +90,6 @@ public:
 
 Q_SIGNALS:
     void audioInputChanged();
-    void mutedChanged(bool muted);
-    void volumeChanged(qreal volume);
     void cameraChanged();
     void imageCaptureChanged();
     void encoderChanged();

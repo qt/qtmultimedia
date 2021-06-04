@@ -55,15 +55,19 @@
 
 QT_BEGIN_NAMESPACE
 
+class QAudioInput;
+
 class Q_MULTIMEDIA_EXPORT QPlatformAudioInput
 {
 public:
+    QPlatformAudioInput(QAudioInput *qq) : q(qq) {}
     virtual ~QPlatformAudioInput() {}
 
-    virtual bool setAudioDevice(const QAudioDevice &id) = 0;
-    virtual void setMuted(bool muted) = 0;
-    virtual void setVolume(qreal volume) = 0;
+    virtual void setAudioDevice(const QAudioDevice &/*device*/) {}
+    virtual void setMuted(bool /*muted*/) {}
+    virtual void setVolume(float /*volume*/) {}
 
+    QAudioInput *q = nullptr;
     QAudioDevice device;
     float volume = 1.;
     bool muted = false;

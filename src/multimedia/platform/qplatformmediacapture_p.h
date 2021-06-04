@@ -52,7 +52,6 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <QtCore/qobject.h>
-#include <private/qplatformaudiointerface_p.h>
 
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;
@@ -61,9 +60,9 @@ class QPlatformMediaEncoder;
 class QAudioDevice;
 class QCameraDevice;
 class QVideoSink;
-class QAudioInput;
+class QPlatformAudioInput;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject, public QPlatformAudioInterface
+class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
     Q_OBJECT
 public:
@@ -79,21 +78,16 @@ public:
     virtual QPlatformMediaEncoder *mediaEncoder() = 0;
     virtual void setMediaEncoder(QPlatformMediaEncoder *) {}
 
-    void setAudioInput(QAudioInput *input);
+    virtual void setAudioInput(QPlatformAudioInput *input) = 0;
 
     virtual void setVideoPreview(QVideoSink * /*sink*/) {}
     virtual QAudioDevice audioPreview() const;
     virtual bool setAudioPreview(const QAudioDevice &) { return true; }
 
 Q_SIGNALS:
-    void mutedChanged(bool muted);
-    void volumeChanged(qreal volume);
     void cameraChanged();
     void imageCaptureChanged();
     void encoderChanged();
-
-private:
-    QAudioInput *m_audioInput = nullptr;
 };
 
 QT_END_NAMESPACE

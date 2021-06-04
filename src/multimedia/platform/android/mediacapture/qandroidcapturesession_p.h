@@ -62,6 +62,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QAudioInput;
 class QAndroidCameraSession;
 
 class QAndroidCaptureSession : public QObject
@@ -74,8 +75,7 @@ public:
     QList<QSize> supportedResolutions() const { return m_supportedResolutions; }
     QList<qreal> supportedFrameRates() const { return m_supportedFramerates; }
 
-    QString audioInput() const { return m_audioInput; }
-    void setAudioInput(const QString &input);
+    void setAudioInput(QPlatformAudioInput *input);
 
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
@@ -118,9 +118,6 @@ public:
         if (m_mediaEncoder)
             m_mediaEncoder->error(QMediaEncoder::Error(error), errorString);
     }
-
-Q_SIGNALS:
-    void audioInputChanged(const QString& name);
 
 private Q_SLOTS:
     void updateDuration();
@@ -175,7 +172,7 @@ private:
     AndroidMediaRecorder *m_mediaRecorder;
     QAndroidCameraSession *m_cameraSession;
 
-    QString m_audioInput;
+    QPlatformAudioInput *m_audioInput = nullptr;
     AndroidMediaRecorder::AudioSource m_audioSource;
 
     QMediaStorageLocation m_mediaStorageLocation;

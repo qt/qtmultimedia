@@ -80,12 +80,7 @@ public:
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
-    bool isMuted() const override;
-    void setMuted(bool muted) override;
-    qreal volume() const override;
-    void setVolume(qreal volume) override;
-    QAudioDevice audioInput() const override;
-    bool setAudioInput(const QAudioDevice &id) override;
+    void setAudioInput(QPlatformAudioInput *input) override;
 
     void setVideoPreview(QVideoSink *sink) override;
 

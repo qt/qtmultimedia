@@ -60,6 +60,7 @@
 #include <QMediaMetaData>
 #include <QMediaDevices>
 #include <QAudioDevice>
+#include <QAudioInput>
 
 #include <QMessageBox>
 #include <QPalette>
@@ -73,6 +74,9 @@ Camera::Camera()
     : ui(new Ui::Camera)
 {
     ui->setupUi(this);
+
+    m_audioInput.reset(new QAudioInput);
+    m_captureSession.setAudioInput(m_audioInput.get());
 
     //Camera devices:
 
@@ -110,7 +114,6 @@ void Camera::setCamera(const QCameraDevice &cameraInfo)
     connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
 
     m_captureSession.setVideoOutput(ui->viewfinder);
-    m_captureSession.setAudioInput(QMediaDevices::defaultAudioInput());
 
     updateCameraActive(m_camera->isActive());
     updateRecorderState(m_mediaEncoder->state());
@@ -229,7 +232,7 @@ void Camera::stop()
 
 void Camera::setMuted(bool muted)
 {
-    m_captureSession.setMuted(muted);
+    m_captureSession.audioInput()->setMuted(muted);
 }
 
 void Camera::takeImage()

@@ -41,6 +41,8 @@
 #include "qplatformmediaintegration_p.h"
 #include <qatomic.h>
 #include <qmutex.h>
+#include <qplatformaudioinput_p.h>
+#include <qplatformaudiooutput_p.h>
 
 #if QT_CONFIG(gstreamer)
 #include <private/qgstreamerintegration_p.h>
@@ -106,6 +108,16 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 void QPlatformMediaIntegration::setIntegration(QPlatformMediaIntegration *integration)
 {
     holder.instance = integration;
+}
+
+QPlatformAudioInput *QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
+{
+    return new QPlatformAudioInput(q);
+}
+
+QPlatformAudioOutput *QPlatformMediaIntegration::createAudioOutput(QAudioOutput *q)
+{
+    return new QPlatformAudioOutput(q);
 }
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration()

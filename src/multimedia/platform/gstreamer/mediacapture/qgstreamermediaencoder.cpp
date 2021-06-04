@@ -317,8 +317,10 @@ void QGstreamerMediaEncoder::record()
     gstFileSink.lockState(false);
 
     audioSrcPad = m_session->getAudioPad();
-    QGstPad audioPad = gstEncoder.getRequestPad("audio_%u");
-    audioSrcPad.link(audioPad);
+    if (!audioSrcPad.isNull()) {
+        QGstPad audioPad = gstEncoder.getRequestPad("audio_%u");
+        audioSrcPad.link(audioPad);
+    }
 
     if (m_resolvedSettings.videoCodec() != QMediaFormat::VideoCodec::Unspecified) {
         videoSrcPad = m_session->getVideoPad();

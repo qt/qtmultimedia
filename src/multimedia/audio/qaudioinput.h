@@ -75,6 +75,8 @@ Q_SIGNALS:
     void volumeChanged(float volume);
     void mutedChanged(bool muted);
 
+public:
+    QPlatformAudioInput *handle() const { return d; }
 private:
     Q_DISABLE_COPY(QAudioInput)
     QPlatformAudioInput *d = nullptr;
