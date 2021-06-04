@@ -72,6 +72,10 @@ class QPlatformMediaFormatInfo;
 class QObject;
 class QPlatformVideoSink;
 class QVideoSink;
+class QAudioInput;
+class QAudioOutput;
+class QPlatformAudioInput;
+class QPlatformAudioOutput;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {
@@ -91,6 +95,9 @@ public:
     virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
     virtual QPlatformMediaEncoder *createEncoder(QMediaEncoder *) { return nullptr; }
     virtual QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) { return nullptr; }
+
+    virtual QPlatformAudioInput *createAudioInput(QAudioInput *) { return nullptr; }
+    virtual QPlatformAudioOutput *createAudioOutput(QAudioOutput *) { return nullptr; }
 
     virtual QPlatformVideoSink *createVideoSink(QVideoSink *) { return nullptr; }
 };

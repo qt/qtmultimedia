@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QPLATFORMMEDIACAPTURE_H
-#define QPLATFORMMEDIACAPTURE_H
+#ifndef QPLATFORMAUDIOINPUT_H
+#define QPLATFORMAUDIOINPUT_H
 
 //
 //  W A R N I N G
@@ -51,52 +51,25 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <QtCore/qobject.h>
-#include <private/qplatformaudiointerface_p.h>
+#include <qaudiodevice.h>
 
 QT_BEGIN_NAMESPACE
-class QPlatformCamera;
-class QPlatformCameraImageCapture;
-class QPlatformMediaEncoder;
-class QAudioDevice;
-class QCameraDevice;
-class QVideoSink;
-class QAudioInput;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject, public QPlatformAudioInterface
+class Q_MULTIMEDIA_EXPORT QPlatformAudioInput
 {
-    Q_OBJECT
 public:
-    QPlatformMediaCaptureSession() = default;
-    virtual ~QPlatformMediaCaptureSession();
+    virtual ~QPlatformAudioInput() {}
 
-    virtual QPlatformCamera *camera() = 0;
-    virtual void setCamera(QPlatformCamera *) {}
+    virtual bool setAudioDevice(const QAudioDevice &id) = 0;
+    virtual void setMuted(bool muted) = 0;
+    virtual void setVolume(qreal volume) = 0;
 
-    virtual QPlatformCameraImageCapture *imageCapture() = 0;
-    virtual void setImageCapture(QPlatformCameraImageCapture *) {}
-
-    virtual QPlatformMediaEncoder *mediaEncoder() = 0;
-    virtual void setMediaEncoder(QPlatformMediaEncoder *) {}
-
-    void setAudioInput(QAudioInput *input);
-
-    virtual void setVideoPreview(QVideoSink * /*sink*/) {}
-    virtual QAudioDevice audioPreview() const;
-    virtual bool setAudioPreview(const QAudioDevice &) { return true; }
-
-Q_SIGNALS:
-    void mutedChanged(bool muted);
-    void volumeChanged(qreal volume);
-    void cameraChanged();
-    void imageCaptureChanged();
-    void encoderChanged();
-
-private:
-    QAudioInput *m_audioInput = nullptr;
+    QAudioDevice device;
+    float volume = 1.;
+    bool muted = false;
 };
 
 QT_END_NAMESPACE
 
 
-#endif // QPLATFORMMEDIAINTERFACE_H
+#endif // QPLATFORMAUDIOINPUT_H

@@ -36,67 +36,50 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QPLATFORMMEDIACAPTURE_H
-#define QPLATFORMMEDIACAPTURE_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#ifndef QAUDIOOUTPUTDEVICE_H
+#define QAUDIOOUTPUTDEVICE_H
 
-#include <private/qtmultimediaglobal_p.h>
 #include <QtCore/qobject.h>
-#include <private/qplatformaudiointerface_p.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qaudio.h>
 
 QT_BEGIN_NAMESPACE
-class QPlatformCamera;
-class QPlatformCameraImageCapture;
-class QPlatformMediaEncoder;
-class QAudioDevice;
-class QCameraDevice;
-class QVideoSink;
-class QAudioInput;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject, public QPlatformAudioInterface
+class QAudioDevice;
+class QPlatformAudioOutput;
+
+class Q_MULTIMEDIA_EXPORT QAudioOutput : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QAudioDevice device READ device WRITE setDevice NOTIFY deviceChanged)
+    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
+
 public:
-    QPlatformMediaCaptureSession() = default;
-    virtual ~QPlatformMediaCaptureSession();
+    explicit QAudioOutput(QObject *parent = nullptr);
+    explicit QAudioOutput(const QAudioDevice &device, QObject *parent = nullptr);
+    ~QAudioOutput();
 
-    virtual QPlatformCamera *camera() = 0;
-    virtual void setCamera(QPlatformCamera *) {}
+    QAudioDevice device() const;
+    float volume() const;
+    bool isMuted() const;
 
-    virtual QPlatformCameraImageCapture *imageCapture() = 0;
-    virtual void setImageCapture(QPlatformCameraImageCapture *) {}
-
-    virtual QPlatformMediaEncoder *mediaEncoder() = 0;
-    virtual void setMediaEncoder(QPlatformMediaEncoder *) {}
-
-    void setAudioInput(QAudioInput *input);
-
-    virtual void setVideoPreview(QVideoSink * /*sink*/) {}
-    virtual QAudioDevice audioPreview() const;
-    virtual bool setAudioPreview(const QAudioDevice &) { return true; }
+public Q_SLOTS:
+    void setDevice(const QAudioDevice &device);
+    void setVolume(float volume);
+    void setMuted(bool muted);
 
 Q_SIGNALS:
+    void deviceChanged();
+    void volumeChanged(float volume);
     void mutedChanged(bool muted);
-    void volumeChanged(qreal volume);
-    void cameraChanged();
-    void imageCaptureChanged();
-    void encoderChanged();
 
 private:
-    QAudioInput *m_audioInput = nullptr;
+    Q_DISABLE_COPY(QAudioOutput)
+    QPlatformAudioOutput *d = nullptr;
 };
 
 QT_END_NAMESPACE
 
-
-#endif // QPLATFORMMEDIAINTERFACE_H
+#endif  // QAUDIOOUTPUTDEVICE_H

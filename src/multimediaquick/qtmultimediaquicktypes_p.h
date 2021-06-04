@@ -113,6 +113,20 @@ struct QMediaDevicesForeign
     QML_NAMED_ELEMENT(MediaDevices)
 };
 
+struct QAudioInputForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QAudioInput)
+    QML_NAMED_ELEMENT(AudioInput)
+};
+
+struct QAudioOutputForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QAudioOutput)
+    QML_NAMED_ELEMENT(AudioOutput)
+};
+
 struct QAudioDeviceForeign
 {
     Q_GADGET
