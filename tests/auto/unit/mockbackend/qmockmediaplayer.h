@@ -45,8 +45,6 @@ public:
         , _error(QMediaPlayer::NoError)
         , _duration(0)
         , _position(0)
-        , _volume(100)
-        , _muted(false)
         , _bufferProgress(0)
         , _audioAvailable(false)
         , _videoAvailable(false)
@@ -76,12 +74,6 @@ public:
     qint64 position() const { return _position; }
 
     void setPosition(qint64 position) { if (position != _position) emit positionChanged(_position = position); }
-
-    int volume() const { return _volume; }
-    void setVolume(int volume) { emit volumeChanged(_volume = volume); }
-
-    bool isMuted() const { return _muted; }
-    void setMuted(bool muted) { if (muted != _muted) emit mutedChanged(_muted = muted); }
 
     float bufferProgress() const { return _bufferProgress; }
     void setBufferStatus(float status)
@@ -121,22 +113,9 @@ public:
     void pause() { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PausedState); }
     void stop() { if (_state != QMediaPlayer::StoppedState) setState(QMediaPlayer::StoppedState); }
 
-    void setAudioRole(QAudio::Role role)
-    {
-        if (hasAudioRole)
-            m_audioRole = role;
-    }
-
-    QList<QAudio::Role> supportedAudioRoles() const
-    {
-        if (!hasAudioRole)
-            return {};
-        return QList<QAudio::Role>() << QAudio::MusicRole
-                                     << QAudio::AlarmRole
-                                     << QAudio::NotificationRole;
-    }
-
     void setVideoSink(QVideoSink *) {}
+
+    void setAudioOutput(QPlatformAudioOutput *output) { m_audioOutput = output; }
 
     void emitError(QMediaPlayer::Error err, const QString &errorString)
     {
@@ -174,8 +153,6 @@ public:
         _error = QMediaPlayer::NoError;
         _duration = 0;
         _position = 0;
-        _volume = 0;
-        _muted = false;
         _bufferProgress = 0;
         _videoAvailable = false;
         _isSeekable = false;
@@ -184,19 +161,13 @@ public:
         _stream = 0;
         _isValid = false;
         _errorString = QString();
-        hasAudioRole = true;
     }
 
-
-    bool hasAudioRole = true;
-    QAudio::Role m_audioRole = QAudio::UnknownRole;
 
     QMediaPlayer::PlaybackState _state;
     QMediaPlayer::Error _error;
     qint64 _duration;
     qint64 _position;
-    int _volume;
-    bool _muted;
     float _bufferProgress;
     bool _audioAvailable;
     bool _videoAvailable;
@@ -208,6 +179,7 @@ public:
     bool _isValid;
     QString _errorString;
     bool m_supportsStreamPlayback = false;
+    QPlatformAudioOutput *m_audioOutput = nullptr;
 };
 
 QT_END_NAMESPACE

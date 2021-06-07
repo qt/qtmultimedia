@@ -49,6 +49,7 @@
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
+    \since 6.0
 
     QAudioOutput represents an output channel that can be used together with QMediaPlayer or
     QMediaCaptureSession. It allows selecting the physical output device to be used, muting the channel
@@ -86,6 +87,16 @@
     This property can be used to select any other output device listed by QMediaDevices::audioOutputs().
 */
 
+/*!
+    \property QAudioOutput::audioRole
+    \brief the role of the audio played by this output.
+
+    It can be set to specify the type of audio being played, allowing the system to make
+    appropriate decisions when it comes to volume, routing or post-processing.
+
+    \sa supportedAudioRoles()
+*/
+
 QAudioOutput::QAudioOutput(QObject *parent)
     : QAudioOutput(QMediaDevices::defaultAudioOutput(), parent)
 {}
@@ -112,7 +123,7 @@ QAudioDevice QAudioOutput::device() const
 
 void QAudioOutput::setDevice(const QAudioDevice &device)
 {
-    if (device.mode() != QAudio::AudioOutput)
+    if (!device.isNull() && device.mode() != QAudio::AudioOutput)
         return;
     if (d->device == device)
         return;
@@ -128,6 +139,7 @@ float QAudioOutput::volume() const
 
 void QAudioOutput::setVolume(float volume)
 {
+    volume = qBound(0., volume, 1.);
     if (d->volume == volume)
         return;
     d->volume = volume;
@@ -140,6 +152,23 @@ bool QAudioOutput::isMuted() const
     return d->muted;
 }
 
+QAudio::Role QAudioOutput::audioRole() const
+{
+    return d->role;
+}
+
+/*!
+    Returns a list of supported audio roles.
+
+    If setting the audio role is not supported, an empty list is returned.
+
+    \sa audioRole
+*/
+QList<QAudio::Role> QAudioOutput::supportedAudioRoles() const
+{
+    return d->supportedAudioRoles();
+}
+
 void QAudioOutput::setMuted(bool muted)
 {
     if (d->muted == muted)
@@ -147,6 +176,17 @@ void QAudioOutput::setMuted(bool muted)
     d->muted = muted;
     d->setMuted(muted);
     emit mutedChanged(muted);
+}
+
+void QAudioOutput::setAudioRole(QAudio::Role audioRole)
+{
+    if (d->role == audioRole)
+        return;
+    if (!d->supportedAudioRoles().contains(audioRole))
+        return;
+    d->role = audioRole;
+    d->setAudioRole(d->role);
+    emit audioRoleChanged(d->role);
 }
 
 #include "moc_qaudiooutput.cpp"

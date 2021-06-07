@@ -31,6 +31,7 @@
 
 #include <QUrl>
 #include <QMediaPlayer>
+#include <QAudioOutput>
 #include <qsignalspy.h>
 #include <qfileinfo.h>
 #include <qtest.h>
@@ -42,6 +43,8 @@ namespace MediaFileSelector {
 static QUrl selectMediaFile(const QStringList& mediaCandidates)
 {
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QSignalSpy errorSpy(&player, SIGNAL(errorOccurred(QMediaPlayer::Error, const QString&)));
 

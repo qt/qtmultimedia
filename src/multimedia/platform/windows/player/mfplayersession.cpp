@@ -47,6 +47,9 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qbuffer.h>
 
+#include "qplatformaudiooutput_p.h"
+#include "qaudiooutput.h"
+
 #include "mfplayercontrol_p.h"
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
@@ -83,8 +86,6 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     , m_mediaTypes(0)
     , m_pendingRate(1)
     , m_status(QMediaPlayer::NoMedia)
-    , m_volume(100)
-    , m_muted(false)
     , m_audioSampleGrabber(0)
     , m_audioSampleGrabberNode(0)
     , m_videoProbeMFT(0)
@@ -397,34 +398,36 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
 
     IMFActivate *activate = NULL;
     if (mediaType == Audio) {
-        HRESULT hr = MFCreateAudioRendererActivate(&activate);
-        if (FAILED(hr)) {
-            qWarning() << "Failed to create audio renderer activate";
-            node->Release();
-            return NULL;
+        if (m_audioOutput) {
+            HRESULT hr = MFCreateAudioRendererActivate(&activate);
+            if (FAILED(hr)) {
+                qWarning() << "Failed to create audio renderer activate";
+                node->Release();
+                return NULL;
+            }
+
+            auto id = m_audioOutput->device.id();
+            if (!id.isEmpty()) {
+                QString s = QString::fromUtf8(id);
+                hr = activate->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID, (LPCWSTR)s.utf16());
+            } else {
+                //This is the default one that has been inserted in updateEndpoints(),
+                //so give the activate a hint that we want to use the device for multimedia playback
+                //then the media foundation will choose an appropriate one.
+
+                //from MSDN:
+                //The ERole enumeration defines constants that indicate the role that the system has assigned to an audio endpoint device.
+                //eMultimedia: Music, movies, narration, and live music recording.
+                hr = activate->SetUINT32(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE, eMultimedia);
+            }
+
+            if (FAILED(hr)) {
+                qWarning() << "Failed to set attribute for audio device" << m_audioOutput->device.description();
+                activate->Release();
+                node->Release();
+                return NULL;
+            }
         }
-
-        if (!m_audioOutput.id().isEmpty()) {
-            QString s = QString::fromUtf8(m_audioOutput.id());
-            hr = activate->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID, (LPCWSTR)s.utf16());
-        } else {
-            //This is the default one that has been inserted in updateEndpoints(),
-            //so give the activate a hint that we want to use the device for multimedia playback
-            //then the media foundation will choose an appropriate one.
-
-            //from MSDN:
-            //The ERole enumeration defines constants that indicate the role that the system has assigned to an audio endpoint device.
-            //eMultimedia: Music, movies, narration, and live music recording.
-            hr = activate->SetUINT32(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ROLE, eMultimedia);
-        }
-
-        if (FAILED(hr)) {
-            qWarning() << "Failed to set attribute for audio device" << m_audioOutput.description();
-            activate->Release();
-            node->Release();
-            return NULL;
-        }
-
     } else if (mediaType == Video) {
         activate = m_videoRendererControl->createActivate();
     } else {
@@ -1350,12 +1353,7 @@ void MFPlayerSession::scrub(bool enableScrub)
     }
 }
 
-int MFPlayerSession::volume() const
-{
-    return m_volume;
-}
-
-void MFPlayerSession::setVolume(int volume)
+void MFPlayerSession::setVolume(float volume)
 {
     if (m_volume == volume)
         return;
@@ -1363,13 +1361,6 @@ void MFPlayerSession::setVolume(int volume)
 
     if (!m_muted)
         setVolumeInternal(volume);
-
-    emit volumeChanged(m_volume);
-}
-
-bool MFPlayerSession::isMuted() const
-{
-    return m_muted;
 }
 
 void MFPlayerSession::setMuted(bool muted)
@@ -1379,11 +1370,9 @@ void MFPlayerSession::setMuted(bool muted)
     m_muted = muted;
 
     setVolumeInternal(muted ? 0 : m_volume);
-
-    emit mutedChanged(m_muted);
 }
 
-void MFPlayerSession::setVolumeInternal(int volume)
+void MFPlayerSession::setVolumeInternal(float volume)
 {
     if (m_volumeControl) {
         quint32 channelCount = 0;
@@ -1391,9 +1380,8 @@ void MFPlayerSession::setVolumeInternal(int volume)
                 || channelCount == 0)
             return;
 
-        float scaled = volume * 0.01f;
         for (quint32 i = 0; i < channelCount; ++i)
-            m_volumeControl->SetChannelVolume(i, scaled);
+            m_volumeControl->SetChannelVolume(i, volume);
     }
 }
 
@@ -1811,15 +1799,23 @@ void MFPlayerSession::clear()
     }
 }
 
-bool MFPlayerSession::setAudioOutput(const QAudioDevice &device)
+void MFPlayerSession::setAudioOutput(QPlatformAudioOutput *device)
 {
     // ### This doesn't yet update the output routing during playback
     // ie. it currently only works before the first play().
     if (m_audioOutput == device)
-        return true;
+        return;
+
+    if (m_audioOutput)
+        m_audioOutput->q->disconnect(this);
 
     m_audioOutput = device;
-    return true;
+    if (m_audioOutput) {
+        // #### Implement device changes: connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, XXXX);
+        connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &MFPlayerSession::setVolume);
+        connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &MFPlayerSession::setMuted);
+//        connect(m_audioOutput->q, &QAudioOutput::audioRoleChanged, this, &MFPlayerSession::setAudioRole);
+    }
 }
 
 void MFPlayerSession::setVideoSink(QVideoSink *sink)

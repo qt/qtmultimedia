@@ -126,6 +126,7 @@ float QAudioInput::volume() const
 
 void QAudioInput::setVolume(float volume)
 {
+    volume = qBound(0., volume, 1.);
     if (d->volume == volume)
         return;
     d->volume = volume;

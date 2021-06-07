@@ -66,11 +66,14 @@ public:
     virtual void setAudioDevice(const QAudioDevice &/*device*/) {}
     virtual void setMuted(bool /*muted*/) {}
     virtual void setVolume(float /*volume*/) {}
+    virtual void setAudioRole(QAudio::Role /*role*/) {}
+    virtual QList<QAudio::Role> supportedAudioRoles() const { return {}; }
 
     QAudioOutput *q = nullptr;
     QAudioDevice device;
     float volume = 1.;
     bool muted = false;
+    QAudio::Role role = QAudio::UnknownRole;
 };
 
 QT_END_NAMESPACE

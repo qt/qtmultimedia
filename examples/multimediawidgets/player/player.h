@@ -122,13 +122,14 @@ private:
     void updateDurationInfo(qint64 currentInfo);
 
     QMediaPlayer *m_player = nullptr;
+    QAudioOutput *m_audioOutput = nullptr;
     QMediaPlaylist *m_playlist = nullptr;
     QVideoWidget *m_videoWidget = nullptr;
     QSlider *m_slider = nullptr;
     QLabel *m_labelDuration = nullptr;
     QPushButton *m_fullScreenButton = nullptr;
     QPushButton *m_colorButton = nullptr;
-    QComboBox *m_audioOutput = nullptr;
+    QComboBox *m_audioOutputCombo = nullptr;
     QDialog *m_colorDialog = nullptr;
     QLabel *m_statusLabel = nullptr;
     QStatusBar *m_statusBar = nullptr;

@@ -67,6 +67,8 @@ Item {
         }
 
         videoOutput: output
+        audioOutput: AudioOutput {
+        }
     }
 
     VideoOutput {

@@ -45,6 +45,7 @@
 #include "qmockmediacapturesession.h"
 #include "qmockvideosink.h"
 #include "qmockimagecapture.h"
+#include "qmockaudiooutput.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -116,6 +117,11 @@ QPlatformVideoSink *QMockIntegration::createVideoSink(QVideoSink *sink)
 {
     m_lastVideoSink = new QMockVideoSink(sink);
     return m_lastVideoSink;
+}
+
+QPlatformAudioOutput *QMockIntegration::createAudioOutput(QAudioOutput *q)
+{
+    return new QMockAudioOutput(q);
 }
 
 bool QMockCamera::simpleCamera = false;

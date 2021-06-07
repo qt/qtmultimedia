@@ -59,6 +59,7 @@
 #include <QMediaMetaData>
 #include <QMediaDevices>
 #include <QAudioDevice>
+#include <QAudioOutput>
 #include <QMediaFormat>
 #include <QtWidgets>
 
@@ -67,7 +68,9 @@ Player::Player(QWidget *parent)
 {
 //! [create-objs]
     m_player = new QMediaPlayer(this);
-    m_player->setAudioRole(QAudio::VideoRole);
+    m_audioOutput = new QAudioOutput(this);
+    m_player->setAudioOutput(m_audioOutput);
+    m_audioOutput->setAudioRole(QAudio::VideoRole);
 //! [create-objs]
 
 //! [2]
@@ -162,7 +165,7 @@ Player::Player(QWidget *parent)
 
     PlayerControls *controls = new PlayerControls(this);
     controls->setState(m_player->playbackState());
-    controls->setVolume(m_player->volume());
+    controls->setVolume(m_audioOutput->volume());
     controls->setMuted(controls->isMuted());
 
     connect(controls, &PlayerControls::play, m_player, &QMediaPlayer::play);
@@ -170,14 +173,14 @@ Player::Player(QWidget *parent)
     connect(controls, &PlayerControls::stop, m_player, &QMediaPlayer::stop);
     connect(controls, &PlayerControls::next, m_playlist, &QMediaPlaylist::next);
     connect(controls, &PlayerControls::previous, this, &Player::previousClicked);
-    connect(controls, &PlayerControls::changeVolume, m_player, &QMediaPlayer::setVolume);
-    connect(controls, &PlayerControls::changeMuting, m_player, &QMediaPlayer::setMuted);
+    connect(controls, &PlayerControls::changeVolume, m_audioOutput, &QAudioOutput::setVolume);
+    connect(controls, &PlayerControls::changeMuting, m_audioOutput, &QAudioOutput::setMuted);
     connect(controls, &PlayerControls::changeRate, m_player, &QMediaPlayer::setPlaybackRate);
     connect(controls, &PlayerControls::stop, m_videoWidget, QOverload<>::of(&QVideoWidget::update));
 
     connect(m_player, &QMediaPlayer::playbackStateChanged, controls, &PlayerControls::setState);
-    connect(m_player, &QMediaPlayer::volumeChanged, controls, &PlayerControls::setVolume);
-    connect(m_player, &QMediaPlayer::mutedChanged, controls, &PlayerControls::setMuted);
+    connect(m_audioOutput, &QAudioOutput::volumeChanged, controls, &PlayerControls::setVolume);
+    connect(m_audioOutput, &QAudioOutput::mutedChanged, controls, &PlayerControls::setMuted);
 
     m_fullScreenButton = new QPushButton(tr("FullScreen"), this);
     m_fullScreenButton->setCheckable(true);
@@ -186,11 +189,11 @@ Player::Player(QWidget *parent)
     m_colorButton->setEnabled(false);
     connect(m_colorButton, &QPushButton::clicked, this, &Player::showColorDialog);
 
-    m_audioOutput = new QComboBox(this);
-    m_audioOutput->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
+    m_audioOutputCombo = new QComboBox(this);
+    m_audioOutputCombo->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
     for (auto &deviceInfo: QMediaDevices::audioOutputs())
-        m_audioOutput->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
-    connect(m_audioOutput, QOverload<int>::of(&QComboBox::activated), this, &Player::audioOutputChanged);
+        m_audioOutputCombo->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
+    connect(m_audioOutputCombo, QOverload<int>::of(&QComboBox::activated), this, &Player::audioOutputChanged);
 
     QBoxLayout *displayLayout = new QHBoxLayout;
     displayLayout->addWidget(m_videoWidget, 2);
@@ -204,7 +207,7 @@ Player::Player(QWidget *parent)
     controlLayout->addStretch(1);
     controlLayout->addWidget(m_fullScreenButton);
     controlLayout->addWidget(m_colorButton);
-    controlLayout->addWidget(m_audioOutput);
+    controlLayout->addWidget(m_audioOutputCombo);
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(displayLayout);
@@ -583,8 +586,8 @@ void Player::showColorDialog()
 
 void Player::audioOutputChanged(int index)
 {
-    auto device = m_audioOutput->itemData(index).value<QAudioDevice>();
-    m_player->setAudioOutput(device);
+    auto device = m_audioOutputCombo->itemData(index).value<QAudioDevice>();
+    m_player->audioOutput()->setDevice(device);
 }
 
 void Player::clearHistogram()

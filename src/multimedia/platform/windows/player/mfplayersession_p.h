@@ -112,10 +112,6 @@ public:
     void setPosition(qint64 position);
     qreal playbackRate() const;
     void setPlaybackRate(qreal rate);
-    int volume() const;
-    void setVolume(int volume);
-    bool isMuted() const;
-    void setMuted(bool muted);
     float bufferProgress();
     QMediaTimeRange availablePlaybackRanges();
 
@@ -124,8 +120,7 @@ public:
     void close();
     void clearPlayer() { m_playerControl = nullptr; }
 
-    bool setAudioOutput(const QAudioDevice &device);
-    QAudioDevice audioOutput() const { return m_audioOutput; }
+    void setAudioOutput(QPlatformAudioOutput *device);
 
     QMediaMetaData metaData() const { return m_metaData; }
 
@@ -138,11 +133,13 @@ public:
     void seekableUpdate(bool seekable) { if (m_playerControl) m_playerControl->handleSeekableUpdate(seekable); }
     void error(QMediaPlayer::Error error, QString errorString, bool isFatal) { if (m_playerControl) m_playerControl->handleError(error, errorString, isFatal); }
     void playbackRateChanged(qreal rate) { if (m_playerControl) m_playerControl->playbackRateChanged(rate); }
-    void volumeChanged(int volume) { if (m_playerControl) m_playerControl->volumeChanged(volume); }
-    void mutedChanged(bool muted) { if (m_playerControl) m_playerControl->mutedChanged(muted); }
     void bufferProgressChanged(float percentFilled) { if (m_playerControl) m_playerControl->bufferProgressChanged(percentFilled); }
     void metaDataChanged() { if (m_playerControl) m_playerControl->metaDataChanged(); }
     void positionChanged(qint64 position) { if (m_playerControl) m_playerControl->positionChanged(position); }
+
+public Q_SLOTS:
+    void setVolume(float volume);
+    void setMuted(bool muted);
 
 Q_SIGNALS:
     void sessionEvent(IMFMediaEvent  *sessionEvent);
@@ -224,13 +221,13 @@ private:
 
     QMediaPlayer::MediaStatus m_status;
     bool m_canScrub;
-    int m_volume;
-    bool m_muted;
+    float m_volume = 1.;
+    bool m_muted = false;
 
-    QAudioDevice m_audioOutput;
+    QPlatformAudioOutput *m_audioOutput = nullptr;
     QMediaMetaData m_metaData;
 
-    void setVolumeInternal(int volume);
+    void setVolumeInternal(float volume);
 
     void createSession();
     void setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD);

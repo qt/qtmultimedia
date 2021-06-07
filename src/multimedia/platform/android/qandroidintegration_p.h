@@ -72,6 +72,8 @@ public:
     QPlatformMediaEncoder *createEncoder(QMediaEncoder *encoder) override;
     QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *imageCapture) override;
 
+    QPlatformAudioOutput *createAudioOutput(QAudioOutput *q) override;
+
     QAndroidMediaDevices *m_devices = nullptr;
     QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
 };

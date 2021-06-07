@@ -96,8 +96,7 @@ bool QGstreamerAudioOutput::setAudioOutput(const QAudioDevice &info)
     qCDebug(qLcMediaAudioOutput) << "setAudioOutput" << info.description() << info.isNull();
     m_audioOutput = info;
 
-    auto state = gstPipeline.state();
-    if (state != GST_STATE_PLAYING)
+    if (gstPipeline.isNull() || gstPipeline.state() != GST_STATE_PLAYING)
         return changeAudioOutput();
 
     auto pad = audioVolume.staticPad("src");

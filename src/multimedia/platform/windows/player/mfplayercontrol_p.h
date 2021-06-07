@@ -75,12 +75,6 @@ public:
     qint64 position() const override;
     void setPosition(qint64 position) override;
 
-    int volume() const override;
-    void setVolume(int volume) override;
-
-    bool isMuted() const override;
-    void setMuted(bool muted) override;
-
     float bufferProgress() const override;
 
     bool isAudioAvailable() const override;
@@ -105,8 +99,7 @@ public:
 
     QMediaMetaData metaData() const override;
 
-    bool setAudioOutput(const QAudioDevice &) override;
-    QAudioDevice audioOutput() const override;
+    void setAudioOutput(QPlatformAudioOutput *output) override;
 
     void setVideoSink(QVideoSink *sink) override;
 

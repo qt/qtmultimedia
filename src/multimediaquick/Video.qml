@@ -432,7 +432,6 @@ Item {
     VideoOutput {
         id: videoOut
         anchors.fill: video
-        source: player
     }
 
     MediaPlayer {
@@ -440,6 +439,10 @@ Item {
         onPaused:  video.paused()
         onStopped: video.stopped()
         onPlaying: video.playing()
+        videoOutput: videoOut
+        audioOutput: AudioOutput {
+
+        }
     }
 
     /*!

@@ -55,6 +55,7 @@ class Q_MULTIMEDIA_EXPORT QAudioOutput : public QObject
     Q_PROPERTY(QAudioDevice device READ device WRITE setDevice NOTIFY deviceChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
+    Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
 
 public:
     explicit QAudioOutput(QObject *parent = nullptr);
@@ -64,16 +65,21 @@ public:
     QAudioDevice device() const;
     float volume() const;
     bool isMuted() const;
+    QAudio::Role audioRole() const;
+
+    QList<QAudio::Role> supportedAudioRoles() const;
 
 public Q_SLOTS:
     void setDevice(const QAudioDevice &device);
     void setVolume(float volume);
     void setMuted(bool muted);
+    void setAudioRole(QAudio::Role audioRole);
 
 Q_SIGNALS:
     void deviceChanged();
     void volumeChanged(float volume);
     void mutedChanged(bool muted);
+    void audioRoleChanged(QAudio::Role role);
 
 public:
     QPlatformAudioOutput *handle() const { return d; }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,30 +36,41 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QMOCKAUDIOOUTPUT_H
+#define QMOCKAUDIOOUTPUT_H
 
-import QtQuick
-import QtMultimedia
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-//! [complete]
-Item {
-    MediaPlayer {
-        id: mediaplayer
-        source: "file:///test.mp4"
-        videoOutput: videoOutput
-        audioOutput: AudioOutput {
+#include <private/qplatformaudiooutput_p.h>
 
-        }
+QT_BEGIN_NAMESPACE
+
+class QMockAudioOutput : public QPlatformAudioOutput
+{
+public:
+    QMockAudioOutput(QAudioOutput *qq) : QPlatformAudioOutput(qq) {}
+
+    virtual QList<QAudio::Role> supportedAudioRoles() const {
+        if (!hasAudioRole)
+            return {};
+        return QList<QAudio::Role>() << QAudio::MusicRole
+                                     << QAudio::AlarmRole
+                                     << QAudio::NotificationRole;
     }
 
-    VideoOutput {
-        id: videoOutput
-        anchors.fill: parent
-    }
+    bool hasAudioRole = true;
+};
 
-    MouseArea {
-        id: playArea
-        anchors.fill: parent
-        onPressed: mediaplayer.play();
-    }
-}
-//! [complete]
+QT_END_NAMESPACE
+
+
+#endif // QMOCKAUDIOOUTPUT_H

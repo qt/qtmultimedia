@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,30 +36,44 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QANDROIDAUDIOOUTPUT_H
+#define QANDROIDAUDIOOUTPUT_H
 
-import QtQuick
-import QtMultimedia
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-//! [complete]
-Item {
-    MediaPlayer {
-        id: mediaplayer
-        source: "file:///test.mp4"
-        videoOutput: videoOutput
-        audioOutput: AudioOutput {
+#include <private/qplatformaudiooutput_p.h>
 
-        }
+QT_BEGIN_NAMESPACE
+
+class Q_MULTIMEDIA_EXPORT QAndroidAudioOutput : public QPlatformAudioOutput
+{
+public:
+    QAndroidAudioOutput(QAudioOutput *qq) : QPlatformAudioOutput(qq) {}
+
+    virtual QList<QAudio::Role> supportedAudioRoles() const {
+        return QList<QAudio::Role>()
+               << QAudio::VoiceCommunicationRole
+               << QAudio::MusicRole
+               << QAudio::VideoRole
+               << QAudio::SonificationRole
+               << QAudio::AlarmRole
+               << QAudio::NotificationRole
+               << QAudio::RingtoneRole
+               << QAudio::AccessibilityRole
+               << QAudio::GameRole;
     }
+};
 
-    VideoOutput {
-        id: videoOutput
-        anchors.fill: parent
-    }
+QT_END_NAMESPACE
 
-    MouseArea {
-        id: playArea
-        anchors.fill: parent
-        onPressed: mediaplayer.play();
-    }
-}
-//! [complete]
+
+#endif // QANDROIDAUDIOOUTPUT_H

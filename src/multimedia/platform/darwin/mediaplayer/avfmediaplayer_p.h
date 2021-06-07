@@ -94,9 +94,6 @@ public:
 
     float bufferProgress() const override;
 
-    int volume() const override;
-    bool isMuted() const override;
-
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;
 
@@ -105,9 +102,8 @@ public:
 
     qreal playbackRate() const override;
 
-    bool setAudioOutput(const QAudioDevice &) override;
-    QAudioDevice audioOutput() const override;
-    QAudioDevice m_audioOutput;
+    void setAudioOutput(QPlatformAudioOutput *output) override;
+    QPlatformAudioOutput *m_audioOutput = nullptr;
 
     QMediaMetaData metaData() const override;
 
@@ -121,8 +117,9 @@ public Q_SLOTS:
     void pause() override;
     void stop() override;
 
-    void setVolume(int volume) override;
-    void setMuted(bool muted) override;
+    void setVolume(float volume);
+    void setMuted(bool muted);
+    void audioOutputChanged();
 
     void processEOS();
     void processLoadStateChange(QMediaPlayer::PlaybackState newState);
@@ -163,9 +160,7 @@ private:
     QUrl m_resources;
     QMediaMetaData m_metaData;
 
-    bool m_muted;
     bool m_tryingAsync;
-    int m_volume;
     qreal m_rate;
     qint64 m_requestedPosition;
 

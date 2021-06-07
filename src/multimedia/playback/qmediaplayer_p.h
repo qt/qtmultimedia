@@ -54,6 +54,7 @@
 #include "qmediaplayer.h"
 #include "qmediametadata.h"
 #include "qvideosink.h"
+#include "qaudiooutput.h"
 #include <private/qplatformmediaplayer_p.h>
 
 #include "private/qobject_p.h"
@@ -63,7 +64,6 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qtimer.h>
-
 QT_BEGIN_NAMESPACE
 
 class QPlatformMediaPlayer;
@@ -77,6 +77,7 @@ public:
     QPlatformMediaPlayer* control = nullptr;
     QString errorString;
 
+    QAudioOutput *audioOutput = nullptr;
     QVideoSink *videoSink = nullptr;
     QPointer<QObject> videoOutput;
     QUrl qrcMedia;

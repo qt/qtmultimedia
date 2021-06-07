@@ -79,6 +79,8 @@ public:
     QPlatformMediaCaptureSession *createCaptureSession() override;
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;
 
+    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
+
     enum Flag {
         NoPlayerInterface = 0x1,
         NoAudioDecoderInterface = 0x2,

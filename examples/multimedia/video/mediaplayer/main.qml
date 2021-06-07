@@ -73,6 +73,9 @@ Window {
     MediaPlayer {
         id: mediaPlayer
         videoOutput: videoOutput
+        audioOutput: AudioOutput {
+        }
+
         onErrorOccurred: { mediaErrorText.text = mediaPlayer.errorString; mediaError.open() }
         onMetaDataChanged: { metadataInfo.read(mediaPlayer.metaData) }
     }
