@@ -46,23 +46,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDevicesPrivate
-{
-public:
-    ~QMediaDevicesPrivate()
-    {
-    }
-    QPlatformMediaDevices *platformDevices() {
-        if (!platform)
-            platform = QPlatformMediaIntegration::instance()->devices();
-        return platform;
-    }
-
-private:
-    QPlatformMediaDevices *platform = nullptr;
-
-} priv;
-
 /*!
     \class QMediaDevices
     \brief The QMediaDevices class provides information about available
@@ -96,7 +79,7 @@ private:
 */
 QList<QAudioDeviceInfo> QMediaDevices::audioInputs()
 {
-    return priv.platformDevices()->audioInputs();
+    return QPlatformMediaIntegration::instance()->devices()->audioInputs();
 }
 
 /*!
@@ -107,7 +90,7 @@ QList<QAudioDeviceInfo> QMediaDevices::audioInputs()
 */
 QList<QAudioDeviceInfo> QMediaDevices::audioOutputs()
 {
-    return priv.platformDevices()->audioOutputs();
+    return QPlatformMediaIntegration::instance()->devices()->audioOutputs();
 }
 
 /*!
@@ -115,7 +98,7 @@ QList<QAudioDeviceInfo> QMediaDevices::audioOutputs()
 */
 QList<QCameraInfo> QMediaDevices::videoInputs()
 {
-    return priv.platformDevices()->videoInputs();
+    return QPlatformMediaIntegration::instance()->devices()->videoInputs();
 }
 
 /*!
@@ -174,7 +157,7 @@ QCameraInfo QMediaDevices::defaultVideoInput()
 QMediaDevices::QMediaDevices(QObject *parent)
     : QObject(parent)
 {
-    priv.platformDevices()->addDevices(this);
+    QPlatformMediaIntegration::instance()->devices()->addDevices(this);
 }
 
 /*!
@@ -182,7 +165,7 @@ QMediaDevices::QMediaDevices(QObject *parent)
 */
 QMediaDevices::~QMediaDevices()
 {
-    priv.platformDevices()->removeDevices(this);
+    QPlatformMediaIntegration::instance()->devices()->removeDevices(this);
 }
 
 
