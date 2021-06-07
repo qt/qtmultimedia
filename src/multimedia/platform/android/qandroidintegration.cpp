@@ -83,9 +83,9 @@ QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()
 
 }
 
-QPlatformMediaCaptureSession *QAndroidIntegration::createCaptureSession(QMediaRecorder::CaptureMode mode)
+QPlatformMediaCaptureSession *QAndroidIntegration::createCaptureSession()
 {
-    return new QAndroidCaptureService(mode);
+    return new QAndroidCaptureService();
 }
 
 QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)

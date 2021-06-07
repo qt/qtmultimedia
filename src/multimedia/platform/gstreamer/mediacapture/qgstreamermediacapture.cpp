@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcMediaCapture, "qt.multimedia.capture")
 
-QGstreamerMediaCapture::QGstreamerMediaCapture(QMediaRecorder::CaptureMode)
+QGstreamerMediaCapture::QGstreamerMediaCapture()
     : gstPipeline("pipeline")
 {
     gstAudioInput = new QGstreamerAudioInput(this);

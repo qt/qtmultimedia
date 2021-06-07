@@ -88,7 +88,7 @@ QPlatformMediaFormatInfo *QWindowsIntegration::formatInfo()
     return m_formatInfo;
 }
 
-QPlatformMediaCaptureSession *QWindowsIntegration::createCaptureSession(QMediaRecorder::CaptureMode)
+QPlatformMediaCaptureSession *QWindowsIntegration::createCaptureSession()
 {
     return new QWindowsMediaCaptureService();
 }

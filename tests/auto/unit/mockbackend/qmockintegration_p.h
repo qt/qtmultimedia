@@ -76,7 +76,7 @@ public:
     QPlatformCamera *createCamera(QCamera *) override;
     QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
     QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) override;
-    QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode mode) override;
+    QPlatformMediaCaptureSession *createCaptureSession() override;
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;
 
     enum Flag {

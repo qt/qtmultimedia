@@ -79,9 +79,9 @@ QPlatformAudioDecoder *QGstreamerIntegration::createAudioDecoder(QAudioDecoder *
     return new QGstreamerAudioDecoder(decoder);
 }
 
-QPlatformMediaCaptureSession *QGstreamerIntegration::createCaptureSession(QMediaRecorder::CaptureMode mode)
+QPlatformMediaCaptureSession *QGstreamerIntegration::createCaptureSession()
 {
-    return new QGstreamerMediaCapture(mode);
+    return new QGstreamerMediaCapture();
 }
 
 QPlatformMediaPlayer *QGstreamerIntegration::createPlayer(QMediaPlayer *player)

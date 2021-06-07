@@ -74,7 +74,7 @@ QPlatformMediaFormatInfo *QDarwinIntegration::formatInfo()
     return m_formatInfo;
 }
 
-QPlatformMediaCaptureSession *QDarwinIntegration::createCaptureSession(QMediaRecorder::CaptureMode)
+QPlatformMediaCaptureSession *QDarwinIntegration::createCaptureSession()
 {
     return new AVFCameraService;
 }

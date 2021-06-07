@@ -68,7 +68,7 @@ class QAndroidCaptureService : public QPlatformMediaCaptureSession
     Q_OBJECT
 
 public:
-    explicit QAndroidCaptureService(QMediaRecorder::CaptureMode mode);
+    explicit QAndroidCaptureService();
     virtual ~QAndroidCaptureService();
 
     QPlatformCamera *camera() override;

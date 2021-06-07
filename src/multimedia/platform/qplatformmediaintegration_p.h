@@ -86,8 +86,7 @@ public:
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
     virtual QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *) { return nullptr; }
-    // ### get rid of the mode once refactoring is done
-    virtual QPlatformMediaCaptureSession *createCaptureSession(QMediaRecorder::CaptureMode /*mode*/ = QMediaRecorder::AudioAndVideo) { return nullptr; }
+    virtual QPlatformMediaCaptureSession *createCaptureSession() { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
     virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
     virtual QPlatformMediaEncoder *createEncoder(QMediaEncoder *) { return nullptr; }

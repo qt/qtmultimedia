@@ -103,9 +103,8 @@ QPlatformMediaEncoder *QMockIntegration::createEncoder(QMediaEncoder *encoder)
     return new QMockMediaEncoder(encoder);
 }
 
-QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession(QMediaRecorder::CaptureMode mode)
+QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession()
 {
-    Q_UNUSED(mode);
     if (m_flags & NoCaptureInterface)
         m_lastCaptureService = nullptr;
     else

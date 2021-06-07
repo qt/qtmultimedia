@@ -51,8 +51,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidCaptureService::QAndroidCaptureService(QMediaRecorder::CaptureMode mode)
-    : m_videoEnabled(mode == QMediaRecorder::AudioAndVideo)
+QAndroidCaptureService::QAndroidCaptureService()
+    : m_videoEnabled(true)
 {
     if (m_videoEnabled) {
         m_cameraSession = new QAndroidCameraSession;

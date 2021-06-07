@@ -71,7 +71,7 @@ class QGstreamerMediaCapture : public QPlatformMediaCaptureSession
     Q_OBJECT
 
 public:
-    QGstreamerMediaCapture(QMediaRecorder::CaptureMode mode);
+    QGstreamerMediaCapture();
     virtual ~QGstreamerMediaCapture();
 
     QPlatformCamera *camera() override;
