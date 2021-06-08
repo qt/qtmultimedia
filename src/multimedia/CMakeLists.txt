@@ -154,13 +154,13 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/mediacapture/qwindowscamera.cpp
         platform/windows/mediacapture/qwindowscameraimagecapture.cpp
         platform/windows/mediacapture/qwindowscameraimagecapture_p.h
-        platform/windows/mediacapture/qwindowscamerareader.cpp
-        platform/windows/mediacapture/qwindowscamerareader_p.h
-        platform/windows/mediacapture/qwindowscamerasession.cpp
-        platform/windows/mediacapture/qwindowscamerasession_p.h
         platform/windows/mediacapture/qwindowscamera_p.h
         platform/windows/mediacapture/qwindowsmediacapture.cpp
         platform/windows/mediacapture/qwindowsmediacapture_p.h
+        platform/windows/mediacapture/qwindowsmediadevicereader.cpp
+        platform/windows/mediacapture/qwindowsmediadevicereader_p.h
+        platform/windows/mediacapture/qwindowsmediadevicesession.cpp
+        platform/windows/mediacapture/qwindowsmediadevicesession_p.h
         platform/windows/mediacapture/qwindowsmediaencoder.cpp
         platform/windows/mediacapture/qwindowsmediaencoder_p.h
         platform/windows/qwindowsmediadevices.cpp platform/windows/qwindowsmediadevices_p.h

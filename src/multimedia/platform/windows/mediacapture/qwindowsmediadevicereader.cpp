@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qwindowscamerareader_p.h"
+#include "qwindowsmediadevicereader_p.h"
 
 #include "qwindowsmultimediautils_p.h"
 #include <qvideosink.h>
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 enum { MEDIA_TYPE_INDEX_DEFAULT = 0xffffffff };
 
-QWindowsCameraReader::QWindowsCameraReader(QObject *parent)
+QWindowsMediaDeviceReader::QWindowsMediaDeviceReader(QObject *parent)
     : QObject(parent),
       m_finalizeSemaphore(1)
 {
@@ -58,13 +58,13 @@ QWindowsCameraReader::QWindowsCameraReader(QObject *parent)
     connect(&m_durationTimer, SIGNAL(timeout()), this, SLOT(updateDuration()));
 }
 
-QWindowsCameraReader::~QWindowsCameraReader()
+QWindowsMediaDeviceReader::~QWindowsMediaDeviceReader()
 {
     deactivate();
 }
 
 // Creates a video or audio media source specified by deviceId (symbolic link)
-HRESULT QWindowsCameraReader::createSource(const QString &deviceId, bool video, IMFMediaSource **source)
+HRESULT QWindowsMediaDeviceReader::createSource(const QString &deviceId, bool video, IMFMediaSource **source)
 {
     if (!source)
         return E_INVALIDARG;
@@ -96,10 +96,10 @@ HRESULT QWindowsCameraReader::createSource(const QString &deviceId, bool video, 
 
 // Creates a source/reader aggregating two other sources (video/audio).
 // If one of the sources is null the result will be video-only or audio-only.
-HRESULT QWindowsCameraReader::createAggregateReader(IMFMediaSource *firstSource,
-                                                    IMFMediaSource *secondSource,
-                                                    IMFMediaSource **aggregateSource,
-                                                    IMFSourceReader **sourceReader)
+HRESULT QWindowsMediaDeviceReader::createAggregateReader(IMFMediaSource *firstSource,
+                                                         IMFMediaSource *secondSource,
+                                                         IMFMediaSource **aggregateSource,
+                                                         IMFSourceReader **sourceReader)
 {
     if ((!firstSource && !secondSource) || !aggregateSource || !sourceReader)
         return E_INVALIDARG;
@@ -143,7 +143,7 @@ HRESULT QWindowsCameraReader::createAggregateReader(IMFMediaSource *firstSource,
 
 // Selects the requested resolution/frame rate (if specified),
 // or chooses a high quality configuration otherwise.
-DWORD QWindowsCameraReader::findMediaTypeIndex(const QCameraFormat &reqFormat)
+DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqFormat)
 {
     DWORD mediaIndex = MEDIA_TYPE_INDEX_DEFAULT;
 
@@ -202,7 +202,7 @@ DWORD QWindowsCameraReader::findMediaTypeIndex(const QCameraFormat &reqFormat)
 
 
 // Prepares the source video stream and gets some metadata.
-HRESULT QWindowsCameraReader::prepareVideoStream(DWORD mediaTypeIndex)
+HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
 {
     if (!m_sourceReader)
         return E_FAIL;
@@ -261,7 +261,7 @@ HRESULT QWindowsCameraReader::prepareVideoStream(DWORD mediaTypeIndex)
 }
 
 // Prepares the source audio stream.
-HRESULT QWindowsCameraReader::prepareAudioStream()
+HRESULT QWindowsMediaDeviceReader::prepareAudioStream()
 {
     if (!m_sourceReader)
         return E_FAIL;
@@ -286,7 +286,7 @@ HRESULT QWindowsCameraReader::prepareAudioStream()
 }
 
 // Retrieves the indexes for selected video/audio streams.
-HRESULT QWindowsCameraReader::initSourceIndexes()
+HRESULT QWindowsMediaDeviceReader::initSourceIndexes()
 {
     if (!m_sourceReader)
         return E_FAIL;
@@ -321,9 +321,9 @@ HRESULT QWindowsCameraReader::initSourceIndexes()
 
 // Activates the requested camera/microphone for streaming.
 // One of the IDs may be empty for video-only/audio-only.
-bool QWindowsCameraReader::activate(const QString &cameraId,
-                                    const QCameraFormat &cameraFormat,
-                                    const QString &microphoneId)
+bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
+                                         const QCameraFormat &cameraFormat,
+                                         const QString &microphoneId)
 {
     QMutexLocker locker(&m_mutex);
 
@@ -381,7 +381,7 @@ bool QWindowsCameraReader::activate(const QString &cameraId,
     return true;
 }
 
-void QWindowsCameraReader::deactivate()
+void QWindowsMediaDeviceReader::deactivate()
 {
     stopRecording();
     stopStreaming();
@@ -389,14 +389,14 @@ void QWindowsCameraReader::deactivate()
     m_streaming = false;
 }
 
-void QWindowsCameraReader::stopStreaming()
+void QWindowsMediaDeviceReader::stopStreaming()
 {
     QMutexLocker locker(&m_mutex);
     releaseResources();
 }
 
 // Releases allocated streaming stuff.
-void QWindowsCameraReader::releaseResources()
+void QWindowsMediaDeviceReader::releaseResources()
 {
     if (m_videoMediaType) {
         m_videoMediaType->Release();
@@ -424,8 +424,8 @@ void QWindowsCameraReader::releaseResources()
     }
 }
 
-HRESULT QWindowsCameraReader::createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width, UINT32 height,
-                                                   qreal frameRate, IMFMediaType **mediaType)
+HRESULT QWindowsMediaDeviceReader::createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width,
+                                                        UINT32 height, qreal frameRate, IMFMediaType **mediaType)
 {
     if (!mediaType)
         return E_INVALIDARG;
@@ -470,7 +470,7 @@ HRESULT QWindowsCameraReader::createVideoMediaType(const GUID &format, UINT32 bi
     return E_FAIL;
 }
 
-HRESULT QWindowsCameraReader::createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType)
+HRESULT QWindowsMediaDeviceReader::createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType)
 {
     if (!mediaType)
         return E_INVALIDARG;
@@ -496,14 +496,14 @@ HRESULT QWindowsCameraReader::createAudioMediaType(const GUID &format, UINT32 bi
     return E_FAIL;
 }
 
-bool QWindowsCameraReader::startRecording(const QString &fileName, const GUID &container,
-                                          const GUID &videoFormat, UINT32 videoBitRate, UINT32 width,
-                                          UINT32 height, qreal frameRate, const GUID &audioFormat,
-                                          UINT32 audioBitRate)
+bool QWindowsMediaDeviceReader::startRecording(const QString &fileName, const GUID &container,
+                                               const GUID &videoFormat, UINT32 videoBitRate, UINT32 width,
+                                               UINT32 height, qreal frameRate, const GUID &audioFormat,
+                                               UINT32 audioBitRate)
 {
     QMutexLocker locker(&m_mutex);
 
-    if (!m_active || m_recording)
+    if (!m_active || m_recording || (videoFormat == GUID_NULL && audioFormat == GUID_NULL))
         return false;
 
     IMFAttributes *writerAttributes = nullptr;
@@ -526,7 +526,7 @@ bool QWindowsCameraReader::startRecording(const QString &fileName, const GUID &c
                     m_sinkVideoStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
                     m_sinkAudioStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
 
-                    if (m_videoSource) {
+                    if (m_videoSource && videoFormat != GUID_NULL) {
                         IMFMediaType *targetMediaType = nullptr;
 
                         hr = createVideoMediaType(videoFormat, videoBitRate, width, height,
@@ -545,7 +545,7 @@ bool QWindowsCameraReader::startRecording(const QString &fileName, const GUID &c
 
                     if (SUCCEEDED(hr)) {
 
-                        if (m_audioSource) {
+                        if (m_audioSource && audioFormat != GUID_NULL) {
                             IMFMediaType *targetMediaType = nullptr;
 
                             hr = createAudioMediaType(audioFormat, audioBitRate, &targetMediaType);
@@ -588,7 +588,7 @@ bool QWindowsCameraReader::startRecording(const QString &fileName, const GUID &c
     return SUCCEEDED(hr);
 }
 
-void QWindowsCameraReader::stopRecording()
+void QWindowsMediaDeviceReader::stopRecording()
 {
     // The semaphore is used to ensure the video is properly saved
     // to disk, e.g, before the app exits. Released on OnFinalize.
@@ -610,7 +610,7 @@ void QWindowsCameraReader::stopRecording()
     m_currentDuration = -1;
 }
 
-bool QWindowsCameraReader::pauseRecording()
+bool QWindowsMediaDeviceReader::pauseRecording()
 {
     if (!m_recording || m_paused)
         return false;
@@ -619,7 +619,7 @@ bool QWindowsCameraReader::pauseRecording()
     return true;
 }
 
-bool QWindowsCameraReader::resumeRecording()
+bool QWindowsMediaDeviceReader::resumeRecording()
 {
     if (!m_recording || !m_paused)
         return false;
@@ -629,7 +629,7 @@ bool QWindowsCameraReader::resumeRecording()
 }
 
 //from IUnknown
-STDMETHODIMP QWindowsCameraReader::QueryInterface(REFIID riid, LPVOID *ppvObject)
+STDMETHODIMP QWindowsMediaDeviceReader::QueryInterface(REFIID riid, LPVOID *ppvObject)
 {
     if (!ppvObject)
         return E_POINTER;
@@ -647,12 +647,12 @@ STDMETHODIMP QWindowsCameraReader::QueryInterface(REFIID riid, LPVOID *ppvObject
     return S_OK;
 }
 
-STDMETHODIMP_(ULONG) QWindowsCameraReader::AddRef(void)
+STDMETHODIMP_(ULONG) QWindowsMediaDeviceReader::AddRef(void)
 {
     return InterlockedIncrement(&m_cRef);
 }
 
-STDMETHODIMP_(ULONG) QWindowsCameraReader::Release(void)
+STDMETHODIMP_(ULONG) QWindowsMediaDeviceReader::Release(void)
 {
     LONG cRef = InterlockedDecrement(&m_cRef);
     if (cRef == 0) {
@@ -661,42 +661,42 @@ STDMETHODIMP_(ULONG) QWindowsCameraReader::Release(void)
     return cRef;
 }
 
-UINT32 QWindowsCameraReader::frameWidth() const
+UINT32 QWindowsMediaDeviceReader::frameWidth() const
 {
     return m_frameWidth;
 }
 
-UINT32 QWindowsCameraReader::frameHeight() const
+UINT32 QWindowsMediaDeviceReader::frameHeight() const
 {
     return m_frameHeight;
 }
 
-qreal QWindowsCameraReader::frameRate() const
+qreal QWindowsMediaDeviceReader::frameRate() const
 {
     return m_frameRate;
 }
 
-bool QWindowsCameraReader::isMuted() const
+bool QWindowsMediaDeviceReader::isMuted() const
 {
     return m_muted;
 }
 
-void QWindowsCameraReader::setMuted(bool muted)
+void QWindowsMediaDeviceReader::setMuted(bool muted)
 {
     m_muted = muted;
 }
 
-qreal QWindowsCameraReader::volume() const
+qreal QWindowsMediaDeviceReader::volume() const
 {
     return m_volume;
 }
 
-void QWindowsCameraReader::setVolume(qreal volume)
+void QWindowsMediaDeviceReader::setVolume(qreal volume)
 {
     m_volume = volume;
 }
 
-void QWindowsCameraReader::updateDuration()
+void QWindowsMediaDeviceReader::updateDuration()
 {
     if (m_currentDuration >= 0 && m_lastDuration != m_currentDuration) {
         m_lastDuration = m_currentDuration;
@@ -705,9 +705,9 @@ void QWindowsCameraReader::updateDuration()
 }
 
 //from IMFSourceReaderCallback
-STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
-                                                DWORD dwStreamFlags, LONGLONG llTimestamp,
-                                                IMFSample *pSample)
+STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
+                                                     DWORD dwStreamFlags, LONGLONG llTimestamp,
+                                                     IMFSample *pSample)
 {
     QMutexLocker locker(&m_mutex);
 
@@ -821,18 +821,18 @@ STDMETHODIMP QWindowsCameraReader::OnReadSample(HRESULT hrStatus, DWORD dwStream
     return S_OK;
 }
 
-STDMETHODIMP QWindowsCameraReader::OnFlush(DWORD)
+STDMETHODIMP QWindowsMediaDeviceReader::OnFlush(DWORD)
 {
     return S_OK;
 }
 
-STDMETHODIMP QWindowsCameraReader::OnEvent(DWORD, IMFMediaEvent*)
+STDMETHODIMP QWindowsMediaDeviceReader::OnEvent(DWORD, IMFMediaEvent*)
 {
     return S_OK;
 }
 
 //from IMFSinkWriterCallback
-STDMETHODIMP QWindowsCameraReader::OnFinalize(HRESULT)
+STDMETHODIMP QWindowsMediaDeviceReader::OnFinalize(HRESULT)
 {
     QMutexLocker locker(&m_mutex);
     if (m_sinkWriter) {
@@ -844,7 +844,7 @@ STDMETHODIMP QWindowsCameraReader::OnFinalize(HRESULT)
     return S_OK;
 }
 
-STDMETHODIMP QWindowsCameraReader::OnMarker(DWORD, LPVOID)
+STDMETHODIMP QWindowsMediaDeviceReader::OnMarker(DWORD, LPVOID)
 {
     return S_OK;
 }

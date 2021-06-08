@@ -68,7 +68,8 @@ public:
 
     enum Mode {
         Image,
-        Video
+        Video,
+        Audio
     };
 
     QString generateFileName(const QString &requestedName, Mode mode,

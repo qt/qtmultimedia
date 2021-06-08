@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSCAMERASESSION_H
-#define QWINDOWSCAMERASESSION_H
+#ifndef QWINDOWSMEDIADEVICESESSION_H
+#define QWINDOWSMEDIADEVICESESSION_H
 
 //
 //  W A R N I N G
@@ -60,21 +60,22 @@
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
-class QWindowsCameraReader;
+class QWindowsMediaDeviceReader;
 
-class QWindowsCameraSession : public QObject
+class QWindowsMediaDeviceSession : public QObject
 {
     Q_OBJECT
 public:
-    explicit QWindowsCameraSession(QObject *parent = nullptr);
-    ~QWindowsCameraSession();
+    explicit QWindowsMediaDeviceSession(QObject *parent = nullptr);
+    ~QWindowsMediaDeviceSession();
 
     bool isActive() const;
     void setActive(bool active);
 
-    bool isReadyForCapture() const;
+    bool isActivating() const;
 
-    void setActiveCamera(const QCameraDevice &info);
+    void setActiveCamera(const QCameraDevice &camera);
+    QCameraDevice activeCamera() const;
 
     void setCameraFormat(const QCameraFormat &cameraFormat);
 
@@ -90,7 +91,7 @@ public:
     QAudioDevice audioInput() const;
     bool setAudioInput(const QAudioDevice &info);
 
-    bool startRecording(const QString &fileName);
+    bool startRecording(const QString &fileName, bool audioOnly);
     void stopRecording();
     bool pauseRecording();
     bool resumeRecording();
@@ -115,9 +116,10 @@ private:
                                 qreal frameRate, QMediaEncoderSettings::Quality quality);
     quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality);
     bool m_active = false;
-    QCameraDevice m_activeCameraInfo;
+    bool m_activating = false;
+    QCameraDevice m_activeCameraDevice;
     QCameraFormat m_cameraFormat;
-    QWindowsCameraReader *m_cameraReader = nullptr;
+    QWindowsMediaDeviceReader *m_mediaDeviceReader = nullptr;
     QMediaEncoderSettings m_mediaEncoderSettings;
     QAudioDevice m_audioInput;
     QVideoSink  *m_surface = nullptr;
@@ -125,4 +127,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QWINDOWSCAMERASESSION_H
+#endif // QWINDOWSMEDIADEVICESESSION_H

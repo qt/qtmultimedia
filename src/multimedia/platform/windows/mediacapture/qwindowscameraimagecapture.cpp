@@ -39,7 +39,7 @@
 
 #include "qwindowscameraimagecapture_p.h"
 
-#include "qwindowscamerasession_p.h"
+#include "qwindowsmediadevicesession_p.h"
 #include "qwindowsmediacapture_p.h"
 
 #include <QtConcurrent/qtconcurrentrun.h>
@@ -56,9 +56,9 @@ QWindowsCameraImageCapture::~QWindowsCameraImageCapture() = default;
 
 bool QWindowsCameraImageCapture::isReadyForCapture() const
 {
-    if (!m_cameraSession)
+    if (!m_mediaDeviceSession)
         return false;
-    return !m_capturing && m_cameraSession->isReadyForCapture();
+    return !m_capturing && m_mediaDeviceSession->isActive() && !m_mediaDeviceSession->activeCamera().isNull();
 }
 
 int QWindowsCameraImageCapture::capture(const QString &fileName)
@@ -99,22 +99,22 @@ void QWindowsCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession 
     if (m_captureService == captureService)
         return;
 
-    if (m_cameraSession)
-        disconnect(m_cameraSession, nullptr, this, nullptr);
+    if (m_mediaDeviceSession)
+        disconnect(m_mediaDeviceSession, nullptr, this, nullptr);
 
     m_captureService = captureService;
     if (!m_captureService) {
-        m_cameraSession = nullptr;
+        m_mediaDeviceSession = nullptr;
         return;
     }
 
-    m_cameraSession = m_captureService->session();
-    Q_ASSERT(m_cameraSession);
+    m_mediaDeviceSession = m_captureService->session();
+    Q_ASSERT(m_mediaDeviceSession);
 
-    connect(m_cameraSession, SIGNAL(readyForCaptureChanged(bool)),
+    connect(m_mediaDeviceSession, SIGNAL(readyForCaptureChanged(bool)),
             this, SIGNAL(readyForCaptureChanged(bool)));
 
-    connect(m_cameraSession, SIGNAL(newVideoFrame(QVideoFrame)),
+    connect(m_mediaDeviceSession, SIGNAL(newVideoFrame(QVideoFrame)),
             this, SLOT(handleNewVideoFrame(QVideoFrame)));
 }
 

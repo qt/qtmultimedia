@@ -41,7 +41,7 @@
 
 #include "qwindowsmediaencoder_p.h"
 #include "qwindowscamera_p.h"
-#include "qwindowscamerasession_p.h"
+#include "qwindowsmediadevicesession_p.h"
 #include "qwindowscameraimagecapture_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
@@ -50,12 +50,12 @@ QT_BEGIN_NAMESPACE
 
 QWindowsMediaCaptureService::QWindowsMediaCaptureService()
 {
-    m_cameraSession = new QWindowsCameraSession(this);
+    m_mediaDeviceSession = new QWindowsMediaDeviceSession(this);
 }
 
 QWindowsMediaCaptureService::~QWindowsMediaCaptureService()
 {
-    delete m_cameraSession;
+    delete m_mediaDeviceSession;
 }
 
 QPlatformCamera *QWindowsMediaCaptureService::camera()
@@ -120,42 +120,42 @@ void QWindowsMediaCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder
 
 bool QWindowsMediaCaptureService::isMuted() const
 {
-    return m_cameraSession->isMuted();
+    return m_mediaDeviceSession->isMuted();
 }
 
 void QWindowsMediaCaptureService::setMuted(bool muted)
 {
-    m_cameraSession->setMuted(muted);
+    m_mediaDeviceSession->setMuted(muted);
 }
 
 qreal QWindowsMediaCaptureService::volume() const
 {
-    return m_cameraSession->volume();
+    return m_mediaDeviceSession->volume();
 }
 
 void QWindowsMediaCaptureService::setVolume(qreal volume)
 {
-    m_cameraSession->setVolume(volume);
+    m_mediaDeviceSession->setVolume(volume);
 }
 
 QAudioDevice QWindowsMediaCaptureService::audioInput() const
 {
-    return m_cameraSession->audioInput();
+    return m_mediaDeviceSession->audioInput();
 }
 
 bool QWindowsMediaCaptureService::setAudioInput(const QAudioDevice &info)
 {
-    return m_cameraSession->setAudioInput(info);
+    return m_mediaDeviceSession->setAudioInput(info);
 }
 
 void QWindowsMediaCaptureService::setVideoPreview(QVideoSink *sink)
 {
-    m_cameraSession->setVideoSink(sink);
+    m_mediaDeviceSession->setVideoSink(sink);
 }
 
-QWindowsCameraSession *QWindowsMediaCaptureService::session() const
+QWindowsMediaDeviceSession *QWindowsMediaCaptureService::session() const
 {
-    return m_cameraSession;
+    return m_mediaDeviceSession;
 }
 
 QT_END_NAMESPACE

@@ -37,148 +37,157 @@
 **
 ****************************************************************************/
 
-#include "qwindowscamerasession_p.h"
+#include "qwindowsmediadevicesession_p.h"
 
-#include "qwindowscamerareader_p.h"
+#include "qwindowsmediadevicereader_p.h"
 #include "qwindowsmultimediautils_p.h"
 #include <qvideosink.h>
 #include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
-QWindowsCameraSession::QWindowsCameraSession(QObject *parent)
+QWindowsMediaDeviceSession::QWindowsMediaDeviceSession(QObject *parent)
     : QObject(parent)
 {
-    m_cameraReader = new QWindowsCameraReader(this);
-    connect(m_cameraReader, SIGNAL(streamingStarted()), this, SLOT(handleStreamingStarted()));
-    connect(m_cameraReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
-    connect(m_cameraReader, SIGNAL(streamingError(int)), this, SLOT(handleStreamingError(int)));
-    connect(m_cameraReader, SIGNAL(newVideoFrame(QVideoFrame)), this, SLOT(handleNewVideoFrame(QVideoFrame)));
-    connect(m_cameraReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
-    connect(m_cameraReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
-    connect(m_cameraReader, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
+    m_mediaDeviceReader = new QWindowsMediaDeviceReader(this);
+    connect(m_mediaDeviceReader, SIGNAL(streamingStarted()), this, SLOT(handleStreamingStarted()));
+    connect(m_mediaDeviceReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
+    connect(m_mediaDeviceReader, SIGNAL(streamingError(int)), this, SLOT(handleStreamingError(int)));
+    connect(m_mediaDeviceReader, SIGNAL(newVideoFrame(QVideoFrame)), this, SLOT(handleNewVideoFrame(QVideoFrame)));
+    connect(m_mediaDeviceReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
+    connect(m_mediaDeviceReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
+    connect(m_mediaDeviceReader, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
 }
 
-QWindowsCameraSession::~QWindowsCameraSession()
+QWindowsMediaDeviceSession::~QWindowsMediaDeviceSession()
 {
-    delete m_cameraReader;
+    delete m_mediaDeviceReader;
 }
 
-bool QWindowsCameraSession::isActive() const
+bool QWindowsMediaDeviceSession::isActive() const
 {
     return m_active;
 }
 
-void QWindowsCameraSession::setActive(bool active)
+bool QWindowsMediaDeviceSession::isActivating() const
 {
-    if (m_active == active)
+    return m_activating;
+}
+
+void QWindowsMediaDeviceSession::setActive(bool active)
+{
+    if ((m_active == active) || (m_activating && active))
         return;
 
     if (active) {
-        auto camId = QString::fromUtf8(m_activeCameraInfo.id());
+        auto camId = QString::fromUtf8(m_activeCameraDevice.id());
         auto micId = QString::fromUtf8(m_audioInput.id());
-        if (!camId.isEmpty() || !micId.isEmpty())
-            m_cameraReader->activate(camId, m_cameraFormat, micId);
-        else
+        if (!camId.isEmpty() || !micId.isEmpty()) {
+            m_activating = true;
+            m_mediaDeviceReader->activate(camId, m_cameraFormat, micId);
+        } else {
             qWarning() << Q_FUNC_INFO << "Camera ID and Microphone ID both undefined.";
+        }
     } else {
-        m_cameraReader->deactivate();
+        m_mediaDeviceReader->deactivate();
         m_active = false;
+        m_activating = false;
         emit activeChanged(m_active);
         emit readyForCaptureChanged(m_active);
     }
 }
 
-void QWindowsCameraSession::setActiveCamera(const QCameraDevice &info)
+void QWindowsMediaDeviceSession::setActiveCamera(const QCameraDevice &camera)
 {
-    m_activeCameraInfo = info;
+    m_activeCameraDevice = camera;
 }
 
-void QWindowsCameraSession::setCameraFormat(const QCameraFormat &cameraFormat)
+QCameraDevice QWindowsMediaDeviceSession::activeCamera() const
+{
+    return m_activeCameraDevice;
+}
+
+void QWindowsMediaDeviceSession::setCameraFormat(const QCameraFormat &cameraFormat)
 {
     m_cameraFormat = cameraFormat;
 }
 
-bool QWindowsCameraSession::isReadyForCapture() const
-{
-    return m_active;
-}
-
-void QWindowsCameraSession::setVideoSink(QVideoSink *surface)
+void QWindowsMediaDeviceSession::setVideoSink(QVideoSink *surface)
 {
     m_surface = surface;
 }
 
-void QWindowsCameraSession::handleStreamingStarted()
+void QWindowsMediaDeviceSession::handleStreamingStarted()
 {
     m_active = true;
+    m_activating = false;
     emit activeChanged(m_active);
     emit readyForCaptureChanged(m_active);
 }
 
-void QWindowsCameraSession::handleStreamingStopped()
+void QWindowsMediaDeviceSession::handleStreamingStopped()
 {
     m_active = false;
     emit activeChanged(m_active);
     emit readyForCaptureChanged(m_active);
 }
 
-void QWindowsCameraSession::handleStreamingError(int errorCode)
+void QWindowsMediaDeviceSession::handleStreamingError(int errorCode)
 {
     if (m_surface)
         emit m_surface->newVideoFrame(QVideoFrame());
     emit streamingError(errorCode);
 }
 
-void QWindowsCameraSession::handleNewVideoFrame(const QVideoFrame &frame)
+void QWindowsMediaDeviceSession::handleNewVideoFrame(const QVideoFrame &frame)
 {
     if (m_surface)
         emit m_surface->newVideoFrame(frame);
     emit newVideoFrame(frame);
 }
 
-QMediaEncoderSettings QWindowsCameraSession::videoSettings() const
+QMediaEncoderSettings QWindowsMediaDeviceSession::videoSettings() const
 {
     return m_mediaEncoderSettings;
 }
 
-void QWindowsCameraSession::setVideoSettings(const QMediaEncoderSettings &settings)
+void QWindowsMediaDeviceSession::setVideoSettings(const QMediaEncoderSettings &settings)
 {
     m_mediaEncoderSettings = settings;
 }
 
-bool QWindowsCameraSession::isMuted() const
+bool QWindowsMediaDeviceSession::isMuted() const
 {
-    return m_cameraReader->isMuted();
+    return m_mediaDeviceReader->isMuted();
 }
 
-void QWindowsCameraSession::setMuted(bool muted)
+void QWindowsMediaDeviceSession::setMuted(bool muted)
 {
-    m_cameraReader->setMuted(muted);
+    m_mediaDeviceReader->setMuted(muted);
 }
 
-qreal QWindowsCameraSession::volume() const
+qreal QWindowsMediaDeviceSession::volume() const
 {
-    return m_cameraReader->volume();
+    return m_mediaDeviceReader->volume();
 }
 
-void QWindowsCameraSession::setVolume(qreal volume)
+void QWindowsMediaDeviceSession::setVolume(qreal volume)
 {
-    m_cameraReader->setVolume(volume);
+    m_mediaDeviceReader->setVolume(volume);
 }
 
-QAudioDevice QWindowsCameraSession::audioInput() const
+QAudioDevice QWindowsMediaDeviceSession::audioInput() const
 {
     return m_audioInput;
 }
 
-bool QWindowsCameraSession::setAudioInput(const QAudioDevice &info)
+bool QWindowsMediaDeviceSession::setAudioInput(const QAudioDevice &info)
 {
     m_audioInput = info;
     return true;
 }
 
-bool QWindowsCameraSession::startRecording(const QString &fileName)
+bool QWindowsMediaDeviceSession::startRecording(const QString &fileName, bool audioOnly)
 {
     GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(m_mediaEncoderSettings.mediaFormat().fileFormat());
     GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(m_mediaEncoderSettings.videoCodec());
@@ -190,12 +199,12 @@ bool QWindowsCameraSession::startRecording(const QString &fileName)
         width = UINT32(res.width());
         height = UINT32(res.height());
     } else {
-        width = m_cameraReader->frameWidth();
-        height = m_cameraReader->frameHeight();
+        width = m_mediaDeviceReader->frameWidth();
+        height = m_mediaDeviceReader->frameHeight();
     }
 
     qreal fps = m_mediaEncoderSettings.videoFrameRate();
-    qreal frameRate = (fps > 0) ? fps : m_cameraReader->frameRate();
+    qreal frameRate = (fps > 0) ? fps : m_mediaDeviceReader->frameRate();
 
     auto quality = m_mediaEncoderSettings.quality();
     int vbrate = m_mediaEncoderSettings.videoBitRate();
@@ -207,29 +216,29 @@ bool QWindowsCameraSession::startRecording(const QString &fileName)
     UINT32 audioBitRate = (abrate > 0) ? UINT32(abrate)
                                        : estimateAudioBitRate(audioFormat, quality);
 
-    return m_cameraReader->startRecording(fileName, container, videoFormat,
-                                          videoBitRate, width, height, frameRate,
-                                          audioFormat, audioBitRate);
+    return m_mediaDeviceReader->startRecording(fileName, container, audioOnly ? GUID_NULL : videoFormat,
+                                               videoBitRate, width, height, frameRate,
+                                               audioFormat, audioBitRate);
 }
 
-void QWindowsCameraSession::stopRecording()
+void QWindowsMediaDeviceSession::stopRecording()
 {
-    m_cameraReader->stopRecording();
+    m_mediaDeviceReader->stopRecording();
 }
 
-bool QWindowsCameraSession::pauseRecording()
+bool QWindowsMediaDeviceSession::pauseRecording()
 {
-    return m_cameraReader->pauseRecording();
+    return m_mediaDeviceReader->pauseRecording();
 }
 
-bool QWindowsCameraSession::resumeRecording()
+bool QWindowsMediaDeviceSession::resumeRecording()
 {
-    return m_cameraReader->resumeRecording();
+    return m_mediaDeviceReader->resumeRecording();
 }
 
 // empirical estimate of the required video bitrate (for H.264)
-quint32 QWindowsCameraSession::estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
-                                                   qreal frameRate, QMediaEncoderSettings::Quality quality)
+quint32 QWindowsMediaDeviceSession::estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
+                                                         qreal frameRate, QMediaEncoderSettings::Quality quality)
 {
     Q_UNUSED(videoFormat);
 
@@ -260,7 +269,7 @@ quint32 QWindowsCameraSession::estimateVideoBitRate(const GUID &videoFormat, qui
     return pixelsPerSec * bitsPerPixel;
 }
 
-quint32 QWindowsCameraSession::estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality)
+quint32 QWindowsMediaDeviceSession::estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality)
 {
     if (audioFormat == MFAudioFormat_AAC) {
         // Bitrates supported by the AAC encoder are 96K, 128K, 160K, 192K.

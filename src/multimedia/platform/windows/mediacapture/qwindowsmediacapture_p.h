@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsMediaEncoder;
 class QWindowsCamera;
-class QWindowsCameraSession;
+class QWindowsMediaDeviceSession;
 class QWindowsCameraImageCapture;
 
 class QWindowsMediaCaptureService : public QPlatformMediaCaptureSession
@@ -86,11 +86,11 @@ public:
 
     void setVideoPreview(QVideoSink *sink) override;
 
-    QWindowsCameraSession *session() const;
+    QWindowsMediaDeviceSession *session() const;
 
 private:
     QWindowsCamera              *m_camera = nullptr;
-    QWindowsCameraSession       *m_cameraSession = nullptr;
+    QWindowsMediaDeviceSession  *m_mediaDeviceSession = nullptr;
     QWindowsCameraImageCapture  *m_imageCapture = nullptr;
     QWindowsMediaEncoder        *m_encoder = nullptr;
 };

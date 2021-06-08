@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSCAMERAREADER_H
-#define QWINDOWSCAMERAREADER_H
+#ifndef QWINDOWSMEDIADEVICEREADER_H
+#define QWINDOWSMEDIADEVICEREADER_H
 
 //
 //  W A R N I N G
@@ -67,14 +67,14 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-class QWindowsCameraReader : public QObject,
+class QWindowsMediaDeviceReader : public QObject,
         public IMFSourceReaderCallback,
         public IMFSinkWriterCallback
 {
     Q_OBJECT
 public:
-    explicit QWindowsCameraReader(QObject *parent = nullptr);
-    ~QWindowsCameraReader();
+    explicit QWindowsMediaDeviceReader(QObject *parent = nullptr);
+    ~QWindowsMediaDeviceReader();
 
     //from IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
@@ -174,4 +174,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif//QWINDOWSCAMERAREADER_H
+#endif // QWINDOWSMEDIADEVICEREADER_H

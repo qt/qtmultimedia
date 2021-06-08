@@ -60,7 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsCameraSession;
+class QWindowsMediaDeviceSession;
 class QPlatformMediaCaptureSession;
 class QWindowsMediaCaptureService;
 
@@ -93,7 +93,7 @@ private Q_SLOTS:
 
 private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;
-    QWindowsCameraSession        *m_cameraSession = nullptr;
+    QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QUrl                          m_outputLocation;
     QMediaEncoder::State          m_state = QMediaEncoder::StoppedState;
     QMediaEncoder::Status         m_lastStatus = QMediaEncoder::StoppedStatus;

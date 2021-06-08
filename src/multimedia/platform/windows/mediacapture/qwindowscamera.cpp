@@ -39,7 +39,7 @@
 
 #include "qwindowscamera_p.h"
 
-#include "qwindowscamerasession_p.h"
+#include "qwindowsmediadevicesession_p.h"
 #include "qwindowsmediacapture_p.h"
 #include <qcameradevice.h>
 
@@ -61,11 +61,11 @@ void QWindowsCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
-    if (m_cameraInfo.isNull() && active)
+    if (m_cameraDevice.isNull() && active)
         return;
     m_active = active;
-    if (m_cameraSession)
-        m_cameraSession->setActive(active);
+    if (m_mediaDeviceSession)
+        m_mediaDeviceSession->setActive(active);
 
     emit activeChanged(m_active);
     updateStatus();
@@ -73,13 +73,13 @@ void QWindowsCamera::setActive(bool active)
 
 QCamera::Status QWindowsCamera::status() const
 {
-    if (!m_cameraSession)
+    if (!m_mediaDeviceSession)
         return QCamera::InactiveStatus;
 
     if (m_active)
-        return m_cameraSession->isActive() ? QCamera::ActiveStatus : QCamera::StartingStatus;
+        return m_mediaDeviceSession->isActive() ? QCamera::ActiveStatus : QCamera::StartingStatus;
 
-    return m_cameraSession->isActive() ? QCamera::StoppingStatus : QCamera::InactiveStatus;
+    return m_mediaDeviceSession->isActive() ? QCamera::StoppingStatus : QCamera::InactiveStatus;
 }
 
 void QWindowsCamera::updateStatus()
@@ -94,11 +94,11 @@ void QWindowsCamera::updateStatus()
 
 void QWindowsCamera::setCamera(const QCameraDevice &camera)
 {
-    if (m_cameraInfo == camera)
+    if (m_cameraDevice == camera)
         return;
-    m_cameraInfo = camera;
-    if (m_cameraSession)
-        m_cameraSession->setActiveCamera(camera);
+    m_cameraDevice = camera;
+    if (m_mediaDeviceSession)
+        m_mediaDeviceSession->setActiveCamera(camera);
 }
 
 void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -107,33 +107,33 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     if (m_captureService == captureService)
         return;
 
-    if (m_cameraSession)
-        m_cameraSession->setActive(false);
+    if (m_mediaDeviceSession)
+        m_mediaDeviceSession->setActive(false);
 
     m_captureService = captureService;
     if (!m_captureService) {
-        m_cameraSession = nullptr;
+        m_mediaDeviceSession = nullptr;
         return;
     }
 
-    m_cameraSession = m_captureService->session();
-    Q_ASSERT(m_cameraSession);
-    connect(m_cameraSession, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
+    m_mediaDeviceSession = m_captureService->session();
+    Q_ASSERT(m_mediaDeviceSession);
+    connect(m_mediaDeviceSession, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
 
-    m_cameraSession->setActiveCamera(m_cameraInfo);
-    m_cameraSession->setCameraFormat(m_cameraFormat);
-    m_cameraSession->setActive(m_active);
+    m_mediaDeviceSession->setActiveCamera(m_cameraDevice);
+    m_mediaDeviceSession->setCameraFormat(m_cameraFormat);
+    m_mediaDeviceSession->setActive(m_active);
 }
 
 bool QWindowsCamera::setCameraFormat(const QCameraFormat &format)
 {
-    if (!format.isNull() && !m_cameraInfo.videoFormats().contains(format))
+    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
         return false;
 
-    m_cameraFormat = format.isNull() ? findBestCameraFormat(m_cameraInfo) : format;
+    m_cameraFormat = format.isNull() ? findBestCameraFormat(m_cameraDevice) : format;
 
-    if (m_cameraSession)
-        m_cameraSession->setCameraFormat(m_cameraFormat);
+    if (m_mediaDeviceSession)
+        m_mediaDeviceSession->setCameraFormat(m_cameraFormat);
     return true;
 }
 
