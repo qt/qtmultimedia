@@ -119,11 +119,8 @@ qt6_add_resources(qmlvideo "qmlvideo"
     FILES
         ${qmlvideo_resource_files}
 )
-set_source_files_properties("../snippets/frequencymonitor/qml/frequencymonitor/FrequencyItem.qml"
-    PROPERTIES QT_RESOURCE_ALIAS "qml/frequencymonitor/FrequencyItem.qml"
-)
 set(frequencymonitordeclarative_resource_files
-    "qml/frequencymonitor/FrequencyItem.qml"
+    "../snippets/frequencymonitor/qml/frequencymonitor/FrequencyItem.qml"
 )
 
 qt6_add_resources(qmlvideo "frequencymonitordeclarative"
@@ -134,11 +131,8 @@ qt6_add_resources(qmlvideo "frequencymonitordeclarative"
     FILES
         ${frequencymonitordeclarative_resource_files}
 )
-set_source_files_properties("../snippets/performancemonitor/qml/performancemonitor/PerformanceItem.qml"
-    PROPERTIES QT_RESOURCE_ALIAS "qml/performancemonitor/PerformanceItem.qml"
-)
 set(performancemonitordeclarative_resource_files
-    "qml/performancemonitor/PerformanceItem.qml"
+    "../snippets/performancemonitor/qml/performancemonitor/PerformanceItem.qml"
 )
 
 qt6_add_resources(qmlvideo "performancemonitordeclarative"
