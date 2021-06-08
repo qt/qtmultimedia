@@ -64,8 +64,7 @@ class QAndroidMediaEncoder : public QPlatformMediaEncoder
 public:
     explicit QAndroidMediaEncoder(QMediaRecorder *parent);
 
-    QUrl outputLocation() const override;
-    bool setOutputLocation(const QUrl &location) override;
+    bool isLocationWritable(const QUrl &location) const override;
     QMediaRecorder::RecorderState state() const override;
     QMediaRecorder::Status status() const override;
     qint64 duration() const override;

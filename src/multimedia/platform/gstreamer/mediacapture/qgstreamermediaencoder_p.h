@@ -72,8 +72,7 @@ public:
     QGstreamerMediaEncoder(QMediaRecorder *parent);
     virtual ~QGstreamerMediaEncoder();
 
-    QUrl outputLocation() const override;
-    bool setOutputLocation(const QUrl &sink) override;
+    bool isLocationWritable(const QUrl &sink) const override;
 
     qint64 duration() const override;
 
@@ -103,7 +102,6 @@ private:
     QDir defaultDir() const;
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
-    QUrl m_requestedOutputLocation;
     QMediaEncoderSettings m_settings;
     QMediaEncoderSettings m_resolvedSettings;
     QGstreamerMediaCapture *m_session = nullptr;

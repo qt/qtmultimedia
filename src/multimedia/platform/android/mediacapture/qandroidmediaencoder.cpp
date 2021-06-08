@@ -49,14 +49,10 @@ QAndroidMediaEncoder::QAndroidMediaEncoder(QMediaRecorder *parent)
 {
 }
 
-QUrl QAndroidMediaEncoder::outputLocation() const
+bool QAndroidMediaEncoder::isLocationWritable(const QUrl &location) const
 {
-    return m_session->outputLocation();
-}
-
-bool QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
-{
-    return m_session->setOutputLocation(location);
+    return location.isValid()
+            && (location.isLocalFile() || location.isRelative());
 }
 
 QMediaRecorder::RecorderState QAndroidMediaEncoder::state() const
@@ -81,7 +77,21 @@ void QAndroidMediaEncoder::applySettings()
 
 void QAndroidMediaEncoder::setState(QMediaRecorder::RecorderState state)
 {
-    m_session->setState(state);
+    if (!m_session)
+        return;
+
+    switch (state) {
+    case QMediaRecorder::StoppedState:
+        m_session->stop();
+        break;
+    case QMediaRecorder::RecordingState:
+        m_session->start(outputLocation());
+        break;
+    case QMediaRecorder::PausedState:
+        // Not supported by Android API
+        qWarning("QMediaEncoder::PausedState is not supported on Android");
+        break;
+    }
 }
 
 void QAndroidMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)

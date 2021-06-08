@@ -111,14 +111,8 @@ AVFMediaEncoder::~AVFMediaEncoder()
         [m_videoSettings release];
 }
 
-QUrl AVFMediaEncoder::outputLocation() const
+bool AVFMediaEncoder::isLocationWritable(const QUrl &location) const
 {
-    return m_outputLocation;
-}
-
-bool AVFMediaEncoder::setOutputLocation(const QUrl &location)
-{
-    m_outputLocation = location;
     return location.scheme() == QLatin1String("file") || location.scheme().isEmpty();
 }
 
@@ -493,8 +487,8 @@ void AVFMediaEncoder::record()
     //            rotation = (screenOrientation + (360 - cameraDevice.orientation())) % 360;
     }
 
-    const QString path(m_outputLocation.scheme() == QLatin1String("file") ?
-                           m_outputLocation.path() : m_outputLocation.toString());
+    const QString path(outputLocation().scheme() == QLatin1String("file") ?
+                           outputLocation().path() : outputLocation().toString());
     const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path,
                     audioOnly ? AVFStorageLocation::Audio : AVFStorageLocation::Video,
                     QLatin1String("clip_"),

@@ -406,55 +406,9 @@ void BbCameraSession::setImageSettings(const QImageEncoderSettings &settings)
         m_imageEncoderSettings.setCodec(QLatin1String("jpeg"));
 }
 
-QUrl BbCameraSession::outputLocation() const
-{
-    return QUrl::fromLocalFile(m_videoOutputLocation);
-}
-
-bool BbCameraSession::setOutputLocation(const QUrl &location)
-{
-    m_videoOutputLocation = location.toLocalFile();
-
-    return true;
-}
-
 QMediaRecorder::RecorderState BbCameraSession::videoState() const
 {
     return m_videoState;
-}
-
-void BbCameraSession::setVideoState(QMediaRecorder::RecorderState state)
-{
-    if (m_videoState == state)
-        return;
-
-    const QMediaRecorder::RecorderState previousState = m_videoState;
-
-    if (previousState == QMediaRecorder::StoppedState) {
-        if (state == QMediaRecorder::RecordingState) {
-            if (startVideoRecording()) {
-                m_videoState = state;
-            }
-        } else if (state == QMediaRecorder::PausedState) {
-            // do nothing
-        }
-    } else if (previousState == QMediaRecorder::RecordingState) {
-        if (state == QMediaRecorder::StoppedState) {
-            stopVideoRecording();
-            m_videoState = state;
-        } else if (state == QMediaRecorder::PausedState) {
-            //TODO: (pause) not supported by BB10 API yet
-        }
-    } else if (previousState == QMediaRecorder::PausedState) {
-        if (state == QMediaRecorder::StoppedState) {
-            stopVideoRecording();
-            m_videoState = state;
-        } else if (state == QMediaRecorder::RecordingState) {
-            //TODO: (resume) not supported by BB10 API yet
-        }
-    }
-
-    emit videoStateChanged(m_videoState);
 }
 
 QMediaRecorder::Status BbCameraSession::videoStatus() const
@@ -986,32 +940,37 @@ static void videoRecordingStatusCallback(camera_handle_t handle, camera_devstatu
     }
 }
 
-bool BbCameraSession::startVideoRecording()
+void BbCameraSession::startVideoRecording(const QUrl &outputLocation)
 {
+    if (m_videoState == QMediaRecorder::RecordingState)
+        return;
+
     m_videoRecordingDuration.invalidate();
 
     m_videoStatus = QMediaRecorder::StartingStatus;
     emit videoStatusChanged(m_videoStatus);
 
-    if (m_videoOutputLocation.isEmpty())
-        m_videoOutputLocation = m_mediaStorageLocation.generateFileName(QLatin1String("VID_"), m_mediaStorageLocation.defaultDir(QCamera::CaptureVideo), QLatin1String("mp4"));
+    QString videoOutputLocation = outputLocation.toLocalFile();
+    if (videoOutputLocation.isEmpty())
+        videoOutputLocation = m_mediaStorageLocation.generateFileName(QLatin1String("VID_"), m_mediaStorageLocation.defaultDir(QCamera::CaptureVideo), QLatin1String("mp4"));
 
-    emit actualLocationChanged(m_videoOutputLocation);
+    emit actualLocationChanged(videoOutputLocation);
 
-    const camera_error_t result = camera_start_video(m_handle, QFile::encodeName(m_videoOutputLocation), 0, videoRecordingStatusCallback, this);
+    const camera_error_t result = camera_start_video(m_handle, QFile::encodeName(videoOutputLocation), 0, videoRecordingStatusCallback, this);
     if (result != CAMERA_EOK) {
         m_videoStatus = QMediaRecorder::StoppedStatus;
-        emit videoStatusChanged(m_videoStatus);
-
         emit videoError(QMediaRecorder::ResourceError, tr("Unable to start video recording"));
-        return false;
+    } else {
+        m_videoState = QMediaRecorder::RecordingState;
     }
-
-    return true;
+    emit videoStateChanged(m_videoState);
 }
 
 void BbCameraSession::stopVideoRecording()
 {
+    if (m_videoState == QMediaRecorder::StoppedState)
+        return;
+
     m_videoStatus = QMediaRecorder::FinalizingStatus;
     emit videoStatusChanged(m_videoStatus);
 
@@ -1024,6 +983,8 @@ void BbCameraSession::stopVideoRecording()
     emit videoStatusChanged(m_videoStatus);
 
     m_videoRecordingDuration.invalidate();
+    m_videoState = QMediaRecorder::StoppedState;
+    emit videoStateChanged(m_videoState);
 }
 
 bool BbCameraSession::isCaptureModeSupported(camera_handle_t handle, QCamera::CaptureModes mode) const

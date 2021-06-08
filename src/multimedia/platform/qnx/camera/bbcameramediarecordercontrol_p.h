@@ -62,9 +62,8 @@ class BbCameraMediaRecorderControl : public QPlatformMediaEncoder
 public:
     explicit BbCameraMediaRecorderControl(BbCameraSession *session, QObject *parent = 0);
 
-    QUrl outputLocation() const override;
-    bool setOutputLocation(const QUrl &location) override;
     QMediaRecorder::RecorderState state() const override;
+    bool isLocationWritable(const QUrl &location) const override;
     QMediaRecorder::Status status() const override;
     qint64 duration() const override;
     bool isMuted() const override;

@@ -58,14 +58,8 @@ QWindowsMediaEncoder::QWindowsMediaEncoder(QMediaRecorder *parent)
     m_settings.mimeType();
 }
 
-QUrl QWindowsMediaEncoder::outputLocation() const
+bool QWindowsMediaEncoder::isLocationWritable(const QUrl &location) const
 {
-    return m_outputLocation;
-}
-
-bool QWindowsMediaEncoder::setOutputLocation(const QUrl &location)
-{
-    m_outputLocation = location;
     return location.scheme() == QLatin1String("file") || location.scheme().isEmpty();
 }
 
@@ -130,8 +124,8 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
 
             const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
-            const QString path = (m_outputLocation.scheme() == QLatin1String("file") ?
-                                      m_outputLocation.path() : m_outputLocation.toString());
+            const QString path = (outputLocation().scheme() == QLatin1String("file") ?
+                                      outputLocation().path() : outputLocation().toString());
 
             m_fileName = m_storageLocation.generateFileName(path, audioOnly
                                                             ? QWindowsStorageLocation::Audio

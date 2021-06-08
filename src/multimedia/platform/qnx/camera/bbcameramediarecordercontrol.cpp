@@ -72,14 +72,9 @@ BbCameraMediaRecorderControl::BbCameraMediaRecorderControl(BbCameraSession *sess
     connect(m_session, SIGNAL(videoError(int,QString)), this, SIGNAL(error(int,QString)));
 }
 
-QUrl BbCameraMediaRecorderControl::outputLocation() const
+bool BbCameraMediaRecorderControl::isLocationWritable(const QUrl &location) const
 {
-    return m_session->outputLocation();
-}
-
-bool BbCameraMediaRecorderControl::setOutputLocation(const QUrl &location)
-{
-    return m_session->setOutputLocation(location);
+    return true;
 }
 
 QMediaRecorder::RecorderState BbCameraMediaRecorderControl::state() const
@@ -130,7 +125,20 @@ void BbCameraMediaRecorderControl::applySettings()
 
 void BbCameraMediaRecorderControl::setState(QMediaRecorder::RecorderState state)
 {
-    m_session->setVideoState(state);
+    if (!m_session)
+        return;
+
+    switch (state) {
+    case QMediaRecorder::RecordingState:
+        m_session->startVideoRecording(outputLocation());
+        break;
+    case QMediaRecorder::StoppedState:
+        m_session->stopVideoRecording();
+        break;
+    case QMediaRecorder::PausedState:
+        //TODO: (pause) not supported by BB10 API yet
+        break;
+    }
 }
 
 void BbCameraMediaRecorderControl::setMuted(bool muted)

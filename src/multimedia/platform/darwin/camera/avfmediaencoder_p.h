@@ -77,8 +77,7 @@ public:
     AVFMediaEncoder(QMediaRecorder *parent);
     ~AVFMediaEncoder() override;
 
-    QUrl outputLocation() const override;
-    bool setOutputLocation(const QUrl &location) override;
+    bool isLocationWritable(const QUrl &location) const override;
 
     QMediaRecorder::RecorderState state() const override;
     QMediaRecorder::Status status() const override;
@@ -114,7 +113,6 @@ private:
     AVFCameraService *m_service = nullptr;
     AVFScopedPointer<QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)> m_writer;
 
-    QUrl m_outputLocation;
     AVFStorageLocation m_storageLocation;
 
     QMediaRecorder::RecorderState m_state;

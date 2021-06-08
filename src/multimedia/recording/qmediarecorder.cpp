@@ -144,12 +144,11 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 
     Setting the location can fail, for example when the service supports only
     local file system locations but a network URL was passed. If the service
-    does not support media recording this setting the output location will
-    always fail.
+    does not support media recording, setting the output location will
+    always fail. If the operation fails an errorOccured signal is emitted.
 
     The \a location can be relative or empty;
-    in this case the encoder uses the system specific place and file naming scheme.
-    After recording has stated, QMediaRecorder::outputLocation() returns the actual output location.
+    in the latter case the encoder uses the system specific place and file naming scheme.
 */
 
 /*!
@@ -175,15 +174,17 @@ QUrl QMediaRecorder::outputLocation() const
     return d_func()->control ? d_func()->control->outputLocation() : QUrl();
 }
 
-bool QMediaRecorder::setOutputLocation(const QUrl &location)
+void QMediaRecorder::setOutputLocation(const QUrl &location)
 {
     Q_D(QMediaRecorder);
-    if (!d->control)
-        return false;
+    if (!d->control) {
+        emit errorOccurred(QMediaRecorder::ResourceError, tr("Not available"));
+        return;
+    }
+    d->control->setOutputLocation(location);
     d->control->clearActualLocation();
-    if (d->control && d->captureSession)
-        return d->control->setOutputLocation(location);
-    return false;
+    if (!location.isEmpty() && !d->control->isLocationWritable(location))
+            emit errorOccurred(QMediaRecorder::LocationNotWritable, tr("Output location not writable"));
 }
 
 QUrl QMediaRecorder::actualLocation() const
