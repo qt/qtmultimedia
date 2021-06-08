@@ -39,7 +39,6 @@
 
 #include "androidsurfaceview_p.h"
 
-#include <QtCore/private/qjnihelpers_p.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qlist.h>
@@ -129,11 +128,11 @@ AndroidSurfaceView::AndroidSurfaceView()
     , m_surfaceHolder(0)
     , m_pendingVisible(-1)
 {
-    QtAndroidPrivate::runOnAndroidThreadSync([this] {
+    QNativeInterface::QAndroidApplication::runOnAndroidMainThread([this] {
         m_surfaceView = QJniObject("android/view/SurfaceView",
-                                          "(Landroid/content/Context;)V",
-                                          QNativeInterface::QAndroidApplication::context());
-    }, QJniEnvironment().jniEnv());
+                                   "(Landroid/content/Context;)V",
+                                   QNativeInterface::QAndroidApplication::context());
+    }).waitForFinished();
 
     Q_ASSERT(m_surfaceView.isValid());
 
