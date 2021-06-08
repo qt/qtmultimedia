@@ -116,10 +116,9 @@ QPlatformAudioInput *QGstreamerIntegration::createAudioInput(QAudioInput *q)
     return new QGstreamerAudioInput(q);
 }
 
-QPlatformAudioOutput *QGstreamerIntegration::createAudioOutput(QAudioOutput *)
+QPlatformAudioOutput *QGstreamerIntegration::createAudioOutput(QAudioOutput *q)
 {
-//    return new QGstreamerAudioOutput(q);
-    return nullptr;
+    return new QGstreamerAudioOutput(q);
 }
 
 QT_END_NAMESPACE

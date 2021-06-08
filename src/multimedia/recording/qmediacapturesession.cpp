@@ -49,6 +49,7 @@
 #include "qplatformmediaintegration_p.h"
 #include "qplatformmediacapture_p.h"
 #include "qaudioinput.h"
+#include "qaudiooutput.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -58,6 +59,7 @@ public:
     QMediaCaptureSession *q = nullptr;
     QPlatformMediaCaptureSession *captureSession;
     QAudioInput *audioInput = nullptr;
+    QAudioOutput *audioOutput = nullptr;
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
     QMediaEncoder *encoder = nullptr;
@@ -158,7 +160,7 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *device)
     if (d_ptr->audioInput == device)
         return;
     d_ptr->audioInput = device;
-    d_ptr->captureSession->setAudioInput(device->handle());
+    d_ptr->captureSession->setAudioInput(device ? device->handle() : nullptr);
     emit audioInputChanged();
 }
 
@@ -279,6 +281,22 @@ QVideoSink *QMediaCaptureSession::videoSink() const
 {
     Q_D(const QMediaCaptureSession);
     return d->videoSink;
+}
+
+void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
+{
+    Q_D(QMediaCaptureSession);
+    if (d->audioOutput == output)
+        return;
+    d->audioOutput = output;
+    d->captureSession->setAudioOutput(output ? output->handle() : nullptr);
+    emit audioOutputChanged();
+}
+
+QAudioOutput *QMediaCaptureSession::audioOutput() const
+{
+    Q_D(const QMediaCaptureSession);
+    return d->audioOutput;
 }
 
 /*!

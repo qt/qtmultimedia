@@ -70,7 +70,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
       QPlatformMediaPlayer(parent),
       playerPipeline("playerPipeline")
 {
-    gstAudioOutput = new QGstreamerAudioOutput(this);
+    gstAudioOutput = new QGstreamerAudioOutput(nullptr);
     gstAudioOutput->setPipeline(playerPipeline);
     connect(gstAudioOutput, &QGstreamerAudioOutput::mutedChanged, this, &QGstreamerMediaPlayer::mutedChangedHandler);
     connect(gstAudioOutput, &QGstreamerAudioOutput::volumeChanged, this, &QGstreamerMediaPlayer::volumeChangedHandler);
@@ -101,6 +101,7 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
     playerPipeline.removeMessageFilter(this);
     playerPipeline.setStateSync(GST_STATE_NULL);
     topology.free();
+    delete gstAudioOutput;
 }
 
 qint64 QGstreamerMediaPlayer::position() const
@@ -123,12 +124,12 @@ float QGstreamerMediaPlayer::bufferProgress() const
 
 int QGstreamerMediaPlayer::volume() const
 {
-    return gstAudioOutput->volume();
+    return qRound(gstAudioOutput->volume*100.);
 }
 
 bool QGstreamerMediaPlayer::isMuted() const
 {
-    return gstAudioOutput->isMuted();
+    return gstAudioOutput->muted;
 }
 
 bool QGstreamerMediaPlayer::isSeekable() const
@@ -233,12 +234,21 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
 
 void QGstreamerMediaPlayer::setVolume(int vol)
 {
-    gstAudioOutput->setVolume(vol);
+    float v = vol/100.;
+    if (v == gstAudioOutput->volume)
+        return;
+    gstAudioOutput->volume = v;
+    gstAudioOutput->setVolume(vol/100.);
+    volumeChanged(vol);
 }
 
 void QGstreamerMediaPlayer::setMuted(bool muted)
 {
+    if (muted == gstAudioOutput->muted)
+        return;
+    gstAudioOutput->muted = muted;
     gstAudioOutput->setMuted(muted);
+    mutedChanged(muted);
 }
 
 bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)

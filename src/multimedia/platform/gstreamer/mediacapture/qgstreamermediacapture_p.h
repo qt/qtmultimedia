@@ -86,8 +86,7 @@ public:
     void setAudioInput(QPlatformAudioInput *input) override;
 
     void setVideoPreview(QVideoSink *sink) override;
-    QAudioDevice audioPreview() const override;
-    bool setAudioPreview(const QAudioDevice &info) override;
+    void setAudioOutput(QPlatformAudioOutput *output) override;
 
     QGstPad getAudioPad() const;
     QGstPad getVideoPad() const;
@@ -109,6 +108,7 @@ private:
     QGstElement gstAudioTee;
     QGstElement gstVideoTee;
 
+    QGstPad gstAudioOutputPad;
     QGstreamerAudioOutput *gstAudioOutput = nullptr;
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
 

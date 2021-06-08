@@ -40,6 +40,7 @@
 #include <private/qgstreameraudiooutput_p.h>
 #include <private/qgstreameraudiodevice_p.h>
 #include <qaudiodevice.h>
+#include <qaudiooutput.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
@@ -53,9 +54,10 @@ Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerAudioOutput::QGstreamerAudioOutput(QObject *parent)
-    : QObject(parent),
-      gstAudioOutput("audioOutput")
+QGstreamerAudioOutput::QGstreamerAudioOutput(QAudioOutput *parent)
+  : QObject(parent),
+    QPlatformAudioOutput(parent),
+    gstAudioOutput("audioOutput")
 {
     audioQueue = QGstElement("queue", "audioQueue");
     audioConvert = QGstElement("audioconvert", "audioConvert");
@@ -72,32 +74,14 @@ QGstreamerAudioOutput::~QGstreamerAudioOutput()
 {
 }
 
-int QGstreamerAudioOutput::volume() const
+void QGstreamerAudioOutput::setVolume(float vol)
 {
-    return m_volume;
-}
-
-bool QGstreamerAudioOutput::isMuted() const
-{
-    return m_muted;
-}
-
-void QGstreamerAudioOutput::setVolume(int vol)
-{
-    if (vol == m_volume)
-        return;
-    m_volume = vol;
-    audioVolume.set("volume", vol/100.);
-    emit volumeChanged(m_volume);
+    audioVolume.set("volume", vol);
 }
 
 void QGstreamerAudioOutput::setMuted(bool muted)
 {
-    if (muted == m_muted)
-        return;
-    m_muted = muted;
     audioVolume.set("mute", muted);
-    emit mutedChanged(muted);
 }
 
 void QGstreamerAudioOutput::setPipeline(const QGstPipeline &pipeline)

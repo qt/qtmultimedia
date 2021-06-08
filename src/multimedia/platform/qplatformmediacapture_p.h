@@ -61,6 +61,7 @@ class QAudioDevice;
 class QCameraDevice;
 class QVideoSink;
 class QPlatformAudioInput;
+class QPlatformAudioOutput;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
@@ -81,8 +82,8 @@ public:
     virtual void setAudioInput(QPlatformAudioInput *input) = 0;
 
     virtual void setVideoPreview(QVideoSink * /*sink*/) {}
-    virtual QAudioDevice audioPreview() const;
-    virtual bool setAudioPreview(const QAudioDevice &) { return true; }
+
+    virtual void setAudioOutput(QPlatformAudioOutput *) {}
 
 Q_SIGNALS:
     void cameraChanged();

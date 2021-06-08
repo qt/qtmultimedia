@@ -47,6 +47,7 @@ QT_BEGIN_NAMESPACE
 
 class QCamera;
 class QAudioInput;
+class QAudioOutput;
 class QCameraDevice;
 class QCameraImageCapture; // ### rename to QMediaImageCapture
 class QMediaEncoder;
@@ -86,6 +87,9 @@ public:
     void setVideoSink(QVideoSink *preview);
     QVideoSink *videoSink() const;
 
+    void setAudioOutput(QAudioOutput *output);
+    QAudioOutput *audioOutput() const;
+
     QPlatformMediaCaptureSession *platformSession() const;
 
 Q_SIGNALS:
@@ -94,6 +98,7 @@ Q_SIGNALS:
     void imageCaptureChanged();
     void encoderChanged();
     void videoOutputChanged();
+    void audioOutputChanged();
 
 private:
     QMediaCaptureSessionPrivate *d_ptr;

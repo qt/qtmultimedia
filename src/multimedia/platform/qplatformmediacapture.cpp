@@ -48,10 +48,5 @@ QPlatformMediaCaptureSession::~QPlatformMediaCaptureSession()
 {
 }
 
-QAudioDevice QPlatformMediaCaptureSession::audioPreview() const
-{
-    return QAudioDevice();
-}
-
 QT_END_NAMESPACE
 
