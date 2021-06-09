@@ -64,9 +64,6 @@ class QMediaCaptureSession;
 class Q_MULTIMEDIA_EXPORT QMediaEncoderBase : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(State)
-    Q_ENUMS(Status)
-    Q_ENUMS(Error)
 
 public:
     QMediaEncoderBase(QObject *parent) : QObject(parent) {}
@@ -76,6 +73,7 @@ public:
         RecordingState,
         PausedState
     };
+    Q_ENUM(State)
 
     enum Status {
         UnavailableStatus,
@@ -85,6 +83,7 @@ public:
         PausedStatus,
         FinalizingStatus
     };
+    Q_ENUM(Status)
 
     enum Error
     {
@@ -93,7 +92,7 @@ public:
         FormatError,
         OutOfSpaceError
     };
-
+    Q_ENUM(Error)
 };
 
 class QMediaEncoderPrivate;

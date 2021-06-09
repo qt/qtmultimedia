@@ -62,7 +62,6 @@ class QCameraImageCapturePrivate;
 class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(Error)
     Q_PROPERTY(bool readyForCapture READ isReadyForCapture NOTIFY readyForCaptureChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
@@ -77,6 +76,7 @@ public:
         NotSupportedFeatureError,
         FormatError
     };
+    Q_ENUM(Error)
 
     explicit QCameraImageCapture(QObject *parent = nullptr);
     ~QCameraImageCapture();

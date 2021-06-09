@@ -77,8 +77,6 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
     Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged REVISION 13)
     Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT REVISION 15)
-    Q_ENUMS(FlushMode)
-    Q_ENUMS(FillMode)
     Q_MOC_INCLUDE(qvideosink.h)
     Q_MOC_INCLUDE(qvideoframe.h)
     QML_NAMED_ELEMENT(VideoOutput)
@@ -91,6 +89,7 @@ public:
         FirstFrame,
         LastFrame
     };
+    Q_ENUM(FlushMode)
 
     enum FillMode
     {
@@ -98,6 +97,7 @@ public:
         PreserveAspectFit  = Qt::KeepAspectRatio,
         PreserveAspectCrop = Qt::KeepAspectRatioByExpanding
     };
+    Q_ENUM(FillMode)
 
     QQuickVideoOutput(QQuickItem *parent = 0);
     ~QQuickVideoOutput();

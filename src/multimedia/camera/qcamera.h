@@ -89,16 +89,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(int colorTemperature READ colorTemperature WRITE setColorTemperature NOTIFY colorTemperatureChanged)
     Q_PROPERTY(Features supportedFeatures READ supportedFeatures NOTIFY supportedFeaturesChanged)
 
-    Q_ENUMS(Status)
-    Q_ENUMS(Error)
-
-    Q_ENUMS(FocusMode)
-
-    Q_ENUMS(FlashMode)
-    Q_ENUMS(TorchMode)
-    Q_ENUMS(ExposureMode)
-
-    Q_ENUMS(WhiteBalanceMode)
 public:
     enum Status {
         UnavailableStatus,
@@ -107,12 +97,14 @@ public:
         StoppingStatus,
         ActiveStatus
     };
+    Q_ENUM(Status)
 
     enum Error
     {
         NoError,
         CameraError
     };
+    Q_ENUM(Error)
 
     enum FocusMode {
         FocusModeAuto,
@@ -122,18 +114,21 @@ public:
         FocusModeInfinity,
         FocusModeManual
     };
+    Q_ENUM(FocusMode)
 
     enum FlashMode {
         FlashOff,
         FlashOn,
         FlashAuto
     };
+    Q_ENUM(FlashMode)
 
     enum TorchMode {
         TorchOff,
         TorchOn,
         TorchAuto
     };
+    Q_ENUM(TorchMode)
 
     enum ExposureMode {
         ExposureAuto,
@@ -154,6 +149,7 @@ public:
         ExposureCandlelight,
         ExposureBarcode
     };
+    Q_ENUM(ExposureMode)
 
     enum WhiteBalanceMode {
         WhiteBalanceAuto = 0,
@@ -166,6 +162,7 @@ public:
         WhiteBalanceFlash = 7,
         WhiteBalanceSunset = 8
     };
+    Q_ENUM(WhiteBalanceMode)
 
     enum class Feature {
         ColorTemperature = 0x1,

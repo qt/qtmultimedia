@@ -55,11 +55,12 @@ class Q_MULTIMEDIA_EXPORT QMediaPlaylist : public QObject
     Q_PROPERTY(QMediaPlaylist::PlaybackMode playbackMode READ playbackMode WRITE setPlaybackMode NOTIFY playbackModeChanged)
     Q_PROPERTY(QUrl currentMedia READ currentMedia NOTIFY currentMediaChanged)
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
-    Q_ENUMS(PlaybackMode Error)
 
 public:
     enum PlaybackMode { CurrentItemOnce, CurrentItemInLoop, Sequential, Loop };
+    Q_ENUM(PlaybackMode)
     enum Error { NoError, FormatError, FormatNotSupportedError, NetworkError, AccessDeniedError };
+    Q_ENUM(Error)
 
     explicit QMediaPlaylist(QObject *parent = nullptr);
     virtual ~QMediaPlaylist();

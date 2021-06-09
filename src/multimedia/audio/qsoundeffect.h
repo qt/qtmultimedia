@@ -65,14 +65,13 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
-    Q_ENUMS(Loop)
-    Q_ENUMS(Status)
 
 public:
     enum Loop
     {
         Infinite = -2
     };
+    Q_ENUM(Loop)
 
     enum Status
     {
@@ -81,6 +80,7 @@ public:
         Ready,
         Error
     };
+    Q_ENUM(Status)
 
     explicit QSoundEffect(QObject *parent = nullptr);
     explicit QSoundEffect(const QAudioDevice &audioDevice, QObject *parent = nullptr);

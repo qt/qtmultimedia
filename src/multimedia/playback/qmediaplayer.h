@@ -74,9 +74,6 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
-    Q_ENUMS(PlaybackState)
-    Q_ENUMS(MediaStatus)
-    Q_ENUMS(Error)
 
 public:
     enum PlaybackState
@@ -85,6 +82,7 @@ public:
         PlayingState,
         PausedState
     };
+    Q_ENUM(PlaybackState)
 
     enum MediaStatus
     {
@@ -97,6 +95,7 @@ public:
         EndOfMedia,
         InvalidMedia
     };
+    Q_ENUM(MediaStatus)
 
     enum Error
     {
@@ -106,6 +105,7 @@ public:
         NetworkError,
         AccessDeniedError
     };
+    Q_ENUM(Error)
 
     explicit QMediaPlayer(QObject *parent = nullptr);
     ~QMediaPlayer();

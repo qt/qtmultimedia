@@ -55,7 +55,6 @@ class Q_MULTIMEDIA_EXPORT QMediaEncoderSettings
     Q_GADGET
     Q_PROPERTY(QMediaFormat mediaFormat READ mediaFormat WRITE setMediaFormat)
     Q_PROPERTY(Quality quality READ quality WRITE setQuality)
-    Q_ENUMS(Quality)
 public:
     enum Quality
     {
@@ -65,6 +64,7 @@ public:
         HighQuality,
         VeryHighQuality
     };
+    Q_ENUM(Quality)
 
     enum EncodingMode
     {
