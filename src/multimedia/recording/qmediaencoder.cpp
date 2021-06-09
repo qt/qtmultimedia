@@ -260,11 +260,15 @@ qint64 QMediaEncoder::duration() const
 void QMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
 {
     Q_D(QMediaEncoder);
+    if (d->encoderSettings == settings)
+        return;
 
     d->encoderSettings = settings;
     if (d->control && d->captureSession)
         d->control->setEncoderSettings(settings);
     d->applySettingsLater();
+
+    emit encoderSettingsChanged();
 }
 
 /*!

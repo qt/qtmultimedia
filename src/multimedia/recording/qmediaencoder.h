@@ -107,6 +107,7 @@ class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(QMediaEncoderBase::Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(QMediaEncoderSettings encoderSettings READ encoderSettings WRITE setEncoderSettings NOTIFY encoderSettingsChanged)
 
 public:
     QMediaEncoder(QObject *parent = nullptr);
@@ -146,6 +147,7 @@ Q_SIGNALS:
     void statusChanged(QMediaEncoder::Status status);
     void durationChanged(qint64 duration);
     void actualLocationChanged(const QUrl &location);
+    void encoderSettingsChanged();
 
     void errorOccurred(QMediaEncoder::Error error, const QString &errorString);
     void errorChanged();
