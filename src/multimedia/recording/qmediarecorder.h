@@ -54,6 +54,7 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QMediaEncoderBase
     Q_PROPERTY(QMediaEncoderBase::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
+    Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
@@ -78,6 +79,7 @@ public:
     // ### Should we expose this, or restrict it to cameraFormat?
     QCamera *camera() const;
 
+    QUrl actualLocation() const;
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
@@ -122,6 +124,7 @@ Q_SIGNALS:
     void volumeChanged(qreal volume);
     void captureModeChanged();
     void videoOutputChanged();
+    void actualLocationChanged();
 
     void error(QMediaRecorder::Error error);
 

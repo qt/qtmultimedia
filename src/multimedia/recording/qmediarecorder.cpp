@@ -104,6 +104,7 @@ QMediaRecorder::QMediaRecorder(QObject *parent, CaptureMode mode)
 
     connect(d->encoder, &QMediaEncoder::stateChanged, this, &QMediaRecorder::stateChanged);
     connect(d->encoder, &QMediaEncoder::statusChanged, this, &QMediaRecorder::statusChanged);
+    connect(d->encoder, &QMediaEncoder::actualLocationChanged, this, &QMediaRecorder::actualLocationChanged);
     connect(d->captureSession, &QMediaCaptureSession::mutedChanged, this, &QMediaRecorder::mutedChanged);
     connect(d->captureSession, &QMediaCaptureSession::volumeChanged, this, &QMediaRecorder::volumeChanged);
     connect(d->captureSession, &QMediaCaptureSession::videoOutputChanged, this, &QMediaRecorder::videoOutputChanged);
@@ -125,11 +126,10 @@ QMediaRecorder::~QMediaRecorder()
     Setting the location can fail, for example when the service supports only
     local file system locations but a network URL was passed. If the service
     does not support media recording this setting the output location will
-    always fail.
+    always fail. If the operation fails an errorOccured signal is emitted.
 
     The \a location can be relative or empty;
-    in this case the recorder uses the system specific place and file naming scheme.
-    After recording has stated, QMediaRecorder::outputLocation() returns the actual output location.
+    in the latter case the recorder uses the system specific place and file naming scheme.
 */
 
 /*!
@@ -189,6 +189,11 @@ void QMediaRecorder::setCaptureMode(QMediaRecorder::CaptureMode mode)
 QCamera *QMediaRecorder::camera() const
 {
     return d_ptr->camera;
+}
+
+QUrl QMediaRecorder::actualLocation() const
+{
+    return d_ptr->encoder->actualLocation();
 }
 
 QUrl QMediaRecorder::outputLocation() const
