@@ -38,18 +38,25 @@
 ****************************************************************************/
 
 /*!
-\page qtmultimedia-apple.html
-\title Qt Multimedia on macOS and iOS
-\brief Platform notes for iOS
+    \externalpage https://gstreamer.freedesktop.org
+    \title gstreamer
+*/
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Pixel_Format
+    \title pixel format
+*/
 
-This page covers the availability of Qt Multimedia features on iOS and macOS.
+/*!
+    \externalpage https://developer.apple.com/documentation/bundleresources/information_property_list
+    \title Info.plist
+*/
 
-\section1 Limitations
+/*!
+    \externalpage https://www.wix.com/blog/photography/2018/10/04/photography-terms/
+    \title photo glossary
+*/
 
-Since Qt Multimedia for iOS uses the camera and microphone, the \c Info.plist
-assigned to QMAKE_INFO_PLIST in the project file must contain the keys
-\c NSCameraUsageDescription and \c NSMicrophoneUsageDescription. Otherwise, the
-application will abort on startup. See \l{Info.plist} documentation from Apple
-for more information regarding this key.
-
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtqml-syntax-imports.html
+    \title qtqml import syntax
 */
