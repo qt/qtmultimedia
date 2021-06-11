@@ -122,7 +122,7 @@ bool AVFMediaEncoder::setOutputLocation(const QUrl &location)
     return location.scheme() == QLatin1String("file") || location.scheme().isEmpty();
 }
 
-QMediaEncoder::State AVFMediaEncoder::state() const
+QMediaEncoder::RecorderState AVFMediaEncoder::state() const
 {
     return m_state;
 }
@@ -437,7 +437,7 @@ void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
     onCameraChanged();
 }
 
-void AVFMediaEncoder::setState(QMediaEncoder::State state)
+void AVFMediaEncoder::setState(QMediaEncoder::RecorderState state)
 {
     if (!m_service || !m_service->session()) {
         qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";
@@ -567,7 +567,7 @@ void AVFMediaEncoder::assetWriterFinished()
     AVFCameraSession *session = m_service->session();
 
     const QMediaEncoder::Status lastStatus = m_lastStatus;
-    const QMediaEncoder::State lastState = m_state;
+    const QMediaEncoder::RecorderState lastState = m_state;
 
     unapplySettings();
 

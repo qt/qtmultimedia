@@ -59,7 +59,7 @@ bool QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
     return m_session->setOutputLocation(location);
 }
 
-QMediaEncoder::State QAndroidMediaEncoder::state() const
+QMediaEncoder::RecorderState QAndroidMediaEncoder::state() const
 {
     return m_session->state();
 }
@@ -79,7 +79,7 @@ void QAndroidMediaEncoder::applySettings()
     m_session->applySettings();
 }
 
-void QAndroidMediaEncoder::setState(QMediaEncoder::State state)
+void QAndroidMediaEncoder::setState(QMediaEncoder::RecorderState state)
 {
     m_session->setState(state);
 }

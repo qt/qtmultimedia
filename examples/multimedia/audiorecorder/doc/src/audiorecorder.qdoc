@@ -64,7 +64,7 @@
     \endcode
 
     And setup the lists as described above. The text on the record and pause
-    buttons are toggled depending on the \l{QMediaEncoder::State}{state} of
+    buttons are toggled depending on the \l{QMediaEncoder::RecorderState}{state} of
     the \c audioRecorder object. This means that if the state is
     \l{QMediaEncoder::StoppedState} then the button text will be "Record" and
     "Pause". In \l{QMediaEncoder::RecordingState} the record button will have

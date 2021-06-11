@@ -55,25 +55,31 @@ class QSize;
 class QAudioFormat;
 class QCamera;
 class QCameraDevice;
-class QMediaEncoderService;
-class QAudioEncoderSettings;
-class QVideoEncoderSettings;
 class QAudioDevice;
 class QMediaCaptureSession;
 
-class Q_MULTIMEDIA_EXPORT QMediaEncoderBase : public QObject
+class QMediaEncoderPrivate;
+class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QMediaEncoder::RecorderState recorderState READ recorderState NOTIFY recorderStateChanged)
+    Q_PROPERTY(QMediaEncoder::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
+    Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
+    Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
+    Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
+    Q_PROPERTY(QMediaEncoder::Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(QMediaEncoderSettings encoderSettings READ encoderSettings WRITE setEncoderSettings NOTIFY encoderSettingsChanged)
 
 public:
-    QMediaEncoderBase(QObject *parent) : QObject(parent) {}
-    enum State
+    enum RecorderState
     {
         StoppedState,
         RecordingState,
         PausedState
     };
-    Q_ENUM(State)
+    Q_ENUM(RecorderState)
 
     enum Status {
         UnavailableStatus,
@@ -93,23 +99,7 @@ public:
         OutOfSpaceError
     };
     Q_ENUM(Error)
-};
 
-class QMediaEncoderPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QMediaEncoderBase
-{
-    Q_OBJECT
-    Q_PROPERTY(QMediaEncoderBase::State state READ state NOTIFY stateChanged)
-    Q_PROPERTY(QMediaEncoderBase::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
-    Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
-    Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
-    Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
-    Q_PROPERTY(QMediaEncoderBase::Error error READ error NOTIFY errorChanged)
-    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(QMediaEncoderSettings encoderSettings READ encoderSettings WRITE setEncoderSettings NOTIFY encoderSettingsChanged)
-
-public:
     QMediaEncoder(QObject *parent = nullptr);
     ~QMediaEncoder();
 
@@ -120,10 +110,10 @@ public:
 
     QUrl actualLocation() const;
 
-    QMediaEncoderBase::State state() const;
-    QMediaEncoderBase::Status status() const;
+    RecorderState recorderState() const;
+    Status status() const;
 
-    QMediaEncoderBase::Error error() const;
+    Error error() const;
     QString errorString() const;
 
     qint64 duration() const;
@@ -143,13 +133,13 @@ public Q_SLOTS:
     void stop();
 
 Q_SIGNALS:
-    void stateChanged(QMediaEncoder::State state);
-    void statusChanged(QMediaEncoder::Status status);
+    void recorderStateChanged(RecorderState state);
+    void statusChanged(Status status);
     void durationChanged(qint64 duration);
     void actualLocationChanged(const QUrl &location);
     void encoderSettingsChanged();
 
-    void errorOccurred(QMediaEncoder::Error error, const QString &errorString);
+    void errorOccurred(Error error, const QString &errorString);
     void errorChanged();
 
     void metaDataChanged();
@@ -165,8 +155,8 @@ private:
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QMediaEncoderBase, State)
-Q_MEDIA_ENUM_DEBUG(QMediaEncoderBase, Status)
-Q_MEDIA_ENUM_DEBUG(QMediaEncoderBase, Error)
+Q_MEDIA_ENUM_DEBUG(QMediaEncoder, RecorderState)
+Q_MEDIA_ENUM_DEBUG(QMediaEncoder, Status)
+Q_MEDIA_ENUM_DEBUG(QMediaEncoder, Error)
 
 #endif  // QMEDIAENCODER_H

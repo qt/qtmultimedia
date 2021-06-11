@@ -72,7 +72,7 @@ public:
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
-    QMediaEncoder::State state() const override;
+    QMediaEncoder::RecorderState state() const override;
     QMediaEncoder::Status status() const override;
     qint64 duration() const override;
     void applySettings() override;
@@ -82,7 +82,7 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
 public Q_SLOTS:
-    void setState(QMediaEncoder::State state) override;
+    void setState(QMediaEncoder::RecorderState state) override;
 
 private Q_SLOTS:
     void onCameraChanged();
@@ -95,7 +95,7 @@ private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QUrl                          m_outputLocation;
-    QMediaEncoder::State          m_state = QMediaEncoder::StoppedState;
+    QMediaEncoder::RecorderState          m_state = QMediaEncoder::StoppedState;
     QMediaEncoder::Status         m_lastStatus = QMediaEncoder::StoppedStatus;
     QMediaEncoderSettings         m_settings;
     QWindowsStorageLocation       m_storageLocation;

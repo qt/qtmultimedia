@@ -90,7 +90,7 @@ public:
 private:
     bool processBusMessage(const QGstreamerMessage& message) override;
 public:
-    void setState(QMediaEncoder::State state) override;
+    void setState(QMediaEncoder::RecorderState state) override;
     void record();
     void pause();
     void stop();
@@ -98,7 +98,7 @@ public:
 
 private:
     void updateStatus();
-    void handleSessionError(QMediaEncoderBase::Error code, const QString &description);
+    void handleSessionError(QMediaEncoder::Error code, const QString &description);
     void finalize();
     QDir defaultDir() const;
     QString generateFileName(const QDir &dir, const QString &ext) const;

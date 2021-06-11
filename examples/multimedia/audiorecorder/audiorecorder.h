@@ -79,7 +79,7 @@ private slots:
     void toggleRecord();
 
     void updateStatus(QMediaEncoder::Status);
-    void onStateChanged(QMediaEncoder::State);
+    void onStateChanged(QMediaEncoder::RecorderState);
     void updateProgress(qint64 pos);
     void displayErrorMessage();
 

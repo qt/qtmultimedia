@@ -159,12 +159,12 @@ bool QAndroidCaptureSession::setOutputLocation(const QUrl &location)
     return false;
 }
 
-QMediaEncoder::State QAndroidCaptureSession::state() const
+QMediaEncoder::RecorderState QAndroidCaptureSession::state() const
 {
     return m_state;
 }
 
-void QAndroidCaptureSession::setState(QMediaEncoder::State state)
+void QAndroidCaptureSession::setState(QMediaEncoder::RecorderState state)
 {
     if (m_state == state)
         return;

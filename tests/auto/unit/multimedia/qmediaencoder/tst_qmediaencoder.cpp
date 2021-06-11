@@ -117,7 +117,7 @@ void tst_QMediaEncoder::testBasicSession()
     session.setEncoder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
-    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.recorderState(), QMediaEncoder::StoppedState);
     QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(recorder.duration(), qint64(0));
 }
@@ -136,7 +136,7 @@ void tst_QMediaEncoder::testNullControls()
     // session.setEncoder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
-    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.recorderState(), QMediaEncoder::StoppedState);
     QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(recorder.duration(), qint64(0));
 
@@ -158,20 +158,20 @@ void tst_QMediaEncoder::testNullControls()
     QCOMPARE(recorder.encoderSettings().videoCodec(), QMediaFormat::VideoCodec::VP9);
     QCOMPARE(recorder.encoderSettings().fileFormat(), QMediaFormat::MPEG4);
 
-    QSignalSpy spy(&recorder, SIGNAL(stateChanged(QMediaEncoder::State)));
+    QSignalSpy spy(&recorder, SIGNAL(stateChanged(QMediaEncoder::RecorderState)));
 
     recorder.record();
-    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.recorderState(), QMediaEncoder::StoppedState);
     QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(spy.count(), 0);
 
     recorder.pause();
-    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.recorderState(), QMediaEncoder::StoppedState);
     QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(spy.count(), 0);
 
     recorder.stop();
-    QCOMPARE(recorder.state(), QMediaEncoder::StoppedState);
+    QCOMPARE(recorder.recorderState(), QMediaEncoder::StoppedState);
     QCOMPARE(recorder.error(), QMediaEncoder::NoError);
     QCOMPARE(spy.count(), 0);
 }
@@ -237,16 +237,16 @@ void tst_QMediaEncoder::testSink()
 
 void tst_QMediaEncoder::testRecord()
 {
-    QSignalSpy stateSignal(encoder,SIGNAL(stateChanged(QMediaEncoder::State)));
+    QSignalSpy stateSignal(encoder,SIGNAL(stateChanged(QMediaEncoder::RecorderState)));
     QSignalSpy statusSignal(encoder,SIGNAL(statusChanged(QMediaEncoder::Status)));
     QSignalSpy progressSignal(encoder, SIGNAL(durationChanged(qint64)));
     encoder->record();
-    QCOMPARE(encoder->state(), QMediaEncoder::RecordingState);
+    QCOMPARE(encoder->recorderState(), QMediaEncoder::RecordingState);
     QCOMPARE(encoder->error(), QMediaEncoder::NoError);
     QCOMPARE(encoder->errorString(), QString());
 
     QCOMPARE(stateSignal.count(), 1);
-    QCOMPARE(stateSignal.last()[0].value<QMediaEncoder::State>(), QMediaEncoder::RecordingState);
+    QCOMPARE(stateSignal.last()[0].value<QMediaEncoder::RecorderState>(), QMediaEncoder::RecordingState);
 
     QTestEventLoop::instance().enterLoop(1);
 
@@ -259,7 +259,7 @@ void tst_QMediaEncoder::testRecord()
 
     encoder->pause();
 
-    QCOMPARE(encoder->state(), QMediaEncoder::PausedState);
+    QCOMPARE(encoder->recorderState(), QMediaEncoder::PausedState);
 
     QCOMPARE(stateSignal.count(), 2);
 
@@ -271,7 +271,7 @@ void tst_QMediaEncoder::testRecord()
 
     encoder->stop();
 
-    QCOMPARE(encoder->state(), QMediaEncoder::StoppedState);
+    QCOMPARE(encoder->recorderState(), QMediaEncoder::StoppedState);
     QCOMPARE(stateSignal.count(), 3);
 
     QTestEventLoop::instance().enterLoop(1);

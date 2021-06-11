@@ -93,7 +93,7 @@ void QGstreamerMediaEncoder::updateStatus()
         { QMediaEncoder::StartingStatus, QMediaEncoder::RecordingStatus, QMediaEncoder::PausedStatus }
     };
 
-    QMediaEncoder::State sessionState = QMediaEncoder::StoppedState;
+    QMediaEncoder::RecorderState sessionState = QMediaEncoder::StoppedState;
 
     auto gstState = gstEncoder.isNull() ? GST_STATE_NULL : gstEncoder.state();
     switch (gstState) {
@@ -264,7 +264,7 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
-void QGstreamerMediaEncoder::setState(QMediaEncoder::State s)
+void QGstreamerMediaEncoder::setState(QMediaEncoder::RecorderState s)
 {
     if (s == state())
         return;

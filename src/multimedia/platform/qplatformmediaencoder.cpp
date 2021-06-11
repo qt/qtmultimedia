@@ -90,7 +90,7 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn QMediaEncoder::State QPlatformMediaEncoder::state() const
+    \fn QMediaEncoder::RecorderState QPlatformMediaEncoder::state() const
 
     Return the current recording state.
 */
@@ -108,7 +108,7 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::setState(QMediaEncoder::State state)
+    \fn void QPlatformMediaEncoder::setState(QMediaEncoder::RecorderState state)
 
     Set the media recorder \a state.
 */
@@ -127,16 +127,16 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::stateChanged(QMediaEncoder::State state)
+    \fn void QPlatformMediaEncoder::stateChanged(QMediaEncoder::RecorderState state)
 
     Signals that the \a state of a media recorder has changed.
 */
-void QPlatformMediaEncoder::stateChanged(QMediaEncoder::State state)
+void QPlatformMediaEncoder::stateChanged(QMediaEncoder::RecorderState state)
 {
     if (m_state == state)
         return;
     m_state = state;
-    emit q->stateChanged(state);
+    emit q->recorderStateChanged(state);
 }
 
 /*!
@@ -183,7 +183,7 @@ void QPlatformMediaEncoder::actualLocationChanged(const QUrl &location)
 
     Signals that an \a error has occurred.  The \a errorString describes the error.
 */
-void QPlatformMediaEncoder::error(QMediaEncoderBase::Error error, const QString &errorString)
+void QPlatformMediaEncoder::error(QMediaEncoder::Error error, const QString &errorString)
 {
     if (error == m_error && errorString == m_errorString)
         return;

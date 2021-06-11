@@ -92,7 +92,7 @@ void QMediaEncoderPrivate::_q_applySettings()
 */
 
 QMediaEncoder::QMediaEncoder(QObject *parent)
-    : QMediaEncoderBase(parent),
+    : QObject(parent),
       d_ptr(new QMediaEncoderPrivate)
 {
     Q_D(QMediaEncoder);
@@ -195,12 +195,12 @@ QUrl QMediaEncoder::actualLocation() const
 /*!
     Returns the current media encoder state.
 
-    \sa QMediaEncoder::State
+    \sa QMediaEncoder::RecorderState
 */
 
-QMediaEncoder::State QMediaEncoder::state() const
+QMediaEncoder::RecorderState QMediaEncoder::recorderState() const
 {
-    return d_func()->control ? QMediaEncoder::State(d_func()->control->state()) : StoppedState;
+    return d_func()->control ? QMediaEncoder::RecorderState(d_func()->control->state()) : StoppedState;
 }
 
 /*!
@@ -209,7 +209,7 @@ QMediaEncoder::State QMediaEncoder::state() const
     \sa QMediaEncoder::Status
 */
 
-QMediaEncoderBase::Status QMediaEncoder::status() const
+QMediaEncoder::Status QMediaEncoder::status() const
 {
     Q_D(const QMediaEncoder);
     return d->control ? d->control->status() : UnavailableStatus;
@@ -221,7 +221,7 @@ QMediaEncoderBase::Status QMediaEncoder::status() const
     \sa errorString()
 */
 
-QMediaEncoderBase::Error QMediaEncoder::error() const
+QMediaEncoder::Error QMediaEncoder::error() const
 {
     Q_D(const QMediaEncoder);
 
@@ -339,7 +339,7 @@ void QMediaEncoder::stop()
 }
 
 /*!
-    \enum QMediaEncoderBase::State
+    \enum QMediaEncoder::RecorderState
 
     \value StoppedState    The recorder is not active.
         If this is the state after recording then the actual created recording has
@@ -351,7 +351,7 @@ void QMediaEncoder::stop()
 */
 
 /*!
-    \enum QMediaEncoderBase::Status
+    \enum QMediaEncoder::Status
 
     \value UnavailableStatus
         The recorder is not available or not supported by connected media object.
@@ -372,7 +372,7 @@ void QMediaEncoder::stop()
 */
 
 /*!
-    \enum QMediaEncoderBase::Error
+    \enum QMediaEncoder::Error
 
     \value NoError         No Errors.
     \value ResourceError   Device is not ready or not available.
@@ -381,7 +381,7 @@ void QMediaEncoder::stop()
 */
 
 /*!
-    \property QMediaEncoder::state
+    \property QMediaEncoder::RecorderState
     \brief The current state of the media recorder.
 
     The state property represents the user request and is changed synchronously
@@ -398,7 +398,7 @@ void QMediaEncoder::stop()
 */
 
 /*!
-    \fn QMediaEncoder::stateChanged(State state)
+    \fn QMediaEncoder::recorderStateChanged(State state)
 
     Signals that a media recorder's \a state has changed.
 */

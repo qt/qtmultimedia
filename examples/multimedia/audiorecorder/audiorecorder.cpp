@@ -125,7 +125,7 @@ AudioRecorder::AudioRecorder()
 
     connect(m_audioEncoder, &QMediaEncoder::durationChanged, this, &AudioRecorder::updateProgress);
     connect(m_audioEncoder, &QMediaEncoder::statusChanged, this, &AudioRecorder::updateStatus);
-    connect(m_audioEncoder, &QMediaEncoder::stateChanged, this, &AudioRecorder::onStateChanged);
+    connect(m_audioEncoder, &QMediaEncoder::recorderStateChanged, this, &AudioRecorder::onStateChanged);
     connect(m_audioEncoder, &QMediaEncoder::errorChanged, this, &AudioRecorder::displayErrorMessage);
 }
 
@@ -160,7 +160,7 @@ void AudioRecorder::updateStatus(QMediaEncoder::Status status)
         ui->statusbar->showMessage(statusMessage);
 }
 
-void AudioRecorder::onStateChanged(QMediaEncoder::State state)
+void AudioRecorder::onStateChanged(QMediaEncoder::RecorderState state)
 {
     switch (state) {
     case QMediaEncoder::RecordingState:
@@ -177,7 +177,7 @@ void AudioRecorder::onStateChanged(QMediaEncoder::State state)
         break;
     }
 
-    ui->pauseButton->setEnabled(m_audioEncoder->state() != QMediaEncoder::StoppedState);
+    ui->pauseButton->setEnabled(m_audioEncoder->recorderState() != QMediaEncoder::StoppedState);
 }
 
 static QVariant boxValue(const QComboBox *box)
@@ -191,7 +191,7 @@ static QVariant boxValue(const QComboBox *box)
 
 void AudioRecorder::toggleRecord()
 {
-    if (m_audioEncoder->state() == QMediaEncoder::StoppedState) {
+    if (m_audioEncoder->recorderState() == QMediaEncoder::StoppedState) {
         m_captureSession.audioInput()->setDevice(boxValue(ui->audioDeviceBox).value<QAudioDevice>());
 
         QMediaEncoderSettings settings;
@@ -215,7 +215,7 @@ void AudioRecorder::toggleRecord()
 
 void AudioRecorder::togglePause()
 {
-    if (m_audioEncoder->state() != QMediaEncoder::PausedState)
+    if (m_audioEncoder->recorderState() != QMediaEncoder::PausedState)
         m_audioEncoder->pause();
     else
         m_audioEncoder->record();

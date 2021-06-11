@@ -73,8 +73,8 @@ public:
     virtual QUrl outputLocation() const = 0;
     virtual bool setOutputLocation(const QUrl &location) = 0;
 
-    virtual QMediaEncoder::State state() const { return m_state; }
-    virtual void setState(QMediaEncoder::State state) = 0;
+    virtual QMediaEncoder::RecorderState state() const { return m_state; }
+    virtual void setState(QMediaEncoder::RecorderState state) = 0;
 
     virtual QMediaEncoder::Status status() const { return m_status; }
 
@@ -96,7 +96,7 @@ public:
 protected:
     explicit QPlatformMediaEncoder(QMediaEncoder *parent);
 
-    void stateChanged(QMediaEncoder::State state);
+    void stateChanged(QMediaEncoder::RecorderState state);
     void statusChanged(QMediaEncoder::Status status);
     void durationChanged(qint64 position);
     void actualLocationChanged(const QUrl &location);
@@ -108,7 +108,7 @@ private:
     QMediaEncoder::Error m_error = QMediaEncoder::NoError;
     QString m_errorString;
     QUrl m_actualLocation;
-    QMediaEncoder::State m_state = QMediaEncoder::StoppedState;
+    QMediaEncoder::RecorderState m_state = QMediaEncoder::StoppedState;
     QMediaEncoder::Status m_status = QMediaEncoder::StoppedStatus;
 };
 

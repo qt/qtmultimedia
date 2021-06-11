@@ -57,7 +57,7 @@ public:
         return true;
     }
 
-    QMediaEncoder::State state() const
+    QMediaEncoder::RecorderState state() const
     {
         return m_state;
     }
@@ -119,7 +119,7 @@ public:
         emit statusChanged(m_status);
     }
 
-    void setState(QMediaEncoder::State state)
+    void setState(QMediaEncoder::RecorderState state)
     {
         switch (state) {
         case QMediaEncoder::StoppedState:
@@ -137,7 +137,7 @@ public:
 public:
     QMediaMetaData m_metaData;
     QUrl       m_sink;
-    QMediaEncoder::State m_state;
+    QMediaEncoder::RecorderState m_state;
     QMediaEncoder::Status m_status;
     QMediaEncoderSettings m_settings;
     qint64     m_position;

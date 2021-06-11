@@ -80,7 +80,7 @@ public:
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
 
-    QMediaEncoder::State state() const override;
+    QMediaEncoder::RecorderState state() const override;
     QMediaEncoder::Status status() const override;
 
     qint64 duration() const override;
@@ -96,7 +96,7 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
 public Q_SLOTS:
-    void setState(QMediaEncoder::State state) override;
+    void setState(QMediaEncoder::RecorderState state) override;
 
 private:
 
@@ -117,7 +117,7 @@ private:
     QUrl m_outputLocation;
     AVFStorageLocation m_storageLocation;
 
-    QMediaEncoder::State m_state;
+    QMediaEncoder::RecorderState m_state;
     QMediaEncoder::Status m_lastStatus;
     QMediaEncoderSettings m_settings;
 

@@ -103,7 +103,7 @@ void Camera::setCamera(const QCameraDevice &cameraInfo)
 
     m_mediaEncoder.reset(new QMediaEncoder);
     m_captureSession.setEncoder(m_mediaEncoder.data());
-    connect(m_mediaEncoder.data(), &QMediaEncoder::stateChanged, this, &Camera::updateRecorderState);
+    connect(m_mediaEncoder.data(), &QMediaEncoder::recorderStateChanged, this, &Camera::updateRecorderState);
 
     m_imageCapture = new QCameraImageCapture;
     m_captureSession.setImageCapture(m_imageCapture);
@@ -116,7 +116,7 @@ void Camera::setCamera(const QCameraDevice &cameraInfo)
     m_captureSession.setVideoOutput(ui->viewfinder);
 
     updateCameraActive(m_camera->isActive());
-    updateRecorderState(m_mediaEncoder->state());
+    updateRecorderState(m_mediaEncoder->recorderState());
 
     connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
     connect(m_imageCapture, &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
@@ -142,7 +142,7 @@ void Camera::keyPressEvent(QKeyEvent * event)
         if (m_doImageCapture) {
             takeImage();
         } else {
-            if (m_mediaEncoder->state() == QMediaEncoder::RecordingState)
+            if (m_mediaEncoder->recorderState() == QMediaEncoder::RecordingState)
                 stop();
             else
                 record();
@@ -277,7 +277,7 @@ void Camera::updateCameraActive(bool active)
     }
 }
 
-void Camera::updateRecorderState(QMediaEncoder::State state)
+void Camera::updateRecorderState(QMediaEncoder::RecorderState state)
 {
     switch (state) {
     case QMediaEncoder::StoppedState:

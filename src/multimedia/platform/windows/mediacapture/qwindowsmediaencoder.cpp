@@ -67,7 +67,7 @@ bool QWindowsMediaEncoder::setOutputLocation(const QUrl &location)
     return location.scheme() == QLatin1String("file") || location.scheme().isEmpty();
 }
 
-QMediaEncoder::State QWindowsMediaEncoder::state() const
+QMediaEncoder::RecorderState QWindowsMediaEncoder::state() const
 {
     return m_state;
 }
@@ -95,7 +95,7 @@ void QWindowsMediaEncoder::applySettings()
     m_mediaDeviceSession->setVideoSettings(m_settings);
 }
 
-void QWindowsMediaEncoder::setState(QMediaEncoder::State state)
+void QWindowsMediaEncoder::setState(QMediaEncoder::RecorderState state)
 {
     if (!m_captureService || !m_mediaDeviceSession) {
         qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";

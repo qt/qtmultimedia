@@ -80,8 +80,8 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
-    QMediaEncoder::State state() const;
-    void setState(QMediaEncoder::State state);
+    QMediaEncoder::RecorderState state() const;
+    void setState(QMediaEncoder::RecorderState state);
 
     QMediaEncoder::Status status() const;
 
@@ -94,7 +94,7 @@ public:
 
     void applySettings();
 
-    void stateChanged(QMediaEncoder::State state) {
+    void stateChanged(QMediaEncoder::RecorderState state) {
         if (m_mediaEncoder)
             m_mediaEncoder->stateChanged(state);
     }
@@ -181,7 +181,7 @@ private:
     QTimer m_notifyTimer;
     qint64 m_duration;
 
-    QMediaEncoder::State m_state;
+    QMediaEncoder::RecorderState m_state;
     QMediaEncoder::Status m_status;
     QUrl m_requestedOutputLocation;
     QUrl m_usedOutputLocation;

@@ -66,7 +66,7 @@ public:
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
-    QMediaEncoder::State state() const override;
+    QMediaEncoder::RecorderState state() const override;
     QMediaEncoder::Status status() const override;
     qint64 duration() const override;
     void applySettings() override;
@@ -75,7 +75,7 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    void setState(QMediaEncoder::State state) override;
+    void setState(QMediaEncoder::RecorderState state) override;
 
 private:
     friend class QAndroidCaptureSession;
