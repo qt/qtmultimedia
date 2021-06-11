@@ -176,7 +176,7 @@ void AVFCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
-    if (m_cameraInfo.isNull() && active)
+    if (m_cameraDevice.isNull() && active)
         return;
 
     m_active = active;
@@ -204,9 +204,9 @@ QCamera::Status AVFCamera::status() const
 
 void AVFCamera::setCamera(const QCameraDevice &camera)
 {
-    if (m_cameraInfo == camera)
+    if (m_cameraDevice == camera)
         return;
-    m_cameraInfo = camera;
+    m_cameraDevice = camera;
     if (m_session)
         m_session->setActiveCamera(camera);
 }
@@ -229,7 +229,7 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     m_session->setActiveCamera(QCameraDevice());
     m_session->setActive(m_active);
-    m_session->setActiveCamera(m_cameraInfo);
+    m_session->setActiveCamera(m_cameraDevice);
 }
 
 void AVFCamera::updateStatus()
@@ -254,7 +254,7 @@ AVCaptureConnection *AVFCamera::videoConnection() const
 AVCaptureDevice *AVFCamera::device() const
 {
     AVCaptureDevice *device = nullptr;
-    QByteArray deviceId = m_cameraInfo.id();
+    QByteArray deviceId = m_cameraDevice.id();
     if (!deviceId.isEmpty()) {
         device = [AVCaptureDevice deviceWithUniqueID:
                     [NSString stringWithUTF8String:

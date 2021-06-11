@@ -177,13 +177,13 @@ AVFCameraSession::~AVFCameraSession()
 
 void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
 {
-    if (m_activeCameraInfo != info) {
-        m_activeCameraInfo = info;
+    if (m_activeCameraDevice != info) {
+        m_activeCameraDevice = info;
 
         [m_captureSession beginConfiguration];
 
         attachVideoInputDevice();
-        if (!m_activeCameraInfo.isNull() && !m_videoOutput)
+        if (!m_activeCameraDevice.isNull() && !m_videoOutput)
             setVideoOutput(new AVFCameraRenderer(this));
 
         [m_captureSession commitConfiguration];
@@ -254,7 +254,7 @@ void AVFCameraSession::setActive(bool active)
             attachAudioInputDevice();
             setAudioOutput();
         }
-        if (!m_activeCameraInfo.isNull()) {
+        if (!m_activeCameraDevice.isNull()) {
             attachVideoInputDevice();
             Q_EMIT readyToConfigureConnections();
             m_defaultCodec = 0;
@@ -309,7 +309,7 @@ AVCaptureDevice *AVFCameraSession::createVideoCaptureDevice()
 {
     AVCaptureDevice *device = nullptr;
 
-    QByteArray deviceId = m_activeCameraInfo.id();
+    QByteArray deviceId = m_activeCameraDevice.id();
     if (!deviceId.isEmpty()) {
         device = [AVCaptureDevice deviceWithUniqueID:
                     [NSString stringWithUTF8String:
@@ -330,7 +330,7 @@ void AVFCameraSession::attachVideoInputDevice()
 
     AVCaptureDevice *videoDevice = createVideoCaptureDevice();
     if (!videoDevice) {
-        m_activeCameraInfo = QCameraDevice();
+        m_activeCameraDevice = QCameraDevice();
         return;
     }
 
@@ -347,7 +347,7 @@ void AVFCameraSession::attachVideoInputDevice()
             [m_captureSession addInput:m_videoInput];
         } else {
             qWarning() << "Failed to connect video device input";
-            m_activeCameraInfo = QCameraDevice();
+            m_activeCameraDevice = QCameraDevice();
         }
     }
 }

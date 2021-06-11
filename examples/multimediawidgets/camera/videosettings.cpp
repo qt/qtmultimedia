@@ -92,7 +92,7 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
 
 
     ui->videoResolutionBox->addItem(tr("Default"));
-    auto supportedResolutions = mediaRecorder->captureSession()->camera()->cameraInfo().photoResolutions(); // ### Should use resolutions from video formats
+    auto supportedResolutions = mediaRecorder->captureSession()->camera()->cameraDevice().photoResolutions(); // ### Should use resolutions from video formats
     for (const QSize &resolution : supportedResolutions) {
         ui->videoResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
                                         QVariant(resolution));

@@ -75,7 +75,7 @@ public:
     AVFCameraSession(AVFCameraService *service, QObject *parent = nullptr);
     ~AVFCameraSession();
 
-    QCameraDevice activeCameraInfo() const { return m_activeCameraInfo; }
+    QCameraDevice activecameraDevice() const { return m_activeCameraDevice; }
     void setActiveCamera(const QCameraDevice &info);
 
     AVFCameraRenderer *videoOutput() const { return m_videoOutput; }
@@ -116,7 +116,7 @@ private:
     bool applyImageEncoderSettings();
     bool applyEncoderSettings();
 
-    QCameraDevice m_activeCameraInfo;
+    QCameraDevice m_activeCameraDevice;
 
     AVFCameraService *m_service;
     AVCaptureSession *m_captureSession;

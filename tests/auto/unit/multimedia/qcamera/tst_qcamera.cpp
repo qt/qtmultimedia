@@ -577,36 +577,36 @@ void tst_QCamera::testConstructor()
         QCamera camera;
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), defaultCamera);
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
     }
 
     {
         QCamera camera(QCameraDevice::FrontFace);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), frontCamera);
+        QCOMPARE(camera.cameraDevice(), frontCamera);
     }
 
     {
         QCamera camera(QMediaDevices::defaultVideoInput());
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), defaultCamera);
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
     }
 
     {
-        QCameraDevice cameraInfo = QMediaDevices::videoInputs().at(0);
-        QCamera camera(cameraInfo);
+        QCameraDevice cameraDevice = QMediaDevices::videoInputs().at(0);
+        QCamera camera(cameraDevice);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), cameraInfo);
+        QCOMPARE(camera.cameraDevice(), cameraDevice);
     }
 
     {
         QCamera camera(QCameraDevice::BackFace);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), backCamera);
+        QCOMPARE(camera.cameraDevice(), backCamera);
     }
 
     {
@@ -614,7 +614,7 @@ void tst_QCamera::testConstructor()
         QCamera camera(QCameraDevice::UnspecifiedPosition);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), defaultCamera);
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
     }
 }
 

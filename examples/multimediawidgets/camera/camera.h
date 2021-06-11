@@ -80,7 +80,7 @@ public slots:
     void saveMetaData();
 
 private slots:
-    void setCamera(const QCameraDevice &cameraInfo);
+    void setCamera(const QCameraDevice &cameraDevice);
 
     void startCamera();
     void stopCamera();

@@ -74,7 +74,7 @@ void tst_QCameraDevice::constructor()
     {
         // default camera
         QCamera camera;
-        QCameraDevice info(camera.cameraInfo());
+        QCameraDevice info(camera.cameraDevice());
         QVERIFY(!info.isNull());
         QCOMPARE(info.id(), QStringLiteral("default"));
         QCOMPARE(info.description(), QStringLiteral("defaultCamera"));
@@ -90,7 +90,7 @@ void tst_QCameraDevice::constructor()
     QVERIFY(!info.isNull());
 
     QCamera camera(info);
-    QCOMPARE(info, camera.cameraInfo());
+    QCOMPARE(info, camera.cameraDevice());
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("back"));
     QCOMPARE(info.description(), QStringLiteral("backCamera"));
@@ -113,7 +113,7 @@ void tst_QCameraDevice::defaultCamera()
     QCOMPARE(info.position(), QCameraDevice::UnspecifiedPosition);
 
     QCamera camera(info);
-    QCOMPARE(camera.cameraInfo(), info);
+    QCOMPARE(camera.cameraDevice(), info);
 }
 
 void tst_QCameraDevice::availableCameras()
@@ -152,13 +152,13 @@ void tst_QCameraDevice::equality_operators()
 
     {
         QCamera camera(defaultCamera);
-        QVERIFY(camera.cameraInfo() == defaultCamera);
-        QVERIFY(camera.cameraInfo() == cameras.at(0));
+        QVERIFY(camera.cameraDevice() == defaultCamera);
+        QVERIFY(camera.cameraDevice() == cameras.at(0));
     }
 
     {
         QCamera camera(cameras.at(1));
-        QVERIFY(camera.cameraInfo() == cameras.at(1));
+        QVERIFY(camera.cameraDevice() == cameras.at(1));
     }
 }
 

@@ -371,7 +371,7 @@ void AVFMediaEncoder::applySettings()
     if (m_state != QMediaRecorder::StoppedState)
         return;
 
-    const auto flag = (session->activeCameraInfo().isNull())
+    const auto flag = (session->activecameraDevice().isNull())
                               ? QMediaFormat::NoFlags
                               : QMediaFormat::RequiresVideo;
 
@@ -413,7 +413,7 @@ void AVFMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
 QMediaEncoderSettings AVFMediaEncoder::encoderSettings() const
 {
     QMediaEncoderSettings s = m_settings;
-    const auto flag = (m_service->session()->activeCameraInfo().isNull())
+    const auto flag = (m_service->session()->activecameraDevice().isNull())
                             ? QMediaFormat::NoFlags
                             : QMediaFormat::RequiresVideo;
     s.resolveFormat(flag);
@@ -483,14 +483,14 @@ void AVFMediaEncoder::record()
         // Make sure the video is recorded in device orientation.
         // The top of the video will match the side of the device which is on top
         // when recording starts (regardless of the UI orientation).
-        // QCameraDevice cameraInfo = m_service->session()->activeCameraInfo();
+        // QCameraDevice cameraDevice = m_service->session()->activecameraDevice();
         // int screenOrientation = 360 - m_orientationHandler.currentOrientation();
 
             // ###
-    //        if (cameraInfo.position() == QCameraDevice::FrontFace)
-    //            rotation = (screenOrientation + cameraInfo.orientation()) % 360;
+    //        if (cameraDevice.position() == QCameraDevice::FrontFace)
+    //            rotation = (screenOrientation + cameraDevice.orientation()) % 360;
     //        else
-    //            rotation = (screenOrientation + (360 - cameraInfo.orientation())) % 360;
+    //            rotation = (screenOrientation + (360 - cameraDevice.orientation())) % 360;
     }
 
     const QString path(m_outputLocation.scheme() == QLatin1String("file") ?

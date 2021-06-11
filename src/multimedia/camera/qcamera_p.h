@@ -79,7 +79,7 @@ public:
     QCamera::Error error;
     QString errorString;
 
-    QCameraDevice cameraInfo;
+    QCameraDevice cameraDevice;
     QCameraFormat cameraFormat;
 
     void _q_error(int error, const QString &errorString);

@@ -116,12 +116,12 @@ In C++:
 
      \snippet multimedia-snippets/camera.cpp Camera selection
 
-In QML, you can set the \c Camera \l{Camera::cameraInfo}{cameraInfo} property. All available cameras can
+In QML, you can set the \c Camera \l{Camera::cameraDevice}{cameraDevice} property. All available cameras can
 be retrieved from \l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}:
 
 \qml
 Camera {
-    cameraInfo: QtMultimedia.availableCameras[0]
+    cameraDevice: QtMultimedia.availableCameras[0]
 }
 \endqml
 
@@ -140,7 +140,7 @@ Camera {
 }
 \endqml
 
-If neither cameraInfo nor position is specified, the default camera will be used. On desktop
+If neither cameraDevice nor position is specified, the default camera will be used. On desktop
 platforms, the default camera is set by the user in the system settings. On a mobile device, the
 back-facing camera is usually the default camera. You can get information about the default camera
 using \l QCameraDevice::defaultCamera() in C++ or
