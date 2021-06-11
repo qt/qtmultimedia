@@ -64,6 +64,7 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QAudioDevice audioDevice READ audioDevice WRITE setAudioDevice NOTIFY audioDeviceChanged)
 
 public:
     enum Loop
@@ -94,6 +95,9 @@ public:
     int loopsRemaining() const;
     void setLoopCount(int loopCount);
 
+    QAudioDevice audioDevice();
+    void setAudioDevice(const QAudioDevice &device);
+
     float volume() const;
     void setVolume(float volume);
 
@@ -114,6 +118,7 @@ Q_SIGNALS:
     void loadedChanged();
     void playingChanged();
     void statusChanged();
+    void audioDeviceChanged();
 
 public Q_SLOTS:
     void play();

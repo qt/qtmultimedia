@@ -483,6 +483,20 @@ void QSoundEffect::setLoopCount(int loopCount)
     emit loopCountChanged();
 }
 
+QAudioDevice QSoundEffect::audioDevice()
+{
+    return d->m_audioDevice;
+}
+
+void QSoundEffect::setAudioDevice(const QAudioDevice &device)
+{
+    if (d->m_audioDevice == device)
+        return;
+    // ### recreate the QAudioSink if needed
+    d->m_audioDevice = device;
+    emit audioDeviceChanged();
+}
+
 /*!
     \qmlproperty int QtMultimedia::SoundEffect::loopsRemaining
 
