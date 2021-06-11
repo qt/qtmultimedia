@@ -60,6 +60,7 @@ class MFMetaData
 {
 public:
     static QMediaMetaData fromNative(IMFMediaSource* mediaSource);
+    static void toNative(const QMediaMetaData &metaData, IPropertyStore *content);
 };
 
 #endif

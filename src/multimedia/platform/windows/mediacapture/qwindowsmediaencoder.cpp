@@ -41,9 +41,11 @@
 
 #include "qwindowsmediadevicesession_p.h"
 #include "qwindowsmediacapture_p.h"
+#include "mfmetadata_p.h"
 #include <QtCore/QUrl>
 #include <QtCore/QMimeType>
 #include <Mferror.h>
+#include <shobjidl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -131,18 +133,18 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
             const QString path = (m_outputLocation.scheme() == QLatin1String("file") ?
                                       m_outputLocation.path() : m_outputLocation.toString());
 
-            QString fileName = m_storageLocation.generateFileName(path, audioOnly
-                                                                  ? QWindowsStorageLocation::Audio
-                                                                  : QWindowsStorageLocation::Video,
-                                                                  QLatin1String("clip_"),
-                                                                  m_settings.mimeType().preferredSuffix());
+            m_fileName = m_storageLocation.generateFileName(path, audioOnly
+                                                            ? QWindowsStorageLocation::Audio
+                                                            : QWindowsStorageLocation::Video,
+                                                            QLatin1String("clip_"),
+                                                            m_settings.mimeType().preferredSuffix());
 
-            if (m_mediaDeviceSession->startRecording(fileName, audioOnly)) {
+            if (m_mediaDeviceSession->startRecording(m_fileName, audioOnly)) {
 
                 m_state = QMediaRecorder::RecordingState;
                 m_lastStatus = QMediaRecorder::StartingStatus;
 
-                actualLocationChanged(QUrl::fromLocalFile(fileName));
+                actualLocationChanged(QUrl::fromLocalFile(m_fileName));
                 stateChanged(m_state);
                 statusChanged(m_lastStatus);
 
@@ -203,6 +205,35 @@ void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
     onCameraChanged();
 }
 
+void QWindowsMediaEncoder::setMetaData(const QMediaMetaData &metaData)
+{
+    m_metaData = metaData;
+}
+
+QMediaMetaData QWindowsMediaEncoder::metaData() const
+{
+    return m_metaData;
+}
+
+void QWindowsMediaEncoder::saveMetadata()
+{
+    if (!m_metaData.isEmpty()) {
+
+        const QString nativeFileName = QDir::toNativeSeparators(m_fileName);
+
+        IPropertyStore *store = nullptr;
+
+        if (SUCCEEDED(SHGetPropertyStoreFromParsingName(reinterpret_cast<LPCWSTR>(nativeFileName.utf16()),
+                                                        nullptr, GPS_READWRITE, IID_PPV_ARGS(&store)))) {
+
+            MFMetaData::toNative(m_metaData, store);
+
+            store->Commit();
+            store->Release();
+        }
+    }
+}
+
 void QWindowsMediaEncoder::onDurationChanged(qint64 duration)
 {
     m_duration = duration;
@@ -235,6 +266,8 @@ void QWindowsMediaEncoder::onRecordingStarted()
 
 void QWindowsMediaEncoder::onRecordingStopped()
 {
+    saveMetadata();
+
     auto lastState = m_state;
     auto lastStatus = m_lastStatus;
     m_state = QMediaRecorder::StoppedState;

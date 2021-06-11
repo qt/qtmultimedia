@@ -79,6 +79,9 @@ public:
 
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
 
+    void setMetaData(const QMediaMetaData &metaData) override;
+    QMediaMetaData metaData() const override;
+
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
 public Q_SLOTS:
@@ -92,6 +95,8 @@ private Q_SLOTS:
     void onStreamingError(int errorCode);
 
 private:
+    void saveMetadata();
+
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QUrl                          m_outputLocation;
@@ -99,6 +104,8 @@ private:
     QMediaRecorder::Status         m_lastStatus = QMediaRecorder::StoppedStatus;
     QMediaEncoderSettings         m_settings;
     QWindowsStorageLocation       m_storageLocation;
+    QString                       m_fileName;
+    QMediaMetaData                m_metaData;
     qint64                        m_duration = 0;
 };
 

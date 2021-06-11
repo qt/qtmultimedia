@@ -53,7 +53,7 @@
 #include "mfplayercontrol_p.h"
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
-#include "mfmetadata_p.h"
+#include <private/mfmetadata_p.h>
 
 #include "mfplayersession_p.h"
 #include <mferror.h>

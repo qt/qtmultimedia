@@ -135,6 +135,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/audio/qwindowsaudiosource.cpp platform/windows/audio/qwindowsaudiosource_p.h
         platform/windows/audio/qwindowsaudiosink.cpp platform/windows/audio/qwindowsaudiosink_p.h
         platform/windows/audio/qwindowsaudioutils.cpp platform/windows/audio/qwindowsaudioutils_p.h
+        platform/windows/common/mfmetadata.cpp platform/windows/common/mfmetadata_p.h
         platform/windows/common/qwindowsmultimediautils.cpp platform/windows/common/qwindowsmultimediautils_p.h
         platform/windows/common/qwindowsiupointer_p.h
         platform/windows/decoder/mfaudiodecodercontrol.cpp platform/windows/decoder/mfaudiodecodercontrol_p.h
@@ -147,7 +148,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/mfstream.cpp platform/windows/mfstream_p.h
         platform/windows/player/mfactivate.cpp platform/windows/player/mfactivate_p.h
         platform/windows/player/mfevrvideowindowcontrol.cpp platform/windows/player/mfevrvideowindowcontrol_p.h
-        platform/windows/player/mfmetadata.cpp platform/windows/player/mfmetadata_p.h
         platform/windows/player/mfplayercontrol.cpp platform/windows/player/mfplayercontrol_p.h
         platform/windows/player/mfplayersession.cpp platform/windows/player/mfplayersession_p.h
         platform/windows/player/mftvideo.cpp platform/windows/player/mftvideo_p.h
