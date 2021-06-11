@@ -51,6 +51,8 @@ private slots:
     void checkSampleRate();
     void checkChannelCount();
 
+    void channelConfig();
+
     void checkSizes();
     void checkSizes_data();
 };
@@ -160,6 +162,43 @@ void tst_QAudioFormat::checkChannelCount()
 
     audioFormat.setChannelCount(5);
     QVERIFY(audioFormat.channelCount() == 5);
+}
+
+void tst_QAudioFormat::channelConfig()
+{
+    QAudioFormat format;
+    format.setChannelConfig(QAudioFormat::ChannelConfig2Dot1);
+    QVERIFY(format.channelConfig() == QAudioFormat::ChannelConfig2Dot1);
+    QVERIFY(format.channelCount() == 3);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontLeft) == 0);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontRight) == 1);
+    QVERIFY(format.channelOffset(QAudioFormat::BackCenter) == -1);
+
+    format.setChannelConfig(QAudioFormat::ChannelConfigSurround5Dot1);
+    QVERIFY(format.channelConfig() == QAudioFormat::ChannelConfigSurround5Dot1);
+    QVERIFY(format.channelCount() == 6);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontLeft) == 0);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontRight) == 1);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontCenter) == 2);
+    QVERIFY(format.channelOffset(QAudioFormat::LFE) == 3);
+    QVERIFY(format.channelOffset(QAudioFormat::BackLeft) == 4);
+    QVERIFY(format.channelOffset(QAudioFormat::BackRight) == 5);
+    QVERIFY(format.channelOffset(QAudioFormat::BackCenter) == -1);
+
+    auto config = QAudioFormat::channelConfig(QAudioFormat::FrontCenter, QAudioFormat::BackCenter, QAudioFormat::LFE);
+    format.setChannelConfig(config);
+    QVERIFY(format.channelConfig() == config);
+    QVERIFY(format.channelCount() == 3);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontLeft) == -1);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontRight) == -1);
+    QVERIFY(format.channelOffset(QAudioFormat::FrontCenter) == 0);
+    QVERIFY(format.channelOffset(QAudioFormat::LFE) == 1);
+    QVERIFY(format.channelOffset(QAudioFormat::BackLeft) == -1);
+    QVERIFY(format.channelOffset(QAudioFormat::BackRight) == -1);
+    QVERIFY(format.channelOffset(QAudioFormat::BackCenter) == 2);
+
+    format.setChannelCount(2);
+    QVERIFY(format.channelConfig() == QAudioFormat::ChannelConfigUnknown);
 }
 
 void tst_QAudioFormat::checkSizes()

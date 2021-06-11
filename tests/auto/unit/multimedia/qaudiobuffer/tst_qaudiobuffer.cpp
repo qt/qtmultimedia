@@ -81,9 +81,9 @@ void tst_QAudioBuffer::ctors()
 {
     // Null buffer
     QVERIFY(!mNull->isValid());
-    QVERIFY(mNull->constData() == nullptr);
-    QVERIFY(mNull->data() == nullptr);
-    QVERIFY(((const QAudioBuffer*)mNull)->data() == nullptr);
+    QVERIFY(mNull->constData<char>() == nullptr);
+    QVERIFY(mNull->data<char>() == nullptr);
+    QVERIFY(((const QAudioBuffer*)mNull)->data<char>() == nullptr);
     QCOMPARE(mNull->duration(), 0LL);
     QCOMPARE(mNull->byteCount(), 0);
     QCOMPARE(mNull->sampleCount(), 0);
@@ -92,9 +92,9 @@ void tst_QAudioBuffer::ctors()
 
     // Empty buffer
     QVERIFY(mEmpty->isValid());
-    QVERIFY(mEmpty->constData() != nullptr);
-    QVERIFY(mEmpty->data() != nullptr);
-    QVERIFY(((const QAudioBuffer*)mEmpty)->data() != nullptr);
+    QVERIFY(mEmpty->constData<char>() != nullptr);
+    QVERIFY(mEmpty->data<char>() != nullptr);
+    QVERIFY(((const QAudioBuffer*)mEmpty)->data<char>() != nullptr);
     QCOMPARE(mEmpty->sampleCount(), 1000);
     QCOMPARE(mEmpty->frameCount(), 500);
     QCOMPARE(mEmpty->duration(), 50000LL);
@@ -103,9 +103,9 @@ void tst_QAudioBuffer::ctors()
 
     // bytearray buffer
     QVERIFY(mFromArray->isValid());
-    QVERIFY(mFromArray->constData() != nullptr);
-    QVERIFY(mFromArray->data() != nullptr);
-    QVERIFY(((const QAudioBuffer*)mFromArray)->data() != nullptr);
+    QVERIFY(mFromArray->constData<char>() != nullptr);
+    QVERIFY(mFromArray->data<char>() != nullptr);
+    QVERIFY(((const QAudioBuffer*)mFromArray)->data<char>() != nullptr);
     /// 4000 bytes at 10KHz, 2ch, 16bit = 40kBps -> 0.1s
     QCOMPARE(mFromArray->duration(), 100000LL);
     QCOMPARE(mFromArray->byteCount(), 4000);
@@ -117,9 +117,9 @@ void tst_QAudioBuffer::ctors()
     // Now some invalid buffers
     QAudioBuffer badFormat(1000, QAudioFormat());
     QVERIFY(!badFormat.isValid());
-    QVERIFY(badFormat.constData() == nullptr);
-    QVERIFY(badFormat.data() == nullptr);
-    QVERIFY(((const QAudioBuffer*)&badFormat)->data() == nullptr);
+    QVERIFY(badFormat.constData<char>() == nullptr);
+    QVERIFY(badFormat.data<char>() == nullptr);
+    QVERIFY(((const QAudioBuffer*)&badFormat)->data<char>() == nullptr);
     QCOMPARE(badFormat.duration(), 0LL);
     QCOMPARE(badFormat.byteCount(), 0);
     QCOMPARE(badFormat.sampleCount(), 0);
@@ -128,9 +128,9 @@ void tst_QAudioBuffer::ctors()
 
     QAudioBuffer badArray(QByteArray(), mFormat);
     QVERIFY(!badArray.isValid());
-    QVERIFY(badArray.constData() == nullptr);
-    QVERIFY(badArray.data() == nullptr);
-    QVERIFY(((const QAudioBuffer*)&badArray)->data() == nullptr);
+    QVERIFY(badArray.constData<char>() == nullptr);
+    QVERIFY(badArray.data<char>() == nullptr);
+    QVERIFY(((const QAudioBuffer*)&badArray)->data<char>() == nullptr);
     QCOMPARE(badArray.duration(), 0LL);
     QCOMPARE(badArray.byteCount(), 0);
     QCOMPARE(badArray.sampleCount(), 0);
@@ -139,9 +139,9 @@ void tst_QAudioBuffer::ctors()
 
     QAudioBuffer badBoth = QAudioBuffer(QByteArray(), QAudioFormat());
     QVERIFY(!badBoth.isValid());
-    QVERIFY(badBoth.constData() == nullptr);
-    QVERIFY(badBoth.data() == nullptr);
-    QVERIFY(((const QAudioBuffer*)&badBoth)->data() == nullptr);
+    QVERIFY(badBoth.constData<char>() == nullptr);
+    QVERIFY(badBoth.data<char>() == nullptr);
+    QVERIFY(((const QAudioBuffer*)&badBoth)->data<char>() == nullptr);
     QCOMPARE(badBoth.duration(), 0LL);
     QCOMPARE(badBoth.byteCount(), 0);
     QCOMPARE(badBoth.sampleCount(), 0);
@@ -156,77 +156,77 @@ void tst_QAudioBuffer::assign()
 
 void tst_QAudioBuffer::constData() const
 {
-    const void *data = mEmpty->constData();
+    const void *data = mEmpty->constData<void *>();
     QVERIFY(data != nullptr);
 
     const unsigned int *idata = reinterpret_cast<const unsigned int*>(data);
     QCOMPARE(*idata, 0U);
 
-    const QAudioBuffer::S8U *sdata = mEmpty->constData<QAudioBuffer::S8U>();
+    const QAudioBuffer::U8S *sdata = mEmpty->constData<QAudioBuffer::U8S>();
     QVERIFY(sdata);
-    QCOMPARE(sdata->left, (unsigned char)0);
-    QCOMPARE(sdata->right, (unsigned char)0);
+    QCOMPARE(sdata->value(QAudioFormat::FrontLeft), (unsigned char)0);
+    QCOMPARE(sdata->value(QAudioFormat::FrontRight), (unsigned char)0);
 
     // The bytearray one should be 0x80
-    data = mFromArray->constData();
+    data = mFromArray->constData<void *>();
     QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<const unsigned int *>(data);
     QCOMPARE(*idata, 0x80808080);
 
-    sdata = mFromArray->constData<QAudioBuffer::S8U>();
-    QCOMPARE(sdata->left, (unsigned char)0x80);
-    QCOMPARE(sdata->right, (unsigned char)0x80);
+    sdata = mFromArray->constData<QAudioBuffer::U8S>();
+    QCOMPARE(sdata->value(QAudioFormat::FrontLeft), (unsigned char)0x80);
+    QCOMPARE(sdata->value(QAudioFormat::FrontRight), (unsigned char)0x80);
 }
 
 void tst_QAudioBuffer::data_const() const
 {
-    const void *data = ((const QAudioBuffer*)mEmpty)->data();
+    const void *data = ((const QAudioBuffer*)mEmpty)->data<void *>();
     QVERIFY(data != nullptr);
 
     const unsigned int *idata = reinterpret_cast<const unsigned int*>(data);
     QCOMPARE(*idata, 0U);
 
-    const QAudioBuffer::S8U *sdata = ((const QAudioBuffer*)mEmpty)->constData<QAudioBuffer::S8U>();
+    const QAudioBuffer::U8S *sdata = ((const QAudioBuffer*)mEmpty)->constData<QAudioBuffer::U8S>();
     QVERIFY(sdata);
-    QCOMPARE(sdata->left, (unsigned char)0);
-    QCOMPARE(sdata->right, (unsigned char)0);
+    QCOMPARE(sdata->value(QAudioFormat::FrontLeft), (unsigned char)0);
+    QCOMPARE(sdata->value(QAudioFormat::FrontRight), (unsigned char)0);
 
     // The bytearray one should be 0x80
-    data = ((const QAudioBuffer*)mFromArray)->data();
+    data = ((const QAudioBuffer*)mFromArray)->data<void *>();
     QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<const unsigned int *>(data);
     QCOMPARE(*idata, 0x80808080);
 
-    sdata = ((const QAudioBuffer*)mFromArray)->constData<QAudioBuffer::S8U>();
-    QCOMPARE(sdata->left, (unsigned char)0x80);
-    QCOMPARE(sdata->right, (unsigned char)0x80);
+    sdata = ((const QAudioBuffer*)mFromArray)->constData<QAudioBuffer::U8S>();
+    QCOMPARE(sdata->value(QAudioFormat::FrontLeft), (unsigned char)0x80);
+    QCOMPARE(sdata->value(QAudioFormat::FrontRight), (unsigned char)0x80);
 }
 
 void tst_QAudioBuffer::data()
 {
-    void *data = mEmpty->data();
+    void *data = mEmpty->data<void *>();
     QVERIFY(data != nullptr);
 
     unsigned int *idata = reinterpret_cast<unsigned int*>(data);
     QCOMPARE(*idata, 0U);
 
-    QAudioBuffer::S8U *sdata = mEmpty->data<QAudioBuffer::S8U>();
+    QAudioBuffer::U8S *sdata = mEmpty->data<QAudioBuffer::U8S>();
     QVERIFY(sdata);
-    QCOMPARE(sdata->left, (unsigned char)0);
-    QCOMPARE(sdata->right, (unsigned char)0);
+    QCOMPARE(sdata->value(QAudioFormat::FrontLeft), (unsigned char)0);
+    QCOMPARE(sdata->value(QAudioFormat::FrontRight), (unsigned char)0);
 
     // The bytearray one should be 0x80
-    data = mFromArray->data();
+    data = mFromArray->data<void *>();
     QVERIFY(data != nullptr);
 
     idata = reinterpret_cast<unsigned int *>(data);
     QCOMPARE(*idata, 0x80808080);
 
-    sdata = mFromArray->data<QAudioBuffer::S8U>();
-    QCOMPARE(sdata->left, (unsigned char)0x80);
-    QCOMPARE(sdata->right, (unsigned char)0x80);
+    sdata = mFromArray->data<QAudioBuffer::U8S>();
+    QCOMPARE(sdata->value(QAudioFormat::FrontLeft), (unsigned char)0x80);
+    QCOMPARE(sdata->value(QAudioFormat::FrontRight), (unsigned char)0x80);
 }
 
 void tst_QAudioBuffer::durations()
@@ -274,72 +274,63 @@ void tst_QAudioBuffer::durations_data()
 void tst_QAudioBuffer::stereoSample()
 {
     // Uninitialized (should default to zero level for type)
-    QAudioBuffer::S8U s8u;
+    QAudioBuffer::U8S u8s;
     QAudioBuffer::S16S s16s;
-    QAudioBuffer::S32F s32f;
+    QAudioBuffer::F32S f32s;
+    u8s.clear();
+    s16s.clear();
+    f32s.clear();
 
-    QCOMPARE(s8u.left, (unsigned char) 0x80);
-    QCOMPARE(s8u.right, (unsigned char) 0x80);
-    QCOMPARE(s8u.average(), (unsigned char) 0x80);
+    QCOMPARE(u8s[QAudioFormat::FrontLeft], (unsigned char) 0x80);
+    QCOMPARE(u8s[QAudioFormat::FrontRight], (unsigned char) 0x80);
 
-    QCOMPARE(s16s.left, (signed short) 0x0);
-    QCOMPARE(s16s.right, (signed short) 0x0);
-    QCOMPARE(s16s.average(), (signed short) 0x0);
+    QCOMPARE(s16s[QAudioFormat::FrontLeft], (signed short) 0x0);
+    QCOMPARE(s16s[QAudioFormat::FrontRight], (signed short) 0x0);
 
-    QCOMPARE(s32f.left, 0.0f);
-    QCOMPARE(s32f.right, 0.0f);
-    QCOMPARE(s32f.average(), 0.0f);
+    QCOMPARE(f32s[QAudioFormat::FrontLeft], 0.0f);
+    QCOMPARE(f32s[QAudioFormat::FrontRight], 0.0f);
 
     // Initialized
-    QAudioBuffer::S8U s8u2(34, 145);
-    QAudioBuffer::S16S s16s2(-10000, 346);
-    QAudioBuffer::S32F s32f2(500.7f, -123.1f);
+    QAudioBuffer::U8S u8s2{34, 145};
+    QAudioBuffer::S16S s16s2{-10000, 346};
+    QAudioBuffer::F32S f32s2{500.7f, -123.1f};
 
-    QCOMPARE(s8u2.left, (unsigned char) 34);
-    QCOMPARE(s8u2.right, (unsigned char) 145);
-    QCOMPARE(s8u2.average(), (unsigned char) 89);
+    QCOMPARE(u8s2[QAudioFormat::FrontLeft], (unsigned char) 34);
+    QCOMPARE(u8s2[QAudioFormat::FrontRight], (unsigned char) 145);
 
-    QCOMPARE(s16s2.left, (signed short) -10000);
-    QCOMPARE(s16s2.right, (signed short) 346);
-    QCOMPARE(s16s2.average(), (signed short) (-5000 + 173));
+    QCOMPARE(s16s2[QAudioFormat::FrontLeft], (signed short) -10000);
+    QCOMPARE(s16s2[QAudioFormat::FrontRight], (signed short) 346);
 
-    QCOMPARE(s32f2.left, 500.7f);
-    QCOMPARE(s32f2.right, -123.1f);
-    QCOMPARE(s32f2.average(), (500.7f - 123.1f)/2);
+    QCOMPARE(f32s2[QAudioFormat::FrontLeft], 500.7f);
+    QCOMPARE(f32s2[QAudioFormat::FrontRight], -123.1f);
 
     // Assigned
-    s8u = s8u2;
+    u8s = u8s2;
     s16s = s16s2;
-    s32f = s32f2;
+    f32s = f32s2;
 
-    QCOMPARE(s8u.left, (unsigned char) 34);
-    QCOMPARE(s8u.right, (unsigned char) 145);
-    QCOMPARE(s8u.average(), (unsigned char) 89);
+    QCOMPARE(u8s[QAudioFormat::FrontLeft], (unsigned char) 34);
+    QCOMPARE(u8s[QAudioFormat::FrontRight], (unsigned char) 145);
 
-    QCOMPARE(s16s.left, (signed short) -10000);
-    QCOMPARE(s16s.right, (signed short) 346);
-    QCOMPARE(s16s.average(), (signed short) (-5000 + 173));
+    QCOMPARE(s16s[QAudioFormat::FrontLeft], (signed short) -10000);
+    QCOMPARE(s16s[QAudioFormat::FrontRight], (signed short) 346);
 
-    QCOMPARE(s32f.left, 500.7f);
-    QCOMPARE(s32f.right, -123.1f);
-    QCOMPARE(s32f.average(), (500.7f - 123.1f)/2);
+    QCOMPARE(f32s[QAudioFormat::FrontLeft], 500.7f);
+    QCOMPARE(f32s[QAudioFormat::FrontRight], -123.1f);
 
     // Cleared
-    s8u.clear();
+    u8s.clear();
     s16s.clear();
-    s32f.clear();
+    f32s.clear();
 
-    QCOMPARE(s8u.left, (unsigned char) 0x80);
-    QCOMPARE(s8u.right, (unsigned char) 0x80);
-    QCOMPARE(s8u.average(), (unsigned char) 0x80);
+    QCOMPARE(u8s[QAudioFormat::FrontLeft], (unsigned char) 0x80);
+    QCOMPARE(u8s[QAudioFormat::FrontRight], (unsigned char) 0x80);
 
-    QCOMPARE(s16s.left, (signed short) 0x0);
-    QCOMPARE(s16s.right, (signed short) 0x0);
-    QCOMPARE(s16s.average(), (signed short) 0x0);
+    QCOMPARE(s16s[QAudioFormat::FrontLeft], (signed short) 0x0);
+    QCOMPARE(s16s[QAudioFormat::FrontRight], (signed short) 0x0);
 
-    QCOMPARE(s32f.left, 0.0f);
-    QCOMPARE(s32f.right, 0.0f);
-    QCOMPARE(s32f.average(), 0.0f);
+    QCOMPARE(f32s[QAudioFormat::FrontLeft], 0.0f);
+    QCOMPARE(f32s[QAudioFormat::FrontRight], 0.0f);
 }
 
 
