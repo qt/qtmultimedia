@@ -89,8 +89,6 @@ public:
     QMediaPlayer::Error error = QMediaPlayer::NoError;
     bool autoPlay = false;
 
-    QAudio::Role audioRole = QAudio::UnknownRole;
-
     void setMedia(const QUrl &media, QIODevice *stream = nullptr);
 
     QList<QMediaMetaData> trackMetaData(QPlatformMediaPlayer::TrackType s) const;

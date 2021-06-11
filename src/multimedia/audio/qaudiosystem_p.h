@@ -84,16 +84,12 @@ public:
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(qreal) {}
     virtual qreal volume() const { return 1.0; }
-    QAudio::Role role() const { return m_role; }
-    virtual void setRole(QAudio::Role role);
 
     QElapsedTimer elapsedTime;
 
 Q_SIGNALS:
     void errorChanged(QAudio::Error error);
     void stateChanged(QAudio::State state);
-protected:
-    QAudio::Role m_role = QAudio::UnknownRole;
 };
 
 class QPlatformAudioSource : public QObject

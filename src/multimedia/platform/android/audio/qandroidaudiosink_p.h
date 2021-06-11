@@ -86,8 +86,6 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-    void setRole(QAudio::Role role) override;
-
 private:
     friend class SLIODevicePrivate;
 

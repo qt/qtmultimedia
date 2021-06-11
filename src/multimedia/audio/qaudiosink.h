@@ -91,9 +91,6 @@ public:
     void setVolume(qreal);
     qreal volume() const;
 
-    QAudio::Role audioRole() const;
-    void setAudioRole(QAudio::Role role);
-
 Q_SIGNALS:
     void stateChanged(QAudio::State state);
 

@@ -99,7 +99,6 @@ public:
     qreal m_volume = 1.0;
     bool m_sampleReady = false;
     qint64 m_offset = 0;
-    QAudio::Role m_role;
     QAudioDevice m_audioDevice;
 };
 
@@ -108,7 +107,6 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
     , q_ptr(q)
     , m_audioDevice(audioDevice)
 {
-    m_role = QAudio::UnknownRole;
     open(QIODevice::ReadOnly);
 }
 
@@ -724,47 +722,6 @@ QSoundEffect::Status QSoundEffect::status() const
     This setting will be ignored on platforms that do not
     support audio categories.
 */
-/*!
-    Returns the audio role for this sound effect.
-
-    Some platforms can perform different audio routing
-    for different roles, or may allow the user to
-    set different volume levels for different roles.
-
-    This setting will be ignored on platforms that do not
-    support audio roles.
-
-    \sa setRole()
-*/
-QAudio::Role QSoundEffect::audioRole() const
-{
-    return d->m_role;
-}
-
-/*!
-    Sets the \e category of this sound effect to \a category.
-
-    Some platforms can perform different audio routing
-    for different categories, or may allow the user to
-    set different volume levels for different categories.
-
-    This setting will be ignored on platforms that do not
-    support audio categories.
-
-    If this setting is changed while a sound effect is playing
-    it will only take effect when the sound effect has stopped
-    playing.
-
-    \sa category()
- */
-void QSoundEffect::setAudioRole(QAudio::Role role)
-{
-    if (d->m_role != role && !d->m_playing) {
-        d->m_role = role;
-        emit audioRoleChanged();
-    }
-}
-
 
 /*!
   \qmlmethod QtMultimedia::SoundEffect::stop()

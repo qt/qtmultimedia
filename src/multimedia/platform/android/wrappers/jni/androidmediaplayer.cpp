@@ -241,6 +241,7 @@ void AndroidMediaPlayer::setDisplay(AndroidSurfaceTexture *surfaceTexture)
                                   surfaceTexture ? surfaceTexture->surfaceHolder() : 0);
 }
 
+#if 0
 void AndroidMediaPlayer::setAudioRole(QAudio::Role role)
 {
     QString r;
@@ -320,6 +321,7 @@ void AndroidMediaPlayer::setAudioRole(QAudio::Role role)
 
     mMediaPlayer.callMethod<void>("setAudioAttributes", "(II)V", jint(type), jint(usage));
 }
+#endif
 
 static void onErrorNative(JNIEnv *env, jobject thiz, jint what, jint extra, jlong id)
 {

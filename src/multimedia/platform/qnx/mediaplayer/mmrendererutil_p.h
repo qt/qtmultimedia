@@ -63,9 +63,6 @@ QString mmErrorMessage(const QString &msg, mmr_context_t *context, int * errorCo
 
 bool checkForDrmPermission();
 
-QString qnxAudioType(QAudio::Role role);
-QList<QAudio::Role> qnxSupportedAudioRoles();
-
 QT_END_NAMESPACE
 
 #endif

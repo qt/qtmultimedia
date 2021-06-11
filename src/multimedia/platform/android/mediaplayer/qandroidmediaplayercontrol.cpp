@@ -220,11 +220,6 @@ void QAndroidMediaPlayerControl::setMuted(bool muted)
     mPendingMute = -1;
 }
 
-void QAndroidMediaPlayerControl::setAudioRole(QAudio::Role role)
-{
-    mMediaPlayer->setAudioRole(role);
-}
-
 QMediaMetaData QAndroidMediaPlayerControl::metaData() const
 {
     return QAndroidMetaData::extractMetadata(mMediaContent);
@@ -400,7 +395,6 @@ void QAndroidMediaPlayerControl::setAudioOutput(QPlatformAudioOutput *output)
         // #### Implement device changes: connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, XXXX);
         connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &QAndroidMediaPlayerControl::setVolume);
         connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &QAndroidMediaPlayerControl::setMuted);
-        connect(m_audioOutput->q, &QAudioOutput::audioRoleChanged, this, &QAndroidMediaPlayerControl::setAudioRole);
     }
 }
 

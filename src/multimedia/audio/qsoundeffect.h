@@ -64,7 +64,6 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
 
 public:
     enum Loop
@@ -106,9 +105,6 @@ public:
     bool isPlaying() const;
     Status status() const;
 
-    QAudio::Role audioRole() const;
-    void setAudioRole(QAudio::Role);
-
 Q_SIGNALS:
     void sourceChanged();
     void loopCountChanged();
@@ -118,7 +114,6 @@ Q_SIGNALS:
     void loadedChanged();
     void playingChanged();
     void statusChanged();
-    void audioRoleChanged();
 
 public Q_SLOTS:
     void play();
