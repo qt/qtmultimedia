@@ -51,7 +51,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qmediarecorder.h>
+#include <qmediaencoder.h>
 
 QT_BEGIN_NAMESPACE
 

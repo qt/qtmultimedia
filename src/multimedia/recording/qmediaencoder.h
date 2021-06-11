@@ -55,7 +55,7 @@ class QSize;
 class QAudioFormat;
 class QCamera;
 class QCameraDevice;
-class QMediaRecorderService;
+class QMediaEncoderService;
 class QAudioEncoderSettings;
 class QVideoEncoderSettings;
 class QAudioDevice;

@@ -65,8 +65,8 @@ BbCameraMediaRecorderControl::BbCameraMediaRecorderControl(BbCameraSession *sess
     : QPlatformMediaEncoder(parent)
     , m_session(session)
 {
-    connect(m_session, SIGNAL(videoStateChanged(QMediaRecorder::State)), this, SIGNAL(stateChanged(QMediaRecorder::State)));
-    connect(m_session, SIGNAL(videoStatusChanged(QMediaRecorder::Status)), this, SIGNAL(statusChanged(QMediaRecorder::Status)));
+    connect(m_session, SIGNAL(videoStateChanged(QMediaEncoder::State)), this, SIGNAL(stateChanged(QMediaEncoder::State)));
+    connect(m_session, SIGNAL(videoStatusChanged(QMediaEncoder::Status)), this, SIGNAL(statusChanged(QMediaEncoder::Status)));
     connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
     connect(m_session, SIGNAL(videoError(int,QString)), this, SIGNAL(error(int,QString)));
@@ -82,12 +82,12 @@ bool BbCameraMediaRecorderControl::setOutputLocation(const QUrl &location)
     return m_session->setOutputLocation(location);
 }
 
-QMediaRecorder::State BbCameraMediaRecorderControl::state() const
+QMediaEncoder::State BbCameraMediaRecorderControl::state() const
 {
     return m_session->videoState();
 }
 
-QMediaRecorder::Status BbCameraMediaRecorderControl::status() const
+QMediaEncoder::Status BbCameraMediaRecorderControl::status() const
 {
     return m_session->videoStatus();
 }
@@ -103,7 +103,7 @@ bool BbCameraMediaRecorderControl::isMuted() const
 
     const int result = audio_manager_get_input_mute(currentAudioInputDevice(), &muted);
     if (result != EOK) {
-        emit const_cast<BbCameraMediaRecorderControl*>(this)->error(QMediaRecorder::ResourceError, tr("Unable to retrieve mute status"));
+        emit const_cast<BbCameraMediaRecorderControl*>(this)->error(QMediaEncoder::ResourceError, tr("Unable to retrieve mute status"));
         return false;
     }
 
@@ -116,7 +116,7 @@ qreal BbCameraMediaRecorderControl::volume() const
 
     const int result = audio_manager_get_input_level(currentAudioInputDevice(), &level);
     if (result != EOK) {
-        emit const_cast<BbCameraMediaRecorderControl*>(this)->error(QMediaRecorder::ResourceError, tr("Unable to retrieve audio input volume"));
+        emit const_cast<BbCameraMediaRecorderControl*>(this)->error(QMediaEncoder::ResourceError, tr("Unable to retrieve audio input volume"));
         return 0.0;
     }
 
@@ -128,7 +128,7 @@ void BbCameraMediaRecorderControl::applySettings()
     m_session->applyVideoSettings();
 }
 
-void BbCameraMediaRecorderControl::setState(QMediaRecorder::State state)
+void BbCameraMediaRecorderControl::setState(QMediaEncoder::State state)
 {
     m_session->setVideoState(state);
 }
@@ -137,7 +137,7 @@ void BbCameraMediaRecorderControl::setMuted(bool muted)
 {
     const int result = audio_manager_set_input_mute(currentAudioInputDevice(), muted);
     if (result != EOK) {
-        emit error(QMediaRecorder::ResourceError, tr("Unable to set mute status"));
+        emit error(QMediaEncoder::ResourceError, tr("Unable to set mute status"));
     } else {
         emit mutedChanged(muted);
     }
@@ -147,7 +147,7 @@ void BbCameraMediaRecorderControl::setVolume(qreal volume)
 {
     const int result = audio_manager_set_input_level(currentAudioInputDevice(), (volume * 100));
     if (result != EOK) {
-        emit error(QMediaRecorder::ResourceError, tr("Unable to set audio input volume"));
+        emit error(QMediaEncoder::ResourceError, tr("Unable to set audio input volume"));
     } else {
         emit volumeChanged(volume);
     }

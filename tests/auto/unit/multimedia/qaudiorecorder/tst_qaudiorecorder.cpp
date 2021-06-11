@@ -79,7 +79,7 @@ void tst_QAudioRecorder::cleanup()
 
 void tst_QAudioRecorder::testNullControl()
 {
-    QMediaRecorder source;
+    QMediaEncoder source;
     auto *service = mockIntegration->lastCaptureService();
     service->hasControls = false;
 
@@ -97,7 +97,7 @@ void tst_QAudioRecorder::testAudioSource()
 
 void tst_QAudioRecorder::testDevices()
 {
-//    audiosource = new QMediaRecorder;
+//    audiosource = new QMediaEncoder;
 //    QList<QAudioDevice> devices = mockIntegration->audioInputs();
 //    QVERIFY(devices.size() > 0);
 //    QVERIFY(devices.at(0).id() == "device1");
@@ -114,7 +114,7 @@ void tst_QAudioRecorder::testDevices()
 
 void tst_QAudioRecorder::testAvailability()
 {
-    QMediaRecorder source;
+    QMediaEncoder source;
 
     QVERIFY(source.isAvailable());
 }

@@ -1,7 +1,7 @@
-# Generated from qmediarecorder.pro.
+# Generated from QMediaEncoder.pro.
 
 #####################################################################
-## tst_qmediarecorder Test:
+## tst_QMediaEncoder Test:
 #####################################################################
 
 qt_internal_add_test(tst_qmediaencoder

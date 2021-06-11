@@ -55,14 +55,14 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_recording
 
     A media encoder settings object is used to specify the encoder
-    settings used by QMediaRecorder. Settings are selected by
+    settings used by QMediaEncoder. Settings are selected by
     constructing a QMediaEncoderSettings object specifying an output file format,
-    setting the desired properties and then passing it to a QMediaRecorder instance
-    using the QMediaRecorder::setEncoderSettings() function.
+    setting the desired properties and then passing it to a QMediaEncoder instance
+    using the QMediaEncoder::setEncoderSettings() function.
 
     \snippet multimedia-snippets/media.cpp Audio encoder settings
 
-    \sa QMediaRecorder
+    \sa QMediaEncoder
 */
 
 class QMediaEncoderSettingsPrivate  : public QSharedData
@@ -201,7 +201,7 @@ void QMediaEncoderSettings::setQuality(Quality quality)
 }
 
 /*!
-    Resolves the format to a format that is supported by QMediaRecorder.
+    Resolves the format to a format that is supported by QMediaEncoder.
 
     This method tries to find the best possible match for unspecified settings.
     Settings that are not supported by the encoder will be modified to the closest

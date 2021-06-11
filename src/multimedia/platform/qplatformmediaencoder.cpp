@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
     and record, pause and stop recording via the \l setState() method.  It also
     provides feedback on the \l {duration()}{duration} of the recording.
 
-    \sa QMediaRecorder
+    \sa QMediaEncoder
 
 */
 
@@ -90,13 +90,13 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn QMediaRecorder::State QPlatformMediaEncoder::state() const
+    \fn QMediaEncoder::State QPlatformMediaEncoder::state() const
 
     Return the current recording state.
 */
 
 /*!
-    \fn QMediaRecorder::Status QPlatformMediaEncoder::status() const
+    \fn QMediaEncoder::Status QPlatformMediaEncoder::status() const
 
     Return the current recording status.
 */
@@ -108,7 +108,7 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::setState(QMediaRecorder::State state)
+    \fn void QPlatformMediaEncoder::setState(QMediaEncoder::State state)
 
     Set the media recorder \a state.
 */
@@ -127,7 +127,7 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::stateChanged(QMediaRecorder::State state)
+    \fn void QPlatformMediaEncoder::stateChanged(QMediaEncoder::State state)
 
     Signals that the \a state of a media recorder has changed.
 */
@@ -140,7 +140,7 @@ void QPlatformMediaEncoder::stateChanged(QMediaEncoder::State state)
 }
 
 /*!
-    \fn void QPlatformMediaEncoder::statusChanged(QMediaRecorder::Status status)
+    \fn void QPlatformMediaEncoder::statusChanged(QMediaEncoder::Status status)
 
     Signals that the \a status of a media recorder has changed.
 */

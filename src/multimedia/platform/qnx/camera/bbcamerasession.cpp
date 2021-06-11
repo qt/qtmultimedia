@@ -123,8 +123,8 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_previewIsVideo(true)
     , m_surface(0)
     , m_lastImageCaptureId(0)
-    , m_videoState(QMediaRecorder::StoppedState)
-    , m_videoStatus(QMediaRecorder::StoppedStatus)
+    , m_videoState(QMediaEncoder::StoppedState)
+    , m_videoStatus(QMediaEncoder::StoppedStatus)
     , m_handle(CAMERA_HANDLE_INVALID)
     , m_windowGrabber(new WindowGrabber(this))
 {
@@ -418,38 +418,38 @@ bool BbCameraSession::setOutputLocation(const QUrl &location)
     return true;
 }
 
-QMediaRecorder::State BbCameraSession::videoState() const
+QMediaEncoder::State BbCameraSession::videoState() const
 {
     return m_videoState;
 }
 
-void BbCameraSession::setVideoState(QMediaRecorder::State state)
+void BbCameraSession::setVideoState(QMediaEncoder::State state)
 {
     if (m_videoState == state)
         return;
 
-    const QMediaRecorder::State previousState = m_videoState;
+    const QMediaEncoder::State previousState = m_videoState;
 
-    if (previousState == QMediaRecorder::StoppedState) {
-        if (state == QMediaRecorder::RecordingState) {
+    if (previousState == QMediaEncoder::StoppedState) {
+        if (state == QMediaEncoder::RecordingState) {
             if (startVideoRecording()) {
                 m_videoState = state;
             }
-        } else if (state == QMediaRecorder::PausedState) {
+        } else if (state == QMediaEncoder::PausedState) {
             // do nothing
         }
-    } else if (previousState == QMediaRecorder::RecordingState) {
-        if (state == QMediaRecorder::StoppedState) {
+    } else if (previousState == QMediaEncoder::RecordingState) {
+        if (state == QMediaEncoder::StoppedState) {
             stopVideoRecording();
             m_videoState = state;
-        } else if (state == QMediaRecorder::PausedState) {
+        } else if (state == QMediaEncoder::PausedState) {
             //TODO: (pause) not supported by BB10 API yet
         }
-    } else if (previousState == QMediaRecorder::PausedState) {
-        if (state == QMediaRecorder::StoppedState) {
+    } else if (previousState == QMediaEncoder::PausedState) {
+        if (state == QMediaEncoder::StoppedState) {
             stopVideoRecording();
             m_videoState = state;
-        } else if (state == QMediaRecorder::RecordingState) {
+        } else if (state == QMediaEncoder::RecordingState) {
             //TODO: (resume) not supported by BB10 API yet
         }
     }
@@ -457,7 +457,7 @@ void BbCameraSession::setVideoState(QMediaRecorder::State state)
     emit videoStateChanged(m_videoState);
 }
 
-QMediaRecorder::Status BbCameraSession::videoStatus() const
+QMediaEncoder::Status BbCameraSession::videoStatus() const
 {
     return m_videoStatus;
 }
@@ -563,7 +563,7 @@ void BbCameraSession::applyVideoSettings()
 
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to apply video settings:" << result;
-        emit videoError(QMediaRecorder::ResourceError, tr("Unable to apply video settings"));
+        emit videoError(QMediaEncoder::ResourceError, tr("Unable to apply video settings"));
     }
 }
 
@@ -693,8 +693,8 @@ void BbCameraSession::handleVideoRecordingPaused()
 
 void BbCameraSession::handleVideoRecordingResumed()
 {
-    if (m_videoStatus == QMediaRecorder::StartingStatus) {
-        m_videoStatus = QMediaRecorder::RecordingStatus;
+    if (m_videoStatus == QMediaEncoder::StartingStatus) {
+        m_videoStatus = QMediaEncoder::RecordingStatus;
         emit videoStatusChanged(m_videoStatus);
 
         m_videoRecordingDuration.restart();
@@ -990,7 +990,7 @@ bool BbCameraSession::startVideoRecording()
 {
     m_videoRecordingDuration.invalidate();
 
-    m_videoStatus = QMediaRecorder::StartingStatus;
+    m_videoStatus = QMediaEncoder::StartingStatus;
     emit videoStatusChanged(m_videoStatus);
 
     if (m_videoOutputLocation.isEmpty())
@@ -1000,10 +1000,10 @@ bool BbCameraSession::startVideoRecording()
 
     const camera_error_t result = camera_start_video(m_handle, QFile::encodeName(m_videoOutputLocation), 0, videoRecordingStatusCallback, this);
     if (result != CAMERA_EOK) {
-        m_videoStatus = QMediaRecorder::StoppedStatus;
+        m_videoStatus = QMediaEncoder::StoppedStatus;
         emit videoStatusChanged(m_videoStatus);
 
-        emit videoError(QMediaRecorder::ResourceError, tr("Unable to start video recording"));
+        emit videoError(QMediaEncoder::ResourceError, tr("Unable to start video recording"));
         return false;
     }
 
@@ -1012,15 +1012,15 @@ bool BbCameraSession::startVideoRecording()
 
 void BbCameraSession::stopVideoRecording()
 {
-    m_videoStatus = QMediaRecorder::FinalizingStatus;
+    m_videoStatus = QMediaEncoder::FinalizingStatus;
     emit videoStatusChanged(m_videoStatus);
 
     const camera_error_t result = camera_stop_video(m_handle);
     if (result != CAMERA_EOK) {
-        emit videoError(QMediaRecorder::ResourceError, tr("Unable to stop video recording"));
+        emit videoError(QMediaEncoder::ResourceError, tr("Unable to stop video recording"));
     }
 
-    m_videoStatus = QMediaRecorder::StoppedStatus;
+    m_videoStatus = QMediaEncoder::StoppedStatus;
     emit videoStatusChanged(m_videoStatus);
 
     m_videoRecordingDuration.invalidate();

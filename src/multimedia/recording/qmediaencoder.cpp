@@ -306,7 +306,7 @@ void QMediaEncoder::record()
     d->control->clearError();
 
     if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::RecordingState);
+        d->control->setState(QMediaEncoder::RecordingState);
 }
 
 /*!
@@ -322,7 +322,7 @@ void QMediaEncoder::pause()
 {
     Q_D(QMediaEncoder);
     if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::PausedState);
+        d->control->setState(QMediaEncoder::PausedState);
 }
 
 /*!
@@ -335,7 +335,7 @@ void QMediaEncoder::stop()
 {
     Q_D(QMediaEncoder);
     if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::StoppedState);
+        d->control->setState(QMediaEncoder::StoppedState);
 }
 
 /*!

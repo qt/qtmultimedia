@@ -219,7 +219,7 @@ mediaEncoder being called, this causes the signal \l
 recording process can be changed with the \l {QMediaEncoder::record()}{record()},
 \l {QMediaEncoder::stop()}{stop()} slots in \l QMediaEncoder.
 
-On top of the above, QMediaRecorder provides a simple to use, but more limited all-in-one class
+On top of the above, QMediaEncoder provides a simple to use, but more limited all-in-one class
 for recording audio and video content.
 
 \section2 Controlling the Imaging Pipeline

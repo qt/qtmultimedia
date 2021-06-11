@@ -57,7 +57,6 @@ qt_internal_add_module(Multimedia
         recording/qmediacapturesession.cpp recording/qmediacapturesession.h
         recording/qmediaencoder.cpp recording/qmediaencoder.h recording/qmediaencoder_p.h
         recording/qmediaencodersettings.cpp recording/qmediaencodersettings.h
-        recording/qmediarecorder.cpp recording/qmediarecorder.h recording/qmediarecorder_p.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qvideoframe.cpp video/qvideoframe.h

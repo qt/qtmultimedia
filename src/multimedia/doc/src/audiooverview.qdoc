@@ -53,7 +53,7 @@ You can also put files (even remote URLs) into a playlist:
     \snippet multimedia-snippets/media.cpp Audio playlist
 
 \section2 Recording Audio to a File
-For recording audio to a file, the \l {QMediaRecorder} class allows you
+For recording audio to a file, the \l {QMediaEncoder} class allows you
 to compress audio data from an input device and record it.
 
     \snippet multimedia-snippets/media.cpp Audio recorder

@@ -49,7 +49,7 @@ settings.
 
 The Camera class contains an instance of \l {QCamera}, the API class interface to
 the hardware. It also has an instance of \l {QCameraImageCapture} to take still images
-and an instance of \l {QMediaRecorder} to record video. It also contains the user
+and an instance of \l {QMediaEncoder} to record video. It also contains the user
 interface object.
 
 The Camera constructor does some basic initialization. The camera object is
@@ -59,7 +59,7 @@ the \e{setCamera()} function is called, passing in a \l {QByteArray}.
 
 \e{setCamera()} sets up various connections between the user interface and the functionality
 of the Camera class using signals and slots. It also instantiates and initializes the \l {QCamera},
-\l {QCameraImageCapture} and \l {QMediaRecorder} objects mentioned above. The still
+\l {QCameraImageCapture} and \l {QMediaEncoder} objects mentioned above. The still
 and video recording visual tabs are enabled and finally the
 \l {QCamera::start()}{start()} function of the \l{QCamera} object is called.
 
@@ -72,7 +72,7 @@ is QCamera::CaptureStillImage, or if the capture mode is for video then one
 of two actions will occur. If the recording state shows that we are currently
 recording then the \e{stop()} function is called resulting in a call to
 \l {QCamera::stop()}, whereas if we are not recording then a video recording
-is started with a call to \l {QMediaRecorder::record()}.
+is started with a call to \l {QMediaEncoder::record()}.
 
 \image camera-example.png
 

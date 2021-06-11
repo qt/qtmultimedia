@@ -64,11 +64,11 @@
     \endcode
 
     And setup the lists as described above. The text on the record and pause
-    buttons are toggled depending on the \l{QMediaRecorder::State}{state} of
+    buttons are toggled depending on the \l{QMediaEncoder::State}{state} of
     the \c audioRecorder object. This means that if the state is
-    \l{QMediaRecorder::StoppedState} then the button text will be "Record" and
-    "Pause". In \l{QMediaRecorder::RecordingState} the record button will have
-    the text "Stop", and in \l{QMediaRecorder::PausedState} the pause button
+    \l{QMediaEncoder::StoppedState} then the button text will be "Record" and
+    "Pause". In \l{QMediaEncoder::RecordingState} the record button will have
+    the text "Stop", and in \l{QMediaEncoder::PausedState} the pause button
     will have the text "Resume".
 
     Pressing the buttons will also result in a toggle based on the state. If
@@ -76,7 +76,7 @@
     \l{QAudioEncoderSettings} based on the values of the selection lists,
     will set the encoding settings and container on the \c audioRecorder
     object, and start recording using the
-    \l{QMediaRecorder::record()}{record()} method.
+    \l{QMediaEncoder::record()}{record()} method.
 
     \code
         QAudioEncoderSettings settings;
@@ -95,7 +95,7 @@
     \endcode
 
     While recording, the status bar of the application is updated with duration information
-    from the \l{QMediaRecorder::durationChanged()}{durationChanged} signal from the
+    from the \l{QMediaEncoder::durationChanged()}{durationChanged} signal from the
     \c audioRecorder object.
 
     \code

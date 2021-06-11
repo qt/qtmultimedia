@@ -350,7 +350,7 @@ void QGstreamerMediaEncoder::pause()
     gstPipeline.dumpGraph("before-pause");
     gstEncoder.setState(GST_STATE_PAUSED);
 
-    stateChanged(QMediaRecorder::PausedState);
+    stateChanged(QMediaEncoder::PausedState);
     updateStatus();
 }
 

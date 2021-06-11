@@ -97,10 +97,10 @@ public:
     You can capture still images from a camera by setting a QCameraImageCapture object on the capture session,
     and record audio/video using a QMediaEncoder.
 
-    If you need a simple class that records media from the default camera and microphone, you can use QMediaRecorder.
+    If you need a simple class that records media from the default camera and microphone, you can use QMediaEncoder.
     That class uses a QMediaCaptureSession behind the scene to support audio and video capture.
 
-    \sa QCamera, QAudioDevice, QMediaEncoder, QCameraImageCapture, QMediaRecorder
+    \sa QCamera, QAudioDevice, QMediaEncoder, QCameraImageCapture, QMediaEncoder
 */
 
 /*!
