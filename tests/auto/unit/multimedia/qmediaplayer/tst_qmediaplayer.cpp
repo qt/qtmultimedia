@@ -250,9 +250,9 @@ void tst_QMediaPlayer::testMedia()
     QCOMPARE(player->source(), mediaContent);
 
     QBuffer stream;
-    player->setSource(mediaContent, &stream);
+    player->setSourceDevice(&stream, mediaContent);
     QCOMPARE(player->source(), mediaContent);
-    QCOMPARE(player->sourceStream(), &stream);
+    QCOMPARE(player->sourceDevice(), &stream);
 }
 
 void tst_QMediaPlayer::testDuration_data()

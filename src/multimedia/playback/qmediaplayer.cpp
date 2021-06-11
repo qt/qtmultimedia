@@ -101,8 +101,6 @@ void QMediaPlayerPrivate::setError(int error, const QString &errorString)
 
 void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 {
-    Q_Q(QMediaPlayer);
-
     if (!control)
         return;
 
@@ -163,9 +161,6 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
     }
 
     qrcFile.swap(file); // Cleans up any previous file
-
-    if (autoPlay)
-        q->play();
 }
 
 QList<QMediaMetaData> QMediaPlayerPrivate::trackMetaData(QPlatformMediaPlayer::TrackType s) const
@@ -232,7 +227,7 @@ QUrl QMediaPlayer::source() const
     \sa setSource()
 */
 
-const QIODevice *QMediaPlayer::sourceStream() const
+const QIODevice *QMediaPlayer::sourceDevice() const
 {
     Q_D(const QMediaPlayer);
 
@@ -444,23 +439,6 @@ void QMediaPlayer::setPosition(qint64 position)
     d->control->setPosition(qMax(position, 0ll));
 }
 
-/*!
-    If \a autoPlay is set to true, playback will start immediately after calling
-    setSource() on the media player. Otherwise the media player will enter the
-    Stopped state after loading the file.
-
-    The default is false.
-*/
-void QMediaPlayer::setAutoPlay(bool autoPlay)
-{
-    Q_D(QMediaPlayer);
-    if (d->autoPlay == autoPlay)
-        return;
-
-    d->autoPlay = autoPlay;
-    emit autoPlayChanged(autoPlay);
-}
-
 void QMediaPlayer::setPlaybackRate(qreal rate)
 {
     Q_D(QMediaPlayer);
@@ -472,11 +450,6 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
 /*!
     Sets the current \a source.
 
-    If a \a stream is supplied; media data will be read from it instead of resolving the media
-    source. In this case the url should be provided to resolve additional information
-    about the media such as mime type. The \a stream must be open and readable.
-    For macOS the \a stream should be also seekable.
-
     Setting the media to a null QUrl will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
     to that media.
@@ -487,18 +460,45 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     when an error occurs during loading.
 */
 
-void QMediaPlayer::setSource(const QUrl &source, QIODevice *stream)
+void QMediaPlayer::setSource(const QUrl &source)
 {
     Q_D(QMediaPlayer);
     stop();
 
-    if (d->source == source && d->stream == stream)
+    if (d->source == source && d->stream == nullptr)
         return;
 
     d->source = source;
-    d->stream = stream;
+    d->stream = nullptr;
 
-    d->setMedia(source, stream);
+    d->setMedia(source, nullptr);
+    emit sourceChanged(d->source);
+}
+
+/*!
+    Sets the current source \a device.
+
+    The media data will be read from \a device. The url can be provided to resolve additional
+    information about the media such as mime type. The \a device must be open and readable.
+    For macOS the \a device should be also seekable.
+
+    \note This function returns immediately after recording the specified source of the media.
+    It does not wait for the media to finish loading and does not check for errors. Listen for
+    the mediaStatusChanged() and error() signals to be notified when the media is loaded and
+    when an error occurs during loading.
+*/
+void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
+{
+    Q_D(QMediaPlayer);
+    stop();
+
+    if (d->source == sourceUrl && d->stream == device)
+        return;
+
+    d->source = sourceUrl;
+    d->stream = device;
+
+    d->setMedia(d->source, device);
     emit sourceChanged(d->source);
 }
 
@@ -722,12 +722,6 @@ QMediaMetaData QMediaPlayer::metaData() const
 {
     Q_D(const QMediaPlayer);
     return d->control->metaData();
-}
-
-bool QMediaPlayer::autoPlay() const
-{
-    Q_D(const QMediaPlayer);
-    return d->autoPlay;
 }
 
 // Enums

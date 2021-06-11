@@ -41,6 +41,7 @@
 #define QMEDIAPLAYER_H
 
 #include <QtCore/qobject.h>
+#include <QtCore/qurl.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qaudio.h>
@@ -66,7 +67,6 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
     Q_PROPERTY(bool seekable READ isSeekable NOTIFY seekableChanged)
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
-    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
     Q_PROPERTY(MediaStatus mediaStatus READ mediaStatus NOTIFY mediaStatusChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData NOTIFY metaDataChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
@@ -109,10 +109,6 @@ public:
     explicit QMediaPlayer(QObject *parent = nullptr);
     ~QMediaPlayer();
 
-    // new API
-//    bool enableLowLatencyPlayback(bool tryEnable);
-//    bool isLowLatencyPlaybackEnabled() const;
-
     QList<QMediaMetaData> audioTracks() const;
     QList<QMediaMetaData> videoTracks() const;
     QList<QMediaMetaData> subtitleTracks() const;
@@ -138,7 +134,7 @@ public:
     QVideoSink *videoSink() const;
 
     QUrl source() const;
-    const QIODevice *sourceStream() const;
+    const QIODevice *sourceDevice() const;
 
     PlaybackState playbackState() const;
     MediaStatus mediaStatus() const;
@@ -161,19 +157,17 @@ public:
     bool isAvailable() const;
     QMediaMetaData metaData() const;
 
-    bool autoPlay() const;
-
 public Q_SLOTS:
     void play();
     void pause();
     void stop();
 
     void setPosition(qint64 position);
-    void setAutoPlay(bool autoPlay);
 
     void setPlaybackRate(qreal rate);
 
-    void setSource(const QUrl &media, QIODevice *stream = nullptr);
+    void setSource(const QUrl &source);
+    void setSourceDevice(QIODevice *device, const QUrl &sourceUrl = QUrl());
 
 Q_SIGNALS:
     void sourceChanged(const QUrl &media);
@@ -183,7 +177,6 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 position);
 
-    void autoPlayChanged(bool autoPlay);
     void hasAudioChanged(bool available);
     void hasVideoChanged(bool videoAvailable);
 
