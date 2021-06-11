@@ -106,7 +106,7 @@ QAudioOutput::QAudioOutput(const QAudioDevice &device, QObject *parent)
     d(QPlatformMediaIntegration::instance()->createAudioOutput(this))
 {
     d->device = device;
-    if (!d->device.isNull() && d->device.mode() != QAudio::AudioOutput)
+    if (!d->device.isNull() && d->device.mode() != QAudioDevice::Output)
         d->device = QMediaDevices::defaultAudioOutput();
     d->setAudioDevice(d->device);
 }
@@ -123,7 +123,7 @@ QAudioDevice QAudioOutput::device() const
 
 void QAudioOutput::setDevice(const QAudioDevice &device)
 {
-    if (!device.isNull() && device.mode() != QAudio::AudioOutput)
+    if (!device.isNull() && device.mode() != QAudioDevice::Output)
         return;
     if (d->device == device)
         return;

@@ -54,7 +54,7 @@
 #include <private/qplatformmediadevices_p.h>
 #include <gst/gst.h>
 #include <qset.h>
-#include <qaudio.h>
+#include <qaudiodevice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -72,7 +72,7 @@ public:
     void addDevice(GstDevice *);
     void removeDevice(GstDevice *);
 
-    GstDevice *audioDevice(const QByteArray &id, QAudio::Mode mode) const;
+    GstDevice *audioDevice(const QByteArray &id, QAudioDevice::Mode mode) const;
     GstDevice *videoDevice(const QByteArray &id) const;
 
 private:

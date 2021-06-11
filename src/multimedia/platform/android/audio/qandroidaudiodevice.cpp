@@ -43,7 +43,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudio::Mode mode)
+QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, const QString &desc, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(device, mode),
       m_engine(QOpenSLESEngine::instance())
 {
@@ -60,7 +60,7 @@ QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, const QString
         minimumSampleRate = sampleRates.first();
         maximumSampleRate = sampleRates.last();
     }
-    if (mode == QAudio::AudioInput)
+    if (mode == QAudioDevice::Input)
         supportedSampleFormats.append(QAudioFormat::UInt8);
     supportedSampleFormats.append(QAudioFormat::Int16);
 

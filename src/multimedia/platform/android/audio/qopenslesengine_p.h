@@ -74,9 +74,9 @@ public:
 
     static SLDataFormat_PCM audioFormatToSLFormatPCM(const QAudioFormat &format);
 
-    static QList<QAudioDevice> availableDevices(QAudio::Mode mode);
-    QList<int> supportedChannelCounts(QAudio::Mode mode) const;
-    QList<int> supportedSampleRates(QAudio::Mode mode) const;
+    static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode);
+    QList<int> supportedChannelCounts(QAudioDevice::Mode mode) const;
+    QList<int> supportedSampleRates(QAudioDevice::Mode mode) const;
 
     static int getOutputValue(OutputValue type, int defaultValue = 0);
     static int getDefaultBufferSize(const QAudioFormat &format);

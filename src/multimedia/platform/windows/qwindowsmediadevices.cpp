@@ -320,9 +320,9 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
     CoUninitialize();
 }
 
-QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudio::Mode mode) const
+QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mode) const
 {
-    const auto audioOut = mode == QAudio::AudioOutput;
+    const auto audioOut = mode == QAudioDevice::Output;
 
     const auto defaultAudioDeviceID = [this, audioOut]{
         const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
@@ -384,12 +384,12 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudio::Mode mode) co
 
 QList<QAudioDevice> QWindowsMediaDevices::audioInputs() const
 {
-    return availableDevices(QAudio::AudioInput);
+    return availableDevices(QAudioDevice::Input);
 }
 
 QList<QAudioDevice> QWindowsMediaDevices::audioOutputs() const
 {
-    return availableDevices(QAudio::AudioOutput);
+    return availableDevices(QAudioDevice::Output);
 }
 
 QList<QCameraDevice> QWindowsMediaDevices::videoInputs() const

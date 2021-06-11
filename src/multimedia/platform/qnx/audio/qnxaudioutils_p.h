@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QnxAudioUtils
 {
-    snd_pcm_channel_params_t formatToChannelParams(const QAudioFormat &format, QAudio::Mode mode, int fragmentSize);
+    snd_pcm_channel_params_t formatToChannelParams(const QAudioFormat &format, QAudioDevice::Mode mode, int fragmentSize);
 }
 
 QT_END_NAMESPACE

@@ -99,7 +99,7 @@ QGstreamerMediaDevices::QGstreamerMediaDevices()
     }
 }
 
-static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QAudio::Mode mode)
+static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QAudioDevice::Mode mode)
 {
     QList<QAudioDevice> devices;
     for (auto *d : deviceSet) {
@@ -124,12 +124,12 @@ static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QA
 
 QList<QAudioDevice> QGstreamerMediaDevices::audioInputs() const
 {
-    return devicesFromSet(m_audioSources, QAudio::AudioInput);
+    return devicesFromSet(m_audioSources, QAudioDevice::Input);
 }
 
 QList<QAudioDevice> QGstreamerMediaDevices::audioOutputs() const
 {
-    return devicesFromSet(m_audioSinks, QAudio::AudioOutput);
+    return devicesFromSet(m_audioSinks, QAudioDevice::Output);
 }
 
 QList<QCameraDevice> QGstreamerMediaDevices::videoInputs() const
@@ -250,9 +250,9 @@ static GstDevice *getDevice(const QSet<GstDevice *> &devices, const char *key, c
 
 }
 
-GstDevice *QGstreamerMediaDevices::audioDevice(const QByteArray &id, QAudio::Mode mode) const
+GstDevice *QGstreamerMediaDevices::audioDevice(const QByteArray &id, QAudioDevice::Mode mode) const
 {
-    const auto devices = (mode == QAudio::AudioOutput) ? m_audioSinks : m_audioSources;
+    const auto devices = (mode == QAudioDevice::Output) ? m_audioSinks : m_audioSources;
 
     return getDevice(devices, "sysfs.path", id);
 }

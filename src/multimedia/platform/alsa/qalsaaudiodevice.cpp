@@ -54,7 +54,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc, QAudio::Mode mode)
+QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &desc, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode)
 {
     description = desc;
@@ -100,7 +100,7 @@ void QAlsaAudioDeviceInfo::checkSurround()
         io = snd_device_name_get_hint(*n, "IOID");
         if((name != NULL) && (descr != NULL)) {
             QString deviceName = QLatin1String(name);
-            if (mode == QAudio::AudioOutput) {
+            if (mode == QAudioDevice::Output) {
                 if(deviceName.contains(QLatin1String("surround40")))
                     surround40 = true;
                 if(deviceName.contains(QLatin1String("surround51")))

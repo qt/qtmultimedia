@@ -53,11 +53,11 @@
 QT_BEGIN_NAMESPACE
 
 #if defined(Q_OS_MACOS)
-    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode)
+    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
         : QAudioDevicePrivate(device, mode),
         m_deviceId(id)
 #else
-    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode)
+    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode)
         : QAudioDevicePrivate(device, mode)
 #endif
     {
@@ -77,7 +77,7 @@ QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
 
 #if defined(Q_OS_MACOS)
     UInt32  propSize = 0;
-    AudioObjectPropertyScope audioDevicePropertyScope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
+    AudioObjectPropertyScope audioDevicePropertyScope = mode == QAudioDevice::Input ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
     AudioObjectPropertyAddress audioDevicePropertyStreamsAddress = { kAudioDevicePropertyStreams,
                                                                      audioDevicePropertyScope,
                                                                      kAudioObjectPropertyElementMaster };
@@ -119,7 +119,7 @@ QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
     {
         format.setSampleRate(44100);
         format.setSampleFormat(QAudioFormat::Int16);
-        format.setChannelCount(mode == QAudio::AudioInput ? 1 : 2);
+        format.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
     }
 
     return format;
@@ -131,7 +131,7 @@ QString QCoreAudioDeviceInfo::getDescription() const
 #ifdef Q_OS_MACOS
     CFStringRef name;
     UInt32 size = sizeof(CFStringRef);
-    AudioObjectPropertyScope audioPropertyScope = mode == QAudio::AudioInput ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
+    AudioObjectPropertyScope audioPropertyScope = mode == QAudioDevice::Input ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput;
 
     AudioObjectPropertyAddress audioDeviceNamePropertyAddress = { kAudioObjectPropertyName,
                                                                   audioPropertyScope,

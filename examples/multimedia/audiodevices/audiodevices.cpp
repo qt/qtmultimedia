@@ -124,7 +124,7 @@ void AudioTest::test()
 void AudioTest::updateAudioDevices()
 {
     deviceBox->clear();
-    const auto devices = m_mode == QAudio::AudioInput ? m_devices->audioInputs() : m_devices->audioOutputs();
+    const auto devices = m_mode == QAudioDevice::Input ? m_devices->audioInputs() : m_devices->audioOutputs();
     for (auto &deviceInfo: devices)
         deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
 }
@@ -133,7 +133,7 @@ void AudioTest::updateAudioDevices()
 void AudioTest::modeChanged(int idx)
 {
     testResult->clear();
-    m_mode = idx == 0 ? QAudio::AudioInput : QAudio::AudioOutput;
+    m_mode = idx == 0 ? QAudioDevice::Input : QAudioDevice::Output;
     updateAudioDevices();
     deviceBox->setCurrentIndex(0);
     deviceChanged(0);

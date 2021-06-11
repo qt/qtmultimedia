@@ -64,6 +64,12 @@ class Q_MULTIMEDIA_EXPORT QAudioDevice
     Q_PROPERTY(QString description READ description CONSTANT)
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
 public:
+    enum Mode {
+        Input,
+        Output
+    };
+    Q_ENUM(Mode)
+
     QAudioDevice();
     QAudioDevice(const QAudioDevice& other);
     ~QAudioDevice();
@@ -84,7 +90,7 @@ public:
     QString description() const;
 
     bool isDefault() const;
-    QAudio::Mode mode() const;
+    QAudioDevice::Mode mode() const;
 
     bool isFormatSupported(const QAudioFormat &format) const;
     QAudioFormat preferredFormat() const;
@@ -101,6 +107,10 @@ private:
     QAudioDevice(QAudioDevicePrivate *p);
     QExplicitlySharedDataPointer<QAudioDevicePrivate> d;
 };
+
+#ifndef QT_NO_DEBUG_STREAM
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudioDevice::Mode mode);
+#endif
 
 QT_END_NAMESPACE
 

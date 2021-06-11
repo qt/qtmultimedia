@@ -90,8 +90,8 @@ public:
             pa_threaded_mainloop_wait(m_mainLoop);
     }
 
-    QList<QAudioDevice> availableDevices(QAudio::Mode mode) const;
-    QByteArray defaultDevice(QAudio::Mode mode) const;
+    QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
+    QByteArray defaultDevice(QAudioDevice::Mode mode) const;
 
 Q_SIGNALS:
     void contextFailed();

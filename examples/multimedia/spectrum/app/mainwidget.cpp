@@ -110,7 +110,7 @@ MainWidget::~MainWidget() = default;
 // Public slots
 //-----------------------------------------------------------------------------
 
-void MainWidget::stateChanged(QAudio::Mode mode, QAudio::State state)
+void MainWidget::stateChanged(QAudioDevice::Mode mode, QAudio::State state)
 {
     Q_UNUSED(mode);
 
@@ -409,7 +409,7 @@ void MainWidget::createMenus()
 
 void MainWidget::updateButtonStates()
 {
-    const bool recordEnabled = ((QAudio::AudioOutput == m_engine->mode() ||
+    const bool recordEnabled = ((QAudioDevice::Output == m_engine->mode() ||
                                 (QAudio::ActiveState != m_engine->state() &&
                                  QAudio::IdleState != m_engine->state())) &&
                                 RecordMode == m_mode);
@@ -420,7 +420,7 @@ void MainWidget::updateButtonStates()
     m_pauseButton->setEnabled(pauseEnabled);
 
     const bool playEnabled = (/*m_engine->dataLength() &&*/
-                              (QAudio::AudioOutput != m_engine->mode() ||
+                              (QAudioDevice::Output != m_engine->mode() ||
                                (QAudio::ActiveState != m_engine->state() &&
                                 QAudio::IdleState != m_engine->state())));
     m_playButton->setEnabled(playEnabled);

@@ -43,7 +43,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *desc, bool isDef, QAudio::Mode mode)
+QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *desc, bool isDef, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(device, mode)
 {
     description = QString::fromUtf8(desc);

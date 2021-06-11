@@ -124,7 +124,7 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
 
     QWriteLocker locker(&pulseEngine->m_sinkLock);
     bool isDefault = pulseEngine->m_defaultSink == info->name;
-    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioOutput);
+    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Output);
     pulseEngine->m_sinks.insert(info->index, dinfo->create());
 }
 
@@ -162,7 +162,7 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
     if (info->monitor_of_sink != PA_INVALID_INDEX)
         return;
     bool isDefault = pulseEngine->m_defaultSink == info->name;
-    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudio::AudioInput);
+    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Input);
     pulseEngine->m_sources.insert(info->index, dinfo->create());
 }
 
@@ -448,14 +448,14 @@ QPulseAudioEngine *QPulseAudioEngine::instance()
     return pulseEngine();
 }
 
-QList<QAudioDevice> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
+QList<QAudioDevice> QPulseAudioEngine::availableDevices(QAudioDevice::Mode mode) const
 {
     QList<QAudioDevice> devices;
     QByteArray defaultDevice;
 
     m_serverLock.lockForRead();
 
-    if (mode == QAudio::AudioOutput) {
+    if (mode == QAudioDevice::Output) {
         QReadLocker locker(&m_sinkLock);
         devices = m_sinks.values();
         defaultDevice = m_defaultSink;
@@ -470,9 +470,9 @@ QList<QAudioDevice> QPulseAudioEngine::availableDevices(QAudio::Mode mode) const
     return devices;
 }
 
-QByteArray QPulseAudioEngine::defaultDevice(QAudio::Mode mode) const
+QByteArray QPulseAudioEngine::defaultDevice(QAudioDevice::Mode mode) const
 {
-    return (mode == QAudio::AudioOutput) ? m_defaultSink : m_defaultSource;
+    return (mode == QAudioDevice::Output) ? m_defaultSink : m_defaultSource;
 }
 
 QT_END_NAMESPACE

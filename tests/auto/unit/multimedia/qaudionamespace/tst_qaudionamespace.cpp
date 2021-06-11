@@ -31,6 +31,7 @@
 #include <QtTest/QtTest>
 
 #include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \
@@ -47,8 +48,6 @@ private slots:
     void debugError_data();
     void debugState();
     void debugState_data();
-    void debugMode();
-    void debugMode_data();
     void debugVolumeScale();
     void debugVolumeScale_data();
     void convertVolume();
@@ -94,24 +93,6 @@ void tst_QAudioNamespace::debugState()
 
     QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
     qDebug() << state;
-}
-
-void tst_QAudioNamespace::debugMode_data()
-{
-    QTest::addColumn<QAudio::Mode>("mode");
-    QTest::addColumn<QString>("stringized");
-
-    ADD_ENUM_TEST(AudioInput);
-    ADD_ENUM_TEST(AudioOutput);
-}
-
-void tst_QAudioNamespace::debugMode()
-{
-    QFETCH(QAudio::Mode, mode);
-    QFETCH(QString, stringized);
-
-    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
-    qDebug() << mode;
 }
 
 void tst_QAudioNamespace::debugVolumeScale_data()

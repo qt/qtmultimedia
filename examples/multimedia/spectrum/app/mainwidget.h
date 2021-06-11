@@ -51,7 +51,7 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
-#include <QAudio>
+#include <QAudioDevice>
 #include <QIcon>
 #include <QWidget>
 
@@ -88,7 +88,7 @@ public:
     void timerEvent(QTimerEvent *event) override;
 
 public slots:
-    void stateChanged(QAudio::Mode mode, QAudio::State state);
+    void stateChanged(QAudioDevice::Mode mode, QAudio::State state);
     void formatChanged(const QAudioFormat &format);
     void spectrumChanged(qint64 position, qint64 length,
                          const FrequencySpectrum &spectrum);

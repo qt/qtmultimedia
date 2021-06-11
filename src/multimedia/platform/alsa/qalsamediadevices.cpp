@@ -54,7 +54,7 @@ QAlsaMediaDevices::QAlsaMediaDevices()
 {
 }
 
-static QList<QAudioDevice> availableDevices(QAudio::Mode mode)
+static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
 {
     QList<QAudioDevice> devices;
 
@@ -70,7 +70,7 @@ static QList<QAudioDevice> availableDevices(QAudio::Mode mode)
     }
     n = hints;
 
-    if(mode == QAudio::AudioInput) {
+    if(mode == QAudioDevice::Input) {
         filter = "Input";
     } else {
         filter = "Output";
@@ -102,12 +102,12 @@ static QList<QAudioDevice> availableDevices(QAudio::Mode mode)
 
 QList<QAudioDevice> QAlsaMediaDevices::audioInputs() const
 {
-    return availableDevices(QAudio::AudioInput);
+    return availableDevices(QAudioDevice::Input);
 }
 
 QList<QAudioDevice> QAlsaMediaDevices::audioOutputs() const
 {
-    return availableDevices(QAudio::AudioOutput);
+    return availableDevices(QAudioDevice::Output);
 }
 
 QList<QCameraDevice> QAlsaMediaDevices::videoInputs() const

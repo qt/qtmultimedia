@@ -103,16 +103,16 @@ SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &f
 
 }
 
-QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudio::Mode mode)
+QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
 {
     QList<QAudioDevice> devices;
     QJniObject devs;
-    if (mode == QAudio::AudioInput) {
+    if (mode == QAudioDevice::Input) {
         devs = QJniObject::callStaticObjectMethod(
                     "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
                     "getAudioInputDevices",
                     "()[Ljava/lang/String;");
-    } else if (mode == QAudio::AudioOutput) {
+    } else if (mode == QAudioDevice::Output) {
         devs = QJniObject::callStaticObjectMethod(
                     "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
                     "getAudioOutputDevices",
@@ -132,9 +132,9 @@ QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudio::Mode mode)
     return devices;
 }
 
-QList<int> QOpenSLESEngine::supportedChannelCounts(QAudio::Mode mode) const
+QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) const
 {
-    if (mode == QAudio::AudioInput) {
+    if (mode == QAudioDevice::Input) {
         if (!m_checkedInputFormats)
             const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputChannelCounts;
@@ -143,9 +143,9 @@ QList<int> QOpenSLESEngine::supportedChannelCounts(QAudio::Mode mode) const
     }
 }
 
-QList<int> QOpenSLESEngine::supportedSampleRates(QAudio::Mode mode) const
+QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode) const
 {
-    if (mode == QAudio::AudioInput) {
+    if (mode == QAudioDevice::Input) {
         if (!m_checkedInputFormats)
             const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputSampleRates;

@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
 class QGStreamerAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QGStreamerAudioDeviceInfo(GstDevice *gstDevice, const QByteArray &device, QAudio::Mode mode);
+    QGStreamerAudioDeviceInfo(GstDevice *gstDevice, const QByteArray &device, QAudioDevice::Mode mode);
     ~QGStreamerAudioDeviceInfo();
 
     GstDevice *gstDevice = nullptr;

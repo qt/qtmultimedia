@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 class QPulseAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QPulseAudioDeviceInfo(const char *device, const char *description, bool isDefault, QAudio::Mode mode);
+    QPulseAudioDeviceInfo(const char *device, const char *description, bool isDefault, QAudioDevice::Mode mode);
     ~QPulseAudioDeviceInfo() {}
 };
 

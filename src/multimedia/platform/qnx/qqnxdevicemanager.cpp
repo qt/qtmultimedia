@@ -96,12 +96,12 @@ QQnxMediaDevices::QQnxMediaDevices()
 
 QList<QAudioDevice> QQnxMediaDevices::audioInputs() const
 {
-    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudio::AudioInput)) };
+    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudioDevice::Input)) };
 }
 
 QList<QAudioDevice> QQnxMediaDevices::audioOutputs() const
 {
-    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudio::AudioOutput)) };
+    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudioDevice::Output)) };
 }
 
 QList<QCameraDevice> QQnxMediaDevices::videoInputs() const

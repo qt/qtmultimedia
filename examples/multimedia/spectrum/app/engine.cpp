@@ -78,7 +78,7 @@ const int    LevelWindowUs          = 0.1 * 1000000;
 
 Engine::Engine(QObject *parent)
     :   QObject(parent)
-    ,   m_mode(QAudio::AudioInput)
+    ,   m_mode(QAudioDevice::Input)
     ,   m_state(QAudio::StoppedState)
     ,   m_devices(new QMediaDevices(this))
     ,   m_generateTone(false)
@@ -225,7 +225,7 @@ void Engine::setWindowFunction(WindowFunction type)
 void Engine::startRecording()
 {
     if (m_audioInput) {
-        if (QAudio::AudioInput == m_mode &&
+        if (QAudioDevice::Input == m_mode &&
             QAudio::SuspendedState == m_state) {
             m_audioInput->resume();
         } else {
@@ -235,7 +235,7 @@ void Engine::startRecording()
             m_buffer.fill(0);
             setRecordPosition(0, true);
             stopPlayback();
-            m_mode = QAudio::AudioInput;
+            m_mode = QAudioDevice::Input;
             connect(m_audioInput, &QAudioSource::stateChanged,
                     this, &Engine::audioStateChanged);
 
@@ -253,7 +253,7 @@ void Engine::startRecording()
 void Engine::startPlayback()
 {
     if (m_audioOutput) {
-        if (QAudio::AudioOutput == m_mode &&
+        if (QAudioDevice::Output == m_mode &&
             QAudio::SuspendedState == m_state) {
 #ifdef Q_OS_WIN
             // The Windows backend seems to internally go back into ActiveState
@@ -267,7 +267,7 @@ void Engine::startPlayback()
             spectrumChanged(0, 0, FrequencySpectrum());
             setPlayPosition(0, true);
             stopRecording();
-            m_mode = QAudio::AudioOutput;
+            m_mode = QAudioDevice::Output;
             connect(m_audioOutput, &QAudioSink::stateChanged,
                     this, &Engine::audioStateChanged);
 
@@ -293,10 +293,10 @@ void Engine::suspend()
     if (QAudio::ActiveState == m_state ||
         QAudio::IdleState == m_state) {
         switch (m_mode) {
-        case QAudio::AudioInput:
+        case QAudioDevice::Input:
             m_audioInput->suspend();
             break;
-        case QAudio::AudioOutput:
+        case QAudioDevice::Output:
             m_audioOutput->suspend();
             break;
         }
@@ -328,7 +328,7 @@ void Engine::setAudioOutputDevice(const QAudioDevice &device)
 void Engine::audioNotify()
 {
     switch (m_mode) {
-    case QAudio::AudioInput: {
+    case QAudioDevice::Input: {
             const qint64 recordPosition = qMin(m_bufferLength, m_format.bytesForDuration(m_audioInput->processedUSecs()));
             setRecordPosition(recordPosition);
             const qint64 levelPosition = m_dataLength - m_levelBufferLength;
@@ -341,7 +341,7 @@ void Engine::audioNotify()
             emit bufferChanged(0, m_dataLength, m_buffer);
         }
         break;
-    case QAudio::AudioOutput: {
+    case QAudioDevice::Output: {
             const qint64 playPosition = m_format.bytesForDuration(m_audioOutput->processedUSecs());
             setPlayPosition(qMin(bufferLength(), playPosition));
             const qint64 levelPosition = playPosition - m_levelBufferLength;
@@ -395,10 +395,10 @@ void Engine::audioStateChanged(QAudio::State state)
             // Check error
             QAudio::Error error = QAudio::NoError;
             switch (m_mode) {
-            case QAudio::AudioInput:
+            case QAudioDevice::Input:
                 error = m_audioInput->error();
                 break;
-            case QAudio::AudioOutput:
+            case QAudioDevice::Output:
                 error = m_audioOutput->error();
                 break;
             }
@@ -459,7 +459,7 @@ void Engine::reset()
 {
     stopRecording();
     stopPlayback();
-    setState(QAudio::AudioInput, QAudio::StoppedState);
+    setState(QAudioDevice::Input, QAudio::StoppedState);
     setFormat(QAudioFormat());
     m_generateTone = false;
     delete m_file;
@@ -604,7 +604,7 @@ void Engine::setState(QAudio::State state)
         emit stateChanged(m_mode, m_state);
 }
 
-void Engine::setState(QAudio::Mode mode, QAudio::State state)
+void Engine::setState(QAudioDevice::Mode mode, QAudio::State state)
 {
     const bool changed = (m_mode != mode || m_state != state);
     m_mode = mode;

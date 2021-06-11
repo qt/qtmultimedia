@@ -75,7 +75,7 @@ public:
 private:
     QAudioDevice m_deviceInfo;
     QAudioFormat m_settings;
-    QAudio::Mode m_mode = QAudio::AudioInput;
+    QAudioDevice::Mode m_mode = QAudioDevice::Input;
     QMediaDevices *m_devices = nullptr;
 
 private slots:

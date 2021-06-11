@@ -99,7 +99,7 @@ public:
     const QList<QAudioDevice> &availableAudioOutputDevices() const
                                     { return m_availableAudioOutputDevices; }
 
-    QAudio::Mode mode() const { return m_mode; }
+    QAudioDevice::Mode mode() const { return m_mode; }
     QAudio::State state() const { return m_state; }
 
     /**
@@ -182,7 +182,7 @@ public slots:
     void setAudioOutputDevice(const QAudioDevice &device);
 
 signals:
-    void stateChanged(QAudio::Mode mode, QAudio::State state);
+    void stateChanged(QAudioDevice::Mode mode, QAudio::State state);
 
     /**
      * Informational message for non-modal display
@@ -259,7 +259,7 @@ private:
     void stopRecording();
     void stopPlayback();
     void setState(QAudio::State state);
-    void setState(QAudio::Mode mode, QAudio::State state);
+    void setState(QAudioDevice::Mode mode, QAudio::State state);
     void setFormat(const QAudioFormat &format);
     void setRecordPosition(qint64 position, bool forceEmit = false);
     void setPlayPosition(qint64 position, bool forceEmit = false);
@@ -277,7 +277,7 @@ private:
 #endif
 
 private:
-    QAudio::Mode        m_mode;
+    QAudioDevice::Mode        m_mode;
     QAudio::State       m_state;
     QMediaDevices      *m_devices;
 

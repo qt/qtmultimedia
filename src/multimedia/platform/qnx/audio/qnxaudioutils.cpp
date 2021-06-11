@@ -41,11 +41,11 @@
 
 QT_BEGIN_NAMESPACE
 
-snd_pcm_channel_params_t QnxAudioUtils::formatToChannelParams(const QAudioFormat &format, QAudio::Mode mode, int fragmentSize)
+snd_pcm_channel_params_t QnxAudioUtils::formatToChannelParams(const QAudioFormat &format, QAudioDevice::Mode mode, int fragmentSize)
 {
     snd_pcm_channel_params_t params;
     memset(&params, 0, sizeof(params));
-    params.channel = (mode == QAudio::AudioOutput) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
+    params.channel = (mode == QAudioDevice::Output) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
     params.mode = SND_PCM_MODE_BLOCK;
     params.start_mode = SND_PCM_START_DATA;
     params.stop_mode = SND_PCM_STOP_ROLLOVER;

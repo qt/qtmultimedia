@@ -56,12 +56,12 @@ QPulseAudioMediaDevices::QPulseAudioMediaDevices(QPulseAudioEngine *engine)
 
 QList<QAudioDevice> QPulseAudioMediaDevices::audioInputs() const
 {
-    return pulseEngine->availableDevices(QAudio::AudioInput);
+    return pulseEngine->availableDevices(QAudioDevice::Input);
 }
 
 QList<QAudioDevice> QPulseAudioMediaDevices::audioOutputs() const
 {
-    return pulseEngine->availableDevices(QAudio::AudioOutput);
+    return pulseEngine->availableDevices(QAudioDevice::Output);
 }
 
 QList<QCameraDevice> QPulseAudioMediaDevices::videoInputs() const

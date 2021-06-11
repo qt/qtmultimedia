@@ -55,6 +55,7 @@
 #include <private/qwindowsiupointer_p.h>
 #include <qset.h>
 #include <qaudio.h>
+#include <qaudiodevice.h>
 #include <windows.h>
 
 QT_BEGIN_NAMESPACE
@@ -78,7 +79,7 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
 private:
-    QList<QAudioDevice> availableDevices(QAudio::Mode mode) const;
+    QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
     QWindowsIUPointer<IMMDeviceEnumerator> m_deviceEnumerator;
     QWindowsIUPointer<CMMNotificationClient> m_notificationClient;
