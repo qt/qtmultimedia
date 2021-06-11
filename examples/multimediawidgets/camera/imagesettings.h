@@ -68,8 +68,7 @@ public:
     explicit ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent = nullptr);
     ~ImageSettings();
 
-    QImageEncoderSettings imageSettings() const;
-    void setImageSettings(const QImageEncoderSettings &settings);
+    void applyImageSettings() const;
 
     QString format() const;
     void setFormat(const QString &format);

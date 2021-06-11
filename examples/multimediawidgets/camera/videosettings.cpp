@@ -113,7 +113,7 @@ VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
                                         QVariant::fromValue(format));
     }
 
-    ui->qualitySlider->setRange(0, int(QImageEncoderSettings::VeryHighQuality));
+    ui->qualitySlider->setRange(0, int(QMediaEncoderSettings::VeryHighQuality));
 }
 
 VideoSettings::~VideoSettings()

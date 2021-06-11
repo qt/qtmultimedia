@@ -206,11 +206,8 @@ void Camera::configureImageSettings()
     ImageSettings settingsDialog(m_imageCapture);
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    settingsDialog.setImageSettings(m_imageSettings);
-
     if (settingsDialog.exec()) {
-        m_imageSettings = settingsDialog.imageSettings();
-        m_imageCapture->setEncodingSettings(m_imageSettings);
+        settingsDialog.applyImageSettings();
     }
 }
 

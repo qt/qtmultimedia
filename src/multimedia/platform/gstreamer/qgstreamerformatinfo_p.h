@@ -71,7 +71,7 @@ public:
     static QMediaFormat::AudioCodec audioCodecForCaps(QGstStructure structure);
     static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructure structure);
     static QMediaFormat::FileFormat fileFormatForCaps(QGstStructure structure);
-    static QImageEncoderSettings::FileFormat imageFormatForCaps(QGstStructure structure);
+    static QCameraImageCapture::FileFormat imageFormatForCaps(QGstStructure structure);
 
     QList<CodecMap> getMuxerList(bool demuxer, QList<QMediaFormat::AudioCodec> audioCodecs, QList<QMediaFormat::VideoCodec> videoCodecs);
 };

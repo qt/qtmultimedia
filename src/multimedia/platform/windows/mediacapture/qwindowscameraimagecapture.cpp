@@ -169,21 +169,21 @@ void QWindowsCameraImageCapture::saveImage(int captureId, const QString &fileNam
                               Q_ARG(int, captureId), Q_ARG(QString, fileName));
 }
 
-QString QWindowsCameraImageCapture::writerFormat(QImageEncoderSettings::FileFormat reqFormat)
+QString QWindowsCameraImageCapture::writerFormat(QCameraImageCapture::FileFormat reqFormat)
 {
     QString format;
 
     switch (reqFormat) {
-    case QImageEncoderSettings::FileFormat::JPEG:
+    case QCameraImageCapture::FileFormat::JPEG:
         format = QLatin1String("jpg");
         break;
-    case QImageEncoderSettings::FileFormat::PNG:
+    case QCameraImageCapture::FileFormat::PNG:
         format = QLatin1String("png");
         break;
-    case QImageEncoderSettings::FileFormat::WebP:
+    case QCameraImageCapture::FileFormat::WebP:
         format = QLatin1String("webp");
         break;
-    case QImageEncoderSettings::FileFormat::Tiff:
+    case QCameraImageCapture::FileFormat::Tiff:
         format = QLatin1String("tiff");
         break;
     default:
@@ -199,21 +199,21 @@ QString QWindowsCameraImageCapture::writerFormat(QImageEncoderSettings::FileForm
 }
 
 int QWindowsCameraImageCapture::writerQuality(const QString &writerFormat,
-                                              QImageEncoderSettings::Quality quality)
+                                              QCameraImageCapture::Quality quality)
 {
     if (writerFormat.compare(QLatin1String("jpg"), Qt::CaseInsensitive) == 0 ||
             writerFormat.compare(QLatin1String("jpeg"), Qt::CaseInsensitive) == 0) {
 
         switch (quality) {
-        case QImageEncoderSettings::Quality::VeryLowQuality:
+        case QCameraImageCapture::Quality::VeryLowQuality:
             return 10;
-        case QImageEncoderSettings::Quality::LowQuality:
+        case QCameraImageCapture::Quality::LowQuality:
             return 30;
-        case QImageEncoderSettings::Quality::NormalQuality:
+        case QCameraImageCapture::Quality::NormalQuality:
             return 75;
-        case QImageEncoderSettings::Quality::HighQuality:
+        case QCameraImageCapture::Quality::HighQuality:
             return 90;
-        case QImageEncoderSettings::Quality::VeryHighQuality:
+        case QCameraImageCapture::Quality::VeryHighQuality:
             return 98;
         default:
             return 75;

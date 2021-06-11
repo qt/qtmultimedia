@@ -166,7 +166,7 @@ QDarwinFormatInfo::QDarwinFormatInfo()
 // #endif
 
     // ###
-    imageFormats << QImageEncoderSettings::JPEG;
+    imageFormats << QCameraImageCapture::JPEG;
 }
 
 QDarwinFormatInfo::~QDarwinFormatInfo()

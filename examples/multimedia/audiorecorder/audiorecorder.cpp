@@ -62,6 +62,7 @@
 #include <qaudiodevice.h>
 #include <qaudiobuffer.h>
 #include <qaudioinput.h>
+#include <qcameraimagecapture.h>
 
 static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
@@ -112,8 +113,8 @@ AudioRecorder::AudioRecorder()
     ui->channelsBox->addItem(QStringLiteral("4"), QVariant(4));
 
     //quality
-    ui->qualitySlider->setRange(0, int(QImageEncoderSettings::VeryHighQuality));
-    ui->qualitySlider->setValue(int(QImageEncoderSettings::NormalQuality));
+    ui->qualitySlider->setRange(0, int(QCameraImageCapture::VeryHighQuality));
+    ui->qualitySlider->setValue(int(QCameraImageCapture::NormalQuality));
 
     //bitrates:
     ui->bitrateBox->addItem(tr("Default"), QVariant(0));

@@ -53,11 +53,38 @@
 
 #include <QtMultimedia/qcameraimagecapture.h>
 #include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qcameraimagecapture.h>
 
 QT_BEGIN_NAMESPACE
 
 class QImage;
 class QPlatformMediaCaptureSession;
+
+class QImageEncoderSettingsPrivate;
+class Q_MULTIMEDIA_EXPORT QImageEncoderSettings
+{
+    QCameraImageCapture::FileFormat m_format = QCameraImageCapture::UnspecifiedFormat;
+    QSize m_resolution;
+    QCameraImageCapture::Quality m_quality = QCameraImageCapture::NormalQuality;
+
+public:
+    bool operator==(const QImageEncoderSettings &other) {
+        return m_format == other.m_format &&
+               m_resolution == other.m_resolution &&
+               m_quality == other.m_quality;
+    }
+    bool operator!=(const QImageEncoderSettings &other) { return !operator==(other); }
+
+    QCameraImageCapture::FileFormat format() const { return m_format; }
+    void setFormat(QCameraImageCapture::FileFormat f) { m_format = f; }
+
+    QSize resolution() const { return m_resolution; }
+    void setResolution(const QSize &s) { m_resolution = s; }
+    void setResolution(int width, int height) { m_resolution = QSize(width, height); }
+
+    QCameraImageCapture::Quality quality() const { return m_quality; }
+    void setQuality(QCameraImageCapture::Quality quality) { m_quality = quality; }
+};
 
 class Q_MULTIMEDIA_EXPORT QPlatformCameraImageCapture : public QObject
 {

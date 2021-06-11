@@ -103,7 +103,7 @@ void MediaExample::ImageEncoderSettings()
 {
     //! [Image encoder settings]
     QImageEncoderSettings imageSettings;
-    imageSettings.setFormat(QImageEncoderSettings::JPEG);
+    imageSettings.setFormat(QCameraImageCapture::JPEG);
     imageSettings.setResolution(1600, 1200);
 
     imageCapture->setEncodingSettings(imageSettings);

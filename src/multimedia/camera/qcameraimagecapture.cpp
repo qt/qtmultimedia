@@ -42,6 +42,7 @@
 #include <qmediametadata.h>
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 #include <qmediacapturesession.h>
 
 #include "private/qobject_p.h"
@@ -201,34 +202,6 @@ QCameraImageCapture::Error QCameraImageCapture::error() const
 QString QCameraImageCapture::errorString() const
 {
     return d_func()->errorString;
-}
-
-/*!
-    Returns the image encoder settings being used.
-
-    \sa setEncodingSettings()
-*/
-
-QImageEncoderSettings QCameraImageCapture::encodingSettings() const
-{
-    return d_func()->control ?
-           d_func()->control->imageSettings() : QImageEncoderSettings();
-}
-
-/*!
-    Sets the image encoding \a settings.
-
-    If some parameters are not specified, or null settings are passed,
-    the encoder choose the default encoding parameters.
-
-    \sa encodingSettings()
-*/
-void QCameraImageCapture::setEncodingSettings(const QImageEncoderSettings &settings)
-{
-    Q_D(QCameraImageCapture);
-
-    if (d->control)
-        d->control->setImageSettings(settings);
 }
 
 /*!
@@ -418,6 +391,165 @@ int QCameraImageCapture::capture()
     Signal emitted when QCameraImageCapture::CaptureToFile is set and
     the frame with request \a id was saved to \a fileName.
 */
+
+/*!
+    Returns the image format.
+*/
+
+QCameraImageCapture::FileFormat QCameraImageCapture::fileFormat() const
+{
+    Q_D(const QCameraImageCapture);
+    if (!d->control)
+        return UnspecifiedFormat;
+    return d->control->imageSettings().format();
+}
+
+/*!
+    Sets the image \a format.
+*/
+void QCameraImageCapture::setFileFormat(QCameraImageCapture::FileFormat format)
+{
+    Q_D(QCameraImageCapture);
+    if (!d->control)
+        return;
+    auto fmt = d->control->imageSettings();
+    if (fmt.format() == format)
+        return;
+    fmt.setFormat(format);
+    d->control->setImageSettings(fmt);
+    emit fileFormatChanged();
+}
+
+QList<QCameraImageCapture::FileFormat> QCameraImageCapture::supportedFormats()
+{
+    return QPlatformMediaIntegration::instance()->formatInfo()->imageFormats;
+}
+
+QString QCameraImageCapture::fileFormatName(QCameraImageCapture::FileFormat f)
+{
+    const char *name = nullptr;
+    switch (f) {
+    case UnspecifiedFormat:
+        name = "Unspecified image format";
+        break;
+    case JPEG:
+        name = "JPEG";
+        break;
+    case PNG:
+        name = "PNG";
+        break;
+    case WebP:
+        name = "WebP";
+        break;
+    case Tiff:
+        name = "Tiff";
+        break;
+    }
+    return QString::fromUtf8(name);
+}
+
+QString QCameraImageCapture::fileFormatDescription(QCameraImageCapture::FileFormat f)
+{
+    const char *name = nullptr;
+    switch (f) {
+    case UnspecifiedFormat:
+        name = "Unspecified image format";
+        break;
+    case JPEG:
+        name = "JPEG";
+        break;
+    case PNG:
+        name = "PNG";
+        break;
+    case WebP:
+        name = "WebP";
+        break;
+    case Tiff:
+        name = "Tiff";
+        break;
+    }
+    return QString::fromUtf8(name);
+}
+
+/*!
+    Returns the resolution of the encoded image.
+*/
+
+QSize QCameraImageCapture::resolution() const
+{
+    Q_D(const QCameraImageCapture);
+    if (!d->control)
+        return QSize();
+    return d->control->imageSettings().resolution();
+}
+
+/*!
+    Sets the \a resolution of the encoded image.
+
+    An empty QSize indicates the encoder should make an optimal choice based on
+    what is available from the image source and the limitations of the codec.
+*/
+void QCameraImageCapture::setResolution(const QSize &resolution)
+{
+    Q_D(QCameraImageCapture);
+    if (!d->control)
+        return;
+    auto fmt = d->control->imageSettings();
+    if (fmt.resolution() == resolution)
+        return;
+    fmt.setResolution(resolution);
+    d->control->setImageSettings(fmt);
+    emit resolutionChanged();
+}
+
+/*!
+    Sets the \a width and \a height of the resolution of the encoded image.
+
+    \overload
+*/
+void QCameraImageCapture::setResolution(int width, int height)
+{
+    setResolution(QSize(width, height));
+}
+
+/*!
+    \enum QCameraImageCapture::EncodingQuality
+
+    Enumerates quality encoding levels.
+
+    \value VeryLowQuality
+    \value LowQuality
+    \value NormalQuality
+    \value HighQuality
+    \value VeryHighQuality
+*/
+
+/*!
+    Returns the image encoding quality.
+*/
+QCameraImageCapture::Quality QCameraImageCapture::quality() const
+{
+    Q_D(const QCameraImageCapture);
+    if (!d->control)
+        return NormalQuality;
+    return d->control->imageSettings().quality();
+}
+
+/*!
+    Sets the image encoding \a quality.
+*/
+void QCameraImageCapture::setQuality(Quality quality)
+{
+    Q_D(QCameraImageCapture);
+    if (!d->control)
+        return;
+    auto fmt = d->control->imageSettings();
+    if (fmt.quality() == quality)
+        return;
+    fmt.setQuality(quality);
+    d->control->setImageSettings(fmt);
+    emit resolutionChanged();
+}
 
 QT_END_NAMESPACE
 

@@ -138,7 +138,6 @@ private:
     QCameraImageCapture *m_imageCapture;
     QScopedPointer<QMediaEncoder> m_mediaEncoder;
 
-    QImageEncoderSettings m_imageSettings;
     QMediaEncoderSettings m_encoderSettings;
     bool m_isCapturingImage = false;
     bool m_applicationExiting = false;

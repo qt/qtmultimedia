@@ -85,9 +85,9 @@ private:
     void saveImage(int captureId, const QString &fileName,
                    const QImage &image, const QMediaMetaData &metaData,
                    const QImageEncoderSettings &settings);
-    QString writerFormat(QImageEncoderSettings::FileFormat reqFormat);
+    QString writerFormat(QCameraImageCapture::FileFormat reqFormat);
     int writerQuality(const QString &writerFormat,
-                      QImageEncoderSettings::Quality quality);
+                      QCameraImageCapture::Quality quality);
 
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;

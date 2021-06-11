@@ -66,6 +66,8 @@ class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(FileFormat fileFormat READ fileFormat NOTIFY setFileFormat NOTIFY fileFormatChanged)
+    Q_PROPERTY(Quality quality READ quality NOTIFY setQuality NOTIFY qualityChanged)
 public:
     enum Error
     {
@@ -77,6 +79,26 @@ public:
         FormatError
     };
     Q_ENUM(Error)
+
+    enum Quality
+    {
+        VeryLowQuality,
+        LowQuality,
+        NormalQuality,
+        HighQuality,
+        VeryHighQuality
+    };
+    Q_ENUM(Quality)
+
+    enum FileFormat {
+        UnspecifiedFormat,
+        JPEG,
+        PNG,
+        WebP,
+        Tiff,
+        LastFileFormat = Tiff
+    };
+    Q_ENUM(FileFormat)
 
     explicit QCameraImageCapture(QObject *parent = nullptr);
     ~QCameraImageCapture();
@@ -90,8 +112,19 @@ public:
 
     bool isReadyForCapture() const;
 
-    QImageEncoderSettings encodingSettings() const;
-    void setEncodingSettings(const QImageEncoderSettings& settings);
+    FileFormat fileFormat() const;
+    void setFileFormat(FileFormat format);
+
+    static QList<FileFormat> supportedFormats();
+    static QString fileFormatName(FileFormat c);
+    static QString fileFormatDescription(FileFormat c);
+
+    QSize resolution() const;
+    void setResolution(const QSize &);
+    void setResolution(int width, int height);
+
+    Quality quality() const;
+    void setQuality(Quality quality);
 
     QMediaMetaData metaData() const;
     void setMetaData(const QMediaMetaData &metaData);
@@ -107,6 +140,10 @@ Q_SIGNALS:
 
     void readyForCaptureChanged(bool ready);
     void metaDataChanged();
+
+    void fileFormatChanged();
+    void qualityChanged();
+    void resolutionChanged();
 
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);

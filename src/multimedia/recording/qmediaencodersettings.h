@@ -129,57 +129,6 @@ private:
     QSharedDataPointer<QMediaEncoderSettingsPrivate> d;
 };
 
-class QImageEncoderSettingsPrivate;
-class Q_MULTIMEDIA_EXPORT QImageEncoderSettings
-{
-public:
-    enum Quality
-    {
-        VeryLowQuality,
-        LowQuality,
-        NormalQuality,
-        HighQuality,
-        VeryHighQuality
-    };
-
-    enum FileFormat {
-        UnspecifiedFormat,
-        JPEG,
-        PNG,
-        WebP,
-        Tiff,
-        LastFileFormat = Tiff
-    };
-
-    QImageEncoderSettings();
-    QImageEncoderSettings(const QImageEncoderSettings& other);
-
-    ~QImageEncoderSettings();
-
-    QImageEncoderSettings& operator=(const QImageEncoderSettings &other);
-    bool operator==(const QImageEncoderSettings &other) const;
-    bool operator!=(const QImageEncoderSettings &other) const;
-
-    bool isNull() const;
-
-    FileFormat format() const;
-    void setFormat(FileFormat format);
-
-    static QList<FileFormat> supportedFormats();
-    static QString fileFormatName(FileFormat c);
-    static QString fileFormatDescription(FileFormat c);
-
-    QSize resolution() const;
-    void setResolution(const QSize &);
-    void setResolution(int width, int height);
-
-    Quality quality() const;
-    void setQuality(Quality quality);
-
-private:
-    QSharedDataPointer<QImageEncoderSettingsPrivate> d;
-};
-
 QT_END_NAMESPACE
 
 #endif
