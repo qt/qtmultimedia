@@ -41,8 +41,8 @@
 #define QMediaRecorder_H
 
 #include <QtCore/qobject.h>
+#include <QtCore/qsize.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediaencodersettings.h>
 #include <QtMultimedia/qmediaenumdebug.h>
 #include <QtMultimedia/qmediametadata.h>
 
@@ -55,6 +55,7 @@ class QSize;
 class QAudioFormat;
 class QCamera;
 class QCameraDevice;
+class QMediaFormat;
 class QAudioDevice;
 class QMediaCaptureSession;
 
@@ -70,9 +71,28 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(QMediaRecorder::Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(QMediaEncoderSettings encoderSettings READ encoderSettings WRITE setEncoderSettings NOTIFY encoderSettingsChanged)
-
+    Q_PROPERTY(QMediaFormat mediaFormat READ mediaFormat WRITE setMediaFormat)
+    Q_PROPERTY(Quality quality READ quality WRITE setQuality)
 public:
+    enum Quality
+    {
+        VeryLowQuality,
+        LowQuality,
+        NormalQuality,
+        HighQuality,
+        VeryHighQuality
+    };
+    Q_ENUM(Quality)
+
+    enum EncodingMode
+    {
+        ConstantQualityEncoding,
+        ConstantBitRateEncoding,
+        AverageBitRateEncoding,
+        TwoPassEncoding
+    };
+    Q_ENUM(EncodingMode)
+
     enum RecorderState
     {
         StoppedState,
@@ -118,8 +138,33 @@ public:
 
     qint64 duration() const;
 
-    void setEncoderSettings(const QMediaEncoderSettings &);
-    QMediaEncoderSettings encoderSettings() const;
+    QMediaFormat mediaFormat() const;
+    void setMediaFormat(const QMediaFormat &format);
+
+    EncodingMode encodingMode() const;
+    void setEncodingMode(EncodingMode);
+
+    Quality quality() const;
+    void setQuality(Quality quality);
+
+    QSize videoResolution() const;
+    void setVideoResolution(const QSize &);
+    void setVideoResolution(int width, int height) { setVideoResolution(QSize(width, height)); }
+
+    qreal videoFrameRate() const;
+    void setVideoFrameRate(qreal frameRate);
+
+    int videoBitRate() const;
+    void setVideoBitRate(int bitRate);
+
+    int audioBitRate() const;
+    void setAudioBitRate(int bitRate);
+
+    int audioChannelCount() const;
+    void setAudioChannelCount(int channels);
+
+    int audioSampleRate() const;
+    void setAudioSampleRate(int sampleRate);
 
     QMediaMetaData metaData() const;
     void setMetaData(const QMediaMetaData &metaData);
@@ -143,6 +188,16 @@ Q_SIGNALS:
     void errorChanged();
 
     void metaDataChanged();
+
+    void mediaFormatChanged();
+    void encodingModeChanged();
+    void qualityChanged();
+    void videoResolutionChanged();
+    void videoFrameRateChanged();
+    void videoBitRateChanged();
+    void audioBitRateChanged();
+    void audioChannelCountChanged();
+    void audioSampleRateChanged();
 
 private:
     QMediaRecorderPrivate *d_ptr;

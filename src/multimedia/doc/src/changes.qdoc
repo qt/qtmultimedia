@@ -67,7 +67,7 @@ QMediaEncoderSettings for details
             and video outputs may be added in a future release.
     \row
         \li QAudioRecorder and the Audio QML type
-        \li QMediaRecorder and the MediaRecorder QML type provide the same functionality
+        \li Use a QMediaCaptureSession or the CaptureSession QML type
     \row
         \li QMediaObject and QMediaBindableInterface
         \li These classes have been removed in favor of a more direct API for setting up connections
@@ -125,11 +125,11 @@ changed in ways that may affect previously written code. This table highlights s
             to enum based keys, and reducing the set of supported keys to the ones that
             can be supported on most platforms.
     \row
-        \li QMediaFormat and QMediaEncoderSettings
-        \li Handling of formats for encoded media and the settings for the media encoder have
+        \li QMediaFormat
+        \li Handling of formats for encoded media and the settings for the media recorder have
             changed significantly. While Qt 5 provided a string based API and separated file format,
             audio and video codecs into 3 classes, Qt 6 does unify the formats in the QMediaFormat class,
-            and encoder settings in QMediaEncoderSettings. Setting up of file formats and codecs is now
+            and other settings in QMediaRecorder. Setting up of file formats and codecs is now
             enum based and doesn't use strings anymore. This puts some limitations on the set of codecs
             that can be used, but helps provide a consistent cross-platform API and reduces the changes
             for inconsistencies.

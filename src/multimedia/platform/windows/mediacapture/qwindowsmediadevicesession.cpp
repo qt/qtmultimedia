@@ -238,25 +238,25 @@ bool QWindowsMediaDeviceSession::resumeRecording()
 
 // empirical estimate of the required video bitrate (for H.264)
 quint32 QWindowsMediaDeviceSession::estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
-                                                         qreal frameRate, QMediaEncoderSettings::Quality quality)
+                                                         qreal frameRate, QMediaRecorder::Quality quality)
 {
     Q_UNUSED(videoFormat);
 
     qreal bitsPerPixel;
     switch (quality) {
-    case QMediaEncoderSettings::Quality::VeryLowQuality:
+    case QMediaRecorder::Quality::VeryLowQuality:
         bitsPerPixel = 0.08;
         break;
-    case QMediaEncoderSettings::Quality::LowQuality:
+    case QMediaRecorder::Quality::LowQuality:
         bitsPerPixel = 0.2;
         break;
-    case QMediaEncoderSettings::Quality::NormalQuality:
+    case QMediaRecorder::Quality::NormalQuality:
         bitsPerPixel = 0.3;
         break;
-    case QMediaEncoderSettings::Quality::HighQuality:
+    case QMediaRecorder::Quality::HighQuality:
         bitsPerPixel = 0.5;
         break;
-    case QMediaEncoderSettings::Quality::VeryHighQuality:
+    case QMediaRecorder::Quality::VeryHighQuality:
         bitsPerPixel = 0.8;
         break;
     default:
@@ -269,20 +269,20 @@ quint32 QWindowsMediaDeviceSession::estimateVideoBitRate(const GUID &videoFormat
     return pixelsPerSec * bitsPerPixel;
 }
 
-quint32 QWindowsMediaDeviceSession::estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality)
+quint32 QWindowsMediaDeviceSession::estimateAudioBitRate(const GUID &audioFormat, QMediaRecorder::Quality quality)
 {
     if (audioFormat == MFAudioFormat_AAC) {
         // Bitrates supported by the AAC encoder are 96K, 128K, 160K, 192K.
         switch (quality) {
-        case QMediaEncoderSettings::Quality::VeryLowQuality:
+        case QMediaRecorder::Quality::VeryLowQuality:
             return 96000;
-        case QMediaEncoderSettings::Quality::LowQuality:
+        case QMediaRecorder::Quality::LowQuality:
             return 96000;
-        case QMediaEncoderSettings::Quality::NormalQuality:
+        case QMediaRecorder::Quality::NormalQuality:
             return 128000;
-        case QMediaEncoderSettings::Quality::HighQuality:
+        case QMediaRecorder::Quality::HighQuality:
             return 160000;
-        case QMediaEncoderSettings::Quality::VeryHighQuality:
+        case QMediaRecorder::Quality::VeryHighQuality:
             return 192000;
         }
         return 128000;
@@ -290,15 +290,15 @@ quint32 QWindowsMediaDeviceSession::estimateAudioBitRate(const GUID &audioFormat
         // Bitrates supported by the MP3 encoder are
         // 32K, 40K, 48K, 56K, 64K, 80K, 96K, 112K, 128K, 160K, 192K, 224K, 256K, 320K.
         switch (quality) {
-        case QMediaEncoderSettings::Quality::VeryLowQuality:
+        case QMediaRecorder::Quality::VeryLowQuality:
             return 48000;
-        case QMediaEncoderSettings::Quality::LowQuality:
+        case QMediaRecorder::Quality::LowQuality:
             return 96000;
-        case QMediaEncoderSettings::Quality::NormalQuality:
+        case QMediaRecorder::Quality::NormalQuality:
             return 128000;
-        case QMediaEncoderSettings::Quality::HighQuality:
+        case QMediaRecorder::Quality::HighQuality:
             return 224000;
-        case QMediaEncoderSettings::Quality::VeryHighQuality:
+        case QMediaRecorder::Quality::VeryHighQuality:
             return 320000;
         }
         return 128000;

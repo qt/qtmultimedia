@@ -192,13 +192,8 @@ void Camera::configureVideoSettings()
     VideoSettings settingsDialog(m_mediaEncoder.data());
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    settingsDialog.setEncoderSettings(m_encoderSettings);
-
-    if (settingsDialog.exec()) {
-        m_encoderSettings = settingsDialog.encoderSettings();
-
-        m_mediaEncoder->setEncoderSettings(m_encoderSettings);
-    }
+    if (settingsDialog.exec())
+        settingsDialog.applySettings();
 }
 
 void Camera::configureImageSettings()

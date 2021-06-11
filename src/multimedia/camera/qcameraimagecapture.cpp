@@ -38,7 +38,6 @@
 ****************************************************************************/
 #include <qcameraimagecapture.h>
 #include <private/qplatformcameraimagecapture_p.h>
-#include <qmediaencodersettings.h>
 #include <qmediametadata.h>
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>

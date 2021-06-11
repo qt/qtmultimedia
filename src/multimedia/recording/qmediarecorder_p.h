@@ -55,6 +55,7 @@
 #include "qcamera.h"
 #include <QtCore/qurl.h>
 #include <QtCore/qpointer.h>
+#include "private/qplatformmediaencoder_p.h"
 
 QT_BEGIN_NAMESPACE
 

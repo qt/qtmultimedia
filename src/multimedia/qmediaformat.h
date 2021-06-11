@@ -47,7 +47,6 @@ QT_BEGIN_NAMESPACE
 
 class QMimeType;
 class QMediaFormat;
-class QMediaEncoderSettings;
 class QMediaFormatPrivate;
 
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QMediaFormatPrivate, Q_MULTIMEDIA_EXPORT)

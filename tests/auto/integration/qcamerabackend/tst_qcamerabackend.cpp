@@ -461,9 +461,7 @@ void tst_QCameraBackend::testVideoRecording()
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
     QSignalSpy recorderStatusSignal(&recorder, SIGNAL(statusChanged(Status)));
 
-    QMediaEncoderSettings videoSettings;
-    videoSettings.setVideoResolution(320, 240);
-    recorder.setEncoderSettings(videoSettings);
+    recorder.setVideoResolution(320, 240);
 
     QCOMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
 

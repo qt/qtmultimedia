@@ -52,7 +52,6 @@
 #define IMAGESETTINGS_H
 
 #include <QDialog>
-#include <QMediaEncoderSettings>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;

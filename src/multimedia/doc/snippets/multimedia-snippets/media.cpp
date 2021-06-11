@@ -59,10 +59,9 @@ class MediaExample : public QObject {
 
     void MediaControl();
     void MediaPlayer();
-    void MediaRecorder();
     void AudioRecorder();
-    void EncoderSettings();
-    void ImageEncoderSettings();
+    void recorderSettings();
+    void imageSettings();
 
 private:
     // Common naming
@@ -87,26 +86,22 @@ void MediaExample::MediaControl()
 }
 
 
-void MediaExample::EncoderSettings()
+void MediaExample::recorderSettings()
 {
     //! [Media encoder settings]
     QMediaFormat format(QMediaFormat::MPEG4);
-    format.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
-    format.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
-    QMediaEncoderSettings settings(format);
+    format.setVideoCodec(QMediaRecorder::VideoCodec::H264);
+    format.setAudioCodec(QMediaRecorder::AudioCodec::MP3);
 
-    recorder->setEncoderSettings(settings);
+    recorder->setMediaFormat(settings);
     //! [Media encoder settings]
 }
 
-void MediaExample::ImageEncoderSettings()
+void MediaExample::imageSettings()
 {
     //! [Image encoder settings]
-    QImageEncoderSettings imageSettings;
-    imageSettings.setFormat(QCameraImageCapture::JPEG);
-    imageSettings.setResolution(1600, 1200);
-
-    imageCapture->setEncodingSettings(imageSettings);
+    imageCapture->setFileFormat(QCameraImageCapture::JPEG);
+    imageCapture->setResolution(1600, 1200);
     //! [Image encoder settings]
 }
 
@@ -129,33 +124,16 @@ void MediaExample::MediaPlayer()
     //! [Local playback]
 }
 
-void MediaExample::MediaRecorder()
-{
-    //! [Media recorder]
-    recorder = new QMediaRecorder(camera);
-
-    QMediaEncoderSettings audioSettings(QMediaFormat::MP3);
-    audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
-
-    recorder->setAudioSettings(audioSettings);
-
-    recorder->setOutputLocation(QUrl::fromLocalFile(fileName));
-    recorder->record();
-    //! [Media recorder]
-}
-
 void MediaExample::AudioRecorder()
 {
     //! [Audio recorder]
+    QMediaCaptureSession session;
+    QAudioInput audioInput;
+    session.setAudioInput(&input);
     QMediaRecorder recorder;
-    recorder.setCaptureMode(QMediaRecorder::AudioOnly);
-
-    QMediaEncoderSettings audioSettings(QMediaFormat::MP3);
-    audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
-
-    recorder.setEncoderSettings(audioSettings);
-
-    recorder.setOutputLocation(QUrl::fromLocalFile("test.amr"));
+    session.setMediaEncoder(&recorder);
+    recorder.setQuality(QMediaRecorder::HighQuality);
+    recorder.setOutputLocation(QUrl::fromLocalFile("test.mp3"));
     recorder.record();
     //! [Audio recorder]
 }

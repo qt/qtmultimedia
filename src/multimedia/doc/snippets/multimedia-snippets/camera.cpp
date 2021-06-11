@@ -53,7 +53,7 @@
 
 /* Globals so that everything is consistent. */
 QCamera *camera = 0;
-QMediaRecorder *encoder = 0;
+QMediaRecorder *recorder = 0;
 QCameraImageCapture *imageCapture = 0;
 
 //! [Camera overview check]
@@ -151,23 +151,22 @@ void overview_movie()
     QMediaCaptureSession captureSession;
     camera = new QCamera;
     captureSession.setCamera(camera);
-    encoder = new QMediaRecorder(camera);
-    captureSession.setEncoder(encoder);
+    recorder = new QMediaRecorder(camera);
+    captureSession.setMediaEncoder(recorder);
 
     camera->start();
 
-    // setup output format for the encoder
+    // setup output format for the recorder
     QMediaFormat format(QMediaFormat::MPEG4);
-    format.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
-    format.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
-    QMediaEncoderSettings settings(format);
-    encoder->setEncoderSettings(settings);
+    format.setVideoCodec(QMediaRecorder::VideoCodec::H264);
+    format.setAudioCodec(QMediaRecorder::AudioCodec::MP3);
+    recorder->setMediaFormat(settings);
 
     //on shutter button pressed
-    encoder->record();
+    recorder->record();
 
     // sometime later, or on another press
-    encoder->stop();
+    recorder->stop();
     //! [Camera overview movie]
 }
 

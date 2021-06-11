@@ -53,7 +53,6 @@
 
 #include <qcamera.h>
 #include <qcameraimagecapture.h>
-#include <qmediaencodersettings.h>
 #include <qmediametadata.h>
 
 #include <QtQml/qqml.h>

@@ -148,13 +148,6 @@ struct QMediaFormatForeign
     QML_NAMED_ELEMENT(mediaFormat)
 };
 
-struct QMediaEncoderSettingsForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QMediaEncoderSettings)
-    QML_NAMED_ELEMENT(encoderSettings)
-};
-
 QT_END_NAMESPACE
 
 #endif

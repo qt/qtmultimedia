@@ -53,7 +53,6 @@
 //
 
 #include <qcamera.h>
-#include <qmediaencodersettings.h>
 #include <QCameraImageCapture>
 #include <QSet>
 #include <QMutex>
