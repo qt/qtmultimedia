@@ -96,7 +96,7 @@ public:
     QAudioSink *m_audioOutput = nullptr;
     QSample *m_sample = nullptr;
     bool m_muted = false;
-    qreal m_volume = 1.0;
+    float m_volume = 1.0;
     bool m_sampleReady = false;
     qint64 m_offset = 0;
     QAudioDevice m_audioDevice;
@@ -525,7 +525,7 @@ int QSoundEffect::loopsRemaining() const
 /*!
     Returns the current volume of this sound effect, from 0.0 (silent) to 1.0 (maximum volume).
  */
-qreal QSoundEffect::volume() const
+float QSoundEffect::volume() const
 {
     if (d->m_audioOutput && !d->m_muted)
         return d->m_audioOutput->volume();
@@ -545,9 +545,9 @@ qreal QSoundEffect::volume() const
     will produce linear changes in perceived loudness, which is what a user would normally expect
     from a volume control. See QAudio::convertVolume() for more details.
  */
-void QSoundEffect::setVolume(qreal volume)
+void QSoundEffect::setVolume(float volume)
 {
-    volume = qBound(qreal(0.0), volume, qreal(1.0));
+    volume = qBound(0.0f, volume, 1.0f);
     if (d->m_volume == volume)
         return;
 
