@@ -99,7 +99,7 @@ QPlatformCamera *QAndroidIntegration::createCamera(QCamera *camera)
     return new QAndroidCameraControl(camera);
 }
 
-QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaEncoder *encoder)
+QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaRecorder *encoder)
 {
     return new QAndroidMediaEncoder(encoder);
 }

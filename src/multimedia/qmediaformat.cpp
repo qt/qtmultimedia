@@ -143,7 +143,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
     Describes an encoding format for a multimedia file or stream.
 
     You can check whether a certain QMediaFormat can be used for encoding
-    or decoding using QMediaDecoderInfo or QMediaEncoderInfo.
+    or decoding using QMediaDecoderInfo or QMediaRecorderInfo.
 */
 
 // these are non inline to make a possible future addition of a d pointer binary compatible
@@ -424,7 +424,7 @@ bool QMediaFormat::operator==(const QMediaFormat &other) const
 }
 
 /*!
-    Resolves the format to a format that is supported by QMediaEncoder.
+    Resolves the format to a format that is supported by QMediaRecorder.
 
     This method tries to find the best possible match for unspecified settings.
     Settings that are not supported by the encoder will be modified to the closest

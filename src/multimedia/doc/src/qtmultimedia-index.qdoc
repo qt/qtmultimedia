@@ -120,7 +120,7 @@
      \li QCameraImageCapture
      \li Capture still images with a camera.
     \row
-     \li QMediaEncoder
+     \li QMediaRecorder
      \li Record media content from a camera source.
     \row
      \li QMediaPlayer

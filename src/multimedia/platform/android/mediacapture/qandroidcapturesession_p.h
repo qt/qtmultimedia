@@ -52,7 +52,7 @@
 //
 
 #include <qobject.h>
-#include <qmediaencoder.h>
+#include <qmediarecorder.h>
 #include <qurl.h>
 #include <qelapsedtimer.h>
 #include <qtimer.h>
@@ -80,10 +80,10 @@ public:
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
-    QMediaEncoder::RecorderState state() const;
-    void setState(QMediaEncoder::RecorderState state);
+    QMediaRecorder::RecorderState state() const;
+    void setState(QMediaRecorder::RecorderState state);
 
-    QMediaEncoder::Status status() const;
+    QMediaRecorder::Status status() const;
 
     qint64 duration() const;
 
@@ -94,11 +94,11 @@ public:
 
     void applySettings();
 
-    void stateChanged(QMediaEncoder::RecorderState state) {
+    void stateChanged(QMediaRecorder::RecorderState state) {
         if (m_mediaEncoder)
             m_mediaEncoder->stateChanged(state);
     }
-    void statusChanged(QMediaEncoder::Status status)
+    void statusChanged(QMediaRecorder::Status status)
     {
         if (m_mediaEncoder)
             m_mediaEncoder->statusChanged(status);
@@ -116,7 +116,7 @@ public:
     void error(int error, const QString &errorString)
     {
         if (m_mediaEncoder)
-            m_mediaEncoder->error(QMediaEncoder::Error(error), errorString);
+            m_mediaEncoder->error(QMediaRecorder::Error(error), errorString);
     }
 
 private Q_SLOTS:
@@ -163,7 +163,7 @@ private:
     void start();
     void stop(bool error = false);
 
-    void setStatus(QMediaEncoder::Status status);
+    void setStatus(QMediaRecorder::Status status);
 
     void updateResolution();
     void restartViewfinder();
@@ -181,8 +181,8 @@ private:
     QTimer m_notifyTimer;
     qint64 m_duration;
 
-    QMediaEncoder::RecorderState m_state;
-    QMediaEncoder::Status m_status;
+    QMediaRecorder::RecorderState m_state;
+    QMediaRecorder::Status m_status;
     QUrl m_requestedOutputLocation;
     QUrl m_usedOutputLocation;
     QUrl m_actualOutputLocation;

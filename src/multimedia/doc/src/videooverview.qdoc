@@ -75,7 +75,7 @@ allows you to receive these frames from \l QMediaPlayer and
 \l QCamera.
 
 \section2 Recording Video
-You can use the \l QMediaEncoder class as a simple way to record video to disk.
+You can use the \l QMediaRecorder class as a simple way to record video to disk.
 For more advances use cases \l QMediaCaptureSession provides a more flexible API.
 
 \section1 Examples

@@ -96,7 +96,7 @@ QPlatformCamera *QGstreamerIntegration::createCamera(QCamera *camera)
     return new QGstreamerCamera(camera);
 }
 
-QPlatformMediaEncoder *QGstreamerIntegration::createEncoder(QMediaEncoder *encoder)
+QPlatformMediaEncoder *QGstreamerIntegration::createEncoder(QMediaRecorder *encoder)
 {
     return new QGstreamerMediaEncoder(encoder);
 }

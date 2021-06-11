@@ -138,7 +138,7 @@ For some quick recipes, look at the overviews above and consult this table:
         \li \l {Camera Example}{camera},
             \l {QML Camera Example}{declarative-camera}
         \li \l Camera
-        \li QCamera, QMediaEncoder
+        \li QCamera, QMediaRecorder
     \row
         \li 3D sound sources
         \li

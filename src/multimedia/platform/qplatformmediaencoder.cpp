@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
     and record, pause and stop recording via the \l setState() method.  It also
     provides feedback on the \l {duration()}{duration} of the recording.
 
-    \sa QMediaEncoder
+    \sa QMediaRecorder
 
 */
 
@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
     Constructs a media recorder control with the given \a parent.
 */
 
-QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
+QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaRecorder *parent)
     : q(parent)
 {
 }
@@ -90,13 +90,13 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn QMediaEncoder::RecorderState QPlatformMediaEncoder::state() const
+    \fn QMediaRecorder::RecorderState QPlatformMediaEncoder::state() const
 
     Return the current recording state.
 */
 
 /*!
-    \fn QMediaEncoder::Status QPlatformMediaEncoder::status() const
+    \fn QMediaRecorder::Status QPlatformMediaEncoder::status() const
 
     Return the current recording status.
 */
@@ -108,7 +108,7 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::setState(QMediaEncoder::RecorderState state)
+    \fn void QPlatformMediaEncoder::setState(QMediaRecorder::RecorderState state)
 
     Set the media recorder \a state.
 */
@@ -127,11 +127,11 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaEncoder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::stateChanged(QMediaEncoder::RecorderState state)
+    \fn void QPlatformMediaEncoder::stateChanged(QMediaRecorder::RecorderState state)
 
     Signals that the \a state of a media recorder has changed.
 */
-void QPlatformMediaEncoder::stateChanged(QMediaEncoder::RecorderState state)
+void QPlatformMediaEncoder::stateChanged(QMediaRecorder::RecorderState state)
 {
     if (m_state == state)
         return;
@@ -140,11 +140,11 @@ void QPlatformMediaEncoder::stateChanged(QMediaEncoder::RecorderState state)
 }
 
 /*!
-    \fn void QPlatformMediaEncoder::statusChanged(QMediaEncoder::Status status)
+    \fn void QPlatformMediaEncoder::statusChanged(QMediaRecorder::Status status)
 
     Signals that the \a status of a media recorder has changed.
 */
-void QPlatformMediaEncoder::statusChanged(QMediaEncoder::Status status)
+void QPlatformMediaEncoder::statusChanged(QMediaRecorder::Status status)
 {
     if (m_status == status)
         return;
@@ -183,13 +183,13 @@ void QPlatformMediaEncoder::actualLocationChanged(const QUrl &location)
 
     Signals that an \a error has occurred.  The \a errorString describes the error.
 */
-void QPlatformMediaEncoder::error(QMediaEncoder::Error error, const QString &errorString)
+void QPlatformMediaEncoder::error(QMediaRecorder::Error error, const QString &errorString)
 {
     if (error == m_error && errorString == m_errorString)
         return;
     m_error = error;
     m_errorString = errorString;
-    if (error != QMediaEncoder::NoError)
+    if (error != QMediaRecorder::NoError)
         emit q->errorOccurred(error, errorString);
     emit q->errorChanged();
 }

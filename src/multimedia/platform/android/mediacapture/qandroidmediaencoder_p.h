@@ -62,12 +62,12 @@ class QAndroidCaptureService;
 class QAndroidMediaEncoder : public QPlatformMediaEncoder
 {
 public:
-    explicit QAndroidMediaEncoder(QMediaEncoder *parent);
+    explicit QAndroidMediaEncoder(QMediaRecorder *parent);
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
-    QMediaEncoder::RecorderState state() const override;
-    QMediaEncoder::Status status() const override;
+    QMediaRecorder::RecorderState state() const override;
+    QMediaRecorder::Status status() const override;
     qint64 duration() const override;
     void applySettings() override;
 
@@ -75,7 +75,7 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    void setState(QMediaEncoder::RecorderState state) override;
+    void setState(QMediaRecorder::RecorderState state) override;
 
 private:
     friend class QAndroidCaptureSession;

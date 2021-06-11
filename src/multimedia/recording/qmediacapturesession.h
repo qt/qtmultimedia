@@ -50,7 +50,7 @@ class QAudioInput;
 class QAudioOutput;
 class QCameraDevice;
 class QCameraImageCapture; // ### rename to QMediaImageCapture
-class QMediaEncoder;
+class QMediaRecorder;
 class QPlatformMediaCaptureSession;
 class QVideoSink;
 
@@ -61,7 +61,7 @@ class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
     Q_PROPERTY(QAudioInput *audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
     Q_PROPERTY(QCamera *camera READ camera WRITE setCamera NOTIFY cameraChanged)
     Q_PROPERTY(QCameraImageCapture *imageCapture READ imageCapture WRITE setImageCapture NOTIFY imageCaptureChanged)
-    Q_PROPERTY(QMediaEncoder *encoder READ encoder WRITE setEncoder NOTIFY encoderChanged)
+    Q_PROPERTY(QMediaRecorder *encoder READ encoder WRITE setEncoder NOTIFY encoderChanged)
     Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
 public:
     explicit QMediaCaptureSession(QObject *parent = nullptr);
@@ -78,8 +78,8 @@ public:
     QCameraImageCapture *imageCapture();
     void setImageCapture(QCameraImageCapture *imageCapture);
 
-    QMediaEncoder *encoder();
-    void setEncoder(QMediaEncoder *recorder);
+    QMediaRecorder *encoder();
+    void setEncoder(QMediaRecorder *recorder);
 
     void setVideoOutput(QObject *preview);
     QObject *videoOutput() const;

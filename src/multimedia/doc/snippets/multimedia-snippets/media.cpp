@@ -43,7 +43,7 @@
 #include <QBuffer>
 
 #include "qmediaplaylist.h"
-#include "qmediaencoder.h"
+#include "qmediarecorder.h"
 #include "qplatformmediaplayer_p.h"
 #include "qmediaplayer.h"
 #include "qvideowidget.h"
@@ -71,7 +71,7 @@ private:
     QMediaPlayer *player;
     QMediaPlaylist *playlist;
     QMediaContent video;
-    QMediaEncoder *recorder;
+    QMediaRecorder *recorder;
     QCamera *camera;
     QCameraViewfinder *viewfinder;
     QCameraImageCapture *imageCapture;
@@ -132,7 +132,7 @@ void MediaExample::MediaPlayer()
 void MediaExample::MediaRecorder()
 {
     //! [Media recorder]
-    recorder = new QMediaEncoder(camera);
+    recorder = new QMediaRecorder(camera);
 
     QMediaEncoderSettings audioSettings(QMediaFormat::MP3);
     audioSettings.setQuality(QMediaEncoderSettings::HighQuality);
@@ -147,8 +147,8 @@ void MediaExample::MediaRecorder()
 void MediaExample::AudioRecorder()
 {
     //! [Audio recorder]
-    QMediaEncoder recorder;
-    recorder.setCaptureMode(QMediaEncoder::AudioOnly);
+    QMediaRecorder recorder;
+    recorder.setCaptureMode(QMediaRecorder::AudioOnly);
 
     QMediaEncoderSettings audioSettings(QMediaFormat::MP3);
     audioSettings.setQuality(QMediaEncoderSettings::HighQuality);

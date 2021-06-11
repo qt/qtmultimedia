@@ -95,7 +95,7 @@ QPlatformCamera *QDarwinIntegration::createCamera(QCamera *camera)
     return new AVFCamera(camera);
 }
 
-QPlatformMediaEncoder *QDarwinIntegration::createEncoder(QMediaEncoder *encoder)
+QPlatformMediaEncoder *QDarwinIntegration::createEncoder(QMediaRecorder *encoder)
 {
     return new AVFMediaEncoder(encoder);
 }

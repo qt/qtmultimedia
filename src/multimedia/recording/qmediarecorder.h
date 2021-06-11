@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAENCODER_H
-#define QMEDIAENCODER_H
+#ifndef QMediaRecorder_H
+#define QMediaRecorder_H
 
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
@@ -58,17 +58,17 @@ class QCameraDevice;
 class QAudioDevice;
 class QMediaCaptureSession;
 
-class QMediaEncoderPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaEncoder : public QObject
+class QMediaRecorderPrivate;
+class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QMediaEncoder::RecorderState recorderState READ recorderState NOTIFY recorderStateChanged)
-    Q_PROPERTY(QMediaEncoder::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QMediaRecorder::RecorderState recorderState READ recorderState NOTIFY recorderStateChanged)
+    Q_PROPERTY(QMediaRecorder::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
     Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
-    Q_PROPERTY(QMediaEncoder::Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QMediaRecorder::Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QMediaEncoderSettings encoderSettings READ encoderSettings WRITE setEncoderSettings NOTIFY encoderSettingsChanged)
 
@@ -100,8 +100,8 @@ public:
     };
     Q_ENUM(Error)
 
-    QMediaEncoder(QObject *parent = nullptr);
-    ~QMediaEncoder();
+    QMediaRecorder(QObject *parent = nullptr);
+    ~QMediaRecorder();
 
     bool isAvailable() const;
 
@@ -145,18 +145,18 @@ Q_SIGNALS:
     void metaDataChanged();
 
 private:
-    QMediaEncoderPrivate *d_ptr;
+    QMediaRecorderPrivate *d_ptr;
     friend class QMediaCaptureSession;
     void setCaptureSession(QMediaCaptureSession *session);
-    Q_DISABLE_COPY(QMediaEncoder)
-    Q_DECLARE_PRIVATE(QMediaEncoder)
+    Q_DISABLE_COPY(QMediaRecorder)
+    Q_DECLARE_PRIVATE(QMediaRecorder)
     Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QMediaEncoder, RecorderState)
-Q_MEDIA_ENUM_DEBUG(QMediaEncoder, Status)
-Q_MEDIA_ENUM_DEBUG(QMediaEncoder, Error)
+Q_MEDIA_ENUM_DEBUG(QMediaRecorder, RecorderState)
+Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Status)
+Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Error)
 
-#endif  // QMEDIAENCODER_H
+#endif  // QMediaRecorder_H

@@ -41,7 +41,7 @@
 
 #include "qcamera.h"
 #include "qcameradevice.h"
-#include "qmediaencoder.h"
+#include "qmediarecorder.h"
 #include "qmediadevices.h"
 #include "qmediacapturesession.h"
 #include "qcameraimagecapture.h"
@@ -53,7 +53,7 @@
 
 /* Globals so that everything is consistent. */
 QCamera *camera = 0;
-QMediaEncoder *encoder = 0;
+QMediaRecorder *encoder = 0;
 QCameraImageCapture *imageCapture = 0;
 
 //! [Camera overview check]
@@ -151,7 +151,7 @@ void overview_movie()
     QMediaCaptureSession captureSession;
     camera = new QCamera;
     captureSession.setCamera(camera);
-    encoder = new QMediaEncoder(camera);
+    encoder = new QMediaRecorder(camera);
     captureSession.setEncoder(encoder);
 
     camera->start();

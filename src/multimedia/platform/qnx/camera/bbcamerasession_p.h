@@ -55,7 +55,7 @@
 #include <QCamera>
 #include <QCameraImageCapture>
 #include <QElapsedTimer>
-#include <QMediaEncoder>
+#include <QMediaRecorder>
 #include <QMutex>
 #include <QObject>
 #include <QPointer>
@@ -109,9 +109,9 @@ public:
     // media recorder control
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
-    QMediaEncoder::RecorderState videoState() const;
-    void setVideoState(QMediaEncoder::RecorderState state);
-    QMediaEncoder::Status videoStatus() const;
+    QMediaRecorder::RecorderState videoState() const;
+    void setVideoState(QMediaRecorder::RecorderState state);
+    QMediaRecorder::Status videoStatus() const;
     qint64 duration() const;
     void applyVideoSettings();
 
@@ -142,8 +142,8 @@ Q_SIGNALS:
     void imageCaptureError(int id, int error, const QString &errorString);
 
     // media recorder control
-    void videoStateChanged(QMediaEncoder::RecorderState state);
-    void videoStatusChanged(QMediaEncoder::Status status);
+    void videoStateChanged(QMediaRecorder::RecorderState state);
+    void videoStatusChanged(QMediaRecorder::Status status);
     void durationChanged(qint64 duration);
     void actualLocationChanged(const QUrl &location);
     void videoError(int error, const QString &errorString);
@@ -192,8 +192,8 @@ private:
     QImageEncoderSettings m_imageEncoderSettings;
 
     QString m_videoOutputLocation;
-    QMediaEncoder::RecorderState m_videoState;
-    QMediaEncoder::Status m_videoStatus;
+    QMediaRecorder::RecorderState m_videoState;
+    QMediaRecorder::Status m_videoStatus;
     QElapsedTimer m_videoRecordingDuration;
 
     QVideoEncoderSettings m_videoEncoderSettings;

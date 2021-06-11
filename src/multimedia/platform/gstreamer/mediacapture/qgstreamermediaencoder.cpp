@@ -56,7 +56,7 @@
 
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
-QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaEncoder *parent)
+QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
   : QPlatformMediaEncoder(parent)
 {
     gstEncoder = QGstElement("encodebin", "encodebin");
@@ -84,27 +84,27 @@ bool QGstreamerMediaEncoder::setOutputLocation(const QUrl &sink)
 
 void QGstreamerMediaEncoder::updateStatus()
 {
-    static QMediaEncoder::Status statusTable[3][3] = {
+    static QMediaRecorder::Status statusTable[3][3] = {
         //Stopped recorder state:
-        { QMediaEncoder::StoppedStatus, QMediaEncoder::FinalizingStatus, QMediaEncoder::FinalizingStatus },
+        { QMediaRecorder::StoppedStatus, QMediaRecorder::FinalizingStatus, QMediaRecorder::FinalizingStatus },
         //Recording recorder state:
-        { QMediaEncoder::StartingStatus, QMediaEncoder::RecordingStatus, QMediaEncoder::PausedStatus },
+        { QMediaRecorder::StartingStatus, QMediaRecorder::RecordingStatus, QMediaRecorder::PausedStatus },
         //Paused recorder state:
-        { QMediaEncoder::StartingStatus, QMediaEncoder::RecordingStatus, QMediaEncoder::PausedStatus }
+        { QMediaRecorder::StartingStatus, QMediaRecorder::RecordingStatus, QMediaRecorder::PausedStatus }
     };
 
-    QMediaEncoder::RecorderState sessionState = QMediaEncoder::StoppedState;
+    QMediaRecorder::RecorderState sessionState = QMediaRecorder::StoppedState;
 
     auto gstState = gstEncoder.isNull() ? GST_STATE_NULL : gstEncoder.state();
     switch (gstState) {
     case GST_STATE_PLAYING:
-        sessionState = QMediaEncoder::RecordingState;
+        sessionState = QMediaRecorder::RecordingState;
         break;
     case GST_STATE_PAUSED:
-        sessionState = QMediaEncoder::PausedState;
+        sessionState = QMediaRecorder::PausedState;
         break;
     default:
-        sessionState = QMediaEncoder::StoppedState;
+        sessionState = QMediaRecorder::StoppedState;
         break;
     }
 
@@ -114,7 +114,7 @@ void QGstreamerMediaEncoder::updateStatus()
     statusChanged(newStatus);
 }
 
-void QGstreamerMediaEncoder::handleSessionError(QMediaEncoder::Error code, const QString &description)
+void QGstreamerMediaEncoder::handleSessionError(QMediaRecorder::Error code, const QString &description)
 {
     error(code, description);
     stop();
@@ -153,7 +153,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         GError *err;
         gchar *debug;
         gst_message_parse_error(gm, &err, &debug);
-        error(QMediaEncoder::ResourceError, QString::fromUtf8(err->message));
+        error(QMediaRecorder::ResourceError, QString::fromUtf8(err->message));
         g_error_free(err);
         g_free(debug);
     }
@@ -264,19 +264,19 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
-void QGstreamerMediaEncoder::setState(QMediaEncoder::RecorderState s)
+void QGstreamerMediaEncoder::setState(QMediaRecorder::RecorderState s)
 {
     if (s == state())
         return;
 
     switch (s) {
-    case QMediaEncoder::StoppedState:
+    case QMediaRecorder::StoppedState:
         stop();
         break;
-    case QMediaEncoder::PausedState:
+    case QMediaRecorder::PausedState:
         pause();
         break;
-    case QMediaEncoder::RecordingState:
+    case QMediaRecorder::RecordingState:
         record();
         break;
     }
@@ -288,11 +288,11 @@ void QGstreamerMediaEncoder::record()
     if (!m_session)
         return;
     auto oldState = state();
-    stateChanged(QMediaEncoder::RecordingState);
+    stateChanged(QMediaRecorder::RecordingState);
 
-    if (oldState == QMediaEncoder::PausedState) {
+    if (oldState == QMediaRecorder::PausedState) {
         // coming from paused state
-        stateChanged(QMediaEncoder::RecordingState);
+        stateChanged(QMediaRecorder::RecordingState);
         gstEncoder.setState(GST_STATE_PLAYING);
         updateStatus();
         return;
@@ -350,7 +350,7 @@ void QGstreamerMediaEncoder::pause()
     gstPipeline.dumpGraph("before-pause");
     gstEncoder.setState(GST_STATE_PAUSED);
 
-    stateChanged(QMediaEncoder::PausedState);
+    stateChanged(QMediaRecorder::PausedState);
     updateStatus();
 }
 
@@ -374,7 +374,7 @@ void QGstreamerMediaEncoder::stop()
     qCDebug(qLcMediaEncoder) << ">>>>>>>>>>>>> sending EOS";
 
     gstEncoder.sendEos();
-    stateChanged(QMediaEncoder::StoppedState);
+    stateChanged(QMediaRecorder::StoppedState);
     updateStatus();
 }
 

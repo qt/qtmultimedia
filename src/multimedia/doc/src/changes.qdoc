@@ -41,8 +41,8 @@ Existing code that uses Qt Multimedia from Qt 5 can be ported with limited effor
 There are a number of new features in Qt Multimedia:
 \list
 \li QMediaCaptureSession class as the central object for media capture
-\li Changed QMediaEncoder class to be a high level class for audio/video recording
-\li new QMediaEncoder class to handle encoding of data produced in a capture session
+\li Changed QMediaRecorder class to be a high level class for audio/video recording
+\li new QMediaRecorder class to handle encoding of data produced in a capture session
 \li Setting up the desired encodings when recording has changed significantly, see
 QMediaEncoderSettings for details
 \li Support for selection of audio, video and subtitle tracks when playing back media files
@@ -67,7 +67,7 @@ QMediaEncoderSettings for details
             and video outputs may be added in a future release.
     \row
         \li QAudioRecorder and the Audio QML type
-        \li QMediaEncoder and the MediaRecorder QML type provide the same functionality
+        \li QMediaRecorder and the MediaRecorder QML type provide the same functionality
     \row
         \li QMediaObject and QMediaBindableInterface
         \li These classes have been removed in favor of a more direct API for setting up connections

@@ -44,7 +44,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaEncoder::QAndroidMediaEncoder(QMediaEncoder *parent)
+QAndroidMediaEncoder::QAndroidMediaEncoder(QMediaRecorder *parent)
     : QPlatformMediaEncoder(parent)
 {
 }
@@ -59,12 +59,12 @@ bool QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
     return m_session->setOutputLocation(location);
 }
 
-QMediaEncoder::RecorderState QAndroidMediaEncoder::state() const
+QMediaRecorder::RecorderState QAndroidMediaEncoder::state() const
 {
     return m_session->state();
 }
 
-QMediaEncoder::Status QAndroidMediaEncoder::status() const
+QMediaRecorder::Status QAndroidMediaEncoder::status() const
 {
     return m_session->status();
 }
@@ -79,7 +79,7 @@ void QAndroidMediaEncoder::applySettings()
     m_session->applySettings();
 }
 
-void QAndroidMediaEncoder::setState(QMediaEncoder::RecorderState state)
+void QAndroidMediaEncoder::setState(QMediaRecorder::RecorderState state)
 {
     m_session->setState(state);
 }
@@ -96,7 +96,7 @@ void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
         return;
 
     if (m_service)
-        setState(QMediaEncoder::StoppedState);
+        setState(QMediaRecorder::StoppedState);
     if (m_session)
         m_session->setMediaEncoder(nullptr);
 

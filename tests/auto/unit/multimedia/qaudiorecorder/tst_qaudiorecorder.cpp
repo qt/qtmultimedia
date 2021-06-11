@@ -31,7 +31,7 @@
 
 #include <qaudioformat.h>
 
-#include <qmediaencoder.h>
+#include <qmediarecorder.h>
 #include <private/qplatformmediaencoder_p.h>
 #include <qaudiodevice.h>
 #include <qaudiosource.h>
@@ -53,13 +53,12 @@ public slots:
     void cleanup();
 
 private slots:
-    void testNullControl();
     void testAudioSource();
     void testDevices();
     void testAvailability();
 
 private:
-    QMediaEncoder *encoder = nullptr;
+    QMediaRecorder *encoder = nullptr;
     QMockIntegration *mockIntegration;
 };
 
@@ -77,19 +76,10 @@ void tst_QAudioRecorder::cleanup()
     encoder = nullptr;
 }
 
-void tst_QAudioRecorder::testNullControl()
-{
-    QMediaEncoder source;
-    auto *service = mockIntegration->lastCaptureService();
-    service->hasControls = false;
-
-    QVERIFY(source.isAvailable());
-}
-
 void tst_QAudioRecorder::testAudioSource()
 {
     QMediaCaptureSession session;
-    encoder = new QMediaEncoder;
+    encoder = new QMediaRecorder;
     session.setEncoder(encoder);
 
     QCOMPARE(session.camera(), nullptr);
@@ -97,7 +87,7 @@ void tst_QAudioRecorder::testAudioSource()
 
 void tst_QAudioRecorder::testDevices()
 {
-//    audiosource = new QMediaEncoder;
+//    audiosource = new QMediaRecorder;
 //    QList<QAudioDevice> devices = mockIntegration->audioInputs();
 //    QVERIFY(devices.size() > 0);
 //    QVERIFY(devices.at(0).id() == "device1");
@@ -114,7 +104,9 @@ void tst_QAudioRecorder::testDevices()
 
 void tst_QAudioRecorder::testAvailability()
 {
-    QMediaEncoder source;
+    QMediaCaptureSession session;
+    QMediaRecorder source;
+    session.setEncoder(&source);
 
     QVERIFY(source.isAvailable());
 }

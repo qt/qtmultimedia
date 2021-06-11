@@ -92,10 +92,10 @@ struct QCameraImageCaptureForeign
     QML_NAMED_ELEMENT(ImageCapture)
 };
 
-struct QMediaEncoderForeign
+struct QMediaRecorderForeign
 {
     Q_GADGET
-    QML_FOREIGN(QMediaEncoder)
+    QML_FOREIGN(QMediaRecorder)
     QML_NAMED_ELEMENT(MediaEncoder)
 };
 

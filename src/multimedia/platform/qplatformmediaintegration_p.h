@@ -51,14 +51,14 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qmediaencoder.h>
+#include <qmediarecorder.h>
 
 QT_BEGIN_NAMESPACE
 
 class QMediaPlayer;
 class QAudioDecoder;
 class QCamera;
-class QMediaEncoder;
+class QMediaRecorder;
 class QCameraImageCapture;
 class QMediaDevices;
 class QPlatformMediaDevices;
@@ -93,7 +93,7 @@ public:
     virtual QPlatformMediaCaptureSession *createCaptureSession() { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
     virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
-    virtual QPlatformMediaEncoder *createEncoder(QMediaEncoder *) { return nullptr; }
+    virtual QPlatformMediaEncoder *createEncoder(QMediaRecorder *) { return nullptr; }
     virtual QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) { return nullptr; }
 
     virtual QPlatformAudioInput *createAudioInput(QAudioInput *);

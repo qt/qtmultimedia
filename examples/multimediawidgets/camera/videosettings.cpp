@@ -54,7 +54,7 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QDebug>
-#include <QMediaEncoder>
+#include <QMediaRecorder>
 #include <QMediaFormat>
 #include <QAudioDevice>
 #include <QMediaCaptureSession>
@@ -62,7 +62,7 @@
 #include <QCamera>
 #include <QAudioInput>
 
-VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
+VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::VideoSettingsUi),
       mediaRecorder(mediaRecorder)

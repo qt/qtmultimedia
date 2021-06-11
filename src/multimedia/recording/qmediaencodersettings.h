@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAENCODERSETTINGS_H
-#define QMEDIAENCODERSETTINGS_H
+#ifndef QMediaEncoderSettings_H
+#define QMediaEncoderSettings_H
 
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qstring.h>

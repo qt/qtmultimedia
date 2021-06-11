@@ -40,7 +40,7 @@
 #include "qmediacapturesession.h"
 #include "qaudiodevice.h"
 #include "qcamera.h"
-#include "qmediaencoder.h"
+#include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
 #include "qvideosink.h"
 
@@ -62,7 +62,7 @@ public:
     QAudioOutput *audioOutput = nullptr;
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
-    QMediaEncoder *encoder = nullptr;
+    QMediaRecorder *encoder = nullptr;
     QVideoSink *videoSink = nullptr;
     QPointer<QObject> videoOutput;
 
@@ -95,12 +95,12 @@ public:
     and heard by routing the audio to an output device using setAudioOutput().
 
     You can capture still images from a camera by setting a QCameraImageCapture object on the capture session,
-    and record audio/video using a QMediaEncoder.
+    and record audio/video using a QMediaRecorder.
 
-    If you need a simple class that records media from the default camera and microphone, you can use QMediaEncoder.
+    If you need a simple class that records media from the default camera and microphone, you can use QMediaRecorder.
     That class uses a QMediaCaptureSession behind the scene to support audio and video capture.
 
-    \sa QCamera, QAudioDevice, QMediaEncoder, QCameraImageCapture, QMediaEncoder
+    \sa QCamera, QAudioDevice, QMediaRecorder, QCameraImageCapture, QMediaRecorder
 */
 
 /*!
@@ -220,16 +220,16 @@ void QMediaCaptureSession::setImageCapture(QCameraImageCapture *imageCapture)
 
     \brief the encoder object used to capture audio/video.
 
-    Add a QMediaEncoder object to the capture session to enable
+    Add a QMediaRecorder object to the capture session to enable
     recording of audio and/or video from the capture session.
 */
 
-QMediaEncoder *QMediaCaptureSession::encoder()
+QMediaRecorder *QMediaCaptureSession::encoder()
 {
     return d_ptr->encoder;
 }
 
-void QMediaCaptureSession::setEncoder(QMediaEncoder *encoder)
+void QMediaCaptureSession::setEncoder(QMediaRecorder *encoder)
 {
     if (d_ptr->encoder == encoder)
         return;

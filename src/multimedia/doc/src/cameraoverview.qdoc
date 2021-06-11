@@ -204,7 +204,7 @@ object. All that is then needed is to start the camera and capture the image.
 \section2 Movies
 
 Previously we saw code that allowed the capture of a still image. Recording
-video requires the use of a \l QMediaEncoder object.
+video requires the use of a \l QMediaRecorder object.
 
 To record video we need to create a camera object as before but this time as
 well as creating a viewfinder, we will also initialize a media recorder object.
@@ -213,13 +213,13 @@ well as creating a viewfinder, we will also initialize a media recorder object.
 
 Signals from the \e mediaEncoder can be connected to slots to react to
 changes in the state of the encoding process or error events. Recording itself
-starts with the \l {QMediaEncoder::record()}{record()} function of
+starts with the \l {QMediaRecorder::record()}{record()} function of
 mediaEncoder being called, this causes the signal \l
-{QMediaEncoder::recorderStateChanged()}{recorderStateChanged()} to be emitted. The
-recording process can be changed with the \l {QMediaEncoder::record()}{record()},
-\l {QMediaEncoder::stop()}{stop()} slots in \l QMediaEncoder.
+{QMediaRecorder::recorderStateChanged()}{recorderStateChanged()} to be emitted. The
+recording process can be changed with the \l {QMediaRecorder::record()}{record()},
+\l {QMediaRecorder::stop()}{stop()} slots in \l QMediaRecorder.
 
-On top of the above, QMediaEncoder provides a simple to use, but more limited all-in-one class
+On top of the above, QMediaRecorder provides a simple to use, but more limited all-in-one class
 for recording audio and video content.
 
 \section2 Controlling the Imaging Pipeline

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAENCODER_P_H
-#define QMEDIAENCODER_P_H
+#ifndef QMediaRecorder_P_H
+#define QMediaRecorder_P_H
 
 //
 //  W A R N I N G
@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include "qmediaencoder.h"
+#include "qmediarecorder.h"
 #include "qcamera.h"
 #include <QtCore/qurl.h>
 #include <QtCore/qpointer.h>
@@ -64,12 +64,12 @@ class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QTimer;
 
-class QMediaEncoderPrivate
+class QMediaRecorderPrivate
 {
-    Q_DECLARE_PUBLIC(QMediaEncoder)
+    Q_DECLARE_PUBLIC(QMediaRecorder)
 
 public:
-    QMediaEncoderPrivate() = default;
+    QMediaRecorderPrivate() = default;
 
     void applySettingsLater();
 
@@ -82,7 +82,7 @@ public:
 
     void _q_applySettings();
 
-    QMediaEncoder *q_ptr = nullptr;
+    QMediaRecorder *q_ptr = nullptr;
 };
 
 #undef Q_DECLARE_NON_CONST_PUBLIC

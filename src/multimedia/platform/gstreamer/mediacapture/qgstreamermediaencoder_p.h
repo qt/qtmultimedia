@@ -69,7 +69,7 @@ class QGstreamerMessage;
 class QGstreamerMediaEncoder : public QPlatformMediaEncoder, QGstreamerBusMessageFilter
 {
 public:
-    QGstreamerMediaEncoder(QMediaEncoder *parent);
+    QGstreamerMediaEncoder(QMediaRecorder *parent);
     virtual ~QGstreamerMediaEncoder();
 
     QUrl outputLocation() const override;
@@ -90,7 +90,7 @@ public:
 private:
     bool processBusMessage(const QGstreamerMessage& message) override;
 public:
-    void setState(QMediaEncoder::RecorderState state) override;
+    void setState(QMediaRecorder::RecorderState state) override;
     void record();
     void pause();
     void stop();
@@ -98,7 +98,7 @@ public:
 
 private:
     void updateStatus();
-    void handleSessionError(QMediaEncoder::Error code, const QString &description);
+    void handleSessionError(QMediaRecorder::Error code, const QString &description);
     void finalize();
     QDir defaultDir() const;
     QString generateFileName(const QDir &dir, const QString &ext) const;
