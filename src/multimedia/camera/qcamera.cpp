@@ -819,29 +819,35 @@ int QCamera::maximumIsoSensitivity() const
     return d->control ? d->control->maxIso() : -1;
 }
 
-float QCamera::minimumShutterSpeed() const
+/*!
+    The minimal exposure time in seconds.
+*/
+float QCamera::minimumExposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->minShutterSpeed() : -1.;
+    return d->control ? d->control->minExposureTime() : -1.;
 }
 
-float QCamera::maximumShutterSpeed() const
+/*!
+    The maximal exposure time in seconds.
+*/
+float QCamera::maximumExposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->maxShutterSpeed() : -1.;
+    return d->control ? d->control->maxExposureTime() : -1.;
 }
 
 /*!
     \property QCamera::exposureTime
-    \brief Camera's shutter speed in seconds.
+    \brief Camera's exposure time in seconds.
 
-    \sa supportedShutterSpeeds(), setAutoShutterSpeed(), setManualExposureTime()
+    \sa minimumExposureTime(), maximumExposureTime(), setManualExposureTime()
 */
 
 /*!
-    \fn QCamera::exposureTimeChanged(qreal speed)
+    \fn QCamera::exposureTimeChanged(float time)
 
-    Signals that a camera's shutter \a speed has changed.
+    Signals that a camera's exposure \a time has changed.
 */
 
 /*!
@@ -883,9 +889,8 @@ float QCamera::manualExposureTime() const
 }
 
 /*!
-    Turn on auto shutter speed
+    Use automatically calculated exposure time
 */
-
 void QCamera::setAutoExposureTime()
 {
     Q_D(QCamera);
@@ -946,7 +951,7 @@ void QCamera::setAutoExposureTime()
 /*!
     \fn void QCamera::exposureTimeRangeChanged()
 
-    Signal emitted when the shutter speed range has changed.
+    Signal emitted when the exposure time range has changed.
 */
 
 

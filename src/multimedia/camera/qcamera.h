@@ -235,8 +235,8 @@ public:
     int minimumIsoSensitivity() const;
     int maximumIsoSensitivity() const;
 
-    float minimumShutterSpeed() const;
-    float maximumShutterSpeed() const;
+    float minimumExposureTime() const;
+    float maximumExposureTime() const;
 
     WhiteBalanceMode whiteBalanceMode() const;
     Q_INVOKABLE bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
@@ -285,7 +285,7 @@ Q_SIGNALS:
     void flashModeChanged();
     void torchModeChanged();
 
-    void exposureTimeChanged(qreal speed);
+    void exposureTimeChanged(float speed);
     void isoSensitivityChanged(int);
     void exposureCompensationChanged(qreal);
     void exposureModeChanged();
