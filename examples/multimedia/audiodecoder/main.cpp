@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
         cout << "Error: source filename is not specified.\n";
         return 0;
     }
+
     sourceFile.setFile(app.arguments().at(sourceFileIndex));
     if (app.arguments().size() > sourceFileIndex + 1)
         targetFile.setFile(app.arguments().at(sourceFileIndex + 1));
@@ -99,6 +100,8 @@ int main(int argc, char *argv[])
                      &app, &QCoreApplication::quit);
     decoder.setSource(sourceFile.absoluteFilePath());
     decoder.start();
+    if (decoder.getError() != QAudioDecoder::NoError)
+        return 0;
 
     return app.exec();
 }

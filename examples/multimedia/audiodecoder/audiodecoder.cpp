@@ -112,6 +112,11 @@ void AudioDecoder::stop()
     m_decoder.stop();
 }
 
+QAudioDecoder::Error AudioDecoder::getError()
+{
+    return m_decoder.error();
+}
+
 void AudioDecoder::setTargetFilename(const QString &fileName)
 {
     m_targetFilename = fileName;

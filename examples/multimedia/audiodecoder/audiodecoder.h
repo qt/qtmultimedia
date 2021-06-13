@@ -68,6 +68,7 @@ public:
     void setSource(const QString &fileName);
     void start();
     void stop();
+    QAudioDecoder::Error getError();
 
     void setTargetFilename(const QString &fileName);
 
