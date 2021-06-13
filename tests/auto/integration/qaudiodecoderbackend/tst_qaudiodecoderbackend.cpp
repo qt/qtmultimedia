@@ -35,6 +35,7 @@
 #define TEST_FILE_NAME "testdata/test.wav"
 #define TEST_UNSUPPORTED_FILE_NAME "testdata/test-unsupported.avi"
 #define TEST_CORRUPTED_FILE_NAME "testdata/test-corrupted.wav"
+#define TEST_INVALID_SOURCE "invalid"
 
 QT_USE_NAMESPACE
 
@@ -57,6 +58,7 @@ private slots:
     void fileTest();
     void unsupportedFileTest();
     void corruptedFileTest();
+    void invalidSource();
     void deviceTest();
 
 private:
@@ -418,6 +420,98 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
     QVERIFY(positionSpy.isEmpty());
     QVERIFY(durationSpy.isEmpty());
 
+
+    d.stop();
+    QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
+    QCOMPARE(d.duration(), qint64(-1));
+    QVERIFY(!d.bufferAvailable());
+}
+
+void tst_QAudioDecoderBackend::invalidSource()
+{
+    QAudioDecoder d;
+    if (d.error() == QAudioDecoder::NotSupportedError)
+        QSKIP("There is no audio decoding support on this platform.");
+    QAudioBuffer buffer;
+
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(d.bufferAvailable() == false);
+    QCOMPARE(d.source(), QUrl());
+    QVERIFY(d.audioFormat() == QAudioFormat());
+
+    // Test invalid file source
+    QFileInfo fileInfo(TEST_INVALID_SOURCE);
+    QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+    d.setSource(url);
+    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.bufferAvailable());
+    QCOMPARE(d.source(), url);
+
+    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
+    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
+    QSignalSpy stateSpy(&d, SIGNAL(stateChanged(QAudioDecoder::State)));
+    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
+    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
+    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
+
+    d.start();
+    QTRY_VERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.bufferAvailable());
+    QCOMPARE(d.audioFormat(), QAudioFormat());
+    QCOMPARE(d.duration(), qint64(-1));
+    QCOMPARE(d.position(), qint64(-1));
+
+    // Check the error code.
+    QTRY_VERIFY(!errorSpy.isEmpty());
+
+    // Have to use qvariant_cast, toInt will return 0 because unrecognized type;
+    QAudioDecoder::Error errorCode = qvariant_cast<QAudioDecoder::Error>(errorSpy.takeLast().at(0));
+    QCOMPARE(errorCode, QAudioDecoder::ResourceError);
+    QCOMPARE(d.error(), QAudioDecoder::ResourceError);
+
+    // Check all other spies.
+    QVERIFY(readySpy.isEmpty());
+    QVERIFY(bufferChangedSpy.isEmpty());
+    QVERIFY(stateSpy.isEmpty());
+    QVERIFY(finishedSpy.isEmpty());
+    QVERIFY(positionSpy.isEmpty());
+    QVERIFY(durationSpy.isEmpty());
+
+    errorSpy.clear();
+
+    d.stop();
+    QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
+    QCOMPARE(d.duration(), qint64(-1));
+    QVERIFY(!d.bufferAvailable());
+
+    QFile file;
+    file.setFileName(TEST_INVALID_SOURCE);
+    file.open(QIODevice::ReadOnly);
+    d.setSourceDevice(&file);
+
+    d.start();
+    QTRY_VERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.bufferAvailable());
+    QCOMPARE(d.audioFormat(), QAudioFormat());
+    QCOMPARE(d.duration(), qint64(-1));
+    QCOMPARE(d.position(), qint64(-1));
+
+    // Check the error code.
+    QTRY_VERIFY(!errorSpy.isEmpty());
+    errorCode = qvariant_cast<QAudioDecoder::Error>(errorSpy.takeLast().at(0));
+    QCOMPARE(errorCode, QAudioDecoder::AccessDeniedError);
+    QCOMPARE(d.error(), QAudioDecoder::AccessDeniedError);
+
+    // Check all other spies.
+    QVERIFY(readySpy.isEmpty());
+    QVERIFY(bufferChangedSpy.isEmpty());
+    QVERIFY(stateSpy.isEmpty());
+    QVERIFY(finishedSpy.isEmpty());
+    QVERIFY(positionSpy.isEmpty());
+    QVERIFY(durationSpy.isEmpty());
+
+    errorSpy.clear();
 
     d.stop();
     QTRY_COMPARE(d.state(), QAudioDecoder::StoppedState);
